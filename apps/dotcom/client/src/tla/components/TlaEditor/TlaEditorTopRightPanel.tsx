@@ -14,7 +14,7 @@ export function TlaEditorTopRightPanel({
 	context,
 }: {
 	isAnonUser: boolean
-	context: 'file' | 'published-file' | 'scratch'
+	context: 'file' | 'published-file' | 'scratch' | 'legacy'
 }) {
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)

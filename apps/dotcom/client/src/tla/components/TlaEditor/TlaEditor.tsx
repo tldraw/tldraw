@@ -1,26 +1,18 @@
 import { TlaFileOpenMode } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
 import {
-	DefaultKeyboardShortcutsDialog,
-	DefaultKeyboardShortcutsDialogContent,
 	Editor,
-	OfflineIndicator,
 	TLComponents,
 	TLSessionStateSnapshot,
 	TLUiDialogsContextType,
 	Tldraw,
-	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
 	assert,
 	createSessionStateSnapshotSignal,
 	react,
 	throttle,
 	tltime,
-	useActions,
 	useAtom,
-	useCollaborationStatus,
 	useDialogs,
 	useEditor,
 	useEvent,
@@ -31,18 +23,19 @@ import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
-import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useTldrawUser } from '../../hooks/useUser'
-import { defineMessages, useMsg } from '../../utils/i18n'
+import { defineMessages } from '../../utils/i18n'
 import { maybeSlurp } from '../../utils/slurping'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
-import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
-import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
-import styles from './editor.module.css'
+import { TlaEditorErrorFallback } from './components/TlaEditorErrorFallback'
+import { TlaEditorKeyboardShortcutsDialog } from './components/TlaEditorKeyboardShortcutsDialog'
+import { TlaEditorMenuPanel } from './components/TlaEditorMenuPanel'
+import { TlaEditorSharePanel } from './components/TlaEditorSharePanel'
+import { TlaEditorTopPanel } from './components/TlaEditorTopPanel'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { useFileEditorOverrides } from './useFileActions'
@@ -54,40 +47,11 @@ const messages = defineMessages({
 
 /** @internal */
 export const components: TLComponents = {
-	ErrorFallback: ({ error }) => {
-		throw error
-	},
-	KeyboardShortcutsDialog: (props) => {
-		const actions = useActions()
-		return (
-			<DefaultKeyboardShortcutsDialog {...props}>
-				<TldrawUiMenuGroup label={useMsg(messages.file)} id="file">
-					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
-				</TldrawUiMenuGroup>
-				<DefaultKeyboardShortcutsDialogContent />
-			</DefaultKeyboardShortcutsDialog>
-		)
-	},
-	MenuPanel: () => {
-		const app = useMaybeApp()
-		return <TlaEditorTopLeftPanel isAnonUser={!app} />
-	},
-	SharePanel: () => {
-		const app = useMaybeApp()
-		const fileSlug = useParams<{ fileSlug: string }>().fileSlug
-		return <TlaEditorTopRightPanel isAnonUser={!app} context={fileSlug ? 'file' : 'scratch'} />
-	},
-	TopPanel: () => {
-		const collaborationStatus = useCollaborationStatus()
-		if (collaborationStatus === 'offline') {
-			return (
-				<div className={styles.offlineIndicatorWrapper}>
-					<OfflineIndicator />{' '}
-				</div>
-			)
-		}
-		return null
-	},
+	ErrorFallback: TlaEditorErrorFallback,
+	KeyboardShortcutsDialog: TlaEditorKeyboardShortcutsDialog,
+	MenuPanel: TlaEditorMenuPanel,
+	TopPanel: TlaEditorTopPanel,
+	SharePanel: TlaEditorSharePanel,
 }
 
 interface TlaEditorProps {

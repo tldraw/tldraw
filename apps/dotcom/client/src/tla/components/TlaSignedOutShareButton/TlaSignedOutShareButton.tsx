@@ -8,7 +8,7 @@ export function TlaSignedOutShareButton({
 	context,
 }: {
 	fileId?: string
-	context: 'file' | 'published-file' | 'scratch'
+	context: 'file' | 'published-file' | 'scratch' | 'legacy'
 }) {
 	return (
 		<TlaFileShareMenu fileId={fileId} context={context} source="anon">

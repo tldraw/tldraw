@@ -7,14 +7,9 @@ import { editorMessages as messages } from '../editor-messages'
 export function SneakyLegacySetDocumentTitle() {
 	const editor = useValue('editor', () => globalEditor.get(), [])
 	const untitledProject = useMsg(messages.untitledProject)
-	const title = useValue(
-		'title',
-		() => {
-			console.log(editor)
-			console.log(editor?.getDocumentSettings().name)
-			return editor?.getDocumentSettings().name || untitledProject
-		},
-		[editor, untitledProject]
-	)
+	const title = useValue('title', () => editor?.getDocumentSettings().name || untitledProject, [
+		editor,
+		untitledProject,
+	])
 	return <Helmet title={`${title} • tldraw`} />
 }
