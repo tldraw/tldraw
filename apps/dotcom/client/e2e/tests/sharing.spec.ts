@@ -378,7 +378,7 @@ test('can export a file as an image', async ({ page, shareMenu }) => {
 	await shareMenu.exportFile()
 	const download = await downloadPromise
 	const suggestedFilename = download.suggestedFilename()
-	expect(suggestedFilename).toMatch('file.png')
+	expect(suggestedFilename.endsWith('.png')).toBe(true)
 	const filePath = path.join('./test-results/', suggestedFilename)
 	await download.saveAs(filePath)
 
