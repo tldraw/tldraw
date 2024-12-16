@@ -63,7 +63,7 @@ export function TlaSidebarRecentFiles() {
 	return (
 		<Fragment>
 			{results.pinnedFiles.length ? (
-				<TlaSidebarFileSection title={<F defaultMessage="Pinned" />}>
+				<TlaSidebarFileSection iconLeft="pin" title={<F defaultMessage="Pinned" />}>
 					{results.pinnedFiles.map((item, i) => (
 						<TlaSidebarFileLink
 							key={'file_link_pinned_' + item.fileId}
