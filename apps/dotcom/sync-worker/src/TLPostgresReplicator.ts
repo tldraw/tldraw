@@ -105,11 +105,13 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.sentry = createSentry(ctx, env)
 		this.sql = this.ctx.storage.sql
 
-		this.ctx
-			.blockConcurrencyWhile(async () => this._migrate())
-			.catch((e) => {
-				console.error('Migration error', e)
+		this.ctx.blockConcurrencyWhile(async () =>
+			this._migrate().catch((e) => {
+				this.captureException(e)
+				throw e
 			})
+		)
+
 		this.reboot(false)
 		this.alarm()
 		this.measure = env.MEASURE
@@ -124,7 +126,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		)
 	}
 
-	private _migrate() {
+	private async _migrate() {
 		let appliedMigrations: Migration[]
 		try {
 			appliedMigrations = this.sql
