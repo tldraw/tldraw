@@ -134,7 +134,6 @@ export const Emoji = Node.create<EmojiOptions>({
 						findChildrenInRange(newState.doc, newRange, (node) => node.type.isText).forEach(
 							({ node, pos }) => {
 								if (!node.text) return
-
 								;[...node.text.matchAll(/\p{Emoji_Presentation}/gu)].forEach((match) => {
 									if (match.index === undefined) return
 
