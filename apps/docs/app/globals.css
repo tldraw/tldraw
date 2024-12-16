@@ -61,25 +61,28 @@ div.hs-fieldtype-textarea {
 	@apply sm:col-span-2;
 }
 
-#hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 {
+[data-hs-forms-root] form {
 	@apply flex flex-col sm:grid-cols-2 sm:grid gap-4;
 }
 
-#hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 select {
+[data-hs-forms-root] select {
 	@apply w-full h-9 px-4 appearance-none rounded-lg text-white bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-900;
 }
+[data-hs-forms-root] select.is-placeholder {
+	@apply text-white/50;
+}
 
-#hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 input {
+[data-hs-forms-root] input {
 	@apply w-full h-9 px-4 rounded-lg text-white bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-900;
 }
 
-#hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 textarea {
+[data-hs-forms-root] textarea {
 	@apply -mb-1.5 w-full px-4 py-2 rounded-lg resize-none text-white bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-900;
 	height: 112px;
 }
 
 .hs-submit {
-	@apply overflow-hidden items-center col-start-2 p-2;
+	@apply overflow-hidden items-center col-start-1 col-span-2 p-2;
 }
 
 .hs-submit input {
@@ -88,4 +91,30 @@ div.hs-fieldtype-textarea {
 
 .hs_error_rollup {
 	@apply flex items-center;
+}
+
+.masked-logo {
+	position: relative;
+	background-color: currentColor;
+	z-index: 1;
+	color: inherit;
+}
+
+mark {
+	margin: 0 -0.4em;
+	padding: 0.1em 0.4em;
+	border-radius: 0.8em 0.3em;
+	background: transparent;
+	color: inherit;
+	background-image: linear-gradient(
+		to right,
+		rgba(255, 230, 0, 0),
+		rgba(255, 230, 0, 0) 1%,
+		rgba(255, 230, 0, 0.6) 6%,
+		rgba(255, 213, 0, 0.7) 88%,
+		rgba(255, 213, 0, 0) 99%,
+		rgba(255, 213, 0, 0)
+	);
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
 }

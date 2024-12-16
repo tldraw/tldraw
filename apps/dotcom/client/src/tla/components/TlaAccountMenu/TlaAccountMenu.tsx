@@ -15,6 +15,7 @@ import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { defineMessages, useMsg } from '../../utils/i18n'
+import { clearLocalSessionState } from '../../utils/local-session-state'
 import { TlaAppMenuGroup } from '../TlaAppMenuGroup/TlaAppMenuGroup'
 
 const messages = defineMessages({
@@ -57,7 +58,7 @@ function SignOutMenuItem({ source }: { source: TLAppUiEventSource }) {
 	const label = useMsg(messages.signOut)
 
 	const handleSignout = useCallback(() => {
-		auth.signOut()
+		auth.signOut().then(clearLocalSessionState)
 		trackEvent('sign-out-clicked', { source })
 	}, [auth, trackEvent, source])
 

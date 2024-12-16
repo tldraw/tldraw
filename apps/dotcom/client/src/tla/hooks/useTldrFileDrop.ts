@@ -1,6 +1,8 @@
 import { useAuth } from '@clerk/clerk-react'
 import { DragEvent, useCallback, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Editor, TLStoreSnapshot, parseTldrawJsonFile, tlmenus, useToasts } from 'tldraw'
+import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
 import { defineMessages, useIntl } from '../utils/i18n'
 import { useApp } from './useAppState'
@@ -14,6 +16,7 @@ const messages = defineMessages({
 
 export function useTldrFileDrop() {
 	const app = useApp()
+	const navigate = useNavigate()
 
 	const [isDraggingOver, setIsDraggingOver] = useState(false)
 
@@ -54,7 +57,7 @@ export function useTldrFileDrop() {
 					title: uploadingTitle,
 				})
 
-				await app.createFilesFromTldrFiles(snapshots, token)
+				const results = await app.createFilesFromTldrFiles(snapshots, token)
 
 				removeToast(id)
 				addToast({
@@ -62,9 +65,12 @@ export function useTldrFileDrop() {
 					title: addedTitle,
 					keepOpen: true,
 				})
+				if (results.slugs.length > 0) {
+					navigate(routes.tlaFile(results.slugs[0]))
+				}
 			}
 		},
-		[app, addToast, removeToast, auth, intl]
+		[app, addToast, removeToast, auth, intl, navigate]
 	)
 
 	const onDragOver = useCallback((e: DragEvent) => {

@@ -5,11 +5,20 @@
   "01c32a1e98": {
     "translation": "Sorry, you don’t have access to that file. If you know whose created the file, you can request a new invite link."
   },
+  "03b3e13197": {
+    "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
+  },
+  "043973ec1f": {
+    "translation": "Still having trouble? {GetHelpLink}"
+  },
   "05596b840b": {
     "translation": "Open tldraw."
   },
   "06b9281e39": {
     "translation": "Auto"
+  },
+  "07dbd11b21": {
+    "translation": "Untitled file"
   },
   "0b27918290": {
     "translation": "File"
@@ -32,11 +41,17 @@
   "1dd1c5fb7f": {
     "translation": "Today"
   },
+  "1f9696d5f2": {
+    "translation": "Export the content as a .tldr file: Go to 'File' > 'Save a copy'"
+  },
   "279f0531ff": {
     "translation": "Still having trouble? Let us know at <a>hello@tldraw.com</a>"
   },
-  "27de813139": {
-    "translation": "Private file"
+  "299cb00a7a": {
+    "translation": "Upload failed"
+  },
+  "31246941ad": {
+    "translation": "You need to sign in to view this file."
   },
   "31418ce4ad": {
     "translation": "i18n: Highlight Missing"
@@ -53,14 +68,17 @@
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
   },
+  "3c5e891bff": {
+    "translation": "Pinned"
+  },
   "424cc22417": {
     "translation": "Take me home"
   },
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
   },
-  "45b543cbb1": {
-    "translation": "Publish this project"
+  "44db318ee5": {
+    "translation": "Get help on Discord"
   },
   "47839e47a5": {
     "translation": "tldraw"
@@ -89,6 +107,9 @@
   "5a95a425f7": {
     "translation": "Share"
   },
+  "5d26ae7550": {
+    "translation": "We failed to upload some of the content you created before you signed in."
+  },
   "5fb63579fc": {
     "translation": "Copy"
   },
@@ -106,6 +127,9 @@
   },
   "6dc0836c1b": {
     "translation": "You do not have the necessary permissions to perform this action."
+  },
+  "6dfc62f621": {
+    "translation": "Follow these steps to import the content manually:"
   },
   "70a6facb9d": {
     "translation": "This week"
@@ -158,6 +182,9 @@
   "9bef626805": {
     "translation": "Delete file"
   },
+  "9ceb927baa": {
+    "translation": "Publish this file"
+  },
   "9e076f5885": {
     "translation": "Not found"
   },
@@ -189,8 +216,8 @@
   "b758336699": {
     "translation": "Copy link"
   },
-  "bbc5a713da": {
-    "translation": "Untitled project"
+  "bb792693e2": {
+    "translation": "Unpin"
   },
   "bc88b0e89e": {
     "translation": "Shared by {ownerName}"
@@ -213,6 +240,9 @@
   "c87aacf567": {
     "translation": "Sign out"
   },
+  "cceaefbc20": {
+    "translation": "Share this file"
+  },
   "cd15a75c26": {
     "translation": "SVG"
   },
@@ -228,20 +258,29 @@
   "d4bbf74f3e": {
     "translation": "Toggle sidebar"
   },
-  "d6381957f5": {
-    "translation": "Share this project"
-  },
   "d721757161": {
     "translation": "Theme"
   },
+  "d876a9fe1a": {
+    "translation": "Try Again"
+  },
+  "d9100f3e10": {
+    "translation": "Go here to see the content"
+  },
   "d9fe660e4e": {
     "translation": "Sorry, you don’t have access to that workspace."
+  },
+  "dbbebf3c03": {
+    "translation": "Invite only"
   },
   "dfdb78a4e4": {
     "translation": "App debug flags"
   },
   "e2cd8064c2": {
     "translation": "Sorry, you don’t have access to that user."
+  },
+  "e78e14c5f1": {
+    "translation": "Pin"
   },
   "ea4788705e": {
     "translation": "Cancel"

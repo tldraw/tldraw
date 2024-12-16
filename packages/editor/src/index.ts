@@ -25,6 +25,7 @@ export {
 	useStateTracking,
 	useValue,
 } from '@tldraw/state-react'
+export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalIndexedDb'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star

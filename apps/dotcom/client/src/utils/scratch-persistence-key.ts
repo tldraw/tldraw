@@ -9,11 +9,19 @@
  * users it does not need to be unique and we can just use a constant.
  */
 
-import { getFromLocalStorage, setInLocalStorage } from 'tldraw'
+import { getFromLocalStorage, setInLocalStorage, uniqueId } from 'tldraw'
 
 // DO NOT CHANGE THESE WITHOUT ADDING MIGRATION LOGIC. DOING SO WOULD WIPE ALL EXISTING LOCAL DATA.
 const defaultDocumentKey = 'TLDRAW_DEFAULT_DOCUMENT_NAME_v2'
 
-export const SCRATCH_PERSISTENCE_KEY =
-	getFromLocalStorage(defaultDocumentKey) ?? 'tldraw_document_v3'
-setInLocalStorage(defaultDocumentKey, SCRATCH_PERSISTENCE_KEY)
+export function getScratchPersistenceKey() {
+	return getFromLocalStorage(defaultDocumentKey) ?? 'tldraw_document_v3'
+}
+
+setInLocalStorage(defaultDocumentKey, getScratchPersistenceKey())
+
+export function resetScratchPersistenceKey() {
+	const id = 'tldraw_document_v3_' + uniqueId()
+	setInLocalStorage(defaultDocumentKey, id)
+	return id
+}
