@@ -1,5 +1,5 @@
 import test, { Page, expect } from '@playwright/test'
-import { BoxModel, Editor, TLNoteShape, TLShapeId } from 'tldraw'
+import { BoxModel, Editor, TLNoteShape, TLShapeId, convertTextToTipTapDocument } from 'tldraw'
 import { setupPage } from '../shared-e2e'
 
 const measureTextOptions = {
@@ -242,14 +242,14 @@ test.describe('text measurement', () => {
 	test('for auto-font-sizing shapes, should do normal font size for text that does not have long words', async () => {
 		const shape = await page.evaluate(() => {
 			const id = 'shape:testShape' as TLShapeId
-			editor.createShapes([
+			editor.createShapes<TLNoteShape>([
 				{
 					id,
 					type: 'note',
 					x: 0,
 					y: 0,
 					props: {
-						text: 'this is just some regular text',
+						richText: convertTextToTipTapDocument('this is just some regular text'),
 						size: 'xl',
 					},
 				},
@@ -264,14 +264,14 @@ test.describe('text measurement', () => {
 	test('for auto-font-sizing shapes, should auto-size text that have slightly long words', async () => {
 		const shape = await page.evaluate(() => {
 			const id = 'shape:testShape' as TLShapeId
-			editor.createShapes([
+			editor.createShapes<TLNoteShape>([
 				{
 					id,
 					type: 'note',
 					x: 0,
 					y: 0,
 					props: {
-						text: 'Amsterdam',
+						richText: convertTextToTipTapDocument('Amsterdam'),
 						size: 'xl',
 					},
 				},
@@ -286,14 +286,14 @@ test.describe('text measurement', () => {
 	test('for auto-font-sizing shapes, should auto-size text that have long words', async () => {
 		const shape = await page.evaluate(() => {
 			const id = 'shape:testShape' as TLShapeId
-			editor.createShapes([
+			editor.createShapes<TLNoteShape>([
 				{
 					id,
 					type: 'note',
 					x: 0,
 					y: 0,
 					props: {
-						text: 'this is a tentoonstelling',
+						richText: convertTextToTipTapDocument('this is a tentoonstelling'),
 						size: 'xl',
 					},
 				},
@@ -308,14 +308,16 @@ test.describe('text measurement', () => {
 	test('for auto-font-sizing shapes, should wrap text that has words that are way too long', async () => {
 		const shape = await page.evaluate(() => {
 			const id = 'shape:testShape' as TLShapeId
-			editor.createShapes([
+			editor.createShapes<TLNoteShape>([
 				{
 					id,
 					type: 'note',
 					x: 0,
 					y: 0,
 					props: {
-						text: 'a very long dutch word like ziekenhuisinrichtingsmaatschappij',
+						richText: convertTextToTipTapDocument(
+							'a very long dutch word like ziekenhuisinrichtingsmaatschappij'
+						),
 						size: 'xl',
 					},
 				},
