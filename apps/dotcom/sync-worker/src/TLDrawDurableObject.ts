@@ -305,7 +305,7 @@ export class TLDrawDurableObject extends DurableObject {
 			return this._fileRecordCache
 		}
 		try {
-			const postgres = getPostgres(this.env, { pooled: true })
+			const postgres = getPostgres(this.env, { pooled: true, name: 'TLDrawDurableObject' })
 			const fileRecord =
 				await postgres`SELECT * FROM public.file WHERE ID = ${this.documentInfo.slug}`
 			this._fileRecordCache = fileRecord[0] as TlaFile
@@ -588,7 +588,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 				// Update the updatedAt timestamp in the database
 				if (this.documentInfo.isApp) {
-					const pg = getPostgres(this.env, { pooled: true })
+					const pg = getPostgres(this.env, { pooled: true, name: 'TLDrawDurableObject' })
 					await pg`UPDATE public.file SET "updatedAt" = ${new Date().getTime()} WHERE id = ${this.documentInfo.slug}`
 					await pg.end()
 				}
