@@ -1,8 +1,8 @@
 ---
 title: Rich text with custom extension and custom toolbar
 component: ./RichTextCustomExtension.tsx
-category: basic
-priority: 3
+category: shapes/tools
+priority: 1
 keywords: [text, tip, tap, extension, toolbar]
 ---
 

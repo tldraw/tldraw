@@ -1,6 +1,8 @@
 import { Extensions, generateHTML, generateText } from '@tiptap/core'
 import Highlight from '@tiptap/extension-highlight'
 import Link from '@tiptap/extension-link'
+import { DOMParser } from '@tiptap/pm/model'
+import { schema } from '@tiptap/pm/schema-basic'
 import StarterKit from '@tiptap/starter-kit'
 import { Editor } from '@tldraw/editor'
 
@@ -59,4 +61,12 @@ export function renderPlaintextFromRichText(editor: Editor, richText: string) {
 	const tipTapExtensions =
 		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
 	return generateText(JSON.parse(richText), tipTapExtensions)
+}
+
+/** @internal */
+export function createTipTapDocumentFromText(text: string) {
+	const tempDiv = document.createElement('div')
+	tempDiv.textContent = text
+
+	return DOMParser.fromSchema(schema).parse(tempDiv)
 }

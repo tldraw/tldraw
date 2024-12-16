@@ -34,6 +34,7 @@ import { ReactElement } from 'react';
 import { ReactNode } from 'react';
 import { RecordProps } from '@tldraw/tlschema';
 import { RecordsDiff } from '@tldraw/store';
+import { RefObject } from 'react';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { SetStateAction } from 'react';
@@ -3778,10 +3779,10 @@ export function useMaybeEditor(): Editor | null;
 export function useOnMount(onMount?: TLOnMountHandler): void;
 
 // @public (undocumented)
-export function usePassThroughMouseOverEvents(elm: HTMLElement | null): void;
+export function usePassThroughMouseOverEvents(ref: RefObject<HTMLElement>): void;
 
 // @public (undocumented)
-export function usePassThroughWheelEvents(elm: HTMLElement | null): void;
+export function usePassThroughWheelEvents(ref: RefObject<HTMLElement>): void;
 
 // @internal (undocumented)
 export function usePeerIds(): string[];

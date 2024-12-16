@@ -37,8 +37,8 @@ export const TldrawUiContextualToolbar = React.forwardRef<
 	},
 	toolbarRef
 ) {
-	usePassThroughWheelEvents((toolbarRef as RefObject<HTMLDivElement>).current)
-	usePassThroughMouseOverEvents((toolbarRef as RefObject<HTMLDivElement>).current)
+	usePassThroughWheelEvents(toolbarRef as RefObject<HTMLDivElement>)
+	usePassThroughMouseOverEvents(toolbarRef as RefObject<HTMLDivElement>)
 
 	return (
 		<div

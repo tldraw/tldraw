@@ -985,7 +985,7 @@
 	pointer-events: none;
 }
 
-@media (any-pointer: coarse) {
+@media (max-width: 640px) {
 	.tl-contextual-toolbar .tl-contextual-toolbar__indicator {
 		display: none;
 	}

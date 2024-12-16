@@ -1,9 +1,10 @@
-import { useEffect } from 'react'
+import { RefObject, useEffect } from 'react'
 import { preventDefault } from '../utils/dom'
 import { useContainer } from './useContainer'
 
 /** @public */
-export function usePassThroughWheelEvents(elm: HTMLElement | null) {
+export function usePassThroughWheelEvents(ref: RefObject<HTMLElement>) {
+	if (!ref) throw Error('usePassThroughWheelEvents must be passed a ref')
 	const container = useContainer()
 
 	useEffect(() => {
@@ -17,11 +18,12 @@ export function usePassThroughWheelEvents(elm: HTMLElement | null) {
 			cvs.dispatchEvent(newEvent)
 		}
 
+		const elm = ref.current
 		if (!elm) return
 
 		elm.addEventListener('wheel', onWheel, { passive: false })
 		return () => {
 			elm.removeEventListener('wheel', onWheel)
 		}
-	}, [container, elm])
+	}, [container, ref])
 }

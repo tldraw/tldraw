@@ -478,6 +478,7 @@ export {
 	setDefaultEditorAssetUrls,
 	type TLEditorAssetUrls,
 } from './lib/utils/static-assets/assetUrls'
+export { tipTapDefaultExtensions } from './lib/utils/text/richText'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
 export {
 	TLV1AlignStyle,
