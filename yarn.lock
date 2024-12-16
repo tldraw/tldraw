@@ -10359,10 +10359,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"canvas-size@npm:~2.0.0":
+"canvas-size@npm:2.0.0":
   version: 2.0.0
   resolution: "canvas-size@npm:2.0.0"
   checksum: 9062b02cca85091a4e1e68603e06acfe2076c4a0ec0f9b95faea9f8650586da73fc4d1663a55f442919d18f64a21ceb49712f500d91a0601cd9ed138bc8ee1dd
+  languageName: node
+  linkType: hard
+
+"canvas-size@patch:canvas-size@npm%3A2.0.0#~/.yarn/patches/canvas-size-npm-2.0.0-822398a242.patch":
+  version: 2.0.0
+  resolution: "canvas-size@patch:canvas-size@npm%3A2.0.0#~/.yarn/patches/canvas-size-npm-2.0.0-822398a242.patch::version=2.0.0&hash=2aee24"
+  checksum: fb9631b58844ee205a22cd5845833006bfaeed8eb062bef535746f89283bd15e330eaefb16f08c631ac983266f9bff4b08457befdd245dc0ecbc90d992578932
   languageName: node
   linkType: hard
 
