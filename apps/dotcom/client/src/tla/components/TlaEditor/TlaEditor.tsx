@@ -27,23 +27,17 @@ import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useTldrawUser } from '../../hooks/useUser'
-import { defineMessages } from '../../utils/i18n'
 import { maybeSlurp } from '../../utils/slurping'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
-import { TlaEditorErrorFallback } from './components/TlaEditorErrorFallback'
-import { TlaEditorKeyboardShortcutsDialog } from './components/TlaEditorKeyboardShortcutsDialog'
-import { TlaEditorMenuPanel } from './components/TlaEditorMenuPanel'
-import { TlaEditorSharePanel } from './components/TlaEditorSharePanel'
-import { TlaEditorTopPanel } from './components/TlaEditorTopPanel'
+import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
+import { TlaEditorKeyboardShortcutsDialog } from './editor-components/TlaEditorKeyboardShortcutsDialog'
+import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
+import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
+import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
-import { useFileEditorOverrides } from './useFileActions'
-
-const messages = defineMessages({
-	file: { defaultMessage: 'File' },
-	untitledProject: { defaultMessage: 'Untitled file' },
-})
+import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 /** @internal */
 export const components: TLComponents = {

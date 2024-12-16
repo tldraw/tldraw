@@ -108,10 +108,10 @@ export function TlaEditorTopLeftPanelAnonymous() {
 						</button>
 					</TldrawUiDropdownMenuTrigger>
 					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
-						<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
 						<EditSubmenu />
 						<ViewSubmenu />
 						<ExportFileContentSubMenu />
+						<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
 						<ExtrasGroup />
 						<TlaAppMenuGroupLazyFlipped />
 						<TldrawUiMenuGroup id="signin">
