@@ -81,6 +81,8 @@ export interface ErrorResult<E> {
 export class ExecutionQueue {
     constructor(timeout?: number | undefined);
     // (undocumented)
+    close(): void;
+    // (undocumented)
     push<T>(task: () => T): Promise<Awaited<T>>;
 }
 
