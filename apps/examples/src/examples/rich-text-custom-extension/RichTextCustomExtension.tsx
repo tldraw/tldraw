@@ -1,4 +1,4 @@
-import { Mark, Editor as TextEditor, mergeAttributes } from '@tiptap/core'
+import { Mark, mergeAttributes } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import {
 	DefaultRichTextToolbar,
@@ -71,18 +71,16 @@ const Wavy = Mark.create<WavyExtensionOptions>({
 const components: TLComponents = {
 	RichTextToolbar: () => {
 		const editor = useEditor()
-		const textEditor: TextEditor = useValue(
-			'textEditor',
-			() => editor.getEditingShapeTextEditor(),
-			[editor]
-		)
+		const textEditor = useValue('textEditor', () => editor.getEditingShapeTipTapTextEditor(), [
+			editor,
+		])
 
 		return (
 			<DefaultRichTextToolbar>
 				<TldrawUiButton
 					type="icon"
 					onClick={() => {
-						textEditor.chain().focus().toggleWavy().run()
+						textEditor?.chain().focus().toggleWavy().run()
 					}}
 				>
 					〰️

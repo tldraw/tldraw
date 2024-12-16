@@ -17,7 +17,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 	const breakpoint = useBreakpoint()
 
 	const ref = useRef<HTMLDivElement>(null)
-	usePassThroughWheelEvents(ref.current)
+	usePassThroughWheelEvents(ref)
 
 	const [collapsed, setCollapsed] = useLocalStorageState('minimap', true)
 

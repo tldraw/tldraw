@@ -20,7 +20,7 @@ const components: TLComponents = {
 	},
 	SharePanel: () => {
 		const ref = useRef<HTMLDivElement>(null)
-		usePassThroughWheelEvents(ref.current)
+		usePassThroughWheelEvents(ref)
 		const isAnonUser = !useMaybeApp()
 		return <TlaEditorTopRightPanel isAnonUser={isAnonUser} context="published-file" />
 	},

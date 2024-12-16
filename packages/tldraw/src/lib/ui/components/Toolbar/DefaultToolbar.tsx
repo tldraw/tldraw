@@ -29,7 +29,7 @@ export const DefaultToolbar = memo(function DefaultToolbar({ children }: Default
 	const activeToolId = useValue('current tool id', () => editor.getCurrentToolId(), [editor])
 
 	const ref = useRef<HTMLDivElement>(null)
-	usePassThroughWheelEvents(ref.current)
+	usePassThroughWheelEvents(ref)
 
 	const { ActionsMenu, QuickActions } = useTldrawUiComponents()
 

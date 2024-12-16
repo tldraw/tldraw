@@ -1,8 +1,20 @@
-import { Extensions, generateHTML, generateText } from '@tiptap/core'
+import { Extension, Extensions, generateHTML, generateText } from '@tiptap/core'
 import Highlight from '@tiptap/extension-highlight'
 import Link from '@tiptap/extension-link'
+import { DOMParser } from '@tiptap/pm/model'
+import { schema } from '@tiptap/pm/schema-basic'
 import StarterKit from '@tiptap/starter-kit'
 import { Editor } from '@tldraw/editor'
+
+const KeyboardShiftEnterTweakExtension = Extension.create({
+	name: 'keyboardShiftEnterHandler',
+	addKeyboardShortcuts() {
+		return {
+			// We don't support soft breaks, so we just use the default enter command.
+			'Shift-Enter': ({ editor }) => editor.commands.enter(),
+		}
+	},
+})
 
 /**
  * Default extensions for the TipTap editor.
@@ -16,6 +28,7 @@ export const tipTapDefaultExtensions: Extensions = [
 		autolink: true,
 	}),
 	Highlight,
+	KeyboardShiftEnterTweakExtension,
 ]
 
 /**
@@ -59,4 +72,12 @@ export function renderPlaintextFromRichText(editor: Editor, richText: string) {
 	const tipTapExtensions =
 		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
 	return generateText(JSON.parse(richText), tipTapExtensions)
+}
+
+/** @internal */
+export function createTipTapDocumentFromText(text: string) {
+	const tempDiv = document.createElement('div')
+	tempDiv.textContent = text
+
+	return DOMParser.fromSchema(schema).parse(tempDiv)
 }

@@ -28,7 +28,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 	const isReadonlyMode = useReadonly()
 
 	const ref = useRef<HTMLDivElement>(null)
-	usePassThroughWheelEvents(ref.current)
+	usePassThroughWheelEvents(ref)
 
 	const editor = useEditor()
 	const isInAcceptableReadonlyState = useValue(

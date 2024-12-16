@@ -17,7 +17,7 @@ export function TlaEditorTopRightPanel({
 	context: 'file' | 'published-file' | 'scratch'
 }) {
 	const ref = useRef<HTMLDivElement>(null)
-	usePassThroughWheelEvents(ref.current)
+	usePassThroughWheelEvents(ref)
 	const fileId = useCurrentFileId()
 
 	if (isAnonUser) {

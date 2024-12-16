@@ -49,7 +49,7 @@ export function useEditableText(shapeId: TLShapeId, type: string, text: string, 
 
 		// XXX(mime): This fixes iOS not showing the cursor sometimes.
 		// This "shakes" the cursor awake.
-		if (tlenv.isSafari) {
+		if (tlenv.isSafari && rInput.current instanceof HTMLTextAreaElement) {
 			rInput.current?.blur()
 			rInput.current?.focus()
 		}

@@ -1,5 +1,7 @@
 import { Box, useEditor, useValue } from '@tldraw/editor'
 import { RefObject } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../constants'
+import { useBreakpoint } from '../context/breakpoints'
 import useViewportHeight from './useViewportHeight'
 
 const defaultPosition = {
@@ -34,15 +36,14 @@ export function useContextualToolbarPosition({
 	selectionBounds?: Box
 }) {
 	const editor = useEditor()
-	const selectionToPageBox = useValue('selectionToPageBox', () => editor.getSelectionToPageBox(), [
-		editor,
-	])
-	const container = editor.getContainer()
-	const isCoarsePointer = useValue(
-		'isCoarsePointer',
-		() => editor.getInstanceState().isCoarsePointer,
+	const breakpoint = useBreakpoint()
+	const selectionToPageBox = useValue(
+		'selectionToPageBox',
+		() => editor.getSelectionRotatedViewportBounds(),
 		[editor]
 	)
+	const container = editor.getContainer()
+	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 	const viewportHeight = useViewportHeight()
 	selectionBounds = selectionBounds ?? selectionToPageBox
 
@@ -53,7 +54,7 @@ export function useContextualToolbarPosition({
 		return defaultPosition
 	}
 
-	if (isCoarsePointer || !selectionBounds || isNaN(selectionBounds.x) || isNaN(selectionBounds.y)) {
+	if (isMobile || !selectionBounds || isNaN(selectionBounds.x) || isNaN(selectionBounds.y)) {
 		return {
 			x: container.clientWidth / 2 - menuWidth / 2,
 			y: viewportHeight - menuHeight - 16,

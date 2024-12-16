@@ -1,3 +1,4 @@
+import { Editor as TextEditor } from '@tiptap/core'
 import { EMPTY_ARRAY, atom, computed, react, transact, unsafe__withoutCapture } from '@tldraw/state'
 import {
 	ComputedCache,
@@ -1904,7 +1905,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 * @public
 	 */
-	@computed getSelectionToPageBox(): Box {
+	@computed getSelectionRotatedViewportBounds(): Box {
 		const selectionBounds = this.getSelectionRotatedPageBounds()
 		const camera = this.getCamera()
 		const pageCoordinates = selectionBounds
@@ -2057,15 +2058,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	private _currentTextEditor = atom('text editor', null as any)
+	private _currentTipTapTextEditor = atom('tip tap text editor', null as TextEditor | null)
 
 	/**
 	 * The current editing shape's text editor.
 	 *
 	 * @public
 	 */
-	@computed getEditingShapeTextEditor(): any {
-		return this._currentTextEditor.get()
+	@computed getEditingShapeTipTapTextEditor(): TextEditor | null {
+		return this._currentTipTapTextEditor.get()
 	}
 
 	/**
@@ -2080,8 +2081,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setEditingShapeTextEditor(textEditor: any) {
-		this._currentTextEditor.set(textEditor)
+	setEditingShapeTextEditor(textEditor: TextEditor | null) {
+		this._currentTipTapTextEditor.set(textEditor)
 	}
 
 	// Hovered

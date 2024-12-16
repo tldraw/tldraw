@@ -207,6 +207,7 @@ export function getNoteShapeForAdjacentPosition(
 				...shape.props,
 				// ...except for these values, which should reset to their defaults
 				text: '',
+				richText: '',
 				growY: 0,
 				fontSizeAdjustment: 0,
 				url: '',

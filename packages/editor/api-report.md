@@ -13,6 +13,7 @@ import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
 import { Dispatch } from 'react';
+import { Editor as Editor_2 } from '@tiptap/core';
 import { EditorProviderProps } from '@tiptap/react';
 import { EffectScheduler } from '@tldraw/state';
 import { EMPTY_ARRAY } from '@tldraw/state';
@@ -34,6 +35,7 @@ import { ReactElement } from 'react';
 import { ReactNode } from 'react';
 import { RecordProps } from '@tldraw/tlschema';
 import { RecordsDiff } from '@tldraw/store';
+import { RefObject } from 'react';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { SetStateAction } from 'react';
@@ -1000,7 +1002,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
     getEditingShape(): TLShape | undefined;
     getEditingShapeId(): null | TLShapeId;
-    getEditingShapeTextEditor(): any;
+    getEditingShapeTipTapTextEditor(): null | Editor_2;
     getErasingShapeIds(): TLShapeId[];
     getErasingShapes(): NonNullable<TLShape | undefined>[];
     getFocusedGroup(): TLShape | undefined;
@@ -1040,8 +1042,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSelectionPageBounds(): Box | null;
     getSelectionRotatedPageBounds(): Box | undefined;
     getSelectionRotatedScreenBounds(): Box | undefined;
+    getSelectionRotatedViewportBounds(): Box;
     getSelectionRotation(): number;
-    getSelectionToPageBox(): Box;
     getShape<T extends TLShape = TLShape>(shape: TLParentId | TLShape): T | undefined;
     getShapeAncestors(shape: TLShape | TLShapeId, acc?: TLShape[]): TLShape[];
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
@@ -1240,7 +1242,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setCurrentTool(id: string, info?: {}): this;
     setCursor(cursor: Partial<TLCursor>): this;
     setEditingShape(shape: null | TLShape | TLShapeId): this;
-    setEditingShapeTextEditor(textEditor: any): void;
+    setEditingShapeTextEditor(textEditor: null | Editor_2): void;
     setErasingShapes(shapes: TLShape[] | TLShapeId[]): this;
     setFocusedGroup(shape: null | TLGroupShape | TLShapeId): this;
     setHintingShapes(shapes: TLShape[] | TLShapeId[]): this;
@@ -3778,10 +3780,10 @@ export function useMaybeEditor(): Editor | null;
 export function useOnMount(onMount?: TLOnMountHandler): void;
 
 // @public (undocumented)
-export function usePassThroughMouseOverEvents(elm: HTMLElement | null): void;
+export function usePassThroughMouseOverEvents(ref: RefObject<HTMLElement>): void;
 
 // @public (undocumented)
-export function usePassThroughWheelEvents(elm: HTMLElement | null): void;
+export function usePassThroughWheelEvents(ref: RefObject<HTMLElement>): void;
 
 // @internal (undocumented)
 export function usePeerIds(): string[];
