@@ -457,9 +457,9 @@ export { useDefaultHelpers, type TLUiOverrideHelpers, type TLUiOverrides } from 
 export { containBoxSize, downsizeImage, type BoxWidthHeight } from './lib/utils/assets/assets'
 export { preloadFont, type TLTypeFace } from './lib/utils/assets/preload-font'
 export { getEmbedInfo, type TLEmbedResult } from './lib/utils/embeds/embeds'
-export { copyAs, type TLCopyType } from './lib/utils/export/copyAs'
+export { copyAs, type CopyAsOptions, type TLCopyType } from './lib/utils/export/copyAs'
 export { exportToBlob } from './lib/utils/export/export'
-export { exportAs, type TLExportType } from './lib/utils/export/exportAs'
+export { exportAs, type ExportAsOptions } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export {
 	defaultEditorAssetUrls,

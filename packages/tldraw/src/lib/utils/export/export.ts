@@ -1,11 +1,13 @@
-import { Editor, TLImageExportOptions, TLShapeId, exhaustiveSwitchError } from '@tldraw/editor'
-import { TLExportType } from './exportAs'
+import {
+	Editor,
+	TLExportType,
+	TLImageExportOptions,
+	TLShapeId,
+	exhaustiveSwitchError,
+} from '@tldraw/editor'
 
 async function getSvgString(editor: Editor, ids: TLShapeId[], opts: TLImageExportOptions) {
-	const svg = await editor.getSvgString(
-		ids?.length ? ids : [...editor.getCurrentPageShapeIds()],
-		opts
-	)
+	const svg = await editor.getSvgString(ids, opts)
 	if (!svg) {
 		throw new Error('Could not construct SVG.')
 	}

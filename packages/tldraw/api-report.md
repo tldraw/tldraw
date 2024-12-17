@@ -74,6 +74,7 @@ import { TLEditorComponents } from '@tldraw/editor';
 import { TLEditorSnapshot } from '@tldraw/editor';
 import { TLEmbedShape } from '@tldraw/editor';
 import { TLEmbedShapeProps } from '@tldraw/editor';
+import { TLExportType } from '@tldraw/editor';
 import { TLFrameShape } from '@tldraw/editor';
 import { TLFrameShapeProps } from '@tldraw/editor';
 import { TLGeoShape } from '@tldraw/editor';
@@ -401,9 +402,7 @@ export function ConvertToBookmarkMenuItem(): JSX_2.Element | null;
 export function ConvertToEmbedMenuItem(): JSX_2.Element | null;
 
 // @public
-export function copyAs(editor: Editor, ids: TLShapeId[], opts: TLImageExportOptions & {
-    format: TLCopyType;
-}): Promise<void>;
+export function copyAs(editor: Editor, ids: TLShapeId[], opts: CopyAsOptions): Promise<void>;
 
 // @public @deprecated (undocumented)
 export function copyAs(editor: Editor, ids: TLShapeId[], format: TLCopyType, opts?: TLImageExportOptions & {
@@ -412,6 +411,11 @@ export function copyAs(editor: Editor, ids: TLShapeId[], format: TLCopyType, opt
 
 // @public (undocumented)
 export function CopyAsMenuGroup(): JSX_2.Element;
+
+// @public (undocumented)
+export interface CopyAsOptions extends TLImageExportOptions {
+    format: TLCopyType;
+}
 
 // @public (undocumented)
 export function CopyMenuItem(): JSX_2.Element;
@@ -972,13 +976,16 @@ export interface ExampleDialogProps {
 }
 
 // @public
-export function exportAs(editor: Editor, ids: TLShapeId[], opts: TLImageExportOptions & {
-    format: TLExportType;
-    name?: string;
-}): Promise<void>;
+export function exportAs(editor: Editor, ids: TLShapeId[], opts: ExportAsOptions): Promise<void>;
 
 // @public @deprecated (undocumented)
 export function exportAs(editor: Editor, ids: TLShapeId[], format?: TLExportType, name?: string, opts?: TLImageExportOptions): Promise<void>;
+
+// @public (undocumented)
+export interface ExportAsOptions extends TLImageExportOptions {
+    format: TLExportType;
+    name?: string;
+}
 
 // @public (undocumented)
 export function ExportFileContentSubMenu(): JSX_2.Element;
@@ -2233,9 +2240,6 @@ export type TLEmbedResult = {
 export type TLEmbedShapePermissions = {
     [K in keyof typeof embedShapePermissionDefaults]?: boolean;
 };
-
-// @public (undocumented)
-export type TLExportType = 'jpeg' | 'png' | 'svg' | 'webp';
 
 // @public (undocumented)
 export interface TLExternalContentProps {

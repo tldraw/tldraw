@@ -53,7 +53,7 @@ export interface TLAssetContext {
 	 * If the asset is 1000px wide, but it's been resized/zoom so it takes 500px on-screen, this
 	 * will be 0.5.
 	 *
-	 * The scale measured CSS pixels, not device pixels.
+	 * The scale measures CSS pixels, not device pixels.
 	 */
 	screenScale: number
 	/** The {@link TLAssetContext.screenScale}, stepped to the nearest power-of-2 multiple. */

@@ -3121,6 +3121,9 @@ export type TLEventName = 'cancel' | 'complete' | 'interrupt' | 'tick' | 'wheel'
 export type TLExitEventHandler = (info: any, to: string) => void;
 
 // @public (undocumented)
+export type TLExportType = 'jpeg' | 'png' | 'svg' | 'webp';
+
+// @public (undocumented)
 export type TLExternalAssetContent = {
     assetId?: TLAssetId;
     file: File;
@@ -3238,7 +3241,7 @@ export interface TLHistoryMark {
 
 // @public (undocumented)
 export interface TLImageExportOptions extends TLSvgExportOptions {
-    format?: 'jpeg' | 'png' | 'svg' | 'webp';
+    format?: TLExportType;
     quality?: number;
 }
 

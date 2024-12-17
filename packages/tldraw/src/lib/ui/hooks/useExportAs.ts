@@ -1,6 +1,6 @@
-import { TLShapeId, useEditor } from '@tldraw/editor'
+import { TLExportType, TLShapeId, useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
-import { TLExportType, exportAs } from '../../utils/export/exportAs'
+import { exportAs } from '../../utils/export/exportAs'
 import { useToasts } from '../context/toasts'
 import { useTranslation } from './useTranslation/useTranslation'
 
@@ -16,7 +16,6 @@ export function useExportAs() {
 				format,
 				name,
 				scale: 1,
-				background: editor.getInstanceState().exportBackground,
 			}).catch((e) => {
 				console.error(e.message)
 				addToast({

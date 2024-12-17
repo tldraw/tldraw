@@ -15,21 +15,23 @@ import { exportToImagePromise } from './export'
 /** @public */
 export type TLCopyType = 'svg' | 'png'
 
+/** @public */
+export interface CopyAsOptions extends TLImageExportOptions {
+	/** The format to copy as. */
+	format: TLCopyType
+}
+
 /**
  * Copy the given shapes to the clipboard.
  *
  * @param editor - The editor instance.
  * @param ids - The ids of the shapes to copy.
- * @param format - The format to copy as.
+ * @param format - The format to copy as. Defaults to png.
  * @param opts - Options for the copy.
  *
  * @public
  */
-export function copyAs(
-	editor: Editor,
-	ids: TLShapeId[],
-	opts: TLImageExportOptions & { format: TLCopyType }
-): Promise<void>
+export function copyAs(editor: Editor, ids: TLShapeId[], opts: CopyAsOptions): Promise<void>
 /**
  * @deprecated The format parameter is now part of the opts object.
  * @public
@@ -76,10 +78,7 @@ export function copyAs(
 	switch (opts.format) {
 		case 'svg': {
 			return fallbackWriteTextAsync(async () => {
-				const result = await editor.getSvgString(
-					ids.length ? ids : [...editor.getCurrentPageShapeIds()],
-					opts
-				)
+				const result = await editor.getSvgString(ids, opts)
 
 				if (!result) throw new Error('Failed to copy')
 				return result.svg

@@ -48,9 +48,10 @@ export interface SvgExportContext {
 	readonly scale: number
 
 	/**
-	 * If the ultimate target for this export is a raster image, this is the number of raster pixels
-	 * in the resulting bitmap per CSS pixel in the resulting SVG. If this value is null, the export
-	 * is to svg, and assets should not be downscaled.
+	 * Use this value to optionally downscale images in the export. If we're exporting directly to
+	 * an SVG, this will usually be null, and you shouldn't downscale images. If the export is to a
+	 * raster format like PNG, this will be the number of raster pixels in the resulting bitmap per
+	 * CSS pixel in the resulting SVG.
 	 */
 	readonly pixelRatio: number | null
 }

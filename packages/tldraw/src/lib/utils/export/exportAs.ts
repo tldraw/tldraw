@@ -1,10 +1,15 @@
-import { Editor, sanitizeId, TLFrameShape, TLImageExportOptions, TLShapeId } from '@tldraw/editor'
-
-/** @public */
-export type TLExportType = 'svg' | 'png' | 'jpeg' | 'webp'
+import {
+	Editor,
+	sanitizeId,
+	TLExportType,
+	TLFrameShape,
+	TLImageExportOptions,
+	TLShapeId,
+} from '@tldraw/editor'
 
 /** @public */
 export interface ExportAsOptions extends TLImageExportOptions {
+	/** {@inheritdoc @tldraw/editor#TLImageExportOptions.format} */
 	format: TLExportType
 	/** Name of the exported file. If undefined a predefined name, based on the selection, will be used. */
 	name?: string
@@ -22,7 +27,7 @@ export interface ExportAsOptions extends TLImageExportOptions {
 export async function exportAs(
 	editor: Editor,
 	ids: TLShapeId[],
-	opts: TLImageExportOptions & { format: TLExportType; name?: string }
+	opts: ExportAsOptions
 ): Promise<void>
 /**
  * @deprecated The format & name parameters are now part of the opts object.

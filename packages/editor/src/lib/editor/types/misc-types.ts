@@ -8,9 +8,12 @@ export type RequiredKeys<T, K extends keyof T> = Required<Pick<T, K>> & Omit<T, 
 export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
 /** @public */
+export type TLExportType = 'svg' | 'png' | 'jpeg' | 'webp'
+
+/** @public */
 export interface TLSvgExportOptions {
 	/**
-	 * The bounding box, in page co-ordinates, of the area being exported.
+	 * The bounding box, in page coordinates, of the area being exported.
 	 */
 	bounds?: Box
 	/**
@@ -66,7 +69,7 @@ export interface TLImageExportOptions extends TLSvgExportOptions {
 	/**
 	 * The format to export as. Defaults to 'png'.
 	 */
-	format?: 'svg' | 'png' | 'jpeg' | 'webp'
+	format?: TLExportType
 }
 
 /**

@@ -12,7 +12,7 @@ import {
 	useShallowArrayIdentity,
 	useTLStore,
 } from '@tldraw/editor'
-import { memo, useLayoutEffect, useMemo, useState } from 'react'
+import { memo, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { defaultBindingUtils } from './defaultBindingUtils'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { TLUiAssetUrlOverrides } from './ui/assetUrls'
@@ -167,7 +167,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		pixelRatio,
 	])
 
-	useLayoutEffect(() => {
+	useEffect(() => {
 		return () => {
 			if (url) URL.revokeObjectURL(url)
 		}

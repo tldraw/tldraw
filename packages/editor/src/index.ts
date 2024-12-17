@@ -254,6 +254,7 @@ export {
 	type TLCameraConstraints,
 	type TLCameraMoveOptions,
 	type TLCameraOptions,
+	type TLExportType,
 	type TLImageExportOptions,
 	type TLSvgExportOptions,
 	type TLSvgOptions,

@@ -8565,9 +8565,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	async getSvgElement(shapes: TLShapeId[] | TLShape[], opts: TLSvgExportOptions = {}) {
 		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
+			shapes.length === 0
+				? this.getCurrentPageShapeIdsSorted()
+				: typeof shapes[0] === 'string'
+					? (shapes as TLShapeId[])
+					: (shapes as TLShape[]).map((s) => s.id)
 
 		if (ids.length === 0) return undefined
 
@@ -8613,18 +8615,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	async toImage(shapes: TLShapeId[] | TLShape[], opts: TLImageExportOptions = {}) {
-		const withDefaults: TLImageExportOptions = {
+		const withDefaults = {
 			format: 'png',
 			scale: 1,
 			pixelRatio: opts.format === 'svg' ? undefined : 2,
 			...opts,
-		}
+		} satisfies TLImageExportOptions
 		const result = await this.getSvgString(shapes, withDefaults)
 		if (!result) throw new Error('Could not create SVG')
 
-		const format = opts.format ?? 'png'
-
-		switch (format) {
+		switch (withDefaults.format) {
 			case 'svg':
 				return {
 					blob: new Blob([result.svg], { type: 'text/plain' }),
@@ -8635,7 +8635,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			case 'png':
 			case 'webp': {
 				const blob = await getSvgAsImage(result.svg, {
-					type: format,
+					type: withDefaults.format,
 					quality: withDefaults.quality,
 					pixelRatio: withDefaults.pixelRatio,
 					width: result.width,
@@ -8651,7 +8651,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 			default: {
-				exhaustiveSwitchError(format)
+				exhaustiveSwitchError(withDefaults.format)
 			}
 		}
 	}
