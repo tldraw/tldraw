@@ -1,37 +1,21 @@
-import { useAuth } from '@clerk/clerk-react'
 import { TlaFileOpenMode } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { fileSave } from 'browser-fs-access'
-import { useCallback, useEffect, useMemo } from 'react'
-import { Helmet } from 'react-helmet-async'
-import { useParams } from 'react-router-dom'
+import { useCallback, useEffect } from 'react'
 import {
-	DefaultKeyboardShortcutsDialog,
-	DefaultKeyboardShortcutsDialogContent,
 	Editor,
-	OfflineIndicator,
 	TLComponents,
-	TLDRAW_FILE_EXTENSION,
 	TLSessionStateSnapshot,
-	TLStore,
 	TLUiDialogsContextType,
-	TLUiOverrides,
 	Tldraw,
-	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
 	assert,
 	createSessionStateSnapshotSignal,
 	react,
-	serializeTldrawJsonBlob,
 	throttle,
 	tltime,
-	useActions,
 	useAtom,
-	useCollaborationStatus,
 	useDialogs,
 	useEditor,
 	useEvent,
-	useValue,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { assetUrls } from '../../../utils/assetUrls'
@@ -39,60 +23,29 @@ import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
-import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
-import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
-import { defineMessages, useMsg } from '../../utils/i18n'
 import { maybeSlurp } from '../../utils/slurping'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
-import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
-import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
-import styles from './editor.module.css'
-
-const messages = defineMessages({
-	file: { defaultMessage: 'File' },
-	untitledProject: { defaultMessage: 'Untitled file' },
-})
+import { TlaEditorWrapper } from './TlaEditorWrapper'
+import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
+import { TlaEditorKeyboardShortcutsDialog } from './editor-components/TlaEditorKeyboardShortcutsDialog'
+import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
+import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
+import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
+import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
+import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
+import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 /** @internal */
 export const components: TLComponents = {
-	ErrorFallback: ({ error }) => {
-		throw error
-	},
-	KeyboardShortcutsDialog: (props) => {
-		const actions = useActions()
-		return (
-			<DefaultKeyboardShortcutsDialog {...props}>
-				<TldrawUiMenuGroup label={useMsg(messages.file)} id="file">
-					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
-				</TldrawUiMenuGroup>
-				<DefaultKeyboardShortcutsDialogContent />
-			</DefaultKeyboardShortcutsDialog>
-		)
-	},
-	MenuPanel: () => {
-		const app = useMaybeApp()
-		return <TlaEditorTopLeftPanel isAnonUser={!app} />
-	},
-	SharePanel: () => {
-		const app = useMaybeApp()
-		const fileSlug = useParams<{ fileSlug: string }>().fileSlug
-		return <TlaEditorTopRightPanel isAnonUser={!app} context={fileSlug ? 'file' : 'scratch'} />
-	},
-	TopPanel: () => {
-		const collaborationStatus = useCollaborationStatus()
-		if (collaborationStatus === 'offline') {
-			return (
-				<div className={styles.offlineIndicatorWrapper}>
-					<OfflineIndicator />{' '}
-				</div>
-			)
-		}
-		return null
-	},
+	ErrorFallback: TlaEditorErrorFallback,
+	KeyboardShortcutsDialog: TlaEditorKeyboardShortcutsDialog,
+	MenuPanel: TlaEditorMenuPanel,
+	TopPanel: TlaEditorTopPanel,
+	SharePanel: TlaEditorSharePanel,
 }
 
 interface TlaEditorProps {
@@ -111,7 +64,7 @@ export function TlaEditor(props: TlaEditorProps) {
 	// force re-mount when the file slug changes to prevent state from leaking between files
 	return (
 		<>
-			<SetDocumentTitle />
+			<SneakySetDocumentTitle />
 			<ReadyWrapper key={props.fileSlug}>
 				<TlaEditorInner {...props} key={props.fileSlug} />
 			</ReadyWrapper>
@@ -254,57 +207,10 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 		}
 	}, [app, fileId, store.status])
 
-	const untitledProject = useMsg(messages.untitledProject)
-	const overrides = useMemo<TLUiOverrides>(() => {
-		if (!app) return {}
-
-		return {
-			actions(editor, actions) {
-				actions['save-file-copy'] = {
-					id: 'save-file-copy',
-					label: 'action.save-copy',
-					readonlyOk: true,
-					kbd: '$s',
-					async onSelect() {
-						handleUiEvent('save-project-to-file', { source: '' })
-						const documentName =
-							((fileSlug ? app?.getFileName(fileSlug, false) : null) ??
-								editor?.getDocumentSettings().name) ||
-							// rather than displaying the date for the project here, display Untitled project
-							untitledProject
-						const defaultName =
-							saveFileNames.get(editor.store) || `${documentName}${TLDRAW_FILE_EXTENSION}`
-
-						const blobToSave = serializeTldrawJsonBlob(editor)
-						let handle
-						try {
-							handle = await fileSave(blobToSave, {
-								fileName: defaultName,
-								extensions: [TLDRAW_FILE_EXTENSION],
-								description: 'tldraw project',
-							})
-						} catch {
-							// user cancelled
-							return
-						}
-
-						if (handle) {
-							// we deliberately don't store the handle for re-use
-							// next time. we always want to save a copy, but to
-							// help the user out we'll remember the last name
-							// they used
-							saveFileNames.set(editor.store, handle.name)
-						}
-					},
-				}
-
-				return actions
-			},
-		}
-	}, [app, fileSlug, handleUiEvent, untitledProject])
+	const overrides = useFileEditorOverrides({ fileSlug })
 
 	return (
-		<div className={styles.editor} data-testid="tla-editor">
+		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
 				store={store}
@@ -323,40 +229,8 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} />
 			</Tldraw>
-		</div>
+		</TlaEditorWrapper>
 	)
-}
-
-// function SneakyThemeUpdater() {
-// 	const editor = useEditor()
-// 	useEffect(() => {
-// 		editor.setTheme('dark')
-// 	}, [editor])
-// }
-
-function SneakyTldrawFileDropHandler() {
-	const editor = useEditor()
-	const app = useMaybeApp()
-	const auth = useAuth()
-	useEffect(() => {
-		if (!auth) return
-		if (!app) return
-		const defaultOnDrop = editor.externalContentHandlers['files']
-		editor.registerExternalContentHandler('files', async (content) => {
-			const { files } = content
-			const tldrawFiles = files.filter((file) => file.name.endsWith('.tldr'))
-			if (tldrawFiles.length > 0) {
-				const snapshots = await getSnapshotsFromDroppedTldrawFiles(editor, tldrawFiles)
-				if (!snapshots.length) return
-				const token = await auth.getToken()
-				if (!token) return
-				await app.createFilesFromTldrFiles(snapshots, token)
-			} else {
-				defaultOnDrop?.(content)
-			}
-		})
-	}, [editor, app, auth])
-	return null
 }
 
 function SneakyFileUpdateHandler({ fileId }: { fileId: string }) {
@@ -382,24 +256,3 @@ function SneakyFileUpdateHandler({ fileId }: { fileId: string }) {
 
 	return null
 }
-
-function SetDocumentTitle() {
-	const { fileSlug } = useParams<{ fileSlug: string }>()
-	const app = useMaybeApp()
-	const editor = useValue('editor', () => globalEditor.get(), [])
-	const untitledProject = useMsg(messages.untitledProject)
-	const title = useValue(
-		'title',
-		() =>
-			((fileSlug ? app?.getFileName(fileSlug, false) : null) ??
-				editor?.getDocumentSettings().name) ||
-			// rather than displaying the date for the project here, display Untitled project
-			untitledProject,
-		[app, editor, fileSlug, untitledProject]
-	)
-	if (!title) return null
-	return <Helmet title={app ? title : `${title} • tldraw`} />
-}
-
-// A map of previously saved tldr file names, so we can suggest the same name next time
-const saveFileNames = new WeakMap<TLStore, string>()

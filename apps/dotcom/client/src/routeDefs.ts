@@ -17,6 +17,14 @@ export const ROUTES = {
 	tlaLocalFile: `/q/lf/:fileSlug`,
 	tlaPlayground: `/q/playground`,
 	tlaPublish: `/q/p/:fileSlug`,
+	// Legacy routes
+	tlaTouchScreenSidePanel: '/q/ts-side',
+	tlaLegacyRoom: '/q/r/:roomId',
+	tlaLegacyRoomHistory: '/q/r/:boardId/history',
+	tlaLegacyRoomHistorySnapshot: '/q/r/:boardId/history/:timestamp',
+	tlaLegacySnapshot: '/q/s/:roomId',
+	tlaLegacyReadonly: '/q/ro/:roomId',
+	tlaLegacyReadonlyOld: '/q/v/:roomId',
 } as const
 
 export const routes: {

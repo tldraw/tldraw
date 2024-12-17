@@ -1,4 +1,10 @@
-import { ColorSchemeMenu, LanguageMenu, TldrawUiMenuGroup, TldrawUiMenuSubmenu } from 'tldraw'
+import {
+	ColorSchemeMenu,
+	LanguageMenu,
+	TldrawUiMenuGroup,
+	TldrawUiMenuSubmenu,
+	useMaybeEditor,
+} from 'tldraw'
 import { Links } from '../../../components/Links'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { TlaDebugMenuGroup } from '../TlaDebugMenuGroup'
@@ -29,6 +35,8 @@ export function TlaAppMenuGroupLazyFlipped() {
 }
 
 function ColorThemeSubmenu() {
+	const editor = useMaybeEditor()
+	if (!editor) return null
 	return <ColorSchemeMenu />
 }
 

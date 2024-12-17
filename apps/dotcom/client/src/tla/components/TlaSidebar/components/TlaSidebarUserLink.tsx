@@ -20,6 +20,7 @@ export function TlaSidebarUserLink() {
 			<TlaAvatar img={user.avatar} />
 			<div className={classNames(styles.userName, 'notranslate')}>{user.name}</div>
 			<TlaAccountMenu source="sidebar">
+				{/* todo: the hover here is too big, is borrowing from file link */}
 				<button className={classNames(styles.linkMenu, styles.hoverable)} title={accountMenuLbl}>
 					<TlaIcon icon="dots-vertical-strong" />
 				</button>
