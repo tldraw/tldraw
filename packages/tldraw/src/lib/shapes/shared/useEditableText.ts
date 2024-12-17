@@ -1,4 +1,5 @@
 import {
+	TLRichText,
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
@@ -9,16 +10,28 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import React, { useCallback, useEffect, useRef } from 'react'
+import { renderPlaintextFromRichText } from '../../utils/text/richText'
 import { TextHelpers } from './TextHelpers'
 
 /** @public */
-export function useEditableText(shapeId: TLShapeId, type: string, text: string, richText?: string) {
+export function useEditableText(
+	shapeId: TLShapeId,
+	enableRichText: boolean,
+	type: string,
+	text?: string,
+	richText?: TLRichText
+) {
 	const editor = useEditor()
 	const rInput = useRef<HTMLDivElement | HTMLTextAreaElement>(null)
 	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === shapeId, [editor])
 	const isEditingAnything = useValue('isEditingAnything', () => !!editor.getEditingShapeId(), [
 		editor,
 	])
+	const isEmpty =
+		(enableRichText && richText
+			? renderPlaintextFromRichText(editor, richText)
+			: (text || '').trim()
+		).length === 0
 
 	useEffect(() => {
 		function selectAllIfEditing(event: { shapeId: TLShapeId }) {
@@ -40,20 +53,19 @@ export function useEditableText(shapeId: TLShapeId, type: string, text: string, 
 			rInput.current?.focus()
 		}
 
-		if (
-			editor.getInstanceState().isCoarsePointer &&
-			rInput.current instanceof HTMLTextAreaElement
-		) {
-			rInput.current?.select()
-		}
+		if (!enableRichText && rInput.current instanceof HTMLTextAreaElement) {
+			if (editor.getInstanceState().isCoarsePointer) {
+				rInput.current?.select()
+			}
 
-		// XXX(mime): This fixes iOS not showing the cursor sometimes.
-		// This "shakes" the cursor awake.
-		if (tlenv.isSafari && rInput.current instanceof HTMLTextAreaElement) {
-			rInput.current?.blur()
-			rInput.current?.focus()
+			// XXX(mime): This fixes iOS not showing the cursor sometimes.
+			// This "shakes" the cursor awake.
+			if (tlenv.isSafari) {
+				rInput.current?.blur()
+				rInput.current?.focus()
+			}
 		}
-	}, [editor, isEditing])
+	}, [editor, isEditing, enableRichText])
 
 	// When the user presses ctrl / meta enter, complete the editing state.
 	const handleKeyDown = useCallback(
@@ -74,18 +86,25 @@ export function useEditableText(shapeId: TLShapeId, type: string, text: string, 
 
 	// When the text changes, update the text value.
 	const handleChange = useCallback(
-		({ plaintext, richText }: { plaintext?: string; richText?: string }) => {
+		({ plaintext, richText }: { plaintext?: string; richText?: TLRichText }) => {
 			if (editor.getEditingShapeId() !== shapeId) return
 
-			const normalizedPlaintext = TextHelpers.normalizeText(plaintext ?? '')
-
-			editor.updateShape<TLUnknownShape & { props: { text: string; richText?: string } }>({
-				id: shapeId,
-				type,
-				props: { text: normalizedPlaintext, richText: richText ?? undefined },
-			})
+			if (enableRichText) {
+				editor.updateShape<TLUnknownShape & { props: { richText?: TLRichText } }>({
+					id: shapeId,
+					type,
+					props: { richText },
+				})
+			} else {
+				const normalizedPlaintext = TextHelpers.normalizeText(plaintext ?? '')
+				editor.updateShape<TLUnknownShape & { props: { text: string } }>({
+					id: shapeId,
+					type,
+					props: { text: normalizedPlaintext },
+				})
+			}
 		},
-		[editor, shapeId, type]
+		[editor, shapeId, type, enableRichText]
 	)
 
 	const handleInputPointerDown = useCallback(
@@ -121,7 +140,7 @@ export function useEditableText(shapeId: TLShapeId, type: string, text: string, 
 		handleChange,
 		handleInputPointerDown,
 		handleDoubleClick: stopEventPropagation,
-		isEmpty: text.trim().length === 0 && !richText,
+		isEmpty,
 		isEditing,
 		isEditingAnything,
 	}

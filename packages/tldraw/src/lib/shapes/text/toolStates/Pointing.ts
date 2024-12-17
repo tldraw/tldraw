@@ -4,6 +4,7 @@ import {
 	TLShapeId,
 	TLTextShape,
 	Vec,
+	convertTextToTipTapDocument,
 	createShapeId,
 	isShapeId,
 	maybeSnapToGrid,
@@ -127,7 +128,7 @@ export class Pointing extends StateNode {
 			x: point.x,
 			y: point.y,
 			props: {
-				text: '',
+				richText: convertTextToTipTapDocument(''),
 				autoSize,
 				w: width,
 				scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,

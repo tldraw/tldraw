@@ -1,13 +1,14 @@
 /// <reference types="react" />
 import {
+	convertTextToTipTapDocument,
 	DefaultColorStyle,
 	ReadonlySharedStyleMap,
 	SharedStyle,
 	TLGeoShape,
 	TLGroupShape,
 } from '@tldraw/editor'
-import { TestEditor, createDefaultShapes, defaultShapesIds } from './TestEditor'
 import { TL } from './test-jsx'
+import { createDefaultShapes, defaultShapesIds, TestEditor } from './TestEditor'
 
 let editor: TestEditor
 
@@ -87,7 +88,7 @@ describe('Editor.styles', () => {
 	})
 
 	it('should return mixed for all mixed styles', () => {
-		editor.updateShapes([
+		editor.updateShapes<TLGeoShape>([
 			{
 				id: defaultShapesIds.box1,
 				type: 'geo',
@@ -103,7 +104,9 @@ describe('Editor.styles', () => {
 				type: 'geo',
 				props: {
 					align: 'start',
-					text: 'hello world this is a long sentence that should wrap',
+					richText: convertTextToTipTapDocument(
+						'hello world this is a long sentence that should wrap'
+					),
 					w: 100,
 					url: 'https://aol.com',
 					verticalAlign: 'start',

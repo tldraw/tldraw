@@ -1,4 +1,4 @@
-import { Editor, Tldraw, createShapeId } from 'tldraw'
+import { Editor, Tldraw, convertTextToTipTapDocument, createShapeId } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 export default function BeforeDeleteShapeExample() {
@@ -31,7 +31,7 @@ function createDemoShapes(editor: Editor) {
 				id: createShapeId(),
 				type: 'text',
 				props: {
-					text: "Red shapes can't be deleted",
+					richText: convertTextToTipTapDocument("Red shapes can't be deleted"),
 					color: 'red',
 				},
 			},
@@ -40,7 +40,7 @@ function createDemoShapes(editor: Editor) {
 				type: 'text',
 				y: 30,
 				props: {
-					text: 'but other shapes can',
+					richText: convertTextToTipTapDocument('but other shapes can'),
 					color: 'black',
 				},
 			},

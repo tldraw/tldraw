@@ -1,10 +1,8 @@
-import { Extension, Extensions, generateHTML, generateText } from '@tiptap/core'
+import { Extension, Extensions, JSONContent, generateHTML, generateText } from '@tiptap/core'
 import Highlight from '@tiptap/extension-highlight'
 import Link from '@tiptap/extension-link'
-import { DOMParser } from '@tiptap/pm/model'
-import { schema } from '@tiptap/pm/schema-basic'
 import StarterKit from '@tiptap/starter-kit'
-import { Editor } from '@tldraw/editor'
+import { Editor, TLRichText } from '@tldraw/editor'
 
 const KeyboardShiftEnterTweakExtension = Extension.create({
 	name: 'keyboardShiftEnterHandler',
@@ -35,49 +33,41 @@ export const tipTapDefaultExtensions: Extensions = [
  * Renders HTML from a rich text string.
  *
  * @param editor - The editor instance.
- * @param richText - The rich text string.
+ * @param richText - The rich text content.
  *
  * @public
  */
-export function renderHtmlFromRichText(editor: Editor, richText: string) {
+export function renderHtmlFromRichText(editor: Editor, richText: TLRichText) {
 	const tipTapExtensions =
 		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-	const html = generateHTML(JSON.parse(richText), tipTapExtensions)
+	const html = generateHTML(richText as JSONContent, tipTapExtensions)
 	// We replace empty paragraphs with a single line break to prevent the browser from collapsing them.
 	return html.replaceAll('<p></p>', '<p><br /></p>') ?? ''
 }
 
 /**
  * Renders HTML from a rich text string for measurement.
- * @param richText - The rich text string.
+ * @param richText - The rich text content.
  * @parameditor - The editor instance.
  *
  *
  * @public
  */
-export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: string) {
+export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: TLRichText) {
 	const html = renderHtmlFromRichText(editor, richText)
 	return `<div class="tl-rich-text-tiptap">${html}</div>`
 }
 
 /**
  * Renders plaintext from a rich text string.
- * @param richText - The rich text string.
+ * @param richText - The rich text content.
  * @parameditor - The editor instance.
  *
  *
  * @public
  */
-export function renderPlaintextFromRichText(editor: Editor, richText: string) {
+export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText) {
 	const tipTapExtensions =
 		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-	return generateText(JSON.parse(richText), tipTapExtensions)
-}
-
-/** @internal */
-export function createTipTapDocumentFromText(text: string) {
-	const tempDiv = document.createElement('div')
-	tempDiv.textContent = text
-
-	return DOMParser.fromSchema(schema).parse(tempDiv)
+	return generateText(richText as JSONContent, tipTapExtensions)
 }

@@ -4797,10 +4797,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Check labels first
 			if (
 				this.isShapeOfType<TLFrameShape>(shape, 'frame') ||
-				((this.isShapeOfType<TLArrowShape>(shape, 'arrow') ||
-					this.isShapeOfType<TLNoteShape>(shape, 'note') ||
+				(this.isShapeOfType<TLArrowShape>(shape, 'arrow') && shape.props.text.trim()) ||
+				((this.isShapeOfType<TLNoteShape>(shape, 'note') ||
 					(this.isShapeOfType<TLGeoShape>(shape, 'geo') && shape.props.fill === 'none')) &&
-					(shape.props.text.trim() || (shape as TLGeoShape).props.richText))
+					(shape as TLGeoShape).props.richText)
 			) {
 				for (const childGeometry of (geometry as Group2d).children) {
 					if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
@@ -7035,7 +7035,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.createShape(myShape)
-	 * editor.createShape({ id: 'box1', type: 'text', props: { text: "ok" } })
+	 * editor.createShape({ id: 'box1', type: 'text', props: { richText: convertTextToTipTapDocument("ok") } })
 	 * ```
 	 *
 	 * @param shape - The shape (or shape partial) to create.
@@ -7053,7 +7053,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.createShapes([myShape])
-	 * editor.createShapes([{ id: 'box1', type: 'text', props: { text: "ok" } }])
+	 * editor.createShapes([{ id: 'box1', type: 'text', props: { richText: convertTextToTipTapDocument("ok") } }])
 	 * ```
 	 *
 	 * @param shapes - The shapes (or shape partials) to create.

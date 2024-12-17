@@ -1,4 +1,4 @@
-import { TLTextShape, createShapeId } from '@tldraw/editor'
+import { TLTextShape, convertTextToTipTapDocument, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -20,19 +20,19 @@ describe('When editing text', () => {
 				x: 0,
 				y: 0,
 				props: {
-					text: 'Hello',
+					richText: convertTextToTipTapDocument('Hello'),
 					textAlign: 'middle',
 					scale: 2,
 				},
 			},
 		])
 		const boundsA = editor.getShapePageBounds(id)
-		editor.updateShapes([
+		editor.updateShapes<TLTextShape>([
 			{
 				id,
 				type: 'text',
 				props: {
-					text: 'Hello\nworld!',
+					richText: convertTextToTipTapDocument('Hello\nworld!'),
 				},
 			},
 		])
@@ -55,7 +55,7 @@ describe('When editing text', () => {
 				y: 0,
 				rotation: Math.PI / 2,
 				props: {
-					text: 'Hello',
+					richText: convertTextToTipTapDocument('Hello'),
 					textAlign: 'middle',
 					scale: 2,
 				},
@@ -63,7 +63,9 @@ describe('When editing text', () => {
 		])
 
 		const boundsA = editor.getShapePageBounds(id)!
-		editor.updateShapes([{ id, type: 'text', props: { text: 'Hello, world!' } }])
+		editor.updateShapes<TLTextShape>([
+			{ id, type: 'text', props: { richText: convertTextToTipTapDocument('Hello, world!') } },
+		])
 		const boundsB = editor.getShapePageBounds(id)!
 		expect(boundsA.x).toBeCloseTo(boundsB.x)
 		expect(boundsA.y).not.toBeCloseTo(boundsB.y)
@@ -80,19 +82,19 @@ describe('When editing text', () => {
 				x: 0,
 				y: 0,
 				props: {
-					text: 'Hello',
+					richText: convertTextToTipTapDocument('Hello'),
 					textAlign: 'start',
 					scale: 2,
 				},
 			},
 		])
 		const boundsA = editor.getShapePageBounds(id)
-		editor.updateShapes([
+		editor.updateShapes<TLTextShape>([
 			{
 				id,
 				type: 'text',
 				props: {
-					text: 'Hello\nworld!',
+					richText: convertTextToTipTapDocument('Hello\nworld!'),
 				},
 			},
 		])
@@ -114,19 +116,19 @@ describe('When editing text', () => {
 				x: 0,
 				y: 0,
 				props: {
-					text: 'Hello',
+					richText: convertTextToTipTapDocument('Hello'),
 					textAlign: 'end',
 					scale: 2,
 				},
 			},
 		])
 		const boundsA = editor.getShapePageBounds(id)
-		editor.updateShapes([
+		editor.updateShapes<TLTextShape>([
 			{
 				id,
 				type: 'text',
 				props: {
-					text: 'Hello\nworld!',
+					richText: convertTextToTipTapDocument('Hello\nworld!'),
 				},
 			},
 		])
@@ -150,7 +152,7 @@ describe('When changing text size', () => {
 				x: 0,
 				y: 0,
 				props: {
-					text: 'Hello',
+					richText: convertTextToTipTapDocument('Hello'),
 					size: 'm',
 					textAlign: 'middle',
 					scale: 2,
@@ -158,7 +160,7 @@ describe('When changing text size', () => {
 			},
 		])
 		const boundsA = editor.getShapePageBounds(id)
-		editor.updateShapes([
+		editor.updateShapes<TLTextShape>([
 			{
 				id,
 				type: 'text',
@@ -185,7 +187,7 @@ describe('When changing text size', () => {
 				x: 0,
 				y: 0,
 				props: {
-					text: 'Hello',
+					richText: convertTextToTipTapDocument('Hello'),
 					size: 'm',
 					textAlign: 'start',
 					scale: 2,
@@ -193,7 +195,7 @@ describe('When changing text size', () => {
 			},
 		])
 		const boundsA = editor.getShapePageBounds(id)
-		editor.updateShapes([
+		editor.updateShapes<TLTextShape>([
 			{
 				id,
 				type: 'text',
@@ -220,7 +222,7 @@ describe('When changing text size', () => {
 				x: 0,
 				y: 0,
 				props: {
-					text: 'Hello',
+					richText: convertTextToTipTapDocument('Hello'),
 					size: 'm',
 					textAlign: 'end',
 					scale: 2,
@@ -228,7 +230,7 @@ describe('When changing text size', () => {
 			},
 		])
 		const boundsA = editor.getShapePageBounds(id)
-		editor.updateShapes([
+		editor.updateShapes<TLTextShape>([
 			{
 				id,
 				type: 'text',
@@ -257,7 +259,7 @@ describe('When changing text size', () => {
 				x: 0,
 				y: 0,
 				props: {
-					text: 'Hello',
+					richText: convertTextToTipTapDocument('Hello'),
 				},
 			},
 		])

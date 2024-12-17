@@ -23754,6 +23754,7 @@ __metadata:
     jest-canvas-mock: "npm:^2.5.2"
     jest-environment-jsdom: "npm:^29.4.3"
     lazyrepo: "npm:0.0.0-alpha.27"
+    lodash.isequal: "npm:^4.5.0"
     lz-string: "npm:^1.4.4"
     resize-observer-polyfill: "npm:^1.5.1"
   peerDependencies:

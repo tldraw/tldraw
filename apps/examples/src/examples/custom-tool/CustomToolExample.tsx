@@ -1,4 +1,4 @@
-import { StateNode, Tldraw } from 'tldraw'
+import { convertTextToTipTapDocument, StateNode, Tldraw, TLTextShape } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -17,11 +17,11 @@ class StickerTool extends StateNode {
 	// [b]
 	override onPointerDown() {
 		const { currentPagePoint } = this.editor.inputs
-		this.editor.createShape({
+		this.editor.createShape<TLTextShape>({
 			type: 'text',
 			x: currentPagePoint.x - OFFSET,
 			y: currentPagePoint.y - OFFSET,
-			props: { text: '❤️' },
+			props: { richText: convertTextToTipTapDocument('❤️') },
 		})
 	}
 }
@@ -40,11 +40,11 @@ export default function CustomToolExample() {
 				hideUi
 				// Put some helpful text on the canvas
 				onMount={(editor) => {
-					editor.createShape({
+					editor.createShape<TLTextShape>({
 						type: 'text',
 						x: 100,
 						y: 100,
-						props: { text: 'Click anywhere to add a sticker' },
+						props: { richText: convertTextToTipTapDocument('Click anywhere to add a sticker') },
 					})
 				}}
 			/>

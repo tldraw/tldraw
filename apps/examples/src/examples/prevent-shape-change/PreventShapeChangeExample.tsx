@@ -1,4 +1,4 @@
-import { TLGeoShape, Tldraw } from 'tldraw'
+import { TLGeoShape, Tldraw, convertTextToTipTapDocument } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this page!
@@ -8,11 +8,15 @@ export default function PreventMoveExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				onMount={(editor) => {
-					editor.createShape({
+					editor.createShape<TLGeoShape>({
 						type: 'geo',
 						x: 100,
 						y: 100,
-						props: { w: 300, h: 300, text: "style me but don't transform me" },
+						props: {
+							w: 300,
+							h: 300,
+							richText: convertTextToTipTapDocument("style me but don't transform me"),
+						},
 					})
 
 					// [1]

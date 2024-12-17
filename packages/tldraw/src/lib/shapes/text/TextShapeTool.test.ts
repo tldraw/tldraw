@@ -1,4 +1,4 @@
-import { DefaultTextAlignStyle } from '@tldraw/editor'
+import { convertTextToTipTapDocument, DefaultTextAlignStyle, TLTextShape } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 import { TextShapeTool } from './TextShapeTool'
 
@@ -23,8 +23,12 @@ describe(TextShapeTool, () => {
 		editor.pointerUp()
 		editor.expectToBeIn('select.editing_shape')
 		// This comes from the component, not the state chart
-		editor.updateShapes([
-			{ ...editor.getCurrentPageShapes()[0]!, type: 'text', props: { text: 'Hello' } },
+		editor.updateShapes<TLTextShape>([
+			{
+				...editor.getCurrentPageShapes()[0]!,
+				type: 'text',
+				props: { richText: convertTextToTipTapDocument('Hello') },
+			},
 		])
 		// Deselect the editing shape
 		editor.cancel()
@@ -33,7 +37,7 @@ describe(TextShapeTool, () => {
 		editor.expectShapeToMatch({
 			id: editor.getCurrentPageShapes()[0].id,
 			type: 'text',
-			props: { text: 'Hello' },
+			props: { richText: convertTextToTipTapDocument('Hello') },
 		})
 
 		editor.undo()
@@ -47,7 +51,7 @@ describe(TextShapeTool, () => {
 		editor.expectShapeToMatch({
 			id: editor.getCurrentPageShapes()[0].id,
 			type: 'text',
-			props: { text: 'Hello' },
+			props: { richText: convertTextToTipTapDocument('Hello') },
 		})
 	})
 })
