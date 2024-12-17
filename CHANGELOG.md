@@ -1,3 +1,20 @@
+# v3.6.1 (Tue Dec 17 2024)
+
+#### 🐛 Bug Fix
+
+- `@tldraw/editor`, `@tldraw/state-react`, `tldraw`
+  - Alex/3.6.1 [#5132](https://github.com/tldraw/tldraw/pull/5132) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@kazu-2020](https://github.com/kazu-2020) [@steveruizok](https://github.com/steveruizok) [@SomeHats](https://github.com/SomeHats) [@ds300](https://github.com/ds300))
+
+#### Authors: 5
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- mimata kazutaka ([@kazu-2020](https://github.com/kazu-2020))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.6.0 (Wed Dec 04 2024)
 
 ### Release Notes
