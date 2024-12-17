@@ -89,7 +89,11 @@ export function Component() {
 		}
 	}
 	const handleReset = async () => {
-		await fetch(coordinatorUrl + '/reset')
+		await fetch(coordinatorUrl + '/reset', {
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+			},
+		})
 	}
 
 	return (

@@ -22,7 +22,7 @@ export class STWorkerDO extends DurableObject<Environment> {
 	}
 
 	debug(...args: any[]) {
-		// console.log(...args)
+		console.log('STWorkerDO', ...args)
 	}
 
 	async time<T>(operation: string, fn: () => Promise<T>): Promise<T> {
@@ -47,19 +47,20 @@ export class STWorkerDO extends DurableObject<Environment> {
 		}
 	}
 
-	async mutate(name: string, fn: (z: Zero['____mutators']) => void) {
+	async mutate(name: string, fn: (z: Zero['____mutators']) => Promise<void>) {
 		if (!this.zero) return
 		await this.time(name, async () => {
-			return this.zero?.sneakyTransaction(() => {
-				fn(this.zero!.____mutators)
+			return await this.zero?.sneakyTransaction(async () => {
+				await fn(this.zero!.____mutators)
 			})
 		})
 	}
 
 	private async startWorking() {
 		try {
-			this.debug('startWorking')
+			// this.debug('startWorking')
 			const workerId = await this.getId()
+			this.debug('startWorking', workerId, new Date().toISOString())
 			const origin = (await this.state.storage.get('origin')!) as string
 			this.zero = new Zero({
 				getUri: async () => {
@@ -71,7 +72,13 @@ export class STWorkerDO extends DurableObject<Environment> {
 					this.debug('getUri', u.toString())
 					return u.toString()
 				},
-				onMutationRejected: () => null,
+				onMutationRejected: (code) =>
+					this.coordinator.reportEvent({
+						type: 'error',
+						error: `mutation rejected ${code}`,
+						workerId,
+						id: uniqueId(),
+					}),
 				onClientTooOld: () => {
 					this.coordinator.reportEvent({
 						type: 'error',
@@ -117,6 +124,8 @@ export class STWorkerDO extends DurableObject<Environment> {
 				})
 			}
 
+			await new Promise((resolve) => setTimeout(resolve, 1000))
+
 			for (let i = 0; i < this.num_files; i++) {
 				// let file = this.zero.store.getCommittedData()?.files[0]
 				// const fileId = file?.id ?? uniqueId()
@@ -124,7 +133,7 @@ export class STWorkerDO extends DurableObject<Environment> {
 				const fileId = uniqueId()
 				if (!file) {
 					await this.mutate('create file ' + fileId, async (z) => {
-						z.file.create({
+						await z.file.create({
 							id: fileId,
 							name: 'name',
 							ownerId: workerId,
@@ -159,7 +168,7 @@ export class STWorkerDO extends DurableObject<Environment> {
 	}
 
 	async start(maxDelay: number, num_files: number, id: string, origin: string) {
-		this.debug('worker.start()', id, maxDelay)
+		this.debug('worker.start()', id, maxDelay, new Date().toISOString())
 		this.num_files = num_files
 		this.state.storage.put('id', id)
 		this.state.storage.put('origin', origin)
@@ -172,6 +181,7 @@ export class STWorkerDO extends DurableObject<Environment> {
 	}
 
 	override alarm() {
+		this.debug('alarm starting', new Date().toISOString())
 		this.startWorking()
 	}
 

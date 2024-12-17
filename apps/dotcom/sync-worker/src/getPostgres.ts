@@ -16,6 +16,7 @@ export function getPostgres(env: Environment, { pooled }: { pooled: boolean }) {
 					serialize: (value: number) => String(value), // Convert number to string
 				},
 			},
+			max: 100,
 		}
 	)
 }

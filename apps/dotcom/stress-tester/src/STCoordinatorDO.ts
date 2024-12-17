@@ -27,7 +27,7 @@ export class STCoordinatorDO extends DurableObject<Environment> {
 		super(state, env)
 	}
 	debug(...args: any[]) {
-		console.log(...args)
+		console.log('ST_COORDINATOR', ...args)
 	}
 	router = AutoRouter({
 		before: [preflight],
@@ -54,10 +54,12 @@ export class STCoordinatorDO extends DurableObject<Environment> {
 
 			for (let i = 0; i < workers; i++) {
 				const id = `${request.params.testId}:${i}`
+				const now = Date.now()
 				const worker = env.ST_WORKER.get(env.ST_WORKER.idFromName(id), {
 					locationHint: regions[i % regions.length],
 				}) as any as STWorkerDO
-				await worker.start(startWithin, files, id, uri)
+				worker.start(startWithin, files, id, uri)
+				this.debug('time to start worker', id, Date.now() - now)
 			}
 			return new Response('Started', { status: 200 })
 		})
@@ -74,11 +76,12 @@ export class STCoordinatorDO extends DurableObject<Environment> {
 			}
 			return new Response('Stopped', { status: 200 })
 		})
-		.get('/reset', async () => {
+		.get('/reset', () => {
 			this.debug('resetting')
 			this.state = {
 				tests: {},
 			}
+			return new Response('Reset', { status: 200 })
 		})
 		.get('/state', () => new Response(JSON.stringify(this.getState()), { status: 200 }))
 
@@ -92,7 +95,7 @@ export class STCoordinatorDO extends DurableObject<Environment> {
 
 	reportEvent(event: STWorkerEvent) {
 		const testId = event.workerId.split(':')[0]
-		this.debug('testId', testId)
+		// this.debug('testId', testId)
 		if (event.error === null) {
 			delete event.error
 		}

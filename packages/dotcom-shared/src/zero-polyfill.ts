@@ -1,6 +1,6 @@
 import { Signal, computed, react, transact } from '@tldraw/state'
 import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { uniqueId } from '@tldraw/utils'
+import { assert, sleep, uniqueId } from '@tldraw/utils'
 import { OptimisticAppStore } from './OptimisticAppStore'
 import {
 	TlaFile,
@@ -78,8 +78,9 @@ export class Zero {
 		this.socket.close()
 	}
 
-	async sneakyTransaction(fn: () => void): Promise<void> {
-		fn()
+	async sneakyTransaction(fn: () => Promise<void>): Promise<void> {
+		await fn()
+		assert(this.pendingUpdates.length > 0, 'no updates to send')
 		if (this.pendingUpdates.length === 0) {
 			return
 		}
@@ -188,12 +189,17 @@ export class Zero {
 	}
 	readonly ____mutators = {
 		file: {
-			create: (data: TlaFile) => {
-				const store = this.store.getFullData()
+			create: async (data: TlaFile) => {
+				let store = this.store.getFullData()
 				if (!store) throw new Error('store not initialized')
 				if (store?.files.find((f) => f.id === data.id)) {
 					throw new Error('file already exists')
 				}
+				while (!store?.user) {
+					await sleep(50)
+					store = this.store.getFullData()
+				}
+				assert(store.user !== null, 'user not initialized')
 				this.makeOptimistic([
 					{ table: 'file', event: 'insert', row: data },
 					{
@@ -263,6 +269,7 @@ export class Zero {
 
 	makeOptimistic(updates: ZRowUpdate[]) {
 		if (this.clientTooOld) {
+			console.log('client too old')
 			// ignore incoming messages if the client is not supported
 			this.opts.onMutationRejected('client_too_old')
 			return
