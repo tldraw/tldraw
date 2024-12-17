@@ -20,7 +20,7 @@ services:
       -c wal_level=logical
       -c max_wal_senders=10 
       -c max_replication_slots=5 
-      -c max_connections=20 
+      -c max_connections=300
       -c hot_standby=on 
       -c hot_standby_feedback=on
 #       Uncomment the following line to enable query logging
