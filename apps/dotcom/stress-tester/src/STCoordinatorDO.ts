@@ -18,8 +18,6 @@ const regions: DurableObjectLocationHint[] = [
 ]
 
 const { preflight, corsify } = cors({ origin: '*' })
-const NUMBER_OF_WORKERS = 100
-const START_WITHIN = 1000
 
 export class STCoordinatorDO extends DurableObject<Environment> {
 	state: STCoordinatorState = {
@@ -29,8 +27,7 @@ export class STCoordinatorDO extends DurableObject<Environment> {
 		super(state, env)
 	}
 	debug(...args: any[]) {
-		// eslint-disable-next-line no-console
-		console.log(...args)
+		// console.log(...args)
 	}
 	router = AutoRouter({
 		before: [preflight],
@@ -42,28 +39,30 @@ export class STCoordinatorDO extends DurableObject<Environment> {
 	})
 		// when we get a connection request, we stash the room id if needed and handle the connection
 		.post('/:testId/start', async (request, env: Environment) => {
-			const body = await request.json()
+			const body = (await request.json()) as any
 			assert(request.params.testId.indexOf(':') === -1, 'Invalid test id')
+			const { uri, workers, files, startWithin } = body
 
 			this.state.tests[request.params.testId] = {
 				running: true,
 				events: [],
-				numWorkers: NUMBER_OF_WORKERS,
+				numWorkers: workers,
 			}
 
-			for (let i = 0; i < NUMBER_OF_WORKERS; i++) {
+			for (let i = 0; i < workers; i++) {
 				const id = `${request.params.testId}:${i}`
 				const worker = env.ST_WORKER.get(env.ST_WORKER.idFromName(id), {
 					locationHint: regions[i % regions.length],
 				}) as any as STWorkerDO
-				await worker.start(START_WITHIN, id, (body as any).uri)
+				await worker.start(startWithin, files, id, uri)
 			}
 			return new Response('Started', { status: 200 })
 		})
 		.post('/:testId/stop', async (request) => {
 			this.debug('Stopping test', request.params.testId)
+			const { workers } = (await request.json()) as any
 			this.state.tests[request.params.testId].running = false
-			for (let i = 0; i < NUMBER_OF_WORKERS; i++) {
+			for (let i = 0; i < workers; i++) {
 				const id = `${request.params.testId}:${i}`
 				const worker = this.env.ST_WORKER.get(
 					this.env.ST_WORKER.idFromName(id)

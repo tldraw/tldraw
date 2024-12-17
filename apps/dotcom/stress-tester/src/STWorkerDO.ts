@@ -5,11 +5,11 @@ import { STCoordinatorDO } from './STCoordinatorDO'
 import { Environment } from './types'
 
 const TIMEOUT = 20_000
-const FILES = 5
 
 export class STWorkerDO extends DurableObject<Environment> {
 	coordinator: STCoordinatorDO
 	zero: Zero | null = null
+	num_files: number
 	constructor(
 		private state: DurableObjectState,
 		env: Environment
@@ -18,11 +18,11 @@ export class STWorkerDO extends DurableObject<Environment> {
 		this.coordinator = env.ST_COORDINATOR.get(
 			env.ST_COORDINATOR.idFromName('coordinator')
 		) as any as STCoordinatorDO
+		this.num_files = 1
 	}
 
 	debug(...args: any[]) {
-		// eslint-disable-next-line no-console
-		console.log(...args)
+		// console.log(...args)
 	}
 
 	async time<T>(operation: string, fn: () => Promise<T>): Promise<T> {
@@ -117,7 +117,7 @@ export class STWorkerDO extends DurableObject<Environment> {
 				})
 			}
 
-			for (let i = 0; i < FILES; i++) {
+			for (let i = 0; i < this.num_files; i++) {
 				// let file = this.zero.store.getCommittedData()?.files[0]
 				// const fileId = file?.id ?? uniqueId()
 				let file = null
@@ -158,8 +158,9 @@ export class STWorkerDO extends DurableObject<Environment> {
 		}
 	}
 
-	async start(maxDelay: number, id: string, origin: string) {
+	async start(maxDelay: number, num_files: number, id: string, origin: string) {
 		this.debug('worker.start()', id, maxDelay)
+		this.num_files = num_files
 		this.state.storage.put('id', id)
 		this.state.storage.put('origin', origin)
 		const delay = Math.floor(Math.random() * maxDelay)

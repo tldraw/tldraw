@@ -27,6 +27,9 @@ export function Component() {
 	const [uri] = useLocalValue('st_uri', '')
 	const [currentTest, setCurrentTest] = useState<string | null>(null)
 	const [done, setDone] = useState<string | null>(null)
+	const [workers, setWorkers] = useState(50)
+	const [files, setFiles] = useState(5)
+	const [startWithin, setStartWithin] = useState(10_000)
 
 	useEffect(() => {
 		if (!coordinatorUrl || !accessToken) return
@@ -66,7 +69,7 @@ export function Component() {
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
 			},
-			body: JSON.stringify({ uri }),
+			body: JSON.stringify({ uri, workers, files, startWithin }),
 		})
 		if (res.ok) {
 			console.info('test started')
@@ -95,6 +98,12 @@ export function Component() {
 	return (
 		<div style={{ height: '100%', overflow: 'scroll' }}>
 			{done && <div>{done}</div>}
+			<span>Workers</span>
+			<input value={workers} onChange={(e) => setWorkers(Number(e.target.value))} />
+			<span>Files</span>
+			<input value={files} onChange={(e) => setFiles(Number(e.target.value))} />
+			<span>Start within</span>
+			<input value={startWithin} onChange={(e) => setStartWithin(Number(e.target.value))} />
 			<button onClick={handleStart}>Start test</button>
 			<button onClick={handleStop}>Stop test</button>
 			<pre>{JSON.stringify(state, null, 2)}</pre>
