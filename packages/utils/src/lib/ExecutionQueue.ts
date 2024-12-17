@@ -31,4 +31,8 @@ export class ExecutionQueue {
 			this.run()
 		})
 	}
+
+	close() {
+		this.queue = []
+	}
 }
