@@ -45,7 +45,7 @@ export function Component() {
 					const newCount = currentTest ? r?.tests[currentTest]?.events.length : 0
 					if (newCount && currentTest && currentCount === newCount) {
 						const duration = Date.now() - start
-						setCurrentTest(null)
+						// setCurrentTest(null)
 						const logMessage = `done in ${duration} ms. processed ${currentCount} events (${Math.floor(newCount / (duration / 1000))} events/s)`
 						setDone(logMessage)
 					}
@@ -76,24 +76,21 @@ export function Component() {
 		}
 	}
 	const handleStop = async () => {
-		setCurrentTest(null)
-		const res = await fetch(coordinatorUrl + '/first-one/stop', {
+		const res = await fetch(coordinatorUrl + `/${currentTest}/stop`, {
 			method: 'POST',
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
 			},
-			body: JSON.stringify({ uri }),
+			body: JSON.stringify({ workers }),
 		})
+		setCurrentTest(null)
 		if (res.ok) {
 			console.info('test stopped')
 		}
 	}
-	// const events = Object.values(state.tests).flatMap((t) => t.events)
-
-	// const createEvents = events.filter((e) => e.type === 'operation' && e.operation === 'create user')
-	//
-	// console.log(createEvents)
-	// console.log('duration', Date.now() - start)
+	const handleReset = async () => {
+		await fetch(coordinatorUrl + '/reset')
+	}
 
 	return (
 		<div style={{ height: '100%', overflow: 'scroll' }}>
@@ -106,6 +103,7 @@ export function Component() {
 			<input value={startWithin} onChange={(e) => setStartWithin(Number(e.target.value))} />
 			<button onClick={handleStart}>Start test</button>
 			<button onClick={handleStop}>Stop test</button>
+			<button onClick={handleReset}>Reset</button>
 			<pre>{JSON.stringify(state, null, 2)}</pre>
 		</div>
 	)

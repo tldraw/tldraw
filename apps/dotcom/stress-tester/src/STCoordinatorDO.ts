@@ -27,7 +27,7 @@ export class STCoordinatorDO extends DurableObject<Environment> {
 		super(state, env)
 	}
 	debug(...args: any[]) {
-		// console.log(...args)
+		console.log(...args)
 	}
 	router = AutoRouter({
 		before: [preflight],
@@ -42,6 +42,9 @@ export class STCoordinatorDO extends DurableObject<Environment> {
 			const body = (await request.json()) as any
 			assert(request.params.testId.indexOf(':') === -1, 'Invalid test id')
 			const { uri, workers, files, startWithin } = body
+			this.debug(
+				`starting ${request.params.testId} with: uri: ${uri} workers: ${workers} files: ${files} startWithin: ${startWithin}`
+			)
 
 			this.state.tests[request.params.testId] = {
 				running: true,
@@ -70,6 +73,12 @@ export class STCoordinatorDO extends DurableObject<Environment> {
 				await worker.stop()
 			}
 			return new Response('Stopped', { status: 200 })
+		})
+		.get('/reset', async () => {
+			this.debug('resetting')
+			this.state = {
+				tests: {},
+			}
 		})
 		.get('/state', () => new Response(JSON.stringify(this.getState()), { status: 200 }))
 

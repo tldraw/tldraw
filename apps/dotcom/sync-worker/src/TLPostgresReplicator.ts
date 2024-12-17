@@ -123,6 +123,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				.db`SELECT COUNT(*) FROM pg_stat_activity where datname = 'postgres'`
 			console.log('connection count:', connection_count[0].count)
 		}
+		console.info('this.postgresUpdates=', this.postgresUpdates)
 		this.postgresUpdates = 0
 		this.userMessages = 0
 		// TODO: restore this later to make sure we push stuff to metrics
@@ -492,7 +493,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.debug('registering user', userId)
 		this.logEvent({ type: 'register_user' })
 		await this.waitUntilConnected()
-		// this.storeLog('register user', userId)
+		this.storeLog('register user', userId)
 		assert(this.state.type === 'connected', 'state should be connected in registerUser')
 		const guestFiles = await this.state
 			.db`SELECT "fileId" as id FROM file_state where "userId" = ${userId}`
