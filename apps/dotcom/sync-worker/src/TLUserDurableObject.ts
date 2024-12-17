@@ -356,9 +356,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		})
 	}
 
-	// private storeLog(...args: any[]) {
-	// 	this.queue.push(() => this.replicator.storeLog(args.join(' ')))
-	// }
+	private storeLog(...args: any[]) {
+		// this.queue.push(() => this.replicator.storeLog(args.join(' ')))
+	}
 
 	private async handleMutate(msg: ZClientSentMessage) {
 		this.assertCache()
@@ -375,7 +375,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			this.debug('mutation success', this.userId)
 			// const fileUpdate = msg.updates.find((u) => u.table === 'file')
 			// if (fileUpdate) {
-			// 	this.storeLog('file DO mutated', this.userId, fileUpdate.row.id)
+			// this.storeLog('file DO mutated', this.userId, fileUpdate.row.id)
 			// }
 
 			await this.db
@@ -527,6 +527,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	logEvent(event: TLUserDurableObjectEvent) {
+		// this.storeLog(JSON.stringify(event, null, 2))
+		// console.log(event)
 		switch (event.type) {
 			case 'reboot_duration':
 				this.writeEvent({

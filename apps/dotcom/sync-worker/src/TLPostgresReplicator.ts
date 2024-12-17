@@ -93,6 +93,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.reboot(false)
 		this.alarm()
 		this.measure = env.MEASURE
+		this.storeLog('constructor')
 	}
 
 	__test__forceReboot() {
@@ -113,13 +114,15 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 	override async alarm() {
 		this.ctx.storage.setAlarm(Date.now() + 1000)
-		this.maybeLogRpm()
+		await this.maybeLogRpm()
 	}
 
-	private maybeLogRpm() {
-		// const now = Date.now()
-		// this.storeLog('postgresUpdates', this.postgresUpdates, 'user messages', this.userMessages)
-		console.error('postgresUpdates=', this.postgresUpdates)
+	private async maybeLogRpm() {
+		if (this.state.type === 'connected') {
+			const connection_count = await this.state
+				.db`SELECT COUNT(*) FROM pg_stat_activity where datname = 'postgres'`
+			console.log('connection count:', connection_count[0].count)
+		}
 		this.postgresUpdates = 0
 		this.userMessages = 0
 		// TODO: restore this later to make sure we push stuff to metrics
@@ -428,14 +431,16 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	// async storeLog(...args: any[]) {
-	// 	this.sql.exec(`INSERT INTO logs (log) VALUES (?)`, args.join(' '))
-	// }
+	async storeLog(...args: any[]) {
+		this.sql.exec(`INSERT INTO logs (log) VALUES (?)`, args.join(' '))
+	}
 
 	async getLogs() {
-		const result = this.sql.exec(`SELECT * FROM logs`).toArray()
+		return this.sql.exec(`SELECT * FROM logs`).toArray()
+	}
+
+	async clearLogs() {
 		this.sql.exec(`DELETE FROM logs`)
-		return result
 	}
 
 	private async messageUser(userId: string, event: ZReplicationEventWithoutSequenceNumber) {
@@ -478,6 +483,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	private getStubForFile(fileId: string) {
+		// this.storeLog('getStubForFile', fileId)
 		const id = this.env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${fileId}`)
 		return this.env.TLDR_DOC.get(id) as any as TLDrawDurableObject
 	}
@@ -486,6 +492,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.debug('registering user', userId)
 		this.logEvent({ type: 'register_user' })
 		await this.waitUntilConnected()
+		// this.storeLog('register user', userId)
 		assert(this.state.type === 'connected', 'state should be connected in registerUser')
 		const guestFiles = await this.state
 			.db`SELECT "fileId" as id FROM file_state where "userId" = ${userId}`
@@ -505,6 +512,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	async unregisterUser(userId: string) {
 		this.logEvent({ type: 'unregister_user' })
+		// this.storeLog('unregister user', userId)
 		this.sql.exec(`DELETE FROM active_user WHERE id = ?`, userId)
 	}
 

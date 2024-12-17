@@ -61,8 +61,6 @@ const router = createRouter<Environment>()
 		// forward req to the user durable object
 		const auth = await getAuth(req, env)
 		if (!auth) {
-			// eslint-disable-next-line no-console
-			console.log('auth not found')
 			return notFound()
 		}
 		const stub = getUserDurableObject(env, auth.userId)
@@ -71,6 +69,7 @@ const router = createRouter<Environment>()
 	.get('/logs', async (req, env) => {
 		const stub = getReplicator(env)
 		const result = await stub.getLogs()
+		await stub.clearLogs()
 		return new Response(result.map((e) => e.log).join('\n'), { status: 200 })
 	})
 	.post('/app/tldr', createFiles)
