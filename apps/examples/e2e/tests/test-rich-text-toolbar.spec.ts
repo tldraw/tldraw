@@ -8,14 +8,10 @@ declare const editor: Editor
 test.describe('Rich text behaviour', () => {
 	test.beforeEach(setup)
 	test.beforeEach(async ({ page, toolbar, isMobile }) => {
+		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
+		if (isMobile) return
 		const { rectangle } = toolbar.tools
-		const { popoverRectangle } = toolbar.popOverTools
-		if (isMobile) {
-			await toolbar.moreToolsButton.click()
-			await popoverRectangle.click()
-		} else {
-			await rectangle.click()
-		}
+		await rectangle.click()
 		await page.mouse.dblclick(150, 150)
 
 		const isEditing = await page.evaluate(
@@ -39,7 +35,14 @@ test.describe('Rich text behaviour', () => {
 		await page.waitForTimeout(150)
 	})
 
-	test('selecting a style changes the style of the text', async ({ page, richTextToolbar }) => {
+	test('selecting a style changes the style of the text', async ({
+		page,
+		richTextToolbar,
+		isMobile,
+	}) => {
+		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
+		if (isMobile) return
+
 		const toolsForHTMLStyle = [
 			{ name: 'bold', tag: 'strong' },
 			{ name: 'strike', tag: 's' },
@@ -73,7 +76,10 @@ test.describe('Rich text behaviour', () => {
 		}
 	})
 
-	test('adding and removing a link', async ({ page, toolbar, richTextToolbar }) => {
+	test('adding and removing a link', async ({ page, toolbar, richTextToolbar, isMobile }) => {
+		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
+		if (isMobile) return
+
 		const { rectangle } = toolbar.tools
 		await richTextToolbar.clickTool(richTextToolbar.tools.link)
 		await page.keyboard.type('example.com')

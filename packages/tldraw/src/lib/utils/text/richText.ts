@@ -1,8 +1,18 @@
-import { Extensions, generateHTML, generateText, JSONContent } from '@tiptap/core'
+import { Extension, Extensions, JSONContent, generateHTML, generateText } from '@tiptap/core'
 import Highlight from '@tiptap/extension-highlight'
 import Link from '@tiptap/extension-link'
 import StarterKit from '@tiptap/starter-kit'
 import { Editor, TLRichText } from '@tldraw/editor'
+
+const KeyboardShiftEnterTweakExtension = Extension.create({
+	name: 'keyboardShiftEnterHandler',
+	addKeyboardShortcuts() {
+		return {
+			// We don't support soft breaks, so we just use the default enter command.
+			'Shift-Enter': ({ editor }) => editor.commands.enter(),
+		}
+	},
+})
 
 /**
  * Default extensions for the TipTap editor.
@@ -16,6 +26,7 @@ export const tipTapDefaultExtensions: Extensions = [
 		autolink: true,
 	}),
 	Highlight,
+	KeyboardShiftEnterTweakExtension,
 ]
 
 /**
