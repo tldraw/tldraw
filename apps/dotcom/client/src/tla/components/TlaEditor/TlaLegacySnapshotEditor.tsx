@@ -1,5 +1,6 @@
+import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
-import { Editor, TLComponents, TLStoreSnapshot, Tldraw } from 'tldraw'
+import { Editor, TLComponents, TLStoreSnapshot, Tldraw, fetch } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { assetUrls } from '../../../utils/assetUrls'
@@ -32,21 +33,45 @@ export const components: TLComponents = {
 export function TlaLegacySnapshotEditor({
 	fileSlug,
 	snapshot,
+	timeStamp,
+	context,
+	token,
 }: {
 	fileSlug: string
 	snapshot: TLStoreSnapshot
+	context: 'legacy-snapshot' | 'legacy-history-snapshot'
+	timeStamp?: string
+	token?: string
 }) {
 	return (
 		<>
 			<SneakySetDocumentTitle />
 			<ReadyWrapper key={fileSlug}>
-				<TlaEditorInner snapshot={snapshot} />
+				<TlaEditorInner
+					fileSlug={fileSlug}
+					snapshot={snapshot}
+					timeStamp={timeStamp}
+					token={token}
+					context={context}
+				/>
 			</ReadyWrapper>
 		</>
 	)
 }
 
-function TlaEditorInner({ snapshot }: { snapshot: TLStoreSnapshot }) {
+function TlaEditorInner({
+	fileSlug,
+	snapshot,
+	timeStamp,
+	token,
+	context,
+}: {
+	fileSlug: string
+	snapshot: TLStoreSnapshot
+	context: 'legacy-snapshot' | 'legacy-history-snapshot'
+	timeStamp?: string
+	token?: string
+}) {
 	const app = useMaybeApp()
 
 	const setIsReady = useSetIsReady()
@@ -71,6 +96,31 @@ function TlaEditorInner({ snapshot }: { snapshot: TLStoreSnapshot }) {
 		[setIsReady]
 	)
 
+	const restoreVersion = useCallback(async () => {
+		const sure = window.confirm('Are you sure?')
+		if (!sure) return
+
+		const res = await fetch(`/api/${ROOM_PREFIX}/${fileSlug}/restore`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				...(token
+					? {
+							Authorization: 'Bearer ' + token,
+						}
+					: {}),
+			},
+			body: JSON.stringify({ timeStamp }),
+		})
+
+		if (!res.ok) {
+			window.alert('Something went wrong!')
+			return
+		}
+
+		window.alert('done')
+	}, [fileSlug, timeStamp, token])
+
 	return (
 		<TlaEditorWrapper>
 			<Tldraw
@@ -89,7 +139,47 @@ function TlaEditorInner({ snapshot }: { snapshot: TLStoreSnapshot }) {
 				<SneakyDarkModeSync />
 				<SneakyLegacySetDocumentTitle />
 				{app && <SneakyTldrawFileDropHandler />}
+				{context === 'legacy-history-snapshot' && (
+					<button
+						style={{
+							zIndex: 10000,
+							position: 'absolute',
+							top: 64,
+							right: 6,
+							pointerEvents: 'all',
+						}}
+						onClick={restoreVersion}
+						// eslint-disable-next-line react/jsx-no-literals
+					>
+						Restore version
+					</button>
+				)}
 			</Tldraw>
 		</TlaEditorWrapper>
 	)
 }
+
+// const restoreVersion = useCallback(async () => {
+// 	const sure = window.confirm('Are you sure?')
+// 	if (!sure) return
+
+// 	const res = await fetch(`/api/${ROOM_PREFIX}/${roomId}/restore`, {
+// 		method: 'POST',
+// 		headers: {
+// 			'Content-Type': 'application/json',
+// 			...(token
+// 				? {
+// 						Authorization: 'Bearer ' + token,
+// 					}
+// 				: {}),
+// 		},
+// 		body: JSON.stringify({ timeStamp }),
+// 	})
+
+// 	if (!res.ok) {
+// 		window.alert('Something went wrong!')
+// 		return
+// 	}
+
+// 	window.alert('done')
+// }, [roomId, timeStamp, token])

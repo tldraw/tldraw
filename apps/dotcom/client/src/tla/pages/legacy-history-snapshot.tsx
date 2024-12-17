@@ -91,7 +91,12 @@ export function Component({ error: _error }: { error?: unknown }) {
 					<TlaFileError error={error} />
 				) : (
 					<TlaAnonLayout>
-						<TlaLegacySnapshotEditor fileSlug={result.roomId} snapshot={snapshot} />
+						<TlaLegacySnapshotEditor
+							fileSlug={result.roomId}
+							snapshot={snapshot}
+							timeStamp={ts}
+							context="legacy-history-snapshot"
+						/>
 					</TlaAnonLayout>
 				)}
 			</>
@@ -104,7 +109,12 @@ export function Component({ error: _error }: { error?: unknown }) {
 				<TlaFileError error={error} />
 			) : (
 				<TlaEditorWrapper>
-					<TlaLegacySnapshotEditor fileSlug={result.roomId} snapshot={snapshot} />
+					<TlaLegacySnapshotEditor
+						fileSlug={result.roomId}
+						snapshot={snapshot}
+						timeStamp={ts}
+						context="legacy-history-snapshot"
+					/>
 				</TlaEditorWrapper>
 			)}
 		</TlaSidebarLayout>

@@ -85,7 +85,11 @@ export function Component({ error: _error }: { error?: unknown }) {
 					<TlaFileError error={error} />
 				) : (
 					<TlaAnonLayout>
-						<TlaLegacySnapshotEditor fileSlug={roomId} snapshot={snapshot} />
+						<TlaLegacySnapshotEditor
+							fileSlug={roomId}
+							snapshot={snapshot}
+							context="legacy-snapshot"
+						/>
 					</TlaAnonLayout>
 				)}
 			</ReadyWrapper>
@@ -97,7 +101,7 @@ export function Component({ error: _error }: { error?: unknown }) {
 			{error ? (
 				<TlaFileError error={error} />
 			) : (
-				<TlaLegacySnapshotEditor fileSlug={roomId} snapshot={snapshot} />
+				<TlaLegacySnapshotEditor fileSlug={roomId} snapshot={snapshot} context="legacy-snapshot" />
 			)}
 		</TlaSidebarLayout>
 	)
