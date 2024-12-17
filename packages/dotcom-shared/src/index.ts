@@ -10,5 +10,7 @@ export {
 	SNAPSHOT_PREFIX,
 	type RoomOpenMode,
 } from './routes'
+export type * from './stress-test-types'
 export * from './tlaSchema'
 export * from './types'
+export * from './zero-polyfill'

@@ -1,26 +1,26 @@
+import { Signal, computed, react, transact } from '@tldraw/state'
+import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
+import { uniqueId } from '@tldraw/utils'
+import { OptimisticAppStore } from './OptimisticAppStore'
 import {
-	OptimisticAppStore,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
 	TlaFileStatePartial,
 	TlaUser,
 	TlaUserPartial,
-	ZClientSentMessage,
-	ZErrorCode,
-	ZRowUpdate,
-	ZServerSentMessage,
-} from '@tldraw/dotcom-shared'
-import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { Signal, computed, react, transact, uniqueId } from 'tldraw'
+} from './tlaSchema'
+import { ZClientSentMessage, ZErrorCode, ZRowUpdate, ZServerSentMessage } from './types'
 
 export class Zero {
 	private socket: ClientWebSocketAdapter
-	private store = new OptimisticAppStore()
+	store = new OptimisticAppStore()
 	private pendingUpdates: ZRowUpdate[] = []
 	private timeout: NodeJS.Timeout | undefined = undefined
 	private currentMutationId = uniqueId()
 	private clientTooOld = false
+
+	userId?: string
 
 	constructor(
 		private opts: {
@@ -45,6 +45,7 @@ export class Zero {
 				// ignore incoming messages if the client is not supported
 				return
 			}
+			// console.log('got msg', this.userId, _msg)
 			const msg = _msg as any as ZServerSentMessage
 			switch (msg.type) {
 				case 'initial_data':
@@ -75,6 +76,32 @@ export class Zero {
 			this.sendPendingUpdates()
 		}
 		this.socket.close()
+	}
+
+	async sneakyTransaction(fn: () => void): Promise<void> {
+		fn()
+		if (this.pendingUpdates.length === 0) {
+			return
+		}
+		const mutationId = this.currentMutationId
+
+		return new Promise((resolve, reject) => {
+			const unsubCommit = this.store.events.on('commit', (ids: string[]) => {
+				if (ids.includes(mutationId)) {
+					resolve()
+					unsubCommit()
+					unsubReject()
+				}
+			})
+
+			const unsubReject = this.store.events.on('reject', (id: string) => {
+				if (id === mutationId) {
+					reject()
+					unsubCommit()
+					unsubReject()
+				}
+			})
+		})
 	}
 
 	// eslint-disable-next-line local/prefer-class-methods

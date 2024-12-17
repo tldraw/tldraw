@@ -12,7 +12,7 @@ import { DurableObject } from 'cloudflare:workers'
 import postgres from 'postgres'
 import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import type { TLDrawDurableObject } from './TLDrawDurableObject'
-import { ZReplicationEvent } from './UserDataSyncer'
+import { ZReplicationEventWithoutSequenceNumber } from './UserDataSyncer'
 import { getPostgres } from './getPostgres'
 import { Analytics, Environment, TLPostgresReplicatorEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
@@ -21,8 +21,10 @@ import { getUserDurableObject } from './utils/durableObjects'
 const seed = `
 -- we keep the active_user data between reboots to 
 -- make sure users don't miss updates.
+DROP TABLE IF EXISTS active_user;
 CREATE TABLE IF NOT EXISTS active_user (
-	id TEXT PRIMARY KEY
+	id TEXT PRIMARY KEY,
+	sequenceNumber BIGINT DEFAULT 0	
 );
 DROP TABLE IF EXISTS user_file_subscriptions;
 CREATE TABLE user_file_subscriptions (
@@ -30,6 +32,10 @@ CREATE TABLE user_file_subscriptions (
 	fileId TEXT,
 	PRIMARY KEY (userId, fileId),
 	FOREIGN KEY (userId) REFERENCES active_user(id) ON DELETE CASCADE
+);
+DROP TABLE IF EXISTS logs;
+CREATE TABLE IF NOT EXISTS logs (
+	log TEXT
 );
 `
 
@@ -66,6 +72,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	measure: Analytics | undefined
 	postgresUpdates = 0
 	lastRpmLogTime = Date.now()
+	userMessages = 0
+
+	queues: Map<string, ExecutionQueue> = new Map()
 
 	sentry
 	// eslint-disable-next-line local/prefer-class-methods
@@ -111,14 +120,18 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private maybeLogRpm() {
 		const now = Date.now()
-		if (this.postgresUpdates > 0 && now - this.lastRpmLogTime > ONE_MINUTE) {
-			this.logEvent({
-				type: 'rpm',
-				rpm: this.postgresUpdates,
-			})
-			this.postgresUpdates = 0
-			this.lastRpmLogTime = now
-		}
+		this.storeLog('postgresUpdates', this.postgresUpdates, 'user messages', this.userMessages)
+		this.postgresUpdates = 0
+		this.userMessages = 0
+		// TODO: restore this later to make sure we push stuff to metrics
+		// if (this.postgresUpdates > 0 && now - this.lastRpmLogTime > ONE_MINUTE) {
+		// 	this.logEvent({
+		// 		type: 'rpm',
+		// 		rpm: this.postgresUpdates,
+		// 	})
+		// 	this.postgresUpdates = 0
+		// 	this.lastRpmLogTime = now
+		// }
 	}
 
 	private queue = new ExecutionQueue()
@@ -377,6 +390,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private handleUserEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
 		assert(row?.id, 'user id is required')
+		this.debug('USER EVENT', event.command, row.id)
 		this.messageUser(row.id, {
 			type: 'row_update',
 			row: row as any,
@@ -415,12 +429,52 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	private async messageUser(userId: string, event: ZReplicationEvent) {
-		const user = getUserDurableObject(this.env, userId)
-		const res = await user.handleReplicationEvent(event)
-		if (res === 'unregister') {
-			this.debug('unregistering user', userId, event)
-			this.unregisterUser(userId)
+	async storeLog(...args: any[]) {
+		this.sql.exec(`INSERT INTO logs (log) VALUES (?)`, args.join(' '))
+	}
+
+	async getLogs() {
+		const result = this.sql.exec(`SELECT * FROM logs`).toArray()
+		this.sql.exec(`DELETE FROM logs`)
+		return result
+	}
+
+	private async messageUser(userId: string, event: ZReplicationEventWithoutSequenceNumber) {
+		this.userMessages++
+		const res = this.sql
+			.exec('SELECT sequenceNumber FROM active_user WHERE id = ?', userId)
+			.toArray()
+		if (res.length === 0) {
+			console.error('user not found', userId)
+			return
+		}
+		const sequenceNumber = res[0].sequenceNumber as number
+		this.sql.exec('UPDATE active_user SET sequenceNumber = sequenceNumber + 1 WHERE id = ?', userId)
+
+		if (event.type === 'row_update' && event.table === 'file' && event.event === 'insert') {
+			this.storeLog('file insert', event.row.ownerId, event.row.id)
+			// console.log('hello: file insert', event.row.ownerId, event.row.id)
+		} else if (event.type === 'mutation_commit') {
+			this.storeLog('mutation commit', event.userId, event.mutationNumber)
+			// console.log('hello: mutation commit', event.userId, event.mutationNumber)
+		}
+
+		try {
+			let q = this.queues.get(userId)
+			if (!q) {
+				q = new ExecutionQueue()
+				this.queues.set(userId, q)
+			}
+			await q.push(async () => {
+				const user = getUserDurableObject(this.env, userId)
+				const res = await user.handleReplicationEvent({ ...event, sequenceNumber })
+				if (res === 'unregister') {
+					this.debug('unregistering user', userId, event)
+					this.unregisterUser(userId)
+				}
+			})
+		} catch (e) {
+			console.error('Error in messageUser', e)
 		}
 	}
 

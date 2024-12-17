@@ -11,7 +11,7 @@ import {
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { assert } from '@tldraw/utils'
+import { assert, ExecutionQueue } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -32,6 +32,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: ReturnType<typeof postgres>
 	private readonly replicator: TLPostgresReplicator
 	private measure: Analytics | undefined
+	queue = new ExecutionQueue()
 
 	private readonly sentry
 	private captureException(exception: unknown, eventHint?: EventHint) {
@@ -358,6 +359,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		})
 	}
 
+	private storeLog(...args: any[]) {
+		this.queue.push(() => this.replicator.storeLog(args.join(' ')))
+	}
+
 	private async handleMutate(msg: ZClientSentMessage) {
 		this.assertCache()
 		try {
@@ -370,15 +375,32 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				}
 			)
 			// TODO: We should probably handle a case where the above operation succeeds but the one below fails
-			const result = await this
-				.db`insert into public.user_mutation_number ("userId", "mutationNumber") values (${this.userId}, 1) on conflict ("userId") do update set "mutationNumber" = user_mutation_number."mutationNumber" + 1 returning "mutationNumber"`
-			const mutationNumber = Number(result[0].mutationNumber)
-			const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
-			assert(
-				mutationNumber > currentMutationNumber,
-				`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
-			)
-			this.cache.mutations.push({ mutationNumber, mutationId: msg.mutationId })
+			this.debug('mutation success', this.userId)
+			const fileUpdate = msg.updates.find((u) => u.table === 'file')
+			if (fileUpdate) {
+				this.storeLog('file DO mutated', this.userId, fileUpdate.row.id)
+			}
+
+			await this.db
+				.begin(async (sql) => {
+					const result =
+						await sql`insert into public.user_mutation_number ("userId", "mutationNumber") values (${this.userId}, 1) on conflict ("userId") do update set "mutationNumber" = user_mutation_number."mutationNumber" + 1 returning "mutationNumber"`
+					this.debug('mutation number success', this.userId)
+					const mutationNumber = Number(result[0].mutationNumber)
+					const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
+					assert(
+						mutationNumber > currentMutationNumber,
+						`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
+					)
+					this.debug('pushing mutation to cache', this.userId, mutationNumber)
+					if (fileUpdate) console.log('hello: mutation number', this.userId, mutationNumber)
+					this.cache.mutations.push({ mutationNumber, mutationId: msg.mutationId })
+				})
+				.catch((e) => {
+					console.log('hello: mutation number failed', this.userId)
+					this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== msg.mutationId)
+					throw e
+				})
 		} catch (e) {
 			const code = e instanceof ZMutationError ? e.errorCode : ZErrorCode.unknown_error
 			this.captureException(e, {
@@ -390,14 +412,41 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	/* ------- RPCs -------  */
 
+	buffer: ZReplicationEvent[] = []
+	lastSequenceNumber = null as null | number
+
 	async handleReplicationEvent(event: ZReplicationEvent) {
 		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
-		this.debug('replication event', event, !!this.cache)
+		this.storeLog('user DO replication event', JSON.stringify(event, null, 2))
 		if (!this.cache) {
 			return 'unregister'
 		}
 
-		this.cache.handleReplicationEvent(event)
+		if (this.lastSequenceNumber !== null && event.sequenceNumber != this.lastSequenceNumber + 1) {
+			this.cache.reboot()
+			return
+			if (this.buffer.length > 10) {
+				this.cache.reboot()
+				return 'ok'
+			}
+
+			this.buffer.push(event)
+			return 'ok'
+		}
+
+		try {
+			this.cache.handleReplicationEvent(event)
+		} finally {
+			this.lastSequenceNumber = event.sequenceNumber
+		}
+
+		if (this.buffer.length > 0) {
+			const buf = this.buffer
+			this.buffer = []
+			for (const e of buf) {
+				this.cache.handleReplicationEvent(e)
+			}
+		}
 
 		return 'ok'
 	}

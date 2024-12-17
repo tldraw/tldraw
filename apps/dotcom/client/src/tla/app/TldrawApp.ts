@@ -9,6 +9,7 @@ import {
 	ZErrorCode,
 	Z_PROTOCOL_VERSION,
 } from '@tldraw/dotcom-shared'
+import { Zero } from '@tldraw/dotcom-shared'
 import { Result, assert, fetch, structuredClone, throttle, uniqueId } from '@tldraw/utils'
 import pick from 'lodash.pick'
 import {
@@ -31,7 +32,6 @@ import {
 } from 'tldraw'
 import { getDateFormat } from '../utils/dates'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
-import { Zero } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
