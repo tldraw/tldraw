@@ -170,6 +170,9 @@
   "904a830405": {
     "translation": "Rename"
   },
+  "91e49bb0eb": {
+    "translation": "Copy to my files"
+  },
   "9563b82670": {
     "translation": "Uploading {count} .tldr {count, plural, one {file} other {files}}…"
   },

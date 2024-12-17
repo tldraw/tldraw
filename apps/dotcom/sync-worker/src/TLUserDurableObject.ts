@@ -50,7 +50,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.sentry = createSentry(ctx, env)
 		this.replicator = getReplicator(env)
 
-		this.db = getPostgres(env, { pooled: true })
+		this.db = getPostgres(env, { pooled: true, name: 'TLUserDurableObject' })
 		this.debug('created')
 		this.measure = env.MEASURE
 	}
