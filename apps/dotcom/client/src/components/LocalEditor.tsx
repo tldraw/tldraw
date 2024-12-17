@@ -47,11 +47,13 @@ const components: TLComponents = {
 	},
 	MainMenu: () => (
 		<DefaultMainMenu>
-			<LocalFileMenu />
-			<EditSubmenu />
-			<ViewSubmenu />
-			<ExportFileContentSubMenu />
-			<ExtrasGroup />
+			<TldrawUiMenuGroup id="basic">
+				<LocalFileMenu />
+				<EditSubmenu />
+				<ViewSubmenu />
+				<ExportFileContentSubMenu />
+				<ExtrasGroup />
+			</TldrawUiMenuGroup>
 			<PreferencesGroup />
 			<Links />
 		</DefaultMainMenu>
