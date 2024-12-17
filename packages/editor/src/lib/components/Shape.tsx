@@ -171,13 +171,19 @@ export const Shape = memo(function Shape({
 
 export const InnerShape = memo(
 	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
-		return useStateTracking('InnerShape:' + shape.type, () =>
-			// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
-			// calling the render method with stale data.
-			util.component(util.editor.store.unsafeGetWithoutCapture(shape.id) as T)
+		return useStateTracking(
+			'InnerShape:' + shape.type,
+			() =>
+				// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
+				// calling the render method with stale data.
+				util.component(util.editor.store.unsafeGetWithoutCapture(shape.id) as T),
+			[util, shape.id]
 		)
 	},
-	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
+	(prev, next) =>
+		prev.shape.props === next.shape.props &&
+		prev.shape.meta === next.shape.meta &&
+		prev.util === next.util
 )
 
 export const InnerShapeBackground = memo(
@@ -188,11 +194,17 @@ export const InnerShapeBackground = memo(
 		shape: T
 		util: ShapeUtil<T>
 	}) {
-		return useStateTracking('InnerShape:' + shape.type, () =>
-			// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
-			// calling the render method with stale data.
-			util.backgroundComponent?.(util.editor.store.unsafeGetWithoutCapture(shape.id) as T)
+		return useStateTracking(
+			'InnerShape:' + shape.type,
+			() =>
+				// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
+				// calling the render method with stale data.
+				util.backgroundComponent?.(util.editor.store.unsafeGetWithoutCapture(shape.id) as T),
+			[util, shape.id]
 		)
 	},
-	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
+	(prev, next) =>
+		prev.shape.props === next.shape.props &&
+		prev.shape.meta === next.shape.meta &&
+		prev.util === next.util
 )

@@ -81,6 +81,8 @@ export interface ErrorResult<E> {
 export class ExecutionQueue {
     constructor(timeout?: number | undefined);
     // (undocumented)
+    close(): void;
+    // (undocumented)
     push<T>(task: () => T): Promise<Awaited<T>>;
 }
 
@@ -243,6 +245,9 @@ export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
 }, mapper: (key: Key, value: ValueBefore) => ValueAfter): {
     [K in Key]: ValueAfter;
 };
+
+// @internal (undocumented)
+export function maxBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;
 
 // @internal (undocumented)
 export function measureAverageDuration(_target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor;

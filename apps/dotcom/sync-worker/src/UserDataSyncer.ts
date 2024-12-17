@@ -64,11 +64,11 @@ export type ZReplicationEvent =
 	| ZMutationCommit
 	| ZForceReboot
 
-export type ZReplicationEventWithoutSequenceNumber =
-	| Omit<ZRowUpdateEvent, 'sequenceNumber'>
-	| Omit<ZBootCompleteEvent, 'sequenceNumber'>
-	| Omit<ZMutationCommit, 'sequenceNumber'>
-	| Omit<ZForceReboot, 'sequenceNumber'>
+export type ZReplicationEventWithoutSequenceInfo =
+	| Omit<ZRowUpdateEvent, 'sequenceNumber' | 'sequenceId'>
+	| Omit<ZBootCompleteEvent, 'sequenceNumber' | 'sequenceId'>
+	| Omit<ZMutationCommit, 'sequenceNumber' | 'sequenceId'>
+	| Omit<ZForceReboot, 'sequenceNumber' | 'sequenceId'>
 
 type BootState =
 	| {
@@ -79,6 +79,7 @@ type BootState =
 			type: 'connecting'
 			bootId: string
 			sequenceId: string
+			lastSequenceNumber: number
 			promise: PromiseWithResolve
 			bufferedEvents: Array<ZReplicationEvent>
 			didGetBootId: boolean
@@ -89,6 +90,7 @@ type BootState =
 			type: 'connected'
 			bootId: string
 			sequenceId: string
+			lastSequenceNumber: number
 	  }
 
 export class UserDataSyncer {
@@ -176,6 +178,7 @@ export class UserDataSyncer {
 				type: 'connected',
 				bootId: this.state.bootId,
 				sequenceId: this.state.sequenceId,
+				lastSequenceNumber: this.state.lastSequenceNumber,
 			}
 			this.store.initialize(data)
 
@@ -196,7 +199,7 @@ export class UserDataSyncer {
 		this.debug('booting')
 		// todo: clean up old resources if necessary?
 		const start = Date.now()
-		const sequenceId = await this.replicator.registerUser(this.userId)
+		const { sequenceId, sequenceNumber } = await this.replicator.registerUser(this.userId)
 		this.debug('registered user, sequenceId:', sequenceId)
 		this.state = {
 			type: 'connecting',
@@ -205,6 +208,7 @@ export class UserDataSyncer {
 			promise: 'promise' in this.state ? this.state.promise : promiseWithResolve(),
 			bootId: uniqueId(),
 			sequenceId,
+			lastSequenceNumber: sequenceNumber,
 			bufferedEvents: [],
 			didGetBootId: false,
 			data: null,
@@ -320,10 +324,17 @@ export class UserDataSyncer {
 			('sequenceId' in this.state && this.state.sequenceId !== event.sequenceId)
 		) {
 			// the replicator has restarted, so we need to reboot
+			this.debug('force reboot', this.state, event)
 			this.reboot()
 			return
 		}
 		assert(this.state.type !== 'init', 'state should not be init: ' + event.type)
+		if (event.sequenceNumber !== this.state.lastSequenceNumber + 1) {
+			this.debug('sequence number mismatch', event.sequenceNumber, this.state.lastSequenceNumber)
+			this.reboot()
+			return
+		}
+		this.state.lastSequenceNumber++
 
 		if (event.type === 'mutation_commit') {
 			this.commitMutations(event.mutationNumber)

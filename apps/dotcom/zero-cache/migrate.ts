@@ -48,8 +48,13 @@ async function waitForPostgres() {
 	let attempts = 0
 	do {
 		try {
-			const sql = postgres(postgresConnectionString)
+			const sql = postgres(postgresConnectionString, {
+				connection: {
+					application_name: 'waitForPostgres',
+				},
+			})
 			await sql`SELECT 1`
+			await sql.end()
 			break
 		} catch (_e) {
 			if (attempts++ > 100) {
@@ -62,10 +67,16 @@ async function waitForPostgres() {
 	} while (true)
 	const sql = postgres(postgresConnectionString)
 	await sql.unsafe(init).simple()
+	await sql.end()
 }
 
 async function migrate(summary: string[], dryRun: boolean) {
-	await postgres(postgresConnectionString).begin(async (sql) => {
+	const db = postgres(postgresConnectionString, {
+		connection: {
+			application_name: 'migrate',
+		},
+	})
+	await db.begin(async (sql) => {
 		const appliedMigrations = await sql`SELECT filename FROM migrations.applied_migrations`
 		const migrations = readdirSync(`./migrations`).sort()
 		if (migrations.length === 0) {
@@ -104,6 +115,7 @@ async function migrate(summary: string[], dryRun: boolean) {
 			throw DRY_RUN_ROLLBACK
 		}
 	})
+	db.end()
 }
 async function run() {
 	try {

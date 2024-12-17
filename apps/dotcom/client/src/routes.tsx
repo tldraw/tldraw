@@ -99,6 +99,26 @@ export const router = createRoutesFromElements(
 				{/* File view */}
 				<Route path={ROUTES.tlaFile} lazy={() => import('./tla/pages/file')} />
 				<Route path={ROUTES.tlaPublish} lazy={() => import('./tla/pages/publish')} />
+				{/* Legacy room */}
+				<Route path={ROUTES.tlaLegacyRoom} lazy={() => import('./tla/pages/legacy-room')} />
+				{/* Legacy readonly */}
+				<Route path={ROUTES.tlaLegacyReadonly} lazy={() => import('./tla/pages/legacy-readonly')} />
+				<Route
+					path={ROUTES.tlaLegacyReadonlyOld}
+					lazy={() => import('./tla/pages/legacy-readonly-old')}
+				/>
+				{/* Legacy snapshot */}
+				<Route path={ROUTES.tlaLegacySnapshot} lazy={() => import('./tla/pages/legacy-snapshot')} />
+				{/* Legacy history */}
+				<Route
+					path={ROUTES.tlaLegacyRoomHistory}
+					lazy={() => import('./tla/pages/legacy-history')}
+				/>
+				{/* Legacy history snapshot */}
+				<Route
+					path={ROUTES.tlaLegacyRoomHistorySnapshot}
+					lazy={() => import('./tla/pages/legacy-history-snapshot')}
+				/>
 				{/* Views that require login */}
 				<Route lazy={() => import('./tla/providers/RequireSignedInUser')}></Route>
 			</Route>

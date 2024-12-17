@@ -12,32 +12,44 @@ import { DurableObject } from 'cloudflare:workers'
 import postgres from 'postgres'
 import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import type { TLDrawDurableObject } from './TLDrawDurableObject'
-import { ZReplicationEventWithoutSequenceNumber } from './UserDataSyncer'
+import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { getPostgres } from './getPostgres'
 import { Analytics, Environment, TLPostgresReplicatorEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { getUserDurableObject } from './utils/durableObjects'
 
-const seed = `
--- we keep the active_user data between reboots to 
--- make sure users don't miss updates.
-DROP TABLE IF EXISTS active_user;
-CREATE TABLE IF NOT EXISTS active_user (
-	id TEXT PRIMARY KEY,
-	sequenceNumber BIGINT DEFAULT 0	
-);
-DROP TABLE IF EXISTS user_file_subscriptions;
-CREATE TABLE user_file_subscriptions (
-	userId TEXT,
-	fileId TEXT,
-	PRIMARY KEY (userId, fileId),
-	FOREIGN KEY (userId) REFERENCES active_user(id) ON DELETE CASCADE
-);
-DROP TABLE IF EXISTS logs;
-CREATE TABLE IF NOT EXISTS logs (
-	log TEXT
-);
-`
+interface Migration {
+	id: string
+	code: string
+}
+
+const migrations: Migration[] = [
+	{
+		id: '000_seed',
+		code: `
+			CREATE TABLE IF NOT EXISTS active_user (
+				id TEXT PRIMARY KEY
+			);
+			CREATE TABLE IF NOT EXISTS user_file_subscriptions (
+				userId TEXT,
+				fileId TEXT,
+				PRIMARY KEY (userId, fileId),
+				FOREIGN KEY (userId) REFERENCES active_user(id) ON DELETE CASCADE
+			);
+			CREATE TABLE migrations (
+				id TEXT PRIMARY KEY,
+				code TEXT NOT NULL
+			);
+		`,
+	},
+	{
+		id: '001_add_sequence_number',
+		code: `
+			ALTER TABLE active_user ADD COLUMN sequenceNumber INTEGER NOT NULL DEFAULT 0;
+			ALTER TABLE active_user ADD COLUMN sequenceIdSuffix TEXT NOT NULL DEFAULT '';
+		`,
+	},
+]
 
 // const ONE_MINUTE = 60 * 1000
 
@@ -63,18 +75,20 @@ type BootState =
 	  }
 
 export class TLPostgresReplicator extends DurableObject<Environment> {
-	sql: SqlStorage
-	state: BootState = {
+	private sql: SqlStorage
+	private state: BootState = {
 		type: 'init',
 		promise: promiseWithResolve(),
 		sequenceId: uniqueId(),
 	}
-	measure: Analytics | undefined
-	postgresUpdates = 0
-	lastRpmLogTime = Date.now()
-	userMessages = 0
+	private measure: Analytics | undefined
+	private postgresUpdates = 0
+	private lastRpmLogTime = Date.now()
 
-	queues: Map<string, ExecutionQueue> = new Map()
+	// we need to guarantee in-order delivery of messages to users
+	// but DO RPC calls are not guaranteed to happen in order, so we need to
+	// use a queue per user
+	private userDispatchQueues: Map<string, ExecutionQueue> = new Map()
 
 	sentry
 	// eslint-disable-next-line local/prefer-class-methods
@@ -89,11 +103,52 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		super(ctx, env)
 		this.sentry = createSentry(ctx, env)
 		this.sql = this.ctx.storage.sql
-		this.sql.exec(seed)
+
+		this.ctx.blockConcurrencyWhile(async () =>
+			this._migrate().catch((e) => {
+				this.captureException(e)
+				throw e
+			})
+		)
+
 		this.reboot(false)
 		this.alarm()
 		this.measure = env.MEASURE
 		this.storeLog('constructor')
+	}
+
+	private _applyMigration(index: number) {
+		this.sql.exec(migrations[index].code)
+		this.sql.exec(
+			'insert into migrations (id, code) values (?, ?)',
+			migrations[index].id,
+			migrations[index].code
+		)
+	}
+
+	private async _migrate() {
+		let appliedMigrations: Migration[]
+		try {
+			appliedMigrations = this.sql
+				.exec('select code, id from migrations order by id asc')
+				.toArray() as any
+		} catch (_e) {
+			// no migrations table, run initial migration
+			this._applyMigration(0)
+			appliedMigrations = [migrations[0]]
+		}
+
+		for (let i = 0; i < appliedMigrations.length; i++) {
+			if (appliedMigrations[i].id !== migrations[i].id) {
+				throw new Error(
+					'TLPostgresReplicator migrations have changed!! this is an append-only array!!'
+				)
+			}
+		}
+
+		for (let i = appliedMigrations.length; i < migrations.length; i++) {
+			this._applyMigration(i)
+		}
 	}
 
 	__test__forceReboot() {
@@ -125,7 +180,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 		console.info('this.postgresUpdates=', this.postgresUpdates)
 		this.postgresUpdates = 0
-		this.userMessages = 0
 		// TODO: restore this later to make sure we push stuff to metrics
 		// if (this.postgresUpdates > 0 && now - this.lastRpmLogTime > ONE_MINUTE) {
 		// 	this.logEvent({
@@ -180,7 +234,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			// preserve the promise so any awaiters do eventually get resolved
 			// TODO: set a timeout on the promise?
 			promise,
-			db: getPostgres(this.env, { pooled: false }),
+			db: getPostgres(this.env, { pooled: false, name: 'TLPostgresReplicator' }),
 			sequenceId: uniqueId(),
 		}
 		const subscription = await this.state.db.subscribe(
@@ -216,7 +270,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			if (users.length === 0) return
 			const batch = users.splice(0, BATCH_SIZE)
 			for (const user of batch) {
-				this.messageUser(user.id as string, { type: 'force_reboot', sequenceId })
+				this.messageUser(user.id as string, { type: 'force_reboot' })
 			}
 			setTimeout(tick, 10)
 		}
@@ -260,7 +314,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			type: 'boot_complete',
 			userId: row.userId,
 			bootId: row.bootId,
-			sequenceId: this.state.sequenceId,
 		})
 	}
 
@@ -274,7 +327,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			type: 'mutation_commit',
 			mutationNumber: row.mutationNumber,
 			userId: row.userId,
-			sequenceId: this.state.sequenceId,
 		})
 	}
 
@@ -312,7 +364,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 						row: file as any,
 						table: 'file',
 						event: 'insert',
-						sequenceId: this.state.sequenceId,
 						userId: row.userId,
 					})
 				})
@@ -345,7 +396,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 					row: { id: row.fileId } as any,
 					table: 'file',
 					event: 'delete',
-					sequenceId: this.state.sequenceId,
 					userId: row.userId,
 				})
 			}
@@ -355,7 +405,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			row: row as any,
 			table: event.relation.table as ZTable,
 			event: event.command,
-			sequenceId: this.state.sequenceId,
 			userId: row.userId,
 		})
 	}
@@ -385,7 +434,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				row: row as any,
 				table: event.relation.table as ZTable,
 				event: event.command,
-				sequenceId: this.state.sequenceId,
 				userId,
 			})
 		}
@@ -399,7 +447,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			row: row as any,
 			table: event.relation.table as ZTable,
 			event: event.command,
-			sequenceId: this.state.sequenceId,
 			userId: row.id,
 		})
 	}
@@ -444,35 +491,31 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.sql.exec(`DELETE FROM logs`)
 	}
 
-	private async messageUser(userId: string, event: ZReplicationEventWithoutSequenceNumber) {
-		this.userMessages++
-		const res = this.sql
-			.exec('SELECT sequenceNumber FROM active_user WHERE id = ?', userId)
-			.toArray()
-		if (res.length === 0) {
-			console.error('user not found', userId)
-			return
-		}
-		const sequenceNumber = res[0].sequenceNumber as number
-		this.sql.exec('UPDATE active_user SET sequenceNumber = sequenceNumber + 1 WHERE id = ?', userId)
-
-		if (event.type === 'row_update' && event.table === 'file' && event.event === 'insert') {
-			// this.storeLog('file insert', event.row.ownerId, event.row.id)
-			// console.log('hello: file insert', event.row.ownerId, event.row.id)
-		} else if (event.type === 'mutation_commit') {
-			// this.storeLog('mutation commit', event.userId, event.mutationNumber)
-			// console.log('hello: mutation commit', event.userId, event.mutationNumber)
-		}
-
+	private async messageUser(userId: string, event: ZReplicationEventWithoutSequenceInfo) {
 		try {
-			let q = this.queues.get(userId)
+			let q = this.userDispatchQueues.get(userId)
 			if (!q) {
 				q = new ExecutionQueue()
-				this.queues.set(userId, q)
+				this.userDispatchQueues.set(userId, q)
 			}
 			await q.push(async () => {
+				const { sequenceNumber, sequenceIdSuffix } = this.sql
+					.exec(
+						'UPDATE active_user SET sequenceNumber = sequenceNumber + 1 WHERE id = ? RETURNING sequenceNumber, sequenceIdSuffix',
+						userId
+					)
+					.one()
+
 				const user = getUserDurableObject(this.env, userId)
-				const res = await user.handleReplicationEvent({ ...event, sequenceNumber })
+
+				assert(typeof sequenceNumber === 'number', 'sequenceNumber should be a number')
+				assert(typeof sequenceIdSuffix === 'string', 'sequenceIdSuffix should be a string')
+
+				const res = await user.handleReplicationEvent({
+					...event,
+					sequenceNumber,
+					sequenceId: this.state.sequenceId + ':' + sequenceIdSuffix,
+				})
 				if (res === 'unregister') {
 					this.debug('unregistering user', userId, event)
 					this.unregisterUser(userId)
@@ -498,9 +541,15 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		const guestFiles = await this.state
 			.db`SELECT "fileId" as id FROM file_state where "userId" = ${userId}`
 
+		const sequenceIdSuffix = uniqueId()
+
 		// clear user and subscriptions
 		this.sql.exec(`DELETE FROM active_user WHERE id = ?`, userId)
-		this.sql.exec(`INSERT INTO active_user (id) VALUES (?)`, userId)
+		this.sql.exec(
+			`INSERT INTO active_user (id, sequenceNumber, sequenceIdSuffix) VALUES (?, 0, ?)`,
+			userId,
+			sequenceIdSuffix
+		)
 		for (const file of guestFiles) {
 			this.sql.exec(
 				`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
@@ -508,13 +557,21 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				file.id
 			)
 		}
-		return this.state.sequenceId
+		return {
+			sequenceId: this.state.sequenceId + ':' + sequenceIdSuffix,
+			sequenceNumber: 0,
+		}
 	}
 
 	async unregisterUser(userId: string) {
 		this.logEvent({ type: 'unregister_user' })
 		// this.storeLog('unregister user', userId)
 		this.sql.exec(`DELETE FROM active_user WHERE id = ?`, userId)
+		const queue = this.userDispatchQueues.get(userId)
+		if (queue) {
+			queue.close()
+			this.userDispatchQueues.delete(userId)
+		}
 	}
 
 	private writeEvent(eventData: EventData) {

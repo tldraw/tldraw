@@ -4,7 +4,10 @@ import { Environment } from './types'
 /**
  * `pooled` should be almost always be true.
  */
-export function getPostgres(env: Environment, { pooled }: { pooled: boolean }) {
+export function getPostgres(
+	env: Environment,
+	{ pooled, name, idleTimeout = 30 }: { pooled: boolean; name: string; idleTimeout?: number }
+) {
 	return postgres(
 		pooled ? env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING : env.BOTCOM_POSTGRES_CONNECTION_STRING,
 		{
@@ -17,6 +20,10 @@ export function getPostgres(env: Environment, { pooled }: { pooled: boolean }) {
 				},
 			},
 			max: 100,
+			idle_timeout: idleTimeout,
+			connection: {
+				application_name: name,
+			},
 		}
 	)
 }

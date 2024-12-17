@@ -50,7 +50,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.sentry = createSentry(ctx, env)
 		this.replicator = getReplicator(env)
 
-		this.db = getPostgres(env, { pooled: true })
+		this.db = getPostgres(env, { pooled: true, name: 'TLUserDurableObject' })
 		this.debug('created')
 		this.measure = env.MEASURE
 	}
@@ -390,11 +390,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
 					)
 					this.debug('pushing mutation to cache', this.userId, mutationNumber)
-					// if (fileUpdate) console.log('hello: mutation number', this.userId, mutationNumber)
 					this.cache.mutations.push({ mutationNumber, mutationId: msg.mutationId })
 				})
 				.catch((e) => {
-					// console.log('hello: mutation number failed', this.userId)
 					this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== msg.mutationId)
 					throw e
 				})
