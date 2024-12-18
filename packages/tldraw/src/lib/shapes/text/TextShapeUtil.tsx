@@ -23,7 +23,7 @@ import {
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
-import { RichTextSVG, TextLabel } from '../shared/TextLabel'
+import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport, getRichTextStylesExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
@@ -89,7 +89,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const handleKeyDown = useTextShapeKeydownHandler(id)
 
 		return (
-			<TextLabel
+			<RichTextLabel
 				shapeId={id}
 				classNamePrefix="tl-text-shape"
 				type="text"
@@ -98,7 +98,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				lineHeight={TEXT_PROPS.lineHeight}
 				align={textAlign}
 				verticalAlign="middle"
-				enableRichText
 				richText={richText}
 				labelColor={theme[color].solid}
 				isSelected={isSelected}

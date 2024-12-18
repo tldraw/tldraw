@@ -73,7 +73,12 @@ export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
 export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
-export { TextLabel, type TextLabelProps } from './lib/shapes/shared/TextLabel'
+export {
+	PlainTextLabel,
+	TextLabel,
+	type PlainTextLabelProps,
+} from './lib/shapes/shared/PlainTextLabel'
+export { RichTextLabel, type RichTextLabelProps } from './lib/shapes/shared/RichTextLabel'
 export {
 	ARROW_LABEL_FONT_SIZES,
 	FONT_FAMILIES,
@@ -83,7 +88,8 @@ export {
 	TEXT_PROPS,
 } from './lib/shapes/shared/default-shape-constants'
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
-export { useEditableText } from './lib/shapes/shared/useEditableText'
+export { useEditablePlainText, useEditableText } from './lib/shapes/shared/useEditablePlainText'
+export { useEditableRichText } from './lib/shapes/shared/useEditableRichText'
 export { useAsset, useImageOrVideoAsset } from './lib/shapes/shared/useImageOrVideoAsset'
 export { PlainTextArea } from './lib/shapes/text/PlainTextArea'
 export { RichTextArea, type TextAreaProps } from './lib/shapes/text/RichTextArea'

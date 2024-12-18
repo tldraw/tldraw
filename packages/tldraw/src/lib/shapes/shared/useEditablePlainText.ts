@@ -1,5 +1,4 @@
 import {
-	TLRichText,
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
@@ -10,28 +9,15 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import React, { useCallback, useEffect, useRef } from 'react'
-import { renderPlaintextFromRichText } from '../../utils/text/richText'
 import { TextHelpers } from './TextHelpers'
 
 /** @public */
-export function useEditableText(
-	shapeId: TLShapeId,
-	enableRichText: boolean,
-	type: string,
-	text?: string,
-	richText?: TLRichText
-) {
+export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: string) {
+	const commonUseEditableTextHandlers = useEditableTextCommon(shapeId)
+	const isEditing = commonUseEditableTextHandlers.isEditing
 	const editor = useEditor()
-	const rInput = useRef<HTMLDivElement | HTMLTextAreaElement>(null)
-	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === shapeId, [editor])
-	const isEditingAnything = useValue('isEditingAnything', () => !!editor.getEditingShapeId(), [
-		editor,
-	])
-	const isEmpty =
-		(enableRichText && richText
-			? renderPlaintextFromRichText(editor, richText)
-			: (text || '').trim()
-		).length === 0
+	const rInput = useRef<HTMLTextAreaElement>(null)
+	const isEmpty = (text || '').trim().length === 0
 
 	useEffect(() => {
 		function selectAllIfEditing(event: { shapeId: TLShapeId }) {
@@ -53,19 +39,17 @@ export function useEditableText(
 			rInput.current?.focus()
 		}
 
-		if (!enableRichText && rInput.current instanceof HTMLTextAreaElement) {
-			if (editor.getInstanceState().isCoarsePointer) {
-				rInput.current?.select()
-			}
-
-			// XXX(mime): This fixes iOS not showing the cursor sometimes.
-			// This "shakes" the cursor awake.
-			if (tlenv.isSafari) {
-				rInput.current?.blur()
-				rInput.current?.focus()
-			}
+		if (editor.getInstanceState().isCoarsePointer) {
+			rInput.current?.select()
 		}
-	}, [editor, isEditing, enableRichText])
+
+		// XXX(mime): This fixes iOS not showing the cursor sometimes.
+		// This "shakes" the cursor awake.
+		if (tlenv.isSafari) {
+			rInput.current?.blur()
+			rInput.current?.focus()
+		}
+	}, [editor, isEditing])
 
 	// When the user presses ctrl / meta enter, complete the editing state.
 	const handleKeyDown = useCallback(
@@ -86,26 +70,35 @@ export function useEditableText(
 
 	// When the text changes, update the text value.
 	const handleChange = useCallback(
-		({ plaintext, richText }: { plaintext?: string; richText?: TLRichText }) => {
+		({ plaintext }: { plaintext: string }) => {
 			if (editor.getEditingShapeId() !== shapeId) return
 
-			if (enableRichText) {
-				editor.updateShape<TLUnknownShape & { props: { richText?: TLRichText } }>({
-					id: shapeId,
-					type,
-					props: { richText },
-				})
-			} else {
-				const normalizedPlaintext = TextHelpers.normalizeText(plaintext ?? '')
-				editor.updateShape<TLUnknownShape & { props: { text: string } }>({
-					id: shapeId,
-					type,
-					props: { text: normalizedPlaintext },
-				})
-			}
+			const normalizedPlaintext = TextHelpers.normalizeText(plaintext || '')
+			editor.updateShape<TLUnknownShape & { props: { text: string } }>({
+				id: shapeId,
+				type,
+				props: { text: normalizedPlaintext },
+			})
 		},
-		[editor, shapeId, type, enableRichText]
+		[editor, shapeId, type]
 	)
+
+	return {
+		rInput,
+		handleKeyDown,
+		handleChange,
+		isEmpty,
+		...commonUseEditableTextHandlers,
+	}
+}
+
+/** @internal */
+export function useEditableTextCommon(shapeId: TLShapeId) {
+	const editor = useEditor()
+	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === shapeId, [editor])
+	const isEditingAnything = useValue('isEditingAnything', () => !!editor.getEditingShapeId(), [
+		editor,
+	])
 
 	const handleInputPointerDown = useCallback(
 		(e: React.PointerEvent) => {
@@ -133,15 +126,17 @@ export function useEditableText(
 	)
 
 	return {
-		rInput,
 		handleFocus: noop,
 		handleBlur: noop,
-		handleKeyDown,
-		handleChange,
 		handleInputPointerDown,
 		handleDoubleClick: stopEventPropagation,
-		isEmpty,
 		isEditing,
 		isEditingAnything,
 	}
 }
+
+/**
+ * @deprecated Use `useEditablePlainText` instead.
+ * @public
+ */
+export const useEditableText = useEditablePlainText

@@ -28,7 +28,7 @@ import { useCallback } from 'react'
 import { useCurrentTranslation } from '../../ui/hooks/useTranslation/useTranslation'
 import { isRightToLeftLanguage } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { RichTextSVG, TextLabel } from '../shared/TextLabel'
+import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
@@ -235,7 +235,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						boxShadow: hideShadows ? 'none' : getNoteShadow(shape.id, rotation, scale),
 					}}
 				>
-					<TextLabel
+					<RichTextLabel
 						shapeId={id}
 						type={type}
 						font={font}
@@ -243,7 +243,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						lineHeight={TEXT_PROPS.lineHeight}
 						align={align}
 						verticalAlign={verticalAlign}
-						enableRichText
 						richText={richText}
 						isNote
 						isSelected={isSelected}

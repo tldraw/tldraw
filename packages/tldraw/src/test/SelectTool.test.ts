@@ -464,7 +464,7 @@ describe('When editing shapes', () => {
 	})
 
 	// The behavior described here will only work end to end, not with the library,
-	// because useEditableText implements the behavior in React
+	// because useEditablePlainText implements the behavior in React
 	it.skip('Pointing a shape of a different type selects it and leaves editing', () => {
 		expect(editor.getEditingShapeId()).toBe(null)
 		expect(editor.getSelectedShapeIds().length).toBe(0)

@@ -36,7 +36,7 @@ import {
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { RichTextSVG, TextLabel } from '../shared/TextLabel'
+import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
@@ -448,7 +448,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							height: shape.props.h + props.growY,
 						}}
 					>
-						<TextLabel
+						<RichTextLabel
 							shapeId={id}
 							type={type}
 							font={font}
@@ -458,7 +458,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							fill={fill}
 							align={align}
 							verticalAlign={verticalAlign}
-							enableRichText
 							richText={richText}
 							isSelected={isOnlySelected}
 							labelColor={theme[props.labelColor].solid}

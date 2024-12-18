@@ -31,6 +31,7 @@ import { LANGUAGES } from '@tldraw/editor';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
+import { PointerEvent as PointerEvent_2 } from 'react';
 import { Polygon2d } from '@tldraw/editor';
 import { Polyline2d } from '@tldraw/editor';
 import * as React_2 from 'react';
@@ -1678,6 +1679,53 @@ export interface PeopleMenuProps {
 // @public
 export const PlainTextArea: React_3.ForwardRefExoticComponent<TextAreaProps & React_3.RefAttributes<HTMLTextAreaElement>>;
 
+// @public
+export const PlainTextLabel: React_3.NamedExoticComponent<PlainTextLabelProps>;
+
+// @public (undocumented)
+export interface PlainTextLabelProps {
+    // (undocumented)
+    align: TLDefaultHorizontalAlignStyle;
+    // (undocumented)
+    bounds?: Box;
+    // (undocumented)
+    classNamePrefix?: string;
+    // (undocumented)
+    fill?: TLDefaultFillStyle;
+    // (undocumented)
+    font: TLDefaultFontStyle;
+    // (undocumented)
+    fontSize: number;
+    // (undocumented)
+    isNote?: boolean;
+    // (undocumented)
+    isSelected: boolean;
+    // (undocumented)
+    labelColor: string;
+    // (undocumented)
+    lineHeight: number;
+    // (undocumented)
+    onKeyDown?(e: KeyboardEvent): void;
+    // (undocumented)
+    padding?: number;
+    // (undocumented)
+    shapeId: TLShapeId;
+    // (undocumented)
+    style?: React_3.CSSProperties;
+    // (undocumented)
+    text?: string;
+    // (undocumented)
+    textHeight?: number;
+    // (undocumented)
+    textWidth?: number;
+    // (undocumented)
+    type: string;
+    // (undocumented)
+    verticalAlign: TLDefaultVerticalAlignStyle;
+    // (undocumented)
+    wrap?: boolean;
+}
+
 // @public (undocumented)
 export enum PORTRAIT_BREAKPOINT {
     // (undocumented)
@@ -1736,6 +1784,53 @@ export function RhombusToolbarItem(): JSX_2.Element;
 
 // @public
 export const RichTextArea: React_3.ForwardRefExoticComponent<TextAreaProps & React_3.RefAttributes<HTMLDivElement>>;
+
+// @public
+export const RichTextLabel: React_3.NamedExoticComponent<RichTextLabelProps>;
+
+// @public (undocumented)
+export interface RichTextLabelProps {
+    // (undocumented)
+    align: TLDefaultHorizontalAlignStyle;
+    // (undocumented)
+    bounds?: Box;
+    // (undocumented)
+    classNamePrefix?: string;
+    // (undocumented)
+    fill?: TLDefaultFillStyle;
+    // (undocumented)
+    font: TLDefaultFontStyle;
+    // (undocumented)
+    fontSize: number;
+    // (undocumented)
+    isNote?: boolean;
+    // (undocumented)
+    isSelected: boolean;
+    // (undocumented)
+    labelColor: string;
+    // (undocumented)
+    lineHeight: number;
+    // (undocumented)
+    onKeyDown?(e: KeyboardEvent): void;
+    // (undocumented)
+    padding?: number;
+    // (undocumented)
+    richText?: TLRichText;
+    // (undocumented)
+    shapeId: TLShapeId;
+    // (undocumented)
+    style?: React_3.CSSProperties;
+    // (undocumented)
+    textHeight?: number;
+    // (undocumented)
+    textWidth?: number;
+    // (undocumented)
+    type: string;
+    // (undocumented)
+    verticalAlign: TLDefaultVerticalAlignStyle;
+    // (undocumented)
+    wrap?: boolean;
+}
 
 // @public (undocumented)
 export function RotateCWMenuItem(): JSX_2.Element;
@@ -1841,56 +1936,8 @@ export interface TextAreaProps {
     text?: string;
 }
 
-// @public
-export const TextLabel: React_3.NamedExoticComponent<TextLabelProps>;
-
-// @public (undocumented)
-export interface TextLabelProps {
-    // (undocumented)
-    align: TLDefaultHorizontalAlignStyle;
-    // (undocumented)
-    bounds?: Box;
-    // (undocumented)
-    classNamePrefix?: string;
-    // (undocumented)
-    enableRichText?: boolean;
-    // (undocumented)
-    fill?: TLDefaultFillStyle;
-    // (undocumented)
-    font: TLDefaultFontStyle;
-    // (undocumented)
-    fontSize: number;
-    // (undocumented)
-    isNote?: boolean;
-    // (undocumented)
-    isSelected: boolean;
-    // (undocumented)
-    labelColor: string;
-    // (undocumented)
-    lineHeight: number;
-    // (undocumented)
-    onKeyDown?(e: KeyboardEvent): void;
-    // (undocumented)
-    padding?: number;
-    // (undocumented)
-    richText?: TLRichText;
-    // (undocumented)
-    shapeId: TLShapeId;
-    // (undocumented)
-    style?: React_3.CSSProperties;
-    // (undocumented)
-    text?: string;
-    // (undocumented)
-    textHeight?: number;
-    // (undocumented)
-    textWidth?: number;
-    // (undocumented)
-    type: string;
-    // (undocumented)
-    verticalAlign: TLDefaultVerticalAlignStyle;
-    // (undocumented)
-    wrap?: boolean;
-}
+// @public @deprecated (undocumented)
+export const TextLabel: React_3.NamedExoticComponent<PlainTextLabelProps>;
 
 // @public (undocumented)
 export class TextShapeTool extends StateNode {
@@ -3888,21 +3935,39 @@ export function useDefaultHelpers(): {
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
-export function useEditableText(shapeId: TLShapeId, enableRichText: boolean, type: string, text?: string, richText?: TLRichText): {
+export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: string): {
     handleBlur: () => void;
-    handleChange: ({ plaintext, richText }: {
-        plaintext?: string;
-        richText?: TLRichText;
+    handleChange: ({ plaintext }: {
+        plaintext: string;
     }) => void;
     handleDoubleClick: (e: any) => any;
     handleFocus: () => void;
-    handleInputPointerDown: (e: React_3.PointerEvent) => void;
+    handleInputPointerDown: (e: React_3.PointerEvent<Element>) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
     isEditing: boolean;
     isEditingAnything: boolean;
     isEmpty: boolean;
-    rInput: React_3.RefObject<HTMLDivElement | HTMLTextAreaElement>;
+    rInput: React_3.RefObject<HTMLTextAreaElement>;
 };
+
+// @public (undocumented)
+export function useEditableRichText(shapeId: TLShapeId, type: string, richText?: TLRichText): {
+    handleBlur: () => void;
+    handleChange: ({ richText }: {
+        richText: TLRichText;
+    }) => void;
+    handleDoubleClick: (e: any) => any;
+    handleFocus: () => void;
+    handleInputPointerDown: (e: PointerEvent_2<Element>) => void;
+    handleKeyDown: (e: KeyboardEvent) => void;
+    isEditing: boolean;
+    isEditingAnything: boolean;
+    isEmpty: boolean;
+    rInput: RefObject<HTMLDivElement>;
+};
+
+// @public @deprecated (undocumented)
+export const useEditableText: typeof useEditablePlainText;
 
 // @public (undocumented)
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
