@@ -4,7 +4,7 @@ import { Button } from '../common/button'
 
 export function CTASection() {
 	return (
-		<Section className="pb-24 md:pb-32 lg:pb-40">
+		<Section className="bg-zinc-50 dark:bg-zinc-900 py-24 sm:py-24 md:py-32 lg:py-40 max-w-full">
 			<SectionHeading
 				heading="Get started today"
 				subheading="to action"

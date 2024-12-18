@@ -62,6 +62,6 @@ export function useTldrawUser() {
 
 export function useLoggedInUser() {
 	const user = useTldrawUser()
-	if (!user) throw new Error('User not logged in')
+	if (!user) throw new Error('User not signed in')
 	return user
 }

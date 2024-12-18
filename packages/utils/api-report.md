@@ -78,6 +78,15 @@ export interface ErrorResult<E> {
 }
 
 // @internal (undocumented)
+export class ExecutionQueue {
+    constructor(timeout?: number | undefined);
+    // (undocumented)
+    close(): void;
+    // (undocumented)
+    push<T>(task: () => T): Promise<Awaited<T>>;
+}
+
+// @internal (undocumented)
 export function exhaustiveSwitchError(value: never, property?: string): never;
 
 // @public (undocumented)
@@ -238,6 +247,9 @@ export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
 };
 
 // @internal (undocumented)
+export function maxBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;
+
+// @internal (undocumented)
 export function measureAverageDuration(_target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor;
 
 // @internal (undocumented)
@@ -391,6 +403,14 @@ export const Result: {
     err<E>(error: E): ErrorResult<E>;
     ok<T>(value: T): OkResult<T>;
 };
+
+// @internal (undocumented)
+export function retry<T>(fn: () => Promise<T>, { attempts, waitDuration, abortSignal, matchError, }?: {
+    abortSignal?: AbortSignal;
+    attempts?: number;
+    matchError?(error: unknown): boolean;
+    waitDuration?: number;
+}): Promise<T>;
 
 // @public
 export function rng(seed?: string): () => number;

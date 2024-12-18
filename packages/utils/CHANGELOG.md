@@ -1,3 +1,24 @@
+# v3.6.0 (Wed Dec 04 2024)
+
+### Release Notes
+
+#### Create a utility type for making undefined properties optional ([#5055](https://github.com/tldraw/tldraw/pull/5055))
+
+- Expose a utility type for making undefined properties optional
+
+---
+
+#### 🐛 Bug Fix
+
+- Create a utility type for making undefined properties optional [#5055](https://github.com/tldraw/tldraw/pull/5055) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk) [@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+
+---
+
 # v3.5.0 (Tue Nov 26 2024)
 
 ### Release Notes

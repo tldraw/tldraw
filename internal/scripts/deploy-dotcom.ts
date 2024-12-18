@@ -236,6 +236,7 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 		sentry: {
 			project: 'tldraw-sync',
 			authToken: env.SENTRY_AUTH_TOKEN,
+			environment: workerId,
 		},
 	})
 }

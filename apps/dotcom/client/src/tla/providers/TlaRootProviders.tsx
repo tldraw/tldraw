@@ -14,6 +14,7 @@ import {
 	useToasts,
 	useValue,
 } from 'tldraw'
+import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
@@ -21,8 +22,11 @@ import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
 import { IntlProvider, setupCreateIntl } from '../utils/i18n'
-import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
-import { getRootPath } from '../utils/urls'
+import {
+	clearLocalSessionState,
+	getLocalSessionState,
+	updateLocalSessionState,
+} from '../utils/local-session-state'
 
 const assetUrls = getAssetUrlsByImport()
 
@@ -48,7 +52,7 @@ export function Component() {
 		>
 			<IntlWrapper locale={locale}>
 				<MaybeForceUserRefresh>
-					<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={getRootPath()}>
+					<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={routes.tlaRoot()}>
 						<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
 							{container && (
 								<ContainerProvider container={container}>
@@ -154,9 +158,7 @@ function SignedInProvider({
 				auth: { userId: auth.userId },
 			}))
 		} else {
-			updateLocalSessionState(() => ({
-				auth: undefined,
-			}))
+			clearLocalSessionState()
 		}
 	}, [auth.userId, auth.isSignedIn])
 

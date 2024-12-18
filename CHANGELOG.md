@@ -1,3 +1,118 @@
+# v3.6.0 (Wed Dec 04 2024)
+
+### Release Notes
+
+#### assets: fix up resolving when copy/pasting multiple items; also, videos ([#5061](https://github.com/tldraw/tldraw/pull/5061))
+
+- Fixed bugs with copy/pasting multilple assets from one board to another.
+- Fixed bug with copy/pasting videos from one board to another.
+
+#### Expand helpers available in actions / toasts overrides. ([#5041](https://github.com/tldraw/tldraw/pull/5041))
+
+- Makes new helper available via actions and tools overrides.
+
+#### Fix file name when exporting a single unnamed frame ([#4918](https://github.com/tldraw/tldraw/pull/4918))
+
+- Fix file name when exporting a single unnamed frame
+
+#### Fix some export bugs ([#5022](https://github.com/tldraw/tldraw/pull/5022))
+
+- Properly clip scaled text in frames when exporting
+- Stop multiple concurrent exports from interfering with each-others fonts
+
+#### Create a utility type for making undefined properties optional ([#5055](https://github.com/tldraw/tldraw/pull/5055))
+
+- Expose a utility type for making undefined properties optional
+
+#### Make sure notes snap to grid after position is updated ([#5010](https://github.com/tldraw/tldraw/pull/5010))
+
+- Fixed a bug with notes not snapping to the grid unless the size was a multiple of the grid size.
+
+#### Fix custom embed first render ([#5027](https://github.com/tldraw/tldraw/pull/5027))
+
+- Fix an issue with custom embeds not rendering correctly on the first render.
+
+#### Fix long press bug (#5032) ([#5034](https://github.com/tldraw/tldraw/pull/5034))
+
+- Fixed a bug with long press on inset canvases.
+
+#### Fix long press bug ([#5032](https://github.com/tldraw/tldraw/pull/5032))
+
+- Fixed a bug with long press on inset canvases.
+
+---
+
+#### 🐛 Bug Fix
+
+- tldraw.dev landing page dark mode fixes [#5066](https://github.com/tldraw/tldraw/pull/5066) ([@SomeHats](https://github.com/SomeHats))
+- [botcom] Remove unused overlay CSS [#5050](https://github.com/tldraw/tldraw/pull/5050) ([@steveruizok](https://github.com/steveruizok))
+- workflow: up checks.yml power [#5048](https://github.com/tldraw/tldraw/pull/5048) ([@mimecuvalo](https://github.com/mimecuvalo))
+- [botcom] Set document title from file name [#5042](https://github.com/tldraw/tldraw/pull/5042) ([@ds300](https://github.com/ds300) [@steveruizok](https://github.com/steveruizok))
+- Incremental derivation example [#5038](https://github.com/tldraw/tldraw/pull/5038) ([@steveruizok](https://github.com/steveruizok))
+- [botcom] Wait 1000s before marking a file as re-visited [#4998](https://github.com/tldraw/tldraw/pull/4998) ([@steveruizok](https://github.com/steveruizok) [@MitjaBezensek](https://github.com/MitjaBezensek))
+- [botcom] add protocol version [#5024](https://github.com/tldraw/tldraw/pull/5024) ([@ds300](https://github.com/ds300))
+- i18n: typing tweak [#5025](https://github.com/tldraw/tldraw/pull/5025) ([@mimecuvalo](https://github.com/mimecuvalo))
+- marketing: fix z-index issue with homepage demo [#5023](https://github.com/tldraw/tldraw/pull/5023) ([@mimecuvalo](https://github.com/mimecuvalo))
+- argh fix the migrations ([@ds300](https://github.com/ds300))
+- [botcom] undo playwright pipe [#5017](https://github.com/tldraw/tldraw/pull/5017) ([@ds300](https://github.com/ds300))
+- [botcom] auto migrations again [#5014](https://github.com/tldraw/tldraw/pull/5014) ([@ds300](https://github.com/ds300))
+- Use lower end machines. [#5008](https://github.com/tldraw/tldraw/pull/5008) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Revert "[botcom] make sure we apply all the migrations to all environments" [#5009](https://github.com/tldraw/tldraw/pull/5009) ([@ds300](https://github.com/ds300))
+- [botcom] make sure we apply all the migrations to all environments [#5005](https://github.com/tldraw/tldraw/pull/5005) ([@ds300](https://github.com/ds300))
+- i18n: better typing and fix tldr file drop [#5006](https://github.com/tldraw/tldraw/pull/5006) ([@mimecuvalo](https://github.com/mimecuvalo))
+- [botcom] Move guest badge to the left [#5004](https://github.com/tldraw/tldraw/pull/5004) ([@steveruizok](https://github.com/steveruizok))
+- [botcom] owner info in side bar [#4994](https://github.com/tldraw/tldraw/pull/4994) ([@ds300](https://github.com/ds300))
+- `@tldraw/tlschema`, `@tldraw/utils`, `@tldraw/validate`
+  - Create a utility type for making undefined properties optional [#5055](https://github.com/tldraw/tldraw/pull/5055) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk) [@SomeHats](https://github.com/SomeHats))
+- `tldraw`
+  - [botcom] Add import / save as tldr file. [#5049](https://github.com/tldraw/tldraw/pull/5049) ([@steveruizok](https://github.com/steveruizok))
+  - [botcom] more design tweaks [#4995](https://github.com/tldraw/tldraw/pull/4995) ([@steveruizok](https://github.com/steveruizok) [@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🐛 Bug Fixes
+
+- Fix the offline indicator [#5046](https://github.com/tldraw/tldraw/pull/5046) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix long press bug (#5032) [#5034](https://github.com/tldraw/tldraw/pull/5034) ([@steveruizok](https://github.com/steveruizok))
+- Fix the file name flashing with an old value [#5015](https://github.com/tldraw/tldraw/pull/5015) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix an issue with `firstVisitAt` not getting set [#5002](https://github.com/tldraw/tldraw/pull/5002) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- `@tldraw/editor`, `tldraw`
+  - assets: fix up resolving when copy/pasting multiple items; also, videos [#5061](https://github.com/tldraw/tldraw/pull/5061) ([@mimecuvalo](https://github.com/mimecuvalo))
+  - Fix some export bugs [#5022](https://github.com/tldraw/tldraw/pull/5022) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+  - Fix long press bug [#5032](https://github.com/tldraw/tldraw/pull/5032) ([@steveruizok](https://github.com/steveruizok))
+- `tldraw`
+  - Fix file name when exporting a single unnamed frame [#4918](https://github.com/tldraw/tldraw/pull/4918) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk) [@SomeHats](https://github.com/SomeHats) [@MitjaBezensek](https://github.com/MitjaBezensek))
+  - Make sure notes snap to grid after position is updated [#5010](https://github.com/tldraw/tldraw/pull/5010) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk) [@MitjaBezensek](https://github.com/MitjaBezensek))
+  - Fix custom embed first render [#5027](https://github.com/tldraw/tldraw/pull/5027) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- `@tldraw/tlschema`
+  - Fix an issue with drag and dropping the files [#5013](https://github.com/tldraw/tldraw/pull/5013) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 💄 Product Improvements
+
+- Move to job level. [#5056](https://github.com/tldraw/tldraw/pull/5056) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Simplify. [#5054](https://github.com/tldraw/tldraw/pull/5054) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Don't run on forks. [#5053](https://github.com/tldraw/tldraw/pull/5053) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Don't trigger navigation if we are already on the correct file page [#5018](https://github.com/tldraw/tldraw/pull/5018) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@ds300](https://github.com/ds300))
+- Allow renaming files when pressing enter [#5019](https://github.com/tldraw/tldraw/pull/5019) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@ds300](https://github.com/ds300))
+- Improve mutation rejection toasts [#4999](https://github.com/tldraw/tldraw/pull/4999) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- `@tldraw/sync-core`
+  - [dotcom] Handle max connections properly [#5044](https://github.com/tldraw/tldraw/pull/5044) ([@ds300](https://github.com/ds300))
+
+#### 🛠️ API Changes
+
+- `tldraw`
+  - Expand helpers available in actions / toasts overrides. [#5041](https://github.com/tldraw/tldraw/pull/5041) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 7
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+
+---
+
 # v3.5.0 (Tue Nov 26 2024)
 
 ### Release Notes

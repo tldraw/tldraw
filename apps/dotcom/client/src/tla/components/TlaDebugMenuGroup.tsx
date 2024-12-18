@@ -23,7 +23,9 @@ function DebugSubmenu() {
 	const editor = useMaybeEditor()
 	const appFlagsLbl = useMsg(messages.appDebugFlags)
 
-	const [shouldHighlightMissing, setShouldHighlightMissing] = useState(false)
+	const [shouldHighlightMissing, setShouldHighlightMissing] = useState(
+		document.body.classList.contains('tla-lang-highlight-missing')
+	)
 	const debugLanguageFlags = [
 		{ name: useMsg(messages.langAccented), locale: 'xx-AE' },
 		{ name: useMsg(messages.langLongString), locale: 'xx-LS' },

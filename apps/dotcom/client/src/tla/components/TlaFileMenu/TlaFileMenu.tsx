@@ -1,7 +1,7 @@
 /* ---------------------- Menu ---------------------- */
 
 import { TlaFile } from '@tldraw/dotcom-shared'
-import { ReactNode, useCallback } from 'react'
+import { Fragment, ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	TldrawUiDropdownMenuContent,
@@ -17,13 +17,14 @@ import {
 	useDialogs,
 	useToasts,
 } from 'tldraw'
+import { routes } from '../../../routeDefs'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
+import { useIsFilePinned } from '../../hooks/useIsFilePinned'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
 import { defineMessages, useMsg } from '../../utils/i18n'
-import { getFilePath, getShareableFileUrl } from '../../utils/urls'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 
 const messages = defineMessages({
@@ -35,6 +36,8 @@ const messages = defineMessages({
 	forget: { defaultMessage: 'Forget' },
 	rename: { defaultMessage: 'Rename' },
 	copy: { defaultMessage: 'Copy' },
+	pin: { defaultMessage: 'Pin' },
+	unpin: { defaultMessage: 'Unpin' },
 })
 
 function getDuplicateName(file: TlaFile, app: TldrawApp) {
@@ -90,9 +93,10 @@ function FileItems({
 	const trackEvent = useTldrawAppUiEvents()
 	const copiedMsg = useMsg(messages.copied)
 	const isOwner = useIsFileOwner(fileId)
+	const isPinned = useIsFilePinned(fileId)
 
 	const handleCopyLinkClick = useCallback(() => {
-		const url = getShareableFileUrl(fileId)
+		const url = routes.tlaFile(fileId, { asUrl: true })
 		copyTextToClipboard(url)
 		addToast({
 			id: 'copied-link',
@@ -101,12 +105,18 @@ function FileItems({
 		trackEvent('copy-file-link', { source })
 	}, [fileId, addToast, copiedMsg, trackEvent, source])
 
+	const handlePinUnpinClick = useCallback(async () => {
+		app.pinOrUnpinFile(fileId)
+	}, [app, fileId])
+
 	const handleDuplicateClick = useCallback(async () => {
 		const newFileId = uniqueId()
 		const file = app.getFile(fileId)
 		if (!file) return
 		app.createFile({ id: newFileId, name: getDuplicateName(file, app) })
-		navigate(getFilePath(newFileId), { state: { mode: 'duplicate', duplicateId: fileId } })
+		navigate(routes.tlaFile(newFileId), {
+			state: { mode: 'duplicate', duplicateId: fileId },
+		})
 	}, [app, fileId, navigate])
 
 	const handleDeleteClick = useCallback(() => {
@@ -118,10 +128,12 @@ function FileItems({
 	const copyLinkMsg = useMsg(messages.copyLink)
 	const renameMsg = useMsg(messages.rename)
 	const duplicateMsg = useMsg(messages.duplicate)
+	const pinMsg = useMsg(messages.pin)
+	const unpinMsg = useMsg(messages.unpin)
 	const deleteOrForgetMsg = useMsg(isOwner ? messages.delete : messages.forget)
 
 	return (
-		<>
+		<Fragment>
 			<TldrawUiMenuGroup id="file-actions">
 				{/* todo: in published rooms, support copying link */}
 				<TldrawUiMenuItem
@@ -140,6 +152,12 @@ function FileItems({
 					readonlyOk
 					onSelect={handleDuplicateClick}
 				/>
+				<TldrawUiMenuItem
+					label={isPinned ? unpinMsg : pinMsg}
+					id="pin-unpin"
+					readonlyOk
+					onSelect={handlePinUnpinClick}
+				/>
 				{/* <TldrawUiMenuItem label={intl.formatMessage(messages.pin)} id="pin" readonlyOk onSelect={handlePinClick} /> */}
 				<TldrawUiMenuActionItem actionId={'save-file-copy'} />
 			</TldrawUiMenuGroup>
@@ -151,7 +169,7 @@ function FileItems({
 					onSelect={handleDeleteClick}
 				/>
 			</TldrawUiMenuGroup>
-		</>
+		</Fragment>
 	)
 }
 

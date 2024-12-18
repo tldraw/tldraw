@@ -77,6 +77,7 @@ import {
 	hasOwnProperty,
 	last,
 	lerp,
+	maxBy,
 	sortById,
 	sortByIndex,
 	structuredClone,
@@ -2264,6 +2265,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const leaderPresence = this.getCollaborators().find((c) => c.userId === followingUserId)
 		if (!leaderPresence) return null
 
+		if (!leaderPresence.camera || !leaderPresence.screenBounds) return null
+
 		// Fit their viewport inside of our screen bounds
 		// 1. calculate their viewport in page space
 		const { w: lw, h: lh } = leaderPresence.screenBounds
@@ -3161,6 +3164,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (!presence) return this
 
+		const cursor = presence.cursor
+		if (!cursor) return this
+
 		this.run(() => {
 			// If we're following someone, stop following them
 			if (this.getInstanceState().followingUserId !== null) {
@@ -3178,7 +3184,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				opts.animation = undefined
 			}
 
-			this.centerOnPoint(presence.cursor, opts)
+			this.centerOnPoint(cursor, opts)
 
 			// Highlight the user's cursor
 			const { highlightedUserIds } = this.getInstanceState()
@@ -3389,10 +3395,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!allPresenceRecords.length) return EMPTY_ARRAY
 		const userIds = [...new Set(allPresenceRecords.map((c) => c.userId))].sort()
 		return userIds.map((id) => {
-			const latestPresence = allPresenceRecords
-				.filter((c) => c.userId === id)
-				.sort((a, b) => b.lastActivityTimestamp - a.lastActivityTimestamp)[0]
-			return latestPresence
+			const latestPresence = maxBy(
+				allPresenceRecords.filter((c) => c.userId === id),
+				(p) => p.lastActivityTimestamp ?? 0
+			)
+			return latestPresence!
 		})
 	}
 
@@ -3750,7 +3757,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getPages(): TLPage[] {
-		return this._getAllPagesQuery().get().sort(sortByIndex)
+		return Array.from(this._getAllPagesQuery().get()).sort(sortByIndex)
 	}
 
 	/**
@@ -4165,8 +4172,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Upload an asset to the store's asset service, returning a URL that can be used to resolve the
 	 * asset.
 	 */
-	async uploadAsset(asset: TLAsset, file: File): Promise<string> {
-		return await this.store.props.assets.upload(asset, file)
+	async uploadAsset(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<string> {
+		return await this.store.props.assets.upload(asset, file, abortSignal)
 	}
 
 	/* --------------------- Shapes --------------------- */
@@ -9806,9 +9813,7 @@ function applyPartialToRecordWithProps<
 		if (k === 'props' || k === 'meta') {
 			next[k] = { ...prev[k] } as JsonObject
 			for (const [nextKey, nextValue] of Object.entries(v as object)) {
-				if (nextValue !== undefined) {
-					;(next[k] as JsonObject)[nextKey] = nextValue
-				}
+				;(next[k] as JsonObject)[nextKey] = nextValue
 			}
 			continue
 		}

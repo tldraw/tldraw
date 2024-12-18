@@ -30,7 +30,7 @@ import {
 	react,
 } from 'tldraw'
 import { getDateFormat } from '../utils/dates'
-import { IntlShape, defineMessages } from '../utils/i18n'
+import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { Zero } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
@@ -62,9 +62,6 @@ export class TldrawApp {
 		view.addListener((res: any) => {
 			val$.set(structuredClone(res) as any)
 		})
-		react('blah', () => {
-			val$.get()
-		})
 		this.disposables.push(() => {
 			view.destroy()
 		})
@@ -76,8 +73,7 @@ export class TldrawApp {
 	private constructor(
 		public readonly userId: string,
 		getToken: () => Promise<string | null>,
-		onClientTooOld: () => void,
-		private intl: IntlShape
+		onClientTooOld: () => void
 	) {
 		const sessionId = uniqueId()
 		this.z = new Zero({
@@ -131,18 +127,18 @@ export class TldrawApp {
 	}
 
 	messages = defineMessages({
-		publish_failed: { defaultMessage: 'Unable to publish the file' },
-		unpublish_failed: { defaultMessage: 'Unable to unpublish the file' },
-		republish_failed: { defaultMessage: 'Unable to publish the changes' },
-		unknown_error: { defaultMessage: 'An unexpected error occurred' },
+		publish_failed: { defaultMessage: 'Unable to publish the file.' },
+		unpublish_failed: { defaultMessage: 'Unable to unpublish the file.' },
+		republish_failed: { defaultMessage: 'Unable to publish the changes.' },
+		unknown_error: { defaultMessage: 'An unexpected error occurred.' },
 		forbidden: {
-			defaultMessage: 'You do not have the necessary permissions to perform this action',
+			defaultMessage: 'You do not have the necessary permissions to perform this action.',
 		},
-		bad_request: { defaultMessage: 'Invalid request' },
-		rate_limit_exceeded: { defaultMessage: 'You have exceeded the rate limit' },
+		bad_request: { defaultMessage: 'Invalid request.' },
+		rate_limit_exceeded: { defaultMessage: 'You have exceeded the rate limit.' },
 		mutation_error_toast_title: { defaultMessage: 'Error' },
 		client_too_old: {
-			defaultMessage: 'Please refresh the page to get the latest version of tldraw',
+			defaultMessage: 'Please refresh the page to get the latest version of tldraw.',
 		},
 	})
 
@@ -153,8 +149,8 @@ export class TldrawApp {
 			console.error('Could not find a translation for this error code', errorCode)
 		}
 		this.toasts?.addToast({
-			title: this.intl?.formatMessage(this.messages.mutation_error_toast_title),
-			description: this.intl?.formatMessage(descriptor ?? this.messages.unknown_error),
+			title: this.getIntl().formatMessage(this.messages.mutation_error_toast_title),
+			description: this.getIntl().formatMessage(descriptor ?? this.messages.unknown_error),
 		})
 	}, 3000)
 
@@ -205,7 +201,11 @@ export class TldrawApp {
 		return this.fileStates$.get()
 	}
 
-	lastRecentFileOrdering = null as null | Array<{ fileId: string; date: number }>
+	lastRecentFileOrdering = null as null | Array<{
+		fileId: TlaFile['id']
+		isPinned: boolean
+		date: number
+	}>
 
 	@computed
 	getUserRecentFiles() {
@@ -214,26 +214,42 @@ export class TldrawApp {
 
 		const myFileIds = new Set<string>([...objectMapKeys(myFiles), ...objectMapKeys(myStates)])
 
-		const nextRecentFileOrdering = []
+		const nextRecentFileOrdering: {
+			fileId: TlaFile['id']
+			isPinned: boolean
+			date: number
+		}[] = []
 
 		for (const fileId of myFileIds) {
 			const file = myFiles[fileId]
 			const state = myStates[fileId]
 			if (!file || !state) continue
 			const existing = this.lastRecentFileOrdering?.find((f) => f.fileId === fileId)
-			if (existing) {
+			if (existing && existing.isPinned === state.isPinned) {
 				nextRecentFileOrdering.push(existing)
 				continue
 			}
 
 			nextRecentFileOrdering.push({
 				fileId,
-				date: state?.lastEditAt ?? state?.firstVisitAt ?? file?.createdAt ?? 0,
+				isPinned: state.isPinned ?? false,
+				date: state.lastEditAt ?? state.firstVisitAt ?? file.createdAt ?? 0,
 			})
 		}
 
+		// sort by date with most recent first
 		nextRecentFileOrdering.sort((a, b) => b.date - a.date)
+
+		// move pinned files to the top, stable sort
+		nextRecentFileOrdering.sort((a, b) => {
+			if (a.isPinned && !b.isPinned) return -1
+			if (!a.isPinned && b.isPinned) return 1
+			return 0
+		})
+
+		// stash the ordering for next time
 		this.lastRecentFileOrdering = nextRecentFileOrdering
+
 		return nextRecentFileOrdering
 	}
 
@@ -310,16 +326,19 @@ export class TldrawApp {
 		if (useDateFallback) {
 			const createdAt = new Date(file.createdAt)
 			const format = getDateFormat(createdAt)
-			return this.intl.formatDate(createdAt, format)
+			return this.getIntl().formatDate(createdAt, format)
 		}
 
 		return
 	}
 
-	claimTemporaryFile(fileId: string) {
-		// TODO(david): check that you can't claim someone else's file (the db insert should fail)
-		// TODO(zero stuff): add table constraint
-		this.createFile(fileId)
+	_slurpFileId: string | null = null
+	slurpFile() {
+		const res = this.createFile()
+		if (res.ok) {
+			this._slurpFileId = res.value.file.id
+		}
+		return res
 	}
 
 	toggleFileShared(fileId: string) {
@@ -389,6 +408,7 @@ export class TldrawApp {
 					lastSessionState: null,
 					lastVisitAt: null,
 					isFileOwner: true,
+					isPinned: false,
 				})
 			}
 		})
@@ -472,11 +492,28 @@ export class TldrawApp {
 		const file = this.getFile(fileId)
 
 		// Optimistic update, remove file and file states
-		this.z.mutate((tx) => {
+		return this.z.mutate((tx) => {
 			tx.file_state.delete({ fileId, userId: this.userId })
 			if (file?.ownerId === this.userId) {
 				tx.file.update({ id: fileId, isDeleted: true })
 			}
+		})
+	}
+
+	/**
+	 * Pin a file (or unpin it if it's already pinned).
+	 *
+	 * @param fileId - The file id.
+	 */
+	async pinOrUnpinFile(fileId: string) {
+		const fileState = this.getFileState(fileId)
+
+		if (!fileState) return
+
+		return this.z.mutate.file_state.update({
+			fileId,
+			userId: this.userId,
+			isPinned: !fileState.isPinned,
 		})
 	}
 
@@ -520,6 +557,7 @@ export class TldrawApp {
 				lastEditAt: null,
 				lastSessionState: null,
 				lastVisitAt: null,
+				isPinned: false,
 				// doesn't really matter what this is because it is
 				// overwritten by postgres
 				isFileOwner: this.isFileOwner(fileId),
@@ -569,14 +607,13 @@ export class TldrawApp {
 		avatar: string
 		getToken(): Promise<string | null>
 		onClientTooOld(): void
-		intl: IntlShape
 	}) {
 		// This is an issue: we may have a user record but not in the store.
 		// Could be just old accounts since before the server had a version
 		// of the store... but we should probably identify that better.
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
-		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld, opts.intl)
+		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld)
 		// @ts-expect-error
 		window.app = app
 		await app.preload({
@@ -603,5 +640,17 @@ export class TldrawApp {
 			isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
 		})
 		return { app, userId: opts.userId }
+	}
+
+	getIntl() {
+		const intl = createIntl()
+		if (intl) return intl
+		// intl should exists since IntlWrapper should create it before we get here, but let's use this just in case
+		setupCreateIntl({
+			defaultLocale: 'en',
+			locale: this.user$.get()?.locale ?? 'en',
+			messages: {},
+		})
+		return createIntl()!
 	}
 }

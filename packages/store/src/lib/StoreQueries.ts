@@ -7,7 +7,7 @@ import {
 	RESET_VALUE,
 	withDiff,
 } from '@tldraw/state'
-import { objectMapValues } from '@tldraw/utils'
+import { areArraysShallowEqual, objectMapValues } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { executeQuery, objectMatchesQuery, QueryExpression } from './executeQuery'
@@ -333,15 +333,22 @@ export class StoreQueries<R extends UnknownRecord> {
 		type S = Extract<R, { typeName: TypeName }>
 		const ids = this.ids(typeName, queryCreator, 'ids:' + name)
 
-		return computed<S[]>(name, () => {
-			return [...ids.get()].map((id) => {
-				const atom = this.atoms.get()[id]
-				if (!atom) {
-					throw new Error('no atom found for record id: ' + id)
-				}
-				return atom.get() as S
-			})
-		})
+		return computed<S[]>(
+			name,
+			() => {
+				const atoms = this.atoms.get()
+				return [...ids.get()].map((id) => {
+					const atom = atoms[id]
+					if (!atom) {
+						throw new Error('no atom found for record id: ' + id)
+					}
+					return atom.get() as S
+				})
+			},
+			{
+				isEqual: areArraysShallowEqual,
+			}
+		)
 	}
 
 	/**

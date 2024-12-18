@@ -23,7 +23,12 @@ export {
 	createBindingValidator,
 	type TLBaseBinding,
 } from './bindings/TLBaseBinding'
-export { createPresenceStateDerivation } from './createPresenceStateDerivation'
+export {
+	createPresenceStateDerivation,
+	getDefaultUserPresence,
+	type TLPresenceStateInfo,
+	type TLPresenceUserInfo,
+} from './createPresenceStateDerivation'
 export {
 	createTLSchema,
 	defaultBindingSchemas,
