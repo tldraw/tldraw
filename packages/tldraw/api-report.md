@@ -715,7 +715,7 @@ export function DefaultRichTextToolbarItems({ textEditor, onEditLinkIntent, }: D
 // @public (undocumented)
 export interface DefaultRichTextToolbarItemsProps {
     // (undocumented)
-    onEditLinkIntent(): void;
+    onEditLinkIntent?(): void;
     // (undocumented)
     textEditor: Editor_2;
 }

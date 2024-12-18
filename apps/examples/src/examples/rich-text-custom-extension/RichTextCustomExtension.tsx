@@ -5,6 +5,7 @@ import {
 	TLComponents,
 	Tldraw,
 	TldrawUiButton,
+	preventDefault,
 	useEditor,
 	useValue,
 } from 'tldraw'
@@ -82,6 +83,8 @@ const components: TLComponents = {
 					onClick={() => {
 						textEditor?.chain().focus().toggleWavy().run()
 					}}
+					isActive={textEditor?.isActive('wavy')}
+					onPointerDown={preventDefault}
 				>
 					〰️
 				</TldrawUiButton>
@@ -92,7 +95,7 @@ const components: TLComponents = {
 	},
 }
 
-export default function ReadOnlyExample() {
+export default function RichTextCustomExtensionExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw

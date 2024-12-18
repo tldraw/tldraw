@@ -7,7 +7,7 @@ import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 
 /** @public */
 export interface DefaultRichTextToolbarItemsProps {
-	onEditLinkIntent(): void
+	onEditLinkIntent?(): void
 	textEditor: TextEditor
 }
 
@@ -29,10 +29,15 @@ export function DefaultRichTextToolbarItems({
 		{ name: 'strike', op: 'toggleStrike' },
 		{ name: 'highlight', op: 'toggleHighlight' },
 		{ name: 'code', op: 'toggleCode' },
-		{ name: 'link', customOp: () => onEditLinkIntent() },
+		onEditLinkIntent ? { name: 'link', customOp: () => onEditLinkIntent() } : undefined,
 		{ name: 'heading', op: 'toggleHeading', attrs: { level: 3 as const } },
 		{ name: 'bulletList', op: 'toggleBulletList' },
-	]
+	].filter(Boolean) as {
+		name: string
+		op?: string
+		attrs?: { level: 3 }
+		customOp?(): void
+	}[]
 
 	return actions.map(({ name, op, attrs, customOp }) => {
 		return (
