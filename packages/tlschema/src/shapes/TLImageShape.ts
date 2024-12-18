@@ -1,16 +1,14 @@
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
-import { VecModel, vecModelValidator } from '../misc/geometry-types'
+import { vecModelValidator } from '../misc/geometry-types'
 import { TLAssetId } from '../records/TLAsset'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
+import { TLShapeCrop } from './ShapeWithCrop'
 import { TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export interface TLImageShapeCrop {
-	topLeft: VecModel
-	bottomRight: VecModel
-}
+export interface TLImageShapeCrop extends TLShapeCrop {}
 
 /** @public */
 export const ImageShapeCrop: T.ObjectValidator<TLImageShapeCrop> = T.object({

@@ -561,6 +561,13 @@ export type SetValue<T extends Set<any>> = T extends Set<infer U> ? U : never;
 // @public (undocumented)
 export const shapeIdValidator: T.Validator<TLShapeId>;
 
+// @public (undocumented)
+export type ShapeWithCrop = TLBaseShape<string, {
+    crop: null | TLShapeCrop;
+    h: number;
+    w: number;
+}>;
+
 // @public
 export class StyleProp<Type> implements T.Validatable<Type> {
     // @internal
@@ -1060,11 +1067,7 @@ export type TLImageAsset = TLBaseAsset<'image', {
 export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>;
 
 // @public (undocumented)
-export interface TLImageShapeCrop {
-    // (undocumented)
-    bottomRight: VecModel;
-    // (undocumented)
-    topLeft: VecModel;
+export interface TLImageShapeCrop extends TLShapeCrop {
 }
 
 // @public (undocumented)
@@ -1389,6 +1392,14 @@ export type TLSerializedStore = SerializedStore<TLRecord>;
 
 // @public
 export type TLShape = TLDefaultShape | TLUnknownShape;
+
+// @public (undocumented)
+export interface TLShapeCrop {
+    // (undocumented)
+    bottomRight: VecModel;
+    // (undocumented)
+    topLeft: VecModel;
+}
 
 // @public (undocumented)
 export type TLShapeId = RecordId<TLUnknownShape>;

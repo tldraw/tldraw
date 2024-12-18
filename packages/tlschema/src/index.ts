@@ -133,6 +133,7 @@ export {
 	type TLPropsMigration,
 	type TLPropsMigrations,
 } from './recordsWithProps'
+export { type ShapeWithCrop, type TLShapeCrop } from './shapes/ShapeWithCrop'
 export {
 	ArrowShapeArrowheadEndStyle,
 	ArrowShapeArrowheadStartStyle,
