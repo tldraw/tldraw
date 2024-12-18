@@ -6,10 +6,9 @@ import { useLayoutEffect, useState } from 'react'
  *
  * Returns the height of the viewport.
  * This is mainly to account for virtual keyboards on mobile devices.
- *
- * @public
  */
-export default function useViewportHeight(): number {
+/** @public */
+export function useViewportHeight(): number {
 	const [height, setHeight] = useState<number>(
 		() => window.visualViewport?.height || window.innerHeight
 	)

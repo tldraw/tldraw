@@ -3905,6 +3905,9 @@ export function useUniqueSafeId(suffix?: string): SafeId;
 
 export { useValue }
 
+// @public (undocumented)
+export function useViewportHeight(): number;
+
 // @internal (undocumented)
 export interface ValidLicenseKeyResult {
     // (undocumented)

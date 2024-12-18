@@ -294,6 +294,7 @@ export {
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
+export { useViewportHeight } from './lib/hooks/useViewportHeight'
 export {
 	LicenseManager,
 	type InvalidLicenseKeyResult,

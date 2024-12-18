@@ -1,8 +1,7 @@
-import { Box, useEditor, useValue } from '@tldraw/editor'
+import { Box, useEditor, useValue, useViewportHeight } from '@tldraw/editor'
 import { RefObject } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../constants'
 import { useBreakpoint } from '../context/breakpoints'
-import useViewportHeight from './useViewportHeight'
 
 const defaultPosition = {
 	x: -1000,

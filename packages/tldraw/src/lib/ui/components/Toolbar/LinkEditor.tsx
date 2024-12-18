@@ -7,6 +7,7 @@ import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiInput } from '../primitives/TldrawUiInput'
 
+/** @public */
 export interface LinkEditorProps {
 	textEditor: TextEditor
 	value: string
