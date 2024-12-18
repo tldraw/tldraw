@@ -246,7 +246,6 @@ const defaultPosition = {
 function getTextSelectionBounds(editor: Editor, textEditor: TextEditor | null) {
 	if (!textEditor) return Box.From(defaultPosition)
 
-	const container = editor.getContainer()
 	const { view } = textEditor
 	const { selection } = view.state
 	let fromPos: Coordinates
@@ -257,14 +256,18 @@ function getTextSelectionBounds(editor: Editor, textEditor: TextEditor | null) {
 
 		// Need to account for the view being positioned within the container not just the entire
 		// window.
-		const adjustPosition = (pos: Coordinates, containerRect: DOMRect) => {
+		const adjustPosition = (pos: Coordinates, containerRect: { top: number; left: number }) => {
 			pos.top -= containerRect.top
 			pos.bottom -= containerRect.top
 			pos.left -= containerRect.left
 			pos.right -= containerRect.left
 		}
 
-		const containerRect = container.getBoundingClientRect()
+		const containerBounds = editor.getViewportScreenBounds()
+		const containerRect = {
+			top: containerBounds.y,
+			left: containerBounds.x,
+		}
 		adjustPosition(fromPos, containerRect)
 		adjustPosition(toPos, containerRect)
 	} catch {

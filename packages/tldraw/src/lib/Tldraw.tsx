@@ -131,20 +131,16 @@ export function Tldraw(props: TldrawProps) {
 		acceptedVideoMimeTypes ?? DEFAULT_SUPPORT_VIDEO_TYPES
 	)
 
-	const restOfTextOptionsWithoutTipTapConfig = useMemo(() => {
+	const textOptionsWithDefaults = useMemo(() => {
 		const { tipTapConfig: _, ...rest } = textOptions ?? {}
-		return rest
-	}, [textOptions])
-	const textOptionsWithDefaults = useMemo(
-		() => ({
+		return {
 			tipTapConfig: {
 				extensions: tipTapDefaultExtensions,
 				...textOptions?.tipTapConfig,
 			},
-			...restOfTextOptionsWithoutTipTapConfig,
-		}),
-		[textOptions, restOfTextOptionsWithoutTipTapConfig]
-	)
+			...rest,
+		}
+	}, [textOptions])
 
 	const mediaMimeTypes = useMemo(
 		() => [..._imageMimeTypes, ..._videoMimeTypes],

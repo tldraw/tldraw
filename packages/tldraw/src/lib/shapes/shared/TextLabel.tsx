@@ -73,7 +73,7 @@ export const TextLabel = React.memo(function TextLabel({
 	textHeight,
 }: TextLabelProps) {
 	const editor = useEditor()
-	const [htmlFromMarkdown, setHtmlFromMarkdown] = useState<string | null>(null)
+	const [html, setHtml] = useState<string | null>(null)
 	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } = useEditableText(
 		shapeId,
 		!!enableRichText,
@@ -84,14 +84,10 @@ export const TextLabel = React.memo(function TextLabel({
 
 	useEffect(() => {
 		if (enableRichText && richText) {
-			const html = renderHtmlFromRichText(editor, richText)
-			setHtmlFromMarkdown(html)
-		} else {
-			if (htmlFromMarkdown) {
-				setHtmlFromMarkdown(null)
-			}
+			const newHtml = renderHtmlFromRichText(editor, richText)
+			setHtml(newHtml)
 		}
-	}, [plaintext, editor, enableRichText, richText, htmlFromMarkdown])
+	}, [plaintext, editor, enableRichText, richText])
 
 	const currentText = richText || plaintext || ''
 	const [initialText, setInitialText] = useState(currentText)
@@ -159,7 +155,7 @@ export const TextLabel = React.memo(function TextLabel({
 					{enableRichText && richText ? (
 						<div
 							className="tl-rich-text-tiptap"
-							dangerouslySetInnerHTML={{ __html: htmlFromMarkdown || '' }}
+							dangerouslySetInnerHTML={{ __html: html || '' }}
 							onPointerDownCapture={handlePointerDownCapture}
 						/>
 					) : (
