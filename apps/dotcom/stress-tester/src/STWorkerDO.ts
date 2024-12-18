@@ -22,7 +22,7 @@ export class STWorkerDO extends DurableObject<Environment> {
 	}
 
 	debug(...args: any[]) {
-		console.log('STWorkerDO', ...args)
+		// console.log('STWorkerDO', ...args)
 	}
 
 	async time<T>(operation: string, fn: () => Promise<T>): Promise<T> {

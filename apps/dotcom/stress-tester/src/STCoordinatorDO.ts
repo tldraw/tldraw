@@ -27,7 +27,7 @@ export class STCoordinatorDO extends DurableObject<Environment> {
 		super(state, env)
 	}
 	debug(...args: any[]) {
-		console.log('ST_COORDINATOR', ...args)
+		// console.log('ST_COORDINATOR', ...args)
 	}
 	router = AutoRouter({
 		before: [preflight],
