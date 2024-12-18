@@ -1,4 +1,4 @@
-import { exportToBlob, Tldraw, TLUiComponents, useEditor } from 'tldraw'
+import { Tldraw, TLUiComponents, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 function ExportCanvasButton() {
@@ -9,17 +9,13 @@ function ExportCanvasButton() {
 			onClick={async () => {
 				const shapeIds = editor.getCurrentPageShapeIds()
 				if (shapeIds.size === 0) return alert('No shapes on the canvas')
-				const blob = await exportToBlob({
-					editor,
-					ids: [...shapeIds],
-					format: 'png',
-					opts: { background: false },
-				})
+				const { blob } = await editor.toImage([...shapeIds], { format: 'png', background: false })
 
 				const link = document.createElement('a')
-				link.href = window.URL.createObjectURL(blob)
+				link.href = URL.createObjectURL(blob)
 				link.download = 'every-shape-on-the-canvas.jpg'
 				link.click()
+				URL.revokeObjectURL(link.href)
 			}}
 		>
 			Export canvas as image
@@ -38,7 +34,7 @@ export default function ExportCanvasImageExample() {
 }
 
 /* 
-This example shows how you can use the `exportToBlob()` function to create an image with all the shapes 
+This example shows how you can use the `Editor.toImage()` function to create an image with all the shapes 
 on the canvas in it and then download it. The easiest way to download an image is to use the download 
 attribute of a link element.
 
