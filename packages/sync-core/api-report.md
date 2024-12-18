@@ -131,6 +131,8 @@ export class ReconnectManager {
     // (undocumented)
     disconnected(): void;
     // (undocumented)
+    getIsDocumentHidden(): boolean;
+    // (undocumented)
     intendedDelay: number;
     // (undocumented)
     maybeReconnected(): void;

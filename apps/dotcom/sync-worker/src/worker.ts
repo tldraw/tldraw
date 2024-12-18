@@ -24,7 +24,7 @@ import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { testRoutes } from './testRoutes'
 import { Environment } from './types'
-import { getUserDurableObject } from './utils/durableObjects'
+import { getReplicator, getUserDurableObject } from './utils/durableObjects'
 import { getAuth } from './utils/tla/getAuth'
 // export { TLAppDurableObject } from './TLAppDurableObject'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
@@ -61,12 +61,16 @@ const router = createRouter<Environment>()
 		// forward req to the user durable object
 		const auth = await getAuth(req, env)
 		if (!auth) {
-			// eslint-disable-next-line no-console
-			console.log('auth not found')
 			return notFound()
 		}
 		const stub = getUserDurableObject(env, auth.userId)
 		return stub.fetch(req)
+	})
+	.get('/logs', async (req, env) => {
+		const stub = getReplicator(env)
+		const result = await stub.getLogs()
+		await stub.clearLogs()
+		return new Response(result.map((e) => e.log).join('\n'), { status: 200 })
 	})
 	.post('/app/tldr', createFiles)
 	.get('/app/file/:roomId', forwardRoomRequest)

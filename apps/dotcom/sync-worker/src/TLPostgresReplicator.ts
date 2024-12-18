@@ -51,7 +51,7 @@ const migrations: Migration[] = [
 	},
 ]
 
-const ONE_MINUTE = 60 * 1000
+// const ONE_MINUTE = 60 * 1000
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -93,7 +93,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	sentry
 	// eslint-disable-next-line local/prefer-class-methods
 	private captureException = (exception: unknown, eventHint?: EventHint) => {
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(exception, eventHint) as any
 		if (!this.sentry) {
 			console.error(`[TLPostgresReplicator]: `, exception)
@@ -162,7 +161,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		// uncomment for dev time debugging
 		// console.log('[TLPostgresReplicator]:', ...args)
 		if (this.sentry) {
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			this.sentry.addBreadcrumb({
 				message: `[TLPostgresReplicator]: ${args.join(' ')}`,
 			})
@@ -170,19 +168,26 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 	override async alarm() {
 		this.ctx.storage.setAlarm(Date.now() + 1000)
-		this.maybeLogRpm()
+		await this.maybeLogRpm()
 	}
 
-	private maybeLogRpm() {
-		const now = Date.now()
-		if (this.postgresUpdates > 0 && now - this.lastRpmLogTime > ONE_MINUTE) {
-			this.logEvent({
-				type: 'rpm',
-				rpm: this.postgresUpdates,
-			})
-			this.postgresUpdates = 0
-			this.lastRpmLogTime = now
+	private async maybeLogRpm() {
+		if (this.state.type === 'connected') {
+			const connection_count = await this.state
+				.db`SELECT COUNT(*) FROM pg_stat_activity where datname = 'postgres'`
+			console.log('connection count:', connection_count[0].count)
 		}
+		console.log('this.postgresUpdates=', this.postgresUpdates)
+		this.postgresUpdates = 0
+		// TODO: restore this later to make sure we push stuff to metrics
+		// if (this.postgresUpdates > 0 && now - this.lastRpmLogTime > ONE_MINUTE) {
+		// 	this.logEvent({
+		// 		type: 'rpm',
+		// 		rpm: this.postgresUpdates,
+		// 	})
+		// 	this.postgresUpdates = 0
+		// 	this.lastRpmLogTime = now
+		// }
 	}
 
 	private queue = new ExecutionQueue()

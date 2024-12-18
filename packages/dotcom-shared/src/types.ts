@@ -1,13 +1,7 @@
 import { stringEnum } from '@tldraw/utils'
 import { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
-import {
-	TlaFile,
-	TlaFilePartial,
-	TlaFileState,
-	TlaFileStatePartial,
-	TlaUser,
-	TlaUserPartial,
-} from './tlaSchema'
+import { File, FilePartial, FileState, FileStatePartial, User, UserPartial } from './DB'
+import { TlaFile, TlaFileState, TlaUser } from './tlaSchema'
 
 export interface Snapshot {
 	schema: SerializedSchema
@@ -84,13 +78,13 @@ export interface ZStoreData {
 export type ZRowUpdate = ZRowInsert | ZRowDeleteOrUpdate
 
 export interface ZRowInsert {
-	row: TlaFile | TlaFileState | TlaUser
+	row: File | FileState | User
 	table: ZTable
 	event: 'insert'
 }
 
 export interface ZRowDeleteOrUpdate {
-	row: TlaFilePartial | TlaFileStatePartial | TlaUserPartial
+	row: FilePartial | FileStatePartial | UserPartial
 	table: ZTable
 	event: 'update' | 'delete'
 }

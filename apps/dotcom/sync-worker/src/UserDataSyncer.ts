@@ -1,4 +1,5 @@
 import {
+	DB,
 	OptimisticAppStore,
 	TlaRow,
 	ZEvent,
@@ -8,7 +9,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import { ExecutionQueue, assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
-import postgres from 'postgres'
+import { Kysely } from 'kysely'
 import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import { TLPostgresReplicator } from './TLPostgresReplicator'
 import {
@@ -116,7 +117,7 @@ export class UserDataSyncer {
 	constructor(
 		ctx: DurableObjectState,
 		env: Environment,
-		private db: postgres.Sql,
+		private db: Kysely<DB>,
 		private userId: string,
 		private broadcast: (message: ZServerSentMessage) => void,
 		private logEvent: (event: TLUserDurableObjectEvent) => void
@@ -231,7 +232,8 @@ export class UserDataSyncer {
 
 		const promise = this.state.promise
 
-		const sql = getFetchUserDataSql(this.userId, bootId)
+		const userSql = getFetchUserDataSql(this.userId, bootId)
+		// console.info('💡[77]: UserDataSyncer.ts:245: userSql=', userSql.compile(this.db).sql)
 		const initialData: ZStoreData = {
 			user: null as any,
 			files: [],
@@ -246,31 +248,34 @@ export class UserDataSyncer {
 				initialData.files = []
 				initialData.fileStates = []
 
-				await this.db.begin(async (db) => {
-					return db
-						.unsafe(sql, [], { prepare: false })
-						.simple()
-						.forEach((row: any) => {
-							assert(this.state.type === 'connecting', 'state should be connecting in boot')
-							switch (row.table) {
-								case 'user':
-									initialData.user = parseResultRow(userKeys, row)
-									break
-								case 'file':
-									initialData.files.push(parseResultRow(fileKeys, row))
-									break
-								case 'file_state':
-									initialData.fileStates.push(parseResultRow(fileStateKeys, row))
-									break
-								case 'user_mutation_number':
-									assert(
-										typeof row.mutationNumber === 'number',
-										'mutationNumber should be a number'
-									)
+				// console.info('💡[60]: UserDataSyncer.ts:267: db=', db)
+				await this.db.transaction().execute(async (tx) => {
+					const result = await userSql.execute(tx)
+					// console.info('💡[74]: UserDataSyncer.ts:264: result=', result)
+					return result.rows.forEach((row: any) => {
+						assert(this.state.type === 'connecting', 'state should be connecting in boot')
+						switch (row.table) {
+							case 'user':
+								initialData.user = parseResultRow(userKeys, row)
+								break
+							case 'file':
+								initialData.files.push(parseResultRow(fileKeys, row))
+								break
+							case 'file_state':
+								initialData.fileStates.push(parseResultRow(fileStateKeys, row))
+								break
+							case 'user_mutation_number':
+								{
+									// console.info('💡[75]: UserDataSyncer.ts:280: row=', row)
+									const mutationNumber = Number(row.mutationNumber)
+									assert(!isNaN(mutationNumber), 'mutationNumber should be a number')
+									// assert(typeof row.mutationNumber === 'number', 'mutationNumber should be a number')
+
 									this.state.mutationNumber = row.mutationNumber
-									break
-							}
-						})
+								}
+								break
+						}
+					})
 				})
 			},
 			() => {
