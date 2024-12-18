@@ -114,7 +114,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.reboot(false)
 		this.alarm()
 		this.measure = env.MEASURE
-		this.storeLog('constructor')
 	}
 
 	private _applyMigration(index: number) {
@@ -178,7 +177,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				.db`SELECT COUNT(*) FROM pg_stat_activity where datname = 'postgres'`
 			console.log('connection count:', connection_count[0].count)
 		}
-		console.info('this.postgresUpdates=', this.postgresUpdates)
+		console.log('this.postgresUpdates=', this.postgresUpdates)
 		this.postgresUpdates = 0
 		// TODO: restore this later to make sure we push stuff to metrics
 		// if (this.postgresUpdates > 0 && now - this.lastRpmLogTime > ONE_MINUTE) {
@@ -479,18 +478,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	async storeLog(...args: any[]) {
-		this.sql.exec(`INSERT INTO logs (log) VALUES (?)`, args.join(' '))
-	}
-
-	async getLogs() {
-		return this.sql.exec(`SELECT * FROM logs`).toArray()
-	}
-
-	async clearLogs() {
-		this.sql.exec(`DELETE FROM logs`)
-	}
-
 	private async messageUser(userId: string, event: ZReplicationEventWithoutSequenceInfo) {
 		try {
 			let q = this.userDispatchQueues.get(userId)
@@ -527,7 +514,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	private getStubForFile(fileId: string) {
-		// this.storeLog('getStubForFile', fileId)
 		const id = this.env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${fileId}`)
 		return this.env.TLDR_DOC.get(id) as any as TLDrawDurableObject
 	}
@@ -536,7 +522,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.debug('registering user', userId)
 		this.logEvent({ type: 'register_user' })
 		await this.waitUntilConnected()
-		this.storeLog('register user', userId)
 		assert(this.state.type === 'connected', 'state should be connected in registerUser')
 		const guestFiles = await this.state
 			.db`SELECT "fileId" as id FROM file_state where "userId" = ${userId}`
@@ -565,7 +550,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	async unregisterUser(userId: string) {
 		this.logEvent({ type: 'unregister_user' })
-		// this.storeLog('unregister user', userId)
 		this.sql.exec(`DELETE FROM active_user WHERE id = ?`, userId)
 		const queue = this.userDispatchQueues.get(userId)
 		if (queue) {

@@ -1,15 +1,9 @@
 import { Signal, computed, react, transact } from '@tldraw/state'
 import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { assert, sleep, uniqueId } from '@tldraw/utils'
+import { assert, uniqueId } from '@tldraw/utils'
+import { File, FilePartial, FileState, FileStatePartial, User, UserPartial } from './DB'
 import { OptimisticAppStore } from './OptimisticAppStore'
-import {
-	TlaFile,
-	TlaFilePartial,
-	TlaFileState,
-	TlaFileStatePartial,
-	TlaUser,
-	TlaUserPartial,
-} from './tlaSchema'
+import { TlaFileState } from './tlaSchema'
 import { ZClientSentMessage, ZErrorCode, ZRowUpdate, ZServerSentMessage } from './types'
 
 export class Zero {
@@ -189,15 +183,11 @@ export class Zero {
 	}
 	readonly ____mutators = {
 		file: {
-			create: async (data: TlaFile) => {
-				let store = this.store.getFullData()
+			create: (data: File) => {
+				const store = this.store.getFullData()
 				if (!store) throw new Error('store not initialized')
 				if (store?.files.find((f) => f.id === data.id)) {
 					throw new Error('file already exists')
-				}
-				while (!store?.user) {
-					await sleep(50)
-					store = this.store.getFullData()
 				}
 				assert(store.user !== null, 'user not initialized')
 				this.makeOptimistic([
@@ -205,26 +195,26 @@ export class Zero {
 					{
 						table: 'file_state',
 						event: 'insert',
-						row: { fileId: data.id, userId: store.user.id, firstVisitAt: Date.now() } as any,
+						row: { fileId: data.id, userId: data.ownerId, firstVisitAt: Date.now() } as any,
 					},
 				])
 			},
-			update: (data: TlaFilePartial) => {
+			update: (data: FilePartial) => {
 				const existing = this.store.getFullData()?.files.find((f) => f.id === data.id)
 				if (!existing) throw new Error('file not found')
 				this.makeOptimistic([{ table: 'file', event: 'update', row: data }])
 			},
-			delete: (data: { id: TlaFile['id'] }) => {
+			delete: (data: { id: File['id'] }) => {
 				this.makeOptimistic([{ table: 'file', event: 'delete', row: data }])
 			},
 		},
 		file_state: {
-			create: (data: TlaFileState) => {
+			create: (data: FileState) => {
 				const store = this.store.getFullData()
 				if (!store) throw new Error('store not initialized')
 				this.makeOptimistic([{ table: 'file_state', event: 'insert', row: data }])
 			},
-			update: (data: TlaFileStatePartial) => {
+			update: (data: FileStatePartial) => {
 				const existing = this.store
 					.getFullData()
 					?.fileStates.find((f) => f.fileId === data.fileId && f.userId === data.userId)
@@ -236,10 +226,10 @@ export class Zero {
 			},
 		},
 		user: {
-			create: (data: TlaUser) => {
+			create: (data: User) => {
 				this.makeOptimistic([{ table: 'user', event: 'insert', row: data as any }])
 			},
-			update: (data: TlaUserPartial) => {
+			update: (data: UserPartial) => {
 				this.makeOptimistic([{ table: 'user', event: 'update', row: data as any }])
 			},
 			delete: () => {
@@ -277,10 +267,9 @@ export class Zero {
 		this.store.updateOptimisticData(updates, this.currentMutationId)
 
 		this.pendingUpdates.push(...updates)
-		if (!this.timeout) {
-			this.timeout = setTimeout(() => {
-				this.sendPendingUpdates()
-			}, 50)
-		}
+		clearTimeout(this.timeout)
+		this.timeout = setTimeout(() => {
+			this.sendPendingUpdates()
+		}, 50)
 	}
 }

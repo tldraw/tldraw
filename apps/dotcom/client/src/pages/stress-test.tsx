@@ -26,7 +26,6 @@ export function Component() {
 	const [accessToken] = useLocalValue('st_access_token', '')
 	const [uri] = useLocalValue('st_uri', '')
 	const [currentTest, setCurrentTest] = useState<string | null>(null)
-	const [done, setDone] = useState<string | null>(null)
 	const [workers, setWorkers] = useState(50)
 	const [files, setFiles] = useState(5)
 	const [startWithin, setStartWithin] = useState(10_000)
@@ -40,17 +39,7 @@ export function Component() {
 				},
 			})
 				.then((res) => res.json())
-				.then((r) => {
-					const currentCount = currentTest ? state?.tests[currentTest]?.events.length : 0
-					const newCount = currentTest ? r?.tests[currentTest]?.events.length : 0
-					if (newCount && currentTest && currentCount === newCount) {
-						const duration = Date.now() - start
-						// setCurrentTest(null)
-						const logMessage = `done in ${duration} ms. processed ${currentCount} events (${Math.floor(newCount / (duration / 1000))} events/s)`
-						setDone(logMessage)
-					}
-					setState(r)
-				})
+				.then(setState)
 		}, 1000)
 		return () => clearInterval(interval)
 	}, [coordinatorUrl, accessToken, state?.tests, currentTest])
@@ -61,7 +50,6 @@ export function Component() {
 
 	const handleStart = async () => {
 		start = Date.now()
-		setDone(null)
 		const testId = uniqueId()
 		setCurrentTest(testId)
 		const res = await fetch(coordinatorUrl + `/${testId}/start`, {
@@ -98,16 +86,17 @@ export function Component() {
 
 	return (
 		<div style={{ height: '100%', overflow: 'scroll' }}>
-			{done && <div>{done}</div>}
-			<span>Workers</span>
-			<input value={workers} onChange={(e) => setWorkers(Number(e.target.value))} />
-			<span>Files</span>
-			<input value={files} onChange={(e) => setFiles(Number(e.target.value))} />
-			<span>Start within</span>
-			<input value={startWithin} onChange={(e) => setStartWithin(Number(e.target.value))} />
-			<button onClick={handleStart}>Start test</button>
-			<button onClick={handleStop}>Stop test</button>
-			<button onClick={handleReset}>Reset</button>
+			<div style={{ display: 'flex', padding: '10px', alignItems: 'center', gap: '5px' }}>
+				<span>Workers</span>
+				<input value={workers} onChange={(e) => setWorkers(Number(e.target.value))} />
+				<span>Files</span>
+				<input value={files} onChange={(e) => setFiles(Number(e.target.value))} />
+				<span>Start within</span>
+				<input value={startWithin} onChange={(e) => setStartWithin(Number(e.target.value))} />
+				<button onClick={handleStart}>Start test</button>
+				<button onClick={handleStop}>Stop test</button>
+				<button onClick={handleReset}>Reset</button>
+			</div>
 			<pre>{JSON.stringify(state, null, 2)}</pre>
 		</div>
 	)

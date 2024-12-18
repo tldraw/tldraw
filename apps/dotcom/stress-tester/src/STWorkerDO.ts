@@ -4,7 +4,7 @@ import { DurableObject } from 'cloudflare:workers'
 import { STCoordinatorDO } from './STCoordinatorDO'
 import { Environment } from './types'
 
-const TIMEOUT = 20_000
+const TIMEOUT = 10_000
 
 export class STWorkerDO extends DurableObject<Environment> {
 	coordinator: STCoordinatorDO
@@ -48,7 +48,7 @@ export class STWorkerDO extends DurableObject<Environment> {
 	}
 
 	async mutate(name: string, fn: (z: Zero['____mutators']) => Promise<void>) {
-		if (!this.zero) return
+		assert(this.zero, 'zero not initialized')
 		await this.time(name, async () => {
 			return await this.zero?.sneakyTransaction(async () => {
 				await fn(this.zero!.____mutators)
@@ -124,8 +124,6 @@ export class STWorkerDO extends DurableObject<Environment> {
 				})
 			}
 
-			await new Promise((resolve) => setTimeout(resolve, 1000))
-
 			for (let i = 0; i < this.num_files; i++) {
 				// let file = this.zero.store.getCommittedData()?.files[0]
 				// const fileId = file?.id ?? uniqueId()
@@ -133,7 +131,7 @@ export class STWorkerDO extends DurableObject<Environment> {
 				const fileId = uniqueId()
 				if (!file) {
 					await this.mutate('create file ' + fileId, async (z) => {
-						await z.file.create({
+						z.file.create({
 							id: fileId,
 							name: 'name',
 							ownerId: workerId,
