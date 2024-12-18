@@ -710,10 +710,10 @@ export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 export const DefaultRichTextToolbar: React_3.NamedExoticComponent<TLUiRichTextToolbarProps>;
 
 // @public
-export function DefaultRichTextToolbarItems({ textEditor, onEditLinkIntent, }: DefaultRichTextToolbarItemsProps): JSX_2.Element[];
+export function DefaultRichTextToolbarContent({ textEditor, onEditLinkIntent, }: DefaultRichTextToolbarContentProps): JSX_2.Element[];
 
 // @public (undocumented)
-export interface DefaultRichTextToolbarItemsProps {
+export interface DefaultRichTextToolbarContentProps {
     // (undocumented)
     onEditLinkIntent?(): void;
     // (undocumented)

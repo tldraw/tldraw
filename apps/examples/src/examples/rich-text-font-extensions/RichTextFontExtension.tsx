@@ -5,10 +5,10 @@ import { EditorState as TextEditorState } from '@tiptap/pm/state'
 import { useEffect, useState } from 'react'
 import {
 	DefaultRichTextToolbar,
-	DefaultRichTextToolbarItems,
-	tipTapDefaultExtensions,
+	DefaultRichTextToolbarContent,
 	TLComponents,
 	Tldraw,
+	tipTapDefaultExtensions,
 	useEditor,
 	useValue,
 } from 'tldraw'
@@ -92,8 +92,8 @@ const components: TLComponents = {
 						</option>
 					))}
 				</select>
-				{/* Add the DefaultRichTextToolbarItems if you want to add more items. */}
-				<DefaultRichTextToolbarItems textEditor={textEditor} />
+				{/* Add the DefaultRichTextToolbarContent if you want to add more items. */}
+				<DefaultRichTextToolbarContent textEditor={textEditor} />
 			</DefaultRichTextToolbar>
 		)
 	},

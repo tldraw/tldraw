@@ -6,7 +6,7 @@ import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 
 /** @public */
-export interface DefaultRichTextToolbarItemsProps {
+export interface DefaultRichTextToolbarContentProps {
 	onEditLinkIntent?(): void
 	textEditor: TextEditor
 }
@@ -16,10 +16,10 @@ export interface DefaultRichTextToolbarItemsProps {
  *
  * @public @react
  */
-export function DefaultRichTextToolbarItems({
+export function DefaultRichTextToolbarContent({
 	textEditor,
 	onEditLinkIntent,
-}: DefaultRichTextToolbarItemsProps) {
+}: DefaultRichTextToolbarContentProps) {
 	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 	const source = 'rich-text-menu'

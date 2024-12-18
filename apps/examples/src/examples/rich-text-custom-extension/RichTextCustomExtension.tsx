@@ -88,8 +88,8 @@ const components: TLComponents = {
 				>
 					〰️
 				</TldrawUiButton>
-				{/* Add the DefaultRichTextToolbarItems if you want to add more items. */}
-				{/* <DefaultRichTextToolbarItems textEditor={textEditor} onEditLinkIntent={() => {}} /> */}
+				{/* Add the DefaultRichTextToolbarContent if you want to add more items. */}
+				{/* <DefaultRichTextToolbarContent textEditor={textEditor} onEditLinkIntent={() => {}} /> */}
 			</DefaultRichTextToolbar>
 		)
 	},

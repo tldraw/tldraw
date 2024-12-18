@@ -11,7 +11,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useContextualToolbarPosition } from '../../hooks/useContextualToolbarPosition'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
-import { DefaultRichTextToolbarItems } from './DefaultRichTextToolbarItems'
+import { DefaultRichTextToolbarContent } from './DefaultRichTextToolbarContent'
 import { LinkEditor } from './LinkEditor'
 
 /** @public */
@@ -220,7 +220,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 					onComplete={handleLinkComplete}
 				/>
 			) : textEditor ? (
-				<DefaultRichTextToolbarItems
+				<DefaultRichTextToolbarContent
 					textEditor={textEditor}
 					onEditLinkIntent={handleEditLinkIntent}
 				/>

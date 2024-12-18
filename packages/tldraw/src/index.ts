@@ -207,9 +207,9 @@ export {
 	type TLUiRichTextToolbarProps,
 } from './lib/ui/components/Toolbar/DefaultRichTextToolbar'
 export {
-	DefaultRichTextToolbarItems,
-	type DefaultRichTextToolbarItemsProps,
-} from './lib/ui/components/Toolbar/DefaultRichTextToolbarItems'
+	DefaultRichTextToolbarContent,
+	type DefaultRichTextToolbarContentProps,
+} from './lib/ui/components/Toolbar/DefaultRichTextToolbarContent'
 export {
 	DefaultToolbar,
 	type DefaultToolbarProps,
