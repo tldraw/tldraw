@@ -1,5 +1,5 @@
 import test, { Page, expect } from '@playwright/test'
-import { BoxModel, Editor, TLNoteShape, TLShapeId, convertTextToTipTapDocument } from 'tldraw'
+import { BoxModel, Editor, TLNoteShape, TLShapeId, toRichText } from 'tldraw'
 import { setupPage } from '../shared-e2e'
 
 const measureTextOptions = {
@@ -249,7 +249,7 @@ test.describe('text measurement', () => {
 					x: 0,
 					y: 0,
 					props: {
-						richText: convertTextToTipTapDocument('this is just some regular text'),
+						richText: toRichText('this is just some regular text'),
 						size: 'xl',
 					},
 				},
@@ -271,7 +271,7 @@ test.describe('text measurement', () => {
 					x: 0,
 					y: 0,
 					props: {
-						richText: convertTextToTipTapDocument('Amsterdam'),
+						richText: toRichText('Amsterdam'),
 						size: 'xl',
 					},
 				},
@@ -293,7 +293,7 @@ test.describe('text measurement', () => {
 					x: 0,
 					y: 0,
 					props: {
-						richText: convertTextToTipTapDocument('this is a tentoonstelling'),
+						richText: toRichText('this is a tentoonstelling'),
 						size: 'xl',
 					},
 				},
@@ -315,9 +315,7 @@ test.describe('text measurement', () => {
 					x: 0,
 					y: 0,
 					props: {
-						richText: convertTextToTipTapDocument(
-							'a very long dutch word like ziekenhuisinrichtingsmaatschappij'
-						),
+						richText: toRichText('a very long dutch word like ziekenhuisinrichtingsmaatschappij'),
 						size: 'xl',
 					},
 				},

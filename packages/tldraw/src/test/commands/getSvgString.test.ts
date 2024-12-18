@@ -1,9 +1,4 @@
-import {
-	DefaultDashStyle,
-	TLGeoShape,
-	convertTextToTipTapDocument,
-	createShapeId,
-} from '@tldraw/editor'
+import { DefaultDashStyle, TLGeoShape, createShapeId, toRichText } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -34,7 +29,7 @@ beforeEach(() => {
 			props: {
 				w: 100,
 				h: 100,
-				richText: convertTextToTipTapDocument('Hello world'),
+				richText: toRichText('Hello world'),
 			},
 		},
 		{

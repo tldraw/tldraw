@@ -84,9 +84,6 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 // @public
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
-// @public (undocumented)
-export function convertTextToTipTapDocument(text: string): TLRichText;
-
 // @public
 export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<Expand<    { [P in "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: {
 id: TLAssetId;
@@ -1461,6 +1458,9 @@ export interface TLVideoShapeProps {
     // (undocumented)
     w: number;
 }
+
+// @public (undocumented)
+export function toRichText(text: string): TLRichText;
 
 // @public
 export interface VecModel {

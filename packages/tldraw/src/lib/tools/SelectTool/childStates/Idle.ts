@@ -11,10 +11,10 @@ import {
 	TLTextShape,
 	Vec,
 	VecLike,
-	convertTextToTipTapDocument,
 	createShapeId,
 	debugFlags,
 	pointInPolygon,
+	toRichText,
 } from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
@@ -574,7 +574,7 @@ export class Idle extends StateNode {
 				x,
 				y,
 				props: {
-					richText: convertTextToTipTapDocument(''),
+					richText: toRichText(''),
 					autoSize: true,
 				},
 			},

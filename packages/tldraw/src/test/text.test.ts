@@ -1,4 +1,4 @@
-import { TLTextShape, convertTextToTipTapDocument, createShapeId } from '@tldraw/editor'
+import { TLTextShape, createShapeId, toRichText } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -20,7 +20,7 @@ describe('When editing text', () => {
 				x: 0,
 				y: 0,
 				props: {
-					richText: convertTextToTipTapDocument('Hello'),
+					richText: toRichText('Hello'),
 					textAlign: 'middle',
 					scale: 2,
 				},
@@ -32,7 +32,7 @@ describe('When editing text', () => {
 				id,
 				type: 'text',
 				props: {
-					richText: convertTextToTipTapDocument('Hello\nworld!'),
+					richText: toRichText('Hello\nworld!'),
 				},
 			},
 		])
@@ -55,7 +55,7 @@ describe('When editing text', () => {
 				y: 0,
 				rotation: Math.PI / 2,
 				props: {
-					richText: convertTextToTipTapDocument('Hello'),
+					richText: toRichText('Hello'),
 					textAlign: 'middle',
 					scale: 2,
 				},
@@ -64,7 +64,7 @@ describe('When editing text', () => {
 
 		const boundsA = editor.getShapePageBounds(id)!
 		editor.updateShapes<TLTextShape>([
-			{ id, type: 'text', props: { richText: convertTextToTipTapDocument('Hello, world!') } },
+			{ id, type: 'text', props: { richText: toRichText('Hello, world!') } },
 		])
 		const boundsB = editor.getShapePageBounds(id)!
 		expect(boundsA.x).toBeCloseTo(boundsB.x)
@@ -82,7 +82,7 @@ describe('When editing text', () => {
 				x: 0,
 				y: 0,
 				props: {
-					richText: convertTextToTipTapDocument('Hello'),
+					richText: toRichText('Hello'),
 					textAlign: 'start',
 					scale: 2,
 				},
@@ -94,7 +94,7 @@ describe('When editing text', () => {
 				id,
 				type: 'text',
 				props: {
-					richText: convertTextToTipTapDocument('Hello\nworld!'),
+					richText: toRichText('Hello\nworld!'),
 				},
 			},
 		])
@@ -116,7 +116,7 @@ describe('When editing text', () => {
 				x: 0,
 				y: 0,
 				props: {
-					richText: convertTextToTipTapDocument('Hello'),
+					richText: toRichText('Hello'),
 					textAlign: 'end',
 					scale: 2,
 				},
@@ -128,7 +128,7 @@ describe('When editing text', () => {
 				id,
 				type: 'text',
 				props: {
-					richText: convertTextToTipTapDocument('Hello\nworld!'),
+					richText: toRichText('Hello\nworld!'),
 				},
 			},
 		])
@@ -152,7 +152,7 @@ describe('When changing text size', () => {
 				x: 0,
 				y: 0,
 				props: {
-					richText: convertTextToTipTapDocument('Hello'),
+					richText: toRichText('Hello'),
 					size: 'm',
 					textAlign: 'middle',
 					scale: 2,
@@ -187,7 +187,7 @@ describe('When changing text size', () => {
 				x: 0,
 				y: 0,
 				props: {
-					richText: convertTextToTipTapDocument('Hello'),
+					richText: toRichText('Hello'),
 					size: 'm',
 					textAlign: 'start',
 					scale: 2,
@@ -222,7 +222,7 @@ describe('When changing text size', () => {
 				x: 0,
 				y: 0,
 				props: {
-					richText: convertTextToTipTapDocument('Hello'),
+					richText: toRichText('Hello'),
 					size: 'm',
 					textAlign: 'end',
 					scale: 2,
@@ -259,7 +259,7 @@ describe('When changing text size', () => {
 				x: 0,
 				y: 0,
 				props: {
-					richText: convertTextToTipTapDocument('Hello'),
+					richText: toRichText('Hello'),
 				},
 			},
 		])

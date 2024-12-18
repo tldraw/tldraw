@@ -14,13 +14,13 @@ import {
 	TLShapeId,
 	Vec,
 	WeakCache,
-	convertTextToTipTapDocument,
 	getDefaultColorTheme,
 	lerp,
 	noteShapeMigrations,
 	noteShapeProps,
 	rng,
 	toDomPrecision,
+	toRichText,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -71,7 +71,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	getDefaultProps(): TLNoteShape['props'] {
 		return {
 			color: 'black',
-			richText: convertTextToTipTapDocument(''),
+			richText: toRichText(''),
 			size: 'm',
 			font: 'draw',
 			align: 'middle',

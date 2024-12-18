@@ -1,4 +1,4 @@
-import { TLGeoShape, Tldraw, convertTextToTipTapDocument } from 'tldraw'
+import { TLGeoShape, Tldraw, toRichText } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this page!
@@ -15,7 +15,7 @@ export default function PreventMoveExample() {
 						props: {
 							w: 300,
 							h: 300,
-							richText: convertTextToTipTapDocument("style me but don't transform me"),
+							richText: toRichText("style me but don't transform me"),
 						},
 					})
 

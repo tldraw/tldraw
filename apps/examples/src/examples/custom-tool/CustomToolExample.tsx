@@ -1,4 +1,4 @@
-import { convertTextToTipTapDocument, StateNode, Tldraw, TLTextShape } from 'tldraw'
+import { StateNode, TLTextShape, Tldraw, toRichText } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -21,7 +21,7 @@ class StickerTool extends StateNode {
 			type: 'text',
 			x: currentPagePoint.x - OFFSET,
 			y: currentPagePoint.y - OFFSET,
-			props: { richText: convertTextToTipTapDocument('❤️') },
+			props: { richText: toRichText('❤️') },
 		})
 	}
 }
@@ -44,7 +44,7 @@ export default function CustomToolExample() {
 						type: 'text',
 						x: 100,
 						y: 100,
-						props: { richText: convertTextToTipTapDocument('Click anywhere to add a sticker') },
+						props: { richText: toRichText('Click anywhere to add a sticker') },
 					})
 				}}
 			/>

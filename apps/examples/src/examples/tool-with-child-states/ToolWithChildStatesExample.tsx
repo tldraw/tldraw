@@ -5,8 +5,8 @@ import {
 	TLShapePartial,
 	TLTextShape,
 	Tldraw,
-	convertTextToTipTapDocument,
 	createShapeId,
+	toRichText,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
@@ -52,7 +52,7 @@ class Idle extends StateNode {
 					editor.updateShape<TLTextShape>({
 						id: info.shape.id,
 						type: 'text',
-						props: { richText: convertTextToTipTapDocument('👻 boo!') },
+						props: { richText: toRichText('👻 boo!') },
 					})
 				} else {
 					this.parent.transition('pointing', { shape: info.shape })
@@ -82,7 +82,7 @@ class Idle extends StateNode {
 					type: 'text',
 					x: currentPagePoint.x + OFFSET,
 					y: currentPagePoint.y + OFFSET,
-					props: { richText: convertTextToTipTapDocument('❤️') },
+					props: { richText: toRichText('❤️') },
 				})
 				break
 			}
@@ -127,7 +127,7 @@ class Dragging extends StateNode {
 			type: 'text',
 			x: currentPagePoint.x + OFFSET,
 			y: currentPagePoint.y + OFFSET,
-			props: { richText: convertTextToTipTapDocument('❤️') },
+			props: { richText: toRichText('❤️') },
 		}
 		if (info.shape) {
 			this.shape = info.shape
@@ -151,9 +151,7 @@ class Dragging extends StateNode {
 				id: shape.id,
 				type: 'text',
 				props: {
-					richText: convertTextToTipTapDocument(
-						this.emojiArray[Math.floor(distance / 20) % this.emojiArray.length]
-					),
+					richText: toRichText(this.emojiArray[Math.floor(distance / 20) % this.emojiArray.length]),
 				},
 			})
 		}
@@ -179,7 +177,7 @@ export default function ToolWithChildStatesExample() {
 						x: 50,
 						y: 50,
 						props: {
-							richText: convertTextToTipTapDocument(
+							richText: toRichText(
 								'-Double click the canvas to add a sticker\n-Double click a sticker to delete it\n-Click and drag on a sticker to change it\n-Click and drag on the canvas to create a sticker\n-Shift click a sticker for a surprise!'
 							),
 							size: 's',

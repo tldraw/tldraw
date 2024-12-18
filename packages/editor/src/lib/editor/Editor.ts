@@ -7035,7 +7035,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.createShape(myShape)
-	 * editor.createShape({ id: 'box1', type: 'text', props: { richText: convertTextToTipTapDocument("ok") } })
+	 * editor.createShape({ id: 'box1', type: 'text', props: { richText: toRichText("ok") } })
 	 * ```
 	 *
 	 * @param shape - The shape (or shape partial) to create.
@@ -7053,7 +7053,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.createShapes([myShape])
-	 * editor.createShapes([{ id: 'box1', type: 'text', props: { richText: convertTextToTipTapDocument("ok") } }])
+	 * editor.createShapes([{ id: 'box1', type: 'text', props: { richText: toRichText("ok") } }])
 	 * ```
 	 *
 	 * @param shapes - The shapes (or shape partials) to create.

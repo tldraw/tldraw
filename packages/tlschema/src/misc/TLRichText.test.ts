@@ -1,6 +1,6 @@
-import { convertTextToTipTapDocument } from './TLRichText'
+import { toRichText } from './TLRichText'
 
-describe('convertTextToTipTapDocument', () => {
+describe('toRichText', () => {
 	it('should convert a single line of text to a TipTap document', () => {
 		const input = 'Hello, world!'
 		const expectedOutput = {
@@ -8,11 +8,11 @@ describe('convertTextToTipTapDocument', () => {
 			content: [
 				{
 					type: 'paragraph',
-					content: [{ type: 'text', text: 'Hello,\u00A0world!' }],
+					content: [{ type: 'text', text: 'Hello, world!' }],
 				},
 			],
 		}
-		expect(convertTextToTipTapDocument(input)).toEqual(expectedOutput)
+		expect(toRichText(input)).toEqual(expectedOutput)
 	})
 
 	it('should convert multiple lines of text to a TipTap document', () => {
@@ -22,15 +22,15 @@ describe('convertTextToTipTapDocument', () => {
 			content: [
 				{
 					type: 'paragraph',
-					content: [{ type: 'text', text: 'Hello,\u00A0world!' }],
+					content: [{ type: 'text', text: 'Hello, world!' }],
 				},
 				{
 					type: 'paragraph',
-					content: [{ type: 'text', text: 'This\u00A0is\u00A0a\u00A0test.' }],
+					content: [{ type: 'text', text: 'This is a test.' }],
 				},
 			],
 		}
-		expect(convertTextToTipTapDocument(input)).toEqual(expectedOutput)
+		expect(toRichText(input)).toEqual(expectedOutput)
 	})
 
 	it('should handle empty lines correctly', () => {
@@ -40,33 +40,17 @@ describe('convertTextToTipTapDocument', () => {
 			content: [
 				{
 					type: 'paragraph',
-					content: [{ type: 'text', text: 'Hello,\u00A0world!' }],
+					content: [{ type: 'text', text: 'Hello, world!' }],
 				},
 				{
 					type: 'paragraph',
 				},
 				{
 					type: 'paragraph',
-					content: [{ type: 'text', text: 'This\u00A0is\u00A0a\u00A0test.' }],
+					content: [{ type: 'text', text: 'This is a test.' }],
 				},
 			],
 		}
-		expect(convertTextToTipTapDocument(input)).toEqual(expectedOutput)
-	})
-
-	it('should sanitize special characters', () => {
-		const input = 'Hello & welcome to <coding>!'
-		const expectedOutput = {
-			type: 'doc',
-			content: [
-				{
-					type: 'paragraph',
-					content: [
-						{ type: 'text', text: 'Hello\u00A0&amp;\u00A0welcome\u00A0to\u00A0&lt;coding&gt;!' },
-					],
-				},
-			],
-		}
-		expect(convertTextToTipTapDocument(input)).toEqual(expectedOutput)
+		expect(toRichText(input)).toEqual(expectedOutput)
 	})
 })

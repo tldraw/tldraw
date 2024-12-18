@@ -4,7 +4,7 @@ import {
 	TLGeoShape,
 	TLShapePartial,
 	Tldraw,
-	convertTextToTipTapDocument,
+	toRichText,
 	createShapeId,
 	useEditor,
 } from 'tldraw'
@@ -45,7 +45,7 @@ export default function APIExample() {
 			type: 'geo',
 			props: {
 				h: shape.props.h * 3,
-				richText: convertTextToTipTapDocument('hello world!'),
+				richText: toRichText('hello world!'),
 			},
 		}
 

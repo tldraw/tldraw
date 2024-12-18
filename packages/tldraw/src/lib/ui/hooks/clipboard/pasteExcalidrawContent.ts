@@ -18,12 +18,12 @@ import {
 	VecLike,
 	ZERO_INDEX_KEY,
 	compact,
-	convertTextToTipTapDocument,
 	createBindingId,
 	createShapeId,
 	getIndexAbove,
 	getIndices,
 	isShapeId,
+	toRichText,
 } from '@tldraw/editor'
 
 /**
@@ -135,7 +135,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 						h: element.height,
 						size: strokeWidthsToSizes[element.strokeWidth] ?? 'draw',
 						color: colorsToColors[colorToUse] ?? 'black',
-						richText: convertTextToTipTapDocument(text),
+						richText: toRichText(text),
 						align,
 						dash: getDash(element),
 						fill: getFill(element),
@@ -274,7 +274,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 						scale,
 						font: fontFamilyToFontType[element.fontFamily] ?? 'draw',
 						color: colorsToColors[element.strokeColor] ?? 'black',
-						richText: convertTextToTipTapDocument(element.text),
+						richText: toRichText(element.text),
 						textAlign: textAlignToTextAlignTypes[element.textAlign],
 					},
 				})

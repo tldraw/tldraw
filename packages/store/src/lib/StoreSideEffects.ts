@@ -249,7 +249,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	 *     editor.createShape<TLTextShape>({
 	 *         id: createShapeId(),
 	 *         type: 'text',
-	 *         props: { richText: convertTextToTipTapDocument(page.name) },
+	 *         props: { richText: toRichText(page.name) },
 	 *     })
 	 * })
 	 * ```

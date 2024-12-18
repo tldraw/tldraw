@@ -15,11 +15,11 @@ import {
 	Vec,
 	VecLike,
 	assert,
-	convertTextToTipTapDocument,
 	createShapeId,
 	fetch,
 	getHashForBuffer,
 	getHashForString,
+	toRichText,
 } from '@tldraw/editor'
 import { EmbedDefinition } from './defaultEmbedDefinitions'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
@@ -341,7 +341,7 @@ export function registerDefaultExternalContentHandlers(
 					id: onlySelectedShape.id,
 					type: onlySelectedShape.type,
 					props: {
-						richText: convertTextToTipTapDocument(textToPaste),
+						richText: toRichText(textToPaste),
 					},
 				},
 			])
@@ -405,7 +405,7 @@ export function registerDefaultExternalContentHandlers(
 				x: p.x - w / 2,
 				y: p.y - h / 2,
 				props: {
-					richText: convertTextToTipTapDocument(textToPaste),
+					richText: toRichText(textToPaste),
 					// if the text has more than one line, align it to the left
 					textAlign: align,
 					autoSize,

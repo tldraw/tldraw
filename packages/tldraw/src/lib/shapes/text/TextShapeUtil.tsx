@@ -10,11 +10,11 @@ import {
 	TLTextShape,
 	Vec,
 	WeakCache,
-	convertTextToTipTapDocument,
 	getDefaultColorTheme,
 	textShapeMigrations,
 	textShapeProps,
 	toDomPrecision,
+	toRichText,
 	useEditor,
 } from '@tldraw/editor'
 import isEqual from 'lodash.isequal'
@@ -46,7 +46,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			textAlign: 'start',
 			autoSize: true,
 			scale: 1,
-			richText: convertTextToTipTapDocument(''),
+			richText: toRichText(''),
 		}
 	}
 

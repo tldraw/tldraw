@@ -1,14 +1,14 @@
 /// <reference types="react" />
 import {
-	convertTextToTipTapDocument,
 	DefaultColorStyle,
 	ReadonlySharedStyleMap,
 	SharedStyle,
 	TLGeoShape,
 	TLGroupShape,
+	toRichText,
 } from '@tldraw/editor'
+import { TestEditor, createDefaultShapes, defaultShapesIds } from './TestEditor'
 import { TL } from './test-jsx'
-import { createDefaultShapes, defaultShapesIds, TestEditor } from './TestEditor'
 
 let editor: TestEditor
 
@@ -104,9 +104,7 @@ describe('Editor.styles', () => {
 				type: 'geo',
 				props: {
 					align: 'start',
-					richText: convertTextToTipTapDocument(
-						'hello world this is a long sentence that should wrap'
-					),
+					richText: toRichText('hello world this is a long sentence that should wrap'),
 					w: 100,
 					url: 'https://aol.com',
 					verticalAlign: 'start',

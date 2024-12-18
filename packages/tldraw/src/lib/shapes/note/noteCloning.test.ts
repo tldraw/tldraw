@@ -1,4 +1,4 @@
-import { Box, convertTextToTipTapDocument, TLNoteShape, Vec } from '@tldraw/editor'
+import { Box, TLNoteShape, Vec, toRichText } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 
 let editor: TestEditor
@@ -177,7 +177,7 @@ it('Creates an adjacent note when dragging the clone handle', () => {
 		type: 'note',
 		x: 1220,
 		y: 1000,
-		props: { richText: convertTextToTipTapDocument('rich hello') },
+		props: { richText: toRichText('rich hello') },
 	})
 	const shapeA = editor.getLastCreatedShape()!
 
@@ -185,7 +185,7 @@ it('Creates an adjacent note when dragging the clone handle', () => {
 		type: 'note',
 		x: 1000,
 		y: 1000,
-		props: { richText: convertTextToTipTapDocument('rich hello') },
+		props: { richText: toRichText('rich hello') },
 	})
 	const shapeB = editor.getLastCreatedShape()!
 
@@ -219,7 +219,7 @@ it('Creates an adjacent note when dragging the clone handle', () => {
 		x: handle.x + 30 - offset.x,
 		y: handle.y + 30 - offset.y,
 		props: {
-			richText: convertTextToTipTapDocument(''),
+			richText: toRichText(''),
 		},
 	})
 

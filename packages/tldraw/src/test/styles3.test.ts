@@ -1,4 +1,4 @@
-import { convertTextToTipTapDocument, createShapeId, TLGeoShape } from '@tldraw/editor'
+import { TLGeoShape, createShapeId, toRichText } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -19,7 +19,7 @@ it("When changing the style of a geo shape, if the text label is empty, don't me
 			id,
 			type: 'geo',
 			props: {
-				richText: convertTextToTipTapDocument(''),
+				richText: toRichText(''),
 				size: 's',
 				w: 5,
 				h: 5,
@@ -48,7 +48,7 @@ it('When changing the style of a geo shape, if the text label has text, measure 
 			id,
 			type: 'geo',
 			props: {
-				richText: convertTextToTipTapDocument('h'),
+				richText: toRichText('h'),
 				size: 's',
 				w: 5,
 				h: 5,

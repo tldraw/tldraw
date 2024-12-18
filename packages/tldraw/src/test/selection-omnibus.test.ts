@@ -1,11 +1,4 @@
-import {
-	Box,
-	TLFrameShape,
-	TLGeoShape,
-	convertTextToTipTapDocument,
-	createShapeId,
-	tlenv,
-} from '@tldraw/editor'
+import { Box, TLFrameShape, TLGeoShape, createShapeId, tlenv, toRichText } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -77,7 +70,7 @@ describe('Hovering shapes', () => {
 		editor.updateShape<TLGeoShape>({
 			id: ids.box1,
 			type: 'geo',
-			props: { richText: convertTextToTipTapDocument('hello') },
+			props: { richText: toRichText('hello') },
 		})
 
 		// oh there's text now? hover it
@@ -89,7 +82,7 @@ describe('Hovering shapes', () => {
 		editor.updateShape<TLGeoShape>({
 			id: ids.box1,
 			type: 'geo',
-			props: { richText: convertTextToTipTapDocument('hello') },
+			props: { richText: toRichText('hello') },
 		})
 
 		editor.pointerMove(50, 50)

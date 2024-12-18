@@ -1,5 +1,5 @@
 import { T } from '@tldraw/validate'
-import { TLRichText, convertTextToTipTapDocument, richTextValidator } from '../misc/TLRichText'
+import { TLRichText, richTextValidator, toRichText } from '../misc/TLRichText'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
 import { StyleProp } from '../styles/StyleProp'
@@ -197,7 +197,7 @@ export const geoShapeMigrations = createShapePropsMigrationSequence({
 		{
 			id: geoShapeVersions.AddRichText,
 			up: (props) => {
-				props.richText = convertTextToTipTapDocument(props.text)
+				props.richText = toRichText(props.text)
 				delete props.text
 			},
 			// N.B. Explicitly no down state so that we force clients to update.

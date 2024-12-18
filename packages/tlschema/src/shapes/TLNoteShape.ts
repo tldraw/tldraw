@@ -1,5 +1,5 @@
 import { T } from '@tldraw/validate'
-import { TLRichText, convertTextToTipTapDocument, richTextValidator } from '../misc/TLRichText'
+import { TLRichText, richTextValidator, toRichText } from '../misc/TLRichText'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
 import {
@@ -150,7 +150,7 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 		{
 			id: Versions.AddRichText,
 			up: (props) => {
-				props.richText = convertTextToTipTapDocument(props.text)
+				props.richText = toRichText(props.text)
 				delete props.text
 			},
 			// N.B. Explicitly no down state so that we force clients to update.

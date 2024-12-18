@@ -5,8 +5,8 @@ import {
 	TLShape,
 	Vec,
 	compact,
-	convertTextToTipTapDocument,
 	createShapeId,
+	toRichText,
 } from '@tldraw/editor'
 
 /** @internal */
@@ -214,7 +214,7 @@ export function getNoteShapeForAdjacentPosition(
 			props: {
 				// Use the props of the shape we're cloning
 				...shape.props,
-				richText: convertTextToTipTapDocument(''),
+				richText: toRichText(''),
 				growY: 0,
 				fontSizeAdjustment: 0,
 				url: '',

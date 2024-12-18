@@ -14,10 +14,10 @@ import {
 	TLImageShapeCrop,
 	TLShapePartial,
 	TLTextShape,
-	convertTextToTipTapDocument,
 	degreesToRadians,
 	mapObjectMapValues,
 	mockUniqueId,
+	toRichText,
 } from 'tldraw'
 import { TL, shapesFromJsx } from 'tldraw/src/test/test-jsx'
 import { EndToEndApi } from '../../src/misc/EndToEndApi'
@@ -37,7 +37,7 @@ interface Snapshots {
 const frameContent = (
 	<Fragment>
 		<TL.geo
-			richText={convertTextToTipTapDocument('content')}
+			richText={toRichText('content')}
 			w={100}
 			h={100}
 			x={50}
@@ -186,18 +186,10 @@ const richText = {
 const snapshots: Snapshots = {
 	'Text rendering': {
 		'geo text': {
-			'leading line breaks': (
-				<TL.geo richText={convertTextToTipTapDocument('\n\n\n\n\n\ntext')} w={100} h={30} />
-			),
-			'trailing line breaks': (
-				<TL.geo richText={convertTextToTipTapDocument('text\n\n\n\n\n\n')} w={100} h={30} />
-			),
+			'leading line breaks': <TL.geo richText={toRichText('\n\n\n\n\n\ntext')} w={100} h={30} />,
+			'trailing line breaks': <TL.geo richText={toRichText('text\n\n\n\n\n\n')} w={100} h={30} />,
 			'mixed RTL': (
-				<TL.geo
-					richText={convertTextToTipTapDocument('unicode is cool!\nكتابة باللغة  العرب!')}
-					w={300}
-					h={300}
-				/>
+				<TL.geo richText={toRichText('unicode is cool!\nكتابة باللغة  العرب!')} w={300} h={300} />
 			),
 			'rich text': <TL.geo richText={richText} align="start" w={300} h={300} />,
 		},
@@ -264,7 +256,7 @@ const snapshots: Snapshots = {
 		DefaultFontStyle.values.map((font) => [
 			`font=${font}`,
 			{
-				geo: <TL.geo font={font} richText={convertTextToTipTapDocument('test')} w={100} h={100} />,
+				geo: <TL.geo font={font} richText={toRichText('test')} w={100} h={100} />,
 				arrow: (
 					<TL.arrow
 						font={font}
@@ -278,8 +270,8 @@ const snapshots: Snapshots = {
 						text="test"
 					/>
 				),
-				note: <TL.note font={font} color="violet" richText={convertTextToTipTapDocument('test')} />,
-				text: <TL.text font={font} color="red" richText={convertTextToTipTapDocument('test')} />,
+				note: <TL.note font={font} color="violet" richText={toRichText('test')} />,
+				text: <TL.text font={font} color="red" richText={toRichText('test')} />,
 			},
 		])
 	),
@@ -672,9 +664,9 @@ const snapshots: Snapshots = {
 		'#5020': {
 			'scaled text within a frame': (
 				<TL.frame w={300} h={200}>
-					<TL.text richText={convertTextToTipTapDocument('the text')} x={-30} y={0} />
-					<TL.text richText={convertTextToTipTapDocument('the text')} x={-60} y={50} scale={2} />
-					<TL.text richText={convertTextToTipTapDocument('the text')} x={-90} y={100} scale={3} />
+					<TL.text richText={toRichText('the text')} x={-30} y={0} />
+					<TL.text richText={toRichText('the text')} x={-60} y={50} scale={2} />
+					<TL.text richText={toRichText('the text')} x={-90} y={100} scale={3} />
 				</TL.frame>
 			),
 		},
@@ -723,7 +715,7 @@ test.describe('Export snapshots', () => {
 							type: 'text',
 							x: 0,
 							y: 0,
-							props: { richText: convertTextToTipTapDocument(name), font: 'mono', size: 'xl' },
+							props: { richText: toRichText(name), font: 'mono', size: 'xl' },
 						})
 
 						let y = editor.getShapePageBounds(titleId)!.maxY + 30
@@ -735,7 +727,7 @@ test.describe('Export snapshots', () => {
 								type: 'text',
 								x: 0,
 								y,
-								props: { richText: convertTextToTipTapDocument(rowName), font: 'mono', size: 'm' },
+								props: { richText: toRichText(rowName), font: 'mono', size: 'm' },
 							})
 							y = editor.getShapePageBounds(rowTitleId)!.maxY + 20
 
@@ -749,7 +741,7 @@ test.describe('Export snapshots', () => {
 									x,
 									y,
 									props: {
-										richText: convertTextToTipTapDocument(testCaseName),
+										richText: toRichText(testCaseName),
 										font: 'mono',
 										size: 's',
 									},

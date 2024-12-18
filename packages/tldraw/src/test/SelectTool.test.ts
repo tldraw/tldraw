@@ -4,8 +4,8 @@ import {
 	TLGeoShape,
 	TLNoteShape,
 	TLTextShape,
-	convertTextToTipTapDocument,
 	createShapeId,
+	toRichText,
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
@@ -66,7 +66,7 @@ describe.skip('Edit on type', () => {
 				type: 'note',
 				x: 100,
 				y: 100,
-				props: { richText: convertTextToTipTapDocument('hello') },
+				props: { richText: toRichText('hello') },
 			},
 		])!
 		const shape = editor.getShape(id)!
@@ -90,7 +90,7 @@ describe.skip('Edit on type', () => {
 				type: 'note',
 				x: 100,
 				y: 100,
-				props: { richText: convertTextToTipTapDocument('hello') },
+				props: { richText: toRichText('hello') },
 			},
 		])!
 		const shape = editor.getShape(id)!
@@ -107,7 +107,7 @@ describe.skip('Edit on type', () => {
 				type: 'note',
 				x: 100,
 				y: 100,
-				props: { richText: convertTextToTipTapDocument('hello') },
+				props: { richText: toRichText('hello') },
 			},
 		])!
 		const shape = editor.getShape(id)!
@@ -375,7 +375,7 @@ describe('When double clicking the selection edge', () => {
 						scale: 2,
 						autoSize: false,
 						w: 200,
-						richText: convertTextToTipTapDocument('hello'),
+						richText: toRichText('hello'),
 					},
 				},
 			])
@@ -429,22 +429,22 @@ describe('When editing shapes', () => {
 			{
 				id: ids.geo1,
 				type: 'geo',
-				props: { richText: convertTextToTipTapDocument('hello world ') },
+				props: { richText: toRichText('hello world ') },
 			},
 			{
 				id: ids.geo2,
 				type: 'geo',
-				props: { richText: convertTextToTipTapDocument('hello world ') },
+				props: { richText: toRichText('hello world ') },
 			},
 			{
 				id: ids.text1,
 				type: 'text',
-				props: { richText: convertTextToTipTapDocument('hello world ') },
+				props: { richText: toRichText('hello world ') },
 			},
 			{
 				id: ids.text2,
 				type: 'text',
-				props: { richText: convertTextToTipTapDocument('hello world ') },
+				props: { richText: toRichText('hello world ') },
 			},
 		])
 	})

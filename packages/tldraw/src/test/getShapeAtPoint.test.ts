@@ -1,4 +1,4 @@
-import { TLGeoShape, TLShape, convertTextToTipTapDocument, createShapeId } from '@tldraw/editor'
+import { TLGeoShape, TLShape, createShapeId, toRichText } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -149,7 +149,7 @@ describe('with hitLabels=true', () => {
 		editor.updateShape<TLGeoShape>({
 			id: ids.box2,
 			type: 'geo',
-			props: { richText: convertTextToTipTapDocument('hello') },
+			props: { richText: toRichText('hello') },
 		})
 		expect(editor.getShapeAtPoint({ x: 350, y: 350 }, opts)?.id).toBe(ids.box2)
 	})
