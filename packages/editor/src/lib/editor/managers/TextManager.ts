@@ -38,21 +38,13 @@ const spaceCharacterRegex = /\s/
 
 /** @public */
 export class TextManager {
-	baseElm: HTMLDivElement
+	private baseElem: HTMLDivElement
 
 	constructor(public editor: Editor) {
-		const container = this.editor.getContainer()
-
-		const elm = document.createElement('div')
-		elm.classList.add('tl-text')
-		elm.classList.add('tl-text-measure')
-		elm.tabIndex = -1
-		container.appendChild(elm)
-
-		this.baseElm = elm
-		editor.disposables.add(() => {
-			elm.remove()
-		})
+		this.baseElem = document.createElement('div')
+		this.baseElem.classList.add('tl-text')
+		this.baseElem.classList.add('tl-text-measure')
+		this.baseElem.tabIndex = -1
 	}
 
 	measureText(
@@ -99,9 +91,10 @@ export class TextManager {
 		}
 	): BoxModel & { scrollWidth: number } {
 		// Duplicate our base element; we don't need to clone deep
-		const wrapperElm = this.baseElm?.cloneNode() as HTMLDivElement
+		const wrapperElm = this.baseElem.cloneNode() as HTMLDivElement
+		this.editor.getContainer().appendChild(wrapperElm)
 		wrapperElm.innerHTML = html
-		this.baseElm.insertAdjacentElement('afterend', wrapperElm)
+		this.baseElem.insertAdjacentElement('afterend', wrapperElm)
 
 		wrapperElm.setAttribute('dir', 'auto')
 		// N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers")
@@ -247,8 +240,8 @@ export class TextManager {
 	): { text: string; box: BoxModel }[] {
 		if (textToMeasure === '') return []
 
-		const elm = this.baseElm?.cloneNode() as HTMLDivElement
-		this.baseElm.insertAdjacentElement('afterend', elm)
+		const elm = this.baseElem.cloneNode() as HTMLDivElement
+		this.editor.getContainer().appendChild(elm)
 
 		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
 		elm.setAttribute('dir', 'auto')

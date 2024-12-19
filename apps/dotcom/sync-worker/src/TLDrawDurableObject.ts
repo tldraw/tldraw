@@ -31,7 +31,6 @@ import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { createSupabaseClient } from './utils/createSupabaseClient'
-import { getReplicator } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
@@ -305,9 +304,12 @@ export class TLDrawDurableObject extends DurableObject {
 		if (this._fileRecordCache) {
 			return this._fileRecordCache
 		}
-		const stub = getReplicator(this.env)
 		try {
-			this._fileRecordCache = await stub.getFileRecord(this.documentInfo.slug)
+			const postgres = getPostgres(this.env, { pooled: true, name: 'TLDrawDurableObject' })
+			const fileRecord =
+				await postgres`SELECT * FROM public.file WHERE ID = ${this.documentInfo.slug}`
+			this._fileRecordCache = fileRecord[0] as TlaFile
+			postgres.end()
 			return this._fileRecordCache
 		} catch (_e) {
 			return null
@@ -586,8 +588,9 @@ export class TLDrawDurableObject extends DurableObject {
 
 				// Update the updatedAt timestamp in the database
 				if (this.documentInfo.isApp) {
-					const pg = getPostgres(this.env, { pooled: true })
+					const pg = getPostgres(this.env, { pooled: true, name: 'TLDrawDurableObject' })
 					await pg`UPDATE public.file SET "updatedAt" = ${new Date().getTime()} WHERE id = ${this.documentInfo.slug}`
+					await pg.end()
 				}
 			})
 		} catch (e) {

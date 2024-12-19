@@ -79,6 +79,7 @@ import {
 	hasOwnProperty,
 	last,
 	lerp,
+	maxBy,
 	sortById,
 	sortByIndex,
 	structuredClone,
@@ -2335,6 +2336,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const leaderPresence = this.getCollaborators().find((c) => c.userId === followingUserId)
 		if (!leaderPresence) return null
 
+		if (!leaderPresence.camera || !leaderPresence.screenBounds) return null
+
 		// Fit their viewport inside of our screen bounds
 		// 1. calculate their viewport in page space
 		const { w: lw, h: lh } = leaderPresence.screenBounds
@@ -3232,6 +3235,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (!presence) return this
 
+		const cursor = presence.cursor
+		if (!cursor) return this
+
 		this.run(() => {
 			// If we're following someone, stop following them
 			if (this.getInstanceState().followingUserId !== null) {
@@ -3249,7 +3255,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				opts.animation = undefined
 			}
 
-			this.centerOnPoint(presence.cursor, opts)
+			this.centerOnPoint(cursor, opts)
 
 			// Highlight the user's cursor
 			const { highlightedUserIds } = this.getInstanceState()
@@ -3460,10 +3466,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!allPresenceRecords.length) return EMPTY_ARRAY
 		const userIds = [...new Set(allPresenceRecords.map((c) => c.userId))].sort()
 		return userIds.map((id) => {
-			const latestPresence = allPresenceRecords
-				.filter((c) => c.userId === id)
-				.sort((a, b) => b.lastActivityTimestamp - a.lastActivityTimestamp)[0]
-			return latestPresence
+			const latestPresence = maxBy(
+				allPresenceRecords.filter((c) => c.userId === id),
+				(p) => p.lastActivityTimestamp ?? 0
+			)
+			return latestPresence!
 		})
 	}
 

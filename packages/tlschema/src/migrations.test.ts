@@ -2056,6 +2056,70 @@ describe('Adding label color to note shapes', () => {
 	})
 })
 
+describe('TLPresence NullableCameraCursor', () => {
+	const { up, down } = getTestMigration(instancePresenceVersions.NullableCameraCursor)
+
+	test('up works as expected', () => {
+		expect(
+			up({
+				lastActivityTimestamp: 123,
+				followingUserId: null,
+				color: '#FF0000',
+				camera: { x: 1, y: 2, z: 3 },
+				cursor: { type: 'default', x: 1, y: 2, rotation: 3 },
+				screenBounds: { x: 0, y: 0, w: 1, h: 1 },
+				selectedShapeIds: [],
+				brush: null,
+				scribbles: [],
+				chatMessage: '',
+				meta: {},
+			})
+		).toEqual({
+			lastActivityTimestamp: 123,
+			followingUserId: null,
+			color: '#FF0000',
+			camera: { x: 1, y: 2, z: 3 },
+			cursor: { type: 'default', x: 1, y: 2, rotation: 3 },
+			screenBounds: { x: 0, y: 0, w: 1, h: 1 },
+			selectedShapeIds: [],
+			brush: null,
+			scribbles: [],
+			chatMessage: '',
+			meta: {},
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				lastActivityTimestamp: null,
+				followingUserId: null,
+				color: '#FF0000',
+				camera: null,
+				cursor: null,
+				screenBounds: null,
+				selectedShapeIds: [],
+				brush: null,
+				scribbles: [],
+				chatMessage: '',
+				meta: {},
+			})
+		).toEqual({
+			lastActivityTimestamp: 0,
+			followingUserId: null,
+			color: '#FF0000',
+			camera: { x: 0, y: 0, z: 1 },
+			cursor: { type: 'default', x: 0, y: 0, rotation: 0 },
+			screenBounds: { x: 0, y: 0, w: 1, h: 1 },
+			selectedShapeIds: [],
+			brush: null,
+			scribbles: [],
+			chatMessage: '',
+			meta: {},
+		})
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 // check that all migrator fns were called at least once
