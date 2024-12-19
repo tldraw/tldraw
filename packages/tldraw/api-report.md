@@ -713,12 +713,12 @@ export const DefaultRichTextToolbar: React_3.NamedExoticComponent<TLUiRichTextTo
 // @public
 export function DefaultRichTextToolbarContent({ textEditor, onEditLinkIntent, }: DefaultRichTextToolbarContentProps): JSX_2.Element[];
 
-// @public (undocumented)
+// @public
 export interface DefaultRichTextToolbarContentProps {
     // (undocumented)
     onEditLinkIntent?(): void;
     // (undocumented)
-    textEditor: Editor_2;
+    textEditor?: null | Editor_2;
 }
 
 // @public (undocumented)

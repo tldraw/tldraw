@@ -54,7 +54,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	)
 	const [isMousingDown, setIsMousingDown] = useState(false)
 	const [isMousingAround, setIsMousingAround] = useState(false)
-	const hasTextSelection = !textEditorState?.selection.empty
+	const hasTextSelection = textEditorState && !textEditorState.selection.empty
 
 	// Set up general event listeners for text selection.
 	useEffect(() => {
@@ -83,7 +83,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	}, [hasTextSelection, isEditingLink, shapeIdForToolbar, editingShapeId])
 
 	useEffect(() => {
-		if (shapeIdForToolbar !== editingShapeId) {
+		if (editingShapeId && shapeIdForToolbar !== editingShapeId) {
 			setJustChangedShape(true)
 		}
 		setShapeIdForToolbar(editingShapeId)
@@ -158,6 +158,21 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		editor.isInAny('select.editing_shape') &&
 		(isMousingAround || isCoarsePointer) &&
 		(hasTextSelection || textEditor.isActive('link'))
+	console.log(
+		'isvisible',
+		!!textEditor &&
+			!!textEditorState &&
+			editor.isInAny('select.editing_shape') &&
+			(isMousingAround || isCoarsePointer) &&
+			(hasTextSelection || textEditor.isActive('link')),
+		{
+			textEditor,
+			textEditorState,
+			isMousingAround,
+			isCoarsePointer,
+			hasTextSelection,
+		}
+	)
 	const toolbarPosition = useContextualToolbarPosition({
 		isVisible,
 		toolbarRef,
@@ -241,12 +256,12 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 					value={textEditor.isActive('link') ? textEditor.getAttributes('link').href : ''}
 					onComplete={handleLinkComplete}
 				/>
-			) : textEditor ? (
+			) : (
 				<DefaultRichTextToolbarContent
 					textEditor={textEditor}
 					onEditLinkIntent={handleEditLinkIntent}
 				/>
-			) : null}
+			)}
 		</TldrawUiContextualToolbar>
 	)
 })

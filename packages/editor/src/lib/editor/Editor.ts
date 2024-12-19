@@ -2041,6 +2041,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					this.run(
 						() => {
 							this._updateCurrentPageState({ editingShapeId: id })
+							this._currentTipTapTextEditor.set(null)
 						},
 						{ history: 'ignore' }
 					)
@@ -2052,6 +2053,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.run(
 				() => {
 					this._updateCurrentPageState({ editingShapeId: null })
+					this._currentTipTapTextEditor.set(null)
 				},
 				{ history: 'ignore' }
 			)
@@ -2075,14 +2077,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.setEditingShapeTextEditor(richTextEditorView)
+	 * editor.setEditingShapeTipTapTextEditor(richTextEditorView)
 	 * ```
 	 *
 	 * @param textEditor - The text editor to set as the current editing shape's text editor.
 	 *
 	 * @public
 	 */
-	setEditingShapeTextEditor(textEditor: TextEditor | null) {
+	setEditingShapeTipTapTextEditor(textEditor: TextEditor | null) {
 		this._currentTipTapTextEditor.set(textEditor)
 	}
 

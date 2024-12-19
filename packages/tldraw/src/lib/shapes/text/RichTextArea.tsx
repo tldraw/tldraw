@@ -58,7 +58,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		if (editor.getEditingShapeId() !== shapeId) return
 
 		const textEditor = props.editor
-		editor.setEditingShapeTextEditor(textEditor)
+		editor.setEditingShapeTipTapTextEditor(textEditor)
 
 		// Either we select-all the text upon creation if desired.
 		if (shouldSelectAllOnCreate) {
@@ -91,7 +91,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		// It's possible that by the time this hook runs, that a new shape is now being edited.
 		// Don't clear the text editor in that case.
 		if (!isEditing && editor.getEditingShapeId() === shapeId) {
-			editor.setEditingShapeTextEditor(null)
+			editor.setEditingShapeTipTapTextEditor(null)
 		}
 	}, [editor, shapeId, isEditing])
 
