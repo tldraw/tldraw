@@ -25,6 +25,7 @@ const EmojiDialogWrapper = forwardRef((props: SuggestionProps, ref) => {
 	const [emojiSearchText, setEmojiSearchText] = useState('')
 	const [emojiPicker, setEmojiPicker] = useState<any>(null)
 	const emojiSearchLength = useRef(0)
+	const emojiDialogRef = useRef<HTMLDivElement>(null)
 	const editor = useEditor()
 	const currentCamera = useValue('camera', () => editor.getCamera(), [editor])
 
@@ -42,6 +43,9 @@ const EmojiDialogWrapper = forwardRef((props: SuggestionProps, ref) => {
 
 	useEffect(() => {
 		clientRect.current = props.clientRect?.()
+		if (clientRect.current && emojiDialogRef.current) {
+			emojiDialogRef.current.style.transform = `translate(${clientRect.current.left}px, ${clientRect.current.bottom}px)`
+		}
 	}, [props, currentCamera])
 
 	useEffect(() => {
@@ -126,6 +130,7 @@ const EmojiDialogWrapper = forwardRef((props: SuggestionProps, ref) => {
 	return (
 		<Suspense fallback={<div />}>
 			<EmojiDialog
+				ref={emojiDialogRef}
 				top={clientRect.current.bottom}
 				left={clientRect.current.left}
 				onEmojiSelect={selectItem}

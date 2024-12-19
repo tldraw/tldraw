@@ -1,9 +1,8 @@
 import { Picker } from 'emoji-mart'
-import { useEffect, useRef } from 'react'
+import React, { RefObject, useEffect } from 'react'
 import {
 	PORTRAIT_BREAKPOINT,
 	TLEventInfo,
-	track,
 	useBreakpoint,
 	useEditor,
 	usePassThroughMouseOverEvents,
@@ -31,19 +30,15 @@ export interface EmojiDialogProps {
 	onPickerLoaded(picker: Picker): void
 }
 
-export default track(function EmojiDialog({
-	top,
-	left,
-	onEmojiSelect,
-	onClickOutside,
-	onPickerLoaded,
-}: EmojiDialogProps) {
+const EmojiDialog = React.forwardRef<HTMLDivElement, EmojiDialogProps>(function EmojiDialog(
+	{ top, left, onEmojiSelect, onClickOutside, onPickerLoaded }: EmojiDialogProps,
+	ref
+) {
 	const editor = useEditor()
 	const breakpoint = useBreakpoint()
 	const isDarkMode = useValue('isDarkMode', () => editor.user.getIsDarkMode(), [editor])
-	const ref = useRef(null)
-	usePassThroughMouseOverEvents(ref)
-	usePassThroughWheelEvents(ref)
+	usePassThroughMouseOverEvents(ref as RefObject<HTMLDivElement>)
+	usePassThroughWheelEvents(ref as RefObject<HTMLDivElement>)
 	const theme = isDarkMode ? 'dark' : 'light'
 
 	useEffect(() => {
@@ -75,7 +70,7 @@ export default track(function EmojiDialog({
 		return () => {
 			editor.off('event', eventListener)
 		}
-	}, [editor, breakpoint, theme, onEmojiSelect, onClickOutside, onPickerLoaded])
+	}, [editor, breakpoint, theme, onEmojiSelect, onClickOutside, onPickerLoaded, ref])
 
 	if (breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM) return null
 
@@ -84,11 +79,13 @@ export default track(function EmojiDialog({
 			ref={ref}
 			style={{
 				position: 'absolute',
-				top,
-				left,
+				inset: 0,
+				transform: `translate(${left}px, ${top}px)`,
 				zIndex: 400,
 				pointerEvents: 'all',
 			}}
 		/>
 	)
 })
+
+export default EmojiDialog
