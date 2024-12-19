@@ -1,5 +1,4 @@
-import { TLCropInfo, TLShapePartial, Vec } from '@tldraw/editor'
-import { ShapeWithCrop } from '@tldraw/tlschema'
+import { ShapeWithCrop, TLCropInfo, TLShapePartial, Vec, structuredClone } from '@tldraw/editor'
 
 /** @internal */
 export const MIN_CROP_SIZE = 8

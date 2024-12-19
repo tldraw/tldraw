@@ -42,7 +42,7 @@ import { RecursivePartial } from '@tldraw/editor';
 import { Result } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
-import { ShapeWithCrop } from '@tldraw/tlschema';
+import { ShapeWithCrop } from '@tldraw/editor';
 import { SharedStyle } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
 import { StyleProp } from '@tldraw/editor';
