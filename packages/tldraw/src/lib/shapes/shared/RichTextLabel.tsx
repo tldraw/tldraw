@@ -9,7 +9,7 @@ import {
 	TLShapeId,
 	useEditor,
 } from '@tldraw/editor'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { renderHtmlFromRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
 import { TEXT_PROPS } from './default-shape-constants'
@@ -67,14 +67,11 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	textHeight,
 }: RichTextLabelProps) {
 	const editor = useEditor()
-	const [html, setHtml] = useState<string | null>(null)
 	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } =
 		useEditableRichText(shapeId, type, richText)
-
-	useEffect(() => {
+	const html = useMemo(() => {
 		if (richText) {
-			const newHtml = renderHtmlFromRichText(editor, richText)
-			setHtml(newHtml)
+			return renderHtmlFromRichText(editor, richText)
 		}
 	}, [editor, richText])
 
