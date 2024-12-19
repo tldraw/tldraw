@@ -11,12 +11,14 @@ import {
 	createSessionStateSnapshotSignal,
 	react,
 	throttle,
+	tipTapDefaultExtensions,
 	tltime,
 	useAtom,
 	useDialogs,
 	useEditor,
 	useEvent,
 } from 'tldraw'
+import EmojiExtension from '../../../components/Emojis/EmojiExtension'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
@@ -223,6 +225,11 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 				deepLinks={deepLinks || undefined}
 				overrides={overrides}
 				isShapeHidden={isShapeHidden}
+				textOptions={{
+					tipTapConfig: {
+						extensions: [...tipTapDefaultExtensions, EmojiExtension],
+					},
+				}}
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
