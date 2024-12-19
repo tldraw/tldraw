@@ -2041,7 +2041,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 					this.run(
 						() => {
 							this._updateCurrentPageState({ editingShapeId: id })
-							this._currentTipTapTextEditor.set(null)
 						},
 						{ history: 'ignore' }
 					)

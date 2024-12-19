@@ -161,7 +161,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	// slightly different results for the same general position.
 	// However, if the camera has moved, forget the stabilization logic, just update the positions.
 	useEffect(() => {
-		if (toolbarPosition.y === defaultPosition.y || isEditingLink) return
+		if (isEditingLink) return
 
 		const hasCameraMoved = !areObjectsShallowEqual(camera, currentCamera)
 
@@ -191,7 +191,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	// This helps take the stabilizedPosition and visibility states and make them less jittery.
 	const debouncedToolbarPosition = useDebouncedValue(stabilizedToolbarPosition, 150)
 
-	if (!textEditor) return null
+	if (!textEditor || !isVisible) return null
 
 	return (
 		<TldrawUiContextualToolbar
