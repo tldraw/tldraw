@@ -199,7 +199,6 @@ export {
 	imageShapeMigrations,
 	imageShapeProps,
 	type TLImageShape,
-	type TLImageShapeCrop,
 	type TLImageShapeProps,
 } from './shapes/TLImageShape'
 export {

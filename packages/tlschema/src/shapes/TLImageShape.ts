@@ -8,10 +8,7 @@ import { TLShapeCrop } from './ShapeWithCrop'
 import { TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export interface TLImageShapeCrop extends TLShapeCrop {}
-
-/** @public */
-export const ImageShapeCrop: T.ObjectValidator<TLImageShapeCrop> = T.object({
+export const ImageShapeCrop: T.ObjectValidator<TLShapeCrop> = T.object({
 	topLeft: vecModelValidator,
 	bottomRight: vecModelValidator,
 })
@@ -23,7 +20,7 @@ export interface TLImageShapeProps {
 	playing: boolean
 	url: string
 	assetId: TLAssetId | null
-	crop: TLImageShapeCrop | null
+	crop: TLShapeCrop | null
 	flipX: boolean
 	flipY: boolean
 }

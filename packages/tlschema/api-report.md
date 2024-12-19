@@ -342,7 +342,7 @@ export const highlightShapeProps: RecordProps<TLHighlightShape>;
 export function idValidator<Id extends RecordId<UnknownRecord>>(prefix: Id['__type__']['typeName']): T.Validator<Id>;
 
 // @public (undocumented)
-export const ImageShapeCrop: T.ObjectValidator<TLImageShapeCrop>;
+export const ImageShapeCrop: T.ObjectValidator<TLShapeCrop>;
 
 // @public (undocumented)
 export const imageShapeMigrations: TLPropsMigrations;
@@ -1067,15 +1067,11 @@ export type TLImageAsset = TLBaseAsset<'image', {
 export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>;
 
 // @public (undocumented)
-export interface TLImageShapeCrop extends TLShapeCrop {
-}
-
-// @public (undocumented)
 export interface TLImageShapeProps {
     // (undocumented)
     assetId: null | TLAssetId;
     // (undocumented)
-    crop: null | TLImageShapeCrop;
+    crop: null | TLShapeCrop;
     // (undocumented)
     flipX: boolean;
     // (undocumented)
