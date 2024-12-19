@@ -5,17 +5,10 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 
-/**
- * N.B. This may seem strange that textEditor can be null.
- * The reason for this is sometimes we want to show the toolbar
- * animating away when the text editor is not present.
- * If we get rid of that animation we can make this a strict requirement.
- *
- * @public
- */
+/** @public */
 export interface DefaultRichTextToolbarContentProps {
 	onEditLinkIntent?(): void
-	textEditor?: TextEditor | null
+	textEditor: TextEditor
 }
 
 /**
@@ -53,7 +46,7 @@ export function DefaultRichTextToolbarContent({
 				title={msg(`tool.rich-text-${name}`)}
 				data-testid={`rich-text.${name}`}
 				type="icon"
-				isActive={textEditor?.isActive(name, attrs)}
+				isActive={textEditor.isActive(name, attrs)}
 				onPointerDown={preventDefault}
 				onClick={() => {
 					trackEvent('rich-text', { operation: name as any, source })
@@ -61,10 +54,10 @@ export function DefaultRichTextToolbarContent({
 					if (customOp) {
 						customOp()
 					} else if (op === 'toggleHeading' && attrs) {
-						textEditor?.chain().focus().toggleHeading(attrs).run()
+						textEditor.chain().focus().toggleHeading(attrs).run()
 					} else {
 						// @ts-ignore typing this is annoying at the moment.
-						textEditor?.chain().focus()[op]().run()
+						textEditor.chain().focus()[op]().run()
 					}
 				}}
 			>

@@ -29,7 +29,6 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 }: TLUiRichTextToolbarProps) {
 	const editor = useEditor()
 	const toolbarRef = useRef<HTMLDivElement>(null)
-	const previousTop = useRef(defaultPosition.y)
 	const isCoarsePointer = useValue(
 		'isCoarsePointer',
 		() => editor.getInstanceState().isCoarsePointer,
@@ -41,10 +40,6 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		y: defaultPosition.y,
 	})
 	const [isEditingLink, setIsEditingLink] = useState(false)
-	const [wasJustEditingLink, setWasJustEditingLink] = useState(false)
-	const [shapeIdForToolbar, setShapeIdForToolbar] = useState(editor.getEditingShapeId())
-	const [justChangedShape, setJustChangedShape] = useState(false)
-	const editingShapeId = useValue('editingShapeId', () => editor.getEditingShapeId(), [editor])
 	const textEditor = useValue('textEditor', () => editor.getEditingShapeTipTapTextEditor(), [
 		editor,
 	])
@@ -59,17 +54,9 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	// Set up general event listeners for text selection.
 	useEffect(() => {
 		const handleMouseDown = () => setIsMousingDown(true)
-		const handleMouseUp = () => {
-			setIsMousingDown(false)
-			setJustChangedShape(shapeIdForToolbar !== editingShapeId)
-		}
+		const handleMouseUp = () => setIsMousingDown(false)
 		const handleMouseMove = () => setIsMousingAround(true)
-		const handleKeyDown = () => {
-			if (!isEditingLink) {
-				setIsMousingAround(false)
-			}
-			setJustChangedShape(shapeIdForToolbar !== editingShapeId)
-		}
+		const handleKeyDown = () => !isEditingLink && setIsMousingAround(false)
 		window.addEventListener('mousedown', handleMouseDown)
 		window.addEventListener('mouseup', handleMouseUp)
 		window.addEventListener('mousemove', handleMouseMove)
@@ -80,14 +67,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 			window.removeEventListener('mousemove', handleMouseMove)
 			window.removeEventListener('keydown', handleKeyDown)
 		}
-	}, [hasTextSelection, isEditingLink, shapeIdForToolbar, editingShapeId])
-
-	useEffect(() => {
-		if (editingShapeId && shapeIdForToolbar !== editingShapeId) {
-			setJustChangedShape(true)
-		}
-		setShapeIdForToolbar(editingShapeId)
-	}, [shapeIdForToolbar, editingShapeId])
+	}, [hasTextSelection, isEditingLink])
 
 	// Set up text editor transaction listener.
 	useEffect(() => {
@@ -115,7 +95,6 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 
 		const handleClick = () => {
 			const isLinkActive = textEditor.isActive('link')
-			setWasJustEditingLink(isEditingLink)
 			setIsEditingLink(isLinkActive)
 		}
 
@@ -167,23 +146,15 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	const handleEditLinkIntent = () => setIsEditingLink(true)
 	const handleLinkComplete = () => {
 		if (!textEditor) return
-		setWasJustEditingLink(true)
 		setIsEditingLink(false)
 		setIsMousingAround(false)
 		const from = textEditor.state.selection.from
 		textEditor.commands.setTextSelection({ from, to: from })
 	}
 
-	// This helps make the toolbar less spastic as the selection changes.
-	const isSelectionOnSameLine = previousTop.current === stabilizedToolbarPosition.y
-	previousTop.current = stabilizedToolbarPosition.y
 	useEffect(() => {
 		toolbarRef.current?.setAttribute('data-is-mousing-down', isMousingDown.toString())
-		toolbarRef.current?.setAttribute(
-			'data-is-selection-on-same-line',
-			isSelectionOnSameLine.toString()
-		)
-	}, [hasTextSelection, isMousingDown, isSelectionOnSameLine])
+	}, [hasTextSelection, isMousingDown])
 
 	// A bit annoying but we need to stabilize the toolbar position so it doesn't jump around
 	// when modifying the rich text. The issue stems from the fact that coordsAtPos provides
@@ -200,10 +171,14 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		const hasYPositionChangedEnough =
 			hasCameraMoved || Math.abs(toolbarPosition.y - stabilizedToolbarPosition.y) > threshold
 		if (hasXPositionChangedEnough || hasYPositionChangedEnough) {
-			setStabilizedToolbarPosition({
-				x: hasXPositionChangedEnough ? toolbarPosition.x : stabilizedToolbarPosition.x,
-				y: hasYPositionChangedEnough ? toolbarPosition.y : stabilizedToolbarPosition.y,
-			})
+			const x = hasXPositionChangedEnough ? toolbarPosition.x : stabilizedToolbarPosition.x
+			const y = hasYPositionChangedEnough ? toolbarPosition.y : stabilizedToolbarPosition.y
+			setStabilizedToolbarPosition({ x, y })
+			if (toolbarRef.current && hasCameraMoved) {
+				// Make an immediate update for snappiness if camera has moved.
+				// Otherwise, we use the debouncedToolbarPosition below which makes it less jittery.
+				toolbarRef.current.style.transform = `translate(${x}px, ${y}px)`
+			}
 		}
 
 		if (hasCameraMoved) {
@@ -215,27 +190,19 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	// That can make it cycle pretty quickly through isVisible and toolbarPosition states.
 	// This helps take the stabilizedPosition and visibility states and make them less jittery.
 	const debouncedToolbarPosition = useDebouncedValue(stabilizedToolbarPosition, 150)
-	const debouncedIsVisible = useDebouncedValue(isVisible, 150)
 
-	// N.B. One tactic here that could have been done is to, if there is no textEditor or we're
-	// not in editing text mode, that we just return null and not render the toolbar. However,
-	// because we want the toolbar to smoothly animate in-and-out of view we keep it around.
-
-	// When going from edit-to-edit mode, however, we _do_ want to make sure the toolbar
-	// just immediately dissapears to avoid a weird flicker.
-	if (justChangedShape) return null
+	if (!textEditor) return null
 
 	return (
 		<TldrawUiContextualToolbar
 			ref={toolbarRef}
 			className="tl-rich-text__toolbar"
 			position={debouncedToolbarPosition}
-			isVisible={debouncedIsVisible}
 			indicatorOffset={toolbarPosition.indicatorOffset}
 		>
 			{children ? (
 				children
-			) : textEditor && (isEditingLink || (wasJustEditingLink && !isVisible)) ? (
+			) : isEditingLink ? (
 				<LinkEditor
 					textEditor={textEditor}
 					value={textEditor.isActive('link') ? textEditor.getAttributes('link').href : ''}

@@ -713,12 +713,12 @@ export const DefaultRichTextToolbar: React_3.NamedExoticComponent<TLUiRichTextTo
 // @public
 export function DefaultRichTextToolbarContent({ textEditor, onEditLinkIntent, }: DefaultRichTextToolbarContentProps): JSX_2.Element[];
 
-// @public
+// @public (undocumented)
 export interface DefaultRichTextToolbarContentProps {
     // (undocumented)
     onEditLinkIntent?(): void;
     // (undocumented)
-    textEditor?: null | Editor_2;
+    textEditor: Editor_2;
 }
 
 // @public (undocumented)
@@ -2554,8 +2554,6 @@ export interface TLUiContextualToolbarProps {
     hideIndicator?: boolean;
     // (undocumented)
     indicatorOffset?: number;
-    // (undocumented)
-    isVisible: boolean;
     // (undocumented)
     position?: VecLike;
 }

@@ -7,12 +7,12 @@ export function useDebouncedValue<T>(value: T, delay: number): T {
 	const [debouncedValue, setDebouncedValue] = useState(value)
 
 	useEffect(() => {
-		const handler = editor.timers.setTimeout(() => {
+		const timeout = editor.timers.setTimeout(() => {
 			setDebouncedValue(value)
 		}, delay)
 
 		return () => {
-			clearTimeout(handler)
+			clearTimeout(timeout)
 		}
 	}, [editor, value, delay])
 
