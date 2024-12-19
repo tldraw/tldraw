@@ -929,9 +929,6 @@
 .tl-contextual-toolbar {
 	position: absolute;
 	pointer-events: none;
-
-	/* This forgoes the box-shadow so that we can get a shadow on the indicator arrow. */
-	filter: drop-shadow(0px 2px 3px hsl(0, 0%, 0%, 24%));
 }
 
 .tl-contextual-toolbar * {
@@ -948,10 +945,6 @@
 
 .tl-contextual-toolbar[data-is-mousing-down='false'] * {
 	pointer-events: all;
-}
-
-.tl-contextual-toolbar .tlui-toolbar__tools {
-	box-shadow: none;
 }
 
 .tl-contextual-toolbar [data-isactive='true']::after {
