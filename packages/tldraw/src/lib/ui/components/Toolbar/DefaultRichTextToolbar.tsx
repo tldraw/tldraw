@@ -158,21 +158,6 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		editor.isInAny('select.editing_shape') &&
 		(isMousingAround || isCoarsePointer) &&
 		(hasTextSelection || textEditor.isActive('link'))
-	console.log(
-		'isvisible',
-		!!textEditor &&
-			!!textEditorState &&
-			editor.isInAny('select.editing_shape') &&
-			(isMousingAround || isCoarsePointer) &&
-			(hasTextSelection || textEditor.isActive('link')),
-		{
-			textEditor,
-			textEditorState,
-			isMousingAround,
-			isCoarsePointer,
-			hasTextSelection,
-		}
-	)
 	const toolbarPosition = useContextualToolbarPosition({
 		isVisible,
 		toolbarRef,
