@@ -13,6 +13,7 @@ import {
 	canonicalizeRotation,
 	createShapeId,
 	rotateSelectionHandle,
+	toRichText,
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 import { getSnapLines } from './getSnapLines'
@@ -3847,8 +3848,10 @@ it('uses the cross cursor when create resizing', () => {
 describe('Resizing text from the right edge', () => {
 	it('Resizes text from the right edge', () => {
 		const id = createShapeId()
-		editor.createShapes([{ id, type: 'text', props: { text: 'H' } }])
-		editor.updateShapes([{ id, type: 'text', props: { text: 'Hello World' } }]) // auto size
+		editor.createShapes<TLTextShape>([{ id, type: 'text', props: { richText: toRichText('H') } }])
+		editor.updateShapes<TLTextShape>([
+			{ id, type: 'text', props: { richText: toRichText('Hello World') } },
+		]) // auto size
 
 		editor.select(id)
 
@@ -3863,10 +3866,10 @@ describe('Resizing text from the right edge', () => {
 		editor.expectToBeIn('select.resizing')
 		editor.pointerUp()
 
-		editor.expectShapeToMatch({
+		editor.expectShapeToMatch<TLTextShape>({
 			id,
 			type: 'text',
-			props: { text: 'Hello World', w: bounds.width + 5 },
+			props: { richText: toRichText('Hello World'), w: bounds.width + 5 },
 		})
 	})
 
@@ -3874,8 +3877,10 @@ describe('Resizing text from the right edge', () => {
 		editor.updateInstanceState({ isCoarsePointer: true })
 
 		const id = createShapeId()
-		editor.createShapes([{ id, type: 'text', props: { text: 'H' } }])
-		editor.updateShapes([{ id, type: 'text', props: { text: 'Hello World' } }]) // auto size
+		editor.createShapes<TLTextShape>([{ id, type: 'text', props: { richText: toRichText('H') } }])
+		editor.updateShapes<TLTextShape>([
+			{ id, type: 'text', props: { richText: toRichText('Hello World') } },
+		]) // auto size
 
 		editor.select(id)
 
@@ -3890,10 +3895,10 @@ describe('Resizing text from the right edge', () => {
 		editor.expectToBeIn('select.resizing')
 		editor.pointerUp()
 
-		editor.expectShapeToMatch({
+		editor.expectShapeToMatch<TLTextShape>({
 			id,
 			type: 'text',
-			props: { text: 'Hello World', w: bounds.width + 10 },
+			props: { richText: toRichText('Hello World'), w: bounds.width + 10 },
 		})
 	})
 })
@@ -3926,7 +3931,7 @@ describe('resizing text with autosize true', () => {
 			x: 0,
 			y: 0,
 			props: {
-				text: 'Hello',
+				richText: toRichText('Hello'),
 				autoSize: false,
 				w: 200,
 			},
@@ -3952,7 +3957,7 @@ describe('resizing text with autosize true', () => {
 			x: 0,
 			y: 0,
 			props: {
-				text: 'Hello',
+				richText: toRichText('Hello'),
 				autoSize: false,
 				w: 200,
 			},
@@ -3979,7 +3984,7 @@ describe('resizing text with autosize true', () => {
 			x: 0,
 			y: 0,
 			props: {
-				text: 'Hello',
+				richText: toRichText('Hello'),
 				autoSize: false,
 				w: 200,
 			},
@@ -4005,7 +4010,7 @@ describe('resizing text with autosize true', () => {
 			x: 0,
 			y: 0,
 			props: {
-				text: 'Hello',
+				richText: toRichText('Hello'),
 				autoSize: false,
 				w: 200,
 			},

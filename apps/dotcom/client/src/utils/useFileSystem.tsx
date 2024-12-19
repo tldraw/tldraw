@@ -17,6 +17,7 @@ import { shouldClearDocument } from './shouldClearDocument'
 import { shouldOverrideDocument } from './shouldOverrideDocument'
 import { useHandleUiEvents } from './useHandleUiEvent'
 
+export const SAVE_FILE_NULL_ACTION = 'save-file-copy-null'
 export const SAVE_FILE_COPY_ACTION = 'save-file-copy'
 export const OPEN_FILE_ACTION = 'open-file'
 export const NEW_PROJECT_ACTION = 'new-file'
@@ -31,6 +32,15 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 	return useMemo((): TLUiOverrides => {
 		return {
 			actions(editor, actions, { addToast, msg, addDialog }) {
+				actions[SAVE_FILE_NULL_ACTION] = {
+					id: 'save-file-copy',
+					label: 'action.save-copy',
+					readonlyOk: true,
+					kbd: '$s',
+					onSelect() {
+						handleUiEvent('save-project-no-action', { source: 'kbd' })
+					},
+				}
 				actions[SAVE_FILE_COPY_ACTION] = getSaveFileCopyAction(
 					editor,
 					handleUiEvent,
@@ -108,8 +118,8 @@ export function getSaveFileCopyAction(
 	return {
 		id: SAVE_FILE_COPY_ACTION,
 		label: 'action.save-copy',
+		kbd: '$!s',
 		readonlyOk: true,
-		kbd: '$s',
 		async onSelect(source) {
 			handleUiEvent('save-project-to-file', { source })
 			const documentName =

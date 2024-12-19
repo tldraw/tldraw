@@ -68,6 +68,9 @@
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
   },
+  "3c5e891bff": {
+    "translation": "Pinned"
+  },
   "424cc22417": {
     "translation": "Take me home"
   },
@@ -167,6 +170,9 @@
   "904a830405": {
     "translation": "Rename"
   },
+  "91e49bb0eb": {
+    "translation": "Copy to my files"
+  },
   "9563b82670": {
     "translation": "Uploading {count} .tldr {count, plural, one {file} other {files}}…"
   },
@@ -212,6 +218,9 @@
   },
   "b758336699": {
     "translation": "Copy link"
+  },
+  "bb792693e2": {
+    "translation": "Unpin"
   },
   "bc88b0e89e": {
     "translation": "Shared by {ownerName}"
@@ -272,6 +281,9 @@
   },
   "e2cd8064c2": {
     "translation": "Sorry, you don’t have access to that user."
+  },
+  "e78e14c5f1": {
+    "translation": "Pin"
   },
   "ea4788705e": {
     "translation": "Cancel"

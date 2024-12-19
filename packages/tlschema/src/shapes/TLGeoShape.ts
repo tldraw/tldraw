@@ -1,4 +1,5 @@
 import { T } from '@tldraw/validate'
+import { TLRichText, richTextValidator, toRichText } from '../misc/TLRichText'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
 import { StyleProp } from '../styles/StyleProp'
@@ -66,8 +67,7 @@ export interface TLGeoShapeProps {
 	w: number
 	h: number
 	growY: number
-	text: string
-	richText?: string
+	richText?: TLRichText
 	scale: number
 }
 
@@ -89,8 +89,7 @@ export const geoShapeProps: RecordProps<TLGeoShape> = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	growY: T.positiveNumber,
-	text: T.string,
-	richText: T.tipTapDoc.optional(),
+	richText: richTextValidator.optional(),
 	scale: T.nonZeroNumber,
 }
 
@@ -197,7 +196,10 @@ export const geoShapeMigrations = createShapePropsMigrationSequence({
 		},
 		{
 			id: geoShapeVersions.AddRichText,
-			up: () => {},
+			up: (props) => {
+				props.richText = toRichText(props.text)
+				delete props.text
+			},
 			// N.B. Explicitly no down state so that we force clients to update.
 			// down: (props) => {
 			// 	delete props.richText

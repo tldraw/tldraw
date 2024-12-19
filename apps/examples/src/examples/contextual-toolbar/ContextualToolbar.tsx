@@ -47,7 +47,6 @@ const ContextualToolbarComponent = track(() => {
 			ref={toolbarRef}
 			position={toolbarPosition}
 			indicatorOffset={toolbarPosition.indicatorOffset}
-			isVisible={toolbarPosition.visible}
 		>
 			{SIZES.map(({ value, icon }) => {
 				return (

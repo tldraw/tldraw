@@ -1,7 +1,8 @@
 import { EditorView } from '@tiptap/pm/view'
-import { EditorEvents, EditorProvider } from '@tiptap/react'
+import { EditorEvents, EditorProvider, JSONContent } from '@tiptap/react'
 import {
 	Editor,
+	TLRichText,
 	TLShapeId,
 	preventDefault,
 	stopEventPropagation,
@@ -13,13 +14,13 @@ import React, { useEffect, useState } from 'react'
 /** @public */
 export interface TextAreaProps {
 	isEditing: boolean
-	text: string
+	text?: string
 	shapeId: TLShapeId
-	richText?: string
+	richText?: TLRichText
 	handleFocus(): void
 	handleBlur(): void
 	handleKeyDown(e: KeyboardEvent): void
-	handleChange(changeInfo: { plaintext?: string; richText?: string }): void
+	handleChange(changeInfo: { plaintext?: string; richText?: TLRichText }): void
 	handleInputPointerDown(e: React.PointerEvent<HTMLTextAreaElement>): void
 	handleDoubleClick(e: any): any
 }
@@ -34,7 +35,6 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 	{
 		shapeId,
 		isEditing,
-		text: plaintext,
 		richText,
 		handleFocus,
 		handleChange,
@@ -58,7 +58,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		if (editor.getEditingShapeId() !== shapeId) return
 
 		const textEditor = props.editor
-		editor.setEditingShapeTextEditor(textEditor)
+		editor.setEditingShapeTipTapTextEditor(textEditor)
 
 		// Either we select-all the text upon creation if desired.
 		if (shouldSelectAllOnCreate) {
@@ -91,7 +91,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		// It's possible that by the time this hook runs, that a new shape is now being edited.
 		// Don't clear the text editor in that case.
 		if (!isEditing && editor.getEditingShapeId() === shapeId) {
-			editor.setEditingShapeTextEditor(null)
+			editor.setEditingShapeTipTapTextEditor(null)
 		}
 	}, [editor, shapeId, isEditing])
 
@@ -119,11 +119,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 	}, [editor, isEditing])
 
 	const handleUpdate = (props: EditorEvents['update']) => {
-		const {
-			editor: { state },
-		} = props
-		const json = JSON.stringify(state.doc.toJSON())
-		handleChange({ richText: json })
+		handleChange({ richText: props.editor.state.doc.toJSON() })
 	}
 
 	const onKeyDown = (view: EditorView, event: KeyboardEvent) => {
@@ -137,15 +133,6 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 	if (!isEditing) return null
 	if (!tipTapConfig) return null
 
-	const content = richText
-		? JSON.parse(richText)
-		: plaintext
-				.replace(/\x20/g, '\u00A0')
-				.replace(/&/g, '&amp;')
-				.replace(/</g, '&lt;')
-				.replace(/>/g, '&gt;')
-				.split('\n')
-				.join('<br />')
 	const { editorProps, ...restOfTipTapConfig } = tipTapConfig
 
 	return (
@@ -180,7 +167,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 						...editorProps,
 					}}
 					{...restOfTipTapConfig}
-					content={content}
+					content={richText as JSONContent}
 				/>
 			</div>
 		</div>

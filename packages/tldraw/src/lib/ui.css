@@ -932,35 +932,21 @@
 
 	/* This forgoes the box-shadow so that we can get a shadow on the indicator arrow. */
 	filter: drop-shadow(0px 2px 3px hsl(0, 0%, 0%, 24%));
-
-	--animation-curve: cubic-bezier(0.785, 0.135, 0.15, 0.86);
-	will-change: top, left, opacity, transform;
-	opacity: 0;
-	transform: scale(0.95);
-	transition:
-		opacity 150ms var(--animation-curve),
-		transform 150ms var(--animation-curve);
-	transition-delay: 150ms;
 }
 
 .tl-contextual-toolbar * {
 	pointer-events: none;
 }
 
-.tl-contextual-toolbar[data-is-visible='true'] {
-	transform: translateY(-6px) scale(1);
-	opacity: 1;
-}
-
 /**
  * N.B. We don't want the toolbar to be clickable when "mousing down", i.e. selecting text
  * because when hovering over the toolbar in the midst of selecting, the selection goes all wonky.
  */
-.tl-contextual-toolbar[data-is-visible='true'][data-is-mousing-down='false'] {
+.tl-contextual-toolbar[data-is-mousing-down='false'] {
 	pointer-events: all;
 }
 
-.tl-contextual-toolbar[data-is-visible='true'][data-is-mousing-down='false'] * {
+.tl-contextual-toolbar[data-is-mousing-down='false'] * {
 	pointer-events: all;
 }
 
@@ -989,19 +975,6 @@
 	.tl-contextual-toolbar .tl-contextual-toolbar__indicator {
 		display: none;
 	}
-}
-
-/**
- * This prevents jumpiness of the animation when going across multiple lines.
- * Otherwise, annoyingly, the toolbar is whips back-and-forth as the selection goes from
- * the beginning of a line to the end of the line and so on.
- */
-.tl-rich-text__toolbar[data-is-mousing-down='true'][data-is-selection-on-same-line='true'] {
-	transition:
-		opacity 150ms var(--animation-curve),
-		transform 150ms var(--animation-curve),
-		left 150ms var(--animation-curve);
-	transition-delay: 100ms;
 }
 
 .tl-rich-text__toolbar-link-input {

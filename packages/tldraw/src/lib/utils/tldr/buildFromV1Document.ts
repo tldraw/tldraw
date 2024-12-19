@@ -26,6 +26,7 @@ import {
 	createShapeId,
 	fetch,
 	structuredClone,
+	toRichText,
 } from '@tldraw/editor'
 import { getArrowBindings } from '../../shapes/arrow/shared'
 
@@ -191,7 +192,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 									...inCommon,
 									type: 'note',
 									props: {
-										text: v1Shape.text ?? '',
+										richText: toRichText(v1Shape.text ?? ''),
 										color: getV2Color(v1Shape.style.color),
 										size: getV2Size(v1Shape.style.size),
 										font: getV2Font(v1Shape.style.font),
@@ -210,7 +211,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 										geo: 'rectangle',
 										w: coerceDimension(v1Shape.size[0]),
 										h: coerceDimension(v1Shape.size[1]),
-										text: v1Shape.label ?? '',
+										richText: toRichText(v1Shape.label ?? ''),
 										fill: getV2Fill(v1Shape.style.isFilled, v1Shape.style.color),
 										labelColor: getV2Color(v1Shape.style.color),
 										color: getV2Color(v1Shape.style.color),
@@ -224,12 +225,12 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 
 							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
 
-							editor.updateShapes([
+							editor.updateShapes<TLGeoShape>([
 								{
 									id: inCommon.id,
 									type: 'geo',
 									props: {
-										text: v1Shape.label ?? '',
+										richText: toRichText(v1Shape.label ?? ''),
 									},
 								},
 							])
@@ -279,12 +280,12 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 
 							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
 
-							editor.updateShapes([
+							editor.updateShapes<TLGeoShape>([
 								{
 									id: inCommon.id,
 									type: 'geo',
 									props: {
-										text: v1Shape.label ?? '',
+										richText: toRichText(v1Shape.label ?? ''),
 									},
 								},
 							])
@@ -334,12 +335,12 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 
 							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
 
-							editor.updateShapes([
+							editor.updateShapes<TLGeoShape>([
 								{
 									id: inCommon.id,
 									type: 'geo',
 									props: {
-										text: v1Shape.label ?? '',
+										richText: toRichText(v1Shape.label ?? ''),
 									},
 								},
 							])
@@ -433,7 +434,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 									...inCommon,
 									type: 'text',
 									props: {
-										text: v1Shape.text ?? ' ',
+										richText: toRichText(v1Shape.text ?? ' '),
 										color: getV2Color(v1Shape.style.color),
 										size: getV2TextSize(v1Shape.style.size),
 										font: getV2Font(v1Shape.style.font),

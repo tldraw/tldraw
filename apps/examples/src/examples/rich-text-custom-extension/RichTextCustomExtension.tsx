@@ -5,6 +5,7 @@ import {
 	TLComponents,
 	Tldraw,
 	TldrawUiButton,
+	preventDefault,
 	useEditor,
 	useValue,
 } from 'tldraw'
@@ -82,17 +83,19 @@ const components: TLComponents = {
 					onClick={() => {
 						textEditor?.chain().focus().toggleWavy().run()
 					}}
+					isActive={textEditor?.isActive('wavy')}
+					onPointerDown={preventDefault}
 				>
 					〰️
 				</TldrawUiButton>
-				{/* Add the DefaultRichTextToolbarItems if you want to add more items. */}
-				{/* <DefaultRichTextToolbarItems textEditor={textEditor} onEditLinkIntent={() => {}} /> */}
+				{/* Add the DefaultRichTextToolbarContent if you want to add more items. */}
+				{/* <DefaultRichTextToolbarContent textEditor={textEditor} onEditLinkIntent={() => {}} /> */}
 			</DefaultRichTextToolbar>
 		)
 	},
 }
 
-export default function ReadOnlyExample() {
+export default function RichTextCustomExtensionExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw

@@ -8,6 +8,7 @@ import {
 	TLTextShape,
 } from '@tldraw/editor'
 import { getTextLabels } from '../../../utils/shapes/shapes'
+import { renderPlaintextFromRichText } from '../../../utils/text/richText'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
 
@@ -114,7 +115,7 @@ export class EditingShape extends StateNode {
 				// N.B. One nuance here is that we want empty text fields to be removed from the canvas when the user clicks away from them.
 				const isEmptyTextShape =
 					this.editor.isShapeOfType<TLTextShape>(editingShape, 'text') &&
-					editingShape.props.text.trim() === ''
+					renderPlaintextFromRichText(this.editor, editingShape.props.richText).trim() === ''
 				if (textLabel && !isEmptyTextShape) {
 					const pointInShapeSpace = this.editor.getPointInShapeSpace(
 						selectingShape,

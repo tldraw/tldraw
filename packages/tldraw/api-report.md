@@ -31,6 +31,7 @@ import { LANGUAGES } from '@tldraw/editor';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
+import { PointerEvent as PointerEvent_2 } from 'react';
 import { Polygon2d } from '@tldraw/editor';
 import { Polyline2d } from '@tldraw/editor';
 import * as React_2 from 'react';
@@ -100,6 +101,7 @@ import { TLParentId } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLPropsMigrations } from '@tldraw/editor';
 import { TLResizeInfo } from '@tldraw/editor';
+import { TLRichText } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
 import { TLScribbleProps } from '@tldraw/editor';
 import { TLSelectionBackgroundProps } from '@tldraw/editor';
@@ -709,12 +711,12 @@ export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 export const DefaultRichTextToolbar: React_3.NamedExoticComponent<TLUiRichTextToolbarProps>;
 
 // @public
-export function DefaultRichTextToolbarItems({ textEditor, onEditLinkIntent, }: DefaultRichTextToolbarItemsProps): JSX_2.Element[];
+export function DefaultRichTextToolbarContent({ textEditor, onEditLinkIntent, }: DefaultRichTextToolbarContentProps): JSX_2.Element[];
 
 // @public (undocumented)
-export interface DefaultRichTextToolbarItemsProps {
+export interface DefaultRichTextToolbarContentProps {
     // (undocumented)
-    onEditLinkIntent(): void;
+    onEditLinkIntent?(): void;
     // (undocumented)
     textEditor: Editor_2;
 }
@@ -1097,7 +1099,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     getInterpolatedProps(startShape: TLGeoShape, endShape: TLGeoShape, t: number): TLGeoShapeProps;
     // (undocumented)
-    getText(shape: TLGeoShape): string;
+    getText(shape: TLGeoShape): string | undefined;
     // (undocumented)
     indicator(shape: TLGeoShape): JSX_2.Element;
     // (undocumented)
@@ -1120,10 +1122,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             growY: number;
             h: number;
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            richText?: string | undefined;
+            richText?: {
+                content: unknown[];
+                type: string;
+            } | undefined;
             scale: number;
             size: "l" | "m" | "s" | "xl";
-            text: string;
             url: string;
             verticalAlign: "end" | "middle" | "start";
             w: number;
@@ -1152,10 +1156,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             growY: number;
             h: number;
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            richText?: string | undefined;
+            richText?: {
+                content: unknown[];
+                type: string;
+            } | undefined;
             scale: number;
             size: "l" | "m" | "s" | "xl";
-            text: string;
             url: string;
             verticalAlign: "end" | "middle" | "start";
             w: number;
@@ -1198,8 +1204,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         x: number;
         y: number;
     } | undefined;
-    // (undocumented)
-    onEditEnd(shape: TLGeoShape): void;
     // (undocumented)
     onResize(shape: TLGeoShape, { handle, newPoint, scaleX, scaleY, initialShape }: TLResizeInfo<TLGeoShape>): {
         props: {
@@ -1542,10 +1546,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             fontSizeAdjustment: number;
             growY: number;
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            richText?: string | undefined;
+            richText: {
+                content: unknown[];
+                type: string;
+            };
             scale: number;
             size: "l" | "m" | "s" | "xl";
-            text: string;
             url: string;
             verticalAlign: "end" | "middle" | "start";
         };
@@ -1570,10 +1576,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             fontSizeAdjustment: number;
             growY: number;
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            richText?: string | undefined;
+            richText: {
+                content: unknown[];
+                type: string;
+            };
             scale: number;
             size: "l" | "m" | "s" | "xl";
-            text: string;
             url: string;
             verticalAlign: "end" | "middle" | "start";
         };
@@ -1583,8 +1591,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         x: number;
         y: number;
     } | undefined;
-    // (undocumented)
-    onEditEnd(shape: TLNoteShape): void;
     // (undocumented)
     static props: RecordProps<TLNoteShape>;
     // (undocumented)
@@ -1673,6 +1679,53 @@ export interface PeopleMenuProps {
 // @public
 export const PlainTextArea: React_3.ForwardRefExoticComponent<TextAreaProps & React_3.RefAttributes<HTMLTextAreaElement>>;
 
+// @public
+export const PlainTextLabel: React_3.NamedExoticComponent<PlainTextLabelProps>;
+
+// @public (undocumented)
+export interface PlainTextLabelProps {
+    // (undocumented)
+    align: TLDefaultHorizontalAlignStyle;
+    // (undocumented)
+    bounds?: Box;
+    // (undocumented)
+    classNamePrefix?: string;
+    // (undocumented)
+    fill?: TLDefaultFillStyle;
+    // (undocumented)
+    font: TLDefaultFontStyle;
+    // (undocumented)
+    fontSize: number;
+    // (undocumented)
+    isNote?: boolean;
+    // (undocumented)
+    isSelected: boolean;
+    // (undocumented)
+    labelColor: string;
+    // (undocumented)
+    lineHeight: number;
+    // (undocumented)
+    onKeyDown?(e: KeyboardEvent): void;
+    // (undocumented)
+    padding?: number;
+    // (undocumented)
+    shapeId: TLShapeId;
+    // (undocumented)
+    style?: React_3.CSSProperties;
+    // (undocumented)
+    text?: string;
+    // (undocumented)
+    textHeight?: number;
+    // (undocumented)
+    textWidth?: number;
+    // (undocumented)
+    type: string;
+    // (undocumented)
+    verticalAlign: TLDefaultVerticalAlignStyle;
+    // (undocumented)
+    wrap?: boolean;
+}
+
 // @public (undocumented)
 export enum PORTRAIT_BREAKPOINT {
     // (undocumented)
@@ -1731,6 +1784,53 @@ export function RhombusToolbarItem(): JSX_2.Element;
 
 // @public
 export const RichTextArea: React_3.ForwardRefExoticComponent<TextAreaProps & React_3.RefAttributes<HTMLDivElement>>;
+
+// @public
+export const RichTextLabel: React_3.NamedExoticComponent<RichTextLabelProps>;
+
+// @public (undocumented)
+export interface RichTextLabelProps {
+    // (undocumented)
+    align: TLDefaultHorizontalAlignStyle;
+    // (undocumented)
+    bounds?: Box;
+    // (undocumented)
+    classNamePrefix?: string;
+    // (undocumented)
+    fill?: TLDefaultFillStyle;
+    // (undocumented)
+    font: TLDefaultFontStyle;
+    // (undocumented)
+    fontSize: number;
+    // (undocumented)
+    isNote?: boolean;
+    // (undocumented)
+    isSelected: boolean;
+    // (undocumented)
+    labelColor: string;
+    // (undocumented)
+    lineHeight: number;
+    // (undocumented)
+    onKeyDown?(e: KeyboardEvent): void;
+    // (undocumented)
+    padding?: number;
+    // (undocumented)
+    richText?: TLRichText;
+    // (undocumented)
+    shapeId: TLShapeId;
+    // (undocumented)
+    style?: React_3.CSSProperties;
+    // (undocumented)
+    textHeight?: number;
+    // (undocumented)
+    textWidth?: number;
+    // (undocumented)
+    type: string;
+    // (undocumented)
+    verticalAlign: TLDefaultVerticalAlignStyle;
+    // (undocumented)
+    wrap?: boolean;
+}
 
 // @public (undocumented)
 export function RotateCWMenuItem(): JSX_2.Element;
@@ -1816,7 +1916,7 @@ export interface TextAreaProps {
     // (undocumented)
     handleChange(changeInfo: {
         plaintext?: string;
-        richText?: string;
+        richText?: TLRichText;
     }): void;
     // (undocumented)
     handleDoubleClick(e: any): any;
@@ -1829,63 +1929,15 @@ export interface TextAreaProps {
     // (undocumented)
     isEditing: boolean;
     // (undocumented)
-    richText?: string;
+    richText?: TLRichText;
     // (undocumented)
     shapeId: TLShapeId;
     // (undocumented)
-    text: string;
+    text?: string;
 }
 
-// @public
-export const TextLabel: React_3.NamedExoticComponent<TextLabelProps>;
-
-// @public (undocumented)
-export interface TextLabelProps {
-    // (undocumented)
-    align: TLDefaultHorizontalAlignStyle;
-    // (undocumented)
-    bounds?: Box;
-    // (undocumented)
-    classNamePrefix?: string;
-    // (undocumented)
-    enableRichText?: boolean;
-    // (undocumented)
-    fill?: TLDefaultFillStyle;
-    // (undocumented)
-    font: TLDefaultFontStyle;
-    // (undocumented)
-    fontSize: number;
-    // (undocumented)
-    isNote?: boolean;
-    // (undocumented)
-    isSelected: boolean;
-    // (undocumented)
-    labelColor: string;
-    // (undocumented)
-    lineHeight: number;
-    // (undocumented)
-    onKeyDown?(e: KeyboardEvent): void;
-    // (undocumented)
-    padding?: number;
-    // (undocumented)
-    richText?: string;
-    // (undocumented)
-    shapeId: TLShapeId;
-    // (undocumented)
-    style?: React_3.CSSProperties;
-    // (undocumented)
-    text: string;
-    // (undocumented)
-    textHeight?: number;
-    // (undocumented)
-    textWidth?: number;
-    // (undocumented)
-    type: string;
-    // (undocumented)
-    verticalAlign: TLDefaultVerticalAlignStyle;
-    // (undocumented)
-    wrap?: boolean;
-}
+// @public @deprecated (undocumented)
+export const TextLabel: React_3.NamedExoticComponent<PlainTextLabelProps>;
 
 // @public (undocumented)
 export class TextShapeTool extends StateNode {
@@ -1934,10 +1986,12 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
             autoSize: boolean;
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
             font: "draw" | "mono" | "sans" | "serif";
-            richText?: string | undefined;
+            richText: {
+                content: unknown[];
+                type: string;
+            };
             scale: number;
             size: "l" | "m" | "s" | "xl";
-            text: string;
             textAlign: "end" | "middle" | "start";
             w: number;
         };
@@ -2500,8 +2554,6 @@ export interface TLUiContextualToolbarProps {
     hideIndicator?: boolean;
     // (undocumented)
     indicatorOffset?: number;
-    // (undocumented)
-    isVisible: boolean;
     // (undocumented)
     position?: VecLike;
 }
@@ -3881,21 +3933,39 @@ export function useDefaultHelpers(): {
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
-export function useEditableText(shapeId: TLShapeId, type: string, text: string, richText?: string): {
+export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: string): {
     handleBlur: () => void;
-    handleChange: ({ plaintext, richText }: {
-        plaintext?: string;
-        richText?: string;
+    handleChange: ({ plaintext }: {
+        plaintext: string;
     }) => void;
     handleDoubleClick: (e: any) => any;
     handleFocus: () => void;
-    handleInputPointerDown: (e: React_3.PointerEvent) => void;
+    handleInputPointerDown: (e: React_3.PointerEvent<Element>) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
     isEditing: boolean;
     isEditingAnything: boolean;
     isEmpty: boolean;
-    rInput: React_3.RefObject<HTMLDivElement | HTMLTextAreaElement>;
+    rInput: React_3.RefObject<HTMLTextAreaElement>;
 };
+
+// @public (undocumented)
+export function useEditableRichText(shapeId: TLShapeId, type: string, richText?: TLRichText): {
+    handleBlur: () => void;
+    handleChange: ({ richText }: {
+        richText: TLRichText;
+    }) => void;
+    handleDoubleClick: (e: any) => any;
+    handleFocus: () => void;
+    handleInputPointerDown: (e: PointerEvent_2<Element>) => void;
+    handleKeyDown: (e: KeyboardEvent) => void;
+    isEditing: boolean;
+    isEditingAnything: boolean;
+    isEmpty: boolean;
+    rInput: RefObject<HTMLDivElement>;
+};
+
+// @public @deprecated (undocumented)
+export const useEditableText: typeof useEditablePlainText;
 
 // @public (undocumented)
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;

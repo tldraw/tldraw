@@ -12,7 +12,6 @@ export interface TLUiContextualToolbarProps {
 	children?: React.ReactNode
 	className?: string
 	position?: VecLike
-	isVisible: boolean
 	hideIndicator?: boolean
 	indicatorOffset?: number
 }
@@ -31,7 +30,6 @@ export const TldrawUiContextualToolbar = React.forwardRef<
 		children,
 		className,
 		position = { x: -1000, y: -1000 },
-		isVisible,
 		hideIndicator = false,
 		indicatorOffset = 0,
 	},
@@ -44,10 +42,8 @@ export const TldrawUiContextualToolbar = React.forwardRef<
 		<div
 			ref={toolbarRef}
 			className={classNames('tl-contextual-toolbar', className)}
-			data-is-visible={isVisible}
 			style={{
-				left: `${position.x}px`,
-				top: `${position.y}px`,
+				transform: `translate(${position.x}px, ${position.y}px)`,
 			}}
 			onPointerDown={stopEventPropagation}
 		>

@@ -1,4 +1,5 @@
 import { T } from '@tldraw/validate'
+import { TLRichText, richTextValidator, toRichText } from '../misc/TLRichText'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
 import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
@@ -14,8 +15,7 @@ export interface TLTextShapeProps {
 	font: TLDefaultFontStyle
 	textAlign: TLDefaultTextAlignStyle
 	w: number
-	text: string
-	richText?: string
+	richText: TLRichText
 	scale: number
 	autoSize: boolean
 }
@@ -30,8 +30,7 @@ export const textShapeProps: RecordProps<TLTextShape> = {
 	font: DefaultFontStyle,
 	textAlign: DefaultTextAlignStyle,
 	w: T.nonZeroNumber,
-	text: T.string,
-	richText: T.tipTapDoc.optional(),
+	richText: richTextValidator,
 	scale: T.nonZeroNumber,
 	autoSize: T.boolean,
 }
@@ -69,7 +68,10 @@ export const textShapeMigrations = createShapePropsMigrationSequence({
 		},
 		{
 			id: Versions.AddRichText,
-			up: () => {},
+			up: (props) => {
+				props.richText = toRichText(props.text)
+				delete props.text
+			},
 			// N.B. Explicitly no down state so that we force clients to update.
 			// down: (props) => {
 			// 	delete props.richText

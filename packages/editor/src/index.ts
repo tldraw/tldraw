@@ -272,7 +272,7 @@ export { getCursor } from './lib/hooks/useCursor'
 export { EditorContext, useEditor, useMaybeEditor } from './lib/hooks/useEditor'
 export { useEditorComponents } from './lib/hooks/useEditorComponents'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
-export { useEvent } from './lib/hooks/useEvent'
+export { useEvent, useReactiveEvent } from './lib/hooks/useEvent'
 export { useGlobalMenuIsOpen } from './lib/hooks/useGlobalMenuIsOpen'
 export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/useIdentity'
 export { useIsCropping } from './lib/hooks/useIsCropping'
@@ -294,6 +294,7 @@ export {
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
+export { useViewportHeight } from './lib/hooks/useViewportHeight'
 export {
 	LicenseManager,
 	type InvalidLicenseKeyResult,

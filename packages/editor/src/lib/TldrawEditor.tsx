@@ -562,7 +562,7 @@ function TldrawEditorWithReadyStore({
 			) : (
 				<EditorProvider editor={editor}>
 					<Layout onMount={onMount}>
-						{children ?? (Canvas ? <Canvas /> : null)}
+						{children ?? (Canvas ? <Canvas key={editor.contextId} /> : null)}
 						<Watermark />
 					</Layout>
 				</EditorProvider>

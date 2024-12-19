@@ -79,6 +79,7 @@ import {
 	hasOwnProperty,
 	last,
 	lerp,
+	maxBy,
 	sortById,
 	sortByIndex,
 	structuredClone,
@@ -2040,6 +2041,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					this.run(
 						() => {
 							this._updateCurrentPageState({ editingShapeId: id })
+							this._currentTipTapTextEditor.set(null)
 						},
 						{ history: 'ignore' }
 					)
@@ -2051,6 +2053,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.run(
 				() => {
 					this._updateCurrentPageState({ editingShapeId: null })
+					this._currentTipTapTextEditor.set(null)
 				},
 				{ history: 'ignore' }
 			)
@@ -2074,14 +2077,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.setEditingShapeTextEditor(richTextEditorView)
+	 * editor.setEditingShapeTipTapTextEditor(richTextEditorView)
 	 * ```
 	 *
 	 * @param textEditor - The text editor to set as the current editing shape's text editor.
 	 *
 	 * @public
 	 */
-	setEditingShapeTextEditor(textEditor: TextEditor | null) {
+	setEditingShapeTipTapTextEditor(textEditor: TextEditor | null) {
 		this._currentTipTapTextEditor.set(textEditor)
 	}
 
@@ -2334,6 +2337,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!followingUserId) return null
 		const leaderPresence = this.getCollaborators().find((c) => c.userId === followingUserId)
 		if (!leaderPresence) return null
+
+		if (!leaderPresence.camera || !leaderPresence.screenBounds) return null
 
 		// Fit their viewport inside of our screen bounds
 		// 1. calculate their viewport in page space
@@ -3232,6 +3237,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (!presence) return this
 
+		const cursor = presence.cursor
+		if (!cursor) return this
+
 		this.run(() => {
 			// If we're following someone, stop following them
 			if (this.getInstanceState().followingUserId !== null) {
@@ -3249,7 +3257,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				opts.animation = undefined
 			}
 
-			this.centerOnPoint(presence.cursor, opts)
+			this.centerOnPoint(cursor, opts)
 
 			// Highlight the user's cursor
 			const { highlightedUserIds } = this.getInstanceState()
@@ -3460,10 +3468,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!allPresenceRecords.length) return EMPTY_ARRAY
 		const userIds = [...new Set(allPresenceRecords.map((c) => c.userId))].sort()
 		return userIds.map((id) => {
-			const latestPresence = allPresenceRecords
-				.filter((c) => c.userId === id)
-				.sort((a, b) => b.lastActivityTimestamp - a.lastActivityTimestamp)[0]
-			return latestPresence
+			const latestPresence = maxBy(
+				allPresenceRecords.filter((c) => c.userId === id),
+				(p) => p.lastActivityTimestamp ?? 0
+			)
+			return latestPresence!
 		})
 	}
 
@@ -4797,10 +4806,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Check labels first
 			if (
 				this.isShapeOfType<TLFrameShape>(shape, 'frame') ||
-				((this.isShapeOfType<TLArrowShape>(shape, 'arrow') ||
-					this.isShapeOfType<TLNoteShape>(shape, 'note') ||
+				(this.isShapeOfType<TLArrowShape>(shape, 'arrow') && shape.props.text.trim()) ||
+				((this.isShapeOfType<TLNoteShape>(shape, 'note') ||
 					(this.isShapeOfType<TLGeoShape>(shape, 'geo') && shape.props.fill === 'none')) &&
-					(shape.props.text.trim() || (shape as TLGeoShape).props.richText))
+					(shape as TLGeoShape).props.richText)
 			) {
 				for (const childGeometry of (geometry as Group2d).children) {
 					if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
@@ -7035,7 +7044,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.createShape(myShape)
-	 * editor.createShape({ id: 'box1', type: 'text', props: { text: "ok" } })
+	 * editor.createShape({ id: 'box1', type: 'text', props: { richText: toRichText("ok") } })
 	 * ```
 	 *
 	 * @param shape - The shape (or shape partial) to create.
@@ -7053,7 +7062,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.createShapes([myShape])
-	 * editor.createShapes([{ id: 'box1', type: 'text', props: { text: "ok" } }])
+	 * editor.createShapes([{ id: 'box1', type: 'text', props: { richText: toRichText("ok") } }])
 	 * ```
 	 *
 	 * @param shapes - The shapes (or shape partials) to create.

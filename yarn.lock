@@ -7141,6 +7141,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tiptap/extension-font-family@npm:^2.9.1":
+  version: 2.10.3
+  resolution: "@tiptap/extension-font-family@npm:2.10.3"
+  peerDependencies:
+    "@tiptap/core": ^2.7.0
+    "@tiptap/extension-text-style": ^2.7.0
+  checksum: 229c15bfcdc1cd403ad714c5c70ec62a5a50d626b90d52bb3a8cfc5ba567e295b07e436a44018ef05d272ba08f626fce3c1d4571c4cb6b4484e50c42c40e04ca
+  languageName: node
+  linkType: hard
+
 "@tiptap/extension-gapcursor@npm:^2.9.1":
   version: 2.9.1
   resolution: "@tiptap/extension-gapcursor@npm:2.9.1"
@@ -13568,6 +13578,8 @@ __metadata:
     "@playwright/test": "npm:^1.46.1"
     "@radix-ui/react-alert-dialog": "npm:^1.0.5"
     "@tiptap/core": "npm:^2.9.1"
+    "@tiptap/extension-font-family": "npm:^2.9.1"
+    "@tiptap/extension-text-style": "npm:^2.9.1"
     "@tiptap/pm": "npm:^2.9.1"
     "@tiptap/starter-kit": "npm:^2.9.1"
     "@tldraw/assets": "workspace:*"
@@ -23791,6 +23803,7 @@ __metadata:
     jest-canvas-mock: "npm:^2.5.2"
     jest-environment-jsdom: "npm:^29.4.3"
     lazyrepo: "npm:0.0.0-alpha.27"
+    lodash.isequal: "npm:^4.5.0"
     lz-string: "npm:^1.4.4"
     resize-observer-polyfill: "npm:^1.5.1"
   peerDependencies:

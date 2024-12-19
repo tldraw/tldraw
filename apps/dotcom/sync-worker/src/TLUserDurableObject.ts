@@ -50,7 +50,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.sentry = createSentry(ctx, env)
 		this.replicator = getReplicator(env)
 
-		this.db = getPostgres(env, { pooled: true })
+		this.db = getPostgres(env, { pooled: true, name: 'TLUserDurableObject' })
 		this.debug('created')
 		this.measure = env.MEASURE
 	}
@@ -370,15 +370,25 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				}
 			)
 			// TODO: We should probably handle a case where the above operation succeeds but the one below fails
-			const result = await this
-				.db`insert into public.user_mutation_number ("userId", "mutationNumber") values (${this.userId}, 1) on conflict ("userId") do update set "mutationNumber" = user_mutation_number."mutationNumber" + 1 returning "mutationNumber"`
-			const mutationNumber = Number(result[0].mutationNumber)
-			const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
-			assert(
-				mutationNumber > currentMutationNumber,
-				`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
-			)
-			this.cache.mutations.push({ mutationNumber, mutationId: msg.mutationId })
+			this.debug('mutation success', this.userId)
+			await this.db
+				.begin(async (sql) => {
+					const result =
+						await sql`insert into public.user_mutation_number ("userId", "mutationNumber") values (${this.userId}, 1) on conflict ("userId") do update set "mutationNumber" = user_mutation_number."mutationNumber" + 1 returning "mutationNumber"`
+					this.debug('mutation number success', this.userId)
+					const mutationNumber = Number(result[0].mutationNumber)
+					const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
+					assert(
+						mutationNumber > currentMutationNumber,
+						`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
+					)
+					this.debug('pushing mutation to cache', this.userId, mutationNumber)
+					this.cache.mutations.push({ mutationNumber, mutationId: msg.mutationId })
+				})
+				.catch((e) => {
+					this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== msg.mutationId)
+					throw e
+				})
 		} catch (e) {
 			const code = e instanceof ZMutationError ? e.errorCode : ZErrorCode.unknown_error
 			this.captureException(e, {

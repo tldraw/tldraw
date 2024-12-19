@@ -5,20 +5,19 @@ import {
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultVerticalAlignStyle,
+	TLRichText,
 	TLShapeId,
 	useEditor,
 } from '@tldraw/editor'
-import React, { useEffect, useState } from 'react'
-import { renderHtmlFromRichText } from '../../utils/text/richText'
-import { PlainTextArea } from '../text/PlainTextArea'
+import React, { useEffect, useMemo, useState } from 'react'
+import { renderHtmlFromRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
-import { TextHelpers } from './TextHelpers'
 import { TEXT_PROPS } from './default-shape-constants'
 import { isLegacyAlign } from './legacyProps'
-import { useEditableText } from './useEditableText'
+import { useEditableRichText } from './useEditableRichText'
 
 /** @public */
-export interface TextLabelProps {
+export interface RichTextLabelProps {
 	shapeId: TLShapeId
 	type: string
 	font: TLDefaultFontStyle
@@ -28,9 +27,7 @@ export interface TextLabelProps {
 	align: TLDefaultHorizontalAlignStyle
 	verticalAlign: TLDefaultVerticalAlignStyle
 	wrap?: boolean
-	enableRichText?: boolean
-	text: string
-	richText?: string
+	richText?: TLRichText
 	labelColor: string
 	bounds?: Box
 	isNote?: boolean
@@ -50,11 +47,9 @@ export interface TextLabelProps {
  *
  * @public @react
  */
-export const TextLabel = React.memo(function TextLabel({
+export const RichTextLabel = React.memo(function RichTextLabel({
 	shapeId,
 	type,
-	enableRichText,
-	text: plaintext,
 	richText,
 	labelColor,
 	font,
@@ -70,36 +65,23 @@ export const TextLabel = React.memo(function TextLabel({
 	style,
 	textWidth,
 	textHeight,
-}: TextLabelProps) {
+}: RichTextLabelProps) {
 	const editor = useEditor()
-	const [htmlFromMarkdown, setHtmlFromMarkdown] = useState<string | null>(null)
-	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } = useEditableText(
-		shapeId,
-		type,
-		plaintext,
-		richText
-	)
-
-	useEffect(() => {
-		if (enableRichText && richText) {
-			const html = renderHtmlFromRichText(editor, richText)
-			setHtmlFromMarkdown(html)
-		} else {
-			if (htmlFromMarkdown) {
-				setHtmlFromMarkdown(null)
-			}
+	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } =
+		useEditableRichText(shapeId, type, richText)
+	const html = useMemo(() => {
+		if (richText) {
+			return renderHtmlFromRichText(editor, richText)
 		}
-	}, [plaintext, editor, enableRichText, richText, htmlFromMarkdown])
+	}, [editor, richText])
 
-	const currentText = richText || plaintext
-	const [initialText, setInitialText] = useState(currentText)
+	const [initialText, setInitialText] = useState(richText)
 
 	useEffect(() => {
-		if (!isEditing) setInitialText(currentText)
-	}, [isEditing, currentText])
+		if (!isEditing) setInitialText(richText)
+	}, [isEditing, richText])
 
-	const finalText = TextHelpers.normalizeTextForDom(currentText)
-	const hasText = finalText.length > 0
+	const hasText = richText ? renderPlaintextFromRichText(editor, richText).length > 0 : false
 
 	const legacyAlign = isLegacyAlign(align)
 
@@ -117,7 +99,6 @@ export const TextLabel = React.memo(function TextLabel({
 
 	// TODO: probably combine tl-text and tl-arrow eventually
 	const cssPrefix = classNamePrefix || 'tl-text'
-	const TextAreaComponent = enableRichText ? RichTextArea : PlainTextArea
 	return (
 		<div
 			className={`${cssPrefix}-label tl-text-wrapper`}
@@ -148,28 +129,21 @@ export const TextLabel = React.memo(function TextLabel({
 				}}
 			>
 				<div className={`${cssPrefix} tl-text tl-text-content`} dir="auto">
-					{enableRichText && richText ? (
+					{richText && (
 						<div
 							className="tl-rich-text-tiptap"
-							dangerouslySetInnerHTML={{ __html: htmlFromMarkdown || '' }}
+							dangerouslySetInnerHTML={{ __html: html || '' }}
 							onPointerDownCapture={handlePointerDownCapture}
 						/>
-					) : (
-						finalText.split('\n').map((lineOfText, index) => (
-							<div key={index} dir="auto">
-								{lineOfText}
-							</div>
-						))
 					)}
 				</div>
 				{(isEditingAnything || isSelected) && (
-					<TextAreaComponent
+					<RichTextArea
 						// Fudge the ref type because we're using forwardRef and it's not typed correctly.
 						ref={rInput as any}
 						// We need to add the initial value as the key here because we need this component to
 						// 'reset' when this state changes and grab the latest defaultValue.
-						key={initialText}
-						text={plaintext}
+						key={JSON.stringify(initialText)}
 						richText={richText}
 						isEditing={isEditing}
 						shapeId={shapeId}
@@ -185,7 +159,7 @@ export const TextLabel = React.memo(function TextLabel({
 /** @public */
 export interface RichTextSVGProps {
 	bounds: Box
-	richText: string
+	richText: TLRichText
 	fontSize: number
 	font: TLDefaultFontStyle
 	align: TLDefaultHorizontalAlignStyle

@@ -1242,7 +1242,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setCurrentTool(id: string, info?: {}): this;
     setCursor(cursor: Partial<TLCursor>): this;
     setEditingShape(shape: null | TLShape | TLShapeId): this;
-    setEditingShapeTextEditor(textEditor: null | Editor_2): void;
+    setEditingShapeTipTapTextEditor(textEditor: null | Editor_2): void;
     setErasingShapes(shapes: TLShape[] | TLShapeId[]): this;
     setFocusedGroup(shape: null | TLGroupShape | TLShapeId): this;
     setHintingShapes(shapes: TLShape[] | TLShapeId[]): this;
@@ -2534,8 +2534,6 @@ export type TestEnvironment = 'development' | 'production';
 export class TextManager {
     constructor(editor: Editor);
     // (undocumented)
-    baseElm: HTMLDivElement;
-    // (undocumented)
     editor: Editor;
     measureElementTextNodeSpans(element: HTMLElement, { shouldTruncateToFirstLine }?: {
         shouldTruncateToFirstLine?: boolean;
@@ -2545,6 +2543,20 @@ export class TextManager {
             box: BoxModel;
             text: string;
         }[];
+    };
+    // (undocumented)
+    measureHtml(html: string, opts: {
+        maxWidth: null | number;
+        disableOverflowWrapBreaking?: boolean;
+        fontFamily: string;
+        fontSize: number;
+        fontStyle: string;
+        fontWeight: string;
+        lineHeight: number;
+        minWidth?: null | number;
+        padding: string;
+    }): BoxModel & {
+        scrollWidth: number;
     };
     // (undocumented)
     measureText(textToMeasure: string, opts: {
@@ -2557,7 +2569,6 @@ export class TextManager {
         lineHeight: number;
         minWidth?: null | number;
         padding: string;
-        renderMethod?(): Node | string;
     }): BoxModel & {
         scrollWidth: number;
     };
@@ -3796,6 +3807,9 @@ export { useQuickReactor }
 // @internal (undocumented)
 export const USER_COLORS: readonly ["#FF802B", "#EC5E41", "#F2555A", "#F04F88", "#E34BA9", "#BD54C6", "#9D5BD2", "#7B66DC", "#02B1CC", "#11B3A3", "#39B178", "#55B467"];
 
+// @internal
+export function useReactiveEvent<Args extends Array<unknown>, Result>(handler: (...args: Args) => Result): (...args: Args) => Result;
+
 export { useReactor }
 
 // @internal
@@ -3891,6 +3905,9 @@ export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?:
 export function useUniqueSafeId(suffix?: string): SafeId;
 
 export { useValue }
+
+// @public (undocumented)
+export function useViewportHeight(): number;
 
 // @internal (undocumented)
 export interface ValidLicenseKeyResult {

@@ -201,7 +201,11 @@ export class TldrawApp {
 		return this.fileStates$.get()
 	}
 
-	lastRecentFileOrdering = null as null | Array<{ fileId: string; date: number }>
+	lastRecentFileOrdering = null as null | Array<{
+		fileId: TlaFile['id']
+		isPinned: boolean
+		date: number
+	}>
 
 	@computed
 	getUserRecentFiles() {
@@ -210,26 +214,42 @@ export class TldrawApp {
 
 		const myFileIds = new Set<string>([...objectMapKeys(myFiles), ...objectMapKeys(myStates)])
 
-		const nextRecentFileOrdering = []
+		const nextRecentFileOrdering: {
+			fileId: TlaFile['id']
+			isPinned: boolean
+			date: number
+		}[] = []
 
 		for (const fileId of myFileIds) {
 			const file = myFiles[fileId]
 			const state = myStates[fileId]
 			if (!file || !state) continue
 			const existing = this.lastRecentFileOrdering?.find((f) => f.fileId === fileId)
-			if (existing) {
+			if (existing && existing.isPinned === state.isPinned) {
 				nextRecentFileOrdering.push(existing)
 				continue
 			}
 
 			nextRecentFileOrdering.push({
 				fileId,
-				date: state?.lastEditAt ?? state?.firstVisitAt ?? file?.createdAt ?? 0,
+				isPinned: state.isPinned ?? false,
+				date: state.lastEditAt ?? state.firstVisitAt ?? file.createdAt ?? 0,
 			})
 		}
 
+		// sort by date with most recent first
 		nextRecentFileOrdering.sort((a, b) => b.date - a.date)
+
+		// move pinned files to the top, stable sort
+		nextRecentFileOrdering.sort((a, b) => {
+			if (a.isPinned && !b.isPinned) return -1
+			if (!a.isPinned && b.isPinned) return 1
+			return 0
+		})
+
+		// stash the ordering for next time
 		this.lastRecentFileOrdering = nextRecentFileOrdering
+
 		return nextRecentFileOrdering
 	}
 
@@ -388,6 +408,7 @@ export class TldrawApp {
 					lastSessionState: null,
 					lastVisitAt: null,
 					isFileOwner: true,
+					isPinned: false,
 				})
 			}
 		})
@@ -471,11 +492,28 @@ export class TldrawApp {
 		const file = this.getFile(fileId)
 
 		// Optimistic update, remove file and file states
-		this.z.mutate((tx) => {
+		return this.z.mutate((tx) => {
 			tx.file_state.delete({ fileId, userId: this.userId })
 			if (file?.ownerId === this.userId) {
 				tx.file.update({ id: fileId, isDeleted: true })
 			}
+		})
+	}
+
+	/**
+	 * Pin a file (or unpin it if it's already pinned).
+	 *
+	 * @param fileId - The file id.
+	 */
+	async pinOrUnpinFile(fileId: string) {
+		const fileState = this.getFileState(fileId)
+
+		if (!fileState) return
+
+		return this.z.mutate.file_state.update({
+			fileId,
+			userId: this.userId,
+			isPinned: !fileState.isPinned,
 		})
 	}
 
@@ -519,6 +557,7 @@ export class TldrawApp {
 				lastEditAt: null,
 				lastSessionState: null,
 				lastVisitAt: null,
+				isPinned: false,
 				// doesn't really matter what this is because it is
 				// overwritten by postgres
 				isFileOwner: this.isFileOwner(fileId),
