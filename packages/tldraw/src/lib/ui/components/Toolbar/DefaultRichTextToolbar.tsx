@@ -42,6 +42,9 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	})
 	const [isEditingLink, setIsEditingLink] = useState(false)
 	const [wasJustEditingLink, setWasJustEditingLink] = useState(false)
+	const [shapeIdForToolbar, setShapeIdForToolbar] = useState(editor.getEditingShapeId())
+	const [justChangedShape, setJustChangedShape] = useState(false)
+	const editingShapeId = useValue('editingShapeId', () => editor.getEditingShapeId(), [editor])
 	const textEditor = useValue('textEditor', () => editor.getEditingShapeTipTapTextEditor(), [
 		editor,
 	])
@@ -56,9 +59,17 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	// Set up general event listeners for text selection.
 	useEffect(() => {
 		const handleMouseDown = () => setIsMousingDown(true)
-		const handleMouseUp = () => setIsMousingDown(false)
+		const handleMouseUp = () => {
+			setIsMousingDown(false)
+			setJustChangedShape(shapeIdForToolbar !== editingShapeId)
+		}
 		const handleMouseMove = () => setIsMousingAround(true)
-		const handleKeyDown = () => !isEditingLink && setIsMousingAround(false)
+		const handleKeyDown = () => {
+			if (!isEditingLink) {
+				setIsMousingAround(false)
+			}
+			setJustChangedShape(shapeIdForToolbar !== editingShapeId)
+		}
 		window.addEventListener('mousedown', handleMouseDown)
 		window.addEventListener('mouseup', handleMouseUp)
 		window.addEventListener('mousemove', handleMouseMove)
@@ -69,7 +80,14 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 			window.removeEventListener('mousemove', handleMouseMove)
 			window.removeEventListener('keydown', handleKeyDown)
 		}
-	}, [hasTextSelection, isEditingLink])
+	}, [hasTextSelection, isEditingLink, shapeIdForToolbar, editingShapeId])
+
+	useEffect(() => {
+		if (shapeIdForToolbar !== editingShapeId) {
+			setJustChangedShape(true)
+		}
+		setShapeIdForToolbar(editingShapeId)
+	}, [shapeIdForToolbar, editingShapeId])
 
 	// Set up text editor transaction listener.
 	useEffect(() => {
@@ -202,6 +220,10 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	// N.B. One tactic here that could have been done is to, if there is no textEditor or we're
 	// not in editing text mode, that we just return null and not render the toolbar. However,
 	// because we want the toolbar to smoothly animate in-and-out of view we keep it around.
+
+	// When going from edit-to-edit mode, however, we _do_ want to make sure the toolbar
+	// just immediately dissapears to avoid a weird flicker.
+	if (justChangedShape) return null
 
 	return (
 		<TldrawUiContextualToolbar
