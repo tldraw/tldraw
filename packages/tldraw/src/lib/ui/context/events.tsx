@@ -21,6 +21,7 @@ export type TLUiEventSource =
 	| 'help-menu'
 	| 'helper-buttons'
 	| 'style-panel'
+	| 'rich-text-menu'
 	| 'unknown'
 
 /** @public */
@@ -111,6 +112,17 @@ export interface TLUiEventMap {
 	'flatten-to-image': null
 	'open-url': { url: string }
 	'copy-link': null
+	'rich-text': {
+		operation:
+			| 'bold'
+			| 'strike'
+			| 'link'
+			| 'link-edit'
+			| 'link-visit'
+			| 'link-remove'
+			| 'heading'
+			| 'bulletList'
+	}
 }
 
 /** @public */

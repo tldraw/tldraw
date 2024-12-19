@@ -117,6 +117,7 @@ export class TestEditor extends Editor {
 				fontSize: number
 				lineHeight: number
 				maxWidth: null | number
+				padding: string
 			}
 		): BoxModel & { scrollWidth: number } => {
 			const breaks = textToMeasure.split('\n')
@@ -135,6 +136,25 @@ export class TestEditor extends Editor {
 					opts.fontSize,
 				scrollWidth: opts.maxWidth === null ? w : Math.max(w, opts.maxWidth),
 			}
+		}
+
+		this.textMeasure.measureHtml = (
+			html: string,
+			opts: {
+				fontStyle: string
+				fontWeight: string
+				fontFamily: string
+				fontSize: number
+				lineHeight: number
+				maxWidth: null | number
+				padding: string
+			}
+		): BoxModel & { scrollWidth: number } => {
+			const textToMeasure = html
+				.split('</p><p>')
+				.join('\n')
+				.replace(/<[^>]+>/g, '')
+			return this.textMeasure.measureText(textToMeasure, opts)
 		}
 
 		this.textMeasure.measureTextSpans = (textToMeasure, opts) => {

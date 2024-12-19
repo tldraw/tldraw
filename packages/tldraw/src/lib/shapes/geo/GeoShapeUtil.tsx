@@ -30,9 +30,13 @@ import {
 	useValue,
 } from '@tldraw/editor'
 
+import isEqual from 'lodash.isequal'
+import {
+	renderHtmlFromRichTextForMeasurement,
+	renderPlaintextFromRichText,
+} from '../../utils/text/richText'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { SvgTextLabel } from '../shared/SvgTextLabel'
-import { TextLabel } from '../shared/TextLabel'
+import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
@@ -44,6 +48,7 @@ import {
 	getFillDefForCanvas,
 	getFillDefForExport,
 	getFontDefForExport,
+	getRichTextStylesExport,
 } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { GeoShapeBody } from './components/GeoShapeBody'
@@ -81,7 +86,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			dash: 'draw',
 			size: 'm',
 			font: 'draw',
-			text: '',
 			align: 'middle',
 			verticalAlign: 'middle',
 			growY: 0,
@@ -96,7 +100,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const cx = w / 2
 		const cy = h / 2
 
-		const isFilled = shape.props.fill !== 'none' // || shape.props.text.trim().length > 0
+		const isFilled = shape.props.fill !== 'none'
 
 		let body: Geometry2d
 
@@ -408,32 +412,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override getText(shape: TLGeoShape) {
-		return shape.props.text
-	}
-
-	override onEditEnd(shape: TLGeoShape) {
-		const {
-			id,
-			type,
-			props: { text },
-		} = shape
-
-		if (text.trimEnd() !== shape.props.text) {
-			this.editor.updateShapes([
-				{
-					id,
-					type,
-					props: {
-						text: text.trimEnd(),
-					},
-				},
-			])
-		}
+		if (shape.props.richText) return renderPlaintextFromRichText(this.editor, shape.props.richText)
 	}
 
 	component(shape: TLGeoShape) {
 		const { id, type, props } = shape
-		const { fill, font, align, verticalAlign, size, text } = props
+		const { fill, font, align, verticalAlign, size, richText } = props
 		const theme = useDefaultColorTheme()
 		const { editor } = this
 		const isOnlySelected = useValue(
@@ -442,7 +426,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			[]
 		)
 		const isEditingAnything = editor.getEditingShapeId() !== null
-		const showHtmlContainer = isEditingAnything || shape.props.text
+		const showHtmlContainer = isEditingAnything || shape.props.richText
 		const isForceSolid = useValue(
 			'force solid',
 			() => {
@@ -464,7 +448,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							height: shape.props.h + props.growY,
 						}}
 					>
-						<TextLabel
+						<RichTextLabel
 							shapeId={id}
 							type={type}
 							font={font}
@@ -474,7 +458,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							fill={fill}
 							align={align}
 							verticalAlign={verticalAlign}
-							text={text}
+							richText={richText}
 							isSelected={isOnlySelected}
 							labelColor={theme[props.labelColor].solid}
 							wrap
@@ -559,18 +543,18 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		ctx.addExportDef(getFillDefForExport(props.fill))
 
 		let textEl
-		if (props.text) {
+		if (props.richText) {
 			ctx.addExportDef(getFontDefForExport(props.font))
 			const theme = getDefaultColorTheme(ctx)
-
 			const bounds = new Box(0, 0, props.w, props.h + props.growY)
+			ctx.addExportDef(getRichTextStylesExport())
 			textEl = (
-				<SvgTextLabel
+				<RichTextSVG
 					fontSize={LABEL_FONT_SIZES[props.size]}
 					font={props.font}
 					align={props.align}
 					verticalAlign={props.verticalAlign}
-					text={props.text}
+					richText={props.richText}
 					labelColor={theme[props.labelColor].solid}
 					bounds={bounds}
 					padding={16}
@@ -606,7 +590,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		const min = MIN_SIZE_WITH_LABEL
 
-		if (shape.props.text.trim()) {
+		if (shape.props.richText) {
 			let newW = Math.max(Math.abs(unscaledW), min)
 			let newH = Math.max(Math.abs(unscaledH), min)
 
@@ -670,7 +654,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override onBeforeCreate(shape: TLGeoShape) {
-		if (!shape.props.text) {
+		if (!shape.props.richText) {
 			if (shape.props.growY) {
 				// No text / some growY, set growY to 0
 				return {
@@ -712,12 +696,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override onBeforeUpdate(prev: TLGeoShape, next: TLGeoShape) {
-		const prevText = prev.props.text
-		const nextText = next.props.text
-
 		// No change to text, font, or size, no need to update update
 		if (
-			prevText === nextText &&
+			isEqual(prev.props.richText, next.props.richText) &&
 			prev.props.font === next.props.font &&
 			prev.props.size === next.props.size
 		) {
@@ -725,7 +706,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		// If we got rid of the text, cancel out any growY from the prev text
-		if (prevText && !nextText) {
+		if (prev.props.richText && !next.props.richText) {
 			return {
 				...next,
 				props: {
@@ -744,7 +725,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const unscaledNextLabelSize = getUnscaledLabelSize(this.editor, next)
 
 		// When entering the first character in a label (not pasting in multiple characters...)
-		if (!prevText && nextText && nextText.length === 1) {
+		if (
+			!prev.props.richText &&
+			next.props.richText &&
+			renderPlaintextFromRichText(this.editor, next.props.richText).length === 1
+		) {
 			let unscaledW = Math.max(unscaledPrevWidth, unscaledNextLabelSize.w)
 			let unscaledH = Math.max(unscaledPrevHeight, unscaledNextLabelSize.h)
 
@@ -849,9 +834,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 }
 
 function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
-	const { text, font, size, w } = shape.props
+	const { richText, font, size, w } = shape.props
 
-	if (!text) {
+	if (!richText || !renderPlaintextFromRichText(editor, richText)) {
 		return { w: 0, h: 0 }
 	}
 
@@ -870,7 +855,8 @@ function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 		xl: 10,
 	}
 
-	const textSize = editor.textMeasure.measureText(text, {
+	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
+	const textSize = editor.textMeasure.measureHtml(html, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[font],
 		fontSize: LABEL_FONT_SIZES[size],

@@ -1,3 +1,4 @@
+import { Editor as TextEditor } from '@tiptap/core'
 import { EMPTY_ARRAY, atom, computed, react, transact, unsafe__withoutCapture } from '@tldraw/state'
 import {
 	ComputedCache,
@@ -34,6 +35,7 @@ import {
 	TLImageAsset,
 	TLInstance,
 	TLInstancePageState,
+	TLNoteShape,
 	TLPOINTER_ID,
 	TLPage,
 	TLPageId,
@@ -162,6 +164,7 @@ import {
 	TLCameraMoveOptions,
 	TLCameraOptions,
 	TLImageExportOptions,
+	TLTextOptions,
 } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
@@ -222,6 +225,7 @@ export interface TLEditorOptions {
 	 * Options for the editor's camera.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
+	textOptions?: Partial<TLTextOptions>
 	options?: Partial<TldrawOptions>
 	licenseKey?: string
 	/**
@@ -260,6 +264,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		tools,
 		getContainer,
 		cameraOptions,
+		textOptions,
 		initialState,
 		autoFocus,
 		inferDarkMode,
@@ -287,6 +292,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(this.timers.dispose)
 
 		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
+
+		this._textOptions.set({ ...textOptions })
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 		this.disposables.add(() => this.user.dispose())
@@ -1892,6 +1899,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return new Box(x, y, bounds.width * zoom, bounds.height * zoom)
 	}
 
+	/**
+	 * The bounds of the selection bounding box in the current page space.
+	 * Updated to include the page's zoom level.
+	 *
+	 * @readonly
+	 * @public
+	 */
+	@computed getSelectionRotatedViewportBounds(): Box {
+		const selectionBounds = this.getSelectionRotatedPageBounds()
+		const camera = this.getCamera()
+		const pageCoordinates = selectionBounds
+			? this.pageToViewport(selectionBounds.point)
+			: { x: -1000, y: -1000 }
+
+		return Box.From({
+			x: pageCoordinates?.x,
+			y: pageCoordinates?.y,
+			w: (selectionBounds?.w || 0) * camera.z,
+			h: (selectionBounds?.h || 0) * camera.z,
+		})
+	}
+
 	// Focus Group
 
 	/**
@@ -2012,6 +2041,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					this.run(
 						() => {
 							this._updateCurrentPageState({ editingShapeId: id })
+							this._currentTipTapTextEditor.set(null)
 						},
 						{ history: 'ignore' }
 					)
@@ -2023,11 +2053,39 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.run(
 				() => {
 					this._updateCurrentPageState({ editingShapeId: null })
+					this._currentTipTapTextEditor.set(null)
 				},
 				{ history: 'ignore' }
 			)
 		}
 		return this
+	}
+
+	private _currentTipTapTextEditor = atom('tip tap text editor', null as TextEditor | null)
+
+	/**
+	 * The current editing shape's text editor.
+	 *
+	 * @public
+	 */
+	@computed getEditingShapeTipTapTextEditor(): TextEditor | null {
+		return this._currentTipTapTextEditor.get()
+	}
+
+	/**
+	 * Set the current editing shape's text editor.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setEditingShapeTipTapTextEditor(richTextEditorView)
+	 * ```
+	 *
+	 * @param textEditor - The text editor to set as the current editing shape's text editor.
+	 *
+	 * @public
+	 */
+	setEditingShapeTipTapTextEditor(textEditor: TextEditor | null) {
+		this._currentTipTapTextEditor.set(textEditor)
 	}
 
 	// Hovered
@@ -2232,6 +2290,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		}
 		return this
+	}
+
+	private _textOptions = atom('text options', {} as TLTextOptions)
+
+	/**
+	 * Get the current text options.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getTextOptions()
+	 * ```
+	 *
+	 *  @public */
+	getTextOptions() {
+		return this._textOptions.get()
 	}
 
 	/* --------------------- Camera --------------------- */
@@ -4733,9 +4806,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Check labels first
 			if (
 				this.isShapeOfType<TLFrameShape>(shape, 'frame') ||
-				((this.isShapeOfType<TLArrowShape>(shape, 'arrow') ||
+				(this.isShapeOfType<TLArrowShape>(shape, 'arrow') && shape.props.text.trim()) ||
+				((this.isShapeOfType<TLNoteShape>(shape, 'note') ||
 					(this.isShapeOfType<TLGeoShape>(shape, 'geo') && shape.props.fill === 'none')) &&
-					shape.props.text.trim())
+					(shape as TLGeoShape).props.richText)
 			) {
 				for (const childGeometry of (geometry as Group2d).children) {
 					if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
@@ -6970,7 +7044,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.createShape(myShape)
-	 * editor.createShape({ id: 'box1', type: 'text', props: { text: "ok" } })
+	 * editor.createShape({ id: 'box1', type: 'text', props: { richText: toRichText("ok") } })
 	 * ```
 	 *
 	 * @param shape - The shape (or shape partial) to create.
@@ -6988,7 +7062,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.createShapes([myShape])
-	 * editor.createShapes([{ id: 'box1', type: 'text', props: { text: "ok" } }])
+	 * editor.createShapes([{ id: 'box1', type: 'text', props: { richText: toRichText("ok") } }])
 	 * ```
 	 *
 	 * @param shapes - The shapes (or shape partials) to create.

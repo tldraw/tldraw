@@ -67,9 +67,16 @@ exports[`pasteExcalidrawContent test fixtures bound-arrows.json 1`] = `
       "growY": 0,
       "h": 116.80078125,
       "labelColor": "black",
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
-      "text": "",
       "url": "",
       "verticalAlign": "middle",
       "w": 149.70703125,
@@ -97,9 +104,16 @@ exports[`pasteExcalidrawContent test fixtures bound-arrows.json 1`] = `
       "growY": 0,
       "h": 129.7109375,
       "labelColor": "black",
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
-      "text": "",
       "url": "",
       "verticalAlign": "middle",
       "w": 156.33984375,
@@ -606,9 +620,16 @@ exports[`pasteExcalidrawContent test fixtures line-drawing.json 1`] = `
       "growY": 0,
       "h": 10.466136436297347,
       "labelColor": "black",
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
-      "text": "",
       "url": "",
       "verticalAlign": "middle",
       "w": 10.466136436296892,
@@ -1360,9 +1381,16 @@ exports[`pasteExcalidrawContent test fixtures line-drawing.json 1`] = `
       "growY": 0,
       "h": 80.37089607781583,
       "labelColor": "black",
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
-      "text": "",
       "url": "",
       "verticalAlign": "middle",
       "w": 79.72274369009212,
@@ -1626,9 +1654,16 @@ exports[`pasteExcalidrawContent test fixtures line-drawing.json 1`] = `
       "growY": 0,
       "h": 8.680724052756432,
       "labelColor": "black",
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
-      "text": "",
       "url": "",
       "verticalAlign": "middle",
       "w": 7.840653983134871,
@@ -1710,9 +1745,16 @@ exports[`pasteExcalidrawContent test fixtures line-drawing.json 1`] = `
       "growY": 0,
       "h": 80.37089607781583,
       "labelColor": "black",
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
-      "text": "",
       "url": "",
       "verticalAlign": "middle",
       "w": 79.72274369009212,

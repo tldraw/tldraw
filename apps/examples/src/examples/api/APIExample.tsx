@@ -4,6 +4,7 @@ import {
 	TLGeoShape,
 	TLShapePartial,
 	Tldraw,
+	toRichText,
 	createShapeId,
 	useEditor,
 } from 'tldraw'
@@ -44,7 +45,7 @@ export default function APIExample() {
 			type: 'geo',
 			props: {
 				h: shape.props.h * 3,
-				text: 'hello world!',
+				richText: toRichText('hello world!'),
 			},
 		}
 

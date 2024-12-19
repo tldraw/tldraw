@@ -11,18 +11,21 @@ import {
 	Vec,
 	WeakCache,
 	getDefaultColorTheme,
-	preventDefault,
 	textShapeMigrations,
 	textShapeProps,
 	toDomPrecision,
+	toRichText,
 	useEditor,
 } from '@tldraw/editor'
+import isEqual from 'lodash.isequal'
 import { useCallback } from 'react'
-import { SvgTextLabel } from '../shared/SvgTextLabel'
-import { TextHelpers } from '../shared/TextHelpers'
-import { TextLabel } from '../shared/TextLabel'
+import {
+	renderHtmlFromRichTextForMeasurement,
+	renderPlaintextFromRichText,
+} from '../../utils/text/richText'
+import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
-import { getFontDefForExport } from '../shared/defaultStyleDefs'
+import { getFontDefForExport, getRichTextStylesExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
@@ -39,11 +42,11 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			color: 'black',
 			size: 'm',
 			w: 8,
-			text: '',
 			font: 'draw',
 			textAlign: 'start',
 			autoSize: true,
 			scale: 1,
+			richText: toRichText(''),
 		}
 	}
 
@@ -63,7 +66,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override getText(shape: TLTextShape) {
-		return shape.props.text
+		return renderPlaintextFromRichText(this.editor, shape.props.richText)
 	}
 
 	override canEdit() {
@@ -77,7 +80,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	component(shape: TLTextShape) {
 		const {
 			id,
-			props: { font, size, text, color, scale, textAlign },
+			props: { font, size, richText, color, scale, textAlign },
 		} = shape
 
 		const { width, height } = this.getMinDimensions(shape)
@@ -86,7 +89,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const handleKeyDown = useTextShapeKeydownHandler(id)
 
 		return (
-			<TextLabel
+			<RichTextLabel
 				shapeId={id}
 				classNamePrefix="tl-text-shape"
 				type="text"
@@ -95,7 +98,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				lineHeight={TEXT_PROPS.lineHeight}
 				align={textAlign}
 				verticalAlign="middle"
-				text={text}
+				richText={richText}
 				labelColor={theme[color].solid}
 				isSelected={isSelected}
 				textWidth={width}
@@ -118,7 +121,9 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
-		if (shape.props.text) ctx.addExportDef(getFontDefForExport(shape.props.font))
+		if (shape.props.richText) {
+			ctx.addExportDef(getFontDefForExport(shape.props.font))
+		}
 
 		const bounds = this.editor.getShapeGeometry(shape).bounds
 		const width = bounds.width / (shape.props.scale ?? 1)
@@ -126,15 +131,17 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 		const theme = getDefaultColorTheme(ctx)
 
+		const exportBounds = new Box(0, 0, width, height)
+		ctx.addExportDef(getRichTextStylesExport())
 		return (
-			<SvgTextLabel
+			<RichTextSVG
 				fontSize={FONT_SIZES[shape.props.size]}
 				font={shape.props.font}
 				align={shape.props.textAlign}
 				verticalAlign="middle"
-				text={shape.props.text}
+				richText={shape.props.richText}
 				labelColor={theme[shape.props.color].solid}
-				bounds={new Box(0, 0, width, height)}
+				bounds={exportBounds}
 				padding={0}
 			/>
 		)
@@ -168,28 +175,10 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override onEditEnd(shape: TLTextShape) {
-		const {
-			id,
-			type,
-			props: { text },
-		} = shape
-
-		const trimmedText = shape.props.text.trimEnd()
+		const trimmedText = renderPlaintextFromRichText(this.editor, shape.props.richText).trimEnd()
 
 		if (trimmedText.length === 0) {
 			this.editor.deleteShapes([shape.id])
-		} else {
-			if (trimmedText !== shape.props.text) {
-				this.editor.updateShapes([
-					{
-						id,
-						type,
-						props: {
-							text: text.trimEnd(),
-						},
-					},
-				])
-			}
 		}
 	}
 
@@ -202,7 +191,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			prev.props.font !== next.props.font ||
 			(prev.props.scale !== 1 && next.props.scale === 1)
 
-		const textDidChange = prev.props.text !== next.props.text
+		const textDidChange = !isEqual(prev.props.richText, next.props.richText)
 
 		// Only update position if either changed
 		if (!styleDidChange && !textDidChange) return
@@ -282,7 +271,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 }
 
 function getTextSize(editor: Editor, props: TLTextShape['props']) {
-	const { font, text, autoSize, size, w } = props
+	const { font, richText, autoSize, size, w } = props
 
 	const minWidth = autoSize ? 16 : Math.max(16, w)
 	const fontSize = FONT_SIZES[size]
@@ -292,7 +281,8 @@ function getTextSize(editor: Editor, props: TLTextShape['props']) {
 		: // `measureText` floors the number so we need to do the same here to avoid issues.
 			Math.floor(Math.max(minWidth, w))
 
-	const result = editor.textMeasure.measureText(text, {
+	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
+	const result = editor.textMeasure.measureHtml(html, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[font],
 		fontSize: fontSize,
@@ -316,22 +306,13 @@ function useTextShapeKeydownHandler(id: TLShapeId) {
 	const editor = useEditor()
 
 	return useCallback(
-		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		(e: KeyboardEvent) => {
 			if (editor.getEditingShapeId() !== id) return
 
 			switch (e.key) {
 				case 'Enter': {
 					if (e.ctrlKey || e.metaKey) {
 						editor.complete()
-					}
-					break
-				}
-				case 'Tab': {
-					preventDefault(e)
-					if (e.shiftKey) {
-						TextHelpers.unindent(e.currentTarget)
-					} else {
-						TextHelpers.indent(e.currentTarget)
 					}
 					break
 				}
