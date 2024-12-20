@@ -23,11 +23,17 @@ export class STCoordinatorDO extends DurableObject<Environment> {
 	state: STCoordinatorState = {
 		tests: {},
 	}
+
+	otherStub
 	constructor(state: DurableObjectState, env: Environment) {
 		super(state, env)
+		this.otherStub = env.ST_COORDINATOR.get(env.ST_COORDINATOR.idFromName('otherone'))
+	}
+	_debug(...args: any[]) {
+		console.log('ST_COORDINATOR', ...args)
 	}
 	debug(...args: any[]) {
-		// console.log('ST_COORDINATOR', ...args)
+		this.otherStub._debug(args)
 	}
 	router = AutoRouter({
 		before: [preflight],
@@ -42,9 +48,9 @@ export class STCoordinatorDO extends DurableObject<Environment> {
 			const body = (await request.json()) as any
 			assert(request.params.testId.indexOf(':') === -1, 'Invalid test id')
 			const { uri, workers, files, startWithin } = body
-			this.debug(
-				`starting ${request.params.testId} with: uri: ${uri} workers: ${workers} files: ${files} startWithin: ${startWithin}`
-			)
+			// this.debug(
+			// 	`starting ${request.params.testId} with: uri: ${uri} workers: ${workers} files: ${files} startWithin: ${startWithin}`
+			// )
 
 			this.state.tests[request.params.testId] = {
 				running: true,
@@ -52,14 +58,26 @@ export class STCoordinatorDO extends DurableObject<Environment> {
 				numWorkers: workers,
 			}
 
+			const promises = []
 			for (let i = 0; i < workers; i++) {
 				const id = `${request.params.testId}:${i}`
 				const now = Date.now()
 				const worker = env.ST_WORKER.get(env.ST_WORKER.idFromName(id), {
 					locationHint: regions[i % regions.length],
 				}) as any as STWorkerDO
-				worker.start(startWithin, files, id, uri)
-				this.debug('time to start worker', id, Date.now() - now)
+				promises.push(worker.start(startWithin, files, id, uri))
+				// this.debug('time to start worker', id, Date.now() - now)
+			}
+			this.debug('waiting now')
+			await Promise.all(promises)
+			this.debug('All workers started')
+
+			for (let i = 0; i < workers; i++) {
+				const id = `${request.params.testId}:${i}`
+				const worker = env.ST_WORKER.get(env.ST_WORKER.idFromName(id), {
+					locationHint: regions[i % regions.length],
+				}) as any as STWorkerDO
+				worker.work()
 			}
 			return new Response('Started', { status: 200 })
 		})

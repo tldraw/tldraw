@@ -10,6 +10,7 @@ export class STWorkerDO extends DurableObject<Environment> {
 	coordinator: STCoordinatorDO
 	zero: Zero | null = null
 	num_files: number
+	shouldStop = false
 	constructor(
 		private state: DurableObjectState,
 		env: Environment
@@ -18,7 +19,7 @@ export class STWorkerDO extends DurableObject<Environment> {
 		this.coordinator = env.ST_COORDINATOR.get(
 			env.ST_COORDINATOR.idFromName('coordinator')
 		) as any as STCoordinatorDO
-		this.num_files = 1
+		this.num_files = this.state.storage.get('num_files') as number
 	}
 
 	debug(...args: any[]) {
@@ -125,6 +126,10 @@ export class STWorkerDO extends DurableObject<Environment> {
 			}
 
 			for (let i = 0; i < this.num_files; i++) {
+				if (this.shouldStop) {
+					console.log('should stop')
+					break
+				}
 				// let file = this.zero.store.getCommittedData()?.files[0]
 				// const fileId = file?.id ?? uniqueId()
 				let file = null
@@ -164,18 +169,27 @@ export class STWorkerDO extends DurableObject<Environment> {
 			console.error(e)
 		}
 	}
+	delay = 0
 
 	async start(maxDelay: number, num_files: number, id: string, origin: string) {
 		this.debug('worker.start()', id, maxDelay, new Date().toISOString())
+		this.state.storage.put('num_files', num_files)
 		this.num_files = num_files
 		this.state.storage.put('id', id)
 		this.state.storage.put('origin', origin)
-		const delay = Math.floor(Math.random() * maxDelay)
+		await this.time('startup', async () => {
+			return Promise.resolve()
+		})
+		this.delay = Math.floor(Math.random() * maxDelay)
+	}
+
+	async work() {
+		this.debug('work', new Date().toISOString())
 		const alarm = await this.state.storage.getAlarm()
 		if (alarm) {
 			await this.state.storage.deleteAlarm()
 		}
-		this.state.storage.setAlarm(Date.now() + delay)
+		this.state.storage.setAlarm(Date.now() + this.delay)
 	}
 
 	override alarm() {
@@ -184,6 +198,7 @@ export class STWorkerDO extends DurableObject<Environment> {
 	}
 
 	async stop() {
+		this.shouldStop = true
 		await this.state.storage.deleteAlarm()
 		await this.state.storage.deleteAll()
 		this.zero?.dispose()
