@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Vec, useEditor } from 'tldraw'
+import { usePrefersReducedMotion } from 'tldraw/src/lib/shapes/shared/usePrefersReducedMotion'
 
 /* eslint-disable local/prefer-class-methods */
 interface Snowflake {
@@ -148,8 +149,10 @@ class Snowstorm {
 export function SnowStorm() {
 	const editor = useEditor()
 	const rElm = useRef<HTMLDivElement>(null)
+	const prefersReducedMotion = usePrefersReducedMotion()
 
 	useEffect(() => {
+		if (prefersReducedMotion) return
 		if (!rElm.current) return
 		const snowstorm = new Snowstorm(rElm.current)
 		const velocity = new Vec(0, 0)
@@ -198,7 +201,7 @@ export function SnowStorm() {
 			editor.off('tick', updateOnTick)
 			snowstorm.dispose()
 		}
-	}, [editor])
+	}, [editor, prefersReducedMotion])
 
 	return <div ref={rElm} className="tl-snowstorm" />
 }
