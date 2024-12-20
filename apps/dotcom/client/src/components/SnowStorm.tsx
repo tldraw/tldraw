@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Vec, useEditor, usePrefersReducedMotion } from 'tldraw'
+import { Vec, useEditor, useValue } from 'tldraw'
 
 /* eslint-disable local/prefer-class-methods */
 interface Snowflake {
@@ -148,7 +148,12 @@ class Snowstorm {
 export function SnowStorm() {
 	const editor = useEditor()
 	const rElm = useRef<HTMLDivElement>(null)
-	const prefersReducedMotion = usePrefersReducedMotion()
+
+	const prefersReducedMotion = useValue(
+		'animation speed',
+		() => editor.user.getAnimationSpeed() === 0,
+		[editor]
+	)
 
 	useEffect(() => {
 		if (prefersReducedMotion) return
