@@ -8,8 +8,9 @@ interface Snowflake {
 	y: number
 	vx: number
 	vy: number
+	pvx: number
+	pvy: number
 	size: number
-	opacity: number
 }
 
 function rnd(min: number, max: number): number {
@@ -22,19 +23,17 @@ class Snowstorm {
 	private container: HTMLElement
 	private width: number
 	private height: number
-	private wind = 0
+
 	windX = 0
 	windY = 0
-	offsetX = 0
-	offsetY = 0
+
+	baseWindX = 0
 
 	// Configuration options
 	private readonly config = {
-		autoStart: true,
 		flakesMax: 128,
 		flakesMaxActive: 64,
 		animationInterval: 30,
-		snowColor: '#ccc',
 		flakeSizeMin: 2,
 		flakeSizeMax: 8,
 		windMax: 2,
@@ -48,14 +47,13 @@ class Snowstorm {
 
 	private createSnowflake(): Snowflake {
 		const size = rnd(this.config.flakeSizeMin, this.config.flakeSizeMax)
+		const opacity = rnd(0.5, 1)
+
 		const element = document.createElement('div')
-		element.style.position = 'absolute'
 		element.style.width = `${size}px`
 		element.style.height = `${size}px`
-		element.style.backgroundColor = this.config.snowColor
-		element.style.borderRadius = '50%'
-		element.style.opacity = `${rnd(0.5, 1)}`
-		element.style.pointerEvents = 'none'
+		element.classList.add('tl-snowflake')
+		element.style.opacity = opacity.toString()
 
 		this.container.appendChild(element)
 
@@ -65,39 +63,58 @@ class Snowstorm {
 			y: rnd(-this.height, 0),
 			vx: rnd(-this.config.windMax, this.config.windMax),
 			vy: rnd(1, 3),
+			pvx: 0,
+			pvy: 0,
 			size,
-			opacity: parseFloat(element.style.opacity),
 		}
-	}
-
-	private updateSnowflake(flake: Snowflake) {
-		flake.x += flake.vx + this.windX
-		flake.y += flake.vy + this.windY
-
-		if (flake.x < 0) {
-			flake.x += this.width
-		} else if (flake.x > this.width) {
-			flake.x -= this.width
-		}
-
-		if (flake.y < 0) {
-			flake.y += this.height
-		} else if (flake.y > this.height) {
-			flake.y -= this.height
-		}
-
-		flake.element.style.transform = `translate(${flake.x}px, ${flake.y}px)`
 	}
 
 	// Main render loop
-	render = () => {
+	render = (screenPoint: Vec, pointerVelocity: Vec) => {
 		if (!this.active) return
 
-		let activeFlakes = 0
+		const pointerLen = pointerVelocity.len2()
+
 		for (const flake of this.flakes) {
-			this.updateSnowflake(flake)
-			activeFlakes++
-			if (activeFlakes >= this.config.flakesMaxActive) break
+			const dist2 = Vec.Dist2(screenPoint, new Vec(flake.x, flake.y))
+			// if the snowflake is close to the pointer, give it a little boost based on the pointer velocity
+
+			if (dist2 < 10000 && pointerLen > 1) {
+				flake.pvx = pointerVelocity.x
+				flake.pvy = pointerVelocity.y
+			} else {
+				if (flake.pvx !== 0) {
+					flake.pvx *= 0.9
+					if (Math.abs(flake.pvx) < 0.01) {
+						flake.pvx = 0
+					}
+					flake.pvy *= 0.9
+					if (Math.abs(flake.pvy) < 0.01) {
+						flake.pvy = 0
+					}
+				}
+			}
+
+			flake.x += flake.vx + this.windX + this.baseWindX + flake.pvx
+			flake.y += flake.vy + this.windY + flake.pvy
+
+			if (flake.x < 0) {
+				flake.x += this.width
+				flake.pvx = 0
+			} else if (flake.x > this.width) {
+				flake.x -= this.width
+				flake.pvx = 0
+			}
+
+			if (flake.y < 0) {
+				flake.y += this.height
+				flake.pvx = 0
+			} else if (flake.y > this.height) {
+				flake.y -= this.height
+				flake.pvx = 0
+			}
+
+			flake.element.style.transform = `translate(${flake.x}px, ${flake.y}px)`
 		}
 	}
 
@@ -139,8 +156,16 @@ export function SnowStorm() {
 		const velocity = new Vec(0, 0)
 		const camera = Vec.From(editor.getCamera())
 
+		const start = Date.now()
+
 		function updateOnTick() {
-			const newCamera = Vec.From(editor.getCamera())
+			const time = Date.now() - start
+
+			// make wind gradually cycle between 0 and 10, maybe a bit randomly, like gusts of wind
+			snowstorm.baseWindX = Math.sin(time / 30000) * 1
+
+			const newCamera = editor.getCamera()
+
 			if (newCamera.z === camera.z) {
 				const dx = newCamera.x - camera.x
 				const dy = newCamera.y - camera.y
@@ -152,7 +177,7 @@ export function SnowStorm() {
 			}
 
 			camera.setTo(newCamera)
-			snowstorm.render()
+			snowstorm.render(editor.inputs.currentScreenPoint, editor.inputs.pointerVelocity)
 		}
 
 		editor.on('tick', updateOnTick)
@@ -162,17 +187,5 @@ export function SnowStorm() {
 		}
 	}, [editor])
 
-	return (
-		<div
-			ref={rElm}
-			style={{
-				position: 'absolute',
-				width: '100%',
-				height: '100%',
-				zIndex: 99999999,
-				pointerEvents: 'none',
-				transform: 'translateZ(0)',
-			}}
-		/>
-	)
+	return <div ref={rElm} className="tl-snowstorm" />
 }
