@@ -2444,6 +2444,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (next.zoomSteps?.length < 1) next.zoomSteps = [1]
 		this._cameraOptions.set(next)
 		this.setCamera(this.getCamera())
+		this.emit('camera-options-change', next)
 		return this
 	}
 
@@ -9445,11 +9446,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 					const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
 					const { x: dx, y: dy, z: dz = 0 } = info.delta
 
-					let behavior = wheelBehavior
+					let autoWheelBehavior = cameraOptions.autoWheelBehavior
+					// Set autoWheelBehavior to pan when scrolling horizontally or when scrolling vertically with ctrlKey set to true. The reason for the latter is that pinch to zoom on a touchpad generates vertical scroll events with ctrlKey set to true.
+					// Don't set it when panning because if you're panning by holding down the mouse wheel and the wheel can be tilted to scroll horizontally it's easy to accidentally trigger that.
+					if (
+						autoWheelBehavior !== 'pan' &&
+						!inputs.isPanning &&
+						(dx !== 0 || (dy !== 0 && inputs.ctrlKey))
+					) {
+						autoWheelBehavior = 'pan' as const
+						this.setCameraOptions({ autoWheelBehavior })
+					}
+
+					const currentBehavior = wheelBehavior === 'auto' ? autoWheelBehavior : wheelBehavior
+					let behavior = currentBehavior
 
 					// If the camera behavior is "zoom" and the ctrl key is pressed, then pan;
 					// If the camera behavior is "pan" and the ctrl key is not pressed, then zoom
-					if (inputs.ctrlKey) behavior = wheelBehavior === 'pan' ? 'zoom' : 'pan'
+					if (inputs.ctrlKey) behavior = currentBehavior === 'pan' ? 'zoom' : 'pan'
 
 					switch (behavior) {
 						case 'zoom': {
@@ -9458,7 +9472,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							let delta = dz
 
 							// If we're forcing zoom, then we need to do the wheel normalization math here
-							if (wheelBehavior === 'zoom') {
+							if (currentBehavior === 'zoom') {
 								if (Math.abs(dy) > 10) {
 									delta = (10 * Math.sign(dy)) / 100
 								} else {
@@ -9555,6 +9569,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (this.inputs.isPanning) {
 							this.stopCameraAnimation()
 							this.setCursor({ type: 'grabbing', rotation: 0 })
+							if (cameraOptions.autoWheelBehavior !== 'zoom') {
+								this.setCameraOptions({ autoWheelBehavior: 'zoom' })
+							}
 							return this
 						}
 
@@ -9577,6 +9594,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 								{ immediate: true }
 							)
 							this.maybeTrackPerformance('Panning')
+							if (cameraOptions.autoWheelBehavior !== 'zoom') {
+								this.setCameraOptions({ autoWheelBehavior: 'zoom' })
+							}
 							return
 						}
 
