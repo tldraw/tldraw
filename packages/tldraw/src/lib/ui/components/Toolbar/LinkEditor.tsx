@@ -62,7 +62,6 @@ export function LinkEditor({ textEditor, value: initialValue, onComplete }: Link
 				data-testid="rich-text.link-input"
 				className="tl-rich-text__toolbar-link-input"
 				value={value}
-				shouldManuallyMaintainScrollPositionWhenFocused
 				onValueChange={handleValueChange}
 				onComplete={handleLinkComplete}
 				onCancel={handleLinkCancel}
