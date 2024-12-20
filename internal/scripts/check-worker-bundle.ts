@@ -38,6 +38,8 @@ const EXTERNAL_DEPS = [
 	'fs',
 	'os',
 	'perf_hooks',
+	'path',
+	'dns',
 ]
 
 async function checkBundleSize() {

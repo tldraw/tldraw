@@ -21,7 +21,12 @@
 			}
 		]
 	},
-	"include": ["**/*.ts", "**/*.tsx", "zero.config.ts"],
+	"include": [
+		"**/*.ts",
+		"**/*.tsx",
+		"zero.config.ts",
+		"../../../packages/dotcom-shared/src/zero-polyfill.ts"
+	],
 	"exclude": ["node_modules", "_archive"],
 	"references": [
 		{

@@ -1,4 +1,5 @@
 /* eslint-disable local/no-export-star */
+export type * from './DB.ts'
 export * from './OptimisticAppStore'
 export { default as getLicenseKey } from './license'
 export {
@@ -10,5 +11,7 @@ export {
 	SNAPSHOT_PREFIX,
 	type RoomOpenMode,
 } from './routes'
+export type * from './stress-test-types'
 export * from './tlaSchema'
 export * from './types'
+export * from './zero-polyfill'

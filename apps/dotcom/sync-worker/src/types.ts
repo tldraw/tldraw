@@ -52,6 +52,8 @@ export interface Environment {
 	ASSET_UPLOAD_ORIGIN: string | undefined
 
 	RATE_LIMITER: RateLimit
+
+	TEST_AUTH_SECRET: string | undefined
 }
 
 export type DBLoadResult =

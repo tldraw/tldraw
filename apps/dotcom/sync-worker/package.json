@@ -32,12 +32,15 @@
 		"@tldraw/worker-shared": "workspace:*",
 		"itty-router": "^5.0.17",
 		"jose": "^5.9.6",
+		"kysely": "^0.27.5",
+		"pg": "^8.13.1",
 		"postgres": "patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20241022.0",
+		"@types/pg": "^8.11.10",
 		"esbuild": "^0.21.5",
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "~5.4.2",

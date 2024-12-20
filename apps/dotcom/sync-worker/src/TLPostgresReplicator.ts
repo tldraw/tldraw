@@ -51,7 +51,7 @@ const migrations: Migration[] = [
 	},
 ]
 
-const ONE_MINUTE = 60 * 1000
+// const ONE_MINUTE = 60 * 1000
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -93,7 +93,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	sentry
 	// eslint-disable-next-line local/prefer-class-methods
 	private captureException = (exception: unknown, eventHint?: EventHint) => {
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(exception, eventHint) as any
 		if (!this.sentry) {
 			console.error(`[TLPostgresReplicator]: `, exception)
@@ -115,6 +114,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.reboot(false)
 		this.alarm()
 		this.measure = env.MEASURE
+		this.clearLogs()
 	}
 
 	private _applyMigration(index: number) {
@@ -149,6 +149,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		for (let i = appliedMigrations.length; i < migrations.length; i++) {
 			this._applyMigration(i)
 		}
+
+		this.sql.exec(`CREATE TABLE IF NOT EXISTS log (
+				log TEXT 
+			);`)
 	}
 
 	__test__forceReboot() {
@@ -162,7 +166,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		// uncomment for dev time debugging
 		// console.log('[TLPostgresReplicator]:', ...args)
 		if (this.sentry) {
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			this.sentry.addBreadcrumb({
 				message: `[TLPostgresReplicator]: ${args.join(' ')}`,
 			})
@@ -170,19 +173,26 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 	override async alarm() {
 		this.ctx.storage.setAlarm(Date.now() + 1000)
-		this.maybeLogRpm()
+		await this.maybeLogRpm()
 	}
 
-	private maybeLogRpm() {
-		const now = Date.now()
-		if (this.postgresUpdates > 0 && now - this.lastRpmLogTime > ONE_MINUTE) {
-			this.logEvent({
-				type: 'rpm',
-				rpm: this.postgresUpdates,
-			})
-			this.postgresUpdates = 0
-			this.lastRpmLogTime = now
+	private async maybeLogRpm() {
+		if (this.state.type === 'connected') {
+			const connection_count = await this.state
+				.db`SELECT COUNT(*) FROM pg_stat_activity where datname = 'postgres'`
+			console.log('connection count:', connection_count[0].count)
 		}
+		console.log('this.postgresUpdates=', this.postgresUpdates)
+		this.postgresUpdates = 0
+		// TODO: restore this later to make sure we push stuff to metrics
+		// if (this.postgresUpdates > 0 && now - this.lastRpmLogTime > ONE_MINUTE) {
+		// 	this.logEvent({
+		// 		type: 'rpm',
+		// 		rpm: this.postgresUpdates,
+		// 	})
+		// 	this.postgresUpdates = 0
+		// 	this.lastRpmLogTime = now
+		// }
 	}
 
 	private queue = new ExecutionQueue()
@@ -317,6 +327,12 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	) {
 		if (event.command === 'delete') return
 		assert(typeof row?.mutationNumber === 'number', 'mutationNumber is required')
+		this.storeLog(
+			'replicator mutation commit',
+			new Date().toISOString(),
+			row.userId,
+			row.mutationNumber
+		)
 		this.messageUser(row.userId, {
 			type: 'mutation_commit',
 			mutationNumber: row.mutationNumber,
@@ -403,6 +419,18 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		})
 	}
 
+	storeLog(...args: any[]) {
+		this.sql.exec(`INSERT INTO log (log) VALUES (?)`, args.join(' '))
+	}
+
+	getLogs() {
+		return this.sql.exec(`SELECT * FROM log`).toArray()
+	}
+
+	clearLogs() {
+		this.sql.exec(`DELETE FROM log`)
+	}
+
 	private handleFileEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
 		assert(row?.id, 'row id is required')
 		const impactedUserIds = this.sql
@@ -417,6 +445,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			assert(row.ownerId, 'ownerId is required when updating file')
 			this.getStubForFile(row.id).appFileRecordDidUpdate(row as TlaFile)
 		} else if (event.command === 'insert') {
+			this.storeLog('replicator file insert', new Date().toISOString(), (row as TlaFile).id)
 			assert(row.ownerId, 'ownerId is required when inserting file')
 			if (!impactedUserIds.includes(row.ownerId)) {
 				impactedUserIds.push(row.ownerId)
