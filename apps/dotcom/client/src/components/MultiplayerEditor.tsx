@@ -44,6 +44,7 @@ import { MultiplayerFileMenu } from './FileMenu'
 import { Links } from './Links'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
+import { SnowStorm } from './SnowStorm'
 import { StoreErrorScreen } from './StoreErrorScreen'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
 
@@ -112,6 +113,9 @@ const components: TLComponents = {
 				<ShareMenu />
 			</div>
 		)
+	},
+	InFrontOfTheCanvas: () => {
+		return <SnowStorm />
 	},
 }
 
