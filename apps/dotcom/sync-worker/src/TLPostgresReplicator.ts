@@ -114,6 +114,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.reboot(false)
 		this.alarm()
 		this.measure = env.MEASURE
+		this.clearLogs()
 	}
 
 	private _applyMigration(index: number) {
@@ -148,6 +149,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		for (let i = appliedMigrations.length; i < migrations.length; i++) {
 			this._applyMigration(i)
 		}
+
+		this.sql.exec(`CREATE TABLE IF NOT EXISTS log (
+				log TEXT 
+			);`)
 	}
 
 	__test__forceReboot() {
@@ -322,6 +327,12 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	) {
 		if (event.command === 'delete') return
 		assert(typeof row?.mutationNumber === 'number', 'mutationNumber is required')
+		this.storeLog(
+			'replicator mutation commit',
+			new Date().toISOString(),
+			row.userId,
+			row.mutationNumber
+		)
 		this.messageUser(row.userId, {
 			type: 'mutation_commit',
 			mutationNumber: row.mutationNumber,
@@ -408,6 +419,18 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		})
 	}
 
+	storeLog(...args: any[]) {
+		this.sql.exec(`INSERT INTO log (log) VALUES (?)`, args.join(' '))
+	}
+
+	getLogs() {
+		return this.sql.exec(`SELECT * FROM log`).toArray()
+	}
+
+	clearLogs() {
+		this.sql.exec(`DELETE FROM log`)
+	}
+
 	private handleFileEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
 		assert(row?.id, 'row id is required')
 		const impactedUserIds = this.sql
@@ -422,6 +445,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			assert(row.ownerId, 'ownerId is required when updating file')
 			this.getStubForFile(row.id).appFileRecordDidUpdate(row as TlaFile)
 		} else if (event.command === 'insert') {
+			this.storeLog('replicator file insert', new Date().toISOString(), (row as TlaFile).id)
 			assert(row.ownerId, 'ownerId is required when inserting file')
 			if (!impactedUserIds.includes(row.ownerId)) {
 				impactedUserIds.push(row.ownerId)

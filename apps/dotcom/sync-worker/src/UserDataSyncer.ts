@@ -342,6 +342,12 @@ export class UserDataSyncer {
 		this.state.lastSequenceNumber++
 
 		if (event.type === 'mutation_commit') {
+			this.replicator.storeLog(
+				'user do mutation commit',
+				new Date().toISOString(),
+				this.userId,
+				event.mutationNumber
+			)
 			this.commitMutations(event.mutationNumber)
 			return
 		}

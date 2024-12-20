@@ -307,7 +307,19 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							break
 						} else {
 							const { id: _id, ...rest } = update.row as any
-							await tx
+							if (update.table === 'file') {
+								this.replicator.storeLog(
+									'user do file insert before',
+									new Date().toISOString(),
+									'user id',
+									this.userId,
+									'mutation id',
+									msg.mutationId,
+									'file id',
+									_id
+								)
+							}
+							const result = await tx
 								.insertInto(update.table)
 								.values(update.row as any)
 								.onConflict((oc) => oc.column('id').doUpdateSet(rest))
@@ -385,6 +397,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			await retryOnConnectionFailure(
 				() => this._doMutate(msg),
 				() => {
+					this.replicator.storeLog(
+						'user DO connection retry',
+						new Date().toISOString(),
+						this.userId
+					)
 					this.logEvent({ type: 'connect_retry', id: this.userId! })
 				}
 			)
@@ -412,6 +429,14 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						.returning('mutationNumber')
 						.executeTakeFirstOrThrow()
 					this.debug('mutation number success', this.userId)
+					this.replicator.storeLog(
+						'user do mutation number success',
+						new Date().toISOString(),
+						'user id',
+						this.userId,
+						'mutation number',
+						result.mutationNumber
+					)
 					const mutationNumber = Number(result.mutationNumber)
 					const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
 					assert(
@@ -426,6 +451,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					throw e
 				})
 		} catch (e) {
+			this.replicator.storeLog(
+				'user DO mutation failed',
+				new Date().toISOString(),
+				'user id',
+				this.userId
+			)
 			const code = e instanceof ZMutationError ? e.errorCode : ZErrorCode.unknown_error
 			this.captureException(e, {
 				data: { errorCode: code, reason: 'mutation failed' },
