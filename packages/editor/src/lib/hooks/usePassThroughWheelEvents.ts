@@ -5,7 +5,6 @@ import { useContainer } from './useContainer'
 /** @public */
 export function usePassThroughWheelEvents(ref: RefObject<HTMLElement>) {
 	if (!ref) throw Error('usePassThroughWheelEvents must be passed a ref')
-
 	const container = useContainer()
 
 	useEffect(() => {

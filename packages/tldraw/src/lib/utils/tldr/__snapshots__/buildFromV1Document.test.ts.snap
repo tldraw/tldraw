@@ -67,9 +67,16 @@ exports[`buildFromV1Document test fixtures arrow-binding.tldr 1`] = `
       "growY": 0,
       "h": 177.03,
       "labelColor": "red",
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
-      "text": "",
       "url": "",
       "verticalAlign": "middle",
       "w": 136.64,
@@ -97,9 +104,16 @@ exports[`buildFromV1Document test fixtures arrow-binding.tldr 1`] = `
       "growY": 0,
       "h": 114.39,
       "labelColor": "red",
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
-      "text": "",
       "url": "",
       "verticalAlign": "middle",
       "w": 240.17,
@@ -215,9 +229,16 @@ exports[`buildFromV1Document test fixtures exact-arrow-binding.tldr 1`] = `
       "growY": 0,
       "h": 177.03,
       "labelColor": "red",
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
-      "text": "",
       "url": "",
       "verticalAlign": "middle",
       "w": 136.64,
@@ -245,9 +266,16 @@ exports[`buildFromV1Document test fixtures exact-arrow-binding.tldr 1`] = `
       "growY": 0,
       "h": 114.39,
       "labelColor": "red",
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
-      "text": "",
       "url": "",
       "verticalAlign": "middle",
       "w": 240.17,
@@ -346,9 +374,16 @@ exports[`buildFromV1Document test fixtures incorrect-arrow-binding.tldr 1`] = `
       "growY": 0,
       "h": 177.03,
       "labelColor": "red",
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
-      "text": "",
       "url": "",
       "verticalAlign": "middle",
       "w": 136.64,
@@ -376,9 +411,16 @@ exports[`buildFromV1Document test fixtures incorrect-arrow-binding.tldr 1`] = `
       "growY": 0,
       "h": 114.39,
       "labelColor": "red",
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
-      "text": "",
       "url": "",
       "verticalAlign": "middle",
       "w": 240.17,

@@ -1,0 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap');
+
+html {
+  --title-font-family: 'Helvetica', sans-serif;
+}
+
+select {
+  border: 0;
+  background: transparent;
+  margin: 0 8px;
+}

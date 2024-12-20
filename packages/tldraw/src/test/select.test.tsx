@@ -24,7 +24,7 @@ describe(SelectTool, () => {
 
 			expect(editor.getCurrentPageState().editingShapeId).toBe(shapeId)
 
-			// note: this behavior has moved to the React hook useEditableText.
+			// note: this behavior has moved to the React hook useEditablePlainText.
 			// clicking on the input will preserve selection, however you can
 			// click on the shape itself to select it as usual.
 			// clicking on the shape should not do anything

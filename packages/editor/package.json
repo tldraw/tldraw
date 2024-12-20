@@ -45,6 +45,9 @@
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
+		"@tiptap/core": "^2.9.1",
+		"@tiptap/pm": "^2.9.1",
+		"@tiptap/react": "^2.9.1",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/state-react": "workspace:*",
 		"@tldraw/store": "workspace:*",
