@@ -161,7 +161,7 @@ export function SnowStorm() {
 			const time = Date.now() - start
 
 			// make wind gradually cycle between 0 and 10, maybe a bit randomly, like gusts of wind
-			snowstorm.baseWindX = Math.sin(time / 30000) * 1
+			snowstorm.baseWindX = Math.sin(time / 30_000) * 3
 
 			const newCamera = editor.getCamera()
 
