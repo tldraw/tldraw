@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Vec, useEditor } from 'tldraw'
-import { usePrefersReducedMotion } from 'tldraw/src/lib/shapes/shared/usePrefersReducedMotion'
+import { Vec, useEditor, usePrefersReducedMotion } from 'tldraw'
 
 /* eslint-disable local/prefer-class-methods */
 interface Snowflake {
