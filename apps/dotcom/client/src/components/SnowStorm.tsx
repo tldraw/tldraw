@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Vec, useEditor } from 'tldraw'
+import { Vec, useEditor, useValue } from 'tldraw'
 
 /* eslint-disable local/prefer-class-methods */
 interface Snowflake {
@@ -149,7 +149,14 @@ export function SnowStorm() {
 	const editor = useEditor()
 	const rElm = useRef<HTMLDivElement>(null)
 
+	const prefersReducedMotion = useValue(
+		'animation speed',
+		() => editor.user.getAnimationSpeed() === 0,
+		[editor]
+	)
+
 	useEffect(() => {
+		if (prefersReducedMotion) return
 		if (!rElm.current) return
 		const snowstorm = new Snowstorm(rElm.current)
 		const velocity = new Vec(0, 0)
@@ -161,7 +168,7 @@ export function SnowStorm() {
 			const time = Date.now() - start
 
 			// make wind gradually cycle between 0 and 10, maybe a bit randomly, like gusts of wind
-			snowstorm.baseWindX = Math.sin(time / 30_000) * 3
+			snowstorm.baseWindX = Math.sin(time / 30_000) * 2
 
 			const newCamera = editor.getCamera()
 
@@ -198,7 +205,7 @@ export function SnowStorm() {
 			editor.off('tick', updateOnTick)
 			snowstorm.dispose()
 		}
-	}, [editor])
+	}, [editor, prefersReducedMotion])
 
 	return <div ref={rElm} className="tl-snowstorm" />
 }
