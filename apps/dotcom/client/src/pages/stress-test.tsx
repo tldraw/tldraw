@@ -84,6 +84,15 @@ export function Component() {
 		})
 	}
 
+	let results: any[] = []
+
+	if (currentTest) {
+		const events = state.tests[currentTest]?.events
+		if (events) {
+			results = events.filter((event) => !!event.error)
+		}
+	}
+
 	return (
 		<div style={{ height: '100%', overflow: 'scroll' }}>
 			<div style={{ display: 'flex', padding: '10px', alignItems: 'center', gap: '5px' }}>
@@ -97,7 +106,7 @@ export function Component() {
 				<button onClick={handleStop}>Stop test</button>
 				<button onClick={handleReset}>Reset</button>
 			</div>
-			<pre>{JSON.stringify(state, null, 2)}</pre>
+			<pre>{JSON.stringify(results.length > 0 ? results : state, null, 2)}</pre>
 		</div>
 	)
 }
