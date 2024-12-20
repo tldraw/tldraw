@@ -181,6 +181,9 @@ export function SnowStorm() {
 		}
 
 		editor.on('tick', updateOnTick)
+
+		// eslint-disable-next-line no-console
+		console.log('happy holidays from tldraw')
 		return () => {
 			editor.off('tick', updateOnTick)
 			snowstorm.dispose()
