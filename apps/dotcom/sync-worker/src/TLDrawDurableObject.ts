@@ -306,7 +306,11 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 		try {
 			const pg = getPooledPostgres(this.env, { name: 'TLDrawDurableObject' })
-			const fileRecord = await pg.selectFrom('file').selectAll().executeTakeFirstOrThrow()
+			const fileRecord = await pg
+				.selectFrom('file')
+				.where('id', '=', this.documentInfo.slug)
+				.selectAll()
+				.executeTakeFirstOrThrow()
 			pg.destroy()
 			this._fileRecordCache = fileRecord
 			return this._fileRecordCache
