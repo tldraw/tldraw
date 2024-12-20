@@ -1,4 +1,5 @@
 import {
+	DB,
 	isColumnMutable,
 	ROOM_PREFIX,
 	TlaFile,
@@ -15,9 +16,9 @@ import { assert } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
-import postgres from 'postgres'
+import { Kysely, sql } from 'kysely'
 import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
-import { getPostgres } from './getPostgres'
+import { getPooledPostgres } from './getPostgres'
 import { getR2KeyForRoom } from './r2'
 import { type TLPostgresReplicator } from './TLPostgresReplicator'
 import { Analytics, Environment, TLUserDurableObjectEvent } from './types'
@@ -29,7 +30,7 @@ import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 import { getCurrentSerializedRoomSnapshot } from './utils/tla/getCurrentSerializedRoomSnapshot'
 
 export class TLUserDurableObject extends DurableObject<Environment> {
-	private readonly db: ReturnType<typeof postgres>
+	private readonly db: Kysely<DB>
 	private readonly replicator: TLPostgresReplicator
 	private measure: Analytics | undefined
 
@@ -50,7 +51,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.sentry = createSentry(ctx, env)
 		this.replicator = getReplicator(env)
 
-		this.db = getPostgres(env, { pooled: true, name: 'TLUserDurableObject' })
+		this.db = getPooledPostgres(env, { name: 'TLUserDurableObject' })
 		this.debug('created')
 		this.measure = env.MEASURE
 	}
@@ -286,22 +287,32 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private async _doMutate(msg: ZClientSentMessage) {
 		this.assertCache()
-		await this.db.begin(async (sql) => {
+		await this.db.transaction().execute(async (tx) => {
 			for (const update of msg.updates) {
 				await this.assertValidMutation(update)
 				switch (update.event) {
 					case 'insert': {
 						if (update.table === 'file_state') {
 							const { fileId: _fileId, userId: _userId, ...rest } = update.row as any
-							if (Object.keys(rest).length === 0) {
-								await sql`insert into ${sql('public.' + update.table)} ${sql(update.row)} ON CONFLICT ("fileId", "userId") DO NOTHING`
-							} else {
-								await sql`insert into ${sql('public.' + update.table)} ${sql(update.row)} ON CONFLICT ("fileId", "userId") DO UPDATE SET ${sql(rest)}`
-							}
+							await tx
+								.insertInto(update.table)
+								.values(update.row as TlaFileState)
+								.onConflict((oc) => {
+									if (Object.keys(oc).length === 0) {
+										return oc.columns(['fileId', 'userId']).doNothing()
+									} else {
+										return oc.columns(['fileId', 'userId']).doUpdateSet(rest)
+									}
+								})
+								.execute()
 							break
 						} else {
 							const { id: _id, ...rest } = update.row as any
-							await sql`insert into ${sql('public.' + update.table)} ${sql(update.row)} ON CONFLICT ("id") DO UPDATE SET ${sql(rest)}`
+							await tx
+								.insertInto(update.table)
+								.values(update.row as any)
+								.onConflict((oc) => oc.column('id').doUpdateSet(rest))
+								.execute()
 							break
 						}
 					}
@@ -315,11 +326,16 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						)
 						if (update.table === 'file_state') {
 							const { fileId, userId } = update.row as any
-							await sql`update public.file_state set ${sql(updates)} where "fileId" = ${fileId} and "userId" = ${userId}`
+							await tx
+								.updateTable('file_state')
+								.set(updates)
+								.where('fileId', '=', fileId)
+								.where('userId', '=', userId)
+								.execute()
 						} else {
 							const { id, ...rest } = update.row as any
 
-							await sql`update ${sql('public.' + update.table)} set ${sql(updates)} where id = ${id}`
+							await tx.updateTable(update.table).set(updates).where('id', '=', id).execute()
 							if (update.table === 'file') {
 								const currentFile = this.cache.store.getFullData()?.files.find((f) => f.id === id)
 								if (currentFile && currentFile.published !== rest.published) {
@@ -342,10 +358,14 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					case 'delete':
 						if (update.table === 'file_state') {
 							const { fileId, userId } = update.row as any
-							await sql`delete from public.file_state where "fileId" = ${fileId} and "userId" = ${userId}`
+							await tx
+								.deleteFrom('file_state')
+								.where('fileId', '=', fileId)
+								.where('userId', '=', userId)
+								.execute()
 						} else {
 							const { id } = update.row as any
-							await sql`delete from ${sql('public.' + update.table)} where id = ${id}`
+							await tx.deleteFrom(update.table).where('id', '=', id).execute()
 						}
 						if (update.table === 'file') {
 							const { id } = update.row as TlaFile
@@ -372,11 +392,23 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			// TODO: We should probably handle a case where the above operation succeeds but the one below fails
 			this.debug('mutation success', this.userId)
 			await this.db
-				.begin(async (sql) => {
-					const result =
-						await sql`insert into public.user_mutation_number ("userId", "mutationNumber") values (${this.userId}, 1) on conflict ("userId") do update set "mutationNumber" = user_mutation_number."mutationNumber" + 1 returning "mutationNumber"`
+				.transaction()
+				.execute(async (tx) => {
+					const result = await tx
+						.insertInto('user_mutation_number')
+						.values({
+							userId: this.userId!,
+							mutationNumber: 1,
+						})
+						.onConflict((oc) =>
+							oc.column('userId').doUpdateSet({
+								mutationNumber: sql`user_mutation_number."mutationNumber" + 1`,
+							})
+						)
+						.returning('mutationNumber')
+						.executeTakeFirstOrThrow()
 					this.debug('mutation number success', this.userId)
-					const mutationNumber = Number(result[0].mutationNumber)
+					const mutationNumber = Number(result.mutationNumber)
 					const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
 					assert(
 						mutationNumber > currentMutationNumber,

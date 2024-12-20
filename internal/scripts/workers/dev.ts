@@ -127,6 +127,8 @@ class SizeReporter {
 			'--external:fs',
 			'--external:perf_hooks',
 			'--external:tls',
+			'--external:path',
+			'--external:dns',
 			'--target=esnext',
 			'--format=esm',
 		])
