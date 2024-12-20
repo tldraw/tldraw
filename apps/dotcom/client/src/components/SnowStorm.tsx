@@ -152,7 +152,6 @@ export function SnowStorm() {
 	useEffect(() => {
 		if (!rElm.current) return
 		const snowstorm = new Snowstorm(rElm.current)
-		snowstorm.start()
 		const velocity = new Vec(0, 0)
 		const camera = Vec.From(editor.getCamera())
 
@@ -167,10 +166,20 @@ export function SnowStorm() {
 			const newCamera = editor.getCamera()
 
 			if (newCamera.z === camera.z) {
-				const dx = newCamera.x - camera.x
-				const dy = newCamera.y - camera.y
+				const dx = (newCamera.x - camera.x) * camera.z
+				const dy = (newCamera.y - camera.y) * camera.z
 
-				velocity.addXY(dx / 20, dy / 20).mul(0.8)
+				// add the camera movement to the velocity
+				velocity.addXY(dx / 18, dy / 18)
+
+				// decay velocity
+				velocity.mul(0.82)
+
+				// stop the snowflakes from moving if the camera is not moving
+				if (velocity.len2() < 1) {
+					velocity.x = 0
+					velocity.y = 0
+				}
 
 				snowstorm.windX = velocity.x
 				snowstorm.windY = velocity.y
@@ -180,6 +189,7 @@ export function SnowStorm() {
 			snowstorm.render(editor.inputs.currentScreenPoint, editor.inputs.pointerVelocity)
 		}
 
+		snowstorm.start()
 		editor.on('tick', updateOnTick)
 
 		// eslint-disable-next-line no-console
