@@ -152,6 +152,22 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		},
 	},
 	{
+		url: `https://www.google.com/maps/place/Shepherd's+Bush,+London/@51.5041626,-0.2468738,14z/data=!4m15!1m8!3m7!1s0x48760e1ce753774f:0x4420ec29705422c7!2sActon,+London!3b1!8m2!3d51.508372!4d-0.27444!16zL20vMG44cm0!3m5!1s0x48760fd28997cb07:0x6c79a6e5e0483766!8m2!3d51.5051913!4d-0.22469!16zL20vMDFqMTJo?entry=ttu&g_ep=EgoyMDI0MTIxMS4wIKXMDSoASAFQAw%3D%3D`,
+		match: true,
+		output: {
+			type: 'google_maps',
+			embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=51.5041626,-0.2468738&zoom=14`,
+		},
+	},
+	{
+		url: `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2480.1159099846072!2d-0.11034668719177695!3d51.566108606294414!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x48761b96b188bb1b%3A0x9d8d2ab7a55d095e!2stldraw!5e0!3m2!1sen!2suk!4v1734706216129!5m2!1sen!2suk`,
+		match: true,
+		output: {
+			type: 'google_maps',
+			embedUrl: `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2480.1159099846072!2d-0.11034668719177695!3d51.566108606294414!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x48761b96b188bb1b%3A0x9d8d2ab7a55d095e!2stldraw!5e0!3m2!1sen!2suk!4v1734706216129!5m2!1sen!2suk`,
+		},
+	},
+	{
 		url: 'https://www.google.com/maps/timeline',
 		match: false,
 	},
@@ -440,11 +456,7 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 	{
 		embedUrl:
 			'https://google.com/maps/embed?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14',
-		match: true,
-		output: {
-			type: 'google_maps',
-			url: 'https://google.com/maps/embed?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14',
-		},
+		match: false,
 	},
 	// google_calendar
 	{
