@@ -81,7 +81,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 				if (match) {
 					const [, lat, lng, z] = match
 					const host = new URL(url).host.replace('www.', '')
-					result = `https://${host}/maps/embed/v1/view?key=AIzaSyD2M5rZTN_CWNWl1egdKaQBSZk-uxhIl5Q&center=${lat},${lng}&zoom=${z}`
+					result = `https://${host}/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=${lat},${lng}&zoom=${z}`
 				} else {
 					result = ''
 				}
