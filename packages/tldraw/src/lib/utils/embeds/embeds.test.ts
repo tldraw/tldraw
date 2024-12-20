@@ -440,7 +440,11 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 	{
 		embedUrl:
 			'https://google.com/maps/embed?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14',
-		match: false,
+		match: true,
+		output: {
+			type: 'google_maps',
+			url: 'https://google.com/maps/embed?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14',
+		},
 	},
 	// google_calendar
 	{

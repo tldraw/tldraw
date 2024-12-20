@@ -73,13 +73,15 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			'allow-presentation': true,
 		},
 		toEmbedUrl: (url) => {
-			if (url.includes('/maps/')) {
+			if (url.includes('/maps/embed?')) {
+				return url
+			} else if (url.includes('/maps/')) {
 				const match = url.match(/@(.*),(.*),(.*)z/)
 				let result: string
 				if (match) {
 					const [, lat, lng, z] = match
 					const host = new URL(url).host.replace('www.', '')
-					result = `https://${host}/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=${lat},${lng}&zoom=${z}`
+					result = `https://${host}/maps/embed/v1/view?key=AIzaSyD2M5rZTN_CWNWl1egdKaQBSZk-uxhIl5Q&center=${lat},${lng}&zoom=${z}`
 				} else {
 					result = ''
 				}
