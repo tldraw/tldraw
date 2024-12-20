@@ -26,7 +26,7 @@ import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { AlarmScheduler } from './AlarmScheduler'
 import { PERSIST_INTERVAL_MS } from './config'
-import { getPostgres } from './getPostgres'
+import { getPooledPostgres } from './getPostgres'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
@@ -305,11 +305,10 @@ export class TLDrawDurableObject extends DurableObject {
 			return this._fileRecordCache
 		}
 		try {
-			const postgres = getPostgres(this.env, { pooled: true, name: 'TLDrawDurableObject' })
-			const fileRecord =
-				await postgres`SELECT * FROM public.file WHERE ID = ${this.documentInfo.slug}`
-			this._fileRecordCache = fileRecord[0] as TlaFile
-			postgres.end()
+			const pg = getPooledPostgres(this.env, { name: 'TLDrawDurableObject' })
+			const fileRecord = await pg.selectFrom('file').selectAll().executeTakeFirstOrThrow()
+			pg.destroy()
+			this._fileRecordCache = fileRecord
 			return this._fileRecordCache
 		} catch (_e) {
 			return null
@@ -588,9 +587,12 @@ export class TLDrawDurableObject extends DurableObject {
 
 				// Update the updatedAt timestamp in the database
 				if (this.documentInfo.isApp) {
-					const pg = getPostgres(this.env, { pooled: true, name: 'TLDrawDurableObject' })
-					await pg`UPDATE public.file SET "updatedAt" = ${new Date().getTime()} WHERE id = ${this.documentInfo.slug}`
-					await pg.end()
+					const pg = getPooledPostgres(this.env, { name: 'TLDrawDurableObject' })
+					pg.updateTable('file')
+						.set({ updatedAt: new Date().getTime() })
+						.where('id', '=', this.documentInfo.slug)
+						.execute()
+					pg.destroy()
 				}
 			})
 		} catch (e) {
