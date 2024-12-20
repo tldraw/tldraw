@@ -35,7 +35,7 @@ class Snowstorm {
 		flakesMaxActive: 64,
 		animationInterval: 30,
 		flakeSizeMin: 2,
-		flakeSizeMax: 8,
+		flakeSizeMax: 5,
 		windMax: 2,
 	}
 
