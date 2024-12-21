@@ -1,0 +1,28 @@
+diff --git a/dist/module.js b/dist/module.js
+index 158bd81c78c69afec2f3353204a227765c4e70b9..65c2ed2a7453b8ad8e540804e9910d940aef76f2 100644
+--- a/dist/module.js
++++ b/dist/module.js
+@@ -2443,6 +2443,7 @@ class $89bd6bb200cc8fef$export$2e2bcd8739ae039 extends (0, $fb96b826c0c5f37a$exp
+                 }),
+                 /*#__PURE__*/ (0, $bd9dd35321b03dd4$export$34b9dba7ce09269b)("div", {
+                     class: "flex flex-middle",
++                    style: {display: 'none'},
+                     children: [
+                         /*#__PURE__*/ (0, $bd9dd35321b03dd4$export$34b9dba7ce09269b)("div", {
+                             class: "search relative flex-grow",
+@@ -2486,6 +2487,7 @@ class $89bd6bb200cc8fef$export$2e2bcd8739ae039 extends (0, $fb96b826c0c5f37a$exp
+             children: [
+                 /*#__PURE__*/ (0, $bd9dd35321b03dd4$export$34b9dba7ce09269b)("div", {
+                     class: `sticky padding-small align-${this.dir[0]}`,
++                    style: {display: 'none'},
+                     children: (0, $7adb23b0109cc36a$export$dbe3113d60765c1a).categories.search
+                 }),
+                 /*#__PURE__*/ (0, $bd9dd35321b03dd4$export$34b9dba7ce09269b)("div", {
+@@ -2533,6 +2535,7 @@ class $89bd6bb200cc8fef$export$2e2bcd8739ae039 extends (0, $fb96b826c0c5f37a$exp
+                     children: [
+                         /*#__PURE__*/ (0, $bd9dd35321b03dd4$export$34b9dba7ce09269b)("div", {
+                             class: `sticky padding-small align-${this.dir[0]}`,
++                            style: {display: 'none'},
+                             children: category.name || (0, $7adb23b0109cc36a$export$dbe3113d60765c1a).categories[category.id]
+                         }),
+                         /*#__PURE__*/ (0, $bd9dd35321b03dd4$export$34b9dba7ce09269b)("div", {

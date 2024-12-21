@@ -1,0 +1,5 @@
+emoji-data-version-14.json is MIT Licensed
+
+Copyright (c) Missive.
+Source: https://github.com/missive/emoji-mart/tree/main/packages/emoji-mart-data
+License: https://github.com/missive/emoji-mart/blob/main/packages/emoji-mart-data/LICENSE
