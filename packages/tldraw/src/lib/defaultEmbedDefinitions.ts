@@ -73,8 +73,10 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			'allow-presentation': true,
 		},
 		toEmbedUrl: (url) => {
-			if (url.includes('/maps/')) {
-				const match = url.match(/@(.*),(.*),(.*)z/)
+			if (url.includes('/maps/embed?')) {
+				return url
+			} else if (url.includes('/maps/')) {
+				const match = url.match(/@(.*?),(.*?),(.*?)z/)
 				let result: string
 				if (match) {
 					const [, lat, lng, z] = match
