@@ -1,4 +1,10 @@
-import { Editor, GeoShapeGeoStyle, useEditor } from '@tldraw/editor'
+import {
+	createShapeId,
+	Editor,
+	GeoShapeGeoStyle,
+	TLPointerEventInfo,
+	useEditor,
+} from '@tldraw/editor'
 import * as React from 'react'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { TLUiEventSource, useUiEvents } from '../context/events'
@@ -16,6 +22,8 @@ export interface TLUiToolItem<
 	shortcutsLabel?: TranslationKey
 	icon: IconType
 	onSelect(source: TLUiEventSource): void
+	draggable?: boolean
+	onDragStart?(source: TLUiEventSource, info: TLPointerEventInfo): void
 	kbd?: string
 	readonlyOk?: boolean
 	meta?: {
@@ -34,7 +42,9 @@ export interface TLUiToolsProviderProps {
 	overrides?(
 		editor: Editor,
 		tools: TLUiToolsContextType,
-		helpers: { insertMedia(): void }
+		helpers: {
+			insertMedia(): void
+		}
 	): TLUiToolsContextType
 	children: React.ReactNode
 }
@@ -101,20 +111,46 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					trackEvent('select-tool', { source, id: 'draw' })
 				},
 			},
-			...[...GeoShapeGeoStyle.values].map((id) => ({
-				id,
-				label: `tool.${id}` as TLUiTranslationKey,
+			...[...GeoShapeGeoStyle.values].map((geo) => ({
+				id: geo,
+				label: `tool.${geo}` as TLUiTranslationKey,
 				meta: {
-					geo: id,
+					geo,
 				},
-				kbd: id === 'rectangle' ? 'r' : id === 'ellipse' ? 'o' : undefined,
-				icon: ('geo-' + id) as TLUiIconType,
+				kbd: geo === 'rectangle' ? 'r' : geo === 'ellipse' ? 'o' : undefined,
+				icon: ('geo-' + geo) as TLUiIconType,
 				onSelect(source: TLUiEventSource) {
 					editor.run(() => {
-						editor.setStyleForNextShapes(GeoShapeGeoStyle, id)
+						editor.setStyleForNextShapes(GeoShapeGeoStyle, geo)
 						editor.setCurrentTool('geo')
-						trackEvent('select-tool', { source, id: `geo-${id}` })
+						trackEvent('select-tool', { source, id: `geo-${geo}` })
 					})
+				},
+				draggable: true,
+				onDragStart(source: TLUiEventSource, info: TLPointerEventInfo) {
+					editor.run(() => {
+						editor.markHistoryStoppingPoint('drag geo tool')
+						editor.setCurrentTool('select.translating')
+						const { x, y } = editor.inputs.currentPagePoint.clone()
+						const id = createShapeId()
+						editor.createShape({ id, type: 'geo', x, y, props: { geo } })
+						const { w, h } = editor.getShapePageBounds(id)!
+						editor.updateShape({ id, type: 'geo', x: x - w / 2, y: y - h / 2 })
+						editor.select(id)
+						editor.setCurrentTool('select.translating', {
+							...info,
+							target: 'shape',
+							shape: editor.getShape(id),
+							isCreating: true,
+							creatingMarkId: 'drag geo tool',
+							onCreate() {
+								editor.setCurrentTool('select.idle')
+								editor.select(id)
+							},
+						})
+						editor.getCurrentTool().setCurrentToolIdMask('geo')
+					})
+					trackEvent('drag-tool', { source, id: 'geo' })
 				},
 			})),
 			{
@@ -125,6 +161,38 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				onSelect(source) {
 					editor.setCurrentTool('arrow')
 					trackEvent('select-tool', { source, id: 'arrow' })
+				},
+				draggable: true,
+				onDragStart(source: TLUiEventSource, info: TLPointerEventInfo) {
+					editor.run(() => {
+						editor.markHistoryStoppingPoint('drag arrow tool')
+						editor.setCurrentTool('select.translating')
+						const { x, y } = editor.inputs.currentPagePoint.clone()
+						const id = createShapeId()
+						editor.createShape({
+							id,
+							type: 'arrow',
+							x,
+							y,
+							props: { start: { x: 0, y: 0 }, end: { x: 200, y: 0 } },
+						})
+						const { w, h } = editor.getShapePageBounds(id)!
+						editor.updateShape({ id, type: 'arrow', x: x - w / 2, y: y - h / 2 })
+						editor.select(id)
+						editor.setCurrentTool('select.translating', {
+							...info,
+							target: 'shape',
+							shape: editor.getShape(id),
+							isCreating: true,
+							creatingMarkId: 'drag arrow tool',
+							onCreate() {
+								editor.setCurrentTool('select.idle')
+								editor.select(id)
+							},
+						})
+						editor.getCurrentTool().setCurrentToolIdMask('arrow')
+					})
+					trackEvent('drag-tool', { source, id: 'arrow' })
 				},
 			},
 			{
@@ -146,6 +214,32 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					editor.setCurrentTool('frame')
 					trackEvent('select-tool', { source, id: 'frame' })
 				},
+				draggable: true,
+				onDragStart(source, info) {
+					editor.run(() => {
+						editor.markHistoryStoppingPoint('drag frame tool')
+						editor.setCurrentTool('select.translating')
+						const { x, y } = editor.inputs.currentPagePoint.clone()
+						const id = createShapeId()
+						editor.createShape({ id, type: 'frame', x, y })
+						const { w, h } = editor.getShapePageBounds(id)!
+						editor.updateShape({ id, type: 'frame', x: x - w / 2, y: y - h / 2 })
+						editor.select(id)
+						editor.setCurrentTool('select.translating', {
+							...info,
+							target: 'shape',
+							shape: editor.getShape(id),
+							isCreating: true,
+							creatingMarkId: 'drag frame tool',
+							onCreate() {
+								editor.setCurrentTool('select.idle')
+								editor.select(id)
+							},
+						})
+					})
+					editor.getCurrentTool().setCurrentToolIdMask('frame')
+					trackEvent('drag-tool', { source, id: 'frame' })
+				},
 			},
 			{
 				id: 'text',
@@ -155,6 +249,33 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				onSelect(source) {
 					editor.setCurrentTool('text')
 					trackEvent('select-tool', { source, id: 'text' })
+				},
+				draggable: true,
+				onDragStart(source, info) {
+					editor.run(() => {
+						editor.markHistoryStoppingPoint('drag text tool')
+						editor.setCurrentTool('select.translating')
+						const { x, y } = editor.inputs.currentPagePoint.clone()
+						const id = createShapeId()
+						editor.createShape({ id, type: 'text', x, y, props: { text: 'Text' } })
+						const { w, h } = editor.getShapePageBounds(id)!
+						editor.updateShape({ id, type: 'text', x: x - w / 2, y: y - h / 2 })
+						editor.select(id)
+						editor.setCurrentTool('select.translating', {
+							...info,
+							target: 'shape',
+							shape: editor.getShape(id),
+							isCreating: true,
+							creatingMarkId: 'drag text tool',
+							onCreate() {
+								editor.select(id)
+								editor.emit('select-all-text', { shapeId: id })
+								editor.setEditingShape(id)
+							},
+						})
+					})
+					editor.getCurrentTool().setCurrentToolIdMask('text')
+					trackEvent('drag-tool', { source, id: 'text' })
 				},
 			},
 			{
@@ -175,6 +296,33 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				onSelect(source) {
 					editor.setCurrentTool('note')
 					trackEvent('select-tool', { source, id: 'note' })
+				},
+				draggable: true,
+				onDragStart(source, info) {
+					editor.run(() => {
+						editor.markHistoryStoppingPoint('drag note tool')
+						editor.setCurrentTool('select.translating')
+						const { x, y } = editor.inputs.currentPagePoint.clone()
+						const id = createShapeId()
+						editor.createShape({ id, type: 'note', x, y })
+						const { w, h } = editor.getShapePageBounds(id)!
+						editor.updateShape({ id, type: 'note', x: x - w / 2, y: y - h / 2 })
+						editor.select(id)
+						editor.setCurrentTool('select.translating', {
+							...info,
+							target: 'shape',
+							shape: editor.getShape(id),
+							isCreating: true,
+							creatingMarkId: 'drag note tool',
+							onCreate() {
+								editor.select(id)
+								editor.emit('select-all-text', { shapeId: id })
+								editor.setEditingShape(id)
+							},
+						})
+					})
+					editor.getCurrentTool().setCurrentToolIdMask('note')
+					trackEvent('drag-tool', { source, id: 'note' })
 				},
 			},
 			{
