@@ -33,6 +33,7 @@ export default [
 			'**/.lazy/*',
 			'**/.next/*',
 			'**/.wrangler/*',
+			'**/.vercel/*',
 			'**/*.md',
 			'**/_archive/*',
 			'**/*.css.map',

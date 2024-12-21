@@ -1,5 +1,6 @@
 import canvasSize from 'canvas-size'
 
+/** @internal */
 export interface CanvasMaxSize {
 	maxWidth: number
 	maxHeight: number
@@ -31,6 +32,7 @@ async function calculateBrowserCanvasMaxSize(): Promise<CanvasMaxSize> {
 const MAX_SAFE_CANVAS_DIMENSION = 8192
 const MAX_SAFE_CANVAS_AREA = 4096 * 4096
 
+/** @internal */
 export async function clampToBrowserMaxCanvasSize(width: number, height: number) {
 	if (
 		width <= MAX_SAFE_CANVAS_DIMENSION &&
