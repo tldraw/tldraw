@@ -54,11 +54,14 @@ export interface TLCameraOptions {
 	zoomSteps: number[]
 	/** Controls whether the wheel pans or zooms.
 	 *
+	 * - `auto`: Switches dynamically between `zoom` and `pan` based on the users interactions.
 	 * - `zoom`: The wheel will zoom in and out.
 	 * - `pan`: The wheel will pan the camera.
 	 * - `none`: The wheel will do nothing.
 	 */
-	wheelBehavior: 'zoom' | 'pan' | 'none'
+	wheelBehavior: 'auto' | 'zoom' | 'pan' | 'none'
+	/** The behavior used for the wheel when `wheelBehavior` is set to auto. */
+	autoWheelBehavior?: 'zoom' | 'pan'
 	/** The camera constraints. */
 	constraints?: TLCameraConstraints
 }
