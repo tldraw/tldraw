@@ -6,6 +6,7 @@ import {
 	TLTextShape,
 	Tldraw,
 	createShapeId,
+	toRichText,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
@@ -48,10 +49,10 @@ class Idle extends StateNode {
 			}
 			case 'shape': {
 				if (editor.inputs.shiftKey) {
-					editor.updateShape({
+					editor.updateShape<TLTextShape>({
 						id: info.shape.id,
 						type: 'text',
-						props: { text: '👻 boo!' },
+						props: { richText: toRichText('👻 boo!') },
 					})
 				} else {
 					this.parent.transition('pointing', { shape: info.shape })
@@ -77,11 +78,11 @@ class Idle extends StateNode {
 					return
 				}
 				const { currentPagePoint } = editor.inputs
-				editor.createShape({
+				editor.createShape<TLTextShape>({
 					type: 'text',
 					x: currentPagePoint.x + OFFSET,
 					y: currentPagePoint.y + OFFSET,
-					props: { text: '❤️' },
+					props: { richText: toRichText('❤️') },
 				})
 				break
 			}
@@ -121,17 +122,17 @@ class Dragging extends StateNode {
 	// [b]
 	override onEnter(info: { shape: TLShapePartial }) {
 		const { currentPagePoint } = this.editor.inputs
-		const newShape = {
+		const newShape: TLShapePartial<TLTextShape> = {
 			id: createShapeId(),
 			type: 'text',
 			x: currentPagePoint.x + OFFSET,
 			y: currentPagePoint.y + OFFSET,
-			props: { text: '❤️' },
+			props: { richText: toRichText('❤️') },
 		}
 		if (info.shape) {
 			this.shape = info.shape
 		} else {
-			this.editor.createShape(newShape)
+			this.editor.createShape<TLTextShape>(newShape)
 			this.shape = { ...newShape }
 		}
 	}
@@ -146,11 +147,11 @@ class Dragging extends StateNode {
 		const { originPagePoint, currentPagePoint } = this.editor.inputs
 		const distance = originPagePoint.dist(currentPagePoint)
 		if (shape) {
-			this.editor.updateShape({
+			this.editor.updateShape<TLTextShape>({
 				id: shape.id,
 				type: 'text',
 				props: {
-					text: this.emojiArray[Math.floor(distance / 20) % this.emojiArray.length],
+					richText: toRichText(this.emojiArray[Math.floor(distance / 20) % this.emojiArray.length]),
 				},
 			})
 		}
@@ -171,12 +172,14 @@ export default function ToolWithChildStatesExample() {
 				hideUi
 				// Put some helpful text on the canvas
 				onMount={(editor) => {
-					editor.createShape({
+					editor.createShape<TLTextShape>({
 						type: 'text',
 						x: 50,
 						y: 50,
 						props: {
-							text: '-Double click the canvas to add a sticker\n-Double click a sticker to delete it\n-Click and drag on a sticker to change it\n-Click and drag on the canvas to create a sticker\n-Shift click a sticker for a surprise!',
+							richText: toRichText(
+								'-Double click the canvas to add a sticker\n-Double click a sticker to delete it\n-Click and drag on a sticker to change it\n-Click and drag on the canvas to create a sticker\n-Shift click a sticker for a surprise!'
+							),
 							size: 's',
 							textAlign: 'start',
 						},

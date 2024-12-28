@@ -74,7 +74,12 @@ export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
 export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
-export { TextLabel, type TextLabelProps } from './lib/shapes/shared/TextLabel'
+export {
+	PlainTextLabel,
+	TextLabel,
+	type PlainTextLabelProps,
+} from './lib/shapes/shared/PlainTextLabel'
+export { RichTextLabel, type RichTextLabelProps } from './lib/shapes/shared/RichTextLabel'
 export {
 	ARROW_LABEL_FONT_SIZES,
 	FONT_FAMILIES,
@@ -84,8 +89,11 @@ export {
 	TEXT_PROPS,
 } from './lib/shapes/shared/default-shape-constants'
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
-export { useEditableText } from './lib/shapes/shared/useEditableText'
+export { useEditablePlainText, useEditableText } from './lib/shapes/shared/useEditablePlainText'
+export { useEditableRichText } from './lib/shapes/shared/useEditableRichText'
 export { useAsset, useImageOrVideoAsset } from './lib/shapes/shared/useImageOrVideoAsset'
+export { PlainTextArea } from './lib/shapes/text/PlainTextArea'
+export { RichTextArea, type TextAreaProps } from './lib/shapes/text/RichTextArea'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
 export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'
 export { VideoShapeUtil } from './lib/shapes/video/VideoShapeUtil'
@@ -202,6 +210,14 @@ export {
 	type ThemeStylePickerSetProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
 export {
+	DefaultRichTextToolbar,
+	type TLUiRichTextToolbarProps,
+} from './lib/ui/components/Toolbar/DefaultRichTextToolbar'
+export {
+	DefaultRichTextToolbarContent,
+	type DefaultRichTextToolbarContentProps,
+} from './lib/ui/components/Toolbar/DefaultRichTextToolbarContent'
+export {
 	DefaultToolbar,
 	type DefaultToolbarProps,
 } from './lib/ui/components/Toolbar/DefaultToolbar'
@@ -315,6 +331,10 @@ export {
 	type TLUiButtonPickerProps,
 } from './lib/ui/components/primitives/TldrawUiButtonPicker'
 export {
+	TldrawUiContextualToolbar,
+	type TLUiContextualToolbarProps,
+} from './lib/ui/components/primitives/TldrawUiContextualToolbar'
+export {
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogFooter,
@@ -426,7 +446,9 @@ export {
 } from './lib/ui/context/toasts'
 export { useCanRedo, useCanUndo } from './lib/ui/hooks/menu-hooks'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
+export { useContextualToolbarPosition } from './lib/ui/hooks/useContextualToolbarPosition'
 export { useCopyAs } from './lib/ui/hooks/useCopyAs'
+export { useDebouncedValue } from './lib/ui/hooks/useDebouncedValue'
 export { useExportAs } from './lib/ui/hooks/useExportAs'
 export { useCollaborationStatus, useShowCollaborationUi } from './lib/ui/hooks/useIsMultiplayer'
 export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
@@ -463,6 +485,7 @@ export {
 	setDefaultEditorAssetUrls,
 	type TLEditorAssetUrls,
 } from './lib/utils/static-assets/assetUrls'
+export { tipTapDefaultExtensions } from './lib/utils/text/richText'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
 export {
 	TLV1AlignStyle,

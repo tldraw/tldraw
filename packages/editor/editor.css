@@ -247,7 +247,7 @@
 input,
 *[contenteditable],
 *[contenteditable] * {
-	-webkit-user-select: text;
+	user-select: text;
 }
 
 /* -------------------------------------------------- */
@@ -782,7 +782,7 @@ input,
 }
 
 .tl-text-wrapper[data-isediting='true'] .tl-text-content {
-	opacity: 0;
+	display: none;
 }
 
 .tl-text {
@@ -888,6 +888,100 @@ input,
 	background: var(--color-selected);
 	color: var(--color-selected-contrast);
 	text-shadow: none;
+}
+
+.tl-rich-text-tiptap .ProseMirror {
+	word-wrap: break-word;
+	white-space: pre-wrap;
+
+	/**
+	 * N.B. This following CSS Rule comes standard with the tiptap editor.
+	 * Combined with the above rule that it supersedes, it allows for
+	 * the auto-linking to work in text. Say, when typing example.com
+	 * this helps it automatically turn that bit of text into a link.
+	 *
+	 * However, specifically, the break-spaces features seems to cause
+	 * rendering differences when going in-and-out of edit mode. For example,
+	 * the statically rendered text 'the rain in spain falls mainly on the plain'
+	 * in a note shape will render differently when going in-and-out of edit mode.
+	 *
+	 * So, this is commented out to help make both the autolinking work (which now
+	 * relies on the white-space: pre-wrap to work and to make the static/edit-mode
+	 * rendering consistent.
+	 * In the future, we might consider just making the static rendering just use
+	 * white-space: break-spaces to make it consistent with the edit mode if need be.
+	 *
+	 * Also, the amount of ink I've spilt in my career writing comments explaining
+	 * white-space in contenteditable is incredible.
+	 *
+	/* white-space: break-spaces; */
+}
+
+.tl-rich-text-tiptap p {
+	margin: 0;
+}
+
+.tl-rich-text-tiptap ul,
+.tl-rich-text-tiptap ol {
+	text-align: left;
+}
+
+.tl-rich-text-tiptap h1,
+.tl-rich-text-tiptap h2,
+.tl-rich-text-tiptap h3,
+.tl-rich-text-tiptap h4,
+.tl-rich-text-tiptap h5,
+.tl-rich-text-tiptap h6 {
+	margin-top: 5px;
+	margin-bottom: 10px;
+}
+
+.tl-rich-text-tiptap ul,
+.tl-rich-text-tiptap ol {
+	margin: 0;
+}
+
+.tl-rich-text-tiptap a {
+	color: var(--color-primary);
+	text-decoration: underline;
+}
+
+.tl-rich-text-tiptap code {
+	font-family: var(--tl-font-mono);
+}
+
+.tl-rich-text-tiptap strong {
+	text-shadow: 1px 1px 2px var(--color-text-3);
+}
+
+.tl-rich-text-tiptap mark {
+	text-shadow: none;
+	background-color: #fddd00;
+}
+
+.tl-theme__dark .tl-rich-text-tiptap mark {
+	background-color: #d2b700;
+}
+
+@supports (color: color(display-p3 1 1 1)) {
+	@media (color-gamut: p3) {
+		.tl-container:not(.tl-theme__force-sRGB) .tl-rich-text-tiptap mark {
+			background-color: color(display-p3 0.972 0.8705 0.05);
+		}
+
+		.tl-container:not(.tl-theme__force-sRGB) .tl-theme__dark .tl-rich-text-tiptap mark {
+			background-color: color(display-p3 0.8078 0.7225 0.0312);
+		}
+	}
+}
+
+.tl-text-label__inner > .tl-text-input.tl-rich-text {
+	display: none;
+	position: static;
+}
+
+.tl-text-wrapper[data-isediting='true'] .tl-rich-text {
+	display: block;
 }
 
 /* ------------------- Snap Lines ------------------- */
@@ -1172,10 +1266,6 @@ input,
 .tl-text-label[data-isediting='true'] {
 	background-color: transparent;
 	min-height: auto;
-}
-
-.tl-text-label[data-isediting='true'] p {
-	opacity: 0;
 }
 
 .tl-arrow-hint {

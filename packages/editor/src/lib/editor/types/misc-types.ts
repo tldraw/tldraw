@@ -1,3 +1,4 @@
+import { EditorProviderProps } from '@tiptap/react'
 import { BoxModel } from '@tldraw/tlschema'
 import { Box } from '../../primitives/Box'
 import { VecLike } from '../../primitives/Vec'
@@ -133,4 +134,9 @@ export interface TLCameraConstraints {
 				x: 'free' | 'fixed' | 'inside' | 'outside' | 'contain'
 				y: 'free' | 'fixed' | 'inside' | 'outside' | 'contain'
 		  }
+}
+
+/** @public */
+export interface TLTextOptions {
+	tipTapConfig?: EditorProviderProps
 }
