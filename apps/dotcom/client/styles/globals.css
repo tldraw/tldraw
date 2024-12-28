@@ -447,19 +447,3 @@ a {
 	min-width: 36px;
 	height: 36px;
 }
-
-/* -------------------- Snowstorm ------------------- */
-
-.tl-snowflake {
-	position: absolute;
-	background-color: #ccc;
-	border-radius: 100%;
-	pointer-events: none;
-}
-
-.tl-snowstorm {
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	pointer-events: none;
-}
