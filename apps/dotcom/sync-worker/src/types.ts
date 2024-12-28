@@ -22,6 +22,7 @@ export interface Environment {
 	TL_PG_REPLICATOR: DurableObjectNamespace<TLPostgresReplicator>
 	TL_USER: DurableObjectNamespace<TLUserDurableObject>
 	BOTCOM_POSTGRES_CONNECTION_STRING: string
+	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
 	MEASURE: Analytics | undefined
 
 	ROOMS: R2Bucket
@@ -75,6 +76,12 @@ export type TLServerEvent =
 			localClientId: string
 	  }
 	| {
+			type: 'client'
+			name: 'rate_limited'
+			userId: string | undefined
+			localClientId: string
+	  }
+	| {
 			type: 'room'
 			name:
 				| 'failed_load_from_db'
@@ -90,3 +97,23 @@ export type TLServerEvent =
 			messageType: string
 			messageLength: number
 	  }
+
+export type TLPostgresReplicatorEvent =
+	| { type: 'reboot' | 'reboot_error' | 'register_user' | 'unregister_user' | 'get_file_record' }
+	| { type: 'reboot_duration'; duration: number }
+	| { type: 'rpm'; rpm: number }
+
+export type TLUserDurableObjectEvent =
+	| {
+			type:
+				| 'reboot'
+				| 'reboot_error'
+				| 'rate_limited'
+				| 'broadcast_message'
+				| 'mutation'
+				| 'reject_mutation'
+				| 'replication_event'
+				| 'connect_retry'
+			id: string
+	  }
+	| { type: 'reboot_duration'; id: string; duration: number }

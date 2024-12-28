@@ -1,5 +1,5 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
-import { useCallback, useEffect } from 'react'
+import { ReactNode, useEffect } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
@@ -27,10 +27,11 @@ import {
 	setInLocalStorage,
 	useDialogs,
 	useEditor,
+	useEvent,
 } from 'tldraw'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
-import { SCRATCH_PERSISTENCE_KEY } from '../utils/scratch-persistence-key'
+import { getScratchPersistenceKey } from '../utils/scratch-persistence-key'
 import { useSharing } from '../utils/sharing'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
@@ -38,6 +39,7 @@ import { LocalFileMenu } from './FileMenu'
 import { Links } from './Links'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
+import { SnowStorm } from './SnowStorm'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
 
 const components: TLComponents = {
@@ -46,11 +48,13 @@ const components: TLComponents = {
 	},
 	MainMenu: () => (
 		<DefaultMainMenu>
-			<LocalFileMenu />
-			<EditSubmenu />
-			<ViewSubmenu />
-			<ExportFileContentSubMenu />
-			<ExtrasGroup />
+			<TldrawUiMenuGroup id="basic">
+				<LocalFileMenu />
+				<EditSubmenu />
+				<ViewSubmenu />
+				<ExportFileContentSubMenu />
+				<ExtrasGroup />
+			</TldrawUiMenuGroup>
 			<PreferencesGroup />
 			<Links />
 		</DefaultMainMenu>
@@ -80,33 +84,50 @@ const components: TLComponents = {
 			</div>
 		)
 	},
+	InFrontOfTheCanvas: () => {
+		return <SnowStorm />
+	},
 }
 
-export function LocalEditor() {
+export function LocalEditor({
+	componentsOverride,
+	onMount,
+	children,
+	persistenceKey,
+	'data-testid': dataTestId,
+}: {
+	componentsOverride?: TLComponents
+	onMount?(editor: Editor): void
+	children?: ReactNode
+	persistenceKey?: string
+	'data-testid'?: string
+}) {
 	const handleUiEvent = useHandleUiEvents()
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
 
-	const handleMount = useCallback((editor: Editor) => {
+	const handleMount = useEvent((editor: Editor) => {
 		;(window as any).app = editor
 		;(window as any).editor = editor
 		editor.registerExternalAssetHandler('url', createAssetFromUrl)
-	}, [])
+		return onMount?.(editor)
+	})
 
 	return (
-		<div className="tldraw__editor">
+		<div className="tldraw__editor" data-testid={dataTestId}>
 			<Tldraw
 				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
-				persistenceKey={SCRATCH_PERSISTENCE_KEY}
+				persistenceKey={persistenceKey ?? getScratchPersistenceKey()}
 				onMount={handleMount}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
-				components={components}
+				components={componentsOverride ?? components}
 			>
 				<SneakyOnDropOverride isMultiplayer={false} />
 				<ThemeUpdater />
 				<SneakyLocalSaveWarning />
+				{children}
 			</Tldraw>
 		</div>
 	)

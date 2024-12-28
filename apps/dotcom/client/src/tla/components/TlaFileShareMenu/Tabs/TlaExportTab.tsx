@@ -13,10 +13,10 @@ import {
 } from 'tldraw'
 import { globalEditor } from '../../../../utils/globalEditor'
 import { TldrawApp } from '../../../app/TldrawApp'
-import { F, defineMessages, useIntl } from '../../../app/i18n'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getCurrentEditor } from '../../../utils/getCurrentEditor'
+import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import {
 	TldrawAppSessionState,
 	getLocalSessionState,
@@ -175,7 +175,7 @@ function ExportThemeSelect({
 	value: TldrawAppSessionState['exportSettings']['exportTheme']
 	onChange(key: 'exportTheme', value: TldrawAppSessionState['exportSettings']['exportTheme']): void
 }) {
-	const intl = useIntl()
+	const label = useMsg(messages[value as 'auto' | 'light' | 'dark'])
 	const trackEvent = useTldrawAppUiEvents()
 	const handleChange = useCallback(
 		(value: TldrawAppSessionState['exportSettings']['exportTheme']) => {
@@ -185,7 +185,6 @@ function ExportThemeSelect({
 		[onChange, trackEvent]
 	)
 
-	const label = intl.formatMessage(messages[value])
 	return (
 		<TlaMenuControl>
 			<TlaMenuControlLabel>

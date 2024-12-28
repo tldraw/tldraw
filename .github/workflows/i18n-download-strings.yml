@@ -2,7 +2,7 @@ name: i18n download strings
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 13 * * *'
+    - cron: '0 10 * * 1'
 
 jobs:
   download:
@@ -34,7 +34,8 @@ jobs:
         run: |
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
+          git checkout -b update-i18n-strings
           git add "*.json"
           git commit --no-verify -m '[automated] update i18n strings'
-          git pull --rebase
-          git push
+          git push --set-upstream origin update-i18n-strings
+          gh pr create --title "[automated] update i18n strings" --body "This PR updates the i18n strings." --base main --head update-i18n-strings

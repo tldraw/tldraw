@@ -1,9 +1,10 @@
+import { SignInButton } from '@clerk/clerk-react'
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { ReactElement, useEffect } from 'react'
 import { sadFaceIcon } from '../../../components/ErrorPage/ErrorPage'
-import { F } from '../../app/i18n'
 import { useSetIsReady } from '../../hooks/useIsReady'
-import { TlaSignInButton } from '../TlaSignInButton/TlaSignInButton'
+import { F } from '../../utils/i18n'
+import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import styles from './TlaFileError.module.css'
 
 function DefaultError() {
@@ -47,16 +48,26 @@ export function TlaFileError({ error }: { error: unknown }) {
 		case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED: {
 			return (
 				<TlaFileErrorContent
-					header={<F defaultMessage="Private file" />}
-					para1={<F defaultMessage="Contact the owner to request access." />}
-					cta={<TlaSignInButton />}
+					header={<F defaultMessage="Sign in" />}
+					para1={<F defaultMessage="You need to sign in to view this file." />}
+					cta={
+						<SignInButton
+							mode="modal"
+							forceRedirectUrl={location.pathname + location.search}
+							signUpForceRedirectUrl={location.pathname + location.search}
+						>
+							<TlaCtaButton data-testid="tla-sign-up">
+								<F defaultMessage="Sign in" />
+							</TlaCtaButton>
+						</SignInButton>
+					}
 				/>
 			)
 		}
 		case TLSyncErrorCloseEventReason.FORBIDDEN: {
 			return (
 				<TlaFileErrorContent
-					header={<F defaultMessage="Private file" />}
+					header={<F defaultMessage="Invite only" />}
 					para1={<F defaultMessage="Contact the owner to request access." />}
 				/>
 			)
@@ -69,6 +80,17 @@ export function TlaFileError({ error }: { error: unknown }) {
 				/>
 			)
 		}
+		case TLSyncErrorCloseEventReason.ROOM_FULL: {
+			return (
+				<TlaFileErrorContent
+					header={<F defaultMessage="Collaborator limit reached" />}
+					para1={
+						<F defaultMessage="This file has reached the maximum number of active collaborators." />
+					}
+				/>
+			)
+		}
+
 		default:
 			return <DefaultError />
 	}

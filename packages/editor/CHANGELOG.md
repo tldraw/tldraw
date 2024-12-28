@@ -1,3 +1,118 @@
+# v3.6.0 (Wed Dec 04 2024)
+
+### Release Notes
+
+#### assets: fix up resolving when copy/pasting multiple items; also, videos ([#5061](https://github.com/tldraw/tldraw/pull/5061))
+
+- Fixed bugs with copy/pasting multilple assets from one board to another.
+- Fixed bug with copy/pasting videos from one board to another.
+
+#### Fix some export bugs ([#5022](https://github.com/tldraw/tldraw/pull/5022))
+
+- Properly clip scaled text in frames when exporting
+- Stop multiple concurrent exports from interfering with each-others fonts
+
+#### Fix long press bug ([#5032](https://github.com/tldraw/tldraw/pull/5032))
+
+- Fixed a bug with long press on inset canvases.
+
+---
+
+#### 🐛 Bug Fixes
+
+- assets: fix up resolving when copy/pasting multiple items; also, videos [#5061](https://github.com/tldraw/tldraw/pull/5061) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix some export bugs [#5022](https://github.com/tldraw/tldraw/pull/5022) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Fix long press bug [#5032](https://github.com/tldraw/tldraw/pull/5032) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 4
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
+# v3.5.0 (Tue Nov 26 2024)
+
+### Release Notes
+
+#### Allow custom react providers in SVG exports ([#4991](https://github.com/tldraw/tldraw/pull/4991))
+
+- You can now supply a custom react context provider for SVG exports
+
+#### Click / right click on frame headings ([#4979](https://github.com/tldraw/tldraw/pull/4979))
+
+- Improved clicks for frame headings
+
+#### Snap to grid when creating shapes ([#4875](https://github.com/tldraw/tldraw/pull/4875))
+
+- Shapes snap to grid on creation, or when adding points.
+
+#### Smart bringForward/sendBackward ([#4851](https://github.com/tldraw/tldraw/pull/4851))
+
+- Improved the 'bring forward' and 'send backward' actions by making them only consider nearby overlapping shapes when deciding the next ordering.
+
+#### Remove outlines from buttons until we fix radix-ui issues ([#4855](https://github.com/tldraw/tldraw/pull/4855))
+
+- Fixed a bug with focus outlines appearing in menu items at the wrong time.
+
+#### Add option to disable text creation on double click ([#4841](https://github.com/tldraw/tldraw/pull/4841))
+
+- Add option to disable text creation on double click `createTextOnCanvasDoubleClick`
+
+#### Better support scale / quality in export utilities ([#4795](https://github.com/tldraw/tldraw/pull/4795))
+
+- Improved treatment of `scale` in image copy / export utilities.
+
+#### Call ensureStoreIsUsable after mergeRemoteChanges ([#4833](https://github.com/tldraw/tldraw/pull/4833))
+
+- Add store consistency checks during `mergeRemoteChanges`
+
+#### Make default color theme light. ([#4796](https://github.com/tldraw/tldraw/pull/4796))
+
+- Sets the default color theme to light.
+
+---
+
+#### 🐛 Bug Fix
+
+- [botcom] improve error UX [#4790](https://github.com/tldraw/tldraw/pull/4790) ([@ds300](https://github.com/ds300))
+
+#### 🐛 Bug Fixes
+
+- Remove outlines from buttons until we fix radix-ui issues [#4855](https://github.com/tldraw/tldraw/pull/4855) ([@steveruizok](https://github.com/steveruizok))
+
+#### 💄 Product Improvements
+
+- Click / right click on frame headings [#4979](https://github.com/tldraw/tldraw/pull/4979) ([@steveruizok](https://github.com/steveruizok) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Lokalise: Translations update [#4947](https://github.com/tldraw/tldraw/pull/4947) ([@TodePond](https://github.com/TodePond) [@mimecuvalo](https://github.com/mimecuvalo))
+- Snap to grid when creating shapes [#4875](https://github.com/tldraw/tldraw/pull/4875) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git) [@mimecuvalo](https://github.com/mimecuvalo))
+- Smart bringForward/sendBackward [#4851](https://github.com/tldraw/tldraw/pull/4851) ([@ds300](https://github.com/ds300))
+- Call ensureStoreIsUsable after mergeRemoteChanges [#4833](https://github.com/tldraw/tldraw/pull/4833) ([@ds300](https://github.com/ds300))
+- Make default color theme light. [#4796](https://github.com/tldraw/tldraw/pull/4796) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🎉 New Features
+
+- Add option to disable text creation on double click [#4841](https://github.com/tldraw/tldraw/pull/4841) ([@ds300](https://github.com/ds300) [@steveruizok](https://github.com/steveruizok))
+
+#### 🛠️ API Changes
+
+- Allow custom react providers in SVG exports [#4991](https://github.com/tldraw/tldraw/pull/4991) ([@SomeHats](https://github.com/SomeHats))
+- Better support scale / quality in export utilities [#4795](https://github.com/tldraw/tldraw/pull/4795) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 7
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+---
+
 # v3.4.0 (Thu Oct 24 2024)
 
 ### Release Notes

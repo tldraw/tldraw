@@ -12,6 +12,8 @@ export type TLAppUiEventSource =
 	| 'file-header'
 	| 'anon-landing-page'
 	| 'anon-top-bar'
+	| 'account-menu'
+	| 'top-bar'
 
 /** @public */
 export interface TLAppUiEventMap {

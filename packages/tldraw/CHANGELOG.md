@@ -1,3 +1,186 @@
+# v3.6.0 (Wed Dec 04 2024)
+
+### Release Notes
+
+#### assets: fix up resolving when copy/pasting multiple items; also, videos ([#5061](https://github.com/tldraw/tldraw/pull/5061))
+
+- Fixed bugs with copy/pasting multilple assets from one board to another.
+- Fixed bug with copy/pasting videos from one board to another.
+
+#### Expand helpers available in actions / toasts overrides. ([#5041](https://github.com/tldraw/tldraw/pull/5041))
+
+- Makes new helper available via actions and tools overrides.
+
+#### Fix file name when exporting a single unnamed frame ([#4918](https://github.com/tldraw/tldraw/pull/4918))
+
+- Fix file name when exporting a single unnamed frame
+
+#### Fix some export bugs ([#5022](https://github.com/tldraw/tldraw/pull/5022))
+
+- Properly clip scaled text in frames when exporting
+- Stop multiple concurrent exports from interfering with each-others fonts
+
+#### Make sure notes snap to grid after position is updated ([#5010](https://github.com/tldraw/tldraw/pull/5010))
+
+- Fixed a bug with notes not snapping to the grid unless the size was a multiple of the grid size.
+
+#### Fix custom embed first render ([#5027](https://github.com/tldraw/tldraw/pull/5027))
+
+- Fix an issue with custom embeds not rendering correctly on the first render.
+
+#### Fix long press bug ([#5032](https://github.com/tldraw/tldraw/pull/5032))
+
+- Fixed a bug with long press on inset canvases.
+
+---
+
+#### 🐛 Bug Fix
+
+- [botcom] Add import / save as tldr file. [#5049](https://github.com/tldraw/tldraw/pull/5049) ([@steveruizok](https://github.com/steveruizok))
+- [botcom] more design tweaks [#4995](https://github.com/tldraw/tldraw/pull/4995) ([@steveruizok](https://github.com/steveruizok) [@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🐛 Bug Fixes
+
+- assets: fix up resolving when copy/pasting multiple items; also, videos [#5061](https://github.com/tldraw/tldraw/pull/5061) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix file name when exporting a single unnamed frame [#4918](https://github.com/tldraw/tldraw/pull/4918) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk) [@SomeHats](https://github.com/SomeHats) [@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix some export bugs [#5022](https://github.com/tldraw/tldraw/pull/5022) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Make sure notes snap to grid after position is updated [#5010](https://github.com/tldraw/tldraw/pull/5010) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk) [@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix custom embed first render [#5027](https://github.com/tldraw/tldraw/pull/5027) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix long press bug [#5032](https://github.com/tldraw/tldraw/pull/5032) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🛠️ API Changes
+
+- Expand helpers available in actions / toasts overrides. [#5041](https://github.com/tldraw/tldraw/pull/5041) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 6
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+
+---
+
+# v3.5.0 (Tue Nov 26 2024)
+
+### Release Notes
+
+#### Click / right click on frame headings ([#4979](https://github.com/tldraw/tldraw/pull/4979))
+
+- Improved clicks for frame headings
+
+#### Improve panning performance when we have many not shapes and when we are zoomed out ([#4935](https://github.com/tldraw/tldraw/pull/4935))
+
+- Improve performance of rendering note shapes when zoomed out past 35%.
+
+#### chore(api): expose font sizes, stroke sizes api ([#4940](https://github.com/tldraw/tldraw/pull/4940))
+
+- Expose `ARROW_LABEL_FONT_SIZES`, `STROKE_SIZES`, `FONT_SIZES`
+
+#### remove zoom to label ([#4872](https://github.com/tldraw/tldraw/pull/4872))
+
+- Removed zoom to label feature when editing shape labels
+
+#### Snap to grid when creating shapes ([#4875](https://github.com/tldraw/tldraw/pull/4875))
+
+- Shapes snap to grid on creation, or when adding points.
+
+#### make sure copy-as-png comes in at natural size ([#4771](https://github.com/tldraw/tldraw/pull/4771))
+
+-  Shapes copied as PNG will have the same size when pasted back into tldraw.
+
+#### Smart bringForward/sendBackward ([#4851](https://github.com/tldraw/tldraw/pull/4851))
+
+- Improved the 'bring forward' and 'send backward' actions by making them only consider nearby overlapping shapes when deciding the next ordering.
+
+#### Fix shapes getting stuck in erasing state ([#4861](https://github.com/tldraw/tldraw/pull/4861))
+
+- Fixed a bug with shapes getting stuck in the translucent erasing state.
+
+#### Remove outlines from buttons until we fix radix-ui issues ([#4855](https://github.com/tldraw/tldraw/pull/4855))
+
+- Fixed a bug with focus outlines appearing in menu items at the wrong time.
+
+#### fix id regression ([#4849](https://github.com/tldraw/tldraw/pull/4849))
+
+- Prevent arrows being clipped incorrectly when multiple tldraw instances or exports are present in the dom.
+
+#### Add option to disable text creation on double click ([#4841](https://github.com/tldraw/tldraw/pull/4841))
+
+- Add option to disable text creation on double click `createTextOnCanvasDoubleClick`
+
+#### Better support scale / quality in export utilities ([#4795](https://github.com/tldraw/tldraw/pull/4795))
+
+- Improved treatment of `scale` in image copy / export utilities.
+
+#### Improve hovers on page menu ([#4788](https://github.com/tldraw/tldraw/pull/4788))
+
+- Improve the page menu hover effects.
+
+#### kbd shortcuts: fix up wrong size dialog on desktop ([#4791](https://github.com/tldraw/tldraw/pull/4791))
+
+- Fix keyboard shortcuts dialog being narrow on desktop.
+
+#### Fix toast spacing ([#4800](https://github.com/tldraw/tldraw/pull/4800))
+
+- Fixed a bug with toast layout.
+
+#### Fix dragging on frame headings ([#4794](https://github.com/tldraw/tldraw/pull/4794))
+
+- Fixed a bug with dragging frames by their heading.
+
+---
+
+#### 🐛 Bug Fix
+
+- [botcom] Pre-launch design / UX pass [#4984](https://github.com/tldraw/tldraw/pull/4984) ([@steveruizok](https://github.com/steveruizok) [@MitjaBezensek](https://github.com/MitjaBezensek))
+- botcom: add react-select for better select menus [#4920](https://github.com/tldraw/tldraw/pull/4920) ([@mimecuvalo](https://github.com/mimecuvalo))
+- [botcom] improve error UX [#4790](https://github.com/tldraw/tldraw/pull/4790) ([@ds300](https://github.com/ds300))
+
+#### 🐛 Bug Fixes
+
+- remove zoom to label [#4872](https://github.com/tldraw/tldraw/pull/4872) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+- make sure copy-as-png comes in at natural size [#4771](https://github.com/tldraw/tldraw/pull/4771) ([@SomeHats](https://github.com/SomeHats))
+- Fix shapes getting stuck in erasing state [#4861](https://github.com/tldraw/tldraw/pull/4861) ([@TodePond](https://github.com/TodePond))
+- Remove outlines from buttons until we fix radix-ui issues [#4855](https://github.com/tldraw/tldraw/pull/4855) ([@steveruizok](https://github.com/steveruizok))
+- fix id regression [#4849](https://github.com/tldraw/tldraw/pull/4849) ([@SomeHats](https://github.com/SomeHats))
+- kbd shortcuts: fix up wrong size dialog on desktop [#4791](https://github.com/tldraw/tldraw/pull/4791) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix toast spacing [#4800](https://github.com/tldraw/tldraw/pull/4800) ([@steveruizok](https://github.com/steveruizok))
+- Fix dragging on frame headings [#4794](https://github.com/tldraw/tldraw/pull/4794) ([@steveruizok](https://github.com/steveruizok))
+
+#### 💄 Product Improvements
+
+- Click / right click on frame headings [#4979](https://github.com/tldraw/tldraw/pull/4979) ([@steveruizok](https://github.com/steveruizok) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Improve panning performance when we have many not shapes and when we are zoomed out [#4935](https://github.com/tldraw/tldraw/pull/4935) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@steveruizok](https://github.com/steveruizok))
+- Snap to grid when creating shapes [#4875](https://github.com/tldraw/tldraw/pull/4875) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git) [@mimecuvalo](https://github.com/mimecuvalo))
+- Smart bringForward/sendBackward [#4851](https://github.com/tldraw/tldraw/pull/4851) ([@ds300](https://github.com/ds300))
+- Improve hovers on page menu [#4788](https://github.com/tldraw/tldraw/pull/4788) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🎉 New Features
+
+- Add option to disable text creation on double click [#4841](https://github.com/tldraw/tldraw/pull/4841) ([@ds300](https://github.com/ds300) [@steveruizok](https://github.com/steveruizok))
+
+#### 🛠️ API Changes
+
+- chore(api): expose font sizes, stroke sizes api [#4940](https://github.com/tldraw/tldraw/pull/4940) ([@judicaelandria](https://github.com/judicaelandria))
+- Better support scale / quality in export utilities [#4795](https://github.com/tldraw/tldraw/pull/4795) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 9
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Judicael ([@judicaelandria](https://github.com/judicaelandria))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+---
+
 # v3.4.0 (Thu Oct 24 2024)
 
 ### Release Notes

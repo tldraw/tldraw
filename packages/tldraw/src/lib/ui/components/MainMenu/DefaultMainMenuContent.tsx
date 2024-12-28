@@ -41,10 +41,12 @@ import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
 export function DefaultMainMenuContent() {
 	return (
 		<>
-			<EditSubmenu />
-			<ViewSubmenu />
-			<ExportFileContentSubMenu />
-			<ExtrasGroup />
+			<TldrawUiMenuGroup id="basic">
+				<EditSubmenu />
+				<ViewSubmenu />
+				<ExportFileContentSubMenu />
+				<ExtrasGroup />
+			</TldrawUiMenuGroup>
 			<PreferencesGroup />
 		</>
 	)
@@ -147,10 +149,10 @@ export function ViewSubmenu() {
 /** @public @react */
 export function ExtrasGroup() {
 	return (
-		<TldrawUiMenuGroup id="extras">
+		<>
 			<TldrawUiMenuActionItem actionId="insert-embed" />
 			<TldrawUiMenuActionItem actionId="insert-media" />
-		</TldrawUiMenuGroup>
+		</>
 	)
 }
 

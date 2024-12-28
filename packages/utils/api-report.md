@@ -78,6 +78,15 @@ export interface ErrorResult<E> {
 }
 
 // @internal (undocumented)
+export class ExecutionQueue {
+    constructor(timeout?: number | undefined);
+    // (undocumented)
+    close(): void;
+    // (undocumented)
+    push<T>(task: () => T): Promise<Awaited<T>>;
+}
+
+// @internal (undocumented)
 export function exhaustiveSwitchError(value: never, property?: string): never;
 
 // @public (undocumented)
@@ -219,12 +228,26 @@ export function lerp(a: number, b: number, t: number): number;
 // @public (undocumented)
 export function lns(str: string): string;
 
+// @public (undocumented)
+export type MakeUndefinedOptional<T extends object> = Expand<{
+    [P in {
+        [K in keyof T]: undefined extends T[K] ? never : K;
+    }[keyof T]]: T[P];
+} & {
+    [P in {
+        [K in keyof T]: undefined extends T[K] ? K : never;
+    }[keyof T]]?: T[P];
+}>;
+
 // @internal
 export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(object: {
     readonly [K in Key]: ValueBefore;
 }, mapper: (key: Key, value: ValueBefore) => ValueAfter): {
     [K in Key]: ValueAfter;
 };
+
+// @internal (undocumented)
+export function maxBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;
 
 // @internal (undocumented)
 export function measureAverageDuration(_target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor;
@@ -380,6 +403,14 @@ export const Result: {
     err<E>(error: E): ErrorResult<E>;
     ok<T>(value: T): OkResult<T>;
 };
+
+// @internal (undocumented)
+export function retry<T>(fn: () => Promise<T>, { attempts, waitDuration, abortSignal, matchError, }?: {
+    abortSignal?: AbortSignal;
+    attempts?: number;
+    matchError?(error: unknown): boolean;
+    waitDuration?: number;
+}): Promise<T>;
 
 // @public
 export function rng(seed?: string): () => number;

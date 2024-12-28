@@ -19,6 +19,7 @@ import { SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { ExportMenu } from './ExportMenu'
 import { MultiplayerFileMenu } from './FileMenu'
+import { SnowStorm } from './SnowStorm'
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
@@ -46,6 +47,9 @@ const components: TLComponents = {
 				<ExportMenu />
 			</div>
 		)
+	},
+	InFrontOfTheCanvas: () => {
+		return <SnowStorm />
 	},
 }
 

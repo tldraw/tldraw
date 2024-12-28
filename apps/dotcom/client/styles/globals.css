@@ -189,8 +189,12 @@ a {
 
 /* ------------------ Board history ----------------- */
 
+.board-history {
+	padding: 64px;
+}
+
 .board-history__list {
-	padding: 8px 8px 8px 24px;
+	padding: 16px;
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
@@ -238,7 +242,7 @@ a {
 /* ------------------ Da Share Zone ----------------- */
 
 .tlui-style-panel__wrapper {
-	margin-top: 4px;
+	margin-top: 2px;
 }
 
 .tlui-share-zone__connection-status {
@@ -442,4 +446,20 @@ a {
 	width: 36px;
 	min-width: 36px;
 	height: 36px;
+}
+
+/* -------------------- Snowstorm ------------------- */
+
+.tl-snowflake {
+	position: absolute;
+	background-color: #ccc;
+	border-radius: 100%;
+	pointer-events: none;
+}
+
+.tl-snowstorm {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
 }

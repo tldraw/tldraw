@@ -38,18 +38,18 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override type = 'embed' as const
 	static override props = embedShapeProps
 	static override migrations = embedShapeMigrations
-	private embedDefinitions: readonly EmbedDefinition[] = DEFAULT_EMBED_DEFINITIONS
+	private static embedDefinitions: readonly EmbedDefinition[] = DEFAULT_EMBED_DEFINITIONS
 
-	setEmbedDefinitions(definitions: TLEmbedDefinition[]) {
-		this.embedDefinitions = definitions
+	static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]) {
+		EmbedShapeUtil.embedDefinitions = embedDefinitions
 	}
 
 	getEmbedDefinitions(): readonly TLEmbedDefinition[] {
-		return this.embedDefinitions
+		return EmbedShapeUtil.embedDefinitions
 	}
 
 	getEmbedDefinition(url: string): TLEmbedResult {
-		return getEmbedInfo(this.embedDefinitions, url)
+		return getEmbedInfo(EmbedShapeUtil.embedDefinitions, url)
 	}
 
 	override getText(shape: TLEmbedShape) {

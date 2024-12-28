@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import { Link } from 'react-router-dom'
-import { F } from '../../app/i18n'
-import { getRootPath } from '../../utils/urls'
+import { routes } from '../../../routeDefs'
+import { F } from '../../utils/i18n'
 import styles from './error.module.css'
 
 type TlaPageErrorType =
@@ -12,7 +12,7 @@ type TlaPageErrorType =
 
 function ErrorLinkHome() {
 	return (
-		<Link className={classNames(styles.link, 'tla-text_ui__regular')} to={getRootPath()}>
+		<Link className={classNames(styles.link, 'tla-text_ui__regular')} to={routes.tlaRoot()}>
 			<F defaultMessage="Take me home" />
 		</Link>
 	)

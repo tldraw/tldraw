@@ -14,14 +14,19 @@ import {
 	useToasts,
 	useValue,
 } from 'tldraw'
+import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
-import { IntlProvider, setupCreateIntl } from '../app/i18n'
+import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
-import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
-import { getRootPath } from '../utils/urls'
+import { IntlProvider, setupCreateIntl } from '../utils/i18n'
+import {
+	clearLocalSessionState,
+	getLocalSessionState,
+	updateLocalSessionState,
+} from '../utils/local-session-state'
 
 const assetUrls = getAssetUrlsByImport()
 
@@ -41,24 +46,26 @@ export function Component() {
 	const handleLocaleChange = (locale: string) => setLocale(locale)
 
 	return (
-		<IntlWrapper locale={locale}>
-			<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={getRootPath()}>
-				<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
-					<div
-						ref={setContainer}
-						className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
-					>
-						{container && (
-							<ContainerProvider container={container}>
-								<InsideOfContainerContext>
-									<Outlet />
-								</InsideOfContainerContext>
-							</ContainerProvider>
-						)}
-					</div>
-				</SignedInProvider>
-			</ClerkProvider>
-		</IntlWrapper>
+		<div
+			ref={setContainer}
+			className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
+		>
+			<IntlWrapper locale={locale}>
+				<MaybeForceUserRefresh>
+					<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={routes.tlaRoot()}>
+						<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
+							{container && (
+								<ContainerProvider container={container}>
+									<InsideOfContainerContext>
+										<Outlet />
+									</InsideOfContainerContext>
+								</ContainerProvider>
+							)}
+						</SignedInProvider>
+					</ClerkProvider>
+				</MaybeForceUserRefresh>
+			</IntlWrapper>
+		</div>
 	)
 }
 
@@ -151,16 +158,14 @@ function SignedInProvider({
 				auth: { userId: auth.userId },
 			}))
 		} else {
-			updateLocalSessionState(() => ({
-				auth: undefined,
-			}))
+			clearLocalSessionState()
 		}
 	}, [auth.userId, auth.isSignedIn])
 
 	if (!auth.isLoaded) return null
 
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
-		return children
+		return <ThemeContainer onThemeChange={onThemeChange}>{children}</ThemeContainer>
 	}
 
 	return (

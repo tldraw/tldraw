@@ -1,3 +1,4 @@
+import { sleep } from 'tldraw'
 import { Editor } from '../fixtures/Editor'
 import { HomePage } from '../fixtures/HomePage'
 import { Sidebar } from '../fixtures/Sidebar'
@@ -9,6 +10,7 @@ test('correctly clears db ', async ({ page, browser, editor, sidebar, database }
 		await editor.ensureSidebarOpen()
 		const currentCount = await sidebar.getNumberOfFiles()
 		for (let i = 0; i < documentsToAdd; i++) {
+			await sleep(1100)
 			await sidebar.createNewDocument()
 		}
 		const newCount = await sidebar.getNumberOfFiles()

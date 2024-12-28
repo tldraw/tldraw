@@ -5,7 +5,7 @@ Welcome to the public monorepo for [tldraw](https://github.com/tldraw/tldraw). t
 - Read the docs and learn more at [tldraw.dev](https://tldraw.dev).
 - Learn about [our license](https://github.com/tldraw/tldraw#License).
 
-> 🤵 Interested in using tldraw in your product? [Click here](https://tldraw.dev/#pricing) to learn about our license and pricing.
+> [Click here](https://tldraw.dev/#pricing) to learn about our license and pricing.
 
 ## Installation
 
@@ -76,7 +76,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 ## Community
 
-Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
+Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
 
 ## Contributors
 
@@ -102,4 +102,4 @@ Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsy
 
 ## Contact
 
-Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw). You can contact us at by email at [hello@tldraw.com](mailto:hello@tldraw.com).
+Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw). You can contact us by email at [hello@tldraw.com](mailto:hello@tldraw.com).

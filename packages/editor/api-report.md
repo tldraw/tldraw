@@ -16,6 +16,7 @@ import { Dispatch } from 'react';
 import { EffectScheduler } from '@tldraw/state';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
+import { ExoticComponent } from 'react';
 import { HistoryEntry } from '@tldraw/store';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
@@ -77,6 +78,7 @@ import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
+import { TLStoreSchema } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { TLUnknownBinding } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
@@ -698,6 +700,9 @@ export const defaultTldrawOptions: {
     readonly edgeScrollDistance: 8;
     readonly edgeScrollEaseDuration: 200;
     readonly edgeScrollSpeed: 25;
+    readonly exportProvider: ExoticComponent<    {
+    children?: ReactNode;
+    }>;
     readonly flattenImageBoundsExpand: 64;
     readonly flattenImageBoundsPadding: 16;
     readonly followChaseViewportSnap: 2;
@@ -1302,7 +1307,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     _updateShapes(_partials: (null | TLShapePartial | undefined)[]): void;
     updateViewportScreenBounds(screenBounds: Box | HTMLElement, center?: boolean): this;
-    uploadAsset(asset: TLAsset, file: File): Promise<string>;
+    uploadAsset(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<string>;
     readonly user: UserPreferencesManager;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
     zoomIn(point?: Vec, opts?: TLCameraMoveOptions): this;
@@ -1781,6 +1786,44 @@ export function loadSessionStateSnapshotIntoStore(store: TLStore, snapshot: TLSe
 
 // @public
 export function loadSnapshot(store: TLStore, _snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot, opts?: TLLoadSnapshotOptions): void;
+
+// @internal (undocumented)
+export class LocalIndexedDb {
+    constructor(persistenceKey: string);
+    // (undocumented)
+    close(): Promise<void>;
+    // (undocumented)
+    static connectedInstances: Set<LocalIndexedDb>;
+    // (undocumented)
+    getAsset(assetId: string): Promise<File | undefined>;
+    // (undocumented)
+    load({ sessionId }?: {
+        sessionId?: string;
+    }): Promise<{
+        records: any[];
+        schema: any;
+        sessionStateSnapshot: TLSessionStateSnapshot | undefined;
+    }>;
+    pending(): Promise<void>;
+    // (undocumented)
+    pruneSessions(): Promise<void>;
+    // (undocumented)
+    storeAsset(assetId: string, blob: File): Promise<void>;
+    // (undocumented)
+    storeChanges({ schema, changes, sessionId, sessionStateSnapshot, }: {
+        changes: RecordsDiff<any>;
+        schema: TLStoreSchema;
+        sessionId?: null | string;
+        sessionStateSnapshot?: null | TLSessionStateSnapshot;
+    }): Promise<void>;
+    // (undocumented)
+    storeSnapshot({ schema, snapshot, sessionId, sessionStateSnapshot, }: {
+        schema: TLStoreSchema;
+        sessionId?: null | string;
+        sessionStateSnapshot?: null | TLSessionStateSnapshot;
+        snapshot: SerializedStore<any>;
+    }): Promise<void>;
+}
 
 // @public (undocumented)
 export function loopToHtmlElement(elm: Element): HTMLElement;
@@ -2440,6 +2483,9 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 // @public (undocumented)
 export const stopEventPropagation: (e: any) => any;
 
+// @internal (undocumented)
+export type StoreName = (typeof Table)[keyof typeof Table];
+
 // @public (undocumented)
 export function suffixSafeId(id: SafeId, suffix: string): SafeId;
 
@@ -2468,13 +2514,19 @@ export interface SvgExportDef {
 export const TAB_ID: string;
 
 // @internal (undocumented)
+export const Table: {
+    readonly Assets: "assets";
+    readonly Records: "records";
+    readonly Schema: "schema";
+    readonly SessionState: "session_state";
+};
+
+// @internal (undocumented)
 export type TestEnvironment = 'development' | 'production';
 
 // @public (undocumented)
 export class TextManager {
     constructor(editor: Editor);
-    // (undocumented)
-    baseElm: HTMLDivElement;
     // (undocumented)
     editor: Editor;
     measureElementTextNodeSpans(element: HTMLElement, { shouldTruncateToFirstLine }?: {
@@ -2790,6 +2842,9 @@ export interface TldrawOptions {
     readonly edgeScrollEaseDuration: number;
     // (undocumented)
     readonly edgeScrollSpeed: number;
+    readonly exportProvider: ComponentType<{
+        children: React.ReactNode;
+    }>;
     // (undocumented)
     readonly flattenImageBoundsExpand: number;
     // (undocumented)
@@ -3711,6 +3766,9 @@ export { useQuickReactor }
 
 // @internal (undocumented)
 export const USER_COLORS: readonly ["#FF802B", "#EC5E41", "#F2555A", "#F04F88", "#E34BA9", "#BD54C6", "#9D5BD2", "#7B66DC", "#02B1CC", "#11B3A3", "#39B178", "#55B467"];
+
+// @internal
+export function useReactiveEvent<Args extends Array<unknown>, Result>(handler: (...args: Args) => Result): (...args: Args) => Result;
 
 export { useReactor }
 

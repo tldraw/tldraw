@@ -1,3 +1,56 @@
+# v3.6.0 (Wed Dec 04 2024)
+
+### Release Notes
+
+#### Create a utility type for making undefined properties optional ([#5055](https://github.com/tldraw/tldraw/pull/5055))
+
+- Expose a utility type for making undefined properties optional
+
+---
+
+#### 🐛 Bug Fix
+
+- Create a utility type for making undefined properties optional [#5055](https://github.com/tldraw/tldraw/pull/5055) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk) [@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+
+---
+
+# v3.5.0 (Tue Nov 26 2024)
+
+### Release Notes
+
+#### make sure copy-as-png comes in at natural size ([#4771](https://github.com/tldraw/tldraw/pull/4771))
+
+-  Shapes copied as PNG will have the same size when pasted back into tldraw.
+
+#### [wip] custom botcom backend ([#4879](https://github.com/tldraw/tldraw/pull/4879))
+
+- Fixed a bug with…
+
+---
+
+#### 🐛 Bug Fix
+
+- [botcom] New backend (again) [#4884](https://github.com/tldraw/tldraw/pull/4884) ([@ds300](https://github.com/ds300))
+- Revert "[wip] custom botcom backend" [#4883](https://github.com/tldraw/tldraw/pull/4883) ([@ds300](https://github.com/ds300))
+- [wip] custom botcom backend [#4879](https://github.com/tldraw/tldraw/pull/4879) ([@ds300](https://github.com/ds300) [@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🐛 Bug Fixes
+
+- make sure copy-as-png comes in at natural size [#4771](https://github.com/tldraw/tldraw/pull/4771) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 3
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+---
+
 # v3.4.0 (Thu Oct 24 2024)
 
 ### Release Notes

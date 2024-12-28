@@ -34,7 +34,7 @@ export function useQuickReactor(name: string, reactFn: () => void, deps?: any[])
 export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;
 
 // @public
-export function useStateTracking<T>(name: string, render: () => T): T;
+export function useStateTracking<T>(name: string, render: () => T, deps?: unknown[]): T;
 
 // @public
 export function useValue<Value>(value: Signal<Value>): Value;
