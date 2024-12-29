@@ -77,7 +77,7 @@ export default defineConfig(({ mode }) => ({
 		'process.env.TLDRAW_IMAGE_URL': urlOrLocalFallback(
 			mode,
 			env === 'development' ? undefined : 'https://images.tldraw.xyz',
-			8989
+			8786
 		),
 	},
 }))

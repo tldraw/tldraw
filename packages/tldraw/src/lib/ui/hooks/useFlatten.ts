@@ -101,10 +101,9 @@ export async function flattenShapesToImages(
 		if (!svgResult?.svg) continue
 
 		// get an image asset for the image
-		const blob = new Blob([svgResult.svg], { type: 'image/svg+xml' })
 		const asset = (await editor.getAssetForExternalContent({
 			type: 'file',
-			file: new File([blob], 'asset.svg', { type: 'image/svg+xml' }),
+			file: new File([svgResult.svg], 'asset.svg', { type: 'image/svg+xml' }),
 		})) as TLImageAsset
 		if (!asset) continue
 

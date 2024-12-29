@@ -10,4 +10,4 @@ Export the entire canvas as an image file
 
 ---
 
-This example shows how you can use the `exportToBlob()` function to create an image with all the shapes on the canvas in it and then download it. The easiest way to download an image is to use the download attribute of a link element.
+This example shows how you can use the `Editor.toImage()` function to create an image with all the shapes on the canvas in it and then download it. The easiest way to download an image is to use the download attribute of a link element.
