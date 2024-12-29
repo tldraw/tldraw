@@ -612,6 +612,7 @@ export function useNativeClipboardEvents() {
 
 	useEffect(() => {
 		if (!appIsFocused) return
+		if (editor.options.disableCopyPaste) return
 		const copy = async (e: ClipboardEvent) => {
 			if (
 				editor.getSelectedShapeIds().length === 0 ||
