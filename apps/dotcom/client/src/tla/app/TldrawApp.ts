@@ -1,13 +1,16 @@
 // import { Query, QueryType, Smash, TableSchema, Zero } from '@rocicorp/zero'
 import {
 	CreateFilesResponseBody,
+	File,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
 	TlaUser,
+	User,
 	UserPreferencesKeys,
 	ZErrorCode,
 	Z_PROTOCOL_VERSION,
+	Zero,
 } from '@tldraw/dotcom-shared'
 import { Result, assert, fetch, structuredClone, throttle, uniqueId } from '@tldraw/utils'
 import pick from 'lodash.pick'
@@ -31,7 +34,6 @@ import {
 } from 'tldraw'
 import { getDateFormat } from '../utils/dates'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
-import { Zero } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
@@ -110,10 +112,10 @@ export class TldrawApp {
 		)
 	}
 
-	async preload(initialUserData: TlaUser) {
+	async preload(initialUserData: User) {
 		await this.z.query.user.where('id', this.userId).preload().complete
 		if (!this.user$.get()) {
-			await this.z.mutate.user.create(initialUserData)
+			this.z.mutate.user.create(initialUserData)
 		}
 		await new Promise((resolve) => {
 			let unsub = () => {}
@@ -279,7 +281,7 @@ export class TldrawApp {
 			return Result.err('max number of files reached')
 		}
 
-		const file: TlaFile = {
+		const file: File = {
 			id: typeof fileOrId === 'string' ? fileOrId : uniqueId(),
 			ownerId: this.userId,
 			// these two owner properties are overridden by postgres triggers

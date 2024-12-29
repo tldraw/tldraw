@@ -1,26 +1,20 @@
-import {
-	OptimisticAppStore,
-	TlaFile,
-	TlaFilePartial,
-	TlaFileState,
-	TlaFileStatePartial,
-	TlaUser,
-	TlaUserPartial,
-	ZClientSentMessage,
-	ZErrorCode,
-	ZRowUpdate,
-	ZServerSentMessage,
-} from '@tldraw/dotcom-shared'
+import { Signal, computed, react, transact } from '@tldraw/state'
 import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { Signal, computed, react, transact, uniqueId } from 'tldraw'
+import { assert, uniqueId } from '@tldraw/utils'
+import { File, FilePartial, FileState, FileStatePartial, User, UserPartial } from './DB'
+import { OptimisticAppStore } from './OptimisticAppStore'
+import { TlaFileState } from './tlaSchema'
+import { ZClientSentMessage, ZErrorCode, ZRowUpdate, ZServerSentMessage } from './types'
 
 export class Zero {
 	private socket: ClientWebSocketAdapter
-	private store = new OptimisticAppStore()
+	store = new OptimisticAppStore()
 	private pendingUpdates: ZRowUpdate[] = []
 	private timeout: NodeJS.Timeout | undefined = undefined
 	private currentMutationId = uniqueId()
 	private clientTooOld = false
+
+	userId?: string
 
 	constructor(
 		private opts: {
@@ -45,6 +39,7 @@ export class Zero {
 				// ignore incoming messages if the client is not supported
 				return
 			}
+			// console.log('got msg', this.userId, _msg)
 			const msg = _msg as any as ZServerSentMessage
 			switch (msg.type) {
 				case 'initial_data':
@@ -75,6 +70,33 @@ export class Zero {
 			this.sendPendingUpdates()
 		}
 		this.socket.close()
+	}
+
+	async sneakyTransaction(fn: () => Promise<void>): Promise<void> {
+		await fn()
+		assert(this.pendingUpdates.length > 0, 'no updates to send')
+		if (this.pendingUpdates.length === 0) {
+			return
+		}
+		const mutationId = this.currentMutationId
+
+		return new Promise((resolve, reject) => {
+			const unsubCommit = this.store.events.on('commit', (ids: string[]) => {
+				if (ids.includes(mutationId)) {
+					resolve()
+					unsubCommit()
+					unsubReject()
+				}
+			})
+
+			const unsubReject = this.store.events.on('reject', (id: string) => {
+				if (id === mutationId) {
+					reject()
+					unsubCommit()
+					unsubReject()
+				}
+			})
+		})
 	}
 
 	// eslint-disable-next-line local/prefer-class-methods
@@ -161,37 +183,38 @@ export class Zero {
 	}
 	readonly ____mutators = {
 		file: {
-			create: (data: TlaFile) => {
+			create: (data: File) => {
 				const store = this.store.getFullData()
 				if (!store) throw new Error('store not initialized')
 				if (store?.files.find((f) => f.id === data.id)) {
 					throw new Error('file already exists')
 				}
+				assert(store.user !== null, 'user not initialized')
 				this.makeOptimistic([
 					{ table: 'file', event: 'insert', row: data },
 					{
 						table: 'file_state',
 						event: 'insert',
-						row: { fileId: data.id, userId: store.user.id, firstVisitAt: Date.now() } as any,
+						row: { fileId: data.id, userId: data.ownerId, firstVisitAt: Date.now() } as any,
 					},
 				])
 			},
-			update: (data: TlaFilePartial) => {
+			update: (data: FilePartial) => {
 				const existing = this.store.getFullData()?.files.find((f) => f.id === data.id)
 				if (!existing) throw new Error('file not found')
 				this.makeOptimistic([{ table: 'file', event: 'update', row: data }])
 			},
-			delete: (data: { id: TlaFile['id'] }) => {
+			delete: (data: { id: File['id'] }) => {
 				this.makeOptimistic([{ table: 'file', event: 'delete', row: data }])
 			},
 		},
 		file_state: {
-			create: (data: TlaFileState) => {
+			create: (data: FileState) => {
 				const store = this.store.getFullData()
 				if (!store) throw new Error('store not initialized')
 				this.makeOptimistic([{ table: 'file_state', event: 'insert', row: data }])
 			},
-			update: (data: TlaFileStatePartial) => {
+			update: (data: FileStatePartial) => {
 				const existing = this.store
 					.getFullData()
 					?.fileStates.find((f) => f.fileId === data.fileId && f.userId === data.userId)
@@ -203,10 +226,10 @@ export class Zero {
 			},
 		},
 		user: {
-			create: (data: TlaUser) => {
+			create: (data: User) => {
 				this.makeOptimistic([{ table: 'user', event: 'insert', row: data as any }])
 			},
-			update: (data: TlaUserPartial) => {
+			update: (data: UserPartial) => {
 				this.makeOptimistic([{ table: 'user', event: 'update', row: data as any }])
 			},
 			delete: () => {
@@ -236,6 +259,7 @@ export class Zero {
 
 	makeOptimistic(updates: ZRowUpdate[]) {
 		if (this.clientTooOld) {
+			console.log('client too old')
 			// ignore incoming messages if the client is not supported
 			this.opts.onMutationRejected('client_too_old')
 			return
@@ -243,10 +267,9 @@ export class Zero {
 		this.store.updateOptimisticData(updates, this.currentMutationId)
 
 		this.pendingUpdates.push(...updates)
-		if (!this.timeout) {
-			this.timeout = setTimeout(() => {
-				this.sendPendingUpdates()
-			}, 50)
-		}
+		clearTimeout(this.timeout)
+		this.timeout = setTimeout(() => {
+			this.sendPendingUpdates()
+		}, 50)
 	}
 }

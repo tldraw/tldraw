@@ -121,6 +121,8 @@ class SizeReporter {
 			// need to list out node packages that are used in the worker.
 			// otherwise, if we user platform=node, the bundle size is not reported correctly
 			'--external:os',
+			'--external:path',
+			'--external:dns',
 			'--external:crypto',
 			'--external:stream',
 			'--external:net',
