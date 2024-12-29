@@ -66,6 +66,7 @@ export interface TldrawOptions {
 	 * external context providers. By default, this is `React.Fragment`.
 	 */
 	readonly exportProvider: ComponentType<{ children: React.ReactNode }>
+	readonly disableCopyPaste: boolean
 }
 
 /** @public */
@@ -111,4 +112,5 @@ export const defaultTldrawOptions = {
 	actionShortcutsLocation: 'swap',
 	createTextOnCanvasDoubleClick: true,
 	exportProvider: Fragment,
+	disableCopyPaste: false,
 } as const satisfies TldrawOptions
