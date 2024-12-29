@@ -28,7 +28,6 @@ export type TranslatingInfo = TLPointerEventInfo & {
 	isCreating?: boolean
 	creatingMarkId?: string
 	onCreate?(): void
-	didStartInPit?: boolean
 	onInteractionEnd?: string
 }
 
