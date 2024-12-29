@@ -57,6 +57,14 @@ export class PointingArrowLabel extends StateNode {
 		this._labelDragOffset = Vec.Sub(labelGeometry.center, pointInShapeSpace)
 
 		this.markId = this.editor.markHistoryStoppingPoint('label-drag start')
+
+		if (this.info.ctrlKey) {
+			const selectedShapeIds = this.editor.getSelectedShapeIds()
+			this.editor.setSelectedShapes([...selectedShapeIds, this.shapeId])
+
+			return
+		}
+
 		this.editor.setSelectedShapes([this.shapeId])
 	}
 
