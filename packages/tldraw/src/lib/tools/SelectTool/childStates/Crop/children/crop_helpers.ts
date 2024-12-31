@@ -1,19 +1,6 @@
-import {
-	Editor,
-	TLBaseShape,
-	TLImageShapeCrop,
-	TLShapePartial,
-	Vec,
-	structuredClone,
-} from '@tldraw/editor'
+import { Editor, ShapeWithCrop, TLShapePartial, Vec, structuredClone } from '@tldraw/editor'
 
-export type ShapeWithCrop = TLBaseShape<string, { w: number; h: number; crop: TLImageShapeCrop }>
-
-export function getTranslateCroppedImageChange(
-	editor: Editor,
-	shape: TLBaseShape<string, { w: number; h: number; crop: TLImageShapeCrop }>,
-	delta: Vec
-) {
+export function getTranslateCroppedImageChange(editor: Editor, shape: ShapeWithCrop, delta: Vec) {
 	if (!shape) {
 		throw Error('Needs to translate a cropped shape!')
 	}

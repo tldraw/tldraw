@@ -2270,6 +2270,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onBindingChange?(shape: Shape): TLShapePartial<Shape> | void;
     onChildrenChange?(shape: Shape): TLShapePartial[] | void;
     onClick?(shape: Shape): TLShapePartial<Shape> | void;
+    onCrop?(shape: Shape, info: TLCropInfo<Shape>): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void;
     onDoubleClick?(shape: Shape): TLShapePartial<Shape> | void;
     onDoubleClickEdge?(shape: Shape): TLShapePartial<Shape> | void;
     onDoubleClickHandle?(shape: Shape, handle: TLHandle): TLShapePartial<Shape> | void;
@@ -2717,6 +2718,16 @@ export interface TLContent {
     schema: SerializedSchema;
     // (undocumented)
     shapes: TLShape[];
+}
+
+// @public
+export interface TLCropInfo<T extends TLShape> {
+    // (undocumented)
+    change: Vec;
+    // (undocumented)
+    handle: SelectionHandle;
+    // (undocumented)
+    initialShape: T;
 }
 
 // @public (undocumented)
