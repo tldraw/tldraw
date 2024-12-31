@@ -1,7 +1,15 @@
 import { useEffect, useRef } from 'react'
 import { Vec, useEditor, useValue } from 'tldraw'
 
-/* eslint-disable local/prefer-class-methods */
+const MAX_GUST_SPEED = 2
+const GUST_ROTATION_DURATION = 30_000
+
+const MAX_PIXELS_SCROLL_EFFECT = 18
+const MAX_SCROLL_SPEED = 2
+
+const MIN_POINTER_DISTANCE_SQUARED = 10_000
+const SNOWFLAKE_VELOCITY_DECAY = 0.82
+
 interface Snowflake {
 	element: HTMLElement
 	x: number
@@ -32,11 +40,11 @@ class Snowstorm {
 	// Configuration options
 	private readonly config = {
 		flakesMax: 128,
-		flakesMaxActive: 64,
-		animationInterval: 30,
 		flakeSizeMin: 2,
 		flakeSizeMax: 5,
-		windMax: 2,
+		flakeSpeedMinY: 1,
+		flakeSpeedMaxY: 3,
+		flakeSpeedX: 2,
 	}
 
 	constructor(container: HTMLElement = document.body) {
@@ -46,58 +54,75 @@ class Snowstorm {
 	}
 
 	private createSnowflake(): Snowflake {
-		const size = rnd(this.config.flakeSizeMin, this.config.flakeSizeMax)
-		const opacity = rnd(0.5, 1)
-
 		const element = document.createElement('div')
-		element.style.width = `${size}px`
-		element.style.height = `${size}px`
-		element.classList.add('tl-snowflake')
-		element.style.opacity = opacity.toString()
-
+		element.classList.add('snowflake')
 		this.container.appendChild(element)
 
 		return {
 			element,
-			x: rnd(0, this.width),
-			y: rnd(-this.height, 0),
-			vx: rnd(-this.config.windMax, this.config.windMax),
-			vy: rnd(1, 3),
+			x: 0,
+			y: 0,
+			vx: 0,
+			vy: 0,
 			pvx: 0,
 			pvy: 0,
-			size,
+			size: 1,
 		}
 	}
 
+	configureSnowflake(flake: Snowflake) {
+		const size = rnd(this.config.flakeSizeMin, this.config.flakeSizeMax)
+		flake.x = rnd(0, this.width)
+		flake.y = rnd(-this.height, 0)
+		flake.vx = rnd(-this.config.flakeSpeedX, this.config.flakeSpeedX)
+		flake.vy = rnd(this.config.flakeSpeedMinY, this.config.flakeSpeedMaxY)
+		flake.element.style.width = `${size}px`
+		flake.element.style.height = `${size}px`
+		flake.element.style.opacity = rnd(0.5, 1).toString()
+	}
+
 	// Main render loop
-	render = (screenPoint: Vec, pointerVelocity: Vec) => {
+	render(screenPoint: Vec, pointerVelocity: Vec, time: number) {
 		if (!this.active) return
+
+		const q = Math.sin(time / GUST_ROTATION_DURATION)
+
+		// make wind gradually cycle between 0 and 10, maybe a bit randomly, like gusts of wind
+		this.baseWindX = q * MAX_GUST_SPEED
 
 		const pointerLen = pointerVelocity.len2()
 
 		for (const flake of this.flakes) {
 			const dist2 = Vec.Dist2(screenPoint, new Vec(flake.x, flake.y))
-			// if the snowflake is close to the pointer, give it a little boost based on the pointer velocity
 
-			if (dist2 < 10000 && pointerLen > 1) {
-				flake.pvx = pointerVelocity.x
-				flake.pvy = pointerVelocity.y
+			// if the pointer is moving quickly, give nearby snowflakes a little boost based on the pointer velocity
+			if (dist2 < MIN_POINTER_DISTANCE_SQUARED) {
+				if (pointerLen > 1) {
+					flake.pvx = pointerVelocity.x
+					flake.pvy = pointerVelocity.y < 0 ? pointerVelocity.y / 2 : pointerVelocity.y // don't push up as easily
+				}
 			} else {
+				// otherwise, declay down other snowflakes that have been boosted
 				if (flake.pvx !== 0) {
-					flake.pvx *= 0.9
+					flake.pvx *= SNOWFLAKE_VELOCITY_DECAY
 					if (Math.abs(flake.pvx) < 0.01) {
 						flake.pvx = 0
 					}
-					flake.pvy *= 0.9
-					if (Math.abs(flake.pvy) < 0.01) {
-						flake.pvy = 0
+
+					if (flake.pvy !== 0) {
+						flake.pvy *= SNOWFLAKE_VELOCITY_DECAY
+						if (Math.abs(flake.pvy) < 0.01) {
+							flake.pvy = 0
+						}
 					}
 				}
 			}
 
+			// Move the flake based on the wind, the base wind, the pointer velocity, and some random wobble
 			flake.x += flake.vx + this.windX + this.baseWindX + flake.pvx
 			flake.y += flake.vy + this.windY + flake.pvy
 
+			// Wrap the snowflakes around the screen horizontally
 			if (flake.x < 0) {
 				flake.x += this.width
 				flake.pvx = 0
@@ -106,19 +131,20 @@ class Snowstorm {
 				flake.pvx = 0
 			}
 
+			// Wrap the snowflakes around the screen vertically
 			if (flake.y < 0) {
 				flake.y += this.height
-				flake.pvx = 0
+				flake.pvy = 0
 			} else if (flake.y > this.height) {
 				flake.y -= this.height
-				flake.pvx = 0
+				flake.pvy = 0
 			}
 
 			flake.element.style.transform = `translate(${flake.x}px, ${flake.y}px)`
 		}
 	}
 
-	resize = () => {
+	resize() {
 		this.width = this.container.clientWidth
 		this.height = this.container.clientHeight
 	}
@@ -126,7 +152,9 @@ class Snowstorm {
 	start() {
 		this.active = true
 		while (this.flakes.length < this.config.flakesMax) {
-			this.flakes.push(this.createSnowflake())
+			const flake = this.createSnowflake()
+			this.configureSnowflake(flake)
+			this.flakes.push(flake)
 		}
 		window.addEventListener('resize', this.resize)
 	}
@@ -167,20 +195,21 @@ export function SnowStorm() {
 		function updateOnTick() {
 			const time = Date.now() - start
 
-			// make wind gradually cycle between 0 and 10, maybe a bit randomly, like gusts of wind
-			snowstorm.baseWindX = Math.sin(time / 30_000) * 2
-
 			const newCamera = editor.getCamera()
 
+			// Apply camera movement effect only when zoom isn't changing
 			if (newCamera.z === camera.z) {
 				const dx = (newCamera.x - camera.x) * camera.z
 				const dy = (newCamera.y - camera.y) * camera.z
 
 				// add the camera movement to the velocity
-				velocity.addXY(dx / 18, dy / 18)
+				velocity.addXY(
+					Math.min(dx / MAX_PIXELS_SCROLL_EFFECT, MAX_SCROLL_SPEED),
+					Math.min(dy / MAX_PIXELS_SCROLL_EFFECT, MAX_SCROLL_SPEED)
+				)
 
 				// decay velocity
-				velocity.mul(0.82)
+				velocity.mul(SNOWFLAKE_VELOCITY_DECAY)
 
 				// stop the snowflakes from moving if the camera is not moving
 				if (velocity.len2() < 1) {
@@ -193,19 +222,17 @@ export function SnowStorm() {
 			}
 
 			camera.setTo(newCamera)
-			snowstorm.render(editor.inputs.currentScreenPoint, editor.inputs.pointerVelocity)
+			snowstorm.render(editor.inputs.currentScreenPoint, editor.inputs.pointerVelocity, time)
 		}
 
 		snowstorm.start()
 		editor.on('tick', updateOnTick)
 
-		// eslint-disable-next-line no-console
-		console.log('happy holidays from tldraw')
 		return () => {
 			editor.off('tick', updateOnTick)
 			snowstorm.dispose()
 		}
 	}, [editor, prefersReducedMotion])
 
-	return <div ref={rElm} className="tl-snowstorm" />
+	return <div ref={rElm} className="snowstorm" />
 }
