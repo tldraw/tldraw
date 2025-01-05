@@ -4,6 +4,11 @@ import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
 let shape: TLImageShape
+const initialSize = { w: 100, h: 100 }
+const initialCrop = {
+	topLeft: { x: 0, y: 0 },
+	bottomRight: { x: 1, y: 1 },
+}
 
 beforeEach(() => {
 	editor = new TestEditor()
@@ -15,12 +20,8 @@ beforeEach(() => {
 			x: 100,
 			y: 100,
 			props: {
-				w: 100,
-				h: 100,
-				crop: {
-					topLeft: { x: 0, y: 0 },
-					bottomRight: { x: 1, y: 1 },
-				},
+				...initialSize,
+				crop: initialCrop,
 			},
 		},
 	])
@@ -32,6 +33,8 @@ describe('Crop box', () => {
 		const results = cropBox(shape, {
 			handle: 'top_left',
 			change: new Vec(10, 20),
+			crop: initialCrop,
+			uncroppedSize: initialSize,
 			initialShape: shape,
 		})
 		expect(results).toMatchObject({
@@ -52,6 +55,8 @@ describe('Crop box', () => {
 		const results = cropBox(shape, {
 			handle: 'top_right',
 			change: new Vec(-10, 20),
+			crop: initialCrop,
+			uncroppedSize: initialSize,
 			initialShape: shape,
 		})
 		expect(results).toMatchObject({
@@ -72,6 +77,8 @@ describe('Crop box', () => {
 		const results = cropBox(shape, {
 			handle: 'bottom_right',
 			change: new Vec(-10, -20),
+			crop: initialCrop,
+			uncroppedSize: initialSize,
 			initialShape: shape,
 		})
 		expect(results).toMatchObject({
@@ -92,6 +99,8 @@ describe('Crop box', () => {
 		const results = cropBox(shape, {
 			handle: 'bottom_left',
 			change: new Vec(10, -20),
+			crop: initialCrop,
+			uncroppedSize: initialSize,
 			initialShape: shape,
 		})
 		expect(results).toMatchObject({
@@ -112,6 +121,8 @@ describe('Crop box', () => {
 		const results = cropBox(shape, {
 			handle: 'top_left',
 			change: new Vec(-10, 0),
+			crop: initialCrop,
+			uncroppedSize: initialSize,
 			initialShape: shape,
 		})
 		expect(results).toMatchObject({
@@ -134,6 +145,8 @@ describe('Crop box', () => {
 			{
 				handle: 'top_left',
 				change: new Vec(10, 20),
+				crop: initialCrop,
+				uncroppedSize: initialSize,
 				initialShape: shape,
 			},
 			{

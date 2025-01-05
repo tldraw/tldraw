@@ -1,5 +1,5 @@
 import { SelectionHandle, ShapeWithCrop, StateNode, TLPointerEventInfo, Vec } from '@tldraw/editor'
-import { cropBox } from '../../../../../shapes/shared/crop'
+import { cropBox, getDefaultCrop } from '../../../../../shapes/shared/crop'
 import { kickoutOccludedShapes } from '../../../selectHelpers'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
@@ -66,10 +66,19 @@ export class Cropping extends StateNode {
 		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
 
 		const change = currentPagePoint.clone().sub(originPagePoint).rot(-shape.rotation)
+
+		const crop = shape.props.crop ?? getDefaultCrop()
+		const uncroppedSize = {
+			w: (1 / (crop.bottomRight.x - crop.topLeft.x)) * shape.props.w,
+			h: (1 / (crop.bottomRight.y - crop.topLeft.y)) * shape.props.h,
+		}
+
 		const cropFn = util.onCrop ?? cropBox
 		const partial = cropFn(shape, {
 			handle: this.info.handle,
 			change,
+			crop,
+			uncroppedSize,
 			initialShape: this.snapshot.shape,
 		})
 		if (!partial) return

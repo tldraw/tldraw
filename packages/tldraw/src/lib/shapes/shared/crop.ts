@@ -23,19 +23,13 @@ export function cropBox<T extends ShapeWithCrop>(
 	info: TLCropInfo<T>,
 	opts = {} as CropBoxOptions
 ): TLShapePartial<ShapeWithCrop> | undefined {
-	const { handle, change } = info
+	const { handle, change, crop } = info
+	const { w, h } = info.uncroppedSize
 	const { minWidth = MIN_CROP_SIZE, minHeight = MIN_CROP_SIZE } = opts
 
-	const props = shape.props
-	const crop = props.crop ?? getDefaultCrop()
 	const newCrop = structuredClone(crop)
-
 	const newPoint = new Vec(shape.x, shape.y)
 	const pointDelta = new Vec(0, 0)
-
-	// original (uncropped) width and height of shape
-	const w = (1 / (crop.bottomRight.x - crop.topLeft.x)) * props.w
-	const h = (1 / (crop.bottomRight.y - crop.topLeft.y)) * props.h
 
 	let hasCropChanged = false
 

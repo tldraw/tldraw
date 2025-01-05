@@ -5,6 +5,7 @@ import {
 	TLHandle,
 	TLPropsMigrations,
 	TLShape,
+	TLShapeCrop,
 	TLShapePartial,
 	TLUnknownShape,
 } from '@tldraw/tlschema'
@@ -639,6 +640,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 export interface TLCropInfo<T extends TLShape> {
 	handle: SelectionHandle
 	change: Vec
+	crop: TLShapeCrop
+	uncroppedSize: { w: number; h: number }
 	initialShape: T
 }
 

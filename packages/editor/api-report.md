@@ -74,6 +74,7 @@ import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLScribble } from '@tldraw/tlschema';
 import { TLShape } from '@tldraw/tlschema';
+import { TLShapeCrop } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
@@ -2725,9 +2726,16 @@ export interface TLCropInfo<T extends TLShape> {
     // (undocumented)
     change: Vec;
     // (undocumented)
+    crop: TLShapeCrop;
+    // (undocumented)
     handle: SelectionHandle;
     // (undocumented)
     initialShape: T;
+    // (undocumented)
+    uncroppedSize: {
+        h: number;
+        w: number;
+    };
 }
 
 // @public (undocumented)
