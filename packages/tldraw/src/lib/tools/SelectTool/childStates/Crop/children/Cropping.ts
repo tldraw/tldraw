@@ -73,7 +73,7 @@ export class Cropping extends StateNode {
 			h: (1 / (crop.bottomRight.y - crop.topLeft.y)) * shape.props.h,
 		}
 
-		const cropFn = util.onCrop ?? cropBox
+		const cropFn = util.onCrop?.bind(util) ?? cropBox
 		const partial = cropFn(shape, {
 			handle: this.info.handle,
 			change,
