@@ -298,7 +298,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								.insertInto(update.table)
 								.values(update.row as TlaFileState)
 								.onConflict((oc) => {
-									if (Object.keys(oc).length === 0) {
+									if (Object.keys(rest).length === 0) {
 										return oc.columns(['fileId', 'userId']).doNothing()
 									} else {
 										return oc.columns(['fileId', 'userId']).doUpdateSet(rest)
