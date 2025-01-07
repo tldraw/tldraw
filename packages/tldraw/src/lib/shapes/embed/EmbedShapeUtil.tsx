@@ -16,7 +16,6 @@ import {
 	useValue,
 } from '@tldraw/editor'
 
-import { SyntheticEvent } from 'react'
 import {
 	DEFAULT_EMBED_DEFINITIONS,
 	EmbedDefinition,
@@ -178,16 +177,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			...(embedInfo?.definition.overridePermissions ?? {}),
 		})
 
-		const onLoad = (e: SyntheticEvent<HTMLIFrameElement>) => {
-			// XXX There's a bug with Val Town where when loading the iframe sometimes it doesn't
-			// fully load the content until it's touched a bit.
-			// This "shakes" it awake.
-			if (embedInfo?.definition.type === 'val_town') {
-				e.currentTarget.style.height = `${parseInt(e.currentTarget.height) - 1}px`
-				e.currentTarget.style.height = `${parseInt(e.currentTarget.height) + 1}px`
-			}
-		}
-
 		return (
 			<HTMLContainer className="tl-embed-container" id={shape.id}>
 				{embedInfo?.definition ? (
@@ -200,7 +189,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						draggable={false}
 						frameBorder="0"
 						referrerPolicy="no-referrer-when-downgrade"
-						onLoad={onLoad}
 						style={{
 							border: 0,
 							pointerEvents: isInteractive ? 'auto' : 'none',
