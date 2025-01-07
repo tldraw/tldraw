@@ -5,7 +5,8 @@ import postgres from 'postgres'
 import { Environment } from './types'
 
 /**
- * `pooled` should be almost always be true.
+ * In most cases you want to use a pooled connection, which is what `getPooledPostgres` does.
+ * Use this one only for cases like subscriptions where you need to listen for notifications / WAL.
  */
 export function getPostgres(
 	env: Environment,
