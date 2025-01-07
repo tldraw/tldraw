@@ -53,7 +53,14 @@ export function useContextualToolbarPosition({
 		return defaultPosition
 	}
 
-	if (isMobile || !selectionBounds || isNaN(selectionBounds.x) || isNaN(selectionBounds.y)) {
+	const offscreenPadding = 20
+	const isSelectionOffscreen =
+		selectionBounds.x < -1 * offscreenPadding ||
+		selectionBounds.y < -1 * offscreenPadding ||
+		selectionBounds.x > window.innerWidth + offscreenPadding ||
+		selectionBounds.y > window.innerHeight + offscreenPadding
+
+	if (isMobile || isNaN(selectionBounds.x) || isNaN(selectionBounds.y) || isSelectionOffscreen) {
 		return {
 			x: container.clientWidth / 2 - menuWidth / 2,
 			y: viewportHeight - menuHeight - 16,

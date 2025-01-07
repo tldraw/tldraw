@@ -15,9 +15,8 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useContextualToolbarPosition } from '../../hooks/useContextualToolbarPosition'
-import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { DefaultRichTextToolbarContent } from './DefaultRichTextToolbarContent'
 import { LinkEditor } from './LinkEditor'
@@ -44,7 +43,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	)
 	const [currentCamera, setCurrentCamera] = useState(editor.getCamera())
 	const editingShapeId = useValue('editingShapeId', () => editor.getEditingShapeId(), [editor])
-	const [stabilizedToolbarPosition, setStabilizedToolbarPosition] = useState({
+	const [lastToolbarPosition, setLastToolbarPosition] = useState({
 		x: defaultPosition.x,
 		y: defaultPosition.y,
 		editingShapeId: null as TLShapeId | null,
@@ -145,8 +144,10 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		!!textEditor &&
 		!!textEditorState &&
 		editor.isInAny('select.editing_shape') &&
+		!isMousingDown &&
 		(isMousingAround || isCoarsePointer) &&
 		(hasTextSelection || textEditor.isActive('link'))
+
 	const toolbarPosition = useContextualToolbarPosition({
 		isVisible,
 		toolbarRef,
@@ -170,43 +171,34 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	// when modifying the rich text. The issue stems from the fact that coordsAtPos provides
 	// slightly different results for the same general position.
 	// However, if the camera has moved, forget the stabilization logic, just update the positions.
-	useEffect(() => {
-		if (isEditingLink) return
+	const stabilizedToolbarPosition = useMemo(() => {
+		if (isEditingLink) return lastToolbarPosition
 
 		const hasCameraMoved = !areObjectsShallowEqual(camera, currentCamera)
 
 		const threshold = 10
 		const hasXPositionChangedEnough =
-			hasCameraMoved || Math.abs(toolbarPosition.x - stabilizedToolbarPosition.x) > threshold
+			hasCameraMoved || Math.abs(toolbarPosition.x - lastToolbarPosition.x) > threshold
 		const hasYPositionChangedEnough =
-			hasCameraMoved || Math.abs(toolbarPosition.y - stabilizedToolbarPosition.y) > threshold
+			hasCameraMoved || Math.abs(toolbarPosition.y - lastToolbarPosition.y) > threshold
 		if (hasXPositionChangedEnough || hasYPositionChangedEnough) {
-			const x = hasXPositionChangedEnough ? toolbarPosition.x : stabilizedToolbarPosition.x
-			const y = hasYPositionChangedEnough ? toolbarPosition.y : stabilizedToolbarPosition.y
-			setStabilizedToolbarPosition({ x, y, editingShapeId })
-			if (toolbarRef.current && hasCameraMoved) {
-				// Make an immediate update for snappiness if camera has moved.
-				// Otherwise, we use the debouncedToolbarPosition below which makes it less jittery.
-				toolbarRef.current.style.transform = `translate(${x}px, ${y}px)`
+			const x = hasXPositionChangedEnough ? toolbarPosition.x : lastToolbarPosition.x
+			const y = hasYPositionChangedEnough ? toolbarPosition.y : lastToolbarPosition.y
+			const newStablePosition = { x, y, editingShapeId }
+			if (!hasCameraMoved) {
+				// We don't update this when the camera moves because otherwise we get into an infinite loop.
+				setLastToolbarPosition(newStablePosition)
 			}
+
+			return newStablePosition
 		}
 
 		if (hasCameraMoved) {
 			setCurrentCamera(camera)
 		}
-	}, [
-		toolbarPosition,
-		stabilizedToolbarPosition,
-		camera,
-		currentCamera,
-		isEditingLink,
-		editingShapeId,
-	])
 
-	// The toolbar can get a _lot_ of updates because the textEditor state changes so much.
-	// That can make it cycle pretty quickly through isVisible and toolbarPosition states.
-	// This helps take the stabilizedPosition and visibility states and make them less jittery.
-	const debouncedToolbarPosition = useDebouncedValue(stabilizedToolbarPosition, 150)
+		return lastToolbarPosition
+	}, [toolbarPosition, lastToolbarPosition, camera, currentCamera, isEditingLink, editingShapeId])
 
 	if (!textEditor) return null
 
@@ -214,14 +206,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		<TldrawUiContextualToolbar
 			ref={toolbarRef}
 			className="tl-rich-text__toolbar"
-			// Because the position is debounced, we need to make sure the debounced position
-			// is still for the same shape as the one we're editing. We could have done an
-			// edit-to-edit and the debounced position could be for the previous shape.
-			position={
-				debouncedToolbarPosition.editingShapeId === editingShapeId
-					? debouncedToolbarPosition
-					: stabilizedToolbarPosition
-			}
+			position={stabilizedToolbarPosition}
 			indicatorOffset={toolbarPosition.indicatorOffset}
 		>
 			{children ? (

@@ -3882,9 +3882,6 @@ export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
 export function useCurrentTranslation(): TLUiTranslation;
 
 // @public (undocumented)
-export function useDebouncedValue<T>(value: T, delay: number): T;
-
-// @public (undocumented)
 export function useDefaultColorTheme(): {
     "light-blue": TLDefaultColorThemeColor;
     "light-green": TLDefaultColorThemeColor;

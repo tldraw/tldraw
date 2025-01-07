@@ -928,21 +928,18 @@
 
 .tl-contextual-toolbar {
 	position: absolute;
-	pointer-events: none;
-}
-
-.tl-contextual-toolbar * {
-	pointer-events: none;
 }
 
 /**
  * N.B. We don't want the toolbar to be clickable when "mousing down", i.e. selecting text
  * because when hovering over the toolbar in the midst of selecting, the selection goes all wonky.
  */
-.tl-contextual-toolbar[data-is-mousing-down='false'] {
-	pointer-events: all;
+.tl-contextual-toolbar,
+.tl-contextual-toolbar * {
+	pointer-events: none;
 }
 
+.tl-contextual-toolbar[data-is-mousing-down='false'],
 .tl-contextual-toolbar[data-is-mousing-down='false'] * {
 	pointer-events: all;
 }
