@@ -292,7 +292,8 @@ export function registerDefaultExternalContentHandlers(
 			assetsToUpdate.push({ asset: assetInfo, file, temporaryAssetPreview })
 		}
 
-		Promise.allSettled(
+		const updatedAssets: TLAsset[] = []
+		await Promise.allSettled(
 			assetsToUpdate.map(async (assetAndFile) => {
 				try {
 					const newAsset = await editor.getAssetForExternalContent({
@@ -304,8 +305,10 @@ export function registerDefaultExternalContentHandlers(
 						throw Error('Could not create an asset')
 					}
 
+					const updated = { ...newAsset, id: assetAndFile.asset.id }
+					updatedAssets.push(updated)
 					// Save the new asset under the old asset's id
-					editor.updateAssets([{ ...newAsset, id: assetAndFile.asset.id }])
+					editor.updateAssets([updated])
 				} catch (error) {
 					toasts.addToast({
 						title: msg('assets.files.upload-failed'),
@@ -317,7 +320,7 @@ export function registerDefaultExternalContentHandlers(
 			})
 		)
 
-		createShapesForAssets(editor, assets, pagePoint)
+		createShapesForAssets(editor, updatedAssets, pagePoint)
 	})
 
 	// text
