@@ -345,9 +345,17 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
+		// Security warning:
+		// Gists allow adding .json extensions to the URL which return JSONP.
+		// Furthermore, the JSONP can include callbacks that execute arbitrary JavaScript.
+		// It _is_ sandboxed by the iframe but we still want to disable it nonetheless.
+		// We restrict the id to only allow hexdecimal characters to prevent this.
+		// Read more:
+		//   https://github.com/bhaveshk90/Content-Security-Policy-CSP-Bypass-Techniques
+		//   https://github.com/renniepak/CSPBypass
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
-			if (urlObj && urlObj.pathname.match(/\/([^/]+)\/([^/]+)/)) {
+			if (urlObj && urlObj.pathname.match(/\/([^/]+)\/([0-9a-f]+)$/)) {
 				if (!url.split('/').pop()) return
 				return url
 			}
@@ -355,7 +363,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		},
 		fromEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
-			if (urlObj && urlObj.pathname.match(/\/([^/]+)\/([^/]+)/)) {
+			if (urlObj && urlObj.pathname.match(/\/([^/]+)\/([0-9a-f]+)$/)) {
 				if (!url.split('/').pop()) return
 				return url
 			}

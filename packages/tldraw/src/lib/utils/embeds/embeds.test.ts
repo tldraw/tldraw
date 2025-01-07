@@ -210,6 +210,10 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		url: 'https://gist.github.com/discover',
 		match: false,
 	},
+	{
+		url: 'https://gist.github.com/x/ixSly&sol;98210ba6e8683bd772e857128cd3cdca.json&quest;callback=prompt&amp;x=ixSly',
+		match: false,
+	},
 	// replit
 	{
 		url: 'https://replit.com/@omar/Blob-Generator',
@@ -495,6 +499,11 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 	},
 	{
 		embedUrl: 'https://gist.github.com/discover',
+		match: false,
+	},
+	{
+		embedUrl:
+			'https://gist.github.com/x/ixSly&sol;98210ba6e8683bd772e857128cd3cdca.json&quest;callback=prompt&amp;x=ixSly',
 		match: false,
 	},
 	// replit
