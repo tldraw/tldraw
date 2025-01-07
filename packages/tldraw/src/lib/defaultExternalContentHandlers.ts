@@ -235,7 +235,6 @@ export function registerDefaultExternalContentHandlers(
 				: editor.getViewportPageBounds().center)
 
 		const pagePoint = new Vec(position.x, position.y)
-		const assets: TLAsset[] = []
 		const assetsToUpdate: {
 			asset: TLAsset
 			file: File
@@ -288,11 +287,11 @@ export function registerDefaultExternalContentHandlers(
 			if (isImageType) {
 				temporaryAssetPreview = editor.createTemporaryAssetPreview(assetId, file)
 			}
-			assets.push(assetInfo)
 			assetsToUpdate.push({ asset: assetInfo, file, temporaryAssetPreview })
 		}
 
-		Promise.allSettled(
+		const assets: TLAsset[] = []
+		await Promise.allSettled(
 			assetsToUpdate.map(async (assetAndFile) => {
 				try {
 					const newAsset = await editor.getAssetForExternalContent({
@@ -304,8 +303,10 @@ export function registerDefaultExternalContentHandlers(
 						throw Error('Could not create an asset')
 					}
 
+					const updated = { ...newAsset, id: assetAndFile.asset.id }
+					assets.push(updated)
 					// Save the new asset under the old asset's id
-					editor.updateAssets([{ ...newAsset, id: assetAndFile.asset.id }])
+					editor.updateAssets([updated])
 				} catch (error) {
 					toasts.addToast({
 						title: msg('assets.files.upload-failed'),
