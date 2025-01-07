@@ -9,25 +9,22 @@ import { Environment } from './types'
  */
 export function getPostgres(
 	env: Environment,
-	{ pooled, name, idleTimeout = 30 }: { pooled: boolean; name: string; idleTimeout?: number }
+	{ name, idleTimeout = 30 }: { name: string; idleTimeout?: number }
 ) {
-	return postgres(
-		pooled ? env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING : env.BOTCOM_POSTGRES_CONNECTION_STRING,
-		{
-			types: {
-				bigint: {
-					from: [20], // PostgreSQL OID for BIGINT
-					parse: (value: string) => Number(value), // Convert string to number
-					to: 20,
-					serialize: (value: number) => String(value), // Convert number to string
-				},
+	return postgres(env.BOTCOM_POSTGRES_CONNECTION_STRING, {
+		types: {
+			bigint: {
+				from: [20], // PostgreSQL OID for BIGINT
+				parse: (value: string) => Number(value), // Convert string to number
+				to: 20,
+				serialize: (value: number) => String(value), // Convert number to string
 			},
-			idle_timeout: idleTimeout,
-			connection: {
-				application_name: name,
-			},
-		}
-	)
+		},
+		idle_timeout: idleTimeout,
+		connection: {
+			application_name: name,
+		},
+	})
 }
 
 const int8TypeId = 20
@@ -42,14 +39,11 @@ export function getPooledPostgres(env: Environment, { name }: { name: string }) 
 			application_name: name,
 			idleTimeoutMillis: 10_000,
 			max: 450,
-			// log: (msg) => console.log(msg),
 		}),
 	})
 
 	const db = new Kysely<DB>({
 		dialect,
-		// plugins: [new CamelCasePlugin()],
-		// log: ['query', 'error'],
 		log: ['error'],
 	})
 	return db
