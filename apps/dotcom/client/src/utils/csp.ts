@@ -31,10 +31,18 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://*.clerk.accounts.dev',
 		'https://clerk.tldraw.com',
 		'https://clerk.staging.tldraw.com',
+		// embeds that have scripts
+		'https://gist.github.com',
 	],
 	'worker-src': [`'self'`, `blob:`],
 	'style-src': [`'self'`, `'unsafe-inline'`, `https://fonts.googleapis.com`],
-	'style-src-elem': [`'self'`, `'unsafe-inline'`, `https://fonts.googleapis.com`],
+	'style-src-elem': [
+		`'self'`,
+		`'unsafe-inline'`,
+		`https://fonts.googleapis.com`,
+		// embeds that have styles
+		'https://github.githubassets.com',
+	],
 	'report-uri': [process.env.SENTRY_CSP_REPORT_URI ?? ``],
 }
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Vec, useEditor, useValue } from 'tldraw'
+import { Vec, useEditor, usePrefersReducedMotion } from 'tldraw'
 
 const MAX_GUST_SPEED = 2
 const GUST_ROTATION_DURATION = 30_000
@@ -176,12 +176,7 @@ class Snowstorm {
 export function SnowStorm() {
 	const editor = useEditor()
 	const rElm = useRef<HTMLDivElement>(null)
-
-	const prefersReducedMotion = useValue(
-		'animation speed',
-		() => editor.user.getAnimationSpeed() === 0,
-		[editor]
-	)
+	const prefersReducedMotion = usePrefersReducedMotion()
 
 	useEffect(() => {
 		if (prefersReducedMotion) return
