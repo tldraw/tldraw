@@ -235,7 +235,6 @@ export function registerDefaultExternalContentHandlers(
 				: editor.getViewportPageBounds().center)
 
 		const pagePoint = new Vec(position.x, position.y)
-		const assets: TLAsset[] = []
 		const assetsToUpdate: {
 			asset: TLAsset
 			file: File
@@ -288,11 +287,10 @@ export function registerDefaultExternalContentHandlers(
 			if (isImageType) {
 				temporaryAssetPreview = editor.createTemporaryAssetPreview(assetId, file)
 			}
-			assets.push(assetInfo)
 			assetsToUpdate.push({ asset: assetInfo, file, temporaryAssetPreview })
 		}
 
-		const updatedAssets: TLAsset[] = []
+		const assets: TLAsset[] = []
 		await Promise.allSettled(
 			assetsToUpdate.map(async (assetAndFile) => {
 				try {
@@ -306,7 +304,7 @@ export function registerDefaultExternalContentHandlers(
 					}
 
 					const updated = { ...newAsset, id: assetAndFile.asset.id }
-					updatedAssets.push(updated)
+					assets.push(updated)
 					// Save the new asset under the old asset's id
 					editor.updateAssets([updated])
 				} catch (error) {
@@ -320,7 +318,7 @@ export function registerDefaultExternalContentHandlers(
 			})
 		)
 
-		createShapesForAssets(editor, updatedAssets, pagePoint)
+		createShapesForAssets(editor, assets, pagePoint)
 	})
 
 	// text
