@@ -310,12 +310,11 @@ export class TLDrawDurableObject extends DurableObject {
 			return this._fileRecordCache
 		}
 		try {
-			const fileRecord = await this.db
+			this._fileRecordCache = await this.db
 				.selectFrom('file')
 				.where('id', '=', this.documentInfo.slug)
 				.selectAll()
 				.executeTakeFirstOrThrow()
-			this._fileRecordCache = fileRecord
 			return this._fileRecordCache
 		} catch (_e) {
 			return null
