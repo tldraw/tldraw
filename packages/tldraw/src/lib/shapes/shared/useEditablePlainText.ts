@@ -21,7 +21,7 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
 
 	useEffect(() => {
 		function selectAllIfEditing(event: { shapeId: TLShapeId }) {
-			if (event.shapeId === shapeId && rInput.current instanceof HTMLTextAreaElement) {
+			if (event.shapeId === shapeId) {
 				rInput.current?.select?.()
 			}
 		}

@@ -1923,7 +1923,7 @@ export interface TextAreaProps {
     // (undocumented)
     handleFocus(): void;
     // (undocumented)
-    handleInputPointerDown(e: React_3.PointerEvent<HTMLTextAreaElement>): void;
+    handleInputPointerDown(e: React_3.PointerEvent<HTMLElement>): void;
     // (undocumented)
     handleKeyDown(e: KeyboardEvent): void;
     // (undocumented)

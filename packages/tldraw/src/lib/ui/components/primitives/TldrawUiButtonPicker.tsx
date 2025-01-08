@@ -61,8 +61,7 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 			const origActiveEl = rPointingOriginalActiveElement.current
 			if (
 				origActiveEl &&
-				(['TEXTAREA', 'INPUT'].includes(origActiveEl.nodeName) ||
-					origActiveEl.getAttribute('contenteditable') === 'true')
+				(['TEXTAREA', 'INPUT'].includes(origActiveEl.nodeName) || origActiveEl.isContentEditable)
 			) {
 				origActiveEl.focus()
 			}
