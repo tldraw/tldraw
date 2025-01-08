@@ -916,7 +916,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     deselect(...shapes: TLShape[] | TLShapeId[]): this;
     dispatch(info: TLEventInfo): this;
     readonly disposables: Set<() => void>;
-    dispose(): void;
+    dispose(_dummy?: string): void;
     distributeShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;

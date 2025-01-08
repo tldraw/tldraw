@@ -19,3 +19,8 @@ Describe what your pull request does. If you can, add GIFs or images showing the
 ### Release notes
 
 - Fixed a bug with…
+
+### API changes
+
+- If this PR introduces a change to the API, please describe the impact and how to migrate.
+

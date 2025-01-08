@@ -23,8 +23,28 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - uses: ./.github/actions/setup
+
+      - name: Check API changes in PR description
+        run: |
+          if git diff --name-only origin/${{ github.base_ref }} HEAD | grep -q "api-report.md$"; then
+            echo "Found changes to api-report.md file"
+            pr_body=$(gh pr view ${{ github.event.pull_request.number }} --json body -q '.body')
+            echo "Checking for '### API changes' in PR body..."
+            if [[ $pr_body != *"### API changes"* ]]; then
+              echo "Error: PR contains some API changes but no API changes section in the PR description. Please add it and describe what has changed."
+              exit 1
+            else
+              echo "Found '### API changes' section"
+            fi
+          else
+            echo "No api-report.md changes found"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check version constraints
         run: yarn constraints
