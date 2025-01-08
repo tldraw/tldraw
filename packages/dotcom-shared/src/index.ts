@@ -1,5 +1,4 @@
 /* eslint-disable local/no-export-star */
-export type * from './DB.ts'
 export * from './OptimisticAppStore'
 export { default as getLicenseKey } from './license'
 export {

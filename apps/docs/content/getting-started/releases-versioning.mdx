@@ -15,49 +15,51 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 
 {/* START AUTO-GENERATED CHANGELOG */}
 
-## Current release: [v3.4.0](/releases/v3.4.0)
+## Current release: [v3.6.0](/releases/v3.6.0)
 
-Welcome to the 3.4.0 release of the tldraw SDK. This issue fixes a few bugs in our user interface, improves performance around images and videos, and even improves our very secret ability to accept pasted content from [Excalidraw](https://excalidraw.com/). See below for the full list of changes.
+Welcome to the 3.6.0 release of tldraw. This month's SDK release expands DX around helpers (e.g. toasts), and addresses various issues.
 
-#### Breaking changes
+## What's new
 
-- The `id` attribute that was present on some shapes in the dom has been removed. There's now a data-shape-id attribute on every shape wrapper that can be used instead. ([#4694](https://github.com/tldraw/tldraw/pull/4694))
+#### Expand helpers available in actions / toasts overrides. ([#5041](https://github.com/tldraw/tldraw/pull/5041))
+
+Makes new helper available via actions and tools overrides, things like clipboard interactions, toasts, exports, printing, and a couple more.
 
 #### Improvements
 
-- Clearer tooltip wording in the style panel. ([#4750](https://github.com/tldraw/tldraw/pull/4750))
-- Arrow labels no longer have their indictors showing behind them. ([#4749](https://github.com/tldraw/tldraw/pull/4749))
-- Limit the page name length in the move to page menu. ([#4747](https://github.com/tldraw/tldraw/pull/4747))
-- Improve performance of image/video rendering. ([#4659](https://github.com/tldraw/tldraw/pull/4659))
+- Create a utility type for making undefined properties optional [#5055](https://github.com/tldraw/tldraw/pull/5055)
+- Make sure notes snap to grid after position is updated [#5010](https://github.com/tldraw/tldraw/pull/5010)
+- Add incremental derivation example [#5038](https://github.com/tldraw/tldraw/pull/5038)
 
 #### API changes
 
-- Add `labelColor` to note shapes. ([#4724](https://github.com/tldraw/tldraw/pull/4724))
-- There are a new set of APIs for working with unique DOM IDs in tldraw components: [`useUniqueSafeId`](https://staging.tldraw.dev/reference/editor/useUniqueSafeId) & [`useSharedSafeId`](https://staging.tldraw.dev/reference/editor/useSharedSafeId). ([#4694](https://github.com/tldraw/tldraw/pull/4694))
+- Expand helpers available in actions / toasts overrides. [#5041](https://github.com/tldraw/tldraw/pull/5041) ([@steveruizok](https://github.com/steveruizok))
+- `setEmbedDefinitions` used to be an instance method on the `EmbedShapeUtil` class, but has been converted into a static method on that class. [#5027](https://github.com/tldraw/tldraw/pull/5027)
+- Remove `ExtractOptionalKeys` and `ExtractRequiredKeys` types. https://github.com/tldraw/tldraw/pull/5055
 
-#### Bug fixes
+#### Bug fix
 
-- Writing `options` inline in the Tldraw component will no longer cause re-render loops. ([#4762](https://github.com/tldraw/tldraw/pull/4762))
-- Make sure toolbar button outlines match the border-radius of the button. ([#4759](https://github.com/tldraw/tldraw/pull/4759))
-- Make sure content pasted from Excalidraw keeps the correct color. ([#4752](https://github.com/tldraw/tldraw/pull/4752))
-- Don't highlight menu triggers that dont have their submenus open. ([#4710](https://github.com/tldraw/tldraw/pull/4710))
-- Pass through the correct event type for drag events. ([#4739](https://github.com/tldraw/tldraw/pull/4739))
-- Prevent multiple images accidentally being created when you drop one onto the canvas. ([#4704](https://github.com/tldraw/tldraw/pull/4704))
-- Make sure the link indicator is visible on sticky notes. ([#4708](https://github.com/tldraw/tldraw/pull/4708))
-- The insert embed dialog now parses URLs correctly. ([#4709](https://github.com/tldraw/tldraw/pull/4709))
-- Exports and other tldraw instances no longer can affect how each other are rendered. ([#4694](https://github.com/tldraw/tldraw/pull/4694))
-- Show the correct set of menu options in read-only mode. ([#4696](https://github.com/tldraw/tldraw/pull/4696))
+- Fix up resolving assets when copy/pasting multiple items; also, fix up copy/pasting videos [#5061](https://github.com/tldraw/tldraw/pull/5061)
+- Fix properly clipping scaled text in frames when exporting [#5022](https://github.com/tldraw/tldraw/pull/5022)
+- Fix multiple concurrent exports from interfering with each-others fonts [#5022](https://github.com/tldraw/tldraw/pull/5022)
+- Fix issue with long press where the point would be incorrect [#5032](https://github.com/tldraw/tldraw/pull/5032)
+- Fix file name when exporting a single unnamed frame [#4918](https://github.com/tldraw/tldraw/pull/4918)
+- Fix first render of custom embeds [#5027](https://github.com/tldraw/tldraw/pull/5027)
 
-#### Authors
+#### Authors: 7
 
-- [@nayounsang](https://github.com/nayounsang)
 - alex ([@SomeHats](https://github.com/SomeHats))
 - David Sheldrick ([@ds300](https://github.com/ds300))
 - Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
 - Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
 - Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
 
 ## Previous releases
+
+- [v3.5.0](/releases/v3.5.0)
+
+- [v3.4.0](/releases/v3.4.0)
 
 - [v3.3.0](/releases/v3.3.0)
 

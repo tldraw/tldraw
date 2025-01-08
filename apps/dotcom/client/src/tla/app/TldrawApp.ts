@@ -1,12 +1,10 @@
 // import { Query, QueryType, Smash, TableSchema, Zero } from '@rocicorp/zero'
 import {
 	CreateFilesResponseBody,
-	File,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
 	TlaUser,
-	User,
 	UserPreferencesKeys,
 	ZErrorCode,
 	Z_PROTOCOL_VERSION,
@@ -112,7 +110,7 @@ export class TldrawApp {
 		)
 	}
 
-	async preload(initialUserData: User) {
+	async preload(initialUserData: TlaUser) {
 		await this.z.query.user.where('id', this.userId).preload().complete
 		if (!this.user$.get()) {
 			this.z.mutate.user.create(initialUserData)
@@ -281,7 +279,7 @@ export class TldrawApp {
 			return Result.err('max number of files reached')
 		}
 
-		const file: File = {
+		const file: TlaFile = {
 			id: typeof fileOrId === 'string' ? fileOrId : uniqueId(),
 			ownerId: this.userId,
 			// these two owner properties are overridden by postgres triggers

@@ -3,6 +3,7 @@
 
 import { SupabaseClient } from '@supabase/supabase-js'
 import {
+	DB,
 	READ_ONLY_LEGACY_PREFIX,
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
@@ -24,9 +25,10 @@ import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError } from '@tl
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
+import { Kysely } from 'kysely'
 import { AlarmScheduler } from './AlarmScheduler'
 import { PERSIST_INTERVAL_MS } from './config'
-import { getPostgres } from './getPostgres'
+import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
@@ -156,6 +158,8 @@ export class TLDrawDurableObject extends DurableObject {
 
 	_documentInfo: DocumentInfo | null = null
 
+	db: Kysely<DB>
+
 	constructor(
 		private state: DurableObjectState,
 		override env: Environment
@@ -181,6 +185,7 @@ export class TLDrawDurableObject extends DurableObject {
 				this._documentInfo = existingDocumentInfo
 			}
 		})
+		this.db = createPostgresConnectionPool(env, 'TLDrawDurableObject')
 	}
 
 	readonly router = Router()
@@ -305,11 +310,11 @@ export class TLDrawDurableObject extends DurableObject {
 			return this._fileRecordCache
 		}
 		try {
-			const postgres = getPostgres(this.env, { pooled: true, name: 'TLDrawDurableObject' })
-			const fileRecord =
-				await postgres`SELECT * FROM public.file WHERE ID = ${this.documentInfo.slug}`
-			this._fileRecordCache = fileRecord[0] as TlaFile
-			postgres.end()
+			this._fileRecordCache = await this.db
+				.selectFrom('file')
+				.where('id', '=', this.documentInfo.slug)
+				.selectAll()
+				.executeTakeFirstOrThrow()
 			return this._fileRecordCache
 		} catch (_e) {
 			return null
@@ -588,9 +593,11 @@ export class TLDrawDurableObject extends DurableObject {
 
 				// Update the updatedAt timestamp in the database
 				if (this.documentInfo.isApp) {
-					const pg = getPostgres(this.env, { pooled: true, name: 'TLDrawDurableObject' })
-					await pg`UPDATE public.file SET "updatedAt" = ${new Date().getTime()} WHERE id = ${this.documentInfo.slug}`
-					await pg.end()
+					await this.db
+						.updateTable('file')
+						.set({ updatedAt: new Date().getTime() })
+						.where('id', '=', this.documentInfo.slug)
+						.execute()
 				}
 			})
 		} catch (e) {

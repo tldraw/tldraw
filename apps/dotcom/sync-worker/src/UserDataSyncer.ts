@@ -233,7 +233,6 @@ export class UserDataSyncer {
 		const promise = this.state.promise
 
 		const userSql = getFetchUserDataSql(this.userId, bootId)
-		// console.info('💡[77]: UserDataSyncer.ts:245: userSql=', userSql.compile(this.db).sql)
 		const initialData: ZStoreData = {
 			user: null as any,
 			files: [],

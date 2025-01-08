@@ -1,10 +1,9 @@
 import {
 	DB,
-	File,
-	FileState,
 	ROOM_PREFIX,
 	TlaFile,
-	User,
+	TlaFileState,
+	TlaUser,
 	ZClientSentMessage,
 	ZErrorCode,
 	ZRowUpdate,
@@ -21,7 +20,7 @@ import { Kysely, sql } from 'kysely'
 import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import { type TLPostgresReplicator } from './TLPostgresReplicator'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
-import { getPostgres2 } from './getPostgres'
+import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, Environment, TLUserDurableObjectEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
@@ -38,6 +37,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private readonly sentry
 	private captureException(exception: unknown, eventHint?: EventHint) {
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(exception, eventHint) as any
 		if (!this.sentry) {
 			console.error(`[TLUserDurableObject]: `, exception)
@@ -52,7 +52,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.sentry = createSentry(ctx, env)
 		this.replicator = getReplicator(env)
 
-		this.db = getPostgres2(env, { pooled: true, name: 'TLUserDurableObject' })
+		this.db = createPostgresConnectionPool(env, 'TLUserDurableObject')
 		this.debug('created')
 		this.measure = env.MEASURE
 	}
@@ -101,6 +101,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			return await this.router.fetch(req)
 		} catch (err) {
 			if (sentry) {
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
 				sentry?.captureException(err)
 			} else {
 				console.error(err)
@@ -184,6 +185,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		// uncomment for dev time debugging
 		// console.log('[TLUserDurableObject]: ', ...args)
 		if (this.sentry) {
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			this.sentry.addBreadcrumb({
 				message: `[TLUserDurableObject]: ${args.map((a) => (typeof a === 'object' ? JSON.stringify(a) : a)).join(' ')}`,
 			})
@@ -234,7 +236,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 		switch (update.table) {
 			case 'user': {
-				const isUpdatingSelf = (update.row as User).id === this.userId
+				const isUpdatingSelf = (update.row as TlaUser).id === this.userId
 				if (!isUpdatingSelf)
 					throw new ZMutationError(
 						ZErrorCode.forbidden,
@@ -244,7 +246,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				return
 			}
 			case 'file': {
-				const nextFile = update.row as File
+				const nextFile = update.row as TlaFile
 				const prevFile = s.files.find((f) => f.id === (update.row as any).id)
 				if (!prevFile) {
 					const isOwner = nextFile.ownerId === this.userId
@@ -263,7 +265,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				)
 			}
 			case 'file_state': {
-				const nextFileState = update.row as FileState
+				const nextFileState = update.row as TlaFileState
 				let file = s.files.find((f) => f.id === nextFileState.fileId)
 				if (!file) {
 					// The user might not have access to this file yet, because they just followed a link
@@ -295,7 +297,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							const { fileId: _fileId, userId: _userId, ...rest } = update.row as any
 							await tx
 								.insertInto(update.table)
-								.values(update.row as FileState)
+								.values(update.row as TlaFileState)
 								.onConflict((oc) => {
 									if (Object.keys(rest).length === 0) {
 										return oc.columns(['fileId', 'userId']).doNothing()
@@ -319,7 +321,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 									_id
 								)
 							}
-							const result = await tx
+							await tx
 								.insertInto(update.table)
 								.values(update.row as any)
 								.onConflict((oc) => oc.column('id').doUpdateSet(rest))
@@ -379,7 +381,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							await tx.deleteFrom(update.table).where('id', '=', id).execute()
 						}
 						if (update.table === 'file') {
-							const { id } = update.row as File
+							const { id } = update.row as TlaFile
 							await this.deleteFileStuff(id)
 						}
 						break

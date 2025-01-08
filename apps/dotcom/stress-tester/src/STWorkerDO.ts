@@ -19,7 +19,8 @@ export class STWorkerDO extends DurableObject<Environment> {
 		this.coordinator = env.ST_COORDINATOR.get(
 			env.ST_COORDINATOR.idFromName('coordinator')
 		) as any as STCoordinatorDO
-		this.num_files = this.state.storage.get('num_files') as number
+		// this.num_files = this.state.storage.get('num_files') as number
+		this.num_files = 0
 	}
 
 	debug(...args: any[]) {
