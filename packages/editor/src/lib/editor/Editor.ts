@@ -885,7 +885,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	dispose(_dummy?: string) {
+	dispose() {
 		this.disposables.forEach((dispose) => dispose())
 		this.disposables.clear()
 		this.isDisposed = true
