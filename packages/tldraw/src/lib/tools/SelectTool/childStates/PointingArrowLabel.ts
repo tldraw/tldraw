@@ -58,7 +58,7 @@ export class PointingArrowLabel extends StateNode {
 
 		this.markId = this.editor.markHistoryStoppingPoint('label-drag start')
 
-    const additiveSelectionKey = info.shiftKey || info.accelKey
+		const additiveSelectionKey = info.shiftKey || info.accelKey
 		if (additiveSelectionKey) {
 			const selectedShapeIds = this.editor.getSelectedShapeIds()
 			this.editor.setSelectedShapes([...selectedShapeIds, this.shapeId])
