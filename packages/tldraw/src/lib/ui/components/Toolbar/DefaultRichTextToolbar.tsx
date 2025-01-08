@@ -168,8 +168,6 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	// slightly different results for the same general position.
 	// However, if the camera has moved, forget the stabilization logic, just update the positions.
 	const stabilizedToolbarPosition = useMemo(() => {
-		if (isEditingLink) return lastToolbarPosition
-
 		const hasCameraMoved = !areObjectsShallowEqual(camera, currentCamera)
 
 		const threshold = 10
@@ -194,7 +192,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		}
 
 		return lastToolbarPosition
-	}, [toolbarPosition, lastToolbarPosition, camera, currentCamera, isEditingLink, editingShapeId])
+	}, [toolbarPosition, lastToolbarPosition, camera, currentCamera, editingShapeId])
 
 	if (!textEditor) return null
 
@@ -203,7 +201,8 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 			ref={toolbarRef}
 			className="tl-rich-text__toolbar"
 			position={stabilizedToolbarPosition}
-			indicatorOffset={toolbarPosition.indicatorOffset}
+			// indicatorOffset={toolbarPosition.indicatorOffset}
+			hideIndicator
 		>
 			{children ? (
 				children
