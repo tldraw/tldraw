@@ -13,7 +13,7 @@ import postgres from 'postgres'
 import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import type { TLDrawDurableObject } from './TLDrawDurableObject'
 import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
-import { getPostgres } from './getPostgres'
+import { createPostgresConnection } from './postgres'
 import { Analytics, Environment, TLPostgresReplicatorEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { getUserDurableObject } from './utils/durableObjects'
@@ -228,7 +228,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			// preserve the promise so any awaiters do eventually get resolved
 			// TODO: set a timeout on the promise?
 			promise,
-			db: getPostgres(this.env, { name: 'TLPostgresReplicator' }),
+			db: createPostgresConnection(this.env, { name: 'TLPostgresReplicator' }),
 			sequenceId: uniqueId(),
 		}
 		const subscription = await this.state.db.subscribe(

@@ -18,7 +18,7 @@ import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely, sql } from 'kysely'
 import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
-import { getPooledPostgres } from './getPostgres'
+import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { type TLPostgresReplicator } from './TLPostgresReplicator'
 import { Analytics, Environment, TLUserDurableObjectEvent } from './types'
@@ -51,7 +51,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.sentry = createSentry(ctx, env)
 		this.replicator = getReplicator(env)
 
-		this.db = getPooledPostgres(env, { name: 'TLUserDurableObject' })
+		this.db = createPostgresConnectionPool(env, 'TLUserDurableObject')
 		this.debug('created')
 		this.measure = env.MEASURE
 	}

@@ -5,10 +5,10 @@ import postgres from 'postgres'
 import { Environment } from './types'
 
 /**
- * In most cases you want to use a pooled connection, which is what `getPooledPostgres` does.
+ * In most cases you want to use a pooled connection, which is what `createPostgresConnectionPool` does.
  * Use this one only for cases like subscriptions where you need to listen for notifications / WAL.
  */
-export function getPostgres(
+export function createPostgresConnection(
 	env: Environment,
 	{ name, idleTimeout = 30 }: { name: string; idleTimeout?: number }
 ) {
@@ -33,7 +33,7 @@ pg.types.setTypeParser(int8TypeId, (val) => {
 	return parseInt(val, 10)
 })
 
-export function getPooledPostgres(env: Environment, { name }: { name: string }) {
+export function createPostgresConnectionPool(env: Environment, name: string) {
 	const dialect = new PostgresDialect({
 		pool: new pg.Pool({
 			connectionString: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
