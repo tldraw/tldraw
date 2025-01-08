@@ -12,6 +12,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { getTextLabels } from '../../../utils/shapes/shapes'
 import { useContextualToolbarPosition } from '../../hooks/useContextualToolbarPosition'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { DefaultRichTextToolbarContent } from './DefaultRichTextToolbarContent'
@@ -247,6 +248,20 @@ function getTextSelectionBounds(editor: Editor, textEditor: TiptapEditor | null)
 		fromPos = Object.assign({}, view.coordsAtPos(selection.from))
 		toPos = Object.assign({}, view.coordsAtPos(selection.to))
 
+		// XXX: sometimes the selection bounds are straight up wrong in Firefox/Safari.
+		// This can happen when selecting a whole line from beginning to end.
+		// See the related fix below with the width calculation.
+		if (
+			isNaN(fromPos.top) ||
+			isNaN(fromPos.bottom) ||
+			isNaN(fromPos.left) ||
+			isNaN(fromPos.right)
+		) {
+			fromPos = toPos
+		} else if (isNaN(toPos.top) || isNaN(toPos.bottom) || isNaN(toPos.left) || isNaN(toPos.right)) {
+			toPos = fromPos
+		}
+
 		// Need to account for the view being positioned within the container not just the entire
 		// window.
 		const adjustPosition = (pos: Coordinates, containerRect: { top: number; left: number }) => {
@@ -276,10 +291,23 @@ function getTextSelectionBounds(editor: Editor, textEditor: TiptapEditor | null)
 		right: Math.max(fromPos.right, toPos.right),
 	}
 
+	let w = coords.right - coords.left
+	const currentShape = editor.getEditingShape()
+	// XXX: sometimes the selection bounds are straight up wrong in Firefox/Safari.
+	// See the related fix above with the fromPos and toPos logic and the isNaN checks.
+	if (w === 0 && currentShape) {
+		const geometry = editor.getShapeGeometry(currentShape)
+		const textLabels = getTextLabels(geometry)
+		if (textLabels.length === 1) {
+			// We use 32 here hardcode here because of the padding in the labels, ugh.
+			w = (textLabels[0].bounds.w - 32) * editor.getCamera().z
+		}
+	}
+
 	return Box.From({
 		x: coords.left,
 		y: coords.top,
-		w: coords.right - coords.left,
+		w,
 		h: coords.bottom - coords.top,
 	})
 }
