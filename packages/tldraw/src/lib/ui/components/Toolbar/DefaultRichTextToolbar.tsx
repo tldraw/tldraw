@@ -1,15 +1,11 @@
-import {
-	getMarkRange,
-	Range,
-	Editor as TextEditor,
-	EditorEvents as TextEditorEvents,
-} from '@tiptap/core'
+import { getMarkRange, Range, EditorEvents as TextEditorEvents } from '@tiptap/core'
 import { MarkType } from '@tiptap/pm/model'
 import { EditorState as TextEditorState } from '@tiptap/pm/state'
 import {
 	areObjectsShallowEqual,
 	Box,
 	Editor,
+	TiptapEditor,
 	TLShapeId,
 	track,
 	useEditor,
@@ -241,7 +237,7 @@ const defaultPosition = {
 	h: 0,
 }
 
-function getTextSelectionBounds(editor: Editor, textEditor: TextEditor | null) {
+function getTextSelectionBounds(editor: Editor, textEditor: TiptapEditor | null) {
 	if (!textEditor) return Box.From(defaultPosition)
 
 	const { view } = textEditor

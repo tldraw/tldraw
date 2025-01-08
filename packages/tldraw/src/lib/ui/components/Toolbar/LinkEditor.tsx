@@ -1,5 +1,4 @@
-import { Editor as TextEditor } from '@tiptap/core'
-import { preventDefault } from '@tldraw/editor'
+import { preventDefault, TiptapEditor } from '@tldraw/editor'
 import { useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -9,7 +8,7 @@ import { TldrawUiInput } from '../primitives/TldrawUiInput'
 
 /** @public */
 export interface LinkEditorProps {
-	textEditor: TextEditor
+	textEditor: TiptapEditor
 	value: string
 	onComplete(): void
 }

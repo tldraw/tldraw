@@ -1002,7 +1002,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
     getEditingShape(): TLShape | undefined;
     getEditingShapeId(): null | TLShapeId;
-    getEditingShapeTipTapTextEditor(): null | Editor_2;
+    getEditingShapeTipTapTextEditor(): null | TiptapEditor;
     getErasingShapeIds(): TLShapeId[];
     getErasingShapes(): NonNullable<TLShape | undefined>[];
     getFocusedGroup(): TLShape | undefined;
@@ -1242,7 +1242,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setCurrentTool(id: string, info?: {}): this;
     setCursor(cursor: Partial<TLCursor>): this;
     setEditingShape(shape: null | TLShape | TLShapeId): this;
-    setEditingShapeTipTapTextEditor(textEditor: null | Editor_2): void;
+    setEditingShapeTipTapTextEditor(textEditor: null | TiptapEditor): void;
     setErasingShapes(shapes: TLShape[] | TLShapeId[]): this;
     setFocusedGroup(shape: null | TLGroupShape | TLShapeId): this;
     setHintingShapes(shapes: TLShape[] | TLShapeId[]): this;
@@ -2577,6 +2577,9 @@ export class TextManager {
         text: string;
     }[];
 }
+
+// @public
+export type TiptapEditor = Editor_2;
 
 // @public (undocumented)
 export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor<any>;

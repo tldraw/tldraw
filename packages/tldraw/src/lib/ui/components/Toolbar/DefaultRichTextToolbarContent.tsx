@@ -1,5 +1,4 @@
-import { Editor as TextEditor } from '@tiptap/core'
-import { preventDefault } from '@tldraw/editor'
+import { preventDefault, TiptapEditor } from '@tldraw/editor'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
@@ -8,7 +7,7 @@ import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 /** @public */
 export interface DefaultRichTextToolbarContentProps {
 	onEditLinkIntent?(): void
-	textEditor: TextEditor
+	textEditor: TiptapEditor
 }
 
 /**

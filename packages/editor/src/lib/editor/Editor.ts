@@ -1,4 +1,3 @@
-import { Editor as TextEditor } from '@tiptap/core'
 import { EMPTY_ARRAY, atom, computed, react, transact, unsafe__withoutCapture } from '@tldraw/state'
 import {
 	ComputedCache,
@@ -165,6 +164,7 @@ import {
 	TLCameraOptions,
 	TLImageExportOptions,
 	TLTextOptions,
+	TiptapEditor,
 } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
@@ -2060,14 +2060,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	private _currentTipTapTextEditor = atom('tip tap text editor', null as TextEditor | null)
+	private _currentTipTapTextEditor = atom('tip tap text editor', null as TiptapEditor | null)
 
 	/**
 	 * The current editing shape's text editor.
 	 *
 	 * @public
 	 */
-	@computed getEditingShapeTipTapTextEditor(): TextEditor | null {
+	@computed getEditingShapeTipTapTextEditor(): TiptapEditor | null {
 		return this._currentTipTapTextEditor.get()
 	}
 
@@ -2083,7 +2083,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setEditingShapeTipTapTextEditor(textEditor: TextEditor | null) {
+	setEditingShapeTipTapTextEditor(textEditor: TiptapEditor | null) {
 		this._currentTipTapTextEditor.set(textEditor)
 	}
 

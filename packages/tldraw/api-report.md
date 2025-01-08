@@ -19,7 +19,6 @@ import { Circle2d } from '@tldraw/editor';
 import { ComponentType } from 'react';
 import { CubicSpline2d } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
-import { Editor as Editor_2 } from '@tiptap/core';
 import { Extensions } from '@tiptap/core';
 import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
@@ -50,6 +49,7 @@ import { SharedStyle } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
 import { StyleProp } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
+import { TiptapEditor } from '@tldraw/editor';
 import { TLAnyBindingUtilConstructor } from '@tldraw/editor';
 import { TLAnyShapeUtilConstructor } from '@tldraw/editor';
 import { TLArrowBinding } from '@tldraw/editor';
@@ -718,7 +718,7 @@ export interface DefaultRichTextToolbarContentProps {
     // (undocumented)
     onEditLinkIntent?(): void;
     // (undocumented)
-    textEditor: Editor_2;
+    textEditor: TiptapEditor;
 }
 
 // @public (undocumented)

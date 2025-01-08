@@ -99,17 +99,19 @@ const components: TLComponents = {
 	},
 }
 
+const textOptions = {
+	tipTapConfig: {
+		extensions: [...tipTapDefaultExtensions, FontFamily, FontSize, TextStyle],
+	},
+}
+
 export default function RichTextFontExtensionExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				persistenceKey="rich-text-font-extension"
 				components={components}
-				textOptions={{
-					tipTapConfig: {
-						extensions: [...tipTapDefaultExtensions, FontFamily, FontSize, TextStyle],
-					},
-				}}
+				textOptions={textOptions}
 			/>
 		</div>
 	)
