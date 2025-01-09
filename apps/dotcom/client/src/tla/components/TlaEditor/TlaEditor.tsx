@@ -56,7 +56,7 @@ interface TlaEditorProps {
 
 export function TlaEditor(props: TlaEditorProps) {
 	if (props.fileOpenState?.mode === 'duplicate') {
-		assert(props.fileOpenState?.duplicateId, 'duplicateId is required when mode is duplicate')
+		assert(props.fileOpenState.duplicateId, 'duplicateId is required when mode is duplicate')
 	}
 	// force re-mount when the file slug changes to prevent state from leaking between files
 	return (
