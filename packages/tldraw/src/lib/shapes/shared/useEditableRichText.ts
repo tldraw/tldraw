@@ -14,8 +14,9 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
 	useEffect(() => {
 		if (!isEditing) return
 
-		if (document.activeElement !== rInput.current) {
-			rInput.current?.focus()
+		const contentEditable = rInput.current?.querySelector('[contenteditable]')
+		if (contentEditable && document.activeElement !== rInput.current) {
+			;(contentEditable as HTMLElement).focus()
 		}
 	}, [editor, isEditing])
 

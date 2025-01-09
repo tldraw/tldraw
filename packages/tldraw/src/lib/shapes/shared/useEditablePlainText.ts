@@ -43,8 +43,8 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
 			rInput.current?.select()
 		}
 
-		// XXX(mime): This fixes iOS not showing the cursor sometimes.
-		// This "shakes" the cursor awake.
+		// XXX(mime): This fixes iOS not showing the caret sometimes.
+		// This "shakes" the caret awake.
 		if (tlenv.isSafari) {
 			rInput.current?.blur()
 			rInput.current?.focus()

@@ -6,6 +6,7 @@ import {
 	TLShapeId,
 	preventDefault,
 	stopEventPropagation,
+	tlenv,
 	useEditor,
 	useUniqueSafeId,
 } from '@tldraw/editor'
@@ -21,7 +22,7 @@ export interface TextAreaProps {
 	handleBlur(): void
 	handleKeyDown(e: KeyboardEvent): void
 	handleChange(changeInfo: { plaintext?: string; richText?: TLRichText }): void
-	handleInputPointerDown(e: React.PointerEvent<HTMLTextAreaElement>): void
+	handleInputPointerDown(e: React.PointerEvent<HTMLElement>): void
 	handleDoubleClick(e: any): any
 }
 
@@ -130,7 +131,9 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		handleKeyDown(event)
 	}
 
-	if (!isEditing) return null
+	// XXX: This is important that we *don't* return null for iOS Safari focus mechanics,
+	// which don't like it when we remove the contenteditable. FUN.
+	if (!isEditing && !tlenv.isIos) return null
 	if (!tipTapConfig) return null
 
 	const { editorProps, ...restOfTipTapConfig } = tipTapConfig
@@ -154,7 +157,9 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			<div className="tl-rich-text-tiptap">
 				<EditorProvider
 					autofocus
-					editable={isEditing}
+					// XXX: This is important that we are always editable={true} for iOS Safari
+					// focus mechanics, which don't like it when we remove the contenteditable. FUN.
+					editable={true}
 					onUpdate={handleUpdate}
 					onFocus={handleFocus}
 					onBlur={handleBlur}
