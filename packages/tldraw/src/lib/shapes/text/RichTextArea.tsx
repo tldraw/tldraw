@@ -11,6 +11,7 @@ import {
 	useUniqueSafeId,
 } from '@tldraw/editor'
 import React, { useEffect, useState } from 'react'
+import { useReadonly } from '../../ui/hooks/useReadonly'
 
 /** @public */
 export interface TextAreaProps {
@@ -133,7 +134,8 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 
 	// XXX: This is important that we *don't* return null for iOS Safari focus mechanics,
 	// which don't like it when we remove the contenteditable. FUN.
-	if (!isEditing && !tlenv.isIos) return null
+	const isReadonlyMode = useReadonly()
+	if (!isEditing && (!tlenv.isIos || isReadonlyMode)) return null
 	if (!tipTapConfig) return null
 
 	const { editorProps, ...restOfTipTapConfig } = tipTapConfig
