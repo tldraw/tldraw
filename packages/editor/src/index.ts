@@ -48,6 +48,22 @@ export {
 	type TldrawEditorWithoutStoreProps,
 } from './lib/TldrawEditor'
 export {
+	GenerativeAiChangeset,
+	GenerativeModel,
+	useGenerativeAi,
+	type CreateShapeChange,
+	type DeleteShapeChange,
+	type GenerativeAiAdapter,
+	type GenerativeAiChange,
+	type GenerativeAiGenerateOptions,
+	type GenerativeAiInput,
+	type GenerativeAiTransform,
+	type GenerativeModelOptions,
+	type UpdateShapeChange,
+} from './lib/ai/GenerativeModel'
+export { sillyFakeAiDemo } from './lib/ai/sillyFakeAiDemo'
+export { simpleIds } from './lib/ai/simpleIds'
+export {
 	ErrorBoundary,
 	OptionalErrorBoundary,
 	type TLErrorBoundaryProps,

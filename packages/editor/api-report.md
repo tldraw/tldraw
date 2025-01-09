@@ -506,6 +506,14 @@ export function createDeepLinkString(deepLink: TLDeepLink): string;
 // @public
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
+// @internal (undocumented)
+export interface CreateShapeChange {
+    // (undocumented)
+    shape: TLShape;
+    // (undocumented)
+    type: 'createShape';
+}
+
 // @public
 export function createTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
 
@@ -753,6 +761,14 @@ export const defaultUserPreferences: Readonly<{
 
 // @public
 export function degreesToRadians(d: number): number;
+
+// @internal (undocumented)
+export interface DeleteShapeChange {
+    // (undocumented)
+    shapeId: TLShapeId;
+    // (undocumented)
+    type: 'deleteShape';
+}
 
 // @public (undocumented)
 export const EASINGS: {
@@ -1404,6 +1420,86 @@ export interface GapsSnapIndicator {
     id: string;
     // (undocumented)
     type: 'gaps';
+}
+
+// @internal (undocumented)
+export interface GenerativeAiAdapter {
+    // (undocumented)
+    generate(input: GenerativeAiInput): AsyncGenerator<GenerativeAiChange>;
+    // (undocumented)
+    transforms?: GenerativeAiTransform[];
+}
+
+// @internal (undocumented)
+export type GenerativeAiChange = CreateShapeChange | DeleteShapeChange | UpdateShapeChange;
+
+// @internal (undocumented)
+export class GenerativeAiChangeset {
+    constructor(editor: Editor, changes: GenerativeAiChange[]);
+    // (undocumented)
+    addChange(change: GenerativeAiChange): void;
+    // (undocumented)
+    readonly changes: GenerativeAiChange[];
+    // (undocumented)
+    readonly editor: Editor;
+    // (undocumented)
+    onNewChange(handler: (change: GenerativeAiChange) => void): void;
+}
+
+// @internal (undocumented)
+export interface GenerativeAiGenerateOptions {
+    // (undocumented)
+    contextBounds?: Box;
+    // (undocumented)
+    promptBounds?: Box;
+    // (undocumented)
+    shapes?: TLShape[];
+}
+
+// @internal (undocumented)
+export interface GenerativeAiInput {
+    // (undocumented)
+    contextBounds: Box;
+    // (undocumented)
+    image: 'todo';
+    // (undocumented)
+    prompt: string;
+    // (undocumented)
+    promptBounds: Box;
+    // (undocumented)
+    shapes: TLShape[];
+    // (undocumented)
+    shapeTypes: {
+        [key: string]: RecordProps<any> | undefined;
+    };
+}
+
+// @internal (undocumented)
+export interface GenerativeAiTransform {
+    // (undocumented)
+    create(input: GenerativeAiInput): {
+        transformChange?(change: GenerativeAiChange): GenerativeAiChange;
+        transformInput?(): GenerativeAiInput;
+    };
+}
+
+// @internal (undocumented)
+export class GenerativeModel {
+    constructor(editor: Editor, adapter: GenerativeAiAdapter, options?: GenerativeModelOptions);
+    // (undocumented)
+    readonly adapter: GenerativeAiAdapter;
+    // (undocumented)
+    readonly editor: Editor;
+    // (undocumented)
+    generate(prompt: string, options?: GenerativeAiGenerateOptions): Promise<void>;
+    // (undocumented)
+    readonly options: GenerativeModelOptions;
+}
+
+// @internal (undocumented)
+export interface GenerativeModelOptions {
+    // (undocumented)
+    transforms?: GenerativeAiTransform[];
 }
 
 // @public (undocumented)
@@ -2318,6 +2414,12 @@ export function shortAngleDist(a0: number, a1: number): number;
 export const SIDES: readonly ["top", "right", "bottom", "left"];
 
 export { Signal }
+
+// @internal (undocumented)
+export const sillyFakeAiDemo: GenerativeAiAdapter;
+
+// @internal (undocumented)
+export const simpleIds: GenerativeAiTransform;
 
 // @public (undocumented)
 export const SIN: (x: number) => number;
@@ -3706,6 +3808,14 @@ export function uniq<T>(array: {
     readonly length: number;
 } | null | undefined): T[];
 
+// @internal (undocumented)
+export interface UpdateShapeChange {
+    // (undocumented)
+    shape: TLShapePartial;
+    // (undocumented)
+    type: 'updateShape';
+}
+
 export { useAtom }
 
 export { useComputed }
@@ -3727,6 +3837,9 @@ export function useEditorComponents(): Required<TLEditorComponents>;
 
 // @internal
 export function useEvent<Args extends Array<unknown>, Result>(handler: (...args: Args) => Result): (...args: Args) => Result;
+
+// @internal (undocumented)
+export function useGenerativeAi(adapter: GenerativeAiAdapter, options?: GenerativeModelOptions): GenerativeModel;
 
 // @public (undocumented)
 export function useGlobalMenuIsOpen(id: string, onChange?: (isOpen: boolean) => void, onEvent?: (id: string) => void): readonly [boolean, (isOpen: boolean) => void];
