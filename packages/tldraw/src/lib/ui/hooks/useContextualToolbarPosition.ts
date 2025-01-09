@@ -3,7 +3,7 @@ import { RefObject } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../constants'
 import { useBreakpoint } from '../context/breakpoints'
 
-const defaultPosition = {
+const offscreenPosition = {
 	x: -1000,
 	y: -1000,
 	indicatorOffset: 0,
@@ -46,11 +46,11 @@ export function useContextualToolbarPosition({
 	const viewportHeight = useViewportHeight()
 	selectionBounds = selectionBounds ?? selectionToPageBox
 
-	if (!toolbarRef?.current) return defaultPosition
+	if (!toolbarRef?.current) return offscreenPosition
 	const { width: menuWidth, height: menuHeight } = toolbarRef.current.getBoundingClientRect()
 
 	if (!isVisible || !menuWidth || !menuHeight) {
-		return defaultPosition
+		return offscreenPosition
 	}
 
 	const offscreenPadding = 20

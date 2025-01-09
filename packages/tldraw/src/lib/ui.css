@@ -924,6 +924,11 @@
 	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 }
 
+/* On Android, when the virtual keyboard is up, we hide the tools. */
+.tlui-layout__mobile[data-iseditinganything='true'] .tlui-toolbar {
+	display: none;
+}
+
 /* --------------- Contextual Toolbar --------------- */
 
 .tl-contextual-toolbar {

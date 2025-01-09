@@ -13,6 +13,8 @@ import {
 } from '@tldraw/editor'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { getTextLabels } from '../../../utils/shapes/shapes'
+import { PORTRAIT_BREAKPOINT } from '../../constants'
+import { useBreakpoint } from '../../context/breakpoints'
 import { useContextualToolbarPosition } from '../../hooks/useContextualToolbarPosition'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { DefaultRichTextToolbarContent } from './DefaultRichTextToolbarContent'
@@ -33,6 +35,8 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 }: TLUiRichTextToolbarProps) {
 	const editor = useEditor()
 	const toolbarRef = useRef<HTMLDivElement>(null)
+	const breakpoint = useBreakpoint()
+	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 	const isCoarsePointer = useValue(
 		'isCoarsePointer',
 		() => editor.getInstanceState().isCoarsePointer,
@@ -143,7 +147,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		editor.isInAny('select.editing_shape') &&
 		!isMousingDown &&
 		(isMousingAround || isCoarsePointer) &&
-		(hasTextSelection || textEditor.isActive('link'))
+		(hasTextSelection || textEditor.isActive('link') || isMobile)
 
 	const toolbarPosition = useContextualToolbarPosition({
 		isVisible,
