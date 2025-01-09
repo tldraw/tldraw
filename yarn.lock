@@ -3799,7 +3799,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/plugin-retry@npm:^6.0.0, @octokit/plugin-retry@npm:^6.0.1":
+"@octokit/plugin-retry@npm:^6.0.0":
   version: 6.0.1
   resolution: "@octokit/plugin-retry@npm:6.0.1"
   dependencies:
@@ -3937,13 +3937,6 @@ __metadata:
   version: 7.1.0
   resolution: "@octokit/webhooks-types@npm:7.1.0"
   checksum: 80b41945586243df9178a24dce9a5c4b2784eb963c5f6a1c76bcf5600a56e9cb51d8dc4a0da2108abfab3323cde577474a6365615fa1dfaac84c14e9295b54f9
-  languageName: node
-  linkType: hard
-
-"@octokit/webhooks-types@npm:^6.11.0":
-  version: 6.11.0
-  resolution: "@octokit/webhooks-types@npm:6.11.0"
-  checksum: ad47a5a31291882177051b3dc201811000daa07d312157352c2cd23fd41541d0263ee326b78407788abc9dd04341cf395b6c4516f5ea6a98647e5cc33a3f709e
   languageName: node
   linkType: hard
 
@@ -7908,7 +7901,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jsonwebtoken@npm:^9.0.0, @types/jsonwebtoken@npm:^9.0.1":
+"@types/jsonwebtoken@npm:^9.0.0":
   version: 9.0.5
   resolution: "@types/jsonwebtoken@npm:9.0.5"
   dependencies:
@@ -14927,28 +14920,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"huppy@workspace:internal/huppy":
-  version: 0.0.0-use.local
-  resolution: "huppy@workspace:internal/huppy"
-  dependencies:
-    "@octokit/core": "npm:^5.0.1"
-    "@octokit/plugin-retry": "npm:^6.0.1"
-    "@octokit/webhooks-types": "npm:^6.11.0"
-    "@tldraw/utils": "workspace:*"
-    "@tldraw/validate": "workspace:*"
-    "@types/jsonwebtoken": "npm:^9.0.1"
-    eslint: "npm:^9.13.0"
-    eslint-config-next: "npm:^15.0.0"
-    json5: "npm:^2.2.3"
-    jsonwebtoken: "npm:^9.0.0"
-    lazyrepo: "npm:0.0.0-alpha.27"
-    next: "npm:^14.0.4"
-    octokit: "npm:^3.1.1"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
-  languageName: unknown
-  linkType: soft
-
 "husky@npm:^8.0.0":
   version: 8.0.3
   resolution: "husky@npm:8.0.3"
@@ -16731,7 +16702,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsonwebtoken@npm:^9.0.0, jsonwebtoken@npm:^9.0.2":
+"jsonwebtoken@npm:^9.0.2":
   version: 9.0.2
   resolution: "jsonwebtoken@npm:9.0.2"
   dependencies:
