@@ -100,6 +100,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	// Set up text editor event listeners.
 	useEffect(() => {
 		if (!textEditor) {
+			setIsEditingLink(false)
 			return
 		}
 

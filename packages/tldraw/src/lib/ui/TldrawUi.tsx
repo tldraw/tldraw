@@ -1,4 +1,4 @@
-import { useEditor, useValue, useViewportHeight } from '@tldraw/editor'
+import { tlenv, useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode, useEffect, useState } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
@@ -117,7 +117,6 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 	useNativeClipboardEvents()
 	useEditorEvents()
 
-	const viewportHeight = useViewportHeight()
 	const isEditingAnything = useValue(
 		'isEditingAnything',
 		() => editor.getEditingShapeId() !== null,
@@ -125,15 +124,20 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 	)
 	const [isEditingAnythingDelayed, setIsEditingAnythingDelayed] = useState(false)
 
+	const isMobileEnvironment = tlenv.isIos || tlenv.isAndroid
 	useEffect(() => {
-		// This is specifically used on Android mobile.
-		// 150ms is the time the virtual keyboard opens up on mobile.
-		const timeoutId = editor.timers.setTimeout(
-			() => setIsEditingAnythingDelayed(isEditingAnything),
-			150
-		)
-		return () => clearTimeout(timeoutId)
-	}, [editor, isEditingAnything, viewportHeight])
+		if (isMobileEnvironment) {
+			// This is specifically used on Android mobile.
+			// 150ms is the time the virtual keyboard opens up on mobile.
+			const timeoutId = editor.timers.setTimeout(
+				() => setIsEditingAnythingDelayed(isEditingAnything),
+				150
+			)
+			return () => clearTimeout(timeoutId)
+		} else {
+			setIsEditingAnythingDelayed(isEditingAnything)
+		}
+	}, [editor, isEditingAnything, isMobileEnvironment])
 
 	const { 'toggle-focus-mode': toggleFocus } = useActions()
 
@@ -144,7 +148,9 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 			})}
 			// When the virtual keyboard is opening we want it to hide immediately.
 			// But when the virtual keyboard is closing we want to wait a bit before showing it again.
-			data-iseditinganything={isEditingAnything || isEditingAnythingDelayed}
+			data-iseditinganything={
+				isMobileEnvironment ? isEditingAnything || isEditingAnythingDelayed : isEditingAnything
+			}
 			data-breakpoint={breakpoint}
 		>
 			{isFocusMode ? (
