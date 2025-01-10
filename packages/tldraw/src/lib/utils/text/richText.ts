@@ -3,6 +3,7 @@ import Highlight from '@tiptap/extension-highlight'
 import Link from '@tiptap/extension-link'
 import StarterKit from '@tiptap/starter-kit'
 import { Editor, TLRichText } from '@tldraw/editor'
+import TextDirection from './textDirection'
 
 const KeyboardShiftEnterTweakExtension = Extension.create({
 	name: 'keyboardShiftEnterHandler',
@@ -27,6 +28,7 @@ export const tipTapDefaultExtensions: Extensions = [
 	}),
 	Highlight,
 	KeyboardShiftEnterTweakExtension,
+	TextDirection,
 ]
 
 /**
