@@ -6,12 +6,10 @@ import {
 	TLShapeId,
 	preventDefault,
 	stopEventPropagation,
-	tlenv,
 	useEditor,
 	useUniqueSafeId,
 } from '@tldraw/editor'
 import React, { useEffect, useState } from 'react'
-import { useReadonly } from '../../ui/hooks/useReadonly'
 
 /** @public */
 export interface TextAreaProps {
@@ -26,6 +24,11 @@ export interface TextAreaProps {
 	handleInputPointerDown(e: React.PointerEvent<HTMLElement>): void
 	handleDoubleClick(e: any): any
 }
+
+/**
+ * N.B. In Development mode you need to ensure you're testing this without StrictMode on.
+ * Otherwise it's not gonna work as expected on iOS.
+ */
 
 /**
  * A rich text area that can be used for editing text with rich text formatting.
@@ -132,10 +135,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		handleKeyDown(event)
 	}
 
-	// XXX: This is important that we *don't* return null for iOS Safari focus mechanics,
-	// which don't like it when we remove the contenteditable. FUN.
-	const isReadonlyMode = useReadonly()
-	if (!isEditing && (!tlenv.isIos || isReadonlyMode)) return null
+	if (!isEditing) return null
 	if (!tipTapConfig) return null
 
 	const { editorProps, ...restOfTipTapConfig } = tipTapConfig
@@ -159,9 +159,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			<div className="tl-rich-text-tiptap">
 				<EditorProvider
 					autofocus
-					// XXX: This is important that we are always editable={true} for iOS Safari
-					// focus mechanics, which don't like it when we remove the contenteditable. FUN.
-					editable={true}
+					editable={isEditing}
 					onUpdate={handleUpdate}
 					onFocus={handleFocus}
 					onBlur={handleBlur}

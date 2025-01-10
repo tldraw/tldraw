@@ -10,7 +10,7 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
-import { renderHtmlFromRichText } from '../../utils/text/richText'
+import { renderHtmlFromRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
 import { TEXT_PROPS } from './default-shape-constants'
 import { isLegacyAlign } from './legacyProps'
@@ -77,13 +77,10 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 
 	const legacyAlign = isLegacyAlign(align)
 
-	// N.B. Unlike in PlainTextLabel, we don't return null if there's no text/not editing.
-	// This is important that we *don't* return null for iOS Safari focus mechanics,
-	// which don't like it when we remove the contenteditable. FUN.
-	// const hasText = richText ? renderPlaintextFromRichText(editor, richText).length > 0 : false
-	// if (!isEditing && !hasText) {
-	// 	return null
-	// }
+	const hasText = richText ? renderPlaintextFromRichText(editor, richText).length > 0 : false
+	if (!isEditing && !hasText) {
+		return null
+	}
 
 	const handlePointerDownCapture = (e: React.PointerEvent<HTMLDivElement>) => {
 		// Allow links to be clicked upon.
