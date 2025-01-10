@@ -151,7 +151,7 @@ export class TestEditor extends Editor {
 			}
 		): BoxModel & { scrollWidth: number } => {
 			const textToMeasure = html
-				.split('</p><p>')
+				.split('</p><p dir="auto">')
 				.join('\n')
 				.replace(/<[^>]+>/g, '')
 			return this.textMeasure.measureText(textToMeasure, opts)

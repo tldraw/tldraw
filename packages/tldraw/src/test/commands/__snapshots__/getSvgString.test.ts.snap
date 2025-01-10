@@ -91,7 +91,9 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
           style="display: flex; flex-direction: column; height: calc(428px - 32px - 2px); font-size: 22px; font-family: 'tldraw_draw', sans-serif; text-align: center; justify-content: center; padding: 16px; color: rgb(29, 29, 29); line-height: 1.35;"
           xmlns="http://www.w3.org/1999/xhtml"
         >
-          <p>
+          <p
+            dir="auto"
+          >
             Hello world
           </p>
         </div>
