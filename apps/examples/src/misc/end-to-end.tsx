@@ -6,6 +6,7 @@ import {
 	Tldraw,
 	createShapeId,
 	exportAs,
+	toRichText,
 	useActions,
 	useEditor,
 	useUniqueSafeId,
@@ -123,6 +124,7 @@ function SneakyExportButton() {
 			exportAsFormat: (format) =>
 				exportAs(editor, editor.selectAll().getSelectedShapeIds(), format, 'test'),
 			createShapeId: () => createShapeId(),
+			toRichText: (text: string) => toRichText(text),
 		}
 		;(window as any).tldrawApi = api
 	}, [actions, editor])

@@ -715,7 +715,7 @@ test.describe('Export snapshots', () => {
 							type: 'text',
 							x: 0,
 							y: 0,
-							props: { richText: toRichText(name), font: 'mono', size: 'xl' },
+							props: { richText: tldrawApi.toRichText(name), font: 'mono', size: 'xl' },
 						})
 
 						let y = editor.getShapePageBounds(titleId)!.maxY + 30
@@ -727,7 +727,7 @@ test.describe('Export snapshots', () => {
 								type: 'text',
 								x: 0,
 								y,
-								props: { richText: toRichText(rowName), font: 'mono', size: 'm' },
+								props: { richText: tldrawApi.toRichText(rowName), font: 'mono', size: 'm' },
 							})
 							y = editor.getShapePageBounds(rowTitleId)!.maxY + 20
 
@@ -741,7 +741,7 @@ test.describe('Export snapshots', () => {
 									x,
 									y,
 									props: {
-										richText: toRichText(testCaseName),
+										richText: tldrawApi.toRichText(testCaseName),
 										font: 'mono',
 										size: 's',
 									},
