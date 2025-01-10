@@ -44,7 +44,7 @@ export function renderHtmlFromRichText(editor: Editor, richText: TLRichText) {
 		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
 	const html = generateHTML(richText as JSONContent, tipTapExtensions)
 	// We replace empty paragraphs with a single line break to prevent the browser from collapsing them.
-	return html.replaceAll('<p></p>', '<p><br /></p>') ?? ''
+	return html.replaceAll('<p dir="auto"></p>', '<p><br /></p>') ?? ''
 }
 
 /**

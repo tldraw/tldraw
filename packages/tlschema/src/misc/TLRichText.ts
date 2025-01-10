@@ -13,6 +13,7 @@ export function toRichText(text: string): TLRichText {
 		if (!text) {
 			return {
 				type: 'paragraph',
+				content: [{ type: 'text', text: ' ' }],
 			}
 		}
 
