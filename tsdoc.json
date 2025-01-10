@@ -1,15 +1,22 @@
 {
-	"$schema": "https://developer.microsoft.com/json-schemas/tsdoc/v0/tsdoc.schema.json",
-	"extends": ["@microsoft/api-extractor/extends/tsdoc-base.json"],
+  "$schema": "https://developer.microsoft.com/json-schemas/tsdoc/v0/tsdoc.schema.json",
+  "extends": ["@microsoft/api-extractor/extends/tsdoc-base.json"],
 
-	"tagDefinitions": [
-		{
-			"tagName": "@react",
-			"syntaxKind": "modifier"
-		}
-	],
+  "tagDefinitions": [
+    {
+      "tagName": "@react",
+      "syntaxKind": "modifier",
+      "allowMultiple": false,
+      "description": "Indicates that the documented item is specific to React."
+    }
+  ],
 
-	"supportForTags": {
-		"@react": true
-	}
+  "supportForTags": {
+    "@react": true
+  },
+
+  "validation": {
+    "reportUnsupportedTags": "warning",
+    "reportMissingTagDescriptions": "error"
+  }
 }
