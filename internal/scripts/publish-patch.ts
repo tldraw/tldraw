@@ -1,5 +1,4 @@
 import { Auto } from '@auto-it/core'
-import fetch from 'cross-fetch'
 import glob from 'glob'
 import { assert } from 'node:console'
 import { appendFileSync } from 'node:fs'
@@ -116,20 +115,6 @@ async function main() {
 	// semver rules will still be respected because there's no prerelease tag in the version,
 	// so clients will get the updated version if they have a range like ^1.0.0
 	await publish(isLatestVersion ? 'latest' : 'revision')
-
-	if (isLatestVersion) {
-		nicelog('Notifying huppy of release...')
-		const huppyResponse = await fetch('https://tldraw-repo-sync.fly.dev/api/on-release', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({ apiKey: huppyToken, tagToRelease: `v${nextVersion}`, canary: false }),
-		})
-		nicelog(
-			`huppy: [${huppyResponse.status} ${huppyResponse.statusText}] ${await huppyResponse.text()}`
-		)
-	}
 }
 
 main()

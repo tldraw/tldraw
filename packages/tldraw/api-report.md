@@ -3999,6 +3999,9 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void): reado
 export function useNativeClipboardEvents(): void;
 
 // @public (undocumented)
+export function usePrefersReducedMotion(): boolean;
+
+// @public (undocumented)
 export function usePreloadAssets(assetUrls: TLEditorAssetUrls): {
     done: boolean;
     error: boolean;

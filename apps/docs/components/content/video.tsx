@@ -21,6 +21,8 @@ export function Video({
 					controls
 					preload={lazy ? 'metadata' : 'auto'}
 					autoPlay={autoplay}
+					muted={autoplay}
+					loop={autoplay}
 				/>
 			</span>
 			{caption && <span className="block text-xs text-zinc-500 mt-3 text-center">{caption}</span>}
