@@ -335,11 +335,7 @@ test.describe('text measurement', () => {
 	test('should use custom renderMethod for text measurement', async () => {
 		const { w, h } = await page.evaluate<{ w: number; h: number }, typeof measureTextOptions>(
 			async (options) => {
-				const customOptions = {
-					...options,
-					renderMethod: () => `<div><strong>HELLO WORLD</strong></div>`,
-				}
-				return editor.textMeasure.measureText('testing', customOptions)
+				return editor.textMeasure.measureHtml(`<div><strong>HELLO WORLD</strong></div>`, options)
 			},
 			measureTextOptions
 		)
