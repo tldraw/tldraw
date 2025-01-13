@@ -21,12 +21,14 @@ const isClerkCookieSet = document.cookie
 export const legacyRoutes = (
 	<Route errorElement={<DefaultErrorFallback />}>
 		<Route path={ROUTES.legacyRoot} lazy={() => import('./pages/root')} />
-		<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
-			<Route path={ROUTES.tlaOptIn} lazy={() => import('./pages/tla-opt-in')} />
-			<Route path={ROUTES.tlaOptIn2} lazy={() => import('./pages/tla-opt-in')} />
-		</Route>
 		{/* We don't want to index multiplayer rooms */}
 		<Route element={<NoIndex />}>
+			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
+				<Route path={ROUTES.tlaOptIn} lazy={() => import('./pages/tla-opt-in')} />
+				<Route path={ROUTES.tlaOptIn2} lazy={() => import('./pages/tla-opt-in')} />
+				<Route path={ROUTES.tlaFile} lazy={() => import('./tla/pages/file')} />
+				<Route path={ROUTES.tlaPublish} lazy={() => import('./tla/pages/publish')} />
+			</Route>
 			<Route element={<ShimIntlProvider />}>
 				<Route path={ROUTES.legacyNewPage} lazy={() => import('./pages/new')} />
 				<Route path={ROUTES.legacyNewPage2} lazy={() => import('./pages/new')} />

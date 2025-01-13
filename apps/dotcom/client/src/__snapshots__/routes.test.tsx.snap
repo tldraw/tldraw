@@ -11,8 +11,20 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/beta/?$",
   },
   {
+    "reactRouterPattern": "/f/:fileSlug",
+    "vercelRouterPattern": "^/f/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/lf/:fileSlug",
+    "vercelRouterPattern": "^/lf/[^/]*/?$",
+  },
+  {
     "reactRouterPattern": "/new",
     "vercelRouterPattern": "^/new/?$",
+  },
+  {
+    "reactRouterPattern": "/p/:fileSlug",
+    "vercelRouterPattern": "^/p/[^/]*/?$",
   },
   {
     "reactRouterPattern": "/q",
@@ -49,18 +61,6 @@ exports[`the_routes 1`] = `
   {
     "reactRouterPattern": "/v/:roomId",
     "vercelRouterPattern": "^/v/[^/]*/?$",
-  },
-  {
-    "reactRouterPattern": "/f/:fileSlug",
-    "vercelRouterPattern": "^/f/[^/]*/?$",
-  },
-  {
-    "reactRouterPattern": "/lf/:fileSlug",
-    "vercelRouterPattern": "^/lf/[^/]*/?$",
-  },
-  {
-    "reactRouterPattern": "/p/:fileSlug",
-    "vercelRouterPattern": "^/p/[^/]*/?$",
   },
 ]
 `;

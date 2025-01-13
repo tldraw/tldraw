@@ -92,6 +92,7 @@ function extract(...routes: ReactElement[]) {
 }
 
 const spaRoutes = uniq(extract(legacyRoutes).concat(extract(tlaRoutes)))
+	.sort()
 	// ignore the root catch-all route
 	.filter((path) => path !== '/*' && path !== '*')
 	.map((path) => ({
