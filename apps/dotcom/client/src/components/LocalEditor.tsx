@@ -13,6 +13,7 @@ import {
 	PreferencesGroup,
 	TLComponents,
 	Tldraw,
+	TldrawOptions,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
 	TldrawUiDialogBody,
@@ -91,12 +92,14 @@ export function LocalEditor({
 	children,
 	persistenceKey,
 	'data-testid': dataTestId,
+	options,
 }: {
 	componentsOverride?: TLComponents
 	onMount?(editor: Editor): void
 	children?: ReactNode
 	persistenceKey?: string
 	'data-testid'?: string
+	options?: Partial<TldrawOptions>
 }) {
 	const handleUiEvent = useHandleUiEvents()
 	const sharingUiOverrides = useSharing()
@@ -119,6 +122,7 @@ export function LocalEditor({
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={componentsOverride ?? components}
+				options={options}
 			>
 				<SneakyOnDropOverride isMultiplayer={false} />
 				<ThemeUpdater />
