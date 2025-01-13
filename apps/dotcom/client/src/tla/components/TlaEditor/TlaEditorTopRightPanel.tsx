@@ -3,7 +3,7 @@ import { TlaFileOpenState } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Editor, PeopleMenu, useEditor, usePassThroughWheelEvents } from 'tldraw'
+import { PeopleMenu, useEditor, usePassThroughWheelEvents, useTranslation } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
@@ -63,28 +63,36 @@ export function TlaEditorTopRightPanel({
 	)
 }
 
-function getFileName(editor: Editor) {
+function useGetFileName() {
+	const editor = useEditor()
+	const msg = useTranslation()
+	const defaultPageName = msg('page-menu.new-page-initial-name')
+
 	const documentName = editor.getDocumentSettings().name
 	if (documentName?.length > 0) return documentName
+
 	const firstPageName = editor.getPages()[0].name
-	if (firstPageName.length > 0 && !firstPageName.startsWith('Page 1')) return firstPageName
+	if (
+		firstPageName.length > 0 &&
+		!firstPageName.startsWith('Page 1') &&
+		!firstPageName.startsWith(defaultPageName)
+	)
+		return firstPageName
 	return ''
 }
 
 function LegacyImportButton() {
 	const trackEvent = useTldrawAppUiEvents()
 	const app = useMaybeApp()
-	const editor = useEditor()
 	const navigate = useNavigate()
 	const params = useParams()
 	const roomId = params.roomId
+	const name = useGetFileName()
 
 	const handleClick = useCallback(() => {
-		if (!app || !editor || !roomId) return
+		if (!app || !roomId) return
 
-		const res = app.createFile({
-			name: getFileName(editor),
-		})
+		const res = app.createFile({ name })
 		if (res.ok) {
 			const { file } = res.value
 			navigate(routes.tlaFile(file.id), {
@@ -92,7 +100,7 @@ function LegacyImportButton() {
 			})
 			trackEvent('create-file', { source: 'legacy-import-button' })
 		}
-	}, [app, editor, navigate, roomId, trackEvent])
+	}, [app, name, navigate, roomId, trackEvent])
 
 	return (
 		<TlaCtaButton data-testid="tla-import-button" onClick={handleClick}>
