@@ -1,5 +1,5 @@
 import { stringEnum } from '@tldraw/utils'
-import { SerializedSchema, SerializedStore, TLEditorSnapshot, TLRecord } from 'tldraw'
+import { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 import {
 	TlaFile,
 	TlaFilePartial,
@@ -144,7 +144,7 @@ export type TlaFileOpenState =
 	| { mode: 'duplicate'; duplicateId: string }
 	| {
 			mode: 'slurp-legacy-file'
-			snapshot: TLEditorSnapshot
+			duplicateId: string
 	  }
 	| null
 	| undefined

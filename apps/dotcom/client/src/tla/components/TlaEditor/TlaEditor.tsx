@@ -142,18 +142,13 @@ function TlaEditorInner({ fileSlug, fileOpenState, deepLinks }: TlaEditorProps) 
 				remountImageShapes,
 			}).then(setIsReady)
 
-			if (mode === 'slurp-legacy-file') {
-				assert(fileOpenState?.snapshot, 'snapshot is required when mode is slurp-legacy-file')
-				editor.loadSnapshot(fileOpenState.snapshot)
-			}
-
 			return () => {
 				abortController.abort()
 				cleanup()
 				updateSessionState.cancel()
 			}
 		},
-		[addDialog, app, fileId, fileOpenState, mode, remountImageShapes, setIsReady]
+		[addDialog, app, fileId, remountImageShapes, setIsReady]
 	)
 
 	const user = useTldrawUser()
@@ -166,7 +161,7 @@ function TlaEditorInner({ fileSlug, fileOpenState, deepLinks }: TlaEditorProps) 
 			}
 			if (mode) {
 				url.searchParams.set('mode', mode)
-				if (mode === 'duplicate') {
+				if (mode === 'duplicate' || mode === 'slurp-legacy-file') {
 					const duplicateId = fileOpenState.duplicateId
 					assert(duplicateId, 'duplicateId is required when mode is duplicate')
 					url.searchParams.set('duplicateId', duplicateId)

@@ -494,10 +494,7 @@ export class TLDrawDurableObject extends DurableObject {
 				return { type: 'room_found', snapshot: await roomFromBucket.json() }
 			}
 
-			if (
-				this.documentInfo.appMode === 'create' ||
-				this.documentInfo.appMode === 'slurp-legacy-file'
-			) {
+			if (this.documentInfo.appMode === 'create') {
 				return {
 					type: 'room_found',
 					snapshot: new TLSyncRoom({
@@ -506,7 +503,10 @@ export class TLDrawDurableObject extends DurableObject {
 				}
 			}
 
-			if (this.documentInfo.appMode === 'duplicate') {
+			if (
+				this.documentInfo.appMode === 'duplicate' ||
+				this.documentInfo.appMode === 'slurp-legacy-file'
+			) {
 				assert(this.documentInfo.duplicateId, 'duplicateId must be present')
 				// load the duplicate id
 				let data: string | undefined = undefined
@@ -516,9 +516,12 @@ export class TLDrawDurableObject extends DurableObject {
 					) as any as TLDrawDurableObject
 					data = await otherRoom.getCurrentSerializedSnapshot()
 				} catch (_e) {
-					data = await this.r2.rooms
-						.get(getR2KeyForRoom({ slug: this.documentInfo.duplicateId, isApp: true }))
-						.then((r) => r?.text())
+					// We only want to load from existing app file when duplicating, slurping should only look at existing multiplayer rooms
+					if (this.documentInfo.appMode === 'duplicate') {
+						data = await this.r2.rooms
+							.get(getR2KeyForRoom({ slug: this.documentInfo.duplicateId, isApp: true }))
+							.then((r) => r?.text())
+					}
 				}
 
 				if (!data) {
