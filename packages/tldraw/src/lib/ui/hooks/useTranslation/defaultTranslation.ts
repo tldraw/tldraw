@@ -125,6 +125,7 @@ export const DEFAULT_TRANSLATION = {
 	'assets.files.size-too-big': 'File size is too big',
 	'assets.files.type-not-allowed': 'File type is not allowed',
 	'assets.files.upload-failed': 'Upload failed',
+	'assets.files.amount-too-many': 'Too many files',
 	'assets.url.failed': 'Couldn’t load URL preview',
 	'theme.dark': 'Dark',
 	'theme.light': 'Light',
