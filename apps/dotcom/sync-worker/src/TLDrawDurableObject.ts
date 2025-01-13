@@ -516,7 +516,7 @@ export class TLDrawDurableObject extends DurableObject {
 					) as any as TLDrawDurableObject
 					data = await otherRoom.getCurrentSerializedSnapshot()
 				} catch (_e) {
-					// We only want to load from existing app file when duplicating, slurping should only look at existing multiplayer rooms
+					// We only want to load from existing app file when duplicating, slurping should only look at legacy multiplayer rooms
 					if (this.documentInfo.appMode === 'duplicate') {
 						data = await this.r2.rooms
 							.get(getR2KeyForRoom({ slug: this.documentInfo.duplicateId, isApp: true }))
