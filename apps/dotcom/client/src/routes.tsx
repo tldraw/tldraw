@@ -42,7 +42,6 @@ export const router = createRoutesFromElements(
 						para1 = `You don't have permission to view this room.`
 						break
 					}
-
 					case TLSyncErrorCloseEventReason.RATE_LIMITED: {
 						header = 'Rate limited'
 						para1 = `Please slow down.`
