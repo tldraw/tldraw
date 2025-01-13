@@ -1,3 +1,16 @@
+# v3.7.1 (Mon Jan 13 2025)
+
+#### 🐛 Bug Fixes
+
+- `@tldraw/editor`
+  - Sdk hotfix: pass custom migrations to useLocalStore (#5135) [#5204](https://github.com/tldraw/tldraw/pull/5204) ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v3.7.0 (Tue Jan 07 2025)
 
 ### Release Notes
