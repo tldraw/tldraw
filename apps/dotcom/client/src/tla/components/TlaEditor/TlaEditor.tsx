@@ -55,8 +55,14 @@ interface TlaEditorProps {
 }
 
 export function TlaEditor(props: TlaEditorProps) {
-	if (props.fileOpenState?.mode === 'duplicate') {
-		assert(props.fileOpenState.duplicateId, 'duplicateId is required when mode is duplicate')
+	if (
+		props.fileOpenState?.mode === 'duplicate' ||
+		props.fileOpenState?.mode === 'slurp-legacy-file'
+	) {
+		assert(
+			props.fileOpenState.duplicateId,
+			'duplicateId is required when mode is duplicate or slurp-legacy-file'
+		)
 	}
 	// force re-mount when the file slug changes to prevent state from leaking between files
 	return (
@@ -163,7 +169,7 @@ function TlaEditorInner({ fileSlug, fileOpenState, deepLinks }: TlaEditorProps) 
 				url.searchParams.set('mode', mode)
 				if (mode === 'duplicate' || mode === 'slurp-legacy-file') {
 					const duplicateId = fileOpenState.duplicateId
-					assert(duplicateId, 'duplicateId is required when mode is duplicate')
+					assert(duplicateId, 'duplicateId is required when mode is duplicate or slurp-legacy-file')
 					url.searchParams.set('duplicateId', duplicateId)
 				}
 			}
