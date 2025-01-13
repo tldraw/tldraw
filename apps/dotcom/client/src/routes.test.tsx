@@ -1,9 +1,10 @@
 import { expect } from '@jest/globals'
+import { uniq } from '@tldraw/utils'
 import type { MatcherFunction } from 'expect'
 import { join } from 'path'
 import { ReactElement } from 'react'
 import { Route, RouteObject, createRoutesFromElements } from 'react-router-dom'
-import { router } from './routes'
+import { legacyRoutes, tlaRoutes } from './routes'
 
 const toMatchAny: MatcherFunction<[regexes: unknown]> = function (actual, regexes) {
 	if (
@@ -82,9 +83,15 @@ function convertReactToVercel(path: string): string {
 	return '^' + path.replace(/:[^/]+/g, '[^/]*') + '/?$'
 }
 
-const spaRoutes = router
-	.flatMap(extractContentPaths)
-	.sort()
+function extract(...routes: ReactElement[]) {
+	return createRoutesFromElements(
+		<Route>{routes.map((r, i) => ({ ...r, key: i.toString() }))}</Route>
+	)
+		.flatMap(extractContentPaths)
+		.sort()
+}
+
+const spaRoutes = uniq(extract(legacyRoutes).concat(extract(tlaRoutes)))
 	// ignore the root catch-all route
 	.filter((path) => path !== '/*' && path !== '*')
 	.map((path) => ({
@@ -137,14 +144,6 @@ test('convertReactToVercel', () => {
 		`"Route paths must start with a slash, but 'r/:roomId/history' does not"`
 	)
 })
-
-function extract(...routes: ReactElement[]) {
-	return createRoutesFromElements(
-		<Route>{routes.map((r, i) => ({ ...r, key: i.toString() }))}</Route>
-	)
-		.flatMap(extractContentPaths)
-		.sort()
-}
 
 describe('extractContentPaths', () => {
 	it('only includes routes with content', () => {
