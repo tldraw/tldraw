@@ -24,10 +24,10 @@ export function Component() {
 			}}
 		>
 			<h2>
-				<F defaultMessage="Try the new tldraw (beta)" />
+				<F defaultMessage="Try the new tldraw (preview)" />
 			</h2>
 			<p style={{ maxWidth: 400 }}>
-				<F defaultMessage="Sign in to access the beta version of tldraw.com, which adds file management and collaboration features." />
+				<F defaultMessage="Sign in to access the preview version of tldraw.com, which adds file management and collaboration features." />
 			</p>
 			<div style={{ display: 'flex', gap: 10 }}>
 				<TlaButton

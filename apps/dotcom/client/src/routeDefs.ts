@@ -12,7 +12,7 @@ export const ROUTES = {
 	legacyReadonly: '/ro/:roomId',
 	legacyReadonlyOld: '/v/:roomId',
 
-	tlaOptIn: '/beta',
+	tlaOptIn: '/preview',
 	tlaOverride: '/q',
 
 	tlaRoot: `/`,
