@@ -41,7 +41,7 @@ import translationsFaJsonUrl from './translations/fa.json?url'
 import translationsFiJsonUrl from './translations/fi.json?url'
 import translationsFrJsonUrl from './translations/fr.json?url'
 import translationsGlJsonUrl from './translations/gl.json?url'
-import translationsGuJsonUrl from './translations/gu.json?url'
+import translationsGuInJsonUrl from './translations/gu-in.json?url'
 import translationsHeJsonUrl from './translations/he.json?url'
 import translationsHiInJsonUrl from './translations/hi-in.json?url'
 import translationsHrJsonUrl from './translations/hr.json?url'
@@ -49,7 +49,7 @@ import translationsHuJsonUrl from './translations/hu.json?url'
 import translationsIdJsonUrl from './translations/id.json?url'
 import translationsItJsonUrl from './translations/it.json?url'
 import translationsJaJsonUrl from './translations/ja.json?url'
-import translationsKmJsonUrl from './translations/km.json?url'
+import translationsKmKhJsonUrl from './translations/km-kh.json?url'
 import translationsKnJsonUrl from './translations/kn.json?url'
 import translationsKoKrJsonUrl from './translations/ko-kr.json?url'
 import translationsKuJsonUrl from './translations/ku.json?url'
@@ -252,7 +252,7 @@ export function getAssetUrlsByImport(opts) {
 			fi: formatAssetUrl(translationsFiJsonUrl, opts),
 			fr: formatAssetUrl(translationsFrJsonUrl, opts),
 			gl: formatAssetUrl(translationsGlJsonUrl, opts),
-			gu: formatAssetUrl(translationsGuJsonUrl, opts),
+			'gu-in': formatAssetUrl(translationsGuInJsonUrl, opts),
 			he: formatAssetUrl(translationsHeJsonUrl, opts),
 			'hi-in': formatAssetUrl(translationsHiInJsonUrl, opts),
 			hr: formatAssetUrl(translationsHrJsonUrl, opts),
@@ -260,7 +260,7 @@ export function getAssetUrlsByImport(opts) {
 			id: formatAssetUrl(translationsIdJsonUrl, opts),
 			it: formatAssetUrl(translationsItJsonUrl, opts),
 			ja: formatAssetUrl(translationsJaJsonUrl, opts),
-			km: formatAssetUrl(translationsKmJsonUrl, opts),
+			'km-kh': formatAssetUrl(translationsKmKhJsonUrl, opts),
 			kn: formatAssetUrl(translationsKnJsonUrl, opts),
 			'ko-kr': formatAssetUrl(translationsKoKrJsonUrl, opts),
 			ku: formatAssetUrl(translationsKuJsonUrl, opts),

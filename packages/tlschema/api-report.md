@@ -491,7 +491,7 @@ export const LANGUAGES: readonly [{
     readonly locale: "pa";
 }, {
     readonly label: "ગુજરાતી";
-    readonly locale: "gu";
+    readonly locale: "gu-in";
 }, {
     readonly label: "தமிழ்";
     readonly locale: "ta";
@@ -509,7 +509,7 @@ export const LANGUAGES: readonly [{
     readonly locale: "th";
 }, {
     readonly label: "ភាសាខ្មែរ";
-    readonly locale: "km";
+    readonly locale: "km-kh";
 }, {
     readonly label: "한국어";
     readonly locale: "ko-kr";
