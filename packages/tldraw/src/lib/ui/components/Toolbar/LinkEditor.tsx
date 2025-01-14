@@ -1,4 +1,4 @@
-import { preventDefault, TiptapEditor } from '@tldraw/editor'
+import { preventDefault, TiptapEditor, tlenv } from '@tldraw/editor'
 import { useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -30,7 +30,14 @@ export function LinkEditor({ textEditor, value: initialValue, onComplete }: Link
 			link = `https://${link}`
 		}
 
-		textEditor.chain().setLink({ href: link }).focus().run()
+		textEditor.commands.setLink({ href: link })
+		// N.B. We shouldn't focus() on iOS because it causes the
+		// Return key to replace the link with a newline :facepalm:
+		if (tlenv.isIos) {
+			textEditor.commands.blur()
+		} else {
+			textEditor.commands.focus()
+		}
 		onComplete()
 	}
 
