@@ -303,7 +303,7 @@ export const DEFAULT_TRANSLATION = {
 	'people-menu.leading': 'Following You',
 	'people-menu.user': '(You)',
 	'people-menu.invite': 'Invite others',
-	'help-menu.import-tldr-file': 'Import file...',
+	'help-menu.import-tldr-file': 'Import file…',
 	'help-menu.title': 'Help and resources',
 	'help-menu.about': 'About tldraw',
 	'help-menu.docs': 'Documentation & API',
@@ -408,5 +408,5 @@ export const DEFAULT_TRANSLATION = {
 	'vscode.file-open.backup-saved': 'Backup saved',
 	'vscode.file-open.backup-failed': 'Backup failed: this is not a .tldr file.',
 	'vscode.file-open.dont-show-again': "Don't ask again",
-	'cursor-chat.type-to-chat': 'Type to chat...',
+	'cursor-chat.type-to-chat': 'Type to chat…',
 }

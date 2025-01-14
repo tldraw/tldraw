@@ -167,7 +167,7 @@ export type AssetUrls = {
 		fi: string
 		fr: string
 		gl: string
-		gu: string
+		'gu-in': string
 		he: string
 		'hi-in': string
 		hr: string
@@ -175,7 +175,7 @@ export type AssetUrls = {
 		id: string
 		it: string
 		ja: string
-		km: string
+		'km-kh': string
 		kn: string
 		'ko-kr': string
 		ku: string

@@ -41,7 +41,7 @@ import translationsFaJson from './translations/fa.json'
 import translationsFiJson from './translations/fi.json'
 import translationsFrJson from './translations/fr.json'
 import translationsGlJson from './translations/gl.json'
-import translationsGuJson from './translations/gu.json'
+import translationsGuInJson from './translations/gu-in.json'
 import translationsHeJson from './translations/he.json'
 import translationsHiInJson from './translations/hi-in.json'
 import translationsHrJson from './translations/hr.json'
@@ -49,7 +49,7 @@ import translationsHuJson from './translations/hu.json'
 import translationsIdJson from './translations/id.json'
 import translationsItJson from './translations/it.json'
 import translationsJaJson from './translations/ja.json'
-import translationsKmJson from './translations/km.json'
+import translationsKmKhJson from './translations/km-kh.json'
 import translationsKnJson from './translations/kn.json'
 import translationsKoKrJson from './translations/ko-kr.json'
 import translationsKuJson from './translations/ku.json'
@@ -252,7 +252,7 @@ export function getAssetUrlsByImport(opts) {
 			fi: formatAssetUrl(translationsFiJson, opts),
 			fr: formatAssetUrl(translationsFrJson, opts),
 			gl: formatAssetUrl(translationsGlJson, opts),
-			gu: formatAssetUrl(translationsGuJson, opts),
+			'gu-in': formatAssetUrl(translationsGuInJson, opts),
 			he: formatAssetUrl(translationsHeJson, opts),
 			'hi-in': formatAssetUrl(translationsHiInJson, opts),
 			hr: formatAssetUrl(translationsHrJson, opts),
@@ -260,7 +260,7 @@ export function getAssetUrlsByImport(opts) {
 			id: formatAssetUrl(translationsIdJson, opts),
 			it: formatAssetUrl(translationsItJson, opts),
 			ja: formatAssetUrl(translationsJaJson, opts),
-			km: formatAssetUrl(translationsKmJson, opts),
+			'km-kh': formatAssetUrl(translationsKmKhJson, opts),
 			kn: formatAssetUrl(translationsKnJson, opts),
 			'ko-kr': formatAssetUrl(translationsKoKrJson, opts),
 			ku: formatAssetUrl(translationsKuJson, opts),
