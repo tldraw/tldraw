@@ -3,6 +3,7 @@ import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-cor
 import { Suspense, lazy, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Outlet, Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
+import { getFromLocalStorage } from 'tldraw'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { notFound } from './pages/not-found'
@@ -13,10 +14,13 @@ import { TlaNotFoundError } from './tla/utils/notFoundError'
 const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/LoginRedirectPage'))
 
 const clerkCookieName = '__session'
+export const tlaOverrideFlagName = 'tla-override-flag'
 
 const isClerkCookieSet = document.cookie
 	.split(';')
 	.some((item) => item.trim().startsWith(clerkCookieName))
+
+const isOverrideFlagSet = !!getFromLocalStorage(tlaOverrideFlagName)
 
 export const legacyRoutes = (
 	<Route errorElement={<DefaultErrorFallback />}>
@@ -25,7 +29,7 @@ export const legacyRoutes = (
 		<Route element={<NoIndex />}>
 			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
 				<Route path={ROUTES.tlaOptIn} lazy={() => import('./pages/tla-opt-in')} />
-				<Route path={ROUTES.tlaOptIn2} lazy={() => import('./pages/tla-opt-in')} />
+				<Route path={ROUTES.tlaOverride} lazy={() => import('./pages/tla-override')} />
 				<Route path={ROUTES.tlaFile} lazy={() => import('./tla/pages/file')} />
 				<Route path={ROUTES.tlaPublish} lazy={() => import('./tla/pages/publish')} />
 			</Route>
@@ -81,6 +85,7 @@ export const tlaRoutes = (
 			/>
 			{/* Views that require login */}
 			<Route lazy={() => import('./tla/providers/RequireSignedInUser')}></Route>
+			<Route path={ROUTES.tlaOverride} lazy={() => import('./pages/tla-override')} />
 		</Route>
 	</Route>
 )
@@ -137,7 +142,7 @@ export const router = createRoutesFromElements(
 			)
 		}}
 	>
-		{!isClerkCookieSet ? legacyRoutes : tlaRoutes}
+		{isClerkCookieSet || isOverrideFlagSet ? tlaRoutes : legacyRoutes}
 		<Route path="*" lazy={() => import('./pages/not-found')} />
 	</Route>
 )

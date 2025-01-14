@@ -1,11 +1,12 @@
 import { SignInButton, useAuth } from '@clerk/clerk-react'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
 import { F } from '../tla/utils/i18n'
+
 export function Component() {
 	const { isSignedIn, isLoaded } = useAuth()
 	if (isSignedIn) {
 		// redirect to home page once the user is signed in
-		window.location.href = location.origin
+		window.location.href = window.location.origin
 		return null
 	}
 	if (!isLoaded) return null
@@ -19,13 +20,14 @@ export function Component() {
 				alignItems: 'center',
 				flex: 1,
 				padding: 20,
+				textAlign: 'center',
 			}}
 		>
 			<h2>
 				<F defaultMessage="Try the new tldraw (beta)" />
 			</h2>
-			<p style={{ maxWidth: 400, textAlign: 'center' }}>
-				<F defaultMessage="Sign in to access the beta version of tldraw.com, which adds new file management and collaboration options." />
+			<p style={{ maxWidth: 400 }}>
+				<F defaultMessage="Sign in to access the beta version of tldraw.com, which adds file management and collaboration features." />
 			</p>
 			<div style={{ display: 'flex', gap: 10 }}>
 				<TlaButton

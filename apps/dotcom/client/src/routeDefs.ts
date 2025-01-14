@@ -12,8 +12,8 @@ export const ROUTES = {
 	legacyReadonly: '/ro/:roomId',
 	legacyReadonlyOld: '/v/:roomId',
 
-	tlaOptIn: '/q',
-	tlaOptIn2: '/beta',
+	tlaOptIn: '/beta',
+	tlaOverride: '/q',
 
 	tlaRoot: `/`,
 	tlaFile: `/f/:fileSlug`,
