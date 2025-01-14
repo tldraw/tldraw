@@ -2,7 +2,7 @@ import { SignInButton } from '@clerk/clerk-react'
 import { TlaFileOpenState } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { PeopleMenu, useEditor, usePassThroughWheelEvents, useTranslation } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
@@ -84,23 +84,23 @@ function useGetFileName() {
 function LegacyImportButton() {
 	const trackEvent = useTldrawAppUiEvents()
 	const app = useMaybeApp()
+	const editor = useEditor()
 	const navigate = useNavigate()
-	const params = useParams()
-	const roomId = params.roomId
 	const name = useGetFileName()
 
 	const handleClick = useCallback(() => {
-		if (!app || !roomId) return
+		if (!app || !editor) return
 
 		const res = app.createFile({ name })
 		if (res.ok) {
 			const { file } = res.value
+			const snapshot = editor.getSnapshot()
 			navigate(routes.tlaFile(file.id), {
-				state: { mode: 'slurp-legacy-file', duplicateId: roomId } satisfies TlaFileOpenState,
+				state: { mode: 'slurp-legacy-file', snapshot } satisfies TlaFileOpenState,
 			})
 			trackEvent('create-file', { source: 'legacy-import-button' })
 		}
-	}, [app, name, navigate, roomId, trackEvent])
+	}, [app, editor, name, navigate, trackEvent])
 
 	return (
 		<TlaCtaButton data-testid="tla-import-button" onClick={handleClick}>
