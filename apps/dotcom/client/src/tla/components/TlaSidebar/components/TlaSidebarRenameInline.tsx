@@ -59,7 +59,7 @@ export function TlaSidebarRenameInline({
 				defaultValue={app.getFileName(fileId)}
 				onComplete={handleSave}
 				onCancel={onClose}
-				onBlur={onClose}
+				onBlur={handleSave}
 				autoSelect
 				autoFocus
 			/>
