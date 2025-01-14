@@ -14,6 +14,7 @@ export type TLAppUiEventSource =
 	| 'anon-top-bar'
 	| 'account-menu'
 	| 'top-bar'
+	| 'legacy-import-button'
 
 /** @public */
 export interface TLAppUiEventMap {
