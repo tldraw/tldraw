@@ -1,12 +1,8 @@
-import { useLocation } from 'react-router-dom'
 import { deleteFromLocalStorage, setInLocalStorage } from 'tldraw'
 import { tlaOverrideFlagName } from '../routes'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
 
 export function Component() {
-	const location = useLocation()
-	if (!location.pathname.startsWith('/q')) return null
-
 	return (
 		<div
 			style={{

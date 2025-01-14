@@ -20,7 +20,7 @@ const isClerkCookieSet = document.cookie
 	.split(';')
 	.some((item) => item.trim().startsWith(clerkCookieName))
 
-const isOverrideFlagSet = !!getFromLocalStorage(tlaOverrideFlagName)
+const isOverrideFlagSet = !!getFromLocalStorage(tlaOverrideFlagName) || navigator.webdriver
 
 export const legacyRoutes = (
 	<Route errorElement={<DefaultErrorFallback />}>
