@@ -58,34 +58,46 @@ export const legacyRoutes = (
 )
 
 export const tlaRoutes = (
-	<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
-		<Route path={ROUTES.tlaRoot} lazy={() => import('./tla/pages/local')} />
-		<Route element={<NoIndex />}>
-			<Route path={ROUTES.tlaLocalFile} lazy={() => import('./tla/pages/local-file')} />
-			{/* <Route path={ROUTES.tlaPlayground} lazy={() => import('./tla/pages/playground')} /> */}
-			{/* File view */}
-			<Route path={ROUTES.tlaFile} lazy={() => import('./tla/pages/file')} />
-			<Route path={ROUTES.tlaPublish} lazy={() => import('./tla/pages/publish')} />
-			{/* Legacy room */}
-			<Route path={ROUTES.tlaLegacyRoom} lazy={() => import('./tla/pages/legacy-room')} />
-			{/* Legacy readonly */}
-			<Route path={ROUTES.tlaLegacyReadonly} lazy={() => import('./tla/pages/legacy-readonly')} />
+	<Route>
+		<Route element={<ShimIntlProvider />}>
+			<Route path={ROUTES.legacyNewPage} lazy={() => import('./pages/new')} />
 			<Route
-				path={ROUTES.tlaLegacyReadonlyOld}
-				lazy={() => import('./tla/pages/legacy-readonly-old')}
+				path={ROUTES.touchscreenSidePanel}
+				lazy={() => import('./pages/public-touchscreen-side-panel')}
 			/>
-			{/* Legacy snapshot */}
-			<Route path={ROUTES.tlaLegacySnapshot} lazy={() => import('./tla/pages/legacy-snapshot')} />
-			{/* Legacy history */}
-			<Route path={ROUTES.tlaLegacyRoomHistory} lazy={() => import('./tla/pages/legacy-history')} />
-			{/* Legacy history snapshot */}
-			<Route
-				path={ROUTES.tlaLegacyRoomHistorySnapshot}
-				lazy={() => import('./tla/pages/legacy-history-snapshot')}
-			/>
-			{/* Views that require login */}
-			<Route lazy={() => import('./tla/providers/RequireSignedInUser')}></Route>
-			<Route path={ROUTES.tlaOverride} lazy={() => import('./pages/tla-override')} />
+		</Route>
+		<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
+			<Route path={ROUTES.tlaRoot} lazy={() => import('./tla/pages/local')} />
+			<Route element={<NoIndex />}>
+				<Route path={ROUTES.tlaLocalFile} lazy={() => import('./tla/pages/local-file')} />
+				{/* <Route path={ROUTES.tlaPlayground} lazy={() => import('./tla/pages/playground')} /> */}
+				{/* File view */}
+				<Route path={ROUTES.tlaFile} lazy={() => import('./tla/pages/file')} />
+				<Route path={ROUTES.tlaPublish} lazy={() => import('./tla/pages/publish')} />
+				{/* Legacy room */}
+				<Route path={ROUTES.tlaLegacyRoom} lazy={() => import('./tla/pages/legacy-room')} />
+				{/* Legacy readonly */}
+				<Route path={ROUTES.tlaLegacyReadonly} lazy={() => import('./tla/pages/legacy-readonly')} />
+				<Route
+					path={ROUTES.tlaLegacyReadonlyOld}
+					lazy={() => import('./tla/pages/legacy-readonly-old')}
+				/>
+				{/* Legacy snapshot */}
+				<Route path={ROUTES.tlaLegacySnapshot} lazy={() => import('./tla/pages/legacy-snapshot')} />
+				{/* Legacy history */}
+				<Route
+					path={ROUTES.tlaLegacyRoomHistory}
+					lazy={() => import('./tla/pages/legacy-history')}
+				/>
+				{/* Legacy history snapshot */}
+				<Route
+					path={ROUTES.tlaLegacyRoomHistorySnapshot}
+					lazy={() => import('./tla/pages/legacy-history-snapshot')}
+				/>
+				{/* Views that require login */}
+				<Route lazy={() => import('./tla/providers/RequireSignedInUser')}></Route>
+				<Route path={ROUTES.tlaOverride} lazy={() => import('./pages/tla-override')} />
+			</Route>
 		</Route>
 	</Route>
 )
