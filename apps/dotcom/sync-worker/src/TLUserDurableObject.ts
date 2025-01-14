@@ -17,7 +17,6 @@ import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely, sql } from 'kysely'
-import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { type TLPostgresReplicator } from './TLPostgresReplicator'
@@ -35,9 +34,13 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private measure: Analytics | undefined
 
 	private readonly sentry
-	private captureException(exception: unknown, eventHint?: EventHint) {
+	private captureException(exception: unknown, extras?: Record<string, unknown>) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		this.sentry?.captureException(exception, eventHint) as any
+		this.sentry?.withScope((scope) => {
+			if (extras) scope.setExtras(extras)
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			this.sentry?.captureException(exception) as any
+		})
 		if (!this.sentry) {
 			console.error(`[TLUserDurableObject]: `, exception)
 		}
@@ -162,7 +165,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			this.sockets.delete(serverWebSocket)
 		})
 		serverWebSocket.addEventListener('error', (e) => {
-			this.captureException(e)
+			this.captureException(e, { source: 'serverWebSocket "error" event' })
 			this.sockets.delete(serverWebSocket)
 		})
 		const initialData = this.cache.store.getCommittedData()
@@ -208,7 +211,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				}
 				break
 			default:
-				this.captureException(new Error('Unhandled message'), { data: { message } })
+				this.captureException(new Error('Unhandled message'), { message })
 		}
 	}
 
@@ -421,10 +424,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== msg.mutationId)
 					throw e
 				})
-		} catch (e) {
+		} catch (e: any) {
 			const code = e instanceof ZMutationError ? e.errorCode : ZErrorCode.unknown_error
 			this.captureException(e, {
-				data: { errorCode: code, reason: 'mutation failed' },
+				errorCode: code,
+				reason: e.cause ?? e.message ?? e.stack ?? JSON.stringify(e),
 			})
 			await this.rejectMutation(msg.mutationId, code)
 		}

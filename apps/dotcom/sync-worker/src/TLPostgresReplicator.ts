@@ -10,7 +10,6 @@ import {
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import postgres from 'postgres'
-import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import type { TLDrawDurableObject } from './TLDrawDurableObject'
 import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { createPostgresConnection } from './postgres'
@@ -92,9 +91,13 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	sentry
 	// eslint-disable-next-line local/prefer-class-methods
-	private captureException = (exception: unknown, eventHint?: EventHint) => {
+	private captureException = (exception: unknown, extras?: Record<string, unknown>) => {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		this.sentry?.captureException(exception, eventHint) as any
+		this.sentry?.withScope((scope) => {
+			if (extras) scope.setExtras(extras)
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			this.sentry?.captureException(exception) as any
+		})
 		if (!this.sentry) {
 			console.error(`[TLPostgresReplicator]: `, exception)
 		}
@@ -239,7 +242,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			},
 			() => {
 				// this is invoked if the subscription is closed unexpectedly
-				this.captureException(new Error('Subscription error'))
+				this.captureException(new Error('Subscription error (we can tolerate this)'))
 				this.reboot()
 			}
 		)
@@ -293,7 +296,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 					this.handleUserEvent(row, event)
 					return
 				default:
-					this.captureException(new Error(`Unhandled table: ${event.relation.table}`))
+					this.captureException(new Error(`Unhandled table: ${event.relation.table}`), {
+						event,
+						row,
+					})
 					return
 			}
 		} catch (e) {
