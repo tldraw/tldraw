@@ -126,12 +126,12 @@ export function MultiplayerEditor({
 	useLegacyUrlParams()
 
 	const handleUiEvent = useHandleUiEvents()
-	const ma = useMemo(() => multiplayerAssetStore(), [])
+	const assets = useMemo(() => multiplayerAssetStore(), [])
 
 	const storeWithStatus = useSync({
 		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
 		roomId: roomSlug,
-		assets: ma,
+		assets,
 		trackAnalyticsEvent,
 	})
 
