@@ -92,7 +92,7 @@ function makeAccented(str: string) {
 }
 
 function makeLong(str: string) {
-	return `${str}looooooooooooooooong`
+	return `${str} loooooooo oo ooooooong`
 }
 
 // This is optional but highly recommended since it prevents memory leaks.

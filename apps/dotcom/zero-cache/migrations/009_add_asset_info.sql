@@ -6,9 +6,7 @@ CREATE TABLE "asset" (
     CONSTRAINT "fk_file"
         FOREIGN KEY ("fileId")
         REFERENCES "file"("id")
-        ON DELETE CASCADE,
     CONSTRAINT "fk_user"
         FOREIGN KEY ("userId")
         REFERENCES "user"("id")
-        ON DELETE SET NULL
 );
