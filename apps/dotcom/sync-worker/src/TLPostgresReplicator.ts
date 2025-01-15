@@ -121,8 +121,11 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		// debug logging in preview envs by default
 		this.log = new Logger(env, 'TLPostgresReplicator', this.sentry)
 
-		this.reboot(false)
 		this.alarm()
+		this.reboot(false).catch((e) => {
+			this.captureException(e)
+			this.__test__panic()
+		})
 		this.measure = env.MEASURE
 	}
 
