@@ -19,7 +19,7 @@ async function getUrl(file: File, getAppInfo?: () => Promise<AppInfo>) {
 	const accessToken = appInfo.accessToken
 	const fileId = appInfo.fileId
 
-	return `${APP_ASSET_UPLOAD_URL}/${objectName}?${new URLSearchParams({ accessToken, fileId }).toString()}`
+	return `${window.location.origin}${APP_ASSET_UPLOAD_URL}/${objectName}?${new URLSearchParams({ accessToken, fileId }).toString()}`
 }
 
 export function multiplayerAssetStore(getAppInfo?: () => Promise<AppInfo>) {
