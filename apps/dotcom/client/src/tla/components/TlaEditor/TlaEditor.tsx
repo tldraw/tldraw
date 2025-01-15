@@ -1,6 +1,6 @@
 import { TlaFileOpenMode } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import {
 	Editor,
 	TLComponents,
@@ -154,6 +154,15 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 	)
 
 	const user = useTldrawUser()
+	const assets = useMemo(() => {
+		if (!user) return multiplayerAssetStore()
+		return multiplayerAssetStore(async () => {
+			return {
+				accessToken: await user.getToken(),
+				fileId,
+			}
+		})
+	}, [user, fileId])
 
 	const store = useSync({
 		uri: useCallback(async () => {
@@ -170,7 +179,7 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 			}
 			return url.toString()
 		}, [fileSlug, user, mode, duplicateId]),
-		assets: multiplayerAssetStore,
+		assets,
 		userInfo: app?.tlUser.userPreferences,
 	})
 

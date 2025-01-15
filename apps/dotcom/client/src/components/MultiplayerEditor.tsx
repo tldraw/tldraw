@@ -5,7 +5,7 @@ import {
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import {
 	assertExists,
 	DefaultKeyboardShortcutsDialog,
@@ -126,11 +126,12 @@ export function MultiplayerEditor({
 	useLegacyUrlParams()
 
 	const handleUiEvent = useHandleUiEvents()
+	const ma = useMemo(() => multiplayerAssetStore(), [])
 
 	const storeWithStatus = useSync({
 		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
 		roomId: roomSlug,
-		assets: multiplayerAssetStore,
+		assets: ma,
 		trackAnalyticsEvent,
 	})
 

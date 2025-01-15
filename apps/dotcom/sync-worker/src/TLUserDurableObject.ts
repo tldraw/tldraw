@@ -444,6 +444,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		return 'ok'
 	}
 
+	async storeAssetReference(fileId: string, assetId: string) {
+		assert(this.userId, 'User ID not set')
+		await this.db.insertInto('asset').values({ fileId, assetId, userId: this.userId }).execute()
+	}
+
 	/* --------------  */
 
 	private async deleteFileStuff(id: string) {

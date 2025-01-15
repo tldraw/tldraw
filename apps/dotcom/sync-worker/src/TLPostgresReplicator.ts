@@ -292,6 +292,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				case 'user':
 					this.handleUserEvent(row, event)
 					return
+				case 'asset':
+					// we don't synchronize assets
+					return
 				default:
 					this.captureException(new Error(`Unhandled table: ${event.relation.table}`))
 					return

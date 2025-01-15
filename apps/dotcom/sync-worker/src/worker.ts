@@ -6,7 +6,7 @@ import {
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
 } from '@tldraw/dotcom-shared'
-import { createRouter, handleApiRequest, notFound } from '@tldraw/worker-shared'
+import { createRouter, handleApiRequest, handleUserAssetGet, notFound } from '@tldraw/worker-shared'
 import { DurableObject, WorkerEntrypoint } from 'cloudflare:workers'
 import { cors } from 'itty-router'
 // import { APP_ID } from './TLAppDurableObject'
@@ -22,6 +22,7 @@ import { createFiles } from './routes/tla/createFiles'
 import { deleteFile } from './routes/tla/deleteFile'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
+import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment } from './types'
 import { getUserDurableObject } from './utils/durableObjects'
@@ -71,6 +72,15 @@ const router = createRouter<Environment>()
 	.post('/app/tldr', createFiles)
 	.get('/app/file/:roomId', forwardRoomRequest)
 	.get('/app/publish/:roomId', getPublishedFile)
+	.get('/app/uploads/:objectName', async (request, env, ctx) => {
+		return handleUserAssetGet({
+			request,
+			bucket: env.UPLOADS,
+			objectName: request.params.objectName,
+			context: ctx,
+		})
+	})
+	.post('/app/uploads/:objectName', upload)
 	.delete('/app/file/:roomId', deleteFile)
 	.all('/app/__test__/*', testRoutes.fetch)
 	// end app
