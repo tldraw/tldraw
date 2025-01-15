@@ -449,17 +449,16 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	async storeAssetReference(fileId: string, assetId: string) {
+		assert(this.userId, 'userId not set')
 		try {
-			console.log('💡[179]: TLUserDurableObject.ts:451: assetId=', assetId)
-			console.log('💡[178]: TLUserDurableObject.ts:451: fileId=', fileId)
-			assert(this.userId, 'User ID not set')
-			const res = await this.db
-				.insertInto('asset')
-				.values({ fileId, assetId, userId: this.userId })
-				.execute()
-			console.log('💡[180]: TLUserDurableObject.ts:455: res=', res)
+			await this.db.insertInto('asset').values({ fileId, assetId, userId: this.userId }).execute()
 		} catch (e) {
-			console.log('💡[181]: TLUserDurableObject.ts:463: e=', e)
+			this.captureException(e, {
+				source: 'storeAssetReference',
+				fileId,
+				assetId,
+				userId: this.userId,
+			})
 		}
 	}
 
