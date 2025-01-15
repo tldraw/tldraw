@@ -15,7 +15,6 @@ export async function upload(request: IRequest, env: Environment): Promise<Respo
 
 	const objectName = request.params.objectName
 	if (!objectName) return Response.json({ error: 'Object name is required' }, { status: 400 })
-	console.info('💡[170]: uploads.ts:7: upload=', upload, fileId, auth.userId, objectName)
 
 	const res = await handleUserAssetUpload({
 		body,
