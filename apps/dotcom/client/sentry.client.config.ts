@@ -55,4 +55,20 @@ Sentry.init({
 	},
 })
 
-setGlobalErrorReporter((error) => Sentry.captureException(error))
+setGlobalErrorReporter((error) => {
+	Sentry.withScope((scope) => {
+		const editor: Editor | undefined = (window as any).editor
+		if (editor) {
+			const extras = {
+				path: editor.getPath(),
+				collaboratorCount: editor.getCollaboratorsOnCurrentPage().length,
+				selectionCount: editor.getSelectedShapes().length,
+				selectedShapeTypes: editor.getSelectedShapes().map((s) => s.type),
+				pageState: editor.getCurrentPageState(),
+				instanceState: editor.getInstanceState(),
+			}
+			scope.setExtras(extras)
+		}
+		Sentry.captureException(error)
+	})
+})
