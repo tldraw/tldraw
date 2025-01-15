@@ -5,7 +5,7 @@ CREATE TABLE "asset" (
   	"uploadedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "fk_file"
         FOREIGN KEY ("fileId")
-        REFERENCES "file"("id")
+        REFERENCES "file"("id"),
     CONSTRAINT "fk_user"
         FOREIGN KEY ("userId")
         REFERENCES "user"("id")
