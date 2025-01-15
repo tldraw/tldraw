@@ -1,3 +1,4 @@
+import { TlaFileOpenState } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { assert, react } from 'tldraw'
@@ -22,7 +23,7 @@ export function Component() {
 			if (res.ok) {
 				clearShouldSlurpFile()
 				navigate(routes.tlaFile(res.value.file.id), {
-					state: { mode: 'create' },
+					state: { mode: 'create' } satisfies TlaFileOpenState,
 					replace: true,
 				})
 			} else {
@@ -41,7 +42,7 @@ export function Component() {
 			// we don't need to handle that case here since they have no files
 			if (result.ok) {
 				navigate(routes.tlaFile(result.value.file.id), {
-					state: { mode: 'create' },
+					state: { mode: 'create' } satisfies TlaFileOpenState,
 					replace: true,
 				})
 			}

@@ -10,7 +10,6 @@ import {
 import { ExecutionQueue, assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { Kysely } from 'kysely'
-import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import { TLPostgresReplicator } from './TLPostgresReplicator'
 import {
 	fileKeys,
@@ -105,10 +104,13 @@ export class UserDataSyncer {
 	mutations: { mutationNumber: number; mutationId: string }[] = []
 
 	sentry
-	// eslint-disable-next-line local/prefer-class-methods
-	private captureException = (exception: unknown, eventHint?: EventHint) => {
+	private captureException(exception: unknown, extras?: Record<string, unknown>) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		this.sentry?.captureException(exception, eventHint) as any
+		this.sentry?.withScope((scope) => {
+			if (extras) scope.setExtras(extras)
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			this.sentry?.captureException(exception) as any
+		})
 		if (!this.sentry) {
 			console.error(`[UserDataSyncer]: `, exception)
 		}

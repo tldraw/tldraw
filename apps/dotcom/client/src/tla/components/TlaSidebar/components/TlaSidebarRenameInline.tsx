@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import { TldrawUiInput } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../../utils/app-ui-events'
@@ -32,25 +32,6 @@ export function TlaSidebarRenameInline({
 		onClose()
 	}, [app, fileId, onClose, trackEvent, source])
 
-	useEffect(() => {
-		// if clicking away from the input, close the rename and save
-		function handleClick(e: MouseEvent) {
-			const target = e.target as HTMLElement
-			if (!target.closest(`.${styles.renameWrapper}`)) {
-				handleSave()
-			}
-		}
-
-		// We wait a tick because we don't want to immediately close the input.
-		setTimeout(() => {
-			document.addEventListener('click', handleClick, { capture: true })
-		}, 0)
-
-		return () => {
-			document.removeEventListener('click', handleClick, { capture: true })
-		}
-	}, [handleSave, onClose])
-
 	return (
 		<div className={styles.renameWrapper}>
 			<TldrawUiInput
@@ -59,7 +40,7 @@ export function TlaSidebarRenameInline({
 				defaultValue={app.getFileName(fileId)}
 				onComplete={handleSave}
 				onCancel={onClose}
-				onBlur={onClose}
+				onBlur={handleSave}
 				autoSelect
 				autoFocus
 			/>
