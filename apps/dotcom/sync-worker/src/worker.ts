@@ -65,7 +65,7 @@ const router = createRouter<Environment>()
 		const auth = await getAuth(req, env)
 		if (!auth) {
 			// eslint-disable-next-line no-console
-			console.log('auth not found', req.headers.get('Authorization'), req.url)
+			console.log('auth not found')
 			return notFound()
 		}
 		const stub = getUserDurableObject(env, auth.userId)

@@ -68,7 +68,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	readonly router = Router()
 		.all('/app/:userId/*', async (req) => {
-			this.log.debug('all')
 			if (!this.userId) {
 				this.userId = req.params.userId
 			}
@@ -79,10 +78,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				throw new Error('Rate limited')
 			}
 			if (!this.cache) {
-				this.log.debug('initing', this.userId)
 				await this.init()
 			} else {
-				this.log.debug('waiting', this.cache, this.userId)
 				await this.cache.waitUntilConnected()
 			}
 		})
@@ -90,7 +87,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private async init() {
 		assert(this.userId, 'User ID not set')
-		this.log.debug('init')
+		this.log.debug('init', this.userId)
 		this.cache = new UserDataSyncer(
 			this.ctx,
 			this.env,
@@ -102,6 +99,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		)
 		this.log.debug('cache', !!this.cache)
 		await this.cache.waitUntilConnected()
+		this.log.debug('cache connected')
 	}
 
 	// Handle a request to the Durable Object.
@@ -147,7 +145,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	async onRequest(req: IRequest) {
-		this.log.debug('yes')
 		assert(this.userId, 'User ID not set')
 		// handle legacy param names
 
