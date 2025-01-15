@@ -73,6 +73,7 @@ const router = createRouter<Environment>()
 	.get('/app/file/:roomId', forwardRoomRequest)
 	.get('/app/publish/:roomId', getPublishedFile)
 	.get('/app/uploads/:objectName', async (request, env, ctx) => {
+		console.log('💡[192]: worker.ts:124: request.params.objectName=', request.params.objectName)
 		return handleUserAssetGet({
 			request,
 			bucket: env.UPLOADS,
@@ -90,6 +91,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 	override async fetch(request: Request): Promise<Response> {
 		// if we get a request that starts with /api/, strip it before handling.
 		const url = new URL(request.url)
+		console.log('💡[196]: worker.ts:93: url=', url)
 		const pathname = url.pathname.replace(/^\/api\//, '/')
 		if (pathname !== url.pathname) {
 			url.pathname = pathname
@@ -122,6 +124,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 }
 
 export function isAllowedOrigin(origin: string) {
+	console.log('💡[192]: worker.ts:124: origin=', origin)
 	if (!origin) return undefined
 	if (origin === 'http://localhost:3000') return origin
 	if (origin === 'http://localhost:5420') return origin
@@ -135,16 +138,19 @@ export function isAllowedOrigin(origin: string) {
 async function blockUnknownOrigins(request: Request, env: Environment) {
 	// allow requests for the same origin (new rewrite routing for SPA)
 	if (request.headers.get('sec-fetch-site') === 'same-origin') {
+		console.log("💡[192]: worker.ts:124: request.headers.get('sec-fetch-site') === 'same-origin'")
 		return undefined
 	}
 
 	if (new URL(request.url).pathname === '/auth/callback') {
 		// allow auth callback because we use the special cookie to verify
 		// the request
+		console.log("💡[192]: worker.ts:124: new URL(request.url).pathname === '/auth/callback'")
 		return undefined
 	}
 
 	const origin = request.headers.get('origin')
+	console.info('💡[193]: worker.ts:150: origin=', origin)
 
 	// if there's no origin, this cannot be a cross-origin request, so we allow it.
 	if (!origin) return undefined
@@ -154,6 +160,7 @@ async function blockUnknownOrigins(request: Request, env: Environment) {
 		return new Response('Not allowed', { status: 403 })
 	}
 
+	console.log('💡[192]: worker.ts:124: origin=', origin)
 	// origin doesn't match, so we can continue
 	return undefined
 }
