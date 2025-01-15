@@ -41,7 +41,7 @@ export const TlaSidebarCookieConsent = memo(function TlaSidebarCookieConsent() {
 			</p>
 			<div className={styles.cookieButtons}>
 				<button className={styles.cookieButton} onClick={handleCustomize}>
-					<F defaultMessage="Customize" />
+					<F defaultMessage="Learn more" />
 				</button>
 				<div className={styles.cookieActions}>
 					<button className={styles.cookieButton} onClick={handleReject}>

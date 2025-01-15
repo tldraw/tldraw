@@ -131,9 +131,6 @@
   "625fd29749": {
     "translation": "Older"
   },
-  "63a78ed464": {
-    "translation": "Customize"
-  },
   "64a87ed01e": {
     "translation": "We use cookies to manage your session data, sync your whiteboards & sessions, and understand how you're using tldraw. Read our <a>cookie policy</a> to learn more."
   },
@@ -293,6 +290,9 @@
   },
   "d4bbf74f3e": {
     "translation": "Toggle sidebar"
+  },
+  "d59048f21f": {
+    "translation": "Learn more"
   },
   "d721757161": {
     "translation": "Theme"
