@@ -80,7 +80,6 @@ const router = createRouter<Environment>()
 			`${POSTHOG_URL}${url.pathname.replace(/^\/ph\//, '/')}${url.search}`,
 			req
 		)
-		console.log('proxying', proxied.url)
 		proxied.headers.delete('cookie')
 		return fetch(proxied)
 	})
