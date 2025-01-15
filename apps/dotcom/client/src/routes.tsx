@@ -2,13 +2,7 @@ import { captureException } from '@sentry/react'
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { Suspense, lazy, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
-import {
-	Outlet,
-	Route,
-	createRoutesFromElements,
-	useLocation,
-	useRouteError,
-} from 'react-router-dom'
+import { Outlet, Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
 import { getFromLocalStorage } from 'tldraw'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
@@ -16,7 +10,6 @@ import { notFound } from './pages/not-found'
 import { ROUTES } from './routeDefs'
 import { IntlProvider } from './tla/utils/i18n'
 import { TlaNotFoundError } from './tla/utils/notFoundError'
-import { trackPosthogEvent } from './utils/posthog'
 
 const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/LoginRedirectPage'))
 
@@ -67,7 +60,6 @@ export const legacyRoutes = (
 export const tlaRoutes = (
 	<Route>
 		<Route element={<ShimIntlProvider />}>
-			<Route path={ROUTES.legacyNewPage} lazy={() => import('./pages/new')} />
 			<Route
 				path={ROUTES.touchscreenSidePanel}
 				lazy={() => import('./pages/public-touchscreen-side-panel')}
@@ -89,6 +81,8 @@ export const tlaRoutes = (
 					path={ROUTES.tlaLegacyReadonlyOld}
 					lazy={() => import('./tla/pages/legacy-readonly-old')}
 				/>
+				{/* Legacy new */}
+				<Route path={ROUTES.legacyNewPage} lazy={() => import('./pages/new')} />
 				{/* Legacy snapshot */}
 				<Route path={ROUTES.tlaLegacySnapshot} lazy={() => import('./tla/pages/legacy-snapshot')} />
 				{/* Legacy history */}
@@ -111,7 +105,6 @@ export const tlaRoutes = (
 
 export const router = createRoutesFromElements(
 	<Route
-		element={<AnalyticsWrapper />}
 		ErrorBoundary={() => {
 			const error = useRouteError()
 			useEffect(() => {
@@ -183,19 +176,5 @@ function ShimIntlProvider() {
 		<IntlProvider defaultLocale="en" locale="en" messages={{}}>
 			<Outlet />
 		</IntlProvider>
-	)
-}
-
-function AnalyticsWrapper() {
-	const location = useLocation()
-
-	useEffect(() => {
-		trackPosthogEvent('$pageview')
-	}, [location])
-
-	return (
-		<>
-			<Outlet />
-		</>
 	)
 }
