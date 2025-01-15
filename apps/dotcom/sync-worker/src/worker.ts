@@ -10,6 +10,7 @@ import { createRouter, handleApiRequest, notFound } from '@tldraw/worker-shared'
 import { DurableObject, WorkerEntrypoint } from 'cloudflare:workers'
 import { cors } from 'itty-router'
 // import { APP_ID } from './TLAppDurableObject'
+import { POSTHOG_URL } from './config'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
@@ -73,6 +74,16 @@ const router = createRouter<Environment>()
 	.get('/app/publish/:roomId', getPublishedFile)
 	.delete('/app/file/:roomId', deleteFile)
 	.all('/app/__test__/*', testRoutes.fetch)
+	.all('/ph/*', (req) => {
+		const url = new URL(req.url)
+		const proxied = new Request(
+			`${POSTHOG_URL}${url.pathname.replace(/^\/ph\//, '/')}${url.search}`,
+			req
+		)
+		console.log('proxying', proxied.url)
+		proxied.headers.delete('cookie')
+		return fetch(proxied)
+	})
 	// end app
 	.all('*', notFound)
 
