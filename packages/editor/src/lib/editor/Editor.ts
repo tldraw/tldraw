@@ -1218,18 +1218,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	createErrorAnnotations(
-		origin: string,
-		willCrashApp: boolean | 'unknown'
-	): {
-		tags: { origin: string; willCrashApp: boolean | 'unknown' }
-		extras: {
-			activeStateNode?: string
-			selectedShapes?: TLUnknownShape[]
-			editingShape?: TLUnknownShape
-			inputs?: Record<string, unknown>
-		}
-	} {
+	createErrorAnnotations(origin: string, willCrashApp: boolean | 'unknown') {
 		try {
 			const editingShapeId = this.getEditingShapeId()
 			return {
@@ -1239,9 +1228,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 				},
 				extras: {
 					activeStateNode: this.root.getPath(),
-					selectedShapes: this.getSelectedShapes(),
+					selectedShapes: this.getSelectedShapes().map((s) => {
+						const { props, ...rest } = s
+						const { text: _text, richText: _richText, ...restProps } = props as any
+						return {
+							...rest,
+							props: restProps,
+						}
+					}),
+					selectionCount: this.getSelectedShapes().length,
 					editingShape: editingShapeId ? this.getShape(editingShapeId) : undefined,
 					inputs: this.inputs,
+					pageState: this.getCurrentPageState(),
+					instanceState: this.getInstanceState(),
+					collaboratorCount: this.getCollaboratorsOnCurrentPage().length,
 				},
 			}
 		} catch {
