@@ -16,6 +16,7 @@ import {
 } from 'tldraw'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
+import { SignedInPosthog, SignedOutPosthog } from '../../utils/posthog'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
@@ -165,13 +166,21 @@ function SignedInProvider({
 	if (!auth.isLoaded) return null
 
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
-		return <ThemeContainer onThemeChange={onThemeChange}>{children}</ThemeContainer>
+		return (
+			<ThemeContainer onThemeChange={onThemeChange}>
+				<SignedOutPosthog />
+				{children}
+			</ThemeContainer>
+		)
 	}
 
 	return (
 		<AppStateProvider>
 			<UserProvider>
-				<ThemeContainer onThemeChange={onThemeChange}>{children}</ThemeContainer>
+				<ThemeContainer onThemeChange={onThemeChange}>
+					<SignedInPosthog />
+					{children}
+				</ThemeContainer>
 			</UserProvider>
 		</AppStateProvider>
 	)

@@ -1,8 +1,7 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import type { UserResource } from '@clerk/types'
-import assert from 'assert'
 import { ReactNode, createContext, useContext, useMemo } from 'react'
-import { DefaultSpinner, LoadingScreen, useShallowObjectIdentity } from 'tldraw'
+import { DefaultSpinner, LoadingScreen, assert, useShallowObjectIdentity } from 'tldraw'
 import { useApp } from './useAppState'
 
 export interface TldrawUser {
