@@ -14,14 +14,14 @@ export class TLLoggerDurableObject extends DurableObject<Environment> {
 	private history: string[] = []
 
 	async debug(messages: string[]) {
-		if (this.sockets.size === 0) return
 		if (!this.isDebugEnv) return
-		const sockets = Array.from(this.sockets)
 		messages = messages.map((msg) => `[${new Date().toISOString()}]: ${msg}`)
 		this.history.push(...messages)
 		while (this.history.length > 10000) {
 			this.history.shift()
 		}
+		const sockets = Array.from(this.sockets)
+		if (this.sockets.size === 0) return
 		for (const message of messages) {
 			sockets.forEach((socket) => {
 				socket.send(message + '\n')
