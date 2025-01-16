@@ -131,6 +131,7 @@ export function isAllowedOrigin(origin: string) {
 	if (origin === 'https://meet.google.com') return origin
 	if (origin.endsWith('.tldraw.com')) return origin
 	if (origin.endsWith('.tldraw.xyz')) return origin
+	if (origin.endsWith('.tldraw.workers.dev')) return origin
 	if (origin.endsWith('-tldraw.vercel.app')) return origin
 	return undefined
 }
