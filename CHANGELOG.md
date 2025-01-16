@@ -1,3 +1,24 @@
+# v3.7.2 (Thu Jan 16 2025)
+
+### Release Notes
+
+#### fix clipboard file upload (#5223) ([#5225](https://github.com/tldraw/tldraw/pull/5225))
+
+- Fix pasting files copied from the local filesystem with cmd-v
+
+---
+
+#### 🐛 Bug Fix
+
+- `tldraw`
+  - fix clipboard file upload (#5223) [#5225](https://github.com/tldraw/tldraw/pull/5225) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+---
+
 # v3.7.1 (Mon Jan 13 2025)
 
 #### 🐛 Bug Fixes
