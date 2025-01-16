@@ -67,13 +67,13 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		const handleMouseUp = () => setIsMousingDown(false)
 		const handleMouseMove = () => setIsMousingAround(true)
 		const handleKeyDown = () => !isEditingLink && setIsMousingAround(false)
-		window.addEventListener('mousedown', handleMouseDown)
-		window.addEventListener('mouseup', handleMouseUp)
+		window.addEventListener('pointerdown', handleMouseDown)
+		window.addEventListener('pointerup', handleMouseUp)
 		window.addEventListener('mousemove', handleMouseMove)
 		window.addEventListener('keydown', handleKeyDown)
 		return () => {
-			window.removeEventListener('mousedown', handleMouseDown)
-			window.removeEventListener('mouseup', handleMouseUp)
+			window.removeEventListener('pointerdown', handleMouseDown)
+			window.removeEventListener('pointerup', handleMouseUp)
 			window.removeEventListener('mousemove', handleMouseMove)
 			window.removeEventListener('keydown', handleKeyDown)
 		}
