@@ -24,7 +24,6 @@ import {
 	TldrawUiButtonLabel,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	tlmenus,
 	useActions,
 	useEditor,
 	useTranslation,
@@ -42,7 +41,7 @@ import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { DocumentTopZone } from './DocumentName/DocumentName'
 import { MultiplayerFileMenu } from './FileMenu'
-import { Links } from './Links'
+import { LegacyLinks } from './Links'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { StoreErrorScreen } from './StoreErrorScreen'
@@ -54,13 +53,15 @@ const components: TLComponents = {
 	},
 	MainMenu: () => (
 		<DefaultMainMenu>
-			<MultiplayerFileMenu />
-			<EditSubmenu />
-			<ViewSubmenu />
-			<ExportFileContentSubMenu />
-			<ExtrasGroup />
+			<TldrawUiMenuGroup id="basic">
+				<MultiplayerFileMenu />
+				<EditSubmenu />
+				<ViewSubmenu />
+				<ExportFileContentSubMenu />
+				<ExtrasGroup />
+			</TldrawUiMenuGroup>
 			<PreferencesGroup />
-			<Links />
+			<LegacyLinks />
 		</DefaultMainMenu>
 	),
 	KeyboardShortcutsDialog: (props) => {
@@ -91,15 +92,17 @@ const components: TLComponents = {
 		return <DocumentTopZone isOffline={isOffline} />
 	},
 	SharePanel: () => {
+		const editor = useEditor()
 		const msg = useTranslation()
 		return (
 			<div className="tlui-share-zone" draggable={false}>
-				<PeopleMenu>
+				{/* Legacy, display the user when the user is the only one connected */}
+				<PeopleMenu displayUserWhenAlone>
 					<div className="tlui-people-menu__section">
 						<TldrawUiButton
 							type="menu"
 							data-testid="people-menu.invite"
-							onClick={() => tlmenus.addOpenMenu('share menu')}
+							onClick={() => editor.menus.addOpenMenu('share menu')}
 						>
 							<TldrawUiButtonLabel>{msg('people-menu.invite')}</TldrawUiButtonLabel>
 							<TldrawUiButtonIcon icon="plus" />

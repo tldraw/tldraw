@@ -6,9 +6,9 @@ import {
 	TLSyncErrorCloseEventReason,
 } from '@tldraw/sync-core'
 import { TLRecord } from '@tldraw/tlschema'
-import { throttle } from '@tldraw/utils'
+import { ExecutionQueue, throttle } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { ExecutionQueue, createSentry, parseRequestQuery } from '@tldraw/worker-shared'
+import { createSentry, parseRequestQuery } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { makePermissiveSchema } from './makePermissiveSchema'

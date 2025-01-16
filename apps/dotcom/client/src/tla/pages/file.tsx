@@ -48,14 +48,7 @@ export function Component({ error }: { error?: unknown }) {
 
 	return (
 		<TlaSidebarLayout collapsible>
-			{errorElem ?? (
-				<TlaEditor
-					fileSlug={fileSlug}
-					mode={routeState?.mode}
-					duplicateId={routeState?.duplicateId}
-					deepLinks
-				/>
-			)}
+			{errorElem ?? <TlaEditor fileSlug={fileSlug} fileOpenState={routeState} deepLinks />}
 		</TlaSidebarLayout>
 	)
 }

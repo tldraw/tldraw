@@ -1,0 +1,49 @@
+.ctaButton {
+	flex: 0 0 auto;
+	position: relative;
+	box-sizing: border-box;
+	background-color: transparent;
+	pointer-events: all;
+	gap: 8px;
+	height: 36px;
+	margin-top: 1px;
+	margin-left: 2px;
+	margin-right: 0px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0px 16px;
+	border: none;
+	cursor: pointer;
+}
+
+.ctaButton > span {
+	position: relative;
+	color: #ffffff;
+	text-align: center;
+	font-weight: 600;
+	font-family: inherit;
+	font-size: 12px;
+	z-index: 3;
+}
+
+.ctaButton::before {
+	display: block;
+	content: '';
+	position: absolute;
+	inset: 2px;
+	color: #ffffff;
+	background-color: var(--tla-color-cta);
+	border-radius: 6px;
+	z-index: 2;
+}
+
+.ctaButton::after {
+	display: block;
+	content: '';
+	position: absolute;
+	inset: 0px;
+	background-color: var(--color-background);
+	border-radius: 8px;
+	z-index: 1;
+}

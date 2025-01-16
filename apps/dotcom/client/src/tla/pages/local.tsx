@@ -1,58 +1,85 @@
-import { useEffect, useRef, useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
-import { getFromLocalStorage, setInLocalStorage, uniqueId } from 'tldraw'
-import { TlaEditor } from '../components/TlaEditor/TlaEditor'
+import { TlaFileOpenState } from '@tldraw/dotcom-shared'
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { assert, react } from 'tldraw'
+import { LocalEditor } from '../../components/LocalEditor'
+import { routes } from '../../routeDefs'
+import { globalEditor } from '../../utils/globalEditor'
+import { SneakyDarkModeSync } from '../components/TlaEditor/SneakyDarkModeSync'
+import { components } from '../components/TlaEditor/TlaEditor'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
-import { getLocalSessionState } from '../utils/local-session-state'
-import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
-import { getFilePath } from '../utils/urls'
+import { clearShouldSlurpFile, getShouldSlurpFile, setShouldSlurpFile } from '../utils/slurping'
 
 export function Component() {
 	const app = useMaybeApp()
 	const navigate = useNavigate()
-	const creatingFile = useRef(false)
 
 	useEffect(() => {
 		if (!app) return
-		if (app.getUserRecentFiles().length === 0) {
-			creatingFile.current = true
-			app.createFile().then((res) => {
-				if (res.ok) {
-					navigate(getFilePath(res.value.file.id), { state: { mode: 'create' } })
-				}
-			})
+
+		if (getShouldSlurpFile()) {
+			const res = app.slurpFile()
+			if (res.ok) {
+				clearShouldSlurpFile()
+				navigate(routes.tlaFile(res.value.file.id), {
+					state: { mode: 'create' } satisfies TlaFileOpenState,
+					replace: true,
+				})
+			} else {
+				// if the user has too many files we end up here.
+				// don't slurp the file and when they log out they'll
+				// be able to see the same content that was there before
+			}
+			return
 		}
+
+		const recentFiles = app.getUserRecentFiles()
+		if (recentFiles.length === 0) {
+			const result = app.createFile()
+			assert(result.ok, 'Failed to create file')
+			// result is only false if the user reached their file limit so
+			// we don't need to handle that case here since they have no files
+			if (result.ok) {
+				navigate(routes.tlaFile(result.value.file.id), {
+					state: { mode: 'create' } satisfies TlaFileOpenState,
+					replace: true,
+				})
+			}
+			return
+		}
+
+		navigate(routes.tlaFile(recentFiles[0].fileId), { replace: true })
 	}, [app, navigate])
 
 	if (!app) return <LocalTldraw />
-	if (creatingFile.current) return null
-	// Navigate to the most recent file (if there is one) or else a new file
-	const { auth } = getLocalSessionState()
-	const fileId = auth?.userId && app.getUserRecentFiles()[0]?.fileId
-	if (fileId) {
-		return <Navigate to={getFilePath(fileId)} replace />
-	}
 
+	// navigation will be handled by the useEffect above
 	return null
 }
 
 function LocalTldraw() {
-	const [fileSlug] = useState(() => {
-		return getFromLocalStorage(TEMPORARY_FILE_KEY) ?? uniqueId()
-	})
-
 	return (
 		<TlaAnonLayout>
-			<TlaEditor
-				mode={'create'}
-				key={fileSlug}
-				fileSlug={fileSlug}
-				onDocumentChange={() => {
-					// Save the file slug to local storage if they actually make changes
-					setInLocalStorage(TEMPORARY_FILE_KEY, fileSlug)
+			<LocalEditor
+				data-testid="tla-editor"
+				componentsOverride={components}
+				onMount={(editor) => {
+					globalEditor.set(editor)
+					const shapes$ = editor.store.query.ids('shape')
+
+					return react('updateShouldSlurpFile', () => {
+						if (shapes$.get().size > 0) {
+							setShouldSlurpFile()
+						} else {
+							clearShouldSlurpFile()
+						}
+					})
 				}}
-			/>
+				options={{ actionShortcutsLocation: 'toolbar' }}
+			>
+				<SneakyDarkModeSync />
+			</LocalEditor>
 		</TlaAnonLayout>
 	)
 }

@@ -29,7 +29,7 @@ jobs:
   update_snapshots:
     name: 'Run'
     timeout-minutes: 60
-    runs-on: ubuntu-latest-16-cores-open
+    runs-on: ubuntu-latest-8-cores-open
     if: github.event.label.name == 'update-snapshots'
 
     permissions:
@@ -64,9 +64,11 @@ jobs:
       - name: Commit and push changes
         if: always()
         run: |
+          set -eux
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
           git add -A
           git commit --no-verify -m '[automated] update snapshots'
+          git add -A && git reset --hard HEAD # we sometimes get a dirty tree because husky makes changes for some reason
           git pull --rebase
           git push

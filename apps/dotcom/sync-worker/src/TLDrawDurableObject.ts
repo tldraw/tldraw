@@ -3,6 +3,7 @@
 
 import { SupabaseClient } from '@supabase/supabase-js'
 import {
+	DB,
 	READ_ONLY_LEGACY_PREFIX,
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
@@ -20,16 +21,19 @@ import {
 	type PersistedRoomSnapshotForSupabase,
 } from '@tldraw/sync-core'
 import { TLDOCUMENT_ID, TLDocument, TLRecord, createTLSchema } from '@tldraw/tlschema'
-import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
-import { ExecutionQueue, createSentry } from '@tldraw/worker-shared'
+import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
+import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
+import { Kysely } from 'kysely'
 import { AlarmScheduler } from './AlarmScheduler'
-import type { TLPostgresReplicator } from './TLPostgresReplicator'
 import { PERSIST_INTERVAL_MS } from './config'
+import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
+import { EventData, writeDataPoint } from './utils/analytics'
 import { createSupabaseClient } from './utils/createSupabaseClient'
+import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
 import { getAuth } from './utils/tla/getAuth'
@@ -154,6 +158,8 @@ export class TLDrawDurableObject extends DurableObject {
 
 	_documentInfo: DocumentInfo | null = null
 
+	db: Kysely<DB>
+
 	constructor(
 		private state: DurableObjectState,
 		override env: Environment
@@ -179,6 +185,7 @@ export class TLDrawDurableObject extends DurableObject {
 				this._documentInfo = existingDocumentInfo
 			}
 		})
+		this.db = createPostgresConnectionPool(env, 'TLDrawDurableObject')
 	}
 
 	readonly router = Router()
@@ -297,12 +304,18 @@ export class TLDrawDurableObject extends DurableObject {
 	}
 
 	// this might return null if the file doesn't exist yet in the backend, or if it was deleted
+	_fileRecordCache: TlaFile | null = null
 	async getAppFileRecord(): Promise<TlaFile | null> {
-		const stub = this.env.TL_PG_REPLICATOR.get(
-			this.env.TL_PG_REPLICATOR.idFromName('0')
-		) as any as TLPostgresReplicator
+		if (this._fileRecordCache) {
+			return this._fileRecordCache
+		}
 		try {
-			return await stub.getFileRecord(this.documentInfo.slug)
+			this._fileRecordCache = await this.db
+				.selectFrom('file')
+				.where('id', '=', this.documentInfo.slug)
+				.selectAll()
+				.executeTakeFirstOrThrow()
+			return this._fileRecordCache
 		} catch (_e) {
 			return null
 		}
@@ -324,7 +337,6 @@ export class TLDrawDurableObject extends DurableObject {
 		serverWebSocket.accept()
 
 		const closeSocket = (reason: TLSyncErrorCloseEventReason) => {
-			console.error('CLOSING SOCKET', reason, new Error().stack)
 			serverWebSocket.close(TLSyncErrorCloseEventCode, reason)
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
@@ -339,8 +351,34 @@ export class TLDrawDurableObject extends DurableObject {
 			const file = await this.getAppFileRecord()
 
 			if (file) {
+				if (file.isDeleted) {
+					return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
+				}
 				if (!auth && !file.shared) {
 					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
+				}
+				if (auth?.userId) {
+					const rateLimited = await isRateLimited(this.env, auth?.userId)
+					if (rateLimited) {
+						this.logEvent({
+							type: 'client',
+							userId: auth.userId,
+							localClientId: storeId,
+							name: 'rate_limited',
+						})
+						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
+					}
+				} else {
+					const rateLimited = await isRateLimited(this.env, sessionId)
+					if (rateLimited) {
+						this.logEvent({
+							type: 'client',
+							userId: auth?.userId,
+							localClientId: storeId,
+							name: 'rate_limited',
+						})
+						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
+					}
 				}
 				if (file.ownerId !== auth?.userId) {
 					if (!file.shared) {
@@ -363,8 +401,8 @@ export class TLDrawDurableObject extends DurableObject {
 		try {
 			const room = await this.getRoom()
 			// Don't connect if we're already at max connections
-			if (room.getNumActiveSessions() >= MAX_CONNECTIONS) {
-				return new Response('Room is full', { status: 403 })
+			if (room.getNumActiveSessions() > MAX_CONNECTIONS) {
+				return closeSocket(TLSyncErrorCloseEventReason.ROOM_FULL)
 			}
 
 			// all good
@@ -407,15 +445,8 @@ export class TLDrawDurableObject extends DurableObject {
 		this.schedulePersist()
 	}, 2000)
 
-	private writeEvent(
-		name: string,
-		{ blobs, indexes, doubles }: { blobs?: string[]; indexes?: [string]; doubles?: number[] }
-	) {
-		this.measure?.writeDataPoint({
-			blobs: [name, this.env.WORKER_NAME ?? 'development-tldraw-multiplayer', ...(blobs ?? [])],
-			doubles,
-			indexes,
-		})
+	private writeEvent(name: string, eventData: EventData) {
+		writeDataPoint(this.measure, this.env, name, eventData)
 	}
 
 	logEvent(event: TLServerEvent) {
@@ -426,11 +457,18 @@ export class TLDrawDurableObject extends DurableObject {
 				break
 			}
 			case 'client': {
-				// we would add user/connection ids here if we could
-				this.writeEvent(event.name, {
-					blobs: [event.roomId, 'unused', event.instanceId],
-					indexes: [event.localClientId],
-				})
+				if (event.name === 'rate_limited') {
+					this.writeEvent(event.name, {
+						blobs: [event.userId ?? 'anon-user'],
+						indexes: [event.localClientId],
+					})
+				} else {
+					// we would add user/connection ids here if we could
+					this.writeEvent(event.name, {
+						blobs: [event.roomId, 'unused', event.instanceId],
+						indexes: [event.localClientId],
+					})
+				}
 				break
 			}
 			case 'send_message': {
@@ -456,7 +494,10 @@ export class TLDrawDurableObject extends DurableObject {
 				return { type: 'room_found', snapshot: await roomFromBucket.json() }
 			}
 
-			if (this.documentInfo.appMode === 'create') {
+			if (
+				this.documentInfo.appMode === 'create' ||
+				this.documentInfo.appMode === 'slurp-legacy-file'
+			) {
 				return {
 					type: 'room_found',
 					snapshot: new TLSyncRoom({
@@ -486,6 +527,18 @@ export class TLDrawDurableObject extends DurableObject {
 				// otherwise copy the snapshot
 				await this.r2.rooms.put(key, data)
 				return { type: 'room_found', snapshot: JSON.parse(data) }
+			}
+
+			if (this.documentInfo.isApp) {
+				// finally check whether the file exists in the DB but not in R2 yet
+				const file = await this.getAppFileRecord()
+				if (!file) {
+					return { type: 'room_not_found' }
+				}
+				return {
+					type: 'room_found',
+					snapshot: new TLSyncRoom({ schema: createTLSchema() }).getSnapshot(),
+				}
 			}
 
 			// if we don't have a room in the bucket, try to load from supabase
@@ -520,7 +573,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 	executionQueue = new ExecutionQueue()
 
-	// Save the room to supabase
+	// Save the room to r2
 	async persistToDatabase() {
 		try {
 			await this.executionQueue.push(async () => {
@@ -540,6 +593,15 @@ export class TLDrawDurableObject extends DurableObject {
 					this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
 				])
 				this._lastPersistedClock = clock
+
+				// Update the updatedAt timestamp in the database
+				if (this.documentInfo.isApp) {
+					await this.db
+						.updateTable('file')
+						.set({ updatedAt: new Date().getTime() })
+						.where('id', '=', this.documentInfo.slug)
+						.execute()
+				}
 			})
 		} catch (e) {
 			this.reportError(e)
@@ -570,6 +632,7 @@ export class TLDrawDurableObject extends DurableObject {
 			console.error('file record updated but no file found')
 			return
 		}
+		this._fileRecordCache = file
 		if (!this._documentInfo) {
 			this.setDocumentInfo({
 				version: CURRENT_DOCUMENT_INFO_VERSION,
@@ -595,6 +658,10 @@ export class TLDrawDurableObject extends DurableObject {
 		const roomIsReadOnlyForGuests = file.shared && file.sharedLinkType === 'view'
 
 		for (const session of room.getSessions()) {
+			if (file.isDeleted) {
+				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
+				continue
+			}
 			// allow the owner to stay connected
 			if (session.meta.userId === file.ownerId) continue
 
@@ -614,6 +681,8 @@ export class TLDrawDurableObject extends DurableObject {
 	async appFileRecordDidDelete() {
 		// force isOrWasCreateMode to be false so next open will check the database
 		if (this._documentInfo?.deleted) return
+
+		this._fileRecordCache = null
 
 		this.setDocumentInfo({
 			version: CURRENT_DOCUMENT_INFO_VERSION,

@@ -38,18 +38,18 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override type = 'embed' as const
 	static override props = embedShapeProps
 	static override migrations = embedShapeMigrations
-	private embedDefinitions: readonly EmbedDefinition[] = DEFAULT_EMBED_DEFINITIONS
+	private static embedDefinitions: readonly EmbedDefinition[] = DEFAULT_EMBED_DEFINITIONS
 
-	setEmbedDefinitions(definitions: TLEmbedDefinition[]) {
-		this.embedDefinitions = definitions
+	static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]) {
+		EmbedShapeUtil.embedDefinitions = embedDefinitions
 	}
 
 	getEmbedDefinitions(): readonly TLEmbedDefinition[] {
-		return this.embedDefinitions
+		return EmbedShapeUtil.embedDefinitions
 	}
 
 	getEmbedDefinition(url: string): TLEmbedResult {
-		return getEmbedInfo(this.embedDefinitions, url)
+		return getEmbedInfo(EmbedShapeUtil.embedDefinitions, url)
 	}
 
 	override getText(shape: TLEmbedShape) {
@@ -230,7 +230,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 function Gist({
 	id,
-	file,
 	isInteractive,
 	width,
 	height,
@@ -238,13 +237,22 @@ function Gist({
 	pageRotation,
 }: {
 	id: string
-	file?: string
 	isInteractive: boolean
 	width: number
 	height: number
 	pageRotation: number
 	style?: React.CSSProperties
 }) {
+	// Security warning:
+	// Gists allow adding .json extensions to the URL which return JSONP.
+	// Furthermore, the JSONP can include callbacks that execute arbitrary JavaScript.
+	// It _is_ sandboxed by the iframe but we still want to disable it nonetheless.
+	// We restrict the id to only allow hexdecimal characters to prevent this.
+	// Read more:
+	//   https://github.com/bhaveshk90/Content-Security-Policy-CSP-Bypass-Techniques
+	//   https://github.com/renniepak/CSPBypass
+	if (!id.match(/^[0-9a-f]+$/)) throw Error('No gist id!')
+
 	return (
 		<iframe
 			className="tl-embed"
@@ -253,7 +261,6 @@ function Gist({
 			height={toDomPrecision(height)}
 			frameBorder="0"
 			scrolling="no"
-			seamless
 			referrerPolicy="no-referrer-when-downgrade"
 			style={{
 				...style,
@@ -268,7 +275,7 @@ function Gist({
 					<base target="_blank">
 				</head>
 				<body>
-					<script src=${`https://gist.github.com/${id}.js${file ? `?file=${file}` : ''}`}></script>
+					<script src=${`https://gist.github.com/${id}.js`}></script>
 					<style type="text/css">
 						* { margin: 0px; }
 						table { height: 100%; background-color: red; }

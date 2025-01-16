@@ -1,5 +1,11 @@
 import { TlaUser } from '@tldraw/dotcom-shared'
-import { atom, getFromLocalStorage, setInLocalStorage, useValue } from 'tldraw'
+import {
+	atom,
+	deleteFromLocalStorage,
+	getFromLocalStorage,
+	setInLocalStorage,
+	useValue,
+} from 'tldraw'
 
 const STORAGE_KEY = 'tldrawapp_session_3'
 
@@ -10,7 +16,7 @@ export interface TldrawAppSessionState {
 	auth?: {
 		userId: string
 	}
-	shareMenuActiveTab: 'share' | 'export' | 'publish'
+	shareMenuActiveTab: 'share' | 'export' | 'publish' | 'anon-share'
 	sidebarActiveTab: 'recent' | 'groups' | 'shared' | 'drafts' | 'starred'
 	theme: 'light' | 'dark'
 	views: {
@@ -25,6 +31,7 @@ export interface TldrawAppSessionState {
 		TlaUser,
 		'exportFormat' | 'exportTheme' | 'exportBackground' | 'exportPadding'
 	>
+	sidebarWidth?: number
 }
 
 let prev: TldrawAppSessionState = {
@@ -42,6 +49,7 @@ let prev: TldrawAppSessionState = {
 		exportBackground: true,
 		exportPadding: true,
 	},
+	sidebarWidth: 260,
 }
 
 try {
@@ -63,6 +71,9 @@ try {
 
 const localSessionState = atom<TldrawAppSessionState>('session', prev)
 
+export function clearLocalSessionState() {
+	return deleteFromLocalStorage(STORAGE_KEY)
+}
 export function getLocalSessionStateUnsafe() {
 	return localSessionState.__unsafe__getWithoutCapture()
 }

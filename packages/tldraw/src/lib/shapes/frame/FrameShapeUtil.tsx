@@ -1,6 +1,7 @@
 import {
 	BaseBoxShapeUtil,
 	Geometry2d,
+	Group2d,
 	Rectangle2d,
 	SVGContainer,
 	SvgExportContext,
@@ -9,11 +10,9 @@ import {
 	TLGroupShape,
 	TLResizeInfo,
 	TLShape,
-	canonicalizeRotation,
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
-	last,
 	lerp,
 	resizeBox,
 	toDomPrecision,
@@ -21,9 +20,18 @@ import {
 } from '@tldraw/editor'
 import classNames from 'classnames'
 
-import { createTextJsxFromSpans } from '../shared/createTextJsxFromSpans'
+import {
+	TLCreateTextJsxFromSpansOpts,
+	createTextJsxFromSpans,
+} from '../shared/createTextJsxFromSpans'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { FrameHeading } from './components/FrameHeading'
+import {
+	getFrameHeadingInfo,
+	getFrameHeadingOpts,
+	getFrameHeadingSide,
+	getFrameHeadingTranslation,
+} from './frameHelpers'
 
 export function defaultEmptyAs(str: string, dflt: string) {
 	if (str.match(/^\s*$/)) {
@@ -47,10 +55,66 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override getGeometry(shape: TLFrameShape): Geometry2d {
-		return new Rectangle2d({
-			width: shape.props.w,
-			height: shape.props.h,
-			isFilled: false,
+		const { editor } = this
+		const z = editor.getZoomLevel()
+		const opts = getFrameHeadingOpts(shape, 'black')
+		const headingInfo = getFrameHeadingInfo(editor, shape, opts)
+		const labelSide = getFrameHeadingSide(editor, shape)
+
+		// wow this fucking sucks!!!
+		let x: number, y: number, w: number, h: number
+
+		const { w: hw, h: hh } = headingInfo.box
+		const scaledW = Math.min(hw, shape.props.w * z)
+		const scaledH = Math.min(hh, shape.props.h * z)
+
+		switch (labelSide) {
+			case 0: {
+				x = -8 / z
+				y = (-hh - 4) / z
+				w = (scaledW + 16) / z
+				h = hh / z
+				break
+			}
+			case 1: {
+				x = (-hh - 4) / z
+				h = (scaledH + 16) / z
+				y = shape.props.h - h + 8 / z
+				w = hh / z
+				break
+			}
+			case 2: {
+				x = shape.props.w - (scaledW + 8) / z
+				y = shape.props.h + 4 / z
+				w = (scaledH + 16) / z
+				h = hh / z
+				break
+			}
+			case 3: {
+				x = shape.props.w + 4 / z
+				h = (scaledH + 16) / z
+				y = -8 / z
+				w = hh / z
+				break
+			}
+		}
+
+		return new Group2d({
+			children: [
+				new Rectangle2d({
+					width: shape.props.w,
+					height: shape.props.h,
+					isFilled: false,
+				}),
+				new Rectangle2d({
+					x,
+					y,
+					width: w,
+					height: h,
+					isFilled: true,
+					isLabel: true,
+				}),
+			],
 		})
 	}
 
@@ -104,63 +168,15 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	override toSvg(shape: TLFrameShape, ctx: SvgExportContext) {
 		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 
-		// Text label
-		const pageRotation = canonicalizeRotation(
-			this.editor.getShapePageTransform(shape.id)!.rotation()
-		)
 		// rotate right 45 deg
-		const offsetRotation = pageRotation + Math.PI / 4
-		const scaledRotation = (offsetRotation * (2 / Math.PI) + 4) % 4
-		const labelSide = Math.floor(scaledRotation)
-
-		let labelTranslate: string
-		switch (labelSide) {
-			case 0: // top
-				labelTranslate = ``
-				break
-			case 3: // right
-				labelTranslate = `translate(${toDomPrecision(shape.props.w)}, 0) rotate(90)`
-				break
-			case 2: // bottom
-				labelTranslate = `translate(${toDomPrecision(shape.props.w)}, ${toDomPrecision(
-					shape.props.h
-				)}) rotate(180)`
-				break
-			case 1: // left
-				labelTranslate = `translate(0, ${toDomPrecision(shape.props.h)}) rotate(270)`
-				break
-			default:
-				throw Error('labelSide out of bounds')
-		}
+		const labelSide = getFrameHeadingSide(this.editor, shape)
+		const labelTranslate = getFrameHeadingTranslation(shape, labelSide, true)
 
 		// Truncate with ellipsis
-		const opts = {
-			fontSize: 12,
-			fontFamily: 'Inter, sans-serif',
-			textAlign: 'start' as const,
-			width: shape.props.w,
-			height: 32,
-			padding: 0,
-			lineHeight: 1,
-			fontStyle: 'normal',
-			fontWeight: 'normal',
-			overflow: 'truncate-ellipsis' as const,
-			verticalTextAlign: 'middle' as const,
-			fill: theme.text,
-		}
+		const opts: TLCreateTextJsxFromSpansOpts = getFrameHeadingOpts(shape, theme.text)
 
-		const spans = this.editor.textMeasure.measureTextSpans(
-			defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203),
-			opts
-		)
-
-		const firstSpan = spans[0]
-		const lastSpan = last(spans)!
-		const labelTextWidth = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
-		const text = createTextJsxFromSpans(this.editor, spans, {
-			offsetY: -opts.height - 2,
-			...opts,
-		})
+		const { box: labelBounds, spans } = getFrameHeadingInfo(this.editor, shape, opts)
+		const text = createTextJsxFromSpans(this.editor, spans, opts)
 
 		return (
 			<>
@@ -175,10 +191,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				/>
 				<g transform={labelTranslate}>
 					<rect
-						x={-8}
-						y={-opts.height - 4}
-						width={labelTextWidth + 16}
-						height={opts.height}
+						x={labelBounds.x - 8}
+						y={labelBounds.y - 4}
+						width={labelBounds.width + 20}
+						height={labelBounds.height}
 						fill={theme.background}
 						rx={4}
 						ry={4}

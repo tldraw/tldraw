@@ -3,12 +3,15 @@ import Link from 'next/link'
 
 const menus = [
 	{
+		heading: 'Company',
+		items: [{ caption: 'Jobs', href: '/jobs' }],
+	},
+	{
 		heading: 'Product',
 		items: [
 			{ caption: 'Overview', href: '/' },
 			{ caption: 'Playground', href: 'https://tldraw.com' },
 			{ caption: 'Pricing', href: '/#pricing' },
-			// { caption: 'Terms of Use', href: '/legal/terms' },
 		],
 	},
 	{
@@ -26,7 +29,7 @@ const menus = [
 			{ caption: 'X/Twitter', href: 'https://x.com/tldraw/' },
 			{ caption: 'Discord', href: 'https://discord.com/invite/SBBEVCA4PG' },
 			{ caption: 'GitHub', href: 'https://github.com/tldraw/tldraw' },
-			{ caption: 'Bluesky', href: 'https://bsky.app/profile/tldraw.bsky.social' },
+			{ caption: 'Bluesky', href: 'https://bsky.app/profile/tldraw.com' },
 			{ caption: 'Mastodon', href: 'https://mas.to/@tldraw' },
 		],
 	},

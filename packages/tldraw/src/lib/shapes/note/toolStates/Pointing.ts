@@ -6,7 +6,9 @@ import {
 	TLShapeId,
 	Vec,
 	createShapeId,
+	maybeSnapToGrid,
 } from '@tldraw/editor'
+
 import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
 	getAvailableNoteAdjacentPositions,
@@ -124,14 +126,18 @@ export function createNoteShape(editor: Editor, id: TLShapeId, center: Vec) {
 
 	const shape = editor.getShape<TLNoteShape>(id)!
 	const bounds = editor.getShapeGeometry(shape).bounds
+	const newPoint = maybeSnapToGrid(
+		new Vec(shape.x - bounds.width / 2, shape.y - bounds.height / 2),
+		editor
+	)
 
 	// Center the text around the created point
 	editor.updateShapes([
 		{
 			id,
 			type: 'note',
-			x: shape.x - bounds.width / 2,
-			y: shape.y - bounds.height / 2,
+			x: newPoint.x,
+			y: newPoint.y,
 		},
 	])
 

@@ -1,0 +1,98 @@
+name: End to end tests (dotcom)
+
+on:
+  pull_request:
+  merge_group:
+  push:
+    branches: [main]
+
+env:
+  CI: 1
+  PRINT_GITHUB_ANNOTATIONS: 1
+  TLDRAW_ENV: 'development'
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: 'End to end tests (dotcom)'
+    timeout-minutes: 40
+    runs-on: ubuntu-latest-8-cores-open
+    environment: 'e2e-dotcom'
+    if: ${{ github.event.pull_request.head.repo.fork == false }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: Get installed Playwright version
+        id: playwright-version
+        run: |
+          yarn info @playwright/test --json > playwright.json
+          echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./playwright.json').children.Version)")" >> $GITHUB_ENV
+        working-directory: 'apps/dotcom/client'
+
+      - uses: actions/cache@v3
+        name: Check for Playwright browsers cache
+        id: playwright-cache
+        with:
+          path: |
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium chrome
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+
+      - name: Run Playwright tests
+        run: |
+          echo "CLERK_PUBLISHABLE_KEY=${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}" > apps/dotcom/sync-worker/.dev.vars
+          echo "CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}" >> apps/dotcom/sync-worker/.dev.vars
+          yarn e2e-dotcom
+        env:
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+        if: ${{!contains(github.event.pull_request.labels.*.name, 'e2e-x10') }}
+
+      - name: Run Playwright tests (x10)
+        run: |
+          echo "CLERK_PUBLISHABLE_KEY=${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}" > apps/dotcom/sync-worker/.dev.vars
+          echo "CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}" >> apps/dotcom/sync-worker/.dev.vars
+          yarn e2e-dotcom-x10
+        env:
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+        if: contains(github.event.pull_request.labels.*.name, 'e2e-x10')
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: apps/dotcom/client/playwright-report
+          retention-days: 30
+
+      - uses: shallwefootball/s3-upload-action@master
+        # only upload if we have AWS credentials:
+        env:
+          HAS_AWS_KEY: ${{ secrets.AWS_S3_SECRET_KEY && '1' || '' }}
+        if: always() && env.HAS_AWS_KEY == '1'
+        name: Upload S3
+        id: s3
+        with:
+          aws_key_id: ${{ secrets.AWS_S3_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_KEY}}
+          aws_bucket: playwright-reports.tldraw.xyz
+          source_dir: apps/dotcom/client/playwright-report
+
+      - name: Log report to summary
+        if: always()
+        run: |
+          report_url="https://playwright-reports.tldraw.xyz/${{ steps.s3.outputs.object_key }}/index.html"
+          echo "Report: $report_url"
+          echo "## Playwright report" >> $GITHUB_STEP_SUMMARY
+          echo "* $report_url" >> $GITHUB_STEP_SUMMARY

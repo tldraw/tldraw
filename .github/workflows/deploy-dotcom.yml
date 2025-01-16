@@ -38,6 +38,30 @@ jobs:
 
       - uses: ./.github/actions/setup
 
+      - name: Delete Neon Branch
+        uses: neondatabase/delete-branch-action@v3.1.3
+        if: contains(github.event.pull_request.labels.*.name, 'reset-preview-db')
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          branch: pr-${{ github.event.number }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+
+      - id: create-branch
+        # only run on PR branches
+        if: github.event_name == 'pull_request'
+        uses: neondatabase/create-branch-action@v5
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          username: 'dotcom_owner'
+          database: 'dotcom'
+          branch_name: pr-${{ github.event.number }}
+          api_key: ${{ secrets.NEON_API_KEY }} # Generate an API key in your Neon account settings
+
+      - run: |
+          echo "NEON_PREVIEW_DB_CONNECTION_STRING=${{ steps.create-branch.outputs.db_url }}" >> "$GITHUB_ENV"
+          echo "NEON_PREVIEW_DB_POOLED_CONNECTION_STRING=${{ steps.create-branch.outputs.db_url_with_pooler }}" >> "$GITHUB_ENV"
+        if: github.event_name == 'pull_request'
+
       - name: Build types
         run: yarn build-types
 
@@ -57,6 +81,8 @@ jobs:
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_DOTCOM_PROJECT_ID }}
 
           ASSET_UPLOAD_SENTRY_DSN: ${{ secrets.ASSET_UPLOAD_SENTRY_DSN }}
+          BOTCOM_POSTGRES_CONNECTION_STRING: ${{ secrets.BOTCOM_POSTGRES_CONNECTION_STRING }}
+          BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: ${{ secrets.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -73,6 +99,5 @@ jobs:
           TLDRAW_LICENSE: ${{ secrets.TLDRAW_LICENSE }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
           WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
-          BOTCOM_POSTGRES_CONNECTION_STRING: ${{ secrets.BOTCOM_POSTGRES_CONNECTION_STRING }}
-          BOTCOM_POSTGRES_CONNECTION_STRING_PREVIEW: ${{ secrets.BOTCOM_POSTGRES_CONNECTION_STRING_PREVIEW }}

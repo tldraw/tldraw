@@ -73,7 +73,7 @@ export default function Develop() {
 					}
 				}}
 				components={components}
-			/>
+			></Tldraw>
 		</div>
 	)
 }

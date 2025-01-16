@@ -25,6 +25,7 @@ export {
 	useStateTracking,
 	useValue,
 } from '@tldraw/state-react'
+export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalIndexedDb'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star
@@ -192,6 +193,7 @@ export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
 export { getPerfectDashProps } from './lib/editor/shapes/shared/getPerfectDashProps'
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
+export { maybeSnapToGrid } from './lib/editor/tools/BaseBoxShapeTool/children/Pointing'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
 export {
 	useDelaySvgExport,
@@ -269,7 +271,7 @@ export { getCursor } from './lib/hooks/useCursor'
 export { EditorContext, useEditor, useMaybeEditor } from './lib/hooks/useEditor'
 export { useEditorComponents } from './lib/hooks/useEditorComponents'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
-export { useEvent } from './lib/hooks/useEvent'
+export { useEvent, useReactiveEvent } from './lib/hooks/useEvent'
 export { useGlobalMenuIsOpen } from './lib/hooks/useGlobalMenuIsOpen'
 export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/useIdentity'
 export { useIsCropping } from './lib/hooks/useIsCropping'

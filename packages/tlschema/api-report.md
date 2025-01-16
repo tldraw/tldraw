@@ -9,6 +9,7 @@ import { Expand } from '@tldraw/utils';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { LegacyMigrations } from '@tldraw/store';
+import { MakeUndefinedOptional } from '@tldraw/utils';
 import { MigrationId } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
@@ -84,25 +85,13 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public
-export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<Expand<    { [P in T.ExtractRequiredKeys<{
+export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<Expand<    { [P in "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: {
 id: TLAssetId;
 meta: JsonObject;
 props: Props;
 type: Type;
 typeName: 'asset';
-}>]: {
-id: TLAssetId;
-meta: JsonObject;
-props: Props;
-type: Type;
-typeName: 'asset';
-}[P]; } & { [P_1 in T.ExtractOptionalKeys<{
-id: TLAssetId;
-meta: JsonObject;
-props: Props;
-type: Type;
-typeName: 'asset';
-}>]?: {
+}[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: {
 id: TLAssetId;
 meta: JsonObject;
 props: Props;
@@ -126,14 +115,10 @@ export function createBindingValidator<Type extends string, Props extends JsonOb
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<Expand<    { [P in T.ExtractRequiredKeys<TLBaseBinding<Type, Props>>]: TLBaseBinding<Type, Props>[P]; } & { [P_1 in T.ExtractOptionalKeys<TLBaseBinding<Type, Props>>]?: TLBaseBinding<Type, Props>[P_1] | undefined; }>>;
+}): T.ObjectValidator<Expand<    { [P in "fromId" | "id" | "meta" | "toId" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseBinding<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseBinding<Type, Props>[P_1] | undefined; }>>;
 
 // @public
-export function createPresenceStateDerivation($user: Signal<{
-    color: string;
-    id: string;
-    name: string;
-}>, instanceId?: TLInstancePresence['id']): (store: TLStore) => Signal<null | TLInstancePresence>;
+export function createPresenceStateDerivation($user: Signal<TLPresenceUserInfo>, instanceId?: TLInstancePresence['id']): (store: TLStore) => Signal<null | TLInstancePresence>;
 
 // @public (undocumented)
 export function createShapeId(id?: string): TLShapeId;
@@ -151,7 +136,7 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<Expand<    { [P in T.ExtractRequiredKeys<TLBaseShape<Type, Props>>]: TLBaseShape<Type, Props>[P]; } & { [P_1 in T.ExtractOptionalKeys<TLBaseShape<Type, Props>>]?: TLBaseShape<Type, Props>[P_1] | undefined; }>>;
+}): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P_1] | undefined; }>>;
 
 // @public
 export function createTLSchema({ shapes, bindings, migrations, }?: {
@@ -311,6 +296,33 @@ export function getDefaultColorTheme(opts: {
 // @public (undocumented)
 export function getDefaultTranslationLocale(): TLLanguage['locale'];
 
+// @public (undocumented)
+export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo): {
+    brush: BoxModel | null;
+    camera: {
+        x: number;
+        y: number;
+        z: number;
+    };
+    chatMessage: string;
+    color: string;
+    currentPageId: TLPageId;
+    cursor: {
+        rotation: number;
+        type: string;
+        x: number;
+        y: number;
+    };
+    followingUserId: null | string;
+    lastActivityTimestamp: number;
+    meta: {};
+    screenBounds: BoxModel;
+    scribbles: TLScribble[];
+    selectedShapeIds: TLShapeId[];
+    userId: string;
+    userName: string;
+} | null;
+
 // @internal (undocumented)
 export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>): Map<StyleProp<unknown>, string>;
 
@@ -351,6 +363,9 @@ export function isBinding(record?: UnknownRecord): record is TLBinding;
 export function isBindingId(id?: string): id is TLBindingId;
 
 // @public (undocumented)
+export function isDocument(record?: UnknownRecord): record is TLDocument;
+
+// @public (undocumented)
 export function isPageId(id: string): id is TLPageId;
 
 // @public (undocumented)
@@ -363,6 +378,9 @@ export function isShapeId(id?: string): id is TLShapeId;
 export const LANGUAGES: readonly [{
     readonly label: "Bahasa Indonesia";
     readonly locale: "id";
+}, {
+    readonly label: "Bahasa Melayu";
+    readonly locale: "ms";
 }, {
     readonly label: "Català";
     readonly locale: "ca";
@@ -382,6 +400,9 @@ export const LANGUAGES: readonly [{
     readonly label: "Español";
     readonly locale: "es";
 }, {
+    readonly label: "Filipino";
+    readonly locale: "tl";
+}, {
     readonly label: "Français";
     readonly locale: "fr";
 }, {
@@ -396,6 +417,9 @@ export const LANGUAGES: readonly [{
 }, {
     readonly label: "Magyar";
     readonly locale: "hu";
+}, {
+    readonly label: "Nederlands";
+    readonly locale: "nl";
 }, {
     readonly label: "Norwegian";
     readonly locale: "no";
@@ -412,11 +436,11 @@ export const LANGUAGES: readonly [{
     readonly label: "Română";
     readonly locale: "ro";
 }, {
-    readonly label: "Russian";
-    readonly locale: "ru";
-}, {
     readonly label: "Slovenščina";
     readonly locale: "sl";
+}, {
+    readonly label: "Somali";
+    readonly locale: "so";
 }, {
     readonly label: "Suomi";
     readonly locale: "fi";
@@ -430,11 +454,20 @@ export const LANGUAGES: readonly [{
     readonly label: "Türkçe";
     readonly locale: "tr";
 }, {
-    readonly label: "Ukrainian";
+    readonly label: "Ελληνικά";
+    readonly locale: "el";
+}, {
+    readonly label: "Русский";
+    readonly locale: "ru";
+}, {
+    readonly label: "Українська";
     readonly locale: "uk";
 }, {
     readonly label: "עברית";
     readonly locale: "he";
+}, {
+    readonly label: "اردو";
+    readonly locale: "ur";
 }, {
     readonly label: "عربي";
     readonly locale: "ar";
@@ -442,23 +475,41 @@ export const LANGUAGES: readonly [{
     readonly label: "فارسی";
     readonly locale: "fa";
 }, {
-    readonly label: "کوردی";
-    readonly locale: "ku";
-}, {
     readonly label: "नेपाली";
     readonly locale: "ne";
+}, {
+    readonly label: "मराठी";
+    readonly locale: "mr";
 }, {
     readonly label: "हिन्दी";
     readonly locale: "hi-in";
 }, {
+    readonly label: "বাংলা";
+    readonly locale: "bn";
+}, {
+    readonly label: "ਪੰਜਾਬੀ";
+    readonly locale: "pa";
+}, {
+    readonly label: "ગુજરાતી";
+    readonly locale: "gu-in";
+}, {
+    readonly label: "தமிழ்";
+    readonly locale: "ta";
+}, {
     readonly label: "తెలుగు";
     readonly locale: "te";
+}, {
+    readonly label: "ಕನ್ನಡ";
+    readonly locale: "kn";
+}, {
+    readonly label: "മലയാളം";
+    readonly locale: "ml";
 }, {
     readonly label: "ภาษาไทย";
     readonly locale: "th";
 }, {
-    readonly label: "မြန်မာစာ";
-    readonly locale: "my";
+    readonly label: "ភាសាខ្មែរ";
+    readonly locale: "km-kh";
 }, {
     readonly label: "한국어";
     readonly locale: "ko-kr";
@@ -514,7 +565,7 @@ export type RecordProps<R extends UnknownRecord & {
 };
 
 // @public (undocumented)
-export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> = Expand<{
+export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> = MakeUndefinedOptional<{
     [K in keyof Config]: T.TypeOf<Config[K]>;
 }>;
 
@@ -679,7 +730,7 @@ export type TLAssetShape = Extract<TLShape, {
 // @public
 export interface TLAssetStore {
     resolve?(asset: TLAsset, ctx: TLAssetContext): null | Promise<null | string> | string;
-    upload(asset: TLAsset, file: File): Promise<string>;
+    upload(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<string>;
 }
 
 // @public (undocumented)
@@ -1173,7 +1224,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
         x: number;
         y: number;
         z: number;
-    };
+    } | null;
     // (undocumented)
     chatMessage: string;
     // (undocumented)
@@ -1186,15 +1237,15 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
         type: TLCursor['type'];
         x: number;
         y: number;
-    };
+    } | null;
     // (undocumented)
     followingUserId: null | string;
     // (undocumented)
-    lastActivityTimestamp: number;
+    lastActivityTimestamp: null | number;
     // (undocumented)
     meta: JsonObject;
     // (undocumented)
-    screenBounds: BoxModel;
+    screenBounds: BoxModel | null;
     // (undocumented)
     scribbles: TLScribble[];
     // (undocumented)
@@ -1310,6 +1361,16 @@ export const TLPOINTER_ID: TLPointerId;
 
 // @public (undocumented)
 export type TLPointerId = RecordId<TLPointer>;
+
+// @public (undocumented)
+export type TLPresenceStateInfo = Parameters<(typeof InstancePresenceRecordType)['create']>[0];
+
+// @public
+export interface TLPresenceUserInfo {
+    color?: null | string;
+    id: string;
+    name?: null | string;
+}
 
 // @public (undocumented)
 export interface TLPropsMigration {

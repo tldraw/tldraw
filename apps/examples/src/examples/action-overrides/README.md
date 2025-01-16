@@ -6,7 +6,7 @@ priority: 2
 keywords: [keyboard, shortcut, copy, paste, group, align]
 ---
 
-Override tldraw's actions
+Override tldraw's actions.
 
 ---
 

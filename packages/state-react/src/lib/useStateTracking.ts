@@ -20,7 +20,7 @@ import React from 'react'
  *
  * @public
  */
-export function useStateTracking<T>(name: string, render: () => T): T {
+export function useStateTracking<T>(name: string, render: () => T, deps: unknown[] = []): T {
 	// This hook creates an effect scheduler that will trigger re-renders when its reactive dependencies change, but it
 	// defers the actual execution of the effect to the consumer of this hook.
 
@@ -56,7 +56,8 @@ export function useStateTracking<T>(name: string, render: () => T): T {
 		const getSnapshot = () => scheduler.scheduleCount
 
 		return [scheduler, subscribe, getSnapshot]
-	}, [name])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [name, ...deps])
 
 	React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 
