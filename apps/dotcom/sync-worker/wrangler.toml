@@ -7,6 +7,9 @@ compatibility_flags = ["nodejs_compat"]
 port = 8787
 ip = "0.0.0.0"
 
+[observability]
+enabled = true
+
 # these migrations are append-only. you can't change them. if you do need to change something, do so
 # by creating new migrations
 [[migrations]]
