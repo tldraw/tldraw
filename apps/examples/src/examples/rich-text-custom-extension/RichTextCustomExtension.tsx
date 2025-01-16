@@ -5,7 +5,7 @@ import {
 	TLComponents,
 	Tldraw,
 	TldrawUiButton,
-	stopEventPropagation,
+	preventDefault,
 	useEditor,
 	useValue,
 } from 'tldraw'
@@ -84,7 +84,7 @@ const components: TLComponents = {
 						textEditor?.chain().focus().toggleWavy().run()
 					}}
 					isActive={textEditor?.isActive('wavy')}
-					onMouseDown={stopEventPropagation}
+					onPointerDown={preventDefault}
 				>
 					〰️
 				</TldrawUiButton>

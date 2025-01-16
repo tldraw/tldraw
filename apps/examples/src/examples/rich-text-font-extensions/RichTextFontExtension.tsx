@@ -8,7 +8,6 @@ import {
 	DefaultRichTextToolbarContent,
 	TLComponents,
 	Tldraw,
-	stopEventPropagation,
 	tipTapDefaultExtensions,
 	useEditor,
 	useValue,
@@ -71,7 +70,6 @@ const components: TLComponents = {
 			<DefaultRichTextToolbar>
 				<select
 					value={currentFontFamily}
-					onMouseDown={stopEventPropagation}
 					onChange={(e) => {
 						textEditor?.chain().focus().setFontFamily(e.target.value).run()
 					}}
@@ -84,7 +82,6 @@ const components: TLComponents = {
 				</select>
 				<select
 					value={currentFontSize}
-					onMouseDown={stopEventPropagation}
 					onChange={(e) => {
 						textEditor?.chain().focus().setFontSize(e.target.value).run()
 					}}
