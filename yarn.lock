@@ -11054,14 +11054,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"core-js@npm:^3.31.1":
-  version: 3.35.0
-  resolution: "core-js@npm:3.35.0"
-  checksum: 0815fce6bcc91d79d4b28885975453b0faa4d17fc2230635102b4f3832cd621035e4032aa3307e1dbe0ee14d5e34bcb64b507fd89bd8f567aedaf29538522e6a
-  languageName: node
-  linkType: hard
-
-"core-js@npm:^3.38.1":
+"core-js@npm:^3.31.1, core-js@npm:^3.38.1":
   version: 3.40.0
   resolution: "core-js@npm:3.40.0"
   checksum: 9c7e7d2839db6c3c7b72725a3ce5edf6dd61fc771e1551e08b5622ca7da330f2f5d3c7dcd6a6e7889baa8d4cc5a909ba75b4add0d1f3da940a2a60a3e0603be5
@@ -20388,14 +20381,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"preact@npm:^10.10.0":
-  version: 10.23.1
-  resolution: "preact@npm:10.23.1"
-  checksum: ab90545445e805005627f0cf5cbd505b553877a5fc98e7bad8e93a7e223b973d38c8fb3368f75bb60265d23fee98b7086c738bf8ee06b7ff8527fb0c00d0698f
-  languageName: node
-  linkType: hard
-
-"preact@npm:^10.19.3":
+"preact@npm:^10.10.0, preact@npm:^10.19.3":
   version: 10.25.4
   resolution: "preact@npm:10.25.4"
   checksum: 8b377438912965b45786d1dbfdd532157294a79bebc611b242d708317574403554ab37e34c613a3e9e862685c04695343f1426a38e12258e1e9ebafc0d7e4c5d
