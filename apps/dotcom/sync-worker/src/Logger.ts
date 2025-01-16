@@ -19,7 +19,7 @@ export class Logger {
 
 	debug(...args: any[]) {
 		if (!this.logger && !this.sentry) return
-		const msg = `${this.prefix}: ${args.map((a) => (typeof a === 'object' ? JSON.stringify(a) : a)).join(' ')}`
+		const msg = `[${this.prefix} ${new Date().toISOString()}]: ${args.map((a) => (typeof a === 'object' ? JSON.stringify(a) : a)).join(' ')}`
 		this.outgoing.push(msg)
 		this.processQueue()
 	}

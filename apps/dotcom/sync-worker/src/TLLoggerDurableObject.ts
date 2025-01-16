@@ -1,12 +1,12 @@
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest } from 'itty-router'
-import { Environment } from './types'
+import { Environment, isDebugLogging } from './types'
 
 export class TLLoggerDurableObject extends DurableObject<Environment> {
 	private readonly isDebugEnv
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
-		this.isDebugEnv = env.TLDRAW_ENV === 'preview' || env.TLDRAW_ENV === 'development'
+		this.isDebugEnv = isDebugLogging(env)
 	}
 
 	private sockets = new Set<WebSocket>()
@@ -15,7 +15,6 @@ export class TLLoggerDurableObject extends DurableObject<Environment> {
 
 	async debug(messages: string[]) {
 		if (!this.isDebugEnv) return
-		messages = messages.map((msg) => `[${new Date().toISOString()}]: ${msg}`)
 		this.history.push(...messages)
 		while (this.history.length > 10000) {
 			this.history.shift()
