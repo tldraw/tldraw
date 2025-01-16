@@ -1,4 +1,4 @@
-import { preventDefault, TiptapEditor, tlenv } from '@tldraw/editor'
+import { stopEventPropagation, TiptapEditor, tlenv } from '@tldraw/editor'
 import { useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -76,7 +76,7 @@ export function LinkEditor({ textEditor, value: initialValue, onComplete }: Link
 				className="tl-rich-text__toolbar-link-visit"
 				title={msg('tool.rich-text-link-visit')}
 				type="icon"
-				onPointerDown={preventDefault}
+				onMouseDown={stopEventPropagation}
 				onClick={handleVisitLink}
 				disabled={!value}
 			>
@@ -87,7 +87,7 @@ export function LinkEditor({ textEditor, value: initialValue, onComplete }: Link
 				title={msg('tool.rich-text-link-remove')}
 				data-testid="rich-text.link-remove"
 				type="icon"
-				onPointerDown={preventDefault}
+				onMouseDown={stopEventPropagation}
 				onClick={handleRemoveLink}
 			>
 				<TldrawUiButtonIcon small icon="trash" />

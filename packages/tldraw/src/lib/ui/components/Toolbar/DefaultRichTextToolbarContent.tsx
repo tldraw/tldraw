@@ -1,4 +1,4 @@
-import { preventDefault, TiptapEditor } from '@tldraw/editor'
+import { stopEventPropagation, TiptapEditor } from '@tldraw/editor'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
@@ -46,7 +46,7 @@ export function DefaultRichTextToolbarContent({
 				data-testid={`rich-text.${name}`}
 				type="icon"
 				isActive={textEditor.isActive(name, attrs)}
-				onPointerDown={preventDefault}
+				onMouseDown={stopEventPropagation}
 				onClick={() => {
 					trackEvent('rich-text', { operation: name as any, source })
 
