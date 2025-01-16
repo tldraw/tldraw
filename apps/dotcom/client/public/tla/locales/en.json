@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "Rate limit exceeded, try again later."
   },
+  "08c5073798": {
+    "translation": "We use cookies to manage your session data, sync your whiteboards & sessions, and understand how you’re using tldraw. Read our <a>cookie policy</a> to learn more."
+  },
   "0b27918290": {
     "translation": "File"
   },
@@ -49,9 +52,6 @@
   },
   "299cb00a7a": {
     "translation": "Upload failed"
-  },
-  "2ab31a73ac": {
-    "translation": "We use cookies to see how you're using tldraw and learn how it can be improved. By clicking accept you agree to our <a>cookie policy</a>."
   },
   "31246941ad": {
     "translation": "You need to sign in to view this file."
@@ -125,14 +125,14 @@
   "5fb63579fc": {
     "translation": "Copy"
   },
+  "5fde949711": {
+    "translation": "We use cookies to see how you’re using tldraw and learn how it can be improved. By clicking accept you agree to our <a>cookie policy</a>."
+  },
   "61057a0c84": {
     "translation": "Later"
   },
   "625fd29749": {
     "translation": "Older"
-  },
-  "64a87ed01e": {
-    "translation": "We use cookies to manage your session data, sync your whiteboards & sessions, and understand how you're using tldraw. Read our <a>cookie policy</a> to learn more."
   },
   "6609dd239e": {
     "translation": "Something went wrong"
@@ -164,9 +164,6 @@
   "777f9e90cf": {
     "translation": "Invalid request."
   },
-  "785da2bed2": {
-    "translation": "Essential - Required to save your files & settings, and sync them across your devices."
-  },
   "7cb5f8b4a5": {
     "translation": "Forget"
   },
@@ -178,6 +175,9 @@
   },
   "85a082de1b": {
     "translation": "Please refresh the page to get the latest version of tldraw."
+  },
+  "870dea8ec5": {
+    "translation": "Optional — Help us understand how you’re using tldraw, and how we can make it better."
   },
   "8eb2c00e96": {
     "translation": "Shared with you"
@@ -282,6 +282,9 @@
   "cd15a75c26": {
     "translation": "SVG"
   },
+  "cd16f555de": {
+    "translation": "Essential — Required to save your files & settings, and sync them across your devices."
+  },
   "cea291e45e": {
     "translation": "Learn more about publishing."
   },
@@ -311,9 +314,6 @@
   },
   "dbbebf3c03": {
     "translation": "Invite only"
-  },
-  "ddcf7844c1": {
-    "translation": "Optional - Help us understand how you’re using tldraw, and how we can make it better."
   },
   "dfdb78a4e4": {
     "translation": "App debug flags"

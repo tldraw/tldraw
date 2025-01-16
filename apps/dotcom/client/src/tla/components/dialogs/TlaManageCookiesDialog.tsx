@@ -32,7 +32,7 @@ export function TlaManageCookiesDialog() {
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
 				<F
-					defaultMessage="We use cookies to manage your session data, sync your whiteboards & sessions, and understand how you're using tldraw. Read our <a>cookie policy</a> to learn more."
+					defaultMessage="We use cookies to manage your session data, sync your whiteboards & sessions, and understand how you’re using tldraw. Read our <a>cookie policy</a> to learn more."
 					values={{
 						a: (chunks) => (
 							<a href="https://tldraw.notion.site/cookie-policy" target="_blank" rel="noreferrer">
@@ -46,7 +46,7 @@ export function TlaManageCookiesDialog() {
 						title={<F defaultMessage="Your session" />}
 						description={
 							<F
-								defaultMessage="Essential - Required to save your files & settings, and sync them across your devices."
+								defaultMessage="Essential — Required to save your files & settings, and sync them across your devices."
 								values={{ b: (chunks) => <strong>{chunks}</strong> }}
 							/>
 						}
@@ -56,7 +56,7 @@ export function TlaManageCookiesDialog() {
 						title={<F defaultMessage="Analytics" />}
 						description={
 							<F
-								defaultMessage="Optional - Help us understand how you’re using tldraw, and how we can make it better."
+								defaultMessage="Optional — Help us understand how you’re using tldraw, and how we can make it better."
 								values={{ b: (chunks) => <strong>{chunks}</strong> }}
 							/>
 						}
