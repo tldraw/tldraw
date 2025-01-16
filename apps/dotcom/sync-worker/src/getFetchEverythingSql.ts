@@ -1,4 +1,5 @@
 import { ZColumn, tlaFileSchema, tlaFileStateSchema, tlaUserSchema } from '@tldraw/dotcom-shared'
+import { sql } from 'kysely'
 interface ColumnStuff {
 	name: string
 	type: 'string' | 'number' | 'boolean'
@@ -41,15 +42,19 @@ const fileColumns = fileKeys.map((c) => `${c.reference} as "${c.alias}"`)
 const fileStateColumns = fileStateKeys.map((c) => `${c.reference} as "${c.alias}"`)
 
 export function getFetchUserDataSql(userId: string, bootId: string) {
-	return `
-INSERT INTO public.user_boot_id ("userId", "bootId") VALUES ('${userId}', '${bootId}') ON CONFLICT ("userId") DO UPDATE SET "bootId" = '${bootId}';
-SELECT 'user' AS "table", null::bigint as "mutationNumber", ${userColumns.concat(fileNulls).concat(fileStateNulls)} FROM public.user WHERE "id" = '${userId}'
+	return sql`
+WITH upsert AS (
+  INSERT INTO public.user_boot_id ("userId", "bootId")
+  VALUES (${userId}, ${bootId})
+  ON CONFLICT ("userId") DO UPDATE SET "bootId" = ${bootId}
+)
+SELECT 'user' AS "table", null::bigint as "mutationNumber", ${sql.raw(userColumns + ',' + fileNulls + ',' + fileStateNulls)} FROM public.user WHERE "id" = '${sql.raw(userId)}'
 UNION
-SELECT 'file' AS "table", null::bigint as "mutationNumber", ${userNulls.concat(fileColumns).concat(fileStateNulls)} FROM public.file WHERE "ownerId" = '${userId}' OR "shared" = true AND EXISTS(SELECT 1 FROM public.file_state WHERE "userId" = '${userId}' AND public.file_state."fileId" = public.file.id) 
+SELECT 'file' AS "table", null::bigint as "mutationNumber", ${sql.raw(userNulls + ',' + fileColumns + ',' + fileStateNulls)} FROM public.file WHERE "ownerId" = '${sql.raw(userId)}' OR "shared" = true AND EXISTS(SELECT 1 FROM public.file_state WHERE "userId" = '${sql.raw(userId)}' AND public.file_state."fileId" = public.file.id)
 UNION
-SELECT 'file_state' AS "table", null::bigint as "mutationNumber", ${userNulls.concat(fileNulls).concat(fileStateColumns)} FROM public.file_state WHERE "userId" = '${userId}'
+SELECT 'file_state' AS "table", null::bigint as "mutationNumber", ${sql.raw(userNulls + ',' + fileNulls + ',' + fileStateColumns)} FROM public.file_state WHERE "userId" = '${sql.raw(userId)}'
 UNION
-SELECT 'user_mutation_number' as "table", "mutationNumber"::bigint, ${userNulls.concat(fileNulls).concat(fileStateNulls)} FROM public.user_mutation_number WHERE "userId" = '${userId}';
+SELECT 'user_mutation_number' as "table", "mutationNumber"::bigint, ${sql.raw(userNulls + ',' + fileNulls + ',' + fileStateNulls)} FROM public.user_mutation_number WHERE "userId" = '${sql.raw(userId)}';
 `
 }
 

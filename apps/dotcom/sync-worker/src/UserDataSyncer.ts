@@ -1,4 +1,5 @@
 import {
+	DB,
 	OptimisticAppStore,
 	TlaRow,
 	ZEvent,
@@ -8,8 +9,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import { ExecutionQueue, assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
-import postgres from 'postgres'
-import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
+import { Kysely } from 'kysely'
 import { TLPostgresReplicator } from './TLPostgresReplicator'
 import {
 	fileKeys,
@@ -30,6 +30,7 @@ export interface ZRowUpdateEvent {
 	// If the replicator fails and restarts, this id will change.
 	// And in that case the user DO should reboot.
 	sequenceId: string
+	sequenceNumber: number
 	row: TlaRow
 	table: ZTable
 	event: ZEvent
@@ -39,6 +40,7 @@ export interface ZBootCompleteEvent {
 	type: 'boot_complete'
 	userId: string
 	sequenceId: string
+	sequenceNumber: number
 	bootId: string
 }
 
@@ -48,10 +50,12 @@ export interface ZMutationCommit {
 	mutationNumber: number
 	// if the sequence id changes make sure we still handle the mutation commit
 	sequenceId: string
+	sequenceNumber: number
 }
 export interface ZForceReboot {
 	type: 'force_reboot'
 	sequenceId: string
+	sequenceNumber: number
 }
 
 export type ZReplicationEvent =
@@ -59,6 +63,12 @@ export type ZReplicationEvent =
 	| ZBootCompleteEvent
 	| ZMutationCommit
 	| ZForceReboot
+
+export type ZReplicationEventWithoutSequenceInfo =
+	| Omit<ZRowUpdateEvent, 'sequenceNumber' | 'sequenceId'>
+	| Omit<ZBootCompleteEvent, 'sequenceNumber' | 'sequenceId'>
+	| Omit<ZMutationCommit, 'sequenceNumber' | 'sequenceId'>
+	| Omit<ZForceReboot, 'sequenceNumber' | 'sequenceId'>
 
 type BootState =
 	| {
@@ -69,6 +79,7 @@ type BootState =
 			type: 'connecting'
 			bootId: string
 			sequenceId: string
+			lastSequenceNumber: number
 			promise: PromiseWithResolve
 			bufferedEvents: Array<ZReplicationEvent>
 			didGetBootId: boolean
@@ -79,6 +90,7 @@ type BootState =
 			type: 'connected'
 			bootId: string
 			sequenceId: string
+			lastSequenceNumber: number
 	  }
 
 export class UserDataSyncer {
@@ -92,10 +104,13 @@ export class UserDataSyncer {
 	mutations: { mutationNumber: number; mutationId: string }[] = []
 
 	sentry
-	// eslint-disable-next-line local/prefer-class-methods
-	private captureException = (exception: unknown, eventHint?: EventHint) => {
+	private captureException(exception: unknown, extras?: Record<string, unknown>) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		this.sentry?.captureException(exception, eventHint) as any
+		this.sentry?.withScope((scope) => {
+			if (extras) scope.setExtras(extras)
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			this.sentry?.captureException(exception) as any
+		})
 		if (!this.sentry) {
 			console.error(`[UserDataSyncer]: `, exception)
 		}
@@ -104,7 +119,7 @@ export class UserDataSyncer {
 	constructor(
 		ctx: DurableObjectState,
 		env: Environment,
-		private db: postgres.Sql,
+		private db: Kysely<DB>,
 		private userId: string,
 		private broadcast: (message: ZServerSentMessage) => void,
 		private logEvent: (event: TLUserDurableObjectEvent) => void
@@ -145,6 +160,7 @@ export class UserDataSyncer {
 	}
 
 	private commitMutations(upToAndIncludingNumber: number) {
+		this.debug('commit mutations', this.userId, upToAndIncludingNumber, this.mutations)
 		const mutationIds = this.mutations
 			.filter((m) => m.mutationNumber <= upToAndIncludingNumber)
 			.map((m) => m.mutationId)
@@ -165,6 +181,7 @@ export class UserDataSyncer {
 				type: 'connected',
 				bootId: this.state.bootId,
 				sequenceId: this.state.sequenceId,
+				lastSequenceNumber: this.state.lastSequenceNumber,
 			}
 			this.store.initialize(data)
 
@@ -185,7 +202,7 @@ export class UserDataSyncer {
 		this.debug('booting')
 		// todo: clean up old resources if necessary?
 		const start = Date.now()
-		const sequenceId = await this.replicator.registerUser(this.userId)
+		const { sequenceId, sequenceNumber } = await this.replicator.registerUser(this.userId)
 		this.debug('registered user, sequenceId:', sequenceId)
 		this.state = {
 			type: 'connecting',
@@ -194,6 +211,7 @@ export class UserDataSyncer {
 			promise: 'promise' in this.state ? this.state.promise : promiseWithResolve(),
 			bootId: uniqueId(),
 			sequenceId,
+			lastSequenceNumber: sequenceNumber,
 			bufferedEvents: [],
 			didGetBootId: false,
 			data: null,
@@ -216,7 +234,7 @@ export class UserDataSyncer {
 
 		const promise = this.state.promise
 
-		const sql = getFetchUserDataSql(this.userId, bootId)
+		const userSql = getFetchUserDataSql(this.userId, bootId)
 		const initialData: ZStoreData = {
 			user: null as any,
 			files: [],
@@ -231,31 +249,26 @@ export class UserDataSyncer {
 				initialData.files = []
 				initialData.fileStates = []
 
-				await this.db.begin(async (db) => {
-					return db
-						.unsafe(sql, [], { prepare: false })
-						.simple()
-						.forEach((row: any) => {
-							assert(this.state.type === 'connecting', 'state should be connecting in boot')
-							switch (row.table) {
-								case 'user':
-									initialData.user = parseResultRow(userKeys, row)
-									break
-								case 'file':
-									initialData.files.push(parseResultRow(fileKeys, row))
-									break
-								case 'file_state':
-									initialData.fileStates.push(parseResultRow(fileStateKeys, row))
-									break
-								case 'user_mutation_number':
-									assert(
-										typeof row.mutationNumber === 'number',
-										'mutationNumber should be a number'
-									)
-									this.state.mutationNumber = row.mutationNumber
-									break
-							}
-						})
+				await this.db.transaction().execute(async (tx) => {
+					const result = await userSql.execute(tx)
+					return result.rows.forEach((row: any) => {
+						assert(this.state.type === 'connecting', 'state should be connecting in boot')
+						switch (row.table) {
+							case 'user':
+								initialData.user = parseResultRow(userKeys, row)
+								break
+							case 'file':
+								initialData.files.push(parseResultRow(fileKeys, row))
+								break
+							case 'file_state':
+								initialData.fileStates.push(parseResultRow(fileStateKeys, row))
+								break
+							case 'user_mutation_number':
+								assert(typeof row.mutationNumber === 'number', 'mutationNumber should be a number')
+								this.state.mutationNumber = row.mutationNumber
+								break
+						}
+					})
 				})
 			},
 			() => {
@@ -309,10 +322,17 @@ export class UserDataSyncer {
 			('sequenceId' in this.state && this.state.sequenceId !== event.sequenceId)
 		) {
 			// the replicator has restarted, so we need to reboot
+			this.debug('force reboot', this.state, event)
 			this.reboot()
 			return
 		}
 		assert(this.state.type !== 'init', 'state should not be init: ' + event.type)
+		if (event.sequenceNumber !== this.state.lastSequenceNumber + 1) {
+			this.debug('sequence number mismatch', event.sequenceNumber, this.state.lastSequenceNumber)
+			this.reboot()
+			return
+		}
+		this.state.lastSequenceNumber++
 
 		if (event.type === 'mutation_commit') {
 			this.commitMutations(event.mutationNumber)

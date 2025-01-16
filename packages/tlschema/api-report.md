@@ -118,11 +118,7 @@ export function createBindingValidator<Type extends string, Props extends JsonOb
 }): T.ObjectValidator<Expand<    { [P in "fromId" | "id" | "meta" | "toId" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseBinding<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseBinding<Type, Props>[P_1] | undefined; }>>;
 
 // @public
-export function createPresenceStateDerivation($user: Signal<{
-    color: string;
-    id: string;
-    name: string;
-}>, instanceId?: TLInstancePresence['id']): (store: TLStore) => Signal<null | TLInstancePresence>;
+export function createPresenceStateDerivation($user: Signal<TLPresenceUserInfo>, instanceId?: TLInstancePresence['id']): (store: TLStore) => Signal<null | TLInstancePresence>;
 
 // @public (undocumented)
 export function createShapeId(id?: string): TLShapeId;
@@ -300,6 +296,33 @@ export function getDefaultColorTheme(opts: {
 // @public (undocumented)
 export function getDefaultTranslationLocale(): TLLanguage['locale'];
 
+// @public (undocumented)
+export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo): {
+    brush: BoxModel | null;
+    camera: {
+        x: number;
+        y: number;
+        z: number;
+    };
+    chatMessage: string;
+    color: string;
+    currentPageId: TLPageId;
+    cursor: {
+        rotation: number;
+        type: string;
+        x: number;
+        y: number;
+    };
+    followingUserId: null | string;
+    lastActivityTimestamp: number;
+    meta: {};
+    screenBounds: BoxModel;
+    scribbles: TLScribble[];
+    selectedShapeIds: TLShapeId[];
+    userId: string;
+    userName: string;
+} | null;
+
 // @internal (undocumented)
 export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>): Map<StyleProp<unknown>, string>;
 
@@ -356,6 +379,9 @@ export const LANGUAGES: readonly [{
     readonly label: "Bahasa Indonesia";
     readonly locale: "id";
 }, {
+    readonly label: "Bahasa Melayu";
+    readonly locale: "ms";
+}, {
     readonly label: "Català";
     readonly locale: "ca";
 }, {
@@ -374,6 +400,9 @@ export const LANGUAGES: readonly [{
     readonly label: "Español";
     readonly locale: "es";
 }, {
+    readonly label: "Filipino";
+    readonly locale: "tl";
+}, {
     readonly label: "Français";
     readonly locale: "fr";
 }, {
@@ -389,6 +418,9 @@ export const LANGUAGES: readonly [{
     readonly label: "Magyar";
     readonly locale: "hu";
 }, {
+    readonly label: "Nederlands";
+    readonly locale: "nl";
+}, {
     readonly label: "Norwegian";
     readonly locale: "no";
 }, {
@@ -403,9 +435,6 @@ export const LANGUAGES: readonly [{
 }, {
     readonly label: "Română";
     readonly locale: "ro";
-}, {
-    readonly label: "Russian";
-    readonly locale: "ru";
 }, {
     readonly label: "Slovenščina";
     readonly locale: "sl";
@@ -425,11 +454,20 @@ export const LANGUAGES: readonly [{
     readonly label: "Türkçe";
     readonly locale: "tr";
 }, {
-    readonly label: "Ukrainian";
+    readonly label: "Ελληνικά";
+    readonly locale: "el";
+}, {
+    readonly label: "Русский";
+    readonly locale: "ru";
+}, {
+    readonly label: "Українська";
     readonly locale: "uk";
 }, {
     readonly label: "עברית";
     readonly locale: "he";
+}, {
+    readonly label: "اردو";
+    readonly locale: "ur";
 }, {
     readonly label: "عربي";
     readonly locale: "ar";
@@ -437,23 +475,41 @@ export const LANGUAGES: readonly [{
     readonly label: "فارسی";
     readonly locale: "fa";
 }, {
-    readonly label: "کوردی";
-    readonly locale: "ku";
-}, {
     readonly label: "नेपाली";
     readonly locale: "ne";
+}, {
+    readonly label: "मराठी";
+    readonly locale: "mr";
 }, {
     readonly label: "हिन्दी";
     readonly locale: "hi-in";
 }, {
+    readonly label: "বাংলা";
+    readonly locale: "bn";
+}, {
+    readonly label: "ਪੰਜਾਬੀ";
+    readonly locale: "pa";
+}, {
+    readonly label: "ગુજરાતી";
+    readonly locale: "gu-in";
+}, {
+    readonly label: "தமிழ்";
+    readonly locale: "ta";
+}, {
     readonly label: "తెలుగు";
     readonly locale: "te";
+}, {
+    readonly label: "ಕನ್ನಡ";
+    readonly locale: "kn";
+}, {
+    readonly label: "മലയാളം";
+    readonly locale: "ml";
 }, {
     readonly label: "ภาษาไทย";
     readonly locale: "th";
 }, {
-    readonly label: "မြန်မာစာ";
-    readonly locale: "my";
+    readonly label: "ភាសាខ្មែរ";
+    readonly locale: "km-kh";
 }, {
     readonly label: "한국어";
     readonly locale: "ko-kr";
@@ -1163,7 +1219,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
         x: number;
         y: number;
         z: number;
-    };
+    } | null;
     // (undocumented)
     chatMessage: string;
     // (undocumented)
@@ -1176,15 +1232,15 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
         type: TLCursor['type'];
         x: number;
         y: number;
-    };
+    } | null;
     // (undocumented)
     followingUserId: null | string;
     // (undocumented)
-    lastActivityTimestamp: number;
+    lastActivityTimestamp: null | number;
     // (undocumented)
     meta: JsonObject;
     // (undocumented)
-    screenBounds: BoxModel;
+    screenBounds: BoxModel | null;
     // (undocumented)
     scribbles: TLScribble[];
     // (undocumented)
@@ -1300,6 +1356,16 @@ export const TLPOINTER_ID: TLPointerId;
 
 // @public (undocumented)
 export type TLPointerId = RecordId<TLPointer>;
+
+// @public (undocumented)
+export type TLPresenceStateInfo = Parameters<(typeof InstancePresenceRecordType)['create']>[0];
+
+// @public
+export interface TLPresenceUserInfo {
+    color?: null | string;
+    id: string;
+    name?: null | string;
+}
 
 // @public (undocumented)
 export interface TLPropsMigration {

@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Export"
   },
-  "01c32a1e98": {
-    "translation": "Sorry, you don’t have access to that file. If you know whose created the file, you can request a new invite link."
-  },
   "03b3e13197": {
     "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
   },
@@ -19,6 +16,9 @@
   },
   "07dbd11b21": {
     "translation": "Untitled file"
+  },
+  "08331c1710": {
+    "translation": "Rate limit exceeded, try again later."
   },
   "0b27918290": {
     "translation": "File"
@@ -68,6 +68,9 @@
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
   },
+  "3c5e891bff": {
+    "translation": "Pinned"
+  },
   "424cc22417": {
     "translation": "Take me home"
   },
@@ -76,6 +79,9 @@
   },
   "44db318ee5": {
     "translation": "Get help on Discord"
+  },
+  "458cd104d7": {
+    "translation": "Sorry, you don’t have access to that file. If you know who created the file, you can request a new invite link."
   },
   "47839e47a5": {
     "translation": "tldraw"
@@ -167,6 +173,9 @@
   "904a830405": {
     "translation": "Rename"
   },
+  "91e49bb0eb": {
+    "translation": "Copy to my files"
+  },
   "9563b82670": {
     "translation": "Uploading {count} .tldr {count, plural, one {file} other {files}}…"
   },
@@ -213,6 +222,9 @@
   "b758336699": {
     "translation": "Copy link"
   },
+  "bb792693e2": {
+    "translation": "Unpin"
+  },
   "bc88b0e89e": {
     "translation": "Shared by {ownerName}"
   },
@@ -243,9 +255,6 @@
   "cea291e45e": {
     "translation": "Learn more about publishing."
   },
-  "d2458ac9bf": {
-    "translation": "You have exceeded the rate limit."
-  },
   "d3d2e61733": {
     "translation": "Close"
   },
@@ -272,6 +281,9 @@
   },
   "e2cd8064c2": {
     "translation": "Sorry, you don’t have access to that user."
+  },
+  "e78e14c5f1": {
+    "translation": "Pin"
   },
   "ea4788705e": {
     "translation": "Cancel"

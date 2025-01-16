@@ -1,3 +1,41 @@
+# v3.7.0 (Tue Jan 07 2025)
+
+### Release Notes
+
+#### Execute reactor immediately on listen ([#5133](https://github.com/tldraw/tldraw/pull/5133))
+
+- Fixed a bug during development with React Strict Mode enabled where store.listen might end up not calling the listener.
+
+#### custom sync presence ([#5071](https://github.com/tldraw/tldraw/pull/5071))
+
+- It's now possible to customise what presence data is synced between clients, or disable presence syncing entirely.
+
+#### Improve rerenedring of the page menu and quick actions ([#5057](https://github.com/tldraw/tldraw/pull/5057))
+
+- Improves rendering of the pages menu and quick actions.
+
+---
+
+#### 🐛 Bug Fixes
+
+- Execute reactor immediately on listen [#5133](https://github.com/tldraw/tldraw/pull/5133) ([@ds300](https://github.com/ds300))
+
+#### 💄 Product Improvements
+
+- Improve rerenedring of the page menu and quick actions [#5057](https://github.com/tldraw/tldraw/pull/5057) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🛠️ API Changes
+
+- custom sync presence [#5071](https://github.com/tldraw/tldraw/pull/5071) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 3
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+---
+
 # v3.5.0 (Tue Nov 26 2024)
 
 ### Release Notes

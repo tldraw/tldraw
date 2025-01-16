@@ -12,11 +12,22 @@ export const ROUTES = {
 	legacyReadonly: '/ro/:roomId',
 	legacyReadonlyOld: '/v/:roomId',
 
-	tlaRoot: `/q`,
-	tlaFile: `/q/f/:fileSlug`,
-	tlaLocalFile: `/q/lf/:fileSlug`,
-	tlaPlayground: `/q/playground`,
-	tlaPublish: `/q/p/:fileSlug`,
+	tlaOptIn: '/preview',
+	tlaOverride: '/q',
+
+	tlaRoot: `/`,
+	tlaFile: `/f/:fileSlug`,
+	tlaLocalFile: `/lf/:fileSlug`,
+	tlaPlayground: `/playground`,
+	tlaPublish: `/p/:fileSlug`,
+	// Legacy routes
+	tlaTouchScreenSidePanel: '/ts-side',
+	tlaLegacyRoom: '/r/:roomId',
+	tlaLegacyRoomHistory: '/r/:boardId/history',
+	tlaLegacyRoomHistorySnapshot: '/r/:boardId/history/:timestamp',
+	tlaLegacySnapshot: '/s/:roomId',
+	tlaLegacyReadonly: '/ro/:roomId',
+	tlaLegacyReadonlyOld: '/v/:roomId',
 } as const
 
 export const routes: {

@@ -760,7 +760,7 @@ export const defaultUserPreferences: Readonly<{
     isPasteAtCursorMode: false;
     isSnapMode: false;
     isWrapMode: false;
-    locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
+    locale: "ar" | "bn" | "ca" | "cs" | "da" | "de" | "el" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "gu-in" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "km-kh" | "kn" | "ko-kr" | "ml" | "mr" | "ms" | "ne" | "nl" | "no" | "pa" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "ta" | "te" | "th" | "tl" | "tr" | "uk" | "ur" | "vi" | "zh-cn" | "zh-tw";
     name: "New User";
 }>;
 
@@ -2275,7 +2275,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     // (undocumented)
     editor: Editor;
     // @internal (undocumented)
-    expandSelectionOutlinePx(shape: Shape): number;
+    expandSelectionOutlinePx(shape: Shape): Box | number;
     getBoundsSnapGeometry(_shape: Shape): BoundsSnapGeometry;
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     abstract getDefaultProps(): Shape['props'];
@@ -2558,8 +2558,6 @@ export type TestEnvironment = 'development' | 'production';
 // @public (undocumented)
 export class TextManager {
     constructor(editor: Editor);
-    // (undocumented)
-    baseElm: HTMLDivElement;
     // (undocumented)
     editor: Editor;
     measureElementTextNodeSpans(element: HTMLElement, { shouldTruncateToFirstLine }?: {
@@ -3799,6 +3797,9 @@ export { useQuickReactor }
 
 // @internal (undocumented)
 export const USER_COLORS: readonly ["#FF802B", "#EC5E41", "#F2555A", "#F04F88", "#E34BA9", "#BD54C6", "#9D5BD2", "#7B66DC", "#02B1CC", "#11B3A3", "#39B178", "#55B467"];
+
+// @internal
+export function useReactiveEvent<Args extends Array<unknown>, Result>(handler: (...args: Args) => Result): (...args: Args) => Result;
 
 export { useReactor }
 

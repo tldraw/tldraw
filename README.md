@@ -102,4 +102,4 @@ Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsy
 
 ## Contact
 
-Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw). You can contact us at by email at [hello@tldraw.com](mailto:hello@tldraw.com).
+Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw). You can contact us by email at [hello@tldraw.com](mailto:hello@tldraw.com).

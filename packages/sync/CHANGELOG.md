@@ -1,3 +1,23 @@
+# v3.7.0 (Tue Jan 07 2025)
+
+### Release Notes
+
+#### custom sync presence ([#5071](https://github.com/tldraw/tldraw/pull/5071))
+
+- It's now possible to customise what presence data is synced between clients, or disable presence syncing entirely.
+
+---
+
+#### 🛠️ API Changes
+
+- custom sync presence [#5071](https://github.com/tldraw/tldraw/pull/5071) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+---
+
 # v3.5.0 (Tue Nov 26 2024)
 
 ### Release Notes

@@ -6,6 +6,9 @@ import {
 	Signal,
 	TLAsset,
 	TLAssetStore,
+	TLPresenceStateInfo,
+	TLPresenceUserInfo,
+	TLStore,
 	TLStoreSchemaOptions,
 	clamp,
 	defaultBindingUtils,
@@ -14,7 +17,7 @@ import {
 	uniqueId,
 	useShallowObjectIdentity,
 } from 'tldraw'
-import { RemoteTLStoreWithStatus, TLSyncUserInfo, useSync } from './useSync'
+import { RemoteTLStoreWithStatus, useSync } from './useSync'
 
 /** @public */
 export interface UseSyncDemoOptions {
@@ -28,9 +31,16 @@ export interface UseSyncDemoOptions {
 	 * This should be synchronized with the `userPreferences` configuration for the main `<Tldraw />` component.
 	 * If not provided, a default implementation based on localStorage will be used.
 	 */
-	userInfo?: TLSyncUserInfo | Signal<TLSyncUserInfo>
+	userInfo?: TLPresenceUserInfo | Signal<TLPresenceUserInfo>
+
 	/** @internal */
 	host?: string
+
+	/**
+	 * {@inheritdoc UseSyncOptions.getUserPresence}
+	 * @public
+	 */
+	getUserPresence?(store: TLStore, user: TLPresenceUserInfo): TLPresenceStateInfo | null
 }
 
 /**
@@ -78,30 +88,29 @@ const IMAGE_WORKER = getEnv(() => process.env.TLDRAW_IMAGE_URL) ?? 'https://imag
 export function useSyncDemo(
 	options: UseSyncDemoOptions & TLStoreSchemaOptions
 ): RemoteTLStoreWithStatus {
-	const { roomId, userInfo, host = DEMO_WORKER, ..._schemaOpts } = options
+	const { roomId, host = DEMO_WORKER, ..._syncOpts } = options
 	const assets = useMemo(() => createDemoAssetStore(host), [host])
 
-	const schemaOpts = useShallowObjectIdentity(_schemaOpts)
-	const schemaOptsWithDefaults = useMemo((): TLStoreSchemaOptions => {
-		if ('schema' in schemaOpts && schemaOpts.schema) return schemaOpts
+	const syncOpts = useShallowObjectIdentity(_syncOpts)
+	const syncOptsWithDefaults = useMemo(() => {
+		if ('schema' in syncOpts && syncOpts.schema) return syncOpts
 
 		return {
-			...schemaOpts,
+			...syncOpts,
 			shapeUtils:
-				'shapeUtils' in schemaOpts
-					? [...defaultShapeUtils, ...(schemaOpts.shapeUtils ?? [])]
+				'shapeUtils' in syncOpts
+					? [...defaultShapeUtils, ...(syncOpts.shapeUtils ?? [])]
 					: defaultShapeUtils,
 			bindingUtils:
-				'bindingUtils' in schemaOpts
-					? [...defaultBindingUtils, ...(schemaOpts.bindingUtils ?? [])]
+				'bindingUtils' in syncOpts
+					? [...defaultBindingUtils, ...(syncOpts.bindingUtils ?? [])]
 					: defaultBindingUtils,
 		}
-	}, [schemaOpts])
+	}, [syncOpts])
 
 	return useSync({
 		uri: `${host}/connect/${encodeURIComponent(roomId)}`,
 		roomId,
-		userInfo,
 		assets,
 		onMount: useCallback(
 			(editor: Editor) => {
@@ -111,7 +120,7 @@ export function useSyncDemo(
 			},
 			[host]
 		),
-		...schemaOptsWithDefaults,
+		...syncOptsWithDefaults,
 	})
 }
 
