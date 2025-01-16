@@ -1,4 +1,4 @@
-import { ROOM_PREFIX, TlaFile, ZTable } from '@tldraw/dotcom-shared'
+import { DB, ROOM_PREFIX, TlaFile, ZTable } from '@tldraw/dotcom-shared'
 import {
 	ExecutionQueue,
 	assert,
@@ -9,11 +9,12 @@ import {
 } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
+import { Kysely, sql } from 'kysely'
 import postgres from 'postgres'
 import { Logger } from './Logger'
 import type { TLDrawDurableObject } from './TLDrawDurableObject'
 import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
-import { createPostgresConnection } from './postgres'
+import { createPostgresConnection, createPostgresConnectionPool } from './postgres'
 import { Analytics, Environment, TLPostgresReplicatorEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { getUserDurableObject } from './utils/durableObjects'
@@ -83,6 +84,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 	private measure: Analytics | undefined
 	private postgresUpdates = 0
+	private lastPostgresMessageTime = Date.now()
 	private lastRpmLogTime = Date.now()
 
 	// we need to guarantee in-order delivery of messages to users
@@ -106,6 +108,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private log
 
+	private readonly db: Kysely<DB>
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
 		this.sentry = createSentry(ctx, env)
@@ -120,6 +123,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 		// debug logging in preview envs by default
 		this.log = new Logger(env, 'TLPostgresReplicator', this.sentry)
+		this.db = createPostgresConnectionPool(env, 'TLPostgresReplicator')
 
 		this.alarm()
 		this.reboot(false).catch((e) => {
@@ -173,6 +177,17 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	override async alarm() {
 		this.ctx.storage.setAlarm(Date.now() + 1000)
 		this.maybeLogRpm()
+		// If we haven't heard anything from postgres for 5 seconds, do a little transaction
+		// to update a random string as a kind of 'ping' to keep the connection alive
+		// If we haven't heard anything for 10 seconds, reboot
+		if (Date.now() - this.lastPostgresMessageTime > 10000) {
+			this.log.debug('rebooting due to inactivity')
+			this.reboot()
+		} else if (Date.now() - this.lastPostgresMessageTime > 5000) {
+			sql`insert into replicator_boot_id ("replicatorId", "bootId") values (${this.ctx.id.toString()}, ${uniqueId()}) on conflict ("replicatorId") do update set "bootId" = excluded."bootId"`.execute(
+				this.db
+			)
+		}
 	}
 
 	private maybeLogRpm() {
@@ -217,6 +232,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private async boot() {
 		this.log.debug('booting')
+		this.lastPostgresMessageTime = Date.now()
 		// clean up old resources if necessary
 		if (this.state.type === 'connected') {
 			this.state.subscription.unsubscribe()
@@ -274,6 +290,11 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	private handleEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
+		this.lastPostgresMessageTime = Date.now()
+		if (event.relation.table === 'replicator_boot_id') {
+			// ping, ignore
+			return
+		}
 		this.postgresUpdates++
 		this.log.debug('handleEvent', event)
 		assert(this.state.type === 'connected', 'state should be connected in handleEvent')
