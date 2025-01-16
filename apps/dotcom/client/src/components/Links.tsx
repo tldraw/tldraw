@@ -1,7 +1,7 @@
 import { TldrawUiMenuGroup, TldrawUiMenuItem } from 'tldraw'
 import { useOpenUrlAndTrack } from '../hooks/useOpenUrlAndTrack'
 
-export function Links() {
+export function LegacyLinks() {
 	const openAndTrack = useOpenUrlAndTrack('main-menu')
 
 	return (

@@ -648,6 +648,7 @@ export class TldrawApp {
 			createdAt: Date.now(),
 			updatedAt: Date.now(),
 			flags: '',
+			allowAnalyticsCookie: null,
 			...restOfPreferences,
 			locale: restOfPreferences.locale ?? null,
 			animationSpeed: restOfPreferences.animationSpeed ?? null,

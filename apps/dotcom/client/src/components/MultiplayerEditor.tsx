@@ -41,7 +41,7 @@ import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { DocumentTopZone } from './DocumentName/DocumentName'
 import { MultiplayerFileMenu } from './FileMenu'
-import { Links } from './Links'
+import { LegacyLinks } from './Links'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { StoreErrorScreen } from './StoreErrorScreen'
@@ -61,7 +61,7 @@ const components: TLComponents = {
 				<ExtrasGroup />
 			</TldrawUiMenuGroup>
 			<PreferencesGroup />
-			<Links />
+			<LegacyLinks />
 		</DefaultMainMenu>
 	),
 	KeyboardShortcutsDialog: (props) => {

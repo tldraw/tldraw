@@ -1,5 +1,6 @@
 import { TlaFile, TlaUser } from '@tldraw/dotcom-shared'
 import { ReactNode, createContext, useContext } from 'react'
+import { trackAnalyticsEvent } from '../../utils/trackAnalyticsEvent'
 import { TldrawAppSessionState } from './local-session-state'
 
 /** @public */
@@ -68,7 +69,7 @@ export type TLAppUiHandler = <T extends keyof TLAppUiEventMap>(
 export type TLAppUiContextType = TLAppUiHandler
 
 /** @internal */
-const defaultEventHandler: TLAppUiContextType = () => void null
+const defaultEventHandler: TLAppUiContextType = trackAnalyticsEvent
 
 /** @internal */
 export const EventsContext = createContext<TLAppUiContextType>(defaultEventHandler)

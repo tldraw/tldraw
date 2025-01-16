@@ -60,7 +60,6 @@ export const legacyRoutes = (
 export const tlaRoutes = (
 	<Route>
 		<Route element={<ShimIntlProvider />}>
-			<Route path={ROUTES.legacyNewPage} lazy={() => import('./pages/new')} />
 			<Route
 				path={ROUTES.touchscreenSidePanel}
 				lazy={() => import('./pages/public-touchscreen-side-panel')}
@@ -82,6 +81,8 @@ export const tlaRoutes = (
 					path={ROUTES.tlaLegacyReadonlyOld}
 					lazy={() => import('./tla/pages/legacy-readonly-old')}
 				/>
+				{/* Legacy new */}
+				<Route path={ROUTES.legacyNewPage} lazy={() => import('./pages/new')} />
 				{/* Legacy snapshot */}
 				<Route path={ROUTES.tlaLegacySnapshot} lazy={() => import('./tla/pages/legacy-snapshot')} />
 				{/* Legacy history */}

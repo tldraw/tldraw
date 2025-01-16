@@ -21,8 +21,12 @@ export function TlaMenuControlGroup({ children }: { children: ReactNode }) {
 }
 
 // A row for a single control, usually label + input
-export function TlaMenuControl({ children }: { children: ReactNode }) {
-	return <div className={styles.control}>{children}</div>
+export function TlaMenuControl({ children, title }: { children: ReactNode; title?: string }) {
+	return (
+		<label className={styles.control} title={title}>
+			{children}
+		</label>
+	)
 }
 
 // An info button for a single control
