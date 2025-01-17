@@ -27,10 +27,12 @@ import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
 import { TlaAppMenuGroupLazyFlipped } from '../TlaAppMenuGroup/TlaAppMenuGroup'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
+import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
 import styles from './top.module.css'
 
 const messages = defineMessages({
@@ -168,7 +170,16 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		[app, editor, fileId, isOwner]
 	)
 
-	const handleRenameAction = () => setIsRenaming(true)
+	const handleRenameAction = () => {
+		if (getIsCoarsePointer()) {
+			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
+			if (newName) {
+				app.updateFile({ id: fileId, name: newName })
+			}
+		} else {
+			setIsRenaming(true)
+		}
+	}
 	const handleRenameEnd = () => setIsRenaming(false)
 
 	const separator = '/'
@@ -224,10 +235,19 @@ function TlaFileNameEditor({
 }) {
 	const [isEditing, setIsEditing] = useState(false)
 	const trackEvent = useTldrawAppUiEvents()
+
+	const intl = useIntl()
 	const handleEditingStart = useCallback(() => {
 		if (!onChange) return
-		setIsEditing(true)
-	}, [onChange])
+		if (getIsCoarsePointer()) {
+			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
+			if (newName) {
+				onChange(newName)
+			}
+		} else {
+			setIsEditing(true)
+		}
+	}, [fileName, intl, onChange])
 
 	const handleEditingEnd = useCallback(() => {
 		if (!onChange) return

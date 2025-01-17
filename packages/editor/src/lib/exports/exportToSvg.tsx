@@ -3,7 +3,7 @@ import { assert } from '@tldraw/utils'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { Editor } from '../editor/Editor'
-import { TLImageExportOptions } from '../editor/types/misc-types'
+import { TLSvgExportOptions } from '../editor/types/misc-types'
 import { StyleEmbedder } from './StyleEmbedder'
 import { embedMedia } from './embedMedia'
 import { getSvgJsx } from './getSvgJsx'
@@ -13,7 +13,7 @@ let idCounter = 1
 export async function exportToSvg(
 	editor: Editor,
 	shapeIds: TLShapeId[],
-	opts: TLImageExportOptions = {}
+	opts: TLSvgExportOptions = {}
 ) {
 	// when rendering to SVG, we start by creating a JSX representation of the SVG that we can
 	// render with react. Hopefully elements will have a `toSvg` method that renders them to SVG,

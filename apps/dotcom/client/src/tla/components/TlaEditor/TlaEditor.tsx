@@ -114,7 +114,10 @@ function TlaEditorInner({ fileSlug, fileOpenState, deepLinks }: TlaEditorProps) 
 
 			const fileState = app.getFileState(fileId)
 			if (fileState?.lastSessionState) {
-				editor.loadSnapshot({ session: JSON.parse(fileState.lastSessionState.trim() || 'null') })
+				editor.loadSnapshot(
+					{ session: JSON.parse(fileState.lastSessionState.trim() || 'null') },
+					{ forceOverwriteSessionState: true }
+				)
 			}
 			const sessionState$ = createSessionStateSnapshotSignal(editor.store)
 			const updateSessionState = throttle((state: TLSessionStateSnapshot) => {

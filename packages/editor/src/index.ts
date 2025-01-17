@@ -254,10 +254,13 @@ export {
 	type TLCameraConstraints,
 	type TLCameraMoveOptions,
 	type TLCameraOptions,
+	type TLExportType,
 	type TLImageExportOptions,
+	type TLSvgExportOptions,
 	type TLSvgOptions,
 } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
+export { getSvgAsImage } from './lib/exports/getSvgAsImage'
 export { tlenv } from './lib/globals/environment'
 export { tlmenus } from './lib/globals/menus'
 export { tltime } from './lib/globals/time'
@@ -381,6 +384,7 @@ export {
 	type SharedStyle,
 } from './lib/utils/SharedStylesMap'
 export { dataUrlToFile, getDefaultCdnBaseUrl } from './lib/utils/assets'
+export { clampToBrowserMaxCanvasSize, type CanvasMaxSize } from './lib/utils/browserCanvasMaxSize'
 export {
 	debugFlags,
 	featureFlags,

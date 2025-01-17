@@ -1,4 +1,4 @@
-import { MediaHelpers, TLAssetStore, fetch, uniqueId } from 'tldraw'
+import { MediaHelpers, TLAssetStore, clamp, fetch, uniqueId } from 'tldraw'
 import { loadLocalFile } from '../tla/utils/slurping'
 import { APP_ASSET_UPLOAD_URL, ASSET_UPLOADER_URL } from './config'
 import { isDevelopmentEnv } from './env'
@@ -94,7 +94,10 @@ export function multiplayerAssetStore(getAppInfo?: () => Promise<AppInfo>) {
 
 				const width = Math.ceil(
 					Math.min(
-						asset.props.w * context.steppedScreenScale * networkCompensation * context.dpr,
+						asset.props.w *
+							clamp(context.steppedScreenScale, 1 / 32, 1) *
+							networkCompensation *
+							context.dpr,
 						asset.props.w
 					)
 				)

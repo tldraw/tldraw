@@ -10,6 +10,7 @@ import {
 import { ExecutionQueue, assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { Kysely } from 'kysely'
+import { Logger } from './Logger'
 import { TLPostgresReplicator } from './TLPostgresReplicator'
 import {
 	fileKeys,
@@ -122,28 +123,18 @@ export class UserDataSyncer {
 		private db: Kysely<DB>,
 		private userId: string,
 		private broadcast: (message: ZServerSentMessage) => void,
-		private logEvent: (event: TLUserDurableObjectEvent) => void
+		private logEvent: (event: TLUserDurableObjectEvent) => void,
+		private log: Logger
 	) {
 		this.sentry = createSentry(ctx, env)
 		this.replicator = getReplicator(env)
 		this.reboot(false)
 	}
 
-	private debug(...args: any[]) {
-		// uncomment for dev time debugging
-		// console.log('[UserDataSyncer]:', ...args)
-		if (this.sentry) {
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			this.sentry.addBreadcrumb({
-				message: `[UserDataSyncer]: ${args.join(' ')}`,
-			})
-		}
-	}
-
 	private queue = new ExecutionQueue()
 
 	async reboot(delay = true) {
-		this.debug('rebooting')
+		this.log.debug('rebooting')
 		this.logEvent({ type: 'reboot', id: this.userId })
 		await this.queue.push(async () => {
 			if (delay) {
@@ -160,7 +151,7 @@ export class UserDataSyncer {
 	}
 
 	private commitMutations(upToAndIncludingNumber: number) {
-		this.debug('commit mutations', this.userId, upToAndIncludingNumber, this.mutations)
+		this.log.debug('commit mutations', this.userId, upToAndIncludingNumber, this.mutations)
 		const mutationIds = this.mutations
 			.filter((m) => m.mutationNumber <= upToAndIncludingNumber)
 			.map((m) => m.mutationId)
@@ -199,11 +190,11 @@ export class UserDataSyncer {
 	}
 
 	private async boot() {
-		this.debug('booting')
+		this.log.debug('booting')
 		// todo: clean up old resources if necessary?
 		const start = Date.now()
 		const { sequenceId, sequenceNumber } = await this.replicator.registerUser(this.userId)
-		this.debug('registered user, sequenceId:', sequenceId)
+		this.log.debug('registered user, sequenceId:', sequenceId)
 		this.state = {
 			type: 'connecting',
 			// preserve the promise so any awaiters do eventually get resolved
@@ -278,14 +269,14 @@ export class UserDataSyncer {
 
 		this.state.data = initialData
 		// do an unnecessary assign here to tell typescript that the state might have changed
-		this.debug('got initial data')
+		this.log.debug('got initial data')
 		this.state = this.updateStateAfterBootStep()
 		// this will prevent more events from being added to the buffer
 
 		await promise
 		const end = Date.now()
 		this.logEvent({ type: 'reboot_duration', id: this.userId, duration: end - start })
-		this.debug('boot time', end - start, 'ms')
+		this.log.debug('boot time', end - start, 'ms')
 		assert(this.state.type === 'connected', 'state should be connected after boot')
 	}
 
@@ -322,13 +313,17 @@ export class UserDataSyncer {
 			('sequenceId' in this.state && this.state.sequenceId !== event.sequenceId)
 		) {
 			// the replicator has restarted, so we need to reboot
-			this.debug('force reboot', this.state, event)
+			this.log.debug('force reboot', this.state, event)
 			this.reboot()
 			return
 		}
 		assert(this.state.type !== 'init', 'state should not be init: ' + event.type)
 		if (event.sequenceNumber !== this.state.lastSequenceNumber + 1) {
-			this.debug('sequence number mismatch', event.sequenceNumber, this.state.lastSequenceNumber)
+			this.log.debug(
+				'sequence number mismatch',
+				event.sequenceNumber,
+				this.state.lastSequenceNumber
+			)
 			this.reboot()
 			return
 		}
@@ -346,14 +341,14 @@ export class UserDataSyncer {
 		}
 
 		assert(this.state.type === 'connecting')
-		this.debug('got event', event, this.state.didGetBootId, this.state.bootId)
+		this.log.debug('got event', event, this.state.didGetBootId, this.state.bootId)
 		if (this.state.didGetBootId) {
 			// we've already got the boot id, so just shove things into
 			// a buffer until the state is set to 'connecting'
 			this.state.bufferedEvents.push(event)
 		} else if (event.type === 'boot_complete' && event.bootId === this.state.bootId) {
 			this.state.didGetBootId = true
-			this.debug('got boot id')
+			this.log.debug('got boot id')
 			this.updateStateAfterBootStep()
 		}
 		// ignore other events until we get the boot id

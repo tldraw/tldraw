@@ -33,6 +33,10 @@ tag = "v5"
 new_sqlite_classes = ["TLPostgresReplicator"]
 new_classes = ["TLUserDurableObject"]
 
+[[migrations]]
+tag = "v6"
+new_sqlite_classes = ["TLLoggerDurableObject"]
+
 [[analytics_engine_datasets]]
 binding = "MEASURE"
 
@@ -44,6 +48,7 @@ name = "dev-tldraw-multiplayer"
 [env.dev.vars]
 BOTCOM_POSTGRES_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6543/postgres"
 BOTCOM_POSTGRES_POOLED_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6543/postgres"
+TLDRAW_ENV = "development"
 
 # we don't have a hard-coded name for preview. we instead have to generate it at build time and append it to this file.
 
@@ -82,35 +87,40 @@ pattern = "sync.tldraw.xyz"
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" }
+	{ name = "TL_USER", class_name = "TLUserDurableObject" },
+	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
 ]
 
 [durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" }
+	{ name = "TL_USER", class_name = "TLUserDurableObject" },
+	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
 ]
 
 [env.preview.durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" }
+	{ name = "TL_USER", class_name = "TLUserDurableObject" },
+	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
 ]
 
 [env.staging.durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" }
+	{ name = "TL_USER", class_name = "TLUserDurableObject" },
+	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
 ]
 
 [env.production.durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" }
+	{ name = "TL_USER", class_name = "TLUserDurableObject" },
+	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
 ]
 
 #################### Analytics engine ####################
