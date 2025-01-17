@@ -37,6 +37,7 @@ export const tlaUserSchema = {
 		isWrapMode: { type: 'boolean', optional: true },
 		isDynamicSizeMode: { type: 'boolean', optional: true },
 		isPasteAtCursorMode: { type: 'boolean', optional: true },
+		allowAnalyticsCookie: { type: 'boolean', optional: true },
 	},
 	primaryKey: ['id'],
 	relationships: {},
