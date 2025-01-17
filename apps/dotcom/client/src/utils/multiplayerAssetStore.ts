@@ -1,6 +1,6 @@
 import { MediaHelpers, TLAssetStore, clamp, fetch, uniqueId } from 'tldraw'
 import { loadLocalFile } from '../tla/utils/slurping'
-import { APP_ASSET_UPLOAD_URL, ASSET_UPLOADER_URL } from './config'
+import { APP_ASSET_UPLOAD_URL, ASSET_UPLOADER_URL, IMAGE_WORKER } from './config'
 import { isDevelopmentEnv } from './env'
 
 interface AppInfo {
@@ -106,10 +106,12 @@ export function multiplayerAssetStore(getAppInfo?: () => Promise<AppInfo>) {
 			}
 
 			// TODO: restore once we resole the issue with image worker not being able to fetch the image from sync worker
-			// const newUrl = `${IMAGE_WORKER}/${url.host}/${url.toString().slice(url.origin.length + 1)}`
-			const protocol = isDevelopmentEnv ? 'http' : 'https'
-			const newUrl = `${protocol}://${url.host}/${url.toString().slice(url.origin.length + 1)}`
-			return newUrl
+			// if (getAppInfo) {
+			// 	const protocol = isDevelopmentEnv ? 'http' : 'https'
+			// 	return `${protocol}://${url.host}/${url.toString().slice(url.origin.length + 1)}`
+			// } else {
+			return `${IMAGE_WORKER}/${url.host}/${url.toString().slice(url.origin.length + 1)}`
+			// }
 		},
 	} satisfies TLAssetStore
 }
