@@ -15,10 +15,7 @@ async function getUrl(file: File, getAppInfo?: () => Promise<AppInfo>) {
 	if (!getAppInfo) {
 		return `${ASSET_UPLOADER_URL}/uploads/${objectName}`
 	}
-	const appInfo = await getAppInfo()
-	const accessToken = appInfo.accessToken
-	const fileId = appInfo.fileId
-
+	const { accessToken, fileId } = await getAppInfo()
 	return `${window.location.origin}${APP_ASSET_UPLOAD_ENDPOINT}/${objectName}?${new URLSearchParams({ accessToken, fileId }).toString()}`
 }
 
