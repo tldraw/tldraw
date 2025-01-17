@@ -113,9 +113,9 @@ async function main() {
 
 	await discord.step('cloudflare deploy dry run', async () => {
 		await deployAssetUploadWorker({ dryRun: true })
-		await deployImageResizeWorker({ dryRun: true })
 		await deployHealthWorker({ dryRun: true })
 		await deployTlsyncWorker({ dryRun: true })
+		await deployImageResizeWorker({ dryRun: true })
 	})
 
 	// --- point of no return! do the deploy for real --- //
@@ -126,11 +126,11 @@ async function main() {
 	await discord.step('deploying asset uploader to cloudflare', async () => {
 		await deployAssetUploadWorker({ dryRun: false })
 	})
-	await discord.step('deploying image resizer to cloudflare', async () => {
-		await deployImageResizeWorker({ dryRun: false })
-	})
 	await discord.step('deploying multiplayer worker to cloudflare', async () => {
 		await deployTlsyncWorker({ dryRun: false })
+	})
+	await discord.step('deploying image resizer to cloudflare', async () => {
+		await deployImageResizeWorker({ dryRun: false })
 	})
 	await discord.step('deploying health worker to cloudflare', async () => {
 		await deployHealthWorker({ dryRun: false })
@@ -209,36 +209,6 @@ async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
 	})
 }
 
-let didUpdateImageResizeWorker = false
-async function deployImageResizeWorker({ dryRun }: { dryRun: boolean }) {
-	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-image-optimizer`
-	if (previewId && !didUpdateImageResizeWorker) {
-		await setWranglerPreviewConfig(imageResize, {
-			name: workerId,
-			serviceBinding: {
-				binding: 'SYNC_WORKER',
-				service: `${previewId}-tldraw-multiplayer`,
-			},
-		})
-		didUpdateImageResizeWorker = true
-	}
-
-	await wranglerDeploy({
-		location: imageResize,
-		dryRun,
-		env: env.TLDRAW_ENV,
-		vars: {
-			// SENTRY_DSN: env.ASSET_UPLOAD_SENTRY_DSN,
-			TLDRAW_ENV: env.TLDRAW_ENV,
-			WORKER_NAME: workerId,
-		},
-		// sentry: {
-		// 	project: 'asset-upload-worker',
-		// 	authToken: env.SENTRY_AUTH_TOKEN,
-		// },
-	})
-}
-
 let didUpdateTlsyncWorker = false
 async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-multiplayer`
@@ -277,6 +247,36 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			authToken: env.SENTRY_AUTH_TOKEN,
 			environment: workerId,
 		},
+	})
+}
+
+let didUpdateImageResizeWorker = false
+async function deployImageResizeWorker({ dryRun }: { dryRun: boolean }) {
+	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-image-optimizer`
+	if (previewId && !didUpdateImageResizeWorker) {
+		await setWranglerPreviewConfig(imageResize, {
+			name: workerId,
+			serviceBinding: {
+				binding: 'SYNC_WORKER',
+				service: `${previewId}-tldraw-multiplayer`,
+			},
+		})
+		didUpdateImageResizeWorker = true
+	}
+
+	await wranglerDeploy({
+		location: imageResize,
+		dryRun,
+		env: env.TLDRAW_ENV,
+		vars: {
+			// SENTRY_DSN: env.ASSET_UPLOAD_SENTRY_DSN,
+			TLDRAW_ENV: env.TLDRAW_ENV,
+			WORKER_NAME: workerId,
+		},
+		// sentry: {
+		// 	project: 'asset-upload-worker',
+		// 	authToken: env.SENTRY_AUTH_TOKEN,
+		// },
 	})
 }
 
