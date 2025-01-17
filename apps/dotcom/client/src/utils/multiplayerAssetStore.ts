@@ -105,13 +105,7 @@ export function multiplayerAssetStore(getAppInfo?: () => Promise<AppInfo>) {
 				url.searchParams.set('w', width.toString())
 			}
 
-			// TODO: restore once we resole the issue with image worker not being able to fetch the image from sync worker
-			// if (getAppInfo) {
-			// 	const protocol = isDevelopmentEnv ? 'http' : 'https'
-			// 	return `${protocol}://${url.host}/${url.toString().slice(url.origin.length + 1)}`
-			// } else {
 			return `${IMAGE_WORKER}/${url.host}/${url.toString().slice(url.origin.length + 1)}`
-			// }
 		},
 	} satisfies TLAssetStore
 }
