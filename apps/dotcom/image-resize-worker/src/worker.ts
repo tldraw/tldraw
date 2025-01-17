@@ -2,11 +2,11 @@ import { T } from '@tldraw/validate'
 import { createRouter, handleApiRequest, notFound, parseRequestQuery } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 
-declare const fetch: typeof import('@cloudflare/workers-types').fetch
-
 interface Environment {
 	IS_LOCAL?: string
 	SENTRY_DSN?: undefined
+
+	SYNC_WORKER: Fetcher
 }
 
 const queryValidator = T.object({
@@ -63,7 +63,8 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			if (query.w) imageOptions.width = Number(query.w)
 			if (query.q) imageOptions.quality = Number(query.q)
 
-			const actualResponse = await fetch(passthroughUrl, { cf: { image: imageOptions } })
+			const req = new Request(passthroughUrl.href, { cf: { image: imageOptions } })
+			const actualResponse = await this.env.SYNC_WORKER.fetch(req)
 			if (!actualResponse.headers.get('content-type')?.startsWith('image/')) return notFound()
 			if (actualResponse.status === 200) {
 				this.ctx.waitUntil(caches.default.put(cacheKey, actualResponse.clone()))

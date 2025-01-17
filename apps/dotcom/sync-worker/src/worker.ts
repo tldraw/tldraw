@@ -76,7 +76,6 @@ const router = createRouter<Environment>()
 	.get('/app/file/:roomId', forwardRoomRequest)
 	.get('/app/publish/:roomId', getPublishedFile)
 	.get('/app/uploads/:objectName', async (request, env, ctx) => {
-		console.log('💡[192]: worker.ts:124: request.params.objectName=', request.params.objectName)
 		return handleUserAssetGet({
 			request,
 			bucket: env.UPLOADS,
@@ -113,7 +112,6 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 	override async fetch(request: Request): Promise<Response> {
 		// if we get a request that starts with /api/, strip it before handling.
 		const url = new URL(request.url)
-		console.log('💡[196]: worker.ts:93: url=', url)
 		const pathname = url.pathname.replace(/^\/api\//, '/')
 		if (pathname !== url.pathname) {
 			url.pathname = pathname
