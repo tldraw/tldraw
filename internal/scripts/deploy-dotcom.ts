@@ -83,7 +83,7 @@ const sentryReleaseName = `${env.TLDRAW_ENV}-${previewId ? previewId + '-' : ''}
 if (previewId) {
 	env.ASSET_UPLOAD = `https://${previewId}-tldraw-assets.tldraw.workers.dev`
 	env.MULTIPLAYER_SERVER = `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
-	env.IMAGE_WORKER = `https://${previewId}-tldraw-image-resizer.tldraw.workers.dev`
+	env.IMAGE_WORKER = `https://${previewId}-tldraw-image-optimizer.tldraw.workers.dev`
 }
 
 async function main() {
@@ -211,7 +211,7 @@ async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
 
 let didUpdateImageResizeWorker = false
 async function deployImageResizeWorker({ dryRun }: { dryRun: boolean }) {
-	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-image-resizer`
+	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-image-optimizer`
 	if (previewId && !didUpdateImageResizeWorker) {
 		await setWranglerPreviewConfig(imageResize, {
 			name: workerId,
