@@ -17,6 +17,7 @@ import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely, sql } from 'kysely'
+import { Logger } from './Logger'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { type TLPostgresReplicator } from './TLPostgresReplicator'
@@ -46,6 +47,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
+	private log
+
 	cache: UserDataSyncer | null = null
 
 	constructor(ctx: DurableObjectState, env: Environment) {
@@ -55,8 +58,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.replicator = getReplicator(env)
 
 		this.db = createPostgresConnectionPool(env, 'TLUserDurableObject')
-		this.debug('created')
 		this.measure = env.MEASURE
+
+		// debug logging in preview envs by default
+		this.log = new Logger(env, 'TLUserDurableObject', this.sentry)
 	}
 
 	private userId: string | null = null
@@ -68,10 +73,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 			const rateLimited = await isRateLimited(this.env, this.userId!)
 			if (rateLimited) {
+				this.log.debug('rate limited')
 				this.logEvent({ type: 'rate_limited', id: this.userId })
 				throw new Error('Rate limited')
 			}
-			if (this.cache === null) {
+			if (!this.cache) {
 				await this.init()
 			} else {
 				await this.cache.waitUntilConnected()
@@ -81,17 +87,19 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private async init() {
 		assert(this.userId, 'User ID not set')
-		this.debug('init')
+		this.log.debug('init', this.userId)
 		this.cache = new UserDataSyncer(
 			this.ctx,
 			this.env,
 			this.db,
 			this.userId,
 			(message) => this.broadcast(message),
-			this.logEvent.bind(this)
+			this.logEvent.bind(this),
+			this.log
 		)
-		this.debug('cache', !!this.cache)
+		this.log.debug('cache', !!this.cache)
 		await this.cache.waitUntilConnected()
+		this.log.debug('cache connected')
 	}
 
 	// Handle a request to the Durable Object.
@@ -181,17 +189,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.sockets.add(serverWebSocket)
 
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
-	}
-
-	private debug(...args: any[]) {
-		// uncomment for dev time debugging
-		// console.log('[TLUserDurableObject]: ', ...args)
-		if (this.sentry) {
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			this.sentry.addBreadcrumb({
-				message: `[TLUserDurableObject]: ${args.map((a) => (typeof a === 'object' ? JSON.stringify(a) : a)).join(' ')}`,
-			})
-		}
 	}
 
 	private async handleSocketMessage(message: string) {
@@ -393,7 +390,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				}
 			)
 			// TODO: We should probably handle a case where the above operation succeeds but the one below fails
-			this.debug('mutation success', this.userId)
+			this.log.debug('mutation success', this.userId)
 			await this.db
 				.transaction()
 				.execute(async (tx) => {
@@ -410,14 +407,14 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						)
 						.returning('mutationNumber')
 						.executeTakeFirstOrThrow()
-					this.debug('mutation number success', this.userId)
+					this.log.debug('mutation number success', this.userId)
 					const mutationNumber = Number(result.mutationNumber)
 					const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
 					assert(
 						mutationNumber > currentMutationNumber,
 						`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
 					)
-					this.debug('pushing mutation to cache', this.userId, mutationNumber)
+					this.log.debug('pushing mutation to cache', this.userId, mutationNumber)
 					this.cache.mutations.push({ mutationNumber, mutationId: msg.mutationId })
 				})
 				.catch((e) => {
@@ -438,7 +435,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	async handleReplicationEvent(event: ZReplicationEvent) {
 		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
-		this.debug('replication event', event, !!this.cache)
+		this.log.debug('replication event', event, !!this.cache)
 		if (!this.cache) {
 			return 'unregister'
 		}
