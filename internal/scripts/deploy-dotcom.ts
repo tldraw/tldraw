@@ -83,7 +83,7 @@ const sentryReleaseName = `${env.TLDRAW_ENV}-${previewId ? previewId + '-' : ''}
 if (previewId) {
 	env.ASSET_UPLOAD = `https://${previewId}-tldraw-assets.tldraw.workers.dev`
 	env.MULTIPLAYER_SERVER = `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
-	env.IMAGE_WORKER = `https://${previewId}-tldraw-images.tldraw.workers.dev`
+	env.IMAGE_WORKER = `https://${previewId}-tldraw-image-resizer.tldraw.workers.dev`
 }
 
 async function main() {
