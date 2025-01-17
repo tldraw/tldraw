@@ -14,6 +14,20 @@ const queryValidator = T.object({
 	q: T.string.optional(),
 })
 
+// All the existing assets use the asset worker to to get the assets, so we will keep
+// fetching the assets from there instead of using the service binding
+function isOldAssetsOrigin(origin: string) {
+	const oldOrigins = [
+		// local dev
+		'localhost:8788',
+		// production
+		'assets.tldraw.xyz',
+		// staging and previews
+		'-tldraw-assets',
+	]
+	return oldOrigins.some((oldOrigin) => origin.includes(oldOrigin))
+}
+
 export default class Worker extends WorkerEntrypoint<Environment> {
 	readonly router = createRouter()
 		.get('/:origin/:path+', async (request) => {
@@ -63,8 +77,13 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			if (query.w) imageOptions.width = Number(query.w)
 			if (query.q) imageOptions.quality = Number(query.q)
 
-			const req = new Request(passthroughUrl.href, { cf: { image: imageOptions } })
-			const actualResponse = await this.env.SYNC_WORKER.fetch(req)
+			let actualResponse: Response
+			if (isOldAssetsOrigin(origin)) {
+				actualResponse = await fetch(passthroughUrl, { cf: { image: imageOptions } })
+			} else {
+				const req = new Request(passthroughUrl.href, { cf: { image: imageOptions } })
+				actualResponse = await this.env.SYNC_WORKER.fetch(req)
+			}
 			if (!actualResponse.headers.get('content-type')?.startsWith('image/')) return notFound()
 			if (actualResponse.status === 200) {
 				this.ctx.waitUntil(caches.default.put(cacheKey, actualResponse.clone()))

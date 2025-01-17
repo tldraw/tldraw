@@ -182,50 +182,22 @@ class Slurper {
 
 	private async uploadLocalAssets() {
 		if (this.opts.abortSignal.aborted) return
-
 		const assetsToUpload = this.opts.editor.store.query
 			.records('asset')
 			.get()
 			.filter((a) => a.props.src?.startsWith('asset:'))
 
-		// we create a small set of execution queues to upload assets concurrently
-		// and to allow some to succeed and some to fail regardless of order
-		const uploadQueues = new Array(UPLOAD_CONCURRENCY).fill(0).map(() => new ExecutionQueue())
-
-		const uploads = Promise.allSettled(
-			assetsToUpload.map((asset, i) =>
-				uploadQueues[i % UPLOAD_CONCURRENCY].push(async () => {
-					const res = await loadLocalFile(asset)
-					if (!res) throw new Error(`Failed to load local file for asset ${asset.id}`)
-					const url = await retry(
-						() => this.opts.editor.uploadAsset(asset!, res.file, this.opts.abortSignal),
-						{
-							attempts: 3,
-							waitDuration: 1000,
-							abortSignal: this.opts.abortSignal,
-						}
-					)
-					this.opts.editor.updateAssets([
-						{
-							...asset,
-							props: { ...asset.props, src: url },
-							// we might have hidden the asset if the upload failed previously
-							meta: { ...asset.meta, hidden: false },
-						},
-					])
-				})
-			)
-		)
-
-		const abortPromise = new Promise<void>((resolve) => {
-			this.opts.abortSignal.addEventListener('abort', () => resolve())
-		})
-
-		const res = await Promise.race([uploads, abortPromise] as const)
-		if (!res || this.opts.abortSignal.aborted) {
-			// aborted
-			return
+		const getAsset = async (asset: TLAsset) => {
+			const res = await loadLocalFile(asset)
+			return res?.file ?? null
 		}
+		const res = await uploadAssets(
+			this.opts.abortSignal,
+			this.opts.editor,
+			assetsToUpload,
+			getAsset
+		)
+		if (!res) return
 
 		if (res.every((r) => r.status === 'fulfilled')) {
 			// .every returns true if the array is empty, so this will run if there
@@ -246,4 +218,43 @@ class Slurper {
 
 		this.onSlurpFail()
 	}
+}
+
+export async function uploadAssets(
+	abortSignal: AbortSignal,
+	editor: Editor,
+	assetsToUpload: TLAsset[],
+	getAsset: (asset: TLAsset) => Promise<File | null>
+) {
+	// we create a small set of execution queues to upload assets concurrently
+	// and to allow some to succeed and some to fail regardless of order
+	const uploadQueues = new Array(UPLOAD_CONCURRENCY).fill(0).map(() => new ExecutionQueue())
+
+	const uploads = Promise.allSettled(
+		assetsToUpload.map((asset, i) =>
+			uploadQueues[i % UPLOAD_CONCURRENCY].push(async () => {
+				const res = await getAsset(asset)
+				if (!res) throw new Error(`Failed to load file for asset ${asset.id}`)
+				const url = await retry(() => editor.uploadAsset(asset!, res, abortSignal), {
+					attempts: 3,
+					waitDuration: 1000,
+					abortSignal,
+				})
+				editor.updateAssets([
+					{
+						...asset,
+						props: { ...asset.props, src: url },
+						// we might have hidden the asset if the upload failed previously
+						meta: { ...asset.meta, hidden: false },
+					},
+				])
+			})
+		)
+	)
+
+	const abortPromise = new Promise<void>((resolve) => {
+		abortSignal.addEventListener('abort', () => resolve())
+	})
+
+	return await Promise.race([uploads, abortPromise] as const)
 }
