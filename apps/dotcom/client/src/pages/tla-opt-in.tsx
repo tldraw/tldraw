@@ -1,15 +1,8 @@
-import { SignUpButton, useAuth } from '@clerk/clerk-react'
+import { SignUpButton } from '@clerk/clerk-react'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
 import { F } from '../tla/utils/i18n'
 
 export function Component() {
-	const { isSignedIn, isLoaded } = useAuth()
-	if (isSignedIn) {
-		// redirect to home page once the user is signed in
-		window.location.href = window.location.origin
-		return null
-	}
-	if (!isLoaded) return null
 	return (
 		<div
 			style={{
@@ -27,7 +20,7 @@ export function Component() {
 				<F defaultMessage="Try the new tldraw (preview)" />
 			</h2>
 			<p style={{ maxWidth: 400 }}>
-				<F defaultMessage="Sign in to access the preview version of tldraw.com, which adds file management and collaboration features." />
+				<F defaultMessage="Sign up to access the preview version of tldraw.com, which adds file management and collaboration features." />
 			</p>
 			<div style={{ display: 'flex', gap: 10 }}>
 				<TlaButton
@@ -38,11 +31,7 @@ export function Component() {
 				>
 					<F defaultMessage="No thanks" />
 				</TlaButton>
-				<SignUpButton
-					mode="modal"
-					forceRedirectUrl={location.pathname}
-					signInForceRedirectUrl={location.pathname}
-				>
+				<SignUpButton mode="modal" forceRedirectUrl="/" signInForceRedirectUrl="/">
 					<TlaButton data-testid="tla-opt-in">
 						<F defaultMessage="Sign up" />
 					</TlaButton>

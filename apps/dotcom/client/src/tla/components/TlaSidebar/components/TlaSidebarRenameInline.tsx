@@ -36,6 +36,7 @@ export function TlaSidebarRenameInline({
 		<div className={styles.renameWrapper}>
 			<TldrawUiInput
 				ref={ref}
+				data-testid="tla-sidebar-rename-input"
 				className={classNames(styles.rename, 'tla-text_ui__regular')}
 				defaultValue={app.getFileName(fileId)}
 				onComplete={handleSave}

@@ -3,7 +3,7 @@ import { IRequest, StatusError } from 'itty-router'
 import { Environment } from '../../types'
 
 export async function requireAuth(request: IRequest, env: Environment): Promise<SignedInAuth> {
-	const auth = await getAuth(request, env)
+	const auth = await getAuthFromSearchParams(request, env)
 	if (!auth) {
 		throw new StatusError(401, 'Unauthorized')
 	}
@@ -11,7 +11,10 @@ export async function requireAuth(request: IRequest, env: Environment): Promise<
 	return auth
 }
 
-export async function getAuth(request: IRequest, env: Environment): Promise<SignedInAuth | null> {
+export async function getAuthFromSearchParams(
+	request: IRequest,
+	env: Environment
+): Promise<SignedInAuth | null> {
 	const clerk = createClerkClient({
 		secretKey: env.CLERK_SECRET_KEY,
 		publishableKey: env.CLERK_PUBLISHABLE_KEY,

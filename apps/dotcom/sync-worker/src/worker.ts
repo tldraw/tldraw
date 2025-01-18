@@ -6,7 +6,7 @@ import {
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
 } from '@tldraw/dotcom-shared'
-import { createRouter, handleApiRequest, notFound } from '@tldraw/worker-shared'
+import { createRouter, handleApiRequest, handleUserAssetGet, notFound } from '@tldraw/worker-shared'
 import { DurableObject, WorkerEntrypoint } from 'cloudflare:workers'
 import { cors } from 'itty-router'
 // import { APP_ID } from './TLAppDurableObject'
@@ -23,10 +23,11 @@ import { createFiles } from './routes/tla/createFiles'
 import { deleteFile } from './routes/tla/deleteFile'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
+import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment, isDebugLogging } from './types'
 import { getLogger, getUserDurableObject } from './utils/durableObjects'
-import { getAuth } from './utils/tla/getAuth'
+import { getAuthFromSearchParams } from './utils/tla/getAuth'
 // export { TLAppDurableObject } from './TLAppDurableObject'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -62,7 +63,7 @@ const router = createRouter<Environment>()
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.get('/app/:userId/connect', async (req, env) => {
 		// forward req to the user durable object
-		const auth = await getAuth(req, env)
+		const auth = await getAuthFromSearchParams(req, env)
 		if (!auth) {
 			// eslint-disable-next-line no-console
 			console.log('auth not found')
@@ -74,6 +75,15 @@ const router = createRouter<Environment>()
 	.post('/app/tldr', createFiles)
 	.get('/app/file/:roomId', forwardRoomRequest)
 	.get('/app/publish/:roomId', getPublishedFile)
+	.get('/app/uploads/:objectName', async (request, env, ctx) => {
+		return handleUserAssetGet({
+			request,
+			bucket: env.UPLOADS,
+			objectName: request.params.objectName,
+			context: ctx,
+		})
+	})
+	.post('/app/uploads/:objectName', upload)
 	.delete('/app/file/:roomId', deleteFile)
 	.all('/app/__test__/*', testRoutes.fetch)
 	.all('/ph/*', (req) => {

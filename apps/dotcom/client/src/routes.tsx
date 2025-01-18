@@ -1,9 +1,10 @@
+import { useAuth } from '@clerk/clerk-react'
 import { captureException } from '@sentry/react'
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { Suspense, lazy, useEffect } from 'react'
+import { PropsWithChildren, Suspense, lazy, useEffect, useLayoutEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Outlet, Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
-import { getFromLocalStorage } from 'tldraw'
+import { deleteFromLocalStorage, getFromLocalStorage, setInLocalStorage } from 'tldraw'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { notFound } from './pages/not-found'
@@ -18,6 +19,23 @@ export const tlaProbablyLoggedInFlag = 'tla-probably-logged-in-flag'
 
 const isOverrideFlagSet = !!getFromLocalStorage(tlaOverrideFlag) || navigator.webdriver
 const isProbablyLoggedIn = !!getFromLocalStorage(tlaProbablyLoggedInFlag)
+
+export function SetPreviewFlag(props: PropsWithChildren) {
+	const auth = useAuth()
+	useLayoutEffect(() => {
+		if (!auth.isLoaded) return
+		if (isOverrideFlagSet) return
+		if (auth.isSignedIn && !isProbablyLoggedIn) {
+			setInLocalStorage(tlaProbablyLoggedInFlag, 'true')
+			window.location.reload()
+		} else if (!auth.isSignedIn && isProbablyLoggedIn) {
+			deleteFromLocalStorage(tlaProbablyLoggedInFlag)
+			window.location.reload()
+		}
+	}, [auth.isSignedIn, auth.isLoaded])
+	if (!auth.isLoaded && !isOverrideFlagSet) return null
+	return <>{props.children}</>
+}
 
 export const legacyRoutes = (
 	<Route errorElement={<DefaultErrorFallback />}>
@@ -65,6 +83,7 @@ export const tlaRoutes = (
 		<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
 			<Route path={ROUTES.tlaRoot} lazy={() => import('./tla/pages/local')} />
 			<Route element={<NoIndex />}>
+				<Route path={ROUTES.tlaOptIn} lazy={() => import('./pages/tla-opt-in')} />
 				<Route path={ROUTES.tlaLocalFile} lazy={() => import('./tla/pages/local-file')} />
 				{/* <Route path={ROUTES.tlaPlayground} lazy={() => import('./tla/pages/playground')} /> */}
 				{/* File view */}

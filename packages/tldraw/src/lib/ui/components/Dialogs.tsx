@@ -4,7 +4,12 @@ import { memo, useCallback } from 'react'
 import { TLUiDialog, useDialogs } from '../context/dialogs'
 
 /** @internal */
-const TldrawUiDialog = ({ id, component: ModalContent, onClose }: TLUiDialog) => {
+const TldrawUiDialog = ({
+	id,
+	component: ModalContent,
+	onClose,
+	preventBackgroundClose,
+}: TLUiDialog) => {
 	const { removeDialog } = useDialogs()
 
 	const container = useContainer()
@@ -33,10 +38,19 @@ const TldrawUiDialog = ({ id, component: ModalContent, onClose }: TLUiDialog) =>
 					className="tlui-dialog__overlay"
 					onClick={(e) => {
 						// only close if the click is on the overlay itself, ignore bubbling clicks
-						if (e.target === e.currentTarget) handleOpenChange(false)
+						if (!preventBackgroundClose && e.target === e.currentTarget) handleOpenChange(false)
 					}}
 				>
-					<_Dialog.Content dir="ltr" className="tlui-dialog__content" aria-describedby={undefined}>
+					<_Dialog.Content
+						dir="ltr"
+						className="tlui-dialog__content"
+						aria-describedby={undefined}
+						onInteractOutside={(e) => {
+							if (preventBackgroundClose) {
+								e.preventDefault()
+							}
+						}}
+					>
 						<ModalContent onClose={() => handleOpenChange(false)} />
 					</_Dialog.Content>
 				</_Dialog.Overlay>
@@ -46,7 +60,7 @@ const TldrawUiDialog = ({ id, component: ModalContent, onClose }: TLUiDialog) =>
 }
 
 /** @public @react */
-export const TldrawUiDialogs = memo(function TldrawUiDialogs() {
+export const DefaultDialogs = memo(function DefaultDialogs() {
 	const { dialogs } = useDialogs()
 	const dialogsArray = useValue('dialogs', () => dialogs.get(), [dialogs])
 	return dialogsArray.map((dialog) => <TldrawUiDialog key={dialog.id} {...dialog} />)
