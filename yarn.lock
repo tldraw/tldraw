@@ -6715,8 +6715,8 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@tldraw/worker-shared": "workspace:*"
-    "@types/react": "npm:^18.3.1"
-    "@types/react-dom": "npm:^18.3.1"
+    "@types/react": "npm:^18.3.18"
+    "@types/react-dom": "npm:^18.3.5"
     esbuild: "npm:^0.24.2"
     itty-router: "npm:^5.0.18"
     lazyrepo: "npm:0.0.0-alpha.27"
@@ -6745,8 +6745,8 @@ __metadata:
     "@types/broken-link-checker": "npm:^0.7.3"
     "@types/mdast": "npm:^4.0.4"
     "@types/node": "npm:~20.11.30"
-    "@types/react": "npm:^18.3.1"
-    "@types/react-dom": "npm:^18.3.1"
+    "@types/react": "npm:^18.3.18"
+    "@types/react-dom": "npm:^18.3.5"
     "@types/sqlite3": "npm:^3.1.11"
     "@types/ws": "npm:^8.5.14"
     "@vercel/analytics": "npm:^1.4.1"
@@ -7821,7 +7821,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^18.0.0, @types/react-dom@npm:^18.3.1, @types/react-dom@npm:^18.3.5":
+"@types/react-dom@npm:^18.0.0, @types/react-dom@npm:^18.3.5":
   version: 18.3.5
   resolution: "@types/react-dom@npm:18.3.5"
   peerDependencies:
@@ -7851,7 +7851,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:16 || 17 || 18, @types/react@npm:^18.3.1, @types/react@npm:^18.3.18":
+"@types/react@npm:*, @types/react@npm:16 || 17 || 18, @types/react@npm:^18.3.18":
   version: 18.3.18
   resolution: "@types/react@npm:18.3.18"
   dependencies:
