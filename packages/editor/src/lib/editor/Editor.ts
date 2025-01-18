@@ -1666,7 +1666,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	isAncestorSelected(shape: TLShape | TLShapeId): boolean {
-		const id = typeof shape === 'string' ? shape : shape?.id ?? null
+		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		const _shape = this.getShape(id)
 		if (!_shape) return false
 		const selectedShapeIds = this.getSelectedShapeIds()
@@ -1923,7 +1923,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setFocusedGroup(shape: TLShapeId | TLGroupShape | null): this {
-		const id = typeof shape === 'string' ? shape : shape?.id ?? null
+		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 
 		if (id !== null) {
 			const shape = this.getShape(id)
@@ -2006,7 +2006,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setEditingShape(shape: TLShapeId | TLShape | null): this {
-		const id = typeof shape === 'string' ? shape : shape?.id ?? null
+		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		if (id !== this.getEditingShapeId()) {
 			if (id) {
 				const shape = this.getShape(id)
@@ -2067,7 +2067,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setHoveredShape(shape: TLShapeId | TLShape | null): this {
-		const id = typeof shape === 'string' ? shape : shape?.id ?? null
+		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		if (id === this.getHoveredShapeId()) return this
 		this.run(
 			() => {
@@ -2216,7 +2216,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setCroppingShape(shape: TLShapeId | TLShape | null): this {
-		const id = typeof shape === 'string' ? shape : shape?.id ?? null
+		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		if (id !== this.getCroppingShapeId()) {
 			this.run(
 				() => {
@@ -8776,8 +8776,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 							// If our pointer moved only because we're following some other user, then don't
 							// update our last activity timestamp; otherwise, update it to the current timestamp.
 							info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.CAMERA_MOVE
-								? this.store.unsafeGetWithoutCapture(TLPOINTER_ID)?.lastActivityTimestamp ??
-									this._tickManager.now
+								? (this.store.unsafeGetWithoutCapture(TLPOINTER_ID)?.lastActivityTimestamp ??
+									this._tickManager.now)
 								: this._tickManager.now,
 						meta: {},
 					},

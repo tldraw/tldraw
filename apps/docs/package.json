@@ -52,6 +52,7 @@
 		"@microsoft/tsdoc": "patch:@microsoft/tsdoc@npm%3A0.15.1#~/.yarn/patches/@microsoft-tsdoc-npm-0.15.1-e24295d9bd.patch",
 		"@radix-ui/react-accordion": "^1.2.2",
 		"@radix-ui/react-dialog": "^1.1.5",
+		"@shikijs/engine-javascript": "^1.29.1",
 		"@shikijs/rehype": "^1.29.1",
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/utils": "workspace:*",
