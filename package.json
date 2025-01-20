@@ -122,7 +122,8 @@
 		"domino@^2.1.6": "patch:domino@npm%3A2.1.6#./.yarn/patches/domino-npm-2.1.6-b0dc3de857.patch",
 		"canvas": "npm:empty-npm-package@1.0.0",
 		"@microsoft/tsdoc@npm:0.14.2": "patch:@microsoft/tsdoc@npm%3A0.14.2#~/.yarn/patches/@microsoft-tsdoc-npm-0.14.2-9988282153.patch",
-		"postgres@npm:^3.4.4": "patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch"
+		"postgres@npm:^3.4.4": "patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch",
+		"canvas-size": "patch:canvas-size@npm%3A2.0.0#~/.yarn/patches/canvas-size-npm-2.0.0-822398a242.patch"
 	},
 	"dependencies": {
 		"@sentry/cli": "^2.25.0",

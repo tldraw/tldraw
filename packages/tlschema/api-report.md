@@ -697,15 +697,10 @@ export type TLAsset = TLBookmarkAsset | TLImageAsset | TLVideoAsset;
 
 // @public (undocumented)
 export interface TLAssetContext {
-    // (undocumented)
     dpr: number;
-    // (undocumented)
     networkEffectiveType: null | string;
-    // (undocumented)
     screenScale: number;
-    // (undocumented)
     shouldResolveToOriginal: boolean;
-    // (undocumented)
     steppedScreenScale: number;
 }
 

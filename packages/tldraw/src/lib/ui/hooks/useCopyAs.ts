@@ -12,7 +12,7 @@ export function useCopyAs() {
 
 	return useCallback(
 		(ids: TLShapeId[], format: TLCopyType = 'svg') => {
-			copyAs(editor, ids, format).catch(() => {
+			copyAs(editor, ids, { format }).catch(() => {
 				addToast({
 					id: 'copy-fail',
 					severity: 'warning',

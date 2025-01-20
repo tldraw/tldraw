@@ -3,7 +3,7 @@ import { useCallback, useRef, useState } from 'react'
 import {
 	Editor,
 	FileHelpers,
-	TLImageExportOptions,
+	TLExportType,
 	TLShape,
 	compact,
 	debounce,
@@ -226,13 +226,14 @@ function ExportImageButton() {
 			ids = editor.getSortedChildIdsForParent(editor.getCurrentPageId())
 		}
 
-		const opts: TLImageExportOptions = {
+		const opts = {
 			padding: exportPadding ? editor.options.defaultSvgPadding : 0,
 			background: exportBackground,
 			darkMode: exportTheme === 'auto' ? undefined : exportTheme === 'dark',
+			format: exportFormat as TLExportType,
 		}
 
-		exportAs(editor, ids, exportFormat as any, 'file', opts)
+		exportAs(editor, ids, opts)
 
 		trackEvent('export-image', {
 			source: 'file-share-menu',

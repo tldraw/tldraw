@@ -1,4 +1,4 @@
-import { MediaHelpers, TLAssetStore, fetch, uniqueId } from 'tldraw'
+import { MediaHelpers, TLAssetStore, clamp, fetch, uniqueId } from 'tldraw'
 import { loadLocalFile } from '../tla/utils/slurping'
 import { ASSET_UPLOADER_URL, IMAGE_WORKER } from './config'
 import { isDevelopmentEnv } from './env'
@@ -78,7 +78,10 @@ export const multiplayerAssetStore = {
 
 			const width = Math.ceil(
 				Math.min(
-					asset.props.w * context.steppedScreenScale * networkCompensation * context.dpr,
+					asset.props.w *
+						clamp(context.steppedScreenScale, 1 / 32, 1) *
+						networkCompensation *
+						context.dpr,
 					asset.props.w
 				)
 			)
