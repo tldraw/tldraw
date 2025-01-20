@@ -1,0 +1,324 @@
+{
+  "0095a9fa74": {
+    "translation": "לייצא"
+  },
+  "03b3e13197": {
+    "translation": "גררו את הקובץ לסרגל הצד בעמוד זה. או בחרו באפשרות 'ייבוא ​קובץ' מתפריט המשתמש."
+  },
+  "043973ec1f": {
+    "translation": "עדיין נתקלים בבעיות? {GetHelpLink}"
+  },
+  "05596b840b": {
+    "translation": "פתח את tldraw."
+  },
+  "06b9281e39": {
+    "translation": "אוטומטי"
+  },
+  "07dbd11b21": {
+    "translation": "קובץ ללא שם"
+  },
+  "08331c1710": {
+    "translation": "חרגת ממגבלת התעריף, יש לנסות שוב מאוחר יותר."
+  },
+  "0b27918290": {
+    "translation": "קובץ"
+  },
+  "0b9a4cde72": {
+    "translation": "תפריט קבצים"
+  },
+  "110a4b01be": {
+    "translation": "פרסום"
+  },
+  "13ddd375ad": {
+    "translation": "ייצא בשם"
+  },
+  "181b90f889": {
+    "translation": "יצירת קובץ"
+  },
+  "1da2e8106b": {
+    "translation": "אירעה שגיאה בלתי צפויה."
+  },
+  "1dd1c5fb7f": {
+    "translation": "היום"
+  },
+  "1f9696d5f2": {
+    "translation": "ייצאו את התוכן כקובץ tldr: עברו אל 'קובץ' > 'שמירת עותק'"
+  },
+  "279f0531ff": {
+    "translation": "עדיין נתקלים בבעיות? הודיעו לנו בכתובת <a>hello@tldraw.com</a>"
+  },
+  "299cb00a7a": {
+    "translation": "ההעלאה נכשלה"
+  },
+  "31246941ad": {
+    "translation": "עליך להיכנס כדי לראות את הקובץ הזה."
+  },
+  "31418ce4ad": {
+    "translation": "i18n: הדגש חסר"
+  },
+  "335defdafe": {
+    "translation": "אנא נסו לרענן את הדף."
+  },
+  "344a7f427f": {
+    "translation": "עוֹרֵך"
+  },
+  "354ff6be84": {
+    "translation": "נוסף {count} .tldr {count, plural, one {file} אחר {files}}."
+  },
+  "3bd1b98dbd": {
+    "translation": "לא ניתן לפרסם את השינויים."
+  },
+  "3c5e891bff": {
+    "translation": "ננעץ"
+  },
+  "424cc22417": {
+    "translation": "קח אותי הביתה"
+  },
+  "42e53c47c1": {
+    "translation": "צרו קשר עם הבעלים כדי לבקש גישה."
+  },
+  "44db318ee5": {
+    "translation": "קבלו עזרה ב-Discord"
+  },
+  "458cd104d7": {
+    "translation": "מצטערים, אין לך גישה לקובץ הזה. אם ידוע לך מי יצר את הקובץ, באפשרותך לבקש קישור הזמנה חדש."
+  },
+  "47839e47a5": {
+    "translation": "tldraw"
+  },
+  "4908687e50": {
+    "translation": "רוצה בוודאות לשכוח את הקובץ הזה?"
+  },
+  "4d1c8263ba": {
+    "translation": "לטעון מחדש"
+  },
+  "50db1b7e1e": {
+    "translation": "לא ניתן לבטל את פרסום הקובץ."
+  },
+  "517bb809d9": {
+    "translation": "תפריט עמודים"
+  },
+  "54286b1d01": {
+    "translation": "הגעת למגבלה של שותפי עריכה"
+  },
+  "54d240fa41": {
+    "translation": "נא להאט את הקצב."
+  },
+  "55505ba281": {
+    "translation": "PNG"
+  },
+  "5a95a425f7": {
+    "translation": "שיתוף"
+  },
+  "5d26ae7550": {
+    "translation": "לא הצלחנו להעלות חלק מהתוכן שיצרת לפני שנכנסת."
+  },
+  "5fb63579fc": {
+    "translation": "העתקה"
+  },
+  "61057a0c84": {
+    "translation": "מאוחר יותר"
+  },
+  "625fd29749": {
+    "translation": "ישן יותר"
+  },
+  "6609dd239e": {
+    "translation": "משהו השתבש"
+  },
+  "6a26f54883": {
+    "translation": "עזרה"
+  },
+  "6dc0836c1b": {
+    "translation": "אין לך את ההרשאות הדרושות לביצוע פעולה זו."
+  },
+  "6dfc62f621": {
+    "translation": "כדי לייבא את התוכן באופן ידני יש לבצע את השלבים הבאים:"
+  },
+  "70a6facb9d": {
+    "translation": "השבוע"
+  },
+  "73ab799383": {
+    "translation": "גרסה זו של tldraw אינה נתמכת עוד."
+  },
+  "7408cf0d7b": {
+    "translation": "יש לטעון מחדש את הדף"
+  },
+  "7573b8110a": {
+    "translation": "אין גישה"
+  },
+  "777f9e90cf": {
+    "translation": "בקשה לא חוקית."
+  },
+  "7cb5f8b4a5": {
+    "translation": "לשכוח"
+  },
+  "7daeced9ff": {
+    "translation": "פרסום שינויים"
+  },
+  "7fcdcc6455": {
+    "translation": "לשכוח את הקובץ"
+  },
+  "85a082de1b": {
+    "translation": "אנא רעננו את הדף כדי לקבל את הגרסה העדכנית ביותר של tldraw."
+  },
+  "8eb2c00e96": {
+    "translation": "משותף איתך"
+  },
+  "8ff3d0a705": {
+    "translation": "שיעור מוגבל"
+  },
+  "902b0d55fd": {
+    "translation": "שגיאה"
+  },
+  "904a830405": {
+    "translation": "שינוי שם"
+  },
+  "91e49bb0eb": {
+    "translation": "העתקה לקבצים שלי"
+  },
+  "9563b82670": {
+    "translation": "מעלה {count} .tldr {count, plural, one {file} אחר {files}}..."
+  },
+  "96165d6df5": {
+    "translation": "החודש הזה"
+  },
+  "9914a0ce04": {
+    "translation": "תאורה"
+  },
+  "9bef626805": {
+    "translation": "מחיקת קובץ"
+  },
+  "9ceb927baa": {
+    "translation": "לפרסם את הקובץ הזה"
+  },
+  "9e076f5885": {
+    "translation": "לא נמצא"
+  },
+  "a104439641": {
+    "translation": "ריווח פנימי"
+  },
+  "a18366b217": {
+    "translation": "כהה"
+  },
+  "a1c915578c": {
+    "translation": "הקובץ שחיפשת אינו קיים."
+  },
+  "a239905023": {
+    "translation": "ייצוא תמונה"
+  },
+  "a6cc403d56": {
+    "translation": "כל מי שיש לו את הקישור"
+  },
+  "a9ded1e5ce": {
+    "translation": "רקע"
+  },
+  "af3dc88931": {
+    "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
+    "translation": "פורסם לאחרונה <date></date>"
+  },
+  "b6d4223e60": {
+    "translation": "כניסה"
+  },
+  "b758336699": {
+    "translation": "העתקת קישור"
+  },
+  "bb792693e2": {
+    "translation": "ביטול נעיצה"
+  },
+  "bc88b0e89e": {
+    "translation": "משותף על ידי {ownerName}"
+  },
+  "bcb62136a3": {
+    "translation": "העלאת קבצי .tldr"
+  },
+  "c2276c9127": {
+    "translation": "למידע נוסף על שיתוף."
+  },
+  "c303bd1095": {
+    "translation": "לא ניתן לפרסם את הקובץ."
+  },
+  "c655b27b1e": {
+    "translation": "i18n: מחרוזת ארוכה"
+  },
+  "c6a00f137b": {
+    "translation": "הזמנה"
+  },
+  "c87aacf567": {
+    "translation": "יציאה"
+  },
+  "cceaefbc20": {
+    "translation": "לשתף את הקובץ הזה"
+  },
+  "cd15a75c26": {
+    "translation": "SVG"
+  },
+  "cea291e45e": {
+    "translation": "למידע נוסף על פרסום."
+  },
+  "d3d2e61733": {
+    "translation": "סגירה"
+  },
+  "d4bbf74f3e": {
+    "translation": "החלפת סרגל הצד"
+  },
+  "d721757161": {
+    "translation": "נושא"
+  },
+  "d876a9fe1a": {
+    "translation": "לנסות שוב"
+  },
+  "d9100f3e10": {
+    "translation": "כנסו לכאן כדי לראות את התוכן"
+  },
+  "d9fe660e4e": {
+    "translation": "מצטערים, אין לך גישה לסביבת העבודה הזו."
+  },
+  "dbbebf3c03": {
+    "translation": "הזמנה בלבד"
+  },
+  "dfdb78a4e4": {
+    "translation": "דגלי ניפוי באגים באפליקציה"
+  },
+  "e2cd8064c2": {
+    "translation": "מצטערים, אין לך גישה למשתמש הזה."
+  },
+  "e78e14c5f1": {
+    "translation": "נעיצה"
+  },
+  "ea4788705e": {
+    "translation": "ביטול"
+  },
+  "ebfe9ce86e": {
+    "translation": "אתמול"
+  },
+  "ec59b960ea": {
+    "translation": "קובץ זה הגיע למספר המרבי של שותפי עריכה פעילים."
+  },
+  "ec611e9a08": {
+    "translation": "תפריט חשבון"
+  },
+  "ec9ad9950f": {
+    "translation": "מצטערים, הקובץ הזה לא קיים."
+  },
+  "ed53713239": {
+    "translation": "i18n: מבטא"
+  },
+  "ed75712b0e": {
+    "translation": "שכפול"
+  },
+  "f2a6c498fb": {
+    "translation": "מחיקה"
+  },
+  "f43fb62093": {
+    "translation": "חזרה ל-tldraw."
+  },
+  "fb15c53f22": {
+    "translation": "צופה"
+  },
+  "fd1be3efcf": {
+    "translation": "רוצה בוודאות למחוק את הקובץ הזה?"
+  },
+  "fed5ec05eb": {
+    "translation": "הקישור הועתק"
+  }
+}

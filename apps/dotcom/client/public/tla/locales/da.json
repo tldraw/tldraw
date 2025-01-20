@@ -1,0 +1,324 @@
+{
+  "0095a9fa74": {
+    "translation": "Eksportere"
+  },
+  "03b3e13197": {
+    "translation": "Træk filen ind i sidebjælken på denne side. Eller vælg indstillingen 'Importer fil' fra brugermenuen."
+  },
+  "043973ec1f": {
+    "translation": "Har du stadig problemer? {GetHelpLink}"
+  },
+  "05596b840b": {
+    "translation": "Åbn tldraw."
+  },
+  "06b9281e39": {
+    "translation": "Auto"
+  },
+  "07dbd11b21": {
+    "translation": "Unavngivet fil"
+  },
+  "08331c1710": {
+    "translation": "Satsgrænsen er overskredet. Prøv igen senere."
+  },
+  "0b27918290": {
+    "translation": "Fil"
+  },
+  "0b9a4cde72": {
+    "translation": "Fil menu"
+  },
+  "110a4b01be": {
+    "translation": "Offentliggøre"
+  },
+  "13ddd375ad": {
+    "translation": "Eksporter som"
+  },
+  "181b90f889": {
+    "translation": "Opret fil"
+  },
+  "1da2e8106b": {
+    "translation": "Der opstod en uventet fejl."
+  },
+  "1dd1c5fb7f": {
+    "translation": "I dag"
+  },
+  "1f9696d5f2": {
+    "translation": "Eksporter indholdet som en .tldr-fil: Gå til 'Filer' > 'Gem en kopi'"
+  },
+  "279f0531ff": {
+    "translation": "Har du stadig problemer? Fortæl os det på <a>hello@tldraw.com</a>"
+  },
+  "299cb00a7a": {
+    "translation": "Upload mislykkedes"
+  },
+  "31246941ad": {
+    "translation": "Du skal logge ind for at se denne fil."
+  },
+  "31418ce4ad": {
+    "translation": "i18n: Fremhæv mangler"
+  },
+  "335defdafe": {
+    "translation": "Prøv venligst at opdatere siden."
+  },
+  "344a7f427f": {
+    "translation": "Redaktør"
+  },
+  "354ff6be84": {
+    "translation": "Tilføjet {count} .tldr {count, plural, one {file} other {files}}."
+  },
+  "3bd1b98dbd": {
+    "translation": "Ændringerne kunne ikke offentliggøres."
+  },
+  "3c5e891bff": {
+    "translation": "Fastgjort"
+  },
+  "424cc22417": {
+    "translation": "Tag mig hjem"
+  },
+  "42e53c47c1": {
+    "translation": "Kontakt ejeren for at anmode om adgang."
+  },
+  "44db318ee5": {
+    "translation": "Få hjælp til Discord"
+  },
+  "458cd104d7": {
+    "translation": "Beklager, du har ikke adgang til den fil. Hvis du ved, hvem der har oprettet filen, kan du anmode om et nyt invitationslink."
+  },
+  "47839e47a5": {
+    "translation": "tltegn"
+  },
+  "4908687e50": {
+    "translation": "Er du sikker på, at du vil glemme denne fil?"
+  },
+  "4d1c8263ba": {
+    "translation": "Genindlæs"
+  },
+  "50db1b7e1e": {
+    "translation": "Filen kunne ikke fjernes."
+  },
+  "517bb809d9": {
+    "translation": "Sidemenu"
+  },
+  "54286b1d01": {
+    "translation": "Samarbejdsgrænsen er nået"
+  },
+  "54d240fa41": {
+    "translation": "Sæt farten ned."
+  },
+  "55505ba281": {
+    "translation": "PNG"
+  },
+  "5a95a425f7": {
+    "translation": "Dele"
+  },
+  "5d26ae7550": {
+    "translation": "Vi kunne ikke uploade noget af det indhold, du oprettede, før du loggede ind."
+  },
+  "5fb63579fc": {
+    "translation": "Kopi"
+  },
+  "61057a0c84": {
+    "translation": "Senere"
+  },
+  "625fd29749": {
+    "translation": "Ældre"
+  },
+  "6609dd239e": {
+    "translation": "Noget gik galt"
+  },
+  "6a26f54883": {
+    "translation": "Hjælp"
+  },
+  "6dc0836c1b": {
+    "translation": "Du har ikke de nødvendige tilladelser til at udføre denne handling."
+  },
+  "6dfc62f621": {
+    "translation": "Følg disse trin for at importere indholdet manuelt:"
+  },
+  "70a6facb9d": {
+    "translation": "Denne uge"
+  },
+  "73ab799383": {
+    "translation": "Denne version af tldraw understøttes ikke længere."
+  },
+  "7408cf0d7b": {
+    "translation": "Genindlæs venligst siden"
+  },
+  "7573b8110a": {
+    "translation": "Ingen adgang"
+  },
+  "777f9e90cf": {
+    "translation": "Ugyldig anmodning."
+  },
+  "7cb5f8b4a5": {
+    "translation": "Glemme"
+  },
+  "7daeced9ff": {
+    "translation": "Udgiv ændringer"
+  },
+  "7fcdcc6455": {
+    "translation": "Glem fil"
+  },
+  "85a082de1b": {
+    "translation": "Opdater siden for at få den seneste version af tldraw."
+  },
+  "8eb2c00e96": {
+    "translation": "Delt med dig"
+  },
+  "8ff3d0a705": {
+    "translation": "Sats begrænset"
+  },
+  "902b0d55fd": {
+    "translation": "Fejl"
+  },
+  "904a830405": {
+    "translation": "Omdøb"
+  },
+  "91e49bb0eb": {
+    "translation": "Kopier til mine filer"
+  },
+  "9563b82670": {
+    "translation": "Uploader {count} .tldr {count, plural, one {file} other {files}}..."
+  },
+  "96165d6df5": {
+    "translation": "Denne måned"
+  },
+  "9914a0ce04": {
+    "translation": "Lys"
+  },
+  "9bef626805": {
+    "translation": "Slet fil"
+  },
+  "9ceb927baa": {
+    "translation": "Udgiv denne fil"
+  },
+  "9e076f5885": {
+    "translation": "Ikke fundet"
+  },
+  "a104439641": {
+    "translation": "Polstring"
+  },
+  "a18366b217": {
+    "translation": "Mørk"
+  },
+  "a1c915578c": {
+    "translation": "Filen du leder efter findes ikke."
+  },
+  "a239905023": {
+    "translation": "Eksporter billede"
+  },
+  "a6cc403d56": {
+    "translation": "Enhver med linket"
+  },
+  "a9ded1e5ce": {
+    "translation": "Baggrund"
+  },
+  "af3dc88931": {
+    "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
+    "translation": "Sidst offentliggjort <date></date>"
+  },
+  "b6d4223e60": {
+    "translation": "Log ind"
+  },
+  "b758336699": {
+    "translation": "Kopiér link"
+  },
+  "bb792693e2": {
+    "translation": "Frigør"
+  },
+  "bc88b0e89e": {
+    "translation": "Delt af {ownerName}"
+  },
+  "bcb62136a3": {
+    "translation": "Upload .tldr-filer"
+  },
+  "c2276c9127": {
+    "translation": "Få mere at vide om deling."
+  },
+  "c303bd1095": {
+    "translation": "Filen kunne ikke udgives."
+  },
+  "c655b27b1e": {
+    "translation": "i18n: Lang streng"
+  },
+  "c6a00f137b": {
+    "translation": "Invitere"
+  },
+  "c87aacf567": {
+    "translation": "Log ud"
+  },
+  "cceaefbc20": {
+    "translation": "Del denne fil"
+  },
+  "cd15a75c26": {
+    "translation": "SVG"
+  },
+  "cea291e45e": {
+    "translation": "Få mere at vide om udgivelse."
+  },
+  "d3d2e61733": {
+    "translation": "Tæt"
+  },
+  "d4bbf74f3e": {
+    "translation": "Skift sidebjælke"
+  },
+  "d721757161": {
+    "translation": "Tema"
+  },
+  "d876a9fe1a": {
+    "translation": "Prøv igen"
+  },
+  "d9100f3e10": {
+    "translation": "Gå her for at se indholdet"
+  },
+  "d9fe660e4e": {
+    "translation": "Beklager, du har ikke adgang til det arbejdsområde."
+  },
+  "dbbebf3c03": {
+    "translation": "Kun invitation"
+  },
+  "dfdb78a4e4": {
+    "translation": "App debug flag"
+  },
+  "e2cd8064c2": {
+    "translation": "Beklager, du har ikke adgang til den bruger."
+  },
+  "e78e14c5f1": {
+    "translation": "Stift"
+  },
+  "ea4788705e": {
+    "translation": "Ophæve"
+  },
+  "ebfe9ce86e": {
+    "translation": "I går"
+  },
+  "ec59b960ea": {
+    "translation": "Denne fil har nået det maksimale antal aktive samarbejdspartnere."
+  },
+  "ec611e9a08": {
+    "translation": "Konto menu"
+  },
+  "ec9ad9950f": {
+    "translation": "Beklager, den fil findes ikke."
+  },
+  "ed53713239": {
+    "translation": "i18n: Accent"
+  },
+  "ed75712b0e": {
+    "translation": "Duplikere"
+  },
+  "f2a6c498fb": {
+    "translation": "Slet"
+  },
+  "f43fb62093": {
+    "translation": "Tilbage til tldraw."
+  },
+  "fb15c53f22": {
+    "translation": "Seer"
+  },
+  "fd1be3efcf": {
+    "translation": "Er du sikker på, at du vil slette denne fil?"
+  },
+  "fed5ec05eb": {
+    "translation": "Kopieret link"
+  }
+}

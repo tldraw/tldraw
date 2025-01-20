@@ -1,0 +1,324 @@
+{
+  "0095a9fa74": {
+    "translation": "Vývozní"
+  },
+  "03b3e13197": {
+    "translation": "Přetáhněte soubor na postranní panel na této stránce. Nebo vyberte možnost Importovat soubor z uživatelské nabídky."
+  },
+  "043973ec1f": {
+    "translation": "Stále máte potíže? {GetHelpLink}"
+  },
+  "05596b840b": {
+    "translation": "Otevřete tldraw."
+  },
+  "06b9281e39": {
+    "translation": "Auto"
+  },
+  "07dbd11b21": {
+    "translation": "Soubor bez názvu"
+  },
+  "08331c1710": {
+    "translation": "Překročen limit sazby, zkuste to znovu později."
+  },
+  "0b27918290": {
+    "translation": "Soubor"
+  },
+  "0b9a4cde72": {
+    "translation": "Nabídka Soubor"
+  },
+  "110a4b01be": {
+    "translation": "Publikovat"
+  },
+  "13ddd375ad": {
+    "translation": "Exportovat jako"
+  },
+  "181b90f889": {
+    "translation": "Vytvořit soubor"
+  },
+  "1da2e8106b": {
+    "translation": "Došlo k neočekávané chybě."
+  },
+  "1dd1c5fb7f": {
+    "translation": "Dnes"
+  },
+  "1f9696d5f2": {
+    "translation": "Exportujte obsah jako soubor .tldr: Přejděte na Soubor > Uložit kopii"
+  },
+  "279f0531ff": {
+    "translation": "Stále máte potíže? Dejte nám vědět na <a>hello@tldraw.com</a>"
+  },
+  "299cb00a7a": {
+    "translation": "Nahrání se nezdařilo"
+  },
+  "31246941ad": {
+    "translation": "Chcete-li zobrazit tento soubor, musíte se přihlásit."
+  },
+  "31418ce4ad": {
+    "translation": "i18n: Zvýraznění chybí"
+  },
+  "335defdafe": {
+    "translation": "Zkuste prosím obnovit stránku."
+  },
+  "344a7f427f": {
+    "translation": "Editor"
+  },
+  "354ff6be84": {
+    "translation": "Přidáno {count} .tldr {počet, množné číslo, jeden {file} další {files}}."
+  },
+  "3bd1b98dbd": {
+    "translation": "Změny nelze publikovat."
+  },
+  "3c5e891bff": {
+    "translation": "Připnuto"
+  },
+  "424cc22417": {
+    "translation": "Vezmi mě domů"
+  },
+  "42e53c47c1": {
+    "translation": "Kontaktujte vlastníka a požádejte o přístup."
+  },
+  "44db318ee5": {
+    "translation": "Získejte pomoc na Discordu"
+  },
+  "458cd104d7": {
+    "translation": "Litujeme, k tomuto souboru nemáte přístup. Pokud víte, kdo soubor vytvořil, můžete požádat o nový odkaz s pozvánkou."
+  },
+  "47839e47a5": {
+    "translation": "tldraw"
+  },
+  "4908687e50": {
+    "translation": "Opravdu chcete tento soubor zapomenout?"
+  },
+  "4d1c8263ba": {
+    "translation": "Znovu načíst"
+  },
+  "50db1b7e1e": {
+    "translation": "Publikování souboru nelze zrušit."
+  },
+  "517bb809d9": {
+    "translation": "Nabídka stránek"
+  },
+  "54286b1d01": {
+    "translation": "Bylo dosaženo limitu spolupracovníků"
+  },
+  "54d240fa41": {
+    "translation": "Prosím zpomalte."
+  },
+  "55505ba281": {
+    "translation": "PNG"
+  },
+  "5a95a425f7": {
+    "translation": "Podíl"
+  },
+  "5d26ae7550": {
+    "translation": "Nepodařilo se nám nahrát část obsahu, který jste vytvořili, než jste se přihlásili."
+  },
+  "5fb63579fc": {
+    "translation": "Kopie"
+  },
+  "61057a0c84": {
+    "translation": "Později"
+  },
+  "625fd29749": {
+    "translation": "Starší"
+  },
+  "6609dd239e": {
+    "translation": "Něco se pokazilo"
+  },
+  "6a26f54883": {
+    "translation": "Pomoc"
+  },
+  "6dc0836c1b": {
+    "translation": "K provedení této akce nemáte potřebná oprávnění."
+  },
+  "6dfc62f621": {
+    "translation": "Chcete-li obsah importovat ručně, postupujte takto:"
+  },
+  "70a6facb9d": {
+    "translation": "Tento týden"
+  },
+  "73ab799383": {
+    "translation": "Tato verze tldraw již není podporována."
+  },
+  "7408cf0d7b": {
+    "translation": "Načtěte stránku znovu"
+  },
+  "7573b8110a": {
+    "translation": "Žádný přístup"
+  },
+  "777f9e90cf": {
+    "translation": "Neplatný požadavek."
+  },
+  "7cb5f8b4a5": {
+    "translation": "Zapomenout"
+  },
+  "7daeced9ff": {
+    "translation": "Publikovat změny"
+  },
+  "7fcdcc6455": {
+    "translation": "Zapomenout soubor"
+  },
+  "85a082de1b": {
+    "translation": "Po aktualizaci stránky získáte nejnovější verzi tldraw."
+  },
+  "8eb2c00e96": {
+    "translation": "Sdíleno s vámi"
+  },
+  "8ff3d0a705": {
+    "translation": "Sazba omezená"
+  },
+  "902b0d55fd": {
+    "translation": "Chyba"
+  },
+  "904a830405": {
+    "translation": "Přejmenovat"
+  },
+  "91e49bb0eb": {
+    "translation": "Kopírovat do mých souborů"
+  },
+  "9563b82670": {
+    "translation": "Nahrávání {count} .tldr {count, plural, one {file} other {files}}…"
+  },
+  "96165d6df5": {
+    "translation": "Tento měsíc"
+  },
+  "9914a0ce04": {
+    "translation": "Světlo"
+  },
+  "9bef626805": {
+    "translation": "Smazat soubor"
+  },
+  "9ceb927baa": {
+    "translation": "Publikovat tento soubor"
+  },
+  "9e076f5885": {
+    "translation": "Nenalezeno"
+  },
+  "a104439641": {
+    "translation": "Vycpávka"
+  },
+  "a18366b217": {
+    "translation": "Tmavý"
+  },
+  "a1c915578c": {
+    "translation": "Soubor, který hledáte, neexistuje."
+  },
+  "a239905023": {
+    "translation": "Export obrázku"
+  },
+  "a6cc403d56": {
+    "translation": "Kdokoli s odkazem"
+  },
+  "a9ded1e5ce": {
+    "translation": "Pozadí"
+  },
+  "af3dc88931": {
+    "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
+    "translation": "Naposledy publikováno <date></date>"
+  },
+  "b6d4223e60": {
+    "translation": "Přihlaste se"
+  },
+  "b758336699": {
+    "translation": "Zkopírujte odkaz"
+  },
+  "bb792693e2": {
+    "translation": "Odepnout"
+  },
+  "bc88b0e89e": {
+    "translation": "Sdílel {ownerName}"
+  },
+  "bcb62136a3": {
+    "translation": "Nahrajte soubory .tldr"
+  },
+  "c2276c9127": {
+    "translation": "Další informace o sdílení."
+  },
+  "c303bd1095": {
+    "translation": "Soubor nelze publikovat."
+  },
+  "c655b27b1e": {
+    "translation": "i18n: Dlouhá struna"
+  },
+  "c6a00f137b": {
+    "translation": "Pozvat"
+  },
+  "c87aacf567": {
+    "translation": "Odhlaste se"
+  },
+  "cceaefbc20": {
+    "translation": "Sdílet tento soubor"
+  },
+  "cd15a75c26": {
+    "translation": "SVG"
+  },
+  "cea291e45e": {
+    "translation": "Další informace o publikování."
+  },
+  "d3d2e61733": {
+    "translation": "Blízko"
+  },
+  "d4bbf74f3e": {
+    "translation": "Přepnout postranní panel"
+  },
+  "d721757161": {
+    "translation": "Téma"
+  },
+  "d876a9fe1a": {
+    "translation": "Zkuste to znovu"
+  },
+  "d9100f3e10": {
+    "translation": "Přejděte sem a podívejte se na obsah"
+  },
+  "d9fe660e4e": {
+    "translation": "Litujeme, k tomuto pracovnímu prostoru nemáte přístup."
+  },
+  "dbbebf3c03": {
+    "translation": "Pouze na pozvání"
+  },
+  "dfdb78a4e4": {
+    "translation": "Příznaky ladění aplikace"
+  },
+  "e2cd8064c2": {
+    "translation": "Litujeme, k tomuto uživateli nemáte přístup."
+  },
+  "e78e14c5f1": {
+    "translation": "Připnout"
+  },
+  "ea4788705e": {
+    "translation": "Zrušit"
+  },
+  "ebfe9ce86e": {
+    "translation": "Včera"
+  },
+  "ec59b960ea": {
+    "translation": "Tento soubor dosáhl maximálního počtu aktivních spolupracovníků."
+  },
+  "ec611e9a08": {
+    "translation": "Nabídka účtu"
+  },
+  "ec9ad9950f": {
+    "translation": "Litujeme, tento soubor neexistuje."
+  },
+  "ed53713239": {
+    "translation": "i18n: s přízvukem"
+  },
+  "ed75712b0e": {
+    "translation": "Duplikát"
+  },
+  "f2a6c498fb": {
+    "translation": "Vymazat"
+  },
+  "f43fb62093": {
+    "translation": "Zpět k tldraw."
+  },
+  "fb15c53f22": {
+    "translation": "Prohlížeč"
+  },
+  "fd1be3efcf": {
+    "translation": "Opravdu chcete tento soubor smazat?"
+  },
+  "fed5ec05eb": {
+    "translation": "Zkopírován odkaz"
+  }
+}
