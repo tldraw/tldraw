@@ -749,7 +749,7 @@ export const defaultUserPreferences: Readonly<{
     isPasteAtCursorMode: false;
     isSnapMode: false;
     isWrapMode: false;
-    locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
+    locale: "ar" | "bn" | "ca" | "cs" | "da" | "de" | "el" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "gu-in" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "km-kh" | "kn" | "ko-kr" | "ml" | "mr" | "ms" | "ne" | "nl" | "no" | "pa" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "ta" | "te" | "th" | "tl" | "tr" | "uk" | "ur" | "vi" | "zh-cn" | "zh-tw";
     name: "New User";
 }>;
 
@@ -885,14 +885,236 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     createErrorAnnotations(origin: string, willCrashApp: 'unknown' | boolean): {
         extras: {
-            activeStateNode?: string;
-            editingShape?: TLUnknownShape;
-            inputs?: Record<string, unknown>;
-            selectedShapes?: TLUnknownShape[];
+            activeStateNode: string;
+            collaboratorCount: number;
+            editingShape: TLUnknownShape | undefined;
+            inputs: {
+                buttons: Set<number>;
+                keys: Set<string>;
+                originScreenPoint: Vec;
+                originPagePoint: Vec;
+                currentScreenPoint: Vec;
+                currentPagePoint: Vec;
+                previousScreenPoint: Vec;
+                previousPagePoint: Vec;
+                pointerVelocity: Vec;
+                altKey: boolean;
+                ctrlKey: boolean;
+                isPen: boolean;
+                metaKey: boolean;
+                shiftKey: boolean;
+                isDragging: boolean;
+                isEditing: boolean;
+                isPanning: boolean;
+                isPinching: boolean;
+                isPointing: boolean;
+                isSpacebarPanning: boolean;
+            };
+            instanceState: TLInstance;
+            pageState: TLInstancePageState;
+            selectedShapes: ({
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "arrow";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "bookmark";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "draw";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "embed";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "frame";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "geo";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "group";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "highlight";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "image";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "line";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "note";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "text";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "video";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: string;
+                typeName: "shape";
+                x: number;
+                y: number;
+            })[];
+            selectionCount: number;
         };
         tags: {
             origin: string;
-            willCrashApp: 'unknown' | boolean;
+            willCrashApp: "unknown" | boolean;
+        };
+    } | {
+        extras: {
+            activeStateNode?: undefined;
+            collaboratorCount?: undefined;
+            editingShape?: undefined;
+            inputs?: undefined;
+            instanceState?: undefined;
+            pageState?: undefined;
+            selectedShapes?: undefined;
+            selectionCount?: undefined;
+        };
+        tags: {
+            origin: string;
+            willCrashApp: "unknown" | boolean;
         };
     };
     createPage(page: Partial<TLPage>): this;

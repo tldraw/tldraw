@@ -34,7 +34,7 @@ export function TlaErrorContent({ error }: { error: TlaPageErrorType }) {
 			return (
 				<div className={styles.container}>
 					<p className="tla-text_ui__regular">
-						<F defaultMessage="Sorry, you don’t have access to that file. If you know whose created the file, you can request a new invite link." />
+						<F defaultMessage="Sorry, you don’t have access to that file. If you know who created the file, you can request a new invite link." />
 					</p>
 					<ErrorLinkHome />
 				</div>

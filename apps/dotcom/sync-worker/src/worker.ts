@@ -10,6 +10,7 @@ import { createRouter, handleApiRequest, notFound } from '@tldraw/worker-shared'
 import { DurableObject, WorkerEntrypoint } from 'cloudflare:workers'
 import { cors } from 'itty-router'
 // import { APP_ID } from './TLAppDurableObject'
+import { POSTHOG_URL } from './config'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
@@ -23,13 +24,15 @@ import { deleteFile } from './routes/tla/deleteFile'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { testRoutes } from './testRoutes'
-import { Environment } from './types'
-import { getUserDurableObject } from './utils/durableObjects'
+import { Environment, isDebugLogging } from './types'
+import { getLogger, getUserDurableObject } from './utils/durableObjects'
 import { getAuth } from './utils/tla/getAuth'
 // export { TLAppDurableObject } from './TLAppDurableObject'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
+export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
 export { TLUserDurableObject } from './TLUserDurableObject'
+
 export class TLAppDurableObject extends DurableObject {}
 
 const { preflight, corsify } = cors({
@@ -73,6 +76,25 @@ const router = createRouter<Environment>()
 	.get('/app/publish/:roomId', getPublishedFile)
 	.delete('/app/file/:roomId', deleteFile)
 	.all('/app/__test__/*', testRoutes.fetch)
+	.all('/ph/*', (req) => {
+		const url = new URL(req.url)
+		const proxied = new Request(
+			`${POSTHOG_URL}${url.pathname.replace(/^\/ph\//, '/')}${url.search}`,
+			req
+		)
+		proxied.headers.delete('cookie')
+		return fetch(proxied)
+	})
+	.get('/app/__debug-tail', (req, env) => {
+		if (isDebugLogging(env)) {
+			// upgrade to websocket
+			if (req.headers.get('upgrade') === 'websocket') {
+				return getLogger(env).fetch(req)
+			}
+		}
+
+		return new Response('Not Found', { status: 404 })
+	})
 	// end app
 	.all('*', notFound)
 
