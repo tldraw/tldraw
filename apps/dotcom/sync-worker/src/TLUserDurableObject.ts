@@ -168,7 +168,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
 
-		serverWebSocket.addEventListener('message', (e) => this.handleSocketMessage(e.data.toString()))
+		serverWebSocket.addEventListener('message', (e) =>
+			this.handleSocketMessage(serverWebSocket, e.data.toString())
+		)
 		serverWebSocket.addEventListener('close', () => {
 			this.sockets.delete(serverWebSocket)
 		})
@@ -191,7 +193,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
 
-	private async handleSocketMessage(message: string) {
+	private async handleSocketMessage(socket: WebSocket, message: string) {
 		const rateLimited = await isRateLimited(this.env, this.userId!)
 		this.assertCache()
 		await this.cache.waitUntilConnected()
@@ -201,10 +203,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			case 'mutate':
 				if (rateLimited) {
 					this.logEvent({ type: 'rate_limited', id: this.userId! })
-					await this.rejectMutation(msg.mutationId, ZErrorCode.rate_limit_exceeded)
+					await this.rejectMutation(socket, msg.mutationId, ZErrorCode.rate_limit_exceeded)
 				} else {
 					this.logEvent({ type: 'mutation', id: this.userId! })
-					await this.handleMutate(msg)
+					await this.handleMutate(socket, msg)
 				}
 				break
 			default:
@@ -212,16 +214,18 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	private async rejectMutation(mutationId: string, errorCode: ZErrorCode) {
+	private async rejectMutation(socket: WebSocket, mutationId: string, errorCode: ZErrorCode) {
 		this.assertCache()
 		this.logEvent({ type: 'reject_mutation', id: this.userId! })
 		await this.cache.waitUntilConnected()
 		this.cache.store.rejectMutation(mutationId)
-		this.broadcast({
-			type: 'reject',
-			mutationId,
-			errorCode,
-		} satisfies ZServerSentMessage)
+		socket?.send(
+			JSON.stringify({
+				type: 'reject',
+				mutationId,
+				errorCode,
+			} satisfies ZServerSentMessage)
+		)
 	}
 
 	private async assertValidMutation(update: ZRowUpdate) {
@@ -378,7 +382,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		})
 	}
 
-	private async handleMutate(msg: ZClientSentMessage) {
+	private async handleMutate(socket: WebSocket, msg: ZClientSentMessage) {
 		this.assertCache()
 		try {
 			// we connect to pg via a pooler, so in the case that the pool is exhausted
@@ -427,7 +431,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				errorCode: code,
 				reason: e.cause ?? e.message ?? e.stack ?? JSON.stringify(e),
 			})
-			await this.rejectMutation(msg.mutationId, code)
+			await this.rejectMutation(socket, msg.mutationId, code)
 		}
 	}
 
