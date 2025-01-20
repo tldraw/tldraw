@@ -155,6 +155,7 @@ export const router = createRoutesFromElements(
 		}}
 	>
 		{isClerkCookieSet || isOverrideFlagSet ? tlaRoutes : legacyRoutes}
+		<Route path="/__debug-tail" lazy={() => import('./tla/pages/worker-debug-tail')} />
 		<Route path="*" lazy={() => import('./pages/not-found')} />
 	</Route>
 )

@@ -118,6 +118,7 @@ export type TLUiTranslationKey =
 	| 'assets.files.size-too-big'
 	| 'assets.files.type-not-allowed'
 	| 'assets.files.upload-failed'
+	| 'assets.files.amount-too-many'
 	| 'assets.url.failed'
 	| 'theme.dark'
 	| 'theme.light'

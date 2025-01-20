@@ -1,10 +1,10 @@
 import { createRouter, notFound } from '@tldraw/worker-shared'
-import type { Environment } from './types'
+import { isDebugLogging, type Environment } from './types'
 import { getReplicator, getUserDurableObject } from './utils/durableObjects'
 
 export const testRoutes = createRouter<Environment>()
 	.all('/app/__test__/*', (_, env) => {
-		if (env.IS_LOCAL !== 'true') return notFound()
+		if (!isDebugLogging(env)) return notFound()
 		return undefined
 	})
 	.get('/app/__test__/replicator/reboot', (_, env) => {

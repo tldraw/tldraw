@@ -24,13 +24,15 @@ import { deleteFile } from './routes/tla/deleteFile'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { testRoutes } from './testRoutes'
-import { Environment } from './types'
-import { getUserDurableObject } from './utils/durableObjects'
+import { Environment, isDebugLogging } from './types'
+import { getLogger, getUserDurableObject } from './utils/durableObjects'
 import { getAuth } from './utils/tla/getAuth'
 // export { TLAppDurableObject } from './TLAppDurableObject'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
+export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
 export { TLUserDurableObject } from './TLUserDurableObject'
+
 export class TLAppDurableObject extends DurableObject {}
 
 const { preflight, corsify } = cors({
@@ -82,6 +84,16 @@ const router = createRouter<Environment>()
 		)
 		proxied.headers.delete('cookie')
 		return fetch(proxied)
+	})
+	.get('/app/__debug-tail', (req, env) => {
+		if (isDebugLogging(env)) {
+			// upgrade to websocket
+			if (req.headers.get('upgrade') === 'websocket') {
+				return getLogger(env).fetch(req)
+			}
+		}
+
+		return new Response('Not Found', { status: 404 })
 	})
 	// end app
 	.all('*', notFound)
