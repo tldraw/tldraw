@@ -1,0 +1,324 @@
+{
+  "0095a9fa74": {
+    "translation": "Exportera"
+  },
+  "03b3e13197": {
+    "translation": "Dra filen till sidofältet på den här sidan. Eller välj alternativet 'Importera fil' från användarmenyn."
+  },
+  "043973ec1f": {
+    "translation": "Har du fortfarande problem? %1$s"
+  },
+  "05596b840b": {
+    "translation": "Öppna tldraw."
+  },
+  "06b9281e39": {
+    "translation": "Auto"
+  },
+  "07dbd11b21": {
+    "translation": "Namnlös fil"
+  },
+  "08331c1710": {
+    "translation": "Hastighetsgränsen har överskridits, försök igen senare."
+  },
+  "0b27918290": {
+    "translation": "Fil"
+  },
+  "0b9a4cde72": {
+    "translation": "Arkivmenyn"
+  },
+  "110a4b01be": {
+    "translation": "Publicera"
+  },
+  "13ddd375ad": {
+    "translation": "Exportera som"
+  },
+  "181b90f889": {
+    "translation": "Skapa fil"
+  },
+  "1da2e8106b": {
+    "translation": "Ett oväntat fel inträffade."
+  },
+  "1dd1c5fb7f": {
+    "translation": "Idag"
+  },
+  "1f9696d5f2": {
+    "translation": "Exportera innehållet som en .tldr-fil: Gå till \"Arkiv\" > \"Spara en kopia\""
+  },
+  "279f0531ff": {
+    "translation": "Har du fortfarande problem? Berätta för oss på <a>hello@tldraw.com</a>"
+  },
+  "299cb00a7a": {
+    "translation": "Uppladdningen misslyckades"
+  },
+  "31246941ad": {
+    "translation": "Du måste logga in för att se den här filen."
+  },
+  "31418ce4ad": {
+    "translation": "i18n: Markering saknas"
+  },
+  "335defdafe": {
+    "translation": "Försök att uppdatera sidan."
+  },
+  "344a7f427f": {
+    "translation": "Redigeringsverktyg"
+  },
+  "354ff6be84": {
+    "translation": "Lade till %1$s .tldr {count, plural, one %1$s other %1$s}."
+  },
+  "3bd1b98dbd": {
+    "translation": "Det gick inte att publicera ändringarna."
+  },
+  "3c5e891bff": {
+    "translation": "Fastnålad"
+  },
+  "424cc22417": {
+    "translation": "Ta mig hem"
+  },
+  "42e53c47c1": {
+    "translation": "Kontakta ägaren för att begära åtkomst."
+  },
+  "44db318ee5": {
+    "translation": "Få hjälp med Discord"
+  },
+  "458cd104d7": {
+    "translation": "Tyvärr, du har inte tillgång till den filen. Om du vet vem som skapat filen kan du begära en ny inbjudningslänk."
+  },
+  "47839e47a5": {
+    "translation": "tldraw"
+  },
+  "4908687e50": {
+    "translation": "Är du säker på att du vill glömma den här filen?"
+  },
+  "4d1c8263ba": {
+    "translation": "Ladda om"
+  },
+  "50db1b7e1e": {
+    "translation": "Det gick inte att avpublicera filen."
+  },
+  "517bb809d9": {
+    "translation": "Sidmenyn"
+  },
+  "54286b1d01": {
+    "translation": "Medarbetargräns har nåtts"
+  },
+  "54d240fa41": {
+    "translation": "Vänligen sakta ner."
+  },
+  "55505ba281": {
+    "translation": "PNG"
+  },
+  "5a95a425f7": {
+    "translation": "Dela"
+  },
+  "5d26ae7550": {
+    "translation": "Vi kunde inte ladda upp en del av innehållet du skapade innan du loggade in."
+  },
+  "5fb63579fc": {
+    "translation": "Kopiera"
+  },
+  "61057a0c84": {
+    "translation": "Senare"
+  },
+  "625fd29749": {
+    "translation": "Äldre"
+  },
+  "6609dd239e": {
+    "translation": "Något gick fel"
+  },
+  "6a26f54883": {
+    "translation": "Hjälp"
+  },
+  "6dc0836c1b": {
+    "translation": "Du har inte de nödvändiga behörigheterna för att utföra den här åtgärden."
+  },
+  "6dfc62f621": {
+    "translation": "Följ dessa steg för att importera innehållet manuellt:"
+  },
+  "70a6facb9d": {
+    "translation": "Denna vecka"
+  },
+  "73ab799383": {
+    "translation": "Denna version av tldraw stöds inte längre."
+  },
+  "7408cf0d7b": {
+    "translation": "Vänligen ladda om sidan"
+  },
+  "7573b8110a": {
+    "translation": "Ingen tillgång"
+  },
+  "777f9e90cf": {
+    "translation": "Ogiltig begäran."
+  },
+  "7cb5f8b4a5": {
+    "translation": "Glöm"
+  },
+  "7daeced9ff": {
+    "translation": "Publicera ändringar"
+  },
+  "7fcdcc6455": {
+    "translation": "Glöm filen"
+  },
+  "85a082de1b": {
+    "translation": "Uppdatera sidan för att få den senaste versionen av tldraw."
+  },
+  "8eb2c00e96": {
+    "translation": "Delas med dig"
+  },
+  "8ff3d0a705": {
+    "translation": "Begränsad hastighet"
+  },
+  "902b0d55fd": {
+    "translation": "Fel"
+  },
+  "904a830405": {
+    "translation": "Döp om"
+  },
+  "91e49bb0eb": {
+    "translation": "Kopiera till mina filer"
+  },
+  "9563b82670": {
+    "translation": "Laddar upp %1$s .tldr {count, plural, one %1$s other %1$s}..."
+  },
+  "96165d6df5": {
+    "translation": "Denna månad"
+  },
+  "9914a0ce04": {
+    "translation": "Ljus"
+  },
+  "9bef626805": {
+    "translation": "Ta bort fil"
+  },
+  "9ceb927baa": {
+    "translation": "Publicera den här filen"
+  },
+  "9e076f5885": {
+    "translation": "Hittades inte"
+  },
+  "a104439641": {
+    "translation": "Utfyllnad"
+  },
+  "a18366b217": {
+    "translation": "Mörk"
+  },
+  "a1c915578c": {
+    "translation": "Filen du letar efter finns inte."
+  },
+  "a239905023": {
+    "translation": "Exportera bild"
+  },
+  "a6cc403d56": {
+    "translation": "Alla som har länken"
+  },
+  "a9ded1e5ce": {
+    "translation": "Bakgrund"
+  },
+  "af3dc88931": {
+    "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
+    "translation": "Senast publicerad <date></date>"
+  },
+  "b6d4223e60": {
+    "translation": "Logga in"
+  },
+  "b758336699": {
+    "translation": "Kopiera länk"
+  },
+  "bb792693e2": {
+    "translation": "Ta bort nål"
+  },
+  "bc88b0e89e": {
+    "translation": "Delas av %1$s"
+  },
+  "bcb62136a3": {
+    "translation": "Ladda upp .tldr-filer"
+  },
+  "c2276c9127": {
+    "translation": "Läs mer om delning."
+  },
+  "c303bd1095": {
+    "translation": "Det gick inte att publicera filen."
+  },
+  "c655b27b1e": {
+    "translation": "i18n: Lång sträng"
+  },
+  "c6a00f137b": {
+    "translation": "Bjud in"
+  },
+  "c87aacf567": {
+    "translation": "Logga ut"
+  },
+  "cceaefbc20": {
+    "translation": "Dela den här filen"
+  },
+  "cd15a75c26": {
+    "translation": "SVG"
+  },
+  "cea291e45e": {
+    "translation": "Läs mer om publicering."
+  },
+  "d3d2e61733": {
+    "translation": "Stäng"
+  },
+  "d4bbf74f3e": {
+    "translation": "Aktivera sidofältet"
+  },
+  "d721757161": {
+    "translation": "Tema"
+  },
+  "d876a9fe1a": {
+    "translation": "Försök igen"
+  },
+  "d9100f3e10": {
+    "translation": "Gå hit för att se innehållet"
+  },
+  "d9fe660e4e": {
+    "translation": "Tyvärr, du har inte tillgång till den arbetsytan."
+  },
+  "dbbebf3c03": {
+    "translation": "Endast inbjudan"
+  },
+  "dfdb78a4e4": {
+    "translation": "Appfelsökningsflaggor"
+  },
+  "e2cd8064c2": {
+    "translation": "Tyvärr, du har inte åtkomst till den användaren."
+  },
+  "e78e14c5f1": {
+    "translation": "Nåla fast"
+  },
+  "ea4788705e": {
+    "translation": "Avbryt"
+  },
+  "ebfe9ce86e": {
+    "translation": "Igår"
+  },
+  "ec59b960ea": {
+    "translation": "Den här filen har nått det maximala antalet aktiva medarbetare."
+  },
+  "ec611e9a08": {
+    "translation": "Kontomeny"
+  },
+  "ec9ad9950f": {
+    "translation": "Tyvärr, den filen finns inte."
+  },
+  "ed53713239": {
+    "translation": "i18n: Accentuerad"
+  },
+  "ed75712b0e": {
+    "translation": "Duplicera"
+  },
+  "f2a6c498fb": {
+    "translation": "Radera"
+  },
+  "f43fb62093": {
+    "translation": "Tillbaka till tldraw."
+  },
+  "fb15c53f22": {
+    "translation": "Visningsverktyg"
+  },
+  "fd1be3efcf": {
+    "translation": "Är du säker på att du vill ta bort den här filen?"
+  },
+  "fed5ec05eb": {
+    "translation": "Länk kopierad"
+  }
+}

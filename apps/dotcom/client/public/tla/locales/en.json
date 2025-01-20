@@ -6,7 +6,7 @@
     "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
   },
   "043973ec1f": {
-    "translation": "Still having trouble? {GetHelpLink}"
+    "translation": "Still having trouble? %1$s"
   },
   "05596b840b": {
     "translation": "Open tldraw."
@@ -63,7 +63,7 @@
     "translation": "Editor"
   },
   "354ff6be84": {
-    "translation": "Added {count} .tldr {count, plural, one {file} other {files}}."
+    "translation": "Added %1$s .tldr {count, plural, one %1$s other %1$s}."
   },
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
@@ -192,7 +192,7 @@
     "translation": "Copy to my files"
   },
   "9563b82670": {
-    "translation": "Uploading {count} .tldr {count, plural, one {file} other {files}}…"
+    "translation": "Uploading %1$s .tldr {count, plural, one %1$s other %1$s}…"
   },
   "96165d6df5": {
     "translation": "This month"
@@ -250,7 +250,7 @@
     "translation": "Unpin"
   },
   "bc88b0e89e": {
-    "translation": "Shared by {ownerName}"
+    "translation": "Shared by %1$s"
   },
   "bcb62136a3": {
     "translation": "Upload .tldr files"
