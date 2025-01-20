@@ -5,6 +5,7 @@ import { WorkerEntrypoint } from 'cloudflare:workers'
 interface Environment {
 	IS_LOCAL?: string
 	SENTRY_DSN?: undefined
+	ASSET_UPLOAD_ORIGIN?: string
 
 	SYNC_WORKER: Fetcher
 }
@@ -16,16 +17,11 @@ const queryValidator = T.object({
 
 // All the existing assets use the asset worker to to get the assets, so we will keep
 // fetching the assets from there instead of using the service binding
-function isOldAssetsOrigin(origin: string) {
-	const oldOrigins = [
-		// local dev
-		'localhost:8788',
-		// production
-		'assets.tldraw.xyz',
-		// staging and previews
-		'-tldraw-assets',
-	]
-	return oldOrigins.some((oldOrigin) => origin.includes(oldOrigin))
+function isOldAssetsOrigin(env: Environment, origin: string) {
+	if (env.IS_LOCAL) return false
+	const assetOrigin = env.ASSET_UPLOAD_ORIGIN
+	if (!assetOrigin) throw new Error('Missing ASSET_UPLOAD_ORIGIN')
+	return assetOrigin.includes(origin)
 }
 
 export default class Worker extends WorkerEntrypoint<Environment> {
@@ -78,7 +74,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			if (query.q) imageOptions.quality = Number(query.q)
 
 			let actualResponse: Response
-			if (isOldAssetsOrigin(origin)) {
+			if (isOldAssetsOrigin(this.env, origin)) {
 				actualResponse = await fetch(passthroughUrl, { cf: { image: imageOptions } })
 			} else {
 				const req = new Request(passthroughUrl.href, { cf: { image: imageOptions } })
