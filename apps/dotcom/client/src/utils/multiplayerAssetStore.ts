@@ -8,18 +8,17 @@ interface AppInfo {
 	fileId: string
 }
 
-async function getUrl(file: File, getAppInfo?: () => Promise<AppInfo>) {
+async function getUrl(file: File, appInfo: AppInfo | undefined) {
 	const id = uniqueId()
 
 	const objectName = `${id}-${file.name}`.replace(/\W/g, '-')
-	if (!getAppInfo) {
+	if (!appInfo) {
 		const url = `${ASSET_UPLOADER_URL}/uploads/${objectName}`
 		return { fetchUrl: url, src: url }
 	}
-	const { accessToken, fileId } = await getAppInfo()
 	const url = `${window.location.origin}${APP_ASSET_UPLOAD_ENDPOINT}/${objectName}`
 	return {
-		fetchUrl: `${url}?${new URLSearchParams({ accessToken, fileId }).toString()}`,
+		fetchUrl: `${url}?${new URLSearchParams({ accessToken: appInfo.accessToken, fileId: appInfo.fileId }).toString()}`,
 		src: url,
 	}
 }
@@ -27,7 +26,8 @@ async function getUrl(file: File, getAppInfo?: () => Promise<AppInfo>) {
 export function multiplayerAssetStore(getAppInfo?: () => Promise<AppInfo>) {
 	return {
 		upload: async (_asset, file, abortSignal?) => {
-			const { fetchUrl, src } = await getUrl(file, getAppInfo)
+			const appInfo = await getAppInfo?.()
+			const { fetchUrl, src } = await getUrl(file, appInfo)
 			const response = await fetch(fetchUrl, {
 				method: 'POST',
 				body: file,
@@ -38,8 +38,8 @@ export function multiplayerAssetStore(getAppInfo?: () => Promise<AppInfo>) {
 				throw new Error(`Failed to upload asset: ${response.statusText}`)
 			}
 
-			if (getAppInfo) {
-				const meta = { fileId: (await getAppInfo()).fileId }
+			if (appInfo) {
+				const meta = { fileId: appInfo.fileId }
 				return { src, meta }
 			}
 			return { src }
