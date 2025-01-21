@@ -449,19 +449,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		return 'ok'
 	}
 
-	async associateFileAsset(objectName: string, fileId: string) {
-		try {
-			await this.db.insertInto('asset').values({ objectName, fileId }).execute()
-		} catch (e) {
-			this.captureException(e, {
-				source: 'storeAssetReference',
-				fileId,
-				objectName,
-				userId: this.userId,
-			})
-		}
-	}
-
 	/* --------------  */
 
 	private async deleteFileStuff(id: string) {

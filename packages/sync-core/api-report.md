@@ -325,11 +325,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         }) => void;
         schema?: StoreSchema<R, any>;
     });
-    // @internal (undocumented)
-    associateFileAssets(fileId: string, bucket: any): Promise<{
-        fileId: string;
-        objectName: string;
-    }[]>;
     close(): void;
     closeSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     getCurrentDocumentClock(): number;

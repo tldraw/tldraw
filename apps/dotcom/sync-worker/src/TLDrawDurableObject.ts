@@ -21,7 +21,13 @@ import {
 	type PersistedRoomSnapshotForSupabase,
 } from '@tldraw/sync-core'
 import { TLDOCUMENT_ID, TLDocument, TLRecord, createTLSchema } from '@tldraw/tlschema'
-import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
+import {
+	ExecutionQueue,
+	assert,
+	assertExists,
+	exhaustiveSwitchError,
+	uniqueId,
+} from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -583,7 +589,36 @@ export class TLDrawDurableObject extends DurableObject {
 
 		const slug = this.documentInfo.slug
 		const room = await this.getRoom()
-		const assetsToUpdate = await room.associateFileAssets(this.documentInfo.slug, this.env.UPLOADS)
+		const assetsToUpdate: { objectName: string; fileId: string }[] = []
+		await room.updateStore(async (store) => {
+			const records = store.getAll()
+			for (const record of records) {
+				if (record.typeName !== 'asset') continue
+				const asset = record as any
+				const meta = asset.meta
+
+				if (meta?.fileId === slug) continue
+				const src = asset.props.src
+				if (!src) continue
+				const objectName = src.split('/').pop()
+				if (!objectName) continue
+				const currentAsset = await this.env.UPLOADS.get(objectName)
+				if (!currentAsset) continue
+
+				const split = objectName.split('-')
+				const fileType = split.length > 1 ? split.pop() : null
+				const id = uniqueId()
+				const newObjectName = fileType ? `${id}-${fileType}` : id
+				await this.env.UPLOADS.put(newObjectName, currentAsset.body, {
+					httpMetadata: currentAsset.httpMetadata,
+				})
+				asset.props.src = asset.props.src.replace(objectName, newObjectName)
+				asset.meta.fileId = slug
+				store.put(asset)
+				assetsToUpdate.push({ objectName: newObjectName, fileId: slug })
+			}
+		})
+
 		if (assetsToUpdate.length === 0) return
 
 		await this.db
