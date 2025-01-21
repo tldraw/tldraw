@@ -26,6 +26,7 @@ import {
 	ViewSubmenu,
 	getFromLocalStorage,
 	setInLocalStorage,
+	tipTapDefaultExtensions,
 	useDialogs,
 	useEditor,
 	useEvent,
@@ -36,6 +37,7 @@ import { getScratchPersistenceKey } from '../utils/scratch-persistence-key'
 import { useSharing } from '../utils/sharing'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
+import EmojiExtension from './Emojis/EmojiExtension'
 import { LocalFileMenu } from './FileMenu'
 import { LegacyLinks } from './Links'
 import { ShareMenu } from './ShareMenu'
@@ -122,6 +124,11 @@ export function LocalEditor({
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={componentsOverride ?? components}
+				textOptions={{
+					tipTapConfig: {
+						extensions: [...tipTapDefaultExtensions, EmojiExtension],
+					},
+				}}
 				options={options}
 			>
 				<SneakyOnDropOverride isMultiplayer={false} />

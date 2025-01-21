@@ -89,7 +89,7 @@
 	"action.toggle-focus-mode.menu": "Modo de enfoque",
 	"action.toggle-grid": "Alternar cuadrícula",
 	"action.toggle-grid.menu": "Mostrar cuadrícula",
-	"action.toggle-lock": "Bloquear\/desbloquear",
+	"action.toggle-lock": "Bloquear/desbloquear",
 	"action.toggle-paste-at-cursor": "Alternar pegar en el cursor",
 	"action.toggle-paste-at-cursor.menu": "Pegar en el cursor",
 	"action.toggle-reduce-motion": "Reducir movimiento",

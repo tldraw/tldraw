@@ -89,7 +89,7 @@
 	"action.toggle-focus-mode.menu": "وضع التركيز",
 	"action.toggle-grid": "التبديل لوضع الشبكة",
 	"action.toggle-grid.menu": "إظهار الشبكة",
-	"action.toggle-lock": "قفل \/ فتح",
+	"action.toggle-lock": "قفل / فتح",
 	"action.toggle-paste-at-cursor": "تبديل اللصق عند المؤشر",
 	"action.toggle-paste-at-cursor.menu": "اللصق عند المؤشر",
 	"action.toggle-reduce-motion": "تبديل تقليل الحركة",
