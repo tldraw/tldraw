@@ -347,7 +347,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				assetsToUpdate.push({ assetId: asset.id, fileId })
 			}
 		})
-		console.log('💡[293]: TLSocketRoom.ts:347: assetsToUpdate=', assetsToUpdate)
 		return assetsToUpdate
 	}
 
