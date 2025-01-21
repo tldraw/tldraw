@@ -40,7 +40,6 @@ export function multiplayerAssetStore(getAppInfo?: () => Promise<AppInfo>) {
 
 			if (getAppInfo) {
 				const meta = { fileId: (await getAppInfo()).fileId }
-				// we have to strip search params so that we don't expose them
 				return { src, meta }
 			}
 			return { src }
