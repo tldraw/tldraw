@@ -13,17 +13,22 @@ async function getUrl(file: File, getAppInfo?: () => Promise<AppInfo>) {
 
 	const objectName = `${id}-${file.name}`.replace(/\W/g, '-')
 	if (!getAppInfo) {
-		return `${ASSET_UPLOADER_URL}/uploads/${objectName}`
+		const url = `${ASSET_UPLOADER_URL}/uploads/${objectName}`
+		return { fetchUrl: url, src: url }
 	}
 	const { accessToken, fileId } = await getAppInfo()
-	return `${window.location.origin}${APP_ASSET_UPLOAD_ENDPOINT}/${objectName}?${new URLSearchParams({ accessToken, fileId }).toString()}`
+	const url = `${window.location.origin}${APP_ASSET_UPLOAD_ENDPOINT}/${objectName}`
+	return {
+		fetchUrl: `${url}?${new URLSearchParams({ accessToken, fileId }).toString()}`,
+		src: url,
+	}
 }
 
 export function multiplayerAssetStore(getAppInfo?: () => Promise<AppInfo>) {
 	return {
-		upload: async (asset, file, abortSignal?) => {
-			const url = await getUrl(file, getAppInfo)
-			const response = await fetch(url, {
+		upload: async (_asset, file, abortSignal?) => {
+			const { fetchUrl, src } = await getUrl(file, getAppInfo)
+			const response = await fetch(fetchUrl, {
 				method: 'POST',
 				body: file,
 				signal: abortSignal,
@@ -36,9 +41,9 @@ export function multiplayerAssetStore(getAppInfo?: () => Promise<AppInfo>) {
 			if (getAppInfo) {
 				const meta = { fileId: (await getAppInfo()).fileId }
 				// we have to strip search params so that we don't expose them
-				return { src: url.split('?')[0], meta }
+				return { src, meta }
 			}
-			return { src: url.split('?')[0] }
+			return { src }
 		},
 
 		async resolve(asset, context) {
