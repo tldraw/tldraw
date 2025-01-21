@@ -2,10 +2,10 @@ import { handleUserAssetUpload } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import { getUserDurableObject } from '../../utils/durableObjects'
-import { getAuth } from '../../utils/tla/getAuth'
+import { getAuthFromCookies } from '../../utils/tla/getAuth'
 
 export async function upload(request: IRequest, env: Environment): Promise<Response> {
-	const auth = await getAuth(request, env)
+	const auth = await getAuthFromCookies(request, env)
 	if (!auth) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
 	const { body, url, headers } = request

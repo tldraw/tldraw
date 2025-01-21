@@ -36,7 +36,7 @@ import { createSupabaseClient } from './utils/createSupabaseClient'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
-import { getAuth } from './utils/tla/getAuth'
+import { getAuthFromSearchParams } from './utils/tla/getAuth'
 
 const MAX_CONNECTIONS = 50
 
@@ -346,7 +346,7 @@ export class TLDrawDurableObject extends DurableObject {
 			return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 		}
 
-		const auth = await getAuth(req, this.env)
+		const auth = await getAuthFromSearchParams(req, this.env)
 		if (this.documentInfo.isApp) {
 			openMode = ROOM_OPEN_MODE.READ_WRITE
 			const file = await this.getAppFileRecord()

@@ -162,12 +162,7 @@ function TlaEditorInner({ fileSlug, fileOpenState, deepLinks }: TlaEditorProps) 
 	const user = useTldrawUser()
 	const assets = useMemo(() => {
 		if (!user) return multiplayerAssetStore()
-		return multiplayerAssetStore(async () => {
-			return {
-				accessToken: await user.getToken(),
-				fileId,
-			}
-		})
+		return multiplayerAssetStore(() => fileId)
 	}, [user, fileId])
 
 	const store = useSync({

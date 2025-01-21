@@ -3,31 +3,26 @@ import { loadLocalFile } from '../tla/utils/slurping'
 import { APP_ASSET_UPLOAD_ENDPOINT, ASSET_UPLOADER_URL, IMAGE_WORKER } from './config'
 import { isDevelopmentEnv } from './env'
 
-interface AppInfo {
-	accessToken: string
-	fileId: string
-}
-
-async function getUrl(file: File, appInfo: AppInfo | undefined) {
+async function getUrl(file: File, fileId: string | undefined) {
 	const id = uniqueId()
 
 	const objectName = `${id}-${file.name}`.replace(/\W/g, '-')
-	if (!appInfo) {
-		const url = `${ASSET_UPLOADER_URL}/uploads/${objectName}`
-		return { fetchUrl: url, src: url }
+	if (fileId) {
+		const url = `${window.location.origin}${APP_ASSET_UPLOAD_ENDPOINT}/${objectName}`
+		return {
+			fetchUrl: `${url}?${new URLSearchParams({ fileId }).toString()}`,
+			src: url,
+		}
 	}
-	const url = `${window.location.origin}${APP_ASSET_UPLOAD_ENDPOINT}/${objectName}`
-	return {
-		fetchUrl: `${url}?${new URLSearchParams({ accessToken: appInfo.accessToken, fileId: appInfo.fileId }).toString()}`,
-		src: url,
-	}
+	const url = `${ASSET_UPLOADER_URL}/uploads/${objectName}`
+	return { fetchUrl: url, src: url }
 }
 
-export function multiplayerAssetStore(getAppInfo?: () => Promise<AppInfo>) {
+export function multiplayerAssetStore(getFileId?: () => string) {
 	return {
 		upload: async (_asset, file, abortSignal?) => {
-			const appInfo = await getAppInfo?.()
-			const { fetchUrl, src } = await getUrl(file, appInfo)
+			const fileId = getFileId?.()
+			const { fetchUrl, src } = await getUrl(file, fileId)
 			const response = await fetch(fetchUrl, {
 				method: 'POST',
 				body: file,
@@ -38,8 +33,8 @@ export function multiplayerAssetStore(getAppInfo?: () => Promise<AppInfo>) {
 				throw new Error(`Failed to upload asset: ${response.statusText}`)
 			}
 
-			if (appInfo) {
-				const meta = { fileId: appInfo.fileId }
+			if (fileId) {
+				const meta = { fileId }
 				return { src, meta }
 			}
 			return { src }

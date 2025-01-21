@@ -27,7 +27,7 @@ import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment, isDebugLogging } from './types'
 import { getLogger, getUserDurableObject } from './utils/durableObjects'
-import { getAuth } from './utils/tla/getAuth'
+import { getAuthFromSearchParams } from './utils/tla/getAuth'
 // export { TLAppDurableObject } from './TLAppDurableObject'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -63,7 +63,7 @@ const router = createRouter<Environment>()
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.get('/app/:userId/connect', async (req, env) => {
 		// forward req to the user durable object
-		const auth = await getAuth(req, env)
+		const auth = await getAuthFromSearchParams(req, env)
 		if (!auth) {
 			// eslint-disable-next-line no-console
 			console.log('auth not found')
