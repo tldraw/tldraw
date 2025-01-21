@@ -44,6 +44,9 @@
   "1f9696d5f2": {
     "translation": "Export the content as a .tldr file: Go to 'File' > 'Save a copy'"
   },
+  "20530afec1": {
+    "translation": "{count, plural, one {Uploading {count} .tldr file…} other {Uploading {count} .tldr files…}}"
+  },
   "279f0531ff": {
     "translation": "Still having trouble? Let us know at <a>hello@tldraw.com</a>"
   },
@@ -61,9 +64,6 @@
   },
   "344a7f427f": {
     "translation": "Editor"
-  },
-  "354ff6be84": {
-    "translation": "Added {count} .tldr {count, plural, one {file} other {files}}."
   },
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
@@ -194,9 +194,6 @@
   "91e49bb0eb": {
     "translation": "Copy to my files"
   },
-  "9563b82670": {
-    "translation": "Uploading {count} .tldr {count, plural, one {file} other {files}}…"
-  },
   "96165d6df5": {
     "translation": "This month"
   },
@@ -326,6 +323,9 @@
   },
   "e404559826": {
     "translation": "Terms of service"
+  },
+  "e5aaee8a6b": {
+    "translation": "{count, plural, one {Added {count} .tldr file.} other {Added {count} .tldr files.}}"
   },
   "e78e14c5f1": {
     "translation": "Pin"
