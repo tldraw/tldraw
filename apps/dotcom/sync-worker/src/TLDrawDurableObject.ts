@@ -582,7 +582,7 @@ export class TLDrawDurableObject extends DurableObject {
 		const assetsToUpdate = await room.associateFileAssets(this.documentInfo.slug, this.env.UPLOADS)
 		if (assetsToUpdate.length === 0) return
 
-		this.db
+		await this.db
 			.insertInto('asset')
 			.values(assetsToUpdate)
 			.onConflict((oc) => {
