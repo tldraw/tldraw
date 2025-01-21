@@ -1,5 +1,5 @@
 import { deleteFromLocalStorage, setInLocalStorage } from 'tldraw'
-import { tlaOverrideFlagName } from '../routes'
+import { tlaOverrideFlag } from '../routes'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
 
 export function Component() {
@@ -33,7 +33,7 @@ export function Component() {
 					<TlaButton
 						variant="primary"
 						onClick={() => {
-							setInLocalStorage(tlaOverrideFlagName, 'true')
+							setInLocalStorage(tlaOverrideFlag, 'true')
 							window.location.href = '/'
 						}}
 					>
@@ -42,7 +42,7 @@ export function Component() {
 					<TlaButton
 						variant="secondary"
 						onClick={() => {
-							deleteFromLocalStorage(tlaOverrideFlagName)
+							deleteFromLocalStorage(tlaOverrideFlag)
 							window.location.href = '/'
 						}}
 					>

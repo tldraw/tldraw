@@ -38,7 +38,11 @@ export function Component() {
 				>
 					<F defaultMessage="No thanks" />
 				</TlaButton>
-				<SignInButton mode="modal">
+				<SignInButton
+					mode="modal"
+					forceRedirectUrl={location.pathname}
+					signUpForceRedirectUrl={location.pathname}
+				>
 					<TlaButton data-testid="tla-opt-in">
 						<F defaultMessage="Sign in" />
 					</TlaButton>

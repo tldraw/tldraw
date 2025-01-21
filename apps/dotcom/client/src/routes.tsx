@@ -13,14 +13,11 @@ import { TlaNotFoundError } from './tla/utils/notFoundError'
 
 const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/LoginRedirectPage'))
 
-const clerkCookieName = '__session'
-export const tlaOverrideFlagName = 'tla-override-flag'
+export const tlaOverrideFlag = 'tla-override-flag'
+export const tlaProbablyLoggedInFlag = 'tla-probably-logged-in-flag'
 
-const isClerkCookieSet = document.cookie
-	.split(';')
-	.some((item) => item.trim().startsWith(clerkCookieName))
-
-const isOverrideFlagSet = !!getFromLocalStorage(tlaOverrideFlagName) || navigator.webdriver
+const isOverrideFlagSet = !!getFromLocalStorage(tlaOverrideFlag) || navigator.webdriver
+const isProbablyLoggedIn = !!getFromLocalStorage(tlaProbablyLoggedInFlag)
 
 export const legacyRoutes = (
 	<Route errorElement={<DefaultErrorFallback />}>
@@ -154,7 +151,7 @@ export const router = createRoutesFromElements(
 			)
 		}}
 	>
-		{isClerkCookieSet || isOverrideFlagSet ? tlaRoutes : legacyRoutes}
+		{isProbablyLoggedIn || isOverrideFlagSet ? tlaRoutes : legacyRoutes}
 		<Route path="/__debug-tail" lazy={() => import('./tla/pages/worker-debug-tail')} />
 		<Route path="*" lazy={() => import('./pages/not-found')} />
 	</Route>
