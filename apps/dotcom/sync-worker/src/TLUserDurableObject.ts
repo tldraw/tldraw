@@ -449,7 +449,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		return 'ok'
 	}
 
-	async storeAssetReference(fileId: string, assetId: string) {
+	async associateFileAsset(fileId: string, assetId: string) {
 		try {
 			await this.db.insertInto('asset').values({ fileId, assetId }).execute()
 		} catch (e) {
