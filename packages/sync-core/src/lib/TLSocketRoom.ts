@@ -316,6 +316,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		oldRoom.close()
 	}
 
+	/** @internal */
 	async associateFileAssets(fileId: string, bucket: any) {
 		const assetsToUpdate: { objectName: string; fileId: string }[] = []
 		await this.updateStore(async (store) => {
