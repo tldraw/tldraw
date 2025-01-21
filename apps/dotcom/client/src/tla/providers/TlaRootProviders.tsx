@@ -10,11 +10,14 @@ import {
 	TldrawUiContextProvider,
 	TldrawUiDialogs,
 	TldrawUiToasts,
+	deleteFromLocalStorage,
 	fetch,
+	setInLocalStorage,
 	useToasts,
 	useValue,
 } from 'tldraw'
 import { routes } from '../../routeDefs'
+import { tlaProbablyLoggedInFlag } from '../../routes'
 import { globalEditor } from '../../utils/globalEditor'
 import { SignedInPosthog, SignedOutPosthog } from '../../utils/posthog'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
@@ -146,6 +149,15 @@ function SignedInProvider({
 		() => globalEditor.get()?.user.getUserPreferences().locale ?? 'en',
 		[]
 	)
+
+	useEffect(() => {
+		if (!auth.isLoaded) return
+		if (auth.isSignedIn) {
+			setInLocalStorage(tlaProbablyLoggedInFlag, 'true')
+		} else {
+			deleteFromLocalStorage(tlaProbablyLoggedInFlag)
+		}
+	}, [auth.isSignedIn, auth.isLoaded])
 
 	useEffect(() => {
 		if (locale === currentLocale) return
