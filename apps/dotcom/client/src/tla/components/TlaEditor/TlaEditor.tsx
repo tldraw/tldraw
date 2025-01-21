@@ -1,10 +1,8 @@
 import { TlaFileOpenState } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { fetch } from '@tldraw/utils'
 import { useCallback, useEffect, useMemo } from 'react'
 import {
 	Editor,
-	TLAsset,
 	TLComponents,
 	TLSessionStateSnapshot,
 	TLUiDialogsContextType,
@@ -29,7 +27,7 @@ import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useTldrawUser } from '../../hooks/useUser'
-import { maybeSlurp, uploadAssets } from '../../utils/slurping'
+import { maybeSlurp } from '../../utils/slurping'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
@@ -150,7 +148,6 @@ function TlaEditorInner({ fileSlug, fileOpenState, deepLinks }: TlaEditorProps) 
 			if (mode === 'slurp-legacy-file') {
 				assert(fileOpenState?.snapshot, 'snapshot is required when mode is slurp-legacy-file')
 				editor.loadSnapshot(fileOpenState.snapshot)
-				upload(editor, abortController.signal)
 			}
 
 			return () => {
@@ -274,32 +271,4 @@ function SneakyFileUpdateHandler({ fileId }: { fileId: string }) {
 	}, [app, fileId, editor])
 
 	return null
-}
-
-async function upload(editor: Editor, abortSignal: AbortSignal) {
-	if (abortSignal.aborted) return
-
-	const assetsToUpload = editor.store.query
-		.records('asset')
-		.get()
-		.filter((a) => a.props.src && !a.props.src.startsWith('asset:'))
-
-	const getAsset = async (asset: TLAsset): Promise<File | null> => {
-		if (!asset.props.src) return null
-		const response = await fetch(asset.props.src)
-		const blob = await response.blob()
-		return new File([blob], asset.props.src.split('/').pop() || 'asset', { type: blob.type })
-	}
-
-	const res = await uploadAssets(abortSignal, editor, assetsToUpload, getAsset)
-	if (!res || abortSignal.aborted) {
-		// aborted
-		return
-	}
-
-	for (const r of res) {
-		if (r.status === 'rejected') {
-			console.error('Failed to upload asset', r.reason)
-		}
-	}
 }

@@ -235,7 +235,7 @@ export async function uploadAssets(
 			uploadQueues[i % UPLOAD_CONCURRENCY].push(async () => {
 				const res = await getAsset(asset)
 				if (!res) throw new Error(`Failed to load file for asset ${asset.id}`)
-				const url = await retry(() => editor.uploadAsset(asset!, res, abortSignal), {
+				const { src } = await retry(() => editor.uploadAsset(asset!, res, abortSignal), {
 					attempts: 3,
 					waitDuration: 1000,
 					abortSignal,
@@ -243,7 +243,7 @@ export async function uploadAssets(
 				editor.updateAssets([
 					{
 						...asset,
-						props: { ...asset.props, src: url },
+						props: { ...asset.props, src },
 						// we might have hidden the asset if the upload failed previously
 						meta: { ...asset.meta, hidden: false },
 					},

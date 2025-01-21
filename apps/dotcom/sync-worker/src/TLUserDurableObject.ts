@@ -450,9 +450,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	async storeAssetReference(fileId: string, assetId: string) {
-		assert(this.userId, 'userId not set')
 		try {
-			await this.db.insertInto('asset').values({ fileId, assetId, userId: this.userId }).execute()
+			await this.db.insertInto('asset').values({ fileId, assetId }).execute()
 		} catch (e) {
 			this.captureException(e, {
 				source: 'storeAssetReference',

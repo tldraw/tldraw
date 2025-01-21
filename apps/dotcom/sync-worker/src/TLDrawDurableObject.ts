@@ -134,6 +134,7 @@ export class TLDrawDurableObject extends DurableObject {
 					}
 				}
 			})
+			this.maybeAssociateFileAssets()
 		}
 		return this._room
 	}
@@ -295,7 +296,11 @@ export class TLDrawDurableObject extends DurableObject {
 			const room = await this.getRoom()
 
 			const snapshot: RoomSnapshot = JSON.parse(dataText)
-			room.loadSnapshot(snapshot)
+			room.loadSnapshot(
+				snapshot,
+				this.env.UPLOADS,
+				this.documentInfo.isApp ? this.documentInfo.slug : undefined
+			)
 
 			return new Response()
 		} finally {
@@ -560,6 +565,7 @@ export class TLDrawDurableObject extends DurableObject {
 			}
 
 			const roomFromSupabase = data[0] as PersistedRoomSnapshotForSupabase
+
 			return { type: 'room_found', snapshot: roomFromSupabase.drawing }
 		} catch (error) {
 			this.logEvent({ type: 'room', roomId: slug, name: 'failed_load_from_db' })
@@ -572,6 +578,23 @@ export class TLDrawDurableObject extends DurableObject {
 	_lastPersistedClock: number | null = null
 
 	executionQueue = new ExecutionQueue()
+
+	async maybeAssociateFileAssets() {
+		if (!this.documentInfo.isApp) return
+
+		const slug = this.documentInfo.slug
+		const room = await this.getRoom()
+		const assetsToUpdate = await room.associateFileAssets(this.documentInfo.slug, this.env.UPLOADS)
+		if (assetsToUpdate.length === 0) return
+
+		this.db
+			.insertInto('asset')
+			.values(assetsToUpdate)
+			.onConflict((oc) => {
+				return oc.column('assetId').doUpdateSet({ fileId: slug })
+			})
+			.execute()
+	}
 
 	// Save the room to r2
 	async persistToDatabase() {
@@ -586,6 +609,7 @@ export class TLDrawDurableObject extends DurableObject {
 				if (this._isRestoring) return
 
 				const snapshot = JSON.stringify(room.getCurrentSnapshot())
+				this.maybeAssociateFileAssets()
 
 				const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
 				await Promise.all([

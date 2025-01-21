@@ -165,7 +165,6 @@ export function isColumnMutable(tableName: keyof typeof immutableColumns, column
 
 export interface TlaAsset {
 	assetId: string
-	userId: string
 	fileId: string
 }
 

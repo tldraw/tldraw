@@ -1,6 +1,6 @@
 import type { StoreSchema, UnknownRecord } from '@tldraw/store'
 import { TLStoreSnapshot, createTLSchema } from '@tldraw/tlschema'
-import { objectMapValues, structuredClone } from '@tldraw/utils'
+import { objectMapValues, structuredClone, uniqueId } from '@tldraw/utils'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
@@ -280,8 +280,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	/**
 	 * Load a snapshot of the document state, overwriting the current state.
 	 * @param snapshot - The snapshot to load
+	 * @param bucket - The bucket to use for asset storage
+	 * @param fileId - The (tldraw app) file id to associate with the assets
 	 */
-	loadSnapshot(snapshot: RoomSnapshot | TLStoreSnapshot) {
+	loadSnapshot(snapshot: RoomSnapshot | TLStoreSnapshot, bucket?: any, fileId?: string) {
 		if ('store' in snapshot) {
 			snapshot = convertStoreSnapshotToRoomSnapshot(snapshot)
 		}
@@ -311,10 +313,46 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			},
 			log: this.log,
 		})
-
 		// replace room with new one and kick out all the clients
 		this.room = newRoom
+		if (bucket && fileId) {
+			this.associateFileAssets(fileId, bucket)
+		}
 		oldRoom.close()
+	}
+
+	async associateFileAssets(fileId: string, bucket: any) {
+		const assetsToUpdate: { assetId: string; fileId: string }[] = []
+		await this.updateStore(async (store) => {
+			const records = store.getAll()
+
+			for (const record of records) {
+				if (record.typeName !== 'asset') continue
+				const asset = record as any
+				const meta = asset.meta
+
+				if (meta?.fileId === fileId) continue
+				const src = asset.props.src
+				if (!src) continue
+				const objectName = src.split('/').pop()
+				if (!objectName) continue
+				const currentAsset = await bucket.get(objectName)
+				if (!currentAsset) continue
+
+				const split = objectName.split('-')
+				const fileType = split.length > 1 ? split.pop() : null
+				const id = uniqueId()
+				const newAssetId = fileType ? `${id}-${fileType}` : id
+				await bucket.put(newAssetId, currentAsset.body, {
+					httpMetadata: currentAsset.httpMetadata,
+				})
+				asset.props.src = asset.props.src.replace(objectName, newAssetId)
+				asset.meta.fileId = fileId
+				store.put(asset)
+				assetsToUpdate.push({ assetId: asset.id, fileId })
+			}
+		})
+		return assetsToUpdate
 	}
 
 	/**

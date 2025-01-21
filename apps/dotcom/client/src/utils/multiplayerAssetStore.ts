@@ -21,7 +21,7 @@ async function getUrl(file: File, getAppInfo?: () => Promise<AppInfo>) {
 
 export function multiplayerAssetStore(getAppInfo?: () => Promise<AppInfo>) {
 	return {
-		upload: async (_asset, file, abortSignal?) => {
+		upload: async (asset, file, abortSignal?) => {
 			const url = await getUrl(file, getAppInfo)
 			const response = await fetch(url, {
 				method: 'POST',
@@ -33,8 +33,12 @@ export function multiplayerAssetStore(getAppInfo?: () => Promise<AppInfo>) {
 				throw new Error(`Failed to upload asset: ${response.statusText}`)
 			}
 
-			// we have to strip search params so that we don't expose them
-			return url.split('?')[0]
+			if (getAppInfo) {
+				const meta = { fileId: (await getAppInfo()).fileId }
+				// we have to strip search params so that we don't expose them
+				return { src: url.split('?')[0], meta }
+			}
+			return { src: url.split('?')[0] }
 		},
 
 		async resolve(asset, context) {

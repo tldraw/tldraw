@@ -5,7 +5,7 @@ import { WorkerEntrypoint } from 'cloudflare:workers'
 interface Environment {
 	IS_LOCAL?: string
 	SENTRY_DSN?: undefined
-	ASSET_UPLOAD_ORIGIN?: string
+	MULTIPLAYER_SERVER?: string
 
 	SYNC_WORKER: Fetcher
 }
@@ -15,13 +15,11 @@ const queryValidator = T.object({
 	q: T.string.optional(),
 })
 
-// All the existing assets use the asset worker to to get the assets, so we will keep
-// fetching the assets from there instead of using the service binding
-function isOldAssetsOrigin(env: Environment, origin: string) {
-	if (env.IS_LOCAL) return false
-	const assetOrigin = env.ASSET_UPLOAD_ORIGIN
-	if (!assetOrigin) throw new Error('Missing ASSET_UPLOAD_ORIGIN')
-	return assetOrigin.includes(origin)
+function useServiceBinding(env: Environment, origin: string) {
+	if (env.IS_LOCAL) return origin === 'localhost:3000'
+	const multiplayerServer = env.MULTIPLAYER_SERVER
+	if (!multiplayerServer) throw new Error('Missing MULTIPLAYER_SERVER env variable')
+	return multiplayerServer.includes(origin)
 }
 
 export default class Worker extends WorkerEntrypoint<Environment> {
@@ -74,11 +72,11 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			if (query.q) imageOptions.quality = Number(query.q)
 
 			let actualResponse: Response
-			if (isOldAssetsOrigin(this.env, origin)) {
-				actualResponse = await fetch(passthroughUrl, { cf: { image: imageOptions } })
-			} else {
+			if (useServiceBinding(this.env, origin)) {
 				const req = new Request(passthroughUrl.href, { cf: { image: imageOptions } })
 				actualResponse = await this.env.SYNC_WORKER.fetch(req)
+			} else {
+				actualResponse = await fetch(passthroughUrl, { cf: { image: imageOptions } })
 			}
 			if (!actualResponse.headers.get('content-type')?.startsWith('image/')) return notFound()
 			if (actualResponse.status === 200) {

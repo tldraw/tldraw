@@ -325,6 +325,11 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         }) => void;
         schema?: StoreSchema<R, any>;
     });
+    // (undocumented)
+    associateFileAssets(fileId: string, bucket: any): Promise<{
+        assetId: string;
+        fileId: string;
+    }[]>;
     close(): void;
     closeSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     getCurrentDocumentClock(): number;
@@ -351,7 +356,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     handleSocketMessage(sessionId: string, message: AllowSharedBufferSource | string): void;
     // (undocumented)
     isClosed(): boolean;
-    loadSnapshot(snapshot: RoomSnapshot | TLStoreSnapshot): void;
+    loadSnapshot(snapshot: RoomSnapshot | TLStoreSnapshot, bucket?: any, fileId?: string): void;
     // (undocumented)
     readonly log?: TLSyncLog;
     // (undocumented)

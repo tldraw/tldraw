@@ -19,7 +19,7 @@ export async function cloneAssetForShare(editor: Editor, asset: TLAsset): Promis
 			...asset,
 			props: {
 				...asset.props,
-				src: uploadedAsset,
+				src: uploadedAsset.src,
 			},
 		}
 	}
