@@ -2,6 +2,8 @@ import { T } from '@tldraw/validate'
 import { createRouter, handleApiRequest, notFound, parseRequestQuery } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 
+declare const fetch: typeof import('@cloudflare/workers-types').fetch
+
 interface Environment {
 	IS_LOCAL?: string
 	SENTRY_DSN?: undefined
