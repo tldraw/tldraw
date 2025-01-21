@@ -1,4 +1,4 @@
-import { SignInButton, useAuth } from '@clerk/clerk-react'
+import { SignUpButton, useAuth } from '@clerk/clerk-react'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
 import { F } from '../tla/utils/i18n'
 
@@ -38,15 +38,15 @@ export function Component() {
 				>
 					<F defaultMessage="No thanks" />
 				</TlaButton>
-				<SignInButton
+				<SignUpButton
 					mode="modal"
 					forceRedirectUrl={location.pathname}
-					signUpForceRedirectUrl={location.pathname}
+					signInForceRedirectUrl={location.pathname}
 				>
 					<TlaButton data-testid="tla-opt-in">
-						<F defaultMessage="Sign in" />
+						<F defaultMessage="Sign up" />
 					</TlaButton>
-				</SignInButton>
+				</SignUpButton>
 			</div>
 		</div>
 	)
