@@ -209,6 +209,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				<TldrawUiMenuGroup id="regular-stuff">
 					<EditSubmenu />
 					<ViewSubmenu />
+					<ExportFileContentSubMenu />
 					<ExtrasGroup />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="preferences">
