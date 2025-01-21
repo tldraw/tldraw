@@ -216,7 +216,6 @@ function TlaEditorInner({ fileSlug, fileOpenState, deepLinks }: TlaEditorProps) 
 			}
 		}
 	}, [app, fileId, store.status])
-	console.log('here')
 
 	const overrides = useFileEditorOverrides({ fileSlug })
 
