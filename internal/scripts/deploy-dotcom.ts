@@ -269,15 +269,10 @@ async function deployImageResizeWorker({ dryRun }: { dryRun: boolean }) {
 		dryRun,
 		env: env.TLDRAW_ENV,
 		vars: {
-			// SENTRY_DSN: env.ASSET_UPLOAD_SENTRY_DSN,
 			TLDRAW_ENV: env.TLDRAW_ENV,
 			WORKER_NAME: workerId,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
 		},
-		// sentry: {
-		// 	project: 'asset-upload-worker',
-		// 	authToken: env.SENTRY_AUTH_TOKEN,
-		// },
 	})
 }
 
