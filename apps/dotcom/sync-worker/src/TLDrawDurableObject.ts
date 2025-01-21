@@ -121,6 +121,8 @@ export class TLDrawDurableObject extends DurableObject {
 						})
 
 						this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })
+						// Also associate file assets after we load the room
+						setTimeout(this.maybeAssociateFileAssets, PERSIST_INTERVAL_MS)
 						return room
 					}
 					case 'room_not_found': {
