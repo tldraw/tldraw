@@ -574,6 +574,8 @@ export class TLDrawDurableObject extends DurableObject {
 
 	executionQueue = new ExecutionQueue()
 
+	// We use this to make sure that all of the assets in a tldraw app file are associated with that file.
+	// This is needed for a few cases like duplicating a file, copy pasting images between files, slurping legacy files.
 	async maybeAssociateFileAssets() {
 		if (!this.documentInfo.isApp) return
 
