@@ -561,7 +561,6 @@ export class TLDrawDurableObject extends DurableObject {
 			}
 
 			const roomFromSupabase = data[0] as PersistedRoomSnapshotForSupabase
-
 			return { type: 'room_found', snapshot: roomFromSupabase.drawing }
 		} catch (error) {
 			this.logEvent({ type: 'room', roomId: slug, name: 'failed_load_from_db' })
