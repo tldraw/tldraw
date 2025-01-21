@@ -95,12 +95,8 @@ function LegacyImportButton() {
 		if (res.ok) {
 			const { file } = res.value
 			const snapshot = editor.getSnapshot()
-
 			navigate(routes.tlaFile(file.id), {
-				state: {
-					mode: 'slurp-legacy-file',
-					snapshot,
-				} satisfies TlaFileOpenState,
+				state: { mode: 'slurp-legacy-file', snapshot } satisfies TlaFileOpenState,
 			})
 			trackEvent('create-file', { source: 'legacy-import-button' })
 		}
