@@ -14,6 +14,8 @@ jobs:
       # Give the default GITHUB_TOKEN write permission to commit and push the
       # added or changed files to the repository.
       contents: write
+      pull-requests: write
+      repository-projects: write
 
     steps:
       - name: Check out code
@@ -31,6 +33,8 @@ jobs:
 
       - name: Commit and push changes
         if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'

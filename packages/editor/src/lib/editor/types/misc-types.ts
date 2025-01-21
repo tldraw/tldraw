@@ -10,15 +10,68 @@ export type RequiredKeys<T, K extends keyof T> = Required<Pick<T, K>> & Omit<T, 
 export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
 /** @public */
-export interface TLImageExportOptions {
+export type TLExportType = 'svg' | 'png' | 'jpeg' | 'webp'
+
+/** @public */
+export interface TLSvgExportOptions {
+	/**
+	 * The bounding box, in page coordinates, of the area being exported.
+	 */
 	bounds?: Box
+	/**
+	 * The logical scale of the export. This scales the resulting size of the SVG being generated.
+	 */
 	scale?: number
-	quality?: number
+	/**
+	 * When exporting an SVG, the expected pixel ratio of the export will be passed in to
+	 * {@link @tldraw/tlschema#TLAssetStore.resolve} as the `dpr` property, so that assets can be
+	 * downscaled to the appropriate resolution.
+	 *
+	 * When exporting to a bitmap image format, the size of the resulting image will be multiplied
+	 * by this number.
+	 *
+	 * For SVG exports, this defaults to undefined - which means we'll request original-quality
+	 * assets. For bitmap exports, this defaults to 2.
+	 */
 	pixelRatio?: number
+
+	/**
+	 * Should the background color be included in the export? If false, the generated image will be
+	 * transparent (if exporting to a format that supports transparency).
+	 */
 	background?: boolean
+
+	/**
+	 * How much padding to include around the bounds of exports? Defaults to 32px.
+	 */
 	padding?: number
+
+	/**
+	 * Should the export be rendered in dark mode (true) or light mode (false)? Defaults to the
+	 * current instance's dark mode setting.
+	 */
 	darkMode?: boolean
+
+	/**
+	 * The
+	 * {@link https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/preserveAspectRatio | `preserveAspectRatio` }
+	 * attribute of the SVG element.
+	 */
 	preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
+}
+
+/** @public */
+export interface TLImageExportOptions extends TLSvgExportOptions {
+	/**
+	 * If the export is being converted to a lossy bitmap format (e.g. jpeg), this is the quality of
+	 * the export. This is a number between 0 and 1.
+	 */
+	quality?: number
+
+	/**
+	 * The format to export as. Defaults to 'png'.
+	 */
+	format?: TLExportType
 }
 
 /**

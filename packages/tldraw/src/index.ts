@@ -91,7 +91,11 @@ export {
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
 export { useEditablePlainText, useEditableText } from './lib/shapes/shared/useEditablePlainText'
 export { useEditableRichText } from './lib/shapes/shared/useEditableRichText'
-export { useAsset, useImageOrVideoAsset } from './lib/shapes/shared/useImageOrVideoAsset'
+export {
+	useAsset,
+	useImageOrVideoAsset,
+	type UseImageOrVideoAssetOptions,
+} from './lib/shapes/shared/useImageOrVideoAsset'
 export { PlainTextArea } from './lib/shapes/text/PlainTextArea'
 export { RichTextArea, type TextAreaProps } from './lib/shapes/text/RichTextArea'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
@@ -475,9 +479,9 @@ export { useDefaultHelpers, type TLUiOverrideHelpers, type TLUiOverrides } from 
 export { containBoxSize, downsizeImage, type BoxWidthHeight } from './lib/utils/assets/assets'
 export { preloadFont, type TLTypeFace } from './lib/utils/assets/preload-font'
 export { getEmbedInfo, type TLEmbedResult } from './lib/utils/embeds/embeds'
-export { copyAs, type TLCopyType } from './lib/utils/export/copyAs'
-export { exportToBlob, getSvgAsImage } from './lib/utils/export/export'
-export { exportAs, type TLExportType } from './lib/utils/export/exportAs'
+export { copyAs, type CopyAsOptions, type TLCopyType } from './lib/utils/export/copyAs'
+export { exportToBlob } from './lib/utils/export/export'
+export { exportAs, type ExportAsOptions } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export {
 	defaultEditorAssetUrls,

@@ -7,7 +7,8 @@ import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
-import { F } from '../../../utils/i18n'
+import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
+import { F, defineMessages, useIntl } from '../../../utils/i18n'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
 	TlaTooltipArrow,
@@ -53,6 +54,10 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 	)
 }
 
+export const sidebarMessages = defineMessages({
+	renameFile: { defaultMessage: 'Rename file' },
+})
+
 export function TlaSidebarFileLinkInner({
 	testId,
 	fileId,
@@ -74,9 +79,19 @@ export function TlaSidebarFileLinkInner({
 	const trackEvent = useTldrawAppUiEvents()
 	const linkRef = useRef<HTMLAnchorElement | null>(null)
 	const app = useApp()
+	const intl = useIntl()
 
 	const [isRenaming, setIsRenaming] = useState(debugIsRenaming)
-	const handleRenameAction = () => setIsRenaming(true)
+	const handleRenameAction = () => {
+		if (getIsCoarsePointer()) {
+			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
+			if (newName) {
+				app.updateFile({ id: fileId, name: newName })
+			}
+		} else {
+			setIsRenaming(true)
+		}
+	}
 	const handleRenameClose = () => setIsRenaming(false)
 	const params = useParams()
 	const { fileSlug } = params

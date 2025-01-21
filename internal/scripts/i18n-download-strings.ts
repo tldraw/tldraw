@@ -15,6 +15,8 @@ async function i18nDownloadStrings() {
 		include_comments: true,
 		include_description: true,
 		export_empty_as: 'skip',
+		plural_format: 'icu',
+		placeholder_format: 'icu',
 	})
 
 	if (!downloadResult.bundle_url) {
