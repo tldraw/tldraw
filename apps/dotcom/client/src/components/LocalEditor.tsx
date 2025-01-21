@@ -13,6 +13,7 @@ import {
 	PreferencesGroup,
 	TLComponents,
 	Tldraw,
+	TldrawOptions,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
 	TldrawUiDialogBody,
@@ -38,7 +39,7 @@ import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import EmojiExtension from './Emojis/EmojiExtension'
 import { LocalFileMenu } from './FileMenu'
-import { Links } from './Links'
+import { LegacyLinks } from './Links'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
@@ -57,7 +58,7 @@ const components: TLComponents = {
 				<ExtrasGroup />
 			</TldrawUiMenuGroup>
 			<PreferencesGroup />
-			<Links />
+			<LegacyLinks />
 		</DefaultMainMenu>
 	),
 	KeyboardShortcutsDialog: (props) => {
@@ -93,12 +94,14 @@ export function LocalEditor({
 	children,
 	persistenceKey,
 	'data-testid': dataTestId,
+	options,
 }: {
 	componentsOverride?: TLComponents
 	onMount?(editor: Editor): void
 	children?: ReactNode
 	persistenceKey?: string
 	'data-testid'?: string
+	options?: Partial<TldrawOptions>
 }) {
 	const handleUiEvent = useHandleUiEvents()
 	const sharingUiOverrides = useSharing()
@@ -126,6 +129,7 @@ export function LocalEditor({
 						extensions: [...tipTapDefaultExtensions, EmojiExtension],
 					},
 				}}
+				options={options}
 			>
 				<SneakyOnDropOverride isMultiplayer={false} />
 				<ThemeUpdater />

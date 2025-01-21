@@ -1,6 +1,6 @@
 /* ---------------------- Menu ---------------------- */
 
-import { TlaFile } from '@tldraw/dotcom-shared'
+import { TlaFile, TlaFileOpenState } from '@tldraw/dotcom-shared'
 import { Fragment, ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -115,7 +115,7 @@ function FileItems({
 		if (!file) return
 		app.createFile({ id: newFileId, name: getDuplicateName(file, app) })
 		navigate(routes.tlaFile(newFileId), {
-			state: { mode: 'duplicate', duplicateId: fileId },
+			state: { mode: 'duplicate', duplicateId: fileId } satisfies TlaFileOpenState,
 		})
 	}, [app, fileId, navigate])
 

@@ -494,7 +494,10 @@ export class TLDrawDurableObject extends DurableObject {
 				return { type: 'room_found', snapshot: await roomFromBucket.json() }
 			}
 
-			if (this.documentInfo.appMode === 'create') {
+			if (
+				this.documentInfo.appMode === 'create' ||
+				this.documentInfo.appMode === 'slurp-legacy-file'
+			) {
 				return {
 					type: 'room_found',
 					snapshot: new TLSyncRoom({

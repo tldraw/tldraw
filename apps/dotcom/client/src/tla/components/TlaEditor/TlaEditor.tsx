@@ -1,4 +1,4 @@
-import { TlaFileOpenMode } from '@tldraw/dotcom-shared'
+import { TlaFileOpenState } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect } from 'react'
 import {
@@ -52,16 +52,13 @@ export const components: TLComponents = {
 
 interface TlaEditorProps {
 	fileSlug: string
-	mode?: TlaFileOpenMode
-	duplicateId?: string
+	fileOpenState?: TlaFileOpenState
 	deepLinks?: boolean
 }
 
 export function TlaEditor(props: TlaEditorProps) {
-	if (props.mode === 'duplicate') {
-		assert(props.duplicateId, 'duplicateId is required when mode is duplicate')
-	} else {
-		assert(!props.duplicateId, 'duplicateId is not allowed when mode is not duplicate')
+	if (props.fileOpenState?.mode === 'duplicate') {
+		assert(props.fileOpenState.duplicateId, 'duplicateId is required when mode is duplicate')
 	}
 	// force re-mount when the file slug changes to prevent state from leaking between files
 	return (
@@ -74,9 +71,10 @@ export function TlaEditor(props: TlaEditorProps) {
 	)
 }
 
-function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorProps) {
+function TlaEditorInner({ fileSlug, fileOpenState, deepLinks }: TlaEditorProps) {
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
+	const mode = fileOpenState?.mode
 
 	const fileId = fileSlug
 
@@ -118,7 +116,10 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 
 			const fileState = app.getFileState(fileId)
 			if (fileState?.lastSessionState) {
-				editor.loadSnapshot({ session: JSON.parse(fileState.lastSessionState.trim() || 'null') })
+				editor.loadSnapshot(
+					{ session: JSON.parse(fileState.lastSessionState.trim() || 'null') },
+					{ forceOverwriteSessionState: true }
+				)
 			}
 			const sessionState$ = createSessionStateSnapshotSignal(editor.store)
 			const updateSessionState = throttle((state: TLSessionStateSnapshot) => {
@@ -146,13 +147,18 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 				remountImageShapes,
 			}).then(setIsReady)
 
+			if (mode === 'slurp-legacy-file') {
+				assert(fileOpenState?.snapshot, 'snapshot is required when mode is slurp-legacy-file')
+				editor.loadSnapshot(fileOpenState.snapshot)
+			}
+
 			return () => {
 				abortController.abort()
 				cleanup()
 				updateSessionState.cancel()
 			}
 		},
-		[addDialog, app, fileId, remountImageShapes, setIsReady]
+		[addDialog, app, fileId, fileOpenState, mode, remountImageShapes, setIsReady]
 	)
 
 	const user = useTldrawUser()
@@ -166,12 +172,13 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 			if (mode) {
 				url.searchParams.set('mode', mode)
 				if (mode === 'duplicate') {
+					const duplicateId = fileOpenState.duplicateId
 					assert(duplicateId, 'duplicateId is required when mode is duplicate')
 					url.searchParams.set('duplicateId', duplicateId)
 				}
 			}
 			return url.toString()
-		}, [fileSlug, user, mode, duplicateId]),
+		}, [fileSlug, user, mode, fileOpenState]),
 		assets: multiplayerAssetStore,
 		userInfo: app?.tlUser.userPreferences,
 	})

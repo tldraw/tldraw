@@ -4,7 +4,6 @@ import { useApp } from '../../../hooks/useAppState'
 import { useMsg } from '../../../utils/i18n'
 import { TlaAccountMenu } from '../../TlaAccountMenu/TlaAccountMenu'
 import { TlaAvatar } from '../../TlaAvatar/TlaAvatar'
-import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 import { messages } from './sidebar-shared'
 
@@ -16,15 +15,11 @@ export function TlaSidebarUserLink() {
 	if (!user) return null
 
 	return (
-		<div className={classNames(styles.user, 'tla-text_ui__regular')}>
-			<TlaAvatar img={user.avatar} />
-			<div className={classNames(styles.userName, 'notranslate')}>{user.name}</div>
-			<TlaAccountMenu source="sidebar">
-				{/* todo: the hover here is too big, is borrowing from file link */}
-				<button className={classNames(styles.linkMenu, styles.hoverable)} title={accountMenuLbl}>
-					<TlaIcon icon="dots-vertical-strong" />
-				</button>
-			</TlaAccountMenu>
-		</div>
+		<TlaAccountMenu source="sidebar">
+			<button className={classNames(styles.user, 'tla-text_ui__regular')} title={accountMenuLbl}>
+				<TlaAvatar img={user.avatar} />
+				<div className={classNames(styles.userName, 'notranslate')}>{user.name}</div>
+			</button>
+		</TlaAccountMenu>
 	)
 }

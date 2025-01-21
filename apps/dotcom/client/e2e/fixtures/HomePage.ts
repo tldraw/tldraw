@@ -3,7 +3,7 @@ import { expect } from '@playwright/test'
 import { Editor } from './Editor'
 import { step } from './tla-test'
 
-const rootUrl = 'http://localhost:3000/q'
+const rootUrl = 'http://localhost:3000/'
 
 export class HomePage {
 	public readonly signInButton: Locator

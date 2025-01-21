@@ -229,7 +229,6 @@ export function CopyAsMenuGroup() {
 				{Boolean(window.navigator.clipboard?.write) && (
 					<TldrawUiMenuActionItem actionId="copy-as-png" />
 				)}
-				<TldrawUiMenuActionItem actionId="copy-as-json" />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="copy-as-bg">
 				<ToggleTransparentBgMenuItem />
@@ -279,7 +278,6 @@ export function ConversionsMenuGroup() {
 				<TldrawUiMenuGroup id="export-as-group">
 					<TldrawUiMenuActionItem actionId="export-as-svg" />
 					<TldrawUiMenuActionItem actionId="export-as-png" />
-					<TldrawUiMenuActionItem actionId="export-as-json" />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="export-as-bg">
 					<ToggleTransparentBgMenuItem />

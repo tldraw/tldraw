@@ -4,6 +4,7 @@ import { useApp } from '../../hooks/useAppState'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { F } from '../../utils/i18n'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
+import { TlaSidebarCookieConsent } from './components/TlaSidebarCookieConsent'
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
 import { TlaSidebarUserLink } from './components/TlaSidebarUserLink'
@@ -84,6 +85,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					<TlaSidebarRecentFiles />
 				</div>
 				<div className={styles.bottom} data-testid="tla-sidebar-bottom">
+					<TlaSidebarCookieConsent />
 					<TlaSidebarUserLink />
 				</div>
 			</div>

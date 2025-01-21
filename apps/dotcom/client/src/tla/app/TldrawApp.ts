@@ -127,30 +127,49 @@ export class TldrawApp {
 	}
 
 	messages = defineMessages({
-		publish_failed: { defaultMessage: 'Unable to publish the file.' },
-		unpublish_failed: { defaultMessage: 'Unable to unpublish the file.' },
-		republish_failed: { defaultMessage: 'Unable to publish the changes.' },
-		unknown_error: { defaultMessage: 'An unexpected error occurred.' },
+		// toast title
+		mutation_error_toast_title: { defaultMessage: 'Error' },
+		// toast descriptions
+		publish_failed: {
+			defaultMessage: 'Unable to publish the file.',
+		},
+		unpublish_failed: {
+			defaultMessage: 'Unable to unpublish the file.',
+		},
+		republish_failed: {
+			defaultMessage: 'Unable to publish the changes.',
+		},
+		unknown_error: {
+			defaultMessage: 'An unexpected error occurred.',
+		},
 		forbidden: {
 			defaultMessage: 'You do not have the necessary permissions to perform this action.',
 		},
-		bad_request: { defaultMessage: 'Invalid request.' },
-		rate_limit_exceeded: { defaultMessage: 'You have exceeded the rate limit.' },
-		mutation_error_toast_title: { defaultMessage: 'Error' },
+		bad_request: {
+			defaultMessage: 'Invalid request.',
+		},
+		rate_limit_exceeded: {
+			defaultMessage: 'Rate limit exceeded, try again later.',
+		},
 		client_too_old: {
 			defaultMessage: 'Please refresh the page to get the latest version of tldraw.',
 		},
 	})
 
-	showMutationRejectionToast = throttle((errorCode: ZErrorCode) => {
-		const descriptor = this.messages[errorCode]
-		// Looks like we don't get type safety here
-		if (!descriptor) {
-			console.error('Could not find a translation for this error code', errorCode)
+	getMessage(id: keyof typeof this.messages) {
+		let msg = this.messages[id]
+		if (!msg) {
+			console.error('Could not find a translation for this error code', id)
+			msg = this.messages.unknown_error
 		}
+		return msg
+	}
+
+	showMutationRejectionToast = throttle((errorCode: ZErrorCode) => {
+		const descriptor = this.getMessage(errorCode)
 		this.toasts?.addToast({
 			title: this.getIntl().formatMessage(this.messages.mutation_error_toast_title),
-			description: this.getIntl().formatMessage(descriptor ?? this.messages.unknown_error),
+			description: this.getIntl().formatMessage(descriptor),
 		})
 	}, 3000)
 
@@ -629,6 +648,7 @@ export class TldrawApp {
 			createdAt: Date.now(),
 			updatedAt: Date.now(),
 			flags: '',
+			allowAnalyticsCookie: null,
 			...restOfPreferences,
 			locale: restOfPreferences.locale ?? null,
 			animationSpeed: restOfPreferences.animationSpeed ?? null,
