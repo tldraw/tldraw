@@ -88,7 +88,7 @@ function areShortcutsDisabled(editor: Editor) {
 	return (
 		editor.menus.hasAnyOpenMenus() ||
 		(activeElement &&
-			(activeElement.getAttribute('contenteditable') ||
+			((activeElement as HTMLElement).isContentEditable ||
 				INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1))
 	)
 }
@@ -458,6 +458,27 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 			// If the html is NOT a link, and we have NO OTHER texty content, then paste the html as text
 			if (!results.some((r) => r.type === 'text' && r.subtype !== 'html') && result.data.trim()) {
 				handleText(editor, stripHtml(result.data), point, results)
+				return
+			}
+		}
+
+		// Allow you to paste YouTube or Google Maps embeds, for example.
+		if (result.type === 'text' && result.subtype === 'text' && result.data.startsWith('<iframe ')) {
+			// try to find an iframe
+			const rootNode = new DOMParser().parseFromString(result.data, 'text/html')
+			const bodyNode = rootNode.querySelector('body')
+
+			const isSingleIframe =
+				bodyNode &&
+				Array.from(bodyNode.children).filter((el) => el.nodeType === 1).length === 1 &&
+				bodyNode.firstElementChild &&
+				bodyNode.firstElementChild.tagName === 'IFRAME' &&
+				bodyNode.firstElementChild.hasAttribute('src') &&
+				bodyNode.firstElementChild.getAttribute('src') !== ''
+
+			if (isSingleIframe) {
+				const src = bodyNode.firstElementChild.getAttribute('src')!
+				handleText(editor, src, point, results)
 				return
 			}
 		}

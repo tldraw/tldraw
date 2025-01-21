@@ -14,8 +14,14 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
 	useEffect(() => {
 		if (!isEditing) return
 
-		if (document.activeElement !== rInput.current) {
-			rInput.current?.focus()
+		// N.B. In Development mode you need to ensure you're testing this without StrictMode on.
+		// Otherwise it's not gonna work as expected on iOS.
+		const contentEditable = rInput.current?.querySelector('[contenteditable]')
+		if (contentEditable && document.activeElement !== rInput.current) {
+			// This is a crucial difference with useEditablePlainText, that we need to select the
+			// child contentEditable <div> not rInput.current directly.
+			// Specifically, this is to ensure iOS works. Otherwise, we could just use rInput.current.
+			;(contentEditable as HTMLElement).focus()
 		}
 	}, [editor, isEditing])
 

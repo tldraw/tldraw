@@ -257,6 +257,7 @@ export {
 	type TLImageExportOptions,
 	type TLSvgOptions,
 	type TLTextOptions,
+	type TiptapEditor,
 } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
 export { tlenv } from './lib/globals/environment'

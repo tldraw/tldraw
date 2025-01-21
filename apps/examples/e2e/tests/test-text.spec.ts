@@ -1,6 +1,9 @@
 import test, { Page, expect } from '@playwright/test'
-import { BoxModel, Editor, TLNoteShape, TLShapeId, toRichText } from 'tldraw'
+import { BoxModel, Editor, TLNoteShape, TLShapeId } from 'tldraw'
+import { EndToEndApi } from '../../src/misc/EndToEndApi'
 import { setupPage } from '../shared-e2e'
+
+declare const tldrawApi: EndToEndApi
 
 const measureTextOptions = {
 	maxWidth: null,
@@ -249,7 +252,7 @@ test.describe('text measurement', () => {
 					x: 0,
 					y: 0,
 					props: {
-						richText: toRichText('this is just some regular text'),
+						richText: tldrawApi.toRichText('this is just some regular text'),
 						size: 'xl',
 					},
 				},
@@ -271,7 +274,7 @@ test.describe('text measurement', () => {
 					x: 0,
 					y: 0,
 					props: {
-						richText: toRichText('Amsterdam'),
+						richText: tldrawApi.toRichText('Amsterdam'),
 						size: 'xl',
 					},
 				},
@@ -293,7 +296,7 @@ test.describe('text measurement', () => {
 					x: 0,
 					y: 0,
 					props: {
-						richText: toRichText('this is a tentoonstelling'),
+						richText: tldrawApi.toRichText('this is a tentoonstelling'),
 						size: 'xl',
 					},
 				},
@@ -315,7 +318,9 @@ test.describe('text measurement', () => {
 					x: 0,
 					y: 0,
 					props: {
-						richText: toRichText('a very long dutch word like ziekenhuisinrichtingsmaatschappij'),
+						richText: tldrawApi.toRichText(
+							'a very long dutch word like ziekenhuisinrichtingsmaatschappij'
+						),
 						size: 'xl',
 					},
 				},
@@ -330,11 +335,7 @@ test.describe('text measurement', () => {
 	test('should use custom renderMethod for text measurement', async () => {
 		const { w, h } = await page.evaluate<{ w: number; h: number }, typeof measureTextOptions>(
 			async (options) => {
-				const customOptions = {
-					...options,
-					renderMethod: () => `<div><strong>HELLO WORLD</strong></div>`,
-				}
-				return editor.textMeasure.measureText('testing', customOptions)
+				return editor.textMeasure.measureHtml(`<div><strong>HELLO WORLD</strong></div>`, options)
 			},
 			measureTextOptions
 		)

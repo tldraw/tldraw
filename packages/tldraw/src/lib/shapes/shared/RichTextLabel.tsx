@@ -9,7 +9,7 @@ import {
 	TLShapeId,
 	useEditor,
 } from '@tldraw/editor'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo } from 'react'
 import { renderHtmlFromRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
 import { TEXT_PROPS } from './default-shape-constants'
@@ -75,16 +75,9 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		}
 	}, [editor, richText])
 
-	const [initialText, setInitialText] = useState(richText)
-
-	useEffect(() => {
-		if (!isEditing) setInitialText(richText)
-	}, [isEditing, richText])
-
-	const hasText = richText ? renderPlaintextFromRichText(editor, richText).length > 0 : false
-
 	const legacyAlign = isLegacyAlign(align)
 
+	const hasText = richText ? renderPlaintextFromRichText(editor, richText).length > 0 : false
 	if (!isEditing && !hasText) {
 		return null
 	}
@@ -141,9 +134,6 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 					<RichTextArea
 						// Fudge the ref type because we're using forwardRef and it's not typed correctly.
 						ref={rInput as any}
-						// We need to add the initial value as the key here because we need this component to
-						// 'reset' when this state changes and grab the latest defaultValue.
-						key={JSON.stringify(initialText)}
 						richText={richText}
 						isEditing={isEditing}
 						shapeId={shapeId}

@@ -1,15 +1,21 @@
-import {
-	getMarkRange,
-	Range,
-	Editor as TextEditor,
-	EditorEvents as TextEditorEvents,
-} from '@tiptap/core'
+import { getMarkRange, Range, EditorEvents as TextEditorEvents } from '@tiptap/core'
 import { MarkType } from '@tiptap/pm/model'
 import { EditorState as TextEditorState } from '@tiptap/pm/state'
-import { areObjectsShallowEqual, Box, Editor, track, useEditor, useValue } from '@tldraw/editor'
-import React, { useEffect, useRef, useState } from 'react'
+import {
+	areObjectsShallowEqual,
+	Box,
+	Editor,
+	TiptapEditor,
+	TLShapeId,
+	track,
+	useEditor,
+	useValue,
+} from '@tldraw/editor'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { getTextLabels } from '../../../utils/shapes/shapes'
+import { PORTRAIT_BREAKPOINT } from '../../constants'
+import { useBreakpoint } from '../../context/breakpoints'
 import { useContextualToolbarPosition } from '../../hooks/useContextualToolbarPosition'
-import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { DefaultRichTextToolbarContent } from './DefaultRichTextToolbarContent'
 import { LinkEditor } from './LinkEditor'
@@ -29,15 +35,19 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 }: TLUiRichTextToolbarProps) {
 	const editor = useEditor()
 	const toolbarRef = useRef<HTMLDivElement>(null)
+	const breakpoint = useBreakpoint()
+	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 	const isCoarsePointer = useValue(
 		'isCoarsePointer',
 		() => editor.getInstanceState().isCoarsePointer,
 		[editor]
 	)
 	const [currentCamera, setCurrentCamera] = useState(editor.getCamera())
-	const [stabilizedToolbarPosition, setStabilizedToolbarPosition] = useState({
+	const editingShapeId = useValue('editingShapeId', () => editor.getEditingShapeId(), [editor])
+	const [lastToolbarPosition, setLastToolbarPosition] = useState({
 		x: defaultPosition.x,
 		y: defaultPosition.y,
+		editingShapeId: null as TLShapeId | null,
 	})
 	const [isEditingLink, setIsEditingLink] = useState(false)
 	const textEditor = useValue('textEditor', () => editor.getEditingShapeTipTapTextEditor(), [
@@ -57,13 +67,13 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		const handleMouseUp = () => setIsMousingDown(false)
 		const handleMouseMove = () => setIsMousingAround(true)
 		const handleKeyDown = () => !isEditingLink && setIsMousingAround(false)
-		window.addEventListener('mousedown', handleMouseDown)
-		window.addEventListener('mouseup', handleMouseUp)
+		window.addEventListener('pointerdown', handleMouseDown)
+		window.addEventListener('pointerup', handleMouseUp)
 		window.addEventListener('mousemove', handleMouseMove)
 		window.addEventListener('keydown', handleKeyDown)
 		return () => {
-			window.removeEventListener('mousedown', handleMouseDown)
-			window.removeEventListener('mouseup', handleMouseUp)
+			window.removeEventListener('pointerdown', handleMouseDown)
+			window.removeEventListener('pointerup', handleMouseUp)
 			window.removeEventListener('mousemove', handleMouseMove)
 			window.removeEventListener('keydown', handleKeyDown)
 		}
@@ -90,6 +100,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	// Set up text editor event listeners.
 	useEffect(() => {
 		if (!textEditor) {
+			setIsEditingLink(false)
 			return
 		}
 
@@ -135,8 +146,10 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		!!textEditor &&
 		!!textEditorState &&
 		editor.isInAny('select.editing_shape') &&
+		!isMousingDown &&
 		(isMousingAround || isCoarsePointer) &&
-		(hasTextSelection || textEditor.isActive('link'))
+		(hasTextSelection || textEditor.isActive('link') || isMobile)
+
 	const toolbarPosition = useContextualToolbarPosition({
 		isVisible,
 		toolbarRef,
@@ -160,36 +173,32 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	// when modifying the rich text. The issue stems from the fact that coordsAtPos provides
 	// slightly different results for the same general position.
 	// However, if the camera has moved, forget the stabilization logic, just update the positions.
-	useEffect(() => {
-		if (toolbarPosition.y === defaultPosition.y || isEditingLink) return
-
+	const stabilizedToolbarPosition = useMemo(() => {
 		const hasCameraMoved = !areObjectsShallowEqual(camera, currentCamera)
 
 		const threshold = 10
 		const hasXPositionChangedEnough =
-			hasCameraMoved || Math.abs(toolbarPosition.x - stabilizedToolbarPosition.x) > threshold
+			hasCameraMoved || Math.abs(toolbarPosition.x - lastToolbarPosition.x) > threshold
 		const hasYPositionChangedEnough =
-			hasCameraMoved || Math.abs(toolbarPosition.y - stabilizedToolbarPosition.y) > threshold
+			hasCameraMoved || Math.abs(toolbarPosition.y - lastToolbarPosition.y) > threshold
 		if (hasXPositionChangedEnough || hasYPositionChangedEnough) {
-			const x = hasXPositionChangedEnough ? toolbarPosition.x : stabilizedToolbarPosition.x
-			const y = hasYPositionChangedEnough ? toolbarPosition.y : stabilizedToolbarPosition.y
-			setStabilizedToolbarPosition({ x, y })
-			if (toolbarRef.current && hasCameraMoved) {
-				// Make an immediate update for snappiness if camera has moved.
-				// Otherwise, we use the debouncedToolbarPosition below which makes it less jittery.
-				toolbarRef.current.style.transform = `translate(${x}px, ${y}px)`
+			const x = hasXPositionChangedEnough ? toolbarPosition.x : lastToolbarPosition.x
+			const y = hasYPositionChangedEnough ? toolbarPosition.y : lastToolbarPosition.y
+			const newStablePosition = { x, y, editingShapeId }
+			if (!hasCameraMoved) {
+				// We don't update this when the camera moves because otherwise we get into an infinite loop.
+				setLastToolbarPosition(newStablePosition)
 			}
+
+			return newStablePosition
 		}
 
 		if (hasCameraMoved) {
 			setCurrentCamera(camera)
 		}
-	}, [toolbarPosition, stabilizedToolbarPosition, camera, currentCamera, isEditingLink])
 
-	// The toolbar can get a _lot_ of updates because the textEditor state changes so much.
-	// That can make it cycle pretty quickly through isVisible and toolbarPosition states.
-	// This helps take the stabilizedPosition and visibility states and make them less jittery.
-	const debouncedToolbarPosition = useDebouncedValue(stabilizedToolbarPosition, 150)
+		return lastToolbarPosition
+	}, [toolbarPosition, lastToolbarPosition, camera, currentCamera, editingShapeId])
 
 	if (!textEditor) return null
 
@@ -197,8 +206,9 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		<TldrawUiContextualToolbar
 			ref={toolbarRef}
 			className="tl-rich-text__toolbar"
-			position={debouncedToolbarPosition}
-			indicatorOffset={toolbarPosition.indicatorOffset}
+			position={stabilizedToolbarPosition}
+			// indicatorOffset={toolbarPosition.indicatorOffset}
+			hideIndicator
 		>
 			{children ? (
 				children
@@ -232,7 +242,7 @@ const defaultPosition = {
 	h: 0,
 }
 
-function getTextSelectionBounds(editor: Editor, textEditor: TextEditor | null) {
+function getTextSelectionBounds(editor: Editor, textEditor: TiptapEditor | null) {
 	if (!textEditor) return Box.From(defaultPosition)
 
 	const { view } = textEditor
@@ -241,7 +251,21 @@ function getTextSelectionBounds(editor: Editor, textEditor: TextEditor | null) {
 	let toPos: Coordinates
 	try {
 		fromPos = Object.assign({}, view.coordsAtPos(selection.from))
-		toPos = Object.assign({}, view.coordsAtPos(selection.to, -1))
+		toPos = Object.assign({}, view.coordsAtPos(selection.to))
+
+		// XXX: sometimes the selection bounds are straight up wrong in Firefox/Safari.
+		// This can happen when selecting a whole line from beginning to end.
+		// See the related fix below with the width calculation.
+		if (
+			isNaN(fromPos.top) ||
+			isNaN(fromPos.bottom) ||
+			isNaN(fromPos.left) ||
+			isNaN(fromPos.right)
+		) {
+			fromPos = toPos
+		} else if (isNaN(toPos.top) || isNaN(toPos.bottom) || isNaN(toPos.left) || isNaN(toPos.right)) {
+			toPos = fromPos
+		}
 
 		// Need to account for the view being positioned within the container not just the entire
 		// window.
@@ -272,10 +296,23 @@ function getTextSelectionBounds(editor: Editor, textEditor: TextEditor | null) {
 		right: Math.max(fromPos.right, toPos.right),
 	}
 
+	let w = coords.right - coords.left
+	const currentShape = editor.getEditingShape()
+	// XXX: sometimes the selection bounds are straight up wrong in Firefox/Safari.
+	// See the related fix above with the fromPos and toPos logic and the isNaN checks.
+	if (w === 0 && currentShape) {
+		const geometry = editor.getShapeGeometry(currentShape)
+		const textLabels = getTextLabels(geometry)
+		if (textLabels.length === 1) {
+			// We use 32 here hardcode here because of the padding in the labels, ugh.
+			w = (textLabels[0].bounds.w - 32) * editor.getCamera().z
+		}
+	}
+
 	return Box.From({
 		x: coords.left,
 		y: coords.top,
-		w: coords.right - coords.left,
+		w,
 		h: coords.bottom - coords.top,
 	})
 }

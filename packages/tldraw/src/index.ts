@@ -1,6 +1,7 @@
 /// <reference types="react" />
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
+export { usePrefersReducedMotion } from './lib/shapes/shared/usePrefersReducedMotion'
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
 export { TldrawUiDialogs } from './lib/ui/components/Dialogs'
 export { TldrawUiToasts } from './lib/ui/components/Toasts'
@@ -447,7 +448,6 @@ export { useCanRedo, useCanUndo } from './lib/ui/hooks/menu-hooks'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
 export { useContextualToolbarPosition } from './lib/ui/hooks/useContextualToolbarPosition'
 export { useCopyAs } from './lib/ui/hooks/useCopyAs'
-export { useDebouncedValue } from './lib/ui/hooks/useDebouncedValue'
 export { useExportAs } from './lib/ui/hooks/useExportAs'
 export { useCollaborationStatus, useShowCollaborationUi } from './lib/ui/hooks/useIsMultiplayer'
 export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'

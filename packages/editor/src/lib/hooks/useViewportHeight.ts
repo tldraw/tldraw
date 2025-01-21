@@ -6,16 +6,23 @@ import { useLayoutEffect, useState } from 'react'
  *
  * Returns the height of the viewport.
  * This is mainly to account for virtual keyboards on mobile devices.
+ *
+ * N.B. On iOS, you have to take into account the offsetTop as well so that you get an accurate position
+ * while using the virtual keyboard.
  */
 /** @public */
 export function useViewportHeight(): number {
-	const [height, setHeight] = useState<number>(
-		() => window.visualViewport?.height || window.innerHeight
+	const visualViewport = window.visualViewport
+	const [height, setHeight] = useState<number>(() =>
+		visualViewport ? visualViewport.height + visualViewport.offsetTop : window.innerHeight
 	)
 
 	useLayoutEffect(() => {
 		const handleResize = () => {
-			setHeight(() => window.visualViewport?.height || window.innerHeight)
+			const visualViewport = window.visualViewport
+			setHeight(() =>
+				visualViewport ? visualViewport.height + visualViewport.offsetTop : window.innerHeight
+			)
 		}
 
 		window.visualViewport?.addEventListener('resize', handleResize)

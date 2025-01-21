@@ -1,3 +1,75 @@
+# v3.7.0 (Tue Jan 07 2025)
+
+### Release Notes
+
+#### Gist embed: restrict the url to a more strict format ([#5170](https://github.com/tldraw/tldraw/pull/5170))
+
+- Restrict Github Gists to a more strict URL format.
+
+#### embeds: fix Gist; fix Val Town; add support for <iframe> ([#5143](https://github.com/tldraw/tldraw/pull/5143))
+
+- Fixes bugs with Github Gist and Val Town; adds support for pasting `<iframe src="...">` embeds
+
+#### Fix max image dimension prop not getting applied. ([#5176](https://github.com/tldraw/tldraw/pull/5176))
+
+- Fix a bug with `maxImageDimension` not getting applied to pasted images.
+
+#### Allow expandSelectionOutlinePx to return a Box ([#5168](https://github.com/tldraw/tldraw/pull/5168))
+
+- Support expanding the selection outline by different amounts on each side by returning a `Box` from `expandSelectionOutlinePx`.
+
+#### custom sync presence ([#5071](https://github.com/tldraw/tldraw/pull/5071))
+
+- It's now possible to customise what presence data is synced between clients, or disable presence syncing entirely.
+
+#### Fix popover going off screen ([#5039](https://github.com/tldraw/tldraw/pull/5039))
+
+- Fixed a bug where popover menus might overflow the viewport
+
+#### Fix a bug when holding ctrl or meta and rotating ([#5087](https://github.com/tldraw/tldraw/pull/5087))
+
+- Fixed a bug with rotating image / croppable shapes.
+
+#### Improve rerenedring of the page menu and quick actions ([#5057](https://github.com/tldraw/tldraw/pull/5057))
+
+- Improves rendering of the pages menu and quick actions.
+
+---
+
+#### 🐛 Bug Fix
+
+- Reduce snow motion [#5148](https://github.com/tldraw/tldraw/pull/5148) ([@steveruizok](https://github.com/steveruizok))
+- [botcom] Support legacy routes [#5123](https://github.com/tldraw/tldraw/pull/5123) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fixes
+
+- Gist embed: restrict the url to a more strict format [#5170](https://github.com/tldraw/tldraw/pull/5170) ([@mimecuvalo](https://github.com/mimecuvalo))
+- embeds: fix Gist; fix Val Town; add support for <iframe> [#5143](https://github.com/tldraw/tldraw/pull/5143) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix max image dimension prop not getting applied. [#5176](https://github.com/tldraw/tldraw/pull/5176) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix popover going off screen [#5039](https://github.com/tldraw/tldraw/pull/5039) ([@hipstersmoothie](https://github.com/hipstersmoothie) [@ds300](https://github.com/ds300) [@steveruizok](https://github.com/steveruizok) [@mimecuvalo](https://github.com/mimecuvalo))
+- Fix a bug when holding ctrl or meta and rotating [#5087](https://github.com/tldraw/tldraw/pull/5087) ([@steveruizok](https://github.com/steveruizok))
+
+#### 💄 Product Improvements
+
+- Improve rerenedring of the page menu and quick actions [#5057](https://github.com/tldraw/tldraw/pull/5057) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🛠️ API Changes
+
+- Allow expandSelectionOutlinePx to return a Box [#5168](https://github.com/tldraw/tldraw/pull/5168) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+- custom sync presence [#5071](https://github.com/tldraw/tldraw/pull/5071) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 7
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Andrew Lisowski ([@hipstersmoothie](https://github.com/hipstersmoothie))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+
+---
+
 # v3.6.0 (Wed Dec 04 2024)
 
 ### Release Notes

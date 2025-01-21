@@ -21,9 +21,14 @@ export interface TextAreaProps {
 	handleBlur(): void
 	handleKeyDown(e: KeyboardEvent): void
 	handleChange(changeInfo: { plaintext?: string; richText?: TLRichText }): void
-	handleInputPointerDown(e: React.PointerEvent<HTMLTextAreaElement>): void
+	handleInputPointerDown(e: React.PointerEvent<HTMLElement>): void
 	handleDoubleClick(e: any): any
 }
+
+/**
+ * N.B. In Development mode you need to ensure you're testing this without StrictMode on.
+ * Otherwise it's not gonna work as expected on iOS.
+ */
 
 /**
  * A rich text area that can be used for editing text with rich text formatting.

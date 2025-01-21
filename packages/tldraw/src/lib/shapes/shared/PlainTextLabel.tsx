@@ -6,7 +6,7 @@ import {
 	TLDefaultVerticalAlignStyle,
 	TLShapeId,
 } from '@tldraw/editor'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { PlainTextArea } from '../text/PlainTextArea'
 import { TextHelpers } from './TextHelpers'
 import { isLegacyAlign } from './legacyProps'
@@ -65,13 +65,6 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } =
 		useEditablePlainText(shapeId, type, plaintext)
 
-	const currentText = plaintext || ''
-	const [initialText, setInitialText] = useState(currentText)
-
-	useEffect(() => {
-		if (!isEditing) setInitialText(currentText)
-	}, [isEditing, currentText])
-
 	const finalPlainText = TextHelpers.normalizeTextForDom(plaintext || '')
 	const hasText = finalPlainText.length > 0
 
@@ -123,9 +116,6 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 					<PlainTextArea
 						// Fudge the ref type because we're using forwardRef and it's not typed correctly.
 						ref={rInput as any}
-						// We need to add the initial value as the key here because we need this component to
-						// 'reset' when this state changes and grab the latest defaultValue.
-						key={JSON.stringify(initialText)}
 						text={plaintext}
 						isEditing={isEditing}
 						shapeId={shapeId}

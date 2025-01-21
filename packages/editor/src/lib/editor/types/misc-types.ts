@@ -1,3 +1,4 @@
+import { Editor } from '@tiptap/core'
 import { EditorProviderProps } from '@tiptap/react'
 import { BoxModel } from '@tldraw/tlschema'
 import { Box } from '../../primitives/Box'
@@ -140,3 +141,10 @@ export interface TLCameraConstraints {
 export interface TLTextOptions {
 	tipTapConfig?: EditorProviderProps
 }
+
+/**
+ * This is the TipTap editor! Docs are {@link https://tiptap.dev/docs}.
+ *
+ * @public
+ */
+export type TiptapEditor = Editor

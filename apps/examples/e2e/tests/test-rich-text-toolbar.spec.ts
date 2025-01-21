@@ -65,7 +65,7 @@ test.describe('Rich text behaviour', () => {
 						?.innerHTML
 					const renderedText = await document.querySelector('.tl-rich-text-tiptap')?.innerHTML
 					// Check tool.tag is in the innerHTML of the richTextArea and renderedText.
-					return richTextArea?.includes(`<${toolTag}>`) && renderedText?.includes(`<${toolTag}>`)
+					return richTextArea?.includes(`<${toolTag}`) && renderedText?.includes(`<${toolTag}`)
 				},
 				[tool.tag]
 			)

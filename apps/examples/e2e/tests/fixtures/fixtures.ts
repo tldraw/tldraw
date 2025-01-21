@@ -90,6 +90,7 @@ const test = base.extend<Fixtures>({
 				exportAsSvg: true,
 				exportAsFormat: true,
 				createShapeId: true,
+				toRichText: true,
 			},
 			page
 		)

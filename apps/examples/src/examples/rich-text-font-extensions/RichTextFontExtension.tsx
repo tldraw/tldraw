@@ -8,6 +8,7 @@ import {
 	DefaultRichTextToolbarContent,
 	TLComponents,
 	Tldraw,
+	stopEventPropagation,
 	tipTapDefaultExtensions,
 	useEditor,
 	useValue,
@@ -70,6 +71,7 @@ const components: TLComponents = {
 			<DefaultRichTextToolbar>
 				<select
 					value={currentFontFamily}
+					onPointerDown={stopEventPropagation}
 					onChange={(e) => {
 						textEditor?.chain().focus().setFontFamily(e.target.value).run()
 					}}
@@ -82,6 +84,7 @@ const components: TLComponents = {
 				</select>
 				<select
 					value={currentFontSize}
+					onPointerDown={stopEventPropagation}
 					onChange={(e) => {
 						textEditor?.chain().focus().setFontSize(e.target.value).run()
 					}}
@@ -99,17 +102,19 @@ const components: TLComponents = {
 	},
 }
 
+const textOptions = {
+	tipTapConfig: {
+		extensions: [...tipTapDefaultExtensions, FontFamily, FontSize, TextStyle],
+	},
+}
+
 export default function RichTextFontExtensionExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				persistenceKey="rich-text-font-extension"
 				components={components}
-				textOptions={{
-					tipTapConfig: {
-						extensions: [...tipTapDefaultExtensions, FontFamily, FontSize, TextStyle],
-					},
-				}}
+				textOptions={textOptions}
 			/>
 		</div>
 	)
