@@ -280,10 +280,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	/**
 	 * Load a snapshot of the document state, overwriting the current state.
 	 * @param snapshot - The snapshot to load
-	 * @param bucket - The bucket to use for asset storage
-	 * @param fileId - The (tldraw app) file id to associate with the assets
 	 */
-	loadSnapshot(snapshot: RoomSnapshot | TLStoreSnapshot, bucket?: any, fileId?: string) {
+	loadSnapshot(snapshot: RoomSnapshot | TLStoreSnapshot) {
 		if ('store' in snapshot) {
 			snapshot = convertStoreSnapshotToRoomSnapshot(snapshot)
 		}
@@ -315,9 +313,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		})
 		// replace room with new one and kick out all the clients
 		this.room = newRoom
-		if (bucket && fileId) {
-			this.associateFileAssets(fileId, bucket)
-		}
 		oldRoom.close()
 	}
 
@@ -352,6 +347,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				assetsToUpdate.push({ assetId: asset.id, fileId })
 			}
 		})
+		console.log('💡[293]: TLSocketRoom.ts:347: assetsToUpdate=', assetsToUpdate)
 		return assetsToUpdate
 	}
 

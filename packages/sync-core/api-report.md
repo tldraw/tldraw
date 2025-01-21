@@ -356,7 +356,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     handleSocketMessage(sessionId: string, message: AllowSharedBufferSource | string): void;
     // (undocumented)
     isClosed(): boolean;
-    loadSnapshot(snapshot: RoomSnapshot | TLStoreSnapshot, bucket?: any, fileId?: string): void;
+    loadSnapshot(snapshot: RoomSnapshot | TLStoreSnapshot): void;
     // (undocumented)
     readonly log?: TLSyncLog;
     // (undocumented)

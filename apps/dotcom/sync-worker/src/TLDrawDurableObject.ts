@@ -134,7 +134,6 @@ export class TLDrawDurableObject extends DurableObject {
 					}
 				}
 			})
-			this.maybeAssociateFileAssets()
 		}
 		return this._room
 	}
@@ -296,11 +295,8 @@ export class TLDrawDurableObject extends DurableObject {
 			const room = await this.getRoom()
 
 			const snapshot: RoomSnapshot = JSON.parse(dataText)
-			room.loadSnapshot(
-				snapshot,
-				this.env.UPLOADS,
-				this.documentInfo.isApp ? this.documentInfo.slug : undefined
-			)
+			room.loadSnapshot(snapshot)
+			this.maybeAssociateFileAssets()
 
 			return new Response()
 		} finally {
