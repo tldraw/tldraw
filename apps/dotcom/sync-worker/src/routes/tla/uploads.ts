@@ -24,7 +24,7 @@ export async function upload(request: IRequest, env: Environment): Promise<Respo
 	})
 	if (res.status === 200) {
 		const stub = getUserDurableObject(env, auth.userId)
-		stub.associateFileAsset(fileId, objectName)
+		stub.associateFileAsset(objectName, fileId)
 	}
 	return res
 }

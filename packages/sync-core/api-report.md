@@ -327,8 +327,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     });
     // (undocumented)
     associateFileAssets(fileId: string, bucket: any): Promise<{
-        assetId: string;
         fileId: string;
+        objectName: string;
     }[]>;
     close(): void;
     closeSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;

@@ -317,7 +317,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	}
 
 	async associateFileAssets(fileId: string, bucket: any) {
-		const assetsToUpdate: { assetId: string; fileId: string }[] = []
+		const assetsToUpdate: { objectName: string; fileId: string }[] = []
 		await this.updateStore(async (store) => {
 			const records = store.getAll()
 
@@ -337,14 +337,14 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				const split = objectName.split('-')
 				const fileType = split.length > 1 ? split.pop() : null
 				const id = uniqueId()
-				const newAssetId = fileType ? `${id}-${fileType}` : id
-				await bucket.put(newAssetId, currentAsset.body, {
+				const newObjectName = fileType ? `${id}-${fileType}` : id
+				await bucket.put(newObjectName, currentAsset.body, {
 					httpMetadata: currentAsset.httpMetadata,
 				})
-				asset.props.src = asset.props.src.replace(objectName, newAssetId)
+				asset.props.src = asset.props.src.replace(objectName, newObjectName)
 				asset.meta.fileId = fileId
 				store.put(asset)
-				assetsToUpdate.push({ assetId: asset.id, fileId })
+				assetsToUpdate.push({ objectName: newObjectName, fileId })
 			}
 		})
 		return assetsToUpdate

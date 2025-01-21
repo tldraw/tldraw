@@ -586,7 +586,7 @@ export class TLDrawDurableObject extends DurableObject {
 			.insertInto('asset')
 			.values(assetsToUpdate)
 			.onConflict((oc) => {
-				return oc.column('assetId').doUpdateSet({ fileId: slug })
+				return oc.column('objectName').doUpdateSet({ fileId: slug })
 			})
 			.execute()
 	}

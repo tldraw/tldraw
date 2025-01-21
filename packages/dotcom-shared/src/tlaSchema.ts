@@ -164,7 +164,7 @@ export function isColumnMutable(tableName: keyof typeof immutableColumns, column
 }
 
 export interface TlaAsset {
-	assetId: string
+	objectName: string
 	fileId: string
 }
 
