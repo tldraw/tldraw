@@ -11,23 +11,6 @@ export async function requireAuth(request: IRequest, env: Environment): Promise<
 	return auth
 }
 
-export async function getAuthFromCookies(
-	request: IRequest,
-	env: Environment
-): Promise<SignedInAuth | null> {
-	const clerk = createClerkClient({
-		secretKey: env.CLERK_SECRET_KEY,
-		publishableKey: env.CLERK_PUBLISHABLE_KEY,
-	})
-
-	const state = await clerk.authenticateRequest(request)
-	if (!state.isSignedIn) {
-		return null
-	}
-
-	return state.toAuth()
-}
-
 export async function getAuthFromSearchParams(
 	request: IRequest,
 	env: Environment

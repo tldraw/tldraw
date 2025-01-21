@@ -161,9 +161,8 @@ function TlaEditorInner({ fileSlug, fileOpenState, deepLinks }: TlaEditorProps) 
 
 	const user = useTldrawUser()
 	const assets = useMemo(() => {
-		if (!user) return multiplayerAssetStore()
 		return multiplayerAssetStore(() => fileId)
-	}, [user, fileId])
+	}, [fileId])
 
 	const store = useSync({
 		uri: useCallback(async () => {
@@ -217,6 +216,7 @@ function TlaEditorInner({ fileSlug, fileOpenState, deepLinks }: TlaEditorProps) 
 			}
 		}
 	}, [app, fileId, store.status])
+	console.log('here')
 
 	const overrides = useFileEditorOverrides({ fileSlug })
 
