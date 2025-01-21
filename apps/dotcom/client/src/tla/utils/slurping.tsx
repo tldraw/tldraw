@@ -210,7 +210,7 @@ class Slurper {
 							...asset,
 							props: { ...asset.props, src },
 							// we might have hidden the asset if the upload failed previously
-							meta: { ...asset.meta, hidden: false },
+							meta: { ...asset.meta, hidden: false, fileId: this.opts.fileId },
 						},
 					])
 				})
