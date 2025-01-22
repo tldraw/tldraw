@@ -45,7 +45,6 @@ export interface Environment {
 	SUPABASE_URL: string | undefined
 	SUPABASE_KEY: string | undefined
 
-	APP_ORIGIN: string | undefined
 	CLERK_SECRET_KEY: string | undefined
 	CLERK_PUBLISHABLE_KEY: string | undefined
 
