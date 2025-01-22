@@ -120,6 +120,7 @@ export {
 	StackMenuItems,
 	ZoomOrRotateMenuItem,
 } from './lib/ui/components/ActionsMenu/DefaultActionsMenuContent'
+export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
 export {
 	DefaultContextMenu as ContextMenu,
 	DefaultContextMenu,
