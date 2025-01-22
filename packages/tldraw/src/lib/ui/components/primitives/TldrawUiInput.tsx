@@ -33,6 +33,7 @@ export interface TLUiInputProps {
 	 */
 	shouldManuallyMaintainScrollPositionWhenFocused?: boolean
 	value?: string
+	'data-testid'?: string
 }
 
 /** @public @react */
@@ -55,6 +56,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			shouldManuallyMaintainScrollPositionWhenFocused = false,
 			children,
 			value,
+			'data-testid': dataTestId,
 		},
 		ref
 	) {
@@ -177,6 +179,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 					autoFocus={autoFocus}
 					placeholder={placeholder}
 					value={value}
+					data-testid={dataTestId}
 				/>
 				{icon && <TldrawUiIcon icon={icon} small={!!label} />}
 			</div>

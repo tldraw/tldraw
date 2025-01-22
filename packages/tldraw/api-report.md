@@ -2842,6 +2842,8 @@ export type TLUiIconType = 'align-bottom' | 'align-center-horizontal' | 'align-c
 // @public (undocumented)
 export interface TLUiInputProps {
     // (undocumented)
+    'data-testid'?: string;
+    // (undocumented)
     autoFocus?: boolean;
     // (undocumented)
     autoSelect?: boolean;

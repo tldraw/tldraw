@@ -152,6 +152,9 @@
   "7408cf0d7b": {
     "translation": "Please reload the page"
   },
+  "752b79f137": {
+    "translation": "You have reached the maximum number of files. You need to delete old files before creating new ones."
+  },
   "7573b8110a": {
     "translation": "No access"
   },
@@ -235,6 +238,9 @@
   },
   "a9ded1e5ce": {
     "translation": "Background"
+  },
+  "ab0df9ba36": {
+    "translation": "File limit reached"
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
