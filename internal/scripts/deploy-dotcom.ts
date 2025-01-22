@@ -83,7 +83,7 @@ const sentryReleaseName = `${env.TLDRAW_ENV}-${previewId ? previewId + '-' : ''}
 if (previewId) {
 	env.ASSET_UPLOAD = `https://${previewId}-tldraw-assets.tldraw.workers.dev`
 	env.MULTIPLAYER_SERVER = `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
-	env.IMAGE_WORKER = `https://${previewId}-tldraw-image-optimizer.tldraw.workers.dev`
+	env.IMAGE_WORKER = `https://${previewId}-images.tldraw.xyz`
 }
 
 async function main() {
@@ -256,6 +256,7 @@ async function deployImageResizeWorker({ dryRun }: { dryRun: boolean }) {
 	if (previewId && !didUpdateImageResizeWorker) {
 		await setWranglerPreviewConfig(imageResize, {
 			name: workerId,
+			customDomain: `${previewId}-images.tldraw.xyx`,
 			serviceBinding: {
 				binding: 'SYNC_WORKER',
 				service: `${previewId}-tldraw-multiplayer`,
