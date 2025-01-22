@@ -1,7 +1,7 @@
 import { TLUiOverrides } from 'tldraw'
 import { updateLocalSessionState } from '../../utils/local-session-state'
 
-export function useFocusOverrides(): TLUiOverrides {
+export function useFocusModeOverrides(): TLUiOverrides {
 	return {
 		actions(editor, actions) {
 			const toggleFocusMode = actions['toggle-focus-mode']
