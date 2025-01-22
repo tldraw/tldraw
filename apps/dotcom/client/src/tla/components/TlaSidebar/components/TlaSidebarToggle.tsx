@@ -11,12 +11,12 @@ export function TlaSidebarToggle() {
 	const toggleLbl = useMsg(messages.toggleSidebar)
 	const editor = useEditor()
 
-	const showSidebarToggle = useValue(
-		'showSidebarToggle',
-		() => editor && !editor.getInstanceState().isFocusMode,
+	const hideSidebarToggle = useValue(
+		'hideSidebarToggle',
+		() => editor.getInstanceState().isFocusMode,
 		[editor]
 	)
-	if (!showSidebarToggle) return null
+	if (hideSidebarToggle) return null
 
 	return (
 		<button
