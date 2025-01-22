@@ -28,7 +28,10 @@ test('can create new file with custom name', async ({ editor, sidebar, page }) =
 	await expectBeforeAndAfterReload(async () => {
 		const newCount = await sidebar.getNumberOfFiles()
 		expect(newCount).toBe(currentCount + 1)
-		await expect(sidebar.sidebar.getByText(fileName)).toBeVisible()
+		await page.pause()
+		await expect(
+			page.getByTestId('tla-file-link-today-0').getByText(fileName, { exact: true })
+		).toBeVisible()
 	}, page)
 })
 
