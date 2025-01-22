@@ -32,6 +32,7 @@ export interface TldrawAppSessionState {
 		'exportFormat' | 'exportTheme' | 'exportBackground' | 'exportPadding'
 	>
 	sidebarWidth?: number
+	shouldShowWelcomeDialog?: boolean
 }
 
 let prev: TldrawAppSessionState = {

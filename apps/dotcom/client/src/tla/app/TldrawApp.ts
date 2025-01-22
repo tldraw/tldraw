@@ -31,6 +31,7 @@ import {
 } from 'tldraw'
 import { getDateFormat } from '../utils/dates'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
+import { updateLocalSessionState } from '../utils/local-session-state'
 import { Zero } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
@@ -113,7 +114,8 @@ export class TldrawApp {
 	async preload(initialUserData: TlaUser) {
 		await this.z.query.user.where('id', this.userId).preload().complete
 		if (!this.user$.get()) {
-			await this.z.mutate.user.create(initialUserData)
+			this.z.mutate.user.create(initialUserData)
+			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
 		}
 		await new Promise((resolve) => {
 			let unsub = () => {}
