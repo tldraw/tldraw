@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useRef } from 'react'
-import { preventDefault, useValue } from 'tldraw'
+import { preventDefault, useEditor, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { F } from '../../utils/i18n'
@@ -13,6 +13,7 @@ import styles from './sidebar.module.css'
 
 export const TlaSidebar = memo(function TlaSidebar() {
 	const app = useApp()
+	const editor = useEditor()
 	const isSidebarOpen = useValue('sidebar open', () => getLocalSessionState().isSidebarOpen, [app])
 	const isSidebarOpenMobile = useValue(
 		'sidebar open mobile',
@@ -24,14 +25,19 @@ export const TlaSidebar = memo(function TlaSidebar() {
 	useEffect(() => {
 		function handleKeyDown(e: KeyboardEvent) {
 			if (e.key === '\\' && (e.ctrlKey || e.metaKey)) {
-				updateLocalSessionState((state) => ({ isSidebarOpen: !state.isSidebarOpen }))
+				updateLocalSessionState((state) => {
+					if (!state.isSidebarOpen) {
+						editor?.updateInstanceState({ isFocusMode: false })
+					}
+					return { isSidebarOpen: !state.isSidebarOpen }
+				})
 			}
 		}
 		window.addEventListener('keydown', handleKeyDown)
 		return () => {
 			window.removeEventListener('keydown', handleKeyDown)
 		}
-	}, [])
+	}, [editor])
 
 	useEffect(() => {
 		const sidebarEl = sidebarRef.current

@@ -1,3 +1,4 @@
+import { useEditor, useValue } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { useMsg } from '../../../utils/i18n'
 import { getLocalSessionState, updateLocalSessionState } from '../../../utils/local-session-state'
@@ -8,6 +9,14 @@ import { messages } from './sidebar-shared'
 export function TlaSidebarToggle() {
 	const trackEvent = useTldrawAppUiEvents()
 	const toggleLbl = useMsg(messages.toggleSidebar)
+	const editor = useEditor()
+
+	const showSidebarToggle = useValue(
+		'showSidebarToggle',
+		() => editor && !editor.getInstanceState().isFocusMode,
+		[editor]
+	)
+	if (!showSidebarToggle) return null
 
 	return (
 		<button
@@ -16,7 +25,13 @@ export function TlaSidebarToggle() {
 			data-testid="tla-sidebar-toggle"
 			title={toggleLbl}
 			onClick={() => {
-				updateLocalSessionState((s) => ({ isSidebarOpen: !s.isSidebarOpen }))
+				updateLocalSessionState((s) => {
+					if (!s.isSidebarOpen) {
+						editor?.updateInstanceState({ isFocusMode: false })
+					}
+
+					return { isSidebarOpen: !s.isSidebarOpen }
+				})
 				trackEvent('sidebar-toggle', {
 					value: getLocalSessionState().isSidebarOpen,
 					source: 'sidebar',

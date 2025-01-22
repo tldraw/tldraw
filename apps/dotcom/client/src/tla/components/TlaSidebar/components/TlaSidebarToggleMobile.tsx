@@ -1,3 +1,4 @@
+import { useEditor, useValue } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { useMsg } from '../../../utils/i18n'
 import { getLocalSessionState, updateLocalSessionState } from '../../../utils/local-session-state'
@@ -8,6 +9,14 @@ import { messages } from './sidebar-shared'
 export function TlaSidebarToggleMobile() {
 	const trackEvent = useTldrawAppUiEvents()
 	const toggleSidebarLbl = useMsg(messages.toggleSidebar)
+	const editor = useEditor()
+
+	const showSidebarToggle = useValue(
+		'showSidebarToggle',
+		() => !editor.getInstanceState().isFocusMode,
+		[editor]
+	)
+	if (!showSidebarToggle) return null
 
 	return (
 		<button
