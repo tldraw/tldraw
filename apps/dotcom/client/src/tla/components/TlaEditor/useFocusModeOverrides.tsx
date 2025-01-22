@@ -8,7 +8,7 @@ export function useFocusModeOverrides(): TLUiOverrides {
 			const original = toggleFocusMode.onSelect
 			toggleFocusMode.onSelect = (source) => {
 				const isFocusMode = editor.getInstanceState().isFocusMode
-				// If we will turn on the focus mode we also want to hide the sidebar
+				// When we turn on the focus mode we also hide the sidebar
 				if (!isFocusMode) {
 					updateLocalSessionState(() => ({ isSidebarOpen: false }))
 				}
