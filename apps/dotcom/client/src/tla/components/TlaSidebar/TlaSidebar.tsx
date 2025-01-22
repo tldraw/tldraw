@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useRef } from 'react'
-import { preventDefault, useEditor, useValue } from 'tldraw'
+import { preventDefault, useValue } from 'tldraw'
+import { globalEditor } from '../../../utils/globalEditor'
 import { useApp } from '../../hooks/useAppState'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { F } from '../../utils/i18n'
@@ -13,7 +14,7 @@ import styles from './sidebar.module.css'
 
 export const TlaSidebar = memo(function TlaSidebar() {
 	const app = useApp()
-	const editor = useEditor()
+	const editor = globalEditor.get()
 	const isSidebarOpen = useValue('sidebar open', () => getLocalSessionState().isSidebarOpen, [app])
 	const isSidebarOpenMobile = useValue(
 		'sidebar open mobile',
