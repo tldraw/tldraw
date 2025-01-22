@@ -197,7 +197,7 @@ class Slurper {
 				uploadQueues[i % UPLOAD_CONCURRENCY].push(async () => {
 					const res = await loadLocalFile(asset)
 					if (!res) throw new Error(`Failed to load local file for asset ${asset.id}`)
-					const url = await retry(
+					const { src } = await retry(
 						() => this.opts.editor.uploadAsset(asset!, res.file, this.opts.abortSignal),
 						{
 							attempts: 3,
@@ -208,9 +208,9 @@ class Slurper {
 					this.opts.editor.updateAssets([
 						{
 							...asset,
-							props: { ...asset.props, src: url },
+							props: { ...asset.props, src },
 							// we might have hidden the asset if the upload failed previously
-							meta: { ...asset.meta, hidden: false },
+							meta: { ...asset.meta, hidden: false, fileId: this.opts.fileId },
 						},
 					])
 				})

@@ -27,6 +27,10 @@ const assetUpload = path.relative(
 	process.cwd(),
 	path.resolve(REPO_ROOT, './apps/dotcom/asset-upload-worker')
 )
+const imageResize = path.relative(
+	process.cwd(),
+	path.resolve(REPO_ROOT, './apps/dotcom/image-resize-worker')
+)
 const dotcom = path.relative(process.cwd(), path.resolve(REPO_ROOT, './apps/dotcom/client'))
 
 const { previewId, sha } = getDeployInfo()
@@ -79,6 +83,7 @@ const sentryReleaseName = `${env.TLDRAW_ENV}-${previewId ? previewId + '-' : ''}
 if (previewId) {
 	env.ASSET_UPLOAD = `https://${previewId}-tldraw-assets.tldraw.workers.dev`
 	env.MULTIPLAYER_SERVER = `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
+	env.IMAGE_WORKER = `https://${previewId}-images.tldraw.xyz`
 }
 
 async function main() {
@@ -110,6 +115,7 @@ async function main() {
 		await deployAssetUploadWorker({ dryRun: true })
 		await deployHealthWorker({ dryRun: true })
 		await deployTlsyncWorker({ dryRun: true })
+		await deployImageResizeWorker({ dryRun: true })
 	})
 
 	// --- point of no return! do the deploy for real --- //
@@ -122,6 +128,9 @@ async function main() {
 	})
 	await discord.step('deploying multiplayer worker to cloudflare', async () => {
 		await deployTlsyncWorker({ dryRun: false })
+	})
+	await discord.step('deploying image resizer to cloudflare', async () => {
+		await deployImageResizeWorker({ dryRun: false })
 	})
 	await discord.step('deploying health worker to cloudflare', async () => {
 		await deployHealthWorker({ dryRun: false })
@@ -237,6 +246,33 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			project: 'tldraw-sync',
 			authToken: env.SENTRY_AUTH_TOKEN,
 			environment: workerId,
+		},
+	})
+}
+
+let didUpdateImageResizeWorker = false
+async function deployImageResizeWorker({ dryRun }: { dryRun: boolean }) {
+	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-image-optimizer`
+	if (previewId && !didUpdateImageResizeWorker) {
+		await setWranglerPreviewConfig(imageResize, {
+			name: workerId,
+			customDomain: `${previewId}-images.tldraw.xyz`,
+			serviceBinding: {
+				binding: 'SYNC_WORKER',
+				service: `${previewId}-tldraw-multiplayer`,
+			},
+		})
+		didUpdateImageResizeWorker = true
+	}
+
+	await wranglerDeploy({
+		location: imageResize,
+		dryRun,
+		env: env.TLDRAW_ENV,
+		vars: {
+			TLDRAW_ENV: env.TLDRAW_ENV,
+			WORKER_NAME: workerId,
+			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
 		},
 	})
 }

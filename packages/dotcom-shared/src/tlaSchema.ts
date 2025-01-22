@@ -163,9 +163,15 @@ export function isColumnMutable(tableName: keyof typeof immutableColumns, column
 	return !immutableColumns[tableName].has(column)
 }
 
+export interface TlaAsset {
+	objectName: string
+	fileId: string
+}
+
 export interface DB {
 	file: TlaFile
 	file_state: TlaFileState
 	user: TlaUser
 	user_mutation_number: TlaUserMutationNumber
+	asset: TlaAsset
 }
