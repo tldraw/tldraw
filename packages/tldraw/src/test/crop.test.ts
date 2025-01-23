@@ -1,5 +1,5 @@
 import { TLImageShape, Vec, createShapeId } from '@tldraw/editor'
-import { cropBox } from '../lib/shapes/shared/crop'
+import { getCropBox } from '../lib/shapes/shared/crop'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -30,7 +30,7 @@ beforeEach(() => {
 
 describe('Crop box', () => {
 	it('Crops from the top left', () => {
-		const results = cropBox(shape, {
+		const results = getCropBox(shape, {
 			handle: 'top_left',
 			change: new Vec(10, 20),
 			crop: initialCrop,
@@ -52,7 +52,7 @@ describe('Crop box', () => {
 	})
 
 	it('Crops from the top right', () => {
-		const results = cropBox(shape, {
+		const results = getCropBox(shape, {
 			handle: 'top_right',
 			change: new Vec(-10, 20),
 			crop: initialCrop,
@@ -74,7 +74,7 @@ describe('Crop box', () => {
 	})
 
 	it('Crops from the bottom right', () => {
-		const results = cropBox(shape, {
+		const results = getCropBox(shape, {
 			handle: 'bottom_right',
 			change: new Vec(-10, -20),
 			crop: initialCrop,
@@ -96,7 +96,7 @@ describe('Crop box', () => {
 	})
 
 	it('Crops from the bottom left', () => {
-		const results = cropBox(shape, {
+		const results = getCropBox(shape, {
 			handle: 'bottom_left',
 			change: new Vec(10, -20),
 			crop: initialCrop,
@@ -118,7 +118,7 @@ describe('Crop box', () => {
 	})
 
 	it('Crop returns the same object when expanding out of the shape', () => {
-		const results = cropBox(shape, {
+		const results = getCropBox(shape, {
 			handle: 'top_left',
 			change: new Vec(-10, 0),
 			crop: initialCrop,
@@ -140,7 +140,7 @@ describe('Crop box', () => {
 	})
 
 	it('Crop returns undefined if existing width and height is already less than minWidth and minHeight', () => {
-		const results = cropBox(
+		const results = getCropBox(
 			shape,
 			{
 				handle: 'top_left',

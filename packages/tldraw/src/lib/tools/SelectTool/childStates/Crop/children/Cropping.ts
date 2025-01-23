@@ -1,5 +1,5 @@
 import { SelectionHandle, ShapeWithCrop, StateNode, TLPointerEventInfo, Vec } from '@tldraw/editor'
-import { cropBox, getDefaultCrop } from '../../../../../shapes/shared/crop'
+import { getCropBox, getDefaultCrop } from '../../../../../shapes/shared/crop'
 import { kickoutOccludedShapes } from '../../../selectHelpers'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
@@ -73,7 +73,7 @@ export class Cropping extends StateNode {
 			h: (1 / (crop.bottomRight.y - crop.topLeft.y)) * shape.props.h,
 		}
 
-		const cropFn = util.onCrop?.bind(util) ?? cropBox
+		const cropFn = util.onCrop?.bind(util) ?? getCropBox
 		const partial = cropFn(shape, {
 			handle: this.info.handle,
 			change,

@@ -418,9 +418,6 @@ export function createMediaAssetInfoSkeleton(file: File, assetId: TLAssetId, isI
 export function createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike): Promise<TLShapeId[]>;
 
 // @public (undocumented)
-export function cropBox<T extends ShapeWithCrop>(shape: T, info: TLCropInfo<T>, opts?: CropBoxOptions): TLShapePartial<ShapeWithCrop> | undefined;
-
-// @public (undocumented)
 export interface CropBoxOptions {
     // (undocumented)
     minHeight?: number;
@@ -1223,6 +1220,9 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
     end: Vec;
     start: Vec;
 };
+
+// @public (undocumented)
+export function getCropBox<T extends ShapeWithCrop>(shape: T, info: TLCropInfo<T>, opts?: CropBoxOptions): TLShapePartial<ShapeWithCrop> | undefined;
 
 // @public (undocumented)
 export function getDefaultCrop(): {

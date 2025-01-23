@@ -18,7 +18,7 @@ export function getDefaultCrop() {
 }
 
 /** @public */
-export function cropBox<T extends ShapeWithCrop>(
+export function getCropBox<T extends ShapeWithCrop>(
 	shape: T,
 	info: TLCropInfo<T>,
 	opts = {} as CropBoxOptions
