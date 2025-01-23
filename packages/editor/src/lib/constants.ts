@@ -4,7 +4,8 @@ import { EASINGS } from './primitives/easings'
 /** @internal */
 export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions = {
 	isLocked: false,
-	wheelBehavior: 'pan',
+	wheelBehavior: 'auto',
+	autoWheelBehavior: 'pan',
 	panSpeed: 1,
 	zoomSpeed: 1,
 	zoomSteps: [0.1, 0.25, 0.5, 1, 2, 4, 8],

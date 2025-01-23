@@ -323,7 +323,11 @@ You can use the editor's camera options to configure the behavior of the editor'
 
 ### `wheelBehavior`
 
-When set to `'pan'`, scrolling the mousewheel will pan the camera. When set to `'zoom'`, scrolling the mousewheel will zoom the camera. When set to `none`, it will have no effect.
+When set to `'pan'`, scrolling the mousewheel will pan the camera. When set to `'zoom'`, scrolling the mousewheel will zoom the camera. When set to `'auto'`, it will change dynamically between the two based on the users interactions. Specifically it will change to `'pan'` when scrolling horizontally and change to `'zoom'` when the canvas is panned by either spacebar dragging or middle mouse dragging. When set to `'none'`, it will have no effect.
+
+### `autoWheelBehavior`
+
+When `wheelBehavior` is set to `'auto'`, this controls whether the behavior used is `'pan'` or `'zoom'`. The value will automatically be changed on certain user interactions as described under the `wheelBehavior` option.
 
 ### `panSpeed`
 
