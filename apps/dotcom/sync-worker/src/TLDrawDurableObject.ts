@@ -613,12 +613,8 @@ export class TLDrawDurableObject extends DurableObject {
 					httpMetadata: currentAsset.httpMetadata,
 				})
 				asset.props.src = asset.props.src.replace(objectName, newObjectName)
-				if (asset.props.src.includes(this.env.ASSET_UPLOAD_ORIGIN)) {
-					asset.props.src.replace(
-						this.env.ASSET_UPLOAD_ORIGIN,
-						`${this.env.MULTIPLAYER_SERVER}/api/app`
-					)
-				}
+				assert(this.env.MULTIPLAYER_SERVER, 'MULTIPLAYER_SERVER must be present')
+				asset.props.src = `${this.env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/api/app/${newObjectName}`
 
 				asset.meta.fileId = slug
 				store.put(asset)
