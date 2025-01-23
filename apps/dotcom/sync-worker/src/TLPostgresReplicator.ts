@@ -315,6 +315,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				case 'user':
 					this.handleUserEvent(row, event)
 					return
+				// We don't synchronize events for these tables
 				case 'asset':
 				case 'applied_migrations':
 					return
