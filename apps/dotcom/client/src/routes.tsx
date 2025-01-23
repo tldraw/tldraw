@@ -1,9 +1,10 @@
+import { useClerk } from '@clerk/clerk-react'
 import { captureException } from '@sentry/react'
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { Suspense, lazy, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Outlet, Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
-import { getFromLocalStorage } from 'tldraw'
+import { getFromLocalStorage, setInLocalStorage } from 'tldraw'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { notFound } from './pages/not-found'
@@ -15,6 +16,11 @@ const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/Logi
 
 export const tlaOverrideFlag = 'tla-override-flag'
 export const tlaProbablyLoggedInFlag = 'tla-probably-logged-in-flag'
+
+const isExistingUserCompletingSignUpFlow = window.location.hash.includes('/sso-callback')
+if (isExistingUserCompletingSignUpFlow) {
+	setInLocalStorage(tlaProbablyLoggedInFlag, 'true')
+}
 
 const isOverrideFlagSet = !!getFromLocalStorage(tlaOverrideFlag) || navigator.webdriver
 const isProbablyLoggedIn = !!getFromLocalStorage(tlaProbablyLoggedInFlag)
@@ -151,9 +157,23 @@ export const router = createRoutesFromElements(
 			)
 		}}
 	>
-		{isProbablyLoggedIn || isOverrideFlagSet ? tlaRoutes : legacyRoutes}
-		<Route path="/__debug-tail" lazy={() => import('./tla/pages/worker-debug-tail')} />
-		<Route path="*" lazy={() => import('./pages/not-found')} />
+		<Route
+			Component={() => {
+				const clerk = useClerk()
+				useEffect(() => {
+					if (isExistingUserCompletingSignUpFlow) {
+						clerk.handleRedirectCallback({})
+					}
+				})
+				// return null here to prevent the isProbablyLoggedIn flag from being deleted
+				if (isExistingUserCompletingSignUpFlow) return null
+				return <Outlet />
+			}}
+		>
+			{isProbablyLoggedIn || isOverrideFlagSet ? tlaRoutes : legacyRoutes}
+			<Route path="/__debug-tail" lazy={() => import('./tla/pages/worker-debug-tail')} />
+			<Route path="*" lazy={() => import('./pages/not-found')} />
+		</Route>
 	</Route>
 )
 
