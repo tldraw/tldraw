@@ -25,13 +25,13 @@ export interface TLUiDialogTitleProps {
 /** @public @react */
 export function TldrawUiDialogTitle({ className, children, style }: TLUiDialogTitleProps) {
 	return (
-		<_Dialog.DialogTitle
+		<_Dialog.Title
 			dir="ltr"
 			className={classNames('tlui-dialog__header__title', className)}
 			style={style}
 		>
 			{children}
-		</_Dialog.DialogTitle>
+		</_Dialog.Title>
 	)
 }
 
