@@ -239,6 +239,7 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			CLERK_PUBLISHABLE_KEY: env.VITE_CLERK_PUBLISHABLE_KEY,
 			BOTCOM_POSTGRES_CONNECTION_STRING,
 			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
 		},
 		sentry: {
 			project: 'tldraw-sync',
