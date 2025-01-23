@@ -17,6 +17,7 @@ import { BindingUtil } from '@tldraw/editor';
 import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
 import { ComponentType } from 'react';
+import { CSSProperties } from 'react';
 import { CubicSpline2d } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
 import { Geometry2d } from '@tldraw/editor';
@@ -666,6 +667,9 @@ export function DefaultDebugMenu({ children }: TLUiDebugMenuProps): JSX_2.Elemen
 export function DefaultDebugMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
+export const DefaultDialogs: NamedExoticComponent<object>;
+
+// @public (undocumented)
 export let defaultEditorAssetUrls: TLEditorAssetUrls;
 
 // @public (undocumented)
@@ -727,6 +731,9 @@ export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
 
 // @public (undocumented)
 export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps): JSX_2.Element | null;
+
+// @public (undocumented)
+export const DefaultToasts: NamedExoticComponent<object>;
 
 // @public
 export const DefaultToolbar: NamedExoticComponent<DefaultToolbarProps>;
@@ -2114,13 +2121,10 @@ export function TldrawUiDialogFooter({ className, children }: TLUiDialogFooterPr
 export function TldrawUiDialogHeader({ className, children }: TLUiDialogHeaderProps): JSX_2.Element;
 
 // @public (undocumented)
-export const TldrawUiDialogs: NamedExoticComponent<object>;
-
-// @public (undocumented)
 export function TldrawUiDialogsProvider({ context, children }: TLUiDialogsProviderProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiDialogTitle({ className, children }: TLUiDialogTitleProps): JSX_2.Element;
+export function TldrawUiDialogTitle({ className, children, style }: TLUiDialogTitleProps): JSX_2.Element;
 
 // @public (undocumented)
 export function TldrawUiDropdownMenuCheckboxItem({ children, onSelect, ...rest }: TLUiDropdownMenuCheckboxItemProps): JSX_2.Element;
@@ -2205,9 +2209,6 @@ export interface TldrawUiProps extends TLUiContextProviderProps {
 
 // @public (undocumented)
 export const TldrawUiSlider: NamedExoticComponent<TLUiSliderProps>;
-
-// @public (undocumented)
-export const TldrawUiToasts: NamedExoticComponent<object>;
 
 // @public (undocumented)
 export function TldrawUiToastsProvider({ children }: TLUiToastsProviderProps): JSX_2.Element;
@@ -2373,6 +2374,8 @@ export interface TLUiComponents {
     // (undocumented)
     DebugPanel?: ComponentType | null;
     // (undocumented)
+    Dialogs?: ComponentType | null;
+    // (undocumented)
     HelperButtons?: ComponentType<TLUiHelperButtonsProps> | null;
     // (undocumented)
     HelpMenu?: ComponentType<TLUiHelpMenuProps> | null;
@@ -2394,6 +2397,8 @@ export interface TLUiComponents {
     SharePanel?: ComponentType | null;
     // (undocumented)
     StylePanel?: ComponentType<TLUiStylePanelProps> | null;
+    // (undocumented)
+    Toasts?: ComponentType | null;
     // (undocumented)
     Toolbar?: ComponentType | null;
     // (undocumented)
@@ -2443,6 +2448,8 @@ export interface TLUiDialog {
     id: string;
     // (undocumented)
     onClose?(): void;
+    // (undocumented)
+    preventBackgroundClose?: boolean;
 }
 
 // @public (undocumented)
@@ -2452,7 +2459,7 @@ export interface TLUiDialogBodyProps {
     // (undocumented)
     className?: string;
     // (undocumented)
-    style?: React.CSSProperties;
+    style?: CSSProperties;
 }
 
 // @public (undocumented)
@@ -2507,6 +2514,8 @@ export interface TLUiDialogTitleProps {
     children: ReactNode;
     // (undocumented)
     className?: string;
+    // (undocumented)
+    style?: CSSProperties;
 }
 
 // @public (undocumented)

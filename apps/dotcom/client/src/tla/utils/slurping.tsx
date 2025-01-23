@@ -86,7 +86,7 @@ export async function maybeSlurp(opts: SlurperOpts) {
 	}
 }
 
-class Slurper {
+export class Slurper {
 	constructor(private opts: SlurperOpts & { slurpPersistenceKey: string }) {}
 
 	async slurp() {

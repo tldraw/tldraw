@@ -5,11 +5,11 @@ import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
 	ContainerProvider,
+	DefaultDialogs,
+	DefaultToasts,
 	EditorContext,
 	TLUiEventHandler,
 	TldrawUiContextProvider,
-	TldrawUiDialogs,
-	TldrawUiToasts,
 	deleteFromLocalStorage,
 	fetch,
 	setInLocalStorage,
@@ -116,8 +116,8 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 				onUiEvent={handleAppLevelUiEvent}
 			>
 				<TooltipProvider>{children}</TooltipProvider>
-				<TldrawUiDialogs />
-				<TldrawUiToasts />
+				<DefaultDialogs />
+				<DefaultToasts />
 				<PutToastsInApp />
 			</TldrawUiContextProvider>
 		</EditorContext.Provider>

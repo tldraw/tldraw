@@ -3,8 +3,8 @@
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
 export { usePrefersReducedMotion } from './lib/shapes/shared/usePrefersReducedMotion'
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
-export { TldrawUiDialogs } from './lib/ui/components/Dialogs'
-export { TldrawUiToasts } from './lib/ui/components/Toasts'
+export { DefaultDialogs } from './lib/ui/components/Dialogs'
+export { DefaultToasts } from './lib/ui/components/Toasts'
 export {
 	TldrawUiMenuActionCheckboxItem,
 	type TLUiMenuActionCheckboxItemProps,
