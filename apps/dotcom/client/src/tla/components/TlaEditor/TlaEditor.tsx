@@ -231,7 +231,7 @@ function TlaEditorInner({ fileSlug, fileOpenState, deepLinks }: TlaEditorProps) 
 				components={components}
 				options={{ actionShortcutsLocation: 'toolbar' }}
 				deepLinks={deepLinks || undefined}
-				overrides={[overrides]}
+				overrides={overrides}
 				isShapeHidden={isShapeHidden}
 			>
 				<ThemeUpdater />
