@@ -316,7 +316,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 					this.handleUserEvent(row, event)
 					return
 				case 'asset':
-					// we don't synchronize asset information
+				case 'applied_migrations':
 					return
 				default:
 					this.captureException(new Error(`Unhandled table: ${event.relation.table}`), {
