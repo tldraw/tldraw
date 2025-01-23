@@ -38,7 +38,6 @@ import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
-import { useFocusModeOverrides } from './useFocusModeOverrides'
 
 /** @internal */
 export const components: TLComponents = {
@@ -219,7 +218,6 @@ function TlaEditorInner({ fileSlug, fileOpenState, deepLinks }: TlaEditorProps) 
 	}, [app, fileId, store.status])
 
 	const overrides = useFileEditorOverrides({ fileSlug })
-	const focusModeOverrides = useFocusModeOverrides()
 
 	return (
 		<TlaEditorWrapper>
@@ -233,7 +231,7 @@ function TlaEditorInner({ fileSlug, fileOpenState, deepLinks }: TlaEditorProps) 
 				components={components}
 				options={{ actionShortcutsLocation: 'toolbar' }}
 				deepLinks={deepLinks || undefined}
-				overrides={[overrides, focusModeOverrides]}
+				overrides={[overrides]}
 				isShapeHidden={isShapeHidden}
 			>
 				<ThemeUpdater />

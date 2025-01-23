@@ -2,7 +2,7 @@ import { useValue } from 'tldraw'
 import { globalEditor } from '../../../../utils/globalEditor'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { useMsg } from '../../../utils/i18n'
-import { getLocalSessionState, updateLocalSessionState } from '../../../utils/local-session-state'
+import { getIsSidebarOpen, toggleSidebar } from '../../../utils/local-session-state'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 import { messages } from './sidebar-shared'
@@ -26,15 +26,9 @@ export function TlaSidebarToggle() {
 			data-testid="tla-sidebar-toggle"
 			title={toggleLbl}
 			onClick={() => {
-				updateLocalSessionState((s) => {
-					if (!s.isSidebarOpen) {
-						editor?.updateInstanceState({ isFocusMode: false })
-					}
-
-					return { isSidebarOpen: !s.isSidebarOpen }
-				})
+				toggleSidebar()
 				trackEvent('sidebar-toggle', {
-					value: getLocalSessionState().isSidebarOpen,
+					value: getIsSidebarOpen(),
 					source: 'sidebar',
 				})
 			}}
