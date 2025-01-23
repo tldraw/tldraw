@@ -1,4 +1,4 @@
-import { Editor, TLShape, TLShapeId, Tldraw, createShapeId } from 'tldraw'
+import { Editor, TLShape, TLShapeId, Tldraw, createShapeId, toRichText } from 'tldraw'
 
 // this function takes a shape ID, and if that shape is red, sets all other red shapes on the same
 // page to black.
@@ -64,7 +64,7 @@ function createDemoShapes(editor: Editor) {
 				y: i * 30,
 				props: {
 					color: i === 5 ? 'red' : 'black',
-					text: word,
+					richText: toRichText(word),
 				},
 			}))
 		)

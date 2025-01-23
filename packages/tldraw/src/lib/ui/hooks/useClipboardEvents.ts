@@ -88,7 +88,7 @@ function areShortcutsDisabled(editor: Editor) {
 	return (
 		editor.menus.hasAnyOpenMenus() ||
 		(activeElement &&
-			(activeElement.getAttribute('contenteditable') ||
+			((activeElement as HTMLElement).isContentEditable ||
 				INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1))
 	)
 }

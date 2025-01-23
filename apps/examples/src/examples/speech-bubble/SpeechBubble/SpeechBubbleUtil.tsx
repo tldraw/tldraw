@@ -7,6 +7,7 @@ import {
 	FONT_FAMILIES,
 	Geometry2d,
 	LABEL_FONT_SIZES,
+	PlainTextLabel,
 	Polygon2d,
 	RecordPropsType,
 	ShapeUtil,
@@ -16,7 +17,6 @@ import {
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
-	TextLabel,
 	Vec,
 	ZERO_INDEX_KEY,
 	resizeBox,
@@ -192,7 +192,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 						fill={'none'}
 					/>
 				</svg>
-				<TextLabel
+				<PlainTextLabel
 					shapeId={id}
 					type={type}
 					font={font}

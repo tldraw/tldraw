@@ -9,21 +9,20 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import React, { useCallback, useEffect, useRef } from 'react'
-import { INDENT, TextHelpers } from './TextHelpers'
+import { TextHelpers } from './TextHelpers'
 
 /** @public */
-export function useEditableText(shapeId: TLShapeId, type: string, text: string) {
+export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: string) {
+	const commonUseEditableTextHandlers = useEditableTextCommon(shapeId)
+	const isEditing = commonUseEditableTextHandlers.isEditing
 	const editor = useEditor()
 	const rInput = useRef<HTMLTextAreaElement>(null)
-	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === shapeId, [editor])
-	const isEditingAnything = useValue('isEditingAnything', () => !!editor.getEditingShapeId(), [
-		editor,
-	])
+	const isEmpty = (text || '').trim().length === 0
 
 	useEffect(() => {
 		function selectAllIfEditing(event: { shapeId: TLShapeId }) {
 			if (event.shapeId === shapeId) {
-				rInput.current?.select()
+				rInput.current?.select?.()
 			}
 		}
 
@@ -44,8 +43,8 @@ export function useEditableText(shapeId: TLShapeId, type: string, text: string) 
 			rInput.current?.select()
 		}
 
-		// XXX(mime): This fixes iOS not showing the cursor sometimes.
-		// This "shakes" the cursor awake.
+		// XXX(mime): This fixes iOS not showing the caret sometimes.
+		// This "shakes" the caret awake.
 		if (tlenv.isSafari) {
 			rInput.current?.blur()
 			rInput.current?.focus()
@@ -54,7 +53,7 @@ export function useEditableText(shapeId: TLShapeId, type: string, text: string) 
 
 	// When the user presses ctrl / meta enter, complete the editing state.
 	const handleKeyDown = useCallback(
-		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		(e: KeyboardEvent) => {
 			if (editor.getEditingShapeId() !== shapeId) return
 
 			switch (e.key) {
@@ -71,31 +70,35 @@ export function useEditableText(shapeId: TLShapeId, type: string, text: string) 
 
 	// When the text changes, update the text value.
 	const handleChange = useCallback(
-		(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+		({ plaintext }: { plaintext: string }) => {
 			if (editor.getEditingShapeId() !== shapeId) return
 
-			let text = TextHelpers.normalizeText(e.currentTarget.value)
-
-			// ------- Bug fix ------------
-			// Replace tabs with spaces when pasting
-			const untabbedText = text.replace(/\t/g, INDENT)
-			if (untabbedText !== text) {
-				const selectionStart = e.currentTarget.selectionStart
-				e.currentTarget.value = untabbedText
-				e.currentTarget.selectionStart = selectionStart + (untabbedText.length - text.length)
-				e.currentTarget.selectionEnd = selectionStart + (untabbedText.length - text.length)
-				text = untabbedText
-			}
-			// ----------------------------
-
+			const normalizedPlaintext = TextHelpers.normalizeText(plaintext || '')
 			editor.updateShape<TLUnknownShape & { props: { text: string } }>({
 				id: shapeId,
 				type,
-				props: { text },
+				props: { text: normalizedPlaintext },
 			})
 		},
 		[editor, shapeId, type]
 	)
+
+	return {
+		rInput,
+		handleKeyDown,
+		handleChange,
+		isEmpty,
+		...commonUseEditableTextHandlers,
+	}
+}
+
+/** @internal */
+export function useEditableTextCommon(shapeId: TLShapeId) {
+	const editor = useEditor()
+	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === shapeId, [editor])
+	const isEditingAnything = useValue('isEditingAnything', () => !!editor.getEditingShapeId(), [
+		editor,
+	])
 
 	const handleInputPointerDown = useCallback(
 		(e: React.PointerEvent) => {
@@ -123,15 +126,17 @@ export function useEditableText(shapeId: TLShapeId, type: string, text: string) 
 	)
 
 	return {
-		rInput,
 		handleFocus: noop,
 		handleBlur: noop,
-		handleKeyDown,
-		handleChange,
 		handleInputPointerDown,
 		handleDoubleClick: stopEventPropagation,
-		isEmpty: text.trim().length === 0,
 		isEditing,
 		isEditingAnything,
 	}
 }
+
+/**
+ * @deprecated Use `useEditablePlainText` instead.
+ * @public
+ */
+export const useEditableText = useEditablePlainText

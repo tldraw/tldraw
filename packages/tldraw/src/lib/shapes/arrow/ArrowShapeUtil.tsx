@@ -38,9 +38,9 @@ import {
 import React from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 
+import { PlainTextLabel } from '../shared/PlainTextLabel'
 import { ShapeFill } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
-import { TextLabel } from '../shared/TextLabel'
 import { ARROW_LABEL_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import {
 	getFillDefForCanvas,
@@ -617,7 +617,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					/>
 				</SVGContainer>
 				{showArrowLabel && (
-					<TextLabel
+					<PlainTextLabel
 						shapeId={shape.id}
 						classNamePrefix="tl-arrow"
 						type="arrow"

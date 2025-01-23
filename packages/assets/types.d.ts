@@ -27,9 +27,11 @@ export type AssetUrls = {
 		'arrowhead-triangle-inverted': string
 		'arrowhead-triangle': string
 		blob: string
+		bold: string
 		'bring-forward': string
 		'bring-to-front': string
 		broken: string
+		bulletList: string
 		'check-circle': string
 		check: string
 		'chevron-down': string
@@ -40,6 +42,7 @@ export type AssetUrls = {
 		'chevrons-sw': string
 		'clipboard-copied': string
 		'clipboard-copy': string
+		code: string
 		color: string
 		'cross-2': string
 		'cross-circle': string
@@ -91,6 +94,8 @@ export type AssetUrls = {
 		'geo-x-box': string
 		github: string
 		group: string
+		heading: string
+		highlight: string
 		'horizontal-align-end': string
 		'horizontal-align-middle': string
 		'horizontal-align-start': string
@@ -123,6 +128,7 @@ export type AssetUrls = {
 		'status-offline': string
 		'stretch-horizontal': string
 		'stretch-vertical': string
+		strike: string
 		'text-align-center': string
 		'text-align-left': string
 		'text-align-right': string

@@ -13,6 +13,8 @@ import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
 import { Dispatch } from 'react';
+import { Editor as Editor_2 } from '@tiptap/core';
+import { EditorProviderProps } from '@tiptap/react';
 import { EffectScheduler } from '@tldraw/state';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
@@ -830,7 +832,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, textOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, }: TLEditorOptions);
     // @deprecated (undocumented)
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
@@ -1235,6 +1237,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
     getEditingShape(): TLShape | undefined;
     getEditingShapeId(): null | TLShapeId;
+    getEditingShapeTipTapTextEditor(): null | TiptapEditor;
     getErasingShapeIds(): TLShapeId[];
     getErasingShapes(): NonNullable<TLShape | undefined>[];
     getFocusedGroup(): TLShape | undefined;
@@ -1274,6 +1277,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSelectionPageBounds(): Box | null;
     getSelectionRotatedPageBounds(): Box | undefined;
     getSelectionRotatedScreenBounds(): Box | undefined;
+    getSelectionRotatedViewportBounds(): Box;
     getSelectionRotation(): number;
     getShape<T extends TLShape = TLShape>(shape: TLParentId | TLShape): T | undefined;
     getShapeAncestors(shape: TLShape | TLShapeId, acc?: TLShape[]): TLShape[];
@@ -1336,6 +1340,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         width: number;
     } | undefined>;
     getTemporaryAssetPreview(assetId: TLAssetId): string | undefined;
+    getTextOptions(): TLTextOptions;
     // @internal (undocumented)
     getUnorderedRenderingShapes(useEditorState: boolean): TLRenderingShape[];
     getViewportPageBounds(): Box;
@@ -1473,6 +1478,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setCurrentTool(id: string, info?: {}): this;
     setCursor(cursor: Partial<TLCursor>): this;
     setEditingShape(shape: null | TLShape | TLShapeId): this;
+    setEditingShapeTipTapTextEditor(textEditor: null | TiptapEditor): void;
     setErasingShapes(shapes: TLShape[] | TLShapeId[]): this;
     setFocusedGroup(shape: null | TLGroupShape | TLShapeId): this;
     setHintingShapes(shapes: TLShape[] | TLShapeId[]): this;
@@ -2795,6 +2801,20 @@ export class TextManager {
         }[];
     };
     // (undocumented)
+    measureHtml(html: string, opts: {
+        maxWidth: null | number;
+        disableOverflowWrapBreaking?: boolean;
+        fontFamily: string;
+        fontSize: number;
+        fontStyle: string;
+        fontWeight: string;
+        lineHeight: number;
+        minWidth?: null | number;
+        padding: string;
+    }): BoxModel & {
+        scrollWidth: number;
+    };
+    // (undocumented)
     measureText(textToMeasure: string, opts: {
         maxWidth: null | number;
         disableOverflowWrapBreaking?: boolean;
@@ -2813,6 +2833,9 @@ export class TextManager {
         text: string;
     }[];
 }
+
+// @public
+export type TiptapEditor = Editor_2;
 
 // @public (undocumented)
 export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor<any>;
@@ -3032,6 +3055,7 @@ export interface TldrawEditorBaseProps {
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+    textOptions?: Partial<TLTextOptions>;
     tools?: readonly TLStateNodeConstructor[];
     user?: TLUser;
 }
@@ -3211,6 +3235,8 @@ export interface TLEditorOptions {
     options?: Partial<TldrawOptions>;
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
+    // (undocumented)
+    textOptions?: Partial<TLTextOptions>;
     tools: readonly TLStateNodeConstructor[];
     user?: TLUser;
 }
@@ -3307,6 +3333,14 @@ export interface TLEventMap {
         count: number;
         name: string;
         pageId: TLPageId;
+    }];
+    // (undocumented)
+    'place-caret': [{
+        point: {
+            x: number;
+            y: number;
+        };
+        shapeId: TLShapeId;
     }];
     // (undocumented)
     'select-all-text': [{
@@ -3875,6 +3909,12 @@ export interface TLSvgExportOptions {
 export type TLSvgOptions = TLImageExportOptions;
 
 // @public (undocumented)
+export interface TLTextOptions {
+    // (undocumented)
+    tipTapConfig?: EditorProviderProps;
+}
+
+// @public (undocumented)
 export type TLTickEvent = (info: TLTickEventInfo) => void;
 
 // @public (undocumented)
@@ -4010,6 +4050,9 @@ export function useMaybeEditor(): Editor | null;
 export function useOnMount(onMount?: TLOnMountHandler): void;
 
 // @public (undocumented)
+export function usePassThroughMouseOverEvents(ref: RefObject<HTMLElement>): void;
+
+// @public (undocumented)
 export function usePassThroughWheelEvents(ref: RefObject<HTMLElement>): void;
 
 // @internal (undocumented)
@@ -4121,6 +4164,9 @@ export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?:
 export function useUniqueSafeId(suffix?: string): SafeId;
 
 export { useValue }
+
+// @public (undocumented)
+export function useViewportHeight(): number;
 
 // @internal (undocumented)
 export interface ValidLicenseKeyResult {

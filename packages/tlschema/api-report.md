@@ -570,6 +570,12 @@ export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> =
 }>;
 
 // @public (undocumented)
+export const richTextValidator: T.ObjectValidator<{
+    content: unknown[];
+    type: string;
+}>;
+
+// @public (undocumented)
 export const rootBindingMigrations: MigrationSequence;
 
 // @public (undocumented)
@@ -1019,11 +1025,11 @@ export interface TLGeoShapeProps {
     // (undocumented)
     labelColor: TLDefaultColorStyle;
     // (undocumented)
+    richText?: TLRichText;
+    // (undocumented)
     scale: number;
     // (undocumented)
     size: TLDefaultSizeStyle;
-    // (undocumented)
-    text: string;
     // (undocumented)
     url: string;
     // (undocumented)
@@ -1312,11 +1318,11 @@ export interface TLNoteShapeProps {
     // (undocumented)
     labelColor: TLDefaultColorStyle;
     // (undocumented)
+    richText: TLRichText;
+    // (undocumented)
     scale: number;
     // (undocumented)
     size: TLDefaultSizeStyle;
-    // (undocumented)
-    text: string;
     // (undocumented)
     url: string;
     // (undocumented)
@@ -1389,6 +1395,9 @@ export interface TLPropsMigrations {
 
 // @public (undocumented)
 export type TLRecord = TLAsset | TLBinding | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape;
+
+// @public (undocumented)
+export type TLRichText = T.TypeOf<typeof richTextValidator>;
 
 // @public (undocumented)
 export type TLSchema = StoreSchema<TLRecord, TLStoreProps>;
@@ -1467,11 +1476,11 @@ export interface TLTextShapeProps {
     // (undocumented)
     font: TLDefaultFontStyle;
     // (undocumented)
+    richText: TLRichText;
+    // (undocumented)
     scale: number;
     // (undocumented)
     size: TLDefaultSizeStyle;
-    // (undocumented)
-    text: string;
     // (undocumented)
     textAlign: TLDefaultTextAlignStyle;
     // (undocumented)
@@ -1513,6 +1522,9 @@ export interface TLVideoShapeProps {
     // (undocumented)
     w: number;
 }
+
+// @public (undocumented)
+export function toRichText(text: string): TLRichText;
 
 // @public
 export interface VecModel {
