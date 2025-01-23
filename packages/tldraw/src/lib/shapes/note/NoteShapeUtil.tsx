@@ -10,14 +10,17 @@ import {
 	TLHandle,
 	TLNoteShape,
 	TLNoteShapeProps,
+	TLResizeInfo,
 	TLShape,
 	TLShapeId,
 	Vec,
 	WeakCache,
+	exhaustiveSwitchError,
 	getDefaultColorTheme,
 	lerp,
 	noteShapeMigrations,
 	noteShapeProps,
+	resizeScaled,
 	rng,
 	toDomPrecision,
 	useEditor,
@@ -57,8 +60,24 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return true
 	}
 	override hideResizeHandles() {
-		return true
+		const { noteShapeResizeMode: resizeNoteShape } = this.editor.options
+		switch (resizeNoteShape) {
+			case 'none': {
+				return true
+			}
+			case 'scale': {
+				return false
+			}
+			default: {
+				throw exhaustiveSwitchError(resizeNoteShape)
+			}
+		}
 	}
+
+	override isAspectRatioLocked() {
+		return this.editor.options.noteShapeResizeMode === 'scale'
+	}
+
 	override hideSelectionBoundsFg() {
 		return false
 	}
@@ -167,6 +186,21 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				y: nh / 2,
 			},
 		]
+	}
+
+	override onResize(shape: any, info: TLResizeInfo<any>) {
+		const { noteShapeResizeMode: resizeNoteShape } = this.editor.options
+		switch (resizeNoteShape) {
+			case 'none': {
+				return undefined
+			}
+			case 'scale': {
+				return resizeScaled(shape, info)
+			}
+			default: {
+				throw exhaustiveSwitchError(resizeNoteShape)
+			}
+		}
 	}
 
 	override getText(shape: TLNoteShape) {

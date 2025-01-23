@@ -746,6 +746,7 @@ export const defaultTldrawOptions: {
     readonly maxPointsPerDrawShape: 500;
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
+    readonly noteShapeResizeMode: "none";
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
 };
@@ -2401,6 +2402,17 @@ export interface ResizeBoxOptions {
     minWidth?: number;
 }
 
+// @public
+export function resizeScaled(shape: TLBaseShape<any, {
+    scale: number;
+}>, { initialBounds, scaleX, scaleY, newPoint, handle }: TLResizeInfo<any>): {
+    props: {
+        scale: number;
+    };
+    x: number;
+    y: number;
+};
+
 // @public (undocumented)
 export const ROTATE_CORNER_TO_SELECTION_CORNER: {
     readonly bottom_left_rotate: "bottom_left";
@@ -3133,6 +3145,7 @@ export interface TldrawOptions {
     readonly maxShapesPerPage: number;
     // (undocumented)
     readonly multiClickDurationMs: number;
+    readonly noteShapeResizeMode: 'none' | 'scale';
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;
