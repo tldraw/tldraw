@@ -614,7 +614,10 @@ export class TLDrawDurableObject extends DurableObject {
 				})
 				asset.props.src = asset.props.src.replace(objectName, newObjectName)
 				if (asset.props.src.includes(this.env.ASSET_UPLOAD_ORIGIN)) {
-					asset.props.src.replace(this.env.ASSET_UPLOAD_ORIGIN, this.env.MULTIPLAYER_SERVER)
+					asset.props.src.replace(
+						this.env.ASSET_UPLOAD_ORIGIN,
+						`${this.env.MULTIPLAYER_SERVER}/api/app`
+					)
 				}
 
 				asset.meta.fileId = slug
