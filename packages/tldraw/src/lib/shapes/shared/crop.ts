@@ -1,4 +1,4 @@
-import { ShapeWithCrop, TLCropInfo, TLShapePartial, Vec, structuredClone } from '@tldraw/editor'
+import { ShapeWithCrop, TLCropInfo, TLShapeId, Vec, structuredClone } from '@tldraw/editor'
 
 /** @internal */
 export const MIN_CROP_SIZE = 8
@@ -22,7 +22,15 @@ export function getCropBox<T extends ShapeWithCrop>(
 	shape: T,
 	info: TLCropInfo<T>,
 	opts = {} as CropBoxOptions
-): TLShapePartial<ShapeWithCrop> | undefined {
+):
+	| {
+			id: TLShapeId
+			type: T['type']
+			x: number
+			y: number
+			props: ShapeWithCrop['props']
+	  }
+	| undefined {
 	const { handle, change, crop } = info
 	const { w, h } = info.uncroppedSize
 	const { minWidth = MIN_CROP_SIZE, minHeight = MIN_CROP_SIZE } = opts
@@ -122,9 +130,9 @@ export function getCropBox<T extends ShapeWithCrop>(
 		x: newPoint.x,
 		y: newPoint.y,
 		props: {
-			crop: newCrop,
 			w: (newCrop.bottomRight.x - newCrop.topLeft.x) * w,
 			h: (newCrop.bottomRight.y - newCrop.topLeft.y) * h,
+			crop: newCrop,
 		},
 	}
 }

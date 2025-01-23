@@ -1222,7 +1222,13 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 };
 
 // @public (undocumented)
-export function getCropBox<T extends ShapeWithCrop>(shape: T, info: TLCropInfo<T>, opts?: CropBoxOptions): TLShapePartial<ShapeWithCrop> | undefined;
+export function getCropBox<T extends ShapeWithCrop>(shape: T, info: TLCropInfo<T>, opts?: CropBoxOptions): {
+    id: TLShapeId;
+    props: ShapeWithCrop['props'];
+    type: T['type'];
+    x: number;
+    y: number;
+} | undefined;
 
 // @public (undocumented)
 export function getDefaultCrop(): {
