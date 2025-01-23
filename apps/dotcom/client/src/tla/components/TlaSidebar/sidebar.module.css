@@ -85,6 +85,10 @@
 	flex: 0 0 auto;
 }
 
+.bottom {
+	margin-top: 12px;
+}
+
 .content {
 	display: flex;
 	flex-direction: column;
