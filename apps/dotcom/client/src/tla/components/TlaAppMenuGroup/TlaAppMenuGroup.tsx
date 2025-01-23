@@ -81,7 +81,7 @@ function HelpSubMenu() {
 					icon="external-link"
 					readonlyOk
 					onSelect={() => {
-						openAndTrack('https://tldraw.notion.site/terms-and-condition')
+						openAndTrack('https://tldraw.notion.site/terms-of-service')
 					}}
 				/>
 				<TldrawUiMenuItem
