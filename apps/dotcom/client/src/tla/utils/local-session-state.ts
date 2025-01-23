@@ -4,14 +4,20 @@ import {
 	deleteFromLocalStorage,
 	getFromLocalStorage,
 	setInLocalStorage,
+	transact,
 	useValue,
 } from 'tldraw'
+import { globalEditor } from '../../utils/globalEditor'
 
 const STORAGE_KEY = 'tldrawapp_session_3'
 
 export interface TldrawAppSessionState {
 	createdAt: number
-	isSidebarOpen: boolean
+	/**
+	 * don't use this to decide if the sidebar is open
+	 * use `getIsSidebarOpen` or `useIsSidebarOpen` instead
+	 */
+	_sidebarToggle: boolean
 	isSidebarOpenMobile: boolean
 	auth?: {
 		userId: string
@@ -36,7 +42,7 @@ export interface TldrawAppSessionState {
 
 let prev: TldrawAppSessionState = {
 	createdAt: Date.now(),
-	isSidebarOpen: true,
+	_sidebarToggle: true,
 	isSidebarOpenMobile: false,
 	shareMenuActiveTab: 'share',
 	sidebarActiveTab: 'recent',
@@ -71,6 +77,24 @@ try {
 
 const localSessionState = atom<TldrawAppSessionState>('session', prev)
 
+export function getIsSidebarOpen() {
+	return (
+		localSessionState.get()._sidebarToggle &&
+		globalEditor.get()?.getInstanceState().isFocusMode !== true
+	)
+}
+export function useIsSidebarOpen() {
+	return useValue('isSidebarOpen', getIsSidebarOpen, [])
+}
+
+export function getIsSidebarOpenMobile() {
+	return localSessionState.get().isSidebarOpenMobile
+}
+
+export function useIsSidebarOpenMobile() {
+	return useValue('isSidebarOpenMobile', getIsSidebarOpenMobile, [])
+}
+
 export function clearLocalSessionState() {
 	return deleteFromLocalStorage(STORAGE_KEY)
 }
@@ -80,6 +104,17 @@ export function getLocalSessionStateUnsafe() {
 
 export function getLocalSessionState() {
 	return localSessionState.get()
+}
+
+export function toggleSidebar(open: boolean = !getIsSidebarOpen()) {
+	transact(() => {
+		if (open) {
+			globalEditor.get()?.updateInstanceState({ isFocusMode: false })
+		}
+		updateLocalSessionState(() => {
+			return { _sidebarToggle: open }
+		})
+	})
 }
 
 export function setLocalSessionState(state: TldrawAppSessionState) {

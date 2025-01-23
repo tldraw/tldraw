@@ -232,6 +232,7 @@
 /* Fix the location of the focus button */
 
 .tlui-focus-button {
+	width: 40px;
 	margin-top: 4px;
 	margin-left: 4px;
 }
