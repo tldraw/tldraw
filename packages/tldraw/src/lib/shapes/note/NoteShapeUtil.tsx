@@ -60,8 +60,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return true
 	}
 	override hideResizeHandles() {
-		const { noteShapeResizeMode: resizeNoteShape } = this.editor.options
-		switch (resizeNoteShape) {
+		const { noteShapeResizeMode } = this.editor.options
+		switch (noteShapeResizeMode) {
 			case 'none': {
 				return true
 			}
@@ -69,7 +69,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				return false
 			}
 			default: {
-				throw exhaustiveSwitchError(resizeNoteShape)
+				throw exhaustiveSwitchError(noteShapeResizeMode)
 			}
 		}
 	}
@@ -189,8 +189,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override onResize(shape: any, info: TLResizeInfo<any>) {
-		const { noteShapeResizeMode: resizeNoteShape } = this.editor.options
-		switch (resizeNoteShape) {
+		const { noteShapeResizeMode: noteShapeResizeMode } = this.editor.options
+		switch (noteShapeResizeMode) {
 			case 'none': {
 				return undefined
 			}
@@ -198,7 +198,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				return resizeScaled(shape, info)
 			}
 			default: {
-				throw exhaustiveSwitchError(resizeNoteShape)
+				throw exhaustiveSwitchError(noteShapeResizeMode)
 			}
 		}
 	}
