@@ -76,7 +76,12 @@ function WelcomeDialog() {
 	])
 
 	if (data.loading) return null
-	const offerSlurp = data.ok && data.value
+	const file = app.getFile(fileId)
+	const emptyOwnedFile =
+		file &&
+		file.ownerId === app.getUser().id &&
+		editor.store.allRecords().filter((r) => r.typeName === 'shape').length === 0
+	const offerSlurp = data.ok && data.value && emptyOwnedFile
 
 	return (
 		<div>
