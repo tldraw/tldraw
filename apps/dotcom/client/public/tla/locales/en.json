@@ -65,6 +65,9 @@
   "344a7f427f": {
     "translation": "Editor"
   },
+  "3b366e7232": {
+    "translation": "Try the new tldraw (preview)"
+  },
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
   },
@@ -185,6 +188,9 @@
   "7daeced9ff": {
     "translation": "Publish changes"
   },
+  "7de66f8b93": {
+    "translation": "Sign up to access the preview version of tldraw.com, which adds file management and collaboration features."
+  },
   "7fcdcc6455": {
     "translation": "Forget file"
   },
@@ -193,6 +199,9 @@
   },
   "86c66437fd": {
     "translation": "Rename file"
+  },
+  "8ad4303b83": {
+    "translation": "No thanks"
   },
   "8eb2c00e96": {
     "translation": "Shared with you"
@@ -326,6 +335,9 @@
   },
   "d9100f3e10": {
     "translation": "Go here to see the content"
+  },
+  "d9776f0775": {
+    "translation": "Sign up"
   },
   "d98ac12774": {
     "translation": "Reject"
