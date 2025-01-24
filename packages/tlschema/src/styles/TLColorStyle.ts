@@ -248,7 +248,7 @@ export const DefaultColorThemePalette: {
 			solid: '#f2f2f2',
 			fill: '#f2f2f2',
 			note: {
-				fill: '#2c2c2c',
+				fill: '#B57E00',
 				text: '#f2f2f2',
 			},
 			semi: '#2c3036',
