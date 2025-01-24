@@ -1,4 +1,4 @@
-import { ClerkProvider, useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
+import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { Provider as TooltipProvider } from '@radix-ui/react-tooltip'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
@@ -10,14 +10,10 @@ import {
 	EditorContext,
 	TLUiEventHandler,
 	TldrawUiContextProvider,
-	deleteFromLocalStorage,
 	fetch,
-	setInLocalStorage,
 	useToasts,
 	useValue,
 } from 'tldraw'
-import { routes } from '../../routeDefs'
-import { tlaProbablyLoggedInFlag } from '../../routes'
 import { globalEditor } from '../../utils/globalEditor'
 import { SignedInPosthog, SignedOutPosthog } from '../../utils/posthog'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
@@ -57,17 +53,15 @@ export function Component() {
 		>
 			<IntlWrapper locale={locale}>
 				<MaybeForceUserRefresh>
-					<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={routes.tlaRoot()}>
-						<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
-							{container && (
-								<ContainerProvider container={container}>
-									<InsideOfContainerContext>
-										<Outlet />
-									</InsideOfContainerContext>
-								</ContainerProvider>
-							)}
-						</SignedInProvider>
-					</ClerkProvider>
+					<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
+						{container && (
+							<ContainerProvider container={container}>
+								<InsideOfContainerContext>
+									<Outlet />
+								</InsideOfContainerContext>
+							</ContainerProvider>
+						)}
+					</SignedInProvider>
 				</MaybeForceUserRefresh>
 			</IntlWrapper>
 		</div>
@@ -150,15 +144,6 @@ function SignedInProvider({
 		() => globalEditor.get()?.user.getUserPreferences().locale ?? 'en',
 		[]
 	)
-
-	useEffect(() => {
-		if (!auth.isLoaded) return
-		if (auth.isSignedIn) {
-			setInLocalStorage(tlaProbablyLoggedInFlag, 'true')
-		} else {
-			deleteFromLocalStorage(tlaProbablyLoggedInFlag)
-		}
-	}, [auth.isSignedIn, auth.isLoaded])
 
 	useEffect(() => {
 		if (locale === currentLocale) return

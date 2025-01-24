@@ -1,18 +1,8 @@
-import { SignUpButton, useAuth } from '@clerk/clerk-react'
-import { useLocation } from 'react-router-dom'
+import { SignUpButton } from '@clerk/clerk-react'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
 import { F } from '../tla/utils/i18n'
 
 export function Component() {
-	const { isSignedIn, isLoaded } = useAuth()
-	const location = useLocation()
-	if (isSignedIn) {
-		// redirect to home page once the user is signed in
-		window.location.href = window.location.origin
-		return null
-	}
-	if (!isLoaded) return null
-	const url = `${window.location.origin}${location.pathname}`
 	return (
 		<div
 			style={{
@@ -41,13 +31,7 @@ export function Component() {
 				>
 					<F defaultMessage="No thanks" />
 				</TlaButton>
-				<SignUpButton
-					mode="modal"
-					fallbackRedirectUrl={url}
-					forceRedirectUrl={url}
-					signInForceRedirectUrl={url}
-					signInFallbackRedirectUrl={url}
-				>
+				<SignUpButton mode="modal" forceRedirectUrl="/" signInForceRedirectUrl="/">
 					<TlaButton data-testid="tla-opt-in">
 						<F defaultMessage="Sign up" />
 					</TlaButton>
