@@ -182,6 +182,7 @@ export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesMan
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
 export {
 	ShapeUtil,
+	type TLCropInfo,
 	type TLHandleDragInfo,
 	type TLResizeInfo,
 	type TLResizeMode,
