@@ -1,4 +1,3 @@
-import { useEditor, useValue } from '@tldraw/editor'
 import { useCanRedo, useCanUndo } from '../../hooks/menu-hooks'
 import { ColorSchemeMenu } from '../ColorSchemeMenu'
 import { KeyboardShortcutsMenuItem } from '../HelpMenu/DefaultHelpMenuContent'
@@ -69,16 +68,8 @@ export function ExportFileContentSubMenu() {
 
 /** @public @react */
 export function EditSubmenu() {
-	const editor = useEditor()
-
-	const selectToolActive = useValue(
-		'isSelectToolActive',
-		() => editor.getCurrentToolId() === 'select',
-		[editor]
-	)
-
 	return (
-		<TldrawUiMenuSubmenu id="edit" label="menu.edit" disabled={!selectToolActive}>
+		<TldrawUiMenuSubmenu id="edit" label="menu.edit">
 			<UndoRedoGroup />
 			<ClipboardMenuGroup />
 			<ConversionsMenuGroup />
