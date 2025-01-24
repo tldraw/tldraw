@@ -1,3 +1,4 @@
+import { ClerkProvider } from '@clerk/clerk-react'
 import { Analytics as VercelAnalytics } from '@vercel/analytics/react'
 import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async'
@@ -5,16 +6,28 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import '../sentry.client.config'
 import '../styles/globals.css'
 import { Head } from './components/Head/Head'
-import { router } from './routes'
+import { routes } from './routeDefs'
+import { SetPreviewFlag, router } from './routes'
 
 const browserRouter = createBrowserRouter(router)
 
+// @ts-ignore this is fine
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+
+if (!PUBLISHABLE_KEY) {
+	throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env.local')
+}
+
 createRoot(document.getElementById('root')!).render(
-	<HelmetProvider>
-		<Head />
-		<RouterProvider router={browserRouter} />
-		<VercelAnalytics debug={false} />
-	</HelmetProvider>
+	<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={routes.tlaRoot()}>
+		<SetPreviewFlag>
+			<HelmetProvider>
+				<Head />
+				<RouterProvider router={browserRouter} />
+				<VercelAnalytics debug={false} />
+			</HelmetProvider>
+		</SetPreviewFlag>
+	</ClerkProvider>
 )
 
 try {

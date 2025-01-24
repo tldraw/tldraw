@@ -2,9 +2,7 @@ import { useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
-import { TldrawUiDialogs } from './components/Dialogs'
 import { FollowingIndicator } from './components/FollowingIndicator'
-import { TldrawUiToasts } from './components/Toasts'
 import { TldrawUiButton } from './components/primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './components/primitives/Button/TldrawUiButtonIcon'
 import { PORTRAIT_BREAKPOINT } from './constants'
@@ -110,6 +108,8 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 		HelperButtons,
 		DebugPanel,
 		CursorChatBubble,
+		Toasts,
+		Dialogs,
 	} = useTldrawUiComponents()
 
 	useKeyboardShortcuts()
@@ -161,8 +161,8 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 					</div>
 				</>
 			)}
-			<TldrawUiToasts />
-			<TldrawUiDialogs />
+			{Toasts && <Toasts />}
+			{Dialogs && <Dialogs />}
 			<FollowingIndicator />
 			{CursorChatBubble && <CursorChatBubble />}
 		</div>

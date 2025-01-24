@@ -7,12 +7,22 @@ declare const fetch: typeof import('@cloudflare/workers-types').fetch
 interface Environment {
 	IS_LOCAL?: string
 	SENTRY_DSN?: undefined
+	MULTIPLAYER_SERVER?: string
+
+	SYNC_WORKER: Fetcher
 }
 
 const queryValidator = T.object({
 	w: T.string.optional(),
 	q: T.string.optional(),
 })
+
+function useServiceBinding(env: Environment, origin: string) {
+	if (env.IS_LOCAL) return origin === 'localhost:3000'
+	const multiplayerServer = env.MULTIPLAYER_SERVER
+	if (!multiplayerServer) throw new Error('Missing MULTIPLAYER_SERVER env variable')
+	return multiplayerServer.includes(origin)
+}
 
 export default class Worker extends WorkerEntrypoint<Environment> {
 	readonly router = createRouter()
@@ -63,7 +73,13 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			if (query.w) imageOptions.width = Number(query.w)
 			if (query.q) imageOptions.quality = Number(query.q)
 
-			const actualResponse = await fetch(passthroughUrl, { cf: { image: imageOptions } })
+			let actualResponse: Response
+			if (useServiceBinding(this.env, origin)) {
+				const req = new Request(passthroughUrl.href, { cf: { image: imageOptions } })
+				actualResponse = await this.env.SYNC_WORKER.fetch(req)
+			} else {
+				actualResponse = await fetch(passthroughUrl, { cf: { image: imageOptions } })
+			}
 			if (!actualResponse.headers.get('content-type')?.startsWith('image/')) return notFound()
 			if (actualResponse.status === 200) {
 				this.ctx.waitUntil(caches.default.put(cacheKey, actualResponse.clone()))

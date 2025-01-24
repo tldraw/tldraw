@@ -9,7 +9,7 @@ import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { TlaSidebarLayout } from '../layouts/TlaSidebarLayout/TlaSidebarLayout'
-import { updateLocalSessionState } from '../utils/local-session-state'
+import { toggleSidebar } from '../utils/local-session-state'
 
 /*
 History here should work in an identical way to its previous implementation.
@@ -51,7 +51,7 @@ export function Component({ error: _error }: { error?: unknown }) {
 	useEffect(() => {
 		if (error && userId) {
 			// force sidebar open
-			updateLocalSessionState(() => ({ isSidebarOpen: true }))
+			toggleSidebar(true)
 		}
 	}, [error, userId])
 

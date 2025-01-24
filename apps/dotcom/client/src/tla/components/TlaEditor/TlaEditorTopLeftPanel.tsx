@@ -1,4 +1,4 @@
-import { SignUpButton } from '@clerk/clerk-react'
+import { SignInButton } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -27,10 +27,12 @@ import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
 import { TlaAppMenuGroupLazyFlipped } from '../TlaAppMenuGroup/TlaAppMenuGroup'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
+import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
 import styles from './top.module.css'
 
 const messages = defineMessages({
@@ -168,7 +170,16 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		[app, editor, fileId, isOwner]
 	)
 
-	const handleRenameAction = () => setIsRenaming(true)
+	const handleRenameAction = () => {
+		if (getIsCoarsePointer()) {
+			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
+			if (newName) {
+				app.updateFile({ id: fileId, name: newName })
+			}
+		} else {
+			setIsRenaming(true)
+		}
+	}
 	const handleRenameEnd = () => setIsRenaming(false)
 
 	const separator = '/'
@@ -224,10 +235,19 @@ function TlaFileNameEditor({
 }) {
 	const [isEditing, setIsEditing] = useState(false)
 	const trackEvent = useTldrawAppUiEvents()
+
+	const intl = useIntl()
 	const handleEditingStart = useCallback(() => {
 		if (!onChange) return
-		setIsEditing(true)
-	}, [onChange])
+		if (getIsCoarsePointer()) {
+			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
+			if (newName) {
+				onChange(newName)
+			}
+		} else {
+			setIsEditing(true)
+		}
+	}, [fileName, intl, onChange])
 
 	const handleEditingEnd = useCallback(() => {
 		if (!onChange) return
@@ -326,15 +346,15 @@ function TlaFileNameEditorInput({
 function SignInMenuItem() {
 	const msg = useMsg(messages.signIn)
 	return (
-		<SignUpButton
+		<SignInButton
 			mode="modal"
 			forceRedirectUrl={location.pathname + location.search}
-			signInForceRedirectUrl={location.pathname + location.search}
+			signUpForceRedirectUrl={location.pathname + location.search}
 		>
-			<TldrawUiButton type="menu" data-testid="tla-sign-up-menu-button">
+			<TldrawUiButton type="menu" data-testid="tla-sign-in-menu-button">
 				<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
 				<TlaIcon icon="sign-in" />
 			</TldrawUiButton>
-		</SignUpButton>
+		</SignInButton>
 	)
 }

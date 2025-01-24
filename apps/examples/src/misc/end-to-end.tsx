@@ -121,7 +121,7 @@ function SneakyExportButton() {
 		const api: EndToEndApi = {
 			exportAsSvg: () => actions['export-as-svg'].onSelect('unknown'),
 			exportAsFormat: (format) =>
-				exportAs(editor, editor.selectAll().getSelectedShapeIds(), format, 'test'),
+				exportAs(editor, editor.selectAll().getSelectedShapeIds(), { format, name: 'test' }),
 			createShapeId: () => createShapeId(),
 		}
 		;(window as any).tldrawApi = api

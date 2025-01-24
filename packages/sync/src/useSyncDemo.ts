@@ -10,6 +10,7 @@ import {
 	TLPresenceUserInfo,
 	TLStore,
 	TLStoreSchemaOptions,
+	clamp,
 	defaultBindingUtils,
 	defaultShapeUtils,
 	getHashForString,
@@ -136,7 +137,7 @@ function createDemoAssetStore(host: string): TLAssetStore {
 				body: file,
 			})
 
-			return url
+			return { src: url }
 		},
 
 		resolve(asset, context) {
@@ -182,7 +183,10 @@ function createDemoAssetStore(host: string): TLAssetStore {
 
 				const width = Math.ceil(
 					Math.min(
-						asset.props.w * context.steppedScreenScale * networkCompensation * context.dpr,
+						asset.props.w *
+							clamp(context.steppedScreenScale, 1 / 32, 1) *
+							networkCompensation *
+							context.dpr,
 						asset.props.w
 					)
 				)

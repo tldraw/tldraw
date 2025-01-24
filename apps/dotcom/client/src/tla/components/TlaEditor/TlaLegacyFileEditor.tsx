@@ -1,6 +1,6 @@
 import { ROOM_OPEN_MODE, RoomOpenMode, RoomOpenModeToPath } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Editor, TLComponents, Tldraw } from 'tldraw'
 import { StoreErrorScreen } from '../../../components/StoreErrorScreen'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
@@ -68,11 +68,12 @@ function TlaEditorInner({
 	useLegacyUrlParams()
 
 	const handleUiEvent = useHandleUiEvents()
+	const assets = useMemo(() => multiplayerAssetStore(), [])
 
 	const storeWithStatus = useSync({
 		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${fileSlug}`,
 		roomId: fileSlug,
-		assets: multiplayerAssetStore,
+		assets,
 		trackAnalyticsEvent,
 	})
 

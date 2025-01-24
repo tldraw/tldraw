@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/editor",
 	"description": "A tiny little drawing app (editor).",
-	"version": "3.6.0",
+	"version": "3.7.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -53,6 +53,7 @@
 		"@tldraw/validate": "workspace:*",
 		"@types/core-js": "^2.5.5",
 		"@use-gesture/react": "^10.2.27",
+		"canvas-size": "~2.0.0",
 		"classnames": "^2.3.2",
 		"core-js": "^3.31.1",
 		"eventemitter3": "^4.0.7",
@@ -69,6 +70,7 @@
 		"@testing-library/jest-dom": "^5.16.5",
 		"@testing-library/react": "^15.0.6",
 		"@types/benchmark": "^2.1.2",
+		"@types/canvas-size": "^1.2.2",
 		"@types/wicg-file-system-access": "^2020.9.5",
 		"benchmark": "^2.1.4",
 		"fake-indexeddb": "^4.0.0",

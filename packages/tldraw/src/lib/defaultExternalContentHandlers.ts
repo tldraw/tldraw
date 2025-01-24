@@ -100,7 +100,9 @@ export function registerDefaultExternalContentHandlers(
 			}
 		}
 
-		assetInfo.props.src = await editor.uploadAsset(assetInfo, file)
+		const result = await editor.uploadAsset(assetInfo, file)
+		assetInfo.props.src = result.src
+		if (result.meta) assetInfo.meta = { ...assetInfo.meta, ...result.meta }
 
 		return AssetRecordType.create(assetInfo)
 	})
@@ -225,7 +227,9 @@ export function registerDefaultExternalContentHandlers(
 	// files
 	editor.registerExternalContentHandler('files', async ({ point, files }) => {
 		if (files.length > editor.options.maxFilesAtOnce) {
-			throw Error('Too many files')
+			toasts.addToast({ title: msg('assets.files.amount-too-big'), severity: 'error' })
+
+			return
 		}
 
 		const position =

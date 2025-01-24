@@ -8,7 +8,7 @@ import { useMaybeApp } from '../hooks/useAppState'
 import { ReadyWrapper } from '../hooks/useIsReady'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { TlaSidebarLayout } from '../layouts/TlaSidebarLayout/TlaSidebarLayout'
-import { updateLocalSessionState } from '../utils/local-session-state'
+import { toggleSidebar } from '../utils/local-session-state'
 
 /*
 When a signed in user visits a legacy shared room, the room should still work as normal.
@@ -40,7 +40,7 @@ export function Component({ error }: { error?: unknown }) {
 	useEffect(() => {
 		if (error && userId) {
 			// force sidebar open
-			updateLocalSessionState(() => ({ isSidebarOpen: true }))
+			toggleSidebar(true)
 		}
 	}, [error, userId])
 

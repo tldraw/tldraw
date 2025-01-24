@@ -1,13 +1,15 @@
-import { TlaFile } from '@tldraw/dotcom-shared'
+import { TlaFile, TlaFileOpenState } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { KeyboardEvent, useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { preventDefault, useContainer, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
+import { useFileSidebarFocusContext } from '../../../providers/FileInputFocusProvider'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
-import { F } from '../../../utils/i18n'
+import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
+import { F, defineMessages, useIntl } from '../../../utils/i18n'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
 	TlaTooltipArrow,
@@ -53,6 +55,10 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 	)
 }
 
+export const sidebarMessages = defineMessages({
+	renameFile: { defaultMessage: 'Rename file' },
+})
+
 export function TlaSidebarFileLinkInner({
 	testId,
 	fileId,
@@ -74,12 +80,36 @@ export function TlaSidebarFileLinkInner({
 	const trackEvent = useTldrawAppUiEvents()
 	const linkRef = useRef<HTMLAnchorElement | null>(null)
 	const app = useApp()
+	const intl = useIntl()
+	const state = useLocation().state as TlaFileOpenState | undefined
+	const focusCtx = useFileSidebarFocusContext()
 
 	const [isRenaming, setIsRenaming] = useState(debugIsRenaming)
-	const handleRenameAction = () => setIsRenaming(true)
+	const handleRenameAction = () => {
+		if (getIsCoarsePointer()) {
+			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
+			if (newName) {
+				app.updateFile({ id: fileId, name: newName })
+			}
+		} else {
+			setIsRenaming(true)
+		}
+	}
+
+	useEffect(() => {
+		// on mount, trigger rename action if this is a new file.
+		if (
+			(state?.mode === 'create' || state?.mode === 'duplicate') &&
+			isActive &&
+			focusCtx.shouldRenameNextNewFile
+		) {
+			focusCtx.shouldRenameNextNewFile = false
+			handleRenameAction()
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
 	const handleRenameClose = () => setIsRenaming(false)
-	const params = useParams()
-	const { fileSlug } = params
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if (!isActive) return
 		if (e.key === 'Enter') {
@@ -115,7 +145,7 @@ export function TlaSidebarFileLinkInner({
 				onKeyDown={handleKeyDown}
 				onClick={(event) => {
 					// Don't navigate if we are already on the file page
-					if (fileSlug && fileSlug === fileId) {
+					if (isActive) {
 						preventDefault(event)
 					}
 					trackEvent('click-file-link', { source: 'sidebar' })

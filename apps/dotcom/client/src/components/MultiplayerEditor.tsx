@@ -5,7 +5,7 @@ import {
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import {
 	assertExists,
 	DefaultKeyboardShortcutsDialog,
@@ -41,7 +41,7 @@ import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { DocumentTopZone } from './DocumentName/DocumentName'
 import { MultiplayerFileMenu } from './FileMenu'
-import { Links } from './Links'
+import { LegacyLinks } from './Links'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { StoreErrorScreen } from './StoreErrorScreen'
@@ -61,7 +61,7 @@ const components: TLComponents = {
 				<ExtrasGroup />
 			</TldrawUiMenuGroup>
 			<PreferencesGroup />
-			<Links />
+			<LegacyLinks />
 		</DefaultMainMenu>
 	),
 	KeyboardShortcutsDialog: (props) => {
@@ -126,11 +126,12 @@ export function MultiplayerEditor({
 	useLegacyUrlParams()
 
 	const handleUiEvent = useHandleUiEvents()
+	const assets = useMemo(() => multiplayerAssetStore(), [])
 
 	const storeWithStatus = useSync({
 		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
 		roomId: roomSlug,
-		assets: multiplayerAssetStore,
+		assets,
 		trackAnalyticsEvent,
 	})
 

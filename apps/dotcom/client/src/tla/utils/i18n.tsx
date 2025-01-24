@@ -13,7 +13,7 @@ import {
 } from 'react-intl'
 
 import { FormatXMLElementFn } from 'intl-messageformat'
-import MD5 from 'md5.js'
+import md5 from 'md5'
 import { ComponentPropsWithoutRef } from 'react'
 
 // Re-export everything and override below what we want to override.
@@ -37,10 +37,10 @@ function generateId({ id, description, defaultMessage }: MessageDescriptor) {
 		return id
 	}
 
-	return new MD5()
-		.update(description ? `${defaultMessage}#${description}` : defaultMessage)
-		.digest('hex')
-		.slice(0, 10)
+	return md5((description ? `${defaultMessage}#${description}` : defaultMessage) as string).slice(
+		0,
+		10
+	)
 }
 
 export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
@@ -92,7 +92,7 @@ function makeAccented(str: string) {
 }
 
 function makeLong(str: string) {
-	return `${str}looooooooooooooooong`
+	return `${str} loooooooo oo ooooooong`
 }
 
 // This is optional but highly recommended since it prevents memory leaks.

@@ -3,6 +3,7 @@
 
 import { SupabaseClient } from '@supabase/supabase-js'
 import {
+	DB,
 	READ_ONLY_LEGACY_PREFIX,
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
@@ -20,13 +21,20 @@ import {
 	type PersistedRoomSnapshotForSupabase,
 } from '@tldraw/sync-core'
 import { TLDOCUMENT_ID, TLDocument, TLRecord, createTLSchema } from '@tldraw/tlschema'
-import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
+import {
+	ExecutionQueue,
+	assert,
+	assertExists,
+	exhaustiveSwitchError,
+	uniqueId,
+} from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
+import { Kysely } from 'kysely'
 import { AlarmScheduler } from './AlarmScheduler'
 import { PERSIST_INTERVAL_MS } from './config'
-import { getPostgres } from './getPostgres'
+import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
@@ -34,7 +42,7 @@ import { createSupabaseClient } from './utils/createSupabaseClient'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
-import { getAuth } from './utils/tla/getAuth'
+import { getAuthFromSearchParams } from './utils/tla/getAuth'
 
 const MAX_CONNECTIONS = 50
 
@@ -119,6 +127,8 @@ export class TLDrawDurableObject extends DurableObject {
 						})
 
 						this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })
+						// Also associate file assets after we load the room
+						setTimeout(this.maybeAssociateFileAssets.bind(this), PERSIST_INTERVAL_MS)
 						return room
 					}
 					case 'room_not_found': {
@@ -156,6 +166,8 @@ export class TLDrawDurableObject extends DurableObject {
 
 	_documentInfo: DocumentInfo | null = null
 
+	db: Kysely<DB>
+
 	constructor(
 		private state: DurableObjectState,
 		override env: Environment
@@ -181,6 +193,7 @@ export class TLDrawDurableObject extends DurableObject {
 				this._documentInfo = existingDocumentInfo
 			}
 		})
+		this.db = createPostgresConnectionPool(env, 'TLDrawDurableObject')
 	}
 
 	readonly router = Router()
@@ -291,6 +304,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 			const snapshot: RoomSnapshot = JSON.parse(dataText)
 			room.loadSnapshot(snapshot)
+			this.maybeAssociateFileAssets()
 
 			return new Response()
 		} finally {
@@ -305,11 +319,11 @@ export class TLDrawDurableObject extends DurableObject {
 			return this._fileRecordCache
 		}
 		try {
-			const postgres = getPostgres(this.env, { pooled: true, name: 'TLDrawDurableObject' })
-			const fileRecord =
-				await postgres`SELECT * FROM public.file WHERE ID = ${this.documentInfo.slug}`
-			this._fileRecordCache = fileRecord[0] as TlaFile
-			postgres.end()
+			this._fileRecordCache = await this.db
+				.selectFrom('file')
+				.where('id', '=', this.documentInfo.slug)
+				.selectAll()
+				.executeTakeFirstOrThrow()
 			return this._fileRecordCache
 		} catch (_e) {
 			return null
@@ -340,7 +354,7 @@ export class TLDrawDurableObject extends DurableObject {
 			return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 		}
 
-		const auth = await getAuth(req, this.env)
+		const auth = await getAuthFromSearchParams(req, this.env)
 		if (this.documentInfo.isApp) {
 			openMode = ROOM_OPEN_MODE.READ_WRITE
 			const file = await this.getAppFileRecord()
@@ -489,7 +503,10 @@ export class TLDrawDurableObject extends DurableObject {
 				return { type: 'room_found', snapshot: await roomFromBucket.json() }
 			}
 
-			if (this.documentInfo.appMode === 'create') {
+			if (
+				this.documentInfo.appMode === 'create' ||
+				this.documentInfo.appMode === 'slurp-legacy-file'
+			) {
 				return {
 					type: 'room_found',
 					snapshot: new TLSyncRoom({
@@ -565,6 +582,57 @@ export class TLDrawDurableObject extends DurableObject {
 
 	executionQueue = new ExecutionQueue()
 
+	// We use this to make sure that all of the assets in a tldraw app file are associated with that file.
+	// This is needed for a few cases like duplicating a file, copy pasting images between files, slurping legacy files.
+	async maybeAssociateFileAssets() {
+		if (!this.documentInfo.isApp) return
+
+		const slug = this.documentInfo.slug
+		const room = await this.getRoom()
+		const assetsToUpdate: { objectName: string; fileId: string }[] = []
+		await room.updateStore(async (store) => {
+			const records = store.getAll()
+			for (const record of records) {
+				if (record.typeName !== 'asset') continue
+				const asset = record as any
+				const meta = asset.meta
+
+				if (meta?.fileId === slug) continue
+				const src = asset.props.src
+				if (!src) continue
+				const objectName = src.split('/').pop()
+				if (!objectName) continue
+				const currentAsset = await this.env.UPLOADS.get(objectName)
+				if (!currentAsset) continue
+
+				const split = objectName.split('-')
+				const fileType = split.length > 1 ? split.pop() : null
+				const id = uniqueId()
+				const newObjectName = fileType ? `${id}-${fileType}` : id
+				await this.env.UPLOADS.put(newObjectName, currentAsset.body, {
+					httpMetadata: currentAsset.httpMetadata,
+				})
+				asset.props.src = asset.props.src.replace(objectName, newObjectName)
+				assert(this.env.MULTIPLAYER_SERVER, 'MULTIPLAYER_SERVER must be present')
+				asset.props.src = `${this.env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/api/app/uploads/${newObjectName}`
+
+				asset.meta.fileId = slug
+				store.put(asset)
+				assetsToUpdate.push({ objectName: newObjectName, fileId: slug })
+			}
+		})
+
+		if (assetsToUpdate.length === 0) return
+
+		await this.db
+			.insertInto('asset')
+			.values(assetsToUpdate)
+			.onConflict((oc) => {
+				return oc.column('objectName').doUpdateSet({ fileId: slug })
+			})
+			.execute()
+	}
+
 	// Save the room to r2
 	async persistToDatabase() {
 		try {
@@ -578,6 +646,7 @@ export class TLDrawDurableObject extends DurableObject {
 				if (this._isRestoring) return
 
 				const snapshot = JSON.stringify(room.getCurrentSnapshot())
+				this.maybeAssociateFileAssets()
 
 				const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
 				await Promise.all([
@@ -588,9 +657,11 @@ export class TLDrawDurableObject extends DurableObject {
 
 				// Update the updatedAt timestamp in the database
 				if (this.documentInfo.isApp) {
-					const pg = getPostgres(this.env, { pooled: true, name: 'TLDrawDurableObject' })
-					await pg`UPDATE public.file SET "updatedAt" = ${new Date().getTime()} WHERE id = ${this.documentInfo.slug}`
-					await pg.end()
+					await this.db
+						.updateTable('file')
+						.set({ updatedAt: new Date().getTime() })
+						.where('id', '=', this.documentInfo.slug)
+						.execute()
 				}
 			})
 		} catch (e) {

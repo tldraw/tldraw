@@ -1,10 +1,11 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
-import { RoomSnapshot } from '@tldraw/sync-core'
+import type { RoomSnapshot } from '@tldraw/sync-core'
 // import { TLAppDurableObject } from './TLAppDurableObject'
-import { TLDrawDurableObject } from './TLDrawDurableObject'
-import { TLPostgresReplicator } from './TLPostgresReplicator'
-import { TLUserDurableObject } from './TLUserDurableObject'
+import type { TLDrawDurableObject } from './TLDrawDurableObject'
+import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
+import type { TLPostgresReplicator } from './TLPostgresReplicator'
+import type { TLUserDurableObject } from './TLUserDurableObject'
 
 // This type isn't available in @cloudflare/workers-types yet
 export interface Analytics {
@@ -21,6 +22,8 @@ export interface Environment {
 	// TLAPP_DO: DurableObjectNamespace<TLAppDurableObject>
 	TL_PG_REPLICATOR: DurableObjectNamespace<TLPostgresReplicator>
 	TL_USER: DurableObjectNamespace<TLUserDurableObject>
+	TL_LOGGER: DurableObjectNamespace<TLLoggerDurableObject>
+
 	BOTCOM_POSTGRES_CONNECTION_STRING: string
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
 	MEASURE: Analytics | undefined
@@ -31,6 +34,8 @@ export interface Environment {
 	ROOM_SNAPSHOTS: R2Bucket
 	SNAPSHOT_SLUG_TO_PARENT_SLUG: KVNamespace
 
+	UPLOADS: R2Bucket
+
 	SLUG_TO_READONLY_SLUG: KVNamespace
 	READONLY_SLUG_TO_SLUG: KVNamespace
 
@@ -40,7 +45,6 @@ export interface Environment {
 	SUPABASE_URL: string | undefined
 	SUPABASE_KEY: string | undefined
 
-	APP_ORIGIN: string | undefined
 	CLERK_SECRET_KEY: string | undefined
 	CLERK_PUBLISHABLE_KEY: string | undefined
 
@@ -50,8 +54,13 @@ export interface Environment {
 	IS_LOCAL: string | undefined
 	WORKER_NAME: string | undefined
 	ASSET_UPLOAD_ORIGIN: string | undefined
+	MULTIPLAYER_SERVER: string | undefined
 
 	RATE_LIMITER: RateLimit
+}
+
+export function isDebugLogging(env: Environment) {
+	return env.TLDRAW_ENV === 'development' || env.TLDRAW_ENV === 'preview'
 }
 
 export type DBLoadResult =
