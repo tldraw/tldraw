@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
 import { existsSync, readFileSync, readdirSync } from 'fs'
 import { createServer } from 'http'
-import postgres from 'postgres'
+import { Kysely, PostgresDialect, sql } from 'kysely'
+import pg from 'pg'
 
 const postgresConnectionString: string =
 	process.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING ||
@@ -44,17 +45,23 @@ const dryRun = process.argv.includes('--dry-run')
 
 const DRY_RUN_ROLLBACK = new Error('dry-run-rollback')
 
+const db = new Kysely({
+	dialect: new PostgresDialect({
+		pool: new pg.Pool({
+			connectionString: postgresConnectionString,
+			application_name: 'migrate',
+			idleTimeoutMillis: 10_000,
+			max: 1,
+		}),
+	}),
+	log: ['error'],
+})
+
 async function waitForPostgres() {
 	let attempts = 0
 	do {
 		try {
-			const sql = postgres(postgresConnectionString, {
-				connection: {
-					application_name: 'waitForPostgres',
-				},
-			})
-			await sql`SELECT 1`
-			await sql.end()
+			await sql`SELECT 1`.execute(db)
 			break
 		} catch (_e) {
 			if (attempts++ > 100) {
@@ -65,33 +72,28 @@ async function waitForPostgres() {
 		}
 		// eslint-disable-next-line no-constant-condition
 	} while (true)
-	const sql = postgres(postgresConnectionString)
-	await sql.unsafe(init).simple()
-	await sql.end()
+	await sql.raw(init).execute(db)
 }
 
 async function migrate(summary: string[], dryRun: boolean) {
-	const db = postgres(postgresConnectionString, {
-		connection: {
-			application_name: 'migrate',
-		},
-	})
-	await db.begin(async (sql) => {
-		const appliedMigrations = await sql`SELECT filename FROM migrations.applied_migrations`
+	await db.transaction().execute(async (tx) => {
+		const appliedMigrations = await sql<{
+			filename: string
+		}>`SELECT filename FROM migrations.applied_migrations`.execute(tx)
 		const migrations = readdirSync(`./migrations`).sort()
 		if (migrations.length === 0) {
 			throw new Error('No migrations found')
 		}
 
 		// check that all applied migrations exist
-		for (const appliedMigration of appliedMigrations) {
+		for (const appliedMigration of appliedMigrations.rows) {
 			if (!migrations.includes(appliedMigration.filename)) {
 				throw new Error(`Previously-applied migration ${appliedMigration.filename} not found`)
 			}
 		}
 
 		for (const migration of migrations) {
-			if (appliedMigrations.some((m: any) => m.filename === migration)) {
+			if (appliedMigrations.rows.some((m: any) => m.filename === migration)) {
 				summary.push(`🏃 ${migration} already applied`)
 				continue
 			}
@@ -103,8 +105,10 @@ async function migrate(summary: string[], dryRun: boolean) {
 						`Migration ${migration} contains a transaction block. Migrations run in transactions, so you don't need to include them in the migration file.`
 					)
 				}
-				await sql.unsafe(migrationSql).simple()
-				await sql`INSERT INTO migrations.applied_migrations (filename) VALUES (${migration})`
+				await sql.raw(migrationSql).execute(tx)
+				await sql`INSERT INTO migrations.applied_migrations (filename) VALUES (${migration})`.execute(
+					tx
+				)
 				summary.push(`✅ ${migration} applied`)
 			} catch (e) {
 				summary.push(`❌ ${migration} failed`)
@@ -115,7 +119,7 @@ async function migrate(summary: string[], dryRun: boolean) {
 			throw DRY_RUN_ROLLBACK
 		}
 	})
-	db.end()
+	await db.destroy()
 }
 async function run() {
 	try {
