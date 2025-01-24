@@ -39,9 +39,9 @@
 	--layer-overlays-user-brush: 50;
 	--layer-overlays-user-indicator-selected: 60;
 	--layer-overlays-user-indicator-hovered: 70;
-	--layer-overlays-user-handles: 80;
 	--layer-overlays-user-snapline: 90;
 	--layer-overlays-selection-fg: 100;
+	--layer-overlays-user-handles: 105;
 	--layer-overlays-user-indicator-hint: 110;
 	--layer-overlays-collaborator-cursor-hint: 120;
 	--layer-overlays-collaborator-cursor: 130;

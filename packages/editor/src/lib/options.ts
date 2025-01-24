@@ -66,6 +66,11 @@ export interface TldrawOptions {
 	 * external context providers. By default, this is `React.Fragment`.
 	 */
 	readonly exportProvider: ComponentType<{ children: React.ReactNode }>
+	/**
+	 * How should the note shape resize? By default it does not resize (except automatically based on its text content),
+	 * but you can set it to be user-resizable using scale.
+	 */
+	readonly noteShapeResizeMode: 'none' | 'scale'
 }
 
 /** @public */
@@ -111,4 +116,5 @@ export const defaultTldrawOptions = {
 	actionShortcutsLocation: 'swap',
 	createTextOnCanvasDoubleClick: true,
 	exportProvider: Fragment,
+	noteShapeResizeMode: 'none',
 } as const satisfies TldrawOptions
