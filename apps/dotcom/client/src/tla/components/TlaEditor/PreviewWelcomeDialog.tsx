@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo } from 'react'
+import { createContext, useCallback, useContext, useEffect } from 'react'
 import {
 	LocalIndexedDb,
 	TAB_ID,
@@ -42,19 +42,14 @@ function WelcomeDialog() {
 		dialogs.removeDialog(dialogId)
 	}, [dialogs])
 
-	const abortController = useMemo(() => new AbortController(), [])
 	const remountImageShapes = useContext(RemountImagesContext)
 
-	useEffect(
-		() => () => {
-			abortController.abort()
-		},
-		[abortController]
-	)
 	const app = useApp()
 	const fileId = useCurrentFileId()!
 
 	const onSlurp = useCallback(async () => {
+		const abortController = new AbortController()
+		editor.disposables.add(() => abortController.abort())
 		await new Slurper({
 			abortSignal: abortController.signal,
 			addDialog: dialogs.addDialog,
@@ -65,15 +60,7 @@ function WelcomeDialog() {
 			slurpPersistenceKey: getScratchPersistenceKey(),
 		}).slurp()
 		onDismiss()
-	}, [
-		abortController.signal,
-		app,
-		dialogs.addDialog,
-		editor,
-		fileId,
-		onDismiss,
-		remountImageShapes,
-	])
+	}, [app, dialogs.addDialog, editor, fileId, onDismiss, remountImageShapes])
 
 	if (data.loading) return null
 	const file = app.getFile(fileId)
