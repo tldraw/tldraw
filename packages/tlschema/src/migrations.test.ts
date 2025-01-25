@@ -16,6 +16,7 @@ import { arrowShapeVersions } from './shapes/TLArrowShape'
 import { bookmarkShapeVersions } from './shapes/TLBookmarkShape'
 import { drawShapeVersions } from './shapes/TLDrawShape'
 import { embedShapeVersions } from './shapes/TLEmbedShape'
+import { frameShapeVersions } from './shapes/TLFrameShape'
 import { geoShapeVersions } from './shapes/TLGeoShape'
 import { highlightShapeVersions } from './shapes/TLHighlightShape'
 import { imageShapeVersions } from './shapes/TLImageShape'
@@ -2091,6 +2092,18 @@ describe('TLPresence NullableCameraCursor', () => {
 			chatMessage: '',
 			meta: {},
 		})
+	})
+})
+
+describe('Adding color to frame shapes', () => {
+	const { up, down } = getTestMigration(frameShapeVersions.AddColorProp)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { color: 'black' } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { color: 'black' } })).toEqual({ props: {} })
 	})
 })
 

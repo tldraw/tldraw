@@ -8,11 +8,15 @@ export function FrameHeading({
 	name,
 	width,
 	height,
+	fill,
+	color,
 }: {
 	id: TLShapeId
 	name: string
 	width: number
 	height: number
+	fill: string
+	color: string
 }) {
 	const editor = useEditor()
 	const { side, translation } = useValue(
@@ -54,12 +58,12 @@ export function FrameHeading({
 				overflow: isEditing ? 'visible' : 'hidden',
 				maxWidth: `calc(var(--tl-zoom) * ${
 					side === 0 || side === 2 ? Math.ceil(width) : Math.ceil(height)
-				}px + var(--space-5))`,
+				}px + var(--fow))`,
 				bottom: '100%',
-				transform: `${translation} scale(var(--tl-scale)) translateX(calc(-1 * var(--space-3))`,
+				transform: `${translation} scale(var(--tl-scale)) translateX(var(--fho))`,
 			}}
 		>
-			<div className="tl-frame-heading-hit-area">
+			<div className="tl-frame-heading-hit-area" style={{ color, backgroundColor: fill }}>
 				<FrameLabelInput ref={rInput} id={id} name={name} isEditing={isEditing} />
 			</div>
 		</div>
