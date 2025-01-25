@@ -1422,6 +1422,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     pageToViewport(point: VecLike): Vec;
     popFocusedGroupId(): this;
     putContentOntoCurrentPage(content: TLContent, opts?: {
+        onAssetsResolved?: () => void;
         point?: VecLike;
         preserveIds?: boolean;
         preservePosition?: boolean;
