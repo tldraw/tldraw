@@ -1998,9 +1998,14 @@ export interface TLArrowPoint {
     // (undocumented)
     arrowhead: TLArrowShapeArrowheadStyle;
     // (undocumented)
-    handle: VecLike;
+    handle: Vec;
     // (undocumented)
-    point: VecLike;
+    intersection?: {
+        point: Vec;
+        segment: Vec[];
+    };
+    // (undocumented)
+    point: Vec;
 }
 
 // @public
