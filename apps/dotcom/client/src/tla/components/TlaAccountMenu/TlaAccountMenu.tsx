@@ -38,6 +38,7 @@ export function TlaAccountMenu({
 				<TldrawUiDropdownMenuContent
 					className="tla-account-menu"
 					side="bottom"
+					align="end"
 					alignOffset={0}
 					sideOffset={4}
 				>
