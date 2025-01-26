@@ -106,13 +106,7 @@ test.describe('Style selection behaviour', () => {
 					const styleElement = page.getByTestId(style)
 					const isVisible = await styleElement.isVisible()
 					const isExpected = tool.styles.includes(style)
-					try {
-						expect(isVisible).toBe(isExpected)
-					} catch (e) {
-						console.log('tool:', tool.name)
-						console.log('style:', style)
-						throw e
-					}
+					expect(isVisible).toBe(isExpected)
 				}
 			})
 		}
