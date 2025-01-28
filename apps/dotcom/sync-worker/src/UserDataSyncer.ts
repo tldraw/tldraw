@@ -118,7 +118,7 @@ export class UserDataSyncer {
 	}
 
 	constructor(
-		ctx: DurableObjectState,
+		private ctx: DurableObjectState,
 		env: Environment,
 		private db: Kysely<DB>,
 		private userId: string,
@@ -133,7 +133,15 @@ export class UserDataSyncer {
 
 	private queue = new ExecutionQueue()
 
+	numConsecutiveReboots = 0
+
 	async reboot(delay = true) {
+		this.numConsecutiveReboots++
+		if (this.numConsecutiveReboots > 5) {
+			this.logEvent({ type: 'user_do_abort', id: this.userId })
+			this.ctx.abort()
+			return
+		}
 		this.log.debug('rebooting')
 		this.logEvent({ type: 'reboot', id: this.userId })
 		await this.queue.push(async () => {
@@ -142,6 +150,7 @@ export class UserDataSyncer {
 			}
 			try {
 				await this.boot()
+				this.numConsecutiveReboots = 0
 			} catch (e) {
 				this.logEvent({ type: 'reboot_error', id: this.userId })
 				this.captureException(e)
