@@ -416,6 +416,16 @@ export type BoxLike = Box | BoxModel;
 // @public (undocumented)
 export function canonicalizeRotation(a: number): number;
 
+// @internal (undocumented)
+export interface CanvasMaxSize {
+    // (undocumented)
+    maxArea: number;
+    // (undocumented)
+    maxHeight: number;
+    // (undocumented)
+    maxWidth: number;
+}
+
 // @public
 export function centerOfCircleFromThreePoints(a: VecLike, b: VecLike, c: VecLike): null | Vec;
 
@@ -462,6 +472,9 @@ export function clamp(n: number, min: number, max: number): number;
 
 // @public
 export function clampRadians(r: number): number;
+
+// @internal (undocumented)
+export function clampToBrowserMaxCanvasSize(width: number, height: number): Promise<number[]>;
 
 // @public (undocumented)
 export class ClickManager {
@@ -748,7 +761,7 @@ export const defaultUserPreferences: Readonly<{
     isPasteAtCursorMode: false;
     isSnapMode: false;
     isWrapMode: false;
-    locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
+    locale: "ar" | "bn" | "ca" | "cs" | "da" | "de" | "el" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "gu-in" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "km-kh" | "kn" | "ko-kr" | "ml" | "mr" | "ms" | "ne" | "nl" | "no" | "pa" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "ta" | "te" | "th" | "tl" | "tr" | "uk" | "ur" | "vi" | "zh-cn" | "zh-tw";
     name: "New User";
 }>;
 
@@ -884,14 +897,236 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     createErrorAnnotations(origin: string, willCrashApp: 'unknown' | boolean): {
         extras: {
-            activeStateNode?: string;
-            editingShape?: TLUnknownShape;
-            inputs?: Record<string, unknown>;
-            selectedShapes?: TLUnknownShape[];
+            activeStateNode: string;
+            collaboratorCount: number;
+            editingShape: TLUnknownShape | undefined;
+            inputs: {
+                buttons: Set<number>;
+                keys: Set<string>;
+                originScreenPoint: Vec;
+                originPagePoint: Vec;
+                currentScreenPoint: Vec;
+                currentPagePoint: Vec;
+                previousScreenPoint: Vec;
+                previousPagePoint: Vec;
+                pointerVelocity: Vec;
+                altKey: boolean;
+                ctrlKey: boolean;
+                isPen: boolean;
+                metaKey: boolean;
+                shiftKey: boolean;
+                isDragging: boolean;
+                isEditing: boolean;
+                isPanning: boolean;
+                isPinching: boolean;
+                isPointing: boolean;
+                isSpacebarPanning: boolean;
+            };
+            instanceState: TLInstance;
+            pageState: TLInstancePageState;
+            selectedShapes: ({
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "arrow";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "bookmark";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "draw";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "embed";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "frame";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "geo";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "group";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "highlight";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "image";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "line";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "note";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "text";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "video";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: string;
+                typeName: "shape";
+                x: number;
+                y: number;
+            })[];
+            selectionCount: number;
         };
         tags: {
             origin: string;
-            willCrashApp: 'unknown' | boolean;
+            willCrashApp: "unknown" | boolean;
+        };
+    } | {
+        extras: {
+            activeStateNode?: undefined;
+            collaboratorCount?: undefined;
+            editingShape?: undefined;
+            inputs?: undefined;
+            instanceState?: undefined;
+            pageState?: undefined;
+            selectedShapes?: undefined;
+            selectionCount?: undefined;
+        };
+        tags: {
+            origin: string;
+            willCrashApp: "unknown" | boolean;
         };
     };
     createPage(page: Partial<TLPage>): this;
@@ -1090,13 +1325,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
     getStyleForNextShape<T>(style: StyleProp<T>): T;
     // @deprecated (undocumented)
-    getSvg(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<SVGSVGElement | undefined>;
-    getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<{
+    getSvg(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<SVGSVGElement | undefined>;
+    getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<{
         height: number;
         svg: SVGSVGElement;
         width: number;
     } | undefined>;
-    getSvgString(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<{
+    getSvgString(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<{
         height: number;
         svg: string;
         width: number;
@@ -1210,6 +1445,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     resolveAssetsInContent(content: TLContent | undefined): Promise<TLContent | undefined>;
     // (undocumented)
     resolveAssetUrl(assetId: null | TLAssetId, context: {
+        dpr?: number;
         screenScale?: number;
         shouldResolveToOriginal?: boolean;
     }): Promise<null | string>;
@@ -1284,6 +1520,11 @@ export class Editor extends EventEmitter<TLEventMap> {
         setTimeout: (handler: TimerHandler, timeout?: number | undefined, ...args: any[]) => number;
     };
     toggleLock(shapes: TLShape[] | TLShapeId[]): this;
+    toImage(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<{
+        blob: Blob;
+        height: number;
+        width: number;
+    }>;
     undo(): this;
     ungroupShapes(ids: TLShapeId[], opts?: Partial<{
         select: boolean;
@@ -1308,7 +1549,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     _updateShapes(_partials: (null | TLShapePartial | undefined)[]): void;
     updateViewportScreenBounds(screenBounds: Box | HTMLElement, center?: boolean): this;
-    uploadAsset(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<string>;
+    uploadAsset(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<{
+        meta?: JsonObject;
+        src: string;
+    }>;
     readonly user: UserPreferencesManager;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
     zoomIn(point?: Vec, opts?: TLCameraMoveOptions): this;
@@ -1538,6 +1782,15 @@ export function getRotationSnapshot({ editor, ids, }: {
 
 // @public (undocumented)
 export function getSnapshot(store: TLStore): TLEditorSnapshot;
+
+// @public (undocumented)
+export function getSvgAsImage(svgString: string, options: {
+    height: number;
+    pixelRatio?: number;
+    quality?: number;
+    type: 'jpeg' | 'png' | 'webp';
+    width: number;
+}): Promise<Blob | null>;
 
 // @public
 export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): string;
@@ -2248,7 +2501,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     // (undocumented)
     editor: Editor;
     // @internal (undocumented)
-    expandSelectionOutlinePx(shape: Shape): number;
+    expandSelectionOutlinePx(shape: Shape): Box | number;
     getBoundsSnapGeometry(_shape: Shape): BoundsSnapGeometry;
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     abstract getDefaultProps(): Shape['props'];
@@ -2501,6 +2754,9 @@ export type SVGContainerProps = React_3.ComponentProps<'svg'>;
 export interface SvgExportContext {
     addExportDef(def: SvgExportDef): void;
     readonly isDarkMode: boolean;
+    readonly pixelRatio: null | number;
+    resolveAssetUrl(assetId: TLAssetId, width: number): Promise<null | string>;
+    readonly scale: number;
     waitUntil(promise: Promise<void>): void;
 }
 
@@ -3107,6 +3363,9 @@ export type TLEventName = 'cancel' | 'complete' | 'interrupt' | 'tick' | 'wheel'
 export type TLExitEventHandler = (info: any, to: string) => void;
 
 // @public (undocumented)
+export type TLExportType = 'jpeg' | 'png' | 'svg' | 'webp';
+
+// @public (undocumented)
 export type TLExternalAssetContent = {
     assetId?: TLAssetId;
     file: File;
@@ -3223,23 +3482,9 @@ export interface TLHistoryMark {
 }
 
 // @public (undocumented)
-export interface TLImageExportOptions {
-    // (undocumented)
-    background?: boolean;
-    // (undocumented)
-    bounds?: Box;
-    // (undocumented)
-    darkMode?: boolean;
-    // (undocumented)
-    padding?: number;
-    // (undocumented)
-    pixelRatio?: number;
-    // (undocumented)
-    preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
-    // (undocumented)
+export interface TLImageExportOptions extends TLSvgExportOptions {
+    format?: TLExportType;
     quality?: number;
-    // (undocumented)
-    scale?: number;
 }
 
 // @public (undocumented)
@@ -3633,6 +3878,17 @@ export type TLStoreWithStatus = {
     readonly status: 'synced-local';
     readonly store: TLStore;
 };
+
+// @public (undocumented)
+export interface TLSvgExportOptions {
+    background?: boolean;
+    bounds?: Box;
+    darkMode?: boolean;
+    padding?: number;
+    pixelRatio?: number;
+    preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
+    scale?: number;
+}
 
 // @public @deprecated (undocumented)
 export type TLSvgOptions = TLImageExportOptions;

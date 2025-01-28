@@ -37,6 +37,7 @@ export const tlaUserSchema = {
 		isWrapMode: { type: 'boolean', optional: true },
 		isDynamicSizeMode: { type: 'boolean', optional: true },
 		isPasteAtCursorMode: { type: 'boolean', optional: true },
+		allowAnalyticsCookie: { type: 'boolean', optional: true },
 	},
 	primaryKey: ['id'],
 	relationships: {},
@@ -147,6 +148,10 @@ export type TlaUserPartial = Partial<TlaUser> & {
 }
 
 export type TlaRow = TlaFile | TlaFileState | TlaUser
+export interface TlaUserMutationNumber {
+	userId: string
+	mutationNumber: number
+}
 
 const immutableColumns: Record<string, Set<string>> = {
 	user: new Set<keyof TlaUser>(['id', 'email', 'createdAt', 'avatar']),
@@ -156,4 +161,17 @@ const immutableColumns: Record<string, Set<string>> = {
 
 export function isColumnMutable(tableName: keyof typeof immutableColumns, column: string) {
 	return !immutableColumns[tableName].has(column)
+}
+
+export interface TlaAsset {
+	objectName: string
+	fileId: string
+}
+
+export interface DB {
+	file: TlaFile
+	file_state: TlaFileState
+	user: TlaUser
+	user_mutation_number: TlaUserMutationNumber
+	asset: TlaAsset
 }

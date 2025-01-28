@@ -7,7 +7,7 @@ import { useMaybeApp } from '../hooks/useAppState'
 import { ReadyWrapper } from '../hooks/useIsReady'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { TlaSidebarLayout } from '../layouts/TlaSidebarLayout/TlaSidebarLayout'
-import { updateLocalSessionState } from '../utils/local-session-state'
+import { toggleSidebar } from '../utils/local-session-state'
 
 export function ErrorBoundary() {
 	const error = useRouteError()
@@ -28,7 +28,7 @@ export function Component({ error }: { error?: unknown }) {
 	useEffect(() => {
 		if (error && userId) {
 			// force sidebar open
-			updateLocalSessionState(() => ({ isSidebarOpen: true }))
+			toggleSidebar(true)
 		}
 	}, [error, userId])
 
@@ -48,14 +48,7 @@ export function Component({ error }: { error?: unknown }) {
 
 	return (
 		<TlaSidebarLayout collapsible>
-			{errorElem ?? (
-				<TlaEditor
-					fileSlug={fileSlug}
-					mode={routeState?.mode}
-					duplicateId={routeState?.duplicateId}
-					deepLinks
-				/>
-			)}
+			{errorElem ?? <TlaEditor fileSlug={fileSlug} fileOpenState={routeState} deepLinks />}
 		</TlaSidebarLayout>
 	)
 }

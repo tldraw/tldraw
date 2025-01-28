@@ -379,6 +379,9 @@ export const LANGUAGES: readonly [{
     readonly label: "Bahasa Indonesia";
     readonly locale: "id";
 }, {
+    readonly label: "Bahasa Melayu";
+    readonly locale: "ms";
+}, {
     readonly label: "Català";
     readonly locale: "ca";
 }, {
@@ -397,6 +400,9 @@ export const LANGUAGES: readonly [{
     readonly label: "Español";
     readonly locale: "es";
 }, {
+    readonly label: "Filipino";
+    readonly locale: "tl";
+}, {
     readonly label: "Français";
     readonly locale: "fr";
 }, {
@@ -412,6 +418,9 @@ export const LANGUAGES: readonly [{
     readonly label: "Magyar";
     readonly locale: "hu";
 }, {
+    readonly label: "Nederlands";
+    readonly locale: "nl";
+}, {
     readonly label: "Norwegian";
     readonly locale: "no";
 }, {
@@ -426,9 +435,6 @@ export const LANGUAGES: readonly [{
 }, {
     readonly label: "Română";
     readonly locale: "ro";
-}, {
-    readonly label: "Russian";
-    readonly locale: "ru";
 }, {
     readonly label: "Slovenščina";
     readonly locale: "sl";
@@ -448,11 +454,20 @@ export const LANGUAGES: readonly [{
     readonly label: "Türkçe";
     readonly locale: "tr";
 }, {
-    readonly label: "Ukrainian";
+    readonly label: "Ελληνικά";
+    readonly locale: "el";
+}, {
+    readonly label: "Русский";
+    readonly locale: "ru";
+}, {
+    readonly label: "Українська";
     readonly locale: "uk";
 }, {
     readonly label: "עברית";
     readonly locale: "he";
+}, {
+    readonly label: "اردو";
+    readonly locale: "ur";
 }, {
     readonly label: "عربي";
     readonly locale: "ar";
@@ -460,23 +475,41 @@ export const LANGUAGES: readonly [{
     readonly label: "فارسی";
     readonly locale: "fa";
 }, {
-    readonly label: "کوردی";
-    readonly locale: "ku";
-}, {
     readonly label: "नेपाली";
     readonly locale: "ne";
+}, {
+    readonly label: "मराठी";
+    readonly locale: "mr";
 }, {
     readonly label: "हिन्दी";
     readonly locale: "hi-in";
 }, {
+    readonly label: "বাংলা";
+    readonly locale: "bn";
+}, {
+    readonly label: "ਪੰਜਾਬੀ";
+    readonly locale: "pa";
+}, {
+    readonly label: "ગુજરાતી";
+    readonly locale: "gu-in";
+}, {
+    readonly label: "தமிழ்";
+    readonly locale: "ta";
+}, {
     readonly label: "తెలుగు";
     readonly locale: "te";
+}, {
+    readonly label: "ಕನ್ನಡ";
+    readonly locale: "kn";
+}, {
+    readonly label: "മലയാളം";
+    readonly locale: "ml";
 }, {
     readonly label: "ภาษาไทย";
     readonly locale: "th";
 }, {
-    readonly label: "မြန်မာစာ";
-    readonly locale: "my";
+    readonly label: "ភាសាខ្មែរ";
+    readonly locale: "km-kh";
 }, {
     readonly label: "한국어";
     readonly locale: "ko-kr";
@@ -671,15 +704,10 @@ export type TLAsset = TLBookmarkAsset | TLImageAsset | TLVideoAsset;
 
 // @public (undocumented)
 export interface TLAssetContext {
-    // (undocumented)
     dpr: number;
-    // (undocumented)
     networkEffectiveType: null | string;
-    // (undocumented)
     screenScale: number;
-    // (undocumented)
     shouldResolveToOriginal: boolean;
-    // (undocumented)
     steppedScreenScale: number;
 }
 
@@ -704,7 +732,10 @@ export type TLAssetShape = Extract<TLShape, {
 // @public
 export interface TLAssetStore {
     resolve?(asset: TLAsset, ctx: TLAssetContext): null | Promise<null | string> | string;
-    upload(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<string>;
+    upload(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<{
+        meta?: JsonObject;
+        src: string;
+    }>;
 }
 
 // @public (undocumented)

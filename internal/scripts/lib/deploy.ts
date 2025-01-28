@@ -164,12 +164,22 @@ export async function wranglerDeploy({
 	}
 }
 
+export interface ServiceBinding {
+	binding: string
+	service: string
+}
+
 export async function setWranglerPreviewConfig(
 	location: string,
-	{ name, customDomain }: { name: string; customDomain?: string }
+	{
+		name,
+		customDomain,
+		serviceBinding,
+	}: { name: string; customDomain?: string; serviceBinding?: ServiceBinding }
 ) {
 	const additionalProperties = `name = "${name}"
-${customDomain ? `routes = [ { pattern = "${customDomain}", custom_domain = true} ]` : ''}`
+${customDomain ? `routes = [ { pattern = "${customDomain}", custom_domain = true} ]` : ''}
+${serviceBinding ? `services = [ {binding = "${serviceBinding.binding}", service = "${serviceBinding.service}" } ]` : ''}`
 
 	const additionalSection = `\n[env.preview]\n${additionalProperties}\n`
 

@@ -485,10 +485,7 @@ function DebugSvgCopy({ id, mode }: { id: TLShapeId; mode: 'img' | 'iframe' }) {
 			if (!bounds) return
 			bounds = bounds.clone().expandBy(padding)
 
-			const result = await editor.getSvgString([id], {
-				padding,
-				background: editor.getInstanceState().exportBackground,
-			})
+			const result = await editor.getSvgString([id], { padding })
 
 			if (latest !== renderId || !result) return
 

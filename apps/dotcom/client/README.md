@@ -1,6 +1,6 @@
 # Project overview
 
-This project is a Next.js application which contains the **tldraw.com** application.
+This project contains the frontend for the **tldraw.com** application. It's built using Vite and React router.
 
 See our:
 

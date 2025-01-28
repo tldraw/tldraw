@@ -1,9 +1,16 @@
 import { memo, useCallback, useEffect, useRef } from 'react'
-import { preventDefault, useValue } from 'tldraw'
-import { useApp } from '../../hooks/useAppState'
+import { preventDefault } from 'tldraw'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { F } from '../../utils/i18n'
-import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
+import {
+	getIsSidebarOpen,
+	toggleSidebar,
+	updateLocalSessionState,
+	useIsSidebarOpen,
+	useIsSidebarOpenMobile,
+} from '../../utils/local-session-state'
+import { TlaSidebarCookieConsent } from './components/TlaSidebarCookieConsent'
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
 import { TlaSidebarUserLink } from './components/TlaSidebarUserLink'
@@ -11,26 +18,26 @@ import { TlaSidebarWorkspaceLink } from './components/TlaSidebarWorkspaceLink'
 import styles from './sidebar.module.css'
 
 export const TlaSidebar = memo(function TlaSidebar() {
-	const app = useApp()
-	const isSidebarOpen = useValue('sidebar open', () => getLocalSessionState().isSidebarOpen, [app])
-	const isSidebarOpenMobile = useValue(
-		'sidebar open mobile',
-		() => getLocalSessionState().isSidebarOpenMobile,
-		[app]
-	)
+	const isSidebarOpen = useIsSidebarOpen()
+	const isSidebarOpenMobile = useIsSidebarOpenMobile()
 	const sidebarRef = useRef<HTMLDivElement>(null)
+	const trackEvent = useTldrawAppUiEvents()
 
 	useEffect(() => {
 		function handleKeyDown(e: KeyboardEvent) {
 			if (e.key === '\\' && (e.ctrlKey || e.metaKey)) {
-				updateLocalSessionState((state) => ({ isSidebarOpen: !state.isSidebarOpen }))
+				toggleSidebar()
+				trackEvent('sidebar-toggle', {
+					value: getIsSidebarOpen(),
+					source: 'sidebar',
+				})
 			}
 		}
 		window.addEventListener('keydown', handleKeyDown)
 		return () => {
 			window.removeEventListener('keydown', handleKeyDown)
 		}
-	}, [])
+	}, [trackEvent])
 
 	useEffect(() => {
 		const sidebarEl = sidebarRef.current
@@ -84,6 +91,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					<TlaSidebarRecentFiles />
 				</div>
 				<div className={styles.bottom} data-testid="tla-sidebar-bottom">
+					<TlaSidebarCookieConsent />
 					<TlaSidebarUserLink />
 				</div>
 			</div>

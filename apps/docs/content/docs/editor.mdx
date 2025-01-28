@@ -526,7 +526,7 @@ brought up to date.
 
 ## Image exports
 
-You can export the contents of the canvas to an image with [`exportToBlob`](?).
+You can export the contents of the canvas to an image with [`Editor#toImage`](?).
 
 Image exports draw your shapes as an SVG, then convert the SVG to another format (like a PNG) if needed. Use [`Editor#getSvgElement`](?) or [`Editor#getSvgString`](?) if you want to work with the SVG directly.
 
@@ -641,7 +641,7 @@ editor.updateInstanceState({ isReadonly: true })
 You can set the camera to a specific x, y, and zoom with the [Editor#setCamera](?) method.
 
 ```ts
-editor.setCamera(0, 0, 1)
+editor.setCamera({ x: 0, y: 0, z: 1 })
 ```
 
 ### Freeze the camera

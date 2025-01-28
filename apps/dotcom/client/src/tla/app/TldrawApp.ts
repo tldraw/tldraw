@@ -31,6 +31,7 @@ import {
 } from 'tldraw'
 import { getDateFormat } from '../utils/dates'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
+import { updateLocalSessionState } from '../utils/local-session-state'
 import { Zero } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
@@ -113,7 +114,8 @@ export class TldrawApp {
 	async preload(initialUserData: TlaUser) {
 		await this.z.query.user.where('id', this.userId).preload().complete
 		if (!this.user$.get()) {
-			await this.z.mutate.user.create(initialUserData)
+			this.z.mutate.user.create(initialUserData)
+			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
 		}
 		await new Promise((resolve) => {
 			let unsub = () => {}
@@ -127,30 +129,56 @@ export class TldrawApp {
 	}
 
 	messages = defineMessages({
-		publish_failed: { defaultMessage: 'Unable to publish the file.' },
-		unpublish_failed: { defaultMessage: 'Unable to unpublish the file.' },
-		republish_failed: { defaultMessage: 'Unable to publish the changes.' },
-		unknown_error: { defaultMessage: 'An unexpected error occurred.' },
+		// toast title
+		mutation_error_toast_title: { defaultMessage: 'Error' },
+		// toast descriptions
+		publish_failed: {
+			defaultMessage: 'Unable to publish the file.',
+		},
+		unpublish_failed: {
+			defaultMessage: 'Unable to unpublish the file.',
+		},
+		republish_failed: {
+			defaultMessage: 'Unable to publish the changes.',
+		},
+		unknown_error: {
+			defaultMessage: 'An unexpected error occurred.',
+		},
 		forbidden: {
 			defaultMessage: 'You do not have the necessary permissions to perform this action.',
 		},
-		bad_request: { defaultMessage: 'Invalid request.' },
-		rate_limit_exceeded: { defaultMessage: 'You have exceeded the rate limit.' },
-		mutation_error_toast_title: { defaultMessage: 'Error' },
+		bad_request: {
+			defaultMessage: 'Invalid request.',
+		},
+		rate_limit_exceeded: {
+			defaultMessage: 'Rate limit exceeded, try again later.',
+		},
 		client_too_old: {
 			defaultMessage: 'Please refresh the page to get the latest version of tldraw.',
 		},
+		max_files_title: {
+			defaultMessage: 'File limit reached',
+		},
+		max_files_description: {
+			defaultMessage:
+				'You have reached the maximum number of files. You need to delete old files before creating new ones.',
+		},
 	})
 
-	showMutationRejectionToast = throttle((errorCode: ZErrorCode) => {
-		const descriptor = this.messages[errorCode]
-		// Looks like we don't get type safety here
-		if (!descriptor) {
-			console.error('Could not find a translation for this error code', errorCode)
+	getMessage(id: keyof typeof this.messages) {
+		let msg = this.messages[id]
+		if (!msg) {
+			console.error('Could not find a translation for this error code', id)
+			msg = this.messages.unknown_error
 		}
+		return msg
+	}
+
+	showMutationRejectionToast = throttle((errorCode: ZErrorCode) => {
+		const descriptor = this.getMessage(errorCode)
 		this.toasts?.addToast({
 			title: this.getIntl().formatMessage(this.messages.mutation_error_toast_title),
-			description: this.getIntl().formatMessage(descriptor ?? this.messages.unknown_error),
+			description: this.getIntl().formatMessage(descriptor),
 		})
 	}, 3000)
 
@@ -276,6 +304,11 @@ export class TldrawApp {
 		fileOrId?: string | Partial<TlaFile>
 	): Result<{ file: TlaFile }, 'max number of files reached'> {
 		if (!this.canCreateNewFile()) {
+			this.toasts?.addToast({
+				title: this.getIntl().formatMessage(this.messages.max_files_title),
+				description: this.getIntl().formatMessage(this.messages.max_files_description),
+				keepOpen: true,
+			})
 			return Result.err('max number of files reached')
 		}
 
@@ -288,7 +321,7 @@ export class TldrawApp {
 			isEmpty: true,
 			createdAt: Date.now(),
 			lastPublished: 0,
-			name: '',
+			name: this.getFallbackFileName(Date.now()),
 			published: false,
 			publishedSlug: uniqueId(),
 			shared: true,
@@ -304,6 +337,12 @@ export class TldrawApp {
 		this.z.mutate.file.create(file)
 
 		return Result.ok({ file })
+	}
+
+	getFallbackFileName(time: number) {
+		const createdAt = new Date(time)
+		const format = getDateFormat(createdAt)
+		return this.getIntl().formatDate(createdAt, format)
 	}
 
 	getFileName(file: TlaFile | string | null, useDateFallback: false): string | undefined
@@ -324,9 +363,7 @@ export class TldrawApp {
 		}
 
 		if (useDateFallback) {
-			const createdAt = new Date(file.createdAt)
-			const format = getDateFormat(createdAt)
-			return this.getIntl().formatDate(createdAt, format)
+			return this.getFallbackFileName(file.createdAt)
 		}
 
 		return
@@ -393,7 +430,7 @@ export class TldrawApp {
 				const documentEntry = entries.find(([_, value]) => isDocument(value)) as
 					| [string, TLDocument]
 					| undefined
-				const name = documentEntry ? documentEntry[1].name : ''
+				const name = documentEntry?.[1]?.name || undefined
 
 				const result = this.createFile({ id: slug, name })
 				if (!result.ok) {
@@ -629,6 +666,7 @@ export class TldrawApp {
 			createdAt: Date.now(),
 			updatedAt: Date.now(),
 			flags: '',
+			allowAnalyticsCookie: null,
 			...restOfPreferences,
 			locale: restOfPreferences.locale ?? null,
 			animationSpeed: restOfPreferences.animationSpeed ?? null,

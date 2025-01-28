@@ -9,9 +9,13 @@ import { useApp } from './useAppState'
 
 const messages = defineMessages({
 	uploading: {
-		defaultMessage: 'Uploading {count} .tldr {count, plural, one {file} other {files}}…',
+		defaultMessage:
+			'{count, plural, one {Uploading {count} .tldr file…} other {Uploading {count} .tldr files…}}',
 	},
-	adding: { defaultMessage: 'Added {count} .tldr {count, plural, one {file} other {files}}.' },
+	adding: {
+		defaultMessage:
+			'{count, plural, one {Added {count} .tldr file.} other {Added {count} .tldr files.}}',
+	},
 })
 
 export function useTldrFileDrop() {

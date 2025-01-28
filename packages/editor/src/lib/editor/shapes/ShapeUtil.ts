@@ -343,7 +343,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	): ReactElement | null | Promise<ReactElement | null>
 
 	/** @internal */
-	expandSelectionOutlinePx(shape: Shape): number {
+	expandSelectionOutlinePx(shape: Shape): number | Box {
 		return 0
 	}
 
