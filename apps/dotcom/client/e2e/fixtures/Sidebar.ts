@@ -57,7 +57,7 @@ export class Sidebar {
 
 	async openAccountMenu() {
 		await this.sidebarBottom.hover()
-		await this.page.getByRole('button', { name: 'Account menu' }).click()
+		await this.page.getByTestId('tla-sidebar-user-link').click()
 	}
 
 	@step
