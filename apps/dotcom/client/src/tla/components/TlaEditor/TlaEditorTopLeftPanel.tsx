@@ -201,7 +201,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				source="file-header"
 				onRenameAction={handleRenameAction}
 				trigger={
-					<button className={styles.linkMenu} title={pageMenuLbl}>
+					<button className={styles.linkMenu} title={pageMenuLbl} data-testid="tla-page-menu">
 						<TlaIcon icon="dots-vertical-strong" />
 					</button>
 				}
