@@ -28,6 +28,8 @@ export interface TextAreaProps {
 /**
  * N.B. In Development mode you need to ensure you're testing this without StrictMode on.
  * Otherwise it's not gonna work as expected on iOS.
+ * Specifically, it means that the virtual keyboard won't pop open sometimes
+ * (iOS starts flipping out when you render multiple times when trying to focus something) .
  */
 
 /**
