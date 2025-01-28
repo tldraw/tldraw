@@ -74,6 +74,7 @@ import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLScribble } from '@tldraw/tlschema';
 import { TLShape } from '@tldraw/tlschema';
+import { TLShapeCrop } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
@@ -2523,6 +2524,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onBindingChange?(shape: Shape): TLShapePartial<Shape> | void;
     onChildrenChange?(shape: Shape): TLShapePartial[] | void;
     onClick?(shape: Shape): TLShapePartial<Shape> | void;
+    onCrop?(shape: Shape, info: TLCropInfo<Shape>): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void;
     onDoubleClick?(shape: Shape): TLShapePartial<Shape> | void;
     onDoubleClickEdge?(shape: Shape): TLShapePartial<Shape> | void;
     onDoubleClickHandle?(shape: Shape, handle: TLHandle): TLShapePartial<Shape> | void;
@@ -2973,6 +2975,23 @@ export interface TLContent {
     schema: SerializedSchema;
     // (undocumented)
     shapes: TLShape[];
+}
+
+// @public
+export interface TLCropInfo<T extends TLShape> {
+    // (undocumented)
+    change: Vec;
+    // (undocumented)
+    crop: TLShapeCrop;
+    // (undocumented)
+    handle: SelectionHandle;
+    // (undocumented)
+    initialShape: T;
+    // (undocumented)
+    uncroppedSize: {
+        h: number;
+        w: number;
+    };
 }
 
 // @public (undocumented)

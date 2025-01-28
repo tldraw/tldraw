@@ -5,11 +5,12 @@ import {
 	TLHandle,
 	TLPropsMigrations,
 	TLShape,
+	TLShapeCrop,
 	TLShapePartial,
 	TLUnknownShape,
 } from '@tldraw/tlschema'
 import { ReactElement } from 'react'
-import { Box } from '../../primitives/Box'
+import { Box, SelectionHandle } from '../../primitives/Box'
 import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
@@ -420,6 +421,19 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	onBeforeUpdate?(prev: Shape, next: Shape): Shape | void
 
 	/**
+	 * A callback called when a shape changes from a crop.
+	 *
+	 * @param shape - The shape at the start of the crop.
+	 * @param info - Info about the crop.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onCrop?(
+		shape: Shape,
+		info: TLCropInfo<Shape>
+	): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void
+
+	/**
 	 * A callback called when some other shapes are dragged over this one.
 	 *
 	 * @example
@@ -614,6 +628,21 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	onEditEnd?(shape: Shape): void
+}
+
+/**
+ * Info about a crop.
+ * @param handle - The handle being dragged.
+ * @param change - The distance the handle is moved.
+ * @param initialShape - The shape at the start of the resize.
+ * @public
+ */
+export interface TLCropInfo<T extends TLShape> {
+	handle: SelectionHandle
+	change: Vec
+	crop: TLShapeCrop
+	uncroppedSize: { w: number; h: number }
+	initialShape: T
 }
 
 /**
