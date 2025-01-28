@@ -80,8 +80,8 @@ export const Shape = memo(function Shape({
 			}
 
 			// Width / Height
-			const width = Math.max(Math.ceil(bounds.width), 1)
-			const height = Math.max(Math.ceil(bounds.height), 1)
+			const width = Math.max(bounds.width, 1)
+			const height = Math.max(bounds.height, 1)
 
 			if (width !== prev.width || height !== prev.height) {
 				setStyleProperty(containerRef.current, 'width', width + 'px')
