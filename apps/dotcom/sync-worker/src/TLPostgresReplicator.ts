@@ -544,34 +544,43 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	async registerUser(userId: string) {
-		this.log.debug('registering user', userId)
-		this.logEvent({ type: 'register_user' })
-		this.log.debug('reg user wait')
-		await this.waitUntilConnected()
-		this.log.debug('reg user connect')
-		assert(this.state.type === 'connected', 'state should be connected in registerUser')
-		const guestFiles = await this.state
-			.db`SELECT "fileId" as id FROM file_state where "userId" = ${userId}`
+		try {
+			this.log.debug('registering user', userId)
+			this.logEvent({ type: 'register_user' })
+			this.log.debug('reg user wait')
+			await this.waitUntilConnected()
+			this.log.debug('reg user connect')
+			assert(this.state.type === 'connected', 'state should be connected in registerUser')
+			const guestFiles = await this.state
+				.db`SELECT "fileId" as id FROM file_state where "userId" = ${userId}`
+			this.log.debug('got guest files')
 
-		const sequenceIdSuffix = uniqueId()
+			const sequenceIdSuffix = uniqueId()
 
-		// clear user and subscriptions
-		this.sql.exec(`DELETE FROM active_user WHERE id = ?`, userId)
-		this.sql.exec(
-			`INSERT INTO active_user (id, sequenceNumber, sequenceIdSuffix) VALUES (?, 0, ?)`,
-			userId,
-			sequenceIdSuffix
-		)
-		for (const file of guestFiles) {
+			// clear user and subscriptions
+			this.sql.exec(`DELETE FROM active_user WHERE id = ?`, userId)
+			this.log.debug('cleared active user')
 			this.sql.exec(
-				`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
+				`INSERT INTO active_user (id, sequenceNumber, sequenceIdSuffix) VALUES (?, 0, ?)`,
 				userId,
-				file.id
+				sequenceIdSuffix
 			)
-		}
-		return {
-			sequenceId: this.state.sequenceId + ':' + sequenceIdSuffix,
-			sequenceNumber: 0,
+			this.log.debug('inserted active user')
+			for (const file of guestFiles) {
+				this.sql.exec(
+					`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
+					userId,
+					file.id
+				)
+			}
+			this.log.debug('inserted guest files', guestFiles.length)
+			return {
+				sequenceId: this.state.sequenceId + ':' + sequenceIdSuffix,
+				sequenceNumber: 0,
+			}
+		} catch (e) {
+			this.captureException(e)
+			throw e
 		}
 	}
 

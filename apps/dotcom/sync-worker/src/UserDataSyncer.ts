@@ -102,7 +102,7 @@ export class UserDataSyncer {
 	replicator: TLPostgresReplicator
 
 	store = new OptimisticAppStore()
-	mutations: { mutationNumber: number; mutationId: string }[] = []
+	mutations: { mutationNumber: number; mutationId: string; timestamp: number }[] = []
 
 	sentry
 	private captureException(exception: unknown, extras?: Record<string, unknown>) {
@@ -117,8 +117,10 @@ export class UserDataSyncer {
 		}
 	}
 
+	interval
+
 	constructor(
-		ctx: DurableObjectState,
+		private ctx: DurableObjectState,
 		env: Environment,
 		private db: Kysely<DB>,
 		private userId: string,
@@ -129,11 +131,25 @@ export class UserDataSyncer {
 		this.sentry = createSentry(ctx, env)
 		this.replicator = getReplicator(env)
 		this.reboot(false)
+
+		this.interval = setInterval(() => this.__rebootIfMutationsNotCommitted(), 1000)
+	}
+
+	close() {
+		clearInterval(this.interval)
 	}
 
 	private queue = new ExecutionQueue()
 
+	numConsecutiveReboots = 0
+
 	async reboot(delay = true) {
+		this.numConsecutiveReboots++
+		if (this.numConsecutiveReboots > 5) {
+			this.logEvent({ type: 'user_do_abort', id: this.userId })
+			this.ctx.abort()
+			return
+		}
 		this.log.debug('rebooting')
 		this.logEvent({ type: 'reboot', id: this.userId })
 		await this.queue.push(async () => {
@@ -142,6 +158,7 @@ export class UserDataSyncer {
 			}
 			try {
 				await this.boot()
+				this.numConsecutiveReboots = 0
 			} catch (e) {
 				this.logEvent({ type: 'reboot_error', id: this.userId })
 				this.captureException(e)
@@ -357,6 +374,17 @@ export class UserDataSyncer {
 	async waitUntilConnected() {
 		while (this.state.type !== 'connected') {
 			await this.state.promise
+		}
+	}
+
+	private __rebootIfMutationsNotCommitted() {
+		// if any mutations have been not been committed for 5 seconds, let's reboot the cache
+		for (const mutation of this.mutations) {
+			if (Date.now() - mutation.timestamp > 5000) {
+				this.log.debug("Mutations haven't been committed for 5 seconds, rebooting")
+				this.reboot()
+				break
+			}
 		}
 	}
 }
