@@ -102,7 +102,7 @@ export class UserDataSyncer {
 	replicator: TLPostgresReplicator
 
 	store = new OptimisticAppStore()
-	mutations: { mutationNumber: number; mutationId: string }[] = []
+	mutations: { mutationNumber: number; mutationId: string; timestamp: number }[] = []
 
 	sentry
 	private captureException(exception: unknown, extras?: Record<string, unknown>) {
@@ -117,6 +117,8 @@ export class UserDataSyncer {
 		}
 	}
 
+	interval
+
 	constructor(
 		private ctx: DurableObjectState,
 		env: Environment,
@@ -129,6 +131,12 @@ export class UserDataSyncer {
 		this.sentry = createSentry(ctx, env)
 		this.replicator = getReplicator(env)
 		this.reboot(false)
+
+		this.interval = setInterval(() => this.__rebootIfMutationsNotCommitted(), 1000)
+	}
+
+	close() {
+		clearInterval(this.interval)
 	}
 
 	private queue = new ExecutionQueue()
@@ -366,6 +374,16 @@ export class UserDataSyncer {
 	async waitUntilConnected() {
 		while (this.state.type !== 'connected') {
 			await this.state.promise
+		}
+	}
+
+	private __rebootIfMutationsNotCommitted() {
+		// if any mutations have been not been committed for 5 seconds, let's reboot the cache
+		for (const mutation of this.mutations) {
+			if (Date.now() - mutation.timestamp > 5000) {
+				this.reboot()
+				break
+			}
 		}
 	}
 }
