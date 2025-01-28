@@ -239,9 +239,21 @@ export {
 	type UiEventType,
 } from './lib/editor/types/event-types'
 export {
-	type TLExternalAssetContent,
+	type TLBaseExternalContent,
+	type TLEmbedExternalContent,
+	type TLErrorExternalContentSource,
+	type TLExcalidrawExternalContentSource,
+	type TLExternalAsset,
 	type TLExternalContent,
 	type TLExternalContentSource,
+	type TLFileExternalAsset,
+	type TLFilesExternalContent,
+	type TLSvgTextExternalContent,
+	type TLTextExternalContent,
+	type TLTextExternalContentSource,
+	type TLTldrawExternalContentSource,
+	type TLUrlExternalAsset,
+	type TLUrlExternalContent,
 } from './lib/editor/types/external-content'
 export {
 	type TLHistoryBatchOptions,
