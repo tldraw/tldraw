@@ -1556,6 +1556,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     indicator(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
+    isAspectRatioLocked(): boolean;
+    // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
     onBeforeCreate(next: TLNoteShape): {
@@ -1613,6 +1615,14 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     } | undefined;
     // (undocumented)
     onEditEnd(shape: TLNoteShape): void;
+    // (undocumented)
+    onResize(shape: any, info: TLResizeInfo<any>): {
+        props: {
+            scale: number;
+        };
+        x: number;
+        y: number;
+    } | undefined;
     // (undocumented)
     static props: RecordProps<TLNoteShape>;
     // (undocumented)
