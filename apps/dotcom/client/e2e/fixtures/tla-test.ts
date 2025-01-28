@@ -58,6 +58,8 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 
 			await homePage.goto()
 			await homePage.isLoaded()
+			await homePage.discardPreviewDialog()
+			await homePage.acceptCookies()
 
 			await testUse()
 		},

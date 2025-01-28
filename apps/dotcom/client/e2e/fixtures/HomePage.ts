@@ -56,4 +56,16 @@ export class HomePage {
 			await expect(this.tldrawEditor).toBeVisible({ timeout: 10000 })
 		}).toPass()
 	}
+
+	async discardPreviewDialog() {
+		if (await this.page.getByRole('button', { name: 'Got it' }).isVisible()) {
+			await this.page.getByRole('button', { name: 'Got it' }).click()
+		}
+	}
+
+	async acceptCookies() {
+		if (await this.page.getByRole('button', { name: 'Accept' }).isVisible()) {
+			await this.page.getByRole('button', { name: 'Accept' }).click()
+		}
+	}
 }
