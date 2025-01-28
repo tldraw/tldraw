@@ -381,6 +381,7 @@ export class UserDataSyncer {
 		// if any mutations have been not been committed for 5 seconds, let's reboot the cache
 		for (const mutation of this.mutations) {
 			if (Date.now() - mutation.timestamp > 5000) {
+				this.log.debug("Mutations haven't been committed for 5 seconds, rebooting")
 				this.reboot()
 				break
 			}
