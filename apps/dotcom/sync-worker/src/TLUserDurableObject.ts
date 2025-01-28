@@ -144,6 +144,14 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
+	maybeClose() {
+		if (this.sockets.size === 0) {
+			this.cache?.close()
+			this.cache = null
+			// db will time out after 10 seconds of inactivity so no need to close it manually
+		}
+	}
+
 	async onRequest(req: IRequest) {
 		assert(this.userId, 'User ID not set')
 		// handle legacy param names
@@ -173,10 +181,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		)
 		serverWebSocket.addEventListener('close', () => {
 			this.sockets.delete(serverWebSocket)
+			this.maybeClose()
 		})
 		serverWebSocket.addEventListener('error', (e) => {
 			this.captureException(e, { source: 'serverWebSocket "error" event' })
 			this.sockets.delete(serverWebSocket)
+			this.maybeClose()
 		})
 		const initialData = this.cache.store.getCommittedData()
 		assert(initialData, 'Initial data not fetched')
@@ -419,7 +429,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
 					)
 					this.log.debug('pushing mutation to cache', this.userId, mutationNumber)
-					this.cache.mutations.push({ mutationNumber, mutationId: msg.mutationId })
+					this.cache.mutations.push({
+						mutationNumber,
+						mutationId: msg.mutationId,
+						timestamp: Date.now(),
+					})
 				})
 				.catch((e) => {
 					this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== msg.mutationId)
