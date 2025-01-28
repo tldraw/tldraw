@@ -106,6 +106,7 @@ import { TLScribbleProps } from '@tldraw/editor';
 import { TLSelectionBackgroundProps } from '@tldraw/editor';
 import { TLSelectionForegroundProps } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';
+import { TLShapeCrop } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
 import { TLShapePartial } from '@tldraw/editor';
 import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
@@ -1274,6 +1275,15 @@ export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl
 
 // @public (undocumented)
 export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];
+
+// @public
+export function getUncroppedSize(shapeSize: {
+    h: number;
+    w: number;
+}, crop: TLShapeCrop): {
+    h: number;
+    w: number;
+};
 
 // @public (undocumented)
 export function GroupMenuItem(): JSX_2.Element | null;

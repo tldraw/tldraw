@@ -75,7 +75,12 @@ export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
 export { TextLabel, type TextLabelProps } from './lib/shapes/shared/TextLabel'
-export { getCropBox, getDefaultCrop, type CropBoxOptions } from './lib/shapes/shared/crop'
+export {
+	getCropBox,
+	getDefaultCrop,
+	getUncroppedSize,
+	type CropBoxOptions,
+} from './lib/shapes/shared/crop'
 export {
 	ARROW_LABEL_FONT_SIZES,
 	FONT_FAMILIES,

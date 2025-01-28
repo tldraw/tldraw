@@ -27,6 +27,7 @@ import { memo, useEffect, useState } from 'react'
 
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { getUncroppedSize } from '../shared/crop'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
@@ -148,8 +149,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 
 		// The true asset dimensions
-		const w = (1 / (crop.bottomRight.x - crop.topLeft.x)) * shape.props.w
-		const h = (1 / (crop.bottomRight.y - crop.topLeft.y)) * shape.props.h
+		const { w, h } = getUncroppedSize(shape.props, crop)
 
 		const pointDelta = new Vec(crop.topLeft.x * w, crop.topLeft.y * h).rot(shape.rotation)
 
@@ -375,9 +375,7 @@ function getCroppedContainerStyle(shape: TLImageShape) {
 		}
 	}
 
-	const w = (1 / (crop.bottomRight.x - crop.topLeft.x)) * shape.props.w
-	const h = (1 / (crop.bottomRight.y - crop.topLeft.y)) * shape.props.h
-
+	const { w, h } = getUncroppedSize(shape.props, crop)
 	const offsetX = -topLeft.x * w
 	const offsetY = -topLeft.y * h
 	return {
