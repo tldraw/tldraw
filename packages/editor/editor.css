@@ -41,6 +41,7 @@
 	--layer-overlays-user-indicator-hovered: 70;
 	--layer-overlays-user-snapline: 90;
 	--layer-overlays-selection-fg: 100;
+	/* User handles need to be above selection edges / corners, matters for sticky note clone handles */
 	--layer-overlays-user-handles: 105;
 	--layer-overlays-user-indicator-hint: 110;
 	--layer-overlays-collaborator-cursor-hint: 120;
