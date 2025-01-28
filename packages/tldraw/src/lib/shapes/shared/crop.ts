@@ -31,8 +31,9 @@ export function getDefaultCrop() {
  */
 export function getUncroppedSize(
 	shapeSize: { w: number; h: number },
-	crop: TLShapeCrop
+	crop: TLShapeCrop | null
 ): { w: number; h: number } {
+	if (!crop) return { w: shapeSize.w, h: shapeSize.h }
 	const w = shapeSize.w / (crop.bottomRight.x - crop.topLeft.x)
 	const h = shapeSize.h / (crop.bottomRight.y - crop.topLeft.y)
 	return { w, h }

@@ -1280,7 +1280,7 @@ export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[
 export function getUncroppedSize(shapeSize: {
     h: number;
     w: number;
-}, crop: TLShapeCrop): {
+}, crop: null | TLShapeCrop): {
     h: number;
     w: number;
 };

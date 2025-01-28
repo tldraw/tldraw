@@ -120,7 +120,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		if (!asset) return null
 
-		let src = await ctx.resolveAssetUrl(shape.props.assetId, shape.props.w)
+		const { w } = getUncroppedSize(shape.props, shape.props.crop)
+		let src = await ctx.resolveAssetUrl(shape.props.assetId, w)
 		if (!src) return null
 		if (
 			src.startsWith('blob:') ||
@@ -204,10 +205,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) {
 	const editor = useEditor()
 
+	const { w } = getUncroppedSize(shape.props, shape.props.crop)
 	const { asset, url } = useImageOrVideoAsset({
 		shapeId: shape.id,
 		assetId: shape.props.assetId,
-		width: shape.props.w,
+		width: w,
 	})
 
 	const prefersReducedMotion = usePrefersReducedMotion()
