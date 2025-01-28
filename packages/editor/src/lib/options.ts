@@ -66,6 +66,10 @@ export interface TldrawOptions {
 	 * external context providers. By default, this is `React.Fragment`.
 	 */
 	readonly exportProvider: ComponentType<{ children: React.ReactNode }>
+	/**
+	 * When frame colors are enabled, frames will be drawn with a colored border and fill.
+	 */
+	readonly showFrameColors: boolean
 }
 
 /** @public */
@@ -111,4 +115,5 @@ export const defaultTldrawOptions = {
 	actionShortcutsLocation: 'swap',
 	createTextOnCanvasDoubleClick: true,
 	exportProvider: Fragment,
+	showFrameColors: false,
 } as const satisfies TldrawOptions

@@ -51,7 +51,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override getDefaultProps(): TLFrameShape['props'] {
-		return { w: 160 * 2, h: 90 * 2, name: '' }
+		return { w: 160 * 2, h: 90 * 2, name: '', color: 'black' }
 	}
 
 	override getGeometry(shape: TLFrameShape): Geometry2d {
@@ -127,6 +127,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 
+		const color = theme[shape.props.color]
+
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isCreating = useValue(
 			'is creating this shape',
@@ -142,6 +144,12 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			[shape.id]
 		)
 
+		const showFrameColors = this.editor.options.showFrameColors
+		const frameFill = showFrameColors ? color.frame.fill : theme.white.solid
+		const frameStroke = showFrameColors ? color.frame.stroke : theme.text
+		const frameHeadingFill = showFrameColors ? color.fill : theme.background
+		const frameHeadingText = showFrameColors ? color.frame.text : theme.text
+
 		return (
 			<>
 				<SVGContainer>
@@ -149,8 +157,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 						className={classNames('tl-frame__body', { 'tl-frame__creating': isCreating })}
 						width={bounds.width}
 						height={bounds.height}
-						fill={theme.solid}
-						stroke={theme.text}
+						fill={frameFill}
+						stroke={frameStroke}
 					/>
 				</SVGContainer>
 				{isCreating ? null : (
@@ -159,6 +167,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 						name={shape.props.name}
 						width={bounds.width}
 						height={bounds.height}
+						fill={frameHeadingFill}
+						color={frameHeadingText}
 					/>
 				)}
 			</>

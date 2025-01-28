@@ -1292,13 +1292,18 @@ input,
 }
 
 .tl-frame-heading {
+	--fpx: 6px;
+	--fh: 24px;
+	--fmw: 32px;
+	--fho: -8px;
+	--fow: 16px;
 	display: flex;
 	align-items: center;
 	position: absolute;
 	transform-origin: 0% 100%;
 	overflow: hidden;
 	max-width: 100%;
-	min-width: 32px;
+	min-width: var(--fmw);
 	height: auto;
 	font-size: 12px;
 	padding-bottom: 4px;
@@ -1310,18 +1315,17 @@ input,
 	/* scale from bottom left corner so we can pin it to the top left corner of the frame */
 	transform-origin: 0% 100%;
 	display: flex;
-	height: 100%;
+	height: var(--fh);
 	width: 100%;
 	align-items: center;
 	border-radius: var(--radius-1);
-	background-color: var(--color-background);
 }
 
 .tl-frame-label {
 	pointer-events: all;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	padding: var(--space-3) var(--space-3);
+	padding: 0px var(--fpx);
 	position: relative;
 	font-size: inherit;
 	white-space: pre;
@@ -1332,6 +1336,8 @@ input,
 	color: transparent;
 	white-space: pre;
 	width: auto;
+	min-width: var(--fmw);
+	height: 100%;
 	overflow: visible;
 	background-color: var(--color-panel);
 	border-radius: var(--radius-1);
@@ -1343,7 +1349,7 @@ input,
 	border: none;
 	background: none;
 	outline: none;
-	padding: var(--space-3) var(--space-3);
+	padding: 0px var(--fpx);
 	inset: 0px;
 	height: 100%;
 	width: 100%;
