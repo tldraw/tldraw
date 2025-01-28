@@ -43,6 +43,7 @@ import { RecursivePartial } from '@tldraw/editor';
 import { Result } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
+import { ShapeWithCrop } from '@tldraw/editor';
 import { SharedStyle } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
 import { StyleProp } from '@tldraw/editor';
@@ -59,6 +60,7 @@ import { TLAssetId } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLBookmarkShapeProps } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
+import { TLCropInfo } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
 import { TLDefaultColorThemeColor } from '@tldraw/editor';
 import { TLDefaultFillStyle } from '@tldraw/editor';
@@ -426,6 +428,14 @@ export function createMediaAssetInfoSkeleton(file: File, assetId: TLAssetId, isI
 
 // @public
 export function createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike): Promise<TLShapeId[]>;
+
+// @public (undocumented)
+export interface CropBoxOptions {
+    // (undocumented)
+    minHeight?: number;
+    // (undocumented)
+    minWidth?: number;
+}
 
 // @public (undocumented)
 export function CursorChatItem(): JSX_2.Element | null;
@@ -1236,6 +1246,27 @@ export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBi
 export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape, bindings: TLArrowBindings): {
     end: Vec;
     start: Vec;
+};
+
+// @public (undocumented)
+export function getCropBox<T extends ShapeWithCrop>(shape: T, info: TLCropInfo<T>, opts?: CropBoxOptions): {
+    id: TLShapeId;
+    props: ShapeWithCrop['props'];
+    type: T['type'];
+    x: number;
+    y: number;
+} | undefined;
+
+// @public (undocumented)
+export function getDefaultCrop(): {
+    bottomRight: {
+        x: number;
+        y: number;
+    };
+    topLeft: {
+        x: number;
+        y: number;
+    };
 };
 
 // @public
