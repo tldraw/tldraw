@@ -27,6 +27,7 @@ import { memo, useEffect, useState } from 'react'
 
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { getUncroppedSize } from '../shared/crop'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
@@ -119,7 +120,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		if (!asset) return null
 
-		let src = await ctx.resolveAssetUrl(shape.props.assetId, shape.props.w)
+		const { w } = getUncroppedSize(shape.props, shape.props.crop)
+		let src = await ctx.resolveAssetUrl(shape.props.assetId, w)
 		if (!src) return null
 		if (
 			src.startsWith('blob:') ||
@@ -148,8 +150,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 
 		// The true asset dimensions
-		const w = (1 / (crop.bottomRight.x - crop.topLeft.x)) * shape.props.w
-		const h = (1 / (crop.bottomRight.y - crop.topLeft.y)) * shape.props.h
+		const { w, h } = getUncroppedSize(shape.props, crop)
 
 		const pointDelta = new Vec(crop.topLeft.x * w, crop.topLeft.y * h).rot(shape.rotation)
 
@@ -204,10 +205,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) {
 	const editor = useEditor()
 
+	const { w } = getUncroppedSize(shape.props, shape.props.crop)
 	const { asset, url } = useImageOrVideoAsset({
 		shapeId: shape.id,
 		assetId: shape.props.assetId,
-		width: shape.props.w,
+		width: w,
 	})
 
 	const prefersReducedMotion = usePrefersReducedMotion()
@@ -375,9 +377,7 @@ function getCroppedContainerStyle(shape: TLImageShape) {
 		}
 	}
 
-	const w = (1 / (crop.bottomRight.x - crop.topLeft.x)) * shape.props.w
-	const h = (1 / (crop.bottomRight.y - crop.topLeft.y)) * shape.props.h
-
+	const { w, h } = getUncroppedSize(shape.props, crop)
 	const offsetX = -topLeft.x * w
 	const offsetY = -topLeft.y * h
 	return {
