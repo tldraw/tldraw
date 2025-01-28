@@ -62,14 +62,15 @@ function WelcomeDialog() {
 		onDismiss()
 	}, [app, dialogs.addDialog, editor, fileId, onDismiss, remountImageShapes])
 
-	if (data.loading) return null
 	const file = app.getFile(fileId)
 	const isOwner = file && file.ownerId === app.getUser().id
 	const isEmpty = editor.store.allRecords().filter((r) => r.typeName === 'shape').length === 0
-	const offerSlurp = data.ok && data.value && isEmpty && isOwner
+	const offerSlurp = !data.loading && data.ok && data.value && isEmpty && isOwner
 
 	return (
-		<div>
+		// using `visibility: hidden` instead of `return null` when loading
+		// because radix dialog complains if we mount a dialog a title
+		<div style={{ visibility: data.loading ? 'hidden' : 'visible' }}>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle style={{ fontWeight: 700 }}>
 					<F defaultMessage="Welcome to the new tldraw.com!" />
