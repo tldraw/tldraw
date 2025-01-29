@@ -9333,6 +9333,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	dispatch(info: TLEventInfo) {
+		this.emit('before-event', info)
 		this._pendingEventsForNextTick.push(info)
 		if (
 			!(
