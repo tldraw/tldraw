@@ -14,10 +14,6 @@ export const postgresConnectionString: string =
 	process.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING ||
 	'postgresql://user:password@127.0.0.1:6543/postgres'
 
-if (!postgresConnectionString) {
-	throw new Error('Missing BOTCOM_POSTGRES_POOLED_CONNECTION_STRING env var')
-}
-
 export const migrationsPath = `./migrations`
 if (!existsSync(migrationsPath)) {
 	throw new Error(`Migrations path not found: ${migrationsPath}`)
@@ -47,4 +43,15 @@ export async function waitForPostgres() {
 	const sql = postgres(postgresConnectionString)
 	await sql.unsafe(init).simple()
 	await sql.end()
+}
+
+export function getPostgres(applicationName: string) {
+	if (!postgresConnectionString) {
+		throw new Error('Missing BOTCOM_POSTGRES_POOLED_CONNECTION_STRING env var')
+	}
+	return postgres(postgresConnectionString, {
+		connection: {
+			application_name: applicationName,
+		},
+	})
 }

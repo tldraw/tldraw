@@ -1,14 +1,9 @@
 import { readdirSync } from 'fs'
-import postgres from 'postgres'
 import { exec } from '../../../internal/scripts/lib/exec'
-import { postgresConnectionString, waitForPostgres } from './postgres'
+import { getPostgres, waitForPostgres } from './postgres'
 
 async function checkMigrations() {
-	const db = postgres(postgresConnectionString, {
-		connection: {
-			application_name: 'check-migrations',
-		},
-	})
+	const db = getPostgres('check-migrations')
 	const appliedMigrations = await db`SELECT filename FROM migrations.applied_migrations`.execute()
 	const migrations = readdirSync(`./migrations`).sort()
 	if (migrations.length === 0) {

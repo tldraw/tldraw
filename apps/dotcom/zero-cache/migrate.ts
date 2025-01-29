@@ -1,13 +1,7 @@
 /* eslint-disable no-console */
 import { readFileSync, readdirSync } from 'fs'
 import { createServer } from 'http'
-import postgres from 'postgres'
-import { migrationsPath, postgresConnectionString, waitForPostgres } from './postgres'
-
-if (!postgresConnectionString) {
-	throw new Error('Missing BOTCOM_POSTGRES_POOLED_CONNECTION_STRING env var')
-}
-console.log('Using connection string:', postgresConnectionString)
+import { getPostgres, migrationsPath, postgresConnectionString, waitForPostgres } from './postgres'
 
 const shouldSignalSuccess = process.argv.includes('--signal-success')
 const dryRun = process.argv.includes('--dry-run')
@@ -15,11 +9,8 @@ const dryRun = process.argv.includes('--dry-run')
 const DRY_RUN_ROLLBACK = new Error('dry-run-rollback')
 
 async function migrate(summary: string[], dryRun: boolean) {
-	const db = postgres(postgresConnectionString, {
-		connection: {
-			application_name: 'migrate',
-		},
-	})
+	const db = getPostgres('migrate')
+	console.log('Using connection string:', postgresConnectionString)
 	await db.begin(async (sql) => {
 		const appliedMigrations = await sql`SELECT filename FROM migrations.applied_migrations`
 		const migrations = readdirSync(`./migrations`).sort()
