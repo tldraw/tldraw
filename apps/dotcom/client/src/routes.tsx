@@ -17,7 +17,7 @@ const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/Logi
 export const tlaOverrideFlag = 'tla-override-flag'
 export const tlaProbablyLoggedInFlag = 'tla-probably-logged-in-flag'
 
-const isOverrideFlagSet = !!getFromLocalStorage(tlaOverrideFlag) || navigator.webdriver
+export const isOverrideFlagSet = !!getFromLocalStorage(tlaOverrideFlag) || navigator.webdriver
 const isProbablyLoggedIn = !!getFromLocalStorage(tlaProbablyLoggedInFlag)
 
 export function SetPreviewFlag(props: PropsWithChildren) {
