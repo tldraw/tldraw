@@ -4,6 +4,9 @@ import { createServer } from 'http'
 import postgres from 'postgres'
 import { migrationsPath, postgresConnectionString, waitForPostgres } from './postgres'
 
+if (!postgresConnectionString) {
+	throw new Error('Missing BOTCOM_POSTGRES_POOLED_CONNECTION_STRING env var')
+}
 console.log('Using connection string:', postgresConnectionString)
 
 const shouldSignalSuccess = process.argv.includes('--signal-success')
