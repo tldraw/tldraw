@@ -9333,7 +9333,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	dispatch(info: TLEventInfo) {
-		this.emit('before-event', info)
 		this._pendingEventsForNextTick.push(info)
 		if (
 			!(
@@ -9369,6 +9368,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// prevent us from spamming similar event errors if we're crashed.
 		// todo: replace with new readonly mode?
 		if (this.getCrashingError()) return this
+
+		this.emit('before-event', info)
 
 		const { inputs } = this
 		const { type } = info
