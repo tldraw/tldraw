@@ -177,22 +177,21 @@ export function RichTextSVG({
 }: RichTextSVGProps) {
 	const editor = useEditor()
 	const html = renderHtmlFromRichText(editor, richText)
-	const textAlign =
+	const justifyContent =
 		align === 'middle'
 			? ('center' as const)
 			: align === 'start'
-				? ('left' as const)
-				: ('right' as const)
-	const justifyContent =
+				? ('flex-start' as const)
+				: ('flex-end' as const)
+	const alignItems =
 		verticalAlign === 'middle' ? 'center' : verticalAlign === 'start' ? 'flex-start' : 'flex-end'
 	const style = {
 		display: 'flex',
-		flexDirection: 'column' as const,
-		height: `calc(${bounds.h}px - ${padding * 2}px - 2px)`,
+		height: `calc(${bounds.h}px - ${padding * 2}px)`,
 		fontSize: `${fontSize}px`,
 		fontFamily: DefaultFontFamilies[font],
-		textAlign: textAlign,
 		justifyContent,
+		alignItems,
 		padding: `${padding}px`,
 		wrap: wrap ? 'wrap' : 'nowrap',
 		color: labelColor,

@@ -557,7 +557,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					richText={props.richText}
 					labelColor={theme[props.labelColor].solid}
 					bounds={bounds}
-					padding={16}
+					padding={LABEL_PADDING * shape.props.scale}
 				/>
 			)
 		}

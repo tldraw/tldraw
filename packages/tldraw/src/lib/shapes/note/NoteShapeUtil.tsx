@@ -248,7 +248,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						isSelected={isSelected}
 						labelColor={labelColor === 'black' ? theme[color].note.text : theme[labelColor].fill}
 						wrap
-						padding={16 * scale}
+						padding={LABEL_PADDING * scale}
 						onKeyDown={handleKeyDown}
 					/>
 				</div>
@@ -283,7 +283,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				richText={shape.props.richText}
 				labelColor={theme[shape.props.color].note.text}
 				bounds={bounds}
-				padding={16}
+				padding={LABEL_PADDING * shape.props.scale}
 			/>
 		)
 
