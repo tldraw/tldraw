@@ -108,6 +108,7 @@ import { TLScribbleProps } from '@tldraw/editor';
 import { TLSelectionBackgroundProps } from '@tldraw/editor';
 import { TLSelectionForegroundProps } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';
+import { TLShapeCrop } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
 import { TLShapePartial } from '@tldraw/editor';
 import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
@@ -1324,6 +1325,15 @@ export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImage
 // @public (undocumented)
 export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];
 
+// @public
+export function getUncroppedSize(shapeSize: {
+    h: number;
+    w: number;
+}, crop: null | TLShapeCrop): {
+    h: number;
+    w: number;
+};
+
 // @public (undocumented)
 export function GroupMenuItem(): JSX_2.Element | null;
 
@@ -1605,6 +1615,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     indicator(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
+    isAspectRatioLocked(): boolean;
+    // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
     onBeforeCreate(next: TLNoteShape): {
@@ -1662,6 +1674,14 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     } | undefined;
     // (undocumented)
     onEditEnd(shape: TLNoteShape): void;
+    // (undocumented)
+    onResize(shape: any, info: TLResizeInfo<any>): {
+        props: {
+            scale: number;
+        };
+        x: number;
+        y: number;
+    } | undefined;
     // (undocumented)
     static props: RecordProps<TLNoteShape>;
     // (undocumented)

@@ -1,4 +1,11 @@
-import { ShapeWithCrop, TLCropInfo, TLShapeId, Vec, structuredClone } from '@tldraw/editor'
+import {
+	ShapeWithCrop,
+	TLCropInfo,
+	TLShapeCrop,
+	TLShapeId,
+	Vec,
+	structuredClone,
+} from '@tldraw/editor'
 
 /** @internal */
 export const MIN_CROP_SIZE = 8
@@ -15,6 +22,21 @@ export function getDefaultCrop() {
 		topLeft: { x: 0, y: 0 },
 		bottomRight: { x: 1, y: 1 },
 	}
+}
+
+/**
+ * Original (uncropped) width and height of shape.
+ *
+ * @public
+ */
+export function getUncroppedSize(
+	shapeSize: { w: number; h: number },
+	crop: TLShapeCrop | null
+): { w: number; h: number } {
+	if (!crop) return { w: shapeSize.w, h: shapeSize.h }
+	const w = shapeSize.w / (crop.bottomRight.x - crop.topLeft.x)
+	const h = shapeSize.h / (crop.bottomRight.y - crop.topLeft.y)
+	return { w, h }
 }
 
 /** @public */

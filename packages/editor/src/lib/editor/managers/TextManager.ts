@@ -230,6 +230,7 @@ export class TextManager {
 		elm.style.setProperty('font-weight', opts.fontWeight)
 		elm.style.setProperty('line-height', `${opts.lineHeight * opts.fontSize}px`)
 		elm.style.setProperty('text-align', textAlignmentsForLtr[opts.textAlign])
+		elm.style.setProperty('font-style', opts.fontStyle)
 
 		const shouldTruncateToFirstLine =
 			opts.overflow === 'truncate-ellipsis' || opts.overflow === 'truncate-clip'

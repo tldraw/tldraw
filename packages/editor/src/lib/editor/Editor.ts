@@ -6775,6 +6775,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
+		let didResize = false
+
 		if (util.onResize && util.canResize(initialShape)) {
 			// get the model changes from the shape util
 			const newPagePoint = this._scalePagePoint(
@@ -6813,24 +6815,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 				)
 			}
 
+			const resizedShape = util.onResize(
+				{ ...initialShape, x, y },
+				{
+					newPoint: newLocalPoint,
+					handle: opts.dragHandle ?? 'bottom_right',
+					// don't set isSingle to true for children
+					mode: opts.mode ?? 'scale_shape',
+					scaleX: myScale.x,
+					scaleY: myScale.y,
+					initialBounds,
+					initialShape,
+				}
+			)
+
+			if (resizedShape) {
+				didResize = true
+			}
+
 			workingShape = applyPartialToRecordWithProps(workingShape, {
 				id,
 				type: initialShape.type as any,
 				x: newLocalPoint.x,
 				y: newLocalPoint.y,
-				...util.onResize(
-					{ ...initialShape, x, y },
-					{
-						newPoint: newLocalPoint,
-						handle: opts.dragHandle ?? 'bottom_right',
-						// don't set isSingle to true for children
-						mode: opts.mode ?? 'scale_shape',
-						scaleX: myScale.x,
-						scaleY: myScale.y,
-						initialBounds,
-						initialShape,
-					}
-				),
+				...resizedShape,
 			})
 
 			if (!opts.skipStartAndEndCallbacks) {
@@ -6841,7 +6849,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			this.updateShapes([workingShape])
-		} else {
+		}
+
+		if (!didResize) {
+			// reposition shape (rather than resizing it) based on where its resized center would be
+
 			const initialPageCenter = Mat.applyToPoint(pageTransform, initialBounds.center)
 			// get the model changes from the shape util
 			const newPageCenter = this._scalePagePoint(
