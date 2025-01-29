@@ -13,6 +13,7 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
+import { isOverrideFlagSet } from '../../../routes'
 import { getScratchPersistenceKey } from '../../../utils/scratch-persistence-key'
 import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
@@ -126,7 +127,7 @@ export function PreviewWelcomeDialog() {
 	)
 
 	useEffect(() => {
-		if (shouldShowWelcomeDialog) {
+		if (shouldShowWelcomeDialog && !isOverrideFlagSet) {
 			userHasSlurpableDocument().then((hasSlurpableDocument) => {
 				dialogs.addDialog({
 					id: dialogId,
