@@ -14,6 +14,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { usePromise } from '../../../hooks/usePromise'
+import { isOverrideFlagSet } from '../../../routes'
 import { getScratchPersistenceKey } from '../../../utils/scratch-persistence-key'
 import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
@@ -126,7 +127,7 @@ export function PreviewWelcomeDialog() {
 	)
 
 	useEffect(() => {
-		if (shouldShowWelcomeDialog) {
+		if (shouldShowWelcomeDialog && !isOverrideFlagSet) {
 			dialogs.addDialog({
 				id: dialogId,
 				component: WelcomeDialog,
