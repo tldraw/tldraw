@@ -1,4 +1,4 @@
-import { existsSync } from 'fs'
+import { existsSync, readdirSync } from 'fs'
 import postgres from 'postgres'
 
 const init = `
@@ -45,13 +45,20 @@ export async function waitForPostgres() {
 	await sql.end()
 }
 
-export function getPostgres(applicationName: string) {
+export async function getPostgresAndMigrations(applicationName: string) {
 	if (!postgresConnectionString) {
 		throw new Error('Missing BOTCOM_POSTGRES_POOLED_CONNECTION_STRING env var')
 	}
-	return postgres(postgresConnectionString, {
+	const db = postgres(postgresConnectionString, {
 		connection: {
 			application_name: applicationName,
 		},
 	})
+
+	const appliedMigrations = await db`SELECT filename FROM migrations.applied_migrations`.execute()
+	const migrations = readdirSync(`./migrations`).sort()
+	if (migrations.length === 0) {
+		throw new Error('No migrations found')
+	}
+	return { appliedMigrations, migrations, db }
 }

@@ -1,7 +1,12 @@
 /* eslint-disable no-console */
-import { readFileSync, readdirSync } from 'fs'
+import { readFileSync } from 'fs'
 import { createServer } from 'http'
-import { getPostgres, migrationsPath, postgresConnectionString, waitForPostgres } from './postgres'
+import {
+	getPostgresAndMigrations,
+	migrationsPath,
+	postgresConnectionString,
+	waitForPostgres,
+} from './postgres'
 
 const shouldSignalSuccess = process.argv.includes('--signal-success')
 const dryRun = process.argv.includes('--dry-run')
@@ -9,15 +14,9 @@ const dryRun = process.argv.includes('--dry-run')
 const DRY_RUN_ROLLBACK = new Error('dry-run-rollback')
 
 async function migrate(summary: string[], dryRun: boolean) {
-	const db = getPostgres('migrate')
+	const { db, migrations, appliedMigrations } = await getPostgresAndMigrations('migrate')
 	console.log('Using connection string:', postgresConnectionString)
 	await db.begin(async (sql) => {
-		const appliedMigrations = await sql`SELECT filename FROM migrations.applied_migrations`
-		const migrations = readdirSync(`./migrations`).sort()
-		if (migrations.length === 0) {
-			throw new Error('No migrations found')
-		}
-
 		// check that all applied migrations exist
 		for (const appliedMigration of appliedMigrations) {
 			if (!migrations.includes(appliedMigration.filename)) {
