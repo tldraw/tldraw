@@ -24,6 +24,13 @@ async function migrate(summary: string[], dryRun: boolean) {
 			throw new Error('No migrations found')
 		}
 
+		// check that all applied migrations exist
+		for (const appliedMigration of appliedMigrations) {
+			if (!migrations.includes(appliedMigration.filename)) {
+				throw new Error(`Previously-applied migration ${appliedMigration.filename} not found`)
+			}
+		}
+
 		for (const migration of migrations) {
 			if (appliedMigrations.some((m: any) => m.filename === migration)) {
 				summary.push(`🏃 ${migration} already applied`)
