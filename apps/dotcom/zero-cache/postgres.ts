@@ -10,6 +10,19 @@ CREATE TABLE IF NOT EXISTS migrations.applied_migrations (
 );
 `
 
+export const postgresConnectionString: string =
+	process.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING ||
+	'postgresql://user:password@127.0.0.1:6543/postgres'
+
+if (!postgresConnectionString) {
+	throw new Error('Missing BOTCOM_POSTGRES_POOLED_CONNECTION_STRING env var')
+}
+
+export const migrationsPath = `./migrations`
+if (!existsSync(migrationsPath)) {
+	throw new Error(`Migrations path not found: ${migrationsPath}`)
+}
+
 export async function waitForPostgres() {
 	let attempts = 0
 	do {
@@ -34,17 +47,4 @@ export async function waitForPostgres() {
 	const sql = postgres(postgresConnectionString)
 	await sql.unsafe(init).simple()
 	await sql.end()
-}
-
-export const postgresConnectionString: string =
-	process.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING ||
-	'postgresql://user:password@127.0.0.1:6543/postgres'
-
-if (!postgresConnectionString) {
-	throw new Error('Missing BOTCOM_POSTGRES_POOLED_CONNECTION_STRING env var')
-}
-
-export const migrationsPath = `./migrations`
-if (!existsSync(migrationsPath)) {
-	throw new Error(`Migrations path not found: ${migrationsPath}`)
 }
