@@ -11,6 +11,7 @@ import {
 	Vec,
 	WeakCache,
 	getDefaultColorTheme,
+	resizeScaled,
 	textShapeMigrations,
 	textShapeProps,
 	toDomPrecision,
@@ -26,7 +27,6 @@ import {
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport, getRichTextStylesExport } from '../shared/defaultStyleDefs'
-import { resizeScaled } from '../shared/resizeScaled'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
 const sizeCache = new WeakCache<TLTextShape['props'], { height: number; width: number }>()

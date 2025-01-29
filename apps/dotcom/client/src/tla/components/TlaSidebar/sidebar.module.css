@@ -9,7 +9,7 @@
 	transform: translate(0px, 0px);
 	flex-direction: column;
 	flex: 0 0 auto;
-	padding: 3px 12px 2px;
+	padding: 3px 12px 4px 12px;
 	background: var(--tla-color-sidebar);
 	border-right: 1px solid transparent;
 	transition: transform 0.16s ease-in-out;
@@ -83,6 +83,10 @@
 	display: flex;
 	flex-direction: row;
 	flex: 0 0 auto;
+}
+
+.bottom {
+	margin-top: 12px;
 }
 
 .content {
@@ -291,6 +295,7 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	color: var(--tla-color-text-1);
 }
 
 .main-link {
@@ -453,7 +458,7 @@
 
 .guestBadge {
 	display: inline-flex;
-	pointer-events: all;
+	pointer-events: none;
 	flex: 0 0 auto;
 }
 
@@ -471,6 +476,8 @@
 	z-index: 3;
 	padding: 0;
 	background: none;
+	pointer-events: all;
+	cursor: pointer;
 	color: var(--tla-color-text-1);
 }
 

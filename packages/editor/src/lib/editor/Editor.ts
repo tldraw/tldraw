@@ -936,6 +936,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return shapeUtil
 	}
 
+	/**
+	 * Returns true if the editor has a shape util for the given shape / shape type.
+	 *
+	 * @param shape - A shape, shape partial, or shape type.
+	 */
+	hasShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): boolean
+	hasShapeUtil<S extends TLUnknownShape>(type: S['type']): boolean
+	hasShapeUtil<T extends ShapeUtil>(
+		type: T extends ShapeUtil<infer R> ? R['type'] : string
+	): boolean
+	hasShapeUtil(arg: string | { type: string }): boolean {
+		const type = typeof arg === 'string' ? arg : arg.type
+		return hasOwnProperty(this.shapeUtils, type)
+	}
+
 	/* ------------------- Binding Utils ------------------ */
 	/**
 	 * A map of shape utility classes (TLShapeUtils) by shape type.
@@ -1467,10 +1482,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (partial.isChangingStyle !== undefined) {
 			clearTimeout(this._isChangingStyleTimeout)
 			if (partial.isChangingStyle === true) {
-				// If we've set to true, set a new reset timeout to change the value back to false after 2 seconds
+				// If we've set to true, set a new reset timeout to change the value back to false after 1 seconds
 				this._isChangingStyleTimeout = this.timers.setTimeout(() => {
 					this._updateInstanceState({ isChangingStyle: false }, { history: 'ignore' })
-				}, 2000)
+				}, 1000)
 			}
 		}
 
@@ -4250,7 +4265,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Upload an asset to the store's asset service, returning a URL that can be used to resolve the
 	 * asset.
 	 */
-	async uploadAsset(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<string> {
+	async uploadAsset(
+		asset: TLAsset,
+		file: File,
+		abortSignal?: AbortSignal
+	): Promise<{ src: string; meta?: JsonObject }> {
 		return await this.store.props.assets.upload(asset, file, abortSignal)
 	}
 
@@ -6829,6 +6848,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
+		let didResize = false
+
 		if (util.onResize && util.canResize(initialShape)) {
 			// get the model changes from the shape util
 			const newPagePoint = this._scalePagePoint(
@@ -6867,24 +6888,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 				)
 			}
 
+			const resizedShape = util.onResize(
+				{ ...initialShape, x, y },
+				{
+					newPoint: newLocalPoint,
+					handle: opts.dragHandle ?? 'bottom_right',
+					// don't set isSingle to true for children
+					mode: opts.mode ?? 'scale_shape',
+					scaleX: myScale.x,
+					scaleY: myScale.y,
+					initialBounds,
+					initialShape,
+				}
+			)
+
+			if (resizedShape) {
+				didResize = true
+			}
+
 			workingShape = applyPartialToRecordWithProps(workingShape, {
 				id,
 				type: initialShape.type as any,
 				x: newLocalPoint.x,
 				y: newLocalPoint.y,
-				...util.onResize(
-					{ ...initialShape, x, y },
-					{
-						newPoint: newLocalPoint,
-						handle: opts.dragHandle ?? 'bottom_right',
-						// don't set isSingle to true for children
-						mode: opts.mode ?? 'scale_shape',
-						scaleX: myScale.x,
-						scaleY: myScale.y,
-						initialBounds,
-						initialShape,
-					}
-				),
+				...resizedShape,
 			})
 
 			if (!opts.skipStartAndEndCallbacks) {
@@ -6895,7 +6922,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			this.updateShapes([workingShape])
-		} else {
+		}
+
+		if (!didResize) {
+			// reposition shape (rather than resizing it) based on where its resized center would be
+
 			const initialPageCenter = Mat.applyToPoint(pageTransform, initialBounds.center)
 			// get the model changes from the shape util
 			const newPageCenter = this._scalePagePoint(

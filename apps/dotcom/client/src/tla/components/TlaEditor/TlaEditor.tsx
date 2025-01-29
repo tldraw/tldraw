@@ -1,6 +1,6 @@
 import { TlaFileOpenState } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import {
 	Editor,
 	TLComponents,
@@ -28,6 +28,7 @@ import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useTldrawUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
+import { PreviewWelcomeDialog, RemountImagesContext } from './PreviewWelcomeDialog'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
@@ -46,6 +47,8 @@ export const components: TLComponents = {
 	MenuPanel: TlaEditorMenuPanel,
 	TopPanel: TlaEditorTopPanel,
 	SharePanel: TlaEditorSharePanel,
+	Dialogs: null,
+	Toasts: null,
 }
 
 interface TlaEditorProps {
@@ -160,6 +163,9 @@ function TlaEditorInner({ fileSlug, fileOpenState, deepLinks }: TlaEditorProps) 
 	)
 
 	const user = useTldrawUser()
+	const assets = useMemo(() => {
+		return multiplayerAssetStore(() => fileId)
+	}, [fileId])
 
 	const store = useSync({
 		uri: useCallback(async () => {
@@ -177,7 +183,7 @@ function TlaEditorInner({ fileSlug, fileOpenState, deepLinks }: TlaEditorProps) 
 			}
 			return url.toString()
 		}, [fileSlug, user, mode, fileOpenState]),
-		assets: multiplayerAssetStore,
+		assets,
 		userInfo: app?.tlUser.userPreferences,
 	})
 
@@ -235,6 +241,10 @@ function TlaEditorInner({ fileSlug, fileOpenState, deepLinks }: TlaEditorProps) 
 				<SneakyDarkModeSync />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} />
+				{/* Temporary junk for making the preview experience a bit better */}
+				<RemountImagesContext.Provider value={remountImageShapes}>
+					<PreviewWelcomeDialog />
+				</RemountImagesContext.Provider>
 			</Tldraw>
 		</TlaEditorWrapper>
 	)

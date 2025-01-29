@@ -6,7 +6,7 @@ import {
 	StoreSnapshot,
 	StoreValidationFailure,
 } from '@tldraw/store'
-import { IndexKey, annotateError, structuredClone } from '@tldraw/utils'
+import { IndexKey, JsonObject, annotateError, structuredClone } from '@tldraw/utils'
 import { TLAsset } from './records/TLAsset'
 import { CameraRecordType, TLCameraId } from './records/TLCamera'
 import { DocumentRecordType, TLDOCUMENT_ID } from './records/TLDocument'
@@ -97,7 +97,11 @@ export interface TLAssetStore {
 	 * @param file - The `File` to be uploaded
 	 * @returns A promise that resolves to the URL of the uploaded asset
 	 */
-	upload(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<string>
+	upload(
+		asset: TLAsset,
+		file: File,
+		abortSignal?: AbortSignal
+	): Promise<{ src: string; meta?: JsonObject }>
 	/**
 	 * Resolve an asset to a URL. This is used when rendering the asset in the editor. By default,
 	 * this will just use `asset.props.src`, the URL returned by `upload()`. This can be used to

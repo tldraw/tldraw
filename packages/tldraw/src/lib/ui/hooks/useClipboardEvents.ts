@@ -291,7 +291,7 @@ const handlePasteFromClipboardApi = async ({
 		}
 	}
 
-	if (fallbackFiles && things.length === 1 && things[0].type === 'text') {
+	if (fallbackFiles?.length && things.length === 1 && things[0].type === 'text') {
 		things.pop()
 		things.push(
 			...fallbackFiles.map((f): ClipboardThing => ({ type: 'file', source: Promise.resolve(f) }))

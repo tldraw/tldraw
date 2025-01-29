@@ -1,4 +1,4 @@
-import { SignUpButton } from '@clerk/clerk-react'
+import { SignInButton } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -104,7 +104,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 			<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 					<TldrawUiDropdownMenuTrigger>
-						<button className={styles.linkMenu} title={pageMenuLbl}>
+						<button className={styles.linkMenu} title={pageMenuLbl} data-testid="tla-page-menu">
 							<TlaIcon icon="dots-vertical-strong" />
 						</button>
 					</TldrawUiDropdownMenuTrigger>
@@ -201,7 +201,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				source="file-header"
 				onRenameAction={handleRenameAction}
 				trigger={
-					<button className={styles.linkMenu} title={pageMenuLbl}>
+					<button className={styles.linkMenu} title={pageMenuLbl} data-testid="tla-page-menu">
 						<TlaIcon icon="dots-vertical-strong" />
 					</button>
 				}
@@ -346,15 +346,15 @@ function TlaFileNameEditorInput({
 function SignInMenuItem() {
 	const msg = useMsg(messages.signIn)
 	return (
-		<SignUpButton
+		<SignInButton
 			mode="modal"
 			forceRedirectUrl={location.pathname + location.search}
-			signInForceRedirectUrl={location.pathname + location.search}
+			signUpForceRedirectUrl={location.pathname + location.search}
 		>
-			<TldrawUiButton type="menu" data-testid="tla-sign-up-menu-button">
+			<TldrawUiButton type="menu" data-testid="tla-sign-in-menu-button">
 				<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
 				<TlaIcon icon="sign-in" />
 			</TldrawUiButton>
-		</SignUpButton>
+		</SignInButton>
 	)
 }

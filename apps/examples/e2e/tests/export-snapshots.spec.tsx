@@ -11,7 +11,7 @@ import {
 	Editor,
 	GeoShapeGeoStyle,
 	TLAsset,
-	TLImageShapeCrop,
+	TLShapeCrop,
 	TLShapePartial,
 	TLTextShape,
 	degreesToRadians,
@@ -59,7 +59,7 @@ const manAsset = (
 		mimeType="image/png"
 	/>
 )
-const manCrop: TLImageShapeCrop = {
+const manCrop: TLShapeCrop = {
 	topLeft: { x: 0.25, y: 0.05 },
 	bottomRight: { x: 0.75, y: 0.3 },
 }

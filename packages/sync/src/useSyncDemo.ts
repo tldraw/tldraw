@@ -137,7 +137,7 @@ function createDemoAssetStore(host: string): TLAssetStore {
 				body: file,
 			})
 
-			return url
+			return { src: url }
 		},
 
 		resolve(asset, context) {

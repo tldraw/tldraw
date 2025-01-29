@@ -101,7 +101,9 @@ export function registerDefaultExternalContentHandlers(
 			}
 		}
 
-		assetInfo.props.src = await editor.uploadAsset(assetInfo, file)
+		const result = await editor.uploadAsset(assetInfo, file)
+		assetInfo.props.src = result.src
+		if (result.meta) assetInfo.meta = { ...assetInfo.meta, ...result.meta }
 
 		return AssetRecordType.create(assetInfo)
 	})

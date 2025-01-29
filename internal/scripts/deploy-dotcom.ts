@@ -27,6 +27,10 @@ const assetUpload = path.relative(
 	process.cwd(),
 	path.resolve(REPO_ROOT, './apps/dotcom/asset-upload-worker')
 )
+const imageResize = path.relative(
+	process.cwd(),
+	path.resolve(REPO_ROOT, './apps/dotcom/image-resize-worker')
+)
 const dotcom = path.relative(process.cwd(), path.resolve(REPO_ROOT, './apps/dotcom/client'))
 
 const { previewId, sha } = getDeployInfo()
@@ -34,7 +38,6 @@ const { previewId, sha } = getDeployInfo()
 // Do not use `process.env` directly in this script. Add your variable to `makeEnv` and use it via
 // `env` instead. This makes sure that all required env vars are present.
 const env = makeEnv([
-	'APP_ORIGIN',
 	'ASSET_UPLOAD_SENTRY_DSN',
 	'ASSET_UPLOAD',
 	'CLERK_SECRET_KEY',
@@ -79,6 +82,7 @@ const sentryReleaseName = `${env.TLDRAW_ENV}-${previewId ? previewId + '-' : ''}
 if (previewId) {
 	env.ASSET_UPLOAD = `https://${previewId}-tldraw-assets.tldraw.workers.dev`
 	env.MULTIPLAYER_SERVER = `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
+	env.IMAGE_WORKER = `https://${previewId}-images.tldraw.xyz`
 }
 
 async function main() {
@@ -110,6 +114,7 @@ async function main() {
 		await deployAssetUploadWorker({ dryRun: true })
 		await deployHealthWorker({ dryRun: true })
 		await deployTlsyncWorker({ dryRun: true })
+		await deployImageResizeWorker({ dryRun: true })
 	})
 
 	// --- point of no return! do the deploy for real --- //
@@ -122,6 +127,9 @@ async function main() {
 	})
 	await discord.step('deploying multiplayer worker to cloudflare', async () => {
 		await deployTlsyncWorker({ dryRun: false })
+	})
+	await discord.step('deploying image resizer to cloudflare', async () => {
+		await deployImageResizeWorker({ dryRun: false })
 	})
 	await discord.step('deploying health worker to cloudflare', async () => {
 		await deployHealthWorker({ dryRun: false })
@@ -225,18 +233,48 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			SUPABASE_KEY: env.SUPABASE_LITE_ANON_KEY,
 			SENTRY_DSN: env.WORKER_SENTRY_DSN,
 			TLDRAW_ENV: env.TLDRAW_ENV,
-			APP_ORIGIN: env.APP_ORIGIN,
 			ASSET_UPLOAD_ORIGIN: env.ASSET_UPLOAD,
 			WORKER_NAME: workerId,
 			CLERK_SECRET_KEY: env.CLERK_SECRET_KEY,
 			CLERK_PUBLISHABLE_KEY: env.VITE_CLERK_PUBLISHABLE_KEY,
 			BOTCOM_POSTGRES_CONNECTION_STRING,
 			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
 		},
 		sentry: {
 			project: 'tldraw-sync',
 			authToken: env.SENTRY_AUTH_TOKEN,
 			environment: workerId,
+		},
+	})
+}
+
+let didUpdateImageResizeWorker = false
+async function deployImageResizeWorker({ dryRun }: { dryRun: boolean }) {
+	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-image-optimizer`
+	const multiplayerServer = previewId
+		? `${previewId}-preview-deploy.tldraw.com`
+		: env.MULTIPLAYER_SERVER
+	if (previewId && !didUpdateImageResizeWorker) {
+		await setWranglerPreviewConfig(imageResize, {
+			name: workerId,
+			customDomain: `${previewId}-images.tldraw.xyz`,
+			serviceBinding: {
+				binding: 'SYNC_WORKER',
+				service: `${previewId}-tldraw-multiplayer`,
+			},
+		})
+		didUpdateImageResizeWorker = true
+	}
+
+	await wranglerDeploy({
+		location: imageResize,
+		dryRun,
+		env: env.TLDRAW_ENV,
+		vars: {
+			TLDRAW_ENV: env.TLDRAW_ENV,
+			WORKER_NAME: workerId,
+			MULTIPLAYER_SERVER: multiplayerServer,
 		},
 	})
 }

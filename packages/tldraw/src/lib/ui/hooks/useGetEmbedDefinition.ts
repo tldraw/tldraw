@@ -4,7 +4,10 @@ import { EmbedShapeUtil } from '../../shapes/embed/EmbedShapeUtil'
 /** @internal */
 export function useGetEmbedShapeUtil() {
 	const editor = useEditor()
-	return editor.getShapeUtil('embed') as EmbedShapeUtil | undefined
+	if (editor.hasShapeUtil('embed')) {
+		return editor.getShapeUtil('embed') as EmbedShapeUtil
+	}
+	return undefined
 }
 
 /** @public */

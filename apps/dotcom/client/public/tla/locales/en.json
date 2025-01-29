@@ -65,6 +65,9 @@
   "344a7f427f": {
     "translation": "Editor"
   },
+  "3b366e7232": {
+    "translation": "Try the new tldraw (preview)"
+  },
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
   },
@@ -82,6 +85,9 @@
   },
   "458cd104d7": {
     "translation": "Sorry, you don’t have access to that file. If you know who created the file, you can request a new invite link."
+  },
+  "45b78c248d": {
+    "translation": "Import from old tldraw.com"
   },
   "47839e47a5": {
     "translation": "tldraw"
@@ -110,6 +116,9 @@
   "56c34c6410": {
     "translation": "Privacy policy"
   },
+  "575d47a591": {
+    "translation": "Welcome to the new tldraw.com!"
+  },
   "5817f82c16": {
     "translation": "Optional — Help us understand how people use tldraw, and how we can make it better."
   },
@@ -127,6 +136,9 @@
   },
   "61057a0c84": {
     "translation": "Later"
+  },
+  "61b106397b": {
+    "translation": "To go back to the old tldraw.com, sign out from the user menu."
   },
   "625fd29749": {
     "translation": "Older"
@@ -152,6 +164,9 @@
   "7408cf0d7b": {
     "translation": "Please reload the page"
   },
+  "752b79f137": {
+    "translation": "You have reached the maximum number of files. You need to delete old files before creating new ones."
+  },
   "7573b8110a": {
     "translation": "No access"
   },
@@ -161,11 +176,20 @@
   "777f9e90cf": {
     "translation": "Invalid request."
   },
+  "78e9815992": {
+    "translation": "Got it"
+  },
+  "791b8834d3": {
+    "translation": "Skip import"
+  },
   "7cb5f8b4a5": {
     "translation": "Forget"
   },
   "7daeced9ff": {
     "translation": "Publish changes"
+  },
+  "7de66f8b93": {
+    "translation": "Sign up to access the preview version of tldraw.com, which adds file management and collaboration features."
   },
   "7fcdcc6455": {
     "translation": "Forget file"
@@ -175,6 +199,9 @@
   },
   "86c66437fd": {
     "translation": "Rename file"
+  },
+  "8ad4303b83": {
+    "translation": "No thanks"
   },
   "8eb2c00e96": {
     "translation": "Shared with you"
@@ -235,6 +262,12 @@
   },
   "a9ded1e5ce": {
     "translation": "Background"
+  },
+  "ab0df9ba36": {
+    "translation": "File limit reached"
+  },
+  "abc5e29b0d": {
+    "translation": "This is a preview release of the new tldraw.com which features file saving, collaboration, and publishing."
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
@@ -302,6 +335,9 @@
   },
   "d9100f3e10": {
     "translation": "Go here to see the content"
+  },
+  "d9776f0775": {
+    "translation": "Sign up"
   },
   "d98ac12774": {
     "translation": "Reject"

@@ -20,6 +20,21 @@ test('can create new file', async ({ editor, sidebar, page }) => {
 	}, page)
 })
 
+test('can create new file with custom name', async ({ editor, sidebar, page }) => {
+	const fileName = getRandomName()
+	await editor.ensureSidebarOpen()
+	const currentCount = await sidebar.getNumberOfFiles()
+	await sidebar.createNewDocument(fileName)
+	await expectBeforeAndAfterReload(async () => {
+		const newCount = await sidebar.getNumberOfFiles()
+		expect(newCount).toBe(currentCount + 1)
+		await page.pause()
+		await expect(
+			page.getByTestId('tla-file-link-today-0').getByText(fileName, { exact: true })
+		).toBeVisible()
+	}, page)
+})
+
 test.describe('preferences', () => {
 	test('can toggle dark mode', async ({ page, editor, sidebar }) => {
 		await test.step('is light mode by default', async () => {
@@ -143,6 +158,25 @@ test.describe('sidebar actions', () => {
 			await expect(async () => {
 				await expect(
 					page.getByTestId('tla-file-link-today-0').getByText(`${fileName} 1`, { exact: true })
+				).toBeVisible()
+				await expect(
+					page.getByTestId('tla-file-link-today-1').getByText(fileName, { exact: true })
+				).toBeVisible()
+				expect(await sidebar.getNumberOfFiles()).toBe(2)
+			}).toPass()
+		}, page)
+	})
+
+	test('duplicate with custom name', async ({ page, sidebar }) => {
+		const fileName = getRandomName()
+		const duplicateName = getRandomName()
+		expect(await sidebar.getNumberOfFiles()).toBe(1)
+		await sidebar.renameFile(0, fileName)
+		await sidebar.duplicateFile(0, duplicateName)
+		await expectBeforeAndAfterReload(async () => {
+			await expect(async () => {
+				await expect(
+					page.getByTestId('tla-file-link-today-0').getByText(duplicateName, { exact: true })
 				).toBeVisible()
 				await expect(
 					page.getByTestId('tla-file-link-today-1').getByText(fileName, { exact: true })

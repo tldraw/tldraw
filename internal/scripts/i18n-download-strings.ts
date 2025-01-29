@@ -35,7 +35,7 @@ async function i18nDownloadStrings() {
 		if (bundle.files[locale].dir) {
 			continue
 		}
-		const fileName = bundle.files[locale].name.split('/')[1]
+		const fileName = bundle.files[locale].name.split('/')[1].replace('_', '-').toLowerCase()
 		const filePath = path.resolve(dirPath, fileName)
 		const file = await bundle.files[locale].async('text')
 		const json = JSON.parse(file)

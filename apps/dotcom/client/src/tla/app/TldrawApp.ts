@@ -31,6 +31,7 @@ import {
 } from 'tldraw'
 import { getDateFormat } from '../utils/dates'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
+import { updateLocalSessionState } from '../utils/local-session-state'
 import { Zero } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
@@ -113,7 +114,8 @@ export class TldrawApp {
 	async preload(initialUserData: TlaUser) {
 		await this.z.query.user.where('id', this.userId).preload().complete
 		if (!this.user$.get()) {
-			await this.z.mutate.user.create(initialUserData)
+			this.z.mutate.user.create(initialUserData)
+			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
 		}
 		await new Promise((resolve) => {
 			let unsub = () => {}
@@ -153,6 +155,13 @@ export class TldrawApp {
 		},
 		client_too_old: {
 			defaultMessage: 'Please refresh the page to get the latest version of tldraw.',
+		},
+		max_files_title: {
+			defaultMessage: 'File limit reached',
+		},
+		max_files_description: {
+			defaultMessage:
+				'You have reached the maximum number of files. You need to delete old files before creating new ones.',
 		},
 	})
 
@@ -295,6 +304,11 @@ export class TldrawApp {
 		fileOrId?: string | Partial<TlaFile>
 	): Result<{ file: TlaFile }, 'max number of files reached'> {
 		if (!this.canCreateNewFile()) {
+			this.toasts?.addToast({
+				title: this.getIntl().formatMessage(this.messages.max_files_title),
+				description: this.getIntl().formatMessage(this.messages.max_files_description),
+				keepOpen: true,
+			})
 			return Result.err('max number of files reached')
 		}
 
@@ -307,7 +321,7 @@ export class TldrawApp {
 			isEmpty: true,
 			createdAt: Date.now(),
 			lastPublished: 0,
-			name: '',
+			name: this.getFallbackFileName(Date.now()),
 			published: false,
 			publishedSlug: uniqueId(),
 			shared: true,
@@ -323,6 +337,12 @@ export class TldrawApp {
 		this.z.mutate.file.create(file)
 
 		return Result.ok({ file })
+	}
+
+	getFallbackFileName(time: number) {
+		const createdAt = new Date(time)
+		const format = getDateFormat(createdAt)
+		return this.getIntl().formatDate(createdAt, format)
 	}
 
 	getFileName(file: TlaFile | string | null, useDateFallback: false): string | undefined
@@ -343,9 +363,7 @@ export class TldrawApp {
 		}
 
 		if (useDateFallback) {
-			const createdAt = new Date(file.createdAt)
-			const format = getDateFormat(createdAt)
-			return this.getIntl().formatDate(createdAt, format)
+			return this.getFallbackFileName(file.createdAt)
 		}
 
 		return
@@ -412,7 +430,7 @@ export class TldrawApp {
 				const documentEntry = entries.find(([_, value]) => isDocument(value)) as
 					| [string, TLDocument]
 					| undefined
-				const name = documentEntry ? documentEntry[1].name : ''
+				const name = documentEntry?.[1]?.name || undefined
 
 				const result = this.createFile({ id: slug, name })
 				if (!result.ok) {

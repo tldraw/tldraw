@@ -16,6 +16,7 @@ export type TLAppUiEventSource =
 	| 'account-menu'
 	| 'top-bar'
 	| 'legacy-import-button'
+	| 'new-page'
 
 /** @public */
 export interface TLAppUiEventMap {

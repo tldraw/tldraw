@@ -25,6 +25,7 @@ export {
 	useStateTracking,
 	useValue,
 } from '@tldraw/state-react'
+export { resizeScaled } from './lib/editor/shapes/shared/resizeScaled'
 export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalIndexedDb'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
@@ -182,6 +183,7 @@ export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesMan
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
 export {
 	ShapeUtil,
+	type TLCropInfo,
 	type TLHandleDragInfo,
 	type TLResizeInfo,
 	type TLResizeMode,

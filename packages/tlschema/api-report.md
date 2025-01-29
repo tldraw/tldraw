@@ -342,7 +342,7 @@ export const highlightShapeProps: RecordProps<TLHighlightShape>;
 export function idValidator<Id extends RecordId<UnknownRecord>>(prefix: Id['__type__']['typeName']): T.Validator<Id>;
 
 // @public (undocumented)
-export const ImageShapeCrop: T.ObjectValidator<TLImageShapeCrop>;
+export const ImageShapeCrop: T.ObjectValidator<TLShapeCrop>;
 
 // @public (undocumented)
 export const imageShapeMigrations: TLPropsMigrations;
@@ -600,6 +600,13 @@ export type SetValue<T extends Set<any>> = T extends Set<infer U> ? U : never;
 // @public (undocumented)
 export const shapeIdValidator: T.Validator<TLShapeId>;
 
+// @public (undocumented)
+export type ShapeWithCrop = TLBaseShape<string, {
+    crop: null | TLShapeCrop;
+    h: number;
+    w: number;
+}>;
+
 // @public
 export class StyleProp<Type> implements T.Validatable<Type> {
     // @internal
@@ -731,7 +738,10 @@ export type TLAssetShape = Extract<TLShape, {
 // @public
 export interface TLAssetStore {
     resolve?(asset: TLAsset, ctx: TLAssetContext): null | Promise<null | string> | string;
-    upload(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<string>;
+    upload(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<{
+        meta?: JsonObject;
+        src: string;
+    }>;
 }
 
 // @public (undocumented)
@@ -1094,19 +1104,11 @@ export type TLImageAsset = TLBaseAsset<'image', {
 export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>;
 
 // @public (undocumented)
-export interface TLImageShapeCrop {
-    // (undocumented)
-    bottomRight: VecModel;
-    // (undocumented)
-    topLeft: VecModel;
-}
-
-// @public (undocumented)
 export interface TLImageShapeProps {
     // (undocumented)
     assetId: null | TLAssetId;
     // (undocumented)
-    crop: null | TLImageShapeCrop;
+    crop: null | TLShapeCrop;
     // (undocumented)
     flipX: boolean;
     // (undocumented)
@@ -1426,6 +1428,14 @@ export type TLSerializedStore = SerializedStore<TLRecord>;
 
 // @public
 export type TLShape = TLDefaultShape | TLUnknownShape;
+
+// @public (undocumented)
+export interface TLShapeCrop {
+    // (undocumented)
+    bottomRight: VecModel;
+    // (undocumented)
+    topLeft: VecModel;
+}
 
 // @public (undocumented)
 export type TLShapeId = RecordId<TLUnknownShape>;
