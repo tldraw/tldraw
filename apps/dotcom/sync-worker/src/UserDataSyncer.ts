@@ -117,7 +117,7 @@ export class UserDataSyncer {
 		}
 	}
 
-	interval
+	interval: NodeJS.Timeout | null = null
 
 	constructor(
 		private ctx: DurableObjectState,
@@ -131,12 +131,19 @@ export class UserDataSyncer {
 		this.sentry = createSentry(ctx, env)
 		this.replicator = getReplicator(env)
 		this.reboot(false)
-
-		this.interval = setInterval(() => this.__rebootIfMutationsNotCommitted(), 1000)
 	}
 
-	close() {
-		clearInterval(this.interval)
+	maybeStartInterval() {
+		if (!this.interval) {
+			this.interval = setInterval(() => this.__rebootIfMutationsNotCommitted(), 1000)
+		}
+	}
+
+	stopInterval() {
+		if (this.interval) {
+			clearInterval(this.interval)
+			this.interval = null
+		}
 	}
 
 	private queue = new ExecutionQueue()
