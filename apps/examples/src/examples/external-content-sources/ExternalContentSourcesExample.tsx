@@ -1,5 +1,12 @@
 import { useCallback } from 'react'
-import { BaseBoxShapeUtil, Editor, HTMLContainer, TLBaseShape, Tldraw } from 'tldraw'
+import {
+	BaseBoxShapeUtil,
+	defaultHandleExternalTextContent,
+	Editor,
+	HTMLContainer,
+	TLBaseShape,
+	Tldraw,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this page!
@@ -47,11 +54,11 @@ export default function ExternalContentSourcesExample() {
 		// We will register a new handler for text content. When a user pastes `text/html` content into the editor,
 		// we will create a new shape with that html content.
 		// To test this copy some html content from VS Code or some other text editor.
-		editor.registerExternalContentHandler('text', async ({ point, sources }) => {
-			const htmlSource = sources?.find((s) => s.type === 'text' && s.subtype === 'html')
+		editor.registerExternalContentHandler('text', async (content) => {
+			const htmlSource = content.sources?.find((s) => s.type === 'text' && s.subtype === 'html')
 
 			if (htmlSource) {
-				const center = point ?? editor.getViewportPageBounds().center
+				const center = content.point ?? editor.getViewportPageBounds().center
 
 				editor.createShape({
 					type: 'html',
@@ -61,6 +68,9 @@ export default function ExternalContentSourcesExample() {
 						html: htmlSource.data,
 					},
 				})
+			} else {
+				// otherwise, we'll fall back to the default handler
+				await defaultHandleExternalTextContent(editor, content)
 			}
 		})
 	}, [])

@@ -1,13 +1,15 @@
 import { useAuth } from '@clerk/clerk-react'
-import { useEffect } from 'react'
-import { useEditor } from 'tldraw'
+import { memo, useEffect } from 'react'
+import { defaultHandleExternalFileContent, useEditor, useToasts, useTranslation } from 'tldraw'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../../hooks/useTldrFileDrop'
 
-export function SneakyTldrawFileDropHandler() {
+export const SneakyTldrawFileDropHandler = memo(function SneakyTldrawFileDropHandler() {
 	const editor = useEditor()
 	const app = useMaybeApp()
 	const auth = useAuth()
+	const toasts = useToasts()
+	const msg = useTranslation()
 	useEffect(() => {
 		if (!auth) return
 		if (!app) return
@@ -22,9 +24,9 @@ export function SneakyTldrawFileDropHandler() {
 				if (!token) return
 				await app.createFilesFromTldrFiles(snapshots, token)
 			} else {
-				defaultOnDrop?.(content)
+				await defaultHandleExternalFileContent(editor, content, { toasts, msg })
 			}
 		})
-	}, [editor, app, auth])
+	}, [editor, app, auth, toasts, msg])
 	return null
-}
+})

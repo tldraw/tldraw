@@ -36,7 +36,6 @@ export type TLExternalContentSource =
 	| TLErrorExternalContentSource
 
 /** @public */
-/** @public */
 export interface TLBaseExternalContent {
 	sources?: TLExternalContentSource[]
 	point?: VecLike
