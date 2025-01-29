@@ -125,6 +125,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private assertCache(): asserts this is { cache: UserDataSyncer } {
 		assert(this.cache, 'no cache')
+		this.cache.maybeStartInterval()
 	}
 
 	private readonly sockets = new Set<WebSocket>()
@@ -146,9 +147,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	maybeClose() {
 		if (this.sockets.size === 0) {
-			this.cache?.close()
-			this.cache = null
-			// db will time out after 10 seconds of inactivity so no need to close it manually
+			this.cache?.stopInterval()
 		}
 	}
 
