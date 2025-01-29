@@ -6,7 +6,7 @@ import { postgresConnectionString, waitForPostgres } from './postgres'
 async function checkMigrations() {
 	const db = postgres(postgresConnectionString, {
 		connection: {
-			application_name: 'migrate',
+			application_name: 'check-migrations',
 		},
 	})
 	const appliedMigrations = await db`SELECT filename FROM migrations.applied_migrations`.execute()
