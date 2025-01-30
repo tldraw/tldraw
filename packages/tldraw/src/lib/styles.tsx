@@ -91,6 +91,7 @@ export const STYLES = {
 		{ value: 'diamond', icon: 'arrowhead-diamond' },
 		{ value: 'inverted', icon: 'arrowhead-triangle-inverted' },
 		{ value: 'bar', icon: 'arrowhead-bar' },
+		{ value: 'crow', icon: 'arrowhead-none' },
 	],
 	arrowheadEnd: [
 		{ value: 'none', icon: 'arrowhead-none' },
@@ -101,6 +102,7 @@ export const STYLES = {
 		{ value: 'diamond', icon: 'arrowhead-diamond' },
 		{ value: 'inverted', icon: 'arrowhead-triangle-inverted' },
 		{ value: 'bar', icon: 'arrowhead-bar' },
+		{ value: 'crow', icon: 'arrowhead-none' },
 	],
 	spline: [
 		{ value: 'line', icon: 'spline-line' },
