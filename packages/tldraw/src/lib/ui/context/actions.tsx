@@ -1420,7 +1420,7 @@ export function unwrapLabel(label?: TLUiActionItem['label'], menuType?: string) 
 		? typeof label === 'string'
 			? label
 			: menuType
-				? label[menuType] ?? label['default']
+				? (label[menuType] ?? label['default'])
 				: undefined
 		: undefined
 }

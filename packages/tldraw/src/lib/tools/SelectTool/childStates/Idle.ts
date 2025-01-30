@@ -194,11 +194,11 @@ export class Idle extends StateNode {
 				const hitShape =
 					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
 						? hoveredShape
-						: this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
+						: (this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
 							this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
 								margin: this.editor.options.hitTestMargin / this.editor.getZoomLevel(),
 								hitInside: false,
-							})
+							}))
 
 				const focusedGroupId = this.editor.getFocusedGroupId()
 

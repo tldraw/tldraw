@@ -194,7 +194,7 @@ function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
 					onClick={handleToolTipClick}
 					className={styles.guestBadgeTrigger}
 				>
-					<TlaIcon icon="group" />
+					<TlaIcon icon="group" className="tlui-guest-icon" />
 				</TlaTooltipTrigger>
 				<TlaTooltipPortal container={container}>
 					<TlaTooltipContent
