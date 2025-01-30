@@ -56,6 +56,7 @@ export interface TLAppUiEventMap {
 	'learn-more-button': null
 	'sidebar-toggle': { value: boolean }
 	'click-file-link': null
+	'open-preview-sign-up-modal': null
 }
 
 /** @public */
