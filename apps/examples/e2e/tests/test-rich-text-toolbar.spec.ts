@@ -27,7 +27,7 @@ test.describe('Rich text behaviour', () => {
 		await page.keyboard.type(text)
 
 		// Select all the text.
-		const locator = await page.getByLabel('Rich-Text Editor').getByText('Hello, world!')
+		const locator = await page.getByTestId('rich-text-area').getByText('Hello, world!')
 		await locator.selectText()
 
 		// Make the toolbar show up (isMousingAround needs to be true)
@@ -104,7 +104,7 @@ test.describe('Rich text behaviour', () => {
 		await page.mouse.dblclick(250, 200)
 		await page.waitForTimeout(150)
 
-		const locator = await page.getByLabel('Rich-Text Editor').getByText('Hello, world!')
+		const locator = await page.getByTestId('rich-text-area').getByText('Hello, world!')
 		await locator.selectText()
 
 		// Make the toolbar show up (isMousingAround needs to be true)
