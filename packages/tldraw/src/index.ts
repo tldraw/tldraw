@@ -41,10 +41,21 @@ export {
 	type TLEmbedShapePermissions,
 } from './lib/defaultEmbedDefinitions'
 export {
+	DEFAULT_MAX_ASSET_SIZE,
+	DEFAULT_MAX_IMAGE_DIMENSION,
 	centerSelectionAroundPoint,
-	getMediaAssetInfoPartial as createMediaAssetInfoSkeleton,
+	createEmptyBookmarkShape,
 	createShapesForAssets,
+	defaultHandleExternalEmbedContent,
+	defaultHandleExternalFileAsset,
+	defaultHandleExternalFileContent,
+	defaultHandleExternalSvgTextContent,
+	defaultHandleExternalTextContent,
+	defaultHandleExternalUrlAsset,
+	defaultHandleExternalUrlContent,
+	getMediaAssetInfoPartial,
 	registerDefaultExternalContentHandlers,
+	type TLDefaultExternalContentHandlerOpts,
 	type TLExternalContentProps,
 } from './lib/defaultExternalContentHandlers'
 export { defaultShapeTools } from './lib/defaultShapeTools'
