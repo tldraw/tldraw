@@ -1,4 +1,4 @@
-import { SignUpButton } from '@clerk/clerk-react'
+import { SignInButton } from '@clerk/clerk-react'
 import { CSSProperties } from 'react'
 import {
 	TldrawUiButton,
@@ -39,7 +39,7 @@ export function PreviewBlueDot({ style }: { style?: CSSProperties }) {
 export function PreviewMenuItem() {
 	return (
 		<TldrawUiMenuGroup id="basic">
-			<SignUpButton mode="modal" forceRedirectUrl="/" signInForceRedirectUrl="/">
+			<SignInButton mode="modal" forceRedirectUrl="/" signUpForceRedirectUrl="/">
 				<TldrawUiButton
 					type="normal"
 					onClick={() => {
@@ -49,7 +49,7 @@ export function PreviewMenuItem() {
 					<PreviewBlueDot style={{ marginRight: 6 }} />
 					<TldrawUiButtonLabel>Preview the new tldraw.com</TldrawUiButtonLabel>
 				</TldrawUiButton>
-			</SignUpButton>
+			</SignInButton>
 		</TldrawUiMenuGroup>
 	)
 }
