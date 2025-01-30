@@ -187,6 +187,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						width={toDomPrecision(w)}
 						height={toDomPrecision(h)}
 						draggable={false}
+						// eslint-disable-next-line @typescript-eslint/no-deprecated
 						frameBorder="0"
 						referrerPolicy="no-referrer-when-downgrade"
 						style={{
@@ -259,7 +260,9 @@ function Gist({
 			draggable={false}
 			width={toDomPrecision(width)}
 			height={toDomPrecision(height)}
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			frameBorder="0"
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			scrolling="no"
 			referrerPolicy="no-referrer-when-downgrade"
 			style={{

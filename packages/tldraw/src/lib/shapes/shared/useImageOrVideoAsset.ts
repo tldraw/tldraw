@@ -55,7 +55,7 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 		asset: (TLImageAsset | TLVideoAsset) | null
 		url: string | null
 	}>(() => ({
-		asset: assetId ? editor.getAsset<TLImageAsset | TLVideoAsset>(assetId) ?? null : null,
+		asset: assetId ? (editor.getAsset<TLImageAsset | TLVideoAsset>(assetId) ?? null) : null,
 		url: null as string | null,
 	}))
 

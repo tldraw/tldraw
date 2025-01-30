@@ -42,7 +42,7 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 	const labelToUse = label
 		? typeof label === 'string'
 			? label
-			: label[menuType] ?? label['default']
+			: (label[menuType] ?? label['default'])
 		: undefined
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 

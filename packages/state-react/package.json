@@ -55,15 +55,15 @@
 		"@tldraw/utils": "workspace:*"
 	},
 	"devDependencies": {
-		"@testing-library/jest-dom": "^5.16.5",
-		"@testing-library/react": "^15.0.6",
-		"@types/lodash": "^4.14.188",
-		"@types/react": "^18.2.0",
+		"@testing-library/jest-dom": "^5.17.0",
+		"@testing-library/react": "^15.0.7",
+		"@types/lodash": "^4.17.14",
+		"@types/react": "^18.3.18",
 		"lodash": "^4.17.21"
 	},
 	"peerDependencies": {
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0"
+		"react": "^18.2.0 || ^19.0.0",
+		"react-dom": "^18.2.0 || ^19.0.0"
 	},
 	"typedoc": {
 		"readmeFile": "none",
