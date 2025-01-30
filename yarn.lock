@@ -1416,29 +1416,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@clerk/shared@npm:^2.20.14":
-  version: 2.20.14
-  resolution: "@clerk/shared@npm:2.20.14"
-  dependencies:
-    "@clerk/types": "npm:^4.44.0"
-    dequal: "npm:2.0.3"
-    glob-to-regexp: "npm:0.4.1"
-    js-cookie: "npm:3.0.5"
-    std-env: "npm:^3.7.0"
-    swr: "npm:^2.2.0"
-  peerDependencies:
-    react: ^18.0.0 || ^19.0.0 || ^19.0.0-0
-    react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-0
-  peerDependenciesMeta:
-    react:
-      optional: true
-    react-dom:
-      optional: true
-  checksum: 36d6f462fbaaa0b12189549e323674a17db491c7e08fa7fe1f168477569f5a2baf68fafd11377e89d7c60b3a3afd6350463ad2c18327aa5c45399572ce7b2f2d
-  languageName: node
-  linkType: hard
-
-"@clerk/shared@npm:^2.20.16":
+"@clerk/shared@npm:^2.20.14, @clerk/shared@npm:^2.20.16":
   version: 2.20.16
   resolution: "@clerk/shared@npm:2.20.16"
   dependencies:
@@ -1480,16 +1458,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@clerk/types@npm:^4.44.0":
-  version: 4.44.0
-  resolution: "@clerk/types@npm:4.44.0"
-  dependencies:
-    csstype: "npm:3.1.1"
-  checksum: 6e83367c3d8bf3f32ddceee5f4ea49bee11128eaf0c68cf36e79599e408b09839d4254348eb742c8c60ec8a5ed87dbcde53bfba64a0cac62d70911688c30ffd7
-  languageName: node
-  linkType: hard
-
-"@clerk/types@npm:^4.44.2":
+"@clerk/types@npm:^4.44.0, @clerk/types@npm:^4.44.2":
   version: 4.44.2
   resolution: "@clerk/types@npm:4.44.2"
   dependencies:
