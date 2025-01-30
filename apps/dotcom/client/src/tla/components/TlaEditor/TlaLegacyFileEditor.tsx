@@ -33,7 +33,7 @@ export const components: TLComponents = {
 	KeyboardShortcutsDialog: TlaEditorKeyboardShortcutsDialog,
 	MenuPanel: TlaEditorMenuPanel,
 	SharePanel: TlaEditorLegacySharePanel,
-	TopPanel: TlaEditorTopPanel,
+	TopCenterPanel: TlaEditorTopPanel,
 }
 
 export function TlaLegacyFileEditor({

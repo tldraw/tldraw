@@ -13,9 +13,13 @@ export function DefaultLayout() {
 		CursorChatBubble,
 		Toasts,
 		Dialogs,
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		TopPanel,
 		TopLeftPanel,
 		TopCenterPanel,
 		TopRightPanel,
+		CenterLeftPanel,
+		CenterRightPanel,
 		BottomLeftPanel,
 		BottomCenterPanel,
 		BottomRightPanel,
@@ -23,6 +27,8 @@ export function DefaultLayout() {
 	const isFocusMode = useValue('focus', () => editor.getInstanceState().isFocusMode, [editor])
 	const msg = useTranslation()
 	const { 'toggle-focus-mode': toggleFocus } = useActions()
+
+	const TopCenter = TopCenterPanel ?? TopPanel
 
 	return (
 		<TldrawUiLayout
@@ -40,8 +46,10 @@ export function DefaultLayout() {
 					TopLeftPanel && <TopLeftPanel />
 				)
 			}
-			topCenter={!isFocusMode && TopCenterPanel && <TopCenterPanel />}
+			topCenter={!isFocusMode && TopCenter && <TopCenter />}
 			topRight={!isFocusMode && TopRightPanel && <TopRightPanel />}
+			centerLeft={!isFocusMode && CenterLeftPanel && <CenterLeftPanel />}
+			centerRight={!isFocusMode && CenterRightPanel && <CenterRightPanel />}
 			bottomLeft={!isFocusMode && BottomLeftPanel && <BottomLeftPanel />}
 			bottomCenter={!isFocusMode && BottomCenterPanel && <BottomCenterPanel />}
 			bottomRight={!isFocusMode && BottomRightPanel && <BottomRightPanel />}

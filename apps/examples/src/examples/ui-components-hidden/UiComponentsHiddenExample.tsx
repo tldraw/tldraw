@@ -24,6 +24,15 @@ const components: Required<TLUiComponents> = {
 	CursorChatBubble: null,
 	Dialogs: null,
 	Toasts: null,
+	Layout: null,
+	TopLeftPanel: null,
+	TopCenterPanel: null,
+	TopRightPanel: null,
+	BottomLeftPanel: null,
+	BottomCenterPanel: null,
+	BottomRightPanel: null,
+	CenterLeftPanel: null,
+	CenterRightPanel: null,
 }
 
 export default function UiComponentsHiddenExample() {

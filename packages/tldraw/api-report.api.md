@@ -359,25 +359,6 @@ export interface BreakPointProviderProps {
 // @internal (undocumented)
 export function buildFromV1Document(editor: Editor, _document: unknown): void;
 
-// @public (undocumented)
-export function CenteredTopPanelContainer({ maxWidth, ignoreRightWidth, stylePanelWidth, marginBetweenZones, squeezeAmount, children, }: CenteredTopPanelContainerProps): JSX_2.Element;
-
-// @public (undocumented)
-export interface CenteredTopPanelContainerProps {
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    ignoreRightWidth?: number;
-    // (undocumented)
-    marginBetweenZones?: number;
-    // (undocumented)
-    maxWidth?: number;
-    // (undocumented)
-    squeezeAmount?: number;
-    // (undocumented)
-    stylePanelWidth?: number;
-}
-
 // @public
 export function centerSelectionAroundPoint(editor: Editor, position: VecLike): void;
 
@@ -806,9 +787,6 @@ export interface DefaultToolbarProps {
 
 // @public (undocumented)
 export const defaultTools: readonly [typeof EraserTool, typeof HandTool, typeof LaserTool, typeof ZoomTool, typeof SelectTool];
-
-// @public (undocumented)
-export function DefaultTopPanel(): JSX_2.Element;
 
 // @public (undocumented)
 export const DefaultZoomMenu: NamedExoticComponent<TLUiZoomMenuProps>;
@@ -2471,6 +2449,16 @@ export interface TLUiComponents {
     // (undocumented)
     ActionsMenu?: ComponentType<TLUiActionsMenuProps> | null;
     // (undocumented)
+    BottomCenterPanel?: ComponentType | null;
+    // (undocumented)
+    BottomLeftPanel?: ComponentType | null;
+    // (undocumented)
+    BottomRightPanel?: ComponentType | null;
+    // (undocumented)
+    CenterLeftPanel?: ComponentType | null;
+    // (undocumented)
+    CenterRightPanel?: ComponentType | null;
+    // (undocumented)
     ContextMenu?: ComponentType<TLUiContextMenuProps> | null;
     // (undocumented)
     CursorChatBubble?: ComponentType | null;
@@ -2486,6 +2474,8 @@ export interface TLUiComponents {
     HelpMenu?: ComponentType<TLUiHelpMenuProps> | null;
     // (undocumented)
     KeyboardShortcutsDialog?: ComponentType<TLUiKeyboardShortcutsDialogProps> | null;
+    // (undocumented)
+    Layout?: ComponentType | null;
     // (undocumented)
     MainMenu?: ComponentType<TLUiMainMenuProps> | null;
     // (undocumented)
@@ -2507,7 +2497,13 @@ export interface TLUiComponents {
     // (undocumented)
     Toolbar?: ComponentType | null;
     // (undocumented)
+    TopCenterPanel?: ComponentType | null;
+    // (undocumented)
+    TopLeftPanel?: ComponentType | null;
+    // @deprecated (undocumented)
     TopPanel?: ComponentType | null;
+    // (undocumented)
+    TopRightPanel?: ComponentType | null;
     // (undocumented)
     ZoomMenu?: ComponentType<TLUiZoomMenuProps> | null;
 }

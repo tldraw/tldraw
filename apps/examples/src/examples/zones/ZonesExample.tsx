@@ -5,7 +5,7 @@ import 'tldraw/tldraw.css'
 
 const components: TLComponents = {
 	SharePanel: CustomShareZone,
-	TopPanel: CustomTopZone,
+	TopCenterPanel: CustomTopZone,
 }
 
 // [1]

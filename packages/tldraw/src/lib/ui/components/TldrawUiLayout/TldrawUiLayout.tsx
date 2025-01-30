@@ -1,6 +1,6 @@
-import { useEvent } from '@tldraw/editor'
+import { clamp } from '@tldraw/editor'
 import classNames from 'classnames'
-import { useLayoutEffect, useRef } from 'react'
+import { useCallback, useLayoutEffect, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 
@@ -38,6 +38,7 @@ export function TldrawUiLayout({
 	squishBottom = 'center',
 	squishLeft = 'center',
 	squishRight = 'top',
+	children,
 }: TldrawUiLayoutProps) {
 	const breakpoint = useBreakpoint()
 
@@ -51,7 +52,7 @@ export function TldrawUiLayout({
 	const bottomCenterRef = useRef<HTMLDivElement>(null)
 	const bottomRightRef = useRef<HTMLDivElement>(null)
 
-	const updateLayout = useEvent(() => {
+	const updateLayout = useCallback(() => {
 		const container = containerRef.current!
 		const topLeft = topLeftRef.current!
 		const topCenter = topCenterRef.current!
@@ -75,22 +76,30 @@ export function TldrawUiLayout({
 		const rects = elements.map((element) => element.getBoundingClientRect())
 		const containerRect = container.getBoundingClientRect()
 
-		const info = { spacingPx, container, containerRect, elements, rects }
+		// we use this weird set up with indexes so that we can do all the measurements in one go,
+		// then apply all the changes in one go. This prevents layout thrashing.
+		const info = { spacingPx, containerRect, elements, rects }
 
 		layout('x', [0, 1, 2], squishIndexes[squishTop], info)
 		layout('x', [5, 6, 7], squishIndexes[squishBottom], info)
 		layout('y', [0, 3, 5], squishIndexes[squishLeft], info)
 		layout('y', [2, 4, 7], squishIndexes[squishRight], info)
-	})
+	}, [spacingPx, squishTop, squishBottom, squishLeft, squishRight])
 
 	useLayoutEffect(() => {
 		const observer = new ResizeObserver(updateLayout)
+		observer.observe(containerRef.current!)
 		observer.observe(topLeftRef.current!)
 		observer.observe(topCenterRef.current!)
 		observer.observe(topRightRef.current!)
+		observer.observe(centerLeftRef.current!)
+		observer.observe(centerRightRef.current!)
 		observer.observe(bottomLeftRef.current!)
 		observer.observe(bottomCenterRef.current!)
 		observer.observe(bottomRightRef.current!)
+
+		updateLayout()
+
 		return () => {
 			observer.disconnect()
 		}
@@ -104,24 +113,31 @@ export function TldrawUiLayout({
 			})}
 			data-breakpoint={breakpoint}
 		>
-			<div className="tlui-layout__topLeft" ref={topLeftRef}>
+			<div className="tlui-layout__top-left" ref={topLeftRef}>
 				{topLeft}
 			</div>
-			<div className="tlui-layout__topCenter" ref={topCenterRef}>
+			<div className="tlui-layout__top-center" ref={topCenterRef}>
 				{topCenter}
 			</div>
-			<div className="tlui-layout__topRight" ref={topRightRef}>
+			<div className="tlui-layout__top-right" ref={topRightRef}>
 				{topRight}
 			</div>
-			<div className="tlui-layout__bottomLeft" ref={bottomLeftRef}>
+			<div className="tlui-layout__center-left" ref={centerLeftRef}>
+				{centerLeft}
+			</div>
+			<div className="tlui-layout__center-right" ref={centerRightRef}>
+				{centerRight}
+			</div>
+			<div className="tlui-layout__bottom-left" ref={bottomLeftRef}>
 				{bottomLeft}
 			</div>
-			<div className="tlui-layout__bottomCenter" ref={bottomCenterRef}>
+			<div className="tlui-layout__bottom-center" ref={bottomCenterRef}>
 				{bottomCenter}
 			</div>
-			<div className="tlui-layout__bottomRight" ref={bottomRightRef}>
+			<div className="tlui-layout__bottom-right" ref={bottomRightRef}>
 				{bottomRight}
 			</div>
+			{children}
 		</div>
 	)
 }
@@ -139,13 +155,11 @@ const properties = {
 		size: 'width',
 		maxSize: 'maxWidth',
 		start: 'left',
-		end: 'right',
 	},
 	y: {
 		size: 'height',
 		maxSize: 'maxHeight',
 		start: 'top',
-		end: 'bottom',
 	},
 } as const
 
@@ -155,13 +169,11 @@ function layout(
 	squishIndex: 0 | 1 | 2,
 	{
 		spacingPx,
-		container,
 		containerRect,
 		elements,
 		rects,
 	}: {
 		spacingPx: number
-		container: HTMLDivElement
 		containerRect: DOMRect
 		elements: HTMLDivElement[]
 		rects: DOMRect[]
@@ -170,18 +182,44 @@ function layout(
 	const props = properties[axis]
 
 	const squishingElementIndex = elementIndexes[squishIndex]
-	const nonSquishingElementIndexes = elementIndexes.filter((index) => index !== squishIndex) as [
-		number,
-		number,
-	]
+	const nonSquishingElementIndexes = elementIndexes.filter(
+		(index) => index !== squishingElementIndex
+	) as [number, number]
 
-	const totalSize = containerRect[props.size]
+	const containerSize = containerRect[props.size]
 	const nonSquishingSize =
-		rects[nonSquishingElementIndexes[0]][props.size] +
-		rects[nonSquishingElementIndexes[1]][props.size]
+		addSpaceIfNeeded(rects[nonSquishingElementIndexes[0]][props.size], spacingPx) +
+		addSpaceIfNeeded(rects[nonSquishingElementIndexes[1]][props.size], spacingPx)
 
-	const maxSquishingSize = totalSize - nonSquishingSize
-	const currentSquishingSize = Math.min(rects[squishingElementIndex][props.size], maxSquishingSize)
+	const maxSquishingSize = containerSize - nonSquishingSize
 
-	container.style[props.maxSize] = `${maxSquishingSize}px`
+	elements[squishingElementIndex].style[props.maxSize] = `${maxSquishingSize}px`
+
+	const firstElementIndex = elementIndexes[0]
+	const centerElementIndex = elementIndexes[1]
+
+	const firstElementSize = rects[firstElementIndex][props.size]
+	const lastElementSize = rects[nonSquishingElementIndexes[1]][props.size]
+	const centerElementSize =
+		centerElementIndex === squishingElementIndex
+			? Math.min(rects[centerElementIndex][props.size], maxSquishingSize)
+			: rects[centerElementIndex][props.size]
+
+	const idealCenterPosition = (containerSize - centerElementSize) / 2
+	const minCenterPosition = addSpaceIfNeeded(firstElementSize, spacingPx)
+	const maxCenterPosition =
+		containerSize -
+		addSpaceIfNeeded(lastElementSize, spacingPx) -
+		addSpaceIfNeeded(centerElementSize, spacingPx)
+	const centerPosition = Math.round(
+		clamp(idealCenterPosition, minCenterPosition, maxCenterPosition)
+	)
+
+	console.log(idealCenterPosition, minCenterPosition, maxCenterPosition, centerPosition)
+
+	elements[centerElementIndex].style[props.start] = `${centerPosition}px`
+}
+
+function addSpaceIfNeeded(size: number, spacingPx: number) {
+	return size === 0 ? 0 : size + spacingPx
 }

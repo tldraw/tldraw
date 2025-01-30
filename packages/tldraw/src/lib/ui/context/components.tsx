@@ -74,6 +74,8 @@ export interface TLUiComponents {
 	TopLeftPanel?: ComponentType | null
 	TopCenterPanel?: ComponentType | null
 	TopRightPanel?: ComponentType | null
+	CenterLeftPanel?: ComponentType | null
+	CenterRightPanel?: ComponentType | null
 	BottomCenterPanel?: ComponentType | null
 	BottomLeftPanel?: ComponentType | null
 	BottomRightPanel?: ComponentType | null
@@ -120,6 +122,8 @@ export function TldrawUiComponentsProvider({
 					TopLeftPanel: DefaultTopLeftPanel,
 					TopCenterPanel: showCollaborationUi ? DefaultTopCenterPanel : null,
 					TopRightPanel: DefaultTopRightPanel,
+					CenterLeftPanel: null,
+					CenterRightPanel: null,
 					BottomCenterPanel: DefaultBottomCenterPanel,
 					BottomLeftPanel: DefaultBottomLeftPanel,
 					BottomRightPanel: DefaultBottomRightPanel,

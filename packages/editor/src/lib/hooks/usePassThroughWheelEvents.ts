@@ -1,16 +1,23 @@
 import { RefObject, useEffect } from 'react'
 import { preventDefault } from '../utils/dom'
 import { useContainer } from './useContainer'
+import { useEvent } from './useEvent'
 
 /** @public */
-export function usePassThroughWheelEvents(ref: RefObject<HTMLElement>) {
+export function usePassThroughWheelEvents(
+	ref: RefObject<HTMLElement>,
+	condition?: (e: WheelEvent) => boolean
+) {
 	if (!ref) throw Error('usePassThroughWheelEvents must be passed a ref')
 
 	const container = useContainer()
 
+	const conditionCallback = useEvent((e: WheelEvent) => condition?.(e) ?? true)
+
 	useEffect(() => {
 		function onWheel(e: WheelEvent) {
 			if ((e as any).isSpecialRedispatchedEvent) return
+			if (!conditionCallback(e)) return
 			preventDefault(e)
 			const cvs = container.querySelector('.tl-canvas')
 			if (!cvs) return
@@ -26,5 +33,5 @@ export function usePassThroughWheelEvents(ref: RefObject<HTMLElement>) {
 		return () => {
 			elm.removeEventListener('wheel', onWheel)
 		}
-	}, [container, ref])
+	}, [container, ref, conditionCallback])
 }
