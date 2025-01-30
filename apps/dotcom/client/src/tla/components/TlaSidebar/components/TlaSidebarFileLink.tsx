@@ -104,7 +104,9 @@ export function TlaSidebarFileLinkInner({
 			focusCtx.shouldRenameNextNewFile
 		) {
 			focusCtx.shouldRenameNextNewFile = false
-			handleRenameAction()
+			if (getIsCoarsePointer()) {
+				handleRenameAction()
+			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
