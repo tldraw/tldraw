@@ -36,7 +36,7 @@
 		"Visualization"
 	],
 	"engines": {
-		"vscode": "^1.75.1"
+		"vscode": "^1.96.0"
 	},
 	"activationEvents": [],
 	"browser": "./dist/web/extension.js",
