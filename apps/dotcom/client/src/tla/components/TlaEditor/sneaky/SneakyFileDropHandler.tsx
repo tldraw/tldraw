@@ -13,7 +13,6 @@ export const SneakyTldrawFileDropHandler = memo(function SneakyTldrawFileDropHan
 	useEffect(() => {
 		if (!auth) return
 		if (!app) return
-		const defaultOnDrop = editor.externalContentHandlers['files']
 		editor.registerExternalContentHandler('files', async (content) => {
 			const { files } = content
 			const tldrawFiles = files.filter((file) => file.name.endsWith('.tldr'))
