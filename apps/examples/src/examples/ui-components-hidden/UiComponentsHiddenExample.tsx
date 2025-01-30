@@ -13,6 +13,7 @@ const components: Required<TLUiComponents> = {
 	PageMenu: null,
 	NavigationPanel: null,
 	Toolbar: null,
+	ToolbarOverflow: null,
 	KeyboardShortcutsDialog: null,
 	QuickActions: null,
 	HelperButtons: null,

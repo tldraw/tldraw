@@ -1,9 +1,18 @@
 import { preventDefault, useEditor, useEvent, useUniqueSafeId } from '@tldraw/editor'
 import classNames from 'classnames'
 import hotkeys from 'hotkeys-js'
-import { createContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+	ReactNode,
+	createContext,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
+import { useTldrawUiComponents } from '../../context/components'
 import { areShortcutsDisabled } from '../../hooks/useKeyboardShortcuts'
 import { TLUiToolItem } from '../../hooks/useTools'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -28,7 +37,7 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 	const editor = useEditor()
 	const id = useUniqueSafeId()
 	const breakpoint = useBreakpoint()
-	const msg = useTranslation()
+	const { ToolbarOverflow } = useTldrawUiComponents()
 
 	const overflowIndex = Math.min(8, 5 + breakpoint)
 
@@ -153,18 +162,8 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 				{/* There is a +1 because if the menu is just one item, it's not necessary. */}
 				{totalItems > overflowIndex + 1 && (
 					<IsInOverflowContext.Provider value={true}>
-						<TldrawUiDropdownMenuRoot id="toolbar overflow" modal={false}>
-							<TldrawUiDropdownMenuTrigger>
-								<TldrawUiButton
-									title={msg('tool-panel.more')}
-									type="tool"
-									className="tlui-toolbar__overflow"
-									data-testid="tools.more-button"
-								>
-									<TldrawUiButtonIcon icon="chevron-up" />
-								</TldrawUiButton>
-							</TldrawUiDropdownMenuTrigger>
-							<TldrawUiDropdownMenuContent side="top" align="center">
+						{ToolbarOverflow && (
+							<ToolbarOverflow>
 								<div
 									className="tlui-buttons__grid"
 									data-testid="tools.more-content"
@@ -174,12 +173,42 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 										{children}
 									</TldrawUiMenuContextProvider>
 								</div>
-							</TldrawUiDropdownMenuContent>
-						</TldrawUiDropdownMenuRoot>
+							</ToolbarOverflow>
+						)}
 					</IsInOverflowContext.Provider>
 				)}
 			</div>
 		</>
+	)
+}
+
+/** @public */
+export interface DefaultToolbarOverflowProps {
+	children: ReactNode
+}
+
+/** @public @react */
+export function DefaultToolbarOverflow({ children }: DefaultToolbarOverflowProps) {
+	const msg = useTranslation()
+
+	return (
+		<TldrawUiDropdownMenuRoot id="toolbar overflow" modal={false}>
+			<TldrawUiDropdownMenuTrigger>
+				<TldrawUiButton
+					title={msg('tool-panel.more')}
+					type="tool"
+					className="tlui-toolbar__overflow"
+					data-testid="tools.more-button"
+				>
+					<TldrawUiButtonIcon icon="chevron-up" />
+				</TldrawUiButton>
+			</TldrawUiDropdownMenuTrigger>
+			<TldrawUiDropdownMenuContent side="top" align="center">
+				<TldrawUiMenuContextProvider type="toolbar-overflow" sourceId="toolbar">
+					{children}
+				</TldrawUiMenuContextProvider>
+			</TldrawUiDropdownMenuContent>
+		</TldrawUiDropdownMenuRoot>
 	)
 }
 

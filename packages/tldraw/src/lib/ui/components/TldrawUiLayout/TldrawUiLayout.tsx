@@ -4,9 +4,13 @@ import { useCallback, useLayoutEffect, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 
-export type HorizontalSquish = 'left' | 'center' | 'right'
-export type VerticalSquish = 'top' | 'center' | 'bottom'
+/** @public */
+export type TldrawUiLayoutHorizontalPosition = 'left' | 'center' | 'right'
 
+/** @public */
+export type TldrawUiLayoutVerticalPosition = 'top' | 'center' | 'bottom'
+
+/** @public */
 export interface TldrawUiLayoutProps {
 	topLeft?: React.ReactNode
 	topCenter?: React.ReactNode
@@ -17,13 +21,14 @@ export interface TldrawUiLayoutProps {
 	bottomCenter?: React.ReactNode
 	bottomRight?: React.ReactNode
 	spacingPx?: number
-	squishTop?: HorizontalSquish
-	squishBottom?: HorizontalSquish
-	squishLeft?: VerticalSquish
-	squishRight?: VerticalSquish
+	squishTop?: TldrawUiLayoutHorizontalPosition
+	squishBottom?: TldrawUiLayoutHorizontalPosition
+	squishLeft?: TldrawUiLayoutVerticalPosition
+	squishRight?: TldrawUiLayoutVerticalPosition
 	children?: React.ReactNode
 }
 
+/** @public @react */
 export function TldrawUiLayout({
 	topLeft,
 	topCenter,
@@ -214,8 +219,6 @@ function layout(
 	const centerPosition = Math.round(
 		clamp(idealCenterPosition, minCenterPosition, maxCenterPosition)
 	)
-
-	console.log(idealCenterPosition, minCenterPosition, maxCenterPosition, centerPosition)
 
 	elements[centerElementIndex].style[props.start] = `${centerPosition}px`
 }

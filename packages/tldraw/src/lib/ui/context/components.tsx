@@ -43,6 +43,10 @@ import {
 } from '../components/TldrawUiLayout/defaultPanels'
 import { DefaultToasts } from '../components/Toasts'
 import { DefaultToolbar } from '../components/Toolbar/DefaultToolbar'
+import {
+	DefaultToolbarOverflow,
+	DefaultToolbarOverflowProps,
+} from '../components/Toolbar/OverflowingToolbar'
 import { DefaultZoomMenu, TLUiZoomMenuProps } from '../components/ZoomMenu/DefaultZoomMenu'
 import { useShowCollaborationUi } from '../hooks/useIsMultiplayer'
 
@@ -58,6 +62,7 @@ export interface TLUiComponents {
 	PageMenu?: ComponentType | null
 	NavigationPanel?: ComponentType | null
 	Toolbar?: ComponentType | null
+	ToolbarOverflow?: ComponentType<DefaultToolbarOverflowProps> | null
 	KeyboardShortcutsDialog?: ComponentType<TLUiKeyboardShortcutsDialogProps> | null
 	QuickActions?: ComponentType<TLUiQuickActionsProps> | null
 	HelperButtons?: ComponentType<TLUiHelperButtonsProps> | null
@@ -111,6 +116,7 @@ export function TldrawUiComponentsProvider({
 					PageMenu: DefaultPageMenu,
 					NavigationPanel: DefaultNavigationPanel,
 					Toolbar: DefaultToolbar,
+					ToolbarOverflow: DefaultToolbarOverflow,
 					KeyboardShortcutsDialog: DefaultKeyboardShortcutsDialog,
 					QuickActions: DefaultQuickActions,
 					HelperButtons: DefaultHelperButtons,
