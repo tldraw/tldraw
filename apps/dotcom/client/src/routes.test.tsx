@@ -59,11 +59,6 @@ function extractContentPaths(routeObject: RouteObject): string[] {
 }
 
 function convertReactToVercel(path: string): string {
-	// react-router supports wildcard routes https://reactrouter.com/en/main/route/route#splats
-	// but we don't use them yet so just fail for now until we need them (if ever)
-	if (path.endsWith('*')) {
-		throw new Error(`Wildcard routes like '${path}' are not supported yet (you can add support!)`)
-	}
 	// react-router supports optional route segments https://reactrouter.com/en/main/route/route#optional-segments
 	// but we don't use them yet so just fail for now until we need them (if ever)
 	if (path.match(/\?\//)) {
@@ -78,9 +73,10 @@ function convertReactToVercel(path: string): string {
 	if (!path.startsWith('/')) {
 		throw new Error(`Route paths must start with a slash, but '${path}' does not`)
 	}
+
 	// Wrap in explicit start and end of string anchors (^ and $)
 	// and replace :param with [^/]* to match any string of non-slash characters, including the empty string
-	return '^' + path.replace(/:[^/]+/g, '[^/]*') + '/?$'
+	return '^' + path.replace(/:[^/]+/g, '[^/]*').replace(/\/\*$/, '(/.+)?') + '/?$'
 }
 
 function extract(...routes: ReactElement[]) {
@@ -134,9 +130,6 @@ test('convertReactToVercel', () => {
 		convertReactToVercel('/r/:roomId/history?/:timestamp')
 	).toThrowErrorMatchingInlineSnapshot(
 		`"Optional route segments like in '/r/:roomId/history?/:timestamp' are not supported yet (you can add this)"`
-	)
-	expect(() => convertReactToVercel('/r/:roomId/history/*')).toThrowErrorMatchingInlineSnapshot(
-		`"Wildcard routes like '/r/:roomId/history/*' are not supported yet (you can add support!)"`
 	)
 	expect(() => convertReactToVercel('/r/foo:roomId/history')).toThrowErrorMatchingInlineSnapshot(
 		`"Colons in route segments must be immediately preceded by a slash in '/r/foo:roomId/history'"`
