@@ -11,6 +11,7 @@ import {
 import { CursorChatBubble } from '../components/CursorChatBubble'
 import { DefaultDebugMenu } from '../components/DebugMenu/DefaultDebugMenu'
 import { DefaultDebugPanel } from '../components/DefaultDebugPanel'
+import { DefaultLayout } from '../components/DefaultLayout'
 import { DefaultMenuPanel } from '../components/DefaultMenuPanel'
 import { DefaultDialogs } from '../components/Dialogs'
 import { TLUiHelpMenuProps } from '../components/HelpMenu/DefaultHelpMenu'
@@ -42,7 +43,6 @@ import {
 } from '../components/TldrawUiLayout/defaultPanels'
 import { DefaultToasts } from '../components/Toasts'
 import { DefaultToolbar } from '../components/Toolbar/DefaultToolbar'
-import { DefaultTopPanel } from '../components/TopPanel/DefaultTopPanel'
 import { DefaultZoomMenu, TLUiZoomMenuProps } from '../components/ZoomMenu/DefaultZoomMenu'
 import { useShowCollaborationUi } from '../hooks/useIsMultiplayer'
 
@@ -68,6 +68,9 @@ export interface TLUiComponents {
 	CursorChatBubble?: ComponentType | null
 	Dialogs?: ComponentType | null
 	Toasts?: ComponentType | null
+	Layout?: ComponentType | null
+	/** @deprecated use TopCenterPanel instead. */
+	TopPanel?: ComponentType | null
 	TopLeftPanel?: ComponentType | null
 	TopCenterPanel?: ComponentType | null
 	TopRightPanel?: ComponentType | null
@@ -114,15 +117,15 @@ export function TldrawUiComponentsProvider({
 					MenuPanel: DefaultMenuPanel,
 					SharePanel: showCollaborationUi ? DefaultSharePanel : null,
 					CursorChatBubble: showCollaborationUi ? CursorChatBubble : null,
-					TopPanel: showCollaborationUi ? DefaultTopPanel : null,
 					TopLeftPanel: DefaultTopLeftPanel,
-					TopCenterPanel: DefaultTopCenterPanel,
+					TopCenterPanel: showCollaborationUi ? DefaultTopCenterPanel : null,
 					TopRightPanel: DefaultTopRightPanel,
 					BottomCenterPanel: DefaultBottomCenterPanel,
 					BottomLeftPanel: DefaultBottomLeftPanel,
 					BottomRightPanel: DefaultBottomRightPanel,
 					Dialogs: DefaultDialogs,
 					Toasts: DefaultToasts,
+					Layout: DefaultLayout,
 					..._overrides,
 				}),
 				[_overrides, showCollaborationUi]

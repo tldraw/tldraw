@@ -6,24 +6,28 @@ import { useCollaborationStatus } from '../../hooks/useIsMultiplayer'
 import { useReadonly } from '../../hooks/useReadonly'
 import { OfflineIndicator } from '../OfflineIndicator/OfflineIndicator'
 
+/** @public @react */
 export const DefaultBottomLeftPanel = memo(function DefaultBottomLeftPanel() {
 	const { NavigationPanel } = useTldrawUiComponents()
 
 	return <>{NavigationPanel && <NavigationPanel />}</>
 })
 
+/** @public @react */
 export const DefaultBottomCenterPanel = memo(function DefaultBottomPanel() {
 	const { Toolbar } = useTldrawUiComponents()
 
 	return <>{Toolbar && <Toolbar />}</>
 })
 
+/** @public @react */
 export const DefaultBottomRightPanel = memo(function DefaultBottomRightPanel() {
 	const { HelpMenu } = useTldrawUiComponents()
 
 	return <>{HelpMenu && <HelpMenu />}</>
 })
 
+/** @public @react */
 export const DefaultTopLeftPanel = memo(function DefaultTopLeftPanel() {
 	const { MenuPanel, HelperButtons } = useTldrawUiComponents()
 	return (
@@ -34,6 +38,7 @@ export const DefaultTopLeftPanel = memo(function DefaultTopLeftPanel() {
 	)
 })
 
+/** @public @react */
 export const DefaultTopCenterPanel = memo(function DefaultTopCenterPanel() {
 	const isOffline = useCollaborationStatus() === 'offline'
 
@@ -42,6 +47,13 @@ export const DefaultTopCenterPanel = memo(function DefaultTopCenterPanel() {
 	return <OfflineIndicator />
 })
 
+/**
+ * @public
+ * @deprecated - use DefaultTopCenterPanel instead.
+ */
+export const DefaultTopPanel = DefaultTopCenterPanel
+
+/** @public @react */
 export const DefaultTopRightPanel = memo(function DefaultTopRightPanel() {
 	const { SharePanel, StylePanel } = useTldrawUiComponents()
 	const breakpoint = useBreakpoint()

@@ -334,6 +334,55 @@
 
 .tlui-layout {
 	position: relative;
+	height: 100%;
+	overflow: clip;
+	contain: strict;
+	z-index: var(--layer-panels);
+	transform: translate3d(0, 0, 0);
+	font-weight: 500;
+	line-height: 1.6;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	font-smooth: antialiased;
+	text-rendering: optimizeLegibility;
+}
+
+.tlui-layout__topLeft {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+.tlui-layout__topCenter {
+	position: absolute;
+	top: 0;
+}
+
+.tlui-layout__topRight {
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+
+.tlui-layout__bottomLeft {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+}
+
+.tlui-layout__bottomCenter {
+	position: absolute;
+	bottom: 0;
+}
+
+.tlui-layout__bottomRight {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+}
+
+/* .tlui-layout {
+	position: relative;
 	display: grid;
 	grid-template-columns: 1fr;
 	grid-template-rows: minmax(0px, 1fr) auto;
@@ -381,7 +430,7 @@
 	height: 100%;
 	flex: 0 0 auto;
 	min-width: 0px;
-}
+} */
 
 .scrollable,
 .scrollable * {
@@ -1155,7 +1204,7 @@
 
 /* --------------------- Bottom --------------------- */
 
-.tlui-layout__bottom {
+/* .tlui-layout__bottom {
 	grid-row: 2;
 }
 
@@ -1165,7 +1214,7 @@
 	display: flex;
 	align-items: flex-end;
 	justify-content: center;
-}
+} */
 
 /* ------------------- Navigation ------------------- */
 

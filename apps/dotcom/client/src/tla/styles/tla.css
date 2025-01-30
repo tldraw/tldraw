@@ -186,7 +186,7 @@
 
 /* --------------------- Editor --------------------- */
 
-.tlui-layout__top {
+/* .tlui-layout__top {
 	display: grid;
 	grid-template-columns: 1fr auto;
 	height: fit-content;
@@ -216,7 +216,7 @@
 	max-width: 100%;
 	min-width: 0px;
 	overflow: hidden;
-}
+} */
 
 .tlui-page-menu__trigger {
 	width: fit-content;

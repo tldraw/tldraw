@@ -1,5 +1,8 @@
 import { useEvent } from '@tldraw/editor'
+import classNames from 'classnames'
 import { useLayoutEffect, useRef } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../../constants'
+import { useBreakpoint } from '../../context/breakpoints'
 
 export type HorizontalSquish = 'left' | 'center' | 'right'
 export type VerticalSquish = 'top' | 'center' | 'bottom'
@@ -30,6 +33,9 @@ export function TldrawUiLayout({
 	squishLeft = 'center',
 	squishRight = 'top',
 }: TldrawUiLayoutProps) {
+	const breakpoint = useBreakpoint()
+
+	const containerRef = useRef<HTMLDivElement>(null)
 	const topLeftRef = useRef<HTMLDivElement>(null)
 	const topCenterRef = useRef<HTMLDivElement>(null)
 	const topRightRef = useRef<HTMLDivElement>(null)
@@ -38,6 +44,7 @@ export function TldrawUiLayout({
 	const bottomRightRef = useRef<HTMLDivElement>(null)
 
 	const updateLayout = useEvent(() => {
+		const container = containerRef.current!
 		const topLeft = topLeftRef.current!
 		const topCenter = topCenterRef.current!
 		const topRight = topRightRef.current!
@@ -45,10 +52,10 @@ export function TldrawUiLayout({
 		const bottomCenter = bottomCenterRef.current!
 		const bottomRight = bottomRightRef.current!
 
-		layoutX([topLeft, topCenter, topRight], squishTop)
-		layoutX([bottomLeft, bottomCenter, bottomRight], squishBottom)
-		layoutY([topLeft, topCenter, topRight], squishLeft)
-		layoutY([bottomLeft, bottomCenter, bottomRight], squishRight)
+		layout('x', container, [topLeft, topCenter, topRight], squishIndexes[squishTop])
+		layout('x', container, [bottomLeft, bottomCenter, bottomRight], squishIndexes[squishBottom])
+		layout('y', container, [topLeft, topCenter, topRight], squishIndexes[squishLeft])
+		layout('y', container, [bottomLeft, bottomCenter, bottomRight], squishIndexes[squishRight])
 	})
 
 	useLayoutEffect(() => {
@@ -65,50 +72,42 @@ export function TldrawUiLayout({
 	}, [updateLayout])
 
 	return (
-		<div className="tlui-layout">
-			<div className="tlui-layout__top__left" ref={topLeftRef}>
+		<div
+			ref={containerRef}
+			className={classNames('tlui-layout', {
+				'tlui-layout__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
+			})}
+			data-breakpoint={breakpoint}
+		>
+			<div className="tlui-layout__topLeft" ref={topLeftRef}>
 				{topLeft}
 			</div>
-			<div className="tlui-layout__top__center" ref={topCenterRef}>
+			<div className="tlui-layout__topCenter" ref={topCenterRef}>
 				{topCenter}
 			</div>
-			<div className="tlui-layout__top__right" ref={topRightRef}>
+			<div className="tlui-layout__topRight" ref={topRightRef}>
 				{topRight}
 			</div>
-			<div className="tlui-layout__bottom__left" ref={bottomLeftRef}>
+			<div className="tlui-layout__bottomLeft" ref={bottomLeftRef}>
 				{bottomLeft}
 			</div>
-			<div className="tlui-layout__bottom__center" ref={bottomCenterRef}>
+			<div className="tlui-layout__bottomCenter" ref={bottomCenterRef}>
 				{bottomCenter}
 			</div>
-			<div className="tlui-layout__bottom__right" ref={bottomRightRef}>
+			<div className="tlui-layout__bottomRight" ref={bottomRightRef}>
 				{bottomRight}
 			</div>
 		</div>
 	)
 }
 
-const indexes = {
+const squishIndexes = {
 	left: 0,
 	top: 0,
 	center: 1,
 	right: 2,
 	bottom: 2,
 } as const
-
-function layoutX(
-	elements: [HTMLDivElement, HTMLDivElement, HTMLDivElement],
-	squish: HorizontalSquish
-) {
-	layout('x', elements, indexes[squish])
-}
-
-function layoutY(
-	elements: [HTMLDivElement, HTMLDivElement, HTMLDivElement],
-	squish: VerticalSquish
-) {
-	layout('y', elements, indexes[squish])
-}
 
 const properties = {
 	x: {
@@ -123,8 +122,11 @@ const properties = {
 
 function layout(
 	axis: 'x' | 'y',
+	container: HTMLDivElement,
 	elements: [HTMLDivElement, HTMLDivElement, HTMLDivElement],
 	squishIndex: 0 | 1 | 2
 ) {
 	const { start, end } = properties[axis]
+
+	const [first, middle, last] = elements
 }
