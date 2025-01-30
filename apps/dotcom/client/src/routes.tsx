@@ -83,6 +83,7 @@ export const tlaRoutes = (
 		<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
 			<Route path={ROUTES.tlaRoot} lazy={() => import('./tla/pages/local')} />
 			<Route element={<NoIndex />}>
+				<Route path={`${ROUTES.signIn}/*`} lazy={() => import('./pages/sign-in')} />
 				<Route path={ROUTES.tlaNew} lazy={() => import('./pages/tla-new')} />
 				<Route path={ROUTES.tlaOptIn} lazy={() => import('./pages/tla-opt-in')} />
 				<Route path={ROUTES.tlaLocalFile} lazy={() => import('./tla/pages/local-file')} />
