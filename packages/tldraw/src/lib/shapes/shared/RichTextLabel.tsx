@@ -187,7 +187,7 @@ export function RichTextSVG({
 		verticalAlign === 'middle' ? 'center' : verticalAlign === 'start' ? 'flex-start' : 'flex-end'
 	const style = {
 		display: 'flex',
-		height: `calc(${bounds.h}px - ${padding * 2}px)`,
+		height: `calc(${bounds.h}px - ${padding * 2}px + 1px)`,
 		fontSize: `${fontSize}px`,
 		fontFamily: DefaultFontFamilies[font],
 		justifyContent,
