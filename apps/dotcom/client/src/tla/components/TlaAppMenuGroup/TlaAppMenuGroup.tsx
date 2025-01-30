@@ -33,16 +33,6 @@ export function TlaAppMenuGroup() {
 	)
 }
 
-export function TlaAppMenuGroupLazyFlipped() {
-	return (
-		<TldrawUiMenuGroup id="things-to-do">
-			<ColorThemeSubmenu />
-			<LanguageMenu />
-			<HelpSubMenu />
-		</TldrawUiMenuGroup>
-	)
-}
-
 function ColorThemeSubmenu() {
 	const editor = useMaybeEditor()
 	if (!editor) return null
