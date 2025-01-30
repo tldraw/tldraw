@@ -20,9 +20,9 @@
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
-		"@clerk/backend": "^1.13.4",
-		"@supabase/auth-helpers-remix": "^0.2.2",
-		"@supabase/supabase-js": "^2.33.2",
+		"@clerk/backend": "^1.23.7",
+		"@supabase/auth-helpers-remix": "^0.2.6",
+		"@supabase/supabase-js": "^2.48.1",
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
@@ -30,21 +30,21 @@
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
 		"@tldraw/worker-shared": "workspace:*",
-		"itty-router": "^5.0.17",
+		"itty-router": "^5.0.18",
 		"jose": "^5.9.6",
 		"kysely": "^0.27.5",
 		"pg": "^8.13.1",
 		"postgres": "patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch",
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0"
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20241022.0",
-		"@types/pg": "^8.11.10",
-		"esbuild": "^0.21.5",
+		"@cloudflare/workers-types": "^4.20250124.3",
+		"@types/pg": "^8.11.11",
+		"esbuild": "^0.24.2",
 		"lazyrepo": "0.0.0-alpha.27",
-		"typescript": "~5.4.2",
-		"wrangler": "^3.84.1"
+		"typescript": "~5.4.5",
+		"wrangler": "^3.105.1"
 	},
 	"jest": {
 		"preset": "../../../internal/config/jest/node/jest-preset.js",

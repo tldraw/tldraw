@@ -1,5 +1,5 @@
 import { stringEnum } from '@tldraw/utils'
-import { SerializedSchema, SerializedStore, TLEditorSnapshot, TLRecord } from 'tldraw'
+import type { SerializedSchema, SerializedStore, TLEditorSnapshot, TLRecord } from 'tldraw'
 import {
 	TlaFile,
 	TlaFilePartial,

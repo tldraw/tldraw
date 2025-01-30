@@ -155,7 +155,7 @@ import {
 	TLPointerEventInfo,
 	TLWheelEventInfo,
 } from './types/event-types'
-import { TLExternalAssetContent, TLExternalContent } from './types/external-content'
+import { TLExternalAsset, TLExternalContent } from './types/external-content'
 import { TLHistoryBatchOptions } from './types/history-types'
 import {
 	OptionalKeys,
@@ -1681,7 +1681,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	isAncestorSelected(shape: TLShape | TLShapeId): boolean {
-		const id = typeof shape === 'string' ? shape : shape?.id ?? null
+		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		const _shape = this.getShape(id)
 		if (!_shape) return false
 		const selectedShapeIds = this.getSelectedShapeIds()
@@ -1938,7 +1938,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setFocusedGroup(shape: TLShapeId | TLGroupShape | null): this {
-		const id = typeof shape === 'string' ? shape : shape?.id ?? null
+		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 
 		if (id !== null) {
 			const shape = this.getShape(id)
@@ -2021,7 +2021,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setEditingShape(shape: TLShapeId | TLShape | null): this {
-		const id = typeof shape === 'string' ? shape : shape?.id ?? null
+		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		if (id !== this.getEditingShapeId()) {
 			if (id) {
 				const shape = this.getShape(id)
@@ -2082,7 +2082,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setHoveredShape(shape: TLShapeId | TLShape | null): this {
-		const id = typeof shape === 'string' ? shape : shape?.id ?? null
+		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		if (id === this.getHoveredShapeId()) return this
 		this.run(
 			() => {
@@ -2231,7 +2231,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setCroppingShape(shape: TLShapeId | TLShape | null): this {
-		const id = typeof shape === 'string' ? shape : shape?.id ?? null
+		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		if (id !== this.getCroppingShapeId()) {
 			this.run(
 				() => {
@@ -7975,10 +7975,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	externalAssetContentHandlers: {
-		[K in TLExternalAssetContent['type']]: {
-			[Key in K]:
-				| null
-				| ((info: TLExternalAssetContent & { type: Key }) => Promise<TLAsset | undefined>)
+		[K in TLExternalAsset['type']]: {
+			[Key in K]: null | ((info: TLExternalAsset & { type: Key }) => Promise<TLAsset | undefined>)
 		}[K]
 	} = {
 		file: null,
@@ -8007,9 +8005,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	registerExternalAssetHandler<T extends TLExternalAssetContent['type']>(
+	registerExternalAssetHandler<T extends TLExternalAsset['type']>(
 		type: T,
-		handler: null | ((info: TLExternalAssetContent & { type: T }) => Promise<TLAsset>)
+		handler: null | ((info: TLExternalAsset & { type: T }) => Promise<TLAsset>)
 	): this {
 		this.externalAssetContentHandlers[type] = handler as any
 		return this
@@ -8077,11 +8075,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param info - Info about the external content.
 	 * @returns The asset.
 	 */
-	async getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined> {
+	async getAssetForExternalContent(info: TLExternalAsset): Promise<TLAsset | undefined> {
 		return await this.externalAssetContentHandlers[info.type]?.(info as any)
 	}
 
-	hasExternalAssetHandler(type: TLExternalAssetContent['type']): boolean {
+	hasExternalAssetHandler(type: TLExternalAsset['type']): boolean {
 		return !!this.externalAssetContentHandlers[type]
 	}
 
@@ -8803,8 +8801,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 							// If our pointer moved only because we're following some other user, then don't
 							// update our last activity timestamp; otherwise, update it to the current timestamp.
 							info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.CAMERA_MOVE
-								? this.store.unsafeGetWithoutCapture(TLPOINTER_ID)?.lastActivityTimestamp ??
-									this._tickManager.now
+								? (this.store.unsafeGetWithoutCapture(TLPOINTER_ID)?.lastActivityTimestamp ??
+									this._tickManager.now)
 								: this._tickManager.now,
 						meta: {},
 					},
@@ -9368,6 +9366,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// prevent us from spamming similar event errors if we're crashed.
 		// todo: replace with new readonly mode?
 		if (this.getCrashingError()) return this
+
+		this.emit('before-event', info)
 
 		const { inputs } = this
 		const { type } = info
