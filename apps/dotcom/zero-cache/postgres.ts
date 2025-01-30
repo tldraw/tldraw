@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { existsSync, readdirSync } from 'fs'
 import postgres from 'postgres'
 
