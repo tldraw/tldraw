@@ -22,7 +22,9 @@ createRoot(document.getElementById('root')!).render(
 	<ClerkProvider
 		publishableKey={PUBLISHABLE_KEY}
 		afterSignOutUrl={routes.tlaRoot()}
-		signInUrl={routes.signIn()}
+		signInUrl="/"
+		signInFallbackRedirectUrl={routes.tlaRoot()}
+		signUpFallbackRedirectUrl={routes.tlaRoot()}
 	>
 		<SetPreviewFlag>
 			<HelmetProvider>

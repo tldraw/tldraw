@@ -76,7 +76,7 @@ function convertReactToVercel(path: string): string {
 
 	// Wrap in explicit start and end of string anchors (^ and $)
 	// and replace :param with [^/]* to match any string of non-slash characters, including the empty string
-	return '^' + path.replace(/:[^/]+/g, '[^/]*').replace(/\/\*$/, '(/.+)?') + '/?$'
+	return '^' + path.replace(/:[^/]+/g, '[^/]*') + '/?$'
 }
 
 function extract(...routes: ReactElement[]) {
@@ -96,7 +96,7 @@ const spaRoutes = uniq(extract(legacyRoutes).concat(extract(tlaRoutes)))
 		vercelRouterPattern: convertReactToVercel(path),
 	}))
 
-const allvercelRouterPatterns = spaRoutes.map((route) => route.vercelRouterPattern)
+const allVercelRouterPatterns = spaRoutes.map((route) => route.vercelRouterPattern)
 
 test('the_routes', () => {
 	expect(spaRoutes).toMatchSnapshot()
@@ -114,15 +114,15 @@ test('all React routes match', () => {
 
 test("non-react routes don't match", () => {
 	// lil smoke test for basic patterns
-	expect('/').toMatchAny(allvercelRouterPatterns)
-	expect('/new').toMatchAny(allvercelRouterPatterns)
-	expect('/r/whatever').toMatchAny(allvercelRouterPatterns)
-	expect('/r/whatever/').toMatchAny(allvercelRouterPatterns)
+	expect('/').toMatchAny(allVercelRouterPatterns)
+	expect('/new').toMatchAny(allVercelRouterPatterns)
+	expect('/r/whatever').toMatchAny(allVercelRouterPatterns)
+	expect('/r/whatever/').toMatchAny(allVercelRouterPatterns)
 
-	expect('/assets/test.png').not.toMatchAny(allvercelRouterPatterns)
-	expect('/twitter-social.png').not.toMatchAny(allvercelRouterPatterns)
-	expect('/robots.txt').not.toMatchAny(allvercelRouterPatterns)
-	expect('/static/css/index.css').not.toMatchAny(allvercelRouterPatterns)
+	expect('/assets/test.png').not.toMatchAny(allVercelRouterPatterns)
+	expect('/twitter-social.png').not.toMatchAny(allVercelRouterPatterns)
+	expect('/robots.txt').not.toMatchAny(allVercelRouterPatterns)
+	expect('/static/css/index.css').not.toMatchAny(allVercelRouterPatterns)
 })
 
 test('convertReactToVercel', () => {
@@ -130,6 +130,9 @@ test('convertReactToVercel', () => {
 		convertReactToVercel('/r/:roomId/history?/:timestamp')
 	).toThrowErrorMatchingInlineSnapshot(
 		`"Optional route segments like in '/r/:roomId/history?/:timestamp' are not supported yet (you can add this)"`
+	)
+	expect(() => convertReactToVercel('/r/:roomId/history/*')).toThrowErrorMatchingInlineSnapshot(
+		`"Wildcard routes like '/r/:roomId/history/*' are not supported yet (you can add support!)"`
 	)
 	expect(() => convertReactToVercel('/r/foo:roomId/history')).toThrowErrorMatchingInlineSnapshot(
 		`"Colons in route segments must be immediately preceded by a slash in '/r/foo:roomId/history'"`

@@ -11,7 +11,6 @@ export const ROUTES = {
 	legacySnapshot: '/s/:roomId',
 	legacyReadonly: '/ro/:roomId',
 	legacyReadonlyOld: '/v/:roomId',
-	signIn: '/sign-in',
 
 	tlaOptIn: '/preview',
 	tlaOverride: '/q',
