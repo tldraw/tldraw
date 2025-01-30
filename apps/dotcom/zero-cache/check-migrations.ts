@@ -1,4 +1,4 @@
-import { exec } from '../../../internal/scripts/lib/exec'
+import { execSync } from 'child_process'
 import { getPostgresAndMigrations, waitForPostgres } from './postgres'
 
 async function checkMigrations() {
@@ -8,7 +8,7 @@ async function checkMigrations() {
 	for (const appliedMigration of appliedMigrations) {
 		if (!migrations.includes(appliedMigration.filename)) {
 			console.error(`Migration ${appliedMigration.filename} is missing. Will clean the db.`)
-			await exec('yarn', ['clean'])
+			execSync('yarn clean')
 			break
 		}
 	}
