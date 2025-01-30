@@ -47,7 +47,7 @@ export function PreviewMenuItem() {
 					}}
 				>
 					<PreviewBlueDot style={{ marginRight: 6 }} />
-					<TldrawUiButtonLabel>Try the new tldraw.com</TldrawUiButtonLabel>
+					<TldrawUiButtonLabel>Preview the new tldraw.com</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			</SignUpButton>
 		</TldrawUiMenuGroup>
