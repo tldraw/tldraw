@@ -128,14 +128,20 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		// a subtelty where when going edit-to-edit, that is text editor-to-text editor
 		// in different shapes, the isEditingLink state doesn't get reset quickly enough.
 		if (textEditor.isActive('link')) {
-			const { from, to } = getMarkRange(
-				textEditor.state.doc.resolve(textEditor.state.selection.from),
-				textEditor.schema.marks.link as MarkType
-			) as Range
-			// Select the entire link if we just clicked on it while in edit mode, but not if there's
-			// a specific selection.
-			if (textEditor.state.selection.empty) {
-				textEditor.commands.setTextSelection({ from, to })
+			try {
+				const { from, to } = getMarkRange(
+					textEditor.state.doc.resolve(textEditor.state.selection.from),
+					textEditor.schema.marks.link as MarkType
+				) as Range
+				// Select the entire link if we just clicked on it while in edit mode, but not if there's
+				// a specific selection.
+				if (textEditor.state.selection.empty) {
+					textEditor.commands.setTextSelection({ from, to })
+				}
+			} catch {
+				// Sometimes getMarkRange throws an error when the selection is the entire document.
+				// This is somewhat mysterious but it's harmless. We just need to ignore it.
+				// Also, this seems to have recently broken with the React 19 preparation changes.
 			}
 		}
 	}, [textEditor, isEditingLink])
