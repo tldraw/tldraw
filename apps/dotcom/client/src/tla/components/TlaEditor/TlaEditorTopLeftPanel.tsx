@@ -29,7 +29,6 @@ import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
-import { TlaAppMenuGroupLazyFlipped } from '../TlaAppMenuGroup/TlaAppMenuGroup'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
@@ -116,7 +115,9 @@ export function TlaEditorTopLeftPanelAnonymous() {
 							<ExtrasGroup />
 							<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
 						</TldrawUiMenuGroup>
-						<TlaAppMenuGroupLazyFlipped />
+						<TldrawUiMenuGroup id="preferences">
+							<PreferencesGroup />
+						</TldrawUiMenuGroup>
 						<TldrawUiMenuGroup id="signin">
 							<SignInMenuItem />
 						</TldrawUiMenuGroup>
