@@ -59,6 +59,11 @@ function extractContentPaths(routeObject: RouteObject): string[] {
 }
 
 function convertReactToVercel(path: string): string {
+	// react-router supports wildcard routes https://reactrouter.com/en/main/route/route#splats
+	// but we don't use them yet so just fail for now until we need them (if ever)
+	if (path.endsWith('*')) {
+		throw new Error(`Wildcard routes like '${path}' are not supported yet (you can add support!)`)
+	}
 	// react-router supports optional route segments https://reactrouter.com/en/main/route/route#optional-segments
 	// but we don't use them yet so just fail for now until we need them (if ever)
 	if (path.match(/\?\//)) {

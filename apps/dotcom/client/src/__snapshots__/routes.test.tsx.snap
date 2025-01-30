@@ -55,10 +55,6 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/s/[^/]*/?$",
   },
   {
-    "reactRouterPattern": "/sign-in/*",
-    "vercelRouterPattern": "^/sign-in(/.+)?/?$",
-  },
-  {
     "reactRouterPattern": "/ts-side",
     "vercelRouterPattern": "^/ts-side/?$",
   },
