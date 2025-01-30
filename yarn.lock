@@ -1402,25 +1402,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@clerk/clerk-react@npm:^5.22.6":
-  version: 5.22.6
-  resolution: "@clerk/clerk-react@npm:5.22.6"
+"@clerk/clerk-react@npm:^5.22.8":
+  version: 5.22.8
+  resolution: "@clerk/clerk-react@npm:5.22.8"
   dependencies:
-    "@clerk/shared": "npm:^2.20.14"
-    "@clerk/types": "npm:^4.44.0"
+    "@clerk/shared": "npm:^2.20.16"
+    "@clerk/types": "npm:^4.44.2"
     tslib: "npm:2.4.1"
   peerDependencies:
     react: ^18.0.0 || ^19.0.0 || ^19.0.0-0
     react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-0
-  checksum: c3917e5918764660288b2495df60f4ada3b37099adc4c650000475a76992ab99fd930e9613a95f59c494563513e68d71a89ae6d971fe789cade31afd9589edb4
+  checksum: 5d693ca70dd4abaa564996f88d34325fa2c660215f15581114db801bc39ceb1f240061ae1175a9d1784db91e01e22349000dd646f2e80a618a1bd9f9e8a0cf98
   languageName: node
   linkType: hard
 
-"@clerk/shared@npm:^2.20.14":
-  version: 2.20.14
-  resolution: "@clerk/shared@npm:2.20.14"
+"@clerk/shared@npm:^2.20.14, @clerk/shared@npm:^2.20.16":
+  version: 2.20.16
+  resolution: "@clerk/shared@npm:2.20.16"
   dependencies:
-    "@clerk/types": "npm:^4.44.0"
+    "@clerk/types": "npm:^4.44.2"
     dequal: "npm:2.0.3"
     glob-to-regexp: "npm:0.4.1"
     js-cookie: "npm:3.0.5"
@@ -1434,7 +1434,7 @@ __metadata:
       optional: true
     react-dom:
       optional: true
-  checksum: 36d6f462fbaaa0b12189549e323674a17db491c7e08fa7fe1f168477569f5a2baf68fafd11377e89d7c60b3a3afd6350463ad2c18327aa5c45399572ce7b2f2d
+  checksum: 54f3dc047b29a6653ab438aa0131ef8ee94e92c6bbddebb4c210a78a75e518473fe806061c63aaaffb84cb05cc8e689dfa9cfa7b203d0ac15c292384cb105b51
   languageName: node
   linkType: hard
 
@@ -1458,12 +1458,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@clerk/types@npm:^4.44.0":
-  version: 4.44.0
-  resolution: "@clerk/types@npm:4.44.0"
+"@clerk/types@npm:^4.44.0, @clerk/types@npm:^4.44.2":
+  version: 4.44.2
+  resolution: "@clerk/types@npm:4.44.2"
   dependencies:
     csstype: "npm:3.1.1"
-  checksum: 6e83367c3d8bf3f32ddceee5f4ea49bee11128eaf0c68cf36e79599e408b09839d4254348eb742c8c60ec8a5ed87dbcde53bfba64a0cac62d70911688c30ffd7
+  checksum: db18b80b43d3713daccfda09644d09164b19f672616efd12e795884f878ff41444b141d12dd307ae1d85f489933b4ef4bafac1b317a855571ba5ec53cc09a3e3
   languageName: node
   linkType: hard
 
@@ -11819,7 +11819,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dotcom@workspace:apps/dotcom/client"
   dependencies:
-    "@clerk/clerk-react": "npm:^5.22.6"
+    "@clerk/clerk-react": "npm:^5.22.8"
     "@clerk/testing": "npm:^1.4.15"
     "@formatjs/cli": "npm:^6.5.1"
     "@jest/globals": "npm:30.0.0-alpha.2"
