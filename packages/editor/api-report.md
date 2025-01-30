@@ -3340,6 +3340,8 @@ export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEvent
 // @public (undocumented)
 export interface TLEventMap {
     // (undocumented)
+    'before-event': [TLEventInfo];
+    // (undocumented)
     'max-shapes': [{
         count: number;
         name: string;

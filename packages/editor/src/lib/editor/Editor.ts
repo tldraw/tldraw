@@ -9369,6 +9369,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// todo: replace with new readonly mode?
 		if (this.getCrashingError()) return this
 
+		this.emit('before-event', info)
+
 		const { inputs } = this
 		const { type } = info
 
