@@ -9,6 +9,7 @@ import {
 	setInLocalStorage,
 	useValue,
 } from 'tldraw'
+import { useTldrawAppUiEvents } from '../tla/utils/app-ui-events'
 
 const STORAGE_KEY = 'tla-preview-hide-blue-dot'
 const hideBlueDot$ = atom('hideBlueDot', !!getFromLocalStorage(STORAGE_KEY))
@@ -37,12 +38,14 @@ export function PreviewBlueDot({ style }: { style?: CSSProperties }) {
 }
 
 export function PreviewMenuItem() {
+	const trackEvent = useTldrawAppUiEvents()
 	return (
 		<TldrawUiMenuGroup id="basic">
 			<SignUpButton mode="modal" forceRedirectUrl="/" signInForceRedirectUrl="/">
 				<TldrawUiButton
 					type="normal"
 					onClick={() => {
+						trackEvent('open-preview-sign-up-modal', { source: 'file-menu' })
 						setTimeout(hideBlueDot, 1000)
 					}}
 				>
