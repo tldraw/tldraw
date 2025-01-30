@@ -11,9 +11,12 @@ export interface TldrawUiLayoutProps {
 	topLeft?: React.ReactNode
 	topCenter?: React.ReactNode
 	topRight?: React.ReactNode
+	centerLeft?: React.ReactNode
+	centerRight?: React.ReactNode
 	bottomLeft?: React.ReactNode
 	bottomCenter?: React.ReactNode
 	bottomRight?: React.ReactNode
+	spacingPx?: number
 	squishTop?: HorizontalSquish
 	squishBottom?: HorizontalSquish
 	squishLeft?: VerticalSquish
@@ -25,9 +28,12 @@ export function TldrawUiLayout({
 	topLeft,
 	topCenter,
 	topRight,
+	centerLeft,
+	centerRight,
 	bottomLeft,
 	bottomCenter,
 	bottomRight,
+	spacingPx = 8,
 	squishTop = 'center',
 	squishBottom = 'center',
 	squishLeft = 'center',
@@ -39,6 +45,8 @@ export function TldrawUiLayout({
 	const topLeftRef = useRef<HTMLDivElement>(null)
 	const topCenterRef = useRef<HTMLDivElement>(null)
 	const topRightRef = useRef<HTMLDivElement>(null)
+	const centerLeftRef = useRef<HTMLDivElement>(null)
+	const centerRightRef = useRef<HTMLDivElement>(null)
 	const bottomLeftRef = useRef<HTMLDivElement>(null)
 	const bottomCenterRef = useRef<HTMLDivElement>(null)
 	const bottomRightRef = useRef<HTMLDivElement>(null)
@@ -48,14 +56,31 @@ export function TldrawUiLayout({
 		const topLeft = topLeftRef.current!
 		const topCenter = topCenterRef.current!
 		const topRight = topRightRef.current!
+		const centerLeft = centerLeftRef.current!
+		const centerRight = centerRightRef.current!
 		const bottomLeft = bottomLeftRef.current!
 		const bottomCenter = bottomCenterRef.current!
 		const bottomRight = bottomRightRef.current!
 
-		layout('x', container, [topLeft, topCenter, topRight], squishIndexes[squishTop])
-		layout('x', container, [bottomLeft, bottomCenter, bottomRight], squishIndexes[squishBottom])
-		layout('y', container, [topLeft, topCenter, topRight], squishIndexes[squishLeft])
-		layout('y', container, [bottomLeft, bottomCenter, bottomRight], squishIndexes[squishRight])
+		const elements = [
+			topLeft,
+			topCenter,
+			topRight,
+			centerLeft,
+			centerRight,
+			bottomLeft,
+			bottomCenter,
+			bottomRight,
+		]
+		const rects = elements.map((element) => element.getBoundingClientRect())
+		const containerRect = container.getBoundingClientRect()
+
+		const info = { spacingPx, container, containerRect, elements, rects }
+
+		layout('x', [0, 1, 2], squishIndexes[squishTop], info)
+		layout('x', [5, 6, 7], squishIndexes[squishBottom], info)
+		layout('y', [0, 3, 5], squishIndexes[squishLeft], info)
+		layout('y', [2, 4, 7], squishIndexes[squishRight], info)
 	})
 
 	useLayoutEffect(() => {
@@ -111,10 +136,14 @@ const squishIndexes = {
 
 const properties = {
 	x: {
+		size: 'width',
+		maxSize: 'maxWidth',
 		start: 'left',
 		end: 'right',
 	},
 	y: {
+		size: 'height',
+		maxSize: 'maxHeight',
 		start: 'top',
 		end: 'bottom',
 	},
@@ -122,11 +151,37 @@ const properties = {
 
 function layout(
 	axis: 'x' | 'y',
-	container: HTMLDivElement,
-	elements: [HTMLDivElement, HTMLDivElement, HTMLDivElement],
-	squishIndex: 0 | 1 | 2
+	elementIndexes: [number, number, number],
+	squishIndex: 0 | 1 | 2,
+	{
+		spacingPx,
+		container,
+		containerRect,
+		elements,
+		rects,
+	}: {
+		spacingPx: number
+		container: HTMLDivElement
+		containerRect: DOMRect
+		elements: HTMLDivElement[]
+		rects: DOMRect[]
+	}
 ) {
-	const { start, end } = properties[axis]
+	const props = properties[axis]
 
-	const [first, middle, last] = elements
+	const squishingElementIndex = elementIndexes[squishIndex]
+	const nonSquishingElementIndexes = elementIndexes.filter((index) => index !== squishIndex) as [
+		number,
+		number,
+	]
+
+	const totalSize = containerRect[props.size]
+	const nonSquishingSize =
+		rects[nonSquishingElementIndexes[0]][props.size] +
+		rects[nonSquishingElementIndexes[1]][props.size]
+
+	const maxSquishingSize = totalSize - nonSquishingSize
+	const currentSquishingSize = Math.min(rects[squishingElementIndex][props.size], maxSquishingSize)
+
+	container.style[props.maxSize] = `${maxSquishingSize}px`
 }
