@@ -32,6 +32,14 @@ import {
 } from '../components/QuickActions/DefaultQuickActions'
 import { DefaultSharePanel } from '../components/SharePanel/DefaultSharePanel'
 import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel/DefaultStylePanel'
+import {
+	DefaultBottomCenterPanel,
+	DefaultBottomLeftPanel,
+	DefaultBottomRightPanel,
+	DefaultTopCenterPanel,
+	DefaultTopLeftPanel,
+	DefaultTopRightPanel,
+} from '../components/TldrawUiLayout/defaultPanels'
 import { DefaultToasts } from '../components/Toasts'
 import { DefaultToolbar } from '../components/Toolbar/DefaultToolbar'
 import { DefaultTopPanel } from '../components/TopPanel/DefaultTopPanel'
@@ -56,11 +64,16 @@ export interface TLUiComponents {
 	DebugPanel?: ComponentType | null
 	DebugMenu?: ComponentType | null
 	MenuPanel?: ComponentType | null
-	TopPanel?: ComponentType | null
 	SharePanel?: ComponentType | null
 	CursorChatBubble?: ComponentType | null
 	Dialogs?: ComponentType | null
 	Toasts?: ComponentType | null
+	TopLeftPanel?: ComponentType | null
+	TopCenterPanel?: ComponentType | null
+	TopRightPanel?: ComponentType | null
+	BottomCenterPanel?: ComponentType | null
+	BottomLeftPanel?: ComponentType | null
+	BottomRightPanel?: ComponentType | null
 }
 
 const TldrawUiComponentsContext = createContext<TLUiComponents | null>(null)
@@ -102,6 +115,12 @@ export function TldrawUiComponentsProvider({
 					SharePanel: showCollaborationUi ? DefaultSharePanel : null,
 					CursorChatBubble: showCollaborationUi ? CursorChatBubble : null,
 					TopPanel: showCollaborationUi ? DefaultTopPanel : null,
+					TopLeftPanel: DefaultTopLeftPanel,
+					TopCenterPanel: DefaultTopCenterPanel,
+					TopRightPanel: DefaultTopRightPanel,
+					BottomCenterPanel: DefaultBottomCenterPanel,
+					BottomLeftPanel: DefaultBottomLeftPanel,
+					BottomRightPanel: DefaultBottomRightPanel,
 					Dialogs: DefaultDialogs,
 					Toasts: DefaultToasts,
 					..._overrides,

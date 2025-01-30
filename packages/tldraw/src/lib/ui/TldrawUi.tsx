@@ -16,7 +16,6 @@ import { TLUiComponents, useTldrawUiComponents } from './context/components'
 import { useNativeClipboardEvents } from './hooks/useClipboardEvents'
 import { useEditorEvents } from './hooks/useEditorEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
-import { useReadonly } from './hooks/useReadonly'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
 
 /** @public */
@@ -93,23 +92,18 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
-	const isReadonlyMode = useReadonly()
 	const isFocusMode = useValue('focus', () => editor.getInstanceState().isFocusMode, [editor])
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 
 	const {
-		SharePanel,
 		TopPanel,
-		MenuPanel,
-		StylePanel,
-		Toolbar,
-		HelpMenu,
-		NavigationPanel,
-		HelperButtons,
 		DebugPanel,
 		CursorChatBubble,
 		Toasts,
 		Dialogs,
+		LeftPanel,
+		RightPanel,
+		BottomPanel,
 	} = useTldrawUiComponents()
 
 	useKeyboardShortcuts()
@@ -139,24 +133,12 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 			) : (
 				<>
 					<div className="tlui-layout__top">
-						<div className="tlui-layout__top__left">
-							{MenuPanel && <MenuPanel />}
-							{HelperButtons && <HelperButtons />}
-						</div>
+						<div className="tlui-layout__top__left">{LeftPanel && <LeftPanel />}</div>
 						<div className="tlui-layout__top__center">{TopPanel && <TopPanel />}</div>
-						<div className="tlui-layout__top__right">
-							{SharePanel && <SharePanel />}
-							{StylePanel && breakpoint >= PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && (
-								<StylePanel />
-							)}
-						</div>
+						<div className="tlui-layout__top__right">{RightPanel && <RightPanel />}</div>
 					</div>
 					<div className="tlui-layout__bottom">
-						<div className="tlui-layout__bottom__main">
-							{NavigationPanel && <NavigationPanel />}
-							{Toolbar && <Toolbar />}
-							{HelpMenu && <HelpMenu />}
-						</div>
+						<div className="tlui-layout__bottom__main">{BottomPanel && <BottomPanel />}</div>
 						{isDebugMode && DebugPanel && <DebugPanel />}
 					</div>
 				</>
