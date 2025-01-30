@@ -17,7 +17,7 @@ const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/Logi
 export const tlaOverrideFlag = 'tla-override-flag'
 export const tlaProbablyLoggedInFlag = 'tla-probably-logged-in-flag'
 
-const isOverrideFlagSet = !!getFromLocalStorage(tlaOverrideFlag) || navigator.webdriver
+export const isOverrideFlagSet = !!getFromLocalStorage(tlaOverrideFlag) || navigator.webdriver
 const isProbablyLoggedIn = !!getFromLocalStorage(tlaProbablyLoggedInFlag)
 
 export function SetPreviewFlag(props: PropsWithChildren) {
@@ -83,6 +83,7 @@ export const tlaRoutes = (
 		<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
 			<Route path={ROUTES.tlaRoot} lazy={() => import('./tla/pages/local')} />
 			<Route element={<NoIndex />}>
+				<Route path={ROUTES.tlaNew} lazy={() => import('./pages/tla-new')} />
 				<Route path={ROUTES.tlaOptIn} lazy={() => import('./pages/tla-opt-in')} />
 				<Route path={ROUTES.tlaLocalFile} lazy={() => import('./tla/pages/local-file')} />
 				{/* <Route path={ROUTES.tlaPlayground} lazy={() => import('./tla/pages/playground')} /> */}

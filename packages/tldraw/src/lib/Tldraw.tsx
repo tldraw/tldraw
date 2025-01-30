@@ -177,10 +177,10 @@ export function Tldraw(props: TldrawProps) {
 
 // We put these hooks into a component here so that they can run inside of the context provided by TldrawEditor and TldrawUi.
 function InsideOfEditorAndUiContext({
-	maxImageDimension = 5000,
-	maxAssetSize = 10 * 1024 * 1024, // 10mb
-	acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
-	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
+	maxImageDimension,
+	maxAssetSize,
+	acceptedImageMimeTypes,
+	acceptedVideoMimeTypes,
 	onMount,
 }: TLExternalContentProps & {
 	onMount?: TLOnMountHandler
@@ -195,19 +195,14 @@ function InsideOfEditorAndUiContext({
 		unsubs.push(registerDefaultSideEffects(editor))
 
 		// for content handling, first we register the default handlers...
-		registerDefaultExternalContentHandlers(
-			editor,
-			{
-				maxImageDimension,
-				maxAssetSize,
-				acceptedImageMimeTypes,
-				acceptedVideoMimeTypes,
-			},
-			{
-				toasts,
-				msg,
-			}
-		)
+		registerDefaultExternalContentHandlers(editor, {
+			maxImageDimension,
+			maxAssetSize,
+			acceptedImageMimeTypes,
+			acceptedVideoMimeTypes,
+			toasts,
+			msg,
+		})
 
 		// ...then we call the store's on mount which may override them...
 		unsubs.push(editor.store.props.onMount(editor))

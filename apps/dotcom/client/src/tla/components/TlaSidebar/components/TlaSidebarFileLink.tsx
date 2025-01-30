@@ -145,7 +145,8 @@ export function TlaSidebarFileLinkInner({
 				onKeyDown={handleKeyDown}
 				onClick={(event) => {
 					// Don't navigate if we are already on the file page
-					if (isActive) {
+					// unless the user is holding ctrl or cmd to open in a new tab
+					if (isActive && !(event.ctrlKey || event.metaKey)) {
 						preventDefault(event)
 					}
 					trackEvent('click-file-link', { source: 'sidebar' })

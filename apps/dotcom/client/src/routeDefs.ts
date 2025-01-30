@@ -16,6 +16,7 @@ export const ROUTES = {
 	tlaOverride: '/q',
 
 	tlaRoot: `/`,
+	tlaNew: `/new`,
 	tlaFile: `/f/:fileSlug`,
 	tlaLocalFile: `/lf/:fileSlug`,
 	tlaPlayground: `/playground`,

@@ -125,6 +125,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private assertCache(): asserts this is { cache: UserDataSyncer } {
 		assert(this.cache, 'no cache')
+		this.cache.maybeStartInterval()
 	}
 
 	private readonly sockets = new Set<WebSocket>()
@@ -141,6 +142,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			) {
 				this.sockets.delete(socket)
 			}
+		}
+	}
+
+	maybeClose() {
+		if (this.sockets.size === 0) {
+			this.cache?.stopInterval()
 		}
 	}
 
@@ -173,10 +180,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		)
 		serverWebSocket.addEventListener('close', () => {
 			this.sockets.delete(serverWebSocket)
+			this.maybeClose()
 		})
 		serverWebSocket.addEventListener('error', (e) => {
 			this.captureException(e, { source: 'serverWebSocket "error" event' })
 			this.sockets.delete(serverWebSocket)
+			this.maybeClose()
 		})
 		const initialData = this.cache.store.getCommittedData()
 		assert(initialData, 'Initial data not fetched')
@@ -419,7 +428,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
 					)
 					this.log.debug('pushing mutation to cache', this.userId, mutationNumber)
-					this.cache.mutations.push({ mutationNumber, mutationId: msg.mutationId })
+					this.cache.mutations.push({
+						mutationNumber,
+						mutationId: msg.mutationId,
+						timestamp: Date.now(),
+					})
 				})
 				.catch((e) => {
 					this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== msg.mutationId)

@@ -13,7 +13,7 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
-import { usePromise } from '../../../hooks/usePromise'
+import { isOverrideFlagSet } from '../../../routes'
 import { getScratchPersistenceKey } from '../../../utils/scratch-persistence-key'
 import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
@@ -33,8 +33,7 @@ async function userHasSlurpableDocument() {
 	return numShapes > 0
 }
 
-function WelcomeDialog() {
-	const data = usePromise(userHasSlurpableDocument)
+function WelcomeDialog({ hasSlurpableDocument }: { hasSlurpableDocument: boolean }) {
 	const dialogs = useDialogs()
 	const editor = useEditor()
 
@@ -62,13 +61,15 @@ function WelcomeDialog() {
 		onDismiss()
 	}, [app, dialogs.addDialog, editor, fileId, onDismiss, remountImageShapes])
 
-	if (data.loading) return null
 	const file = app.getFile(fileId)
 	const isOwner = file && file.ownerId === app.getUser().id
-	const isEmpty = editor.store.allRecords().filter((r) => r.typeName === 'shape').length === 0
-	const offerSlurp = data.ok && data.value && isEmpty && isOwner
+	const isCurrentFileEmpty =
+		editor.store.allRecords().filter((r) => r.typeName === 'shape').length === 0
+	const offerSlurp = hasSlurpableDocument && isCurrentFileEmpty && isOwner
 
 	return (
+		// using `visibility: hidden` instead of `return null` when loading
+		// because radix dialog complains if we mount a dialog a title
 		<div>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle style={{ fontWeight: 700 }}>
@@ -126,12 +127,14 @@ export function PreviewWelcomeDialog() {
 	)
 
 	useEffect(() => {
-		if (shouldShowWelcomeDialog) {
-			dialogs.addDialog({
-				id: dialogId,
-				component: WelcomeDialog,
-				onClose,
-				preventBackgroundClose: true,
+		if (shouldShowWelcomeDialog && !isOverrideFlagSet) {
+			userHasSlurpableDocument().then((hasSlurpableDocument) => {
+				dialogs.addDialog({
+					id: dialogId,
+					component: () => <WelcomeDialog hasSlurpableDocument={hasSlurpableDocument} />,
+					onClose,
+					preventBackgroundClose: true,
+				})
 			})
 		}
 	}, [dialogs, onClose, shouldShowWelcomeDialog])

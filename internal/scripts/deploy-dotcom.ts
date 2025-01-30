@@ -252,6 +252,9 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 let didUpdateImageResizeWorker = false
 async function deployImageResizeWorker({ dryRun }: { dryRun: boolean }) {
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-image-optimizer`
+	const multiplayerServer = previewId
+		? `${previewId}-preview-deploy.tldraw.com`
+		: env.MULTIPLAYER_SERVER
 	if (previewId && !didUpdateImageResizeWorker) {
 		await setWranglerPreviewConfig(imageResize, {
 			name: workerId,
@@ -271,7 +274,7 @@ async function deployImageResizeWorker({ dryRun }: { dryRun: boolean }) {
 		vars: {
 			TLDRAW_ENV: env.TLDRAW_ENV,
 			WORKER_NAME: workerId,
-			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
+			MULTIPLAYER_SERVER: multiplayerServer,
 		},
 	})
 }
