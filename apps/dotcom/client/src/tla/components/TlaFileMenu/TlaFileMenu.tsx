@@ -117,6 +117,12 @@ function FileItems({
 		const file = app.getFile(fileId)
 		if (!file) return
 		const res = app.createFile({ id: newFileId, name: getDuplicateName(file, app) })
+		// copy the state too
+		const prevState = app.getFileState(fileId)
+		app.getOrCreateFileState(newFileId)
+		app.updateFileState(newFileId, {
+			lastSessionState: prevState?.lastSessionState,
+		})
 		if (res.ok) {
 			focusCtx.shouldRenameNextNewFile = true
 			navigate(routes.tlaFile(newFileId), {
