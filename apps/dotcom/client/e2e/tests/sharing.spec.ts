@@ -1,11 +1,10 @@
-import { sleep } from '@tldraw/utils'
 import fs from 'fs'
 import path from 'path'
 import { openNewTab } from '../fixtures/helpers'
 import { expect, test } from '../fixtures/tla-test'
 
 test.beforeEach(async ({ context }) => {
-	await Promise.race([context.grantPermissions(['clipboard-read', 'clipboard-write']), sleep(1000)])
+	await context.grantPermissions(['clipboard-read', 'clipboard-write'])
 })
 
 /* --------------------- Sharing -------------------- */
