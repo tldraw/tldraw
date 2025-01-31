@@ -268,13 +268,6 @@ export class TldrawApp {
 		// sort by date with most recent first
 		nextRecentFileOrdering.sort((a, b) => b.date - a.date)
 
-		// move pinned files to the top, stable sort
-		nextRecentFileOrdering.sort((a, b) => {
-			if (a.isPinned && !b.isPinned) return -1
-			if (!a.isPinned && b.isPinned) return 1
-			return 0
-		})
-
 		// stash the ordering for next time
 		this.lastRecentFileOrdering = nextRecentFileOrdering
 
