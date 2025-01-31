@@ -69,6 +69,11 @@ const router = createRouter<Environment>()
 			console.log('auth not found')
 			return notFound()
 		}
+
+		if (req.headers.get('upgrade') !== 'websocket') {
+			return notFound()
+		}
+
 		const stub = getUserDurableObject(env, auth.userId)
 		return stub.fetch(req)
 	})
