@@ -74,6 +74,7 @@ import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLScribble } from '@tldraw/tlschema';
 import { TLShape } from '@tldraw/tlschema';
+import { TLShapeCrop } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
@@ -746,6 +747,7 @@ export const defaultTldrawOptions: {
     readonly maxPointsPerDrawShape: 500;
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
+    readonly noteShapeResizeMode: "none";
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
 };
@@ -1168,8 +1170,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     // @internal (undocumented)
     externalAssetContentHandlers: {
-        [K in TLExternalAssetContent['type']]: {
-            [Key in K]: ((info: TLExternalAssetContent & {
+        [K in TLExternalAsset['type']]: {
+            [Key in K]: ((info: TLExternalAsset & {
                 type: Key;
             }) => Promise<TLAsset | undefined>) | null;
         }[K];
@@ -1192,7 +1194,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): this;
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
     getAsset<T extends TLAsset>(asset: T | T['id']): T | undefined;
-    getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
+    getAssetForExternalContent(info: TLExternalAsset): Promise<TLAsset | undefined>;
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     getBaseZoom(): number;
     getBinding(id: TLBindingId): TLBinding | undefined;
@@ -1353,7 +1355,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     }>): this;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
     // (undocumented)
-    hasExternalAssetHandler(type: TLExternalAssetContent['type']): boolean;
+    hasExternalAssetHandler(type: TLExternalAsset['type']): boolean;
+    hasShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): boolean;
+    // (undocumented)
+    hasShapeUtil<S extends TLUnknownShape>(type: S['type']): boolean;
+    // (undocumented)
+    hasShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): boolean;
     protected readonly history: HistoryManager<TLRecord>;
     inputs: {
         buttons: Set<number>;
@@ -1430,7 +1437,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     putExternalContent<E>(info: TLExternalContent<E>): Promise<void>;
     redo(): this;
     registerDeepLinkListener(opts?: TLDeepLinkOptions): () => void;
-    registerExternalAssetHandler<T extends TLExternalAssetContent['type']>(type: T, handler: ((info: TLExternalAssetContent & {
+    registerExternalAssetHandler<T extends TLExternalAsset['type']>(type: T, handler: ((info: TLExternalAsset & {
         type: T;
     }) => Promise<TLAsset>) | null): this;
     registerExternalContentHandler<T extends TLExternalContent<E>['type'], E>(type: T, handler: ((info: T extends TLExternalContent<E>['type'] ? TLExternalContent<E> & {
@@ -2401,6 +2408,17 @@ export interface ResizeBoxOptions {
     minWidth?: number;
 }
 
+// @public
+export function resizeScaled(shape: TLBaseShape<any, {
+    scale: number;
+}>, { initialBounds, scaleX, scaleY, newPoint, handle }: TLResizeInfo<any>): {
+    props: {
+        scale: number;
+    };
+    x: number;
+    y: number;
+};
+
 // @public (undocumented)
 export const ROTATE_CORNER_TO_SELECTION_CORNER: {
     readonly bottom_left_rotate: "bottom_left";
@@ -2523,6 +2541,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onBindingChange?(shape: Shape): TLShapePartial<Shape> | void;
     onChildrenChange?(shape: Shape): TLShapePartial[] | void;
     onClick?(shape: Shape): TLShapePartial<Shape> | void;
+    onCrop?(shape: Shape, info: TLCropInfo<Shape>): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void;
     onDoubleClick?(shape: Shape): TLShapePartial<Shape> | void;
     onDoubleClickEdge?(shape: Shape): TLShapePartial<Shape> | void;
     onDoubleClickHandle?(shape: Shape, handle: TLHandle): TLShapePartial<Shape> | void;
@@ -2843,6 +2862,14 @@ export interface TLBaseEventInfo {
 }
 
 // @public (undocumented)
+export interface TLBaseExternalContent {
+    // (undocumented)
+    point?: VecLike;
+    // (undocumented)
+    sources?: TLExternalContentSource[];
+}
+
+// @public (undocumented)
 export interface TLBindingUtilConstructor<T extends TLUnknownBinding, U extends BindingUtil<T> = BindingUtil<T>> {
     // (undocumented)
     new (editor: Editor): U;
@@ -2973,6 +3000,23 @@ export interface TLContent {
     schema: SerializedSchema;
     // (undocumented)
     shapes: TLShape[];
+}
+
+// @public
+export interface TLCropInfo<T extends TLShape> {
+    // (undocumented)
+    change: Vec;
+    // (undocumented)
+    crop: TLShapeCrop;
+    // (undocumented)
+    handle: SelectionHandle;
+    // (undocumented)
+    initialShape: T;
+    // (undocumented)
+    uncroppedSize: {
+        h: number;
+        w: number;
+    };
 }
 
 // @public (undocumented)
@@ -3133,6 +3177,7 @@ export interface TldrawOptions {
     readonly maxShapesPerPage: number;
     // (undocumented)
     readonly multiClickDurationMs: number;
+    readonly noteShapeResizeMode: 'none' | 'scale';
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;
@@ -3230,6 +3275,16 @@ export interface TLEditorSnapshot {
 }
 
 // @public (undocumented)
+export interface TLEmbedExternalContent<EmbedDefinition> extends TLBaseExternalContent {
+    // (undocumented)
+    embed: EmbedDefinition;
+    // (undocumented)
+    type: 'embed';
+    // (undocumented)
+    url: string;
+}
+
+// @public (undocumented)
 export type TLEnterEventHandler = (info: any, from: string) => void;
 
 // @public
@@ -3251,6 +3306,16 @@ export interface TLErrorBoundaryProps {
     fallback: TLErrorFallbackComponent;
     // (undocumented)
     onError?: ((error: unknown) => void) | null;
+}
+
+// @public (undocumented)
+export interface TLErrorExternalContentSource {
+    // (undocumented)
+    data: null | string;
+    // (undocumented)
+    reason: string;
+    // (undocumented)
+    type: 'error';
 }
 
 // @public (undocumented)
@@ -3303,6 +3368,8 @@ export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEvent
 // @public (undocumented)
 export interface TLEventMap {
     // (undocumented)
+    'before-event': [TLEventInfo];
+    // (undocumented)
     'max-shapes': [{
         count: number;
         name: string;
@@ -3341,60 +3408,47 @@ export type TLEventMapHandler<T extends keyof TLEventMap> = (...args: TLEventMap
 export type TLEventName = 'cancel' | 'complete' | 'interrupt' | 'tick' | 'wheel' | TLCLickEventName | TLKeyboardEventName | TLPinchEventName | TLPointerEventName;
 
 // @public (undocumented)
+export interface TLExcalidrawExternalContentSource {
+    // (undocumented)
+    data: any;
+    // (undocumented)
+    type: 'excalidraw';
+}
+
+// @public (undocumented)
 export type TLExitEventHandler = (info: any, to: string) => void;
 
 // @public (undocumented)
 export type TLExportType = 'jpeg' | 'png' | 'svg' | 'webp';
 
 // @public (undocumented)
-export type TLExternalAssetContent = {
+export type TLExternalAsset = TLFileExternalAsset | TLUrlExternalAsset;
+
+// @public (undocumented)
+export type TLExternalContent<EmbedDefinition> = TLEmbedExternalContent<EmbedDefinition> | TLFilesExternalContent | TLSvgTextExternalContent | TLTextExternalContent | TLUrlExternalContent;
+
+// @public (undocumented)
+export type TLExternalContentSource = TLErrorExternalContentSource | TLExcalidrawExternalContentSource | TLTextExternalContentSource | TLTldrawExternalContentSource;
+
+// @public (undocumented)
+export interface TLFileExternalAsset {
+    // (undocumented)
     assetId?: TLAssetId;
+    // (undocumented)
     file: File;
+    // (undocumented)
     type: 'file';
-} | {
-    type: 'url';
-    url: string;
-};
+}
 
 // @public (undocumented)
-export type TLExternalContent<EmbedDefinition> = {
-    point?: VecLike;
-    sources?: TLExternalContentSource[];
-} & ({
-    embed: EmbedDefinition;
-    type: 'embed';
-    url: string;
-} | {
+export interface TLFilesExternalContent extends TLBaseExternalContent {
+    // (undocumented)
     files: File[];
+    // (undocumented)
     ignoreParent: boolean;
+    // (undocumented)
     type: 'files';
-} | {
-    text: string;
-    type: 'svg-text';
-} | {
-    text: string;
-    type: 'text';
-} | {
-    type: 'url';
-    url: string;
-});
-
-// @public (undocumented)
-export type TLExternalContentSource = {
-    data: any;
-    type: 'excalidraw';
-} | {
-    data: null | string;
-    reason: string;
-    type: 'error';
-} | {
-    data: string;
-    subtype: 'html' | 'json' | 'text' | 'url';
-    type: 'text';
-} | {
-    data: TLContent;
-    type: 'tldraw';
-};
+}
 
 // @public (undocumented)
 export interface TLGridProps {
@@ -3875,6 +3929,32 @@ export interface TLSvgExportOptions {
 export type TLSvgOptions = TLImageExportOptions;
 
 // @public (undocumented)
+export interface TLSvgTextExternalContent extends TLBaseExternalContent {
+    // (undocumented)
+    text: string;
+    // (undocumented)
+    type: 'svg-text';
+}
+
+// @public (undocumented)
+export interface TLTextExternalContent extends TLBaseExternalContent {
+    // (undocumented)
+    text: string;
+    // (undocumented)
+    type: 'text';
+}
+
+// @public (undocumented)
+export interface TLTextExternalContentSource {
+    // (undocumented)
+    data: string;
+    // (undocumented)
+    subtype: 'html' | 'json' | 'text' | 'url';
+    // (undocumented)
+    type: 'text';
+}
+
+// @public (undocumented)
 export type TLTickEvent = (info: TLTickEventInfo) => void;
 
 // @public (undocumented)
@@ -3889,6 +3969,30 @@ export interface TLTickEventInfo {
 
 // @public
 export const tltime: Timers;
+
+// @public (undocumented)
+export interface TLTldrawExternalContentSource {
+    // (undocumented)
+    data: TLContent;
+    // (undocumented)
+    type: 'tldraw';
+}
+
+// @public (undocumented)
+export interface TLUrlExternalAsset {
+    // (undocumented)
+    type: 'url';
+    // (undocumented)
+    url: string;
+}
+
+// @public (undocumented)
+export interface TLUrlExternalContent extends TLBaseExternalContent {
+    // (undocumented)
+    type: 'url';
+    // (undocumented)
+    url: string;
+}
 
 // @public (undocumented)
 export interface TLUser {

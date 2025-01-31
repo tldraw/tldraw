@@ -131,34 +131,34 @@
 	},
 	"devDependencies": {
 		"@tldraw/editor": "workspace:*",
-		"@types/fs-extra": "^11.0.1",
-		"@types/node-fetch": "^2.6.2",
-		"@types/vscode": "^1.75.1",
-		"@typescript-eslint/eslint-plugin": "^8.11.0",
-		"@typescript-eslint/parser": "^8.11.0",
-		"assert": "^2.0.0",
-		"esbuild": "^0.21.5",
-		"eslint": "^9.13.0",
-		"fs-extra": "^11.1.0",
+		"@types/fs-extra": "^11.0.4",
+		"@types/node-fetch": "^2.6.12",
+		"@types/vscode": "^1.96.0",
+		"@typescript-eslint/eslint-plugin": "^8.21.0",
+		"@typescript-eslint/parser": "^8.21.0",
+		"assert": "^2.1.0",
+		"esbuild": "^0.24.2",
+		"eslint": "^9.19.0",
+		"fs-extra": "^11.3.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",
-		"mocha": "^9.1.1",
+		"mocha": "^9.2.2",
 		"process": "^0.11.10",
 		"tldraw": "workspace:*",
-		"ts-loader": "^9.2.5",
-		"tslib": "^2.6.2",
+		"ts-loader": "^9.5.2",
+		"tslib": "^2.8.1",
 		"tsx": "^4.19.2",
-		"typescript": "~5.4.2",
+		"typescript": "~5.4.5",
 		"vsce": "^2.15.0",
-		"webpack": "^5.0.0"
+		"webpack": "^5.97.1"
 	},
 	"gitHead": "4b1137849ad07da36fc8f0f19cb64e7535a79296",
 	"dependencies": {
-		"cheerio": "^1.0.0-rc.12",
-		"node-fetch": "^2.0.0"
+		"cheerio": "^1.0.0",
+		"node-fetch": "^2.7.0"
 	},
 	"peerDependencies": {
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0"
+		"react": "^18.2.0 || ^19.0.0",
+		"react-dom": "^18.2.0 || ^19.0.0"
 	}
 }

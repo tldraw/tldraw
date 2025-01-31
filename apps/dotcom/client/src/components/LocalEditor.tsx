@@ -41,23 +41,36 @@ import { LegacyLinks } from './Links'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
+import { PreviewBlueDot, PreviewMenuItem } from './preview-stuff'
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
 	MainMenu: () => (
-		<DefaultMainMenu>
-			<TldrawUiMenuGroup id="basic">
-				<LocalFileMenu />
-				<EditSubmenu />
-				<ViewSubmenu />
-				<ExportFileContentSubMenu />
-				<ExtrasGroup />
-			</TldrawUiMenuGroup>
-			<PreferencesGroup />
-			<LegacyLinks />
-		</DefaultMainMenu>
+		<>
+			<DefaultMainMenu>
+				<PreviewMenuItem />
+				<TldrawUiMenuGroup id="basic">
+					<LocalFileMenu />
+					<EditSubmenu />
+					<ViewSubmenu />
+					<ExportFileContentSubMenu />
+					<ExtrasGroup />
+				</TldrawUiMenuGroup>
+				<PreferencesGroup />
+				<LegacyLinks />
+			</DefaultMainMenu>
+			<PreviewBlueDot
+				style={{
+					position: 'absolute',
+					borderColor: 'var(--color-panel)',
+					top: 10,
+					left: 24,
+					zIndex: 1000,
+				}}
+			/>
+		</>
 	),
 	KeyboardShortcutsDialog: (props) => {
 		return (

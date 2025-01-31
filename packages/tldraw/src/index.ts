@@ -41,10 +41,21 @@ export {
 	type TLEmbedShapePermissions,
 } from './lib/defaultEmbedDefinitions'
 export {
+	DEFAULT_MAX_ASSET_SIZE,
+	DEFAULT_MAX_IMAGE_DIMENSION,
 	centerSelectionAroundPoint,
-	getMediaAssetInfoPartial as createMediaAssetInfoSkeleton,
+	createEmptyBookmarkShape,
 	createShapesForAssets,
+	defaultHandleExternalEmbedContent,
+	defaultHandleExternalFileAsset,
+	defaultHandleExternalFileContent,
+	defaultHandleExternalSvgTextContent,
+	defaultHandleExternalTextContent,
+	defaultHandleExternalUrlAsset,
+	defaultHandleExternalUrlContent,
+	getMediaAssetInfoPartial,
 	registerDefaultExternalContentHandlers,
+	type TLDefaultExternalContentHandlerOpts,
 	type TLExternalContentProps,
 } from './lib/defaultExternalContentHandlers'
 export { defaultShapeTools } from './lib/defaultShapeTools'
@@ -75,6 +86,12 @@ export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
 export { TextLabel, type TextLabelProps } from './lib/shapes/shared/TextLabel'
+export {
+	getCropBox,
+	getDefaultCrop,
+	getUncroppedSize,
+	type CropBoxOptions,
+} from './lib/shapes/shared/crop'
 export {
 	ARROW_LABEL_FONT_SIZES,
 	FONT_FAMILIES,

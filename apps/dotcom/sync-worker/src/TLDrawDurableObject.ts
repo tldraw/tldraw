@@ -248,7 +248,7 @@ export class TLDrawDurableObject extends DurableObject {
 		)
 		const isApp = new URL(req.url).pathname.startsWith('/app/')
 		const appMode = isApp
-			? (new URL(req.url).searchParams.get('mode') as TlaFileOpenMode) ?? null
+			? ((new URL(req.url).searchParams.get('mode') as TlaFileOpenMode) ?? null)
 			: null
 
 		const duplicateId = isApp ? new URL(req.url).searchParams.get('duplicateId') : null

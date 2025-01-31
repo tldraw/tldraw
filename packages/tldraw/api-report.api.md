@@ -43,6 +43,7 @@ import { RecursivePartial } from '@tldraw/editor';
 import { Result } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
+import { ShapeWithCrop } from '@tldraw/editor';
 import { SharedStyle } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
 import { StyleProp } from '@tldraw/editor';
@@ -56,9 +57,11 @@ import { TLArrowShapeArrowheadStyle } from '@tldraw/editor';
 import { TLArrowShapeProps } from '@tldraw/editor';
 import { TLAsset } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
+import { TLBookmarkAsset } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLBookmarkShapeProps } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
+import { TLCropInfo } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
 import { TLDefaultColorThemeColor } from '@tldraw/editor';
 import { TLDefaultFillStyle } from '@tldraw/editor';
@@ -76,6 +79,7 @@ import { TLEditorSnapshot } from '@tldraw/editor';
 import { TLEmbedShape } from '@tldraw/editor';
 import { TLEmbedShapeProps } from '@tldraw/editor';
 import { TLExportType } from '@tldraw/editor';
+import { TLFileExternalAsset } from '@tldraw/editor';
 import { TLFrameShape } from '@tldraw/editor';
 import { TLFrameShapeProps } from '@tldraw/editor';
 import { TLGeoShape } from '@tldraw/editor';
@@ -104,6 +108,7 @@ import { TLScribbleProps } from '@tldraw/editor';
 import { TLSelectionBackgroundProps } from '@tldraw/editor';
 import { TLSelectionForegroundProps } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';
+import { TLShapeCrop } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
 import { TLShapePartial } from '@tldraw/editor';
 import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
@@ -112,6 +117,7 @@ import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
+import { TLUrlExternalAsset } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
@@ -422,10 +428,18 @@ export interface CopyAsOptions extends TLImageExportOptions {
 export function CopyMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function createMediaAssetInfoSkeleton(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean): Promise<TLImageAsset | TLVideoAsset>;
+export function createEmptyBookmarkShape(editor: Editor, url: string, position: VecLike): TLBookmarkShape;
 
 // @public
 export function createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike): Promise<TLShapeId[]>;
+
+// @public (undocumented)
+export interface CropBoxOptions {
+    // (undocumented)
+    minHeight?: number;
+    // (undocumented)
+    minWidth?: number;
+}
 
 // @public (undocumented)
 export function CursorChatItem(): JSX_2.Element | null;
@@ -643,6 +657,12 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 700;
 }];
 
+// @public
+export const DEFAULT_MAX_ASSET_SIZE: number;
+
+// @public
+export const DEFAULT_MAX_IMAGE_DIMENSION = 5000;
+
 // @public (undocumented)
 export const DefaultActionsMenu: NamedExoticComponent<TLUiActionsMenuProps>;
 
@@ -674,6 +694,43 @@ export let defaultEditorAssetUrls: TLEditorAssetUrls;
 
 // @public (undocumented)
 export type DefaultEmbedDefinitionType = (typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'];
+
+// @public (undocumented)
+export function defaultHandleExternalEmbedContent<T>(editor: Editor, { point, url, embed }: {
+    embed: T;
+    point?: VecLike;
+    url: string;
+}): void;
+
+// @public (undocumented)
+export function defaultHandleExternalFileAsset(editor: Editor, { file, assetId }: TLFileExternalAsset, { acceptedImageMimeTypes, acceptedVideoMimeTypes, maxAssetSize, maxImageDimension, toasts, msg, }: TLDefaultExternalContentHandlerOpts): Promise<TLAsset>;
+
+// @public (undocumented)
+export function defaultHandleExternalFileContent(editor: Editor, { point, files }: {
+    files: File[];
+    point?: VecLike;
+}, { maxAssetSize, acceptedImageMimeTypes, acceptedVideoMimeTypes, toasts, msg, }: TLDefaultExternalContentHandlerOpts): Promise<void>;
+
+// @public (undocumented)
+export function defaultHandleExternalSvgTextContent(editor: Editor, { point, text }: {
+    point?: VecLike;
+    text: string;
+}): Promise<void>;
+
+// @public (undocumented)
+export function defaultHandleExternalTextContent(editor: Editor, { point, text }: {
+    point?: VecLike;
+    text: string;
+}): Promise<void>;
+
+// @public (undocumented)
+export function defaultHandleExternalUrlAsset(editor: Editor, { url }: TLUrlExternalAsset, { toasts, msg }: TLDefaultExternalContentHandlerOpts): Promise<TLBookmarkAsset>;
+
+// @public (undocumented)
+export function defaultHandleExternalUrlContent(editor: Editor, { point, url }: {
+    point?: VecLike;
+    url: string;
+}, { toasts, msg }: TLDefaultExternalContentHandlerOpts): Promise<void>;
 
 // @public (undocumented)
 export function DefaultHelperButtons({ children }: TLUiHelperButtonsProps): JSX_2.Element;
@@ -1238,11 +1295,44 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
     start: Vec;
 };
 
+// @public (undocumented)
+export function getCropBox<T extends ShapeWithCrop>(shape: T, info: TLCropInfo<T>, opts?: CropBoxOptions): {
+    id: TLShapeId;
+    props: ShapeWithCrop['props'];
+    type: T['type'];
+    x: number;
+    y: number;
+} | undefined;
+
+// @public (undocumented)
+export function getDefaultCrop(): {
+    bottomRight: {
+        x: number;
+        y: number;
+    };
+    topLeft: {
+        x: number;
+        y: number;
+    };
+};
+
 // @public
 export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string): TLEmbedResult;
 
 // @public (undocumented)
+export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean): Promise<TLImageAsset | TLVideoAsset>;
+
+// @public (undocumented)
 export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];
+
+// @public
+export function getUncroppedSize(shapeSize: {
+    h: number;
+    w: number;
+}, crop: null | TLShapeCrop): {
+    h: number;
+    w: number;
+};
 
 // @public (undocumented)
 export function GroupMenuItem(): JSX_2.Element | null;
@@ -1525,6 +1615,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     indicator(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
+    isAspectRatioLocked(): boolean;
+    // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
     onBeforeCreate(next: TLNoteShape): {
@@ -1582,6 +1674,14 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     } | undefined;
     // (undocumented)
     onEditEnd(shape: TLNoteShape): void;
+    // (undocumented)
+    onResize(shape: any, info: TLResizeInfo<any>): {
+        props: {
+            scale: number;
+        };
+        x: number;
+        y: number;
+    } | undefined;
     // (undocumented)
     static props: RecordProps<TLNoteShape>;
     // (undocumented)
@@ -1700,10 +1800,7 @@ export function PrintItem(): JSX_2.Element;
 export function RectangleToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function registerDefaultExternalContentHandlers(editor: Editor, { maxImageDimension, maxAssetSize, acceptedImageMimeTypes, acceptedVideoMimeTypes, }: Required<TLExternalContentProps>, { toasts, msg }: {
-    msg: ReturnType<typeof useTranslation>;
-    toasts: TLUiToastsContextType;
-}): void;
+export function registerDefaultExternalContentHandlers(editor: Editor, options: TLDefaultExternalContentHandlerOpts): void;
 
 // @public (undocumented)
 export function registerDefaultSideEffects(editor: Editor): () => void;
@@ -2009,6 +2106,14 @@ export interface TLComponents extends TLEditorComponents, TLUiComponents {
 
 // @public (undocumented)
 export type TLCopyType = 'png' | 'svg';
+
+// @public (undocumented)
+export interface TLDefaultExternalContentHandlerOpts extends TLExternalContentProps {
+    // (undocumented)
+    msg: ReturnType<typeof useTranslation>;
+    // (undocumented)
+    toasts: TLUiToastsContextType;
+}
 
 // @public (undocumented)
 export function Tldraw(props: TldrawProps): JSX_2.Element;

@@ -31,7 +31,7 @@
 
 .tla-theme__light {
 	--tla-color-sidebar: hsl(0, 0%, 99%);
-	--tla-color-tooltip: hsla(200, 14%, 4%, 0.838);
+	--tla-color-tooltip: hsla(200, 14%, 4%, 1);
 	--tla-color-canvas: hsl(210, 20%, 98%);
 	--tla-color-panel: hsl(0, 0%, 100%);
 	--tla-color-text-1: hsl(204, 8%, 5%);
