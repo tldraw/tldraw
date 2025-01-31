@@ -651,11 +651,16 @@ export class TLDrawDurableObject extends DurableObject {
 
 				// Update the updatedAt timestamp in the database
 				if (this.documentInfo.isApp) {
-					await this.db
+					// don't await on this because otherwise
+					// if this logic is invoked during another db transaction
+					// (e.g. when publishing a file)
+					// that transaction will deadlock
+					this.db
 						.updateTable('file')
 						.set({ updatedAt: new Date().getTime() })
 						.where('id', '=', this.documentInfo.slug)
 						.execute()
+						.catch((e) => this.reportError(e))
 				}
 			})
 		} catch (e) {
