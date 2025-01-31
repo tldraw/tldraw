@@ -39,6 +39,7 @@ import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { createSupabaseClient } from './utils/createSupabaseClient'
+import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
@@ -518,17 +519,10 @@ export class TLDrawDurableObject extends DurableObject {
 			if (this.documentInfo.appMode === 'duplicate') {
 				assert(this.documentInfo.duplicateId, 'duplicateId must be present')
 				// load the duplicate id
-				let data: string | undefined = undefined
-				try {
-					const otherRoom = this.env.TLDR_DOC.get(
-						this.env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${this.documentInfo.duplicateId}`)
-					) as any as TLDrawDurableObject
-					data = await otherRoom.getCurrentSerializedSnapshot()
-				} catch (_e) {
-					data = await this.r2.rooms
-						.get(getR2KeyForRoom({ slug: this.documentInfo.duplicateId, isApp: true }))
-						.then((r) => r?.text())
-				}
+				await getRoomDurableObject(this.env, this.documentInfo.duplicateId).awaitPersist()
+				const data = await this.r2.rooms
+					.get(getR2KeyForRoom({ slug: this.documentInfo.duplicateId, isApp: true }))
+					.then((r) => r?.text())
 
 				if (!data) {
 					return { type: 'room_not_found' }
@@ -657,11 +651,16 @@ export class TLDrawDurableObject extends DurableObject {
 
 				// Update the updatedAt timestamp in the database
 				if (this.documentInfo.isApp) {
-					await this.db
+					// don't await on this because otherwise
+					// if this logic is invoked during another db transaction
+					// (e.g. when publishing a file)
+					// that transaction will deadlock
+					this.db
 						.updateTable('file')
 						.set({ updatedAt: new Date().getTime() })
 						.where('id', '=', this.documentInfo.slug)
 						.execute()
+						.catch((e) => this.reportError(e))
 				}
 			})
 		} catch (e) {
@@ -769,8 +768,8 @@ export class TLDrawDurableObject extends DurableObject {
 	/**
 	 * @internal
 	 */
-	async getCurrentSerializedSnapshot() {
-		const room = await this.getRoom()
-		return room.getCurrentSerializedSnapshot()
+	async awaitPersist() {
+		if (!this._documentInfo) return
+		await this.persistToDatabase()
 	}
 }

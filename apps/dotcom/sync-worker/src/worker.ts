@@ -69,6 +69,11 @@ const router = createRouter<Environment>()
 			console.log('auth not found')
 			return notFound()
 		}
+
+		if (req.headers.get('upgrade')?.toLowerCase() !== 'websocket') {
+			return notFound()
+		}
+
 		const stub = getUserDurableObject(env, auth.userId)
 		return stub.fetch(req)
 	})
@@ -98,7 +103,7 @@ const router = createRouter<Environment>()
 	.get('/app/__debug-tail', (req, env) => {
 		if (isDebugLogging(env)) {
 			// upgrade to websocket
-			if (req.headers.get('upgrade') === 'websocket') {
+			if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
 				return getLogger(env).fetch(req)
 			}
 		}
