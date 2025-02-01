@@ -95,6 +95,8 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 	}, [onDomUpdate])
 
 	useEffect(() => {
+		if (!editor.options.enableToolbarKeyboardShortcuts) return
+
 		const keys = [
 			['1', 0],
 			['2', 1],
