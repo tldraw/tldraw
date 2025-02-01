@@ -467,7 +467,6 @@ export {
 } from './lib/ui/context/toasts'
 export { useCanRedo, useCanUndo } from './lib/ui/hooks/menu-hooks'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
-export { useContextualToolbarPosition } from './lib/ui/hooks/useContextualToolbarPosition'
 export { useCopyAs } from './lib/ui/hooks/useCopyAs'
 export { useExportAs } from './lib/ui/hooks/useExportAs'
 export { useCollaborationStatus, useShowCollaborationUi } from './lib/ui/hooks/useIsMultiplayer'

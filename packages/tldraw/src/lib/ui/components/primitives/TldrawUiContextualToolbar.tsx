@@ -1,5 +1,4 @@
 import {
-	VecLike,
 	stopEventPropagation,
 	usePassThroughMouseOverEvents,
 	usePassThroughWheelEvents,
@@ -11,9 +10,6 @@ import React, { RefObject } from 'react'
 export interface TLUiContextualToolbarProps {
 	children?: React.ReactNode
 	className?: string
-	position?: VecLike
-	hideIndicator?: boolean
-	indicatorOffset?: number
 }
 
 /**
@@ -25,34 +21,17 @@ export interface TLUiContextualToolbarProps {
 export const TldrawUiContextualToolbar = React.forwardRef<
 	HTMLDivElement,
 	TLUiContextualToolbarProps
->(function TldrawUiContextualToolbar(
-	{
-		children,
-		className,
-		position = { x: -1000, y: -1000 },
-		hideIndicator = false,
-		indicatorOffset = 0,
-	},
-	toolbarRef
-) {
+>(function TldrawUiContextualToolbar({ children, className }, toolbarRef) {
 	usePassThroughWheelEvents(toolbarRef as RefObject<HTMLDivElement>)
 	usePassThroughMouseOverEvents(toolbarRef as RefObject<HTMLDivElement>)
 
 	return (
 		<div
 			ref={toolbarRef}
+			data-testid="contextual-toolbar"
 			className={classNames('tl-contextual-toolbar', className)}
-			style={{
-				transform: `translate(${position.x}px, ${position.y}px)`,
-			}}
 			onPointerDown={stopEventPropagation}
 		>
-			{!hideIndicator && (
-				<div
-					className="tl-contextual-toolbar__indicator"
-					style={{ left: `calc(50% - var(--arrow-size) - ${indicatorOffset}px)` }}
-				/>
-			)}
 			<div className="tlui-toolbar__tools" role="radiogroup">
 				{children}
 			</div>

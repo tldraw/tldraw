@@ -7,6 +7,8 @@ import {
 	TLDefaultVerticalAlignStyle,
 	TLRichText,
 	TLShapeId,
+	preventDefault,
+	stopEventPropagation,
 	useEditor,
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
@@ -85,8 +87,8 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	const handlePointerDownCapture = (e: React.PointerEvent<HTMLDivElement>) => {
 		// Allow links to be clicked upon.
 		if (e.target instanceof HTMLElement && e.target.tagName === 'A') {
-			e.preventDefault()
-			e.stopPropagation()
+			preventDefault(e)
+			stopEventPropagation(e)
 		}
 	}
 
@@ -125,6 +127,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 					{richText && (
 						<div
 							className="tl-rich-text-tiptap"
+							// todo: see if I can abuse this
 							dangerouslySetInnerHTML={{ __html: html || '' }}
 							onPointerDownCapture={handlePointerDownCapture}
 						/>

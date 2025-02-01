@@ -959,10 +959,12 @@ input,
 .tl-rich-text-tiptap mark {
 	text-shadow: none;
 	background-color: #fddd00;
+	color: currentColor;
 }
 
 .tl-theme__dark .tl-rich-text-tiptap mark {
 	background-color: #d2b700;
+	color: currentColor;
 }
 
 @supports (color: color(display-p3 1 1 1)) {

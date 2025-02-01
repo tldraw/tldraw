@@ -936,16 +936,10 @@
 }
 
 /**
- * N.B. We don't want the toolbar to be clickable when "mousing down", i.e. selecting text
- * because when hovering over the toolbar in the midst of selecting, the selection goes all wonky.
+ * N.B. We hide the toolbar while mousing down, so no need to turn these off.
  */
 .tl-contextual-toolbar,
 .tl-contextual-toolbar * {
-	pointer-events: none;
-}
-
-.tl-contextual-toolbar[data-is-mousing-down='false'],
-.tl-contextual-toolbar[data-is-mousing-down='false'] * {
 	pointer-events: all;
 }
 
@@ -970,6 +964,21 @@
 	.tl-contextual-toolbar .tl-contextual-toolbar__indicator {
 		display: none;
 	}
+}
+
+.tl-rich-text__toolbar {
+	opacity: 1;
+	pointer-events: all;
+	transition:
+		top 0.12s ease-in-out,
+		opacity 0.12s ease-in-out;
+	top: 0px;
+}
+
+.tl-rich-text__toolbar__hidden {
+	pointer-events: none;
+	opacity: 0;
+	top: 2px;
 }
 
 .tl-rich-text__toolbar-link-input {
