@@ -1,6 +1,5 @@
 import { preventDefault, useEditor, useEvent, useUniqueSafeId } from '@tldraw/editor'
 import classNames from 'classnames'
-import hotkeys from 'hotkeys-js'
 import { createContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
@@ -18,6 +17,19 @@ import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuCon
 
 export const IsInOverflowContext = createContext(false)
 
+const KEYS = [
+	['1', 0],
+	['2', 1],
+	['3', 2],
+	['4', 3],
+	['5', 4],
+	['6', 5],
+	['7', 6],
+	['8', 7],
+	['9', 8],
+	['0', 9],
+] as const
+
 /** @public */
 export interface OverflowingToolbarProps {
 	children: React.ReactNode
@@ -29,6 +41,7 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 	const id = useUniqueSafeId()
 	const breakpoint = useBreakpoint()
 	const msg = useTranslation()
+	const rButtons = useRef<HTMLElement[]>([])
 
 	const overflowIndex = Math.min(8, 5 + breakpoint)
 
@@ -73,6 +86,20 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 		if (activeElementIdx >= overflowIndex) {
 			setLastActiveOverflowItem(children[activeElementIdx].getAttribute('data-value'))
 		}
+
+		// Save the buttons that are actually visible
+		rButtons.current = Array.from(mainToolsRef.current?.children ?? []).filter(
+			(el): el is HTMLElement => {
+				// only count html elements...
+				if (!(el instanceof HTMLElement)) return false
+
+				// ...that are buttons...
+				if (el.tagName.toLowerCase() !== 'button') return false
+
+				// ...that are actually visible
+				return !!(el.offsetWidth || el.offsetHeight)
+			}
+		)
 	})
 
 	useLayoutEffect(() => {
@@ -97,44 +124,20 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 	useEffect(() => {
 		if (!editor.options.enableToolbarKeyboardShortcuts) return
 
-		const keys = [
-			['1', 0],
-			['2', 1],
-			['3', 2],
-			['4', 3],
-			['5', 4],
-			['6', 5],
-			['7', 6],
-			['8', 7],
-			['9', 8],
-			['0', 9],
-		] as const
-
-		for (const [key, index] of keys) {
-			hotkeys(key, (event) => {
-				if (areShortcutsDisabled(editor)) return
+		function handleKeyDown(event: KeyboardEvent) {
+			if (areShortcutsDisabled(editor)) return
+			for (const [key, index] of KEYS) {
 				preventDefault(event)
-
-				const relevantEls = Array.from(mainToolsRef.current?.children ?? []).filter(
-					(el): el is HTMLElement => {
-						// only count html elements...
-						if (!(el instanceof HTMLElement)) return false
-
-						// ...that are buttons...
-						if (el.tagName.toLowerCase() !== 'button') return false
-
-						// ...that are actually visible
-						return !!(el.offsetWidth || el.offsetHeight)
-					}
-				)
-
-				const el = relevantEls[index]
-				if (el) el.click()
-			})
+				if (event.key === key) {
+					rButtons.current[index]?.click()
+					return
+				}
+			}
 		}
 
+		document.addEventListener('keydown', handleKeyDown)
 		return () => {
-			hotkeys.unbind('1,2,3,4,5,6,7,8,9,0')
+			document.removeEventListener('keydown', handleKeyDown)
 		}
 	}, [editor])
 
