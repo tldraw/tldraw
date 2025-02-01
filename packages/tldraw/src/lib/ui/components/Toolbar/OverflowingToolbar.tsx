@@ -126,6 +126,8 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 
 		function handleKeyDown(event: KeyboardEvent) {
 			if (areShortcutsDisabled(editor)) return
+			// no accelerator keys
+			if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return
 			for (const [key, index] of KEYS) {
 				preventDefault(event)
 				if (event.key === key) {
