@@ -1,21 +1,24 @@
 import { Locator, Page, expect } from '@playwright/test'
 
 export class RichTextToolbar {
+	container: Locator
 	readonly tools: { [key: string]: Locator }
 
 	constructor(public readonly page: Page) {
-		this.page = page
+		this.container = this.page.getByTestId('contextual-toolbar')
 		this.tools = {
 			bold: this.page.getByTestId('rich-text.bold'),
-			strike: this.page.getByTestId('rich-text.strike'),
-			highlight: this.page.getByTestId('rich-text.highlight'),
+			italic: this.page.getByTestId('rich-text.italic'),
 			code: this.page.getByTestId('rich-text.code'),
+			strike: this.page.getByTestId('rich-text.strike'),
 			link: this.page.getByTestId('rich-text.link'),
+			bulletList: this.page.getByTestId('rich-text.bulletList'),
+			highlight: this.page.getByTestId('rich-text.highlight'),
 			linkRemove: this.page.getByTestId('rich-text.link-remove'),
 			heading: this.page.getByTestId('rich-text.heading'),
-			bulletList: this.page.getByTestId('rich-text.bulletList'),
 		}
 	}
+
 	async clickTool(tool: Locator) {
 		await tool.click()
 	}

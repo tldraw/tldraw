@@ -1,15 +1,16 @@
 import { EditorView } from '@tiptap/pm/view'
-import { EditorEvents, EditorProvider, JSONContent } from '@tiptap/react'
+import { EditorEvents, EditorProvider, JSONContent, type Editor as TTEditor } from '@tiptap/react'
 import {
 	Editor,
 	TLRichText,
 	TLShapeId,
 	preventDefault,
 	stopEventPropagation,
+	tlenv,
 	useEditor,
 	useUniqueSafeId,
 } from '@tldraw/editor'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 /** @public */
 export interface TextAreaProps {
@@ -38,14 +39,14 @@ export interface TextAreaProps {
  *
  * @public @react
  */
-export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(function TextArea(
+export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(function RichTextArea(
 	{
 		shapeId,
 		isEditing,
 		richText,
 		handleFocus,
 		handleChange,
-		handleBlur,
+		handleBlur: _handleBlur,
 		handleKeyDown,
 		// TODO: need to handle this still?
 		// handleInputPointerDown,
@@ -53,48 +54,62 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 	},
 	ref
 ) {
-	const tipTapId = useUniqueSafeId('tip-tap-editor')
 	const editor = useEditor()
+	const tipTapId = useUniqueSafeId('tip-tap-editor')
 	const tipTapConfig = editor.getTextOptions().tipTapConfig
 	const [shouldSelectAllOnCreate, setShouldSelectAllOnCreate] = useState(false)
 	const [initialPositionOnCreate, setInitialPositionOnCreate] = useState(
 		null as { x: number; y: number } | null
 	)
 
-	const handleCreate = (props: EditorEvents['create']) => {
-		if (editor.getEditingShapeId() !== shapeId) return
+	const rTextEditor = useRef<TTEditor | null>(null)
 
-		const textEditor = props.editor
-		editor.setEditingShapeTipTapTextEditor(textEditor)
+	const handleCreate = useCallback(
+		(props: EditorEvents['create']) => {
+			if (editor.getEditingShapeId() !== shapeId) return
 
-		// Either we select-all the text upon creation if desired.
-		if (shouldSelectAllOnCreate) {
-			textEditor.chain().focus().selectAll().run()
-		} else if (initialPositionOnCreate) {
-			// Or, we place the caret at the intended clicked position, if
-			// there was any (one could have also entered into editing
-			// via Enter on the keyboard).
-			const pos = textEditor.view.posAtCoords({
-				left: initialPositionOnCreate.x,
-				top: initialPositionOnCreate.y,
-			})?.pos
+			const textEditor = props.editor
+			editor.setEditingShapeTipTapTextEditor(textEditor)
+			rTextEditor.current = textEditor
 
-			if (pos) {
-				// Focus to that position.
-				textEditor.chain().focus().setTextSelection(pos).run()
+			// Either we select-all the text upon creation if desired.
+			if (shouldSelectAllOnCreate) {
+				textEditor.chain().focus().selectAll().run()
+				setShouldSelectAllOnCreate(false)
+			} else if (initialPositionOnCreate) {
+				// Or, we place the caret at the intended clicked position, if
+				// there was any (one could have also entered into editing
+				// via Enter on the keyboard).
+				const pos = textEditor.view.posAtCoords({
+					left: initialPositionOnCreate.x,
+					top: initialPositionOnCreate.y,
+				})?.pos
+
+				if (pos) {
+					// Focus to that position.
+					textEditor.chain().focus().setTextSelection(pos).run()
+				} else {
+					// Default to just focusing to the end of the editor content.
+					textEditor.commands.focus('end')
+				}
+				setInitialPositionOnCreate(null)
 			} else {
-				// Default to just focusing to the end of the editor content.
-				textEditor.commands.focus('end')
+				// XXX: I don't love this. The setTimeout is because when creating a brand new shape
+				// and double-clicking into it quickly to edit it, there's some kind of race condition
+				// happening where the editor doesn't focus properly.
+				editor.timers.setTimeout(() => textEditor.commands.focus('end'), 100)
 			}
-		} else {
-			// XXX: I don't love this. The setTimeout is because when creating a brand new shape
-			// and double-clicking into it quickly to edit it, there's some kind of race condition
-			// happening where the editor doesn't focus properly.
-			editor.timers.setTimeout(() => textEditor.commands.focus('end'), 100)
-		}
-	}
+		},
+		[editor, initialPositionOnCreate, shapeId, shouldSelectAllOnCreate]
+	)
 
 	useEffect(() => {
+		// ? this doesn't make sense to me. In which case would isEditing (for this component)
+		// be true but the editor's editing shape id not be the same as the shape id? That's what
+		// isEditing checks, iirc. If the real ask is "does the editor have an editing shape, but that
+		// shape is not the same as the shape id of this component", then that's a different question;
+		// and that should prompt a different result, too. (e.g. don't clear the text editor)
+
 		// It's possible that by the time this hook runs, that a new shape is now being edited.
 		// Don't clear the text editor in that case.
 		if (!isEditing && editor.getEditingShapeId() === shapeId) {
@@ -120,25 +135,51 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		return () => {
 			editor.off('select-all-text', selectAllIfEditing)
 			editor.off('place-caret', placeCaret)
-			setShouldSelectAllOnCreate(false)
-			setInitialPositionOnCreate(null)
 		}
 	}, [editor, isEditing])
 
-	const handleUpdate = (props: EditorEvents['update']) => {
-		handleChange({ richText: props.editor.state.doc.toJSON() })
-	}
+	const handleUpdate = useCallback(
+		(props: EditorEvents['update']) => {
+			handleChange({ richText: props.editor.state.doc.toJSON() })
+		},
+		[handleChange]
+	)
 
-	const onKeyDown = (view: EditorView, event: KeyboardEvent) => {
-		if (event.key === 'Tab') {
-			handleTab(editor, view, event)
+	const onKeyDown = useCallback(
+		(view: EditorView, event: KeyboardEvent) => {
+			if (event.key === 'Tab') {
+				handleTab(editor, view, event)
+			}
+
+			handleKeyDown(event)
+		},
+		[editor, handleKeyDown]
+	)
+
+	const handleBlur = useCallback(() => {
+		// ! flashbacks to previous terror... on iOS closing the virtual
+		// keyboard WILL cause a blur event, but this event isn't caused
+		// when we exit the editing state (because we remove the editor
+		// before it has a chance to fire its blur event). So, we need to
+		// manually exit the editing state here; so long as we can guarantee
+		// that we're narrowing to just iOS.
+		//
+		// If we DONT do this then we won't actually blur the editor when
+		// the user closes the keyboard, which will cause any subsequent
+		// next shape creation to cause the editor to both open and close at
+		// the same time, which is maybe a race condition, either way very
+		// noticeably flakey and weird.
+		if (tlenv.isSafari && tlenv.isIos) {
+			if (editor.getEditingShapeId() === shapeId) {
+				editor.setEditingShape(null)
+			}
 		}
+		_handleBlur?.()
+	}, [editor, _handleBlur, shapeId])
 
-		handleKeyDown(event)
+	if (!isEditing || !tipTapConfig) {
+		return null
 	}
-
-	if (!isEditing) return null
-	if (!tipTapConfig) return null
 
 	const { editorProps, ...restOfTipTapConfig } = tipTapConfig
 
@@ -149,9 +190,9 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			tabIndex={-1}
 			data-testid="rich-text-area"
 			className="tl-rich-text tl-text tl-text-input"
-			onTouchEnd={stopEventPropagation}
 			onContextMenu={isEditing ? stopEventPropagation : undefined}
-			onPointerDownCapture={stopEventPropagation}
+			// onPointerDownCapture={stopEventPropagation} // moving this to the pointer event extension
+			// onTouchEnd={stopEventPropagation} // moving this to the pointer event extension
 			// On FF, there's a behavior where dragging a selection will grab that selection into
 			// the drag event. However, once the drag is over, and you select away from the textarea,
 			// starting a drag over the textarea will restart a selection drag instead of a shape drag.

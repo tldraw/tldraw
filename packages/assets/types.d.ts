@@ -100,8 +100,10 @@ export type AssetUrls = {
 		'horizontal-align-middle': string
 		'horizontal-align-start': string
 		'info-circle': string
+		italic: string
 		leading: string
 		link: string
+		list: string
 		lock: string
 		menu: string
 		minus: string
@@ -149,6 +151,7 @@ export type AssetUrls = {
 		'tool-text': string
 		trash: string
 		twitter: string
+		underline: string
 		undo: string
 		ungroup: string
 		unlock: string

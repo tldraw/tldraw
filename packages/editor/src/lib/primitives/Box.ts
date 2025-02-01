@@ -160,11 +160,11 @@ export class Box {
 		return new Vec(this.w, this.h)
 	}
 
-	toFixed() {
-		this.x = toPrecision(this.x)
-		this.y = toPrecision(this.y)
-		this.w = toPrecision(this.w)
-		this.h = toPrecision(this.h)
+	toFixed(n?: number) {
+		this.x = toPrecision(this.x, n)
+		this.y = toPrecision(this.y, n)
+		this.w = toPrecision(this.w, n)
+		this.h = toPrecision(this.h, n)
 		return this
 	}
 

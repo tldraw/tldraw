@@ -390,7 +390,7 @@ export class Box {
     // (undocumented)
     snapToGrid(size: number): void;
     // (undocumented)
-    toFixed(): this;
+    toFixed(n?: number): this;
     // (undocumented)
     toJson(): BoxModel;
     // (undocumented)

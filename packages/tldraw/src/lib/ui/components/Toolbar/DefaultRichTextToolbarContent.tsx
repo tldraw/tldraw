@@ -1,4 +1,5 @@
 import { preventDefault, TiptapEditor } from '@tldraw/editor'
+import { useEffect, useMemo, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
@@ -23,20 +24,36 @@ export function DefaultRichTextToolbarContent({
 	const msg = useTranslation()
 	const source = 'rich-text-menu'
 
-	const actions = [
-		{ name: 'bold', op: 'toggleBold' },
-		{ name: 'strike', op: 'toggleStrike' },
-		{ name: 'highlight', op: 'toggleHighlight' },
-		{ name: 'code', op: 'toggleCode' },
-		onEditLinkIntent ? { name: 'link', customOp: () => onEditLinkIntent() } : undefined,
-		{ name: 'heading', op: 'toggleHeading', attrs: { level: 3 as const } },
-		{ name: 'bulletList', op: 'toggleBulletList' },
-	].filter(Boolean) as {
-		name: string
-		op?: string
-		attrs?: { level: 3 }
-		customOp?(): void
-	}[]
+	// We need to force this one to update when the editor updates or when selection changes
+	const [_, set] = useState(0)
+	useEffect(() => {
+		function forceUpdate() {
+			set((t) => t + 1)
+		}
+		textEditor.on('update', forceUpdate)
+		textEditor.on('selectionUpdate', forceUpdate)
+	}, [textEditor])
+
+	const actions = useMemo(
+		() =>
+			[
+				// { name: 'heading', op: 'toggleHeading', attrs: { level: 3 as const } },
+				{ name: 'bold', op: 'toggleBold' },
+				{ name: 'italic', op: 'toggleItalic' },
+				// { name: 'underline', op: 'toggleUnderline' },
+				// { name: 'strike', op: 'toggleStrike' },
+				{ name: 'code', op: 'toggleCode' },
+				onEditLinkIntent ? { name: 'link', customOp: () => onEditLinkIntent() } : undefined,
+				{ name: 'bulletList', op: 'toggleBulletList' },
+				{ name: 'highlight', op: 'toggleHighlight' },
+			].filter(Boolean) as {
+				name: string
+				op?: string
+				attrs?: { level: 3 }
+				customOp?(): void
+			}[],
+		[onEditLinkIntent]
+	)
 
 	return actions.map(({ name, op, attrs, customOp }) => {
 		return (

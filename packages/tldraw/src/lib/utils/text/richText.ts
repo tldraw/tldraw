@@ -1,8 +1,16 @@
-import { Extension, Extensions, JSONContent, generateHTML, generateText } from '@tiptap/core'
+import {
+	Extension,
+	Extensions,
+	JSONContent,
+	Editor as TipTapEditor,
+	generateHTML,
+	generateText,
+} from '@tiptap/core'
 import Highlight from '@tiptap/extension-highlight'
 import Link from '@tiptap/extension-link'
 import StarterKit from '@tiptap/starter-kit'
-import { Editor, TLRichText } from '@tldraw/editor'
+import { Editor, TLRichText, stopEventPropagation } from '@tldraw/editor'
+import { Plugin } from 'prosemirror-state'
 import TextDirection from './textDirection'
 
 const KeyboardShiftEnterTweakExtension = Extension.create({
@@ -12,6 +20,52 @@ const KeyboardShiftEnterTweakExtension = Extension.create({
 			// We don't support soft breaks, so we just use the default enter command.
 			'Shift-Enter': ({ editor }) => editor.commands.enter(),
 		}
+	},
+})
+
+// it ain't pretty but we need to know when the user is pointing.
+// this is used to prevent the toolbar from showing when the user is
+// selecting text with their mouse. TT doesn't give us a good way to
+// pipe this data out, so we're hijacking their event emitter. wahoo
+function handlePointingStart(editor: TipTapEditor, e: unknown) {
+	const _pe = e as PointerEvent
+	if (_pe.pointerType) {
+		;(_pe.currentTarget as HTMLElement).setPointerCapture(_pe.pointerId)
+	}
+	// @ts-expect-error
+	editor.emit('pointer-state-change', { isPointing: true })
+	stopEventPropagation(e)
+	return false
+}
+
+function handlePointingEnd(editor: TipTapEditor, e: unknown) {
+	const _pe = e as PointerEvent
+	if (_pe.pointerType) {
+		;(_pe.currentTarget as HTMLElement).releasePointerCapture(_pe.pointerId)
+	}
+	// @ts-expect-error
+	editor.emit('pointer-state-change', { isPointing: false })
+	stopEventPropagation(e)
+	return false
+}
+
+const PointerStateExtension = Extension.create({
+	name: 'pointerStateExtension',
+	addProseMirrorPlugins() {
+		return [
+			new Plugin({
+				props: {
+					handleDOMEvents: {
+						touchstart: (_v, e) => handlePointingStart(this.editor, e),
+						pointerdown: (_v, e) => handlePointingStart(this.editor, e),
+						mousedown: (_v, e) => handlePointingStart(this.editor, e),
+						pointerup: (_v, e) => handlePointingEnd(this.editor, e),
+						touchend: (_v, e) => handlePointingEnd(this.editor, e),
+						mouseup: (_v, e) => handlePointingEnd(this.editor, e),
+					},
+				},
+			}),
+		]
 	},
 })
 
@@ -29,6 +83,7 @@ export const tipTapDefaultExtensions: Extensions = [
 	Highlight,
 	KeyboardShiftEnterTweakExtension,
 	TextDirection,
+	PointerStateExtension,
 ]
 
 /**
