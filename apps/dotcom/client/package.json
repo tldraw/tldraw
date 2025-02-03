@@ -26,7 +26,7 @@
 		"e2e-ui": "yarn playwright test --ui"
 	},
 	"dependencies": {
-		"@clerk/clerk-react": "^5.22.6",
+		"@clerk/clerk-react": "^5.22.8",
 		"@radix-ui/react-popover": "^1.1.5",
 		"@radix-ui/react-select": "^2.1.5",
 		"@radix-ui/react-tooltip": "^1.1.7",

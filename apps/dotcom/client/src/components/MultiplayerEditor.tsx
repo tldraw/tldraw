@@ -42,6 +42,7 @@ import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { DocumentTopZone } from './DocumentName/DocumentName'
 import { MultiplayerFileMenu } from './FileMenu'
 import { LegacyLinks } from './Links'
+import { PreviewBlueDot, PreviewMenuItem } from './preview-stuff'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { StoreErrorScreen } from './StoreErrorScreen'
@@ -52,17 +53,29 @@ const components: TLComponents = {
 		throw error
 	},
 	MainMenu: () => (
-		<DefaultMainMenu>
-			<TldrawUiMenuGroup id="basic">
-				<MultiplayerFileMenu />
-				<EditSubmenu />
-				<ViewSubmenu />
-				<ExportFileContentSubMenu />
-				<ExtrasGroup />
-			</TldrawUiMenuGroup>
-			<PreferencesGroup />
-			<LegacyLinks />
-		</DefaultMainMenu>
+		<>
+			<DefaultMainMenu>
+				<PreviewMenuItem />
+				<TldrawUiMenuGroup id="basic">
+					<MultiplayerFileMenu />
+					<EditSubmenu />
+					<ViewSubmenu />
+					<ExportFileContentSubMenu />
+					<ExtrasGroup />
+				</TldrawUiMenuGroup>
+				<PreferencesGroup />
+				<LegacyLinks />
+			</DefaultMainMenu>
+			<PreviewBlueDot
+				style={{
+					position: 'absolute',
+					borderColor: 'var(--color-panel)',
+					top: 10,
+					left: 24,
+					zIndex: 1000,
+				}}
+			/>
+		</>
 	),
 	KeyboardShortcutsDialog: (props) => {
 		const actions = useActions()

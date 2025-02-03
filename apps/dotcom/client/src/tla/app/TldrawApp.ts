@@ -268,13 +268,6 @@ export class TldrawApp {
 		// sort by date with most recent first
 		nextRecentFileOrdering.sort((a, b) => b.date - a.date)
 
-		// move pinned files to the top, stable sort
-		nextRecentFileOrdering.sort((a, b) => {
-			if (a.isPinned && !b.isPinned) return -1
-			if (!a.isPinned && b.isPinned) return 1
-			return 0
-		})
-
 		// stash the ordering for next time
 		this.lastRecentFileOrdering = nextRecentFileOrdering
 
@@ -332,6 +325,9 @@ export class TldrawApp {
 		}
 		if (typeof fileOrId === 'object') {
 			Object.assign(file, fileOrId)
+			if (!file.name) {
+				Object.assign(file, { name: this.getFallbackFileName(file.createdAt) })
+			}
 		}
 
 		this.z.mutate.file.create(file)
@@ -430,7 +426,7 @@ export class TldrawApp {
 				const documentEntry = entries.find(([_, value]) => isDocument(value)) as
 					| [string, TLDocument]
 					| undefined
-				const name = documentEntry?.[1]?.name || undefined
+				const name = documentEntry?.[1]?.name || ''
 
 				const result = this.createFile({ id: slug, name })
 				if (!result.ok) {
