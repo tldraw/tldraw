@@ -875,6 +875,7 @@ input,
 	resize: none;
 	user-select: all;
 	-webkit-user-select: text;
+	/* Note: this overflow: hidden is key for scrollbars to not show up. */
 	overflow: hidden;
 	cursor: var(--tl-cursor-text);
 }
