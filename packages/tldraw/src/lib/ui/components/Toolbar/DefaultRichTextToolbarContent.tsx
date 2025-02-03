@@ -7,7 +7,7 @@ import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 
 /** @public */
 export interface DefaultRichTextToolbarContentProps {
-	onEditLinkIntent?(): void
+	onEditLinkStart?(): void
 	textEditor: TiptapEditor
 }
 
@@ -18,7 +18,7 @@ export interface DefaultRichTextToolbarContentProps {
  */
 export function DefaultRichTextToolbarContent({
 	textEditor,
-	onEditLinkIntent,
+	onEditLinkStart,
 }: DefaultRichTextToolbarContentProps) {
 	const trackEvent = useUiEvents()
 	const msg = useTranslation()
@@ -26,36 +26,75 @@ export function DefaultRichTextToolbarContent({
 
 	// We need to force this one to update when the editor updates or when selection changes
 	const [_, set] = useState(0)
-	useEffect(() => {
-		function forceUpdate() {
-			set((t) => t + 1)
-		}
-		textEditor.on('update', forceUpdate)
-		textEditor.on('selectionUpdate', forceUpdate)
-	}, [textEditor])
-
-	const actions = useMemo(
-		() =>
-			[
-				// { name: 'heading', op: 'toggleHeading', attrs: { level: 3 as const } },
-				{ name: 'bold', op: 'toggleBold' },
-				{ name: 'italic', op: 'toggleItalic' },
-				// { name: 'underline', op: 'toggleUnderline' },
-				// { name: 'strike', op: 'toggleStrike' },
-				{ name: 'code', op: 'toggleCode' },
-				onEditLinkIntent ? { name: 'link', customOp: () => onEditLinkIntent() } : undefined,
-				{ name: 'bulletList', op: 'toggleBulletList' },
-				{ name: 'highlight', op: 'toggleHighlight' },
-			].filter(Boolean) as {
-				name: string
-				op?: string
-				attrs?: { level: 3 }
-				customOp?(): void
-			}[],
-		[onEditLinkIntent]
+	useEffect(
+		function forceUpdateWhenContentChanges() {
+			function forceUpdate() {
+				set((t) => t + 1)
+			}
+			textEditor.on('update', forceUpdate)
+			textEditor.on('selectionUpdate', forceUpdate)
+		},
+		[textEditor]
 	)
 
-	return actions.map(({ name, op, attrs, customOp }) => {
+	// todo: we could make this a prop
+	const actions = useMemo(() => {
+		function handleOp(name: string, op: string) {
+			trackEvent('rich-text', { operation: name as any, source })
+			// @ts-expect-error typing this is annoying at the moment.
+			textEditor.chain().focus()[op]().run()
+		}
+
+		return [
+			// { name: 'heading', attrs: { level: 3 }, onSelect() { textEditor.chain().focus().toggleHeading({ level: 3}).run() }},
+			{
+				name: 'bold',
+				onSelect() {
+					handleOp('bold', 'toggleBold')
+				},
+			},
+			{
+				name: 'italic',
+				onSelect() {
+					handleOp('bold', 'toggleItalic')
+				},
+			},
+			// { name: 'underline', onSelect() { handleOp('underline', 'toggleUnderline') }},
+			// { name: 'strike', onSelect() { handleOp('strike', 'toggleStrike')  }},
+			{
+				name: 'code',
+				onSelect() {
+					handleOp('bold', 'toggleCode')
+				},
+			},
+			onEditLinkStart
+				? {
+						name: 'link',
+						onSelect() {
+							onEditLinkStart()
+						},
+					}
+				: undefined, // ? is this really optional?
+			{
+				name: 'bulletList',
+				onSelect() {
+					handleOp('bulletList', 'toggleBulletList')
+				},
+			},
+			{
+				name: 'highlight',
+				onSelect() {
+					handleOp('bulletList', 'toggleHighlight')
+				},
+			},
+		].filter(Boolean) as {
+			name: string
+			attrs?: string
+			onSelect(): void
+		}[]
+	}, [textEditor, trackEvent, onEditLinkStart])
+
+	return actions.map(({ name, attrs, onSelect }) => {
 		return (
 			<TldrawUiButton
 				key={name}
@@ -64,18 +103,7 @@ export function DefaultRichTextToolbarContent({
 				type="icon"
 				isActive={textEditor.isActive(name, attrs)}
 				onPointerDown={preventDefault}
-				onClick={() => {
-					trackEvent('rich-text', { operation: name as any, source })
-
-					if (customOp) {
-						customOp()
-					} else if (op === 'toggleHeading' && attrs) {
-						textEditor.chain().focus().toggleHeading(attrs).run()
-					} else {
-						// @ts-ignore typing this is annoying at the moment.
-						textEditor.chain().focus()[op]().run()
-					}
-				}}
+				onClick={onSelect}
 			>
 				<TldrawUiButtonIcon small icon={name} />
 			</TldrawUiButton>

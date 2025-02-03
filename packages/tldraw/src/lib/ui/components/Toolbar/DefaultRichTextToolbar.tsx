@@ -4,6 +4,7 @@ import {
 	Box,
 	clamp,
 	debounce,
+	Editor,
 	TiptapEditor,
 	tltime,
 	track,
@@ -96,7 +97,7 @@ function ContextualToolbarInner({
 		hideToolbarElement(rToolbar, rIsShowing)
 	}, [])
 
-	const { isEditingLink, onEditLinkStart, onEditLinkEnd } = useEditingLinkBehavior(textEditor)
+	const { isEditingLink, onEditLinkStart, onEditLinkComplete } = useEditingLinkBehavior(textEditor)
 
 	// We use an atom to force the toolbar position to update
 	// This gets triggered when:
@@ -152,73 +153,19 @@ function ContextualToolbarInner({
 			editor.getCamera() // the camera moves
 			forcePositionUpdateAtom.get() // the selection changes
 
-			// Get the text selection rects as a box. This will be undefined if there are no selections.
-			const selectionBounds = getCurrentTextSelectionBounds()
+			const position = getToolbarScreenPosition(editor, toolbarElm)
 
-			// If there are no selections then all done, hide the toolbar
-			if (!selectionBounds) {
+			if (!position) {
+				// If we don't have a position, then we're not showing the toolbar
 				hideToolbarElement(rToolbar, rIsShowing)
 				return
 			}
 
-			// Offset the selection bounds by the viewport screen bounds (if the editor is scrolled or inset, etc)
-			const vsb = editor.getViewportScreenBounds()
-			selectionBounds.x -= vsb.x
-			selectionBounds.y -= vsb.y
-
-			// Get the toolbar's screen rect as a box. Do this after we verify that there is at least one selection.
-			const toolbarBounds = rectToBox(toolbarElm.getBoundingClientRect())
-
-			// Chance these are NaN? Rare case.
-			if (!toolbarBounds.width || !toolbarBounds.height) {
-				hideToolbarElement(rToolbar, rIsShowing)
-				return
-			}
-
-			// Thrashy, only do this if we're showing the toolbar
-			// ! this might not be needed, the container never scrolls
-			const { scrollLeft, scrollTop } = editor.getContainer()
-
-			// We want to position the toolbar so that it is centered over the selection
-			// except in the cases where it would extend off the edge of the screen. If
-			// the re-positioned toolbar is too far from the selection, we'll hide it.
-
-			// Start by placing the top left corner of the toolbar so that the
-			// toolbar would be centered above the section bounds.
-			let x = selectionBounds.midX - toolbarBounds.w / 2
-			let y = selectionBounds.y - toolbarBounds.h - TOOLBAR_GAP
-
-			// Clamp the position on screen.
-			x = clamp(x, SCREEN_MARGIN, vsb.w - toolbarBounds.w - SCREEN_MARGIN)
-			y = clamp(y, SCREEN_MARGIN, vsb.h - toolbarBounds.h - SCREEN_MARGIN)
-
-			// Offset the position by the container's scroll position
-			x += scrollLeft
-			y += scrollTop
-
-			// Round the position to the nearest pixel
-			x = Math.round(x)
-			y = Math.round(y)
-
-			// Hide the toolbar if it's too far from the selection
-			if (
-				x > selectionBounds.x + selectionBounds.w * 0.32 ||
-				x + toolbarBounds.width < selectionBounds.x + selectionBounds.w * 0.68 ||
-				y + toolbarBounds.height > selectionBounds.maxY ||
-				selectionBounds.y > vsb.h - SCREEN_MARGIN
-			) {
-				hideToolbarElement(rToolbar, rIsShowing)
-				return
-			}
-
-			// If we've made it this far, we're showing the toolbar. Move the toolbar to its correct location
-			toolbarElm.style.setProperty('transform', `translate(${x}px, ${y}px)`)
+			// We're showing the toolbar. Move the toolbar to its correct location
+			toolbarElm.style.setProperty('transform', `translate(${position.x}px, ${position.y}px)`)
 
 			// Finally, if the toolbar was previously hidden, show it again
-			if (!rIsShowing.current) {
-				toolbarElm.classList.remove('tl-rich-text__toolbar__hidden')
-				rIsShowing.current = true
-			}
+			showToolbarElement(rToolbar, rIsShowing)
 		},
 		[editor, textEditor, forcePositionUpdateAtom]
 	)
@@ -234,16 +181,52 @@ function ContextualToolbarInner({
 				<LinkEditor
 					textEditor={textEditor}
 					value={textEditor.isActive('link') ? textEditor.getAttributes('link').href : ''}
-					onComplete={onEditLinkEnd}
+					onComplete={onEditLinkComplete}
 				/>
 			) : (
-				<DefaultRichTextToolbarContent textEditor={textEditor} onEditLinkIntent={onEditLinkStart} />
+				<DefaultRichTextToolbarContent textEditor={textEditor} onEditLinkStart={onEditLinkStart} />
 			)}
 		</TldrawUiContextualToolbar>
 	)
 }
 
-function getCurrentTextSelectionBounds() {
+// For convenience, let's work just with boxes here
+function rectToBox(rect: DOMRect): Box {
+	return new Box(rect.x, rect.y, rect.width, rect.height)
+}
+
+// This is a mouthful and is repeated in a few places, so let's put it
+// here as its own function.
+function hideToolbarElement(
+	toolbarElmRef: RefObject<HTMLElement>,
+	isShowingRef: MutableRefObject<boolean>
+) {
+	if (!isShowingRef.current) return
+	const toolbarElm = toolbarElmRef.current
+	if (toolbarElm) {
+		toolbarElm.style.setProperty('transform', `translate(-1000px, -1000px)`)
+		toolbarElm.classList.add('tl-rich-text__toolbar__hidden')
+	}
+	isShowingRef.current = false
+}
+
+// So far this is only used once but I'll put it here too so that we can
+// look at the two together.
+function showToolbarElement(
+	toolbarElmRef: RefObject<HTMLElement>,
+	isShowingRef: MutableRefObject<boolean>
+) {
+	if (isShowingRef.current) return
+	const toolbarElm = toolbarElmRef.current
+	if (toolbarElm) {
+		toolbarElm.classList.remove('tl-rich-text__toolbar__hidden')
+	}
+	isShowingRef.current = true
+}
+
+// Extracted here
+function getToolbarScreenPosition(editor: Editor, toolbarElm: HTMLElement) {
+	// Get the text selection rects as a box. This will be undefined if there are no selections.
 	const selection = window.getSelection()
 
 	// If there are no selections, don't return a box
@@ -256,7 +239,56 @@ function getCurrentTextSelectionBounds() {
 		rangeBoxes.push(rectToBox(range.getBoundingClientRect()))
 	}
 
-	return Box.Common(rangeBoxes).toFixed(1)
+	const selectionBounds = Box.Common(rangeBoxes)
+
+	// Offset the selection bounds by the viewport screen bounds (if the editor is scrolled or inset, etc)
+	const vsb = editor.getViewportScreenBounds()
+	selectionBounds.x -= vsb.x
+	selectionBounds.y -= vsb.y
+
+	// If the selection bounds are too far off of the screen, don't show the toolbar
+	if (
+		selectionBounds.maxY < SCREEN_MARGIN ||
+		selectionBounds.y > vsb.h - SCREEN_MARGIN ||
+		selectionBounds.maxX < SCREEN_MARGIN ||
+		selectionBounds.x > vsb.w - SCREEN_MARGIN
+	) {
+		return
+	}
+
+	// Get the toolbar's screen rect as a box. Do this after we verify that there is at least one selection.
+	const toolbarBounds = rectToBox(toolbarElm.getBoundingClientRect())
+
+	// Chance these are NaN? Rare case.
+	if (!toolbarBounds.width || !toolbarBounds.height) return
+
+	// Thrashy, only do this if we're showing the toolbar
+	// ! this might not be needed, the container never scrolls
+	const { scrollLeft, scrollTop } = editor.getContainer()
+
+	// We want to position the toolbar so that it is centered over the selection
+	// except in the cases where it would extend off the edge of the screen. If
+	// the re-positioned toolbar is too far from the selection, we'll hide it.
+
+	// Start by placing the top left corner of the toolbar so that the
+	// toolbar would be centered above the section bounds, bumped up by the
+
+	let x = selectionBounds.midX - toolbarBounds.w / 2
+	let y = selectionBounds.y - toolbarBounds.h - TOOLBAR_GAP
+
+	// Clamp the position on screen.
+	x = clamp(x, SCREEN_MARGIN, vsb.w - toolbarBounds.w - SCREEN_MARGIN)
+	y = clamp(y, SCREEN_MARGIN, vsb.h - toolbarBounds.h - SCREEN_MARGIN)
+
+	// Offset the position by the container's scroll position
+	x += scrollLeft
+	y += scrollTop
+
+	// Round the position to the nearest pixel
+	x = Math.round(x)
+	y = Math.round(y)
+
+	return { x, y }
 }
 
 function useEditingLinkBehavior(textEditor?: TiptapEditor) {
@@ -315,33 +347,20 @@ function useEditingLinkBehavior(textEditor?: TiptapEditor) {
 		setIsEditingLink(true)
 	}, [])
 
-	const onEditLinkEnd = useCallback(() => {
+	const onEditLinkCancel = useCallback(() => {
+		setIsEditingLink(false)
+	}, [])
+
+	const onEditLinkComplete = useCallback(() => {
 		setIsEditingLink(false)
 		if (!textEditor) return
 		const from = textEditor.state.selection.from
 		textEditor.commands.setTextSelection({ from, to: from })
 	}, [textEditor])
 
-	return { isEditingLink, onEditLinkStart, onEditLinkEnd }
+	return { isEditingLink, onEditLinkStart, onEditLinkComplete, onEditLinkCancel }
 }
 
 const TOOLBAR_GAP = 8
 
 const SCREEN_MARGIN = 16
-
-function rectToBox(rect: DOMRect): Box {
-	return new Box(rect.x, rect.y, rect.width, rect.height)
-}
-
-function hideToolbarElement(
-	contextBarElmRef: RefObject<HTMLElement>,
-	isShowingRef: MutableRefObject<boolean>
-) {
-	if (!isShowingRef.current) return
-	const contextBarElm = contextBarElmRef.current
-	if (contextBarElm) {
-		contextBarElm.style.setProperty('transform', `translate(-1000px, -1000px)`)
-		contextBarElm.classList.add('tl-rich-text__toolbar__hidden')
-	}
-	isShowingRef.current = false
-}

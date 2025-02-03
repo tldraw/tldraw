@@ -783,12 +783,12 @@ export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 export const DefaultRichTextToolbar: React_3.NamedExoticComponent<TLUiRichTextToolbarProps>;
 
 // @public
-export function DefaultRichTextToolbarContent({ textEditor, onEditLinkIntent, }: DefaultRichTextToolbarContentProps): JSX_2.Element[];
+export function DefaultRichTextToolbarContent({ textEditor, onEditLinkStart, }: DefaultRichTextToolbarContentProps): JSX_2.Element[];
 
 // @public (undocumented)
 export interface DefaultRichTextToolbarContentProps {
     // (undocumented)
-    onEditLinkIntent?(): void;
+    onEditLinkStart?(): void;
     // (undocumented)
     textEditor: TiptapEditor;
 }
