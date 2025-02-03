@@ -430,7 +430,7 @@ export class TldrawApp {
 				const documentEntry = entries.find(([_, value]) => isDocument(value)) as
 					| [string, TLDocument]
 					| undefined
-				const name = documentEntry?.[1]?.name || undefined
+				const name = documentEntry?.[1]?.name || ''
 
 				const result = this.createFile({ id: slug, name })
 				if (!result.ok) {
