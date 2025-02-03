@@ -782,7 +782,11 @@ input,
 	text-align: right;
 }
 
-.tl-text-wrapper[data-isediting='true'] .tl-text-content {
+.tl-plain-text-wrapper[data-isediting='true'] .tl-text-content {
+	opacity: 0;
+}
+
+.tl-rich-text-wrapper[data-isediting='true'] .tl-text-content {
 	display: none;
 }
 

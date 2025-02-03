@@ -78,7 +78,7 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 	const cssPrefix = classNamePrefix || 'tl-text'
 	return (
 		<div
-			className={`${cssPrefix}-label tl-text-wrapper`}
+			className={`${cssPrefix}-label tl-text-wrapper tl-plain-text-wrapper`}
 			data-font={font}
 			data-align={align}
 			data-hastext={!isEmpty}
