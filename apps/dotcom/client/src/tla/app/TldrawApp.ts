@@ -1,6 +1,7 @@
 // import { Query, QueryType, Smash, TableSchema, Zero } from '@rocicorp/zero'
 import {
 	CreateFilesResponseBody,
+	CreateSnapshotRequestBody,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
@@ -15,20 +16,22 @@ import {
 	Signal,
 	TLDocument,
 	TLSessionStateSnapshot,
-	TLStoreSnapshot,
 	TLUiToastsContextType,
 	TLUserPreferences,
 	assertExists,
 	atom,
 	computed,
+	createTLSchema,
 	createTLUser,
+	dataUrlToFile,
 	defaultUserPreferences,
 	getUserPreferences,
-	isDocument,
 	objectMapFromEntries,
 	objectMapKeys,
+	parseTldrawJsonFile,
 	react,
 } from 'tldraw'
+import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getDateFormat } from '../utils/dates'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
@@ -54,7 +57,11 @@ export class TldrawApp {
 	private readonly files$: Signal<TlaFile[]>
 	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
 
-	readonly disposables: (() => void)[] = []
+	private readonly abortController = new AbortController()
+	readonly disposables: (() => void)[] = [
+		() => this.abortController.abort(),
+		() => this.z.dispose(),
+	]
 
 	private signalizeQuery<TReturn>(name: string, query: any): Signal<TReturn> {
 		// fail if closed?
@@ -95,7 +102,6 @@ export class TldrawApp {
 			onMutationRejected: this.showMutationRejectionToast,
 			onClientTooOld: () => onClientTooOld(),
 		})
-		this.disposables.push(() => this.z.dispose())
 
 		this.user$ = this.signalizeQuery(
 			'user signal',
@@ -163,6 +169,14 @@ export class TldrawApp {
 			defaultMessage:
 				'You have reached the maximum number of files. You need to delete old files before creating new ones.',
 		},
+		uploadingTldrFiles: {
+			defaultMessage:
+				'{count, plural, one {Uploading {count} .tldr file…} other {Uploading {count} .tldr files…}}',
+		},
+		addingTldrFiles: {
+			defaultMessage:
+				'{count, plural, one {Added {count} .tldr file.} other {Added {count} .tldr files.}}',
+		},
 	})
 
 	getMessage(id: keyof typeof this.messages) {
@@ -214,12 +228,6 @@ export class TldrawApp {
 			})
 		},
 	})
-
-	// getAll<T extends keyof Schema['tables']>(
-	// 	typeName: T
-	// ): SchemaToRow<Schema['tables'][T]>[] {
-	// 	return this.z.query[typeName].run()
-	// }
 
 	getUserOwnFiles() {
 		return this.files$.get()
@@ -387,67 +395,6 @@ export class TldrawApp {
 				shared: !file.shared,
 			})
 		})
-	}
-
-	/**
-	 * Create files from tldr files.
-	 *
-	 * @param snapshots - The snapshots to create files from.
-	 * @param token - The user's token.
-	 *
-	 * @returns The slugs of the created files.
-	 */
-	async createFilesFromTldrFiles(snapshots: TLStoreSnapshot[], token: string) {
-		const res = await fetch(TLDR_FILE_ENDPOINT, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${token}`,
-			},
-			body: JSON.stringify({
-				// convert to the annoyingly similar format that the server expects
-				snapshots: snapshots.map((s) => ({
-					snapshot: s.store,
-					schema: s.schema,
-				})),
-			}),
-		})
-
-		const response = (await res.json()) as CreateFilesResponseBody
-
-		if (!res.ok || response.error) {
-			throw Error('could not create files')
-		}
-
-		// Also create a file state record for the new file
-		this.z.mutate((tx) => {
-			for (let i = 0; i < response.slugs.length; i++) {
-				const slug = response.slugs[i]
-				const entries = Object.entries(snapshots[i].store)
-				const documentEntry = entries.find(([_, value]) => isDocument(value)) as
-					| [string, TLDocument]
-					| undefined
-				const name = documentEntry?.[1]?.name || ''
-
-				const result = this.createFile({ id: slug, name })
-				if (!result.ok) {
-					console.error('Could not create file', result.error)
-					continue
-				}
-				tx.file_state.create({
-					userId: this.userId,
-					fileId: slug,
-					firstVisitAt: Date.now(),
-					lastEditAt: null,
-					lastSessionState: null,
-					lastVisitAt: null,
-					isFileOwner: true,
-					isPinned: false,
-				})
-			}
-		})
-
-		return { slugs: response.slugs }
 	}
 
 	/**
@@ -687,5 +634,127 @@ export class TldrawApp {
 			messages: {},
 		})
 		return createIntl()!
+	}
+
+	async uploadTldrFiles(files: File[], onFirstFileUploaded?: (file: TlaFile) => void) {
+		let numFilesToUpload = files.length
+		if (numFilesToUpload === 0) return
+
+		const uploadingToastId = this.toasts?.addToast({
+			severity: 'info',
+			title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
+				count: numFilesToUpload,
+			}),
+		})
+
+		for (const f of files) {
+			const res = await this.uploadTldrFile(f).catch((e) => Result.err(e))
+			if (!res.ok) {
+				if (uploadingToastId) this.toasts?.removeToast(uploadingToastId)
+				this.toasts?.addToast({
+					severity: 'error',
+					title: this.getIntl().formatMessage(this.messages.unknown_error),
+					keepOpen: true,
+				})
+				console.error(res.error)
+				return
+			}
+
+			this.toasts?.toasts.update((toasts) =>
+				toasts.map((t) =>
+					t.id === uploadingToastId
+						? {
+								...t,
+								title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
+									count: --numFilesToUpload,
+								}),
+							}
+						: t
+				)
+			)
+			if (onFirstFileUploaded) {
+				onFirstFileUploaded(res.value.file)
+				onFirstFileUploaded = undefined
+			}
+		}
+
+		if (uploadingToastId) this.toasts?.removeToast(uploadingToastId)
+
+		this.toasts?.addToast({
+			severity: 'success',
+			title: this.getIntl().formatMessage(this.messages.addingTldrFiles, {
+				count: files.length,
+			}),
+			keepOpen: true,
+		})
+	}
+
+	private async uploadTldrFile(file: File) {
+		const json = await file.text()
+		const parseFileResult = parseTldrawJsonFile({
+			schema: createTLSchema(),
+			json,
+		})
+
+		if (!parseFileResult.ok) {
+			return Result.err('could not parse file')
+		}
+
+		const snapshot = parseFileResult.value.getStoreSnapshot()
+
+		for (const record of Object.values(snapshot.store)) {
+			if (
+				record.typeName !== 'asset' ||
+				record.type === 'bookmark' ||
+				!record.props.src?.startsWith('data:')
+			) {
+				snapshot.store[record.id] = record
+				continue
+			}
+			const src = record.props.src
+			const file = await dataUrlToFile(
+				src,
+				record.props.name,
+				record.props.mimeType ?? 'application/octet-stream'
+			)
+			// TODO: this creates duplicate versions of the assets because we'll re-upload them when the user opens
+			// the file to associate them with the file id. To avoid this we'd need a way to create the file row
+			// in postgres so we can do the association while uploading the first time. Or just tolerate foreign key
+			// constraints being violated for a moment.
+			const assetsStore = multiplayerAssetStore()
+			const { src: newSrc } = await assetsStore.upload(record, file, this.abortController.signal)
+			snapshot.store[record.id] = {
+				...record,
+				props: {
+					...record.props,
+					src: newSrc,
+				},
+			}
+		}
+		const res = await fetch(TLDR_FILE_ENDPOINT, {
+			method: 'POST',
+			body: JSON.stringify({
+				snapshots: [
+					{
+						schema: snapshot.schema,
+						snapshot: snapshot.store,
+					} satisfies CreateSnapshotRequestBody,
+				],
+			}),
+		})
+		if (!res.ok) {
+			throw Error('could not upload file ' + (await res.text()))
+		}
+		const body = (await res.json()) as CreateFilesResponseBody
+		if (body.error) {
+			throw Error(body.message)
+		}
+		const id = body.slugs[0]
+		const name =
+			file.name?.replace(/\.tldr$/, '') ??
+			Object.values(snapshot.store).find((d): d is TLDocument => d.typeName === 'document')?.name ??
+			''
+
+		return this.createFile({ id, name })
 	}
 }
