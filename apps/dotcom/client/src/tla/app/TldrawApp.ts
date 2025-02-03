@@ -325,6 +325,9 @@ export class TldrawApp {
 		}
 		if (typeof fileOrId === 'object') {
 			Object.assign(file, fileOrId)
+			if (!file.name) {
+				Object.assign(file, { name: this.getFallbackFileName(file.createdAt) })
+			}
 		}
 
 		this.z.mutate.file.create(file)
@@ -423,7 +426,7 @@ export class TldrawApp {
 				const documentEntry = entries.find(([_, value]) => isDocument(value)) as
 					| [string, TLDocument]
 					| undefined
-				const name = documentEntry?.[1]?.name || undefined
+				const name = documentEntry?.[1]?.name || ''
 
 				const result = this.createFile({ id: slug, name })
 				if (!result.ok) {
