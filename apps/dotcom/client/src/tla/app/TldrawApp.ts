@@ -332,6 +332,9 @@ export class TldrawApp {
 		}
 		if (typeof fileOrId === 'object') {
 			Object.assign(file, fileOrId)
+			if (!file.name) {
+				Object.assign(file, { name: this.getFallbackFileName(file.createdAt) })
+			}
 		}
 
 		this.z.mutate.file.create(file)
