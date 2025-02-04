@@ -156,6 +156,8 @@
 	--color-text-1: hsl(0, 0%, 18%);
 	--color-text-3: hsl(220, 2%, 65%);
 	--color-text-shadow: hsl(0, 0%, 100%);
+	--color-text-highlight: hsl(52, 100%, 50%);
+	--color-text-highlight-p3: color(display-p3 0.972 0.8205 0.05);
 	--color-primary: hsl(214, 84%, 56%);
 	--color-success: hsl(123, 46%, 34%);
 	--color-info: hsl(201, 98%, 41%);
@@ -202,6 +204,8 @@
 	--color-text-1: hsl(0, 0%, 85%);
 	--color-text-3: hsl(210, 6%, 45%);
 	--color-text-shadow: hsl(210, 13%, 18%);
+	--color-text-highlight: hsl(52, 100%, 41%);
+	--color-text-highlight-p3: color(display-p3 0.8078 0.6225 0.0312);
 	--color-primary: hsl(214, 84%, 56%);
 	--color-success: hsl(123, 38%, 57%);
 	--color-info: hsl(199, 92%, 56%);
@@ -722,17 +726,14 @@ input,
 	opacity: 0.7;
 }
 
-/* -------------------------------------------------- */
-/*                       Spinner                      */
-/* -------------------------------------------------- */
-
+/* --------------------- Spinner -------------------- */
 @keyframes spinner {
 	to {
 		transform: rotate(360deg);
 	}
 }
 
-/* ------------------- Text Shape ------------------- */
+/* ---------------------- Text ---------------------- */
 
 .tl-text-shape-label {
 	position: relative;
@@ -957,29 +958,30 @@ input,
 	font-family: var(--tl-font-mono);
 }
 
+/* todo: remove me */
 .tl-rich-text-tiptap strong {
 	text-shadow: 1px 1px 2px var(--color-text-3);
 }
 
 .tl-rich-text-tiptap mark {
-	text-shadow: none;
 	background-color: #fddd00;
 	color: currentColor;
+	border-radius: 2px;
+}
+
+.tl-theme__light .tl-rich-text-tiptap mark {
+	text-shadow: none;
 }
 
 .tl-theme__dark .tl-rich-text-tiptap mark {
-	background-color: #d2b700;
+	background-color: var(--color-text-highlight);
 	color: currentColor;
 }
 
 @supports (color: color(display-p3 1 1 1)) {
 	@media (color-gamut: p3) {
 		.tl-container:not(.tl-theme__force-sRGB) .tl-rich-text-tiptap mark {
-			background-color: color(display-p3 0.972 0.8705 0.05);
-		}
-
-		.tl-container:not(.tl-theme__force-sRGB) .tl-theme__dark .tl-rich-text-tiptap mark {
-			background-color: color(display-p3 0.8078 0.7225 0.0312);
+			background-color: var(--color-text-highlight-p3);
 		}
 	}
 }

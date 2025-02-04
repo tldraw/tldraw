@@ -1916,28 +1916,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return new Box(x, y, bounds.width * zoom, bounds.height * zoom)
 	}
 
-	/**
-	 * The bounds of the selection bounding box in the current page space.
-	 * Updated to include the page's zoom level.
-	 *
-	 * @readonly
-	 * @public
-	 */
-	@computed getSelectionRotatedViewportBounds(): Box {
-		const selectionBounds = this.getSelectionRotatedPageBounds()
-		const camera = this.getCamera()
-		const pageCoordinates = selectionBounds
-			? this.pageToViewport(selectionBounds.point)
-			: { x: -1000, y: -1000 }
-
-		return Box.From({
-			x: pageCoordinates?.x,
-			y: pageCoordinates?.y,
-			w: (selectionBounds?.w || 0) * camera.z,
-			h: (selectionBounds?.h || 0) * camera.z,
-		})
-	}
-
 	// Focus Group
 
 	/**
