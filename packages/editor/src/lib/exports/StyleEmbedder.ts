@@ -191,11 +191,14 @@ export class StyleEmbedder {
 }
 
 interface ReadStyleOpts {
-	defaultStyles: ReadonlyStyles
-	parentStyles: ReadonlyStyles
+	defaultStyles?: ReadonlyStyles
+	parentStyles?: ReadonlyStyles
 }
 
-function styleFromElement(element: Element, { defaultStyles, parentStyles }: ReadStyleOpts) {
+export function styleFromElement(
+	element: Element,
+	{ defaultStyles = NO_STYLES, parentStyles = NO_STYLES }: ReadStyleOpts = {}
+) {
 	// `computedStyleMap` produces a more accurate representation of the styles, but it's not
 	// supported in firefox at the time of writing. So we fall back to `getComputedStyle` if it's
 	// not available.
@@ -220,7 +223,7 @@ function styleFromPseudoElement(element: Element, pseudo: string) {
 
 function styleFromComputedStyleMap(
 	style: StylePropertyMapReadOnly,
-	{ defaultStyles, parentStyles }: ReadStyleOpts
+	{ defaultStyles = NO_STYLES, parentStyles = NO_STYLES }: ReadStyleOpts
 ) {
 	const styles: Record<string, string> = {}
 	for (const property of style.keys()) {
@@ -239,7 +242,7 @@ function styleFromComputedStyleMap(
 
 function styleFromComputedStyle(
 	style: CSSStyleDeclaration,
-	{ defaultStyles, parentStyles }: ReadStyleOpts
+	{ defaultStyles = NO_STYLES, parentStyles = NO_STYLES }: ReadStyleOpts
 ) {
 	const styles: Record<string, string> = {}
 	for (const property of style) {

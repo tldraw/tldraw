@@ -12,7 +12,11 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
-import { renderHtmlFromRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
+import {
+	renderHtmlFromRichText,
+	renderHtmlFromRichTextForMeasurement,
+	renderPlaintextFromRichText,
+} from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
 import { TEXT_PROPS } from './default-shape-constants'
 import { isLegacyAlign } from './legacyProps'
@@ -174,57 +178,104 @@ export function RichTextSVG({
 	font,
 	align,
 	verticalAlign,
-	wrap,
+	// wrap,
 	labelColor,
 	padding,
 }: RichTextSVGProps) {
 	const editor = useEditor()
-	const html = renderHtmlFromRichText(editor, richText)
-	const textAlign =
-		align === 'middle'
-			? ('center' as const)
-			: align === 'start'
-				? ('start' as const)
-				: ('end' as const)
-	const justifyContent =
-		align === 'middle'
-			? ('center' as const)
-			: align === 'start'
-				? ('flex-start' as const)
-				: ('flex-end' as const)
-	const alignItems =
-		verticalAlign === 'middle' ? 'center' : verticalAlign === 'start' ? 'flex-start' : 'flex-end'
-	const wrapperStyle = {
-		display: 'flex',
-		height: `calc(${bounds.h}px - ${padding * 2}px + 1px)`,
-		justifyContent,
-		alignItems,
-		padding: `${padding}px`,
-	}
-	const style = {
-		fontSize: `${fontSize}px`,
+	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
+
+	const opts = {
+		fontSize,
 		fontFamily: DefaultFontFamilies[font],
-		wrap: wrap ? 'wrap' : 'nowrap',
-		color: labelColor,
+		textAlign: align,
+		verticalTextAlign: verticalAlign,
+		width: Math.ceil(bounds.width),
+		height: Math.ceil(bounds.height),
+		padding,
 		lineHeight: TEXT_PROPS.lineHeight,
-		textAlign,
-		width: '100%',
-		wordWrap: 'break-word' as const,
-		overflowWrap: 'break-word' as const,
-		whiteSpace: 'pre-wrap',
+		fontStyle: 'normal',
+		fontWeight: 'normal',
+		overflow: 'wrap' as const,
+		offsetX: 0,
+		offsetY: 0,
+		fill: labelColor,
+		stroke: undefined as string | undefined,
+		strokeWidth: undefined as number | undefined,
 	}
 
-	return (
-		<foreignObject
-			x={bounds.minX}
-			y={bounds.minY}
-			width={bounds.w}
-			height={bounds.h}
-			className="tl-rich-text-svg"
-		>
-			<div style={wrapperStyle}>
-				<div dangerouslySetInnerHTML={{ __html: html }} style={style} />
-			</div>
-		</foreignObject>
-	)
+	const svg = editor.textMeasure.htmlToSvg(html, opts)
+	return <g dangerouslySetInnerHTML={{ __html: svg.outerHTML }} />
+	// const offsetX = getLegacyOffsetX(align, padding, spans, bounds.width)
+	// if (offsetX) {
+	// 	opts.offsetX = offsetX
+	// }
+
+	// opts.offsetX += bounds.x
+	// opts.offsetY += bounds.y
+
+	// const mainSpans = createTextJsxFromSpans(editor, spans, opts)
+
+	// // let outlineSpans = null
+	// // if (stroke) {
+	// // 	opts.fill = theme.background
+	// // 	opts.stroke = theme.background
+	// // 	opts.strokeWidth = 2
+	// // 	outlineSpans = createTextJsxFromSpans(editor, spans, opts)
+	// // }
+
+	// return (
+	// 	<>
+	// 		{/* {outlineSpans} */}
+	// 		{mainSpans}
+	// 	</>
+	// )
+
+	// const textAlign =
+	// 	align === 'middle'
+	// 		? ('center' as const)
+	// 		: align === 'start'
+	// 			? ('start' as const)
+	// 			: ('end' as const)
+	// const justifyContent =
+	// 	align === 'middle'
+	// 		? ('center' as const)
+	// 		: align === 'start'
+	// 			? ('flex-start' as const)
+	// 			: ('flex-end' as const)
+	// const alignItems =
+	// 	verticalAlign === 'middle' ? 'center' : verticalAlign === 'start' ? 'flex-start' : 'flex-end'
+	// const wrapperStyle = {
+	// 	display: 'flex',
+	// 	height: `calc(${bounds.h}px - ${padding * 2}px + 1px)`,
+	// 	justifyContent,
+	// 	alignItems,
+	// 	padding: `${padding}px`,
+	// }
+	// const style = {
+	// 	fontSize: `${fontSize}px`,
+	// 	fontFamily: DefaultFontFamilies[font],
+	// 	wrap: wrap ? 'wrap' : 'nowrap',
+	// 	color: labelColor,
+	// 	lineHeight: TEXT_PROPS.lineHeight,
+	// 	textAlign,
+	// 	width: '100%',
+	// 	wordWrap: 'break-word' as const,
+	// 	overflowWrap: 'break-word' as const,
+	// 	whiteSpace: 'pre-wrap',
+	// }
+
+	// return (
+	// 	<foreignObject
+	// 		x={bounds.minX}
+	// 		y={bounds.minY}
+	// 		width={bounds.w}
+	// 		height={bounds.h}
+	// 		className="tl-rich-text-svg"
+	// 	>
+	// 		<div style={wrapperStyle}>
+	// 			<div dangerouslySetInnerHTML={{ __html: html }} style={style} />
+	// 		</div>
+	// 	</foreignObject>
+	// )
 }

@@ -123,6 +123,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
 		if (shape.props.richText) {
 			ctx.addExportDef(getFontDefForExport(shape.props.font))
+			ctx.addExportDef(getFontDefForExport('mono'))
 		}
 
 		const bounds = this.editor.getShapeGeometry(shape).bounds
