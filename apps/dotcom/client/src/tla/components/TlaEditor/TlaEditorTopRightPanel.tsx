@@ -86,7 +86,7 @@ function useGetFileName() {
 	return ''
 }
 
-function useGetPrefix() {
+function usePrefix() {
 	const location = useLocation()
 	const roomPrefix = location.pathname.split('/')[1]
 	switch (roomPrefix) {
@@ -99,9 +99,9 @@ function useGetPrefix() {
 	return null
 }
 
-function useGetRoomInfo() {
+function useRoomInfo() {
 	const id = useParams()['roomId'] as string
-	const prefix = useGetPrefix()
+	const prefix = usePrefix()
 	if (!id || !prefix) return null
 	return { prefix, id }
 }
@@ -112,7 +112,7 @@ function LegacyImportButton() {
 	const editor = useEditor()
 	const navigate = useNavigate()
 	const name = useGetFileName()
-	const roomInfo = useGetRoomInfo()
+	const roomInfo = useRoomInfo()
 
 	const handleClick = useCallback(() => {
 		if (!app || !editor || !roomInfo) return
