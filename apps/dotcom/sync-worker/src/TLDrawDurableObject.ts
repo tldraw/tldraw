@@ -245,8 +245,7 @@ export class TLDrawDurableObject extends DurableObject {
 			await getSlug(this.env, req.params.roomId, roomOpenMode),
 			'roomId must be present'
 		)
-		const url = new URL(req.url)
-		const isApp = url.pathname.startsWith('/app/')
+		const isApp = new URL(req.url).pathname.startsWith('/app/')
 
 		if (this._documentInfo) {
 			assert(this._documentInfo.slug === slug, 'slug must match')
@@ -403,14 +402,6 @@ export class TLDrawDurableObject extends DurableObject {
 					}
 				}
 			}
-			// else if (!this.documentInfo.appMode) {
-			// 	// If there is no owner that means it's a temporary room, but if they didn't add the create
-			// 	// flag don't let them in.
-			// 	// This prevents people from just creating rooms by typing extra chars in the URL because we only
-			// 	// add that flag in temporary rooms.
-			// 	return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
-			// }
-			// otherwise, it's a temporary room and we let them in
 		}
 
 		try {
