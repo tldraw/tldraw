@@ -3,6 +3,7 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import { getR2KeyForRoom, getR2KeyForSnapshot } from '../../r2'
 import { R2Snapshot } from '../../routes/createRoomSnapshot'
 import { Environment } from '../../types'
+import { getRoomDurableObject } from '../durableObjects'
 import { getSlug } from '../roomOpenMode'
 
 export async function getLegacyRoomData(
@@ -26,5 +27,6 @@ export async function getLegacyRoomData(
 
 	const slug = await getSlug(env, id, type)
 	if (!slug) return null
+	await getRoomDurableObject(env, id).awaitPersist()
 	return await env.ROOMS.get(getR2KeyForRoom({ slug, isApp: false })).then((r) => r?.text())
 }
