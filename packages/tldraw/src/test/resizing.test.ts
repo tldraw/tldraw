@@ -3545,7 +3545,7 @@ describe('resizing a selection of mixed rotations', () => {
 describe('editor.resizeNoteShape', () => {
 	it('can scale when that option is set to true', () => {
 		// @ts-expect-error
-		editor.options.noteShapeResizeMode = 'scale' // its normally readonly
+		editor.options.shapes.note = 'scale' // its normally readonly
 
 		const noteBId = createShapeId('noteB')
 		editor.createShapes([box(ids.boxA, 0, 0, 200, 200), { id: noteBId, type: 'note', x: 0, y: 0 }])

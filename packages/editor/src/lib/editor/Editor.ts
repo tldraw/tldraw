@@ -108,7 +108,7 @@ import { getSvgAsImage } from '../exports/getSvgAsImage'
 import { tlenv } from '../globals/environment'
 import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
-import { TldrawOptions, defaultTldrawOptions } from '../options'
+import { TldrawOptions, TldrawOptionsProp, defaultTldrawOptions } from '../options'
 import { Box, BoxLike } from '../primitives/Box'
 import { Mat, MatLike } from '../primitives/Mat'
 import { Vec, VecLike } from '../primitives/Vec'
@@ -224,7 +224,7 @@ export interface TLEditorOptions {
 	 * Options for the editor's camera.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
-	options?: Partial<TldrawOptions>
+	options?: TldrawOptionsProp
 	licenseKey?: string
 	/**
 	 * A predicate that should return true if the given shape should be hidden.
@@ -272,7 +272,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this._isShapeHiddenPredicate = isShapeHidden
 
-		this.options = { ...defaultTldrawOptions, ...options }
+		// icky deep merge
+		const mergedOptions: TldrawOptions = { ...defaultTldrawOptions, ...(options as TldrawOptions) }
+		if (options?.shapes) {
+			for (const key in Object.keys(options.shapes)) {
+				const _k = key as keyof TldrawOptions['shapes']
+				// @ts-expect-error - writing over a readonly prop
+				mergedOptions.shapes[_k] = { ...mergedOptions.shapes[_k], ...options.shapes[_k] }
+			}
+		}
+		this.options = mergedOptions
 
 		this.store = store
 		this.disposables.add(this.store.dispose.bind(this.store))

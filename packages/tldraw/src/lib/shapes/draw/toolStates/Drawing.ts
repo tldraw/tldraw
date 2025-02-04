@@ -628,7 +628,7 @@ export class Drawing extends StateNode {
 				this.editor.updateShapes([shapePartial])
 
 				// Set a maximum length for the lines array; after 200 points, complete the line.
-				if (newPoints.length > this.editor.options.maxPointsPerDrawShape) {
+				if (newPoints.length > this.editor.options.shapes.draw.maxPoints) {
 					this.editor.updateShapes([{ id, type: this.shapeType, props: { isComplete: true } }])
 
 					const newShapeId = createShapeId()

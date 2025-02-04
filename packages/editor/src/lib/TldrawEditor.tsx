@@ -43,7 +43,7 @@ import { useRefState } from './hooks/useRefState'
 import { useZoomCss } from './hooks/useZoomCss'
 import { LicenseProvider } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
-import { TldrawOptions } from './options'
+import { TldrawOptionsProp } from './options'
 import { stopEventPropagation } from './utils/dom'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
@@ -170,7 +170,7 @@ export interface TldrawEditorBaseProps {
 	/**
 	 * Options for the editor.
 	 */
-	options?: Partial<TldrawOptions>
+	options?: TldrawOptionsProp
 
 	/**
 	 * The license key.

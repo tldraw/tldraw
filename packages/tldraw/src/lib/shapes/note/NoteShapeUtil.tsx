@@ -60,8 +60,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return true
 	}
 	override hideResizeHandles() {
-		const { noteShapeResizeMode } = this.editor.options
-		switch (noteShapeResizeMode) {
+		const { resizeMode } = this.editor.options.shapes.note
+		switch (resizeMode) {
 			case 'none': {
 				return true
 			}
@@ -69,13 +69,13 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				return false
 			}
 			default: {
-				throw exhaustiveSwitchError(noteShapeResizeMode)
+				throw exhaustiveSwitchError(resizeMode)
 			}
 		}
 	}
 
 	override isAspectRatioLocked() {
-		return this.editor.options.noteShapeResizeMode === 'scale'
+		return this.editor.options.shapes.note.resizeMode === 'scale'
 	}
 
 	override hideSelectionBoundsFg() {
@@ -189,8 +189,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override onResize(shape: any, info: TLResizeInfo<any>) {
-		const { noteShapeResizeMode: noteShapeResizeMode } = this.editor.options
-		switch (noteShapeResizeMode) {
+		const { resizeMode: resizeMode } = this.editor.options.shapes.note
+		switch (resizeMode) {
 			case 'none': {
 				return undefined
 			}
@@ -198,7 +198,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				return resizeScaled(shape, info)
 			}
 			default: {
-				throw exhaustiveSwitchError(noteShapeResizeMode)
+				throw exhaustiveSwitchError(resizeMode)
 			}
 		}
 	}

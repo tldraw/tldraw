@@ -744,10 +744,16 @@ export const defaultTldrawOptions: {
     readonly maxExportDelayMs: 5000;
     readonly maxFilesAtOnce: 100;
     readonly maxPages: 40;
-    readonly maxPointsPerDrawShape: 500;
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
-    readonly noteShapeResizeMode: "none";
+    readonly shapes: {
+        readonly draw: {
+            readonly maxPoints: 500;
+        };
+        readonly note: {
+            readonly resizeMode: "none";
+        };
+    };
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
 };
@@ -3074,7 +3080,7 @@ export interface TldrawEditorBaseProps {
     isShapeHidden?(shape: TLShape, editor: Editor): boolean;
     licenseKey?: string;
     onMount?: TLOnMountHandler;
-    options?: Partial<TldrawOptions>;
+    options?: TldrawOptionsProp;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     tools?: readonly TLStateNodeConstructor[];
     user?: TLUser;
@@ -3172,16 +3178,33 @@ export interface TldrawOptions {
     // (undocumented)
     readonly maxPages: number;
     // (undocumented)
-    readonly maxPointsPerDrawShape: number;
-    // (undocumented)
     readonly maxShapesPerPage: number;
     // (undocumented)
     readonly multiClickDurationMs: number;
-    readonly noteShapeResizeMode: 'none' | 'scale';
+    readonly shapes: {
+        draw: {
+            maxPoints: number;
+        };
+        note: {
+            resizeMode: 'none' | 'scale';
+        };
+    };
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;
 }
+
+// @public (undocumented)
+export type TldrawOptionsProp = Partial<Omit<TldrawOptions, 'shapes'>> & {
+    shapes?: {
+        draw?: {
+            maxPoints?: 500;
+        };
+        note?: {
+            resizeMode?: 'none';
+        };
+    };
+};
 
 // @public (undocumented)
 export interface TLEditorComponents {
@@ -3253,7 +3276,7 @@ export interface TLEditorOptions {
     // (undocumented)
     licenseKey?: string;
     // (undocumented)
-    options?: Partial<TldrawOptions>;
+    options?: TldrawOptionsProp;
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
     tools: readonly TLStateNodeConstructor[];
