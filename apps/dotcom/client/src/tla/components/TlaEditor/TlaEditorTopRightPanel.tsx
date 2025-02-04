@@ -7,7 +7,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { PeopleMenu, useEditor, usePassThroughWheelEvents, useTranslation } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
@@ -86,7 +86,8 @@ function useGetFileName() {
 	return ''
 }
 
-function getPrefix() {
+function useGetPrefix() {
+	const location = useLocation()
 	const roomPrefix = location.pathname.split('/')[1]
 	switch (roomPrefix) {
 		case ROOM_PREFIX:
@@ -100,7 +101,7 @@ function getPrefix() {
 
 function useGetRoomInfo() {
 	const id = useParams()['roomId'] as string
-	const prefix = getPrefix()
+	const prefix = useGetPrefix()
 	if (!id || !prefix) return null
 	return { prefix, id }
 }
