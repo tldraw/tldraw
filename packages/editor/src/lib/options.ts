@@ -134,6 +134,7 @@ export const defaultTldrawOptions = {
 	},
 } as const satisfies TldrawOptions
 
+// todo: type this correctly with a deep partial or something
 /** @public */
 export type TldrawOptionsProp = Partial<Omit<TldrawOptions, 'shapes'>> & {
 	shapes?: {
