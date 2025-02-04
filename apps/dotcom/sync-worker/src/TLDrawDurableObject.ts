@@ -325,8 +325,8 @@ export class TLDrawDurableObject extends DurableObject {
 					return this._fileRecordCache
 				},
 				{
-					attempts: 5,
-					waitDuration: 200,
+					attempts: 10,
+					waitDuration: 100,
 				}
 			)
 		} catch (_e) {
@@ -706,6 +706,7 @@ export class TLDrawDurableObject extends DurableObject {
 	}
 
 	async appFileRecordCreated(file: TlaFile) {
+		if (this._fileRecordCache) return
 		this._fileRecordCache = file
 
 		this.setDocumentInfo({

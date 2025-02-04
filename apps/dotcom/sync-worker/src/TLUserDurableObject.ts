@@ -319,12 +319,16 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								.execute()
 							break
 						} else {
-							const { id: _id, ...rest } = update.row as any
-							await tx
+							const { id, ...rest } = update.row as any
+							const result = await tx
 								.insertInto(update.table)
 								.values(update.row as any)
 								.onConflict((oc) => oc.column('id').doUpdateSet(rest))
+								.returningAll()
 								.execute()
+							if (update.table === 'file' && result.length > 0) {
+								getRoomDurableObject(this.env, id).appFileRecordCreated(result[0] as any as TlaFile)
+							}
 							break
 						}
 					}
