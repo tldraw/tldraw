@@ -299,7 +299,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private async _doMutate(msg: ZClientSentMessage) {
 		this.assertCache()
-		await this.db.transaction().execute(async (tx) => {
+		const insertedFiles = await this.db.transaction().execute(async (tx) => {
+			const insertedFiles: TlaFile[] = []
 			for (const update of msg.updates) {
 				await this.assertValidMutation(update)
 				switch (update.event) {
@@ -319,7 +320,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								.execute()
 							break
 						} else {
-							const { id, ...rest } = update.row as any
+							const { id: _id, ...rest } = update.row as any
 							const result = await tx
 								.insertInto(update.table)
 								.values(update.row as any)
@@ -327,7 +328,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								.returningAll()
 								.execute()
 							if (update.table === 'file' && result.length > 0) {
-								getRoomDurableObject(this.env, id).appFileRecordCreated(result[0] as any as TlaFile)
+								insertedFiles.push(result[0] as any as TlaFile)
 							}
 							break
 						}
@@ -391,7 +392,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				}
 				this.cache.store.updateOptimisticData([update], msg.mutationId)
 			}
+			return insertedFiles
 		})
+		for (const file of insertedFiles) {
+			getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
+		}
 	}
 
 	private async handleMutate(socket: WebSocket, msg: ZClientSentMessage) {
