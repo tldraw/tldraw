@@ -1,5 +1,4 @@
 import { useAuth } from '@clerk/clerk-react'
-import { TlaFileOpenState } from '@tldraw/dotcom-shared'
 import { DragEvent, useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Editor, TLStoreSnapshot, parseTldrawJsonFile, tlmenus, useToasts } from 'tldraw'
@@ -71,9 +70,7 @@ export function useTldrFileDrop() {
 					keepOpen: true,
 				})
 				if (results.slugs.length > 0) {
-					navigate(routes.tlaFile(results.slugs[0]), {
-						state: { mode: 'create' } as TlaFileOpenState,
-					})
+					navigate(routes.tlaFile(results.slugs[0]))
 				}
 			}
 		},

@@ -1,4 +1,3 @@
-import { TlaFileOpenState } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { routes } from '../routeDefs'
@@ -13,7 +12,7 @@ export function Component() {
 		const res = app.createFile()
 		if (res.ok) {
 			const { file } = res.value
-			navigate(routes.tlaFile(file.id), { state: { mode: 'create' } satisfies TlaFileOpenState })
+			navigate(routes.tlaFile(file.id))
 			trackEvent('create-file', { source: 'new-page' })
 		} else {
 			navigate(routes.tlaRoot())

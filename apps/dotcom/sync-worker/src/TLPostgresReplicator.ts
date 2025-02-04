@@ -451,6 +451,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			if (!impactedUserIds.includes(row.ownerId)) {
 				impactedUserIds.push(row.ownerId)
 			}
+			this.getStubForFile(row.id).appFileRecordCreated(row as TlaFile)
 		}
 		for (const userId of impactedUserIds) {
 			this.messageUser(userId, {

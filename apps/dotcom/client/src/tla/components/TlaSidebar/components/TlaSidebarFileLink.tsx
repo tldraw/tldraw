@@ -1,7 +1,7 @@
-import { TlaFile, TlaFileOpenState } from '@tldraw/dotcom-shared'
+import { TlaFile } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { KeyboardEvent, MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { preventDefault, useContainer, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
@@ -81,7 +81,6 @@ export function TlaSidebarFileLinkInner({
 	const linkRef = useRef<HTMLAnchorElement | null>(null)
 	const app = useApp()
 	const intl = useIntl()
-	const state = useLocation().state as TlaFileOpenState | undefined
 	const focusCtx = useFileSidebarFocusContext()
 
 	const [isRenaming, setIsRenaming] = useState(debugIsRenaming)
@@ -98,11 +97,7 @@ export function TlaSidebarFileLinkInner({
 
 	useEffect(() => {
 		// on mount, trigger rename action if this is a new file.
-		if (
-			(state?.mode === 'create' || state?.mode === 'duplicate') &&
-			isActive &&
-			focusCtx.shouldRenameNextNewFile
-		) {
+		if (isActive && focusCtx.shouldRenameNextNewFile) {
 			focusCtx.shouldRenameNextNewFile = false
 			handleRenameAction()
 		}

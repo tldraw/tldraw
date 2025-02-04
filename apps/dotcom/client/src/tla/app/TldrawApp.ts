@@ -322,6 +322,7 @@ export class TldrawApp {
 			thumbnail: '',
 			updatedAt: Date.now(),
 			isDeleted: false,
+			createSource: null,
 		}
 		if (typeof fileOrId === 'object') {
 			Object.assign(file, fileOrId)
