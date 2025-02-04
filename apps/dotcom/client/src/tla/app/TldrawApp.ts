@@ -171,11 +171,12 @@ export class TldrawApp {
 		},
 		uploadingTldrFiles: {
 			defaultMessage:
-				'{count, plural, one {Uploading {count} .tldr file…} other {Uploading {count} .tldr files…}}',
+				'{total, plural, one {Uploading .tldr file…} other {Uploading {uploaded} of {total} .tldr files…}}',
 		},
 		addingTldrFiles: {
-			defaultMessage:
-				'{count, plural, one {Added {count} .tldr file.} other {Added {count} .tldr files.}}',
+			// no need for pluralization, if there was only one file we navigated to it
+			// so there's no need to show a toast.
+			defaultMessage: 'Added {total} .tldr files.',
 		},
 	})
 
@@ -637,18 +638,50 @@ export class TldrawApp {
 	}
 
 	async uploadTldrFiles(files: File[], onFirstFileUploaded?: (file: TlaFile) => void) {
-		let numFilesToUpload = files.length
-		if (numFilesToUpload === 0) return
+		const totalFiles = files.length
+		let uploadedFiles = 0
+		if (totalFiles === 0) return
+
+		// this is only approx since we upload the files in pieces and they are base64 encoded
+		// in the json blob, so this will usually be a big overestimate. But that's fine because
+		// if the upload finishes before the number hits 100% people are pleasantly surprised.
+		const approxTotalBytes = files.reduce((acc, f) => acc + f.size, 0)
+		let bytesUploaded = 0
+		const getPercentage = () => Math.min(Math.round((bytesUploaded / approxTotalBytes) * 100), 100)
+		const updateProgress = () => updateToast({ description: `${getPercentage()}%` })
+
+		// only bother showing the percentage if it's going to take a while
+		const fourMegabytes = 4 * 1024 * 1024
 
 		const uploadingToastId = this.toasts?.addToast({
 			severity: 'info',
 			title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
-				count: numFilesToUpload,
+				total: totalFiles,
+				uploaded: uploadedFiles,
 			}),
+
+			description: approxTotalBytes > fourMegabytes ? '0%' : undefined,
+			keepOpen: true,
 		})
 
+		const updateToast = (args: { title?: string; description?: string }) => {
+			this.toasts?.toasts.update((toasts) =>
+				toasts.map((t) =>
+					t.id === uploadingToastId
+						? {
+								...t,
+								...args,
+							}
+						: t
+				)
+			)
+		}
+
 		for (const f of files) {
-			const res = await this.uploadTldrFile(f).catch((e) => Result.err(e))
+			const res = await this.uploadTldrFile(f, (bytes) => {
+				bytesUploaded += bytes
+				updateProgress()
+			}).catch((e) => Result.err(e))
 			if (!res.ok) {
 				if (uploadingToastId) this.toasts?.removeToast(uploadingToastId)
 				this.toasts?.addToast({
@@ -660,18 +693,13 @@ export class TldrawApp {
 				return
 			}
 
-			this.toasts?.toasts.update((toasts) =>
-				toasts.map((t) =>
-					t.id === uploadingToastId
-						? {
-								...t,
-								title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
-									count: --numFilesToUpload,
-								}),
-							}
-						: t
-				)
-			)
+			updateToast({
+				title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
+					total: totalFiles,
+					uploaded: ++uploadedFiles,
+				}),
+			})
+
 			if (onFirstFileUploaded) {
 				onFirstFileUploaded(res.value.file)
 				onFirstFileUploaded = undefined
@@ -680,16 +708,21 @@ export class TldrawApp {
 
 		if (uploadingToastId) this.toasts?.removeToast(uploadingToastId)
 
-		this.toasts?.addToast({
-			severity: 'success',
-			title: this.getIntl().formatMessage(this.messages.addingTldrFiles, {
-				count: files.length,
-			}),
-			keepOpen: true,
-		})
+		if (totalFiles > 1) {
+			this.toasts?.addToast({
+				severity: 'success',
+				title: this.getIntl().formatMessage(this.messages.addingTldrFiles, {
+					total: files.length,
+				}),
+				keepOpen: true,
+			})
+		}
 	}
 
-	private async uploadTldrFile(file: File) {
+	private async uploadTldrFile(
+		file: File,
+		onProgress?: (bytesUploadedSinceLastProgressUpdate: number) => void
+	) {
 		const json = await file.text()
 		const parseFileResult = parseTldrawJsonFile({
 			schema: createTLSchema(),
@@ -723,6 +756,7 @@ export class TldrawApp {
 			// constraints being violated for a moment.
 			const assetsStore = multiplayerAssetStore()
 			const { src: newSrc } = await assetsStore.upload(record, file, this.abortController.signal)
+			onProgress?.(file.size)
 			snapshot.store[record.id] = {
 				...record,
 				props: {
@@ -731,25 +765,25 @@ export class TldrawApp {
 				},
 			}
 		}
-		const res = await fetch(TLDR_FILE_ENDPOINT, {
-			method: 'POST',
-			body: JSON.stringify({
-				snapshots: [
-					{
-						schema: snapshot.schema,
-						snapshot: snapshot.store,
-					} satisfies CreateSnapshotRequestBody,
-				],
-			}),
+		const body = JSON.stringify({
+			snapshots: [
+				{
+					schema: snapshot.schema,
+					snapshot: snapshot.store,
+				} satisfies CreateSnapshotRequestBody,
+			],
 		})
+
+		const res = await fetch(TLDR_FILE_ENDPOINT, { method: 'POST', body })
+		onProgress?.(body.length)
 		if (!res.ok) {
 			throw Error('could not upload file ' + (await res.text()))
 		}
-		const body = (await res.json()) as CreateFilesResponseBody
-		if (body.error) {
-			throw Error(body.message)
+		const response = (await res.json()) as CreateFilesResponseBody
+		if (response.error) {
+			throw Error(response.message)
 		}
-		const id = body.slugs[0]
+		const id = response.slugs[0]
 		const name =
 			file.name?.replace(/\.tldr$/, '') ??
 			Object.values(snapshot.store).find((d): d is TLDocument => d.typeName === 'document')?.name ??
