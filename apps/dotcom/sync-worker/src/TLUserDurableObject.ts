@@ -79,7 +79,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			if (!this.cache) {
 				await this.init()
 			} else {
-				await this.cache.waitUntilConnected()
+				await this.cache.waitUntilInitialData()
 			}
 		})
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
@@ -186,7 +186,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			this.sockets.delete(serverWebSocket)
 			this.maybeClose()
 		})
-		const initialData = this.cache.store.getCommittedData()
+		const initialData = this.cache.getInitialData()
 		assert(initialData, 'Initial data not fetched')
 
 		serverWebSocket.send(

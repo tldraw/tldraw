@@ -378,6 +378,24 @@ export class UserDataSyncer {
 		// ignore other events until we get the boot id
 	}
 
+	async waitUntilInitialData() {
+		while (
+			this.state.type !== 'connected' &&
+			!(this.state.type === 'connecting' && this.state.data)
+		) {
+			await sleep(50)
+		}
+	}
+
+	getInitialData() {
+		if (this.state.type === 'connecting') {
+			return this.state.data
+		} else if (this.state.type === 'connected') {
+			return this.store.getCommittedData()
+		}
+		throw new Error('[getInitialData] state should be connecting or connected')
+	}
+
 	async waitUntilConnected() {
 		while (this.state.type !== 'connected') {
 			await this.state.promise
