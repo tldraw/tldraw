@@ -987,7 +987,7 @@
 	 * Nice touch tweak: keep the link editor toolbar the same as the default toolbar.
 	 * This is so the toolbar size stays stable going in and out of the link editor.
 	 */
-	min-width: 188px;
+	width: 148px;
 }
 
 .tl-rich-text__toolbar .tlui-input__wrapper {

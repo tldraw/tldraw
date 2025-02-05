@@ -7,6 +7,7 @@ import {
 	generateJSON,
 	generateText,
 } from '@tiptap/core'
+import Code from '@tiptap/extension-code'
 import Highlight from '@tiptap/extension-highlight'
 import Link from '@tiptap/extension-link'
 import { Plugin } from '@tiptap/pm/state'
@@ -69,6 +70,10 @@ const PointerStateExtension = Extension.create({
 		]
 	},
 })
+
+// We change the default Code to override what's in the StarterKit.
+// It allows for other attributes/extensions.
+Code.config.excludes = undefined
 
 /**
  * Default extensions for the TipTap editor.
