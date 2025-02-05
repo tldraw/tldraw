@@ -1,4 +1,4 @@
-import { MAX_DESCRIPTION_LENGTH, ReportAProblemRequestBody } from '@tldraw/dotcom-shared'
+import { MAX_PROBLEM_DESCRIPTION_LENGTH, ReportAProblemRequestBody } from '@tldraw/dotcom-shared'
 import { assert } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { createPostgresConnectionPool } from '../postgres'
@@ -22,7 +22,7 @@ export async function reportAProblem(req: IRequest, env: Environment) {
 		const data = (await req.json()) as ReportAProblemRequestBody
 		description = data.description?.trim()
 		allowContact = data.allowContact
-		if (typeof description !== 'string' || description.length > MAX_DESCRIPTION_LENGTH) {
+		if (typeof description !== 'string' || description.length > MAX_PROBLEM_DESCRIPTION_LENGTH) {
 			throw new Error('Invalid description')
 		}
 		if (typeof allowContact !== 'boolean') {
@@ -53,9 +53,9 @@ export async function reportAProblem(req: IRequest, env: Environment) {
 			},
 			body: JSON.stringify(payload),
 		})
-    if (!res.ok) {
-      throw new Error(`Failed to send feedback to Discord: ${res.status} ${await res.text()}`)
-    }
+		if (!res.ok) {
+			throw new Error(`Failed to send feedback to Discord: ${res.status} ${await res.text()}`)
+		}
 	} else {
 		// eslint-disable-next-line no-console
 		console.log('Reported a problem:', payload)
