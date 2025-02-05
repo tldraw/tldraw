@@ -81,6 +81,7 @@ export function ReportAProblemDialog({ onClose }: { onClose(): void }) {
 						border: '1px solid var(--tla-color-border)',
 						borderRadius: '6px',
 						minHeight: '100px',
+						padding: '6px 8px',
 					}}
 					ref={input}
 				/>
