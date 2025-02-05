@@ -18,7 +18,9 @@ export function getFrameHeadingSide(editor: Editor, shape: TLFrameShape): 0 | 1 
 
 /**
  * We use a weak map here to prevent re-measuring the text width of frames that haven't changed their names.
- * It's only really important for performance reasons while zooming in and out.
+ * It's only really important for performance reasons while zooming in and out. The measured text size is
+ * independent of the zoom level, so we can cache the expensive part (measurement) and apply those changes
+ * using the zoom level.
  */
 const measurementWeakmap = new WeakMap()
 
