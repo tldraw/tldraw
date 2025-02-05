@@ -8,7 +8,10 @@ import {
 	TldrawUiDialogFooter,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
+	deleteFromLocalStorage,
 	fetch,
+	getFromLocalStorage,
+	setInLocalStorage,
 	useToasts,
 } from 'tldraw'
 import { F, defineMessages, useIntl } from '../../utils/i18n'
@@ -19,6 +22,8 @@ const messages = defineMessages({
 	submitted: { defaultMessage: 'Problem reported' },
 	thanks: { defaultMessage: 'Thanks for helping us improve tldraw!' },
 })
+
+const descriptionKey = 'tldraw-report-a-problem'
 
 export function ReportAProblemDialog({ onClose }: { onClose(): void }) {
 	const input = useRef<HTMLTextAreaElement>(null)
@@ -41,6 +46,7 @@ export function ReportAProblemDialog({ onClose }: { onClose(): void }) {
 				captureException(new Error('Failed to report a problem'))
 			})
 		)
+		deleteFromLocalStorage(descriptionKey)
 		onClose()
 		toasts.addToast({
 			severity: 'success',
@@ -77,6 +83,10 @@ export function ReportAProblemDialog({ onClose }: { onClose(): void }) {
 					/>
 				</p>
 				<textarea
+					defaultValue={getFromLocalStorage(descriptionKey) ?? undefined}
+					onInput={(e) => {
+						setInLocalStorage(descriptionKey, e.currentTarget.value)
+					}}
 					style={{
 						border: '1px solid var(--tla-color-border)',
 						borderRadius: '6px',

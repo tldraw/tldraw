@@ -157,4 +157,4 @@ export interface ReportAProblemRequestBody {
 	allowContact: boolean
 }
 
-export const MAX_PROBLEM_DESCRIPTION_LENGTH = 5000000
+export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000

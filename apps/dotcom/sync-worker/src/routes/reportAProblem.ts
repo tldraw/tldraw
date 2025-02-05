@@ -22,7 +22,7 @@ export async function reportAProblem(req: IRequest, env: Environment) {
 		const data = (await req.json()) as ReportAProblemRequestBody
 		description = data.description?.trim()
 		allowContact = data.allowContact
-		if (typeof description !== 'string' || description.length > MAX_PROBLEM_DESCRIPTION_LENGTH) {
+		if (typeof description !== 'string') {
 			throw new Error('Invalid description')
 		}
 		if (typeof allowContact !== 'boolean') {
@@ -36,22 +36,28 @@ export async function reportAProblem(req: IRequest, env: Environment) {
 
 	const payload = {
 		username: `Feedback (${env.WORKER_NAME ?? 'localhost'})`,
-		content: `Someone reported a problem`,
-		embeds: [
-			{
-				title: `User ${userId}`,
-				description,
-			},
-		],
+		content: `User (${userId}) reported a problem`,
+		embeds:
+			description.length > MAX_PROBLEM_DESCRIPTION_LENGTH
+				? undefined
+				: [
+						{
+							description,
+						},
+					],
 	}
 
 	if (webhookUrl) {
+		const formData = new FormData()
+		formData.append('payload_json', JSON.stringify(payload))
+		if (description.length > MAX_PROBLEM_DESCRIPTION_LENGTH) {
+			const descriptionBlob = new Blob([description], { type: 'text/plain' })
+			formData.append('description.txt', descriptionBlob)
+		}
+
 		const res = await fetch(webhookUrl, {
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(payload),
+			body: formData,
 		})
 		if (!res.ok) {
 			throw new Error(`Failed to send feedback to Discord: ${res.status} ${await res.text()}`)
