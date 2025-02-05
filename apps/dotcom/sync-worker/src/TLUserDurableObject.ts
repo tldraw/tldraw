@@ -154,7 +154,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		assert(Number.isFinite(protocolVersion), `Invalid protocol version ${params.protocolVersion}`)
 
 		this.assertCache()
-		await this.cache.waitUntilInitialData()
 
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
@@ -178,14 +177,19 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			this.maybeClose()
 		})
 		const initialData = this.cache.getInitialData()
-		assert(initialData, 'Initial data not fetched')
-
-		serverWebSocket.send(
-			JSON.stringify({
-				type: 'initial_data',
-				initialData,
-			} satisfies ZServerSentMessage)
-		)
+		if (initialData) {
+			this.log.debug('sending initial data')
+			serverWebSocket.send(
+				JSON.stringify({
+					type: 'initial_data',
+					initialData,
+				} satisfies ZServerSentMessage)
+			)
+		} else {
+			// the cache hasn't received the initial data yet, so we need to wait for it
+			// it will broadcast on its own ok
+			this.log.debug('waiting for initial data')
+		}
 
 		this.sockets.add(serverWebSocket)
 

@@ -186,6 +186,12 @@ export class UserDataSyncer {
 
 	private updateStateAfterBootStep() {
 		assert(this.state.type === 'connecting', 'state should be connecting')
+		if (this.state.data) {
+			this.broadcast({
+				type: 'initial_data',
+				initialData: this.state.data,
+			})
+		}
 		if (this.state.didGetBootId && this.state.data) {
 			// we got everything, so we can set the state to connected and apply any buffered events
 			const promise = this.state.promise
@@ -376,15 +382,6 @@ export class UserDataSyncer {
 			this.updateStateAfterBootStep()
 		}
 		// ignore other events until we get the boot id
-	}
-
-	async waitUntilInitialData() {
-		while (
-			this.state.type !== 'connected' &&
-			!(this.state.type === 'connecting' && this.state.data)
-		) {
-			await sleep(50)
-		}
 	}
 
 	getInitialData() {
