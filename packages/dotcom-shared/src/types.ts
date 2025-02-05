@@ -151,3 +151,10 @@ export const UserPreferencesKeys = [
 	'name',
 	'color',
 ] as const satisfies Array<keyof TlaUser>
+
+export interface ReportAProblemRequestBody {
+	description: string
+	allowContact: boolean
+}
+
+export const MAX_DESCRIPTION_LENGTH = 50000

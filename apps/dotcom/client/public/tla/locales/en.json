@@ -26,6 +26,9 @@
   "0b9a4cde72": {
     "translation": "File menu"
   },
+  "0f6331fd0d": {
+    "translation": "Report a problem"
+  },
   "110a4b01be": {
     "translation": "Publish"
   },
@@ -34,6 +37,9 @@
   },
   "181b90f889": {
     "translation": "Create file"
+  },
+  "1bef75f760": {
+    "translation": "Allow tldraw to email me about this"
   },
   "1da2e8106b": {
     "translation": "An unexpected error occurred."
@@ -221,6 +227,9 @@
   "91e49bb0eb": {
     "translation": "Copy to my files"
   },
+  "931a38c164": {
+    "translation": "Alternatively, <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>"
+  },
   "96165d6df5": {
     "translation": "This month"
   },
@@ -254,6 +263,9 @@
   "a3debabee7": {
     "translation": "Cookie policy"
   },
+  "a4d3b161ce": {
+    "translation": "Submit"
+  },
   "a6cc403d56": {
     "translation": "Anyone with the link"
   },
@@ -268,6 +280,9 @@
   },
   "abc5e29b0d": {
     "translation": "This is a preview release of the new tldraw.com which features file saving, collaboration, and publishing."
+  },
+  "ae094b3209": {
+    "translation": "Please provide as much detail as possible in the textbox below."
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",

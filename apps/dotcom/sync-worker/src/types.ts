@@ -26,6 +26,9 @@ export interface Environment {
 
 	BOTCOM_POSTGRES_CONNECTION_STRING: string
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
+
+	DISCORD_FEEDBACK_WEBHOOK_URL?: string
+
 	MEASURE: Analytics | undefined
 
 	ROOMS: R2Bucket

@@ -11,6 +11,7 @@ import {
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { TlaDebugMenuGroup } from '../TlaDebugMenuGroup'
+import { ReportAProblemDialog } from '../dialogs/ReportAProblemDialog'
 import { TlaManageCookiesDialog } from '../dialogs/TlaManageCookiesDialog'
 
 const messages = defineMessages({
@@ -20,6 +21,7 @@ const messages = defineMessages({
 	cookiePolicy: { defaultMessage: 'Cookie policy' },
 	manageCookies: { defaultMessage: 'Manage cookies' },
 	about: { defaultMessage: 'About' },
+	reportAProblem: { defaultMessage: 'Report a problem' },
 })
 
 export function TlaAppMenuGroup() {
@@ -44,12 +46,21 @@ function CookieConsentGroup() {
 	return (
 		<TldrawUiMenuGroup id="consent">
 			<TldrawUiMenuItem
-				id="about"
+				id="cookie-consent"
 				label={useMsg(messages.manageCookies)}
 				icon="external-link"
 				readonlyOk
 				onSelect={() => {
 					addDialog({ component: () => <TlaManageCookiesDialog /> })
+				}}
+			/>
+			<TldrawUiMenuItem
+				id="report-a-problem"
+				label={useMsg(messages.reportAProblem)}
+				icon="external-link"
+				readonlyOk
+				onSelect={() => {
+					addDialog({ component: ReportAProblemDialog })
 				}}
 			/>
 		</TldrawUiMenuGroup>
@@ -66,7 +77,7 @@ function HelpSubMenu() {
 			{isSignedIn && <CookieConsentGroup />}
 			<TldrawUiMenuGroup id="links">
 				<TldrawUiMenuItem
-					id="about"
+					id="tos"
 					label={useMsg(messages.terms)}
 					icon="external-link"
 					readonlyOk
@@ -75,7 +86,7 @@ function HelpSubMenu() {
 					}}
 				/>
 				<TldrawUiMenuItem
-					id="about"
+					id="privacy"
 					label={useMsg(messages.privacy)}
 					icon="external-link"
 					readonlyOk
@@ -84,7 +95,7 @@ function HelpSubMenu() {
 					}}
 				/>
 				<TldrawUiMenuItem
-					id="about"
+					id="cookie-policy"
 					label={useMsg(messages.cookiePolicy)}
 					icon="external-link"
 					readonlyOk
