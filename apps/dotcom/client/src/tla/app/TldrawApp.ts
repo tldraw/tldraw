@@ -647,24 +647,34 @@ export class TldrawApp {
 		// if the upload finishes before the number hits 100% people are pleasantly surprised.
 		const approxTotalBytes = files.reduce((acc, f) => acc + f.size, 0)
 		let bytesUploaded = 0
-		const getPercentage = () => Math.min(Math.round((bytesUploaded / approxTotalBytes) * 100), 100)
-		const updateProgress = () => updateToast({ description: `${getPercentage()}%` })
+		const getApproxPercentage = () =>
+			Math.min(Math.round((bytesUploaded / approxTotalBytes) * 100), 100)
+		const updateProgress = () => updateToast({ description: `${getApproxPercentage()}%` })
 
 		// only bother showing the percentage if it's going to take a while
-		const fourMegabytes = 4 * 1024 * 1024
 
-		const uploadingToastId = this.toasts?.addToast({
-			severity: 'info',
-			title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
-				total: totalFiles,
-				uploaded: uploadedFiles,
-			}),
+		let uploadingToastId = undefined as undefined | string
+		let didFinishUploading = false
 
-			description: approxTotalBytes > fourMegabytes ? '0%' : undefined,
-			keepOpen: true,
-		})
+		// give it a second before we show the toast, in case the upload is fast
+		setTimeout(() => {
+			if (didFinishUploading || this.abortController.signal.aborted) return
+			// if it's close to the end, don't show the progress toast
+			if (getApproxPercentage() > 50) return
+			uploadingToastId = this.toasts?.addToast({
+				severity: 'info',
+				title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
+					total: totalFiles,
+					uploaded: uploadedFiles,
+				}),
+
+				description: `${getApproxPercentage()}%`,
+				keepOpen: true,
+			})
+		}, 800)
 
 		const updateToast = (args: { title?: string; description?: string }) => {
+			if (!uploadingToastId) return
 			this.toasts?.toasts.update((toasts) =>
 				toasts.map((t) =>
 					t.id === uploadingToastId
@@ -696,7 +706,7 @@ export class TldrawApp {
 			updateToast({
 				title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
 					total: totalFiles,
-					uploaded: ++uploadedFiles,
+					uploaded: ++uploadedFiles + 1,
 				}),
 			})
 
@@ -705,6 +715,7 @@ export class TldrawApp {
 				onFirstFileUploaded = undefined
 			}
 		}
+		didFinishUploading = true
 
 		if (uploadingToastId) this.toasts?.removeToast(uploadingToastId)
 
