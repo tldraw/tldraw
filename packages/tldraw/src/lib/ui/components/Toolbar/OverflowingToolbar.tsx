@@ -17,18 +17,18 @@ import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuCon
 
 export const IsInOverflowContext = createContext(false)
 
-const KEYS = [
-	['1', 0],
-	['2', 1],
-	['3', 2],
-	['4', 3],
-	['5', 4],
-	['6', 5],
-	['7', 6],
-	['8', 7],
-	['9', 8],
-	['0', 9],
-] as const
+const NUMBERED_SHORTCUT_KEYS: Record<string, number> = {
+	'1': 0,
+	'2': 1,
+	'3': 2,
+	'4': 3,
+	'5': 4,
+	'6': 5,
+	'7': 6,
+	'8': 7,
+	'9': 8,
+	'0': 9,
+}
 
 /** @public */
 export interface OverflowingToolbarProps {
@@ -128,12 +128,10 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 			if (areShortcutsDisabled(editor)) return
 			// no accelerator keys
 			if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return
-			for (const [key, index] of KEYS) {
+			const index = NUMBERED_SHORTCUT_KEYS[event.key]
+			if (index) {
 				preventDefault(event)
-				if (event.key === key) {
-					rButtons.current[index]?.click()
-					return
-				}
+				rButtons.current[index]?.click()
 			}
 		}
 
