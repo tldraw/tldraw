@@ -50,9 +50,6 @@
   "1f9696d5f2": {
     "translation": "Export the content as a .tldr file: Go to 'File' > 'Save a copy'"
   },
-  "279f0531ff": {
-    "translation": "Still having trouble? Let us know at <a>hello@tldraw.com</a>"
-  },
   "299cb00a7a": {
     "translation": "Upload failed"
   },
@@ -112,6 +109,9 @@
   },
   "54d240fa41": {
     "translation": "Please slow down."
+  },
+  "554a05155c": {
+    "translation": "Still having trouble? <a>Report a problem</a>"
   },
   "55505ba281": {
     "translation": "PNG"
