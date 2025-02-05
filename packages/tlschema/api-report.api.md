@@ -1032,7 +1032,7 @@ export interface TLGeoShapeProps {
     // (undocumented)
     labelColor: TLDefaultColorStyle;
     // (undocumented)
-    richText?: TLRichText;
+    richText: TLRichText;
     // (undocumented)
     scale: number;
     // (undocumented)

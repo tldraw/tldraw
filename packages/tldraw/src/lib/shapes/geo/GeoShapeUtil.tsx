@@ -27,6 +27,7 @@ import {
 	getDefaultColorTheme,
 	getPolygonVertices,
 	lerp,
+	toRichText,
 	useValue,
 } from '@tldraw/editor'
 
@@ -91,6 +92,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			growY: 0,
 			url: '',
 			scale: 1,
+			richText: toRichText(''),
 		}
 	}
 

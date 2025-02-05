@@ -723,7 +723,8 @@ export function defaultHandleExternalSvgTextContent(editor: Editor, { point, tex
 }): Promise<void>;
 
 // @public (undocumented)
-export function defaultHandleExternalTextContent(editor: Editor, { point, text }: {
+export function defaultHandleExternalTextContent(editor: Editor, { point, text, html }: {
+    html?: string;
     point?: VecLike;
     text: string;
 }): Promise<void>;
@@ -1206,10 +1207,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             growY: number;
             h: number;
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            richText?: {
+            richText: {
                 content: unknown[];
                 type: string;
-            } | undefined;
+            };
             scale: number;
             size: "l" | "m" | "s" | "xl";
             url: string;
@@ -1240,10 +1241,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             growY: number;
             h: number;
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            richText?: {
+            richText: {
                 content: unknown[];
                 type: string;
-            } | undefined;
+            };
             scale: number;
             size: "l" | "m" | "s" | "xl";
             url: string;

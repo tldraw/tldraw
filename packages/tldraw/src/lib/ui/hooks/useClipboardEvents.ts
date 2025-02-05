@@ -473,6 +473,19 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 				handleText(editor, stripHtml(result.data), point, results)
 				return
 			}
+
+			// If the html is NOT a link, and we have other texty content, then paste the html as a text shape
+			if (results.some((r) => r.type === 'text' && r.subtype !== 'html')) {
+				editor.markHistoryStoppingPoint('paste')
+				editor.putExternalContent({
+					type: 'text',
+					text: stripHtml(result.data),
+					html: result.data,
+					point,
+					sources: results,
+				})
+				return
+			}
 		}
 
 		// Allow you to paste YouTube or Google Maps embeds, for example.

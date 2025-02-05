@@ -4,6 +4,7 @@ import {
 	JSONContent,
 	Editor as TipTapEditor,
 	generateHTML,
+	generateJSON,
 	generateText,
 } from '@tiptap/core'
 import Highlight from '@tiptap/extension-highlight'
@@ -104,8 +105,8 @@ export function renderHtmlFromRichText(editor: Editor, richText: TLRichText) {
 
 /**
  * Renders HTML from a rich text string for measurement.
+ * @param editor - The editor instance.
  * @param richText - The rich text content.
- * @parameditor - The editor instance.
  *
  *
  * @public
@@ -117,8 +118,8 @@ export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: T
 
 /**
  * Renders plaintext from a rich text string.
+ * @param editor - The editor instance.
  * @param richText - The rich text content.
- * @parameditor - The editor instance.
  *
  *
  * @public
@@ -127,4 +128,18 @@ export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText
 	const tipTapExtensions =
 		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
 	return generateText(richText as JSONContent, tipTapExtensions)
+}
+
+/**
+ * Renders JSONContent from html.
+ * @param editor - The editor instance.
+ * @param richText - The rich text content.
+ *
+ *
+ * @public
+ */
+export function renderRichTextFromHTML(editor: Editor, html: string): TLRichText {
+	const tipTapExtensions =
+		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
+	return generateJSON(html, tipTapExtensions) as TLRichText
 }

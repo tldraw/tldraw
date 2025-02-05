@@ -3972,6 +3972,8 @@ export interface TLSvgTextExternalContent extends TLBaseExternalContent {
 // @public (undocumented)
 export interface TLTextExternalContent extends TLBaseExternalContent {
     // (undocumented)
+    html?: string;
+    // (undocumented)
     text: string;
     // (undocumented)
     type: 'text';
