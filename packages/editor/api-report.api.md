@@ -714,6 +714,7 @@ export const defaultTldrawOptions: {
     readonly edgeScrollDistance: 8;
     readonly edgeScrollEaseDuration: 200;
     readonly edgeScrollSpeed: 25;
+    readonly enableToolbarKeyboardShortcuts: true;
     readonly exportProvider: ExoticComponent<    {
     children?: ReactNode;
     }>;
@@ -774,6 +775,11 @@ export const defaultUserPreferences: Readonly<{
 
 // @public
 export function degreesToRadians(d: number): number;
+
+// @public (undocumented)
+export interface DrawShapeOptions {
+    maxPoints: number;
+}
 
 // @public (undocumented)
 export const EASINGS: {
@@ -2234,6 +2240,11 @@ export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent
 };
 
 // @public (undocumented)
+export interface NoteShapeOptions {
+    resizeMode: 'none' | 'scale';
+}
+
+// @public (undocumented)
 export function openWindow(url: string, target?: string): void;
 
 // @internal (undocumented)
@@ -3148,6 +3159,7 @@ export interface TldrawOptions {
     readonly edgeScrollEaseDuration: number;
     // (undocumented)
     readonly edgeScrollSpeed: number;
+    readonly enableToolbarKeyboardShortcuts: boolean;
     readonly exportProvider: ComponentType<{
         children: React.ReactNode;
     }>;
@@ -3182,12 +3194,8 @@ export interface TldrawOptions {
     // (undocumented)
     readonly multiClickDurationMs: number;
     readonly shapes: {
-        draw: {
-            maxPoints: number;
-        };
-        note: {
-            resizeMode: 'none' | 'scale';
-        };
+        draw: DrawShapeOptions;
+        note: NoteShapeOptions;
     };
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
@@ -3197,12 +3205,8 @@ export interface TldrawOptions {
 // @public (undocumented)
 export type TldrawOptionsProp = Partial<Omit<TldrawOptions, 'shapes'>> & {
     shapes?: {
-        draw?: {
-            maxPoints?: 500;
-        };
-        note?: {
-            resizeMode?: 'none';
-        };
+        draw?: Partial<DrawShapeOptions>;
+        note?: Partial<NoteShapeOptions>;
     };
 };
 

@@ -1363,6 +1363,15 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					}
 				},
 			},
+			{
+				id: 'select-geo-tool',
+				kbd: 'g',
+				onSelect: async (source) => {
+					// will select whatever the most recent geo tool was
+					trackEvent('select-tool', { source, id: `geo-previous` })
+					editor.setCurrentTool('geo')
+				},
+			},
 		]
 
 		if (showCollaborationUi) {

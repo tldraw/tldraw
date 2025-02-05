@@ -20,6 +20,9 @@ export async function getAuthFromSearchParams(
 		publishableKey: env.CLERK_PUBLISHABLE_KEY,
 	})
 
+	const state = await clerk.authenticateRequest(request)
+	if (state.isSignedIn) return state.toAuth()
+
 	// we can't send headers with websockets, so for those connections we need to pass the token in
 	// the query string. `authenticateRequest` only works with headers/cookies though, so we need to
 	// copy the query string into the headers.
@@ -33,12 +36,12 @@ export async function getAuthFromSearchParams(
 		}
 	}
 
-	const state = await clerk.authenticateRequest(cloned)
-	if (!state.isSignedIn) {
+	const res = await clerk.authenticateRequest(cloned)
+	if (!res.isSignedIn) {
 		return null
 	}
 
-	return state.toAuth()
+	return res.toAuth()
 }
 
 export type SignedInAuth = ReturnType<

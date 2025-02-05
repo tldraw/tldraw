@@ -7,4 +7,4 @@ git add packages/*/api-report.api.md
 npx lazy run build-i18n
 git add apps/*/locales/*.json
 git add apps/*/locales-compiled/*.json
-npx lint-staged
+yarn lint-staged

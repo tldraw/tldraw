@@ -1,5 +1,27 @@
 import { ComponentType, Fragment } from 'react'
 
+// Various options for tldraw's default shapes. Like many options, these really only matter
+// if you're using the <Tldraw> component with the additional default shapes etc. If you're
+// using the <TldrawEditor> component, pay no attention.
+
+/** @public */
+export interface DrawShapeOptions {
+	/**
+	 * The maximum number of points in a line before the draw tool will begin a new shape.
+	 * A higher number will lead to poor performance while drawing very long lines.
+	 */
+	maxPoints: number
+}
+
+/** @public */
+export interface NoteShapeOptions {
+	/**
+	 * How should the note shape resize? By default it does not resize (except automatically
+	 * based on its text content), but you can set it to be user-resizable using scale.
+	 */
+	resizeMode: 'none' | 'scale'
+}
+
 /**
  * Options for configuring tldraw. For defaults, see {@link defaultTldrawOptions}.
  *
@@ -66,19 +88,15 @@ export interface TldrawOptions {
 	 */
 	readonly exportProvider: ComponentType<{ children: React.ReactNode }>
 	/**
+	 * By default, the toolbar items are accessible via number shortcuts according to their order. To disable this, set this option to false.
+	 */
+	readonly enableToolbarKeyboardShortcuts: boolean
+	/**
 	 * Options that relate to tldraw's built-in default shapes.
 	 */
 	readonly shapes: {
-		draw: {
-			maxPoints: number
-		}
-		note: {
-			/**
-			 * How should the note shape resize? By default it does not resize (except automatically based on its text content),
-			 * but you can set it to be user-resizable using scale.
-			 */
-			resizeMode: 'none' | 'scale'
-		}
+		draw: DrawShapeOptions
+		note: NoteShapeOptions
 	}
 }
 
@@ -124,6 +142,7 @@ export const defaultTldrawOptions = {
 	actionShortcutsLocation: 'swap',
 	createTextOnCanvasDoubleClick: true,
 	exportProvider: Fragment,
+	enableToolbarKeyboardShortcuts: true,
 	shapes: {
 		draw: {
 			maxPoints: 500,
@@ -135,14 +154,11 @@ export const defaultTldrawOptions = {
 } as const satisfies TldrawOptions
 
 // todo: type this correctly with a deep partial or something
+
 /** @public */
 export type TldrawOptionsProp = Partial<Omit<TldrawOptions, 'shapes'>> & {
 	shapes?: {
-		draw?: {
-			maxPoints?: 500
-		}
-		note?: {
-			resizeMode?: 'none'
-		}
+		draw?: Partial<DrawShapeOptions>
+		note?: Partial<NoteShapeOptions>
 	}
 }
