@@ -123,7 +123,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override component(shape: TLFrameShape) {
-		const bounds = this.editor.getShapeGeometry(shape).bounds
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 
@@ -147,8 +146,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				<SVGContainer>
 					<rect
 						className={classNames('tl-frame__body', { 'tl-frame__creating': isCreating })}
-						width={bounds.width}
-						height={bounds.height}
+						width={shape.props.w}
+						height={shape.props.h}
 						fill={theme.solid}
 						stroke={theme.text}
 					/>
@@ -157,8 +156,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 					<FrameHeading
 						id={shape.id}
 						name={shape.props.name}
-						width={bounds.width}
-						height={bounds.height}
+						width={shape.props.w}
+						height={shape.props.h}
 					/>
 				)}
 			</>
@@ -208,12 +207,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	indicator(shape: TLFrameShape) {
-		const bounds = this.editor.getShapeGeometry(shape).bounds
-
 		return (
 			<rect
-				width={toDomPrecision(bounds.width)}
-				height={toDomPrecision(bounds.height)}
+				width={toDomPrecision(shape.props.w)}
+				height={toDomPrecision(shape.props.h)}
 				className={`tl-frame-indicator`}
 			/>
 		)

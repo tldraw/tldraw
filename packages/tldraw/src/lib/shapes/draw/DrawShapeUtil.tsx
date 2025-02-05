@@ -111,8 +111,16 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
 		let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
-		const zoomLevel = this.editor.getZoomLevel()
-		const forceSolid = zoomLevel < 0.5 && zoomLevel < 1.5 / sw
+
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const forceSolid = useValue(
+			'force solid',
+			() => {
+				const zoomLevel = this.editor.getZoomLevel()
+				return zoomLevel < 0.5 && zoomLevel < 1.5 / sw
+			},
+			[this.editor, sw]
+		)
 
 		if (
 			!forceSolid &&
