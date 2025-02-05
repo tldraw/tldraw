@@ -714,6 +714,7 @@ export const defaultTldrawOptions: {
     readonly edgeScrollDistance: 8;
     readonly edgeScrollEaseDuration: 200;
     readonly edgeScrollSpeed: 25;
+    readonly enableToolbarKeyboardShortcuts: true;
     readonly exportProvider: ExoticComponent<    {
     children?: ReactNode;
     }>;
@@ -3142,6 +3143,7 @@ export interface TldrawOptions {
     readonly edgeScrollEaseDuration: number;
     // (undocumented)
     readonly edgeScrollSpeed: number;
+    readonly enableToolbarKeyboardShortcuts: boolean;
     readonly exportProvider: ComponentType<{
         children: React.ReactNode;
     }>;

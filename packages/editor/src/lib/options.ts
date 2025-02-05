@@ -71,6 +71,10 @@ export interface TldrawOptions {
 	 * but you can set it to be user-resizable using scale.
 	 */
 	readonly noteShapeResizeMode: 'none' | 'scale'
+	/**
+	 * By default, the toolbar items are accessible via number shortcuts according to their order. To disable this, set this option to false.
+	 */
+	readonly enableToolbarKeyboardShortcuts: boolean
 }
 
 /** @public */
@@ -117,4 +121,5 @@ export const defaultTldrawOptions = {
 	createTextOnCanvasDoubleClick: true,
 	exportProvider: Fragment,
 	noteShapeResizeMode: 'none',
+	enableToolbarKeyboardShortcuts: true,
 } as const satisfies TldrawOptions
