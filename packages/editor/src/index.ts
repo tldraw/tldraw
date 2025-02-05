@@ -319,6 +319,8 @@ export {
 	type ValidLicenseKeyResult,
 } from './lib/license/LicenseManager'
 export {
+	type DrawShapeOptions,
+	type NoteShapeOptions,
 	type TldrawOptions,
 	type TldrawOptionsProp,
 	type defaultTldrawOptions,
