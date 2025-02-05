@@ -194,35 +194,36 @@ export class UserDataSyncer {
 	private updateStateAfterBootStep() {
 		assert(this.state.type === 'connecting', 'state should be connecting')
 		if (this.state.data) {
-			this.broadcast({
-				type: 'initial_data',
-				initialData: this.state.data,
-			})
-		}
-		if (this.state.didGetBootId && this.state.data) {
-			// we got everything, so we can set the state to connected and apply any buffered events
-			const promise = this.state.promise
-			const bufferedEvents = this.state.bufferedEvents
-			const data = this.state.data
-			const mutationNumber = this.state.mutationNumber
-			this.state = {
-				type: 'connected',
-				bootId: this.state.bootId,
-				sequenceId: this.state.sequenceId,
-				lastSequenceNumber: this.state.lastSequenceNumber,
-			}
-			this.store.initialize(data)
+			if (this.state.didGetBootId) {
+				// we got everything, so we can set the state to connected and apply any buffered events
+				const promise = this.state.promise
+				const bufferedEvents = this.state.bufferedEvents
+				const data = this.state.data
+				const mutationNumber = this.state.mutationNumber
+				this.state = {
+					type: 'connected',
+					bootId: this.state.bootId,
+					sequenceId: this.state.sequenceId,
+					lastSequenceNumber: this.state.lastSequenceNumber,
+				}
+				this.store.initialize(data)
 
-			if (bufferedEvents.length > 0) {
-				bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
+				if (bufferedEvents.length > 0) {
+					bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
+					this.broadcast({
+						type: 'initial_data',
+						initialData: assertExists(this.store.getCommittedData()),
+					})
+				}
+				promise.resolve(null)
+
+				this.commitMutations(mutationNumber)
+			} else {
 				this.broadcast({
 					type: 'initial_data',
-					initialData: assertExists(this.store.getCommittedData()),
+					initialData: this.state.data,
 				})
 			}
-			promise.resolve(null)
-
-			this.commitMutations(mutationNumber)
 		}
 		return this.state
 	}
