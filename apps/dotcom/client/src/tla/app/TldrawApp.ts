@@ -33,6 +33,7 @@ import {
 	react,
 } from 'tldraw'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
+import { TLAppUiContextType } from '../utils/app-ui-events'
 import { getDateFormat } from '../utils/dates'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
@@ -82,7 +83,8 @@ export class TldrawApp {
 	private constructor(
 		public readonly userId: string,
 		getToken: () => Promise<string | null>,
-		onClientTooOld: () => void
+		onClientTooOld: () => void,
+		trackEvent: TLAppUiContextType
 	) {
 		const sessionId = uniqueId()
 		this.z = new Zero({
@@ -102,6 +104,7 @@ export class TldrawApp {
 			// the schema. Switch to 'idb' for local-persistence.
 			onMutationRejected: this.showMutationRejectionToast,
 			onClientTooOld: () => onClientTooOld(),
+			trackEvent,
 		})
 
 		this.user$ = this.signalizeQuery(
@@ -594,13 +597,14 @@ export class TldrawApp {
 		avatar: string
 		getToken(): Promise<string | null>
 		onClientTooOld(): void
+		trackEvent: TLAppUiContextType
 	}) {
 		// This is an issue: we may have a user record but not in the store.
 		// Could be just old accounts since before the server had a version
 		// of the store... but we should probably identify that better.
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
-		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld)
+		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld, opts.trackEvent)
 		// @ts-expect-error
 		window.app = app
 		await app.preload({
