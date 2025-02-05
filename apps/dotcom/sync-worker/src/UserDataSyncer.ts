@@ -7,7 +7,14 @@ import {
 	ZStoreData,
 	ZTable,
 } from '@tldraw/dotcom-shared'
-import { ExecutionQueue, assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
+import {
+	ExecutionQueue,
+	assert,
+	assertExists,
+	promiseWithResolve,
+	sleep,
+	uniqueId,
+} from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { Kysely } from 'kysely'
 import { Logger } from './Logger'
@@ -208,12 +215,13 @@ export class UserDataSyncer {
 
 			if (bufferedEvents.length > 0) {
 				bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
+				this.broadcast({
+					type: 'initial_data',
+					initialData: assertExists(this.store.getCommittedData()),
+				})
 			}
 			promise.resolve(null)
-			this.broadcast({
-				type: 'initial_data',
-				initialData: data,
-			})
+
 			this.commitMutations(mutationNumber)
 		}
 		return this.state
