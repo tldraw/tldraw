@@ -129,7 +129,7 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 			// no accelerator keys
 			if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return
 			const index = NUMBERED_SHORTCUT_KEYS[event.key]
-			if (index) {
+			if (typeof index === 'number') {
 				preventDefault(event)
 				rButtons.current[index]?.click()
 			}
