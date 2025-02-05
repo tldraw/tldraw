@@ -1,0 +1,33 @@
+.vertical-toolbar-example .tlui-toolbar {
+	margin-left: 8px;
+}
+
+.vertical-toolbar-example .tlui-toolbar__inner {
+	flex-direction: column;
+	align-items: flex-start;
+}
+
+.vertical-toolbar-example .tlui-toolbar__left {
+	display: flex;
+	flex-direction: row-reverse;
+}
+
+.vertical-toolbar-example .tlui-toolbar__extras {
+	height: 100%;
+}
+
+.vertical-toolbar-example .tlui-toolbar__extras__controls {
+	flex-direction: column;
+	border-top-left-radius: 0;
+	border-bottom-right-radius: var(--radius-4);
+	margin-left: 0;
+	margin-top: 4px;
+}
+
+.vertical-toolbar-example .tlui-toolbar__tools {
+	flex-direction: column;
+}
+
+.vertical-toolbar-example .tlui-toolbar__tools__list {
+	flex-direction: column;
+}

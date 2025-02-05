@@ -8,7 +8,6 @@ import {
 	useState,
 } from 'react'
 import {
-	CenteredTopPanelContainer,
 	OfflineIndicator,
 	TLUiTranslationKey,
 	TldrawUiButton,
@@ -38,8 +37,6 @@ interface NameState {
 	readonly isEditing: boolean
 }
 
-const BUTTON_WIDTH = 44
-
 export const DocumentTopZone = track(function DocumentTopZone({
 	isOffline,
 }: {
@@ -48,10 +45,10 @@ export const DocumentTopZone = track(function DocumentTopZone({
 	const isDocumentNameVisible = useBreakpoint() >= 4
 
 	return (
-		<CenteredTopPanelContainer ignoreRightWidth={BUTTON_WIDTH}>
+		<>
 			{isDocumentNameVisible && <DocumentNameInner />}
 			{isOffline && <OfflineIndicator />}
-		</CenteredTopPanelContainer>
+		</>
 	)
 })
 

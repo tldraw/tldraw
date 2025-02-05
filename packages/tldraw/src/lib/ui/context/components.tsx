@@ -11,6 +11,7 @@ import {
 import { CursorChatBubble } from '../components/CursorChatBubble'
 import { DefaultDebugMenu } from '../components/DebugMenu/DefaultDebugMenu'
 import { DefaultDebugPanel } from '../components/DefaultDebugPanel'
+import { DefaultLayout } from '../components/DefaultLayout'
 import { DefaultMenuPanel } from '../components/DefaultMenuPanel'
 import { DefaultDialogs } from '../components/Dialogs'
 import { TLUiHelpMenuProps } from '../components/HelpMenu/DefaultHelpMenu'
@@ -32,9 +33,20 @@ import {
 } from '../components/QuickActions/DefaultQuickActions'
 import { DefaultSharePanel } from '../components/SharePanel/DefaultSharePanel'
 import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel/DefaultStylePanel'
+import {
+	DefaultBottomCenterPanel,
+	DefaultBottomLeftPanel,
+	DefaultBottomRightPanel,
+	DefaultTopCenterPanel,
+	DefaultTopLeftPanel,
+	DefaultTopRightPanel,
+} from '../components/TldrawUiLayout/defaultPanels'
 import { DefaultToasts } from '../components/Toasts'
 import { DefaultToolbar } from '../components/Toolbar/DefaultToolbar'
-import { DefaultTopPanel } from '../components/TopPanel/DefaultTopPanel'
+import {
+	DefaultToolbarOverflow,
+	DefaultToolbarOverflowProps,
+} from '../components/Toolbar/OverflowingToolbar'
 import { DefaultZoomMenu, TLUiZoomMenuProps } from '../components/ZoomMenu/DefaultZoomMenu'
 import { useShowCollaborationUi } from '../hooks/useIsMultiplayer'
 
@@ -50,17 +62,28 @@ export interface TLUiComponents {
 	PageMenu?: ComponentType | null
 	NavigationPanel?: ComponentType | null
 	Toolbar?: ComponentType | null
+	ToolbarOverflow?: ComponentType<DefaultToolbarOverflowProps> | null
 	KeyboardShortcutsDialog?: ComponentType<TLUiKeyboardShortcutsDialogProps> | null
 	QuickActions?: ComponentType<TLUiQuickActionsProps> | null
 	HelperButtons?: ComponentType<TLUiHelperButtonsProps> | null
 	DebugPanel?: ComponentType | null
 	DebugMenu?: ComponentType | null
 	MenuPanel?: ComponentType | null
-	TopPanel?: ComponentType | null
 	SharePanel?: ComponentType | null
 	CursorChatBubble?: ComponentType | null
 	Dialogs?: ComponentType | null
 	Toasts?: ComponentType | null
+	Layout?: ComponentType | null
+	/** @deprecated use TopCenterPanel instead. */
+	TopPanel?: ComponentType | null
+	TopLeftPanel?: ComponentType | null
+	TopCenterPanel?: ComponentType | null
+	TopRightPanel?: ComponentType | null
+	CenterLeftPanel?: ComponentType | null
+	CenterRightPanel?: ComponentType | null
+	BottomCenterPanel?: ComponentType | null
+	BottomLeftPanel?: ComponentType | null
+	BottomRightPanel?: ComponentType | null
 }
 
 const TldrawUiComponentsContext = createContext<TLUiComponents | null>(null)
@@ -93,6 +116,7 @@ export function TldrawUiComponentsProvider({
 					PageMenu: DefaultPageMenu,
 					NavigationPanel: DefaultNavigationPanel,
 					Toolbar: DefaultToolbar,
+					ToolbarOverflow: DefaultToolbarOverflow,
 					KeyboardShortcutsDialog: DefaultKeyboardShortcutsDialog,
 					QuickActions: DefaultQuickActions,
 					HelperButtons: DefaultHelperButtons,
@@ -101,9 +125,17 @@ export function TldrawUiComponentsProvider({
 					MenuPanel: DefaultMenuPanel,
 					SharePanel: showCollaborationUi ? DefaultSharePanel : null,
 					CursorChatBubble: showCollaborationUi ? CursorChatBubble : null,
-					TopPanel: showCollaborationUi ? DefaultTopPanel : null,
+					TopLeftPanel: DefaultTopLeftPanel,
+					TopCenterPanel: showCollaborationUi ? DefaultTopCenterPanel : null,
+					TopRightPanel: DefaultTopRightPanel,
+					CenterLeftPanel: null,
+					CenterRightPanel: null,
+					BottomCenterPanel: DefaultBottomCenterPanel,
+					BottomLeftPanel: DefaultBottomLeftPanel,
+					BottomRightPanel: DefaultBottomRightPanel,
 					Dialogs: DefaultDialogs,
 					Toasts: DefaultToasts,
+					Layout: DefaultLayout,
 					..._overrides,
 				}),
 				[_overrides, showCollaborationUi]

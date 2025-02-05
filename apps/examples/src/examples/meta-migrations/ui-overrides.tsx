@@ -3,7 +3,7 @@ import { TLComponents, track, useEditor } from 'tldraw'
 import { PageMetaV2 } from './MetaMigrations'
 
 export const components: TLComponents = {
-	TopPanel: track(() => {
+	TopCenterPanel: track(() => {
 		const editor = useEditor()
 		const currentPage = editor.getCurrentPage()
 		const meta: PageMetaV2 = currentPage.meta

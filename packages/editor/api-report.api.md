@@ -4114,7 +4114,7 @@ export function useMaybeEditor(): Editor | null;
 export function useOnMount(onMount?: TLOnMountHandler): void;
 
 // @public (undocumented)
-export function usePassThroughWheelEvents(ref: RefObject<HTMLElement>): void;
+export function usePassThroughWheelEvents(ref: RefObject<HTMLElement>, condition?: (e: WheelEvent) => boolean): void;
 
 // @internal (undocumented)
 export function usePeerIds(): string[];

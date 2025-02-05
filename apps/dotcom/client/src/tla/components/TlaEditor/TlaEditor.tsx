@@ -43,7 +43,7 @@ export const components: TLComponents = {
 	ErrorFallback: TlaEditorErrorFallback,
 	KeyboardShortcutsDialog: TlaEditorKeyboardShortcutsDialog,
 	MenuPanel: TlaEditorMenuPanel,
-	TopPanel: TlaEditorTopPanel,
+	TopCenterPanel: TlaEditorTopPanel,
 	SharePanel: TlaEditorSharePanel,
 	Dialogs: null,
 	Toasts: null,

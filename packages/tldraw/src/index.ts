@@ -223,6 +223,21 @@ export {
 	type ThemeStylePickerSetProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
 export {
+	TldrawUiLayout,
+	type TldrawUiLayoutHorizontalPosition,
+	type TldrawUiLayoutProps,
+	type TldrawUiLayoutVerticalPosition,
+} from './lib/ui/components/TldrawUiLayout/TldrawUiLayout'
+export {
+	DefaultBottomCenterPanel,
+	DefaultBottomLeftPanel,
+	DefaultBottomRightPanel,
+	DefaultTopCenterPanel,
+	DefaultTopLeftPanel,
+	DefaultTopPanel,
+	DefaultTopRightPanel,
+} from './lib/ui/components/TldrawUiLayout/defaultPanels'
+export {
 	DefaultToolbar,
 	type DefaultToolbarProps,
 } from './lib/ui/components/Toolbar/DefaultToolbar'
@@ -261,14 +276,11 @@ export {
 	type ToolbarItemProps,
 } from './lib/ui/components/Toolbar/DefaultToolbarContent'
 export {
+	DefaultToolbarOverflow,
 	OverflowingToolbar,
+	type DefaultToolbarOverflowProps,
 	type OverflowingToolbarProps,
 } from './lib/ui/components/Toolbar/OverflowingToolbar'
-export {
-	CenteredTopPanelContainer,
-	type CenteredTopPanelContainerProps,
-} from './lib/ui/components/TopPanel/CenteredTopPanelContainer'
-export { DefaultTopPanel } from './lib/ui/components/TopPanel/DefaultTopPanel'
 export {
 	DefaultZoomMenu,
 	type TLUiZoomMenuProps,

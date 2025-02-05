@@ -359,25 +359,6 @@ export interface BreakPointProviderProps {
 // @internal (undocumented)
 export function buildFromV1Document(editor: Editor, _document: unknown): void;
 
-// @public (undocumented)
-export function CenteredTopPanelContainer({ maxWidth, ignoreRightWidth, stylePanelWidth, marginBetweenZones, squeezeAmount, children, }: CenteredTopPanelContainerProps): JSX_2.Element;
-
-// @public (undocumented)
-export interface CenteredTopPanelContainerProps {
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    ignoreRightWidth?: number;
-    // (undocumented)
-    marginBetweenZones?: number;
-    // (undocumented)
-    maxWidth?: number;
-    // (undocumented)
-    squeezeAmount?: number;
-    // (undocumented)
-    stylePanelWidth?: number;
-}
-
 // @public
 export function centerSelectionAroundPoint(editor: Editor, position: VecLike): void;
 
@@ -673,6 +654,15 @@ export function DefaultActionsMenuContent(): JSX_2.Element;
 export const defaultBindingUtils: readonly [typeof ArrowBindingUtil];
 
 // @public (undocumented)
+export const DefaultBottomCenterPanel: NamedExoticComponent<object>;
+
+// @public (undocumented)
+export const DefaultBottomLeftPanel: NamedExoticComponent<object>;
+
+// @public (undocumented)
+export const DefaultBottomRightPanel: NamedExoticComponent<object>;
+
+// @public (undocumented)
 const DefaultContextMenu: NamedExoticComponent<TLUiContextMenuProps>;
 export { DefaultContextMenu as ContextMenu }
 export { DefaultContextMenu }
@@ -799,6 +789,15 @@ export const DefaultToolbar: NamedExoticComponent<DefaultToolbarProps>;
 export function DefaultToolbarContent(): JSX_2.Element;
 
 // @public (undocumented)
+export function DefaultToolbarOverflow({ children }: DefaultToolbarOverflowProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface DefaultToolbarOverflowProps {
+    // (undocumented)
+    children: ReactNode;
+}
+
+// @public (undocumented)
 export interface DefaultToolbarProps {
     // (undocumented)
     children?: ReactNode;
@@ -808,7 +807,16 @@ export interface DefaultToolbarProps {
 export const defaultTools: readonly [typeof EraserTool, typeof HandTool, typeof LaserTool, typeof ZoomTool, typeof SelectTool];
 
 // @public (undocumented)
-export function DefaultTopPanel(): JSX_2.Element;
+export const DefaultTopCenterPanel: NamedExoticComponent<object>;
+
+// @public (undocumented)
+export const DefaultTopLeftPanel: NamedExoticComponent<object>;
+
+// @public @deprecated (undocumented)
+export const DefaultTopPanel: NamedExoticComponent<object>;
+
+// @public (undocumented)
+export const DefaultTopRightPanel: NamedExoticComponent<object>;
 
 // @public (undocumented)
 export const DefaultZoomMenu: NamedExoticComponent<TLUiZoomMenuProps>;
@@ -2271,6 +2279,47 @@ export const TldrawUiInput: React_2.ForwardRefExoticComponent<TLUiInputProps & R
 export function TldrawUiKbd({ children, visibleOnMobileLayout }: TLUiKbdProps): JSX_2.Element | null;
 
 // @public (undocumented)
+export function TldrawUiLayout({ topLeft, topCenter, topRight, centerLeft, centerRight, bottomLeft, bottomCenter, bottomRight, spacingPx, squishTop, squishBottom, squishLeft, squishRight, children, }: TldrawUiLayoutProps): JSX_2.Element;
+
+// @public (undocumented)
+export type TldrawUiLayoutHorizontalPosition = 'center' | 'left' | 'right';
+
+// @public (undocumented)
+export interface TldrawUiLayoutProps {
+    // (undocumented)
+    bottomCenter?: React.ReactNode;
+    // (undocumented)
+    bottomLeft?: React.ReactNode;
+    // (undocumented)
+    bottomRight?: React.ReactNode;
+    // (undocumented)
+    centerLeft?: React.ReactNode;
+    // (undocumented)
+    centerRight?: React.ReactNode;
+    // (undocumented)
+    children?: React.ReactNode;
+    // (undocumented)
+    spacingPx?: number;
+    // (undocumented)
+    squishBottom?: TldrawUiLayoutHorizontalPosition;
+    // (undocumented)
+    squishLeft?: TldrawUiLayoutVerticalPosition;
+    // (undocumented)
+    squishRight?: TldrawUiLayoutVerticalPosition;
+    // (undocumented)
+    squishTop?: TldrawUiLayoutHorizontalPosition;
+    // (undocumented)
+    topCenter?: React.ReactNode;
+    // (undocumented)
+    topLeft?: React.ReactNode;
+    // (undocumented)
+    topRight?: React.ReactNode;
+}
+
+// @public (undocumented)
+export type TldrawUiLayoutVerticalPosition = 'bottom' | 'center' | 'top';
+
+// @public (undocumented)
 export function TldrawUiMenuActionCheckboxItem({ actionId, ...rest }: TLUiMenuActionCheckboxItemProps): JSX_2.Element | null;
 
 // @public (undocumented)
@@ -2471,6 +2520,16 @@ export interface TLUiComponents {
     // (undocumented)
     ActionsMenu?: ComponentType<TLUiActionsMenuProps> | null;
     // (undocumented)
+    BottomCenterPanel?: ComponentType | null;
+    // (undocumented)
+    BottomLeftPanel?: ComponentType | null;
+    // (undocumented)
+    BottomRightPanel?: ComponentType | null;
+    // (undocumented)
+    CenterLeftPanel?: ComponentType | null;
+    // (undocumented)
+    CenterRightPanel?: ComponentType | null;
+    // (undocumented)
     ContextMenu?: ComponentType<TLUiContextMenuProps> | null;
     // (undocumented)
     CursorChatBubble?: ComponentType | null;
@@ -2486,6 +2545,8 @@ export interface TLUiComponents {
     HelpMenu?: ComponentType<TLUiHelpMenuProps> | null;
     // (undocumented)
     KeyboardShortcutsDialog?: ComponentType<TLUiKeyboardShortcutsDialogProps> | null;
+    // (undocumented)
+    Layout?: ComponentType | null;
     // (undocumented)
     MainMenu?: ComponentType<TLUiMainMenuProps> | null;
     // (undocumented)
@@ -2507,7 +2568,15 @@ export interface TLUiComponents {
     // (undocumented)
     Toolbar?: ComponentType | null;
     // (undocumented)
+    ToolbarOverflow?: ComponentType<DefaultToolbarOverflowProps> | null;
+    // (undocumented)
+    TopCenterPanel?: ComponentType | null;
+    // (undocumented)
+    TopLeftPanel?: ComponentType | null;
+    // @deprecated (undocumented)
     TopPanel?: ComponentType | null;
+    // (undocumented)
+    TopRightPanel?: ComponentType | null;
     // (undocumented)
     ZoomMenu?: ComponentType<TLUiZoomMenuProps> | null;
 }

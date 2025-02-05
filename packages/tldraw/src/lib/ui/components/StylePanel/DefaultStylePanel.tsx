@@ -18,7 +18,11 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 	const editor = useEditor()
 
 	const ref = useRef<HTMLDivElement>(null)
-	usePassThroughWheelEvents(ref)
+	usePassThroughWheelEvents(ref, () => {
+		const stylePanel = ref.current!
+		const isScrolling = stylePanel.scrollHeight > stylePanel.clientHeight
+		return !isScrolling
+	})
 
 	const styles = useRelevantStyles()
 
