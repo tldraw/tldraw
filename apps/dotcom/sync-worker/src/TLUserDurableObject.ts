@@ -77,29 +77,19 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				throw new Error('Rate limited')
 			}
 			if (!this.cache) {
-				await this.init()
-			} else {
-				await this.cache.waitUntilInitialData()
+				this.log.debug('creating cache', this.userId)
+				this.cache = new UserDataSyncer(
+					this.ctx,
+					this.env,
+					this.db,
+					this.userId,
+					(message) => this.broadcast(message),
+					this.logEvent.bind(this),
+					this.log
+				)
 			}
 		})
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
-
-	private async init() {
-		assert(this.userId, 'User ID not set')
-		this.log.debug('init', this.userId)
-		this.cache = new UserDataSyncer(
-			this.ctx,
-			this.env,
-			this.db,
-			this.userId,
-			(message) => this.broadcast(message),
-			this.logEvent.bind(this),
-			this.log
-		)
-		this.log.debug('cache', !!this.cache)
-		await this.cache.waitUntilConnected()
-		this.log.debug('cache connected')
-	}
 
 	// Handle a request to the Durable Object.
 	override async fetch(req: IRequest) {
@@ -164,6 +154,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		assert(Number.isFinite(protocolVersion), `Invalid protocol version ${params.protocolVersion}`)
 
 		this.assertCache()
+		await this.cache.waitUntilInitialData()
 
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
