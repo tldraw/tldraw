@@ -9,14 +9,22 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 	fetch,
+	useToasts,
 } from 'tldraw'
-import { F } from '../../utils/i18n'
+import { F, defineMessages, useIntl } from '../../utils/i18n'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import { TlaFormCheckbox } from '../tla-form/tla-form'
+
+const messages = defineMessages({
+	submitted: { defaultMessage: 'Problem reported' },
+	thanks: { defaultMessage: 'Thanks for helping us improve tldraw!' },
+})
 
 export function ReportAProblemDialog({ onClose }: { onClose(): void }) {
 	const input = useRef<HTMLTextAreaElement>(null)
 	const checkBox = useRef<HTMLInputElement>(null)
+	const toasts = useToasts()
+	const intl = useIntl()
 	const onSubmit = useCallback(async () => {
 		if (!input.current?.value?.trim()) return
 		if (!checkBox.current) return
@@ -34,7 +42,12 @@ export function ReportAProblemDialog({ onClose }: { onClose(): void }) {
 			})
 		)
 		onClose()
-	}, [onClose])
+		toasts.addToast({
+			severity: 'success',
+			title: intl.formatMessage(messages.submitted),
+			description: intl.formatMessage(messages.thanks),
+		})
+	}, [intl, onClose, toasts])
 	return (
 		<div>
 			<TldrawUiDialogHeader>
