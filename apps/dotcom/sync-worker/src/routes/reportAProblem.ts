@@ -39,20 +39,23 @@ export async function reportAProblem(req: IRequest, env: Environment) {
 		content: `Someone reported a problem`,
 		embeds: [
 			{
-				author: `User ${userId}`,
+				title: `User ${userId}`,
 				description,
 			},
 		],
 	}
 
 	if (webhookUrl) {
-		await fetch(webhookUrl, {
+		const res = await fetch(webhookUrl, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 			},
 			body: JSON.stringify(payload),
 		})
+    if (!res.ok) {
+      throw new Error(`Failed to send feedback to Discord: ${res.status} ${await res.text()}`)
+    }
 	} else {
 		// eslint-disable-next-line no-console
 		console.log('Reported a problem:', payload)
