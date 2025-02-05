@@ -1,4 +1,5 @@
 // import { Query, QueryType, Smash, TableSchema, Zero } from '@rocicorp/zero'
+import { captureException } from '@sentry/react'
 import {
 	CreateFilesResponseBody,
 	CreateSnapshotRequestBody,
@@ -363,7 +364,11 @@ export class TldrawApp {
 		}
 		assert(typeof file !== 'string', 'ok')
 
-		const name = file.name.trim()
+		if (typeof file.name === 'undefined') {
+			captureException(new Error('file name is undefined somehow: ' + JSON.stringify(file)))
+		}
+		// need a ? here because we were seeing issues on sentry where file.name was undefined
+		const name = file.name?.trim()
 		if (name) {
 			return name
 		}
