@@ -41,7 +41,7 @@ function ColorThemeSubmenu() {
 	return <ColorSchemeMenu />
 }
 
-function CookieConsentGroup() {
+function SignedInItemsGroup() {
 	const { addDialog } = useDialogs()
 	return (
 		<TldrawUiMenuGroup id="consent">
@@ -74,7 +74,7 @@ function HelpSubMenu() {
 	const msg = useMsg(messages.help)
 	return (
 		<TldrawUiMenuSubmenu id="help" label={msg}>
-			{isSignedIn && <CookieConsentGroup />}
+			{isSignedIn && <SignedInItemsGroup />}
 			<TldrawUiMenuGroup id="links">
 				<TldrawUiMenuItem
 					id="tos"
