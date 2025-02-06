@@ -11,7 +11,6 @@ import { validateSnapshot } from '../../utils/validateSnapshot'
 // Create new files based on snapshots. This is used when dropping .tldr files onto the app.
 export async function createFiles(request: IRequest, env: Environment): Promise<Response> {
 	// The data sent from the client will include the data for the new room
-	const data = (await request.json()) as CreateFilesRequestBody
 
 	const userId = await getUserIdFromRequest(request, env)
 	if (!userId) {
@@ -19,9 +18,11 @@ export async function createFiles(request: IRequest, env: Environment): Promise<
 	}
 
 	const slugs: string[] = []
+	const data = (await request.json()) as CreateFilesRequestBody
 
 	for (const snapshot of data.snapshots) {
 		// There's a chance the data will be invalid, so we check it first
+		// need to maybe migrate the snapshot
 		const snapshotResult = validateSnapshot(snapshot)
 		if (!snapshotResult.ok) {
 			return Response.json({ error: true, message: snapshotResult.error }, { status: 400 })

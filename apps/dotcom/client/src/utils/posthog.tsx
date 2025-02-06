@@ -1,4 +1,4 @@
-import posthog, { PostHogConfig } from 'posthog-js'
+import posthog, { PostHogConfig, Properties } from 'posthog-js'
 import 'posthog-js/dist/web-vitals'
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
@@ -52,13 +52,21 @@ function configurePosthog(options: AnalyticsOptions) {
 
 	posthog.set_config(config)
 	currentOptions = options
+	eventBuffer?.forEach((event) => posthog.capture(event.name, event.data))
+	eventBuffer = null
 }
+
+let eventBuffer: null | Array<{ name: string; data: Properties | null | undefined }> = []
 
 function getPosthog() {
 	if (!shouldUsePosthog) return null
 	if (!currentOptions) {
-		warnOnce('getPosthog called before configurePosthog - ignoring')
-		return null
+		warnOnce('getPosthog called before configurePosthog - buffering')
+		return {
+			capture(name: string, data: Properties | null | undefined) {
+				eventBuffer?.push({ name, data })
+			},
+		}
 	}
 	return posthog
 }

@@ -2,6 +2,7 @@
 export * from './OptimisticAppStore'
 export { default as getLicenseKey } from './license'
 export {
+	FILE_PREFIX,
 	READ_ONLY_LEGACY_PREFIX,
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,

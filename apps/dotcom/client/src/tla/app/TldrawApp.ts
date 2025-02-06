@@ -1,6 +1,8 @@
 // import { Query, QueryType, Smash, TableSchema, Zero } from '@rocicorp/zero'
+import { captureException } from '@sentry/react'
 import {
 	CreateFilesResponseBody,
+	CreateSnapshotRequestBody,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
@@ -15,20 +17,23 @@ import {
 	Signal,
 	TLDocument,
 	TLSessionStateSnapshot,
-	TLStoreSnapshot,
 	TLUiToastsContextType,
 	TLUserPreferences,
 	assertExists,
 	atom,
 	computed,
+	createTLSchema,
 	createTLUser,
+	dataUrlToFile,
 	defaultUserPreferences,
 	getUserPreferences,
-	isDocument,
 	objectMapFromEntries,
 	objectMapKeys,
+	parseTldrawJsonFile,
 	react,
 } from 'tldraw'
+import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
+import { TLAppUiContextType } from '../utils/app-ui-events'
 import { getDateFormat } from '../utils/dates'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
@@ -54,7 +59,11 @@ export class TldrawApp {
 	private readonly files$: Signal<TlaFile[]>
 	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
 
-	readonly disposables: (() => void)[] = []
+	private readonly abortController = new AbortController()
+	readonly disposables: (() => void)[] = [
+		() => this.abortController.abort(),
+		() => this.z.dispose(),
+	]
 
 	private signalizeQuery<TReturn>(name: string, query: any): Signal<TReturn> {
 		// fail if closed?
@@ -74,7 +83,8 @@ export class TldrawApp {
 	private constructor(
 		public readonly userId: string,
 		getToken: () => Promise<string | null>,
-		onClientTooOld: () => void
+		onClientTooOld: () => void,
+		trackEvent: TLAppUiContextType
 	) {
 		const sessionId = uniqueId()
 		this.z = new Zero({
@@ -94,8 +104,8 @@ export class TldrawApp {
 			// the schema. Switch to 'idb' for local-persistence.
 			onMutationRejected: this.showMutationRejectionToast,
 			onClientTooOld: () => onClientTooOld(),
+			trackEvent,
 		})
-		this.disposables.push(() => this.z.dispose())
 
 		this.user$ = this.signalizeQuery(
 			'user signal',
@@ -163,6 +173,15 @@ export class TldrawApp {
 			defaultMessage:
 				'You have reached the maximum number of files. You need to delete old files before creating new ones.',
 		},
+		uploadingTldrFiles: {
+			defaultMessage:
+				'{total, plural, one {Uploading .tldr file…} other {Uploading {uploaded} of {total} .tldr files…}}',
+		},
+		addingTldrFiles: {
+			// no need for pluralization, if there was only one file we navigated to it
+			// so there's no need to show a toast.
+			defaultMessage: 'Added {total} .tldr files.',
+		},
 	})
 
 	getMessage(id: keyof typeof this.messages) {
@@ -214,12 +233,6 @@ export class TldrawApp {
 			})
 		},
 	})
-
-	// getAll<T extends keyof Schema['tables']>(
-	// 	typeName: T
-	// ): SchemaToRow<Schema['tables'][T]>[] {
-	// 	return this.z.query[typeName].run()
-	// }
 
 	getUserOwnFiles() {
 		return this.files$.get()
@@ -322,9 +335,13 @@ export class TldrawApp {
 			thumbnail: '',
 			updatedAt: Date.now(),
 			isDeleted: false,
+			createSource: null,
 		}
 		if (typeof fileOrId === 'object') {
 			Object.assign(file, fileOrId)
+			if (!file.name) {
+				Object.assign(file, { name: this.getFallbackFileName(file.createdAt) })
+			}
 		}
 
 		this.z.mutate.file.create(file)
@@ -350,7 +367,11 @@ export class TldrawApp {
 		}
 		assert(typeof file !== 'string', 'ok')
 
-		const name = file.name.trim()
+		if (typeof file.name === 'undefined') {
+			captureException(new Error('file name is undefined somehow: ' + JSON.stringify(file)))
+		}
+		// need a ? here because we were seeing issues on sentry where file.name was undefined
+		const name = file.name?.trim()
 		if (name) {
 			return name
 		}
@@ -383,67 +404,6 @@ export class TldrawApp {
 				shared: !file.shared,
 			})
 		})
-	}
-
-	/**
-	 * Create files from tldr files.
-	 *
-	 * @param snapshots - The snapshots to create files from.
-	 * @param token - The user's token.
-	 *
-	 * @returns The slugs of the created files.
-	 */
-	async createFilesFromTldrFiles(snapshots: TLStoreSnapshot[], token: string) {
-		const res = await fetch(TLDR_FILE_ENDPOINT, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${token}`,
-			},
-			body: JSON.stringify({
-				// convert to the annoyingly similar format that the server expects
-				snapshots: snapshots.map((s) => ({
-					snapshot: s.store,
-					schema: s.schema,
-				})),
-			}),
-		})
-
-		const response = (await res.json()) as CreateFilesResponseBody
-
-		if (!res.ok || response.error) {
-			throw Error('could not create files')
-		}
-
-		// Also create a file state record for the new file
-		this.z.mutate((tx) => {
-			for (let i = 0; i < response.slugs.length; i++) {
-				const slug = response.slugs[i]
-				const entries = Object.entries(snapshots[i].store)
-				const documentEntry = entries.find(([_, value]) => isDocument(value)) as
-					| [string, TLDocument]
-					| undefined
-				const name = documentEntry?.[1]?.name || undefined
-
-				const result = this.createFile({ id: slug, name })
-				if (!result.ok) {
-					console.error('Could not create file', result.error)
-					continue
-				}
-				tx.file_state.create({
-					userId: this.userId,
-					fileId: slug,
-					firstVisitAt: Date.now(),
-					lastEditAt: null,
-					lastSessionState: null,
-					lastVisitAt: null,
-					isFileOwner: true,
-					isPinned: false,
-				})
-			}
-		})
-
-		return { slugs: response.slugs }
 	}
 
 	/**
@@ -637,13 +597,14 @@ export class TldrawApp {
 		avatar: string
 		getToken(): Promise<string | null>
 		onClientTooOld(): void
+		trackEvent: TLAppUiContextType
 	}) {
 		// This is an issue: we may have a user record but not in the store.
 		// Could be just old accounts since before the server had a version
 		// of the store... but we should probably identify that better.
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
-		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld)
+		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld, opts.trackEvent)
 		// @ts-expect-error
 		window.app = app
 		await app.preload({
@@ -683,5 +644,171 @@ export class TldrawApp {
 			messages: {},
 		})
 		return createIntl()!
+	}
+
+	async uploadTldrFiles(files: File[], onFirstFileUploaded?: (file: TlaFile) => void) {
+		const totalFiles = files.length
+		let uploadedFiles = 0
+		if (totalFiles === 0) return
+
+		// this is only approx since we upload the files in pieces and they are base64 encoded
+		// in the json blob, so this will usually be a big overestimate. But that's fine because
+		// if the upload finishes before the number hits 100% people are pleasantly surprised.
+		const approxTotalBytes = files.reduce((acc, f) => acc + f.size, 0)
+		let bytesUploaded = 0
+		const getApproxPercentage = () =>
+			Math.min(Math.round((bytesUploaded / approxTotalBytes) * 100), 100)
+		const updateProgress = () => updateToast({ description: `${getApproxPercentage()}%` })
+
+		// only bother showing the percentage if it's going to take a while
+
+		let uploadingToastId = undefined as undefined | string
+		let didFinishUploading = false
+
+		// give it a second before we show the toast, in case the upload is fast
+		setTimeout(() => {
+			if (didFinishUploading || this.abortController.signal.aborted) return
+			// if it's close to the end, don't show the progress toast
+			if (getApproxPercentage() > 50) return
+			uploadingToastId = this.toasts?.addToast({
+				severity: 'info',
+				title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
+					total: totalFiles,
+					uploaded: uploadedFiles,
+				}),
+
+				description: `${getApproxPercentage()}%`,
+				keepOpen: true,
+			})
+		}, 800)
+
+		const updateToast = (args: { title?: string; description?: string }) => {
+			if (!uploadingToastId) return
+			this.toasts?.toasts.update((toasts) =>
+				toasts.map((t) =>
+					t.id === uploadingToastId
+						? {
+								...t,
+								...args,
+							}
+						: t
+				)
+			)
+		}
+
+		for (const f of files) {
+			const res = await this.uploadTldrFile(f, (bytes) => {
+				bytesUploaded += bytes
+				updateProgress()
+			}).catch((e) => Result.err(e))
+			if (!res.ok) {
+				if (uploadingToastId) this.toasts?.removeToast(uploadingToastId)
+				this.toasts?.addToast({
+					severity: 'error',
+					title: this.getIntl().formatMessage(this.messages.unknown_error),
+					keepOpen: true,
+				})
+				console.error(res.error)
+				return
+			}
+
+			updateToast({
+				title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
+					total: totalFiles,
+					uploaded: ++uploadedFiles + 1,
+				}),
+			})
+
+			if (onFirstFileUploaded) {
+				onFirstFileUploaded(res.value.file)
+				onFirstFileUploaded = undefined
+			}
+		}
+		didFinishUploading = true
+
+		if (uploadingToastId) this.toasts?.removeToast(uploadingToastId)
+
+		if (totalFiles > 1) {
+			this.toasts?.addToast({
+				severity: 'success',
+				title: this.getIntl().formatMessage(this.messages.addingTldrFiles, {
+					total: files.length,
+				}),
+				keepOpen: true,
+			})
+		}
+	}
+
+	private async uploadTldrFile(
+		file: File,
+		onProgress?: (bytesUploadedSinceLastProgressUpdate: number) => void
+	) {
+		const json = await file.text()
+		const parseFileResult = parseTldrawJsonFile({
+			schema: createTLSchema(),
+			json,
+		})
+
+		if (!parseFileResult.ok) {
+			return Result.err('could not parse file')
+		}
+
+		const snapshot = parseFileResult.value.getStoreSnapshot()
+
+		for (const record of Object.values(snapshot.store)) {
+			if (
+				record.typeName !== 'asset' ||
+				record.type === 'bookmark' ||
+				!record.props.src?.startsWith('data:')
+			) {
+				snapshot.store[record.id] = record
+				continue
+			}
+			const src = record.props.src
+			const file = await dataUrlToFile(
+				src,
+				record.props.name,
+				record.props.mimeType ?? 'application/octet-stream'
+			)
+			// TODO: this creates duplicate versions of the assets because we'll re-upload them when the user opens
+			// the file to associate them with the file id. To avoid this we'd need a way to create the file row
+			// in postgres so we can do the association while uploading the first time. Or just tolerate foreign key
+			// constraints being violated for a moment.
+			const assetsStore = multiplayerAssetStore()
+			const { src: newSrc } = await assetsStore.upload(record, file, this.abortController.signal)
+			onProgress?.(file.size)
+			snapshot.store[record.id] = {
+				...record,
+				props: {
+					...record.props,
+					src: newSrc,
+				},
+			}
+		}
+		const body = JSON.stringify({
+			snapshots: [
+				{
+					schema: snapshot.schema,
+					snapshot: snapshot.store,
+				} satisfies CreateSnapshotRequestBody,
+			],
+		})
+
+		const res = await fetch(TLDR_FILE_ENDPOINT, { method: 'POST', body })
+		onProgress?.(body.length)
+		if (!res.ok) {
+			throw Error('could not upload file ' + (await res.text()))
+		}
+		const response = (await res.json()) as CreateFilesResponseBody
+		if (response.error) {
+			throw Error(response.message)
+		}
+		const id = response.slugs[0]
+		const name =
+			file.name?.replace(/\.tldr$/, '') ??
+			Object.values(snapshot.store).find((d): d is TLDocument => d.typeName === 'document')?.name ??
+			''
+
+		return this.createFile({ id, name })
 	}
 }

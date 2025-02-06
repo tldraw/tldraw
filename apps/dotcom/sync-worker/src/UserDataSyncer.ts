@@ -7,7 +7,14 @@ import {
 	ZStoreData,
 	ZTable,
 } from '@tldraw/dotcom-shared'
-import { ExecutionQueue, assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
+import {
+	ExecutionQueue,
+	assert,
+	assertExists,
+	promiseWithResolve,
+	sleep,
+	uniqueId,
+} from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { Kysely } from 'kysely'
 import { Logger } from './Logger'
@@ -186,29 +193,37 @@ export class UserDataSyncer {
 
 	private updateStateAfterBootStep() {
 		assert(this.state.type === 'connecting', 'state should be connecting')
-		if (this.state.didGetBootId && this.state.data) {
-			// we got everything, so we can set the state to connected and apply any buffered events
-			const promise = this.state.promise
-			const bufferedEvents = this.state.bufferedEvents
-			const data = this.state.data
-			const mutationNumber = this.state.mutationNumber
-			this.state = {
-				type: 'connected',
-				bootId: this.state.bootId,
-				sequenceId: this.state.sequenceId,
-				lastSequenceNumber: this.state.lastSequenceNumber,
-			}
-			this.store.initialize(data)
+		if (this.state.data) {
+			if (this.state.didGetBootId) {
+				// we got everything, so we can set the state to connected and apply any buffered events
+				const promise = this.state.promise
+				const bufferedEvents = this.state.bufferedEvents
+				const data = this.state.data
+				const mutationNumber = this.state.mutationNumber
+				this.state = {
+					type: 'connected',
+					bootId: this.state.bootId,
+					sequenceId: this.state.sequenceId,
+					lastSequenceNumber: this.state.lastSequenceNumber,
+				}
+				this.store.initialize(data)
 
-			if (bufferedEvents.length > 0) {
-				bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
+				if (bufferedEvents.length > 0) {
+					bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
+					this.broadcast({
+						type: 'initial_data',
+						initialData: assertExists(this.store.getCommittedData()),
+					})
+				}
+				promise.resolve(null)
+
+				this.commitMutations(mutationNumber)
+			} else {
+				this.broadcast({
+					type: 'initial_data',
+					initialData: this.state.data,
+				})
 			}
-			promise.resolve(null)
-			this.broadcast({
-				type: 'initial_data',
-				initialData: data,
-			})
-			this.commitMutations(mutationNumber)
 		}
 		return this.state
 	}
@@ -376,6 +391,15 @@ export class UserDataSyncer {
 			this.updateStateAfterBootStep()
 		}
 		// ignore other events until we get the boot id
+	}
+
+	getInitialData() {
+		if (this.state.type === 'connecting') {
+			return this.state.data
+		} else if (this.state.type === 'connected') {
+			return this.store.getCommittedData()
+		}
+		return null
 	}
 
 	async waitUntilConnected() {

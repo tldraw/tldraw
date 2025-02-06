@@ -14,6 +14,8 @@ export const READ_ONLY_LEGACY_PREFIX = 'v'
 export const ROOM_PREFIX = 'r'
 /** @public */
 export const SNAPSHOT_PREFIX = 's'
+/** @public */
+export const FILE_PREFIX = 'f'
 
 /** @public */
 export const RoomOpenModeToPath: Record<RoomOpenMode, string> = {

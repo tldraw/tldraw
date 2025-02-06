@@ -1,4 +1,3 @@
-import { TlaFileOpenState } from '@tldraw/dotcom-shared'
 import { useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { tltime } from 'tldraw'
@@ -32,7 +31,7 @@ export function TlaSidebarCreateFileButton() {
 				focusCtx.shouldRenameNextNewFile = true
 			}
 			const { file } = res.value
-			navigate(routes.tlaFile(file.id), { state: { mode: 'create' } satisfies TlaFileOpenState })
+			navigate(routes.tlaFile(file.id))
 			trackEvent('create-file', { source: 'sidebar' })
 			rCanCreate.current = false
 			tltime.setTimeout('can create again', () => (rCanCreate.current = true), 1000)
