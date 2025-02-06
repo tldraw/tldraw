@@ -29,7 +29,7 @@ export const TlaSidebarCookieConsent = memo(function TlaSidebarCookieConsent() {
 		<div className={styles.cookieConsent}>
 			<p className={styles.cookieText}>
 				<F
-					defaultMessage="We use cookies when collecting analytics to help us improve tldraw. By clicking accept you agree to our <a>cookie policy</a>."
+					defaultMessage="We use first-party cookies to improve our services. <a>Learn more</a>"
 					values={{
 						a: (chunks) => (
 							<a href="https://tldraw.notion.site/cookie-policy" target="_blank" rel="noreferrer">
@@ -41,11 +41,11 @@ export const TlaSidebarCookieConsent = memo(function TlaSidebarCookieConsent() {
 			</p>
 			<div className={styles.cookieButtons}>
 				<button className={styles.cookieButton} onClick={handleCustomize}>
-					<F defaultMessage="Learn more" />
+					<F defaultMessage="Privacy settings" />
 				</button>
 				<div className={styles.cookieActions}>
 					<button className={styles.cookieButton} onClick={handleReject}>
-						<F defaultMessage="Reject" />
+						<F defaultMessage="Opt out" />
 					</button>
 					<button
 						className={`${styles.cookieButton} ${styles.acceptButton}`}

@@ -1,3 +1,4 @@
+import { PrivacySettingsLink } from '@/app/analytics'
 import { Logo } from '@/components/common/logo'
 import Link from 'next/link'
 
@@ -39,6 +40,7 @@ const menus = [
 			{ caption: 'License', href: '/legal/tldraw-license' },
 			{ caption: 'Trademarks', href: '/legal/trademarks' },
 			{ caption: 'CLA', href: '/legal/cla' },
+			{ caption: 'Privacy settings', href: '#', isCookieSetting: true },
 		],
 	},
 ]
@@ -60,11 +62,15 @@ export function Footer() {
 								{heading}
 							</h4>
 							<ul className="flex flex-col gap-2 mt-2 text-sm">
-								{items.map(({ caption, href }, index) => (
+								{items.map(({ caption, href, isCookieSetting }, index) => (
 									<li key={index}>
-										<Link href={href} className="hover:text-zinc-800 dark:hover:text-zinc-200">
-											{caption}
-										</Link>
+										{isCookieSetting ? (
+											<PrivacySettingsLink />
+										) : (
+											<Link href={href} className="hover:text-zinc-800 dark:hover:text-zinc-200">
+												{caption}
+											</Link>
+										)}
 									</li>
 								))}
 							</ul>
