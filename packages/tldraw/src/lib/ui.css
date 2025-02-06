@@ -970,6 +970,12 @@
 	.tl-contextual-toolbar .tl-contextual-toolbar__indicator {
 		display: none;
 	}
+
+	.tl-contextual-toolbar .tlui-toolbar__tools {
+		width: 100vw;
+		justify-content: space-between;
+		border-radius: 0;
+	}
 }
 
 .tl-rich-text__toolbar-link-input {

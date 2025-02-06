@@ -62,8 +62,8 @@ export function useContextualToolbarPosition({
 
 	if (isMobile || isNaN(selectionBounds.x) || isNaN(selectionBounds.y) || isSelectionOffscreen) {
 		return {
-			x: container.clientWidth / 2 - menuWidth / 2,
-			y: viewportHeight - menuHeight - 16,
+			x: isMobile ? 0 : container.clientWidth / 2 - menuWidth / 2,
+			y: viewportHeight - menuHeight,
 			indicatorOffset: 0,
 			visible: true,
 		}
