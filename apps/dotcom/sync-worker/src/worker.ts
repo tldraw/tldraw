@@ -19,7 +19,7 @@ import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
 import { joinExistingRoom } from './routes/joinExistingRoom'
-import { reportAProblem } from './routes/reportAProblem'
+import { submitFeedback } from './routes/submitFeedback'
 import { createFiles } from './routes/tla/createFiles'
 import { deleteFile } from './routes/tla/deleteFile'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
@@ -111,7 +111,7 @@ const router = createRouter<Environment>()
 
 		return new Response('Not Found', { status: 404 })
 	})
-	.post('/app/report-a-problem', reportAProblem)
+	.post('/app/submit-feedback', submitFeedback)
 	// end app
 	.all('*', notFound)
 

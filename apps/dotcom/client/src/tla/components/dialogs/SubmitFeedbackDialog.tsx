@@ -1,5 +1,5 @@
-import { captureException, withScope } from '@sentry/react'
-import { ReportAProblemRequestBody } from '@tldraw/dotcom-shared'
+import { addBreadcrumb, withScope } from '@sentry/react'
+import { SubmitFeedbackRequestBody } from '@tldraw/dotcom-shared'
 import { useCallback, useRef } from 'react'
 import {
 	TldrawUiButton,
@@ -19,13 +19,13 @@ import { ExternalLink } from '../ExternalLink/ExternalLink'
 import { TlaFormCheckbox } from '../tla-form/tla-form'
 
 const messages = defineMessages({
-	submitted: { defaultMessage: 'Problem reported' },
+	submitted: { defaultMessage: 'Feedback submitted' },
 	thanks: { defaultMessage: 'Thanks for helping us improve tldraw!' },
 })
 
-const descriptionKey = 'tldraw-report-a-problem'
+const descriptionKey = 'tldraw-feedback-description'
 
-export function ReportAProblemDialog({ onClose }: { onClose(): void }) {
+export function SubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 	const input = useRef<HTMLTextAreaElement>(null)
 	const checkBox = useRef<HTMLInputElement>(null)
 	const toasts = useToasts()
@@ -33,19 +33,25 @@ export function ReportAProblemDialog({ onClose }: { onClose(): void }) {
 	const onSubmit = useCallback(async () => {
 		if (!input.current?.value?.trim()) return
 		if (!checkBox.current) return
-		fetch('/api/app/report-a-problem', {
+		fetch('/api/app/submit-feedback', {
 			method: 'POST',
 			body: JSON.stringify({
 				allowContact: checkBox.current.checked,
 				description: input.current.value.trim(),
-			} satisfies ReportAProblemRequestBody),
-		}).catch((e) =>
-			withScope((scope) => {
-				console.error(e)
-				scope.setExtra('description', input.current?.value?.trim())
-				captureException(new Error('Failed to report a problem'))
+			} satisfies SubmitFeedbackRequestBody),
+		})
+			.then((r) => {
+				if (!r.ok) {
+					throw new Error('Failed to submit feedback ' + r.status)
+				}
 			})
-		)
+			.catch((e) => {
+				addBreadcrumb({ message: 'Failed to submit feedback' })
+				withScope((scope) => {
+					console.error(e)
+					scope.setExtra('description', input.current?.value?.trim())
+				})
+			})
 		deleteFromLocalStorage(descriptionKey)
 		onClose()
 		toasts.addToast({
@@ -58,11 +64,11 @@ export function ReportAProblemDialog({ onClose }: { onClose(): void }) {
 		<div>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle style={{ fontWeight: 700 }}>
-					<F defaultMessage="Report a problem" />
+					<F defaultMessage="Give us feedback" />
 				</TldrawUiDialogTitle>
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody
-				style={{ maxWidth: 350, display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 4 }}
+				style={{ maxWidth: 350, display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 0 }}
 			>
 				<p>
 					<F defaultMessage="Please provide as much detail as possible in the textbox below." />
@@ -92,6 +98,7 @@ export function ReportAProblemDialog({ onClose }: { onClose(): void }) {
 						borderRadius: '6px',
 						minHeight: '100px',
 						padding: '6px 8px',
+						resize: 'vertical',
 					}}
 					ref={input}
 				/>

@@ -6,7 +6,7 @@ import { sadFaceIcon } from '../../../components/ErrorPage/ErrorPage'
 import { useSetIsReady } from '../../hooks/useIsReady'
 import { F } from '../../utils/i18n'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
-import { ReportAProblemDialog } from '../dialogs/ReportAProblemDialog'
+import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
 import styles from './TlaFileError.module.css'
 
 function DefaultError() {
@@ -21,7 +21,7 @@ function DefaultError() {
 					values={{
 						a: (chunks) => (
 							<TldrawUiButton
-								onClick={() => dialogs.addDialog({ component: ReportAProblemDialog })}
+								onClick={() => dialogs.addDialog({ component: SubmitFeedbackDialog })}
 								type={'primary'}
 								style={{ display: 'inline' }}
 							>

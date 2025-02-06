@@ -11,7 +11,7 @@ import {
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { TlaDebugMenuGroup } from '../TlaDebugMenuGroup'
-import { ReportAProblemDialog } from '../dialogs/ReportAProblemDialog'
+import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
 import { TlaManageCookiesDialog } from '../dialogs/TlaManageCookiesDialog'
 
 const messages = defineMessages({
@@ -21,7 +21,7 @@ const messages = defineMessages({
 	cookiePolicy: { defaultMessage: 'Cookie policy' },
 	manageCookies: { defaultMessage: 'Manage cookies' },
 	about: { defaultMessage: 'About' },
-	reportAProblem: { defaultMessage: 'Report a problem' },
+	submitFeedback: { defaultMessage: 'Give us feedback' },
 })
 
 export function TlaAppMenuGroup() {
@@ -55,12 +55,12 @@ function SignedInItemsGroup() {
 				}}
 			/>
 			<TldrawUiMenuItem
-				id="report-a-problem"
-				label={useMsg(messages.reportAProblem)}
+				id="give-us-feedback"
+				label={useMsg(messages.submitFeedback)}
 				icon="external-link"
 				readonlyOk
 				onSelect={() => {
-					addDialog({ component: ReportAProblemDialog })
+					addDialog({ component: SubmitFeedbackDialog })
 				}}
 			/>
 		</TldrawUiMenuGroup>

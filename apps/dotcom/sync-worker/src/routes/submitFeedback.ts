@@ -1,4 +1,4 @@
-import { MAX_PROBLEM_DESCRIPTION_LENGTH, ReportAProblemRequestBody } from '@tldraw/dotcom-shared'
+import { MAX_PROBLEM_DESCRIPTION_LENGTH, SubmitFeedbackRequestBody } from '@tldraw/dotcom-shared'
 import { assert } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { createPostgresConnectionPool } from '../postgres'
@@ -6,20 +6,20 @@ import { Environment } from '../types'
 import { isRateLimited } from '../utils/rateLimit'
 import { requireAuth } from '../utils/tla/getAuth'
 
-export async function reportAProblem(req: IRequest, env: Environment) {
+export async function submitFeedback(req: IRequest, env: Environment) {
 	const webhookUrl = env.DISCORD_FEEDBACK_WEBHOOK_URL
 	if (!webhookUrl) {
 		assert(env.IS_LOCAL, 'DISCORD_FEEDBACK_WEBHOOK_URL is not set')
 	}
 	const auth = await requireAuth(req, env)
-	const isLimited = await isRateLimited(env, `report-issue:${auth.userId}`)
+	const isLimited = await isRateLimited(env, `submit-feedback:${auth.userId}`)
 	if (isLimited) {
 		return new Response('Rate limited', { status: 429 })
 	}
 	let description: string
 	let allowContact: boolean
 	try {
-		const data = (await req.json()) as ReportAProblemRequestBody
+		const data = (await req.json()) as SubmitFeedbackRequestBody
 		description = data.description?.trim()
 		allowContact = data.allowContact
 		if (typeof description !== 'string') {
@@ -64,14 +64,14 @@ export async function reportAProblem(req: IRequest, env: Environment) {
 		}
 	} else {
 		// eslint-disable-next-line no-console
-		console.log('Reported a problem:', payload)
+		console.log('Feedback submitted:', payload)
 	}
 
 	return new Response('OK')
 }
 
 async function getUserEmail(env: Environment, userId: string) {
-	const pg = createPostgresConnectionPool(env, 'reportAProblem')
+	const pg = createPostgresConnectionPool(env, 'submitFeedback')
 	const { email } = await pg
 		.selectFrom('user')
 		.where('id', '=', userId)

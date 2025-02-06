@@ -152,7 +152,7 @@ export const UserPreferencesKeys = [
 	'color',
 ] as const satisfies Array<keyof TlaUser>
 
-export interface ReportAProblemRequestBody {
+export interface SubmitFeedbackRequestBody {
 	description: string
 	allowContact: boolean
 }
