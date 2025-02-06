@@ -3,7 +3,12 @@
 import { TldrawIcon } from '@/components/common/icon/tldraw'
 import { NavigationLink } from '@/components/navigation/link'
 import { Category } from '@/types/content-types'
-import { MegaphoneIcon, RectangleStackIcon, TagIcon } from '@heroicons/react/20/solid'
+import {
+	MegaphoneIcon,
+	RectangleStackIcon,
+	RocketLaunchIcon,
+	TagIcon,
+} from '@heroicons/react/20/solid'
 import { usePathname } from 'next/navigation'
 
 const icons = {
@@ -11,6 +16,7 @@ const icons = {
 	'release-notes': TagIcon,
 	product: TldrawIcon,
 	'all-posts': RectangleStackIcon,
+	customers: RocketLaunchIcon,
 }
 
 export function BlogCategoryMenu({ categories }: { categories: Category[] }) {

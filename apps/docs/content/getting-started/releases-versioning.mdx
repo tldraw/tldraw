@@ -15,47 +15,52 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 
 {/* START AUTO-GENERATED CHANGELOG */}
 
-## Current release: [v3.6.0](/releases/v3.6.0)
+## Current release: [v3.7.0](/releases/v3.7.0)
 
-Welcome to the 3.6.0 release of tldraw. This month's SDK release expands DX around helpers (e.g. toasts), and addresses various issues.
-
-## What's new
-
-#### Expand helpers available in actions / toasts overrides. ([#5041](https://github.com/tldraw/tldraw/pull/5041))
-
-Makes new helper available via actions and tools overrides, things like clipboard interactions, toasts, exports, printing, and a couple more.
+Welcome to the 3.7.0 release of tldraw. This month's SDK release includes several bug fixes and perf improvements.
 
 #### Improvements
 
-- Create a utility type for making undefined properties optional [#5055](https://github.com/tldraw/tldraw/pull/5055)
-- Make sure notes snap to grid after position is updated [#5010](https://github.com/tldraw/tldraw/pull/5010)
-- Add incremental derivation example [#5038](https://github.com/tldraw/tldraw/pull/5038)
+- Add ability to customise what presence data is synced between clients, or disable presence syncing entirely. [#5071](https://github.com/tldraw/tldraw/pull/5071)
 
 #### API changes
 
-- Expand helpers available in actions / toasts overrides. [#5041](https://github.com/tldraw/tldraw/pull/5041) ([@steveruizok](https://github.com/steveruizok))
-- `setEmbedDefinitions` used to be an instance method on the `EmbedShapeUtil` class, but has been converted into a static method on that class. [#5027](https://github.com/tldraw/tldraw/pull/5027)
-- Remove `ExtractOptionalKeys` and `ExtractRequiredKeys` types. https://github.com/tldraw/tldraw/pull/5055
+- Support expanding the selection outline by different amounts on each side by returning a `Box` from `expandSelectionOutlinePx`. [#5168](https://github.com/tldraw/tldraw/pull/5168)
+- Updating shape props to undefined when using editor.updateShape [#5029](https://github.com/tldraw/tldraw/pull/5029)
 
 #### Bug fix
 
-- Fix up resolving assets when copy/pasting multiple items; also, fix up copy/pasting videos [#5061](https://github.com/tldraw/tldraw/pull/5061)
-- Fix properly clipping scaled text in frames when exporting [#5022](https://github.com/tldraw/tldraw/pull/5022)
-- Fix multiple concurrent exports from interfering with each-others fonts [#5022](https://github.com/tldraw/tldraw/pull/5022)
-- Fix issue with long press where the point would be incorrect [#5032](https://github.com/tldraw/tldraw/pull/5032)
-- Fix file name when exporting a single unnamed frame [#4918](https://github.com/tldraw/tldraw/pull/4918)
-- Fix first render of custom embeds [#5027](https://github.com/tldraw/tldraw/pull/5027)
+- Fixed a bug during development with React Strict Mode enabled where `store.listen` might end up not calling the listener. [#5133](https://github.com/tldraw/tldraw/pull/5133)
+- Restrict Github Gists to a more strict URL format. [#5170](https://github.com/tldraw/tldraw/pull/5170)
+- Fixes bugs with Github Gist and Val Town; adds support for pasting `<iframe src="...">` embeds [#5143](https://github.com/tldraw/tldraw/pull/5143)
+- Fix a bug with `maxImageDimension` not getting applied to pasted images. [#5176](https://github.com/tldraw/tldraw/pull/5176)
+- Fix relative CSS import rules failing to be fetched when exporting or printing. [#5172](https://github.com/tldraw/tldraw/pull/5172)
+- Prevents divs created for text measurement from leaking during hot reloading. [#5127](https://github.com/tldraw/tldraw/pull/5127)
+- Fixed a bug with rotating image / croppable shapes. [#5087](https://github.com/tldraw/tldraw/pull/5087)
+- Improves rendering of the pages menu and quick actions. [#5057](https://github.com/tldraw/tldraw/pull/5057)
+- Fix stale closure in InnerShape [#5117](https://github.com/tldraw/tldraw/pull/5117)
+- Fix hot reload text measurement bug [#5125](https://github.com/tldraw/tldraw/pull/5125)
+- Fixed a bug where popover menus might overflow the viewport [#5039](https://github.com/tldraw/tldraw/pull/5039)
 
 #### Authors: 7
 
 - alex ([@SomeHats](https://github.com/SomeHats))
+- Andrew Lisowski ([@hipstersmoothie](https://github.com/hipstersmoothie))
+- Christopher Ehrlich ([@c-ehrlich](https://github.com/c-ehrlich))
 - David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- mimata kazutaka ([@kazu-2020](https://github.com/kazu-2020))
 - Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
 - Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Sam Robbins ([@samrobbins85](https://github.com/samrobbins85))
 - Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- TAKAHASHI Shuuji ([@shuuji3](https://github.com/shuuji3))
 - Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+- Yuichiro Tachibana (Tsuchiya) ([@whitphx](https://github.com/whitphx))
 
 ## Previous releases
+
+- [v3.6.0](/releases/v3.6.0)
 
 - [v3.5.0](/releases/v3.5.0)
 
