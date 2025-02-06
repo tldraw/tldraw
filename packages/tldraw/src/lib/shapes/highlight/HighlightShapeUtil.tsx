@@ -28,14 +28,28 @@ import { interpolateSegments } from '../shared/interpolate-props'
 import { useColorSpace } from '../shared/useColorSpace'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
-const OVERLAY_OPACITY = 0.35
-const UNDERLAY_OPACITY = 0.82
+/** @public */
+export interface HighlightShapeOptions {
+	/**
+	 * The maximum number of points in a line before the draw tool will begin a new shape.
+	 * A higher number will lead to poor performance while drawing very long lines.
+	 */
+	readonly maxPointsPerShape: number
+	readonly underlayOpacity: number
+	readonly overlayOpacity: number
+}
 
 /** @public */
 export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	static override type = 'highlight' as const
 	static override props = highlightShapeProps
 	static override migrations = highlightShapeMigrations
+
+	static options: HighlightShapeOptions = {
+		maxPointsPerShape: 600,
+		underlayOpacity: 0.82,
+		overlayOpacity: 0.35,
+	}
 
 	override hideResizeHandles(shape: TLHighlightShape) {
 		return getIsDot(shape)
@@ -89,7 +103,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 					shape={shape}
 					forceSolid={forceSolid}
 					strokeWidth={strokeWidth}
-					opacity={OVERLAY_OPACITY}
+					opacity={HighlightShapeUtil.options.overlayOpacity}
 				/>
 			</SVGContainer>
 		)
@@ -104,7 +118,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 					shape={shape}
 					forceSolid={forceSolid}
 					strokeWidth={strokeWidth}
-					opacity={UNDERLAY_OPACITY}
+					opacity={HighlightShapeUtil.options.underlayOpacity}
 				/>
 			</SVGContainer>
 		)
@@ -137,7 +151,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 					forceSolid={forceSolid}
 					strokeWidth={strokeWidth}
 					shape={shape}
-					opacity={OVERLAY_OPACITY}
+					opacity={HighlightShapeUtil.options.overlayOpacity}
 				/>
 			</g>
 		)
@@ -153,7 +167,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 					forceSolid={forceSolid}
 					strokeWidth={strokeWidth}
 					shape={shape}
-					opacity={UNDERLAY_OPACITY}
+					opacity={HighlightShapeUtil.options.underlayOpacity}
 				/>
 			</g>
 		)

@@ -72,19 +72,22 @@ export {
 } from './lib/shapes/arrow/shared'
 export { BookmarkShapeUtil } from './lib/shapes/bookmark/BookmarkShapeUtil'
 export { DrawShapeTool } from './lib/shapes/draw/DrawShapeTool'
-export { DrawShapeUtil } from './lib/shapes/draw/DrawShapeUtil'
+export { DrawShapeUtil, type DrawShapeOptions } from './lib/shapes/draw/DrawShapeUtil'
 export { EmbedShapeUtil } from './lib/shapes/embed/EmbedShapeUtil'
 export { FrameShapeTool } from './lib/shapes/frame/FrameShapeTool'
 export { FrameShapeUtil } from './lib/shapes/frame/FrameShapeUtil'
 export { GeoShapeTool } from './lib/shapes/geo/GeoShapeTool'
 export { GeoShapeUtil } from './lib/shapes/geo/GeoShapeUtil'
 export { HighlightShapeTool } from './lib/shapes/highlight/HighlightShapeTool'
-export { HighlightShapeUtil } from './lib/shapes/highlight/HighlightShapeUtil'
+export {
+	HighlightShapeUtil,
+	type HighlightShapeOptions,
+} from './lib/shapes/highlight/HighlightShapeUtil'
 export { ImageShapeUtil } from './lib/shapes/image/ImageShapeUtil'
 export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
 export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
-export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
+export { NoteShapeUtil, type NoteShapeOptions } from './lib/shapes/note/NoteShapeUtil'
 export { TextLabel, type TextLabelProps } from './lib/shapes/shared/TextLabel'
 export {
 	getCropBox,

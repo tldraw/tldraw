@@ -747,14 +747,6 @@ export const defaultTldrawOptions: {
     readonly maxPages: 40;
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
-    readonly shapes: {
-        readonly draw: {
-            readonly maxPoints: 500;
-        };
-        readonly note: {
-            readonly resizeMode: "none";
-        };
-    };
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
 };
@@ -775,11 +767,6 @@ export const defaultUserPreferences: Readonly<{
 
 // @public
 export function degreesToRadians(d: number): number;
-
-// @public (undocumented)
-export interface DrawShapeOptions {
-    maxPoints: number;
-}
 
 // @public (undocumented)
 export const EASINGS: {
@@ -2240,11 +2227,6 @@ export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent
 };
 
 // @public (undocumented)
-export interface NoteShapeOptions {
-    resizeMode: 'none' | 'scale';
-}
-
-// @public (undocumented)
 export function openWindow(url: string, target?: string): void;
 
 // @internal (undocumented)
@@ -3091,7 +3073,7 @@ export interface TldrawEditorBaseProps {
     isShapeHidden?(shape: TLShape, editor: Editor): boolean;
     licenseKey?: string;
     onMount?: TLOnMountHandler;
-    options?: TldrawOptionsProp;
+    options?: Partial<TldrawOptions>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     tools?: readonly TLStateNodeConstructor[];
     user?: TLUser;
@@ -3193,22 +3175,10 @@ export interface TldrawOptions {
     readonly maxShapesPerPage: number;
     // (undocumented)
     readonly multiClickDurationMs: number;
-    readonly shapes: {
-        draw: DrawShapeOptions;
-        note: NoteShapeOptions;
-    };
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;
 }
-
-// @public (undocumented)
-export type TldrawOptionsProp = Partial<Omit<TldrawOptions, 'shapes'>> & {
-    shapes?: {
-        draw?: Partial<DrawShapeOptions>;
-        note?: Partial<NoteShapeOptions>;
-    };
-};
 
 // @public (undocumented)
 export interface TLEditorComponents {
@@ -3280,7 +3250,7 @@ export interface TLEditorOptions {
     // (undocumented)
     licenseKey?: string;
     // (undocumented)
-    options?: TldrawOptionsProp;
+    options?: Partial<TldrawOptions>;
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
     tools: readonly TLStateNodeConstructor[];

@@ -318,13 +318,7 @@ export {
 	type TestEnvironment,
 	type ValidLicenseKeyResult,
 } from './lib/license/LicenseManager'
-export {
-	type DrawShapeOptions,
-	type NoteShapeOptions,
-	type TldrawOptions,
-	type TldrawOptionsProp,
-	type defaultTldrawOptions,
-} from './lib/options'
+export { defaultTldrawOptions, type TldrawOptions } from './lib/options'
 export {
 	Box,
 	ROTATE_CORNER_TO_SELECTION_CORNER,

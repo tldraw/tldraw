@@ -45,7 +45,7 @@ import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/asset
  *
  * @example
  * ```tsx
- * import { Tldraw, TLComponents } from 'tldraw'
+ * import {Tldraw, TLComponents} from 'tldraw'
  *
  * const components: TLComponents = {
  *    Scribble: MyCustomScribble,
