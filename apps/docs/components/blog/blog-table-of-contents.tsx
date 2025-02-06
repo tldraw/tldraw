@@ -13,7 +13,7 @@ export async function BlogTableOfContents({ article }: { article: Article }) {
 		<Aside className="hidden xl:flex pl-12">
 			<BlogAuthors article={article} />
 			<HeadingsMenu headings={headings} />
-			<div className="mb-12 shrink-0 text-xs flex flex-col gap-1">
+			<div className="mb-12 shrink-0 text-xs flex flex-col gap-2">
 				<ShareButton url={`https://tldraw.dev${article.path}`} />
 				<BackToTopButton />
 			</div>

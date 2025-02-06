@@ -22,7 +22,7 @@ export function BlogPostPage({ article }: { article: Article }) {
 					<NewsletterSignup />
 				</section>
 			</main>
-			<BlogTableOfContents article={article} />
+			{article.categoryId === 'customers' ? null : <BlogTableOfContents article={article} />}
 		</div>
 	)
 }

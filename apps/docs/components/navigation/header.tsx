@@ -13,15 +13,8 @@ import { Suspense } from 'react'
 import { ThemeSwitch } from '../common/theme-switch'
 
 const mainLinks = [
-	{
-		caption: 'Product',
-		active: (pathname: string) => pathname === '/',
-		children: [
-			{ caption: 'Features', href: '/#features' },
-			{ caption: 'Pricing', href: '/#pricing' },
-			{ caption: 'FAQ', href: '/#faq' },
-		],
-	},
+	{ caption: 'Features', active: () => false, href: '/#features' },
+	{ caption: 'Pricing', active: () => false, href: '/#license' },
 	{
 		caption: 'Docs',
 		href: '/quick-start',

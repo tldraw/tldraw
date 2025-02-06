@@ -1,32 +1,22 @@
 import { Button } from '@/components/common/button'
 import { Demo } from '@/components/marketing/demo'
 import { ArrowRightIcon } from '@heroicons/react/20/solid'
+import { track } from '@vercel/analytics/react'
 import Link from 'next/link'
 
 export function HeroSection() {
 	return (
 		<section className="w-full max-w-screen-xl mx-auto md:px-5 flex flex-col items-center py-8 sm:py-16">
-			<div className="bg-zinc-100 dark:bg-zinc-900 px-4 py-2 text-center mb-8 self-stretch -mt-8 sm:-mt-16 sm:mb-16 md:rounded-full md:-mt-12 md:self-center">
-				We made a cool thing with Google DeepMind.{' '}
-				<a
-					href="https://ai.google.dev/showcase/tldraw"
-					className="inline-flex items-center text-blue-500 "
-				>
-					Read the blog post
-					<ArrowRightIcon className="w-4 ml-1" />
-				</a>
-			</div>
 			<div className="relative">
-				<h1 className="hidden sm:block relative font-black text-black dark:text-white text-center text-3xl leading-tight sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight w-full px-[8px]">
-					The <mark className="inline dark:hidden">infinite&nbsp;canvas&nbsp;SDK</mark>
-					<span className="hidden dark:inline text-[#FFC034]">infinite&nbsp;canvas&nbsp;SDK</span>
+				<h1 className="hidden sm:block relative font-black text-black dark:text-white text-center leading-tight text-4xl md:text-5xl md:leading-tight w-full px-[8px] pt-12 pb-6">
+					The perfect
 					<br />
-					for React developers
+					whiteboard SDK
 				</h1>
-				<h1 className="block text-balance sm:hidden relative font-black text-black dark:text-white text-center text-3xl leading-tight sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight w-full px-[8px]">
-					The <mark className="inline dark:hidden">infinite canvas SDK</mark>
-					<span className="hidden dark:inline text-[#FFC034]">infinite canvas SDK</span> for React
-					developers
+				<h1 className="block text-balance sm:hidden relative font-black text-black dark:text-white text-center text-4xl leading-tight w-full px-[8px] pt-12 pb-6">
+					The perfect
+					<br />
+					whiteboard SDK
 				</h1>
 				{/* <Underline
 					className={cn(
@@ -59,11 +49,19 @@ export function HeroSection() {
                 </div>
             </div> */}
 			<p className="mt-5 sm:mt-8 px-5 text-center text-zinc-800 dark:text-zinc-200 sm:text-lg max-w-lg md:max-w-xl text-balance">
-				Use the <b>tldraw SDK</b> to add a collaborative whiteboard to your product or create new
-				canvas-based experiences with the SDK&apos;s components, APIs, and services.
+				Use the <b>tldraw SDK</b> to add an instant collaborative whiteboard to your product. Use
+				the SDK&apos;s components and APIs to customize, extend, and innovate.
 			</p>
 			<div className="flex flex-row items-center sm:items-start sm:flex-row gap-x-4 gap-y-2 mt-6 sm:mt-9 flex-wrap justify-center sm:max-width-xl pb-8 sm:pb-16">
-				<Button href="/quick-start" caption="Get started" type="black" size="lg" />
+				<Button
+					href="/quick-start"
+					caption="Get started"
+					type="black"
+					size="lg"
+					onClick={() => {
+						track('cta', { location: 'hero', type: 'get-started' })
+					}}
+				/>
 				<Button
 					href="https://github.com/tldraw/tldraw"
 					caption="GitHub"
@@ -71,6 +69,9 @@ export function HeroSection() {
 					size="lg"
 					icon="github"
 					newTab
+					onClick={() => {
+						track('cta', { location: 'hero', type: 'github' })
+					}}
 				/>
 				{/* <div className="pt-2">
                 <div className="font-hand text-blue-500 text-lg">or try here</div>
@@ -82,6 +83,9 @@ export function HeroSection() {
 				<Link
 					href="https://tldraw.com"
 					className="flex gap-1 items-center hover:text-black transition-all duration-200"
+					onClick={() => {
+						track('cta', { location: 'hero', type: 'dotcom' })
+					}}
 				>
 					<p>
 						Try the full demo at <span className="text-blue-500">tldraw.com</span>{' '}

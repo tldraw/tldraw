@@ -24,7 +24,7 @@ export function Button({
 }: {
 	href?: string
 	newTab?: boolean
-	onClick?: MouseEventHandler<HTMLButtonElement>
+	onClick?: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>
 	submit?: boolean
 	caption: string
 	icon?: IconName
@@ -60,6 +60,9 @@ export function Button({
 				target={newTab ? '_blank' : undefined}
 				rel={newTab ? 'noopener noreferrer' : undefined}
 				className={className}
+				onClick={(e) => {
+					onClick?.(e)
+				}}
 			>
 				{arrow === 'left' && <ArrowLongLeftIcon className={cn(iconSizes[size])} />}
 				{icon && <Icon icon={icon} className={cn(iconSizes[size])} />}

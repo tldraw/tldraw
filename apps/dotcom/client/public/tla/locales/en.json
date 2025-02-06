@@ -26,9 +26,6 @@
   "0b9a4cde72": {
     "translation": "File menu"
   },
-  "0f6331fd0d": {
-    "translation": "Report a problem"
-  },
   "110a4b01be": {
     "translation": "Publish"
   },
@@ -50,6 +47,9 @@
   "1f9696d5f2": {
     "translation": "Export the content as a .tldr file: Go to 'File' > 'Save a copy'"
   },
+  "26e5b44256": {
+    "translation": "Give us feedback"
+  },
   "299cb00a7a": {
     "translation": "Upload failed"
   },
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: Highlight Missing"
+  },
+  "32656a600c": {
+    "translation": "See something wrong? Got an idea to improve tldraw? We’d love to hear it!"
   },
   "335defdafe": {
     "translation": "Please try refreshing the page."
@@ -88,6 +91,9 @@
   },
   "45b78c248d": {
     "translation": "Import from old tldraw.com"
+  },
+  "46137245cd": {
+    "translation": "Thanks for helping us improve tldraw!"
   },
   "47839e47a5": {
     "translation": "tldraw"
@@ -133,6 +139,12 @@
   },
   "5d26ae7550": {
     "translation": "We failed to upload some of the content you created before you signed in."
+  },
+  "5db1e9a8ca": {
+    "translation": "Fill out this form, <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "Feedback submitted"
   },
   "5fb63579fc": {
     "translation": "Copy"
@@ -227,9 +239,6 @@
   "91e49bb0eb": {
     "translation": "Copy to my files"
   },
-  "931a38c164": {
-    "translation": "Alternatively, <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>"
-  },
   "96165d6df5": {
     "translation": "This month"
   },
@@ -280,9 +289,6 @@
   },
   "abc5e29b0d": {
     "translation": "This is a preview release of the new tldraw.com which features file saving, collaboration, and publishing."
-  },
-  "ae094b3209": {
-    "translation": "Please provide as much detail as possible in the textbox below."
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",

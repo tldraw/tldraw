@@ -13,6 +13,7 @@ import SmBc from '@/public/images/ui-placeholder/sm-bc.png'
 import SmTlDark from '@/public/images/ui-placeholder/sm-tl-dark.png'
 import SmTl from '@/public/images/ui-placeholder/sm-tl.png'
 import { cn } from '@/utils/cn'
+import { track } from '@vercel/analytics/react'
 import Image from 'next/image'
 import { lazy, Suspense, useCallback, useState } from 'react'
 import { Button } from '../common/button'
@@ -31,6 +32,7 @@ export function Demo() {
 	const handleSkeletonClick = useCallback(() => {
 		setIsLoading(true)
 		setShowCanvas(true)
+		track('cta', { location: 'hero', type: 'demo' })
 	}, [])
 
 	return (
