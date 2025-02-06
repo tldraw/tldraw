@@ -102,6 +102,7 @@ export function NewsletterSignup({
 					/>
 				</Field>
 				<Button
+					id="mailing-list-subscribe"
 					submit
 					caption="Subscribe"
 					arrow="right"

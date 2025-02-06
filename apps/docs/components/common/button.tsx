@@ -3,12 +3,14 @@
 import { Icon, IconName } from '@/components/common/icon'
 import { cn } from '@/utils/cn'
 import { ArrowLongLeftIcon, ArrowLongRightIcon } from '@heroicons/react/20/solid'
+import { track } from '@vercel/analytics/react'
 import Link from 'next/link'
 import { MouseEventHandler } from 'react'
 import { useFormStatus } from 'react-dom'
 import { Loader } from './loader'
 
 export function Button({
+	id,
 	href,
 	newTab,
 	onClick,
@@ -22,6 +24,7 @@ export function Button({
 	darkRingOffset,
 	loading,
 }: {
+	id?: string
 	href?: string
 	newTab?: boolean
 	onClick?: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>
@@ -62,6 +65,7 @@ export function Button({
 				className={className}
 				onClick={(e) => {
 					onClick?.(e)
+					if (id) track('button', { id })
 				}}
 			>
 				{arrow === 'left' && <ArrowLongLeftIcon className={cn(iconSizes[size])} />}
@@ -72,7 +76,13 @@ export function Button({
 		)
 	if (onClick)
 		return (
-			<button onClick={onClick} className={className}>
+			<button
+				onClick={(e) => {
+					if (id) track('button', { id })
+					onClick?.(e)
+				}}
+				className={className}
+			>
 				{arrow === 'left' && <ArrowLongLeftIcon className={cn(iconSizes[size])} />}
 				{icon && <Icon icon={icon} className={cn(iconSizes[size])} />}
 				<span>{caption}</span>
@@ -93,7 +103,14 @@ export function Button({
 		)
 	if (submit)
 		return (
-			<button type="submit" disabled={pending} className={className}>
+			<button
+				type="submit"
+				disabled={pending}
+				className={className}
+				onClick={() => {
+					if (id) track('button', { id })
+				}}
+			>
 				{arrow === 'left' && <ArrowLongLeftIcon className={cn(iconSizes[size])} />}
 				{icon && <Icon icon={icon} className={cn(iconSizes[size])} />}
 				<span>{caption}</span>

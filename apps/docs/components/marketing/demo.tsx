@@ -118,6 +118,7 @@ function FakeTldraw({ onClick, isLoading }: { onClick(): void; isLoading: boolea
 			</div>
 			<div className="absolute inset-0 bg-[#FBFCFE]/50 dark:bg-[#101011]/50 flex items-center justify-center">
 				<Button
+					id="hero-demo"
 					onClick={onClick}
 					caption={isLoading ? 'Loading…' : 'Try it'}
 					icon="play"

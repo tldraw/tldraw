@@ -52,8 +52,15 @@ export function HeroSection() {
 				the SDK&apos;s components and APIs to customize, extend, and innovate.
 			</p>
 			<div className="flex flex-row items-center sm:items-start sm:flex-row gap-x-4 gap-y-2 mt-6 sm:mt-9 flex-wrap justify-center sm:max-width-xl pb-8 sm:pb-16">
-				<Button href="/quick-start" caption="Get started" type="black" size="lg" />
 				<Button
+					id="hero-quick-start"
+					href="/quick-start"
+					caption="Get started"
+					type="black"
+					size="lg"
+				/>
+				<Button
+					id="hero-github"
 					href="https://github.com/tldraw/tldraw"
 					caption="GitHub"
 					type="tertiary"
