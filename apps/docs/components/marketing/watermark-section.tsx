@@ -1,3 +1,4 @@
+import { BlueA } from '../common/blue-a'
 import { Section } from './section'
 import { SectionHeading } from './section-heading'
 import { WatermarkImage } from './watermark-image'
@@ -14,11 +15,14 @@ export function WatermarkSection() {
 			</div>
 			<p className="text-center max-w-xl text-balance mx-auto px-5 md:px-0">
 				You can use the tldraw SDK for free in your project—even in a commercial project—as long as
-				the {`"`}Made with tldraw{`"`} watermark is present. See{' '}
-				<a className="text-blue-500" href="https://github.com/tldraw/tldraw/blob/main/LICENSE.md">
+				the <b>made with tldraw</b> watermark is present. See{' '}
+				<BlueA href="https://github.com/tldraw/tldraw/blob/main/LICENSE.md">
 					our standard license
-				</a>{' '}
+				</BlueA>{' '}
 				to learn more.
+			</p>
+			<p className="text-center max-w-xl text-balance mx-auto px-5 pt-4 md:px-0">
+				<BlueA href="#pricing">Our customers</BlueA> receive a license key to hide the watermark.
 			</p>
 		</Section>
 	)

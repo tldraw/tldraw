@@ -1,6 +1,7 @@
 import { Section } from '@/components/marketing/section'
 import { SectionHeading } from '@/components/marketing/section-heading'
 import Link from 'next/link'
+import { BlueA } from '../common/blue-a'
 import { DisclosureToggle } from './DisclosureToggle'
 
 export function FAQSection() {
@@ -35,7 +36,7 @@ const faq = [
 			<>
 				You can use the tldraw SDK for free in commercial or non-commercial contexts so long as the
 				watermark is present. If you want to remove the watermark, you can purchase a license from
-				us. See our <BlueA href="#license">license</BlueA> and{' '}
+				us. See our <BlueA href="#watermark">license</BlueA> and{' '}
 				<BlueA href="#pricing">pricing</BlueA> sections for more information.
 			</>
 		),
@@ -155,11 +156,3 @@ const faq = [
 		),
 	},
 ]
-
-function BlueA({ href, children }: { href: string; children: React.ReactNode }) {
-	return (
-		<a href={href} className="text-blue-500 hover:text-blue-600">
-			{children}
-		</a>
-	)
-}
