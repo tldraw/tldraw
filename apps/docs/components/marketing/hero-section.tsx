@@ -13,7 +13,7 @@ export function HeroSection() {
 					whiteboard SDK
 				</h1>
 				<h1 className="block text-balance sm:hidden relative font-black text-black dark:text-white text-center text-4xl leading-tight w-full px-[8px] pt-12 pb-6">
-					The perfect
+					The <u>perfect</u>
 					<br />
 					whiteboard SDK
 				</h1>
