@@ -477,7 +477,7 @@ export { preloadFont, type TLTypeFace } from './lib/utils/assets/preload-font'
 export { getEmbedInfo, type TLEmbedResult } from './lib/utils/embeds/embeds'
 export { copyAs, type CopyAsOptions, type TLCopyType } from './lib/utils/export/copyAs'
 export { exportToBlob } from './lib/utils/export/export'
-export { exportAs, type ExportAsOptions } from './lib/utils/export/exportAs'
+export { downloadFile, exportAs, type ExportAsOptions } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export {
 	defaultEditorAssetUrls,
