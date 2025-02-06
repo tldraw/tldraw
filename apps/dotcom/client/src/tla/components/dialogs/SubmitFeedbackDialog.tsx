@@ -71,11 +71,11 @@ export function SubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 				style={{ maxWidth: 350, display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 0 }}
 			>
 				<p>
-					<F defaultMessage="Please provide as much detail as possible in the textbox below." />
+					<F defaultMessage="See something wrong? Got an idea to improve tldraw? We’d love to hear it!" />
 				</p>
 				<p>
 					<F
-						defaultMessage="Alternatively, <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>"
+						defaultMessage="Fill out this form, <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>."
 						values={{
 							discord: (chunks) => {
 								return <ExternalLink to="https://discord.gg/rhsyWMUJxd">{chunks}</ExternalLink>
@@ -89,6 +89,7 @@ export function SubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 					/>
 				</p>
 				<textarea
+					placeholder="Please provide as much detail as possible"
 					defaultValue={getFromLocalStorage(descriptionKey) ?? undefined}
 					onInput={(e) => {
 						setInLocalStorage(descriptionKey, e.currentTarget.value)
