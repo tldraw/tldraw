@@ -5,7 +5,7 @@ import { WatermarkImage } from './watermark-image'
 export function WatermarkSection() {
 	return (
 		<Section
-			id="watermark"
+			id="license"
 			className="bg-zinc-50 dark:bg-zinc-900 py-24 sm:py-24 md:py-32 lg:py-40 w-full max-w-full"
 		>
 			<SectionHeading subheading="License" heading="Free with Watermark" />
