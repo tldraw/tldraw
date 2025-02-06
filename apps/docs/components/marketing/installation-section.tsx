@@ -15,8 +15,12 @@ export function InstallationSection() {
 				<CodeFiles files={[code.terminal]} hideTabs className="w-full my-0" />
 				<CodeFiles files={[code.app]} className="w-full my-0" />
 				<div className="flex gap-4 flex-wrap items-center justify-center px-4">
-					<Button href="/examples" type="tertiary" caption="Browse examples" />
-					<Button href="/quick-start" caption="Read the quick start guide" />{' '}
+					<Button id="code-examples" href="/examples" type="tertiary" caption="Browse examples" />
+					<Button
+						id="code-quick-start-"
+						href="/quick-start"
+						caption="Read the quick start guide"
+					/>{' '}
 				</div>
 			</div>
 		</Section>

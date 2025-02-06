@@ -52,6 +52,13 @@
 				"description": "Release notes for the tldraw SDK.",
 				"groups": [],
 				"hero": null
+			},
+			{
+				"id": "customers",
+				"title": "Customers",
+				"description": "Case-studies and customer stories.",
+				"groups": [],
+				"hero": null
 			}
 		],
 		"sidebar_behavior": "hidden"
