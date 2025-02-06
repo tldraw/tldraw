@@ -5,6 +5,7 @@ import { ShareButton } from '@/components/common/share-button'
 import { HeadingsMenu } from '@/components/navigation/headings-menu'
 import { Article } from '@/types/content-types'
 import { db } from '@/utils/ContentDatabase'
+import { ExtraSideBarButtons } from '../common/extra-sidebar-buttons'
 
 export async function BlogTableOfContents({ article }: { article: Article }) {
 	const headings = await db.getArticleHeadings(article.id)
@@ -13,10 +14,10 @@ export async function BlogTableOfContents({ article }: { article: Article }) {
 		<Aside className="hidden xl:flex pl-12">
 			<BlogAuthors article={article} />
 			<HeadingsMenu headings={headings} />
-			<div className="mb-12 shrink-0 text-xs flex flex-col gap-2">
+			<ExtraSideBarButtons>
 				<ShareButton url={`https://tldraw.dev${article.path}`} />
 				<BackToTopButton />
-			</div>
+			</ExtraSideBarButtons>
 		</Aside>
 	)
 }
