@@ -399,7 +399,7 @@ export class UserDataSyncer {
 		} else if (this.state.type === 'connected') {
 			return this.store.getCommittedData()
 		}
-		throw new Error('[getInitialData] state should be connecting or connected')
+		return null
 	}
 
 	async waitUntilConnected() {

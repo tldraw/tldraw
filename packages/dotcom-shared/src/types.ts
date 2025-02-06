@@ -151,3 +151,10 @@ export const UserPreferencesKeys = [
 	'name',
 	'color',
 ] as const satisfies Array<keyof TlaUser>
+
+export interface SubmitFeedbackRequestBody {
+	description: string
+	allowContact: boolean
+}
+
+export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000

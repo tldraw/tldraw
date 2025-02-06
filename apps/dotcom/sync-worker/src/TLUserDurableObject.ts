@@ -187,7 +187,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			)
 		} else {
 			// the cache hasn't received the initial data yet, so we need to wait for it
-			// it will broadcast on its own ok
+			// it will broadcast on its own
 			this.log.debug('waiting for initial data')
 		}
 
