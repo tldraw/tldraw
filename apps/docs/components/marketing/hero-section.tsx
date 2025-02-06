@@ -1,7 +1,6 @@
 import { Button } from '@/components/common/button'
 import { Demo } from '@/components/marketing/demo'
 import { ArrowRightIcon } from '@heroicons/react/20/solid'
-import { track } from '@vercel/analytics/react'
 import Link from 'next/link'
 
 export function HeroSection() {
@@ -53,15 +52,7 @@ export function HeroSection() {
 				the SDK&apos;s components and APIs to customize, extend, and innovate.
 			</p>
 			<div className="flex flex-row items-center sm:items-start sm:flex-row gap-x-4 gap-y-2 mt-6 sm:mt-9 flex-wrap justify-center sm:max-width-xl pb-8 sm:pb-16">
-				<Button
-					href="/quick-start"
-					caption="Get started"
-					type="black"
-					size="lg"
-					onClick={() => {
-						track('cta', { location: 'hero', type: 'get-started' })
-					}}
-				/>
+				<Button href="/quick-start" caption="Get started" type="black" size="lg" />
 				<Button
 					href="https://github.com/tldraw/tldraw"
 					caption="GitHub"
@@ -69,9 +60,6 @@ export function HeroSection() {
 					size="lg"
 					icon="github"
 					newTab
-					onClick={() => {
-						track('cta', { location: 'hero', type: 'github' })
-					}}
 				/>
 				{/* <div className="pt-2">
                 <div className="font-hand text-blue-500 text-lg">or try here</div>
@@ -83,9 +71,6 @@ export function HeroSection() {
 				<Link
 					href="https://tldraw.com"
 					className="flex gap-1 items-center hover:text-black transition-all duration-200"
-					onClick={() => {
-						track('cta', { location: 'hero', type: 'dotcom' })
-					}}
 				>
 					<p>
 						Try the full demo at <span className="text-blue-500">tldraw.com</span>{' '}
