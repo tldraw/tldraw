@@ -1,6 +1,7 @@
 import { Section } from '@/components/marketing/section'
 import { SectionHeading } from '@/components/marketing/section-heading'
 import Link from 'next/link'
+import { BlueA } from '../common/blue-a'
 import { DisclosureToggle } from './DisclosureToggle'
 
 export function FAQSection() {
@@ -155,11 +156,3 @@ const faq = [
 		),
 	},
 ]
-
-function BlueA({ href, children }: { href: string; children: React.ReactNode }) {
-	return (
-		<a href={href} className="text-blue-500 hover:text-blue-600">
-			{children}
-		</a>
-	)
-}
