@@ -36,7 +36,7 @@ const faq = [
 			<>
 				You can use the tldraw SDK for free in commercial or non-commercial contexts so long as the
 				watermark is present. If you want to remove the watermark, you can purchase a license from
-				us. See our <BlueA href="#watermark">license</BlueA> and{' '}
+				us. See our <BlueA href="#license">license</BlueA> and{' '}
 				<BlueA href="#pricing">pricing</BlueA> sections for more information.
 			</>
 		),

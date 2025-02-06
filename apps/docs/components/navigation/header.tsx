@@ -14,7 +14,7 @@ import { ThemeSwitch } from '../common/theme-switch'
 
 const mainLinks = [
 	{ caption: 'Features', active: () => false, href: '/#features' },
-	{ caption: 'Pricing', active: () => false, href: '/#watermark' },
+	{ caption: 'Pricing', active: () => false, href: '/#license' },
 	{
 		caption: 'Docs',
 		href: '/quick-start',

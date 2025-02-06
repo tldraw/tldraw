@@ -12,7 +12,7 @@ const menus = [
 			{ caption: 'Overview', href: '/' },
 			{ caption: 'Playground', href: 'https://tldraw.com' },
 			{ caption: 'Features', href: '/#features' },
-			{ caption: 'Pricing', href: '/#watermark' },
+			{ caption: 'Pricing', href: '/#license' },
 			{ caption: 'FAQ', href: '/#faq' },
 		],
 	},
