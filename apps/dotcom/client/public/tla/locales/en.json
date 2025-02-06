@@ -95,11 +95,17 @@
   "46137245cd": {
     "translation": "Thanks for helping us improve tldraw!"
   },
+  "4778b9f3f2": {
+    "translation": "Privacy settings"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Are you sure you want to forget this file?"
+  },
+  "4c06678729": {
+    "translation": "We use first-party cookies to improve our services. <a>Learn more</a>"
   },
   "4d1c8263ba": {
     "translation": "Reload"
@@ -254,8 +260,8 @@
   "9e076f5885": {
     "translation": "Not found"
   },
-  "9e7dc2358c": {
-    "translation": "We use cookies when collecting analytics to help us improve tldraw. By clicking accept you agree to our <a>cookie policy</a>."
+  "9e93c98d88": {
+    "translation": "Opt out"
   },
   "a104439641": {
     "translation": "Padding"
@@ -348,9 +354,6 @@
   "d4bbf74f3e": {
     "translation": "Toggle sidebar"
   },
-  "d59048f21f": {
-    "translation": "Learn more"
-  },
   "d721757161": {
     "translation": "Theme"
   },
@@ -362,9 +365,6 @@
   },
   "d9776f0775": {
     "translation": "Sign up"
-  },
-  "d98ac12774": {
-    "translation": "Reject"
   },
   "d9fe660e4e": {
     "translation": "Sorry, you don’t have access to that workspace."
