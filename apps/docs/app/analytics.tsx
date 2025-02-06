@@ -12,10 +12,12 @@ export default function Analytics() {
 	const [hasConsent, setHasConsent] = useState<string | undefined>(
 		'false' /* server-side starts with false */
 	)
+
 	const onConsentChanged = (hasConsent: boolean) => {
 		Cookies.set('allowTracking', hasConsent ? 'true' : 'false')
 		setHasConsent(hasConsent ? 'true' : 'false')
 	}
+
 	useEffect(() => {
 		setHasConsent(Cookies.get('allowTracking'))
 	}, [])
@@ -51,7 +53,6 @@ function CookieConsent({
 	const [showPrivacySettings, setShowPrivacySettings] = useState(false)
 	const handleAccept = () => onChange(true)
 	const handleReject = () => onChange(false)
-	const handleCustomize = () => setShowPrivacySettings(true)
 	const onHide = () => {
 		setShowPrivacySettings(false)
 		if (Cookies.get('allowTracking') !== undefined) {
@@ -63,40 +64,33 @@ function CookieConsent({
 
 	return (
 		<>
-			<div className="fixed z-50 bottom-2 left-2 p-3 rounded border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950">
-				<p className="text-xs mb-2 leading-relaxed text-zinc-950 dark:text-zinc-100">
-					We use first-party cookies to improve our services.
-					<br />
+			<div className="select-none pointer-events-all p-3 gap-3 fixed max-w-full z-50 bottom-2 left-2 rounded rounded-lg shadow shadow-xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex items-center flex-col sm:flex-row sm:gap-8">
+				<p className="text-xs leading-relaxed text-zinc-950 dark:text-zinc-100">
+					We use cookies on this website.
+					<br /> Learn more in our{' '}
 					<a
 						href="https://tldraw.notion.site/devcookiepolicy"
 						target="_blank"
 						rel="noreferrer"
 						className="text-blue-500 hover:text-blue-600 dark:hover:text-blue-400"
 					>
-						Learn more
+						Cookie Policy
 					</a>
+					.
 				</p>
-				<div className="flex gap-2 justify-between">
+				<div className="w-full h-full justify-between flex-shrink-0 flex gap-4 sm:w-auto">
 					<button
-						className="bg-none border-none p-0 text-xs cursor-pointer no-underline text-zinc-950 dark:text-zinc-300"
-						onClick={handleCustomize}
+						className="bg-none flex-shrink-0 border-none p-0 text-sm cursor-pointer no-underline text-zinc-950 dark:text-zinc-300"
+						onClick={handleReject}
 					>
-						Privacy settings
+						Opt out
 					</button>
-					<div className="flex gap-2">
-						<button
-							className="bg-none border-none p-0 text-xs cursor-pointer no-underline text-zinc-950 dark:text-zinc-300"
-							onClick={handleReject}
-						>
-							Opt out
-						</button>
-						<button
-							className="bg-none border-none p-0 text-xs cursor-pointer no-underline text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 font-bold"
-							onClick={handleAccept}
-						>
-							Accept
-						</button>
-					</div>
+					<button
+						className="bg-blue-500 text-white rounded-[99px] dark:text-black border-none py-2 px-4 text-sm cursor-pointer no-underline hover:white dark:hover:black font-bold"
+						onClick={handleAccept}
+					>
+						Accept
+					</button>
 				</div>
 			</div>
 			{showPrivacySettings && <PrivacySettings hasConsent={hasConsent} onHide={onHide} />}
@@ -120,17 +114,17 @@ function PrivacySettings({
 	return (
 		<Dialog.Root open>
 			<Dialog.Portal>
-				<Dialog.Overlay className="fixed inset-0 z-50 bg-white/90 dark:bg-zinc-950/90" />
-				<Dialog.Content
-					className="fixed inset-0 z-50 flex flex-col items-center justify-center h-screen"
-					onEscapeKeyDown={onHide}
-				>
-					<div className="relative shadow rounded p-8 bg-white dark:bg-zinc-950 text-md max-w-lg">
+				<Dialog.Overlay className="fixed inset-0 z-[100] bg-white/90 dark:bg-zinc-950/90" />
+				<div className="fixed inset-0 z-[150] flex flex-col items-center justify-center h-screen">
+					<Dialog.Content
+						onInteractOutside={onHide}
+						onPointerDownOutside={onHide}
+						className="relative shadow rounded p-8 bg-white dark:bg-zinc-950 text-md max-w-lg"
+						onEscapeKeyDown={onHide}
+					>
 						<Dialog.Title className="mb-2 font-bold">Privacy settings</Dialog.Title>
-						<Dialog.Description className="text-sm">
-							We use cookies to collect analytics to help us improve tldraw.dev.
-							<br />
-							Read our{' '}
+						<Dialog.Description className="text-base">
+							This website uses cookies to collect analytics from visitors. Read our{' '}
 							<a
 								href="https://tldraw.notion.site/devcookiepolicy"
 								target="_blank"
@@ -141,7 +135,6 @@ function PrivacySettings({
 							</a>{' '}
 							to learn more.
 						</Dialog.Description>
-
 						<Dialog.DialogClose
 							className="absolute top-2 right-2 p-1 rounded-full bg-white dark:bg-zinc-950 dark:text-zinc-300"
 							asChild
@@ -152,10 +145,10 @@ function PrivacySettings({
 						</Dialog.DialogClose>
 
 						<div className="flex mt-6 items-center">
-							<label className="text-md leading-none select-none pr-4" htmlFor="privacy-analytics">
+							<label className="text-base select-none pr-4" htmlFor="privacy-analytics">
 								<strong className="inline-block mb-2">Analytics</strong>
 								<br />
-								Optional — Help us understand how people use tldraw.dev, and how we can make it
+								Optional. Help us understand how people use this website so that we can make it
 								better.
 							</label>
 							<div>
@@ -169,8 +162,8 @@ function PrivacySettings({
 								</Switch.Root>
 							</div>
 						</div>
-					</div>
-				</Dialog.Content>
+					</Dialog.Content>
+				</div>
 			</Dialog.Portal>
 		</Dialog.Root>
 	)
