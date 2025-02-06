@@ -8,7 +8,7 @@ export function HeroSection() {
 		<section className="w-full max-w-screen-xl mx-auto md:px-5 flex flex-col items-center py-8 sm:py-16">
 			<div className="relative">
 				<h1 className="hidden sm:block relative font-black text-black dark:text-white text-center leading-tight text-4xl md:text-5xl md:leading-tight w-full px-[8px] pt-12 pb-6">
-					The perfect
+					The <u>perfect</u>
 					<br />
 					whiteboard SDK
 				</h1>
@@ -48,8 +48,8 @@ export function HeroSection() {
                 </div>
             </div> */}
 			<p className="mt-5 sm:mt-8 px-5 text-center text-zinc-800 dark:text-zinc-200 sm:text-lg max-w-lg md:max-w-xl text-balance">
-				Use the <b>tldraw SDK</b> to add an instant collaborative whiteboard to your product. Use
-				the SDK&apos;s components and APIs to customize, extend, and innovate.
+				An instant collaborative whiteboard for your product, complete with the components,
+				services, and APIs you need to build further.
 			</p>
 			<div className="flex flex-row items-center sm:items-start sm:flex-row gap-x-4 gap-y-2 mt-6 sm:mt-9 flex-wrap justify-center sm:max-width-xl pb-8 sm:pb-16">
 				<Button
