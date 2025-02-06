@@ -74,10 +74,8 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 		if (rResizeState.current.name === 'resizing') {
 			const { startX, startWidth } = rResizeState.current
 
-			const newWidth = clamp(
-				startWidth + (moveEvent.clientX - startX),
-				MIN_SIDEBAR_WIDTH,
-				MAX_SIDEBAR_WIDTH
+			const newWidth = Math.floor(
+				clamp(startWidth + (moveEvent.clientX - startX), MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH)
 			)
 
 			if (newWidth !== getLocalSessionStateUnsafe().sidebarWidth) {
