@@ -274,6 +274,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		// re-register all active users to get their latest guest info
 		// do this in small batches to avoid overwhelming the system
 		const users = this.sql.exec('SELECT id FROM active_user').toArray()
+		this.reportActiveUsers()
 		const sequenceId = this.state.sequenceId
 		const BATCH_SIZE = 5
 		const tick = () => {
@@ -538,6 +539,15 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
+	reportActiveUsers() {
+		try {
+			const { count } = this.sql.exec('SELECT COUNT(*) as count FROM active_user').one()
+			this.logEvent({ type: 'active_users', count: count as number })
+		} catch (e) {
+			console.error('Error in reportActiveUsers', e)
+		}
+	}
+
 	async registerUser(userId: string) {
 		try {
 			this.log.debug('registering user', userId)
@@ -560,6 +570,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				userId,
 				sequenceIdSuffix
 			)
+			this.reportActiveUsers()
 			this.log.debug('inserted active user')
 			for (const file of guestFiles) {
 				this.sql.exec(
@@ -569,6 +580,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				)
 			}
 			this.log.debug('inserted guest files', guestFiles.length)
+
 			return {
 				sequenceId: this.state.sequenceId + ':' + sequenceIdSuffix,
 				sequenceNumber: 0,
@@ -582,6 +594,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	async unregisterUser(userId: string) {
 		this.logEvent({ type: 'unregister_user' })
 		this.sql.exec(`DELETE FROM active_user WHERE id = ?`, userId)
+		this.reportActiveUsers()
 		const queue = this.userDispatchQueues.get(userId)
 		if (queue) {
 			queue.close()
@@ -615,6 +628,12 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				this.writeEvent({
 					blobs: [event.type],
 					doubles: [event.rpm],
+				})
+				break
+			case 'active_users':
+				this.writeEvent({
+					blobs: [event.type],
+					doubles: [event.count],
 				})
 				break
 			default:
