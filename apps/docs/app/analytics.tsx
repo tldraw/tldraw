@@ -3,29 +3,31 @@
 import { XMarkIcon } from '@heroicons/react/24/solid'
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Switch from '@radix-ui/react-switch'
-import { Analytics as VercelAnalytics } from '@vercel/analytics/react'
+import { track, Analytics as VercelAnalytics } from '@vercel/analytics/react'
 import Cookies from 'js-cookie'
 import Script from 'next/script'
 import { useEffect, useState } from 'react'
 
+type CookieConsent = 'unknown' | 'opted-in' | 'opted-out'
+
 export default function Analytics() {
-	const [hasConsent, setHasConsent] = useState<string | undefined>(
-		'false' /* server-side starts with false */
-	)
+	const [hasConsent, setHasConsent] = useState<CookieConsent>('unknown')
 
 	const onConsentChanged = (hasConsent: boolean) => {
 		Cookies.set('allowTracking', hasConsent ? 'true' : 'false')
-		setHasConsent(hasConsent ? 'true' : 'false')
+		track('consent_changed', { hasConsent }) // lol
+		setHasConsent(hasConsent ? 'opted-in' : 'opted-out')
 	}
 
 	useEffect(() => {
-		setHasConsent(Cookies.get('allowTracking'))
+		const consent = Cookies.get('allowTracking')
+		setHasConsent(consent === 'true' ? 'opted-in' : consent === 'false' ? 'opted-out' : 'unknown')
 	}, [])
 
 	return (
 		<>
 			<VercelAnalytics />
-			{hasConsent && <HubspotAnalytics />}
+			{hasConsent === 'opted-in' && <HubspotAnalytics />}
 			<CookieConsent hasConsent={hasConsent} onChange={onConsentChanged} />
 		</>
 	)
@@ -47,7 +49,7 @@ function CookieConsent({
 	hasConsent,
 	onChange,
 }: {
-	hasConsent: string | undefined
+	hasConsent: CookieConsent
 	onChange(consent: boolean): void
 }) {
 	const [showPrivacySettings, setShowPrivacySettings] = useState(false)
@@ -55,12 +57,13 @@ function CookieConsent({
 	const handleReject = () => onChange(false)
 	const onHide = () => {
 		setShowPrivacySettings(false)
-		if (Cookies.get('allowTracking') !== undefined) {
-			onChange(Cookies.get('allowTracking') === 'true')
+		const consent = Cookies.get('allowTracking')
+		if (consent !== undefined) {
+			onChange(consent === 'true')
 		}
 	}
 
-	if (hasConsent !== undefined) return null
+	if (hasConsent !== 'unknown') return null
 
 	return (
 		<>
@@ -98,14 +101,8 @@ function CookieConsent({
 	)
 }
 
-function PrivacySettings({
-	hasConsent,
-	onHide,
-}: {
-	hasConsent: string | undefined
-	onHide(): void
-}) {
-	const [isChecked, setIsChecked] = useState(hasConsent === 'true')
+function PrivacySettings({ hasConsent, onHide }: { hasConsent: CookieConsent; onHide(): void }) {
+	const [isChecked, setIsChecked] = useState(hasConsent === 'opted-in')
 	const onChange = (checked: boolean) => {
 		Cookies.set('allowTracking', checked ? 'true' : 'false')
 		setIsChecked(checked)
@@ -186,7 +183,10 @@ export function PrivacySettingsLink() {
 				Privacy settings
 			</button>
 			{showPrivacySettings && (
-				<PrivacySettings hasConsent={Cookies.get('allowTracking')} onHide={onHide} />
+				<PrivacySettings
+					hasConsent={Cookies.get('allowTracking') === 'true' ? 'opted-in' : 'opted-out'}
+					onHide={onHide}
+				/>
 			)}
 		</>
 	)
