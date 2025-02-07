@@ -79,7 +79,12 @@ const router = createRouter<Environment>()
 		return stub.fetch(req)
 	})
 	.post('/app/tldr', createFiles)
-	.get('/app/file/:roomId', forwardRoomRequest)
+	.get('/app/file/:roomId', (req, env) => {
+		if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
+			return forwardRoomRequest(req, env)
+		}
+		return notFound()
+	})
 	.get('/app/publish/:roomId', getPublishedFile)
 	.get('/app/uploads/:objectName', async (request, env, ctx) => {
 		return handleUserAssetGet({
