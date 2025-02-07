@@ -835,6 +835,11 @@ export function downsizeImage(blob: Blob, width: number, height: number, opts?: 
 }): Promise<Blob>;
 
 // @public (undocumented)
+export interface DrawShapeOptions {
+    readonly maxPointsPerShape: number;
+}
+
+// @public (undocumented)
 export class DrawShapeTool extends StateNode {
     // (undocumented)
     static children(): TLStateNodeConstructor[];
@@ -880,6 +885,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
             segments: TLDrawShapeSegment[];
         };
     };
+    // (undocumented)
+    static options: DrawShapeOptions;
     // (undocumented)
     static props: RecordProps<TLDrawShape>;
     // (undocumented)
@@ -1368,6 +1375,15 @@ export function HandToolbarItem(): JSX_2.Element;
 export function HexagonToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
+export interface HighlightShapeOptions {
+    readonly maxPointsPerShape: number;
+    // (undocumented)
+    readonly overlayOpacity: number;
+    // (undocumented)
+    readonly underlayOpacity: number;
+}
+
+// @public (undocumented)
 export class HighlightShapeTool extends StateNode {
     // (undocumented)
     static children(): TLStateNodeConstructor[];
@@ -1411,6 +1427,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
             segments: TLDrawShapeSegment[];
         };
     };
+    // (undocumented)
+    static options: HighlightShapeOptions;
     // (undocumented)
     static props: RecordProps<TLHighlightShape>;
     // (undocumented)
@@ -1584,6 +1602,11 @@ export function MobileStylePanel(): JSX_2.Element | null;
 export function MoveToPageMenu(): JSX_2.Element | null;
 
 // @public (undocumented)
+export interface NoteShapeOptions {
+    resizeMode: 'none' | 'scale';
+}
+
+// @public (undocumented)
 export class NoteShapeTool extends StateNode {
     // (undocumented)
     static children(): TLStateNodeConstructor[];
@@ -1685,6 +1708,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         x: number;
         y: number;
     } | undefined;
+    // (undocumented)
+    static options: NoteShapeOptions;
     // (undocumented)
     static props: RecordProps<TLNoteShape>;
     // (undocumented)
