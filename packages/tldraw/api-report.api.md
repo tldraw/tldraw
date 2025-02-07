@@ -825,6 +825,9 @@ export function DiamondToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export function DistributeMenuItems(): JSX_2.Element;
 
+// @internal (undocumented)
+export function downloadFile(file: File): void;
+
 // @public
 export function downsizeImage(blob: Blob, width: number, height: number, opts?: {
     quality?: number | undefined;

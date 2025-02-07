@@ -42,16 +42,23 @@ export const TlaFormInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTM
 	}
 )
 
-export function TlaFormCheckbox({ children, ...props }: HTMLProps<HTMLInputElement>) {
-	return (
-		<div className={styles.checkbox}>
-			<input {...props} type="checkbox" className={classNames(styles.input, props.className)} />
-			<label htmlFor={props.name} className={styles.label}>
-				{children}
-			</label>
-		</div>
-	)
-}
+export const TlaFormCheckbox = forwardRef<HTMLInputElement, HTMLProps<HTMLInputElement>>(
+	function TlaFormCheckbox({ children, ...props }, ref) {
+		return (
+			<div className={styles.checkbox}>
+				<input
+					{...props}
+					ref={ref}
+					type="checkbox"
+					className={classNames(styles.input, props.className)}
+				/>
+				<label htmlFor={props.name} className={styles.label}>
+					{children}
+				</label>
+			</div>
+		)
+	}
+)
 
 export function TlaFormDivider({ children, ...props }: HTMLAttributes<HTMLDivElement>) {
 	return (

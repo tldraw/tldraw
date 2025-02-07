@@ -9,6 +9,7 @@ import { generateExamplesContent } from './generateExamplesContent'
 
 export async function refreshContent(opts = {} as { silent: boolean }) {
 	if (!opts.silent) nicelog('◦ Resetting database...')
+
 	const db = await connect({ reset: true, mode: 'readwrite' })
 
 	if (!opts.silent) nicelog('◦ Adding authors to db...')

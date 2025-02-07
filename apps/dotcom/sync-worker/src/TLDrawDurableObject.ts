@@ -5,6 +5,7 @@ import { SupabaseClient } from '@supabase/supabase-js'
 import {
 	DB,
 	FILE_PREFIX,
+	PUBLISH_PREFIX,
 	READ_ONLY_LEGACY_PREFIX,
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
@@ -38,6 +39,7 @@ import { AlarmScheduler } from './AlarmScheduler'
 import { PERSIST_INTERVAL_MS } from './config'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
+import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { createSupabaseClient } from './utils/createSupabaseClient'
@@ -497,7 +499,7 @@ export class TLDrawDurableObject extends DurableObject {
 			return { type: 'room_not_found' as const }
 		}
 
-		let data: string | null | undefined = undefined
+		let data: RoomSnapshot | string | null | undefined = undefined
 		const [prefix, id] = split
 		switch (prefix) {
 			case FILE_PREFIX: {
@@ -519,13 +521,18 @@ export class TLDrawDurableObject extends DurableObject {
 			case SNAPSHOT_PREFIX:
 				data = await getLegacyRoomData(this.env, id, 'snapshot')
 				break
+			case PUBLISH_PREFIX:
+				data = await getPublishedRoomSnapshot(this.env, id)
+				break
 		}
 
 		if (!data) {
 			return { type: 'room_not_found' as const }
 		}
-		await this.r2.rooms.put(this._fileRecordCache.id, data)
-		return { type: 'room_found' as const, snapshot: JSON.parse(data) }
+		const serialized = typeof data === 'string' ? data : JSON.stringify(data)
+		const snapshot = typeof data === 'string' ? JSON.parse(data) : data
+		await this.r2.rooms.put(this._fileRecordCache.id, serialized)
+		return { type: 'room_found' as const, snapshot }
 	}
 
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).

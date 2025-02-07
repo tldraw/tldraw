@@ -97,6 +97,9 @@ import { useValue } from '@tldraw/state-react';
 import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
 
+// @internal (undocumented)
+export function activeElementShouldCaptureKeys(): boolean;
+
 // @public
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
 

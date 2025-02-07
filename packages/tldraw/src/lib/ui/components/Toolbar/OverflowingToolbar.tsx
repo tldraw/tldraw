@@ -1,4 +1,10 @@
-import { preventDefault, useEditor, useEvent, useUniqueSafeId } from '@tldraw/editor'
+import {
+	activeElementShouldCaptureKeys,
+	preventDefault,
+	useEditor,
+	useEvent,
+	useUniqueSafeId,
+} from '@tldraw/editor'
 import classNames from 'classnames'
 import { createContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
@@ -125,11 +131,11 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 		if (!editor.options.enableToolbarKeyboardShortcuts) return
 
 		function handleKeyDown(event: KeyboardEvent) {
-			if (areShortcutsDisabled(editor)) return
+			if (areShortcutsDisabled(editor) || activeElementShouldCaptureKeys()) return
 			// no accelerator keys
 			if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return
 			const index = NUMBERED_SHORTCUT_KEYS[event.key]
-			if (index) {
+			if (typeof index === 'number') {
 				preventDefault(event)
 				rButtons.current[index]?.click()
 			}

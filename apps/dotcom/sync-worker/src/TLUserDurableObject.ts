@@ -64,6 +64,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	private userId: string | null = null
+	private coldStartStartTime: number | null = null
 
 	readonly router = Router()
 		.all('/app/:userId/*', async (req) => {
@@ -77,6 +78,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				throw new Error('Rate limited')
 			}
 			if (!this.cache) {
+				this.coldStartStartTime = Date.now()
 				this.log.debug('creating cache', this.userId)
 				this.cache = new UserDataSyncer(
 					this.ctx,
@@ -119,8 +121,16 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private readonly sockets = new Set<WebSocket>()
 
+	maybeReportColdStartTime(type: ZServerSentMessage['type']) {
+		if (type !== 'initial_data' || !this.coldStartStartTime) return
+		const time = Date.now() - this.coldStartStartTime
+		this.coldStartStartTime = null
+		this.logEvent({ type: 'cold_start_time', id: this.userId!, duration: time })
+	}
+
 	broadcast(message: ZServerSentMessage) {
 		this.logEvent({ type: 'broadcast_message', id: this.userId! })
+		this.maybeReportColdStartTime(message.type)
 		const msg = JSON.stringify(message)
 		for (const socket of this.sockets) {
 			if (socket.readyState === WebSocket.OPEN) {
@@ -187,7 +197,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			)
 		} else {
 			// the cache hasn't received the initial data yet, so we need to wait for it
-			// it will broadcast on its own ok
+			// it will broadcast on its own
 			this.log.debug('waiting for initial data')
 		}
 
@@ -554,6 +564,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	logEvent(event: TLUserDurableObjectEvent) {
 		switch (event.type) {
 			case 'reboot_duration':
+				this.writeEvent({
+					blobs: [event.type, event.id],
+					doubles: [event.duration],
+				})
+				break
+			case 'cold_start_time':
 				this.writeEvent({
 					blobs: [event.type, event.id],
 					doubles: [event.duration],
