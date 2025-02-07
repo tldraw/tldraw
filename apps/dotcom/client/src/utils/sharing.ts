@@ -108,7 +108,7 @@ export function useSharing(): TLUiOverrides {
 
 						handleUiEvent('leave-shared-project', {})
 
-						navigate(routes.legacyRoot())
+						navigate(routes.tlaRoot())
 					},
 				}
 				actions[SHARE_PROJECT_ACTION] = {

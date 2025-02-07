@@ -26,7 +26,6 @@ import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useTldrawUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
-import { PreviewWelcomeDialog, RemountImagesContext } from './PreviewWelcomeDialog'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
@@ -221,10 +220,6 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyDarkModeSync />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} />
-				{/* Temporary junk for making the preview experience a bit better */}
-				<RemountImagesContext.Provider value={remountImageShapes}>
-					<PreviewWelcomeDialog />
-				</RemountImagesContext.Provider>
 			</Tldraw>
 		</TlaEditorWrapper>
 	)

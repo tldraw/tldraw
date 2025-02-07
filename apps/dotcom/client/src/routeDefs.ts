@@ -1,7 +1,6 @@
 import { assert } from 'tldraw'
 
 export const ROUTES = {
-	legacyRoot: '/',
 	legacyNewPage: '/new',
 	legacyNewPage2: '/r',
 	legacyRoom: '/r/:roomId',
@@ -13,13 +12,11 @@ export const ROUTES = {
 	legacyReadonlyOld: '/v/:roomId',
 
 	tlaOptIn: '/preview',
-	tlaOverride: '/q',
 
 	tlaRoot: `/`,
 	tlaNew: `/new`,
 	tlaFile: `/f/:fileSlug`,
 	tlaLocalFile: `/lf/:fileSlug`,
-	tlaPlayground: `/playground`,
 	tlaPublish: `/p/:fileSlug`,
 	// Legacy routes
 	tlaTouchScreenSidePanel: '/ts-side',
