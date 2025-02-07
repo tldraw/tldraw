@@ -66,7 +66,7 @@ export function TlaDeleteFileDialog({ fileId, onClose }: { fileId: string; onClo
 				</TldrawUiButton>
 				<TldrawUiButton type="danger" onClick={handleDelete}>
 					<TldrawUiButtonLabel>
-						{isOwner ? <F defaultMessage="Delete 2" /> : <F defaultMessage="Forget" />}
+						{isOwner ? <F defaultMessage="Delete" /> : <F defaultMessage="Forget" />}
 					</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			</TldrawUiDialogFooter>
