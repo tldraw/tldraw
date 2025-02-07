@@ -344,7 +344,7 @@ test.describe('logged out user on published file', () => {
 		const url = await shareMenu.copyLink()
 
 		// Open published file link in an incognito window
-		const { newShareMenu, newContext } = await openNewTab(browser, {
+		const { newShareMenu, newContext, newEditor } = await openNewTab(browser, {
 			url,
 			allowClipboard: true,
 			userProps: undefined,
@@ -371,6 +371,18 @@ test.describe('logged out user on published file', () => {
 		await newShareMenu.exportTabButton.click()
 		expect(await newShareMenu.exportTabPage.isVisible()).toBe(true)
 		expect(await newShareMenu.anonShareTabPage.isVisible()).toBe(false)
+
+		// download the file
+		await newEditor.openPageMenu()
+		const downloadButton = newEditor.page.getByText('Download file')
+		await expect(downloadButton).toBeVisible()
+
+		// check that the file downloaded
+		const downloadPromise = newEditor.page.waitForEvent('download')
+
+		await downloadButton.click()
+		const download = await downloadPromise
+		expect(download.suggestedFilename().endsWith('.tldr')).toBe(true)
 
 		await newContext.close()
 	})
