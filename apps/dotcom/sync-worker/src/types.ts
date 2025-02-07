@@ -131,3 +131,4 @@ export type TLUserDurableObjectEvent =
 			id: string
 	  }
 	| { type: 'reboot_duration'; id: string; duration: number }
+	| { type: 'cold_start_time'; id: string; duration: number }
