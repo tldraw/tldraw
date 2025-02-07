@@ -580,7 +580,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				)
 			}
 			this.log.debug('inserted guest files', guestFiles.length)
-
 			return {
 				sequenceId: this.state.sequenceId + ':' + sequenceIdSuffix,
 				sequenceNumber: 0,
