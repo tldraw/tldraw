@@ -8,6 +8,7 @@ import {
 	stopEventPropagation,
 	useEditor,
 	useUniqueSafeId,
+	useValue,
 } from '@tldraw/editor'
 import React, { useEffect, useState } from 'react'
 
@@ -60,6 +61,11 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 	const [initialPositionOnCreate, setInitialPositionOnCreate] = useState(
 		null as { x: number; y: number } | null
 	)
+	const isCoarsePointer = useValue(
+		'isCoarsePointer',
+		() => editor.getInstanceState().isCoarsePointer,
+		[editor]
+	)
 
 	const handleCreate = (props: EditorEvents['create']) => {
 		if (editor.getEditingShapeId() !== shapeId) return
@@ -68,7 +74,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		editor.setEditingShapeTipTapTextEditor(textEditor)
 
 		// Either we select-all the text upon creation if desired.
-		if (shouldSelectAllOnCreate) {
+		if (shouldSelectAllOnCreate || isCoarsePointer) {
 			textEditor.chain().focus().selectAll().run()
 		} else if (initialPositionOnCreate) {
 			// Or, we place the caret at the intended clicked position, if
