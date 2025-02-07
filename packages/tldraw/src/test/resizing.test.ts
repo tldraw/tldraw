@@ -14,6 +14,7 @@ import {
 	createShapeId,
 	rotateSelectionHandle,
 } from '@tldraw/editor'
+import { after, before } from 'node:test'
 import { NoteShapeUtil } from '../lib/shapes/note/NoteShapeUtil'
 import { TestEditor } from './TestEditor'
 import { getSnapLines } from './getSnapLines'
@@ -3544,9 +3545,10 @@ describe('resizing a selection of mixed rotations', () => {
 // })
 
 describe('editor.resizeNoteShape', () => {
-	it('can scale when that option is set to true', () => {
+	before(() => {
 		NoteShapeUtil.options.resizeMode = 'scale'
-
+	})
+	it('can scale when that option is set to true', () => {
 		const noteBId = createShapeId('noteB')
 		editor.createShapes([box(ids.boxA, 0, 0, 200, 200), { id: noteBId, type: 'note', x: 0, y: 0 }])
 
@@ -3563,7 +3565,9 @@ describe('editor.resizeNoteShape', () => {
 		expect(editor.getShape(noteBId)).toMatchObject({ x: 0, y: 0, props: { scale: 2.1 } }) // but scaled!
 
 		expect(editor.getShapePageBounds(noteBId)).toMatchObject({ x: 0, y: 0, w: 420, h: 420 })
+	})
 
+	after(() => {
 		// for the sake of future tests, set it back to normal
 		NoteShapeUtil.options.resizeMode = 'none'
 	})
