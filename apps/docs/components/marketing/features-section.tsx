@@ -24,8 +24,8 @@ export function FeaturesSection() {
 							React canvas
 						</h3>
 						<p className="max-w-xs">
-							The tldraw canvas and everything on it is its own React component, rendered in regular
-							HTML and CSS. If you can do it on the web, you can now do it on the canvas too.
+							The tldraw canvas is a <strong>React component</strong>, rendering in regular HTML and
+							CSS. If you can do it on the web, you can now do it on the canvas too.
 						</p>
 					</div>
 					<Image
