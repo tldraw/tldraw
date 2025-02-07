@@ -58,6 +58,11 @@ jobs:
       - name: Check API declarations and docs work as intended
         run: yarn api-check
 
+      - name: Check dotcom localizations
+        run: |
+          yarn build-i18n 
+          git diff --exit-code --quiet || (echo "Please run yarn build-i18n and commit the changes" && exit 1)
+
       - name: Test
         run: yarn test-ci
 
