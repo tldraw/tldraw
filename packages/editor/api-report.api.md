@@ -98,7 +98,7 @@ import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
 
 // @public (undocumented)
-export function activeElementShouldCaptureKeys(): boolean | null | string;
+export function activeElementShouldCaptureKeys(): boolean;
 
 // @public
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;

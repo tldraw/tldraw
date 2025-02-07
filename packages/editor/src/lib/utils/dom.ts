@@ -96,7 +96,7 @@ const INPUTS = ['input', 'select', 'button', 'textarea']
 /** @public */
 export function activeElementShouldCaptureKeys() {
 	const { activeElement } = document
-	return (
+	return !!(
 		activeElement &&
 		(activeElement.getAttribute('contenteditable') ||
 			INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1)
