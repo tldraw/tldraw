@@ -114,6 +114,7 @@ export type TLPostgresReplicatorEvent =
 	| { type: 'reboot' | 'reboot_error' | 'register_user' | 'unregister_user' | 'get_file_record' }
 	| { type: 'reboot_duration'; duration: number }
 	| { type: 'rpm'; rpm: number }
+	| { type: 'active_users'; count: number }
 
 export type TLUserDurableObjectEvent =
 	| {
@@ -130,3 +131,4 @@ export type TLUserDurableObjectEvent =
 			id: string
 	  }
 	| { type: 'reboot_duration'; id: string; duration: number }
+	| { type: 'cold_start_time'; id: string; duration: number }
