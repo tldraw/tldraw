@@ -116,6 +116,7 @@ function FileItems({
 		const newFileId = uniqueId()
 		const file = app.getFile(fileId)
 		if (!file) return
+		trackEvent('duplicate-file', { source: 'file-menu' })
 		const res = app.createFile({
 			id: newFileId,
 			name: getDuplicateName(file, app),
@@ -131,7 +132,7 @@ function FileItems({
 			focusCtx.shouldRenameNextNewFile = true
 			navigate(routes.tlaFile(newFileId))
 		}
-	}, [app, fileId, focusCtx, navigate])
+	}, [app, fileId, focusCtx, navigate, trackEvent])
 
 	const handleDeleteClick = useCallback(() => {
 		addDialog({
