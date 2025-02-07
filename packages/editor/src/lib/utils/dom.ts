@@ -93,7 +93,7 @@ export const setStyleProperty = (
 
 const INPUTS = ['input', 'select', 'button', 'textarea']
 
-/** @public */
+/** @internal */
 export function activeElementShouldCaptureKeys() {
 	const { activeElement } = document
 	return !!(

@@ -97,7 +97,7 @@ import { useValue } from '@tldraw/state-react';
 import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
 
-// @public (undocumented)
+// @internal (undocumented)
 export function activeElementShouldCaptureKeys(): boolean;
 
 // @public
