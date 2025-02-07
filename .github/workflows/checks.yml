@@ -61,7 +61,7 @@ jobs:
       - name: Check dotcom localizations
         run: |
           yarn build-i18n 
-          git diff --exit-code --quiet || (echo "Please run yarn build-i18n and commit the changes" && exit 1)
+          git diff --exit-code --quiet ./apps/dotcom/client/public/tla/locales/ ./apps/dotcom/client/public/tla/locales-compiled/ || (echo "Please run yarn build-i18n and commit the changes" && exit 1)
 
       - name: Test
         run: yarn test-ci
