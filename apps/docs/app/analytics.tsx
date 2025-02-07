@@ -3,7 +3,7 @@
 import { XMarkIcon } from '@heroicons/react/24/solid'
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Switch from '@radix-ui/react-switch'
-import { Analytics as VercelAnalytics } from '@vercel/analytics/react'
+import { track, Analytics as VercelAnalytics } from '@vercel/analytics/react'
 import Cookies from 'js-cookie'
 import Script from 'next/script'
 import { useEffect, useState } from 'react'
@@ -15,6 +15,7 @@ export default function Analytics() {
 
 	const onConsentChanged = (hasConsent: boolean) => {
 		Cookies.set('allowTracking', hasConsent ? 'true' : 'false')
+		track('consent_changed', { hasConsent }) // lol
 		setHasConsent(hasConsent ? 'true' : 'false')
 	}
 
