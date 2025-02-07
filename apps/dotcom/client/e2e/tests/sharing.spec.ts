@@ -234,7 +234,7 @@ test.describe('signed in user on published file', () => {
 		await shareMenu.publishFile()
 		const url = await shareMenu.copyLink()
 
-		// Open published file link in an incognito window
+		// Open published file link in other user window
 		const { newShareMenu, newContext } = await openNewTab(browser, {
 			url,
 			allowClipboard: true,
@@ -256,12 +256,20 @@ test.describe('signed in user on published file', () => {
 
 		// can copy the url
 		const copiedUrl = await newShareMenu.copyLink()
-		expect(copiedUrl).toBe(url)
+		expect(new URL(copiedUrl).pathname).toBe(new URL(url).pathname)
 
 		// Switch to the export share tab
 		await newShareMenu.exportTabButton.click()
 		expect(await newShareMenu.exportTabPage.isVisible()).toBe(true)
 		expect(await newShareMenu.anonShareTabPage.isVisible()).toBe(false)
+
+		// Does not see the sidebar or the sidebar button
+		expect(await newShareMenu.page.getByTestId('tla-sidebar').count()).toBe(0)
+		expect(await newShareMenu.page.getByTestId('tla-sidebar-toggle').count()).toBe(0)
+
+		// Main user does see sidebar
+		expect(await shareMenu.page.getByTestId('tla-sidebar').count()).toBe(1)
+		expect(await shareMenu.page.getByTestId('tla-sidebar-toggle').count()).toBe(1)
 
 		await newContext.close()
 	})
@@ -336,7 +344,7 @@ test.describe('logged out user on published file', () => {
 		const url = await shareMenu.copyLink()
 
 		// Open published file link in an incognito window
-		const { newShareMenu, newContext } = await openNewTab(browser, {
+		const { newShareMenu, newContext, newEditor } = await openNewTab(browser, {
 			url,
 			allowClipboard: true,
 			userProps: undefined,
@@ -363,6 +371,18 @@ test.describe('logged out user on published file', () => {
 		await newShareMenu.exportTabButton.click()
 		expect(await newShareMenu.exportTabPage.isVisible()).toBe(true)
 		expect(await newShareMenu.anonShareTabPage.isVisible()).toBe(false)
+
+		// download the file
+		await newEditor.openPageMenu()
+		const downloadButton = newEditor.page.getByText('Download file')
+		await expect(downloadButton).toBeVisible()
+
+		// check that the file downloaded
+		const downloadPromise = newEditor.page.waitForEvent('download')
+
+		await downloadButton.click()
+		const download = await downloadPromise
+		expect(download.suggestedFilename().endsWith('.tldr')).toBe(true)
 
 		await newContext.close()
 	})

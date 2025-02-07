@@ -23,7 +23,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
-import { useApp } from '../../hooks/useAppState'
+import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
@@ -60,6 +60,9 @@ export function TlaEditorTopLeftPanelAnonymous() {
 	const separator = '/'
 	const brandMsg = useMsg(messages.brand)
 	const pageMenuLbl = useMsg(messages.pageMenu)
+	// GOTCHA: 'anonymous' doesn't always mean logged out
+	// we show this version of the panel for published files as well.
+	const app = useMaybeApp()
 
 	const editor = useEditor()
 	const fileSlug = useParams<{ fileSlug: string }>().fileSlug
@@ -86,7 +89,13 @@ export function TlaEditorTopLeftPanelAnonymous() {
 			</Link>
 			{anonFileName && (
 				<>
-					<span className={styles.topPanelSeparator}>{separator}</span>
+					<span
+						className={styles.topPanelSeparator}
+						// undo nth-last-of-type rule in top.module.css
+						style={{ marginRight: 0 }}
+					>
+						{separator}
+					</span>
 					<div className={classNames(styles.inputWrapper)}>
 						<button className={styles.nameWidthSetter} data-testid="tla-file-name">
 							{anonFileName.replace(/ /g, '\u00a0')}
@@ -108,19 +117,24 @@ export function TlaEditorTopLeftPanelAnonymous() {
 						</button>
 					</TldrawUiDropdownMenuTrigger>
 					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
+						<TldrawUiMenuGroup id="download">
+							<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
+							{app && <TldrawUiMenuActionItem actionId={'copy-to-my-files'} />}
+						</TldrawUiMenuGroup>
 						<TldrawUiMenuGroup id="basic">
 							<EditSubmenu />
 							<ViewSubmenu />
 							<ExportFileContentSubMenu />
 							<ExtrasGroup />
-							<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
 						</TldrawUiMenuGroup>
 						<TldrawUiMenuGroup id="preferences">
 							<PreferencesGroup />
 						</TldrawUiMenuGroup>
-						<TldrawUiMenuGroup id="signin">
-							<SignInMenuItem />
-						</TldrawUiMenuGroup>
+						{!app && (
+							<TldrawUiMenuGroup id="signin">
+								<SignInMenuItem />
+							</TldrawUiMenuGroup>
+						)}
 					</TldrawUiDropdownMenuContent>
 				</TldrawUiMenuContextProvider>
 			</TldrawUiDropdownMenuRoot>

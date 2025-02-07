@@ -16,6 +16,8 @@ export const ROOM_PREFIX = 'r'
 export const SNAPSHOT_PREFIX = 's'
 /** @public */
 export const FILE_PREFIX = 'f'
+/** @public */
+export const PUBLISH_PREFIX = 'p'
 
 /** @public */
 export const RoomOpenModeToPath: Record<RoomOpenMode, string> = {

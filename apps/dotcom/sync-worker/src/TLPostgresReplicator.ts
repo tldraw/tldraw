@@ -505,6 +505,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	private async messageUser(userId: string, event: ZReplicationEventWithoutSequenceInfo) {
+		if (!this.userIsActive(userId)) return
 		try {
 			let q = this.userDispatchQueues.get(userId)
 			if (!q) {
