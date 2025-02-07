@@ -2,7 +2,7 @@ import { useValue } from '@tldraw/state-react'
 import { useEffect } from 'react'
 import { Editor } from '../editor/Editor'
 import { TLKeyboardEventInfo } from '../editor/types/event-types'
-import { preventDefault, stopEventPropagation } from '../utils/dom'
+import { activeElementShouldCaptureKeys, preventDefault, stopEventPropagation } from '../utils/dom'
 import { isAccelKey } from '../utils/keyboard'
 import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
@@ -274,15 +274,6 @@ export function useDocumentEvents() {
 	}, [editor, container, isAppFocused])
 }
 
-const INPUTS = ['input', 'select', 'button', 'textarea']
-
 function areShortcutsDisabled(editor: Editor) {
-	const { activeElement } = document
-
-	return (
-		editor.menus.hasOpenMenus() ||
-		(activeElement &&
-			(activeElement.getAttribute('contenteditable') ||
-				INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1))
-	)
+	return editor.menus.hasOpenMenus() || activeElementShouldCaptureKeys()
 }
