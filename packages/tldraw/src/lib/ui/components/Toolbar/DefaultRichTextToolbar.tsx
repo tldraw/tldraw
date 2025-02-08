@@ -6,6 +6,7 @@ import {
 	debounce,
 	Editor,
 	TiptapEditor,
+	tlenv,
 	tltime,
 	track,
 	useAtom,
@@ -35,11 +36,11 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 }: TLUiRichTextToolbarProps) {
 	const editor = useEditor()
 
-	const textEditor = useValue('textEditor', () => editor.getEditingShapeTipTapTextEditor(), [
-		editor,
-	])
+	const textEditor = useValue('textEditor', () => editor.getRichTextEditor(), [editor])
 
-	if (!textEditor) return null
+	const isMobile = tlenv.isIos || tlenv.isAndroid
+
+	if (isMobile || !textEditor) return null
 
 	return <ContextualToolbarInner textEditor={textEditor}>{children}</ContextualToolbarInner>
 })

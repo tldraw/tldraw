@@ -1239,7 +1239,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
     getEditingShape(): TLShape | undefined;
     getEditingShapeId(): null | TLShapeId;
-    getEditingShapeTipTapTextEditor(): null | TiptapEditor;
     getErasingShapeIds(): TLShapeId[];
     getErasingShapes(): NonNullable<TLShape | undefined>[];
     getFocusedGroup(): TLShape | undefined;
@@ -1273,6 +1272,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getRenderingShapes(): TLRenderingShape[];
+    getRichTextEditor(): null | TiptapEditor;
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getSelectedShapeIds(): TLShapeId[];
     getSelectedShapes(): TLShape[];
@@ -1484,7 +1484,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     setCurrentTool(id: string, info?: {}): this;
     setCursor(cursor: Partial<TLCursor>): this;
     setEditingShape(shape: null | TLShape | TLShapeId): this;
-    setEditingShapeTipTapTextEditor(textEditor: null | TiptapEditor): void;
     setErasingShapes(shapes: TLShape[] | TLShapeId[]): this;
     setFocusedGroup(shape: null | TLGroupShape | TLShapeId): this;
     setHintingShapes(shapes: TLShape[] | TLShapeId[]): this;
@@ -1493,6 +1492,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     _setMetaKeyTimeout(): void;
     setOpacityForNextShapes(opacity: number, historyOptions?: TLHistoryBatchOptions): this;
     setOpacityForSelectedShapes(opacity: number): this;
+    setRichTextEditor(textEditor: null | TiptapEditor): this;
     setSelectedShapes(shapes: TLShape[] | TLShapeId[]): this;
     // @internal (undocumented)
     _setShiftKeyTimeout(): void;

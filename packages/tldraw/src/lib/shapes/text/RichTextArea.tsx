@@ -69,7 +69,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			if (editor.getEditingShapeId() !== shapeId) return
 
 			const textEditor = props.editor
-			editor.setEditingShapeTipTapTextEditor(textEditor)
+			editor.setRichTextEditor(textEditor)
 			rTextEditor.current = textEditor
 
 			// Either we select-all the text upon creation if desired.
@@ -113,7 +113,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		// It's possible that by the time this hook runs, that a new shape is now being edited.
 		// Don't clear the text editor in that case.
 		if (!isEditing && editor.getEditingShapeId() === shapeId) {
-			editor.setEditingShapeTipTapTextEditor(null)
+			editor.setRichTextEditor(null)
 		}
 	}, [editor, shapeId, isEditing])
 
@@ -230,7 +230,7 @@ function handleTab(editor: Editor, view: EditorView, event: KeyboardEvent) {
 	// Don't exit the editor.
 	event.preventDefault()
 
-	const textEditor = editor.getEditingShapeTipTapTextEditor()
+	const textEditor = editor.getRichTextEditor()
 	if (textEditor?.isActive('bulletList') || textEditor?.isActive('orderedList')) return
 
 	const { state, dispatch } = view

@@ -2047,7 +2047,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.run(
 				() => {
 					this._updateCurrentPageState({ editingShapeId: null })
-					this._currentTipTapTextEditor.set(null)
+					this._currentRichTextEditor.set(null)
 				},
 				{ history: 'ignore' }
 			)
@@ -2055,37 +2055,40 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	private _currentTipTapTextEditor = atom('tip tap text editor', null as TiptapEditor | null)
+	// Rich text editor
+
+	private _currentRichTextEditor = atom('rich text editor', null as TiptapEditor | null)
 
 	/**
 	 * The current editing shape's text editor.
 	 *
 	 * @public
 	 */
-	@computed getEditingShapeTipTapTextEditor(): TiptapEditor | null {
-		return this._currentTipTapTextEditor.get()
+	@computed getRichTextEditor(): TiptapEditor | null {
+		return this._currentRichTextEditor.get()
 	}
 
 	/**
-	 * Set the current editing shape's text editor.
+	 * Set the current editing shape's rich text editor.
 	 *
 	 * @example
 	 * ```ts
-	 * editor.setEditingShapeTipTapTextEditor(richTextEditorView)
+	 * editor.setRichTextEditor(richTextEditorView)
 	 * ```
 	 *
 	 * @param textEditor - The text editor to set as the current editing shape's text editor.
 	 *
 	 * @public
 	 */
-	setEditingShapeTipTapTextEditor(textEditor: TiptapEditor | null) {
+	setRichTextEditor(textEditor: TiptapEditor | null) {
 		// If the new editor is different from the current one, destroy the current one
-		const current = this._currentTipTapTextEditor.__unsafe__getWithoutCapture()
+		const current = this._currentRichTextEditor.__unsafe__getWithoutCapture()
 		if (current !== textEditor) {
 			current?.destroy()
 		}
 
-		this._currentTipTapTextEditor.set(textEditor)
+		this._currentRichTextEditor.set(textEditor)
+		return this
 	}
 
 	// Hovered

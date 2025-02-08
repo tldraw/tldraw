@@ -39,9 +39,7 @@ const fontSizeOptions = [
 const components: TLComponents = {
 	RichTextToolbar: () => {
 		const editor = useEditor()
-		const textEditor = useValue('textEditor', () => editor.getEditingShapeTipTapTextEditor(), [
-			editor,
-		])
+		const textEditor = useValue('textEditor', () => editor.getRichTextEditor(), [editor])
 		const [_, setTextEditorState] = useState<TextEditorState | null>(textEditor?.state ?? null)
 
 		// Set up text editor transaction listener.
