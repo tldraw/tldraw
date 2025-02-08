@@ -66,7 +66,6 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 
 	const handleCreate = useCallback(
 		(props: EditorEvents['create']) => {
-			console.log('created')
 			if (editor.getEditingShapeId() !== shapeId) return
 
 			const textEditor = props.editor
