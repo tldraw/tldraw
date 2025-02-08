@@ -278,7 +278,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						align={align}
 						verticalAlign={verticalAlign}
 						richText={richText}
-						isNote
 						isSelected={isSelected}
 						labelColor={labelColor === 'black' ? theme[color].note.text : theme[labelColor].fill}
 						wrap

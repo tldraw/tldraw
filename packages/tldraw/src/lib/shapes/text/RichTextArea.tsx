@@ -66,6 +66,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 
 	const handleCreate = useCallback(
 		(props: EditorEvents['create']) => {
+			console.log('created')
 			if (editor.getEditingShapeId() !== shapeId) return
 
 			const textEditor = props.editor
@@ -171,7 +172,8 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		// noticeably flakey and weird.
 		if (tlenv.isSafari && tlenv.isIos) {
 			if (editor.getEditingShapeId() === shapeId) {
-				editor.setEditingShape(null)
+				// The user might have just pressed "done"
+				// editor.setEditingShape(null)
 			}
 		}
 		_handleBlur?.()

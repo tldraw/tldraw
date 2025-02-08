@@ -32,7 +32,6 @@ export interface RichTextLabelProps {
 	richText?: TLRichText
 	labelColor: string
 	bounds?: Box
-	isNote?: boolean
 	isSelected: boolean
 	onKeyDown?(e: KeyboardEvent): void
 	classNamePrefix?: string

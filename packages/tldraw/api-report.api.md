@@ -1816,8 +1816,6 @@ export interface PlainTextLabelProps {
     // (undocumented)
     fontSize: number;
     // (undocumented)
-    isNote?: boolean;
-    // (undocumented)
     isSelected: boolean;
     // (undocumented)
     labelColor: string;
@@ -1918,8 +1916,6 @@ export interface RichTextLabelProps {
     font: TLDefaultFontStyle;
     // (undocumented)
     fontSize: number;
-    // (undocumented)
-    isNote?: boolean;
     // (undocumented)
     isSelected: boolean;
     // (undocumented)

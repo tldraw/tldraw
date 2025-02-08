@@ -26,7 +26,6 @@ export interface PlainTextLabelProps {
 	text?: string
 	labelColor: string
 	bounds?: Box
-	isNote?: boolean
 	isSelected: boolean
 	onKeyDown?(e: KeyboardEvent): void
 	classNamePrefix?: string
