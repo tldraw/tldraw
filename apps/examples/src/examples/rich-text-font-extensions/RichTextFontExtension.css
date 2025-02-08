@@ -4,7 +4,7 @@ html {
 	--title-font-family: 'Helvetica', sans-serif;
 }
 
-.tlui-toolbar__tools select {
+.tlui-buttons__horizontal select {
 	border: 0;
 	background: transparent;
 	margin: 0 8px;

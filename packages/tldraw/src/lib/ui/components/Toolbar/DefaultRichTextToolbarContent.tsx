@@ -101,7 +101,7 @@ export function DefaultRichTextToolbarContent({
 				title={msg(`tool.rich-text-${name}`)}
 				data-testid={`rich-text.${name}`}
 				type="icon"
-				isActive={textEditor.isActive(name, attrs)}
+				isActive={textEditor.isActive(name, attrs)} // todo: we need to update this only when the text editor "settles", ie not during a change of selection
 				onPointerDown={preventDefault}
 				onClick={onSelect}
 			>

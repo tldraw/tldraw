@@ -15,15 +15,7 @@ import {
 	useValue,
 	Vec,
 } from '@tldraw/editor'
-import React, {
-	MutableRefObject,
-	RefObject,
-	useCallback,
-	useEffect,
-	useLayoutEffect,
-	useRef,
-	useState,
-} from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { DefaultRichTextToolbarContent } from './DefaultRichTextToolbarContent'
 import { LinkEditor } from './LinkEditor'
@@ -47,36 +39,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		editor,
 	])
 
-	const [isMousingDown, setIsMousingDown] = useState(false)
-
-	// Set up general event listeners for text selection.
-	useEffect(() => {
-		if (!textEditor) return
-
-		const handlePointingStateChange = debounce(({ isPointing }: { isPointing: boolean }) => {
-			setIsMousingDown(isPointing)
-		}, 16)
-
-		// sorry
-		textEditor.on<any>('pointer-state-change', handlePointingStateChange)
-		return () => {
-			// sorry
-			textEditor.off<any>('pointer-state-change', handlePointingStateChange)
-		}
-	}, [textEditor])
-
-	const isVisible =
-		// must have a text editor and its state
-		!!textEditor &&
-		textEditor.state &&
-		// must be editing a shape
-		editor.isInAny('select.editing_shape') &&
-		// standard rule
-		(!isMousingDown ||
-			// exceptions
-			textEditor.isActive('link'))
-
-	if (!isVisible) return null
+	if (!textEditor) return null
 
 	return <ContextualToolbarInner textEditor={textEditor}>{children}</ContextualToolbarInner>
 })
@@ -92,16 +55,7 @@ function ContextualToolbarInner({
 
 	const rToolbar = useRef<HTMLDivElement>(null)
 
-	const rIsShowing = useRef(false)
-
-	const rPrevX = useRef(-1)
-	const rPrevCamera = useRef(new Vec(-100, -100, 1))
-
-	useLayoutEffect(function hideTheToolbarOnFirstLoad() {
-		rPrevX.current = -1
-		rPrevCamera.current = new Vec(-100, -100, 1)
-		hideToolbarElement(rToolbar, rIsShowing)
-	}, [])
+	const { isShowing, hide, show, position, move } = useToolbarVisibilityStateMachine()
 
 	const { isEditingLink, onEditLinkStart, onEditLinkComplete } = useEditingLinkBehavior(textEditor)
 
@@ -149,6 +103,10 @@ function ContextualToolbarInner({
 		[editor]
 	)
 
+	// annoying react stuff: we don't want the toolbar position function to depend on the react state so we'll double with a ref
+	const rCouldShowToolbar = useRef(false)
+	const [canShowToolbar, setCanShowToolbar] = useState(false)
+
 	useQuickReactor(
 		'toolbar position',
 		function updateToolbarPositionAndDisplay() {
@@ -156,38 +114,68 @@ function ContextualToolbarInner({
 			if (!toolbarElm) return
 
 			// capture / force this to update when...
-			const camera = editor.getCamera() // the camera moves
+			editor.getCamera() // the camera moves
 			forcePositionUpdateAtom.get() // the selection changes
 
 			const position = getToolbarScreenPosition(editor, toolbarElm)
 
 			if (!position) {
-				// If we don't have a position, then we're not showing the toolbar
-				hideToolbarElement(rToolbar, rIsShowing)
+				if (rCouldShowToolbar.current) {
+					// If we don't have a position, then we're not showing the toolbar
+					rCouldShowToolbar.current = false
+					setCanShowToolbar(false)
+				}
 				return
 			}
 
-			if (
-				Math.abs(position.x - rPrevX.current) > 32 ||
-				!Vec.EqualsXY(rPrevCamera.current, camera.x, camera.y)
-			) {
-				// We're showing the toolbar. Move the toolbar to its correct location
-				toolbarElm.style.setProperty('transform', `translate(${position.x}px, ${position.y}px)`)
-				rPrevX.current = position.x
-				rPrevCamera.current.x = camera.x
-				rPrevCamera.current.y = camera.y
+			// If the camera state is moving, we want to immediately update the position
+			const cameraState = editor.getCameraState()
+			if (cameraState === 'moving') {
+				// ...if we wanted this to avoid prematurely updating any positions, we'd need
+				// to have the last updated position in page space, so that we could convert
+				// it to screen space and update it here
+				const elm = rToolbar.current
+				elm.style.setProperty('transform', `translate(${position.x}px, ${position.y}px)`)
+			} else {
+				// Schedule a move to its next location
+				move(position.x, position.y)
 			}
 
 			// Finally, if the toolbar was previously hidden, show it again
-			showToolbarElement(rToolbar, rIsShowing)
+			if (!rCouldShowToolbar.current) {
+				rCouldShowToolbar.current = true
+				setCanShowToolbar(true)
+			}
 		},
 		[editor, textEditor, forcePositionUpdateAtom]
 	)
 
+	const isMousingDown = useIsMousingDownOnTextEditor(textEditor)
+
+	useEffect(() => {
+		if (canShowToolbar && !isMousingDown) {
+			show()
+		} else {
+			hide()
+		}
+	}, [canShowToolbar, isMousingDown, show, hide])
+
+	useEffect(() => {
+		const elm = rToolbar.current
+		if (!elm) return
+		console.log(elm)
+		if (isShowing) {
+			elm.style.setProperty('transform', `translate(${position.x}px, ${position.y}px)`)
+			elm.classList.remove('tlui-rich-text__toolbar__hidden')
+		} else {
+			elm.classList.add('tlui-rich-text__toolbar__hidden')
+		}
+	}, [isShowing, position])
+
 	return (
 		<TldrawUiContextualToolbar
 			ref={rToolbar}
-			className="tl-rich-text__toolbar tl-rich-text__toolbar__hidden"
+			className="tlui-rich-text__toolbar tlui-rich-text__toolbar__hidden"
 		>
 			{children ? (
 				children
@@ -207,35 +195,6 @@ function ContextualToolbarInner({
 // For convenience, let's work just with boxes here
 function rectToBox(rect: DOMRect): Box {
 	return new Box(rect.x, rect.y, rect.width, rect.height)
-}
-
-// This is a mouthful and is repeated in a few places, so let's put it
-// here as its own function.
-function hideToolbarElement(
-	toolbarElmRef: RefObject<HTMLElement>,
-	isShowingRef: MutableRefObject<boolean>
-) {
-	if (!isShowingRef.current) return
-	const toolbarElm = toolbarElmRef.current
-	if (toolbarElm) {
-		toolbarElm.style.setProperty('transform', `translate(-1000px, -1000px)`)
-		toolbarElm.classList.add('tl-rich-text__toolbar__hidden')
-	}
-	isShowingRef.current = false
-}
-
-// So far this is only used once but I'll put it here too so that we can
-// look at the two together.
-function showToolbarElement(
-	toolbarElmRef: RefObject<HTMLElement>,
-	isShowingRef: MutableRefObject<boolean>
-) {
-	if (isShowingRef.current) return
-	const toolbarElm = toolbarElmRef.current
-	if (toolbarElm) {
-		toolbarElm.classList.remove('tl-rich-text__toolbar__hidden')
-	}
-	isShowingRef.current = true
 }
 
 // Extracted here
@@ -378,3 +337,148 @@ function useEditingLinkBehavior(textEditor?: TiptapEditor) {
 const TOOLBAR_GAP = 8
 
 const SCREEN_MARGIN = 16
+
+function useToolbarVisibilityStateMachine() {
+	const editor = useEditor()
+
+	const rState = useRef<
+		| { name: 'hidden' }
+		| { name: 'showing' }
+		| { name: 'shown' }
+		| { name: 'moving' }
+		| { name: 'hiding' }
+	>({ name: 'hidden' })
+
+	const [isShowing, setIsShowing] = useState(false)
+	const [position, setPosition] = useState({ x: -1000, y: -1000 })
+
+	const rPrevPosition = useRef(new Vec(-1000, -1000))
+	const rNextPosition = useRef(new Vec(-1000, -1000))
+
+	const rShowHideTimeout = useRef<any>(-1)
+	const rMoveTimeout = useRef<any>(-1)
+
+	const hide = useCallback(() => {
+		switch (rState.current.name) {
+			case 'showing': {
+				clearTimeout(rShowHideTimeout.current)
+				rState.current = { name: 'hidden' }
+				break
+			}
+			case 'shown': {
+				rState.current = { name: 'hiding' }
+				rShowHideTimeout.current = editor.timers.setTimeout(() => {
+					rState.current = { name: 'hidden' }
+					setIsShowing(false)
+				}, 200)
+				break
+			}
+			case 'hiding': {
+				// noop
+				// maybe update if the position is different?
+				break
+			}
+			case 'hidden': {
+				// noop
+				break
+			}
+			default: {
+				// noop
+			}
+		}
+	}, [editor])
+
+	const move = useCallback(
+		(x: number, y: number) => {
+			if (
+				Vec.Len2(Vec.Sub(new Vec(x, y), rPrevPosition.current)) < MIN_DISTANCE_TO_REPOSITION_SQUARED
+			) {
+				return
+			}
+			rNextPosition.current.x = x
+			rNextPosition.current.y = y
+
+			switch (rState.current.name) {
+				case 'shown': {
+					// debounce on moving, too
+					clearTimeout(rMoveTimeout.current)
+					rMoveTimeout.current = editor.timers.setTimeout(() => {
+						// must still be showing
+						if (rState.current.name !== 'shown') return
+
+						const { x, y } = rNextPosition.current
+						rPrevPosition.current = new Vec(x, y)
+						setPosition({ x, y })
+					}, 200)
+					break
+				}
+			}
+		},
+		[editor]
+	)
+
+	const show = useCallback(() => {
+		switch (rState.current.name) {
+			case 'hidden': {
+				rState.current = { name: 'showing' }
+				rShowHideTimeout.current = editor.timers.setTimeout(() => {
+					// position
+					const { x, y } = rNextPosition.current
+					rPrevPosition.current = new Vec(x, y)
+					setPosition({ x, y })
+
+					rState.current = { name: 'shown' }
+					setIsShowing(true)
+				}, 150)
+				break
+			}
+			case 'showing': {
+				// keep the previous timeout
+				// maybe update if the position is different?
+				break
+			}
+			case 'shown': {
+				break
+			}
+			case 'hiding': {
+				// cancel the hide timeout
+				clearTimeout(rShowHideTimeout.current)
+
+				rState.current = { name: 'shown' }
+
+				// Position
+				move(rNextPosition.current.x, rNextPosition.current.y)
+				break
+			}
+			default: {
+				// noop
+			}
+		}
+	}, [editor, move])
+
+	return { isShowing, show, hide, move, position }
+}
+
+function useIsMousingDownOnTextEditor(textEditor: TiptapEditor) {
+	const [isMousingDown, setIsMousingDown] = useState(false)
+
+	// Set up general event listeners for text selection.
+	useEffect(() => {
+		if (!textEditor) return
+
+		const handlePointingStateChange = debounce(({ isPointing }: { isPointing: boolean }) => {
+			setIsMousingDown(isPointing)
+		}, 16)
+
+		// sorry
+		textEditor.on<any>('pointer-state-change', handlePointingStateChange)
+		return () => {
+			// sorry
+			textEditor.off<any>('pointer-state-change', handlePointingStateChange)
+		}
+	}, [textEditor])
+
+	return isMousingDown
+}
+
+const MIN_DISTANCE_TO_REPOSITION_SQUARED = 16 ** 2

@@ -67,14 +67,14 @@ export function LinkEditor({ textEditor, value: initialValue, onComplete }: Link
 			<TldrawUiInput
 				ref={ref}
 				data-testid="rich-text.link-input"
-				className="tl-rich-text__toolbar-link-input"
+				className="tlui-rich-text__toolbar-link-input"
 				value={value}
 				onValueChange={handleValueChange}
 				onComplete={handleLinkComplete}
 				onCancel={handleLinkCancel}
 			/>
 			<TldrawUiButton
-				className="tl-rich-text__toolbar-link-visit"
+				className="tlui-rich-text__toolbar-link-visit"
 				title={msg('tool.rich-text-link-visit')}
 				type="icon"
 				onPointerDown={preventDefault}
@@ -84,7 +84,7 @@ export function LinkEditor({ textEditor, value: initialValue, onComplete }: Link
 				<TldrawUiButtonIcon small icon="external-link" />
 			</TldrawUiButton>
 			<TldrawUiButton
-				className="tl-rich-text__toolbar-link-remove"
+				className="tlui-rich-text__toolbar-link-remove"
 				title={msg('tool.rich-text-link-remove')}
 				data-testid="rich-text.link-remove"
 				type="icon"

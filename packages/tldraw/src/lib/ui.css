@@ -929,71 +929,6 @@
 	display: none;
 }
 
-/* --------------- Contextual Toolbar --------------- */
-
-.tl-contextual-toolbar {
-	position: absolute;
-}
-
-/**
- * N.B. We hide the toolbar while mousing down, so no need to turn these off.
- */
-.tl-contextual-toolbar,
-.tl-contextual-toolbar * {
-	pointer-events: all;
-}
-
-.tl-contextual-toolbar [data-isactive='true']::after {
-	background-color: var(--color-muted-1);
-	opacity: 1;
-}
-
-.tl-contextual-toolbar__indicator {
-	--arrow-size: 8px;
-	position: absolute;
-	bottom: calc(-1 * var(--arrow-size) + 1px);
-	left: 0;
-	z-index: calc(var(--layer-canvas-shapes) + 1);
-	border: var(--arrow-size) solid transparent;
-	border-bottom-width: 0;
-	border-top-color: var(--color-panel);
-	pointer-events: none;
-}
-
-@media (max-width: 640px) {
-	.tl-contextual-toolbar .tl-contextual-toolbar__indicator {
-		display: none;
-	}
-}
-
-.tl-rich-text__toolbar {
-	opacity: 1;
-	pointer-events: all;
-	transition:
-		top 0.12s ease-in-out,
-		opacity 0.12s ease-in-out;
-	top: 0px;
-}
-
-.tl-rich-text__toolbar__hidden {
-	pointer-events: none;
-	opacity: 0;
-	top: 2px;
-}
-
-.tl-rich-text__toolbar-link-input {
-	margin-left: 12px;
-	/*
-	 * Nice touch tweak: keep the link editor toolbar the same as the default toolbar.
-	 * This is so the toolbar size stays stable going in and out of the link editor.
-	 */
-	width: 148px;
-}
-
-.tl-rich-text__toolbar .tlui-input__wrapper {
-	height: 40px;
-}
-
 /* -------------------- Help Zone ------------------- */
 
 .tlui-help-menu {
@@ -1906,4 +1841,73 @@
 	position: fixed;
 	inset: 0;
 	z-index: var(--layer-menu-click-capture);
+}
+
+/* --------------- Contextual Toolbar --------------- */
+
+.tlui-contextual-toolbar {
+	position: absolute;
+}
+
+/**
+ * N.B. We hide the toolbar while mousing down, so no need to turn these off.
+ */
+.tlui-contextual-toolbar,
+.tlui-contextual-toolbar * {
+	pointer-events: all;
+}
+
+.tlui-contextual-toolbar [data-isactive='true']::after {
+	background-color: var(--color-muted-1);
+	opacity: 1;
+}
+
+.tlui-contextual-toolbar__indicator {
+	--arrow-size: 8px;
+	position: absolute;
+	bottom: calc(-1 * var(--arrow-size) + 1px);
+	left: 0;
+	z-index: calc(var(--layer-canvas-shapes) + 1);
+	border: var(--arrow-size) solid transparent;
+	border-bottom-width: 0;
+	border-top-color: var(--color-panel);
+	pointer-events: none;
+}
+
+@media (max-width: 640px) {
+	.tlui-contextual-toolbar .tlui-contextual-toolbar__indicator {
+		display: none;
+	}
+}
+
+.tlui-rich-text__toolbar {
+	opacity: 1;
+	pointer-events: all;
+	transition:
+		top 0.12s ease-in-out,
+		opacity 0.12s ease-in-out;
+	top: 0px;
+}
+
+.tlui-rich-text__toolbar__hidden * {
+	pointer-events: none;
+}
+
+.tlui-rich-text__toolbar__hidden {
+	pointer-events: none;
+	opacity: 0;
+	top: 2px;
+}
+
+.tlui-rich-text__toolbar-link-input {
+	margin-left: 12px;
+	/*
+	 * Nice touch tweak: keep the link editor toolbar the same as the default toolbar.
+	 * This is so the toolbar size stays stable going in and out of the link editor.
+	 */
+	width: 148px;
+}
+
+.tlui-rich-text__toolbar .tlui-input__wrapper {
+	height: 40px;
 }

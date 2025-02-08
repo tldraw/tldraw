@@ -424,21 +424,22 @@ export async function defaultHandleExternalTextContent(
 		? renderRichTextFromHTML(editor, html)
 		: toRichText(cleanedUpPlaintext)
 
-	// If we're pasting into a text shape, update the text.
-	const onlySelectedShape = editor.getOnlySelectedShape()
-	if (onlySelectedShape && 'richText' in onlySelectedShape.props) {
-		editor.updateShapes([
-			{
-				id: onlySelectedShape.id,
-				type: onlySelectedShape.type,
-				props: {
-					richText: richTextToPaste,
-				},
-			},
-		])
+	// todo: discuss
+	// If we have one shape with rich text selected, update the shape's text.
+	// const onlySelectedShape = editor.getOnlySelectedShape()
+	// if (onlySelectedShape && 'richText' in onlySelectedShape.props) {
+	// 	editor.updateShapes([
+	// 		{
+	// 			id: onlySelectedShape.id,
+	// 			type: onlySelectedShape.type,
+	// 			props: {
+	// 				richText: richTextToPaste,
+	// 			},
+	// 		},
+	// 	])
 
-		return
-	}
+	// 	return
+	// }
 
 	// Measure the text with default values
 	let w: number

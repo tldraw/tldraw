@@ -146,7 +146,7 @@ test.describe('Rich text behaviour', () => {
 		// bar should be visible (all of the text should be selected)
 		await sleep(200)
 		await expect(richTextToolbar.container).toHaveCount(1)
-		await expect(richTextToolbar.container).not.toHaveClass(/(^|\s)tl-rich-text__toolbar__hidden/)
+		await expect(richTextToolbar.container).not.toHaveClass(/(^|\s)tlui-rich-text__toolbar__hidden/)
 
 		await page.keyboard.type('alex chilton')
 
@@ -156,7 +156,7 @@ test.describe('Rich text behaviour', () => {
 
 		await sleep(200)
 		await expect(richTextToolbar.container).toHaveCount(1)
-		await expect(richTextToolbar.container).toHaveClass(/(^|\s)tl-rich-text__toolbar__hidden/)
+		await expect(richTextToolbar.container).toHaveClass(/(^|\s)tlui-rich-text__toolbar__hidden/)
 
 		await page.keyboard.press('Escape')
 		await page.keyboard.press('Escape')
@@ -173,7 +173,7 @@ test.describe('Rich text behaviour', () => {
 		// bar should be visible (all of the text should be selected)
 		await sleep(200)
 		await expect(richTextToolbar.container).toHaveCount(1)
-		await expect(richTextToolbar.container).not.toHaveClass(/(^|\s)tl-rich-text__toolbar__hidden/)
+		await expect(richTextToolbar.container).not.toHaveClass(/(^|\s)tlui-rich-text__toolbar__hidden/)
 
 		await page.keyboard.type('big star')
 
@@ -181,7 +181,7 @@ test.describe('Rich text behaviour', () => {
 
 		await sleep(200)
 		await expect(richTextToolbar.container).toHaveCount(1)
-		await expect(richTextToolbar.container).toHaveClass(/(^|\s)tl-rich-text__toolbar__hidden/)
+		await expect(richTextToolbar.container).toHaveClass(/(^|\s)tlui-rich-text__toolbar__hidden/)
 	})
 
 	// ...but it does seem to work with the enter key
@@ -204,12 +204,12 @@ test.describe('Rich text behaviour', () => {
 
 		// bar should be visible (all of the text should be selected)
 		await sleep(200)
-		await expect(richTextToolbar.container).not.toHaveClass(/(^|\s)tl-rich-text__toolbar__hidden/)
+		await expect(richTextToolbar.container).not.toHaveClass(/(^|\s)tlui-rich-text__toolbar__hidden/)
 
 		await page.keyboard.type('alex chilton')
 
 		expect(page.getByTestId('rich-text-area')).toHaveText('alex chilton')
-		await expect(richTextToolbar.container).toHaveClass(/(^|\s)tl-rich-text__toolbar__hidden/)
+		await expect(richTextToolbar.container).toHaveClass(/(^|\s)tlui-rich-text__toolbar__hidden/)
 
 		await sleep(200)
 		await expect(richTextToolbar.container).toHaveCount(1)
@@ -226,7 +226,7 @@ test.describe('Rich text behaviour', () => {
 
 		// bar should be visible (all of the text should be selected)
 		await sleep(200)
-		await expect(richTextToolbar.container).not.toHaveClass(/(^|\s)tl-rich-text__toolbar__hidden/)
+		await expect(richTextToolbar.container).not.toHaveClass(/(^|\s)tlui-rich-text__toolbar__hidden/)
 
 		await page.keyboard.type('big star')
 
@@ -235,7 +235,7 @@ test.describe('Rich text behaviour', () => {
 		// bar should not be visible when nothing is selected
 
 		await sleep(200)
-		await expect(richTextToolbar.container).toHaveClass(/(^|\s)tl-rich-text__toolbar__hidden/)
+		await expect(richTextToolbar.container).toHaveClass(/(^|\s)tlui-rich-text__toolbar__hidden/)
 	})
 
 	test.skip('positions correctly with sing-line selection', async () => {})
