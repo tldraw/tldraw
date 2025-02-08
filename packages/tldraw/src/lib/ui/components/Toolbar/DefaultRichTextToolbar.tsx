@@ -163,7 +163,6 @@ function ContextualToolbarInner({
 	useEffect(() => {
 		const elm = rToolbar.current
 		if (!elm) return
-		console.log(elm)
 		if (isShowing) {
 			elm.style.setProperty('transform', `translate(${position.x}px, ${position.y}px)`)
 			elm.classList.remove('tlui-rich-text__toolbar__hidden')
