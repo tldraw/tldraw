@@ -2147,6 +2147,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getHintingShapeIds() {
 		return this.getCurrentPageState().hintingShapeIds
 	}
+
 	/**
 	 * The editor's current hinting shapes.
 	 *

@@ -62,6 +62,8 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		null as { x: number; y: number } | null
 	)
 
+	const rOpenTime = useRef(Date.now())
+
 	const rTextEditor = useRef<TTEditor | null>(null)
 
 	const handleCreate = useCallback(
@@ -164,15 +166,18 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		// manually exit the editing state here; so long as we can guarantee
 		// that we're narrowing to just iOS.
 		//
-		// If we DONT do this then we won't actually blur the editor when
+		// If we DONT do this then we won't actually close the editor when
 		// the user closes the keyboard, which will cause any subsequent
 		// next shape creation to cause the editor to both open and close at
 		// the same time, which is maybe a race condition, either way very
 		// noticeably flakey and weird.
 		if (tlenv.isSafari && tlenv.isIos) {
 			if (editor.getEditingShapeId() === shapeId) {
-				// The user might have just pressed "done"
-				// editor.setEditingShape(null)
+				// There's a chance we get some immediate blurs during render
+				if (Date.now() - rOpenTime.current > 500) {
+					// The user either blurred or just pressed "done"
+					editor.setEditingShape(null)
+				}
 			}
 		}
 		_handleBlur?.()

@@ -924,9 +924,14 @@
 	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 }
 
+.tlui-layout__mobile .tlui-toolbar {
+	transition: transform 0.15s ease-out 0.05s;
+}
+
 /* On Android, when the virtual keyboard is up, we hide the tools. */
 .tlui-layout__mobile[data-iseditinganything='true'] .tlui-toolbar {
-	display: none;
+	transform: translate(0px, 120%);
+	transition: none;
 }
 
 /* -------------------- Help Zone ------------------- */
