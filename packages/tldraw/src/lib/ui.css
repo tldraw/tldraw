@@ -1886,22 +1886,22 @@
 }
 
 .tlui-rich-text__toolbar {
-	opacity: 1;
-	pointer-events: all;
-	transition:
-		top 0.12s ease-in-out,
-		opacity 0.12s ease-in-out;
-	top: 0px;
-}
-
-.tlui-rich-text__toolbar__hidden * {
-	pointer-events: none;
-}
-
-.tlui-rich-text__toolbar__hidden {
-	pointer-events: none;
 	opacity: 0;
-	top: 2px;
+	transition: opacity 0.08s ease-in-out;
+}
+
+.tlui-rich-text__toolbar,
+.tlui-rich-text__toolbar * {
+	pointer-events: none;
+}
+
+.tlui-rich-text__toolbar[data-visible='true'] {
+	opacity: 1;
+}
+
+.tlui-rich-text__toolbar[data-interactive='true'],
+.tlui-rich-text__toolbar[data-interactive='true'] * {
+	pointer-events: all;
 }
 
 .tlui-rich-text__toolbar-link-input {

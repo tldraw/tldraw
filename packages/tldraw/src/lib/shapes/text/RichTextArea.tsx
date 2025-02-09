@@ -10,7 +10,7 @@ import {
 	useEditor,
 	useUniqueSafeId,
 } from '@tldraw/editor'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useLayoutEffect, useRef } from 'react'
 
 /** @public */
 export interface TextAreaProps {
@@ -57,78 +57,71 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 	const editor = useEditor()
 	const tipTapId = useUniqueSafeId('tip-tap-editor')
 	const tipTapConfig = editor.getTextOptions().tipTapConfig
-	const [shouldSelectAllOnCreate, setShouldSelectAllOnCreate] = useState(false)
-	const [initialPositionOnCreate, setInitialPositionOnCreate] = useState(
-		null as { x: number; y: number } | null
-	)
-
-	const rOpenTime = useRef(Date.now())
+	const rCreateInfo = useRef({
+		selectAll: false,
+		caretPosition: null as { x: number; y: number } | null,
+		time: Date.now(),
+	})
 
 	const rTextEditor = useRef<TTEditor | null>(null)
 
+	// The order of events is:
+	// - editor begins editing any shape
+	// - we set listeners for select all / place caret events
+	// - if the user is editing this shape, this component is rendered
+	// - editor emits the select all event / place caret event
+	// - the text editor is created
 	const handleCreate = useCallback(
 		(props: EditorEvents['create']) => {
+			// If we're not still editing the original shape, then don't do anything.
 			if (editor.getEditingShapeId() !== shapeId) return
 
 			const textEditor = props.editor
 			editor.setRichTextEditor(textEditor)
 			rTextEditor.current = textEditor
 
-			// Either we select-all the text upon creation if desired.
-			if (shouldSelectAllOnCreate) {
+			const { selectAll, caretPosition } = rCreateInfo.current
+
+			if (selectAll) {
+				// Select all of the text
 				textEditor.chain().focus().selectAll().run()
-				setShouldSelectAllOnCreate(false)
-			} else if (initialPositionOnCreate) {
-				// Or, we place the caret at the intended clicked position, if
-				// there was any (one could have also entered into editing
-				// via Enter on the keyboard).
+				return
+			}
+
+			if (caretPosition) {
+				// Set the initial caret screen position
 				const pos = textEditor.view.posAtCoords({
-					left: initialPositionOnCreate.x,
-					top: initialPositionOnCreate.y,
+					left: caretPosition.x,
+					top: caretPosition.y,
 				})?.pos
 
 				if (pos) {
 					// Focus to that position.
 					textEditor.chain().focus().setTextSelection(pos).run()
 				} else {
-					// Default to just focusing to the end of the editor content.
-					textEditor.commands.focus('end')
+					// If no position, default to select all.
+					textEditor.chain().focus().selectAll().run()
 				}
-				setInitialPositionOnCreate(null)
-			} else {
-				// XXX: I don't love this. The setTimeout is because when creating a brand new shape
-				// and double-clicking into it quickly to edit it, there's some kind of race condition
-				// happening where the editor doesn't focus properly.
-				editor.timers.setTimeout(() => textEditor.commands.focus('end'), 100)
+				return
 			}
+
+			// XXX: When creating a brand new shape and double-clicking into it quickly to edit it,
+			// there's some kind of race condition happening where the editor doesn't focus properly.
+			editor.timers.setTimeout(() => textEditor.commands.focus('end'), 100)
 		},
-		[editor, initialPositionOnCreate, shapeId, shouldSelectAllOnCreate]
+		[editor, shapeId]
 	)
 
-	useEffect(() => {
-		// ? this doesn't make sense to me. In which case would isEditing (for this component)
-		// be true but the editor's editing shape id not be the same as the shape id? That's what
-		// isEditing checks, iirc. If the real ask is "does the editor have an editing shape, but that
-		// shape is not the same as the shape id of this component", then that's a different question;
-		// and that should prompt a different result, too. (e.g. don't clear the text editor)
-
-		// It's possible that by the time this hook runs, that a new shape is now being edited.
-		// Don't clear the text editor in that case.
-		if (!isEditing && editor.getEditingShapeId() === shapeId) {
-			editor.setRichTextEditor(null)
-		}
-	}, [editor, shapeId, isEditing])
-
-	useEffect(() => {
+	useLayoutEffect(() => {
 		function selectAllIfEditing(event: { shapeId: TLShapeId }) {
 			if (event.shapeId === editor.getEditingShapeId()) {
-				setShouldSelectAllOnCreate(true)
+				rCreateInfo.current = { ...rCreateInfo.current, selectAll: true }
 			}
 		}
 
 		function placeCaret(event: { shapeId: TLShapeId; point: { x: number; y: number } }) {
 			if (event.shapeId === editor.getEditingShapeId()) {
-				setInitialPositionOnCreate(event.point)
+				rCreateInfo.current = { ...rCreateInfo.current, caretPosition: event.point }
 			}
 		}
 
@@ -159,22 +152,15 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 	)
 
 	const handleBlur = useCallback(() => {
-		// ! flashbacks to previous terror... on iOS closing the virtual
-		// keyboard WILL cause a blur event, but this event isn't caused
-		// when we exit the editing state (because we remove the editor
-		// before it has a chance to fire its blur event). So, we need to
-		// manually exit the editing state here; so long as we can guarantee
-		// that we're narrowing to just iOS.
-		//
-		// If we DONT do this then we won't actually close the editor when
-		// the user closes the keyboard, which will cause any subsequent
-		// next shape creation to cause the editor to both open and close at
-		// the same time, which is maybe a race condition, either way very
-		// noticeably flakey and weird.
+		// On iOS Safari, the blur event is fired when the virtual keyboard is closed.
+		// If we're showing this toolbar on iOS, then we need to close the editor when
+		// this happens. However, the blur event is sometimes fired immediately as the
+		// component renders, so we want to wait a short amount of time before this
+		// logic kicks in.
 		if (tlenv.isSafari && tlenv.isIos) {
 			if (editor.getEditingShapeId() === shapeId) {
 				// There's a chance we get some immediate blurs during render
-				if (Date.now() - rOpenTime.current > 500) {
+				if (Date.now() - rCreateInfo.current.time > 500) {
 					// The user either blurred or just pressed "done"
 					editor.setEditingShape(null)
 				}

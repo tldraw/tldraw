@@ -129,9 +129,11 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 							// todo: see if I can abuse this
 							dangerouslySetInnerHTML={{ __html: html || '' }}
 							onPointerDownCapture={handlePointerDownCapture}
+							data-iseditinganything={isEditingAnything}
 						/>
 					)}
 				</div>
+				{/* todo: it might be okay to have just isEditing here */}
 				{(isEditingAnything || isSelected) && (
 					<RichTextArea
 						// Fudge the ref type because we're using forwardRef and it's not typed correctly.
