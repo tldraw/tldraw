@@ -268,8 +268,7 @@ function getToolbarScreenPosition(editor: Editor, toolbarElm: HTMLElement) {
 	const { scrollLeft, scrollTop } = editor.getContainer()
 
 	// We want to position the toolbar so that it is centered over the selection
-	// except in the cases where it would extend off the edge of the screen. If
-	// the re-positioned toolbar is too far from the selection, we'll hide it.
+	// except in the cases where it would extend off the edge of the screen.
 
 	// Start by placing the top left corner of the toolbar so that the
 	// toolbar would be centered above the section bounds, bumped up by the
