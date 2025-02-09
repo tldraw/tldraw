@@ -409,8 +409,8 @@ function useToolbarVisibilityStateMachine() {
 			rNextPosition.current.x = x
 			rNextPosition.current.y = y
 
-			// If the toolbar is hidden, don't do anything
-			if (rState.current.name === 'hidden') return
+			// If the toolbar is not yet visible, don't do anything
+			if (rState.current.name === 'hidden' || rState.current.name === 'showing') return
 
 			// If showing or hiding, cancel the position timeout and start a new one.
 			// When the timeout ends, if we're in the 'shown' state and the position has changed sufficiently
