@@ -109,10 +109,6 @@ function ContextualToolbarInner({
 	const rCouldShowToolbar = useRef(false)
 	const [hasValidToolbarPosition, setHasValidToolbarPosition] = useState(false)
 
-	const isCameraMoving = useValue('is camera moving', () => editor.getCameraState() === 'moving', [
-		editor,
-	])
-
 	useQuickReactor(
 		'toolbar position',
 		function updateToolbarPositionAndDisplay() {
@@ -161,12 +157,13 @@ function ContextualToolbarInner({
 		[editor, textEditor, forcePositionUpdateAtom]
 	)
 
+	const cameraState = useValue('camera state', () => editor.getCameraState(), [editor])
 	const isMousingDown = useIsMousingDownOnTextEditor(textEditor)
 
 	// Send the hide or show events based on whether the user is clicking
 	// and whether the toolbar's position is valid
 	useEffect(() => {
-		if (isCameraMoving) {
+		if (cameraState === 'moving') {
 			hide(true)
 			return
 		}
@@ -177,7 +174,7 @@ function ContextualToolbarInner({
 		}
 
 		show()
-	}, [hasValidToolbarPosition, isCameraMoving, isMousingDown, show, hide])
+	}, [hasValidToolbarPosition, cameraState, isMousingDown, show, hide])
 
 	// When the visibility changes, update the toolbar's visibility
 	useLayoutEffect(() => {
