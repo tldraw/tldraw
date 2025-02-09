@@ -31,4 +31,30 @@ export class RichTextToolbar {
 		const expectedColor = 'rgb(255, 255, 255)'
 		await expect(tool).toHaveCSS('color', expectedColor)
 	}
+
+	async getSelectionBounds() {
+		return this.page.evaluate(() => {
+			const selection = window.getSelection()
+
+			// If there are no selections, don't return a box
+			if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return
+
+			// Get a common box from all of the ranges' screen rects
+			let minX = Infinity
+			let minY = Infinity
+			let maxX = -Infinity
+			let maxY = -Infinity
+
+			for (let i = 0; i < selection.rangeCount; i++) {
+				const range = selection.getRangeAt(i)
+				const box = range.getBoundingClientRect()
+				minX = Math.min(minX, box.left)
+				minY = Math.min(minY, box.top)
+				maxX = Math.max(maxX, box.right)
+				maxY = Math.max(maxY, box.bottom)
+			}
+
+			return { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
+		})
+	}
 }
