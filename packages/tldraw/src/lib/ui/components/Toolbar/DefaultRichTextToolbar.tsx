@@ -107,7 +107,7 @@ function ContextualToolbarInner({
 
 	// annoying react stuff: we don't want the toolbar position function to depend on the react state so we'll double with a ref
 	const rCouldShowToolbar = useRef(false)
-	const [canShowToolbar, setCanShowToolbar] = useState(false)
+	const [hasValidToolbarPosition, setHasValidToolbarPosition] = useState(false)
 
 	const isCameraMoving = useValue('is camera moving', () => editor.getCameraState() === 'moving', [
 		editor,
@@ -133,7 +133,7 @@ function ContextualToolbarInner({
 				if (rCouldShowToolbar.current) {
 					// If we don't have a position, then we're not showing the toolbar
 					rCouldShowToolbar.current = false
-					setCanShowToolbar(false)
+					setHasValidToolbarPosition(false)
 				}
 				return
 			}
@@ -155,7 +155,7 @@ function ContextualToolbarInner({
 			// Finally, if the toolbar was previously hidden, show it again
 			if (!rCouldShowToolbar.current) {
 				rCouldShowToolbar.current = true
-				setCanShowToolbar(true)
+				setHasValidToolbarPosition(true)
 			}
 		},
 		[editor, textEditor, forcePositionUpdateAtom]
@@ -166,16 +166,18 @@ function ContextualToolbarInner({
 	// Send the hide or show events based on whether the user is clicking
 	// and whether the toolbar's position is valid
 	useEffect(() => {
-		if (canShowToolbar && !isMousingDown && !isCameraMoving) {
-			show()
-		} else {
-			if (isCameraMoving) {
-				hide(true)
-			} else {
-				hide()
-			}
+		if (isCameraMoving) {
+			hide(true)
+			return
 		}
-	}, [canShowToolbar, isCameraMoving, isMousingDown, show, hide])
+
+		if (isMousingDown || !hasValidToolbarPosition) {
+			hide()
+			return
+		}
+
+		show()
+	}, [hasValidToolbarPosition, isCameraMoving, isMousingDown, show, hide])
 
 	// When the visibility changes, update the toolbar's visibility
 	useLayoutEffect(() => {
