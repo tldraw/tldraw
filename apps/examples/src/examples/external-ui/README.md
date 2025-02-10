@@ -2,6 +2,7 @@
 title: External UI
 component: ./ExternalUiExample.tsx
 category: ui
+priority: 2
 keywords: [outside, editor]
 ---
 

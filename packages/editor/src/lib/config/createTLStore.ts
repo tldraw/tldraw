@@ -61,7 +61,9 @@ const defaultAssetResolve: NonNullable<TLAssetStore['resolve']> = (asset) => ass
 
 /** @public */
 export const inlineBase64AssetStore: TLAssetStore = {
-	upload: (_, file) => FileHelpers.blobToDataUrl(file),
+	upload: async (_, file) => {
+		return { src: await FileHelpers.blobToDataUrl(file) }
+	},
 }
 
 /**
@@ -128,7 +130,7 @@ export function createTLStore({
 
 	if (rest.snapshot) {
 		if (initialData) throw new Error('Cannot provide both initialData and snapshot')
-		loadSnapshot(store, rest.snapshot)
+		loadSnapshot(store, rest.snapshot, { forceOverwriteSessionState: true })
 	}
 
 	return store

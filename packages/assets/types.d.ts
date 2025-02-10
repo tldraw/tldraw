@@ -155,16 +155,19 @@ export type AssetUrls = {
 	}
 	translations: {
 		ar: string
+		bn: string
 		ca: string
 		cs: string
 		da: string
 		de: string
+		el: string
 		en: string
 		es: string
 		fa: string
 		fi: string
 		fr: string
 		gl: string
+		'gu-in': string
 		he: string
 		'hi-in': string
 		hr: string
@@ -172,24 +175,35 @@ export type AssetUrls = {
 		id: string
 		it: string
 		ja: string
+		'km-kh': string
+		kn: string
 		'ko-kr': string
 		ku: string
 		languages: string
 		main: string
+		ml: string
+		mr: string
+		ms: string
 		my: string
 		ne: string
+		nl: string
 		no: string
+		pa: string
 		pl: string
 		'pt-br': string
 		'pt-pt': string
 		ro: string
 		ru: string
 		sl: string
+		so: string
 		sv: string
+		ta: string
 		te: string
 		th: string
+		tl: string
 		tr: string
 		uk: string
+		ur: string
 		vi: string
 		'zh-cn': string
 		'zh-tw': string

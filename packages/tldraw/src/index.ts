@@ -1,8 +1,10 @@
 /// <reference types="react" />
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
-export { TldrawUiDialogs } from './lib/ui/components/Dialogs'
-export { TldrawUiToasts } from './lib/ui/components/Toasts'
+export { usePrefersReducedMotion } from './lib/shapes/shared/usePrefersReducedMotion'
+export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
+export { DefaultDialogs } from './lib/ui/components/Dialogs'
+export { DefaultToasts } from './lib/ui/components/Toasts'
 export {
 	TldrawUiMenuActionCheckboxItem,
 	type TLUiMenuActionCheckboxItemProps,
@@ -39,10 +41,21 @@ export {
 	type TLEmbedShapePermissions,
 } from './lib/defaultEmbedDefinitions'
 export {
+	DEFAULT_MAX_ASSET_SIZE,
+	DEFAULT_MAX_IMAGE_DIMENSION,
 	centerSelectionAroundPoint,
-	getMediaAssetInfoPartial as createMediaAssetInfoSkeleton,
+	createEmptyBookmarkShape,
 	createShapesForAssets,
+	defaultHandleExternalEmbedContent,
+	defaultHandleExternalFileAsset,
+	defaultHandleExternalFileContent,
+	defaultHandleExternalSvgTextContent,
+	defaultHandleExternalTextContent,
+	defaultHandleExternalUrlAsset,
+	defaultHandleExternalUrlContent,
+	getMediaAssetInfoPartial,
 	registerDefaultExternalContentHandlers,
+	type TLDefaultExternalContentHandlerOpts,
 	type TLExternalContentProps,
 } from './lib/defaultExternalContentHandlers'
 export { defaultShapeTools } from './lib/defaultShapeTools'
@@ -59,28 +72,44 @@ export {
 } from './lib/shapes/arrow/shared'
 export { BookmarkShapeUtil } from './lib/shapes/bookmark/BookmarkShapeUtil'
 export { DrawShapeTool } from './lib/shapes/draw/DrawShapeTool'
-export { DrawShapeUtil } from './lib/shapes/draw/DrawShapeUtil'
+export { DrawShapeUtil, type DrawShapeOptions } from './lib/shapes/draw/DrawShapeUtil'
 export { EmbedShapeUtil } from './lib/shapes/embed/EmbedShapeUtil'
 export { FrameShapeTool } from './lib/shapes/frame/FrameShapeTool'
 export { FrameShapeUtil } from './lib/shapes/frame/FrameShapeUtil'
 export { GeoShapeTool } from './lib/shapes/geo/GeoShapeTool'
 export { GeoShapeUtil } from './lib/shapes/geo/GeoShapeUtil'
 export { HighlightShapeTool } from './lib/shapes/highlight/HighlightShapeTool'
-export { HighlightShapeUtil } from './lib/shapes/highlight/HighlightShapeUtil'
+export {
+	HighlightShapeUtil,
+	type HighlightShapeOptions,
+} from './lib/shapes/highlight/HighlightShapeUtil'
 export { ImageShapeUtil } from './lib/shapes/image/ImageShapeUtil'
 export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
 export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
-export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
+export { NoteShapeUtil, type NoteShapeOptions } from './lib/shapes/note/NoteShapeUtil'
 export { TextLabel, type TextLabelProps } from './lib/shapes/shared/TextLabel'
 export {
+	getCropBox,
+	getDefaultCrop,
+	getUncroppedSize,
+	type CropBoxOptions,
+} from './lib/shapes/shared/crop'
+export {
+	ARROW_LABEL_FONT_SIZES,
 	FONT_FAMILIES,
+	FONT_SIZES,
 	LABEL_FONT_SIZES,
+	STROKE_SIZES,
 	TEXT_PROPS,
 } from './lib/shapes/shared/default-shape-constants'
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
 export { useEditableText } from './lib/shapes/shared/useEditableText'
-export { useAsset, useImageOrVideoAsset } from './lib/shapes/shared/useImageOrVideoAsset'
+export {
+	useAsset,
+	useImageOrVideoAsset,
+	type UseImageOrVideoAssetOptions,
+} from './lib/shapes/shared/useImageOrVideoAsset'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
 export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'
 export { VideoShapeUtil } from './lib/shapes/video/VideoShapeUtil'
@@ -272,10 +301,12 @@ export {
 	SelectAllMenuItem,
 	ToggleAutoSizeMenuItem,
 	ToggleDebugModeItem,
+	ToggleDynamicSizeModeItem,
 	ToggleEdgeScrollingItem,
 	ToggleFocusModeItem,
 	ToggleGridItem,
 	ToggleLockMenuItem,
+	TogglePasteAtCursorItem,
 	ToggleReduceMotionItem,
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
@@ -447,9 +478,9 @@ export { useDefaultHelpers, type TLUiOverrideHelpers, type TLUiOverrides } from 
 export { containBoxSize, downsizeImage, type BoxWidthHeight } from './lib/utils/assets/assets'
 export { preloadFont, type TLTypeFace } from './lib/utils/assets/preload-font'
 export { getEmbedInfo, type TLEmbedResult } from './lib/utils/embeds/embeds'
-export { copyAs, type TLCopyType } from './lib/utils/export/copyAs'
-export { exportToBlob, getSvgAsImage } from './lib/utils/export/export'
-export { exportAs, type TLExportType } from './lib/utils/export/exportAs'
+export { copyAs, type CopyAsOptions, type TLCopyType } from './lib/utils/export/copyAs'
+export { exportToBlob } from './lib/utils/export/export'
+export { downloadFile, exportAs, type ExportAsOptions } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export {
 	defaultEditorAssetUrls,

@@ -1,14 +1,20 @@
+import { PrivacySettingsLink } from '@/app/analytics'
 import { Logo } from '@/components/common/logo'
 import Link from 'next/link'
 
 const menus = [
 	{
+		heading: 'Company',
+		items: [{ caption: 'Jobs', href: '/jobs' }],
+	},
+	{
 		heading: 'Product',
 		items: [
 			{ caption: 'Overview', href: '/' },
 			{ caption: 'Playground', href: 'https://tldraw.com' },
-			{ caption: 'Pricing', href: '/#pricing' },
-			// { caption: 'Terms of Use', href: '/legal/terms' },
+			{ caption: 'Features', href: '/#features' },
+			{ caption: 'Pricing', href: '/#license' },
+			{ caption: 'FAQ', href: '/#faq' },
 		],
 	},
 	{
@@ -26,7 +32,7 @@ const menus = [
 			{ caption: 'X/Twitter', href: 'https://x.com/tldraw/' },
 			{ caption: 'Discord', href: 'https://discord.com/invite/SBBEVCA4PG' },
 			{ caption: 'GitHub', href: 'https://github.com/tldraw/tldraw' },
-			{ caption: 'Bluesky', href: 'https://bsky.app/profile/tldraw.bsky.social' },
+			{ caption: 'Bluesky', href: 'https://bsky.app/profile/tldraw.com' },
 			{ caption: 'Mastodon', href: 'https://mas.to/@tldraw' },
 		],
 	},
@@ -36,6 +42,7 @@ const menus = [
 			{ caption: 'License', href: '/legal/tldraw-license' },
 			{ caption: 'Trademarks', href: '/legal/trademarks' },
 			{ caption: 'CLA', href: '/legal/cla' },
+			{ caption: 'Privacy settings', href: '#', isCookieSetting: true },
 		],
 	},
 ]
@@ -57,11 +64,15 @@ export function Footer() {
 								{heading}
 							</h4>
 							<ul className="flex flex-col gap-2 mt-2 text-sm">
-								{items.map(({ caption, href }, index) => (
+								{items.map(({ caption, href, isCookieSetting }, index) => (
 									<li key={index}>
-										<Link href={href} className="hover:text-zinc-800 dark:hover:text-zinc-200">
-											{caption}
-										</Link>
+										{isCookieSetting ? (
+											<PrivacySettingsLink />
+										) : (
+											<Link href={href} className="hover:text-zinc-800 dark:hover:text-zinc-200">
+												{caption}
+											</Link>
+										)}
 									</li>
 								))}
 							</ul>

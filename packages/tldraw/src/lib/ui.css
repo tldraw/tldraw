@@ -62,7 +62,9 @@
 }
 
 .tlui-button:focus-visible:not(:hover) {
-	outline: 1px solid var(--color-selected);
+	/* todo: fix the indicator errors in radix dropdown menus before restoring */
+	/* outline: 1px solid var(--color-selected); */
+	outline: none;
 	outline-offset: -4px;
 	border-radius: var(--radius-3);
 }
@@ -541,7 +543,7 @@
 
 .tlui-popover__content {
 	position: relative;
-	max-height: 75vh;
+	max-height: calc(var(--radix-popover-content-available-height) - 8px);
 	margin: 0px;
 	border: none;
 	border-radius: var(--radius-3);
@@ -1303,11 +1305,39 @@
 }
 
 .tlui-page-menu__item {
+	position: relative;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-between;
 	gap: 0px;
+}
+
+@media (hover: hover) {
+	.tlui-page-menu__item::after {
+		display: block;
+		content: '';
+		background-color: var(--color-muted-2);
+		position: absolute;
+		inset: 4px;
+		border-radius: 6px;
+		pointer-events: none;
+		opacity: 0;
+	}
+
+	.tlui-page-menu__item:hover::after {
+		opacity: 1;
+	}
+
+	.tlui-page-menu__item:hover > .tlui-page_menu__item__submenu > .tlui-button {
+		opacity: 1;
+	}
+}
+
+/* Since we're adding an after hover effect to the page menu item, we want to hide the hovers on the individual buttons in the page menu item */
+.tlui-page-menu__item__button::after,
+.tlui-page_menu__item__submenu > .tlui-button::after {
+	display: none;
 }
 
 .tlui-page-menu__item:nth-of-type(n + 2) {
@@ -1631,7 +1661,7 @@
 	pointer-events: all;
 	border-radius: var(--radius-1);
 	padding-right: 1px;
-	height: 36px;
+	height: 100%;
 }
 
 .tlui-people-menu__avatars {
@@ -1640,8 +1670,8 @@
 }
 
 .tlui-people-menu__avatar {
-	height: 28px;
-	width: 28px;
+	height: 24px;
+	width: 24px;
 	border: 2px solid var(--color-background);
 	background-color: var(--color-low);
 	border-radius: 100%;

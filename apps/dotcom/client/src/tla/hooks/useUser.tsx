@@ -1,13 +1,11 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import type { UserResource } from '@clerk/types'
-import { TldrawAppUserId, TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
-import assert from 'assert'
 import { ReactNode, createContext, useContext, useMemo } from 'react'
-import { DefaultSpinner, LoadingScreen } from 'tldraw'
-import { useApp } from './useAppState'
+import { DefaultSpinner, LoadingScreen, assert, useShallowObjectIdentity } from 'tldraw'
+import { useMaybeApp } from './useAppState'
 
 export interface TldrawUser {
-	id: TldrawAppUserId
+	id: string
 	clerkUser: UserResource
 	isTldraw: boolean
 	getToken(): Promise<string>
@@ -15,14 +13,21 @@ export interface TldrawUser {
 const UserContext = createContext<null | TldrawUser>(null)
 
 export function UserProvider({ children }: { children: ReactNode }) {
-	const { user, isLoaded } = useClerkUser()
-	const auth = useAuth()
-	const app = useApp()
+	const { isLoaded, ...others } = useClerkUser()
+	const user = useShallowObjectIdentity(others.user)
+	// At time of writing, the return value of `useAuth` was not stable during a user session,
+	// and was causing downstream react components to remount unnecessarily and lose state.
+	// I tracked it down to being useAuth().has which was being updated randomly for some reason.
+	// Destructuring the bits we need here fixes the issue as they seem to be stable.
+	const { getToken, isSignedIn, isLoaded: isAuthLoaded } = useAuth()
+
+	// app can be null during hot reloading sometimes?
+	const app = useMaybeApp()
 
 	const value = useMemo(() => {
-		if (!user || !auth.isSignedIn) return null
+		if (!user || !isSignedIn || !app) return null
 
-		const storeUser = app.store.get(TldrawAppUserRecordType.createId(user.id))
+		const storeUser = app.getUser()
 		if (!storeUser) throw new Error('User not found in app store')
 
 		return {
@@ -32,14 +37,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
 				user?.primaryEmailAddress?.verification.status === 'verified' &&
 				user.primaryEmailAddress.emailAddress.endsWith('@tldraw.com'),
 			getToken: async () => {
-				const token = await auth.getToken()
+				const token = await getToken()
 				assert(token)
 				return token
 			},
 		}
-	}, [auth, user, app.store])
+	}, [getToken, isSignedIn, user, app])
 
-	if (!isLoaded || !auth.isLoaded) {
+	if (!isLoaded || !isAuthLoaded || !app) {
 		return (
 			<div className="tldraw__editor">
 				<LoadingScreen>
@@ -58,6 +63,6 @@ export function useTldrawUser() {
 
 export function useLoggedInUser() {
 	const user = useTldrawUser()
-	if (!user) throw new Error('User not logged in')
+	if (!user) throw new Error('User not signed in')
 	return user
 }

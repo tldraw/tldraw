@@ -33,10 +33,23 @@ import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
 
 /** @public */
+export interface DrawShapeOptions {
+	/**
+	 * The maximum number of points in a line before the draw tool will begin a new shape.
+	 * A higher number will lead to poor performance while drawing very long lines.
+	 */
+	readonly maxPointsPerShape: number
+}
+
+/** @public */
 export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	static override type = 'draw' as const
 	static override props = drawShapeProps
 	static override migrations = drawShapeMigrations
+
+	static options: DrawShapeOptions = {
+		maxPointsPerShape: 600,
+	}
 
 	override hideResizeHandles(shape: TLDrawShape) {
 		return getIsDot(shape)
@@ -111,8 +124,16 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
 		let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
-		const zoomLevel = this.editor.getZoomLevel()
-		const forceSolid = zoomLevel < 0.5 && zoomLevel < 1.5 / sw
+
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const forceSolid = useValue(
+			'force solid',
+			() => {
+				const zoomLevel = this.editor.getZoomLevel()
+				return zoomLevel < 0.5 && zoomLevel < 1.5 / sw
+			},
+			[this.editor, sw]
+		)
 
 		if (
 			!forceSolid &&

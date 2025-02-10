@@ -46,6 +46,7 @@
 		"build-docs": "lazy run build --filter 'apps/docs'",
 		"build-types": "lazy inherit",
 		"build-api": "lazy build-api",
+		"build-i18n": "lazy build-i18n",
 		"build-package": "lazy build-package",
 		"preview-app": "VITE_PREVIEW=1 yarn dev-app",
 		"lint": "lazy lint",
@@ -58,54 +59,58 @@
 		"test": "lazy test",
 		"test-coverage": "lazy test-coverage && node internal/scripts/offer-coverage.mjs",
 		"e2e": "lazy e2e --filter='apps/examples'",
-		"e2e-dotcom": "lazy e2e --filter='apps/dotcom/*'"
+		"e2e-dotcom": "lazy e2e --filter='apps/dotcom/*'",
+		"e2e-dotcom-x10": "lazy e2e-x10 --filter='apps/dotcom/*'",
+		"i18n-upload-strings": "tsx internal/scripts/i18n-upload-strings.ts",
+		"i18n-download-strings": "tsx internal/scripts/i18n-download-strings.ts"
 	},
 	"engines": {
-		"npm": ">=7.0.0"
+		"npm": ">=7.0.0",
+		"node": ">=20.0.0"
 	},
 	"packageManager": "yarn@4.0.2",
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json}": [
-			"prettier --write --cache --log-level=error"
+			"prettier --write --cache --log-level=warn"
 		]
 	},
 	"devDependencies": {
-		"@eslint/compat": "^1.2.1",
-		"@eslint/eslintrc": "^3.1.0",
-		"@eslint/js": "^9.13.0",
-		"@microsoft/api-extractor": "^7.43.1",
-		"@next/eslint-plugin-next": "^15.0.0",
-		"@swc/core": "^1.3.55",
-		"@swc/jest": "^0.2.34",
+		"@eslint/compat": "^1.2.5",
+		"@eslint/eslintrc": "^3.2.0",
+		"@eslint/js": "^9.19.0",
+		"@microsoft/api-extractor": "^7.49.1",
+		"@next/eslint-plugin-next": "^15.1.6",
+		"@swc/core": "^1.10.11",
+		"@swc/jest": "^0.2.37",
 		"@types/glob": "^8.1.0",
-		"@types/jest": "^29.5.12",
-		"@types/node": "~20.11",
-		"@types/react": "^18.2.0",
-		"@types/react-dom": "^18.2.0",
+		"@types/jest": "^29.5.14",
+		"@types/node": "~20.11.30",
+		"@types/react": "^18.3.18",
+		"@types/react-dom": "^18.3.5",
 		"@types/semver": "^7.5.8",
-		"@typescript-eslint/eslint-plugin": "^8.11.0",
-		"@typescript-eslint/parser": "^8.11.0",
-		"auto": "^11.1.1",
-		"eslint": "^9.13.0",
+		"@typescript-eslint/eslint-plugin": "^8.21.0",
+		"@typescript-eslint/parser": "^8.21.0",
+		"auto": "^11.3.0",
+		"eslint": "^9.19.0",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-import": "^2.31.0",
 		"eslint-plugin-no-only-tests": "^3.3.0",
-		"eslint-plugin-react": "^7.37.1",
-		"eslint-plugin-react-hooks": "^5.0.0",
-		"fs-extra": "^11.1.0",
-		"husky": "^8.0.0",
+		"eslint-plugin-react": "^7.37.4",
+		"eslint-plugin-react-hooks": "^5.1.0",
+		"fs-extra": "^11.3.0",
+		"husky": "^8.0.3",
 		"jest": "30.0.0-alpha.2",
 		"json5": "^2.2.3",
 		"lazyrepo": "0.0.0-alpha.27",
-		"license-report": "^6.5.0",
-		"lint-staged": "^15.2.7",
-		"prettier": "^3.0.3",
-		"prettier-plugin-organize-imports": "^3.2.3",
-		"rimraf": "^4.4.0",
+		"license-report": "^6.7.1",
+		"lint-staged": "^15.4.3",
+		"prettier": "^3.4.2",
+		"prettier-plugin-organize-imports": "^3.2.4",
+		"rimraf": "^4.4.1",
 		"tsutils": "^3.21.0",
-		"tsx": "^4.0.0",
-		"typescript": "^5.3.3",
-		"vercel": "^34.2.4"
+		"tsx": "^4.19.2",
+		"typescript": "~5.4.5",
+		"vercel": "^34.4.0"
 	},
 	"// resolutions.canvas": [
 		"our examples app depenends on pdf.js which pulls in canvas as an optional dependency.",
@@ -116,15 +121,18 @@
 		"vectra@^0.4.4": "patch:vectra@npm%3A0.4.4#./.yarn/patches/vectra-npm-0.4.4-6aac3f6c29.patch",
 		"domino@^2.1.6": "patch:domino@npm%3A2.1.6#./.yarn/patches/domino-npm-2.1.6-b0dc3de857.patch",
 		"canvas": "npm:empty-npm-package@1.0.0",
-		"@microsoft/tsdoc@npm:0.14.2": "patch:@microsoft/tsdoc@npm%3A0.14.2#~/.yarn/patches/@microsoft-tsdoc-npm-0.14.2-9988282153.patch"
+		"postgres@npm:^3.4.4": "patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch",
+		"canvas-size": "patch:canvas-size@npm%3A2.0.0#~/.yarn/patches/canvas-size-npm-2.0.0-822398a242.patch",
+		"@microsoft/tsdoc@npm:~0.15.1": "patch:@microsoft/tsdoc@npm%3A0.15.1#~/.yarn/patches/@microsoft-tsdoc-npm-0.15.1-e24295d9bd.patch",
+		"@microsoft/tsdoc@npm:0.15.1": "patch:@microsoft/tsdoc@npm%3A0.15.1#~/.yarn/patches/@microsoft-tsdoc-npm-0.15.1-e24295d9bd.patch"
 	},
 	"dependencies": {
-		"@sentry/cli": "^2.25.0",
+		"@sentry/cli": "^2.41.1",
 		"@yarnpkg/types": "^4.0.0",
 		"cross-env": "^7.0.3",
-		"esbuild": "^0.21.5",
-		"mime": "^4.0.3",
+		"esbuild": "^0.24.2",
+		"mime": "^4.0.6",
 		"purgecss": "^5.0.0",
-		"svgo": "^3.0.2"
+		"svgo": "^3.3.2"
 	}
 }

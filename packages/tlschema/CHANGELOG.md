@@ -1,3 +1,67 @@
+# v3.7.0 (Tue Jan 07 2025)
+
+### Release Notes
+
+#### custom sync presence ([#5071](https://github.com/tldraw/tldraw/pull/5071))
+
+- It's now possible to customise what presence data is synced between clients, or disable presence syncing entirely.
+
+---
+
+#### 🐛 Bug Fix
+
+- [botcom] slurp local files on sign in [#5059](https://github.com/tldraw/tldraw/pull/5059) ([@ds300](https://github.com/ds300))
+
+#### 🛠️ API Changes
+
+- custom sync presence [#5071](https://github.com/tldraw/tldraw/pull/5071) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
+# v3.6.0 (Wed Dec 04 2024)
+
+### Release Notes
+
+#### Create a utility type for making undefined properties optional ([#5055](https://github.com/tldraw/tldraw/pull/5055))
+
+- Expose a utility type for making undefined properties optional
+
+---
+
+#### 🐛 Bug Fix
+
+- Create a utility type for making undefined properties optional [#5055](https://github.com/tldraw/tldraw/pull/5055) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk) [@SomeHats](https://github.com/SomeHats))
+
+#### 🐛 Bug Fixes
+
+- Fix an issue with drag and dropping the files [#5013](https://github.com/tldraw/tldraw/pull/5013) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### Authors: 3
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+
+---
+
+# v3.5.0 (Tue Nov 26 2024)
+
+#### 💄 Product Improvements
+
+- Lokalise: Translations update [#4947](https://github.com/tldraw/tldraw/pull/4947) ([@TodePond](https://github.com/TodePond) [@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 2
+
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
 # v3.4.0 (Thu Oct 24 2024)
 
 ### Release Notes

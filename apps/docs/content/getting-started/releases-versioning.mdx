@@ -15,49 +15,56 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 
 {/* START AUTO-GENERATED CHANGELOG */}
 
-## Current release: [v3.4.0](/releases/v3.4.0)
+## Current release: [v3.7.0](/releases/v3.7.0)
 
-Welcome to the 3.4.0 release of the tldraw SDK. This issue fixes a few bugs in our user interface, improves performance around images and videos, and even improves our very secret ability to accept pasted content from [Excalidraw](https://excalidraw.com/). See below for the full list of changes.
-
-#### Breaking changes
-
-- The `id` attribute that was present on some shapes in the dom has been removed. There's now a data-shape-id attribute on every shape wrapper that can be used instead. ([#4694](https://github.com/tldraw/tldraw/pull/4694))
+Welcome to the 3.7.0 release of tldraw. This month's SDK release includes several bug fixes and perf improvements.
 
 #### Improvements
 
-- Clearer tooltip wording in the style panel. ([#4750](https://github.com/tldraw/tldraw/pull/4750))
-- Arrow labels no longer have their indictors showing behind them. ([#4749](https://github.com/tldraw/tldraw/pull/4749))
-- Limit the page name length in the move to page menu. ([#4747](https://github.com/tldraw/tldraw/pull/4747))
-- Improve performance of image/video rendering. ([#4659](https://github.com/tldraw/tldraw/pull/4659))
+- Add ability to customise what presence data is synced between clients, or disable presence syncing entirely. [#5071](https://github.com/tldraw/tldraw/pull/5071)
 
 #### API changes
 
-- Add `labelColor` to note shapes. ([#4724](https://github.com/tldraw/tldraw/pull/4724))
-- There are a new set of APIs for working with unique DOM IDs in tldraw components: [`useUniqueSafeId`](https://staging.tldraw.dev/reference/editor/useUniqueSafeId) & [`useSharedSafeId`](https://staging.tldraw.dev/reference/editor/useSharedSafeId). ([#4694](https://github.com/tldraw/tldraw/pull/4694))
+- Support expanding the selection outline by different amounts on each side by returning a `Box` from `expandSelectionOutlinePx`. [#5168](https://github.com/tldraw/tldraw/pull/5168)
+- Updating shape props to undefined when using editor.updateShape [#5029](https://github.com/tldraw/tldraw/pull/5029)
 
-#### Bug fixes
+#### Bug fix
 
-- Writing `options` inline in the Tldraw component will no longer cause re-render loops. ([#4762](https://github.com/tldraw/tldraw/pull/4762))
-- Make sure toolbar button outlines match the border-radius of the button. ([#4759](https://github.com/tldraw/tldraw/pull/4759))
-- Make sure content pasted from Excalidraw keeps the correct color. ([#4752](https://github.com/tldraw/tldraw/pull/4752))
-- Don't highlight menu triggers that dont have their submenus open. ([#4710](https://github.com/tldraw/tldraw/pull/4710))
-- Pass through the correct event type for drag events. ([#4739](https://github.com/tldraw/tldraw/pull/4739))
-- Prevent multiple images accidentally being created when you drop one onto the canvas. ([#4704](https://github.com/tldraw/tldraw/pull/4704))
-- Make sure the link indicator is visible on sticky notes. ([#4708](https://github.com/tldraw/tldraw/pull/4708))
-- The insert embed dialog now parses URLs correctly. ([#4709](https://github.com/tldraw/tldraw/pull/4709))
-- Exports and other tldraw instances no longer can affect how each other are rendered. ([#4694](https://github.com/tldraw/tldraw/pull/4694))
-- Show the correct set of menu options in read-only mode. ([#4696](https://github.com/tldraw/tldraw/pull/4696))
+- Fixed a bug during development with React Strict Mode enabled where `store.listen` might end up not calling the listener. [#5133](https://github.com/tldraw/tldraw/pull/5133)
+- Restrict Github Gists to a more strict URL format. [#5170](https://github.com/tldraw/tldraw/pull/5170)
+- Fixes bugs with Github Gist and Val Town; adds support for pasting `<iframe src="...">` embeds [#5143](https://github.com/tldraw/tldraw/pull/5143)
+- Fix a bug with `maxImageDimension` not getting applied to pasted images. [#5176](https://github.com/tldraw/tldraw/pull/5176)
+- Fix relative CSS import rules failing to be fetched when exporting or printing. [#5172](https://github.com/tldraw/tldraw/pull/5172)
+- Prevents divs created for text measurement from leaking during hot reloading. [#5127](https://github.com/tldraw/tldraw/pull/5127)
+- Fixed a bug with rotating image / croppable shapes. [#5087](https://github.com/tldraw/tldraw/pull/5087)
+- Improves rendering of the pages menu and quick actions. [#5057](https://github.com/tldraw/tldraw/pull/5057)
+- Fix stale closure in InnerShape [#5117](https://github.com/tldraw/tldraw/pull/5117)
+- Fix hot reload text measurement bug [#5125](https://github.com/tldraw/tldraw/pull/5125)
+- Fixed a bug where popover menus might overflow the viewport [#5039](https://github.com/tldraw/tldraw/pull/5039)
 
-#### Authors
+#### Authors: 7
 
-- [@nayounsang](https://github.com/nayounsang)
 - alex ([@SomeHats](https://github.com/SomeHats))
+- Andrew Lisowski ([@hipstersmoothie](https://github.com/hipstersmoothie))
+- Christopher Ehrlich ([@c-ehrlich](https://github.com/c-ehrlich))
 - David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- mimata kazutaka ([@kazu-2020](https://github.com/kazu-2020))
 - Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
 - Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Sam Robbins ([@samrobbins85](https://github.com/samrobbins85))
 - Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- TAKAHASHI Shuuji ([@shuuji3](https://github.com/shuuji3))
+- Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+- Yuichiro Tachibana (Tsuchiya) ([@whitphx](https://github.com/whitphx))
 
 ## Previous releases
+
+- [v3.6.0](/releases/v3.6.0)
+
+- [v3.5.0](/releases/v3.5.0)
+
+- [v3.4.0](/releases/v3.4.0)
 
 - [v3.3.0](/releases/v3.3.0)
 

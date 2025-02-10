@@ -42,7 +42,7 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 	const labelToUse = label
 		? typeof label === 'string'
 			? label
-			: label[menuType] ?? label['default']
+			: (label[menuType] ?? label['default'])
 		: undefined
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 
@@ -51,15 +51,12 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 			return (
 				<TldrawUiDropdownMenuSub id={`${sourceId}-sub.${id}`}>
 					<TldrawUiDropdownMenuSubTrigger
-						id={`${sourceId}-sub.${labelStr ? labelStr.toLowerCase() + '-button' : ''}`}
+						id={`${sourceId}-sub.${id}-button`}
 						disabled={disabled}
 						label={labelStr!}
 						title={labelStr!}
 					/>
-					<TldrawUiDropdownMenuSubContent
-						id={`${sourceId}-sub.${labelStr ? labelStr.toLowerCase() + '-content' : ''}`}
-						size={size}
-					>
+					<TldrawUiDropdownMenuSubContent id={`${sourceId}-sub.${id}-content`} size={size}>
 						{children}
 					</TldrawUiDropdownMenuSubContent>
 				</TldrawUiDropdownMenuSub>
@@ -72,7 +69,7 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 				<ContextMenuSubWithMenu id={`${sourceId}-sub.${id}`}>
 					<ContextMenuSubTrigger dir="ltr" disabled={disabled} asChild>
 						<TldrawUiButton
-							data-testid={`${sourceId}-sub-trigger.${id}`}
+							data-testid={`${sourceId}-sub.${id}-button`}
 							type="menu"
 							className="tlui-menu__submenu__trigger"
 						>
@@ -82,7 +79,7 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 					</ContextMenuSubTrigger>
 					<ContextMenuPortal container={container}>
 						<ContextMenuSubContent
-							data-testid={`${sourceId}-sub-content.${id}`}
+							data-testid={`${sourceId}-sub.${id}-content`}
 							className="tlui-menu tlui-menu__submenu__content"
 							alignOffset={-1}
 							sideOffset={-4}

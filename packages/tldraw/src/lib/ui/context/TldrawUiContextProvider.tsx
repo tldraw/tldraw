@@ -1,4 +1,4 @@
-import { RecursivePartial, track, useEditor } from '@tldraw/editor'
+import { RecursivePartial, defaultUserPreferences, track, useMaybeEditor } from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { TLUiAssetUrls, useDefaultUiAssetUrlsWithOverrides } from '../assetUrls'
 import { MimeTypeContext } from '../hooks/useInsertMedia'
@@ -61,20 +61,28 @@ export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 	mediaMimeTypes,
 	children,
 }: TLUiContextProviderProps) {
-	const editor = useEditor()
+	// To allow mounting the sidebar without an editor running, we use a 'maybe' editor here
+	// The sidebar makes use of toasts and dialogs etc, which typically require an editor to be present
+	// but we are overriding the providers to allow them to be used without an editor.
+	const editor = useMaybeEditor()
 	return (
 		<MimeTypeContext.Provider value={mediaMimeTypes}>
 			<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(assetUrls)}>
 				<TldrawUiTranslationProvider
 					overrides={useMergedTranslationOverrides(overrides)}
-					locale={editor.user.getLocale()}
+					locale={editor?.user.getLocale() ?? defaultUserPreferences.locale}
 				>
 					<TldrawUiEventsProvider onEvent={onUiEvent}>
 						<TldrawUiToastsProvider>
-							<TldrawUiDialogsProvider context={editor.contextId}>
+							<TldrawUiDialogsProvider context={'tla'}>
 								<BreakPointProvider forceMobile={forceMobile}>
 									<TldrawUiComponentsProvider overrides={components}>
-										<InternalProviders overrides={overrides}>{children}</InternalProviders>
+										{editor ? (
+											// the internal providers are only valid when an editor is present
+											<InternalProviders overrides={overrides}>{children}</InternalProviders>
+										) : (
+											children
+										)}
 									</TldrawUiComponentsProvider>
 								</BreakPointProvider>
 							</TldrawUiDialogsProvider>

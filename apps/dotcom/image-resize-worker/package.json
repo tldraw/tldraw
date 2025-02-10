@@ -18,12 +18,12 @@
 	"dependencies": {
 		"@tldraw/validate": "workspace:*",
 		"@tldraw/worker-shared": "workspace:*",
-		"itty-router": "^5.0.17"
+		"itty-router": "^5.0.18"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20240620.0",
+		"@cloudflare/workers-types": "^4.20250124.3",
 		"lazyrepo": "0.0.0-alpha.27",
-		"wrangler": "3.62.0"
+		"wrangler": "^3.105.1"
 	},
 	"jest": {
 		"preset": "../../../internal/config/jest/node/jest-preset.js",

@@ -102,8 +102,9 @@ export function NewsletterSignup({
 					/>
 				</Field>
 				<Button
+					id="mailing-list-subscribe"
 					submit
-					caption="Submit"
+					caption="Subscribe"
 					arrow="right"
 					size={size === 'small' ? 'xs' : 'base'}
 					className={cn('justify-center', size === 'small' && 'w-full mt-2')}

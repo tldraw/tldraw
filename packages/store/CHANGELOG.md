@@ -1,3 +1,68 @@
+# v3.7.0 (Tue Jan 07 2025)
+
+### Release Notes
+
+#### Execute reactor immediately on listen ([#5133](https://github.com/tldraw/tldraw/pull/5133))
+
+- Fixed a bug during development with React Strict Mode enabled where store.listen might end up not calling the listener.
+
+#### custom sync presence ([#5071](https://github.com/tldraw/tldraw/pull/5071))
+
+- It's now possible to customise what presence data is synced between clients, or disable presence syncing entirely.
+
+#### Improve rerenedring of the page menu and quick actions ([#5057](https://github.com/tldraw/tldraw/pull/5057))
+
+- Improves rendering of the pages menu and quick actions.
+
+---
+
+#### 🐛 Bug Fixes
+
+- Execute reactor immediately on listen [#5133](https://github.com/tldraw/tldraw/pull/5133) ([@ds300](https://github.com/ds300))
+
+#### 💄 Product Improvements
+
+- Improve rerenedring of the page menu and quick actions [#5057](https://github.com/tldraw/tldraw/pull/5057) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🛠️ API Changes
+
+- custom sync presence [#5071](https://github.com/tldraw/tldraw/pull/5071) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 3
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+---
+
+# v3.5.0 (Tue Nov 26 2024)
+
+### Release Notes
+
+#### Click / right click on frame headings ([#4979](https://github.com/tldraw/tldraw/pull/4979))
+
+- Improved clicks for frame headings
+
+#### Call ensureStoreIsUsable after mergeRemoteChanges ([#4833](https://github.com/tldraw/tldraw/pull/4833))
+
+- Add store consistency checks during `mergeRemoteChanges`
+
+---
+
+#### 💄 Product Improvements
+
+- Click / right click on frame headings [#4979](https://github.com/tldraw/tldraw/pull/4979) ([@steveruizok](https://github.com/steveruizok) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Call ensureStoreIsUsable after mergeRemoteChanges [#4833](https://github.com/tldraw/tldraw/pull/4833) ([@ds300](https://github.com/ds300))
+
+#### Authors: 3
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.4.0 (Thu Oct 24 2024)
 
 ### Release Notes

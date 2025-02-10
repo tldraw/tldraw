@@ -1,0 +1,432 @@
+{
+  "0095a9fa74": {
+    "translation": "Exporta"
+  },
+  "03b3e13197": {
+    "translation": "Arrossegueu el fitxer a la barra lateral d'aquesta pàgina. O seleccioneu l'opció \"Importa fitxer\" al menú d'usuari."
+  },
+  "043973ec1f": {
+    "translation": "Encara tens problemes? {GetHelpLink}"
+  },
+  "05596b840b": {
+    "translation": "Obriu tldraw."
+  },
+  "06b9281e39": {
+    "translation": "Automàtic"
+  },
+  "07dbd11b21": {
+    "translation": "Fitxer sense títol"
+  },
+  "08331c1710": {
+    "translation": "S'ha superat el límit de tarifa; torna-ho a provar més tard."
+  },
+  "0b27918290": {
+    "translation": "Fitxer"
+  },
+  "0b9a4cde72": {
+    "translation": "Menú Fitxer"
+  },
+  "110a4b01be": {
+    "translation": "Publicar"
+  },
+  "13ddd375ad": {
+    "translation": "Exporta com a"
+  },
+  "181b90f889": {
+    "translation": "Crea un fitxer"
+  },
+  "1bef75f760": {
+    "translation": "Permet que tldraw m'enviï un correu electrònic sobre això"
+  },
+  "1da2e8106b": {
+    "translation": "S'ha produït un error inesperat."
+  },
+  "1dd1c5fb7f": {
+    "translation": "Avui"
+  },
+  "1f9696d5f2": {
+    "translation": "Exporteu el contingut com a fitxer .tldr: aneu a \"Fitxer\" > \"Desa una còpia\""
+  },
+  "26e5b44256": {
+    "translation": "Doneu-nos comentaris"
+  },
+  "299cb00a7a": {
+    "translation": "La càrrega ha fallat"
+  },
+  "31246941ad": {
+    "translation": "Heu d'iniciar la sessió per veure aquest fitxer."
+  },
+  "31418ce4ad": {
+    "translation": "i18n: Ressaltar que falta"
+  },
+  "32656a600c": {
+    "translation": "Veus alguna cosa malament? Tens una idea per millorar tldraw? Ens encantaria escoltar-ho!"
+  },
+  "335defdafe": {
+    "translation": "Si us plau, prova d'actualitzar la pàgina."
+  },
+  "344a7f427f": {
+    "translation": "Editor"
+  },
+  "3b366e7232": {
+    "translation": "Prova el nou tldraw (visualització prèvia)"
+  },
+  "3bd1b98dbd": {
+    "translation": "No es poden publicar els canvis."
+  },
+  "3c5e891bff": {
+    "translation": "Fixat"
+  },
+  "424cc22417": {
+    "translation": "Porta'm a casa"
+  },
+  "42e53c47c1": {
+    "translation": "Contacta amb el propietari per sol·licitar accés."
+  },
+  "44db318ee5": {
+    "translation": "Obteniu ajuda a Discord"
+  },
+  "458cd104d7": {
+    "translation": "Ho sentim, no tens accés a aquest fitxer. Si sabeu qui ha creat el fitxer, podeu sol·licitar un nou enllaç d'invitació."
+  },
+  "45b78c248d": {
+    "translation": "Importa des de l'antic tldraw.com"
+  },
+  "46137245cd": {
+    "translation": "Gràcies per ajudar-nos a millorar tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "Configuració de privadesa"
+  },
+  "47839e47a5": {
+    "translation": "tldraw"
+  },
+  "4908687e50": {
+    "translation": "Esteu segur que voleu oblidar aquest fitxer?"
+  },
+  "4c06678729": {
+    "translation": "Utilitzem cookies pròpies per millorar els nostres serveis. <a>Més informació</a>"
+  },
+  "4d1c8263ba": {
+    "translation": "Torna a carregar"
+  },
+  "50db1b7e1e": {
+    "translation": "No es pot anul·lar la publicació del fitxer."
+  },
+  "517bb809d9": {
+    "translation": "Menú de pàgina"
+  },
+  "54286b1d01": {
+    "translation": "S'ha arribat al límit de col·laboradors"
+  },
+  "54d240fa41": {
+    "translation": "Si us plau, alentiu."
+  },
+  "554a05155c": {
+    "translation": "Encara tens problemes? <a>Informa d'un problema</a>"
+  },
+  "55505ba281": {
+    "translation": "PNG"
+  },
+  "56c34c6410": {
+    "translation": "Política de privadesa"
+  },
+  "575d47a591": {
+    "translation": "Benvingut al nou tldraw.com!"
+  },
+  "5817f82c16": {
+    "translation": "Opcional: ajudeu-nos a entendre com la gent utilitza tldraw i com podem millorar-lo."
+  },
+  "5a95a425f7": {
+    "translation": "Comparteix"
+  },
+  "5d160eb095": {
+    "translation": "La teva sessió"
+  },
+  "5d26ae7550": {
+    "translation": "No hem pogut penjar part del contingut que vas crear abans d'iniciar la sessió."
+  },
+  "5db1e9a8ca": {
+    "translation": "Omple aquest formulari, <discord>xateja amb nosaltres a Discord</discord> o <github>envia un problema a GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "S'ha enviat comentaris"
+  },
+  "5fb63579fc": {
+    "translation": "Còpia"
+  },
+  "61057a0c84": {
+    "translation": "Més tard"
+  },
+  "61b106397b": {
+    "translation": "Per tornar a l'antic tldraw.com, tanqueu la sessió des del menú d'usuari."
+  },
+  "625fd29749": {
+    "translation": "Més vell"
+  },
+  "6609dd239e": {
+    "translation": "Alguna cosa va fallar"
+  },
+  "6a26f54883": {
+    "translation": "Ajuda"
+  },
+  "6dc0836c1b": {
+    "translation": "No teniu els permisos necessaris per dur a terme aquesta acció."
+  },
+  "6dfc62f621": {
+    "translation": "Seguiu aquests passos per importar el contingut manualment:"
+  },
+  "70a6facb9d": {
+    "translation": "Aquesta setmana"
+  },
+  "73ab799383": {
+    "translation": "Aquesta versió de tldraw ja no és compatible."
+  },
+  "7408cf0d7b": {
+    "translation": "Torneu a carregar la pàgina"
+  },
+  "752b79f137": {
+    "translation": "Heu arribat al nombre màxim de fitxers. Heu de suprimir fitxers antics abans de crear-ne de nous."
+  },
+  "7573b8110a": {
+    "translation": "Sense accés"
+  },
+  "761e93ede9": {
+    "translation": "Gestionar cookies"
+  },
+  "777f9e90cf": {
+    "translation": "Sol·licitud no vàlida."
+  },
+  "78e9815992": {
+    "translation": "Ho entenc"
+  },
+  "791b8834d3": {
+    "translation": "Omet la importació"
+  },
+  "7cb5f8b4a5": {
+    "translation": "Oblida't"
+  },
+  "7daeced9ff": {
+    "translation": "Publicar els canvis"
+  },
+  "7de66f8b93": {
+    "translation": "Registreu-vos per accedir a la versió prèvia de tldraw.com, que afegeix funcions de col·laboració i gestió de fitxers."
+  },
+  "7fcdcc6455": {
+    "translation": "Oblida el fitxer"
+  },
+  "85a082de1b": {
+    "translation": "Actualitzeu la pàgina per obtenir la darrera versió de tldraw."
+  },
+  "86353d2c41": {
+    "translation": "S'han afegit {total} fitxers .tldr."
+  },
+  "86c66437fd": {
+    "translation": "Canvia el nom del fitxer"
+  },
+  "8ad4303b83": {
+    "translation": "No gràcies"
+  },
+  "8eb2c00e96": {
+    "translation": "Compartit amb tu"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Sobre"
+  },
+  "8ff3d0a705": {
+    "translation": "Tarifa limitada"
+  },
+  "902b0d55fd": {
+    "translation": "Error"
+  },
+  "904a830405": {
+    "translation": "Canvia el nom"
+  },
+  "91e49bb0eb": {
+    "translation": "Copia als meus fitxers"
+  },
+  "96165d6df5": {
+    "translation": "Aquest mes"
+  },
+  "9914a0ce04": {
+    "translation": "Llum"
+  },
+  "9bef626805": {
+    "translation": "Esborra el fitxer"
+  },
+  "9ceb927baa": {
+    "translation": "Publica aquest fitxer"
+  },
+  "9e076f5885": {
+    "translation": "No s'ha trobat"
+  },
+  "9e93c98d88": {
+    "translation": "Desactivar"
+  },
+  "a104439641": {
+    "translation": "Encoixinat"
+  },
+  "a18366b217": {
+    "translation": "Fosc"
+  },
+  "a1c915578c": {
+    "translation": "El fitxer que busqueu no existeix."
+  },
+  "a239905023": {
+    "translation": "Exportar imatge"
+  },
+  "a3debabee7": {
+    "translation": "Política de cookies"
+  },
+  "a4d3b161ce": {
+    "translation": "Envia"
+  },
+  "a6cc403d56": {
+    "translation": "Qualsevol persona amb l'enllaç"
+  },
+  "a768caa988": {
+    "translation": "Analítica"
+  },
+  "a9ded1e5ce": {
+    "translation": "Fons"
+  },
+  "ab0df9ba36": {
+    "translation": "S'ha arribat al límit de fitxers"
+  },
+  "abc5e29b0d": {
+    "translation": "Aquesta és una versió prèvia del nou tldraw.com que inclou l'emmagatzematge, la col·laboració i la publicació de fitxers."
+  },
+  "af3dc88931": {
+    "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
+    "translation": "Darrera publicació <data></data>"
+  },
+  "b6d4223e60": {
+    "translation": "Inicia sessió"
+  },
+  "b758336699": {
+    "translation": "Copia l'enllaç"
+  },
+  "bb792693e2": {
+    "translation": "Desenganxa"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {S'està penjant el fitxer .tldr...} other {S'estan penjant {carregats} de {total} fitxers .tldr...}}"
+  },
+  "bc88b0e89e": {
+    "translation": "Compartit per {ownerName}"
+  },
+  "bcb62136a3": {
+    "translation": "Carregueu fitxers .tldr"
+  },
+  "c2276c9127": {
+    "translation": "Més informació sobre com compartir."
+  },
+  "c303bd1095": {
+    "translation": "No es pot publicar el fitxer."
+  },
+  "c4408d3350": {
+    "translation": "Acceptar"
+  },
+  "c655b27b1e": {
+    "translation": "i18n: cadena llarga"
+  },
+  "c6a00f137b": {
+    "translation": "Convidar"
+  },
+  "c87aacf567": {
+    "translation": "Tanca la sessió"
+  },
+  "cceaefbc20": {
+    "translation": "Comparteix aquest fitxer"
+  },
+  "cd15a75c26": {
+    "translation": "SVG"
+  },
+  "cd16f555de": {
+    "translation": "Essencial: és necessari per desar els fitxers i la configuració i sincronitzar-los entre els vostres dispositius."
+  },
+  "cea291e45e": {
+    "translation": "Més informació sobre la publicació."
+  },
+  "d3d2e61733": {
+    "translation": "Tancar"
+  },
+  "d4bbf74f3e": {
+    "translation": "Canvia la barra lateral"
+  },
+  "d5ef96e383": {
+    "translation": "Descarregar fitxer"
+  },
+  "d721757161": {
+    "translation": "Tema"
+  },
+  "d876a9fe1a": {
+    "translation": "Torna-ho a provar"
+  },
+  "d9100f3e10": {
+    "translation": "Entra aquí per veure el contingut"
+  },
+  "d9776f0775": {
+    "translation": "Registra't"
+  },
+  "d9fe660e4e": {
+    "translation": "Ho sentim, no tens accés a aquest espai de treball."
+  },
+  "dbbebf3c03": {
+    "translation": "Només convidar"
+  },
+  "dfdb78a4e4": {
+    "translation": "Senyals de depuració d'aplicacions"
+  },
+  "e2cd8064c2": {
+    "translation": "Ho sentim, no tens accés a aquest usuari."
+  },
+  "e371526ad0": {
+    "translation": "Aquesta galeta és necessària perquè tldraw funcioni i no es pot desactivar."
+  },
+  "e404559826": {
+    "translation": "Condicions del servei"
+  },
+  "e78e14c5f1": {
+    "translation": "Pin"
+  },
+  "e8d1090cb9": {
+    "translation": "Utilitzem galetes per mantenir-vos connectat, per sincronitzar els vostres fitxers i per recopilar analítiques per ajudar-nos a millorar tldraw. Llegiu la nostra <a>política de galetes</a> per obtenir més informació."
+  },
+  "ea4788705e": {
+    "translation": "Cancel·la"
+  },
+  "ebfe9ce86e": {
+    "translation": "Ahir"
+  },
+  "ec59b960ea": {
+    "translation": "Aquest fitxer ha arribat al nombre màxim de col·laboradors actius."
+  },
+  "ec611e9a08": {
+    "translation": "Menú del compte"
+  },
+  "ec9ad9950f": {
+    "translation": "Ho sentim, aquest fitxer no existeix."
+  },
+  "ed53713239": {
+    "translation": "i18n: Accentuat"
+  },
+  "ed75712b0e": {
+    "translation": "Duplicat"
+  },
+  "f2a6c498fb": {
+    "translation": "Suprimeix"
+  },
+  "f43fb62093": {
+    "translation": "Torna a tldraw."
+  },
+  "fb15c53f22": {
+    "translation": "Visor"
+  },
+  "fd1be3efcf": {
+    "translation": "Esteu segur que voleu suprimir aquest fitxer?"
+  },
+  "fed5ec05eb": {
+    "translation": "Enllaç copiat"
+  }
+}

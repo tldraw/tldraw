@@ -7,7 +7,6 @@ import {
 	TLShapeId,
 	Tldraw,
 	createShapeId,
-	exportToBlob,
 	track,
 	useEditor,
 } from 'tldraw'
@@ -222,16 +221,12 @@ function DoneButton({
 		<button
 			className="DoneButton"
 			onClick={async () => {
-				const blob = await exportToBlob({
-					editor,
-					ids: Array.from(editor.getCurrentPageShapeIds()),
+				const { blob } = await editor.toImage([...editor.getCurrentPageShapeIds()], {
 					format: 'png',
-					opts: {
-						background: true,
-						bounds: editor.getShapePageBounds(imageShapeId)!,
-						padding: 0,
-						scale: 1,
-					},
+					background: true,
+					bounds: editor.getShapePageBounds(imageShapeId)!,
+					padding: 0,
+					scale: 1,
 				})
 
 				onClick(blob)

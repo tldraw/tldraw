@@ -13,13 +13,13 @@ export async function cloneAssetForShare(editor: Editor, asset: TLAsset): Promis
 			type: blob.type,
 		})
 
-		const uploadedAsset = await multiplayerAssetStore.upload(asset, file)
+		const uploadedAsset = await multiplayerAssetStore().upload(asset, file)
 
 		return {
 			...asset,
 			props: {
 				...asset.props,
-				src: uploadedAsset,
+				src: uploadedAsset.src,
 			},
 		}
 	}

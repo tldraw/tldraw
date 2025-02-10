@@ -1,5 +1,5 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
-import { useCallback, useEffect } from 'react'
+import { ReactNode, useEffect } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
@@ -13,6 +13,7 @@ import {
 	PreferencesGroup,
 	TLComponents,
 	Tldraw,
+	TldrawOptions,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
 	TldrawUiDialogBody,
@@ -27,33 +28,49 @@ import {
 	setInLocalStorage,
 	useDialogs,
 	useEditor,
+	useEvent,
 } from 'tldraw'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
-import { SCRATCH_PERSISTENCE_KEY } from '../utils/scratch-persistence-key'
+import { getScratchPersistenceKey } from '../utils/scratch-persistence-key'
 import { useSharing } from '../utils/sharing'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { LocalFileMenu } from './FileMenu'
-import { Links } from './Links'
+import { LegacyLinks } from './Links'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
+import { PreviewBlueDot, PreviewMenuItem } from './preview-stuff'
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
 	MainMenu: () => (
-		<DefaultMainMenu>
-			<LocalFileMenu />
-			<EditSubmenu />
-			<ViewSubmenu />
-			<ExportFileContentSubMenu />
-			<ExtrasGroup />
-			<PreferencesGroup />
-			<Links />
-		</DefaultMainMenu>
+		<>
+			<DefaultMainMenu>
+				<PreviewMenuItem />
+				<TldrawUiMenuGroup id="basic">
+					<LocalFileMenu />
+					<EditSubmenu />
+					<ViewSubmenu />
+					<ExportFileContentSubMenu />
+					<ExtrasGroup />
+				</TldrawUiMenuGroup>
+				<PreferencesGroup />
+				<LegacyLinks />
+			</DefaultMainMenu>
+			<PreviewBlueDot
+				style={{
+					position: 'absolute',
+					borderColor: 'var(--color-panel)',
+					top: 10,
+					left: 24,
+					zIndex: 1000,
+				}}
+			/>
+		</>
 	),
 	KeyboardShortcutsDialog: (props) => {
 		return (
@@ -82,31 +99,48 @@ const components: TLComponents = {
 	},
 }
 
-export function LocalEditor() {
+export function LocalEditor({
+	componentsOverride,
+	onMount,
+	children,
+	persistenceKey,
+	'data-testid': dataTestId,
+	options,
+}: {
+	componentsOverride?: TLComponents
+	onMount?(editor: Editor): void
+	children?: ReactNode
+	persistenceKey?: string
+	'data-testid'?: string
+	options?: Partial<TldrawOptions>
+}) {
 	const handleUiEvent = useHandleUiEvents()
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
 
-	const handleMount = useCallback((editor: Editor) => {
+	const handleMount = useEvent((editor: Editor) => {
 		;(window as any).app = editor
 		;(window as any).editor = editor
 		editor.registerExternalAssetHandler('url', createAssetFromUrl)
-	}, [])
+		return onMount?.(editor)
+	})
 
 	return (
-		<div className="tldraw__editor">
+		<div className="tldraw__editor" data-testid={dataTestId}>
 			<Tldraw
 				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
-				persistenceKey={SCRATCH_PERSISTENCE_KEY}
+				persistenceKey={persistenceKey ?? getScratchPersistenceKey()}
 				onMount={handleMount}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
-				components={components}
+				components={componentsOverride ?? components}
+				options={options}
 			>
 				<SneakyOnDropOverride isMultiplayer={false} />
 				<ThemeUpdater />
 				<SneakyLocalSaveWarning />
+				{children}
 			</Tldraw>
 		</div>
 	)

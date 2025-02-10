@@ -1,25 +1,19 @@
-import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useCallback, useEffect, useMemo } from 'react'
 import {
-	DefaultKeyboardShortcutsDialog,
-	DefaultKeyboardShortcutsDialogContent,
-	DefaultStylePanel,
 	Editor,
-	OfflineIndicator,
-	PeopleMenu,
 	TLComponents,
 	TLSessionStateSnapshot,
+	TLUiDialogsContextType,
 	Tldraw,
-	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
 	createSessionStateSnapshotSignal,
 	react,
 	throttle,
-	useActions,
-	useCollaborationStatus,
+	tltime,
+	useAtom,
+	useDialogs,
 	useEditor,
+	useEvent,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { assetUrls } from '../../../utils/assetUrls'
@@ -27,90 +21,77 @@ import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
-import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
+import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useTldrawUser } from '../../hooks/useUser'
+import { maybeSlurp } from '../../utils/slurping'
+import { PreviewWelcomeDialog, RemountImagesContext } from './PreviewWelcomeDialog'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
-import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
-import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
-import styles from './editor.module.css'
+import { TlaEditorWrapper } from './TlaEditorWrapper'
+import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
+import { TlaEditorKeyboardShortcutsDialog } from './editor-components/TlaEditorKeyboardShortcutsDialog'
+import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
+import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
+import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
+import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
+import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
+import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 /** @internal */
 export const components: TLComponents = {
-	ErrorFallback: ({ error }) => {
-		throw error
-	},
-	KeyboardShortcutsDialog: (props) => {
-		const actions = useActions()
-		return (
-			<DefaultKeyboardShortcutsDialog {...props}>
-				<TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
-					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
-				</TldrawUiMenuGroup>
-				<DefaultKeyboardShortcutsDialogContent />
-			</DefaultKeyboardShortcutsDialog>
-		)
-	},
-	MenuPanel: () => {
-		const app = useMaybeApp()
-		return <TlaEditorTopLeftPanel isAnonUser={!app} />
-	},
-	SharePanel: () => {
-		return <TlaEditorTopRightPanel />
-	},
-	TopPanel: () => {
-		const collaborationStatus = useCollaborationStatus()
-		if (collaborationStatus === 'offline') return null
-		return <OfflineIndicator />
-	},
+	ErrorFallback: TlaEditorErrorFallback,
+	KeyboardShortcutsDialog: TlaEditorKeyboardShortcutsDialog,
+	MenuPanel: TlaEditorMenuPanel,
+	TopPanel: TlaEditorTopPanel,
+	SharePanel: TlaEditorSharePanel,
+	Dialogs: null,
+	Toasts: null,
 }
 
-const anonComponents = {
-	...components,
-	SharePanel: null,
-	StylePanel: () => {
-		// When on a temporary file, we don't want to show the people menu or file share menu, just the regular style panel
-		const { fileSlug } = useParams()
-		if (!fileSlug) return <DefaultStylePanel />
-
-		// ...but when an anonymous user is on a shared file, we do want to show the people menu next to the style panel
-		return (
-			<div className={styles.anonStylePanel}>
-				<PeopleMenu />
-				<DefaultStylePanel />
-			</div>
-		)
-	},
-}
-
-export function TlaEditor({
-	fileSlug,
-	onDocumentChange,
-	isCreateMode,
-	deepLinks,
-}: {
+interface TlaEditorProps {
 	fileSlug: string
-	onDocumentChange?(): void
-	isCreateMode?: boolean
 	deepLinks?: boolean
-}) {
+}
+
+export function TlaEditor(props: TlaEditorProps) {
+	// force re-mount when the file slug changes to prevent state from leaking between files
+	return (
+		<>
+			<SneakySetDocumentTitle />
+			<ReadyWrapper key={props.fileSlug}>
+				<TlaEditorInner {...props} key={props.fileSlug} />
+			</ReadyWrapper>
+		</>
+	)
+}
+
+function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
 
-	const [ready, setReady] = useState(false)
+	const fileId = fileSlug
 
-	const fileId = TldrawAppFileRecordType.createId(fileSlug)
+	const setIsReady = useSetIsReady()
 
-	useLayoutEffect(() => {
-		setReady(false)
-		// Set the editor to ready after a short delay
-		const timeout = setTimeout(() => setReady(true), 200)
-		return () => {
-			clearTimeout(timeout)
-		}
-	}, [fileId])
+	const dialogs = useDialogs()
+	// need to wrap this in a useEvent to prevent the context id from changing on us
+	const addDialog: TLUiDialogsContextType['addDialog'] = useEvent((dialog) =>
+		dialogs.addDialog(dialog)
+	)
+
+	// We cycle this flag to cause shapes to remount when slurping images/videos fails.
+	// Because in that case we want to show the failure state for the images/videos.
+	// i.e. where it appears that they are not present. so the user knows which ones failed.
+	// There's probably a better way of doing this but I couldn't think of one.
+	const hideAllShapes = useAtom('hideAllShapes', false)
+	const isShapeHidden = useCallback(() => hideAllShapes.get(), [hideAllShapes])
+	const remountImageShapes = useCallback(() => {
+		hideAllShapes.set(true)
+		requestAnimationFrame(() => {
+			hideAllShapes.set(false)
+		})
+	}, [hideAllShapes])
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
@@ -122,15 +103,22 @@ export function TlaEditor({
 			// Register the external asset handler
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 
-			if (!app) return
+			if (!app) {
+				setIsReady()
+				return
+			}
+
 			const fileState = app.getFileState(fileId)
 			if (fileState?.lastSessionState) {
-				editor.loadSnapshot({ session: fileState.lastSessionState })
+				editor.loadSnapshot(
+					{ session: JSON.parse(fileState.lastSessionState.trim() || 'null') },
+					{ forceOverwriteSessionState: true }
+				)
 			}
 			const sessionState$ = createSessionStateSnapshotSignal(editor.store)
 			const updateSessionState = throttle((state: TLSessionStateSnapshot) => {
 				app.onFileSessionStateUpdate(fileId, state)
-			}, 500)
+			}, 1000)
 			// don't want to update if they only open the file and didn't look around
 			let firstTime = true
 			const cleanup = react('update session state', () => {
@@ -142,15 +130,30 @@ export function TlaEditor({
 				}
 				updateSessionState(state)
 			})
+
+			const abortController = new AbortController()
+			maybeSlurp({
+				app,
+				editor,
+				fileId,
+				abortSignal: abortController.signal,
+				addDialog,
+				remountImageShapes,
+			}).then(setIsReady)
+
 			return () => {
+				abortController.abort()
 				cleanup()
 				updateSessionState.cancel()
 			}
 		},
-		[app, fileId]
+		[addDialog, app, fileId, remountImageShapes, setIsReady]
 	)
 
 	const user = useTldrawUser()
+	const assets = useMemo(() => {
+		return multiplayerAssetStore(() => fileId)
+	}, [fileId])
 
 	const store = useSync({
 		uri: useCallback(async () => {
@@ -158,88 +161,95 @@ export function TlaEditor({
 			if (user) {
 				url.searchParams.set('accessToken', await user.getToken())
 			}
-			if (isCreateMode) {
-				url.searchParams.set('isCreateMode', 'true')
-			}
 			return url.toString()
-		}, [user, fileSlug, isCreateMode]),
-		assets: multiplayerAssetStore,
+		}, [fileSlug, user]),
+		assets,
+		userInfo: app?.tlUser.userPreferences,
 	})
 
-	// Handle entering and exiting the file
+	// Handle entering and exiting the file, with some protection against rapid enters/exits
 	useEffect(() => {
 		if (!app) return
 		if (store.status !== 'synced-remote') return
+		let didEnter = false
+		let timer: any
 
-		app.onFileEnter(fileId)
+		const fileState = app.getFileState(fileId)
+
+		if (fileState && fileState.firstVisitAt) {
+			// If there's a file state already then wait a second before marking it as entered
+			timer = tltime.setTimeout(
+				'file enter timer',
+				() => {
+					app.onFileEnter(fileId)
+					didEnter = true
+				},
+				1000
+			)
+		} else {
+			// If there's not a file state yet (i.e. if we're visiting this for the first time) then do an enter
+			app.onFileEnter(fileId)
+			didEnter = true
+		}
+
 		return () => {
-			app.onFileExit(fileId)
+			clearTimeout(timer)
+			if (didEnter) {
+				app.onFileExit(fileId)
+			}
 		}
 	}, [app, fileId, store.status])
 
+	const overrides = useFileEditorOverrides({ fileSlug })
+
 	return (
-		<div className={styles.editor} data-testid="tla-editor">
+		<TlaEditorWrapper>
 			<Tldraw
+				className="tla-editor"
 				store={store}
 				assetUrls={assetUrls}
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
-				components={!app ? anonComponents : components}
+				components={components}
 				options={{ actionShortcutsLocation: 'toolbar' }}
 				deepLinks={deepLinks || undefined}
+				overrides={overrides}
+				isShapeHidden={isShapeHidden}
 			>
 				<ThemeUpdater />
-				{/* <CursorChatBubble /> */}
 				<SneakyDarkModeSync />
-				<SneakyTldrawFileDropHandler />
-				<SneakyFileUpdateHandler fileId={fileId} onDocumentChange={onDocumentChange} />
+				{app && <SneakyTldrawFileDropHandler />}
+				<SneakyFileUpdateHandler fileId={fileId} />
+				{/* Temporary junk for making the preview experience a bit better */}
+				<RemountImagesContext.Provider value={remountImageShapes}>
+					<PreviewWelcomeDialog />
+				</RemountImagesContext.Provider>
 			</Tldraw>
-			{ready ? null : <div key={fileId + 'overlay'} className={styles.overlay} />}
-		</div>
+		</TlaEditorWrapper>
 	)
 }
 
-function SneakyTldrawFileDropHandler() {
-	const editor = useEditor()
-	const app = useMaybeApp()
-	useEffect(() => {
-		if (!app) return
-		const defaultOnDrop = editor.externalContentHandlers['files']
-		editor.registerExternalContentHandler('files', async (content) => {
-			const { files } = content
-			const tldrawFiles = files.filter((file) => file.name.endsWith('.tldr'))
-			if (tldrawFiles.length > 0) {
-				const snapshots = await getSnapshotsFromDroppedTldrawFiles(editor, tldrawFiles)
-				if (!snapshots.length) return
-				await app.createFilesFromTldrFiles(snapshots)
-			} else {
-				defaultOnDrop?.(content)
-			}
-		})
-	}, [editor, app])
-	return null
-}
-
-function SneakyFileUpdateHandler({
-	onDocumentChange,
-	fileId,
-}: {
-	onDocumentChange?(): void
-	fileId: TldrawAppFileId
-}) {
+function SneakyFileUpdateHandler({ fileId }: { fileId: string }) {
 	const app = useMaybeApp()
 	const editor = useEditor()
 	useEffect(() => {
-		return editor.store.listen(
+		const onChange = throttle(
 			() => {
 				if (!app) return
 				app.onFileEdit(fileId)
-				onDocumentChange?.()
 			},
-			{ scope: 'document', source: 'user' }
+			// This is used to update the lastEditAt time in the database, and to let the local
+			// room know that an edit ahs been made.
+			// It doesn't need to be super fast or accurate so we can throttle it a lot
+			5000
 		)
-	}, [app, onDocumentChange, fileId, editor])
+		const unsub = editor.store.listen(onChange, { scope: 'document', source: 'user' })
+		return () => {
+			unsub()
+			onChange.cancel()
+		}
+	}, [app, fileId, editor])
 
 	return null
 }

@@ -660,11 +660,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			},
 		}
 
-		this.listeners.add(listener)
-
 		if (!this.historyReactor.scheduler.isActivelyListening) {
 			this.historyReactor.start()
+			this.historyReactor.scheduler.execute()
 		}
+
+		this.listeners.add(listener)
 
 		return () => {
 			this.listeners.delete(listener)
@@ -697,6 +698,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			transact(fn)
 		} finally {
 			this.isMergingRemoteChanges = false
+			this.ensureStoreIsUsable()
 		}
 	}
 
@@ -762,7 +764,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 *
 	 * @param name - The name of the derivation cache.
 	 * @param derive - A function used to derive the value of the cache.
-	 * @param isEqual - A function that determins equality between two records.
+	 * @param isEqual - A function that determines equality between two records.
 	 * @public
 	 */
 	createComputedCache<Result, Record extends R = R>(

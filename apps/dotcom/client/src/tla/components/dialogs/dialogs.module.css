@@ -14,3 +14,25 @@
 	padding: 0px var(--space-4);
 	border: 1px solid var(--tla-color-border);
 }
+
+.cookieControls {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	margin-top: var(--space-4);
+}
+
+.cookieControl {
+	display: flex;
+	align-items: start;
+	justify-content: space-between;
+	gap: var(--space-4);
+}
+
+.cookieControlTitle {
+	font-weight: 600;
+}
+
+.cookieControlDescription {
+	color: var(--tla-color-text-2);
+}

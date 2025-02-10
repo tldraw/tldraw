@@ -297,6 +297,7 @@ function TldrawEditorWithOwnStore(
 		sessionId,
 		user,
 		assets,
+		migrations,
 	} = props
 
 	const syncedStore = useLocalStore({
@@ -308,6 +309,7 @@ function TldrawEditorWithOwnStore(
 		defaultName,
 		snapshot,
 		assets,
+		migrations,
 	})
 
 	return <TldrawEditorWithLoadingStore {...props} store={syncedStore} user={user} />
@@ -554,7 +556,7 @@ function TldrawEditorWithReadyStore({
 			) : (
 				<EditorProvider editor={editor}>
 					<Layout onMount={onMount}>
-						{children ?? (Canvas ? <Canvas /> : null)}
+						{children ?? (Canvas ? <Canvas key={editor.contextId} /> : null)}
 						<Watermark />
 					</Layout>
 				</EditorProvider>

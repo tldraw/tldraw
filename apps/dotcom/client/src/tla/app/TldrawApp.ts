@@ -1,396 +1,593 @@
+// import { Query, QueryType, Smash, TableSchema, Zero } from '@rocicorp/zero'
+import { captureException } from '@sentry/react'
 import {
+	CreateFilesResponseBody,
 	CreateSnapshotRequestBody,
-	CreateSnapshotResponseBody,
-	TldrawAppFile,
-	TldrawAppFileId,
-	TldrawAppFileRecordType,
-	TldrawAppFileStateRecordType,
-	TldrawAppRecord,
-	TldrawAppUser,
-	TldrawAppUserId,
-	TldrawAppUserRecordType,
+	TlaFile,
+	TlaFilePartial,
+	TlaFileState,
+	TlaUser,
 	UserPreferencesKeys,
+	ZErrorCode,
+	Z_PROTOCOL_VERSION,
 } from '@tldraw/dotcom-shared'
-import { Result, fetch } from '@tldraw/utils'
+import { Result, assert, fetch, structuredClone, throttle, uniqueId } from '@tldraw/utils'
 import pick from 'lodash.pick'
 import {
-	Editor,
-	Store,
+	Signal,
+	TLDocument,
 	TLSessionStateSnapshot,
-	TLStoreSnapshot,
+	TLUiToastsContextType,
 	TLUserPreferences,
 	assertExists,
+	atom,
 	computed,
+	createTLSchema,
 	createTLUser,
+	dataUrlToFile,
+	defaultUserPreferences,
 	getUserPreferences,
 	objectMapFromEntries,
 	objectMapKeys,
-	transact,
+	parseTldrawJsonFile,
+	react,
 } from 'tldraw'
-import { globalEditor } from '../../utils/globalEditor'
-import { getSnapshotData } from '../../utils/sharing'
-import { getCurrentEditor } from '../utils/getCurrentEditor'
-import { getLocalSessionStateUnsafe } from '../utils/local-session-state'
+import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
+import { TLAppUiContextType } from '../utils/app-ui-events'
+import { getDateFormat } from '../utils/dates'
+import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
+import { updateLocalSessionState } from '../utils/local-session-state'
+import { Zero } from './zero-polyfill'
 
+export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
+export const UNPUBLISH_ENDPOINT = `/api/app/unpublish`
+export const FILE_ENDPOINT = `/api/app/file`
+
+let appId = 0
 
 export class TldrawApp {
-	private constructor(store: Store<TldrawAppRecord>) {
-		this.store = store
-
-		// todo: replace this when we have application-level user preferences
-		this.store.sideEffects.registerAfterChangeHandler('session', (prev, next) => {
-			if (prev.theme !== next.theme) {
-				const editor = globalEditor.get()
-				if (!editor) return
-				const editorIsDark = editor.user.getIsDarkMode()
-				const appIsDark = next.theme === 'dark'
-				if (appIsDark && !editorIsDark) {
-					editor.user.updateUserPreferences({ colorScheme: 'dark' })
-				} else if (!appIsDark && editorIsDark) {
-					editor.user.updateUserPreferences({ colorScheme: 'light' })
-				}
-			}
-		})
+	config = {
+		maxNumberOfFiles: 100,
 	}
 
-	store: Store<TldrawAppRecord>
+	readonly id = appId++
+
+	readonly z: Zero
+
+	private readonly user$: Signal<TlaUser | undefined>
+	private readonly files$: Signal<TlaFile[]>
+	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
+
+	private readonly abortController = new AbortController()
+	readonly disposables: (() => void)[] = [
+		() => this.abortController.abort(),
+		() => this.z.dispose(),
+	]
+
+	private signalizeQuery<TReturn>(name: string, query: any): Signal<TReturn> {
+		// fail if closed?
+		const view = query.materialize()
+		const val$ = atom(name, view.data)
+		view.addListener((res: any) => {
+			val$.set(structuredClone(res) as any)
+		})
+		this.disposables.push(() => {
+			view.destroy()
+		})
+		return val$
+	}
+
+	toasts: TLUiToastsContextType | null = null
+
+	private constructor(
+		public readonly userId: string,
+		getToken: () => Promise<string | null>,
+		onClientTooOld: () => void,
+		trackEvent: TLAppUiContextType
+	) {
+		const sessionId = uniqueId()
+		this.z = new Zero({
+			// userID: userId,
+			// auth: encodedJWT,
+			getUri: async () => {
+				const params = new URLSearchParams({
+					sessionId,
+					protocolVersion: String(Z_PROTOCOL_VERSION),
+				})
+				const token = await getToken()
+				params.set('accessToken', token || 'no-token-found')
+				return `${process.env.MULTIPLAYER_SERVER}/api/app/${userId}/connect?${params}`
+			},
+			// schema,
+			// This is often easier to develop with if you're frequently changing
+			// the schema. Switch to 'idb' for local-persistence.
+			onMutationRejected: this.showMutationRejectionToast,
+			onClientTooOld: () => onClientTooOld(),
+			trackEvent,
+		})
+
+		this.user$ = this.signalizeQuery(
+			'user signal',
+			this.z.query.user.where('id', this.userId).one()
+		)
+		this.files$ = this.signalizeQuery(
+			'files signal',
+			this.z.query.file.where('ownerId', this.userId)
+		)
+		this.fileStates$ = this.signalizeQuery(
+			'file states signal',
+			this.z.query.file_state.where('userId', this.userId).related('file', (q: any) => q.one())
+		)
+	}
+
+	async preload(initialUserData: TlaUser) {
+		await this.z.query.user.where('id', this.userId).preload().complete
+		if (!this.user$.get()) {
+			this.z.mutate.user.create(initialUserData)
+			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
+		}
+		await new Promise((resolve) => {
+			let unsub = () => {}
+			unsub = react('wait for user', () => this.user$.get() && resolve(unsub()))
+		})
+		if (!this.user$.get()) {
+			throw Error('could not create user')
+		}
+		await this.z.query.file_state.where('userId', this.userId).preload().complete
+		await this.z.query.file.where('ownerId', this.userId).preload().complete
+	}
+
+	messages = defineMessages({
+		// toast title
+		mutation_error_toast_title: { defaultMessage: 'Error' },
+		// toast descriptions
+		publish_failed: {
+			defaultMessage: 'Unable to publish the file.',
+		},
+		unpublish_failed: {
+			defaultMessage: 'Unable to unpublish the file.',
+		},
+		republish_failed: {
+			defaultMessage: 'Unable to publish the changes.',
+		},
+		unknown_error: {
+			defaultMessage: 'An unexpected error occurred.',
+		},
+		forbidden: {
+			defaultMessage: 'You do not have the necessary permissions to perform this action.',
+		},
+		bad_request: {
+			defaultMessage: 'Invalid request.',
+		},
+		rate_limit_exceeded: {
+			defaultMessage: 'Rate limit exceeded, try again later.',
+		},
+		client_too_old: {
+			defaultMessage: 'Please refresh the page to get the latest version of tldraw.',
+		},
+		max_files_title: {
+			defaultMessage: 'File limit reached',
+		},
+		max_files_description: {
+			defaultMessage:
+				'You have reached the maximum number of files. You need to delete old files before creating new ones.',
+		},
+		uploadingTldrFiles: {
+			defaultMessage:
+				'{total, plural, one {Uploading .tldr file…} other {Uploading {uploaded} of {total} .tldr files…}}',
+		},
+		addingTldrFiles: {
+			// no need for pluralization, if there was only one file we navigated to it
+			// so there's no need to show a toast.
+			defaultMessage: 'Added {total} .tldr files.',
+		},
+	})
+
+	getMessage(id: keyof typeof this.messages) {
+		let msg = this.messages[id]
+		if (!msg) {
+			console.error('Could not find a translation for this error code', id)
+			msg = this.messages.unknown_error
+		}
+		return msg
+	}
+
+	showMutationRejectionToast = throttle((errorCode: ZErrorCode) => {
+		const descriptor = this.getMessage(errorCode)
+		this.toasts?.addToast({
+			title: this.getIntl().formatMessage(this.messages.mutation_error_toast_title),
+			description: this.getIntl().formatMessage(descriptor),
+		})
+	}, 3000)
 
 	dispose() {
-		this.store.dispose()
+		this.disposables.forEach((d) => d())
+		// this.store.dispose()
+	}
+
+	getUser() {
+		return assertExists(this.user$.get(), 'no user')
 	}
 
 	tlUser = createTLUser({
 		userPreferences: computed('user prefs', () => {
-			const userId = this.getCurrentUserId()
-			if (!userId) throw Error('no user')
-			const user = this.getUser(userId)
-			return pick(user, UserPreferencesKeys) as TLUserPreferences
+			const user = this.getUser()
+			return {
+				...(pick(user, UserPreferencesKeys) as TLUserPreferences),
+				id: this.userId,
+			}
 		}),
-		setUserPreferences: (prefs: Partial<TLUserPreferences>) => {
-			const user = this.getCurrentUser()
-			if (!user) throw Error('no user')
+		setUserPreferences: ({ id: _, ...others }: Partial<TLUserPreferences>) => {
+			const user = this.getUser()
 
-			this.store.put([
-				{
-					...user,
-					...(prefs as TldrawAppUser),
-				},
-			])
+			const nonNull = Object.fromEntries(
+				Object.entries(others).filter(([_, value]) => value !== null)
+			) as Partial<TLUserPreferences>
+
+			this.z.mutate((tx) => {
+				tx.user.update({
+					id: user.id,
+					...(nonNull as any),
+				})
+			})
 		},
 	})
 
-	getAll<T extends TldrawAppRecord['typeName']>(
-		typeName: T
-	): (TldrawAppRecord & { typeName: T })[] {
-		return this.store.allRecords().filter((r) => r.typeName === typeName) as (TldrawAppRecord & {
-			typeName: T
-		})[]
-	}
-
-	get<T extends TldrawAppRecord>(id: T['id']): T | undefined {
-		return this.store.get(id) as T | undefined
-	}
-
-	getUser(userId: TldrawAppUserId): TldrawAppUser | undefined {
-		return this.get(userId)
-	}
-
 	getUserOwnFiles() {
-		const user = this.getCurrentUser()
-		if (!user) throw Error('no user')
-		return Array.from(new Set(this.getAll('file').filter((f) => f.ownerId === user.id)))
+		return this.files$.get()
 	}
 
-	getCurrentUserId() {
-		return assertExists(getLocalSessionStateUnsafe().auth).userId
+	getUserFileStates() {
+		return this.fileStates$.get()
 	}
 
-	getCurrentUser() {
-		const user = this.getUser(this.getCurrentUserId())
-		if (!user?.id) {
-			throw Error('no user')
-		}
-		return assertExists(user, 'no current user')
-	}
+	lastRecentFileOrdering = null as null | Array<{
+		fileId: TlaFile['id']
+		isPinned: boolean
+		date: number
+	}>
 
-	lastRecentFileOrdering = null as null | Array<{ fileId: TldrawAppFileId; date: number }>
-
+	@computed
 	getUserRecentFiles() {
-		const userId = this.getCurrentUserId()
+		const myFiles = objectMapFromEntries(this.getUserOwnFiles().map((f) => [f.id, f]))
+		const myStates = objectMapFromEntries(this.getUserFileStates().map((f) => [f.fileId, f]))
 
-		const myFiles = objectMapFromEntries(
-			this.getAll('file')
-				.filter((f) => f.ownerId === userId)
-				.map((f) => [f.id, f])
-		)
-		const myStates = objectMapFromEntries(
-			this.getAll('file-state')
-				.filter((f) => f.ownerId === userId)
-				.map((f) => [f.fileId, f])
-		)
+		const myFileIds = new Set<string>([...objectMapKeys(myFiles), ...objectMapKeys(myStates)])
 
-		const myFileIds = new Set<TldrawAppFileId>([
-			...objectMapKeys(myFiles),
-			...objectMapKeys(myStates),
-		])
-
-		const nextRecentFileOrdering = []
+		const nextRecentFileOrdering: {
+			fileId: TlaFile['id']
+			isPinned: boolean
+			date: number
+		}[] = []
 
 		for (const fileId of myFileIds) {
+			const file = myFiles[fileId]
+			const state = myStates[fileId]
+			if (!file || !state) continue
 			const existing = this.lastRecentFileOrdering?.find((f) => f.fileId === fileId)
-			if (existing) {
+			if (existing && existing.isPinned === state.isPinned) {
 				nextRecentFileOrdering.push(existing)
 				continue
 			}
-			const file = myFiles[fileId]
-			const state = myStates[fileId]
 
 			nextRecentFileOrdering.push({
 				fileId,
-				date: state?.lastEditAt ?? state?.firstVisitAt ?? file?.createdAt ?? 0,
+				isPinned: state.isPinned ?? false,
+				date: state.lastEditAt ?? state.firstVisitAt ?? file.createdAt ?? 0,
 			})
 		}
 
+		// sort by date with most recent first
 		nextRecentFileOrdering.sort((a, b) => b.date - a.date)
+
+		// stash the ordering for next time
 		this.lastRecentFileOrdering = nextRecentFileOrdering
+
 		return nextRecentFileOrdering
 	}
 
 	getUserSharedFiles() {
-		const userId = this.getCurrentUserId()
 		return Array.from(
 			new Set(
-				this.getAll('file-state')
-					.filter((r) => r.ownerId === userId)
+				this.getUserFileStates()
 					.map((s) => {
-						const file = this.get<TldrawAppFile>(s.fileId)
-						if (!file) return
 						// skip files where the owner is the current user
-						if (file.ownerId === userId) return
-						return file
+						if (s.file!.ownerId === this.userId) return
+						return s.file
 					})
-					.filter(Boolean) as TldrawAppFile[]
+					.filter(Boolean) as TlaFile[]
 			)
 		)
 	}
 
-	createFile(fileId?: TldrawAppFileId) {
-		const file = TldrawAppFileRecordType.create({
-			ownerId: this.getCurrentUserId(),
+	private canCreateNewFile() {
+		const numberOfFiles = this.getUserOwnFiles().length
+		return numberOfFiles < this.config.maxNumberOfFiles
+	}
+
+	createFile(
+		fileOrId?: string | Partial<TlaFile>
+	): Result<{ file: TlaFile }, 'max number of files reached'> {
+		if (!this.canCreateNewFile()) {
+			this.toasts?.addToast({
+				title: this.getIntl().formatMessage(this.messages.max_files_title),
+				description: this.getIntl().formatMessage(this.messages.max_files_description),
+				keepOpen: true,
+			})
+			return Result.err('max number of files reached')
+		}
+
+		const file: TlaFile = {
+			id: typeof fileOrId === 'string' ? fileOrId : uniqueId(),
+			ownerId: this.userId,
+			// these two owner properties are overridden by postgres triggers
+			ownerAvatar: this.getUser().avatar,
+			ownerName: this.getUser().name,
 			isEmpty: true,
-			id: fileId ?? TldrawAppFileRecordType.createId(),
-		})
-		this.store.put([file])
-		return file
+			createdAt: Date.now(),
+			lastPublished: 0,
+			name: this.getFallbackFileName(Date.now()),
+			published: false,
+			publishedSlug: uniqueId(),
+			shared: true,
+			sharedLinkType: 'edit',
+			thumbnail: '',
+			updatedAt: Date.now(),
+			isDeleted: false,
+			createSource: null,
+		}
+		if (typeof fileOrId === 'object') {
+			Object.assign(file, fileOrId)
+			if (!file.name) {
+				Object.assign(file, { name: this.getFallbackFileName(file.createdAt) })
+			}
+		}
+
+		this.z.mutate.file.create(file)
+
+		return Result.ok({ file })
 	}
 
-	getFileName(fileId: TldrawAppFileId) {
-		const file = this.store.get(fileId)
-		if (!file) return undefined
-		return file.name.trim() || new Date(file.createdAt).toLocaleString('en-gb')
+	getFallbackFileName(time: number) {
+		const createdAt = new Date(time)
+		const format = getDateFormat(createdAt)
+		return this.getIntl().formatDate(createdAt, format)
 	}
 
-	claimTemporaryFile(fileId: TldrawAppFileId) {
-		// TODO(david): check that you can't claim someone else's file (the db insert should fail and trigger a resync)
-		this.store.put([
-			TldrawAppFileRecordType.create({
+	getFileName(file: TlaFile | string | null, useDateFallback: false): string | undefined
+	getFileName(file: TlaFile | string | null, useDateFallback?: true): string
+	getFileName(file: TlaFile | string | null, useDateFallback = true) {
+		if (typeof file === 'string') {
+			file = this.getFile(file)
+		}
+		if (!file) {
+			// possibly a published file
+			return ''
+		}
+		assert(typeof file !== 'string', 'ok')
+
+		if (typeof file.name === 'undefined') {
+			captureException(new Error('file name is undefined somehow: ' + JSON.stringify(file)))
+		}
+		// need a ? here because we were seeing issues on sentry where file.name was undefined
+		const name = file.name?.trim()
+		if (name) {
+			return name
+		}
+
+		if (useDateFallback) {
+			return this.getFallbackFileName(file.createdAt)
+		}
+
+		return
+	}
+
+	_slurpFileId: string | null = null
+	slurpFile() {
+		const res = this.createFile()
+		if (res.ok) {
+			this._slurpFileId = res.value.file.id
+		}
+		return res
+	}
+
+	toggleFileShared(fileId: string) {
+		const file = this.getUserOwnFiles().find((f) => f.id === fileId)
+		if (!file) throw Error('no file with id ' + fileId)
+
+		if (file.ownerId !== this.userId) throw Error('user cannot edit that file')
+
+		this.z.mutate((tx) => {
+			tx.file.update({
 				id: fileId,
-				ownerId: this.getCurrentUserId(),
-			}),
-		])
+				shared: !file.shared,
+			})
+		})
 	}
 
-	toggleFileShared(fileId: TldrawAppFileId) {
-		const file = this.get(fileId) as TldrawAppFile
+	/**
+	 * Publish a file or re-publish changes.
+	 *
+	 * @param fileId - The file id to unpublish.
+	 * @returns A result indicating success or failure.
+	 */
+	publishFile(fileId: string) {
+		const file = this.getUserOwnFiles().find((f) => f.id === fileId)
 		if (!file) throw Error(`No file with that id`)
+		if (file.ownerId !== this.userId) throw Error('user cannot publish that file')
 
-		if (!this.isFileOwner(fileId)) throw Error('user cannot edit that file')
+		// We're going to bake the name of the file, if it's undefined
+		const name = this.getFileName(file)
 
-		transact(() => {
-			this.store.put([{ ...file, shared: !file.shared }])
-			// if it was shared, remove all shared links
-			if (file.shared) {
-				const states = this.getAll('file-state').filter(
-					(r) => r.fileId === fileId && r.ownerId !== file.ownerId
-				)
-				this.store.remove(states.map((r) => r.id))
+		// Optimistic update
+		this.z.mutate((tx) => {
+			tx.file.update({
+				id: fileId,
+				name,
+				published: true,
+				lastPublished: Date.now(),
+			})
+		})
+	}
+
+	getFile(fileId?: string): TlaFile | null {
+		if (!fileId) return null
+		return this.getUserOwnFiles().find((f) => f.id === fileId) ?? null
+	}
+
+	isFileOwner(fileId: string) {
+		const file = this.getFile(fileId)
+		return file && file.ownerId === this.userId
+	}
+
+	requireFile(fileId: string): TlaFile {
+		return assertExists(this.getFile(fileId), 'no file with id ' + fileId)
+	}
+
+	updateFile(partial: TlaFilePartial) {
+		this.requireFile(partial.id)
+		this.z.mutate.file.update(partial)
+	}
+
+	/**
+	 * Unpublish a file.
+	 *
+	 * @param fileId - The file id to unpublish.
+	 * @returns A result indicating success or failure.
+	 */
+	unpublishFile(fileId: string) {
+		const file = this.requireFile(fileId)
+		if (file.ownerId !== this.userId) throw Error('user cannot edit that file')
+
+		if (!file.published) return Result.ok('success')
+
+		// Optimistic update
+		this.z.mutate((tx) => {
+			tx.file.update({
+				id: fileId,
+				published: false,
+			})
+		})
+
+		return Result.ok('success')
+	}
+
+	/**
+	 * Remove a user's file states for a file and delete the file if the user is the owner of the file.
+	 *
+	 * @param fileId - The file id.
+	 */
+	async deleteOrForgetFile(fileId: string) {
+		const file = this.getFile(fileId)
+
+		// Optimistic update, remove file and file states
+		return this.z.mutate((tx) => {
+			tx.file_state.delete({ fileId, userId: this.userId })
+			if (file?.ownerId === this.userId) {
+				tx.file.update({ id: fileId, isDeleted: true })
 			}
 		})
 	}
 
-	setFilePublished(fileId: TldrawAppFileId, value: boolean) {
-		const file = this.get(fileId) as TldrawAppFile
-		if (!file) throw Error(`No file with that id`)
-		if (!this.isFileOwner(fileId)) throw Error('user cannot edit that file')
-		if (value === file.published) return
-		this.store.put([{ ...file, published: value, lastPublished: Date.now() }])
+	/**
+	 * Pin a file (or unpin it if it's already pinned).
+	 *
+	 * @param fileId - The file id.
+	 */
+	async pinOrUnpinFile(fileId: string) {
+		const fileState = this.getFileState(fileId)
+
+		if (!fileState) return
+
+		return this.z.mutate.file_state.update({
+			fileId,
+			userId: this.userId,
+			isPinned: !fileState.isPinned,
+		})
 	}
 
-	updateFileLastPublished(fileId: TldrawAppFileId) {
-		const file = this.get(fileId) as TldrawAppFile
-		if (!file) throw Error(`No file with that id`)
-		if (!this.isFileOwner(fileId)) throw Error('user cannot edit that file')
-		this.store.put([{ ...file, lastPublished: Date.now() }])
-	}
+	setFileSharedLinkType(fileId: string, sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') {
+		const file = this.requireFile(fileId)
 
-	setFileSharedLinkType(
-		fileId: TldrawAppFileId,
-		sharedLinkType: TldrawAppFile['sharedLinkType'] | 'no-access'
-	) {
-		const userId = this.getCurrentUserId()
-
-		const file = this.get(fileId) as TldrawAppFile
-		if (!file) throw Error(`No file with that id`)
-
-		if (userId !== file.ownerId) {
+		if (this.userId !== file.ownerId) {
 			throw Error('user cannot edit that file')
 		}
 
 		if (sharedLinkType === 'no-access') {
-			this.store.put([{ ...file, shared: false }])
+			this.z.mutate.file.update({ id: fileId, shared: false })
 			return
 		}
-
-		this.store.put([{ ...file, sharedLinkType, shared: true }])
+		this.z.mutate.file.update({ id: fileId, shared: true, sharedLinkType })
 	}
 
-	duplicateFile(fileId: TldrawAppFileId) {
-		const userId = this.getCurrentUserId()
-
-		const file = this.get(fileId) as TldrawAppFile
-		if (!file) throw Error(`No file with that id`)
-
-		const newFilePartial = {
-			...file,
-			id: TldrawAppFileRecordType.createId(),
-			ownerId: userId,
-		} as Partial<TldrawAppFile>
-		delete newFilePartial.createdAt
-		delete newFilePartial.lastPublished
-		delete newFilePartial.publishedSlug
-		delete newFilePartial.published
-
-		const newFile = TldrawAppFileRecordType.create(newFilePartial as TldrawAppFile)
-
-		const editorStoreSnapshot = getCurrentEditor()?.store.getStoreSnapshot()
-		this.store.put([newFile])
-
-		return { newFile, editorStoreSnapshot }
-	}
-
-	isFileOwner(fileId: TldrawAppFileId) {
-		const file = this.get(fileId) as TldrawAppFile
-		if (!file) return false
-		return file.ownerId === this.getCurrentUserId()
-	}
-
-	async deleteOrForgetFile(fileId: TldrawAppFileId) {
-		if (this.isFileOwner(fileId)) {
-			this.store.remove([
-				fileId,
-				...this.getAll('file-state')
-					.filter((r) => r.fileId === fileId)
-					.map((r) => r.id),
-			])
-		} else {
-			const ownerId = this.getCurrentUserId()
-			const fileStates = this.getAll('file-state')
-				.filter((r) => r.fileId === fileId && r.ownerId === ownerId)
-				.map((r) => r.id)
-			this.store.remove(fileStates)
-		}
-	}
-
-	async createFilesFromTldrFiles(_snapshots: TLStoreSnapshot[]) {
-		// todo: upload the files to the server and create files locally
-		console.warn('tldraw file uploads are not implemented yet, but you are in the right place')
-		return new Promise((r) => setTimeout(r, 2000))
-	}
-
-	async createSnapshotLink(editor: Editor, parentSlug: string, fileSlug: string, token: string) {
-		const data = await getSnapshotData(editor)
-
-		if (!data) return Result.err('could not get snapshot data')
-
-		const endpoint = `${PUBLISH_ENDPOINT}/${fileSlug}`
-
-		const res = await fetch(endpoint, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${token}`,
-			},
-			body: JSON.stringify({
-				snapshot: data,
-				schema: editor.store.schema.serialize(),
-				parent_slug: parentSlug,
-			} satisfies CreateSnapshotRequestBody),
+	updateUser(partial: Partial<TlaUser>) {
+		const user = this.getUser()
+		this.z.mutate.user.update({
+			id: user.id,
+			...partial,
 		})
-		const response = (await res.json()) as CreateSnapshotResponseBody
-
-		if (!res.ok || response.error) {
-			console.error(await res.text())
-			return Result.err('could not create snapshot')
-		}
-		return Result.ok('success')
 	}
 
 	updateUserExportPreferences(
 		exportPreferences: Partial<
-			Pick<TldrawAppUser, 'exportFormat' | 'exportPadding' | 'exportBackground' | 'exportTheme'>
+			Pick<TlaUser, 'exportFormat' | 'exportPadding' | 'exportBackground' | 'exportTheme'>
 		>
 	) {
-		const user = this.getCurrentUser()
-		if (!user) throw Error('no user')
-		this.store.put([{ ...user, ...exportPreferences }])
+		this.updateUser(exportPreferences)
 	}
 
-	getOrCreateFileState(fileId: TldrawAppFileId) {
+	async getOrCreateFileState(fileId: string) {
 		let fileState = this.getFileState(fileId)
-		const ownerId = this.getCurrentUserId()
 		if (!fileState) {
-			fileState = TldrawAppFileStateRecordType.create({
+			this.z.mutate.file_state.create({
 				fileId,
-				ownerId,
+				userId: this.userId,
+				firstVisitAt: Date.now(),
+				lastEditAt: null,
+				lastSessionState: null,
+				lastVisitAt: null,
+				isPinned: false,
+				// doesn't really matter what this is because it is
+				// overwritten by postgres
+				isFileOwner: this.isFileOwner(fileId),
 			})
-			this.store.put([fileState])
 		}
+		fileState = this.getFileState(fileId)
+		if (!fileState) throw Error('could not create file state')
 		return fileState
 	}
 
-	getFileState(fileId: TldrawAppFileId) {
-		const ownerId = this.getCurrentUserId()
-		return this.getAll('file-state').find((r) => r.ownerId === ownerId && r.fileId === fileId)
+	getFileState(fileId: string) {
+		return this.getUserFileStates().find((f) => f.fileId === fileId)
 	}
 
-	onFileEnter(fileId: TldrawAppFileId) {
-		const fileState = this.getOrCreateFileState(fileId)
-		if (fileState.firstVisitAt) return
-		this.store.put([
-			{ ...fileState, firstVisitAt: fileState.firstVisitAt ?? Date.now(), lastVisitAt: Date.now() },
-		])
-	}
-
-	onFileEdit(fileId: TldrawAppFileId) {
-		// Find the store's most recent file state record for this user
+	updateFileState(fileId: string, partial: Partial<TlaFileState>) {
 		const fileState = this.getFileState(fileId)
-		if (!fileState) return // file was deleted
-
-		// Create the file edit record
-		this.store.put([{ ...fileState, lastEditAt: Date.now() }])
+		if (!fileState) return
+		this.z.mutate.file_state.update({ ...partial, fileId, userId: fileState.userId })
 	}
 
-	onFileSessionStateUpdate(fileId: TldrawAppFileId, sessionState: TLSessionStateSnapshot) {
-		const fileState = this.getFileState(fileId)
-		if (!fileState) return // file was deleted
-		this.store.put([{ ...fileState, lastSessionState: sessionState, lastVisitAt: Date.now() }])
+	async onFileEnter(fileId: string) {
+		await this.getOrCreateFileState(fileId)
+		this.updateFileState(fileId, {
+			lastVisitAt: Date.now(),
+		})
 	}
 
-	onFileExit(fileId: TldrawAppFileId) {
-		const fileState = this.getFileState(fileId)
-		if (!fileState) return // file was deleted
-		this.store.put([{ ...fileState, lastVisitAt: Date.now() }])
+	onFileEdit(fileId: string) {
+		this.updateFileState(fileId, { lastEditAt: Date.now() })
+	}
+
+	onFileSessionStateUpdate(fileId: string, sessionState: TLSessionStateSnapshot) {
+		this.updateFileState(fileId, {
+			lastSessionState: JSON.stringify(sessionState),
+			lastVisitAt: Date.now(),
+		})
+	}
+
+	onFileExit(fileId: string) {
+		this.updateFileState(fileId, { lastVisitAt: Date.now() })
 	}
 
 	static async create(opts: {
@@ -398,32 +595,220 @@ export class TldrawApp {
 		fullName: string
 		email: string
 		avatar: string
-		store: Store<TldrawAppRecord>
+		getToken(): Promise<string | null>
+		onClientTooOld(): void
+		trackEvent: TLAppUiContextType
 	}) {
-		const { store } = opts
-
 		// This is an issue: we may have a user record but not in the store.
 		// Could be just old accounts since before the server had a version
 		// of the store... but we should probably identify that better.
-		const userId = TldrawAppUserRecordType.createId(opts.userId)
 
-		const user = store.get(userId)
-		if (!user) {
-			const { id: _id, name: _name, color: _color, ...restOfPreferences } = getUserPreferences()
-			store.put([
-				TldrawAppUserRecordType.create({
-					id: userId,
-					ownerId: userId,
-					name: opts.fullName,
-					email: opts.email,
-					color: 'salmon',
-					avatar: opts.avatar,
-					...restOfPreferences,
+		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
+		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld, opts.trackEvent)
+		// @ts-expect-error
+		window.app = app
+		await app.preload({
+			id: opts.userId,
+			name: opts.fullName,
+			email: opts.email,
+			color: color ?? defaultUserPreferences.color,
+			avatar: opts.avatar,
+			exportFormat: 'png',
+			exportTheme: 'light',
+			exportBackground: false,
+			exportPadding: false,
+			createdAt: Date.now(),
+			updatedAt: Date.now(),
+			flags: '',
+			allowAnalyticsCookie: null,
+			...restOfPreferences,
+			locale: restOfPreferences.locale ?? null,
+			animationSpeed: restOfPreferences.animationSpeed ?? null,
+			edgeScrollSpeed: restOfPreferences.edgeScrollSpeed ?? null,
+			colorScheme: restOfPreferences.colorScheme ?? null,
+			isSnapMode: restOfPreferences.isSnapMode ?? null,
+			isWrapMode: restOfPreferences.isWrapMode ?? null,
+			isDynamicSizeMode: restOfPreferences.isDynamicSizeMode ?? null,
+			isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
+		})
+		return { app, userId: opts.userId }
+	}
+
+	getIntl() {
+		const intl = createIntl()
+		if (intl) return intl
+		// intl should exists since IntlWrapper should create it before we get here, but let's use this just in case
+		setupCreateIntl({
+			defaultLocale: 'en',
+			locale: this.user$.get()?.locale ?? 'en',
+			messages: {},
+		})
+		return createIntl()!
+	}
+
+	async uploadTldrFiles(files: File[], onFirstFileUploaded?: (file: TlaFile) => void) {
+		const totalFiles = files.length
+		let uploadedFiles = 0
+		if (totalFiles === 0) return
+
+		// this is only approx since we upload the files in pieces and they are base64 encoded
+		// in the json blob, so this will usually be a big overestimate. But that's fine because
+		// if the upload finishes before the number hits 100% people are pleasantly surprised.
+		const approxTotalBytes = files.reduce((acc, f) => acc + f.size, 0)
+		let bytesUploaded = 0
+		const getApproxPercentage = () =>
+			Math.min(Math.round((bytesUploaded / approxTotalBytes) * 100), 100)
+		const updateProgress = () => updateToast({ description: `${getApproxPercentage()}%` })
+
+		// only bother showing the percentage if it's going to take a while
+
+		let uploadingToastId = undefined as undefined | string
+		let didFinishUploading = false
+
+		// give it a second before we show the toast, in case the upload is fast
+		setTimeout(() => {
+			if (didFinishUploading || this.abortController.signal.aborted) return
+			// if it's close to the end, don't show the progress toast
+			if (getApproxPercentage() > 50) return
+			uploadingToastId = this.toasts?.addToast({
+				severity: 'info',
+				title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
+					total: totalFiles,
+					uploaded: uploadedFiles,
 				}),
-			])
+
+				description: `${getApproxPercentage()}%`,
+				keepOpen: true,
+			})
+		}, 800)
+
+		const updateToast = (args: { title?: string; description?: string }) => {
+			if (!uploadingToastId) return
+			this.toasts?.toasts.update((toasts) =>
+				toasts.map((t) =>
+					t.id === uploadingToastId
+						? {
+								...t,
+								...args,
+							}
+						: t
+				)
+			)
 		}
 
-		const app = new TldrawApp(store)
-		return { app, userId }
+		for (const f of files) {
+			const res = await this.uploadTldrFile(f, (bytes) => {
+				bytesUploaded += bytes
+				updateProgress()
+			}).catch((e) => Result.err(e))
+			if (!res.ok) {
+				if (uploadingToastId) this.toasts?.removeToast(uploadingToastId)
+				this.toasts?.addToast({
+					severity: 'error',
+					title: this.getIntl().formatMessage(this.messages.unknown_error),
+					keepOpen: true,
+				})
+				console.error(res.error)
+				return
+			}
+
+			updateToast({
+				title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
+					total: totalFiles,
+					uploaded: ++uploadedFiles + 1,
+				}),
+			})
+
+			if (onFirstFileUploaded) {
+				onFirstFileUploaded(res.value.file)
+				onFirstFileUploaded = undefined
+			}
+		}
+		didFinishUploading = true
+
+		if (uploadingToastId) this.toasts?.removeToast(uploadingToastId)
+
+		if (totalFiles > 1) {
+			this.toasts?.addToast({
+				severity: 'success',
+				title: this.getIntl().formatMessage(this.messages.addingTldrFiles, {
+					total: files.length,
+				}),
+				keepOpen: true,
+			})
+		}
+	}
+
+	private async uploadTldrFile(
+		file: File,
+		onProgress?: (bytesUploadedSinceLastProgressUpdate: number) => void
+	) {
+		const json = await file.text()
+		const parseFileResult = parseTldrawJsonFile({
+			schema: createTLSchema(),
+			json,
+		})
+
+		if (!parseFileResult.ok) {
+			return Result.err('could not parse file')
+		}
+
+		const snapshot = parseFileResult.value.getStoreSnapshot()
+
+		for (const record of Object.values(snapshot.store)) {
+			if (
+				record.typeName !== 'asset' ||
+				record.type === 'bookmark' ||
+				!record.props.src?.startsWith('data:')
+			) {
+				snapshot.store[record.id] = record
+				continue
+			}
+			const src = record.props.src
+			const file = await dataUrlToFile(
+				src,
+				record.props.name,
+				record.props.mimeType ?? 'application/octet-stream'
+			)
+			// TODO: this creates duplicate versions of the assets because we'll re-upload them when the user opens
+			// the file to associate them with the file id. To avoid this we'd need a way to create the file row
+			// in postgres so we can do the association while uploading the first time. Or just tolerate foreign key
+			// constraints being violated for a moment.
+			const assetsStore = multiplayerAssetStore()
+			const { src: newSrc } = await assetsStore.upload(record, file, this.abortController.signal)
+			onProgress?.(file.size)
+			snapshot.store[record.id] = {
+				...record,
+				props: {
+					...record.props,
+					src: newSrc,
+				},
+			}
+		}
+		const body = JSON.stringify({
+			snapshots: [
+				{
+					schema: snapshot.schema,
+					snapshot: snapshot.store,
+				} satisfies CreateSnapshotRequestBody,
+			],
+		})
+
+		const res = await fetch(TLDR_FILE_ENDPOINT, { method: 'POST', body })
+		onProgress?.(body.length)
+		if (!res.ok) {
+			throw Error('could not upload file ' + (await res.text()))
+		}
+		const response = (await res.json()) as CreateFilesResponseBody
+		if (response.error) {
+			throw Error(response.message)
+		}
+		const id = response.slugs[0]
+		const name =
+			file.name?.replace(/\.tldr$/, '') ??
+			Object.values(snapshot.store).find((d): d is TLDocument => d.typeName === 'document')?.name ??
+			''
+
+		return this.createFile({ id, name })
 	}
 }

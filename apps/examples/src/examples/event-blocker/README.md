@@ -2,6 +2,7 @@
 title: Blocking events
 component: ./EventBlockerExample.tsx
 category: ui
+priority: 3
 keywords:
   - event
   - block
