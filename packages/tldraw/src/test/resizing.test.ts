@@ -3544,9 +3544,11 @@ describe('resizing a selection of mixed rotations', () => {
 // })
 
 describe('editor.resizeNoteShape', () => {
-	it('can scale when that option is set to true', () => {
-		NoteShapeUtil.options.resizeMode = 'scale'
+	beforeEach(() => {
+		editor.getShapeUtil<NoteShapeUtil>('note').options.resizeMode = 'none'
+	})
 
+	it('can scale when that option is set to true', () => {
 		const noteBId = createShapeId('noteB')
 		editor.createShapes([box(ids.boxA, 0, 0, 200, 200), { id: noteBId, type: 'note', x: 0, y: 0 }])
 
@@ -3563,9 +3565,6 @@ describe('editor.resizeNoteShape', () => {
 		expect(editor.getShape(noteBId)).toMatchObject({ x: 0, y: 0, props: { scale: 2.1 } }) // but scaled!
 
 		expect(editor.getShapePageBounds(noteBId)).toMatchObject({ x: 0, y: 0, w: 420, h: 420 })
-
-		// for the sake of future tests, set it back to normal
-		NoteShapeUtil.options.resizeMode = 'none'
 	})
 })
 
