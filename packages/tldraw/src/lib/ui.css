@@ -1867,24 +1867,6 @@
 	opacity: 1;
 }
 
-.tlui-contextual-toolbar__indicator {
-	--arrow-size: 8px;
-	position: absolute;
-	bottom: calc(-1 * var(--arrow-size) + 1px);
-	left: 0;
-	z-index: calc(var(--layer-canvas-shapes) + 1);
-	border: var(--arrow-size) solid transparent;
-	border-bottom-width: 0;
-	border-top-color: var(--color-panel);
-	pointer-events: none;
-}
-
-@media (max-width: 640px) {
-	.tlui-contextual-toolbar .tlui-contextual-toolbar__indicator {
-		display: none;
-	}
-}
-
 .tlui-rich-text__toolbar {
 	opacity: 0;
 	transition: opacity 0.08s ease-in-out;
