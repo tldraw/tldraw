@@ -22,7 +22,6 @@ export interface TLUiToolItem<
 	shortcutsLabel?: TranslationKey
 	icon: IconType
 	onSelect(source: TLUiEventSource): void
-	draggable?: boolean
 	onDragStart?(source: TLUiEventSource, info: TLPointerEventInfo): void
 	kbd?: string
 	readonlyOk?: boolean
@@ -126,7 +125,6 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 						trackEvent('select-tool', { source, id: `geo-${geo}` })
 					})
 				},
-				draggable: true,
 				onDragStart(source: TLUiEventSource, info: TLPointerEventInfo) {
 					editor.run(() => {
 						editor.markHistoryStoppingPoint('drag geo tool')
@@ -162,7 +160,6 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					editor.setCurrentTool('arrow')
 					trackEvent('select-tool', { source, id: 'arrow' })
 				},
-				draggable: true,
 				onDragStart(source: TLUiEventSource, info: TLPointerEventInfo) {
 					editor.run(() => {
 						editor.markHistoryStoppingPoint('drag arrow tool')
@@ -214,7 +211,6 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					editor.setCurrentTool('frame')
 					trackEvent('select-tool', { source, id: 'frame' })
 				},
-				draggable: true,
 				onDragStart(source, info) {
 					editor.run(() => {
 						editor.markHistoryStoppingPoint('drag frame tool')
@@ -250,7 +246,6 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					editor.setCurrentTool('text')
 					trackEvent('select-tool', { source, id: 'text' })
 				},
-				draggable: true,
 				onDragStart(source, info) {
 					editor.run(() => {
 						editor.markHistoryStoppingPoint('drag text tool')
@@ -297,7 +292,6 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					editor.setCurrentTool('note')
 					trackEvent('select-tool', { source, id: 'note' })
 				},
-				draggable: true,
 				onDragStart(source, info) {
 					editor.run(() => {
 						editor.markHistoryStoppingPoint('drag note tool')

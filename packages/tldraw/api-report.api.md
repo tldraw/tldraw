@@ -2314,7 +2314,7 @@ export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiM
 export function TldrawUiMenuGroup({ id, label, children }: TLUiMenuGroupProps): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
 
 // @public (undocumented)
-export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, isSelected, draggable, onDragStart, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
+export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, isSelected, onDragStart, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
@@ -3106,7 +3106,6 @@ export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
 // @public (undocumented)
 export interface TLUiMenuItemProps<TranslationKey extends string = string, IconType extends string = string> {
     disabled?: boolean;
-    draggable?: boolean;
     icon?: IconType;
     // (undocumented)
     id: string;
@@ -3282,8 +3281,6 @@ export interface TLUiToastsProviderProps {
 
 // @public (undocumented)
 export interface TLUiToolItem<TranslationKey extends string = string, IconType extends string = string> {
-    // (undocumented)
-    draggable?: boolean;
     // (undocumented)
     icon: IconType;
     // (undocumented)

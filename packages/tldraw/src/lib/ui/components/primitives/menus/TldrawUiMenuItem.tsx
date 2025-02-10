@@ -66,11 +66,7 @@ export interface TLUiMenuItemProps<
 	 */
 	isSelected?: boolean
 	/**
-	 * Whether the item is draggable.
-	 */
-	draggable?: boolean
-	/**
-	 * The function to call when the item is dragged. Requires draggable to be true.
+	 * The function to call when the item is dragged. If this is provided, the item will be draggable.
 	 */
 	onDragStart?(source: TLUiEventSource, info: TLPointerEventInfo): void
 }
@@ -90,7 +86,6 @@ export function TldrawUiMenuItem<
 	onSelect,
 	noClose,
 	isSelected,
-	draggable,
 	onDragStart,
 }: TLUiMenuItemProps<TranslationKey, IconType>) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
@@ -216,7 +211,7 @@ export function TldrawUiMenuItem<
 			)
 		}
 		case 'toolbar': {
-			if (draggable && onDragStart) {
+			if (onDragStart) {
 				return (
 					<DraggableToolbarButton
 						id={id}
@@ -251,7 +246,7 @@ export function TldrawUiMenuItem<
 			)
 		}
 		case 'toolbar-overflow': {
-			if (draggable && onDragStart) {
+			if (onDragStart) {
 				return (
 					<DraggableToolbarButton
 						id={id}
