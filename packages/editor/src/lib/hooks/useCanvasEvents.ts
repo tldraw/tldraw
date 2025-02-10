@@ -7,7 +7,6 @@ import {
 	stopEventPropagation,
 } from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
-import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
 
 export function useCanvasEvents() {
@@ -129,8 +128,11 @@ export function useCanvasEvents() {
 		[editor]
 	)
 
-	const container = useContainer()
-
+	// onPointerMove is special: where we're only interested in the other events when they're
+	// happening _on_ the canvas (as opposed to outside of it, or on UI floating over it), we want
+	// the pointer position to be up to date regardless of whether it's over the tldraw canvas or
+	// not. So instead of returning a listener to be attached to the canvas, we directly attach a
+	// listener to the whole document instead.
 	useEffect(() => {
 		let lastX: number, lastY: number
 
@@ -150,11 +152,11 @@ export function useCanvasEvents() {
 			})
 		}
 
-		container.addEventListener('pointermove', onPointerMove)
+		document.body.addEventListener('pointermove', onPointerMove)
 		return () => {
-			container.removeEventListener('pointermove', onPointerMove)
+			document.body.removeEventListener('pointermove', onPointerMove)
 		}
-	}, [editor, container])
+	}, [editor])
 
 	return events
 }
