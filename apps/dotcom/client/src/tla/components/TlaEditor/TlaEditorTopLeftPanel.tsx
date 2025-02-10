@@ -32,6 +32,7 @@ import { HelpSubMenu } from '../TlaAppMenuGroup/TlaAppMenuGroup'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
+import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
 
 const messages = defineMessages({
@@ -63,6 +64,10 @@ export function TlaEditorTopLeftPanelAnonymous() {
 	// GOTCHA: 'anonymous' doesn't always mean logged out
 	// we show this version of the panel for published files as well.
 	const app = useMaybeApp()
+
+	const roomInfo = useRoomInfo()
+
+	const canCopyToApp = app && roomInfo?.prefix
 
 	const editor = useEditor()
 	const anonFileName = useValue('fileName', () => editor.getDocumentSettings().name || undefined, [
@@ -114,15 +119,15 @@ export function TlaEditorTopLeftPanelAnonymous() {
 						</button>
 					</TldrawUiDropdownMenuTrigger>
 					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
-						<TldrawUiMenuGroup id="download">
-							<TldrawUiMenuActionItem actionId={'save-file-copy'} />
-							{app && <TldrawUiMenuActionItem actionId={'copy-to-my-files'} />}
-						</TldrawUiMenuGroup>
 						<TldrawUiMenuGroup id="basic">
 							<EditSubmenu />
 							<ViewSubmenu />
 							<ExportFileContentSubMenu />
 							<ExtrasGroup />
+						</TldrawUiMenuGroup>
+						<TldrawUiMenuGroup id="download">
+							<TldrawUiMenuActionItem actionId={'save-file-copy'} />
+							{canCopyToApp && <TldrawUiMenuActionItem actionId={'copy-to-my-files'} />}
 						</TldrawUiMenuGroup>
 						<TldrawUiMenuGroup id="preferences">
 							<HelpSubMenu />

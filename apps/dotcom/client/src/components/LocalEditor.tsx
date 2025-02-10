@@ -9,21 +9,15 @@ import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
 
-const components: TLComponents = {
-	ErrorFallback: ({ error }) => {
-		throw error
-	},
-}
-
 export function LocalEditor({
-	componentsOverride,
+	components,
 	onMount,
 	children,
 	persistenceKey,
 	'data-testid': dataTestId,
 	options,
 }: {
-	componentsOverride?: TLComponents
+	components: TLComponents
 	onMount?(editor: Editor): void
 	children?: ReactNode
 	persistenceKey?: string
@@ -49,7 +43,7 @@ export function LocalEditor({
 				onMount={handleMount}
 				overrides={[fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
-				components={componentsOverride ?? components}
+				components={components}
 				options={options}
 			>
 				<SneakyOnDropOverride isMultiplayer={false} />
