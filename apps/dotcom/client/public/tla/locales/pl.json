@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "Utwórz plik"
   },
+  "1bef75f760": {
+    "translation": "Pozwól użytkownikowi tldraw wysłać mi wiadomość e-mail na ten temat"
+  },
   "1da2e8106b": {
     "translation": "Wystąpił nieoczekiwany błąd."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "Eksportuj zawartość jako plik .tldr: Przejdź do „Plik” > „Zapisz kopię”"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Przesyłanie {count} pliku .tldr…} few {Przesyłanie {count} plików .tldr…} many {Przesyłanie {count} plików .tldr…} other {Przesyłanie {count} plików .tldr…}}"
-  },
-  "279f0531ff": {
-    "translation": "Nadal masz problem? Daj nam znać, pisząc na adres <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "Przekaż nam swoją opinię"
   },
   "299cb00a7a": {
     "translation": "Przesyłanie nie powiodło się"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: Brak wyróżnienia"
+  },
+  "32656a600c": {
+    "translation": "Widzisz coś złego? Masz pomysł na ulepszenie tldraw? Chętnie go poznamy!"
   },
   "335defdafe": {
     "translation": "Spróbuj odświeżyć stronę."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "Importuj ze starego tldraw.com"
   },
+  "46137245cd": {
+    "translation": "Dziękujemy za pomoc w ulepszaniu tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "Ustawienia prywatności"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Czy na pewno chcesz zapomnieć ten plik?"
+  },
+  "4c06678729": {
+    "translation": "Używamy plików cookie pierwszej strony w celu ulepszenia naszych usług. <a>Dowiedz się więcej</a>"
   },
   "4d1c8263ba": {
     "translation": "Załaduj ponownie"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "Należy zwolnić."
+  },
+  "554a05155c": {
+    "translation": "Nadal masz problem? <a>Zgłoś problem</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "Nie udało nam się przesłać części treści utworzonych przed zalogowaniem."
+  },
+  "5db1e9a8ca": {
+    "translation": "Wypełnij ten formularz, <discord>porozmawiaj z nami na Discordzie</discord> lub <github>zgłoś problem na GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "Opinia wysłana"
   },
   "5fb63579fc": {
     "translation": "Kopia"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "Odśwież stronę, aby pobrać najnowszą wersję tldraw."
   },
+  "86353d2c41": {
+    "translation": "Dodano pliki {total} .tldr."
+  },
   "86c66437fd": {
     "translation": "Zmień nazwę pliku"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "Nie znaleziono"
   },
-  "9e7dc2358c": {
-    "translation": "Używamy plików cookie podczas zbierania danych analitycznych, aby pomóc nam ulepszyć tldraw. Klikając przycisk „akceptuj”, zgadzasz się z naszą <a>polityką plików cookie</a>."
+  "9e93c98d88": {
+    "translation": "Zrezygnuj"
   },
   "a104439641": {
     "translation": "Wypełnienie"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Polityka plików cookie"
+  },
+  "a4d3b161ce": {
+    "translation": "Składać"
   },
   "a6cc403d56": {
     "translation": "Każda osoba mająca link"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "Odepnij"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {Przesyłanie pliku .tldr…} few {} many {} other {Przesyłanie {uploaded} z {total} plików .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "Udostępniono przez {ownerName}"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "Przełącz pasek boczny"
   },
-  "d59048f21f": {
-    "translation": "Dowiedz się więcej"
+  "d5ef96e383": {
+    "translation": "Pobierz plik"
   },
   "d721757161": {
     "translation": "Temat"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "Zapisać się"
-  },
-  "d98ac12774": {
-    "translation": "Odrzucić"
   },
   "d9fe660e4e": {
     "translation": "Niestety nie masz dostępu do tego obszaru roboczego."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "Warunki korzystania z usługi"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {Dodano {count} plik .tldr} few {Dodano {count} pliki .tldr.} many {Dodano {count} plików .tldr.} other {Dodano {count} plików .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "Pinezka"

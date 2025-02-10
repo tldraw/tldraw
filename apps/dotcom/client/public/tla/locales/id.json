@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "Buat file"
   },
+  "1bef75f760": {
+    "translation": "Izinkan tldraw mengirimi saya email tentang ini"
+  },
   "1da2e8106b": {
     "translation": "Terjadi kesalahan tak terduga."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "Ekspor konten sebagai file .tldr: Buka 'File' > 'Simpan salinan'"
   },
-  "20530afec1": {
-    "translation": "{count, plural, other {Mengunggah {count} file .tldr…}}"
-  },
-  "279f0531ff": {
-    "translation": "Masih mengalami masalah? Sampaikan pada kami di <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "Beri kami masukan"
   },
   "299cb00a7a": {
     "translation": "Pengunggahan gagal"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: Sorotan Tidak Ada"
+  },
+  "32656a600c": {
+    "translation": "Ada yang salah? Punya ide untuk meningkatkan tldraw? Kami ingin mendengarnya!"
   },
   "335defdafe": {
     "translation": "Coba muat ulang halaman."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "Impor dari tldraw.com lama"
   },
+  "46137245cd": {
+    "translation": "Terima kasih telah membantu kami meningkatkan tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "Pengaturan privasi"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Yakin ingin mengabaikan file ini?"
+  },
+  "4c06678729": {
+    "translation": "Kami menggunakan cookie pihak pertama untuk meningkatkan layanan kami. <a>Pelajari lebih lanjut</a>"
   },
   "4d1c8263ba": {
     "translation": "Muat ulang"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "Pelan-pelan saja."
+  },
+  "554a05155c": {
+    "translation": "Masih mengalami masalah? <a>Laporkan masalah</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "Kami gagal mengunggah beberapa konten yang Anda buat sebelum masuk."
+  },
+  "5db1e9a8ca": {
+    "translation": "Isi formulir ini, <discord>ngobrol dengan kami di Discord</discord> atau <github>kirimkan masalah di GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "Umpan balik telah disampaikan"
   },
   "5fb63579fc": {
     "translation": "Salin"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "Muat ulang halaman untuk mendapatkan versi terbaru tldraw."
   },
+  "86353d2c41": {
+    "translation": "Menambahkan file {total}.tldr."
+  },
   "86c66437fd": {
     "translation": "Ganti nama berkas"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "Tidak ditemukan"
   },
-  "9e7dc2358c": {
-    "translation": "Kami menggunakan cookie saat mengumpulkan analitik untuk membantu kami meningkatkan tldraw. Dengan mengeklik terima, Anda menyetujui <a>kebijakan cookie</a> kami."
+  "9e93c98d88": {
+    "translation": "Memilih keluar"
   },
   "a104439641": {
     "translation": "Alas"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Kebijakan cookie"
+  },
+  "a4d3b161ce": {
+    "translation": "Kirim"
   },
   "a6cc403d56": {
     "translation": "Siapa pun yang memiliki tautan"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "Lepaskan"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, other {Mengunggah {uploaded} dari {total} file .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "Dibagikan oleh {ownerName}"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "Alihkan bilah samping"
   },
-  "d59048f21f": {
-    "translation": "Pelajari lebih lanjut"
+  "d5ef96e383": {
+    "translation": "Unduh berkas"
   },
   "d721757161": {
     "translation": "Tema"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "Mendaftar"
-  },
-  "d98ac12774": {
-    "translation": "Menolak"
   },
   "d9fe660e4e": {
     "translation": "Maaf, Anda tidak memiliki akses ke ruang kerja tersebut."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "Ketentuan Layanan"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, other {Menambah {count} file .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "Sematkan"

@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "Dosya oluştur"
   },
+  "1bef75f760": {
+    "translation": "tldraw'ın bana bu konuda e-posta göndermesine izin ver"
+  },
   "1da2e8106b": {
     "translation": "Beklenmeyen bir hata oluştu."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "İçeriği .tldr dosyası olarak dışa aktarın: 'Dosya' > 'Bir kopyasını kaydet'e gidin"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {{count} .tldr dosyası yükleniyor...} other {{count} .tldr dosyası yükleniyor...}}"
-  },
-  "279f0531ff": {
-    "translation": "Sorun devam ediyor mu? <a>hello@tldraw.com</a> adresinden bize bildirin."
+  "26e5b44256": {
+    "translation": "Bize geri bildirimde bulunun"
   },
   "299cb00a7a": {
     "translation": "Yüklenemedi"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: Vurgu Eksik"
+  },
+  "32656a600c": {
+    "translation": "Bir sorun mu gördünüz? TLDRAW'ı geliştirmek için bir fikriniz mi var? Bunu duymayı çok isteriz!"
   },
   "335defdafe": {
     "translation": "Lütfen sayfayı yenilemeyi deneyin."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "Eski tldraw.com'dan içe aktar"
   },
+  "46137245cd": {
+    "translation": "Tldraw'ı geliştirmemize yardımcı olduğunuz için teşekkürler!"
+  },
+  "4778b9f3f2": {
+    "translation": "Gizlilik ayarları"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Bu dosyayı unutmak istediğinizden emin misiniz?"
+  },
+  "4c06678729": {
+    "translation": "Hizmetlerimizi geliştirmek için birinci taraf çerezleri kullanıyoruz. <a>Daha fazla bilgi edinin</a>"
   },
   "4d1c8263ba": {
     "translation": "Tekrar yükle"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "Lütfen yavaşlayın."
+  },
+  "554a05155c": {
+    "translation": "Hala sorun mu yaşıyorsunuz? <a>Bir sorun bildirin</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "Oturum açmadan önce oluşturduğunuz bazı içerikleri yükleyemedik."
+  },
+  "5db1e9a8ca": {
+    "translation": "Bu formu doldurun, <discord>Discord'da bizimle sohbet edin</discord> veya <github>GitHub'da bir sorun gönderin</github>."
+  },
+  "5f3c333678": {
+    "translation": "Geri bildirim gönderildi"
   },
   "5fb63579fc": {
     "translation": "Kopyala"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "En güncel tldraw sürümü için lütfen sayfayı yenileyin."
   },
+  "86353d2c41": {
+    "translation": "{total} .tldr dosyası eklendi."
+  },
   "86c66437fd": {
     "translation": "Dosyayı yeniden adlandır"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "Bulunamadı"
   },
-  "9e7dc2358c": {
-    "translation": "Analizleri toplarken tldraw'ı geliştirmemize yardımcı olması için çerezler kullanıyoruz. Kabul et'e tıklayarak <a>çerez politikamızı</a> kabul etmiş olursunuz."
+  "9e93c98d88": {
+    "translation": "Vazgeçmek"
   },
   "a104439641": {
     "translation": "Doldurma"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Çerez politikası"
+  },
+  "a4d3b161ce": {
+    "translation": "Göndermek"
   },
   "a6cc403d56": {
     "translation": "Bağlantısı olan herkes"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "SabitlemeyI kaldır"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {.tldr dosyası yükleniyor…} other {{uploaded} / {total} .tldr dosyası yükleniyor…}}"
   },
   "bc88b0e89e": {
     "translation": "{ownerName} tarafından paylaşıldı"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "Kenar çubuğunu aç/kapat"
   },
-  "d59048f21f": {
-    "translation": "Daha fazla bilgi edin"
+  "d5ef96e383": {
+    "translation": "Dosyayı indir"
   },
   "d721757161": {
     "translation": "Tema"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "Üye olmak"
-  },
-  "d98ac12774": {
-    "translation": "Reddetmek"
   },
   "d9fe660e4e": {
     "translation": "Üzgünüz, bu çalışma alanına erişiminiz yok."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "Hizmet Şartları"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {{count} .tldr dosyası eklendi.} other {{count} .tldr dosyası eklendi.}}"
   },
   "e78e14c5f1": {
     "translation": "Sabitle"
