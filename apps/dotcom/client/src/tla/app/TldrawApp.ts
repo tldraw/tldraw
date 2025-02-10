@@ -41,8 +41,6 @@ import { Zero } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
-export const UNPUBLISH_ENDPOINT = `/api/app/unpublish`
-export const FILE_ENDPOINT = `/api/app/file`
 
 let appId = 0
 
