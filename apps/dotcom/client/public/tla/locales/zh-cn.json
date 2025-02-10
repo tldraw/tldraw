@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "要将内容导出为.tldr文件：转到“文件”>“保存副本”"
   },
-  "20530afec1": {
-    "translation": "{count, plural, other {正在上传{count}个.tldr文件……}}"
-  },
-  "279f0531ff": {
-    "translation": "仍然有问题？可通过<a>hello@tldraw.com</a>与我们联系。"
-  },
   "299cb00a7a": {
     "translation": "上传失败"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "未找到"
   },
-  "9e7dc2358c": {
-    "translation": "我们在收集分析数据时使用 Cookie，以帮助我们改进 tldraw。点击“接受”即表示您同意我们的<a>Cookie 政策</a>。"
-  },
   "a104439641": {
     "translation": "内边距"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "切换侧边栏"
   },
-  "d59048f21f": {
-    "translation": "了解更多"
-  },
   "d721757161": {
     "translation": "主题"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "报名"
-  },
-  "d98ac12774": {
-    "translation": "拒绝"
   },
   "d9fe660e4e": {
     "translation": "抱歉，您无权访问该工作空间。"
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "服务条款"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, other {已添加{count}个.tldr文件。}}"
   },
   "e78e14c5f1": {
     "translation": "固定"

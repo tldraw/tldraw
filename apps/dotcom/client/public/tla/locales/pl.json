@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "Eksportuj zawartość jako plik .tldr: Przejdź do „Plik” > „Zapisz kopię”"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Przesyłanie {count} pliku .tldr…} few {Przesyłanie {count} plików .tldr…} many {Przesyłanie {count} plików .tldr…} other {Przesyłanie {count} plików .tldr…}}"
-  },
-  "279f0531ff": {
-    "translation": "Nadal masz problem? Daj nam znać, pisząc na adres <a>hello@tldraw.com</a>"
-  },
   "299cb00a7a": {
     "translation": "Przesyłanie nie powiodło się"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "Nie znaleziono"
   },
-  "9e7dc2358c": {
-    "translation": "Używamy plików cookie podczas zbierania danych analitycznych, aby pomóc nam ulepszyć tldraw. Klikając przycisk „akceptuj”, zgadzasz się z naszą <a>polityką plików cookie</a>."
-  },
   "a104439641": {
     "translation": "Wypełnienie"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "Przełącz pasek boczny"
   },
-  "d59048f21f": {
-    "translation": "Dowiedz się więcej"
-  },
   "d721757161": {
     "translation": "Temat"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "Zapisać się"
-  },
-  "d98ac12774": {
-    "translation": "Odrzucić"
   },
   "d9fe660e4e": {
     "translation": "Niestety nie masz dostępu do tego obszaru roboczego."
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "Warunki korzystania z usługi"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {Dodano {count} plik .tldr} few {Dodano {count} pliki .tldr.} many {Dodano {count} plików .tldr.} other {Dodano {count} plików .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "Pinezka"

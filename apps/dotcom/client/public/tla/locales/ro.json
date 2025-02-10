@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "Exportați conținutul ca fișier .tldr: accesați „Fișier” > „Salvați o copie”"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Se încarcă {count} fișier .tldr...} few {} other {Se încarcă {count} fișiere .tldr...}}"
-  },
-  "279f0531ff": {
-    "translation": "Mai ai probleme? Anunțați-ne la <a>hello@tldraw.com</a>"
-  },
   "299cb00a7a": {
     "translation": "Încărcarea nu a reușit"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "Nu a fost găsit"
   },
-  "9e7dc2358c": {
-    "translation": "Folosim cookie-uri atunci când colectăm analize pentru a ne ajuta să îmbunătățim tldraw. Făcând clic pe Accept, sunteți de acord cu <a>politica noastră privind cookie-urile</a>."
-  },
   "a104439641": {
     "translation": "Captuseala"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "Comutați bara laterală"
   },
-  "d59048f21f": {
-    "translation": "Află mai multe"
-  },
   "d721757161": {
     "translation": "Temă"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "Înscrie-te"
-  },
-  "d98ac12774": {
-    "translation": "Respinge"
   },
   "d9fe660e4e": {
     "translation": "Ne pare rău, nu aveți acces la acel spațiu de lucru."
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "Termeni și condiții"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {S-a adăugat {count} fișier .tldr.} few {} other {S-au adăugat {count} fișiere .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "Pin"

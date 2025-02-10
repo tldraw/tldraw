@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "Exportieren Sie den Inhalt als eine tldr-Datei: Gehen Sie dann zu „Datei“ > „Kopie speichern.“"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {{count} .tldr-Datei wird hinzugefügt ...} other {{count} .tldr-Dateien werden hinzugefügt ...}}"
-  },
-  "279f0531ff": {
-    "translation": "Immer noch Probleme? Kontaktieren Sie uns unter <a>hello@tldraw.com</a>."
-  },
   "299cb00a7a": {
     "translation": "Hochladen fehlgeschlagen"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "Nicht gefunden"
   },
-  "9e7dc2358c": {
-    "translation": "Wir verwenden Cookies bei der Erfassung von Analysen, um tldraw zu verbessern. Indem Sie auf „Akzeptieren“ klicken, stimmen Sie unserer <a>Cookie-Richtlinie</a> zu."
-  },
   "a104439641": {
     "translation": "Füllung"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "Seitenleiste umschalten"
   },
-  "d59048f21f": {
-    "translation": "Mehr erfahren"
-  },
   "d721757161": {
     "translation": "Design"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "Melden Sie sich an"
-  },
-  "d98ac12774": {
-    "translation": "Ablehnen"
   },
   "d9fe660e4e": {
     "translation": "Leider haben Sie keinen Zugriff auf diesen Arbeitsbereich."
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "Servicebedingungen"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {{count} .tldr-Datei hinzugefügt.} other {{count} .tldr-Dateien hinzugefügt.}}"
   },
   "e78e14c5f1": {
     "translation": "Anheften"

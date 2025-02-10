@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "tldrファイル形式でコンテンツをエクスポート：[ファイル] へ移動 > [コピーを保存]"
   },
-  "20530afec1": {
-    "translation": "{count, plural, other {{count}件のtldrファイルをアップロード中です…}}"
-  },
-  "279f0531ff": {
-    "translation": "問題が解決しませんか？<a>hello@tldraw.com</a> までお問い合わせください。"
-  },
   "299cb00a7a": {
     "translation": "アップロードに失敗しました"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "見つかりません"
   },
-  "9e7dc2358c": {
-    "translation": "tldraw を改善するために、分析情報を収集する際に Cookie を使用します。[同意する] をクリックすると、<a>Cookie ポリシー</a> に同意したことになります。"
-  },
   "a104439641": {
     "translation": "パディング"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "サイドバーを切り替え"
   },
-  "d59048f21f": {
-    "translation": "もっと詳しく知る"
-  },
   "d721757161": {
     "translation": "テーマ"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "サインアップ"
-  },
-  "d98ac12774": {
-    "translation": "拒否する"
   },
   "d9fe660e4e": {
     "translation": "申し訳ありません。そのワークスペースにアクセスする権限がありません。"
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "利用規約"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, other {{count}件のtldrファイルを追加しました}}"
   },
   "e78e14c5f1": {
     "translation": "ピン留めする"

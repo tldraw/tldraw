@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "İçeriği .tldr dosyası olarak dışa aktarın: 'Dosya' > 'Bir kopyasını kaydet'e gidin"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {{count} .tldr dosyası yükleniyor...} other {{count} .tldr dosyası yükleniyor...}}"
-  },
-  "279f0531ff": {
-    "translation": "Sorun devam ediyor mu? <a>hello@tldraw.com</a> adresinden bize bildirin."
-  },
   "299cb00a7a": {
     "translation": "Yüklenemedi"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "Bulunamadı"
   },
-  "9e7dc2358c": {
-    "translation": "Analizleri toplarken tldraw'ı geliştirmemize yardımcı olması için çerezler kullanıyoruz. Kabul et'e tıklayarak <a>çerez politikamızı</a> kabul etmiş olursunuz."
-  },
   "a104439641": {
     "translation": "Doldurma"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "Kenar çubuğunu aç/kapat"
   },
-  "d59048f21f": {
-    "translation": "Daha fazla bilgi edin"
-  },
   "d721757161": {
     "translation": "Tema"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "Üye olmak"
-  },
-  "d98ac12774": {
-    "translation": "Reddetmek"
   },
   "d9fe660e4e": {
     "translation": "Üzgünüz, bu çalışma alanına erişiminiz yok."
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "Hizmet Şartları"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {{count} .tldr dosyası eklendi.} other {{count} .tldr dosyası eklendi.}}"
   },
   "e78e14c5f1": {
     "translation": "Sabitle"

@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "تصدير المحتوى كملف .tldr: اذهب إلى \"الملف\" > \"حفظ نسخة\""
   },
-  "20530afec1": {
-    "translation": "{count, plural, zero {جارٍ تحميل {count} ملف .tldr...} one {جارٍ تحميل ملف .tldr واحد...} two {جارٍ تحميل ملفي .tldr...} few {جارٍ تحميل {count} ملفات .tldr...} many {جارٍ تحميل {count} ملفًا .tldr...} other {جارٍ تحميل {count} ملف .tldr...}}"
-  },
-  "279f0531ff": {
-    "translation": "هل ما زلت تواجه صعوبة؟ اعلمنا بذلك على <a>hello@tldraw.com</a>"
-  },
   "299cb00a7a": {
     "translation": "فشل التحميل"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "غير موجود"
   },
-  "9e7dc2358c": {
-    "translation": "نحن نستخدم ملفات تعريف الارتباط عند جمع التحليلات لمساعدتنا على تحسين tldraw. بالنقر فوق \"قبول\"، فإنك توافق على <a>سياسة ملفات تعريف الارتباط</a> الخاصة بنا."
-  },
   "a104439641": {
     "translation": "ترك مساحة"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "تبديل الشريط الجانبي"
   },
-  "d59048f21f": {
-    "translation": "يتعلم أكثر"
-  },
   "d721757161": {
     "translation": "الموضوع"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "اشتراك"
-  },
-  "d98ac12774": {
-    "translation": "يرفض"
   },
   "d9fe660e4e": {
     "translation": "عذرًا، لا يمكنك الوصول إلى مساحة العمل تلك."
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "شروط الخدمة"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, zero {تمت إضافة {count} ملف .tldr.} one {تمت إضافة ملف .tldr واحد.} two {تمت إضافة ملفي .tldr.} few {تمت إضافة {count} ملفات .tldr.} many {تمت إضافة {count} ملفًا .tldr.} other {تمت إضافة {count} ملف .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "تثبيت"

@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "Exporteer de inhoud als een .tldr-bestand: Ga naar 'Bestand' > 'Kopie opslaan'"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {{count} .tldr-bestand uploaden…} other {{count} .tldr-bestanden uploaden…}}"
-  },
-  "279f0531ff": {
-    "translation": "Nog steeds problemen? Laat het ons weten op <a>hello@tldraw.com</a>"
-  },
   "299cb00a7a": {
     "translation": "Uploaden mislukt"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "Niet gevonden"
   },
-  "9e7dc2358c": {
-    "translation": "We gebruiken cookies bij het verzamelen van analyses om ons te helpen tldraw te verbeteren. Door op accepteren te klikken, gaat u akkoord met ons <a>cookiebeleid</a>."
-  },
   "a104439641": {
     "translation": "Vulling"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "Schakel zijbalk in"
   },
-  "d59048f21f": {
-    "translation": "Meer informatie"
-  },
   "d721757161": {
     "translation": "Thema"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "Aanmelden"
-  },
-  "d98ac12774": {
-    "translation": "Afwijzen"
   },
   "d9fe660e4e": {
     "translation": "Helaas, u hebt geen toegang tot die werkruimte."
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "Servicevoorwaarden"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {{count} .tldr-bestand toegevoegd.} other {{count} .tldr-bestanden toegevoegd.}}"
   },
   "e78e14c5f1": {
     "translation": "Vastmaken"

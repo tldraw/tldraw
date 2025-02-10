@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "Exportujte obsah jako soubor .tldr: Přejděte na Soubor > Uložit kopii"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Nahrávání {count} souboru .tldr…} few {} many {} other {Nahrávání {count} souborů .tldr…}}"
-  },
-  "279f0531ff": {
-    "translation": "Stále máte potíže? Dejte nám vědět na <a>hello@tldraw.com</a>"
-  },
   "299cb00a7a": {
     "translation": "Nahrání se nezdařilo"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "Nenalezeno"
   },
-  "9e7dc2358c": {
-    "translation": "Při shromažďování analýz používáme soubory cookie, které nám pomáhají zlepšit tldraw. Kliknutím na tlačítko Přijmout souhlasíte s našimi <a>zásadami souborů cookie</a>."
-  },
   "a104439641": {
     "translation": "Vycpávka"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "Přepnout postranní panel"
   },
-  "d59048f21f": {
-    "translation": "Zjistěte více"
-  },
   "d721757161": {
     "translation": "Téma"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "Zaregistrujte se"
-  },
-  "d98ac12774": {
-    "translation": "Odmítnout"
   },
   "d9fe660e4e": {
     "translation": "Litujeme, k tomuto pracovnímu prostoru nemáte přístup."
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "Podmínky služby"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {Přidán {count} soubor .tldr.} few {} many {} other {Byly přidány {count} soubory .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "Připnout"

@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "U dhoofi waxa ku jira sidii faylka .tldr: Tag 'File'> 'Kaydi nuqul'"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Soo dejinta {count} .tldr faylka…} other {Soo dejinta {count} .tldr faylasha…}}"
-  },
-  "279f0531ff": {
-    "translation": "Weli dhib baa haysta? Nagu ogeysii dhanka <a>hello@tldraw.com</a>"
-  },
   "299cb00a7a": {
     "translation": "Soo dejintu waa fashilantay"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "Lama helin"
   },
-  "9e7dc2358c": {
-    "translation": "Waxaan isticmaalnaa cookies marka aan aruurineyno falanqaynta si ay nooga caawiso horumarinta tldraw. Markaad gujiso aqbalida waxaad ogolaatay <a> siyaasadayada kukiga</a>."
-  },
   "a104439641": {
     "translation": "suufka"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "Beddel dhinaca bar"
   },
-  "d59048f21f": {
-    "translation": "Wax badan baro"
-  },
   "d721757161": {
     "translation": "Dulucda"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "Isdiiwaangeli"
-  },
-  "d98ac12774": {
-    "translation": "Diid"
   },
   "d9fe660e4e": {
     "translation": "Waan ka xunahay, ma heli kartid goobtaas shaqada."
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "Shuruudaha adeegga"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {Lagu daray {count} .tldr faylka.} other {Lagu daray {count} .tldr faylasha.}}"
   },
   "e78e14c5f1": {
     "translation": "Pin"

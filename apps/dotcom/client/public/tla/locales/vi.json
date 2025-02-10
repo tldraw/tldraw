@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "Xuất nội dung dưới dạng tệp .tldr: Vào 'Tệp' > 'Lưu bản sao'"
   },
-  "20530afec1": {
-    "translation": "{count, plural, other {Đang tải lên {count} tệp .tldr…}}"
-  },
-  "279f0531ff": {
-    "translation": "Bạn vẫn gặp sự cố? Cho chúng tôi biết tại <a>hello@tldraw.com</a>"
-  },
   "299cb00a7a": {
     "translation": "Tải lên thất bại"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "Không tìm thấy"
   },
-  "9e7dc2358c": {
-    "translation": "Chúng tôi sử dụng cookie khi thu thập dữ liệu phân tích để giúp chúng tôi cải thiện tldraw. Bằng cách nhấp vào chấp nhận, bạn đồng ý với <a>chính sách cookie</a> của chúng tôi."
-  },
   "a104439641": {
     "translation": "Lề trong"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "Chuyển đổi thanh bên"
   },
-  "d59048f21f": {
-    "translation": "Tìm hiểu thêm"
-  },
   "d721757161": {
     "translation": "Chủ đề"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "Đăng ký"
-  },
-  "d98ac12774": {
-    "translation": "Từ chối"
   },
   "d9fe660e4e": {
     "translation": "Rất tiếc, bạn không có quyền truy cập vào không gian làm việc này."
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "Điều khoản dịch vụ"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, other {Đã thêm {count} tệp .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "Ghim"

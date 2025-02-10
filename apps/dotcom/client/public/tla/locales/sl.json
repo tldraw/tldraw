@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "Izvozite vsebino kot datoteko .tldr: pojdite na 'Datoteka' > 'Shrani kopijo'"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Nalaganje {count} datoteke .tldr …} two {} few {} other {Nalaganje {count} datotek .tldr …}}"
-  },
-  "279f0531ff": {
-    "translation": "Še vedno imate težave? Sporočite nam na <a>hello@tldraw.com</a>"
-  },
   "299cb00a7a": {
     "translation": "Nalaganje ni uspelo"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "Ni najdeno"
   },
-  "9e7dc2358c": {
-    "translation": "Pri zbiranju analitike uporabljamo piškotke, ki nam pomagajo izboljšati tldraw. S klikom na Sprejmi se strinjate z našo <a>politiko o piškotkih</a>."
-  },
   "a104439641": {
     "translation": "Obroba"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "Preklopi stransko vrstico"
   },
-  "d59048f21f": {
-    "translation": "Več o tem"
-  },
   "d721757161": {
     "translation": "Tema"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "Prijavite se"
-  },
-  "d98ac12774": {
-    "translation": "Zavrni"
   },
   "d9fe660e4e": {
     "translation": "Žal nimate dostopa do tega delovnega prostora."
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "Pogoji storitve"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {Dodana {count} datoteka .tldr.} two {} few {} other {Dodane {count} datoteke .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "Pin"

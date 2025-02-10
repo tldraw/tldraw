@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "Eksport kandungan sebagai fail .tldr: Pergi ke 'Fail' > 'Simpan salinan'"
   },
-  "20530afec1": {
-    "translation": "{count, plural, other {Memuat naik {count} fail .tldr…}}"
-  },
-  "279f0531ff": {
-    "translation": "Masih menghadapi masalah? Beritahu kami di <a>hello@tldraw.com</a>"
-  },
   "299cb00a7a": {
     "translation": "Muat naik gagal"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "Tidak dijumpai"
   },
-  "9e7dc2358c": {
-    "translation": "Kami menggunakan kuki semasa mengumpul analitik untuk membantu kami meningkatkan tldraw. Dengan mengklik terima anda bersetuju menerima <a>dasar kuki</a> kami."
-  },
   "a104439641": {
     "translation": "Padding"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "Togol bar sisi"
   },
-  "d59048f21f": {
-    "translation": "Ketahui lebih lanjut"
-  },
   "d721757161": {
     "translation": "Tema"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "daftar"
-  },
-  "d98ac12774": {
-    "translation": "Tolak"
   },
   "d9fe660e4e": {
     "translation": "Maaf, anda tiada akses kepada ruang kerja itu."
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "Syarat perkhidmatan"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, other {Menambahkan {count} fail .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "Pin"

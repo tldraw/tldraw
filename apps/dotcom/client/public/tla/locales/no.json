@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "Eksporter innholdet som en .tldr-fil: Gå til \"Fil\" > \"Lagre en kopi\""
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Laster opp {count} .tldr-fil …} other {Laster opp {count} .tldr-filer …}}"
-  },
-  "279f0531ff": {
-    "translation": "Har du fortsatt problemer? Gi oss beskjed på <a>hello@tldraw.com</a>"
-  },
   "299cb00a7a": {
     "translation": "Opplasting mislyktes"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "Ikke funnet"
   },
-  "9e7dc2358c": {
-    "translation": "Vi bruker informasjonskapsler når vi samler inn analyser for å hjelpe oss med å forbedre tldraw. Ved å klikke godta godtar du våre <a>retningslinjer for informasjonskapsler</a>."
-  },
   "a104439641": {
     "translation": "Polstring"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "Bytt sidefelt"
   },
-  "d59048f21f": {
-    "translation": "Lær mer"
-  },
   "d721757161": {
     "translation": "Tema"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "Registrer deg"
-  },
-  "d98ac12774": {
-    "translation": "Avvis"
   },
   "d9fe660e4e": {
     "translation": "Beklager, du har ikke tilgang til det arbeidsområdet."
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "Vilkår for bruk"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {Lagt til {count} .tldr-fil.} other {Lagt til {count} .tldr-filer.}}"
   },
   "e78e14c5f1": {
     "translation": "Pin"

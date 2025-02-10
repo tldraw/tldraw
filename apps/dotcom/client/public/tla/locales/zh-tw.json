@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "將內容匯出為 .tldr 檔：前往「檔案」>「儲存副本」"
   },
-  "20530afec1": {
-    "translation": "{count, plural, other {正在上傳 {count} 個 .tldr 檔案…}}"
-  },
-  "279f0531ff": {
-    "translation": "仍有問題嗎？請寄信至 <a>hello@tldraw.com</a> 與我們聯絡"
-  },
   "299cb00a7a": {
     "translation": "上傳失敗"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "找不到"
   },
-  "9e7dc2358c": {
-    "translation": "我們在收集分析資料時使用 cookie 來幫助我們改善 tldraw。點選「接受」即表示您同意我們的<a>cookie 政策</a>。"
-  },
   "a104439641": {
     "translation": "填充"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "切換側邊欄"
   },
-  "d59048f21f": {
-    "translation": "了解更多"
-  },
   "d721757161": {
     "translation": "主題"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "報名"
-  },
-  "d98ac12774": {
-    "translation": "拒絕"
   },
   "d9fe660e4e": {
     "translation": "對不起，您無權存取該工作空間。"
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "服務條款"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, other {已新增 {count} 個 .tldr 檔案。}}"
   },
   "e78e14c5f1": {
     "translation": "置頂"

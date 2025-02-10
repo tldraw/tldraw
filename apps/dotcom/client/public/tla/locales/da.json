@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "Eksporter indholdet som en .tldr-fil: Gå til 'Filer' > 'Gem en kopi'"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Uploader {count} .tldr-fil...} other {Uploader {count} .tldr-filer...}}"
-  },
-  "279f0531ff": {
-    "translation": "Har du stadig problemer? Fortæl os det på <a>hello@tldraw.com</a>"
-  },
   "299cb00a7a": {
     "translation": "Upload mislykkedes"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "Ikke fundet"
   },
-  "9e7dc2358c": {
-    "translation": "Vi bruger cookies, når vi indsamler analyser for at hjælpe os med at forbedre tldraw. Ved at klikke på accepter accepterer du vores <a>cookiepolitik</a>."
-  },
   "a104439641": {
     "translation": "Polstring"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "Skift sidebjælke"
   },
-  "d59048f21f": {
-    "translation": "Få flere oplysninger"
-  },
   "d721757161": {
     "translation": "Tema"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "Tilmeld dig"
-  },
-  "d98ac12774": {
-    "translation": "Afvise"
   },
   "d9fe660e4e": {
     "translation": "Beklager, du har ikke adgang til det arbejdsområde."
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "Servicevilkår"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {Tilføjet {count} .tldr-fil.} other {Tilføjet {count} .tldr-filer.}}"
   },
   "e78e14c5f1": {
     "translation": "Stift"

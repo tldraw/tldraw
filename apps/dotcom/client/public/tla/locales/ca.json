@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "Exporteu el contingut com a fitxer .tldr: aneu a \"Fitxer\" > \"Desa una còpia\""
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {S'està penjant {count} fitxer .tldr...} other {S'estan penjant {count} fitxers .tldr...}}"
-  },
-  "279f0531ff": {
-    "translation": "Encara tens problemes? Fes-nos-ho saber a <a>hello@tldraw.com</a>"
-  },
   "299cb00a7a": {
     "translation": "La càrrega ha fallat"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "No s'ha trobat"
   },
-  "9e7dc2358c": {
-    "translation": "Utilitzem galetes quan recopilam analítiques per ajudar-nos a millorar tldraw. En fer clic a accepta, acceptes la nostra <a>política de galetes</a>."
-  },
   "a104439641": {
     "translation": "Encoixinat"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "Canvia la barra lateral"
   },
-  "d59048f21f": {
-    "translation": "Més informació"
-  },
   "d721757161": {
     "translation": "Tema"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "Registra't"
-  },
-  "d98ac12774": {
-    "translation": "Rebutja"
   },
   "d9fe660e4e": {
     "translation": "Ho sentim, no tens accés a aquest espai de treball."
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "Condicions del servei"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {S'ha afegit {count} fitxer .tldr.} other {S'han afegit {count} fitxers .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "Pin"

@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "Exporte el contenido como archivo .tldr: vaya a \"Archivo\" > \"Guardar una copia\""
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Subiendo {count} archivo .tldr...} other {Subiendo {count} archivos .tldr...}}"
-  },
-  "279f0531ff": {
-    "translation": "¿Sigue teniendo problemas? Háganoslo saber en <a>hello@tldraw.com</a>"
-  },
   "299cb00a7a": {
     "translation": "Error al cargar"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "No encontrado"
   },
-  "9e7dc2358c": {
-    "translation": "Utilizamos cookies para recopilar información analítica que nos ayuda a mejorar tldraw. Al hacer clic en Aceptar, acepta nuestra <a>política de cookies</a>."
-  },
   "a104439641": {
     "translation": "Relleno"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "Alternar barra lateral"
   },
-  "d59048f21f": {
-    "translation": "Más información"
-  },
   "d721757161": {
     "translation": "Tema"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "Inscribirse"
-  },
-  "d98ac12774": {
-    "translation": "Rechazar"
   },
   "d9fe660e4e": {
     "translation": "Lo sentimos, no tiene acceso a ese espacio de trabajo."
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "Condiciones de servicio"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {Ha añadido {count} archivo .tldr.} other {Ha añadido {count} archivos .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "Anclar"

@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "A tartalom exportálása .tldr fájlként: lépjen a „Fájl” > „Másolat mentése” menüpontra."
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {{count} .tldr fájl feltöltése…} other {{count} .tldr fájlok feltöltése…}}"
-  },
-  "279f0531ff": {
-    "translation": "Még mindig gondja van? Értesítsen minket a <a>hello@tldraw.com</a> címen"
-  },
   "299cb00a7a": {
     "translation": "A feltöltés sikertelen"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "Nem található"
   },
-  "9e7dc2358c": {
-    "translation": "Az elemzések gyűjtésekor cookie-kat használunk a tldraw javítása érdekében. Az elfogadás gombra kattintva elfogadja <a>cookie-szabályzatunkat</a>."
-  },
   "a104439641": {
     "translation": "Párnázás"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "Oldalsáv váltása"
   },
-  "d59048f21f": {
-    "translation": "További információ"
-  },
   "d721757161": {
     "translation": "Téma"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "Regisztráljon"
-  },
-  "d98ac12774": {
-    "translation": "Elutasít"
   },
   "d9fe660e4e": {
     "translation": "Sajnáljuk, nincs hozzáférése ehhez a munkaterülethez."
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "Szolgáltatási feltételek"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {{count} .tldr fájl hozzáadva.} other {{count} .tldr fájl hozzáadva.}}"
   },
   "e78e14c5f1": {
     "translation": "Pin"

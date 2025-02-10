@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "Izvezite sadržaj kao .tldr datoteku: idite na 'Datoteka' > 'Spremi kopiju'"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Prijenos {count} .tldr datoteke…} few {} other {Prijenos {count} .tldr datoteka…}}"
-  },
-  "279f0531ff": {
-    "translation": "Još uvijek imate problema? Javite nam na <a>hello@tldraw.com</a>"
-  },
   "299cb00a7a": {
     "translation": "Prijenos nije uspio"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "Nije pronađeno"
   },
-  "9e7dc2358c": {
-    "translation": "Koristimo kolačiće prilikom prikupljanja analitičkih podataka kako bismo poboljšali tldraw. Klikom na prihvaćam slažete se s našim <a>pravilima o kolačićima</a>."
-  },
   "a104439641": {
     "translation": "Padding"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "Uključi/isključi bočnu traku"
   },
-  "d59048f21f": {
-    "translation": "Saznajte više"
-  },
   "d721757161": {
     "translation": "Tema"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "Prijavite se"
-  },
-  "d98ac12774": {
-    "translation": "Odbiti"
   },
   "d9fe660e4e": {
     "translation": "Nažalost, nemate pristup tom radnom prostoru."
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "Uvjeti usluge"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {Dodana {count} .tldr datoteka.} few {} other {Dodane {count} .tldr datoteke.}}"
   },
   "e78e14c5f1": {
     "translation": "Pin"

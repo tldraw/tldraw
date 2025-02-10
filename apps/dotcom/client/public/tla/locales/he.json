@@ -44,12 +44,6 @@
   "1f9696d5f2": {
     "translation": "ייצאו את התוכן כקובץ tldr: עברו אל 'קובץ' > 'שמירת עותק'"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {מעלה קובץ tldr אחד...} two {מעלה שני קובצי tldr...} many {מעלה {count} קובצי tldr...} other {מעלה {count} קובצי tldr...}}"
-  },
-  "279f0531ff": {
-    "translation": "עדיין נתקלים בבעיות? הודיעו לנו בכתובת <a>hello@tldraw.com</a>"
-  },
   "299cb00a7a": {
     "translation": "ההעלאה נכשלה"
   },
@@ -236,9 +230,6 @@
   "9e076f5885": {
     "translation": "לא נמצא"
   },
-  "9e7dc2358c": {
-    "translation": "אנו משתמשים בקובצי Cookie בעת איסוף ניתוח נתונים כדי לעזור לנו לשפר את tldraw. בלחיצה על 'קבל' אתה מסכים ל<a>מדיניות קובצי ה-cookie</a> שלנו."
-  },
   "a104439641": {
     "translation": "ריווח פנימי"
   },
@@ -324,9 +315,6 @@
   "d4bbf74f3e": {
     "translation": "החלפת סרגל הצד"
   },
-  "d59048f21f": {
-    "translation": "למידע נוסף"
-  },
   "d721757161": {
     "translation": "נושא"
   },
@@ -338,9 +326,6 @@
   },
   "d9776f0775": {
     "translation": "הירשם"
-  },
-  "d98ac12774": {
-    "translation": "לִדחוֹת"
   },
   "d9fe660e4e": {
     "translation": "מצטערים, אין לך גישה לסביבת העבודה הזו."
@@ -359,9 +344,6 @@
   },
   "e404559826": {
     "translation": "תנאי שירות"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {קובץ tldr אחד נוסף.} two {שני קובצי tldr נוספו.} many {{count} קבצי tldr נוספו.} other {{count} קבצי tldr נוספו.}}"
   },
   "e78e14c5f1": {
     "translation": "נעיצה"
