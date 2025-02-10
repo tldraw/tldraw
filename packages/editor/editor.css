@@ -172,6 +172,7 @@
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
 	--shadow-4: 0px 0px 3px hsl(0, 0%, 0%, 19%), 0px 5px 4px hsl(0, 0%, 0%, 16%),
 		0px 2px 16px hsl(0, 0%, 0%, 6%), inset 0px 0px 0px 1px var(--color-panel-contrast);
+	--shadow-focus-ring: inset 0 0 0 3px hsl(213, 100%, 68%);
 }
 
 .tl-theme__dark {

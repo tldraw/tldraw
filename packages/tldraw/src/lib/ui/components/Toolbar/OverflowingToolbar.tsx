@@ -65,6 +65,9 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 			#${id}_more > *:nth-child(-n + ${overflowIndex}) {
 				display: none;
 			}
+			#${id}_more > *:nth-child(-n + ${overflowIndex + 4}) {
+				margin-top: 0;
+			}
         `
 	}, [lastActiveOverflowItem, id, overflowIndex])
 
