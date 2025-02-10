@@ -3545,7 +3545,7 @@ describe('resizing a selection of mixed rotations', () => {
 
 describe('editor.resizeNoteShape', () => {
 	beforeEach(() => {
-		editor.getShapeUtil<NoteShapeUtil>('note').options.resizeMode = 'none'
+		editor.getShapeUtil<NoteShapeUtil>('note').options.resizeMode = 'scale'
 	})
 
 	it('can scale when that option is set to true', () => {
