@@ -5,6 +5,7 @@ import {
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
+	TlaFileStatePartial,
 	TlaUser,
 	Z_PROTOCOL_VERSION,
 	ZClientSentMessage,
@@ -292,7 +293,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				)
 			}
 			case 'file_state': {
-				const nextFileState = update.row as TlaFileState
+				const nextFileState = update.row as TlaFileStatePartial
 				let file = s.files.find((f) => f.id === nextFileState.fileId)
 				if (!file) {
 					// The user might not have access to this file yet, because they just followed a link
@@ -303,11 +304,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					throw new ZMutationError(ZErrorCode.bad_request, `File not found ${nextFileState.fileId}`)
 				}
 				if (file.ownerId === this.userId) return
-				if (
-					file.shared &&
-					(nextFileState.userId === this.userId || nextFileState.userId === undefined)
-				)
-					return
+				if (file.shared && nextFileState.userId === this.userId) return
 
 				throw new ZMutationError(
 					ZErrorCode.forbidden,
