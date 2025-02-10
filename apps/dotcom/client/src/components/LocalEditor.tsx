@@ -1,8 +1,6 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { ReactNode, useEffect } from 'react'
 import {
-	DefaultDebugMenu,
-	DefaultDebugMenuContent,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
@@ -38,10 +36,8 @@ import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { LocalFileMenu } from './FileMenu'
 import { LegacyLinks } from './Links'
-import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
-import { PreviewBlueDot, PreviewMenuItem } from './preview-stuff'
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
@@ -50,7 +46,6 @@ const components: TLComponents = {
 	MainMenu: () => (
 		<>
 			<DefaultMainMenu>
-				<PreviewMenuItem />
 				<TldrawUiMenuGroup id="basic">
 					<LocalFileMenu />
 					<EditSubmenu />
@@ -61,15 +56,6 @@ const components: TLComponents = {
 				<PreferencesGroup />
 				<LegacyLinks />
 			</DefaultMainMenu>
-			<PreviewBlueDot
-				style={{
-					position: 'absolute',
-					borderColor: 'var(--color-panel)',
-					top: 10,
-					left: 24,
-					zIndex: 1000,
-				}}
-			/>
 		</>
 	),
 	KeyboardShortcutsDialog: (props) => {
@@ -81,20 +67,6 @@ const components: TLComponents = {
 				</TldrawUiMenuGroup>
 				<DefaultKeyboardShortcutsDialogContent />
 			</DefaultKeyboardShortcutsDialog>
-		)
-	},
-	DebugMenu: () => {
-		return (
-			<DefaultDebugMenu>
-				<DefaultDebugMenuContent />
-			</DefaultDebugMenu>
-		)
-	},
-	SharePanel: () => {
-		return (
-			<div className="tlui-share-zone" draggable={false}>
-				<ShareMenu />
-			</div>
 		)
 	},
 }
