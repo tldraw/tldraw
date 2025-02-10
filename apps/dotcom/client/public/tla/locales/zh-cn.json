@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "创建文件"
   },
+  "1bef75f760": {
+    "translation": "允许 tldraw 就此事向我发送电子邮件"
+  },
   "1da2e8106b": {
     "translation": "发生意外错误。"
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "要将内容导出为.tldr文件：转到“文件”>“保存副本”"
   },
-  "20530afec1": {
-    "translation": "{count, plural, other {正在上传{count}个.tldr文件……}}"
-  },
-  "279f0531ff": {
-    "translation": "仍然有问题？可通过<a>hello@tldraw.com</a>与我们联系。"
+  "26e5b44256": {
+    "translation": "向我们提供反馈"
   },
   "299cb00a7a": {
     "translation": "上传失败"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "国际化：高亮缺失部分"
+  },
+  "32656a600c": {
+    "translation": "发现错误了吗？有改进 tldraw 的想法吗？我们很乐意听取您的意见！"
   },
   "335defdafe": {
     "translation": "请尝试刷新页面。"
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "从旧 tldraw.com 导入"
   },
+  "46137245cd": {
+    "translation": "感谢您帮助我们改进 tldraw！"
+  },
+  "4778b9f3f2": {
+    "translation": "隐私设置"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "确定要忘记该文件吗？"
+  },
+  "4c06678729": {
+    "translation": "我们使用第一方 Cookie 来改进我们的服务。<a>了解更多</a>"
   },
   "4d1c8263ba": {
     "translation": "重新加载"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "请稍后再试。"
+  },
+  "554a05155c": {
+    "translation": "仍有问题？<a>报告问题</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "在您登录前创建的部分内容未能成功上传。"
+  },
+  "5db1e9a8ca": {
+    "translation": "填写此表格，<discord>在 Discord 上与我们聊天</discord>或<github>在 GitHub 上提交问题</github>。"
+  },
+  "5f3c333678": {
+    "translation": "已提交反馈"
   },
   "5fb63579fc": {
     "translation": "复制"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "请刷新页面，获取最新版tldraw。"
   },
+  "86353d2c41": {
+    "translation": "添加了 {total} 个 .tldr 文件。"
+  },
   "86c66437fd": {
     "translation": "重命名文件"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "未找到"
   },
-  "9e7dc2358c": {
-    "translation": "我们在收集分析数据时使用 Cookie，以帮助我们改进 tldraw。点击“接受”即表示您同意我们的<a>Cookie 政策</a>。"
+  "9e93c98d88": {
+    "translation": "选择退出"
   },
   "a104439641": {
     "translation": "内边距"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Cookie 政策"
+  },
+  "a4d3b161ce": {
+    "translation": "提交"
   },
   "a6cc403d56": {
     "translation": "任何拥有链接的人"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "取消固定"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, other {正在上传 {uploaded} 个 .tldr 文件（共 {total} 个）…}}"
   },
   "bc88b0e89e": {
     "translation": "由{ownerName}分享"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "切换侧边栏"
   },
-  "d59048f21f": {
-    "translation": "了解更多"
+  "d5ef96e383": {
+    "translation": "下载文件"
   },
   "d721757161": {
     "translation": "主题"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "报名"
-  },
-  "d98ac12774": {
-    "translation": "拒绝"
   },
   "d9fe660e4e": {
     "translation": "抱歉，您无权访问该工作空间。"
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "服务条款"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, other {已添加{count}个.tldr文件。}}"
   },
   "e78e14c5f1": {
     "translation": "固定"

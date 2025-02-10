@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "Samee fayl"
   },
+  "1bef75f760": {
+    "translation": "U ogolow tldraw inuu iimayl iigu soo diro arrintan"
+  },
   "1da2e8106b": {
     "translation": "Khalad lama filaan ah ayaa dhacay"
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "U dhoofi waxa ku jira sidii faylka .tldr: Tag 'File'> 'Kaydi nuqul'"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Soo dejinta {count} .tldr faylka…} other {Soo dejinta {count} .tldr faylasha…}}"
-  },
-  "279f0531ff": {
-    "translation": "Weli dhib baa haysta? Nagu ogeysii dhanka <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "Warcelin na sii"
   },
   "299cb00a7a": {
     "translation": "Soo dejintu waa fashilantay"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: Iftiimin Maqan"
+  },
+  "32656a600c": {
+    "translation": "Wax qaldan arag? Ma haysaa fikrad aad ku horumariso tldraw? Waxaan jeclaan lahayn inaan maqalno!"
   },
   "335defdafe": {
     "translation": "Fadlan isku day inaad dib u cusbooneysiiso bogga"
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "Ka soo deji tldraw.com hore"
   },
+  "46137245cd": {
+    "translation": "Waad ku mahadsan tahay inaad naga caawisay horumarinta tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "Dejinta qarsoodiga"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Ma hubtaa inaad rabto inaad ilowdo faylkan?"
+  },
+  "4c06678729": {
+    "translation": "Waxaan isticmaalnaa cookies-ka-koowaad si aan u horumarino adeegyadeena. <a>wax badan baro</a>"
   },
   "4d1c8263ba": {
     "translation": "Dib u soo deji"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "Fadlan hoos u dhig"
+  },
+  "554a05155c": {
+    "translation": "Weli dhib baa haysta? <a>Ka warbixi dhibaato</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "Waanu ku guuldareysanay inaan soo rarno qayb ka mid ah macluumaadka aad abuurtay ka hor inta aanad soo galin"
+  },
+  "5db1e9a8ca": {
+    "translation": "Buuxi foomkan, <discord>nagula sheekee Discord</ discord> ama <github>gudbi arrin GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "Jawaab celin waa la gudbiyay"
   },
   "5fb63579fc": {
     "translation": "Nuqul"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "Fadlan dib u cusbooneysii bogga si aad u hesho nuqulkii ugu dambeeyay ee tldraw."
   },
+  "86353d2c41": {
+    "translation": "Lagu daray [%1$s: total] .tldr files."
+  },
   "86c66437fd": {
     "translation": "Magaca beddelo faylka"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "Lama helin"
   },
-  "9e7dc2358c": {
-    "translation": "Waxaan isticmaalnaa cookies marka aan aruurineyno falanqaynta si ay nooga caawiso horumarinta tldraw. Markaad gujiso aqbalida waxaad ogolaatay <a> siyaasadayada kukiga</a>."
+  "9e93c98d88": {
+    "translation": "Ka bax"
   },
   "a104439641": {
     "translation": "suufka"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Siyaasadda kukiyada"
+  },
+  "a4d3b161ce": {
+    "translation": "Gudbi"
   },
   "a6cc403d56": {
     "translation": "Qof kasta oo xiriir la leh"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "Furi"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {Soo dejinaya faylka .tldr…} other {Soo dejinta [%1$s:la soo geliyey] ee [%1$s: total] .tldr files…}}"
   },
   "bc88b0e89e": {
     "translation": "Waxaa wadaaga {ownerName}"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "Beddel dhinaca bar"
   },
-  "d59048f21f": {
-    "translation": "Wax badan baro"
+  "d5ef96e383": {
+    "translation": "Soo deji faylka"
   },
   "d721757161": {
     "translation": "Dulucda"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "Isdiiwaangeli"
-  },
-  "d98ac12774": {
-    "translation": "Diid"
   },
   "d9fe660e4e": {
     "translation": "Waan ka xunahay, ma heli kartid goobtaas shaqada."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "Shuruudaha adeegga"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {Lagu daray {count} .tldr faylka.} other {Lagu daray {count} .tldr faylasha.}}"
   },
   "e78e14c5f1": {
     "translation": "Pin"

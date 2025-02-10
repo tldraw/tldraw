@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "Skapa fil"
   },
+  "1bef75f760": {
+    "translation": "Tillåt tldraw att mejla mig om detta"
+  },
   "1da2e8106b": {
     "translation": "Ett oväntat fel inträffade."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "Exportera innehållet som en .tldr-fil: Gå till \"Arkiv\" > \"Spara en kopia\""
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Laddar upp {count} .tldr-fil...} other {Laddar upp {count} .tldr-filer...}}"
-  },
-  "279f0531ff": {
-    "translation": "Har du fortfarande problem? Berätta för oss på <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "Ge oss feedback"
   },
   "299cb00a7a": {
     "translation": "Uppladdningen misslyckades"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: Markering saknas"
+  },
+  "32656a600c": {
+    "translation": "Ser du något fel? Har du en idé att förbättra tldraw? Vi vill gärna höra det!"
   },
   "335defdafe": {
     "translation": "Försök att uppdatera sidan."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "Importera från gamla tldraw.com"
   },
+  "46137245cd": {
+    "translation": "Tack för att du hjälper oss att förbättra tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "Sekretessinställningar"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Är du säker på att du vill glömma den här filen?"
+  },
+  "4c06678729": {
+    "translation": "Vi använder förstapartscookies för att förbättra våra tjänster. <a>Läs mer</a>"
   },
   "4d1c8263ba": {
     "translation": "Ladda om"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "Vänligen sakta ner."
+  },
+  "554a05155c": {
+    "translation": "Har du fortfarande problem? <a>Rapportera ett problem</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "Vi kunde inte ladda upp en del av innehållet du skapade innan du loggade in."
+  },
+  "5db1e9a8ca": {
+    "translation": "Fyll i det här formuläret, <discord>chatta med oss ​​på Discord</discord> eller <github>skicka in ett ärende på GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "Feedback har skickats"
   },
   "5fb63579fc": {
     "translation": "Kopiera"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "Uppdatera sidan för att få den senaste versionen av tldraw."
   },
+  "86353d2c41": {
+    "translation": "Lade till {total} .tldr-filer."
+  },
   "86c66437fd": {
     "translation": "Byt namn på filen"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "Hittades inte"
   },
-  "9e7dc2358c": {
-    "translation": "Vi använder cookies när vi samlar in analyser för att hjälpa oss att förbättra tldraw. Genom att klicka på acceptera godkänner du vår <a>cookiepolicy</a>."
+  "9e93c98d88": {
+    "translation": "Välj bort"
   },
   "a104439641": {
     "translation": "Utfyllnad"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Cookiepolicy"
+  },
+  "a4d3b161ce": {
+    "translation": "Överlämna"
   },
   "a6cc403d56": {
     "translation": "Alla som har länken"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "Ta bort nål"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {Laddar upp .tldr-fil...} other {Laddar upp {uploaded} av {total} .tldr-filer...}}"
   },
   "bc88b0e89e": {
     "translation": "Delas av {ownerName}"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "Aktivera sidofältet"
   },
-  "d59048f21f": {
-    "translation": "Läs mer"
+  "d5ef96e383": {
+    "translation": "Ladda ner filen"
   },
   "d721757161": {
     "translation": "Tema"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "Anmäl dig"
-  },
-  "d98ac12774": {
-    "translation": "Avvisa"
   },
   "d9fe660e4e": {
     "translation": "Tyvärr, du har inte tillgång till den arbetsytan."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "Användarvillkor"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {Lade till {count} .tldr-fil.} other {Lade till {count} .tldr-filer.}}"
   },
   "e78e14c5f1": {
     "translation": "Nåla fast"

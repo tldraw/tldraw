@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "إنشاء ملف"
   },
+  "1bef75f760": {
+    "translation": "اسمح لـ tldraw بإرسال بريد إلكتروني إلي بخصوص هذا الأمر"
+  },
   "1da2e8106b": {
     "translation": "حدث خطأ غير متوقع."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "تصدير المحتوى كملف .tldr: اذهب إلى \"الملف\" > \"حفظ نسخة\""
   },
-  "20530afec1": {
-    "translation": "{count, plural, zero {جارٍ تحميل {count} ملف .tldr...} one {جارٍ تحميل ملف .tldr واحد...} two {جارٍ تحميل ملفي .tldr...} few {جارٍ تحميل {count} ملفات .tldr...} many {جارٍ تحميل {count} ملفًا .tldr...} other {جارٍ تحميل {count} ملف .tldr...}}"
-  },
-  "279f0531ff": {
-    "translation": "هل ما زلت تواجه صعوبة؟ اعلمنا بذلك على <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "أعطنا ردود الفعل"
   },
   "299cb00a7a": {
     "translation": "فشل التحميل"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: إبراز العناصر الناقصة"
+  },
+  "32656a600c": {
+    "translation": "هل لاحظت شيئًا خاطئًا؟ هل لديك فكرة لتحسين tldraw؟ يسعدنا سماعها!"
   },
   "335defdafe": {
     "translation": "يُرجى محاولة تحديث الصفحة."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "الاستيراد من tldraw.com القديم"
   },
+  "46137245cd": {
+    "translation": "شكرًا لمساعدتنا على تحسين tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "إعدادات الخصوصية"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "هل أنت متأكد من أنك تريد نسيان هذا الملف؟"
+  },
+  "4c06678729": {
+    "translation": "نحن نستخدم ملفات تعريف الارتباط الخاصة بنا لتحسين خدماتنا. <a>اعرف المزيد</a>"
   },
   "4d1c8263ba": {
     "translation": "إعادة التحميل"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "يُرجى إبطاء السرعة."
+  },
+  "554a05155c": {
+    "translation": "هل لا تزال تواجه مشكلة؟ <a>إبلاغ عن مشكلة</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "تعذر علينا تحميل بعض المحتوى الذي أنشأته قبل تسجيل الدخول."
+  },
+  "5db1e9a8ca": {
+    "translation": "قم بملء هذا النموذج، أو <discord>دردش معنا على Discord</discord> أو <github>أرسل مشكلة على GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "تم تقديم التعليقات"
   },
   "5fb63579fc": {
     "translation": "نسخ"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "يُرجى تحديث الصفحة للحصول على أحدث إصدار من tldraw."
   },
+  "86353d2c41": {
+    "translation": "تمت إضافة ملفات {total} .tldr."
+  },
   "86c66437fd": {
     "translation": "إعادة تسمية الملف"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "غير موجود"
   },
-  "9e7dc2358c": {
-    "translation": "نحن نستخدم ملفات تعريف الارتباط عند جمع التحليلات لمساعدتنا على تحسين tldraw. بالنقر فوق \"قبول\"، فإنك توافق على <a>سياسة ملفات تعريف الارتباط</a> الخاصة بنا."
+  "9e93c98d88": {
+    "translation": "انسحب"
   },
   "a104439641": {
     "translation": "ترك مساحة"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "سياسة ملفات تعريف الارتباط"
+  },
+  "a4d3b161ce": {
+    "translation": "يُقدِّم"
   },
   "a6cc403d56": {
     "translation": "أي شخص لديه الرابط"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "إلغاء التثبيت"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, zero {} one {جاري تحميل ملف .tldr…} two {} few {} many {} other {جاري تحميل {uploaded} من {total} ملفات .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "شاركه {ownerName}"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "تبديل الشريط الجانبي"
   },
-  "d59048f21f": {
-    "translation": "يتعلم أكثر"
+  "d5ef96e383": {
+    "translation": "تحميل الملف"
   },
   "d721757161": {
     "translation": "الموضوع"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "اشتراك"
-  },
-  "d98ac12774": {
-    "translation": "يرفض"
   },
   "d9fe660e4e": {
     "translation": "عذرًا، لا يمكنك الوصول إلى مساحة العمل تلك."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "شروط الخدمة"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, zero {تمت إضافة {count} ملف .tldr.} one {تمت إضافة ملف .tldr واحد.} two {تمت إضافة ملفي .tldr.} few {تمت إضافة {count} ملفات .tldr.} many {تمت إضافة {count} ملفًا .tldr.} other {تمت إضافة {count} ملف .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "تثبيت"
