@@ -87,7 +87,7 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 					readonlyOk: true,
 					async onSelect(source) {
 						handleUiEvent('create-new-shared-project', { source })
-						navigate(routes.legacyNewPage())
+						navigate(routes.tlaNew())
 					},
 				}
 				actions[NEW_PROJECT_ACTION] = {

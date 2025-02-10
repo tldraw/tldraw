@@ -64,7 +64,7 @@ export const router = createRoutesFromElements(
 	>
 		<Route element={<ShimIntlProvider />}>
 			<Route
-				path={ROUTES.touchscreenSidePanel}
+				path={ROUTES.tlaTouchScreenSidePanel}
 				lazy={() => import('./pages/public-touchscreen-side-panel')}
 			/>
 		</Route>
