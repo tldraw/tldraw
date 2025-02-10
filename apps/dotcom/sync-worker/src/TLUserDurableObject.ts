@@ -282,7 +282,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					if (Object.keys(rest).length === 1 && rest.updatedAt !== undefined) return
 					throw new ZMutationError(
 						ZErrorCode.forbidden,
-						'Cannot update fields other than updatedAt on a shared filed'
+						'Cannot update fields other than updatedAt on a shared file'
 					)
 				}
 				throw new ZMutationError(
