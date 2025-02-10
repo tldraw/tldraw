@@ -8,6 +8,7 @@ import {
 	TLAssetId,
 	TLBookmarkAsset,
 	TLBookmarkShape,
+	TLContent,
 	TLFileExternalAsset,
 	TLImageAsset,
 	TLShapeId,
@@ -30,6 +31,7 @@ import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-s
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { containBoxSize } from './utils/assets/assets'
+import { putExcalidrawContent } from './utils/excalidraw/putExcalidrawContent'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
 /**
@@ -111,6 +113,16 @@ export function registerDefaultExternalContentHandlers(
 	// url
 	editor.registerExternalContentHandler('url', async (externalContent) => {
 		return defaultHandleExternalUrlContent(editor, externalContent, options)
+	})
+
+	// tldraw
+	editor.registerExternalContentHandler('tldraw', async (externalContent) => {
+		return defaultHandleExternalTldrawContent(editor, externalContent)
+	})
+
+	// excalidraw
+	editor.registerExternalContentHandler('excalidraw', async (externalContent) => {
+		return defaultHandleExternalExcalidrawContent(editor, externalContent)
 	})
 }
 
@@ -561,6 +573,43 @@ export async function defaultHandleExternalUrlContent(
 				},
 			},
 		])
+	})
+}
+
+/** @public */
+export async function defaultHandleExternalTldrawContent(
+	editor: Editor,
+	{ point, content }: { point?: VecLike; content: TLContent }
+) {
+	editor.run(() => {
+		const selectionBoundsBefore = editor.getSelectionPageBounds()
+		editor.markHistoryStoppingPoint('paste')
+		editor.putContentOntoCurrentPage(content, {
+			point: point,
+			select: true,
+		})
+		const selectedBoundsAfter = editor.getSelectionPageBounds()
+		if (
+			selectionBoundsBefore &&
+			selectedBoundsAfter &&
+			selectionBoundsBefore?.collides(selectedBoundsAfter)
+		) {
+			// Creates a 'puff' to show content has been pasted
+			editor.updateInstanceState({ isChangingStyle: true })
+			editor.timers.setTimeout(() => {
+				editor.updateInstanceState({ isChangingStyle: false })
+			}, 150)
+		}
+	})
+}
+
+/** @public */
+export async function defaultHandleExternalExcalidrawContent(
+	editor: Editor,
+	{ point, content }: { point?: VecLike; content: any }
+) {
+	editor.run(() => {
+		putExcalidrawContent(editor, content, point)
 	})
 }
 

@@ -26,12 +26,12 @@ import {
 } from '@tldraw/editor'
 
 /**
- * Put excalidraw clipboard content onto the scene
+ * Put excalidraw clipboard content onto the current page.
  *
  * @param editor - The editor instance.
  * @param excalidrawClipboardContent - The excalidraw clipboard model.
  * @param point - The point at which to put the excalidraw content.
- * @internal
+ * @public
  */
 export async function putExcalidrawContent(
 	editor: Editor,
@@ -320,8 +320,6 @@ export async function putExcalidrawContent(
 	}
 
 	const p = point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : undefined)
-
-	editor.markHistoryStoppingPoint('paste')
 
 	editor.putContentOntoCurrentPage(tldrawContent, {
 		point: p,

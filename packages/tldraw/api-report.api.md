@@ -61,6 +61,7 @@ import { TLBookmarkAsset } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLBookmarkShapeProps } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
+import { TLContent } from '@tldraw/editor';
 import { TLCropInfo } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
 import { TLDefaultColorThemeColor } from '@tldraw/editor';
@@ -703,6 +704,12 @@ export function defaultHandleExternalEmbedContent<T>(editor: Editor, { point, ur
 }): void;
 
 // @public (undocumented)
+export function defaultHandleExternalExcalidrawContent(editor: Editor, { point, content }: {
+    content: any;
+    point?: VecLike;
+}): Promise<void>;
+
+// @public (undocumented)
 export function defaultHandleExternalFileAsset(editor: Editor, { file, assetId }: TLFileExternalAsset, { acceptedImageMimeTypes, acceptedVideoMimeTypes, maxAssetSize, maxImageDimension, toasts, msg, }: TLDefaultExternalContentHandlerOpts): Promise<TLAsset>;
 
 // @public (undocumented)
@@ -721,6 +728,12 @@ export function defaultHandleExternalSvgTextContent(editor: Editor, { point, tex
 export function defaultHandleExternalTextContent(editor: Editor, { point, text }: {
     point?: VecLike;
     text: string;
+}): Promise<void>;
+
+// @public (undocumented)
+export function defaultHandleExternalTldrawContent(editor: Editor, { point, content }: {
+    content: TLContent;
+    point?: VecLike;
 }): Promise<void>;
 
 // @public (undocumented)

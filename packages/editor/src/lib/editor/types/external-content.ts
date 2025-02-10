@@ -75,7 +75,7 @@ export interface TLEmbedExternalContent<EmbedDefinition> extends TLBaseExternalC
 
 /** @public */
 export interface TLTldrawExternalContent extends TLBaseExternalContent {
-	type: 'excalidraw'
+	type: 'tldraw'
 	content: TLContent
 }
 
