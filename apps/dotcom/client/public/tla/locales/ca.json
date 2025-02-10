@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "Crea un fitxer"
   },
+  "1bef75f760": {
+    "translation": "Permet que tldraw m'enviï un correu electrònic sobre això"
+  },
   "1da2e8106b": {
     "translation": "S'ha produït un error inesperat."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "Exporteu el contingut com a fitxer .tldr: aneu a \"Fitxer\" > \"Desa una còpia\""
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {S'està penjant {count} fitxer .tldr...} other {S'estan penjant {count} fitxers .tldr...}}"
-  },
-  "279f0531ff": {
-    "translation": "Encara tens problemes? Fes-nos-ho saber a <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "Doneu-nos comentaris"
   },
   "299cb00a7a": {
     "translation": "La càrrega ha fallat"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: Ressaltar que falta"
+  },
+  "32656a600c": {
+    "translation": "Veus alguna cosa malament? Tens una idea per millorar tldraw? Ens encantaria escoltar-ho!"
   },
   "335defdafe": {
     "translation": "Si us plau, prova d'actualitzar la pàgina."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "Importa des de l'antic tldraw.com"
   },
+  "46137245cd": {
+    "translation": "Gràcies per ajudar-nos a millorar tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "Configuració de privadesa"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Esteu segur que voleu oblidar aquest fitxer?"
+  },
+  "4c06678729": {
+    "translation": "Utilitzem cookies pròpies per millorar els nostres serveis. <a>Més informació</a>"
   },
   "4d1c8263ba": {
     "translation": "Torna a carregar"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "Si us plau, alentiu."
+  },
+  "554a05155c": {
+    "translation": "Encara tens problemes? <a>Informa d'un problema</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "No hem pogut penjar part del contingut que vas crear abans d'iniciar la sessió."
+  },
+  "5db1e9a8ca": {
+    "translation": "Omple aquest formulari, <discord>xateja amb nosaltres a Discord</discord> o <github>envia un problema a GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "S'ha enviat comentaris"
   },
   "5fb63579fc": {
     "translation": "Còpia"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "Actualitzeu la pàgina per obtenir la darrera versió de tldraw."
   },
+  "86353d2c41": {
+    "translation": "S'han afegit {total} fitxers .tldr."
+  },
   "86c66437fd": {
     "translation": "Canvia el nom del fitxer"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "No s'ha trobat"
   },
-  "9e7dc2358c": {
-    "translation": "Utilitzem galetes quan recopilam analítiques per ajudar-nos a millorar tldraw. En fer clic a accepta, acceptes la nostra <a>política de galetes</a>."
+  "9e93c98d88": {
+    "translation": "Desactivar"
   },
   "a104439641": {
     "translation": "Encoixinat"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Política de cookies"
+  },
+  "a4d3b161ce": {
+    "translation": "Envia"
   },
   "a6cc403d56": {
     "translation": "Qualsevol persona amb l'enllaç"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "Desenganxa"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {S'està penjant el fitxer .tldr...} other {S'estan penjant {carregats} de {total} fitxers .tldr...}}"
   },
   "bc88b0e89e": {
     "translation": "Compartit per {ownerName}"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "Canvia la barra lateral"
   },
-  "d59048f21f": {
-    "translation": "Més informació"
+  "d5ef96e383": {
+    "translation": "Descarregar fitxer"
   },
   "d721757161": {
     "translation": "Tema"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "Registra't"
-  },
-  "d98ac12774": {
-    "translation": "Rebutja"
   },
   "d9fe660e4e": {
     "translation": "Ho sentim, no tens accés a aquest espai de treball."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "Condicions del servei"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {S'ha afegit {count} fitxer .tldr.} other {S'han afegit {count} fitxers .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "Pin"

@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "Bestand aanmaken"
   },
+  "1bef75f760": {
+    "translation": "Sta tldraw toe om mij hierover een e-mail te sturen"
+  },
   "1da2e8106b": {
     "translation": "Er is een onverwachte fout opgetreden."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "Exporteer de inhoud als een .tldr-bestand: Ga naar 'Bestand' > 'Kopie opslaan'"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {{count} .tldr-bestand uploaden…} other {{count} .tldr-bestanden uploaden…}}"
-  },
-  "279f0531ff": {
-    "translation": "Nog steeds problemen? Laat het ons weten op <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "Geef ons feedback"
   },
   "299cb00a7a": {
     "translation": "Uploaden mislukt"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: Markering ontbreekt"
+  },
+  "32656a600c": {
+    "translation": "Ziet u iets verkeerd? Heeft u een idee om tldraw te verbeteren? We horen het graag!"
   },
   "335defdafe": {
     "translation": "Probeer de pagina te vernieuwen."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "Importeren van oude tldraw.com"
   },
+  "46137245cd": {
+    "translation": "Bedankt voor uw hulp bij het verbeteren van tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "Privacy-instellingen"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Weet u zeker dat u dit bestand wilt vergeten?"
+  },
+  "4c06678729": {
+    "translation": "Wij gebruiken first-party cookies om onze diensten te verbeteren. <a>Meer informatie</a>"
   },
   "4d1c8263ba": {
     "translation": "Opnieuw laden"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "Doe rustig aan."
+  },
+  "554a05155c": {
+    "translation": "Nog steeds problemen? <a>Meld een probleem</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "Een deel van de content die u hebt gemaakt voordat u zich aanmeldde, is niet geüpload."
+  },
+  "5db1e9a8ca": {
+    "translation": "Vul dit formulier in, <discord>chat met ons op Discord</discord> of <github>dien een probleem in op GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "Feedback ingediend"
   },
   "5fb63579fc": {
     "translation": "Kopiëren"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "Vernieuw de pagina om de nieuwste versie van tldraw te verkrijgen."
   },
+  "86353d2c41": {
+    "translation": "{total} .tldr-bestanden toegevoegd."
+  },
   "86c66437fd": {
     "translation": "Bestand hernoemen"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "Niet gevonden"
   },
-  "9e7dc2358c": {
-    "translation": "We gebruiken cookies bij het verzamelen van analyses om ons te helpen tldraw te verbeteren. Door op accepteren te klikken, gaat u akkoord met ons <a>cookiebeleid</a>."
+  "9e93c98d88": {
+    "translation": "Afmelden"
   },
   "a104439641": {
     "translation": "Vulling"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Cookiebeleid"
+  },
+  "a4d3b161ce": {
+    "translation": "Indienen"
   },
   "a6cc403d56": {
     "translation": "Iedereen met de link"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "Losmaken"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {Uploaden van .tldr-bestand…} other {Uploaden van {uploaded} van {total} .tldr-bestanden…}}"
   },
   "bc88b0e89e": {
     "translation": "Gedeeld door {ownerName}"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "Schakel zijbalk in"
   },
-  "d59048f21f": {
-    "translation": "Meer informatie"
+  "d5ef96e383": {
+    "translation": "Bestand downloaden"
   },
   "d721757161": {
     "translation": "Thema"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "Aanmelden"
-  },
-  "d98ac12774": {
-    "translation": "Afwijzen"
   },
   "d9fe660e4e": {
     "translation": "Helaas, u hebt geen toegang tot die werkruimte."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "Servicevoorwaarden"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {{count} .tldr-bestand toegevoegd.} other {{count} .tldr-bestanden toegevoegd.}}"
   },
   "e78e14c5f1": {
     "translation": "Vastmaken"

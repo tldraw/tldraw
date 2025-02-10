@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "Buat fail"
   },
+  "1bef75f760": {
+    "translation": "Benarkan tldraw menghantar e-mel kepada saya tentang perkara ini"
+  },
   "1da2e8106b": {
     "translation": "Ralat yang tidak dijangka berlaku."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "Eksport kandungan sebagai fail .tldr: Pergi ke 'Fail' > 'Simpan salinan'"
   },
-  "20530afec1": {
-    "translation": "{count, plural, other {Memuat naik {count} fail .tldr…}}"
-  },
-  "279f0531ff": {
-    "translation": "Masih menghadapi masalah? Beritahu kami di <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "Beri kami maklum balas"
   },
   "299cb00a7a": {
     "translation": "Muat naik gagal"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: Serlahkan Hilang"
+  },
+  "32656a600c": {
+    "translation": "Nampak sesuatu yang tidak kena? Ada idea untuk menambah baik tldraw? Kami ingin mendengarnya!"
   },
   "335defdafe": {
     "translation": "Sila cuba muat semula halaman."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "Import daripada tldraw.com lama"
   },
+  "46137245cd": {
+    "translation": "Terima kasih kerana membantu kami meningkatkan tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "Tetapan privasi"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Adakah anda pasti mahu melupakan fail ini?"
+  },
+  "4c06678729": {
+    "translation": "Kami menggunakan kuki pihak pertama untuk meningkatkan perkhidmatan kami. <a>Ketahui lebih lanjut</a>"
   },
   "4d1c8263ba": {
     "translation": "Muat semula"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "Tolong perlahankan."
+  },
+  "554a05155c": {
+    "translation": "Masih menghadapi masalah? <a>Laporkan masalah</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "Kami gagal memuat naik beberapa kandungan yang anda buat sebelum anda melog masuk."
+  },
+  "5db1e9a8ca": {
+    "translation": "Isi borang ini, <discord>sembang dengan kami di Discord</discord> atau <github>serahkan isu pada GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "Maklum balas diserahkan"
   },
   "5fb63579fc": {
     "translation": "salin"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "Sila muat semula halaman untuk mendapatkan versi terkini tldraw."
   },
+  "86353d2c41": {
+    "translation": "Menambahkan {total} fail .tldr."
+  },
   "86c66437fd": {
     "translation": "Namakan semula fail"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "Tidak dijumpai"
   },
-  "9e7dc2358c": {
-    "translation": "Kami menggunakan kuki semasa mengumpul analitik untuk membantu kami meningkatkan tldraw. Dengan mengklik terima anda bersetuju menerima <a>dasar kuki</a> kami."
+  "9e93c98d88": {
+    "translation": "Pilih keluar"
   },
   "a104439641": {
     "translation": "Padding"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Dasar kuki"
+  },
+  "a4d3b161ce": {
+    "translation": "Hantar"
   },
   "a6cc403d56": {
     "translation": "Sesiapa sahaja yang mempunyai pautan"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "Nyahsemat"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, other {Memuat naik {uploaded} daripada {total} fail .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "Dikongsi oleh {ownerName}"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "Togol bar sisi"
   },
-  "d59048f21f": {
-    "translation": "Ketahui lebih lanjut"
+  "d5ef96e383": {
+    "translation": "Muat turun fail"
   },
   "d721757161": {
     "translation": "Tema"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "daftar"
-  },
-  "d98ac12774": {
-    "translation": "Tolak"
   },
   "d9fe660e4e": {
     "translation": "Maaf, anda tiada akses kepada ruang kerja itu."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "Syarat perkhidmatan"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, other {Menambahkan {count} fail .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "Pin"

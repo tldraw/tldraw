@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "Luo tiedosto"
   },
+  "1bef75f760": {
+    "translation": "Salli tldrawn lähettää minulle sähköpostia tästä"
+  },
   "1da2e8106b": {
     "translation": "Tapahtui odottamaton virhe."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "Vie sisällön .tldr-tiedostona: Siirry kohtaan \"Tiedosto\" > \"Tallenna kopio\""
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Ladataan {count} .tldr-tiedostoa…} other {Ladataan {count} .tldr-tiedostoja…}}"
-  },
-  "279f0531ff": {
-    "translation": "Onko sinulla edelleen ongelmia? Kerro meille osoitteessa <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "Anna meille palautetta"
   },
   "299cb00a7a": {
     "translation": "Lataus epäonnistui"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: Korosta puuttuu"
+  },
+  "32656a600c": {
+    "translation": "Näetkö jotain vikaa? Onko sinulla idea tldraw:n parantamiseksi? Haluaisimme kuulla sen!"
   },
   "335defdafe": {
     "translation": "Yritä päivittää sivu."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "Tuo vanhasta tldraw.com-sivustosta"
   },
+  "46137245cd": {
+    "translation": "Kiitos, että autat meitä parantamaan tldraw:ta!"
+  },
+  "4778b9f3f2": {
+    "translation": "Yksityisyysasetukset"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Haluatko varmasti unohtaa tämän tiedoston?"
+  },
+  "4c06678729": {
+    "translation": "Käytämme ensimmäisen osapuolen evästeitä palveluidemme parantamiseen. <a>Lisätietoja</a>"
   },
   "4d1c8263ba": {
     "translation": "Lataa uudelleen"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "Ole hyvä ja hidasta."
+  },
+  "554a05155c": {
+    "translation": "Onko sinulla edelleen ongelmia? <a>Ilmoita ongelmasta</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "Emme pystyneet lataamaan osaa sisällöstä, jonka loit ennen kirjautumista."
+  },
+  "5db1e9a8ca": {
+    "translation": "Täytä tämä lomake, <discord>keskustele kanssamme Discordissa</discord> tai <github>lähetä ongelma GitHubissa</github>."
+  },
+  "5f3c333678": {
+    "translation": "Palaute lähetetty"
   },
   "5fb63579fc": {
     "translation": "Kopioida"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "Päivitä sivu saadaksesi tldraw:n uusimman version."
   },
+  "86353d2c41": {
+    "translation": "Lisätty {total} .tldr-tiedostoja."
+  },
   "86c66437fd": {
     "translation": "Nimeä tiedosto uudelleen"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "Ei löytynyt"
   },
-  "9e7dc2358c": {
-    "translation": "Käytämme evästeitä analytiikkatietojen keräämisessä tldraw:n parantamiseksi. Napsauttamalla hyväksy hyväksyt <a>evästekäytäntömme</a>."
+  "9e93c98d88": {
+    "translation": "Poista käytöstä"
   },
   "a104439641": {
     "translation": "Pehmuste"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Evästekäytäntö"
+  },
+  "a4d3b161ce": {
+    "translation": "Lähetä"
   },
   "a6cc403d56": {
     "translation": "Kaikki, joilla on linkki"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "Irrota kiinnitys"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {Ladataan .tldr-tiedostoa…} other {Ladataan {uploaded} / {total} .tldr-tiedostosta…}}"
   },
   "bc88b0e89e": {
     "translation": "Jakaja {ownerName}"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "Vaihda sivupalkki"
   },
-  "d59048f21f": {
-    "translation": "Lue lisää"
+  "d5ef96e383": {
+    "translation": "Lataa tiedosto"
   },
   "d721757161": {
     "translation": "Teema"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "Rekisteröidy"
-  },
-  "d98ac12774": {
-    "translation": "Hylätä"
   },
   "d9fe660e4e": {
     "translation": "Valitettavasti sinulla ei ole pääsyä kyseiseen työtilaan."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "Palveluehdot"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {Lisätty {count} .tldr-tiedosto.} other {Lisätty {count} .tldr-tiedostoja.}}"
   },
   "e78e14c5f1": {
     "translation": "Pin"
