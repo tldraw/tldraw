@@ -145,7 +145,6 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				updateSessionState.flush()
 				abortController.abort()
 				cleanup()
-				updateSessionState.cancel()
 			}
 		},
 		[addDialog, app, fileId, remountImageShapes, setIsReady]
@@ -249,7 +248,6 @@ function SneakyFileUpdateHandler({ fileId }: { fileId: string }) {
 		return () => {
 			onChange.flush()
 			unsub()
-			onChange.cancel()
 		}
 	}, [app, fileId, editor])
 
