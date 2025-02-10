@@ -329,26 +329,29 @@ function useDraggableEvents(
 						? editor.options.coarseDragDistanceSquared
 						: editor.options.dragDistanceSquared)
 				) {
+					const start = state.start
 					state = {
 						name: 'dragging',
-						start: state.start,
+						start,
 					}
 
-					// Set origin point
-					editor.dispatch({
-						type: 'pointer',
-						target: 'canvas',
-						name: 'pointer_down',
-						...getPointerInfo(e),
-						point: state.start,
-					})
+					editor.run(() => {
+						// Set origin point
+						editor.dispatch({
+							type: 'pointer',
+							target: 'canvas',
+							name: 'pointer_down',
+							...getPointerInfo(e),
+							point: start,
+						})
 
-					// start drag
-					onDragStart?.('toolbar', {
-						type: 'pointer',
-						target: 'canvas',
-						name: 'pointer_move',
-						...getPointerInfo(e),
+						// start drag
+						onDragStart?.('toolbar', {
+							type: 'pointer',
+							target: 'canvas',
+							name: 'pointer_move',
+							...getPointerInfo(e),
+						})
 					})
 				}
 			}
