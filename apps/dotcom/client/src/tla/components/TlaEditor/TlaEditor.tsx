@@ -26,11 +26,9 @@ import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useTldrawUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
-import { PreviewWelcomeDialog, RemountImagesContext } from './PreviewWelcomeDialog'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
-import { TlaEditorKeyboardShortcutsDialog } from './editor-components/TlaEditorKeyboardShortcutsDialog'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
@@ -41,7 +39,6 @@ import { useFileEditorOverrides } from './useFileEditorOverrides'
 /** @internal */
 export const components: TLComponents = {
 	ErrorFallback: TlaEditorErrorFallback,
-	KeyboardShortcutsDialog: TlaEditorKeyboardShortcutsDialog,
 	MenuPanel: TlaEditorMenuPanel,
 	TopPanel: TlaEditorTopPanel,
 	SharePanel: TlaEditorSharePanel,
@@ -221,10 +218,6 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyDarkModeSync />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} />
-				{/* Temporary junk for making the preview experience a bit better */}
-				<RemountImagesContext.Provider value={remountImageShapes}>
-					<PreviewWelcomeDialog />
-				</RemountImagesContext.Provider>
 			</Tldraw>
 		</TlaEditorWrapper>
 	)

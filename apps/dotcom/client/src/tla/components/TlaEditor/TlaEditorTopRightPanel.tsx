@@ -1,5 +1,6 @@
 import { SignInButton } from '@clerk/clerk-react'
 import {
+	PUBLISH_PREFIX,
 	READ_ONLY_LEGACY_PREFIX,
 	READ_ONLY_PREFIX,
 	ROOM_PREFIX,
@@ -94,12 +95,13 @@ function usePrefix() {
 		case READ_ONLY_PREFIX:
 		case READ_ONLY_LEGACY_PREFIX:
 		case SNAPSHOT_PREFIX:
+		case PUBLISH_PREFIX:
 			return roomPrefix
 	}
 	return null
 }
 
-function useRoomInfo() {
+export function useRoomInfo() {
 	const id = useParams()['roomId'] as string
 	const prefix = usePrefix()
 	if (!id || !prefix) return null
