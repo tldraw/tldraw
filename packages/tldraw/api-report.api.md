@@ -886,7 +886,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
         };
     };
     // (undocumented)
-    static options: DrawShapeOptions;
+    options: DrawShapeOptions;
     // (undocumented)
     static props: RecordProps<TLDrawShape>;
     // (undocumented)
@@ -1428,7 +1428,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
         };
     };
     // (undocumented)
-    static options: HighlightShapeOptions;
+    options: HighlightShapeOptions;
     // (undocumented)
     static props: RecordProps<TLHighlightShape>;
     // (undocumented)
@@ -1709,7 +1709,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    static options: NoteShapeOptions;
+    options: NoteShapeOptions;
     // (undocumented)
     static props: RecordProps<TLNoteShape>;
     // (undocumented)

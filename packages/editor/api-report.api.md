@@ -2517,6 +2517,9 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canScroll(_shape: Shape): boolean;
     canSnap(_shape: Shape): boolean;
     abstract component(shape: Shape): any;
+    static configure<T extends TLShapeUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
+        options: infer Options;
+    } ? Partial<Options> : never): T;
     // (undocumented)
     editor: Editor;
     // @internal (undocumented)
@@ -2561,6 +2564,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onTranslate?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
     onTranslateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
     onTranslateStart?(shape: Shape): TLShapePartial<Shape> | void;
+    options: {};
     static props?: RecordProps<TLUnknownShape>;
     // @internal
     providesBackgroundForChildren(_shape: Shape): boolean;
