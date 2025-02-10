@@ -3,6 +3,7 @@ import {
 	isColumnMutable,
 	ROOM_PREFIX,
 	TlaFile,
+	TlaFilePartial,
 	TlaFileState,
 	TlaUser,
 	Z_PROTOCOL_VERSION,
@@ -262,8 +263,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				return
 			}
 			case 'file': {
-				const nextFile = update.row as TlaFile
-				const prevFile = s.files.find((f) => f.id === (update.row as any).id)
+				const nextFile = update.row as TlaFilePartial
+				const prevFile = s.files.find((f) => f.id === nextFile.id)
 				if (!prevFile) {
 					const isOwner = nextFile.ownerId === this.userId
 					if (isOwner) return
@@ -272,8 +273,18 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						`Cannot create a file for another user ${nextFile.id}`
 					)
 				}
+				// Owners are allowed to make changes
 				if (prevFile.ownerId === this.userId) return
-				if (prevFile.shared && prevFile.sharedLinkType === 'edit') return
+
+				// We can make changes to updatedAt field in a shared, editable file
+				if (prevFile.shared && prevFile.sharedLinkType === 'edit') {
+					const { id: _id, ...rest } = nextFile
+					if (Object.keys(rest).length === 1 && nextFile.updatedAt !== undefined) return
+					throw new ZMutationError(
+						ZErrorCode.forbidden,
+						'Cannot update fields other than updatedAt on a shared filed'
+					)
+				}
 				throw new ZMutationError(
 					ZErrorCode.forbidden,
 					'Cannot update file that is not our own and not shared in edit mode' +
