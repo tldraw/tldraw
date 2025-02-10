@@ -118,7 +118,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			const sessionState$ = createSessionStateSnapshotSignal(editor.store)
 			const updateSessionState = throttle((state: TLSessionStateSnapshot) => {
 				app.onFileSessionStateUpdate(fileId, state)
-			}, 1000)
+			}, 5000)
 			// don't want to update if they only open the file and didn't look around
 			let firstTime = true
 			const cleanup = react('update session state', () => {
@@ -142,6 +142,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			}).then(setIsReady)
 
 			return () => {
+				updateSessionState.flush()
 				abortController.abort()
 				cleanup()
 				updateSessionState.cancel()
@@ -240,12 +241,13 @@ function SneakyFileUpdateHandler({ fileId }: { fileId: string }) {
 				app.onFileEdit(fileId)
 			},
 			// This is used to update the lastEditAt time in the database, and to let the local
-			// room know that an edit ahs been made.
+			// room know that an edit has been made.
 			// It doesn't need to be super fast or accurate so we can throttle it a lot
-			5000
+			10_000
 		)
 		const unsub = editor.store.listen(onChange, { scope: 'document', source: 'user' })
 		return () => {
+			onChange.flush()
 			unsub()
 			onChange.cancel()
 		}
