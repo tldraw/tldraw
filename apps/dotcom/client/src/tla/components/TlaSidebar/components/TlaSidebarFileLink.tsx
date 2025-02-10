@@ -10,6 +10,7 @@ import { useFileSidebarFocusContext } from '../../../providers/FileInputFocusPro
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F, defineMessages, useIntl } from '../../../utils/i18n'
+import { toggleMobileSidebar, useIsSidebarOpenMobile } from '../../../utils/local-session-state'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
 	TlaTooltipArrow,
@@ -82,6 +83,7 @@ export function TlaSidebarFileLinkInner({
 	const app = useApp()
 	const intl = useIntl()
 	const focusCtx = useFileSidebarFocusContext()
+	const isSidebarOpenMobile = useIsSidebarOpenMobile()
 
 	const [isRenaming, setIsRenaming] = useState(debugIsRenaming)
 	const handleRenameAction = () => {
@@ -143,6 +145,9 @@ export function TlaSidebarFileLinkInner({
 					// unless the user is holding ctrl or cmd to open in a new tab
 					if (isActive && !(event.ctrlKey || event.metaKey)) {
 						preventDefault(event)
+					}
+					if (isSidebarOpenMobile) {
+						toggleMobileSidebar(false)
 					}
 					trackEvent('click-file-link', { source: 'sidebar' })
 				}}
