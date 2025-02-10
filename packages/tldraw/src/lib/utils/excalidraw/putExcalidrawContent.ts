@@ -26,15 +26,19 @@ import {
 } from '@tldraw/editor'
 
 /**
- * When the clipboard has excalidraw content, paste it into the scene.
+ * Put excalidraw clipboard content onto the scene
  *
  * @param editor - The editor instance.
- * @param clipboard - The clipboard model.
- * @param point - The point at which to paste the text.
+ * @param excalidrawClipboardContent - The excalidraw clipboard model.
+ * @param point - The point at which to put the excalidraw content.
  * @internal
  */
-export async function pasteExcalidrawContent(editor: Editor, clipboard: any, point?: VecLike) {
-	const { elements, files } = clipboard
+export async function putExcalidrawContent(
+	editor: Editor,
+	excalidrawClipboardContent: any,
+	point?: VecLike
+) {
+	const { elements, files } = excalidrawClipboardContent
 
 	const tldrawContent: TLContent = {
 		shapes: [],

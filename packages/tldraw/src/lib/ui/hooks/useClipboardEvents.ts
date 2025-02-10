@@ -15,8 +15,8 @@ import {
 import lz from 'lz-string'
 import { useCallback, useEffect } from 'react'
 import { TLDRAW_CUSTOM_PNG_MIME_TYPE, getCanonicalClipboardReadType } from '../../utils/clipboard'
+import { putExcalidrawContent } from '../../utils/excalidraw/putExcalidrawContent'
 import { TLUiEventSource, useUiEvents } from '../context/events'
-import { pasteExcalidrawContent } from './clipboard/pasteExcalidrawContent'
 import { pasteFiles } from './clipboard/pasteFiles'
 import { pasteTldrawContent } from './clipboard/pasteTldrawContent'
 import { pasteUrl } from './clipboard/pasteUrl'
@@ -439,7 +439,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	// Try to paste excalidraw content
 	for (const result of results) {
 		if (result.type === 'excalidraw') {
-			pasteExcalidrawContent(editor, result.data, point)
+			putExcalidrawContent(editor, result.data, point)
 			return
 		}
 	}
