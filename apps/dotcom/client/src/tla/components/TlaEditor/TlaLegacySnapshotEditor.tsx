@@ -5,7 +5,6 @@ import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { assetUrls } from '../../../utils/assetUrls'
 import { globalEditor } from '../../../utils/globalEditor'
-import { useSharing } from '../../../utils/sharing'
 import { useFileSystem } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
@@ -81,7 +80,6 @@ function TlaEditorInner({
 
 	const handleUiEvent = useHandleUiEvents()
 
-	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
 
 	const handleMount = useCallback(
@@ -128,7 +126,7 @@ function TlaEditorInner({
 				snapshot={snapshot}
 				assetUrls={assetUrls}
 				onMount={handleMount}
-				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
+				overrides={[fileSystemUiOverrides]}
 				initialState={'hand'}
 				onUiEvent={handleUiEvent}
 				components={components}

@@ -10,7 +10,6 @@ import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
-import { useSharing } from '../../../utils/sharing'
 import { trackAnalyticsEvent } from '../../../utils/trackAnalyticsEvent'
 import { useFileSystem } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
@@ -77,7 +76,6 @@ function TlaEditorInner({
 		trackAnalyticsEvent,
 	})
 
-	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
 
 	const isReadonly =
@@ -109,7 +107,7 @@ function TlaEditorInner({
 				store={storeWithStatus}
 				assetUrls={assetUrls}
 				onMount={handleMount}
-				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
+				overrides={[fileSystemUiOverrides]}
 				initialState={isReadonly ? 'hand' : 'select'}
 				onUiEvent={handleUiEvent}
 				components={components}

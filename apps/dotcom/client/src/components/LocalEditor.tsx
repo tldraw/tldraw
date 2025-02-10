@@ -31,7 +31,6 @@ import {
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { getScratchPersistenceKey } from '../utils/scratch-persistence-key'
-import { useSharing } from '../utils/sharing'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { LocalFileMenu } from './FileMenu'
@@ -87,7 +86,6 @@ export function LocalEditor({
 	options?: Partial<TldrawOptions>
 }) {
 	const handleUiEvent = useHandleUiEvents()
-	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
 
 	const handleMount = useEvent((editor: Editor) => {
@@ -104,7 +102,7 @@ export function LocalEditor({
 				assetUrls={assetUrls}
 				persistenceKey={persistenceKey ?? getScratchPersistenceKey()}
 				onMount={handleMount}
-				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
+				overrides={[fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={componentsOverride ?? components}
 				options={options}
