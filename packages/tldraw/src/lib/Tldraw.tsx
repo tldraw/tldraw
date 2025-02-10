@@ -9,6 +9,7 @@ import {
 	TldrawEditor,
 	TldrawEditorBaseProps,
 	TldrawEditorStoreProps,
+	mergeArraysAndReplaceDefaults,
 	useEditor,
 	useEditorComponents,
 	useOnMount,
@@ -73,26 +74,6 @@ export interface TldrawBaseProps
 /** @public */
 export type TldrawProps = TldrawBaseProps & TldrawEditorStoreProps
 
-function mergeWithAndReplaceDefaults<const Key extends string, T extends { [K in Key]: string }>(
-	key: Key,
-	customEntries: readonly T[],
-	defaults: readonly T[]
-) {
-	const overrideTypes = new Set(customEntries.map((entry) => entry[key]))
-
-	const result = []
-	for (const defaultEntry of defaults) {
-		if (overrideTypes.has(defaultEntry[key])) continue
-		result.push(defaultEntry)
-	}
-
-	for (const customEntry of customEntries) {
-		result.push(customEntry)
-	}
-
-	return result
-}
-
 const allDefaultTools = [...defaultTools, ...defaultShapeTools]
 
 /** @public @react */
@@ -128,19 +109,19 @@ export function Tldraw(props: TldrawProps) {
 
 	const _shapeUtils = useShallowArrayIdentity(shapeUtils)
 	const shapeUtilsWithDefaults = useMemo(
-		() => mergeWithAndReplaceDefaults('type', _shapeUtils, defaultShapeUtils),
+		() => mergeArraysAndReplaceDefaults('type', _shapeUtils, defaultShapeUtils),
 		[_shapeUtils]
 	)
 
 	const _bindingUtils = useShallowArrayIdentity(bindingUtils)
 	const bindingUtilsWithDefaults = useMemo(
-		() => mergeWithAndReplaceDefaults('type', _bindingUtils, defaultBindingUtils),
+		() => mergeArraysAndReplaceDefaults('type', _bindingUtils, defaultBindingUtils),
 		[_bindingUtils]
 	)
 
 	const _tools = useShallowArrayIdentity(tools)
 	const toolsWithDefaults = useMemo(
-		() => mergeWithAndReplaceDefaults('id', allDefaultTools, _tools),
+		() => mergeArraysAndReplaceDefaults('id', allDefaultTools, _tools),
 		[_tools]
 	)
 
