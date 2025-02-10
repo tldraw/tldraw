@@ -22,13 +22,13 @@ import {
 	usePassThroughWheelEvents,
 	useValue,
 } from 'tldraw'
-import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
+import { HelpSubMenu } from '../TlaAppMenuGroup/TlaAppMenuGroup'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
@@ -65,12 +65,9 @@ export function TlaEditorTopLeftPanelAnonymous() {
 	const app = useMaybeApp()
 
 	const editor = useEditor()
-	const fileSlug = useParams<{ fileSlug: string }>().fileSlug
-	const anonFileName = useValue(
-		'fileName',
-		() => (fileSlug ? editor.getDocumentSettings().name || 'New board' : ''),
-		[editor, fileSlug]
-	)
+	const anonFileName = useValue('fileName', () => editor.getDocumentSettings().name || undefined, [
+		editor,
+	])
 
 	const hasPages = useValue('hasPages', () => editor.getPages().length > 1, [editor])
 
@@ -118,7 +115,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 					</TldrawUiDropdownMenuTrigger>
 					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 						<TldrawUiMenuGroup id="download">
-							<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
+							<TldrawUiMenuActionItem actionId={'save-file-copy'} />
 							{app && <TldrawUiMenuActionItem actionId={'copy-to-my-files'} />}
 						</TldrawUiMenuGroup>
 						<TldrawUiMenuGroup id="basic">
@@ -128,6 +125,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 							<ExtrasGroup />
 						</TldrawUiMenuGroup>
 						<TldrawUiMenuGroup id="preferences">
+							<HelpSubMenu />
 							<PreferencesGroup />
 						</TldrawUiMenuGroup>
 						{!app && (

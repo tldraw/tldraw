@@ -1,3 +1,4 @@
+import { useAuth } from '@clerk/clerk-react'
 import { addBreadcrumb, withScope } from '@sentry/react'
 import { SubmitFeedbackRequestBody } from '@tldraw/dotcom-shared'
 import { useCallback, useRef } from 'react'
@@ -26,6 +27,66 @@ const messages = defineMessages({
 const descriptionKey = 'tldraw-feedback-description'
 
 export function SubmitFeedbackDialog({ onClose }: { onClose(): void }) {
+	const isSignedIn = useAuth().isSignedIn
+	if (isSignedIn) {
+		return <SignedInSubmitFeedbackDialog onClose={onClose} />
+	}
+	return <SignedOutSubmitFeedbackDialog onClose={onClose} />
+}
+
+function SignedOutSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
+	return (
+		<div>
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle style={{ fontWeight: 700 }}>
+					<F defaultMessage="Give us feedback" />
+				</TldrawUiDialogTitle>
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody
+				style={{ maxWidth: 350, display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 0 }}
+			>
+				<p>
+					<F defaultMessage="See something wrong? Got an idea to improve tldraw? We’d love to hear it!" />
+				</p>
+				<ul style={{ gap: 4 }}>
+					<li>
+						<F
+							defaultMessage="<discord>Chat with us on Discord</discord>"
+							values={{
+								discord: (chunks) => {
+									return <ExternalLink to="https://discord.gg/rhsyWMUJxd">{chunks}</ExternalLink>
+								},
+							}}
+						/>
+					</li>
+					<li>
+						<F
+							defaultMessage="<github>Submit an issue on GitHub</github>"
+							values={{
+								github: (chunks) => {
+									return (
+										<ExternalLink to="https://github.com/tldraw/tldraw/issues">
+											{chunks}
+										</ExternalLink>
+									)
+								},
+							}}
+						/>
+					</li>
+				</ul>
+			</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
+				<TldrawUiButton type="normal" onClick={onClose}>
+					<TldrawUiButtonLabel>
+						<F defaultMessage="Close" />
+					</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</TldrawUiDialogFooter>
+		</div>
+	)
+}
+
+function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 	const input = useRef<HTMLTextAreaElement>(null)
 	const checkBox = useRef<HTMLInputElement>(null)
 	const toasts = useToasts()

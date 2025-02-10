@@ -29,7 +29,6 @@ import { maybeSlurp } from '../../utils/slurping'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
-import { TlaEditorKeyboardShortcutsDialog } from './editor-components/TlaEditorKeyboardShortcutsDialog'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
@@ -40,7 +39,6 @@ import { useFileEditorOverrides } from './useFileEditorOverrides'
 /** @internal */
 export const components: TLComponents = {
 	ErrorFallback: TlaEditorErrorFallback,
-	KeyboardShortcutsDialog: TlaEditorKeyboardShortcutsDialog,
 	MenuPanel: TlaEditorMenuPanel,
 	TopPanel: TlaEditorTopPanel,
 	SharePanel: TlaEditorSharePanel,

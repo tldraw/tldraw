@@ -11,25 +11,23 @@ import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { trackAnalyticsEvent } from '../../../utils/trackAnalyticsEvent'
-import { useFileSystem } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
-import { TlaEditorKeyboardShortcutsDialog } from './editor-components/TlaEditorKeyboardShortcutsDialog'
 import { TlaEditorLegacySharePanel } from './editor-components/TlaEditorLegacySharePanel'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLegacySetDocumentTitle } from './sneaky/SneakyLegacytSetDocumentTitle'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
+import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 /** @internal */
 export const components: TLComponents = {
 	ErrorFallback: TlaEditorErrorFallback,
-	KeyboardShortcutsDialog: TlaEditorKeyboardShortcutsDialog,
 	MenuPanel: TlaEditorMenuPanel,
 	SharePanel: TlaEditorLegacySharePanel,
 	TopPanel: TlaEditorTopPanel,
@@ -76,7 +74,7 @@ function TlaEditorInner({
 		trackAnalyticsEvent,
 	})
 
-	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
+	const fileSystemUiOverrides = useFileEditorOverrides({})
 
 	const isReadonly =
 		roomOpenMode === ROOM_OPEN_MODE.READ_ONLY || roomOpenMode === ROOM_OPEN_MODE.READ_ONLY_LEGACY
