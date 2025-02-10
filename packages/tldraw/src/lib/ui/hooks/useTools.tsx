@@ -128,12 +128,8 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					})
 				},
 				onDragStart(source: TLUiEventSource, info: TLPointerEventInfo) {
-					onDragFromToolbarToCreateShape({
-						editor,
-						info,
-						createShape: (id) => {
-							editor.createShape({ id, type: 'geo', props: { geo } })
-						},
+					onDragFromToolbarToCreateShape(editor, info, {
+						createShape: (id) => editor.createShape({ id, type: 'geo', props: { geo } }),
 					})
 					trackEvent('drag-tool', { source, id: 'geo' })
 				},
@@ -148,16 +144,13 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					trackEvent('select-tool', { source, id: 'arrow' })
 				},
 				onDragStart(source: TLUiEventSource, info: TLPointerEventInfo) {
-					onDragFromToolbarToCreateShape({
-						editor,
-						info,
-						createShape: (id) => {
+					onDragFromToolbarToCreateShape(editor, info, {
+						createShape: (id) =>
 							editor.createShape({
 								id,
 								type: 'arrow',
 								props: { start: { x: 0, y: 0 }, end: { x: 200, y: 0 } },
-							})
-						},
+							}),
 					})
 					trackEvent('drag-tool', { source, id: 'arrow' })
 				},
@@ -182,14 +175,9 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					trackEvent('select-tool', { source, id: 'frame' })
 				},
 				onDragStart(source, info) {
-					onDragFromToolbarToCreateShape({
-						editor,
-						info,
-						createShape: (id) => {
-							editor.createShape({ id, type: 'frame' })
-						},
+					onDragFromToolbarToCreateShape(editor, info, {
+						createShape: (id) => editor.createShape({ id, type: 'frame' }),
 					})
-
 					trackEvent('drag-tool', { source, id: 'frame' })
 				},
 			},
@@ -203,12 +191,8 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					trackEvent('select-tool', { source, id: 'text' })
 				},
 				onDragStart(source, info) {
-					onDragFromToolbarToCreateShape({
-						editor,
-						info,
-						createShape: (id) => {
-							editor.createShape({ id, type: 'text', props: { text: 'Text' } })
-						},
+					onDragFromToolbarToCreateShape(editor, info, {
+						createShape: (id) => editor.createShape({ id, type: 'text', props: { text: 'Text' } }),
 						onDragEnd: (id) => {
 							editor.emit('select-all-text', { shapeId: id })
 							editor.setEditingShape(id)
@@ -237,12 +221,8 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					trackEvent('select-tool', { source, id: 'note' })
 				},
 				onDragStart(source, info) {
-					onDragFromToolbarToCreateShape({
-						editor,
-						info,
-						createShape: (id) => {
-							editor.createShape({ id, type: 'note' })
-						},
+					onDragFromToolbarToCreateShape(editor, info, {
+						createShape: (id) => editor.createShape({ id, type: 'note' }),
 						onDragEnd: (id) => {
 							editor.emit('select-all-text', { shapeId: id })
 							editor.setEditingShape(id)
@@ -314,8 +294,6 @@ export function useTools() {
  * @public
  */
 export interface OnDragFromToolbarToCreateShapesOpts {
-	editor: Editor
-	info: TLPointerEventInfo
 	/**
 	 * Create the shape being dragged. You don't need to worry about positioning it, as it'll be
 	 * immediately updated with the correct position.
@@ -332,15 +310,18 @@ export interface OnDragFromToolbarToCreateShapesOpts {
  * the toolbar.
  * @public
  */
-export function onDragFromToolbarToCreateShape(opts: OnDragFromToolbarToCreateShapesOpts) {
-	const { editor, info, createShape } = opts
+export function onDragFromToolbarToCreateShape(
+	editor: Editor,
+	info: TLPointerEventInfo,
+	opts: OnDragFromToolbarToCreateShapesOpts
+) {
 	const { x, y } = editor.inputs.currentPagePoint
 
 	const stoppingPoint = editor.markHistoryStoppingPoint('drag shape tool')
 	editor.setCurrentTool('select.translating')
 
 	const id = createShapeId()
-	createShape(id)
+	opts.createShape(id)
 	const shape = assertExists(editor.getShape(id), 'Shape not found')
 
 	const { w, h } = editor.getShapePageBounds(id)!

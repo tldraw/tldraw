@@ -1725,15 +1725,11 @@ export function NoteToolbarItem(): JSX_2.Element;
 export function OfflineIndicator(): JSX_2.Element;
 
 // @public
-export function onDragFromToolbarToCreateShape(opts: OnDragFromToolbarToCreateShapesOpts): void;
+export function onDragFromToolbarToCreateShape(editor: Editor, info: TLPointerEventInfo, opts: OnDragFromToolbarToCreateShapesOpts): void;
 
 // @public
 export interface OnDragFromToolbarToCreateShapesOpts {
     createShape(id: TLShapeId): void;
-    // (undocumented)
-    editor: Editor;
-    // (undocumented)
-    info: TLPointerEventInfo;
     onDragEnd?(id: TLShapeId): void;
 }
 
