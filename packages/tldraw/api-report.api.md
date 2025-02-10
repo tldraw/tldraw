@@ -1837,6 +1837,9 @@ export function preloadFont(id: string, font: TLTypeFace): Promise<FontFace>;
 // @public (undocumented)
 export function PrintItem(): JSX_2.Element;
 
+// @public
+export function putExcalidrawContent(editor: Editor, excalidrawClipboardContent: any, point?: VecLike): Promise<void>;
+
 // @public (undocumented)
 export function RectangleToolbarItem(): JSX_2.Element;
 
