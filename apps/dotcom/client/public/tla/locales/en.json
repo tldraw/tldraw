@@ -44,9 +44,6 @@
   "1dd1c5fb7f": {
     "translation": "Today"
   },
-  "1f9696d5f2": {
-    "translation": "Export the content as a .tldr file: Go to 'File' > 'Save a copy'"
-  },
   "26e5b44256": {
     "translation": "Give us feedback"
   },
@@ -109,6 +106,9 @@
   },
   "54d240fa41": {
     "translation": "Please slow down."
+  },
+  "5530ac3cc1": {
+    "translation": "<discord>Chat with us on Discord</discord>"
   },
   "554a05155c": {
     "translation": "Still having trouble? <a>Report a problem</a>"
@@ -188,6 +188,9 @@
   "7fcdcc6455": {
     "translation": "Forget file"
   },
+  "81d389ac80": {
+    "translation": "Export the content as a .tldr file: Select 'Download file' in the top left menu."
+  },
   "85a082de1b": {
     "translation": "Please refresh the page to get the latest version of tldraw."
   },
@@ -211,6 +214,9 @@
   },
   "904a830405": {
     "translation": "Rename"
+  },
+  "91ae339f66": {
+    "translation": "<github>Submit an issue on GitHub</github>"
   },
   "91e49bb0eb": {
     "translation": "Copy to my files"
