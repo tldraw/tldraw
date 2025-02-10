@@ -303,7 +303,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					throw new ZMutationError(ZErrorCode.bad_request, `File not found ${nextFileState.fileId}`)
 				}
 				if (file.ownerId === this.userId) return
-				if (file.shared) return
+				if (
+					file.shared &&
+					(nextFileState.userId === this.userId || nextFileState.userId === undefined)
+				)
+					return
 
 				throw new ZMutationError(
 					ZErrorCode.forbidden,
