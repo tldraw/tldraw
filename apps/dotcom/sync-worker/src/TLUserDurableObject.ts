@@ -371,7 +371,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							await tx.updateTable(update.table).set(updates).where('id', '=', id).execute()
 							if (update.table === 'file') {
 								const currentFile = this.cache.store.getFullData()?.files.find((f) => f.id === id)
-								if (currentFile && currentFile.published !== rest.published) {
+								if (
+									currentFile &&
+									rest.published !== undefined &&
+									currentFile.published !== rest.published
+								) {
 									if (rest.published) {
 										await this.publishSnapshot(currentFile)
 									} else {
@@ -380,6 +384,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								} else if (
 									currentFile &&
 									currentFile.published &&
+									rest.lastPublished !== undefined &&
 									currentFile.lastPublished < rest.lastPublished
 								) {
 									await this.publishSnapshot(currentFile)
