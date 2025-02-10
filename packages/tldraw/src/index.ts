@@ -460,7 +460,9 @@ export { usePreloadAssets } from './lib/ui/hooks/usePreloadAssets'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
 export { useRelevantStyles } from './lib/ui/hooks/useRelevantStyles'
 export {
+	onDragFromToolbarToCreateShape,
 	useTools,
+	type OnDragFromToolbarToCreateShapesOpts,
 	type TLUiToolItem,
 	type TLUiToolsContextType,
 	type TLUiToolsProviderProps,

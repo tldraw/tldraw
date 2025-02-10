@@ -1724,6 +1724,19 @@ export function NoteToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export function OfflineIndicator(): JSX_2.Element;
 
+// @public
+export function onDragFromToolbarToCreateShape(opts: OnDragFromToolbarToCreateShapesOpts): void;
+
+// @public
+export interface OnDragFromToolbarToCreateShapesOpts {
+    createShape(id: TLShapeId): void;
+    // (undocumented)
+    editor: Editor;
+    // (undocumented)
+    info: TLPointerEventInfo;
+    onDragEnd?(id: TLShapeId): void;
+}
+
 // @public (undocumented)
 export function OpacitySlider(): JSX_2.Element | null;
 
