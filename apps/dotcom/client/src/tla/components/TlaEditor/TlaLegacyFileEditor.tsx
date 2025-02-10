@@ -98,6 +98,7 @@ function TlaEditorInner({
 	)
 
 	if (storeWithStatus.error) {
+		setIsReady()
 		return <StoreErrorScreen error={storeWithStatus.error} />
 	}
 
