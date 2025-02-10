@@ -279,7 +279,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				// We can make changes to updatedAt field in a shared, editable file
 				if (prevFile.shared && prevFile.sharedLinkType === 'edit') {
 					const { id: _id, ...rest } = nextFile
-					if (Object.keys(rest).length === 1 && nextFile.updatedAt !== undefined) return
+					if (Object.keys(rest).length === 1 && rest.updatedAt !== undefined) return
 					throw new ZMutationError(
 						ZErrorCode.forbidden,
 						'Cannot update fields other than updatedAt on a shared filed'
