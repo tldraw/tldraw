@@ -3,7 +3,9 @@ import {
 	isColumnMutable,
 	ROOM_PREFIX,
 	TlaFile,
+	TlaFilePartial,
 	TlaFileState,
+	TlaFileStatePartial,
 	TlaUser,
 	Z_PROTOCOL_VERSION,
 	ZClientSentMessage,
@@ -262,8 +264,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				return
 			}
 			case 'file': {
-				const nextFile = update.row as TlaFile
-				const prevFile = s.files.find((f) => f.id === (update.row as any).id)
+				const nextFile = update.row as TlaFilePartial
+				const prevFile = s.files.find((f) => f.id === nextFile.id)
 				if (!prevFile) {
 					const isOwner = nextFile.ownerId === this.userId
 					if (isOwner) return
@@ -272,8 +274,18 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						`Cannot create a file for another user. fileId: ${nextFile.id} file owner: ${nextFile.ownerId} current user: ${this.userId}`
 					)
 				}
+				// Owners are allowed to make changes
 				if (prevFile.ownerId === this.userId) return
-				if (prevFile.shared && prevFile.sharedLinkType === 'edit') return
+
+				// We can make changes to updatedAt field in a shared, editable file
+				if (prevFile.shared && prevFile.sharedLinkType === 'edit') {
+					const { id: _id, ...rest } = nextFile
+					if (Object.keys(rest).length === 1 && rest.updatedAt !== undefined) return
+					throw new ZMutationError(
+						ZErrorCode.forbidden,
+						'Cannot update fields other than updatedAt on a shared file'
+					)
+				}
 				throw new ZMutationError(
 					ZErrorCode.forbidden,
 					'Cannot update file that is not our own and not shared in edit mode' +
@@ -281,7 +293,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				)
 			}
 			case 'file_state': {
-				const nextFileState = update.row as TlaFileState
+				const nextFileState = update.row as TlaFileStatePartial
 				let file = s.files.find((f) => f.id === nextFileState.fileId)
 				if (!file) {
 					// The user might not have access to this file yet, because they just followed a link
@@ -290,6 +302,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				}
 				if (!file) {
 					throw new ZMutationError(ZErrorCode.bad_request, `File not found ${nextFileState.fileId}`)
+				}
+				if (nextFileState.userId !== this.userId) {
+					throw new ZMutationError(
+						ZErrorCode.forbidden,
+						`Cannot update file state for another user ${nextFileState.userId}`
+					)
 				}
 				if (file.ownerId === this.userId) return
 				if (file.shared) return
@@ -360,7 +378,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							await tx.updateTable(update.table).set(updates).where('id', '=', id).execute()
 							if (update.table === 'file') {
 								const currentFile = this.cache.store.getFullData()?.files.find((f) => f.id === id)
-								if (currentFile && currentFile.published !== rest.published) {
+								if (
+									currentFile &&
+									rest.published !== undefined &&
+									currentFile.published !== rest.published
+								) {
 									if (rest.published) {
 										await this.publishSnapshot(currentFile)
 									} else {
@@ -369,6 +391,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								} else if (
 									currentFile &&
 									currentFile.published &&
+									rest.lastPublished !== undefined &&
 									currentFile.lastPublished < rest.lastPublished
 								) {
 									await this.publishSnapshot(currentFile)
