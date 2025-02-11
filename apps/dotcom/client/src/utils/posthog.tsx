@@ -36,6 +36,11 @@ function configurePosthog(options: AnalyticsOptions) {
 		api_host: '/api/ph',
 		capture_pageview: false,
 		persistence: options.optedIn ? 'localStorage+cookie' : 'memory',
+		before_send: (payload) => {
+			if (!payload) return null
+			payload.properties.is_signed_in = !!options.user
+			return payload
+		},
 	}
 	if (!currentOptions) {
 		posthog.init(POSTHOG_KEY, config)
