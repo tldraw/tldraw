@@ -269,7 +269,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					if (isOwner) return
 					throw new ZMutationError(
 						ZErrorCode.forbidden,
-						`Cannot create a file for another user ${nextFile.id}`
+						`Cannot create a file for another user. fileId: ${nextFile.id} file owner: ${nextFile.ownerId} current user: ${this.userId}`
 					)
 				}
 				if (prevFile.ownerId === this.userId) return
