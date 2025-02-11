@@ -22,7 +22,6 @@ import { Kysely, sql } from 'kysely'
 import { Logger } from './Logger'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
-import { type TLPostgresReplicator } from './TLPostgresReplicator'
 import { Analytics, Environment, TLUserDurableObjectEvent } from './types'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
 import { EventData, writeDataPoint } from './utils/analytics'
@@ -32,7 +31,6 @@ import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 
 export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: Kysely<DB>
-	private readonly replicator: TLPostgresReplicator
 	private measure: Analytics | undefined
 
 	private readonly sentry
@@ -56,7 +54,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		super(ctx, env)
 
 		this.sentry = createSentry(ctx, env)
-		this.replicator = getReplicator(env)
 
 		this.db = createPostgresConnectionPool(env, 'TLUserDurableObject')
 		this.measure = env.MEASURE
@@ -298,7 +295,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				if (!file) {
 					// The user might not have access to this file yet, because they just followed a link
 					// let's allow them to create a file state for it if it exists and is shared.
-					file = (await this.replicator.getFileRecord(nextFileState.fileId)) ?? undefined
+					file = (await getReplicator(this.env).getFileRecord(nextFileState.fileId)) ?? undefined
 				}
 				if (!file) {
 					throw new ZMutationError(ZErrorCode.bad_request, `File not found ${nextFileState.fileId}`)
@@ -501,7 +498,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	/* --------------  */
 
 	private async deleteFileStuff(id: string) {
-		const fileRecord = await this.replicator.getFileRecord(id)
+		const fileRecord = await getReplicator(this.env).getFileRecord(id)
 		const room = this.env.TLDR_DOC.get(this.env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${id}`))
 		await room.appFileRecordDidDelete()
 		if (!fileRecord) {
