@@ -59,6 +59,7 @@ export interface TLAppUiEventMap {
 	'click-file-link': null
 	'open-preview-sign-up-modal': null
 	'first-connect-duration': { duration: number }
+	'create-user': null
 }
 
 /** @public */
