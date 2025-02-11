@@ -25,3 +25,6 @@ export const RoomOpenModeToPath: Record<RoomOpenMode, string> = {
 	[ROOM_OPEN_MODE.READ_ONLY_LEGACY]: READ_ONLY_LEGACY_PREFIX,
 	[ROOM_OPEN_MODE.READ_WRITE]: ROOM_PREFIX,
 }
+
+/** @public */
+export const APP_ASSET_UPLOAD_ENDPOINT = '/api/app/uploads/'

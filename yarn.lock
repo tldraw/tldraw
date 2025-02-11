@@ -14884,6 +14884,7 @@ __metadata:
   resolution: "images.tldraw.com@workspace:apps/dotcom/image-resize-worker"
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20250124.3"
+    "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@tldraw/worker-shared": "workspace:*"
     itty-router: "npm:^5.0.18"
