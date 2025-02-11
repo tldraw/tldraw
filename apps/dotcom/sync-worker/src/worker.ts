@@ -21,7 +21,6 @@ import { getRoomSnapshot } from './routes/getRoomSnapshot'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { submitFeedback } from './routes/submitFeedback'
 import { createFiles } from './routes/tla/createFiles'
-import { deleteFile } from './routes/tla/deleteFile'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { upload } from './routes/tla/uploads'
@@ -79,7 +78,12 @@ const router = createRouter<Environment>()
 		return stub.fetch(req)
 	})
 	.post('/app/tldr', createFiles)
-	.get('/app/file/:roomId', forwardRoomRequest)
+	.get('/app/file/:roomId', (req, env) => {
+		if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
+			return forwardRoomRequest(req, env)
+		}
+		return notFound()
+	})
 	.get('/app/publish/:roomId', getPublishedFile)
 	.get('/app/uploads/:objectName', async (request, env, ctx) => {
 		return handleUserAssetGet({
@@ -90,7 +94,6 @@ const router = createRouter<Environment>()
 		})
 	})
 	.post('/app/uploads/:objectName', upload)
-	.delete('/app/file/:roomId', deleteFile)
 	.all('/app/__test__/*', testRoutes.fetch)
 	.all('/ph/*', (req) => {
 		const url = new URL(req.url)

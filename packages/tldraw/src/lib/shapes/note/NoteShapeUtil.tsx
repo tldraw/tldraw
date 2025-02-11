@@ -51,17 +51,30 @@ import {
 } from './noteHelpers'
 
 /** @public */
+export interface NoteShapeOptions {
+	/**
+	 * How should the note shape resize? By default it does not resize (except automatically based on its text content),
+	 * but you can set it to be user-resizable using scale.
+	 */
+	resizeMode: 'none' | 'scale'
+}
+
+/** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	static override type = 'note' as const
 	static override props = noteShapeProps
 	static override migrations = noteShapeMigrations
 
+	override options: NoteShapeOptions = {
+		resizeMode: 'none',
+	}
+
 	override canEdit() {
 		return true
 	}
 	override hideResizeHandles() {
-		const { noteShapeResizeMode } = this.editor.options
-		switch (noteShapeResizeMode) {
+		const { resizeMode } = this.options
+		switch (resizeMode) {
 			case 'none': {
 				return true
 			}
@@ -69,13 +82,13 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				return false
 			}
 			default: {
-				throw exhaustiveSwitchError(noteShapeResizeMode)
+				throw exhaustiveSwitchError(resizeMode)
 			}
 		}
 	}
 
 	override isAspectRatioLocked() {
-		return this.editor.options.noteShapeResizeMode === 'scale'
+		return this.options.resizeMode === 'scale'
 	}
 
 	override hideSelectionBoundsFg() {
@@ -189,8 +202,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override onResize(shape: any, info: TLResizeInfo<any>) {
-		const { noteShapeResizeMode: noteShapeResizeMode } = this.editor.options
-		switch (noteShapeResizeMode) {
+		const { resizeMode } = this.options
+		switch (resizeMode) {
 			case 'none': {
 				return undefined
 			}
@@ -198,7 +211,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				return resizeScaled(shape, info)
 			}
 			default: {
-				throw exhaustiveSwitchError(noteShapeResizeMode)
+				throw exhaustiveSwitchError(resizeMode)
 			}
 		}
 	}

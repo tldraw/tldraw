@@ -41,8 +41,6 @@ import { Zero } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
-export const UNPUBLISH_ENDPOINT = `/api/app/unpublish`
-export const FILE_ENDPOINT = `/api/app/file`
 
 let appId = 0
 
@@ -122,8 +120,10 @@ export class TldrawApp {
 	}
 
 	async preload(initialUserData: TlaUser) {
+		let didCreate = false
 		await this.z.query.user.where('id', this.userId).preload().complete
 		if (!this.user$.get()) {
+			didCreate = true
 			this.z.mutate.user.create(initialUserData)
 			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
 		}
@@ -136,6 +136,7 @@ export class TldrawApp {
 		}
 		await this.z.query.file_state.where('userId', this.userId).preload().complete
 		await this.z.query.file.where('ownerId', this.userId).preload().complete
+		return didCreate
 	}
 
 	messages = defineMessages({
@@ -607,7 +608,7 @@ export class TldrawApp {
 		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld, opts.trackEvent)
 		// @ts-expect-error
 		window.app = app
-		await app.preload({
+		const didCreate = await app.preload({
 			id: opts.userId,
 			name: opts.fullName,
 			email: opts.email,
@@ -631,6 +632,9 @@ export class TldrawApp {
 			isDynamicSizeMode: restOfPreferences.isDynamicSizeMode ?? null,
 			isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
 		})
+		if (didCreate) {
+			opts.trackEvent('create-user', { source: 'app' })
+		}
 		return { app, userId: opts.userId }
 	}
 

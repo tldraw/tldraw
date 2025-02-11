@@ -33,10 +33,23 @@ import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
 
 /** @public */
+export interface DrawShapeOptions {
+	/**
+	 * The maximum number of points in a line before the draw tool will begin a new shape.
+	 * A higher number will lead to poor performance while drawing very long lines.
+	 */
+	readonly maxPointsPerShape: number
+}
+
+/** @public */
 export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	static override type = 'draw' as const
 	static override props = drawShapeProps
 	static override migrations = drawShapeMigrations
+
+	override options: DrawShapeOptions = {
+		maxPointsPerShape: 600,
+	}
 
 	override hideResizeHandles(shape: TLDrawShape) {
 		return getIsDot(shape)

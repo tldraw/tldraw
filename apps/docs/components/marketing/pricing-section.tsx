@@ -91,7 +91,7 @@ const tiers = [
 		href: '/buy/startup',
 		teamSize: 'Up to 10 employees',
 		description: 'For small teams who need to speak to us.',
-		features: ['No watermark', 'Two hours of support per month'],
+		features: ['No watermark', 'Up to two hours of support per month'],
 	},
 	{
 		id: 'business',

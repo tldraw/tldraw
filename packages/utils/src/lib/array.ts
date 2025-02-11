@@ -97,3 +97,23 @@ export function areArraysShallowEqual<T>(arr1: readonly T[], arr2: readonly T[])
 	}
 	return true
 }
+
+/** @internal */
+export function mergeArraysAndReplaceDefaults<
+	const Key extends string,
+	T extends { [K in Key]: string },
+>(key: Key, customEntries: readonly T[], defaults: readonly T[]) {
+	const overrideTypes = new Set(customEntries.map((entry) => entry[key]))
+
+	const result = []
+	for (const defaultEntry of defaults) {
+		if (overrideTypes.has(defaultEntry[key])) continue
+		result.push(defaultEntry)
+	}
+
+	for (const customEntry of customEntries) {
+		result.push(customEntry)
+	}
+
+	return result
+}

@@ -748,10 +748,8 @@ export const defaultTldrawOptions: {
     readonly maxExportDelayMs: 5000;
     readonly maxFilesAtOnce: 100;
     readonly maxPages: 40;
-    readonly maxPointsPerDrawShape: 500;
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
-    readonly noteShapeResizeMode: "none";
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
 };
@@ -2519,6 +2517,9 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canScroll(_shape: Shape): boolean;
     canSnap(_shape: Shape): boolean;
     abstract component(shape: Shape): any;
+    static configure<T extends TLShapeUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
+        options: infer Options;
+    } ? Partial<Options> : never): T;
     // (undocumented)
     editor: Editor;
     // @internal (undocumented)
@@ -2563,6 +2564,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onTranslate?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
     onTranslateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
     onTranslateStart?(shape: Shape): TLShapePartial<Shape> | void;
+    options: {};
     static props?: RecordProps<TLUnknownShape>;
     // @internal
     providesBackgroundForChildren(_shape: Shape): boolean;
@@ -3177,12 +3179,9 @@ export interface TldrawOptions {
     // (undocumented)
     readonly maxPages: number;
     // (undocumented)
-    readonly maxPointsPerDrawShape: number;
-    // (undocumented)
     readonly maxShapesPerPage: number;
     // (undocumented)
     readonly multiClickDurationMs: number;
-    readonly noteShapeResizeMode: 'none' | 'scale';
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;

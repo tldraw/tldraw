@@ -29,7 +29,6 @@ export interface TldrawOptions {
 	readonly dragDistanceSquared: number
 	readonly defaultSvgPadding: number
 	readonly cameraSlideFriction: number
-	readonly maxPointsPerDrawShape: number
 	readonly gridSteps: readonly {
 		readonly min: number
 		readonly mid: number
@@ -67,11 +66,6 @@ export interface TldrawOptions {
 	 */
 	readonly exportProvider: ComponentType<{ children: React.ReactNode }>
 	/**
-	 * How should the note shape resize? By default it does not resize (except automatically based on its text content),
-	 * but you can set it to be user-resizable using scale.
-	 */
-	readonly noteShapeResizeMode: 'none' | 'scale'
-	/**
 	 * By default, the toolbar items are accessible via number shortcuts according to their order. To disable this, set this option to false.
 	 */
 	readonly enableToolbarKeyboardShortcuts: boolean
@@ -90,7 +84,6 @@ export const defaultTldrawOptions = {
 	dragDistanceSquared: 16, // 4 squared
 	defaultSvgPadding: 32,
 	cameraSlideFriction: 0.09,
-	maxPointsPerDrawShape: 500,
 	gridSteps: [
 		{ min: -1, mid: 0.15, step: 64 },
 		{ min: 0.05, mid: 0.375, step: 16 },
@@ -120,6 +113,5 @@ export const defaultTldrawOptions = {
 	actionShortcutsLocation: 'swap',
 	createTextOnCanvasDoubleClick: true,
 	exportProvider: Fragment,
-	noteShapeResizeMode: 'none',
 	enableToolbarKeyboardShortcuts: true,
 } as const satisfies TldrawOptions

@@ -80,6 +80,7 @@ function SearchInput({ value }: { value: string }) {
 					className="h-full w-full mr-4 focus:outline-none text-black dark:text-white bg-transparent"
 					value={value}
 					autoFocus
+					placeholder="Search..."
 				/>
 			</div>
 			<span className="hidden md:block text-xs shrink-0">ESC</span>
