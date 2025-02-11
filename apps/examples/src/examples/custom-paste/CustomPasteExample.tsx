@@ -9,14 +9,16 @@ import {
 // this example adds special behavior when pasting a single frame shape, matching the behavior of figma
 export default function CustomPasteExample() {
 	return (
-		<Tldraw
-			onMount={(editor) => {
-				// on mount, override the default tldraw handler
-				editor.registerExternalContentHandler('tldraw', (content) =>
-					handleCustomTldrawPaste(editor, content)
-				)
-			}}
-		/>
+		<div className="tldraw__editor">
+			<Tldraw
+				onMount={(editor) => {
+					// on mount, override the default tldraw handler
+					editor.registerExternalContentHandler('tldraw', (content) =>
+						handleCustomTldrawPaste(editor, content)
+					)
+				}}
+			/>
+		</div>
 	)
 }
 

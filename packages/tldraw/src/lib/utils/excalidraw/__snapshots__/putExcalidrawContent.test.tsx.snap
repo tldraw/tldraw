@@ -227,7 +227,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -279,7 +279,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -331,7 +331,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -377,7 +377,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -441,7 +441,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -487,7 +487,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -527,7 +527,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -561,7 +561,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -595,7 +595,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "align": "middle",
       "color": "black",
@@ -625,7 +625,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -677,7 +677,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -723,7 +723,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -775,7 +775,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -815,7 +815,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -855,7 +855,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -889,7 +889,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -929,7 +929,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -975,7 +975,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -1027,7 +1027,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -1079,7 +1079,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -1131,7 +1131,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -1177,7 +1177,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -1211,7 +1211,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -1251,7 +1251,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -1297,7 +1297,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -1349,7 +1349,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "align": "middle",
       "color": "black",
@@ -1379,7 +1379,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -1431,7 +1431,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -1471,7 +1471,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -1511,7 +1511,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -1569,7 +1569,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -1615,7 +1615,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "align": "middle",
       "color": "black",
@@ -1645,7 +1645,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "color": "black",
       "dash": "solid",
@@ -1679,8 +1679,8 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "x": 221.5413287284482,
     "y": 106.76849833351537,
   },
-  "shape:78": {
-    "id": "shape:78",
+  "shape:77": {
+    "id": "shape:77",
     "index": "aY",
     "isLocked": false,
     "meta": {},
@@ -1699,7 +1699,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "isLocked": false,
     "meta": {},
     "opacity": 1,
-    "parentId": "shape:78",
+    "parentId": "shape:77",
     "props": {
       "align": "middle",
       "color": "black",
