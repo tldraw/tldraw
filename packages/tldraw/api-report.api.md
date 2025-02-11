@@ -724,7 +724,7 @@ export function defaultHandleExternalTextContent(editor: Editor, { point, text }
 }): Promise<void>;
 
 // @public (undocumented)
-export function defaultHandleExternalUrlAsset(editor: Editor, { url }: TLUrlExternalAsset, { toasts, msg }: TLDefaultExternalContentHandlerOpts): Promise<TLBookmarkAsset | TLImageAsset>;
+export function defaultHandleExternalUrlAsset(editor: Editor, { url }: TLUrlExternalAsset, { toasts, msg }: TLDefaultExternalContentHandlerOpts): Promise<TLBookmarkAsset>;
 
 // @public (undocumented)
 export function defaultHandleExternalUrlContent(editor: Editor, { point, url }: {

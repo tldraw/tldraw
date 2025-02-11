@@ -174,7 +174,7 @@ export async function defaultHandleExternalUrlAsset(
 	editor: Editor,
 	{ url }: TLUrlExternalAsset,
 	{ toasts, msg }: TLDefaultExternalContentHandlerOpts
-): Promise<TLBookmarkAsset | TLImageAsset> {
+): Promise<TLBookmarkAsset> {
 	let meta: { image: string; favicon: string; title: string; description: string }
 
 	try {
