@@ -14889,6 +14889,8 @@ __metadata:
     "@tldraw/worker-shared": "workspace:*"
     itty-router: "npm:^5.0.18"
     lazyrepo: "npm:0.0.0-alpha.27"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
     wrangler: "npm:^3.105.1"
   languageName: unknown
   linkType: soft
