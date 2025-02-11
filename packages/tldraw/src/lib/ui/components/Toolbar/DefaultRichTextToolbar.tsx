@@ -21,6 +21,14 @@ import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolb
 import { DefaultRichTextToolbarContent } from './DefaultRichTextToolbarContent'
 import { LinkEditor } from './LinkEditor'
 
+const MOVE_TIMEOUT = 300
+const HIDE_VISIBILITY_TIMEOUT = 200
+const SHOW_VISIBILITY_TIMEOUT = 150
+const TOOLBAR_GAP = 8
+const SCREEN_MARGIN = 16
+const MIN_DISTANCE_TO_REPOSITION_SQUARED = 16 ** 2
+const HIDE_TOOLBAR_ON_CANVAS_MODE = true
+
 /** @public */
 export interface TLUiRichTextToolbarProps {
 	children?: React.ReactNode
@@ -163,7 +171,7 @@ function ContextualToolbarInner({
 	// Send the hide or show events based on whether the user is clicking
 	// and whether the toolbar's position is valid
 	useEffect(() => {
-		if (cameraState === 'moving') {
+		if (cameraState === 'moving' && HIDE_TOOLBAR_ON_CANVAS_MODE) {
 			hide(true)
 			return
 		}
@@ -360,12 +368,6 @@ function useEditingLinkBehavior(textEditor?: TiptapEditor) {
 	return { isEditingLink, onEditLinkStart, onEditLinkComplete, onEditLinkCancel }
 }
 
-const TOOLBAR_GAP = 8
-
-const SCREEN_MARGIN = 16
-
-const MIN_DISTANCE_TO_REPOSITION_SQUARED = 16 ** 2
-
 function sufficientlyDistant(curr: Vec, next: Vec) {
 	return Vec.Len2(Vec.Sub(next, curr)) >= MIN_DISTANCE_TO_REPOSITION_SQUARED
 }
@@ -425,7 +427,7 @@ function useToolbarVisibilityStateMachine() {
 					rCurrPosition.current = new Vec(x, y)
 					setPosition({ x, y })
 				}
-			}, 300)
+			}, MOVE_TIMEOUT)
 		},
 		[editor]
 	)
@@ -454,7 +456,7 @@ function useToolbarVisibilityStateMachine() {
 						rStableVisibilityTimeout.current = editor.timers.setTimeout(() => {
 							rState.current = { name: 'hidden' }
 							setIsVisible(false)
-						}, 200)
+						}, HIDE_VISIBILITY_TIMEOUT)
 					}
 					break
 				}
@@ -484,7 +486,7 @@ function useToolbarVisibilityStateMachine() {
 					rState.current = { name: 'shown' }
 					setIsVisible(true)
 					setIsInteractive(true)
-				}, 150)
+				}, SHOW_VISIBILITY_TIMEOUT)
 				break
 			}
 			case 'hiding': {
