@@ -18,7 +18,6 @@ import {
 import { createSentry } from '@tldraw/worker-shared'
 import { Kysely } from 'kysely'
 import { Logger } from './Logger'
-import { TLPostgresReplicator } from './TLPostgresReplicator'
 import {
 	fileKeys,
 	fileStateKeys,
@@ -106,7 +105,6 @@ export class UserDataSyncer {
 		type: 'init',
 		promise: promiseWithResolve(),
 	}
-	replicator: TLPostgresReplicator
 
 	store = new OptimisticAppStore()
 	mutations: { mutationNumber: number; mutationId: string; timestamp: number }[] = []
@@ -128,7 +126,7 @@ export class UserDataSyncer {
 
 	constructor(
 		private ctx: DurableObjectState,
-		env: Environment,
+		private env: Environment,
 		private db: Kysely<DB>,
 		private userId: string,
 		private broadcast: (message: ZServerSentMessage) => void,
@@ -136,7 +134,6 @@ export class UserDataSyncer {
 		private log: Logger
 	) {
 		this.sentry = createSentry(ctx, env)
-		this.replicator = getReplicator(env)
 		this.reboot(false)
 	}
 
@@ -232,7 +229,7 @@ export class UserDataSyncer {
 		this.log.debug('booting')
 		// todo: clean up old resources if necessary?
 		const start = Date.now()
-		const { sequenceId, sequenceNumber } = await this.replicator.registerUser(this.userId)
+		const { sequenceId, sequenceNumber } = await getReplicator(this.env).registerUser(this.userId)
 		this.log.debug('registered user, sequenceId:', sequenceId)
 		this.state = {
 			type: 'connecting',
