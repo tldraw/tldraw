@@ -173,9 +173,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	async __test__forceReboot() {
-		console.log('force reboot')
-		await this.reboot('test')
-		console.log('force reboot done')
+		this.reboot('test')
 	}
 	__test__panic() {
 		this.ctx.abort()
