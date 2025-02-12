@@ -8,7 +8,9 @@ export const testRoutes = createRouter<Environment>()
 		return undefined
 	})
 	.get('/app/__test__/replicator/reboot', (_, env) => {
+		console.log('will force reboot replicator')
 		getReplicator(env).__test__forceReboot()
+		console.log('forced reboot replicator')
 		return new Response('ok')
 	})
 	.get('/app/__test__/replicator/panic', (_, env) => {
