@@ -448,7 +448,9 @@ export async function defaultHandleExternalTextContent(
 	let align = 'middle' as TLTextShapeProps['textAlign']
 
 	const htmlToMeasure = html ?? cleanedUpPlaintext.replace(/\n/g, '<br>')
-	const isMultiLine = cleanedUpPlaintext.split('\n').length > 1
+	const isMultiLine = html
+		? richTextToPaste.content.length > 1
+		: cleanedUpPlaintext.split('\n').length > 1
 
 	// check whether the text contains the most common characters in RTL languages
 	const isRtl = isRightToLeftLanguage(cleanedUpPlaintext)
