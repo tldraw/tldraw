@@ -1,6 +1,6 @@
 /* ---------------------- Menu ---------------------- */
 
-import { TlaFile, TlaFileOpenState } from '@tldraw/dotcom-shared'
+import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
 import { Fragment, ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -116,14 +116,23 @@ function FileItems({
 		const newFileId = uniqueId()
 		const file = app.getFile(fileId)
 		if (!file) return
-		const res = app.createFile({ id: newFileId, name: getDuplicateName(file, app) })
+		trackEvent('duplicate-file', { source: 'file-menu' })
+		const res = app.createFile({
+			id: newFileId,
+			name: getDuplicateName(file, app),
+			createSource: `${FILE_PREFIX}/${fileId}`,
+		})
+		// copy the state too
+		const prevState = app.getFileState(fileId)
+		app.getOrCreateFileState(newFileId)
+		app.updateFileState(newFileId, {
+			lastSessionState: prevState?.lastSessionState,
+		})
 		if (res.ok) {
 			focusCtx.shouldRenameNextNewFile = true
-			navigate(routes.tlaFile(newFileId), {
-				state: { mode: 'duplicate', duplicateId: fileId } satisfies TlaFileOpenState,
-			})
+			navigate(routes.tlaFile(newFileId))
 		}
-	}, [app, fileId, focusCtx, navigate])
+	}, [app, fileId, focusCtx, navigate, trackEvent])
 
 	const handleDeleteClick = useCallback(() => {
 		addDialog({

@@ -72,19 +72,22 @@ export {
 } from './lib/shapes/arrow/shared'
 export { BookmarkShapeUtil } from './lib/shapes/bookmark/BookmarkShapeUtil'
 export { DrawShapeTool } from './lib/shapes/draw/DrawShapeTool'
-export { DrawShapeUtil } from './lib/shapes/draw/DrawShapeUtil'
+export { DrawShapeUtil, type DrawShapeOptions } from './lib/shapes/draw/DrawShapeUtil'
 export { EmbedShapeUtil } from './lib/shapes/embed/EmbedShapeUtil'
 export { FrameShapeTool } from './lib/shapes/frame/FrameShapeTool'
 export { FrameShapeUtil } from './lib/shapes/frame/FrameShapeUtil'
 export { GeoShapeTool } from './lib/shapes/geo/GeoShapeTool'
 export { GeoShapeUtil } from './lib/shapes/geo/GeoShapeUtil'
 export { HighlightShapeTool } from './lib/shapes/highlight/HighlightShapeTool'
-export { HighlightShapeUtil } from './lib/shapes/highlight/HighlightShapeUtil'
+export {
+	HighlightShapeUtil,
+	type HighlightShapeOptions,
+} from './lib/shapes/highlight/HighlightShapeUtil'
 export { ImageShapeUtil } from './lib/shapes/image/ImageShapeUtil'
 export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
 export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
-export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
+export { NoteShapeUtil, type NoteShapeOptions } from './lib/shapes/note/NoteShapeUtil'
 export {
 	PlainTextLabel,
 	TextLabel,
@@ -497,7 +500,7 @@ export { preloadFont, type TLTypeFace } from './lib/utils/assets/preload-font'
 export { getEmbedInfo, type TLEmbedResult } from './lib/utils/embeds/embeds'
 export { copyAs, type CopyAsOptions, type TLCopyType } from './lib/utils/export/copyAs'
 export { exportToBlob } from './lib/utils/export/export'
-export { exportAs, type ExportAsOptions } from './lib/utils/export/exportAs'
+export { downloadFile, exportAs, type ExportAsOptions } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export {
 	defaultEditorAssetUrls,

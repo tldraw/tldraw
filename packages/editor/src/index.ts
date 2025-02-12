@@ -417,6 +417,7 @@ export {
 	type TLDeepLinkOptions,
 } from './lib/utils/deepLinks'
 export {
+	activeElementShouldCaptureKeys,
 	loopToHtmlElement,
 	preventDefault,
 	releasePointerCapture,

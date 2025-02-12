@@ -1,4 +1,4 @@
-import { DB, ROOM_PREFIX, TlaFile, ZTable } from '@tldraw/dotcom-shared'
+import { DB, TlaFile, ZTable } from '@tldraw/dotcom-shared'
 import {
 	ExecutionQueue,
 	assert,
@@ -12,12 +12,11 @@ import { DurableObject } from 'cloudflare:workers'
 import { Kysely, sql } from 'kysely'
 import postgres from 'postgres'
 import { Logger } from './Logger'
-import type { TLDrawDurableObject } from './TLDrawDurableObject'
 import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { createPostgresConnection, createPostgresConnectionPool } from './postgres'
 import { Analytics, Environment, TLPostgresReplicatorEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
-import { getUserDurableObject } from './utils/durableObjects'
+import { getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
 
 interface Migration {
 	id: string
@@ -275,6 +274,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		// re-register all active users to get their latest guest info
 		// do this in small batches to avoid overwhelming the system
 		const users = this.sql.exec('SELECT id FROM active_user').toArray()
+		this.reportActiveUsers()
 		const sequenceId = this.state.sequenceId
 		const BATCH_SIZE = 5
 		const tick = () => {
@@ -441,16 +441,17 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			.map((x) => x.userId as string)
 		// if the file state was deleted before the file, we might not have any impacted users
 		if (event.command === 'delete') {
-			this.getStubForFile(row.id).appFileRecordDidDelete()
+			getRoomDurableObject(this.env, row.id).appFileRecordDidDelete()
 			this.sql.exec(`DELETE FROM user_file_subscriptions WHERE fileId = ?`, row.id)
 		} else if (event.command === 'update') {
 			assert(row.ownerId, 'ownerId is required when updating file')
-			this.getStubForFile(row.id).appFileRecordDidUpdate(row as TlaFile)
+			getRoomDurableObject(this.env, row.id).appFileRecordDidUpdate(row as TlaFile)
 		} else if (event.command === 'insert') {
 			assert(row.ownerId, 'ownerId is required when inserting file')
 			if (!impactedUserIds.includes(row.ownerId)) {
 				impactedUserIds.push(row.ownerId)
 			}
+			getRoomDurableObject(this.env, row.id).appFileRecordCreated(row as TlaFile)
 		}
 		for (const userId of impactedUserIds) {
 			this.messageUser(userId, {
@@ -504,6 +505,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	private async messageUser(userId: string, event: ZReplicationEventWithoutSequenceInfo) {
+		if (!this.userIsActive(userId)) return
 		try {
 			let q = this.userDispatchQueues.get(userId)
 			if (!q) {
@@ -538,9 +540,13 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	private getStubForFile(fileId: string) {
-		const id = this.env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${fileId}`)
-		return this.env.TLDR_DOC.get(id) as any as TLDrawDurableObject
+	reportActiveUsers() {
+		try {
+			const { count } = this.sql.exec('SELECT COUNT(*) as count FROM active_user').one()
+			this.logEvent({ type: 'active_users', count: count as number })
+		} catch (e) {
+			console.error('Error in reportActiveUsers', e)
+		}
 	}
 
 	async registerUser(userId: string) {
@@ -565,6 +571,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				userId,
 				sequenceIdSuffix
 			)
+			this.reportActiveUsers()
 			this.log.debug('inserted active user')
 			for (const file of guestFiles) {
 				this.sql.exec(
@@ -587,6 +594,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	async unregisterUser(userId: string) {
 		this.logEvent({ type: 'unregister_user' })
 		this.sql.exec(`DELETE FROM active_user WHERE id = ?`, userId)
+		this.reportActiveUsers()
 		const queue = this.userDispatchQueues.get(userId)
 		if (queue) {
 			queue.close()
@@ -620,6 +628,12 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				this.writeEvent({
 					blobs: [event.type],
 					doubles: [event.rpm],
+				})
+				break
+			case 'active_users':
+				this.writeEvent({
+					blobs: [event.type],
+					doubles: [event.count],
 				})
 				break
 			default:

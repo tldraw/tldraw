@@ -1407,8 +1407,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * state.getStateDescendant('select')
-	 * state.getStateDescendant('select.brushing')
+	 * editor.getStateDescendant('select')
+	 * editor.getStateDescendant('select.brushing')
 	 * ```
 	 *
 	 * @param path - The descendant's path of state ids, separated by periods.

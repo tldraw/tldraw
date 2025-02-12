@@ -99,6 +99,9 @@ import { useValue } from '@tldraw/state-react';
 import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
 
+// @internal (undocumented)
+export function activeElementShouldCaptureKeys(): boolean;
+
 // @public
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
 
@@ -716,6 +719,7 @@ export const defaultTldrawOptions: {
     readonly edgeScrollDistance: 8;
     readonly edgeScrollEaseDuration: 200;
     readonly edgeScrollSpeed: 25;
+    readonly enableToolbarKeyboardShortcuts: true;
     readonly exportProvider: ExoticComponent<    {
     children?: ReactNode;
     }>;
@@ -746,10 +750,8 @@ export const defaultTldrawOptions: {
     readonly maxExportDelayMs: 5000;
     readonly maxFilesAtOnce: 100;
     readonly maxPages: 40;
-    readonly maxPointsPerDrawShape: 500;
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
-    readonly noteShapeResizeMode: "none";
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
 };
@@ -3165,6 +3167,7 @@ export interface TldrawOptions {
     readonly edgeScrollEaseDuration: number;
     // (undocumented)
     readonly edgeScrollSpeed: number;
+    readonly enableToolbarKeyboardShortcuts: boolean;
     readonly exportProvider: ComponentType<{
         children: React.ReactNode;
     }>;
@@ -3195,12 +3198,9 @@ export interface TldrawOptions {
     // (undocumented)
     readonly maxPages: number;
     // (undocumented)
-    readonly maxPointsPerDrawShape: number;
-    // (undocumented)
     readonly maxShapesPerPage: number;
     // (undocumented)
     readonly multiClickDurationMs: number;
-    readonly noteShapeResizeMode: 'none' | 'scale';
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;

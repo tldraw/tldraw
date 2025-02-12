@@ -23,7 +23,7 @@ const socialLinks = [
 
 export function TestimonialsSection() {
 	return (
-		<Section>
+		<Section className="bg-zinc-50 dark:bg-zinc-900 py-24 sm:py-24 md:py-32 lg:py-40 max-w-full">
 			<SectionHeading
 				subheading="Community"
 				heading="Friends of the draw"

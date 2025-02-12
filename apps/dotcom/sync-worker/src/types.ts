@@ -26,6 +26,9 @@ export interface Environment {
 
 	BOTCOM_POSTGRES_CONNECTION_STRING: string
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
+
+	DISCORD_FEEDBACK_WEBHOOK_URL?: string
+
 	MEASURE: Analytics | undefined
 
 	ROOMS: R2Bucket
@@ -111,6 +114,7 @@ export type TLPostgresReplicatorEvent =
 	| { type: 'reboot' | 'reboot_error' | 'register_user' | 'unregister_user' | 'get_file_record' }
 	| { type: 'reboot_duration'; duration: number }
 	| { type: 'rpm'; rpm: number }
+	| { type: 'active_users'; count: number }
 
 export type TLUserDurableObjectEvent =
 	| {
@@ -127,3 +131,4 @@ export type TLUserDurableObjectEvent =
 			id: string
 	  }
 	| { type: 'reboot_duration'; id: string; duration: number }
+	| { type: 'cold_start_time'; id: string; duration: number }

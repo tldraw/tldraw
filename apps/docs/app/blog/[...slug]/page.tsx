@@ -35,6 +35,7 @@ export async function generateStaticParams() {
 export default async function Page({ params }: { params: { slug: string | string[] } }) {
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
 	const content = await db.getPageContent(`/blog/${path.join('/')}`)
+
 	if (!content) notFound()
 
 	if (content.type === 'category' && content.category.sectionId === 'blog') {

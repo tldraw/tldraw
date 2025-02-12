@@ -11,6 +11,7 @@ import {
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { TlaDebugMenuGroup } from '../TlaDebugMenuGroup'
+import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
 import { TlaManageCookiesDialog } from '../dialogs/TlaManageCookiesDialog'
 
 const messages = defineMessages({
@@ -20,6 +21,7 @@ const messages = defineMessages({
 	cookiePolicy: { defaultMessage: 'Cookie policy' },
 	manageCookies: { defaultMessage: 'Manage cookies' },
 	about: { defaultMessage: 'About' },
+	submitFeedback: { defaultMessage: 'Give us feedback' },
 })
 
 export function TlaAppMenuGroup() {
@@ -39,17 +41,26 @@ function ColorThemeSubmenu() {
 	return <ColorSchemeMenu />
 }
 
-function CookieConsentGroup() {
+function SignedInItemsGroup() {
 	const { addDialog } = useDialogs()
 	return (
 		<TldrawUiMenuGroup id="consent">
 			<TldrawUiMenuItem
-				id="about"
+				id="cookie-consent"
 				label={useMsg(messages.manageCookies)}
 				icon="external-link"
 				readonlyOk
 				onSelect={() => {
 					addDialog({ component: () => <TlaManageCookiesDialog /> })
+				}}
+			/>
+			<TldrawUiMenuItem
+				id="give-us-feedback"
+				label={useMsg(messages.submitFeedback)}
+				icon="external-link"
+				readonlyOk
+				onSelect={() => {
+					addDialog({ component: SubmitFeedbackDialog })
 				}}
 			/>
 		</TldrawUiMenuGroup>
@@ -63,10 +74,10 @@ function HelpSubMenu() {
 	const msg = useMsg(messages.help)
 	return (
 		<TldrawUiMenuSubmenu id="help" label={msg}>
-			{isSignedIn && <CookieConsentGroup />}
+			{isSignedIn && <SignedInItemsGroup />}
 			<TldrawUiMenuGroup id="links">
 				<TldrawUiMenuItem
-					id="about"
+					id="tos"
 					label={useMsg(messages.terms)}
 					icon="external-link"
 					readonlyOk
@@ -75,7 +86,7 @@ function HelpSubMenu() {
 					}}
 				/>
 				<TldrawUiMenuItem
-					id="about"
+					id="privacy"
 					label={useMsg(messages.privacy)}
 					icon="external-link"
 					readonlyOk
@@ -84,7 +95,7 @@ function HelpSubMenu() {
 					}}
 				/>
 				<TldrawUiMenuItem
-					id="about"
+					id="cookie-policy"
 					label={useMsg(messages.cookiePolicy)}
 					icon="external-link"
 					readonlyOk

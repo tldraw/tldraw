@@ -2,6 +2,7 @@ import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 import { assertExists, atom } from 'tldraw'
 import { TldrawApp } from '../app/TldrawApp'
+import { useTldrawAppUiEvents } from '../utils/app-ui-events'
 
 const appContext = createContext<TldrawApp | null>(null)
 
@@ -17,6 +18,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			return
 		}
 	})
+	const trackEvent = useTldrawAppUiEvents()
 
 	if (!auth.isSignedIn || !user || !isLoaded) {
 		throw new Error('should have redirected in TlaRootProviders')
@@ -38,6 +40,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				onClientTooOld: () => {
 					isClientTooOld$.set(true)
 				},
+				trackEvent,
 			}).then(({ app }) => {
 				if (didCancel) {
 					app.dispose()
