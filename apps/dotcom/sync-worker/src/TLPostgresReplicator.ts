@@ -115,6 +115,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private readonly db: Kysely<DB>
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
+		this.measure = env.MEASURE
 		this.sentry = createSentry(ctx, env)
 		this.sql = this.ctx.storage.sql
 
@@ -134,7 +135,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			this.captureException(e)
 			this.__test__panic()
 		})
-		this.measure = env.MEASURE
 	}
 
 	private _applyMigration(index: number) {
