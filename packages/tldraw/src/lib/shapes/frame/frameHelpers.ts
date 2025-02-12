@@ -43,10 +43,9 @@ export function getFrameHeadingSize(
 		return new Box(0, -opts.height, shape.props.w, opts.height)
 	}
 
-	const frameTitle = defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203)
-
 	let width = measurementWeakmap.get(shape.props)
 	if (!width) {
+		const frameTitle = defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203)
 		const spans = editor.textMeasure.measureTextSpans(frameTitle, opts)
 		const firstSpan = spans[0]
 		const lastSpan = last(spans)!
