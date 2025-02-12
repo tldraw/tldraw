@@ -615,7 +615,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		switch (event.type) {
 			case 'reboot':
 				this.writeEvent({ blobs: [event.type, event.source] })
-
 				break
 			case 'reboot_error':
 			case 'register_user':
