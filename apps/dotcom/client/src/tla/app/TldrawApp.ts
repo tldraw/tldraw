@@ -96,7 +96,7 @@ export class TldrawApp {
 				})
 				const token = await getToken()
 				params.set('accessToken', token || 'no-token-found')
-				return `${MULTIPLAYER_SERVER}/api/app/${userId}/connect?${params}`
+				return `${MULTIPLAYER_SERVER}/app/${userId}/connect?${params}`
 			},
 			// schema,
 			// This is often easier to develop with if you're frequently changing
