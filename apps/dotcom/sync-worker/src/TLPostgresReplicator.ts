@@ -115,6 +115,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private readonly db: Kysely<DB>
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
+		console.log('TLPostgresReplicator')
 		this.measure = env.MEASURE
 		this.sentry = createSentry(ctx, env)
 		this.sql = this.ctx.storage.sql
@@ -172,7 +173,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	__test__forceReboot() {
+		console.log('force reboot')
 		this.reboot('test')
+		console.log('force reboot done')
 	}
 	__test__panic() {
 		this.ctx.abort()
@@ -209,7 +212,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private queue = new ExecutionQueue()
 
 	private async reboot(source: TLPostgresReplicatorRebootSource, delay = true) {
-		console.log('rebooting')
 		this.logEvent({ type: 'reboot', source })
 		this.log.debug('reboot push')
 		await this.queue.push(async () => {
@@ -561,6 +563,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	async registerUser(userId: string) {
+		console.log('registerUser', userId)
 		try {
 			this.log.debug('registering user', userId)
 			this.logEvent({ type: 'register_user' })
