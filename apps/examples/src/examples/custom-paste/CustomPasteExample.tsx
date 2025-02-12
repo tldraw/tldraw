@@ -31,7 +31,7 @@ function handleCustomTldrawPaste(editor: Editor, { content, point }: TLTldrawExt
 			? content.shapes.find((shape) => shape.id === content.rootShapeIds[0])
 			: null
 
-	// make sure that the shame is a frame. if it is, retrieve the current version of that frame
+	// make sure that the shape is a frame. if it is, retrieve the current version of that frame
 	// from the document.
 	const onlyCopiedFrame =
 		onlyCopiedShape?.type === 'frame' ? (onlyCopiedShape as TLFrameShape) : null
