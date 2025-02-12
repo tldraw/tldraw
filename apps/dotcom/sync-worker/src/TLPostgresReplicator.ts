@@ -209,6 +209,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private queue = new ExecutionQueue()
 
 	private async reboot(source: TLPostgresReplicatorRebootSource, delay = true) {
+		console.log('rebooting')
 		this.logEvent({ type: 'reboot', source })
 		this.log.debug('reboot push')
 		await this.queue.push(async () => {
@@ -216,19 +217,24 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				await sleep(1000)
 			}
 			const start = Date.now()
+			console.log('starting')
 			this.log.debug('rebooting')
 			const res = await Promise.race([
 				this.boot().then(() => 'ok'),
 				sleep(3000).then(() => 'timeout'),
 			]).catch((e) => {
+				console.log('reboot error')
 				this.logEvent({ type: 'reboot_error' })
 				this.captureException(e)
 				return 'error'
 			})
+			console.log('rebooted', res)
 			this.log.debug('rebooted', res)
 			if (res === 'ok') {
+				console.log('ok')
 				this.logEvent({ type: 'reboot_duration', duration: Date.now() - start })
 			} else {
+				console.log('retry')
 				this.reboot('retry')
 			}
 		})
