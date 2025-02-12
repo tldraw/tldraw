@@ -89,7 +89,11 @@ export const tipTapDefaultExtensions: Extensions = [
 	Highlight,
 	KeyboardShiftEnterTweakExtension,
 	TextDirection,
-	PointerStateExtension,
+	// TODO: This is causing issues with list item selection
+	// enabling onPointerDownCapture in RichTextArea fixes part of the problem
+	// but selecting in some cases the toolbar selection won't work when list items
+	// are involved.
+	// PointerStateExtension,
 ]
 
 /**
