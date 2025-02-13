@@ -1,4 +1,4 @@
-import { DB, TlaFile, ZTable } from '@tldraw/dotcom-shared'
+import { DB, TlaFile, TlaRow, ZTable } from '@tldraw/dotcom-shared'
 import {
 	ExecutionQueue,
 	assert,
@@ -11,7 +11,13 @@ import {
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { Kysely, sql } from 'kysely'
-import postgres from 'postgres'
+
+import {
+	LogicalReplicationService,
+	PgoutputPlugin,
+	Wal2Json,
+	Wal2JsonPlugin,
+} from 'pg-logical-replication'
 import { Logger } from './Logger'
 import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { createPostgresConnectionPool } from './postgres'
@@ -27,6 +33,11 @@ import {
 	getStatsDurableObjct,
 	getUserDurableObject,
 } from './utils/durableObjects'
+
+interface ReplicationEvent {
+	command: 'insert' | 'update' | 'delete'
+	table: string
+}
 
 interface Migration {
 	id: string
@@ -65,12 +76,32 @@ const migrations: Migration[] = [
 			ALTER TABLE active_user ADD COLUMN lastUpdatedAt INTEGER NOT NULL DEFAULT 0;
 		`,
 	},
+	{
+		id: '003_add_lsn_tracking',
+		code: `
+			CREATE TABLE IF NOT EXISTS lsn (
+				id TEXT PRIMARY KEY
+			);
+			INSERT INTO lsn (id) VALUES (null);
+		`,
+	},
 ]
 
 const ONE_MINUTE = 60 * 1000
 const PRUNE_TIME = ONE_MINUTE
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
+
+type Row =
+	| TlaRow
+	| {
+			bootId: string
+			userId: string
+	  }
+	| {
+			mutationNumber: number
+			userId: string
+	  }
 
 type BootState =
 	| {
@@ -80,15 +111,12 @@ type BootState =
 	  }
 	| {
 			type: 'connecting'
-			directDb: postgres.Sql
 			sequenceId: string
 			promise: PromiseWithResolve
 	  }
 	| {
 			type: 'connected'
-			directDb: postgres.Sql
 			sequenceId: string
-			subscription: postgres.SubscriptionHandle
 	  }
 
 export class TLPostgresReplicator extends DurableObject<Environment> {
@@ -125,6 +153,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private log
 
+	private readonly replicationService
+	private readonly slotName
+	private readonly pgPlugin = new PgoutputPlugin({
+		protoVersion: 2,
+		publicationNames: ['alltables'],
+	})
+	private readonly wal2jsonPlugin = new Wal2JsonPlugin({})
+
 	private readonly db: Kysely<DB>
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
@@ -132,16 +168,43 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.sentry = createSentry(ctx, env)
 		this.sqlite = this.ctx.storage.sql
 
-		this.ctx.blockConcurrencyWhile(async () =>
-			this._migrate().catch((e) => {
-				this.captureException(e)
-				throw e
-			})
-		)
-
+		// todo: is this enough entropy?
+		this.slotName = 'tl_postgres_replicator_' + this.ctx.id.toString().substring(0, 16)
 		// debug logging in preview envs by default
 		this.log = new Logger(env, 'TLPostgresReplicator', this.sentry)
 		this.db = createPostgresConnectionPool(env, 'TLPostgresReplicator', 100)
+
+		this.ctx.blockConcurrencyWhile(async () => {
+			await this._migrate().catch((e) => {
+				this.captureException(e)
+				throw e
+			})
+			await sql`SELECT pg_create_logical_replication_slot(${this.slotName}, 'wal2json') WHERE NOT EXISTS (SELECT 1 FROM pg_replication_slots WHERE slot_name = ${this.slotName})`.execute(
+				this.db
+			)
+		})
+
+		this.replicationService = new LogicalReplicationService(
+			/**
+			 * node-postgres Client options for connection
+			 * https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/pg/index.d.ts#L16
+			 */
+			{
+				database: 'postgres',
+				connectionString: env.BOTCOM_POSTGRES_CONNECTION_STRING,
+				application_name: this.slotName,
+			},
+			/**
+			 * Logical replication service config
+			 * https://github.com/kibae/pg-logical-replication/blob/main/src/logical-replication-service.ts#L9
+			 */
+			{
+				acknowledge: {
+					auto: false,
+					timeoutSeconds: 10,
+				},
+			}
+		)
 
 		this.alarm()
 		this.reboot('constructor', false).catch((e) => {
@@ -270,54 +333,45 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.log.debug('booting')
 		this.lastPostgresMessageTime = Date.now()
 		// clean up old resources if necessary
-		if (this.state.type === 'connected') {
-			this.state.subscription.unsubscribe()
-			this.state.directDb.end().catch(this.captureException)
-		} else if (this.state.type === 'connecting') {
-			this.state.directDb.end().catch(this.captureException)
-		}
+		await this.replicationService.stop().catch(this.captureException)
+
 		const promise = 'promise' in this.state ? this.state.promise : promiseWithResolve()
 		this.state = {
 			type: 'connecting',
 			// preserve the promise so any awaiters do eventually get resolved
 			// TODO: set a timeout on the promise?
 			promise,
-			directDb: postgres(this.env.BOTCOM_POSTGRES_CONNECTION_STRING, {
-				types: {
-					bigint: {
-						from: [20], // PostgreSQL OID for BIGINT
-						parse: (value: string) => Number(value), // Convert string to number
-						to: 20,
-						serialize: (value: number) => String(value), // Convert number to string
-					},
-				},
-				idle_timeout: 30,
-				connection: {
-					application_name: 'TLPostgresReplicator',
-				},
-			}),
 			sequenceId: uniqueId(),
 		}
-		const subscription = await this.state.directDb.subscribe(
-			'*',
-			this.handleEvent.bind(this),
-			() => {
-				this.onDidBoot()
-			},
-			() => {
-				// this is invoked if the subscription is closed unexpectedly
-				this.captureException(new Error('Subscription error (we can tolerate this)'))
-				this.reboot('subscription_closed')
-			}
-		)
+		const lsn = this.sqlite.exec('SELECT id FROM lsn').one()?.id as string
 
+		this.replicationService.subscribe(this.wal2jsonPlugin, this.slotName, lsn).catch(async (e) => {
+			this.captureException(e, { message: 'failed to subscribe' })
+			this.reboot('retry')
+		})
+		this.replicationService.removeAllListeners()
+
+		this.replicationService.on('heartbeat', (lsn: string) => {
+			this.updateLsn(lsn)
+		})
+
+		this.replicationService.addListener('data', (lsn: string, log: Wal2Json.Output) => {
+			for (const change of log.change) {
+				this.handleEvent(change, lsn)
+			}
+		})
 		this.state = {
 			type: 'connected',
-			subscription,
 			sequenceId: this.state.sequenceId,
-			directDb: this.state.directDb,
 		}
 		promise.resolve(null)
+	}
+
+	private async updateLsn(lsn: string) {
+		const result = await this.replicationService.acknowledge(lsn).catch(this.captureException)
+		if (result) {
+			this.sqlite.exec('UPDATE lsn SET id = ?', lsn)
+		}
 	}
 
 	private onDidBoot() {
@@ -344,52 +398,74 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		5000
 	)
 
-	private handleEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
+	private handleEvent(change: Wal2Json.Change, lsn: string) {
 		this.lastPostgresMessageTime = Date.now()
 		this.reportPostgresUpdate()
-		if (event.relation.table === 'replicator_boot_id') {
+		if (change.table === 'replicator_boot_id') {
 			// ping, ignore
 			return
 		}
 		this.postgresUpdates++
-		this.log.debug('handleEvent', event)
+		const { row, event } = this.getRowAndEvent(change)
+		// We shouldn't get these two, but just to be sure we'll filter them out
+		const { command, table } = event
+		if (command === 'truncate' || command === 'message') {
+			this.log.debug('ignoring event', event)
+			return
+		}
+		this.log.debug('handleEvent', event, lsn, row)
 		assert(this.state.type === 'connected', 'state should be connected in handleEvent')
 		try {
-			switch (event.relation.table) {
+			switch (table) {
 				case 'user_boot_id':
-					this.handleBootEvent(row, event)
-					return
+					this.handleBootEvent(row, { command, table })
+					break
 				case 'user_mutation_number':
-					this.handleMutationConfirmationEvent(row, event)
-					return
+					this.handleMutationConfirmationEvent(row, { command, table })
+					break
 				case 'file_state':
-					this.handleFileStateEvent(row, event)
-					return
+					this.handleFileStateEvent(row, { command, table })
+					break
 				case 'file':
-					this.handleFileEvent(row, event)
-					return
+					this.handleFileEvent(row, { command, table })
+					break
 				case 'user':
-					this.handleUserEvent(row, event)
-					return
+					this.handleUserEvent(row, { command, table })
+					break
 				// We don't synchronize events for these tables
 				case 'asset':
 				case 'applied_migrations':
-					return
+					break
 				default:
-					this.captureException(new Error(`Unhandled table: ${event.relation.table}`), {
+					this.captureException(new Error(`Unhandled table: ${table}`), {
 						event,
 						row,
 					})
-					return
+					break
 			}
+			this.updateLsn(lsn)
 		} catch (e) {
 			this.captureException(e)
 		}
 	}
 
-	private handleBootEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
+	private getRowAndEvent(change: Wal2Json.Change) {
+		const row = {} as any
+		// take everything from change.columnnames and associated the values from change.columnvalues
+		change.columnnames.forEach((col, i) => {
+			row[col] = change.columnvalues[i]
+		})
+
+		const event = {
+			command: change.kind,
+			table: change.table,
+		}
+		return { row, event }
+	}
+
+	private handleBootEvent(row: Row | null, event: ReplicationEvent) {
 		if (event.command === 'delete') return
-		assert(row?.bootId, 'bootId is required')
+		assert(row && 'bootId' in row, 'bootId is required')
 		this.messageUser(row.userId, {
 			type: 'boot_complete',
 			userId: row.userId,
@@ -397,12 +473,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		})
 	}
 
-	private handleMutationConfirmationEvent(
-		row: postgres.Row | null,
-		event: postgres.ReplicationEvent
-	) {
+	private handleMutationConfirmationEvent(row: Row | null, event: ReplicationEvent) {
 		if (event.command === 'delete') return
-		assert(typeof row?.mutationNumber === 'number', 'mutationNumber is required')
+		assert(row && 'mutationNumber' in row, 'mutationNumber is required')
 		this.messageUser(row.userId, {
 			type: 'mutation_commit',
 			mutationNumber: row.mutationNumber,
@@ -410,8 +483,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		})
 	}
 
-	private handleFileStateEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
-		assert(row?.userId, 'userId is required')
+	private handleFileStateEvent(row: Row | null, event: ReplicationEvent) {
+		assert(row && 'userId' in row && 'fileId' in row, 'userId is required')
 		if (!this.userIsActive(row.userId)) return
 		if (event.command === 'insert') {
 			this.sqlite.exec(
@@ -483,14 +556,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.messageUser(row.userId, {
 			type: 'row_update',
 			row: row as any,
-			table: event.relation.table as ZTable,
+			table: event.table as ZTable,
 			event: event.command,
 			userId: row.userId,
 		})
 	}
 
-	private handleFileEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
-		assert(row?.id, 'row id is required')
+	private handleFileEvent(row: Row | null, event: ReplicationEvent) {
+		assert(row && 'id' in row, 'row id is required')
 		const impactedUserIds = this.sqlite
 			.exec('SELECT userId FROM user_file_subscriptions WHERE fileId = ?', row.id)
 			.toArray()
@@ -500,10 +573,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			getRoomDurableObject(this.env, row.id).appFileRecordDidDelete()
 			this.sqlite.exec(`DELETE FROM user_file_subscriptions WHERE fileId = ?`, row.id)
 		} else if (event.command === 'update') {
-			assert(row.ownerId, 'ownerId is required when updating file')
+			assert('ownerId' in row, 'ownerId is required when updating file')
 			getRoomDurableObject(this.env, row.id).appFileRecordDidUpdate(row as TlaFile)
 		} else if (event.command === 'insert') {
-			assert(row.ownerId, 'ownerId is required when inserting file')
+			assert('ownerId' in row, 'ownerId is required when inserting file')
 			if (!impactedUserIds.includes(row.ownerId)) {
 				impactedUserIds.push(row.ownerId)
 			}
@@ -513,20 +586,20 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			this.messageUser(userId, {
 				type: 'row_update',
 				row: row as any,
-				table: event.relation.table as ZTable,
+				table: event.table as ZTable,
 				event: event.command,
 				userId,
 			})
 		}
 	}
 
-	private handleUserEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
-		assert(row?.id, 'user id is required')
+	private handleUserEvent(row: Row | null, event: ReplicationEvent) {
+		assert(row && 'id' in row, 'user id is required')
 		this.log.debug('USER EVENT', event.command, row.id)
 		this.messageUser(row.id, {
 			type: 'row_update',
 			row: row as any,
-			table: event.relation.table as ZTable,
+			table: event.table as ZTable,
 			event: event.command,
 			userId: row.id,
 		})

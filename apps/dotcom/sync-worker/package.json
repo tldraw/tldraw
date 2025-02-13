@@ -34,7 +34,7 @@
 		"jose": "^5.9.6",
 		"kysely": "^0.27.5",
 		"pg": "^8.13.1",
-		"postgres": "patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch",
+		"pg-logical-replication": "^2.0.7",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1"
 	},

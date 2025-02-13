@@ -1,6 +1,6 @@
 services:
   zstart_postgres:
-    image: postgres:16.2-alpine
+    image: simonfuhrer/postgresql:16.1-wal2json
     shm_size: 1g
     user: postgres
     restart: always
