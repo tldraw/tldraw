@@ -7,7 +7,7 @@ export const testRoutes = createRouter<Environment>()
 		if (!isDebugLogging(env)) return notFound()
 		return undefined
 	})
-	.get('/app/__test__/replicator/reboot', async (_, env) => {
+	.get('/app/__test__/replicator/reboot', (_, env) => {
 		getReplicator(env).__test__forceReboot()
 		return new Response('ok')
 	})
