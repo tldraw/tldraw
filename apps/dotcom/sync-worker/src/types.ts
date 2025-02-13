@@ -110,8 +110,16 @@ export type TLServerEvent =
 			messageLength: number
 	  }
 
+export type TLPostgresReplicatorRebootSource =
+	| 'constructor'
+	| 'inactivity'
+	| 'retry'
+	| 'subscription_closed'
+	| 'test'
+
 export type TLPostgresReplicatorEvent =
-	| { type: 'reboot' | 'reboot_error' | 'register_user' | 'unregister_user' | 'get_file_record' }
+	| { type: 'reboot'; source: TLPostgresReplicatorRebootSource }
+	| { type: 'reboot_error' | 'register_user' | 'unregister_user' | 'get_file_record' }
 	| { type: 'reboot_duration'; duration: number }
 	| { type: 'rpm'; rpm: number }
 	| { type: 'active_users'; count: number }
