@@ -135,6 +135,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 		const activeUsers = this.sql.exec('SELECT id FROM active_user').toArray() as { id: string }[]
 		const now = Date.now()
+		this.lastUserPruneTime = now
 		for (const user of activeUsers) {
 			this.usersWithUpdates.set(user.id, now)
 		}
