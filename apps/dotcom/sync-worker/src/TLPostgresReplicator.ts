@@ -136,7 +136,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 		// debug logging in preview envs by default
 		this.log = new Logger(env, 'TLPostgresReplicator', this.sentry)
-		this.db = createPostgresConnectionPool(env, 'TLPostgresReplicator')
+		this.db = createPostgresConnectionPool(env, 'TLPostgresReplicator', 100)
 
 		this.alarm()
 		this.reboot('constructor', false).catch((e) => {

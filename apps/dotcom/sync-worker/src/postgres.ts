@@ -8,13 +8,13 @@ pg.types.setTypeParser(int8TypeId, (val) => {
 	return parseInt(val, 10)
 })
 
-export function createPostgresConnectionPool(env: Environment, name: string) {
+export function createPostgresConnectionPool(env: Environment, name: string, max: number = 1) {
 	const dialect = new PostgresDialect({
 		pool: new pg.Pool({
 			connectionString: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 			application_name: name,
 			idleTimeoutMillis: 10_000,
-			max: 1,
+			max,
 		}),
 	})
 
