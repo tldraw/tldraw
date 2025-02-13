@@ -599,9 +599,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			this.sql.exec(`DELETE FROM active_user WHERE id = ?`, userId)
 			this.log.debug('cleared active user')
 			this.sql.exec(
-				`INSERT INTO active_user (id, sequenceNumber, sequenceIdSuffix) VALUES (?, 0, ?)`,
+				`INSERT INTO active_user (id, sequenceNumber, sequenceIdSuffix, lastUpdatedAt) VALUES (?, 0, ?, ?)`,
 				userId,
-				sequenceIdSuffix
+				sequenceIdSuffix,
+				Date.now()
 			)
 			this.reportActiveUsers()
 			this.log.debug('inserted active user')
