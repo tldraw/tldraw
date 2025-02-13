@@ -52,6 +52,7 @@ const migrations: Migration[] = [
 ]
 
 const ONE_MINUTE = 60 * 1000
+const PRUNE_TIME = ONE_MINUTE
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -85,6 +86,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private postgresUpdates = 0
 	private lastPostgresMessageTime = Date.now()
 	private lastRpmLogTime = Date.now()
+	private usersWithUpdates = new Map<string, number>()
+	private lastUserPruneTime = Date.now()
 
 	// we need to guarantee in-order delivery of messages to users
 	// but DO RPC calls are not guaranteed to happen in order, so we need to
@@ -186,6 +189,27 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			sql`insert into replicator_boot_id ("replicatorId", "bootId") values (${this.ctx.id.toString()}, ${uniqueId()}) on conflict ("replicatorId") do update set "bootId" = excluded."bootId"`.execute(
 				this.db
 			)
+		}
+		this.maybePruneUsers()
+	}
+
+	private async maybePruneUsers() {
+		const now = Date.now()
+		if (now - this.lastUserPruneTime < PRUNE_TIME) return
+		this.lastUserPruneTime = now
+		const activeUserIds = this.ctx.storage.sql
+			.exec('SELECT id FROM active_user')
+			.toArray()
+			.map((u) => u.id) as string[]
+		for (const id of activeUserIds) {
+			const lastUserUpdate = this.usersWithUpdates.get(id)
+			// User has had updates in the last prune period, so skip them
+			if (lastUserUpdate && now - lastUserUpdate < PRUNE_TIME) continue
+			// Their time is up
+			this.usersWithUpdates.delete(id)
+			if (await getUserDurableObject(this.env, id).notActive()) {
+				await this.unregisterUser(id)
+			}
 		}
 	}
 
@@ -506,6 +530,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private async messageUser(userId: string, event: ZReplicationEventWithoutSequenceInfo) {
 		if (!this.userIsActive(userId)) return
+		this.usersWithUpdates.set(userId, Date.now())
 		try {
 			let q = this.userDispatchQueues.get(userId)
 			if (!q) {
