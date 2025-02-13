@@ -16,16 +16,52 @@ export function getAssetUrlsByMetaUrl(opts) {
 	)
 	return {
 		fonts: {
+			monospaceBold: formatAssetUrl(
+				new URL('./fonts/IBMPlexMono-Bold.woff2', import.meta.url).href,
+				opts
+			),
+			monospaceBoldItalic: formatAssetUrl(
+				new URL('./fonts/IBMPlexMono-BoldItalic.woff2', import.meta.url).href,
+				opts
+			),
 			monospace: formatAssetUrl(
 				new URL('./fonts/IBMPlexMono-Medium.woff2', import.meta.url).href,
+				opts
+			),
+			monospaceItalic: formatAssetUrl(
+				new URL('./fonts/IBMPlexMono-MediumItalic.woff2', import.meta.url).href,
+				opts
+			),
+			sansSerifBold: formatAssetUrl(
+				new URL('./fonts/IBMPlexSans-Bold.woff2', import.meta.url).href,
+				opts
+			),
+			sansSerifBoldItalic: formatAssetUrl(
+				new URL('./fonts/IBMPlexSans-BoldItalic.woff2', import.meta.url).href,
 				opts
 			),
 			sansSerif: formatAssetUrl(
 				new URL('./fonts/IBMPlexSans-Medium.woff2', import.meta.url).href,
 				opts
 			),
+			sansSerifItalic: formatAssetUrl(
+				new URL('./fonts/IBMPlexSans-MediumItalic.woff2', import.meta.url).href,
+				opts
+			),
+			serifBold: formatAssetUrl(
+				new URL('./fonts/IBMPlexSerif-Bold.woff2', import.meta.url).href,
+				opts
+			),
+			serifBoldItalic: formatAssetUrl(
+				new URL('./fonts/IBMPlexSerif-BoldItalic.woff2', import.meta.url).href,
+				opts
+			),
 			serif: formatAssetUrl(
 				new URL('./fonts/IBMPlexSerif-Medium.woff2', import.meta.url).href,
+				opts
+			),
+			serifItalic: formatAssetUrl(
+				new URL('./fonts/IBMPlexSerif-MediumItalic.woff2', import.meta.url).href,
 				opts
 			),
 			draw: formatAssetUrl(

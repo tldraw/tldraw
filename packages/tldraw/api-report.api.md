@@ -2471,8 +2471,17 @@ export interface TLEditorAssetUrls {
     fonts: {
         draw: string;
         monospace: string;
+        monospaceBold: string;
+        monospaceBoldItalic: string;
+        monospaceItalic: string;
         sansSerif: string;
+        sansSerifBold: string;
+        sansSerifBoldItalic: string;
+        sansSerifItalic: string;
         serif: string;
+        serifBold: string;
+        serifBoldItalic: string;
+        serifItalic: string;
     };
 }
 
@@ -2516,7 +2525,7 @@ export interface TLTypeFace {
     // (undocumented)
     url: string;
     // (undocumented)
-    variant?: string;
+    variationSettings?: string;
     // (undocumented)
     weight?: string;
 }

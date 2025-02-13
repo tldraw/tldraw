@@ -18,8 +18,17 @@ const PUBLIC_FOLDER_PATHS = [join(REPO_ROOT, 'packages', 'assets')]
 
 const FONT_MAPPING: Record<string, string> = {
 	'IBMPlexMono-Medium': 'monospace',
+	'IBMPlexMono-MediumItalic': 'monospaceItalic',
+	'IBMPlexMono-Bold': 'monospaceBold',
+	'IBMPlexMono-BoldItalic': 'monospaceBoldItalic',
 	'IBMPlexSerif-Medium': 'serif',
+	'IBMPlexSerif-MediumItalic': 'serifItalic',
+	'IBMPlexSerif-Bold': 'serifBold',
+	'IBMPlexSerif-BoldItalic': 'serifBoldItalic',
 	'IBMPlexSans-Medium': 'sansSerif',
+	'IBMPlexSans-MediumItalic': 'sansSerifItalic',
+	'IBMPlexSans-Bold': 'sansSerifBold',
+	'IBMPlexSans-BoldItalic': 'sansSerifBoldItalic',
 	'Shantell_Sans-Tldrawish': 'draw',
 }
 

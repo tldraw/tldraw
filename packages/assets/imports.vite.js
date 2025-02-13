@@ -23,9 +23,18 @@ import embedIconsTldrawPngUrl from './embed-icons/tldraw.png?url'
 import embedIconsValTownPngUrl from './embed-icons/val_town.png?url'
 import embedIconsVimeoPngUrl from './embed-icons/vimeo.png?url'
 import embedIconsYoutubePngUrl from './embed-icons/youtube.png?url'
+import fontsIBMPlexMonoBoldWoff2Url from './fonts/IBMPlexMono-Bold.woff2?url'
+import fontsIBMPlexMonoBoldItalicWoff2Url from './fonts/IBMPlexMono-BoldItalic.woff2?url'
 import fontsIBMPlexMonoMediumWoff2Url from './fonts/IBMPlexMono-Medium.woff2?url'
+import fontsIBMPlexMonoMediumItalicWoff2Url from './fonts/IBMPlexMono-MediumItalic.woff2?url'
+import fontsIBMPlexSansBoldWoff2Url from './fonts/IBMPlexSans-Bold.woff2?url'
+import fontsIBMPlexSansBoldItalicWoff2Url from './fonts/IBMPlexSans-BoldItalic.woff2?url'
 import fontsIBMPlexSansMediumWoff2Url from './fonts/IBMPlexSans-Medium.woff2?url'
+import fontsIBMPlexSansMediumItalicWoff2Url from './fonts/IBMPlexSans-MediumItalic.woff2?url'
+import fontsIBMPlexSerifBoldWoff2Url from './fonts/IBMPlexSerif-Bold.woff2?url'
+import fontsIBMPlexSerifBoldItalicWoff2Url from './fonts/IBMPlexSerif-BoldItalic.woff2?url'
 import fontsIBMPlexSerifMediumWoff2Url from './fonts/IBMPlexSerif-Medium.woff2?url'
+import fontsIBMPlexSerifMediumItalicWoff2Url from './fonts/IBMPlexSerif-MediumItalic.woff2?url'
 import fontsShantellSansTldrawishWoff2Url from './fonts/Shantell_Sans-Tldrawish.woff2?url'
 import iconsIcon0MergedSvgUrl from './icons/icon/0_merged.svg?url'
 import translationsArJsonUrl from './translations/ar.json?url'
@@ -90,9 +99,18 @@ export function getAssetUrlsByImport(opts) {
 	const iconsIcon0MergedSvg2 = formatAssetUrl(iconsIcon0MergedSvgUrl, opts)
 	return {
 		fonts: {
+			monospaceBold: formatAssetUrl(fontsIBMPlexMonoBoldWoff2Url, opts),
+			monospaceBoldItalic: formatAssetUrl(fontsIBMPlexMonoBoldItalicWoff2Url, opts),
 			monospace: formatAssetUrl(fontsIBMPlexMonoMediumWoff2Url, opts),
+			monospaceItalic: formatAssetUrl(fontsIBMPlexMonoMediumItalicWoff2Url, opts),
+			sansSerifBold: formatAssetUrl(fontsIBMPlexSansBoldWoff2Url, opts),
+			sansSerifBoldItalic: formatAssetUrl(fontsIBMPlexSansBoldItalicWoff2Url, opts),
 			sansSerif: formatAssetUrl(fontsIBMPlexSansMediumWoff2Url, opts),
+			sansSerifItalic: formatAssetUrl(fontsIBMPlexSansMediumItalicWoff2Url, opts),
+			serifBold: formatAssetUrl(fontsIBMPlexSerifBoldWoff2Url, opts),
+			serifBoldItalic: formatAssetUrl(fontsIBMPlexSerifBoldItalicWoff2Url, opts),
 			serif: formatAssetUrl(fontsIBMPlexSerifMediumWoff2Url, opts),
+			serifItalic: formatAssetUrl(fontsIBMPlexSerifMediumItalicWoff2Url, opts),
 			draw: formatAssetUrl(fontsShantellSansTldrawishWoff2Url, opts),
 		},
 		icons: {

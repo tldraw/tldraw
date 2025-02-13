@@ -5,9 +5,18 @@ export type AssetUrl = string | { src: string }
 export type AssetUrlOptions = { baseUrl?: string } | ((assetUrl: string) => string)
 export type AssetUrls = {
 	fonts: {
+		monospaceBold: string
+		monospaceBoldItalic: string
 		monospace: string
+		monospaceItalic: string
+		sansSerifBold: string
+		sansSerifBoldItalic: string
 		sansSerif: string
+		sansSerifItalic: string
+		serifBold: string
+		serifBoldItalic: string
 		serif: string
+		serifItalic: string
 		draw: string
 	}
 	icons: {

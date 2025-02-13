@@ -6,7 +6,7 @@ export interface TLTypeFace {
 	stretch?: string
 	style?: string
 	unicodeRange?: string
-	variant?: string
+	variationSettings?: string
 	weight?: string
 	format?: string
 }
@@ -21,7 +21,7 @@ export async function preloadFont(id: string, font: TLTypeFace) {
 		featureSettings,
 		stretch,
 		unicodeRange,
-		variant,
+		variationSettings,
 		format,
 	} = font
 
@@ -33,7 +33,7 @@ export async function preloadFont(id: string, font: TLTypeFace) {
 		stretch,
 		unicodeRange,
 		// @ts-expect-error why is this here
-		variant,
+		variationSettings,
 	}
 
 	const fontInstance = new FontFace(id, `url(${url})`, descriptors)
