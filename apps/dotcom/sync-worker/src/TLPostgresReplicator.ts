@@ -14,7 +14,12 @@ import postgres from 'postgres'
 import { Logger } from './Logger'
 import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { createPostgresConnection, createPostgresConnectionPool } from './postgres'
-import { Analytics, Environment, TLPostgresReplicatorEvent } from './types'
+import {
+	Analytics,
+	Environment,
+	TLPostgresReplicatorEvent,
+	TLPostgresReplicatorRebootSource,
+} from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
 
@@ -129,7 +134,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.db = createPostgresConnectionPool(env, 'TLPostgresReplicator')
 
 		this.alarm()
-		this.reboot(false).catch((e) => {
+		this.reboot('constructor', false).catch((e) => {
 			this.captureException(e)
 			this.__test__panic()
 		})
@@ -170,7 +175,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	__test__forceReboot() {
-		this.reboot()
+		this.reboot('test')
 	}
 	__test__panic() {
 		this.ctx.abort()
@@ -184,7 +189,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		// If we haven't heard anything for 10 seconds, reboot
 		if (Date.now() - this.lastPostgresMessageTime > 10000) {
 			this.log.debug('rebooting due to inactivity')
-			this.reboot()
+			this.reboot('inactivity')
 		} else if (Date.now() - this.lastPostgresMessageTime > 5000) {
 			sql`insert into replicator_boot_id ("replicatorId", "bootId") values (${this.ctx.id.toString()}, ${uniqueId()}) on conflict ("replicatorId") do update set "bootId" = excluded."bootId"`.execute(
 				this.db
@@ -227,8 +232,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private queue = new ExecutionQueue()
 
-	private async reboot(delay = true) {
-		this.logEvent({ type: 'reboot' })
+	private async reboot(source: TLPostgresReplicatorRebootSource, delay = true) {
+		this.logEvent({ type: 'reboot', source })
 		this.log.debug('reboot push')
 		await this.queue.push(async () => {
 			if (delay) {
@@ -248,7 +253,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			if (res === 'ok') {
 				this.logEvent({ type: 'reboot_duration', duration: Date.now() - start })
 			} else {
-				this.reboot()
+				this.reboot('retry')
 			}
 		})
 	}
@@ -281,7 +286,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			() => {
 				// this is invoked if the subscription is closed unexpectedly
 				this.captureException(new Error('Subscription error (we can tolerate this)'))
-				this.reboot()
+				this.reboot('subscription_closed')
 			}
 		)
 
@@ -634,6 +639,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	logEvent(event: TLPostgresReplicatorEvent) {
 		switch (event.type) {
 			case 'reboot':
+				this.writeEvent({ blobs: [event.type, event.source] })
+				break
 			case 'reboot_error':
 			case 'register_user':
 			case 'unregister_user':
