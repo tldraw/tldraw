@@ -133,6 +133,11 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.log = new Logger(env, 'TLPostgresReplicator', this.sentry)
 		this.db = createPostgresConnectionPool(env, 'TLPostgresReplicator')
 
+		const activeUsers = this.sql.exec('SELECT id FROM active_user').toArray() as { id: string }[]
+		const now = Date.now()
+		for (const user of activeUsers) {
+			this.usersWithUpdates.set(user.id, now)
+		}
 		this.alarm()
 		this.reboot('constructor', false).catch((e) => {
 			this.captureException(e)
@@ -202,11 +207,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		const now = Date.now()
 		if (now - this.lastUserPruneTime < PRUNE_TIME) return
 		this.lastUserPruneTime = now
-		const activeUserIds = this.ctx.storage.sql
-			.exec('SELECT id FROM active_user')
-			.toArray()
-			.map((u) => u.id) as string[]
-		for (const id of activeUserIds) {
+		const activeUserIds = this.ctx.storage.sql.exec('SELECT id FROM active_user').toArray() as {
+			id: string
+		}[]
+		for (const { id } of activeUserIds) {
 			const lastUserUpdate = this.usersWithUpdates.get(id)
 			// User has had updates in the last prune period, so skip them
 			if (lastUserUpdate && now - lastUserUpdate < PRUNE_TIME) continue
