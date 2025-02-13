@@ -54,9 +54,16 @@ const migrations: Migration[] = [
 			ALTER TABLE active_user ADD COLUMN sequenceIdSuffix TEXT NOT NULL DEFAULT '';
 		`,
 	},
+	{
+		id: '002_add_last_updated_at',
+		code: `
+			ALTER TABLE active_user ADD COLUMN lastUpdatedAt INTEGER NOT NULL DEFAULT 0;
+		`,
+	},
 ]
 
 const ONE_MINUTE = 60 * 1000
+const PRUNE_TIME = ONE_MINUTE
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -90,6 +97,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private postgresUpdates = 0
 	private lastPostgresMessageTime = Date.now()
 	private lastRpmLogTime = Date.now()
+	private lastUserPruneTime = Date.now()
 
 	// we need to guarantee in-order delivery of messages to users
 	// but DO RPC calls are not guaranteed to happen in order, so we need to
@@ -192,6 +200,24 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				this.db
 			)
 		}
+		this.maybePruneUsers()
+	}
+
+	private async maybePruneUsers() {
+		const now = Date.now()
+		if (now - this.lastUserPruneTime < PRUNE_TIME) return
+		const cutoffTime = now - PRUNE_TIME
+		const usersWithoutRecentUpdates = this.ctx.storage.sql
+			.exec('SELECT id FROM active_user WHERE lastUpdatedAt < ?', cutoffTime)
+			.toArray() as {
+			id: string
+		}[]
+		for (const { id } of usersWithoutRecentUpdates) {
+			if (await getUserDurableObject(this.env, id).notActive()) {
+				await this.unregisterUser(id)
+			}
+		}
+		this.lastUserPruneTime = Date.now()
 	}
 
 	private maybeLogRpm() {
@@ -520,7 +546,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			await q.push(async () => {
 				const { sequenceNumber, sequenceIdSuffix } = this.sql
 					.exec(
-						'UPDATE active_user SET sequenceNumber = sequenceNumber + 1 WHERE id = ? RETURNING sequenceNumber, sequenceIdSuffix',
+						'UPDATE active_user SET sequenceNumber = sequenceNumber + 1, lastUpdatedAt = ? WHERE id = ? RETURNING sequenceNumber, sequenceIdSuffix',
+						Date.now(),
 						userId
 					)
 					.one()
@@ -572,9 +599,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			this.sql.exec(`DELETE FROM active_user WHERE id = ?`, userId)
 			this.log.debug('cleared active user')
 			this.sql.exec(
-				`INSERT INTO active_user (id, sequenceNumber, sequenceIdSuffix) VALUES (?, 0, ?)`,
+				`INSERT INTO active_user (id, sequenceNumber, sequenceIdSuffix, lastUpdatedAt) VALUES (?, 0, ?, ?)`,
 				userId,
-				sequenceIdSuffix
+				sequenceIdSuffix,
+				Date.now()
 			)
 			this.reportActiveUsers()
 			this.log.debug('inserted active user')
