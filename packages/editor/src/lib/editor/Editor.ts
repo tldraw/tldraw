@@ -8665,7 +8665,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		switch (withDefaults.format) {
 			case 'svg':
 				return {
-					blob: new Blob([result.svg], { type: 'text/plain' }),
+					blob: new Blob([result.svg], { type: 'image/svg+xml' }),
 					width: result.width,
 					height: result.height,
 				}
