@@ -17,14 +17,17 @@ export function SearchButton({
 	className,
 }: {
 	type: 'docs' | 'blog'
-	layout: 'mobile' | 'desktop'
+	layout: 'mobile' | 'desktop' | 'keyboard-shortcut-only'
 	className?: string
 }) {
 	const [open, setOpen] = useState(false)
 	const pathname = usePathname()
 
 	useEffect(() => {
+		if (layout !== 'desktop' && layout !== 'keyboard-shortcut-only') return
+
 		const onKeyDown = (e: KeyboardEvent) => {
+			console.log({ e })
 			if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
 				setOpen((open) => !open)
 			}
@@ -33,8 +36,6 @@ export function SearchButton({
 			}
 		}
 
-		if (layout !== 'desktop') return
-
 		document.addEventListener('keydown', onKeyDown)
 		return () => document.removeEventListener('keydown', onKeyDown)
 	}, [layout])
@@ -42,6 +43,13 @@ export function SearchButton({
 	useEffect(() => {
 		setOpen(false)
 	}, [pathname])
+
+	console.log({ layout, open })
+
+	if (layout === 'keyboard-shortcut-only') {
+		console.log('kso')
+		return open ? <Search type={type} onClose={() => setOpen(false)} /> : null
+	}
 
 	return (
 		<div className={cn('group', className)}>
