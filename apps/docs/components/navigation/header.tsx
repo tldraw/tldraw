@@ -61,7 +61,7 @@ export function Header() {
 	const opacityEffect = !pathname.startsWith('/blog') && pathname !== '/'
 
 	return (
-		<header className="fixed top-0 w-full bg-white dark:bg-zinc-950 z-10">
+		<header className="sticky top-0 w-full bg-white dark:bg-zinc-950 z-10">
 			<nav className="w-full max-w-screen-xl mx-auto px-5 h-14 md:h-[4.5rem] flex justify-between items-center text-zinc-800 dark:text-zinc-200 border-b border-zinc-100 dark:border-zinc-800 dark:md:border-transparent md:border-transparent">
 				<Link href="/" className="w-28">
 					<Logo className="h-6" />
