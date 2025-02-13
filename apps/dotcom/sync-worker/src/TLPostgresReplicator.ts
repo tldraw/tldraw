@@ -207,12 +207,12 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		const now = Date.now()
 		if (now - this.lastUserPruneTime < PRUNE_TIME) return
 		const cutoffTime = now - PRUNE_TIME
-		const activeUserIds = this.ctx.storage.sql
+		const usersWithoutRecentUpdates = this.ctx.storage.sql
 			.exec('SELECT id FROM active_user WHERE lastUpdatedAt < ?', cutoffTime)
 			.toArray() as {
 			id: string
 		}[]
-		for (const { id } of activeUserIds) {
+		for (const { id } of usersWithoutRecentUpdates) {
 			if (await getUserDurableObject(this.env, id).notActive()) {
 				await this.unregisterUser(id)
 			}
