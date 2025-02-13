@@ -54,6 +54,12 @@ const migrations: Migration[] = [
 			ALTER TABLE active_user ADD COLUMN sequenceIdSuffix TEXT NOT NULL DEFAULT '';
 		`,
 	},
+	{
+		id: '002_add_last_updated_at',
+		code: `
+			ALTER TABLE active_user ADD COLUMN lastUpdatedAt INTEGER NOT NULL DEFAULT 0;
+		`,
+	},
 ]
 
 const ONE_MINUTE = 60 * 1000
@@ -91,7 +97,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private postgresUpdates = 0
 	private lastPostgresMessageTime = Date.now()
 	private lastRpmLogTime = Date.now()
-	private usersWithUpdates = new Map<string, number>()
 	private lastUserPruneTime = Date.now()
 
 	// we need to guarantee in-order delivery of messages to users
@@ -133,12 +138,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.log = new Logger(env, 'TLPostgresReplicator', this.sentry)
 		this.db = createPostgresConnectionPool(env, 'TLPostgresReplicator')
 
-		const activeUsers = this.sql.exec('SELECT id FROM active_user').toArray() as { id: string }[]
-		const now = Date.now()
-		this.lastUserPruneTime = now
-		for (const user of activeUsers) {
-			this.usersWithUpdates.set(user.id, now)
-		}
 		this.alarm()
 		this.reboot('constructor', false).catch((e) => {
 			this.captureException(e)
@@ -207,20 +206,18 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private async maybePruneUsers() {
 		const now = Date.now()
 		if (now - this.lastUserPruneTime < PRUNE_TIME) return
-		this.lastUserPruneTime = now
-		const activeUserIds = this.ctx.storage.sql.exec('SELECT id FROM active_user').toArray() as {
+		const cutoffTime = now - PRUNE_TIME
+		const activeUserIds = this.ctx.storage.sql
+			.exec('SELECT id FROM active_user WHERE lastUpdatedAt < ?', cutoffTime)
+			.toArray() as {
 			id: string
 		}[]
 		for (const { id } of activeUserIds) {
-			const lastUserUpdate = this.usersWithUpdates.get(id)
-			// User has had updates in the last prune period, so skip them
-			if (lastUserUpdate && now - lastUserUpdate < PRUNE_TIME) continue
-			// Their time is up
-			this.usersWithUpdates.delete(id)
 			if (await getUserDurableObject(this.env, id).notActive()) {
 				await this.unregisterUser(id)
 			}
 		}
+		this.lastUserPruneTime = Date.now()
 	}
 
 	private maybeLogRpm() {
@@ -540,7 +537,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private async messageUser(userId: string, event: ZReplicationEventWithoutSequenceInfo) {
 		if (!this.userIsActive(userId)) return
-		this.usersWithUpdates.set(userId, Date.now())
 		try {
 			let q = this.userDispatchQueues.get(userId)
 			if (!q) {
@@ -550,7 +546,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			await q.push(async () => {
 				const { sequenceNumber, sequenceIdSuffix } = this.sql
 					.exec(
-						'UPDATE active_user SET sequenceNumber = sequenceNumber + 1 WHERE id = ? RETURNING sequenceNumber, sequenceIdSuffix',
+						'UPDATE active_user SET sequenceNumber = sequenceNumber + 1, lastUpdatedAt = ? WHERE id = ? RETURNING sequenceNumber, sequenceIdSuffix',
+						Date.now(),
 						userId
 					)
 					.one()
