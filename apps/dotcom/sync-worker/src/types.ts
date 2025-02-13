@@ -63,7 +63,6 @@ export interface Environment {
 }
 
 export function isDebugLogging(env: Environment) {
-	console.log('env.TLDRAW_ENV', env.TLDRAW_ENV)
 	return env.TLDRAW_ENV === 'development' || env.TLDRAW_ENV === 'preview'
 }
 
