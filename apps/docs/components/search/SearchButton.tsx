@@ -27,7 +27,6 @@ export function SearchButton({
 		if (layout !== 'desktop' && layout !== 'keyboard-shortcut-only') return
 
 		const onKeyDown = (e: KeyboardEvent) => {
-			console.log({ e })
 			if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
 				setOpen((open) => !open)
 			}
@@ -44,10 +43,7 @@ export function SearchButton({
 		setOpen(false)
 	}, [pathname])
 
-	console.log({ layout, open })
-
 	if (layout === 'keyboard-shortcut-only') {
-		console.log('kso')
 		return open ? <Search type={type} onClose={() => setOpen(false)} /> : null
 	}
 
