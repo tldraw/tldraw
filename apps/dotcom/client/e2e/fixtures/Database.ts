@@ -1,11 +1,12 @@
 import { Page } from '@playwright/test'
+import { DB } from '@tldraw/dotcom-shared'
 import fs from 'fs'
 import { Kysely, PostgresDialect, sql } from 'kysely'
 import pg from 'pg'
 import { OTHER_USERS, USERS } from '../consts'
 import { getStorageStateFileName } from './helpers'
 
-const db = new Kysely({
+const db = new Kysely<DB>({
 	dialect: new PostgresDialect({
 		pool: new pg.Pool({
 			connectionString: 'postgresql://user:password@127.0.0.1:6543/postgres',
@@ -63,11 +64,7 @@ export class Database {
 		const id = await this.getUserId(isOther)
 		if (!id) return
 		try {
-			await sql`
-  UPDATE public.user
-  SET ${defaultUser}
-  WHERE id = ${id}
-`.execute(db)
+			await db.updateTable('user').set(defaultUser).where('id', '=', id).execute()
 
 			await sql`DELETE FROM public.file WHERE "ownerId" = ${id}`.execute(db)
 			// await fetch(`http://localhost:3000/api/app/__test__/user/${id}/reboot`)
