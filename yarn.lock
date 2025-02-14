@@ -6823,16 +6823,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tiptap/extension-code@npm:^2.11.3":
-  version: 2.11.3
-  resolution: "@tiptap/extension-code@npm:2.11.3"
-  peerDependencies:
-    "@tiptap/core": ^2.7.0
-  checksum: 4254618413880741753587816b27384e215bf1cbb41a8287462e102f0b15e30244a32f659a7a2ba51184998c6f19554fdc3341d92bd79c7702ec8aa9eac35654
-  languageName: node
-  linkType: hard
-
-"@tiptap/extension-code@npm:^2.9.1":
+"@tiptap/extension-code@npm:^2.11.3, @tiptap/extension-code@npm:^2.9.1":
   version: 2.11.5
   resolution: "@tiptap/extension-code@npm:2.11.5"
   peerDependencies:
