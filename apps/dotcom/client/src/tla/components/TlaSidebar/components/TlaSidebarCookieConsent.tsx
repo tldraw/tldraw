@@ -29,7 +29,7 @@ export const TlaSidebarCookieConsent = memo(function TlaSidebarCookieConsent() {
 		<div className={styles.cookieConsent}>
 			<p className={styles.cookieText}>
 				<F
-					defaultMessage="We use first-party cookies to improve our services. <a>Learn more</a>"
+					defaultMessage="We use <a>first-party cookies</a> to improve our services."
 					values={{
 						a: (chunks) => (
 							<a href="https://tldraw.notion.site/cookie-policy" target="_blank" rel="noreferrer">
