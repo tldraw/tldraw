@@ -4822,7 +4822,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				(this.isShapeOfType<TLArrowShape>(shape, 'arrow') && shape.props.text.trim()) ||
 				((this.isShapeOfType<TLNoteShape>(shape, 'note') ||
 					(this.isShapeOfType<TLGeoShape>(shape, 'geo') && shape.props.fill === 'none')) &&
-					(shape as TLGeoShape).props.richText)
+					this.getShapeUtil(shape).getText(shape)?.trim())
 			) {
 				for (const childGeometry of (geometry as Group2d).children) {
 					if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {

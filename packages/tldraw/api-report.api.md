@@ -1207,7 +1207,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     getInterpolatedProps(startShape: TLGeoShape, endShape: TLGeoShape, t: number): TLGeoShapeProps;
     // (undocumented)
-    getText(shape: TLGeoShape): string | undefined;
+    getText(shape: TLGeoShape): string;
     // (undocumented)
     indicator(shape: TLGeoShape): JSX_2.Element;
     // (undocumented)
