@@ -1,7 +1,5 @@
 import { DurableObject } from 'cloudflare:workers'
-import { createPostgresConnectionPool } from './postgres'
 import { Environment } from './types'
-import { getClerkClient } from './utils/tla/getAuth'
 const ONE_SECOND = 1000
 const ONE_MINUTE = 60 * ONE_SECOND
 const USER_DO_ABORT_THRESHOLD = 20
@@ -95,31 +93,5 @@ export class TLStatsDurableObject extends DurableObject<Environment> {
 		if (this.bootingUp()) return true
 
 		return this.lastReplicatorPostgresUpdate > this.getCutoffTime()
-	}
-
-	async isClerkWorking() {
-		const clerk = getClerkClient(this.env)
-		try {
-			const result = await clerk.users.getCount()
-			if (!result || typeof result !== 'number') {
-				return false
-			}
-			return true
-		} catch (_e) {
-			return false
-		}
-	}
-
-	async isDbWorking() {
-		try {
-			await createPostgresConnectionPool(this.env, 'TLStatsDurableObject')
-				.selectFrom('user')
-				.select('name')
-				.where('email', '=', 'mitja@tldraw.com')
-				.executeTakeFirstOrThrow()
-			return true
-		} catch (_e) {
-			return false
-		}
 	}
 }

@@ -1,6 +1,8 @@
 import { createRouter, notFound } from '@tldraw/worker-shared'
+import { createPostgresConnectionPool } from './postgres'
 import { isDebugLogging, type Environment } from './types'
 import { getStatsDurableObjct } from './utils/durableObjects'
+import { getClerkClient } from './utils/tla/getAuth'
 
 function isAuthorized(req: Request, env: Environment) {
 	const auth = req.headers.get('Authorization')
@@ -41,17 +43,28 @@ export const checkRoutes = createRouter<Environment>()
 		return new Response('ok', { status: 200 })
 	})
 	.get('/check/clerk', async (_, env) => {
-		const stats = getStatsDurableObjct(env)
-		if (await stats.isClerkWorking()) {
+		const clerk = getClerkClient(env)
+		try {
+			const result = await clerk.users.getCount()
+			if (!result || typeof result !== 'number') {
+				return new Response('Could not reach clerk', { status: 500 })
+			}
 			return new Response('ok', { status: 200 })
+		} catch (_e) {
+			return new Response('Could not reach clerk', { status: 500 })
 		}
-		return new Response('Could not reach clerk', { status: 500 })
 	})
 	.get('/check/db', async (_, env) => {
-		const stats = getStatsDurableObjct(env)
-		if (await stats.isDbWorking()) {
+		try {
+			await createPostgresConnectionPool(env, 'TLStatsDurableObject')
+				.selectFrom('user')
+				.select('name')
+				.where('email', '=', 'mitja@tldraw.com')
+				.executeTakeFirstOrThrow()
+
 			return new Response('ok', { status: 200 })
+		} catch (_e) {
+			return new Response('Could not reach the database', { status: 500 })
 		}
-		return new Response('Could not reach the database', { status: 500 })
 	})
 	.all('*', notFound)
