@@ -259,26 +259,29 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	__test__forceReboot() {
+	async __test__forceReboot(hard?: boolean) {
+		if (hard) this.__hardSequenceBreak()
 		this.reboot('test')
 	}
-	__test__panic() {
+
+	async __test__panic(hard?: boolean) {
+		if (hard) this.__hardSequenceBreak()
 		this.ctx.abort()
+	}
+
+	private __hardSequenceBreak() {
+		this.sqlite.exec('UPDATE meta SET lsn = null, sequenceId = ?', uniqueId())
 	}
 
 	override async alarm() {
 		this.ctx.storage.setAlarm(Date.now() + 1000)
 		this.maybeLogRpm()
-		// If we haven't heard anything from postgres for 5 seconds, do a little transaction
-		// to update a random string as a kind of 'ping' to keep the connection alive
-		// If we haven't heard anything for 10 seconds, reboot
+		// Soft reboot if we haven't heard anything from postgres for 10 seconds
+		// The replication heartbeat should prevent this from happening since it
+		// comes in every 5 seconds or so.
 		if (Date.now() - this.lastPostgresMessageTime > 10000) {
 			this.log.debug('rebooting due to inactivity')
 			this.reboot('inactivity')
-		} else if (Date.now() - this.lastPostgresMessageTime > 5000) {
-			sql`insert into replicator_boot_id ("replicatorId", "bootId") values (${this.ctx.id.toString()}, ${uniqueId()}) on conflict ("replicatorId") do update set "bootId" = excluded."bootId"`.execute(
-				this.db
-			)
 		}
 		this.maybePruneUsers()
 	}
@@ -344,9 +347,11 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private async boot() {
 		this.log.debug('booting')
 		this.lastPostgresMessageTime = Date.now()
-		// clean up old resources if necessary, ignore errors
-		await this.replicationService.stop().catch(this.captureException)
 		this.replicationService.removeAllListeners()
+
+		// stop any previous subscriptions both here and on the postgres side to make sure we will be allowed to connect
+		// to the slot again.
+		await this.replicationService.stop().catch(this.captureException)
 		await sql`SELECT pg_terminate_backend(active_pid) FROM pg_replication_slots WHERE slot_name = ${this.slotName} AND active`
 			.execute(this.db)
 			.catch(this.captureException)
@@ -357,16 +362,20 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			// preserve the promise so any awaiters do eventually get resolved
 			// TODO: set a timeout on the promise?
 			promise,
-			sequenceId: assertExists(
-				this.sqlite.exec('select sequenceId from meta').one().sequenceId as string
-			),
+			sequenceId: this.getCurrentSequenceId(),
 		}
 
 		this.replicationService.on('heartbeat', (lsn: string) => {
+			this.lastPostgresMessageTime = Date.now()
+			this.reportPostgresUpdate()
+			// don't call this.updateLsn here because it's not necessary
+			// to save the lsn after heartbeats since they contain no information
 			this.replicationService.acknowledge(lsn).catch(this.captureException)
 		})
 
 		this.replicationService.addListener('data', (lsn: string, log: Wal2Json.Output) => {
+			this.lastPostgresMessageTime = Date.now()
+			this.reportPostgresUpdate()
 			for (const change of log.change) {
 				this.handleEvent(change)
 			}
@@ -377,7 +386,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			this.captureException(e)
 			if (e.message.includes('starting point')) {
 				// clear the lsn and start a new sequence
-				this.sqlite.exec('UPDATE meta SET lsn = null, sequenceId = ?', uniqueId())
+				this.__hardSequenceBreak()
 			}
 			this.reboot('retry')
 		}
@@ -407,6 +416,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private async updateLsn(lsn: string) {
 		const result = await this.replicationService.acknowledge(lsn)
 		if (result) {
+			// if the current lsn in the meta table is null it means that either
+			// this is the first time the new version of the replicator (using pg-logical-replication)
+			// has connected, or the last time it tried to connect it encountered an error related
+			// to the starting point of the replication slot (extremely unlikely, afaict)
 			const prevLsn = this.getCurrentLsn()
 			this.sqlite.exec('UPDATE meta SET lsn = ?', lsn)
 			if (!prevLsn) {
@@ -417,6 +430,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			this.reboot('retry')
 		}
 	}
+
 	private onDidSequenceBreak() {
 		// re-register all active users to get their latest guest info
 		// do this in small batches to avoid overwhelming the system
@@ -442,13 +456,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	)
 
 	private handleEvent(change: Wal2Json.Change) {
-		this.lastPostgresMessageTime = Date.now()
-		this.reportPostgresUpdate()
-		if (change.table === 'replicator_boot_id') {
-			// ping, ignore
-			return
-		}
+		// ignore events received after disconnecting, if that can even happen
+		if (this.state.type !== 'connected') return
+
 		this.postgresUpdates++
+
+		// ignore our keepalive pings (we probably don't need this now we have the heartbeats)
+		if (change.table === 'replicator_boot_id') return
+
 		const { row, event } = this.getRowAndEvent(change)
 		// We shouldn't get these two, but just to be sure we'll filter them out
 		const { command, table } = event

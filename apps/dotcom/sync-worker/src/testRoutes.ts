@@ -7,12 +7,14 @@ export const testRoutes = createRouter<Environment>()
 		if (!isDebugLogging(env)) return notFound()
 		return undefined
 	})
-	.get('/app/__test__/replicator/reboot', (_, env) => {
-		getReplicator(env).__test__forceReboot()
+	.get('/app/__test__/replicator/reboot', async (req, env) => {
+		await getReplicator(env).__test__forceReboot('hard' in req.query)
 		return new Response('ok')
 	})
-	.get('/app/__test__/replicator/panic', (_, env) => {
-		getReplicator(env).__test__panic()
+	.get('/app/__test__/replicator/panic', async (req, env) => {
+		await getReplicator(env)
+			.__test__panic('hard' in req.query)
+			.catch(() => null)
 		return new Response('ok')
 	})
 	.get('/app/__test__/user/:userId/reboot', (req, env) => {
