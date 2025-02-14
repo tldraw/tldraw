@@ -17,7 +17,7 @@ export const testRoutes = createRouter<Environment>()
 	})
 	.get('/app/__test__/user/:userId/reboot', (req, env) => {
 		getUserDurableObject(env, req.params.userId).handleReplicationEvent({
-			type: 'force_reboot',
+			type: 'maybe_force_reboot',
 			sequenceId: 'test',
 			sequenceNumber: 0,
 		})

@@ -2,6 +2,7 @@ import { DB, TlaFile, TlaRow, ZTable } from '@tldraw/dotcom-shared'
 import {
 	ExecutionQueue,
 	assert,
+	assertExists,
 	exhaustiveSwitchError,
 	promiseWithResolve,
 	sleep,
@@ -42,6 +43,7 @@ interface ReplicationEvent {
 interface Migration {
 	id: string
 	code: string
+	getParams?(): any[]
 }
 
 const migrations: Migration[] = [
@@ -79,11 +81,15 @@ const migrations: Migration[] = [
 	{
 		id: '003_add_lsn_tracking',
 		code: `
-			CREATE TABLE IF NOT EXISTS lsn (
-				id TEXT PRIMARY KEY
+			CREATE TABLE IF NOT EXISTS meta (
+				lsn TEXT PRIMARY KEY,
+				sequenceId TEXT NOT NULL
 			);
-			INSERT INTO lsn (id) VALUES (null);
+			INSERT INTO meta (lsn, sequenceId) VALUES (null, ?);
 		`,
+		getParams: () => {
+			return [uniqueId()]
+		},
 	},
 ]
 
@@ -121,11 +127,7 @@ type BootState =
 
 export class TLPostgresReplicator extends DurableObject<Environment> {
 	private sqlite: SqlStorage
-	private state: BootState = {
-		type: 'init',
-		promise: promiseWithResolve(),
-		sequenceId: uniqueId(),
-	}
+	private state: BootState
 	private measure: Analytics | undefined
 	private postgresUpdates = 0
 	private lastPostgresMessageTime = Date.now()
@@ -167,22 +169,17 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.measure = env.MEASURE
 		this.sentry = createSentry(ctx, env)
 		this.sqlite = this.ctx.storage.sql
+		this.state = {
+			type: 'init',
+			promise: promiseWithResolve(),
+			sequenceId: 'tmp',
+		}
 
 		// todo: is this enough entropy?
 		this.slotName = 'tl_postgres_replicator_' + this.ctx.id.toString().substring(0, 16)
 		// debug logging in preview envs by default
 		this.log = new Logger(env, 'TLPostgresReplicator', this.sentry)
 		this.db = createPostgresConnectionPool(env, 'TLPostgresReplicator', 100)
-
-		this.ctx.blockConcurrencyWhile(async () => {
-			await this._migrate().catch((e) => {
-				this.captureException(e)
-				throw e
-			})
-			await sql`SELECT pg_create_logical_replication_slot(${this.slotName}, 'wal2json') WHERE NOT EXISTS (SELECT 1 FROM pg_replication_slots WHERE slot_name = ${this.slotName})`.execute(
-				this.db
-			)
-		})
 
 		this.replicationService = new LogicalReplicationService(
 			/**
@@ -206,15 +203,30 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			}
 		)
 
-		this.alarm()
-		this.reboot('constructor', false).catch((e) => {
-			this.captureException(e)
-			this.__test__panic()
-		})
+		this.ctx
+			.blockConcurrencyWhile(async () => {
+				await this._migrate().catch((e) => {
+					this.captureException(e)
+					throw e
+				})
+				this.state.sequenceId = uniqueId()
+				await sql`SELECT pg_create_logical_replication_slot(${this.slotName}, 'wal2json') WHERE NOT EXISTS (SELECT 1 FROM pg_replication_slots WHERE slot_name = ${this.slotName})`.execute(
+					this.db
+				)
+			})
+			.then(() => {
+				this.alarm()
+				this.reboot('constructor', false).catch((e) => {
+					this.captureException(e)
+					this.__test__panic()
+				})
+			})
+		// no need to catch since throwing in a blockConcurrencyWhile will trigger
+		// a DO reboot
 	}
 
 	private _applyMigration(index: number) {
-		this.sqlite.exec(migrations[index].code)
+		this.sqlite.exec(migrations[index].code, ...(migrations[index].getParams?.() ?? []))
 		this.sqlite.exec(
 			'insert into migrations (id, code) values (?, ?)',
 			migrations[index].id,
@@ -332,8 +344,12 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private async boot() {
 		this.log.debug('booting')
 		this.lastPostgresMessageTime = Date.now()
-		// clean up old resources if necessary
+		// clean up old resources if necessary, ignore errors
 		await this.replicationService.stop().catch(this.captureException)
+		this.replicationService.removeAllListeners()
+		await sql`SELECT pg_terminate_backend(active_pid) FROM pg_replication_slots WHERE slot_name = ${this.slotName} AND active`
+			.execute(this.db)
+			.catch(this.captureException)
 
 		const promise = 'promise' in this.state ? this.state.promise : promiseWithResolve()
 		this.state = {
@@ -341,25 +357,36 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			// preserve the promise so any awaiters do eventually get resolved
 			// TODO: set a timeout on the promise?
 			promise,
-			sequenceId: uniqueId(),
+			sequenceId: assertExists(
+				this.sqlite.exec('select sequenceId from meta').one().sequenceId as string
+			),
 		}
-		const lsn = this.sqlite.exec('SELECT id FROM lsn').one()?.id as string
-
-		this.replicationService.subscribe(this.wal2jsonPlugin, this.slotName, lsn).catch(async (e) => {
-			this.captureException(e, { message: 'failed to subscribe' })
-			this.reboot('retry')
-		})
-		this.replicationService.removeAllListeners()
 
 		this.replicationService.on('heartbeat', (lsn: string) => {
-			this.updateLsn(lsn)
+			this.replicationService.acknowledge(lsn).catch(this.captureException)
 		})
 
 		this.replicationService.addListener('data', (lsn: string, log: Wal2Json.Output) => {
 			for (const change of log.change) {
-				this.handleEvent(change, lsn)
+				this.handleEvent(change)
 			}
+			this.updateLsn(lsn)
 		})
+
+		const handleError = (e: Error) => {
+			this.captureException(e)
+			if (e.message.includes('starting point')) {
+				// clear the lsn and start a new sequence
+				this.sqlite.exec('UPDATE meta SET lsn = null, sequenceId = ?', uniqueId())
+			}
+			this.reboot('retry')
+		}
+
+		this.replicationService.on('error', handleError)
+		this.replicationService
+			.subscribe(this.wal2jsonPlugin, this.slotName, this.getCurrentLsn() ?? '0/0') // '0/0' tells it to start from now
+			.catch(handleError)
+
 		this.state = {
 			type: 'connected',
 			sequenceId: this.state.sequenceId,
@@ -367,26 +394,42 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		promise.resolve(null)
 	}
 
-	private async updateLsn(lsn: string) {
-		const result = await this.replicationService.acknowledge(lsn).catch(this.captureException)
-		if (result) {
-			this.sqlite.exec('UPDATE lsn SET id = ?', lsn)
-		}
+	private getCurrentLsn() {
+		return this.sqlite.exec('SELECT lsn FROM meta').one().lsn as string | null
 	}
 
-	private onDidBoot() {
+	private getCurrentSequenceId() {
+		return assertExists(
+			this.sqlite.exec('SELECT sequenceId FROM meta').one().sequenceId as string | null
+		)
+	}
+
+	private async updateLsn(lsn: string) {
+		const result = await this.replicationService.acknowledge(lsn)
+		if (result) {
+			const prevLsn = this.getCurrentLsn()
+			this.sqlite.exec('UPDATE meta SET lsn = ?', lsn)
+			if (!prevLsn) {
+				this.onDidSequenceBreak()
+			}
+		} else {
+			this.captureException(new Error('acknowledge failed'))
+			this.reboot('retry')
+		}
+	}
+	private onDidSequenceBreak() {
 		// re-register all active users to get their latest guest info
 		// do this in small batches to avoid overwhelming the system
 		const users = this.sqlite.exec('SELECT id FROM active_user').toArray()
 		this.reportActiveUsers()
-		const sequenceId = this.state.sequenceId
 		const BATCH_SIZE = 5
+		const initialSequenceId = this.getCurrentSequenceId()
 		const tick = () => {
-			if (this.state.sequenceId !== sequenceId) return
+			if (initialSequenceId !== this.getCurrentSequenceId()) return
 			if (users.length === 0) return
 			const batch = users.splice(0, BATCH_SIZE)
 			for (const user of batch) {
-				this.messageUser(user.id as string, { type: 'force_reboot' })
+				this.messageUser(user.id as string, { type: 'maybe_force_reboot' })
 			}
 			setTimeout(tick, 10)
 		}
@@ -398,7 +441,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		5000
 	)
 
-	private handleEvent(change: Wal2Json.Change, lsn: string) {
+	private handleEvent(change: Wal2Json.Change) {
 		this.lastPostgresMessageTime = Date.now()
 		this.reportPostgresUpdate()
 		if (change.table === 'replicator_boot_id') {
@@ -413,7 +456,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			this.log.debug('ignoring event', event)
 			return
 		}
-		this.log.debug('handleEvent', event, lsn, row)
+		this.log.debug('handleEvent', event, row)
 		assert(this.state.type === 'connected', 'state should be connected in handleEvent')
 		try {
 			switch (table) {
@@ -443,7 +486,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 					})
 					break
 			}
-			this.updateLsn(lsn)
 		} catch (e) {
 			this.captureException(e)
 		}
@@ -488,7 +530,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		if (!this.userIsActive(row.userId)) return
 		if (event.command === 'insert') {
 			this.sqlite.exec(
-				`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?)`,
+				`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
 				row.userId,
 				row.fileId
 			)

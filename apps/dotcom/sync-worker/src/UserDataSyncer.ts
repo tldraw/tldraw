@@ -60,7 +60,7 @@ export interface ZMutationCommit {
 	sequenceNumber: number
 }
 export interface ZForceReboot {
-	type: 'force_reboot'
+	type: 'maybe_force_reboot'
 	sequenceId: string
 	sequenceNumber: number
 }
@@ -345,10 +345,7 @@ export class UserDataSyncer {
 	}
 
 	handleReplicationEvent(event: ZReplicationEvent) {
-		if (
-			event.type === 'force_reboot' ||
-			('sequenceId' in this.state && this.state.sequenceId !== event.sequenceId)
-		) {
+		if ('sequenceId' in this.state && this.state.sequenceId !== event.sequenceId) {
 			// the replicator has restarted, so we need to reboot
 			this.log.debug('force reboot', this.state, event)
 			this.reboot()
