@@ -353,7 +353,7 @@ async function getEditorImage(
 
 	const src = await FileHelpers.blobToDataUrl(result.blob)
 
-	cb({ src, width: result.width, height: result.height })
+	cb({ src, width: Math.ceil(result.width / scale), height: Math.ceil(result.height / scale) })
 }
 
 const getEditorImageSlowly = debounce(getEditorImage, 60)
