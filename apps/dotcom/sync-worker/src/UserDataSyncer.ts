@@ -26,7 +26,7 @@ import {
 	userKeys,
 } from './getFetchEverythingSql'
 import { Environment, TLUserDurableObjectEvent } from './types'
-import { getReplicator } from './utils/durableObjects'
+import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -158,6 +158,7 @@ export class UserDataSyncer {
 		this.numConsecutiveReboots++
 		if (this.numConsecutiveReboots > 5) {
 			this.logEvent({ type: 'user_do_abort', id: this.userId })
+			getStatsDurableObjct(this.env).recordUserDoAbort()
 			this.ctx.abort()
 			return
 		}

@@ -47,6 +47,7 @@ BOTCOM_POSTGRES_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6543/p
 BOTCOM_POSTGRES_POOLED_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6543/postgres"
 TLDRAW_ENV = "development"
 MULTIPLAYER_SERVER = "http://localhost:3000"
+CHECK_BEARER_TOKEN = 'test-token'
 
 # we don't have a hard-coded name for preview. we instead have to generate it at build time and append it to this file.
 
@@ -87,6 +88,7 @@ bindings = [
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
 	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
+	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 [durable_objects]
@@ -95,6 +97,7 @@ bindings = [
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
 	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
+	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 [env.preview.durable_objects]
@@ -103,6 +106,7 @@ bindings = [
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
 	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
+	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 [env.staging.durable_objects]
@@ -111,6 +115,7 @@ bindings = [
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
 	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
+	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 [env.production.durable_objects]
@@ -119,6 +124,7 @@ bindings = [
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
 	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
+	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 #################### Analytics engine ####################

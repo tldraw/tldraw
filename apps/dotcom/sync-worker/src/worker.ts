@@ -10,6 +10,7 @@ import { createRouter, handleApiRequest, handleUserAssetGet, notFound } from '@t
 import { DurableObject, WorkerEntrypoint } from 'cloudflare:workers'
 import { cors } from 'itty-router'
 // import { APP_ID } from './TLAppDurableObject'
+import { checkRoutes } from './checkRoutes'
 import { POSTHOG_URL } from './config'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
@@ -32,6 +33,7 @@ import { getAuthFromSearchParams } from './utils/tla/getAuth'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
+export { TLStatsDurableObject } from './TLStatsDurableObject'
 export { TLUserDurableObject } from './TLUserDurableObject'
 
 export class TLAppDurableObject extends DurableObject {}
@@ -95,15 +97,6 @@ const router = createRouter<Environment>()
 	})
 	.post('/app/uploads/:objectName', upload)
 	.all('/app/__test__/*', testRoutes.fetch)
-	.all('/ph/*', (req) => {
-		const url = new URL(req.url)
-		const proxied = new Request(
-			`${POSTHOG_URL}${url.pathname.replace(/^\/ph\//, '/')}${url.search}`,
-			req
-		)
-		proxied.headers.delete('cookie')
-		return fetch(proxied)
-	})
 	.get('/app/__debug-tail', (req, env) => {
 		if (isDebugLogging(env)) {
 			// upgrade to websocket
@@ -116,6 +109,16 @@ const router = createRouter<Environment>()
 	})
 	.post('/app/submit-feedback', submitFeedback)
 	// end app
+	.all('/ph/*', (req) => {
+		const url = new URL(req.url)
+		const proxied = new Request(
+			`${POSTHOG_URL}${url.pathname.replace(/^\/ph\//, '/')}${url.search}`,
+			req
+		)
+		proxied.headers.delete('cookie')
+		return fetch(proxied)
+	})
+	.all('/check/*', checkRoutes.fetch)
 	.all('*', notFound)
 
 export default class Worker extends WorkerEntrypoint<Environment> {

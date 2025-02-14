@@ -21,7 +21,11 @@ import {
 	TLPostgresReplicatorRebootSource,
 } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
-import { getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
+import {
+	getRoomDurableObject,
+	getStatsDurableObjct,
+	getUserDurableObject,
+} from './utils/durableObjects'
 
 interface Migration {
 	id: string
@@ -223,6 +227,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private maybeLogRpm() {
 		const now = Date.now()
 		if (this.postgresUpdates > 0 && now - this.lastRpmLogTime > ONE_MINUTE) {
+			getStatsDurableObjct(this.env).recordReplicatorPostgresUpdate()
 			this.logEvent({
 				type: 'rpm',
 				rpm: this.postgresUpdates,
@@ -255,6 +260,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			if (res === 'ok') {
 				this.logEvent({ type: 'reboot_duration', duration: Date.now() - start })
 			} else {
+				getStatsDurableObjct(this.env).recordReplicatorBootRetry()
 				this.reboot('retry')
 			}
 		})
