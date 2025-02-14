@@ -9,6 +9,7 @@ import {
 	TldrawEditor,
 	TldrawEditorBaseProps,
 	TldrawEditorStoreProps,
+	mergeArraysAndReplaceDefaults,
 	useEditor,
 	useEditorComponents,
 	useOnMount,
@@ -74,6 +75,8 @@ export interface TldrawBaseProps
 /** @public */
 export type TldrawProps = TldrawBaseProps & TldrawEditorStoreProps
 
+const allDefaultTools = [...defaultTools, ...defaultShapeTools]
+
 /** @public @react */
 export function Tldraw(props: TldrawProps) {
 	const {
@@ -108,19 +111,19 @@ export function Tldraw(props: TldrawProps) {
 
 	const _shapeUtils = useShallowArrayIdentity(shapeUtils)
 	const shapeUtilsWithDefaults = useMemo(
-		() => [...defaultShapeUtils, ..._shapeUtils],
+		() => mergeArraysAndReplaceDefaults('type', _shapeUtils, defaultShapeUtils),
 		[_shapeUtils]
 	)
 
 	const _bindingUtils = useShallowArrayIdentity(bindingUtils)
 	const bindingUtilsWithDefaults = useMemo(
-		() => [...defaultBindingUtils, ..._bindingUtils],
+		() => mergeArraysAndReplaceDefaults('type', _bindingUtils, defaultBindingUtils),
 		[_bindingUtils]
 	)
 
 	const _tools = useShallowArrayIdentity(tools)
 	const toolsWithDefaults = useMemo(
-		() => [...defaultTools, ...defaultShapeTools, ..._tools],
+		() => mergeArraysAndReplaceDefaults('id', allDefaultTools, _tools),
 		[_tools]
 	)
 

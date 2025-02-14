@@ -1,10 +1,22 @@
 import { Page } from '@playwright/test'
+import { DB } from '@tldraw/dotcom-shared'
 import fs from 'fs'
-import postgres from 'postgres'
+import { Kysely, PostgresDialect, sql } from 'kysely'
+import pg from 'pg'
 import { OTHER_USERS, USERS } from '../consts'
 import { getStorageStateFileName } from './helpers'
 
-const sql = postgres('postgresql://user:password@127.0.0.1:6543/postgres')
+const db = new Kysely<DB>({
+	dialect: new PostgresDialect({
+		pool: new pg.Pool({
+			connectionString: 'postgresql://user:password@127.0.0.1:6543/postgres',
+			application_name: 'migrate',
+			idleTimeoutMillis: 10_000,
+			max: 1,
+		}),
+	}),
+	log: ['error'],
+})
 
 const defaultUser = {
 	color: 'salmon',
@@ -39,9 +51,11 @@ export class Database {
 
 	async getUserId(isOther: boolean = false) {
 		const email = isOther ? OTHER_USERS[this.parallelIndex] : USERS[this.parallelIndex]
-		const dbUser = await sql`SELECT id FROM public.user WHERE email = ${email ?? ''}`.execute()
-		if (!dbUser[0]) return
-		return dbUser[0].id
+		const dbUser = await sql<{
+			id: string
+		}>`SELECT id FROM public.user WHERE email = ${email ?? ''}`.execute(db)
+		if (!dbUser.rows[0]) return
+		return dbUser.rows[0].id
 	}
 
 	private async cleanUpUser(isOther: boolean) {
@@ -50,13 +64,9 @@ export class Database {
 		const id = await this.getUserId(isOther)
 		if (!id) return
 		try {
-			await sql`
-  UPDATE public.user
-  SET ${sql(defaultUser)}
-  WHERE id = ${id}
-`.execute()
+			await db.updateTable('user').set(defaultUser).where('id', '=', id).execute()
 
-			await sql`DELETE FROM public.file WHERE "ownerId" = ${id}`.execute()
+			await sql`DELETE FROM public.file WHERE "ownerId" = ${id}`.execute(db)
 			// await fetch(`http://localhost:3000/api/app/__test__/user/${id}/reboot`)
 		} catch (e) {
 			console.error('Error', e)

@@ -1,25 +1,13 @@
 import { assert } from 'tldraw'
 
 export const ROUTES = {
-	legacyRoot: '/',
-	legacyNewPage: '/new',
-	legacyNewPage2: '/r',
-	legacyRoom: '/r/:roomId',
-	touchscreenSidePanel: '/ts-side',
-	legacyRoomHistory: '/r/:boardId/history',
-	legacyRoomHistorySnapshot: '/r/:boardId/history/:timestamp',
-	legacySnapshot: '/s/:roomId',
-	legacyReadonly: '/ro/:roomId',
-	legacyReadonlyOld: '/v/:roomId',
-
 	tlaOptIn: '/preview',
-	tlaOverride: '/q',
 
 	tlaRoot: `/`,
 	tlaNew: `/new`,
 	tlaFile: `/f/:fileSlug`,
+	tlaLocalFileIndex: `/lf`,
 	tlaLocalFile: `/lf/:fileSlug`,
-	tlaPlayground: `/playground`,
 	tlaPublish: `/p/:fileSlug`,
 	// Legacy routes
 	tlaTouchScreenSidePanel: '/ts-side',

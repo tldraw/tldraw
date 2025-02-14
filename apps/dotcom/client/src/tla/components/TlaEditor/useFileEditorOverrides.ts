@@ -40,7 +40,7 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 			actions(editor, actions) {
 				// Add a shortcut that does nothing but blocks the command+s shortcut
 				actions['save-null'] = {
-					id: 'save-file-copy',
+					id: 'save-null',
 					label: 'action.save-copy',
 					readonlyOk: true,
 					kbd: '$s',

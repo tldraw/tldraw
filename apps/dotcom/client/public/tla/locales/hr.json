@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "Stvori datoteku"
   },
+  "1bef75f760": {
+    "translation": "Dopusti tldrawu da mi pošalje e-poruku o ovome"
+  },
   "1da2e8106b": {
     "translation": "Došlo je do neočekivane pogreške."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "Izvezite sadržaj kao .tldr datoteku: idite na 'Datoteka' > 'Spremi kopiju'"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Prijenos {count} .tldr datoteke…} few {} other {Prijenos {count} .tldr datoteka…}}"
-  },
-  "279f0531ff": {
-    "translation": "Još uvijek imate problema? Javite nam na <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "Pošaljite nam povratne informacije"
   },
   "299cb00a7a": {
     "translation": "Prijenos nije uspio"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: Oznaka nedostaje"
+  },
+  "32656a600c": {
+    "translation": "Vidite nešto pogrešno? Imate li ideju kako poboljšati tldraw? Voljeli bismo to čuti!"
   },
   "335defdafe": {
     "translation": "Pokušajte osvježiti stranicu."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "Uvoz sa starog tldraw.com"
   },
+  "46137245cd": {
+    "translation": "Hvala što nam pomažete poboljšati tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "Postavke privatnosti"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Jeste li sigurni da želite zaboraviti ovu datoteku?"
+  },
+  "4c06678729": {
+    "translation": "Koristimo kolačiće prve strane za poboljšanje naših usluga. <a>Saznajte više</a>"
   },
   "4d1c8263ba": {
     "translation": "Ponovno učitaj"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "Molim te uspori."
+  },
+  "554a05155c": {
+    "translation": "Još uvijek imate problema? <a>Prijavite problem</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "Nismo uspjeli prenijeti dio sadržaja koji ste izradili prije nego što ste se prijavili."
+  },
+  "5db1e9a8ca": {
+    "translation": "Ispunite ovaj obrazac, <discord>razgovarajte s nama na Discordu</discord> ili <github>pošaljite problem na GitHubu</github>."
+  },
+  "5f3c333678": {
+    "translation": "Povratne informacije poslane"
   },
   "5fb63579fc": {
     "translation": "Kopirati"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "Osvježite stranicu kako biste dobili najnoviju verziju tldraw-a."
   },
+  "86353d2c41": {
+    "translation": "Dodane {total} .tldr datoteke."
+  },
   "86c66437fd": {
     "translation": "Preimenuj datoteku"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "Nije pronađeno"
   },
-  "9e7dc2358c": {
-    "translation": "Koristimo kolačiće prilikom prikupljanja analitičkih podataka kako bismo poboljšali tldraw. Klikom na prihvaćam slažete se s našim <a>pravilima o kolačićima</a>."
+  "9e93c98d88": {
+    "translation": "Isključi se"
   },
   "a104439641": {
     "translation": "Padding"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Politika kolačića"
+  },
+  "a4d3b161ce": {
+    "translation": "Pošalji"
   },
   "a6cc403d56": {
     "translation": "Svatko s vezom"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "Otkvači"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {Prijenos .tldr datoteke…} few {} other {Prijenos {uploaded} od {total} .tldr datoteka…}}"
   },
   "bc88b0e89e": {
     "translation": "Dijeli {ownerName}"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "Uključi/isključi bočnu traku"
   },
-  "d59048f21f": {
-    "translation": "Saznajte više"
+  "d5ef96e383": {
+    "translation": "Preuzmite datoteku"
   },
   "d721757161": {
     "translation": "Tema"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "Prijavite se"
-  },
-  "d98ac12774": {
-    "translation": "Odbiti"
   },
   "d9fe660e4e": {
     "translation": "Nažalost, nemate pristup tom radnom prostoru."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "Uvjeti usluge"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {Dodana {count} .tldr datoteka.} few {} other {Dodane {count} .tldr datoteke.}}"
   },
   "e78e14c5f1": {
     "translation": "Pin"

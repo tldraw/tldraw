@@ -1,7 +1,6 @@
 import { isProductionEnv, isStagingEnv } from './env'
 
 export const BOOKMARK_ENDPOINT = '/api/unfurl'
-export const APP_ASSET_UPLOAD_ENDPOINT = '/api/app/uploads'
 
 // some boilerplate to get the URL of the server to upload/fetch assets
 

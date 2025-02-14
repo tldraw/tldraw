@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "Tạo tệp"
   },
+  "1bef75f760": {
+    "translation": "Cho phép tldraw gửi email cho tôi về vấn đề này"
+  },
   "1da2e8106b": {
     "translation": "Đã xảy ra lỗi không mong muốn."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "Xuất nội dung dưới dạng tệp .tldr: Vào 'Tệp' > 'Lưu bản sao'"
   },
-  "20530afec1": {
-    "translation": "{count, plural, other {Đang tải lên {count} tệp .tldr…}}"
-  },
-  "279f0531ff": {
-    "translation": "Bạn vẫn gặp sự cố? Cho chúng tôi biết tại <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "Gửi phản hồi cho chúng tôi"
   },
   "299cb00a7a": {
     "translation": "Tải lên thất bại"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: Thiếu đánh dấu"
+  },
+  "32656a600c": {
+    "translation": "Bạn thấy có gì sai không? Bạn có ý tưởng nào để cải thiện tldraw không? Chúng tôi rất muốn nghe!"
   },
   "335defdafe": {
     "translation": "Vui lòng thử tải lại trang."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "Nhập từ tldraw.com cũ"
   },
+  "46137245cd": {
+    "translation": "Cảm ơn bạn đã giúp chúng tôi cải thiện tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "Cài đặt quyền riêng tư"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Bạn có chắc chắn muốn quên tệp này không?"
+  },
+  "4c06678729": {
+    "translation": "Chúng tôi sử dụng cookie của bên thứ nhất để cải thiện dịch vụ của mình. <a>Tìm hiểu thêm</a>"
   },
   "4d1c8263ba": {
     "translation": "Tải lại"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "Vui lòng chậm lại."
+  },
+  "554a05155c": {
+    "translation": "Vẫn gặp sự cố? <a>Báo cáo sự cố</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "Chúng tôi không tải lên được một số nội dung bạn đã tạo trước khi bạn đăng nhập."
+  },
+  "5db1e9a8ca": {
+    "translation": "Điền vào biểu mẫu này, <discord>trò chuyện với chúng tôi trên Discord</discord> hoặc <github>gửi sự cố trên GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "Phản hồi đã gửi"
   },
   "5fb63579fc": {
     "translation": "Sao chép"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "Vui lòng làm mới trang để tải phiên bản mới nhất của tldraw."
   },
+  "86353d2c41": {
+    "translation": "Đã thêm {total} tệp .tldr."
+  },
   "86c66437fd": {
     "translation": "Đổi tên tập tin"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "Không tìm thấy"
   },
-  "9e7dc2358c": {
-    "translation": "Chúng tôi sử dụng cookie khi thu thập dữ liệu phân tích để giúp chúng tôi cải thiện tldraw. Bằng cách nhấp vào chấp nhận, bạn đồng ý với <a>chính sách cookie</a> của chúng tôi."
+  "9e93c98d88": {
+    "translation": "Từ chối"
   },
   "a104439641": {
     "translation": "Lề trong"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Chính sách cookie"
+  },
+  "a4d3b161ce": {
+    "translation": "Nộp"
   },
   "a6cc403d56": {
     "translation": "Bất kỳ ai có liên kết"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "Bỏ ghim"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, other {Đang tải lên {uploaded} trong tổng số {total} tệp .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "Chia sẻ bởi {ownerName}"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "Chuyển đổi thanh bên"
   },
-  "d59048f21f": {
-    "translation": "Tìm hiểu thêm"
+  "d5ef96e383": {
+    "translation": "Tải xuống tập tin"
   },
   "d721757161": {
     "translation": "Chủ đề"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "Đăng ký"
-  },
-  "d98ac12774": {
-    "translation": "Từ chối"
   },
   "d9fe660e4e": {
     "translation": "Rất tiếc, bạn không có quyền truy cập vào không gian làm việc này."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "Điều khoản dịch vụ"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, other {Đã thêm {count} tệp .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "Ghim"

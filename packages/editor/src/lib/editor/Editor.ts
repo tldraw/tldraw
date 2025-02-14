@@ -8148,7 +8148,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	externalContentHandlers: {
 		[K in TLExternalContent<any>['type']]: {
-			[Key in K]: null | ((info: TLExternalContent<any> & { type: Key }) => void)
+			[Key in K]: null | ((info: Extract<TLExternalContent<any>, { type: Key }>) => void)
 		}[K]
 	} = {
 		text: null,
@@ -8156,6 +8156,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		embed: null,
 		'svg-text': null,
 		url: null,
+		tldraw: null,
+		excalidraw: null,
 	}
 
 	/**
@@ -8183,7 +8185,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			| null
 			| ((
 					info: T extends TLExternalContent<E>['type']
-						? TLExternalContent<E> & { type: T }
+						? Extract<TLExternalContent<E>, { type: T }>
 						: TLExternalContent<E>
 			  ) => void)
 	): this {
@@ -8725,7 +8727,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		switch (withDefaults.format) {
 			case 'svg':
 				return {
-					blob: new Blob([result.svg], { type: 'text/plain' }),
+					blob: new Blob([result.svg], { type: 'image/svg+xml' }),
 					width: result.width,
 					height: result.height,
 				}
