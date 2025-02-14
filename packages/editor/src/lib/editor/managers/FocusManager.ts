@@ -31,9 +31,8 @@ export class FocusManager {
 		}
 		this.updateContainerClass()
 
-		const container = this.editor.getContainer()
-		container.addEventListener('keydown', this.handleKeyDown.bind(this))
-		container.addEventListener('mousedown', this.handleMouseDown.bind(this))
+		document.body.addEventListener('keydown', this.handleKeyDown.bind(this))
+		document.body.addEventListener('mousedown', this.handleMouseDown.bind(this))
 	}
 
 	/**
@@ -54,6 +53,7 @@ export class FocusManager {
 		} else {
 			container.classList.remove('tl-container__focused')
 		}
+		container.classList.add('tl-container__no-focus-ring')
 	}
 
 	private handleKeyDown(keyEvent: KeyboardEvent) {
@@ -78,8 +78,8 @@ export class FocusManager {
 	}
 
 	dispose() {
-		this.editor.getContainer().removeEventListener('keydown', this.handleKeyDown.bind(this))
-		this.editor.getContainer().removeEventListener('mousedown', this.handleMouseDown.bind(this))
+		document.body.removeEventListener('keydown', this.handleKeyDown.bind(this))
+		document.body.removeEventListener('mousedown', this.handleMouseDown.bind(this))
 		this.disposeSideEffectListener?.()
 	}
 }
