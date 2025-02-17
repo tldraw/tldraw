@@ -53,7 +53,7 @@ export const healthCheckRoutes = createRouter<Environment>()
 	})
 	.get('/health-check/db', async (_, env) => {
 		try {
-			await createPostgresConnectionPool(env, 'TLStatsDurableObject')
+			await createPostgresConnectionPool(env, '/health-check/db')
 				.selectFrom('user')
 				.select('name')
 				.where('email', '=', 'mitja@tldraw.com')
