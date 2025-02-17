@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "파일 생성"
   },
+  "1bef75f760": {
+    "translation": "tldraw가 이 문제에 대해 나에게 이메일을 보내도록 허용하세요"
+  },
   "1da2e8106b": {
     "translation": "예기치 못한 오류가 발생했습니다."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "콘텐츠를 .tldr 파일로 내보내기: '파일' > '사본 저장'으로 이동"
   },
-  "20530afec1": {
-    "translation": "{count, plural, other {{count}개의 tldr 파일 업로드 중…}}"
-  },
-  "279f0531ff": {
-    "translation": "여전히 문제가 있나요? <a>hello@tldraw.com</a>으로 문의해 주세요"
+  "26e5b44256": {
+    "translation": "피드백을 주세요"
   },
   "299cb00a7a": {
     "translation": "업로드 실패"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n(국제화): 하이라이트 누락"
+  },
+  "32656a600c": {
+    "translation": "뭔가 잘못된 게 보이나요? tldraw를 개선할 아이디어가 있나요? 들려주세요!"
   },
   "335defdafe": {
     "translation": "페이지를 새로 고침해 주세요."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "이전 tldraw.com에서 가져오기"
   },
+  "46137245cd": {
+    "translation": "tldraw 개선에 도움을 주셔서 감사합니다!"
+  },
+  "4778b9f3f2": {
+    "translation": "개인정보 보호 설정"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "이 파일을 무시하시겠습니까?"
+  },
+  "4c06678729": {
+    "translation": "당사는 서비스 개선을 위해 자사 쿠키를 사용합니다. <a>자세히 알아보기</a>"
   },
   "4d1c8263ba": {
     "translation": "다시 로드"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "속도를 늦추세요."
+  },
+  "554a05155c": {
+    "translation": "여전히 문제가 있습니까? <a>문제 보고</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "로그인하기 전에 생성하신 콘텐츠 중 일부를 업로드하지 못했습니다."
+  },
+  "5db1e9a8ca": {
+    "translation": "이 양식을 작성하거나, <discord>Discord에서 채팅</discord>하거나, <github>GitHub에서 이슈를 제출</github>하세요."
+  },
+  "5f3c333678": {
+    "translation": "피드백 제출됨"
   },
   "5fb63579fc": {
     "translation": "복사"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "최신 tldraw 버전을 받으려면 페이지를 새로 고침해 주세요."
   },
+  "86353d2c41": {
+    "translation": "{total}개의 .tldr 파일을 추가했습니다."
+  },
   "86c66437fd": {
     "translation": "파일 이름 바꾸기"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "찾을 수 없음"
   },
-  "9e7dc2358c": {
-    "translation": "tldraw를 개선하는 데 도움이 되는 분석을 수집할 때 쿠키를 사용합니다. 수락을 클릭하면 <a>쿠키 정책</a>에 동의하게 됩니다."
+  "9e93c98d88": {
+    "translation": "옵트 아웃"
   },
   "a104439641": {
     "translation": "여백"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "쿠키 정책"
+  },
+  "a4d3b161ce": {
+    "translation": "제출하다"
   },
   "a6cc403d56": {
     "translation": "링크가 있는 사람"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "고정 해제"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, other {{uploaded}개 중 {total}개의 .tldr 파일을 업로드하는 중…}}"
   },
   "bc88b0e89e": {
     "translation": "{ownerName} 님이 공유함"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "사이드바 전환"
   },
-  "d59048f21f": {
-    "translation": "더 알아보기"
+  "d5ef96e383": {
+    "translation": "파일 다운로드"
   },
   "d721757161": {
     "translation": "테마"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "가입하기"
-  },
-  "d98ac12774": {
-    "translation": "거부하다"
   },
   "d9fe660e4e": {
     "translation": "죄송합니다. 해당 작업 공간에 대한 액세스 권한이 없습니다."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "서비스 약관"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, other {{count}개의 tldr 파일이 추가되었습니다.}}"
   },
   "e78e14c5f1": {
     "translation": "고정"

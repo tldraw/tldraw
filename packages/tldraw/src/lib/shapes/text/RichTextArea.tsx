@@ -6,7 +6,6 @@ import {
 	TLShapeId,
 	preventDefault,
 	stopEventPropagation,
-	tlenv,
 	useEditor,
 	useUniqueSafeId,
 } from '@tldraw/editor'
@@ -46,7 +45,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		richText,
 		handleFocus,
 		handleChange,
-		handleBlur: _handleBlur,
+		handleBlur,
 		handleKeyDown,
 		// TODO: need to handle this still?
 		// handleInputPointerDown,
@@ -151,23 +150,26 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		[editor, handleKeyDown]
 	)
 
-	const handleBlur = useCallback(() => {
-		// On iOS Safari, the blur event is fired when the virtual keyboard is closed.
-		// If we're showing this toolbar on iOS, then we need to close the editor when
-		// this happens. However, the blur event is sometimes fired immediately as the
-		// component renders, so we want to wait a short amount of time before this
-		// logic kicks in.
-		if (tlenv.isSafari && tlenv.isIos) {
-			if (editor.getEditingShapeId() === shapeId) {
-				// There's a chance we get some immediate blurs during render
-				if (Date.now() - rCreateInfo.current.time > 500) {
-					// The user either blurred or just pressed "done"
-					editor.setEditingShape(null)
-				}
-			}
-		}
-		_handleBlur?.()
-	}, [editor, _handleBlur, shapeId])
+	// We had to disable this. This was causing keyboard issues in iOS.
+	// One way to have it exhibit the issue was to have the shape selected,
+	// then double-click in the area outside the label bounds.
+	// const handleBlur = useCallback(() => {
+	// 	// On iOS Safari, the blur event is fired when the virtual keyboard is closed.
+	// 	// If we're showing this toolbar on iOS, then we need to close the editor when
+	// 	// this happens. However, the blur event is sometimes fired immediately as the
+	// 	// component renders, so we want to wait a short amount of time before this
+	// 	// logic kicks in.
+	// 	if (tlenv.isSafari && tlenv.isIos) {
+	// 		if (editor.getEditingShapeId() === shapeId) {
+	// 			// There's a chance we get some immediate blurs during render
+	// 			if (Date.now() - rCreateInfo.current.time > 500) {
+	// 				// The user either blurred or just pressed "done"
+	// 				editor.setEditingShape(null)
+	// 			}
+	// 		}
+	// 	}
+	// 	_handleBlur?.()
+	// }, [editor, _handleBlur, shapeId])
 
 	if (!isEditing || !tipTapConfig) {
 		return null

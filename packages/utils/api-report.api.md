@@ -287,6 +287,11 @@ export class MediaHelpers {
 }
 
 // @internal (undocumented)
+export function mergeArraysAndReplaceDefaults<const Key extends string, T extends {
+    [K in Key]: string;
+}>(key: Key, customEntries: readonly T[], defaults: readonly T[]): T[];
+
+// @internal (undocumented)
 export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;
 
 // @internal (undocumented)

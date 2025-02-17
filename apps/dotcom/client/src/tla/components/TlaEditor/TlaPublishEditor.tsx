@@ -5,7 +5,6 @@ import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { assetUrls } from '../../../utils/assetUrls'
 import { globalEditor } from '../../../utils/globalEditor'
-import { useSharing } from '../../../utils/sharing'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
@@ -30,7 +29,6 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 	useLegacyUrlParams()
 
 	const handleUiEvent = useHandleUiEvents()
-	const sharingUiOverrides = useSharing()
 	const fileEditorOverrides = useFileEditorOverrides({
 		fileSlug: undefined,
 	})
@@ -49,7 +47,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
 				snapshot={snapshot}
-				overrides={[sharingUiOverrides, fileEditorOverrides]}
+				overrides={[fileEditorOverrides]}
 				onUiEvent={handleUiEvent}
 				onMount={(editor) => {
 					;(window as any).app = editor

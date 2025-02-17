@@ -1,6 +1,6 @@
 # Dev tools
 
-This is an internal set of tools that helps the tldraw development team.
+This is an internal set of tools to helps the tldraw development team.
 
 ## Contribution
 

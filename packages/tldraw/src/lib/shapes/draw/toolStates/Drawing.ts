@@ -33,7 +33,6 @@ export class Drawing extends StateNode {
 	override shapeType = this.parent.id === 'highlight' ? ('highlight' as const) : ('draw' as const)
 
 	util = this.editor.getShapeUtil(this.shapeType) as DrawShapeUtil | HighlightShapeUtil
-	maxPoints = 500 // temporary
 
 	isPen = false
 	isPenOrStylus = false
@@ -57,10 +56,6 @@ export class Drawing extends StateNode {
 		this.info = info
 		this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
 		this.startShape()
-		this.maxPoints =
-			this.shapeType === 'draw'
-				? DrawShapeUtil.options.maxPointsPerShape
-				: HighlightShapeUtil.options.maxPointsPerShape
 	}
 
 	override onPointerMove() {
@@ -635,7 +630,7 @@ export class Drawing extends StateNode {
 				this.editor.updateShapes([shapePartial])
 
 				// Set a maximum length for the lines array; after 200 points, complete the line.
-				if (newPoints.length > this.maxPoints) {
+				if (newPoints.length > this.util.options.maxPointsPerShape) {
 					this.editor.updateShapes([{ id, type: this.shapeType, props: { isComplete: true } }])
 
 					const newShapeId = createShapeId()

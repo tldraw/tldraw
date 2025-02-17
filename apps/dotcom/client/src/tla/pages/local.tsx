@@ -60,7 +60,7 @@ function LocalTldraw() {
 		<TlaAnonLayout>
 			<LocalEditor
 				data-testid="tla-editor"
-				componentsOverride={components}
+				components={components}
 				onMount={(editor) => {
 					globalEditor.set(editor)
 					const shapes$ = editor.store.query.ids('shape')

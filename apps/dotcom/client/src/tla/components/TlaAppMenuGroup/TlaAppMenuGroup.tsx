@@ -41,40 +41,47 @@ function ColorThemeSubmenu() {
 	return <ColorSchemeMenu />
 }
 
-function SignedInItemsGroup() {
+function CookieConsentMenuItem() {
 	const { addDialog } = useDialogs()
 	return (
-		<TldrawUiMenuGroup id="consent">
-			<TldrawUiMenuItem
-				id="cookie-consent"
-				label={useMsg(messages.manageCookies)}
-				icon="external-link"
-				readonlyOk
-				onSelect={() => {
-					addDialog({ component: () => <TlaManageCookiesDialog /> })
-				}}
-			/>
-			<TldrawUiMenuItem
-				id="give-us-feedback"
-				label={useMsg(messages.submitFeedback)}
-				icon="external-link"
-				readonlyOk
-				onSelect={() => {
-					addDialog({ component: SubmitFeedbackDialog })
-				}}
-			/>
-		</TldrawUiMenuGroup>
+		<TldrawUiMenuItem
+			id="cookie-consent"
+			label={useMsg(messages.manageCookies)}
+			icon="external-link"
+			readonlyOk
+			onSelect={() => {
+				addDialog({ component: () => <TlaManageCookiesDialog /> })
+			}}
+		/>
 	)
 }
 
-function HelpSubMenu() {
+function GiveUsFeedbackMenuItem() {
+	const { addDialog } = useDialogs()
+	return (
+		<TldrawUiMenuItem
+			id="give-us-feedback"
+			label={useMsg(messages.submitFeedback)}
+			icon="external-link"
+			readonlyOk
+			onSelect={() => {
+				addDialog({ component: SubmitFeedbackDialog })
+			}}
+		/>
+	)
+}
+
+export function HelpSubMenu() {
 	const isSignedIn = useAuth().isSignedIn
 
 	const openAndTrack = useOpenUrlAndTrack('main-menu')
 	const msg = useMsg(messages.help)
 	return (
 		<TldrawUiMenuSubmenu id="help" label={msg}>
-			{isSignedIn && <SignedInItemsGroup />}
+			<TldrawUiMenuGroup id="signed-in-help">
+				{isSignedIn && <CookieConsentMenuItem />}
+				<GiveUsFeedbackMenuItem />
+			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="links">
 				<TldrawUiMenuItem
 					id="tos"

@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "Créer un fichier"
   },
+  "1bef75f760": {
+    "translation": "Autoriser tldraw à m'envoyer un e-mail à ce sujet"
+  },
   "1da2e8106b": {
     "translation": "Une erreur inattendue s'est produite."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "Exportez le contenu en tant que fichier .tldr : accédez à « Fichier » > « Enregistrer une copie »"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Importation de {count} fichier .tldr…} other {Importation de {count} fichiers .tldr…}}"
-  },
-  "279f0531ff": {
-    "translation": "Vous rencontrez encore des difficultés ? Contactez-nous à l'adresse <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "Donnez-nous votre avis"
   },
   "299cb00a7a": {
     "translation": "Échec de l'importation"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n : surlignement manquant"
+  },
+  "32656a600c": {
+    "translation": "Vous avez remarqué une erreur ? Vous avez une idée pour améliorer tldraw ? Nous aimerions en entendre parler !"
   },
   "335defdafe": {
     "translation": "Veuillez essayer de recharger la page."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "Importer depuis l'ancien tldraw.com"
   },
+  "46137245cd": {
+    "translation": "Merci de nous aider à améliorer tldraw !"
+  },
+  "4778b9f3f2": {
+    "translation": "Paramètres de confidentialité"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Voulez-vous vraiment oublier ce fichier ?"
+  },
+  "4c06678729": {
+    "translation": "Nous utilisons des cookies propriétaires pour améliorer nos services. <a>En savoir plus</a>"
   },
   "4d1c8263ba": {
     "translation": "Recharger"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "Veuillez ralentir."
+  },
+  "554a05155c": {
+    "translation": "Vous rencontrez toujours des problèmes ? <a>Signaler un problème</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "Nous n'avons pas réussi à importer une partie du contenu que vous avez créé avant de vous connecter."
+  },
+  "5db1e9a8ca": {
+    "translation": "Remplissez ce formulaire, <discord>discutez avec nous sur Discord</discord> ou <github>soumettez un problème sur GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "Commentaires soumis"
   },
   "5fb63579fc": {
     "translation": "Copier"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "Veuillez rafraîchir la page pour obtenir la dernière version de tldraw."
   },
+  "86353d2c41": {
+    "translation": "Ajout de {total} fichiers .tldr."
+  },
   "86c66437fd": {
     "translation": "Renommer le fichier"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "Introuvable"
   },
-  "9e7dc2358c": {
-    "translation": "Nous utilisons des cookies pour collecter des données d'analyse afin de nous aider à améliorer tldraw. En cliquant sur Accepter, vous acceptez notre <a>politique de cookies</a>."
+  "9e93c98d88": {
+    "translation": "Se désengager"
   },
   "a104439641": {
     "translation": "Marge intérieure"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Politique de cookies"
+  },
+  "a4d3b161ce": {
+    "translation": "Soumettre"
   },
   "a6cc403d56": {
     "translation": "N'importe qui disposant du lien"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "Désépingler"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {Téléchargement du fichier .tldr…} other {Téléchargement de {uploaded} sur {total} fichiers .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "Partagé par {ownerName}"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "Activer/désactiver la barre latérale"
   },
-  "d59048f21f": {
-    "translation": "Apprendre encore plus"
+  "d5ef96e383": {
+    "translation": "Télécharger le fichier"
   },
   "d721757161": {
     "translation": "Thème"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "S'inscrire"
-  },
-  "d98ac12774": {
-    "translation": "Rejeter"
   },
   "d9fe660e4e": {
     "translation": "Désolé, mais vous n'avez pas accès à cet espace de travail."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "Conditions d'utilisation"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {{count} fichier .tldr ajouté.} other {{count} fichiers .tldr ajoutés.}}"
   },
   "e78e14c5f1": {
     "translation": "Épingler"

@@ -10,10 +10,8 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	deleteFromLocalStorage,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
-import { tlaProbablyLoggedInFlag } from '../../../routes'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
@@ -62,7 +60,6 @@ function SignOutMenuItem({ source }: { source: TLAppUiEventSource }) {
 	const label = useMsg(messages.signOut)
 
 	const handleSignout = useCallback(() => {
-		deleteFromLocalStorage(tlaProbablyLoggedInFlag)
 		auth.signOut().then(clearLocalSessionState)
 		trackEvent('sign-out-clicked', { source })
 	}, [auth, trackEvent, source])

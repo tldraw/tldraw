@@ -118,16 +118,28 @@ export function useCanvasEvents() {
 			async function onDrop(e: React.DragEvent<Element>) {
 				preventDefault(e)
 				stopEventPropagation(e)
-				if (!e.dataTransfer?.files?.length) return
 
-				const files = Array.from(e.dataTransfer.files)
+				if (e.dataTransfer?.files?.length) {
+					const files = Array.from(e.dataTransfer.files)
 
-				await editor.putExternalContent({
-					type: 'files',
-					files,
-					point: editor.screenToPage({ x: e.clientX, y: e.clientY }),
-					ignoreParent: false,
-				})
+					await editor.putExternalContent({
+						type: 'files',
+						files,
+						point: editor.screenToPage({ x: e.clientX, y: e.clientY }),
+						ignoreParent: false,
+					})
+					return
+				}
+
+				const url = e.dataTransfer.getData('url')
+				if (url) {
+					await editor.putExternalContent({
+						type: 'url',
+						url,
+						point: editor.screenToPage({ x: e.clientX, y: e.clientY }),
+					})
+					return
+				}
 			}
 
 			function onClick(e: React.MouseEvent) {

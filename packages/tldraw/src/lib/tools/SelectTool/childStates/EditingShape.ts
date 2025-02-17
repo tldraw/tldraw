@@ -2,6 +2,7 @@ import {
 	StateNode,
 	TLCancelEventInfo,
 	TLCompleteEventInfo,
+	tlenv,
 	TLFrameShape,
 	TLPointerEventInfo,
 	TLShape,
@@ -181,8 +182,16 @@ export class EditingShape extends StateNode {
 
 		this.editor.select(hitShape.id)
 
+		const currentEditingShape = this.editor.getEditingShape()
+		const isEditToEditAction = currentEditingShape && currentEditingShape.id !== hitShape.id
 		this.editor.setEditingShape(hitShape.id)
-		this.editor.emit('place-caret', { shapeId: hitShape.id, point: info.point })
+
+		const isMobile = tlenv.isIos || tlenv.isAndroid
+		if (!isMobile || !isEditToEditAction) {
+			this.editor.emit('place-caret', { shapeId: hitShape.id, point: info.point })
+		} else if (isMobile && isEditToEditAction) {
+			this.editor.emit('select-all-text', { shapeId: hitShape.id })
+		}
 		updateHoveredShapeId(this.editor)
 	}
 
