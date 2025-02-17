@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "Crear ficheiro"
   },
+  "1bef75f760": {
+    "translation": "Permitir que tldraw me envíe un correo electrónico sobre isto"
+  },
   "1da2e8106b": {
     "translation": "Produciuse un erro inesperado."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "Exportar o contido como un ficheiro .tldr: vai a \"Ficheiro\" > \"Gardar unha copia\""
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Cargando {count} ficheiro .tldr...} other {Cargando {count} ficheiros .tldr...}}"
-  },
-  "279f0531ff": {
-    "translation": "Aínda tes problemas? Infórmanos en <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "Dános comentarios"
   },
   "299cb00a7a": {
     "translation": "Produciuse un erro na carga"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: Falta resaltar"
+  },
+  "32656a600c": {
+    "translation": "Ves algo mal? Tes algunha idea para mellorar tldraw? Encantaríanos escoitalo!"
   },
   "335defdafe": {
     "translation": "Proba a actualizar a páxina."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "Importar desde tldraw.com antigo"
   },
+  "46137245cd": {
+    "translation": "Grazas por axudarnos a mellorar tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "Configuración de privacidade"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Estás seguro de que queres esquecer este ficheiro?"
+  },
+  "4c06678729": {
+    "translation": "Usamos cookies propias para mellorar os nosos servizos. <a>Máis información</a>"
   },
   "4d1c8263ba": {
     "translation": "Recarga"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "Por favor, abranda."
+  },
+  "554a05155c": {
+    "translation": "Aínda tes problemas? <a>Informar dun problema</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "Non puidemos cargar parte do contido que creaches antes de iniciar sesión."
+  },
+  "5db1e9a8ca": {
+    "translation": "Encha este formulario, <discord>chatea connosco en Discord</discord> ou <github>envía un problema en GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "Comentarios enviados"
   },
   "5fb63579fc": {
     "translation": "Copiar"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "Actualiza a páxina para obter a última versión de tldraw."
   },
+  "86353d2c41": {
+    "translation": "Engadíronse {total} ficheiros .tldr."
+  },
   "86c66437fd": {
     "translation": "Cambiar o nome do ficheiro"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "Non atopado"
   },
-  "9e7dc2358c": {
-    "translation": "Usamos cookies ao recoller análises para axudarnos a mellorar tldraw. Ao facer clic en aceptar, aceptas a nosa <a>política de cookies</a>."
+  "9e93c98d88": {
+    "translation": "Desactivar"
   },
   "a104439641": {
     "translation": "Acolchado"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Política de cookies"
+  },
+  "a4d3b161ce": {
+    "translation": "Enviar"
   },
   "a6cc403d56": {
     "translation": "Calquera persoa coa ligazón"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "Desfixo"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {Cargando ficheiro .tldr...} other {Cargando {cargado} de {total} ficheiros .tldr...}}"
   },
   "bc88b0e89e": {
     "translation": "Compartido por {ownerName}"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "Alterna a barra lateral"
   },
-  "d59048f21f": {
-    "translation": "Máis información"
+  "d5ef96e383": {
+    "translation": "Descargar ficheiro"
   },
   "d721757161": {
     "translation": "Tema"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "Rexístrate"
-  },
-  "d98ac12774": {
-    "translation": "Rexeitar"
   },
   "d9fe660e4e": {
     "translation": "Sentímolo, non tes acceso a ese espazo de traballo."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "Condicións do servizo"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {Engadiuse {count} ficheiro .tldr.} other {Engadíronse {count} ficheiros .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "Pin"

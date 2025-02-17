@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "Lumikha ng file"
   },
+  "1bef75f760": {
+    "translation": "Payagan ang tldraw na mag-email sa akin tungkol dito"
+  },
   "1da2e8106b": {
     "translation": "May naganap na hindi inaasahang error."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "I-export ang nilalaman bilang isang .tldr file: Pumunta sa 'File' > 'Mag-save ng kopya'"
   },
-  "20530afec1": {
-    "translation": "{count, plural, zero {} one {Ina-upload ang {count} .tldr file…} two {} few {} many {} other {Ina-upload ang {count} .tldr na mga file…}}"
-  },
-  "279f0531ff": {
-    "translation": "Nahihirapan pa rin? Ipaalam sa amin sa <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "Bigyan kami ng feedback"
   },
   "299cb00a7a": {
     "translation": "Nabigo ang pag-upload"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: Nawawala ang Highlight"
+  },
+  "32656a600c": {
+    "translation": "May nakikita kang mali? May ideya ka bang pagbutihin ang tldraw? Gusto naming marinig ito!"
   },
   "335defdafe": {
     "translation": "Pakisubukang i-refresh ang page."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "Mag-import mula sa lumang tldraw.com"
   },
+  "46137245cd": {
+    "translation": "Salamat sa pagtulong sa amin na mapabuti ang tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "Mga setting ng privacy"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Sigurado ka bang gusto mong kalimutan ang file na ito?"
+  },
+  "4c06678729": {
+    "translation": "Gumagamit kami ng first-party na cookies upang mapabuti ang aming mga serbisyo. <a>Matuto pa</a>"
   },
   "4d1c8263ba": {
     "translation": "I-reload"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "Mangyaring magdahan-dahan."
+  },
+  "554a05155c": {
+    "translation": "Nahihirapan pa rin? <a>Mag-ulat ng problema</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "Nabigo kaming mag-upload ng ilan sa nilalamang ginawa mo bago ka mag-sign in."
+  },
+  "5db1e9a8ca": {
+    "translation": "Punan ang form na ito, <discord>makipag-chat sa amin sa Discord</discord> o <github>magsumite ng isyu sa GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "Naisumite ang feedback"
   },
   "5fb63579fc": {
     "translation": "Kopyahin"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "Paki-refresh ang page para makuha ang pinakabagong bersyon ng tldraw."
   },
+  "86353d2c41": {
+    "translation": "Nagdagdag ng {total} .tldr file."
+  },
   "86c66437fd": {
     "translation": "Palitan ang pangalan ng file"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "Hindi nahanap"
   },
-  "9e7dc2358c": {
-    "translation": "Gumagamit kami ng cookies kapag nangongolekta ng analytics upang matulungan kaming mapabuti ang tldraw. Sa pamamagitan ng pag-click sa tanggapin sumasang-ayon ka sa aming <a>patakaran sa cookie</a>."
+  "9e93c98d88": {
+    "translation": "Mag-opt out"
   },
   "a104439641": {
     "translation": "Padding"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Patakaran sa cookie"
+  },
+  "a4d3b161ce": {
+    "translation": "Isumite"
   },
   "a6cc403d56": {
     "translation": "Sinumang may link"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "I-unpin"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, zero {} one {Ina-upload ang .tldr file…} two {} few {} many {} other {Ina-upload ang {uploaded} ng {total} .tldr file…}}"
   },
   "bc88b0e89e": {
     "translation": "Ibinahagi ni {ownerName}"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "I-toggle ang sidebar"
   },
-  "d59048f21f": {
-    "translation": "Matuto pa"
+  "d5ef96e383": {
+    "translation": "Mag-download ng file"
   },
   "d721757161": {
     "translation": "Tema"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "Mag-sign up"
-  },
-  "d98ac12774": {
-    "translation": "Tanggihan"
   },
   "d9fe660e4e": {
     "translation": "Paumanhin, wala kang access sa workspace na iyon."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "Mga tuntunin ng serbisyo"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, zero {} one {Nagdagdag ng {count} .tldr file.} two {} few {} many {} other {Nagdagdag ng {count} .tldr file.}}"
   },
   "e78e14c5f1": {
     "translation": "Pin"

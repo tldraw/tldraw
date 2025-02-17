@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "Datei erstellen"
   },
+  "1bef75f760": {
+    "translation": "Erlauben Sie tldraw, mir diesbezüglich eine E-Mail zu senden"
+  },
   "1da2e8106b": {
     "translation": "Es ist ein unerwarteter Fehler aufgetreten."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "Exportieren Sie den Inhalt als eine tldr-Datei: Gehen Sie dann zu „Datei“ > „Kopie speichern.“"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {{count} .tldr-Datei wird hinzugefügt ...} other {{count} .tldr-Dateien werden hinzugefügt ...}}"
-  },
-  "279f0531ff": {
-    "translation": "Immer noch Probleme? Kontaktieren Sie uns unter <a>hello@tldraw.com</a>."
+  "26e5b44256": {
+    "translation": "Geben Sie uns Feedback"
   },
   "299cb00a7a": {
     "translation": "Hochladen fehlgeschlagen"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: Markierung fehlt"
+  },
+  "32656a600c": {
+    "translation": "Sie sehen, dass etwas nicht stimmt? Sie haben eine Idee, wie tldraw verbessert werden kann? Wir würden sie gerne hören!"
   },
   "335defdafe": {
     "translation": "Versuchen Sie bitte, die Seite neu zu laden."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "Importieren vom alten tldraw.com"
   },
+  "46137245cd": {
+    "translation": "Danke, dass Sie uns helfen, tldraw zu verbessern!"
+  },
+  "4778b9f3f2": {
+    "translation": "Privatsphäre Einstellungen"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Möchten Sie diese Datei wirklich vergessen?"
+  },
+  "4c06678729": {
+    "translation": "Wir verwenden Erstanbieter-Cookies, um unsere Dienste zu verbessern. <a>Weitere Informationen</a>"
   },
   "4d1c8263ba": {
     "translation": "Neu laden"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "Bitte arbeiten Sie langsamer."
+  },
+  "554a05155c": {
+    "translation": "Immer noch Probleme? <a>Problem melden</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "Wir konnten den von Ihnen vor Ihrer Anmeldung erstellten Inhalt teilweise nicht hochladen."
+  },
+  "5db1e9a8ca": {
+    "translation": "Füllen Sie dieses Formular aus, <discord>chatten Sie mit uns auf Discord</discord> oder <github>senden Sie ein Problem auf GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "Feedback gesendet"
   },
   "5fb63579fc": {
     "translation": "Kopieren"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "Bitte aktualisieren Sie die Seite und holden Sie sich die neueste Version von tldraw."
   },
+  "86353d2c41": {
+    "translation": "{total} .tldr-Dateien hinzugefügt."
+  },
   "86c66437fd": {
     "translation": "Datei umbenennen"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "Nicht gefunden"
   },
-  "9e7dc2358c": {
-    "translation": "Wir verwenden Cookies bei der Erfassung von Analysen, um tldraw zu verbessern. Indem Sie auf „Akzeptieren“ klicken, stimmen Sie unserer <a>Cookie-Richtlinie</a> zu."
+  "9e93c98d88": {
+    "translation": "Opt-out"
   },
   "a104439641": {
     "translation": "Füllung"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Cookie-Richtlinie"
+  },
+  "a4d3b161ce": {
+    "translation": "Einreichen"
   },
   "a6cc403d56": {
     "translation": "Jeder mit einem Link"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "Lösen"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {.tldr-Datei wird hochgeladen …} other {Hochladen von {uploaded} von {total} .tldr-Dateien…}}"
   },
   "bc88b0e89e": {
     "translation": "Von {ownerName} geteilt"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "Seitenleiste umschalten"
   },
-  "d59048f21f": {
-    "translation": "Mehr erfahren"
+  "d5ef96e383": {
+    "translation": "Datei herunterladen"
   },
   "d721757161": {
     "translation": "Design"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "Melden Sie sich an"
-  },
-  "d98ac12774": {
-    "translation": "Ablehnen"
   },
   "d9fe660e4e": {
     "translation": "Leider haben Sie keinen Zugriff auf diesen Arbeitsbereich."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "Servicebedingungen"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {{count} .tldr-Datei hinzugefügt.} other {{count} .tldr-Dateien hinzugefügt.}}"
   },
   "e78e14c5f1": {
     "translation": "Anheften"

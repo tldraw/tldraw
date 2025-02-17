@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "Opret fil"
   },
+  "1bef75f760": {
+    "translation": "Tillad tldraw at e-maile mig om dette"
+  },
   "1da2e8106b": {
     "translation": "Der opstod en uventet fejl."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "Eksporter indholdet som en .tldr-fil: Gå til 'Filer' > 'Gem en kopi'"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Uploader {count} .tldr-fil...} other {Uploader {count} .tldr-filer...}}"
-  },
-  "279f0531ff": {
-    "translation": "Har du stadig problemer? Fortæl os det på <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "Giv os feedback"
   },
   "299cb00a7a": {
     "translation": "Upload mislykkedes"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: Fremhæv mangler"
+  },
+  "32656a600c": {
+    "translation": "Ser du noget galt? Har du en idé til at forbedre tldraw? Vi vil meget gerne høre det!"
   },
   "335defdafe": {
     "translation": "Prøv venligst at opdatere siden."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "Importer fra gamle tldraw.com"
   },
+  "46137245cd": {
+    "translation": "Tak, fordi du hjælper os med at forbedre tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "Indstillinger for beskyttelse af personlige oplysninger"
+  },
   "47839e47a5": {
     "translation": "tltegn"
   },
   "4908687e50": {
     "translation": "Er du sikker på, at du vil glemme denne fil?"
+  },
+  "4c06678729": {
+    "translation": "Vi bruger førstepartscookies til at forbedre vores tjenester. <a>Få flere oplysninger</a>"
   },
   "4d1c8263ba": {
     "translation": "Genindlæs"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "Sæt farten ned."
+  },
+  "554a05155c": {
+    "translation": "Har du stadig problemer? <a>Rapportér et problem</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "Vi kunne ikke uploade noget af det indhold, du oprettede, før du loggede ind."
+  },
+  "5db1e9a8ca": {
+    "translation": "Udfyld denne formular, <discord>chat med os på Discord</discord> eller <github>indsend et problem på GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "Feedback indsendt"
   },
   "5fb63579fc": {
     "translation": "Kopi"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "Opdater siden for at få den seneste version af tldraw."
   },
+  "86353d2c41": {
+    "translation": "Tilføjet {total} .tldr-filer."
+  },
   "86c66437fd": {
     "translation": "Omdøb fil"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "Ikke fundet"
   },
-  "9e7dc2358c": {
-    "translation": "Vi bruger cookies, når vi indsamler analyser for at hjælpe os med at forbedre tldraw. Ved at klikke på accepter accepterer du vores <a>cookiepolitik</a>."
+  "9e93c98d88": {
+    "translation": "Fravælg"
   },
   "a104439641": {
     "translation": "Polstring"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Cookie politik"
+  },
+  "a4d3b161ce": {
+    "translation": "Indsend"
   },
   "a6cc403d56": {
     "translation": "Enhver med linket"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "Frigør"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {Uploader .tldr-fil...} other {Uploader {uploaded} af {total} .tldr-filer...}}"
   },
   "bc88b0e89e": {
     "translation": "Delt af {ownerName}"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "Skift sidebjælke"
   },
-  "d59048f21f": {
-    "translation": "Få flere oplysninger"
+  "d5ef96e383": {
+    "translation": "Download fil"
   },
   "d721757161": {
     "translation": "Tema"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "Tilmeld dig"
-  },
-  "d98ac12774": {
-    "translation": "Afvise"
   },
   "d9fe660e4e": {
     "translation": "Beklager, du har ikke adgang til det arbejdsområde."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "Servicevilkår"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {Tilføjet {count} .tldr-fil.} other {Tilføjet {count} .tldr-filer.}}"
   },
   "e78e14c5f1": {
     "translation": "Stift"

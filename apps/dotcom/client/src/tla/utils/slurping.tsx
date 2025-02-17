@@ -1,4 +1,4 @@
-import { deleteDB } from 'idb'
+// import { deleteDB } from 'idb'
 import {
 	Editor,
 	ExecutionQueue,
@@ -233,7 +233,8 @@ export class Slurper {
 			// were no assets to upload!
 
 			// all uploads succeeded, clear the local db
-			deleteDB('TLDRAW_DOCUMENT_v2' + this.opts.slurpPersistenceKey)
+			// (temporarily do not delete the db in case something goes wrong and people lose their stuffs)
+			// deleteDB('TLDRAW_DOCUMENT_v2' + this.opts.slurpPersistenceKey)
 			const { slurpPersistenceKey: _, ...meta } = this.opts.editor.getDocumentSettings().meta
 			this.opts.editor.updateDocumentSettings({ meta })
 			return

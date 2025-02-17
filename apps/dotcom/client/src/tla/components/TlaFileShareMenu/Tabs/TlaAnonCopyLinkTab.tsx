@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import { useEditor } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
@@ -8,11 +9,14 @@ import { QrCode } from '../QrCode'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 
 export function TlaAnonCopyLinkTab() {
+	const location = useLocation()
+	const [searchParams] = useSearchParams()
+	const href = `${window.location.origin}${location.pathname}?${searchParams.toString()}`
 	return (
 		<>
 			<TlaMenuSection>
-				<TlaAnonCopyLinkButton url={window.location.href} />
-				<QrCode url={window.location.href} />
+				<TlaAnonCopyLinkButton url={href} />
+				<QrCode url={href} />
 			</TlaMenuSection>
 		</>
 	)

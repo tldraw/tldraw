@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -eux
 
-# a function called 'goodbye' that takes a string as an argument
+yarn run lazy run clean || true
 
+# a function called 'goodbye' that takes a string as an argument
 function goodbye() {
   rm -rf $1
   rm -rf */$1

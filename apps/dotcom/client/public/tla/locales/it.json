@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "Crea file"
   },
+  "1bef75f760": {
+    "translation": "Consenti a tldraw di inviarmi un'e-mail a riguardo"
+  },
   "1da2e8106b": {
     "translation": "Si è verificato un errore imprevisto."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "Esporta il contenuto come file .tldr: Vai su \"File\" > \"Salva una copia\""
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Caricamento {count} file .tldr…} other {Caricamento {count} file .tldr…}}"
-  },
-  "279f0531ff": {
-    "translation": "Hai ancora difficoltà? Scrivi all'indirizzo <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "Dacci un feedback"
   },
   "299cb00a7a": {
     "translation": "Caricamento non riuscito"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: evidenziazione mancante"
+  },
+  "32656a600c": {
+    "translation": "Hai notato qualcosa di sbagliato? Hai un'idea per migliorare tldraw? Ci piacerebbe sentirla!"
   },
   "335defdafe": {
     "translation": "Prova a ricaricare la pagina."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "Importa dal vecchio tldraw.com"
   },
+  "46137245cd": {
+    "translation": "Grazie per averci aiutato a migliorare tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "Impostazioni sulla privacy"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Confermi di voler dimenticare questo file?"
+  },
+  "4c06678729": {
+    "translation": "Utilizziamo cookie proprietari per migliorare i nostri servizi. <a>Scopri di più</a>"
   },
   "4d1c8263ba": {
     "translation": "Ricarica"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "Rallenta."
+  },
+  "554a05155c": {
+    "translation": "Hai ancora problemi? <a>Segnala un problema</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "Impossibile caricare alcuni dei contenuti che hai creato prima di accedere."
+  },
+  "5db1e9a8ca": {
+    "translation": "Compila questo modulo, <discord>chatta con noi su Discord</discord> o <github>segnala un problema su GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "Feedback inviato"
   },
   "5fb63579fc": {
     "translation": "Copia"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "Ricarica la pagina per ottenere l'ultima versione di tldraw."
   },
+  "86353d2c41": {
+    "translation": "Aggiunti {total} file .tldr."
+  },
   "86c66437fd": {
     "translation": "Rinomina file"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "Non trovato"
   },
-  "9e7dc2358c": {
-    "translation": "Utilizziamo i cookie quando raccogliamo dati analitici per aiutarci a migliorare tldraw. Cliccando su accetta accetti la nostra <a>politica sui cookie</a>."
+  "9e93c98d88": {
+    "translation": "Decidere di uscire"
   },
   "a104439641": {
     "translation": "Padding"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Politica sui cookie"
+  },
+  "a4d3b161ce": {
+    "translation": "Invia"
   },
   "a6cc403d56": {
     "translation": "Chiunque abbia il link"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "Rimuovi"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {Caricamento del file .tldr…} other {Caricamento di {uploaded} di {total} file .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "Condivisi da {ownerName}"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "Attiva/disattiva barra laterale"
   },
-  "d59048f21f": {
-    "translation": "Saperne di più"
+  "d5ef96e383": {
+    "translation": "Scarica il file"
   },
   "d721757161": {
     "translation": "Tema"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "Iscrizione"
-  },
-  "d98ac12774": {
-    "translation": "Rifiutare"
   },
   "d9fe660e4e": {
     "translation": "Purtroppo non hai accesso a questo spazio di lavoro."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "Termini di servizio"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {Aggiunto {count} file .tldr.} other {Aggiunti {count} file .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "Fissa in alto"
