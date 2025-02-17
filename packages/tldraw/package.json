@@ -1,7 +1,7 @@
 {
 	"name": "tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "3.7.0",
+	"version": "3.8.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -53,6 +53,7 @@
 		"@radix-ui/react-slider": "^1.2.2",
 		"@radix-ui/react-toast": "^1.2.5",
 		"@tiptap/core": "^2.9.1",
+		"@tiptap/extension-code": "^2.9.1",
 		"@tiptap/extension-highlight": "^2.9.1",
 		"@tiptap/extension-link": "^2.9.1",
 		"@tiptap/pm": "^2.9.1",

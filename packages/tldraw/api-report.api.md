@@ -65,6 +65,7 @@ import { TLBookmarkAsset } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLBookmarkShapeProps } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
+import { TLContent } from '@tldraw/editor';
 import { TLCropInfo } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
 import { TLDefaultColorThemeColor } from '@tldraw/editor';
@@ -708,6 +709,12 @@ export function defaultHandleExternalEmbedContent<T>(editor: Editor, { point, ur
 }): void;
 
 // @public (undocumented)
+export function defaultHandleExternalExcalidrawContent(editor: Editor, { point, content }: {
+    content: any;
+    point?: VecLike;
+}): Promise<void>;
+
+// @public (undocumented)
 export function defaultHandleExternalFileAsset(editor: Editor, { file, assetId }: TLFileExternalAsset, { acceptedImageMimeTypes, acceptedVideoMimeTypes, maxAssetSize, maxImageDimension, toasts, msg, }: TLDefaultExternalContentHandlerOpts): Promise<TLAsset>;
 
 // @public (undocumented)
@@ -727,6 +734,12 @@ export function defaultHandleExternalTextContent(editor: Editor, { point, text, 
     html?: string;
     point?: VecLike;
     text: string;
+}): Promise<void>;
+
+// @public (undocumented)
+export function defaultHandleExternalTldrawContent(editor: Editor, { point, content }: {
+    content: TLContent;
+    point?: VecLike;
 }): Promise<void>;
 
 // @public (undocumented)
@@ -906,7 +919,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
         };
     };
     // (undocumented)
-    static options: DrawShapeOptions;
+    options: DrawShapeOptions;
     // (undocumented)
     static props: RecordProps<TLDrawShape>;
     // (undocumented)
@@ -1194,7 +1207,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     getInterpolatedProps(startShape: TLGeoShape, endShape: TLGeoShape, t: number): TLGeoShapeProps;
     // (undocumented)
-    getText(shape: TLGeoShape): string | undefined;
+    getText(shape: TLGeoShape): string;
     // (undocumented)
     indicator(shape: TLGeoShape): JSX_2.Element;
     // (undocumented)
@@ -1452,7 +1465,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
         };
     };
     // (undocumented)
-    static options: HighlightShapeOptions;
+    options: HighlightShapeOptions;
     // (undocumented)
     static props: RecordProps<TLHighlightShape>;
     // (undocumented)
@@ -1737,7 +1750,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    static options: NoteShapeOptions;
+    options: NoteShapeOptions;
     // (undocumented)
     static props: RecordProps<TLNoteShape>;
     // (undocumented)
@@ -1899,6 +1912,9 @@ export function preloadFont(id: string, font: TLTypeFace): Promise<FontFace>;
 
 // @public (undocumented)
 export function PrintItem(): JSX_2.Element;
+
+// @public
+export function putExcalidrawContent(editor: Editor, excalidrawClipboardContent: any, point?: VecLike): Promise<void>;
 
 // @public (undocumented)
 export function RectangleToolbarItem(): JSX_2.Element;

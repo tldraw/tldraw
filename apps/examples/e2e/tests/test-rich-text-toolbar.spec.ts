@@ -370,25 +370,6 @@ test.describe('Rich text behaviour', () => {
 		await sleep(2000)
 	})
 
-	test('hides immediately when scrolled', async ({ isMobile, page, richTextToolbar }) => {
-		if (isMobile) return // can't test this on mobile
-
-		await sleep(200)
-
-		await expect(richTextToolbar.container).toHaveAttribute('data-visible', 'true')
-		await expect(richTextToolbar.container).toHaveAttribute('data-interactive', 'true')
-
-		await page.mouse.wheel(0, 2)
-		await sleep(16)
-		await expect(richTextToolbar.container).toHaveAttribute('data-visible', 'false')
-		await expect(richTextToolbar.container).toHaveAttribute('data-interactive', 'false')
-
-		await sleep(200)
-
-		await expect(richTextToolbar.container).toHaveAttribute('data-visible', 'true')
-		await expect(richTextToolbar.container).toHaveAttribute('data-interactive', 'true')
-	})
-
 	test('hides and shows based on selection changes', async ({
 		isMobile,
 		page,

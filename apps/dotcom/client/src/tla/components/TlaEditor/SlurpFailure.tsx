@@ -51,7 +51,7 @@ export function SlurpFailure({
 						</ExternalLink>
 					</li>
 					<li>
-						<F defaultMessage="Export the content as a .tldr file: Go to 'File' > 'Save a copy'" />
+						<F defaultMessage="Export the content as a .tldr file: Select 'Download file' in the top left menu." />
 					</li>
 					<li>
 						<F defaultMessage="Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu." />

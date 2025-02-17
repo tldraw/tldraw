@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "Crear archivo"
   },
+  "1bef75f760": {
+    "translation": "Permitir que tldraw me envíe un correo electrónico sobre esto"
+  },
   "1da2e8106b": {
     "translation": "Se ha producido un error inesperado."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "Exporte el contenido como archivo .tldr: vaya a \"Archivo\" > \"Guardar una copia\""
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Subiendo {count} archivo .tldr...} other {Subiendo {count} archivos .tldr...}}"
-  },
-  "279f0531ff": {
-    "translation": "¿Sigue teniendo problemas? Háganoslo saber en <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "Envíanos tus comentarios"
   },
   "299cb00a7a": {
     "translation": "Error al cargar"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: falta resaltado"
+  },
+  "32656a600c": {
+    "translation": "¿Ves algo que no está bien? ¿Tienes alguna idea para mejorar tldraw? ¡Nos encantaría conocerla!"
   },
   "335defdafe": {
     "translation": "Pruebe a actualizar la página."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "Importación desde el antiguo tldraw.com"
   },
+  "46137245cd": {
+    "translation": "¡Gracias por ayudarnos a mejorar tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "Configuración de privacidad"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "¿Seguro que quiere olvidar este archivo?"
+  },
+  "4c06678729": {
+    "translation": "Utilizamos cookies propias para mejorar nuestros servicios. <a>Más información</a>"
   },
   "4d1c8263ba": {
     "translation": "Volver a cargar"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "Más despacio."
+  },
+  "554a05155c": {
+    "translation": "¿Aún tienes problemas? <a>Informar de un problema</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "No hemos podido subir parte del contenido que creó antes de iniciar sesión."
+  },
+  "5db1e9a8ca": {
+    "translation": "Complete este formulario, <discord>chatee con nosotros en Discord</discord> o <github>envíe un problema en GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "Comentarios enviados"
   },
   "5fb63579fc": {
     "translation": "Copiar"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "Actualice la página para obtener la última versión de tldraw."
   },
+  "86353d2c41": {
+    "translation": "Se agregaron {total} archivos .tldr."
+  },
   "86c66437fd": {
     "translation": "Cambiar el nombre del archivo"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "No encontrado"
   },
-  "9e7dc2358c": {
-    "translation": "Utilizamos cookies para recopilar información analítica que nos ayuda a mejorar tldraw. Al hacer clic en Aceptar, acepta nuestra <a>política de cookies</a>."
+  "9e93c98d88": {
+    "translation": "Darse de baja"
   },
   "a104439641": {
     "translation": "Relleno"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Política de cookies"
+  },
+  "a4d3b161ce": {
+    "translation": "Entregar"
   },
   "a6cc403d56": {
     "translation": "Cualquiera con el enlace"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "Desanclar"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {Subiendo archivo .tldr…} other {Cargando {uploaded} de {total} archivos .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "Compartido por {ownerName}"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "Alternar barra lateral"
   },
-  "d59048f21f": {
-    "translation": "Más información"
+  "d5ef96e383": {
+    "translation": "Descargar archivo"
   },
   "d721757161": {
     "translation": "Tema"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "Inscribirse"
-  },
-  "d98ac12774": {
-    "translation": "Rechazar"
   },
   "d9fe660e4e": {
     "translation": "Lo sentimos, no tiene acceso a ese espacio de trabajo."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "Condiciones de servicio"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {Ha añadido {count} archivo .tldr.} other {Ha añadido {count} archivos .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "Anclar"

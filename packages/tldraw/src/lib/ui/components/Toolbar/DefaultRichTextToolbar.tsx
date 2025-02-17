@@ -27,7 +27,7 @@ const SHOW_VISIBILITY_TIMEOUT = 150
 const TOOLBAR_GAP = 8
 const SCREEN_MARGIN = 16
 const MIN_DISTANCE_TO_REPOSITION_SQUARED = 16 ** 2
-const HIDE_TOOLBAR_ON_CANVAS_MODE = true
+const HIDE_TOOLBAR_ON_CANVAS_MODE = false
 
 /** @public */
 export interface TLUiRichTextToolbarProps {

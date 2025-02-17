@@ -45,7 +45,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	static override props = highlightShapeProps
 	static override migrations = highlightShapeMigrations
 
-	static options: HighlightShapeOptions = {
+	override options: HighlightShapeOptions = {
 		maxPointsPerShape: 600,
 		underlayOpacity: 0.82,
 		overlayOpacity: 0.35,
@@ -103,7 +103,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 					shape={shape}
 					forceSolid={forceSolid}
 					strokeWidth={strokeWidth}
-					opacity={HighlightShapeUtil.options.overlayOpacity}
+					opacity={this.options.overlayOpacity}
 				/>
 			</SVGContainer>
 		)
@@ -118,7 +118,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 					shape={shape}
 					forceSolid={forceSolid}
 					strokeWidth={strokeWidth}
-					opacity={HighlightShapeUtil.options.underlayOpacity}
+					opacity={this.options.underlayOpacity}
 				/>
 			</SVGContainer>
 		)
@@ -151,7 +151,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 					forceSolid={forceSolid}
 					strokeWidth={strokeWidth}
 					shape={shape}
-					opacity={HighlightShapeUtil.options.overlayOpacity}
+					opacity={this.options.overlayOpacity}
 				/>
 			</g>
 		)
@@ -167,7 +167,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 					forceSolid={forceSolid}
 					strokeWidth={strokeWidth}
 					shape={shape}
-					opacity={HighlightShapeUtil.options.underlayOpacity}
+					opacity={this.options.underlayOpacity}
 				/>
 			</g>
 		)

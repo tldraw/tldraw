@@ -77,7 +77,7 @@ const router = createBrowserRouter([
 					return {
 						element: (
 							<NoIndex>
-								<ExampleWrapper example={example} component={Component} />,
+								<ExampleWrapper example={example} component={Component} />
 							</NoIndex>
 						),
 					}

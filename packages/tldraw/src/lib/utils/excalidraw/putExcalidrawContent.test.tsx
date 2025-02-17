@@ -2,8 +2,8 @@ import { mockUniqueId } from '@tldraw/editor'
 import { readdirSync } from 'fs'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
-import { TestEditor } from '../../../../test/TestEditor'
-import { pasteExcalidrawContent } from './pasteExcalidrawContent'
+import { TestEditor } from '../../../test/TestEditor'
+import { putExcalidrawContent } from './putExcalidrawContent'
 
 let nextNanoId = 0
 mockUniqueId(() => `${++nextNanoId}`)
@@ -12,7 +12,7 @@ beforeEach(() => {
 	nextNanoId = 0
 })
 
-describe('pasteExcalidrawContent test fixtures', () => {
+describe('putExcalidrawContent test fixtures', () => {
 	const files = readdirSync(join(__dirname, 'excalidraw-test-fixtures')).filter((fileName) =>
 		fileName.endsWith('.json')
 	)
@@ -23,7 +23,7 @@ describe('pasteExcalidrawContent test fixtures', () => {
 
 		const editor = new TestEditor()
 
-		pasteExcalidrawContent(editor, fileContent)
+		putExcalidrawContent(editor, fileContent)
 
 		expect(editor.store.serialize()).toMatchSnapshot()
 	})

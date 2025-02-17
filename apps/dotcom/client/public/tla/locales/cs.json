@@ -35,6 +35,9 @@
   "181b90f889": {
     "translation": "Vytvořit soubor"
   },
+  "1bef75f760": {
+    "translation": "Dovolte tldraw, aby mi o tom poslal e-mail"
+  },
   "1da2e8106b": {
     "translation": "Došlo k neočekávané chybě."
   },
@@ -44,11 +47,8 @@
   "1f9696d5f2": {
     "translation": "Exportujte obsah jako soubor .tldr: Přejděte na Soubor > Uložit kopii"
   },
-  "20530afec1": {
-    "translation": "{count, plural, one {Nahrávání {count} souboru .tldr…} few {} many {} other {Nahrávání {count} souborů .tldr…}}"
-  },
-  "279f0531ff": {
-    "translation": "Stále máte potíže? Dejte nám vědět na <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "Dejte nám zpětnou vazbu"
   },
   "299cb00a7a": {
     "translation": "Nahrání se nezdařilo"
@@ -58,6 +58,9 @@
   },
   "31418ce4ad": {
     "translation": "i18n: Zvýraznění chybí"
+  },
+  "32656a600c": {
+    "translation": "Vidíš něco špatně? Máte nápad na vylepšení tldraw? Rádi bychom to slyšeli!"
   },
   "335defdafe": {
     "translation": "Zkuste prosím obnovit stránku."
@@ -89,11 +92,20 @@
   "45b78c248d": {
     "translation": "Import ze starého tldraw.com"
   },
+  "46137245cd": {
+    "translation": "Děkujeme, že nám pomáháte zlepšovat tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "Nastavení soukromí"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Opravdu chcete tento soubor zapomenout?"
+  },
+  "4c06678729": {
+    "translation": "Ke zlepšení našich služeb používáme cookies první strany. <a>Další informace</a>"
   },
   "4d1c8263ba": {
     "translation": "Znovu načíst"
@@ -109,6 +121,9 @@
   },
   "54d240fa41": {
     "translation": "Prosím zpomalte."
+  },
+  "554a05155c": {
+    "translation": "Stále máte potíže? <a>Nahlásit problém</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -130,6 +145,12 @@
   },
   "5d26ae7550": {
     "translation": "Nepodařilo se nám nahrát část obsahu, který jste vytvořili, než jste se přihlásili."
+  },
+  "5db1e9a8ca": {
+    "translation": "Vyplňte tento formulář, <discord>chatujte s námi na Discordu</discord> nebo <github>odešlete problém na GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "Odeslaná zpětná vazba"
   },
   "5fb63579fc": {
     "translation": "Kopie"
@@ -197,6 +218,9 @@
   "85a082de1b": {
     "translation": "Po aktualizaci stránky získáte nejnovější verzi tldraw."
   },
+  "86353d2c41": {
+    "translation": "Byly přidány {total} soubory .tldr."
+  },
   "86c66437fd": {
     "translation": "Přejmenovat soubor"
   },
@@ -236,8 +260,8 @@
   "9e076f5885": {
     "translation": "Nenalezeno"
   },
-  "9e7dc2358c": {
-    "translation": "Při shromažďování analýz používáme soubory cookie, které nám pomáhají zlepšit tldraw. Kliknutím na tlačítko Přijmout souhlasíte s našimi <a>zásadami souborů cookie</a>."
+  "9e93c98d88": {
+    "translation": "Odhlásit se"
   },
   "a104439641": {
     "translation": "Vycpávka"
@@ -253,6 +277,9 @@
   },
   "a3debabee7": {
     "translation": "Zásady používání souborů cookie"
+  },
+  "a4d3b161ce": {
+    "translation": "Předložit"
   },
   "a6cc403d56": {
     "translation": "Kdokoli s odkazem"
@@ -281,6 +308,9 @@
   },
   "bb792693e2": {
     "translation": "Odepnout"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {Nahrávání souboru .tldr…} few {} many {} other {Nahrávání {uploaded} z {total} souborů .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "Sdílel {ownerName}"
@@ -324,8 +354,8 @@
   "d4bbf74f3e": {
     "translation": "Přepnout postranní panel"
   },
-  "d59048f21f": {
-    "translation": "Zjistěte více"
+  "d5ef96e383": {
+    "translation": "Stáhnout soubor"
   },
   "d721757161": {
     "translation": "Téma"
@@ -338,9 +368,6 @@
   },
   "d9776f0775": {
     "translation": "Zaregistrujte se"
-  },
-  "d98ac12774": {
-    "translation": "Odmítnout"
   },
   "d9fe660e4e": {
     "translation": "Litujeme, k tomuto pracovnímu prostoru nemáte přístup."
@@ -359,9 +386,6 @@
   },
   "e404559826": {
     "translation": "Podmínky služby"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {Přidán {count} soubor .tldr.} few {} many {} other {Byly přidány {count} soubory .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "Připnout"
