@@ -12,11 +12,8 @@ function isAuthorized(req: Request, env: Environment) {
 
 export const checkRoutes = createRouter<Environment>()
 	.all('/check/*', (req, env) => {
-		if (isDebugLogging(env)) return undefined
-		if (!isAuthorized(req, env)) {
-			return new Response('Unauthorized', { status: 401 })
-		}
-		return undefined
+		if (isDebugLogging(env) || isAuthorized(req, env)) return undefined
+		return new Response('Unauthorized', { status: 401 })
 	})
 	.get('/check/replicator', async (_, env) => {
 		const stats = getStatsDurableObjct(env)
