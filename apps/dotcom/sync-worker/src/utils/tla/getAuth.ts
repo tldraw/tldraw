@@ -11,14 +11,18 @@ export async function requireAuth(request: IRequest, env: Environment): Promise<
 	return auth
 }
 
+export function getClerkClient(env: Environment) {
+	return createClerkClient({
+		secretKey: env.CLERK_SECRET_KEY,
+		publishableKey: env.CLERK_PUBLISHABLE_KEY,
+	})
+}
+
 export async function getAuthFromSearchParams(
 	request: IRequest,
 	env: Environment
 ): Promise<SignedInAuth | null> {
-	const clerk = createClerkClient({
-		secretKey: env.CLERK_SECRET_KEY,
-		publishableKey: env.CLERK_PUBLISHABLE_KEY,
-	})
+	const clerk = getClerkClient(env)
 
 	const state = await clerk.authenticateRequest(request)
 	if (state.isSignedIn) return state.toAuth()

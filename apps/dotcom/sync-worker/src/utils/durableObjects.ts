@@ -2,6 +2,7 @@ import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { TLDrawDurableObject } from '../TLDrawDurableObject'
 import { TLLoggerDurableObject } from '../TLLoggerDurableObject'
 import type { TLPostgresReplicator } from '../TLPostgresReplicator'
+import { TLStatsDurableObject } from '../TLStatsDurableObject'
 import type { TLUserDurableObject } from '../TLUserDurableObject'
 import { Environment } from '../types'
 
@@ -23,4 +24,8 @@ export function getRoomDurableObject(env: Environment, roomId: string) {
 	return env.TLDR_DOC.get(
 		env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${roomId}`)
 	) as any as TLDrawDurableObject
+}
+
+export function getStatsDurableObjct(env: Environment) {
+	return env.TL_STATS.get(env.TL_STATS.idFromName('stats')) as any as TLStatsDurableObject
 }

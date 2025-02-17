@@ -5,6 +5,7 @@ import {
 	exhaustiveSwitchError,
 	promiseWithResolve,
 	sleep,
+	throttle,
 	uniqueId,
 } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
@@ -21,7 +22,11 @@ import {
 	TLPostgresReplicatorRebootSource,
 } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
-import { getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
+import {
+	getRoomDurableObject,
+	getStatsDurableObjct,
+	getUserDurableObject,
+} from './utils/durableObjects'
 
 interface Migration {
 	id: string
@@ -255,6 +260,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			if (res === 'ok') {
 				this.logEvent({ type: 'reboot_duration', duration: Date.now() - start })
 			} else {
+				getStatsDurableObjct(this.env).recordReplicatorBootRetry()
 				this.reboot('retry')
 			}
 		})
@@ -333,8 +339,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		tick()
 	}
 
+	private reportPostgresUpdate = throttle(
+		() => getStatsDurableObjct(this.env).recordReplicatorPostgresUpdate(),
+		5000
+	)
+
 	private handleEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
 		this.lastPostgresMessageTime = Date.now()
+		this.reportPostgresUpdate()
 		if (event.relation.table === 'replicator_boot_id') {
 			// ping, ignore
 			return
