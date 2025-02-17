@@ -44,9 +44,6 @@
   "1dd1c5fb7f": {
     "translation": "Vandaag"
   },
-  "1f9696d5f2": {
-    "translation": "Exporteer de inhoud als een .tldr-bestand: Ga naar 'Bestand' > 'Kopie opslaan'"
-  },
   "26e5b44256": {
     "translation": "Geef ons feedback"
   },
@@ -68,29 +65,17 @@
   "344a7f427f": {
     "translation": "Editor"
   },
-  "3b366e7232": {
-    "translation": "Probeer de nieuwe tldraw (preview)"
-  },
   "3bd1b98dbd": {
     "translation": "De wijzigingen konden niet worden gepubliceerd."
   },
   "3c5e891bff": {
     "translation": "Vastgemaakt"
   },
-  "424cc22417": {
-    "translation": "Breng me naar huis"
-  },
   "42e53c47c1": {
     "translation": "Neem contact op met de eigenaar om toegang aan te vragen."
   },
   "44db318ee5": {
     "translation": "Krijg hulp op Discord"
-  },
-  "458cd104d7": {
-    "translation": "Sorry, u hebt geen toegang tot dat bestand. Als u weet wie het bestand heeft gemaakt, kunt u een nieuwe uitnodigingslink aanvragen."
-  },
-  "45b78c248d": {
-    "translation": "Importeren van oude tldraw.com"
   },
   "46137245cd": {
     "translation": "Bedankt voor uw hulp bij het verbeteren van tldraw!"
@@ -131,9 +116,6 @@
   "56c34c6410": {
     "translation": "Privacybeleid"
   },
-  "575d47a591": {
-    "translation": "Welkom bij de nieuwe tldraw.com!"
-  },
   "5817f82c16": {
     "translation": "Optioneel: help ons begrijpen hoe mensen tldraw gebruiken en hoe we het kunnen verbeteren."
   },
@@ -157,9 +139,6 @@
   },
   "61057a0c84": {
     "translation": "Later"
-  },
-  "61b106397b": {
-    "translation": "Om terug te gaan naar de oude tldraw.com, meldt u zich af via het gebruikersmenu."
   },
   "625fd29749": {
     "translation": "Ouder"
@@ -194,14 +173,14 @@
   "761e93ede9": {
     "translation": "Cookies beheren"
   },
+  "764671e008": {
+    "translation": "Chat met ons op Discord"
+  },
   "777f9e90cf": {
     "translation": "Ongeldig verzoek."
   },
-  "78e9815992": {
-    "translation": "Ik snap het"
-  },
-  "791b8834d3": {
-    "translation": "Importeren overslaan"
+  "797799f35e": {
+    "translation": "Een probleem melden op GitHub"
   },
   "7cb5f8b4a5": {
     "translation": "Vergeten"
@@ -209,11 +188,11 @@
   "7daeced9ff": {
     "translation": "Wijzigingen publiceren"
   },
-  "7de66f8b93": {
-    "translation": "Meld u aan om toegang te krijgen tot de previewversie van tldraw.com, die functies voor bestandsbeheer en samenwerking toevoegt."
-  },
   "7fcdcc6455": {
     "translation": "Bestand vergeten"
+  },
+  "81d389ac80": {
+    "translation": "Exporteer de inhoud als een .tldr-bestand: Selecteer 'Bestand downloaden' in het menu linksboven."
   },
   "85a082de1b": {
     "translation": "Vernieuw de pagina om de nieuwste versie van tldraw te verkrijgen."
@@ -223,9 +202,6 @@
   },
   "86c66437fd": {
     "translation": "Bestand hernoemen"
-  },
-  "8ad4303b83": {
-    "translation": "Nee bedankt"
   },
   "8eb2c00e96": {
     "translation": "Gedeeld met jou"
@@ -292,9 +268,6 @@
   },
   "ab0df9ba36": {
     "translation": "Bestandslimiet bereikt"
-  },
-  "abc5e29b0d": {
-    "translation": "Dit is een previewversie van de nieuwe tldraw.com, waarmee u bestanden kunt opslaan, kunt samenwerken en kunt publiceren."
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
@@ -366,20 +339,11 @@
   "d9100f3e10": {
     "translation": "Ga hierheen om de inhoud te bekijken"
   },
-  "d9776f0775": {
-    "translation": "Aanmelden"
-  },
-  "d9fe660e4e": {
-    "translation": "Helaas, u hebt geen toegang tot die werkruimte."
-  },
   "dbbebf3c03": {
     "translation": "Alleen op uitnodiging"
   },
   "dfdb78a4e4": {
     "translation": "App-debug vlaggen"
-  },
-  "e2cd8064c2": {
-    "translation": "Helaas, u heeft geen toegang tot die gebruiker."
   },
   "e371526ad0": {
     "translation": "Deze cookie is vereist om tldraw te laten werken en kan niet worden uitgeschakeld."
@@ -404,9 +368,6 @@
   },
   "ec611e9a08": {
     "translation": "Accountmenu"
-  },
-  "ec9ad9950f": {
-    "translation": "Sorry, dat bestand bestaat niet."
   },
   "ed53713239": {
     "translation": "i18n: Geaccentueerd"

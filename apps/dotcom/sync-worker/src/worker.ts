@@ -12,7 +12,6 @@ import { cors } from 'itty-router'
 // import { APP_ID } from './TLAppDurableObject'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
-import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { getReadonlySlug } from './routes/getReadonlySlug'
@@ -45,7 +44,6 @@ const { preflight, corsify } = cors({
 const router = createRouter<Environment>()
 	.all('*', preflight)
 	.all('*', blockUnknownOrigins)
-	.post('/new-room', createRoom)
 	.post('/snapshots', createRoomSnapshot)
 	.get('/snapshot/:roomId', getRoomSnapshot)
 	.get(`/${ROOM_PREFIX}/:roomId`, (req, env) =>
