@@ -172,12 +172,15 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.state = {
 			type: 'init',
 			promise: promiseWithResolve(),
-			sequenceId: 'tmp',
+			sequenceId: this.getCurrentSequenceId(),
 		}
 
-		// todo: is this enough entropy?
-		this.slotName = 'tl_postgres_replicator_' + this.ctx.id.toString().substring(0, 16)
-		// debug logging in preview envs by default
+		const slotNameMaxLength = 63 // max postgres identifier length
+		const slotNamePrefix = 'tlpr_' // pick something short so we can get more of the durable object id
+		const durableObjectId = this.ctx.id.toString()
+		this.slotName =
+			slotNamePrefix + durableObjectId.slice(0, slotNameMaxLength - slotNamePrefix.length)
+
 		this.log = new Logger(env, 'TLPostgresReplicator', this.sentry)
 		this.db = createPostgresConnectionPool(env, 'TLPostgresReplicator', 100)
 
