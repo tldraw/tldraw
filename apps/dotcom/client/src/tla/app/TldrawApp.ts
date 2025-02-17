@@ -3,6 +3,7 @@ import { captureException } from '@sentry/react'
 import {
 	CreateFilesResponseBody,
 	CreateSnapshotRequestBody,
+	MAX_NUMBER_OF_FILES,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
@@ -47,7 +48,7 @@ let appId = 0
 
 export class TldrawApp {
 	config = {
-		maxNumberOfFiles: 100,
+		maxNumberOfFiles: MAX_NUMBER_OF_FILES,
 	}
 
 	readonly id = appId++
@@ -172,6 +173,10 @@ export class TldrawApp {
 			defaultMessage: 'File limit reached',
 		},
 		max_files_description: {
+			defaultMessage:
+				'You have reached the maximum number of files. You need to delete old files before creating new ones.',
+		},
+		max_files_reached: {
 			defaultMessage:
 				'You have reached the maximum number of files. You need to delete old files before creating new ones.',
 		},

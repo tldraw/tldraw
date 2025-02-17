@@ -1,6 +1,7 @@
 import {
 	DB,
 	isColumnMutable,
+	MAX_NUMBER_OF_FILES,
 	ROOM_PREFIX,
 	TlaFile,
 	TlaFilePartial,
@@ -341,6 +342,19 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							break
 						} else {
 							const { id: _id, ...rest } = update.row as any
+							if (update.table === 'file') {
+								const { count } = await tx
+									.selectFrom('file')
+									.where('ownerId', '=', this.userId)
+									.select((t) => t.fn.countAll().as('count'))
+									.executeTakeFirstOrThrow()
+								if ((count as number) >= MAX_NUMBER_OF_FILES) {
+									throw new ZMutationError(
+										ZErrorCode.max_files_reached,
+										`Cannot create more than ${MAX_NUMBER_OF_FILES} files.`
+									)
+								}
+							}
 							const result = await tx
 								.insertInto(update.table)
 								.values(update.row as any)
