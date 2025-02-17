@@ -29,19 +29,23 @@ export class TLStatsDurableObject extends DurableObject<Environment> {
 		this.ctx.storage.setAlarm(ONE_SECOND)
 		if (this.lastPruneTime < Date.now() - 5 * ONE_MINUTE) {
 			// Make sure we don't run out of memory if the checks stop working for some reason
-			this.pruneUserDoAborts()
-			this.pruneReplicatorBootRetries()
+			this.prune()
 		}
 	}
 
+	private prune() {
+		this.pruneUserDoAborts()
+		this.pruneReplicatorBootRetries()
+	}
+
 	private pruneUserDoAborts() {
-		this.userDoAborts = this.userDoAborts.filter((ts) => ts > this.getCutoffTime())
+		const cutoffTime = this.getCutoffTime()
+		this.userDoAborts = this.userDoAborts.filter((ts) => ts > cutoffTime)
 	}
 
 	private pruneReplicatorBootRetries() {
-		this.replicatorBootRetries = this.replicatorBootRetries.filter(
-			(ts) => ts > this.getCutoffTime()
-		)
+		const cutoffTime = this.getCutoffTime()
+		this.replicatorBootRetries = this.replicatorBootRetries.filter((ts) => ts > cutoffTime)
 	}
 
 	private getCutoffTime() {
