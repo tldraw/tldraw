@@ -61,6 +61,10 @@ export class TLStatsDurableObject extends DurableObject<Environment> {
 		return Date.now() - ONE_MINUTE
 	}
 
+	private getExtendedCutoffTime() {
+		return Date.now() - 10 * ONE_MINUTE
+	}
+
 	// Let's wait for 10s before using the reported data
 	private bootingUp() {
 		return this.startupTime > Date.now() - 10 * ONE_SECOND
@@ -94,7 +98,7 @@ export class TLStatsDurableObject extends DurableObject<Environment> {
 	async areUsersRecevingReplicationEvents() {
 		if (this.bootingUp()) return true
 
-		return this.lastReplicationEvent > this.getCutoffTime()
+		return this.lastReplicationEvent > this.getExtendedCutoffTime()
 	}
 
 	async unusualNumberOfReplicatorBootRetries() {
