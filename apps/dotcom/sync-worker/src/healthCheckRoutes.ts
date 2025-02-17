@@ -10,12 +10,12 @@ function isAuthorized(req: Request, env: Environment) {
 	return bearer && bearer === env.HEALTH_CHECK_BEARER_TOKEN
 }
 
-export const checkRoutes = createRouter<Environment>()
-	.all('/check/*', (req, env) => {
+export const healthCheckRoutes = createRouter<Environment>()
+	.all('/health-check/*', (req, env) => {
 		if (isDebugLogging(env) || isAuthorized(req, env)) return undefined
 		return new Response('Unauthorized', { status: 401 })
 	})
-	.get('/check/replicator', async (_, env) => {
+	.get('/health-check/replicator', async (_, env) => {
 		const stats = getStatsDurableObjct(env)
 		const unusualRetries = await stats.unusualNumberOfReplicatorBootRetries()
 		if (unusualRetries) {
@@ -27,7 +27,7 @@ export const checkRoutes = createRouter<Environment>()
 		}
 		return new Response('ok', { status: 200 })
 	})
-	.get('/check/user-durable-objects', async (_, env) => {
+	.get('/health-check/user-durable-objects', async (_, env) => {
 		const stats = getStatsDurableObjct(env)
 		const abortsOverThreshold = await stats.unusualNumberOfUserDOAborts()
 		if (abortsOverThreshold) {
@@ -39,7 +39,7 @@ export const checkRoutes = createRouter<Environment>()
 		}
 		return new Response('ok', { status: 200 })
 	})
-	.get('/check/clerk', async (_, env) => {
+	.get('/health-check/clerk', async (_, env) => {
 		const clerk = getClerkClient(env)
 		try {
 			const result = await clerk.users.getCount()
@@ -51,7 +51,7 @@ export const checkRoutes = createRouter<Environment>()
 			return new Response('Could not reach clerk', { status: 500 })
 		}
 	})
-	.get('/check/db', async (_, env) => {
+	.get('/health-check/db', async (_, env) => {
 		try {
 			await createPostgresConnectionPool(env, 'TLStatsDurableObject')
 				.selectFrom('user')

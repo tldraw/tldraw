@@ -10,8 +10,8 @@ import { createRouter, handleApiRequest, handleUserAssetGet, notFound } from '@t
 import { DurableObject, WorkerEntrypoint } from 'cloudflare:workers'
 import { cors } from 'itty-router'
 // import { APP_ID } from './TLAppDurableObject'
-import { checkRoutes } from './checkRoutes'
 import { POSTHOG_URL } from './config'
+import { healthCheckRoutes } from './healthCheckRoutes'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
@@ -118,7 +118,7 @@ const router = createRouter<Environment>()
 		proxied.headers.delete('cookie')
 		return fetch(proxied)
 	})
-	.all('/check/*', checkRoutes.fetch)
+	.all('/health-check/*', healthCheckRoutes.fetch)
 	.all('*', notFound)
 
 export default class Worker extends WorkerEntrypoint<Environment> {
