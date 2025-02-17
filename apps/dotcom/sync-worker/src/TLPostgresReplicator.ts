@@ -277,7 +277,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	override async alarm() {
-		this.ctx.storage.setAlarm(Date.now() + 1000)
+		this.ctx.storage.setAlarm(Date.now() + 3000)
 		this.maybeLogRpm()
 		// If we haven't heard anything from postgres for 5 seconds, trigger a heartbeat.
 		// Otherwise, if we haven't heard anything for 10 seconds, do a soft reboot.
@@ -325,7 +325,11 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private async reboot(source: TLPostgresReplicatorRebootSource, delay = true) {
 		this.logEvent({ type: 'reboot', source })
-		this.log.debug('reboot push')
+		if (!this.queue.isEmpty()) {
+			this.log.debug('reboot is already in progress.', source)
+			return
+		}
+		this.log.debug('reboot push', source)
 		await this.queue.push(async () => {
 			if (delay) {
 				await sleep(2000)
