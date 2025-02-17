@@ -913,6 +913,16 @@ input,
 	white-space: pre-wrap;
 
 	/**
+	 * Note: ProseMirror disables this in https://github.com/ProseMirror/prosemirror-view/commit/6b3b2205e2f3029cb8e8e86c55a190a22491df31
+	 * However, that was from 8 years ago and the browser caret issue
+	 * it mentions seems to be fixed. So, we're re-enabling it.
+	 * We'll tell ProseMirror maybe to get rid of this on their end.
+	 */
+	-webkit-font-variant-ligatures: inherit;
+  font-variant-ligatures: inherit;
+  font-feature-settings: inherit;
+
+	/**
 	 * N.B. This following CSS Rule comes standard with the tiptap editor.
 	 * Combined with the above rule that it supersedes, it allows for
 	 * the auto-linking to work in text. Say, when typing example.com
