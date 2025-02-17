@@ -44,9 +44,6 @@
   "1dd1c5fb7f": {
     "translation": "Dnes"
   },
-  "1f9696d5f2": {
-    "translation": "Exportujte obsah jako soubor .tldr: Přejděte na Soubor > Uložit kopii"
-  },
   "26e5b44256": {
     "translation": "Dejte nám zpětnou vazbu"
   },
@@ -68,29 +65,17 @@
   "344a7f427f": {
     "translation": "Editor"
   },
-  "3b366e7232": {
-    "translation": "Vyzkoušejte nový tldraw (náhled)"
-  },
   "3bd1b98dbd": {
     "translation": "Změny nelze publikovat."
   },
   "3c5e891bff": {
     "translation": "Připnuto"
   },
-  "424cc22417": {
-    "translation": "Vezmi mě domů"
-  },
   "42e53c47c1": {
     "translation": "Kontaktujte vlastníka a požádejte o přístup."
   },
   "44db318ee5": {
     "translation": "Získejte pomoc na Discordu"
-  },
-  "458cd104d7": {
-    "translation": "Litujeme, k tomuto souboru nemáte přístup. Pokud víte, kdo soubor vytvořil, můžete požádat o nový odkaz s pozvánkou."
-  },
-  "45b78c248d": {
-    "translation": "Import ze starého tldraw.com"
   },
   "46137245cd": {
     "translation": "Děkujeme, že nám pomáháte zlepšovat tldraw!"
@@ -122,6 +107,9 @@
   "54d240fa41": {
     "translation": "Prosím zpomalte."
   },
+  "5530ac3cc1": {
+    "translation": "<discord>Chatujte s námi na Discord</discord>"
+  },
   "554a05155c": {
     "translation": "Stále máte potíže? <a>Nahlásit problém</a>"
   },
@@ -130,9 +118,6 @@
   },
   "56c34c6410": {
     "translation": "Zásady ochrany osobních údajů"
-  },
-  "575d47a591": {
-    "translation": "Vítejte na novém tldraw.com!"
   },
   "5817f82c16": {
     "translation": "Volitelné — Pomozte nám pochopit, jak lidé používají tldraw a jak jej můžeme vylepšit."
@@ -157,9 +142,6 @@
   },
   "61057a0c84": {
     "translation": "Později"
-  },
-  "61b106397b": {
-    "translation": "Chcete-li se vrátit na starou stránku tldraw.com, odhlaste se z uživatelské nabídky."
   },
   "625fd29749": {
     "translation": "Starší"
@@ -197,23 +179,17 @@
   "777f9e90cf": {
     "translation": "Neplatný požadavek."
   },
-  "78e9815992": {
-    "translation": "Rozumím"
-  },
-  "791b8834d3": {
-    "translation": "Přeskočit import"
-  },
   "7cb5f8b4a5": {
     "translation": "Zapomenout"
   },
   "7daeced9ff": {
     "translation": "Publikovat změny"
   },
-  "7de66f8b93": {
-    "translation": "Zaregistrujte se a získejte přístup k náhledové verzi webu tldraw.com, která přidává funkce pro správu souborů a spolupráci."
-  },
   "7fcdcc6455": {
     "translation": "Zapomenout soubor"
+  },
+  "81d389ac80": {
+    "translation": "Export obsahu jako soubor .tldr: V levém horním menu vyberte 'Stáhnout soubor'."
   },
   "85a082de1b": {
     "translation": "Po aktualizaci stránky získáte nejnovější verzi tldraw."
@@ -223,9 +199,6 @@
   },
   "86c66437fd": {
     "translation": "Přejmenovat soubor"
-  },
-  "8ad4303b83": {
-    "translation": "Ne, děkuji"
   },
   "8eb2c00e96": {
     "translation": "Sdíleno s vámi"
@@ -241,6 +214,9 @@
   },
   "904a830405": {
     "translation": "Přejmenovat"
+  },
+  "91ae339f66": {
+    "translation": "<github>Odeslat problém na GitHubu</github>"
   },
   "91e49bb0eb": {
     "translation": "Kopírovat do mých souborů"
@@ -292,9 +268,6 @@
   },
   "ab0df9ba36": {
     "translation": "Byl dosažen limit souborů"
-  },
-  "abc5e29b0d": {
-    "translation": "Toto je předběžná verze nového tldraw.com, která nabízí ukládání souborů, spolupráci a publikování."
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
@@ -366,20 +339,11 @@
   "d9100f3e10": {
     "translation": "Přejděte sem a podívejte se na obsah"
   },
-  "d9776f0775": {
-    "translation": "Zaregistrujte se"
-  },
-  "d9fe660e4e": {
-    "translation": "Litujeme, k tomuto pracovnímu prostoru nemáte přístup."
-  },
   "dbbebf3c03": {
     "translation": "Pouze na pozvání"
   },
   "dfdb78a4e4": {
     "translation": "Příznaky ladění aplikace"
-  },
-  "e2cd8064c2": {
-    "translation": "Litujeme, k tomuto uživateli nemáte přístup."
   },
   "e371526ad0": {
     "translation": "Tento soubor cookie je vyžadován pro fungování tldraw a nelze jej zakázat."
@@ -404,9 +368,6 @@
   },
   "ec611e9a08": {
     "translation": "Nabídka účtu"
-  },
-  "ec9ad9950f": {
-    "translation": "Litujeme, tento soubor neexistuje."
   },
   "ed53713239": {
     "translation": "i18n: s přízvukem"
