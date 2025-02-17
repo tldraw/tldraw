@@ -860,7 +860,11 @@ input,
 	overflow: visible;
 	outline: none;
 	font-weight: 600;
-	font-variation-settings: "ital" 0.26, "INFM" 62, "BNCE" 0, "SPAC" 0;
+	font-variation-settings:
+		'ital' 0.26,
+		'INFM' 62,
+		'BNCE' 0,
+		'SPAC' 0;
 }
 
 .tl-text-content__wrapper {
