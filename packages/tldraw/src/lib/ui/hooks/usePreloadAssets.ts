@@ -36,7 +36,6 @@ const usePreloadFont = (id: string, font: TLTypeFace): PreloadStatus => {
 }
 
 function getTypefaces(assetUrls: TLEditorAssetUrls) {
-	console.log(assetUrls.fonts)
 	return {
 		draw: {
 			url: assetUrls.fonts.draw,
