@@ -5,6 +5,14 @@ const ONE_MINUTE = 60 * ONE_SECOND
 const USER_DO_ABORT_THRESHOLD = 20
 const REPLICTOR_BOOT_RETRY_THRESHOLD = 10
 
+function dropWhile(array: number[], predicate: (n: number) => boolean) {
+	let i = 0
+	while (i < array.length && predicate(array[i])) {
+		i++
+	}
+	return array.slice(i)
+}
+
 export class TLStatsDurableObject extends DurableObject<Environment> {
 	// User DO related stats
 	private userDoAborts: number[] = []
@@ -41,12 +49,12 @@ export class TLStatsDurableObject extends DurableObject<Environment> {
 
 	private pruneUserDoAborts() {
 		const cutoffTime = this.getCutoffTime()
-		this.userDoAborts = this.userDoAborts.filter((ts) => ts > cutoffTime)
+		this.userDoAborts = dropWhile(this.userDoAborts, (ts) => ts < cutoffTime)
 	}
 
 	private pruneReplicatorBootRetries() {
 		const cutoffTime = this.getCutoffTime()
-		this.replicatorBootRetries = this.replicatorBootRetries.filter((ts) => ts > cutoffTime)
+		this.replicatorBootRetries = dropWhile(this.replicatorBootRetries, (ts) => ts < cutoffTime)
 	}
 
 	private getCutoffTime() {
