@@ -398,10 +398,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private async updateLsn(lsn: string) {
 		const result = await this.replicationService.acknowledge(lsn)
 		if (result) {
-			// if the current lsn in the meta table is null it means that either
-			// this is the first time the new version of the replicator (using pg-logical-replication)
-			// has connected, or the last time it tried to connect it encountered an error related
-			// to the starting point of the replication slot (extremely unlikely, afaict)
+			// if the current lsn in the meta table is null it means
+			// that we are using a brand new replication slot and we
+			// need to force all user DOs to reboot
 			const prevLsn = this.getCurrentLsn()
 			this.sqlite.exec('UPDATE meta SET lsn = ?', lsn)
 			if (!prevLsn) {
