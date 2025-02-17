@@ -203,6 +203,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			}
 		)
 
+		this.alarm()
 		this.ctx
 			.blockConcurrencyWhile(async () => {
 				await this._migrate().catch((e) => {
@@ -215,7 +216,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				)
 			})
 			.then(() => {
-				this.alarm()
 				this.reboot('constructor', false).catch((e) => {
 					this.captureException(e)
 					this.__test__panic()
@@ -276,12 +276,15 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	override async alarm() {
 		this.ctx.storage.setAlarm(Date.now() + 1000)
 		this.maybeLogRpm()
-		// Soft reboot if we haven't heard anything from postgres for 10 seconds
-		// The replication heartbeat should prevent this from happening since it
-		// comes in every 5 seconds or so.
+		// If we haven't heard anything from postgres for 5 seconds, trigger a heartbeat.
+		// Otherwise, if we haven't heard anything for 10 seconds, do a soft reboot.
 		if (Date.now() - this.lastPostgresMessageTime > 10000) {
 			this.log.debug('rebooting due to inactivity')
 			this.reboot('inactivity')
+		} else if (Date.now() - this.lastPostgresMessageTime > 5000) {
+			// this triggers a heartbeat
+			this.log.debug('triggering heartbeat due to inactivity')
+			this.replicationService.acknowledge('0/0')
 		}
 		this.maybePruneUsers()
 	}
@@ -322,15 +325,16 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.log.debug('reboot push')
 		await this.queue.push(async () => {
 			if (delay) {
-				await sleep(1000)
+				await sleep(2000)
 			}
 			const start = Date.now()
-			this.log.debug('rebooting')
+			this.log.debug('rebooting', source)
 			const res = await Promise.race([
 				this.boot().then(() => 'ok'),
 				sleep(3000).then(() => 'timeout'),
 			]).catch((e) => {
 				this.logEvent({ type: 'reboot_error' })
+				this.log.debug('reboot error', e.stack)
 				this.captureException(e)
 				return 'error'
 			})
@@ -351,10 +355,13 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 		// stop any previous subscriptions both here and on the postgres side to make sure we will be allowed to connect
 		// to the slot again.
-		await this.replicationService.stop().catch(this.captureException)
-		await sql`SELECT pg_terminate_backend(active_pid) FROM pg_replication_slots WHERE slot_name = ${this.slotName} AND active`
-			.execute(this.db)
-			.catch(this.captureException)
+		this.log.debug('stopping replication')
+		this.replicationService.stop().catch(this.captureException)
+		this.log.debug('terminating backend')
+		await sql`SELECT pg_terminate_backend(active_pid) FROM pg_replication_slots WHERE slot_name = ${this.slotName} AND active`.execute(
+			this.db
+		)
+		this.log.debug('done')
 
 		const promise = 'promise' in this.state ? this.state.promise : promiseWithResolve()
 		this.state = {
