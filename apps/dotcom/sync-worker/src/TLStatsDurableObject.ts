@@ -54,7 +54,7 @@ export class TLStatsDurableObject extends DurableObject<Environment> {
 
 	// Let's wait for 10s before using the reported data
 	private bootingUp() {
-		return this.startupTime < Date.now() - 10 * ONE_SECOND
+		return this.startupTime > Date.now() - 10 * ONE_SECOND
 	}
 
 	/* ----- RPCs for recording events ----- */
