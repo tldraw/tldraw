@@ -2,7 +2,6 @@ import { DB, TlaFile, TlaRow, ZTable } from '@tldraw/dotcom-shared'
 import {
 	ExecutionQueue,
 	assert,
-	assertExists,
 	exhaustiveSwitchError,
 	promiseWithResolve,
 	sleep,
@@ -107,16 +106,13 @@ type BootState =
 	| {
 			type: 'init'
 			promise: PromiseWithResolve
-			sequenceId: string
 	  }
 	| {
 			type: 'connecting'
-			sequenceId: string
 			promise: PromiseWithResolve
 	  }
 	| {
 			type: 'connected'
-			sequenceId: string
 	  }
 
 export class TLPostgresReplicator extends DurableObject<Environment> {
@@ -162,10 +158,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.state = {
 			type: 'init',
 			promise: promiseWithResolve(),
-			// Can't use this.getCurrentSequenceId() here because the
-			// meta table might not have been initialized.
-			// This gets overridden right after sqlite migration.
-			sequenceId: 'tmp',
 		}
 
 		const slotNameMaxLength = 63 // max postgres identifier length
@@ -366,7 +358,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			// preserve the promise so any awaiters do eventually get resolved
 			// TODO: set a timeout on the promise?
 			promise,
-			sequenceId: this.getCurrentSequenceId(),
 		}
 
 		this.replicationService.on('heartbeat', (lsn: string) => {
@@ -396,19 +387,12 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 		this.state = {
 			type: 'connected',
-			sequenceId: this.state.sequenceId,
 		}
 		promise.resolve(null)
 	}
 
 	private getCurrentLsn() {
 		return this.sqlite.exec('SELECT lsn FROM meta').one().lsn as string | null
-	}
-
-	private getCurrentSequenceId() {
-		return assertExists(
-			this.sqlite.exec('SELECT sequenceId FROM meta').one().sequenceId as string | null
-		)
 	}
 
 	private async updateLsn(lsn: string) {
@@ -435,9 +419,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		const users = this.sqlite.exec('SELECT id FROM active_user').toArray()
 		this.reportActiveUsers()
 		const BATCH_SIZE = 5
-		const initialSequenceId = this.getCurrentSequenceId()
 		const tick = () => {
-			if (initialSequenceId !== this.getCurrentSequenceId()) return
 			if (users.length === 0) return
 			const batch = users.splice(0, BATCH_SIZE)
 			for (const user of batch) {
@@ -559,12 +541,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			assert(typeof row.isFileOwner === 'boolean', 'isFileOwner is required')
 			if (!row.isFileOwner) {
 				// need to dispatch a file creation event to the user
-				const sequenceId = this.state.sequenceId
 				this.getFileRecord(row.fileId).then((file) => {
-					// mitigate a couple of race conditions
-
-					// check that we didn't reboot (in which case the user do will fetch the file record on its own)
-					if (this.state.sequenceId !== sequenceId) return
 					// check that the subscription wasn't deleted before we managed to fetch the file record
 					const sub = this.sqlite
 						.exec(
@@ -675,7 +652,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	async ping() {
 		this.log.debug('ping')
-		return { sequenceId: this.state.sequenceId }
+		return { sequenceId: this.slotName }
 	}
 
 	private async waitUntilConnected() {
@@ -722,7 +699,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				const res = await user.handleReplicationEvent({
 					...event,
 					sequenceNumber,
-					sequenceId: this.state.sequenceId + ':' + sequenceIdSuffix,
+					sequenceId: this.slotName,
 				})
 				if (res === 'unregister') {
 					this.log.debug('unregistering user', userId, event)
@@ -777,7 +754,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			}
 			this.log.debug('inserted guest files', guestFiles.rows.length)
 			return {
-				sequenceId: this.state.sequenceId + ':' + sequenceIdSuffix,
+				sequenceId: this.slotName,
 				sequenceNumber: 0,
 			}
 		} catch (e) {
