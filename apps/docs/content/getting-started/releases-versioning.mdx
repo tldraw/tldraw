@@ -13,6 +13,8 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 - Minor version bumps are released on a regular cadence - approximately monthly. **They may contain breaking changes**. We aim to make breaking changes as minimally disruptive as possible, but tldraw is actively evolving as we add new features. We recommend updating tldraw at a similar pace to our release cadence, and be sure to check the release notes.
 - Patch version bumps are for bugfixes and hotfixes that can't wait for the next cadence release.
 
+
+
 {/* START AUTO-GENERATED CHANGELOG */}
 
 ## Current release: [v3.8.0](/releases/v3.8.0)
@@ -32,10 +34,10 @@ This update brings a host of improvements across performance, user interface, an
 #### Developer Experience & API Improvements
 
 - **Exports DX Pass** ([#5114](https://github.com/tldraw/tldraw/pull/5114)). We’ve refined export functionality:
-  - The copy/export as JSON option has been removed.
-  - Export APIs (like `Editor.getSvgElement` and `Editor.getSvgString`) now handle shape selections more gracefully.
-  - Export contexts now expose `scale` and `pixelRatio` options and offer a `resolveAssetUrl` helper.
-  - A new `Editor.toImage` method simplifies creating images from your canvas.
+    - The copy/export as JSON option has been removed.
+    - Export APIs (like `Editor.getSvgElement` and `Editor.getSvgString`) now handle shape selections more gracefully.
+    - Export contexts now expose `scale` and `pixelRatio` options and offer a `resolveAssetUrl` helper.
+    - A new `Editor.toImage` method simplifies creating images from your canvas.
 - **i18n Enhancements** ([#5208](https://github.com/tldraw/tldraw/pull/5208)). Expanded our localization support to cover the top 40 languages.
 - **React 19** ([#5293](https://github.com/tldraw/tldraw/pull/5293)). tldraw now supports React 19.
 - **Easier external content customisation** ([#5298](https://github.com/tldraw/tldraw/pull/5298), [#5402](https://github.com/tldraw/tldraw/pull/5402)). You can re-use our default handlers, and now customise pasted tldraw & excalidraw content.
@@ -45,19 +47,19 @@ This update brings a host of improvements across performance, user interface, an
 ### Breaking Changes
 
 - **Shape Options Configuration.** With the introduction of `ShapeUtil.configure`, if you pass in a shape util that shares a type with a default, it now replaces the default instead of crashing. In addition, the previous `options.maxDrawShapePoints` is now set via:
-  - `DrawShapeUtil.configure({ maxPoints })`
-  - `HighlightShapeUtil.configure({ maxPoints })` ([#5399](https://github.com/tldraw/tldraw/pull/5399), [#5349](https://github.com/tldraw/tldraw/pull/5349))
+    - `DrawShapeUtil.configure({ maxPoints })`
+    - `HighlightShapeUtil.configure({ maxPoints })` ([#5399](https://github.com/tldraw/tldraw/pull/5399), [#5349](https://github.com/tldraw/tldraw/pull/5349))
 - **Asset Upload API Changes.** In `@tldraw/tlschema`, `TLAssetStore.upload` now returns an object with `{ src, meta? }` rather than just the source string. Similarly, `Editor.uploadAsset` has been updated to reflect this change. ([#5218](https://github.com/tldraw/tldraw/pull/5218))
 - **Export Functionality.** The option to copy/export as JSON has been removed since it was not fully supported. Additionally, hooks like `useImageOrVideoAssetUrl` now require a `width` parameter, and export methods have been updated to export all shapes when no IDs are provided. ([#5114](https://github.com/tldraw/tldraw/pull/5114))
 
 ### Bug Fixes
 
 - **UI & Interaction Bugs**
-  - Resolved dialog and edit menu glitches ([#5274](https://github.com/tldraw/tldraw/pull/5274)).
-  - Addressed problems with mousewheel events not working on scrollable elements ([#5356](https://github.com/tldraw/tldraw/pull/5356)).
+    - Resolved dialog and edit menu glitches ([#5274](https://github.com/tldraw/tldraw/pull/5274)).
+    - Addressed problems with mousewheel events not working on scrollable elements ([#5356](https://github.com/tldraw/tldraw/pull/5356)).
 - **Asset & Export Fixes**
-  - Ensured images in exports use the uncropped width ([#5300](https://github.com/tldraw/tldraw/pull/5300)).
-  - Corrected paste behavior for text/plain via keyboard shortcuts ([#5303](https://github.com/tldraw/tldraw/pull/5303)).
+    - Ensured images in exports use the uncropped width ([#5300](https://github.com/tldraw/tldraw/pull/5300)).
+    - Corrected paste behavior for text/plain via keyboard shortcuts ([#5303](https://github.com/tldraw/tldraw/pull/5303)).
 
 ### Performance & Reliability
 
@@ -79,7 +81,7 @@ A huge thank you to everyone who contributed to this release:
 - [@ricardo-crespo](https://github.com/ricardo-crespo)
 - [@steveruizok](https://github.com/steveruizok)
 - [@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk)
-
+						
 ## Previous releases
 
 - [v3.7.0](/releases/v3.7.0)
@@ -109,3 +111,5 @@ A huge thank you to everyone who contributed to this release:
 - [v2.0.0](/releases/v2.0.0)
 
 {/* END AUTO-GENERATED CHANGELOG */}
+
+
