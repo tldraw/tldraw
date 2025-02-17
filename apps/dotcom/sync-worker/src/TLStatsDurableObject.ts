@@ -27,8 +27,8 @@ export class TLStatsDurableObject extends DurableObject<Environment> {
 	override async alarm() {
 		// Keep the object alive
 		this.ctx.storage.setAlarm(ONE_SECOND)
+		// Make sure we don't run out of memory if the checks stop working for some reason. We'll prune every 5 minutes
 		if (this.lastPruneTime < Date.now() - 5 * ONE_MINUTE) {
-			// Make sure we don't run out of memory if the checks stop working for some reason
 			this.prune()
 		}
 	}
@@ -36,6 +36,7 @@ export class TLStatsDurableObject extends DurableObject<Environment> {
 	private prune() {
 		this.pruneUserDoAborts()
 		this.pruneReplicatorBootRetries()
+		this.lastPruneTime = Date.now()
 	}
 
 	private pruneUserDoAborts() {
