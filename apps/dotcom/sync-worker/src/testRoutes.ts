@@ -7,13 +7,13 @@ export const testRoutes = createRouter<Environment>()
 		if (!isDebugLogging(env)) return notFound()
 		return undefined
 	})
-	.get('/app/__test__/replicator/reboot', async (req, env) => {
-		await getReplicator(env).__test__forceReboot('hard' in req.query)
+	.get('/app/__test__/replicator/reboot', async (_, env) => {
+		await getReplicator(env).__test__forceReboot()
 		return new Response('ok')
 	})
-	.get('/app/__test__/replicator/panic', async (req, env) => {
+	.get('/app/__test__/replicator/panic', async (_, env) => {
 		await getReplicator(env)
-			.__test__panic('hard' in req.query)
+			.__test__panic()
 			.catch(() => null)
 		return new Response('ok')
 	})

@@ -105,6 +105,15 @@ const router = createRouter<Environment>()
 
 		return new Response('Not Found', { status: 404 })
 	})
+	.post('/app/__debug-tail/clear', async (req, env) => {
+		if (isDebugLogging(env)) {
+			// upgrade to websocket
+			await getLogger(env).clear()
+			return new Response('ok')
+		}
+
+		return new Response('Not Found', { status: 404 })
+	})
 	.post('/app/submit-feedback', submitFeedback)
 	// end app
 	.all('/ph/*', (req) => {

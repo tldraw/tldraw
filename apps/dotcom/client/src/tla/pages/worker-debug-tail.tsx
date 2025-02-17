@@ -1,9 +1,14 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
+import { fetch } from 'tldraw'
 import { MULTIPLAYER_SERVER } from '../../utils/config'
 
 export function Component() {
 	const ref = useRef<HTMLDivElement>(null)
 	const isAutoScroll = useRef(true)
+	const onClear = useCallback(async function onClear() {
+		await fetch('/api/app/__debug-tail/clear', { method: 'POST' })
+		ref.current!.innerHTML = ''
+	}, [])
 	useEffect(() => {
 		const elem = ref.current
 		if (!elem) return
@@ -30,7 +35,7 @@ export function Component() {
 		}
 		const onKeyPress = (ev: KeyboardEvent) => {
 			if (ev.key === 'k') {
-				ref.current!.innerHTML = ''
+				onClear()
 			}
 		}
 		elem.addEventListener('scroll', onScroll)
@@ -40,14 +45,12 @@ export function Component() {
 			elem.removeEventListener('scroll', onScroll)
 			window.removeEventListener('keypress', onKeyPress)
 		}
-	}, [])
+	}, [onClear])
 	return (
 		<>
 			<div
 				style={{ padding: '4px 8px', cursor: 'pointer', position: 'fixed', top: 0, right: 0 }}
-				onClick={() => {
-					ref.current!.innerHTML = ''
-				}}
+				onClick={onClear}
 				// eslint-disable-next-line react/jsx-no-literals
 			>
 				🗑️

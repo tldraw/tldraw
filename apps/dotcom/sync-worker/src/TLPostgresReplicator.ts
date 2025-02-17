@@ -13,12 +13,7 @@ import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { Kysely, sql } from 'kysely'
 
-import {
-	LogicalReplicationService,
-	PgoutputPlugin,
-	Wal2Json,
-	Wal2JsonPlugin,
-} from 'pg-logical-replication'
+import { LogicalReplicationService, Wal2Json, Wal2JsonPlugin } from 'pg-logical-replication'
 import { Logger } from './Logger'
 import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { createPostgresConnectionPool } from './postgres'
@@ -43,7 +38,6 @@ interface ReplicationEvent {
 interface Migration {
 	id: string
 	code: string
-	getParams?(): any[]
 }
 
 const migrations: Migration[] = [
@@ -83,13 +77,13 @@ const migrations: Migration[] = [
 		code: `
 			CREATE TABLE IF NOT EXISTS meta (
 				lsn TEXT PRIMARY KEY,
-				sequenceId TEXT NOT NULL
+				slotName TEXT NOT NULL
 			);
-			INSERT INTO meta (lsn, sequenceId) VALUES (null, ?);
+			-- The slot name references the replication slot in postgres.
+			-- If something ever gets messed up beyond mortal comprehension and we need to force all
+			-- clients to reboot, we can just change the slot name by altering the slotNamePrefix in the constructor.
+			INSERT INTO meta (lsn, slotName) VALUES ('0/0', 'init');
 		`,
-		getParams: () => {
-			return [uniqueId()]
-		},
 	},
 ]
 
@@ -157,10 +151,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private readonly replicationService
 	private readonly slotName
-	private readonly pgPlugin = new PgoutputPlugin({
-		protoVersion: 2,
-		publicationNames: ['alltables'],
-	})
 	private readonly wal2jsonPlugin = new Wal2JsonPlugin({})
 
 	private readonly db: Kysely<DB>
@@ -172,7 +162,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.state = {
 			type: 'init',
 			promise: promiseWithResolve(),
-			sequenceId: this.getCurrentSequenceId(),
+			// Can't use this.getCurrentSequenceId() here because the
+			// meta table might not have been initialized.
+			// This gets overridden right after sqlite migration.
+			sequenceId: 'tmp',
 		}
 
 		const slotNameMaxLength = 63 // max postgres identifier length
@@ -213,7 +206,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 					this.captureException(e)
 					throw e
 				})
-				this.state.sequenceId = uniqueId()
+				// if the slot name changed, we set the lsn to null, which will trigger a mass user DO reboot
+				if (this.sqlite.exec('select slotName from meta').one().slotName !== this.slotName) {
+					this.sqlite.exec('UPDATE meta SET slotName = ?, lsn = null', this.slotName)
+				}
 				await sql`SELECT pg_create_logical_replication_slot(${this.slotName}, 'wal2json') WHERE NOT EXISTS (SELECT 1 FROM pg_replication_slots WHERE slot_name = ${this.slotName})`.execute(
 					this.db
 				)
@@ -229,7 +225,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	private _applyMigration(index: number) {
-		this.sqlite.exec(migrations[index].code, ...(migrations[index].getParams?.() ?? []))
+		this.sqlite.exec(migrations[index].code)
 		this.sqlite.exec(
 			'insert into migrations (id, code) values (?, ?)',
 			migrations[index].id,
@@ -262,18 +258,12 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	async __test__forceReboot(hard?: boolean) {
-		if (hard) this.__hardSequenceBreak()
+	async __test__forceReboot() {
 		this.reboot('test')
 	}
 
-	async __test__panic(hard?: boolean) {
-		if (hard) this.__hardSequenceBreak()
+	async __test__panic() {
 		this.ctx.abort()
-	}
-
-	private __hardSequenceBreak() {
-		this.sqlite.exec('UPDATE meta SET lsn = null, sequenceId = ?', uniqueId())
 	}
 
 	override async alarm() {
@@ -398,17 +388,11 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 		const handleError = (e: Error) => {
 			this.captureException(e)
-			if (e.message.includes('starting point')) {
-				// clear the lsn and start a new sequence
-				this.__hardSequenceBreak()
-			}
 			this.reboot('retry')
 		}
 
 		this.replicationService.on('error', handleError)
-		this.replicationService
-			.subscribe(this.wal2jsonPlugin, this.slotName, this.getCurrentLsn() ?? '0/0') // '0/0' tells it to start from now
-			.catch(handleError)
+		this.replicationService.subscribe(this.wal2jsonPlugin, this.slotName).catch(handleError)
 
 		this.state = {
 			type: 'connected',
