@@ -33,10 +33,6 @@ export const healthCheckRoutes = createRouter<Environment>()
 		if (abortsOverThreshold) {
 			return new Response('High ammount of user durable object aborts', { status: 500 })
 		}
-		const areUsersRecevingReplicationEvents = await stats.areUsersRecevingReplicationEvents()
-		if (!areUsersRecevingReplicationEvents) {
-			return new Response('Users are not receiving replication events', { status: 500 })
-		}
 		return new Response('ok', { status: 200 })
 	})
 	.get('/health-check/clerk', async (_, env) => {

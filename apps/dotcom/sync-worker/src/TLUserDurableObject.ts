@@ -14,7 +14,7 @@ import {
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { assert, throttle } from '@tldraw/utils'
+import { assert } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -25,7 +25,7 @@ import { getR2KeyForRoom } from './r2'
 import { Analytics, Environment, TLUserDurableObjectEvent } from './types'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
 import { EventData, writeDataPoint } from './utils/analytics'
-import { getReplicator, getRoomDurableObject, getStatsDurableObjct } from './utils/durableObjects'
+import { getReplicator, getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 
@@ -481,14 +481,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	private reportReplicationEvent = throttle(() => {
-		getStatsDurableObjct(this.env).recordReplicationEvent()
-	}, 5000)
-
 	/* ------- RPCs -------  */
 
 	async handleReplicationEvent(event: ZReplicationEvent) {
-		this.reportReplicationEvent()
 		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
 		this.log.debug('replication event', event, !!this.cache)
 		if (await this.notActive()) {

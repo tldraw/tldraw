@@ -16,7 +16,6 @@ function dropWhile(array: number[], predicate: (n: number) => boolean) {
 export class TLStatsDurableObject extends DurableObject<Environment> {
 	// User DO related stats
 	private userDoAborts: number[] = []
-	private lastReplicationEvent: number = 0
 
 	// Repliator related stats
 	private replicatorBootRetries: number[] = []
@@ -61,10 +60,6 @@ export class TLStatsDurableObject extends DurableObject<Environment> {
 		return Date.now() - ONE_MINUTE
 	}
 
-	private getExtendedCutoffTime() {
-		return Date.now() - 10 * ONE_MINUTE
-	}
-
 	// Let's wait for 10s before using the reported data
 	private bootingUp() {
 		return this.startupTime > Date.now() - 10 * ONE_SECOND
@@ -74,10 +69,6 @@ export class TLStatsDurableObject extends DurableObject<Environment> {
 
 	async recordUserDoAbort() {
 		this.userDoAborts.push(Date.now())
-	}
-
-	async recordReplicationEvent() {
-		this.lastReplicationEvent = Date.now()
 	}
 
 	async recordReplicatorBootRetry() {
@@ -93,12 +84,6 @@ export class TLStatsDurableObject extends DurableObject<Environment> {
 	async unusualNumberOfUserDOAborts() {
 		this.pruneUserDoAborts()
 		return this.userDoAborts.length > USER_DO_ABORT_THRESHOLD
-	}
-
-	async areUsersRecevingReplicationEvents() {
-		if (this.bootingUp()) return true
-
-		return this.lastReplicationEvent > this.getExtendedCutoffTime()
 	}
 
 	async unusualNumberOfReplicatorBootRetries() {
