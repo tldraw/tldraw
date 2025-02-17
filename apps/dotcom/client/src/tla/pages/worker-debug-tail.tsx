@@ -28,13 +28,31 @@ export function Component() {
 		const onScroll = () => {
 			isAutoScroll.current = elem.scrollTop + elem.clientHeight > elem.scrollHeight - 100
 		}
+		const onKeyPress = (ev: KeyboardEvent) => {
+			if (ev.key === 'k') {
+				ref.current!.innerHTML = ''
+			}
+		}
 		elem.addEventListener('scroll', onScroll)
+		window.addEventListener('keypress', onKeyPress)
 		return () => {
 			socket.close()
 			elem.removeEventListener('scroll', onScroll)
+			window.removeEventListener('keypress', onKeyPress)
 		}
 	}, [])
 	return (
-		<div ref={ref} style={{ fontFamily: 'monospace', overflow: 'scroll', height: '100vh' }}></div>
+		<>
+			<div
+				style={{ padding: '4px 8px', cursor: 'pointer', position: 'fixed', top: 0, right: 0 }}
+				onClick={() => {
+					ref.current!.innerHTML = ''
+				}}
+				// eslint-disable-next-line react/jsx-no-literals
+			>
+				🗑️
+			</div>
+			<div ref={ref} style={{ fontFamily: 'monospace', overflow: 'scroll', height: '100vh' }}></div>
+		</>
 	)
 }

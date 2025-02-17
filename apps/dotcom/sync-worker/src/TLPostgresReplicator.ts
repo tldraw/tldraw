@@ -509,9 +509,18 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private getRowAndEvent(change: Wal2Json.Change) {
 		const row = {} as any
 		// take everything from change.columnnames and associated the values from change.columnvalues
-		change.columnnames.forEach((col, i) => {
-			row[col] = change.columnvalues[i]
-		})
+		if (change.kind === 'delete') {
+			const oldkeys = change.oldkeys
+			assert(oldkeys, 'oldkeys is required for delete events')
+			assert(oldkeys.keyvalues, 'oldkeys is required for delete events')
+			oldkeys.keynames.forEach((key, i) => {
+				row[key] = oldkeys.keyvalues[i]
+			})
+		} else {
+			change.columnnames.forEach((col, i) => {
+				row[col] = change.columnvalues[i]
+			})
+		}
 
 		const event = {
 			command: change.kind,
