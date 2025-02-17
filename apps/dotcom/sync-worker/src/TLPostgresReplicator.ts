@@ -227,7 +227,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private maybeLogRpm() {
 		const now = Date.now()
 		if (this.postgresUpdates > 0 && now - this.lastRpmLogTime > ONE_MINUTE) {
-			getStatsDurableObjct(this.env).recordReplicatorPostgresUpdate()
 			this.logEvent({
 				type: 'rpm',
 				rpm: this.postgresUpdates,
@@ -341,6 +340,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private handleEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
 		this.lastPostgresMessageTime = Date.now()
+		getStatsDurableObjct(this.env).recordReplicatorPostgresUpdate()
 		if (event.relation.table === 'replicator_boot_id') {
 			// ping, ignore
 			return
