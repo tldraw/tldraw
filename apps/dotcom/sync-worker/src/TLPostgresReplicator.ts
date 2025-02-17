@@ -5,6 +5,7 @@ import {
 	exhaustiveSwitchError,
 	promiseWithResolve,
 	sleep,
+	throttle,
 	uniqueId,
 } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
@@ -338,9 +339,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		tick()
 	}
 
+	private reportPostgresUpdate = throttle(
+		() => getStatsDurableObjct(this.env).recordReplicatorPostgresUpdate(),
+		5000
+	)
+
 	private handleEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
 		this.lastPostgresMessageTime = Date.now()
-		getStatsDurableObjct(this.env).recordReplicatorPostgresUpdate()
+		this.reportPostgresUpdate()
 		if (event.relation.table === 'replicator_boot_id') {
 			// ping, ignore
 			return
