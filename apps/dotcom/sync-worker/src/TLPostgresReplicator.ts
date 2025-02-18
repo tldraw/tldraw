@@ -31,7 +31,7 @@ import {
 
 interface ReplicationEvent {
 	command: 'insert' | 'update' | 'delete'
-	table: string
+	table: keyof DB | 'replicator_boot_id' | 'user_boot_id' | 'user_mutation_number'
 }
 
 interface Migration {
