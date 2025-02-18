@@ -351,6 +351,8 @@ export class UserDataSyncer {
 			this.reboot()
 			return
 		}
+		if (event.type === 'maybe_force_reboot') return
+
 		assert(this.state.type !== 'init', 'state should not be init: ' + event.type)
 		if (event.sequenceNumber !== this.state.lastSequenceNumber + 1) {
 			this.log.debug(
