@@ -1,3 +1,4 @@
+import { TalkToMe } from '@/components/common/talk-to-me'
 import { Footer } from '@/components/navigation/footer'
 import { Header } from '@/components/navigation/header'
 import { cn } from '@/utils/cn'
@@ -63,6 +64,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
 				<ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
 					<Header />
 					{children}
+					<TalkToMe />
 					<Footer />
 					<Analytics />
 				</ThemeProvider>
