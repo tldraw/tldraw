@@ -516,12 +516,24 @@ function useIsMousingDownOnTextEditor(textEditor: TiptapEditor) {
 		const handlePointingStateChange = debounce(({ isPointing }: { isPointing: boolean }) => {
 			setIsMousingDown(isPointing)
 		}, 16)
+		const handlePointingDown = () => handlePointingStateChange({ isPointing: true })
+		const handlePointingUp = () => handlePointingStateChange({ isPointing: false })
 
-		// sorry
-		textEditor.on<any>('pointer-state-change', handlePointingStateChange)
+		const touchDownEvents = ['touchstart', 'pointerdown', 'mousedown']
+		const touchUpEvents = ['touchend', 'pointerup', 'mouseup']
+		touchDownEvents.forEach((eventName: string) => {
+			textEditor.view.dom.addEventListener(eventName, handlePointingDown)
+		})
+		touchUpEvents.forEach((eventName: string) => {
+			textEditor.view.dom.addEventListener(eventName, handlePointingUp)
+		})
 		return () => {
-			// sorry
-			textEditor.off<any>('pointer-state-change', handlePointingStateChange)
+			touchDownEvents.forEach((eventName: string) => {
+				textEditor.view.dom.removeEventListener(eventName, handlePointingDown)
+			})
+			touchUpEvents.forEach((eventName: string) => {
+				textEditor.view.dom.removeEventListener(eventName, handlePointingUp)
+			})
 		}
 	}, [textEditor])
 

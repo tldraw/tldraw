@@ -185,8 +185,11 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			data-testid="rich-text-area"
 			className="tl-rich-text tl-text tl-text-input"
 			onContextMenu={isEditing ? stopEventPropagation : undefined}
-			// onPointerDownCapture={stopEventPropagation} // moving this to the pointer event extension
-			// onTouchEnd={stopEventPropagation} // moving this to the pointer event extension
+			// N.B. When PointerStateExtension was introduced, this was moved there.
+			// However, that caused selecting over list items to break.
+			// The handleDOMEvents in TipTap don't seem to support the pointerDownCapture event.
+			onPointerDownCapture={stopEventPropagation}
+			// onTouchEnd={stopEventPropagation} // moving this to the PointerStateExtension
 			// On FF, there's a behavior where dragging a selection will grab that selection into
 			// the drag event. However, once the drag is over, and you select away from the textarea,
 			// starting a drag over the textarea will restart a selection drag instead of a shape drag.
