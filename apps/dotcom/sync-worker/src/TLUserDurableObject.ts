@@ -343,12 +343,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						} else {
 							const { id: _id, ...rest } = update.row as any
 							if (update.table === 'file') {
-								const { count } = await tx
-									.selectFrom('file')
-									.where('ownerId', '=', this.userId)
-									.select((t) => t.fn.countAll().as('count'))
-									.executeTakeFirstOrThrow()
-								if ((count as number) >= MAX_NUMBER_OF_FILES) {
+								const count = this.cache.store.getFullData()?.files.length ?? 0
+								if (count >= MAX_NUMBER_OF_FILES) {
 									throw new ZMutationError(
 										ZErrorCode.max_files_reached,
 										`Cannot create more than ${MAX_NUMBER_OF_FILES} files.`
