@@ -25,10 +25,10 @@ services:
 #       Uncomment the following line to enable query logging
 #       -c config_file=/etc/postgresql/postgresql.conf
     volumes:
-      - zstart_pgdata:/var/lib/postgresql/data
+      - tlapp_pgdata:/var/lib/postgresql/data
       - ./:/docker-entrypoint-initdb.d
       - ./postgres-logging.conf:/etc/postgresql/postgresql.conf
 
 volumes:
-  zstart_pgdata:
+  tlapp_pgdata:
     driver: local
