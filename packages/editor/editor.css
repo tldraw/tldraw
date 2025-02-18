@@ -812,8 +812,12 @@ input,
 	font-stretch: 100%;
 	font-style: inherit;
 	font-variant: inherit;
-	font-variation-settings: normal;
-	font-weight: inherit;
+	font-variation-settings:
+		'ital' 0.26,
+		'INFM' 62,
+		'BNCE' 0,
+		'SPAC' 0;
+	font-weight: 600;
 	letter-spacing: inherit;
 	line-height: inherit;
 	outline: none;
@@ -828,6 +832,7 @@ input,
 	word-spacing: 0px;
 	word-wrap: break-word;
 	writing-mode: horizontal-tb !important;
+	font-weight: 600;
 }
 
 .tl-text-measure {
@@ -859,12 +864,6 @@ input,
 	min-height: 1px;
 	overflow: visible;
 	outline: none;
-	font-weight: 600;
-	font-variation-settings:
-		'ital' 0.26,
-		'INFM' 62,
-		'BNCE' 0,
-		'SPAC' 0;
 }
 
 .tl-text-content__wrapper {
