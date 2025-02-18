@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/store",
 	"description": "A tiny little drawing app (store).",
-	"version": "3.4.0",
+	"version": "3.8.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -46,17 +46,18 @@
 		"lodash.isequal": "^4.5.0"
 	},
 	"peerDependencies": {
-		"react": "^18.2.0"
+		"react": "^18.2.0 || ^19.0.0"
 	},
 	"devDependencies": {
-		"@peculiar/webcrypto": "^1.4.0",
-		"@types/lodash.isequal": "^4.5.6",
+		"@peculiar/webcrypto": "^1.5.0",
+		"@types/lodash.isequal": "^4.5.8",
 		"lazyrepo": "0.0.0-alpha.27",
 		"raf": "^3.4.1"
 	},
 	"jest": {
 		"preset": "../../internal/config/jest/node/jest-preset.js",
 		"setupFiles": [
+			"./setupTests.js",
 			"raf/polyfill"
 		],
 		"moduleNameMapper": {

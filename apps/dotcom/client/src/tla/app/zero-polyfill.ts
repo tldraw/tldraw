@@ -1,28 +1,62 @@
 import {
 	OptimisticAppStore,
 	TlaFile,
+	TlaFilePartial,
 	TlaFileState,
+	TlaFileStatePartial,
 	TlaUser,
+	TlaUserPartial,
 	ZClientSentMessage,
 	ZErrorCode,
 	ZRowUpdate,
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
-import { ClientWebSocketAdapter } from '@tldraw/sync-core'
+import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { Signal, computed, react, transact, uniqueId } from 'tldraw'
+import { TLAppUiContextType } from '../utils/app-ui-events'
 
 export class Zero {
-	socket: ClientWebSocketAdapter
-	store = new OptimisticAppStore()
-	pendingUpdates: ZRowUpdate[] = []
-	timeout: NodeJS.Timeout | undefined = undefined
-	currentMutationId = uniqueId()
+	private socket: ClientWebSocketAdapter
+	private store = new OptimisticAppStore()
+	private pendingUpdates: ZRowUpdate[] = []
+	private timeout: NodeJS.Timeout | undefined = undefined
+	private currentMutationId = uniqueId()
+	private clientTooOld = false
+	private instantiationTime = Date.now()
+	private didReceiveFirstMessage = false
 
 	constructor(
-		private opts: { getUri(): Promise<string>; onMutationRejected(errorCode: ZErrorCode): void }
+		private opts: {
+			getUri(): Promise<string>
+			onMutationRejected(errorCode: ZErrorCode): void
+			onClientTooOld(): void
+			trackEvent: TLAppUiContextType
+		}
 	) {
 		this.socket = new ClientWebSocketAdapter(opts.getUri)
+		this.socket.onStatusChange((e) => {
+			if (e.status === 'error') {
+				if (e.reason === TLSyncErrorCloseEventReason.CLIENT_TOO_OLD) {
+					this.clientTooOld = true
+					this.opts.onClientTooOld()
+					this.socket.close()
+				}
+				// todo: handle other well known errors if we add any
+			}
+		})
 		this.socket.onReceiveMessage((_msg) => {
+			if (!this.didReceiveFirstMessage) {
+				this.didReceiveFirstMessage = true
+				const timeSinceInstantiation = Date.now() - this.instantiationTime
+				this.opts.trackEvent('first-connect-duration', {
+					duration: timeSinceInstantiation,
+					source: 'app',
+				})
+			}
+			if (this.clientTooOld) {
+				// ignore incoming messages if the client is not supported
+				return
+			}
 			const msg = _msg as any as ZServerSentMessage
 			switch (msg.type) {
 				case 'initial_data':
@@ -124,7 +158,7 @@ export class Zero {
 	query = {
 		file: this.makeQuery(
 			'file',
-			computed('files', () => this.store.getFullData()?.files)
+			computed('files', () => this.store.getFullData()?.files.filter((f) => !f.isDeleted))
 		),
 		file_state: this.makeQuery(
 			'file_state',
@@ -150,17 +184,17 @@ export class Zero {
 					{
 						table: 'file_state',
 						event: 'insert',
-						row: { fileId: data.id, userId: store.user.id } as any,
+						row: { fileId: data.id, userId: store.user.id, firstVisitAt: Date.now() } as any,
 					},
 				])
 			},
-			update: (data: Partial<TlaFile> & { id: TlaFile['id'] }) => {
+			update: (data: TlaFilePartial) => {
 				const existing = this.store.getFullData()?.files.find((f) => f.id === data.id)
 				if (!existing) throw new Error('file not found')
-				this.makeOptimistic([{ table: 'file', event: 'update', row: data as any }])
+				this.makeOptimistic([{ table: 'file', event: 'update', row: data }])
 			},
 			delete: (data: { id: TlaFile['id'] }) => {
-				this.makeOptimistic([{ table: 'file', event: 'delete', row: data as any }])
+				this.makeOptimistic([{ table: 'file', event: 'delete', row: data }])
 			},
 		},
 		file_state: {
@@ -169,17 +203,12 @@ export class Zero {
 				if (!store) throw new Error('store not initialized')
 				this.makeOptimistic([{ table: 'file_state', event: 'insert', row: data }])
 			},
-			update: (
-				data: Partial<TlaFileState> & {
-					fileId: TlaFileState['fileId']
-					userId: TlaFileState['userId']
-				}
-			) => {
+			update: (data: TlaFileStatePartial) => {
 				const existing = this.store
 					.getFullData()
 					?.fileStates.find((f) => f.fileId === data.fileId && f.userId === data.userId)
 				if (!existing) throw new Error('file state not found')
-				this.makeOptimistic([{ table: 'file_state', event: 'update', row: data as any }])
+				this.makeOptimistic([{ table: 'file_state', event: 'update', row: data }])
 			},
 			delete: (data: { fileId: TlaFileState['fileId']; userId: TlaFileState['userId'] }) => {
 				this.makeOptimistic([{ table: 'file_state', event: 'delete', row: data as any }])
@@ -189,7 +218,7 @@ export class Zero {
 			create: (data: TlaUser) => {
 				this.makeOptimistic([{ table: 'user', event: 'insert', row: data as any }])
 			},
-			update: (data: Partial<TlaUser>) => {
+			update: (data: TlaUserPartial) => {
 				this.makeOptimistic([{ table: 'user', event: 'update', row: data as any }])
 			},
 			delete: () => {
@@ -218,6 +247,11 @@ export class Zero {
 	}
 
 	makeOptimistic(updates: ZRowUpdate[]) {
+		if (this.clientTooOld) {
+			// ignore incoming messages if the client is not supported
+			this.opts.onMutationRejected('client_too_old')
+			return
+		}
 		this.store.updateOptimisticData(updates, this.currentMutationId)
 
 		this.pendingUpdates.push(...updates)

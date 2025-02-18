@@ -1,5 +1,6 @@
 import { TlaFile, TlaUser } from '@tldraw/dotcom-shared'
 import { ReactNode, createContext, useContext } from 'react'
+import { trackAnalyticsEvent } from '../../utils/trackAnalyticsEvent'
 import { TldrawAppSessionState } from './local-session-state'
 
 /** @public */
@@ -12,6 +13,11 @@ export type TLAppUiEventSource =
 	| 'file-header'
 	| 'anon-landing-page'
 	| 'anon-top-bar'
+	| 'account-menu'
+	| 'top-bar'
+	| 'legacy-import-button'
+	| 'new-page'
+	| 'app'
 
 /** @public */
 export interface TLAppUiEventMap {
@@ -51,6 +57,9 @@ export interface TLAppUiEventMap {
 	'learn-more-button': null
 	'sidebar-toggle': { value: boolean }
 	'click-file-link': null
+	'open-preview-sign-up-modal': null
+	'first-connect-duration': { duration: number }
+	'create-user': null
 }
 
 /** @public */
@@ -65,7 +74,7 @@ export type TLAppUiHandler = <T extends keyof TLAppUiEventMap>(
 export type TLAppUiContextType = TLAppUiHandler
 
 /** @internal */
-const defaultEventHandler: TLAppUiContextType = () => void null
+const defaultEventHandler: TLAppUiContextType = trackAnalyticsEvent
 
 /** @internal */
 export const EventsContext = createContext<TLAppUiContextType>(defaultEventHandler)

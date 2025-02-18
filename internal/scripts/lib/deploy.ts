@@ -85,7 +85,7 @@ export async function wranglerDeploy({
 	sentry?: {
 		authToken: string
 		project: string
-		release?: string
+		environment?: string
 	}
 }) {
 	const varsArray = []
@@ -129,7 +129,7 @@ export async function wranglerDeploy({
 	}
 
 	if (sentry) {
-		const release = sentry.release ?? `${workerNameMatch[1]}.${versionMatch[1]}`
+		const release = `${sentry.environment ?? workerNameMatch[1]}.${versionMatch[1]}`
 
 		const sentryEnv = {
 			SENTRY_AUTH_TOKEN: sentry.authToken,
@@ -164,12 +164,22 @@ export async function wranglerDeploy({
 	}
 }
 
+export interface ServiceBinding {
+	binding: string
+	service: string
+}
+
 export async function setWranglerPreviewConfig(
 	location: string,
-	{ name, customDomain }: { name: string; customDomain?: string }
+	{
+		name,
+		customDomain,
+		serviceBinding,
+	}: { name: string; customDomain?: string; serviceBinding?: ServiceBinding }
 ) {
 	const additionalProperties = `name = "${name}"
-${customDomain ? `routes = [ { pattern = "${customDomain}", custom_domain = true} ]` : ''}`
+${customDomain ? `routes = [ { pattern = "${customDomain}", custom_domain = true} ]` : ''}
+${serviceBinding ? `services = [ {binding = "${serviceBinding.binding}", service = "${serviceBinding.service}" } ]` : ''}`
 
 	const additionalSection = `\n[env.preview]\n${additionalProperties}\n`
 

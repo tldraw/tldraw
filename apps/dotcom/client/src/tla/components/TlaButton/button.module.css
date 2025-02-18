@@ -14,6 +14,14 @@
 	justify-content: center;
 	cursor: pointer;
 	gap: 8px;
+
+	/* text medium */
+	font-size: 12px;
+	line-height: 1.3;
+	font-weight: 500;
+	font-family: var(--tla-font-ui);
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
 }
 
 .button > .spinner {
@@ -41,6 +49,12 @@
 	100% {
 		transform: rotate(360deg);
 	}
+}
+
+.cta {
+	background-color: var(--tla-color-cta);
+	color: #ffffff;
+	font-weight: 600;
 }
 
 .primary {

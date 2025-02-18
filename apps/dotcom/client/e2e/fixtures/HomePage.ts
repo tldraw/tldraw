@@ -3,7 +3,7 @@ import { expect } from '@playwright/test'
 import { Editor } from './Editor'
 import { step } from './tla-test'
 
-const rootUrl = 'http://localhost:3000/q'
+const rootUrl = 'http://localhost:3000/'
 
 export class HomePage {
 	public readonly signInButton: Locator
@@ -12,20 +12,20 @@ export class HomePage {
 		private readonly page: Page,
 		private readonly editor: Editor
 	) {
-		this.signInButton = this.page.getByTestId('tla-signin-button')
+		this.signInButton = this.page.getByText('Sign in')
 		this.tldrawEditor = this.page.getByTestId('tla-editor')
 	}
 
 	@step
 	async loginAs(email: string) {
 		const isSideBarToggleVisible = await this.editor.sidebarToggle.isVisible()
-		// We are already logged in
+		// We are already signed in
 		if (isSideBarToggleVisible) return
 		if (this.page.url() !== rootUrl) {
 			await this.goto()
 		}
 		await expect(this.signInButton).toBeVisible()
-		await this.page.click('text=Sign in')
+		await this.signInButton.click()
 		await this.page.getByLabel('Email address').fill(email)
 		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
 		await this.page.waitForTimeout(1000)
@@ -47,13 +47,12 @@ export class HomePage {
 		}).toPass()
 	}
 
-	async goto() {
-		await this.page.goto(rootUrl, { waitUntil: 'load' })
+	async goto(url = rootUrl) {
+		await this.page.goto(url, { waitUntil: 'load' })
 	}
 
 	async isLoaded() {
 		await expect(async () => {
-			await expect(this.page).toHaveTitle(/tldraw/)
 			await expect(this.tldrawEditor).toBeVisible({ timeout: 10000 })
 		}).toPass()
 	}

@@ -1,0 +1,393 @@
+{
+  "0095a9fa74": {
+    "translation": "匯出"
+  },
+  "03b3e13197": {
+    "translation": "將檔案拖曳到本頁面的側邊欄，或從使用者選單中選取「匯入檔案」。"
+  },
+  "043973ec1f": {
+    "translation": "仍有問題嗎？{GetHelpLink}"
+  },
+  "05596b840b": {
+    "translation": "開啟 tldraw。"
+  },
+  "06b9281e39": {
+    "translation": "自動"
+  },
+  "07dbd11b21": {
+    "translation": "未命名的檔案"
+  },
+  "08331c1710": {
+    "translation": "超出速率限制，請稍後重試。"
+  },
+  "0b27918290": {
+    "translation": "檔案"
+  },
+  "0b9a4cde72": {
+    "translation": "檔案選單"
+  },
+  "110a4b01be": {
+    "translation": "發布"
+  },
+  "13ddd375ad": {
+    "translation": "匯出為"
+  },
+  "181b90f889": {
+    "translation": "建立檔案"
+  },
+  "1bef75f760": {
+    "translation": "允許 tldraw 就此事向我發送電子郵件"
+  },
+  "1da2e8106b": {
+    "translation": "發生未預期的錯誤。"
+  },
+  "1dd1c5fb7f": {
+    "translation": "今天"
+  },
+  "26e5b44256": {
+    "translation": "向我們提供回饋"
+  },
+  "299cb00a7a": {
+    "translation": "上傳失敗"
+  },
+  "31246941ad": {
+    "translation": "您必須登入才能檢視此檔案。"
+  },
+  "31418ce4ad": {
+    "translation": "i18n：醒目顯示遺失"
+  },
+  "32656a600c": {
+    "translation": "發現了什麼錯誤嗎？有什麼想法可以改進 tldraw 嗎？我們很想聽聽這個消息！"
+  },
+  "335defdafe": {
+    "translation": "請嘗試重新整理頁面。"
+  },
+  "344a7f427f": {
+    "translation": "編輯器"
+  },
+  "3bd1b98dbd": {
+    "translation": "無法發布變更內容。"
+  },
+  "3c5e891bff": {
+    "translation": "已置頂"
+  },
+  "42e53c47c1": {
+    "translation": "請聯絡擁有者請求存取權限。"
+  },
+  "44db318ee5": {
+    "translation": "在 Discord 上獲得協助"
+  },
+  "46137245cd": {
+    "translation": "感謝您幫助我們改進 tldraw！"
+  },
+  "4778b9f3f2": {
+    "translation": "隱私設定"
+  },
+  "47839e47a5": {
+    "translation": "tldraw"
+  },
+  "4908687e50": {
+    "translation": "您確定要遺忘此檔案嗎？"
+  },
+  "4c06678729": {
+    "translation": "我們使用第一方 cookie 來改善我們的服務。 <a>了解詳情</a>"
+  },
+  "4d1c8263ba": {
+    "translation": "重新載入"
+  },
+  "50db1b7e1e": {
+    "translation": "無法取消發布檔案。"
+  },
+  "517bb809d9": {
+    "translation": "頁面選單"
+  },
+  "54286b1d01": {
+    "translation": "已達到協作者人數上限"
+  },
+  "54d240fa41": {
+    "translation": "請減速。"
+  },
+  "554a05155c": {
+    "translation": "仍然有問題？ <a>回報問題</a>"
+  },
+  "55505ba281": {
+    "translation": "PNG"
+  },
+  "56c34c6410": {
+    "translation": "隱私權政策"
+  },
+  "5817f82c16": {
+    "translation": "可選 — 幫助我們了解人們如何使用 tldraw，以及如何改進它。"
+  },
+  "5a95a425f7": {
+    "translation": "共享"
+  },
+  "5d160eb095": {
+    "translation": "您的會話"
+  },
+  "5d26ae7550": {
+    "translation": "我們無法上傳您登入之前所建立的部分內容。"
+  },
+  "5db1e9a8ca": {
+    "translation": "填寫此表格，<discord>在 Discord 上與我們聊天</discord>或<github>在 GitHub 上提交問題</github>。"
+  },
+  "5f3c333678": {
+    "translation": "已提交回饋"
+  },
+  "5fb63579fc": {
+    "translation": "複製"
+  },
+  "61057a0c84": {
+    "translation": "稍後"
+  },
+  "625fd29749": {
+    "translation": "較舊的"
+  },
+  "6609dd239e": {
+    "translation": "出了點問題"
+  },
+  "6a26f54883": {
+    "translation": "幫助"
+  },
+  "6dc0836c1b": {
+    "translation": "您沒有執行此操作所需的權限。"
+  },
+  "6dfc62f621": {
+    "translation": "按照以下步驟手動匯入內容："
+  },
+  "70a6facb9d": {
+    "translation": "本週"
+  },
+  "73ab799383": {
+    "translation": "不再支援此版本的 tldraw。"
+  },
+  "7408cf0d7b": {
+    "translation": "請重新載入頁面"
+  },
+  "752b79f137": {
+    "translation": "您已達到最大文件數。您需要在建立新文件之前刪除舊文件。"
+  },
+  "7573b8110a": {
+    "translation": "無法存取"
+  },
+  "761e93ede9": {
+    "translation": "管理cookies"
+  },
+  "764671e008": {
+    "translation": "在 Discord 上與我們聊天"
+  },
+  "777f9e90cf": {
+    "translation": "無效的請求。"
+  },
+  "797799f35e": {
+    "translation": "在 GitHub 上提交問題"
+  },
+  "7cb5f8b4a5": {
+    "translation": "遺忘"
+  },
+  "7daeced9ff": {
+    "translation": "發布變更內容"
+  },
+  "7fcdcc6455": {
+    "translation": "遺忘檔案"
+  },
+  "81d389ac80": {
+    "translation": "將內容匯出為 .tldr 檔案：在左上角的選單中選擇「下載檔案」。"
+  },
+  "85a082de1b": {
+    "translation": "請重新整理頁面以取得最新版本的 tldraw。"
+  },
+  "86353d2c41": {
+    "translation": "新增了 {total} 個 .tldr 檔案。"
+  },
+  "86c66437fd": {
+    "translation": "重新命名文件"
+  },
+  "8eb2c00e96": {
+    "translation": "已與您共享"
+  },
+  "8f7f4c1ce7": {
+    "translation": "關於"
+  },
+  "8ff3d0a705": {
+    "translation": "速率受限"
+  },
+  "902b0d55fd": {
+    "translation": "錯誤"
+  },
+  "904a830405": {
+    "translation": "重新命名"
+  },
+  "91e49bb0eb": {
+    "translation": "複製到我的檔案"
+  },
+  "96165d6df5": {
+    "translation": "本月"
+  },
+  "9914a0ce04": {
+    "translation": "淺色"
+  },
+  "9bef626805": {
+    "translation": "刪除檔案"
+  },
+  "9ceb927baa": {
+    "translation": "發布此檔案"
+  },
+  "9e076f5885": {
+    "translation": "找不到"
+  },
+  "9e93c98d88": {
+    "translation": "選擇退出"
+  },
+  "a104439641": {
+    "translation": "填充"
+  },
+  "a18366b217": {
+    "translation": "深色"
+  },
+  "a1c915578c": {
+    "translation": "您正在尋找的檔案不存在。"
+  },
+  "a239905023": {
+    "translation": "匯出圖片"
+  },
+  "a3debabee7": {
+    "translation": "Cookie 政策"
+  },
+  "a4d3b161ce": {
+    "translation": "提交"
+  },
+  "a6cc403d56": {
+    "translation": "任何擁有連結的人"
+  },
+  "a768caa988": {
+    "translation": "分析"
+  },
+  "a9ded1e5ce": {
+    "translation": "背景"
+  },
+  "ab0df9ba36": {
+    "translation": "已達到文件限制"
+  },
+  "af3dc88931": {
+    "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
+    "translation": "上次發布：<date></date>"
+  },
+  "b6d4223e60": {
+    "translation": "登入"
+  },
+  "b758336699": {
+    "translation": "複製連結"
+  },
+  "bb792693e2": {
+    "translation": "取消置頂"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, other {正在上傳 {uploaded} 個 .tldr 檔案（共 {total} 個）…}}"
+  },
+  "bc88b0e89e": {
+    "translation": "由 {ownerName} 共享"
+  },
+  "bcb62136a3": {
+    "translation": "上傳 .tldr 檔"
+  },
+  "c2276c9127": {
+    "translation": "瞭解有關共享的更多資訊。"
+  },
+  "c303bd1095": {
+    "translation": "無法發布此檔案。"
+  },
+  "c4408d3350": {
+    "translation": "接受"
+  },
+  "c655b27b1e": {
+    "translation": "i18n：長字串"
+  },
+  "c6a00f137b": {
+    "translation": "邀請"
+  },
+  "c87aacf567": {
+    "translation": "登出"
+  },
+  "cceaefbc20": {
+    "translation": "共享此檔案"
+  },
+  "cd15a75c26": {
+    "translation": "SVG"
+  },
+  "cd16f555de": {
+    "translation": "必需 — 需要儲存您的檔案和設置，並在您的裝置之間同步它們。"
+  },
+  "cea291e45e": {
+    "translation": "瞭解有關發布的更多資訊。"
+  },
+  "d3d2e61733": {
+    "translation": "關閉"
+  },
+  "d4bbf74f3e": {
+    "translation": "切換側邊欄"
+  },
+  "d5ef96e383": {
+    "translation": "下載文件"
+  },
+  "d721757161": {
+    "translation": "主題"
+  },
+  "d876a9fe1a": {
+    "translation": "重試"
+  },
+  "d9100f3e10": {
+    "translation": "前往此處查看內容"
+  },
+  "dbbebf3c03": {
+    "translation": "限受邀者"
+  },
+  "dfdb78a4e4": {
+    "translation": "應用程式的偵錯旗標"
+  },
+  "e371526ad0": {
+    "translation": "此 cookie 是 tldraw 工作所必需的，並且無法停用。"
+  },
+  "e404559826": {
+    "translation": "服務條款"
+  },
+  "e78e14c5f1": {
+    "translation": "置頂"
+  },
+  "e8d1090cb9": {
+    "translation": "我們使用 cookie 來讓您保持登入狀態、同步您的檔案並收集分析資料以幫助我們改善 tldraw。請閱讀我們的<a>cookie 政策</a>以了解更多資訊。"
+  },
+  "ea4788705e": {
+    "translation": "取消"
+  },
+  "ebfe9ce86e": {
+    "translation": "昨天"
+  },
+  "ec59b960ea": {
+    "translation": "此檔案已達到有效協作者的人數上限。"
+  },
+  "ec611e9a08": {
+    "translation": "帳號選單"
+  },
+  "ed53713239": {
+    "translation": "i18n：已強調"
+  },
+  "ed75712b0e": {
+    "translation": "複製"
+  },
+  "f2a6c498fb": {
+    "translation": "刪除"
+  },
+  "f43fb62093": {
+    "translation": "返回 tldraw。"
+  },
+  "fb15c53f22": {
+    "translation": "閱覽者"
+  },
+  "fd1be3efcf": {
+    "translation": "您確定要刪除此檔案嗎？"
+  },
+  "fed5ec05eb": {
+    "translation": "已複製連結"
+  }
+}

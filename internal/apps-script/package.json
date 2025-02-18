@@ -38,9 +38,9 @@
 		"build:staging": "yarn run -T tsx build-workspace-app.ts"
 	},
 	"dependencies": {
-		"@google/clasp": "^2.4.2"
+		"@google/clasp": "^2.5.0"
 	},
 	"devDependencies": {
-		"@types/google-apps-script": "^1.0.83"
+		"@types/google-apps-script": "^1.0.91"
 	}
 }

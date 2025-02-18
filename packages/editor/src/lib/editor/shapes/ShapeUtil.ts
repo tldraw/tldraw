@@ -5,11 +5,12 @@ import {
 	TLHandle,
 	TLPropsMigrations,
 	TLShape,
+	TLShapeCrop,
 	TLShapePartial,
 	TLUnknownShape,
 } from '@tldraw/tlschema'
 import { ReactElement } from 'react'
-import { Box } from '../../primitives/Box'
+import { Box, SelectionHandle } from '../../primitives/Box'
 import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
@@ -52,7 +53,26 @@ export interface TLShapeUtilCanvasSvgDef {
 
 /** @public */
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
+	/** Configure this shape utils {@link ShapeUtil.options | `options`}. */
+	static configure<T extends TLShapeUtilConstructor<any, any>>(
+		this: T,
+		options: T extends new (...args: any[]) => { options: infer Options } ? Partial<Options> : never
+	): T {
+		// @ts-expect-error -- typescript has no idea what's going on here but it's fine
+		return class extends this {
+			// @ts-expect-error
+			options = { ...this.options, ...options }
+		}
+	}
+
 	constructor(public editor: Editor) {}
+
+	/**
+	 * Options for this shape util. If you're implementing a custom shape util, you can override
+	 * this to provide customization options for your shape. If using an existing shape util, you
+	 * can customizing this by calling {@link ShapeUtil.configure}.
+	 */
+	options = {}
 
 	/**
 	 * Props allow you to define the shape's properties in a way that the editor can understand.
@@ -342,7 +362,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	): ReactElement | null | Promise<ReactElement | null>
 
 	/** @internal */
-	expandSelectionOutlinePx(shape: Shape): number {
+	expandSelectionOutlinePx(shape: Shape): number | Box {
 		return 0
 	}
 
@@ -418,6 +438,19 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	onBeforeUpdate?(prev: Shape, next: Shape): Shape | void
+
+	/**
+	 * A callback called when a shape changes from a crop.
+	 *
+	 * @param shape - The shape at the start of the crop.
+	 * @param info - Info about the crop.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onCrop?(
+		shape: Shape,
+		info: TLCropInfo<Shape>
+	): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void
 
 	/**
 	 * A callback called when some other shapes are dragged over this one.
@@ -614,6 +647,21 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	onEditEnd?(shape: Shape): void
+}
+
+/**
+ * Info about a crop.
+ * @param handle - The handle being dragged.
+ * @param change - The distance the handle is moved.
+ * @param initialShape - The shape at the start of the resize.
+ * @public
+ */
+export interface TLCropInfo<T extends TLShape> {
+	handle: SelectionHandle
+	change: Vec
+	crop: TLShapeCrop
+	uncroppedSize: { w: number; h: number }
+	initialShape: T
 }
 
 /**

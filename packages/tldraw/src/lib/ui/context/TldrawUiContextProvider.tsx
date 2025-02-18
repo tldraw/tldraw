@@ -74,7 +74,7 @@ export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 				>
 					<TldrawUiEventsProvider onEvent={onUiEvent}>
 						<TldrawUiToastsProvider>
-							<TldrawUiDialogsProvider context={editor?.contextId}>
+							<TldrawUiDialogsProvider context={'tla'}>
 								<BreakPointProvider forceMobile={forceMobile}>
 									<TldrawUiComponentsProvider overrides={components}>
 										{editor ? (

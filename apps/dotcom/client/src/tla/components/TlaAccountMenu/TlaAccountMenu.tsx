@@ -1,56 +1,35 @@
 import { useAuth } from '@clerk/clerk-react'
-import { ReactNode, useCallback, useEffect, useState } from 'react'
+import { fileOpen } from 'browser-fs-access'
+import { ReactNode, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
-	PreferencesGroup,
+	TLDRAW_FILE_EXTENSION,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
-	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	TldrawUiMenuSubmenu,
-	useMaybeEditor,
-	useValue,
 } from 'tldraw'
-import { Links } from '../../../components/Links'
-import { globalEditor } from '../../../utils/globalEditor'
-import { defineMessages, useIntl } from '../../app/i18n'
+import { routes } from '../../../routeDefs'
+import { useMaybeApp } from '../../hooks/useAppState'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { getCurrentEditor } from '../../utils/getCurrentEditor'
+import { defineMessages, useMsg } from '../../utils/i18n'
+import { clearLocalSessionState } from '../../utils/local-session-state'
+import { TlaAppMenuGroup } from '../TlaAppMenuGroup/TlaAppMenuGroup'
 
 const messages = defineMessages({
-	appDebugFlags: { defaultMessage: 'App debug flags' },
 	signOut: { defaultMessage: 'Sign out' },
-	help: { defaultMessage: 'Help' },
-	langAccented: { defaultMessage: 'i18n: Accented' },
-	langLongString: { defaultMessage: 'i18n: Long String' },
-	langHighlightMissing: { defaultMessage: 'i18n: Highlight Missing' },
 })
 
 export function TlaAccountMenu({
 	children,
 	source,
-	align,
 }: {
 	children: ReactNode
 	source: TLAppUiEventSource
-	align?: 'end' | 'start' | 'center'
 }) {
-	const auth = useAuth()
-	const maybeEditor = useMaybeEditor()
-	const isDebugMode = useValue('debug', () => maybeEditor?.getInstanceState().isDebugMode, [
-		maybeEditor,
-	])
-	const trackEvent = useTldrawAppUiEvents()
-	const intl = useIntl()
-
-	const handleSignout = useCallback(() => {
-		auth.signOut()
-		trackEvent('sign-out-clicked', { source })
-	}, [auth, trackEvent, source])
-
-	const currentEditor = useValue('editor', () => globalEditor.get(), [])
-
 	return (
 		<TldrawUiDropdownMenuRoot id={`account-menu-${source}`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
@@ -58,77 +37,77 @@ export function TlaAccountMenu({
 				<TldrawUiDropdownMenuContent
 					className="tla-account-menu"
 					side="bottom"
-					align={align ?? 'end'}
+					align="end"
 					alignOffset={0}
-					sideOffset={0}
+					sideOffset={4}
 				>
-					{auth.isSignedIn && (
-						<TldrawUiMenuGroup id="account-actions">
-							<TldrawUiMenuItem
-								id="sign-out"
-								label={intl.formatMessage(messages.signOut)}
-								readonlyOk
-								onSelect={handleSignout}
-							/>
-						</TldrawUiMenuGroup>
-					)}
-					<TldrawUiMenuGroup id="account-links">
-						<TldrawUiMenuSubmenu id="help" label={intl.formatMessage(messages.help)}>
-							<Links />
-						</TldrawUiMenuSubmenu>
+					<TlaAppActionsGroup />
+					<TlaAppMenuGroup />
+					<TldrawUiMenuGroup id="signout">
+						<SignOutMenuItem source={source} />
 					</TldrawUiMenuGroup>
-					{currentEditor && <PreferencesGroup />}
-					{isDebugMode && <AppDebugMenu />}
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
 		</TldrawUiDropdownMenuRoot>
 	)
 }
 
-function AppDebugMenu() {
-	const editor = useMaybeEditor()
-	const intl = useIntl()
-	const appFlagsLbl = intl.formatMessage(messages.appDebugFlags)
+function SignOutMenuItem({ source }: { source: TLAppUiEventSource }) {
+	const auth = useAuth()
 
-	const [shouldHighlightMissing, setShouldHighlightMissing] = useState(false)
-	const debugLanguageFlags = [
-		{ name: intl.formatMessage(messages.langAccented), locale: 'xx-AE' },
-		{ name: intl.formatMessage(messages.langLongString), locale: 'xx-LS' },
-		{ name: intl.formatMessage(messages.langHighlightMissing), locale: 'xx-MS' },
-	]
+	const trackEvent = useTldrawAppUiEvents()
 
-	useEffect(() => {
-		document.body.classList.toggle('tla-lang-highlight-missing', shouldHighlightMissing)
-	}, [shouldHighlightMissing])
+	const label = useMsg(messages.signOut)
+
+	const handleSignout = useCallback(() => {
+		auth.signOut().then(clearLocalSessionState)
+		trackEvent('sign-out-clicked', { source })
+	}, [auth, trackEvent, source])
+
+	if (!auth.isSignedIn) return
+	return (
+		<TldrawUiMenuGroup id="account-actions">
+			<TldrawUiMenuItem id="sign-out" label={label} readonlyOk onSelect={handleSignout} />
+		</TldrawUiMenuGroup>
+	)
+}
+
+function TlaAppActionsGroup() {
+	const trackEvent = useTldrawAppUiEvents()
+	const app = useMaybeApp()
+
+	const navigate = useNavigate()
 
 	return (
-		<TldrawUiMenuGroup id="debug">
-			<TldrawUiMenuSubmenu id="debug" label={appFlagsLbl}>
-				<TldrawUiMenuGroup id="debug app flags">
-					{debugLanguageFlags.map((flag) => (
-						<TldrawUiMenuCheckboxItem
-							key={flag.name}
-							id={flag.name}
-							title={flag.name}
-							label={flag.name
-								.replace(/([a-z0-9])([A-Z])/g, (m) => `${m[0]} ${m[1].toLowerCase()}`)
-								.replace(/^[a-z]/, (m) => m.toUpperCase())}
-							checked={
-								flag.locale === 'xx-MS'
-									? shouldHighlightMissing
-									: editor?.user.getLocale() === flag.locale
-							}
-							onSelect={() => {
-								if (flag.locale === 'xx-MS') {
-									setShouldHighlightMissing(!shouldHighlightMissing)
-								} else {
-									editor?.user.updateUserPreferences({ locale: flag.locale })
-								}
-							}}
-						/>
-					))}
-				</TldrawUiMenuGroup>
-			</TldrawUiMenuSubmenu>
+		<TldrawUiMenuGroup id="app-actions">
+			<TldrawUiMenuItem
+				id="about"
+				label="help-menu.import-tldr-file"
+				icon="import"
+				readonlyOk
+				onSelect={async () => {
+					const editor = getCurrentEditor()
+					if (!editor) return
+					if (!app) return
+
+					trackEvent('import-tldr-file', { source: 'account-menu' })
+
+					try {
+						const tldrawFiles = await fileOpen({
+							extensions: [TLDRAW_FILE_EXTENSION],
+							multiple: true,
+							description: 'tldraw project',
+						})
+
+						app.uploadTldrFiles(tldrawFiles, (file) => {
+							navigate(routes.tlaFile(file.id), { state: { mode: 'create' } })
+						})
+					} catch {
+						// user cancelled
+						return
+					}
+				}}
+			/>
 		</TldrawUiMenuGroup>
 	)
 }

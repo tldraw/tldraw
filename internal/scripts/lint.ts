@@ -9,7 +9,7 @@ async function main() {
 	try {
 		await exec(
 			'yarn',
-			['prettier', shouldFix ? '--write' : '--check', '--log-level=error', '--cache', relativeCwd],
+			['prettier', shouldFix ? '--write' : '--check', '--log-level=warn', '--cache', relativeCwd],
 			{
 				pwd: REPO_ROOT,
 			}

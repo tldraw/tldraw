@@ -4,12 +4,19 @@
 	display: flex;
 	align-items: center;
 	height: 100%;
+	gap: 4px;
 	justify-content: flex-end;
+	cursor: pointer;
+}
+
+.wrapper {
+	position: relative;
 }
 
 /* need to target the parent div, ugh, can't target via a className */
 div:has(> .content) {
-	/* right: 0; */
+	position: absolute !important;
+	right: 0;
 	z-index: 2 !important;
 }
 
@@ -22,7 +29,9 @@ div:has(> .content) {
 .option {
 	display: flex;
 	align-items: center;
-	padding: 8px;
+	padding: 8px 8px 8px 12px;
+	gap: 4px;
+	cursor: pointer;
 }
 
 @media (hover: hover) {

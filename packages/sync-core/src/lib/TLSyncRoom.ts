@@ -494,15 +494,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		const presence = this.getDocument(session.presenceId ?? '')
 
 		try {
-			if (session.socket.isOpen) {
-				if (fatalReason) {
-					session.socket.close(TLSyncErrorCloseEventCode, fatalReason)
-				} else {
-					session.socket.close()
-				}
+			if (fatalReason) {
+				session.socket.close(TLSyncErrorCloseEventCode, fatalReason)
+			} else {
+				session.socket.close()
 			}
 		} catch {
-			// noop
+			// noop, calling .close() multiple times is fine
 		}
 
 		if (presence) {
@@ -545,6 +543,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			isReadonly: session.isReadonly,
 			requiresLegacyRejection: session.requiresLegacyRejection,
 		})
+
+		try {
+			session.socket.close()
+		} catch {
+			// noop, calling .close() multiple times is fine
+		}
 	}
 
 	/**

@@ -1,10 +1,12 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
-import { assertExists, deleteFromLocalStorage, getFromLocalStorage } from 'tldraw'
+import { assertExists, atom } from 'tldraw'
 import { TldrawApp } from '../app/TldrawApp'
-import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
+import { useTldrawAppUiEvents } from '../utils/app-ui-events'
 
 const appContext = createContext<TldrawApp | null>(null)
+
+export const isClientTooOld$ = atom('isClientTooOld', false)
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
 	const [app, setApp] = useState(null as TldrawApp | null)
@@ -16,6 +18,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			return
 		}
 	})
+	const trackEvent = useTldrawAppUiEvents()
 
 	if (!auth.isSignedIn || !user || !isLoaded) {
 		throw new Error('should have redirected in TlaRootProviders')
@@ -34,15 +37,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				email: user.emailAddresses[0]?.emailAddress || '',
 				avatar: user.imageUrl || '',
 				getToken: async () => await auth.getToken(),
+				onClientTooOld: () => {
+					isClientTooOld$.set(true)
+				},
+				trackEvent,
 			}).then(({ app }) => {
 				if (didCancel) {
 					app.dispose()
 					return
-				}
-				const claimTemporaryFileId = getFromLocalStorage(TEMPORARY_FILE_KEY)
-				if (claimTemporaryFileId) {
-					deleteFromLocalStorage(TEMPORARY_FILE_KEY)
-					app.claimTemporaryFile(claimTemporaryFileId)
 				}
 				_app = app
 				setApp(app)

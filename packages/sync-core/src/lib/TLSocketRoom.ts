@@ -311,7 +311,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			},
 			log: this.log,
 		})
-
 		// replace room with new one and kick out all the clients
 		this.room = newRoom
 		oldRoom.close()

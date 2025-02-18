@@ -33,21 +33,21 @@
 	},
 	"devDependencies": {
 		"@tldraw/assets": "workspace:*",
-		"@types/fs-extra": "^11.0.1",
-		"@types/node": "~20.11",
-		"@types/react": "^18.2.0",
-		"@types/react-dom": "^18.2.0",
-		"@types/react-router-dom": "^5.1.8",
-		"concurrently": "^9.0.1",
+		"@types/fs-extra": "^11.0.4",
+		"@types/node": "~20.11.30",
+		"@types/react": "^18.3.18",
+		"@types/react-dom": "^18.3.5",
+		"@types/react-router-dom": "^5.3.3",
+		"concurrently": "^9.1.2",
 		"create-serve": "1.0.1",
-		"dotenv": "^16.3.1",
-		"esbuild": "^0.21.5",
-		"fs-extra": "^11.1.0",
+		"dotenv": "^16.4.7",
+		"esbuild": "^0.24.2",
+		"fs-extra": "^11.3.0",
 		"lazyrepo": "0.0.0-alpha.27",
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
 		"tldraw": "workspace:*",
-		"tslib": "^2.6.2"
+		"tslib": "^2.8.1"
 	},
 	"gitHead": "a7dac0f83ad998e205c2aab58182cb4ba4e099a6"
 }

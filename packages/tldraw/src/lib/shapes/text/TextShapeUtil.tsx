@@ -12,6 +12,7 @@ import {
 	WeakCache,
 	getDefaultColorTheme,
 	preventDefault,
+	resizeScaled,
 	textShapeMigrations,
 	textShapeProps,
 	toDomPrecision,
@@ -23,7 +24,6 @@ import { TextHelpers } from '../shared/TextHelpers'
 import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
-import { resizeScaled } from '../shared/resizeScaled'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
 const sizeCache = new WeakCache<TLTextShape['props'], { height: number; width: number }>()

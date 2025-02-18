@@ -1,27 +1,33 @@
-import { ClerkProvider, useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
+import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { Provider as TooltipProvider } from '@radix-ui/react-tooltip'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
 	ContainerProvider,
+	DefaultDialogs,
+	DefaultToasts,
 	EditorContext,
 	TLUiEventHandler,
 	TldrawUiContextProvider,
-	TldrawUiDialogs,
-	TldrawUiToasts,
 	fetch,
 	useToasts,
 	useValue,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
-import { IntlProvider, setupCreateIntl } from '../app/i18n'
+import { SignedInPosthog, SignedOutPosthog } from '../../utils/posthog'
+import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
-import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
-import { getRootPath } from '../utils/urls'
+import { IntlProvider, setupCreateIntl } from '../utils/i18n'
+import {
+	clearLocalSessionState,
+	getLocalSessionState,
+	updateLocalSessionState,
+} from '../utils/local-session-state'
+import { FileSidebarFocusContextProvider } from './FileInputFocusProvider'
 
 const assetUrls = getAssetUrlsByImport()
 
@@ -41,13 +47,13 @@ export function Component() {
 	const handleLocaleChange = (locale: string) => setLocale(locale)
 
 	return (
-		<IntlWrapper locale={locale}>
-			<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={getRootPath()}>
-				<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
-					<div
-						ref={setContainer}
-						className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
-					>
+		<div
+			ref={setContainer}
+			className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
+		>
+			<IntlWrapper locale={locale}>
+				<MaybeForceUserRefresh>
+					<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
 						{container && (
 							<ContainerProvider container={container}>
 								<InsideOfContainerContext>
@@ -55,10 +61,10 @@ export function Component() {
 								</InsideOfContainerContext>
 							</ContainerProvider>
 						)}
-					</div>
-				</SignedInProvider>
-			</ClerkProvider>
-		</IntlWrapper>
+					</SignedInProvider>
+				</MaybeForceUserRefresh>
+			</IntlWrapper>
+		</div>
 	)
 }
 
@@ -104,8 +110,8 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 				onUiEvent={handleAppLevelUiEvent}
 			>
 				<TooltipProvider>{children}</TooltipProvider>
-				<TldrawUiDialogs />
-				<TldrawUiToasts />
+				<DefaultDialogs />
+				<DefaultToasts />
 				<PutToastsInApp />
 			</TldrawUiContextProvider>
 		</EditorContext.Provider>
@@ -151,24 +157,32 @@ function SignedInProvider({
 				auth: { userId: auth.userId },
 			}))
 		} else {
-			updateLocalSessionState(() => ({
-				auth: undefined,
-			}))
+			clearLocalSessionState()
 		}
 	}, [auth.userId, auth.isSignedIn])
 
 	if (!auth.isLoaded) return null
 
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
-		return children
+		return (
+			<ThemeContainer onThemeChange={onThemeChange}>
+				<SignedOutPosthog />
+				{children}
+			</ThemeContainer>
+		)
 	}
 
 	return (
-		<AppStateProvider>
-			<UserProvider>
-				<ThemeContainer onThemeChange={onThemeChange}>{children}</ThemeContainer>
-			</UserProvider>
-		</AppStateProvider>
+		<FileSidebarFocusContextProvider>
+			<AppStateProvider>
+				<UserProvider>
+					<ThemeContainer onThemeChange={onThemeChange}>
+						<SignedInPosthog />
+						{children}
+					</ThemeContainer>
+				</UserProvider>
+			</AppStateProvider>
+		</FileSidebarFocusContextProvider>
 	)
 }
 

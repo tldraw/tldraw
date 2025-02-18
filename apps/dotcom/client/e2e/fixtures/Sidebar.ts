@@ -30,37 +30,46 @@ export class Sidebar {
 	}
 
 	async expectIsVisible() {
-		await expect(this.sidebarLogo).toBeVisible()
+		await expect(this.sidebarLogo).toBeInViewport()
 	}
 
 	async expectIsNotVisible() {
-		await expect(this.sidebarLogo).not.toBeVisible()
+		await expect(this.sidebarLogo).not.toBeInViewport()
 	}
 
-	async createNewDocument() {
+	async createNewDocument(name?: string) {
+		const numDocuments = await this.getNumberOfFiles()
 		await this.createFileButton.click()
+		const input = this.page.getByTestId('tla-sidebar-rename-input')
+		await expect(input).toBeVisible()
+		await expect(input).toBeFocused()
+		if (name) {
+			await input.fill(name)
+		}
+		await this.page.keyboard.press('Enter')
+		const newNumDocuments = await this.getNumberOfFiles()
+		expect(newNumDocuments).toBe(numDocuments + 1)
 	}
 
 	async getNumberOfFiles() {
 		return (await this.page.$$(this.fileLink)).length
 	}
 
-	async openPreferences() {
+	async openAccountMenu() {
 		await this.sidebarBottom.hover()
-		await this.page.getByRole('button', { name: 'Account menu' }).click()
+		await this.page.getByTestId('tla-sidebar-user-link').click()
 	}
 
 	@step
 	async setDarkMode() {
-		await this.openPreferences()
-		await this.preferencesButton.hover()
+		await this.openAccountMenu()
 		await this.themeButton.hover()
 		await this.darkModeButton.click()
 	}
 
 	@step
 	async openLanguageMenu(languageButtonText: string) {
-		await this.openPreferences()
+		await this.openAccountMenu()
 		await this.page.getByText(languageButtonText).hover()
 	}
 
@@ -84,7 +93,7 @@ export class Sidebar {
 
 	@step
 	async signOut() {
-		await this.openPreferences()
+		await this.openAccountMenu()
 		await this.signOutButton.click()
 	}
 
@@ -96,12 +105,16 @@ export class Sidebar {
 		await expect(this.sidebarLayout).not.toContainText(text)
 	}
 
-	getFirstFileLink() {
-		return this.getFileLink(0)
+	private getTestId(section: string, index: number, suffix?: string) {
+		return `tla-file-link-${section}-${index}${suffix ? `-${suffix}` : ''}`
 	}
 
-	getFileLink(index: number) {
-		return this.page.getByTestId(`tla-file-link-${index}`)
+	getFirstFileLink() {
+		return this.getFileLink('today', 0)
+	}
+
+	getFileLink(section: string, index: number) {
+		return this.page.getByTestId(this.getTestId(section, index))
 	}
 
 	async getFirstFileName() {
@@ -109,8 +122,9 @@ export class Sidebar {
 	}
 
 	async getFileName(index: number) {
-		const fileName = this.page.getByTestId(`tla-file-name-${index}`)
-		return await fileName.innerText()
+		return await this.page
+			.getByTestId(this.getTestId('today', index, 'name'))
+			.innerText({ timeout: 5000 })
 	}
 
 	@step
@@ -122,7 +136,7 @@ export class Sidebar {
 
 	@step
 	async deleteFile(index: number) {
-		await this.openFileMenu(this.getFileLink(index))
+		await this.openFileMenu(this.getFileLink('today', index))
 		await this.deleteFromFileMenu()
 	}
 
@@ -133,7 +147,7 @@ export class Sidebar {
 
 	@step
 	async renameFile(index: number, newName: string) {
-		const fileLink = this.getFileLink(index)
+		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
 		await this.renameFromFileMenu(newName)
 	}
@@ -147,15 +161,36 @@ export class Sidebar {
 	}
 
 	@step
-	private async duplicateFromFileMenu() {
+	private async duplicateFromFileMenu(name?: string) {
 		await this.page.getByRole('menuitem', { name: 'Duplicate' }).click()
+		const input = this.page.getByTestId('tla-sidebar-rename-input')
+		await expect(input).toBeVisible()
+		await expect(input).toBeFocused()
+		if (name) {
+			await input.fill(name)
+		}
+		await this.page.keyboard.press('Enter')
 	}
 
 	@step
-	async duplicateFile(index: number) {
-		const fileLink = this.getFileLink(index)
+	async pinFromFileMenu(index: number) {
+		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
-		await this.duplicateFromFileMenu()
+		await this.page.getByRole('menuitem', { name: 'Pin' }).click()
+	}
+
+	@step
+	async unpinFromFileMenu(index: number) {
+		const fileLink = this.getFileLink('pinned', index)
+		await this.openFileMenu(fileLink)
+		await this.page.getByRole('menuitem', { name: 'Unpin' }).click()
+	}
+
+	@step
+	async duplicateFile(index: number, name?: string) {
+		const fileLink = this.getFileLink('today', index)
+		await this.openFileMenu(fileLink)
+		await this.duplicateFromFileMenu(name)
 	}
 
 	@step
@@ -165,7 +200,7 @@ export class Sidebar {
 
 	@step
 	async copyFileLink(index: number) {
-		const fileLink = this.getFileLink(index)
+		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
 		await this.copyFileLinkFromFileMenu()
 		return await this.page.evaluate(() => navigator.clipboard.readText())

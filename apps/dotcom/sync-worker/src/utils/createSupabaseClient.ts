@@ -4,8 +4,7 @@ import { Environment } from '../types'
 export function createSupabaseClient(env: Environment) {
 	return env.SUPABASE_URL && env.SUPABASE_KEY
 		? createClient(env.SUPABASE_URL, env.SUPABASE_KEY)
-		: // eslint-disable-next-line no-console
-			console.log('No supabase credentials, loading from supabase disabled')
+		: undefined
 }
 
 export function noSupabaseSorry() {

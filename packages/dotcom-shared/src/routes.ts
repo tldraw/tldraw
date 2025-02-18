@@ -14,6 +14,10 @@ export const READ_ONLY_LEGACY_PREFIX = 'v'
 export const ROOM_PREFIX = 'r'
 /** @public */
 export const SNAPSHOT_PREFIX = 's'
+/** @public */
+export const FILE_PREFIX = 'f'
+/** @public */
+export const PUBLISH_PREFIX = 'p'
 
 /** @public */
 export const RoomOpenModeToPath: Record<RoomOpenMode, string> = {
@@ -21,3 +25,6 @@ export const RoomOpenModeToPath: Record<RoomOpenMode, string> = {
 	[ROOM_OPEN_MODE.READ_ONLY_LEGACY]: READ_ONLY_LEGACY_PREFIX,
 	[ROOM_OPEN_MODE.READ_WRITE]: ROOM_PREFIX,
 }
+
+/** @public */
+export const APP_ASSET_UPLOAD_ENDPOINT = '/api/app/uploads/'
