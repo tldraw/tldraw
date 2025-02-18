@@ -38,6 +38,10 @@ new_sqlite_classes = ["TLLoggerDurableObject"]
 tag = "v7"
 new_sqlite_classes = ["TLStatsDurableObject"]
 
+[[migrations]]
+tag = "v8"
+deleted_classes = ["TLAppDurableObject"]
+
 [[analytics_engine_datasets]]
 binding = "MEASURE"
 
