@@ -208,7 +208,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private async handleSocketMessage(socket: WebSocket, message: string) {
 		const rateLimited = await isRateLimited(this.env, this.userId!)
 		this.assertCache()
-		await this.cache.waitUntilConnected()
 
 		const msg = JSON.parse(message) as any as ZClientSentMessage
 		switch (msg.type) {
@@ -229,7 +228,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private async rejectMutation(socket: WebSocket, mutationId: string, errorCode: ZErrorCode) {
 		this.assertCache()
 		this.logEvent({ type: 'reject_mutation', id: this.userId! })
-		await this.cache.waitUntilConnected()
 		this.cache.store.rejectMutation(mutationId)
 		socket?.send(
 			JSON.stringify({

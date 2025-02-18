@@ -168,12 +168,19 @@ export class UserDataSyncer {
 			if (delay) {
 				await sleep(1000)
 			}
-			try {
-				await this.boot()
-				this.numConsecutiveReboots = 0
-			} catch (e) {
+			const res = await Promise.race([
+				this.boot().then(() => 'ok'),
+				sleep(5000).then(() => 'timeout'),
+			]).catch((e) => {
 				this.logEvent({ type: 'reboot_error', id: this.userId })
+				this.log.debug('reboot error', e.stack)
 				this.captureException(e)
+				return 'error'
+			})
+			this.log.debug('rebooted', res)
+			if (res === 'ok') {
+				this.numConsecutiveReboots = 0
+			} else {
 				this.reboot()
 			}
 		})
@@ -397,12 +404,6 @@ export class UserDataSyncer {
 			return this.store.getCommittedData()
 		}
 		return null
-	}
-
-	async waitUntilConnected() {
-		while (this.state.type !== 'connected') {
-			await this.state.promise
-		}
 	}
 
 	private __rebootIfMutationsNotCommitted() {
