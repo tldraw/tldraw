@@ -2,7 +2,6 @@ import {
 	Arc2d,
 	Box,
 	Circle2d,
-	ComputedCache,
 	Edge2d,
 	Editor,
 	Geometry2d,
@@ -10,9 +9,9 @@ import {
 	TLArrowShape,
 	Vec,
 	VecLike,
-	WeakCache,
 	angleDistance,
 	clamp,
+	createComputedCache,
 	getPointOnCircle,
 	intersectCirclePolygon,
 	intersectLineSegmentPolygon,
@@ -29,81 +28,80 @@ import { getArrowLength } from './ArrowShapeUtil'
 import { TLArrowInfo } from './arrow-types'
 import { getArrowInfo } from './shared'
 
-const labelSizeCacheCache = new WeakCache<Editor, ComputedCache<Vec, TLArrowShape>>()
+const labelSizeCache = createComputedCache(
+	'arrow label size',
+	(editor: Editor, shape: TLArrowShape) => {
+		editor.fonts.trackFontsForShape(shape)
+		const info = getArrowInfo(editor, shape)!
+		let width = 0
+		let height = 0
 
-function getLabelSizeCache(editor: Editor) {
-	return labelSizeCacheCache.get(editor, () => {
-		return editor.store.createComputedCache<Vec, TLArrowShape>('arrowLabelSize', (shape) => {
-			const info = getArrowInfo(editor, shape)!
-			let width = 0
-			let height = 0
-
-			const bodyGeom = info.isStraight
-				? new Edge2d({
-						start: Vec.From(info.start.point),
-						end: Vec.From(info.end.point),
-					})
-				: new Arc2d({
-						center: Vec.Cast(info.handleArc.center),
-						start: Vec.Cast(info.start.point),
-						end: Vec.Cast(info.end.point),
-						sweepFlag: info.bodyArc.sweepFlag,
-						largeArcFlag: info.bodyArc.largeArcFlag,
-					})
-
-			if (shape.props.text.trim()) {
-				const bodyBounds = bodyGeom.bounds
-
-				const fontSize = getArrowLabelFontSize(shape)
-
-				// First we measure the text with no constraints
-				const { w, h } = editor.textMeasure.measureText(shape.props.text, {
-					...TEXT_PROPS,
-					fontFamily: FONT_FAMILIES[shape.props.font],
-					fontSize,
-					maxWidth: null,
+		const bodyGeom = info.isStraight
+			? new Edge2d({
+					start: Vec.From(info.start.point),
+					end: Vec.From(info.end.point),
+				})
+			: new Arc2d({
+					center: Vec.Cast(info.handleArc.center),
+					start: Vec.Cast(info.start.point),
+					end: Vec.Cast(info.end.point),
+					sweepFlag: info.bodyArc.sweepFlag,
+					largeArcFlag: info.bodyArc.largeArcFlag,
 				})
 
-				width = w
-				height = h
+		if (shape.props.text.trim()) {
+			const bodyBounds = bodyGeom.bounds
 
-				let shouldSquish = false
+			const fontSize = getArrowLabelFontSize(shape)
 
-				// If the text is wider than the body, we need to squish it
-				if (bodyBounds.width > bodyBounds.height) {
-					width = Math.max(Math.min(w, 64), Math.min(bodyBounds.width - 64, w))
-					shouldSquish = true
-				} else if (width > 16 * fontSize) {
-					width = 16 * fontSize
-					shouldSquish = true
-				}
+			// First we measure the text with no constraints
+			const { w, h } = editor.textMeasure.measureText(shape.props.text, {
+				...TEXT_PROPS,
+				fontFamily: FONT_FAMILIES[shape.props.font],
+				fontSize,
+				maxWidth: null,
+			})
 
-				if (shouldSquish) {
-					const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
-						shape.props.text,
-						{
-							...TEXT_PROPS,
-							fontFamily: FONT_FAMILIES[shape.props.font],
-							fontSize,
-							maxWidth: width,
-						}
-					)
+			width = w
+			height = h
 
-					width = squishedWidth
-					height = squishedHeight
-				}
+			let shouldSquish = false
+
+			// If the text is wider than the body, we need to squish it
+			if (bodyBounds.width > bodyBounds.height) {
+				width = Math.max(Math.min(w, 64), Math.min(bodyBounds.width - 64, w))
+				shouldSquish = true
+			} else if (width > 16 * fontSize) {
+				width = 16 * fontSize
+				shouldSquish = true
 			}
 
-			return new Vec(width, height).addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
-		})
-	})
-}
+			if (shouldSquish) {
+				const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
+					shape.props.text,
+					{
+						...TEXT_PROPS,
+						fontFamily: FONT_FAMILIES[shape.props.font],
+						fontSize,
+						maxWidth: width,
+					}
+				)
+
+				width = squishedWidth
+				height = squishedHeight
+			}
+		}
+
+		return new Vec(width, height).addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
+	},
+	(a, b) => a.props === b.props
+)
 
 function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 	if (shape.props.text.trim() === '') {
 		return new Vec(0, 0).addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
 	}
-	return getLabelSizeCache(editor).get(shape.id) ?? new Vec(0, 0)
+	return labelSizeCache.get(editor, shape.id) ?? new Vec(0, 0)
 }
 
 function getLabelToArrowPadding(shape: TLArrowShape) {

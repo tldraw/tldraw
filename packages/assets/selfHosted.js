@@ -13,10 +13,19 @@ export function getAssetUrls(opts) {
 	const iconsIcon0MergedSvg = formatAssetUrl('./icons/icon/0_merged.svg', opts)
 	return {
 		fonts: {
-			monospace: formatAssetUrl('./fonts/IBMPlexMono-Medium.woff2', opts),
-			sansSerif: formatAssetUrl('./fonts/IBMPlexSans-Medium.woff2', opts),
-			serif: formatAssetUrl('./fonts/IBMPlexSerif-Medium.woff2', opts),
-			draw: formatAssetUrl('./fonts/Shantell_Sans-Tldrawish.woff2', opts),
+			tldraw_mono_normal_700: formatAssetUrl('./fonts/IBMPlexMono-Bold.woff2', opts),
+			tldraw_mono_italic_700: formatAssetUrl('./fonts/IBMPlexMono-BoldItalic.woff2', opts),
+			tldraw_mono_normal_500: formatAssetUrl('./fonts/IBMPlexMono-Medium.woff2', opts),
+			tldraw_mono_italic_500: formatAssetUrl('./fonts/IBMPlexMono-MediumItalic.woff2', opts),
+			tldraw_sans_normal_700: formatAssetUrl('./fonts/IBMPlexSans-Bold.woff2', opts),
+			tldraw_sans_italic_700: formatAssetUrl('./fonts/IBMPlexSans-BoldItalic.woff2', opts),
+			tldraw_sans_normal_500: formatAssetUrl('./fonts/IBMPlexSans-Medium.woff2', opts),
+			tldraw_sans_italic_500: formatAssetUrl('./fonts/IBMPlexSans-MediumItalic.woff2', opts),
+			tldraw_serif_normal_700: formatAssetUrl('./fonts/IBMPlexSerif-Bold.woff2', opts),
+			tldraw_serif_italic_700: formatAssetUrl('./fonts/IBMPlexSerif-BoldItalic.woff2', opts),
+			tldraw_serif_normal_500: formatAssetUrl('./fonts/IBMPlexSerif-Medium.woff2', opts),
+			tldraw_serif_italic_500: formatAssetUrl('./fonts/IBMPlexSerif-MediumItalic.woff2', opts),
+			tldraw_draw: formatAssetUrl('./fonts/Shantell_Sans-Tldrawish.woff2', opts),
 		},
 		icons: {
 			'align-bottom': iconsIcon0MergedSvg + '#align-bottom',

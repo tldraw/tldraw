@@ -139,6 +139,7 @@ import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage
 import { ClickManager } from './managers/ClickManager'
 import { EdgeScrollManager } from './managers/EdgeScrollManager'
 import { FocusManager } from './managers/FocusManager'
+import { FontManager } from './managers/FontManager'
 import { HistoryManager } from './managers/HistoryManager'
 import { ScribbleManager } from './managers/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
@@ -230,6 +231,7 @@ export interface TLEditorOptions {
 	textOptions?: Partial<TLTextOptions>
 	options?: Partial<TldrawOptions>
 	licenseKey?: string
+	fontAssetUrls?: { [key: string]: string | undefined }
 	/**
 	 * A predicate that should return true if the given shape should be hidden.
 	 * @param shape - The shape to check.
@@ -272,6 +274,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		inferDarkMode,
 		options,
 		isShapeHidden,
+		fontAssetUrls,
 	}: TLEditorOptions) {
 		super()
 
@@ -303,6 +306,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.getContainer = getContainer
 
 		this.textMeasure = new TextManager(this)
+		this.fonts = new FontManager(this, fontAssetUrls)
+
 		this._tickManager = new TickManager(this)
 
 		class NewRoot extends RootState {
@@ -840,6 +845,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly textMeasure: TextManager
+
+	/**
+	 * A utility for managing the set of fonts that should be rendered in the document.
+	 *
+	 * @public
+	 */
+	readonly fonts: FontManager
 
 	/**
 	 * A manager for the editor's environment.
@@ -4268,7 +4280,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _getShapeGeometryCache(): ComputedCache<Geometry2d, TLShape> {
 		return this.store.createComputedCache(
 			'bounds',
-			(shape) => this.getShapeUtil(shape).getGeometry(shape),
+			(shape) => {
+				this.fonts.trackFontsForShape(shape)
+				return this.getShapeUtil(shape).getGeometry(shape)
+			},
 			(a, b) => a.props === b.props
 		)
 	}

@@ -1,6 +1,7 @@
 import {
 	Arc2d,
 	Box,
+	EMPTY_ARRAY,
 	Edge2d,
 	Editor,
 	Geometry2d,
@@ -12,6 +13,7 @@ import {
 	TLArrowBinding,
 	TLArrowShape,
 	TLArrowShapeProps,
+	TLFontFace,
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
@@ -42,6 +44,7 @@ import { PlainTextLabel } from '../shared/PlainTextLabel'
 import { ShapeFill } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { ARROW_LABEL_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
+import { DefaultFontFamilies } from '../shared/defaultFonts'
 import {
 	getFillDefForCanvas,
 	getFillDefForExport,
@@ -103,6 +106,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override canBeLaidOut(shape: TLArrowShape) {
 		const bindings = getArrowBindings(this.editor, shape)
 		return !bindings.start && !bindings.end
+	}
+
+	override getFontFaces(shape: TLArrowShape): TLFontFace[] {
+		if (!shape.props.text) return EMPTY_ARRAY
+		return [DefaultFontFamilies[`tldraw_${shape.props.font}`].normal['500']]
 	}
 
 	override getDefaultProps(): TLArrowShape['props'] {

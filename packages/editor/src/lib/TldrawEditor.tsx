@@ -195,6 +195,11 @@ export interface TldrawEditorBaseProps {
 	 * remain in the store and participate in all other operations.
 	 */
 	isShapeHidden?(shape: TLShape, editor: Editor): boolean
+
+	/**
+	 * The URLs for the fonts to use in the editor.
+	 */
+	assetUrls?: { fonts?: { [key: string]: string | undefined } }
 }
 
 /**
@@ -382,6 +387,7 @@ function TldrawEditorWithReadyStore({
 	licenseKey,
 	deepLinks: _deepLinks,
 	isShapeHidden,
+	assetUrls,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -440,6 +446,7 @@ function TldrawEditorWithReadyStore({
 				options,
 				licenseKey,
 				isShapeHidden,
+				fontAssetUrls: assetUrls?.fonts,
 			})
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
@@ -475,6 +482,7 @@ function TldrawEditorWithReadyStore({
 			licenseKey,
 			isShapeHidden,
 			textOptions,
+			assetUrls,
 		]
 	)
 

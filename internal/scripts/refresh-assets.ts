@@ -17,10 +17,19 @@ import { nicelog } from './lib/nicelog'
 const PUBLIC_FOLDER_PATHS = [join(REPO_ROOT, 'packages', 'assets')]
 
 const FONT_MAPPING: Record<string, string> = {
-	'IBMPlexMono-Medium': 'monospace',
-	'IBMPlexSerif-Medium': 'serif',
-	'IBMPlexSans-Medium': 'sansSerif',
-	'Shantell_Sans-Tldrawish': 'draw',
+	'IBMPlexMono-Medium': 'tldraw_mono_normal_500',
+	'IBMPlexMono-MediumItalic': 'tldraw_mono_italic_500',
+	'IBMPlexMono-Bold': 'tldraw_mono_normal_700',
+	'IBMPlexMono-BoldItalic': 'tldraw_mono_italic_700',
+	'IBMPlexSerif-Medium': 'tldraw_serif_normal_500',
+	'IBMPlexSerif-MediumItalic': 'tldraw_serif_italic_500',
+	'IBMPlexSerif-Bold': 'tldraw_serif_normal_700',
+	'IBMPlexSerif-BoldItalic': 'tldraw_serif_italic_700',
+	'IBMPlexSans-Medium': 'tldraw_sans_normal_500',
+	'IBMPlexSans-MediumItalic': 'tldraw_sans_italic_500',
+	'IBMPlexSans-Bold': 'tldraw_sans_normal_700',
+	'IBMPlexSans-BoldItalic': 'tldraw_sans_italic_700',
+	'Shantell_Sans-Tldrawish': 'tldraw_draw',
 }
 
 const ASSETS_FOLDER_PATH = join(REPO_ROOT, 'assets')

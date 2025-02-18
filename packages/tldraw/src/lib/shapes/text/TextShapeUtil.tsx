@@ -5,11 +5,12 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
+	TLFontFace,
 	TLResizeInfo,
 	TLShapeId,
 	TLTextShape,
 	Vec,
-	WeakCache,
+	createComputedCache,
 	getDefaultColorTheme,
 	resizeScaled,
 	textShapeMigrations,
@@ -21,15 +22,27 @@ import {
 import isEqual from 'lodash.isequal'
 import { useCallback } from 'react'
 import {
+	defaultRichTextFontVisitor,
+	getFontsFromRichText,
+} from '../../utils/text/getFontsFromRichText'
+import {
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
+	tipTapDefaultExtensions,
 } from '../../utils/text/richText'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport, getRichTextStylesExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
-const sizeCache = new WeakCache<TLTextShape['props'], { height: number; width: number }>()
+const sizeCache = createComputedCache(
+	'text size',
+	(editor: Editor, shape: TLTextShape) => {
+		editor.fonts.trackFontsForShape(shape)
+		return getTextSize(editor, shape.props)
+	},
+	(a, b) => a.props === b.props
+)
 
 /** @public */
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
@@ -51,18 +64,34 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	getMinDimensions(shape: TLTextShape) {
-		return sizeCache.get(shape.props, (props) => getTextSize(this.editor, props))
+		return sizeCache.get(this.editor, shape.id)
 	}
 
 	getGeometry(shape: TLTextShape) {
 		const { scale } = shape.props
 		const { width, height } = this.getMinDimensions(shape)!
+		console.log('get dimensions', width, height)
 		return new Rectangle2d({
 			width: width * scale,
 			height: height * scale,
 			isFilled: true,
 			isLabel: true,
 		})
+	}
+
+	override getFontFaces(shape: TLTextShape): TLFontFace[] {
+		const list = getFontsFromRichText(
+			shape.props.richText,
+			tipTapDefaultExtensions,
+			{
+				family: `tldraw_${shape.props.font}`,
+				weight: '500',
+				style: 'normal',
+			},
+			defaultRichTextFontVisitor
+		)
+		console.log('text font faces', list)
+		return list
 	}
 
 	override getText(shape: TLTextShape) {

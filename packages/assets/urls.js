@@ -16,19 +16,55 @@ export function getAssetUrlsByMetaUrl(opts) {
 	)
 	return {
 		fonts: {
-			monospace: formatAssetUrl(
+			tldraw_mono_normal_700: formatAssetUrl(
+				new URL('./fonts/IBMPlexMono-Bold.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_mono_italic_700: formatAssetUrl(
+				new URL('./fonts/IBMPlexMono-BoldItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_mono_normal_500: formatAssetUrl(
 				new URL('./fonts/IBMPlexMono-Medium.woff2', import.meta.url).href,
 				opts
 			),
-			sansSerif: formatAssetUrl(
+			tldraw_mono_italic_500: formatAssetUrl(
+				new URL('./fonts/IBMPlexMono-MediumItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_sans_normal_700: formatAssetUrl(
+				new URL('./fonts/IBMPlexSans-Bold.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_sans_italic_700: formatAssetUrl(
+				new URL('./fonts/IBMPlexSans-BoldItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_sans_normal_500: formatAssetUrl(
 				new URL('./fonts/IBMPlexSans-Medium.woff2', import.meta.url).href,
 				opts
 			),
-			serif: formatAssetUrl(
+			tldraw_sans_italic_500: formatAssetUrl(
+				new URL('./fonts/IBMPlexSans-MediumItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_serif_normal_700: formatAssetUrl(
+				new URL('./fonts/IBMPlexSerif-Bold.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_serif_italic_700: formatAssetUrl(
+				new URL('./fonts/IBMPlexSerif-BoldItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_serif_normal_500: formatAssetUrl(
 				new URL('./fonts/IBMPlexSerif-Medium.woff2', import.meta.url).href,
 				opts
 			),
-			draw: formatAssetUrl(
+			tldraw_serif_italic_500: formatAssetUrl(
+				new URL('./fonts/IBMPlexSerif-MediumItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_draw: formatAssetUrl(
 				new URL('./fonts/Shantell_Sans-Tldrawish.woff2', import.meta.url).href,
 				opts
 			),

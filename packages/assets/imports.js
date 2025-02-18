@@ -23,9 +23,18 @@ import embedIconsTldrawPng from './embed-icons/tldraw.png'
 import embedIconsValTownPng from './embed-icons/val_town.png'
 import embedIconsVimeoPng from './embed-icons/vimeo.png'
 import embedIconsYoutubePng from './embed-icons/youtube.png'
+import fontsIBMPlexMonoBoldWoff2 from './fonts/IBMPlexMono-Bold.woff2'
+import fontsIBMPlexMonoBoldItalicWoff2 from './fonts/IBMPlexMono-BoldItalic.woff2'
 import fontsIBMPlexMonoMediumWoff2 from './fonts/IBMPlexMono-Medium.woff2'
+import fontsIBMPlexMonoMediumItalicWoff2 from './fonts/IBMPlexMono-MediumItalic.woff2'
+import fontsIBMPlexSansBoldWoff2 from './fonts/IBMPlexSans-Bold.woff2'
+import fontsIBMPlexSansBoldItalicWoff2 from './fonts/IBMPlexSans-BoldItalic.woff2'
 import fontsIBMPlexSansMediumWoff2 from './fonts/IBMPlexSans-Medium.woff2'
+import fontsIBMPlexSansMediumItalicWoff2 from './fonts/IBMPlexSans-MediumItalic.woff2'
+import fontsIBMPlexSerifBoldWoff2 from './fonts/IBMPlexSerif-Bold.woff2'
+import fontsIBMPlexSerifBoldItalicWoff2 from './fonts/IBMPlexSerif-BoldItalic.woff2'
 import fontsIBMPlexSerifMediumWoff2 from './fonts/IBMPlexSerif-Medium.woff2'
+import fontsIBMPlexSerifMediumItalicWoff2 from './fonts/IBMPlexSerif-MediumItalic.woff2'
 import fontsShantellSansTldrawishWoff2 from './fonts/Shantell_Sans-Tldrawish.woff2'
 import iconsIcon0MergedSvg from './icons/icon/0_merged.svg'
 import translationsArJson from './translations/ar.json'
@@ -90,10 +99,19 @@ export function getAssetUrlsByImport(opts) {
 	const iconsIcon0MergedSvg2 = formatAssetUrl(iconsIcon0MergedSvg, opts)
 	return {
 		fonts: {
-			monospace: formatAssetUrl(fontsIBMPlexMonoMediumWoff2, opts),
-			sansSerif: formatAssetUrl(fontsIBMPlexSansMediumWoff2, opts),
-			serif: formatAssetUrl(fontsIBMPlexSerifMediumWoff2, opts),
-			draw: formatAssetUrl(fontsShantellSansTldrawishWoff2, opts),
+			tldraw_mono_normal_700: formatAssetUrl(fontsIBMPlexMonoBoldWoff2, opts),
+			tldraw_mono_italic_700: formatAssetUrl(fontsIBMPlexMonoBoldItalicWoff2, opts),
+			tldraw_mono_normal_500: formatAssetUrl(fontsIBMPlexMonoMediumWoff2, opts),
+			tldraw_mono_italic_500: formatAssetUrl(fontsIBMPlexMonoMediumItalicWoff2, opts),
+			tldraw_sans_normal_700: formatAssetUrl(fontsIBMPlexSansBoldWoff2, opts),
+			tldraw_sans_italic_700: formatAssetUrl(fontsIBMPlexSansBoldItalicWoff2, opts),
+			tldraw_sans_normal_500: formatAssetUrl(fontsIBMPlexSansMediumWoff2, opts),
+			tldraw_sans_italic_500: formatAssetUrl(fontsIBMPlexSansMediumItalicWoff2, opts),
+			tldraw_serif_normal_700: formatAssetUrl(fontsIBMPlexSerifBoldWoff2, opts),
+			tldraw_serif_italic_700: formatAssetUrl(fontsIBMPlexSerifBoldItalicWoff2, opts),
+			tldraw_serif_normal_500: formatAssetUrl(fontsIBMPlexSerifMediumWoff2, opts),
+			tldraw_serif_italic_500: formatAssetUrl(fontsIBMPlexSerifMediumItalicWoff2, opts),
+			tldraw_draw: formatAssetUrl(fontsShantellSansTldrawishWoff2, opts),
 		},
 		icons: {
 			'align-bottom': iconsIcon0MergedSvg2 + '#align-bottom',

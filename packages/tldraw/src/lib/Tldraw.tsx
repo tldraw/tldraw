@@ -34,6 +34,7 @@ import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
+import { TLUiAssetUrlOverrides } from './ui/assetUrls'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
 import { useToasts } from './ui/context/toasts'
 import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
@@ -68,6 +69,7 @@ export interface TldrawBaseProps
 	extends TldrawUiProps,
 		TldrawEditorBaseProps,
 		TLExternalContentProps {
+	assetUrls?: TLUiAssetUrlOverrides
 	components?: TLComponents
 	embeds?: TLEmbedDefinition[]
 }
@@ -177,6 +179,7 @@ export function Tldraw(props: TldrawProps) {
 			bindingUtils={bindingUtilsWithDefaults}
 			tools={toolsWithDefaults}
 			textOptions={textOptionsWithDefaults}
+			assetUrls={assets}
 		>
 			<TldrawUi {...rest} components={componentsWithDefault} mediaMimeTypes={mediaMimeTypes}>
 				<InsideOfEditorAndUiContext

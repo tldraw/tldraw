@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { TLTypeFace, preloadFont } from '../../utils/assets/preload-font'
 import { TLEditorAssetUrls } from '../../utils/static-assets/assetUrls'
 
@@ -58,19 +58,23 @@ function getTypefaces(assetUrls: TLEditorAssetUrls) {
 
 /** @public */
 export function usePreloadAssets(assetUrls: TLEditorAssetUrls) {
-	const typefaces = useMemo(() => getTypefaces(assetUrls), [assetUrls])
+	// const typefaces = useMemo(() => getTypefaces(assetUrls), [assetUrls])
 
-	const results = [
-		usePreloadFont('tldraw_draw', typefaces.draw),
-		usePreloadFont('tldraw_serif', typefaces.serif),
-		usePreloadFont('tldraw_sans', typefaces.sansSerif),
-		usePreloadFont('tldraw_mono', typefaces.monospace),
-	]
+	// const results = [
+	// 	usePreloadFont('tldraw_draw', typefaces.draw),
+	// 	usePreloadFont('tldraw_serif', typefaces.serif),
+	// 	usePreloadFont('tldraw_sans', typefaces.sansSerif),
+	// 	usePreloadFont('tldraw_mono', typefaces.monospace),
+	// ]
 
+	// return {
+	// 	// If any of the results have errored, then preloading has failed
+	// 	error: results.some((result) => result === PreloadStatus.FAILED),
+	// 	// If any of the results are waiting, then we're not done yet
+	// 	done: !results.some((result) => result === PreloadStatus.WAITING),
+	// }
 	return {
-		// If any of the results have errored, then preloading has failed
-		error: results.some((result) => result === PreloadStatus.FAILED),
-		// If any of the results are waiting, then we're not done yet
-		done: !results.some((result) => result === PreloadStatus.WAITING),
+		error: false,
+		done: true,
 	}
 }

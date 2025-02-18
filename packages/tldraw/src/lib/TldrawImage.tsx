@@ -99,6 +99,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		preserveAspectRatio,
 		format = 'svg',
 		licenseKey,
+		assetUrls,
 	} = props
 
 	useLayoutEffect(() => {
@@ -119,6 +120,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 			tools: [],
 			getContainer: () => tempElm,
 			licenseKey,
+			fontAssetUrls: assetUrls?.fonts,
 		})
 
 		if (pageId) editor.setCurrentPage(pageId)
@@ -165,6 +167,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		preloadingError,
 		licenseKey,
 		pixelRatio,
+		assetUrls,
 	])
 
 	useEffect(() => {

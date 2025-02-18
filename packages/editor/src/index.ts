@@ -163,6 +163,11 @@ export {
 } from './lib/editor/bindings/BindingUtil'
 export { ClickManager, type TLClickState } from './lib/editor/managers/ClickManager'
 export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager'
+export {
+	FontManager,
+	type TLFontFace,
+	type TLFontFaceSource,
+} from './lib/editor/managers/FontManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager'
 export { ScribbleManager, type ScribbleItem } from './lib/editor/managers/ScribbleManager'
 export {
