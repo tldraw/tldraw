@@ -5,6 +5,7 @@ import {
 	exhaustiveSwitchError,
 	promiseWithResolve,
 	sleep,
+	throttle,
 	uniqueId,
 } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
@@ -13,10 +14,19 @@ import { Kysely, sql } from 'kysely'
 import postgres from 'postgres'
 import { Logger } from './Logger'
 import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
-import { createPostgresConnection, createPostgresConnectionPool } from './postgres'
-import { Analytics, Environment, TLPostgresReplicatorEvent } from './types'
+import { createPostgresConnectionPool } from './postgres'
+import {
+	Analytics,
+	Environment,
+	TLPostgresReplicatorEvent,
+	TLPostgresReplicatorRebootSource,
+} from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
-import { getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
+import {
+	getRoomDurableObject,
+	getStatsDurableObjct,
+	getUserDurableObject,
+} from './utils/durableObjects'
 
 interface Migration {
 	id: string
@@ -49,9 +59,16 @@ const migrations: Migration[] = [
 			ALTER TABLE active_user ADD COLUMN sequenceIdSuffix TEXT NOT NULL DEFAULT '';
 		`,
 	},
+	{
+		id: '002_add_last_updated_at',
+		code: `
+			ALTER TABLE active_user ADD COLUMN lastUpdatedAt INTEGER NOT NULL DEFAULT 0;
+		`,
+	},
 ]
 
 const ONE_MINUTE = 60 * 1000
+const PRUNE_TIME = ONE_MINUTE
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -63,19 +80,19 @@ type BootState =
 	  }
 	| {
 			type: 'connecting'
-			db: postgres.Sql
+			directDb: postgres.Sql
 			sequenceId: string
 			promise: PromiseWithResolve
 	  }
 	| {
 			type: 'connected'
-			db: postgres.Sql
+			directDb: postgres.Sql
 			sequenceId: string
 			subscription: postgres.SubscriptionHandle
 	  }
 
 export class TLPostgresReplicator extends DurableObject<Environment> {
-	private sql: SqlStorage
+	private sqlite: SqlStorage
 	private state: BootState = {
 		type: 'init',
 		promise: promiseWithResolve(),
@@ -85,6 +102,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private postgresUpdates = 0
 	private lastPostgresMessageTime = Date.now()
 	private lastRpmLogTime = Date.now()
+	private lastUserPruneTime = Date.now()
 
 	// we need to guarantee in-order delivery of messages to users
 	// but DO RPC calls are not guaranteed to happen in order, so we need to
@@ -110,8 +128,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private readonly db: Kysely<DB>
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
+		this.measure = env.MEASURE
 		this.sentry = createSentry(ctx, env)
-		this.sql = this.ctx.storage.sql
+		this.sqlite = this.ctx.storage.sql
 
 		this.ctx.blockConcurrencyWhile(async () =>
 			this._migrate().catch((e) => {
@@ -122,19 +141,18 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 		// debug logging in preview envs by default
 		this.log = new Logger(env, 'TLPostgresReplicator', this.sentry)
-		this.db = createPostgresConnectionPool(env, 'TLPostgresReplicator')
+		this.db = createPostgresConnectionPool(env, 'TLPostgresReplicator', 100)
 
 		this.alarm()
-		this.reboot(false).catch((e) => {
+		this.reboot('constructor', false).catch((e) => {
 			this.captureException(e)
 			this.__test__panic()
 		})
-		this.measure = env.MEASURE
 	}
 
 	private _applyMigration(index: number) {
-		this.sql.exec(migrations[index].code)
-		this.sql.exec(
+		this.sqlite.exec(migrations[index].code)
+		this.sqlite.exec(
 			'insert into migrations (id, code) values (?, ?)',
 			migrations[index].id,
 			migrations[index].code
@@ -144,7 +162,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private async _migrate() {
 		let appliedMigrations: Migration[]
 		try {
-			appliedMigrations = this.sql
+			appliedMigrations = this.sqlite
 				.exec('select code, id from migrations order by id asc')
 				.toArray() as any
 		} catch (_e) {
@@ -167,7 +185,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	__test__forceReboot() {
-		this.reboot()
+		this.reboot('test')
 	}
 	__test__panic() {
 		this.ctx.abort()
@@ -181,12 +199,30 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		// If we haven't heard anything for 10 seconds, reboot
 		if (Date.now() - this.lastPostgresMessageTime > 10000) {
 			this.log.debug('rebooting due to inactivity')
-			this.reboot()
+			this.reboot('inactivity')
 		} else if (Date.now() - this.lastPostgresMessageTime > 5000) {
 			sql`insert into replicator_boot_id ("replicatorId", "bootId") values (${this.ctx.id.toString()}, ${uniqueId()}) on conflict ("replicatorId") do update set "bootId" = excluded."bootId"`.execute(
 				this.db
 			)
 		}
+		this.maybePruneUsers()
+	}
+
+	private async maybePruneUsers() {
+		const now = Date.now()
+		if (now - this.lastUserPruneTime < PRUNE_TIME) return
+		const cutoffTime = now - PRUNE_TIME
+		const usersWithoutRecentUpdates = this.ctx.storage.sql
+			.exec('SELECT id FROM active_user WHERE lastUpdatedAt < ?', cutoffTime)
+			.toArray() as {
+			id: string
+		}[]
+		for (const { id } of usersWithoutRecentUpdates) {
+			if (await getUserDurableObject(this.env, id).notActive()) {
+				await this.unregisterUser(id)
+			}
+		}
+		this.lastUserPruneTime = Date.now()
 	}
 
 	private maybeLogRpm() {
@@ -203,8 +239,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private queue = new ExecutionQueue()
 
-	private async reboot(delay = true) {
-		this.logEvent({ type: 'reboot' })
+	private async reboot(source: TLPostgresReplicatorRebootSource, delay = true) {
+		this.logEvent({ type: 'reboot', source })
 		this.log.debug('reboot push')
 		await this.queue.push(async () => {
 			if (delay) {
@@ -224,7 +260,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			if (res === 'ok') {
 				this.logEvent({ type: 'reboot_duration', duration: Date.now() - start })
 			} else {
-				this.reboot()
+				getStatsDurableObjct(this.env).recordReplicatorBootRetry()
+				this.reboot('retry')
 			}
 		})
 	}
@@ -235,9 +272,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		// clean up old resources if necessary
 		if (this.state.type === 'connected') {
 			this.state.subscription.unsubscribe()
-			this.state.db.end().catch(this.captureException)
+			this.state.directDb.end().catch(this.captureException)
 		} else if (this.state.type === 'connecting') {
-			this.state.db.end().catch(this.captureException)
+			this.state.directDb.end().catch(this.captureException)
 		}
 		const promise = 'promise' in this.state ? this.state.promise : promiseWithResolve()
 		this.state = {
@@ -245,10 +282,23 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			// preserve the promise so any awaiters do eventually get resolved
 			// TODO: set a timeout on the promise?
 			promise,
-			db: createPostgresConnection(this.env, { name: 'TLPostgresReplicator' }),
+			directDb: postgres(this.env.BOTCOM_POSTGRES_CONNECTION_STRING, {
+				types: {
+					bigint: {
+						from: [20], // PostgreSQL OID for BIGINT
+						parse: (value: string) => Number(value), // Convert string to number
+						to: 20,
+						serialize: (value: number) => String(value), // Convert number to string
+					},
+				},
+				idle_timeout: 30,
+				connection: {
+					application_name: 'TLPostgresReplicator',
+				},
+			}),
 			sequenceId: uniqueId(),
 		}
-		const subscription = await this.state.db.subscribe(
+		const subscription = await this.state.directDb.subscribe(
 			'*',
 			this.handleEvent.bind(this),
 			() => {
@@ -257,7 +307,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			() => {
 				// this is invoked if the subscription is closed unexpectedly
 				this.captureException(new Error('Subscription error (we can tolerate this)'))
-				this.reboot()
+				this.reboot('subscription_closed')
 			}
 		)
 
@@ -265,7 +315,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			type: 'connected',
 			subscription,
 			sequenceId: this.state.sequenceId,
-			db: this.state.db,
+			directDb: this.state.directDb,
 		}
 		promise.resolve(null)
 	}
@@ -273,7 +323,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private onDidBoot() {
 		// re-register all active users to get their latest guest info
 		// do this in small batches to avoid overwhelming the system
-		const users = this.sql.exec('SELECT id FROM active_user').toArray()
+		const users = this.sqlite.exec('SELECT id FROM active_user').toArray()
 		this.reportActiveUsers()
 		const sequenceId = this.state.sequenceId
 		const BATCH_SIZE = 5
@@ -289,8 +339,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		tick()
 	}
 
+	private reportPostgresUpdate = throttle(
+		() => getStatsDurableObjct(this.env).recordReplicatorPostgresUpdate(),
+		5000
+	)
+
 	private handleEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
 		this.lastPostgresMessageTime = Date.now()
+		this.reportPostgresUpdate()
 		if (event.relation.table === 'replicator_boot_id') {
 			// ping, ignore
 			return
@@ -358,7 +414,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		assert(row?.userId, 'userId is required')
 		if (!this.userIsActive(row.userId)) return
 		if (event.command === 'insert') {
-			this.sql.exec(
+			this.sqlite.exec(
 				`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?)`,
 				row.userId,
 				row.fileId
@@ -373,7 +429,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 					// check that we didn't reboot (in which case the user do will fetch the file record on its own)
 					if (this.state.sequenceId !== sequenceId) return
 					// check that the subscription wasn't deleted before we managed to fetch the file record
-					const sub = this.sql
+					const sub = this.sqlite
 						.exec(
 							`SELECT * FROM user_file_subscriptions WHERE userId = ? AND fileId = ?`,
 							row.userId,
@@ -395,7 +451,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		} else if (event.command === 'delete') {
 			// If the file state being deleted does not belong to the file owner,
 			// we need to send a delete event for the file to the user
-			const sub = this.sql
+			const sub = this.sqlite
 				.exec(
 					`SELECT * FROM user_file_subscriptions WHERE userId = ? AND fileId = ?`,
 					row.userId,
@@ -406,7 +462,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				// the file was deleted before the file state
 				this.log.debug('file state deleted before file', row)
 			} else {
-				this.sql.exec(
+				this.sqlite.exec(
 					`DELETE FROM user_file_subscriptions WHERE userId = ? AND fileId = ?`,
 					row.userId,
 					row.fileId
@@ -435,14 +491,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private handleFileEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
 		assert(row?.id, 'row id is required')
-		const impactedUserIds = this.sql
+		const impactedUserIds = this.sqlite
 			.exec('SELECT userId FROM user_file_subscriptions WHERE fileId = ?', row.id)
 			.toArray()
 			.map((x) => x.userId as string)
 		// if the file state was deleted before the file, we might not have any impacted users
 		if (event.command === 'delete') {
 			getRoomDurableObject(this.env, row.id).appFileRecordDidDelete()
-			this.sql.exec(`DELETE FROM user_file_subscriptions WHERE fileId = ?`, row.id)
+			this.sqlite.exec(`DELETE FROM user_file_subscriptions WHERE fileId = ?`, row.id)
 		} else if (event.command === 'update') {
 			assert(row.ownerId, 'ownerId is required when updating file')
 			getRoomDurableObject(this.env, row.id).appFileRecordDidUpdate(row as TlaFile)
@@ -477,7 +533,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	private userIsActive(userId: string) {
-		return this.sql.exec(`SELECT * FROM active_user WHERE id = ?`, userId).toArray().length > 0
+		return this.sqlite.exec(`SELECT * FROM active_user WHERE id = ?`, userId).toArray().length > 0
 	}
 
 	async ping() {
@@ -496,9 +552,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		await this.waitUntilConnected()
 		assert(this.state.type === 'connected', 'state should be connected in getFileRecord')
 		try {
-			const res = await this.state.db`select * from public.file where id = ${fileId}`
-			if (res.length === 0) return null
-			return res[0] as TlaFile
+			const res = await sql`select * from public.file where id = ${fileId}`.execute(this.db)
+			if (res.rows.length === 0) return null
+			return res.rows[0] as TlaFile
 		} catch (_e) {
 			return null
 		}
@@ -513,9 +569,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				this.userDispatchQueues.set(userId, q)
 			}
 			await q.push(async () => {
-				const { sequenceNumber, sequenceIdSuffix } = this.sql
+				const { sequenceNumber, sequenceIdSuffix } = this.sqlite
 					.exec(
-						'UPDATE active_user SET sequenceNumber = sequenceNumber + 1 WHERE id = ? RETURNING sequenceNumber, sequenceIdSuffix',
+						'UPDATE active_user SET sequenceNumber = sequenceNumber + 1, lastUpdatedAt = ? WHERE id = ? RETURNING sequenceNumber, sequenceIdSuffix',
+						Date.now(),
 						userId
 					)
 					.one()
@@ -542,7 +599,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	reportActiveUsers() {
 		try {
-			const { count } = this.sql.exec('SELECT COUNT(*) as count FROM active_user').one()
+			const { count } = this.sqlite.exec('SELECT COUNT(*) as count FROM active_user').one()
 			this.logEvent({ type: 'active_users', count: count as number })
 		} catch (e) {
 			console.error('Error in reportActiveUsers', e)
@@ -557,30 +614,31 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			await this.waitUntilConnected()
 			this.log.debug('reg user connect')
 			assert(this.state.type === 'connected', 'state should be connected in registerUser')
-			const guestFiles = await this.state
-				.db`SELECT "fileId" as id FROM file_state where "userId" = ${userId}`
+			const guestFiles = await sql<{
+				id: string
+			}>`SELECT "fileId" as id FROM file_state where "userId" = ${userId}`.execute(this.db)
 			this.log.debug('got guest files')
 
 			const sequenceIdSuffix = uniqueId()
 
 			// clear user and subscriptions
-			this.sql.exec(`DELETE FROM active_user WHERE id = ?`, userId)
-			this.log.debug('cleared active user')
-			this.sql.exec(
-				`INSERT INTO active_user (id, sequenceNumber, sequenceIdSuffix) VALUES (?, 0, ?)`,
+			this.sqlite.exec(`DELETE FROM active_user WHERE id = ?`, userId)
+			this.sqlite.exec(
+				`INSERT INTO active_user (id, sequenceNumber, sequenceIdSuffix, lastUpdatedAt) VALUES (?, 0, ?, ?)`,
 				userId,
-				sequenceIdSuffix
+				sequenceIdSuffix,
+				Date.now()
 			)
 			this.reportActiveUsers()
 			this.log.debug('inserted active user')
-			for (const file of guestFiles) {
-				this.sql.exec(
+			for (const file of guestFiles.rows) {
+				this.sqlite.exec(
 					`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
 					userId,
 					file.id
 				)
 			}
-			this.log.debug('inserted guest files', guestFiles.length)
+			this.log.debug('inserted guest files', guestFiles.rows.length)
 			return {
 				sequenceId: this.state.sequenceId + ':' + sequenceIdSuffix,
 				sequenceNumber: 0,
@@ -593,7 +651,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	async unregisterUser(userId: string) {
 		this.logEvent({ type: 'unregister_user' })
-		this.sql.exec(`DELETE FROM active_user WHERE id = ?`, userId)
+		this.sqlite.exec(`DELETE FROM active_user WHERE id = ?`, userId)
 		this.reportActiveUsers()
 		const queue = this.userDispatchQueues.get(userId)
 		if (queue) {
@@ -609,6 +667,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	logEvent(event: TLPostgresReplicatorEvent) {
 		switch (event.type) {
 			case 'reboot':
+				this.writeEvent({ blobs: [event.type, event.source] })
+				break
 			case 'reboot_error':
 			case 'register_user':
 			case 'unregister_user':

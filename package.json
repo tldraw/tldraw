@@ -66,7 +66,7 @@
 	},
 	"engines": {
 		"npm": ">=7.0.0",
-		"node": ">=20.0.0"
+		"node": "^20.0.0"
 	},
 	"packageManager": "yarn@4.0.2",
 	"lint-staged": {

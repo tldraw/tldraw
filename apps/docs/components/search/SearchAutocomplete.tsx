@@ -49,7 +49,7 @@ export default function Autocomplete({
 		>
 			<div
 				className={twJoin(
-					'fixed w-screen h-screen left-0 top-14 sm:top-[6.5rem] md:top-0',
+					'fixed w-screen h-screen left-0 top-14 sm:top-[6.5rem] md:top-0 z-40',
 					'bg-white/90 dark:bg-zinc-950/90 pointer-events-none'
 				)}
 			>
@@ -149,7 +149,7 @@ function SearchDialog({
 		<Dialog.Root open onOpenChange={onOpenChange}>
 			<Dialog.Portal>
 				<Dialog.Overlay />
-				<Dialog.Content className="fixed inset-0 z-20" style={{ pointerEvents: 'none' }}>
+				<Dialog.Content className="fixed inset-0 z-50" style={{ pointerEvents: 'none' }}>
 					<VisuallyHidden>
 						<Dialog.Title>Search</Dialog.Title>
 						<Dialog.Description>Search dialog</Dialog.Description>

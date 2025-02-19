@@ -5,6 +5,7 @@ import type { RoomSnapshot } from '@tldraw/sync-core'
 import type { TLDrawDurableObject } from './TLDrawDurableObject'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
 import type { TLPostgresReplicator } from './TLPostgresReplicator'
+import { TLStatsDurableObject } from './TLStatsDurableObject'
 import type { TLUserDurableObject } from './TLUserDurableObject'
 
 // This type isn't available in @cloudflare/workers-types yet
@@ -23,6 +24,7 @@ export interface Environment {
 	TL_PG_REPLICATOR: DurableObjectNamespace<TLPostgresReplicator>
 	TL_USER: DurableObjectNamespace<TLUserDurableObject>
 	TL_LOGGER: DurableObjectNamespace<TLLoggerDurableObject>
+	TL_STATS: DurableObjectNamespace<TLStatsDurableObject>
 
 	BOTCOM_POSTGRES_CONNECTION_STRING: string
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
@@ -58,6 +60,8 @@ export interface Environment {
 	WORKER_NAME: string | undefined
 	ASSET_UPLOAD_ORIGIN: string | undefined
 	MULTIPLAYER_SERVER: string | undefined
+
+	HEALTH_CHECK_BEARER_TOKEN: string | undefined
 
 	RATE_LIMITER: RateLimit
 }
@@ -110,8 +114,16 @@ export type TLServerEvent =
 			messageLength: number
 	  }
 
+export type TLPostgresReplicatorRebootSource =
+	| 'constructor'
+	| 'inactivity'
+	| 'retry'
+	| 'subscription_closed'
+	| 'test'
+
 export type TLPostgresReplicatorEvent =
-	| { type: 'reboot' | 'reboot_error' | 'register_user' | 'unregister_user' | 'get_file_record' }
+	| { type: 'reboot'; source: TLPostgresReplicatorRebootSource }
+	| { type: 'reboot_error' | 'register_user' | 'unregister_user' | 'get_file_record' }
 	| { type: 'reboot_duration'; duration: number }
 	| { type: 'rpm'; rpm: number }
 	| { type: 'active_users'; count: number }

@@ -1,3 +1,4 @@
+import { TalkToMe } from '@/components/common/talk-to-me'
 import { Footer } from '@/components/navigation/footer'
 import { Header } from '@/components/navigation/header'
 import { cn } from '@/utils/cn'
@@ -59,10 +60,11 @@ export default async function Layout({ children }: { children: React.ReactNode }
 			lang="en"
 			className={cn(GeistSans.variable, ShantellSans.variable, 'font-sans antialiased')}
 		>
-			<body className="pt-14 md:pt-[4.5rem] overflow-x-hidden bg-white text-zinc-600 dark:bg-zinc-950 dark:text-zinc-400">
+			<body className="overflow-x-hidden bg-white text-zinc-600 dark:bg-zinc-950 dark:text-zinc-400">
 				<ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
 					<Header />
 					{children}
+					<TalkToMe />
 					<Footer />
 					<Analytics />
 				</ThemeProvider>
