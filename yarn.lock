@@ -6903,7 +6903,7 @@ __metadata:
     kysely: "npm:^0.27.5"
     lazyrepo: "npm:0.0.0-alpha.27"
     pg: "npm:^8.13.1"
-    postgres: "patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch"
+    pg-logical-replication: "npm:^2.0.7"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     typescript: "npm:~5.4.5"
@@ -13019,6 +13019,13 @@ __metadata:
   version: 5.0.1
   resolution: "event-target-shim@npm:5.0.1"
   checksum: 49ff46c3a7facbad3decb31f597063e761785d7fdb3920d4989d7b08c97a61c2f51183e2f3a03130c9088df88d4b489b1b79ab632219901f184f85158508f4c8
+  languageName: node
+  linkType: hard
+
+"eventemitter2@npm:>=6.4.0":
+  version: 6.4.9
+  resolution: "eventemitter2@npm:6.4.9"
+  checksum: b829b1c6b11e15926b635092b5ad62b4463d1c928859831dcae606e988cf41893059e3541f5a8209d21d2f15314422ddd4d84d20830b4bf44978608d15b06b08
   languageName: node
   linkType: hard
 
@@ -19956,6 +19963,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pg-logical-replication@npm:^2.0.7":
+  version: 2.0.7
+  resolution: "pg-logical-replication@npm:2.0.7"
+  dependencies:
+    eventemitter2: "npm:>=6.4.0"
+    pg: "npm:>=6.2.2"
+  checksum: 7b08edb7bfaf4d86834da397d4b4086b14fd14dc0cb7e5987217624b9af525fac3da1be85d9742f63f9b8c2a772f45e93b6c5b27856c93917aec73ad7be0e060
+  languageName: node
+  linkType: hard
+
 "pg-numeric@npm:1.0.2":
   version: 1.0.2
   resolution: "pg-numeric@npm:1.0.2"
@@ -19963,19 +19980,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-pool@npm:^3.7.0":
-  version: 3.7.0
-  resolution: "pg-pool@npm:3.7.0"
+"pg-pool@npm:^3.7.1":
+  version: 3.7.1
+  resolution: "pg-pool@npm:3.7.1"
   peerDependencies:
     pg: ">=8.0"
-  checksum: a07a4f9e26eec9d7ac3597dc7b3469c62983edff9a321dbb7acbe1bbc7f5e9b2d33438e277d4cf8145071f3d63c7ebdc287a539fd69dfb8cdddb15b33eefe1a2
+  checksum: 496c8eea3b66aac33e5ea4ad8d2bb2d39ef5a45ad4b3411ddc587f5fc1446bdb4a381e75846f51b9a9bf2b9ef7b8849078dc9f2b600c7d1a205df20ad71b459e
   languageName: node
   linkType: hard
 
-"pg-protocol@npm:*, pg-protocol@npm:^1.7.0":
-  version: 1.7.0
-  resolution: "pg-protocol@npm:1.7.0"
-  checksum: ffffdf74426c9357b57050f1c191e84447c0e8b2a701b3ab302ac7dd0eb27b862d92e5e3b2d38876a1051de83547eb9165d6a58b3a8e90bb050dae97f9993d54
+"pg-protocol@npm:*, pg-protocol@npm:^1.7.1":
+  version: 1.7.1
+  resolution: "pg-protocol@npm:1.7.1"
+  checksum: 5ccb6e01381261f2f4a995ccc9b135c6071ffe63c0b4bf0b6078dab2ab8567b1a5f64407a0a444ff3e4b689b9b91b2533b930f1a041afcdae8fca5345a18c30d
   languageName: node
   linkType: hard
 
@@ -20007,14 +20024,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg@npm:^8.13.1":
-  version: 8.13.1
-  resolution: "pg@npm:8.13.1"
+"pg@npm:>=6.2.2, pg@npm:^8.13.1":
+  version: 8.13.3
+  resolution: "pg@npm:8.13.3"
   dependencies:
     pg-cloudflare: "npm:^1.1.1"
     pg-connection-string: "npm:^2.7.0"
-    pg-pool: "npm:^3.7.0"
-    pg-protocol: "npm:^1.7.0"
+    pg-pool: "npm:^3.7.1"
+    pg-protocol: "npm:^1.7.1"
     pg-types: "npm:^2.1.0"
     pgpass: "npm:1.x"
   peerDependencies:
@@ -20025,7 +20042,7 @@ __metadata:
   peerDependenciesMeta:
     pg-native:
       optional: true
-  checksum: 542aa49fcb37657cf5f779b4a31fe6eb336e683445ecca38e267eeb0ca85d873ffe51f04794f9f9e184187e9f74bf7895e932a0fa9507132ac0dfc76c7c73451
+  checksum: be1be61fa46f7ccc3441794e390c41fc548f1bbee9744e3e7fae00b3d91e3974c4c51e25c1013075ec3a289d9290cd01ee926357e68ba20fcbb15308dbdef87c
   languageName: node
   linkType: hard
 
@@ -20344,20 +20361,6 @@ __metadata:
   version: 1.1.4
   resolution: "postgres-range@npm:1.1.4"
   checksum: 035759f17b44bf9ba7e71a30402ed2ca1e2b7fabb3ad794b08169a5b453d38d06905a6dfb51fe41a3f6d9fac4e183dac9e769b95053053db933be16785edce1f
-  languageName: node
-  linkType: hard
-
-"postgres@npm:3.4.5":
-  version: 3.4.5
-  resolution: "postgres@npm:3.4.5"
-  checksum: b51341a8640bd63c42caf2a866c8b6bcac0d4cc1b85985f01eb3fd941eb7bf3fe5200bcf6983eaa1d42ae7555d85f4ff51d35916b5543b95aecfe98b76213611
-  languageName: node
-  linkType: hard
-
-"postgres@patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch":
-  version: 3.4.5
-  resolution: "postgres@patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch::version=3.4.5&hash=544d40"
-  checksum: a3a9407dc77989cc140c9fd4a5b586de0d6e9ce62eeb8eddb40db6b20f0564b65c28fffc04f6989b99cc9685176981928b669f3ba675b8d86ee571e6dbfa61f8
   languageName: node
   linkType: hard
 

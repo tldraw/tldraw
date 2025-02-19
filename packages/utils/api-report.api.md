@@ -83,6 +83,8 @@ export class ExecutionQueue {
     // (undocumented)
     close(): void;
     // (undocumented)
+    isEmpty(): boolean;
+    // (undocumented)
     push<T>(task: () => T): Promise<Awaited<T>>;
 }
 
