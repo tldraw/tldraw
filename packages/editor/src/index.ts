@@ -26,6 +26,14 @@ export {
 	useValue,
 } from '@tldraw/state-react'
 export { resizeScaled } from './lib/editor/shapes/shared/resizeScaled'
+export {
+	getFontsFromRichText,
+	type RichTextFontVisitor,
+	type RichTextFontVisitorState,
+	type TLTextOptions,
+	type TiptapEditor,
+	type TiptapNode,
+} from './lib/utils/richText'
 export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalIndexedDb'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
@@ -279,8 +287,6 @@ export {
 	type TLImageExportOptions,
 	type TLSvgExportOptions,
 	type TLSvgOptions,
-	type TLTextOptions,
-	type TiptapEditor,
 } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
 export { getSvgAsImage } from './lib/exports/getSvgAsImage'

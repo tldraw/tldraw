@@ -1379,6 +1379,9 @@ input,
 	opacity: 0;
 	animation: fade-in 0.2s ease-in-out forwards;
 	animation-delay: 0.2s;
+	position: absolute;
+	inset: 0px;
+	z-index: var(--layer-canvas-blocker);
 }
 
 @keyframes fade-in {

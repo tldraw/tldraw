@@ -1,11 +1,9 @@
 import {
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
-	DefaultSpinner,
-	ErrorScreen,
-	LoadingScreen,
 	TLEditorComponents,
 	TLOnMountHandler,
+	TLTextOptions,
 	TldrawEditor,
 	TldrawEditorBaseProps,
 	TldrawEditorStoreProps,
@@ -37,10 +35,9 @@ import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { TLUiAssetUrlOverrides } from './ui/assetUrls'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
 import { useToasts } from './ui/context/toasts'
-import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
-import { tipTapDefaultExtensions } from './utils/text/richText'
+import { defaultAddFontsFromNode, tipTapDefaultExtensions } from './utils/text/richText'
 
 /**
  * Override the default react components used by the editor and UI. Set components to null to
@@ -136,14 +133,14 @@ export function Tldraw(props: TldrawProps) {
 		acceptedVideoMimeTypes ?? DEFAULT_SUPPORT_VIDEO_TYPES
 	)
 
-	const textOptionsWithDefaults = useMemo(() => {
-		const { tipTapConfig: _, ...rest } = textOptions ?? {}
+	const textOptionsWithDefaults = useMemo((): TLTextOptions => {
 		return {
+			addFontsFromNode: defaultAddFontsFromNode,
+			...textOptions,
 			tipTapConfig: {
 				extensions: tipTapDefaultExtensions,
 				...textOptions?.tipTapConfig,
 			},
-			...rest,
 		}
 	}, [textOptions])
 
@@ -153,17 +150,6 @@ export function Tldraw(props: TldrawProps) {
 	)
 
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
-	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
-	if (preloadingError) {
-		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
-	}
-	if (!preloadingComplete) {
-		return (
-			<LoadingScreen>
-				<DefaultSpinner />
-			</LoadingScreen>
-		)
-	}
 
 	const embedShapeUtil = shapeUtilsWithDefaults.find((util) => util.type === 'embed')
 	if (embedShapeUtil && embeds) {

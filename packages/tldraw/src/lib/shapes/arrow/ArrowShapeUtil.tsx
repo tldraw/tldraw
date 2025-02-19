@@ -44,7 +44,7 @@ import { PlainTextLabel } from '../shared/PlainTextLabel'
 import { ShapeFill } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { ARROW_LABEL_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
-import { DefaultFontFamilies } from '../shared/defaultFonts'
+import { DefaultFontFaces } from '../shared/defaultFonts'
 import {
 	getFillDefForCanvas,
 	getFillDefForExport,
@@ -110,7 +110,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override getFontFaces(shape: TLArrowShape): TLFontFace[] {
 		if (!shape.props.text) return EMPTY_ARRAY
-		return [DefaultFontFamilies[`tldraw_${shape.props.font}`].normal['500']]
+		return [DefaultFontFaces[`tldraw_${shape.props.font}`].normal.normal]
 	}
 
 	override getDefaultProps(): TLArrowShape['props'] {

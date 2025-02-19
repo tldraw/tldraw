@@ -12,6 +12,7 @@ import {
 	Vec,
 	createComputedCache,
 	getDefaultColorTheme,
+	getFontsFromRichText,
 	resizeScaled,
 	textShapeMigrations,
 	textShapeProps,
@@ -22,13 +23,8 @@ import {
 import isEqual from 'lodash.isequal'
 import { useCallback } from 'react'
 import {
-	defaultRichTextFontVisitor,
-	getFontsFromRichText,
-} from '../../utils/text/getFontsFromRichText'
-import {
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
-	tipTapDefaultExtensions,
 } from '../../utils/text/richText'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
@@ -41,7 +37,7 @@ const sizeCache = createComputedCache(
 		editor.fonts.trackFontsForShape(shape)
 		return getTextSize(editor, shape.props)
 	},
-	(a, b) => a.props === b.props
+	{ areRecordsEqual: (a, b) => a.props === b.props }
 )
 
 /** @public */
@@ -64,13 +60,12 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	getMinDimensions(shape: TLTextShape) {
-		return sizeCache.get(this.editor, shape.id)
+		return sizeCache.get(this.editor, shape.id)!
 	}
 
 	getGeometry(shape: TLTextShape) {
 		const { scale } = shape.props
 		const { width, height } = this.getMinDimensions(shape)!
-		console.log('get dimensions', width, height)
 		return new Rectangle2d({
 			width: width * scale,
 			height: height * scale,
@@ -80,18 +75,11 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override getFontFaces(shape: TLTextShape): TLFontFace[] {
-		const list = getFontsFromRichText(
-			shape.props.richText,
-			tipTapDefaultExtensions,
-			{
-				family: `tldraw_${shape.props.font}`,
-				weight: '500',
-				style: 'normal',
-			},
-			defaultRichTextFontVisitor
-		)
-		console.log('text font faces', list)
-		return list
+		return getFontsFromRichText(this.editor, shape.props.richText, {
+			family: `tldraw_${shape.props.font}`,
+			weight: 'normal',
+			style: 'normal',
+		})
 	}
 
 	override getText(shape: TLTextShape) {

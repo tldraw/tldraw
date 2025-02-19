@@ -94,7 +94,7 @@ const labelSizeCache = createComputedCache(
 
 		return new Vec(width, height).addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
 	},
-	(a, b) => a.props === b.props
+	{ areRecordsEqual: (a, b) => a.props === b.props }
 )
 
 function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {

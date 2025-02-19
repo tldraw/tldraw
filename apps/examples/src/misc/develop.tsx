@@ -1,5 +1,6 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
 import {
+	allDefaultFontFaces,
 	DefaultContextMenu,
 	DefaultContextMenuContent,
 	TLComponents,
@@ -58,7 +59,7 @@ export default function Develop() {
 			<Tldraw
 				licenseKey={getLicenseKey()}
 				overrides={[performanceOverrides, debuggingOverrides]}
-				persistenceKey="example"
+				persistenceKey="examplee"
 				onMount={(editor) => {
 					;(window as any).app = editor
 					;(window as any).editor = editor
@@ -66,6 +67,9 @@ export default function Develop() {
 						'shape',
 						afterChangeHandler
 					)
+
+					editor.fonts.requestFonts(allDefaultFontFaces)
+
 					return () => {
 						dispose()
 					}

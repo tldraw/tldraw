@@ -16,67 +16,67 @@ export function getAssetUrlsByMetaUrl(opts) {
 	)
 	return {
 		fonts: {
-			tldraw_mono_normal_700: formatAssetUrl(
+			tldraw_mono_normal_bold: formatAssetUrl(
 				new URL('./fonts/IBMPlexMono-Bold.woff2', import.meta.url).href,
 				opts
 			),
-			tldraw_mono_italic_700: formatAssetUrl(
+			tldraw_mono_italic_bold: formatAssetUrl(
 				new URL('./fonts/IBMPlexMono-BoldItalic.woff2', import.meta.url).href,
 				opts
 			),
-			tldraw_mono_normal_500: formatAssetUrl(
+			tldraw_mono_normal_normal: formatAssetUrl(
 				new URL('./fonts/IBMPlexMono-Medium.woff2', import.meta.url).href,
 				opts
 			),
-			tldraw_mono_italic_500: formatAssetUrl(
+			tldraw_mono_italic_normal: formatAssetUrl(
 				new URL('./fonts/IBMPlexMono-MediumItalic.woff2', import.meta.url).href,
 				opts
 			),
-			tldraw_sans_normal_700: formatAssetUrl(
+			tldraw_sans_normal_bold: formatAssetUrl(
 				new URL('./fonts/IBMPlexSans-Bold.woff2', import.meta.url).href,
 				opts
 			),
-			tldraw_sans_italic_700: formatAssetUrl(
+			tldraw_sans_italic_bold: formatAssetUrl(
 				new URL('./fonts/IBMPlexSans-BoldItalic.woff2', import.meta.url).href,
 				opts
 			),
-			tldraw_sans_normal_500: formatAssetUrl(
+			tldraw_sans_normal_normal: formatAssetUrl(
 				new URL('./fonts/IBMPlexSans-Medium.woff2', import.meta.url).href,
 				opts
 			),
-			tldraw_sans_italic_500: formatAssetUrl(
+			tldraw_sans_italic_normal: formatAssetUrl(
 				new URL('./fonts/IBMPlexSans-MediumItalic.woff2', import.meta.url).href,
 				opts
 			),
-			tldraw_serif_normal_700: formatAssetUrl(
+			tldraw_serif_normal_bold: formatAssetUrl(
 				new URL('./fonts/IBMPlexSerif-Bold.woff2', import.meta.url).href,
 				opts
 			),
-			tldraw_serif_italic_700: formatAssetUrl(
+			tldraw_serif_italic_bold: formatAssetUrl(
 				new URL('./fonts/IBMPlexSerif-BoldItalic.woff2', import.meta.url).href,
 				opts
 			),
-			tldraw_serif_normal_500: formatAssetUrl(
+			tldraw_serif_normal_normal: formatAssetUrl(
 				new URL('./fonts/IBMPlexSerif-Medium.woff2', import.meta.url).href,
 				opts
 			),
-			tldraw_serif_italic_500: formatAssetUrl(
+			tldraw_serif_italic_normal: formatAssetUrl(
 				new URL('./fonts/IBMPlexSerif-MediumItalic.woff2', import.meta.url).href,
 				opts
 			),
-			tldraw_draw_normal_700: formatAssetUrl(
+			tldraw_draw_normal_bold: formatAssetUrl(
 				new URL('./fonts/Shantell_Sans-Informal_Bold.woff2', import.meta.url).href,
 				opts
 			),
-			tldraw_draw_italic_700: formatAssetUrl(
+			tldraw_draw_italic_bold: formatAssetUrl(
 				new URL('./fonts/Shantell_Sans-Informal_Bold_Italic.woff2', import.meta.url).href,
 				opts
 			),
-			tldraw_draw_normal_500: formatAssetUrl(
+			tldraw_draw_normal_normal: formatAssetUrl(
 				new URL('./fonts/Shantell_Sans-Informal_Regular.woff2', import.meta.url).href,
 				opts
 			),
-			tldraw_draw_italic_500: formatAssetUrl(
+			tldraw_draw_italic_normal: formatAssetUrl(
 				new URL('./fonts/Shantell_Sans-Informal_Regular_Italic.woff2', import.meta.url).href,
 				opts
 			),

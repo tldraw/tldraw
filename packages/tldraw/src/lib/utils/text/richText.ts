@@ -1,10 +1,10 @@
 import {
 	Extension,
 	Extensions,
-	JSONContent,
 	generateHTML,
 	generateJSON,
 	generateText,
+	JSONContent,
 } from '@tiptap/core'
 import { Bold } from '@tiptap/extension-bold'
 import { BulletList } from '@tiptap/extension-bullet-list'
@@ -19,7 +19,15 @@ import Link from '@tiptap/extension-link'
 import { ListItem } from '@tiptap/extension-list-item'
 import { Paragraph } from '@tiptap/extension-paragraph'
 import { Text } from '@tiptap/extension-text'
-import { Editor, TLRichText } from '@tldraw/editor'
+import { Node } from '@tiptap/pm/model'
+import {
+	Editor,
+	getOwnProperty,
+	RichTextFontVisitorState,
+	TLFontFace,
+	TLRichText,
+} from '@tldraw/editor'
+import { DefaultFontFaces } from '../../shapes/shared/defaultFonts'
 import TextDirection from './textDirection'
 
 const KeyboardShiftEnterTweakExtension = Extension.create({
@@ -117,4 +125,36 @@ export function renderRichTextFromHTML(editor: Editor, html: string): TLRichText
 	const tipTapExtensions =
 		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
 	return generateJSON(html, tipTapExtensions) as TLRichText
+}
+
+/** @public */
+export function defaultAddFontsFromNode(
+	node: Node,
+	state: RichTextFontVisitorState,
+	addFont: (font: TLFontFace) => void
+) {
+	for (const mark of node.marks) {
+		if (mark.type.name === 'bold' && state.weight !== 'bold') {
+			state = { ...state, weight: 'bold' }
+		}
+		if (mark.type.name === 'italic' && state.style !== 'italic') {
+			state = { ...state, style: 'italic' }
+		}
+		if (mark.type.name === 'code' && state.family !== 'tldraw_mono') {
+			state = { ...state, family: 'tldraw_mono' }
+		}
+	}
+
+	const fontsForFamily = getOwnProperty(DefaultFontFaces, state.family)
+	if (!fontsForFamily) return state
+
+	const fontsForStyle = getOwnProperty(fontsForFamily, state.style)
+	if (!fontsForStyle) return state
+
+	const fontsForWeight = getOwnProperty(fontsForStyle, state.weight)
+	if (!fontsForWeight) return state
+
+	addFont(fontsForWeight)
+
+	return state
 }

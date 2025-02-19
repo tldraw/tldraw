@@ -172,6 +172,9 @@ export function getIndicesBetween(below: IndexKey | null | undefined, above: Ind
 export function getOwnProperty<K extends string, V>(obj: Partial<Record<K, V>>, key: K): undefined | V;
 
 // @internal (undocumented)
+export function getOwnProperty<O extends object>(obj: O, key: string): O[keyof O] | undefined;
+
+// @internal (undocumented)
 export function getOwnProperty(obj: object, key: string): unknown;
 
 // @internal (undocumented)

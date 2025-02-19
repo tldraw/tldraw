@@ -17,22 +17,22 @@ import { nicelog } from './lib/nicelog'
 const PUBLIC_FOLDER_PATHS = [join(REPO_ROOT, 'packages', 'assets')]
 
 const FONT_MAPPING: Record<string, string> = {
-	'IBMPlexMono-Medium': 'tldraw_mono_normal_500',
-	'IBMPlexMono-MediumItalic': 'tldraw_mono_italic_500',
-	'IBMPlexMono-Bold': 'tldraw_mono_normal_700',
-	'IBMPlexMono-BoldItalic': 'tldraw_mono_italic_700',
-	'IBMPlexSerif-Medium': 'tldraw_serif_normal_500',
-	'IBMPlexSerif-MediumItalic': 'tldraw_serif_italic_500',
-	'IBMPlexSerif-Bold': 'tldraw_serif_normal_700',
-	'IBMPlexSerif-BoldItalic': 'tldraw_serif_italic_700',
-	'IBMPlexSans-Medium': 'tldraw_sans_normal_500',
-	'IBMPlexSans-MediumItalic': 'tldraw_sans_italic_500',
-	'IBMPlexSans-Bold': 'tldraw_sans_normal_700',
-	'IBMPlexSans-BoldItalic': 'tldraw_sans_italic_700',
-	'Shantell_Sans-Informal_Regular': 'tldraw_draw_normal_500',
-	'Shantell_Sans-Informal_Regular_Italic': 'tldraw_draw_italic_500',
-	'Shantell_Sans-Informal_Bold': 'tldraw_draw_normal_700',
-	'Shantell_Sans-Informal_Bold_Italic': 'tldraw_draw_italic_700',
+	'IBMPlexMono-Medium': 'tldraw_mono_normal_normal',
+	'IBMPlexMono-MediumItalic': 'tldraw_mono_italic_normal',
+	'IBMPlexMono-Bold': 'tldraw_mono_normal_bold',
+	'IBMPlexMono-BoldItalic': 'tldraw_mono_italic_bold',
+	'IBMPlexSerif-Medium': 'tldraw_serif_normal_normal',
+	'IBMPlexSerif-MediumItalic': 'tldraw_serif_italic_normal',
+	'IBMPlexSerif-Bold': 'tldraw_serif_normal_bold',
+	'IBMPlexSerif-BoldItalic': 'tldraw_serif_italic_bold',
+	'IBMPlexSans-Medium': 'tldraw_sans_normal_normal',
+	'IBMPlexSans-MediumItalic': 'tldraw_sans_italic_normal',
+	'IBMPlexSans-Bold': 'tldraw_sans_normal_bold',
+	'IBMPlexSans-BoldItalic': 'tldraw_sans_italic_bold',
+	'Shantell_Sans-Informal_Regular': 'tldraw_draw_normal_normal',
+	'Shantell_Sans-Informal_Regular_Italic': 'tldraw_draw_italic_normal',
+	'Shantell_Sans-Informal_Bold': 'tldraw_draw_normal_bold',
+	'Shantell_Sans-Informal_Bold_Italic': 'tldraw_draw_italic_bold',
 }
 
 const ASSETS_FOLDER_PATH = join(REPO_ROOT, 'assets')

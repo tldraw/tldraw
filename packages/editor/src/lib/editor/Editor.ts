@@ -1,4 +1,12 @@
-import { EMPTY_ARRAY, atom, computed, react, transact, unsafe__withoutCapture } from '@tldraw/state'
+import {
+	Atom,
+	EMPTY_ARRAY,
+	atom,
+	computed,
+	react,
+	transact,
+	unsafe__withoutCapture,
+} from '@tldraw/state'
 import {
 	ComputedCache,
 	RecordType,
@@ -130,6 +138,7 @@ import {
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { isAccelKey } from '../utils/keyboard'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
+import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
@@ -166,8 +175,6 @@ import {
 	TLCameraOptions,
 	TLImageExportOptions,
 	TLSvgExportOptions,
-	TLTextOptions,
-	TiptapEditor,
 } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
@@ -228,7 +235,7 @@ export interface TLEditorOptions {
 	 * Options for the editor's camera.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
-	textOptions?: Partial<TLTextOptions>
+	textOptions?: TLTextOptions
 	options?: Partial<TldrawOptions>
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
@@ -298,7 +305,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
 
-		this._textOptions.set({ ...textOptions })
+		this._textOptions = atom('text options', textOptions ?? null)
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 		this.disposables.add(() => this.user.dispose())
@@ -2309,7 +2316,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	private _textOptions = atom('text options', {} as TLTextOptions)
+	private _textOptions: Atom<TLTextOptions | null>
 
 	/**
 	 * Get the current text options.
@@ -2321,7 +2328,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 *  @public */
 	getTextOptions() {
-		return this._textOptions.get()
+		return assertExists(this._textOptions.get(), 'Cannot use text without setting textOptions')
 	}
 
 	/* --------------------- Camera --------------------- */
@@ -4284,7 +4291,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.fonts.trackFontsForShape(shape)
 				return this.getShapeUtil(shape).getGeometry(shape)
 			},
-			(a, b) => a.props === b.props
+			{ areRecordsEqual: (a, b) => a.props === b.props }
 		)
 	}
 

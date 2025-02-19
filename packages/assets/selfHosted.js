@@ -13,25 +13,28 @@ export function getAssetUrls(opts) {
 	const iconsIcon0MergedSvg = formatAssetUrl('./icons/icon/0_merged.svg', opts)
 	return {
 		fonts: {
-			tldraw_mono_normal_700: formatAssetUrl('./fonts/IBMPlexMono-Bold.woff2', opts),
-			tldraw_mono_italic_700: formatAssetUrl('./fonts/IBMPlexMono-BoldItalic.woff2', opts),
-			tldraw_mono_normal_500: formatAssetUrl('./fonts/IBMPlexMono-Medium.woff2', opts),
-			tldraw_mono_italic_500: formatAssetUrl('./fonts/IBMPlexMono-MediumItalic.woff2', opts),
-			tldraw_sans_normal_700: formatAssetUrl('./fonts/IBMPlexSans-Bold.woff2', opts),
-			tldraw_sans_italic_700: formatAssetUrl('./fonts/IBMPlexSans-BoldItalic.woff2', opts),
-			tldraw_sans_normal_500: formatAssetUrl('./fonts/IBMPlexSans-Medium.woff2', opts),
-			tldraw_sans_italic_500: formatAssetUrl('./fonts/IBMPlexSans-MediumItalic.woff2', opts),
-			tldraw_serif_normal_700: formatAssetUrl('./fonts/IBMPlexSerif-Bold.woff2', opts),
-			tldraw_serif_italic_700: formatAssetUrl('./fonts/IBMPlexSerif-BoldItalic.woff2', opts),
-			tldraw_serif_normal_500: formatAssetUrl('./fonts/IBMPlexSerif-Medium.woff2', opts),
-			tldraw_serif_italic_500: formatAssetUrl('./fonts/IBMPlexSerif-MediumItalic.woff2', opts),
-			tldraw_draw_normal_700: formatAssetUrl('./fonts/Shantell_Sans-Informal_Bold.woff2', opts),
-			tldraw_draw_italic_700: formatAssetUrl(
+			tldraw_mono_normal_bold: formatAssetUrl('./fonts/IBMPlexMono-Bold.woff2', opts),
+			tldraw_mono_italic_bold: formatAssetUrl('./fonts/IBMPlexMono-BoldItalic.woff2', opts),
+			tldraw_mono_normal_normal: formatAssetUrl('./fonts/IBMPlexMono-Medium.woff2', opts),
+			tldraw_mono_italic_normal: formatAssetUrl('./fonts/IBMPlexMono-MediumItalic.woff2', opts),
+			tldraw_sans_normal_bold: formatAssetUrl('./fonts/IBMPlexSans-Bold.woff2', opts),
+			tldraw_sans_italic_bold: formatAssetUrl('./fonts/IBMPlexSans-BoldItalic.woff2', opts),
+			tldraw_sans_normal_normal: formatAssetUrl('./fonts/IBMPlexSans-Medium.woff2', opts),
+			tldraw_sans_italic_normal: formatAssetUrl('./fonts/IBMPlexSans-MediumItalic.woff2', opts),
+			tldraw_serif_normal_bold: formatAssetUrl('./fonts/IBMPlexSerif-Bold.woff2', opts),
+			tldraw_serif_italic_bold: formatAssetUrl('./fonts/IBMPlexSerif-BoldItalic.woff2', opts),
+			tldraw_serif_normal_normal: formatAssetUrl('./fonts/IBMPlexSerif-Medium.woff2', opts),
+			tldraw_serif_italic_normal: formatAssetUrl('./fonts/IBMPlexSerif-MediumItalic.woff2', opts),
+			tldraw_draw_normal_bold: formatAssetUrl('./fonts/Shantell_Sans-Informal_Bold.woff2', opts),
+			tldraw_draw_italic_bold: formatAssetUrl(
 				'./fonts/Shantell_Sans-Informal_Bold_Italic.woff2',
 				opts
 			),
-			tldraw_draw_normal_500: formatAssetUrl('./fonts/Shantell_Sans-Informal_Regular.woff2', opts),
-			tldraw_draw_italic_500: formatAssetUrl(
+			tldraw_draw_normal_normal: formatAssetUrl(
+				'./fonts/Shantell_Sans-Informal_Regular.woff2',
+				opts
+			),
+			tldraw_draw_italic_normal: formatAssetUrl(
 				'./fonts/Shantell_Sans-Informal_Regular_Italic.woff2',
 				opts
 			),

@@ -1,15 +1,17 @@
-import { TLFontFace } from '@tldraw/editor'
+import { objectMapValues, TLFontFace } from '@tldraw/editor'
 
+/** @public */
 export interface TLDefaultFont {
 	normal: {
-		'500': TLFontFace
-		'700': TLFontFace
+		normal: TLFontFace
+		bold: TLFontFace
 	}
 	italic: {
-		'500': TLFontFace
-		'700': TLFontFace
+		normal: TLFontFace
+		bold: TLFontFace
 	}
 }
+/** @public */
 export interface TLDefaultFonts {
 	tldraw_draw: TLDefaultFont
 	tldraw_sans: TLDefaultFont
@@ -17,123 +19,128 @@ export interface TLDefaultFonts {
 	tldraw_mono: TLDefaultFont
 }
 
-export const DefaultFontFamilies: TLDefaultFonts = {
+export const DefaultFontFaces: TLDefaultFonts = {
 	tldraw_draw: {
 		normal: {
-			'500': {
+			normal: {
 				fontFamily: 'tldraw_draw',
-				src: { url: 'tldraw_draw_normal_500', format: 'woff2' },
-				weight: '500',
+				src: { url: 'tldraw_draw_normal_normal', format: 'woff2' },
+				weight: 'normal',
 			},
-			'700': {
+			bold: {
 				fontFamily: 'tldraw_draw',
-				src: { url: 'tldraw_draw_normal_700', format: 'woff2' },
-				weight: '700',
+				src: { url: 'tldraw_draw_normal_bold', format: 'woff2' },
+				weight: 'bold',
 			},
 		},
 		italic: {
-			'500': {
+			normal: {
 				fontFamily: 'tldraw_draw',
-				src: { url: 'tldraw_draw_italic_500', format: 'woff2' },
-				weight: '500',
+				src: { url: 'tldraw_draw_italic_normal', format: 'woff2' },
+				weight: 'normal',
 				style: 'italic',
 			},
-			'700': {
+			bold: {
 				fontFamily: 'tldraw_draw',
-				src: { url: 'tldraw_draw_italic_700', format: 'woff2' },
-				weight: '700',
+				src: { url: 'tldraw_draw_italic_bold', format: 'woff2' },
+				weight: 'bold',
 				style: 'italic',
 			},
 		},
 	},
 	tldraw_sans: {
 		normal: {
-			'500': {
+			normal: {
 				fontFamily: 'tldraw_sans',
-				src: { url: 'tldraw_sans_normal_500', format: 'woff2' },
-				weight: '500',
+				src: { url: 'tldraw_sans_normal_normal', format: 'woff2' },
+				weight: 'normal',
 				style: 'normal',
 			},
-			'700': {
+			bold: {
 				fontFamily: 'tldraw_sans',
-				src: { url: 'tldraw_sans_normal_700', format: 'woff2' },
-				weight: '700',
+				src: { url: 'tldraw_sans_normal_bold', format: 'woff2' },
+				weight: 'bold',
 				style: 'normal',
 			},
 		},
 		italic: {
-			'500': {
+			normal: {
 				fontFamily: 'tldraw_sans',
-				src: { url: 'tldraw_sans_italic_500', format: 'woff2' },
-				weight: '500',
+				src: { url: 'tldraw_sans_italic_normal', format: 'woff2' },
+				weight: 'normal',
 				style: 'italic',
 			},
-			'700': {
+			bold: {
 				fontFamily: 'tldraw_sans',
-				src: { url: 'tldraw_sans_italic_700', format: 'woff2' },
-				weight: '700',
+				src: { url: 'tldraw_sans_italic_bold', format: 'woff2' },
+				weight: 'bold',
 				style: 'italic',
 			},
 		},
 	},
 	tldraw_serif: {
 		normal: {
-			'500': {
+			normal: {
 				fontFamily: 'tldraw_serif',
-				src: { url: 'tldraw_serif_normal_500', format: 'woff2' },
-				weight: '500',
+				src: { url: 'tldraw_serif_normal_normal', format: 'woff2' },
+				weight: 'normal',
 				style: 'normal',
 			},
-			'700': {
+			bold: {
 				fontFamily: 'tldraw_serif',
-				src: { url: 'tldraw_serif_normal_700', format: 'woff2' },
-				weight: '700',
+				src: { url: 'tldraw_serif_normal_bold', format: 'woff2' },
+				weight: 'bold',
 				style: 'normal',
 			},
 		},
 		italic: {
-			'500': {
+			normal: {
 				fontFamily: 'tldraw_serif',
-				src: { url: 'tldraw_serif_italic_500', format: 'woff2' },
-				weight: '500',
+				src: { url: 'tldraw_serif_italic_normal', format: 'woff2' },
+				weight: 'normal',
 				style: 'italic',
 			},
-			'700': {
+			bold: {
 				fontFamily: 'tldraw_serif',
-				src: { url: 'tldraw_serif_italic_700', format: 'woff2' },
-				weight: '700',
+				src: { url: 'tldraw_serif_italic_bold', format: 'woff2' },
+				weight: 'bold',
 				style: 'italic',
 			},
 		},
 	},
 	tldraw_mono: {
 		normal: {
-			'500': {
+			normal: {
 				fontFamily: 'tldraw_mono',
-				src: { url: 'tldraw_mono_normal_500', format: 'woff2' },
-				weight: '500',
+				src: { url: 'tldraw_mono_normal_normal', format: 'woff2' },
+				weight: 'normal',
 				style: 'normal',
 			},
-			'700': {
+			bold: {
 				fontFamily: 'tldraw_mono',
-				src: { url: 'tldraw_mono_normal_700', format: 'woff2' },
-				weight: '700',
+				src: { url: 'tldraw_mono_normal_bold', format: 'woff2' },
+				weight: 'bold',
 				style: 'normal',
 			},
 		},
 		italic: {
-			'500': {
+			normal: {
 				fontFamily: 'tldraw_mono',
-				src: { url: 'tldraw_mono_italic_500', format: 'woff2' },
-				weight: '500',
+				src: { url: 'tldraw_mono_italic_normal', format: 'woff2' },
+				weight: 'normal',
 				style: 'italic',
 			},
-			'700': {
+			bold: {
 				fontFamily: 'tldraw_mono',
-				src: { url: 'tldraw_mono_italic_700', format: 'woff2' },
-				weight: '700',
+				src: { url: 'tldraw_mono_italic_bold', format: 'woff2' },
+				weight: 'bold',
 				style: 'italic',
 			},
 		},
 	},
 }
+
+/** @public */
+export const allDefaultFontFaces = objectMapValues(DefaultFontFaces).flatMap((font) =>
+	objectMapValues(font).flatMap((fontFace) => Object.values(fontFace))
+)

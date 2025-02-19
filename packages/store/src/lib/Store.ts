@@ -68,6 +68,12 @@ export interface ComputedCache<Data, R extends UnknownRecord> {
 	get(id: IdOf<R>): Data | undefined
 }
 
+/** @public */
+export interface ComputedCacheOpts<Data, R extends UnknownRecord> {
+	areRecordsEqual?(a: R, b: R): boolean
+	areResultsEqual?(a: Data, b: Data): boolean
+}
+
 /**
  * A serialized snapshot of the record store's values.
  *
@@ -764,13 +770,13 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 *
 	 * @param name - The name of the derivation cache.
 	 * @param derive - A function used to derive the value of the cache.
-	 * @param isEqual - A function that determines equality between two records.
+	 * @param opts - Options for the computed cache.
 	 * @public
 	 */
 	createComputedCache<Result, Record extends R = R>(
 		name: string,
 		derive: (record: Record) => Result | undefined,
-		isEqual?: (a: Record, b: Record) => boolean
+		opts?: ComputedCacheOpts<Result, Record>
 	): ComputedCache<Result, Record> {
 		const cache = new WeakCache<Atom<any>, Computed<Result | undefined>>()
 		return {
@@ -781,12 +787,18 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				}
 				return cache
 					.get(atom, () => {
-						const recordSignal = isEqual
-							? computed(atom.name + ':equals', () => atom.get(), { isEqual })
+						const recordSignal = opts?.areRecordsEqual
+							? computed(atom.name + ':equals', () => atom.get(), { isEqual: opts.areRecordsEqual })
 							: atom
-						return computed<Result | undefined>(name + ':' + id, () => {
-							return derive(recordSignal.get() as Record)
-						})
+						return computed<Result | undefined>(
+							name + ':' + id,
+							() => {
+								return derive(recordSignal.get() as Record)
+							},
+							{
+								isEqual: opts?.areResultsEqual,
+							}
+						)
 					})
 					.get()
 			},
@@ -799,6 +811,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param name - The name of the derivation cache.
 	 * @param selector - A function that returns a subset of the original shape
 	 * @param derive - A function used to derive the value of the cache.
+	 * @deprecated use `createComputedCache` instead.
 	 * @public
 	 */
 	createSelectedComputedCache<Selection, Result, Record extends R = R>(
@@ -1022,14 +1035,14 @@ export function createComputedCache<
 >(
 	name: string,
 	derive: (context: Context, record: Record) => Result | undefined,
-	isEqual?: (a: Record, b: Record) => boolean
+	opts?: ComputedCacheOpts<Result, Record>
 ) {
 	const cache = new WeakCache<Context, ComputedCache<Result, Record>>()
 	return {
 		get(context: Context, id: IdOf<Record>) {
 			const computedCache = cache.get(context, () => {
 				const store = (context instanceof Store ? context : context.store) as Store<Record>
-				return store.createComputedCache(name, (record) => derive(context, record), isEqual)
+				return store.createComputedCache(name, (record) => derive(context, record), opts)
 			})
 			return computedCache.get(id)
 		},
