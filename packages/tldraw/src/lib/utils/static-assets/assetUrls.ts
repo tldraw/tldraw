@@ -36,7 +36,10 @@ export let defaultEditorAssetUrls: TLEditorAssetUrls = {
 		tldraw_sans_italic_500: `${getDefaultCdnBaseUrl()}/fonts/IBMPlexSans-MediumItalic.woff2`,
 		tldraw_sans_normal_700: `${getDefaultCdnBaseUrl()}/fonts/IBMPlexSans-Bold.woff2`,
 		tldraw_sans_italic_700: `${getDefaultCdnBaseUrl()}/fonts/IBMPlexSans-BoldItalic.woff2`,
-		tldraw_draw: `${getDefaultCdnBaseUrl()}/fonts/Shantell_Sans-Tldrawish.woff2`,
+		tldraw_draw_normal_500: `${getDefaultCdnBaseUrl()}/fonts/Shantell_Sans-Informal_Regular.woff2`,
+		tldraw_draw_italic_500: `${getDefaultCdnBaseUrl()}/fonts/Shantell_Sans-Informal_Regular_Italic.woff2`,
+		tldraw_draw_normal_700: `${getDefaultCdnBaseUrl()}/fonts/Shantell_Sans-Informal_Bold.woff2`,
+		tldraw_draw_italic_700: `${getDefaultCdnBaseUrl()}/fonts/Shantell_Sans-Informal_Bold_Italic.woff2`,
 	},
 }
 

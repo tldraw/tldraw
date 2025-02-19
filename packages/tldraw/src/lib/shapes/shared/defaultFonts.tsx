@@ -17,21 +17,33 @@ export interface TLDefaultFonts {
 	tldraw_mono: TLDefaultFont
 }
 
-const drawFont: TLFontFace = {
-	fontFamily: 'tldraw_draw',
-	src: { url: 'tldraw_draw', format: 'woff2' },
-	weight: '500 700',
-}
-
 export const DefaultFontFamilies: TLDefaultFonts = {
 	tldraw_draw: {
 		normal: {
-			'500': drawFont,
-			'700': drawFont,
+			'500': {
+				fontFamily: 'tldraw_draw',
+				src: { url: 'tldraw_draw_normal_500', format: 'woff2' },
+				weight: '500',
+			},
+			'700': {
+				fontFamily: 'tldraw_draw',
+				src: { url: 'tldraw_draw_normal_700', format: 'woff2' },
+				weight: '700',
+			},
 		},
 		italic: {
-			'500': drawFont,
-			'700': drawFont,
+			'500': {
+				fontFamily: 'tldraw_draw',
+				src: { url: 'tldraw_draw_italic_500', format: 'woff2' },
+				weight: '500',
+				style: 'italic',
+			},
+			'700': {
+				fontFamily: 'tldraw_draw',
+				src: { url: 'tldraw_draw_italic_700', format: 'woff2' },
+				weight: '700',
+				style: 'italic',
+			},
 		},
 	},
 	tldraw_sans: {

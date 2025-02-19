@@ -29,7 +29,10 @@ const FONT_MAPPING: Record<string, string> = {
 	'IBMPlexSans-MediumItalic': 'tldraw_sans_italic_500',
 	'IBMPlexSans-Bold': 'tldraw_sans_normal_700',
 	'IBMPlexSans-BoldItalic': 'tldraw_sans_italic_700',
-	'Shantell_Sans-Tldrawish': 'tldraw_draw',
+	'Shantell_Sans-Informal_Regular': 'tldraw_draw_normal_500',
+	'Shantell_Sans-Informal_Regular_Italic': 'tldraw_draw_italic_500',
+	'Shantell_Sans-Informal_Bold': 'tldraw_draw_normal_700',
+	'Shantell_Sans-Informal_Bold_Italic': 'tldraw_draw_italic_700',
 }
 
 const ASSETS_FOLDER_PATH = join(REPO_ROOT, 'assets')

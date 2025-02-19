@@ -25,7 +25,16 @@ export function getAssetUrls(opts) {
 			tldraw_serif_italic_700: formatAssetUrl('./fonts/IBMPlexSerif-BoldItalic.woff2', opts),
 			tldraw_serif_normal_500: formatAssetUrl('./fonts/IBMPlexSerif-Medium.woff2', opts),
 			tldraw_serif_italic_500: formatAssetUrl('./fonts/IBMPlexSerif-MediumItalic.woff2', opts),
-			tldraw_draw: formatAssetUrl('./fonts/Shantell_Sans-Tldrawish.woff2', opts),
+			tldraw_draw_normal_700: formatAssetUrl('./fonts/Shantell_Sans-Informal_Bold.woff2', opts),
+			tldraw_draw_italic_700: formatAssetUrl(
+				'./fonts/Shantell_Sans-Informal_Bold_Italic.woff2',
+				opts
+			),
+			tldraw_draw_normal_500: formatAssetUrl('./fonts/Shantell_Sans-Informal_Regular.woff2', opts),
+			tldraw_draw_italic_500: formatAssetUrl(
+				'./fonts/Shantell_Sans-Informal_Regular_Italic.woff2',
+				opts
+			),
 		},
 		icons: {
 			'align-bottom': iconsIcon0MergedSvg + '#align-bottom',

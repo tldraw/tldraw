@@ -35,7 +35,10 @@ import fontsIBMPlexSerifBoldWoff2 from './fonts/IBMPlexSerif-Bold.woff2'
 import fontsIBMPlexSerifBoldItalicWoff2 from './fonts/IBMPlexSerif-BoldItalic.woff2'
 import fontsIBMPlexSerifMediumWoff2 from './fonts/IBMPlexSerif-Medium.woff2'
 import fontsIBMPlexSerifMediumItalicWoff2 from './fonts/IBMPlexSerif-MediumItalic.woff2'
-import fontsShantellSansTldrawishWoff2 from './fonts/Shantell_Sans-Tldrawish.woff2'
+import fontsShantellSansInformalBoldWoff2 from './fonts/Shantell_Sans-Informal_Bold.woff2'
+import fontsShantellSansInformalBoldItalicWoff2 from './fonts/Shantell_Sans-Informal_Bold_Italic.woff2'
+import fontsShantellSansInformalRegularWoff2 from './fonts/Shantell_Sans-Informal_Regular.woff2'
+import fontsShantellSansInformalRegularItalicWoff2 from './fonts/Shantell_Sans-Informal_Regular_Italic.woff2'
 import iconsIcon0MergedSvg from './icons/icon/0_merged.svg'
 import translationsArJson from './translations/ar.json'
 import translationsBnJson from './translations/bn.json'
@@ -111,7 +114,10 @@ export function getAssetUrlsByImport(opts) {
 			tldraw_serif_italic_700: formatAssetUrl(fontsIBMPlexSerifBoldItalicWoff2, opts),
 			tldraw_serif_normal_500: formatAssetUrl(fontsIBMPlexSerifMediumWoff2, opts),
 			tldraw_serif_italic_500: formatAssetUrl(fontsIBMPlexSerifMediumItalicWoff2, opts),
-			tldraw_draw: formatAssetUrl(fontsShantellSansTldrawishWoff2, opts),
+			tldraw_draw_normal_700: formatAssetUrl(fontsShantellSansInformalBoldWoff2, opts),
+			tldraw_draw_italic_700: formatAssetUrl(fontsShantellSansInformalBoldItalicWoff2, opts),
+			tldraw_draw_normal_500: formatAssetUrl(fontsShantellSansInformalRegularWoff2, opts),
+			tldraw_draw_italic_500: formatAssetUrl(fontsShantellSansInformalRegularItalicWoff2, opts),
 		},
 		icons: {
 			'align-bottom': iconsIcon0MergedSvg2 + '#align-bottom',

@@ -17,7 +17,10 @@ export type AssetUrls = {
 		tldraw_serif_italic_700: string
 		tldraw_serif_normal_500: string
 		tldraw_serif_italic_500: string
-		tldraw_draw: string
+		tldraw_draw_normal_700: string
+		tldraw_draw_italic_700: string
+		tldraw_draw_normal_500: string
+		tldraw_draw_italic_500: string
 	}
 	icons: {
 		'align-bottom': string

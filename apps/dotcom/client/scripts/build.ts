@@ -58,7 +58,7 @@ async function build() {
 	// Add fonts to preload into index.html
 	const assetsList = readdirSync('dist/assets')
 	const fontsToPreload = [
-		'Shantell_Sans-Tldrawish',
+		'Shantell_Sans-Informal_Regular',
 		'IBMPlexSerif-Medium',
 		'IBMPlexSans-Medium',
 		'IBMPlexMono-Medium',

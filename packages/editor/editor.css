@@ -913,8 +913,8 @@ input,
 	 * We'll tell ProseMirror maybe to get rid of this on their end.
 	 */
 	-webkit-font-variant-ligatures: inherit;
-  font-variant-ligatures: inherit;
-  font-feature-settings: inherit;
+	font-variant-ligatures: inherit;
+	font-feature-settings: inherit;
 
 	/**
 	 * N.B. This following CSS Rule comes standard with the tiptap editor.
@@ -970,11 +970,6 @@ input,
 
 .tl-rich-text-tiptap code {
 	font-family: var(--tl-font-mono);
-}
-
-/* todo: remove me */
-.tl-rich-text-tiptap strong {
-	text-shadow: 1px 1px 2px var(--color-text-3);
 }
 
 .tl-rich-text-tiptap mark {

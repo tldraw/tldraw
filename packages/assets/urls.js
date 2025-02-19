@@ -64,8 +64,20 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./fonts/IBMPlexSerif-MediumItalic.woff2', import.meta.url).href,
 				opts
 			),
-			tldraw_draw: formatAssetUrl(
-				new URL('./fonts/Shantell_Sans-Tldrawish.woff2', import.meta.url).href,
+			tldraw_draw_normal_700: formatAssetUrl(
+				new URL('./fonts/Shantell_Sans-Informal_Bold.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_draw_italic_700: formatAssetUrl(
+				new URL('./fonts/Shantell_Sans-Informal_Bold_Italic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_draw_normal_500: formatAssetUrl(
+				new URL('./fonts/Shantell_Sans-Informal_Regular.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_draw_italic_500: formatAssetUrl(
+				new URL('./fonts/Shantell_Sans-Informal_Regular_Italic.woff2', import.meta.url).href,
 				opts
 			),
 		},
