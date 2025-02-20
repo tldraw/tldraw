@@ -33,7 +33,11 @@ Code.config.excludes = undefined
  * @public
  */
 export const tipTapDefaultExtensions: Extensions = [
-	StarterKit,
+	StarterKit.configure({
+		blockquote: false,
+		codeBlock: false,
+		horizontalRule: false,
+	}),
 	Link.configure({
 		openOnClick: false,
 		autolink: true,
