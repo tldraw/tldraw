@@ -35,6 +35,7 @@ import {
 } from 'tldraw'
 import { MULTIPLAYER_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
+import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType } from '../utils/app-ui-events'
 import { getDateFormat } from '../utils/dates'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
@@ -386,13 +387,10 @@ export class TldrawApp {
 		return
 	}
 
-	_slurpFileId: string | null = null
 	slurpFile() {
-		const res = this.createFile()
-		if (res.ok) {
-			this._slurpFileId = res.value.file.id
-		}
-		return res
+		return this.createFile({
+			createSource: `lf/${getScratchPersistenceKey()}`,
+		})
 	}
 
 	toggleFileShared(fileId: string) {

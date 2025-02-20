@@ -13,10 +13,7 @@ import {
 	sleep,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
-import {
-	getScratchPersistenceKey,
-	resetScratchPersistenceKey,
-} from '../../utils/scratch-persistence-key'
+import { resetScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TldrawApp } from '../app/TldrawApp'
 import { SlurpFailure } from '../components/TlaEditor/SlurpFailure'
 
@@ -75,13 +72,9 @@ interface SlurperOpts {
 export async function maybeSlurp(opts: SlurperOpts) {
 	if (opts.abortSignal.aborted) return
 	if (!opts.app.isFileOwner(opts.fileId)) return
-	let persistenceKey = null as string | null
-	if (opts.app._slurpFileId === opts.fileId) {
-		// we just landed on this file after signing in on the root page
-		persistenceKey = getScratchPersistenceKey()
-	} else {
-		persistenceKey = (opts.editor.getDocumentSettings().meta.slurpPersistenceKey as string) ?? null
-	}
+	const file = opts.app.getFile(opts.fileId)
+	if (!file?.createSource?.startsWith('lf/')) return
+	const persistenceKey = file.createSource.slice('lf/'.length)
 	if (persistenceKey) {
 		return new Slurper({ ...opts, slurpPersistenceKey: persistenceKey }).slurp()
 	}
@@ -99,11 +92,8 @@ export class Slurper {
 			if (this.opts.abortSignal.aborted) return
 			await this.slurpDocumentData()
 			if (this.opts.abortSignal.aborted) return
-			this.opts.app._slurpFileId = null
-			this.uploadLocalAssets() // no await, it can happen in the background
-		} else {
-			this.uploadLocalAssets() // no await, it can happen in the background
 		}
+		this.uploadLocalAssets() // no await, it can happen in the background
 	}
 
 	// get the records out of the local indexedDb and load them into the editor
