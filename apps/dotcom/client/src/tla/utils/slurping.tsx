@@ -75,9 +75,9 @@ export async function maybeSlurp(opts: SlurperOpts) {
 	const file = opts.app.getFile(opts.fileId)
 	if (!file?.createSource?.startsWith('lf/')) return
 	const persistenceKey = file.createSource.slice('lf/'.length)
-	if (persistenceKey) {
-		return new Slurper({ ...opts, slurpPersistenceKey: persistenceKey }).slurp()
-	}
+	if (!persistenceKey) return
+	if (opts.editor.getDocumentSettings().meta.slurpFinished) return
+	return new Slurper({ ...opts, slurpPersistenceKey: persistenceKey }).slurp()
 }
 
 export class Slurper {
@@ -225,8 +225,12 @@ export class Slurper {
 			// all uploads succeeded, clear the local db
 			// (temporarily do not delete the db in case something goes wrong and people lose their stuffs)
 			// deleteDB('TLDRAW_DOCUMENT_v2' + this.opts.slurpPersistenceKey)
-			const { slurpPersistenceKey: _, ...meta } = this.opts.editor.getDocumentSettings().meta
-			this.opts.editor.updateDocumentSettings({ meta })
+			this.opts.editor.updateDocumentSettings({
+				meta: {
+					...this.opts.editor.getDocumentSettings().meta,
+					slurpFinished: true,
+				},
+			})
 			return
 		}
 
