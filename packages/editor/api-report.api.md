@@ -668,6 +668,21 @@ export const DefaultCursor: NamedExoticComponent<TLCursorProps>;
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
+export const defaultFontFaceDescriptors: {
+    ascentOverride: string;
+    descentOverride: string;
+    featureSettings: string;
+    lineGapOverride: string;
+    stretch: string;
+    style: string;
+    unicodeRange: string;
+    weight: string;
+};
+
+// @public (undocumented)
+export const defaultFontFaceDescriptorsKeys: ("ascentOverride" | "descentOverride" | "featureSettings" | "lineGapOverride" | "stretch" | "style" | "unicodeRange" | "weight")[];
+
+// @public (undocumented)
 export function DefaultGrid({ x, y, z, size }: TLGridProps): JSX_2.Element;
 
 // @public (undocumented)
@@ -1652,6 +1667,9 @@ export function extractSessionStateFromLegacySnapshot(store: Record<string, Unkn
 
 // @internal (undocumented)
 export const featureFlags: Record<string, DebugFlag<boolean>>;
+
+// @public (undocumented)
+export type FontDescriptorsKeys = keyof typeof defaultFontFaceDescriptors;
 
 // @public (undocumented)
 export class FontManager {
@@ -3551,17 +3569,10 @@ export interface TLFilesExternalContent extends TLBaseExternalContent {
 }
 
 // @public
-export interface TLFontFace {
-    readonly ascentOverride?: string;
-    readonly descentOverride?: string;
-    readonly featureSettings?: string;
-    readonly fontFamily: string;
-    readonly lineGapOverride?: string;
+export interface TLFontFace extends Partial<Pick<FontFace, FontDescriptorsKeys>> {
+    readonly family: string;
+    // (undocumented)
     readonly src: TLFontFaceSource;
-    readonly stretch?: string;
-    readonly style?: string;
-    readonly unicodeRange?: string;
-    readonly weight?: string;
 }
 
 // @public

@@ -24,25 +24,25 @@ export const DefaultFontFaces: TLDefaultFonts = {
 	tldraw_draw: {
 		normal: {
 			normal: {
-				fontFamily: 'tldraw_draw',
+				family: 'tldraw_draw',
 				src: { url: 'tldraw_draw', format: 'woff2' },
 				weight: 'normal',
 			},
 			bold: {
-				fontFamily: 'tldraw_draw',
+				family: 'tldraw_draw',
 				src: { url: 'tldraw_draw_bold', format: 'woff2' },
 				weight: 'bold',
 			},
 		},
 		italic: {
 			normal: {
-				fontFamily: 'tldraw_draw',
+				family: 'tldraw_draw',
 				src: { url: 'tldraw_draw_italic', format: 'woff2' },
 				weight: 'normal',
 				style: 'italic',
 			},
 			bold: {
-				fontFamily: 'tldraw_draw',
+				family: 'tldraw_draw',
 				src: { url: 'tldraw_draw_italic_bold', format: 'woff2' },
 				weight: 'bold',
 				style: 'italic',
@@ -52,13 +52,13 @@ export const DefaultFontFaces: TLDefaultFonts = {
 	tldraw_sans: {
 		normal: {
 			normal: {
-				fontFamily: 'tldraw_sans',
+				family: 'tldraw_sans',
 				src: { url: 'tldraw_sans', format: 'woff2' },
 				weight: 'normal',
 				style: 'normal',
 			},
 			bold: {
-				fontFamily: 'tldraw_sans',
+				family: 'tldraw_sans',
 				src: { url: 'tldraw_sans_bold', format: 'woff2' },
 				weight: 'bold',
 				style: 'normal',
@@ -66,13 +66,13 @@ export const DefaultFontFaces: TLDefaultFonts = {
 		},
 		italic: {
 			normal: {
-				fontFamily: 'tldraw_sans',
+				family: 'tldraw_sans',
 				src: { url: 'tldraw_sans_italic', format: 'woff2' },
 				weight: 'normal',
 				style: 'italic',
 			},
 			bold: {
-				fontFamily: 'tldraw_sans',
+				family: 'tldraw_sans',
 				src: { url: 'tldraw_sans_italic_bold', format: 'woff2' },
 				weight: 'bold',
 				style: 'italic',
@@ -82,13 +82,13 @@ export const DefaultFontFaces: TLDefaultFonts = {
 	tldraw_serif: {
 		normal: {
 			normal: {
-				fontFamily: 'tldraw_serif',
+				family: 'tldraw_serif',
 				src: { url: 'tldraw_serif', format: 'woff2' },
 				weight: 'normal',
 				style: 'normal',
 			},
 			bold: {
-				fontFamily: 'tldraw_serif',
+				family: 'tldraw_serif',
 				src: { url: 'tldraw_serif_bold', format: 'woff2' },
 				weight: 'bold',
 				style: 'normal',
@@ -96,13 +96,13 @@ export const DefaultFontFaces: TLDefaultFonts = {
 		},
 		italic: {
 			normal: {
-				fontFamily: 'tldraw_serif',
+				family: 'tldraw_serif',
 				src: { url: 'tldraw_serif_italic', format: 'woff2' },
 				weight: 'normal',
 				style: 'italic',
 			},
 			bold: {
-				fontFamily: 'tldraw_serif',
+				family: 'tldraw_serif',
 				src: { url: 'tldraw_serif_italic_bold', format: 'woff2' },
 				weight: 'bold',
 				style: 'italic',
@@ -112,13 +112,13 @@ export const DefaultFontFaces: TLDefaultFonts = {
 	tldraw_mono: {
 		normal: {
 			normal: {
-				fontFamily: 'tldraw_mono',
+				family: 'tldraw_mono',
 				src: { url: 'tldraw_mono', format: 'woff2' },
 				weight: 'normal',
 				style: 'normal',
 			},
 			bold: {
-				fontFamily: 'tldraw_mono',
+				family: 'tldraw_mono',
 				src: { url: 'tldraw_mono_bold', format: 'woff2' },
 				weight: 'bold',
 				style: 'normal',
@@ -126,13 +126,13 @@ export const DefaultFontFaces: TLDefaultFonts = {
 		},
 		italic: {
 			normal: {
-				fontFamily: 'tldraw_mono',
+				family: 'tldraw_mono',
 				src: { url: 'tldraw_mono_italic', format: 'woff2' },
 				weight: 'normal',
 				style: 'italic',
 			},
 			bold: {
-				fontFamily: 'tldraw_mono',
+				family: 'tldraw_mono',
 				src: { url: 'tldraw_mono_italic_bold', format: 'woff2' },
 				weight: 'bold',
 				style: 'italic',
