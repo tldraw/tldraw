@@ -173,9 +173,6 @@ export { ClickManager, type TLClickState } from './lib/editor/managers/ClickMana
 export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager'
 export {
 	FontManager,
-	defaultFontFaceDescriptors,
-	defaultFontFaceDescriptorsKeys,
-	type FontDescriptorsKeys,
 	type TLFontFace,
 	type TLFontFaceSource,
 } from './lib/editor/managers/FontManager'

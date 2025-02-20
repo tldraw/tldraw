@@ -18,39 +18,55 @@ export interface TLFontFaceSource {
 	tech?: string
 }
 
-// From https://drafts.csswg.org/css-font-loading/#fontface-interface
-/** @public */
-export const defaultFontFaceDescriptors = {
-	style: 'normal',
-	weight: 'normal',
-	stretch: 'normal',
-	unicodeRange: 'U+0-10FFFF',
-	featureSettings: 'normal',
-	ascentOverride: 'normal',
-	descentOverride: 'normal',
-	lineGapOverride: 'normal',
-}
-
-/** @public */
-export type FontDescriptorsKeys = keyof typeof defaultFontFaceDescriptors
-/** @public */
-export const defaultFontFaceDescriptorsKeys = Object.keys(
-	defaultFontFaceDescriptors
-) as FontDescriptorsKeys[]
-
 /**
  * A font face that can be used in the editor. The properties of this are largely the same as the
  * ones in the
  * {@link https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face | css `@font-face` rule}.
  * @public
  */
-export interface TLFontFace extends Partial<Pick<FontFace, FontDescriptorsKeys>> {
+export interface TLFontFace {
 	/**
 	 * How this font can be referred to in CSS.
 	 * See {@link https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-family | `font-family`}.
 	 */
-	readonly family: string
+	readonly fontFamily: string
+	/**
+	 * The source of the font. This
+	 * See {@link https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/src | `src`}.
+	 */
 	readonly src: TLFontFaceSource
+	/**
+	 * See {@link https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/ascent-override | `ascent-override`}.
+	 */
+	readonly ascentOverride?: string
+	/**
+	 * See {@link https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/descent-override | `descent-override`}.
+	 */
+	readonly descentOverride?: string
+	/**
+	 * See {@link https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-stretch | `font-stretch`}.
+	 */
+	readonly stretch?: string
+	/**
+	 * See {@link https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-style | `font-style`}.
+	 */
+	readonly style?: string
+	/**
+	 * See {@link https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-weight | `font-weight`}.
+	 */
+	readonly weight?: string
+	/**
+	 * See {@link https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-feature-settings | `font-feature-settings`}.
+	 */
+	readonly featureSettings?: string
+	/**
+	 * See {@link https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/line-gap-override | `line-gap-override`}.
+	 */
+	readonly lineGapOverride?: string
+	/**
+	 * See {@link https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/unicode-range | `unicode-range`}.
+	 */
+	readonly unicodeRange?: string
 }
 
 interface FontState {
@@ -64,7 +80,7 @@ export class FontManager {
 	static fontFaceToCss(font: TLFontFace, fontDisplay?: FontDisplay): string {
 		return compact([
 			`@font-face {`,
-			`  font-family: ${font.family};`,
+			`  font-family: ${font.fontFamily};`,
 			`  src: ${font.src};`,
 			fontDisplay ? `  font-display: ${fontDisplay};` : null,
 			font.ascentOverride ? `  ascent-override: ${font.ascentOverride};` : null,
@@ -187,10 +203,19 @@ export class FontManager {
 	private findOrCreateFontFace(font: TLFontFace) {
 		for (const existing of document.fonts) {
 			if (
-				existing.family === font.family &&
-				defaultFontFaceDescriptorsKeys.every(
-					(key) => existing[key] === (font[key] ?? defaultFontFaceDescriptors[key])
-				)
+				existing.family === font.fontFamily &&
+				existing.style === (font.style ?? defaultFontFaceDescriptors.style) &&
+				existing.weight === (font.weight ?? defaultFontFaceDescriptors.weight) &&
+				existing.stretch === (font.stretch ?? defaultFontFaceDescriptors.stretch) &&
+				existing.unicodeRange === (font.unicodeRange ?? defaultFontFaceDescriptors.unicodeRange) &&
+				existing.featureSettings ===
+					(font.featureSettings ?? defaultFontFaceDescriptors.featureSettings) &&
+				existing.ascentOverride ===
+					(font.ascentOverride ?? defaultFontFaceDescriptors.ascentOverride) &&
+				existing.descentOverride ===
+					(font.descentOverride ?? defaultFontFaceDescriptors.descentOverride) &&
+				existing.lineGapOverride ===
+					(font.lineGapOverride ?? defaultFontFaceDescriptors.lineGapOverride)
 			) {
 				console.log('existing', font, existing)
 				return existing
@@ -198,10 +223,15 @@ export class FontManager {
 		}
 
 		const url = this.assetUrls?.[font.src.url] ?? font.src.url
-		const instance = new FontFace(font.family, `url(${JSON.stringify(url)})`, {
-			...defaultFontFaceDescriptorsKeys.map((key) => ({
-				[key]: font[key],
-			})),
+		const instance = new FontFace(font.fontFamily, `url(${JSON.stringify(url)})`, {
+			weight: font.weight,
+			style: font.style,
+			stretch: font.stretch,
+			unicodeRange: font.unicodeRange,
+			featureSettings: font.featureSettings,
+			ascentOverride: font.ascentOverride,
+			descentOverride: font.descentOverride,
+			lineGapOverride: font.lineGapOverride,
 			display: 'swap',
 		})
 
@@ -209,4 +239,16 @@ export class FontManager {
 
 		return instance
 	}
+}
+
+// From https://drafts.csswg.org/css-font-loading/#fontface-interface
+const defaultFontFaceDescriptors = {
+	style: 'normal',
+	weight: 'normal',
+	stretch: 'normal',
+	unicodeRange: 'U+0-10FFFF',
+	featureSettings: 'normal',
+	ascentOverride: 'normal',
+	descentOverride: 'normal',
+	lineGapOverride: 'normal',
 }
