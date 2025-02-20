@@ -1661,15 +1661,15 @@ export class FontManager {
     // (undocumented)
     ensureFontIsLoaded(font: TLFontFace): Promise<void>;
     // (undocumented)
-    static fontFaceToCss(font: TLFontFace, fontDisplay?: FontDisplay): string;
-    // (undocumented)
-    getShapeFontFaces(shape: TLShape): TLFontFace[];
+    getShapeFontFaces(shape: TLShape | TLShapeId): TLFontFace[];
     // (undocumented)
     loadRequiredFontsForCurrentPage(limit?: number): Promise<void>;
     // (undocumented)
     requestFonts(fonts: TLFontFace[]): void;
     // (undocumented)
-    trackFontsForShape(shape: TLShape): void;
+    toEmbeddedCssDeclaration(font: TLFontFace): Promise<string>;
+    // (undocumented)
+    trackFontsForShape(shape: TLShape | TLShapeId): void;
 }
 
 // @public (undocumented)

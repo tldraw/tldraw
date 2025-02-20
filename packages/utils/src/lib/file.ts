@@ -26,6 +26,7 @@ export class FileHelpers {
 		return await response.blob()
 	}
 	static async urlToDataUrl(url: string) {
+		if (url.startsWith('data:')) return url
 		const blob = await FileHelpers.urlToBlob(url)
 		return await FileHelpers.blobToDataUrl(blob)
 	}

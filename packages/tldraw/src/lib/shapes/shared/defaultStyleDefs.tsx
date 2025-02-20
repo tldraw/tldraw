@@ -46,9 +46,10 @@ export function getRichTextStylesExport(): SvgExportDef {
 		key: 'tl-rich-text-svg',
 		async getElement() {
 			return (
+				// TODO: support everything else here?
 				<style>{`
-				.tl-rich-text-svg p { margin: 0 }
-			`}</style>
+					.tl-rich-text-svg p { margin: 0 }
+				`}</style>
 			)
 		},
 	}

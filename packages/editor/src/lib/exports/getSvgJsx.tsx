@@ -6,7 +6,7 @@ import {
 	TLShapeId,
 	getDefaultColorTheme,
 } from '@tldraw/tlschema'
-import { hasOwnProperty, promiseWithResolve } from '@tldraw/utils'
+import { hasOwnProperty, promiseWithResolve, uniqueId } from '@tldraw/utils'
 import {
 	ComponentType,
 	Fragment,
@@ -349,13 +349,17 @@ function SvgExport({
 		}
 
 		for (const font of fontsInUse) {
-			// addExportDef({
-			// 	getElement: () => {
-			// 		// const dataUrl = await FileHelpers.
-			// 	},
-			// })
+			console.log('add export', font)
+			addExportDef({
+				key: uniqueId(),
+				getElement: async () => {
+					const declaration = await editor.fonts.toEmbeddedCssDeclaration(font)
+					console.log('declaration', declaration)
+					return <style>{declaration}</style>
+				},
+			})
 		}
-	}, [editor, renderingShapes])
+	}, [editor, renderingShapes, addExportDef])
 
 	useEffect(() => {
 		if (shapeElements === null) return

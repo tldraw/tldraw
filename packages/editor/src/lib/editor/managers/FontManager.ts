@@ -1,6 +1,12 @@
 import { atom, Atom, EMPTY_ARRAY, transact } from '@tldraw/state'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
-import { areArraysShallowEqual, compact, mapObjectMapValues, objectMapEntries } from '@tldraw/utils'
+import {
+	areArraysShallowEqual,
+	compact,
+	FileHelpers,
+	mapObjectMapValues,
+	objectMapEntries,
+} from '@tldraw/utils'
 import { Editor } from '../Editor'
 
 /**
@@ -77,24 +83,6 @@ interface FontState {
 
 /** @public */
 export class FontManager {
-	static fontFaceToCss(font: TLFontFace, fontDisplay?: FontDisplay): string {
-		return compact([
-			`@font-face {`,
-			`  font-family: ${font.family};`,
-			`  src: ${font.src};`,
-			fontDisplay ? `  font-display: ${fontDisplay};` : null,
-			font.ascentOverride ? `  ascent-override: ${font.ascentOverride};` : null,
-			font.descentOverride ? `  descent-override: ${font.descentOverride};` : null,
-			font.stretch ? `  font-stretch: ${font.stretch};` : null,
-			font.style ? `  font-style: ${font.style};` : null,
-			font.weight ? `  font-weight: ${font.weight};` : null,
-			font.featureSettings ? `  font-feature-settings: ${font.featureSettings};` : null,
-			font.lineGapOverride ? `  line-gap-override: ${font.lineGapOverride};` : null,
-			font.unicodeRange ? `  unicode-range: ${font.unicodeRange};` : null,
-			`}`,
-		]).join('\n')
-	}
-
 	constructor(
 		private readonly editor: Editor,
 		private readonly assetUrls?: { [key: string]: string | undefined }
@@ -223,6 +211,31 @@ export class FontManager {
 		document.fonts.add(instance)
 
 		return instance
+	}
+
+	async toEmbeddedCssDeclaration(font: TLFontFace) {
+		const url = this.assetUrls?.[font.src.url] ?? font.src.url
+		const dataUrl = await FileHelpers.urlToDataUrl(url)
+
+		const src = compact([
+			`url("${dataUrl}")`,
+			font.src.format ? `format(${font.src.format})` : null,
+			font.src.tech ? `tech(${font.src.tech})` : null,
+		]).join(' ')
+		return compact([
+			`@font-face {`,
+			`  font-family: ${font.family};`,
+			`  src: ${src};`,
+			font.ascentOverride ? `  ascent-override: ${font.ascentOverride};` : null,
+			font.descentOverride ? `  descent-override: ${font.descentOverride};` : null,
+			font.stretch ? `  font-stretch: ${font.stretch};` : null,
+			font.style ? `  font-style: ${font.style};` : null,
+			font.weight ? `  font-weight: ${font.weight};` : null,
+			font.featureSettings ? `  font-feature-settings: ${font.featureSettings};` : null,
+			font.lineGapOverride ? `  line-gap-override: ${font.lineGapOverride};` : null,
+			font.unicodeRange ? `  unicode-range: ${font.unicodeRange};` : null,
+			`}`,
+		]).join('\n')
 	}
 }
 
