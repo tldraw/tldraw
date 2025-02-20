@@ -17,21 +17,21 @@ import { nicelog } from './lib/nicelog'
 const PUBLIC_FOLDER_PATHS = [join(REPO_ROOT, 'packages', 'assets')]
 
 const FONT_MAPPING: Record<string, string> = {
-	'IBMPlexMono-Medium': 'tldraw_mono_normal_normal',
-	'IBMPlexMono-MediumItalic': 'tldraw_mono_italic_normal',
-	'IBMPlexMono-Bold': 'tldraw_mono_normal_bold',
+	'IBMPlexMono-Medium': 'tldraw_mono',
+	'IBMPlexMono-MediumItalic': 'tldraw_mono_italic',
+	'IBMPlexMono-Bold': 'tldraw_mono_bold',
 	'IBMPlexMono-BoldItalic': 'tldraw_mono_italic_bold',
-	'IBMPlexSerif-Medium': 'tldraw_serif_normal_normal',
-	'IBMPlexSerif-MediumItalic': 'tldraw_serif_italic_normal',
-	'IBMPlexSerif-Bold': 'tldraw_serif_normal_bold',
+	'IBMPlexSerif-Medium': 'tldraw_serif',
+	'IBMPlexSerif-MediumItalic': 'tldraw_serif_italic',
+	'IBMPlexSerif-Bold': 'tldraw_serif_bold',
 	'IBMPlexSerif-BoldItalic': 'tldraw_serif_italic_bold',
-	'IBMPlexSans-Medium': 'tldraw_sans_normal_normal',
-	'IBMPlexSans-MediumItalic': 'tldraw_sans_italic_normal',
-	'IBMPlexSans-Bold': 'tldraw_sans_normal_bold',
+	'IBMPlexSans-Medium': 'tldraw_sans',
+	'IBMPlexSans-MediumItalic': 'tldraw_sans_italic',
+	'IBMPlexSans-Bold': 'tldraw_sans_bold',
 	'IBMPlexSans-BoldItalic': 'tldraw_sans_italic_bold',
-	'Shantell_Sans-Informal_Regular': 'tldraw_draw_normal_normal',
-	'Shantell_Sans-Informal_Regular_Italic': 'tldraw_draw_italic_normal',
-	'Shantell_Sans-Informal_Bold': 'tldraw_draw_normal_bold',
+	'Shantell_Sans-Informal_Regular': 'tldraw_draw',
+	'Shantell_Sans-Informal_Regular_Italic': 'tldraw_draw_italic',
+	'Shantell_Sans-Informal_Bold': 'tldraw_draw_bold',
 	'Shantell_Sans-Informal_Bold_Italic': 'tldraw_draw_italic_bold',
 }
 

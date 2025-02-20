@@ -102,25 +102,22 @@ export function getAssetUrlsByImport(opts) {
 	const iconsIcon0MergedSvg2 = formatAssetUrl(iconsIcon0MergedSvgUrl, opts)
 	return {
 		fonts: {
-			tldraw_mono_normal_bold: formatAssetUrl(fontsIBMPlexMonoBoldWoff2Url, opts),
+			tldraw_mono_bold: formatAssetUrl(fontsIBMPlexMonoBoldWoff2Url, opts),
 			tldraw_mono_italic_bold: formatAssetUrl(fontsIBMPlexMonoBoldItalicWoff2Url, opts),
-			tldraw_mono_normal_normal: formatAssetUrl(fontsIBMPlexMonoMediumWoff2Url, opts),
-			tldraw_mono_italic_normal: formatAssetUrl(fontsIBMPlexMonoMediumItalicWoff2Url, opts),
-			tldraw_sans_normal_bold: formatAssetUrl(fontsIBMPlexSansBoldWoff2Url, opts),
+			tldraw_mono: formatAssetUrl(fontsIBMPlexMonoMediumWoff2Url, opts),
+			tldraw_mono_italic: formatAssetUrl(fontsIBMPlexMonoMediumItalicWoff2Url, opts),
+			tldraw_sans_bold: formatAssetUrl(fontsIBMPlexSansBoldWoff2Url, opts),
 			tldraw_sans_italic_bold: formatAssetUrl(fontsIBMPlexSansBoldItalicWoff2Url, opts),
-			tldraw_sans_normal_normal: formatAssetUrl(fontsIBMPlexSansMediumWoff2Url, opts),
-			tldraw_sans_italic_normal: formatAssetUrl(fontsIBMPlexSansMediumItalicWoff2Url, opts),
-			tldraw_serif_normal_bold: formatAssetUrl(fontsIBMPlexSerifBoldWoff2Url, opts),
+			tldraw_sans: formatAssetUrl(fontsIBMPlexSansMediumWoff2Url, opts),
+			tldraw_sans_italic: formatAssetUrl(fontsIBMPlexSansMediumItalicWoff2Url, opts),
+			tldraw_serif_bold: formatAssetUrl(fontsIBMPlexSerifBoldWoff2Url, opts),
 			tldraw_serif_italic_bold: formatAssetUrl(fontsIBMPlexSerifBoldItalicWoff2Url, opts),
-			tldraw_serif_normal_normal: formatAssetUrl(fontsIBMPlexSerifMediumWoff2Url, opts),
-			tldraw_serif_italic_normal: formatAssetUrl(fontsIBMPlexSerifMediumItalicWoff2Url, opts),
-			tldraw_draw_normal_bold: formatAssetUrl(fontsShantellSansInformalBoldWoff2Url, opts),
+			tldraw_serif: formatAssetUrl(fontsIBMPlexSerifMediumWoff2Url, opts),
+			tldraw_serif_italic: formatAssetUrl(fontsIBMPlexSerifMediumItalicWoff2Url, opts),
+			tldraw_draw_bold: formatAssetUrl(fontsShantellSansInformalBoldWoff2Url, opts),
 			tldraw_draw_italic_bold: formatAssetUrl(fontsShantellSansInformalBoldItalicWoff2Url, opts),
-			tldraw_draw_normal_normal: formatAssetUrl(fontsShantellSansInformalRegularWoff2Url, opts),
-			tldraw_draw_italic_normal: formatAssetUrl(
-				fontsShantellSansInformalRegularItalicWoff2Url,
-				opts
-			),
+			tldraw_draw: formatAssetUrl(fontsShantellSansInformalRegularWoff2Url, opts),
+			tldraw_draw_italic: formatAssetUrl(fontsShantellSansInformalRegularItalicWoff2Url, opts),
 		},
 		icons: {
 			'align-bottom': iconsIcon0MergedSvg2 + '#align-bottom',
