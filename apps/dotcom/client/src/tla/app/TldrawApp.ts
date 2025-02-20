@@ -3,6 +3,7 @@ import { captureException } from '@sentry/react'
 import {
 	CreateFilesResponseBody,
 	CreateSnapshotRequestBody,
+	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
 	TlaFile,
 	TlaFilePartial,
@@ -389,7 +390,7 @@ export class TldrawApp {
 
 	slurpFile() {
 		return this.createFile({
-			createSource: `lf/${getScratchPersistenceKey()}`,
+			createSource: `${LOCAL_FILE_PREFIX}/${getScratchPersistenceKey()}`,
 		})
 	}
 
