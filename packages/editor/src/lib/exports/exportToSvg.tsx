@@ -83,9 +83,9 @@ export async function exportToSvg(
 
 async function applyChangesToForeignObjects(svg: SVGSVGElement) {
 	// If any shapes have their own <foreignObject> elements, we don't want to mess with them. Our
-	// ones that we need to embed will have a class of `tl-shape-foreign-object`.
+	// ones that we need to embed will have a class of `tl-export-embed-styles`.
 	const foreignObjectChildren = [
-		...svg.querySelectorAll('foreignObject.tl-shape-foreign-object > *'),
+		...svg.querySelectorAll('foreignObject.tl-export-embed-styles > *'),
 	]
 	if (!foreignObjectChildren.length) return
 

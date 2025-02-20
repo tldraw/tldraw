@@ -77,7 +77,7 @@ export function renderHtmlFromRichText(editor: Editor, richText: TLRichText) {
  */
 export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: TLRichText) {
 	const html = renderHtmlFromRichText(editor, richText)
-	return `<div class="tl-rich-text-tiptap">${html}</div>`
+	return `<div class="tl-rich-text tl-rich-text-tiptap">${html}</div>`
 }
 
 /**

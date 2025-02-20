@@ -28,7 +28,6 @@ import {
 } from '../../utils/text/richText'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
-import { getRichTextStylesExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
 const sizeCache = createComputedCache(
@@ -145,7 +144,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const theme = getDefaultColorTheme(ctx)
 
 		const exportBounds = new Box(0, 0, width, height)
-		ctx.addExportDef(getRichTextStylesExport())
 		return (
 			<RichTextSVG
 				fontSize={FONT_SIZES[shape.props.size]}

@@ -349,12 +349,10 @@ function SvgExport({
 		}
 
 		for (const font of fontsInUse) {
-			console.log('add export', font)
 			addExportDef({
 				key: uniqueId(),
 				getElement: async () => {
 					const declaration = await editor.fonts.toEmbeddedCssDeclaration(font)
-					console.log('declaration', declaration)
 					return <style>{declaration}</style>
 				},
 			})
@@ -429,7 +427,7 @@ function ForeignObjectShape({
 				y={bbox.minY}
 				width={bbox.w}
 				height={bbox.h}
-				className="tl-shape-foreign-object"
+				className="tl-shape-foreign-object tl-export-embed-styles"
 			>
 				<div
 					className={className}

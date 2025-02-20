@@ -939,57 +939,57 @@ input,
 	/* white-space: break-spaces; */
 }
 
-.tl-rich-text-tiptap p {
+.tl-rich-text p {
 	margin: 0;
 }
 
-.tl-rich-text-tiptap ul,
-.tl-rich-text-tiptap ol {
+.tl-rich-text ul,
+.tl-rich-text ol {
 	text-align: left;
 }
 
-.tl-rich-text-tiptap h1,
-.tl-rich-text-tiptap h2,
-.tl-rich-text-tiptap h3,
-.tl-rich-text-tiptap h4,
-.tl-rich-text-tiptap h5,
-.tl-rich-text-tiptap h6 {
+.tl-rich-text h1,
+.tl-rich-text h2,
+.tl-rich-text h3,
+.tl-rich-text h4,
+.tl-rich-text h5,
+.tl-rich-text h6 {
 	margin-top: 5px;
 	margin-bottom: 10px;
 }
 
-.tl-rich-text-tiptap ul,
-.tl-rich-text-tiptap ol {
+.tl-rich-text ul,
+.tl-rich-text ol {
 	margin: 0;
 }
 
-.tl-rich-text-tiptap a {
+.tl-rich-text a {
 	color: var(--color-primary);
 	text-decoration: underline;
 }
 
-.tl-rich-text-tiptap code {
+.tl-rich-text code {
 	font-family: var(--tl-font-mono);
 }
 
-.tl-rich-text-tiptap mark {
+.tl-rich-text mark {
 	background-color: #fddd00;
 	color: currentColor;
 	border-radius: 2px;
 }
 
-.tl-theme__light .tl-rich-text-tiptap mark {
+.tl-theme__light .tl-rich-text mark {
 	text-shadow: none;
 }
 
-.tl-theme__dark .tl-rich-text-tiptap mark {
+.tl-theme__dark .tl-rich-text mark {
 	background-color: var(--color-text-highlight);
 	color: currentColor;
 }
 
 @supports (color: color(display-p3 1 1 1)) {
 	@media (color-gamut: p3) {
-		.tl-container:not(.tl-theme__force-sRGB) .tl-rich-text-tiptap mark {
+		.tl-container:not(.tl-theme__force-sRGB) .tl-rich-text mark {
 			background-color: var(--color-text-highlight-p3);
 		}
 	}

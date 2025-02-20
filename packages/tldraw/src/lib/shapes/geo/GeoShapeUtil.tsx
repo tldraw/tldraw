@@ -47,11 +47,7 @@ import {
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-import {
-	getFillDefForCanvas,
-	getFillDefForExport,
-	getRichTextStylesExport,
-} from '../shared/defaultStyleDefs'
+import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { GeoShapeBody } from './components/GeoShapeBody'
 import {
@@ -558,7 +554,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		if (renderPlaintextFromRichText(this.editor, props.richText)) {
 			const theme = getDefaultColorTheme(ctx)
 			const bounds = new Box(0, 0, props.w, props.h + props.growY)
-			ctx.addExportDef(getRichTextStylesExport())
 			textEl = (
 				<RichTextSVG
 					fontSize={LABEL_FONT_SIZES[props.size]}

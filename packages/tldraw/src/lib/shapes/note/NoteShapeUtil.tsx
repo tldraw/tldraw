@@ -40,7 +40,6 @@ import {
 	LABEL_PADDING,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-import { getRichTextStylesExport } from '../shared/defaultStyleDefs'
 
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
 
@@ -328,7 +327,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		const bounds = getBoundsForSVG(shape)
 
-		ctx.addExportDef(getRichTextStylesExport())
 		const textLabel = (
 			<RichTextSVG
 				fontSize={shape.props.fontSizeAdjustment || LABEL_FONT_SIZES[shape.props.size]}

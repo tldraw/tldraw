@@ -18,58 +18,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDefaultColorTheme } from './useDefaultColorTheme'
 
 /** @public */
-export function getRichTextStylesExport(): SvgExportDef {
-	return {
-		key: 'tl-rich-text-svg',
-		async getElement() {
-			return (
-				// TODO: support this properly. maybe use foreignobject embedder instead?
-				<style>{`
-.tl-rich-text-svg p {
-	margin: 0;
-}
-
-.tl-rich-text-svg ul,
-.tl-rich-text-svg ol {
-	text-align: left;
-}
-
-.tl-rich-text-svg h1,
-.tl-rich-text-svg h2,
-.tl-rich-text-svg h3,
-.tl-rich-text-svg h4,
-.tl-rich-text-svg h5,
-.tl-rich-text-svg h6 {
-	margin-top: 5px;
-	margin-bottom: 10px;
-}
-
-.tl-rich-text-svg ul,
-.tl-rich-text-svg ol {
-	margin: 0;
-}
-
-.tl-rich-text-svg a {
-	color: hsl(214, 84%, 56%);
-	text-decoration: underline;
-}
-
-.tl-rich-text-svg code {
-	font-family: tldraw_mono, monospace;
-}
-
-.tl-rich-text-svg mark {
-	background-color: #fddd00;
-	color: currentColor;
-	border-radius: 2px;
-}
-				`}</style>
-			)
-		},
-	}
-}
-
-/** @public */
 export function getFillDefForExport(fill: TLDefaultFillStyle): SvgExportDef {
 	return {
 		key: `${DefaultFontStyle.id}:${fill}`,

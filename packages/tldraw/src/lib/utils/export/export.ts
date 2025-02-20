@@ -1,5 +1,6 @@
 import {
 	Editor,
+	FileHelpers,
 	TLExportType,
 	TLImageExportOptions,
 	TLShapeId,
@@ -84,7 +85,9 @@ export function exportToImagePromise(
 	const idsToUse = ids?.length ? ids : [...editor.getCurrentPageShapeIds()]
 	const format = opts.format ?? 'png'
 	return {
-		blobPromise: editor.toImage(idsToUse, opts).then((result) => result.blob),
+		blobPromise: editor
+			.toImage(idsToUse, opts)
+			.then((result) => FileHelpers.rewriteMimeType(result.blob, mimeTypeByFormat[format])),
 		mimeType: mimeTypeByFormat[format],
 	}
 }
