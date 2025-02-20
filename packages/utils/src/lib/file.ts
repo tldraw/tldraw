@@ -7,14 +7,27 @@ import { fetch } from './network'
  */
 export class FileHelpers {
 	/**
-	 * @param dataURL - The file as a string.
-	 *
-	 * from https://stackoverflow.com/a/53817185
+	 * @deprecated Use `urlToArrayBuffer` instead.
 	 */
 	static async dataUrlToArrayBuffer(dataURL: string) {
 		return fetch(dataURL).then(function (result) {
 			return result.arrayBuffer()
 		})
+	}
+	/**
+	 * @param url - The url of the file.
+	 */
+	static async urlToArrayBuffer(url: string) {
+		const response = await fetch(url)
+		return await response.arrayBuffer()
+	}
+	static async urlToBlob(url: string) {
+		const response = await fetch(url)
+		return await response.blob()
+	}
+	static async urlToDataUrl(url: string) {
+		const blob = await FileHelpers.urlToBlob(url)
+		return await FileHelpers.blobToDataUrl(blob)
 	}
 
 	/**

@@ -21,6 +21,7 @@ import { flushSync } from 'react-dom'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { InnerShape, InnerShapeBackground } from '../components/Shape'
 import { Editor, TLRenderingShape } from '../editor/Editor'
+import { TLFontFace } from '../editor/managers/FontManager'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import {
 	SvgExportContext,
@@ -338,6 +339,23 @@ function SvgExport({
 			})
 		})()
 	}, [bbox, editor, exportContext, masksId, renderingShapes, singleFrameShapeId, stateAtom])
+
+	useEffect(() => {
+		const fontsInUse = new Set<TLFontFace>()
+		for (const { id } of renderingShapes) {
+			for (const font of editor.fonts.getShapeFontFaces(id)) {
+				fontsInUse.add(font)
+			}
+		}
+
+		for (const font of fontsInUse) {
+			// addExportDef({
+			// 	getElement: () => {
+			// 		// const dataUrl = await FileHelpers.
+			// 	},
+			// })
+		}
+	}, [editor, renderingShapes])
 
 	useEffect(() => {
 		if (shapeElements === null) return

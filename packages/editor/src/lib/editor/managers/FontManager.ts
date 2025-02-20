@@ -1,12 +1,6 @@
 import { atom, Atom, EMPTY_ARRAY, transact } from '@tldraw/state'
-import { TLShape } from '@tldraw/tlschema'
-import {
-	areArraysShallowEqual,
-	compact,
-	objectMapEntries,
-	objectMapFromEntries,
-	objectMapKeys,
-} from '@tldraw/utils'
+import { TLShape, TLShapeId } from '@tldraw/tlschema'
+import { areArraysShallowEqual, compact, mapObjectMapValues, objectMapEntries } from '@tldraw/utils'
 import { Editor } from '../Editor'
 
 /**
@@ -127,12 +121,14 @@ export class FontManager {
 	private readonly shapeFontFacesCache
 	private readonly shapeFontLoadStateCache
 
-	getShapeFontFaces(shape: TLShape): TLFontFace[] {
-		return this.shapeFontFacesCache.get(shape.id) ?? EMPTY_ARRAY
+	getShapeFontFaces(shape: TLShape | TLShapeId): TLFontFace[] {
+		const shapeId = typeof shape === 'string' ? shape : shape.id
+		return this.shapeFontFacesCache.get(shapeId) ?? EMPTY_ARRAY
 	}
 
-	trackFontsForShape(shape: TLShape) {
-		this.shapeFontLoadStateCache.get(shape.id)
+	trackFontsForShape(shape: TLShape | TLShapeId) {
+		const shapeId = typeof shape === 'string' ? shape : shape.id
+		this.shapeFontLoadStateCache.get(shapeId)
 	}
 
 	async loadRequiredFontsForCurrentPage(limit = Infinity) {
@@ -220,9 +216,7 @@ export class FontManager {
 
 		const url = this.assetUrls?.[font.src.url] ?? font.src.url
 		const instance = new FontFace(font.family, `url(${JSON.stringify(url)})`, {
-			...objectMapFromEntries(
-				objectMapKeys(defaultFontFaceDescriptors).map((key) => [key, font[key]])
-			),
+			...mapObjectMapValues(defaultFontFaceDescriptors, (key) => font[key]),
 			display: 'swap',
 		})
 
