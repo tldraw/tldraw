@@ -50,7 +50,6 @@ import {
 import {
 	getFillDefForCanvas,
 	getFillDefForExport,
-	getFontDefForExport,
 	getRichTextStylesExport,
 } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
@@ -557,7 +556,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		let textEl
 		if (renderPlaintextFromRichText(this.editor, props.richText)) {
-			ctx.addExportDef(getFontDefForExport(props.font))
 			const theme = getDefaultColorTheme(ctx)
 			const bounds = new Box(0, 0, props.w, props.h + props.growY)
 			ctx.addExportDef(getRichTextStylesExport())
