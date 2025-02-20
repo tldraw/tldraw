@@ -3554,8 +3554,8 @@ export interface TLFilesExternalContent extends TLBaseExternalContent {
 export interface TLFontFace {
     readonly ascentOverride?: string;
     readonly descentOverride?: string;
+    readonly family: string;
     readonly featureSettings?: string;
-    readonly fontFamily: string;
     readonly lineGapOverride?: string;
     readonly src: TLFontFaceSource;
     readonly stretch?: string;

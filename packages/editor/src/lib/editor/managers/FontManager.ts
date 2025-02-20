@@ -1,6 +1,6 @@
 import { atom, Atom, EMPTY_ARRAY, transact } from '@tldraw/state'
 import { TLShape } from '@tldraw/tlschema'
-import { areArraysShallowEqual, compact } from '@tldraw/utils'
+import { areArraysShallowEqual, compact, objectMapEntries, objectMapKeys } from '@tldraw/utils'
 import { Editor } from '../Editor'
 
 /**
@@ -29,7 +29,7 @@ export interface TLFontFace {
 	 * How this font can be referred to in CSS.
 	 * See {@link https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-family | `font-family`}.
 	 */
-	readonly fontFamily: string
+	readonly family: string
 	/**
 	 * The source of the font. This
 	 * See {@link https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/src | `src`}.
@@ -80,7 +80,7 @@ export class FontManager {
 	static fontFaceToCss(font: TLFontFace, fontDisplay?: FontDisplay): string {
 		return compact([
 			`@font-face {`,
-			`  font-family: ${font.fontFamily};`,
+			`  font-family: ${font.family};`,
 			`  src: ${font.src};`,
 			fontDisplay ? `  font-display: ${fontDisplay};` : null,
 			font.ascentOverride ? `  ascent-override: ${font.ascentOverride};` : null,
@@ -203,35 +203,18 @@ export class FontManager {
 	private findOrCreateFontFace(font: TLFontFace) {
 		for (const existing of document.fonts) {
 			if (
-				existing.family === font.fontFamily &&
-				existing.style === (font.style ?? defaultFontFaceDescriptors.style) &&
-				existing.weight === (font.weight ?? defaultFontFaceDescriptors.weight) &&
-				existing.stretch === (font.stretch ?? defaultFontFaceDescriptors.stretch) &&
-				existing.unicodeRange === (font.unicodeRange ?? defaultFontFaceDescriptors.unicodeRange) &&
-				existing.featureSettings ===
-					(font.featureSettings ?? defaultFontFaceDescriptors.featureSettings) &&
-				existing.ascentOverride ===
-					(font.ascentOverride ?? defaultFontFaceDescriptors.ascentOverride) &&
-				existing.descentOverride ===
-					(font.descentOverride ?? defaultFontFaceDescriptors.descentOverride) &&
-				existing.lineGapOverride ===
-					(font.lineGapOverride ?? defaultFontFaceDescriptors.lineGapOverride)
+				existing.family === font.family &&
+				objectMapEntries(defaultFontFaceDescriptors).every(
+					([key, defaultValue]) => existing[key] === (font[key] ?? defaultValue)
+				)
 			) {
-				console.log('existing', font, existing)
 				return existing
 			}
 		}
 
 		const url = this.assetUrls?.[font.src.url] ?? font.src.url
-		const instance = new FontFace(font.fontFamily, `url(${JSON.stringify(url)})`, {
-			weight: font.weight,
-			style: font.style,
-			stretch: font.stretch,
-			unicodeRange: font.unicodeRange,
-			featureSettings: font.featureSettings,
-			ascentOverride: font.ascentOverride,
-			descentOverride: font.descentOverride,
-			lineGapOverride: font.lineGapOverride,
+		const instance = new FontFace(font.family, `url(${JSON.stringify(url)})`, {
+			...objectMapKeys(defaultFontFaceDescriptors).map((key) => [key, font[key]]),
 			display: 'swap',
 		})
 
