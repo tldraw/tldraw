@@ -31,6 +31,7 @@ import { defaultShapeUtils } from './defaultShapeUtils'
 import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
+import { allDefaultFontFaces } from './shapes/shared/defaultFonts'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { TLUiAssetUrlOverrides } from './ui/assetUrls'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
@@ -199,6 +200,12 @@ function InsideOfEditorAndUiContext({
 		const unsubs: (void | (() => void) | undefined)[] = []
 
 		unsubs.push(registerDefaultSideEffects(editor))
+
+		// now that the editor has mounted (and presumably pre-loaded the fonts actually in use in
+		// the document), we want to preload the other default font faces in the background. These
+		// won't be directly used, but mean that when adding text the user can switch between fonts
+		// quickly, without having to wait for them to load in.
+		editor.fonts.requestFonts(allDefaultFontFaces)
 
 		// for content handling, first we register the default handlers...
 		registerDefaultExternalContentHandlers(editor, {

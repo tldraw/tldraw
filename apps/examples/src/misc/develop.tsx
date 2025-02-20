@@ -1,6 +1,5 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
 import {
-	allDefaultFontFaces,
 	DefaultContextMenu,
 	DefaultContextMenuContent,
 	TLComponents,
@@ -67,8 +66,6 @@ export default function Develop() {
 						'shape',
 						afterChangeHandler
 					)
-
-					editor.fonts.requestFonts(allDefaultFontFaces)
 
 					return () => {
 						dispose()

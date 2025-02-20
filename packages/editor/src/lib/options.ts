@@ -120,5 +120,5 @@ export const defaultTldrawOptions = {
 	createTextOnCanvasDoubleClick: true,
 	exportProvider: Fragment,
 	enableToolbarKeyboardShortcuts: true,
-	maxFontsToLoadBeforeRender: 5,
+	maxFontsToLoadBeforeRender: Infinity,
 } as const satisfies TldrawOptions

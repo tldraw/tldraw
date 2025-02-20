@@ -1215,6 +1215,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     getDefaultProps(): TLGeoShape['props'];
     // (undocumented)
+    getFontFaces(shape: TLGeoShape): TLFontFace[];
+    // (undocumented)
     getGeometry(shape: TLGeoShape): Group2d;
     // (undocumented)
     getHandleSnapGeometry(shape: TLGeoShape): HandleSnapGeometry;
@@ -1677,6 +1679,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     component(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLNoteShape['props'];
+    // (undocumented)
+    getFontFaces(shape: TLNoteShape): TLFontFace[];
     // (undocumented)
     getGeometry(shape: TLNoteShape): Group2d;
     // (undocumented)

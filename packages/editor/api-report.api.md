@@ -766,7 +766,7 @@ export const defaultTldrawOptions: {
     readonly longPressDurationMs: 500;
     readonly maxExportDelayMs: 5000;
     readonly maxFilesAtOnce: 100;
-    readonly maxFontsToLoadBeforeRender: 5;
+    readonly maxFontsToLoadBeforeRender: number;
     readonly maxPages: 40;
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;

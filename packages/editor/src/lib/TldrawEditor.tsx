@@ -577,8 +577,13 @@ function TldrawEditorWithReadyStore({
 
 	const { Canvas, LoadingScreen } = useEditorComponents()
 
-	if (!editor) {
-		return <div className="tl-canvas" ref={canvasRef} />
+	if (!editor || !fontLoadingState?.isLoaded) {
+		return (
+			<>
+				{LoadingScreen && <LoadingScreen />}
+				<div className="tl-canvas" ref={canvasRef} />
+			</>
+		)
 	}
 
 	return (
@@ -598,7 +603,6 @@ function TldrawEditorWithReadyStore({
 				<Crash crashingError={crashingError} />
 			) : (
 				<EditorProvider editor={editor}>
-					{!fontLoadingState?.isLoaded && LoadingScreen && <LoadingScreen />}
 					<Layout onMount={onMount}>
 						{children ?? (Canvas ? <Canvas key={editor.contextId} /> : null)}
 						<Watermark />

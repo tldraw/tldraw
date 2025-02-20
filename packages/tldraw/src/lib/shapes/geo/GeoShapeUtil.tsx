@@ -16,6 +16,7 @@ import {
 	SVGContainer,
 	Stadium2d,
 	SvgExportContext,
+	TLFontFace,
 	TLGeoShape,
 	TLGeoShapeProps,
 	TLResizeInfo,
@@ -25,6 +26,7 @@ import {
 	geoShapeMigrations,
 	geoShapeProps,
 	getDefaultColorTheme,
+	getFontsFromRichText,
 	getPolygonVertices,
 	lerp,
 	toRichText,
@@ -415,6 +417,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	override getText(shape: TLGeoShape) {
 		return renderPlaintextFromRichText(this.editor, shape.props.richText)
+	}
+
+	override getFontFaces(shape: TLGeoShape): TLFontFace[] {
+		return getFontsFromRichText(this.editor, shape.props.richText, {
+			family: `tldraw_${shape.props.font}`,
+			weight: 'normal',
+			style: 'normal',
+		})
 	}
 
 	component(shape: TLGeoShape) {
