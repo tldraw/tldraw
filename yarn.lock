@@ -6783,7 +6783,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tiptap/extension-bold@npm:^2.11.3, @tiptap/extension-bold@npm:^2.9.1":
+"@tiptap/extension-bold@npm:^2.11.3":
   version: 2.11.5
   resolution: "@tiptap/extension-bold@npm:2.11.5"
   peerDependencies:
@@ -6804,7 +6804,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tiptap/extension-bullet-list@npm:^2.11.3, @tiptap/extension-bullet-list@npm:^2.9.1":
+"@tiptap/extension-bullet-list@npm:^2.11.3":
   version: 2.11.5
   resolution: "@tiptap/extension-bullet-list@npm:2.11.5"
   peerDependencies:
@@ -6832,7 +6832,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tiptap/extension-document@npm:^2.11.3, @tiptap/extension-document@npm:^2.9.1":
+"@tiptap/extension-document@npm:^2.11.3":
   version: 2.11.5
   resolution: "@tiptap/extension-document@npm:2.11.5"
   peerDependencies:
@@ -6873,7 +6873,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tiptap/extension-gapcursor@npm:^2.11.3, @tiptap/extension-gapcursor@npm:^2.9.1":
+"@tiptap/extension-gapcursor@npm:^2.11.3":
   version: 2.11.5
   resolution: "@tiptap/extension-gapcursor@npm:2.11.5"
   peerDependencies:
@@ -6892,7 +6892,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tiptap/extension-heading@npm:^2.11.3, @tiptap/extension-heading@npm:^2.9.1":
+"@tiptap/extension-heading@npm:^2.11.3":
   version: 2.11.5
   resolution: "@tiptap/extension-heading@npm:2.11.5"
   peerDependencies:
@@ -6910,7 +6910,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tiptap/extension-history@npm:^2.11.3, @tiptap/extension-history@npm:^2.9.1":
+"@tiptap/extension-history@npm:^2.11.3":
   version: 2.11.5
   resolution: "@tiptap/extension-history@npm:2.11.5"
   peerDependencies:
@@ -6930,7 +6930,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tiptap/extension-italic@npm:^2.11.3, @tiptap/extension-italic@npm:^2.9.1":
+"@tiptap/extension-italic@npm:^2.11.3":
   version: 2.11.5
   resolution: "@tiptap/extension-italic@npm:2.11.5"
   peerDependencies:
@@ -6951,7 +6951,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tiptap/extension-list-item@npm:^2.11.3, @tiptap/extension-list-item@npm:^2.9.1":
+"@tiptap/extension-list-item@npm:^2.11.3":
   version: 2.11.5
   resolution: "@tiptap/extension-list-item@npm:2.11.5"
   peerDependencies:
@@ -6969,7 +6969,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tiptap/extension-paragraph@npm:^2.11.3, @tiptap/extension-paragraph@npm:^2.9.1":
+"@tiptap/extension-paragraph@npm:^2.11.3":
   version: 2.11.5
   resolution: "@tiptap/extension-paragraph@npm:2.11.5"
   peerDependencies:
@@ -6996,7 +6996,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tiptap/extension-text@npm:^2.11.3, @tiptap/extension-text@npm:^2.9.1":
+"@tiptap/extension-text@npm:^2.11.3":
   version: 2.11.5
   resolution: "@tiptap/extension-text@npm:2.11.5"
   peerDependencies:
@@ -23949,21 +23949,12 @@ __metadata:
     "@testing-library/jest-dom": "npm:^5.17.0"
     "@testing-library/react": "npm:^15.0.7"
     "@tiptap/core": "npm:^2.9.1"
-    "@tiptap/extension-bold": "npm:^2.9.1"
-    "@tiptap/extension-bullet-list": "npm:^2.9.1"
     "@tiptap/extension-code": "npm:^2.9.1"
-    "@tiptap/extension-document": "npm:^2.9.1"
-    "@tiptap/extension-gapcursor": "npm:^2.9.1"
-    "@tiptap/extension-heading": "npm:^2.9.1"
     "@tiptap/extension-highlight": "npm:^2.9.1"
-    "@tiptap/extension-history": "npm:^2.9.1"
-    "@tiptap/extension-italic": "npm:^2.9.1"
     "@tiptap/extension-link": "npm:^2.9.1"
-    "@tiptap/extension-list-item": "npm:^2.9.1"
-    "@tiptap/extension-paragraph": "npm:^2.9.1"
-    "@tiptap/extension-text": "npm:^2.9.1"
     "@tiptap/pm": "npm:^2.9.1"
     "@tiptap/react": "npm:^2.9.1"
+    "@tiptap/starter-kit": "npm:^2.9.1"
     "@tldraw/editor": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@types/classnames": "npm:^2.3.4"

@@ -2542,7 +2542,10 @@ export interface TLEditorAssetUrls {
     // (undocumented)
     fonts?: {
         [key: string]: string | undefined;
-        tldraw_draw?: string;
+        tldraw_draw_italic_bold?: string;
+        tldraw_draw_italic_normal?: string;
+        tldraw_draw_normal_bold?: string;
+        tldraw_draw_normal_normal?: string;
         tldraw_mono_italic_bold?: string;
         tldraw_mono_italic_normal?: string;
         tldraw_mono_normal_bold?: string;
