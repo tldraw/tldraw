@@ -1,6 +1,12 @@
 import { atom, Atom, EMPTY_ARRAY, transact } from '@tldraw/state'
 import { TLShape } from '@tldraw/tlschema'
-import { areArraysShallowEqual, compact, objectMapEntries, objectMapKeys } from '@tldraw/utils'
+import {
+	areArraysShallowEqual,
+	compact,
+	objectMapEntries,
+	objectMapFromEntries,
+	objectMapKeys,
+} from '@tldraw/utils'
 import { Editor } from '../Editor'
 
 /**
@@ -214,7 +220,9 @@ export class FontManager {
 
 		const url = this.assetUrls?.[font.src.url] ?? font.src.url
 		const instance = new FontFace(font.family, `url(${JSON.stringify(url)})`, {
-			...objectMapKeys(defaultFontFaceDescriptors).map((key) => [key, font[key]]),
+			...objectMapFromEntries(
+				objectMapKeys(defaultFontFaceDescriptors).map((key) => [key, font[key]])
+			),
 			display: 'swap',
 		})
 
