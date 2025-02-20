@@ -87,7 +87,7 @@ const migrations: Migration[] = [
 ]
 
 const ONE_MINUTE = 60 * 1000
-const PRUNE_TIME = ONE_MINUTE
+const PRUNE_TIME = 10 * ONE_MINUTE
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
