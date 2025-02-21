@@ -26,7 +26,7 @@ import {
 	userKeys,
 } from './getFetchEverythingSql'
 import { Environment, TLUserDurableObjectEvent } from './types'
-import { getReplicator } from './utils/durableObjects'
+import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -60,7 +60,7 @@ export interface ZMutationCommit {
 	sequenceNumber: number
 }
 export interface ZForceReboot {
-	type: 'force_reboot'
+	type: 'maybe_force_reboot'
 	sequenceId: string
 	sequenceNumber: number
 }
@@ -158,6 +158,7 @@ export class UserDataSyncer {
 		this.numConsecutiveReboots++
 		if (this.numConsecutiveReboots > 5) {
 			this.logEvent({ type: 'user_do_abort', id: this.userId })
+			getStatsDurableObjct(this.env).recordUserDoAbort()
 			this.ctx.abort()
 			return
 		}
@@ -167,12 +168,19 @@ export class UserDataSyncer {
 			if (delay) {
 				await sleep(1000)
 			}
-			try {
-				await this.boot()
-				this.numConsecutiveReboots = 0
-			} catch (e) {
+			const res = await Promise.race([
+				this.boot().then(() => 'ok'),
+				sleep(5000).then(() => 'timeout'),
+			]).catch((e) => {
 				this.logEvent({ type: 'reboot_error', id: this.userId })
+				this.log.debug('reboot error', e.stack)
 				this.captureException(e)
+				return 'error'
+			})
+			this.log.debug('rebooted', res)
+			if (res === 'ok') {
+				this.numConsecutiveReboots = 0
+			} else {
 				this.reboot()
 			}
 		})
@@ -344,15 +352,14 @@ export class UserDataSyncer {
 	}
 
 	handleReplicationEvent(event: ZReplicationEvent) {
-		if (
-			event.type === 'force_reboot' ||
-			('sequenceId' in this.state && this.state.sequenceId !== event.sequenceId)
-		) {
+		if ('sequenceId' in this.state && this.state.sequenceId !== event.sequenceId) {
 			// the replicator has restarted, so we need to reboot
 			this.log.debug('force reboot', this.state, event)
 			this.reboot()
 			return
 		}
+		if (event.type === 'maybe_force_reboot') return
+
 		assert(this.state.type !== 'init', 'state should not be init: ' + event.type)
 		if (event.sequenceNumber !== this.state.lastSequenceNumber + 1) {
 			this.log.debug(
@@ -397,12 +404,6 @@ export class UserDataSyncer {
 			return this.store.getCommittedData()
 		}
 		return null
-	}
-
-	async waitUntilConnected() {
-		while (this.state.type !== 'connected') {
-			await this.state.promise
-		}
 	}
 
 	private __rebootIfMutationsNotCommitted() {

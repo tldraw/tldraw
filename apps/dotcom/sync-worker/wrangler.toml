@@ -34,6 +34,14 @@ new_classes = ["TLUserDurableObject"]
 tag = "v6"
 new_sqlite_classes = ["TLLoggerDurableObject"]
 
+[[migrations]]
+tag = "v7"
+new_sqlite_classes = ["TLStatsDurableObject"]
+
+[[migrations]]
+tag = "v8"
+deleted_classes = ["TLAppDurableObject"]
+
 [[analytics_engine_datasets]]
 binding = "MEASURE"
 
@@ -87,6 +95,7 @@ bindings = [
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
 	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
+	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 [durable_objects]
@@ -95,6 +104,7 @@ bindings = [
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
 	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
+	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 [env.preview.durable_objects]
@@ -103,6 +113,7 @@ bindings = [
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
 	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
+	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 [env.staging.durable_objects]
@@ -111,6 +122,7 @@ bindings = [
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
 	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
+	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 [env.production.durable_objects]
@@ -119,6 +131,7 @@ bindings = [
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
 	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
+	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 #################### Analytics engine ####################

@@ -721,7 +721,7 @@ export function defaultHandleExternalFileAsset(editor: Editor, { file, assetId }
 export function defaultHandleExternalFileContent(editor: Editor, { point, files }: {
     files: File[];
     point?: VecLike;
-}, { maxAssetSize, acceptedImageMimeTypes, acceptedVideoMimeTypes, toasts, msg, }: TLDefaultExternalContentHandlerOpts): Promise<void>;
+}, { maxAssetSize, maxImageDimension, acceptedImageMimeTypes, acceptedVideoMimeTypes, toasts, msg, }: TLDefaultExternalContentHandlerOpts): Promise<void>;
 
 // @public (undocumented)
 export function defaultHandleExternalSvgTextContent(editor: Editor, { point, text }: {
@@ -1367,7 +1367,7 @@ export function getDefaultCrop(): {
 export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string): TLEmbedResult;
 
 // @public (undocumented)
-export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean): Promise<TLImageAsset | TLVideoAsset>;
+export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean, maxImageDimension?: number): Promise<TLImageAsset | TLVideoAsset>;
 
 // @public (undocumented)
 export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];

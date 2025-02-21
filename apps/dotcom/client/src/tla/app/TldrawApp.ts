@@ -3,6 +3,8 @@ import { captureException } from '@sentry/react'
 import {
 	CreateFilesResponseBody,
 	CreateSnapshotRequestBody,
+	LOCAL_FILE_PREFIX,
+	MAX_NUMBER_OF_FILES,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
@@ -34,6 +36,7 @@ import {
 } from 'tldraw'
 import { MULTIPLAYER_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
+import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType } from '../utils/app-ui-events'
 import { getDateFormat } from '../utils/dates'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
@@ -47,7 +50,7 @@ let appId = 0
 
 export class TldrawApp {
 	config = {
-		maxNumberOfFiles: 100,
+		maxNumberOfFiles: MAX_NUMBER_OF_FILES,
 	}
 
 	readonly id = appId++
@@ -171,7 +174,7 @@ export class TldrawApp {
 		max_files_title: {
 			defaultMessage: 'File limit reached',
 		},
-		max_files_description: {
+		max_files_reached: {
 			defaultMessage:
 				'You have reached the maximum number of files. You need to delete old files before creating new ones.',
 		},
@@ -314,7 +317,7 @@ export class TldrawApp {
 		if (!this.canCreateNewFile()) {
 			this.toasts?.addToast({
 				title: this.getIntl().formatMessage(this.messages.max_files_title),
-				description: this.getIntl().formatMessage(this.messages.max_files_description),
+				description: this.getIntl().formatMessage(this.messages.max_files_reached),
 				keepOpen: true,
 			})
 			return Result.err('max number of files reached')
@@ -385,13 +388,10 @@ export class TldrawApp {
 		return
 	}
 
-	_slurpFileId: string | null = null
 	slurpFile() {
-		const res = this.createFile()
-		if (res.ok) {
-			this._slurpFileId = res.value.file.id
-		}
-		return res
+		return this.createFile({
+			createSource: `${LOCAL_FILE_PREFIX}/${getScratchPersistenceKey()}`,
+		})
 	}
 
 	toggleFileShared(fileId: string) {

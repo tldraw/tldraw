@@ -1,10 +1,10 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
 import type { RoomSnapshot } from '@tldraw/sync-core'
-// import { TLAppDurableObject } from './TLAppDurableObject'
 import type { TLDrawDurableObject } from './TLDrawDurableObject'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
 import type { TLPostgresReplicator } from './TLPostgresReplicator'
+import { TLStatsDurableObject } from './TLStatsDurableObject'
 import type { TLUserDurableObject } from './TLUserDurableObject'
 
 // This type isn't available in @cloudflare/workers-types yet
@@ -19,10 +19,10 @@ export interface Analytics {
 export interface Environment {
 	// bindings
 	TLDR_DOC: DurableObjectNamespace<TLDrawDurableObject>
-	// TLAPP_DO: DurableObjectNamespace<TLAppDurableObject>
 	TL_PG_REPLICATOR: DurableObjectNamespace<TLPostgresReplicator>
 	TL_USER: DurableObjectNamespace<TLUserDurableObject>
 	TL_LOGGER: DurableObjectNamespace<TLLoggerDurableObject>
+	TL_STATS: DurableObjectNamespace<TLStatsDurableObject>
 
 	BOTCOM_POSTGRES_CONNECTION_STRING: string
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
@@ -58,6 +58,8 @@ export interface Environment {
 	WORKER_NAME: string | undefined
 	ASSET_UPLOAD_ORIGIN: string | undefined
 	MULTIPLAYER_SERVER: string | undefined
+
+	HEALTH_CHECK_BEARER_TOKEN: string | undefined
 
 	RATE_LIMITER: RateLimit
 }

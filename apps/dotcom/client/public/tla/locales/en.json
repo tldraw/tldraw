@@ -107,9 +107,6 @@
   "54d240fa41": {
     "translation": "Please slow down."
   },
-  "5530ac3cc1": {
-    "translation": "<discord>Chat with us on Discord</discord>"
-  },
   "554a05155c": {
     "translation": "Still having trouble? <a>Report a problem</a>"
   },
@@ -176,8 +173,14 @@
   "761e93ede9": {
     "translation": "Manage cookies"
   },
+  "764671e008": {
+    "translation": "Chat with us on Discord"
+  },
   "777f9e90cf": {
     "translation": "Invalid request."
+  },
+  "797799f35e": {
+    "translation": "Submit an issue on GitHub"
   },
   "7cb5f8b4a5": {
     "translation": "Forget"
@@ -214,9 +217,6 @@
   },
   "904a830405": {
     "translation": "Rename"
-  },
-  "91ae339f66": {
-    "translation": "<github>Submit an issue on GitHub</github>"
   },
   "91e49bb0eb": {
     "translation": "Copy to my files"

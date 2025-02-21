@@ -10,7 +10,6 @@ export const ROUTES = {
 	tlaLocalFile: `/lf/:fileSlug`,
 	tlaPublish: `/p/:fileSlug`,
 	// Legacy routes
-	tlaTouchScreenSidePanel: '/ts-side',
 	tlaLegacyRoom: '/r/:roomId',
 	tlaLegacyRoomHistory: '/r/:boardId/history',
 	tlaLegacyRoomHistorySnapshot: '/r/:boardId/history/:timestamp',
