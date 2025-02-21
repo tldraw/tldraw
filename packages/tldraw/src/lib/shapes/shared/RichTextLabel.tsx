@@ -125,7 +125,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 				<div className={`${cssPrefix} tl-text tl-text-content`} dir="auto">
 					{richText && (
 						<div
-							className="tl-rich-text tl-rich-text-tiptap"
+							className="tl-rich-text"
 							// todo: see if I can abuse this
 							dangerouslySetInnerHTML={{ __html: html || '' }}
 							onPointerDownCapture={handlePointerDownCapture}

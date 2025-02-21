@@ -897,11 +897,11 @@ input,
 	text-shadow: none;
 }
 
-.tl-rich-text-tiptap[data-iseditinganything='true'] {
+.tl-rich-text[data-iseditinganything='true'] {
 	cursor: var(--tl-cursor-text);
 }
 
-.tl-rich-text-tiptap .ProseMirror {
+.tl-rich-text .ProseMirror {
 	word-wrap: break-word;
 	overflow-wrap: break-word;
 	white-space: pre-wrap;
