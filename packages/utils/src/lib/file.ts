@@ -14,6 +14,7 @@ export class FileHelpers {
 			return result.arrayBuffer()
 		})
 	}
+
 	/**
 	 * @param url - The url of the file.
 	 */
@@ -21,10 +22,12 @@ export class FileHelpers {
 		const response = await fetch(url)
 		return await response.arrayBuffer()
 	}
+
 	static async urlToBlob(url: string) {
 		const response = await fetch(url)
 		return await response.blob()
 	}
+
 	static async urlToDataUrl(url: string) {
 		if (url.startsWith('data:')) return url
 		const blob = await FileHelpers.urlToBlob(url)

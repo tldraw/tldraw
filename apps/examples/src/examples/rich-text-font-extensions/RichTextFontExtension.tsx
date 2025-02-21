@@ -104,20 +104,6 @@ const textOptions = {
 	tipTapConfig: {
 		extensions: [...tipTapDefaultExtensions, FontFamily, FontSize, TextStyle],
 	},
-	// fontVisitor: (node: Node, state: RichTextFontState, addFont: (font: TLFontFace) => void) => {
-	// 	for (const mark of node.marks) {
-	// 		if (mark.type.name === 'textStyle' && mark.attrs.fontFamily !== state.family) {
-	// 			state = { ...state, family: mark.attrs.fontFamily }
-	// 		}
-	// 	}
-
-	// 	const font = theFonts[state.family]
-	// 	if (font) {
-	// 		addFont(font)
-	// 	}
-
-	// 	return state
-	// },
 }
 
 export default function RichTextFontExtensionExample() {
