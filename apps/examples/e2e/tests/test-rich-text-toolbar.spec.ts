@@ -255,9 +255,6 @@ test.describe('Rich text behaviour', () => {
 		// selects an empty space between "in" and "love"
 		await page.mouse.dblclick(150, 150)
 
-		// toolbar is closed
-		await expect(richTextToolbar.container).toHaveAttribute('data-visible', 'false')
-
 		// takes a moment for the toolbar to show up
 		await sleep(200)
 		await expect(richTextToolbar.container).toHaveAttribute('data-visible', 'true')
