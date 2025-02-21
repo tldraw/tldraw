@@ -58,7 +58,7 @@ export default function Develop() {
 			<Tldraw
 				licenseKey={getLicenseKey()}
 				overrides={[performanceOverrides, debuggingOverrides]}
-				persistenceKey="examplee"
+				persistenceKey="example"
 				onMount={(editor) => {
 					;(window as any).app = editor
 					;(window as any).editor = editor
@@ -66,7 +66,6 @@ export default function Develop() {
 						'shape',
 						afterChangeHandler
 					)
-
 					return () => {
 						dispose()
 					}
