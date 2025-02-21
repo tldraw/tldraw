@@ -78,7 +78,7 @@ export function TlaFileMenu({
 	)
 }
 
-function FileItems({
+export function FileItems({
 	source,
 	fileId,
 	onRenameAction,
@@ -188,7 +188,7 @@ function FileItems({
 	)
 }
 
-function FileItemsWrapper({
+export function FileItemsWrapper({
 	showAsSubMenu,
 	children,
 }: {

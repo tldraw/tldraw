@@ -11526,6 +11526,7 @@ __metadata:
     "@formatjs/cli": "npm:^6.5.1"
     "@jest/globals": "npm:30.0.0-alpha.2"
     "@playwright/test": "npm:^1.50.0"
+    "@radix-ui/react-context-menu": "npm:^2.2.5"
     "@radix-ui/react-popover": "npm:^1.1.5"
     "@radix-ui/react-select": "npm:^2.1.5"
     "@radix-ui/react-tooltip": "npm:^1.1.7"
