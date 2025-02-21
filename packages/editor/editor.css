@@ -857,7 +857,6 @@ input,
 	width: 100%;
 	min-width: 1px;
 	min-height: 1px;
-	overflow: visible;
 	outline: none;
 }
 
@@ -873,6 +872,7 @@ input,
 }
 
 .tl-text-content {
+	overflow: visible;
 	pointer-events: none;
 }
 
@@ -880,9 +880,15 @@ input,
 	resize: none;
 	user-select: all;
 	-webkit-user-select: text;
-	/* Note: this overflow: hidden is key for scrollbars to not show up. */
-	overflow: hidden;
 	cursor: var(--tl-cursor-text);
+}
+
+.tl-text-input:not(.tl-rich-text) {
+	/*
+	 * Note: this `overflow: hidden` is key for scrollbars to not show up
+	 * plaintext/<textarea> editors.
+	 */
+	overflow: hidden;
 }
 
 .tl-text-wrapper[data-isediting='false'] .tl-text-input,
@@ -946,6 +952,7 @@ input,
 .tl-rich-text ul,
 .tl-rich-text ol {
 	text-align: left;
+	margin: 0;
 }
 
 .tl-rich-text h1,
@@ -956,11 +963,6 @@ input,
 .tl-rich-text h6 {
 	margin-top: 5px;
 	margin-bottom: 10px;
-}
-
-.tl-rich-text ul,
-.tl-rich-text ol {
-	margin: 0;
 }
 
 .tl-rich-text a {
