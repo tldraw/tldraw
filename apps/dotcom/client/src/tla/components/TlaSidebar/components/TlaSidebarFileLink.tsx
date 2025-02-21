@@ -48,6 +48,7 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 	const isOwnFile = useIsFileOwner(fileId)
 	const isActive = fileSlug === fileId
 	const fileName = app.getFileName(fileId)
+	const isMobile = getIsCoarsePointer()
 	useEffect(() => {
 		if (isActive) {
 			scrollActiveFileLinkIntoView()
@@ -56,7 +57,7 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 
 	const [isRenaming, setIsRenaming] = useState(false)
 	const handleRenameAction = () => {
-		if (getIsCoarsePointer()) {
+		if (isMobile) {
 			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
 			if (newName) {
 				app.updateFile({ id: fileId, name: newName })
@@ -84,15 +85,18 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 				/>
 			</_ContextMenu.Trigger>
 			<_ContextMenu.Content className="tlui-menu scrollable">
-				<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
-					<FileItemsWrapper showAsSubMenu={false}>
-						<FileItems
-							source="sidebar-context-menu"
-							fileId={fileId}
-							onRenameAction={handleRenameAction}
-						/>
-					</FileItemsWrapper>
-				</TldrawUiMenuContextProvider>
+				{/* Don't show the context menu on mobile */}
+				{!isMobile && (
+					<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
+						<FileItemsWrapper showAsSubMenu={false}>
+							<FileItems
+								source="sidebar-context-menu"
+								fileId={fileId}
+								onRenameAction={handleRenameAction}
+							/>
+						</FileItemsWrapper>
+					</TldrawUiMenuContextProvider>
+				)}
 			</_ContextMenu.Content>
 		</_ContextMenu.Root>
 	)
