@@ -16,20 +16,68 @@ export function getAssetUrlsByMetaUrl(opts) {
 	)
 	return {
 		fonts: {
-			monospace: formatAssetUrl(
+			tldraw_mono_bold: formatAssetUrl(
+				new URL('./fonts/IBMPlexMono-Bold.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_mono_italic_bold: formatAssetUrl(
+				new URL('./fonts/IBMPlexMono-BoldItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_mono: formatAssetUrl(
 				new URL('./fonts/IBMPlexMono-Medium.woff2', import.meta.url).href,
 				opts
 			),
-			sansSerif: formatAssetUrl(
+			tldraw_mono_italic: formatAssetUrl(
+				new URL('./fonts/IBMPlexMono-MediumItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_sans_bold: formatAssetUrl(
+				new URL('./fonts/IBMPlexSans-Bold.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_sans_italic_bold: formatAssetUrl(
+				new URL('./fonts/IBMPlexSans-BoldItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_sans: formatAssetUrl(
 				new URL('./fonts/IBMPlexSans-Medium.woff2', import.meta.url).href,
 				opts
 			),
-			serif: formatAssetUrl(
+			tldraw_sans_italic: formatAssetUrl(
+				new URL('./fonts/IBMPlexSans-MediumItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_serif_bold: formatAssetUrl(
+				new URL('./fonts/IBMPlexSerif-Bold.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_serif_italic_bold: formatAssetUrl(
+				new URL('./fonts/IBMPlexSerif-BoldItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_serif: formatAssetUrl(
 				new URL('./fonts/IBMPlexSerif-Medium.woff2', import.meta.url).href,
 				opts
 			),
-			draw: formatAssetUrl(
-				new URL('./fonts/Shantell_Sans-Tldrawish.woff2', import.meta.url).href,
+			tldraw_serif_italic: formatAssetUrl(
+				new URL('./fonts/IBMPlexSerif-MediumItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_draw_bold: formatAssetUrl(
+				new URL('./fonts/Shantell_Sans-Informal_Bold.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_draw_italic_bold: formatAssetUrl(
+				new URL('./fonts/Shantell_Sans-Informal_Bold_Italic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_draw: formatAssetUrl(
+				new URL('./fonts/Shantell_Sans-Informal_Regular.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_draw_italic: formatAssetUrl(
+				new URL('./fonts/Shantell_Sans-Informal_Regular_Italic.woff2', import.meta.url).href,
 				opts
 			),
 		},

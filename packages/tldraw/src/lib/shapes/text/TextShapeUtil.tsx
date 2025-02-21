@@ -5,12 +5,14 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
+	TLFontFace,
 	TLResizeInfo,
 	TLShapeId,
 	TLTextShape,
 	Vec,
-	WeakCache,
+	createComputedCache,
 	getDefaultColorTheme,
+	getFontsFromRichText,
 	resizeScaled,
 	textShapeMigrations,
 	textShapeProps,
@@ -26,10 +28,16 @@ import {
 } from '../../utils/text/richText'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
-import { getFontDefForExport, getRichTextStylesExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
-const sizeCache = new WeakCache<TLTextShape['props'], { height: number; width: number }>()
+const sizeCache = createComputedCache(
+	'text size',
+	(editor: Editor, shape: TLTextShape) => {
+		editor.fonts.trackFontsForShape(shape)
+		return getTextSize(editor, shape.props)
+	},
+	{ areRecordsEqual: (a, b) => a.props === b.props }
+)
 
 /** @public */
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
@@ -51,7 +59,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	getMinDimensions(shape: TLTextShape) {
-		return sizeCache.get(shape.props, (props) => getTextSize(this.editor, props))
+		return sizeCache.get(this.editor, shape.id)!
 	}
 
 	getGeometry(shape: TLTextShape) {
@@ -62,6 +70,14 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			height: height * scale,
 			isFilled: true,
 			isLabel: true,
+		})
+	}
+
+	override getFontFaces(shape: TLTextShape): TLFontFace[] {
+		return getFontsFromRichText(this.editor, shape.props.richText, {
+			family: `tldraw_${shape.props.font}`,
+			weight: 'normal',
+			style: 'normal',
 		})
 	}
 
@@ -121,10 +137,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
-		if (shape.props.richText) {
-			ctx.addExportDef(getFontDefForExport(shape.props.font))
-		}
-
 		const bounds = this.editor.getShapeGeometry(shape).bounds
 		const width = bounds.width / (shape.props.scale ?? 1)
 		const height = bounds.height / (shape.props.scale ?? 1)
@@ -132,7 +144,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const theme = getDefaultColorTheme(ctx)
 
 		const exportBounds = new Box(0, 0, width, height)
-		ctx.addExportDef(getRichTextStylesExport())
 		return (
 			<RichTextSVG
 				fontSize={FONT_SIZES[shape.props.size]}

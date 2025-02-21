@@ -1,8 +1,5 @@
 import {
-	DefaultSpinner,
 	Editor,
-	ErrorScreen,
-	LoadingScreen,
 	TLAnyBindingUtilConstructor,
 	TLAnyShapeUtilConstructor,
 	TLEditorSnapshot,
@@ -16,7 +13,6 @@ import { memo, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { defaultBindingUtils } from './defaultBindingUtils'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { TLUiAssetUrlOverrides } from './ui/assetUrls'
-import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /** @public */
@@ -86,7 +82,6 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 	const store = useTLStore({ snapshot: props.snapshot, shapeUtils: shapeUtilsWithDefaults })
 
 	const assets = useDefaultEditorAssetsWithOverrides(props.assetUrls)
-	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
 
 	const {
 		pageId,
@@ -99,12 +94,12 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		preserveAspectRatio,
 		format = 'svg',
 		licenseKey,
+		assetUrls,
 	} = props
 
 	useLayoutEffect(() => {
 		if (!container) return
 		if (!store) return
-		if (!preloadingComplete) return
 
 		let isCancelled = false
 
@@ -119,6 +114,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 			tools: [],
 			getContainer: () => tempElm,
 			licenseKey,
+			fontAssetUrls: assetUrls?.fonts,
 		})
 
 		if (pageId) editor.setCurrentPage(pageId)
@@ -161,10 +157,9 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		padding,
 		darkMode,
 		preserveAspectRatio,
-		preloadingComplete,
-		preloadingError,
 		licenseKey,
 		pixelRatio,
+		assetUrls,
 	])
 
 	useEffect(() => {
@@ -172,18 +167,6 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 			if (url) URL.revokeObjectURL(url)
 		}
 	}, [url])
-
-	if (preloadingError) {
-		return <ErrorScreen>Could not load assets.</ErrorScreen>
-	}
-
-	if (!preloadingComplete) {
-		return (
-			<LoadingScreen>
-				<DefaultSpinner />
-			</LoadingScreen>
-		)
-	}
 
 	return (
 		<div ref={setContainer} style={{ position: 'relative', width: '100%', height: '100%' }}>

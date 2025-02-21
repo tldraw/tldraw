@@ -16,6 +16,7 @@ import {
 	SVGContainer,
 	Stadium2d,
 	SvgExportContext,
+	TLFontFace,
 	TLGeoShape,
 	TLGeoShapeProps,
 	TLResizeInfo,
@@ -25,6 +26,7 @@ import {
 	geoShapeMigrations,
 	geoShapeProps,
 	getDefaultColorTheme,
+	getFontsFromRichText,
 	getPolygonVertices,
 	lerp,
 	toRichText,
@@ -45,12 +47,7 @@ import {
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-import {
-	getFillDefForCanvas,
-	getFillDefForExport,
-	getFontDefForExport,
-	getRichTextStylesExport,
-} from '../shared/defaultStyleDefs'
+import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { GeoShapeBody } from './components/GeoShapeBody'
 import {
@@ -417,6 +414,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		return renderPlaintextFromRichText(this.editor, shape.props.richText)
 	}
 
+	override getFontFaces(shape: TLGeoShape): TLFontFace[] {
+		return getFontsFromRichText(this.editor, shape.props.richText, {
+			family: `tldraw_${shape.props.font}`,
+			weight: 'normal',
+			style: 'normal',
+		})
+	}
+
 	component(shape: TLGeoShape) {
 		const { id, type, props } = shape
 		const { fill, font, align, verticalAlign, size, richText } = props
@@ -547,10 +552,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		let textEl
 		if (renderPlaintextFromRichText(this.editor, props.richText)) {
-			ctx.addExportDef(getFontDefForExport(props.font))
 			const theme = getDefaultColorTheme(ctx)
 			const bounds = new Box(0, 0, props.w, props.h + props.growY)
-			ctx.addExportDef(getRichTextStylesExport())
 			textEl = (
 				<RichTextSVG
 					fontSize={LABEL_FONT_SIZES[props.size]}

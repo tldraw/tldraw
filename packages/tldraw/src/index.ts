@@ -110,6 +110,12 @@ export {
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from './lib/shapes/shared/default-shape-constants'
+export {
+	DefaultFontFaces,
+	allDefaultFontFaces,
+	type TLDefaultFont,
+	type TLDefaultFonts,
+} from './lib/shapes/shared/defaultFonts'
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
 export { useEditablePlainText, useEditableText } from './lib/shapes/shared/useEditablePlainText'
 export { useEditableRichText } from './lib/shapes/shared/useEditableRichText'
@@ -478,7 +484,6 @@ export { useCollaborationStatus, useShowCollaborationUi } from './lib/ui/hooks/u
 export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
 export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
-export { usePreloadAssets } from './lib/ui/hooks/usePreloadAssets'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
 export { useRelevantStyles } from './lib/ui/hooks/useRelevantStyles'
 export {
@@ -510,7 +515,14 @@ export {
 	setDefaultEditorAssetUrls,
 	type TLEditorAssetUrls,
 } from './lib/utils/static-assets/assetUrls'
-export { tipTapDefaultExtensions } from './lib/utils/text/richText'
+export {
+	defaultAddFontsFromNode,
+	renderHtmlFromRichText,
+	renderHtmlFromRichTextForMeasurement,
+	renderPlaintextFromRichText,
+	renderRichTextFromHTML,
+	tipTapDefaultExtensions,
+} from './lib/utils/text/richText'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
 export {
 	TLV1AlignStyle,

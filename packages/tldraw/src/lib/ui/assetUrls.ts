@@ -4,7 +4,7 @@ import { TLEditorAssetUrls, defaultEditorAssetUrls } from '../utils/static-asset
 import { TLUiIconType, iconTypes } from './icon-types'
 
 /** @public */
-export type TLUiAssetUrls = TLEditorAssetUrls & {
+export interface TLUiAssetUrls extends TLEditorAssetUrls {
 	icons: Record<TLUiIconType | Exclude<string, TLUiIconType>, string>
 	translations: Record<(typeof LANGUAGES)[number]['locale'], string>
 	embedIcons: Record<(typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'], string>

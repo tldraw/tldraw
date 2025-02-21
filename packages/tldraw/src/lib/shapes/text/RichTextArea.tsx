@@ -196,7 +196,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			// This prevents that default behavior in FF.
 			onDragStart={preventDefault}
 		>
-			<div className="tl-rich-text-tiptap">
+			<div className="tl-rich-text">
 				<EditorProvider
 					autofocus
 					editable={isEditing}

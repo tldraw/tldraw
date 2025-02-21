@@ -31,6 +31,7 @@ import { LANGUAGES } from '@tldraw/editor';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
+import { Node as Node_2 } from '@tiptap/pm/model';
 import { PointerEvent as PointerEvent_2 } from 'react';
 import { Polygon2d } from '@tldraw/editor';
 import { Polyline2d } from '@tldraw/editor';
@@ -44,6 +45,7 @@ import { Rectangle2d } from '@tldraw/editor';
 import { RecursivePartial } from '@tldraw/editor';
 import { RefObject } from 'react';
 import { Result } from '@tldraw/editor';
+import { RichTextFontVisitorState } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
 import { ShapeWithCrop } from '@tldraw/editor';
@@ -85,6 +87,7 @@ import { TLEmbedShape } from '@tldraw/editor';
 import { TLEmbedShapeProps } from '@tldraw/editor';
 import { TLExportType } from '@tldraw/editor';
 import { TLFileExternalAsset } from '@tldraw/editor';
+import { TLFontFace } from '@tldraw/editor';
 import { TLFrameShape } from '@tldraw/editor';
 import { TLFrameShapeProps } from '@tldraw/editor';
 import { TLGeoShape } from '@tldraw/editor';
@@ -144,6 +147,9 @@ export type AlertSeverity = 'error' | 'info' | 'success' | 'warning';
 
 // @public (undocumented)
 export function AlignMenuItems(): JSX_2.Element;
+
+// @public (undocumented)
+export const allDefaultFontFaces: TLFontFace[];
 
 // @public (undocumented)
 export function ArrangeMenuSubmenu(): JSX_2.Element | null;
@@ -213,6 +219,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     // (undocumented)
     getDefaultProps(): TLArrowShape['props'];
+    // (undocumented)
+    getFontFaces(shape: TLArrowShape): TLFontFace[];
     // (undocumented)
     getGeometry(shape: TLArrowShape): Group2d;
     // (undocumented)
@@ -676,6 +684,9 @@ export const DefaultActionsMenu: NamedExoticComponent<TLUiActionsMenuProps>;
 export function DefaultActionsMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
+export function defaultAddFontsFromNode(node: Node_2, state: RichTextFontVisitorState, addFont: (font: TLFontFace) => void): RichTextFontVisitorState;
+
+// @public (undocumented)
 export const defaultBindingUtils: readonly [typeof ArrowBindingUtil];
 
 // @public (undocumented)
@@ -700,6 +711,9 @@ export let defaultEditorAssetUrls: TLEditorAssetUrls;
 
 // @public (undocumented)
 export type DefaultEmbedDefinitionType = (typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'];
+
+// @public (undocumented)
+export const DefaultFontFaces: TLDefaultFonts;
 
 // @public (undocumented)
 export function defaultHandleExternalEmbedContent<T>(editor: Editor, { point, url, embed }: {
@@ -1201,6 +1215,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     getDefaultProps(): TLGeoShape['props'];
     // (undocumented)
+    getFontFaces(shape: TLGeoShape): TLFontFace[];
+    // (undocumented)
     getGeometry(shape: TLGeoShape): Group2d;
     // (undocumented)
     getHandleSnapGeometry(shape: TLGeoShape): HandleSnapGeometry;
@@ -1664,6 +1680,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getDefaultProps(): TLNoteShape['props'];
     // (undocumented)
+    getFontFaces(shape: TLNoteShape): TLFontFace[];
+    // (undocumented)
     getGeometry(shape: TLNoteShape): Group2d;
     // (undocumented)
     getHandles(shape: TLNoteShape): TLHandle[];
@@ -1931,6 +1949,18 @@ export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
 // @public (undocumented)
 export function RemoveFrameMenuItem(): JSX_2.Element | null;
 
+// @public
+export function renderHtmlFromRichText(editor: Editor, richText: TLRichText): string;
+
+// @public
+export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: TLRichText): string;
+
+// @public
+export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText): string;
+
+// @public
+export function renderRichTextFromHTML(editor: Editor, html: string): TLRichText;
+
 // @public (undocumented)
 export function ReorderMenuItems(): JSX_2.Element;
 
@@ -2116,6 +2146,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     getDefaultProps(): TLTextShape['props'];
     // (undocumented)
+    getFontFaces(shape: TLTextShape): TLFontFace[];
+    // (undocumented)
     getGeometry(shape: TLTextShape): Rectangle2d;
     // (undocumented)
     getMinDimensions(shape: TLTextShape): {
@@ -2273,6 +2305,32 @@ export interface TLDefaultExternalContentHandlerOpts extends TLExternalContentPr
 }
 
 // @public (undocumented)
+export interface TLDefaultFont {
+    // (undocumented)
+    italic: {
+        bold: TLFontFace;
+        normal: TLFontFace;
+    };
+    // (undocumented)
+    normal: {
+        bold: TLFontFace;
+        normal: TLFontFace;
+    };
+}
+
+// @public (undocumented)
+export interface TLDefaultFonts {
+    // (undocumented)
+    tldraw_draw: TLDefaultFont;
+    // (undocumented)
+    tldraw_mono: TLDefaultFont;
+    // (undocumented)
+    tldraw_sans: TLDefaultFont;
+    // (undocumented)
+    tldraw_serif: TLDefaultFont;
+}
+
+// @public (undocumented)
 export function Tldraw(props: TldrawProps): JSX_2.Element;
 
 // @public (undocumented)
@@ -2280,6 +2338,8 @@ export const TLDRAW_FILE_EXTENSION: ".tldr";
 
 // @public (undocumented)
 export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
+    // (undocumented)
+    assetUrls?: TLUiAssetUrlOverrides;
     // (undocumented)
     components?: TLComponents;
     // (undocumented)
@@ -2484,11 +2544,24 @@ export function TldrawUiTranslationProvider({ overrides, locale, children, }: TL
 // @public (undocumented)
 export interface TLEditorAssetUrls {
     // (undocumented)
-    fonts: {
-        draw: string;
-        monospace: string;
-        sansSerif: string;
-        serif: string;
+    fonts?: {
+        [key: string]: string | undefined;
+        tldraw_draw_bold?: string;
+        tldraw_draw_italic_bold?: string;
+        tldraw_draw_italic?: string;
+        tldraw_draw?: string;
+        tldraw_mono_bold?: string;
+        tldraw_mono_italic_bold?: string;
+        tldraw_mono_italic?: string;
+        tldraw_mono?: string;
+        tldraw_sans_bold?: string;
+        tldraw_sans_italic_bold?: string;
+        tldraw_sans_italic?: string;
+        tldraw_sans?: string;
+        tldraw_serif_bold?: string;
+        tldraw_serif_italic_bold?: string;
+        tldraw_serif_italic?: string;
+        tldraw_serif?: string;
     };
 }
 
@@ -2570,11 +2643,14 @@ export interface TLUiActionsMenuProps {
 export type TLUiAssetUrlOverrides = RecursivePartial<TLUiAssetUrls>;
 
 // @public (undocumented)
-export type TLUiAssetUrls = TLEditorAssetUrls & {
+export interface TLUiAssetUrls extends TLEditorAssetUrls {
+    // (undocumented)
     embedIcons: Record<(typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'], string>;
+    // (undocumented)
     icons: Record<Exclude<string, TLUiIconType> | TLUiIconType, string>;
+    // (undocumented)
     translations: Record<(typeof LANGUAGES)[number]['locale'], string>;
-};
+}
 
 // @public (undocumented)
 export interface TLUiButtonCheckProps {
@@ -4151,12 +4227,6 @@ export function useNativeClipboardEvents(): void;
 
 // @public (undocumented)
 export function usePrefersReducedMotion(): boolean;
-
-// @public (undocumented)
-export function usePreloadAssets(assetUrls: TLEditorAssetUrls): {
-    done: boolean;
-    error: boolean;
-};
 
 // @public (undocumented)
 export function useReadonly(): boolean;

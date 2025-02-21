@@ -13,10 +13,28 @@ export function getAssetUrls(opts) {
 	const iconsIcon0MergedSvg = formatAssetUrl('./icons/icon/0_merged.svg', opts)
 	return {
 		fonts: {
-			monospace: formatAssetUrl('./fonts/IBMPlexMono-Medium.woff2', opts),
-			sansSerif: formatAssetUrl('./fonts/IBMPlexSans-Medium.woff2', opts),
-			serif: formatAssetUrl('./fonts/IBMPlexSerif-Medium.woff2', opts),
-			draw: formatAssetUrl('./fonts/Shantell_Sans-Tldrawish.woff2', opts),
+			tldraw_mono_bold: formatAssetUrl('./fonts/IBMPlexMono-Bold.woff2', opts),
+			tldraw_mono_italic_bold: formatAssetUrl('./fonts/IBMPlexMono-BoldItalic.woff2', opts),
+			tldraw_mono: formatAssetUrl('./fonts/IBMPlexMono-Medium.woff2', opts),
+			tldraw_mono_italic: formatAssetUrl('./fonts/IBMPlexMono-MediumItalic.woff2', opts),
+			tldraw_sans_bold: formatAssetUrl('./fonts/IBMPlexSans-Bold.woff2', opts),
+			tldraw_sans_italic_bold: formatAssetUrl('./fonts/IBMPlexSans-BoldItalic.woff2', opts),
+			tldraw_sans: formatAssetUrl('./fonts/IBMPlexSans-Medium.woff2', opts),
+			tldraw_sans_italic: formatAssetUrl('./fonts/IBMPlexSans-MediumItalic.woff2', opts),
+			tldraw_serif_bold: formatAssetUrl('./fonts/IBMPlexSerif-Bold.woff2', opts),
+			tldraw_serif_italic_bold: formatAssetUrl('./fonts/IBMPlexSerif-BoldItalic.woff2', opts),
+			tldraw_serif: formatAssetUrl('./fonts/IBMPlexSerif-Medium.woff2', opts),
+			tldraw_serif_italic: formatAssetUrl('./fonts/IBMPlexSerif-MediumItalic.woff2', opts),
+			tldraw_draw_bold: formatAssetUrl('./fonts/Shantell_Sans-Informal_Bold.woff2', opts),
+			tldraw_draw_italic_bold: formatAssetUrl(
+				'./fonts/Shantell_Sans-Informal_Bold_Italic.woff2',
+				opts
+			),
+			tldraw_draw: formatAssetUrl('./fonts/Shantell_Sans-Informal_Regular.woff2', opts),
+			tldraw_draw_italic: formatAssetUrl(
+				'./fonts/Shantell_Sans-Informal_Regular_Italic.woff2',
+				opts
+			),
 		},
 		icons: {
 			'align-bottom': iconsIcon0MergedSvg + '#align-bottom',

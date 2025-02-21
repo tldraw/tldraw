@@ -1,4 +1,12 @@
-import { EMPTY_ARRAY, atom, computed, react, transact, unsafe__withoutCapture } from '@tldraw/state'
+import {
+	Atom,
+	EMPTY_ARRAY,
+	atom,
+	computed,
+	react,
+	transact,
+	unsafe__withoutCapture,
+} from '@tldraw/state'
 import {
 	ComputedCache,
 	RecordType,
@@ -130,6 +138,7 @@ import {
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { isAccelKey } from '../utils/keyboard'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
+import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
@@ -139,6 +148,7 @@ import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage
 import { ClickManager } from './managers/ClickManager'
 import { EdgeScrollManager } from './managers/EdgeScrollManager'
 import { FocusManager } from './managers/FocusManager'
+import { FontManager } from './managers/FontManager'
 import { HistoryManager } from './managers/HistoryManager'
 import { ScribbleManager } from './managers/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
@@ -165,8 +175,6 @@ import {
 	TLCameraOptions,
 	TLImageExportOptions,
 	TLSvgExportOptions,
-	TLTextOptions,
-	TiptapEditor,
 } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
@@ -227,9 +235,10 @@ export interface TLEditorOptions {
 	 * Options for the editor's camera.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
-	textOptions?: Partial<TLTextOptions>
+	textOptions?: TLTextOptions
 	options?: Partial<TldrawOptions>
 	licenseKey?: string
+	fontAssetUrls?: { [key: string]: string | undefined }
 	/**
 	 * A predicate that should return true if the given shape should be hidden.
 	 * @param shape - The shape to check.
@@ -272,6 +281,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		inferDarkMode,
 		options,
 		isShapeHidden,
+		fontAssetUrls,
 	}: TLEditorOptions) {
 		super()
 
@@ -295,7 +305,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
 
-		this._textOptions.set({ ...textOptions })
+		this._textOptions = atom('text options', textOptions ?? null)
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 		this.disposables.add(() => this.user.dispose())
@@ -303,6 +313,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.getContainer = getContainer
 
 		this.textMeasure = new TextManager(this)
+		this.fonts = new FontManager(this, fontAssetUrls)
+
 		this._tickManager = new TickManager(this)
 
 		class NewRoot extends RootState {
@@ -840,6 +852,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly textMeasure: TextManager
+
+	/**
+	 * A utility for managing the set of fonts that should be rendered in the document.
+	 *
+	 * @public
+	 */
+	readonly fonts: FontManager
 
 	/**
 	 * A manager for the editor's environment.
@@ -2297,7 +2316,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	private _textOptions = atom('text options', {} as TLTextOptions)
+	private _textOptions: Atom<TLTextOptions | null>
 
 	/**
 	 * Get the current text options.
@@ -2309,7 +2328,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 *  @public */
 	getTextOptions() {
-		return this._textOptions.get()
+		return assertExists(this._textOptions.get(), 'Cannot use text without setting textOptions')
 	}
 
 	/* --------------------- Camera --------------------- */
@@ -4268,8 +4287,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _getShapeGeometryCache(): ComputedCache<Geometry2d, TLShape> {
 		return this.store.createComputedCache(
 			'bounds',
-			(shape) => this.getShapeUtil(shape).getGeometry(shape),
-			(a, b) => a.props === b.props
+			(shape) => {
+				this.fonts.trackFontsForShape(shape)
+				return this.getShapeUtil(shape).getGeometry(shape)
+			},
+			{ areRecordsEqual: (a, b) => a.props === b.props }
 		)
 	}
 

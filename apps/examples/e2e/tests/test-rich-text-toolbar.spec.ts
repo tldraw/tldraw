@@ -65,7 +65,7 @@ test.describe('Rich text behaviour', () => {
 			const isTagEnabled = await page.evaluate(
 				async (toolTag) => {
 					const richTextArea = document.querySelector('[data-testid="rich-text-area"]')?.innerHTML
-					const renderedText = document.querySelector('.tl-rich-text-tiptap')?.innerHTML
+					const renderedText = document.querySelector('.tl-rich-text')?.innerHTML
 					// Check tool.tag is in the innerHTML of the richTextArea and renderedText.
 					return richTextArea?.includes(`<${toolTag}`) && renderedText?.includes(`<${toolTag}`)
 				},
@@ -97,7 +97,7 @@ test.describe('Rich text behaviour', () => {
 		// We could test this without clicking away but I want to
 		// test that the link is still there after clicking away.
 		const isLinkSet = await page.evaluate(async () => {
-			return !!document.querySelector('.tl-rich-text-tiptap a[href="https://example.com"]')
+			return !!document.querySelector('.tl-rich-text a[href="https://example.com"]')
 		})
 		expect(isLinkSet).toBe(true)
 
@@ -118,7 +118,7 @@ test.describe('Rich text behaviour', () => {
 		await richTextToolbar.clickTool(richTextToolbar.tools.linkRemove)
 
 		const isLinkRemoved = await page.evaluate(async () => {
-			return !document.querySelector('.tl-rich-text-tiptap a[href="https://example.com"]')
+			return !document.querySelector('.tl-rich-text a[href="https://example.com"]')
 		})
 		expect(isLinkRemoved).toBe(true)
 	})

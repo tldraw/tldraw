@@ -37,8 +37,16 @@ export interface ComputedCache<Data, R extends UnknownRecord> {
     get(id: IdOf<R>): Data | undefined;
 }
 
+// @public (undocumented)
+export interface ComputedCacheOpts<Data, R extends UnknownRecord> {
+    // (undocumented)
+    areRecordsEqual?(a: R, b: R): boolean;
+    // (undocumented)
+    areResultsEqual?(a: Data, b: Data): boolean;
+}
+
 // @public
-export function createComputedCache<Context extends StoreObject<any>, Result, Record extends StoreObjectRecordType<Context> = StoreObjectRecordType<Context>>(name: string, derive: (context: Context, record: Record) => Result | undefined, isEqual?: (a: Record, b: Record) => boolean): {
+export function createComputedCache<Context extends StoreObject<any>, Result, Record extends StoreObjectRecordType<Context> = StoreObjectRecordType<Context>>(name: string, derive: (context: Context, record: Record) => Result | undefined, opts?: ComputedCacheOpts<Result, Record>): {
     get(context: Context, id: IdOf<Record>): Result | undefined;
 };
 
@@ -347,7 +355,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // @internal (undocumented)
     atomic<T>(fn: () => T, runCallbacks?: boolean): T;
     clear(): void;
-    createComputedCache<Result, Record extends R = R>(name: string, derive: (record: Record) => Result | undefined, isEqual?: (a: Record, b: Record) => boolean): ComputedCache<Result, Record>;
+    createComputedCache<Result, Record extends R = R>(name: string, derive: (record: Record) => Result | undefined, opts?: ComputedCacheOpts<Result, Record>): ComputedCache<Result, Record>;
+    // @deprecated
     createSelectedComputedCache<Selection, Result, Record extends R = R>(name: string, selector: (record: Record) => Selection | undefined, derive: (input: Selection) => Result | undefined): ComputedCache<Result, Record>;
     // (undocumented)
     dispose(): void;
@@ -495,6 +504,9 @@ export class StoreQueries<R extends UnknownRecord> {
         typeName: TypeName;
     }>>>;
 }
+
+// @internal (undocumented)
+export type StoreRecord<S extends Store<any>> = S extends Store<infer R> ? R : never;
 
 // @public (undocumented)
 export class StoreSchema<R extends UnknownRecord, P = unknown> {

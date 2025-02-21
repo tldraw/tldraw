@@ -125,7 +125,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 				<div className={`${cssPrefix} tl-text tl-text-content`} dir="auto">
 					{richText && (
 						<div
-							className="tl-rich-text-tiptap"
+							className="tl-rich-text"
 							// todo: see if I can abuse this
 							dangerouslySetInnerHTML={{ __html: html || '' }}
 							onPointerDownCapture={handlePointerDownCapture}
@@ -221,7 +221,7 @@ export function RichTextSVG({
 			y={bounds.minY}
 			width={bounds.w}
 			height={bounds.h}
-			className="tl-rich-text-svg"
+			className="tl-export-embed-styles tl-rich-text tl-rich-text-svg"
 		>
 			<div style={wrapperStyle}>
 				<div dangerouslySetInnerHTML={{ __html: html }} style={style} />

@@ -7,6 +7,7 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
+	TLFontFace,
 	TLHandle,
 	TLNoteShape,
 	TLNoteShapeProps,
@@ -17,6 +18,7 @@ import {
 	WeakCache,
 	exhaustiveSwitchError,
 	getDefaultColorTheme,
+	getFontsFromRichText,
 	lerp,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -38,7 +40,6 @@ import {
 	LABEL_PADDING,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-import { getFontDefForExport, getRichTextStylesExport } from '../shared/defaultStyleDefs'
 
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
 
@@ -225,6 +226,14 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return renderPlaintextFromRichText(this.editor, shape.props.richText)
 	}
 
+	override getFontFaces(shape: TLNoteShape): TLFontFace[] {
+		return getFontsFromRichText(this.editor, shape.props.richText, {
+			family: `tldraw_${shape.props.font}`,
+			weight: 'normal',
+			style: 'normal',
+		})
+	}
+
 	component(shape: TLNoteShape) {
 		const {
 			id,
@@ -315,11 +324,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
-		ctx.addExportDef(getFontDefForExport(shape.props.font))
 		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		const bounds = getBoundsForSVG(shape)
 
-		ctx.addExportDef(getRichTextStylesExport())
 		const textLabel = (
 			<RichTextSVG
 				fontSize={shape.props.fontSizeAdjustment || LABEL_FONT_SIZES[shape.props.size]}
