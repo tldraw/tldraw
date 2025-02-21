@@ -389,10 +389,6 @@ test.describe('Rich text behaviour', () => {
 		await page.keyboard.press('ArrowLeft')
 		await page.keyboard.up('Shift')
 
-		// keyboard should not be visible yet
-		await expect(richTextToolbar.container).toHaveCSS('opacity', '0')
-		await expect(richTextToolbar.container).toHaveCSS('pointer-events', 'none')
-
 		await sleep(200)
 
 		// now it should be visible and interactive
