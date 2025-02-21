@@ -270,6 +270,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						`Cannot create a file for another user. fileId: ${nextFile.id} file owner: ${nextFile.ownerId} current user: ${this.userId}`
 					)
 				}
+				if (prevFile.isDeleted)
+					throw new ZMutationError(ZErrorCode.forbidden, 'Cannot update a deleted file')
 				// Owners are allowed to make changes
 				if (prevFile.ownerId === this.userId) return
 
