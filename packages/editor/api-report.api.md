@@ -2458,8 +2458,6 @@ export type RichTextFontVisitor = (node: TiptapNode, state: RichTextFontVisitorS
 // @public (undocumented)
 export interface RichTextFontVisitorState {
     // (undocumented)
-    readonly [key: string]: any;
-    // (undocumented)
     readonly family: string;
     // (undocumented)
     readonly style: string;

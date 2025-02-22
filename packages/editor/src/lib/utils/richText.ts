@@ -30,7 +30,6 @@ export interface RichTextFontVisitorState {
 	readonly family: string
 	readonly weight: string
 	readonly style: string
-	readonly [key: string]: any
 }
 
 /** @public */

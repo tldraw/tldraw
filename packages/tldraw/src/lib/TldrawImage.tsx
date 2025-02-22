@@ -13,7 +13,6 @@ import { memo, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { defaultBindingUtils } from './defaultBindingUtils'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { TLUiAssetUrlOverrides } from './ui/assetUrls'
-import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /** @public */
 export interface TldrawImageProps extends TLImageExportOptions {
@@ -80,8 +79,6 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		[bindingUtils]
 	)
 	const store = useTLStore({ snapshot: props.snapshot, shapeUtils: shapeUtilsWithDefaults })
-
-	const assets = useDefaultEditorAssetsWithOverrides(props.assetUrls)
 
 	const {
 		pageId,
