@@ -197,7 +197,7 @@ export function RichTextSVG({
 		verticalAlign === 'middle' ? 'center' : verticalAlign === 'start' ? 'flex-start' : 'flex-end'
 	const wrapperStyle = {
 		display: 'flex',
-		height: `calc(${bounds.h}px - ${padding * 2}px + 1px)`,
+		height: `100%`,
 		justifyContent,
 		alignItems,
 		padding: `${padding}px`,

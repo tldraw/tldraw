@@ -15,11 +15,6 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
     xmlns="http://www.w3.org/2000/svg"
   >
     <defs>
-      <style>
-        
-				.tl-rich-text-svg p { margin: 0 }
-			
-      </style>
       <mask
         id="_export_4_rb_"
       >
@@ -81,7 +76,7 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
         stroke-width="3.5"
       />
       <foreignobject
-        class="tl-rich-text-svg"
+        class="tl-export-embed-styles tl-rich-text tl-rich-text-svg"
         height="428"
         width="100"
         x="0"
@@ -152,11 +147,6 @@ exports[`Returns all shapes when no ids are provided: All shapes 1`] = `
     xmlns="http://www.w3.org/2000/svg"
   >
     <defs>
-      <style>
-        
-				.tl-rich-text-svg p { margin: 0 }
-			
-      </style>
       <mask
         id="_export_2_r5_"
       >
@@ -218,7 +208,7 @@ exports[`Returns all shapes when no ids are provided: All shapes 1`] = `
         stroke-width="3.5"
       />
       <foreignobject
-        class="tl-rich-text-svg"
+        class="tl-export-embed-styles tl-rich-text tl-rich-text-svg"
         height="428"
         width="100"
         x="0"
