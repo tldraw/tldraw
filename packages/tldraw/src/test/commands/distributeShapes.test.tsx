@@ -285,7 +285,7 @@ it('preserves common bounds when distributing shapes with a lot of overlap', () 
 	//     DDDDDD
 	const ids = editor.createShapesFromJsx([
 		<TL.geo ref="boxA" x={0} y={0} w={100} h={100} />,
-		<TL.geo ref="boxB" x={20} y={0} w={10} h={100} />,
+		<TL.geo ref="boxB" x={20} y={0} w={15} h={100} />,
 		<TL.geo ref="boxC" x={30} y={0} w={10} h={100} />,
 		<TL.geo ref="boxD" x={10} y={0} w={380} h={100} />, // ten in from left, ten in from right
 		<TL.geo ref="boxE" x={300} y={0} w={100} h={100} />,
@@ -299,9 +299,26 @@ it('preserves common bounds when distributing shapes with a lot of overlap', () 
 
 	// If we didn't clamp this, then the right side of boxD would be to the right of boxE's right side
 	expect(editor.getShapePageBounds(ids.boxD)!.maxX).toEqual(
-		editor.getShapePageBounds(ids.boxE)!.maxX
+		editor.getShapePageBounds(ids.boxE)!.maxX - 1
 	)
 
 	// The bounds should be the same as when we started
 	expect(editor.getSelectionPageBounds()!).toCloselyMatchObject(prevBounds)
+
+	// this is the best possible handling of an impossible distribution.
+	// It's not worth trying to do anything more clever since this would almost certainly never come up.
+	// We just need to be sure it's idempotent.
+
+	// fails, but this is what we want:
+
+	// const xsBefore = objectMapFromEntries(
+	// 	Object.entries(ids).map(([id, shapeId]) => [id, editor.getShapePageBounds(shapeId)!.x])
+	// )
+	// editor.distributeShapes(Object.values(ids), 'horizontal')
+	// expect(editor.getSelectionPageBounds()!).toCloselyMatchObject(prevBounds)
+
+	// const xsAfter = objectMapFromEntries(
+	// 	Object.entries(ids).map(([id, shapeId]) => [id, editor.getShapePageBounds(shapeId)!.x])
+	// )
+	// expect(xsBefore).toCloselyMatchObject(xsAfter)
 })

@@ -6793,8 +6793,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// If for some reason the new position would be more than the maximum, we need to adjust the delta
 			// This will likely throw off some of the other placements but hey, it's better than changing the common bounds
-			if (v + pageBounds[dim] > last.pageBounds[max]) {
-				delta[val] = last.pageBounds[max] - pageBounds[max]
+			if (v + pageBounds[dim] > last.pageBounds[max] - 1) {
+				delta[val] = last.pageBounds[max] - pageBounds[max] - 1
 			}
 
 			for (const shape of shapes) {
