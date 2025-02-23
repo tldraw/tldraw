@@ -6110,6 +6110,37 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * @internal
+	 */
+	private collectShapesViaArrowBindings(info: {
+		initialShapes: TLShape[]
+		resultShapes: TLShape[]
+		resultBounds: Box[]
+		bindings: TLBinding[]
+		visited: Set<TLShapeId>
+	}) {
+		const { initialShapes, resultShapes, resultBounds, bindings, visited } = info
+		for (const binding of bindings) {
+			for (const id of [binding.fromId, binding.toId]) {
+				if (!visited.has(id)) {
+					const aligningShape = initialShapes.find((s) => s.id === id)
+					if (aligningShape && !visited.has(aligningShape.id)) {
+						visited.add(aligningShape.id)
+						const shapePageBounds = this.getShapePageBounds(aligningShape)
+						if (!shapePageBounds) continue
+						resultShapes.push(aligningShape)
+						resultBounds.push(shapePageBounds)
+						this.collectShapesViaArrowBindings({
+							...info,
+							bindings: this.getBindingsInvolvingShape(aligningShape, 'arrow'),
+						})
+					}
+				}
+			}
+		}
+	}
+
+	/**
 	 * Flip shape positions.
 	 *
 	 * @example
@@ -6124,47 +6155,67 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	flipShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
+		if (this.getIsReadonly()) return this
+
 		const ids =
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
 
-		if (this.getIsReadonly()) return this
+		// Collect a greedy list of shapes to flip
+		const shapesToFlipFirstPass = compact(ids.map((id) => this.getShape(id)))
 
-		let shapesToFlip = compact(ids.map((id) => this.getShape(id)))
+		for (const shape of shapesToFlipFirstPass) {
+			if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
+				const childrenOfGroups = compact(
+					this.getSortedChildIdsForParent(shape.id).map((id) => this.getShape(id))
+				)
+				shapesToFlipFirstPass.push(...childrenOfGroups)
+			}
+		}
+
+		// Exclude shapes that can't be flipped
+		const allBounds: Box[] = []
+
+		const shapesToFlip: {
+			shape: TLShape
+			localBounds: Box
+			pageTransform: Mat
+			isAspectRatioLocked: boolean
+		}[] = []
+
+		for (const shape of shapesToFlipFirstPass) {
+			const util = this.getShapeUtil(shape)
+			if (util.canBeLaidOut(shape, { type: 'flip', shapes: shapesToFlipFirstPass })) {
+				const pageBounds = this.getShapePageBounds(shape)
+				const localBounds = this.getShapeGeometry(shape).bounds
+				const pageTransform = this.getShapePageTransform(shape.id)
+				if (!(pageBounds && localBounds && pageTransform)) continue
+				shapesToFlip.push({
+					shape,
+					localBounds,
+					pageTransform,
+					isAspectRatioLocked: util.isAspectRatioLocked(shape),
+				})
+				allBounds.push(pageBounds)
+			}
+		}
 
 		if (!shapesToFlip.length) return this
 
-		shapesToFlip = compact(
-			shapesToFlip
-				.map((shape) => {
-					if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
-						return this.getSortedChildIdsForParent(shape.id).map((id) => this.getShape(id))
-					}
-
-					return shape
-				})
-				.flat()
-		)
-
-		const scaleOriginPage = Box.Common(
-			compact(shapesToFlip.map((id) => this.getShapePageBounds(id)))
-		).center
+		const scaleOriginPage = Box.Common(allBounds).center
 
 		this.run(() => {
-			for (const shape of shapesToFlip) {
-				const bounds = this.getShapeGeometry(shape).bounds
-				const initialPageTransform = this.getShapePageTransform(shape.id)
-				if (!initialPageTransform) continue
+			for (const { shape, localBounds, pageTransform, isAspectRatioLocked } of shapesToFlip) {
 				this.resizeShape(
 					shape.id,
 					{ x: operation === 'horizontal' ? -1 : 1, y: operation === 'vertical' ? -1 : 1 },
 					{
-						initialBounds: bounds,
-						initialPageTransform,
+						initialBounds: localBounds,
+						initialPageTransform: pageTransform,
 						initialShape: shape,
+						isAspectRatioLocked,
 						mode: 'scale_shape',
-						isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
 						scaleOrigin: scaleOriginPage,
 						scaleAxisRotation: 0,
 					}
@@ -6201,21 +6252,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: (shapes as TLShape[]).map((s) => s.id)
 		if (this.getIsReadonly()) return this
 
-		const shapesToStack = ids
-			.map((id) => this.getShape(id)) // always fresh shapes
-			.filter((shape): shape is TLShape => {
-				if (!shape) return false
+		const shapesToStackFirstPass = compact(
+			ids.map((id) => this.getShape(id)) // always fresh shapes
+		)
 
-				return this.getShapeUtil(shape).canBeLaidOut(shape, 'stack')
-			})
+		const shapesToStack: TLShape[] = []
+		const shapePageBounds: Record<TLShapeId, Box> = {}
+
+		for (const shape of shapesToStackFirstPass) {
+			if (
+				this.getShapeUtil(shape).canBeLaidOut(shape, {
+					type: 'stack',
+					shapes: shapesToStackFirstPass,
+				})
+			) {
+				shapesToStack.push(shape)
+				shapePageBounds[shape.id] = this.getShapePageBounds(shape)!
+			}
+		}
 
 		const len = shapesToStack.length
-
 		if ((gap === 0 && len < 3) || len < 2) return this
-
-		const pageBounds = Object.fromEntries(
-			shapesToStack.map((shape) => [shape.id, this.getShapePageBounds(shape)!])
-		)
 
 		let val: 'x' | 'y'
 		let min: 'minX' | 'minY'
@@ -6239,7 +6296,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (gap === 0) {
 			const gaps: { gap: number; count: number }[] = []
 
-			shapesToStack.sort((a, b) => pageBounds[a.id][min] - pageBounds[b.id][min])
+			shapesToStack.sort((a, b) => shapePageBounds[a.id][min] - shapePageBounds[b.id][min])
 
 			// Collect all of the gaps between shapes. We want to find
 			// patterns (equal gaps between shapes) and use the most common
@@ -6248,8 +6305,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const shape = shapesToStack[i]
 				const nextShape = shapesToStack[i + 1]
 
-				const bounds = pageBounds[shape.id]
-				const nextBounds = pageBounds[nextShape.id]
+				const bounds = shapePageBounds[shape.id]
+				const nextBounds = shapePageBounds[nextShape.id]
 
 				const gap = nextBounds[min] - bounds[max]
 
@@ -6282,35 +6339,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const changes: TLShapePartial[] = []
 
-		let v = pageBounds[shapesToStack[0].id][max]
+		let v = shapePageBounds[shapesToStack[0].id][max]
 
 		shapesToStack.forEach((shape, i) => {
 			if (i === 0) return
 
-			const delta = { x: 0, y: 0 }
-			delta[val] = v + shapeGap - pageBounds[shape.id][val]
+			const delta = new Vec()
+			delta[val] = v + shapeGap - shapePageBounds[shape.id][val]
 
+			// If the shape has another shape as its parent, and if the parent has a rotation, we need to rotate the counter-rotate delta
+			// todo: ensure that the parent isn't being aligned together with its children
 			const parent = this.getShapeParent(shape)
-			const localDelta = parent
-				? Vec.Rot(delta, -this.getShapePageTransform(parent)!.decompose().rotation)
-				: delta
+			if (parent) {
+				const parentTransform = this.getShapePageTransform(parent)
+				if (parentTransform) delta.rot(-parentTransform.rotation())
+			}
 
-			const translateStartChanges = this.getShapeUtil(shape).onTranslateStart?.(shape)
+			delta.add(shape) // add the shape's x and y to the delta
+			changes.push(this.getChangesToTranslateShape(shape, delta))
 
-			changes.push(
-				translateStartChanges
-					? {
-							...translateStartChanges,
-							[val]: shape[val] + localDelta[val],
-						}
-					: {
-							id: shape.id as any,
-							type: shape.type,
-							[val]: shape[val] + localDelta[val],
-						}
-			)
-
-			v += pageBounds[shape.id][dim] + shapeGap
+			v += shapePageBounds[shape.id][dim] + shapeGap
 		})
 
 		this.updateShapes(changes)
@@ -6331,35 +6379,39 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param gap - The padding to apply to the packed shapes. Defaults to 16.
 	 */
 	packShapes(shapes: TLShapeId[] | TLShape[], gap: number): this {
+		if (this.getIsReadonly()) return this
+
 		const ids =
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
 
-		if (this.getIsReadonly()) return this
-		if (ids.length < 2) return this
+		// Always fresh shapes
+		const shapesToPackFirstPass = compact(ids.map((id) => this.getShape(id)))
 
-		const shapesToPack = ids
-			.map((id) => this.getShape(id)) // always fresh shapes
-			.filter((shape): shape is TLShape => {
-				if (!shape) return false
-
-				return this.getShapeUtil(shape).canBeLaidOut(shape, 'pack')
-			})
+		const shapesToPack: TLShape[] = []
 		const shapePageBounds: Record<string, Box> = {}
 		const nextShapePageBounds: Record<string, Box> = {}
 
 		let shape: TLShape,
 			bounds: Box,
 			area = 0
-
-		for (let i = 0; i < shapesToPack.length; i++) {
-			shape = shapesToPack[i]
-			bounds = this.getShapePageBounds(shape)!
-			shapePageBounds[shape.id] = bounds
-			nextShapePageBounds[shape.id] = bounds.clone()
-			area += bounds.width * bounds.height
+		for (const shape of shapesToPackFirstPass) {
+			if (
+				this.getShapeUtil(shape).canBeLaidOut(shape, {
+					type: 'pack',
+					shapes: shapesToPackFirstPass,
+				})
+			) {
+				shapesToPack.push(shape)
+				bounds = this.getShapePageBounds(shape)!
+				shapePageBounds[shape.id] = bounds
+				nextShapePageBounds[shape.id] = bounds.clone()
+				area += bounds.width * bounds.height
+			}
 		}
+
+		if (shapesToPack.length < 2) return this
 
 		const commonBounds = Box.Common(compact(Object.values(shapePageBounds)))
 
@@ -6487,40 +6539,65 @@ export class Editor extends EventEmitter<TLEventMap> {
 		shapes: TLShapeId[] | TLShape[],
 		operation: 'left' | 'center-horizontal' | 'right' | 'top' | 'center-vertical' | 'bottom'
 	): this {
+		if (this.getIsReadonly()) return this
+
 		const ids =
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
 
-		if (this.getIsReadonly()) return this
+		// Always get fresh shapes
+		const shapesToAlignFirstPass = compact(ids.map((id) => this.getShape(id)))
 
-		const shapesToAlign: TLShape[] = []
-		const shapePageBounds: Record<TLShapeId, Box> = {}
+		const shapeClustersToAlign: {
+			shapes: TLShape[]
+			pageBounds: Box
+		}[] = []
 		const allBounds: Box[] = []
+		const visited = new Set<TLShapeId>()
 
-		for (const id of ids) {
-			const shape = this.getShape(id) // always fresh shape
-			if (!shape) continue // might not exist / still exist
-			const util = this.getShapeUtil(shape)
-			if (!util.canBeLaidOut(shape, 'align')) continue
-			const bounds = this.getShapePageBounds(shape)
-			if (!bounds) continue
-			shapesToAlign.push(shape)
-			shapePageBounds[shape.id] = bounds
-			allBounds.push(bounds)
+		for (const shape of shapesToAlignFirstPass) {
+			if (visited.has(shape.id)) continue
+			visited.add(shape.id)
+
+			const shapePageBounds = this.getShapePageBounds(shape)
+			if (!shapePageBounds) continue
+
+			// In this implementation, we want to create psuedo-groups out of shapes that
+			// are moving together. At the moment shapes only move together if they're connected
+			// by arrows. So let's say A -> B -> C -> D and A, B, and C are selected. If we're
+			// aligning A, B, and C, then we want these to move together as one unit.
+
+			const shapesMovingTogether = [shape]
+			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
+
+			this.collectShapesViaArrowBindings({
+				bindings: this.getBindingsToShape(shape.id, 'arrow'),
+				initialShapes: shapesToAlignFirstPass,
+				resultShapes: shapesMovingTogether,
+				resultBounds: boundsOfShapesMovingTogether,
+				visited,
+			})
+
+			const commonPageBounds = Box.Common(boundsOfShapesMovingTogether)
+			if (!commonPageBounds) continue
+
+			shapeClustersToAlign.push({
+				shapes: shapesMovingTogether,
+				pageBounds: commonPageBounds,
+			})
+
+			allBounds.push(commonPageBounds)
 		}
 
-		if (shapesToAlign.length < 2) return this
+		if (shapeClustersToAlign.length < 2) return this
 
 		const commonBounds = Box.Common(allBounds)
 
 		const changes: TLShapePartial[] = []
 
-		shapesToAlign.forEach((shape) => {
-			const pageBounds = shapePageBounds[shape.id]
-			if (!pageBounds) return
-
-			const delta = { x: 0, y: 0 }
+		shapeClustersToAlign.forEach(({ shapes, pageBounds }) => {
+			const delta = new Vec()
 
 			switch (operation) {
 				case 'top': {
@@ -6549,12 +6626,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 
-			const parent = this.getShapeParent(shape) // todo: ensure that the parent isn't being aligned together with its children
-			const localDelta = parent
-				? Vec.Rot(delta, -this.getShapePageTransform(parent)!.decompose().rotation)
-				: delta
+			for (const shape of shapes) {
+				const shapeDelta = delta.clone()
 
-			changes.push(this.getChangesToTranslateShape(shape, Vec.Add(shape, localDelta)))
+				// If the shape has another shape as its parent, and if the parent has a rotation, we need to rotate the counter-rotate delta
+				// todo: ensure that the parent isn't being aligned together with its children
+				const parent = this.getShapeParent(shape)
+				if (parent) {
+					const parentTransform = this.getShapePageTransform(parent)
+					if (parentTransform) shapeDelta.rot(-parentTransform.rotation())
+				}
+
+				shapeDelta.add(shape) // add the shape's x and y to the delta
+				changes.push(this.getChangesToTranslateShape(shape, shapeDelta))
+			}
 		})
 
 		this.updateShapes(changes)
@@ -6576,31 +6661,54 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	distributeShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
+		if (this.getIsReadonly()) return this
+
 		const ids =
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
 
-		if (this.getIsReadonly()) return this
+		// always fresh shapes
+		const shapesToDistributeFirstPass = compact(ids.map((id) => this.getShape(id)))
 
-		const shapesToDistribute: TLShape[] = []
-		const shapePageBounds: Record<TLShapeId, Box> = {}
+		const shapeClustersToDistribute: {
+			shapes: TLShape[]
+			pageBounds: Box
+		}[] = []
+
 		const allBounds: Box[] = []
+		const visited = new Set<TLShapeId>()
 
-		for (const id of ids) {
-			const shape = this.getShape(id) // always fresh shape
-			if (!shape) continue // might not exist / still exist
-			const util = this.getShapeUtil(shape)
-			if (!util.canBeLaidOut(shape, 'distribute')) continue
-			const bounds = this.getShapePageBounds(shape)
-			if (!bounds) continue
-			shapesToDistribute.push(shape)
-			shapePageBounds[shape.id] = bounds
-			allBounds.push(bounds)
+		for (const shape of shapesToDistributeFirstPass) {
+			if (visited.has(shape.id)) continue
+			visited.add(shape.id)
+
+			const shapePageBounds = this.getShapePageBounds(shape)
+			if (!shapePageBounds) continue
+
+			const shapesMovingTogether = [shape]
+			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
+
+			this.collectShapesViaArrowBindings({
+				bindings: this.getBindingsToShape(shape.id, 'arrow'),
+				initialShapes: shapesToDistributeFirstPass,
+				resultShapes: shapesMovingTogether,
+				resultBounds: boundsOfShapesMovingTogether,
+				visited,
+			})
+
+			const commonPageBounds = Box.Common(boundsOfShapesMovingTogether)
+			if (!commonPageBounds) continue
+
+			shapeClustersToDistribute.push({
+				shapes: shapesMovingTogether,
+				pageBounds: commonPageBounds,
+			})
+
+			allBounds.push(commonPageBounds)
 		}
 
-		const len = shapesToDistribute.length
-		if (len < 3) return this
+		if (shapeClustersToDistribute.length < 3) return this
 
 		let val: 'x' | 'y'
 		let min: 'minX' | 'minY'
@@ -6620,56 +6728,62 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 		const changes: TLShapePartial[] = []
 
-		// Clustered
-		const first = shapesToDistribute.sort(
-			(a, b) => shapePageBounds[a.id][min] - shapePageBounds[b.id][min]
-		)[0]
-		const last = shapesToDistribute.sort(
-			(a, b) => shapePageBounds[b.id][max] - shapePageBounds[a.id][max]
-		)[0]
+		const first = shapeClustersToDistribute.sort((a, b) => a.pageBounds[min] - b.pageBounds[min])[0]
+		const last = shapeClustersToDistribute.sort((a, b) => b.pageBounds[max] - a.pageBounds[max])[0]
 
-		// If the first shape is also the last shape, distribute without it
+		// If the first shape group is also the last shape group, distribute without it
 		if (first === last) {
+			const excludedShapeIds = new Set(first.shapes.map((s) => s.id))
 			return this.distributeShapes(
-				ids.filter((id) => id !== first.id),
+				ids.filter((id) => !excludedShapeIds.has(id)),
 				operation
 			)
 		}
 
-		const shapesToMove = shapesToDistribute
+		const shapeClustersToMove = shapeClustersToDistribute
 			.filter((shape) => shape !== first && shape !== last)
 			.sort((a, b) => {
-				if (shapePageBounds[a.id][min] === shapePageBounds[b.id][min]) {
-					return a.id < b.id ? -1 : 1
+				if (a.pageBounds[min] === b.pageBounds[min]) {
+					return a.shapes[0].id < b.shapes[0].id ? -1 : 1
 				}
-				return shapePageBounds[a.id][min] - shapePageBounds[b.id][min]
+				return a.pageBounds[min] - b.pageBounds[min]
 			})
 
-		const maxFirst = shapePageBounds[first.id][max]
-		const range = shapePageBounds[last.id][min] - maxFirst
+		const maxFirst = first.pageBounds[max]
+		const range = last.pageBounds[min] - maxFirst
 		// The gap is the amount of space "left over" between the first and last shape. This can be a negative number if the shapes are overlapping.
 		const gap =
-			(range - shapesToMove.reduce((acc, s) => acc + shapePageBounds[s.id][dim], 0)) /
-			(shapesToMove.length + 1)
+			(range - shapeClustersToMove.reduce((acc, s) => acc + s.pageBounds[dim], 0)) /
+			(shapeClustersToMove.length + 1)
 
-		for (let v = maxFirst + gap, i = 0; i < shapesToMove.length; i++) {
-			const shape = shapesToMove[i]
+		for (let v = maxFirst + gap, i = 0; i < shapeClustersToMove.length; i++) {
+			const { shapes, pageBounds } = shapeClustersToMove[i]
 			const delta = new Vec()
-			const bounds = shapePageBounds[shape.id]
-			delta[val] = v - bounds[val]
+			delta[val] = v - pageBounds[val]
 
-			// If the shape has another shape as its parent, and if the parent has a rotation, we need to rotate the counter-rotate delta
-			// todo: ensure that the parent isn't being aligned together with its children
-			const parent = this.getShapeParent(shape)
-			if (parent) {
-				const parentTransform = this.getShapePageTransform(parent)
-				if (parentTransform) delta.rot(-parentTransform.decompose().rotation)
+			// If for some reason the new position would be more than the maximum, we need to adjust the delta
+			// This will likely throw off some of the other placements but hey, it's better than changing the
+			// bounds
+			if (v + pageBounds[dim] > last.pageBounds[max]) {
+				delta[val] = last.pageBounds[max] - pageBounds[max]
 			}
 
-			delta.add(shape) // add the shape's x and y to the delta
-			changes.push(this.getChangesToTranslateShape(shape, delta))
+			for (const shape of shapes) {
+				const shapeDelta = delta.clone()
 
-			v += bounds[dim] + gap
+				// If the shape has another shape as its parent, and if the parent has a rotation, we need to rotate the counter-rotate delta
+				// todo: ensure that the parent isn't being aligned together with its children
+				const parent = this.getShapeParent(shape)
+				if (parent) {
+					const parentTransform = this.getShapePageTransform(parent)
+					if (parentTransform) shapeDelta.rot(-parentTransform.rotation())
+				}
+
+				shapeDelta.add(shape) // add the shape's x and y to the delta
+				changes.push(this.getChangesToTranslateShape(shape, shapeDelta))
+			}
+
+			v += pageBounds[dim] + gap
 		}
 
 		this.updateShapes(changes)

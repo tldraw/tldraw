@@ -16,6 +16,7 @@ import {
 	TLHandleDragInfo,
 	TLResizeInfo,
 	TLShapePartial,
+	TLShapeUtilCanBeLaidOutOpts,
 	TLShapeUtilCanBindOpts,
 	TLShapeUtilCanvasSvgDef,
 	Vec,
@@ -100,9 +101,21 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return true
 	}
 
-	override canBeLaidOut(shape: TLArrowShape) {
+	override canBeLaidOut(shape: TLArrowShape, info: TLShapeUtilCanBeLaidOutOpts) {
+		// In order to be laid out, any bound shapes must also be laid out
 		const bindings = getArrowBindings(this.editor, shape)
-		return !bindings.start && !bindings.end
+		const { start, end } = bindings
+
+		const { type, shapes = [] } = info
+
+		// todo: ideally a shape with a single arrow bound to it would be considered as a group with the arrow for layout purposes but for now we'll just ignore the arrow
+		if (type === 'pack' && (start || end)) {
+			return false
+		}
+
+		if (start && !shapes.find((s) => s.id === start.toId)) return false
+		if (end && !shapes.find((s) => s.id === end.toId)) return false
+		return true
 	}
 
 	override getDefaultProps(): TLArrowShape['props'] {

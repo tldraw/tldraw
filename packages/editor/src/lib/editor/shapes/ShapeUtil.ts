@@ -36,13 +36,25 @@ export interface TLShapeUtilConstructor<
  *
  * @public
  */
-export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLShape> {
+export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLUnknownShape> {
 	/** The type of shape referenced by the `fromId` of the binding. */
 	fromShapeType: string
 	/** The type of shape referenced by the `toId` of the binding. */
 	toShapeType: string
 	/** The type of binding. */
 	bindingType: string
+}
+
+/**
+ * Options passed to {@link ShapeUtil.canBeLaidOut}.
+ *
+ * @public
+ */
+export interface TLShapeUtilCanBeLaidOutOpts {
+	/** The type of action causing the layout. */
+	type?: 'align' | 'distribute' | 'pack' | 'stack' | 'flip'
+	/** The other shapes being laid out */
+	shapes?: TLShape[]
 }
 
 /** @public */
@@ -172,7 +184,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	canBind(_opts: TLShapeUtilCanBindOpts<Shape>): boolean {
+	canBind(_opts: TLShapeUtilCanBindOpts): boolean {
 		return true
 	}
 
@@ -216,12 +228,12 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * Whether the shape can participate in layout functions such as alignment or distribution.
 	 *
 	 * @param shape - The shape.
-	 * @param type - The type of layout being done.
+	 * @param info - Additional context information: the type of action causing the layout and the
 	 * @public
 	 *
 	 * @public
 	 */
-	canBeLaidOut(_shape: Shape, _type?: 'align' | 'distribute' | 'pack' | 'stack' | 'flip'): boolean {
+	canBeLaidOut(_shape: Shape, _info: TLShapeUtilCanBeLaidOutOpts): boolean {
 		return true
 	}
 

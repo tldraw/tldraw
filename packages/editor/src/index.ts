@@ -187,6 +187,7 @@ export {
 	type TLHandleDragInfo,
 	type TLResizeInfo,
 	type TLResizeMode,
+	type TLShapeUtilCanBeLaidOutOpts,
 	type TLShapeUtilCanBindOpts,
 	type TLShapeUtilCanvasSvgDef,
 	type TLShapeUtilConstructor,
