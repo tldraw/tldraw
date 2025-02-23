@@ -6631,9 +6631,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			(a, b) => shapePageBounds[b.id][max] - shapePageBounds[a.id][max]
 		)[0]
 
-		const midFirst = shapePageBounds[first.id][mid]
-		const step = (shapePageBounds[last.id][mid] - midFirst) / (len - 1)
-		const v = midFirst + step
+		const maxFirst = shapePageBounds[first.id][max]
+		const step = (shapePageBounds[last.id][min] - maxFirst) / (len - 1)
+		const v = maxFirst + step
 
 		shapesToDistribute
 			.filter((shape) => shape !== first && shape !== last)
