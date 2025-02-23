@@ -116,7 +116,7 @@ import { EASINGS } from '../primitives/easings'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
-import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
+import { PI, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { dataUrlToFile } from '../utils/assets'
 import { debugFlags } from '../utils/debug-flags'
@@ -6749,12 +6749,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				return a.pageBounds[min] - b.pageBounds[min]
 			})
 
+		// The gap is the amount of space "left over" between the first and last shape. This can be a negative number if the shapes are overlapping.
 		const maxFirst = first.pageBounds[max]
 		const range = last.pageBounds[min] - maxFirst
-		// The gap is the amount of space "left over" between the first and last shape. This can be a negative number if the shapes are overlapping.
-		const gap =
-			(range - shapeClustersToMove.reduce((acc, s) => acc + s.pageBounds[dim], 0)) /
-			(shapeClustersToMove.length + 1)
+		const summedShapeDimensions = shapeClustersToMove.reduce((acc, s) => acc + s.pageBounds[dim], 0)
+		const gap = (range - summedShapeDimensions) / (shapeClustersToMove.length + 1)
 
 		for (let v = maxFirst + gap, i = 0; i < shapeClustersToMove.length; i++) {
 			const { shapes, pageBounds } = shapeClustersToMove[i]
@@ -6762,8 +6761,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			delta[val] = v - pageBounds[val]
 
 			// If for some reason the new position would be more than the maximum, we need to adjust the delta
-			// This will likely throw off some of the other placements but hey, it's better than changing the
-			// bounds
+			// This will likely throw off some of the other placements but hey, it's better than changing the common bounds
 			if (v + pageBounds[dim] > last.pageBounds[max]) {
 				delta[val] = last.pageBounds[max] - pageBounds[max]
 			}
@@ -6811,64 +6809,96 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: (shapes as TLShape[]).map((s) => s.id)
 
 		if (this.getIsReadonly()) return this
-		if (ids.length < 2) return this
 
-		const shapesToStretch = compact(ids.map((id) => this.getShape(id))) // always fresh shapes
-		const shapeBounds = Object.fromEntries(ids.map((id) => [id, this.getShapeGeometry(id).bounds]))
-		const shapePageBounds = Object.fromEntries(ids.map((id) => [id, this.getShapePageBounds(id)!]))
-		const commonBounds = Box.Common(compact(Object.values(shapePageBounds)))
+		// always fresh shapes, skip anything that isn't rotated 90 deg
+		const shapesToStretchFirstPass = compact(ids.map((id) => this.getShape(id))).filter(
+			(s) => this.getShapePageTransform(s)?.rotation() % (PI / 2) === 0
+		)
 
-		switch (operation) {
-			case 'vertical': {
-				this.run(() => {
-					for (const shape of shapesToStretch) {
-						const pageRotation = this.getShapePageTransform(shape)!.rotation()
-						if (pageRotation % PI2) continue
-						const bounds = shapeBounds[shape.id]
-						const pageBounds = shapePageBounds[shape.id]
-						const localOffset = new Vec(0, commonBounds.minY - pageBounds.minY)
-						const parentTransform = this.getShapeParentTransform(shape)
-						if (parentTransform) localOffset.rot(-parentTransform.rotation())
+		const shapeClustersToStretch: {
+			shapes: TLShape[]
+			pageBounds: Box
+		}[] = []
 
-						const { x, y } = Vec.Add(localOffset, shape)
-						this.updateShapes([{ id: shape.id, type: shape.type, x, y }])
-						const scale = new Vec(1, commonBounds.height / pageBounds.height)
-						this.resizeShape(shape.id, scale, {
-							initialBounds: bounds,
-							scaleOrigin: new Vec(pageBounds.center.x, commonBounds.minY),
-							isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
-							scaleAxisRotation: 0,
-						})
-					}
-				})
-				break
-			}
-			case 'horizontal': {
-				this.run(() => {
-					for (const shape of shapesToStretch) {
-						const bounds = shapeBounds[shape.id]
-						const pageBounds = shapePageBounds[shape.id]
-						const pageRotation = this.getShapePageTransform(shape)!.rotation()
-						if (pageRotation % PI2) continue
-						const localOffset = new Vec(commonBounds.minX - pageBounds.minX, 0)
-						const parentTransform = this.getShapeParentTransform(shape)
-						if (parentTransform) localOffset.rot(-parentTransform.rotation())
+		const allBounds: Box[] = []
+		const visited = new Set<TLShapeId>()
 
-						const { x, y } = Vec.Add(localOffset, shape)
-						this.updateShapes([{ id: shape.id, type: shape.type, x, y }])
-						const scale = new Vec(commonBounds.width / pageBounds.width, 1)
-						this.resizeShape(shape.id, scale, {
-							initialBounds: bounds,
-							scaleOrigin: new Vec(commonBounds.minX, pageBounds.center.y),
-							isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
-							scaleAxisRotation: 0,
-						})
-					}
-				})
+		for (const shape of shapesToStretchFirstPass) {
+			if (visited.has(shape.id)) continue
+			visited.add(shape.id)
 
-				break
-			}
+			const shapePageBounds = this.getShapePageBounds(shape)
+			if (!shapePageBounds) continue
+
+			const shapesMovingTogether = [shape]
+			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
+
+			this.collectShapesViaArrowBindings({
+				bindings: this.getBindingsToShape(shape.id, 'arrow'),
+				initialShapes: shapesToStretchFirstPass,
+				resultShapes: shapesMovingTogether,
+				resultBounds: boundsOfShapesMovingTogether,
+				visited,
+			})
+
+			const commonPageBounds = Box.Common(boundsOfShapesMovingTogether)
+			if (!commonPageBounds) continue
+
+			shapeClustersToStretch.push({
+				shapes: shapesMovingTogether,
+				pageBounds: commonPageBounds,
+			})
+
+			allBounds.push(commonPageBounds)
 		}
+
+		if (shapeClustersToStretch.length < 2) return this
+
+		const commonBounds = Box.Common(allBounds)
+		let val: 'x' | 'y'
+		let min: 'minX' | 'minY'
+		let dim: 'width' | 'height'
+
+		if (operation === 'horizontal') {
+			val = 'x'
+			min = 'minX'
+			dim = 'width'
+		} else {
+			val = 'y'
+			min = 'minY'
+			dim = 'height'
+		}
+
+		this.run(() => {
+			shapeClustersToStretch.forEach(({ shapes, pageBounds }) => {
+				const localOffset = new Vec()
+				localOffset[val] = commonBounds[min] - pageBounds[min]
+
+				const scaleOrigin = pageBounds.center.clone()
+				scaleOrigin[val] = commonBounds[min]
+
+				const scale = new Vec(1, 1)
+				scale[val] = commonBounds[dim] / pageBounds[dim]
+
+				for (const shape of shapes) {
+					// First translate
+					const shapeLocalOffset = localOffset.clone()
+					const parentTransform = this.getShapeParentTransform(shape)
+					if (parentTransform) localOffset.rot(-parentTransform.rotation())
+					shapeLocalOffset.add(shape)
+					const changes = this.getChangesToTranslateShape(shape, shapeLocalOffset)
+					this.updateShape(changes)
+
+					// Then resize
+					this.resizeShape(shape.id, scale, {
+						initialBounds: this.getShapeGeometry(shape).bounds,
+						scaleOrigin,
+						isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
+						scaleAxisRotation: 0,
+					})
+				}
+			})
+		})
 
 		return this
 	}
