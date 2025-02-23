@@ -6186,6 +6186,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		for (const shape of shapesToFlipFirstPass) {
 			const util = this.getShapeUtil(shape)
+			// todo: replace with clusters?
 			if (util.canBeLaidOut(shape, { type: 'flip', shapes: shapesToFlipFirstPass })) {
 				const pageBounds = this.getShapePageBounds(shape)
 				const localBounds = this.getShapeGeometry(shape).bounds
@@ -6252,26 +6253,46 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: (shapes as TLShape[]).map((s) => s.id)
 		if (this.getIsReadonly()) return this
 
-		const shapesToStackFirstPass = compact(
-			ids.map((id) => this.getShape(id)) // always fresh shapes
-		)
+		// always fresh shapes
+		const shapesToStackFirstPass = compact(ids.map((id) => this.getShape(id)))
 
-		const shapesToStack: TLShape[] = []
-		const shapePageBounds: Record<TLShapeId, Box> = {}
+		const shapeClustersToStack: {
+			shapes: TLShape[]
+			pageBounds: Box
+		}[] = []
+		const allBounds: Box[] = []
+		const visited = new Set<TLShapeId>()
 
 		for (const shape of shapesToStackFirstPass) {
-			if (
-				this.getShapeUtil(shape).canBeLaidOut(shape, {
-					type: 'stack',
-					shapes: shapesToStackFirstPass,
-				})
-			) {
-				shapesToStack.push(shape)
-				shapePageBounds[shape.id] = this.getShapePageBounds(shape)!
-			}
+			if (visited.has(shape.id)) continue
+			visited.add(shape.id)
+
+			const shapePageBounds = this.getShapePageBounds(shape)
+			if (!shapePageBounds) continue
+
+			const shapesMovingTogether = [shape]
+			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
+
+			this.collectShapesViaArrowBindings({
+				bindings: this.getBindingsToShape(shape.id, 'arrow'),
+				initialShapes: shapesToStackFirstPass,
+				resultShapes: shapesMovingTogether,
+				resultBounds: boundsOfShapesMovingTogether,
+				visited,
+			})
+
+			const commonPageBounds = Box.Common(boundsOfShapesMovingTogether)
+			if (!commonPageBounds) continue
+
+			shapeClustersToStack.push({
+				shapes: shapesMovingTogether,
+				pageBounds: commonPageBounds,
+			})
+
+			allBounds.push(commonPageBounds)
 		}
 
-		const len = shapesToStack.length
+		const len = shapeClustersToStack.length
 		if ((gap === 0 && len < 3) || len < 2) return this
 
 		let val: 'x' | 'y'
@@ -6291,46 +6312,45 @@ export class Editor extends EventEmitter<TLEventMap> {
 			dim = 'height'
 		}
 
-		let shapeGap: number
+		let shapeGap: number = 0
 
 		if (gap === 0) {
-			const gaps: { gap: number; count: number }[] = []
+			// note: this is not used in the current tldraw.com; there we use a specified stack
 
-			shapesToStack.sort((a, b) => shapePageBounds[a.id][min] - shapePageBounds[b.id][min])
+			const gaps: Record<number, number> = {}
+
+			shapeClustersToStack.sort((a, b) => a.pageBounds[min] - b.pageBounds[min])
 
 			// Collect all of the gaps between shapes. We want to find
 			// patterns (equal gaps between shapes) and use the most common
 			// one as the gap for all of the shapes.
 			for (let i = 0; i < len - 1; i++) {
-				const shape = shapesToStack[i]
-				const nextShape = shapesToStack[i + 1]
-
-				const bounds = shapePageBounds[shape.id]
-				const nextBounds = shapePageBounds[nextShape.id]
-
-				const gap = nextBounds[min] - bounds[max]
-
-				const current = gaps.find((g) => g.gap === gap)
-
-				if (current) {
-					current.count++
-				} else {
-					gaps.push({ gap, count: 1 })
+				const currCluster = shapeClustersToStack[i]
+				const nextCluster = shapeClustersToStack[i + 1]
+				const gap = nextCluster.pageBounds[min] - currCluster.pageBounds[max]
+				if (!gaps[gap]) {
+					gaps[gap] = 0
 				}
+				gaps[gap]++
 			}
 
 			// Which gap is the most common?
-			let maxCount = 0
-			gaps.forEach((g) => {
-				if (g.count > maxCount) {
-					maxCount = g.count
-					shapeGap = g.gap
+			let maxCount = 1
+			for (const [gap, count] of Object.entries(gaps)) {
+				if (count > maxCount) {
+					maxCount = count
+					shapeGap = parseFloat(gap)
 				}
-			})
+			}
 
 			// If there is no most-common gap, use the average gap.
 			if (maxCount === 1) {
-				shapeGap = Math.max(0, gaps.reduce((a, c) => a + c.gap * c.count, 0) / (len - 1))
+				let totalCount = 0
+				for (const [gap, count] of Object.entries(gaps)) {
+					shapeGap += parseFloat(gap) * count
+					totalCount += count
+				}
+				shapeGap /= totalCount
 			}
 		} else {
 			// If a gap was provided, then use that instead.
@@ -6339,27 +6359,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const changes: TLShapePartial[] = []
 
-		let v = shapePageBounds[shapesToStack[0].id][max]
+		let v = shapeClustersToStack[0].pageBounds[max]
 
-		shapesToStack.forEach((shape, i) => {
-			if (i === 0) return
-
+		for (let i = 1; i < shapeClustersToStack.length; i++) {
+			const { shapes, pageBounds } = shapeClustersToStack[i]
 			const delta = new Vec()
-			delta[val] = v + shapeGap - shapePageBounds[shape.id][val]
+			delta[val] = v + shapeGap - pageBounds[val]
 
-			// If the shape has another shape as its parent, and if the parent has a rotation, we need to rotate the counter-rotate delta
-			// todo: ensure that the parent isn't being aligned together with its children
-			const parent = this.getShapeParent(shape)
-			if (parent) {
-				const parentTransform = this.getShapePageTransform(parent)
-				if (parentTransform) delta.rot(-parentTransform.rotation())
+			for (const shape of shapes) {
+				const shapeDelta = delta.clone()
+
+				// If the shape has another shape as its parent, and if the parent has a rotation, we need to rotate the counter-rotate delta
+				// todo: ensure that the parent isn't being aligned together with its children
+				const parent = this.getShapeParent(shape)
+				if (parent) {
+					const parentTransform = this.getShapePageTransform(parent)
+					if (parentTransform) shapeDelta.rot(-parentTransform.rotation())
+				}
+
+				shapeDelta.add(shape) // add the shape's x and y to the delta
+				changes.push(this.getChangesToTranslateShape(shape, shapeDelta))
 			}
 
-			delta.add(shape) // add the shape's x and y to the delta
-			changes.push(this.getChangesToTranslateShape(shape, delta))
-
-			v += shapePageBounds[shape.id][dim] + shapeGap
-		})
+			v += pageBounds[dim] + shapeGap
+		}
 
 		this.updateShapes(changes)
 		return this

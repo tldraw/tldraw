@@ -105,14 +105,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// In order to be laid out, any bound shapes must also be laid out
 		const bindings = getArrowBindings(this.editor, shape)
 		const { start, end } = bindings
-
-		const { type, shapes = [] } = info
-
-		// todo: ideally a shape with a single arrow bound to it would be considered as a group with the arrow for layout purposes but for now we'll just ignore the arrow
-		if (type === 'pack' && (start || end)) {
-			return false
-		}
-
+		const { shapes = [] } = info
 		if (start && !shapes.find((s) => s.id === start.toId)) return false
 		if (end && !shapes.find((s) => s.id === end.toId)) return false
 		return true
