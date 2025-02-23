@@ -72,6 +72,13 @@ export function copyAs(
 			)
 		}
 
+		if (opts?.format === 'svg') {
+			const blobPromise = editor
+				.getSvgString(ids, opts)
+				.then((result) => new Blob([result?.svg ?? ''], { type: 'text/plain' }))
+			types['text/plain'] = blobPromise
+		}
+
 		return clipboardWrite(types)
 	}
 
