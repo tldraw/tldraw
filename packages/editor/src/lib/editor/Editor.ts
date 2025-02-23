@@ -6605,20 +6605,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let val: 'x' | 'y'
 		let min: 'minX' | 'minY'
 		let max: 'maxX' | 'maxY'
-		let mid: 'midX' | 'midY'
 		let dim: 'width' | 'height'
 
 		if (operation === 'horizontal') {
 			val = 'x'
 			min = 'minX'
 			max = 'maxX'
-			mid = 'midX'
 			dim = 'width'
 		} else {
 			val = 'y'
 			min = 'minY'
 			max = 'maxY'
-			mid = 'midY'
 			dim = 'height'
 		}
 		const changes: TLShapePartial[] = []
@@ -6649,17 +6646,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			})
 
 		const maxFirst = shapePageBounds[first.id][max]
-		const minLast = shapePageBounds[last.id][min]
-		// const step = (shapePageBounds[last.id][min] - maxFirst) / (len - 1)
-		const range = minLast - maxFirst
-		const rangeTakenUpByShapes = shapesToMove.reduce(
-			(acc, s) => acc + shapePageBounds[s.id][dim],
-			0
-		)
+		const range = shapePageBounds[last.id][min] - maxFirst
+		// The gap is the amount of space "left over" between the first and last shape. This can be a negative number if the shapes are overlapping.
+		const gap =
+			(range - shapesToMove.reduce((acc, s) => acc + shapePageBounds[s.id][dim], 0)) /
+			(shapesToMove.length + 1)
 
-		const step = (range - rangeTakenUpByShapes) / (shapesToMove.length + 1)
-
-		for (let v = maxFirst + step, i = 0; i < shapesToMove.length; i++) {
+		for (let v = maxFirst + gap, i = 0; i < shapesToMove.length; i++) {
 			const shape = shapesToMove[i]
 			const delta = new Vec()
 			const bounds = shapePageBounds[shape.id]
@@ -6676,7 +6669,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			delta.add(shape) // add the shape's x and y to the delta
 			changes.push(this.getChangesToTranslateShape(shape, delta))
 
-			v += bounds[dim] + step
+			v += bounds[dim] + gap
 		}
 
 		this.updateShapes(changes)
