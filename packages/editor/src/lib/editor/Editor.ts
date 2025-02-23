@@ -5685,14 +5685,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	// Gets a shape partial that includes life cycle changes: on translate start, on translate, on translate end
 	private getChangesToTranslateShape(initialShape: TLShape, newShapeCoords: VecLike): TLShape {
 		let workingShape = initialShape
 		const util = this.getShapeUtil(initialShape)
 
-		workingShape = applyPartialToRecordWithProps(
-			workingShape,
-			util.onTranslateStart?.(workingShape) ?? undefined
-		)
+		const afterTranslateStart = util.onTranslateStart?.(workingShape)
+		if (afterTranslateStart) {
+			workingShape = applyPartialToRecordWithProps(workingShape, afterTranslateStart)
+		}
 
 		workingShape = applyPartialToRecordWithProps(workingShape, {
 			id: initialShape.id,
@@ -5701,15 +5702,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 			y: newShapeCoords.y,
 		})
 
-		workingShape = applyPartialToRecordWithProps(
-			workingShape,
-			util.onTranslate?.(initialShape, workingShape) ?? undefined
-		)
+		const afterTranslate = util.onTranslate?.(initialShape, workingShape)
+		if (afterTranslate) {
+			workingShape = applyPartialToRecordWithProps(workingShape, afterTranslate)
+		}
 
-		workingShape = applyPartialToRecordWithProps(
-			workingShape,
-			util.onTranslateEnd?.(initialShape, workingShape) ?? undefined
-		)
+		const afterTranslateEnd = util.onTranslateEnd?.(initialShape, workingShape)
+		if (afterTranslateEnd) {
+			workingShape = applyPartialToRecordWithProps(workingShape, afterTranslateEnd)
+		}
 
 		return workingShape
 	}
@@ -6494,11 +6495,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this.getIsReadonly()) return this
 		if (ids.length < 2) return this
 
-		const shapesToAlign = compact(ids.map((id) => this.getShape(id))) // always fresh shapes
-		const shapePageBounds = Object.fromEntries(
-			shapesToAlign.map((shape) => [shape.id, this.getShapePageBounds(shape)])
-		)
-		const commonBounds = Box.Common(compact(Object.values(shapePageBounds)))
+		const shapesToAlign: TLShape[] = []
+		const shapePageBounds: Record<TLShapeId, Box> = {}
+		const allBounds: Box[] = []
+
+		for (const id of ids) {
+			const shape = this.getShape(id) // always fresh shape
+			if (!shape) continue // might not exist / still exist
+			const util = this.getShapeUtil(shape)
+			if (!util.canBeLaidOut(shape)) continue
+			const bounds = this.getShapePageBounds(shape)
+			if (!bounds) continue
+			shapesToAlign.push(shape)
+			shapePageBounds[shape.id] = bounds
+			allBounds.push(bounds)
+		}
+
+		if (!shapesToAlign.length) return this
+
+		const commonBounds = Box.Common(allBounds)
 
 		const changes: TLShapePartial[] = []
 
@@ -6535,7 +6550,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 
-			const parent = this.getShapeParent(shape)
+			const parent = this.getShapeParent(shape) // todo: ensure that the parent isn't being aligned together with its children
 			const localDelta = parent
 				? Vec.Rot(delta, -this.getShapePageTransform(parent)!.decompose().rotation)
 				: delta

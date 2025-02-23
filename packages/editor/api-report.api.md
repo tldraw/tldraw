@@ -2506,7 +2506,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     constructor(editor: Editor);
     // @internal
     backgroundComponent?(shape: Shape): any;
-    canBeLaidOut(_shape: Shape): boolean;
+    canBeLaidOut(_shape: Shape, _type?: 'align' | 'distribute' | 'flip' | 'pack' | 'stack'): boolean;
     canBind(_opts: TLShapeUtilCanBindOpts<Shape>): boolean;
     canCrop(_shape: Shape): boolean;
     canDropShapes(_shape: Shape, _shapes: TLShape[]): boolean;

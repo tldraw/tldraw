@@ -151,6 +151,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	/**
 	 * Whether the shape can be snapped to by another shape.
 	 *
+	 * @param shape - The shape.
 	 * @public
 	 */
 	canSnap(_shape: Shape): boolean {
@@ -212,11 +213,15 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
-	 * Whether the shape participates in stacking, aligning, and distributing.
+	 * Whether the shape can participate in layout functions such as alignment or distribution.
+	 *
+	 * @param shape - The shape.
+	 * @param type - The type of layout being done.
+	 * @public
 	 *
 	 * @public
 	 */
-	canBeLaidOut(_shape: Shape): boolean {
+	canBeLaidOut(_shape: Shape, _type?: 'align' | 'distribute' | 'pack' | 'stack' | 'flip'): boolean {
 		return true
 	}
 
