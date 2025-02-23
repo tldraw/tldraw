@@ -277,6 +277,31 @@ describe('when shapes are overlapping', () => {
 		expect(editor.getShape(ids.boxB)!.y).toBeCloseTo(200 + 16.67, 1)
 		expect(editor.getShape(ids.boxC)!.y).toBeCloseTo(200 + 50 + 16.7 + 16.67, 1)
 	})
+})
 
-	it.todo('preserves common bounds when distributing shapes with a lot of overlap')
+it('preserves common bounds when distributing shapes with a lot of overlap', () => {
+	editor = new TestEditor()
+	// AAAABBCC EEE
+	//     DDDDDD
+	const ids = editor.createShapesFromJsx([
+		<TL.geo ref="boxA" x={0} y={0} w={100} h={100} />,
+		<TL.geo ref="boxB" x={20} y={0} w={10} h={100} />,
+		<TL.geo ref="boxC" x={30} y={0} w={10} h={100} />,
+		<TL.geo ref="boxD" x={10} y={0} w={380} h={100} />, // ten in from left, ten in from right
+		<TL.geo ref="boxE" x={300} y={0} w={100} h={100} />,
+	])
+
+	editor.selectAll()
+
+	const prevBounds = editor.getSelectionPageBounds()!
+
+	editor.distributeShapes(Object.values(ids), 'horizontal')
+
+	// If we didn't clamp this, then the right side of boxD would be to the right of boxE's right side
+	expect(editor.getShapePageBounds(ids.boxD)!.maxX).toEqual(
+		editor.getShapePageBounds(ids.boxE)!.maxX
+	)
+
+	// The bounds should be the same as when we started
+	expect(editor.getSelectionPageBounds()!).toCloselyMatchObject(prevBounds)
 })
