@@ -6389,36 +6389,60 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Always fresh shapes
 		const shapesToPackFirstPass = compact(ids.map((id) => this.getShape(id)))
 
-		const shapesToPack: TLShape[] = []
-		const shapePageBounds: Record<string, Box> = {}
-		const nextShapePageBounds: Record<string, Box> = {}
+		const shapeClustersToPack: {
+			shapes: TLShape[]
+			pageBounds: Box
+			nextPageBounds: Box
+		}[] = []
 
-		let shape: TLShape,
-			bounds: Box,
-			area = 0
+		const allBounds: Box[] = []
+		const visited = new Set<TLShapeId>()
+
 		for (const shape of shapesToPackFirstPass) {
-			if (
-				this.getShapeUtil(shape).canBeLaidOut(shape, {
-					type: 'pack',
-					shapes: shapesToPackFirstPass,
-				})
-			) {
-				shapesToPack.push(shape)
-				bounds = this.getShapePageBounds(shape)!
-				shapePageBounds[shape.id] = bounds
-				nextShapePageBounds[shape.id] = bounds.clone()
-				area += bounds.width * bounds.height
-			}
+			if (visited.has(shape.id)) continue
+			visited.add(shape.id)
+
+			const shapePageBounds = this.getShapePageBounds(shape)
+			if (!shapePageBounds) continue
+
+			const shapesMovingTogether = [shape]
+			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
+
+			this.collectShapesViaArrowBindings({
+				bindings: this.getBindingsToShape(shape.id, 'arrow'),
+				initialShapes: shapesToPackFirstPass,
+				resultShapes: shapesMovingTogether,
+				resultBounds: boundsOfShapesMovingTogether,
+				visited,
+			})
+
+			const commonPageBounds = Box.Common(boundsOfShapesMovingTogether)
+			if (!commonPageBounds) continue
+
+			shapeClustersToPack.push({
+				shapes: shapesMovingTogether,
+				pageBounds: commonPageBounds,
+				nextPageBounds: commonPageBounds.clone(),
+			})
+
+			allBounds.push(commonPageBounds)
 		}
 
-		if (shapesToPack.length < 2) return this
+		if (shapeClustersToPack.length < 2) return this
 
-		const commonBounds = Box.Common(compact(Object.values(shapePageBounds)))
+		let area = 0
+		for (const { pageBounds } of shapeClustersToPack) {
+			area += pageBounds.width * pageBounds.height
+		}
+
+		const commonBounds = Box.Common(allBounds)
 
 		const maxWidth = commonBounds.width
 
-		// sort the shapes by height, descending
-		shapesToPack.sort((a, b) => shapePageBounds[b.id].height - shapePageBounds[a.id].height)
+		// sort the shape clusters by width and then height, descending
+		shapeClustersToPack
+			.sort((a, b) => a.pageBounds.width - b.pageBounds.width)
+			.sort((a, b) => a.pageBounds.height - b.pageBounds.height)
 
 		// Start with is (sort of) the square of the area
 		const startWidth = Math.max(Math.ceil(Math.sqrt(area / 0.95)), maxWidth)
@@ -6431,85 +6455,69 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let space: Box
 		let last: Box
 
-		for (let i = 0; i < shapesToPack.length; i++) {
-			shape = shapesToPack[i]
-			bounds = nextShapePageBounds[shape.id]
-
+		for (const { nextPageBounds } of shapeClustersToPack) {
 			// starting at the back (smaller shapes)
 			for (let i = spaces.length - 1; i >= 0; i--) {
 				space = spaces[i]
 
 				// find a space that is big enough to contain the shape
-				if (bounds.width > space.width || bounds.height > space.height) continue
+				if (nextPageBounds.width > space.width || nextPageBounds.height > space.height) continue
 
 				// add the shape to its top-left corner
-				bounds.x = space.x
-				bounds.y = space.y
+				nextPageBounds.x = space.x
+				nextPageBounds.y = space.y
 
-				height = Math.max(height, bounds.maxY)
-				width = Math.max(width, bounds.maxX)
+				height = Math.max(height, nextPageBounds.maxY)
+				width = Math.max(width, nextPageBounds.maxX)
 
-				if (bounds.width === space.width && bounds.height === space.height) {
+				if (nextPageBounds.width === space.width && nextPageBounds.height === space.height) {
 					// remove the space on a perfect fit
 					last = spaces.pop()!
 					if (i < spaces.length) spaces[i] = last
-				} else if (bounds.height === space.height) {
+				} else if (nextPageBounds.height === space.height) {
 					// fit the shape into the space (width)
-					space.x += bounds.width + gap
-					space.width -= bounds.width + gap
-				} else if (bounds.width === space.width) {
+					space.x += nextPageBounds.width + gap
+					space.width -= nextPageBounds.width + gap
+				} else if (nextPageBounds.width === space.width) {
 					// fit the shape into the space (height)
-					space.y += bounds.height + gap
-					space.height -= bounds.height + gap
+					space.y += nextPageBounds.height + gap
+					space.height -= nextPageBounds.height + gap
 				} else {
 					// split the space into two spaces
 					spaces.push(
 						new Box(
-							space.x + (bounds.width + gap),
+							space.x + (nextPageBounds.width + gap),
 							space.y,
-							space.width - (bounds.width + gap),
-							bounds.height
+							space.width - (nextPageBounds.width + gap),
+							nextPageBounds.height
 						)
 					)
-					space.y += bounds.height + gap
-					space.height -= bounds.height + gap
+					space.y += nextPageBounds.height + gap
+					space.height -= nextPageBounds.height + gap
 				}
 				break
 			}
 		}
 
-		const commonAfter = Box.Common(Object.values(nextShapePageBounds))
+		const commonAfter = Box.Common(shapeClustersToPack.map((s) => s.nextPageBounds))
 		const centerDelta = Vec.Sub(commonBounds.center, commonAfter.center)
-
-		let nextBounds: Box
 
 		const changes: TLShapePartial<any>[] = []
 
-		for (let i = 0; i < shapesToPack.length; i++) {
-			shape = shapesToPack[i]
-			bounds = shapePageBounds[shape.id]
-			nextBounds = nextShapePageBounds[shape.id]
+		for (const { shapes, pageBounds, nextPageBounds } of shapeClustersToPack) {
+			const delta = Vec.Sub(nextPageBounds.point, pageBounds.point).add(centerDelta)
 
-			const delta = Vec.Sub(nextBounds.point, bounds.point).add(centerDelta)
-			const parentTransform = this.getShapeParentTransform(shape)
-			if (parentTransform) delta.rot(-parentTransform.rotation())
+			for (const shape of shapes) {
+				const shapeDelta = delta.clone()
 
-			const change: TLShapePartial = {
-				id: shape.id,
-				type: shape.type,
-				x: shape.x + delta.x,
-				y: shape.y + delta.y,
-			}
+				const parent = this.getShapeParent(shape)
+				if (parent) {
+					const parentTransform = this.getShapeParentTransform(shape)
+					if (parentTransform) shapeDelta.rot(-parentTransform.rotation())
+				}
 
-			const translateStartChange = this.getShapeUtil(shape).onTranslateStart?.({
-				...shape,
-				...change,
-			})
-
-			if (translateStartChange) {
-				changes.push({ ...change, ...translateStartChange })
-			} else {
-				changes.push(change)
+				shapeDelta.add(shape)
+				changes.push(this.getChangesToTranslateShape(shape, shapeDelta))
 			}
 		}
 
