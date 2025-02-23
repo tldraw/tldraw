@@ -6631,29 +6631,53 @@ export class Editor extends EventEmitter<TLEventMap> {
 			(a, b) => shapePageBounds[b.id][max] - shapePageBounds[a.id][max]
 		)[0]
 
-		const maxFirst = shapePageBounds[first.id][max]
-		const step = (shapePageBounds[last.id][min] - maxFirst) / (len - 1)
-		const v = maxFirst + step
+		// If the first shape is also the last shape, distribute without it
+		if (first === last) {
+			return this.distributeShapes(
+				ids.filter((id) => id !== first.id),
+				operation
+			)
+		}
 
-		shapesToDistribute
+		const shapesToMove = shapesToDistribute
 			.filter((shape) => shape !== first && shape !== last)
-			.sort((a, b) => shapePageBounds[a.id][mid] - shapePageBounds[b.id][mid])
-			.forEach((shape, i) => {
-				const delta = new Vec()
-				const bounds = shapePageBounds[shape.id]
-				delta[val] = v + step * i - bounds[dim] / 2 - bounds[val]
-
-				// If the shape has another shape as its parent, and if the parent has a rotation, we need to rotate the counter-rotate delta
-				// todo: ensure that the parent isn't being aligned together with its children
-				const parent = this.getShapeParent(shape)
-				if (parent) {
-					const parentTransform = this.getShapePageTransform(parent)
-					if (parentTransform) delta.rot(-parentTransform.decompose().rotation)
+			.sort((a, b) => {
+				if (shapePageBounds[a.id][min] === shapePageBounds[b.id][min]) {
+					return a.id < b.id ? -1 : 1
 				}
-
-				delta.add(shape) // add the shape's x and y to the delta
-				changes.push(this.getChangesToTranslateShape(shape, delta))
+				return shapePageBounds[a.id][min] - shapePageBounds[b.id][min]
 			})
+
+		const maxFirst = shapePageBounds[first.id][max]
+		const minLast = shapePageBounds[last.id][min]
+		// const step = (shapePageBounds[last.id][min] - maxFirst) / (len - 1)
+		const range = minLast - maxFirst
+		const rangeTakenUpByShapes = shapesToMove.reduce(
+			(acc, s) => acc + shapePageBounds[s.id][dim],
+			0
+		)
+
+		const step = (range - rangeTakenUpByShapes) / (shapesToMove.length + 1)
+
+		for (let v = maxFirst + step, i = 0; i < shapesToMove.length; i++) {
+			const shape = shapesToMove[i]
+			const delta = new Vec()
+			const bounds = shapePageBounds[shape.id]
+			delta[val] = v - bounds[val]
+
+			// If the shape has another shape as its parent, and if the parent has a rotation, we need to rotate the counter-rotate delta
+			// todo: ensure that the parent isn't being aligned together with its children
+			const parent = this.getShapeParent(shape)
+			if (parent) {
+				const parentTransform = this.getShapePageTransform(parent)
+				if (parentTransform) delta.rot(-parentTransform.decompose().rotation)
+			}
+
+			delta.add(shape) // add the shape's x and y to the delta
+			changes.push(this.getChangesToTranslateShape(shape, delta))
+
+			v += bounds[dim] + step
+		}
 
 		this.updateShapes(changes)
 		return this
