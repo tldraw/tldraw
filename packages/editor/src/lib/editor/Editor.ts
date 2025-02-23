@@ -6174,15 +6174,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		// Exclude shapes that can't be flipped
-		const allBounds: Box[] = []
-
+		// exclude shapes that can't be flipped
 		const shapesToFlip: {
 			shape: TLShape
 			localBounds: Box
 			pageTransform: Mat
 			isAspectRatioLocked: boolean
 		}[] = []
+
+		const allBounds: Box[] = []
 
 		for (const shape of shapesToFlipFirstPass) {
 			const util = this.getShapeUtil(shape)
@@ -6252,6 +6252,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
 		if (this.getIsReadonly()) return this
+
+		// todo: this has a lot of extra code to handle stacking with custom gaps or auto gaps or other things like that. I don't think anyone has ever used this stuff.
 
 		// always fresh shapes
 		const shapesToStackFirstPass = compact(ids.map((id) => this.getShape(id)))
@@ -6565,7 +6567,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-
 	alignShapes(
 		shapes: TLShapeId[] | TLShape[],
 		operation: 'left' | 'center-horizontal' | 'right' | 'top' | 'center-vertical' | 'bottom'

@@ -102,7 +102,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override canBeLaidOut(shape: TLArrowShape, info: TLShapeUtilCanBeLaidOutOpts) {
-		// In order to be laid out, any bound shapes must also be laid out
+		// really only used in flipping
 		const bindings = getArrowBindings(this.editor, shape)
 		const { start, end } = bindings
 		const { shapes = [] } = info
