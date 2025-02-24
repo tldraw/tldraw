@@ -1,10 +1,11 @@
-import { DB, TlaFile, TlaRow, ZTable } from '@tldraw/dotcom-shared'
+import { DB, TlaFile, TlaRow, TlaUser, ZTable } from '@tldraw/dotcom-shared'
 import {
 	ExecutionQueue,
 	assert,
 	exhaustiveSwitchError,
 	promiseWithResolve,
 	sleep,
+	stringEnum,
 	throttle,
 	uniqueId,
 } from '@tldraw/utils'
@@ -29,14 +30,46 @@ import {
 	getUserDurableObject,
 } from './utils/durableObjects'
 
+const relevantTables = stringEnum(
+	'user',
+	'file',
+	'file_state',
+	'user_mutation_number',
+	'user_boot_id'
+)
+
 interface ReplicationEvent {
 	command: 'insert' | 'update' | 'delete'
-	table: keyof DB | 'replicator_boot_id' | 'user_boot_id' | 'user_mutation_number'
+	table: keyof typeof relevantTables
+}
+
+interface Change {
+	event: ReplicationEvent
+	topicId: string
+	row: TlaRow
 }
 
 interface Migration {
 	id: string
 	code: string
+}
+
+interface Lsn {
+	walSegment: number
+	walSegmentOffset: number
+}
+
+function parseLsn(lsn: string): Lsn {
+	const [walSegmentStr, walSegmentOffsetStr] = lsn.split('/')
+	const walSegment = parseInt(walSegmentStr, 16)
+	const walSegmentOffset = parseInt(walSegmentOffsetStr, 16)
+	if (!Number.isFinite(walSegment) || !Number.isFinite(walSegmentOffset)) {
+		throw new Error(`Invalid LSN: ${JSON.stringify(lsn)}`)
+	}
+	return {
+		walSegment,
+		walSegmentOffset,
+	}
 }
 
 const migrations: Migration[] = [
@@ -84,10 +117,26 @@ const migrations: Migration[] = [
 			INSERT INTO meta (lsn, slotName) VALUES ('0/0', 'init');
 		`,
 	},
+	{
+		id: '004_keep_event_log',
+		code: `
+		  CREATE TABLE history (
+        -- this is the LSN decomposed into two parts
+        -- so we can do range queries on it
+        walSegment INTEGER NOT NULL,
+        walSegmentOffset INTEGER NOT NULL,
+				-- topicId is either a user id or a file id
+				topicId TEXT NOT NULL,
+        json TEXT NOT NULL
+      );
+			CREATE INDEX history_walSegment_walSegmentOffset_topicId ON history (walSegment, walSegmentOffset, topicId);
+		`,
+	},
 ]
 
 const ONE_MINUTE = 60 * 1000
 const PRUNE_INTERVAL = 10 * ONE_MINUTE
+const MAX_HISTORY_ROWS = 10_000
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -259,22 +308,26 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	override async alarm() {
-		this.ctx.storage.setAlarm(Date.now() + 3000)
-		this.maybeLogRpm()
-		// If we haven't heard anything from postgres for 5 seconds, trigger a heartbeat.
-		// Otherwise, if we haven't heard anything for 10 seconds, do a soft reboot.
-		if (Date.now() - this.lastPostgresMessageTime > 10000) {
-			this.log.debug('rebooting due to inactivity')
-			this.reboot('inactivity')
-		} else if (Date.now() - this.lastPostgresMessageTime > 5000) {
-			// this triggers a heartbeat
-			this.log.debug('triggering heartbeat due to inactivity')
-			this.replicationService.acknowledge('0/0')
+		try {
+			this.ctx.storage.setAlarm(Date.now() + 3000)
+			this.maybeLogRpm()
+			// I we haven't heard anything from postgres for 5 seconds, trigger a heartbeat.
+			// Otherwise, if we haven't heard anything for 10 seconds, do a soft reboot.
+			if (Date.now() - this.lastPostgresMessageTime > 10000) {
+				this.log.debug('rebooting due to inactivity')
+				this.reboot('inactivity')
+			} else if (Date.now() - this.lastPostgresMessageTime > 5000) {
+				// this triggers a heartbeat
+				this.log.debug('triggering heartbeat due to inactivity')
+				await this.replicationService.acknowledge('0/0')
+			}
+			await this.maybePrune()
+		} catch (e) {
+			this.captureException(e)
 		}
-		this.maybePruneUsers()
 	}
 
-	private async maybePruneUsers() {
+	private async maybePrune() {
 		const now = Date.now()
 		if (now - this.lastUserPruneTime < PRUNE_INTERVAL) return
 		const cutoffTime = now - PRUNE_INTERVAL
@@ -288,7 +341,18 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				await this.unregisterUser(id)
 			}
 		}
+		this.pruneHistory()
 		this.lastUserPruneTime = Date.now()
+	}
+
+	private pruneHistory() {
+		this.sqlite.exec(`
+      WITH max AS (
+        SELECT MAX(rowid) AS max_id FROM history
+      )
+      DELETE FROM history
+      WHERE rowid < (SELECT max_id FROM max) - ${MAX_HISTORY_ROWS};
+    `)
 	}
 
 	private maybeLogRpm() {
@@ -361,6 +425,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 
 		this.replicationService.on('heartbeat', (lsn: string) => {
+			this.log.debug('heartbeat', lsn)
 			this.lastPostgresMessageTime = Date.now()
 			this.reportPostgresUpdate()
 			// don't call this.updateLsn here because it's not necessary
@@ -369,12 +434,35 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		})
 
 		this.replicationService.addListener('data', (lsn: string, log: Wal2Json.Output) => {
+			// ignore events received after disconnecting, if that can even happen
+			if (this.state.type !== 'connected') return
+			this.postgresUpdates++
 			this.lastPostgresMessageTime = Date.now()
 			this.reportPostgresUpdate()
-			for (const change of log.change) {
+			const { walSegment, walSegmentOffset } = parseLsn(lsn)
+			for (const _change of log.change) {
+				const change = this.parseChange(_change)
+				if (!change) continue
+
 				this.handleEvent(change)
+				this.sqlite.exec(
+					'INSERT INTO history (walSegment, walSegmentOffset, topicId, json) VALUES (?, ?, ?, ?)',
+					walSegment,
+					walSegmentOffset,
+					change.topicId,
+					JSON.stringify(change)
+				)
 			}
 			this.updateLsn(lsn)
+		})
+
+		this.replicationService.addListener('start', () => {
+			if (!this.getCurrentLsn()) {
+				// make a request to force an updateLsn()
+				sql`insert into replicator_boot_id ("replicatorId", "bootId") values (${this.ctx.id.toString()}, ${uniqueId()}) on conflict ("replicatorId") do update set "bootId" = excluded."bootId"`.execute(
+					this.db
+				)
+			}
 		})
 
 		const handleError = (e: Error) => {
@@ -412,6 +500,55 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
+	private parseChange(change: Wal2Json.Change): Change | null {
+		const table = change.table as ReplicationEvent['table']
+		if (change.kind === 'truncate' || change.kind === 'message' || !(table in relevantTables)) {
+			return null
+		}
+
+		const row = {} as any
+		// take everything from change.columnnames and associated the values from change.columnvalues
+		if (change.kind === 'delete') {
+			const oldkeys = change.oldkeys
+			assert(oldkeys, 'oldkeys is required for delete events')
+			assert(oldkeys.keyvalues, 'oldkeys is required for delete events')
+			oldkeys.keynames.forEach((key, i) => {
+				row[key] = oldkeys.keyvalues[i]
+			})
+		} else {
+			change.columnnames.forEach((col, i) => {
+				row[col] = change.columnvalues[i]
+			})
+		}
+
+		let topicId = null as string | null
+		switch (table) {
+			case 'user':
+			case 'file':
+				topicId = `${(row as TlaUser | TlaFile).id}`
+				break
+			case 'file_state':
+			case 'user_boot_id':
+			case 'user_mutation_number':
+				topicId = `${(row as { userId: string }).userId}`
+				break
+			default: {
+				const _x: never = table
+			}
+		}
+
+		if (!topicId) return null
+
+		return {
+			row,
+			event: {
+				command: change.kind,
+				table,
+			},
+			topicId,
+		}
+	}
+
 	private onDidSequenceBreak() {
 		// re-register all active users to get their latest guest info
 		// do this in small batches to avoid overwhelming the system
@@ -434,78 +571,40 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		5000
 	)
 
-	private handleEvent(change: Wal2Json.Change) {
+	private handleEvent(change: Change) {
 		// ignore events received after disconnecting, if that can even happen
 		if (this.state.type !== 'connected') return
 
 		this.postgresUpdates++
 
-		// ignore our keepalive pings (we probably don't need this now we have the heartbeats)
-		if (change.table === 'replicator_boot_id') return
-
-		const { row, event } = this.getRowAndEvent(change)
 		// We shouldn't get these two, but just to be sure we'll filter them out
-		const { command, table } = event
-		if (command === 'truncate' || command === 'message') {
-			this.log.debug('ignoring event', event)
-			return
-		}
-		this.log.debug('handleEvent', event, row)
+		const { command, table } = change.event
+		this.log.debug('handleEvent', change)
 		assert(this.state.type === 'connected', 'state should be connected in handleEvent')
 		try {
 			switch (table) {
 				case 'user_boot_id':
-					this.handleBootEvent(row, { command, table })
+					this.handleBootEvent(change.row, { command, table })
 					break
 				case 'user_mutation_number':
-					this.handleMutationConfirmationEvent(row, { command, table })
+					this.handleMutationConfirmationEvent(change.row, { command, table })
 					break
 				case 'file_state':
-					this.handleFileStateEvent(row, { command, table })
+					this.handleFileStateEvent(change.row, { command, table })
 					break
 				case 'file':
-					this.handleFileEvent(row, { command, table })
+					this.handleFileEvent(change.row, { command, table })
 					break
 				case 'user':
-					this.handleUserEvent(row, { command, table })
-					break
-				// We don't synchronize events for these tables
-				case 'asset':
-				case 'applied_migrations':
+					this.handleUserEvent(change.row, { command, table })
 					break
 				default:
-					this.captureException(new Error(`Unhandled table: ${table}`), {
-						event,
-						row,
-					})
+					this.captureException(new Error(`Unhandled table: ${table}`), { change })
 					break
 			}
 		} catch (e) {
 			this.captureException(e)
 		}
-	}
-
-	private getRowAndEvent(change: Wal2Json.Change) {
-		const row = {} as any
-		// take everything from change.columnnames and associated the values from change.columnvalues
-		if (change.kind === 'delete') {
-			const oldkeys = change.oldkeys
-			assert(oldkeys, 'oldkeys is required for delete events')
-			assert(oldkeys.keyvalues, 'oldkeys is required for delete events')
-			oldkeys.keynames.forEach((key, i) => {
-				row[key] = oldkeys.keyvalues[i]
-			})
-		} else {
-			change.columnnames.forEach((col, i) => {
-				row[col] = change.columnvalues[i]
-			})
-		}
-
-		const event = {
-			command: change.kind,
-			table: change.table,
-		}
-		return { row, event }
 	}
 
 	private handleBootEvent(row: Row | null, event: ReplicationEvent) {
@@ -681,24 +780,23 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				q = new ExecutionQueue()
 				this.userDispatchQueues.set(userId, q)
 			}
+			const { sequenceNumber, sequenceIdSuffix } = this.sqlite
+				.exec(
+					'UPDATE active_user SET sequenceNumber = sequenceNumber + 1, lastUpdatedAt = ? WHERE id = ? RETURNING sequenceNumber, sequenceIdSuffix',
+					Date.now(),
+					userId
+				)
+				.one()
+			assert(typeof sequenceNumber === 'number', 'sequenceNumber should be a number')
+			assert(typeof sequenceIdSuffix === 'string', 'sequenceIdSuffix should be a string')
+
 			await q.push(async () => {
-				const { sequenceNumber, sequenceIdSuffix } = this.sqlite
-					.exec(
-						'UPDATE active_user SET sequenceNumber = sequenceNumber + 1, lastUpdatedAt = ? WHERE id = ? RETURNING sequenceNumber, sequenceIdSuffix',
-						Date.now(),
-						userId
-					)
-					.one()
-
 				const user = getUserDurableObject(this.env, userId)
-
-				assert(typeof sequenceNumber === 'number', 'sequenceNumber should be a number')
-				assert(typeof sequenceIdSuffix === 'string', 'sequenceIdSuffix should be a string')
 
 				const res = await user.handleReplicationEvent({
 					...event,
 					sequenceNumber,
-					sequenceId: this.slotName,
+					sequenceId: this.slotName + sequenceIdSuffix,
 				})
 				if (res === 'unregister') {
 					this.log.debug('unregistering user', userId, event)
@@ -753,7 +851,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			}
 			this.log.debug('inserted guest files', guestFiles.rows.length)
 			return {
-				sequenceId: this.slotName,
+				sequenceId: this.slotName + sequenceIdSuffix,
 				sequenceNumber: 0,
 			}
 		} catch (e) {
