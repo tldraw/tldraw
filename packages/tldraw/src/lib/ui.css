@@ -311,7 +311,8 @@
 .tlui-buttons__grid > .tlui-button {
 	margin: -2px;
 }
-.tlui-buttons__grid > .tlui-button:nth-of-type(4n) {
+.tlui-buttons__grid > .tlui-button:nth-of-type(4n),
+.tlui-buttons__vertical-align > .tlui-button:nth-of-type(3n) {
 	margin-right: 0px;
 }
 .tlui-buttons__grid > .tlui-button:nth-of-type(4n - 3) {

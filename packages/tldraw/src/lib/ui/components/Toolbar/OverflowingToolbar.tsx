@@ -15,10 +15,10 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import {
-	TldrawUiDropdownMenuContent,
-	TldrawUiDropdownMenuRoot,
-	TldrawUiDropdownMenuTrigger,
-} from '../primitives/TldrawUiDropdownMenu'
+	TldrawUiPopover,
+	TldrawUiPopoverContent,
+	TldrawUiPopoverTrigger,
+} from '../primitives/TldrawUiPopover'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 
 export const IsInOverflowContext = createContext(false)
@@ -167,8 +167,8 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 				{/* There is a +1 because if the menu is just one item, it's not necessary. */}
 				{totalItems > overflowIndex + 1 && (
 					<IsInOverflowContext.Provider value={true}>
-						<TldrawUiDropdownMenuRoot id="toolbar overflow" modal={false}>
-							<TldrawUiDropdownMenuTrigger>
+						<TldrawUiPopover id="toolbar overflow">
+							<TldrawUiPopoverTrigger>
 								<TldrawUiButton
 									title={msg('tool-panel.more')}
 									type="tool"
@@ -177,8 +177,8 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 								>
 									<TldrawUiButtonIcon icon="chevron-up" />
 								</TldrawUiButton>
-							</TldrawUiDropdownMenuTrigger>
-							<TldrawUiDropdownMenuContent side="top" align="center">
+							</TldrawUiPopoverTrigger>
+							<TldrawUiPopoverContent side="top" align="center">
 								<div
 									className="tlui-buttons__grid"
 									data-testid="tools.more-content"
@@ -188,8 +188,8 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 										{children}
 									</TldrawUiMenuContextProvider>
 								</div>
-							</TldrawUiDropdownMenuContent>
-						</TldrawUiDropdownMenuRoot>
+							</TldrawUiPopoverContent>
+						</TldrawUiPopover>
 					</IsInOverflowContext.Provider>
 				)}
 			</div>

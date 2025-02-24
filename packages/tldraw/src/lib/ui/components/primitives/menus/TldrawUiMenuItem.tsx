@@ -220,23 +220,21 @@ export function TldrawUiMenuItem<
 		}
 		case 'toolbar-overflow': {
 			return (
-				<TldrawUiDropdownMenuItem aria-label={label}>
-					<TldrawUiButton
-						type="icon"
-						className="tlui-button-grid__button"
-						onClick={() => {
-							onSelect('toolbar')
-						}}
-						data-testid={`tools.more.${id}`}
-						title={titleStr}
-						disabled={disabled}
-						role="radio"
-						aria-checked={isSelected ? 'true' : 'false'}
-						data-value={id}
-					>
-						<TldrawUiButtonIcon icon={icon!} />
-					</TldrawUiButton>
-				</TldrawUiDropdownMenuItem>
+				<TldrawUiButton
+					type="icon"
+					className="tlui-button-grid__button"
+					onClick={() => {
+						onSelect('toolbar')
+					}}
+					data-testid={`tools.more.${id}`}
+					title={titleStr}
+					disabled={disabled}
+					role="radio"
+					aria-checked={isSelected ? 'true' : 'false'}
+					data-value={id}
+				>
+					<TldrawUiButtonIcon icon={icon!} />
+				</TldrawUiButton>
 			)
 		}
 		default: {

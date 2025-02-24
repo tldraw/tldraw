@@ -6,11 +6,11 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import {
-	TldrawUiDropdownMenuContent,
-	TldrawUiDropdownMenuItem,
-	TldrawUiDropdownMenuRoot,
-	TldrawUiDropdownMenuTrigger,
-} from '../primitives/TldrawUiDropdownMenu'
+	TldrawUiPopover,
+	TldrawUiPopoverContent,
+	TldrawUiPopoverTrigger,
+} from '../primitives/TldrawUiPopover'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 
 interface DoubleDropdownPickerProps<T extends string> {
 	uiTypeA: string
@@ -64,8 +64,8 @@ function DoubleDropdownPickerInner<T extends string>({
 				{msg(label)}
 			</div>
 			<div className="tlui-buttons__horizontal">
-				<TldrawUiDropdownMenuRoot id={`style panel ${uiTypeA} A`}>
-					<TldrawUiDropdownMenuTrigger>
+				<TldrawUiPopover id={`style panel ${uiTypeA} A`}>
+					<TldrawUiPopoverTrigger>
 						<TldrawUiButton
 							type="icon"
 							data-testid={`style.${uiTypeA}`}
@@ -79,13 +79,14 @@ function DoubleDropdownPickerInner<T extends string>({
 						>
 							<TldrawUiButtonIcon icon={iconA} small invertIcon />
 						</TldrawUiButton>
-					</TldrawUiDropdownMenuTrigger>
-					<TldrawUiDropdownMenuContent side="left" align="center" sideOffset={80} alignOffset={0}>
+					</TldrawUiPopoverTrigger>
+					<TldrawUiPopoverContent side="left" align="center" sideOffset={80} alignOffset={0}>
 						<div className="tlui-buttons__grid">
 							{itemsA.map((item, i) => {
 								return (
-									<TldrawUiDropdownMenuItem key={i} data-testid={`style.${uiTypeA}.${item.value}`}>
+									<TldrawUiMenuContextProvider key={i} type="icons" sourceId="style-panel">
 										<TldrawUiButton
+											data-testid={`style.${uiTypeA}.${item.value}`}
 											type="icon"
 											key={item.value}
 											onClick={() => onValueChange(styleA, item.value)}
@@ -93,14 +94,14 @@ function DoubleDropdownPickerInner<T extends string>({
 										>
 											<TldrawUiButtonIcon icon={item.icon} invertIcon />
 										</TldrawUiButton>
-									</TldrawUiDropdownMenuItem>
+									</TldrawUiMenuContextProvider>
 								)
 							})}
 						</div>
-					</TldrawUiDropdownMenuContent>
-				</TldrawUiDropdownMenuRoot>
-				<TldrawUiDropdownMenuRoot id={`style panel ${uiTypeB}`}>
-					<TldrawUiDropdownMenuTrigger>
+					</TldrawUiPopoverContent>
+				</TldrawUiPopover>
+				<TldrawUiPopover id={`style panel ${uiTypeB}`}>
+					<TldrawUiPopoverTrigger>
 						<TldrawUiButton
 							type="icon"
 							data-testid={`style.${uiTypeB}`}
@@ -114,12 +115,12 @@ function DoubleDropdownPickerInner<T extends string>({
 						>
 							<TldrawUiButtonIcon icon={iconB} small />
 						</TldrawUiButton>
-					</TldrawUiDropdownMenuTrigger>
-					<TldrawUiDropdownMenuContent side="left" align="center" sideOffset={116} alignOffset={0}>
+					</TldrawUiPopoverTrigger>
+					<TldrawUiPopoverContent side="left" align="center" sideOffset={116} alignOffset={0}>
 						<div className="tlui-buttons__grid">
 							{itemsB.map((item) => {
 								return (
-									<TldrawUiDropdownMenuItem key={item.value}>
+									<TldrawUiMenuContextProvider key={item.value} type="icons" sourceId="style-panel">
 										<TldrawUiButton
 											type="icon"
 											title={`${msg(labelB)} — ${msg(`${uiTypeB}-style.${item.value}` as TLUiTranslationKey)}`}
@@ -128,12 +129,12 @@ function DoubleDropdownPickerInner<T extends string>({
 										>
 											<TldrawUiButtonIcon icon={item.icon} />
 										</TldrawUiButton>
-									</TldrawUiDropdownMenuItem>
+									</TldrawUiMenuContextProvider>
 								)
 							})}
 						</div>
-					</TldrawUiDropdownMenuContent>
-				</TldrawUiDropdownMenuRoot>
+					</TldrawUiPopoverContent>
+				</TldrawUiPopover>
 			</div>
 		</div>
 	)
