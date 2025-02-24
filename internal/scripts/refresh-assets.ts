@@ -163,7 +163,9 @@ async function optimizeAndMergeDotcomIcons() {
 	// Get a list of all icons
 	const icons = readdirSync(sourceFolderPath).filter(
 		(icon) =>
-			icon.endsWith('.svg') && !icon.endsWith(mergedIconName) && !icon.endsWith('tldraw-logo-2.svg')
+			/icon-.*\.svg$/.test(icon) &&
+			!icon.endsWith(mergedIconName) &&
+			!icon.endsWith('tldraw-logo-2.svg')
 	)
 
 	const optimizedSvgs = optimizeAndMergeSvgs(
