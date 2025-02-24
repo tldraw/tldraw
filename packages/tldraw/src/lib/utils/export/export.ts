@@ -1,5 +1,6 @@
 import {
 	Editor,
+	FileHelpers,
 	TLExportType,
 	TLImageExportOptions,
 	TLShapeId,
@@ -69,7 +70,7 @@ export async function exportToBlob({
 	}
 }
 
-const mimeTypeByFormat = {
+const clipboardMimeTypesByFormat = {
 	jpeg: 'image/jpeg',
 	png: 'image/png',
 	webp: 'image/webp',
@@ -84,7 +85,11 @@ export function exportToImagePromise(
 	const idsToUse = ids?.length ? ids : [...editor.getCurrentPageShapeIds()]
 	const format = opts.format ?? 'png'
 	return {
-		blobPromise: editor.toImage(idsToUse, opts).then((result) => result.blob),
-		mimeType: mimeTypeByFormat[format],
+		blobPromise: editor
+			.toImage(idsToUse, opts)
+			.then((result) =>
+				FileHelpers.rewriteMimeType(result.blob, clipboardMimeTypesByFormat[format])
+			),
+		mimeType: clipboardMimeTypesByFormat[format],
 	}
 }
