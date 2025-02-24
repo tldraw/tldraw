@@ -85,7 +85,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 
 	const handlePointerDownCapture = (e: React.PointerEvent<HTMLDivElement>) => {
 		// Allow links to be clicked upon.
-		if (e.target instanceof HTMLElement && e.target.tagName === 'A') {
+		if (e.target instanceof HTMLElement && (e.target.tagName === 'A' || e.target.closest('a'))) {
 			preventDefault(e)
 			stopEventPropagation(e)
 		}
