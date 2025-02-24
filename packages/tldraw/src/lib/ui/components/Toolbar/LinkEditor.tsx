@@ -72,6 +72,7 @@ export function LinkEditor({ textEditor, value: initialValue, onComplete }: Link
 				onValueChange={handleValueChange}
 				onComplete={handleLinkComplete}
 				onCancel={handleLinkCancel}
+				placeholder="example.com"
 			/>
 			<TldrawUiButton
 				className="tlui-rich-text__toolbar-link-visit"
