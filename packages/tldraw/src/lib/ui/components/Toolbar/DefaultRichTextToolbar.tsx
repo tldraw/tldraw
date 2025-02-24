@@ -20,13 +20,15 @@ import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolb
 import { DefaultRichTextToolbarContent } from './DefaultRichTextToolbarContent'
 import { LinkEditor } from './LinkEditor'
 
-const MOVE_TIMEOUT = 300
-const HIDE_VISIBILITY_TIMEOUT = 0
-const SHOW_VISIBILITY_TIMEOUT = 0
+const MOVE_TIMEOUT = 150
+const HIDE_VISIBILITY_TIMEOUT = 16
+const SHOW_VISIBILITY_TIMEOUT = 16
 const TOOLBAR_GAP = 8
 const SCREEN_MARGIN = 16
-const MIN_DISTANCE_TO_REPOSITION = 16
-const HIDE_TOOLBAR_ON_CANVAS_MODE = false
+const MIN_DISTANCE_TO_REPOSITION_SQUARED = 16 ** 2
+const HIDE_TOOLBAR_WHEN_CAMERA_IS_MOVING = true
+const CHANGE_ONLY_WHEN_Y_CHANGES = false
+const LEFT_ALIGN_TOOLBAR = false
 
 /** @public */
 export interface TLUiRichTextToolbarProps {
@@ -168,7 +170,7 @@ function ContextualToolbarInner({
 	// Send the hide or show events based on whether the user is clicking
 	// and whether the toolbar's position is valid
 	useEffect(() => {
-		if (cameraState === 'moving' && HIDE_TOOLBAR_ON_CANVAS_MODE) {
+		if (cameraState === 'moving' && HIDE_TOOLBAR_WHEN_CAMERA_IS_MOVING) {
 			hide(true)
 			return
 		}
@@ -277,7 +279,7 @@ function getToolbarScreenPosition(editor: Editor, toolbarElm: HTMLElement) {
 	// Start by placing the top left corner of the toolbar so that the
 	// toolbar would be centered above the section bounds, bumped up by the
 
-	let x = selectionBounds.midX - toolbarBounds.w / 2
+	let x = LEFT_ALIGN_TOOLBAR ? selectionBounds.x : selectionBounds.midX - toolbarBounds.w / 2
 	let y = selectionBounds.y - toolbarBounds.h - TOOLBAR_GAP
 
 	// Clamp the position on screen.
@@ -366,7 +368,10 @@ function useEditingLinkBehavior(textEditor?: TiptapEditor) {
 }
 
 function sufficientlyDistant(curr: Vec, next: Vec) {
-	return Math.abs(curr.y - next.y) >= MIN_DISTANCE_TO_REPOSITION
+	if (CHANGE_ONLY_WHEN_Y_CHANGES) {
+		return Vec.Sub(next, curr).y ** 2 >= MIN_DISTANCE_TO_REPOSITION_SQUARED
+	}
+	return Vec.Len2(Vec.Sub(next, curr)) >= MIN_DISTANCE_TO_REPOSITION_SQUARED
 }
 
 function useToolbarVisibilityStateMachine() {
