@@ -70,14 +70,14 @@ export async function exportToBlob({
 	}
 }
 
-const mimeTypeByFormat = {
+const clipboardMimeTypesByFormat = {
 	jpeg: 'image/jpeg',
 	png: 'image/png',
 	webp: 'image/webp',
 	svg: 'text/plain',
 }
 
-export function exportToImagePromise(
+export function exportToImagePromiseForClipboard(
 	editor: Editor,
 	ids: TLShapeId[],
 	opts: TLImageExportOptions = {}
@@ -87,7 +87,9 @@ export function exportToImagePromise(
 	return {
 		blobPromise: editor
 			.toImage(idsToUse, opts)
-			.then((result) => FileHelpers.rewriteMimeType(result.blob, mimeTypeByFormat[format])),
-		mimeType: mimeTypeByFormat[format],
+			.then((result) =>
+				FileHelpers.rewriteMimeType(result.blob, clipboardMimeTypesByFormat[format])
+			),
+		mimeType: clipboardMimeTypesByFormat[format],
 	}
 }
