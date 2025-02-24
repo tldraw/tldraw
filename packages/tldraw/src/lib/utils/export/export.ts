@@ -77,7 +77,7 @@ const clipboardMimeTypesByFormat = {
 	svg: 'text/plain',
 }
 
-export function exportToImagePromise(
+export function exportToImagePromiseForClipboard(
 	editor: Editor,
 	ids: TLShapeId[],
 	opts: TLImageExportOptions = {}
