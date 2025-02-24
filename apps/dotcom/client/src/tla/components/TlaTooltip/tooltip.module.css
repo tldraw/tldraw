@@ -12,6 +12,7 @@
 
 .tooltipArrow {
 	fill: var(--tla-color-tooltip);
+	will-change: opacity;
 }
 
 @keyframes fade-in {
