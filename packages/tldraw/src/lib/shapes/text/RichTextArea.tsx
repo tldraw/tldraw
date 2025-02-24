@@ -211,6 +211,11 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 						handleDoubleClick: (view, pos, event) => handleDoubleClick(event),
 						...editorProps,
 					}}
+					coreExtensionOptions={{
+						clipboardTextSerializer: {
+							blockSeparator: '\n',
+						},
+					}}
 					{...restOfTipTapConfig}
 					content={richText as JSONContent}
 				/>

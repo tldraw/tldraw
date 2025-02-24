@@ -100,7 +100,9 @@ export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: T
 export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText) {
 	const tipTapExtensions =
 		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-	return generateText(richText as JSONContent, tipTapExtensions)
+	return generateText(richText as JSONContent, tipTapExtensions, {
+		blockSeparator: '\n',
+	})
 }
 
 /**
