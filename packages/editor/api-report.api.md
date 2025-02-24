@@ -1181,9 +1181,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     externalContentHandlers: {
         [K in TLExternalContent<any>['type']]: {
-            [Key in K]: ((info: TLExternalContent<any> & {
+            [Key in K]: ((info: Extract<TLExternalContent<any>, {
                 type: Key;
-            }) => void) | null;
+            }>) => void) | null;
         }[K];
     };
     findCommonAncestor(shapes: TLShape[] | TLShapeId[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
@@ -1442,9 +1442,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     registerExternalAssetHandler<T extends TLExternalAsset['type']>(type: T, handler: ((info: TLExternalAsset & {
         type: T;
     }) => Promise<TLAsset>) | null): this;
-    registerExternalContentHandler<T extends TLExternalContent<E>['type'], E>(type: T, handler: ((info: T extends TLExternalContent<E>['type'] ? TLExternalContent<E> & {
+    registerExternalContentHandler<T extends TLExternalContent<E>['type'], E>(type: T, handler: ((info: T extends TLExternalContent<E>['type'] ? Extract<TLExternalContent<E>, {
         type: T;
-    } : TLExternalContent<E>) => void) | null): this;
+    }> : TLExternalContent<E>) => void) | null): this;
     renamePage(page: TLPage | TLPageId, name: string): this;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
@@ -2517,6 +2517,9 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canScroll(_shape: Shape): boolean;
     canSnap(_shape: Shape): boolean;
     abstract component(shape: Shape): any;
+    static configure<T extends TLShapeUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
+        options: infer Options;
+    } ? Partial<Options> : never): T;
     // (undocumented)
     editor: Editor;
     // @internal (undocumented)
@@ -2561,6 +2564,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onTranslate?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
     onTranslateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
     onTranslateStart?(shape: Shape): TLShapePartial<Shape> | void;
+    options: {};
     static props?: RecordProps<TLUnknownShape>;
     // @internal
     providesBackgroundForChildren(_shape: Shape): boolean;
@@ -3408,6 +3412,14 @@ export type TLEventMapHandler<T extends keyof TLEventMap> = (...args: TLEventMap
 export type TLEventName = 'cancel' | 'complete' | 'interrupt' | 'tick' | 'wheel' | TLCLickEventName | TLKeyboardEventName | TLPinchEventName | TLPointerEventName;
 
 // @public (undocumented)
+export interface TLExcalidrawExternalContent extends TLBaseExternalContent {
+    // (undocumented)
+    content: any;
+    // (undocumented)
+    type: 'excalidraw';
+}
+
+// @public (undocumented)
 export interface TLExcalidrawExternalContentSource {
     // (undocumented)
     data: any;
@@ -3425,7 +3437,7 @@ export type TLExportType = 'jpeg' | 'png' | 'svg' | 'webp';
 export type TLExternalAsset = TLFileExternalAsset | TLUrlExternalAsset;
 
 // @public (undocumented)
-export type TLExternalContent<EmbedDefinition> = TLEmbedExternalContent<EmbedDefinition> | TLFilesExternalContent | TLSvgTextExternalContent | TLTextExternalContent | TLUrlExternalContent;
+export type TLExternalContent<EmbedDefinition> = TLEmbedExternalContent<EmbedDefinition> | TLExcalidrawExternalContent | TLFilesExternalContent | TLSvgTextExternalContent | TLTextExternalContent | TLTldrawExternalContent | TLUrlExternalContent;
 
 // @public (undocumented)
 export type TLExternalContentSource = TLErrorExternalContentSource | TLExcalidrawExternalContentSource | TLTextExternalContentSource | TLTldrawExternalContentSource;
@@ -3969,6 +3981,14 @@ export interface TLTickEventInfo {
 
 // @public
 export const tltime: Timers;
+
+// @public (undocumented)
+export interface TLTldrawExternalContent extends TLBaseExternalContent {
+    // (undocumented)
+    content: TLContent;
+    // (undocumented)
+    type: 'tldraw';
+}
 
 // @public (undocumented)
 export interface TLTldrawExternalContentSource {

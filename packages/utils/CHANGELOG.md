@@ -1,3 +1,36 @@
+# v3.8.0 (Wed Feb 12 2025)
+
+### Release Notes
+
+#### ShapeUtil.configure for shape options ([#5399](https://github.com/tldraw/tldraw/pull/5399))
+
+- introduces shape options & `ShapeUtil.configure`, a utility for passing options to a shape util
+- moves (unreleased) noteShapeResizeMode to NoteShapeOptions.resizeMode
+- If you pass tldraw a shape util with the same type as a default, it'll now replace the default rather than crash
+- **BREAKING** `options.maxDrawShapePoints` should now be specified with `DrawShapeUtil.configure({maxPoints})` and `HighlightShapeUtil.configure({maxPoints})`
+
+#### support react 19 ([#5293](https://github.com/tldraw/tldraw/pull/5293))
+
+- tldraw now supports react 19
+
+---
+
+#### 💄 Product Improvements
+
+- support react 19 [#5293](https://github.com/tldraw/tldraw/pull/5293) ([@SomeHats](https://github.com/SomeHats) [@mimecuvalo](https://github.com/mimecuvalo) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+
+#### 🛠️ API Changes
+
+- ShapeUtil.configure for shape options [#5399](https://github.com/tldraw/tldraw/pull/5399) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 3
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
 # v3.7.0 (Tue Jan 07 2025)
 
 ### Release Notes

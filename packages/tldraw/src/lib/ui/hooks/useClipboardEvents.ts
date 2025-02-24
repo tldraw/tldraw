@@ -16,9 +16,7 @@ import lz from 'lz-string'
 import { useCallback, useEffect } from 'react'
 import { TLDRAW_CUSTOM_PNG_MIME_TYPE, getCanonicalClipboardReadType } from '../../utils/clipboard'
 import { TLUiEventSource, useUiEvents } from '../context/events'
-import { pasteExcalidrawContent } from './clipboard/pasteExcalidrawContent'
 import { pasteFiles } from './clipboard/pasteFiles'
-import { pasteTldrawContent } from './clipboard/pasteTldrawContent'
 import { pasteUrl } from './clipboard/pasteUrl'
 
 // Expected paste mime types. The earlier in this array they appear, the higher preference we give
@@ -431,7 +429,8 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	// Try to paste tldraw content
 	for (const result of results) {
 		if (result.type === 'tldraw') {
-			pasteTldrawContent(editor, result.data, point)
+			editor.markHistoryStoppingPoint('paste')
+			editor.putExternalContent({ type: 'tldraw', content: result.data, point })
 			return
 		}
 	}
@@ -439,7 +438,8 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	// Try to paste excalidraw content
 	for (const result of results) {
 		if (result.type === 'excalidraw') {
-			pasteExcalidrawContent(editor, result.data, point)
+			editor.markHistoryStoppingPoint('paste')
+			editor.putExternalContent({ type: 'excalidraw', content: result.data, point })
 			return
 		}
 	}

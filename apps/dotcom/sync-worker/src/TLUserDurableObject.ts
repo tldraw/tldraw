@@ -1,9 +1,12 @@
 import {
 	DB,
 	isColumnMutable,
+	MAX_NUMBER_OF_FILES,
 	ROOM_PREFIX,
 	TlaFile,
+	TlaFilePartial,
 	TlaFileState,
+	TlaFileStatePartial,
 	TlaUser,
 	Z_PROTOCOL_VERSION,
 	ZClientSentMessage,
@@ -20,7 +23,6 @@ import { Kysely, sql } from 'kysely'
 import { Logger } from './Logger'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
-import { type TLPostgresReplicator } from './TLPostgresReplicator'
 import { Analytics, Environment, TLUserDurableObjectEvent } from './types'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
 import { EventData, writeDataPoint } from './utils/analytics'
@@ -30,7 +32,6 @@ import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 
 export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: Kysely<DB>
-	private readonly replicator: TLPostgresReplicator
 	private measure: Analytics | undefined
 
 	private readonly sentry
@@ -54,7 +55,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		super(ctx, env)
 
 		this.sentry = createSentry(ctx, env)
-		this.replicator = getReplicator(env)
 
 		this.db = createPostgresConnectionPool(env, 'TLUserDurableObject')
 		this.measure = env.MEASURE
@@ -209,7 +209,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private async handleSocketMessage(socket: WebSocket, message: string) {
 		const rateLimited = await isRateLimited(this.env, this.userId!)
 		this.assertCache()
-		await this.cache.waitUntilConnected()
 
 		const msg = JSON.parse(message) as any as ZClientSentMessage
 		switch (msg.type) {
@@ -230,7 +229,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private async rejectMutation(socket: WebSocket, mutationId: string, errorCode: ZErrorCode) {
 		this.assertCache()
 		this.logEvent({ type: 'reject_mutation', id: this.userId! })
-		await this.cache.waitUntilConnected()
 		this.cache.store.rejectMutation(mutationId)
 		socket?.send(
 			JSON.stringify({
@@ -262,18 +260,30 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				return
 			}
 			case 'file': {
-				const nextFile = update.row as TlaFile
-				const prevFile = s.files.find((f) => f.id === (update.row as any).id)
+				const nextFile = update.row as TlaFilePartial
+				const prevFile = s.files.find((f) => f.id === nextFile.id)
 				if (!prevFile) {
 					const isOwner = nextFile.ownerId === this.userId
 					if (isOwner) return
 					throw new ZMutationError(
 						ZErrorCode.forbidden,
-						`Cannot create a file for another user ${nextFile.id}`
+						`Cannot create a file for another user. fileId: ${nextFile.id} file owner: ${nextFile.ownerId} current user: ${this.userId}`
 					)
 				}
+				if (prevFile.isDeleted)
+					throw new ZMutationError(ZErrorCode.forbidden, 'Cannot update a deleted file')
+				// Owners are allowed to make changes
 				if (prevFile.ownerId === this.userId) return
-				if (prevFile.shared && prevFile.sharedLinkType === 'edit') return
+
+				// We can make changes to updatedAt field in a shared, editable file
+				if (prevFile.shared && prevFile.sharedLinkType === 'edit') {
+					const { id: _id, ...rest } = nextFile
+					if (Object.keys(rest).length === 1 && rest.updatedAt !== undefined) return
+					throw new ZMutationError(
+						ZErrorCode.forbidden,
+						'Cannot update fields other than updatedAt on a shared file'
+					)
+				}
 				throw new ZMutationError(
 					ZErrorCode.forbidden,
 					'Cannot update file that is not our own and not shared in edit mode' +
@@ -281,15 +291,21 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				)
 			}
 			case 'file_state': {
-				const nextFileState = update.row as TlaFileState
+				const nextFileState = update.row as TlaFileStatePartial
 				let file = s.files.find((f) => f.id === nextFileState.fileId)
 				if (!file) {
 					// The user might not have access to this file yet, because they just followed a link
 					// let's allow them to create a file state for it if it exists and is shared.
-					file = (await this.replicator.getFileRecord(nextFileState.fileId)) ?? undefined
+					file = (await getReplicator(this.env).getFileRecord(nextFileState.fileId)) ?? undefined
 				}
 				if (!file) {
 					throw new ZMutationError(ZErrorCode.bad_request, `File not found ${nextFileState.fileId}`)
+				}
+				if (nextFileState.userId !== this.userId) {
+					throw new ZMutationError(
+						ZErrorCode.forbidden,
+						`Cannot update file state for another user ${nextFileState.userId}`
+					)
 				}
 				if (file.ownerId === this.userId) return
 				if (file.shared) return
@@ -326,6 +342,15 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							break
 						} else {
 							const { id: _id, ...rest } = update.row as any
+							if (update.table === 'file') {
+								const count = this.cache.store.getFullData()?.files.length ?? 0
+								if (count >= MAX_NUMBER_OF_FILES) {
+									throw new ZMutationError(
+										ZErrorCode.max_files_reached,
+										`Cannot create more than ${MAX_NUMBER_OF_FILES} files.`
+									)
+								}
+							}
 							const result = await tx
 								.insertInto(update.table)
 								.values(update.row as any)
@@ -360,7 +385,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							await tx.updateTable(update.table).set(updates).where('id', '=', id).execute()
 							if (update.table === 'file') {
 								const currentFile = this.cache.store.getFullData()?.files.find((f) => f.id === id)
-								if (currentFile && currentFile.published !== rest.published) {
+								if (
+									currentFile &&
+									rest.published !== undefined &&
+									currentFile.published !== rest.published
+								) {
 									if (rest.published) {
 										await this.publishSnapshot(currentFile)
 									} else {
@@ -369,6 +398,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								} else if (
 									currentFile &&
 									currentFile.published &&
+									rest.lastPublished !== undefined &&
 									currentFile.lastPublished < rest.lastPublished
 								) {
 									await this.publishSnapshot(currentFile)
@@ -466,19 +496,23 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	async handleReplicationEvent(event: ZReplicationEvent) {
 		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
 		this.log.debug('replication event', event, !!this.cache)
-		if (!this.cache) {
+		if (await this.notActive()) {
 			return 'unregister'
 		}
 
-		this.cache.handleReplicationEvent(event)
+		this.cache?.handleReplicationEvent(event)
 
 		return 'ok'
+	}
+
+	async notActive() {
+		return !this.cache
 	}
 
 	/* --------------  */
 
 	private async deleteFileStuff(id: string) {
-		const fileRecord = await this.replicator.getFileRecord(id)
+		const fileRecord = await getReplicator(this.env).getFileRecord(id)
 		const room = this.env.TLDR_DOC.get(this.env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${id}`))
 		await room.appFileRecordDidDelete()
 		if (!fileRecord) {

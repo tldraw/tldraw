@@ -3,6 +3,8 @@ import { captureException } from '@sentry/react'
 import {
 	CreateFilesResponseBody,
 	CreateSnapshotRequestBody,
+	LOCAL_FILE_PREFIX,
+	MAX_NUMBER_OF_FILES,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
@@ -32,7 +34,9 @@ import {
 	parseTldrawJsonFile,
 	react,
 } from 'tldraw'
+import { MULTIPLAYER_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
+import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType } from '../utils/app-ui-events'
 import { getDateFormat } from '../utils/dates'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
@@ -41,14 +45,12 @@ import { Zero } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
-export const UNPUBLISH_ENDPOINT = `/api/app/unpublish`
-export const FILE_ENDPOINT = `/api/app/file`
 
 let appId = 0
 
 export class TldrawApp {
 	config = {
-		maxNumberOfFiles: 100,
+		maxNumberOfFiles: MAX_NUMBER_OF_FILES,
 	}
 
 	readonly id = appId++
@@ -97,7 +99,7 @@ export class TldrawApp {
 				})
 				const token = await getToken()
 				params.set('accessToken', token || 'no-token-found')
-				return `${process.env.MULTIPLAYER_SERVER}/api/app/${userId}/connect?${params}`
+				return `${MULTIPLAYER_SERVER}/app/${userId}/connect?${params}`
 			},
 			// schema,
 			// This is often easier to develop with if you're frequently changing
@@ -122,8 +124,10 @@ export class TldrawApp {
 	}
 
 	async preload(initialUserData: TlaUser) {
+		let didCreate = false
 		await this.z.query.user.where('id', this.userId).preload().complete
 		if (!this.user$.get()) {
+			didCreate = true
 			this.z.mutate.user.create(initialUserData)
 			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
 		}
@@ -136,6 +140,7 @@ export class TldrawApp {
 		}
 		await this.z.query.file_state.where('userId', this.userId).preload().complete
 		await this.z.query.file.where('ownerId', this.userId).preload().complete
+		return didCreate
 	}
 
 	messages = defineMessages({
@@ -169,7 +174,7 @@ export class TldrawApp {
 		max_files_title: {
 			defaultMessage: 'File limit reached',
 		},
-		max_files_description: {
+		max_files_reached: {
 			defaultMessage:
 				'You have reached the maximum number of files. You need to delete old files before creating new ones.',
 		},
@@ -312,7 +317,7 @@ export class TldrawApp {
 		if (!this.canCreateNewFile()) {
 			this.toasts?.addToast({
 				title: this.getIntl().formatMessage(this.messages.max_files_title),
-				description: this.getIntl().formatMessage(this.messages.max_files_description),
+				description: this.getIntl().formatMessage(this.messages.max_files_reached),
 				keepOpen: true,
 			})
 			return Result.err('max number of files reached')
@@ -383,13 +388,10 @@ export class TldrawApp {
 		return
 	}
 
-	_slurpFileId: string | null = null
 	slurpFile() {
-		const res = this.createFile()
-		if (res.ok) {
-			this._slurpFileId = res.value.file.id
-		}
-		return res
+		return this.createFile({
+			createSource: `${LOCAL_FILE_PREFIX}/${getScratchPersistenceKey()}`,
+		})
 	}
 
 	toggleFileShared(fileId: string) {
@@ -607,7 +609,7 @@ export class TldrawApp {
 		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld, opts.trackEvent)
 		// @ts-expect-error
 		window.app = app
-		await app.preload({
+		const didCreate = await app.preload({
 			id: opts.userId,
 			name: opts.fullName,
 			email: opts.email,
@@ -631,6 +633,9 @@ export class TldrawApp {
 			isDynamicSizeMode: restOfPreferences.isDynamicSizeMode ?? null,
 			isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
 		})
+		if (didCreate) {
+			opts.trackEvent('create-user', { source: 'app' })
+		}
 		return { app, userId: opts.userId }
 	}
 

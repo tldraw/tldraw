@@ -83,6 +83,8 @@ export class ExecutionQueue {
     // (undocumented)
     close(): void;
     // (undocumented)
+    isEmpty(): boolean;
+    // (undocumented)
     push<T>(task: () => T): Promise<Awaited<T>>;
 }
 
@@ -285,6 +287,11 @@ export class MediaHelpers {
     // (undocumented)
     static usingObjectURL<T>(blob: Blob, fn: (url: string) => Promise<T>): Promise<T>;
 }
+
+// @internal (undocumented)
+export function mergeArraysAndReplaceDefaults<const Key extends string, T extends {
+    [K in Key]: string;
+}>(key: Key, customEntries: readonly T[], defaults: readonly T[]): T[];
 
 // @internal (undocumented)
 export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;

@@ -74,12 +74,26 @@ export interface TLEmbedExternalContent<EmbedDefinition> extends TLBaseExternalC
 }
 
 /** @public */
+export interface TLTldrawExternalContent extends TLBaseExternalContent {
+	type: 'tldraw'
+	content: TLContent
+}
+
+/** @public */
+export interface TLExcalidrawExternalContent extends TLBaseExternalContent {
+	type: 'excalidraw'
+	content: any
+}
+
+/** @public */
 export type TLExternalContent<EmbedDefinition> =
 	| TLTextExternalContent
 	| TLFilesExternalContent
 	| TLUrlExternalContent
 	| TLSvgTextExternalContent
 	| TLEmbedExternalContent<EmbedDefinition>
+	| TLTldrawExternalContent
+	| TLExcalidrawExternalContent
 
 /** @public */
 export interface TLFileExternalAsset {

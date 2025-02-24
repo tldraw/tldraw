@@ -1,6 +1,7 @@
+import { APP_ASSET_UPLOAD_ENDPOINT } from '@tldraw/dotcom-shared'
 import { MediaHelpers, TLAssetStore, clamp, fetch, uniqueId } from 'tldraw'
 import { loadLocalFile } from '../tla/utils/slurping'
-import { APP_ASSET_UPLOAD_ENDPOINT, ASSET_UPLOADER_URL, IMAGE_WORKER } from './config'
+import { ASSET_UPLOADER_URL, IMAGE_WORKER } from './config'
 import { isDevelopmentEnv } from './env'
 
 async function getUrl(file: File, fileId: string | undefined) {
@@ -8,7 +9,7 @@ async function getUrl(file: File, fileId: string | undefined) {
 
 	const objectName = `${id}-${file.name}`.replace(/\W/g, '-')
 	if (fileId) {
-		const url = `${window.location.origin}${APP_ASSET_UPLOAD_ENDPOINT}/${objectName}`
+		const url = `${window.location.origin}${APP_ASSET_UPLOAD_ENDPOINT}${objectName}`
 		return {
 			fetchUrl: `${url}?${new URLSearchParams({ fileId }).toString()}`,
 			src: url,

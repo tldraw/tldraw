@@ -47,7 +47,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	static override props = drawShapeProps
 	static override migrations = drawShapeMigrations
 
-	static options: DrawShapeOptions = {
+	override options: DrawShapeOptions = {
 		maxPointsPerShape: 600,
 	}
 

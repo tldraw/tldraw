@@ -10,6 +10,7 @@ export {
 	dedupe,
 	last,
 	maxBy,
+	mergeArraysAndReplaceDefaults,
 	minBy,
 	partition,
 	rotateArray,

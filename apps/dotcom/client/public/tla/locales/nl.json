@@ -35,20 +35,17 @@
   "181b90f889": {
     "translation": "Bestand aanmaken"
   },
+  "1bef75f760": {
+    "translation": "Sta tldraw toe om mij hierover een e-mail te sturen"
+  },
   "1da2e8106b": {
     "translation": "Er is een onverwachte fout opgetreden."
   },
   "1dd1c5fb7f": {
     "translation": "Vandaag"
   },
-  "1f9696d5f2": {
-    "translation": "Exporteer de inhoud als een .tldr-bestand: Ga naar 'Bestand' > 'Kopie opslaan'"
-  },
-  "20530afec1": {
-    "translation": "{count, plural, one {{count} .tldr-bestand uploaden…} other {{count} .tldr-bestanden uploaden…}}"
-  },
-  "279f0531ff": {
-    "translation": "Nog steeds problemen? Laat het ons weten op <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "Geef ons feedback"
   },
   "299cb00a7a": {
     "translation": "Uploaden mislukt"
@@ -59,14 +56,14 @@
   "31418ce4ad": {
     "translation": "i18n: Markering ontbreekt"
   },
+  "32656a600c": {
+    "translation": "Ziet u iets verkeerd? Heeft u een idee om tldraw te verbeteren? We horen het graag!"
+  },
   "335defdafe": {
     "translation": "Probeer de pagina te vernieuwen."
   },
   "344a7f427f": {
     "translation": "Editor"
-  },
-  "3b366e7232": {
-    "translation": "Probeer de nieuwe tldraw (preview)"
   },
   "3bd1b98dbd": {
     "translation": "De wijzigingen konden niet worden gepubliceerd."
@@ -74,26 +71,26 @@
   "3c5e891bff": {
     "translation": "Vastgemaakt"
   },
-  "424cc22417": {
-    "translation": "Breng me naar huis"
-  },
   "42e53c47c1": {
     "translation": "Neem contact op met de eigenaar om toegang aan te vragen."
   },
   "44db318ee5": {
     "translation": "Krijg hulp op Discord"
   },
-  "458cd104d7": {
-    "translation": "Sorry, u hebt geen toegang tot dat bestand. Als u weet wie het bestand heeft gemaakt, kunt u een nieuwe uitnodigingslink aanvragen."
+  "46137245cd": {
+    "translation": "Bedankt voor uw hulp bij het verbeteren van tldraw!"
   },
-  "45b78c248d": {
-    "translation": "Importeren van oude tldraw.com"
+  "4778b9f3f2": {
+    "translation": "Privacy-instellingen"
   },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Weet u zeker dat u dit bestand wilt vergeten?"
+  },
+  "4c06678729": {
+    "translation": "Wij gebruiken first-party cookies om onze diensten te verbeteren. <a>Meer informatie</a>"
   },
   "4d1c8263ba": {
     "translation": "Opnieuw laden"
@@ -110,14 +107,14 @@
   "54d240fa41": {
     "translation": "Doe rustig aan."
   },
+  "554a05155c": {
+    "translation": "Nog steeds problemen? <a>Meld een probleem</a>"
+  },
   "55505ba281": {
     "translation": "PNG"
   },
   "56c34c6410": {
     "translation": "Privacybeleid"
-  },
-  "575d47a591": {
-    "translation": "Welkom bij de nieuwe tldraw.com!"
   },
   "5817f82c16": {
     "translation": "Optioneel: help ons begrijpen hoe mensen tldraw gebruiken en hoe we het kunnen verbeteren."
@@ -131,14 +128,17 @@
   "5d26ae7550": {
     "translation": "Een deel van de content die u hebt gemaakt voordat u zich aanmeldde, is niet geüpload."
   },
+  "5db1e9a8ca": {
+    "translation": "Vul dit formulier in, <discord>chat met ons op Discord</discord> of <github>dien een probleem in op GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "Feedback ingediend"
+  },
   "5fb63579fc": {
     "translation": "Kopiëren"
   },
   "61057a0c84": {
     "translation": "Later"
-  },
-  "61b106397b": {
-    "translation": "Om terug te gaan naar de oude tldraw.com, meldt u zich af via het gebruikersmenu."
   },
   "625fd29749": {
     "translation": "Ouder"
@@ -173,14 +173,14 @@
   "761e93ede9": {
     "translation": "Cookies beheren"
   },
+  "764671e008": {
+    "translation": "Chat met ons op Discord"
+  },
   "777f9e90cf": {
     "translation": "Ongeldig verzoek."
   },
-  "78e9815992": {
-    "translation": "Ik snap het"
-  },
-  "791b8834d3": {
-    "translation": "Importeren overslaan"
+  "797799f35e": {
+    "translation": "Een probleem melden op GitHub"
   },
   "7cb5f8b4a5": {
     "translation": "Vergeten"
@@ -188,20 +188,20 @@
   "7daeced9ff": {
     "translation": "Wijzigingen publiceren"
   },
-  "7de66f8b93": {
-    "translation": "Meld u aan om toegang te krijgen tot de previewversie van tldraw.com, die functies voor bestandsbeheer en samenwerking toevoegt."
-  },
   "7fcdcc6455": {
     "translation": "Bestand vergeten"
+  },
+  "81d389ac80": {
+    "translation": "Exporteer de inhoud als een .tldr-bestand: Selecteer 'Bestand downloaden' in het menu linksboven."
   },
   "85a082de1b": {
     "translation": "Vernieuw de pagina om de nieuwste versie van tldraw te verkrijgen."
   },
+  "86353d2c41": {
+    "translation": "{total} .tldr-bestanden toegevoegd."
+  },
   "86c66437fd": {
     "translation": "Bestand hernoemen"
-  },
-  "8ad4303b83": {
-    "translation": "Nee bedankt"
   },
   "8eb2c00e96": {
     "translation": "Gedeeld met jou"
@@ -236,8 +236,8 @@
   "9e076f5885": {
     "translation": "Niet gevonden"
   },
-  "9e7dc2358c": {
-    "translation": "We gebruiken cookies bij het verzamelen van analyses om ons te helpen tldraw te verbeteren. Door op accepteren te klikken, gaat u akkoord met ons <a>cookiebeleid</a>."
+  "9e93c98d88": {
+    "translation": "Afmelden"
   },
   "a104439641": {
     "translation": "Vulling"
@@ -254,6 +254,9 @@
   "a3debabee7": {
     "translation": "Cookiebeleid"
   },
+  "a4d3b161ce": {
+    "translation": "Indienen"
+  },
   "a6cc403d56": {
     "translation": "Iedereen met de link"
   },
@@ -265,9 +268,6 @@
   },
   "ab0df9ba36": {
     "translation": "Bestandslimiet bereikt"
-  },
-  "abc5e29b0d": {
-    "translation": "Dit is een previewversie van de nieuwe tldraw.com, waarmee u bestanden kunt opslaan, kunt samenwerken en kunt publiceren."
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
@@ -281,6 +281,9 @@
   },
   "bb792693e2": {
     "translation": "Losmaken"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {Uploaden van .tldr-bestand…} other {Uploaden van {uploaded} van {total} .tldr-bestanden…}}"
   },
   "bc88b0e89e": {
     "translation": "Gedeeld door {ownerName}"
@@ -324,8 +327,8 @@
   "d4bbf74f3e": {
     "translation": "Schakel zijbalk in"
   },
-  "d59048f21f": {
-    "translation": "Meer informatie"
+  "d5ef96e383": {
+    "translation": "Bestand downloaden"
   },
   "d721757161": {
     "translation": "Thema"
@@ -336,32 +339,17 @@
   "d9100f3e10": {
     "translation": "Ga hierheen om de inhoud te bekijken"
   },
-  "d9776f0775": {
-    "translation": "Aanmelden"
-  },
-  "d98ac12774": {
-    "translation": "Afwijzen"
-  },
-  "d9fe660e4e": {
-    "translation": "Helaas, u hebt geen toegang tot die werkruimte."
-  },
   "dbbebf3c03": {
     "translation": "Alleen op uitnodiging"
   },
   "dfdb78a4e4": {
     "translation": "App-debug vlaggen"
   },
-  "e2cd8064c2": {
-    "translation": "Helaas, u heeft geen toegang tot die gebruiker."
-  },
   "e371526ad0": {
     "translation": "Deze cookie is vereist om tldraw te laten werken en kan niet worden uitgeschakeld."
   },
   "e404559826": {
     "translation": "Servicevoorwaarden"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, one {{count} .tldr-bestand toegevoegd.} other {{count} .tldr-bestanden toegevoegd.}}"
   },
   "e78e14c5f1": {
     "translation": "Vastmaken"
@@ -380,9 +368,6 @@
   },
   "ec611e9a08": {
     "translation": "Accountmenu"
-  },
-  "ec9ad9950f": {
-    "translation": "Sorry, dat bestand bestaat niet."
   },
   "ed53713239": {
     "translation": "i18n: Geaccentueerd"

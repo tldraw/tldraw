@@ -6,6 +6,7 @@ import { TldrawAppSessionState } from './local-session-state'
 /** @public */
 export type TLAppUiEventSource =
 	| 'sidebar'
+	| 'sidebar-context-menu'
 	| 'user-preferences'
 	| 'file-rename-dialog'
 	| 'file-menu'
@@ -59,6 +60,7 @@ export interface TLAppUiEventMap {
 	'click-file-link': null
 	'open-preview-sign-up-modal': null
 	'first-connect-duration': { duration: number }
+	'create-user': null
 }
 
 /** @public */

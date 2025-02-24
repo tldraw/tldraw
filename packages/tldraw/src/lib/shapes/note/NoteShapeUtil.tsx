@@ -65,7 +65,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	static override props = noteShapeProps
 	static override migrations = noteShapeMigrations
 
-	static options: NoteShapeOptions = {
+	override options: NoteShapeOptions = {
 		resizeMode: 'none',
 	}
 
@@ -73,7 +73,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return true
 	}
 	override hideResizeHandles() {
-		const { resizeMode } = NoteShapeUtil.options
+		const { resizeMode } = this.options
 		switch (resizeMode) {
 			case 'none': {
 				return true
@@ -88,7 +88,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override isAspectRatioLocked() {
-		return NoteShapeUtil.options.resizeMode === 'scale'
+		return this.options.resizeMode === 'scale'
 	}
 
 	override hideSelectionBoundsFg() {
@@ -202,7 +202,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override onResize(shape: any, info: TLResizeInfo<any>) {
-		const { resizeMode } = NoteShapeUtil.options
+		const { resizeMode } = this.options
 		switch (resizeMode) {
 			case 'none': {
 				return undefined
