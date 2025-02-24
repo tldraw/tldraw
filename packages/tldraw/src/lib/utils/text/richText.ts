@@ -35,6 +35,11 @@ const KeyboardShiftEnterTweakExtension = Extension.create({
 // It allows for other attributes/extensions.
 Code.config.excludes = undefined
 
+// We want the highlighting to take precedence over bolding/italics
+// as far as rendering is concerned. Otherwise, the highlighting
+// looks broken up.
+Highlight.config.priority = 200
+
 /**
  * Default extensions for the TipTap editor.
  *
