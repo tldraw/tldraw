@@ -25,7 +25,7 @@ const HIDE_VISIBILITY_TIMEOUT = 0
 const SHOW_VISIBILITY_TIMEOUT = 0
 const TOOLBAR_GAP = 8
 const SCREEN_MARGIN = 16
-const MIN_DISTANCE_TO_REPOSITION_SQUARED = 16 ** 2
+const MIN_DISTANCE_TO_REPOSITION = 16
 const HIDE_TOOLBAR_ON_CANVAS_MODE = false
 
 /** @public */
@@ -366,7 +366,7 @@ function useEditingLinkBehavior(textEditor?: TiptapEditor) {
 }
 
 function sufficientlyDistant(curr: Vec, next: Vec) {
-	return Vec.Len2(Vec.Sub(next, curr)) >= MIN_DISTANCE_TO_REPOSITION_SQUARED
+	return Math.abs(curr.y - next.y) >= MIN_DISTANCE_TO_REPOSITION
 }
 
 function useToolbarVisibilityStateMachine() {
