@@ -87,7 +87,7 @@ const migrations: Migration[] = [
 ]
 
 const ONE_MINUTE = 60 * 1000
-const PRUNE_TIME = ONE_MINUTE
+const PRUNE_INTERVAL = 10 * ONE_MINUTE
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -276,8 +276,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private async maybePruneUsers() {
 		const now = Date.now()
-		if (now - this.lastUserPruneTime < PRUNE_TIME) return
-		const cutoffTime = now - PRUNE_TIME
+		if (now - this.lastUserPruneTime < PRUNE_INTERVAL) return
+		const cutoffTime = now - PRUNE_INTERVAL
 		const usersWithoutRecentUpdates = this.ctx.storage.sql
 			.exec('SELECT id FROM active_user WHERE lastUpdatedAt < ?', cutoffTime)
 			.toArray() as {
