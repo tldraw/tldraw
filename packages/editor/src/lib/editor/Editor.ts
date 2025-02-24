@@ -4203,14 +4203,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* --------------------- Shapes --------------------- */
 
-	@computed
-	private _getShapeGeometryCache(): ComputedCache<Geometry2d, TLShape> {
-		return this.store.createComputedCache(
-			'bounds',
-			(shape) => this.getShapeUtil(shape).getGeometry(shape),
-			(a, b) => a.props === b.props
-		)
-	}
+	private _shapeGeometryCaches: Record<string, ComputedCache<Geometry2d, TLShape>> = {}
 
 	/**
 	 * Get the geometry of a shape.
@@ -4222,11 +4215,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param shape - The shape (or shape id) to get the geometry for.
+	 * @param context - The context in which to get the geometry for, e.g. 'none' or 'arrow'
 	 *
 	 * @public
 	 */
-	getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId): T {
-		return this._getShapeGeometryCache().get(typeof shape === 'string' ? shape : shape.id)! as T
+	getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, context = 'none'): T {
+		if (!this._shapeGeometryCaches[context]) {
+			this._shapeGeometryCaches[context] = this.store.createComputedCache(
+				'bounds',
+				(shape) => this.getShapeUtil(shape).getGeometry(shape, context),
+				(a, b) => a.props === b.props
+			)
+		}
+		return this._shapeGeometryCaches[context].get(
+			typeof shape === 'string' ? shape : shape.id
+		)! as T
 	}
 
 	/** @internal */

@@ -2009,7 +2009,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     getDefaultProps(): TLTextShape['props'];
     // (undocumented)
-    getGeometry(shape: TLTextShape): Rectangle2d;
+    getGeometry(shape: TLTextShape, context: string): Rectangle2d;
     // (undocumented)
     getMinDimensions(shape: TLTextShape): {
         height: number;

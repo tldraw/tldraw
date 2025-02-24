@@ -51,11 +51,12 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return sizeCache.get(shape.props, (props) => getTextSize(this.editor, props))
 	}
 
-	getGeometry(shape: TLTextShape) {
+	getGeometry(shape: TLTextShape, context: string) {
 		const { scale } = shape.props
 		const { width, height } = this.getMinDimensions(shape)!
 		return new Rectangle2d({
-			width: width * scale,
+			x: context === 'arrow' ? -10 : 0,
+			width: width * scale + (context === 'arrow' ? 20 : 0),
 			height: height * scale,
 			isFilled: true,
 			isLabel: true,
