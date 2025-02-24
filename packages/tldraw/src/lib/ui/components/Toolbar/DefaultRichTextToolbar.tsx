@@ -22,7 +22,7 @@ import { DefaultRichTextToolbarContent } from './DefaultRichTextToolbarContent'
 import { LinkEditor } from './LinkEditor'
 
 const MOVE_TIMEOUT = 300
-const HIDE_VISIBILITY_TIMEOUT = 200
+const HIDE_VISIBILITY_TIMEOUT = 0
 const SHOW_VISIBILITY_TIMEOUT = 0
 const TOOLBAR_GAP = 8
 const SCREEN_MARGIN = 16
