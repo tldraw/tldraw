@@ -161,12 +161,7 @@ async function optimizeAndMergeDotcomIcons() {
 		'<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none">'
 
 	// Get a list of all icons
-	const icons = readdirSync(sourceFolderPath).filter(
-		(icon) =>
-			/icon-.*\.svg$/.test(icon) &&
-			!icon.endsWith(mergedIconName) &&
-			!icon.endsWith('tldraw-logo-2.svg')
-	)
+	const icons = readdirSync(sourceFolderPath).filter((icon) => /icon-.*\.svg$/.test(icon))
 
 	const optimizedSvgs = optimizeAndMergeSvgs(
 		icons,
