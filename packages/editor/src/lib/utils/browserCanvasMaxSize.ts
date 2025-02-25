@@ -114,6 +114,10 @@ export function getCanvasSize(dimension: 'width' | 'height' | 'area') {
 		testCvs.height = 0
 
 		if (isTestPassed) {
+			// release memory
+			cropCvs.width = 0
+			cropCvs.height = 0
+
 			if (dimension === 'area') {
 				return size * size
 			} else {
@@ -122,7 +126,7 @@ export function getCanvasSize(dimension: 'width' | 'height' | 'area') {
 		}
 	}
 
-	// release memory
+	// didn't find a good size, release memory and error
 	cropCvs.width = 0
 	cropCvs.height = 0
 
