@@ -83,6 +83,7 @@ import { TLExportType } from '@tldraw/editor';
 import { TLFileExternalAsset } from '@tldraw/editor';
 import { TLFrameShape } from '@tldraw/editor';
 import { TLFrameShapeProps } from '@tldraw/editor';
+import { TLGeometryOpts } from '@tldraw/editor';
 import { TLGeoShape } from '@tldraw/editor';
 import { TLGeoShapeProps } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
@@ -1989,6 +1990,11 @@ export interface TextLabelProps {
 }
 
 // @public (undocumented)
+export interface TextShapeOptions {
+    extraArrowHorizontalPadding: number;
+}
+
+// @public (undocumented)
 export class TextShapeTool extends StateNode {
     // (undocumented)
     static children(): TLStateNodeConstructor[];
@@ -2009,7 +2015,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     getDefaultProps(): TLTextShape['props'];
     // (undocumented)
-    getGeometry(shape: TLTextShape): Rectangle2d;
+    getGeometry(shape: TLTextShape, opts: TLGeometryOpts): Rectangle2d;
     // (undocumented)
     getMinDimensions(shape: TLTextShape): {
         height: number;
@@ -2068,6 +2074,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         x: number;
         y: number;
     };
+    // (undocumented)
+    options: TextShapeOptions;
     // (undocumented)
     static props: RecordProps<TLTextShape>;
     // (undocumented)
