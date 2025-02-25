@@ -102,12 +102,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override canBeLaidOut(shape: TLArrowShape, info: TLShapeUtilCanBeLaidOutOpts) {
-		// really only used in flipping
-		const bindings = getArrowBindings(this.editor, shape)
-		const { start, end } = bindings
-		const { shapes = [] } = info
-		if (start && !shapes.find((s) => s.id === start.toId)) return false
-		if (end && !shapes.find((s) => s.id === end.toId)) return false
+		if (info?.type === 'flip') {
+			// If we don't have this then the flip will be non-idempotent; that is, the flip will be multipotent, varipotent, or perhaps even omni-potent... and we can't have that
+			const bindings = getArrowBindings(this.editor, shape)
+			const { start, end } = bindings
+			const { shapes = [] } = info
+			if (start && !shapes.find((s) => s.id === start.toId)) return false
+			if (end && !shapes.find((s) => s.id === end.toId)) return false
+		}
 		return true
 	}
 
