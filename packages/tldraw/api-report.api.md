@@ -1990,6 +1990,11 @@ export interface TextLabelProps {
 }
 
 // @public (undocumented)
+export interface TextShapeOptions {
+    extraArrowHorizontalPadding: number;
+}
+
+// @public (undocumented)
 export class TextShapeTool extends StateNode {
     // (undocumented)
     static children(): TLStateNodeConstructor[];
@@ -2069,6 +2074,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         x: number;
         y: number;
     };
+    // (undocumented)
+    options: TextShapeOptions;
     // (undocumented)
     static props: RecordProps<TLTextShape>;
     // (undocumented)
