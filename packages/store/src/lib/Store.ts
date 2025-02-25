@@ -742,6 +742,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		}, runCallbacks)
 	}
 
+	/**
+	 * Create a cache based on values in the store. Pass in a function that takes and ID and a
+	 * signal for the underlying record. Return a signal (usually a computed) for the cached value.
+	 * For simple derivations, use {@link Store.createComputedCache}. This function is useful if you
+	 * need more precise control over intermediate values.
+	 */
 	createCache<Result, Record extends R = R>(
 		create: (id: IdOf<Record>, recordSignal: Signal<R>) => Signal<Result>
 	) {

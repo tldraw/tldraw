@@ -396,7 +396,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // @internal (undocumented)
     atomic<T>(fn: () => T, runCallbacks?: boolean): T;
     clear(): void;
-    // (undocumented)
     createCache<Result, Record extends R = R>(create: (id: IdOf<Record>, recordSignal: Signal<R>) => Signal<Result>): {
         get: (id: IdOf<Record>) => Result | undefined;
     };
