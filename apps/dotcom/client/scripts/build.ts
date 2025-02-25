@@ -63,24 +63,38 @@ async function build() {
 		'IBMPlexSans-Medium',
 		'IBMPlexMono-Medium',
 	]
-	const indexHtml = await readFileSync('.vercel/output/static/index.html', 'utf8')
-	await writeFileSync(
-		'.vercel/output/static/index.html',
-		indexHtml.replace(
-			'<!-- $PRELOADED_FONTS -->',
-			fontsToPreload
-				.map(
-					(font) => `<link
+	const spritesToPreload = ['0_merged_tla-', '0_merged-']
+	const indexHtml = readFileSync('.vercel/output/static/index.html', 'utf8')
+	const fontPreloads = fontsToPreload
+		.map(
+			(font) => `<link
 		rel="preload"
 		href="/assets/${assetsList.find((a) => a.startsWith(font))}"
 		as="font"
 		type="font/woff2"
 		crossorigin="anonymous"
 	/>`
-				)
-				.join('\n')
 		)
-	)
+		.join('\n')
+	console.log('💡[282]: build.ts:68: fontPreloads=', fontPreloads)
+	const spritePreloads = spritesToPreload
+		.map(
+			(sprite) => `<link
+		rel="preload"
+		href="/assets/${assetsList.find((a) => a.startsWith(sprite))}"
+		as="image"
+		type="image/svg+xml"
+	/>`
+		)
+		.join('\n')
+	console.log('💡[284]: build.ts:80: spritePreloads=', spritePreloads)
+
+	const newIndex = indexHtml
+		.replace('<!-- $PRELOADED_FONTS -->', fontPreloads)
+		.replace('<!-- $PRELOADED_SPRITES -->', spritePreloads)
+	console.log('💡[285]: build.ts:92: newIndex=', newIndex)
+
+	writeFileSync('.vercel/output/static/index.html', newIndex)
 
 	const multiplayerServerUrl = getMultiplayerServerURL() ?? 'http://localhost:8787'
 	const assetsToCache = assetsList.filter((f) => !f.endsWith('.js.map')).map((f) => `/assets/${f}`)
