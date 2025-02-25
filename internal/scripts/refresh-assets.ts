@@ -152,7 +152,7 @@ async function copyIcons() {
 }
 
 async function optimizeAndMergeDotcomIcons() {
-	const sourceFolderPath = join(DOTCOM_FOLDER_PATH, 'client', 'assets')
+	const sourceFolderPath = join(DOTCOM_FOLDER_PATH, 'client', 'assets', 'icons', 'icon')
 	const mergedIconName = '0_merged_tla.svg'
 
 	// this is how `svgo` starts each one of our optimized icon SVGs. if they don't all start with this,
@@ -162,7 +162,6 @@ async function optimizeAndMergeDotcomIcons() {
 
 	// Get a list of all icons
 	const icons = readdirSync(sourceFolderPath).filter((icon) => /icon-.*\.svg$/.test(icon))
-	console.log('💡[264]: refresh-assets.ts:164: icons=', icons)
 
 	const optimizedSvgs = optimizeAndMergeSvgs(
 		icons,
@@ -171,8 +170,14 @@ async function optimizeAndMergeDotcomIcons() {
 		mergedIconHeader
 	)
 
+	const mergedIconPath = join(DOTCOM_FOLDER_PATH, 'client', 'src', 'assets')
+
 	for (const { fileName, data } of optimizedSvgs) {
-		await writeStringFile(join(sourceFolderPath, fileName), data)
+		if (fileName.includes(mergedIconName)) {
+			await writeStringFile(join(mergedIconPath, fileName), data)
+		} else {
+			await writeStringFile(join(sourceFolderPath, fileName), data)
+		}
 	}
 }
 
