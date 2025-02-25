@@ -38,12 +38,6 @@ export interface ZRowUpdateEvent {
 	event: ZEvent
 }
 
-export interface ZBootCompleteEvent {
-	type: 'boot_complete'
-	userId: string
-	bootId: string
-}
-
 export interface ZMutationCommit {
 	type: 'mutation_commit'
 	userId: string
@@ -56,7 +50,7 @@ export interface ZForceReboot {
 	sequenceNumber: number
 }
 
-export type ZReplicationChange = ZRowUpdateEvent | ZBootCompleteEvent | ZMutationCommit
+export type ZReplicationChange = ZRowUpdateEvent | ZMutationCommit
 
 export interface ZChanges {
 	type: 'changes'
@@ -82,13 +76,8 @@ type BootState =
 	| {
 			type: 'connecting'
 			bootId: string
-			sequenceId: string
-			lastSequenceNumber: number
 			promise: PromiseWithResolve
-			bufferedEvents: Array<ZRowUpdateEvent>
-			didGetBootId: boolean
-			data: null | ZStoreData
-			mutationNumber: number
+			bufferedEvents: Array<ZReplicationEvent>
 	  }
 	| {
 			type: 'connected'
@@ -193,61 +182,17 @@ export class UserDataSyncer {
 		this.broadcast({ type: 'commit', mutationIds: mutationIds })
 	}
 
-	private updateStateAfterBootStep() {
-		assert(this.state.type === 'connecting', 'state should be connecting')
-		if (this.state.data) {
-			if (this.state.didGetBootId) {
-				// we got everything, so we can set the state to connected and apply any buffered events
-				const promise = this.state.promise
-				const bufferedEvents = this.state.bufferedEvents
-				const data = this.state.data
-				const mutationNumber = this.state.mutationNumber
-				this.state = {
-					type: 'connected',
-					bootId: this.state.bootId,
-					sequenceId: this.state.sequenceId,
-					lastSequenceNumber: this.state.lastSequenceNumber,
-				}
-				this.store.initialize(data)
-
-				if (bufferedEvents.length > 0) {
-					bufferedEvents.forEach((event) => this.handleRowUpdateEvent(event))
-					this.broadcast({
-						type: 'initial_data',
-						initialData: assertExists(this.store.getCommittedData()),
-					})
-				}
-				promise.resolve(null)
-
-				this.commitMutations(mutationNumber)
-			} else {
-				this.broadcast({
-					type: 'initial_data',
-					initialData: this.state.data,
-				})
-			}
-		}
-		return this.state
-	}
-
 	private async boot() {
 		this.log.debug('booting')
 		// todo: clean up old resources if necessary?
 		const start = Date.now()
-		const { sequenceId, sequenceNumber } = await getReplicator(this.env).registerUser(this.userId)
-		this.log.debug('registered user, sequenceId:', sequenceId)
 		this.state = {
 			type: 'connecting',
 			// preserve the promise so any awaiters do eventually get resolved
 			// TODO: set a timeout on the promise?
 			promise: 'promise' in this.state ? this.state.promise : promiseWithResolve(),
 			bootId: uniqueId(),
-			sequenceId,
-			lastSequenceNumber: sequenceNumber,
 			bufferedEvents: [],
-			didGetBootId: false,
-			data: null,
-			mutationNumber: 0,
 		}
 		/**
 		 * BOOTUP SEQUENCE
@@ -262,16 +207,14 @@ export class UserDataSyncer {
 		 */
 
 		// if the bootId changes during the boot process, we should stop silently
-		const bootId = this.state.bootId
-
-		const promise = this.state.promise
-
-		const userSql = getFetchUserDataSql(this.userId, bootId)
+		const userSql = getFetchUserDataSql(this.userId)
 		const initialData: ZStoreData = {
 			user: null as any,
 			files: [],
 			fileStates: [],
 		}
+		let mutationNumber = 0
+		let lsn = '0/0'
 		// we connect to pg via a pooler, so in the case that the pool is exhausted
 		// we need to retry the connection. (also in the case that a neon branch is asleep apparently?)
 		await retryOnConnectionFailure(
@@ -295,9 +238,11 @@ export class UserDataSyncer {
 							case 'file_state':
 								initialData.fileStates.push(parseResultRow(fileStateKeys, row))
 								break
-							case 'user_mutation_number':
+							case 'meta':
 								assert(typeof row.mutationNumber === 'number', 'mutationNumber should be a number')
-								this.state.mutationNumber = row.mutationNumber
+								assert(typeof row.lsn === 'string', 'lsn should be a string')
+								mutationNumber = row.mutationNumber
+								lsn = row.lsn
 								break
 						}
 					})
@@ -308,17 +253,46 @@ export class UserDataSyncer {
 			}
 		)
 
-		this.state.data = initialData
-		// do an unnecessary assign here to tell typescript that the state might have changed
 		this.log.debug('got initial data')
-		this.state = this.updateStateAfterBootStep()
+		this.store.initialize(initialData)
+		this.state.promise.resolve(null)
+		// do an unnecessary assign here to tell typescript that the state might have changed
+		const guestFileIds = initialData.files.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
+		const res = await getReplicator(this.env).registerUser({
+			userId: this.userId,
+			lsn,
+			guestFileIds,
+			bootId: this.state.bootId,
+		})
+
+		if (res.type === 'reboot') {
+			// TODO: clear the db
+			this.store = new OptimisticAppStore()
+			throw new Error('reboot')
+		}
+
+		const bufferedEvents = this.state.bufferedEvents
+		this.state = {
+			type: 'connected',
+			bootId: this.state.bootId,
+			sequenceId: res.sequenceId,
+			lastSequenceNumber: res.sequenceNumber,
+		}
+
+		if (bufferedEvents.length > 0) {
+			bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
+			this.broadcast({
+				type: 'initial_data',
+				initialData: assertExists(this.store.getCommittedData()),
+			})
+		}
+
+		this.commitMutations(mutationNumber)
 		// this will prevent more events from being added to the buffer
 
-		await promise
 		const end = Date.now()
 		this.logEvent({ type: 'reboot_duration', id: this.userId, duration: end - start })
 		this.log.debug('boot time', end - start, 'ms')
-		assert(this.state.type === 'connected', 'state should be connected after boot')
 	}
 
 	// It is important that this method is synchronous!!!!
@@ -349,15 +323,24 @@ export class UserDataSyncer {
 	}
 
 	handleReplicationEvent(event: ZReplicationEvent) {
-		if ('sequenceId' in this.state && this.state.sequenceId !== event.sequenceId) {
+		if (this.state.type === 'init') return
+
+		// ignore irrelevant events
+		if (!event.sequenceId.endsWith(this.state.bootId)) return
+
+		// buffer events until we know the sequence numbers
+		if (this.state.type === 'connecting') {
+			this.state.bufferedEvents.push(event)
+			return
+		}
+
+		if (this.state.sequenceId !== event.sequenceId) {
 			// the replicator has restarted, so we need to reboot
 			this.log.debug('force reboot', this.state, event)
 			this.reboot()
 			return
 		}
-		if (event.type === 'maybe_force_reboot') return
 
-		assert(this.state.type !== 'init', 'state should not be init: ' + event.type)
 		if (event.sequenceNumber !== this.state.lastSequenceNumber + 1) {
 			this.log.debug(
 				'sequence number mismatch',
@@ -367,7 +350,12 @@ export class UserDataSyncer {
 			this.reboot()
 			return
 		}
+
 		this.state.lastSequenceNumber++
+
+		// this event type only exists to make us check the sequence id + number
+		// so its job is done.
+		if (event.type === 'maybe_force_reboot') return
 
 		for (const ev of event.changes) {
 			if (ev.type === 'mutation_commit') {
@@ -375,37 +363,18 @@ export class UserDataSyncer {
 				continue
 			}
 
-			if (this.state.type === 'connected') {
-				assert(ev.type === 'row_update', `event type should be row_update got ${event.type}`)
-				this.handleRowUpdateEvent(ev)
-				continue
-			}
-
-			assert(this.state.type === 'connecting')
-			this.log.debug('got event', event, this.state.didGetBootId, this.state.bootId)
-			if (this.state.didGetBootId && ev.type === 'row_update') {
-				// we've already got the boot id, so just shove row updates into
-				// a buffer until the state is set to 'connecting'
-				this.state.bufferedEvents.push(ev)
-			} else if (ev.type === 'boot_complete' && ev.bootId === this.state.bootId) {
-				this.state.didGetBootId = true
-				this.log.debug('got boot id')
-				this.updateStateAfterBootStep()
-			} else {
-				// drop irrelevant events
-			}
+			assert(ev.type === 'row_update', `event type should be row_update got ${event.type}`)
+			this.handleRowUpdateEvent(ev)
 		}
-
-		// ignore other events until we get the boot id
 	}
 
-	getInitialData() {
+	async getInitialData() {
 		if (this.state.type === 'connecting') {
-			return this.state.data
-		} else if (this.state.type === 'connected') {
-			return this.store.getCommittedData()
+			await this.state.promise
 		}
-		return null
+		const data = this.store.getCommittedData()
+		assert(data, 'data should be defined')
+		return data
 	}
 
 	private __rebootIfMutationsNotCommitted() {

@@ -186,20 +186,14 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			this.sockets.delete(serverWebSocket)
 			this.maybeClose()
 		})
-		const initialData = this.cache.getInitialData()
-		if (initialData) {
-			this.log.debug('sending initial data')
-			serverWebSocket.send(
-				JSON.stringify({
-					type: 'initial_data',
-					initialData,
-				} satisfies ZServerSentMessage)
-			)
-		} else {
-			// the cache hasn't received the initial data yet, so we need to wait for it
-			// it will broadcast on its own
-			this.log.debug('waiting for initial data')
-		}
+		const initialData = await this.cache.getInitialData()
+		this.log.debug('sending initial data')
+		serverWebSocket.send(
+			JSON.stringify({
+				type: 'initial_data',
+				initialData,
+			} satisfies ZServerSentMessage)
+		)
 
 		this.sockets.add(serverWebSocket)
 
@@ -320,14 +314,15 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private async _doMutate(msg: ZClientSentMessage) {
 		this.assertCache()
-		const insertedFiles = await this.db.transaction().execute(async (tx) => {
+		const { insertedFiles, newGuestFiles } = await this.db.transaction().execute(async (tx) => {
 			const insertedFiles: TlaFile[] = []
+			const newGuestFiles: TlaFile[] = []
 			for (const update of msg.updates) {
 				await this.assertValidMutation(update)
 				switch (update.event) {
 					case 'insert': {
 						if (update.table === 'file_state') {
-							const { fileId: _fileId, userId: _userId, ...rest } = update.row as any
+							const { fileId, userId, ...rest } = update.row as any
 							await tx
 								.insertInto(update.table)
 								.values(update.row as TlaFileState)
@@ -339,6 +334,14 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 									}
 								})
 								.execute()
+							const guestFile = await tx
+								.selectFrom('file')
+								.where('id', '=', fileId)
+								.where('ownerId', '!=', userId)
+								.executeTakeFirst()
+							if (guestFile) {
+								newGuestFiles.push(guestFile as any as TlaFile)
+							}
 							break
 						} else {
 							const { id: _id, ...rest } = update.row as any
@@ -427,11 +430,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				}
 				this.cache.store.updateOptimisticData([update], msg.mutationId)
 			}
-			return insertedFiles
+			return { insertedFiles, newGuestFiles }
 		})
 		for (const file of insertedFiles) {
 			getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
 		}
+		return newGuestFiles
 	}
 
 	private async handleMutate(socket: WebSocket, msg: ZClientSentMessage) {
@@ -439,7 +443,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		try {
 			// we connect to pg via a pooler, so in the case that the pool is exhausted
 			// we need to retry the connection. (also in the case that a neon branch is asleep apparently?)
-			await retryOnConnectionFailure(
+			const newGuestFiles = await retryOnConnectionFailure(
 				() => this._doMutate(msg),
 				() => {
 					this.logEvent({ type: 'connect_retry', id: this.userId! })
@@ -447,6 +451,13 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			)
 			// TODO: We should probably handle a case where the above operation succeeds but the one below fails
 			this.log.debug('mutation success', this.userId)
+			for (const file of newGuestFiles) {
+				this.cache.store.updateCommittedData({
+					event: 'insert',
+					row: file,
+					table: 'file',
+				})
+			}
 			await this.db
 				.transaction()
 				.execute(async (tx) => {
