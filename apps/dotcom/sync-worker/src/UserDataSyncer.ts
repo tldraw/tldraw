@@ -3,6 +3,7 @@ import {
 	OptimisticAppStore,
 	TlaRow,
 	ZEvent,
+	ZRowUpdate,
 	ZServerSentMessage,
 	ZStoreData,
 	ZTable,
@@ -86,6 +87,16 @@ type BootState =
 			lastSequenceNumber: number
 	  }
 
+const stateVersion = 0
+interface StateSnapshot {
+	version: number
+	initialData: ZStoreData
+	optimisticUpdates: Array<{
+		updates: ZRowUpdate[]
+		mutationId: string
+	}>
+}
+
 export class UserDataSyncer {
 	state: BootState = {
 		type: 'init',
@@ -93,6 +104,7 @@ export class UserDataSyncer {
 	}
 
 	store = new OptimisticAppStore()
+	lastStashEpoch = 0
 	mutations: { mutationNumber: number; mutationId: string; timestamp: number }[] = []
 
 	sentry
@@ -125,7 +137,7 @@ export class UserDataSyncer {
 
 	maybeStartInterval() {
 		if (!this.interval) {
-			this.interval = setInterval(() => this.__rebootIfMutationsNotCommitted(), 1000)
+			this.interval = setInterval(() => this.onInterval(), 1000)
 		}
 	}
 
@@ -182,39 +194,28 @@ export class UserDataSyncer {
 		this.broadcast({ type: 'commit', mutationIds: mutationIds })
 	}
 
-	private async boot() {
-		this.log.debug('booting')
-		// todo: clean up old resources if necessary?
-		const start = Date.now()
-		this.state = {
-			type: 'connecting',
-			// preserve the promise so any awaiters do eventually get resolved
-			// TODO: set a timeout on the promise?
-			promise: 'promise' in this.state ? this.state.promise : promiseWithResolve(),
-			bootId: uniqueId(),
-			bufferedEvents: [],
-		}
-		/**
-		 * BOOTUP SEQUENCE
-		 * 1. Generate a unique boot id
-		 * 2. Subscribe to all changes
-		 * 3. Fetch all data and write the boot id in a transaction
-		 * 4. If we receive events before the boot id update comes through, ignore them
-		 * 5. If we receive events after the boot id comes through but before we've finished
-		 *    fetching all data, buffer them and apply them after we've finished fetching all data.
-		 *    (not sure this is possible, but just in case)
-		 * 6. Once we've finished fetching all data, apply any buffered events
-		 */
+	private async loadInitialDataFromR2() {
+		const res = await this.env.UPLOADS.get(this.getSnapshotKey())
+		if (!res) return null
+		const data = (await res.json()) as StateSnapshot
+		if (data.version !== stateVersion) return null
+		this.log.debug('loaded snapshot')
+		return data
+	}
 
+	private getSnapshotKey() {
+		return 'user_do_snapshots/' + this.userId
+	}
+
+	private async getFreshInitialData() {
 		// if the bootId changes during the boot process, we should stop silently
 		const userSql = getFetchUserDataSql(this.userId)
 		const initialData: ZStoreData = {
 			user: null as any,
 			files: [],
 			fileStates: [],
+			lsn: '0/0',
 		}
-		let mutationNumber = 0
-		let lsn = '0/0'
 		// we connect to pg via a pooler, so in the case that the pool is exhausted
 		// we need to retry the connection. (also in the case that a neon branch is asleep apparently?)
 		await retryOnConnectionFailure(
@@ -239,10 +240,8 @@ export class UserDataSyncer {
 								initialData.fileStates.push(parseResultRow(fileStateKeys, row))
 								break
 							case 'meta':
-								assert(typeof row.mutationNumber === 'number', 'mutationNumber should be a number')
 								assert(typeof row.lsn === 'string', 'lsn should be a string')
-								mutationNumber = row.mutationNumber
-								lsn = row.lsn
+								initialData.lsn = row.lsn
 								break
 						}
 					})
@@ -253,21 +252,57 @@ export class UserDataSyncer {
 			}
 		)
 
-		this.log.debug('got initial data')
-		this.store.initialize(initialData)
+		return {
+			version: stateVersion,
+			initialData,
+			optimisticUpdates: [],
+		} satisfies StateSnapshot
+	}
+
+	private async boot() {
+		this.log.debug('booting')
+		// todo: clean up old resources if necessary?
+		const start = Date.now()
+		this.state = {
+			type: 'connecting',
+			// preserve the promise so any awaiters do eventually get resolved
+			// TODO: set a timeout on the promise?
+			promise: 'promise' in this.state ? this.state.promise : promiseWithResolve(),
+			bootId: uniqueId(),
+			bufferedEvents: [],
+		}
+		/**
+		 * BOOTUP SEQUENCE
+		 * 1. Generate a unique boot id
+		 * 2. Subscribe to all changes
+		 * 3. Fetch all data and write the boot id in a transaction
+		 * 4. If we receive events before the boot id update comes through, ignore them
+		 * 5. If we receive events after the boot id comes through but before we've finished
+		 *    fetching all data, buffer them and apply them after we've finished fetching all data.
+		 *    (not sure this is possible, but just in case)
+		 * 6. Once we've finished fetching all data, apply any buffered events
+		 */
+		if (!this.store.getCommittedData()) {
+			const res = (await this.loadInitialDataFromR2()) ?? (await this.getFreshInitialData())
+
+			this.log.debug('got initial data')
+			this.store.initialize(res.initialData, res.optimisticUpdates)
+		}
+
 		this.state.promise.resolve(null)
+		const initialData = this.store.getCommittedData()!
 		// do an unnecessary assign here to tell typescript that the state might have changed
 		const guestFileIds = initialData.files.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
 		const res = await getReplicator(this.env).registerUser({
 			userId: this.userId,
-			lsn,
+			lsn: initialData.lsn,
 			guestFileIds,
 			bootId: this.state.bootId,
 		})
 
 		if (res.type === 'reboot') {
-			// TODO: clear the db
 			this.store = new OptimisticAppStore()
+			this.env.UPLOADS.delete(this.getSnapshotKey())
 			throw new Error('reboot')
 		}
 
@@ -287,9 +322,7 @@ export class UserDataSyncer {
 			})
 		}
 
-		this.commitMutations(mutationNumber)
 		// this will prevent more events from being added to the buffer
-
 		const end = Date.now()
 		this.logEvent({ type: 'reboot_duration', id: this.userId, duration: end - start })
 		this.log.debug('boot time', end - start, 'ms')
@@ -377,8 +410,21 @@ export class UserDataSyncer {
 		return data
 	}
 
-	private __rebootIfMutationsNotCommitted() {
+	private async onInterval() {
 		// if any mutations have been not been committed for 5 seconds, let's reboot the cache
+		if (this.store.epoch != this.lastStashEpoch && this.state.type === 'connected') {
+			const initialData = this.store.getCommittedData()
+			if (initialData) {
+				const snapshot: StateSnapshot = {
+					version: stateVersion,
+					initialData,
+					optimisticUpdates: this.store.getOptimisticUpdates(),
+				}
+				this.log.debug('stashing snapshot')
+				this.lastStashEpoch = this.store.epoch
+				await this.env.UPLOADS.put(this.getSnapshotKey(), JSON.stringify(snapshot))
+			}
+		}
 		for (const mutation of this.mutations) {
 			if (Date.now() - mutation.timestamp > 5000) {
 				this.log.debug("Mutations haven't been committed for 5 seconds, rebooting")

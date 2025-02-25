@@ -1,4 +1,4 @@
-import { atom, computed } from '@tldraw/state'
+import { atom, computed, react, transact } from '@tldraw/state'
 import { assert } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
 import {
@@ -23,8 +23,25 @@ export class OptimisticAppStore {
 		}>
 	>('optimistic store', [])
 
-	initialize(data: ZStoreData) {
-		this._gold_store.set(data)
+	epoch = 0
+	constructor() {
+		react('update epoch', () => {
+			this._gold_store.get()
+			this._optimisticStore.get()
+			this.epoch++
+		})
+	}
+
+	initialize(
+		data: ZStoreData,
+		optimisticUpdates?: Array<{ updates: ZRowUpdate[]; mutationId: string }>
+	) {
+		transact(() => {
+			this._gold_store.set(data)
+			if (optimisticUpdates) {
+				this._optimisticStore.set(optimisticUpdates)
+			}
+		})
 	}
 
 	private store = computed('store', () => {
@@ -42,6 +59,10 @@ export class OptimisticAppStore {
 
 	getCommittedData() {
 		return this._gold_store.get()
+	}
+
+	getOptimisticUpdates() {
+		return this._optimisticStore.get()
 	}
 
 	updateCommittedData(data: ZRowUpdate) {
