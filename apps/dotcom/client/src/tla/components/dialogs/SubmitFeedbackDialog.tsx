@@ -54,7 +54,11 @@ function SignedOutSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 							defaultMessage="<discord>Chat with us on Discord</discord>"
 							values={{
 								discord: (chunks) => {
-									return <ExternalLink to="https://discord.gg/rhsyWMUJxd">{chunks}</ExternalLink>
+									return (
+										<ExternalLink to="https://discord.tldraw.com/?utm_source=dotcom&utm_medium=organic&utm_campaign=dotcom-feedback">
+											{chunks}
+										</ExternalLink>
+									)
 								},
 							}}
 						/>
@@ -139,7 +143,11 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 						defaultMessage="Fill out this form, <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>."
 						values={{
 							discord: (chunks) => {
-								return <ExternalLink to="https://discord.gg/rhsyWMUJxd">{chunks}</ExternalLink>
+								return (
+									<ExternalLink to="https://discord.tldraw.com/?utm_source=dotcom&utm_medium=organic&utm_campaign=dotcom-feedback">
+										{chunks}
+									</ExternalLink>
+								)
 							},
 							github: (chunks) => {
 								return (

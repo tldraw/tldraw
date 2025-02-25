@@ -58,7 +58,10 @@ const faq = [
 			<>
 				The best place for community support is either{' '}
 				<BlueA href="https://github.com/tldraw/tldraw">GitHub</BlueA> or{' '}
-				<BlueA href="https://discord.com/invite/SBBEVCA4PG">Discord</BlueA>.
+				<BlueA href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=faq">
+					Discord
+				</BlueA>
+				.
 			</>
 		),
 	},
@@ -67,7 +70,10 @@ const faq = [
 		a: (
 			<>
 				Check out the #show-and-tell channel on our{' '}
-				<BlueA href="https://discord.com/invite/SBBEVCA4PG">Discord</BlueA> community. We have a{' '}
+				<BlueA href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=faq">
+					Discord
+				</BlueA>{' '}
+				community. We have a{' '}
 				<BlueA href="https://github.com/tldraw/awesome-tldraw">awesome-tldraw</BlueA> repo where we
 				collect links to awesome projects built with tldraw.
 			</>
@@ -90,7 +96,10 @@ const faq = [
 			<>
 				You can request features through our{' '}
 				<BlueA href="https://github.com/tldraw/tldraw">GitHub</BlueA> or in our{' '}
-				<BlueA href="https://discord.com/invite/SBBEVCA4PG">Discord</BlueA>.
+				<BlueA href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=faq">
+					Discord
+				</BlueA>
+				.
 			</>
 		),
 	},
