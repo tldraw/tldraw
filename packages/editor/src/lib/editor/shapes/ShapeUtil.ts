@@ -57,6 +57,15 @@ export interface TLShapeUtilCanBeLaidOutOpts {
 	shapes?: TLShape[]
 }
 
+/** Additional options for the {@link ShapeUtil.getGeometry} method.
+ *
+ * @public
+ */
+export interface TLGeometryOpts {
+	/** The context in which the geometry is being requested. */
+	context?: string
+}
+
 /** @public */
 export interface TLShapeUtilCanvasSvgDef {
 	key: string
@@ -140,9 +149,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * Get the shape's geometry.
 	 *
 	 * @param shape - The shape.
+	 * @param opts - Additional options for the request.
 	 * @public
 	 */
-	abstract getGeometry(shape: Shape): Geometry2d
+	abstract getGeometry(shape: Shape, opts?: TLGeometryOpts): Geometry2d
 
 	/**
 	 * Get a JSX element for the shape (as an HTML element).

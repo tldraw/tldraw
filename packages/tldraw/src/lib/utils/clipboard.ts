@@ -1,4 +1,5 @@
 import { getOwnProperty, objectMapFromEntries } from '@tldraw/editor'
+import { TLCopyType } from './export/copyAs'
 
 // Browsers sanitize image formats to prevent security issues when pasting between applications. For
 // paste within an application though, some browsers (only chromium-based browsers as of Nov 2024)
@@ -11,14 +12,15 @@ import { getOwnProperty, objectMapFromEntries } from '@tldraw/editor'
 export const TLDRAW_CUSTOM_PNG_MIME_TYPE = 'web image/vnd.tldraw+png' as const
 
 const additionalClipboardWriteTypes = {
-	'image/png': TLDRAW_CUSTOM_PNG_MIME_TYPE,
+	png: TLDRAW_CUSTOM_PNG_MIME_TYPE,
+	svg: 'image/svg+xml',
 } as const
 const canonicalClipboardReadTypes = {
 	[TLDRAW_CUSTOM_PNG_MIME_TYPE]: 'image/png',
 }
 
-export function getAdditionalClipboardWriteType(mimeType: string): string | null {
-	return getOwnProperty(additionalClipboardWriteTypes, mimeType) ?? null
+export function getAdditionalClipboardWriteType(format: TLCopyType): string | null {
+	return getOwnProperty(additionalClipboardWriteTypes, format) ?? null
 }
 export function getCanonicalClipboardReadType(mimeType: string): string {
 	return getOwnProperty(canonicalClipboardReadTypes, mimeType) ?? mimeType

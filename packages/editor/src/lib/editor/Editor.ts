@@ -144,7 +144,7 @@ import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
-import { ShapeUtil, TLResizeMode } from './shapes/ShapeUtil'
+import { ShapeUtil, TLGeometryOpts, TLResizeMode } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
@@ -4203,14 +4203,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* --------------------- Shapes --------------------- */
 
-	@computed
-	private _getShapeGeometryCache(): ComputedCache<Geometry2d, TLShape> {
-		return this.store.createComputedCache(
-			'bounds',
-			(shape) => this.getShapeUtil(shape).getGeometry(shape),
-			(a, b) => a.props === b.props
-		)
-	}
+	private _shapeGeometryCaches: Record<string, ComputedCache<Geometry2d, TLShape>> = {}
 
 	/**
 	 * Get the geometry of a shape.
@@ -4219,14 +4212,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```ts
 	 * editor.getShapeGeometry(myShape)
 	 * editor.getShapeGeometry(myShapeId)
+	 * editor.getShapeGeometry(myShapeId, { context: "arrow" })
 	 * ```
 	 *
 	 * @param shape - The shape (or shape id) to get the geometry for.
+	 * @param opts - Additional options about the request for geometry. Passed to {@link ShapeUtil.getGeometry}.
 	 *
 	 * @public
 	 */
-	getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId): T {
-		return this._getShapeGeometryCache().get(typeof shape === 'string' ? shape : shape.id)! as T
+	getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T {
+		const context = opts?.context ?? 'none'
+		if (!this._shapeGeometryCaches[context]) {
+			this._shapeGeometryCaches[context] = this.store.createComputedCache(
+				'bounds',
+				(shape) => this.getShapeUtil(shape).getGeometry(shape, opts),
+				(a, b) => a.props === b.props
+			)
+		}
+		return this._shapeGeometryCaches[context].get(
+			typeof shape === 'string' ? shape : shape.id
+		)! as T
 	}
 
 	/** @internal */
