@@ -7,6 +7,7 @@ import {
 	MediaHelpers,
 	SvgExportContext,
 	TLAsset,
+	TLAssetId,
 	TLImageShape,
 	TLImageShapeProps,
 	TLResizeInfo,
@@ -140,7 +141,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			}
 
 			// If it's animated then we need to get the first frame
-			if (getIsAnimated(this.editor, shape)) {
+			if (getIsAnimated(this.editor, asset.id)) {
 				const { promise } = getFirstFrameOfAnimatedImage(src)
 				src = await promise
 			}
@@ -232,7 +233,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 	const [staticFrameSrc, setStaticFrameSrc] = useState('')
 	const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
 
-	const isAnimated = getIsAnimated(editor, shape)
+	const isAnimated = asset && getIsAnimated(editor, asset.id)
 
 	useEffect(() => {
 		if (url && isAnimated) {
@@ -351,8 +352,8 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 	)
 })
 
-function getIsAnimated(editor: Editor, shape: TLImageShape) {
-	const asset = shape.props.assetId ? editor.getAsset(shape.props.assetId) : undefined
+function getIsAnimated(editor: Editor, assetId: TLAssetId) {
+	const asset = assetId ? editor.getAsset(assetId) : undefined
 
 	if (!asset) return false
 
