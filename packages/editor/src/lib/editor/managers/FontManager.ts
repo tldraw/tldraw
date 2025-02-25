@@ -223,8 +223,7 @@ export class FontManager {
 		]).join(' ')
 		return compact([
 			`@font-face {`,
-			`  font-family: ${font.family};`,
-			`  src: ${src};`,
+			`  font-family: "${font.family}";`,
 			font.ascentOverride ? `  ascent-override: ${font.ascentOverride};` : null,
 			font.descentOverride ? `  descent-override: ${font.descentOverride};` : null,
 			font.stretch ? `  font-stretch: ${font.stretch};` : null,
@@ -233,6 +232,7 @@ export class FontManager {
 			font.featureSettings ? `  font-feature-settings: ${font.featureSettings};` : null,
 			font.lineGapOverride ? `  line-gap-override: ${font.lineGapOverride};` : null,
 			font.unicodeRange ? `  unicode-range: ${font.unicodeRange};` : null,
+			`  src: ${src};`,
 			`}`,
 		]).join('\n')
 	}

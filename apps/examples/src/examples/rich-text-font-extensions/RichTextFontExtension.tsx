@@ -7,7 +7,9 @@ import {
 	DefaultRichTextToolbar,
 	DefaultRichTextToolbarContent,
 	TLComponents,
+	TLTextOptions,
 	Tldraw,
+	defaultAddFontsFromNode,
 	stopEventPropagation,
 	tipTapDefaultExtensions,
 	useEditor,
@@ -16,14 +18,15 @@ import {
 import 'tldraw/tldraw.css'
 import { FontSize } from './FontSizeExtension'
 import './RichTextFontExtension.css'
+import { extensionFontFamilies } from './fonts'
 
 const fontOptions = [
+	{ label: 'Default', value: 'DEFAULT' },
 	{ label: 'Inter', value: 'Inter' },
 	{ label: 'Comic Sans MS', value: 'Comic Sans MS' },
 	{ label: 'serif', value: 'serif' },
 	{ label: 'monospace', value: 'monospace' },
 	{ label: 'cursive', value: 'cursive' },
-	{ label: 'Helvetica (CSS var)', value: 'var(--title-font-family)' },
 	{ label: 'Exo 2 (Google Font)', value: "'Exo 2'" },
 ]
 
@@ -62,7 +65,7 @@ const components: TLComponents = {
 
 		if (!textEditor) return null
 
-		const currentFontFamily = textEditor?.getAttributes('textStyle').fontFamily
+		const currentFontFamily = textEditor?.getAttributes('textStyle').fontFamily ?? 'DEFAULT'
 		const currentFontSize = textEditor?.getAttributes('textStyle').fontSize
 
 		return (
@@ -100,9 +103,30 @@ const components: TLComponents = {
 	},
 }
 
-const textOptions = {
+const textOptions: Partial<TLTextOptions> = {
 	tipTapConfig: {
 		extensions: [...tipTapDefaultExtensions, FontFamily, FontSize, TextStyle],
+	},
+	addFontsFromNode(node, state, addFont) {
+		state = defaultAddFontsFromNode(node, state, addFont)
+
+		// if we have a font-family attribute, keep track of that in the state so it applies to children
+		for (const mark of node.marks) {
+			if (
+				mark.type.name === 'textStyle' &&
+				mark.attrs.fontFamily &&
+				mark.attrs.fontFamily !== 'DEFAULT' &&
+				mark.attrs.fontFamily !== state.family
+			) {
+				state = { ...state, family: mark.attrs.fontFamily }
+			}
+		}
+
+		// if one of our extension font families matches the current state, add that font to the document.
+		const font = extensionFontFamilies[state.family]?.[state.style]?.[state.weight]
+		if (font) addFont(font)
+
+		return state
 	},
 }
 
