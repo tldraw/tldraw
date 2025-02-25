@@ -133,7 +133,14 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			src = (await getDataURIFromURL(src)) || ''
 		}
 
-		return <SvgImage shape={shape} src={src} />
+		// If it's animated then we need to get the first frame
+		let url = src
+		if (getIsAnimated(this.editor, shape)) {
+			const { promise } = getFirstFrameOfAnimatedImage(src)
+			url = await promise
+		}
+
+		return <SvgImage shape={shape} src={url} />
 	}
 
 	override onDoubleClickEdge(shape: TLImageShape) {
@@ -220,28 +227,15 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 
 	useEffect(() => {
 		if (url && isAnimated) {
-			let cancelled = false
+			const { promise, cancel } = getFirstFrameOfAnimatedImage(url)
 
-			const image = Image()
-			image.onload = () => {
-				if (cancelled) return
-
-				const canvas = document.createElement('canvas')
-				canvas.width = image.width
-				canvas.height = image.height
-
-				const ctx = canvas.getContext('2d')
-				if (!ctx) return
-
-				ctx.drawImage(image, 0, 0)
-				setStaticFrameSrc(canvas.toDataURL())
+			promise.then((dataUrl) => {
+				setStaticFrameSrc(dataUrl)
 				setLoadedUrl(url)
-			}
-			image.crossOrigin = 'anonymous'
-			image.src = url
+			})
 
 			return () => {
-				cancelled = true
+				cancel()
 			}
 		}
 	}, [editor, isAnimated, prefersReducedMotion, url])
@@ -407,6 +401,7 @@ function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
 	const cropClipId = useUniqueSafeId()
 	const containerStyle = getCroppedContainerStyle(shape)
 	const crop = shape.props.crop
+
 	if (containerStyle.transform && crop) {
 		const { transform: cropTransform, width, height } = containerStyle
 		const croppedWidth = (crop.bottomRight.x - crop.topLeft.x) * width
@@ -452,4 +447,29 @@ function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
 			/>
 		)
 	}
+}
+
+function getFirstFrameOfAnimatedImage(url: string) {
+	let cancelled = false
+
+	const promise = new Promise<string>((resolve) => {
+		const image = Image()
+		image.onload = () => {
+			if (cancelled) return
+
+			const canvas = document.createElement('canvas')
+			canvas.width = image.width
+			canvas.height = image.height
+
+			const ctx = canvas.getContext('2d')
+			if (!ctx) return
+
+			ctx.drawImage(image, 0, 0)
+			resolve(canvas.toDataURL())
+		}
+		image.crossOrigin = 'anonymous'
+		image.src = url
+	})
+
+	return { promise, cancel: () => (cancelled = true) }
 }
