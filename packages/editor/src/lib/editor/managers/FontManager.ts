@@ -1,4 +1,4 @@
-import { atom, Atom, EMPTY_ARRAY, transact } from '@tldraw/state'
+import { atom, Atom, EMPTY_ARRAY, transact, whyAmIRunning } from '@tldraw/state'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import {
 	areArraysShallowEqual,
@@ -99,6 +99,7 @@ export class FontManager {
 		this.shapeFontLoadStateCache = editor.store.createComputedCache(
 			'shape font load state',
 			(shape: TLShape) => {
+				whyAmIRunning()
 				const states = this.getShapeFontFaces(shape).map((face) => this.getFontState(face))
 				return states
 			},

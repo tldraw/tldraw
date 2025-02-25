@@ -555,13 +555,13 @@ function TldrawEditorWithReadyStore({
 	} | null>(null)
 	let fontLoadingState = _fontLoadingState
 	if (editor !== fontLoadingState?.editor) {
-		const newFontLoadingState = editor ? { editor, isLoaded: false } : null
-		if (fontLoadingState !== newFontLoadingState) setFontLoadingState(newFontLoadingState)
-		fontLoadingState = newFontLoadingState
+		fontLoadingState = null
 	}
 	useEffect(() => {
 		if (!editor) return
 		let isCancelled = false
+
+		setFontLoadingState({ editor, isLoaded: false })
 
 		editor.fonts
 			.loadRequiredFontsForCurrentPage(editor.options.maxFontsToLoadBeforeRender)

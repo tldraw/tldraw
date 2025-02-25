@@ -1372,6 +1372,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     hasShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): boolean;
     protected readonly history: HistoryManager<TLRecord>;
+    // (undocumented)
+    readonly id: string;
     inputs: {
         buttons: Set<number>;
         keys: Set<string>;

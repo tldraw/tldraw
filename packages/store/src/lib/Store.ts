@@ -5,12 +5,12 @@ import {
 	filterEntries,
 	getOwnProperty,
 	objectMapEntries,
-	objectMapFromEntries,
 	objectMapKeys,
 	objectMapValues,
 	throttleToNextFrame,
 	uniqueId,
 } from '@tldraw/utils'
+import { AtomMap } from './AtomMap'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { RecordScope } from './RecordType'
 import { RecordsDiff, squashRecordDiffs } from './RecordsDiff'
@@ -121,12 +121,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 */
 	public readonly id: string
 	/**
-	 * An atom containing the store's atoms.
+	 * An AtomMap containing the stores records.
 	 *
 	 * @internal
 	 * @readonly
 	 */
-	private readonly atoms = atom('store_atoms', {} as Record<IdOf<R>, Atom<R>>)
+	private readonly records: AtomMap<IdOf<R>, R>
 
 	/**
 	 * An atom containing the store's history.
@@ -144,7 +144,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 * @readonly
 	 */
-	readonly query = new StoreQueries<R>(this.atoms, this.history)
+	readonly query: StoreQueries<R>
 
 	/**
 	 * A set containing listeners that have been added to this store.
@@ -203,18 +203,18 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		this.props = config.props
 
 		if (initialData) {
-			this.atoms.set(
-				objectMapFromEntries(
-					objectMapEntries(initialData).map(([id, record]) => [
-						id,
-						atom(
-							'atom:' + id,
-							devFreeze(this.schema.validateRecord(this, record, 'initialize', null))
-						),
-					])
-				)
+			this.records = new AtomMap(
+				'store',
+				objectMapEntries(initialData).map(([id, record]) => [
+					id,
+					devFreeze(this.schema.validateRecord(this, record, 'initialize', null)),
+				])
 			)
+		} else {
+			this.records = new AtomMap('store')
 		}
+
+		this.query = new StoreQueries<R>(this.records, this.history)
 
 		this.historyReactor = reactor(
 			'Store.historyReactor',
@@ -337,9 +337,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			const updates: Record<IdOf<UnknownRecord>, [from: R, to: R]> = {}
 			const additions: Record<IdOf<UnknownRecord>, R> = {}
 
-			const currentMap = this.atoms.__unsafe__getWithoutCapture()
-			let map = null as null | Record<IdOf<UnknownRecord>, Atom<R>>
-
 			// Iterate through all records, creating, updating or removing as needed
 			let record: R
 
@@ -354,12 +351,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			for (let i = 0, n = records.length; i < n; i++) {
 				record = records[i]
 
-				const recordAtom = (map ?? currentMap)[record.id as IdOf<R>]
+				// const recordAtom = (map ?? currentMap)[record.id as IdOf<R>]
 
-				if (recordAtom) {
-					// If we already have an atom for this record, update its value.
-					const initialValue = recordAtom.__unsafe__getWithoutCapture()
-
+				const initialValue = this.records.__unsafe__getWithoutCapture(record.id)
+				// If we already have an atom for this record, update its value.
+				if (initialValue) {
 					// If we have a beforeUpdate callback, run it against the initial and next records
 					record = this.sideEffects.handleBeforeChange(initialValue, record, source)
 
@@ -373,12 +369,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 					if (validated === initialValue) continue
 
-					recordAtom.set(devFreeze(record))
+					record = devFreeze(record)
+					this.records.set(record.id, record)
 
 					didChange = true
-					const updated = recordAtom.__unsafe__getWithoutCapture()
-					updates[record.id] = [initialValue, updated]
-					this.addDiffForAfterEvent(initialValue, updated)
+					updates[record.id] = [initialValue, record]
+					this.addDiffForAfterEvent(initialValue, record)
 				} else {
 					record = this.sideEffects.handleBeforeCreate(record, source)
 
@@ -394,21 +390,15 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 						null
 					)
 
+					// freeze it
+					record = devFreeze(record)
+
 					// Mark the change as a new addition.
 					additions[record.id] = record
 					this.addDiffForAfterEvent(null, record)
 
-					// Assign the atom to the map under the record's id.
-					if (!map) {
-						map = { ...currentMap }
-					}
-					map[record.id] = atom('atom:' + record.id, record)
+					this.records.set(record.id, record)
 				}
-			}
-
-			// Set the map of atoms to the store.
-			if (map) {
-				this.atoms.set(map)
 			}
 
 			// If we did change, update the history
@@ -429,41 +419,29 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 */
 	remove(ids: IdOf<R>[]): void {
 		this.atomic(() => {
-			const cancelled = new Set<IdOf<R>>()
+			const toDelete = new Set<IdOf<R>>(ids)
 			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
 
 			if (this.sideEffects.isEnabled()) {
 				for (const id of ids) {
-					const atom = this.atoms.__unsafe__getWithoutCapture()[id]
-					if (!atom) continue
+					const record = this.records.__unsafe__getWithoutCapture(id)
+					if (!record) continue
 
-					if (this.sideEffects.handleBeforeDelete(atom.get(), source) === false) {
-						cancelled.add(id)
+					if (this.sideEffects.handleBeforeDelete(record, source) === false) {
+						toDelete.delete(id)
 					}
 				}
 			}
 
-			let removed = undefined as undefined | RecordsDiff<R>['removed']
+			const actuallyDeleted = this.records.deleteMany(toDelete)
+			if (actuallyDeleted.length === 0) return
 
-			// For each map in our atoms, remove the ids that we are removing.
-			this.atoms.update((atoms) => {
-				let result: typeof atoms | undefined = undefined
+			const removed = {} as RecordsDiff<R>['removed']
+			for (const [id, record] of actuallyDeleted) {
+				removed[id] = record
+				this.addDiffForAfterEvent(record, null)
+			}
 
-				for (const id of ids) {
-					if (cancelled.has(id)) continue
-					if (!(id in atoms)) continue
-					if (!result) result = { ...atoms }
-					if (!removed) removed = {} as Record<IdOf<R>, R>
-					delete result[id]
-					const record = atoms[id].get()
-					removed[id] = record
-					this.addDiffForAfterEvent(record, null)
-				}
-
-				return result ?? atoms
-			})
-
-			if (!removed) return
 			// Update the history with the removed records.
 			this.updateHistory({ added: {}, updated: {}, removed } as RecordsDiff<R>)
 		})
@@ -476,7 +454,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	get<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined {
-		return this.atoms.get()[id]?.get() as any
+		return this.records.get(id) as RecordFromId<K> | undefined
 	}
 
 	/**
@@ -486,7 +464,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	unsafeGetWithoutCapture<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined {
-		return this.atoms.__unsafe__getWithoutCapture()[id]?.__unsafe__getWithoutCapture() as any
+		return this.records.__unsafe__getWithoutCapture(id) as RecordFromId<K> | undefined
 	}
 
 	/**
@@ -497,8 +475,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 */
 	serialize(scope: RecordScope | 'all' = 'document'): SerializedStore<R> {
 		const result = {} as SerializedStore<R>
-		for (const [id, atom] of objectMapEntries(this.atoms.get())) {
-			const record = atom.get()
+		for (const [id, record] of this.records) {
 			if (scope === 'all' || this.scopedTypes[scope].has(record.typeName)) {
 				result[id as IdOf<R>] = record
 			}
@@ -608,7 +585,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	allRecords(): R[] {
-		return objectMapValues(this.atoms.get()).map((atom) => atom.get())
+		return Array.from(this.records.values())
 	}
 
 	/**
@@ -617,7 +594,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	clear(): void {
-		this.remove(objectMapKeys(this.atoms.get()))
+		this.remove(Array.from(this.records.keys()))
 	}
 
 	/**
@@ -628,13 +605,13 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param updater - A function that updates the record.
 	 */
 	update<K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>) {
-		const atom = this.atoms.get()[id]
-		if (!atom) {
+		const existing = this.unsafeGetWithoutCapture(id)
+		if (!existing) {
 			console.error(`Record ${id} not found. This is probably an error`)
 			return
 		}
 
-		this.put([updater(atom.__unsafe__getWithoutCapture() as any as RecordFromId<K>) as any])
+		this.put([updater(existing) as any])
 	}
 
 	/**
@@ -644,7 +621,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	has<K extends IdOf<R>>(id: K): boolean {
-		return !!this.atoms.get()[id]
+		return this.records.has(id)
 	}
 
 	/**
@@ -781,7 +758,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		const cache = new WeakCache<Atom<any>, Computed<Result | undefined>>()
 		return {
 			get: (id: IdOf<Record>) => {
-				const atom = this.atoms.get()[id]
+				const atom = this.records.getAtom(id)
 				if (!atom) {
 					return undefined
 				}
@@ -822,7 +799,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		const cache = new WeakCache<Atom<any>, Computed<Result | undefined>>()
 		return {
 			get: (id: IdOf<Record>) => {
-				const atom = this.atoms.get()[id]
+				const atom = this.records.getAtom(id)
 				if (!atom) {
 					return undefined
 				}

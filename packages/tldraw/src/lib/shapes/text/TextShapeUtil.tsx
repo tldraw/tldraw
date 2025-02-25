@@ -63,8 +63,10 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	getGeometry(shape: TLTextShape) {
+		console.group('text shape get geometry', shape.id)
 		const { scale } = shape.props
 		const { width, height } = this.getMinDimensions(shape)!
+		console.groupEnd()
 		return new Rectangle2d({
 			width: width * scale,
 			height: height * scale,
