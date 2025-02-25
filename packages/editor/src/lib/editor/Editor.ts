@@ -144,7 +144,7 @@ import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
-import { ShapeUtil, TLResizeMode } from './shapes/ShapeUtil'
+import { ShapeUtil, TLGeometryOpts, TLResizeMode } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
@@ -4212,18 +4212,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```ts
 	 * editor.getShapeGeometry(myShape)
 	 * editor.getShapeGeometry(myShapeId)
+	 * editor.getShapeGeometry(myShapeId, { context: "arrow" })
 	 * ```
 	 *
 	 * @param shape - The shape (or shape id) to get the geometry for.
-	 * @param context - The context in which to get the geometry for, e.g. 'none' or 'arrow'
+	 * @param opts - The context in which to get the geometry for, e.g. 'none' or 'arrow'
 	 *
 	 * @public
 	 */
-	getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, context = 'none'): T {
+	getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T {
+		const context = opts?.context ?? 'none'
 		if (!this._shapeGeometryCaches[context]) {
 			this._shapeGeometryCaches[context] = this.store.createComputedCache(
 				'bounds',
-				(shape) => this.getShapeUtil(shape).getGeometry(shape, context),
+				(shape) => this.getShapeUtil(shape).getGeometry(shape, opts),
 				(a, b) => a.props === b.props
 			)
 		}

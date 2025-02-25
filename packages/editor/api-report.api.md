@@ -1292,7 +1292,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         renderingOnly?: boolean | undefined;
     }): TLShape | undefined;
     getShapeClipPath(shape: TLShape | TLShapeId): string | undefined;
-    getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, context?: string): T;
+    getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T;
     getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined;
     getShapeLocalTransform(shape: TLShape | TLShapeId): Mat;
     getShapeMask(shape: TLShape | TLShapeId): undefined | VecLike[];
@@ -2527,7 +2527,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     getBoundsSnapGeometry(_shape: Shape): BoundsSnapGeometry;
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     abstract getDefaultProps(): Shape['props'];
-    abstract getGeometry(shape: Shape, context?: string): Geometry2d;
+    abstract getGeometry(shape: Shape, opts?: TLGeometryOpts): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
     getHandleSnapGeometry(_shape: Shape): HandleSnapGeometry;
     getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props'];
@@ -3460,6 +3460,12 @@ export interface TLFilesExternalContent extends TLBaseExternalContent {
     ignoreParent: boolean;
     // (undocumented)
     type: 'files';
+}
+
+// @public
+export interface TLGeometryOpts {
+    // (undocumented)
+    context?: string;
 }
 
 // @public (undocumented)

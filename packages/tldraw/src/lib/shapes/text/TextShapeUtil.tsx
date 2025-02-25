@@ -5,6 +5,7 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
+	TLGeometryOpts,
 	TLResizeInfo,
 	TLShapeId,
 	TLTextShape,
@@ -51,11 +52,12 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return sizeCache.get(shape.props, (props) => getTextSize(this.editor, props))
 	}
 
-	getGeometry(shape: TLTextShape, context: string) {
+	getGeometry(shape: TLTextShape, opts: TLGeometryOpts) {
 		const { scale } = shape.props
 		const { width, height } = this.getMinDimensions(shape)!
+		const context = opts?.context ?? 'none'
 		return new Rectangle2d({
-			x: context === 'arrow' ? -10 : 0,
+			x: context === '@tldraw/arrow-start' ? -10 : 0,
 			width: width * scale + (context === 'arrow' ? 20 : 0),
 			height: height * scale,
 			isFilled: true,

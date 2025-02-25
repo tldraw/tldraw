@@ -41,7 +41,10 @@ export function getBoundShapeInfoForTerminal(
 	const boundShape = editor.getShape(binding.toId)!
 	if (!boundShape) return
 	const transform = editor.getShapePageTransform(boundShape)!
-	const geometry = editor.getShapeGeometry(boundShape, 'arrow')
+	const geometry = editor.getShapeGeometry(
+		boundShape,
+		terminalName === 'start' ? { context: '@tldraw/arrow-start' } : undefined
+	)
 
 	// This is hacky: we're only looking at the first child in the group. Really the arrow should
 	// consider all items in the group which are marked as snappable as separate polygons with which
