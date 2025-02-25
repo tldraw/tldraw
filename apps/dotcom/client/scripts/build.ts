@@ -83,6 +83,7 @@ async function build() {
 		href="/assets/${assetsList.find((a) => a.startsWith(sprite))}"
 		as="image"
 		type="image/svg+xml"
+		crossorigin="anonymous"
 	/>`
 		)
 		.join('\n')
