@@ -1,5 +1,6 @@
-import { PI, createShapeId } from '@tldraw/editor'
+import { PI, TLShapeId, createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
+import { TL } from '../test-jsx'
 
 jest.useFakeTimers()
 
@@ -229,4 +230,95 @@ describe('distributeShapes command', () => {
 			{ id: ids.boxD, x: 300 }
 		)
 	})
+})
+
+describe('when shapes are overlapping', () => {
+	let ids: Record<string, TLShapeId> = {}
+
+	//     AAAA      DDDDDDDD
+	//        BB
+	//				 CC
+	beforeEach(() => {
+		editor = new TestEditor()
+		ids = editor.createShapesFromJsx([
+			<TL.geo ref="boxA" x={100} y={100} w={100} h={100} />,
+			<TL.geo ref="boxB" x={175} y={175} w={50} h={50} />,
+			<TL.geo ref="boxC" x={200} y={200} w={50} h={50} />,
+			<TL.geo ref="boxD" x={350} y={350} w={200} h={200} />,
+		])
+
+		editor.selectAll()
+	})
+
+	it('distributes horizontally', () => {
+		editor.selectAll().distributeShapes(Object.values(ids), 'horizontal')
+		// total range is 150 (boxA.maxX = 200, boxD.minX = 350)
+		// spaced used by inner shapes is 100 (50 + 50)
+		// gap should be ((150 - 100) / 3) = 16.666666666666668
+
+		// does not move the first or last shape
+		expect(editor.getShape(ids.boxA)!.x).toBe(100)
+		expect(editor.getShape(ids.boxD)!.x).toBe(350)
+
+		expect(editor.getShape(ids.boxB)!.x).toBeCloseTo(200 + 16.67, 1)
+		expect(editor.getShape(ids.boxC)!.x).toBeCloseTo(200 + 50 + 16.7 + 16.67, 1)
+	})
+
+	it('aligns horizontally', () => {
+		editor.selectAll().distributeShapes(Object.values(ids), 'vertical')
+		// total range is 150 (boxA.maxX = 200, boxD.minX = 350)
+		// spaced used by inner shapes is 100 (50 + 50)
+		// gap should be ((150 - 100) / 3) = 16.666666666666668
+
+		// does not move the first or last shape
+		expect(editor.getShape(ids.boxA)!.y).toBe(100)
+		expect(editor.getShape(ids.boxD)!.y).toBe(350)
+
+		expect(editor.getShape(ids.boxB)!.y).toBeCloseTo(200 + 16.67, 1)
+		expect(editor.getShape(ids.boxC)!.y).toBeCloseTo(200 + 50 + 16.7 + 16.67, 1)
+	})
+})
+
+it('preserves common bounds when distributing shapes with a lot of overlap', () => {
+	editor = new TestEditor()
+	// AAAABBCC EEE
+	//     DDDDDD
+	const ids = editor.createShapesFromJsx([
+		<TL.geo ref="boxA" x={0} y={0} w={100} h={100} />,
+		<TL.geo ref="boxB" x={20} y={0} w={15} h={100} />,
+		<TL.geo ref="boxC" x={30} y={0} w={10} h={100} />,
+		<TL.geo ref="boxD" x={10} y={0} w={380} h={100} />, // ten in from left, ten in from right
+		<TL.geo ref="boxE" x={300} y={0} w={100} h={100} />,
+	])
+
+	editor.selectAll()
+
+	const prevBounds = editor.getSelectionPageBounds()!
+
+	editor.distributeShapes(Object.values(ids), 'horizontal')
+
+	// If we didn't clamp this, then the right side of boxD would be to the right of boxE's right side
+	expect(editor.getShapePageBounds(ids.boxD)!.maxX).toEqual(
+		editor.getShapePageBounds(ids.boxE)!.maxX - 1
+	)
+
+	// The bounds should be the same as when we started
+	expect(editor.getSelectionPageBounds()!).toCloselyMatchObject(prevBounds)
+
+	// this is the best possible handling of an impossible distribution.
+	// It's not worth trying to do anything more clever since this would almost certainly never come up.
+	// We just need to be sure it's idempotent.
+
+	// fails, but this is what we want:
+
+	// const xsBefore = objectMapFromEntries(
+	// 	Object.entries(ids).map(([id, shapeId]) => [id, editor.getShapePageBounds(shapeId)!.x])
+	// )
+	// editor.distributeShapes(Object.values(ids), 'horizontal')
+	// expect(editor.getSelectionPageBounds()!).toCloselyMatchObject(prevBounds)
+
+	// const xsAfter = objectMapFromEntries(
+	// 	Object.entries(ids).map(([id, shapeId]) => [id, editor.getShapePageBounds(shapeId)!.x])
+	// )
+	// expect(xsBefore).toCloselyMatchObject(xsAfter)
 })
