@@ -15,21 +15,21 @@ export {
 	Store,
 	createComputedCache,
 	type ChangeSource,
+	type CollectionDiff,
+	type ComputedCache,
+	type CreateComputedCacheOpts,
+	type HistoryEntry,
 	type RecordFromId,
+	type SerializedStore,
+	type StoreError,
+	type StoreListener,
 	type StoreListenerFilters,
 	type StoreObject,
 	type StoreObjectRecordType,
-} from './lib/Store'
-export type {
-	CollectionDiff,
-	ComputedCache,
-	HistoryEntry,
-	SerializedStore,
-	StoreError,
-	StoreListener,
-	StoreSnapshot,
-	StoreValidator,
-	StoreValidators,
+	type StoreRecord,
+	type StoreSnapshot,
+	type StoreValidator,
+	type StoreValidators,
 } from './lib/Store'
 export { StoreQueries, type RSIndex, type RSIndexDiff, type RSIndexMap } from './lib/StoreQueries'
 export { StoreSchema, type StoreValidationFailure } from './lib/StoreSchema'

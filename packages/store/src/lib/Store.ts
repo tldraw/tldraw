@@ -1,4 +1,4 @@
-import { Atom, Computed, Reactor, atom, computed, reactor, transact } from '@tldraw/state'
+import { Atom, Reactor, Signal, atom, computed, reactor, transact } from '@tldraw/state'
 import {
 	WeakCache,
 	assert,
@@ -66,6 +66,12 @@ export type StoreListener<R extends UnknownRecord> = (entry: HistoryEntry<R>) =>
  */
 export interface ComputedCache<Data, R extends UnknownRecord> {
 	get(id: IdOf<R>): Data | undefined
+}
+
+/** @public */
+export interface CreateComputedCacheOpts<Data, R extends UnknownRecord> {
+	areRecordsEqual?(a: R, b: R): boolean
+	areResultsEqual?(a: Data, b: Data): boolean
 }
 
 /**
@@ -736,71 +742,47 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		}, runCallbacks)
 	}
 
-	/**
-	 * Create a computed cache.
-	 *
-	 * @param name - The name of the derivation cache.
-	 * @param derive - A function used to derive the value of the cache.
-	 * @param isEqual - A function that determines equality between two records.
-	 * @public
-	 */
-	createComputedCache<Result, Record extends R = R>(
-		name: string,
-		derive: (record: Record) => Result | undefined,
-		isEqual?: (a: Record, b: Record) => boolean
-	): ComputedCache<Result, Record> {
-		const cache = new WeakCache<Atom<any>, Computed<Result | undefined>>()
+	createCache<Result, Record extends R = R>(
+		create: (id: IdOf<Record>, recordSignal: Signal<R>) => Signal<Result>
+	) {
+		const cache = new WeakCache<Atom<any>, Signal<Result>>()
 		return {
 			get: (id: IdOf<Record>) => {
 				const atom = this.records.getAtom(id)
-				if (!atom) {
-					return undefined
-				}
-				return cache
-					.get(atom, () => {
-						const recordSignal = isEqual
-							? computed(atom.name + ':equals', () => atom.get(), { isEqual })
-							: atom
-						return computed<Result | undefined>(name + ':' + id, () => {
-							return derive(recordSignal.get() as Record)
-						})
-					})
-					.get()
+				if (!atom) return undefined
+				return cache.get(atom, () => create(id, atom as Signal<R>)).get()
 			},
 		}
 	}
 
 	/**
-	 * Create a computed cache from a selector
+	 * Create a computed cache.
 	 *
 	 * @param name - The name of the derivation cache.
-	 * @param selector - A function that returns a subset of the original shape
 	 * @param derive - A function used to derive the value of the cache.
+	 * @param opts - Options for the computed cache.
 	 * @public
 	 */
-	createSelectedComputedCache<Selection, Result, Record extends R = R>(
+	createComputedCache<Result, Record extends R = R>(
 		name: string,
-		selector: (record: Record) => Selection | undefined,
-		derive: (input: Selection) => Result | undefined
+		derive: (record: Record) => Result | undefined,
+		opts?: CreateComputedCacheOpts<Result, Record>
 	): ComputedCache<Result, Record> {
-		const cache = new WeakCache<Atom<any>, Computed<Result | undefined>>()
-		return {
-			get: (id: IdOf<Record>) => {
-				const atom = this.records.getAtom(id)
-				if (!atom) {
-					return undefined
-				}
+		return this.createCache((id, record) => {
+			const recordSignal = opts?.areRecordsEqual
+				? computed(atom.name + ':equals', () => record.get(), { isEqual: opts.areRecordsEqual })
+				: record
 
-				return cache
-					.get(atom, () => {
-						const d = computed<Selection | undefined>(name + ':' + id + ':selector', () =>
-							selector(atom.get() as Record)
-						)
-						return computed<Result | undefined>(name + ':' + id, () => derive(d.get() as Selection))
-					})
-					.get()
-			},
-		}
+			return computed<Result | undefined>(
+				name + ':' + id,
+				() => {
+					return derive(recordSignal.get() as Record)
+				},
+				{
+					isEqual: opts?.areResultsEqual,
+				}
+			)
+		})
 	}
 
 	private _integrityChecker?: () => void | undefined
@@ -999,14 +981,14 @@ export function createComputedCache<
 >(
 	name: string,
 	derive: (context: Context, record: Record) => Result | undefined,
-	isEqual?: (a: Record, b: Record) => boolean
+	opts?: CreateComputedCacheOpts<Result, Record>
 ) {
 	const cache = new WeakCache<Context, ComputedCache<Result, Record>>()
 	return {
 		get(context: Context, id: IdOf<Record>) {
 			const computedCache = cache.get(context, () => {
 				const store = (context instanceof Store ? context : context.store) as Store<Record>
-				return store.createComputedCache(name, (record) => derive(context, record), isEqual)
+				return store.createComputedCache(name, (record) => derive(context, record), opts)
 			})
 			return computedCache.get(id)
 		},
