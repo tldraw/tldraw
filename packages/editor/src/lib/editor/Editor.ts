@@ -83,6 +83,7 @@ import {
 	structuredClone,
 	uniqueId,
 } from '@tldraw/utils'
+import { Number } from 'core-js'
 import EventEmitter from 'eventemitter3'
 import {
 	TLEditorSnapshot,
@@ -6191,20 +6192,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		for (const shape of shapesToFlipFirstPass) {
 			const util = this.getShapeUtil(shape)
-			// todo: replace with clusters?
-			if (util.canBeLaidOut(shape, { type: 'flip', shapes: shapesToFlipFirstPass })) {
-				const pageBounds = this.getShapePageBounds(shape)
-				const localBounds = this.getShapeGeometry(shape).bounds
-				const pageTransform = this.getShapePageTransform(shape.id)
-				if (!(pageBounds && localBounds && pageTransform)) continue
-				shapesToFlip.push({
-					shape,
-					localBounds,
-					pageTransform,
-					isAspectRatioLocked: util.isAspectRatioLocked(shape),
+			if (
+				!util.canBeLaidOut(shape, {
+					type: 'flip',
+					shapes: shapesToFlipFirstPass,
 				})
-				allBounds.push(pageBounds)
+			) {
+				continue
 			}
+
+			const pageBounds = this.getShapePageBounds(shape)
+			const localBounds = this.getShapeGeometry(shape).bounds
+			const pageTransform = this.getShapePageTransform(shape.id)
+			if (!(pageBounds && localBounds && pageTransform)) continue
+			shapesToFlip.push({
+				shape,
+				localBounds,
+				pageTransform,
+				isAspectRatioLocked: util.isAspectRatioLocked(shape),
+			})
+			allBounds.push(pageBounds)
 		}
 
 		if (!shapesToFlip.length) return this
@@ -6276,6 +6283,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const shapePageBounds = this.getShapePageBounds(shape)
 			if (!shapePageBounds) continue
+
+			if (
+				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
+					type: 'stack',
+					shapes: shapesToStackFirstPass,
+				})
+			) {
+				continue
+			}
 
 			const shapesMovingTogether = [shape]
 			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
@@ -6434,6 +6450,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const shapePageBounds = this.getShapePageBounds(shape)
 			if (!shapePageBounds) continue
+
+			if (
+				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
+					type: 'pack',
+					shapes: shapesToPackFirstPass,
+				})
+			) {
+				continue
+			}
 
 			const shapesMovingTogether = [shape]
 			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
@@ -6600,6 +6625,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const shapePageBounds = this.getShapePageBounds(shape)
 			if (!shapePageBounds) continue
 
+			if (
+				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
+					type: 'align',
+					shapes: shapesToAlignFirstPass,
+				})
+			) {
+				continue
+			}
+
 			// In this implementation, we want to create psuedo-groups out of shapes that
 			// are moving together. At the moment shapes only move together if they're connected
 			// by arrows. So let's say A -> B -> C -> D and A, B, and C are selected. If we're
@@ -6722,6 +6756,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const shapePageBounds = this.getShapePageBounds(shape)
 			if (!shapePageBounds) continue
+
+			if (
+				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
+					type: 'distribute',
+					shapes: shapesToDistributeFirstPass,
+				})
+			) {
+				continue
+			}
 
 			const shapesMovingTogether = [shape]
 			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
@@ -6869,6 +6912,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const shapesMovingTogether = [shape]
 			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
+
+			if (
+				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
+					type: 'stretch',
+					shapes: shapesToStretchFirstPass,
+				})
+			) {
+				continue
+			}
 
 			this.collectShapesViaArrowBindings({
 				bindings: this.getBindingsToShape(shape.id, 'arrow'),

@@ -3831,7 +3831,7 @@ export interface TLShapeIndicatorProps {
 // @public
 export interface TLShapeUtilCanBeLaidOutOpts {
     shapes?: TLShape[];
-    type?: 'align' | 'distribute' | 'flip' | 'pack' | 'stack';
+    type?: 'align' | 'distribute' | 'flip' | 'pack' | 'stack' | 'stretch';
 }
 
 // @public
