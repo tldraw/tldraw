@@ -158,6 +158,7 @@ describe('<TldrawEditor />', () => {
 		rendered.rerender(
 			<TldrawEditor tools={defaultTools} initialState="select" store={newStore} onMount={onMount} />
 		)
+		await rendered.findAllByTestId('canvas')
 		expect(initialEditor.dispose).toHaveBeenCalledTimes(1)
 		expect(onMount).toHaveBeenCalledTimes(2)
 		expect(onMount.mock.lastCall[0].store).toBe(newStore)
