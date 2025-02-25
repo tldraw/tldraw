@@ -5788,6 +5788,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const { shapesToCreateWithOriginals, bindingsToCreate } = withIsolatedShapes(
 				this,
 				shapeIdSet,
+				false,
 				(bindingIdsToMaintain) => {
 					const bindingsToCreate: TLBinding[] = []
 					for (const originalId of bindingIdsToMaintain) {
@@ -8166,7 +8167,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const shapeIds = this.getShapeAndDescendantIds(ids)
 
-		return withIsolatedShapes(this, shapeIds, (bindingIdsToKeep) => {
+		return withIsolatedShapes(this, shapeIds, true, (bindingIdsToKeep) => {
 			const bindings: TLBinding[] = []
 			for (const id of bindingIdsToKeep) {
 				const binding = this.getBinding(id)
@@ -9942,6 +9943,7 @@ function pushShapeWithDescendants(editor: Editor, id: TLShapeId, result: TLShape
 function withIsolatedShapes<T>(
 	editor: Editor,
 	shapeIds: Set<TLShapeId>,
+	runCallbacks: boolean,
 	callback: (bindingsWithBoth: Set<TLBindingId>) => T
 ): T {
 	let result!: Result<T, unknown>
@@ -9978,7 +9980,7 @@ function withIsolatedShapes<T>(
 				}
 			})
 
-			editor.store.applyDiff(reverseRecordsDiff(changes), { runCallbacks: false })
+			editor.store.applyDiff(reverseRecordsDiff(changes), { runCallbacks })
 		},
 		{ history: 'ignore' }
 	)
