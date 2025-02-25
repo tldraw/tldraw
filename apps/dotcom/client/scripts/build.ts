@@ -63,8 +63,6 @@ async function build() {
 		'IBMPlexSans-Medium',
 		'IBMPlexMono-Medium',
 	]
-	const spritesToPreload = ['0_merged_tla-', '0_merged-']
-	const indexHtml = readFileSync('.vercel/output/static/index.html', 'utf8')
 	const fontPreloads = fontsToPreload
 		.map(
 			(font) => `<link
@@ -76,7 +74,8 @@ async function build() {
 	/>`
 		)
 		.join('\n')
-	console.log('💡[282]: build.ts:68: fontPreloads=', fontPreloads)
+
+	const spritesToPreload = ['0_merged_tla-', '0_merged-']
 	const spritePreloads = spritesToPreload
 		.map(
 			(sprite) => `<link
@@ -87,12 +86,11 @@ async function build() {
 	/>`
 		)
 		.join('\n')
-	console.log('💡[284]: build.ts:80: spritePreloads=', spritePreloads)
 
+	const indexHtml = readFileSync('.vercel/output/static/index.html', 'utf8')
 	const newIndex = indexHtml
 		.replace('<!-- $PRELOADED_FONTS -->', fontPreloads)
 		.replace('<!-- $PRELOADED_SPRITES -->', spritePreloads)
-	console.log('💡[285]: build.ts:92: newIndex=', newIndex)
 
 	writeFileSync('.vercel/output/static/index.html', newIndex)
 
