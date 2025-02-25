@@ -5,16 +5,15 @@ export interface CanvasMaxSize {
 	maxArea: number
 }
 
-// Cache this value because it's expensive to calculate
-
+// Cache this, only want to do this once per browser session
 let maxCanvasSizes: CanvasMaxSize | null = null
 
 function getBrowserCanvasMaxSize(): CanvasMaxSize {
 	if (!maxCanvasSizes) {
 		maxCanvasSizes = {
-			maxWidth: getCanvasSize('width'),
-			maxHeight: getCanvasSize('height'),
-			maxArea: getCanvasSize('area'),
+			maxWidth: getCanvasSize('width'), // test very wide but 1 pixel tall canvases
+			maxHeight: getCanvasSize('height'), // test very tall but 1 pixel wide canvases
+			maxArea: getCanvasSize('area'), // test square canvases
 		}
 	}
 	return maxCanvasSizes
