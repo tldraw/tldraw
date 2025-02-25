@@ -477,7 +477,7 @@ export function clamp(n: number, min: number, max: number): number;
 export function clampRadians(r: number): number;
 
 // @internal (undocumented)
-export function clampToBrowserMaxCanvasSize(width: number, height: number): Promise<number[]>;
+export function clampToBrowserMaxCanvasSize(width: number, height: number): number[];
 
 // @public (undocumented)
 export class ClickManager {
@@ -1162,6 +1162,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     edgeScrollManager: EdgeScrollManager;
     // @deprecated
     readonly environment: {
+        hasCanvasSupport: boolean;
         isAndroid: boolean;
         isChromeForIos: boolean;
         isDarwin: boolean;
@@ -3293,6 +3294,7 @@ export type TLEnterEventHandler = (info: any, from: string) => void;
 
 // @public
 export const tlenv: {
+    hasCanvasSupport: boolean;
     isAndroid: boolean;
     isChromeForIos: boolean;
     isDarwin: boolean;
