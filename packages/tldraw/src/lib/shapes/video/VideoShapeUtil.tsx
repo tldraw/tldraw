@@ -3,6 +3,7 @@ import {
 	HTMLContainer,
 	MediaHelpers,
 	SvgExportContext,
+	TLAsset,
 	TLVideoShape,
 	toDomPrecision,
 	useEditor,
@@ -10,13 +11,16 @@ import {
 	useIsEditing,
 	videoShapeMigrations,
 	videoShapeProps,
+	WeakCache,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { ReactEventHandler, memo, useCallback, useEffect, useRef, useState } from 'react'
+import { memo, ReactEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
+
+const videoSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 
 /** @public */
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
@@ -53,14 +57,19 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	override async toSvg(shape: TLVideoShape, ctx: SvgExportContext) {
 		if (!shape.props.assetId) return null
 
-		const assetUrl = await ctx.resolveAssetUrl(shape.props.assetId, shape.props.w)
-		if (!assetUrl) return null
+		const asset = this.editor.getAsset<TLAsset>(shape.props.assetId)
+		if (!asset) return null
 
-		const video = await MediaHelpers.loadVideo(assetUrl)
-		const image = await MediaHelpers.getVideoFrameAsDataUrl(video, 0)
-		if (!image) return null
+		const src = await videoSvgExportCache.get(asset, async () => {
+			const assetUrl = await ctx.resolveAssetUrl(asset.id, shape.props.w)
+			if (!assetUrl) return null
+			const video = await MediaHelpers.loadVideo(assetUrl)
+			return await MediaHelpers.getVideoFrameAsDataUrl(video, 0)
+		})
 
-		return <image href={image} width={shape.props.w} height={shape.props.h} />
+		if (!src) return null
+
+		return <image href={src} width={shape.props.w} height={shape.props.h} />
 	}
 }
 

@@ -6,11 +6,13 @@ import {
 	Image,
 	MediaHelpers,
 	SvgExportContext,
+	TLAsset,
 	TLImageShape,
 	TLImageShapeProps,
 	TLResizeInfo,
 	TLShapePartial,
 	Vec,
+	WeakCache,
 	fetch,
 	imageShapeMigrations,
 	imageShapeProps,
@@ -36,6 +38,8 @@ async function getDataURIFromURL(url: string): Promise<string> {
 	const blob = await response.blob()
 	return FileHelpers.blobToDataUrl(blob)
 }
+
+const imageSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 
 /** @public */
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
@@ -121,23 +125,29 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		if (!asset) return null
 
 		const { w } = getUncroppedSize(shape.props, shape.props.crop)
-		let src = await ctx.resolveAssetUrl(shape.props.assetId, w)
-		if (!src) return null
-		if (
-			src.startsWith('blob:') ||
-			src.startsWith('http') ||
-			src.startsWith('/') ||
-			src.startsWith('./')
-		) {
-			// If it's a remote image, we need to fetch it and convert it to a data URI
-			src = (await getDataURIFromURL(src)) || ''
-		}
 
-		// If it's animated then we need to get the first frame
-		if (getIsAnimated(this.editor, shape)) {
-			const { promise } = getFirstFrameOfAnimatedImage(src)
-			src = await promise
-		}
+		const src = await imageSvgExportCache.get(asset, async () => {
+			let src = await ctx.resolveAssetUrl(asset.id, w)
+			if (!src) return null
+			if (
+				src.startsWith('blob:') ||
+				src.startsWith('http') ||
+				src.startsWith('/') ||
+				src.startsWith('./')
+			) {
+				// If it's a remote image, we need to fetch it and convert it to a data URI
+				src = (await getDataURIFromURL(src)) || ''
+			}
+
+			// If it's animated then we need to get the first frame
+			if (getIsAnimated(this.editor, shape)) {
+				const { promise } = getFirstFrameOfAnimatedImage(src)
+				src = await promise
+			}
+			return src
+		})
+
+		if (!src) return null
 
 		return <SvgImage shape={shape} src={src} />
 	}
