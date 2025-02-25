@@ -34,7 +34,11 @@ Learn more at [tldraw.dev](https://tldraw.dev).
 
 The local development server will run our examples app. The basic example will show any changes you've made to the codebase.
 
-To run the local development server, first clone this repo.
+To run the local development server, first clone this repo and navigate to the examples folder
+
+```bash
+cd apps/examples
+```
 
 Enable [corepack](https://nodejs.org/api/corepack.html) to make sure you have the right version of `yarn`:
 
