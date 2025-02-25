@@ -90,7 +90,6 @@ const TEST_SIZES = {
  * by decreasing canvas height and/or width until a test succeeds.
  */
 export function getCanvasSize(dimension: 'width' | 'height' | 'area') {
-	let isTestPassed = false
 	const cropCvs = document.createElement('canvas')
 	cropCvs.width = 1
 	cropCvs.height = 1
@@ -108,7 +107,7 @@ export function getCanvasSize(dimension: 'width' | 'height' | 'area') {
 		testCtx.fillRect(w - 1, h - 1, 1, 1)
 		cropCtx.drawImage(testCvs, w - 1, h - 1, 1, 1, 0, 0, 1, 1)
 
-		isTestPassed = cropCtx.getImageData(0, 0, 1, 1).data[3] !== 0
+		const isTestPassed = cropCtx.getImageData(0, 0, 1, 1).data[3] !== 0
 		// release memory
 		testCvs.width = 0
 		testCvs.height = 0
