@@ -145,22 +145,6 @@ export class ArraySet<T> {
 		throw new Error('no set or array')
 	}
 
-	*[Symbol.iterator]() {
-		if (this.array) {
-			for (let i = 0; i < this.arraySize; i++) {
-				const elem = this.array[i]
-
-				if (typeof elem !== 'undefined') {
-					yield elem
-				}
-			}
-		} else if (this.set) {
-			yield* this.set
-		} else {
-			throw new Error('no set or array')
-		}
-	}
-
 	has(elem: T) {
 		if (this.array) {
 			return this.array.indexOf(elem) !== -1

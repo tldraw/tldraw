@@ -6,8 +6,6 @@
 
 // @internal
 export class ArraySet<T> {
-    // (undocumented)
-    [Symbol.iterator](): Generator<T, void, undefined>;
     add(elem: T): boolean;
     // (undocumented)
     clear(): void;

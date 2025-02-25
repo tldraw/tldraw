@@ -95,17 +95,3 @@ export function singleton<T>(key: string, init: () => T): T {
  * @public
  */
 export const EMPTY_ARRAY: [] = singleton('empty_array', () => Object.freeze([]) as any)
-
-/**
- * Does this signal have any active reactors attached to it? When it changes, will it cause anything to run?
- * @public
- */
-export function hasReactors(signal: Signal<any>) {
-	for (const child of signal.children) {
-		if (child.isActivelyListening) {
-			return true
-		}
-	}
-
-	return false
-}

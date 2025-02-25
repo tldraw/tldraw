@@ -351,8 +351,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			for (let i = 0, n = records.length; i < n; i++) {
 				record = records[i]
 
-				// const recordAtom = (map ?? currentMap)[record.id as IdOf<R>]
-
 				const initialValue = this.records.__unsafe__getWithoutCapture(record.id)
 				// If we already have an atom for this record, update its value.
 				if (initialValue) {
