@@ -254,7 +254,6 @@ export interface TLRenderingShape {
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
-	readonly id = uniqueId()
 	constructor({
 		store,
 		user,
