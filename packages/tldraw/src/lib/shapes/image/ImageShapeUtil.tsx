@@ -134,13 +134,12 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 
 		// If it's animated then we need to get the first frame
-		let url = src
 		if (getIsAnimated(this.editor, shape)) {
 			const { promise } = getFirstFrameOfAnimatedImage(src)
-			url = await promise
+			src = await promise
 		}
 
-		return <SvgImage shape={shape} src={url} />
+		return <SvgImage shape={shape} src={src} />
 	}
 
 	override onDoubleClickEdge(shape: TLImageShape) {
