@@ -497,10 +497,15 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
 		this.log.debug('replication event', event, !!this.cache)
 		if (await this.notActive()) {
+			this.log.debug('requesting to unregister')
 			return 'unregister'
 		}
 
-		this.cache?.handleReplicationEvent(event)
+		try {
+			this.cache?.handleReplicationEvent(event)
+		} catch (e) {
+			this.captureException(e)
+		}
 
 		return 'ok'
 	}

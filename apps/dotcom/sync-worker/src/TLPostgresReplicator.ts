@@ -1,4 +1,4 @@
-import { DB, TlaFile, TlaRow, TlaUser, ZTable } from '@tldraw/dotcom-shared'
+import { DB, TlaFile, TlaFileState, TlaRow, TlaUser, ZTable } from '@tldraw/dotcom-shared'
 import {
 	ExecutionQueue,
 	assert,
@@ -15,6 +15,7 @@ import { Kysely, sql } from 'kysely'
 
 import { LogicalReplicationService, Wal2Json, Wal2JsonPlugin } from 'pg-logical-replication'
 import { Logger } from './Logger'
+import { UserChangeCollator } from './UserChangeCollator'
 import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { createPostgresConnectionPool } from './postgres'
 import {
@@ -45,7 +46,8 @@ interface ReplicationEvent {
 
 interface Change {
 	event: ReplicationEvent
-	topicId: string
+	userId: string
+	fileId: string | null
 	row: TlaRow
 }
 
@@ -125,11 +127,12 @@ const migrations: Migration[] = [
         -- so we can do range queries on it
         walSegment INTEGER NOT NULL,
         walSegmentOffset INTEGER NOT NULL,
-				-- topicId is either a user id or a file id
-				topicId TEXT NOT NULL,
+				userId TEXT NOT NULL,
+				fileId TEXT,
         json TEXT NOT NULL
       );
-			CREATE INDEX history_walSegment_walSegmentOffset_topicId ON history (walSegment, walSegmentOffset, topicId);
+			CREATE INDEX history_walSegment_walSegmentOffset_userId ON history (walSegment, walSegmentOffset, userId);
+			CREATE INDEX history_walSegment_walSegmentOffset_fileId ON history (walSegment, walSegmentOffset, fileId);
 		`,
 	},
 ]
@@ -187,6 +190,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			this.sentry?.captureException(exception) as any
 		})
+		this.log.debug('ERROR', (exception as any)?.stack ?? exception)
 		if (!this.sentry) {
 			console.error(`[TLPostgresReplicator]: `, exception)
 		}
@@ -435,25 +439,37 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 		this.replicationService.addListener('data', (lsn: string, log: Wal2Json.Output) => {
 			// ignore events received after disconnecting, if that can even happen
-			if (this.state.type !== 'connected') return
-			this.postgresUpdates++
-			this.lastPostgresMessageTime = Date.now()
-			this.reportPostgresUpdate()
-			const { walSegment, walSegmentOffset } = parseLsn(lsn)
-			for (const _change of log.change) {
-				const change = this.parseChange(_change)
-				if (!change) continue
+			try {
+				if (this.state.type !== 'connected') return
+				this.postgresUpdates++
+				this.lastPostgresMessageTime = Date.now()
+				this.reportPostgresUpdate()
+				const { walSegment, walSegmentOffset } = parseLsn(lsn)
+				const collator = new UserChangeCollator()
+				for (const _change of log.change) {
+					const change = this.parseChange(_change)
+					if (!change) {
+						this.log.debug('IGNORING CHANGE', _change)
+						continue
+					}
 
-				this.handleEvent(change)
-				this.sqlite.exec(
-					'INSERT INTO history (walSegment, walSegmentOffset, topicId, json) VALUES (?, ?, ?, ?)',
-					walSegment,
-					walSegmentOffset,
-					change.topicId,
-					JSON.stringify(change)
-				)
+					this.handleEvent(collator, change)
+					this.sqlite.exec(
+						'INSERT INTO history (walSegment, walSegmentOffset, userId, fileId, json) VALUES (?, ?, ?, ?, ?)',
+						walSegment,
+						walSegmentOffset,
+						change.userId,
+						change.fileId,
+						JSON.stringify(change)
+					)
+				}
+				for (const [userId, changes] of collator.changes) {
+					this._messageUser(userId, { type: 'changes', changes, lsn })
+				}
+				this.updateLsn(lsn)
+			} catch (e) {
+				this.captureException(e)
 			}
-			this.updateLsn(lsn)
 		})
 
 		this.replicationService.addListener('start', () => {
@@ -521,23 +537,33 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			})
 		}
 
-		let topicId = null as string | null
+		let userId = null as string | null
+		let fileId = null as string | null
 		switch (table) {
 			case 'user':
+				userId = (row as TlaUser).id
+				break
 			case 'file':
-				topicId = `${(row as TlaUser | TlaFile).id}`
+				userId = (row as TlaFile).ownerId
+				fileId = (row as TlaFile).id
 				break
 			case 'file_state':
+				userId = (row as TlaFileState).userId
+				fileId = (row as TlaFileState).fileId
+				break
 			case 'user_boot_id':
+				userId = (row as { userId: string }).userId
+				break
 			case 'user_mutation_number':
-				topicId = `${(row as { userId: string }).userId}`
+				userId = (row as { userId: string }).userId
 				break
 			default: {
+				// assert never
 				const _x: never = table
 			}
 		}
 
-		if (!topicId) return null
+		if (!userId) return null
 
 		return {
 			row,
@@ -545,7 +571,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				command: change.kind,
 				table,
 			},
-			topicId,
+			userId,
+			fileId,
 		}
 	}
 
@@ -559,7 +586,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			if (users.length === 0) return
 			const batch = users.splice(0, BATCH_SIZE)
 			for (const user of batch) {
-				this.messageUser(user.id as string, { type: 'maybe_force_reboot' })
+				this._messageUser(user.id as string, { type: 'maybe_force_reboot' })
 			}
 			setTimeout(tick, 10)
 		}
@@ -571,7 +598,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		5000
 	)
 
-	private handleEvent(change: Change) {
+	private handleEvent(collator: UserChangeCollator, change: Change) {
 		// ignore events received after disconnecting, if that can even happen
 		if (this.state.type !== 'connected') return
 
@@ -584,19 +611,19 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		try {
 			switch (table) {
 				case 'user_boot_id':
-					this.handleBootEvent(change.row, { command, table })
+					this.handleBootEvent(collator, change.row, { command, table })
 					break
 				case 'user_mutation_number':
-					this.handleMutationConfirmationEvent(change.row, { command, table })
+					this.handleMutationConfirmationEvent(collator, change.row, { command, table })
 					break
 				case 'file_state':
-					this.handleFileStateEvent(change.row, { command, table })
+					this.handleFileStateEvent(collator, change.row, { command, table })
 					break
 				case 'file':
-					this.handleFileEvent(change.row, { command, table })
+					this.handleFileEvent(collator, change.row, { command, table })
 					break
 				case 'user':
-					this.handleUserEvent(change.row, { command, table })
+					this.handleUserEvent(collator, change.row, { command, table })
 					break
 				default:
 					this.captureException(new Error(`Unhandled table: ${table}`), { change })
@@ -607,27 +634,35 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	private handleBootEvent(row: Row | null, event: ReplicationEvent) {
+	private handleBootEvent(collator: UserChangeCollator, row: Row | null, event: ReplicationEvent) {
 		if (event.command === 'delete') return
 		assert(row && 'bootId' in row, 'bootId is required')
-		this.messageUser(row.userId, {
+		collator.addChange(row.userId, {
 			type: 'boot_complete',
 			userId: row.userId,
 			bootId: row.bootId,
 		})
 	}
 
-	private handleMutationConfirmationEvent(row: Row | null, event: ReplicationEvent) {
+	private handleMutationConfirmationEvent(
+		collator: UserChangeCollator,
+		row: Row | null,
+		event: ReplicationEvent
+	) {
 		if (event.command === 'delete') return
 		assert(row && 'mutationNumber' in row, 'mutationNumber is required')
-		this.messageUser(row.userId, {
+		collator.addChange(row.userId, {
 			type: 'mutation_commit',
 			mutationNumber: row.mutationNumber,
 			userId: row.userId,
 		})
 	}
 
-	private handleFileStateEvent(row: Row | null, event: ReplicationEvent) {
+	private handleFileStateEvent(
+		collator: UserChangeCollator,
+		row: Row | null,
+		event: ReplicationEvent
+	) {
 		assert(row && 'userId' in row && 'fileId' in row, 'userId is required')
 		if (!this.userIsActive(row.userId)) return
 		if (event.command === 'insert') {
@@ -651,7 +686,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 					if (!sub) return
 
 					// alright we're good to go
-					this.messageUser(row.userId, {
+					collator.addChange(row.userId, {
 						type: 'row_update',
 						row: file as any,
 						table: 'file',
@@ -683,7 +718,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				// even if they are the file owner. This is because the file_state
 				// deletion might happen before the file deletion and we don't get the
 				// ownerId on file delete events
-				this.messageUser(row.userId, {
+				collator.addChange(row.userId, {
 					type: 'row_update',
 					row: { id: row.fileId } as any,
 					table: 'file',
@@ -692,7 +727,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				})
 			}
 		}
-		this.messageUser(row.userId, {
+		collator.addChange(row.userId, {
 			type: 'row_update',
 			row: row as any,
 			table: event.table as ZTable,
@@ -701,7 +736,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		})
 	}
 
-	private handleFileEvent(row: Row | null, event: ReplicationEvent) {
+	private handleFileEvent(collator: UserChangeCollator, row: Row | null, event: ReplicationEvent) {
 		assert(row && 'id' in row, 'row id is required')
 		const impactedUserIds = this.sqlite
 			.exec('SELECT userId FROM user_file_subscriptions WHERE fileId = ?', row.id)
@@ -722,7 +757,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			getRoomDurableObject(this.env, row.id).appFileRecordCreated(row as TlaFile)
 		}
 		for (const userId of impactedUserIds) {
-			this.messageUser(userId, {
+			collator.addChange(userId, {
 				type: 'row_update',
 				row: row as any,
 				table: event.table as ZTable,
@@ -732,16 +767,17 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	private handleUserEvent(row: Row | null, event: ReplicationEvent) {
+	private handleUserEvent(collator: UserChangeCollator, row: Row | null, event: ReplicationEvent) {
 		assert(row && 'id' in row, 'user id is required')
 		this.log.debug('USER EVENT', event.command, row.id)
-		this.messageUser(row.id, {
+		collator.addChange(row.id, {
 			type: 'row_update',
 			row: row as any,
 			table: event.table as ZTable,
 			event: event.command,
 			userId: row.id,
 		})
+		return [row.id]
 	}
 
 	private userIsActive(userId: string) {
@@ -772,7 +808,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	private async messageUser(userId: string, event: ZReplicationEventWithoutSequenceInfo) {
+	private async _messageUser(userId: string, event: ZReplicationEventWithoutSequenceInfo) {
 		if (!this.userIsActive(userId)) return
 		try {
 			let q = this.userDispatchQueues.get(userId)

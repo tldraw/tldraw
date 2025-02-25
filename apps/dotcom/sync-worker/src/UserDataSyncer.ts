@@ -33,11 +33,6 @@ type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 export interface ZRowUpdateEvent {
 	type: 'row_update'
 	userId: string
-	// A unique id for the replicator's unbroken sequence of events.
-	// If the replicator fails and restarts, this id will change.
-	// And in that case the user DO should reboot.
-	sequenceId: string
-	sequenceNumber: number
 	row: TlaRow
 	table: ZTable
 	event: ZEvent
@@ -46,8 +41,6 @@ export interface ZRowUpdateEvent {
 export interface ZBootCompleteEvent {
 	type: 'boot_complete'
 	userId: string
-	sequenceId: string
-	sequenceNumber: number
 	bootId: string
 }
 
@@ -56,8 +49,6 @@ export interface ZMutationCommit {
 	userId: string
 	mutationNumber: number
 	// if the sequence id changes make sure we still handle the mutation commit
-	sequenceId: string
-	sequenceNumber: number
 }
 export interface ZForceReboot {
 	type: 'maybe_force_reboot'
@@ -65,17 +56,23 @@ export interface ZForceReboot {
 	sequenceNumber: number
 }
 
-export type ZReplicationEvent =
-	| ZRowUpdateEvent
-	| ZBootCompleteEvent
-	| ZMutationCommit
-	| ZForceReboot
+export type ZReplicationChange = ZRowUpdateEvent | ZBootCompleteEvent | ZMutationCommit
+
+export interface ZChanges {
+	type: 'changes'
+	lsn: string
+	changes: ZReplicationChange[]
+	// A unique id for the replicator's unbroken sequence of events.
+	// If the replicator fails and restarts, this id will change.
+	sequenceId: string
+	sequenceNumber: number
+}
+
+export type ZReplicationEvent = ZForceReboot | ZChanges
 
 export type ZReplicationEventWithoutSequenceInfo =
-	| Omit<ZRowUpdateEvent, 'sequenceNumber' | 'sequenceId'>
-	| Omit<ZBootCompleteEvent, 'sequenceNumber' | 'sequenceId'>
-	| Omit<ZMutationCommit, 'sequenceNumber' | 'sequenceId'>
 	| Omit<ZForceReboot, 'sequenceNumber' | 'sequenceId'>
+	| Omit<ZChanges, 'sequenceNumber' | 'sequenceId'>
 
 type BootState =
 	| {
@@ -88,7 +85,7 @@ type BootState =
 			sequenceId: string
 			lastSequenceNumber: number
 			promise: PromiseWithResolve
-			bufferedEvents: Array<ZReplicationEvent>
+			bufferedEvents: Array<ZRowUpdateEvent>
 			didGetBootId: boolean
 			data: null | ZStoreData
 			mutationNumber: number
@@ -214,7 +211,7 @@ export class UserDataSyncer {
 				this.store.initialize(data)
 
 				if (bufferedEvents.length > 0) {
-					bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
+					bufferedEvents.forEach((event) => this.handleRowUpdateEvent(event))
 					this.broadcast({
 						type: 'initial_data',
 						initialData: assertExists(this.store.getCommittedData()),
@@ -372,28 +369,33 @@ export class UserDataSyncer {
 		}
 		this.state.lastSequenceNumber++
 
-		if (event.type === 'mutation_commit') {
-			this.commitMutations(event.mutationNumber)
-			return
+		for (const ev of event.changes) {
+			if (ev.type === 'mutation_commit') {
+				this.commitMutations(ev.mutationNumber)
+				continue
+			}
+
+			if (this.state.type === 'connected') {
+				assert(ev.type === 'row_update', `event type should be row_update got ${event.type}`)
+				this.handleRowUpdateEvent(ev)
+				continue
+			}
+
+			assert(this.state.type === 'connecting')
+			this.log.debug('got event', event, this.state.didGetBootId, this.state.bootId)
+			if (this.state.didGetBootId && ev.type === 'row_update') {
+				// we've already got the boot id, so just shove row updates into
+				// a buffer until the state is set to 'connecting'
+				this.state.bufferedEvents.push(ev)
+			} else if (ev.type === 'boot_complete' && ev.bootId === this.state.bootId) {
+				this.state.didGetBootId = true
+				this.log.debug('got boot id')
+				this.updateStateAfterBootStep()
+			} else {
+				// drop irrelevant events
+			}
 		}
 
-		if (this.state.type === 'connected') {
-			assert(event.type === 'row_update', `event type should be row_update got ${event.type}`)
-			this.handleRowUpdateEvent(event)
-			return
-		}
-
-		assert(this.state.type === 'connecting')
-		this.log.debug('got event', event, this.state.didGetBootId, this.state.bootId)
-		if (this.state.didGetBootId) {
-			// we've already got the boot id, so just shove things into
-			// a buffer until the state is set to 'connecting'
-			this.state.bufferedEvents.push(event)
-		} else if (event.type === 'boot_complete' && event.bootId === this.state.bootId) {
-			this.state.didGetBootId = true
-			this.log.debug('got boot id')
-			this.updateStateAfterBootStep()
-		}
 		// ignore other events until we get the boot id
 	}
 
