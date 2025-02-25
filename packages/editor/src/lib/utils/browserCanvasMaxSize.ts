@@ -46,8 +46,6 @@ const TEST_SIZES = {
 		// IE Mobile (Windows Phone 8.x)
 		// Safari (iOS 9 - 12)
 		4096,
-		// Failed
-		1,
 	],
 	height: [
 		// Safari 7-12 (Mac)
@@ -66,8 +64,6 @@ const TEST_SIZES = {
 		8192,
 		// IE Mobile (Windows Phone 8.x)
 		4096,
-		// Failed
-		1,
 	],
 	width: [
 		// Safari 7-12 (Mac)
@@ -86,8 +82,6 @@ const TEST_SIZES = {
 		8192,
 		// IE Mobile (Windows Phone 8.x)
 		4096,
-		// Failed
-		1,
 	],
 } as const
 
@@ -96,25 +90,25 @@ const TEST_SIZES = {
  * by decreasing canvas height and/or width until a test succeeds.
  */
 export function getCanvasSize(dimension: 'width' | 'height' | 'area') {
+	let isTestPassed = false
 	const cropCvs = document.createElement('canvas')
 	cropCvs.width = 1
 	cropCvs.height = 1
+	const cropCtx = cropCvs.getContext('2d')!
 
 	for (const size of TEST_SIZES[dimension]) {
-		const testCvs = document.createElement('canvas')
-		testCvs.width = dimension === 'height' ? 1 : size
-		testCvs.height = dimension === 'width' ? 1 : size
+		const w = dimension === 'height' ? 1 : size
+		const h = dimension === 'width' ? 1 : size
 
-		const cropCtx = cropCvs.getContext('2d')!
+		const testCvs = document.createElement('canvas')
+		testCvs.width = w
+		testCvs.height = h
 		const testCtx = testCvs.getContext('2d')!
 
-		if (testCtx) {
-			testCtx.fillRect(size - 1, size - 1, 1, 1)
-			cropCtx.drawImage(testCvs, size - 1, size - 1, 1, 1, 0, 0, 1, 1)
-		}
+		testCtx.fillRect(w - 1, h - 1, 1, 1)
+		cropCtx.drawImage(testCvs, w - 1, h - 1, 1, 1, 0, 0, 1, 1)
 
-		const isTestPassed = cropCtx && cropCtx.getImageData(0, 0, 1, 1).data[3] !== 0
-
+		isTestPassed = cropCtx.getImageData(0, 0, 1, 1).data[3] !== 0
 		// release memory
 		testCvs.width = 0
 		testCvs.height = 0
