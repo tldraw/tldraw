@@ -3464,7 +3464,6 @@ export interface TLFilesExternalContent extends TLBaseExternalContent {
 
 // @public
 export interface TLGeometryOpts {
-    // (undocumented)
     context?: string;
 }
 

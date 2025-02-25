@@ -4216,7 +4216,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param shape - The shape (or shape id) to get the geometry for.
-	 * @param opts - The context in which to get the geometry for, e.g. 'none' or 'arrow'
+	 * @param opts - Additional options about the request for geometry. Passed to {@link ShapeUtil.getGeometry}.
 	 *
 	 * @public
 	 */

@@ -46,11 +46,12 @@ export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLShape> 
 }
 
 /**
- * Options for the {@link ShapeUtil.getGeometry} method.
+ * Additional options for the {@link ShapeUtil.getGeometry} method.
  *
  * @public
  */
 export interface TLGeometryOpts {
+	/** The context in which the geometry is being requested. */
 	context?: string
 }
 
