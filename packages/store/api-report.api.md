@@ -8,6 +8,7 @@ import { Atom } from '@tldraw/state';
 import { Computed } from '@tldraw/state';
 import { Expand } from '@tldraw/utils';
 import { Result } from '@tldraw/utils';
+import { Signal } from '@tldraw/state';
 import { UNINITIALIZED } from '@tldraw/state';
 
 // @public
@@ -46,6 +47,8 @@ export class AtomMap<K, V> implements Map<K, V> {
     set(key: K, value: V): this;
     // (undocumented)
     get size(): number;
+    // (undocumented)
+    update(key: K, updater: (value: V) => V): void;
     // (undocumented)
     values(): Generator<V, undefined, unknown>;
 }
@@ -393,9 +396,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // @internal (undocumented)
     atomic<T>(fn: () => T, runCallbacks?: boolean): T;
     clear(): void;
+    // (undocumented)
+    createCache<Result, Record extends R = R>(create: (id: IdOf<Record>, recordSignal: Signal<R>) => Signal<Result>): {
+        get: (id: IdOf<Record>) => Result | undefined;
+    };
     createComputedCache<Result, Record extends R = R>(name: string, derive: (record: Record) => Result | undefined, opts?: ComputedCacheOpts<Result, Record>): ComputedCache<Result, Record>;
-    // @deprecated
-    createSelectedComputedCache<Selection, Result, Record extends R = R>(name: string, selector: (record: Record) => Selection | undefined, derive: (input: Selection) => Result | undefined): ComputedCache<Result, Record>;
     // (undocumented)
     dispose(): void;
     // @internal (undocumented)

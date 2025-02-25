@@ -82,6 +82,20 @@ export class AtomMap<K, V> implements Map<K, V> {
 		return this
 	}
 
+	update(key: K, updater: (value: V) => V) {
+		return transact(() => {
+			const valueAtom = this.valueMap.get(key)
+			if (!valueAtom) {
+				throw new Error(`AtomMap: key ${key} not found`)
+			}
+			const value = valueAtom.__unsafe__getWithoutCapture()
+			if (value === UNINITIALIZED) {
+				throw new Error(`AtomMap: key ${key} not found`)
+			}
+			valueAtom.set(updater(value))
+		})
+	}
+
 	delete(key: K) {
 		return transact(() => {
 			const valueAtom = this.valueMap.get(key)

@@ -1,4 +1,5 @@
-import { atom, Atom, EMPTY_ARRAY, transact, whyAmIRunning } from '@tldraw/state'
+import { computed, EMPTY_ARRAY, transact } from '@tldraw/state'
+import { AtomMap } from '@tldraw/store'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import {
 	areArraysShallowEqual,
@@ -96,14 +97,18 @@ export class FontManager {
 			{ areResultsEqual: areArraysShallowEqual }
 		)
 
-		this.shapeFontLoadStateCache = editor.store.createComputedCache(
-			'shape font load state',
-			(shape: TLShape) => {
-				whyAmIRunning()
-				const states = this.getShapeFontFaces(shape).map((face) => this.getFontState(face))
-				return states
-			},
-			{ areResultsEqual: areArraysShallowEqual }
+		this.shapeFontLoadStateCache = editor.store.createCache<(FontState | null)[], TLShape>(
+			(id: TLShapeId) => {
+				const fontFacesComputed = computed('font faces', () => this.getShapeFontFaces(id))
+				return computed(
+					'font load state',
+					() => {
+						const states = fontFacesComputed.get().map((face) => this.getFontState(face))
+						return states
+					},
+					{ isEqual: areArraysShallowEqual }
+				)
+			}
 		)
 	}
 
@@ -136,40 +141,33 @@ export class FontManager {
 		await Promise.all(promises)
 	}
 
-	private readonly fontStates = atom<ReadonlyMap<TLFontFace, Atom<FontState>>>(
-		'font states',
-		new Map()
-	)
+	private readonly fontStates = new AtomMap<TLFontFace, FontState>('font states')
 	private getFontState(font: TLFontFace): FontState | null {
-		return this.fontStates.get().get(font)?.get() ?? null
+		return this.fontStates.get(font) ?? null
 	}
 
 	ensureFontIsLoaded(font: TLFontFace): Promise<void> {
-		const state = this.getFontState(font)
-		if (state) return state.loadingPromise
+		const existingState = this.getFontState(font)
+		if (existingState) return existingState.loadingPromise
 
 		const instance = this.findOrCreateFontFace(font)
-		const stateAtom = atom<FontState>('font state', {
+		const state: FontState = {
 			state: 'loading',
 			instance,
 			loadingPromise: instance
 				.load()
 				.then(() => {
 					document.fonts.add(instance)
-					stateAtom.update((s) => ({ ...s, state: 'ready' }))
+					this.fontStates.update(font, (s) => ({ ...s, state: 'ready' }))
 				})
 				.catch((err) => {
 					console.error(err)
-					stateAtom.update((s) => ({ ...s, state: 'error' }))
+					this.fontStates.update(font, (s) => ({ ...s, state: 'error' }))
 				}),
-		})
-		this.fontStates.update((map) => {
-			const newMap = new Map(map)
-			newMap.set(font, stateAtom)
-			return newMap
-		})
+		}
 
-		return stateAtom.get().loadingPromise
+		this.fontStates.set(font, state)
+		return state.loadingPromise
 	}
 
 	private fontsToLoad = new Set<TLFontFace>()

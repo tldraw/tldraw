@@ -1,4 +1,4 @@
-import { Atom, Computed, Reactor, atom, computed, reactor, transact } from '@tldraw/state'
+import { Atom, Reactor, Signal, atom, computed, reactor, transact } from '@tldraw/state'
 import {
 	WeakCache,
 	assert,
@@ -742,6 +742,19 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		}, runCallbacks)
 	}
 
+	createCache<Result, Record extends R = R>(
+		create: (id: IdOf<Record>, recordSignal: Signal<R>) => Signal<Result>
+	) {
+		const cache = new WeakCache<Atom<any>, Signal<Result>>()
+		return {
+			get: (id: IdOf<Record>) => {
+				const atom = this.records.getAtom(id)
+				if (!atom) return undefined
+				return cache.get(atom, () => create(id, atom as Signal<R>)).get()
+			},
+		}
+	}
+
 	/**
 	 * Create a computed cache.
 	 *
@@ -755,65 +768,21 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		derive: (record: Record) => Result | undefined,
 		opts?: ComputedCacheOpts<Result, Record>
 	): ComputedCache<Result, Record> {
-		const cache = new WeakCache<Atom<any>, Computed<Result | undefined>>()
-		return {
-			get: (id: IdOf<Record>) => {
-				const atom = this.records.getAtom(id)
-				if (!atom) {
-					return undefined
-				}
-				return cache
-					.get(atom, () => {
-						const recordSignal = opts?.areRecordsEqual
-							? computed(atom.name + ':equals', () => atom.get(), { isEqual: opts.areRecordsEqual })
-							: atom
-						return computed<Result | undefined>(
-							name + ':' + id,
-							() => {
-								return derive(recordSignal.get() as Record)
-							},
-							{
-								isEqual: opts?.areResultsEqual,
-							}
-						)
-					})
-					.get()
-			},
-		}
-	}
+		return this.createCache((id, record) => {
+			const recordSignal = opts?.areRecordsEqual
+				? computed(atom.name + ':equals', () => record.get(), { isEqual: opts.areRecordsEqual })
+				: record
 
-	/**
-	 * Create a computed cache from a selector
-	 *
-	 * @param name - The name of the derivation cache.
-	 * @param selector - A function that returns a subset of the original shape
-	 * @param derive - A function used to derive the value of the cache.
-	 * @deprecated use `createComputedCache` instead.
-	 * @public
-	 */
-	createSelectedComputedCache<Selection, Result, Record extends R = R>(
-		name: string,
-		selector: (record: Record) => Selection | undefined,
-		derive: (input: Selection) => Result | undefined
-	): ComputedCache<Result, Record> {
-		const cache = new WeakCache<Atom<any>, Computed<Result | undefined>>()
-		return {
-			get: (id: IdOf<Record>) => {
-				const atom = this.records.getAtom(id)
-				if (!atom) {
-					return undefined
+			return computed<Result | undefined>(
+				name + ':' + id,
+				() => {
+					return derive(recordSignal.get() as Record)
+				},
+				{
+					isEqual: opts?.areResultsEqual,
 				}
-
-				return cache
-					.get(atom, () => {
-						const d = computed<Selection | undefined>(name + ':' + id + ':selector', () =>
-							selector(atom.get() as Record)
-						)
-						return computed<Result | undefined>(name + ':' + id, () => derive(d.get() as Selection))
-					})
-					.get()
-			},
-		}
+			)
+		})
 	}
 
 	private _integrityChecker?: () => void | undefined
