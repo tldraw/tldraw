@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Export"
   },
-  "0178474948": {
-    "translation": "We use <a>first-party cookies</a> to improve our services."
-  },
   "03b3e13197": {
     "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
   },
@@ -91,6 +88,9 @@
   },
   "4908687e50": {
     "translation": "Are you sure you want to forget this file?"
+  },
+  "4c06678729": {
+    "translation": "We use first-party cookies to improve our services. <a>Learn more</a>"
   },
   "4d1c8263ba": {
     "translation": "Reload"

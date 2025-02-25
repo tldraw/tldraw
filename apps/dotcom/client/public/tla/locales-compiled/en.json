@@ -1,6 +1,5 @@
 {
   "0095a9fa74": "Export",
-  "0178474948": "We use <a>first-party cookies</a> to improve our services.",
   "03b3e13197": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu.",
   "043973ec1f": "Still having trouble? {GetHelpLink}",
   "05596b840b": "Open tldraw.",
@@ -30,6 +29,7 @@
   "4778b9f3f2": "Privacy settings",
   "47839e47a5": "tldraw",
   "4908687e50": "Are you sure you want to forget this file?",
+  "4c06678729": "We use first-party cookies to improve our services. <a>Learn more</a>",
   "4d1c8263ba": "Reload",
   "50db1b7e1e": "Unable to unpublish the file.",
   "517bb809d9": "Page menu",
