@@ -1,6 +1,7 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { Provider as TooltipProvider } from '@radix-ui/react-tooltip'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
+import classNames from 'classnames'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
@@ -45,11 +46,19 @@ export function Component() {
 	const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light')
 	const handleThemeChange = (theme: 'light' | 'dark' | 'system') => setTheme(theme)
 	const handleLocaleChange = (locale: string) => setLocale(locale)
-
+	const isFocusMode = useValue(
+		'isFocusMode',
+		() => !!globalEditor.get()?.getInstanceState().isFocusMode,
+		[]
+	)
 	return (
 		<div
 			ref={setContainer}
-			className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
+			className={classNames(`tla tl-container tla-theme-container`, {
+				'tla-theme__light tl-theme__light': theme === 'light',
+				'tla-theme__dark tl-theme__dark': theme !== 'light',
+				'tla-focus-mode': isFocusMode,
+			})}
 		>
 			<IntlWrapper locale={locale}>
 				<MaybeForceUserRefresh>

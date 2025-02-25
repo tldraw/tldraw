@@ -6,6 +6,7 @@ import {
 	APP_ASSET_UPLOAD_ENDPOINT,
 	DB,
 	FILE_PREFIX,
+	LOCAL_FILE_PREFIX,
 	PUBLISH_PREFIX,
 	READ_ONLY_LEGACY_PREFIX,
 	READ_ONLY_PREFIX,
@@ -525,6 +526,10 @@ export class TLDrawDurableObject extends DurableObject {
 			case PUBLISH_PREFIX:
 				data = await getPublishedRoomSnapshot(this.env, id)
 				break
+			case LOCAL_FILE_PREFIX:
+				// create empty room, the client will populate it
+				data = new TLSyncRoom({ schema: createTLSchema() }).getSnapshot()
+				break
 		}
 
 		if (!data) {
@@ -546,16 +551,12 @@ export class TLDrawDurableObject extends DurableObject {
 				return { type: 'room_found', snapshot: await roomFromBucket.json() }
 			}
 			if (this._fileRecordCache?.createSource) {
-				const roomData = await this.handleFileCreateFromSource()
-				// Room found and created, so we can clean the create source field
-				if (roomData.type === 'room_found') {
-					await this.db
-						.updateTable('file')
-						.set({ createSource: null })
-						.where('id', '=', this._fileRecordCache.id)
-						.execute()
+				const res = await this.handleFileCreateFromSource()
+				if (res.type === 'room_found') {
+					// save it to the bucket so we don't try to create from source again
+					await this.r2.rooms.put(key, JSON.stringify(res.snapshot))
 				}
-				return roomData
+				return res
 			}
 
 			if (this.documentInfo.isApp) {

@@ -1,14 +1,26 @@
 import { useParams } from 'react-router-dom'
-import { TLComponents } from 'tldraw'
+import {
+	DefaultMainMenu,
+	DefaultMainMenuContent,
+	TLComponents,
+	TldrawUiMenuActionItem,
+	TldrawUiMenuGroup,
+} from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
-import { TlaEditorTopLeftPanel } from '../components/TlaEditor/TlaEditorTopLeftPanel'
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
-	MenuPanel: () => <TlaEditorTopLeftPanel isAnonUser />,
 	SharePanel: null,
+	MainMenu: () => (
+		<DefaultMainMenu>
+			<TldrawUiMenuGroup id="download">
+				<TldrawUiMenuActionItem actionId={'save-file-copy'} />
+			</TldrawUiMenuGroup>
+			<DefaultMainMenuContent />
+		</DefaultMainMenu>
+	),
 }
 
 export function Component() {

@@ -1,6 +1,7 @@
 import {
 	DB,
 	isColumnMutable,
+	MAX_NUMBER_OF_FILES,
 	ROOM_PREFIX,
 	TlaFile,
 	TlaFilePartial,
@@ -208,7 +209,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private async handleSocketMessage(socket: WebSocket, message: string) {
 		const rateLimited = await isRateLimited(this.env, this.userId!)
 		this.assertCache()
-		await this.cache.waitUntilConnected()
 
 		const msg = JSON.parse(message) as any as ZClientSentMessage
 		switch (msg.type) {
@@ -229,7 +229,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private async rejectMutation(socket: WebSocket, mutationId: string, errorCode: ZErrorCode) {
 		this.assertCache()
 		this.logEvent({ type: 'reject_mutation', id: this.userId! })
-		await this.cache.waitUntilConnected()
 		this.cache.store.rejectMutation(mutationId)
 		socket?.send(
 			JSON.stringify({
@@ -271,6 +270,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						`Cannot create a file for another user. fileId: ${nextFile.id} file owner: ${nextFile.ownerId} current user: ${this.userId}`
 					)
 				}
+				if (prevFile.isDeleted)
+					throw new ZMutationError(ZErrorCode.forbidden, 'Cannot update a deleted file')
 				// Owners are allowed to make changes
 				if (prevFile.ownerId === this.userId) return
 
@@ -341,6 +342,15 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							break
 						} else {
 							const { id: _id, ...rest } = update.row as any
+							if (update.table === 'file') {
+								const count = this.cache.store.getFullData()?.files.length ?? 0
+								if (count >= MAX_NUMBER_OF_FILES) {
+									throw new ZMutationError(
+										ZErrorCode.max_files_reached,
+										`Cannot create more than ${MAX_NUMBER_OF_FILES} files.`
+									)
+								}
+							}
 							const result = await tx
 								.insertInto(update.table)
 								.values(update.row as any)
@@ -486,13 +496,17 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	async handleReplicationEvent(event: ZReplicationEvent) {
 		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
 		this.log.debug('replication event', event, !!this.cache)
-		if (!this.cache) {
+		if (await this.notActive()) {
 			return 'unregister'
 		}
 
-		this.cache.handleReplicationEvent(event)
+		this.cache?.handleReplicationEvent(event)
 
 		return 'ok'
+	}
+
+	async notActive() {
+		return !this.cache
 	}
 
 	/* --------------  */

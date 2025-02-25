@@ -43,6 +43,10 @@ jobs:
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
           git checkout -b update-i18n-strings
           git add "*.json"
+          if git diff-index --quiet HEAD --; then
+            echo "No changes to commit"
+            exit 0
+          fi
           git commit --no-verify -m '[automated] update i18n strings'
           git push --set-upstream origin update-i18n-strings
           gh pr create --title "[automated] update i18n strings" --body "This PR updates the i18n strings.

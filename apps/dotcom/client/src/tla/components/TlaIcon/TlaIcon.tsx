@@ -3,7 +3,7 @@ import { HtmlHTMLAttributes, useLayoutEffect, useRef } from 'react'
 import styles from './icon.module.css'
 
 function getMaskStyle(icon: string): string {
-	return `url(/tla/icon-${icon}.svg) center 100% / 100% no-repeat`
+	return `url(/tla/0_merged_tla.svg#icon-${icon}) center 100% / 100% no-repeat`
 }
 
 export function TlaIcon({

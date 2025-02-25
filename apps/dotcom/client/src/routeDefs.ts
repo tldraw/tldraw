@@ -6,10 +6,10 @@ export const ROUTES = {
 	tlaRoot: `/`,
 	tlaNew: `/new`,
 	tlaFile: `/f/:fileSlug`,
+	tlaLocalFileIndex: `/lf`,
 	tlaLocalFile: `/lf/:fileSlug`,
 	tlaPublish: `/p/:fileSlug`,
 	// Legacy routes
-	tlaTouchScreenSidePanel: '/ts-side',
 	tlaLegacyRoom: '/r/:roomId',
 	tlaLegacyRoomHistory: '/r/:boardId/history',
 	tlaLegacyRoomHistorySnapshot: '/r/:boardId/history/:timestamp',

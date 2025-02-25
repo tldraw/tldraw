@@ -6,7 +6,6 @@ import { Outlet, Route, createRoutesFromElements, redirect, useRouteError } from
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { notFound } from './pages/not-found'
 import { ROUTES, routes } from './routeDefs'
-import { IntlProvider } from './tla/utils/i18n'
 import { TlaNotFoundError } from './tla/utils/notFoundError'
 
 const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/LoginRedirectPage'))
@@ -62,18 +61,16 @@ export const router = createRoutesFromElements(
 			)
 		}}
 	>
-		<Route element={<ShimIntlProvider />}>
-			<Route
-				path={ROUTES.tlaTouchScreenSidePanel}
-				lazy={() => import('./pages/public-touchscreen-side-panel')}
-			/>
-		</Route>
 		<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
 			<Route path={ROUTES.tlaRoot} lazy={() => import('./tla/pages/local')} />
 			<Route element={<NoIndex />}>
 				<Route path={ROUTES.tlaNew} lazy={() => import('./pages/tla-new')} />
 				<Route path={ROUTES.tlaOptIn} loader={() => redirect(routes.tlaRoot())} />
 				<Route path={ROUTES.tlaLocalFile} lazy={() => import('./tla/pages/local-file')} />
+				<Route
+					path={ROUTES.tlaLocalFileIndex}
+					lazy={() => import('./tla/pages/local-file-index')}
+				/>
 				{/* File view */}
 				<Route path={ROUTES.tlaFile} lazy={() => import('./tla/pages/file')} />
 				<Route path={ROUTES.tlaPublish} lazy={() => import('./tla/pages/publish')} />
@@ -114,14 +111,5 @@ function NoIndex() {
 			</Helmet>
 			<Outlet />
 		</>
-	)
-}
-
-function ShimIntlProvider() {
-	return (
-		// This IntlProvider is just for backwards compatibilty for the old site.
-		<IntlProvider defaultLocale="en" locale="en" messages={{}}>
-			<Outlet />
-		</IntlProvider>
 	)
 }

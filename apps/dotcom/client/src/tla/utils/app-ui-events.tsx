@@ -6,6 +6,7 @@ import { TldrawAppSessionState } from './local-session-state'
 /** @public */
 export type TLAppUiEventSource =
 	| 'sidebar'
+	| 'sidebar-context-menu'
 	| 'user-preferences'
 	| 'file-rename-dialog'
 	| 'file-menu'

@@ -47,6 +47,10 @@ export class TLLoggerDurableObject extends DurableObject<Environment> {
 			.map((row) => row.message)
 	}
 
+	async clear() {
+		this.db.exec('DELETE FROM logs')
+	}
+
 	override async fetch(_req: IRequest) {
 		if (!this.isDebugEnv) return new Response('Not Found', { status: 404 })
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()

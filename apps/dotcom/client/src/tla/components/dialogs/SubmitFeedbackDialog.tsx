@@ -50,32 +50,14 @@ function SignedOutSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 				</p>
 				<ul style={{ gap: 4 }}>
 					<li>
-						<F
-							defaultMessage="<discord>Chat with us on Discord</discord>"
-							values={{
-								discord: (chunks) => {
-									return (
-										<ExternalLink to="https://discord.tldraw.com/?utm_source=dotcom&utm_medium=organic&utm_campaign=dotcom-feedback">
-											{chunks}
-										</ExternalLink>
-									)
-								},
-							}}
-						/>
+						<ExternalLink to="https://discord.tldraw.com/?utm_source=dotcom&utm_medium=organic&utm_campaign=dotcom-feedback">
+							<F defaultMessage="Chat with us on Discord" />
+						</ExternalLink>
 					</li>
 					<li>
-						<F
-							defaultMessage="<github>Submit an issue on GitHub</github>"
-							values={{
-								github: (chunks) => {
-									return (
-										<ExternalLink to="https://github.com/tldraw/tldraw/issues">
-											{chunks}
-										</ExternalLink>
-									)
-								},
-							}}
-						/>
+						<ExternalLink to="https://github.com/tldraw/tldraw/issues">
+							<F defaultMessage="Submit an issue on GitHub" />
+						</ExternalLink>
 					</li>
 				</ul>
 			</TldrawUiDialogBody>
