@@ -863,22 +863,23 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				messages.push({ type: 'changes', changes, lsn })
 			}
 		}
+		this.log.debug('resuming', messages.length, messages)
 		return { type: 'done', messages }
 	}
 
 	async registerUser({
 		userId,
 		lsn,
-		guestFileIds,
+		allFileIds,
 		bootId,
 	}: {
 		userId: string
 		lsn: string
-		guestFileIds: string[]
+		allFileIds: string[]
 		bootId: string
 	}): Promise<{ type: 'done'; sequenceId: string; sequenceNumber: number } | { type: 'reboot' }> {
 		try {
-			this.log.debug('registering user', userId, lsn, bootId, guestFileIds)
+			this.log.debug('registering user', userId, lsn, bootId, allFileIds)
 			this.logEvent({ type: 'register_user' })
 
 			// clear user and subscriptions
@@ -891,19 +892,19 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			)
 
 			this.sqlite.exec(`DELETE FROM user_file_subscriptions WHERE userId = ?`, userId)
-			for (const fileId of guestFileIds) {
+			for (const fileId of allFileIds) {
 				this.sqlite.exec(
 					`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
 					userId,
 					fileId
 				)
 			}
-			this.log.debug('inserted guest files', guestFileIds.length)
+			this.log.debug('inserted file subscriptions', allFileIds.length)
 
 			this.reportActiveUsers()
 			this.log.debug('inserted active user')
 
-			const resume = await this.getResumeType(lsn, userId, guestFileIds)
+			const resume = await this.getResumeType(lsn, userId, allFileIds)
 			if (resume.type === 'reboot') {
 				return { type: 'reboot' }
 			}

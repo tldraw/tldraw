@@ -300,11 +300,11 @@ export class UserDataSyncer {
 		this.state.promise.resolve(null)
 		const initialData = this.store.getCommittedData()!
 		// do an unnecessary assign here to tell typescript that the state might have changed
-		const guestFileIds = initialData.files.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
+		const allFileIds = initialData.files.map((f) => f.id)
 		const res = await getReplicator(this.env).registerUser({
 			userId: this.userId,
 			lsn: initialData.lsn,
-			guestFileIds,
+			allFileIds,
 			bootId: this.state.bootId,
 		})
 
