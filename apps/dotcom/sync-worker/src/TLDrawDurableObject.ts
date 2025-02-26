@@ -3,13 +3,17 @@
 
 import { SupabaseClient } from '@supabase/supabase-js'
 import {
+	APP_ASSET_UPLOAD_ENDPOINT,
 	DB,
+	FILE_PREFIX,
+	LOCAL_FILE_PREFIX,
+	PUBLISH_PREFIX,
 	READ_ONLY_LEGACY_PREFIX,
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
+	SNAPSHOT_PREFIX,
 	TlaFile,
-	TlaFileOpenMode,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import {
@@ -21,7 +25,14 @@ import {
 	type PersistedRoomSnapshotForSupabase,
 } from '@tldraw/sync-core'
 import { TLDOCUMENT_ID, TLDocument, TLRecord, createTLSchema } from '@tldraw/tlschema'
-import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
+import {
+	ExecutionQueue,
+	assert,
+	assertExists,
+	exhaustiveSwitchError,
+	retry,
+	uniqueId,
+} from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -30,13 +41,16 @@ import { AlarmScheduler } from './AlarmScheduler'
 import { PERSIST_INTERVAL_MS } from './config'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
+import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { createSupabaseClient } from './utils/createSupabaseClient'
+import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
-import { getAuth } from './utils/tla/getAuth'
+import { getAuthFromSearchParams } from './utils/tla/getAuth'
+import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 
 const MAX_CONNECTIONS = 50
 
@@ -46,11 +60,6 @@ interface DocumentInfo {
 	version: number
 	slug: string
 	isApp: boolean
-	// Create mode is used by the app to bypass the 'room not found' check.
-	// i.e. if this is a new file it creates the file, even if it wasn't
-	// added to the user's app database yet.
-	appMode: TlaFileOpenMode
-	duplicateId: string | null
 	deleted: boolean
 }
 
@@ -121,6 +130,8 @@ export class TLDrawDurableObject extends DurableObject {
 						})
 
 						this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })
+						// Also associate file assets after we load the room
+						setTimeout(this.maybeAssociateFileAssets.bind(this), PERSIST_INTERVAL_MS)
 						return room
 					}
 					case 'room_not_found': {
@@ -239,11 +250,6 @@ export class TLDrawDurableObject extends DurableObject {
 			'roomId must be present'
 		)
 		const isApp = new URL(req.url).pathname.startsWith('/app/')
-		const appMode = isApp
-			? (new URL(req.url).searchParams.get('mode') as TlaFileOpenMode) ?? null
-			: null
-
-		const duplicateId = isApp ? new URL(req.url).searchParams.get('duplicateId') : null
 
 		if (this._documentInfo) {
 			assert(this._documentInfo.slug === slug, 'slug must match')
@@ -252,8 +258,6 @@ export class TLDrawDurableObject extends DurableObject {
 				version: CURRENT_DOCUMENT_INFO_VERSION,
 				slug,
 				isApp,
-				appMode,
-				duplicateId,
 				deleted: false,
 			})
 		}
@@ -296,6 +300,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 			const snapshot: RoomSnapshot = JSON.parse(dataText)
 			room.loadSnapshot(snapshot)
+			this.maybeAssociateFileAssets()
 
 			return new Response()
 		} finally {
@@ -306,16 +311,28 @@ export class TLDrawDurableObject extends DurableObject {
 	// this might return null if the file doesn't exist yet in the backend, or if it was deleted
 	_fileRecordCache: TlaFile | null = null
 	async getAppFileRecord(): Promise<TlaFile | null> {
-		if (this._fileRecordCache) {
-			return this._fileRecordCache
-		}
 		try {
-			this._fileRecordCache = await this.db
-				.selectFrom('file')
-				.where('id', '=', this.documentInfo.slug)
-				.selectAll()
-				.executeTakeFirstOrThrow()
-			return this._fileRecordCache
+			return await retry(
+				async () => {
+					if (this._fileRecordCache) {
+						return this._fileRecordCache
+					}
+					const result = await this.db
+						.selectFrom('file')
+						.where('id', '=', this.documentInfo.slug)
+						.selectAll()
+						.executeTakeFirst()
+					if (!result) {
+						throw new Error('File not found')
+					}
+					this._fileRecordCache = result
+					return this._fileRecordCache
+				},
+				{
+					attempts: 10,
+					waitDuration: 100,
+				}
+			)
 		} catch (_e) {
 			return null
 		}
@@ -345,7 +362,7 @@ export class TLDrawDurableObject extends DurableObject {
 			return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 		}
 
-		const auth = await getAuth(req, this.env)
+		const auth = await getAuthFromSearchParams(req, this.env)
 		if (this.documentInfo.isApp) {
 			openMode = ROOM_OPEN_MODE.READ_WRITE
 			const file = await this.getAppFileRecord()
@@ -388,14 +405,7 @@ export class TLDrawDurableObject extends DurableObject {
 						openMode = ROOM_OPEN_MODE.READ_ONLY
 					}
 				}
-			} else if (!this.documentInfo.appMode) {
-				// If there is no owner that means it's a temporary room, but if they didn't add the create
-				// flag don't let them in.
-				// This prevents people from just creating rooms by typing extra chars in the URL because we only
-				// add that flag in temporary rooms.
-				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 			}
-			// otherwise, it's a temporary room and we let them in
 		}
 
 		try {
@@ -484,6 +494,53 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 	}
 
+	async handleFileCreateFromSource() {
+		assert(this._fileRecordCache, 'we need to have a file record to create a file from source')
+		const split = this._fileRecordCache.createSource?.split('/')
+		if (!split || split?.length !== 2) {
+			return { type: 'room_not_found' as const }
+		}
+
+		let data: RoomSnapshot | string | null | undefined = undefined
+		const [prefix, id] = split
+		switch (prefix) {
+			case FILE_PREFIX: {
+				await getRoomDurableObject(this.env, id).awaitPersist()
+				data = await this.r2.rooms
+					.get(getR2KeyForRoom({ slug: id, isApp: true }))
+					.then((r) => r?.text())
+				break
+			}
+			case ROOM_PREFIX:
+				data = await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_WRITE)
+				break
+			case READ_ONLY_PREFIX:
+				data = await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_ONLY)
+				break
+			case READ_ONLY_LEGACY_PREFIX:
+				data = await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_ONLY_LEGACY)
+				break
+			case SNAPSHOT_PREFIX:
+				data = await getLegacyRoomData(this.env, id, 'snapshot')
+				break
+			case PUBLISH_PREFIX:
+				data = await getPublishedRoomSnapshot(this.env, id)
+				break
+			case LOCAL_FILE_PREFIX:
+				// create empty room, the client will populate it
+				data = new TLSyncRoom({ schema: createTLSchema() }).getSnapshot()
+				break
+		}
+
+		if (!data) {
+			return { type: 'room_not_found' as const }
+		}
+		const serialized = typeof data === 'string' ? data : JSON.stringify(data)
+		const snapshot = typeof data === 'string' ? JSON.parse(data) : data
+		await this.r2.rooms.put(this._fileRecordCache.id, serialized)
+		return { type: 'room_found' as const, snapshot }
+	}
+
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
 	async loadFromDatabase(slug: string): Promise<DBLoadResult> {
 		try {
@@ -493,40 +550,13 @@ export class TLDrawDurableObject extends DurableObject {
 			if (roomFromBucket) {
 				return { type: 'room_found', snapshot: await roomFromBucket.json() }
 			}
-
-			if (
-				this.documentInfo.appMode === 'create' ||
-				this.documentInfo.appMode === 'slurp-legacy-file'
-			) {
-				return {
-					type: 'room_found',
-					snapshot: new TLSyncRoom({
-						schema: createTLSchema(),
-					}).getSnapshot(),
+			if (this._fileRecordCache?.createSource) {
+				const res = await this.handleFileCreateFromSource()
+				if (res.type === 'room_found') {
+					// save it to the bucket so we don't try to create from source again
+					await this.r2.rooms.put(key, JSON.stringify(res.snapshot))
 				}
-			}
-
-			if (this.documentInfo.appMode === 'duplicate') {
-				assert(this.documentInfo.duplicateId, 'duplicateId must be present')
-				// load the duplicate id
-				let data: string | undefined = undefined
-				try {
-					const otherRoom = this.env.TLDR_DOC.get(
-						this.env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${this.documentInfo.duplicateId}`)
-					) as any as TLDrawDurableObject
-					data = await otherRoom.getCurrentSerializedSnapshot()
-				} catch (_e) {
-					data = await this.r2.rooms
-						.get(getR2KeyForRoom({ slug: this.documentInfo.duplicateId, isApp: true }))
-						.then((r) => r?.text())
-				}
-
-				if (!data) {
-					return { type: 'room_not_found' }
-				}
-				// otherwise copy the snapshot
-				await this.r2.rooms.put(key, data)
-				return { type: 'room_found', snapshot: JSON.parse(data) }
+				return res
 			}
 
 			if (this.documentInfo.isApp) {
@@ -573,6 +603,57 @@ export class TLDrawDurableObject extends DurableObject {
 
 	executionQueue = new ExecutionQueue()
 
+	// We use this to make sure that all of the assets in a tldraw app file are associated with that file.
+	// This is needed for a few cases like duplicating a file, copy pasting images between files, slurping legacy files.
+	async maybeAssociateFileAssets() {
+		if (!this.documentInfo.isApp) return
+
+		const slug = this.documentInfo.slug
+		const room = await this.getRoom()
+		const assetsToUpdate: { objectName: string; fileId: string }[] = []
+		await room.updateStore(async (store) => {
+			const records = store.getAll()
+			for (const record of records) {
+				if (record.typeName !== 'asset') continue
+				const asset = record as any
+				const meta = asset.meta
+
+				if (meta?.fileId === slug) continue
+				const src = asset.props.src
+				if (!src) continue
+				const objectName = src.split('/').pop()
+				if (!objectName) continue
+				const currentAsset = await this.env.UPLOADS.get(objectName)
+				if (!currentAsset) continue
+
+				const split = objectName.split('-')
+				const fileType = split.length > 1 ? split.pop() : null
+				const id = uniqueId()
+				const newObjectName = fileType ? `${id}-${fileType}` : id
+				await this.env.UPLOADS.put(newObjectName, currentAsset.body, {
+					httpMetadata: currentAsset.httpMetadata,
+				})
+				asset.props.src = asset.props.src.replace(objectName, newObjectName)
+				assert(this.env.MULTIPLAYER_SERVER, 'MULTIPLAYER_SERVER must be present')
+				asset.props.src = `${this.env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}${APP_ASSET_UPLOAD_ENDPOINT}${newObjectName}`
+
+				asset.meta.fileId = slug
+				store.put(asset)
+				assetsToUpdate.push({ objectName: newObjectName, fileId: slug })
+			}
+		})
+
+		if (assetsToUpdate.length === 0) return
+
+		await this.db
+			.insertInto('asset')
+			.values(assetsToUpdate)
+			.onConflict((oc) => {
+				return oc.column('objectName').doUpdateSet({ fileId: slug })
+			})
+			.execute()
+	}
+
 	// Save the room to r2
 	async persistToDatabase() {
 		try {
@@ -586,6 +667,7 @@ export class TLDrawDurableObject extends DurableObject {
 				if (this._isRestoring) return
 
 				const snapshot = JSON.stringify(room.getCurrentSnapshot())
+				this.maybeAssociateFileAssets()
 
 				const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
 				await Promise.all([
@@ -596,11 +678,16 @@ export class TLDrawDurableObject extends DurableObject {
 
 				// Update the updatedAt timestamp in the database
 				if (this.documentInfo.isApp) {
-					await this.db
+					// don't await on this because otherwise
+					// if this logic is invoked during another db transaction
+					// (e.g. when publishing a file)
+					// that transaction will deadlock
+					this.db
 						.updateTable('file')
 						.set({ updatedAt: new Date().getTime() })
 						.where('id', '=', this.documentInfo.slug)
 						.execute()
+						.catch((e) => this.reportError(e))
 				}
 			})
 		} catch (e) {
@@ -627,6 +714,19 @@ export class TLDrawDurableObject extends DurableObject {
 		await this.scheduler.onAlarm()
 	}
 
+	async appFileRecordCreated(file: TlaFile) {
+		if (this._fileRecordCache) return
+		this._fileRecordCache = file
+
+		this.setDocumentInfo({
+			version: CURRENT_DOCUMENT_INFO_VERSION,
+			slug: file.id,
+			isApp: true,
+			deleted: false,
+		})
+		await this.getRoom()
+	}
+
 	async appFileRecordDidUpdate(file: TlaFile) {
 		if (!file) {
 			console.error('file record updated but no file found')
@@ -638,8 +738,6 @@ export class TLDrawDurableObject extends DurableObject {
 				version: CURRENT_DOCUMENT_INFO_VERSION,
 				slug: file.id,
 				isApp: true,
-				appMode: null,
-				duplicateId: null,
 				deleted: false,
 			})
 		}
@@ -688,8 +786,6 @@ export class TLDrawDurableObject extends DurableObject {
 			version: CURRENT_DOCUMENT_INFO_VERSION,
 			slug: this.documentInfo.slug,
 			isApp: true,
-			appMode: null,
-			duplicateId: null,
 			deleted: true,
 		})
 
@@ -708,8 +804,8 @@ export class TLDrawDurableObject extends DurableObject {
 	/**
 	 * @internal
 	 */
-	async getCurrentSerializedSnapshot() {
-		const room = await this.getRoom()
-		return room.getCurrentSerializedSnapshot()
+	async awaitPersist() {
+		if (!this._documentInfo) return
+		await this.persistToDatabase()
 	}
 }

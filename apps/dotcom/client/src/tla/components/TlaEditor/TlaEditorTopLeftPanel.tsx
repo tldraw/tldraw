@@ -1,4 +1,4 @@
-import { SignUpButton } from '@clerk/clerk-react'
+import { SignInButton } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -22,17 +22,17 @@ import {
 	usePassThroughWheelEvents,
 	useValue,
 } from 'tldraw'
-import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
-import { useApp } from '../../hooks/useAppState'
+import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
-import { TlaAppMenuGroupLazyFlipped } from '../TlaAppMenuGroup/TlaAppMenuGroup'
+import { HelpSubMenu } from '../TlaAppMenuGroup/TlaAppMenuGroup'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
+import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
 
 const messages = defineMessages({
@@ -61,14 +61,18 @@ export function TlaEditorTopLeftPanelAnonymous() {
 	const separator = '/'
 	const brandMsg = useMsg(messages.brand)
 	const pageMenuLbl = useMsg(messages.pageMenu)
+	// GOTCHA: 'anonymous' doesn't always mean logged out
+	// we show this version of the panel for published files as well.
+	const app = useMaybeApp()
+
+	const roomInfo = useRoomInfo()
+
+	const canCopyToApp = app && roomInfo?.prefix
 
 	const editor = useEditor()
-	const fileSlug = useParams<{ fileSlug: string }>().fileSlug
-	const anonFileName = useValue(
-		'fileName',
-		() => (fileSlug ? editor.getDocumentSettings().name || 'New board' : ''),
-		[editor, fileSlug]
-	)
+	const anonFileName = useValue('fileName', () => editor.getDocumentSettings().name || undefined, [
+		editor,
+	])
 
 	const hasPages = useValue('hasPages', () => editor.getPages().length > 1, [editor])
 
@@ -87,7 +91,13 @@ export function TlaEditorTopLeftPanelAnonymous() {
 			</Link>
 			{anonFileName && (
 				<>
-					<span className={styles.topPanelSeparator}>{separator}</span>
+					<span
+						className={styles.topPanelSeparator}
+						// undo nth-last-of-type rule in top.module.css
+						style={{ marginRight: 0 }}
+					>
+						{separator}
+					</span>
 					<div className={classNames(styles.inputWrapper)}>
 						<button className={styles.nameWidthSetter} data-testid="tla-file-name">
 							{anonFileName.replace(/ /g, '\u00a0')}
@@ -104,7 +114,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 			<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 					<TldrawUiDropdownMenuTrigger>
-						<button className={styles.linkMenu} title={pageMenuLbl}>
+						<button className={styles.linkMenu} title={pageMenuLbl} data-testid="tla-page-menu">
 							<TlaIcon icon="dots-vertical-strong" />
 						</button>
 					</TldrawUiDropdownMenuTrigger>
@@ -114,12 +124,20 @@ export function TlaEditorTopLeftPanelAnonymous() {
 							<ViewSubmenu />
 							<ExportFileContentSubMenu />
 							<ExtrasGroup />
-							<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
 						</TldrawUiMenuGroup>
-						<TlaAppMenuGroupLazyFlipped />
-						<TldrawUiMenuGroup id="signin">
-							<SignInMenuItem />
+						<TldrawUiMenuGroup id="download">
+							<TldrawUiMenuActionItem actionId={'save-file-copy'} />
+							{canCopyToApp && <TldrawUiMenuActionItem actionId={'copy-to-my-files'} />}
 						</TldrawUiMenuGroup>
+						<TldrawUiMenuGroup id="preferences">
+							<HelpSubMenu />
+							<PreferencesGroup />
+						</TldrawUiMenuGroup>
+						{!app && (
+							<TldrawUiMenuGroup id="signin">
+								<SignInMenuItem />
+							</TldrawUiMenuGroup>
+						)}
 					</TldrawUiDropdownMenuContent>
 				</TldrawUiMenuContextProvider>
 			</TldrawUiDropdownMenuRoot>
@@ -201,7 +219,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				source="file-header"
 				onRenameAction={handleRenameAction}
 				trigger={
-					<button className={styles.linkMenu} title={pageMenuLbl}>
+					<button className={styles.linkMenu} title={pageMenuLbl} data-testid="tla-page-menu">
 						<TlaIcon icon="dots-vertical-strong" />
 					</button>
 				}
@@ -346,15 +364,15 @@ function TlaFileNameEditorInput({
 function SignInMenuItem() {
 	const msg = useMsg(messages.signIn)
 	return (
-		<SignUpButton
+		<SignInButton
 			mode="modal"
 			forceRedirectUrl={location.pathname + location.search}
-			signInForceRedirectUrl={location.pathname + location.search}
+			signUpForceRedirectUrl={location.pathname + location.search}
 		>
-			<TldrawUiButton type="menu" data-testid="tla-sign-up-menu-button">
+			<TldrawUiButton type="menu" data-testid="tla-sign-in-menu-button">
 				<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
 				<TlaIcon icon="sign-in" />
 			</TldrawUiButton>
-		</SignUpButton>
+		</SignInButton>
 	)
 }

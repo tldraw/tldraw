@@ -16,9 +16,7 @@ import lz from 'lz-string'
 import { useCallback, useEffect } from 'react'
 import { TLDRAW_CUSTOM_PNG_MIME_TYPE, getCanonicalClipboardReadType } from '../../utils/clipboard'
 import { TLUiEventSource, useUiEvents } from '../context/events'
-import { pasteExcalidrawContent } from './clipboard/pasteExcalidrawContent'
 import { pasteFiles } from './clipboard/pasteFiles'
-import { pasteTldrawContent } from './clipboard/pasteTldrawContent'
 import { pasteUrl } from './clipboard/pasteUrl'
 
 // Expected paste mime types. The earlier in this array they appear, the higher preference we give
@@ -291,7 +289,7 @@ const handlePasteFromClipboardApi = async ({
 		}
 	}
 
-	if (fallbackFiles && things.length === 1 && things[0].type === 'text') {
+	if (fallbackFiles?.length && things.length === 1 && things[0].type === 'text') {
 		things.pop()
 		things.push(
 			...fallbackFiles.map((f): ClipboardThing => ({ type: 'file', source: Promise.resolve(f) }))
@@ -431,7 +429,8 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	// Try to paste tldraw content
 	for (const result of results) {
 		if (result.type === 'tldraw') {
-			pasteTldrawContent(editor, result.data, point)
+			editor.markHistoryStoppingPoint('paste')
+			editor.putExternalContent({ type: 'tldraw', content: result.data, point })
 			return
 		}
 	}
@@ -439,7 +438,8 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	// Try to paste excalidraw content
 	for (const result of results) {
 		if (result.type === 'excalidraw') {
-			pasteExcalidrawContent(editor, result.data, point)
+			editor.markHistoryStoppingPoint('paste')
+			editor.putExternalContent({ type: 'excalidraw', content: result.data, point })
 			return
 		}
 	}
@@ -471,6 +471,19 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 			// If the html is NOT a link, and we have NO OTHER texty content, then paste the html as text
 			if (!results.some((r) => r.type === 'text' && r.subtype !== 'html') && result.data.trim()) {
 				handleText(editor, stripHtml(result.data), point, results)
+				return
+			}
+
+			// If the html is NOT a link, and we have other texty content, then paste the html as a text shape
+			if (results.some((r) => r.type === 'text' && r.subtype !== 'html')) {
+				editor.markHistoryStoppingPoint('paste')
+				editor.putExternalContent({
+					type: 'text',
+					text: stripHtml(result.data),
+					html: result.data,
+					point,
+					sources: results,
+				})
 				return
 			}
 		}

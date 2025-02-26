@@ -53,7 +53,6 @@ export class HomePage {
 
 	async isLoaded() {
 		await expect(async () => {
-			await expect(this.page).toHaveTitle(/tldraw/)
 			await expect(this.tldrawEditor).toBeVisible({ timeout: 10000 })
 		}).toPass()
 	}

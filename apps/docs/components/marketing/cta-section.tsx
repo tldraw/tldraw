@@ -32,8 +32,9 @@ export function CTASection() {
             </div> */}
 			<div className="flex flex-col items-center justify-center gap-4 -mt-4">
 				<div className="flex flex-row items-center justify-center gap-4">
-					<Button href="/quick-start" caption="Read the docs" type="black" />
+					<Button id="hero-quick-start" href="/quick-start" caption="Read the docs" type="black" />
 					<Button
+						id="hero-dot-com"
 						href="https://tldraw.com"
 						caption="Try the app"
 						type="tertiary"

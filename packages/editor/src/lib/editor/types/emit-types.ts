@@ -12,6 +12,7 @@ export interface TLEventMap {
 	crash: [{ error: unknown }]
 	'stop-camera-animation': []
 	'stop-following': []
+	'before-event': [TLEventInfo]
 	event: [TLEventInfo]
 	tick: [number]
 	frame: [number]

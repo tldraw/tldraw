@@ -1,33 +1,45 @@
-import { useEffect } from 'react'
-import { parseAndLoadDocument, useDefaultHelpers, useEditor } from 'tldraw'
+import { memo, useEffect } from 'react'
+import {
+	defaultHandleExternalFileContent,
+	parseAndLoadDocument,
+	useDialogs,
+	useEditor,
+	useToasts,
+	useTranslation,
+} from 'tldraw'
 import { shouldOverrideDocument } from '../utils/shouldOverrideDocument'
 
-export function SneakyOnDropOverride({ isMultiplayer }: { isMultiplayer: boolean }) {
+export const SneakyOnDropOverride = memo(function SneakyOnDropOverride({
+	isMultiplayer,
+}: {
+	isMultiplayer: boolean
+}) {
 	const editor = useEditor()
-	const { addDialog, msg, addToast } = useDefaultHelpers()
+	const toasts = useToasts()
+	const dialogs = useDialogs()
+	const msg = useTranslation()
 
 	useEffect(() => {
-		const defaultOnDrop = editor.externalContentHandlers['files']
 		editor.registerExternalContentHandler('files', async (content) => {
 			const { files } = content
 			const tldrawFiles = files.filter((file) => file.name.endsWith('.tldr'))
 			if (tldrawFiles.length > 0) {
 				if (isMultiplayer) {
-					addToast({
+					toasts.addToast({
 						title: msg('file-system.shared-document-file-open-error.title'),
 						description: msg('file-system.shared-document-file-open-error.description'),
 						severity: 'error',
 					})
 				} else {
-					const shouldOverride = await shouldOverrideDocument(addDialog)
+					const shouldOverride = await shouldOverrideDocument(dialogs.addDialog)
 					if (!shouldOverride) return
-					await parseAndLoadDocument(editor, await tldrawFiles[0].text(), msg, addToast)
+					await parseAndLoadDocument(editor, await tldrawFiles[0].text(), msg, toasts.addToast)
 				}
 			} else {
-				await defaultOnDrop?.(content)
+				await defaultHandleExternalFileContent(editor, content, { toasts, msg })
 			}
 		})
-	}, [isMultiplayer, editor, addToast, msg, addDialog])
+	}, [isMultiplayer, editor, toasts, msg, dialogs])
 
 	return null
-}
+})

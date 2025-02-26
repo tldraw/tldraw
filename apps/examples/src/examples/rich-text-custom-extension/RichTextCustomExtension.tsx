@@ -72,9 +72,7 @@ const Wavy = Mark.create<WavyExtensionOptions>({
 const components: TLComponents = {
 	RichTextToolbar: () => {
 		const editor = useEditor()
-		const textEditor = useValue('textEditor', () => editor.getEditingShapeTipTapTextEditor(), [
-			editor,
-		])
+		const textEditor = useValue('textEditor', () => editor.getRichTextEditor(), [editor])
 
 		return (
 			<DefaultRichTextToolbar>

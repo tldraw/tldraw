@@ -51,7 +51,7 @@ export function SlurpFailure({
 						</ExternalLink>
 					</li>
 					<li>
-						<F defaultMessage="Export the content as a .tldr file: Go to 'File' > 'Save a copy'" />
+						<F defaultMessage="Export the content as a .tldr file: Select 'Download file' in the top left menu." />
 					</li>
 					<li>
 						<F defaultMessage="Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu." />
@@ -62,7 +62,7 @@ export function SlurpFailure({
 						defaultMessage="Still having trouble? {GetHelpLink}"
 						values={{
 							GetHelpLink: (
-								<ExternalLink to="https://discord.gg/rhsyWMUJxd">
+								<ExternalLink to="https://discord.tldraw.com/?utm_source=dotcom&utm_medium=organic&utm_campaign=slurp-failure">
 									<F defaultMessage="Get help on Discord" />
 								</ExternalLink>
 							),

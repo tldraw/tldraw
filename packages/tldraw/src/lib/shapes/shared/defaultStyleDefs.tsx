@@ -1,15 +1,11 @@
 import {
 	DefaultColorThemePalette,
-	DefaultFontFamilies,
 	DefaultFontStyle,
-	FileHelpers,
 	SvgExportDef,
 	TLDefaultColorTheme,
 	TLDefaultFillStyle,
-	TLDefaultFontStyle,
 	TLShapeUtilCanvasSvgDef,
 	debugFlags,
-	fetch,
 	last,
 	suffixSafeId,
 	tlenv,
@@ -20,56 +16,6 @@ import {
 } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDefaultColorTheme } from './useDefaultColorTheme'
-
-/** @public */
-export function getFontDefForExport(fontStyle: TLDefaultFontStyle): SvgExportDef {
-	return {
-		key: `${DefaultFontStyle.id}:${fontStyle}`,
-		async getElement() {
-			const fontInfo = findFontInfo(fontStyle)
-			if (!fontInfo) return null
-
-			const { url, fontFaceRule } = fontInfo
-
-			const fontFile = await (await fetch(url)).blob()
-			const base64FontFile = await FileHelpers.blobToDataUrl(fontFile)
-
-			const newFontFaceRule = fontFaceRule.replace(url, base64FontFile)
-			return <style>{newFontFaceRule}</style>
-		},
-	}
-}
-
-/** @public */
-export function getRichTextStylesExport(): SvgExportDef {
-	return {
-		key: 'tl-rich-text-svg',
-		async getElement() {
-			return (
-				<style>{`
-				.tl-rich-text-svg p { margin: 0 }
-			`}</style>
-			)
-		},
-	}
-}
-
-function findFontInfo(name: TLDefaultFontStyle) {
-	const fontFamily = DefaultFontFamilies[name]
-	for (const font of document.fonts) {
-		if (fontFamily.includes(font.family)) {
-			if (
-				'$$_url' in font &&
-				typeof font.$$_url === 'string' &&
-				'$$_fontface' in font &&
-				typeof font.$$_fontface === 'string'
-			) {
-				return { url: font.$$_url, fontFaceRule: font.$$_fontface }
-			}
-		}
-	}
-	return null
-}
 
 /** @public */
 export function getFillDefForExport(fill: TLDefaultFillStyle): SvgExportDef {

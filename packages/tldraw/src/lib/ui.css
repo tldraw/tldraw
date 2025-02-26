@@ -924,66 +924,18 @@
 	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 }
 
-/* On Android, when the virtual keyboard is up, we hide the tools. */
-.tlui-layout__mobile[data-iseditinganything='true'] .tlui-toolbar {
-	display: none;
+.tlui-layout__mobile .tlui-toolbar {
+	transition: transform 0.15s ease-out 0.05s;
 }
 
-/* --------------- Contextual Toolbar --------------- */
-
-.tl-contextual-toolbar {
-	position: absolute;
-}
-
-/**
- * N.B. We don't want the toolbar to be clickable when "mousing down", i.e. selecting text
- * because when hovering over the toolbar in the midst of selecting, the selection goes all wonky.
+/*
+ * On Android, when the virtual keyboard is up, we used to hide the tools.
+ * However, we disabled for this now.
  */
-.tl-contextual-toolbar,
-.tl-contextual-toolbar * {
-	pointer-events: none;
-}
-
-.tl-contextual-toolbar[data-is-mousing-down='false'],
-.tl-contextual-toolbar[data-is-mousing-down='false'] * {
-	pointer-events: all;
-}
-
-.tl-contextual-toolbar [data-isactive='true']::after {
-	background-color: var(--color-muted-1);
-	opacity: 1;
-}
-
-.tl-contextual-toolbar__indicator {
-	--arrow-size: 8px;
-	position: absolute;
-	bottom: calc(-1 * var(--arrow-size) + 1px);
-	left: 0;
-	z-index: calc(var(--layer-canvas-shapes) + 1);
-	border: var(--arrow-size) solid transparent;
-	border-bottom-width: 0;
-	border-top-color: var(--color-panel);
-	pointer-events: none;
-}
-
-@media (max-width: 640px) {
-	.tl-contextual-toolbar .tl-contextual-toolbar__indicator {
-		display: none;
-	}
-}
-
-.tl-rich-text__toolbar-link-input {
-	margin-left: 12px;
-	/*
-	 * Nice touch tweak: keep the link editor toolbar the same as the default toolbar.
-	 * This is so the toolbar size stays stable going in and out of the link editor.
-	 */
-	min-width: 188px;
-}
-
-.tl-rich-text__toolbar .tlui-input__wrapper {
-	height: 40px;
-}
+/* .tlui-layout__mobile[data-iseditinganything='true'] .tlui-toolbar {
+	transform: translate(0px, 120%);
+	transition: none;
+} */
 
 /* -------------------- Help Zone ------------------- */
 
@@ -1897,4 +1849,55 @@
 	position: fixed;
 	inset: 0;
 	z-index: var(--layer-menu-click-capture);
+}
+
+/* --------------- Contextual Toolbar --------------- */
+
+.tlui-contextual-toolbar {
+	position: absolute;
+}
+
+/**
+ * N.B. We hide the toolbar while mousing down, so no need to turn these off.
+ */
+.tlui-contextual-toolbar,
+.tlui-contextual-toolbar * {
+	pointer-events: all;
+}
+
+.tlui-contextual-toolbar [data-isactive='true']::after {
+	background-color: var(--color-muted-1);
+	opacity: 1;
+}
+
+.tlui-rich-text__toolbar {
+	opacity: 0;
+	transition: opacity 0.08s ease-in-out;
+}
+
+.tlui-rich-text__toolbar,
+.tlui-rich-text__toolbar * {
+	pointer-events: none;
+}
+
+.tlui-rich-text__toolbar[data-visible='true'] {
+	opacity: 1;
+}
+
+.tlui-rich-text__toolbar[data-interactive='true'],
+.tlui-rich-text__toolbar[data-interactive='true'] * {
+	pointer-events: all;
+}
+
+.tlui-rich-text__toolbar-link-input {
+	margin-left: 12px;
+	/*
+	 * Nice touch tweak: keep the link editor toolbar the same as the default toolbar.
+	 * This is so the toolbar size stays stable going in and out of the link editor.
+	 */
+	width: 148px;
+}
+
+.tlui-rich-text__toolbar .tlui-input__wrapper {
+	height: 40px;
 }

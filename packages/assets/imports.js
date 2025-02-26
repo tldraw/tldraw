@@ -23,10 +23,22 @@ import embedIconsTldrawPng from './embed-icons/tldraw.png'
 import embedIconsValTownPng from './embed-icons/val_town.png'
 import embedIconsVimeoPng from './embed-icons/vimeo.png'
 import embedIconsYoutubePng from './embed-icons/youtube.png'
+import fontsIBMPlexMonoBoldWoff2 from './fonts/IBMPlexMono-Bold.woff2'
+import fontsIBMPlexMonoBoldItalicWoff2 from './fonts/IBMPlexMono-BoldItalic.woff2'
 import fontsIBMPlexMonoMediumWoff2 from './fonts/IBMPlexMono-Medium.woff2'
+import fontsIBMPlexMonoMediumItalicWoff2 from './fonts/IBMPlexMono-MediumItalic.woff2'
+import fontsIBMPlexSansBoldWoff2 from './fonts/IBMPlexSans-Bold.woff2'
+import fontsIBMPlexSansBoldItalicWoff2 from './fonts/IBMPlexSans-BoldItalic.woff2'
 import fontsIBMPlexSansMediumWoff2 from './fonts/IBMPlexSans-Medium.woff2'
+import fontsIBMPlexSansMediumItalicWoff2 from './fonts/IBMPlexSans-MediumItalic.woff2'
+import fontsIBMPlexSerifBoldWoff2 from './fonts/IBMPlexSerif-Bold.woff2'
+import fontsIBMPlexSerifBoldItalicWoff2 from './fonts/IBMPlexSerif-BoldItalic.woff2'
 import fontsIBMPlexSerifMediumWoff2 from './fonts/IBMPlexSerif-Medium.woff2'
-import fontsShantellSansTldrawishWoff2 from './fonts/Shantell_Sans-Tldrawish.woff2'
+import fontsIBMPlexSerifMediumItalicWoff2 from './fonts/IBMPlexSerif-MediumItalic.woff2'
+import fontsShantellSansInformalBoldWoff2 from './fonts/Shantell_Sans-Informal_Bold.woff2'
+import fontsShantellSansInformalBoldItalicWoff2 from './fonts/Shantell_Sans-Informal_Bold_Italic.woff2'
+import fontsShantellSansInformalRegularWoff2 from './fonts/Shantell_Sans-Informal_Regular.woff2'
+import fontsShantellSansInformalRegularItalicWoff2 from './fonts/Shantell_Sans-Informal_Regular_Italic.woff2'
 import iconsIcon0MergedSvg from './icons/icon/0_merged.svg'
 import translationsArJson from './translations/ar.json'
 import translationsBnJson from './translations/bn.json'
@@ -42,16 +54,20 @@ import translationsFiJson from './translations/fi.json'
 import translationsFrJson from './translations/fr.json'
 import translationsGlJson from './translations/gl.json'
 import translationsGuInJson from './translations/gu-in.json'
+import translationsGuINJson from './translations/gu_IN.json'
 import translationsHeJson from './translations/he.json'
 import translationsHiInJson from './translations/hi-in.json'
+import translationsHiINJson from './translations/hi_IN.json'
 import translationsHrJson from './translations/hr.json'
 import translationsHuJson from './translations/hu.json'
 import translationsIdJson from './translations/id.json'
 import translationsItJson from './translations/it.json'
 import translationsJaJson from './translations/ja.json'
 import translationsKmKhJson from './translations/km-kh.json'
+import translationsKmKHJson from './translations/km_KH.json'
 import translationsKnJson from './translations/kn.json'
 import translationsKoKrJson from './translations/ko-kr.json'
+import translationsKoKRJson from './translations/ko_KR.json'
 import translationsKuJson from './translations/ku.json'
 import translationsLanguagesJson from './translations/languages.json'
 import translationsMainJson from './translations/main.json'
@@ -66,6 +82,8 @@ import translationsPaJson from './translations/pa.json'
 import translationsPlJson from './translations/pl.json'
 import translationsPtBrJson from './translations/pt-br.json'
 import translationsPtPtJson from './translations/pt-pt.json'
+import translationsPtBRJson from './translations/pt_BR.json'
+import translationsPtPTJson from './translations/pt_PT.json'
 import translationsRoJson from './translations/ro.json'
 import translationsRuJson from './translations/ru.json'
 import translationsSlJson from './translations/sl.json'
@@ -81,6 +99,8 @@ import translationsUrJson from './translations/ur.json'
 import translationsViJson from './translations/vi.json'
 import translationsZhCnJson from './translations/zh-cn.json'
 import translationsZhTwJson from './translations/zh-tw.json'
+import translationsZhCNJson from './translations/zh_CN.json'
+import translationsZhTWJson from './translations/zh_TW.json'
 
 /**
  * @param {AssetUrlOptions} [opts]
@@ -90,10 +110,22 @@ export function getAssetUrlsByImport(opts) {
 	const iconsIcon0MergedSvg2 = formatAssetUrl(iconsIcon0MergedSvg, opts)
 	return {
 		fonts: {
-			monospace: formatAssetUrl(fontsIBMPlexMonoMediumWoff2, opts),
-			sansSerif: formatAssetUrl(fontsIBMPlexSansMediumWoff2, opts),
-			serif: formatAssetUrl(fontsIBMPlexSerifMediumWoff2, opts),
-			draw: formatAssetUrl(fontsShantellSansTldrawishWoff2, opts),
+			tldraw_mono_bold: formatAssetUrl(fontsIBMPlexMonoBoldWoff2, opts),
+			tldraw_mono_italic_bold: formatAssetUrl(fontsIBMPlexMonoBoldItalicWoff2, opts),
+			tldraw_mono: formatAssetUrl(fontsIBMPlexMonoMediumWoff2, opts),
+			tldraw_mono_italic: formatAssetUrl(fontsIBMPlexMonoMediumItalicWoff2, opts),
+			tldraw_sans_bold: formatAssetUrl(fontsIBMPlexSansBoldWoff2, opts),
+			tldraw_sans_italic_bold: formatAssetUrl(fontsIBMPlexSansBoldItalicWoff2, opts),
+			tldraw_sans: formatAssetUrl(fontsIBMPlexSansMediumWoff2, opts),
+			tldraw_sans_italic: formatAssetUrl(fontsIBMPlexSansMediumItalicWoff2, opts),
+			tldraw_serif_bold: formatAssetUrl(fontsIBMPlexSerifBoldWoff2, opts),
+			tldraw_serif_italic_bold: formatAssetUrl(fontsIBMPlexSerifBoldItalicWoff2, opts),
+			tldraw_serif: formatAssetUrl(fontsIBMPlexSerifMediumWoff2, opts),
+			tldraw_serif_italic: formatAssetUrl(fontsIBMPlexSerifMediumItalicWoff2, opts),
+			tldraw_draw_bold: formatAssetUrl(fontsShantellSansInformalBoldWoff2, opts),
+			tldraw_draw_italic_bold: formatAssetUrl(fontsShantellSansInformalBoldItalicWoff2, opts),
+			tldraw_draw: formatAssetUrl(fontsShantellSansInformalRegularWoff2, opts),
+			tldraw_draw_italic: formatAssetUrl(fontsShantellSansInformalRegularItalicWoff2, opts),
 		},
 		icons: {
 			'align-bottom': iconsIcon0MergedSvg2 + '#align-bottom',
@@ -185,8 +217,10 @@ export function getAssetUrlsByImport(opts) {
 			'horizontal-align-middle': iconsIcon0MergedSvg2 + '#horizontal-align-middle',
 			'horizontal-align-start': iconsIcon0MergedSvg2 + '#horizontal-align-start',
 			'info-circle': iconsIcon0MergedSvg2 + '#info-circle',
+			italic: iconsIcon0MergedSvg2 + '#italic',
 			leading: iconsIcon0MergedSvg2 + '#leading',
 			link: iconsIcon0MergedSvg2 + '#link',
+			list: iconsIcon0MergedSvg2 + '#list',
 			lock: iconsIcon0MergedSvg2 + '#lock',
 			menu: iconsIcon0MergedSvg2 + '#menu',
 			minus: iconsIcon0MergedSvg2 + '#minus',
@@ -234,6 +268,7 @@ export function getAssetUrlsByImport(opts) {
 			'tool-text': iconsIcon0MergedSvg2 + '#tool-text',
 			trash: iconsIcon0MergedSvg2 + '#trash',
 			twitter: iconsIcon0MergedSvg2 + '#twitter',
+			underline: iconsIcon0MergedSvg2 + '#underline',
 			undo: iconsIcon0MergedSvg2 + '#undo',
 			ungroup: iconsIcon0MergedSvg2 + '#ungroup',
 			unlock: iconsIcon0MergedSvg2 + '#unlock',
@@ -259,16 +294,20 @@ export function getAssetUrlsByImport(opts) {
 			fr: formatAssetUrl(translationsFrJson, opts),
 			gl: formatAssetUrl(translationsGlJson, opts),
 			'gu-in': formatAssetUrl(translationsGuInJson, opts),
+			gu_IN: formatAssetUrl(translationsGuINJson, opts),
 			he: formatAssetUrl(translationsHeJson, opts),
 			'hi-in': formatAssetUrl(translationsHiInJson, opts),
+			hi_IN: formatAssetUrl(translationsHiINJson, opts),
 			hr: formatAssetUrl(translationsHrJson, opts),
 			hu: formatAssetUrl(translationsHuJson, opts),
 			id: formatAssetUrl(translationsIdJson, opts),
 			it: formatAssetUrl(translationsItJson, opts),
 			ja: formatAssetUrl(translationsJaJson, opts),
 			'km-kh': formatAssetUrl(translationsKmKhJson, opts),
+			km_KH: formatAssetUrl(translationsKmKHJson, opts),
 			kn: formatAssetUrl(translationsKnJson, opts),
 			'ko-kr': formatAssetUrl(translationsKoKrJson, opts),
+			ko_KR: formatAssetUrl(translationsKoKRJson, opts),
 			ku: formatAssetUrl(translationsKuJson, opts),
 			languages: formatAssetUrl(translationsLanguagesJson, opts),
 			main: formatAssetUrl(translationsMainJson, opts),
@@ -283,6 +322,8 @@ export function getAssetUrlsByImport(opts) {
 			pl: formatAssetUrl(translationsPlJson, opts),
 			'pt-br': formatAssetUrl(translationsPtBrJson, opts),
 			'pt-pt': formatAssetUrl(translationsPtPtJson, opts),
+			pt_BR: formatAssetUrl(translationsPtBRJson, opts),
+			pt_PT: formatAssetUrl(translationsPtPTJson, opts),
 			ro: formatAssetUrl(translationsRoJson, opts),
 			ru: formatAssetUrl(translationsRuJson, opts),
 			sl: formatAssetUrl(translationsSlJson, opts),
@@ -298,6 +339,8 @@ export function getAssetUrlsByImport(opts) {
 			vi: formatAssetUrl(translationsViJson, opts),
 			'zh-cn': formatAssetUrl(translationsZhCnJson, opts),
 			'zh-tw': formatAssetUrl(translationsZhTwJson, opts),
+			zh_CN: formatAssetUrl(translationsZhCNJson, opts),
+			zh_TW: formatAssetUrl(translationsZhTWJson, opts),
 		},
 		embedIcons: {
 			codepen: formatAssetUrl(embedIconsCodepenPng, opts),

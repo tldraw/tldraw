@@ -23,10 +23,22 @@ import embedIconsTldrawPngUrl from './embed-icons/tldraw.png?url'
 import embedIconsValTownPngUrl from './embed-icons/val_town.png?url'
 import embedIconsVimeoPngUrl from './embed-icons/vimeo.png?url'
 import embedIconsYoutubePngUrl from './embed-icons/youtube.png?url'
+import fontsIBMPlexMonoBoldWoff2Url from './fonts/IBMPlexMono-Bold.woff2?url'
+import fontsIBMPlexMonoBoldItalicWoff2Url from './fonts/IBMPlexMono-BoldItalic.woff2?url'
 import fontsIBMPlexMonoMediumWoff2Url from './fonts/IBMPlexMono-Medium.woff2?url'
+import fontsIBMPlexMonoMediumItalicWoff2Url from './fonts/IBMPlexMono-MediumItalic.woff2?url'
+import fontsIBMPlexSansBoldWoff2Url from './fonts/IBMPlexSans-Bold.woff2?url'
+import fontsIBMPlexSansBoldItalicWoff2Url from './fonts/IBMPlexSans-BoldItalic.woff2?url'
 import fontsIBMPlexSansMediumWoff2Url from './fonts/IBMPlexSans-Medium.woff2?url'
+import fontsIBMPlexSansMediumItalicWoff2Url from './fonts/IBMPlexSans-MediumItalic.woff2?url'
+import fontsIBMPlexSerifBoldWoff2Url from './fonts/IBMPlexSerif-Bold.woff2?url'
+import fontsIBMPlexSerifBoldItalicWoff2Url from './fonts/IBMPlexSerif-BoldItalic.woff2?url'
 import fontsIBMPlexSerifMediumWoff2Url from './fonts/IBMPlexSerif-Medium.woff2?url'
-import fontsShantellSansTldrawishWoff2Url from './fonts/Shantell_Sans-Tldrawish.woff2?url'
+import fontsIBMPlexSerifMediumItalicWoff2Url from './fonts/IBMPlexSerif-MediumItalic.woff2?url'
+import fontsShantellSansInformalBoldWoff2Url from './fonts/Shantell_Sans-Informal_Bold.woff2?url'
+import fontsShantellSansInformalBoldItalicWoff2Url from './fonts/Shantell_Sans-Informal_Bold_Italic.woff2?url'
+import fontsShantellSansInformalRegularWoff2Url from './fonts/Shantell_Sans-Informal_Regular.woff2?url'
+import fontsShantellSansInformalRegularItalicWoff2Url from './fonts/Shantell_Sans-Informal_Regular_Italic.woff2?url'
 import iconsIcon0MergedSvgUrl from './icons/icon/0_merged.svg?url'
 import translationsArJsonUrl from './translations/ar.json?url'
 import translationsBnJsonUrl from './translations/bn.json?url'
@@ -42,16 +54,20 @@ import translationsFiJsonUrl from './translations/fi.json?url'
 import translationsFrJsonUrl from './translations/fr.json?url'
 import translationsGlJsonUrl from './translations/gl.json?url'
 import translationsGuInJsonUrl from './translations/gu-in.json?url'
+import translationsGuINJsonUrl from './translations/gu_IN.json?url'
 import translationsHeJsonUrl from './translations/he.json?url'
 import translationsHiInJsonUrl from './translations/hi-in.json?url'
+import translationsHiINJsonUrl from './translations/hi_IN.json?url'
 import translationsHrJsonUrl from './translations/hr.json?url'
 import translationsHuJsonUrl from './translations/hu.json?url'
 import translationsIdJsonUrl from './translations/id.json?url'
 import translationsItJsonUrl from './translations/it.json?url'
 import translationsJaJsonUrl from './translations/ja.json?url'
 import translationsKmKhJsonUrl from './translations/km-kh.json?url'
+import translationsKmKHJsonUrl from './translations/km_KH.json?url'
 import translationsKnJsonUrl from './translations/kn.json?url'
 import translationsKoKrJsonUrl from './translations/ko-kr.json?url'
+import translationsKoKRJsonUrl from './translations/ko_KR.json?url'
 import translationsKuJsonUrl from './translations/ku.json?url'
 import translationsLanguagesJsonUrl from './translations/languages.json?url'
 import translationsMainJsonUrl from './translations/main.json?url'
@@ -66,6 +82,8 @@ import translationsPaJsonUrl from './translations/pa.json?url'
 import translationsPlJsonUrl from './translations/pl.json?url'
 import translationsPtBrJsonUrl from './translations/pt-br.json?url'
 import translationsPtPtJsonUrl from './translations/pt-pt.json?url'
+import translationsPtBRJsonUrl from './translations/pt_BR.json?url'
+import translationsPtPTJsonUrl from './translations/pt_PT.json?url'
 import translationsRoJsonUrl from './translations/ro.json?url'
 import translationsRuJsonUrl from './translations/ru.json?url'
 import translationsSlJsonUrl from './translations/sl.json?url'
@@ -81,6 +99,8 @@ import translationsUrJsonUrl from './translations/ur.json?url'
 import translationsViJsonUrl from './translations/vi.json?url'
 import translationsZhCnJsonUrl from './translations/zh-cn.json?url'
 import translationsZhTwJsonUrl from './translations/zh-tw.json?url'
+import translationsZhCNJsonUrl from './translations/zh_CN.json?url'
+import translationsZhTWJsonUrl from './translations/zh_TW.json?url'
 
 /**
  * @param {AssetUrlOptions} [opts]
@@ -90,10 +110,22 @@ export function getAssetUrlsByImport(opts) {
 	const iconsIcon0MergedSvg2 = formatAssetUrl(iconsIcon0MergedSvgUrl, opts)
 	return {
 		fonts: {
-			monospace: formatAssetUrl(fontsIBMPlexMonoMediumWoff2Url, opts),
-			sansSerif: formatAssetUrl(fontsIBMPlexSansMediumWoff2Url, opts),
-			serif: formatAssetUrl(fontsIBMPlexSerifMediumWoff2Url, opts),
-			draw: formatAssetUrl(fontsShantellSansTldrawishWoff2Url, opts),
+			tldraw_mono_bold: formatAssetUrl(fontsIBMPlexMonoBoldWoff2Url, opts),
+			tldraw_mono_italic_bold: formatAssetUrl(fontsIBMPlexMonoBoldItalicWoff2Url, opts),
+			tldraw_mono: formatAssetUrl(fontsIBMPlexMonoMediumWoff2Url, opts),
+			tldraw_mono_italic: formatAssetUrl(fontsIBMPlexMonoMediumItalicWoff2Url, opts),
+			tldraw_sans_bold: formatAssetUrl(fontsIBMPlexSansBoldWoff2Url, opts),
+			tldraw_sans_italic_bold: formatAssetUrl(fontsIBMPlexSansBoldItalicWoff2Url, opts),
+			tldraw_sans: formatAssetUrl(fontsIBMPlexSansMediumWoff2Url, opts),
+			tldraw_sans_italic: formatAssetUrl(fontsIBMPlexSansMediumItalicWoff2Url, opts),
+			tldraw_serif_bold: formatAssetUrl(fontsIBMPlexSerifBoldWoff2Url, opts),
+			tldraw_serif_italic_bold: formatAssetUrl(fontsIBMPlexSerifBoldItalicWoff2Url, opts),
+			tldraw_serif: formatAssetUrl(fontsIBMPlexSerifMediumWoff2Url, opts),
+			tldraw_serif_italic: formatAssetUrl(fontsIBMPlexSerifMediumItalicWoff2Url, opts),
+			tldraw_draw_bold: formatAssetUrl(fontsShantellSansInformalBoldWoff2Url, opts),
+			tldraw_draw_italic_bold: formatAssetUrl(fontsShantellSansInformalBoldItalicWoff2Url, opts),
+			tldraw_draw: formatAssetUrl(fontsShantellSansInformalRegularWoff2Url, opts),
+			tldraw_draw_italic: formatAssetUrl(fontsShantellSansInformalRegularItalicWoff2Url, opts),
 		},
 		icons: {
 			'align-bottom': iconsIcon0MergedSvg2 + '#align-bottom',
@@ -185,8 +217,10 @@ export function getAssetUrlsByImport(opts) {
 			'horizontal-align-middle': iconsIcon0MergedSvg2 + '#horizontal-align-middle',
 			'horizontal-align-start': iconsIcon0MergedSvg2 + '#horizontal-align-start',
 			'info-circle': iconsIcon0MergedSvg2 + '#info-circle',
+			italic: iconsIcon0MergedSvg2 + '#italic',
 			leading: iconsIcon0MergedSvg2 + '#leading',
 			link: iconsIcon0MergedSvg2 + '#link',
+			list: iconsIcon0MergedSvg2 + '#list',
 			lock: iconsIcon0MergedSvg2 + '#lock',
 			menu: iconsIcon0MergedSvg2 + '#menu',
 			minus: iconsIcon0MergedSvg2 + '#minus',
@@ -234,6 +268,7 @@ export function getAssetUrlsByImport(opts) {
 			'tool-text': iconsIcon0MergedSvg2 + '#tool-text',
 			trash: iconsIcon0MergedSvg2 + '#trash',
 			twitter: iconsIcon0MergedSvg2 + '#twitter',
+			underline: iconsIcon0MergedSvg2 + '#underline',
 			undo: iconsIcon0MergedSvg2 + '#undo',
 			ungroup: iconsIcon0MergedSvg2 + '#ungroup',
 			unlock: iconsIcon0MergedSvg2 + '#unlock',
@@ -259,16 +294,20 @@ export function getAssetUrlsByImport(opts) {
 			fr: formatAssetUrl(translationsFrJsonUrl, opts),
 			gl: formatAssetUrl(translationsGlJsonUrl, opts),
 			'gu-in': formatAssetUrl(translationsGuInJsonUrl, opts),
+			gu_IN: formatAssetUrl(translationsGuINJsonUrl, opts),
 			he: formatAssetUrl(translationsHeJsonUrl, opts),
 			'hi-in': formatAssetUrl(translationsHiInJsonUrl, opts),
+			hi_IN: formatAssetUrl(translationsHiINJsonUrl, opts),
 			hr: formatAssetUrl(translationsHrJsonUrl, opts),
 			hu: formatAssetUrl(translationsHuJsonUrl, opts),
 			id: formatAssetUrl(translationsIdJsonUrl, opts),
 			it: formatAssetUrl(translationsItJsonUrl, opts),
 			ja: formatAssetUrl(translationsJaJsonUrl, opts),
 			'km-kh': formatAssetUrl(translationsKmKhJsonUrl, opts),
+			km_KH: formatAssetUrl(translationsKmKHJsonUrl, opts),
 			kn: formatAssetUrl(translationsKnJsonUrl, opts),
 			'ko-kr': formatAssetUrl(translationsKoKrJsonUrl, opts),
+			ko_KR: formatAssetUrl(translationsKoKRJsonUrl, opts),
 			ku: formatAssetUrl(translationsKuJsonUrl, opts),
 			languages: formatAssetUrl(translationsLanguagesJsonUrl, opts),
 			main: formatAssetUrl(translationsMainJsonUrl, opts),
@@ -283,6 +322,8 @@ export function getAssetUrlsByImport(opts) {
 			pl: formatAssetUrl(translationsPlJsonUrl, opts),
 			'pt-br': formatAssetUrl(translationsPtBrJsonUrl, opts),
 			'pt-pt': formatAssetUrl(translationsPtPtJsonUrl, opts),
+			pt_BR: formatAssetUrl(translationsPtBRJsonUrl, opts),
+			pt_PT: formatAssetUrl(translationsPtPTJsonUrl, opts),
 			ro: formatAssetUrl(translationsRoJsonUrl, opts),
 			ru: formatAssetUrl(translationsRuJsonUrl, opts),
 			sl: formatAssetUrl(translationsSlJsonUrl, opts),
@@ -298,6 +339,8 @@ export function getAssetUrlsByImport(opts) {
 			vi: formatAssetUrl(translationsViJsonUrl, opts),
 			'zh-cn': formatAssetUrl(translationsZhCnJsonUrl, opts),
 			'zh-tw': formatAssetUrl(translationsZhTwJsonUrl, opts),
+			zh_CN: formatAssetUrl(translationsZhCNJsonUrl, opts),
+			zh_TW: formatAssetUrl(translationsZhTWJsonUrl, opts),
 		},
 		embedIcons: {
 			codepen: formatAssetUrl(embedIconsCodepenPngUrl, opts),

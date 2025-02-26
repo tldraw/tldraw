@@ -16,6 +16,7 @@ import {
 	SVGContainer,
 	Stadium2d,
 	SvgExportContext,
+	TLFontFace,
 	TLGeoShape,
 	TLGeoShapeProps,
 	TLResizeInfo,
@@ -25,8 +26,10 @@ import {
 	geoShapeMigrations,
 	geoShapeProps,
 	getDefaultColorTheme,
+	getFontsFromRichText,
 	getPolygonVertices,
 	lerp,
+	toRichText,
 	useValue,
 } from '@tldraw/editor'
 
@@ -44,12 +47,7 @@ import {
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-import {
-	getFillDefForCanvas,
-	getFillDefForExport,
-	getFontDefForExport,
-	getRichTextStylesExport,
-} from '../shared/defaultStyleDefs'
+import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { GeoShapeBody } from './components/GeoShapeBody'
 import {
@@ -91,6 +89,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			growY: 0,
 			url: '',
 			scale: 1,
+			richText: toRichText(''),
 		}
 	}
 
@@ -412,7 +411,15 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override getText(shape: TLGeoShape) {
-		if (shape.props.richText) return renderPlaintextFromRichText(this.editor, shape.props.richText)
+		return renderPlaintextFromRichText(this.editor, shape.props.richText)
+	}
+
+	override getFontFaces(shape: TLGeoShape): TLFontFace[] {
+		return getFontsFromRichText(this.editor, shape.props.richText, {
+			family: `tldraw_${shape.props.font}`,
+			weight: 'normal',
+			style: 'normal',
+		})
 	}
 
 	component(shape: TLGeoShape) {
@@ -426,7 +433,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			[]
 		)
 		const isEditingAnything = editor.getEditingShapeId() !== null
-		const showHtmlContainer = isEditingAnything || shape.props.richText
+		const plaintext = renderPlaintextFromRichText(this.editor, shape.props.richText)
+		const showHtmlContainer = isEditingAnything || !!plaintext.length
 		const isForceSolid = useValue(
 			'force solid',
 			() => {
@@ -543,11 +551,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		ctx.addExportDef(getFillDefForExport(props.fill))
 
 		let textEl
-		if (props.richText) {
-			ctx.addExportDef(getFontDefForExport(props.font))
+		if (renderPlaintextFromRichText(this.editor, props.richText)) {
 			const theme = getDefaultColorTheme(ctx)
 			const bounds = new Box(0, 0, props.w, props.h + props.growY)
-			ctx.addExportDef(getRichTextStylesExport())
 			textEl = (
 				<RichTextSVG
 					fontSize={LABEL_FONT_SIZES[props.size]}
@@ -557,7 +563,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					richText={props.richText}
 					labelColor={theme[props.labelColor].solid}
 					bounds={bounds}
-					padding={16}
+					padding={LABEL_PADDING * shape.props.scale}
 				/>
 			)
 		}
@@ -590,7 +596,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		const min = MIN_SIZE_WITH_LABEL
 
-		if (shape.props.richText) {
+		if (renderPlaintextFromRichText(this.editor, shape.props.richText)) {
 			let newW = Math.max(Math.abs(unscaledW), min)
 			let newH = Math.max(Math.abs(unscaledH), min)
 
@@ -654,7 +660,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override onBeforeCreate(shape: TLGeoShape) {
-		if (!shape.props.richText) {
+		if (!renderPlaintextFromRichText(this.editor, shape.props.richText)) {
 			if (shape.props.growY) {
 				// No text / some growY, set growY to 0
 				return {
@@ -706,7 +712,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		// If we got rid of the text, cancel out any growY from the prev text
-		if (prev.props.richText && !next.props.richText) {
+		const prevPlaintext = renderPlaintextFromRichText(this.editor, prev.props.richText)
+		const nextPlaintext = renderPlaintextFromRichText(this.editor, next.props.richText)
+		if (prevPlaintext && !nextPlaintext) {
 			return {
 				...next,
 				props: {
@@ -725,11 +733,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const unscaledNextLabelSize = getUnscaledLabelSize(this.editor, next)
 
 		// When entering the first character in a label (not pasting in multiple characters...)
-		if (
-			!prev.props.richText &&
-			next.props.richText &&
-			renderPlaintextFromRichText(this.editor, next.props.richText).length === 1
-		) {
+		if (!prevPlaintext && nextPlaintext && nextPlaintext.length === 1) {
 			let unscaledW = Math.max(unscaledPrevWidth, unscaledNextLabelSize.w)
 			let unscaledH = Math.max(unscaledPrevHeight, unscaledNextLabelSize.h)
 

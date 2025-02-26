@@ -163,7 +163,12 @@ export class MediaHelpers {
 					if (physChunk) {
 						const physData = PngHelpers.parsePhys(view, physChunk.dataOffset)
 						if (physData.unit === 0 && physData.ppux === physData.ppuy) {
-							const pixelRatio = Math.max(physData.ppux / 2834.5, 1)
+							// Calculate pixels per meter:
+							// - 1 inch = 0.0254 meters
+							// - 72 DPI is 72 dots per inch
+							// - pixels per meter = 72 / 0.0254
+							const pixelsPerMeter = 72 / 0.0254
+							const pixelRatio = Math.max(physData.ppux / pixelsPerMeter, 1)
 							return {
 								w: Math.round(image.naturalWidth / pixelRatio),
 								h: Math.round(image.naturalHeight / pixelRatio),

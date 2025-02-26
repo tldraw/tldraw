@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/sync",
 	"description": "A tiny little drawing app (multiplayer sync react bindings).",
-	"version": "3.7.0",
+	"version": "3.8.1",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
@@ -41,7 +41,7 @@
 		"pack-tarball": "yarn pack"
 	},
 	"devDependencies": {
-		"typescript": "~5.4.2",
+		"typescript": "~5.4.5",
 		"uuid-by-string": "^4.0.0",
 		"uuid-readable": "^0.0.2"
 	},
@@ -66,10 +66,10 @@
 		"lodash.isequal": "^4.5.0",
 		"nanoevents": "^7.0.1",
 		"tldraw": "workspace:*",
-		"ws": "^8.16.0"
+		"ws": "^8.18.0"
 	},
 	"peerDependencies": {
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0"
+		"react": "^18.2.0 || ^19.0.0",
+		"react-dom": "^18.2.0 || ^19.0.0"
 	}
 }

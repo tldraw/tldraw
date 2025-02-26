@@ -61,6 +61,7 @@ export const tlaFileSchema = {
 		updatedAt: { type: 'number' },
 		isEmpty: { type: 'boolean' },
 		isDeleted: { type: 'boolean' },
+		createSource: { type: 'string', optional: true },
 	},
 	primaryKey: ['id'],
 	relationships: {
@@ -163,9 +164,15 @@ export function isColumnMutable(tableName: keyof typeof immutableColumns, column
 	return !immutableColumns[tableName].has(column)
 }
 
+export interface TlaAsset {
+	objectName: string
+	fileId: string
+}
+
 export interface DB {
 	file: TlaFile
 	file_state: TlaFileState
 	user: TlaUser
 	user_mutation_number: TlaUserMutationNumber
+	asset: TlaAsset
 }

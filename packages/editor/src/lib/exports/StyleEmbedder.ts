@@ -54,7 +54,7 @@ export class StyleEmbedder {
 			: NO_STYLES
 
 		const parentStyles = shouldSkipInheritedParentStyles
-			? this.styles.get(element.parentElement as Element)?.self ?? NO_STYLES
+			? (this.styles.get(element.parentElement as Element)?.self ?? NO_STYLES)
 			: NO_STYLES
 
 		const info: ElementStyleInfo = {
@@ -242,7 +242,7 @@ function styleFromComputedStyle(
 	{ defaultStyles, parentStyles }: ReadStyleOpts
 ) {
 	const styles: Record<string, string> = {}
-	for (const property of style) {
+	for (const [property, _] of Object.entries(style)) {
 		if (!shouldIncludeCssProperty(property)) continue
 
 		const value = style.getPropertyValue(property)

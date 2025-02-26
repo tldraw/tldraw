@@ -12,6 +12,7 @@ import { CursorChatBubble } from '../components/CursorChatBubble'
 import { DefaultDebugMenu } from '../components/DebugMenu/DefaultDebugMenu'
 import { DefaultDebugPanel } from '../components/DefaultDebugPanel'
 import { DefaultMenuPanel } from '../components/DefaultMenuPanel'
+import { DefaultDialogs } from '../components/Dialogs'
 import { TLUiHelpMenuProps } from '../components/HelpMenu/DefaultHelpMenu'
 import {
 	DefaultHelperButtons,
@@ -31,6 +32,7 @@ import {
 } from '../components/QuickActions/DefaultQuickActions'
 import { DefaultSharePanel } from '../components/SharePanel/DefaultSharePanel'
 import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel/DefaultStylePanel'
+import { DefaultToasts } from '../components/Toasts'
 import {
 	DefaultRichTextToolbar,
 	TLUiRichTextToolbarProps,
@@ -62,6 +64,8 @@ export interface TLUiComponents {
 	TopPanel?: ComponentType | null
 	SharePanel?: ComponentType | null
 	CursorChatBubble?: ComponentType | null
+	Dialogs?: ComponentType | null
+	Toasts?: ComponentType | null
 }
 
 const TldrawUiComponentsContext = createContext<TLUiComponents | null>(null)
@@ -104,6 +108,8 @@ export function TldrawUiComponentsProvider({
 					SharePanel: showCollaborationUi ? DefaultSharePanel : null,
 					CursorChatBubble: showCollaborationUi ? CursorChatBubble : null,
 					TopPanel: showCollaborationUi ? DefaultTopPanel : null,
+					Dialogs: DefaultDialogs,
+					Toasts: DefaultToasts,
 					..._overrides,
 				}),
 				[_overrides, showCollaborationUi]

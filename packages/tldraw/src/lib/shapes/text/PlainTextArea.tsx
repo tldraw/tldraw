@@ -30,6 +30,7 @@ export const PlainTextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps
 			className="tl-text tl-text-input"
 			name="text"
 			tabIndex={-1}
+			disabled={!isEditing}
 			readOnly={!isEditing}
 			autoComplete="off"
 			autoCapitalize="off"

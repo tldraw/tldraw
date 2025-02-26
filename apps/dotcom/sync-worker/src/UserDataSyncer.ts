@@ -7,11 +7,17 @@ import {
 	ZStoreData,
 	ZTable,
 } from '@tldraw/dotcom-shared'
-import { ExecutionQueue, assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
+import {
+	ExecutionQueue,
+	assert,
+	assertExists,
+	promiseWithResolve,
+	sleep,
+	uniqueId,
+} from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { Kysely } from 'kysely'
 import { Logger } from './Logger'
-import { TLPostgresReplicator } from './TLPostgresReplicator'
 import {
 	fileKeys,
 	fileStateKeys,
@@ -20,7 +26,7 @@ import {
 	userKeys,
 } from './getFetchEverythingSql'
 import { Environment, TLUserDurableObjectEvent } from './types'
-import { getReplicator } from './utils/durableObjects'
+import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -54,7 +60,7 @@ export interface ZMutationCommit {
 	sequenceNumber: number
 }
 export interface ZForceReboot {
-	type: 'force_reboot'
+	type: 'maybe_force_reboot'
 	sequenceId: string
 	sequenceNumber: number
 }
@@ -99,10 +105,9 @@ export class UserDataSyncer {
 		type: 'init',
 		promise: promiseWithResolve(),
 	}
-	replicator: TLPostgresReplicator
 
 	store = new OptimisticAppStore()
-	mutations: { mutationNumber: number; mutationId: string }[] = []
+	mutations: { mutationNumber: number; mutationId: string; timestamp: number }[] = []
 
 	sentry
 	private captureException(exception: unknown, extras?: Record<string, unknown>) {
@@ -117,9 +122,11 @@ export class UserDataSyncer {
 		}
 	}
 
+	interval: NodeJS.Timeout | null = null
+
 	constructor(
-		ctx: DurableObjectState,
-		env: Environment,
+		private ctx: DurableObjectState,
+		private env: Environment,
 		private db: Kysely<DB>,
 		private userId: string,
 		private broadcast: (message: ZServerSentMessage) => void,
@@ -127,24 +134,53 @@ export class UserDataSyncer {
 		private log: Logger
 	) {
 		this.sentry = createSentry(ctx, env)
-		this.replicator = getReplicator(env)
 		this.reboot(false)
+	}
+
+	maybeStartInterval() {
+		if (!this.interval) {
+			this.interval = setInterval(() => this.__rebootIfMutationsNotCommitted(), 1000)
+		}
+	}
+
+	stopInterval() {
+		if (this.interval) {
+			clearInterval(this.interval)
+			this.interval = null
+		}
 	}
 
 	private queue = new ExecutionQueue()
 
+	numConsecutiveReboots = 0
+
 	async reboot(delay = true) {
+		this.numConsecutiveReboots++
+		if (this.numConsecutiveReboots > 5) {
+			this.logEvent({ type: 'user_do_abort', id: this.userId })
+			getStatsDurableObjct(this.env).recordUserDoAbort()
+			this.ctx.abort()
+			return
+		}
 		this.log.debug('rebooting')
 		this.logEvent({ type: 'reboot', id: this.userId })
 		await this.queue.push(async () => {
 			if (delay) {
 				await sleep(1000)
 			}
-			try {
-				await this.boot()
-			} catch (e) {
+			const res = await Promise.race([
+				this.boot().then(() => 'ok'),
+				sleep(5000).then(() => 'timeout'),
+			]).catch((e) => {
 				this.logEvent({ type: 'reboot_error', id: this.userId })
+				this.log.debug('reboot error', e.stack)
 				this.captureException(e)
+				return 'error'
+			})
+			this.log.debug('rebooted', res)
+			if (res === 'ok') {
+				this.numConsecutiveReboots = 0
+			} else {
 				this.reboot()
 			}
 		})
@@ -162,29 +198,37 @@ export class UserDataSyncer {
 
 	private updateStateAfterBootStep() {
 		assert(this.state.type === 'connecting', 'state should be connecting')
-		if (this.state.didGetBootId && this.state.data) {
-			// we got everything, so we can set the state to connected and apply any buffered events
-			const promise = this.state.promise
-			const bufferedEvents = this.state.bufferedEvents
-			const data = this.state.data
-			const mutationNumber = this.state.mutationNumber
-			this.state = {
-				type: 'connected',
-				bootId: this.state.bootId,
-				sequenceId: this.state.sequenceId,
-				lastSequenceNumber: this.state.lastSequenceNumber,
-			}
-			this.store.initialize(data)
+		if (this.state.data) {
+			if (this.state.didGetBootId) {
+				// we got everything, so we can set the state to connected and apply any buffered events
+				const promise = this.state.promise
+				const bufferedEvents = this.state.bufferedEvents
+				const data = this.state.data
+				const mutationNumber = this.state.mutationNumber
+				this.state = {
+					type: 'connected',
+					bootId: this.state.bootId,
+					sequenceId: this.state.sequenceId,
+					lastSequenceNumber: this.state.lastSequenceNumber,
+				}
+				this.store.initialize(data)
 
-			if (bufferedEvents.length > 0) {
-				bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
+				if (bufferedEvents.length > 0) {
+					bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
+					this.broadcast({
+						type: 'initial_data',
+						initialData: assertExists(this.store.getCommittedData()),
+					})
+				}
+				promise.resolve(null)
+
+				this.commitMutations(mutationNumber)
+			} else {
+				this.broadcast({
+					type: 'initial_data',
+					initialData: this.state.data,
+				})
 			}
-			promise.resolve(null)
-			this.broadcast({
-				type: 'initial_data',
-				initialData: data,
-			})
-			this.commitMutations(mutationNumber)
 		}
 		return this.state
 	}
@@ -193,7 +237,7 @@ export class UserDataSyncer {
 		this.log.debug('booting')
 		// todo: clean up old resources if necessary?
 		const start = Date.now()
-		const { sequenceId, sequenceNumber } = await this.replicator.registerUser(this.userId)
+		const { sequenceId, sequenceNumber } = await getReplicator(this.env).registerUser(this.userId)
 		this.log.debug('registered user, sequenceId:', sequenceId)
 		this.state = {
 			type: 'connecting',
@@ -308,15 +352,14 @@ export class UserDataSyncer {
 	}
 
 	handleReplicationEvent(event: ZReplicationEvent) {
-		if (
-			event.type === 'force_reboot' ||
-			('sequenceId' in this.state && this.state.sequenceId !== event.sequenceId)
-		) {
+		if ('sequenceId' in this.state && this.state.sequenceId !== event.sequenceId) {
 			// the replicator has restarted, so we need to reboot
 			this.log.debug('force reboot', this.state, event)
 			this.reboot()
 			return
 		}
+		if (event.type === 'maybe_force_reboot') return
+
 		assert(this.state.type !== 'init', 'state should not be init: ' + event.type)
 		if (event.sequenceNumber !== this.state.lastSequenceNumber + 1) {
 			this.log.debug(
@@ -354,9 +397,23 @@ export class UserDataSyncer {
 		// ignore other events until we get the boot id
 	}
 
-	async waitUntilConnected() {
-		while (this.state.type !== 'connected') {
-			await this.state.promise
+	getInitialData() {
+		if (this.state.type === 'connecting') {
+			return this.state.data
+		} else if (this.state.type === 'connected') {
+			return this.store.getCommittedData()
+		}
+		return null
+	}
+
+	private __rebootIfMutationsNotCommitted() {
+		// if any mutations have been not been committed for 5 seconds, let's reboot the cache
+		for (const mutation of this.mutations) {
+			if (Date.now() - mutation.timestamp > 5000) {
+				this.log.debug("Mutations haven't been committed for 5 seconds, rebooting")
+				this.reboot()
+				break
+			}
 		}
 	}
 }

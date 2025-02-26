@@ -134,6 +134,7 @@ export {
 	type TLPropsMigration,
 	type TLPropsMigrations,
 } from './recordsWithProps'
+export { type ShapeWithCrop, type TLShapeCrop } from './shapes/ShapeWithCrop'
 export {
 	ArrowShapeArrowheadEndStyle,
 	ArrowShapeArrowheadStartStyle,
@@ -199,7 +200,6 @@ export {
 	imageShapeMigrations,
 	imageShapeProps,
 	type TLImageShape,
-	type TLImageShapeCrop,
 	type TLImageShapeProps,
 } from './shapes/TLImageShape'
 export {

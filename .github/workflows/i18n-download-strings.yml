@@ -31,6 +31,9 @@ jobs:
           LOKALISE_API_TOKEN: ${{ secrets.LOKALISE_API_TOKEN }}
           LOKALISE_PROJECT_ID: ${{ secrets.LOKALISE_PROJECT_ID }}
 
+      - name: Compile i18n strings
+        run: 'yarn build-i18n'
+
       - name: Commit and push changes
         if: always()
         env:
@@ -40,6 +43,13 @@ jobs:
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
           git checkout -b update-i18n-strings
           git add "*.json"
+          if git diff-index --quiet HEAD --; then
+            echo "No changes to commit"
+            exit 0
+          fi
           git commit --no-verify -m '[automated] update i18n strings'
           git push --set-upstream origin update-i18n-strings
-          gh pr create --title "[automated] update i18n strings" --body "This PR updates the i18n strings.\n### Change type\n- [x] `other`" --base main --head update-i18n-strings
+          gh pr create --title "[automated] update i18n strings" --body "This PR updates the i18n strings.
+
+          ### Change type
+          - [x] `other`" --base main --head update-i18n-strings

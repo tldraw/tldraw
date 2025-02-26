@@ -1,20 +1,20 @@
-import { ClerkProvider, useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
+import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { Provider as TooltipProvider } from '@radix-ui/react-tooltip'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
+import classNames from 'classnames'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
 	ContainerProvider,
+	DefaultDialogs,
+	DefaultToasts,
 	EditorContext,
 	TLUiEventHandler,
 	TldrawUiContextProvider,
-	TldrawUiDialogs,
-	TldrawUiToasts,
 	fetch,
 	useToasts,
 	useValue,
 } from 'tldraw'
-import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
 import { SignedInPosthog, SignedOutPosthog } from '../../utils/posthog'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
@@ -28,6 +28,7 @@ import {
 	getLocalSessionState,
 	updateLocalSessionState,
 } from '../utils/local-session-state'
+import { FileSidebarFocusContextProvider } from './FileInputFocusProvider'
 
 const assetUrls = getAssetUrlsByImport()
 
@@ -45,25 +46,31 @@ export function Component() {
 	const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light')
 	const handleThemeChange = (theme: 'light' | 'dark' | 'system') => setTheme(theme)
 	const handleLocaleChange = (locale: string) => setLocale(locale)
-
+	const isFocusMode = useValue(
+		'isFocusMode',
+		() => !!globalEditor.get()?.getInstanceState().isFocusMode,
+		[]
+	)
 	return (
 		<div
 			ref={setContainer}
-			className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
+			className={classNames(`tla tl-container tla-theme-container`, {
+				'tla-theme__light tl-theme__light': theme === 'light',
+				'tla-theme__dark tl-theme__dark': theme !== 'light',
+				'tla-focus-mode': isFocusMode,
+			})}
 		>
 			<IntlWrapper locale={locale}>
 				<MaybeForceUserRefresh>
-					<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={routes.tlaRoot()}>
-						<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
-							{container && (
-								<ContainerProvider container={container}>
-									<InsideOfContainerContext>
-										<Outlet />
-									</InsideOfContainerContext>
-								</ContainerProvider>
-							)}
-						</SignedInProvider>
-					</ClerkProvider>
+					<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
+						{container && (
+							<ContainerProvider container={container}>
+								<InsideOfContainerContext>
+									<Outlet />
+								</InsideOfContainerContext>
+							</ContainerProvider>
+						)}
+					</SignedInProvider>
 				</MaybeForceUserRefresh>
 			</IntlWrapper>
 		</div>
@@ -112,8 +119,8 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 				onUiEvent={handleAppLevelUiEvent}
 			>
 				<TooltipProvider>{children}</TooltipProvider>
-				<TldrawUiDialogs />
-				<TldrawUiToasts />
+				<DefaultDialogs />
+				<DefaultToasts />
 				<PutToastsInApp />
 			</TldrawUiContextProvider>
 		</EditorContext.Provider>
@@ -175,14 +182,16 @@ function SignedInProvider({
 	}
 
 	return (
-		<AppStateProvider>
-			<UserProvider>
-				<ThemeContainer onThemeChange={onThemeChange}>
-					<SignedInPosthog />
-					{children}
-				</ThemeContainer>
-			</UserProvider>
-		</AppStateProvider>
+		<FileSidebarFocusContextProvider>
+			<AppStateProvider>
+				<UserProvider>
+					<ThemeContainer onThemeChange={onThemeChange}>
+						<SignedInPosthog />
+						{children}
+					</ThemeContainer>
+				</UserProvider>
+			</AppStateProvider>
+		</FileSidebarFocusContextProvider>
 	)
 }
 

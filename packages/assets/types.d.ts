@@ -5,10 +5,22 @@ export type AssetUrl = string | { src: string }
 export type AssetUrlOptions = { baseUrl?: string } | ((assetUrl: string) => string)
 export type AssetUrls = {
 	fonts: {
-		monospace: string
-		sansSerif: string
-		serif: string
-		draw: string
+		tldraw_mono_bold: string
+		tldraw_mono_italic_bold: string
+		tldraw_mono: string
+		tldraw_mono_italic: string
+		tldraw_sans_bold: string
+		tldraw_sans_italic_bold: string
+		tldraw_sans: string
+		tldraw_sans_italic: string
+		tldraw_serif_bold: string
+		tldraw_serif_italic_bold: string
+		tldraw_serif: string
+		tldraw_serif_italic: string
+		tldraw_draw_bold: string
+		tldraw_draw_italic_bold: string
+		tldraw_draw: string
+		tldraw_draw_italic: string
 	}
 	icons: {
 		'align-bottom': string
@@ -100,8 +112,10 @@ export type AssetUrls = {
 		'horizontal-align-middle': string
 		'horizontal-align-start': string
 		'info-circle': string
+		italic: string
 		leading: string
 		link: string
+		list: string
 		lock: string
 		menu: string
 		minus: string
@@ -149,6 +163,7 @@ export type AssetUrls = {
 		'tool-text': string
 		trash: string
 		twitter: string
+		underline: string
 		undo: string
 		ungroup: string
 		unlock: string
@@ -174,16 +189,20 @@ export type AssetUrls = {
 		fr: string
 		gl: string
 		'gu-in': string
+		gu_IN: string
 		he: string
 		'hi-in': string
+		hi_IN: string
 		hr: string
 		hu: string
 		id: string
 		it: string
 		ja: string
 		'km-kh': string
+		km_KH: string
 		kn: string
 		'ko-kr': string
+		ko_KR: string
 		ku: string
 		languages: string
 		main: string
@@ -198,6 +217,8 @@ export type AssetUrls = {
 		pl: string
 		'pt-br': string
 		'pt-pt': string
+		pt_BR: string
+		pt_PT: string
 		ro: string
 		ru: string
 		sl: string
@@ -213,6 +234,8 @@ export type AssetUrls = {
 		vi: string
 		'zh-cn': string
 		'zh-tw': string
+		zh_CN: string
+		zh_TW: string
 	}
 	embedIcons: {
 		codepen: string

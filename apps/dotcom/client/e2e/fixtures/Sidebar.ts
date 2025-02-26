@@ -37,8 +37,18 @@ export class Sidebar {
 		await expect(this.sidebarLogo).not.toBeInViewport()
 	}
 
-	async createNewDocument() {
+	async createNewDocument(name?: string) {
+		const numDocuments = await this.getNumberOfFiles()
 		await this.createFileButton.click()
+		const input = this.page.getByTestId('tla-sidebar-rename-input')
+		await expect(input).toBeVisible()
+		await expect(input).toBeFocused()
+		if (name) {
+			await input.fill(name)
+		}
+		await this.page.keyboard.press('Enter')
+		const newNumDocuments = await this.getNumberOfFiles()
+		expect(newNumDocuments).toBe(numDocuments + 1)
 	}
 
 	async getNumberOfFiles() {
@@ -47,7 +57,7 @@ export class Sidebar {
 
 	async openAccountMenu() {
 		await this.sidebarBottom.hover()
-		await this.page.getByRole('button', { name: 'Account menu' }).click()
+		await this.page.getByTestId('tla-sidebar-user-link').click()
 	}
 
 	@step
@@ -151,8 +161,15 @@ export class Sidebar {
 	}
 
 	@step
-	private async duplicateFromFileMenu() {
+	private async duplicateFromFileMenu(name?: string) {
 		await this.page.getByRole('menuitem', { name: 'Duplicate' }).click()
+		const input = this.page.getByTestId('tla-sidebar-rename-input')
+		await expect(input).toBeVisible()
+		await expect(input).toBeFocused()
+		if (name) {
+			await input.fill(name)
+		}
+		await this.page.keyboard.press('Enter')
 	}
 
 	@step
@@ -170,10 +187,10 @@ export class Sidebar {
 	}
 
 	@step
-	async duplicateFile(index: number) {
+	async duplicateFile(index: number, name?: string) {
 		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
-		await this.duplicateFromFileMenu()
+		await this.duplicateFromFileMenu(name)
 	}
 
 	@step

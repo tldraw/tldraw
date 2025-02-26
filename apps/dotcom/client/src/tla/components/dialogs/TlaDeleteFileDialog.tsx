@@ -1,5 +1,4 @@
 import { useAuth } from '@clerk/clerk-react'
-import { TlaFileOpenState } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -28,15 +27,13 @@ export function TlaDeleteFileDialog({ fileId, onClose }: { fileId: string; onClo
 	const handleDelete = useCallback(async () => {
 		const token = await auth.getToken()
 		if (!token) throw new Error('No token')
+		trackEvent('delete-file', { source: 'file-menu' })
 		await app.deleteOrForgetFile(fileId)
 		const recentFiles = app.getUserRecentFiles()
 		if (recentFiles.length === 0) {
 			const result = app.createFile()
 			if (result.ok) {
-				navigate(routes.tlaFile(result.value.file.id), {
-					state: { mode: 'create' } satisfies TlaFileOpenState,
-				})
-				trackEvent('delete-file', { source: 'file-menu' })
+				navigate(routes.tlaFile(result.value.file.id))
 			}
 		} else {
 			navigate(routes.tlaFile(recentFiles[0].fileId))

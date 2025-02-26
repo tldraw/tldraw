@@ -7,17 +7,22 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
+	TLFontFace,
 	TLHandle,
 	TLNoteShape,
 	TLNoteShapeProps,
+	TLResizeInfo,
 	TLShape,
 	TLShapeId,
 	Vec,
 	WeakCache,
+	exhaustiveSwitchError,
 	getDefaultColorTheme,
+	getFontsFromRichText,
 	lerp,
 	noteShapeMigrations,
 	noteShapeProps,
+	resizeScaled,
 	rng,
 	toDomPrecision,
 	toRichText,
@@ -35,7 +40,6 @@ import {
 	LABEL_PADDING,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-import { getFontDefForExport, getRichTextStylesExport } from '../shared/defaultStyleDefs'
 
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
 
@@ -53,17 +57,46 @@ import {
 } from './noteHelpers'
 
 /** @public */
+export interface NoteShapeOptions {
+	/**
+	 * How should the note shape resize? By default it does not resize (except automatically based on its text content),
+	 * but you can set it to be user-resizable using scale.
+	 */
+	resizeMode: 'none' | 'scale'
+}
+
+/** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	static override type = 'note' as const
 	static override props = noteShapeProps
 	static override migrations = noteShapeMigrations
 
+	override options: NoteShapeOptions = {
+		resizeMode: 'none',
+	}
+
 	override canEdit() {
 		return true
 	}
 	override hideResizeHandles() {
-		return true
+		const { resizeMode } = this.options
+		switch (resizeMode) {
+			case 'none': {
+				return true
+			}
+			case 'scale': {
+				return false
+			}
+			default: {
+				throw exhaustiveSwitchError(resizeMode)
+			}
+		}
 	}
+
+	override isAspectRatioLocked() {
+		return this.options.resizeMode === 'scale'
+	}
+
 	override hideSelectionBoundsFg() {
 		return false
 	}
@@ -174,8 +207,31 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		]
 	}
 
+	override onResize(shape: any, info: TLResizeInfo<any>) {
+		const { resizeMode } = this.options
+		switch (resizeMode) {
+			case 'none': {
+				return undefined
+			}
+			case 'scale': {
+				return resizeScaled(shape, info)
+			}
+			default: {
+				throw exhaustiveSwitchError(resizeMode)
+			}
+		}
+	}
+
 	override getText(shape: TLNoteShape) {
 		return renderPlaintextFromRichText(this.editor, shape.props.richText)
+	}
+
+	override getFontFaces(shape: TLNoteShape): TLFontFace[] {
+		return getFontsFromRichText(this.editor, shape.props.richText, {
+			family: `tldraw_${shape.props.font}`,
+			weight: 'normal',
+			style: 'normal',
+		})
 	}
 
 	component(shape: TLNoteShape) {
@@ -244,11 +300,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						align={align}
 						verticalAlign={verticalAlign}
 						richText={richText}
-						isNote
 						isSelected={isSelected}
 						labelColor={labelColor === 'black' ? theme[color].note.text : theme[labelColor].fill}
 						wrap
-						padding={16 * scale}
+						padding={LABEL_PADDING * scale}
 						onKeyDown={handleKeyDown}
 					/>
 				</div>
@@ -269,11 +324,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
-		ctx.addExportDef(getFontDefForExport(shape.props.font))
 		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		const bounds = getBoundsForSVG(shape)
 
-		ctx.addExportDef(getRichTextStylesExport())
 		const textLabel = (
 			<RichTextSVG
 				fontSize={shape.props.fontSizeAdjustment || LABEL_FONT_SIZES[shape.props.size]}
@@ -283,7 +336,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				richText={shape.props.richText}
 				labelColor={theme[shape.props.color].note.text}
 				bounds={bounds}
-				padding={16}
+				padding={LABEL_PADDING * shape.props.scale}
 			/>
 		)
 

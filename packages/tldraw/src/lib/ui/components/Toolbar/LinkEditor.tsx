@@ -1,4 +1,4 @@
-import { preventDefault, TiptapEditor, tlenv } from '@tldraw/editor'
+import { preventDefault, TiptapEditor, useEditor } from '@tldraw/editor'
 import { useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -15,6 +15,7 @@ export interface LinkEditorProps {
 
 /** @public @react */
 export function LinkEditor({ textEditor, value: initialValue, onComplete }: LinkEditorProps) {
+	const editor = useEditor()
 	const [value, setValue] = useState(initialValue)
 	const msg = useTranslation()
 	const ref = useRef<HTMLInputElement>(null)
@@ -31,9 +32,9 @@ export function LinkEditor({ textEditor, value: initialValue, onComplete }: Link
 		}
 
 		textEditor.commands.setLink({ href: link })
-		// N.B. We shouldn't focus() on iOS because it causes the
+		// N.B. We shouldn't focus() on mobile because it causes the
 		// Return key to replace the link with a newline :facepalm:
-		if (tlenv.isIos) {
+		if (editor.getInstanceState().isCoarsePointer) {
 			textEditor.commands.blur()
 		} else {
 			textEditor.commands.focus()
@@ -66,14 +67,15 @@ export function LinkEditor({ textEditor, value: initialValue, onComplete }: Link
 			<TldrawUiInput
 				ref={ref}
 				data-testid="rich-text.link-input"
-				className="tl-rich-text__toolbar-link-input"
+				className="tlui-rich-text__toolbar-link-input"
 				value={value}
 				onValueChange={handleValueChange}
 				onComplete={handleLinkComplete}
 				onCancel={handleLinkCancel}
+				placeholder="example.com"
 			/>
 			<TldrawUiButton
-				className="tl-rich-text__toolbar-link-visit"
+				className="tlui-rich-text__toolbar-link-visit"
 				title={msg('tool.rich-text-link-visit')}
 				type="icon"
 				onPointerDown={preventDefault}
@@ -83,7 +85,7 @@ export function LinkEditor({ textEditor, value: initialValue, onComplete }: Link
 				<TldrawUiButtonIcon small icon="external-link" />
 			</TldrawUiButton>
 			<TldrawUiButton
-				className="tl-rich-text__toolbar-link-remove"
+				className="tlui-rich-text__toolbar-link-remove"
 				title={msg('tool.rich-text-link-remove')}
 				data-testid="rich-text.link-remove"
 				type="icon"

@@ -94,6 +94,7 @@ const config = {
 					'package.json',
 					`<rootDir>/internal/scripts/refresh-assets.ts`,
 					`<rootDir>/assets/**/*`,
+					`<rootDir>/apps/dotcom/client/assets/**/*`,
 					`<rootDir>/packages/*/package.json`,
 				],
 			},

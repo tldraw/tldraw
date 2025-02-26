@@ -92,8 +92,10 @@ export type TLUiIconType =
 	| 'horizontal-align-middle'
 	| 'horizontal-align-start'
 	| 'info-circle'
+	| 'italic'
 	| 'leading'
 	| 'link'
+	| 'list'
 	| 'lock'
 	| 'menu'
 	| 'minus'
@@ -141,6 +143,7 @@ export type TLUiIconType =
 	| 'tool-text'
 	| 'trash'
 	| 'twitter'
+	| 'underline'
 	| 'undo'
 	| 'ungroup'
 	| 'unlock'
@@ -242,8 +245,10 @@ export const iconTypes = [
 	'horizontal-align-middle',
 	'horizontal-align-start',
 	'info-circle',
+	'italic',
 	'leading',
 	'link',
+	'list',
 	'lock',
 	'menu',
 	'minus',
@@ -291,6 +296,7 @@ export const iconTypes = [
 	'tool-text',
 	'trash',
 	'twitter',
+	'underline',
 	'undo',
 	'ungroup',
 	'unlock',

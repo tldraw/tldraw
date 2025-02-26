@@ -1,0 +1,393 @@
+{
+  "0095a9fa74": {
+    "translation": "Dışa aktar"
+  },
+  "03b3e13197": {
+    "translation": "Dosyayı bu sayfadaki kenar çubuğuna sürükleyin. Veya kullanıcı menüsünden 'Dosyayı içe aktar' seçeneğini seçin."
+  },
+  "043973ec1f": {
+    "translation": "Sorun devam ediyor mu? {GetHelpLink}"
+  },
+  "05596b840b": {
+    "translation": "tldraw'u açın."
+  },
+  "06b9281e39": {
+    "translation": "Otomatik"
+  },
+  "07dbd11b21": {
+    "translation": "İsimsiz dosya"
+  },
+  "08331c1710": {
+    "translation": "Kullanım sınırı aşıldı, daha sonra tekrar deneyin."
+  },
+  "0b27918290": {
+    "translation": "Dosya"
+  },
+  "0b9a4cde72": {
+    "translation": "Dosya menüsü"
+  },
+  "110a4b01be": {
+    "translation": "Yayınla"
+  },
+  "13ddd375ad": {
+    "translation": "Dışa aktarma formatı"
+  },
+  "181b90f889": {
+    "translation": "Dosya oluştur"
+  },
+  "1bef75f760": {
+    "translation": "tldraw'ın bana bu konuda e-posta göndermesine izin ver"
+  },
+  "1da2e8106b": {
+    "translation": "Beklenmeyen bir hata oluştu."
+  },
+  "1dd1c5fb7f": {
+    "translation": "Bugün"
+  },
+  "26e5b44256": {
+    "translation": "Bize geri bildirimde bulunun"
+  },
+  "299cb00a7a": {
+    "translation": "Yüklenemedi"
+  },
+  "31246941ad": {
+    "translation": "Bu dosyayı görüntülemek için oturum açmanız gerekiyor."
+  },
+  "31418ce4ad": {
+    "translation": "i18n: Vurgu Eksik"
+  },
+  "32656a600c": {
+    "translation": "Bir sorun mu gördünüz? TLDRAW'ı geliştirmek için bir fikriniz mi var? Bunu duymayı çok isteriz!"
+  },
+  "335defdafe": {
+    "translation": "Lütfen sayfayı yenilemeyi deneyin."
+  },
+  "344a7f427f": {
+    "translation": "Düzenleyici"
+  },
+  "3bd1b98dbd": {
+    "translation": "Değişiklikler yayınlanamıyor."
+  },
+  "3c5e891bff": {
+    "translation": "Sabitlendi"
+  },
+  "42e53c47c1": {
+    "translation": "Erişim isteğinde bulunmak için sahibiyle iletişime geçin."
+  },
+  "44db318ee5": {
+    "translation": "Discord'da yardım alın"
+  },
+  "46137245cd": {
+    "translation": "Tldraw'ı geliştirmemize yardımcı olduğunuz için teşekkürler!"
+  },
+  "4778b9f3f2": {
+    "translation": "Gizlilik ayarları"
+  },
+  "47839e47a5": {
+    "translation": "tldraw"
+  },
+  "4908687e50": {
+    "translation": "Bu dosyayı unutmak istediğinizden emin misiniz?"
+  },
+  "4c06678729": {
+    "translation": "Hizmetlerimizi geliştirmek için birinci taraf çerezleri kullanıyoruz. <a>Daha fazla bilgi edinin</a>"
+  },
+  "4d1c8263ba": {
+    "translation": "Tekrar yükle"
+  },
+  "50db1b7e1e": {
+    "translation": "Dosya yayından kaldırılamıyor."
+  },
+  "517bb809d9": {
+    "translation": "Sayfa menüsü"
+  },
+  "54286b1d01": {
+    "translation": "Ortak çalışan sınırına ulaşıldı"
+  },
+  "54d240fa41": {
+    "translation": "Lütfen yavaşlayın."
+  },
+  "554a05155c": {
+    "translation": "Hala sorun mu yaşıyorsunuz? <a>Bir sorun bildirin</a>"
+  },
+  "55505ba281": {
+    "translation": "PNG"
+  },
+  "56c34c6410": {
+    "translation": "Gizlilik Politikası"
+  },
+  "5817f82c16": {
+    "translation": "İsteğe bağlı — İnsanların tldraw'ı nasıl kullandığını ve bunu nasıl daha iyi hale getirebileceğimizi anlamamıza yardımcı olun."
+  },
+  "5a95a425f7": {
+    "translation": "Paylaş"
+  },
+  "5d160eb095": {
+    "translation": "Oturumunuz"
+  },
+  "5d26ae7550": {
+    "translation": "Oturum açmadan önce oluşturduğunuz bazı içerikleri yükleyemedik."
+  },
+  "5db1e9a8ca": {
+    "translation": "Bu formu doldurun, <discord>Discord'da bizimle sohbet edin</discord> veya <github>GitHub'da bir sorun gönderin</github>."
+  },
+  "5f3c333678": {
+    "translation": "Geri bildirim gönderildi"
+  },
+  "5fb63579fc": {
+    "translation": "Kopyala"
+  },
+  "61057a0c84": {
+    "translation": "Daha sonra"
+  },
+  "625fd29749": {
+    "translation": "Daha eski"
+  },
+  "6609dd239e": {
+    "translation": "Bir sorun oluştu"
+  },
+  "6a26f54883": {
+    "translation": "Yardım"
+  },
+  "6dc0836c1b": {
+    "translation": "Bu işlem için gerekli izinlere sahip değilsiniz."
+  },
+  "6dfc62f621": {
+    "translation": "İçeriği manuel olarak içe aktarmak için şu adımları izleyin:"
+  },
+  "70a6facb9d": {
+    "translation": "Bu hafta"
+  },
+  "73ab799383": {
+    "translation": "tldraw'un bu sürümü artık desteklenmiyor."
+  },
+  "7408cf0d7b": {
+    "translation": "Lütfen sayfayı tekrar yükleyin"
+  },
+  "752b79f137": {
+    "translation": "Maksimum dosya sayısına ulaştınız. Yeni dosyalar oluşturmadan önce eski dosyaları silmeniz gerekiyor."
+  },
+  "7573b8110a": {
+    "translation": "Erişim yok"
+  },
+  "761e93ede9": {
+    "translation": "Çerezleri yönet"
+  },
+  "764671e008": {
+    "translation": "Discord'da bizimle sohbet edin"
+  },
+  "777f9e90cf": {
+    "translation": "Geçersiz istek"
+  },
+  "797799f35e": {
+    "translation": "GitHub'da bir sorun bildirin"
+  },
+  "7cb5f8b4a5": {
+    "translation": "Unut"
+  },
+  "7daeced9ff": {
+    "translation": "Değişiklikleri yayınla"
+  },
+  "7fcdcc6455": {
+    "translation": "Dosyayı unut"
+  },
+  "81d389ac80": {
+    "translation": "İçeriği .tldr dosyası olarak dışa aktarın: Sol üst menüden 'Dosyayı indir'i seçin."
+  },
+  "85a082de1b": {
+    "translation": "En güncel tldraw sürümü için lütfen sayfayı yenileyin."
+  },
+  "86353d2c41": {
+    "translation": "{total} .tldr dosyası eklendi."
+  },
+  "86c66437fd": {
+    "translation": "Dosyayı yeniden adlandır"
+  },
+  "8eb2c00e96": {
+    "translation": "Sizinle paylaşıldı"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Hakkında"
+  },
+  "8ff3d0a705": {
+    "translation": "Kullanım sınırlı"
+  },
+  "902b0d55fd": {
+    "translation": "Hata"
+  },
+  "904a830405": {
+    "translation": "Yeniden Adlandır"
+  },
+  "91e49bb0eb": {
+    "translation": "Dosyalarıma kopyala"
+  },
+  "96165d6df5": {
+    "translation": "Bu ay"
+  },
+  "9914a0ce04": {
+    "translation": "Açık"
+  },
+  "9bef626805": {
+    "translation": "Dosyayı sil"
+  },
+  "9ceb927baa": {
+    "translation": "Bu dosyayı yayınla"
+  },
+  "9e076f5885": {
+    "translation": "Bulunamadı"
+  },
+  "9e93c98d88": {
+    "translation": "Vazgeçmek"
+  },
+  "a104439641": {
+    "translation": "Doldurma"
+  },
+  "a18366b217": {
+    "translation": "Koyu"
+  },
+  "a1c915578c": {
+    "translation": "Aradığınız dosya mevcut değil."
+  },
+  "a239905023": {
+    "translation": "Resmi dışa aktar"
+  },
+  "a3debabee7": {
+    "translation": "Çerez politikası"
+  },
+  "a4d3b161ce": {
+    "translation": "Göndermek"
+  },
+  "a6cc403d56": {
+    "translation": "Bağlantısı olan herkes"
+  },
+  "a768caa988": {
+    "translation": "Analitik"
+  },
+  "a9ded1e5ce": {
+    "translation": "Arka plan"
+  },
+  "ab0df9ba36": {
+    "translation": "Dosya sınırına ulaşıldı"
+  },
+  "af3dc88931": {
+    "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
+    "translation": "Son yayınlanma <date></date>"
+  },
+  "b6d4223e60": {
+    "translation": "Oturum aç"
+  },
+  "b758336699": {
+    "translation": "Bağlantıyı kopyala"
+  },
+  "bb792693e2": {
+    "translation": "SabitlemeyI kaldır"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {.tldr dosyası yükleniyor…} other {{uploaded} / {total} .tldr dosyası yükleniyor…}}"
+  },
+  "bc88b0e89e": {
+    "translation": "{ownerName} tarafından paylaşıldı"
+  },
+  "bcb62136a3": {
+    "translation": ".tldr dosyalarını yükle"
+  },
+  "c2276c9127": {
+    "translation": "Paylaşım hakkında daha fazla bilgi edinin."
+  },
+  "c303bd1095": {
+    "translation": "Bu dosya yayınlanamıyor."
+  },
+  "c4408d3350": {
+    "translation": "Kabul etmek"
+  },
+  "c655b27b1e": {
+    "translation": "i18n: Uzun Dizi"
+  },
+  "c6a00f137b": {
+    "translation": "Davet et"
+  },
+  "c87aacf567": {
+    "translation": "Oturumu kapat"
+  },
+  "cceaefbc20": {
+    "translation": "Bu dosyayı paylaş"
+  },
+  "cd15a75c26": {
+    "translation": "SVG"
+  },
+  "cd16f555de": {
+    "translation": "Temel — Dosyalarınızı ve ayarlarınızı kaydetmek ve bunları cihazlarınız arasında senkronize etmek için gereklidir."
+  },
+  "cea291e45e": {
+    "translation": "Yayınlama hakkında daha fazla bilgi edinin."
+  },
+  "d3d2e61733": {
+    "translation": "Kapat"
+  },
+  "d4bbf74f3e": {
+    "translation": "Kenar çubuğunu aç/kapat"
+  },
+  "d5ef96e383": {
+    "translation": "Dosyayı indir"
+  },
+  "d721757161": {
+    "translation": "Tema"
+  },
+  "d876a9fe1a": {
+    "translation": "Tekrar Dene"
+  },
+  "d9100f3e10": {
+    "translation": "İçeriği görmek için buraya gidin"
+  },
+  "dbbebf3c03": {
+    "translation": "Yalnızca davetle"
+  },
+  "dfdb78a4e4": {
+    "translation": "Uygulama hata ayıklama bayrakları"
+  },
+  "e371526ad0": {
+    "translation": "Bu çerez tldraw'ın çalışması için gereklidir ve devre dışı bırakılamaz."
+  },
+  "e404559826": {
+    "translation": "Hizmet Şartları"
+  },
+  "e78e14c5f1": {
+    "translation": "Sabitle"
+  },
+  "e8d1090cb9": {
+    "translation": "Oturumunuzu açık tutmak, dosyalarınızı senkronize etmek ve tldraw'ı geliştirmemize yardımcı olacak analizleri toplamak için çerezleri kullanırız. Daha fazla bilgi edinmek için <a>çerez politikamızı</a> okuyun."
+  },
+  "ea4788705e": {
+    "translation": "İptal"
+  },
+  "ebfe9ce86e": {
+    "translation": "Dün"
+  },
+  "ec59b960ea": {
+    "translation": "Bu dosya maksimum aktif ortak çalışan sayısına ulaştı."
+  },
+  "ec611e9a08": {
+    "translation": "Hesap menüsü"
+  },
+  "ed53713239": {
+    "translation": "i18n: Aksanlı"
+  },
+  "ed75712b0e": {
+    "translation": "Kopya oluştur"
+  },
+  "f2a6c498fb": {
+    "translation": "Sil"
+  },
+  "f43fb62093": {
+    "translation": "tldraw'a dön."
+  },
+  "fb15c53f22": {
+    "translation": "Görüntüleyici"
+  },
+  "fd1be3efcf": {
+    "translation": "Bu dosyayı silmek istediğinizden emin misiniz?"
+  },
+  "fed5ec05eb": {
+    "translation": "Bağlantı kopyalandı"
+  }
+}

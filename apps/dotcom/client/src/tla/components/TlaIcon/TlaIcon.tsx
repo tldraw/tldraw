@@ -2,8 +2,10 @@ import classNames from 'classnames'
 import { HtmlHTMLAttributes, useLayoutEffect, useRef } from 'react'
 import styles from './icon.module.css'
 
+import mergedSpriteUrl from '../../../assets/0_merged_tla.svg'
+
 function getMaskStyle(icon: string): string {
-	return `url(/tla/icon-${icon}.svg) center 100% / 100% no-repeat`
+	return `url(${mergedSpriteUrl}#icon-${icon}) center 100% / 100% no-repeat`
 }
 
 export function TlaIcon({

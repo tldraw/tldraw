@@ -38,6 +38,7 @@ import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { registerDefaultSideEffects } from '../lib/defaultSideEffects'
 import { defaultTools } from '../lib/defaultTools'
+import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
 import { shapesFromJsx } from './test-jsx'
 
 jest.useFakeTimers()
@@ -101,6 +102,12 @@ export class TestEditor extends Editor {
 			}),
 			getContainer: () => elm,
 			initialState: 'select',
+			textOptions: {
+				addFontsFromNode: defaultAddFontsFromNode,
+				tipTapConfig: {
+					extensions: tipTapDefaultExtensions,
+				},
+			},
 		})
 		this.elm = elm
 		this.bounds = bounds

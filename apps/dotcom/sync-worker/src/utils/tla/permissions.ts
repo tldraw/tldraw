@@ -1,6 +1,6 @@
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
-import { getAuth } from './getAuth'
+import { getAuthFromSearchParams } from './getAuth'
 
 export type FileOwnerStatusError = 'unauthorized' | 'not-found' | 'forbidden'
 
@@ -16,7 +16,7 @@ export function fileOwnerStatusErrorResponse(error: FileOwnerStatusError) {
 }
 
 export async function getUserIdFromRequest(request: IRequest, env: Environment) {
-	const auth = await getAuth(request, env)
+	const auth = await getAuthFromSearchParams(request, env)
 	if (!auth) return null
 	return auth.userId
 }

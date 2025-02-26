@@ -1,6 +1,7 @@
 import { useAuth } from '@clerk/clerk-react'
 import { fileOpen } from 'browser-fs-access'
 import { ReactNode, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
 	TLDRAW_FILE_EXTENSION,
 	TldrawUiDropdownMenuContent,
@@ -10,8 +11,8 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 } from 'tldraw'
+import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { defineMessages, useMsg } from '../../utils/i18n'
@@ -36,6 +37,7 @@ export function TlaAccountMenu({
 				<TldrawUiDropdownMenuContent
 					className="tla-account-menu"
 					side="bottom"
+					align="end"
 					alignOffset={0}
 					sideOffset={4}
 				>
@@ -72,8 +74,9 @@ function SignOutMenuItem({ source }: { source: TLAppUiEventSource }) {
 
 function TlaAppActionsGroup() {
 	const trackEvent = useTldrawAppUiEvents()
-	const auth = useAuth()
 	const app = useMaybeApp()
+
+	const navigate = useNavigate()
 
 	return (
 		<TldrawUiMenuGroup id="app-actions">
@@ -96,13 +99,9 @@ function TlaAppActionsGroup() {
 							description: 'tldraw project',
 						})
 
-						if (tldrawFiles.length > 0) {
-							const snapshots = await getSnapshotsFromDroppedTldrawFiles(editor, tldrawFiles)
-							if (!snapshots.length) return
-							const token = await auth.getToken()
-							if (!token) return
-							await app.createFilesFromTldrFiles(snapshots, token)
-						}
+						app.uploadTldrFiles(tldrawFiles, (file) => {
+							navigate(routes.tlaFile(file.id), { state: { mode: 'create' } })
+						})
 					} catch {
 						// user cancelled
 						return

@@ -8,14 +8,18 @@ import style from './tooltip.module.css'
 export const TlaTooltipRoot: typeof Tooltip.Root = (props) => (
 	<Tooltip.Root delayDuration={150} {...props} />
 )
+
 export const TlaTooltipTrigger = Tooltip.Trigger
+
 export const TlaTooltipArrow: typeof Tooltip.Arrow = React.forwardRef((props, ref) => (
 	<Tooltip.Arrow {...props} className={classNames(style.tooltipArrow, props.className)} ref={ref} />
 ))
+
 export const TlaTooltipContent: typeof Tooltip.Content = React.forwardRef((props, ref) => (
 	<Tooltip.Content
 		avoidCollisions
 		collisionPadding={8}
+		sideOffset={4}
 		dir="ltr"
 		{...props}
 		className={classNames('tlui-menu', style.tooltip)}

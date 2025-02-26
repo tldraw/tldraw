@@ -67,7 +67,7 @@ export interface TLGeoShapeProps {
 	w: number
 	h: number
 	growY: number
-	richText?: TLRichText
+	richText: TLRichText
 	scale: number
 }
 
@@ -89,7 +89,7 @@ export const geoShapeProps: RecordProps<TLGeoShape> = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	growY: T.positiveNumber,
-	richText: richTextValidator.optional(),
+	richText: richTextValidator,
 	scale: T.nonZeroNumber,
 }
 

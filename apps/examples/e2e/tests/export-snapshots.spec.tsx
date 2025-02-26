@@ -11,7 +11,7 @@ import {
 	Editor,
 	GeoShapeGeoStyle,
 	TLAsset,
-	TLImageShapeCrop,
+	TLShapeCrop,
 	TLShapePartial,
 	TLTextShape,
 	degreesToRadians,
@@ -59,7 +59,7 @@ const manAsset = (
 		mimeType="image/png"
 	/>
 )
-const manCrop: TLImageShapeCrop = {
+const manCrop: TLShapeCrop = {
 	topLeft: { x: 0.25, y: 0.05 },
 	bottomRight: { x: 0.75, y: 0.3 },
 }
@@ -70,6 +70,7 @@ const richText = {
 		{
 			type: 'heading',
 			attrs: {
+				dir: 'auto',
 				level: 3,
 			},
 			content: [
@@ -87,6 +88,9 @@ const richText = {
 					content: [
 						{
 							type: 'paragraph',
+							attrs: {
+								dir: 'auto',
+							},
 							content: [
 								{
 									type: 'text',
@@ -101,6 +105,9 @@ const richText = {
 					content: [
 						{
 							type: 'paragraph',
+							attrs: {
+								dir: 'auto',
+							},
 							content: [
 								{
 									type: 'text',
@@ -129,6 +136,9 @@ const richText = {
 		},
 		{
 			type: 'paragraph',
+			attrs: {
+				dir: 'auto',
+			},
 			content: [
 				{
 					type: 'text',
@@ -177,6 +187,44 @@ const richText = {
 						},
 					],
 					text: 'text',
+				},
+			],
+		},
+		{
+			type: 'paragraph',
+			attrs: {
+				dir: 'auto',
+			},
+			content: [
+				{
+					type: 'text',
+					marks: [
+						{
+							type: 'highlight',
+						},
+					],
+					text: 'highlight ',
+				},
+				{
+					type: 'text',
+					marks: [
+						{
+							type: 'highlight',
+						},
+						{
+							type: 'bold',
+						},
+					],
+					text: 'across',
+				},
+				{
+					type: 'text',
+					marks: [
+						{
+							type: 'highlight',
+						},
+					],
+					text: ' styles',
 				},
 			],
 		},

@@ -16,9 +16,11 @@ export function TlaSidebarRenameInline({
 }) {
 	const app = useApp()
 	const ref = useRef<HTMLInputElement>(null)
+	const wasSaved = useRef(false)
 	const trackEvent = useTldrawAppUiEvents()
 
 	const handleSave = useCallback(() => {
+		if (wasSaved.current) return
 		// rename the file
 		const elm = ref.current
 		if (!elm) return
@@ -27,6 +29,7 @@ export function TlaSidebarRenameInline({
 		if (name) {
 			// Only update the name if there is a name there to update
 			app.updateFile({ id: fileId, name })
+			wasSaved.current = true
 		}
 		trackEvent('rename-file', { name, source })
 		onClose()
@@ -36,6 +39,7 @@ export function TlaSidebarRenameInline({
 		<div className={styles.renameWrapper}>
 			<TldrawUiInput
 				ref={ref}
+				data-testid="tla-sidebar-rename-input"
 				className={classNames(styles.rename, 'tla-text_ui__regular')}
 				defaultValue={app.getFileName(fileId)}
 				onComplete={handleSave}

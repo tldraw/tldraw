@@ -160,7 +160,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				<div className="tl-overlays">
 					<div ref={rHtmlLayer2} className="tl-html-layer">
 						{debugGeometry ? <GeometryDebuggingView /> : null}
-						<HandlesWrapper />
 						<BrushWrapper />
 						<ScribbleWrapper />
 						<ZoomBrushWrapper />
@@ -168,6 +167,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 						<HintedShapeIndicator />
 						<SnapIndicatorWrapper />
 						<SelectionForegroundWrapper />
+						<HandlesWrapper />
 						<LiveCollaborators />
 					</div>
 				</div>

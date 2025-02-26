@@ -15,11 +15,6 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
     xmlns="http://www.w3.org/2000/svg"
   >
     <defs>
-      <style>
-        
-				.tl-rich-text-svg p { margin: 0 }
-			
-      </style>
       <mask
         id="_export_4_rb_"
       >
@@ -81,21 +76,25 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
         stroke-width="3.5"
       />
       <foreignobject
-        class="tl-rich-text-svg"
+        class="tl-export-embed-styles tl-rich-text tl-rich-text-svg"
         height="428"
         width="100"
         x="0"
         y="0"
       >
         <div
-          style="display: flex; flex-direction: column; height: calc(428px - 32px - 2px); font-size: 22px; font-family: 'tldraw_draw', sans-serif; text-align: center; justify-content: center; padding: 16px; color: rgb(29, 29, 29); line-height: 1.35;"
+          style="display: flex; height: 100%; justify-content: center; align-items: center; padding: 16px;"
           xmlns="http://www.w3.org/1999/xhtml"
         >
-          <p
-            dir="auto"
+          <div
+            style="font-size: 22px; font-family: 'tldraw_draw', sans-serif; color: rgb(29, 29, 29); line-height: 1.35; text-align: center; width: 100%; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap;"
           >
-            Hello world
-          </p>
+            <p
+              dir="auto"
+            >
+              Hello world
+            </p>
+          </div>
         </div>
       </foreignobject>
     </g>
@@ -148,11 +147,6 @@ exports[`Returns all shapes when no ids are provided: All shapes 1`] = `
     xmlns="http://www.w3.org/2000/svg"
   >
     <defs>
-      <style>
-        
-				.tl-rich-text-svg p { margin: 0 }
-			
-      </style>
       <mask
         id="_export_2_r5_"
       >
@@ -214,21 +208,25 @@ exports[`Returns all shapes when no ids are provided: All shapes 1`] = `
         stroke-width="3.5"
       />
       <foreignobject
-        class="tl-rich-text-svg"
+        class="tl-export-embed-styles tl-rich-text tl-rich-text-svg"
         height="428"
         width="100"
         x="0"
         y="0"
       >
         <div
-          style="display: flex; flex-direction: column; height: calc(428px - 32px - 2px); font-size: 22px; font-family: 'tldraw_draw', sans-serif; text-align: center; justify-content: center; padding: 16px; color: rgb(29, 29, 29); line-height: 1.35;"
+          style="display: flex; height: 100%; justify-content: center; align-items: center; padding: 16px;"
           xmlns="http://www.w3.org/1999/xhtml"
         >
-          <p
-            dir="auto"
+          <div
+            style="font-size: 22px; font-family: 'tldraw_draw', sans-serif; color: rgb(29, 29, 29); line-height: 1.35; text-align: center; width: 100%; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap;"
           >
-            Hello world
-          </p>
+            <p
+              dir="auto"
+            >
+              Hello world
+            </p>
+          </div>
         </div>
       </foreignobject>
     </g>

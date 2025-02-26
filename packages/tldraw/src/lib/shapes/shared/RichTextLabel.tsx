@@ -7,6 +7,8 @@ import {
 	TLDefaultVerticalAlignStyle,
 	TLRichText,
 	TLShapeId,
+	preventDefault,
+	stopEventPropagation,
 	useEditor,
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
@@ -30,7 +32,6 @@ export interface RichTextLabelProps {
 	richText?: TLRichText
 	labelColor: string
 	bounds?: Box
-	isNote?: boolean
 	isSelected: boolean
 	onKeyDown?(e: KeyboardEvent): void
 	classNamePrefix?: string
@@ -84,9 +85,9 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 
 	const handlePointerDownCapture = (e: React.PointerEvent<HTMLDivElement>) => {
 		// Allow links to be clicked upon.
-		if (e.target instanceof HTMLElement && e.target.tagName === 'A') {
-			e.preventDefault()
-			e.stopPropagation()
+		if (e.target instanceof HTMLElement && (e.target.tagName === 'A' || e.target.closest('a'))) {
+			preventDefault(e)
+			stopEventPropagation(e)
 		}
 	}
 
@@ -94,7 +95,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	const cssPrefix = classNamePrefix || 'tl-text'
 	return (
 		<div
-			className={`${cssPrefix}-label tl-text-wrapper`}
+			className={`${cssPrefix}-label tl-text-wrapper tl-rich-text-wrapper`}
 			data-font={font}
 			data-align={align}
 			data-hastext={!isEmpty}
@@ -124,12 +125,15 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 				<div className={`${cssPrefix} tl-text tl-text-content`} dir="auto">
 					{richText && (
 						<div
-							className="tl-rich-text-tiptap"
+							className="tl-rich-text"
+							// todo: see if I can abuse this
 							dangerouslySetInnerHTML={{ __html: html || '' }}
 							onPointerDownCapture={handlePointerDownCapture}
+							data-iseditinganything={isEditingAnything}
 						/>
 					)}
 				</div>
+				{/* todo: it might be okay to have just isEditing here */}
 				{(isEditingAnything || isSelected) && (
 					<RichTextArea
 						// Fudge the ref type because we're using forwardRef and it's not typed correctly.
@@ -181,22 +185,34 @@ export function RichTextSVG({
 		align === 'middle'
 			? ('center' as const)
 			: align === 'start'
-				? ('left' as const)
-				: ('right' as const)
+				? ('start' as const)
+				: ('end' as const)
 	const justifyContent =
+		align === 'middle'
+			? ('center' as const)
+			: align === 'start'
+				? ('flex-start' as const)
+				: ('flex-end' as const)
+	const alignItems =
 		verticalAlign === 'middle' ? 'center' : verticalAlign === 'start' ? 'flex-start' : 'flex-end'
-	const style = {
+	const wrapperStyle = {
 		display: 'flex',
-		flexDirection: 'column' as const,
-		height: `calc(${bounds.h}px - ${padding * 2}px - 2px)`,
+		height: `100%`,
+		justifyContent,
+		alignItems,
+		padding: `${padding}px`,
+	}
+	const style = {
 		fontSize: `${fontSize}px`,
 		fontFamily: DefaultFontFamilies[font],
-		textAlign: textAlign,
-		justifyContent,
-		padding: `${padding}px`,
 		wrap: wrap ? 'wrap' : 'nowrap',
 		color: labelColor,
 		lineHeight: TEXT_PROPS.lineHeight,
+		textAlign,
+		width: '100%',
+		wordWrap: 'break-word' as const,
+		overflowWrap: 'break-word' as const,
+		whiteSpace: 'pre-wrap',
 	}
 
 	return (
@@ -205,9 +221,11 @@ export function RichTextSVG({
 			y={bounds.minY}
 			width={bounds.w}
 			height={bounds.h}
-			className="tl-rich-text-svg"
+			className="tl-export-embed-styles tl-rich-text tl-rich-text-svg"
 		>
-			<div dangerouslySetInnerHTML={{ __html: html }} style={style} />
+			<div style={wrapperStyle}>
+				<div dangerouslySetInnerHTML={{ __html: html }} style={style} />
+			</div>
 		</foreignObject>
 	)
 }

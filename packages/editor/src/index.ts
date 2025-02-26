@@ -25,6 +25,15 @@ export {
 	useStateTracking,
 	useValue,
 } from '@tldraw/state-react'
+export { resizeScaled } from './lib/editor/shapes/shared/resizeScaled'
+export {
+	getFontsFromRichText,
+	type RichTextFontVisitor,
+	type RichTextFontVisitorState,
+	type TLTextOptions,
+	type TiptapEditor,
+	type TiptapNode,
+} from './lib/utils/richText'
 export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalIndexedDb'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
@@ -162,6 +171,11 @@ export {
 } from './lib/editor/bindings/BindingUtil'
 export { ClickManager, type TLClickState } from './lib/editor/managers/ClickManager'
 export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager'
+export {
+	FontManager,
+	type TLFontFace,
+	type TLFontFaceSource,
+} from './lib/editor/managers/FontManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager'
 export { ScribbleManager, type ScribbleItem } from './lib/editor/managers/ScribbleManager'
 export {
@@ -182,9 +196,12 @@ export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesMan
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
 export {
 	ShapeUtil,
+	type TLCropInfo,
+	type TLGeometryOpts,
 	type TLHandleDragInfo,
 	type TLResizeInfo,
 	type TLResizeMode,
+	type TLShapeUtilCanBeLaidOutOpts,
 	type TLShapeUtilCanBindOpts,
 	type TLShapeUtilCanvasSvgDef,
 	type TLShapeUtilConstructor,
@@ -238,9 +255,23 @@ export {
 	type UiEventType,
 } from './lib/editor/types/event-types'
 export {
-	type TLExternalAssetContent,
+	type TLBaseExternalContent,
+	type TLEmbedExternalContent,
+	type TLErrorExternalContentSource,
+	type TLExcalidrawExternalContent,
+	type TLExcalidrawExternalContentSource,
+	type TLExternalAsset,
 	type TLExternalContent,
 	type TLExternalContentSource,
+	type TLFileExternalAsset,
+	type TLFilesExternalContent,
+	type TLSvgTextExternalContent,
+	type TLTextExternalContent,
+	type TLTextExternalContentSource,
+	type TLTldrawExternalContent,
+	type TLTldrawExternalContentSource,
+	type TLUrlExternalAsset,
+	type TLUrlExternalContent,
 } from './lib/editor/types/external-content'
 export {
 	type TLHistoryBatchOptions,
@@ -258,8 +289,6 @@ export {
 	type TLImageExportOptions,
 	type TLSvgExportOptions,
 	type TLSvgOptions,
-	type TLTextOptions,
-	type TiptapEditor,
 } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
 export { getSvgAsImage } from './lib/exports/getSvgAsImage'
@@ -403,6 +432,7 @@ export {
 	type TLDeepLinkOptions,
 } from './lib/utils/deepLinks'
 export {
+	activeElementShouldCaptureKeys,
 	loopToHtmlElement,
 	preventDefault,
 	releasePointerCapture,
