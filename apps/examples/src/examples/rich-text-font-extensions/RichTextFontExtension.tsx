@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import {
 	DefaultRichTextToolbar,
 	DefaultRichTextToolbarContent,
+	Editor,
 	TLComponents,
 	TLTextOptions,
 	Tldraw,
@@ -131,12 +132,35 @@ const textOptions: Partial<TLTextOptions> = {
 }
 
 export default function RichTextFontExtensionExample() {
+	const fontFaces = Object.values(extensionFontFamilies)
+		.map((fontFamily) => Object.values(fontFamily))
+		.flat()
+		.map((fontStyle) => Object.values(fontStyle))
+		.flat()
+
+	// We need to preload the fonts so that they are available when
+	// making font changes. This is to avoid any FOUC as you change the
+	// font families.
+	const onMount = (editor: Editor) => {
+		editor.fonts.requestFonts(fontFaces)
+	}
+
+	const exoFont = extensionFontFamilies["'Exo 2'"].normal.normal.src.url
+
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				persistenceKey="rich-text-font-extension"
 				components={components}
 				textOptions={textOptions}
+				// If you want to override one of the custom fonts,
+				// you can do so by providing an assetUrls prop.
+				assetUrls={{
+					fonts: {
+						tldraw_mono: exoFont,
+					},
+				}}
+				onMount={onMount}
 			/>
 		</div>
 	)
