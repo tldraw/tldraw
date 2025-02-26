@@ -1,4 +1,5 @@
 import {
+	Box,
 	RotateCorner,
 	TLEmbedShape,
 	TLSelectionForegroundProps,
@@ -46,21 +47,23 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 		? editor.getShapeUtil(onlyShape).expandSelectionOutlinePx(onlyShape)
 		: 0
 
+	const expandedBounds =
+		expandOutlineBy instanceof Box
+			? bounds.clone().expand(expandOutlineBy).zeroFix()
+			: bounds.clone().expandBy(expandOutlineBy).zeroFix()
+
 	useTransform(rSvg, bounds?.x, bounds?.y, 1, editor.getSelectionRotation(), {
-		x: -expandOutlineBy,
-		y: -expandOutlineBy,
+		x: expandedBounds.x - bounds.x,
+		y: expandedBounds.y - bounds.y,
 	})
 
 	if (onlyShape && editor.isShapeHidden(onlyShape)) return null
 
-	if (!bounds) return null
-	bounds = bounds.clone().expandBy(expandOutlineBy).zeroFix()
-
 	const zoom = editor.getZoomLevel()
 	const isChangingStyle = editor.getInstanceState().isChangingStyle
 
-	const width = bounds.width
-	const height = bounds.height
+	const width = expandedBounds.width
+	const height = expandedBounds.height
 
 	const size = 8 / zoom
 	const isTinyX = width < size * 2

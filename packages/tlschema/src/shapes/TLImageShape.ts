@@ -1,6 +1,6 @@
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
-import { VecModel, vecModelValidator } from '../misc/geometry-types'
+import { vecModelValidator } from '../misc/geometry-types'
 import { TLAssetId } from '../records/TLAsset'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
@@ -20,16 +20,11 @@ import {
 	DefaultVerticalAlignStyle,
 	TLDefaultVerticalAlignStyle,
 } from '../styles/TLVerticalAlignStyle'
+import { TLShapeCrop } from './ShapeWithCrop'
 import { TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export interface TLImageShapeCrop {
-	topLeft: VecModel
-	bottomRight: VecModel
-}
-
-/** @public */
-export const ImageShapeCrop: T.ObjectValidator<TLImageShapeCrop> = T.object({
+export const ImageShapeCrop: T.ObjectValidator<TLShapeCrop> = T.object({
 	topLeft: vecModelValidator,
 	bottomRight: vecModelValidator,
 })
@@ -41,7 +36,7 @@ export interface TLImageShapeProps {
 	playing: boolean
 	url: string
 	assetId: TLAssetId | null
-	crop: TLImageShapeCrop | null
+	crop: TLShapeCrop | null
 	flipX: boolean
 	flipY: boolean
 

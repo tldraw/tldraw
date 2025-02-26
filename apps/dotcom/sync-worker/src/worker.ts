@@ -6,11 +6,11 @@ import {
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
 } from '@tldraw/dotcom-shared'
-import { createRouter, handleApiRequest, notFound } from '@tldraw/worker-shared'
+import { createRouter, handleApiRequest, handleUserAssetGet, notFound } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors } from 'itty-router'
-import { APP_ID } from './TLAppDurableObject'
-import { createRoom } from './routes/createRoom'
+import { POSTHOG_URL } from './config'
+import { healthCheckRoutes } from './healthCheckRoutes'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { getReadonlySlug } from './routes/getReadonlySlug'
@@ -18,17 +18,20 @@ import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
 import { joinExistingRoom } from './routes/joinExistingRoom'
+import { submitFeedback } from './routes/submitFeedback'
 import { createFiles } from './routes/tla/createFiles'
-import { deleteFile } from './routes/tla/deleteFile'
-import { duplicateFile } from './routes/tla/duplicateFile'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
-import { publishFile } from './routes/tla/publishFile'
-import { unpublishFile } from './routes/tla/unpublishFile'
-import { Environment } from './types'
-import { getAuth } from './utils/tla/getAuth'
-export { TLAppDurableObject } from './TLAppDurableObject'
+import { upload } from './routes/tla/uploads'
+import { testRoutes } from './testRoutes'
+import { Environment, isDebugLogging } from './types'
+import { getLogger, getUserDurableObject } from './utils/durableObjects'
+import { getAuthFromSearchParams } from './utils/tla/getAuth'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
+export { TLLoggerDurableObject } from './TLLoggerDurableObject'
+export { TLPostgresReplicator } from './TLPostgresReplicator'
+export { TLStatsDurableObject } from './TLStatsDurableObject'
+export { TLUserDurableObject } from './TLUserDurableObject'
 
 const { preflight, corsify } = cors({
 	origin: isAllowedOrigin,
@@ -37,7 +40,6 @@ const { preflight, corsify } = cors({
 const router = createRouter<Environment>()
 	.all('*', preflight)
 	.all('*', blockUnknownOrigins)
-	.post('/new-room', createRoom)
 	.post('/snapshots', createRoomSnapshot)
 	.get('/snapshot/:roomId', getRoomSnapshot)
 	.get(`/${ROOM_PREFIX}/:roomId`, (req, env) =>
@@ -55,29 +57,71 @@ const router = createRouter<Environment>()
 	.get('/unfurl', extractBookmarkMetadata)
 	.post('/unfurl', extractBookmarkMetadata)
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
-	/* ----------------------- App ---------------------- */
-	.get('/app', async (req, env) => {
-		const auth = await getAuth(req, env)
-		if (!auth?.userId) return notFound()
-
-		// This needs to be a websocket request!
-		if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
-			const url = new URL(req.url)
-			url.pathname = `/app/${auth.userId}`
-			// clone the request and add the new url
-			return env.TLAPP_DO.get(env.TLAPP_DO.idFromName(APP_ID)).fetch(new Request(url, req))
+	.get('/app/:userId/connect', async (req, env) => {
+		// forward req to the user durable object
+		const auth = await getAuthFromSearchParams(req, env)
+		if (!auth) {
+			// eslint-disable-next-line no-console
+			console.log('auth not found')
+			return notFound()
 		}
 
-		return notFound()
+		if (req.headers.get('upgrade')?.toLowerCase() !== 'websocket') {
+			return notFound()
+		}
+
+		const stub = getUserDurableObject(env, auth.userId)
+		return stub.fetch(req)
 	})
 	.post('/app/tldr', createFiles)
-	.get('/app/file/:roomId', forwardRoomRequest)
-	.post('/app/duplicate/:roomId', duplicateFile)
+	.get('/app/file/:roomId', (req, env) => {
+		if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
+			return forwardRoomRequest(req, env)
+		}
+		return notFound()
+	})
 	.get('/app/publish/:roomId', getPublishedFile)
-	.post('/app/publish/:roomId', publishFile)
-	.delete('/app/publish/:roomId', unpublishFile)
-	.delete('/app/file/:roomId', deleteFile)
+	.get('/app/uploads/:objectName', async (request, env, ctx) => {
+		return handleUserAssetGet({
+			request,
+			bucket: env.UPLOADS,
+			objectName: request.params.objectName,
+			context: ctx,
+		})
+	})
+	.post('/app/uploads/:objectName', upload)
+	.all('/app/__test__/*', testRoutes.fetch)
+	.get('/app/__debug-tail', (req, env) => {
+		if (isDebugLogging(env)) {
+			// upgrade to websocket
+			if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
+				return getLogger(env).fetch(req)
+			}
+		}
+
+		return new Response('Not Found', { status: 404 })
+	})
+	.post('/app/__debug-tail/clear', async (req, env) => {
+		if (isDebugLogging(env)) {
+			// upgrade to websocket
+			await getLogger(env).clear()
+			return new Response('ok')
+		}
+
+		return new Response('Not Found', { status: 404 })
+	})
+	.post('/app/submit-feedback', submitFeedback)
 	// end app
+	.all('/ph/*', (req) => {
+		const url = new URL(req.url)
+		const proxied = new Request(
+			`${POSTHOG_URL}${url.pathname.replace(/^\/ph\//, '/')}${url.search}`,
+			req
+		)
+		proxied.headers.delete('cookie')
+		return fetch(proxied)
+	})
+	.all('/health-check/*', healthCheckRoutes.fetch)
 	.all('*', notFound)
 
 export default class Worker extends WorkerEntrypoint<Environment> {

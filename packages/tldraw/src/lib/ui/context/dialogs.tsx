@@ -12,6 +12,7 @@ export interface TLUiDialog {
 	id: string
 	onClose?(): void
 	component: ComponentType<TLUiDialogProps>
+	preventBackgroundClose?: boolean
 }
 
 /** @public */
@@ -34,6 +35,7 @@ export interface TLUiDialogsProviderProps {
 
 /** @public @react */
 export function TldrawUiDialogsProvider({ context, children }: TLUiDialogsProviderProps) {
+	const ctx = useContext(DialogsContext)
 	const trackEvent = useUiEvents()
 
 	const dialogs = useAtom<TLUiDialog[]>('dialogs', [])
@@ -72,6 +74,9 @@ export function TldrawUiDialogsProvider({ context, children }: TLUiDialogsProvid
 			},
 		}
 	}, [trackEvent, dialogs, context])
+
+	// if the user has already provided a context higher up, reuse that one
+	if (ctx) return <>{children}</>
 
 	return <DialogsContext.Provider value={content}>{children}</DialogsContext.Provider>
 }

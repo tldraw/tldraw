@@ -9,6 +9,7 @@ import {
 	TldrawEditor,
 	TldrawEditorBaseProps,
 	TldrawEditorStoreProps,
+	mergeArraysAndReplaceDefaults,
 	useEditor,
 	useEditorComponents,
 	useOnMount,
@@ -73,6 +74,8 @@ export interface TldrawBaseProps
 /** @public */
 export type TldrawProps = TldrawBaseProps & TldrawEditorStoreProps
 
+const allDefaultTools = [...defaultTools, ...defaultShapeTools]
+
 /** @public @react */
 export function Tldraw(props: TldrawProps) {
 	const {
@@ -106,19 +109,19 @@ export function Tldraw(props: TldrawProps) {
 
 	const _shapeUtils = useShallowArrayIdentity(shapeUtils)
 	const shapeUtilsWithDefaults = useMemo(
-		() => [...defaultShapeUtils, ..._shapeUtils],
+		() => mergeArraysAndReplaceDefaults('type', _shapeUtils, defaultShapeUtils),
 		[_shapeUtils]
 	)
 
 	const _bindingUtils = useShallowArrayIdentity(bindingUtils)
 	const bindingUtilsWithDefaults = useMemo(
-		() => [...defaultBindingUtils, ..._bindingUtils],
+		() => mergeArraysAndReplaceDefaults('type', _bindingUtils, defaultBindingUtils),
 		[_bindingUtils]
 	)
 
 	const _tools = useShallowArrayIdentity(tools)
 	const toolsWithDefaults = useMemo(
-		() => [...defaultTools, ...defaultShapeTools, ..._tools],
+		() => mergeArraysAndReplaceDefaults('id', allDefaultTools, _tools),
 		[_tools]
 	)
 
@@ -147,6 +150,11 @@ export function Tldraw(props: TldrawProps) {
 		)
 	}
 
+	const embedShapeUtil = shapeUtilsWithDefaults.find((util) => util.type === 'embed')
+	if (embedShapeUtil && embeds) {
+		EmbedShapeUtil.setEmbedDefinitions(embeds)
+	}
+
 	return (
 		<TldrawEditor
 			initialState="select"
@@ -163,7 +171,6 @@ export function Tldraw(props: TldrawProps) {
 					acceptedImageMimeTypes={_imageMimeTypes}
 					acceptedVideoMimeTypes={_videoMimeTypes}
 					onMount={onMount}
-					embeds={embeds}
 				/>
 				{children}
 			</TldrawUi>
@@ -173,43 +180,32 @@ export function Tldraw(props: TldrawProps) {
 
 // We put these hooks into a component here so that they can run inside of the context provided by TldrawEditor and TldrawUi.
 function InsideOfEditorAndUiContext({
-	maxImageDimension = 5000,
-	maxAssetSize = 10 * 1024 * 1024, // 10mb
-	acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
-	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
+	maxImageDimension,
+	maxAssetSize,
+	acceptedImageMimeTypes,
+	acceptedVideoMimeTypes,
 	onMount,
-	embeds,
 }: TLExternalContentProps & {
 	onMount?: TLOnMountHandler
-	embeds?: TLEmbedDefinition[]
 }) {
 	const editor = useEditor()
 	const toasts = useToasts()
 	const msg = useTranslation()
 
 	useOnMount(() => {
-		const embedUtil = editor.getShapeUtil('embed') as EmbedShapeUtil | undefined
-		if (embedUtil && embeds) {
-			embedUtil.setEmbedDefinitions(embeds)
-		}
 		const unsubs: (void | (() => void) | undefined)[] = []
 
 		unsubs.push(registerDefaultSideEffects(editor))
 
 		// for content handling, first we register the default handlers...
-		registerDefaultExternalContentHandlers(
-			editor,
-			{
-				maxImageDimension,
-				maxAssetSize,
-				acceptedImageMimeTypes,
-				acceptedVideoMimeTypes,
-			},
-			{
-				toasts,
-				msg,
-			}
-		)
+		registerDefaultExternalContentHandlers(editor, {
+			maxImageDimension,
+			maxAssetSize,
+			acceptedImageMimeTypes,
+			acceptedVideoMimeTypes,
+			toasts,
+			msg,
+		})
 
 		// ...then we call the store's on mount which may override them...
 		unsubs.push(editor.store.props.onMount(editor))

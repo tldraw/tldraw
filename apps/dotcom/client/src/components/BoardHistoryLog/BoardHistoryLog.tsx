@@ -1,31 +1,30 @@
 import { Link } from 'react-router-dom'
-import '../../../styles/core.css'
 
 // todo: remove tailwind
 
 export function BoardHistoryLog({ data }: { data: string[] }) {
 	if (data.length === 0) {
 		return (
-			<div className="flex flex-1 items-center justify-center">
-				<p className="text-header">{'No history found'}</p>
+			<div>
+				<p>{'No history found'}</p>
 			</div>
 		)
 	}
 
 	return (
-		<div>
-			<ul className="board-history__list">
+		<div className="board-history">
+			<h1>Board history</h1>
+			<p>All previous versions found for this file. You can restore any previous version.</p>
+			<ol className="board-history__list">
 				{data.map((v, i) => {
 					const timeStamp = v.split('/').pop()
 					return (
 						<li key={i}>
-							<Link to={`./${timeStamp}`} target="_blank">
-								{formatDate(timeStamp!)}
-							</Link>
+							<Link to={`./${timeStamp}`}>{formatDate(timeStamp!)}</Link>
 						</li>
 					)
 				})}
-			</ul>
+			</ol>
 		</div>
 	)
 }

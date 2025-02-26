@@ -1,7 +1,6 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 
-export { ExecutionQueue } from './ExecutionQueue'
 export { handleExtractBookmarkMetadataRequest } from './bookmarks'
 export { notFound } from './errors'
 export {

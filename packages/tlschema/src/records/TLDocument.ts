@@ -4,6 +4,7 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 	RecordId,
+	UnknownRecord,
 } from '@tldraw/store'
 import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
@@ -30,6 +31,12 @@ export const documentValidator: T.Validator<TLDocument> = T.model(
 		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 	})
 )
+
+/** @public */
+export function isDocument(record?: UnknownRecord): record is TLDocument {
+	if (!record) return false
+	return record.typeName === 'document'
+}
 
 /** @public */
 export const documentVersions = createMigrationIds('com.tldraw.document', {

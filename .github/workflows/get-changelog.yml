@@ -7,7 +7,7 @@ jobs:
     name: 'Get draft changlog'
     environment: npm deploy
     timeout-minutes: 60
-    runs-on: ubuntu-latest-16-cores-open
+    runs-on: ubuntu-latest
 
     steps:
       - name: Check out code

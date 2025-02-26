@@ -1,0 +1,393 @@
+{
+  "0095a9fa74": {
+    "translation": "تصدير"
+  },
+  "03b3e13197": {
+    "translation": "اسحب الملف إلى الشريط الجانبي في هذه الصفحة. أو حدد خيار \"استيراد الملف\" من قائمة المستخدم."
+  },
+  "043973ec1f": {
+    "translation": "هل ما زلت تواجه صعوبة؟ {GetHelpLink}"
+  },
+  "05596b840b": {
+    "translation": "فتح tldraw."
+  },
+  "06b9281e39": {
+    "translation": "تلقائي"
+  },
+  "07dbd11b21": {
+    "translation": "ملف بدون عنوان"
+  },
+  "08331c1710": {
+    "translation": "تم تجاوز الحد الأقصى للمعدل، حاول مرة أخرى لاحقًا."
+  },
+  "0b27918290": {
+    "translation": "الملف"
+  },
+  "0b9a4cde72": {
+    "translation": "قائمة الملفات"
+  },
+  "110a4b01be": {
+    "translation": "مشاركة"
+  },
+  "13ddd375ad": {
+    "translation": "تصدير كـ"
+  },
+  "181b90f889": {
+    "translation": "إنشاء ملف"
+  },
+  "1bef75f760": {
+    "translation": "اسمح لـ tldraw بإرسال بريد إلكتروني إلي بخصوص هذا الأمر"
+  },
+  "1da2e8106b": {
+    "translation": "حدث خطأ غير متوقع."
+  },
+  "1dd1c5fb7f": {
+    "translation": "اليوم"
+  },
+  "26e5b44256": {
+    "translation": "أعطنا ردود الفعل"
+  },
+  "299cb00a7a": {
+    "translation": "فشل التحميل"
+  },
+  "31246941ad": {
+    "translation": "عليك تسجيل الدخول لمعاينة هذا الملف."
+  },
+  "31418ce4ad": {
+    "translation": "i18n: إبراز العناصر الناقصة"
+  },
+  "32656a600c": {
+    "translation": "هل لاحظت شيئًا خاطئًا؟ هل لديك فكرة لتحسين tldraw؟ يسعدنا سماعها!"
+  },
+  "335defdafe": {
+    "translation": "يُرجى محاولة تحديث الصفحة."
+  },
+  "344a7f427f": {
+    "translation": "المحرر"
+  },
+  "3bd1b98dbd": {
+    "translation": "يتعذّر نشر التغييرات."
+  },
+  "3c5e891bff": {
+    "translation": "ثم التثبيت"
+  },
+  "42e53c47c1": {
+    "translation": "اتصل بالمالك لطلب الوصول."
+  },
+  "44db318ee5": {
+    "translation": "احصل على المساعدة في Discord"
+  },
+  "46137245cd": {
+    "translation": "شكرًا لمساعدتنا على تحسين tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "إعدادات الخصوصية"
+  },
+  "47839e47a5": {
+    "translation": "tldraw"
+  },
+  "4908687e50": {
+    "translation": "هل أنت متأكد من أنك تريد نسيان هذا الملف؟"
+  },
+  "4c06678729": {
+    "translation": "نحن نستخدم ملفات تعريف الارتباط الخاصة بنا لتحسين خدماتنا. <a>اعرف المزيد</a>"
+  },
+  "4d1c8263ba": {
+    "translation": "إعادة التحميل"
+  },
+  "50db1b7e1e": {
+    "translation": "يتعذّر إلغاء نشر الملف."
+  },
+  "517bb809d9": {
+    "translation": "قائمة الصفحات"
+  },
+  "54286b1d01": {
+    "translation": "تم الوصول إلى الحد الأقصى لعدد المتعاونين"
+  },
+  "54d240fa41": {
+    "translation": "يُرجى إبطاء السرعة."
+  },
+  "554a05155c": {
+    "translation": "هل لا تزال تواجه مشكلة؟ <a>إبلاغ عن مشكلة</a>"
+  },
+  "55505ba281": {
+    "translation": "PNG"
+  },
+  "56c34c6410": {
+    "translation": "سياسة الخصوصية"
+  },
+  "5817f82c16": {
+    "translation": "اختياري - ساعدنا في فهم كيفية استخدام الأشخاص لـ tldraw، وكيف يمكننا تحسينه."
+  },
+  "5a95a425f7": {
+    "translation": "المشاركة"
+  },
+  "5d160eb095": {
+    "translation": "جلستك"
+  },
+  "5d26ae7550": {
+    "translation": "تعذر علينا تحميل بعض المحتوى الذي أنشأته قبل تسجيل الدخول."
+  },
+  "5db1e9a8ca": {
+    "translation": "قم بملء هذا النموذج، أو <discord>دردش معنا على Discord</discord> أو <github>أرسل مشكلة على GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "تم تقديم التعليقات"
+  },
+  "5fb63579fc": {
+    "translation": "نسخ"
+  },
+  "61057a0c84": {
+    "translation": "لاحقًا"
+  },
+  "625fd29749": {
+    "translation": "أقدم"
+  },
+  "6609dd239e": {
+    "translation": "حدث خطأ"
+  },
+  "6a26f54883": {
+    "translation": "المساعدة"
+  },
+  "6dc0836c1b": {
+    "translation": "ليست لديك الأذونات اللازمة للقيام بهذا."
+  },
+  "6dfc62f621": {
+    "translation": "اتبع هذه الخطوات لاستيراد المحتوى يدويًا:"
+  },
+  "70a6facb9d": {
+    "translation": "هذا الأسبوع"
+  },
+  "73ab799383": {
+    "translation": "لم يعد هذا الإصدار من tldraw مدعومًا."
+  },
+  "7408cf0d7b": {
+    "translation": "يُرجى إعادة تحميل الصفحة"
+  },
+  "752b79f137": {
+    "translation": "لقد وصلت إلى الحد الأقصى لعدد الملفات. يتعين عليك حذف الملفات القديمة قبل إنشاء ملفات جديدة."
+  },
+  "7573b8110a": {
+    "translation": "لا يمكن الوصول"
+  },
+  "761e93ede9": {
+    "translation": "إدارة ملفات تعريف الارتباط"
+  },
+  "764671e008": {
+    "translation": "تحدث معنا على Discord"
+  },
+  "777f9e90cf": {
+    "translation": "طلب غير صالح."
+  },
+  "797799f35e": {
+    "translation": "إرسال مشكلة على GitHub"
+  },
+  "7cb5f8b4a5": {
+    "translation": "نسيان"
+  },
+  "7daeced9ff": {
+    "translation": "نشر التغييرات"
+  },
+  "7fcdcc6455": {
+    "translation": "نسيان الملف"
+  },
+  "81d389ac80": {
+    "translation": "تصدير المحتوى كملف .tldr: حدد \"تنزيل الملف\" في القائمة الموجودة في أعلى اليسار."
+  },
+  "85a082de1b": {
+    "translation": "يُرجى تحديث الصفحة للحصول على أحدث إصدار من tldraw."
+  },
+  "86353d2c41": {
+    "translation": "تمت إضافة ملفات {total} .tldr."
+  },
+  "86c66437fd": {
+    "translation": "إعادة تسمية الملف"
+  },
+  "8eb2c00e96": {
+    "translation": "تمت المشاركة معك"
+  },
+  "8f7f4c1ce7": {
+    "translation": "عن"
+  },
+  "8ff3d0a705": {
+    "translation": "معدل محدود"
+  },
+  "902b0d55fd": {
+    "translation": "خطأ"
+  },
+  "904a830405": {
+    "translation": "إعادة التسمية"
+  },
+  "91e49bb0eb": {
+    "translation": "نسخ إلى ملفاتي"
+  },
+  "96165d6df5": {
+    "translation": "هذا الشهر"
+  },
+  "9914a0ce04": {
+    "translation": "فاتح"
+  },
+  "9bef626805": {
+    "translation": "حذف الملف"
+  },
+  "9ceb927baa": {
+    "translation": "نشر هذا الملف"
+  },
+  "9e076f5885": {
+    "translation": "غير موجود"
+  },
+  "9e93c98d88": {
+    "translation": "انسحب"
+  },
+  "a104439641": {
+    "translation": "ترك مساحة"
+  },
+  "a18366b217": {
+    "translation": "داكن"
+  },
+  "a1c915578c": {
+    "translation": "الملف الذي تبحث عنه غير موجود."
+  },
+  "a239905023": {
+    "translation": "تصدير الصورة"
+  },
+  "a3debabee7": {
+    "translation": "سياسة ملفات تعريف الارتباط"
+  },
+  "a4d3b161ce": {
+    "translation": "يُقدِّم"
+  },
+  "a6cc403d56": {
+    "translation": "أي شخص لديه الرابط"
+  },
+  "a768caa988": {
+    "translation": "التحليلات"
+  },
+  "a9ded1e5ce": {
+    "translation": "الخلفية"
+  },
+  "ab0df9ba36": {
+    "translation": "تم الوصول إلى الحد الأقصى للملفات"
+  },
+  "af3dc88931": {
+    "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
+    "translation": "آخر نشر <date></date>"
+  },
+  "b6d4223e60": {
+    "translation": "تسجيل الدخول"
+  },
+  "b758336699": {
+    "translation": "نسخ الرابط"
+  },
+  "bb792693e2": {
+    "translation": "إلغاء التثبيت"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, zero {} one {جاري تحميل ملف .tldr…} two {} few {} many {} other {جاري تحميل {uploaded} من {total} ملفات .tldr…}}"
+  },
+  "bc88b0e89e": {
+    "translation": "شاركه {ownerName}"
+  },
+  "bcb62136a3": {
+    "translation": "تحميل ملفات .tldr"
+  },
+  "c2276c9127": {
+    "translation": "اعرف المزيد عن المشاركة."
+  },
+  "c303bd1095": {
+    "translation": "يتعذّر نشر الملف."
+  },
+  "c4408d3350": {
+    "translation": "يقبل"
+  },
+  "c655b27b1e": {
+    "translation": "i18n: سلسلة طويلة"
+  },
+  "c6a00f137b": {
+    "translation": "الدعوة"
+  },
+  "c87aacf567": {
+    "translation": "تسجيل الخروج"
+  },
+  "cceaefbc20": {
+    "translation": "مشاركة هذا الملف"
+  },
+  "cd15a75c26": {
+    "translation": "SVG"
+  },
+  "cd16f555de": {
+    "translation": "ضروري — مطلوب لحفظ ملفاتك وإعداداتك ومزامنتها عبر أجهزتك."
+  },
+  "cea291e45e": {
+    "translation": "اعرف المزيد عن النشر."
+  },
+  "d3d2e61733": {
+    "translation": "إغلاق"
+  },
+  "d4bbf74f3e": {
+    "translation": "تبديل الشريط الجانبي"
+  },
+  "d5ef96e383": {
+    "translation": "تحميل الملف"
+  },
+  "d721757161": {
+    "translation": "الموضوع"
+  },
+  "d876a9fe1a": {
+    "translation": "حاول مرة أخرى"
+  },
+  "d9100f3e10": {
+    "translation": "اذهب هنا لرؤية المحتوى"
+  },
+  "dbbebf3c03": {
+    "translation": "دعوة فقط"
+  },
+  "dfdb78a4e4": {
+    "translation": "علامات تصحيح الأخطاء في التطبيق"
+  },
+  "e371526ad0": {
+    "translation": "يعد ملف تعريف الارتباط هذا ضروريًا لكي يعمل tldraw، ولا يمكن تعطيله."
+  },
+  "e404559826": {
+    "translation": "شروط الخدمة"
+  },
+  "e78e14c5f1": {
+    "translation": "تثبيت"
+  },
+  "e8d1090cb9": {
+    "translation": "نحن نستخدم ملفات تعريف الارتباط لإبقائك مسجلاً الدخول، ومزامنة ملفاتك، وجمع التحليلات لمساعدتنا على تحسين tldraw. اقرأ <a>سياسة ملفات تعريف الارتباط</a> لمعرفة المزيد."
+  },
+  "ea4788705e": {
+    "translation": "إلغاء"
+  },
+  "ebfe9ce86e": {
+    "translation": "الأمس"
+  },
+  "ec59b960ea": {
+    "translation": "وصل هذا الملف إلى أقصى عدد من المتعاونين النشطين."
+  },
+  "ec611e9a08": {
+    "translation": "قائمة الحسابات"
+  },
+  "ed53713239": {
+    "translation": "i18n: مبرز"
+  },
+  "ed75712b0e": {
+    "translation": "تكرار"
+  },
+  "f2a6c498fb": {
+    "translation": "حذف"
+  },
+  "f43fb62093": {
+    "translation": "العودة إلى tldraw."
+  },
+  "fb15c53f22": {
+    "translation": "عارض"
+  },
+  "fd1be3efcf": {
+    "translation": "هل أنت متأكد من أنك تريد حذف هذا الملف؟"
+  },
+  "fed5ec05eb": {
+    "translation": "رابط منسوخ"
+  }
+}

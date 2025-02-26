@@ -62,7 +62,9 @@
 }
 
 .tlui-button:focus-visible:not(:hover) {
-	outline: 1px solid var(--color-selected);
+	/* todo: fix the indicator errors in radix dropdown menus before restoring */
+	/* outline: 1px solid var(--color-selected); */
+	outline: none;
 	outline-offset: -4px;
 	border-radius: var(--radius-3);
 }
@@ -541,7 +543,7 @@
 
 .tlui-popover__content {
 	position: relative;
-	max-height: 75vh;
+	max-height: calc(var(--radix-popover-content-available-height) - 8px);
 	margin: 0px;
 	border: none;
 	border-radius: var(--radius-3);
@@ -1659,7 +1661,7 @@
 	pointer-events: all;
 	border-radius: var(--radius-1);
 	padding-right: 1px;
-	height: 36px;
+	height: 100%;
 }
 
 .tlui-people-menu__avatars {
@@ -1668,8 +1670,8 @@
 }
 
 .tlui-people-menu__avatar {
-	height: 28px;
-	width: 28px;
+	height: 24px;
+	width: 24px;
 	border: 2px solid var(--color-background);
 	background-color: var(--color-low);
 	border-radius: 100%;

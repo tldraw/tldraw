@@ -49,7 +49,7 @@ export class PointingHandle extends StateNode {
 
 		if (this.editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
 			const { editor } = this
-			const nextNote = getNoteForPit(editor, shape, handle, false)
+			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, false)
 			if (nextNote) {
 				startEditingShapeWithLabel(editor, nextNote, true /* selectAll */)
 				return
@@ -80,7 +80,7 @@ export class PointingHandle extends StateNode {
 		const { shape, handle } = this.info
 
 		if (editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
-			const nextNote = getNoteForPit(editor, shape, handle, true)
+			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, true)
 			if (nextNote) {
 				// Center the shape on the current pointer
 				const centeredOnPointer = editor
@@ -127,20 +127,25 @@ export class PointingHandle extends StateNode {
 	}
 }
 
-function getNoteForPit(editor: Editor, shape: TLNoteShape, handle: TLHandle, forceNew: boolean) {
+function getNoteForAdjacentPosition(
+	editor: Editor,
+	shape: TLNoteShape,
+	handle: TLHandle,
+	forceNew: boolean
+) {
 	const pageTransform = editor.getShapePageTransform(shape.id)!
 	const pagePoint = pageTransform.point()
 	const pageRotation = pageTransform.rotation()
-	const pits = getNoteAdjacentPositions(
+	const positions = getNoteAdjacentPositions(
 		editor,
 		pagePoint,
 		pageRotation,
-		shape.props.growY,
+		shape.props.growY * shape.props.scale,
 		0,
 		shape.props.scale
 	)
-	const pit = pits[handle.index]
-	if (pit) {
-		return getNoteShapeForAdjacentPosition(editor, shape, pit, pageRotation, forceNew)
+	const position = positions[handle.index]
+	if (position) {
+		return getNoteShapeForAdjacentPosition(editor, shape, position, pageRotation, forceNew)
 	}
 }

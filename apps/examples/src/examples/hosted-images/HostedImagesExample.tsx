@@ -18,7 +18,7 @@ const myAssetStore: TLAssetStore = {
 			body: file,
 		})
 
-		return url
+		return { src: url }
 	},
 
 	// [b]

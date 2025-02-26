@@ -12,7 +12,7 @@ export function PeopleMenuAvatar({ userId }: { userId: string }) {
 				backgroundColor: presence.color,
 			}}
 		>
-			{presence.userName === 'New User' ? '' : presence.userName[0] ?? ''}
+			{presence.userName === 'New User' ? '' : (presence.userName[0] ?? '')}
 		</div>
 	)
 }

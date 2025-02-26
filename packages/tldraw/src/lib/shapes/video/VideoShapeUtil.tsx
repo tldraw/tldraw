@@ -1,8 +1,6 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
 	Box,
-	Editor,
 	Group2d,
 	HTMLContainer,
 	MediaHelpers,
@@ -10,8 +8,10 @@ import {
 	SvgExportContext,
 	TLAsset,
 	TLVideoShape,
+	WeakCache,
 	getDefaultColorTheme,
 	toDomPrecision,
+	useEditor,
 	useEditorComponents,
 	useIsEditing,
 	videoShapeMigrations,
@@ -33,6 +33,8 @@ import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
+
+const videoSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 
 /** @public */
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
@@ -105,12 +107,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	}
 
 	component(shape: TLVideoShape) {
-		const { asset, url } = useImageOrVideoAsset({
-			shapeId: shape.id,
-			assetId: shape.props.assetId,
-		})
-
-		return <VideoShape editor={this.editor} shape={shape} asset={asset} url={url} />
+		return <VideoShape shape={shape} />
 	}
 
 	indicator(shape: TLVideoShape) {
@@ -118,9 +115,20 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	}
 
 	override async toSvg(shape: TLVideoShape, ctx: SvgExportContext) {
-		const image = await serializeVideo(this.editor, shape)
-		if (!image) return null
 		const props = shape.props
+		if (!props.assetId) return null
+
+		const asset = this.editor.getAsset<TLAsset>(props.assetId)
+		if (!asset) return null
+
+		const src = await videoSvgExportCache.get(asset, async () => {
+			const assetUrl = await ctx.resolveAssetUrl(asset.id, props.w)
+			if (!assetUrl) return null
+			const video = await MediaHelpers.loadVideo(assetUrl)
+			return await MediaHelpers.getVideoFrameAsDataUrl(video, 0)
+		})
+
+		if (!src) return null
 
 		let textEl
 		if (props.text) {
@@ -150,29 +158,26 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 		return (
 			<>
-				<image href={image} width={shape.props.w} height={shape.props.h} />
+				<image href={src} width={props.w} height={props.h} />
 				{textEl}
 			</>
 		)
 	}
 }
 
-const VideoShape = memo(function VideoShape({
-	editor,
-	shape,
-	asset,
-	url,
-}: {
-	editor: Editor
-	shape: TLVideoShape
-	asset?: TLAsset | null
-	url: string | null
-}) {
+const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) {
+	const editor = useEditor()
 	const showControls = editor.getShapeGeometry(shape).bounds.w * editor.getZoomLevel() >= 110
 	const isEditing = useIsEditing(shape.id)
 	const prefersReducedMotion = usePrefersReducedMotion()
 	const { Spinner } = useEditorComponents()
 	const theme = useDefaultColorTheme()
+
+	const { asset, url } = useImageOrVideoAsset({
+		shapeId: shape.id,
+		assetId: shape.props.assetId,
+		width: shape.props.w,
+	})
 
 	const rVideo = useRef<HTMLVideoElement>(null!)
 
@@ -277,13 +282,3 @@ const VideoShape = memo(function VideoShape({
 		</>
 	)
 })
-
-async function serializeVideo(editor: Editor, shape: TLVideoShape): Promise<string | null> {
-	const assetUrl = await editor.resolveAssetUrl(shape.props.assetId, {
-		shouldResolveToOriginal: true,
-	})
-	if (!assetUrl) return null
-
-	const video = await MediaHelpers.loadVideo(assetUrl)
-	return MediaHelpers.getVideoFrameAsDataUrl(video, 0)
-}

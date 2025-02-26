@@ -16,7 +16,7 @@ export interface SentryEnvironment {
 
 export function createSentry(ctx: Context, env: SentryEnvironment, request?: Request) {
 	// TLDRAW_ENV is undefined in dev
-	if (!env.SENTRY_DSN && !env.TLDRAW_ENV) {
+	if (!env.SENTRY_DSN && env.TLDRAW_ENV === 'development') {
 		return null
 	}
 

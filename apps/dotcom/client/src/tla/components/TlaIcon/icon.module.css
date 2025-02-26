@@ -1,4 +1,5 @@
 .icon {
+	display: flex;
 	position: relative;
 	flex-shrink: 0;
 	background-color: currentColor;
@@ -7,6 +8,10 @@
 	z-index: 1;
 	pointer-events: none;
 	color: inherit;
+}
+
+.inline {
+	display: inline-flex;
 }
 
 .icon_wrapper {

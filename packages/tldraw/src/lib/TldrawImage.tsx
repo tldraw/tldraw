@@ -12,12 +12,11 @@ import {
 	useShallowArrayIdentity,
 	useTLStore,
 } from '@tldraw/editor'
-import { memo, useLayoutEffect, useMemo, useState } from 'react'
+import { memo, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { defaultBindingUtils } from './defaultBindingUtils'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { TLUiAssetUrlOverrides } from './ui/assetUrls'
 import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
-import { getSvgAsImage } from './utils/export/export'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /** @public */
@@ -93,6 +92,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		pageId,
 		bounds,
 		scale,
+		pixelRatio,
 		background,
 		padding,
 		darkMode,
@@ -126,36 +126,19 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		const shapeIds = editor.getCurrentPageShapeIds()
 
 		async function setSvg() {
-			const svgResult = await editor.getSvgString([...shapeIds], {
+			const imageResult = await editor.toImage([...shapeIds], {
 				bounds,
 				scale,
 				background,
 				padding,
 				darkMode,
 				preserveAspectRatio,
+				format,
 			})
+			if (!imageResult || isCancelled) return
 
-			if (svgResult && !isCancelled) {
-				if (format === 'svg') {
-					if (!isCancelled) {
-						const blob = new Blob([svgResult.svg], { type: 'image/svg+xml' })
-						const url = URL.createObjectURL(blob)
-						setUrl(url)
-					}
-				} else if (format === 'png') {
-					const blob = await getSvgAsImage(editor, svgResult.svg, {
-						type: format,
-						quality: 1,
-						scale: 2,
-						width: svgResult.width,
-						height: svgResult.height,
-					})
-					if (blob && !isCancelled) {
-						const url = URL.createObjectURL(blob)
-						setUrl(url)
-					}
-				}
-			}
+			const url = URL.createObjectURL(imageResult.blob)
+			setUrl(url)
 
 			editor.dispose()
 		}
@@ -181,7 +164,14 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		preloadingComplete,
 		preloadingError,
 		licenseKey,
+		pixelRatio,
 	])
+
+	useEffect(() => {
+		return () => {
+			if (url) URL.revokeObjectURL(url)
+		}
+	}, [url])
 
 	if (preloadingError) {
 		return <ErrorScreen>Could not load assets.</ErrorScreen>
