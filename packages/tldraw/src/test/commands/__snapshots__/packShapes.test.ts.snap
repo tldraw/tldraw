@@ -36,8 +36,8 @@ exports[`editor.packShapes packs rotated shapes: packed shapes 1`] = `
     "rotation": 3.141592653589793,
     "type": "geo",
     "typeName": "shape",
-    "x": 134,
-    "y": 250,
+    "x": 192,
+    "y": 308,
   },
   {
     "id": "shape:boxB",
@@ -73,8 +73,8 @@ exports[`editor.packShapes packs rotated shapes: packed shapes 1`] = `
     "rotation": 0,
     "type": "geo",
     "typeName": "shape",
-    "x": 150,
-    "y": 150,
+    "x": 92,
+    "y": 92,
   },
   {
     "id": "shape:boxC",
@@ -110,8 +110,8 @@ exports[`editor.packShapes packs rotated shapes: packed shapes 1`] = `
     "rotation": 0,
     "type": "geo",
     "typeName": "shape",
-    "x": 266,
-    "y": 150,
+    "x": 208,
+    "y": 92,
   },
 ]
 `;

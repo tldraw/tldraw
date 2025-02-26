@@ -18,6 +18,7 @@ import {
 	TLHandleDragInfo,
 	TLResizeInfo,
 	TLShapePartial,
+	TLShapeUtilCanBeLaidOutOpts,
 	TLShapeUtilCanBindOpts,
 	TLShapeUtilCanvasSvgDef,
 	Vec,
@@ -99,9 +100,16 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return true
 	}
 
-	override canBeLaidOut(shape: TLArrowShape) {
-		const bindings = getArrowBindings(this.editor, shape)
-		return !bindings.start && !bindings.end
+	override canBeLaidOut(shape: TLArrowShape, info: TLShapeUtilCanBeLaidOutOpts) {
+		if (info.type === 'flip') {
+			// If we don't have this then the flip will be non-idempotent; that is, the flip will be multipotent, varipotent, or perhaps even omni-potent... and we can't have that
+			const bindings = getArrowBindings(this.editor, shape)
+			const { start, end } = bindings
+			const { shapes = [] } = info
+			if (start && !shapes.find((s) => s.id === start.toId)) return false
+			if (end && !shapes.find((s) => s.id === end.toId)) return false
+		}
+		return true
 	}
 
 	override getFontFaces(shape: TLArrowShape): TLFontFace[] {

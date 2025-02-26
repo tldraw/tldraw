@@ -127,7 +127,7 @@ export {
 export { PlainTextArea } from './lib/shapes/text/PlainTextArea'
 export { RichTextArea, type TextAreaProps } from './lib/shapes/text/RichTextArea'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
-export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'
+export { TextShapeUtil, type TextShapeOptions } from './lib/shapes/text/TextShapeUtil'
 export { VideoShapeUtil } from './lib/shapes/video/VideoShapeUtil'
 export { type StyleValuesForUi } from './lib/styles'
 export { EraserTool } from './lib/tools/EraserTool/EraserTool'

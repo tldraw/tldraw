@@ -260,7 +260,7 @@ describe('Other cases when arrow are moved', () => {
 			end: { toId: ids.box2, props: { isPrecise: false } },
 		})
 
-		// The arrow will move this time, so it should unbind
+		// The arrow will not move because it is still bound to another shape
 		editor.updateShapes([{ id: ids.box4, type: 'geo', y: -600 }])
 		editor.distributeShapes(editor.getSelectedShapeIds(), 'vertical')
 		jest.advanceTimersByTime(1000)

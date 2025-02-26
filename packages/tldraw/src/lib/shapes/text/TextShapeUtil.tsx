@@ -6,6 +6,7 @@ import {
 	ShapeUtil,
 	SvgExportContext,
 	TLFontFace,
+	TLGeometryOpts,
 	TLResizeInfo,
 	TLShapeId,
 	TLTextShape,
@@ -38,12 +39,21 @@ const sizeCache = createComputedCache(
 	},
 	{ areRecordsEqual: (a, b) => a.props === b.props }
 )
+/** @public */
+export interface TextShapeOptions {
+	/** How much addition padding should be added to the horizontal geometry of the shape when binding to an arrow? */
+	extraArrowHorizontalPadding: number
+}
 
 /** @public */
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	static override type = 'text' as const
 	static override props = textShapeProps
 	static override migrations = textShapeMigrations
+
+	override options: TextShapeOptions = {
+		extraArrowHorizontalPadding: 10,
+	}
 
 	getDefaultProps(): TLTextShape['props'] {
 		return {
@@ -62,11 +72,17 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return sizeCache.get(this.editor, shape.id)!
 	}
 
-	getGeometry(shape: TLTextShape) {
+	getGeometry(shape: TLTextShape, opts: TLGeometryOpts) {
 		const { scale } = shape.props
 		const { width, height } = this.getMinDimensions(shape)!
+		const context = opts?.context ?? 'none'
 		return new Rectangle2d({
-			width: width * scale,
+			x:
+				(context === '@tldraw/arrow-start' ? -this.options.extraArrowHorizontalPadding : 0) * scale,
+			width:
+				(width +
+					(context === '@tldraw/arrow-start' ? this.options.extraArrowHorizontalPadding * 2 : 0)) *
+				scale,
 			height: height * scale,
 			isFilled: true,
 			isLabel: true,
