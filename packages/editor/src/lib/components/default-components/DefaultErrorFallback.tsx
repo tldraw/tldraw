@@ -170,9 +170,11 @@ My browser: ${navigator.userAgent}`
 						<p>
 							If you keep seeing this screen, you can create a{' '}
 							<a href={url.toString()}>GitHub issue</a> or ask for help on{' '}
-							<a href="https://discord.gg/Cq6cPsTfNy">Discord</a>. If you are still stuck, you can
-							reset the tldraw data on your machine. This may erase the project you were working on,
-							so try to get help first.
+							<a href="https://discord.tldraw.com/?utm_source=sdk&utm_medium=organic&utm_campaign=error-screen">
+								Discord
+							</a>
+							. If you are still stuck, you can reset the tldraw data on your machine. This may
+							erase the project you were working on, so try to get help first.
 						</p>
 						{shouldShowError && (
 							<>
