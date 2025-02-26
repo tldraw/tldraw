@@ -75,23 +75,18 @@ async function build() {
 		)
 		.join('\n')
 
-	const spritesToPreload = ['0_merged-']
-	const spritePreloads = spritesToPreload
-		.map(
-			(sprite) => `<link
+	const spritePreload = `<link
 		rel="preload"
-		href="/assets/${assetsList.find((a) => a.startsWith(sprite))}"
+		href="/assets/${assetsList.find((a) => a.startsWith('0_merged-'))}"
 		as="image"
 		type="image/svg+xml"
 		crossorigin="anonymous"
 	/>`
-		)
-		.join('\n')
 
 	const indexHtml = readFileSync('.vercel/output/static/index.html', 'utf8')
 	const newIndex = indexHtml
 		.replace('<!-- $PRELOADED_FONTS -->', fontPreloads)
-		.replace('<!-- $PRELOADED_SPRITES -->', spritePreloads)
+		.replace('<!-- $PRELOADED_SPRITES -->', spritePreload)
 
 	writeFileSync('.vercel/output/static/index.html', newIndex)
 
