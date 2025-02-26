@@ -14,6 +14,7 @@ import {
 	getIncrementedName,
 	uniqueId,
 	useDialogs,
+	useMaybeEditor,
 	useToasts,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
@@ -25,6 +26,8 @@ import { useFileSidebarFocusContext } from '../../providers/FileInputFocusProvid
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
 import { defineMessages, useMsg } from '../../utils/i18n'
+import { editorMessages } from '../TlaEditor/editor-messages'
+import { download } from '../TlaEditor/useFileEditorOverrides'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 
 const messages = defineMessages({
@@ -87,6 +90,7 @@ export function FileItems({
 	onRenameAction(): void
 }) {
 	const app = useApp()
+	const editor = useMaybeEditor()
 	const { addDialog } = useDialogs()
 	const navigate = useNavigate()
 	const { addToast } = useToasts()
@@ -115,7 +119,7 @@ export function FileItems({
 		const newFileId = uniqueId()
 		const file = app.getFile(fileId)
 		if (!file) return
-		trackEvent('duplicate-file', { source: 'file-menu' })
+		trackEvent('duplicate-file', { source })
 		const res = app.createFile({
 			id: newFileId,
 			name: getDuplicateName(file, app),
@@ -131,7 +135,7 @@ export function FileItems({
 			focusCtx.shouldRenameNextNewFile = true
 			navigate(routes.tlaFile(newFileId))
 		}
-	}, [app, fileId, focusCtx, navigate, trackEvent])
+	}, [app, fileId, focusCtx, navigate, trackEvent, source])
 
 	const handleDeleteClick = useCallback(() => {
 		addDialog({
@@ -139,12 +143,22 @@ export function FileItems({
 		})
 	}, [fileId, addDialog])
 
+	const untitledProject = useMsg(editorMessages.untitledProject)
+	const handleDowloadClick = useCallback(async () => {
+		if (!editor) return
+		const defaultName =
+			app.getFileName(fileId, false) ?? editor.getDocumentSettings().name ?? untitledProject
+		trackEvent('download-file', { source })
+		await download(editor, defaultName)
+	}, [app, editor, fileId, source, trackEvent, untitledProject])
+
 	const copyLinkMsg = useMsg(messages.copyLink)
 	const renameMsg = useMsg(messages.rename)
 	const duplicateMsg = useMsg(messages.duplicate)
 	const pinMsg = useMsg(messages.pin)
 	const unpinMsg = useMsg(messages.unpin)
 	const deleteOrForgetMsg = useMsg(isOwner ? messages.delete : messages.forget)
+	const downloadFile = useMsg(editorMessages.downloadFile)
 
 	return (
 		<Fragment>
@@ -172,6 +186,14 @@ export function FileItems({
 					readonlyOk
 					onSelect={handlePinUnpinClick}
 				/>
+				{editor && (
+					<TldrawUiMenuItem
+						label={downloadFile}
+						id="download-file"
+						readonlyOk
+						onSelect={handleDowloadClick}
+					/>
+				)}
 				{/* <TldrawUiMenuItem label={intl.formatMessage(messages.pin)} id="pin" readonlyOk onSelect={handlePinClick} /> */}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">
