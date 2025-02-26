@@ -1,4 +1,5 @@
 import { atom, Atom, transact, UNINITIALIZED } from '@tldraw/state'
+import { assert } from '@tldraw/utils'
 
 /**
  * A drop-in replacement for Map that stores values in atoms and can be used in reactive contexts.
@@ -37,9 +38,7 @@ export class AtomMap<K, V> implements Map<K, V> {
 
 	get(key: K): V | undefined {
 		const value = this.getAtom(key)?.get()
-		if (value === UNINITIALIZED) {
-			return undefined
-		}
+		assert(value !== UNINITIALIZED)
 		return value
 	}
 
@@ -47,7 +46,7 @@ export class AtomMap<K, V> implements Map<K, V> {
 		const valueAtom = this.valueMap.get(key)
 		if (!valueAtom) return undefined
 		const value = valueAtom.__unsafe__getWithoutCapture()
-		if (value === UNINITIALIZED) return undefined
+		assert(value !== UNINITIALIZED)
 		return value
 	}
 
@@ -62,7 +61,8 @@ export class AtomMap<K, V> implements Map<K, V> {
 	__unsafe__hasWithoutCapture(key: K): boolean {
 		const valueAtom = this.valueMap.get(key)
 		if (!valueAtom) return false
-		return valueAtom.__unsafe__getWithoutCapture() !== UNINITIALIZED
+		assert(valueAtom.__unsafe__getWithoutCapture() !== UNINITIALIZED)
+		return true
 	}
 
 	set(key: K, value: V) {
@@ -89,9 +89,7 @@ export class AtomMap<K, V> implements Map<K, V> {
 				throw new Error(`AtomMap: key ${key} not found`)
 			}
 			const value = valueAtom.__unsafe__getWithoutCapture()
-			if (value === UNINITIALIZED) {
-				throw new Error(`AtomMap: key ${key} not found`)
-			}
+			assert(value !== UNINITIALIZED)
 			valueAtom.set(updater(value))
 		})
 	}
@@ -102,13 +100,13 @@ export class AtomMap<K, V> implements Map<K, V> {
 			if (!valueAtom) {
 				return false
 			}
+			this.valueMap.delete(key)
 			valueAtom.set(UNINITIALIZED)
 			this.presentKeysAtom.update((keys) => {
 				const newKeys = new Set(keys)
 				newKeys.delete(key)
 				return newKeys
 			})
-			this.valueMap.delete(key)
 			return true
 		})
 	}
@@ -122,16 +120,16 @@ export class AtomMap<K, V> implements Map<K, V> {
 				const valueAtom = this.valueMap.get(key)
 				if (!valueAtom) continue
 				const oldValue = valueAtom.get()
-				if (oldValue === UNINITIALIZED) continue
+				assert(oldValue !== UNINITIALIZED)
 
 				deleted.push([key, oldValue])
 
+				this.valueMap.delete(key)
 				valueAtom.set(UNINITIALIZED)
 				if (!newPresentKeys) {
 					newPresentKeys = new Set(this.presentKeysAtom.__unsafe__getWithoutCapture())
 				}
 				newPresentKeys.delete(key)
-				this.valueMap.delete(key)
 			}
 
 			if (newPresentKeys) {
@@ -153,31 +151,32 @@ export class AtomMap<K, V> implements Map<K, V> {
 	}
 
 	*entries(): Generator<[K, V], undefined, unknown> {
-		for (const key of this.presentKeysAtom.get()) {
-			const value = this.getAtom(key)!.get()
-			if (value === UNINITIALIZED) {
-				continue
-			}
+		// dereference the presentKeysAtom to make sure we track insertions
+		this.presentKeysAtom.get()
+		// then iterate over the valueMap so we get values inserted during iteration
+		for (const [key, valueAtom] of this.valueMap.entries()) {
+			const value = valueAtom.get()
+			assert(value !== UNINITIALIZED)
 			yield [key, value]
 		}
 	}
 
 	*keys(): Generator<K, undefined, unknown> {
-		for (const key of this.presentKeysAtom.get()) {
-			const value = this.getAtom(key)!.get()
-			if (value === UNINITIALIZED) {
-				continue
-			}
+		// dereference the presentKeysAtom to make sure we track insertions
+		this.presentKeysAtom.get()
+		// then iterate over the valueMap so we get keys inserted during iteration
+		for (const key of this.valueMap.keys()) {
 			yield key
 		}
 	}
 
 	*values(): Generator<V, undefined, unknown> {
-		for (const key of this.presentKeysAtom.get()) {
-			const value = this.getAtom(key)!.get()
-			if (value === UNINITIALIZED) {
-				continue
-			}
+		// dereference the presentKeysAtom to make sure we track insertions
+		this.presentKeysAtom.get()
+		// then iterate over the valueMap so we get values inserted during iteration
+		for (const valueAtom of this.valueMap.values()) {
+			const value = valueAtom.get()
+			assert(value !== UNINITIALIZED)
 			yield value
 		}
 	}
