@@ -36,7 +36,7 @@ export interface TLShapeUtilConstructor<
  *
  * @public
  */
-export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLShape> {
+export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLUnknownShape> {
 	/** The type of shape referenced by the `fromId` of the binding. */
 	fromShapeType: string
 	/** The type of shape referenced by the `toId` of the binding. */
@@ -46,7 +46,18 @@ export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLShape> 
 }
 
 /**
- * Additional options for the {@link ShapeUtil.getGeometry} method.
+ * Options passed to {@link ShapeUtil.canBeLaidOut}.
+ *
+ * @public
+ */
+export interface TLShapeUtilCanBeLaidOutOpts {
+	/** The type of action causing the layout. */
+	type?: 'align' | 'distribute' | 'pack' | 'stack' | 'flip' | 'stretch'
+	/** The other shapes being laid out */
+	shapes?: TLShape[]
+}
+
+/** Additional options for the {@link ShapeUtil.getGeometry} method.
  *
  * @public
  */
@@ -162,6 +173,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	/**
 	 * Whether the shape can be snapped to by another shape.
 	 *
+	 * @param shape - The shape.
 	 * @public
 	 */
 	canSnap(_shape: Shape): boolean {
@@ -182,7 +194,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	canBind(_opts: TLShapeUtilCanBindOpts<Shape>): boolean {
+	canBind(_opts: TLShapeUtilCanBindOpts): boolean {
 		return true
 	}
 
@@ -223,11 +235,15 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
-	 * Whether the shape participates in stacking, aligning, and distributing.
+	 * Whether the shape can participate in layout functions such as alignment or distribution.
+	 *
+	 * @param shape - The shape.
+	 * @param info - Additional context information: the type of action causing the layout and the
+	 * @public
 	 *
 	 * @public
 	 */
-	canBeLaidOut(_shape: Shape): boolean {
+	canBeLaidOut(_shape: Shape, _info: TLShapeUtilCanBeLaidOutOpts): boolean {
 		return true
 	}
 

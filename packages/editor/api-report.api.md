@@ -2507,8 +2507,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     constructor(editor: Editor);
     // @internal
     backgroundComponent?(shape: Shape): any;
-    canBeLaidOut(_shape: Shape): boolean;
-    canBind(_opts: TLShapeUtilCanBindOpts<Shape>): boolean;
+    canBeLaidOut(_shape: Shape, _info: TLShapeUtilCanBeLaidOutOpts): boolean;
+    canBind(_opts: TLShapeUtilCanBindOpts): boolean;
     canCrop(_shape: Shape): boolean;
     canDropShapes(_shape: Shape, _shapes: TLShape[]): boolean;
     canEdit(_shape: Shape): boolean;
@@ -3829,7 +3829,13 @@ export interface TLShapeIndicatorProps {
 }
 
 // @public
-export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLShape> {
+export interface TLShapeUtilCanBeLaidOutOpts {
+    shapes?: TLShape[];
+    type?: 'align' | 'distribute' | 'flip' | 'pack' | 'stack' | 'stretch';
+}
+
+// @public
+export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLUnknownShape> {
     bindingType: string;
     fromShapeType: string;
     toShapeType: string;
