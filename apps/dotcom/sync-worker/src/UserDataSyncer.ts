@@ -299,12 +299,13 @@ export class UserDataSyncer {
 
 		this.state.promise.resolve(null)
 		const initialData = this.store.getCommittedData()!
+
 		// do an unnecessary assign here to tell typescript that the state might have changed
-		const allFileIds = initialData.files.map((f) => f.id)
+		const guestFileIds = initialData.files.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
 		const res = await getReplicator(this.env).registerUser({
 			userId: this.userId,
 			lsn: initialData.lsn,
-			allFileIds,
+			guestFileIds,
 			bootId: this.state.bootId,
 		})
 
@@ -364,13 +365,20 @@ export class UserDataSyncer {
 	}
 
 	handleReplicationEvent(event: ZReplicationEvent) {
-		if (this.state.type === 'init') return
+		if (this.state.type === 'init') {
+			this.log.debug('ignoring during init', event)
+			return
+		}
 
 		// ignore irrelevant events
-		if (!event.sequenceId.endsWith(this.state.bootId)) return
+		if (!event.sequenceId.endsWith(this.state.bootId)) {
+			this.log.debug('ignoring irrelevant event', event)
+			return
+		}
 
 		// buffer events until we know the sequence numbers
 		if (this.state.type === 'connecting') {
+			this.log.debug('buffering event', event)
 			this.state.bufferedEvents.push(event)
 			return
 		}
@@ -400,7 +408,10 @@ export class UserDataSyncer {
 
 		// in the rare case that the replicator was behind us when we called registerUser,
 		// ignore any events that came in from before we got our initial data.
-		if (event.lsn <= this.store.getCommittedData()!.lsn) return
+		if (event.lsn < this.store.getCommittedData()!.lsn) {
+			this.log.debug('ignoring old event', event.lsn, '<', this.store.getCommittedData()!.lsn)
+			return
+		}
 
 		transact(() => {
 			for (const ev of event.changes) {
@@ -425,6 +436,18 @@ export class UserDataSyncer {
 				return
 			}
 		}
+
+		// and make sure we don't have any files we don't need
+		for (const file of data?.files ?? []) {
+			if (file.ownerId !== this.userId && !data?.fileStates.some((fs) => fs.fileId === file.id)) {
+				this.log.debug('extra file', file.id)
+				this.store.updateCommittedData({
+					event: 'delete',
+					row: { id: file.id },
+					table: 'file',
+				})
+			}
+		}
 	}
 
 	async addGuestFile(fileOrId: string | TlaFile) {
@@ -446,7 +469,7 @@ export class UserDataSyncer {
 		if (this.state.type === 'connecting') {
 			await this.state.promise
 		}
-		const data = this.store.getCommittedData()
+		const data = this.store.getFullData()
 		assert(data, 'data should be defined')
 		return data
 	}

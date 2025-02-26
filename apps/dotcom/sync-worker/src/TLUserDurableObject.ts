@@ -248,7 +248,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				if (!isUpdatingSelf)
 					throw new ZMutationError(
 						ZErrorCode.forbidden,
-						'Cannot update user record that is not our own'
+						'Cannot update user record that is not our own: ' + (update.row as TlaUser).id
 					)
 				// todo: prevent user from updating their email?
 				return

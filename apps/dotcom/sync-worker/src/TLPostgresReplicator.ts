@@ -627,42 +627,19 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		assert(row && 'userId' in row && 'fileId' in row, 'userId is required')
 		if (!this.userIsActive(row.userId)) return
 		if (event.command === 'insert') {
+			if (!row.isFileOwner) {
+				this.sqlite.exec(
+					`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
+					row.userId,
+					row.fileId
+				)
+			}
+		} else if (event.command === 'delete') {
 			this.sqlite.exec(
-				`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
+				`DELETE FROM user_file_subscriptions WHERE userId = ? AND fileId = ?`,
 				row.userId,
 				row.fileId
 			)
-		} else if (event.command === 'delete') {
-			// If the file state being deleted does not belong to the file owner,
-			// we need to send a delete event for the file to the user
-			const sub = this.sqlite
-				.exec(
-					`SELECT * FROM user_file_subscriptions WHERE userId = ? AND fileId = ?`,
-					row.userId,
-					row.fileId
-				)
-				.toArray()[0]
-			if (!sub) {
-				// the file was deleted before the file state
-				this.log.debug('file state deleted before file', row)
-			} else {
-				this.sqlite.exec(
-					`DELETE FROM user_file_subscriptions WHERE userId = ? AND fileId = ?`,
-					row.userId,
-					row.fileId
-				)
-				// We forward a file delete event to the user
-				// even if they are the file owner. This is because the file_state
-				// deletion might happen before the file deletion and we don't get the
-				// ownerId on file delete events
-				collator.addChange(row.userId, {
-					type: 'row_update',
-					row: { id: row.fileId } as any,
-					table: 'file',
-					event: 'delete',
-					userId: row.userId,
-				})
-			}
 		}
 		collator.addChange(row.userId, {
 			type: 'row_update',
@@ -679,11 +656,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		event: ReplicationEvent,
 		isReplay: boolean
 	) {
-		assert(row && 'id' in row, 'row id is required')
-		const impactedUserIds = this.sqlite
-			.exec('SELECT userId FROM user_file_subscriptions WHERE fileId = ?', row.id)
-			.toArray()
-			.map((x) => x.userId as string)
+		assert(row && 'id' in row && 'ownerId' in row, 'row id is required')
+		const impactedUserIds = [
+			row.ownerId,
+			...this.sqlite
+				.exec('SELECT userId FROM user_file_subscriptions WHERE fileId = ?', row.id)
+				.toArray()
+				.map((x) => x.userId as string),
+		]
 		// if the file state was deleted before the file, we might not have any impacted users
 		if (event.command === 'delete') {
 			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordDidDelete()
@@ -693,9 +673,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordDidUpdate(row as TlaFile)
 		} else if (event.command === 'insert') {
 			assert('ownerId' in row, 'ownerId is required when inserting file')
-			if (!impactedUserIds.includes(row.ownerId)) {
-				impactedUserIds.push(row.ownerId)
-			}
 			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordCreated(row as TlaFile)
 		}
 		for (const userId of impactedUserIds) {
@@ -870,16 +847,16 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	async registerUser({
 		userId,
 		lsn,
-		allFileIds,
+		guestFileIds,
 		bootId,
 	}: {
 		userId: string
 		lsn: string
-		allFileIds: string[]
+		guestFileIds: string[]
 		bootId: string
 	}): Promise<{ type: 'done'; sequenceId: string; sequenceNumber: number } | { type: 'reboot' }> {
 		try {
-			this.log.debug('registering user', userId, lsn, bootId, allFileIds)
+			this.log.debug('registering user', userId, lsn, bootId, guestFileIds)
 			this.logEvent({ type: 'register_user' })
 
 			// clear user and subscriptions
@@ -892,19 +869,19 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			)
 
 			this.sqlite.exec(`DELETE FROM user_file_subscriptions WHERE userId = ?`, userId)
-			for (const fileId of allFileIds) {
+			for (const fileId of guestFileIds) {
 				this.sqlite.exec(
 					`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
 					userId,
 					fileId
 				)
 			}
-			this.log.debug('inserted file subscriptions', allFileIds.length)
+			this.log.debug('inserted file subscriptions', guestFileIds.length)
 
 			this.reportActiveUsers()
 			this.log.debug('inserted active user')
 
-			const resume = await this.getResumeType(lsn, userId, allFileIds)
+			const resume = await this.getResumeType(lsn, userId, guestFileIds)
 			if (resume.type === 'reboot') {
 				return { type: 'reboot' }
 			}
