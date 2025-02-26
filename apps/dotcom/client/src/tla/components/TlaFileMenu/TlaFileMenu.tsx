@@ -192,7 +192,6 @@ export function FileItems({
 					readonlyOk
 					onSelect={handleDownloadClick}
 				/>
-				{/* <TldrawUiMenuItem label={intl.formatMessage(messages.pin)} id="pin" readonlyOk onSelect={handlePinClick} /> */}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">
 				<TldrawUiMenuItem
