@@ -7,7 +7,6 @@ import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
-	TldrawUiMenuActionItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
@@ -174,7 +173,6 @@ export function FileItems({
 					onSelect={handlePinUnpinClick}
 				/>
 				{/* <TldrawUiMenuItem label={intl.formatMessage(messages.pin)} id="pin" readonlyOk onSelect={handlePinClick} /> */}
-				<TldrawUiMenuActionItem actionId={'save-file-copy'} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">
 				<TldrawUiMenuItem
