@@ -103,6 +103,10 @@ describe('AtomMap', () => {
 			map.delete('a')
 			expect(reactor).toHaveBeenCalledTimes(4)
 			expect(reactor).toHaveLastReturnedWith(false)
+
+			map.set('a', 2)
+			expect(reactor).toHaveBeenCalledTimes(5) // reinstating a previously deleted atom works
+			expect(reactor).toHaveLastReturnedWith(true)
 		})
 
 		it('should not react to changes in other keys', () => {

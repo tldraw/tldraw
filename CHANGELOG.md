@@ -1,3 +1,24 @@
+# v3.8.1 (Thu Feb 13 2025)
+
+### Release Notes
+
+#### 3.8.1 ([#5429](https://github.com/tldraw/tldraw/pull/5429))
+
+- Fix `TldrawImage` not working with `format=png`
+
+---
+
+#### 🐛 Bug Fix
+
+- `@tldraw/editor`
+  - 3.8.1 [#5429](https://github.com/tldraw/tldraw/pull/5429) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+---
+
 # v3.8.0 (Wed Feb 12 2025)
 
 ### Release Notes

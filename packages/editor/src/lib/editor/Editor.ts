@@ -4309,7 +4309,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				'bounds',
 				(shape) => {
 					this.fonts.trackFontsForShape(shape)
-					return this.getShapeUtil(shape).getGeometry(shape)
+					return this.getShapeUtil(shape).getGeometry(shape, opts)
 				},
 				{ areRecordsEqual: (a, b) => a.props === b.props }
 			)

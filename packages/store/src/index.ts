@@ -17,7 +17,7 @@ export {
 	type ChangeSource,
 	type CollectionDiff,
 	type ComputedCache,
-	type ComputedCacheOpts,
+	type CreateComputedCacheOpts,
 	type HistoryEntry,
 	type RecordFromId,
 	type SerializedStore,

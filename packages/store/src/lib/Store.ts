@@ -69,7 +69,7 @@ export interface ComputedCache<Data, R extends UnknownRecord> {
 }
 
 /** @public */
-export interface ComputedCacheOpts<Data, R extends UnknownRecord> {
+export interface CreateComputedCacheOpts<Data, R extends UnknownRecord> {
 	areRecordsEqual?(a: R, b: R): boolean
 	areResultsEqual?(a: Data, b: Data): boolean
 }
@@ -350,8 +350,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 			for (let i = 0, n = records.length; i < n; i++) {
 				record = records[i]
-
-				// const recordAtom = (map ?? currentMap)[record.id as IdOf<R>]
 
 				const initialValue = this.records.__unsafe__getWithoutCapture(record.id)
 				// If we already have an atom for this record, update its value.
@@ -742,6 +740,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		}, runCallbacks)
 	}
 
+	/**
+	 * Create a cache based on values in the store. Pass in a function that takes and ID and a
+	 * signal for the underlying record. Return a signal (usually a computed) for the cached value.
+	 * For simple derivations, use {@link Store.createComputedCache}. This function is useful if you
+	 * need more precise control over intermediate values.
+	 */
 	createCache<Result, Record extends R = R>(
 		create: (id: IdOf<Record>, recordSignal: Signal<R>) => Signal<Result>
 	) {
@@ -766,7 +770,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	createComputedCache<Result, Record extends R = R>(
 		name: string,
 		derive: (record: Record) => Result | undefined,
-		opts?: ComputedCacheOpts<Result, Record>
+		opts?: CreateComputedCacheOpts<Result, Record>
 	): ComputedCache<Result, Record> {
 		return this.createCache((id, record) => {
 			const recordSignal = opts?.areRecordsEqual
@@ -981,7 +985,7 @@ export function createComputedCache<
 >(
 	name: string,
 	derive: (context: Context, record: Record) => Result | undefined,
-	opts?: ComputedCacheOpts<Result, Record>
+	opts?: CreateComputedCacheOpts<Result, Record>
 ) {
 	const cache = new WeakCache<Context, ComputedCache<Result, Record>>()
 	return {
