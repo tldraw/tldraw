@@ -75,7 +75,7 @@ async function build() {
 		)
 		.join('\n')
 
-	const spritesToPreload = ['0_merged_tla-', '0_merged-']
+	const spritesToPreload = ['0_merged-']
 	const spritePreloads = spritesToPreload
 		.map(
 			(sprite) => `<link
