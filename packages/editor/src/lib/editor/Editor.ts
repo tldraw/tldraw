@@ -4227,7 +4227,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._shapeGeometryCaches[context] = this.store.createComputedCache(
 				'bounds',
 				(shape) => this.getShapeUtil(shape).getGeometry(shape, opts),
-				(a, b) => a.props === b.props
+				{ areRecordsEqual: (a, b) => a.props === b.props }
 			)
 		}
 		return this._shapeGeometryCaches[context].get(
