@@ -348,8 +348,19 @@ export class TldrawApp {
 				Object.assign(file, { name: this.getFallbackFileName(file.createdAt) })
 			}
 		}
-
-		this.z.mutate.file.create(file)
+		this.z.mutate((tx) => {
+			tx.file.create(file)
+			tx.file_state.create({
+				isFileOwner: true,
+				fileId: file.id,
+				userId: this.userId,
+				firstVisitAt: null,
+				isPinned: false,
+				lastEditAt: null,
+				lastSessionState: null,
+				lastVisitAt: null,
+			})
+		})
 
 		return Result.ok({ file })
 	}
