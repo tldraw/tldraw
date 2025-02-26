@@ -144,7 +144,7 @@ export function FileItems({
 	}, [fileId, addDialog])
 
 	const untitledProject = useMsg(editorMessages.untitledProject)
-	const handleDowloadClick = useCallback(async () => {
+	const handleDownloadClick = useCallback(async () => {
 		if (!editor) return
 		const defaultName =
 			app.getFileName(fileId, false) ?? editor.getDocumentSettings().name ?? untitledProject
@@ -191,7 +191,7 @@ export function FileItems({
 						label={downloadFile}
 						id="download-file"
 						readonlyOk
-						onSelect={handleDowloadClick}
+						onSelect={handleDownloadClick}
 					/>
 				)}
 				{/* <TldrawUiMenuItem label={intl.formatMessage(messages.pin)} id="pin" readonlyOk onSelect={handlePinClick} /> */}
