@@ -107,9 +107,6 @@ const migrations: Migration[] = [
 			);
 			CREATE INDEX history_lsn_userId ON history (lsn, userId);
 			CREATE INDEX history_lsn_fileId ON history (lsn, fileId);
-
-			DELETE FROM active_user;
-			ALTER TABLE active_user ADD COLUMN startLsn TEXT NOT NULL;
 		`,
 	},
 ]
@@ -755,16 +752,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private async _messageUser(userId: string, event: ZReplicationEventWithoutSequenceInfo) {
 		this.log.debug('messageUser', userId, event)
-		const user = this.sqlite
-			.exec<{ startLsn: string }>('SELECT startLsn FROM active_user WHERE id = ?', userId)
-			.toArray()[0]
-		if (!user) {
-			this.log.debug('no user found')
-			this.log.debug(this.sqlite.exec('SELECT * FROM active_user').toArray())
-		}
-		if (event.type === 'changes' && event.lsn <= user.startLsn) {
-			// wait until we catch up with the user
-			this.log.debug('waiting for user', event.lsn, '<=', user.startLsn)
+		if (!this.userIsActive(userId)) {
+			this.log.debug('user is not active', userId)
 			return
 		}
 		try {
@@ -810,9 +799,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	async getResumeType(
+	private async getResumeType(
 		lsn: string,
-		userId: string
+		userId: string,
+		guestFileIds: string[]
 	): Promise<
 		{ type: 'done'; messages?: ZReplicationEventWithoutSequenceInfo[] } | { type: 'reboot' }
 	> {
@@ -822,13 +812,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			await sleep(1000)
 			currentLsn = this.getCurrentLsn()
 		}
-		const guestFiles = this.sqlite
-			.exec<{ fileId: string }>(
-				'SELECT fileId FROM user_file_subscriptions WHERE userId = ?',
-				userId
-			)
-			.toArray()
-			.map((x) => x.fileId)
 
 		if (lsn >= currentLsn) {
 			// targetLsn is now or in the future, we can register them and deliver events
@@ -838,14 +821,12 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		const earliestLsn = this.sqlite
 			.exec<{ lsn: string }>('SELECT lsn FROM history ORDER BY rowid asc LIMIT 1')
 			.toArray()[0]?.lsn
-		if (!earliestLsn) {
-			// no history, we can't resume
+
+		if (!earliestLsn || lsn < earliestLsn) {
+			// not enough history, we can't resume
 			return { type: 'reboot' }
 		}
-		if (lsn < earliestLsn) {
-			// the target lsn is before the earliest history entry, we can't resume
-			return { type: 'reboot' }
-		}
+
 		const history = this.sqlite
 			.exec<{ json: string; lsn: string }>(
 				`
@@ -855,13 +836,13 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			  lsn > ?
 				AND (
 				  userId = ? 
-					OR fileId IN (${guestFiles.map((_, i) => '$' + (i + 1)).join(', ')})
+					OR fileId IN (${guestFileIds.map((_, i) => '$' + (i + 1)).join(', ')})
 				)
 			ORDER BY rowid ASC
 		`,
 				lsn,
 				userId,
-				...guestFiles
+				...guestFileIds
 			)
 			.toArray()
 			.map(({ json, lsn }) => ({ change: JSON.parse(json) as Change, lsn }))
@@ -903,11 +884,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			// clear user and subscriptions
 			this.sqlite.exec(`DELETE FROM active_user WHERE id = ?`, userId)
 			this.sqlite.exec(
-				`INSERT INTO active_user (id, sequenceNumber, sequenceIdSuffix, lastUpdatedAt, startLsn) VALUES (?, 0, ?, ?, ?)`,
+				`INSERT INTO active_user (id, sequenceNumber, sequenceIdSuffix, lastUpdatedAt) VALUES (?, 0, ?, ?)`,
 				userId,
 				bootId,
-				Date.now(),
-				lsn
+				Date.now()
 			)
 
 			this.sqlite.exec(`DELETE FROM user_file_subscriptions WHERE userId = ?`, userId)
@@ -923,7 +903,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			this.reportActiveUsers()
 			this.log.debug('inserted active user')
 
-			const resume = await this.getResumeType(lsn, userId)
+			const resume = await this.getResumeType(lsn, userId, guestFileIds)
 			if (resume.type === 'reboot') {
 				return { type: 'reboot' }
 			}

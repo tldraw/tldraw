@@ -6890,6 +6890,7 @@ __metadata:
     "@supabase/auth-helpers-remix": "npm:^0.2.6"
     "@supabase/supabase-js": "npm:^2.48.1"
     "@tldraw/dotcom-shared": "workspace:*"
+    "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
     "@tldraw/tlschema": "workspace:*"

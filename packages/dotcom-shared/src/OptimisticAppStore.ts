@@ -100,6 +100,13 @@ export class OptimisticAppStore {
 		})
 	}
 
+	commitLsn(lsn: string) {
+		this._gold_store.update((prev) => {
+			if (!prev) return prev
+			return { ...prev, lsn }
+		})
+	}
+
 	applyUpdate(prev: ZStoreData, update: ZRowUpdate) {
 		const { row, table, event } = update
 		if (table === 'user') {

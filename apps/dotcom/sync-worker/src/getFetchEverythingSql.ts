@@ -49,7 +49,7 @@ SELECT 'file' AS "table", null::text as "lsn", ${sql.raw(userNulls + ',' + fileC
 UNION
 SELECT 'file_state' AS "table", null::text as "lsn", ${sql.raw(userNulls + ',' + fileNulls + ',' + fileStateColumns)} FROM public.file_state WHERE "userId" = '${sql.raw(userId)}'
 UNION
-SELECT 'meta' as "table", pg_current_wal_lsn()::text as "lsn", ${sql.raw(userNulls + ',' + fileNulls + ',' + fileStateNulls)} FROM public.user_mutation_number WHERE "userId" = '${sql.raw(userId)}';
+SELECT 'meta' as "table", pg_current_wal_lsn()::text as "lsn", ${sql.raw(userNulls + ',' + fileNulls + ',' + fileStateNulls)};
 `
 }
 

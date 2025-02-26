@@ -1,6 +1,7 @@
 import {
 	DB,
 	OptimisticAppStore,
+	TlaFile,
 	TlaRow,
 	ZEvent,
 	ZRowUpdate,
@@ -8,6 +9,7 @@ import {
 	ZStoreData,
 	ZTable,
 } from '@tldraw/dotcom-shared'
+import { transact } from '@tldraw/state'
 import {
 	ExecutionQueue,
 	assert,
@@ -195,11 +197,18 @@ export class UserDataSyncer {
 	}
 
 	private async loadInitialDataFromR2() {
+		this.log.debug('loading snapshot from R2')
 		const res = await this.env.UPLOADS.get(this.getSnapshotKey())
-		if (!res) return null
+		if (!res) {
+			this.log.debug('no snapshot found')
+			return null
+		}
 		const data = (await res.json()) as StateSnapshot
-		if (data.version !== stateVersion) return null
-		this.log.debug('loaded snapshot')
+		if (data.version !== stateVersion) {
+			this.log.debug('snapshot version mismatch')
+			return null
+		}
+		this.log.debug('loaded snapshot from R2')
 		return data
 	}
 
@@ -207,7 +216,8 @@ export class UserDataSyncer {
 		return 'user_do_snapshots/' + this.userId
 	}
 
-	private async getFreshInitialData() {
+	private async loadInitialDataFromPostgres() {
+		this.log.debug('fetching fresh initial data from postgres')
 		// if the bootId changes during the boot process, we should stop silently
 		const userSql = getFetchUserDataSql(this.userId)
 		const initialData: ZStoreData = {
@@ -266,7 +276,6 @@ export class UserDataSyncer {
 		this.state = {
 			type: 'connecting',
 			// preserve the promise so any awaiters do eventually get resolved
-			// TODO: set a timeout on the promise?
 			promise: 'promise' in this.state ? this.state.promise : promiseWithResolve(),
 			bootId: uniqueId(),
 			bufferedEvents: [],
@@ -274,16 +283,15 @@ export class UserDataSyncer {
 		/**
 		 * BOOTUP SEQUENCE
 		 * 1. Generate a unique boot id
-		 * 2. Subscribe to all changes
-		 * 3. Fetch all data and write the boot id in a transaction
-		 * 4. If we receive events before the boot id update comes through, ignore them
-		 * 5. If we receive events after the boot id comes through but before we've finished
-		 *    fetching all data, buffer them and apply them after we've finished fetching all data.
-		 *    (not sure this is possible, but just in case)
-		 * 6. Once we've finished fetching all data, apply any buffered events
+		 * 2. Fetch data from R2, or fetch fresh data from postgres
+		 * 3. Send initial data to client
+		 * 4. Register with the replicator
+		 * 5. Ignore any events that come in before the sequence id ends with our boot id
+		 * 6. Buffer any events that come in with a valid sequence id
+		 * 7. Once the replicator responds to the registration request, apply the buffered events
 		 */
 		if (!this.store.getCommittedData()) {
-			const res = (await this.loadInitialDataFromR2()) ?? (await this.getFreshInitialData())
+			const res = (await this.loadInitialDataFromR2()) ?? (await this.loadInitialDataFromPostgres())
 
 			this.log.debug('got initial data')
 			this.store.initialize(res.initialData, res.optimisticUpdates)
@@ -390,15 +398,48 @@ export class UserDataSyncer {
 		// so its job is done.
 		if (event.type === 'maybe_force_reboot') return
 
-		for (const ev of event.changes) {
-			if (ev.type === 'mutation_commit') {
-				this.commitMutations(ev.mutationNumber)
-				continue
+		// in the rare case that the replicator was behind us when we called registerUser,
+		// ignore any events that came in from before we got our initial data.
+		if (event.lsn <= this.store.getCommittedData()!.lsn) return
+
+		transact(() => {
+			for (const ev of event.changes) {
+				if (ev.type === 'mutation_commit') {
+					this.commitMutations(ev.mutationNumber)
+					continue
+				}
+
+				assert(ev.type === 'row_update', `event type should be row_update got ${event.type}`)
+				this.handleRowUpdateEvent(ev)
 			}
 
-			assert(ev.type === 'row_update', `event type should be row_update got ${event.type}`)
-			this.handleRowUpdateEvent(ev)
+			this.store.commitLsn(event.lsn)
+		})
+
+		// make sure we have all the files we need
+		const data = this.store.getCommittedData()
+		for (const fileState of data?.fileStates ?? []) {
+			if (!data?.files.some((f) => f.id === fileState.fileId)) {
+				this.log.debug('missing file', fileState.fileId)
+				this.addGuestFile(fileState.fileId)
+				return
+			}
 		}
+	}
+
+	async addGuestFile(fileOrId: string | TlaFile) {
+		const file =
+			typeof fileOrId === 'string'
+				? await this.db.selectFrom('file').where('id', '=', fileOrId).selectAll().executeTakeFirst()
+				: fileOrId
+		if (!file) return
+		const update: ZRowUpdate = {
+			event: 'insert',
+			row: file,
+			table: 'file',
+		}
+		this.store.updateCommittedData(update)
+		this.broadcast({ type: 'update', update })
 	}
 
 	async getInitialData() {
@@ -427,7 +468,7 @@ export class UserDataSyncer {
 		}
 		for (const mutation of this.mutations) {
 			if (Date.now() - mutation.timestamp > 5000) {
-				this.log.debug("Mutations haven't been committed for 5 seconds, rebooting")
+				this.log.debug("Mutations haven't been committed for 5 seconds, rebooting", mutation)
 				this.reboot()
 				break
 			}

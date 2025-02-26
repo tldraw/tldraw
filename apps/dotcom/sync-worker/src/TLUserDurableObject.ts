@@ -15,7 +15,7 @@ import {
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { assert } from '@tldraw/utils'
+import { assert, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -338,6 +338,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								.selectFrom('file')
 								.where('id', '=', fileId)
 								.where('ownerId', '!=', userId)
+								.selectAll()
 								.executeTakeFirst()
 							if (guestFile) {
 								newGuestFiles.push(guestFile as any as TlaFile)
@@ -435,29 +436,29 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		for (const file of insertedFiles) {
 			getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
 		}
-		return newGuestFiles
+		for (const file of newGuestFiles) {
+			this.cache.addGuestFile(file)
+		}
 	}
 
 	private async handleMutate(socket: WebSocket, msg: ZClientSentMessage) {
 		this.assertCache()
+		while (!this.cache.store.getCommittedData()) {
+			// this could happen if the cache was cleared due to a full db reboot
+			await sleep(100)
+		}
+		this.log.debug('mutation', this.userId, msg)
 		try {
 			// we connect to pg via a pooler, so in the case that the pool is exhausted
 			// we need to retry the connection. (also in the case that a neon branch is asleep apparently?)
-			const newGuestFiles = await retryOnConnectionFailure(
+			await retryOnConnectionFailure(
 				() => this._doMutate(msg),
 				() => {
 					this.logEvent({ type: 'connect_retry', id: this.userId! })
 				}
 			)
 			// TODO: We should probably handle a case where the above operation succeeds but the one below fails
-			this.log.debug('mutation success', this.userId)
-			for (const file of newGuestFiles) {
-				this.cache.store.updateCommittedData({
-					event: 'insert',
-					row: file,
-					table: 'file',
-				})
-			}
+			this.log.debug('mutation success', this.userId, 'new guest files')
 			await this.db
 				.transaction()
 				.execute(async (tx) => {
