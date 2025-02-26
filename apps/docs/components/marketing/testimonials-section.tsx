@@ -29,8 +29,8 @@ export function TestimonialsSection() {
 				heading="Friends of the draw"
 				description={
 					<>
-						36,000 <Link href="https://github.com/tldraw">GitHub stars</Link>. 62,000 followers on{' '}
-						<Link href="https://x.com/tldraw">Twitter/X</Link>. Join the 7,500 strong community on{' '}
+						39,000 <Link href="https://github.com/tldraw">GitHub stars</Link>. 66,000 followers on{' '}
+						<Link href="https://x.com/tldraw">Twitter/X</Link>. Join the 8,000 strong community on{' '}
 						<Link href="https://discord.com/invite/SBBEVCA4PG">Discord</Link>.
 					</>
 				}

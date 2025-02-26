@@ -477,7 +477,7 @@ export function clamp(n: number, min: number, max: number): number;
 export function clampRadians(r: number): number;
 
 // @internal (undocumented)
-export function clampToBrowserMaxCanvasSize(width: number, height: number): Promise<number[]>;
+export function clampToBrowserMaxCanvasSize(width: number, height: number): number[];
 
 // @public (undocumented)
 export class ClickManager {
@@ -1162,6 +1162,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     edgeScrollManager: EdgeScrollManager;
     // @deprecated
     readonly environment: {
+        hasCanvasSupport: boolean;
         isAndroid: boolean;
         isChromeForIos: boolean;
         isDarwin: boolean;
@@ -1292,7 +1293,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         renderingOnly?: boolean | undefined;
     }): TLShape | undefined;
     getShapeClipPath(shape: TLShape | TLShapeId): string | undefined;
-    getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId): T;
+    getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T;
     getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined;
     getShapeLocalTransform(shape: TLShape | TLShapeId): Mat;
     getShapeMask(shape: TLShape | TLShapeId): undefined | VecLike[];
@@ -2506,8 +2507,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     constructor(editor: Editor);
     // @internal
     backgroundComponent?(shape: Shape): any;
-    canBeLaidOut(_shape: Shape): boolean;
-    canBind(_opts: TLShapeUtilCanBindOpts<Shape>): boolean;
+    canBeLaidOut(_shape: Shape, _info: TLShapeUtilCanBeLaidOutOpts): boolean;
+    canBind(_opts: TLShapeUtilCanBindOpts): boolean;
     canCrop(_shape: Shape): boolean;
     canDropShapes(_shape: Shape, _shapes: TLShape[]): boolean;
     canEdit(_shape: Shape): boolean;
@@ -2527,7 +2528,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     getBoundsSnapGeometry(_shape: Shape): BoundsSnapGeometry;
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     abstract getDefaultProps(): Shape['props'];
-    abstract getGeometry(shape: Shape): Geometry2d;
+    abstract getGeometry(shape: Shape, opts?: TLGeometryOpts): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
     getHandleSnapGeometry(_shape: Shape): HandleSnapGeometry;
     getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props'];
@@ -3293,6 +3294,7 @@ export type TLEnterEventHandler = (info: any, from: string) => void;
 
 // @public
 export const tlenv: {
+    hasCanvasSupport: boolean;
     isAndroid: boolean;
     isChromeForIos: boolean;
     isDarwin: boolean;
@@ -3460,6 +3462,11 @@ export interface TLFilesExternalContent extends TLBaseExternalContent {
     ignoreParent: boolean;
     // (undocumented)
     type: 'files';
+}
+
+// @public
+export interface TLGeometryOpts {
+    context?: string;
 }
 
 // @public (undocumented)
@@ -3822,7 +3829,13 @@ export interface TLShapeIndicatorProps {
 }
 
 // @public
-export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLShape> {
+export interface TLShapeUtilCanBeLaidOutOpts {
+    shapes?: TLShape[];
+    type?: 'align' | 'distribute' | 'flip' | 'pack' | 'stack' | 'stretch';
+}
+
+// @public
+export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLUnknownShape> {
     bindingType: string;
     fromShapeType: string;
     toShapeType: string;

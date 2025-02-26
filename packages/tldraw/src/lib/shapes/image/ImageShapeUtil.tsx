@@ -6,11 +6,14 @@ import {
 	Image,
 	MediaHelpers,
 	SvgExportContext,
+	TLAsset,
+	TLAssetId,
 	TLImageShape,
 	TLImageShapeProps,
 	TLResizeInfo,
 	TLShapePartial,
 	Vec,
+	WeakCache,
 	fetch,
 	imageShapeMigrations,
 	imageShapeProps,
@@ -36,6 +39,8 @@ async function getDataURIFromURL(url: string): Promise<string> {
 	const blob = await response.blob()
 	return FileHelpers.blobToDataUrl(blob)
 }
+
+const imageSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 
 /** @public */
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
@@ -121,17 +126,29 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		if (!asset) return null
 
 		const { w } = getUncroppedSize(shape.props, shape.props.crop)
-		let src = await ctx.resolveAssetUrl(shape.props.assetId, w)
+
+		const src = await imageSvgExportCache.get(asset, async () => {
+			let src = await ctx.resolveAssetUrl(asset.id, w)
+			if (!src) return null
+			if (
+				src.startsWith('blob:') ||
+				src.startsWith('http') ||
+				src.startsWith('/') ||
+				src.startsWith('./')
+			) {
+				// If it's a remote image, we need to fetch it and convert it to a data URI
+				src = (await getDataURIFromURL(src)) || ''
+			}
+
+			// If it's animated then we need to get the first frame
+			if (getIsAnimated(this.editor, asset.id)) {
+				const { promise } = getFirstFrameOfAnimatedImage(src)
+				src = await promise
+			}
+			return src
+		})
+
 		if (!src) return null
-		if (
-			src.startsWith('blob:') ||
-			src.startsWith('http') ||
-			src.startsWith('/') ||
-			src.startsWith('./')
-		) {
-			// If it's a remote image, we need to fetch it and convert it to a data URI
-			src = (await getDataURIFromURL(src)) || ''
-		}
 
 		return <SvgImage shape={shape} src={src} />
 	}
@@ -216,32 +233,19 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 	const [staticFrameSrc, setStaticFrameSrc] = useState('')
 	const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
 
-	const isAnimated = getIsAnimated(editor, shape)
+	const isAnimated = asset && getIsAnimated(editor, asset.id)
 
 	useEffect(() => {
 		if (url && isAnimated) {
-			let cancelled = false
+			const { promise, cancel } = getFirstFrameOfAnimatedImage(url)
 
-			const image = Image()
-			image.onload = () => {
-				if (cancelled) return
-
-				const canvas = document.createElement('canvas')
-				canvas.width = image.width
-				canvas.height = image.height
-
-				const ctx = canvas.getContext('2d')
-				if (!ctx) return
-
-				ctx.drawImage(image, 0, 0)
-				setStaticFrameSrc(canvas.toDataURL())
+			promise.then((dataUrl) => {
+				setStaticFrameSrc(dataUrl)
 				setLoadedUrl(url)
-			}
-			image.crossOrigin = 'anonymous'
-			image.src = url
+			})
 
 			return () => {
-				cancelled = true
+				cancel()
 			}
 		}
 	}, [editor, isAnimated, prefersReducedMotion, url])
@@ -348,8 +352,8 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 	)
 })
 
-function getIsAnimated(editor: Editor, shape: TLImageShape) {
-	const asset = shape.props.assetId ? editor.getAsset(shape.props.assetId) : undefined
+function getIsAnimated(editor: Editor, assetId: TLAssetId) {
+	const asset = assetId ? editor.getAsset(assetId) : undefined
 
 	if (!asset) return false
 
@@ -407,6 +411,7 @@ function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
 	const cropClipId = useUniqueSafeId()
 	const containerStyle = getCroppedContainerStyle(shape)
 	const crop = shape.props.crop
+
 	if (containerStyle.transform && crop) {
 		const { transform: cropTransform, width, height } = containerStyle
 		const croppedWidth = (crop.bottomRight.x - crop.topLeft.x) * width
@@ -452,4 +457,29 @@ function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
 			/>
 		)
 	}
+}
+
+function getFirstFrameOfAnimatedImage(url: string) {
+	let cancelled = false
+
+	const promise = new Promise<string>((resolve) => {
+		const image = Image()
+		image.onload = () => {
+			if (cancelled) return
+
+			const canvas = document.createElement('canvas')
+			canvas.width = image.width
+			canvas.height = image.height
+
+			const ctx = canvas.getContext('2d')
+			if (!ctx) return
+
+			ctx.drawImage(image, 0, 0)
+			resolve(canvas.toDataURL())
+		}
+		image.crossOrigin = 'anonymous'
+		image.src = url
+	})
+
+	return { promise, cancel: () => (cancelled = true) }
 }

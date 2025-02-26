@@ -98,6 +98,10 @@
 		inset 0px 0px 0px 1px var(--tla-color-panel);
 }
 
+.tla-focus-mode .tl-watermark_SEE-LICENSE {
+	visibility: hidden;
+}
+
 .tla .tl-container {
 	font-family: var(--tla-font-ui);
 	font-size: 12px;
