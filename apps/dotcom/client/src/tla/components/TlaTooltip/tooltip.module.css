@@ -1,0 +1,25 @@
+.tooltip {
+	font-size: 12px;
+	padding: 2px 8px;
+	border-radius: 4px;
+	background-color: var(--tla-color-tooltip);
+	box-shadow: none;
+	color: var(--color-text-shadow);
+	animation-name: fade-in;
+	animation-duration: 0.1s;
+	z-index: 500;
+}
+
+.tooltipArrow {
+	fill: var(--tla-color-tooltip);
+	will-change: opacity;
+}
+
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}

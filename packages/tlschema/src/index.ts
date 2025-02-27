@@ -24,7 +24,12 @@ export {
 	createBindingValidator,
 	type TLBaseBinding,
 } from './bindings/TLBaseBinding'
-export { createPresenceStateDerivation } from './createPresenceStateDerivation'
+export {
+	createPresenceStateDerivation,
+	getDefaultUserPresence,
+	type TLPresenceStateInfo,
+	type TLPresenceUserInfo,
+} from './createPresenceStateDerivation'
 export {
 	createTLSchema,
 	defaultBindingSchemas,
@@ -56,6 +61,7 @@ export {
 	type TLAssetId,
 	type TLAssetPartial,
 	type TLAssetShape,
+	type TLMediaAsset,
 } from './records/TLAsset'
 export {
 	createBindingId,
@@ -72,7 +78,12 @@ export {
 	type TLUnknownBinding,
 } from './records/TLBinding'
 export { CameraRecordType, type TLCamera, type TLCameraId } from './records/TLCamera'
-export { DocumentRecordType, TLDOCUMENT_ID, type TLDocument } from './records/TLDocument'
+export {
+	DocumentRecordType,
+	TLDOCUMENT_ID,
+	isDocument,
+	type TLDocument,
+} from './records/TLDocument'
 export {
 	TLINSTANCE_ID,
 	pluckPreservingValues,
@@ -124,6 +135,7 @@ export {
 	type TLPropsMigration,
 	type TLPropsMigrations,
 } from './recordsWithProps'
+export { type ShapeWithCrop, type TLShapeCrop } from './shapes/ShapeWithCrop'
 export {
 	ArrowShapeArrowheadEndStyle,
 	ArrowShapeArrowheadStartStyle,
@@ -195,7 +207,6 @@ export {
 	imageShapeMigrations,
 	imageShapeProps,
 	type TLImageShape,
-	type TLImageShapeCrop,
 	type TLImageShapeProps,
 } from './shapes/TLImageShape'
 export {

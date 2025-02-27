@@ -1,5 +1,5 @@
 import { throttle } from 'lodash'
-import { useLayoutEffect, useState } from 'react'
+import { useLayoutEffect, useMemo, useState } from 'react'
 import { DefaultSpinner, Tldraw, createTLStore, getSnapshot, loadSnapshot } from 'tldraw'
 import 'tldraw/tldraw.css'
 
@@ -9,7 +9,7 @@ const PERSISTENCE_KEY = 'example-3'
 
 export default function PersistenceExample() {
 	//[1]
-	const [store] = useState(() => createTLStore())
+	const store = useMemo(() => createTLStore(), [])
 	//[2]
 	const [loadingState, setLoadingState] = useState<
 		{ status: 'loading' } | { status: 'ready' } | { status: 'error'; error: string }
@@ -86,7 +86,6 @@ save to local storage.
 [1]
 We create a new store using the `createTLStore` helper function. We pass in the 
 default shape utils so that the store knows how to handle the built-in shapes. 
-We also wrap this in a `useState` hook so that the store is only created once.
 
 [2]
 This is a cool pattern that uses Typescript to help keep track of our app's

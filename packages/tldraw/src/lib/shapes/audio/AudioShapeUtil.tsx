@@ -49,6 +49,7 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 		const { asset, url } = useMediaAsset({
 			shapeId: shape.id,
 			assetId: shape.props.assetId,
+			width: shape.props.w,
 		})
 		const isEditing = useIsEditing(shape.id)
 		const [isPlaying, setIsPlaying] = useState(false)

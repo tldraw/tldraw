@@ -25,6 +25,8 @@ export {
 	useStateTracking,
 	useValue,
 } from '@tldraw/state-react'
+export { resizeScaled } from './lib/editor/shapes/shared/resizeScaled'
+export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalIndexedDb'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star
@@ -181,9 +183,12 @@ export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesMan
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
 export {
 	ShapeUtil,
+	type TLCropInfo,
+	type TLGeometryOpts,
 	type TLHandleDragInfo,
 	type TLResizeInfo,
 	type TLResizeMode,
+	type TLShapeUtilCanBeLaidOutOpts,
 	type TLShapeUtilCanBindOpts,
 	type TLShapeUtilCanvasSvgDef,
 	type TLShapeUtilConstructor,
@@ -192,6 +197,7 @@ export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
 export { getPerfectDashProps } from './lib/editor/shapes/shared/getPerfectDashProps'
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
+export { maybeSnapToGrid } from './lib/editor/tools/BaseBoxShapeTool/children/Pointing'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
 export {
 	useDelaySvgExport,
@@ -236,9 +242,23 @@ export {
 	type UiEventType,
 } from './lib/editor/types/event-types'
 export {
-	type TLExternalAssetContent,
+	type TLBaseExternalContent,
+	type TLEmbedExternalContent,
+	type TLErrorExternalContentSource,
+	type TLExcalidrawExternalContent,
+	type TLExcalidrawExternalContentSource,
+	type TLExternalAsset,
 	type TLExternalContent,
 	type TLExternalContentSource,
+	type TLFileExternalAsset,
+	type TLFilesExternalContent,
+	type TLSvgTextExternalContent,
+	type TLTextExternalContent,
+	type TLTextExternalContentSource,
+	type TLTldrawExternalContent,
+	type TLTldrawExternalContentSource,
+	type TLUrlExternalAsset,
+	type TLUrlExternalContent,
 } from './lib/editor/types/external-content'
 export {
 	type TLHistoryBatchOptions,
@@ -252,10 +272,13 @@ export {
 	type TLCameraConstraints,
 	type TLCameraMoveOptions,
 	type TLCameraOptions,
+	type TLExportType,
 	type TLImageExportOptions,
+	type TLSvgExportOptions,
 	type TLSvgOptions,
 } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
+export { getSvgAsImage } from './lib/exports/getSvgAsImage'
 export { tlenv } from './lib/globals/environment'
 export { tlmenus } from './lib/globals/menus'
 export { tltime } from './lib/globals/time'
@@ -269,7 +292,7 @@ export { getCursor } from './lib/hooks/useCursor'
 export { EditorContext, useEditor, useMaybeEditor } from './lib/hooks/useEditor'
 export { useEditorComponents } from './lib/hooks/useEditorComponents'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
-export { useEvent } from './lib/hooks/useEvent'
+export { useEvent, useReactiveEvent } from './lib/hooks/useEvent'
 export { useGlobalMenuIsOpen } from './lib/hooks/useGlobalMenuIsOpen'
 export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/useIdentity'
 export { useIsCropping } from './lib/hooks/useIsCropping'
@@ -379,6 +402,7 @@ export {
 	type SharedStyle,
 } from './lib/utils/SharedStylesMap'
 export { dataUrlToFile, getDefaultCdnBaseUrl } from './lib/utils/assets'
+export { clampToBrowserMaxCanvasSize, type CanvasMaxSize } from './lib/utils/browserCanvasMaxSize'
 export {
 	debugFlags,
 	featureFlags,
@@ -393,6 +417,7 @@ export {
 	type TLDeepLinkOptions,
 } from './lib/utils/deepLinks'
 export {
+	activeElementShouldCaptureKeys,
 	loopToHtmlElement,
 	preventDefault,
 	releasePointerCapture,

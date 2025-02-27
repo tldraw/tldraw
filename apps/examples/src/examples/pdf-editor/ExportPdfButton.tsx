@@ -1,6 +1,6 @@
 import { PDFDocument } from 'pdf-lib'
 import { useState } from 'react'
-import { Editor, exportToBlob, useEditor } from 'tldraw'
+import { Editor, useEditor } from 'tldraw'
 import { Pdf } from './PdfPicker'
 
 export function ExportPdfButton({ pdf }: { pdf: Pdf }) {
@@ -64,15 +64,16 @@ async function exportPdf(
 			continue
 		}
 
-		const exportedPng = await exportToBlob({
-			editor,
-			ids: allIds,
+		const exportedPng = await editor.toImage(allIds, {
 			format: 'png',
-			opts: { background: false, bounds: page.bounds, padding: 0, scale: 2 },
+			background: false,
+			bounds: page.bounds,
+			padding: 0,
+			scale: 1,
 		})
 		tickProgress()
 
-		pdfPage.drawImage(await pdf.embedPng(await exportedPng.arrayBuffer()), {
+		pdfPage.drawImage(await pdf.embedPng(await exportedPng.blob.arrayBuffer()), {
 			x: 0,
 			y: 0,
 			width: pdfPage.getWidth(),

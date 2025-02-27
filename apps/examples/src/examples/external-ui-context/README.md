@@ -2,6 +2,7 @@
 title: External UI (Context)
 component: ./ExternalUiContextExample.tsx
 category: ui
+priority: 2
 keywords: [outside, editor, context]
 ---
 

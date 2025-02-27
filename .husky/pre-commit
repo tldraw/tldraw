@@ -3,5 +3,8 @@
 
 yarn install --immutable
 npx lazy run build-api
-git add packages/*/api-report.md
-npx lint-staged
+git add packages/*/api-report.api.md
+npx lazy run build-i18n
+git add apps/*/locales/*.json
+git add apps/*/locales-compiled/*.json
+yarn lint-staged

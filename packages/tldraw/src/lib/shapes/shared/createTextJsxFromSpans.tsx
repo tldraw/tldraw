@@ -2,34 +2,28 @@ import {
 	Box,
 	BoxModel,
 	Editor,
-	TLDefaultHorizontalAlignStyle,
 	TLDefaultVerticalAlignStyle,
+	TLMeasureTextSpanOpts,
 } from '@tldraw/editor'
 
 function correctSpacesToNbsp(input: string) {
 	return input.replace(/\s/g, '\xa0')
 }
 
+export interface TLCreateTextJsxFromSpansOpts extends TLMeasureTextSpanOpts {
+	verticalTextAlign: TLDefaultVerticalAlignStyle
+	offsetX: number
+	offsetY: number
+	stroke?: string
+	strokeWidth?: number
+	fill?: string
+}
+
 /** Get an SVG element for a text shape. */
 export function createTextJsxFromSpans(
 	editor: Editor,
 	spans: { text: string; box: BoxModel }[],
-	opts: {
-		fontSize: number
-		fontFamily: string
-		textAlign: TLDefaultHorizontalAlignStyle
-		verticalTextAlign: TLDefaultVerticalAlignStyle
-		fontWeight: string
-		fontStyle: string
-		width: number
-		height: number
-		stroke?: string
-		strokeWidth?: number
-		fill?: string
-		padding?: number
-		offsetX?: number
-		offsetY?: number
-	}
+	opts: TLCreateTextJsxFromSpansOpts
 ) {
 	const { padding = 0 } = opts
 	if (spans.length === 0) return null

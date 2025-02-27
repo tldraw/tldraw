@@ -1,0 +1,393 @@
+{
+  "0095a9fa74": {
+    "translation": "Export"
+  },
+  "03b3e13197": {
+    "translation": "Trageți fișierul în bara laterală de pe această pagină. Sau selectați opțiunea „Importați fișierul” din meniul utilizatorului."
+  },
+  "043973ec1f": {
+    "translation": "Mai ai probleme? {GetHelpLink}"
+  },
+  "05596b840b": {
+    "translation": "Deschideți tldraw."
+  },
+  "06b9281e39": {
+    "translation": "Auto"
+  },
+  "07dbd11b21": {
+    "translation": "Fișier fără titlu"
+  },
+  "08331c1710": {
+    "translation": "Limita ratei a fost depășită, încercați din nou mai târziu."
+  },
+  "0b27918290": {
+    "translation": "Fişier"
+  },
+  "0b9a4cde72": {
+    "translation": "meniul Fișier"
+  },
+  "110a4b01be": {
+    "translation": "Publica"
+  },
+  "13ddd375ad": {
+    "translation": "Exportați ca"
+  },
+  "181b90f889": {
+    "translation": "Creați fișier"
+  },
+  "1bef75f760": {
+    "translation": "Permiteți-i lui tldraw să-mi trimită un e-mail despre asta"
+  },
+  "1da2e8106b": {
+    "translation": "A apărut o eroare neașteptată."
+  },
+  "1dd1c5fb7f": {
+    "translation": "Astăzi"
+  },
+  "26e5b44256": {
+    "translation": "Dați-ne feedback"
+  },
+  "299cb00a7a": {
+    "translation": "Încărcarea nu a reușit"
+  },
+  "31246941ad": {
+    "translation": "Trebuie să vă conectați pentru a vedea acest fișier."
+  },
+  "31418ce4ad": {
+    "translation": "i18n: Evidențiați Lipsă"
+  },
+  "32656a600c": {
+    "translation": "Vezi ceva în neregulă? Aveți o idee pentru a îmbunătăți tldraw? Ne-ar plăcea să-l auzim!"
+  },
+  "335defdafe": {
+    "translation": "Vă rugăm să încercați să reîmprospătați pagina."
+  },
+  "344a7f427f": {
+    "translation": "Editor"
+  },
+  "3bd1b98dbd": {
+    "translation": "Nu se pot publica modificările."
+  },
+  "3c5e891bff": {
+    "translation": "Fixat"
+  },
+  "42e53c47c1": {
+    "translation": "Contactați proprietarul pentru a solicita acces."
+  },
+  "44db318ee5": {
+    "translation": "Obțineți ajutor pe Discord"
+  },
+  "46137245cd": {
+    "translation": "Vă mulțumim că ne ajutați să îmbunătățim tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "Setări de confidențialitate"
+  },
+  "47839e47a5": {
+    "translation": "tldraw"
+  },
+  "4908687e50": {
+    "translation": "Sigur vrei să uiți acest fișier?"
+  },
+  "4c06678729": {
+    "translation": "Folosim cookie-uri primare pentru a ne îmbunătăți serviciile. <a>Aflați mai multe</a>"
+  },
+  "4d1c8263ba": {
+    "translation": "Reîncărcați"
+  },
+  "50db1b7e1e": {
+    "translation": "Nu se poate anula publicarea fișierului."
+  },
+  "517bb809d9": {
+    "translation": "Meniul paginii"
+  },
+  "54286b1d01": {
+    "translation": "Limita de colaboratori a fost atinsă"
+  },
+  "54d240fa41": {
+    "translation": "Vă rugăm să încetinți."
+  },
+  "554a05155c": {
+    "translation": "Mai ai probleme? <a>Raportați o problemă</a>"
+  },
+  "55505ba281": {
+    "translation": "PNG"
+  },
+  "56c34c6410": {
+    "translation": "Politica de confidențialitate"
+  },
+  "5817f82c16": {
+    "translation": "Opțional — Ajutați-ne să înțelegem cum folosesc oamenii tldraw și cum îl putem îmbunătăți."
+  },
+  "5a95a425f7": {
+    "translation": "Distribuie"
+  },
+  "5d160eb095": {
+    "translation": "Sesiunea ta"
+  },
+  "5d26ae7550": {
+    "translation": "Nu am reușit să încărcăm o parte din conținutul pe care l-ați creat înainte de a vă conecta."
+  },
+  "5db1e9a8ca": {
+    "translation": "Completați acest formular, <discord>conversați cu noi pe Discord</discord> sau <github>trimiteți o problemă pe GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "Feedback trimis"
+  },
+  "5fb63579fc": {
+    "translation": "Copie"
+  },
+  "61057a0c84": {
+    "translation": "Mai târziu"
+  },
+  "625fd29749": {
+    "translation": "Mai în vârstă"
+  },
+  "6609dd239e": {
+    "translation": "Ceva a mers prost"
+  },
+  "6a26f54883": {
+    "translation": "Ajutor"
+  },
+  "6dc0836c1b": {
+    "translation": "Nu aveți permisiunile necesare pentru a efectua această acțiune."
+  },
+  "6dfc62f621": {
+    "translation": "Urmați acești pași pentru a importa manual conținutul:"
+  },
+  "70a6facb9d": {
+    "translation": "În această săptămână"
+  },
+  "73ab799383": {
+    "translation": "Această versiune de tldraw nu mai este acceptată."
+  },
+  "7408cf0d7b": {
+    "translation": "Vă rugăm să reîncărcați pagina"
+  },
+  "752b79f137": {
+    "translation": "Ați atins numărul maxim de fișiere. Trebuie să ștergeți fișierele vechi înainte de a crea altele noi."
+  },
+  "7573b8110a": {
+    "translation": "Fără acces"
+  },
+  "761e93ede9": {
+    "translation": "Gestionați cookie-urile"
+  },
+  "764671e008": {
+    "translation": "Discutați cu noi pe Discord"
+  },
+  "777f9e90cf": {
+    "translation": "Solicitare nevalidă."
+  },
+  "797799f35e": {
+    "translation": "Trimiteți o problemă pe GitHub"
+  },
+  "7cb5f8b4a5": {
+    "translation": "Uita"
+  },
+  "7daeced9ff": {
+    "translation": "Publicați modificările"
+  },
+  "7fcdcc6455": {
+    "translation": "Uitați fișierul"
+  },
+  "81d389ac80": {
+    "translation": "Exportați conținutul ca fișier .tldr: selectați „Descărcați fișierul” în meniul din stânga sus."
+  },
+  "85a082de1b": {
+    "translation": "Vă rugăm să reîmprospătați pagina pentru a obține cea mai recentă versiune de tldraw."
+  },
+  "86353d2c41": {
+    "translation": "S-au adăugat {total} fișiere .tldr."
+  },
+  "86c66437fd": {
+    "translation": "Redenumiți fișierul"
+  },
+  "8eb2c00e96": {
+    "translation": "Împărtășită cu tine"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Despre"
+  },
+  "8ff3d0a705": {
+    "translation": "Tarif limitat"
+  },
+  "902b0d55fd": {
+    "translation": "Eroare"
+  },
+  "904a830405": {
+    "translation": "Redenumiți"
+  },
+  "91e49bb0eb": {
+    "translation": "Copiați în fișierele mele"
+  },
+  "96165d6df5": {
+    "translation": "Luna aceasta"
+  },
+  "9914a0ce04": {
+    "translation": "Aprinde"
+  },
+  "9bef626805": {
+    "translation": "Ștergeți fișierul"
+  },
+  "9ceb927baa": {
+    "translation": "Publicați acest fișier"
+  },
+  "9e076f5885": {
+    "translation": "Nu a fost găsit"
+  },
+  "9e93c98d88": {
+    "translation": "A renunța"
+  },
+  "a104439641": {
+    "translation": "Captuseala"
+  },
+  "a18366b217": {
+    "translation": "Întuneric"
+  },
+  "a1c915578c": {
+    "translation": "Fișierul pe care îl căutați nu există."
+  },
+  "a239905023": {
+    "translation": "Exportați imaginea"
+  },
+  "a3debabee7": {
+    "translation": "Politica de cookie-uri"
+  },
+  "a4d3b161ce": {
+    "translation": "Trimiteți"
+  },
+  "a6cc403d56": {
+    "translation": "Oricine are linkul"
+  },
+  "a768caa988": {
+    "translation": "Analytics"
+  },
+  "a9ded1e5ce": {
+    "translation": "Fundal"
+  },
+  "ab0df9ba36": {
+    "translation": "Limita de fișiere a fost atinsă"
+  },
+  "af3dc88931": {
+    "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
+    "translation": "Ultima publicare <date></date>"
+  },
+  "b6d4223e60": {
+    "translation": "Conectare"
+  },
+  "b758336699": {
+    "translation": "Copiați linkul"
+  },
+  "bb792693e2": {
+    "translation": "Anulați fixarea"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {Se încarcă fișierul .tldr...} few {} other {Se încarcă {uploaded} din {total} fișiere .tldr...}}"
+  },
+  "bc88b0e89e": {
+    "translation": "Distribuit de {ownerName}"
+  },
+  "bcb62136a3": {
+    "translation": "Încărcați fișiere .tldr"
+  },
+  "c2276c9127": {
+    "translation": "Aflați mai multe despre partajare."
+  },
+  "c303bd1095": {
+    "translation": "Nu se poate publica fișierul."
+  },
+  "c4408d3350": {
+    "translation": "Accepta"
+  },
+  "c655b27b1e": {
+    "translation": "i18n: șir lung"
+  },
+  "c6a00f137b": {
+    "translation": "Invita"
+  },
+  "c87aacf567": {
+    "translation": "Sign out"
+  },
+  "cceaefbc20": {
+    "translation": "Distribuiți acest fișier"
+  },
+  "cd15a75c26": {
+    "translation": "SVG"
+  },
+  "cd16f555de": {
+    "translation": "Esențial — Necesar pentru a vă salva fișierele și setările și pentru a le sincroniza pe dispozitivele dvs."
+  },
+  "cea291e45e": {
+    "translation": "Aflați mai multe despre publicare."
+  },
+  "d3d2e61733": {
+    "translation": "Aproape"
+  },
+  "d4bbf74f3e": {
+    "translation": "Comutați bara laterală"
+  },
+  "d5ef96e383": {
+    "translation": "Descărcați fișierul"
+  },
+  "d721757161": {
+    "translation": "Temă"
+  },
+  "d876a9fe1a": {
+    "translation": "Încearcă din nou"
+  },
+  "d9100f3e10": {
+    "translation": "Intră aici pentru a vedea conținutul"
+  },
+  "dbbebf3c03": {
+    "translation": "Numai cu invitație"
+  },
+  "dfdb78a4e4": {
+    "translation": "Indicatori de depanare a aplicației"
+  },
+  "e371526ad0": {
+    "translation": "Acest cookie este necesar pentru ca tldraw să funcționeze și nu poate fi dezactivat."
+  },
+  "e404559826": {
+    "translation": "Termeni și condiții"
+  },
+  "e78e14c5f1": {
+    "translation": "Pin"
+  },
+  "e8d1090cb9": {
+    "translation": "Folosim cookie-uri pentru a vă menține conectat, pentru a vă sincroniza fișierele și pentru a colecta analize pentru a ne ajuta să îmbunătățim tldraw. Citiți <a>politica privind cookie-urile</a> pentru a afla mai multe."
+  },
+  "ea4788705e": {
+    "translation": "Anula"
+  },
+  "ebfe9ce86e": {
+    "translation": "Ieri"
+  },
+  "ec59b960ea": {
+    "translation": "Acest fișier a atins numărul maxim de colaboratori activi."
+  },
+  "ec611e9a08": {
+    "translation": "meniul cont"
+  },
+  "ed53713239": {
+    "translation": "i18n: Accentuat"
+  },
+  "ed75712b0e": {
+    "translation": "Duplicat"
+  },
+  "f2a6c498fb": {
+    "translation": "Şterge"
+  },
+  "f43fb62093": {
+    "translation": "Înapoi la tldraw."
+  },
+  "fb15c53f22": {
+    "translation": "Vizualizator"
+  },
+  "fd1be3efcf": {
+    "translation": "Sigur doriți să ștergeți acest fișier?"
+  },
+  "fed5ec05eb": {
+    "translation": "Link copiat"
+  }
+}

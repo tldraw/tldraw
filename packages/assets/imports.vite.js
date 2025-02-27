@@ -29,16 +29,19 @@ import fontsIBMPlexSerifMediumWoff2Url from './fonts/IBMPlexSerif-Medium.woff2?u
 import fontsShantellSansTldrawishWoff2Url from './fonts/Shantell_Sans-Tldrawish.woff2?url'
 import iconsIcon0MergedSvgUrl from './icons/icon/0_merged.svg?url'
 import translationsArJsonUrl from './translations/ar.json?url'
+import translationsBnJsonUrl from './translations/bn.json?url'
 import translationsCaJsonUrl from './translations/ca.json?url'
 import translationsCsJsonUrl from './translations/cs.json?url'
 import translationsDaJsonUrl from './translations/da.json?url'
 import translationsDeJsonUrl from './translations/de.json?url'
+import translationsElJsonUrl from './translations/el.json?url'
 import translationsEnJsonUrl from './translations/en.json?url'
 import translationsEsJsonUrl from './translations/es.json?url'
 import translationsFaJsonUrl from './translations/fa.json?url'
 import translationsFiJsonUrl from './translations/fi.json?url'
 import translationsFrJsonUrl from './translations/fr.json?url'
 import translationsGlJsonUrl from './translations/gl.json?url'
+import translationsGuInJsonUrl from './translations/gu-in.json?url'
 import translationsHeJsonUrl from './translations/he.json?url'
 import translationsHiInJsonUrl from './translations/hi-in.json?url'
 import translationsHrJsonUrl from './translations/hr.json?url'
@@ -46,24 +49,35 @@ import translationsHuJsonUrl from './translations/hu.json?url'
 import translationsIdJsonUrl from './translations/id.json?url'
 import translationsItJsonUrl from './translations/it.json?url'
 import translationsJaJsonUrl from './translations/ja.json?url'
+import translationsKmKhJsonUrl from './translations/km-kh.json?url'
+import translationsKnJsonUrl from './translations/kn.json?url'
 import translationsKoKrJsonUrl from './translations/ko-kr.json?url'
 import translationsKuJsonUrl from './translations/ku.json?url'
 import translationsLanguagesJsonUrl from './translations/languages.json?url'
 import translationsMainJsonUrl from './translations/main.json?url'
+import translationsMlJsonUrl from './translations/ml.json?url'
+import translationsMrJsonUrl from './translations/mr.json?url'
+import translationsMsJsonUrl from './translations/ms.json?url'
 import translationsMyJsonUrl from './translations/my.json?url'
 import translationsNeJsonUrl from './translations/ne.json?url'
+import translationsNlJsonUrl from './translations/nl.json?url'
 import translationsNoJsonUrl from './translations/no.json?url'
+import translationsPaJsonUrl from './translations/pa.json?url'
 import translationsPlJsonUrl from './translations/pl.json?url'
 import translationsPtBrJsonUrl from './translations/pt-br.json?url'
 import translationsPtPtJsonUrl from './translations/pt-pt.json?url'
 import translationsRoJsonUrl from './translations/ro.json?url'
 import translationsRuJsonUrl from './translations/ru.json?url'
 import translationsSlJsonUrl from './translations/sl.json?url'
+import translationsSoJsonUrl from './translations/so.json?url'
 import translationsSvJsonUrl from './translations/sv.json?url'
+import translationsTaJsonUrl from './translations/ta.json?url'
 import translationsTeJsonUrl from './translations/te.json?url'
 import translationsThJsonUrl from './translations/th.json?url'
+import translationsTlJsonUrl from './translations/tl.json?url'
 import translationsTrJsonUrl from './translations/tr.json?url'
 import translationsUkJsonUrl from './translations/uk.json?url'
+import translationsUrJsonUrl from './translations/ur.json?url'
 import translationsViJsonUrl from './translations/vi.json?url'
 import translationsZhCnJsonUrl from './translations/zh-cn.json?url'
 import translationsZhTwJsonUrl from './translations/zh-tw.json?url'
@@ -232,16 +246,19 @@ export function getAssetUrlsByImport(opts) {
 		},
 		translations: {
 			ar: formatAssetUrl(translationsArJsonUrl, opts),
+			bn: formatAssetUrl(translationsBnJsonUrl, opts),
 			ca: formatAssetUrl(translationsCaJsonUrl, opts),
 			cs: formatAssetUrl(translationsCsJsonUrl, opts),
 			da: formatAssetUrl(translationsDaJsonUrl, opts),
 			de: formatAssetUrl(translationsDeJsonUrl, opts),
+			el: formatAssetUrl(translationsElJsonUrl, opts),
 			en: formatAssetUrl(translationsEnJsonUrl, opts),
 			es: formatAssetUrl(translationsEsJsonUrl, opts),
 			fa: formatAssetUrl(translationsFaJsonUrl, opts),
 			fi: formatAssetUrl(translationsFiJsonUrl, opts),
 			fr: formatAssetUrl(translationsFrJsonUrl, opts),
 			gl: formatAssetUrl(translationsGlJsonUrl, opts),
+			'gu-in': formatAssetUrl(translationsGuInJsonUrl, opts),
 			he: formatAssetUrl(translationsHeJsonUrl, opts),
 			'hi-in': formatAssetUrl(translationsHiInJsonUrl, opts),
 			hr: formatAssetUrl(translationsHrJsonUrl, opts),
@@ -249,24 +266,35 @@ export function getAssetUrlsByImport(opts) {
 			id: formatAssetUrl(translationsIdJsonUrl, opts),
 			it: formatAssetUrl(translationsItJsonUrl, opts),
 			ja: formatAssetUrl(translationsJaJsonUrl, opts),
+			'km-kh': formatAssetUrl(translationsKmKhJsonUrl, opts),
+			kn: formatAssetUrl(translationsKnJsonUrl, opts),
 			'ko-kr': formatAssetUrl(translationsKoKrJsonUrl, opts),
 			ku: formatAssetUrl(translationsKuJsonUrl, opts),
 			languages: formatAssetUrl(translationsLanguagesJsonUrl, opts),
 			main: formatAssetUrl(translationsMainJsonUrl, opts),
+			ml: formatAssetUrl(translationsMlJsonUrl, opts),
+			mr: formatAssetUrl(translationsMrJsonUrl, opts),
+			ms: formatAssetUrl(translationsMsJsonUrl, opts),
 			my: formatAssetUrl(translationsMyJsonUrl, opts),
 			ne: formatAssetUrl(translationsNeJsonUrl, opts),
+			nl: formatAssetUrl(translationsNlJsonUrl, opts),
 			no: formatAssetUrl(translationsNoJsonUrl, opts),
+			pa: formatAssetUrl(translationsPaJsonUrl, opts),
 			pl: formatAssetUrl(translationsPlJsonUrl, opts),
 			'pt-br': formatAssetUrl(translationsPtBrJsonUrl, opts),
 			'pt-pt': formatAssetUrl(translationsPtPtJsonUrl, opts),
 			ro: formatAssetUrl(translationsRoJsonUrl, opts),
 			ru: formatAssetUrl(translationsRuJsonUrl, opts),
 			sl: formatAssetUrl(translationsSlJsonUrl, opts),
+			so: formatAssetUrl(translationsSoJsonUrl, opts),
 			sv: formatAssetUrl(translationsSvJsonUrl, opts),
+			ta: formatAssetUrl(translationsTaJsonUrl, opts),
 			te: formatAssetUrl(translationsTeJsonUrl, opts),
 			th: formatAssetUrl(translationsThJsonUrl, opts),
+			tl: formatAssetUrl(translationsTlJsonUrl, opts),
 			tr: formatAssetUrl(translationsTrJsonUrl, opts),
 			uk: formatAssetUrl(translationsUkJsonUrl, opts),
+			ur: formatAssetUrl(translationsUrJsonUrl, opts),
 			vi: formatAssetUrl(translationsViJsonUrl, opts),
 			'zh-cn': formatAssetUrl(translationsZhCnJsonUrl, opts),
 			'zh-tw': formatAssetUrl(translationsZhTwJsonUrl, opts),

@@ -124,15 +124,11 @@ export class Idle extends StateNode {
 					case 'top_right_rotate':
 					case 'bottom_left_rotate':
 					case 'bottom_right_rotate': {
-						if (shouldEnterCropMode) {
-							this.parent.transition('crop.pointing_crop_handle', info)
-						} else {
-							if (info.accelKey) {
-								this.parent.transition('brushing', info)
-								break
-							}
-							this.parent.transition('pointing_rotate_handle', info)
+						if (info.accelKey) {
+							this.parent.transition('brushing', info)
+							break
 						}
+						this.parent.transition('pointing_rotate_handle', info)
 						break
 					}
 					case 'top':
@@ -197,11 +193,11 @@ export class Idle extends StateNode {
 				const hitShape =
 					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
 						? hoveredShape
-						: this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
+						: (this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
 							this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
 								margin: this.editor.options.hitTestMargin / this.editor.getZoomLevel(),
 								hitInside: false,
-							})
+							}))
 
 				const focusedGroupId = this.editor.getFocusedGroupId()
 
@@ -272,7 +268,7 @@ export class Idle extends StateNode {
 						}
 					}
 
-					// For corners OR edges
+					// For corners OR edges but NOT rotation corners
 					if (
 						util.canCrop(onlySelectedShape) &&
 						!this.editor.isShapeOrAncestorLocked(onlySelectedShape)
@@ -360,7 +356,7 @@ export class Idle extends StateNode {
 								hitInside: false,
 								hitLabels: true,
 								hitLocked: true,
-								hitFrameInside: false,
+								hitFrameInside: true,
 								renderingOnly: true,
 							})
 
@@ -567,6 +563,8 @@ export class Idle extends StateNode {
 	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
 		// Create text shape and transition to editing_shape
 		if (this.editor.getIsReadonly()) return
+
+		if (!this.editor.options.createTextOnCanvasDoubleClick) return
 
 		this.editor.markHistoryStoppingPoint('creating text shape')
 

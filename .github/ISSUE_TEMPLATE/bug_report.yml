@@ -19,7 +19,7 @@ body:
     id: reproduction
     attributes:
       label: How can we reproduce the bug?
-      description: If you can make the bug happen again, please share the steps involved. If possible please also include a screenshot or a screen recording to help us better understand and resolve the issue. You can [fork this CodeSandbox](https://codesandbox.io/p/sandbox/tldraw-example-n539u) to make a reproduction.
+      description: If you can make the bug happen again, please share the steps involved. If possible please also include a screenshot or a screen recording to help us better understand and resolve the issue. You can [fork this sandbox](https://stackblitz.com/edit/vitejs-vite-ahoswhus?file=src%2FApp.tsx) to make a reproduction.
     validations:
       required: false
   - type: dropdown
@@ -39,6 +39,7 @@ body:
       options:
         - The developer package
         - The tldraw.com website
+        - The tldraw.dev website
         - The makereal.tldraw.com website
     validations:
       required: true

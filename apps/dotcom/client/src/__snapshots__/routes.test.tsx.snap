@@ -7,32 +7,32 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^//?$",
   },
   {
+    "reactRouterPattern": "/__debug-tail",
+    "vercelRouterPattern": "^/__debug-tail/?$",
+  },
+  {
+    "reactRouterPattern": "/f/:fileSlug",
+    "vercelRouterPattern": "^/f/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/lf",
+    "vercelRouterPattern": "^/lf/?$",
+  },
+  {
+    "reactRouterPattern": "/lf/:fileSlug",
+    "vercelRouterPattern": "^/lf/[^/]*/?$",
+  },
+  {
     "reactRouterPattern": "/new",
     "vercelRouterPattern": "^/new/?$",
   },
   {
-    "reactRouterPattern": "/q",
-    "vercelRouterPattern": "^/q/?$",
+    "reactRouterPattern": "/p/:fileSlug",
+    "vercelRouterPattern": "^/p/[^/]*/?$",
   },
   {
-    "reactRouterPattern": "/q/debug",
-    "vercelRouterPattern": "^/q/debug/?$",
-  },
-  {
-    "reactRouterPattern": "/q/f/:fileSlug",
-    "vercelRouterPattern": "^/q/f/[^/]*/?$",
-  },
-  {
-    "reactRouterPattern": "/q/p/:fileSlug",
-    "vercelRouterPattern": "^/q/p/[^/]*/?$",
-  },
-  {
-    "reactRouterPattern": "/q/profile",
-    "vercelRouterPattern": "^/q/profile/?$",
-  },
-  {
-    "reactRouterPattern": "/r",
-    "vercelRouterPattern": "^/r/?$",
+    "reactRouterPattern": "/preview",
+    "vercelRouterPattern": "^/preview/?$",
   },
   {
     "reactRouterPattern": "/r/:boardId/history",
@@ -53,10 +53,6 @@ exports[`the_routes 1`] = `
   {
     "reactRouterPattern": "/s/:roomId",
     "vercelRouterPattern": "^/s/[^/]*/?$",
-  },
-  {
-    "reactRouterPattern": "/ts-side",
-    "vercelRouterPattern": "^/ts-side/?$",
   },
   {
     "reactRouterPattern": "/v/:roomId",

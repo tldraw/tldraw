@@ -160,7 +160,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				<div className="tl-overlays">
 					<div ref={rHtmlLayer2} className="tl-html-layer">
 						{debugGeometry ? <GeometryDebuggingView /> : null}
-						<HandlesWrapper />
 						<BrushWrapper />
 						<ScribbleWrapper />
 						<ZoomBrushWrapper />
@@ -168,6 +167,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 						<HintedShapeIndicator />
 						<SnapIndicatorWrapper />
 						<SelectionForegroundWrapper />
+						<HandlesWrapper />
 						<LiveCollaborators />
 					</div>
 				</div>
@@ -485,10 +485,7 @@ function DebugSvgCopy({ id, mode }: { id: TLShapeId; mode: 'img' | 'iframe' }) {
 			if (!bounds) return
 			bounds = bounds.clone().expandBy(padding)
 
-			const result = await editor.getSvgString([id], {
-				padding,
-				background: editor.getInstanceState().exportBackground,
-			})
+			const result = await editor.getSvgString([id], { padding })
 
 			if (latest !== renderId || !result) return
 

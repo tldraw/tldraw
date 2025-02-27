@@ -54,7 +54,7 @@ export class StyleEmbedder {
 			: NO_STYLES
 
 		const parentStyles = shouldSkipInheritedParentStyles
-			? this.styles.get(element.parentElement as Element)?.self ?? NO_STYLES
+			? (this.styles.get(element.parentElement as Element)?.self ?? NO_STYLES)
 			: NO_STYLES
 
 		const info: ElementStyleInfo = {
