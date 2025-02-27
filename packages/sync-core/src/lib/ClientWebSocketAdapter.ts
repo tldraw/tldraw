@@ -338,11 +338,15 @@ export class ReconnectManager {
 	}
 
 	private getMaxDelay() {
-		return document.hidden ? INACTIVE_MAX_DELAY : ACTIVE_MAX_DELAY
+		return typeof document !== 'undefined' && document.hidden
+			? INACTIVE_MAX_DELAY
+			: ACTIVE_MAX_DELAY
 	}
 
 	private getMinDelay() {
-		return document.hidden ? INACTIVE_MIN_DELAY : ACTIVE_MIN_DELAY
+		return typeof document !== 'undefined' && document.hidden
+			? INACTIVE_MIN_DELAY
+			: ACTIVE_MIN_DELAY
 	}
 
 	private clearReconnectTimeout() {

@@ -245,6 +245,7 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
 			DISCORD_FEEDBACK_WEBHOOK_URL: env.DISCORD_FEEDBACK_WEBHOOK_URL,
 			HEALTH_CHECK_BEARER_TOKEN: env.HEALTH_CHECK_BEARER_TOKEN,
+			TEST_AUTH_SECRET: env.TEST_AUTH_SECRET,
 		},
 		sentry: {
 			project: 'tldraw-sync',

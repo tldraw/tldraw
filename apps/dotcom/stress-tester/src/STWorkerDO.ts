@@ -23,7 +23,7 @@ export class STWorkerDO extends DurableObject<Environment> {
 		this.num_files = 0
 	}
 
-	debug(...args: any[]) {
+	debug(..._args: any[]) {
 		// console.log('STWorkerDO', ...args)
 	}
 
@@ -89,7 +89,7 @@ export class STWorkerDO extends DurableObject<Environment> {
 						id: uniqueId(),
 					})
 				},
-				trackEvent: (...args) => {},
+				trackEvent: (..._args) => {},
 			})
 			this.zero.userId = workerId
 
@@ -130,7 +130,7 @@ export class STWorkerDO extends DurableObject<Environment> {
 
 			for (let i = 0; i < this.num_files; i++) {
 				if (this.shouldStop) {
-					console.log('should stop')
+					// console.log('should stop')
 					break
 				}
 				// let file = this.zero.store.getCommittedData()?.files[0]
