@@ -1,0 +1,34 @@
+services:
+  zstart_postgres:
+    image: simonfuhrer/postgresql:16.1-wal2json
+    shm_size: 1g
+    user: postgres
+    restart: always
+    healthcheck:
+      test: 'pg_isready -U user --dbname=postgres'
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - ${ZSTART_DB_PORT}:5432
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: password
+    command: |
+      postgres 
+      -c wal_level=logical
+      -c max_wal_senders=10 
+      -c max_replication_slots=5 
+      -c hot_standby=on 
+      -c hot_standby_feedback=on
+#       Uncomment the following line to enable query logging
+#       -c config_file=/etc/postgresql/postgresql.conf
+    volumes:
+      - tlapp_pgdata:/var/lib/postgresql/data
+      - ./:/docker-entrypoint-initdb.d
+      - ./postgres-logging.conf:/etc/postgresql/postgresql.conf
+
+volumes:
+  tlapp_pgdata:
+    driver: local

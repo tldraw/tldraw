@@ -1,0 +1,393 @@
+{
+  "0095a9fa74": {
+    "translation": "Exporter"
+  },
+  "03b3e13197": {
+    "translation": "Faites glisser le fichier vers la barre latérale de cette page. Vous pouvez également sélectionner l'option « Importer un fichier » dans le menu utilisateur."
+  },
+  "043973ec1f": {
+    "translation": "Vous rencontrez encore des difficultés ? {GetHelpLink}"
+  },
+  "05596b840b": {
+    "translation": "Ouvrir tldraw."
+  },
+  "06b9281e39": {
+    "translation": "Auto"
+  },
+  "07dbd11b21": {
+    "translation": "Fichier sans titre"
+  },
+  "08331c1710": {
+    "translation": "Nombre limite d'actions dépassé, réessayez ultérieurement."
+  },
+  "0b27918290": {
+    "translation": "Fichier"
+  },
+  "0b9a4cde72": {
+    "translation": "Menu du fichier"
+  },
+  "110a4b01be": {
+    "translation": "Publier"
+  },
+  "13ddd375ad": {
+    "translation": "Exporter en tant que"
+  },
+  "181b90f889": {
+    "translation": "Créer un fichier"
+  },
+  "1bef75f760": {
+    "translation": "Autoriser tldraw à m'envoyer un e-mail à ce sujet"
+  },
+  "1da2e8106b": {
+    "translation": "Une erreur inattendue s'est produite."
+  },
+  "1dd1c5fb7f": {
+    "translation": "Aujourd'hui"
+  },
+  "26e5b44256": {
+    "translation": "Donnez-nous votre avis"
+  },
+  "299cb00a7a": {
+    "translation": "Échec de l'importation"
+  },
+  "31246941ad": {
+    "translation": "Vous devez vous connecter pour consulter ce fichier."
+  },
+  "31418ce4ad": {
+    "translation": "i18n : surlignement manquant"
+  },
+  "32656a600c": {
+    "translation": "Vous avez remarqué une erreur ? Vous avez une idée pour améliorer tldraw ? Nous aimerions en entendre parler !"
+  },
+  "335defdafe": {
+    "translation": "Veuillez essayer de recharger la page."
+  },
+  "344a7f427f": {
+    "translation": "Éditeur"
+  },
+  "3bd1b98dbd": {
+    "translation": "Impossible de publier les modifications."
+  },
+  "3c5e891bff": {
+    "translation": "Épinglé"
+  },
+  "42e53c47c1": {
+    "translation": "Contactez le propriétaire pour demander l'accès."
+  },
+  "44db318ee5": {
+    "translation": "Obtenir de l'aide sur Discord"
+  },
+  "46137245cd": {
+    "translation": "Merci de nous aider à améliorer tldraw !"
+  },
+  "4778b9f3f2": {
+    "translation": "Paramètres de confidentialité"
+  },
+  "47839e47a5": {
+    "translation": "tldraw"
+  },
+  "4908687e50": {
+    "translation": "Voulez-vous vraiment oublier ce fichier ?"
+  },
+  "4c06678729": {
+    "translation": "Nous utilisons des cookies propriétaires pour améliorer nos services. <a>En savoir plus</a>"
+  },
+  "4d1c8263ba": {
+    "translation": "Recharger"
+  },
+  "50db1b7e1e": {
+    "translation": "Impossible d'annuler la publication du fichier."
+  },
+  "517bb809d9": {
+    "translation": "Menu de la page"
+  },
+  "54286b1d01": {
+    "translation": "Limite de collaborateurs atteinte"
+  },
+  "54d240fa41": {
+    "translation": "Veuillez ralentir."
+  },
+  "554a05155c": {
+    "translation": "Vous rencontrez toujours des problèmes ? <a>Signaler un problème</a>"
+  },
+  "55505ba281": {
+    "translation": "PNG"
+  },
+  "56c34c6410": {
+    "translation": "Politique de confidentialité"
+  },
+  "5817f82c16": {
+    "translation": "Facultatif — Aidez-nous à comprendre comment les gens utilisent tldraw et comment nous pouvons l'améliorer."
+  },
+  "5a95a425f7": {
+    "translation": "Partager"
+  },
+  "5d160eb095": {
+    "translation": "Votre session"
+  },
+  "5d26ae7550": {
+    "translation": "Nous n'avons pas réussi à importer une partie du contenu que vous avez créé avant de vous connecter."
+  },
+  "5db1e9a8ca": {
+    "translation": "Remplissez ce formulaire, <discord>discutez avec nous sur Discord</discord> ou <github>soumettez un problème sur GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "Commentaires soumis"
+  },
+  "5fb63579fc": {
+    "translation": "Copier"
+  },
+  "61057a0c84": {
+    "translation": "Plus tard"
+  },
+  "625fd29749": {
+    "translation": "Plus ancien"
+  },
+  "6609dd239e": {
+    "translation": "Une erreur s'est produite"
+  },
+  "6a26f54883": {
+    "translation": "Aide"
+  },
+  "6dc0836c1b": {
+    "translation": "Vous ne disposez pas des autorisations nécessaires pour effectuer cette action."
+  },
+  "6dfc62f621": {
+    "translation": "Suivez ces étapes pour importer le contenu manuellement :"
+  },
+  "70a6facb9d": {
+    "translation": "Cette semaine"
+  },
+  "73ab799383": {
+    "translation": "Cette version de tldraw n'est plus prise en charge."
+  },
+  "7408cf0d7b": {
+    "translation": "Veuillez recharger la page"
+  },
+  "752b79f137": {
+    "translation": "Vous avez atteint le nombre maximum de fichiers. Vous devez supprimer les anciens fichiers avant d'en créer de nouveaux."
+  },
+  "7573b8110a": {
+    "translation": "Aucun accès"
+  },
+  "761e93ede9": {
+    "translation": "Gérer les cookies"
+  },
+  "764671e008": {
+    "translation": "Discutez avec nous sur Discord"
+  },
+  "777f9e90cf": {
+    "translation": "Demande invalide."
+  },
+  "797799f35e": {
+    "translation": "Soumettre un problème sur GitHub"
+  },
+  "7cb5f8b4a5": {
+    "translation": "Oublier"
+  },
+  "7daeced9ff": {
+    "translation": "Publier les modifications"
+  },
+  "7fcdcc6455": {
+    "translation": "Oublier le fichier"
+  },
+  "81d389ac80": {
+    "translation": "Exporter le contenu sous forme de fichier .tldr : sélectionnez « Télécharger le fichier » dans le menu en haut à gauche."
+  },
+  "85a082de1b": {
+    "translation": "Veuillez rafraîchir la page pour obtenir la dernière version de tldraw."
+  },
+  "86353d2c41": {
+    "translation": "Ajout de {total} fichiers .tldr."
+  },
+  "86c66437fd": {
+    "translation": "Renommer le fichier"
+  },
+  "8eb2c00e96": {
+    "translation": "Partagé avec vous"
+  },
+  "8f7f4c1ce7": {
+    "translation": "À propos"
+  },
+  "8ff3d0a705": {
+    "translation": "Débit limité"
+  },
+  "902b0d55fd": {
+    "translation": "Erreur"
+  },
+  "904a830405": {
+    "translation": "Renommer"
+  },
+  "91e49bb0eb": {
+    "translation": "Copier dans mes fichiers"
+  },
+  "96165d6df5": {
+    "translation": "Ce mois-ci"
+  },
+  "9914a0ce04": {
+    "translation": "Clair"
+  },
+  "9bef626805": {
+    "translation": "Supprimer le fichier"
+  },
+  "9ceb927baa": {
+    "translation": "Publier ce fichier"
+  },
+  "9e076f5885": {
+    "translation": "Introuvable"
+  },
+  "9e93c98d88": {
+    "translation": "Se désengager"
+  },
+  "a104439641": {
+    "translation": "Marge intérieure"
+  },
+  "a18366b217": {
+    "translation": "Sombre"
+  },
+  "a1c915578c": {
+    "translation": "Le fichier que vous recherchez n'existe pas."
+  },
+  "a239905023": {
+    "translation": "Exporter l'image"
+  },
+  "a3debabee7": {
+    "translation": "Politique de cookies"
+  },
+  "a4d3b161ce": {
+    "translation": "Soumettre"
+  },
+  "a6cc403d56": {
+    "translation": "N'importe qui disposant du lien"
+  },
+  "a768caa988": {
+    "translation": "Analytique"
+  },
+  "a9ded1e5ce": {
+    "translation": "Arrière-plan"
+  },
+  "ab0df9ba36": {
+    "translation": "Limite de fichier atteinte"
+  },
+  "af3dc88931": {
+    "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
+    "translation": "Publié pour la dernière fois il y a <date></date>"
+  },
+  "b6d4223e60": {
+    "translation": "Se connecter"
+  },
+  "b758336699": {
+    "translation": "Copier le lien"
+  },
+  "bb792693e2": {
+    "translation": "Désépingler"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {Téléchargement du fichier .tldr…} other {Téléchargement de {uploaded} sur {total} fichiers .tldr…}}"
+  },
+  "bc88b0e89e": {
+    "translation": "Partagé par {ownerName}"
+  },
+  "bcb62136a3": {
+    "translation": "Importer des fichiers .tldr"
+  },
+  "c2276c9127": {
+    "translation": "En savoir plus sur le partage."
+  },
+  "c303bd1095": {
+    "translation": "Impossible de publier le fichier."
+  },
+  "c4408d3350": {
+    "translation": "Accepter"
+  },
+  "c655b27b1e": {
+    "translation": "i18n : chaîne longue"
+  },
+  "c6a00f137b": {
+    "translation": "Inviter"
+  },
+  "c87aacf567": {
+    "translation": "Se déconnecter"
+  },
+  "cceaefbc20": {
+    "translation": "Partager ce fichier"
+  },
+  "cd15a75c26": {
+    "translation": "SVG"
+  },
+  "cd16f555de": {
+    "translation": "Essentiel — Nécessaire pour enregistrer vos fichiers et paramètres et les synchroniser sur vos appareils."
+  },
+  "cea291e45e": {
+    "translation": "En savoir plus sur la publication."
+  },
+  "d3d2e61733": {
+    "translation": "Fermer"
+  },
+  "d4bbf74f3e": {
+    "translation": "Activer/désactiver la barre latérale"
+  },
+  "d5ef96e383": {
+    "translation": "Télécharger le fichier"
+  },
+  "d721757161": {
+    "translation": "Thème"
+  },
+  "d876a9fe1a": {
+    "translation": "Réessayer"
+  },
+  "d9100f3e10": {
+    "translation": "Le contenu se trouve ici"
+  },
+  "dbbebf3c03": {
+    "translation": "Invitation uniquement"
+  },
+  "dfdb78a4e4": {
+    "translation": "Indicateurs de débogage de l'application"
+  },
+  "e371526ad0": {
+    "translation": "Ce cookie est nécessaire au fonctionnement de tldraw et ne peut pas être désactivé."
+  },
+  "e404559826": {
+    "translation": "Conditions d'utilisation"
+  },
+  "e78e14c5f1": {
+    "translation": "Épingler"
+  },
+  "e8d1090cb9": {
+    "translation": "Nous utilisons des cookies pour vous garder connecté, pour synchroniser vos fichiers et pour recueillir des données d'analyse afin de nous aider à améliorer tldraw. Lisez notre <a>politique de cookies</a> pour en savoir plus."
+  },
+  "ea4788705e": {
+    "translation": "Annuler"
+  },
+  "ebfe9ce86e": {
+    "translation": "Hier"
+  },
+  "ec59b960ea": {
+    "translation": "Ce fichier a atteint le nombre maximum de collaborateurs actifs."
+  },
+  "ec611e9a08": {
+    "translation": "Menu du compte"
+  },
+  "ed53713239": {
+    "translation": "i18n : avec accents"
+  },
+  "ed75712b0e": {
+    "translation": "Dupliquer"
+  },
+  "f2a6c498fb": {
+    "translation": "Supprimer"
+  },
+  "f43fb62093": {
+    "translation": "Revenir sur tldraw."
+  },
+  "fb15c53f22": {
+    "translation": "Visionneuse"
+  },
+  "fd1be3efcf": {
+    "translation": "Voulez-vous vraiment supprimer ce fichier ?"
+  },
+  "fed5ec05eb": {
+    "translation": "Lien copié"
+  }
+}

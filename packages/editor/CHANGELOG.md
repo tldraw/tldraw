@@ -1,3 +1,371 @@
+# v3.8.1 (Thu Feb 13 2025)
+
+### Release Notes
+
+#### 3.8.1 ([#5429](https://github.com/tldraw/tldraw/pull/5429))
+
+- Fix `TldrawImage` not working with `format=png`
+
+---
+
+#### 🐛 Bug Fix
+
+- 3.8.1 [#5429](https://github.com/tldraw/tldraw/pull/5429) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+---
+
+# v3.8.0 (Wed Feb 12 2025)
+
+### Release Notes
+
+#### support dragging urls onto the canvas ([#5411](https://github.com/tldraw/tldraw/pull/5411))
+
+- Dragging and dropping URLs onto the canvas is now supported (and creates a bookmark by default)
+
+#### Add tldraw and excalidraw to external content types ([#5402](https://github.com/tldraw/tldraw/pull/5402))
+
+- You can now customize how pasted tldraw and excalidraw content is handled with `registerExternalContentHandler`.
+
+#### ShapeUtil.configure for shape options ([#5399](https://github.com/tldraw/tldraw/pull/5399))
+
+- introduces shape options & `ShapeUtil.configure`, a utility for passing options to a shape util
+- moves (unreleased) noteShapeResizeMode to NoteShapeOptions.resizeMode
+- If you pass tldraw a shape util with the same type as a default, it'll now replace the default rather than crash
+- **BREAKING** `options.maxDrawShapePoints` should now be specified with `DrawShapeUtil.configure({maxPoints})` and `HighlightShapeUtil.configure({maxPoints})`
+
+#### Shape options ([#5349](https://github.com/tldraw/tldraw/pull/5349))
+
+- introduces shape options
+- moves (unreleased) `noteShapeResizeMode` to `NoteShapeOptions.resizeMode`
+- moves `maxDrawShapePoints` to `DrawShapeOptions.maxPoints`
+- adds `maxPoints` to `HighlightShapeOptions.maxPoints`
+- 💥 breaking change if someone was using `options.maxDrawShapePoints`.
+
+#### Numeric shortcuts were still getting triggered when used inside some inputs (like the file rename input) ([#5378](https://github.com/tldraw/tldraw/pull/5378))
+
+- Fix an issue with numeric shortcuts working inside of editable elements.
+
+#### Don't pass through mousewheel events on scrollable elements ([#5356](https://github.com/tldraw/tldraw/pull/5356))
+
+- Fixed a bug with scrollable UI elements not being scrollable.
+
+#### Improve frame heading perf ([#5357](https://github.com/tldraw/tldraw/pull/5357))
+
+- Fix bug effecting performance when many frames are on the screen.
+
+#### Add option to disable numbered shortcuts on the toolbar ([#5340](https://github.com/tldraw/tldraw/pull/5340))
+
+- SDK: Added editor option to disable 0-9 keyboard shortcuts for the toolbar
+- Improved keyboard shortcuts for the toolbar
+
+#### support react 19 ([#5293](https://github.com/tldraw/tldraw/pull/5293))
+
+- tldraw now supports react 19
+
+#### separately export default external content/asset handlers ([#5298](https://github.com/tldraw/tldraw/pull/5298))
+
+- You can now import each of our external asset/content handlers, so you can augment them without having to copy-paste them into your app
+
+#### BREAKING
+- `TLExternalAssetContent` has been renamed to `TLExternalAsset`
+
+#### Emit a before-event from Editor ([#5319](https://github.com/tldraw/tldraw/pull/5319))
+
+- Emit a `before-event` from Editor for events before they are handled by tldraw.
+
+#### fix: consider font style in text measuring ([#5313](https://github.com/tldraw/tldraw/pull/5313))
+
+- Fixed a bug with…
+
+#### Add editor option to allow sticky note resizing by scale ([#5273](https://github.com/tldraw/tldraw/pull/5273))
+
+- Added `options.noteShapeResizeMode` editor option to control how note shapes resize.
+
+#### Fix an error when embed util is not present. ([#5296](https://github.com/tldraw/tldraw/pull/5296))
+
+- Fix an issue with embeds logic not gracefully handling cases when we don't have an embed util.
+
+#### Add an onCrop handler to ShapeUtil ([#5137](https://github.com/tldraw/tldraw/pull/5137))
+
+- Add support for an onCrop handler on shape utils that allows you to prevent or modify the crop.
+- The `TLImageShapeCrop` type has been replaced by `TLShapeCrop`.
+
+#### Style changing duration reduced from 2 to 1 second ([#5158](https://github.com/tldraw/tldraw/pull/5158))
+
+- Style changing duration reduced from 2 to 1 second
+
+#### Asset uploads ([#5218](https://github.com/tldraw/tldraw/pull/5218))
+
+**Breaking change**
+
+- `@tldraw/tlschema`: `TLAssetStore.upload` used to return just the `src` of the uploaded asset. It now returns `{src: string, meta?: JsonObject}`. The returned metadata will be added to the asset record and thus allows the users to add some additional data to them when uploading.
+- `@tldraw/editor`: `Editor.uploadAsset` used to return `Promise<string>` and now returns `Promise<{ src: string; meta?: JsonObject }> `
+
+#### Exports DX pass ([#5114](https://github.com/tldraw/tldraw/pull/5114))
+
+#### Breaking changes / user facing changes
+- The copy/export as JSON option has been removed. Data copied/exported from here could not be used anyway. If you need this in your app, look into `Editor.getContentFromCurrentPage`.
+- `useImageOrVideoAssetUrl` now expects a `width` parameter representing the rendered width of the asset.
+- `Editor.getSvgElement` and `Editor.getSvgString` will now export all shapes on the current page instead of returning undefined when passed an empty array of shape ids.
+
+#### Product improvement
+- When exporting to an image, image assets are now downloaded at a resolution appropriate for how they will appear in the export.
+
+#### API changes
+- There's a new `Editor.toImage` method that makes creating an image from your canvas easier. (`exportToBlob` is deprecated in favour of it)
+- `SvgExportContext` now exposes the `scale` and `pixelRatio` options of the current export
+- `SvgExportContext` now has a `resolveAssetUrl` method to resolve an asset at a resolution appropriate for the export.
+- `copyAs(editor, ids, format, opts)` has been deprecated in favour of `copyAs(editor, ids, opts)`.
+- `exportAs(editor, ids, format, name, opts)` has been deprecated in favour of `exportAs(editor, ids, opts)`
+
+#### Always override session state on initial load ([#5233](https://github.com/tldraw/tldraw/pull/5233))
+
+- Fixed a bug where grid mode and other settings would not persist across page reloads.
+
+#### i18n: augment the list so that we hit the top 40 languages ([#5208](https://github.com/tldraw/tldraw/pull/5208))
+
+- i18n: add top 40 languages into the list
+
+#### pass custom migrations to useLocalStore ([#5135](https://github.com/tldraw/tldraw/pull/5135))
+
+- Fixed a bug with locally synced stores where custom migrations were not being passed to the store constructor.
+
+---
+
+#### 🐛 Bug Fix
+
+- fix: consider font style in text measuring [#5313](https://github.com/tldraw/tldraw/pull/5313) ([@ricardo-crespo](https://github.com/ricardo-crespo))
+
+#### 🐛 Bug Fixes
+
+- Numeric shortcuts were still getting triggered when used inside some inputs (like the file rename input) [#5378](https://github.com/tldraw/tldraw/pull/5378) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Improve frame heading perf [#5357](https://github.com/tldraw/tldraw/pull/5357) ([@steveruizok](https://github.com/steveruizok))
+- Fix an error when embed util is not present. [#5296](https://github.com/tldraw/tldraw/pull/5296) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@mimecuvalo](https://github.com/mimecuvalo))
+- Always override session state on initial load [#5233](https://github.com/tldraw/tldraw/pull/5233) ([@ds300](https://github.com/ds300))
+- i18n: rename two locale codes [#5212](https://github.com/tldraw/tldraw/pull/5212) ([@mimecuvalo](https://github.com/mimecuvalo))
+- pass custom migrations to useLocalStore [#5135](https://github.com/tldraw/tldraw/pull/5135) ([@ds300](https://github.com/ds300))
+
+#### 💄 Product Improvements
+
+- support dragging urls onto the canvas [#5411](https://github.com/tldraw/tldraw/pull/5411) ([@SomeHats](https://github.com/SomeHats))
+- Don't pass through mousewheel events on scrollable elements [#5356](https://github.com/tldraw/tldraw/pull/5356) ([@steveruizok](https://github.com/steveruizok))
+- support react 19 [#5293](https://github.com/tldraw/tldraw/pull/5293) ([@SomeHats](https://github.com/SomeHats) [@mimecuvalo](https://github.com/mimecuvalo) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Style changing duration reduced from 2 to 1 second [#5158](https://github.com/tldraw/tldraw/pull/5158) (alexander.melnik@pandadoc.com [@melnikkk](https://github.com/melnikkk))
+- Asset uploads [#5218](https://github.com/tldraw/tldraw/pull/5218) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- error logging: add more context for errors [#5221](https://github.com/tldraw/tldraw/pull/5221) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🎉 New Features
+
+- i18n: augment the list so that we hit the top 40 languages [#5208](https://github.com/tldraw/tldraw/pull/5208) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🛠️ API Changes
+
+- Add tldraw and excalidraw to external content types [#5402](https://github.com/tldraw/tldraw/pull/5402) ([@SomeHats](https://github.com/SomeHats))
+- ShapeUtil.configure for shape options [#5399](https://github.com/tldraw/tldraw/pull/5399) ([@SomeHats](https://github.com/SomeHats))
+- Shape options [#5349](https://github.com/tldraw/tldraw/pull/5349) ([@steveruizok](https://github.com/steveruizok))
+- Add option to disable numbered shortcuts on the toolbar [#5340](https://github.com/tldraw/tldraw/pull/5340) ([@steveruizok](https://github.com/steveruizok))
+- separately export default external content/asset handlers [#5298](https://github.com/tldraw/tldraw/pull/5298) ([@SomeHats](https://github.com/SomeHats))
+- Emit a before-event from Editor [#5319](https://github.com/tldraw/tldraw/pull/5319) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+- Add editor option to allow sticky note resizing by scale [#5273](https://github.com/tldraw/tldraw/pull/5273) ([@steveruizok](https://github.com/steveruizok))
+- Add an onCrop handler to ShapeUtil [#5137](https://github.com/tldraw/tldraw/pull/5137) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk) [@mimecuvalo](https://github.com/mimecuvalo))
+- Exports DX pass [#5114](https://github.com/tldraw/tldraw/pull/5114) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 10
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- Aleksander Melnik (alexander.melnik@pandadoc.com)
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Alexander Melnik ([@melnikkk](https://github.com/melnikkk))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Ricardo Crespo ([@ricardo-crespo](https://github.com/ricardo-crespo))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+
+---
+
+# v3.7.0 (Tue Jan 07 2025)
+
+### Release Notes
+
+#### Allow expandSelectionOutlinePx to return a Box ([#5168](https://github.com/tldraw/tldraw/pull/5168))
+
+- Support expanding the selection outline by different amounts on each side by returning a `Box` from `expandSelectionOutlinePx`.
+
+#### Fix relative CSS import rules failing to be fetched ([#5172](https://github.com/tldraw/tldraw/pull/5172))
+
+- Fix relative CSS import rules failing to be fetched when exporting or printing.
+
+#### custom sync presence ([#5071](https://github.com/tldraw/tldraw/pull/5071))
+
+- It's now possible to customise what presence data is synced between clients, or disable presence syncing entirely.
+
+#### Don't add the baseElem to the container in textmanager ([#5127](https://github.com/tldraw/tldraw/pull/5127))
+
+- Prevents divs created for text measurement from leaking during hot reloading.
+
+#### Improve rerenedring of the page menu and quick actions ([#5057](https://github.com/tldraw/tldraw/pull/5057))
+
+- Improves rendering of the pages menu and quick actions.
+
+#### fix: Updating shape props to undefined when using editor.updateShape ([#5029](https://github.com/tldraw/tldraw/pull/5029))
+
+- Updating shape props to undefined  when using editor.updateShape
+
+---
+
+#### 🐛 Bug Fix
+
+- [botcom] slurp local files on sign in [#5059](https://github.com/tldraw/tldraw/pull/5059) ([@ds300](https://github.com/ds300))
+
+#### 🐛 Bug Fixes
+
+- Fix relative CSS import rules failing to be fetched [#5172](https://github.com/tldraw/tldraw/pull/5172) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+- Don't add the baseElem to the container in textmanager [#5127](https://github.com/tldraw/tldraw/pull/5127) ([@ds300](https://github.com/ds300))
+- fix hot reload text measurement bug [#5125](https://github.com/tldraw/tldraw/pull/5125) ([@ds300](https://github.com/ds300))
+- fix stale closure in InnerShape [#5117](https://github.com/tldraw/tldraw/pull/5117) ([@ds300](https://github.com/ds300))
+- fix: Updating shape props to undefined when using editor.updateShape [#5029](https://github.com/tldraw/tldraw/pull/5029) ([@kazu-2020](https://github.com/kazu-2020) [@steveruizok](https://github.com/steveruizok))
+
+#### 💄 Product Improvements
+
+- Improve rerenedring of the page menu and quick actions [#5057](https://github.com/tldraw/tldraw/pull/5057) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🛠️ API Changes
+
+- Allow expandSelectionOutlinePx to return a Box [#5168](https://github.com/tldraw/tldraw/pull/5168) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+- custom sync presence [#5071](https://github.com/tldraw/tldraw/pull/5071) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 6
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- mimata kazutaka ([@kazu-2020](https://github.com/kazu-2020))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+
+---
+
+# v3.6.0 (Wed Dec 04 2024)
+
+### Release Notes
+
+#### assets: fix up resolving when copy/pasting multiple items; also, videos ([#5061](https://github.com/tldraw/tldraw/pull/5061))
+
+- Fixed bugs with copy/pasting multilple assets from one board to another.
+- Fixed bug with copy/pasting videos from one board to another.
+
+#### Fix some export bugs ([#5022](https://github.com/tldraw/tldraw/pull/5022))
+
+- Properly clip scaled text in frames when exporting
+- Stop multiple concurrent exports from interfering with each-others fonts
+
+#### Fix long press bug ([#5032](https://github.com/tldraw/tldraw/pull/5032))
+
+- Fixed a bug with long press on inset canvases.
+
+---
+
+#### 🐛 Bug Fixes
+
+- assets: fix up resolving when copy/pasting multiple items; also, videos [#5061](https://github.com/tldraw/tldraw/pull/5061) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix some export bugs [#5022](https://github.com/tldraw/tldraw/pull/5022) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Fix long press bug [#5032](https://github.com/tldraw/tldraw/pull/5032) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 4
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
+# v3.5.0 (Tue Nov 26 2024)
+
+### Release Notes
+
+#### Allow custom react providers in SVG exports ([#4991](https://github.com/tldraw/tldraw/pull/4991))
+
+- You can now supply a custom react context provider for SVG exports
+
+#### Click / right click on frame headings ([#4979](https://github.com/tldraw/tldraw/pull/4979))
+
+- Improved clicks for frame headings
+
+#### Snap to grid when creating shapes ([#4875](https://github.com/tldraw/tldraw/pull/4875))
+
+- Shapes snap to grid on creation, or when adding points.
+
+#### Smart bringForward/sendBackward ([#4851](https://github.com/tldraw/tldraw/pull/4851))
+
+- Improved the 'bring forward' and 'send backward' actions by making them only consider nearby overlapping shapes when deciding the next ordering.
+
+#### Remove outlines from buttons until we fix radix-ui issues ([#4855](https://github.com/tldraw/tldraw/pull/4855))
+
+- Fixed a bug with focus outlines appearing in menu items at the wrong time.
+
+#### Add option to disable text creation on double click ([#4841](https://github.com/tldraw/tldraw/pull/4841))
+
+- Add option to disable text creation on double click `createTextOnCanvasDoubleClick`
+
+#### Better support scale / quality in export utilities ([#4795](https://github.com/tldraw/tldraw/pull/4795))
+
+- Improved treatment of `scale` in image copy / export utilities.
+
+#### Call ensureStoreIsUsable after mergeRemoteChanges ([#4833](https://github.com/tldraw/tldraw/pull/4833))
+
+- Add store consistency checks during `mergeRemoteChanges`
+
+#### Make default color theme light. ([#4796](https://github.com/tldraw/tldraw/pull/4796))
+
+- Sets the default color theme to light.
+
+---
+
+#### 🐛 Bug Fix
+
+- [botcom] improve error UX [#4790](https://github.com/tldraw/tldraw/pull/4790) ([@ds300](https://github.com/ds300))
+
+#### 🐛 Bug Fixes
+
+- Remove outlines from buttons until we fix radix-ui issues [#4855](https://github.com/tldraw/tldraw/pull/4855) ([@steveruizok](https://github.com/steveruizok))
+
+#### 💄 Product Improvements
+
+- Click / right click on frame headings [#4979](https://github.com/tldraw/tldraw/pull/4979) ([@steveruizok](https://github.com/steveruizok) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Lokalise: Translations update [#4947](https://github.com/tldraw/tldraw/pull/4947) ([@TodePond](https://github.com/TodePond) [@mimecuvalo](https://github.com/mimecuvalo))
+- Snap to grid when creating shapes [#4875](https://github.com/tldraw/tldraw/pull/4875) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git) [@mimecuvalo](https://github.com/mimecuvalo))
+- Smart bringForward/sendBackward [#4851](https://github.com/tldraw/tldraw/pull/4851) ([@ds300](https://github.com/ds300))
+- Call ensureStoreIsUsable after mergeRemoteChanges [#4833](https://github.com/tldraw/tldraw/pull/4833) ([@ds300](https://github.com/ds300))
+- Make default color theme light. [#4796](https://github.com/tldraw/tldraw/pull/4796) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🎉 New Features
+
+- Add option to disable text creation on double click [#4841](https://github.com/tldraw/tldraw/pull/4841) ([@ds300](https://github.com/ds300) [@steveruizok](https://github.com/steveruizok))
+
+#### 🛠️ API Changes
+
+- Allow custom react providers in SVG exports [#4991](https://github.com/tldraw/tldraw/pull/4991) ([@SomeHats](https://github.com/SomeHats))
+- Better support scale / quality in export utilities [#4795](https://github.com/tldraw/tldraw/pull/4795) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 7
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+---
+
 # v3.4.0 (Thu Oct 24 2024)
 
 ### Release Notes

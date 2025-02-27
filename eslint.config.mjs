@@ -4,6 +4,7 @@ import js from '@eslint/js'
 import nextNext from '@next/eslint-plugin-next'
 import typescriptEslint from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
+import formatjs from 'eslint-plugin-formatjs'
 import _import from 'eslint-plugin-import'
 import noOnlyTests from 'eslint-plugin-no-only-tests'
 import react from 'eslint-plugin-react'
@@ -32,6 +33,7 @@ export default [
 			'**/.lazy/*',
 			'**/.next/*',
 			'**/.wrangler/*',
+			'**/.vercel/*',
 			'**/*.md',
 			'**/_archive/*',
 			'**/*.css.map',
@@ -80,6 +82,7 @@ export default [
 			'@next/next': nextNext,
 			react,
 			'react-hooks': fixupPluginRules(reactHooks),
+			formatjs: formatjs,
 		},
 
 		languageOptions: {
@@ -146,6 +149,7 @@ export default [
 			'local/prefer-class-methods': 'error',
 			'local/tsdoc-param-matching': 'error',
 			'no-only-tests/no-only-tests': 'error',
+			'formatjs/enforce-default-message': ['error', 'literal'],
 
 			'no-restricted-syntax': [
 				'error',
@@ -303,7 +307,6 @@ export default [
 					message: 'Use structuredClone from @tldraw/util instead',
 				},
 			],
-
 			'no-restricted-properties': [
 				'error',
 				{
@@ -328,6 +331,17 @@ export default [
 		files: ['apps/dotcom/client/src/tla/**/*'],
 
 		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					paths: [
+						{
+							name: 'react-intl',
+							message: 'Please import useIntl from src/utils/intl instead.',
+						},
+					],
+				},
+			],
 			'react/jsx-no-literals': [
 				'error',
 				{

@@ -1,4 +1,3 @@
-import { useEditor, useValue } from '@tldraw/editor'
 import { useCanRedo, useCanUndo } from '../../hooks/menu-hooks'
 import { ColorSchemeMenu } from '../ColorSchemeMenu'
 import { KeyboardShortcutsMenuItem } from '../HelpMenu/DefaultHelpMenuContent'
@@ -41,10 +40,12 @@ import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
 export function DefaultMainMenuContent() {
 	return (
 		<>
-			<EditSubmenu />
-			<ViewSubmenu />
-			<ExportFileContentSubMenu />
-			<ExtrasGroup />
+			<TldrawUiMenuGroup id="basic">
+				<EditSubmenu />
+				<ViewSubmenu />
+				<ExportFileContentSubMenu />
+				<ExtrasGroup />
+			</TldrawUiMenuGroup>
 			<PreferencesGroup />
 		</>
 	)
@@ -57,7 +58,6 @@ export function ExportFileContentSubMenu() {
 			<TldrawUiMenuGroup id="export-all-as-group">
 				<TldrawUiMenuActionItem actionId="export-all-as-svg" />
 				<TldrawUiMenuActionItem actionId="export-all-as-png" />
-				<TldrawUiMenuActionItem actionId="export-all-as-json" />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="export-all-as-bg">
 				<ToggleTransparentBgMenuItem />
@@ -68,16 +68,8 @@ export function ExportFileContentSubMenu() {
 
 /** @public @react */
 export function EditSubmenu() {
-	const editor = useEditor()
-
-	const selectToolActive = useValue(
-		'isSelectToolActive',
-		() => editor.getCurrentToolId() === 'select',
-		[editor]
-	)
-
 	return (
-		<TldrawUiMenuSubmenu id="edit" label="menu.edit" disabled={!selectToolActive}>
+		<TldrawUiMenuSubmenu id="edit" label="menu.edit">
 			<UndoRedoGroup />
 			<ClipboardMenuGroup />
 			<ConversionsMenuGroup />
@@ -147,10 +139,10 @@ export function ViewSubmenu() {
 /** @public @react */
 export function ExtrasGroup() {
 	return (
-		<TldrawUiMenuGroup id="extras">
+		<>
 			<TldrawUiMenuActionItem actionId="insert-embed" />
 			<TldrawUiMenuActionItem actionId="insert-media" />
-		</TldrawUiMenuGroup>
+		</>
 	)
 }
 

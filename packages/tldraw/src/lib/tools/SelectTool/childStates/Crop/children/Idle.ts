@@ -1,4 +1,5 @@
 import {
+	ShapeWithCrop,
 	StateNode,
 	TLClickEventInfo,
 	TLGroupShape,
@@ -7,7 +8,7 @@ import {
 	Vec,
 } from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../../../selection-logic/getHitShapeOnCanvasPointerDown'
-import { ShapeWithCrop, getTranslateCroppedImageChange } from './crop_helpers'
+import { getTranslateCroppedImageChange } from './crop_helpers'
 
 export class Idle extends StateNode {
 	static override id = 'idle'

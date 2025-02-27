@@ -13,7 +13,10 @@ import { TLVideoAsset, videoAssetValidator } from '../assets/TLVideoAsset'
 import { TLShape } from './TLShape'
 
 /** @public */
-export type TLAsset = TLImageAsset | TLVideoAsset | TLAudioAsset | TLBookmarkAsset
+export type TLMediaAsset = TLImageAsset | TLVideoAsset | TLAudioAsset
+
+/** @public */
+export type TLAsset = TLMediaAsset | TLBookmarkAsset
 
 /** @public */
 export const assetValidator: T.Validator<TLAsset> = T.model(

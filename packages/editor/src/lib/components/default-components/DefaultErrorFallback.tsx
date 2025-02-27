@@ -165,11 +165,16 @@ My browser: ${navigator.userAgent}`
 					</>
 				) : (
 					<>
-						<h2>Something&apos;s gone wrong.</h2>
+						<h2>Something went wrong</h2>
+						<p>Please refresh the page to continue.</p>
 						<p>
-							Sorry, we encountered an error. Please refresh the page to continue. If you keep
-							seeing this error, you can <a href={url.toString()}>create a GitHub issue</a> or{' '}
-							<a href="https://discord.gg/Cq6cPsTfNy">ask for help on Discord</a>.
+							If you keep seeing this screen, you can create a{' '}
+							<a href={url.toString()}>GitHub issue</a> or ask for help on{' '}
+							<a href="https://discord.tldraw.com/?utm_source=sdk&utm_medium=organic&utm_campaign=error-screen">
+								Discord
+							</a>
+							. If you are still stuck, you can reset the tldraw data on your machine. This may
+							erase the project you were working on, so try to get help first.
 						</p>
 						{shouldShowError && (
 							<>

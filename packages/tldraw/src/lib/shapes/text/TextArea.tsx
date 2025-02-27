@@ -31,6 +31,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
 			className="tl-text tl-text-input"
 			name="text"
 			tabIndex={-1}
+			disabled={!isEditing}
 			readOnly={!isEditing}
 			autoComplete="off"
 			autoCapitalize="off"

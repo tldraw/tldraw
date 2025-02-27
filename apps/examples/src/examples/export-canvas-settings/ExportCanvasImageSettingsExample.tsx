@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Box, exportToBlob, Tldraw, TLImageExportOptions, TLUiComponents, useEditor } from 'tldraw'
+import { Box, Tldraw, TLImageExportOptions, TLUiComponents, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 const components: TLUiComponents = {
@@ -105,17 +105,13 @@ function ExportCanvasButton() {
 					const shapeIds = editor.getCurrentPageShapeIds()
 					if (shapeIds.size === 0) return alert('No shapes on the canvas')
 
-					const blob = await exportToBlob({
-						editor,
-						ids: [...shapeIds],
+					const { blob } = await editor.toImage([...shapeIds], {
 						format: 'png',
-						opts: {
-							...opts,
-							// If we have numbers for all of the box values, we can use them as bounds
-							bounds: Object.values(box).every((b) => Number.isNaN(b))
-								? new Box(box.x, box.y, box.y, box.x)
-								: undefined,
-						},
+						...opts,
+						// If we have numbers for all of the box values, we can use them as bounds
+						bounds: Object.values(box).every((b) => Number.isNaN(b))
+							? new Box(box.x, box.y, box.y, box.x)
+							: undefined,
 					})
 
 					const link = document.createElement('a')

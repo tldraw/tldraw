@@ -20,7 +20,7 @@ jobs:
   deploy:
     name: Deploy bemo to ${{ (github.ref == 'refs/heads/bemo-production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
     timeout-minutes: 15
-    runs-on: ubuntu-latest-16-cores-open
+    runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/bemo-production' && 'bemo-production' || 'bemo-canary' }}
     concurrency: bemo-${{ github.ref == 'refs/heads/bemo-production' && 'bemo-production' || github.ref }}
 
