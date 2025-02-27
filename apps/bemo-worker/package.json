@@ -26,16 +26,18 @@
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
 		"@tldraw/worker-shared": "workspace:*",
-		"itty-router": "^5.0.17",
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0"
+		"itty-router": "^5.0.18",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20240620.0",
-		"esbuild": "^0.21.5",
+		"@cloudflare/workers-types": "^4.20250124.3",
+		"@types/react": "^18.3.18",
+		"@types/react-dom": "^18.3.5",
+		"esbuild": "^0.24.2",
 		"lazyrepo": "0.0.0-alpha.27",
-		"typescript": "^5.3.3",
-		"wrangler": "3.62.0"
+		"typescript": "~5.4.5",
+		"wrangler": "^3.105.1"
 	},
 	"jest": {
 		"preset": "../../internal/config/jest/node/jest-preset.js",

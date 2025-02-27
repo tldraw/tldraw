@@ -94,7 +94,8 @@ async function getCurrentDocumentFontFaces() {
 				if (rule instanceof CSSFontFaceRule) {
 					fontFaces.push(parseCssFontFaces(rule.cssText, styleSheet.href ?? document.baseURI))
 				} else if (rule instanceof CSSImportRule) {
-					fontFaces.push(fetchCssFontFaces(rule.href))
+					const absoluteUrl = new URL(rule.href, rule.parentStyleSheet?.href ?? document.baseURI)
+					fontFaces.push(fetchCssFontFaces(absoluteUrl.href))
 				}
 			}
 		} else if (styleSheet.href) {

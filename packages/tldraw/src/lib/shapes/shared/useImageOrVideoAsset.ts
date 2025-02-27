@@ -1,12 +1,10 @@
 import {
 	Editor,
+	SvgExportContext,
 	TLAssetId,
 	TLImageAsset,
-	TLImageShape,
 	TLShapeId,
 	TLVideoAsset,
-	TLVideoShape,
-	debounce,
 	react,
 	useDelaySvgExport,
 	useEditor,
@@ -15,33 +13,46 @@ import {
 import { useEffect, useRef, useState } from 'react'
 
 /**
+ * Options for {@link useImageOrVideoAsset}.
+ *
+ * @public
+ */
+export interface UseImageOrVideoAssetOptions {
+	/** The asset ID you want a URL for. */
+	assetId: TLAssetId | null
+	/**
+	 * The shape the asset is being used for. We won't update the resolved URL whilst the shape is
+	 * off-screen.
+	 */
+	shapeId?: TLShapeId
+	/**
+	 * The width at which the asset will be displayed, in shape-space pixels.
+	 */
+	width: number
+}
+
+/**
  * This is a handy helper hook that resolves an asset to an optimized URL for a given shape, or its
  * {@link @tldraw/editor#Editor.createTemporaryAssetPreview | placeholder} if the asset is still
  * uploading. This is used in particular for high-resolution images when you want lower and higher
- * resolution depending on the context.
+ * resolution depending on the size of the image on the canvas and the zoom level.
  *
  * For image scaling to work, you need to implement scaled URLs in
  * {@link @tldraw/tlschema#TLAssetStore.resolve}.
  *
  * @public
  */
-export function useImageOrVideoAsset({
-	shapeId,
-	assetId,
-}: {
-	shapeId: TLShapeId
-	assetId: TLAssetId | null
-}) {
+export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVideoAssetOptions) {
 	const editor = useEditor()
-	const isExport = !!useSvgExportContext()
-	const isReady = useDelaySvgExport()
+	const exportInfo = useSvgExportContext()
+	const exportIsReady = useDelaySvgExport()
 
 	// We use a state to store the result of the asset resolution, and we're going to avoid updating this whenever we can
 	const [result, setResult] = useState<{
 		asset: (TLImageAsset | TLVideoAsset) | null
 		url: string | null
 	}>(() => ({
-		asset: assetId ? editor.getAsset<TLImageAsset | TLVideoAsset>(assetId) ?? null : null,
+		asset: assetId ? (editor.getAsset<TLImageAsset | TLVideoAsset>(assetId) ?? null) : null,
 		url: null as string | null,
 	}))
 
@@ -58,15 +69,11 @@ export function useImageOrVideoAsset({
 		let cancelDebounceFn: (() => void) | undefined
 
 		const cleanupEffectScheduler = react('update state', () => {
-			if (!isExport && editor.getCulledShapes().has(shapeId)) return
+			if (!exportInfo && shapeId && editor.getCulledShapes().has(shapeId)) return
 
 			// Get the fresh asset
 			const asset = editor.getAsset<TLImageAsset | TLVideoAsset>(assetId)
 			if (!asset) return
-
-			// Get the fresh shape
-			const shape = editor.getShape<TLImageShape | TLVideoShape>(shapeId)
-			if (!shape) return
 
 			// Set initial preview for the shape if it has no source (if it was pasted into a local project as base64)
 			if (!asset.props.src) {
@@ -75,7 +82,7 @@ export function useImageOrVideoAsset({
 					if (previousUrl.current !== preview) {
 						previousUrl.current = preview // just for kicks, let's save the url as the previous URL
 						setResult((prev) => ({ ...prev, isPlaceholder: true, url: preview })) // set the preview as the URL
-						isReady() // let the SVG export know we're ready for export
+						exportIsReady() // let the SVG export know we're ready for export
 					}
 					return
 				}
@@ -83,24 +90,37 @@ export function useImageOrVideoAsset({
 
 			// aside ...we could bail here if the only thing that has changed is the shape has changed from culled to not culled
 
-			const screenScale = editor.getZoomLevel() * (shape.props.w / asset.props.w)
+			const screenScale = exportInfo
+				? exportInfo.scale * (width / asset.props.w)
+				: editor.getZoomLevel() * (width / asset.props.w)
+
+			function resolve(asset: TLImageAsset | TLVideoAsset, url: string | null) {
+				if (isCancelled) return // don't update if the hook has remounted
+				if (previousUrl.current === url) return // don't update the state if the url is the same
+				didAlreadyResolve.current = true // mark that we've resolved our first image
+				previousUrl.current = url // keep the url around to compare with the next one
+				setResult({ asset, url })
+				exportIsReady() // let the SVG export know we're ready for export
+			}
 
 			// If we already resolved the URL, debounce fetching potentially multiple image variations.
 			if (didAlreadyResolve.current) {
-				resolveAssetUrlDebounced(editor, assetId, screenScale, isExport, (url) => {
-					if (isCancelled) return // don't update if the hook has remounted
-					if (previousUrl.current === url) return // don't update the state if the url is the same
-					previousUrl.current = url // keep the url around to compare with the next one
-					setResult(() => ({ asset, url }))
-				})
-				cancelDebounceFn = resolveAssetUrlDebounced.cancel // cancel the debounce when the hook unmounts
+				let tick = 0
+
+				const resolveAssetAfterAWhile = () => {
+					tick++
+					if (tick > 500 / 16) {
+						// debounce for 500ms
+						resolveAssetUrl(editor, assetId, screenScale, exportInfo, (url) => resolve(asset, url))
+						cancelDebounceFn?.()
+					}
+				}
+
+				cancelDebounceFn?.()
+				editor.on('tick', resolveAssetAfterAWhile)
+				cancelDebounceFn = () => editor.off('tick', resolveAssetAfterAWhile)
 			} else {
-				resolveAssetUrl(editor, assetId, screenScale, isExport, (url) => {
-					if (isCancelled) return // don't update if the hook has remounted
-					didAlreadyResolve.current = true // mark that we've resolved our first image
-					previousUrl.current = url // keep the url around to compare with the next one
-					setResult(() => ({ asset, url }))
-				})
+				resolveAssetUrl(editor, assetId, screenScale, exportInfo, (url) => resolve(asset, url))
 			}
 		})
 
@@ -109,7 +129,7 @@ export function useImageOrVideoAsset({
 			cancelDebounceFn?.()
 			isCancelled = true
 		}
-	}, [editor, assetId, isExport, isReady, shapeId])
+	}, [editor, assetId, exportInfo, exportIsReady, shapeId, width])
 
 	return result
 }
@@ -118,13 +138,14 @@ function resolveAssetUrl(
 	editor: Editor,
 	assetId: TLAssetId,
 	screenScale: number,
-	isExport: boolean,
+	exportInfo: SvgExportContext | null,
 	callback: (url: string | null) => void
 ) {
 	editor
 		.resolveAssetUrl(assetId, {
 			screenScale,
-			shouldResolveToOriginal: isExport,
+			shouldResolveToOriginal: exportInfo ? exportInfo.pixelRatio === null : false,
+			dpr: exportInfo?.pixelRatio ?? undefined,
 		})
 		// There's a weird bug with out debounce function that doesn't
 		// make it work right with async functions, so we use a callback
@@ -133,8 +154,6 @@ function resolveAssetUrl(
 			callback(url)
 		})
 }
-
-const resolveAssetUrlDebounced = debounce(resolveAssetUrl, 500)
 
 /**
  * @deprecated Use {@link useImageOrVideoAsset} instead.

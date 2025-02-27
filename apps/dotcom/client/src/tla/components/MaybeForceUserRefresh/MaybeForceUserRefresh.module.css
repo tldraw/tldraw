@@ -1,0 +1,42 @@
+.container {
+	display: flex;
+	flex: 1;
+}
+
+.modal {
+	position: fixed;
+	inset: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 10000;
+}
+
+.modalContent {
+	max-width: 90vw;
+	padding: 20px 30px;
+	font-size: 14px;
+	background: var(--tla-color-sidebar);
+	box-shadow: var(--tla-shadow-3);
+	border-radius: 8px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 10px;
+}
+
+.modalTitle {
+	font-size: 16px;
+	font-weight: 700;
+}
+
+.modalActions {
+	display: flex;
+	width: 100%;
+	gap: 10px;
+	margin-top: 10px;
+}
+
+.modalButton {
+	flex: 1;
+}

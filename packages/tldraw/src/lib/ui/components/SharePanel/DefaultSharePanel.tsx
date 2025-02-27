@@ -4,7 +4,7 @@ import { PeopleMenu } from './PeopleMenu'
 export function DefaultSharePanel() {
 	return (
 		<div className="tlui-share-zone" draggable={false}>
-			<PeopleMenu />
+			<PeopleMenu displayUserWhenAlone />
 		</div>
 	)
 }

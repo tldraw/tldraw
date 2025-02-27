@@ -81,19 +81,14 @@ function InsideEditorAndUiContext() {
 
 	// [3]
 	useEffect(() => {
-		registerDefaultExternalContentHandlers(
-			editor,
-			{
-				maxImageDimension: 5000,
-				maxAssetSize: 10 * 1024 * 1024, // 10mb
-				acceptedImageMimeTypes: DEFAULT_SUPPORTED_IMAGE_TYPES,
-				acceptedVideoMimeTypes: DEFAULT_SUPPORT_VIDEO_TYPES,
-			},
-			{
-				toasts,
-				msg,
-			}
-		)
+		registerDefaultExternalContentHandlers(editor, {
+			maxImageDimension: 5000,
+			maxAssetSize: 10 * 1024 * 1024, // 10mb
+			acceptedImageMimeTypes: DEFAULT_SUPPORTED_IMAGE_TYPES,
+			acceptedVideoMimeTypes: DEFAULT_SUPPORT_VIDEO_TYPES,
+			toasts,
+			msg,
+		})
 
 		const cleanupSideEffects = registerDefaultSideEffects(editor)
 

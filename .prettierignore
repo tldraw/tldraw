@@ -19,6 +19,7 @@ apps/docs/utils/vector-db/index.json
 .github/pull_request_template.md
 
 **/api-report.md
+**/api-report.api.md
 **/CHANGELOG.md
 apps/docs/content/releases/**/*
 apps/docs/content/reference/**/*
@@ -30,3 +31,5 @@ apps/docs/content/reference/**/*
 apps/dotcom/client/public/**/*.*
 
 **/.clasp.json
+
+apps/dotcom/zero-cache/docker/docker-compose.yml

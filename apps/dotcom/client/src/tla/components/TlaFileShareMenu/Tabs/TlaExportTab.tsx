@@ -1,9 +1,10 @@
 import classNames from 'classnames'
 import { useCallback, useRef, useState } from 'react'
 import {
+	Box,
 	Editor,
 	FileHelpers,
-	TLImageExportOptions,
+	TLExportType,
 	TLShape,
 	compact,
 	debounce,
@@ -14,9 +15,9 @@ import {
 import { globalEditor } from '../../../../utils/globalEditor'
 import { TldrawApp } from '../../../app/TldrawApp'
 import { useMaybeApp } from '../../../hooks/useAppState'
-import { useRaw } from '../../../hooks/useRaw'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getCurrentEditor } from '../../../utils/getCurrentEditor'
+import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import {
 	TldrawAppSessionState,
 	getLocalSessionState,
@@ -78,7 +79,6 @@ function ExportPaddingToggle({
 		value: TldrawAppSessionState['exportSettings']['exportPadding']
 	): void
 }) {
-	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
 
 	const handleChange = useCallback(() => {
@@ -89,7 +89,9 @@ function ExportPaddingToggle({
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel>{raw('Padding')}</TlaMenuControlLabel>
+			<TlaMenuControlLabel>
+				<F defaultMessage="Padding" />
+			</TlaMenuControlLabel>
 			<TlaSwitch checked={value} onChange={handleChange} />
 		</TlaMenuControl>
 	)
@@ -105,7 +107,6 @@ function ExportBackgroundToggle({
 		value: TldrawAppSessionState['exportSettings']['exportBackground']
 	): void
 }) {
-	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
 
 	const handleChange = useCallback(() => {
@@ -116,7 +117,9 @@ function ExportBackgroundToggle({
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel>{raw('Background')}</TlaMenuControlLabel>
+			<TlaMenuControlLabel>
+				<F defaultMessage="Background" />
+			</TlaMenuControlLabel>
 			<TlaSwitch checked={value} onChange={handleChange} />
 		</TlaMenuControl>
 	)
@@ -132,7 +135,6 @@ function ExportFormatSelect({
 		value: TldrawAppSessionState['exportSettings']['exportFormat']
 	): void
 }) {
-	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
 
 	const handleChange = useCallback(
@@ -145,14 +147,27 @@ function ExportFormatSelect({
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel>{raw('Export as')}</TlaMenuControlLabel>
-			<TlaSelect value={value} label={value === 'svg' ? 'SVG' : 'PNG'} onChange={handleChange}>
-				<option value="svg">{raw('SVG')}</option>
-				<option value="png">{raw('PNG')}</option>
-			</TlaSelect>
+			<TlaMenuControlLabel>
+				<F defaultMessage="Export as" />
+			</TlaMenuControlLabel>
+			<TlaSelect
+				value={value}
+				label={value === 'svg' ? 'SVG' : 'PNG'}
+				onChange={handleChange}
+				options={[
+					{ value: 'svg', label: <F defaultMessage="SVG" /> },
+					{ value: 'png', label: <F defaultMessage="PNG" /> },
+				]}
+			/>
 		</TlaMenuControl>
 	)
 }
+
+const messages = defineMessages({
+	auto: { defaultMessage: 'Auto' },
+	light: { defaultMessage: 'Light' },
+	dark: { defaultMessage: 'Dark' },
+})
 
 function ExportThemeSelect({
 	value,
@@ -161,7 +176,7 @@ function ExportThemeSelect({
 	value: TldrawAppSessionState['exportSettings']['exportTheme']
 	onChange(key: 'exportTheme', value: TldrawAppSessionState['exportSettings']['exportTheme']): void
 }) {
-	const raw = useRaw()
+	const label = useMsg(messages[value as 'auto' | 'light' | 'dark'])
 	const trackEvent = useTldrawAppUiEvents()
 	const handleChange = useCallback(
 		(value: TldrawAppSessionState['exportSettings']['exportTheme']) => {
@@ -173,23 +188,25 @@ function ExportThemeSelect({
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel>{raw('Theme')}</TlaMenuControlLabel>
+			<TlaMenuControlLabel>
+				<F defaultMessage="Theme" />
+			</TlaMenuControlLabel>
 			<TlaSelect
 				value={value}
-				label={value[0].toLocaleUpperCase() + value.slice(1)}
+				label={label}
 				onChange={handleChange}
-			>
-				<option value="auto">{raw('Auto')}</option>
-				<option value="light">{raw('Light')}</option>
-				<option value="dark">{raw('Dark')}</option>
-			</TlaSelect>
+				options={[
+					{ value: 'auto', label: <F defaultMessage="Auto" /> },
+					{ value: 'light', label: <F defaultMessage="Light" /> },
+					{ value: 'dark', label: <F defaultMessage="Dark" /> },
+				]}
+			/>
 		</TlaMenuControl>
 	)
 }
 
 function ExportImageButton() {
 	const app = useMaybeApp()
-	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
 
 	const [exported, setExported] = useState(false)
@@ -210,13 +227,14 @@ function ExportImageButton() {
 			ids = editor.getSortedChildIdsForParent(editor.getCurrentPageId())
 		}
 
-		const opts: TLImageExportOptions = {
+		const opts = {
 			padding: exportPadding ? editor.options.defaultSvgPadding : 0,
 			background: exportBackground,
 			darkMode: exportTheme === 'auto' ? undefined : exportTheme === 'dark',
+			format: exportFormat as TLExportType,
 		}
 
-		exportAs(editor, ids, exportFormat, 'file', opts)
+		exportAs(editor, ids, opts)
 
 		trackEvent('export-image', {
 			source: 'file-share-menu',
@@ -238,7 +256,7 @@ function ExportImageButton() {
 	return (
 		<>
 			<TlaButton className="tla-share-menu__copy-button" onClick={handleClick} iconRight="export">
-				{raw('Export image')}
+				<F defaultMessage="Export image" />
 			</TlaButton>
 		</>
 	)
@@ -317,21 +335,25 @@ async function getEditorImage(
 	cb: (info: { src: string; width: number; height: number }) => void
 ) {
 	const { exportPadding, exportBackground, exportTheme } = preferences
-	const result = await editor.getSvgString(
-		shapes.map((s) => s.id),
-		{
-			padding: exportPadding ? editor.options.defaultSvgPadding : 0,
-			background: exportBackground,
-			darkMode: exportTheme === 'auto' ? undefined : exportTheme === 'dark',
-		}
-	)
+
+	const commonBounds = Box.Common(shapes.map((s) => editor.getShapePageBounds(s)!))
+
+	// image max is 216x216, so let's say 500 to be nice and safe
+	const scale = Math.min(500 / commonBounds.width, 500 / commonBounds.height)
+
+	const result = await editor.toImage(shapes, {
+		scale,
+		format: 'png',
+		padding: exportPadding ? editor.options.defaultSvgPadding : 0,
+		background: exportBackground,
+		darkMode: exportTheme === 'auto' ? undefined : exportTheme === 'dark',
+	})
 
 	if (!result) return
 
-	const blob = new Blob([result.svg], { type: 'image/svg+xml' })
-	const src = await FileHelpers.blobToDataUrl(blob)
+	const src = await FileHelpers.blobToDataUrl(result.blob)
 
-	cb({ src, width: result.width, height: result.height })
+	cb({ src, width: Math.ceil(result.width / scale), height: Math.ceil(result.height / scale) })
 }
 
 const getEditorImageSlowly = debounce(getEditorImage, 60)
@@ -342,7 +364,7 @@ function getExportPreferences(app: TldrawApp | null) {
 	let { exportPadding, exportBackground, exportTheme, exportFormat } = sessionState.exportSettings
 
 	if (app && sessionState.auth) {
-		const user = app.getUser(sessionState.auth.userId)
+		const user = app.getUser()
 		if (user) {
 			exportPadding = user.exportPadding
 			exportBackground = user.exportBackground

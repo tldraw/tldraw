@@ -1,0 +1,48 @@
+.signedOutShareButton {
+	margin-top: 1px;
+	flex: 0 0 auto;
+	position: relative;
+	height: 40px;
+	width: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: none;
+	border: none;
+	position: relative;
+	cursor: pointer;
+	z-index: 1;
+	color: var(--color-text-1);
+}
+
+.signedOutShareButton::before {
+	display: block;
+	content: '';
+	position: absolute;
+	inset: 2px 2px;
+	border-radius: 6px;
+	background-color: var(--color-background);
+	z-index: 0;
+	pointer-events: none;
+}
+
+@media (hover: hover) {
+	.signedOutShareButton::after {
+		display: block;
+		content: '';
+		position: absolute;
+		top: 4px;
+		left: 4px;
+		right: 4px;
+		bottom: 4px;
+		border-radius: 6px;
+		background-color: var(--tla-color-hover-1);
+		z-index: 0;
+		pointer-events: none;
+		visibility: hidden;
+	}
+
+	.signedOutShareButton:hover::after {
+		visibility: visible;
+	}
+}

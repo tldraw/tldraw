@@ -1160,31 +1160,31 @@ const v1DashesToV2Dashes: Record<TLV1DashStyle, TLDefaultDashStyle> = {
 }
 
 function getV2Color(color: TLV1ColorStyle | undefined): TLDefaultColorStyle {
-	return color ? v1ColorsToV2Colors[color] ?? 'black' : 'black'
+	return color ? (v1ColorsToV2Colors[color] ?? 'black') : 'black'
 }
 
 function getV2Font(font: TLV1FontStyle | undefined): TLDefaultFontStyle {
-	return font ? v1FontsToV2Fonts[font] ?? 'draw' : 'draw'
+	return font ? (v1FontsToV2Fonts[font] ?? 'draw') : 'draw'
 }
 
 function getV2Align(align: TLV1AlignStyle | undefined): TLDefaultHorizontalAlignStyle {
-	return align ? v1AlignsToV2Aligns[align] ?? 'middle' : 'middle'
+	return align ? (v1AlignsToV2Aligns[align] ?? 'middle') : 'middle'
 }
 
 function getV2TextAlign(align: TLV1AlignStyle | undefined): TLDefaultTextAlignStyle {
-	return align ? v1TextAlignsToV2TextAligns[align] ?? 'middle' : 'middle'
+	return align ? (v1TextAlignsToV2TextAligns[align] ?? 'middle') : 'middle'
 }
 
 function getV2TextSize(size: TLV1SizeStyle | undefined): TLDefaultSizeStyle {
-	return size ? v1TextSizesToV2TextSizes[size] ?? 'm' : 'm'
+	return size ? (v1TextSizesToV2TextSizes[size] ?? 'm') : 'm'
 }
 
 function getV2Size(size: TLV1SizeStyle | undefined): TLDefaultSizeStyle {
-	return size ? v1SizesToV2Sizes[size] ?? 'l' : 'l'
+	return size ? (v1SizesToV2Sizes[size] ?? 'l') : 'l'
 }
 
 function getV2Dash(dash: TLV1DashStyle | undefined): TLDefaultDashStyle {
-	return dash ? v1DashesToV2Dashes[dash] ?? 'draw' : 'draw'
+	return dash ? (v1DashesToV2Dashes[dash] ?? 'draw') : 'draw'
 }
 
 function getV2Point(point: number[]): VecModel {

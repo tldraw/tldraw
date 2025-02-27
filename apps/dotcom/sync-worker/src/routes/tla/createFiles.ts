@@ -1,18 +1,16 @@
-import { CreateFilesRequestBody, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
+import { CreateFilesRequestBody } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { createTLSchema } from '@tldraw/tlschema'
 import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { getR2KeyForRoom } from '../../r2'
 import { Environment } from '../../types'
-import { getTldrawAppDurableObject } from '../../utils/tla/getTldrawAppDurableObject'
 import { getUserIdFromRequest } from '../../utils/tla/permissions'
 import { validateSnapshot } from '../../utils/validateSnapshot'
 
 // Create new files based on snapshots. This is used when dropping .tldr files onto the app.
 export async function createFiles(request: IRequest, env: Environment): Promise<Response> {
 	// The data sent from the client will include the data for the new room
-	const data = (await request.json()) as CreateFilesRequestBody
 
 	const userId = await getUserIdFromRequest(request, env)
 	if (!userId) {
@@ -20,9 +18,11 @@ export async function createFiles(request: IRequest, env: Environment): Promise<
 	}
 
 	const slugs: string[] = []
+	const data = (await request.json()) as CreateFilesRequestBody
 
 	for (const snapshot of data.snapshots) {
 		// There's a chance the data will be invalid, so we check it first
+		// need to maybe migrate the snapshot
 		const snapshotResult = validateSnapshot(snapshot)
 		if (!snapshotResult.ok) {
 			return Response.json({ error: true, message: snapshotResult.error }, { status: 400 })
@@ -49,13 +49,14 @@ export async function createFiles(request: IRequest, env: Environment): Promise<
 			await env.ROOMS.put(getR2KeyForRoom({ slug: newSlug, isApp: true }), serializedSnapshot)
 
 			// Now create a new file in the app durable object belonging to the user
-			const app = getTldrawAppDurableObject(env)
-			await app.createNewFile(
-				TldrawAppFileRecordType.create({
-					id: TldrawAppFileRecordType.createId(newSlug),
-					ownerId: userId,
-				})
-			)
+			// const app = getTldrawAppDurableObject(env)
+			// TODO: make the backend talk to zero
+			// await app.createNewFile(
+			// 	TldrawAppFileRecordType.create({
+			// 		id: TldrawAppFileRecordType.createId(newSlug),
+			// 		ownerId: userId,
+			// 	})
+			// )
 
 			slugs.push(newSlug)
 		} catch (e: any) {

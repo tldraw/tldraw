@@ -1,0 +1,32 @@
+{
+	"name": "@tldraw/zero-cache",
+	"description": "The production app for tldraw.",
+	"version": "0.0.0",
+	"private": true,
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"browserslist": [
+		"defaults"
+	],
+	"scripts": {
+		"dev": "concurrently 'yarn docker-up' 'yarn migrate --signal-success'",
+		"docker-up": "docker compose --env-file .env -f ./docker/docker-compose.yml up",
+		"docker-down": "docker compose --env-file .env -f ./docker/docker-compose.yml down",
+		"migrate": "yarn tsx ./migrate.ts",
+		"clean": "yarn docker-down && ./clean.sh",
+		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
+	},
+	"type": "module",
+	"dependencies": {
+		"concurrently": "^9.1.2",
+		"kysely": "^0.27.5",
+		"pg": "^8.13.1"
+	},
+	"devDependencies": {
+		"dotenv": "^16.4.7",
+		"lazyrepo": "0.0.0-alpha.27",
+		"tsx": "^4.19.2"
+	}
+}

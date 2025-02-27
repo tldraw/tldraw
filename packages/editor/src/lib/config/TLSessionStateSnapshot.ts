@@ -50,7 +50,9 @@ function iOS() {
  * @public
  */
 export const TAB_ID: string = window
-	? window[tabIdKey] ?? getFromSessionStorage(tabIdKey) ?? `TLDRAW_INSTANCE_STATE_V1_` + uniqueId()
+	? (window[tabIdKey] ??
+		getFromSessionStorage(tabIdKey) ??
+		`TLDRAW_INSTANCE_STATE_V1_` + uniqueId())
 	: '<error>'
 if (window) {
 	window[tabIdKey] = TAB_ID

@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { FileHelpers, useLocalStorageState, useValue } from 'tldraw'
-import { getCurrentEditor } from '../../utils/getCurrentEditor'
+import { useGlobalEditor } from '../../../utils/globalEditor'
 import { getLocalSessionState } from '../../utils/local-session-state'
 import { createQRCodeImageDataString } from '../../utils/qrcode'
 import styles from './file-share-menu.module.css'
@@ -12,10 +12,10 @@ export function QrCode({ url }: { url: string }) {
 	const [qrCode, setQrCode] = useLocalStorageState<string | null>(url, null)
 
 	const theme = useValue('is dark mode', () => getLocalSessionState().theme, [])
+	const editor = useGlobalEditor()
 
 	useEffect(() => {
 		if (!qrCode) {
-			const editor = getCurrentEditor()
 			if (!editor) return
 
 			createQRCodeImageDataString(url).then((svgString) => {
@@ -23,7 +23,7 @@ export function QrCode({ url }: { url: string }) {
 				FileHelpers.blobToDataUrl(blob).then(setQrCode)
 			})
 		}
-	}, [url, setQrCode, qrCode])
+	}, [url, setQrCode, qrCode, editor])
 
 	// When qr code is there, set it as src
 	useLayoutEffect(() => {
