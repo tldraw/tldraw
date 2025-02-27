@@ -14,7 +14,7 @@ import './globals.css'
 export const metadata: Metadata = {
 	metadataBase: new URL('https://tldraw.dev'),
 	title: {
-		default: 'Build whiteboards in React with the tldraw SDK',
+		default: 'tldraw: Build whiteboards in React with the tldraw SDK',
 		template: `%s • tldraw`,
 	},
 	description:
