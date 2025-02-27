@@ -428,24 +428,27 @@ export class UserDataSyncer {
 		})
 
 		// make sure we have all the files we need
-		const data = this.store.getCommittedData()
+		const data = this.store.getFullData()
 		for (const fileState of data?.fileStates ?? []) {
 			if (!data?.files.some((f) => f.id === fileState.fileId)) {
 				this.log.debug('missing file', fileState.fileId)
 				this.addGuestFile(fileState.fileId)
-				return
 			}
 		}
 
-		// and make sure we don't have any files we don't need
 		for (const file of data?.files ?? []) {
+			// and make sure we don't have any files we don't need
+			// this happens when a shared file is made private
 			if (file.ownerId !== this.userId && !data?.fileStates.some((fs) => fs.fileId === file.id)) {
 				this.log.debug('extra file', file.id)
-				this.store.updateCommittedData({
+				const update: ZRowUpdate = {
 					event: 'delete',
 					row: { id: file.id },
 					table: 'file',
-				})
+				}
+				this.store.updateCommittedData(update)
+				this.broadcast({ type: 'update', update: update })
+				continue
 			}
 		}
 	}
@@ -456,6 +459,7 @@ export class UserDataSyncer {
 				? await this.db.selectFrom('file').where('id', '=', fileOrId).selectAll().executeTakeFirst()
 				: fileOrId
 		if (!file) return
+		if (file.ownerId !== this.userId && !file.shared) return
 		const update: ZRowUpdate = {
 			event: 'insert',
 			row: file,
