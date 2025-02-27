@@ -61,67 +61,63 @@ const EmojiDialogWrapper = forwardRef((props: SuggestionProps, ref) => {
 		[props, resetSearch]
 	)
 
-	useImperativeHandle(
-		ref,
-		() => {
-			return {
-				onKeyDown: (props: SuggestionKeyDownProps) => {
-					const picker = emojiPicker?.component
-					if (!picker) return false
+	useImperativeHandle(ref, () => {
+		return {
+			onKeyDown: (props: SuggestionKeyDownProps) => {
+				const picker = emojiPicker?.component
+				if (!picker) return false
 
-					switch (props.event.key) {
-						case 'Enter':
-						case 'ArrowLeft':
-						case 'ArrowRight':
-						case 'ArrowUp':
-						case 'ArrowDown': {
-							picker.handleSearchKeyDown({
-								key: props.event.key,
-								repeat: props.event.repeat,
-								currentTarget: picker.refs.searchInput.current,
-								preventDefault: () => {
-									/* shim */
-								},
-								stopImmediatePropagation: () => {
-									/* shim */
-								},
-							})
+				switch (props.event.key) {
+					case 'Enter':
+					case 'ArrowLeft':
+					case 'ArrowRight':
+					case 'ArrowUp':
+					case 'ArrowDown': {
+						picker.handleSearchKeyDown({
+							key: props.event.key,
+							repeat: props.event.repeat,
+							currentTarget: picker.refs.searchInput.current,
+							preventDefault: () => {
+								/* shim */
+							},
+							stopImmediatePropagation: () => {
+								/* shim */
+							},
+						})
 
-							return true
-						}
-
-						case 'Backspace': {
-							if (!emojiSearchText) {
-								resetSearch()
-								break
-							}
-
-							const text = emojiSearchText.slice(0, -1)
-							if (picker) {
-								picker.refs.searchInput.current.value = text
-								picker.handleSearchInput()
-							}
-							setEmojiSearchText(text)
-
-							break
-						}
-
-						default: {
-							if (props.event.key.length === 1 && props.event.key.match(/[a-z0-9-_]/i)) {
-								picker.refs.searchInput.current.value = emojiSearchText + props.event.key
-								picker.handleSearchInput()
-								setEmojiSearchText(emojiSearchText + props.event.key)
-							}
-							break
-						}
+						return true
 					}
 
-					return false
-				},
-			}
-		},
-		[emojiPicker, emojiSearchText, resetSearch]
-	)
+					case 'Backspace': {
+						if (!emojiSearchText) {
+							resetSearch()
+							break
+						}
+
+						const text = emojiSearchText.slice(0, -1)
+						if (picker) {
+							picker.refs.searchInput.current.value = text
+							picker.handleSearchInput()
+						}
+						setEmojiSearchText(text)
+
+						break
+					}
+
+					default: {
+						if (props.event.key.length === 1 && props.event.key.match(/[a-z0-9-_]/i)) {
+							picker.refs.searchInput.current.value = emojiSearchText + props.event.key
+							picker.handleSearchInput()
+							setEmojiSearchText(emojiSearchText + props.event.key)
+						}
+						break
+					}
+				}
+
+				return false
+			},
+		}
+	}, [emojiPicker, emojiSearchText, resetSearch])
 
 	if (!clientRect.current) return null
 
