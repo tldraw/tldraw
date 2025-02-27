@@ -115,6 +115,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override getDefaultProps(): TLArrowShape['props'] {
 		return {
+			elbow: {
+				startEdge: null,
+				endEdge: null,
+			},
 			dash: 'draw',
 			size: 'm',
 			fill: 'none',

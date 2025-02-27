@@ -45,7 +45,25 @@ export const ArrowShapeArrowheadEndStyle = StyleProp.defineEnum('tldraw:arrowhea
 export type TLArrowShapeArrowheadStyle = T.TypeOf<typeof ArrowShapeArrowheadStartStyle>
 
 /** @public */
+export const ElbowArrowDirection = T.literalEnum('up', 'down', 'left', 'right')
+/** @public */
+export type ElbowArrowDirection = T.TypeOf<typeof ElbowArrowDirection>
+
+/** @public */
+export interface ElbowArrowProps {
+	startEdge: ElbowArrowDirection | null
+	endEdge: ElbowArrowDirection | null
+}
+
+/** @public */
+export const ElbowArrowProps = T.object({
+	startEdge: ElbowArrowDirection.nullable(),
+	endEdge: ElbowArrowDirection.nullable(),
+})
+
+/** @public */
 export interface TLArrowShapeProps {
+	elbow: ElbowArrowProps | null
 	labelColor: TLDefaultColorStyle
 	color: TLDefaultColorStyle
 	fill: TLDefaultFillStyle
@@ -67,6 +85,7 @@ export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>
 
 /** @public */
 export const arrowShapeProps: RecordProps<TLArrowShape> = {
+	elbow: ElbowArrowProps.nullable(),
 	labelColor: DefaultLabelColorStyle,
 	color: DefaultColorStyle,
 	fill: DefaultFillStyle,
@@ -89,6 +108,7 @@ export const arrowShapeVersions = createShapePropsMigrationIds('arrow', {
 	AddLabelPosition: 3,
 	ExtractBindings: 4,
 	AddScale: 5,
+	AddElbow: 6,
 })
 
 function propsMigration(migration: TLPropsMigration) {
@@ -226,6 +246,15 @@ export const arrowShapeMigrations = createMigrationSequence({
 			},
 			down: (props) => {
 				delete props.scale
+			},
+		}),
+		propsMigration({
+			id: arrowShapeVersions.AddElbow,
+			up: (props) => {
+				props.elbow = null
+			},
+			down: (props) => {
+				delete props.elbow
 			},
 		}),
 	],
