@@ -5,6 +5,7 @@ import { DiscordIcon } from '@/components/common/icon/discord'
 import { DocsSearchBar } from '@/components/docs/docs-search-bar'
 import { NavigationLink } from '@/components/navigation/link'
 import Handwritten404 from '@/public/images/404.svg'
+import { RocketLaunchIcon } from '@heroicons/react/16/solid'
 import { AcademicCapIcon, BookOpenIcon, NewspaperIcon, PlayIcon } from '@heroicons/react/20/solid'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -12,8 +13,13 @@ import Link from 'next/link'
 const links = [
 	{
 		caption: 'Quick Start',
-		icon: AcademicCapIcon,
+		icon: RocketLaunchIcon,
 		href: '/quick-start',
+	},
+	{
+		caption: 'Guides',
+		icon: AcademicCapIcon,
+		href: '/installation',
 	},
 	{
 		caption: 'Reference',
