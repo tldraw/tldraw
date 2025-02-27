@@ -1,16 +1,5 @@
-import {
-	Editor,
-	TLBaseShape,
-	TLImageShapeCrop,
-	TLShapePartial,
-	Vec,
-	structuredClone,
-} from '@tldraw/editor'
-
-export type ShapeWithCrop = TLBaseShape<
-	string,
-	{ w: number; h: number; crop: TLImageShapeCrop; zoom: number }
->
+import { Editor, ShapeWithCrop, TLShapePartial, Vec, structuredClone } from '@tldraw/editor'
+import { getUncroppedSize } from '../../../../../shapes/shared/crop'
 
 export function getTranslateCroppedImageChange(editor: Editor, shape: ShapeWithCrop, delta: Vec) {
 	if (!shape) {
@@ -37,7 +26,7 @@ export function getTranslateCroppedImageChange(editor: Editor, shape: ShapeWithC
 
 	delta.rot(-shape.rotation)
 
-	const { w, h } = getOriginalUncroppedSize(oldCrop, shape)
+	const { w, h } = getUncroppedSize(shape.props, oldCrop)
 	const xCropSize = oldCrop.bottomRight.x - oldCrop.topLeft.x
 	const yCropSize = oldCrop.bottomRight.y - oldCrop.topLeft.y
 	const newCrop = structuredClone(oldCrop)
@@ -61,15 +50,4 @@ export function getTranslateCroppedImageChange(editor: Editor, shape: ShapeWithC
 	}
 
 	return partial
-}
-
-export function getOriginalUncroppedSize(
-	crop: TLImageShapeCrop,
-	shape: TLBaseShape<string, { w: number; h: number }>
-) {
-	// original (uncropped) width and height of shape
-	const w = (1 / (crop.bottomRight.x - crop.topLeft.x)) * shape.props.w
-	const h = (1 / (crop.bottomRight.y - crop.topLeft.y)) * shape.props.h
-
-	return { w, h }
 }

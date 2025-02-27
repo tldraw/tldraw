@@ -11,7 +11,7 @@ import Link from 'next/link'
 
 const links = [
 	{
-		caption: 'Learn',
+		caption: 'Quick Start',
 		icon: AcademicCapIcon,
 		href: '/quick-start',
 	},
@@ -52,7 +52,7 @@ export default function NotFound() {
 				<p className="mt-32 max-w-md text-center text-balance text-sm">
 					You can always ask for help in our welcoming community on{' '}
 					<Link
-						href="https://discord.com/invite/SBBEVCA4PG"
+						href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink"
 						className="text-blue-500 hover:text-blue-600 dark:hover:text-blue-400"
 					>
 						<DiscordIcon className="h-3.5 mb-0.5 ml-0.5 inline" />

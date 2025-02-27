@@ -1,6 +1,7 @@
 /* ------------------- Menu Panel ------------------- */
 
 .topPanelLeft {
+	flex: 0 0 auto;
 	border-top: 4px solid var(--color-background);
 	height: 44px;
 	display: flex;
@@ -28,6 +29,15 @@
 	justify-content: flex-start;
 }
 
+@media (min-width: 768px) {
+	.topPanelLeft {
+		width: auto;
+	}
+	.topPanelLeftButtons {
+		width: auto;
+	}
+}
+
 .topPanelLeft > button:nth-last-of-type(1) {
 	position: relative;
 	flex-shrink: 0;
@@ -40,6 +50,10 @@
 	padding: 0px 4px;
 }
 
+.topPanelSeparator:nth-last-of-type(1) {
+	margin-right: -4px;
+}
+
 .inputWrapper {
 	position: relative;
 	display: flex;
@@ -48,6 +62,8 @@
 	max-width: 100%;
 	min-width: 0px;
 	height: 40px;
+	margin-left: -4px;
+	margin-right: -4px;
 	flex-shrink: 2;
 }
 
@@ -77,7 +93,6 @@ button.nameWidthSetter {
 	padding: none;
 	margin: none;
 	opacity: 1;
-	padding: 0px 12px;
 	pointer-events: all;
 	height: 100%;
 	min-width: 0px;
@@ -145,6 +160,7 @@ button.nameWidthSetter {
 	z-index: 3;
 	padding: 0px;
 	cursor: pointer;
+	margin-left: -4px;
 }
 
 .linkMenu::after {
@@ -171,55 +187,71 @@ button.nameWidthSetter {
 /* ------------------- Share panel ------------------ */
 
 .topRightPanel {
-	height: 42px;
+	height: 44px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	pointer-events: all;
+	padding-right: 6px;
 }
 
-.shareButton {
-	font-family: inherit;
-	font-size: inherit;
-	height: 36px;
-	border: 2px solid var(--color-background);
-	border-left: 2px solid var(--color-background);
-	border-radius: 8px;
-	background-color: var(--color-selected);
-	color: var(--color-selected-contrast);
-	text-shadow: none;
-	pointer-events: all;
-	position: relative;
-	font-weight: 700;
-}
-
-.shareButton::before {
-	position: absolute;
-	display: block;
-	content: '';
-	inset: 0px;
-	background-color: var(--color-background);
-	border-top-left-radius: var(--radius-3);
-	border-bottom-right-radius: var(--radius-3);
-	border-bottom-left-radius: var(--radius-3);
-	z-index: -1;
-}
-
-.shareButton:active {
-	color: var(--color-selected-contrast);
-}
-
-@media (hover: hover) {
-	.shareButton:hover {
-		color: var(--color-selected-contrast);
-	}
-
-	.shareButton:not(:disabled, :focus-visible):hover {
-		color: var(--color-selected-contrast);
+@media (max-width: 767px) {
+	.topRightPanel {
+		padding-right: 4px;
 	}
 }
 
 .exportButton {
 	background-color: var(--color-background);
 	border-radius: var(--radius-3);
+}
+
+.brand {
+	color: var(--tla-color-text-1);
+	padding: 0px 8px 4px 4px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+}
+
+.signInButtons {
+	display: flex;
+	gap: 0px;
+	height: 40px;
+	align-items: center;
+	padding-right: 4px;
+}
+
+.hoverable::after {
+	display: block;
+	content: '';
+	position: absolute;
+	top: 2px;
+	left: 0px;
+	right: 0px;
+	bottom: 2px;
+	border-radius: 4px;
+	background-color: var(--tla-color-hover-1);
+	z-index: 0;
+	pointer-events: none;
+	visibility: hidden;
+}
+
+.offlineIndicatorWrapper {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	padding-top: 3px;
+	height: fit-content;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+}
+
+@media (max-width: 1080px) {
+	.offlineIndicatorWrapper {
+		padding-top: 44px;
+	}
 }

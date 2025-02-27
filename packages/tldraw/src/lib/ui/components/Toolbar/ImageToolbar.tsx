@@ -12,7 +12,7 @@ import {
 } from '@tldraw/editor'
 import isEqual from 'lodash.isequal'
 import { useCallback, useEffect, useState } from 'react'
-import { getOriginalUncroppedSize } from '../../../tools/SelectTool/childStates/Crop/children/crop_helpers'
+import { getUncroppedSize } from '../../../shapes/shared/crop'
 import { useUiEvents } from '../../context/events'
 import { useInsertMedia } from '../../hooks/useInsertMedia'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -160,7 +160,7 @@ export const ImageToolbar = track(function ImageToolbar() {
 		editor.setCurrentTool('select.crop.idle')
 
 		const shape = selectedShape as TLImageShape
-		const { w, h } = getOriginalUncroppedSize(shape.props.crop ?? defaultCrop, shape)
+		const { w, h } = getUncroppedSize(shape.props, shape.props.crop ?? defaultCrop)
 		const imageRatio = w / h
 		const isNewRatioSmaller = ASPECT_RATIO_TO_VALUE[aspectRatio] < imageRatio
 		const ratio = ASPECT_RATIO_TO_VALUE[aspectRatio]

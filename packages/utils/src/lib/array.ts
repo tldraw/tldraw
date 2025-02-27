@@ -49,6 +49,20 @@ export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefi
 	return min
 }
 
+/** @internal */
+export function maxBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined {
+	let max: T | undefined
+	let maxVal: number = -Infinity
+	for (const item of arr) {
+		const val = fn(item)
+		if (val > maxVal) {
+			max = item
+			maxVal = val
+		}
+	}
+	return max
+}
+
 /**
  * Partitions an array into two arrays, one with items that satisfy the predicate, and one with
  * items that do not.
@@ -82,4 +96,24 @@ export function areArraysShallowEqual<T>(arr1: readonly T[], arr2: readonly T[])
 		}
 	}
 	return true
+}
+
+/** @internal */
+export function mergeArraysAndReplaceDefaults<
+	const Key extends string,
+	T extends { [K in Key]: string },
+>(key: Key, customEntries: readonly T[], defaults: readonly T[]) {
+	const overrideTypes = new Set(customEntries.map((entry) => entry[key]))
+
+	const result = []
+	for (const defaultEntry of defaults) {
+		if (overrideTypes.has(defaultEntry[key])) continue
+		result.push(defaultEntry)
+	}
+
+	for (const customEntry of customEntries) {
+		result.push(customEntry)
+	}
+
+	return result
 }

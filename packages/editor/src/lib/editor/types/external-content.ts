@@ -3,57 +3,111 @@ import { VecLike } from '../../primitives/Vec'
 import { TLContent } from './clipboard-types'
 
 /** @public */
-export type TLExternalContentSource =
-	| {
-			type: 'tldraw'
-			data: TLContent
-	  }
-	| {
-			type: 'excalidraw'
-			data: any
-	  }
-	| {
-			type: 'text'
-			data: string
-			subtype: 'json' | 'html' | 'text' | 'url'
-	  }
-	| {
-			type: 'error'
-			data: string | null
-			reason: string
-	  }
+export interface TLTldrawExternalContentSource {
+	type: 'tldraw'
+	data: TLContent
+}
 
 /** @public */
-export type TLExternalContent<EmbedDefinition> = {
+export interface TLExcalidrawExternalContentSource {
+	type: 'excalidraw'
+	data: any
+}
+
+/** @public */
+export interface TLTextExternalContentSource {
+	type: 'text'
+	data: string
+	subtype: 'json' | 'html' | 'text' | 'url'
+}
+
+/** @public */
+export interface TLErrorExternalContentSource {
+	type: 'error'
+	data: string | null
+	reason: string
+}
+
+/** @public */
+export type TLExternalContentSource =
+	| TLTldrawExternalContentSource
+	| TLExcalidrawExternalContentSource
+	| TLTextExternalContentSource
+	| TLErrorExternalContentSource
+
+/** @public */
+export interface TLBaseExternalContent {
 	sources?: TLExternalContentSource[]
 	point?: VecLike
-} & (
-	| {
-			type: 'text'
-			text: string
-	  }
-	| {
-			type: 'files'
-			files: File[]
-			ignoreParent: boolean
-			shapeIdToReplace?: TLShapeId
-	  }
-	| {
-			type: 'url'
-			url: string
-	  }
-	| {
-			type: 'svg-text'
-			text: string
-	  }
-	| {
-			type: 'embed'
-			url: string
-			embed: EmbedDefinition
-	  }
-)
+}
 
 /** @public */
-export type TLExternalAssetContent =
-	| { type: 'file'; file: File; assetId?: TLAssetId }
-	| { type: 'url'; url: string }
+export interface TLTextExternalContent extends TLBaseExternalContent {
+	type: 'text'
+	text: string
+}
+
+/** @public */
+export interface TLFilesExternalContent extends TLBaseExternalContent {
+	type: 'files'
+	files: File[]
+	ignoreParent: boolean
+	shapeIdToReplace?: TLShapeId
+}
+
+/** @public */
+export interface TLUrlExternalContent extends TLBaseExternalContent {
+	type: 'url'
+	url: string
+}
+
+/** @public */
+export interface TLSvgTextExternalContent extends TLBaseExternalContent {
+	type: 'svg-text'
+	text: string
+}
+
+/** @public */
+export interface TLEmbedExternalContent<EmbedDefinition> extends TLBaseExternalContent {
+	type: 'embed'
+	url: string
+	embed: EmbedDefinition
+}
+
+/** @public */
+export interface TLTldrawExternalContent extends TLBaseExternalContent {
+	type: 'tldraw'
+	content: TLContent
+}
+
+/** @public */
+export interface TLExcalidrawExternalContent extends TLBaseExternalContent {
+	type: 'excalidraw'
+	content: any
+}
+
+/** @public */
+export type TLExternalContent<EmbedDefinition> =
+	| TLTextExternalContent
+	| TLFilesExternalContent
+	| TLUrlExternalContent
+	| TLSvgTextExternalContent
+	| TLEmbedExternalContent<EmbedDefinition>
+	| TLTldrawExternalContent
+	| TLExcalidrawExternalContent
+
+/** @public */
+export interface TLFileExternalAsset {
+	type: 'file'
+	file: File
+	assetId?: TLAssetId
+}
+
+/** @public */
+export interface TLUrlExternalAsset {
+	type: 'url'
+	url: string
+}
+
+/** @public */
+export type TLExternalAsset = TLFileExternalAsset | TLUrlExternalAsset

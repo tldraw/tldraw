@@ -1,16 +1,25 @@
-import { Editor, sanitizeId, TLFrameShape, TLImageExportOptions, TLShapeId } from '@tldraw/editor'
-import { exportToBlob } from './export'
+import {
+	Editor,
+	sanitizeId,
+	TLExportType,
+	TLFrameShape,
+	TLImageExportOptions,
+	TLShapeId,
+} from '@tldraw/editor'
 
 /** @public */
-export type TLExportType = 'svg' | 'png' | 'jpeg' | 'webp' | 'json'
+export interface ExportAsOptions extends TLImageExportOptions {
+	/** {@inheritdoc @tldraw/editor#TLImageExportOptions.format} */
+	format: TLExportType
+	/** Name of the exported file. If undefined a predefined name, based on the selection, will be used. */
+	name?: string
+}
 
 /**
  * Export the given shapes as files.
  *
  * @param editor - The editor instance.
  * @param ids - The ids of the shapes to export.
- * @param format - The format to export as.
- * @param name - Name of the exported file. If undefined a predefined name, based on the selection, will be used.
  * @param opts - Options for the export.
  *
  * @public
@@ -18,25 +27,55 @@ export type TLExportType = 'svg' | 'png' | 'jpeg' | 'webp' | 'json'
 export async function exportAs(
 	editor: Editor,
 	ids: TLShapeId[],
-	format: TLExportType = 'png',
-	name: string | undefined,
-	opts: TLImageExportOptions = {}
+	opts: ExportAsOptions
+): Promise<void>
+/**
+ * @deprecated The format & name parameters are now part of the opts object.
+ * @public
+ */
+export async function exportAs(
+	editor: Editor,
+	ids: TLShapeId[],
+	format?: TLExportType,
+	name?: string,
+	opts?: TLImageExportOptions
+): Promise<void>
+export async function exportAs(
+	...args:
+		| [
+				editor: Editor,
+				ids: TLShapeId[],
+				opts: TLImageExportOptions & { format: TLExportType; name?: string },
+		  ]
+		| [
+				editor: Editor,
+				ids: TLShapeId[],
+				format?: TLExportType,
+				name?: string,
+				opts?: TLImageExportOptions,
+		  ]
 ) {
+	const [editor, ids, opts] =
+		typeof args[2] === 'object'
+			? args
+			: [args[0], args[1], { ...args[4], format: args[2] ?? 'png', name: args[3] }]
+
 	// If we don't get name then use a predefined one
+	let name = opts.name
 	if (!name) {
 		name = `shapes at ${getTimestamp()}`
 		if (ids.length === 1) {
 			const first = editor.getShape(ids[0])!
 			if (editor.isShapeOfType<TLFrameShape>(first, 'frame')) {
-				name = first.props.name ?? 'frame'
+				name = first.props.name || 'frame'
 			} else {
 				name = `${sanitizeId(first.id)} at ${getTimestamp()}`
 			}
 		}
 	}
-	name += `.${format}`
+	name += `.${opts.format}`
 
-	const blob = await exportToBlob({ editor, ids, format, opts })
+	const { blob } = await editor.toImage(ids, opts)
 	const file = new File([blob], name, { type: blob.type })
 	downloadFile(file)
 }
@@ -54,7 +93,8 @@ function getTimestamp() {
 	return `${year}-${month}-${day} ${hours}.${minutes}.${seconds}`
 }
 
-function downloadFile(file: File) {
+/** @internal */
+export function downloadFile(file: File) {
 	const link = document.createElement('a')
 	const url = URL.createObjectURL(file)
 	link.href = url

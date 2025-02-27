@@ -55,6 +55,12 @@ export class Pointing extends StateNode {
 		this.startErasing(info)
 	}
 
+	override onExit(_info: any, to: string) {
+		if (to !== 'erasing') {
+			this.editor.setErasingShapes([])
+		}
+	}
+
 	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.isDragging) {
 			this.startErasing(info)
@@ -89,12 +95,10 @@ export class Pointing extends StateNode {
 			this.editor.deleteShapes(erasingShapeIds)
 		}
 
-		this.editor.setErasingShapes([])
 		this.parent.transition('idle')
 	}
 
 	cancel() {
-		this.editor.setErasingShapes([])
 		this.parent.transition('idle')
 	}
 }

@@ -1,3 +1,5 @@
+import { ComponentType, Fragment } from 'react'
+
 /**
  * Options for configuring tldraw. For defaults, see {@link defaultTldrawOptions}.
  *
@@ -27,7 +29,6 @@ export interface TldrawOptions {
 	readonly dragDistanceSquared: number
 	readonly defaultSvgPadding: number
 	readonly cameraSlideFriction: number
-	readonly maxPointsPerDrawShape: number
 	readonly gridSteps: readonly {
 		readonly min: number
 		readonly mid: number
@@ -58,6 +59,16 @@ export interface TldrawOptions {
 	 */
 	readonly temporaryAssetPreviewLifetimeMs: number
 	readonly actionShortcutsLocation: 'menu' | 'toolbar' | 'swap'
+	readonly createTextOnCanvasDoubleClick: boolean
+	/**
+	 * The react provider to use when exporting an image. This is useful if your shapes depend on
+	 * external context providers. By default, this is `React.Fragment`.
+	 */
+	readonly exportProvider: ComponentType<{ children: React.ReactNode }>
+	/**
+	 * By default, the toolbar items are accessible via number shortcuts according to their order. To disable this, set this option to false.
+	 */
+	readonly enableToolbarKeyboardShortcuts: boolean
 }
 
 /** @public */
@@ -73,7 +84,6 @@ export const defaultTldrawOptions = {
 	dragDistanceSquared: 16, // 4 squared
 	defaultSvgPadding: 32,
 	cameraSlideFriction: 0.09,
-	maxPointsPerDrawShape: 500,
 	gridSteps: [
 		{ min: -1, mid: 0.15, step: 64 },
 		{ min: 0.05, mid: 0.375, step: 16 },
@@ -101,4 +111,7 @@ export const defaultTldrawOptions = {
 	maxExportDelayMs: 5000,
 	temporaryAssetPreviewLifetimeMs: 180000,
 	actionShortcutsLocation: 'swap',
+	createTextOnCanvasDoubleClick: true,
+	exportProvider: Fragment,
+	enableToolbarKeyboardShortcuts: true,
 } as const satisfies TldrawOptions

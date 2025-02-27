@@ -1,0 +1,63 @@
+---
+title: Jam.dev
+category: customers
+description: Jam.dev annotates bug reports with the tldraw SDK
+hero: /images/blog/jam-markup-graphic.svg
+date: 06/02/2025
+status: draft
+author: alixwiesser
+---
+
+## Challenge
+
+Jam’s browser extension only takes one click for developers to send off a bug report and get back to building. However, bug reports are inherently visual, and screenshots alone don’t always tell the full story. Developers need a way to:
+
+- Capture bugs as they happen
+- Quickly annotate hover state screenshots with relevant details
+- Share them with teammates in a legible and structured way
+
+The problem? **Traditional annotation tools feel clunky, disrupt workflow, and slow down bug reporting.**
+
+Jam needed a solution that made capturing and annotating bugs fast and effortless. That’s where tldraw came in.
+
+<Image
+	src="/images/blog/jam-blur-tool.gif"
+	alt="Custom blur tool protecting sensitive information in a bug report."
+	title="Custom blur tool protecting sensitive information in a bug report."
+/>
+
+## Solution
+
+Jam integrated tldraw’s SDK directly into its browser extension, powering instant, in-product annotations without breaking the workflow.
+
+Using the browser extension, developers simply capture a screenshot of the bug in action, then use Jam’s tldraw integration to:
+
+- Draw directly on screenshots
+- Add shapes, arrows, and text for clarity
+- Blur sensitive information
+
+Once annotated, Jam bundles the screenshot with all the technical context—console logs, network requests, device info—and generates a shareable link in one click.
+
+<Callout type="quote">
+It's a library where a lot of good design decisions were made. tldraw is by far the most extensible in terms of allowing you to leverage what they have already built.
+
+– Rui Conti, Senior Software Engineer @ Jam
+
+</Callout>
+
+## Results
+
+With Jam's tldraw integration, developers can now **capture, annotate, and share bug reports in one seamless flow**. This integration helps enable Jam to cut bug reporting time by 20x, with instant visual context that helps developers understand and fix issues faster.
+
+<Image
+	src="/images/blog/jam-annotation.gif"
+	alt="Complete bug reporting workflow: capture, annotate, and share."
+	title="Complete bug reporting workflow: capture, annotate, and share."
+/>
+
+Watch [Jam’s explainer on their tldraw integration](https://www.youtube.com/watch?v=tHQW_K2pEgI).
+
+<YouTube
+	src="https://www.youtube.com/watch?v=tHQW_K2pEgI"
+	caption="Jam.dev: How We Built Video Annotations with tldraw"
+/>

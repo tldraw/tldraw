@@ -65,10 +65,13 @@ it('gets an SVG', async () => {
 	expect(svg!.svg).toMatch(/^<svg/)
 })
 
-it('Does not get an SVG when no ids are provided', async () => {
-	const svg = await editor.getSvgString([])
+it('Returns all shapes when no ids are provided', async () => {
+	const svg = parseSvg(await editor.getSvgString([]))
 
-	expect(svg).toBeFalsy()
+	const elm = document.createElement('wrapper')
+	elm.appendChild(svg)
+
+	expect(elm).toMatchSnapshot('All shapes')
 })
 
 it('Gets the bounding box at the correct size', async () => {

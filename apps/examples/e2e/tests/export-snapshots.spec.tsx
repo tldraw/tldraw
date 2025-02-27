@@ -11,7 +11,7 @@ import {
 	Editor,
 	GeoShapeGeoStyle,
 	TLAsset,
-	TLImageShapeCrop,
+	TLShapeCrop,
 	TLShapePartial,
 	TLTextShape,
 	degreesToRadians,
@@ -58,11 +58,11 @@ const manAsset = (
 		mimeType="image/png"
 	/>
 )
-const manCrop: TLImageShapeCrop = {
+const manCrop: TLShapeCrop = {
 	topLeft: { x: 0.25, y: 0.05 },
 	bottomRight: { x: 0.75, y: 0.3 },
 }
-const manCropAsCircle: TLImageShapeCrop = {
+const manCropAsCircle: TLShapeCrop = {
 	topLeft: { x: 0.25, y: 0.05 },
 	bottomRight: { x: 0.75, y: 0.3 },
 	isCircle: true,
@@ -555,6 +555,17 @@ const snapshots: Snapshots = {
 					arrowheadStart="none"
 					arrowheadEnd="none"
 				/>
+			),
+		},
+	},
+	Regressions: {
+		'#5020': {
+			'scaled text within a frame': (
+				<TL.frame w={300} h={200}>
+					<TL.text text="the text" x={-30} y={0} />
+					<TL.text text="the text" x={-60} y={50} scale={2} />
+					<TL.text text="the text" x={-90} y={100} scale={3} />
+				</TL.frame>
 			),
 		},
 	},

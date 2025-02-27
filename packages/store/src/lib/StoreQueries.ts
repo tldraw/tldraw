@@ -7,8 +7,9 @@ import {
 	RESET_VALUE,
 	withDiff,
 } from '@tldraw/state'
-import { objectMapValues } from '@tldraw/utils'
+import { areArraysShallowEqual, objectMapValues } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
+import { AtomMap } from './AtomMap'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { executeQuery, objectMatchesQuery, QueryExpression } from './executeQuery'
 import { IncrementalSetConstructor } from './IncrementalSetConstructor'
@@ -41,7 +42,7 @@ export type RSIndex<
  */
 export class StoreQueries<R extends UnknownRecord> {
 	constructor(
-		private readonly atoms: Atom<Record<IdOf<R>, Atom<R>>>,
+		private readonly recordMap: AtomMap<IdOf<R>, R>,
 		private readonly history: Atom<number, RecordsDiff<R>>
 	) {}
 
@@ -199,8 +200,7 @@ export class StoreQueries<R extends UnknownRecord> {
 			// it gets a diff to work with instead of having to bail to this from-scratch version
 			typeHistory.get()
 			const res = new Map<S[Property], Set<IdOf<S>>>()
-			for (const atom of objectMapValues(this.atoms.get())) {
-				const record = atom.get()
+			for (const record of this.recordMap.values()) {
 				if (record.typeName === typeName) {
 					const value = (record as S)[property]
 					if (!res.has(value)) {
@@ -300,7 +300,7 @@ export class StoreQueries<R extends UnknownRecord> {
 	 *
 	 * @param typeName - The name of the type?
 	 * @param queryCreator - A function that returns the query expression.
-	 * @param name - (optinal) The name of the query.
+	 * @param name - (optional) The name of the query.
 	 */
 	record<TypeName extends R['typeName']>(
 		typeName: TypeName,
@@ -312,7 +312,7 @@ export class StoreQueries<R extends UnknownRecord> {
 
 		return computed<S | undefined>(name, () => {
 			for (const id of ids.get()) {
-				return this.atoms.get()[id]?.get() as S
+				return this.recordMap.get(id) as S | undefined
 			}
 			return undefined
 		})
@@ -333,15 +333,15 @@ export class StoreQueries<R extends UnknownRecord> {
 		type S = Extract<R, { typeName: TypeName }>
 		const ids = this.ids(typeName, queryCreator, 'ids:' + name)
 
-		return computed<S[]>(name, () => {
-			return [...ids.get()].map((id) => {
-				const atom = this.atoms.get()[id]
-				if (!atom) {
-					throw new Error('no atom found for record id: ' + id)
-				}
-				return atom.get() as S
-			})
-		})
+		return computed<S[]>(
+			name,
+			() => {
+				return Array.from(ids.get(), (id) => this.recordMap.get(id) as S)
+			},
+			{
+				isEqual: areArraysShallowEqual,
+			}
+		)
 	}
 
 	/**
@@ -368,16 +368,11 @@ export class StoreQueries<R extends UnknownRecord> {
 			typeHistory.get()
 			const query: QueryExpression<S> = queryCreator()
 			if (Object.keys(query).length === 0) {
-				return new Set<IdOf<S>>(
-					objectMapValues(this.atoms.get()).flatMap((v) => {
-						const r = v.get()
-						if (r.typeName === typeName) {
-							return r.id
-						} else {
-							return []
-						}
-					})
-				)
+				const ids = new Set<IdOf<S>>()
+				for (const record of this.recordMap.values()) {
+					if (record.typeName === typeName) ids.add(record.id)
+				}
+				return ids
 			}
 
 			return executeQuery(this, typeName, query)
@@ -460,7 +455,6 @@ export class StoreQueries<R extends UnknownRecord> {
 		if (ids.size === 0) {
 			return EMPTY_ARRAY
 		}
-		const atoms = this.atoms.get()
-		return [...ids].map((id) => atoms[id].get() as Extract<R, { typeName: TypeName }>)
+		return Array.from(ids, (id) => this.recordMap.get(id) as Extract<R, { typeName: TypeName }>)
 	}
 }

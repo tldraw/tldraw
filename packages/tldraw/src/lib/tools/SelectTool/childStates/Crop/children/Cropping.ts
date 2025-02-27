@@ -1,18 +1,7 @@
-import {
-	SelectionHandle,
-	StateNode,
-	TLBaseShape,
-	TLImageShape,
-	TLImageShapeCrop,
-	TLPointerEventInfo,
-	TLShapePartial,
-	Vec,
-	structuredClone,
-} from '@tldraw/editor'
+import { SelectionHandle, ShapeWithCrop, StateNode, TLPointerEventInfo, Vec } from '@tldraw/editor'
+import { getCropBox, getDefaultCrop, getUncroppedSize } from '../../../../../shapes/shared/crop'
 import { kickoutOccludedShapes } from '../../../selectHelpers'
 import { CursorTypeMap } from '../../PointingResizeHandle'
-import { MIN_CROP_SIZE } from '../crop-constants'
-import { getOriginalUncroppedSize } from './crop_helpers'
 
 type Snapshot = ReturnType<Cropping['createSnapshot']>
 
@@ -66,137 +55,38 @@ export class Cropping extends StateNode {
 		this.editor.setCursor({ type: cursorType, rotation: this.editor.getSelectionRotation() })
 	}
 
-	getDefaultCrop() {
-		return {
-			topLeft: { x: 0, y: 0 },
-			bottomRight: { x: 1, y: 1 },
-		}
-	}
-
 	private updateShapes() {
 		const { shape, cursorHandleOffset } = this.snapshot
 
 		if (!shape) return
-		const util = this.editor.getShapeUtil<TLImageShape>('image')
+		const util = this.editor.getShapeUtil<ShapeWithCrop>(shape.type)
 		if (!util) return
-
-		const props = shape.props
 
 		const currentPagePoint = this.editor.inputs.currentPagePoint.clone().sub(cursorHandleOffset)
 		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
 
 		const change = currentPagePoint.clone().sub(originPagePoint).rot(-shape.rotation)
 
-		const crop = props.crop ?? this.getDefaultCrop()
-		const newCrop = structuredClone(crop)
+		const crop = shape.props.crop ?? getDefaultCrop()
+		const uncroppedSize = getUncroppedSize(shape.props, crop)
 
-		const newPoint = new Vec(shape.x, shape.y)
-		const pointDelta = new Vec(0, 0)
+		const cropFn = util.onCrop?.bind(util) ?? getCropBox
+		const partial = cropFn(shape, {
+			handle: this.info.handle,
+			change,
+			crop,
+			uncroppedSize,
+			initialShape: this.snapshot.shape,
+		})
+		if (!partial) return
 
-		const { w, h } = getOriginalUncroppedSize(crop, shape)
-
-		let hasCropChanged = false
-		const topLeftLimit = -0.5 * (shape.props.zoom - 1)
-		const bottomRightLimit = 0.5 * (shape.props.zoom + 1)
-
-		// Set y dimension
-		switch (this.info.handle) {
-			case 'top':
-			case 'top_left':
-			case 'top_right': {
-				if (h < MIN_CROP_SIZE) break
-				hasCropChanged = true
-				// top
-				newCrop.topLeft.y = newCrop.topLeft.y + change.y / h
-				const heightAfterCrop = h * (newCrop.bottomRight.y - newCrop.topLeft.y)
-
-				if (heightAfterCrop < MIN_CROP_SIZE) {
-					newCrop.topLeft.y = newCrop.bottomRight.y - MIN_CROP_SIZE / h
-					pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
-				} else {
-					if (newCrop.topLeft.y <= topLeftLimit) {
-						newCrop.topLeft.y = topLeftLimit
-						pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
-					} else {
-						pointDelta.y = change.y
-					}
-				}
-				break
-			}
-			case 'bottom':
-			case 'bottom_left':
-			case 'bottom_right': {
-				if (h < MIN_CROP_SIZE) break
-				hasCropChanged = true
-				// bottom
-				newCrop.bottomRight.y = Math.min(bottomRightLimit, newCrop.bottomRight.y + change.y / h)
-				const heightAfterCrop = h * (newCrop.bottomRight.y - newCrop.topLeft.y)
-
-				if (heightAfterCrop < MIN_CROP_SIZE) {
-					newCrop.bottomRight.y = newCrop.topLeft.y + MIN_CROP_SIZE / h
-				}
-				break
-			}
-		}
-
-		// Set x dimension
-		switch (this.info.handle) {
-			case 'left':
-			case 'top_left':
-			case 'bottom_left': {
-				if (w < MIN_CROP_SIZE) break
-				hasCropChanged = true
-				// left
-				newCrop.topLeft.x = newCrop.topLeft.x + change.x / w
-				const widthAfterCrop = w * (newCrop.bottomRight.x - newCrop.topLeft.x)
-
-				if (widthAfterCrop < MIN_CROP_SIZE) {
-					newCrop.topLeft.x = newCrop.bottomRight.x - MIN_CROP_SIZE / w
-					pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
-				} else {
-					if (newCrop.topLeft.x <= topLeftLimit) {
-						newCrop.topLeft.x = topLeftLimit
-						pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
-					} else {
-						pointDelta.x = change.x
-					}
-				}
-				break
-			}
-			case 'right':
-			case 'top_right':
-			case 'bottom_right': {
-				if (w < MIN_CROP_SIZE) break
-				hasCropChanged = true
-				// right
-				newCrop.bottomRight.x = Math.min(bottomRightLimit, newCrop.bottomRight.x + change.x / w)
-				const widthAfterCrop = w * (newCrop.bottomRight.x - newCrop.topLeft.x)
-
-				if (widthAfterCrop < MIN_CROP_SIZE) {
-					newCrop.bottomRight.x = newCrop.topLeft.x + MIN_CROP_SIZE / w
-				}
-				break
-			}
-		}
-		if (!hasCropChanged) return
-
-		newPoint.add(pointDelta.rot(shape.rotation))
-
-		const partial: TLShapePartial<
-			TLBaseShape<string, { w: number; h: number; crop: TLImageShapeCrop }>
-		> = {
-			id: shape.id,
-			type: shape.type,
-			x: newPoint.x,
-			y: newPoint.y,
-			props: {
-				crop: newCrop,
-				w: (newCrop.bottomRight.x - newCrop.topLeft.x) * w,
-				h: (newCrop.bottomRight.y - newCrop.topLeft.y) * h,
+		this.editor.updateShapes([
+			{
+				id: shape.id,
+				type: shape.type,
+				...partial,
 			},
-		}
-
-		this.editor.updateShapes([partial])
+		])
 		this.updateCursor()
 	}
 
@@ -227,7 +117,7 @@ export class Cropping extends StateNode {
 			inputs: { originPagePoint },
 		} = this.editor
 
-		const shape = this.editor.getOnlySelectedShape() as TLImageShape
+		const shape = this.editor.getOnlySelectedShape() as ShapeWithCrop
 
 		const selectionBounds = this.editor.getSelectionRotatedPageBounds()!
 
