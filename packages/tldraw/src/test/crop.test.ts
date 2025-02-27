@@ -132,7 +132,7 @@ describe('Crop box', () => {
 				w: 100,
 				h: 100,
 				crop: {
-					topLeft: { x: 0, y: 0 },
+					topLeft: { x: -0, y: -0 },
 					bottomRight: { x: 1, y: 1 },
 				},
 			},
