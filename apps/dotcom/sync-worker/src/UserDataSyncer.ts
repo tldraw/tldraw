@@ -198,7 +198,7 @@ export class UserDataSyncer {
 
 	private async loadInitialDataFromR2() {
 		this.log.debug('loading snapshot from R2')
-		const res = await this.env.UPLOADS.get(this.getSnapshotKey())
+		const res = await this.env.USER_DO_SNAPSHOTS.get(this.getSnapshotKey())
 		if (!res) {
 			this.log.debug('no snapshot found')
 			return null
@@ -311,7 +311,7 @@ export class UserDataSyncer {
 
 		if (res.type === 'reboot') {
 			this.store = new OptimisticAppStore()
-			this.env.UPLOADS.delete(this.getSnapshotKey())
+			this.env.USER_DO_SNAPSHOTS.delete(this.getSnapshotKey())
 			throw new Error('reboot')
 		}
 
@@ -490,7 +490,7 @@ export class UserDataSyncer {
 				}
 				this.log.debug('stashing snapshot')
 				this.lastStashEpoch = this.store.epoch
-				await this.env.UPLOADS.put(this.getSnapshotKey(), JSON.stringify(snapshot))
+				await this.env.USER_DO_SNAPSHOTS.put(this.getSnapshotKey(), JSON.stringify(snapshot))
 			}
 		}
 		for (const mutation of this.mutations) {
