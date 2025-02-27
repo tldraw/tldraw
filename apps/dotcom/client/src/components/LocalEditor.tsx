@@ -17,6 +17,12 @@ import EmojiExtension from './Emojis/EmojiExtension'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
 
+const textOptions = {
+	tipTapConfig: {
+		extensions: [...tipTapDefaultExtensions, EmojiExtension],
+	},
+}
+
 export function LocalEditor({
 	components,
 	onMount,
@@ -52,11 +58,7 @@ export function LocalEditor({
 				overrides={[fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}
-				textOptions={{
-					tipTapConfig: {
-						extensions: [...tipTapDefaultExtensions, EmojiExtension],
-					},
-				}}
+				textOptions={textOptions}
 				options={options}
 			>
 				<SneakyOnDropOverride isMultiplayer={false} />

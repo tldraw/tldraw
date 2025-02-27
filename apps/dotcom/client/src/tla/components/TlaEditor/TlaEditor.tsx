@@ -65,6 +65,12 @@ export function TlaEditor(props: TlaEditorProps) {
 	)
 }
 
+const textOptions = {
+	tipTapConfig: {
+		extensions: [...tipTapDefaultExtensions, EmojiExtension],
+	},
+}
+
 function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
@@ -215,11 +221,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				deepLinks={deepLinks || undefined}
 				overrides={overrides}
 				isShapeHidden={isShapeHidden}
-				textOptions={{
-					tipTapConfig: {
-						extensions: [...tipTapDefaultExtensions, EmojiExtension],
-					},
-				}}
+				textOptions={textOptions}
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
