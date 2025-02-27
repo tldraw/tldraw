@@ -20,7 +20,7 @@
 		"itty-router": "^5.0.18"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250124.3",
+		"@cloudflare/workers-types": "^4.20250224.0",
 		"@types/ws": "^8.5.14",
 		"lazyrepo": "0.0.0-alpha.27",
 		"wrangler": "^3.111.0"

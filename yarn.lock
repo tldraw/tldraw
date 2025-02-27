@@ -1511,10 +1511,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cloudflare/workers-types@npm:^4.20250124.3":
-  version: 4.20250124.3
-  resolution: "@cloudflare/workers-types@npm:4.20250124.3"
-  checksum: 2127f64b3e39e23a2adc475b2f465102e6dcc6b752c4f253a9f68e7eb9cf4ab2dde1d51c6ff6b09c8350fff14a23dd8abb1f29187a2b107e66fcc21a6f724a63
+"@cloudflare/workers-types@npm:^4.20250224.0":
+  version: 4.20250224.0
+  resolution: "@cloudflare/workers-types@npm:4.20250224.0"
+  checksum: a940408d01b8ed0072379851786bc62c58aab7425b3224c19c92298fd809c4c597c89ba86a8307c216256b10fe9f829b06b932a71a4c03a417e0e30b6cb3b3c7
   languageName: node
   linkType: hard
 
@@ -6766,7 +6766,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/bemo-worker@workspace:apps/bemo-worker"
   dependencies:
-    "@cloudflare/workers-types": "npm:^4.20250124.3"
+    "@cloudflare/workers-types": "npm:^4.20250224.0"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
@@ -6886,7 +6886,7 @@ __metadata:
   resolution: "@tldraw/dotcom-worker@workspace:apps/dotcom/sync-worker"
   dependencies:
     "@clerk/backend": "npm:^1.23.7"
-    "@cloudflare/workers-types": "npm:^4.20250124.3"
+    "@cloudflare/workers-types": "npm:^4.20250224.0"
     "@supabase/auth-helpers-remix": "npm:^0.2.6"
     "@supabase/supabase-js": "npm:^2.48.1"
     "@tldraw/dotcom-shared": "workspace:*"
@@ -7204,7 +7204,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/worker-shared@workspace:packages/worker-shared"
   dependencies:
-    "@cloudflare/workers-types": "npm:^4.20250124.3"
+    "@cloudflare/workers-types": "npm:^4.20250224.0"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     cloudflare-workers-unfurl: "npm:^0.0.7"
@@ -11476,7 +11476,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dotcom-asset-upload@workspace:apps/dotcom/asset-upload-worker"
   dependencies:
-    "@cloudflare/workers-types": "npm:^4.20250124.3"
+    "@cloudflare/workers-types": "npm:^4.20250224.0"
     "@tldraw/worker-shared": "workspace:*"
     "@types/ws": "npm:^8.5.14"
     itty-router: "npm:^5.0.18"
@@ -14572,7 +14572,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "health-worker@workspace:internal/health-worker"
   dependencies:
-    "@cloudflare/workers-types": "npm:^4.20250124.3"
+    "@cloudflare/workers-types": "npm:^4.20250224.0"
     "@tldraw/utils": "workspace:*"
     "@types/node": "npm:~20.11.30"
     discord-api-types: "npm:^0.37.118"
@@ -14861,7 +14861,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "images.tldraw.com@workspace:apps/dotcom/image-resize-worker"
   dependencies:
-    "@cloudflare/workers-types": "npm:^4.20250124.3"
+    "@cloudflare/workers-types": "npm:^4.20250224.0"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@tldraw/worker-shared": "workspace:*"

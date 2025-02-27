@@ -41,7 +41,7 @@
 		"react-dom": "^18.3.1"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250124.3",
+		"@cloudflare/workers-types": "^4.20250224.0",
 		"@types/pg": "^8.11.11",
 		"esbuild": "^0.24.2",
 		"lazyrepo": "0.0.0-alpha.27",
