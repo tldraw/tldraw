@@ -55,6 +55,10 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/s/[^/]*/?$",
   },
   {
+    "reactRouterPattern": "/stress-test",
+    "vercelRouterPattern": "^/stress-test/?$",
+  },
+  {
     "reactRouterPattern": "/v/:roomId",
     "vercelRouterPattern": "^/v/[^/]*/?$",
   },
