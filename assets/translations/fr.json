@@ -89,7 +89,7 @@
 	"action.toggle-focus-mode.menu": "Mode Focus",
 	"action.toggle-grid": "Activer la grille",
 	"action.toggle-grid.menu": "Afficher la grille",
-	"action.toggle-lock": "Verrouiller / Déverrouiller",
+	"action.toggle-lock": "Verrouiller \/ Déverrouiller",
 	"action.toggle-paste-at-cursor": "Basculer le collage au niveau du curseur",
 	"action.toggle-paste-at-cursor.menu": "Coller au niveau du curseur",
 	"action.toggle-reduce-motion": "Activer la réduction des mouvements",

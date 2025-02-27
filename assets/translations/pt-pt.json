@@ -89,7 +89,7 @@
 	"action.toggle-focus-mode.menu": "Modo Foco",
 	"action.toggle-grid": "Mostrar Grelha",
 	"action.toggle-grid.menu": "Mostrar Grelha",
-	"action.toggle-lock": "Bloquear / Desbloquear",
+	"action.toggle-lock": "Bloquear \/ Desbloquear",
 	"action.toggle-paste-at-cursor": "Alternar colar em",
 	"action.toggle-paste-at-cursor.menu": "Cursor colar em",
 	"action.toggle-reduce-motion": "Alternar reduzir movimento",

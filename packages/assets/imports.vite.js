@@ -54,20 +54,16 @@ import translationsFiJsonUrl from './translations/fi.json?url'
 import translationsFrJsonUrl from './translations/fr.json?url'
 import translationsGlJsonUrl from './translations/gl.json?url'
 import translationsGuInJsonUrl from './translations/gu-in.json?url'
-import translationsGuINJsonUrl from './translations/gu_IN.json?url'
 import translationsHeJsonUrl from './translations/he.json?url'
 import translationsHiInJsonUrl from './translations/hi-in.json?url'
-import translationsHiINJsonUrl from './translations/hi_IN.json?url'
 import translationsHrJsonUrl from './translations/hr.json?url'
 import translationsHuJsonUrl from './translations/hu.json?url'
 import translationsIdJsonUrl from './translations/id.json?url'
 import translationsItJsonUrl from './translations/it.json?url'
 import translationsJaJsonUrl from './translations/ja.json?url'
 import translationsKmKhJsonUrl from './translations/km-kh.json?url'
-import translationsKmKHJsonUrl from './translations/km_KH.json?url'
 import translationsKnJsonUrl from './translations/kn.json?url'
 import translationsKoKrJsonUrl from './translations/ko-kr.json?url'
-import translationsKoKRJsonUrl from './translations/ko_KR.json?url'
 import translationsKuJsonUrl from './translations/ku.json?url'
 import translationsLanguagesJsonUrl from './translations/languages.json?url'
 import translationsMainJsonUrl from './translations/main.json?url'
@@ -82,8 +78,6 @@ import translationsPaJsonUrl from './translations/pa.json?url'
 import translationsPlJsonUrl from './translations/pl.json?url'
 import translationsPtBrJsonUrl from './translations/pt-br.json?url'
 import translationsPtPtJsonUrl from './translations/pt-pt.json?url'
-import translationsPtBRJsonUrl from './translations/pt_BR.json?url'
-import translationsPtPTJsonUrl from './translations/pt_PT.json?url'
 import translationsRoJsonUrl from './translations/ro.json?url'
 import translationsRuJsonUrl from './translations/ru.json?url'
 import translationsSlJsonUrl from './translations/sl.json?url'
@@ -99,8 +93,6 @@ import translationsUrJsonUrl from './translations/ur.json?url'
 import translationsViJsonUrl from './translations/vi.json?url'
 import translationsZhCnJsonUrl from './translations/zh-cn.json?url'
 import translationsZhTwJsonUrl from './translations/zh-tw.json?url'
-import translationsZhCNJsonUrl from './translations/zh_CN.json?url'
-import translationsZhTWJsonUrl from './translations/zh_TW.json?url'
 
 /**
  * @param {AssetUrlOptions} [opts]
@@ -294,20 +286,16 @@ export function getAssetUrlsByImport(opts) {
 			fr: formatAssetUrl(translationsFrJsonUrl, opts),
 			gl: formatAssetUrl(translationsGlJsonUrl, opts),
 			'gu-in': formatAssetUrl(translationsGuInJsonUrl, opts),
-			gu_IN: formatAssetUrl(translationsGuINJsonUrl, opts),
 			he: formatAssetUrl(translationsHeJsonUrl, opts),
 			'hi-in': formatAssetUrl(translationsHiInJsonUrl, opts),
-			hi_IN: formatAssetUrl(translationsHiINJsonUrl, opts),
 			hr: formatAssetUrl(translationsHrJsonUrl, opts),
 			hu: formatAssetUrl(translationsHuJsonUrl, opts),
 			id: formatAssetUrl(translationsIdJsonUrl, opts),
 			it: formatAssetUrl(translationsItJsonUrl, opts),
 			ja: formatAssetUrl(translationsJaJsonUrl, opts),
 			'km-kh': formatAssetUrl(translationsKmKhJsonUrl, opts),
-			km_KH: formatAssetUrl(translationsKmKHJsonUrl, opts),
 			kn: formatAssetUrl(translationsKnJsonUrl, opts),
 			'ko-kr': formatAssetUrl(translationsKoKrJsonUrl, opts),
-			ko_KR: formatAssetUrl(translationsKoKRJsonUrl, opts),
 			ku: formatAssetUrl(translationsKuJsonUrl, opts),
 			languages: formatAssetUrl(translationsLanguagesJsonUrl, opts),
 			main: formatAssetUrl(translationsMainJsonUrl, opts),
@@ -322,8 +310,6 @@ export function getAssetUrlsByImport(opts) {
 			pl: formatAssetUrl(translationsPlJsonUrl, opts),
 			'pt-br': formatAssetUrl(translationsPtBrJsonUrl, opts),
 			'pt-pt': formatAssetUrl(translationsPtPtJsonUrl, opts),
-			pt_BR: formatAssetUrl(translationsPtBRJsonUrl, opts),
-			pt_PT: formatAssetUrl(translationsPtPTJsonUrl, opts),
 			ro: formatAssetUrl(translationsRoJsonUrl, opts),
 			ru: formatAssetUrl(translationsRuJsonUrl, opts),
 			sl: formatAssetUrl(translationsSlJsonUrl, opts),
@@ -339,8 +325,6 @@ export function getAssetUrlsByImport(opts) {
 			vi: formatAssetUrl(translationsViJsonUrl, opts),
 			'zh-cn': formatAssetUrl(translationsZhCnJsonUrl, opts),
 			'zh-tw': formatAssetUrl(translationsZhTwJsonUrl, opts),
-			zh_CN: formatAssetUrl(translationsZhCNJsonUrl, opts),
-			zh_TW: formatAssetUrl(translationsZhTWJsonUrl, opts),
 		},
 		embedIcons: {
 			codepen: formatAssetUrl(embedIconsCodepenPngUrl, opts),

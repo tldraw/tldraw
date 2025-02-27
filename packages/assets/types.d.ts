@@ -189,20 +189,16 @@ export type AssetUrls = {
 		fr: string
 		gl: string
 		'gu-in': string
-		gu_IN: string
 		he: string
 		'hi-in': string
-		hi_IN: string
 		hr: string
 		hu: string
 		id: string
 		it: string
 		ja: string
 		'km-kh': string
-		km_KH: string
 		kn: string
 		'ko-kr': string
-		ko_KR: string
 		ku: string
 		languages: string
 		main: string
@@ -217,8 +213,6 @@ export type AssetUrls = {
 		pl: string
 		'pt-br': string
 		'pt-pt': string
-		pt_BR: string
-		pt_PT: string
 		ro: string
 		ru: string
 		sl: string
@@ -234,8 +228,6 @@ export type AssetUrls = {
 		vi: string
 		'zh-cn': string
 		'zh-tw': string
-		zh_CN: string
-		zh_TW: string
 	}
 	embedIcons: {
 		codepen: string

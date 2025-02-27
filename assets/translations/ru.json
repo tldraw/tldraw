@@ -89,7 +89,7 @@
 	"action.toggle-focus-mode.menu": "Режим концентрации",
 	"action.toggle-grid": "Переключить сетку",
 	"action.toggle-grid.menu": "Показать сетку",
-	"action.toggle-lock": "Блокировать / Разблокировать",
+	"action.toggle-lock": "Блокировать \/ Разблокировать",
 	"action.toggle-paste-at-cursor": "Переключить вставку на курсор",
 	"action.toggle-paste-at-cursor.menu": "Вставить по курсору",
 	"action.toggle-reduce-motion": "Переключить уменьшение движения",
