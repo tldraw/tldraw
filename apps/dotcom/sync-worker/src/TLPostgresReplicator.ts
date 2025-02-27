@@ -291,7 +291,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		try {
 			this.ctx.storage.setAlarm(Date.now() + 3000)
 			this.maybeLogRpm()
-			// I we haven't heard anything from postgres for 5 seconds, trigger a heartbeat.
+			// If we haven't heard anything from postgres for 5 seconds, trigger a heartbeat.
 			// Otherwise, if we haven't heard anything for 10 seconds, do a soft reboot.
 			if (Date.now() - this.lastPostgresMessageTime > 10000) {
 				this.log.debug('rebooting due to inactivity')
@@ -441,7 +441,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				for (const [userId, changes] of collator.changes) {
 					this._messageUser(userId, { type: 'changes', changes, lsn })
 				}
-				this.updateLsn(lsn)
+				this.commitLsn(lsn)
 			} catch (e) {
 				this.captureException(e)
 			}
@@ -474,7 +474,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		return this.sqlite.exec('SELECT lsn FROM meta').one().lsn as string | null
 	}
 
-	private async updateLsn(lsn: string) {
+	private async commitLsn(lsn: string) {
 		const result = await this.replicationService.acknowledge(lsn)
 		if (result) {
 			// if the current lsn in the meta table is null it means
