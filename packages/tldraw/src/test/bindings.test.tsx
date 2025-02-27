@@ -246,9 +246,6 @@ test('copying the from shape on its own does trigger isolation operations', () =
 		  "onBeforeDelete",
 		  "onAfterDelete",
 		  "onOperationComplete",
-		  "onBeforeCreate",
-		  "onAfterCreate",
-		  "onOperationComplete",
 		]
 	`)
 })
@@ -264,9 +261,6 @@ test('copying the to shape on its own does trigger the unbind operation', () => 
 		  "onBeforeIsolateToShape",
 		  "onBeforeDelete",
 		  "onAfterDelete",
-		  "onOperationComplete",
-		  "onBeforeCreate",
-		  "onAfterCreate",
 		  "onOperationComplete",
 		]
 	`)
