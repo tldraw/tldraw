@@ -1,23 +1,21 @@
+import { Signal, computed, react, transact } from '@tldraw/state'
+import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
+import { assert, uniqueId } from '@tldraw/utils'
+import { OptimisticAppStore } from './OptimisticAppStore'
 import {
-	OptimisticAppStore,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
 	TlaFileStatePartial,
 	TlaUser,
 	TlaUserPartial,
-	ZClientSentMessage,
-	ZErrorCode,
-	ZRowUpdate,
-	ZServerSentMessage,
-} from '@tldraw/dotcom-shared'
-import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { Signal, computed, react, transact, uniqueId } from 'tldraw'
-import { TLAppUiContextType } from '../utils/app-ui-events'
+} from './tlaSchema'
+import { ZClientSentMessage, ZErrorCode, ZRowUpdate, ZServerSentMessage } from './types'
 
 export class Zero {
 	private socket: ClientWebSocketAdapter
-	private store = new OptimisticAppStore()
+	store = new OptimisticAppStore()
+	userId: string = ''
 	private pendingUpdates: ZRowUpdate[] = []
 	private timeout: NodeJS.Timeout | undefined = undefined
 	private currentMutationId = uniqueId()
@@ -25,12 +23,39 @@ export class Zero {
 	private instantiationTime = Date.now()
 	private didReceiveFirstMessage = false
 
+	async sneakyTransaction(fn: () => Promise<void>): Promise<void> {
+		await fn()
+		assert(this.pendingUpdates.length > 0, 'no updates to send')
+		if (this.pendingUpdates.length === 0) {
+			return
+		}
+		const mutationId = this.currentMutationId
+
+		return new Promise((resolve, reject) => {
+			const unsubCommit = this.store.events.on('commit', (ids: string[]) => {
+				if (ids.includes(mutationId)) {
+					resolve()
+					unsubCommit()
+					unsubReject()
+				}
+			})
+
+			const unsubReject = this.store.events.on('reject', (id: string) => {
+				if (id === mutationId) {
+					reject()
+					unsubCommit()
+					unsubReject()
+				}
+			})
+		})
+	}
+
 	constructor(
 		private opts: {
 			getUri(): Promise<string>
 			onMutationRejected(errorCode: ZErrorCode): void
 			onClientTooOld(): void
-			trackEvent: TLAppUiContextType
+			trackEvent(...args: any[]): any
 		}
 	) {
 		this.socket = new ClientWebSocketAdapter(opts.getUri)
@@ -248,10 +273,9 @@ export class Zero {
 		this.store.updateOptimisticData(updates, this.currentMutationId)
 
 		this.pendingUpdates.push(...updates)
-		if (!this.timeout) {
-			this.timeout = setTimeout(() => {
-				this.sendPendingUpdates()
-			}, 50)
-		}
+		clearTimeout(this.timeout)
+		this.timeout = setTimeout(() => {
+			this.sendPendingUpdates()
+		}, 50)
 	}
 }

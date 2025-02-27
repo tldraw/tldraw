@@ -12,6 +12,7 @@ import {
 	UserPreferencesKeys,
 	ZErrorCode,
 	Z_PROTOCOL_VERSION,
+	Zero,
 } from '@tldraw/dotcom-shared'
 import { Result, assert, fetch, structuredClone, throttle, uniqueId } from '@tldraw/utils'
 import pick from 'lodash.pick'
@@ -41,7 +42,6 @@ import { TLAppUiContextType } from '../utils/app-ui-events'
 import { getDateFormat } from '../utils/dates'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
-import { Zero } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`

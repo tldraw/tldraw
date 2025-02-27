@@ -10,10 +10,12 @@
 	"dependencies": {
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
+		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
 		"lodash.isequal": "^4.5.0",
+		"nanoevents": "^9.1.0",
 		"tldraw": "workspace:*"
 	},
 	"peerDependencies": {

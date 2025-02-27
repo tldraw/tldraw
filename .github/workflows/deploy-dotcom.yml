@@ -103,3 +103,4 @@ jobs:
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
           WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
+          TEST_AUTH_SECRET: ${{ secrets.TEST_AUTH_SECRET }}

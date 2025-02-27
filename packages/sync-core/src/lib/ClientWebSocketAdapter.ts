@@ -274,18 +274,20 @@ export class ReconnectManager {
 	) {
 		this.subscribeToReconnectHints()
 
-		this.disposables.push(
-			listenTo(window, 'offline', () => {
-				debug('window went offline')
-				// On the one hand, 'offline' event is not really reliable; on the other, the only
-				// alternative is to wait for pings not being delivered, which takes more than 20 seconds,
-				// which means we won't see the ClientWebSocketAdapter status change for more than
-				// 20 seconds after the tab goes offline. Our application layer must be resistent to
-				// connection restart anyway, so we can just try to reconnect and see if
-				// we're truly offline.
-				this.socketAdapter._closeSocket()
-			})
-		)
+		if (typeof window !== 'undefined') {
+			this.disposables.push(
+				listenTo(window, 'offline', () => {
+					debug('window went offline')
+					// On the one hand, 'offline' event is not really reliable; on the other, the only
+					// alternative is to wait for pings not being delivered, which takes more than 20 seconds,
+					// which means we won't see the ClientWebSocketAdapter status change for more than
+					// 20 seconds after the tab goes offline. Our application layer must be resistent to
+					// connection restart anyway, so we can just try to reconnect and see if
+					// we're truly offline.
+					this.socketAdapter._closeSocket()
+				})
+			)
+		}
 
 		this.state = 'pendingAttempt'
 		this.intendedDelay = ACTIVE_MIN_DELAY
@@ -293,6 +295,7 @@ export class ReconnectManager {
 	}
 
 	private subscribeToReconnectHints() {
+		if (typeof window === 'undefined') return
 		this.disposables.push(
 			listenTo(window, 'online', () => {
 				debug('window went online')

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+source .env
+npx wrangler deploy --env $TLDRAW_ENV --var "TLDRAW_ENV:$TLDRAW_ENV" --var "BOTCOM_POSTGRES_CONNECTION_STRING:$BOTCOM_POSTGRES_CONNECTION_STRING" --var "BOTCOM_POSTGRES_POOLED_CONNECTION_STRING:$BOTCOM_POSTGRES_POOLED_CONNECTION_STRING" --var "TEST_AUTH_SECRET:$TEST_AUTH_SECRET" --var "SENTRY_DSN:$SENTRY_DSN" --var "WORKER_NAME:pr-5113-tldraw-multiplayer"
+npx wrangler tail pr-5113-tldraw-multiplayer

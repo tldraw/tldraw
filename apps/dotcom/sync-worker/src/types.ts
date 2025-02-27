@@ -23,6 +23,7 @@ export interface Environment {
 	TL_USER: DurableObjectNamespace<TLUserDurableObject>
 	TL_LOGGER: DurableObjectNamespace<TLLoggerDurableObject>
 	TL_STATS: DurableObjectNamespace<TLStatsDurableObject>
+	TEST_AUTH_SECRET: string
 
 	BOTCOM_POSTGRES_CONNECTION_STRING: string
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string

@@ -134,7 +134,7 @@ export class UserDataSyncer {
 		private log: Logger
 	) {
 		this.sentry = createSentry(ctx, env)
-		this.reboot(false)
+		this.reboot({ delay: false })
 	}
 
 	maybeStartInterval() {
@@ -154,7 +154,7 @@ export class UserDataSyncer {
 
 	numConsecutiveReboots = 0
 
-	async reboot(delay = true) {
+	async reboot({ delay = true, hard = false }: { delay?: boolean; hard?: boolean } = {}) {
 		this.numConsecutiveReboots++
 		if (this.numConsecutiveReboots > 5) {
 			this.logEvent({ type: 'user_do_abort', id: this.userId })
@@ -169,7 +169,7 @@ export class UserDataSyncer {
 				await sleep(1000)
 			}
 			const res = await Promise.race([
-				this.boot().then(() => 'ok'),
+				this.boot(hard).then(() => 'ok'),
 				sleep(5000).then(() => 'timeout'),
 			]).catch((e) => {
 				this.logEvent({ type: 'reboot_error', id: this.userId })
@@ -181,7 +181,7 @@ export class UserDataSyncer {
 			if (res === 'ok') {
 				this.numConsecutiveReboots = 0
 			} else {
-				this.reboot()
+				this.reboot({ hard: true })
 			}
 		})
 	}
@@ -269,7 +269,7 @@ export class UserDataSyncer {
 		} satisfies StateSnapshot
 	}
 
-	private async boot() {
+	private async boot(hard: boolean) {
 		this.log.debug('booting')
 		// todo: clean up old resources if necessary?
 		const start = Date.now()
@@ -291,7 +291,9 @@ export class UserDataSyncer {
 		 * 7. Once the replicator responds to the registration request, apply the buffered events
 		 */
 		if (!this.store.getCommittedData()) {
-			const res = (await this.loadInitialDataFromR2()) ?? (await this.loadInitialDataFromPostgres())
+			const res =
+				(!hard && (await this.loadInitialDataFromR2())) ||
+				(await this.loadInitialDataFromPostgres())
 
 			this.log.debug('got initial data')
 			this.store.initialize(res.initialData, res.optimisticUpdates)
@@ -310,8 +312,6 @@ export class UserDataSyncer {
 		})
 
 		if (res.type === 'reboot') {
-			this.store = new OptimisticAppStore()
-			this.env.USER_DO_SNAPSHOTS.delete(this.getSnapshotKey())
 			throw new Error('reboot')
 		}
 
@@ -496,7 +496,7 @@ export class UserDataSyncer {
 		for (const mutation of this.mutations) {
 			if (Date.now() - mutation.timestamp > 5000) {
 				this.log.debug("Mutations haven't been committed for 5 seconds, rebooting", mutation)
-				this.reboot()
+				this.reboot({ hard: true })
 				break
 			}
 		}

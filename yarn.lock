@@ -1511,7 +1511,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cloudflare/workers-types@npm:^4.20250224.0":
+"@cloudflare/workers-types@npm:^4.20241022.0, @cloudflare/workers-types@npm:^4.20250224.0":
   version: 4.20250224.0
   resolution: "@cloudflare/workers-types@npm:4.20250224.0"
   checksum: a940408d01b8ed0072379851786bc62c58aab7425b3224c19c92298fd809c4c597c89ba86a8307c216256b10fe9f829b06b932a71a4c03a417e0e30b6cb3b3c7
@@ -6870,10 +6870,12 @@ __metadata:
   dependencies:
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     lodash.isequal: "npm:^4.5.0"
+    nanoevents: "npm:^9.1.0"
     tldraw: "workspace:*"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
@@ -7078,6 +7080,21 @@ __metadata:
     raf: "npm:^3.4.1"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
+  languageName: unknown
+  linkType: soft
+
+"@tldraw/stress-tester@workspace:apps/dotcom/stress-tester":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/stress-tester@workspace:apps/dotcom/stress-tester"
+  dependencies:
+    "@cloudflare/workers-types": "npm:^4.20241022.0"
+    "@tldraw/dotcom-shared": "workspace:*"
+    "@tldraw/utils": "workspace:*"
+    "@tldraw/worker-shared": "workspace:*"
+    itty-router: "npm:^5.0.17"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    typescript: "npm:~5.4.2"
+    wrangler: "npm:^3.84.1"
   languageName: unknown
   linkType: soft
 
@@ -15731,7 +15748,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"itty-router@npm:^5.0.18":
+"itty-router@npm:^5.0.17, itty-router@npm:^5.0.18":
   version: 5.0.18
   resolution: "itty-router@npm:5.0.18"
   checksum: 69c51bdae603c83c0e2b680af398f2a123ede25de29862fd68226a64d26dec4c4b20080a69ca5d29c180e31eaf3fbcec93415f0d6dac9c3e17d2571b5ea6446a
@@ -18647,6 +18664,13 @@ __metadata:
   version: 7.0.1
   resolution: "nanoevents@npm:7.0.1"
   checksum: 5c0704cfeb7af9052a70b1ce53e556e3743cefbbd09758121e0062e4fac2cf70ebea1e6b1414f18a81975ee1bdf4af05e13c82e1b015975493ef8ef34737787d
+  languageName: node
+  linkType: hard
+
+"nanoevents@npm:^9.1.0":
+  version: 9.1.0
+  resolution: "nanoevents@npm:9.1.0"
+  checksum: 77abbc15c4efc15518a0075b604e5db045e5d6184f4d08892c771928a84f53b1dd46138902213f66e8a9989e6c930168ca6441b80ff9098aec83c01a782bd42b
   languageName: node
   linkType: hard
 
@@ -23870,7 +23894,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:~5.4.5":
+"typescript@npm:~5.4.2, typescript@npm:~5.4.5":
   version: 5.4.5
   resolution: "typescript@npm:5.4.5"
   bin:
@@ -23900,7 +23924,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A~5.4.5#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A~5.4.2#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A~5.4.5#optional!builtin<compat/typescript>":
   version: 5.4.5
   resolution: "typescript@patch:typescript@npm%3A5.4.5#optional!builtin<compat/typescript>::version=5.4.5&hash=e012d7"
   bin:
@@ -24951,7 +24975,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wrangler@npm:^3.111.0":
+"wrangler@npm:^3.111.0, wrangler@npm:^3.84.1":
   version: 3.111.0
   resolution: "wrangler@npm:3.111.0"
   dependencies:

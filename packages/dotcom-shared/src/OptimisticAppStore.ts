@@ -1,6 +1,7 @@
 import { atom, computed, react, transact } from '@tldraw/state'
 import { assert } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
+import { createNanoEvents } from 'nanoevents'
 import {
 	TlaFile,
 	TlaFilePartial,
@@ -12,6 +13,11 @@ import {
 import { ZRowUpdate, ZStoreData } from './types'
 
 export class OptimisticAppStore {
+	events = createNanoEvents<{
+		reject(mutationId: string): void
+		commit(mutationIds: string[]): void
+	}>()
+
 	private _gold_store = atom('zero store', null as null | ZStoreData, {
 		isEqual: isEqual,
 	})
@@ -89,6 +95,7 @@ export class OptimisticAppStore {
 			const highestIndex = prev.findLastIndex((p) => mutationIds.includes(p.mutationId))
 			return prev.slice(highestIndex + 1)
 		})
+		this.events.emit('commit', mutationIds)
 	}
 
 	rejectMutation(mutationId: string) {
@@ -98,6 +105,7 @@ export class OptimisticAppStore {
 				return p.mutationId !== mutationId
 			})
 		})
+		this.events.emit('reject', mutationId)
 	}
 
 	commitLsn(lsn: string) {

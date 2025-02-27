@@ -100,6 +100,7 @@ export const router = createRoutesFromElements(
 		</Route>
 		<Route path="/__debug-tail" lazy={() => import('./tla/pages/worker-debug-tail')} />
 		<Route path="*" lazy={() => import('./pages/not-found')} />
+		<Route path="/stress-test" lazy={() => import('./pages/stress-test')} />
 	</Route>
 )
 

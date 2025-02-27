@@ -71,6 +71,7 @@ const env = makeEnv([
 	previewId
 		? 'NEON_PREVIEW_DB_POOLED_CONNECTION_STRING'
 		: 'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
+	'TEST_AUTH_SECRET',
 ])
 
 const discord = new Discord({

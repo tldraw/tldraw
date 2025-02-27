@@ -2,7 +2,10 @@ import { ClerkClient, createClerkClient } from '@clerk/backend'
 import { IRequest, StatusError } from 'itty-router'
 import { Environment } from '../../types'
 
-export async function requireAuth(request: IRequest, env: Environment): Promise<SignedInAuth> {
+export async function requireAuth(
+	request: IRequest,
+	env: Environment
+): Promise<{ userId: string }> {
 	const auth = await getAuthFromSearchParams(request, env)
 	if (!auth) {
 		throw new StatusError(401, 'Unauthorized')
@@ -21,7 +24,19 @@ export function getClerkClient(env: Environment) {
 export async function getAuthFromSearchParams(
 	request: IRequest,
 	env: Environment
-): Promise<SignedInAuth | null> {
+): Promise<{ userId: string } | null> {
+	// stress test users
+	{
+		const url = new URL(request.url)
+		const token =
+			url.searchParams.get('accessToken') ??
+			request.headers.get('Authorization')?.slice('Bearer '.length)
+		if (token?.startsWith(`${env.TEST_AUTH_SECRET}:`)) {
+			const userId = token.slice(`${env.TEST_AUTH_SECRET}:`.length)
+			return { userId }
+		}
+	}
+
 	const clerk = getClerkClient(env)
 
 	const state = await clerk.authenticateRequest(request)
