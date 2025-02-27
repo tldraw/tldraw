@@ -19,7 +19,7 @@ const links = [
 	{
 		caption: 'Guides',
 		icon: AcademicCapIcon,
-		href: '/installation',
+		href: '/editor',
 	},
 	{
 		caption: 'Reference',
