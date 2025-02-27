@@ -26,7 +26,7 @@
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250124.3",
 		"lazyrepo": "0.0.0-alpha.27",
-		"wrangler": "^3.105.1"
+		"wrangler": "^3.111.0"
 	},
 	"jest": {
 		"preset": "../../../internal/config/jest/node/jest-preset.js",

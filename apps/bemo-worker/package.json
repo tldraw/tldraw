@@ -37,7 +37,7 @@
 		"esbuild": "^0.24.2",
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "~5.4.5",
-		"wrangler": "^3.105.1"
+		"wrangler": "^3.111.0"
 	},
 	"jest": {
 		"preset": "../../internal/config/jest/node/jest-preset.js",
