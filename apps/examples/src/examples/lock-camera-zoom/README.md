@@ -2,7 +2,6 @@
 title: Lock camera zoom
 component: ./LockCameraZoomExample.tsx
 category: editor-api
-priority: 1
 keywords: [camera, lock, zoom]
 ---
 

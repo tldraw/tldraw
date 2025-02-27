@@ -14,11 +14,11 @@ import './globals.css'
 export const metadata: Metadata = {
 	metadataBase: new URL('https://tldraw.dev'),
 	title: {
-		default: 'The infinite canvas SDK • tldraw',
+		default: 'tldraw: Build whiteboards in React with the tldraw SDK',
 		template: `%s • tldraw`,
 	},
 	description:
-		'Infinite canvas SDK from tldraw. Build whiteboards, design tools, and canvas experiences for the web.',
+		'The tldraw SDK provides tools, services, and APIs to build beautiful whiteboards and infinite canvas applications with real-time collaboration and a powerful React-based canvas.',
 	twitter: {
 		creator: '@tldraw',
 	},
