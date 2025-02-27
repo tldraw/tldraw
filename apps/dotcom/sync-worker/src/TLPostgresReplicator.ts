@@ -108,6 +108,7 @@ const migrations: Migration[] = [
 			);
 			CREATE INDEX history_lsn_userId ON history (lsn, userId);
 			CREATE INDEX history_lsn_fileId ON history (lsn, fileId);
+			PRAGMA optimize;
 		`,
 	},
 ]
