@@ -2,6 +2,7 @@ import { DB, TlaFile, TlaFileState, TlaRow, TlaUser, ZTable } from '@tldraw/dotc
 import {
 	ExecutionQueue,
 	assert,
+	assertExists,
 	exhaustiveSwitchError,
 	groupBy,
 	promiseWithResolve,
@@ -776,19 +777,12 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	private async getResumeType(
+	private getResumeType(
 		lsn: string,
 		userId: string,
 		guestFileIds: string[]
-	): Promise<
-		{ type: 'done'; messages?: ZReplicationEventWithoutSequenceInfo[] } | { type: 'reboot' }
-	> {
-		let currentLsn = this.getCurrentLsn()
-		while (!currentLsn) {
-			// this will only potentially happen once per slot name change, which should never happen
-			await sleep(1000)
-			currentLsn = this.getCurrentLsn()
-		}
+	): { type: 'done'; messages?: ZReplicationEventWithoutSequenceInfo[] } | { type: 'reboot' } {
+		const currentLsn = assertExists(this.getCurrentLsn())
 
 		if (lsn >= currentLsn) {
 			// targetLsn is now or in the future, we can register them and deliver events
@@ -856,6 +850,11 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		bootId: string
 	}): Promise<{ type: 'done'; sequenceId: string; sequenceNumber: number } | { type: 'reboot' }> {
 		try {
+			while (!this.getCurrentLsn()) {
+				// this should only happen once per slot name change, which should never happen!
+				await sleep(100)
+			}
+
 			this.log.debug('registering user', userId, lsn, bootId, guestFileIds)
 			this.logEvent({ type: 'register_user' })
 
@@ -881,7 +880,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			this.reportActiveUsers()
 			this.log.debug('inserted active user')
 
-			const resume = await this.getResumeType(lsn, userId, guestFileIds)
+			const resume = this.getResumeType(lsn, userId, guestFileIds)
 			if (resume.type === 'reboot') {
 				return { type: 'reboot' }
 			}
