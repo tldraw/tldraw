@@ -784,6 +784,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		const currentLsn = assertExists(this.getCurrentLsn())
 
 		if (lsn >= currentLsn) {
+			this.log.debug('resuming from current lsn', lsn, '>=', currentLsn)
 			// targetLsn is now or in the future, we can register them and deliver events
 			// without needing to check the history
 			return { type: 'done' }
@@ -793,6 +794,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			.toArray()[0]?.lsn
 
 		if (!earliestLsn || lsn < earliestLsn) {
+			this.log.debug('not enough history', lsn, '<', earliestLsn)
 			// not enough history, we can't resume
 			return { type: 'reboot' }
 		}
@@ -818,6 +820,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			.map(({ json, lsn }) => ({ change: JSON.parse(json) as Change, lsn }))
 
 		if (history.length === 0) {
+			this.log.debug('no history to replay, all good', lsn)
 			return { type: 'done' }
 		}
 
