@@ -1,6 +1,6 @@
 import { ReactRenderer } from '@tiptap/react'
 import { SuggestionKeyDownProps, SuggestionProps } from '@tiptap/suggestion'
-import { Picker } from 'emoji-mart'
+import { type Picker } from 'emoji-mart'
 import {
 	Suspense,
 	forwardRef,
@@ -12,7 +12,7 @@ import {
 	useState,
 } from 'react'
 import { useEditor, useValue } from 'tldraw'
-import { EmojiMartData } from './EmojiDialog'
+import { type EmojiMartData } from './EmojiDialog'
 import { Emoji } from './emoji'
 
 const EmojiDialog = lazy(() => import('./EmojiDialog'))

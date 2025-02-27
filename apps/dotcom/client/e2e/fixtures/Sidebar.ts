@@ -1,4 +1,5 @@
 import type { Locator, Page } from '@playwright/test'
+import { sleep } from 'tldraw'
 import { expect, step } from './tla-test'
 
 export class Sidebar {
@@ -57,6 +58,10 @@ export class Sidebar {
 
 	async openAccountMenu() {
 		await this.sidebarBottom.hover()
+		// XXX: there's some funkiness with a react context (or page weight?) that causes the
+		// account menu to re-render on initial page load.
+		// So, we need to wait a bit to click on it, lest the menu closes on us immediately.
+		await sleep(500)
 		await this.page.getByTestId('tla-sidebar-user-link').click()
 	}
 
