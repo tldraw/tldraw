@@ -576,8 +576,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		// ignore events received after disconnecting, if that can even happen
 		if (this.state.type !== 'connected') return
 
-		this.postgresUpdates++
-
 		// We shouldn't get these two, but just to be sure we'll filter them out
 		const { command, table } = change.event
 		this.log.debug('handleEvent', change)
