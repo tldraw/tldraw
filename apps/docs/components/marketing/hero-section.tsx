@@ -6,16 +6,13 @@ import Link from 'next/link'
 export function HeroSection() {
 	return (
 		<section className="w-full max-w-screen-xl mx-auto md:px-5 flex flex-col items-center py-8 sm:py-16">
-			<div className="relative">
-				<h1 className="hidden sm:block relative font-black text-black dark:text-white text-center leading-tight text-4xl md:text-5xl md:leading-tight w-full px-[8px] pt-12 pb-6">
-					The <u>perfect</u>
-					<br />
-					whiteboard SDK
+			<div className="relative max-w-[100%] lg:max-w-[80%]">
+				<h1 className="hidden sm:block relative text-center font-black text-black dark:text-white text-balance leading-tight text-4xl md:text-5xl md:leading-tight w-full px-[8px] pt-12 pb-6">
+					Build whiteboards in React with the tldraw <span className="whitespace-nowrap">SDK</span>
 				</h1>
-				<h1 className="block text-balance sm:hidden relative font-black text-black dark:text-white text-center text-4xl leading-tight w-full px-[8px] pt-12 pb-6">
-					The <u>perfect</u>
-					<br />
-					whiteboard SDK
+				<h1 className="block text-center text-balance sm:hidden relative font-black text-black dark:text-white text-center text-4xl leading-tight w-full px-[8px] pt-12 pb-6">
+					Build whiteboards in React with the <br />
+					<span className="whitespace-nowrap">tldraw SDK</span>
 				</h1>
 				{/* <Underline
 					className={cn(
@@ -47,11 +44,11 @@ export function HeroSection() {
                     developers and users.
                 </div>
             </div> */}
-			<p className="mt-5 sm:mt-8 px-5 text-center text-zinc-800 dark:text-zinc-200 sm:text-lg max-w-lg md:max-w-xl text-balance">
-				An instant collaborative whiteboard for your product, complete with the components,
-				services, and APIs you need to build further.
+			<p className="mt-0 sm:mt-8 px-5 text-center text-zinc-800 dark:text-zinc-200 sm:text-lg max-w-lg md:max-w-xl text-balance">
+				Have an idea for an infinite canvas? The tldraw SDK has everything you need to build instant
+				real-time collaborative whiteboards and more.
 			</p>
-			<div className="flex flex-row items-center sm:items-start sm:flex-row gap-x-4 gap-y-2 mt-6 sm:mt-9 flex-wrap justify-center sm:max-width-xl pb-8 sm:pb-16">
+			<div className="pt-4 flex flex-row items-center sm:items-start sm:flex-row gap-x-4 gap-y-2 mt-6 sm:mt-9 flex-wrap justify-center sm:max-width-xl pb-8 sm:pb-16">
 				<Button
 					id="hero-quick-start"
 					href="/quick-start"
