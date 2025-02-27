@@ -1,4 +1,4 @@
-import { SharedStyle, StyleProp } from '@tldraw/editor'
+import { SharedStyle, StyleProp, tlmenus, useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -41,7 +41,10 @@ function DoubleDropdownPickerInner<T extends string>({
 	valueB,
 	onValueChange,
 }: DoubleDropdownPickerProps<T>) {
+	const editor = useEditor()
 	const msg = useTranslation()
+	const [isOpenA, setIsOpenA] = React.useState(false)
+	const [isOpenB, setIsOpenB] = React.useState(false)
 
 	const iconA = React.useMemo(
 		() =>
@@ -58,13 +61,15 @@ function DoubleDropdownPickerInner<T extends string>({
 
 	if (valueA === undefined && valueB === undefined) return null
 
+	const idA = `style panel ${uiTypeA} A`
+	const idB = `style panel ${uiTypeB} B`
 	return (
 		<div className="tlui-style-panel__double-select-picker">
 			<div title={msg(label)} className="tlui-style-panel__double-select-picker-label">
 				{msg(label)}
 			</div>
 			<div className="tlui-buttons__horizontal">
-				<TldrawUiPopover id={`style panel ${uiTypeA} A`}>
+				<TldrawUiPopover id={idA} open={isOpenA} onOpenChange={setIsOpenA}>
 					<TldrawUiPopoverTrigger>
 						<TldrawUiButton
 							type="icon"
@@ -89,7 +94,11 @@ function DoubleDropdownPickerInner<T extends string>({
 											data-testid={`style.${uiTypeA}.${item.value}`}
 											type="icon"
 											key={item.value}
-											onClick={() => onValueChange(styleA, item.value)}
+											onClick={() => {
+												onValueChange(styleA, item.value)
+												tlmenus.deleteOpenMenu(idA, editor.contextId)
+												setIsOpenA(false)
+											}}
 											title={`${msg(labelA)} — ${msg(`${uiTypeA}-style.${item.value}`)}`}
 										>
 											<TldrawUiButtonIcon icon={item.icon} invertIcon />
@@ -100,7 +109,7 @@ function DoubleDropdownPickerInner<T extends string>({
 						</div>
 					</TldrawUiPopoverContent>
 				</TldrawUiPopover>
-				<TldrawUiPopover id={`style panel ${uiTypeB}`}>
+				<TldrawUiPopover id={idB} open={isOpenB} onOpenChange={setIsOpenB}>
 					<TldrawUiPopoverTrigger>
 						<TldrawUiButton
 							type="icon"
@@ -125,7 +134,11 @@ function DoubleDropdownPickerInner<T extends string>({
 											type="icon"
 											title={`${msg(labelB)} — ${msg(`${uiTypeB}-style.${item.value}` as TLUiTranslationKey)}`}
 											data-testid={`style.${uiTypeB}.${item.value}`}
-											onClick={() => onValueChange(styleB, item.value)}
+											onClick={() => {
+												onValueChange(styleB, item.value)
+												tlmenus.deleteOpenMenu(idB, editor.contextId)
+												setIsOpenB(false)
+											}}
 										>
 											<TldrawUiButtonIcon icon={item.icon} />
 										</TldrawUiButton>

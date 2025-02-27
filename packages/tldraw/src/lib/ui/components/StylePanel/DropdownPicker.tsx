@@ -1,4 +1,4 @@
-import { SharedStyle, StyleProp, useEditor } from '@tldraw/editor'
+import { SharedStyle, StyleProp, tlmenus, useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { StyleValuesForUi } from '../../../styles'
@@ -40,6 +40,7 @@ function DropdownPickerInner<T extends string>({
 }: DropdownPickerProps<T>) {
 	const msg = useTranslation()
 	const editor = useEditor()
+	const [isOpen, setIsOpen] = React.useState(false)
 
 	const icon = React.useMemo(
 		() => items.find((item) => value.type === 'shared' && item.value === value.value)?.icon,
@@ -54,8 +55,9 @@ function DropdownPickerInner<T extends string>({
 			: stylePanelName + ' — ' + msg(`${uiType}-style.${value.value}` as TLUiTranslationKey)
 	const labelStr = label ? msg(label) : ''
 
+	const popoverId = `style panel ${id}`
 	return (
-		<TldrawUiPopover id={`style panel ${id}`}>
+		<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
 			<TldrawUiPopoverTrigger>
 				<TldrawUiButton type={type} data-testid={`style.${uiType}`} title={titleStr}>
 					{labelStr && <TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>}
@@ -79,6 +81,8 @@ function DropdownPickerInner<T extends string>({
 									onClick={() => {
 										editor.markHistoryStoppingPoint('select style dropdown item')
 										onValueChange(style, item.value)
+										tlmenus.deleteOpenMenu(popoverId, editor.contextId)
+										setIsOpen(false)
 									}}
 								>
 									<TldrawUiButtonIcon icon={item.icon} />

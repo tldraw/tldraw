@@ -1,6 +1,7 @@
 import {
 	activeElementShouldCaptureKeys,
 	preventDefault,
+	tlmenus,
 	useEditor,
 	useEvent,
 	useUniqueSafeId,
@@ -48,6 +49,7 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 	const breakpoint = useBreakpoint()
 	const msg = useTranslation()
 	const rButtons = useRef<HTMLElement[]>([])
+	const [isOpen, setIsOpen] = useState(false)
 
 	const overflowIndex = Math.min(8, 5 + breakpoint)
 
@@ -150,6 +152,7 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 		}
 	}, [editor])
 
+	const popoverId = 'toolbar overflow'
 	return (
 		<>
 			<style>{css}</style>
@@ -167,7 +170,7 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 				{/* There is a +1 because if the menu is just one item, it's not necessary. */}
 				{totalItems > overflowIndex + 1 && (
 					<IsInOverflowContext.Provider value={true}>
-						<TldrawUiPopover id="toolbar overflow">
+						<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
 							<TldrawUiPopoverTrigger>
 								<TldrawUiButton
 									title={msg('tool-panel.more')}
@@ -183,6 +186,10 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 									className="tlui-buttons__grid"
 									data-testid="tools.more-content"
 									id={`${id}_more`}
+									onClick={() => {
+										tlmenus.deleteOpenMenu(popoverId, editor.contextId)
+										setIsOpen(false)
+									}}
 								>
 									<TldrawUiMenuContextProvider type="toolbar-overflow" sourceId="toolbar">
 										{children}
