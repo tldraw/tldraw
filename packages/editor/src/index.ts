@@ -127,6 +127,7 @@ export {
 	defaultUserPreferences,
 	getFreshUserPreferences,
 	getUserPreferences,
+	guestUserName,
 	setUserPreferences,
 	userTypeValidator,
 	type TLUserPreferences,

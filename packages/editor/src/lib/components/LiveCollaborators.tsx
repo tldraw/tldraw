@@ -1,6 +1,7 @@
 import { track } from '@tldraw/state-react'
 import { TLInstancePresence } from '@tldraw/tlschema'
 import { useEffect, useRef, useState } from 'react'
+import { guestUserName } from '../config/TLUserPreferences'
 import { Editor } from '../editor/Editor'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
@@ -104,7 +105,7 @@ const Collaborator = track(function Collaborator({
 					point={cursor}
 					color={color}
 					zoom={zoomLevel}
-					name={userName !== 'New User' ? userName : null}
+					name={userName !== guestUserName ? userName : null}
 					chatMessage={chatMessage ?? ''}
 				/>
 			) : CollaboratorHint ? (

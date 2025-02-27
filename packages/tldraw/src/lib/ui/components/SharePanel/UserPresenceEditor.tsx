@@ -1,4 +1,4 @@
-import { useEditor, useValue } from '@tldraw/editor'
+import { guestUserName, useEditor, useValue } from '@tldraw/editor'
 import { useCallback, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -67,7 +67,7 @@ export function UserPresenceEditor() {
 					>
 						{userName}
 					</div>
-					{userName === 'New User' ? (
+					{userName === guestUserName ? (
 						<div className="tlui-people-menu__user__label">{msg('people-menu.user')}</div>
 					) : null}
 				</>

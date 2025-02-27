@@ -16,7 +16,7 @@ export interface TLPresenceUserInfo {
 	 */
 	id: string
 	/**
-	 * The user's display name. If not given, 'New User' will be shown.
+	 * The user's display name. If not given, 'Guest User' will be shown.
 	 */
 	name?: string | null
 	/**

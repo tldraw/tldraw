@@ -3,6 +3,9 @@ import { getDefaultTranslationLocale } from '@tldraw/tlschema'
 import { getFromLocalStorage, setInLocalStorage, structuredClone, uniqueId } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 
+/** @public */
+export const guestUserName = 'Guest User'
+
 const USER_DATA_KEY = 'TLDRAW_USER_DATA_v3'
 
 /**
@@ -132,7 +135,7 @@ export function userPrefersReducedMotion() {
 
 /** @public */
 export const defaultUserPreferences = Object.freeze({
-	name: 'New User',
+	name: guestUserName,
 	locale: getDefaultTranslationLocale(),
 	color: getRandomColor(),
 

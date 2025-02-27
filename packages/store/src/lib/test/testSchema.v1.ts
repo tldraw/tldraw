@@ -63,7 +63,7 @@ const User = createRecordType<User>('user', {
 	scope: 'document',
 }).withDefaultProperties(() => ({
 	/* STEP 6: Add any new default values for properties here */
-	name: 'New User',
+	name: 'Guest User',
 }))
 
 const ShapeVersion = createMigrationIds('com.tldraw.shape', {

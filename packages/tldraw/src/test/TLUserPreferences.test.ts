@@ -1,4 +1,4 @@
-import { TLUserPreferences, atom, createTLUser } from '@tldraw/editor'
+import { TLUserPreferences, atom, createTLUser, guestUserName } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -72,7 +72,7 @@ describe('TLUserPreferences', () => {
 		expect(editor.user.getIsDarkMode()).toBe(false)
 		expect(editor.user.getIsSnapMode()).toBe(false)
 		expect(editor.user.getLocale()).toBe('en')
-		expect(editor.user.getName()).toBe('New User')
+		expect(editor.user.getName()).toBe(guestUserName)
 	})
 
 	it('can have unspecified values and it will use defaults', () => {
@@ -115,7 +115,7 @@ describe('TLUserPreferences', () => {
 		expect(editor.user.getName()).toBe('blah')
 		editor.user.updateUserPreferences({ name: null })
 
-		expect(editor.user.getName()).toBe('New User')
+		expect(editor.user.getName()).toBe(guestUserName)
 		expect(setUserPreferences).toHaveBeenCalledTimes(2)
 		expect(setUserPreferences).toHaveBeenLastCalledWith({
 			id: '123',

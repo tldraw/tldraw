@@ -1,5 +1,12 @@
 import * as Popover from '@radix-ui/react-popover'
-import { preventDefault, useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
+import {
+	guestUserName,
+	preventDefault,
+	useContainer,
+	useEditor,
+	usePeerIds,
+	useValue,
+} from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -43,7 +50,7 @@ export function PeopleMenu({ displayUserWhenAlone, children }: PeopleMenuProps) 
 									backgroundColor: userColor,
 								}}
 							>
-								{userName === 'New User' ? '' : (userName[0] ?? '')}
+								{userName === guestUserName ? '' : (userName[0] ?? '')}
 							</div>
 						)}
 					</div>

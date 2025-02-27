@@ -1,4 +1,4 @@
-import { track, useEditor, usePresence } from '@tldraw/editor'
+import { guestUserName, track, useEditor, usePresence } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -37,7 +37,7 @@ export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId
 				onDoubleClick={handleFollowClick}
 			>
 				<TldrawUiIcon icon="color" color={presence.color} />
-				<div className="tlui-people-menu__name">{presence.userName ?? 'New User'}</div>
+				<div className="tlui-people-menu__name">{presence.userName ?? guestUserName}</div>
 			</TldrawUiButton>
 			<TldrawUiButton
 				type="icon"
