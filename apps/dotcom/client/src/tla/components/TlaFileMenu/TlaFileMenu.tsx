@@ -101,13 +101,13 @@ export function FileItems({
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = routes.tlaFile(fileId, { asUrl: true })
-		copyTextToClipboard(url)
+		copyTextToClipboard(editor?.createDeepLink({ url }).toString() ?? url)
 		addToast({
 			id: 'copied-link',
 			title: copiedMsg,
 		})
 		trackEvent('copy-file-link', { source })
-	}, [fileId, addToast, copiedMsg, trackEvent, source])
+	}, [fileId, addToast, copiedMsg, trackEvent, source, editor])
 
 	const handlePinUnpinClick = useCallback(async () => {
 		app.pinOrUnpinFile(fileId)
