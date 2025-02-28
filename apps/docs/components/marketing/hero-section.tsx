@@ -6,7 +6,7 @@ import Link from 'next/link'
 export function HeroSection() {
 	return (
 		<section className="max-w-screen-xl w-full mx-auto md:px-5 flex flex-col items-center py-8 sm:py-16">
-			<div className="relative max-w-[100%] lg:max-w-[80%]">
+			<div className="relative w-full max-w-[100%] lg:max-w-[80%]">
 				<h1 className="hidden sm:block relative text-center font-black text-black dark:text-white text-balance leading-tight text-4xl md:text-5xl md:leading-tight px-[8px] pt-12 pb-6">
 					Build whiteboards in React with the tldraw <span className="whitespace-nowrap">SDK</span>
 				</h1>
@@ -44,7 +44,7 @@ export function HeroSection() {
                     developers and users.
                 </div>
             </div> */}
-			<p className="mt-0 sm:mt-5 px-5 text-center text-zinc-800 dark:text-zinc-200 sm:text-lg w-full text-balance w-[90%]">
+			<p className="mt-0 sm:mt-5 px-5 text-center text-zinc-800 dark:text-zinc-200 sm:text-lg w-full text-balance w-[100%] lg:w-[70%]">
 				Have an idea for an infinite canvas? The tldraw SDK has everything you need to build instant
 				real-time collaborative whiteboards and more.
 			</p>
