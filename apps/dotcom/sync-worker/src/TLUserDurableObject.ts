@@ -15,7 +15,7 @@ import {
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { assert } from '@tldraw/utils'
+import { assert, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -186,20 +186,14 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			this.sockets.delete(serverWebSocket)
 			this.maybeClose()
 		})
-		const initialData = this.cache.getInitialData()
-		if (initialData) {
-			this.log.debug('sending initial data')
-			serverWebSocket.send(
-				JSON.stringify({
-					type: 'initial_data',
-					initialData,
-				} satisfies ZServerSentMessage)
-			)
-		} else {
-			// the cache hasn't received the initial data yet, so we need to wait for it
-			// it will broadcast on its own
-			this.log.debug('waiting for initial data')
-		}
+		const initialData = await this.cache.getInitialData()
+		this.log.debug('sending initial data')
+		serverWebSocket.send(
+			JSON.stringify({
+				type: 'initial_data',
+				initialData,
+			} satisfies ZServerSentMessage)
+		)
 
 		this.sockets.add(serverWebSocket)
 
@@ -254,7 +248,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				if (!isUpdatingSelf)
 					throw new ZMutationError(
 						ZErrorCode.forbidden,
-						'Cannot update user record that is not our own'
+						'Cannot update user record that is not our own: ' + (update.row as TlaUser).id
 					)
 				// todo: prevent user from updating their email?
 				return
@@ -320,14 +314,15 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private async _doMutate(msg: ZClientSentMessage) {
 		this.assertCache()
-		const insertedFiles = await this.db.transaction().execute(async (tx) => {
+		const { insertedFiles, newGuestFiles } = await this.db.transaction().execute(async (tx) => {
 			const insertedFiles: TlaFile[] = []
+			const newGuestFiles: TlaFile[] = []
 			for (const update of msg.updates) {
 				await this.assertValidMutation(update)
 				switch (update.event) {
 					case 'insert': {
 						if (update.table === 'file_state') {
-							const { fileId: _fileId, userId: _userId, ...rest } = update.row as any
+							const { fileId, userId, ...rest } = update.row as any
 							await tx
 								.insertInto(update.table)
 								.values(update.row as TlaFileState)
@@ -339,6 +334,15 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 									}
 								})
 								.execute()
+							const guestFile = await tx
+								.selectFrom('file')
+								.where('id', '=', fileId)
+								.where('ownerId', '!=', userId)
+								.selectAll()
+								.executeTakeFirst()
+							if (guestFile) {
+								newGuestFiles.push(guestFile as any as TlaFile)
+							}
 							break
 						} else {
 							const { id: _id, ...rest } = update.row as any
@@ -427,15 +431,23 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				}
 				this.cache.store.updateOptimisticData([update], msg.mutationId)
 			}
-			return insertedFiles
+			return { insertedFiles, newGuestFiles }
 		})
 		for (const file of insertedFiles) {
 			getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
+		}
+		for (const file of newGuestFiles) {
+			this.cache.addGuestFile(file)
 		}
 	}
 
 	private async handleMutate(socket: WebSocket, msg: ZClientSentMessage) {
 		this.assertCache()
+		while (!this.cache.store.getCommittedData()) {
+			// this could happen if the cache was cleared due to a full db reboot
+			await sleep(100)
+		}
+		this.log.debug('mutation', this.userId, msg)
 		try {
 			// we connect to pg via a pooler, so in the case that the pool is exhausted
 			// we need to retry the connection. (also in the case that a neon branch is asleep apparently?)
@@ -446,7 +458,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				}
 			)
 			// TODO: We should probably handle a case where the above operation succeeds but the one below fails
-			this.log.debug('mutation success', this.userId)
+			this.log.debug('mutation success', this.userId, 'new guest files')
 			await this.db
 				.transaction()
 				.execute(async (tx) => {
@@ -497,10 +509,15 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
 		this.log.debug('replication event', event, !!this.cache)
 		if (await this.notActive()) {
+			this.log.debug('requesting to unregister')
 			return 'unregister'
 		}
 
-		this.cache?.handleReplicationEvent(event)
+		try {
+			this.cache?.handleReplicationEvent(event)
+		} catch (e) {
+			this.captureException(e)
+		}
 
 		return 'ok'
 	}
