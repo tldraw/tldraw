@@ -270,7 +270,7 @@ export class UserDataSyncer {
 		} satisfies StateSnapshot
 	}
 
-	private async boot(hard: boolean) {
+	private async boot(hard: boolean): Promise<void> {
 		this.log.debug('booting')
 		// todo: clean up old resources if necessary?
 		const start = Date.now()
@@ -313,7 +313,8 @@ export class UserDataSyncer {
 		})
 
 		if (res.type === 'reboot') {
-			throw new Error('reboot')
+			if (hard) throw new Error('reboot loop, waiting')
+			return this.boot(true)
 		}
 
 		const bufferedEvents = this.state.bufferedEvents
