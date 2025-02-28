@@ -217,6 +217,7 @@ export class UserDataSyncer {
 	}
 
 	private async loadInitialDataFromPostgres() {
+		this.logEvent({ type: 'full_data_fetch', id: this.userId })
 		this.log.debug('fetching fresh initial data from postgres')
 		// if the bootId changes during the boot process, we should stop silently
 		const userSql = getFetchUserDataSql(this.userId)
