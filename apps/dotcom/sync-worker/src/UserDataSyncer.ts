@@ -10,14 +10,7 @@ import {
 	ZTable,
 } from '@tldraw/dotcom-shared'
 import { transact } from '@tldraw/state'
-import {
-	ExecutionQueue,
-	assert,
-	assertExists,
-	promiseWithResolve,
-	sleep,
-	uniqueId,
-} from '@tldraw/utils'
+import { ExecutionQueue, assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { Kysely } from 'kysely'
 import { Logger } from './Logger'
@@ -79,7 +72,6 @@ type BootState =
 	| {
 			type: 'connecting'
 			bootId: string
-			promise: PromiseWithResolve
 			bufferedEvents: Array<ZReplicationEvent>
 	  }
 	| {
@@ -277,7 +269,6 @@ export class UserDataSyncer {
 		this.state = {
 			type: 'connecting',
 			// preserve the promise so any awaiters do eventually get resolved
-			promise: 'promise' in this.state ? this.state.promise : promiseWithResolve(),
 			bootId: uniqueId(),
 			bufferedEvents: [],
 		}
@@ -298,9 +289,12 @@ export class UserDataSyncer {
 
 			this.log.debug('got initial data')
 			this.store.initialize(res.initialData, res.optimisticUpdates)
+			this.broadcast({
+				type: 'initial_data',
+				initialData: res.initialData,
+			})
 		}
 
-		this.state.promise.resolve(null)
 		const initialData = this.store.getCommittedData()!
 
 		// do an unnecessary assign here to tell typescript that the state might have changed
@@ -327,10 +321,6 @@ export class UserDataSyncer {
 
 		if (bufferedEvents.length > 0) {
 			bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
-			this.broadcast({
-				type: 'initial_data',
-				initialData: assertExists(this.store.getCommittedData()),
-			})
 		}
 
 		// this will prevent more events from being added to the buffer
@@ -469,15 +459,6 @@ export class UserDataSyncer {
 		}
 		this.store.updateCommittedData(update)
 		this.broadcast({ type: 'update', update })
-	}
-
-	async getInitialData() {
-		if (this.state.type === 'connecting') {
-			await this.state.promise
-		}
-		const data = this.store.getFullData()
-		assert(data, 'data should be defined')
-		return data
 	}
 
 	private async onInterval() {

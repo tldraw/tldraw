@@ -186,16 +186,21 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			this.sockets.delete(serverWebSocket)
 			this.maybeClose()
 		})
-		const initialData = await this.cache.getInitialData()
-		this.log.debug('sending initial data')
-		serverWebSocket.send(
-			JSON.stringify({
-				type: 'initial_data',
-				initialData,
-			} satisfies ZServerSentMessage)
-		)
 
 		this.sockets.add(serverWebSocket)
+
+		const initialData = this.cache.store.getCommittedData()
+		if (initialData) {
+			this.log.debug('sending initial data on connect', this.userId)
+			serverWebSocket.send(
+				JSON.stringify({
+					type: 'initial_data',
+					initialData,
+				} satisfies ZServerSentMessage)
+			)
+		} else {
+			this.log.debug('no initial data to send, waiting for boot to finish', this.userId)
+		}
 
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
