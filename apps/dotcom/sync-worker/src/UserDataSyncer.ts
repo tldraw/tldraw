@@ -190,7 +190,7 @@ export class UserDataSyncer {
 
 	private async loadInitialDataFromR2() {
 		this.log.debug('loading snapshot from R2')
-		const res = await this.env.USER_DO_SNAPSHOTS.get(this.getSnapshotKey())
+		const res = await this.env.USER_DO_SNAPSHOTS.get(this.userId)
 		if (!res) {
 			this.log.debug('no snapshot found')
 			return null
@@ -202,10 +202,6 @@ export class UserDataSyncer {
 		}
 		this.log.debug('loaded snapshot from R2')
 		return data
-	}
-
-	private getSnapshotKey() {
-		return 'user_do_snapshots/' + this.userId
 	}
 
 	private async loadInitialDataFromPostgres() {
@@ -473,7 +469,7 @@ export class UserDataSyncer {
 				}
 				this.log.debug('stashing snapshot')
 				this.lastStashEpoch = this.store.epoch
-				await this.env.USER_DO_SNAPSHOTS.put(this.getSnapshotKey(), JSON.stringify(snapshot))
+				await this.env.USER_DO_SNAPSHOTS.put(this.userId, JSON.stringify(snapshot))
 			}
 		}
 		for (const mutation of this.mutations) {

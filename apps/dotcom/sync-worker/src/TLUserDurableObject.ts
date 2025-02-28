@@ -649,6 +649,32 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			socket.close()
 		})
 	}
+
+	async admin_forceHardReboot(userId: string) {
+		if (this.cache) {
+			await this.cache?.reboot({ hard: true, delay: false })
+		} else {
+			await this.env.USER_DO_SNAPSHOTS.delete(userId)
+		}
+	}
+
+	async admin_getData(userId: string) {
+		const cache =
+			this.cache ??
+			new UserDataSyncer(
+				this.ctx,
+				this.env,
+				this.db,
+				userId,
+				() => {},
+				() => {},
+				this.log
+			)
+		while (!cache.store.getCommittedData()) {
+			await sleep(100)
+		}
+		return cache.store.getCommittedData()
+	}
 }
 
 async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<string[]> {
