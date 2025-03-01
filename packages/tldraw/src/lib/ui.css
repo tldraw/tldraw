@@ -62,13 +62,20 @@
 }
 
 /*
- * We only want to show the focus ring iff:
+ * We only want to show the focus ring if:
  * - the container is focused
  * - we're not using the mouse to interact (which is the .tl-container__no-focus-ring)
  */
-.tl-container__focused:not(.tl-container__no-focus-ring) .tlui-button:focus-visible {
+/* .tl-container__focused:not(.tl-container__no-focus-ring) .tlui-button:focus-visible {
 	border-radius: var(--radius-3);
 	box-shadow: var(--shadow-focus-ring);
+} */
+.tl-container__focused:not(.tl-container__no-focus-ring) .tlui-button:focus-visible {
+	color: var(--color-selected-contrast);
+}
+.tl-container__focused:not(.tl-container__no-focus-ring) .tlui-button:focus-visible::after {
+	background-color: var(--color-selected);
+	opacity: 1;
 }
 
 .tlui-button::after {
@@ -492,7 +499,7 @@
 	grid-template-columns: auto;
 	grid-auto-columns: minmax(1em, auto);
 	align-self: bottom;
-	color: var(--color-text-1);
+	color: currentColor;
 	margin-left: var(--space-4);
 }
 
