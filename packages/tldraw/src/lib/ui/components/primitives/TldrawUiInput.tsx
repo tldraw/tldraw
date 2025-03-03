@@ -70,6 +70,8 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 		const rInitialValue = React.useRef<string>(defaultValue ?? '')
 		const rCurrentValue = React.useRef<string>(defaultValue ?? '')
 
+		const isCompositioning = React.useRef(false)
+
 		const [isFocused, setIsFocused] = React.useState(false)
 		const handleFocus = React.useCallback(
 			(e: React.FocusEvent<HTMLInputElement>) => {
@@ -108,6 +110,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			(e: React.KeyboardEvent<HTMLInputElement>) => {
 				switch (e.key) {
 					case 'Enter': {
+						if (isCompositioning.current) return
 						e.currentTarget.blur()
 						stopEventPropagation(e)
 						onComplete?.(e.currentTarget.value)
@@ -176,6 +179,8 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 					onChange={handleChange}
 					onFocus={handleFocus}
 					onBlur={handleBlur}
+					onCompositionStart={() => (isCompositioning.current = true)}
+					onCompositionEnd={() => (isCompositioning.current = false)}
 					autoFocus={autoFocus}
 					placeholder={placeholder}
 					value={value}
