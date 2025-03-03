@@ -1,6 +1,7 @@
 import {
 	Arc2d,
 	Box,
+	EMPTY_ARRAY,
 	Edge2d,
 	Editor,
 	Geometry2d,
@@ -12,6 +13,7 @@ import {
 	TLArrowBinding,
 	TLArrowShape,
 	TLArrowShapeProps,
+	TLFontFace,
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
@@ -39,15 +41,12 @@ import {
 import React from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 
+import { PlainTextLabel } from '../shared/PlainTextLabel'
 import { ShapeFill } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
-import { TextLabel } from '../shared/TextLabel'
 import { ARROW_LABEL_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
-import {
-	getFillDefForCanvas,
-	getFillDefForExport,
-	getFontDefForExport,
-} from '../shared/defaultStyleDefs'
+import { DefaultFontFaces } from '../shared/defaultFonts'
+import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getArrowLabelFontSize, getArrowLabelPosition } from './arrowLabel'
 import { getArrowheadPathForType } from './arrowheads'
@@ -111,6 +110,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			if (end && !shapes.find((s) => s.id === end.toId)) return false
 		}
 		return true
+	}
+
+	override getFontFaces(shape: TLArrowShape): TLFontFace[] {
+		if (!shape.props.text) return EMPTY_ARRAY
+		return [DefaultFontFaces[`tldraw_${shape.props.font}`].normal.normal]
 	}
 
 	override getDefaultProps(): TLArrowShape['props'] {
@@ -625,7 +629,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					/>
 				</SVGContainer>
 				{showArrowLabel && (
-					<TextLabel
+					<PlainTextLabel
 						shapeId={shape.id}
 						classNamePrefix="tl-arrow"
 						type="arrow"
@@ -764,7 +768,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
-		if (shape.props.text) ctx.addExportDef(getFontDefForExport(shape.props.font))
 		const theme = getDefaultColorTheme(ctx)
 		const scaleFactor = 1 / shape.props.scale
 

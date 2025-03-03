@@ -134,6 +134,7 @@ const inheritedProperties = new Set([
 	'list-style-type',
 	'list-style',
 	'orphans',
+	'overflow-wrap',
 	'quotes',
 	'tab-size',
 	'text-align',
