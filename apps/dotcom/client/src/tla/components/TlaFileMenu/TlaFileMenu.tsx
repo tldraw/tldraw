@@ -4,6 +4,7 @@ import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
 import { Fragment, ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+	TLDRAW_FILE_EXTENSION,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -149,7 +150,7 @@ export function FileItems({
 		const defaultName =
 			app.getFileName(fileId, false) ?? editor.getDocumentSettings().name ?? untitledProject
 		trackEvent('download-file', { source })
-		await download(editor, defaultName)
+		await download(editor, defaultName + TLDRAW_FILE_EXTENSION)
 	}, [app, editor, fileId, source, trackEvent, untitledProject])
 
 	const copyLinkMsg = useMsg(messages.copyLink)
