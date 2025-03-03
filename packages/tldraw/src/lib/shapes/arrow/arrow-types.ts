@@ -2,6 +2,13 @@ import { TLArrowShapeArrowheadStyle, VecLike } from '@tldraw/editor'
 import { TLArrowBindings } from './shared'
 
 /** @public */
+export interface ArrowShapeOptions {
+	readonly expandElbowLegLength: number
+	readonly minElbowLegLength: number
+	readonly minArrowDistanceFromCorner: number
+}
+
+/** @public */
 export interface TLArrowPoint {
 	handle: VecLike
 	point: VecLike

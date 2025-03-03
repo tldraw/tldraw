@@ -11,6 +11,7 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import React from 'react'
+import { createDebugElbowArrowScene } from '../../../shapes/arrow/elbow/createDebugElbowArrowScene'
 import { useDialogs } from '../../context/dialogs'
 import { useToasts } from '../../context/toasts'
 import { untranslated } from '../../hooks/useTranslation/useTranslation'
@@ -167,6 +168,11 @@ export function DefaultDebugMenuContent() {
 				})()}
 				<TldrawUiMenuItem id="throw-error" onSelect={() => setError(true)} label={'Throw error'} />
 				<TldrawUiMenuItem id="hard-reset" onSelect={hardResetEditor} label={'Hard reset'} />
+				<TldrawUiMenuItem
+					id="create-elbow-arrows"
+					onSelect={() => createDebugElbowArrowScene(editor)}
+					label={'Create elbow arrows'}
+				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="flags">
 				<DebugFlags />

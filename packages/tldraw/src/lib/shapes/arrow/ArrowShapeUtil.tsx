@@ -23,6 +23,7 @@ import {
 	WeakCache,
 	arrowShapeMigrations,
 	arrowShapeProps,
+	debugFlags,
 	getDefaultColorTheme,
 	getPerfectDashProps,
 	lerp,
@@ -49,6 +50,7 @@ import {
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
+import { ArrowShapeOptions } from './arrow-types'
 import { getArrowLabelFontSize, getArrowLabelPosition } from './arrowLabel'
 import { getArrowheadPathForType } from './arrowheads'
 import {
@@ -57,6 +59,7 @@ import {
 	getSolidStraightArrowPath,
 	getStraightArrowHandlePath,
 } from './arrowpaths'
+import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
 import {
 	TLArrowBindings,
 	createOrUpdateArrowBinding,
@@ -77,6 +80,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	static override type = 'arrow' as const
 	static override props = arrowShapeProps
 	static override migrations = arrowShapeMigrations
+
+	override options: ArrowShapeOptions = {
+		expandElbowLegLength: 32,
+		minElbowLegLength: 24,
+		minArrowDistanceFromCorner: 16,
+	}
 
 	override canEdit() {
 		return true
@@ -627,6 +636,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						shape={shape}
 						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape?.id === shape.id}
 					/>
+					{shape.props.elbow && debugFlags.debugElbowArrows.get() && (
+						<ElbowArrowDebug arrow={shape} />
+					)}
 				</SVGContainer>
 				{showArrowLabel && (
 					<TextLabel
