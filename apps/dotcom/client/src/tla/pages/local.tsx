@@ -33,7 +33,10 @@ export function Component() {
 		}
 
 		const recentFiles = app.getUserRecentFiles()
+		console.log('💡[344]: local.tsx:35: recentFiles=', recentFiles)
+
 		if (recentFiles.length === 0) {
+			console.log('creating file')
 			const result = app.createFile()
 			assert(result.ok, 'Failed to create file')
 			// result is only false if the user reached their file limit so
