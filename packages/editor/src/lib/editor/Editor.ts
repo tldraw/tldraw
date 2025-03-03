@@ -10341,7 +10341,7 @@ function withIsolatedShapes<T>(
 				}
 			})
 
-			editor.store.applyDiff(reverseRecordsDiff(changes))
+			editor.store.applyDiff(reverseRecordsDiff(changes), { runCallbacks: false })
 		},
 		{ history: 'ignore' }
 	)
