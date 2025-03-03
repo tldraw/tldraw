@@ -3,6 +3,8 @@ import { captureException } from '@sentry/react'
 import {
 	CreateFilesResponseBody,
 	CreateSnapshotRequestBody,
+	LOCAL_FILE_PREFIX,
+	MAX_NUMBER_OF_FILES,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
@@ -34,6 +36,7 @@ import {
 } from 'tldraw'
 import { MULTIPLAYER_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
+import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType } from '../utils/app-ui-events'
 import { getDateFormat } from '../utils/dates'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
@@ -47,7 +50,7 @@ let appId = 0
 
 export class TldrawApp {
 	config = {
-		maxNumberOfFiles: 100,
+		maxNumberOfFiles: MAX_NUMBER_OF_FILES,
 	}
 
 	readonly id = appId++
@@ -171,7 +174,7 @@ export class TldrawApp {
 		max_files_title: {
 			defaultMessage: 'File limit reached',
 		},
-		max_files_description: {
+		max_files_reached: {
 			defaultMessage:
 				'You have reached the maximum number of files. You need to delete old files before creating new ones.',
 		},
@@ -265,8 +268,16 @@ export class TldrawApp {
 
 		for (const fileId of myFileIds) {
 			const file = myFiles[fileId]
-			const state = myStates[fileId]
-			if (!file || !state) continue
+			let state = myStates[fileId]
+			if (!file) continue
+			if (!state && !file.isDeleted && file.ownerId === this.userId) {
+				// create a file state for this file
+				// this allows us to 'undelete' soft-deleted files by manually toggling 'isDeleted' in the backend
+				state = this.getOrCreateFileState(fileId)
+			} else if (!state) {
+				// if the file is deleted, we don't want to show it in the recent files
+				continue
+			}
 			const existing = this.lastRecentFileOrdering?.find((f) => f.fileId === fileId)
 			if (existing && existing.isPinned === state.isPinned) {
 				nextRecentFileOrdering.push(existing)
@@ -314,7 +325,7 @@ export class TldrawApp {
 		if (!this.canCreateNewFile()) {
 			this.toasts?.addToast({
 				title: this.getIntl().formatMessage(this.messages.max_files_title),
-				description: this.getIntl().formatMessage(this.messages.max_files_description),
+				description: this.getIntl().formatMessage(this.messages.max_files_reached),
 				keepOpen: true,
 			})
 			return Result.err('max number of files reached')
@@ -345,8 +356,19 @@ export class TldrawApp {
 				Object.assign(file, { name: this.getFallbackFileName(file.createdAt) })
 			}
 		}
-
-		this.z.mutate.file.create(file)
+		this.z.mutate((tx) => {
+			tx.file.create(file)
+			tx.file_state.create({
+				isFileOwner: true,
+				fileId: file.id,
+				userId: this.userId,
+				firstVisitAt: null,
+				isPinned: false,
+				lastEditAt: null,
+				lastSessionState: null,
+				lastVisitAt: null,
+			})
+		})
 
 		return Result.ok({ file })
 	}
@@ -385,13 +407,10 @@ export class TldrawApp {
 		return
 	}
 
-	_slurpFileId: string | null = null
 	slurpFile() {
-		const res = this.createFile()
-		if (res.ok) {
-			this._slurpFileId = res.value.file.id
-		}
-		return res
+		return this.createFile({
+			createSource: `${LOCAL_FILE_PREFIX}/${getScratchPersistenceKey()}`,
+		})
 	}
 
 	toggleFileShared(fileId: string) {
@@ -539,7 +558,7 @@ export class TldrawApp {
 		this.updateUser(exportPreferences)
 	}
 
-	async getOrCreateFileState(fileId: string) {
+	getOrCreateFileState(fileId: string) {
 		let fileState = this.getFileState(fileId)
 		if (!fileState) {
 			this.z.mutate.file_state.create({

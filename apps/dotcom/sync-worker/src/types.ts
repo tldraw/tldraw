@@ -1,7 +1,6 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
 import type { RoomSnapshot } from '@tldraw/sync-core'
-// import { TLAppDurableObject } from './TLAppDurableObject'
 import type { TLDrawDurableObject } from './TLDrawDurableObject'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
 import type { TLPostgresReplicator } from './TLPostgresReplicator'
@@ -20,7 +19,6 @@ export interface Analytics {
 export interface Environment {
 	// bindings
 	TLDR_DOC: DurableObjectNamespace<TLDrawDurableObject>
-	// TLAPP_DO: DurableObjectNamespace<TLAppDurableObject>
 	TL_PG_REPLICATOR: DurableObjectNamespace<TLPostgresReplicator>
 	TL_USER: DurableObjectNamespace<TLUserDurableObject>
 	TL_LOGGER: DurableObjectNamespace<TLLoggerDurableObject>
@@ -40,6 +38,7 @@ export interface Environment {
 	SNAPSHOT_SLUG_TO_PARENT_SLUG: KVNamespace
 
 	UPLOADS: R2Bucket
+	USER_DO_SNAPSHOTS: R2Bucket
 
 	SLUG_TO_READONLY_SLUG: KVNamespace
 	READONLY_SLUG_TO_SLUG: KVNamespace
@@ -132,6 +131,7 @@ export type TLUserDurableObjectEvent =
 	| {
 			type:
 				| 'reboot'
+				| 'full_data_fetch'
 				| 'reboot_error'
 				| 'rate_limited'
 				| 'broadcast_message'

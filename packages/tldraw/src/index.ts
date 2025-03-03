@@ -113,7 +113,7 @@ export {
 	type UseImageOrVideoAssetOptions,
 } from './lib/shapes/shared/useImageOrVideoAsset'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
-export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'
+export { TextShapeUtil, type TextShapeOptions } from './lib/shapes/text/TextShapeUtil'
 export { VideoShapeUtil } from './lib/shapes/video/VideoShapeUtil'
 export { type StyleValuesForUi } from './lib/styles'
 export { EraserTool } from './lib/tools/EraserTool/EraserTool'

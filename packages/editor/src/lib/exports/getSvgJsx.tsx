@@ -205,6 +205,7 @@ function SvgExport({
 		;(async () => {
 			const shapeDefs: Record<string, { pending: false; element: ReactElement }> = {}
 
+			// Then render everything. The shapes with assets should all hit the cache
 			const unorderedShapeElementPromises = renderingShapes.map(
 				async ({ id, opacity, index, backgroundIndex }) => {
 					// Don't render the frame if we're only exporting a single frame and it's children

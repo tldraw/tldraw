@@ -14,7 +14,7 @@ import { ThemeSwitch } from '../common/theme-switch'
 
 const mainLinks = [
 	{ caption: 'Features', active: () => false, href: '/#features' },
-	{ caption: 'Pricing', active: () => false, href: '/#license' },
+	{ caption: 'Pricing', active: () => false, href: '/#pricing' },
 	{
 		caption: 'Docs',
 		href: '/quick-start',
@@ -45,7 +45,7 @@ const socialLinks = [
 	{
 		caption: 'Discord',
 		icon: 'discord' as IconName,
-		href: 'https://discord.com/invite/SBBEVCA4PG',
+		href: 'https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink',
 	},
 	{
 		caption: 'GitHub',

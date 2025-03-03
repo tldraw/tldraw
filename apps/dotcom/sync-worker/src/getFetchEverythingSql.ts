@@ -41,20 +41,15 @@ const userColumns = userKeys.map((c) => `${c.reference} as "${c.alias}"`)
 const fileColumns = fileKeys.map((c) => `${c.reference} as "${c.alias}"`)
 const fileStateColumns = fileStateKeys.map((c) => `${c.reference} as "${c.alias}"`)
 
-export function getFetchUserDataSql(userId: string, bootId: string) {
+export function getFetchUserDataSql(userId: string) {
 	return sql`
-WITH upsert AS (
-  INSERT INTO public.user_boot_id ("userId", "bootId")
-  VALUES (${userId}, ${bootId})
-  ON CONFLICT ("userId") DO UPDATE SET "bootId" = ${bootId}
-)
-SELECT 'user' AS "table", null::bigint as "mutationNumber", ${sql.raw(userColumns + ',' + fileNulls + ',' + fileStateNulls)} FROM public.user WHERE "id" = '${sql.raw(userId)}'
+SELECT 'user' AS "table", null::text as "lsn", ${sql.raw(userColumns + ',' + fileNulls + ',' + fileStateNulls)} FROM public.user WHERE "id" = '${sql.raw(userId)}'
 UNION
-SELECT 'file' AS "table", null::bigint as "mutationNumber", ${sql.raw(userNulls + ',' + fileColumns + ',' + fileStateNulls)} FROM public.file WHERE "ownerId" = '${sql.raw(userId)}' OR "shared" = true AND EXISTS(SELECT 1 FROM public.file_state WHERE "userId" = '${sql.raw(userId)}' AND public.file_state."fileId" = public.file.id)
+SELECT 'file' AS "table", null::text as "lsn", ${sql.raw(userNulls + ',' + fileColumns + ',' + fileStateNulls)} FROM public.file WHERE ("ownerId" = '${sql.raw(userId)}' OR "shared" = true AND EXISTS(SELECT 1 FROM public.file_state WHERE "userId" = '${sql.raw(userId)}' AND public.file_state."fileId" = public.file.id))
 UNION
-SELECT 'file_state' AS "table", null::bigint as "mutationNumber", ${sql.raw(userNulls + ',' + fileNulls + ',' + fileStateColumns)} FROM public.file_state WHERE "userId" = '${sql.raw(userId)}'
+SELECT 'file_state' AS "table", null::text as "lsn", ${sql.raw(userNulls + ',' + fileNulls + ',' + fileStateColumns)} FROM public.file_state WHERE "userId" = '${sql.raw(userId)}'
 UNION
-SELECT 'user_mutation_number' as "table", "mutationNumber"::bigint, ${sql.raw(userNulls + ',' + fileNulls + ',' + fileStateNulls)} FROM public.user_mutation_number WHERE "userId" = '${sql.raw(userId)}';
+SELECT 'meta' as "table", pg_current_wal_lsn()::text as "lsn", ${sql.raw(userNulls + ',' + fileNulls + ',' + fileStateNulls)};
 `
 }
 

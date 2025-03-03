@@ -13,7 +13,7 @@ const menus = [
 			{ caption: 'Overview', href: '/' },
 			{ caption: 'Playground', href: 'https://tldraw.com' },
 			{ caption: 'Features', href: '/#features' },
-			{ caption: 'Pricing', href: '/#license' },
+			{ caption: 'Pricing', href: '/#pricing' },
 			{ caption: 'FAQ', href: '/#faq' },
 		],
 	},
@@ -30,7 +30,10 @@ const menus = [
 		items: [
 			{ caption: 'Blog', href: '/blog' },
 			{ caption: 'X/Twitter', href: 'https://x.com/tldraw/' },
-			{ caption: 'Discord', href: 'https://discord.com/invite/SBBEVCA4PG' },
+			{
+				caption: 'Discord',
+				href: 'https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink',
+			},
 			{ caption: 'GitHub', href: 'https://github.com/tldraw/tldraw' },
 			{ caption: 'Bluesky', href: 'https://bsky.app/profile/tldraw.com' },
 			{ caption: 'Mastodon', href: 'https://mas.to/@tldraw' },

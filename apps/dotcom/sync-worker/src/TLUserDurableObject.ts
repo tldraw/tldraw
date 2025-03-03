@@ -1,7 +1,7 @@
 import {
 	DB,
 	isColumnMutable,
-	ROOM_PREFIX,
+	MAX_NUMBER_OF_FILES,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
@@ -14,7 +14,7 @@ import {
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { assert } from '@tldraw/utils'
+import { assert, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -25,7 +25,7 @@ import { getR2KeyForRoom } from './r2'
 import { Analytics, Environment, TLUserDurableObjectEvent } from './types'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
 import { EventData, writeDataPoint } from './utils/analytics'
-import { getReplicator, getRoomDurableObject } from './utils/durableObjects'
+import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 
@@ -185,9 +185,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			this.sockets.delete(serverWebSocket)
 			this.maybeClose()
 		})
-		const initialData = this.cache.getInitialData()
+
+		this.sockets.add(serverWebSocket)
+
+		const initialData = this.cache.store.getCommittedData()
 		if (initialData) {
-			this.log.debug('sending initial data')
+			this.log.debug('sending initial data on connect', this.userId)
 			serverWebSocket.send(
 				JSON.stringify({
 					type: 'initial_data',
@@ -195,12 +198,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				} satisfies ZServerSentMessage)
 			)
 		} else {
-			// the cache hasn't received the initial data yet, so we need to wait for it
-			// it will broadcast on its own
-			this.log.debug('waiting for initial data')
+			this.log.debug('no initial data to send, waiting for boot to finish', this.userId)
 		}
-
-		this.sockets.add(serverWebSocket)
 
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
@@ -208,7 +207,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private async handleSocketMessage(socket: WebSocket, message: string) {
 		const rateLimited = await isRateLimited(this.env, this.userId!)
 		this.assertCache()
-		await this.cache.waitUntilConnected()
 
 		const msg = JSON.parse(message) as any as ZClientSentMessage
 		switch (msg.type) {
@@ -229,7 +227,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private async rejectMutation(socket: WebSocket, mutationId: string, errorCode: ZErrorCode) {
 		this.assertCache()
 		this.logEvent({ type: 'reject_mutation', id: this.userId! })
-		await this.cache.waitUntilConnected()
 		this.cache.store.rejectMutation(mutationId)
 		socket?.send(
 			JSON.stringify({
@@ -255,7 +252,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				if (!isUpdatingSelf)
 					throw new ZMutationError(
 						ZErrorCode.forbidden,
-						'Cannot update user record that is not our own'
+						'Cannot update user record that is not our own: ' + (update.row as TlaUser).id
 					)
 				// todo: prevent user from updating their email?
 				return
@@ -271,6 +268,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						`Cannot create a file for another user. fileId: ${nextFile.id} file owner: ${nextFile.ownerId} current user: ${this.userId}`
 					)
 				}
+				if (prevFile.isDeleted)
+					throw new ZMutationError(ZErrorCode.forbidden, 'Cannot update a deleted file')
 				// Owners are allowed to make changes
 				if (prevFile.ownerId === this.userId) return
 
@@ -295,7 +294,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				if (!file) {
 					// The user might not have access to this file yet, because they just followed a link
 					// let's allow them to create a file state for it if it exists and is shared.
-					file = (await getReplicator(this.env).getFileRecord(nextFileState.fileId)) ?? undefined
+					file = await this.db
+						.selectFrom('file')
+						.selectAll()
+						.where('id', '=', nextFileState.fileId)
+						.executeTakeFirst()
 				}
 				if (!file) {
 					throw new ZMutationError(ZErrorCode.bad_request, `File not found ${nextFileState.fileId}`)
@@ -319,14 +322,15 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private async _doMutate(msg: ZClientSentMessage) {
 		this.assertCache()
-		const insertedFiles = await this.db.transaction().execute(async (tx) => {
+		const { insertedFiles, newGuestFiles } = await this.db.transaction().execute(async (tx) => {
 			const insertedFiles: TlaFile[] = []
+			const newGuestFiles: TlaFile[] = []
 			for (const update of msg.updates) {
 				await this.assertValidMutation(update)
 				switch (update.event) {
 					case 'insert': {
 						if (update.table === 'file_state') {
-							const { fileId: _fileId, userId: _userId, ...rest } = update.row as any
+							const { fileId, userId, ...rest } = update.row as any
 							await tx
 								.insertInto(update.table)
 								.values(update.row as TlaFileState)
@@ -338,9 +342,27 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 									}
 								})
 								.execute()
+							const guestFile = await tx
+								.selectFrom('file')
+								.where('id', '=', fileId)
+								.where('ownerId', '!=', userId)
+								.selectAll()
+								.executeTakeFirst()
+							if (guestFile) {
+								newGuestFiles.push(guestFile as any as TlaFile)
+							}
 							break
 						} else {
 							const { id: _id, ...rest } = update.row as any
+							if (update.table === 'file') {
+								const count = this.cache.store.getFullData()?.files.length ?? 0
+								if (count >= MAX_NUMBER_OF_FILES) {
+									throw new ZMutationError(
+										ZErrorCode.max_files_reached,
+										`Cannot create more than ${MAX_NUMBER_OF_FILES} files.`
+									)
+								}
+							}
 							const result = await tx
 								.insertInto(update.table)
 								.values(update.row as any)
@@ -409,23 +431,27 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							const { id } = update.row as any
 							await tx.deleteFrom(update.table).where('id', '=', id).execute()
 						}
-						if (update.table === 'file') {
-							const { id } = update.row as TlaFile
-							await this.deleteFileStuff(id)
-						}
 						break
 				}
 				this.cache.store.updateOptimisticData([update], msg.mutationId)
 			}
-			return insertedFiles
+			return { insertedFiles, newGuestFiles }
 		})
 		for (const file of insertedFiles) {
 			getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
+		}
+		for (const file of newGuestFiles) {
+			this.cache.addGuestFile(file)
 		}
 	}
 
 	private async handleMutate(socket: WebSocket, msg: ZClientSentMessage) {
 		this.assertCache()
+		while (!this.cache.store.getCommittedData()) {
+			// this could happen if the cache was cleared due to a full db reboot
+			await sleep(100)
+		}
+		this.log.debug('mutation', this.userId, msg)
 		try {
 			// we connect to pg via a pooler, so in the case that the pool is exhausted
 			// we need to retry the connection. (also in the case that a neon branch is asleep apparently?)
@@ -436,7 +462,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				}
 			)
 			// TODO: We should probably handle a case where the above operation succeeds but the one below fails
-			this.log.debug('mutation success', this.userId)
+			this.log.debug('mutation success', this.userId, 'new guest files')
 			await this.db
 				.transaction()
 				.execute(async (tx) => {
@@ -487,10 +513,15 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
 		this.log.debug('replication event', event, !!this.cache)
 		if (await this.notActive()) {
+			this.log.debug('requesting to unregister')
 			return 'unregister'
 		}
 
-		this.cache?.handleReplicationEvent(event)
+		try {
+			this.cache?.handleReplicationEvent(event)
+		} catch (e) {
+			this.captureException(e)
+		}
 
 		return 'ok'
 	}
@@ -500,37 +531,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	/* --------------  */
-
-	private async deleteFileStuff(id: string) {
-		const fileRecord = await getReplicator(this.env).getFileRecord(id)
-		const room = this.env.TLDR_DOC.get(this.env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${id}`))
-		await room.appFileRecordDidDelete()
-		if (!fileRecord) {
-			throw new Error('file record not found')
-		}
-		const publishedSlug = fileRecord.publishedSlug
-
-		// Create a new slug for the published room
-		await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(publishedSlug)
-
-		// remove published files
-		const publishedPrefixKey = getR2KeyForRoom({
-			slug: `${id}/${publishedSlug}`,
-			isApp: true,
-		})
-		const publishedHistory = await listAllObjectKeys(this.env.ROOM_SNAPSHOTS, publishedPrefixKey)
-		if (publishedHistory.length > 0) {
-			await this.env.ROOM_SNAPSHOTS.delete(publishedHistory)
-		}
-		// remove edit history
-		const r2Key = getR2KeyForRoom({ slug: id, isApp: true })
-		const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, r2Key)
-		if (editHistory.length > 0) {
-			await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
-		}
-		// remove main file
-		await this.env.ROOMS.delete(r2Key)
-	}
 
 	private async publishSnapshot(file: TlaFile) {
 		if (file.ownerId !== this.userId) {
@@ -617,19 +617,32 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			socket.close()
 		})
 	}
-}
 
-async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<string[]> {
-	const keys: string[] = []
-	let cursor: string | undefined
+	async admin_forceHardReboot(userId: string) {
+		if (this.cache) {
+			await this.cache?.reboot({ hard: true, delay: false })
+		} else {
+			await this.env.USER_DO_SNAPSHOTS.delete(userId)
+		}
+	}
 
-	do {
-		const result = await bucket.list({ prefix, cursor })
-		keys.push(...result.objects.map((o) => o.key))
-		cursor = result.truncated ? result.cursor : undefined
-	} while (cursor)
-
-	return keys
+	async admin_getData(userId: string) {
+		const cache =
+			this.cache ??
+			new UserDataSyncer(
+				this.ctx,
+				this.env,
+				this.db,
+				userId,
+				() => {},
+				() => {},
+				this.log
+			)
+		while (!cache.store.getCommittedData()) {
+			await sleep(100)
+		}
+		return cache.store.getCommittedData()
+	}
 }
 
 class ZMutationError extends Error {

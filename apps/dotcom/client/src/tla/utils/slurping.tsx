@@ -13,10 +13,7 @@ import {
 	sleep,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
-import {
-	getScratchPersistenceKey,
-	resetScratchPersistenceKey,
-} from '../../utils/scratch-persistence-key'
+import { resetScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TldrawApp } from '../app/TldrawApp'
 import { SlurpFailure } from '../components/TlaEditor/SlurpFailure'
 
@@ -75,16 +72,13 @@ interface SlurperOpts {
 export async function maybeSlurp(opts: SlurperOpts) {
 	if (opts.abortSignal.aborted) return
 	if (!opts.app.isFileOwner(opts.fileId)) return
-	let persistenceKey = null as string | null
-	if (opts.app._slurpFileId === opts.fileId) {
-		// we just landed on this file after signing in on the root page
-		persistenceKey = getScratchPersistenceKey()
-	} else {
-		persistenceKey = (opts.editor.getDocumentSettings().meta.slurpPersistenceKey as string) ?? null
-	}
-	if (persistenceKey) {
-		return new Slurper({ ...opts, slurpPersistenceKey: persistenceKey }).slurp()
-	}
+	const file = opts.app.getFile(opts.fileId)
+	const persistenceKey =
+		(opts.editor.getDocumentSettings().meta.slurpPersistenceKey as string | undefined) ||
+		file?.createSource?.match(/lf\/(.+)/)?.[1]
+	if (!persistenceKey) return
+	if (opts.editor.getDocumentSettings().meta.slurpFinished) return
+	return new Slurper({ ...opts, slurpPersistenceKey: persistenceKey }).slurp()
 }
 
 export class Slurper {
@@ -99,11 +93,8 @@ export class Slurper {
 			if (this.opts.abortSignal.aborted) return
 			await this.slurpDocumentData()
 			if (this.opts.abortSignal.aborted) return
-			this.opts.app._slurpFileId = null
-			this.uploadLocalAssets() // no await, it can happen in the background
-		} else {
-			this.uploadLocalAssets() // no await, it can happen in the background
 		}
+		this.uploadLocalAssets() // no await, it can happen in the background
 	}
 
 	// get the records out of the local indexedDb and load them into the editor
@@ -235,8 +226,12 @@ export class Slurper {
 			// all uploads succeeded, clear the local db
 			// (temporarily do not delete the db in case something goes wrong and people lose their stuffs)
 			// deleteDB('TLDRAW_DOCUMENT_v2' + this.opts.slurpPersistenceKey)
-			const { slurpPersistenceKey: _, ...meta } = this.opts.editor.getDocumentSettings().meta
-			this.opts.editor.updateDocumentSettings({ meta })
+			this.opts.editor.updateDocumentSettings({
+				meta: {
+					...this.opts.editor.getDocumentSettings().meta,
+					slurpFinished: true,
+				},
+			})
 			return
 		}
 
