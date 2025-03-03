@@ -117,6 +117,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		assert(this.cache, 'no cache')
 	}
 
+	interval: NodeJS.Timeout | null = null
 	lastMutationTimestamp = Date.now()
 
 	private maybeStartInterval() {
@@ -159,8 +160,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}, 1000)
 		}
 	}
-
-	interval: NodeJS.Timeout | null = null
 
 	private readonly sockets = new Set<WebSocket>()
 
@@ -261,6 +260,22 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
+	async bumpMutationNumber(db: Kysely<DB> | Transaction<DB>) {
+		return db
+			.insertInto('user_mutation_number')
+			.values({
+				userId: this.userId!,
+				mutationNumber: 1,
+			})
+			.onConflict((oc) =>
+				oc.column('userId').doUpdateSet({
+					mutationNumber: sql`user_mutation_number."mutationNumber" + 1`,
+				})
+			)
+			.returning('mutationNumber')
+			.executeTakeFirstOrThrow()
+	}
+
 	private async rejectMutation(socket: WebSocket, mutationId: string, errorCode: ZErrorCode) {
 		this.assertCache()
 		this.logEvent({ type: 'reject_mutation', id: this.userId! })
@@ -359,124 +374,144 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private async _doMutate(msg: ZClientSentMessage) {
 		this.assertCache()
-		const { insertedFiles, newGuestFiles } = await this.db.transaction().execute(async (tx) => {
-			const insertedFiles: TlaFile[] = []
-			const newGuestFiles: TlaFile[] = []
-			for (const update of msg.updates) {
-				await this.assertValidMutation(update, tx)
-				switch (update.event) {
-					case 'insert': {
-						if (update.table === 'file_state') {
-							const { fileId, userId, ...rest } = update.row as any
-							await tx
-								.insertInto(update.table)
-								.values(update.row as TlaFileState)
-								.onConflict((oc) => {
-									if (Object.keys(rest).length === 0) {
-										return oc.columns(['fileId', 'userId']).doNothing()
-									} else {
-										return oc.columns(['fileId', 'userId']).doUpdateSet(rest)
-									}
-								})
-								.execute()
-							const guestFile = await tx
-								.selectFrom('file')
-								.where('id', '=', fileId)
-								.where('ownerId', '!=', userId)
-								.selectAll()
-								.executeTakeFirst()
-							if (guestFile) {
-								newGuestFiles.push(guestFile as any as TlaFile)
-							}
-							break
-						} else {
-							const { id: _id, ...rest } = update.row as any
-							if (update.table === 'file') {
-								const count =
-									this.cache.store
-										.getFullData()
-										?.files.filter((f) => f.ownerId === this.userId && !f.isDeleted).length ?? 0
-								if (count >= MAX_NUMBER_OF_FILES) {
-									throw new ZMutationError(
-										ZErrorCode.max_files_reached,
-										`Cannot create more than ${MAX_NUMBER_OF_FILES} files.`
-									)
+		const { insertedFiles, newGuestFiles, mutationNumber } = await this.db
+			.transaction()
+			.execute(async (tx) => {
+				const insertedFiles: TlaFile[] = []
+				const newGuestFiles: TlaFile[] = []
+				for (const update of msg.updates) {
+					await this.assertValidMutation(update, tx)
+					switch (update.event) {
+						case 'insert': {
+							if (update.table === 'file_state') {
+								const { fileId, userId, ...rest } = update.row as any
+								await tx
+									.insertInto(update.table)
+									.values(update.row as TlaFileState)
+									.onConflict((oc) => {
+										if (Object.keys(rest).length === 0) {
+											return oc.columns(['fileId', 'userId']).doNothing()
+										} else {
+											return oc.columns(['fileId', 'userId']).doUpdateSet(rest)
+										}
+									})
+									.execute()
+								const guestFile = await tx
+									.selectFrom('file')
+									.where('id', '=', fileId)
+									.where('ownerId', '!=', userId)
+									.selectAll()
+									.executeTakeFirst()
+								if (guestFile) {
+									newGuestFiles.push(guestFile as any as TlaFile)
 								}
+								break
+							} else {
+								const { id: _id, ...rest } = update.row as any
+								if (update.table === 'file') {
+									const count =
+										this.cache.store
+											.getFullData()
+											?.files.filter((f) => f.ownerId === this.userId && !f.isDeleted).length ?? 0
+									if (count >= MAX_NUMBER_OF_FILES) {
+										throw new ZMutationError(
+											ZErrorCode.max_files_reached,
+											`Cannot create more than ${MAX_NUMBER_OF_FILES} files.`
+										)
+									}
+								}
+								const result = await tx
+									.insertInto(update.table)
+									.values(update.row as any)
+									.onConflict((oc) => oc.column('id').doUpdateSet(rest))
+									.returningAll()
+									.execute()
+								if (update.table === 'file' && result.length > 0) {
+									insertedFiles.push(result[0] as any as TlaFile)
+								}
+								break
 							}
-							const result = await tx
-								.insertInto(update.table)
-								.values(update.row as any)
-								.onConflict((oc) => oc.column('id').doUpdateSet(rest))
-								.returningAll()
-								.execute()
-							if (update.table === 'file' && result.length > 0) {
-								insertedFiles.push(result[0] as any as TlaFile)
-							}
-							break
 						}
-					}
-					case 'update': {
-						const mutableColumns = Object.keys(update.row).filter((k) =>
-							isColumnMutable(update.table, k)
-						)
-						if (mutableColumns.length === 0) continue
-						const updates = Object.fromEntries(
-							mutableColumns.map((k) => [k, (update.row as any)[k]])
-						)
-						if (update.table === 'file_state') {
-							const { fileId, userId } = update.row as any
-							await tx
-								.updateTable('file_state')
-								.set(updates)
-								.where('fileId', '=', fileId)
-								.where('userId', '=', userId)
-								.execute()
-						} else {
-							const { id, ...rest } = update.row as any
+						case 'update': {
+							const mutableColumns = Object.keys(update.row).filter((k) =>
+								isColumnMutable(update.table, k)
+							)
+							if (mutableColumns.length === 0) continue
+							const updates = Object.fromEntries(
+								mutableColumns.map((k) => [k, (update.row as any)[k]])
+							)
+							if (update.table === 'file_state') {
+								const { fileId, userId } = update.row as any
+								await tx
+									.updateTable('file_state')
+									.set(updates)
+									.where('fileId', '=', fileId)
+									.where('userId', '=', userId)
+									.execute()
+							} else {
+								const { id, ...rest } = update.row as any
 
-							await tx.updateTable(update.table).set(updates).where('id', '=', id).execute()
-							if (update.table === 'file') {
-								const currentFile = this.cache.store.getFullData()?.files.find((f) => f.id === id)
-								if (
-									currentFile &&
-									rest.published !== undefined &&
-									currentFile.published !== rest.published
-								) {
-									if (rest.published) {
+								await tx.updateTable(update.table).set(updates).where('id', '=', id).execute()
+								if (update.table === 'file') {
+									const currentFile = this.cache.store.getFullData()?.files.find((f) => f.id === id)
+									if (
+										currentFile &&
+										rest.published !== undefined &&
+										currentFile.published !== rest.published
+									) {
+										if (rest.published) {
+											await this.publishSnapshot(currentFile)
+										} else {
+											await this.unpublishSnapshot(currentFile)
+										}
+									} else if (
+										currentFile &&
+										currentFile.published &&
+										rest.lastPublished !== undefined &&
+										currentFile.lastPublished < rest.lastPublished
+									) {
 										await this.publishSnapshot(currentFile)
-									} else {
-										await this.unpublishSnapshot(currentFile)
 									}
-								} else if (
-									currentFile &&
-									currentFile.published &&
-									rest.lastPublished !== undefined &&
-									currentFile.lastPublished < rest.lastPublished
-								) {
-									await this.publishSnapshot(currentFile)
 								}
 							}
+							break
 						}
-						break
+						case 'delete':
+							if (update.table === 'file_state') {
+								const { fileId, userId } = update.row as any
+								await tx
+									.deleteFrom('file_state')
+									.where('fileId', '=', fileId)
+									.where('userId', '=', userId)
+									.execute()
+							} else {
+								const { id } = update.row as any
+								await tx.deleteFrom(update.table).where('id', '=', id).execute()
+							}
+							break
 					}
-					case 'delete':
-						if (update.table === 'file_state') {
-							const { fileId, userId } = update.row as any
-							await tx
-								.deleteFrom('file_state')
-								.where('fileId', '=', fileId)
-								.where('userId', '=', userId)
-								.execute()
-						} else {
-							const { id } = update.row as any
-							await tx.deleteFrom(update.table).where('id', '=', id).execute()
-						}
-						break
+					this.cache.store.updateOptimisticData([update], msg.mutationId)
 				}
-				this.cache.store.updateOptimisticData([update], msg.mutationId)
-			}
-			return { insertedFiles, newGuestFiles }
+				const result = await this.bumpMutationNumber(tx)
+				return { insertedFiles, newGuestFiles, mutationNumber: result.mutationNumber }
+			})
+			.catch((e) => {
+				this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== msg.mutationId)
+				throw e
+			})
+
+		const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
+		assert(
+			mutationNumber > currentMutationNumber,
+			`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
+		)
+		this.log.debug('pushing mutation to cache', this.userId, mutationNumber)
+		this.cache.mutations.push({
+			mutationNumber,
+			mutationId: msg.mutationId,
+			timestamp: Date.now(),
 		})
+
 		for (const file of insertedFiles) {
 			getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
 		}
@@ -501,42 +536,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					this.logEvent({ type: 'connect_retry', id: this.userId! })
 				}
 			)
-			// TODO: We should probably handle a case where the above operation succeeds but the one below fails
-			this.log.debug('mutation success', this.userId, 'new guest files')
-			await this.db
-				.transaction()
-				.execute(async (tx) => {
-					const result = await tx
-						.insertInto('user_mutation_number')
-						.values({
-							userId: this.userId!,
-							mutationNumber: 1,
-						})
-						.onConflict((oc) =>
-							oc.column('userId').doUpdateSet({
-								mutationNumber: sql`user_mutation_number."mutationNumber" + 1`,
-							})
-						)
-						.returning('mutationNumber')
-						.executeTakeFirstOrThrow()
-					this.log.debug('mutation number success', this.userId)
-					const mutationNumber = Number(result.mutationNumber)
-					const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
-					assert(
-						mutationNumber > currentMutationNumber,
-						`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
-					)
-					this.log.debug('pushing mutation to cache', this.userId, mutationNumber)
-					this.cache.mutations.push({
-						mutationNumber,
-						mutationId: msg.mutationId,
-						timestamp: Date.now(),
-					})
-				})
-				.catch((e) => {
-					this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== msg.mutationId)
-					throw e
-				})
 		} catch (e: any) {
 			const code = e instanceof ZMutationError ? e.errorCode : ZErrorCode.unknown_error
 			this.captureException(e, {

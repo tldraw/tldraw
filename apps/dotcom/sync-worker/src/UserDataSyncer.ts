@@ -387,14 +387,20 @@ export class UserDataSyncer {
 		}
 
 		transact(() => {
+			let maxMutationNumber = -1
 			for (const ev of event.changes) {
 				if (ev.type === 'mutation_commit') {
-					this.commitMutations(ev.mutationNumber)
+					if (ev.mutationNumber > maxMutationNumber) {
+						maxMutationNumber = ev.mutationNumber
+					}
 					continue
 				}
 
 				assert(ev.type === 'row_update', `event type should be row_update got ${event.type}`)
 				this.handleRowUpdateEvent(ev)
+			}
+			if (maxMutationNumber >= 0) {
+				this.commitMutations(maxMutationNumber)
 			}
 
 			this.store.commitLsn(event.lsn)
