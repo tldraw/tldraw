@@ -23,11 +23,6 @@ test.describe('signed in user on own file', () => {
 		expect(await shareMenu.exportTabButton.isVisible()).toBe(true)
 		expect(await shareMenu.anonShareTabButton.isVisible()).toBe(false)
 
-		expect(await shareMenu.publishTabPage.isVisible()).toBe(false)
-		expect(await shareMenu.inviteTabPage.isVisible()).toBe(true)
-		expect(await shareMenu.exportTabPage.isVisible()).toBe(false)
-		expect(await shareMenu.anonShareTabPage.isVisible()).toBe(false)
-
 		// Starts on the invite tab
 		expect(await shareMenu.inviteTabPage.isVisible()).toBe(true)
 		expect(await shareMenu.exportTabPage.isVisible()).toBe(false)
@@ -246,6 +241,42 @@ test.describe('signed in user on someone elses file', () => {
 		// We should also see the file in the sidebar and a guest badge icon next to it
 		await expect(newPage.getByTestId('tla-sidebar').getByText(newName)).toBeVisible()
 		await expect(newPage.getByTestId(`guest-badge-${newName}`).getByRole('button')).toBeVisible()
+	})
+
+	test('tabs work correctly', async ({ browser, sidebar, shareMenu }) => {
+		const newName = getRandomName()
+		await sidebar.renameFile(0, newName)
+		await shareMenu.open()
+		const url = await shareMenu.copyLink()
+
+		const parallelIndex = test.info().parallelIndex
+		// Open link in an incognito window
+		const { newShareMenu, newPage } = await openNewTab(browser, {
+			url,
+			allowClipboard: true,
+			userProps: { user: 'suppy', index: parallelIndex },
+		})
+
+		await expect(newPage.getByTestId('tla-sidebar').getByText(newName)).toBeVisible()
+
+		await newShareMenu.open()
+		expect(await newShareMenu.publishTabButton.isVisible()).toBe(false)
+		expect(await newShareMenu.inviteTabButton.isVisible()).toBe(false)
+		expect(await newShareMenu.exportTabButton.isVisible()).toBe(true)
+		expect(await newShareMenu.anonShareTabButton.isVisible()).toBe(true)
+
+		// Starts on the anon share tab
+		expect(await newShareMenu.inviteTabPage.isVisible()).toBe(false)
+		expect(await newShareMenu.exportTabPage.isVisible()).toBe(false)
+		expect(await newShareMenu.publishTabPage.isVisible()).toBe(false)
+		expect(await newShareMenu.anonShareTabPage.isVisible()).toBe(true)
+
+		// Can switch between tabs (export)
+		await newShareMenu.exportTabButton.click()
+		expect(await newShareMenu.inviteTabPage.isVisible()).toBe(false)
+		expect(await newShareMenu.exportTabPage.isVisible()).toBe(true)
+		expect(await newShareMenu.publishTabPage.isVisible()).toBe(false)
+		expect(await newShareMenu.anonShareTabPage.isVisible()).toBe(false)
 	})
 })
 
