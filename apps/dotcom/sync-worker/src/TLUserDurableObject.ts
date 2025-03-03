@@ -18,7 +18,7 @@ import { assert, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
-import { Kysely, sql } from 'kysely'
+import { Kysely, sql, Transaction } from 'kysely'
 import { Logger } from './Logger'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
@@ -237,7 +237,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		)
 	}
 
-	private async assertValidMutation(update: ZRowUpdate) {
+	private async assertValidMutation(update: ZRowUpdate, tx: Transaction<DB>) {
 		// s is the entire set of data that the user has access to
 		// and is up to date with all committed mutations so far.
 		// we commit each mutation one at a time before handling the next.
@@ -294,7 +294,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				if (!file) {
 					// The user might not have access to this file yet, because they just followed a link
 					// let's allow them to create a file state for it if it exists and is shared.
-					file = await this.db
+					file = await tx
 						.selectFrom('file')
 						.selectAll()
 						.where('id', '=', nextFileState.fileId)
@@ -326,7 +326,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			const insertedFiles: TlaFile[] = []
 			const newGuestFiles: TlaFile[] = []
 			for (const update of msg.updates) {
-				await this.assertValidMutation(update)
+				await this.assertValidMutation(update, tx)
 				switch (update.event) {
 					case 'insert': {
 						if (update.table === 'file_state') {
@@ -355,7 +355,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						} else {
 							const { id: _id, ...rest } = update.row as any
 							if (update.table === 'file') {
-								const count = this.cache.store.getFullData()?.files.length ?? 0
+								const count =
+									this.cache.store
+										.getFullData()
+										?.files.filter((f) => f.ownerId === this.userId && !f.isDeleted).length ?? 0
 								if (count >= MAX_NUMBER_OF_FILES) {
 									throw new ZMutationError(
 										ZErrorCode.max_files_reached,
