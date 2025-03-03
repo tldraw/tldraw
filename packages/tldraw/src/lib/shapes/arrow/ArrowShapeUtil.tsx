@@ -84,7 +84,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override options: ArrowShapeOptions = {
 		expandElbowLegLength: 32,
 		minElbowLegLength: 24,
-		minArrowDistanceFromCorner: 16,
+		minArrowDistanceFromCorner: 10,
 	}
 
 	override canEdit() {

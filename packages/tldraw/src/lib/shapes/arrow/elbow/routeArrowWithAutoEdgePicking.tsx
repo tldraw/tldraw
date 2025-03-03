@@ -1,12 +1,20 @@
-import { routeSameAxisHiToLo } from './elbowArrowRoutes'
+import { routeCrossAxisLoToLo } from './elbowArrowRoutes'
 import { ElbowArrowInfoWithoutRoute } from './getElbowArrowInfo'
 
 export function routeArrowWithAutoEdgePicking(info: ElbowArrowInfoWithoutRoute) {
-	return routeSameAxisHiToLo(info, 'x') // || routeSameAxisHiToLo(info, 'y')
+	// return routeSameAxisHiToLo(info, 'x') || routeSameAxisHiToLo(info, 'y')
 
 	// return routeSameAxisLoToHi(info, 'x') || routeSameAxisLoToHi(info, 'y')
 
-	// return routeSameAxisLoToLoComplex(info, 'x') || routeSameAxisLoToLoComplex(info, 'y')
+	// return routeSameAxisLoToLo(info, 'x') || routeSameAxisLoToLo(info, 'y')
 
-	// return routeCrossAxisHiToLoComplex(info, 'x') || routeCrossAxisHiToLoComplex(info, 'y')
+	// return routeSameAxisHiToHi(info, 'x') || routeSameAxisHiToHi(info, 'y')
+
+	// return routeCrossAxisHiToLo(info, 'x') || routeCrossAxisHiToLo(info, 'y')
+
+	// return routeCrossAxisLoToHi(info, 'x') || routeCrossAxisLoToHi(info, 'y')
+
+	return routeCrossAxisLoToLo(info, 'x') // || routeCrossAxisLoToLo(info, 'y')
+
+	// return routeCrossAxisHiToHi(info, 'x') || routeCrossAxisHiToHi(info, 'y')
 }

@@ -4,7 +4,6 @@ import {
 	ElbowArrowEdge,
 	ElbowArrowScale,
 	getElbowArrowInfo,
-	transformBox,
 	transformPoint,
 } from './getElbowArrowInfo'
 
@@ -33,8 +32,8 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 
 	return (
 		<>
-			<DebugBox box={transformBox(info.expanded.A, info.scale)} stroke="orange" />
-			<DebugBox box={transformBox(info.expanded.B, info.scale)} stroke="lightskyblue" />
+			{/* <DebugBox box={transformBox(info.expanded.A, info.scale)} stroke="orange" /> */}
+			{/* <DebugBox box={transformBox(info.expanded.B, info.scale)} stroke="lightskyblue" /> */}
 			{info.mx !== null && (
 				<DebugLine
 					a={{ x: info.mx * info.scale.x, y: fullBox.minY }}
@@ -66,6 +65,7 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 			<DebugEdge edge={info.edges.B.left} axis="y" scale={info.scale} stroke="lightskyblue" />
 
 			{info.route && <DebugRoute route={info.route} />}
+			{/* {info.path && <DebugRoute route={info.path} />} */}
 		</>
 	)
 }
@@ -129,20 +129,20 @@ function DebugEdge({
 	return (
 		<g>
 			<DebugLine
-				a={vec({ x: edge.value, y: edge.cross.min })}
-				b={vec({ x: edge.value, y: edge.cross.max })}
+				a={vec({ x: edge.expanded, y: edge.cross.min })}
+				b={vec({ x: edge.expanded, y: edge.cross.max })}
 				strokeDasharray="0"
 				{...props}
 			/>
 			<DebugLine
-				a={vec({ x: edge.value - 4, y: edge.cross.min })}
-				b={vec({ x: edge.value + 4, y: edge.cross.min })}
+				a={vec({ x: edge.expanded - 4, y: edge.cross.min })}
+				b={vec({ x: edge.expanded + 4, y: edge.cross.min })}
 				strokeDasharray="0"
 				{...props}
 			/>
 			<DebugLine
-				a={vec({ x: edge.value - 4, y: edge.cross.max })}
-				b={vec({ x: edge.value + 4, y: edge.cross.max })}
+				a={vec({ x: edge.expanded - 4, y: edge.cross.max })}
+				b={vec({ x: edge.expanded + 4, y: edge.cross.max })}
 				strokeDasharray="0"
 				{...props}
 			/>

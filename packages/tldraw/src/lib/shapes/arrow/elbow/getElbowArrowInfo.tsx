@@ -8,12 +8,15 @@ import {
 	TLArrowBinding,
 	TLArrowShape,
 	TLShapeId,
+	Vec,
 	VecLike,
 	VecModel,
 } from '@tldraw/editor'
 import { ArrowShapeOptions } from '../arrow-types'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { getArrowBindings } from '../shared'
+import { ArrowNavigationGrid, getArrowNavigationGrid } from './getArrowNavigationGrid'
+import { getArrowPath } from './getArrowPath'
 import {
 	clampToRange,
 	createRange,
@@ -34,6 +37,8 @@ export interface ElbowArrowBoxes {
 	A: Box
 	/** The ending bounding box */
 	B: Box
+	/** The common bounding box of A and B */
+	common: Box
 }
 
 // export interface ElbowArrowBoxExits {
@@ -147,6 +152,11 @@ export interface ElbowArrowInfoWithoutRoute {
 	 * {@link scale}. If the boxes are too close or overlap, this may be null.
 	 */
 	my: number | null
+
+	steve(): {
+		grid: ArrowNavigationGrid
+		path: Vec[] | null
+	}
 }
 
 export interface ElbowArrowInfo extends ElbowArrowInfoWithoutRoute {
@@ -174,11 +184,18 @@ const elbowArrowInfoCache = createComputedCache(
 			scale.y = -1
 		}
 
-		const original = { A, B }
-		const transformed = { A: transformBox(A, scale), B: transformBox(B, scale) }
+		const original = { A, B, common: Box.Common([A, B]) }
+		const transformedA = transformBox(A, scale)
+		const transformedB = transformBox(B, scale)
+		const transformed = {
+			A: transformedA,
+			B: transformedB,
+			common: Box.Common([transformedA, transformedB]),
+		}
 		const expanded = {
-			A: transformed.A.clone().expandBy(options.expandElbowLegLength),
-			B: transformed.B.clone().expandBy(options.expandElbowLegLength),
+			A: transformedA.clone().expandBy(options.expandElbowLegLength),
+			B: transformedB.clone().expandBy(options.expandElbowLegLength),
+			common: transformed.common.clone().expandBy(options.expandElbowLegLength),
 		}
 
 		let hPos: ElbowArrowInfo['hPos']
@@ -255,6 +272,12 @@ const elbowArrowInfoCache = createComputedCache(
 			},
 		}
 
+		const steve = () => {
+			const grid = getArrowNavigationGrid(A, B, options)
+			const path = getArrowPath(grid, 'right', 'left')
+			return { grid, path: path.error ? null : path.path }
+		}
+
 		const info: ElbowArrowInfoWithoutRoute = {
 			options,
 			scale,
@@ -268,6 +291,8 @@ const elbowArrowInfoCache = createComputedCache(
 			gapY,
 			mx,
 			my,
+
+			steve,
 		}
 
 		let route = routeArrowWithAutoEdgePicking(info)
@@ -323,14 +348,7 @@ const sideProps = {
 		crossMid: 'midX',
 		crossMin: 'minX',
 		crossMax: 'maxX',
-	},
-	right: {
-		expand: 1,
-		main: 'maxX',
-		opposite: 'minX',
-		crossMid: 'midY',
-		crossMin: 'minY',
-		crossMax: 'maxY',
+		bRangeExpand: 'max',
 	},
 	bottom: {
 		expand: 1,
@@ -339,6 +357,7 @@ const sideProps = {
 		crossMid: 'midX',
 		crossMin: 'minX',
 		crossMax: 'maxX',
+		bRangeExpand: 'min',
 	},
 	left: {
 		expand: -1,
@@ -347,6 +366,16 @@ const sideProps = {
 		crossMid: 'midY',
 		crossMin: 'minY',
 		crossMax: 'maxY',
+		bRangeExpand: 'max',
+	},
+	right: {
+		expand: 1,
+		main: 'maxX',
+		opposite: 'minX',
+		crossMid: 'midY',
+		crossMin: 'minY',
+		crossMax: 'maxY',
+		bRangeExpand: 'min',
 	},
 } as const
 
@@ -363,8 +392,9 @@ export function getUsableEdge(
 
 	let aCrossRange = expandRange(
 		createRange(a[props.crossMin], a[props.crossMax]),
-		0
-		// -options.expandElbowLegLength
+		Math.abs(a[props.crossMin] - a[props.crossMax]) < options.minArrowDistanceFromCorner * 2
+			? 0
+			: -options.minArrowDistanceFromCorner
 	)
 
 	// this edge is too small to be useful:
@@ -372,10 +402,9 @@ export function getUsableEdge(
 		return null
 	}
 
-	const bRange = expandRange(
-		createRange(b[props.main], b[props.opposite]),
-		options.expandElbowLegLength
-	)
+	const bRange = createRange(b[props.main], b[props.opposite])
+	bRange[props.bRangeExpand] -= options.minElbowLegLength * 2 * props.expand
+
 	const bCrossRange = expandRange(
 		createRange(b[props.crossMin], b[props.crossMax]),
 		options.expandElbowLegLength

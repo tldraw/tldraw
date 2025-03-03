@@ -1,6 +1,6 @@
 import { VecLike } from '@tldraw/editor'
 import { ElbowArrowInfoWithoutRoute } from './getElbowArrowInfo'
-import { isWithinRange, rangeCenter } from './range'
+import { isWithinRange } from './range'
 
 type Axis = 'x' | 'y'
 
@@ -9,7 +9,7 @@ type Axis = 'x' | 'y'
 // same, cross
 // = 8 combos
 
-const props = {
+const propsForAxis = {
 	x: {
 		loEdge: 'left',
 		hiEdge: 'right',
@@ -41,147 +41,414 @@ function vec(axis: Axis, x: number, y: number) {
 }
 
 /**
- * Draw this arrow, on either axis:
+ * Draw one of these arrows, on either axis:
+ *
  * ```
- *  ┌───┐
- *  │ A ├──┐  ┌───┐
- *  └───┘  └──► B │
- *            └───┘
+ * 1:              2:              3:         4 (cw, ccw):
+ * ┌───┐   ┌───┐   ┌───┐           ┌───┐      ┌───┐
+ * │ A ├───► B │   │ A ├─┐         │ A ├─┐    │ A ├───┐
+ * └───┘   └───┘   └───┘ │ ┌───┐   └───┘ │    └───┘   │
+ *                       └─► B │    ┌────┘      ┌───┐ │
+ *                         └───┘    │ ┌───┐   ┌─► B │ │
+ *                                  └─► B │   │ └───┘ │
+ *                                    └───┘   └───────┘
  * ```
  */
 export function routeSameAxisHiToLo(
 	info: ElbowArrowInfoWithoutRoute,
 	axis: Axis
 ): VecLike[] | null {
-	const mid = info[props[axis].mid]
-	const aEdge = info.edges.A[props[axis].hiEdge]
-	const bEdge = info.edges.B[props[axis].loEdge]
+	const props = propsForAxis[axis]
+	const aEdge = info.edges.A[props.hiEdge]
+	const bEdge = info.edges.B[props.loEdge]
 
-	if (mid === null || !aEdge || !bEdge) return null
+	// we can't draw this arrow if we don't have the proper edge we want:
+	if (!aEdge || !bEdge) return null
 
-	const aCenter = rangeCenter(aEdge.cross)
-	const bCenter = rangeCenter(bEdge.cross)
-
-	const legLength = Math.abs(aCenter - bCenter)
+	const legLength = Math.abs(aEdge.crossCenter - bEdge.crossCenter)
 	if (legLength < info.options.minElbowLegLength) {
-		if (isWithinRange(aCenter, bEdge.cross)) {
-			return [vec(axis, aEdge.value, aCenter), vec(axis, bEdge.value, aCenter)]
+		// Arrow 1:
+		if (isWithinRange(aEdge.crossCenter, bEdge.cross)) {
+			return [vec(axis, aEdge.value, aEdge.crossCenter), vec(axis, bEdge.value, aEdge.crossCenter)]
 		}
 	}
 
-	return [
-		vec(axis, aEdge.value, aCenter),
-		vec(axis, mid, aCenter),
-		vec(axis, mid, bCenter),
-		vec(axis, bEdge.value, bCenter),
-	]
+	const mid = info[props.mid]
+	if (mid) {
+		// Arrow 2:
+		return [
+			vec(axis, aEdge.value, aEdge.crossCenter),
+			vec(axis, mid, aEdge.crossCenter),
+			vec(axis, mid, bEdge.crossCenter),
+			vec(axis, bEdge.value, bEdge.crossCenter),
+		]
+	}
+
+	const crossMid = info[props.crossMid]
+	if (crossMid) {
+		// Arrow 3:
+		return [
+			vec(axis, aEdge.value, aEdge.crossCenter),
+			vec(axis, aEdge.expanded, aEdge.crossCenter),
+			vec(axis, aEdge.expanded, crossMid),
+			vec(axis, bEdge.expanded, crossMid),
+			vec(axis, bEdge.expanded, bEdge.crossCenter),
+			vec(axis, bEdge.value, bEdge.crossCenter),
+		]
+	}
+
+	const clockwiseDistance =
+		Math.abs(aEdge.crossCenter - info.expanded.common[props.crossMax]) +
+		Math.abs(bEdge.expanded - info.expanded.common[props.max])
+
+	const counterClockwiseDistance =
+		Math.abs(bEdge.crossCenter - info.expanded.common[props.crossMin]) +
+		Math.abs(aEdge.expanded - info.expanded.common[props.min])
+
+	if (clockwiseDistance < counterClockwiseDistance) {
+		// Arrow 4, clockwise:
+		return [
+			vec(axis, aEdge.value, aEdge.crossCenter),
+			vec(axis, info.expanded.common[props.max], aEdge.crossCenter),
+			vec(axis, info.expanded.common[props.max], info.expanded.common[props.crossMax]),
+			vec(axis, bEdge.expanded, info.expanded.common[props.crossMax]),
+			vec(axis, bEdge.expanded, bEdge.crossCenter),
+			vec(axis, bEdge.value, bEdge.crossCenter),
+		]
+	} else {
+		// Arrow 4, counter-clockwise:
+		return [
+			vec(axis, aEdge.value, aEdge.crossCenter),
+			vec(axis, aEdge.expanded, aEdge.crossCenter),
+			vec(axis, aEdge.expanded, info.expanded.common[props.crossMin]),
+			vec(axis, info.expanded.common[props.min], info.expanded.common[props.crossMin]),
+			vec(axis, info.expanded.common[props.min], bEdge.crossCenter),
+			vec(axis, bEdge.value, bEdge.crossCenter),
+		]
+	}
+	return null
 }
 
 /**
- * Draw this arrow, on either axis:
- * TODO: better handling to pick the shorter way round
+ * Draw one of these arrows, on either axis:
  * ```
- *   ┌───┐  ┌───┐
- * ┌─┤ A │  │ B ◄─┐
- * │ └───┘  └───┘ │
- * └──────────────┘
+ * 1:              2 (cw, ccw):
+ *   ┌───┐          ┌───┐
+ * ┌─┤ A │        ┌─┤ A │
+ * │ └───┘        │ └───┘
+ * └──────────┐   │     ┌───┐
+ *      ┌───┐ │   │     │ B ◄─┐
+ *      │ B ◄─┘   │     └───┘ │
+ *      └───┘     └───────────┘
  * ```
  */
 export function routeSameAxisLoToHi(
 	info: ElbowArrowInfoWithoutRoute,
 	axis: Axis
 ): VecLike[] | null {
-	const aEdge = info.edges.A[props[axis].loEdge]
-	const bEdge = info.edges.B[props[axis].hiEdge]
+	const props = propsForAxis[axis]
+	const aEdge = info.edges.A[props.loEdge]
+	const bEdge = info.edges.B[props.hiEdge]
 
 	if (!aEdge || !bEdge) return null
 
-	const outsideCross = Math.min(
-		info.expanded.A[props[axis].crossMin],
-		info.expanded.B[props[axis].crossMin]
+	const crossMid = info[props.crossMid]
+	if (crossMid) {
+		// Arrow 1:
+		return [
+			vec(axis, aEdge.value, aEdge.crossCenter),
+			vec(axis, aEdge.expanded, aEdge.crossCenter),
+			vec(axis, aEdge.expanded, crossMid),
+			vec(axis, bEdge.expanded, crossMid),
+			vec(axis, bEdge.expanded, bEdge.crossCenter),
+			vec(axis, bEdge.value, bEdge.crossCenter),
+		]
+	}
+
+	const counterClockwiseDistance = Math.abs(
+		aEdge.crossCenter - info.expanded.common[props.crossMax]
 	)
+	const clockwiseDistance = Math.abs(bEdge.crossCenter - info.expanded.common[props.crossMin])
 
-	const outsideLo = aEdge.expanded
-	const outsideHi = Math.max(bEdge.expanded, info.expanded.A[props[axis].max])
+	if (clockwiseDistance < counterClockwiseDistance) {
+		// Arrow 2, clockwise:
+		return [
+			vec(axis, aEdge.value, aEdge.crossCenter),
+			vec(axis, aEdge.expanded, aEdge.crossCenter),
+			vec(axis, aEdge.expanded, info.expanded.common[props.crossMin]),
+			vec(axis, info.expanded.common[props.max], info.expanded.common[props.crossMin]),
+			vec(axis, info.expanded.common[props.max], bEdge.crossCenter),
+			vec(axis, bEdge.value, bEdge.crossCenter),
+		]
+	}
 
+	// Arrow 2, counter-clockwise:
 	return [
 		vec(axis, aEdge.value, aEdge.crossCenter),
-		vec(axis, outsideLo, aEdge.crossCenter),
-		vec(axis, outsideLo, outsideCross),
-		vec(axis, outsideHi, outsideCross),
-		vec(axis, outsideHi, bEdge.crossCenter),
+		vec(axis, info.expanded.common[props.min], aEdge.crossCenter),
+		vec(axis, info.expanded.common[props.min], info.expanded.common[props.crossMax]),
+		vec(axis, bEdge.expanded, info.expanded.common[props.crossMax]),
+		vec(axis, bEdge.expanded, bEdge.crossCenter),
 		vec(axis, bEdge.value, bEdge.crossCenter),
 	]
 }
 
 /**
- * Draw this arrow, on either axis:
+ * Draw one of these arrows, on either axis:
  * ```
- *   ┌───┐
- * ┌─┤ A │
- * │ └───┘   ┌───┐
- * └─────────► B │
+ * 1:                2:
+ *   ┌───┐             ┌───┐   ┌───┐
+ * ┌─┤ A │           ┌─┤ A │ ┌─► B │
+ * │ └───┘   ┌───┐   │ └───┘ │ └───┘
+ * └─────────► B │   └───────┘
  *           └───┘
  * ```
  */
-export function routeSameAxisLoToLoSimple(
+export function routeSameAxisLoToLo(
 	info: ElbowArrowInfoWithoutRoute,
 	axis: Axis
 ): VecLike[] | null {
-	const aEdge = info.edges.A[props[axis].loEdge]
-	const bEdge = info.edges.B[props[axis].loEdge]
+	const props = propsForAxis[axis]
+	const aEdge = info.edges.A[props.loEdge]
+	const bEdge = info.edges.B[props.loEdge]
 
-	// not enough room - we need the complex case
 	if (!aEdge || !bEdge) return null
-	const outsideCross = Math.max(info.expanded.A[props[axis].crossMax], bEdge.crossCenter)
-	if (!isWithinRange(outsideCross, bEdge.cross)) return null
-	const outsideLo = Math.min(aEdge.expanded, bEdge.expanded)
 
+	const mid = info[props.mid]
+	if (mid && bEdge.crossCenter < info.expanded.A[props.crossMax]) {
+		// Arrow 2:
+		return [
+			vec(axis, aEdge.value, aEdge.crossCenter),
+			vec(axis, aEdge.expanded, aEdge.crossCenter),
+			vec(axis, aEdge.expanded, info.expanded.A[props.crossMax]),
+			vec(axis, mid, info.expanded.A[props.crossMax]),
+			vec(axis, mid, bEdge.crossCenter),
+			vec(axis, bEdge.value, bEdge.crossCenter),
+		]
+	}
+
+	// Arrow 1:
 	return [
 		vec(axis, aEdge.value, aEdge.crossCenter),
-		vec(axis, outsideLo, aEdge.crossCenter),
-		vec(axis, outsideLo, outsideCross),
-		vec(axis, bEdge.value, outsideCross),
+		vec(axis, info.expanded.common[props.min], aEdge.crossCenter),
+		vec(axis, info.expanded.common[props.min], bEdge.crossCenter),
+		vec(axis, bEdge.value, bEdge.crossCenter),
 	]
 }
 
 /**
- * Draw this arrow, on either axis:
+ * Draw one of these arrows, on either axis:
  * ```
- *   ┌───┐   ┌───┐
- * ┌─┤ A │ ┌─► B │
- * │ └───┘ │ └───┘
- * └───────┘
- * ```
- * @param info
- * @param axis
+ * 1:                2:
+ *                         ┌───────┐
+ * ┌───┐             ┌───┐ │ ┌───┐ │
+ * │ A ├─────────┐   │ A ├─┘ │ B ◄─┘
+ * └───┘   ┌───┐ │   └───┘   └───┘
+ *         │ B ◄─┘
+ *         └───┘
  */
-export function routeSameAxisLoToLoComplex(
+export function routeSameAxisHiToHi(
 	info: ElbowArrowInfoWithoutRoute,
 	axis: Axis
 ): VecLike[] | null {
-	const aEdge = info.edges.A[props[axis].loEdge]
-	const bEdge = info.edges.B[props[axis].loEdge]
-	const mid = info[props[axis].mid]
+	const props = propsForAxis[axis]
+	const aEdge = info.edges.A[props.hiEdge]
+	const bEdge = info.edges.B[props.hiEdge]
 
 	if (!aEdge || !bEdge) return null
 
-	const outsideCross = info.expanded.A[props[axis].crossMax]
-	if (bEdge.crossCenter >= outsideCross || !mid) {
-		return routeSameAxisLoToLoSimple(info, axis)
+	const mid = info[props.mid]
+	if (mid && aEdge.crossCenter > info.expanded.B[props.crossMin]) {
+		// Arrow 2:
+		return [
+			vec(axis, aEdge.value, aEdge.crossCenter),
+			vec(axis, mid, aEdge.crossCenter),
+			vec(axis, mid, info.expanded.B[props.crossMin]),
+			vec(axis, bEdge.expanded, info.expanded.B[props.crossMin]),
+			vec(axis, bEdge.expanded, bEdge.crossCenter),
+			vec(axis, bEdge.value, bEdge.crossCenter),
+		]
 	}
 
-	const outsideLo = Math.min(aEdge.expanded, bEdge.expanded)
-
+	// Arrow 1:
 	return [
 		vec(axis, aEdge.value, aEdge.crossCenter),
-		vec(axis, outsideLo, aEdge.crossCenter),
-		vec(axis, outsideLo, outsideCross),
-		vec(axis, mid, outsideCross),
-		vec(axis, mid, bEdge.crossCenter),
+		vec(axis, info.expanded.common[props.max], aEdge.crossCenter),
+		vec(axis, info.expanded.common[props.max], bEdge.crossCenter),
 		vec(axis, bEdge.value, bEdge.crossCenter),
 	]
 }
+
+/**
+ * Draw one of these arrows, on either axis:
+ * ```
+ * 1               2:              3:
+ * ┌───┐                 ┌───┐     ┌───┐
+ * │ A ├─────┐     ┌───┐ │ ┌─▼─┐   │ A ├─┐
+ * └───┘     │     │ A ├─┘ │ B │   └───┘ │
+ *         ┌─▼─┐   └───┘   └───┘     ┌───┘
+ *         │ B │                   ┌─▼─┐
+ *         └───┘                   │ B │
+ *                                 └───┘
+ * ```
+ */
+export function routeCrossAxisHiToLo(
+	info: ElbowArrowInfoWithoutRoute,
+	axis: Axis
+): VecLike[] | null {
+	const props = propsForAxis[axis]
+	const aEdge = info.edges.A[props.hiEdge]
+	const bEdge = info.edges.B[props.crossLoEdge]
+
+	if (!aEdge || !bEdge) return null
+
+	const crossMid = info[props.crossMid]
+	if (crossMid && aEdge.expanded > bEdge.crossCenter) {
+		// Arrow 3:
+		return [
+			vec(axis, aEdge.value, aEdge.crossCenter),
+			vec(axis, aEdge.expanded, aEdge.crossCenter),
+			vec(axis, aEdge.expanded, crossMid),
+			vec(axis, bEdge.crossCenter, crossMid),
+			vec(axis, bEdge.crossCenter, bEdge.value),
+		]
+	}
+
+	if (aEdge.crossCenter > bEdge.expanded) {
+		const mid = info[props.mid]
+		if (!mid) return null
+		// Arrow 2:
+		return [
+			vec(axis, aEdge.value, aEdge.crossCenter),
+			vec(axis, mid, aEdge.crossCenter),
+			vec(axis, mid, bEdge.expanded),
+			vec(axis, bEdge.crossCenter, bEdge.expanded),
+			vec(axis, bEdge.crossCenter, bEdge.value),
+		]
+	}
+
+	// Arrow 1:
+	return [
+		vec(axis, aEdge.value, aEdge.crossCenter),
+		vec(axis, bEdge.crossCenter, aEdge.crossCenter),
+		vec(axis, bEdge.crossCenter, bEdge.value),
+	]
+}
+
+/**
+ * Draw one of these arrows, on either axis:
+ * ```
+ *   ┌───┐   ┌───┐
+ * ┌─┤ A │   │ B │
+ * │ └───┘   └─▲─┘
+ * └───────────┘
+ * ```
+ */
+export function routeCrossAxisLoToHi(
+	info: ElbowArrowInfoWithoutRoute,
+	axis: Axis
+): VecLike[] | null {
+	const props = propsForAxis[axis]
+	const aEdge = info.edges.A[props.loEdge]
+	const bEdge = info.edges.B[props.crossHiEdge]
+
+	if (!aEdge || !bEdge) return null
+
+	return [
+		vec(axis, aEdge.value, aEdge.crossCenter),
+		vec(axis, info.expanded.common[props.min], aEdge.crossCenter),
+		vec(axis, info.expanded.common[props.min], info.expanded.common[props.crossMax]),
+		vec(axis, bEdge.crossCenter, info.expanded.common[props.crossMax]),
+		vec(axis, bEdge.crossCenter, bEdge.value),
+	]
+}
+
+/**
+ * Draw one of these arrows, on either axis:
+ * ```
+ * 1:           2:                3:
+ *   ┌───┐        ┌───┐           ┌───────────┐
+ * ┌─┤ A │      ┌─┤ A │ ┌───┐     │ ┌───┐   ┌─▼─┐
+ * │ └───┘      │ └───┘ │ ┌─▼─┐   └─┤ A │   │ B │
+ * └──────┐     └───────┘ │ B │     └───┘   └───┘
+ *      ┌─▼─┐             └───┘
+ *      │ B │
+ *      └───┘
+ * ```
+ */
+export function routeCrossAxisLoToLo(
+	info: ElbowArrowInfoWithoutRoute,
+	axis: Axis
+): VecLike[] | null {
+	const props = propsForAxis[axis]
+	const aEdge = info.edges.A[props.loEdge]
+	const bEdge = info.edges.B[props.crossLoEdge]
+
+	if (!aEdge || !bEdge) return null
+
+	const crossMid = info[props.crossMid]
+	if (crossMid) {
+		// Arrow 1:
+		return [
+			vec(axis, aEdge.value, aEdge.crossCenter),
+			vec(axis, aEdge.expanded, aEdge.crossCenter),
+			vec(axis, aEdge.expanded, crossMid),
+			vec(axis, bEdge.crossCenter, crossMid),
+			vec(axis, bEdge.crossCenter, bEdge.value),
+		]
+	}
+
+	const arrow2Distance =
+		Math.abs(aEdge.crossCenter - info.expanded.A[props.crossMax]) +
+		Math.abs(bEdge.expanded - info.expanded.A[props.crossMax])
+
+	const arrow3Distance =
+		Math.abs(aEdge.crossCenter - info.expanded.common[props.crossMin]) +
+		Math.abs(bEdge.expanded - info.expanded.common[props.crossMin])
+
+	const mid = info[props.mid]
+	if (mid && arrow2Distance < arrow3Distance) {
+		// Arrow 2:
+		return [
+			vec(axis, aEdge.value, aEdge.crossCenter),
+			vec(axis, aEdge.expanded, aEdge.crossCenter),
+			vec(axis, aEdge.expanded, info.expanded.A[props.crossMax]),
+			vec(axis, mid, info.expanded.A[props.crossMax]),
+			vec(axis, mid, bEdge.expanded),
+			vec(axis, bEdge.crossCenter, bEdge.expanded),
+			vec(axis, bEdge.crossCenter, bEdge.value),
+		]
+	}
+
+	// Arrow 3:
+	return [
+		vec(axis, aEdge.value, aEdge.crossCenter),
+		vec(axis, aEdge.expanded, aEdge.crossCenter),
+		vec(axis, aEdge.expanded, info.expanded.common[props.crossMin]),
+		vec(axis, bEdge.crossCenter, info.expanded.common[props.crossMin]),
+		vec(axis, bEdge.crossCenter, bEdge.value),
+	]
+}
+
+/**
+ * Draw one of these arrows, on either axis:
+ * ```
+ * ```
+ */
+export function routeCrossAxisHiToHi(
+	info: ElbowArrowInfoWithoutRoute,
+	axis: Axis
+): VecLike[] | null {
+	const props = propsForAxis[axis]
+	const aEdge = info.edges.A[props.hiEdge]
+	const bEdge = info.edges.B[props.crossHiEdge]
+
+	if (!aEdge || !bEdge) return null
+
+	return null
+}
+
+// OLD STUFF:
 
 /**
  * Draw this arrow, on either axis:
@@ -199,8 +466,8 @@ export function routeCrossAxisHiToLoSimple(
 	info: ElbowArrowInfoWithoutRoute,
 	axis: Axis
 ): VecLike[] | null {
-	const aEdge = info.edges.A[props[axis].hiEdge]
-	const bEdge = info.edges.B[props[axis].crossLoEdge]
+	const aEdge = info.edges.A[propsForAxis[axis].hiEdge]
+	const bEdge = info.edges.B[propsForAxis[axis].crossLoEdge]
 
 	if (!aEdge || !bEdge) return null
 
@@ -228,9 +495,9 @@ export function routeCrossAxisHiToLoComplex(
 	info: ElbowArrowInfoWithoutRoute,
 	axis: Axis
 ): VecLike[] | null {
-	const aEdge = info.edges.A[props[axis].hiEdge]
-	const bEdge = info.edges.B[props[axis].crossLoEdge]
-	const mid = info[props[axis].mid]
+	const aEdge = info.edges.A[propsForAxis[axis].hiEdge]
+	const bEdge = info.edges.B[propsForAxis[axis].crossLoEdge]
+	const mid = info[propsForAxis[axis].mid]
 
 	if (!aEdge || !bEdge) return null
 	if (!(aEdge.crossCenter > bEdge.expanded || bEdge.crossCenter < aEdge.expanded)) {

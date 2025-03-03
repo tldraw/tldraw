@@ -1,93 +1,50 @@
-import { Box, Vec } from 'tldraw'
+import { Box, Vec } from '@tldraw/editor'
+import { ArrowShapeOptions } from '../arrow-types'
 
 export interface BoxEdges {
-	/** Top edge */
-	t: Vec
-	/** Right edge */
-	r: Vec
-	/** Bottom edge */
-	b: Vec
-	/** Left edge */
-	l: Vec
+	/** Center of top edge */
+	top: Vec
+	/** Center of right edge */
+	right: Vec
+	/** Center of bottom edge */
+	bottom: Vec
+	/** Center of left edge */
+	left: Vec
 }
 
 export interface BoxCorners {
 	/** Top left corner */
-	tl: Vec
+	topLeft: Vec
 	/** Top right corner */
-	tr: Vec
+	topRight: Vec
 	/** Bottom right corner */
-	br: Vec
+	bottomRight: Vec
 	/** Bottom left corner */
-	bl: Vec
+	bottomLeft: Vec
 }
 
 export interface BoxInfo extends BoxEdges, BoxCorners {
 	/** bounds box */
 	box: Box
 	/** Center of box */
-	c: Vec
+	center: Vec
 }
 
 export interface ArrowNavigationGridBox extends BoxEdges {
 	/** Box */
 	box: Box
 	/** Center of box */
-	c: Vec
+	center: Vec
 	/** Expanded bounds */
-	e: BoxInfo
-}
-
-export interface ArrowNavigationGridOuterBounds extends BoxCorners {
-	/** Center */
-	c: Vec
-	/** Intersection points from corners of C on edges of D */
-	/** Top mid of c on top edge of d */
-	tc: Vec
-	/** Right mid of c on right edge of d */
-	rc: Vec
-	/** Bottom mid of c on bottom edge of d */
-	bc: Vec
-	/** Left mid of c on left edge of d */
-	lc: Vec
-	/** Left side of top edge */
-	tcl: Vec
-	/** Right side of top edge */
-	tcr: Vec
-	/** Top side of right edge */
-	rct: Vec
-	/** Bottom side of right edge */
-	rcb: Vec
-	/** Right side of bottom edge */
-	bcr: Vec
-	/** Left side of bottom edge */
-	bcl: Vec
-	/** Bottom side of left edge */
-	lcb: Vec
-	/** Top side of left edge */
-	lct: Vec
+	expanded: BoxInfo
 }
 
 export interface ArrowNavigationGrid {
-	/** Padding around boxes */
-	p: number
-	/** Middle handle */
-	M: Vec
+	options: ArrowShapeOptions
 	/** First box bounds */
 	A: ArrowNavigationGridBox
 	/** Second box bounds */
 	B: ArrowNavigationGridBox
-	/** Bounds from centers of A and B */
-	C: BoxInfo
-	/** Outer bounds of shapes */
-	D: ArrowNavigationGridOuterBounds
-	/** Gap between A and B */
-	gap: {
-		h: Box
-		v: Box
-		o: Box
-		c: Vec
-	}
 	overlap: boolean
 	gapDir: 'h' | 'v' | null
 	hDir: 'left' | 'right' | 'exact'
@@ -116,13 +73,12 @@ export interface ArrowNavigationGrid {
 export function getArrowNavigationGrid(
 	A: Box,
 	B: Box,
-	M: Vec,
-	expand: number
+	options: ArrowShapeOptions
 ): ArrowNavigationGrid {
-	const AE = A.clone().expandBy(expand)
-	const BE = B.clone().expandBy(expand)
+	const AE = A.clone().expandBy(options.expandElbowLegLength)
+	const BE = B.clone().expandBy(options.expandElbowLegLength)
 	const C = Box.FromPoints([A.center, B.center])
-	const D = Box.Common([A, B]).expandBy(expand)
+	const D = Box.Common([A, B]).expandBy(options.expandElbowLegLength)
 
 	// are A and B disjoint on the x axis, and if so, what's min and max?
 
@@ -223,89 +179,53 @@ export function getArrowNavigationGrid(
 	)
 
 	const g: ArrowNavigationGrid = {
-		p: expand,
-		M,
+		options,
 		A: {
 			box: A,
-			c: A.center,
-			t: new Vec(A.midX, A.minY),
-			r: new Vec(A.maxX, A.midY),
-			b: new Vec(A.midX, A.maxY),
-			l: new Vec(A.minX, A.midY),
-			e: {
+			center: A.center,
+			top: new Vec(A.midX, A.minY),
+			right: new Vec(A.maxX, A.midY),
+			bottom: new Vec(A.midX, A.maxY),
+			left: new Vec(A.minX, A.midY),
+			expanded: {
 				box: AE,
-				c: AE.center,
-				t: new Vec(AE.midX, AE.minY),
-				r: new Vec(AE.maxX, AE.midY),
-				b: new Vec(AE.midX, AE.maxY),
-				l: new Vec(AE.minX, AE.midY),
-				tl: new Vec(AE.minX, AE.minY),
-				tr: new Vec(AE.maxX, AE.minY),
-				br: new Vec(AE.maxX, AE.maxY),
-				bl: new Vec(AE.minX, AE.maxY),
+				center: AE.center,
+				top: new Vec(AE.midX, AE.minY),
+				right: new Vec(AE.maxX, AE.midY),
+				bottom: new Vec(AE.midX, AE.maxY),
+				left: new Vec(AE.minX, AE.midY),
+				topLeft: new Vec(AE.minX, AE.minY),
+				topRight: new Vec(AE.maxX, AE.minY),
+				bottomRight: new Vec(AE.maxX, AE.maxY),
+				bottomLeft: new Vec(AE.minX, AE.maxY),
 			},
 		},
 		B: {
 			box: B,
-			c: B.center,
-			t: new Vec(B.midX, B.minY),
-			r: new Vec(B.maxX, B.midY),
-			b: new Vec(B.midX, B.maxY),
-			l: new Vec(B.minX, B.midY),
-			e: {
+			center: B.center,
+			top: new Vec(B.midX, B.minY),
+			right: new Vec(B.maxX, B.midY),
+			bottom: new Vec(B.midX, B.maxY),
+			left: new Vec(B.minX, B.midY),
+			expanded: {
 				box: BE,
-				c: BE.center,
-				t: new Vec(BE.midX, BE.minY),
-				r: new Vec(BE.maxX, BE.midY),
-				b: new Vec(BE.midX, BE.maxY),
-				l: new Vec(BE.minX, BE.midY),
-				tl: new Vec(BE.minX, BE.minY),
-				tr: new Vec(BE.maxX, BE.minY),
-				br: new Vec(BE.maxX, BE.maxY),
-				bl: new Vec(BE.minX, BE.maxY),
+				center: BE.center,
+				top: new Vec(BE.midX, BE.minY),
+				right: new Vec(BE.maxX, BE.midY),
+				bottom: new Vec(BE.midX, BE.maxY),
+				left: new Vec(BE.minX, BE.midY),
+				topLeft: new Vec(BE.minX, BE.minY),
+				topRight: new Vec(BE.maxX, BE.minY),
+				bottomRight: new Vec(BE.maxX, BE.maxY),
+				bottomLeft: new Vec(BE.minX, BE.maxY),
 			},
 		},
-		C: {
-			box: C,
-			c: new Vec(mx, my),
-			t: new Vec(mx, C.minY),
-			r: new Vec(C.maxX, my),
-			b: new Vec(mx, C.maxY),
-			l: new Vec(C.minX, my),
-			tl: new Vec(C.minX, C.minY),
-			tr: new Vec(C.maxX, C.minY),
-			br: new Vec(C.maxX, C.maxY),
-			bl: new Vec(C.minX, C.maxY),
-		},
-		D: {
-			c: D.center,
-			tl: new Vec(D.minX, D.minY),
-			tr: new Vec(D.maxX, D.minY),
-			br: new Vec(D.maxX, D.maxY),
-			bl: new Vec(D.minX, D.maxY),
-			tcl: new Vec(C.minX, D.minY),
-			tcr: new Vec(C.maxX, D.minY),
-			rct: new Vec(D.maxX, C.minY),
-			rcb: new Vec(D.maxX, C.maxY),
-			bcr: new Vec(C.maxX, D.maxY),
-			bcl: new Vec(C.minX, D.maxY),
-			lcb: new Vec(D.minX, C.maxY),
-			lct: new Vec(D.minX, C.minY),
-			tc: new Vec(mx, D.minY),
-			rc: new Vec(D.maxX, my),
-			bc: new Vec(mx, D.maxY),
-			lc: new Vec(D.minX, my),
-		},
-		gap: {
-			h: Box.FromPoints([new Vec(mx - gapX / 2, D.minY), new Vec(mx + gapX / 2, D.maxY)]),
-			v: Box.FromPoints([new Vec(D.minX, my - gapY / 2), new Vec(D.maxX, my + gapY / 2)]),
-			o: Box.FromPoints([
-				new Vec(mx - gapX / 2, my - gapY / 2),
-				new Vec(mx + gapX / 2, my + gapY / 2),
-			]),
-			c: new Vec(mx, my),
-		},
-		gapDir: gx > expand * 2 || gy > expand * 2 ? (gx > gy ? 'h' : 'v') : null,
+		gapDir:
+			gx > options.expandElbowLegLength * 2 || gy > options.expandElbowLegLength * 2
+				? gx > gy
+					? 'h'
+					: 'v'
+				: null,
 		overlap,
 		vPos,
 		hPos,
@@ -326,70 +246,70 @@ export function getArrowNavigationGrid(
 	}
 
 	g.pathPoints = [
-		g.A.t,
-		g.A.r,
-		g.A.b,
-		g.A.l,
-		g.A.e.t,
-		g.A.e.r,
-		g.A.e.b,
-		g.A.e.l,
+		g.A.top,
+		g.A.right,
+		g.A.bottom,
+		g.A.left,
+		g.A.expanded.top,
+		g.A.expanded.right,
+		g.A.expanded.bottom,
+		g.A.expanded.left,
 		// g.A.e.tr,
 		// g.A.e.tl,
 		// g.A.e.br,
 		// g.A.e.bl,
-		g.B.t,
-		g.B.r,
-		g.B.b,
-		g.B.l,
-		g.B.e.t,
-		g.B.e.r,
-		g.B.e.b,
-		g.B.e.l,
+		g.B.top,
+		g.B.right,
+		g.B.bottom,
+		g.B.left,
+		g.B.expanded.top,
+		g.B.expanded.right,
+		g.B.expanded.bottom,
+		g.B.expanded.left,
 		// g.B.e.tr,
 		// g.B.e.tl,
 		// g.B.e.br,
 		// g.B.e.bl,
 		// in order of ascending priority
-		g.D.tl,
-		g.D.tr,
-		g.D.br,
-		g.D.bl,
+		new Vec(D.minX, D.minY),
+		new Vec(D.maxX, D.minY),
+		new Vec(D.maxX, D.maxY),
+		new Vec(D.minX, D.maxY),
 		...[
-			g.D.tc,
-			g.D.rc,
-			g.D.bc,
-			g.D.lc,
-			g.D.tcl,
-			g.D.tcr,
-			g.D.bcl,
-			g.D.lct,
-			g.D.rct,
-			g.D.bcr,
-			g.D.lcb,
-			g.D.rcb,
-			g.C.c,
-			g.C.t,
-			g.C.r,
-			g.C.b,
-			g.C.l,
-			g.C.tl,
-			g.C.tr,
-			g.C.br,
-			g.C.bl,
-		].filter((p) => !g.B.e.box.containsPoint(p) && !g.A.e.box.containsPoint(p)),
-		g.A.c,
-		g.B.c,
+			new Vec(C.minX, D.minY),
+			new Vec(C.maxX, D.minY),
+			new Vec(D.maxX, C.minY),
+			new Vec(D.maxX, C.maxY),
+			new Vec(C.maxX, D.maxY),
+			new Vec(C.minX, D.maxY),
+			new Vec(D.minX, C.maxY),
+			new Vec(D.minX, C.minY),
+			new Vec(mx, D.minY),
+			new Vec(D.maxX, my),
+			new Vec(mx, D.maxY),
+			new Vec(D.minX, my),
+			new Vec(mx, my),
+			new Vec(mx, C.minY),
+			new Vec(C.maxX, my),
+			new Vec(mx, C.maxY),
+			new Vec(C.minX, my),
+			new Vec(C.minX, C.minY),
+			new Vec(C.maxX, C.minY),
+			new Vec(C.maxX, C.maxY),
+			new Vec(C.minX, C.maxY),
+		].filter((p) => !g.B.expanded.box.containsPoint(p) && !g.A.expanded.box.containsPoint(p)),
+		g.A.center,
+		g.B.center,
 	]
 
-	const xs = Array.from(new Set(g.pathPoints.map((p) => Math.floor(p.x)))).sort((a, b) => a - b)
-	const ys = Array.from(new Set(g.pathPoints.map((p) => Math.floor(p.y)))).sort((a, b) => a - b)
+	const xs = Array.from(new Set(g.pathPoints.map((p) => p.x))).sort((a, b) => a - b)
+	const ys = Array.from(new Set(g.pathPoints.map((p) => p.y))).sort((a, b) => a - b)
 
 	g.gridPoints = Array.from({ length: ys.length }, () => Array.from({ length: xs.length }))
 
 	for (const point of g.pathPoints) {
-		const yIndex = ys.indexOf(Math.floor(point.y))
-		const xIndex = xs.indexOf(Math.floor(point.x))
+		const yIndex = ys.indexOf(point.y)
+		const xIndex = xs.indexOf(point.x)
 		g.gridPoints[yIndex][xIndex] = point
 		g.gridPointsMap.set(point, new Vec(xIndex, yIndex))
 	}
