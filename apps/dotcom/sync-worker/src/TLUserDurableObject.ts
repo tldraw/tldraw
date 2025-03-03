@@ -14,7 +14,7 @@ import {
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { assert, sleep } from '@tldraw/utils'
+import { assert, ExecutionQueue, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -173,6 +173,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 		}
 	}
+	private readonly messageQueue = new ExecutionQueue()
 
 	async onRequest(req: IRequest) {
 		assert(this.userId, 'User ID not set')
@@ -199,7 +200,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 
 		serverWebSocket.addEventListener('message', (e) =>
-			this.handleSocketMessage(serverWebSocket, e.data.toString())
+			this.messageQueue.push(() => this.handleSocketMessage(serverWebSocket, e.data.toString()))
 		)
 		serverWebSocket.addEventListener('close', () => {
 			this.sockets.delete(serverWebSocket)
