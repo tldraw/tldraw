@@ -356,7 +356,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							const { id: _id, ...rest } = update.row as any
 							if (update.table === 'file') {
 								const count =
-									this.cache.store.getFullData()?.files.filter((f) => !f.isDeleted).length ?? 0
+									this.cache.store
+										.getFullData()
+										?.files.filter((f) => f.ownerId === this.userId && !f.isDeleted).length ?? 0
 								if (count >= MAX_NUMBER_OF_FILES) {
 									throw new ZMutationError(
 										ZErrorCode.max_files_reached,
