@@ -2896,6 +2896,8 @@ export interface TLBrushProps {
     color?: string;
     // (undocumented)
     opacity?: number;
+    // (undocumented)
+    userId?: string;
 }
 
 // @public (undocumented)
@@ -2979,6 +2981,8 @@ export interface TLCollaboratorHintProps {
     // (undocumented)
     point: VecModel;
     // (undocumented)
+    userId: string;
+    // (undocumented)
     viewport: Box;
     // (undocumented)
     zoom: number;
@@ -3038,6 +3042,8 @@ export interface TLCursorProps {
     name: null | string;
     // (undocumented)
     point: null | VecModel;
+    // (undocumented)
+    userId: string;
     // (undocumented)
     zoom: number;
 }
@@ -3753,6 +3759,8 @@ export interface TLScribbleProps {
     // (undocumented)
     scribble: TLScribble;
     // (undocumented)
+    userId?: string;
+    // (undocumented)
     zoom: number;
 }
 
@@ -3826,6 +3834,8 @@ export interface TLShapeIndicatorProps {
     opacity?: number;
     // (undocumented)
     shapeId: TLShapeId;
+    // (undocumented)
+    userId?: string;
 }
 
 // @public
