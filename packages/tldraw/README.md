@@ -9,7 +9,7 @@
 
 tldraw is an infinite canvas SDK for React developers. You can use the tldraw SDK to add a drop-in whiteboard to your project, customize its appearance, extend its functionality, or use its components and APIs to compose other canvas experiences.
 
-Learn more at our docs site: [tldraw.dev](https://tldraw.dev).
+Learn more at our docs site: [tldraw.dev](https://tldraw.dev/?utm_source=github&utm_medium=readme&utm_campaign=learn-more).
 
 ## Installation
 
@@ -30,7 +30,7 @@ export default function () {
 }
 ```
 
-Visit [tldraw.dev](https://tldraw.dev) to learn more.
+Visit [tldraw.dev](https://tldraw.dev/?utm_source=github&utm_medium=readme&utm_campaign=learn-more) to learn more.
 
 ## Package development
 
@@ -46,7 +46,7 @@ This will run our [examples app](https://github.com/tldraw/tldraw/tree/main/apps
 
 This project is part of the tldraw SDK. It is provided under the [tldraw SDK license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
 
-You can use the tldraw SDK in commercial or non-commercial projects so long as you preserve the "Made with tldraw" watermark on the canvas. To remove the watermark, you can purchase a [business license](https://tldraw.dev/#pricing). Visit [tldraw.dev](https://tldraw.dev) to learn more.
+You can use the tldraw SDK in commercial or non-commercial projects so long as you preserve the "Made with tldraw" watermark on the canvas. To remove the watermark, you can purchase a [business license](https://tldraw.dev/?utm_source=github&utm_medium=readme&utm_campaign=learn-more#pricing). Visit [tldraw.dev](https://tldraw.dev/?utm_source=github&utm_medium=readme&utm_campaign=learn-more) to learn more.
 
 ## Trademarks
 
@@ -62,7 +62,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 ## Community
 
-Have questions, comments or feedback? [Join our discord](https://discord.tldraw.com/?utm_source=github&utm_medium=social&utm_campaign=sociallink). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
+Have questions, comments or feedback? [Join our discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev/?utm_source=github&utm_medium=readme&utm_campaign=learn-more).
 
 ## Contact
 

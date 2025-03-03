@@ -1,8 +1,8 @@
 # Frequently Asked Questions
 
-This document is meant to be provide answers to frequently asked questions about the [tldraw developer SDK](https://tldraw.dev). For questions related to **[tldraw.com](https://tldraw.com)**, please see our [tldraw.com guides](https://tldraw.notion.site/tldraw-com-1283e4c324c08086b585d438f088580f).
+This document is meant to be provide answers to frequently asked questions about the [tldraw developer SDK](https://tldraw.dev/?utm_source=github&utm_medium=repo&utm_campaign=faq). For questions related to **[tldraw.com](https://tldraw.com)**, please see our [tldraw.com guides](https://tldraw.notion.site/tldraw-com-1283e4c324c08086b585d438f088580f).
 
-**Need more help?** See the [docs](https://tldraw.dev/docs) for our [guides](https://tldraw.dev/quick-start), [API reference](https://tldraw.dev/reference), and [examples](https://tldraw.dev/examples). You can also [join our Discord](https://discord.tldraw.com/?utm_source=github&utm_medium=social&utm_campaign=sociallink) to chat with the team and other developers.
+**Need more help?** See the [docs](https://tldraw.dev/docs/?utm_source=github&utm_medium=repo&utm_campaign=faq) for our [guides](https://tldraw.dev/quick-start/?utm_source=github&utm_medium=repo&utm_campaign=faq), [API reference](https://tldraw.dev/reference/?utm_source=github&utm_medium=repo&utm_campaign=faq), and [examples](https://tldraw.dev/examples/?utm_source=github&utm_medium=repo&utm_campaign=faq). You can also [join our Discord](https://discord.tldraw.com/?utm_source=github&utm_medium=repo&utm_campaign=faq) to chat with the team and other developers.
 
 **Want to help out?** That's great! See the **Contributing** section at the very bottom of this document.
 
@@ -10,7 +10,7 @@ This document is meant to be provide answers to frequently asked questions about
 
 ### How do I get started?
 
-If you're new to tldraw, your first visit should be our [quick start guide](https://tldraw.dev/quick-start).
+If you're new to tldraw, your first visit should be our [quick start guide](https://tldraw.dev/quick-start/?utm_source=github&utm_medium=repo&utm_campaign=faq).
 
 ### How do I submit a bug?
 
@@ -26,7 +26,7 @@ Yes. The SDK's main export (`<Tldraw>`) is a regular React component. To render 
 
 ### How do I run code when the editor first mounts?
 
-Use the `Tldraw` component's `onMount` callback. See [this example](https://tldraw.dev/examples/editor-api/api) for more about using the editor API.
+Use the `Tldraw` component's `onMount` callback. See [this example](https://tldraw.dev/examples/editor-api/api/?utm_source=github&utm_medium=repo&utm_campaign=faq) for more about using the editor API.
 
 ```tsx
 <Tldraw
@@ -70,7 +70,7 @@ You can use the example format below:
 
 ### Example question?
 
-Example answer. [Link](https://tldraw.dev/quick-start).
+Example answer. [Link](https://tldraw.dev/quick-start/?utm_source=github&utm_medium=repo&utm_campaign=faq).
 
 ```ts
 // Code example

@@ -24,4 +24,4 @@ Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw).
 
 ## Community
 
-Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
+Have questions, comments or feedback? [Join our discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev/?utm_source=github&utm_medium=readme&utm_campaign=learn-more).

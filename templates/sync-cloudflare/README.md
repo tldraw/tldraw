@@ -1,6 +1,6 @@
 # tldraw sync server
 
-This is a production-ready backend for [tldraw sync](https://tldraw.dev/docs/sync).
+This is a production-ready backend for [tldraw sync](https://tldraw.dev/docs/sync/?utm_source=github&utm_medium=readme&utm_campaign=learn-more).
 
 - Your client-side tldraw-based app can be served from anywhere you want.
 - This backend uses [Cloudflare Workers](https://developers.cloudflare.com/workers/), and will need
@@ -50,7 +50,7 @@ The backend worker is under [`worker`](./worker/), and is split across several f
   route available.
 - **[`worker/TldrawDurableObject.ts`](./worker/TldrawDurableObject.ts):** the sync durable object.
   An instance of this is created for every active room. This exposes a
-  [`TLSocketRoom`](https://tldraw.dev/reference/sync-core/TLSocketRoom) over websockets, and
+  [`TLSocketRoom`](https://tldraw.dev/reference/sync-core/TLSocketRoom/?utm_source=github&utm_medium=readme&utm_campaign=learn-more) over websockets, and
   periodically saves room data to R2.
 - **[`worker/assetUploads.ts`](./worker/assetUploads.ts):** uploads, downloads, and caching for
   static assets like images and videos.
@@ -67,8 +67,7 @@ The frontend client is under [`client`](./client):
 
   ## Custom shapes
 
-To add support for custom shapes, see the [tldraw sync custom shapes
-docs](https://tldraw.dev/docs/sync#Custom-shapes--bindings).
+To add support for custom shapes, see the [tldraw sync custom shapes docs](https://tldraw.dev/docs/sync#Custom-shapes--bindings/?utm_source=github&utm_medium=readme&utm_campaign=learn-more).
 
 ## Adding cloudflare to your own repo
 
@@ -123,7 +122,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 ## Community
 
-Have questions, comments or feedback? [Join our discord](https://discord.tldraw.com/?utm_source=github&utm_medium=social&utm_campaign=sociallink). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
+Have questions, comments or feedback? [Join our discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev/?utm_source=github&utm_medium=readme&utm_campaign=learn-more).
 
 ## Contact
 
