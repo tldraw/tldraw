@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { RIGHT_MOUSE_BUTTON } from '../constants'
 import {
 	preventDefault,
@@ -14,9 +14,6 @@ export function useCanvasEvents() {
 
 	const events = useMemo(
 		function canvasEvents() {
-			// Track the last screen point
-			let lastX: number, lastY: number
-
 			function onPointerDown(e: React.PointerEvent) {
 				if ((e as any).isKilled) return
 
@@ -42,26 +39,9 @@ export function useCanvasEvents() {
 				})
 			}
 
-			function onPointerMove(e: React.PointerEvent) {
-				if ((e as any).isKilled) return
-
-				if (e.clientX === lastX && e.clientY === lastY) return
-				lastX = e.clientX
-				lastY = e.clientY
-
-				editor.dispatch({
-					type: 'pointer',
-					target: 'canvas',
-					name: 'pointer_move',
-					...getPointerInfo(e),
-				})
-			}
-
 			function onPointerUp(e: React.PointerEvent) {
 				if ((e as any).isKilled) return
 				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
-				lastX = e.clientX
-				lastY = e.clientY
 
 				releasePointerCapture(e.currentTarget, e)
 
@@ -147,7 +127,6 @@ export function useCanvasEvents() {
 
 			return {
 				onPointerDown,
-				onPointerMove,
 				onPointerUp,
 				onPointerEnter,
 				onPointerLeave,
@@ -160,6 +139,36 @@ export function useCanvasEvents() {
 		},
 		[editor]
 	)
+
+	// onPointerMove is special: where we're only interested in the other events when they're
+	// happening _on_ the canvas (as opposed to outside of it, or on UI floating over it), we want
+	// the pointer position to be up to date regardless of whether it's over the tldraw canvas or
+	// not. So instead of returning a listener to be attached to the canvas, we directly attach a
+	// listener to the whole document instead.
+	useEffect(() => {
+		let lastX: number, lastY: number
+
+		function onPointerMove(e: PointerEvent) {
+			if ((e as any).isKilled) return
+			;(e as any).isKilled = true
+
+			if (e.clientX === lastX && e.clientY === lastY) return
+			lastX = e.clientX
+			lastY = e.clientY
+
+			editor.dispatch({
+				type: 'pointer',
+				target: 'canvas',
+				name: 'pointer_move',
+				...getPointerInfo(e),
+			})
+		}
+
+		document.body.addEventListener('pointermove', onPointerMove)
+		return () => {
+			document.body.removeEventListener('pointermove', onPointerMove)
+		}
+	}, [editor])
 
 	return events
 }

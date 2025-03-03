@@ -17,6 +17,7 @@ export class Toolbar {
 		this.tools = {
 			select: this.page.getByTestId('tools.select'),
 			draw: this.page.getByTestId('tools.draw'),
+			text: this.page.getByTestId('tools.text'),
 			arrow: this.page.getByTestId('tools.arrow'),
 			cloud: this.page.getByTestId('tools.cloud'),
 			eraser: this.page.getByTestId('tools.eraser'),
