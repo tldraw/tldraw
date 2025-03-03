@@ -114,8 +114,6 @@ export class UserDataSyncer {
 		}
 	}
 
-	interval: NodeJS.Timeout | null = null
-
 	constructor(
 		private ctx: DurableObjectState,
 		private env: Environment,
@@ -127,19 +125,6 @@ export class UserDataSyncer {
 	) {
 		this.sentry = createSentry(ctx, env)
 		this.reboot({ delay: false })
-	}
-
-	maybeStartInterval() {
-		if (!this.interval) {
-			this.interval = setInterval(() => this.onInterval(), 1000)
-		}
-	}
-
-	stopInterval() {
-		if (this.interval) {
-			clearInterval(this.interval)
-			this.interval = null
-		}
 	}
 
 	private queue = new ExecutionQueue()
@@ -457,7 +442,7 @@ export class UserDataSyncer {
 		this.broadcast({ type: 'update', update })
 	}
 
-	private async onInterval() {
+	async onInterval() {
 		// if any mutations have been not been committed for 5 seconds, let's reboot the cache
 		if (this.store.epoch != this.lastStashEpoch && this.state.type === 'connected') {
 			const initialData = this.store.getCommittedData()

@@ -115,8 +115,52 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private assertCache(): asserts this is { cache: UserDataSyncer } {
 		assert(this.cache, 'no cache')
-		this.cache.maybeStartInterval()
 	}
+
+	lastMutationTimestamp = Date.now()
+
+	private maybeStartInterval() {
+		if (!this.interval) {
+			this.interval = setInterval(() => {
+				// do cache persist + cleanup
+				this.cache?.onInterval()
+				// do a noop mutation every 5 minutes
+				if (Date.now() - this.lastMutationTimestamp > 5 * 60 * 1000) {
+					this.db
+						.insertInto('user_mutation_number')
+						.values({
+							userId: this.userId!,
+							mutationNumber: 1,
+						})
+						.onConflict((oc) =>
+							oc.column('userId').doUpdateSet({
+								mutationNumber: sql`user_mutation_number."mutationNumber" + 1`,
+							})
+						)
+						.returning('mutationNumber')
+						.executeTakeFirstOrThrow()
+						.then(() => {
+							this.lastMutationTimestamp = Date.now()
+						})
+						.catch((e) => this.captureException(e, { source: 'noop mutation' }))
+				}
+
+				// clean up closed sockets if there are any
+				for (const socket of this.sockets) {
+					if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
+						this.sockets.delete(socket)
+					}
+				}
+
+				if (this.sockets.size === 0 && typeof this.interval === 'number') {
+					clearInterval(this.interval)
+					this.interval = null
+				}
+			}, 1000)
+		}
+	}
+
+	interval: NodeJS.Timeout | null = null
 
 	private readonly sockets = new Set<WebSocket>()
 
@@ -140,12 +184,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			) {
 				this.sockets.delete(socket)
 			}
-		}
-	}
-
-	maybeClose() {
-		if (this.sockets.size === 0) {
-			this.cache?.stopInterval()
 		}
 	}
 
@@ -178,15 +216,14 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		)
 		serverWebSocket.addEventListener('close', () => {
 			this.sockets.delete(serverWebSocket)
-			this.maybeClose()
 		})
 		serverWebSocket.addEventListener('error', (e) => {
 			this.captureException(e, { source: 'serverWebSocket "error" event' })
 			this.sockets.delete(serverWebSocket)
-			this.maybeClose()
 		})
 
 		this.sockets.add(serverWebSocket)
+		this.maybeStartInterval()
 
 		const initialData = this.cache.store.getCommittedData()
 		if (initialData) {
