@@ -1,4 +1,4 @@
-import { getOwnProperty, objectMapFromEntries } from '@tldraw/editor'
+import { getOwnProperty, objectMapFromEntries, tlenv } from '@tldraw/editor'
 import { TLCopyType } from './export/copyAs'
 
 // Browsers sanitize image formats to prevent security issues when pasting between applications. For
@@ -11,9 +11,11 @@ import { TLCopyType } from './export/copyAs'
 // if it's there, use that instead of the normal png.
 export const TLDRAW_CUSTOM_PNG_MIME_TYPE = 'web image/vnd.tldraw+png' as const
 
+const browserCanExportSvgFaithfully = tlenv.isSafari || tlenv.isFirefox
+
 const additionalClipboardWriteTypes = {
 	png: TLDRAW_CUSTOM_PNG_MIME_TYPE,
-	svg: 'image/svg+xml',
+	svg: browserCanExportSvgFaithfully ? 'image/svg+xml' : null,
 } as const
 const canonicalClipboardReadTypes = {
 	[TLDRAW_CUSTOM_PNG_MIME_TYPE]: 'image/png',
