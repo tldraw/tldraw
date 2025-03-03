@@ -102,13 +102,14 @@ export function routeSameAxisLoToHi(
 	)
 
 	const outsideLo = aEdge.expanded
+	const outsideHi = Math.max(bEdge.expanded, info.expanded.A[props[axis].max])
 
 	return [
 		vec(axis, aEdge.value, aEdge.crossCenter),
 		vec(axis, outsideLo, aEdge.crossCenter),
 		vec(axis, outsideLo, outsideCross),
-		vec(axis, bEdge.expanded, outsideCross),
-		vec(axis, bEdge.expanded, bEdge.crossCenter),
+		vec(axis, outsideHi, outsideCross),
+		vec(axis, outsideHi, bEdge.crossCenter),
 		vec(axis, bEdge.value, bEdge.crossCenter),
 	]
 }
@@ -132,8 +133,7 @@ export function routeSameAxisLoToLoSimple(
 
 	// not enough room - we need the complex case
 	if (!aEdge || !bEdge) return null
-	// const outsideCross = Math.max(info.expanded.A[props[axis].crossMax], bEdge.crossCenter)
-	const outsideCross = bEdge.crossCenter
+	const outsideCross = Math.max(info.expanded.A[props[axis].crossMax], bEdge.crossCenter)
 	if (!isWithinRange(outsideCross, bEdge.cross)) return null
 	const outsideLo = Math.min(aEdge.expanded, bEdge.expanded)
 

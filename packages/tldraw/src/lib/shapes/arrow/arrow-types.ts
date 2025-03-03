@@ -5,7 +5,7 @@ import { TLArrowBindings } from './shared'
 export interface ArrowShapeOptions {
 	readonly expandElbowLegLength: number
 	readonly minElbowLegLength: number
-	readonly minArrowDistanceFromCorner: number
+	// readonly minArrowDistanceFromCorner: number
 }
 
 /** @public */

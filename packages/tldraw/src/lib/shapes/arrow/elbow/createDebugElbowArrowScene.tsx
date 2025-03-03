@@ -4,117 +4,140 @@ import {
 	Editor,
 	lerp,
 	TLArrowShape,
-	TLFrameShape,
 	TLGeoShape,
+	TLTextShape,
 } from '@tldraw/editor'
-import { ArrowShapeOptions } from '../arrow-types'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { createOrUpdateArrowBinding } from '../shared'
 
 const defaultSize = 150
-const spacing = 50
-const frameSize = spacing * 2 + defaultSize * 3
-
-function getPositions(
-	options: ArrowShapeOptions
-): Record<string, number | { pos: number; size: number }> {
-	assert(options.expandElbowLegLength > options.minElbowLegLength)
-	assert(options.expandElbowLegLength * 4 < defaultSize)
-	return {
-		'fully separated': spacing + defaultSize * 2,
-		'between expand & min distance':
-			spacing +
-			defaultSize +
-			lerp(options.minElbowLegLength * 2, options.expandElbowLegLength * 2, 0.5),
-		'between min distance & overlap':
-			spacing + defaultSize + options.expandElbowLegLength + options.minElbowLegLength / 2,
-		'expanded overlaps': spacing + defaultSize + options.expandElbowLegLength / 2,
-		'shapes touch': spacing + defaultSize - options.expandElbowLegLength,
-		'expanded contains midpoint': spacing + (defaultSize + options.expandElbowLegLength) / 2,
-	}
-}
 
 export function createDebugElbowArrowScene(editor: Editor) {
-	const { options } = editor.getShapeUtil<ArrowShapeUtil>('arrow')
-	const positions = Object.entries(getPositions(options))
+	editor.markHistoryStoppingPoint()
+	editor.run(() => {
+		const { options } = editor.getShapeUtil<ArrowShapeUtil>('arrow')
 
-	const oldShapeIds = []
-	for (const id of editor.getCurrentPageShapeIds()) {
-		if (editor.getShape(id)?.meta.isFromDebugElbowArrowScene) {
-			oldShapeIds.push(id)
+		assert(options.expandElbowLegLength > options.minElbowLegLength)
+		assert(options.expandElbowLegLength * 4 < defaultSize)
+
+		const spacing = options.expandElbowLegLength * 2
+		const big = defaultSize + options.expandElbowLegLength * 4
+		const positions = Object.entries({
+			'fully separated': defaultSize * 2,
+			'between expand & min distance':
+				defaultSize + lerp(options.minElbowLegLength * 2, options.expandElbowLegLength * 2, 0.5),
+			'between min distance & overlap':
+				defaultSize + options.expandElbowLegLength + options.minElbowLegLength / 2,
+			'expanded overlaps': defaultSize + options.expandElbowLegLength / 2,
+			'shapes overlap': defaultSize - options.expandElbowLegLength,
+			'expanded contains midpoint': (defaultSize + options.expandElbowLegLength) / 2,
+			'shape contains midpoint': defaultSize / 2 - options.expandElbowLegLength,
+			'fully contained': { pos: defaultSize * 0.3, size: defaultSize / 2 },
+			'expanded before shape': { pos: options.expandElbowLegLength / 2, size: big },
+			'shape before shape': { pos: -options.expandElbowLegLength / 2, size: big },
+			'shape before expanded': { pos: -options.expandElbowLegLength * 1.5, size: big },
+		} satisfies Record<string, number | { pos: number; size: number }>)
+
+		const oldShapeIds = []
+		for (const id of editor.getCurrentPageShapeIds()) {
+			if (editor.getShape(id)?.meta.isFromDebugElbowArrowScene) {
+				oldShapeIds.push(id)
+			}
 		}
-	}
-	editor.deleteShapes(oldShapeIds)
+		editor.deleteShapes(oldShapeIds)
 
-	for (let xIdx = 0; xIdx < positions.length; xIdx++) {
-		const [xLabel, xPos] = positions[xIdx]
-		const { pos: x, size: w } = typeof xPos === 'number' ? { pos: xPos, size: defaultSize } : xPos
-		for (let yIdx = 0; yIdx < positions.length; yIdx++) {
-			const [yLabel, yPos] = positions[yIdx]
-			const { pos: y, size: h } = typeof yPos === 'number' ? { pos: yPos, size: defaultSize } : yPos
+		let frameX = 0
 
-			const frameId = createShapeId()
-			editor.createShape<TLFrameShape>({
-				type: 'frame',
-				meta: { isFromDebugElbowArrowScene: true },
-				id: frameId,
-				x: xIdx * (frameSize + spacing),
-				y: yIdx * (frameSize + spacing),
-				props: {
-					w: frameSize,
-					h: frameSize,
-					name: `x: ${xLabel}; y: ${yLabel}`,
-				},
-			})
+		for (let xIdx = 0; xIdx < positions.length; xIdx++) {
+			const [xLabel, xPos] = positions[xIdx]
+			const { pos: x, size: w } = typeof xPos === 'number' ? { pos: xPos, size: defaultSize } : xPos
+			const offsetX = spacing - Math.min(0, x)
+			const frameWidth = Math.max(offsetX + defaultSize + spacing, offsetX + x + w + spacing)
 
-			const shapeAId = createShapeId()
-			const shapeBId = createShapeId()
+			let frameY = 0
+			for (let yIdx = 0; yIdx < positions.length; yIdx++) {
+				const [yLabel, yPos] = positions[yIdx]
+				const { pos: y, size: h } =
+					typeof yPos === 'number' ? { pos: yPos, size: defaultSize } : yPos
 
-			editor.createShape<TLGeoShape>({
-				type: 'geo',
-				meta: { isFromDebugElbowArrowScene: true },
-				id: shapeAId,
-				x: spacing,
-				y: spacing,
-				parentId: frameId,
-				props: {
-					w: defaultSize,
-					h: defaultSize,
-				},
-			})
+				const offsetY = spacing - Math.min(0, y)
+				const frameHeight = Math.max(offsetY + defaultSize + spacing, offsetY + y + h + spacing)
 
-			editor.createShape<TLGeoShape>({
-				type: 'geo',
-				id: shapeBId,
-				x,
-				y,
-				parentId: frameId,
-				props: {
-					w,
-					h,
-				},
-			})
+				const wrapperId = createShapeId()
+				const labelId = createShapeId()
+				editor.createShape<TLGeoShape>({
+					type: 'geo',
+					meta: { isFromDebugElbowArrowScene: true },
+					id: wrapperId,
+					x: frameX,
+					y: frameY,
+					props: {
+						w: frameWidth,
+						h: frameHeight,
+						dash: 'dotted',
+					},
+				})
+				editor.createShape<TLTextShape>({
+					type: 'text',
+					id: labelId,
+					x: 5,
+					y: -18,
+					parentId: wrapperId,
+					props: { text: `x: ${xLabel}; y: ${yLabel}`, size: 's', scale: 0.6 },
+				})
 
-			const arrowId = createShapeId()
-			editor.createShape<TLArrowShape>({
-				type: 'arrow',
-				meta: { isFromDebugElbowArrowScene: true },
-				id: arrowId,
-			})
+				frameY += frameHeight + spacing
 
-			createOrUpdateArrowBinding(editor, arrowId, shapeAId, {
-				terminal: 'start',
-				normalizedAnchor: { x: 0.5, y: 0.5 },
-				isExact: false,
-				isPrecise: false,
-			})
+				const shapeAId = createShapeId()
+				const shapeBId = createShapeId()
 
-			createOrUpdateArrowBinding(editor, arrowId, shapeBId, {
-				terminal: 'end',
-				normalizedAnchor: { x: 0.5, y: 0.5 },
-				isExact: false,
-				isPrecise: false,
-			})
+				editor.createShape<TLGeoShape>({
+					type: 'geo',
+					meta: { isFromDebugElbowArrowScene: true },
+					id: shapeAId,
+					x: offsetX,
+					y: offsetY,
+					parentId: wrapperId,
+					props: {
+						w: defaultSize,
+						h: defaultSize,
+					},
+				})
+
+				editor.createShape<TLGeoShape>({
+					type: 'geo',
+					id: shapeBId,
+					x: x + offsetX,
+					y: y + offsetY,
+					parentId: wrapperId,
+					props: {
+						w,
+						h,
+					},
+				})
+
+				const arrowId = createShapeId()
+				editor.createShape<TLArrowShape>({
+					type: 'arrow',
+					meta: { isFromDebugElbowArrowScene: true },
+					id: arrowId,
+				})
+
+				createOrUpdateArrowBinding(editor, arrowId, shapeAId, {
+					terminal: 'start',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: false,
+				})
+
+				createOrUpdateArrowBinding(editor, arrowId, shapeBId, {
+					terminal: 'end',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: false,
+				})
+			}
+			frameX += frameWidth + spacing
 		}
-	}
+	})
 }
