@@ -127,19 +127,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				this.cache?.onInterval()
 				// do a noop mutation every 5 minutes
 				if (Date.now() - this.lastMutationTimestamp > 5 * 60 * 1000) {
-					this.db
-						.insertInto('user_mutation_number')
-						.values({
-							userId: this.userId!,
-							mutationNumber: 1,
-						})
-						.onConflict((oc) =>
-							oc.column('userId').doUpdateSet({
-								mutationNumber: sql`user_mutation_number."mutationNumber" + 1`,
-							})
-						)
-						.returning('mutationNumber')
-						.executeTakeFirstOrThrow()
+					this.bumpMutationNumber(this.db)
 						.then(() => {
 							this.lastMutationTimestamp = Date.now()
 						})
@@ -499,6 +487,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== msg.mutationId)
 				throw e
 			})
+
+		this.lastMutationTimestamp = Date.now()
 
 		const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
 		assert(
