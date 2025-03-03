@@ -589,7 +589,7 @@ export class TldrawApp {
 		this.z.mutate.file_state.update({ ...partial, fileId, userId: fileState.userId })
 	}
 
-	async onFileEnter(fileId: string) {
+	onFileEnter(fileId: string) {
 		this.getOrCreateFileState(fileId)
 		this.updateFileState(fileId, {
 			lastVisitAt: Date.now(),
