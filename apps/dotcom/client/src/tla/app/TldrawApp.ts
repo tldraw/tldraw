@@ -590,7 +590,7 @@ export class TldrawApp {
 	}
 
 	async onFileEnter(fileId: string) {
-		await this.getOrCreateFileState(fileId)
+		this.getOrCreateFileState(fileId)
 		this.updateFileState(fileId, {
 			lastVisitAt: Date.now(),
 		})
