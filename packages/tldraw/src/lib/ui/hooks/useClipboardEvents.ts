@@ -294,6 +294,13 @@ const handlePasteFromClipboardApi = async ({
 		things.push(
 			...fallbackFiles.map((f): ClipboardThing => ({ type: 'file', source: Promise.resolve(f) }))
 		)
+	} else if (fallbackFiles?.length && things.length === 0) {
+		// Files pasted in Safari from your computer don't have types, so we need to use the fallback files directly
+		// if they're available. This only works if pasted keyboard shortcuts. Pasting from the menu in Safari seems to never
+		// let you access files that are copied from your computer.
+		things.push(
+			...fallbackFiles.map((f): ClipboardThing => ({ type: 'file', source: Promise.resolve(f) }))
+		)
 	}
 
 	return await handleClipboardThings(editor, things, point)
