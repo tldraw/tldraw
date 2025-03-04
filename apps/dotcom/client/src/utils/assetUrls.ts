@@ -28,6 +28,7 @@ function preloadIcon(url: string) {
 		image.onerror = reject
 		image.referrerPolicy = 'strict-origin-when-cross-origin'
 		image.src = url
+		image.crossOrigin = 'anonymous'
 	})
 }
 
