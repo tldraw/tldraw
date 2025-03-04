@@ -1,4 +1,4 @@
-import { ZColumn, tlaFileSchema, tlaFileStateSchema, tlaUserSchema } from '@tldraw/dotcom-shared'
+import { ZColumn, file_state, file, user } from '@tldraw/dotcom-shared'
 import { sql } from 'kysely'
 interface ColumnStuff {
 	name: string
@@ -23,13 +23,13 @@ function makeColumnStuff(
 		reference: `public.${table}."${column}"::${ourTypeToPostgresType[details.type]}`,
 	}
 }
-export const userKeys = Object.entries(tlaUserSchema.columns).map(
+export const userKeys = Object.entries(user.schema.columns).map(
 	([name, { type }]): ColumnStuff => makeColumnStuff('user', name, { type })
 )
-export const fileKeys = Object.entries(tlaFileSchema.columns).map(
+export const fileKeys = Object.entries(file.schema.columns).map(
 	([name, { type }]): ColumnStuff => makeColumnStuff('file', name, { type })
 )
-export const fileStateKeys = Object.entries(tlaFileStateSchema.columns).map(
+export const fileStateKeys = Object.entries(file_state.schema.columns).map(
 	([name, { type }]): ColumnStuff => makeColumnStuff('file_state', name, { type })
 )
 const nulls = (ns: ColumnStuff[]) =>
