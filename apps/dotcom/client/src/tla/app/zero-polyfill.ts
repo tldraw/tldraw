@@ -12,7 +12,7 @@ import {
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
 import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { Signal, computed, react, transact, uniqueId } from 'tldraw'
+import { Signal, computed, react, sleep, transact, uniqueId } from 'tldraw'
 import { TLAppUiContextType } from '../utils/app-ui-events'
 
 export class Zero {
@@ -79,6 +79,14 @@ export class Zero {
 				}
 			}
 		})
+	}
+
+	async __e2e__waitForMutationResolution() {
+		let safety = 0
+		while (this.store.getOptimisticUpdates().length && safety++ < 100) {
+			await sleep(50)
+		}
+		// console.log('Mutation resolved', JSON.stringify(this.store.getOptimisticUpdates()))
 	}
 
 	dispose() {
