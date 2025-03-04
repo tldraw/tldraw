@@ -21,6 +21,7 @@ export type TLUiEventSource =
 	| 'help-menu'
 	| 'helper-buttons'
 	| 'style-panel'
+	| 'image-menu'
 	| 'rich-text-menu'
 	| 'unknown'
 
@@ -53,6 +54,7 @@ export interface TLUiEventMap {
 	'edit-link': null
 	'insert-embed': null
 	'insert-media': null
+	'replace-media': null
 	'align-shapes': {
 		operation: 'left' | 'center-horizontal' | 'right' | 'top' | 'center-vertical' | 'bottom'
 	}

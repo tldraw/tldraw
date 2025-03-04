@@ -1,4 +1,4 @@
-import { TLAssetId } from '@tldraw/tlschema'
+import { TLAssetId, TLShapeId } from '@tldraw/tlschema'
 import { VecLike } from '../../primitives/Vec'
 import { TLContent } from './clipboard-types'
 
@@ -53,6 +53,7 @@ export interface TLFilesExternalContent extends TLBaseExternalContent {
 	type: 'files'
 	files: File[]
 	ignoreParent: boolean
+	shapeIdToReplace?: TLShapeId
 }
 
 /** @public */

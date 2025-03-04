@@ -13,6 +13,7 @@ afterEach(() => {
 const ids = {
 	imageA: createShapeId('imageA'),
 	imageB: createShapeId('imageB'),
+	imageC: createShapeId('imageC'),
 	boxA: createShapeId('boxA'),
 }
 
@@ -25,6 +26,7 @@ const imageProps = {
 	url: '',
 	w: imageWidth,
 	h: imageHeight,
+	zoom: 1,
 }
 
 beforeEach(() => {
@@ -63,6 +65,22 @@ beforeEach(() => {
 				...imageProps,
 				w: imageWidth / 2,
 				h: imageHeight / 2,
+				crop: {
+					topLeft: { x: 0, y: 0 },
+					bottomRight: { x: 0.5, y: 0.5 },
+				},
+			},
+		},
+		{
+			id: ids.imageC,
+			type: 'image',
+			x: 500,
+			y: 500,
+			props: {
+				...imageProps,
+				w: imageWidth / 2,
+				h: imageHeight / 2,
+				zoom: 1.5,
 				crop: {
 					topLeft: { x: 0, y: 0 },
 					bottomRight: { x: 0.5, y: 0.5 },
@@ -456,6 +474,75 @@ describe('When in the select.crop.translating_crop state', () => {
 		editor.redo()
 
 		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(afterEnd)
+	})
+
+	it('moving the pointer should adjust the crop with zoom', () => {
+		const before = editor.getShape<TLImageShape>(ids.imageC)!.props.crop!
+
+		editor
+			.cancel()
+			.expectToBeIn('select.idle')
+			.doubleClick(550, 550, ids.imageC)
+			.expectToBeIn('select.crop.idle')
+			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageC) })
+			.expectToBeIn('select.crop.pointing_crop')
+
+		const beforeCrop = editor.getShape<TLImageShape>(ids.imageC)!.props.crop!
+
+		expect(beforeCrop.topLeft.x).toBe(0)
+		expect(beforeCrop.topLeft.y).toBe(0)
+		expect(beforeCrop.bottomRight.x).toBe(0.5)
+		expect(beforeCrop.bottomRight.y).toBe(0.5)
+
+		// Move the pointer to the left
+		editor
+			.pointerMove(550 + imageWidth / 5, 550 + imageHeight / 5)
+			.expectToBeIn('select.crop.translating_crop')
+
+		// Update should have run right away
+		const afterFirst = editor.getShape<TLImageShape>(ids.imageC)!.props.crop!
+
+		expect(afterFirst.topLeft.x).toBe(-0.2)
+		expect(afterFirst.topLeft.y).toBe(-0.2)
+		expect(afterFirst.bottomRight.x).toBe(0.3)
+		expect(afterFirst.bottomRight.y).toBe(0.3)
+
+		// move it to the limits
+		editor.pointerMove(550 + imageWidth * 10, 550 + imageHeight * 10)
+
+		// Update should have run right away
+		const afterSecond = editor.getShape<TLImageShape>(ids.imageC)!.props.crop!
+
+		expect(afterSecond.topLeft.x).toBe(-0.25)
+		expect(afterSecond.topLeft.y).toBe(-0.25)
+		expect(afterSecond.bottomRight.x).toBe(0.25)
+		expect(afterSecond.bottomRight.y).toBe(0.25)
+
+		// and back to the start
+		editor.pointerMove(550, 550)
+
+		// Update should have run right away
+		const afterThird = editor.getShape<TLImageShape>(ids.imageC)!.props.crop!
+
+		expect(afterThird.topLeft.x).toBe(0)
+		expect(afterThird.topLeft.y).toBe(0)
+		expect(afterThird.bottomRight.x).toBe(0.5)
+		expect(afterThird.bottomRight.y).toBe(0.5)
+
+		// and back to the left again (first)
+		editor.pointerMove(250, 250)
+
+		const afterEnd = editor.getShape<TLImageShape>(ids.imageC)!.props.crop!
+
+		editor.pointerUp()
+
+		editor.undo()
+
+		expect(editor.getShape<TLImageShape>(ids.imageC)!.props.crop!).toMatchObject(before)
+
+		editor.redo()
+
+		expect(editor.getShape<TLImageShape>(ids.imageC)!.props.crop!).toMatchObject(afterEnd)
 	})
 
 	it('moving the pointer while holding shift should adjust the crop', () => {
@@ -1060,6 +1147,94 @@ describe('When cropping...', () => {
 					},
 					w: imageWidth,
 					h: imageHeight - moveY,
+				},
+			})
+	})
+
+	it('should adjust crop correctly with zoom', () => {
+		const imageX = 500
+		const imageY = 500
+		const cropX = 0.5
+		const cropY = 0.75
+		const moveX = (imageWidth / 2) * cropX
+		const moveY = (imageHeight / 2) * cropY
+		editor
+			.select(ids.imageC)
+			.pointerDown(
+				imageX,
+				imageY,
+				{
+					target: 'selection',
+					handle: 'top_left',
+				},
+				{ ctrlKey: true }
+			)
+			.expectToBeIn('select.crop.pointing_crop_handle')
+			.expectShapeToMatch({
+				id: ids.imageC,
+				x: imageX,
+				y: imageY,
+				props: { ...imageProps, zoom: 1.5, w: 600, h: 400 },
+			})
+			.pointerMove(imageX + moveX, imageY + moveY)
+			.expectToBeIn('select.crop.cropping')
+			.expectShapeToMatch({
+				id: ids.imageC,
+				x: imageX + moveX,
+				y: imageY + moveY,
+				props: {
+					...imageProps,
+					zoom: 1.5,
+					crop: {
+						topLeft: { x: 0.25, y: 0.375 },
+						bottomRight: { x: 0.5, y: 0.5 },
+					},
+					w: 300,
+					h: 100,
+				},
+			})
+	})
+
+	it('should handle rotation correctly when cropping', () => {
+		const imageX = 500
+		const imageY = 500
+		const cropX = 0.5
+		const cropY = 0.75
+		const moveX = (imageWidth / 2) * cropX
+		const moveY = (imageHeight / 2) * cropY
+		editor
+			.select(ids.imageC)
+			.pointerDown(
+				imageX,
+				imageY,
+				{
+					target: 'selection',
+					handle: 'top_left',
+				},
+				{ ctrlKey: true }
+			)
+			.expectToBeIn('select.crop.pointing_crop_handle')
+			.expectShapeToMatch({
+				id: ids.imageC,
+				x: imageX,
+				y: imageY,
+				props: { ...imageProps, zoom: 1.5, w: 600, h: 400 },
+			})
+			.pointerMove(imageX + moveX, imageY + moveY)
+			.expectToBeIn('select.crop.cropping')
+			.expectShapeToMatch({
+				id: ids.imageC,
+				x: imageX + moveX,
+				y: imageY + moveY,
+				props: {
+					...imageProps,
+					zoom: 1.5,
+					crop: {
+						topLeft: { x: 0.25, y: 0.375 },
+						bottomRight: { x: 0.5, y: 0.5 },
+					},
+					w: 300,
+					h: 100,
 				},
 			})
 	})

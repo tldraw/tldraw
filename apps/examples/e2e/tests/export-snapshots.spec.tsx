@@ -63,6 +63,11 @@ const manCrop: TLShapeCrop = {
 	topLeft: { x: 0.25, y: 0.05 },
 	bottomRight: { x: 0.75, y: 0.3 },
 }
+const manCropAsCircle: TLShapeCrop = {
+	topLeft: { x: 0.25, y: 0.05 },
+	bottomRight: { x: 0.75, y: 0.3 },
+	isCircle: true,
+}
 
 const richText = {
 	type: 'doc',
@@ -386,6 +391,9 @@ const snapshots: Snapshots = {
 			flipY: <TL.image w={100} h={200} assetId={manAsset} flipY />,
 			flipXY: <TL.image w={100} h={200} assetId={manAsset} flipX flipY />,
 			rotated: <TL.image w={100} h={200} assetId={manAsset} rotation={degreesToRadians(45)} />,
+			zoom: (
+				<TL.image w={100} h={200} assetId={manAsset} zoom={1.5} rotation={degreesToRadians(45)} />
+			),
 		},
 		Cropped: {
 			'no asset': <TL.image w={100} h={100} crop={manCrop} />,
@@ -393,12 +401,25 @@ const snapshots: Snapshots = {
 			flipX: <TL.image w={100} h={100} assetId={manAsset} flipX crop={manCrop} />,
 			flipY: <TL.image w={100} h={100} assetId={manAsset} flipY crop={manCrop} />,
 			flipXY: <TL.image w={100} h={100} assetId={manAsset} flipX flipY crop={manCrop} />,
+			withCircle: (
+				<TL.image w={100} h={100} assetId={manAsset} flipX flipY crop={manCropAsCircle} />
+			),
 			rotated: (
 				<TL.image
 					w={100}
 					h={100}
 					assetId={manAsset}
 					rotation={degreesToRadians(45)}
+					crop={manCrop}
+				/>
+			),
+			zoom: (
+				<TL.image
+					w={100}
+					h={100}
+					assetId={manAsset}
+					rotation={degreesToRadians(45)}
+					zoom={1.5}
 					crop={manCrop}
 				/>
 			),

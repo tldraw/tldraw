@@ -32,7 +32,6 @@ import {
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { ReactElement, memo, useEffect, useState } from 'react'
-
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { PlainTextLabel } from '../shared/PlainTextLabel'
@@ -93,6 +92,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			text: '',
 			align: 'middle',
 			verticalAlign: 'middle',
+			zoom: 1,
 		}
 	}
 
@@ -173,6 +173,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				x: flipCropHorizontally ? 1 - topLeft.x : bottomRight.x,
 				y: flipCropVertically ? 1 - topLeft.y : bottomRight.y,
 			},
+			isCircle: shape.props.crop.isCircle,
 		}
 		return resized
 	}
@@ -310,6 +311,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			w: lerp(startShape.props.w, endShape.props.w, t),
 			h: lerp(startShape.props.h, endShape.props.h, t),
 			crop: interpolateCrop(startShape, endShape),
+			zoom: lerp(startShape.props.zoom, endShape.props.zoom, t),
 		}
 	}
 }
@@ -410,7 +412,12 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 			)}
 			<HTMLContainer
 				id={shape.id}
-				style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
+				style={{
+					overflow: 'hidden',
+					width: shape.props.w,
+					height: shape.props.h,
+					borderRadius: shape.props.crop?.isCircle ? '50%' : undefined,
+				}}
 			>
 				<div className={classNames('tl-image-container')} style={containerStyle}>
 					{/* We have two images: the currently loaded image, and the next image that
@@ -505,12 +512,31 @@ function getCroppedContainerStyle(shape: TLImageShape) {
 }
 
 function getFlipStyle(shape: TLImageShape, size?: { width: number; height: number }) {
-	const { flipX, flipY } = shape.props
-	if (!flipX && !flipY) return undefined
+	const { flipX, flipY, zoom, crop } = shape.props
+	if (!flipX && !flipY && zoom === 1) return undefined
 
-	const scale = `scale(${flipX ? -1 : 1}, ${flipY ? -1 : 1})`
+	let cropOffsetX
+	let cropOffsetY
+	if (crop) {
+		// We have to do all this extra math because of the whole transform origin around 0,0
+		// instead of center in SVG-land, ugh.
+		const { w, h } = getUncroppedSize(shape.props, crop)
+		const xCropSize = crop.bottomRight.x - crop.topLeft.x
+		const yCropSize = crop.bottomRight.y - crop.topLeft.y
+		const min = 0.5 * (shape.props.zoom - 1)
+		const max = min * -1
+		const xMinWithCrop = min + (1 - xCropSize)
+		const yMinWithCrop = min + (1 - yCropSize)
+		const xPositionScaled = 1 - (crop.topLeft.x - xMinWithCrop) / (max - xMinWithCrop)
+		const yPositionScaled = 1 - (crop.topLeft.y - yMinWithCrop) / (max - yMinWithCrop)
+		cropOffsetX = xPositionScaled * (w * zoom - shape.props.w)
+		cropOffsetY = yPositionScaled * (h * zoom - shape.props.h)
+	}
+
+	const scale = `scale(${flipX ? -1 * zoom : zoom}, ${flipY ? -1 * zoom : zoom})`
 	const translate = size
-		? `translate(${flipX ? size.width : 0}px, ${flipY ? size.height : 0}px)`
+		? `translate(${(flipX ? size.width * zoom : 0) - (cropOffsetX ? cropOffsetX : 0)}px,
+		             ${(flipY ? size.height * zoom : 0) - (cropOffsetY ? cropOffsetY : 0)}px)`
 		: ''
 
 	return {
@@ -551,7 +577,16 @@ function SvgImage({
 			<>
 				<defs>
 					<clipPath id={cropClipId}>
-						<polygon points={points.map((p) => `${p.x},${p.y}`).join(' ')} />
+						{crop.isCircle ? (
+							<ellipse
+								cx={croppedWidth / 2}
+								cy={croppedHeight / 2}
+								rx={croppedWidth / 2}
+								ry={croppedHeight / 2}
+							/>
+						) : (
+							<polygon points={points.map((p) => `${p.x},${p.y}`).join(' ')} />
+						)}
 					</clipPath>
 				</defs>
 				<g clipPath={`url(#${cropClipId})`}>
@@ -559,11 +594,7 @@ function SvgImage({
 						href={src}
 						width={width}
 						height={height}
-						style={
-							flip
-								? { ...flip, transform: `${cropTransform} ${flip.transform}` }
-								: { transform: cropTransform }
-						}
+						style={flip ? { ...flip } : { transform: cropTransform }}
 					/>
 				</g>
 				{textEl}

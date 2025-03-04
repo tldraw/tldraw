@@ -5,6 +5,7 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 
 /** @public */
 export interface TLUiSliderProps {
+	min?: number
 	steps: number
 	value: number | null
 	label: string
@@ -18,6 +19,7 @@ export interface TLUiSliderProps {
 export const TldrawUiSlider = memo(function Slider({
 	onHistoryMark,
 	title,
+	min,
 	steps,
 	value,
 	label,
@@ -49,7 +51,7 @@ export const TldrawUiSlider = memo(function Slider({
 				className="tlui-slider"
 				area-label="Opacity"
 				dir="ltr"
-				min={0}
+				min={min ?? 0}
 				max={steps}
 				step={1}
 				value={value ? [value] : undefined}

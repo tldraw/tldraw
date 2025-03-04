@@ -605,6 +605,7 @@ export type ShapeWithCrop = TLBaseShape<string, {
     crop: null | TLShapeCrop;
     h: number;
     w: number;
+    zoom: number;
 }>;
 
 // @public
@@ -1137,6 +1138,8 @@ export interface TLImageShapeProps {
     verticalAlign: TLDefaultVerticalAlignStyle;
     // (undocumented)
     w: number;
+    // (undocumented)
+    zoom: number;
 }
 
 // @public
@@ -1449,6 +1452,8 @@ export type TLShape = TLDefaultShape | TLUnknownShape;
 export interface TLShapeCrop {
     // (undocumented)
     bottomRight: VecModel;
+    // (undocumented)
+    isCircle?: boolean;
     // (undocumented)
     topLeft: VecModel;
 }
