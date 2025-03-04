@@ -666,14 +666,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		]
 		// if the file state was deleted before the file, we might not have any impacted users
 		if (event.command === 'delete') {
-			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordDidDelete()
+			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordDidDelete(row)
 			this.sqlite.exec(`DELETE FROM user_file_subscriptions WHERE fileId = ?`, row.id)
 		} else if (event.command === 'update') {
 			assert('ownerId' in row, 'ownerId is required when updating file')
-			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordDidUpdate(row as TlaFile)
+			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordDidUpdate(row)
 		} else if (event.command === 'insert') {
 			assert('ownerId' in row, 'ownerId is required when inserting file')
-			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordCreated(row as TlaFile)
+			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordCreated(row)
 		}
 		for (const userId of impactedUserIds) {
 			collator.addChange(userId, {
@@ -706,25 +706,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	async ping() {
 		this.log.debug('ping')
 		return { sequenceId: this.slotName }
-	}
-
-	private async waitUntilConnected() {
-		while (this.state.type !== 'connected') {
-			await this.state.promise
-		}
-	}
-
-	async getFileRecord(fileId: string) {
-		this.logEvent({ type: 'get_file_record' })
-		await this.waitUntilConnected()
-		assert(this.state.type === 'connected', 'state should be connected in getFileRecord')
-		try {
-			const res = await sql`select * from public.file where id = ${fileId}`.execute(this.db)
-			if (res.rows.length === 0) return null
-			return res.rows[0] as TlaFile
-		} catch (_e) {
-			return null
-		}
 	}
 
 	private async _messageUser(userId: string, event: ZReplicationEventWithoutSequenceInfo) {
@@ -763,7 +744,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				}
 			})
 		} catch (e) {
-			console.error('Error in messageUser', e)
+			this.captureException(e)
 		}
 	}
 

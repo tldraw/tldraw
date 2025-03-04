@@ -17,6 +17,7 @@ export interface TLEventMap {
 	tick: [number]
 	frame: [number]
 	'select-all-text': [{ shapeId: TLShapeId }]
+	'place-caret': [{ shapeId: TLShapeId; point: { x: number; y: number } }]
 }
 
 /** @public */

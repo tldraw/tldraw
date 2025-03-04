@@ -131,6 +131,7 @@ export type TLUserDurableObjectEvent =
 	| {
 			type:
 				| 'reboot'
+				| 'full_data_fetch'
 				| 'reboot_error'
 				| 'rate_limited'
 				| 'broadcast_message'

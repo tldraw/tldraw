@@ -239,6 +239,54 @@ You can turn on `pointer-events` to allow users to interact inside of the shape.
 
 You can make shapes "editable" to help decide when they're interactive or not.
 
+### Labels (plain text and rich text)
+
+Our shapes have the ability to have include labels. Those labels can either have plain text (the `text` prop) or rich text (`richText`), as desired.
+For rich text, the tldraw editor provides first-class support for [TipTap](https://tiptap.dev/) out of the box. The underlying document for the richText is
+a TipTap JSON-stringified document that is stored within the `richText` property. (For that reason, we don't do character-by-character synchronization of
+the text within a shape. This was a design choice as much of tldraw's text ends up being short-form).
+
+If you would like to use rich text within your shape you can use our [RichTextLabel](?) component to help you get started with rendering rich text. Under the hood
+this uses [RichTextArea](?) which loads a TipTap instance and to handle the editing of rich text.
+
+If you would like to use plain text you would use the corresponding [PlainTextLabel](?) and [PlainTextArea](?) components.
+
+#### Text measurement
+
+One of the challenges with our shapes is getting an accurate measurement of the bounds of the shape.
+Traditionally you could have used our [TextManager#measureText](?). However, because rich text is HTML, the API to use for that is [TextManager#measureHtml](?)
+
+#### Extending TipTap
+
+Here's a simple example of how you could add a custom extension (in this case `FontFamily`) to the editor:
+
+```ts
+const textOptions = {
+	tipTapConfig: {
+		extensions: [...tipTapDefaultExtensions, FontFamily],
+	},
+}
+
+export default function RichTextCustomExtensionExample() {
+	return (
+		<div className="tldraw__editor">
+			<Tldraw
+				persistenceKey="rich-text-custom-extension"
+				components={components}
+				textOptions={textOptions}
+			/>
+		</div>
+	)
+}
+```
+
+On our [examples site](https://examples.tldraw.com/) please filter by "rich text" and you will find examples on how to add custom extensions or UI to tailor the rich text.
+
+#### Exports for rich text
+
+One of the other challenges right now with rich text is the exports. We use the SVG `foreignObject` to insert rich text into the shapes.
+This isn't ideal and we're looking in the future to help improve this.
+
 ### Migrations
 
 You can add migrations for your shape props by adding a `migrations` property to your shape's util class. See [the persistence docs](/docs/persistence#Shape-props-migrations) for more information.
