@@ -173,12 +173,17 @@ export class Zero {
 	}
 	readonly ____mutators = {
 		file: {
-			create: (data: TlaFile) => {
+			insert: (data: TlaFile) => {
 				const store = this.store.getFullData()
 				if (!store) throw new Error('store not initialized')
 				if (store?.files.find((f) => f.id === data.id)) {
 					throw new Error('file already exists')
 				}
+				this.makeOptimistic([{ table: 'file', event: 'insert', row: data }])
+			},
+			upsert: (data: TlaFile) => {
+				const store = this.store.getFullData()
+				if (!store) throw new Error('store not initialized')
 				this.makeOptimistic([{ table: 'file', event: 'insert', row: data }])
 			},
 			update: (data: TlaFilePartial) => {
@@ -191,7 +196,15 @@ export class Zero {
 			},
 		},
 		file_state: {
-			create: (data: TlaFileState) => {
+			insert: (data: TlaFileState) => {
+				const store = this.store.getFullData()
+				if (!store) throw new Error('store not initialized')
+				if (store?.fileStates.find((f) => f.fileId === data.fileId && f.userId === data.userId)) {
+					throw new Error('file state already exists')
+				}
+				this.makeOptimistic([{ table: 'file_state', event: 'insert', row: data }])
+			},
+			upsert: (data: TlaFileState) => {
 				const store = this.store.getFullData()
 				if (!store) throw new Error('store not initialized')
 				this.makeOptimistic([{ table: 'file_state', event: 'insert', row: data }])
@@ -208,7 +221,13 @@ export class Zero {
 			},
 		},
 		user: {
-			create: (data: TlaUser) => {
+			insert: (data: TlaUser) => {
+				if (this.store.getFullData()?.user) {
+					throw new Error('user already exists')
+				}
+				this.makeOptimistic([{ table: 'user', event: 'insert', row: data as any }])
+			},
+			upsert: (data: TlaUser) => {
 				this.makeOptimistic([{ table: 'user', event: 'insert', row: data as any }])
 			},
 			update: (data: TlaUserPartial) => {
@@ -219,11 +238,12 @@ export class Zero {
 			},
 		},
 	}
-	mutate = Object.assign((fn: (txn: Zero['____mutators']) => void) => {
+	mutateBatch(fn: (txn: Zero['____mutators']) => void) {
 		transact(() => {
 			fn(this.____mutators)
 		})
-	}, this.____mutators)
+	}
+	mutate = this.____mutators
 
 	private sendPendingUpdates() {
 		if (this.socket.isDisposed) return

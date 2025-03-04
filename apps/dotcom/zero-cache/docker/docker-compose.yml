@@ -10,7 +10,7 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - ${ZSTART_DB_PORT}:5432
+      - 6543:5432
     environment:
       POSTGRES_USER: user
       POSTGRES_DB: postgres
