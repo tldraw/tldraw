@@ -40,7 +40,7 @@ const routes = {
 	},
 }
 
-export function routeArrowWithManualEdgePicking(
+export function tryRouteArrow(
 	info: ElbowArrowInfoWithoutRoute,
 	aEdge: ElbowArrowSide,
 	bEdge: ElbowArrowSide
@@ -584,4 +584,16 @@ export function routeCrossAxisHiToHi(
 			axis.v(bEdge.crossCenter, bEdge.value),
 		],
 	}
+}
+
+export function measureRouteLengthSq(route: ElbowArrowRoute): number {
+	let lengthSq = 0
+	for (let i = 0; i < route.path.length - 1; i++) {
+		const start = route.path[i]
+		const end = route.path[i + 1]
+		const dx = end.x - start.x
+		const dy = end.y - start.y
+		lengthSq += dx * dx + dy * dy
+	}
+	return lengthSq
 }

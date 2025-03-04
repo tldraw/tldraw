@@ -7,6 +7,8 @@ import {
 	transformPoint,
 } from './getElbowArrowInfo'
 
+const SHOW_STEVE = true
+
 export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 	assert(arrow.props.elbow)
 	const editor = useEditor()
@@ -31,6 +33,8 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 	const gizmoY = info.scale.y === 1 ? fullBox.minY : fullBox.maxY
 
 	const label = [info.hPos, info.vPos, info.route?.name].filter(Boolean).join(', ')
+
+	const steve = SHOW_STEVE ? info.steve() : null
 
 	return (
 		<>
@@ -67,7 +71,10 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 			<DebugEdge edge={info.edges.B.left} axis="y" scale={info.scale} stroke="lightskyblue" />
 
 			{info.route && <DebugRoute route={info.route.path} />}
-			{/* {info.path && <DebugRoute route={info.path} />} */}
+			{steve?.path && (
+				<DebugRoute route={steve.path} stroke="white" strokeDasharray="0,9" strokeWidth={5} />
+			)}
+			{steve?.path && <DebugRoute route={steve.path} stroke="deeppink" strokeDasharray="0,9" />}
 		</>
 	)
 }

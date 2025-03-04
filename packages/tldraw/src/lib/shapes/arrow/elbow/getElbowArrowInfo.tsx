@@ -17,6 +17,7 @@ import { ArrowShapeOptions } from '../arrow-types'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { getArrowBindings } from '../shared'
 import { ElbowArrowSideAxes, ElbowArrowSideOpposites } from './constants'
+import { ElbowArrowRoute } from './elbowArrowRoutes'
 import { ArrowNavigationGrid, getArrowNavigationGrid } from './getArrowNavigationGrid'
 import { getArrowPath } from './getArrowPath'
 import {
@@ -28,7 +29,6 @@ import {
 	subtractRange,
 } from './range'
 import { routeArrowWithAutoEdgePicking } from './routeArrowWithAutoEdgePicking'
-import { ElbowArrowRoute, routeArrowWithManualEdgePicking } from './routeArrowWithManualEdgePicking'
 
 export interface ElbowArrowScale {
 	x: 1 | -1
@@ -277,7 +277,7 @@ const elbowArrowInfoCache = createComputedCache(
 
 		const steve = () => {
 			const grid = getArrowNavigationGrid(A, B, options)
-			const path = getArrowPath(grid, 'right', 'left')
+			const path = getArrowPath(grid)
 			return { grid, path: path.error ? null : path.path }
 		}
 
@@ -299,13 +299,13 @@ const elbowArrowInfoCache = createComputedCache(
 		}
 
 		let route
-		if (arrow.props.elbow.startEdge && arrow.props.elbow.endEdge) {
-			route = routeArrowWithManualEdgePicking(
-				info,
-				transformSide(arrow.props.elbow.startEdge, info.scale),
-				transformSide(arrow.props.elbow.endEdge, info.scale)
-			)
-		}
+		// if (arrow.props.elbow.startEdge && arrow.props.elbow.endEdge) {
+		// 	route = routeArrowWithManualEdgePicking(
+		// 		info,
+		// 		transformSide(arrow.props.elbow.startEdge, info.scale),
+		// 		transformSide(arrow.props.elbow.endEdge, info.scale)
+		// 	)
+		// }
 		if (!route) {
 			route = routeArrowWithAutoEdgePicking(info)
 		}

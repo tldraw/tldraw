@@ -25,6 +25,13 @@ export const ElbowArrowSideAxes = {
 	bottom: 'y',
 } as const
 
+export const ElbowArrowSideFallbacks = {
+	left: ['bottom', 'top', 'right'],
+	right: ['bottom', 'top', 'left'],
+	top: ['right', 'left', 'bottom'],
+	bottom: ['right', 'left', 'top'],
+} as const
+
 export const ElbowArrowAxes = {
 	x: {
 		v: (x: number, y: number) => ({ x, y }),
