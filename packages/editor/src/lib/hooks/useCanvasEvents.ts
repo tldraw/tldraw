@@ -49,12 +49,15 @@ export function useCanvasEvents() {
 				lastX = e.clientX
 				lastY = e.clientY
 
-				editor.dispatch({
-					type: 'pointer',
-					target: 'canvas',
-					name: 'pointer_move',
-					...getPointerInfo(e),
-				})
+				const coalescedEvents = e.nativeEvent.getCoalescedEvents()
+				for (const singleEvent of coalescedEvents) {
+					editor.dispatch({
+						type: 'pointer',
+						target: 'canvas',
+						name: 'pointer_move',
+						...getPointerInfo(singleEvent),
+					})
+				}
 			}
 
 			function onPointerUp(e: React.PointerEvent) {
