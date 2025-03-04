@@ -79,6 +79,7 @@ export interface ZStoreData {
 	files: TlaFile[]
 	fileStates: TlaFileState[]
 	user: TlaUser
+	lsn: string
 }
 
 export type ZRowUpdate = ZRowInsert | ZRowDeleteOrUpdate

@@ -156,6 +156,10 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	)
 
 	const user = useTldrawUser()
+	const getUserToken = useEvent(async () => {
+		return (await user?.getToken()) ?? 'not-logged-in'
+	})
+	const hasUser = !!user
 	const assets = useMemo(() => {
 		return multiplayerAssetStore(() => fileId)
 	}, [fileId])
@@ -163,11 +167,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const store = useSync({
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
-			if (user) {
-				url.searchParams.set('accessToken', await user.getToken())
+			if (hasUser) {
+				url.searchParams.set('accessToken', await getUserToken())
 			}
 			return url.toString()
-		}, [fileSlug, user]),
+		}, [fileSlug, hasUser, getUserToken]),
 		assets,
 		userInfo: app?.tlUser.userPreferences,
 	})

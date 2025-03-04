@@ -92,7 +92,6 @@ import {
 	structuredClone,
 	uniqueId,
 } from '@tldraw/utils'
-import { Number } from 'core-js'
 import EventEmitter from 'eventemitter3'
 import {
 	TLEditorSnapshot,
@@ -10341,7 +10340,7 @@ function withIsolatedShapes<T>(
 				}
 			})
 
-			editor.store.applyDiff(reverseRecordsDiff(changes))
+			editor.store.applyDiff(reverseRecordsDiff(changes), { runCallbacks: false })
 		},
 		{ history: 'ignore' }
 	)

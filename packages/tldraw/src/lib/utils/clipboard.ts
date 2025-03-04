@@ -13,14 +13,13 @@ export const TLDRAW_CUSTOM_PNG_MIME_TYPE = 'web image/vnd.tldraw+png' as const
 
 const additionalClipboardWriteTypes = {
 	png: TLDRAW_CUSTOM_PNG_MIME_TYPE,
-	svg: 'image/svg+xml',
 } as const
 const canonicalClipboardReadTypes = {
 	[TLDRAW_CUSTOM_PNG_MIME_TYPE]: 'image/png',
 }
 
 export function getAdditionalClipboardWriteType(format: TLCopyType): string | null {
-	return getOwnProperty(additionalClipboardWriteTypes, format) ?? null
+	return getOwnProperty<TLCopyType, string>(additionalClipboardWriteTypes, format) ?? null
 }
 export function getCanonicalClipboardReadType(mimeType: string): string {
 	return getOwnProperty(canonicalClipboardReadTypes, mimeType) ?? mimeType
