@@ -1,4 +1,5 @@
 import { T } from '@tldraw/validate'
+import { TLRichText, richTextValidator, toRichText } from '../misc/TLRichText'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
 import { StyleProp } from '../styles/StyleProp'
@@ -69,7 +70,7 @@ export interface TLGeoShapeProps {
 	font: TLDefaultFontStyle
 	align: TLDefaultHorizontalAlignStyle
 	verticalAlign: TLDefaultVerticalAlignStyle
-	text: string
+	richText: TLRichText
 }
 
 /** @public */
@@ -93,7 +94,7 @@ export const geoShapeProps: RecordProps<TLGeoShape> = {
 	font: DefaultFontStyle,
 	align: DefaultHorizontalAlignStyle,
 	verticalAlign: DefaultVerticalAlignStyle,
-	text: T.string,
+	richText: richTextValidator,
 }
 
 const geoShapeVersions = createShapePropsMigrationIds('geo', {
@@ -106,6 +107,7 @@ const geoShapeVersions = createShapePropsMigrationIds('geo', {
 	AddCloud: 7,
 	MakeUrlsValid: 8,
 	AddScale: 9,
+	AddRichText: 10,
 })
 
 export { geoShapeVersions as geoShapeVersions }
@@ -195,6 +197,17 @@ export const geoShapeMigrations = createShapePropsMigrationSequence({
 			down: (props) => {
 				delete props.scale
 			},
+		},
+		{
+			id: geoShapeVersions.AddRichText,
+			up: (props) => {
+				props.richText = toRichText(props.text)
+				delete props.text
+			},
+			// N.B. Explicitly no down state so that we force clients to update.
+			// down: (props) => {
+			// 	delete props.richText
+			// },
 		},
 	],
 })

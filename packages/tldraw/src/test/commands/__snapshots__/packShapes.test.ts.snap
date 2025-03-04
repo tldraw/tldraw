@@ -19,9 +19,16 @@ exports[`editor.packShapes packs rotated shapes: packed shapes 1`] = `
       "growY": 0,
       "h": 100,
       "labelColor": "black",
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
-      "text": "",
       "url": "",
       "verticalAlign": "middle",
       "w": 100,
@@ -49,9 +56,16 @@ exports[`editor.packShapes packs rotated shapes: packed shapes 1`] = `
       "growY": 0,
       "h": 100,
       "labelColor": "black",
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
-      "text": "",
       "url": "",
       "verticalAlign": "middle",
       "w": 100,
@@ -79,9 +93,16 @@ exports[`editor.packShapes packs rotated shapes: packed shapes 1`] = `
       "growY": 0,
       "h": 100,
       "labelColor": "black",
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
-      "text": "",
       "url": "",
       "verticalAlign": "middle",
       "w": 100,
@@ -114,9 +135,16 @@ exports[`editor.packShapes packs shapes: packed shapes 1`] = `
       "growY": 0,
       "h": 100,
       "labelColor": "black",
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
-      "text": "",
       "url": "",
       "verticalAlign": "middle",
       "w": 100,
@@ -144,9 +172,16 @@ exports[`editor.packShapes packs shapes: packed shapes 1`] = `
       "growY": 0,
       "h": 100,
       "labelColor": "black",
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
-      "text": "",
       "url": "",
       "verticalAlign": "middle",
       "w": 100,
@@ -174,9 +209,16 @@ exports[`editor.packShapes packs shapes: packed shapes 1`] = `
       "growY": 0,
       "h": 100,
       "labelColor": "black",
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
-      "text": "",
       "url": "",
       "verticalAlign": "middle",
       "w": 100,

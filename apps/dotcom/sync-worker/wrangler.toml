@@ -232,6 +232,26 @@ bucket_name = 'uploads-preview'
 binding = "UPLOADS"
 bucket_name = "uploads"
 
+#################### User DO Snapshot R2 bucket ####################
+# in dev, we write to the preview bucket and need a `preview_bucket_name`
+[[env.dev.r2_buckets]]
+binding = 'USER_DO_SNAPSHOTS'
+bucket_name = 'user-do-snapshots-preview'
+preview_bucket_name = 'user-do-snapshots-preview'
+
+[[env.preview.r2_buckets]]
+binding = 'USER_DO_SNAPSHOTS'
+bucket_name = 'user-do-snapshots-preview'
+
+[[env.staging.r2_buckets]]
+binding = 'USER_DO_SNAPSHOTS'
+bucket_name = 'user-do-snapshots-staging'
+
+# in production, we write to the main bucket
+[[env.production.r2_buckets]]
+binding = "USER_DO_SNAPSHOTS"
+bucket_name = "user-do-snapshots"
+
 #################### Room snapshots parent slug KV store ####################
 [[env.dev.kv_namespaces]]
 binding = "SNAPSHOT_SLUG_TO_PARENT_SLUG"

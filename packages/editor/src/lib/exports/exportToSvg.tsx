@@ -4,6 +4,7 @@ import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { Editor } from '../editor/Editor'
 import { TLSvgExportOptions } from '../editor/types/misc-types'
+import { SVG_EXPORT_CLASSNAME } from './FontEmbedder'
 import { StyleEmbedder } from './StyleEmbedder'
 import { embedMedia } from './embedMedia'
 import { getSvgJsx } from './getSvgJsx'
@@ -26,7 +27,7 @@ export async function exportToSvg(
 	// <foreignObject> elements have their styles and content inlined correctly.
 	const container = editor.getContainer()
 	const renderTarget = document.createElement('div')
-	renderTarget.className = 'tldraw-svg-export'
+	renderTarget.className = SVG_EXPORT_CLASSNAME
 	// we hide the element visually, but we don't want it to be focusable or interactive in any way either
 	renderTarget.inert = true
 	renderTarget.tabIndex = -1
@@ -83,9 +84,9 @@ export async function exportToSvg(
 
 async function applyChangesToForeignObjects(svg: SVGSVGElement) {
 	// If any shapes have their own <foreignObject> elements, we don't want to mess with them. Our
-	// ones that we need to embed will have a class of `tl-shape-foreign-object`.
+	// ones that we need to embed will have a class of `tl-export-embed-styles`.
 	const foreignObjectChildren = [
-		...svg.querySelectorAll('foreignObject.tl-shape-foreign-object > *'),
+		...svg.querySelectorAll('foreignObject.tl-export-embed-styles > *'),
 	]
 	if (!foreignObjectChildren.length) return
 

@@ -13,11 +13,11 @@
 		"@tldraw/utils": "workspace:*"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250124.3",
+		"@cloudflare/workers-types": "^4.20250224.0",
 		"@types/node": "~20.11.30",
 		"discord-api-types": "^0.37.118",
 		"esbuild": "^0.24.2",
 		"typescript": "~5.4.5",
-		"wrangler": "^3.105.1"
+		"wrangler": "^3.111.0"
 	}
 }

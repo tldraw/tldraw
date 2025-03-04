@@ -15,9 +15,10 @@ export default function Page() {
 		<>
 			<HeroSection />
 			<LogoSection />
+			<PricingSection />
+			<InstallationSection />
 			<FeaturesSection />
 			<DetailsSection />
-			<InstallationSection />
 			{/* <CustomizationSection /> */}
 			{/* <CaseStudiesSection /> */}
 			<WatermarkSection />

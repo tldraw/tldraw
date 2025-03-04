@@ -1,6 +1,7 @@
 import {
 	BaseBoxShapeUtil,
 	Box,
+	EMPTY_ARRAY,
 	Group2d,
 	HTMLContainer,
 	MediaHelpers,
@@ -21,15 +22,15 @@ import classNames from 'classnames'
 import { ReactEventHandler, memo, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { PlainTextLabel } from '../shared/PlainTextLabel'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
-import { TextLabel } from '../shared/TextLabel'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
 	LABEL_PADDING,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-import { getFontDefForExport } from '../shared/defaultStyleDefs'
+import { DefaultFontFaces } from '../shared/defaultFonts'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
@@ -72,6 +73,11 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 	override getText(shape: TLVideoShape) {
 		return shape.props.text
+	}
+
+	override getFontFaces(shape: TLVideoShape) {
+		if (!shape.props.text) return EMPTY_ARRAY
+		return [DefaultFontFaces[`tldraw_${shape.props.font}`].normal.normal]
 	}
 
 	override getGeometry(shape: TLVideoShape) {
@@ -132,7 +138,6 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 		let textEl
 		if (props.text) {
-			ctx.addExportDef(getFontDefForExport(props.font))
 			const theme = getDefaultColorTheme(ctx)
 
 			const textDimensions = this.editor.textMeasure.measureText(props.text, {
@@ -264,7 +269,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 			</HTMLContainer>
 			{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
 
-			<TextLabel
+			<PlainTextLabel
 				shapeId={shape.id}
 				type={shape.type}
 				font={font}

@@ -1,6 +1,7 @@
 import {
 	BaseBoxShapeUtil,
 	Box,
+	EMPTY_ARRAY,
 	Editor,
 	FileHelpers,
 	Group2d,
@@ -34,8 +35,8 @@ import { ReactElement, memo, useEffect, useState } from 'react'
 
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { PlainTextLabel } from '../shared/PlainTextLabel'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
-import { TextLabel } from '../shared/TextLabel'
 import { getUncroppedSize } from '../shared/crop'
 import {
 	FONT_FAMILIES,
@@ -43,7 +44,7 @@ import {
 	LABEL_PADDING,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-import { getFontDefForExport } from '../shared/defaultStyleDefs'
+import { DefaultFontFaces } from '../shared/defaultFonts'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
@@ -97,6 +98,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 	override getText(shape: TLImageShape) {
 		return shape.props.text
+	}
+
+	override getFontFaces(shape: TLImageShape) {
+		if (!shape.props.text) return EMPTY_ARRAY
+		return [DefaultFontFaces[`tldraw_${shape.props.font}`].normal.normal]
 	}
 
 	override getGeometry(shape: TLImageShape) {
@@ -216,7 +222,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		let textEl
 		if (props.text) {
-			ctx.addExportDef(getFontDefForExport(props.font))
 			const theme = getDefaultColorTheme(ctx)
 
 			const textDimensions = this.editor.textMeasure.measureText(props.text, {
@@ -441,7 +446,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 				{shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</HTMLContainer>
 
-			<TextLabel
+			<PlainTextLabel
 				shapeId={shape.id}
 				type={shape.type}
 				font={font}

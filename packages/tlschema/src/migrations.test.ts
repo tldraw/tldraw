@@ -3,6 +3,7 @@ import { getTestMigration, testSchema } from './__tests__/migrationTestUtils'
 import { bookmarkAssetVersions } from './assets/TLBookmarkAsset'
 import { imageAssetVersions } from './assets/TLImageAsset'
 import { videoAssetVersions } from './assets/TLVideoAsset'
+import { toRichText } from './misc/TLRichText'
 import { assetVersions } from './records/TLAsset'
 import { cameraVersions } from './records/TLCamera'
 import { documentVersions } from './records/TLDocument'
@@ -209,7 +210,13 @@ describe('Store removing Icon and Code shapes', () => {
 					type: 'geo',
 					parentId: 'page:any',
 					index: 'a0',
-					props: { geo: 'rectangle', w: 1, h: 1, growY: 1, text: '' },
+					props: {
+						geo: 'rectangle',
+						w: 1,
+						h: 1,
+						growY: 1,
+						richText: toRichText(''),
+					},
 				} as any),
 			].map((shape) => [shape.id, shape])
 		)
@@ -1415,6 +1422,25 @@ describe('Make urls valid for all the shapes', () => {
 			const shape = { props: { url: invalidUrl } }
 			expect(up(shape)).toEqual({ props: { url: validUrl } })
 			expect(down(shape)).toEqual(shape)
+		})
+	}
+})
+
+describe('Add rich text', () => {
+	const migrations = [
+		['text shape', getTestMigration(textShapeVersions.AddRichText)],
+		['geo shape', getTestMigration(geoShapeVersions.AddRichText)],
+		['note shape', getTestMigration(noteShapeVersions.AddRichText)],
+	] as const
+
+	for (const [shapeName, { up }] of migrations) {
+		it(`works for ${shapeName}`, () => {
+			const shape = { props: { text: 'hello, world' } }
+			expect(up(shape)).toEqual({
+				props: { richText: toRichText('hello, world') },
+			})
+			// N.B. Explicitly no down state so that we force clients to update.
+			// expect(down(originalShape)).toEqual(shape)
 		})
 	}
 })
