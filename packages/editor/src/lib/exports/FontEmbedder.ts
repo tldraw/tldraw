@@ -2,6 +2,8 @@ import { assert, bind, compact } from '@tldraw/utils'
 import { fetchCache, resourceToDataUrl } from './fetchCache'
 import { ParsedFontFace, parseCss, parseCssFontFaces, parseCssFontFamilyValue } from './parseCss'
 
+export const SVG_EXPORT_CLASSNAME = 'tldraw-svg-export'
+
 /**
  * Because SVGs cannot refer to external CSS/font resources, any web fonts used in the SVG must be
  * embedded as data URLs in inlined @font-face declarations. This class is responsible for
@@ -81,7 +83,17 @@ export class FontEmbedder {
 async function getCurrentDocumentFontFaces() {
 	const fontFaces: (ParsedFontFace[] | Promise<ParsedFontFace[] | null>)[] = []
 
-	for (const styleSheet of document.styleSheets) {
+	// In exportToSvg we add the exported node to the DOM temporarily.
+	// Because of this, and because we do a setTimeout to delay removing that node from the
+	// DOM, when looking at document.styleSheets the number of nodes and stylesheets
+	// can grow unbounded (especially when using "Debug svg" and moving shapes around).
+	// To avoid this, we filter out the stylesheets that are part of the SVG export.
+	const styleSheetsWithoutSvgExports = Array.from(document.styleSheets).filter(
+		(styleSheet) =>
+			!(styleSheet.ownerNode as HTMLElement | null)?.closest(`.${SVG_EXPORT_CLASSNAME}`)
+	)
+
+	for (const styleSheet of styleSheetsWithoutSvgExports) {
 		let cssRules
 		try {
 			cssRules = styleSheet.cssRules

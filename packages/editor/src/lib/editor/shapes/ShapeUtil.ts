@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { EMPTY_ARRAY } from '@tldraw/state'
 import { LegacyMigrations, MigrationSequence } from '@tldraw/store'
 import {
 	RecordProps,
@@ -14,6 +15,7 @@ import { Box, SelectionHandle } from '../../primitives/Box'
 import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
+import { TLFontFace } from '../managers/FontManager'
 import { BoundsSnapGeometry } from '../managers/SnapManager/BoundsSnaps'
 import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
 import { SvgExportContext } from '../types/SvgExportContext'
@@ -36,13 +38,34 @@ export interface TLShapeUtilConstructor<
  *
  * @public
  */
-export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLShape> {
+export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLUnknownShape> {
 	/** The type of shape referenced by the `fromId` of the binding. */
 	fromShapeType: string
 	/** The type of shape referenced by the `toId` of the binding. */
 	toShapeType: string
 	/** The type of binding. */
 	bindingType: string
+}
+
+/**
+ * Options passed to {@link ShapeUtil.canBeLaidOut}.
+ *
+ * @public
+ */
+export interface TLShapeUtilCanBeLaidOutOpts {
+	/** The type of action causing the layout. */
+	type?: 'align' | 'distribute' | 'pack' | 'stack' | 'flip' | 'stretch'
+	/** The other shapes being laid out */
+	shapes?: TLShape[]
+}
+
+/** Additional options for the {@link ShapeUtil.getGeometry} method.
+ *
+ * @public
+ */
+export interface TLGeometryOpts {
+	/** The context in which the geometry is being requested. */
+	context?: string
 }
 
 /** @public */
@@ -128,9 +151,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * Get the shape's geometry.
 	 *
 	 * @param shape - The shape.
+	 * @param opts - Additional options for the request.
 	 * @public
 	 */
-	abstract getGeometry(shape: Shape): Geometry2d
+	abstract getGeometry(shape: Shape, opts?: TLGeometryOpts): Geometry2d
 
 	/**
 	 * Get a JSX element for the shape (as an HTML element).
@@ -149,8 +173,20 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	abstract indicator(shape: Shape): any
 
 	/**
+	 * Get the font faces that should be rendered in the document in order for this shape to render
+	 * correctly.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	getFontFaces(shape: Shape): TLFontFace[] {
+		return EMPTY_ARRAY
+	}
+
+	/**
 	 * Whether the shape can be snapped to by another shape.
 	 *
+	 * @param shape - The shape.
 	 * @public
 	 */
 	canSnap(_shape: Shape): boolean {
@@ -171,7 +207,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	canBind(_opts: TLShapeUtilCanBindOpts<Shape>): boolean {
+	canBind(_opts: TLShapeUtilCanBindOpts): boolean {
 		return true
 	}
 
@@ -212,11 +248,15 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
-	 * Whether the shape participates in stacking, aligning, and distributing.
+	 * Whether the shape can participate in layout functions such as alignment or distribution.
+	 *
+	 * @param shape - The shape.
+	 * @param info - Additional context information: the type of action causing the layout and the
+	 * @public
 	 *
 	 * @public
 	 */
-	canBeLaidOut(_shape: Shape): boolean {
+	canBeLaidOut(_shape: Shape, _info: TLShapeUtilCanBeLaidOutOpts): boolean {
 		return true
 	}
 

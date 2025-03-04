@@ -1,3 +1,93 @@
+# v3.9.0 (Mon Mar 03 2025)
+
+### Release Notes
+
+#### Fix issue with duplicating bound arrows. ([#5495](https://github.com/tldraw/tldraw/pull/5495))
+
+- Fix a bug with duplicating bound arrows.
+
+#### Add `AtomMap` & refactor store ([#5496](https://github.com/tldraw/tldraw/pull/5496))
+
+- **BREAKING**. `store.createSelectedComputedCache` has been removed. Use `store.createCache` and create your own selector `computed` instead.
+- **BREAKING**. `createComputerCache` no longer accepts a single `isEqual` fn as its 3rd argument. Instead, pass in an options object, with the `isEqual` fn named `areRecordsEqual`. You can now pass `areResultsEqual`, too.
+
+#### [botcom] Fix slow export menu in big files ([#5435](https://github.com/tldraw/tldraw/pull/5435))
+
+- Fixed a bug with export menu performance.
+
+#### Improve / fix layout methods: alignment, distribute, flip, stack. ([#5479](https://github.com/tldraw/tldraw/pull/5479))
+
+- Fixes several bugs when aligning / flipping / distributing / stretching / stacking a selection that included with arrows.
+- Fixed a bug with distribution with overlapping shapes
+- Fixed a bug with distribution that could lead to changed selection.
+- Fixed a bug preventing rotated shapes from being stretched.
+
+#### Fix text padding, add context to shape geometry ([#5487](https://github.com/tldraw/tldraw/pull/5487))
+
+- Improved horizontal padding for arrows bound to text shapes
+
+#### Remove canvas size dependency ([#5488](https://github.com/tldraw/tldraw/pull/5488))
+
+- API: removes canvas-size dependency.
+
+#### fix svg image export mime type ([#5427](https://github.com/tldraw/tldraw/pull/5427))
+
+- Fix `<TldrawImage />` not rendering correctly with `format=svg`
+
+---
+
+#### 🐛 Bug Fix
+
+- Update discord links [#5500](https://github.com/tldraw/tldraw/pull/5500) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@steveruizok](https://github.com/steveruizok) [@TodePond](https://github.com/TodePond))
+- Consider `https://localhost` to be development [#5471](https://github.com/tldraw/tldraw/pull/5471) ([@jamesbvaughan](https://github.com/jamesbvaughan) [@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fixes
+
+- Fix issue with duplicating bound arrows. [#5495](https://github.com/tldraw/tldraw/pull/5495) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- [botcom] Fix slow export menu in big files [#5435](https://github.com/tldraw/tldraw/pull/5435) ([@steveruizok](https://github.com/steveruizok))
+- Improve / fix layout methods: alignment, distribute, flip, stack. [#5479](https://github.com/tldraw/tldraw/pull/5479) ([@steveruizok](https://github.com/steveruizok))
+- fix svg image export mime type [#5427](https://github.com/tldraw/tldraw/pull/5427) ([@SomeHats](https://github.com/SomeHats))
+
+#### 💄 Product Improvements
+
+- Fix text padding, add context to shape geometry [#5487](https://github.com/tldraw/tldraw/pull/5487) ([@steveruizok](https://github.com/steveruizok))
+- Remove canvas size dependency [#5488](https://github.com/tldraw/tldraw/pull/5488) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🛠️ API Changes
+
+- Add `AtomMap` & refactor store [#5496](https://github.com/tldraw/tldraw/pull/5496) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 6
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- James Vaughan ([@jamesbvaughan](https://github.com/jamesbvaughan))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
+# v3.8.1 (Thu Feb 13 2025)
+
+### Release Notes
+
+#### 3.8.1 ([#5429](https://github.com/tldraw/tldraw/pull/5429))
+
+- Fix `TldrawImage` not working with `format=png`
+
+---
+
+#### 🐛 Bug Fix
+
+- 3.8.1 [#5429](https://github.com/tldraw/tldraw/pull/5429) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+---
+
 # v3.8.0 (Wed Feb 12 2025)
 
 ### Release Notes

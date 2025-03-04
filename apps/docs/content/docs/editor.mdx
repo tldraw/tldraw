@@ -271,7 +271,7 @@ The [Editor#getInstanceState](?) method returns settings that relate to each ind
 
 ## User preferences
 
-The editor's user preferences are shared between all instances. See the [TLUserPreferences](?) docs for more about the user preferences.
+The editor's user preferences are shared between all instances. See the the [UserPreferencesManager](?) for more about the user preferences.
 
 # Camera and coordinates
 
@@ -654,18 +654,18 @@ editor.setCameraOptions({ isLocked: true })
 
 ### Turn on dark mode
 
-You can turn on or off dark mode via the [setUserPreferences](?) method. Note that this effects all editor instances that share the same user—even instances in other tabs.
+You can turn on or off dark mode via the [UserPreferencesManager](?). Note that this effects all editor instances that share the same user—even instances in other tabs.
 
 ```ts
-setUserPreferences({ colorScheme: 'dark' })
+editor.user.updateUserPreferences({ colorScheme: 'dark' })
 ```
 
 ### Using the system color scheme
 
-You can also use the system color scheme via the [setUserPreferences](?) method.
+You can also use the system color scheme via the [UserPreferencesManager](?).
 
 ```ts
-setUserPreferences({ colorScheme: 'system' })
+editor.user.updateUserPreferences({ colorScheme: 'system' })
 ```
 
 ### Make changes without effecting the history

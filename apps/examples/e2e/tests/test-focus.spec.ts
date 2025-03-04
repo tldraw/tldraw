@@ -194,10 +194,12 @@ test.describe('Focus', () => {
 		await blueButton?.dispatchEvent('pointerup')
 
 		// Text should still be focused.
-		expect(await page.evaluate(() => document.activeElement?.nodeName === 'TEXTAREA')).toBe(true)
+		expect(
+			await page.evaluate(() => !!document.querySelector('.tl-shape div[contenteditable]:focus'))
+		).toBe(true)
 	})
 
-	test.skip('edit->edit, focus stays in the text areas when going from shape-to-shape', async ({
+	test('edit->edit, focus stays in the text areas when going from shape-to-shape', async ({
 		page,
 	}) => {
 		await page.goto('http://localhost:5420/end-to-end')
@@ -219,9 +221,9 @@ test.describe('Focus', () => {
 
 		await page.waitForTimeout(1000)
 
-		// First note's textarea should be focused.
-		expect(await EditorA.evaluate(() => !!document.querySelector('.tl-shape textarea:focus'))).toBe(
-			true
-		)
+		// First note's contenteditable should be focused.
+		expect(
+			await EditorA.evaluate(() => !!document.querySelector('.tl-shape div[contenteditable]:focus'))
+		).toBe(true)
 	})
 })

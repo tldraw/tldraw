@@ -268,8 +268,16 @@ export class TldrawApp {
 
 		for (const fileId of myFileIds) {
 			const file = myFiles[fileId]
-			const state = myStates[fileId]
-			if (!file || !state) continue
+			let state = myStates[fileId]
+			if (!file) continue
+			if (!state && !file.isDeleted && file.ownerId === this.userId) {
+				// create a file state for this file
+				// this allows us to 'undelete' soft-deleted files by manually toggling 'isDeleted' in the backend
+				state = this.getOrCreateFileState(fileId)
+			} else if (!state) {
+				// if the file is deleted, we don't want to show it in the recent files
+				continue
+			}
 			const existing = this.lastRecentFileOrdering?.find((f) => f.fileId === fileId)
 			if (existing && existing.isPinned === state.isPinned) {
 				nextRecentFileOrdering.push(existing)
@@ -348,8 +356,19 @@ export class TldrawApp {
 				Object.assign(file, { name: this.getFallbackFileName(file.createdAt) })
 			}
 		}
-
-		this.z.mutate.file.create(file)
+		this.z.mutate((tx) => {
+			tx.file.create(file)
+			tx.file_state.create({
+				isFileOwner: true,
+				fileId: file.id,
+				userId: this.userId,
+				firstVisitAt: null,
+				isPinned: false,
+				lastEditAt: null,
+				lastSessionState: null,
+				lastVisitAt: null,
+			})
+		})
 
 		return Result.ok({ file })
 	}
@@ -539,7 +558,7 @@ export class TldrawApp {
 		this.updateUser(exportPreferences)
 	}
 
-	async getOrCreateFileState(fileId: string) {
+	getOrCreateFileState(fileId: string) {
 		let fileState = this.getFileState(fileId)
 		if (!fileState) {
 			this.z.mutate.file_state.create({
@@ -570,8 +589,8 @@ export class TldrawApp {
 		this.z.mutate.file_state.update({ ...partial, fileId, userId: fileState.userId })
 	}
 
-	async onFileEnter(fileId: string) {
-		await this.getOrCreateFileState(fileId)
+	onFileEnter(fileId: string) {
+		this.getOrCreateFileState(fileId)
 		this.updateFileState(fileId, {
 			lastVisitAt: Date.now(),
 		})

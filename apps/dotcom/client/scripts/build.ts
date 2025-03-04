@@ -58,29 +58,37 @@ async function build() {
 	// Add fonts to preload into index.html
 	const assetsList = readdirSync('dist/assets')
 	const fontsToPreload = [
-		'Shantell_Sans-Tldrawish',
+		'Shantell_Sans-Informal_Regular',
 		'IBMPlexSerif-Medium',
 		'IBMPlexSans-Medium',
 		'IBMPlexMono-Medium',
 	]
-	const indexHtml = await readFileSync('.vercel/output/static/index.html', 'utf8')
-	await writeFileSync(
-		'.vercel/output/static/index.html',
-		indexHtml.replace(
-			'<!-- $PRELOADED_FONTS -->',
-			fontsToPreload
-				.map(
-					(font) => `<link
+	const fontPreloads = fontsToPreload
+		.map(
+			(font) => `<link
 		rel="preload"
 		href="/assets/${assetsList.find((a) => a.startsWith(font))}"
 		as="font"
 		type="font/woff2"
 		crossorigin="anonymous"
 	/>`
-				)
-				.join('\n')
 		)
-	)
+		.join('\n')
+
+	const spritePreload = `<link
+		rel="preload"
+		href="/assets/${assetsList.find((a) => a.startsWith('0_merged-'))}"
+		as="image"
+		type="image/svg+xml"
+		crossorigin="anonymous"
+	/>`
+
+	const indexHtml = readFileSync('.vercel/output/static/index.html', 'utf8')
+	const newIndex = indexHtml
+		.replace('<!-- $PRELOADED_FONTS -->', fontPreloads)
+		.replace('<!-- $PRELOADED_SPRITES -->', spritePreload)
+
+	writeFileSync('.vercel/output/static/index.html', newIndex)
 
 	const multiplayerServerUrl = getMultiplayerServerURL() ?? 'http://localhost:8787'
 	const assetsToCache = assetsList.filter((f) => !f.endsWith('.js.map')).map((f) => `/assets/${f}`)

@@ -1,4 +1,4 @@
-import { Box, Vec } from '@tldraw/editor'
+import { Box, TLNoteShape, Vec, toRichText } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 
 let editor: TestEditor
@@ -173,10 +173,20 @@ it('Selects an adjacent note when clicking the clone handle', () => {
 })
 
 it('Creates an adjacent note when dragging the clone handle', () => {
-	editor.createShape({ type: 'note', x: 1220, y: 1000 })
+	editor.createShape({
+		type: 'note',
+		x: 1220,
+		y: 1000,
+		props: { richText: toRichText('rich hello') },
+	})
 	const shapeA = editor.getLastCreatedShape()!
 
-	editor.createShape({ type: 'note', x: 1000, y: 1000 })
+	editor.createShape({
+		type: 'note',
+		x: 1000,
+		y: 1000,
+		props: { richText: toRichText('rich hello') },
+	})
 	const shapeB = editor.getLastCreatedShape()!
 
 	editor.select(shapeB.id)
@@ -203,11 +213,14 @@ it('Creates an adjacent note when dragging the clone handle', () => {
 
 	const offset = new Vec(100, 100).rot(0)
 
-	editor.expectShapeToMatch({
+	editor.expectShapeToMatch<TLNoteShape>({
 		id: newShape.id,
 		type: 'note',
 		x: handle.x + 30 - offset.x,
 		y: handle.y + 30 - offset.y,
+		props: {
+			richText: toRichText(''),
+		},
 	})
 
 	editor.pointerUp()

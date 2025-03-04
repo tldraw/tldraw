@@ -1,8 +1,8 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
+import { createPostgresConnectionPool } from '../../postgres'
 import { getR2KeyForRoom } from '../../r2'
 import { Environment } from '../../types'
-import { getReplicator } from '../../utils/durableObjects'
 
 export async function getPublishedRoomSnapshot(
 	env: Environment,
@@ -11,8 +11,11 @@ export async function getPublishedRoomSnapshot(
 	const parentSlug = await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(roomId)
 	if (!parentSlug) throw Error('not found')
 
-	const replicator = getReplicator(env)
-	const file = await replicator.getFileRecord(parentSlug)
+	const file = await createPostgresConnectionPool(env, 'getPublishedRoomSnapshot')
+		.selectFrom('file')
+		.selectAll()
+		.where('id', '=', parentSlug)
+		.executeTakeFirst()
 
 	if (!file) throw Error('not found')
 

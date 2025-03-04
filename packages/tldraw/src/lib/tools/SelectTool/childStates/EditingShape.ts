@@ -2,12 +2,15 @@ import {
 	StateNode,
 	TLCancelEventInfo,
 	TLCompleteEventInfo,
+	tlenv,
 	TLFrameShape,
 	TLPointerEventInfo,
 	TLShape,
 	TLTextShape,
 } from '@tldraw/editor'
 import { getTextLabels } from '../../../utils/shapes/shapes'
+import { renderPlaintextFromRichText } from '../../../utils/text/richText'
+import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
 
 interface EditingShapeInfo {
@@ -81,6 +84,23 @@ export class EditingShape extends StateNode {
 		this.hitShapeForPointerUp = null
 
 		switch (info.target) {
+			// N.B. This bit of logic has a bit of history to it.
+			// There was a PR that got rid of this logic: https://github.com/tldraw/tldraw/pull/4237
+			// But here we bring it back to help support the new rich text world.
+			// The original issue which is visible in the video attachments in the PR now seem
+			// to have been resolved anyway via some other layer.
+			case 'canvas': {
+				const hitShape = getHitShapeOnCanvasPointerDown(this.editor, true /* hitLabels */)
+				if (hitShape) {
+					this.onPointerDown({
+						...info,
+						shape: hitShape,
+						target: 'shape',
+					})
+					return
+				}
+				break
+			}
 			case 'shape': {
 				const { shape: selectingShape } = info
 				const editingShape = this.editor.getEditingShape()
@@ -96,7 +116,7 @@ export class EditingShape extends StateNode {
 				// N.B. One nuance here is that we want empty text fields to be removed from the canvas when the user clicks away from them.
 				const isEmptyTextShape =
 					this.editor.isShapeOfType<TLTextShape>(editingShape, 'text') &&
-					editingShape.props.text.trim() === ''
+					renderPlaintextFromRichText(this.editor, editingShape.props.richText).trim() === ''
 				if (textLabel && !isEmptyTextShape) {
 					const pointInShapeSpace = this.editor.getPointInShapeSpace(
 						selectingShape,
@@ -162,7 +182,16 @@ export class EditingShape extends StateNode {
 
 		this.editor.select(hitShape.id)
 
+		const currentEditingShape = this.editor.getEditingShape()
+		const isEditToEditAction = currentEditingShape && currentEditingShape.id !== hitShape.id
 		this.editor.setEditingShape(hitShape.id)
+
+		const isMobile = tlenv.isIos || tlenv.isAndroid
+		if (!isMobile || !isEditToEditAction) {
+			this.editor.emit('place-caret', { shapeId: hitShape.id, point: info.point })
+		} else if (isMobile && isEditToEditAction) {
+			this.editor.emit('select-all-text', { shapeId: hitShape.id })
+		}
 		updateHoveredShapeId(this.editor)
 	}
 

@@ -110,8 +110,8 @@ export class LicenseManager {
 		if (testEnvironment === 'development') return true
 		if (testEnvironment === 'production') return false
 
-		// If we are using https we assume it's a production env and a development one otherwise
-		return window.location.protocol !== 'https:'
+		// If we are using https on a non-localhost domain we assume it's a production env and a development one otherwise
+		return window.location.protocol !== 'https:' || window.location.hostname === 'localhost'
 	}
 
 	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {
