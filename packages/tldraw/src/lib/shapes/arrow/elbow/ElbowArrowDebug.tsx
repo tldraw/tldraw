@@ -30,6 +30,8 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 	const gizmoX = info.scale.x === 1 ? fullBox.minX : fullBox.maxX
 	const gizmoY = info.scale.y === 1 ? fullBox.minY : fullBox.maxY
 
+	const label = [info.hPos, info.vPos, info.route?.name].filter(Boolean).join(', ')
+
 	return (
 		<>
 			{/* <DebugBox box={transformBox(info.expanded.A, info.scale)} stroke="orange" /> */}
@@ -49,7 +51,7 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 				/>
 			)}
 			<text x={fullBox.minX + 5} y={fullBox.minY + 13}>
-				{info.hPos}, {info.vPos}
+				{label}
 			</text>
 			<g transform={`translate(${gizmoX}, ${gizmoY}) scale(${info.scale.x}, ${info.scale.y})`}>
 				<line x1={0} y1={0} x2={30} y2={0} stroke="red" />
@@ -64,24 +66,9 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 			<DebugEdge edge={info.edges.A.left} axis="y" scale={info.scale} stroke="orange" />
 			<DebugEdge edge={info.edges.B.left} axis="y" scale={info.scale} stroke="lightskyblue" />
 
-			{info.route && <DebugRoute route={info.route} />}
+			{info.route && <DebugRoute route={info.route.path} />}
 			{/* {info.path && <DebugRoute route={info.path} />} */}
 		</>
-	)
-}
-
-function DebugBox({ box, ...props }: { box: Box } & SVGProps<SVGRectElement>) {
-	return (
-		<rect
-			fill="none"
-			strokeWidth={1}
-			stroke="green"
-			x={box.x}
-			y={box.y}
-			width={box.width}
-			height={box.height}
-			{...props}
-		/>
 	)
 }
 

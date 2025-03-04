@@ -9,7 +9,9 @@ import {
 	track,
 	uniqueId,
 	useEditor,
+	useValue,
 } from '@tldraw/editor'
+import { elbowArrowDebug } from '@tldraw/editor/src/lib/utils/debug-flags'
 import React from 'react'
 import { createDebugElbowArrowScene } from '../../../shapes/arrow/elbow/createDebugElbowArrowScene'
 import { useDialogs } from '../../context/dialogs'
@@ -168,11 +170,7 @@ export function DefaultDebugMenuContent() {
 				})()}
 				<TldrawUiMenuItem id="throw-error" onSelect={() => setError(true)} label={'Throw error'} />
 				<TldrawUiMenuItem id="hard-reset" onSelect={hardResetEditor} label={'Hard reset'} />
-				<TldrawUiMenuItem
-					id="create-elbow-arrows"
-					onSelect={() => createDebugElbowArrowScene(editor)}
-					label={'Create elbow arrows'}
-				/>
+				<DebugElbowArrowMenu />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="flags">
 				<DebugFlags />
@@ -207,6 +205,117 @@ export function FeatureFlags() {
 				{items.map((flag) => (
 					<DebugFlagToggle key={flag.name} flag={flag} />
 				))}
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+export function DebugElbowArrowMenu() {
+	const { visualDebugging, aSide, bSide } = useValue(elbowArrowDebug)
+	const editor = useEditor()
+
+	return (
+		<TldrawUiMenuSubmenu id="debug elbow arrows" label="Elbow arrows">
+			<TldrawUiMenuGroup id="visual">
+				<TldrawUiMenuCheckboxItem
+					id="visual"
+					label="Visual debugging"
+					checked={visualDebugging}
+					onSelect={() => {
+						elbowArrowDebug.update((p) => ({ ...p, visualDebugging: !visualDebugging }))
+					}}
+				/>
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="samples">
+				<TldrawUiMenuItem
+					id="create-elbow-arrows"
+					onSelect={() => createDebugElbowArrowScene(editor)}
+					label={'Create samples'}
+				/>
+				<TldrawUiMenuSubmenu id="a-side" label={`Start (${aSide ?? 'auto'})`}>
+					<TldrawUiMenuCheckboxItem
+						id="a-auto"
+						label="Auto"
+						checked={aSide === null}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, aSide: null }))
+						}}
+					/>
+					<TldrawUiMenuCheckboxItem
+						id="a-left"
+						label="Left"
+						checked={aSide === 'left'}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, aSide: 'left' }))
+						}}
+					/>
+					<TldrawUiMenuCheckboxItem
+						id="a-right"
+						label="Right"
+						checked={aSide === 'right'}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, aSide: 'right' }))
+						}}
+					/>
+					<TldrawUiMenuCheckboxItem
+						id="a-top"
+						label="Top"
+						checked={aSide === 'top'}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, aSide: 'top' }))
+						}}
+					/>
+					<TldrawUiMenuCheckboxItem
+						id="a-bottom"
+						label="Bottom"
+						checked={aSide === 'bottom'}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, aSide: 'bottom' }))
+						}}
+					/>
+				</TldrawUiMenuSubmenu>
+				<TldrawUiMenuSubmenu id="b-side" label={`End (${bSide ?? 'auto'})`}>
+					<TldrawUiMenuCheckboxItem
+						id="b-auto"
+						label="Auto"
+						checked={bSide === null}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, bSide: null }))
+						}}
+					/>
+					<TldrawUiMenuCheckboxItem
+						id="b-left"
+						label="Left"
+						checked={bSide === 'left'}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, bSide: 'left' }))
+						}}
+					/>
+					<TldrawUiMenuCheckboxItem
+						id="b-right"
+						label="Right"
+						checked={bSide === 'right'}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, bSide: 'right' }))
+						}}
+					/>
+					<TldrawUiMenuCheckboxItem
+						id="b-top"
+						label="Top"
+						checked={bSide === 'top'}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, bSide: 'top' }))
+						}}
+					/>
+					<TldrawUiMenuCheckboxItem
+						id="b-bottom"
+						label="Bottom"
+						checked={bSide === 'bottom'}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, bSide: 'bottom' }))
+						}}
+					/>
+				</TldrawUiMenuSubmenu>
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)

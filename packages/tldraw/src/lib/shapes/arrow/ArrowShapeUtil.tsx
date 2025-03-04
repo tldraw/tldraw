@@ -23,7 +23,6 @@ import {
 	WeakCache,
 	arrowShapeMigrations,
 	arrowShapeProps,
-	debugFlags,
 	getDefaultColorTheme,
 	getPerfectDashProps,
 	lerp,
@@ -40,6 +39,7 @@ import {
 import React from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 
+import { elbowArrowDebug } from '@tldraw/editor/src/lib/utils/debug-flags'
 import { ShapeFill } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
@@ -636,7 +636,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						shape={shape}
 						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape?.id === shape.id}
 					/>
-					{shape.props.elbow && debugFlags.debugElbowArrows.get() && (
+					{shape.props.elbow && elbowArrowDebug.get().visualDebugging && (
 						<ElbowArrowDebug arrow={shape} />
 					)}
 				</SVGContainer>

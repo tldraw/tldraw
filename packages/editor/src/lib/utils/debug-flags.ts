@@ -1,4 +1,5 @@
 import { Atom, atom, react } from '@tldraw/state'
+import { ElbowArrowSide } from '@tldraw/tlschema'
 import { deleteFromSessionStorage, getFromSessionStorage, setInSessionStorage } from '@tldraw/utils'
 
 // --- 1. DEFINE ---
@@ -20,6 +21,15 @@ export const pointerCaptureTrackingObject = createDebugValue(
 		shouldStoreForSession: false,
 	}
 )
+
+/** @internal */
+export const elbowArrowDebug = createDebugValue<{
+	visualDebugging: boolean
+	aSide: ElbowArrowSide | null
+	bSide: ElbowArrowSide | null
+}>('elbowArrowDebug', {
+	defaults: { all: { visualDebugging: false, aSide: null, bSide: null } },
+})
 
 /** @internal */
 export const debugFlags = {
@@ -53,7 +63,6 @@ export const debugFlags = {
 	debugGeometry: createDebugValue('debugGeometry', { defaults: { all: false } }),
 	hideShapes: createDebugValue('hideShapes', { defaults: { all: false } }),
 	editOnType: createDebugValue('editOnType', { defaults: { all: false } }),
-	debugElbowArrows: createDebugValue('debugElbowArrows', { defaults: { all: false } }),
 } as const
 
 declare global {

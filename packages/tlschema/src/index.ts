@@ -137,8 +137,11 @@ export { type ShapeWithCrop, type TLShapeCrop } from './shapes/ShapeWithCrop'
 export {
 	ArrowShapeArrowheadEndStyle,
 	ArrowShapeArrowheadStartStyle,
+	ElbowArrowProps,
+	ElbowArrowSide,
 	arrowShapeMigrations,
 	arrowShapeProps,
+	arrowShapeVersions,
 	type TLArrowShape,
 	type TLArrowShapeArrowheadStyle,
 	type TLArrowShapeProps,

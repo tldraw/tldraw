@@ -3,6 +3,7 @@ import {
 	Box,
 	createComputedCache,
 	Editor,
+	ElbowArrowSide,
 	exhaustiveSwitchError,
 	Mat,
 	TLArrowBinding,
@@ -15,6 +16,7 @@ import {
 import { ArrowShapeOptions } from '../arrow-types'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { getArrowBindings } from '../shared'
+import { ElbowArrowSideAxes, ElbowArrowSideOpposites } from './constants'
 import { ArrowNavigationGrid, getArrowNavigationGrid } from './getArrowNavigationGrid'
 import { getArrowPath } from './getArrowPath'
 import {
@@ -26,6 +28,7 @@ import {
 	subtractRange,
 } from './range'
 import { routeArrowWithAutoEdgePicking } from './routeArrowWithAutoEdgePicking'
+import { ElbowArrowRoute, routeArrowWithManualEdgePicking } from './routeArrowWithManualEdgePicking'
 
 export interface ElbowArrowScale {
 	x: 1 | -1
@@ -160,7 +163,7 @@ export interface ElbowArrowInfoWithoutRoute {
 }
 
 export interface ElbowArrowInfo extends ElbowArrowInfoWithoutRoute {
-	route: VecLike[] | null
+	route: ElbowArrowRoute | null
 }
 
 const elbowArrowInfoCache = createComputedCache(
@@ -295,8 +298,20 @@ const elbowArrowInfoCache = createComputedCache(
 			steve,
 		}
 
-		let route = routeArrowWithAutoEdgePicking(info)
-		if (route) route = route.map((r) => transformPoint(r, info.scale))
+		let route
+		if (arrow.props.elbow.startEdge && arrow.props.elbow.endEdge) {
+			route = routeArrowWithManualEdgePicking(
+				info,
+				transformSide(arrow.props.elbow.startEdge, info.scale),
+				transformSide(arrow.props.elbow.endEdge, info.scale)
+			)
+		}
+		if (!route) {
+			route = routeArrowWithAutoEdgePicking(info)
+		}
+		if (route) {
+			route = transformRoute(route, info.scale)
+		}
 
 		return { ...info, route }
 	}
@@ -338,6 +353,17 @@ export function transformBox(box: Box, scale: ElbowArrowScale) {
 
 export function transformPoint(point: VecLike, scale: ElbowArrowScale) {
 	return { x: point.x * scale.x, y: point.y * scale.y }
+}
+
+export function transformRoute(route: ElbowArrowRoute, scale: ElbowArrowScale): ElbowArrowRoute {
+	return {
+		...route,
+		path: route.path.map((r) => transformPoint(r, scale)),
+	}
+}
+
+export function transformSide(side: ElbowArrowSide, scale: ElbowArrowScale) {
+	return scale[ElbowArrowSideAxes[side]] === 1 ? side : ElbowArrowSideOpposites[side]
 }
 
 const sideProps = {
@@ -436,6 +462,7 @@ export function getUsableEdge(
 		expanded: aExpanded,
 		cross: aCrossRange,
 		crossCenter: clampToRange(a[props.crossMid], aCrossRange),
+		// crossCenter: lerp(aCrossRange.min, aCrossRange.max, 0.5),
 		isPartial,
 	}
 }

@@ -7,6 +7,7 @@ import {
 	TLGeoShape,
 	TLTextShape,
 } from '@tldraw/editor'
+import { elbowArrowDebug } from '@tldraw/editor/src/lib/utils/debug-flags'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { createOrUpdateArrowBinding } from '../shared'
 
@@ -16,12 +17,14 @@ export function createDebugElbowArrowScene(editor: Editor) {
 	editor.markHistoryStoppingPoint()
 	editor.run(() => {
 		const { options } = editor.getShapeUtil<ArrowShapeUtil>('arrow')
+		const { aSide, bSide } = elbowArrowDebug.get()
 
 		assert(options.expandElbowLegLength > options.minElbowLegLength)
 		assert(options.expandElbowLegLength * 4 < defaultSize)
 
 		const spacing = options.expandElbowLegLength * 2
 		const big = defaultSize + options.expandElbowLegLength * 4
+		const veryBig = defaultSize + options.expandElbowLegLength * 12
 		const positions = Object.entries({
 			'fully separated': defaultSize * 2,
 			'between expand & min distance':
@@ -36,6 +39,7 @@ export function createDebugElbowArrowScene(editor: Editor) {
 			'expanded before shape': { pos: options.expandElbowLegLength / 2, size: big },
 			'shape before shape': { pos: -options.expandElbowLegLength / 2, size: big },
 			'shape before expanded': { pos: -options.expandElbowLegLength * 1.5, size: big },
+			'very big': { pos: -options.expandElbowLegLength * 1.5, size: veryBig },
 		} satisfies Record<string, number | { pos: number; size: number }>)
 
 		const oldShapeIds = []
@@ -121,6 +125,12 @@ export function createDebugElbowArrowScene(editor: Editor) {
 					type: 'arrow',
 					meta: { isFromDebugElbowArrowScene: true },
 					id: arrowId,
+					props: {
+						elbow: {
+							startEdge: aSide,
+							endEdge: bSide,
+						},
+					},
 				})
 
 				createOrUpdateArrowBinding(editor, arrowId, shapeAId, {

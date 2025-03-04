@@ -45,20 +45,20 @@ export const ArrowShapeArrowheadEndStyle = StyleProp.defineEnum('tldraw:arrowhea
 export type TLArrowShapeArrowheadStyle = T.TypeOf<typeof ArrowShapeArrowheadStartStyle>
 
 /** @public */
-export const ElbowArrowDirection = T.literalEnum('up', 'down', 'left', 'right')
+export const ElbowArrowSide = T.literalEnum('top', 'bottom', 'left', 'right')
 /** @public */
-export type ElbowArrowDirection = T.TypeOf<typeof ElbowArrowDirection>
+export type ElbowArrowSide = T.TypeOf<typeof ElbowArrowSide>
 
 /** @public */
 export interface ElbowArrowProps {
-	startEdge: ElbowArrowDirection | null
-	endEdge: ElbowArrowDirection | null
+	startEdge: ElbowArrowSide | null
+	endEdge: ElbowArrowSide | null
 }
 
 /** @public */
 export const ElbowArrowProps = T.object({
-	startEdge: ElbowArrowDirection.nullable(),
-	endEdge: ElbowArrowDirection.nullable(),
+	startEdge: ElbowArrowSide.nullable(),
+	endEdge: ElbowArrowSide.nullable(),
 })
 
 /** @public */
