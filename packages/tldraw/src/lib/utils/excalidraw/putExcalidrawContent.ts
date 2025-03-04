@@ -23,6 +23,7 @@ import {
 	getIndexAbove,
 	getIndices,
 	isShapeId,
+	toRichText,
 } from '@tldraw/editor'
 
 /**
@@ -138,7 +139,7 @@ export async function putExcalidrawContent(
 						h: element.height,
 						size: strokeWidthsToSizes[element.strokeWidth] ?? 'draw',
 						color: colorsToColors[colorToUse] ?? 'black',
-						text,
+						richText: toRichText(text),
 						align,
 						dash: getDash(element),
 						fill: getFill(element),
@@ -277,7 +278,7 @@ export async function putExcalidrawContent(
 						scale,
 						font: fontFamilyToFontType[element.fontFamily] ?? 'draw',
 						color: colorsToColors[element.strokeColor] ?? 'black',
-						text: element.text,
+						richText: toRichText(element.text),
 						textAlign: textAlignToTextAlignTypes[element.textAlign],
 					},
 				})

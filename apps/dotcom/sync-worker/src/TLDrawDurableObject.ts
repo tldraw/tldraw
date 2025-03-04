@@ -776,12 +776,15 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 	}
 
-	async appFileRecordDidDelete() {
-		// force isOrWasCreateMode to be false so next open will check the database
+	async appFileRecordDidDelete({
+		id,
+		publishedSlug,
+	}: Pick<TlaFile, 'id' | 'ownerId' | 'publishedSlug'>) {
 		if (this._documentInfo?.deleted) return
 
 		this._fileRecordCache = null
 
+		// prevent new connections while we clean everything up
 		this.setDocumentInfo({
 			version: CURRENT_DOCUMENT_INFO_VERSION,
 			slug: this.documentInfo.slug,
@@ -790,14 +793,43 @@ export class TLDrawDurableObject extends DurableObject {
 		})
 
 		await this.executionQueue.push(async () => {
-			const room = await this.getRoom()
-			for (const session of room.getSessions()) {
-				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
+			if (this._room) {
+				const room = await this.getRoom()
+				for (const session of room.getSessions()) {
+					room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
+				}
+				room.close()
 			}
-			room.close()
 			// setting _room to null will prevent any further persists from going through
 			this._room = null
 			// delete should be handled by the delete endpoint now
+
+			// Delete published slug mapping
+			await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(publishedSlug)
+
+			// remove published files
+			const publishedPrefixKey = getR2KeyForRoom({
+				slug: `${id}/${publishedSlug}`,
+				isApp: true,
+			})
+
+			const publishedHistory = await listAllObjectKeys(this.env.ROOM_SNAPSHOTS, publishedPrefixKey)
+			if (publishedHistory.length > 0) {
+				await this.env.ROOM_SNAPSHOTS.delete(publishedHistory)
+			}
+
+			// remove edit history
+			const r2Key = getR2KeyForRoom({ slug: id, isApp: true })
+			const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, r2Key)
+			if (editHistory.length > 0) {
+				await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
+			}
+
+			// remove main file
+			await this.env.ROOMS.delete(r2Key)
+
+			// finally clear storage so we don't keep the data around
+			this.ctx.storage.deleteAll()
 		})
 	}
 
@@ -808,4 +840,17 @@ export class TLDrawDurableObject extends DurableObject {
 		if (!this._documentInfo) return
 		await this.persistToDatabase()
 	}
+}
+
+async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<string[]> {
+	const keys: string[] = []
+	let cursor: string | undefined
+
+	do {
+		const result = await bucket.list({ prefix, cursor })
+		keys.push(...result.objects.map((o) => o.key))
+		cursor = result.truncated ? result.cursor : undefined
+	} while (cursor)
+
+	return keys
 }

@@ -45,6 +45,7 @@ export {
 export { TL_CURSOR_TYPES, type TLCursor, type TLCursorType } from './misc/TLCursor'
 export { TL_HANDLE_TYPES, type TLHandle, type TLHandleType } from './misc/TLHandle'
 export { opacityValidator, type TLOpacityType } from './misc/TLOpacity'
+export { richTextValidator, toRichText, type TLRichText } from './misc/TLRichText'
 export { TL_SCRIBBLE_STATES, scribbleValidator, type TLScribble } from './misc/TLScribble'
 export {
 	boxModelValidator,

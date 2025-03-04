@@ -23,10 +23,22 @@ import embedIconsTldrawPngUrl from './embed-icons/tldraw.png?url'
 import embedIconsValTownPngUrl from './embed-icons/val_town.png?url'
 import embedIconsVimeoPngUrl from './embed-icons/vimeo.png?url'
 import embedIconsYoutubePngUrl from './embed-icons/youtube.png?url'
+import fontsIBMPlexMonoBoldWoff2Url from './fonts/IBMPlexMono-Bold.woff2?url'
+import fontsIBMPlexMonoBoldItalicWoff2Url from './fonts/IBMPlexMono-BoldItalic.woff2?url'
 import fontsIBMPlexMonoMediumWoff2Url from './fonts/IBMPlexMono-Medium.woff2?url'
+import fontsIBMPlexMonoMediumItalicWoff2Url from './fonts/IBMPlexMono-MediumItalic.woff2?url'
+import fontsIBMPlexSansBoldWoff2Url from './fonts/IBMPlexSans-Bold.woff2?url'
+import fontsIBMPlexSansBoldItalicWoff2Url from './fonts/IBMPlexSans-BoldItalic.woff2?url'
 import fontsIBMPlexSansMediumWoff2Url from './fonts/IBMPlexSans-Medium.woff2?url'
+import fontsIBMPlexSansMediumItalicWoff2Url from './fonts/IBMPlexSans-MediumItalic.woff2?url'
+import fontsIBMPlexSerifBoldWoff2Url from './fonts/IBMPlexSerif-Bold.woff2?url'
+import fontsIBMPlexSerifBoldItalicWoff2Url from './fonts/IBMPlexSerif-BoldItalic.woff2?url'
 import fontsIBMPlexSerifMediumWoff2Url from './fonts/IBMPlexSerif-Medium.woff2?url'
-import fontsShantellSansTldrawishWoff2Url from './fonts/Shantell_Sans-Tldrawish.woff2?url'
+import fontsIBMPlexSerifMediumItalicWoff2Url from './fonts/IBMPlexSerif-MediumItalic.woff2?url'
+import fontsShantellSansInformalBoldWoff2Url from './fonts/Shantell_Sans-Informal_Bold.woff2?url'
+import fontsShantellSansInformalBoldItalicWoff2Url from './fonts/Shantell_Sans-Informal_Bold_Italic.woff2?url'
+import fontsShantellSansInformalRegularWoff2Url from './fonts/Shantell_Sans-Informal_Regular.woff2?url'
+import fontsShantellSansInformalRegularItalicWoff2Url from './fonts/Shantell_Sans-Informal_Regular_Italic.woff2?url'
 import iconsIcon0MergedSvgUrl from './icons/icon/0_merged.svg?url'
 import translationsArJsonUrl from './translations/ar.json?url'
 import translationsBnJsonUrl from './translations/bn.json?url'
@@ -90,10 +102,22 @@ export function getAssetUrlsByImport(opts) {
 	const iconsIcon0MergedSvg2 = formatAssetUrl(iconsIcon0MergedSvgUrl, opts)
 	return {
 		fonts: {
-			monospace: formatAssetUrl(fontsIBMPlexMonoMediumWoff2Url, opts),
-			sansSerif: formatAssetUrl(fontsIBMPlexSansMediumWoff2Url, opts),
-			serif: formatAssetUrl(fontsIBMPlexSerifMediumWoff2Url, opts),
-			draw: formatAssetUrl(fontsShantellSansTldrawishWoff2Url, opts),
+			tldraw_mono_bold: formatAssetUrl(fontsIBMPlexMonoBoldWoff2Url, opts),
+			tldraw_mono_italic_bold: formatAssetUrl(fontsIBMPlexMonoBoldItalicWoff2Url, opts),
+			tldraw_mono: formatAssetUrl(fontsIBMPlexMonoMediumWoff2Url, opts),
+			tldraw_mono_italic: formatAssetUrl(fontsIBMPlexMonoMediumItalicWoff2Url, opts),
+			tldraw_sans_bold: formatAssetUrl(fontsIBMPlexSansBoldWoff2Url, opts),
+			tldraw_sans_italic_bold: formatAssetUrl(fontsIBMPlexSansBoldItalicWoff2Url, opts),
+			tldraw_sans: formatAssetUrl(fontsIBMPlexSansMediumWoff2Url, opts),
+			tldraw_sans_italic: formatAssetUrl(fontsIBMPlexSansMediumItalicWoff2Url, opts),
+			tldraw_serif_bold: formatAssetUrl(fontsIBMPlexSerifBoldWoff2Url, opts),
+			tldraw_serif_italic_bold: formatAssetUrl(fontsIBMPlexSerifBoldItalicWoff2Url, opts),
+			tldraw_serif: formatAssetUrl(fontsIBMPlexSerifMediumWoff2Url, opts),
+			tldraw_serif_italic: formatAssetUrl(fontsIBMPlexSerifMediumItalicWoff2Url, opts),
+			tldraw_draw_bold: formatAssetUrl(fontsShantellSansInformalBoldWoff2Url, opts),
+			tldraw_draw_italic_bold: formatAssetUrl(fontsShantellSansInformalBoldItalicWoff2Url, opts),
+			tldraw_draw: formatAssetUrl(fontsShantellSansInformalRegularWoff2Url, opts),
+			tldraw_draw_italic: formatAssetUrl(fontsShantellSansInformalRegularItalicWoff2Url, opts),
 		},
 		icons: {
 			'align-bottom': iconsIcon0MergedSvg2 + '#align-bottom',
@@ -112,9 +136,11 @@ export function getAssetUrlsByImport(opts) {
 			'arrowhead-triangle-inverted': iconsIcon0MergedSvg2 + '#arrowhead-triangle-inverted',
 			'arrowhead-triangle': iconsIcon0MergedSvg2 + '#arrowhead-triangle',
 			blob: iconsIcon0MergedSvg2 + '#blob',
+			bold: iconsIcon0MergedSvg2 + '#bold',
 			'bring-forward': iconsIcon0MergedSvg2 + '#bring-forward',
 			'bring-to-front': iconsIcon0MergedSvg2 + '#bring-to-front',
 			broken: iconsIcon0MergedSvg2 + '#broken',
+			bulletList: iconsIcon0MergedSvg2 + '#bulletList',
 			'check-circle': iconsIcon0MergedSvg2 + '#check-circle',
 			check: iconsIcon0MergedSvg2 + '#check',
 			'chevron-down': iconsIcon0MergedSvg2 + '#chevron-down',
@@ -125,6 +151,7 @@ export function getAssetUrlsByImport(opts) {
 			'chevrons-sw': iconsIcon0MergedSvg2 + '#chevrons-sw',
 			'clipboard-copied': iconsIcon0MergedSvg2 + '#clipboard-copied',
 			'clipboard-copy': iconsIcon0MergedSvg2 + '#clipboard-copy',
+			code: iconsIcon0MergedSvg2 + '#code',
 			color: iconsIcon0MergedSvg2 + '#color',
 			'cross-2': iconsIcon0MergedSvg2 + '#cross-2',
 			'cross-circle': iconsIcon0MergedSvg2 + '#cross-circle',
@@ -176,12 +203,16 @@ export function getAssetUrlsByImport(opts) {
 			'geo-x-box': iconsIcon0MergedSvg2 + '#geo-x-box',
 			github: iconsIcon0MergedSvg2 + '#github',
 			group: iconsIcon0MergedSvg2 + '#group',
+			heading: iconsIcon0MergedSvg2 + '#heading',
+			highlight: iconsIcon0MergedSvg2 + '#highlight',
 			'horizontal-align-end': iconsIcon0MergedSvg2 + '#horizontal-align-end',
 			'horizontal-align-middle': iconsIcon0MergedSvg2 + '#horizontal-align-middle',
 			'horizontal-align-start': iconsIcon0MergedSvg2 + '#horizontal-align-start',
 			'info-circle': iconsIcon0MergedSvg2 + '#info-circle',
+			italic: iconsIcon0MergedSvg2 + '#italic',
 			leading: iconsIcon0MergedSvg2 + '#leading',
 			link: iconsIcon0MergedSvg2 + '#link',
+			list: iconsIcon0MergedSvg2 + '#list',
 			lock: iconsIcon0MergedSvg2 + '#lock',
 			menu: iconsIcon0MergedSvg2 + '#menu',
 			minus: iconsIcon0MergedSvg2 + '#minus',
@@ -214,6 +245,7 @@ export function getAssetUrlsByImport(opts) {
 			'status-offline': iconsIcon0MergedSvg2 + '#status-offline',
 			'stretch-horizontal': iconsIcon0MergedSvg2 + '#stretch-horizontal',
 			'stretch-vertical': iconsIcon0MergedSvg2 + '#stretch-vertical',
+			strike: iconsIcon0MergedSvg2 + '#strike',
 			'text-align-center': iconsIcon0MergedSvg2 + '#text-align-center',
 			'text-align-left': iconsIcon0MergedSvg2 + '#text-align-left',
 			'text-align-right': iconsIcon0MergedSvg2 + '#text-align-right',
@@ -234,6 +266,7 @@ export function getAssetUrlsByImport(opts) {
 			'tool-text': iconsIcon0MergedSvg2 + '#tool-text',
 			trash: iconsIcon0MergedSvg2 + '#trash',
 			twitter: iconsIcon0MergedSvg2 + '#twitter',
+			underline: iconsIcon0MergedSvg2 + '#underline',
 			undo: iconsIcon0MergedSvg2 + '#undo',
 			ungroup: iconsIcon0MergedSvg2 + '#ungroup',
 			unlock: iconsIcon0MergedSvg2 + '#unlock',

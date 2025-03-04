@@ -6,7 +6,7 @@ import {
 	TLShapeId,
 	getDefaultColorTheme,
 } from '@tldraw/tlschema'
-import { hasOwnProperty, promiseWithResolve } from '@tldraw/utils'
+import { hasOwnProperty, promiseWithResolve, uniqueId } from '@tldraw/utils'
 import {
 	ComponentType,
 	Fragment,
@@ -21,6 +21,7 @@ import { flushSync } from 'react-dom'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { InnerShape, InnerShapeBackground } from '../components/Shape'
 import { Editor, TLRenderingShape } from '../editor/Editor'
+import { TLFontFace } from '../editor/managers/FontManager'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import {
 	SvgExportContext,
@@ -341,6 +342,25 @@ function SvgExport({
 	}, [bbox, editor, exportContext, masksId, renderingShapes, singleFrameShapeId, stateAtom])
 
 	useEffect(() => {
+		const fontsInUse = new Set<TLFontFace>()
+		for (const { id } of renderingShapes) {
+			for (const font of editor.fonts.getShapeFontFaces(id)) {
+				fontsInUse.add(font)
+			}
+		}
+
+		for (const font of fontsInUse) {
+			addExportDef({
+				key: uniqueId(),
+				getElement: async () => {
+					const declaration = await editor.fonts.toEmbeddedCssDeclaration(font)
+					return <style>{declaration}</style>
+				},
+			})
+		}
+	}, [editor, renderingShapes, addExportDef])
+
+	useEffect(() => {
 		if (shapeElements === null) return
 		onMount()
 	}, [onMount, shapeElements])
@@ -408,7 +428,7 @@ function ForeignObjectShape({
 				y={bbox.minY}
 				width={bbox.w}
 				height={bbox.h}
-				className="tl-shape-foreign-object"
+				className="tl-shape-foreign-object tl-export-embed-styles"
 			>
 				<div
 					className={className}

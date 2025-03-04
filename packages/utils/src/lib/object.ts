@@ -9,6 +9,8 @@ export function getOwnProperty<K extends string, V>(
 	key: K
 ): V | undefined
 /** @internal */
+export function getOwnProperty<O extends object>(obj: O, key: string): O[keyof O] | undefined
+/** @internal */
 export function getOwnProperty(obj: object, key: string): unknown
 /** @internal */
 export function getOwnProperty(obj: object, key: string): unknown {

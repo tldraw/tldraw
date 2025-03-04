@@ -179,14 +179,7 @@ export class Zero {
 				if (store?.files.find((f) => f.id === data.id)) {
 					throw new Error('file already exists')
 				}
-				this.makeOptimistic([
-					{ table: 'file', event: 'insert', row: data },
-					{
-						table: 'file_state',
-						event: 'insert',
-						row: { fileId: data.id, userId: store.user.id, firstVisitAt: Date.now() } as any,
-					},
-				])
+				this.makeOptimistic([{ table: 'file', event: 'insert', row: data }])
 			},
 			update: (data: TlaFilePartial) => {
 				const existing = this.store.getFullData()?.files.find((f) => f.id === data.id)
