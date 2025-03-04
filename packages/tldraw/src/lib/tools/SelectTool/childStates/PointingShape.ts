@@ -164,6 +164,11 @@ export class PointingShape extends StateNode {
 
 										if (this.isDoubleClick) {
 											this.editor.emit('select-all-text', { shapeId: selectingShape.id })
+										} else {
+											this.editor.emit('place-caret', {
+												shapeId: selectingShape.id,
+												point: info.point,
+											})
 										}
 									})
 									return

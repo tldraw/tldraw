@@ -39,9 +39,10 @@
 	--layer-overlays-user-brush: 50;
 	--layer-overlays-user-indicator-selected: 60;
 	--layer-overlays-user-indicator-hovered: 70;
-	--layer-overlays-user-handles: 80;
 	--layer-overlays-user-snapline: 90;
 	--layer-overlays-selection-fg: 100;
+	/* User handles need to be above selection edges / corners, matters for sticky note clone handles */
+	--layer-overlays-user-handles: 105;
 	--layer-overlays-user-indicator-hint: 110;
 	--layer-overlays-collaborator-cursor-hint: 120;
 	--layer-overlays-collaborator-cursor: 130;
@@ -155,6 +156,8 @@
 	--color-text-1: hsl(0, 0%, 18%);
 	--color-text-3: hsl(220, 2%, 65%);
 	--color-text-shadow: hsl(0, 0%, 100%);
+	--color-text-highlight: hsl(52, 100%, 50%);
+	--color-text-highlight-p3: color(display-p3 0.972 0.8205 0.05);
 	--color-primary: hsl(214, 84%, 56%);
 	--color-success: hsl(123, 46%, 34%);
 	--color-info: hsl(201, 98%, 41%);
@@ -201,6 +204,8 @@
 	--color-text-1: hsl(0, 0%, 85%);
 	--color-text-3: hsl(210, 6%, 45%);
 	--color-text-shadow: hsl(210, 13%, 18%);
+	--color-text-highlight: hsl(52, 100%, 41%);
+	--color-text-highlight-p3: color(display-p3 0.8078 0.6225 0.0312);
 	--color-primary: hsl(214, 84%, 56%);
 	--color-success: hsl(123, 38%, 57%);
 	--color-info: hsl(199, 92%, 56%);
@@ -247,7 +252,7 @@
 input,
 *[contenteditable],
 *[contenteditable] * {
-	-webkit-user-select: text;
+	user-select: text;
 }
 
 /* -------------------------------------------------- */
@@ -721,17 +726,14 @@ input,
 	opacity: 0.7;
 }
 
-/* -------------------------------------------------- */
-/*                       Spinner                      */
-/* -------------------------------------------------- */
-
+/* --------------------- Spinner -------------------- */
 @keyframes spinner {
 	to {
 		transform: rotate(360deg);
 	}
 }
 
-/* ------------------- Text Shape ------------------- */
+/* ---------------------- Text ---------------------- */
 
 .tl-text-shape-label {
 	position: relative;
@@ -781,8 +783,12 @@ input,
 	text-align: right;
 }
 
-.tl-text-wrapper[data-isediting='true'] .tl-text-content {
+.tl-plain-text-wrapper[data-isediting='true'] .tl-text-content {
 	opacity: 0;
+}
+
+.tl-rich-text-wrapper[data-isediting='true'] .tl-text-content {
+	display: none;
 }
 
 .tl-text {
@@ -851,7 +857,6 @@ input,
 	width: 100%;
 	min-width: 1px;
 	min-height: 1px;
-	overflow: visible;
 	outline: none;
 }
 
@@ -867,6 +872,7 @@ input,
 }
 
 .tl-text-content {
+	overflow: visible;
 	pointer-events: none;
 }
 
@@ -874,8 +880,15 @@ input,
 	resize: none;
 	user-select: all;
 	-webkit-user-select: text;
-	overflow: hidden;
 	cursor: var(--tl-cursor-text);
+}
+
+.tl-text-input:not(.tl-rich-text) {
+	/*
+	 * Note: this `overflow: hidden` is key for scrollbars to not show up
+	 * plaintext/<textarea> editors.
+	 */
+	overflow: hidden;
 }
 
 .tl-text-wrapper[data-isediting='false'] .tl-text-input,
@@ -888,6 +901,109 @@ input,
 	background: var(--color-selected);
 	color: var(--color-selected-contrast);
 	text-shadow: none;
+}
+
+.tl-rich-text[data-iseditinganything='true'] {
+	cursor: var(--tl-cursor-text);
+}
+
+.tl-rich-text .ProseMirror {
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	white-space: pre-wrap;
+
+	/**
+	 * Note: ProseMirror disables this in https://github.com/ProseMirror/prosemirror-view/commit/6b3b2205e2f3029cb8e8e86c55a190a22491df31
+	 * However, that was from 8 years ago and the browser caret issue
+	 * it mentions seems to be fixed. So, we're re-enabling it.
+	 * We'll tell ProseMirror maybe to get rid of this on their end.
+	 */
+	-webkit-font-variant-ligatures: inherit;
+	font-variant-ligatures: inherit;
+	font-feature-settings: inherit;
+
+	/**
+	 * N.B. This following CSS Rule comes standard with the tiptap editor.
+	 * Combined with the above rule that it supersedes, it allows for
+	 * the auto-linking to work in text. Say, when typing example.com
+	 * this helps it automatically turn that bit of text into a link.
+	 *
+	 * However, specifically, the break-spaces features seems to cause
+	 * rendering differences when going in-and-out of edit mode. For example,
+	 * the statically rendered text 'the rain in spain falls mainly on the plain'
+	 * in a note shape will render differently when going in-and-out of edit mode.
+	 *
+	 * So, this is commented out to help make both the autolinking work (which now
+	 * relies on the white-space: pre-wrap to work and to make the static/edit-mode
+	 * rendering consistent.
+	 * In the future, we might consider just making the static rendering just use
+	 * white-space: break-spaces to make it consistent with the edit mode if need be.
+	 *
+	 * Also, the amount of ink I've spilt in my career writing comments explaining
+	 * white-space in contenteditable is incredible.
+	 *
+	/* white-space: break-spaces; */
+}
+
+.tl-rich-text p {
+	margin: 0;
+}
+
+.tl-rich-text ul,
+.tl-rich-text ol {
+	text-align: left;
+	margin: 0;
+}
+
+.tl-rich-text h1,
+.tl-rich-text h2,
+.tl-rich-text h3,
+.tl-rich-text h4,
+.tl-rich-text h5,
+.tl-rich-text h6 {
+	margin-top: 5px;
+	margin-bottom: 10px;
+}
+
+.tl-rich-text a {
+	color: var(--color-primary);
+	text-decoration: underline;
+}
+
+.tl-rich-text code {
+	font-family: var(--tl-font-mono);
+}
+
+.tl-rich-text mark {
+	background-color: #fddd00;
+	color: currentColor;
+	border-radius: 2px;
+}
+
+.tl-theme__light .tl-rich-text mark {
+	text-shadow: none;
+}
+
+.tl-theme__dark .tl-rich-text mark {
+	background-color: var(--color-text-highlight);
+	color: currentColor;
+}
+
+@supports (color: color(display-p3 1 1 1)) {
+	@media (color-gamut: p3) {
+		.tl-container:not(.tl-theme__force-sRGB) .tl-rich-text mark {
+			background-color: var(--color-text-highlight-p3);
+		}
+	}
+}
+
+.tl-text-label__inner > .tl-text-input.tl-rich-text {
+	display: none;
+	position: static;
+}
+
+.tl-text-wrapper[data-isediting='true'] .tl-rich-text {
+	display: block;
 }
 
 /* ------------------- Snap Lines ------------------- */
@@ -1174,10 +1290,6 @@ input,
 	min-height: auto;
 }
 
-.tl-text-label[data-isediting='true'] p {
-	opacity: 0;
-}
-
 .tl-arrow-hint {
 	stroke: var(--color-text-1);
 	fill: none;
@@ -1269,6 +1381,9 @@ input,
 	opacity: 0;
 	animation: fade-in 0.2s ease-in-out forwards;
 	animation-delay: 0.2s;
+	position: absolute;
+	inset: 0px;
+	z-index: var(--layer-canvas-blocker);
 }
 
 @keyframes fade-in {

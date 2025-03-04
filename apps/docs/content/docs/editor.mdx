@@ -271,7 +271,7 @@ The [Editor#getInstanceState](?) method returns settings that relate to each ind
 
 ## User preferences
 
-The editor's user preferences are shared between all instances. See the [TLUserPreferences](?) docs for more about the user preferences.
+The editor's user preferences are shared between all instances. See the the [UserPreferencesManager](?) for more about the user preferences.
 
 # Camera and coordinates
 
@@ -526,7 +526,7 @@ brought up to date.
 
 ## Image exports
 
-You can export the contents of the canvas to an image with [`exportToBlob`](?).
+You can export the contents of the canvas to an image with [`Editor#toImage`](?).
 
 Image exports draw your shapes as an SVG, then convert the SVG to another format (like a PNG) if needed. Use [`Editor#getSvgElement`](?) or [`Editor#getSvgString`](?) if you want to work with the SVG directly.
 
@@ -641,7 +641,7 @@ editor.updateInstanceState({ isReadonly: true })
 You can set the camera to a specific x, y, and zoom with the [Editor#setCamera](?) method.
 
 ```ts
-editor.setCamera(0, 0, 1)
+editor.setCamera({ x: 0, y: 0, z: 1 })
 ```
 
 ### Freeze the camera
@@ -654,18 +654,18 @@ editor.setCameraOptions({ isLocked: true })
 
 ### Turn on dark mode
 
-You can turn on or off dark mode via the [setUserPreferences](?) method. Note that this effects all editor instances that share the same user—even instances in other tabs.
+You can turn on or off dark mode via the [UserPreferencesManager](?). Note that this effects all editor instances that share the same user—even instances in other tabs.
 
 ```ts
-setUserPreferences({ colorScheme: 'dark' })
+editor.user.updateUserPreferences({ colorScheme: 'dark' })
 ```
 
 ### Using the system color scheme
 
-You can also use the system color scheme via the [setUserPreferences](?) method.
+You can also use the system color scheme via the [UserPreferencesManager](?).
 
 ```ts
-setUserPreferences({ colorScheme: 'system' })
+editor.user.updateUserPreferences({ colorScheme: 'system' })
 ```
 
 ### Make changes without effecting the history

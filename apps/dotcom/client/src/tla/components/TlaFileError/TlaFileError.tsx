@@ -1,25 +1,32 @@
 import { SignInButton } from '@clerk/clerk-react'
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { ReactElement, useEffect } from 'react'
+import { TldrawUiButton, useDialogs } from 'tldraw'
 import { sadFaceIcon } from '../../../components/ErrorPage/ErrorPage'
 import { useSetIsReady } from '../../hooks/useIsReady'
 import { F } from '../../utils/i18n'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
+import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
 import styles from './TlaFileError.module.css'
 
 function DefaultError() {
+	const dialogs = useDialogs()
 	return (
 		<TlaFileErrorContent
 			header={<F defaultMessage="Something went wrong" />}
 			para1={<F defaultMessage="Please try refreshing the page." />}
 			para2={
 				<F
-					defaultMessage="Still having trouble? Let us know at <a>hello@tldraw.com</a>"
+					defaultMessage="Still having trouble? <a>Report a problem</a>"
 					values={{
 						a: (chunks) => (
-							<a href="mailto:hello@tldraw.com" target="_blank" rel="noopener noreferrer">
+							<TldrawUiButton
+								onClick={() => dialogs.addDialog({ component: SubmitFeedbackDialog })}
+								type={'primary'}
+								style={{ display: 'inline' }}
+							>
 								{chunks}
-							</a>
+							</TldrawUiButton>
 						),
 					}}
 				/>
@@ -48,8 +55,8 @@ export function TlaFileError({ error }: { error: unknown }) {
 		case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED: {
 			return (
 				<TlaFileErrorContent
-					header={<F defaultMessage="Private file" />}
-					para1={<F defaultMessage="Contact the owner to request access." />}
+					header={<F defaultMessage="Sign in" />}
+					para1={<F defaultMessage="You need to sign in to view this file." />}
 					cta={
 						<SignInButton
 							mode="modal"
@@ -67,7 +74,7 @@ export function TlaFileError({ error }: { error: unknown }) {
 		case TLSyncErrorCloseEventReason.FORBIDDEN: {
 			return (
 				<TlaFileErrorContent
-					header={<F defaultMessage="Private file" />}
+					header={<F defaultMessage="Invite only" />}
 					para1={<F defaultMessage="Contact the owner to request access." />}
 				/>
 			)

@@ -61,7 +61,7 @@ export function ExamplePage({
 							</a>
 							<a
 								target="_blank"
-								href="https://discord.com/invite/SBBEVCA4PG"
+								href="https://discord.tldraw.com/?utm_source=examples&utm_medium=organic&utm_campaign=sociallink"
 								rel="noopener noreferrer"
 								title="discord"
 								className="hoverable"

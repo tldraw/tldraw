@@ -38,21 +38,13 @@ const spaceCharacterRegex = /\s/
 
 /** @public */
 export class TextManager {
-	baseElm: HTMLDivElement
+	private baseElem: HTMLDivElement
 
 	constructor(public editor: Editor) {
-		const container = this.editor.getContainer()
-
-		const elm = document.createElement('div')
-		elm.classList.add('tl-text')
-		elm.classList.add('tl-text-measure')
-		elm.tabIndex = -1
-		container.appendChild(elm)
-
-		this.baseElm = elm
-		editor.disposables.add(() => {
-			elm.remove()
-		})
+		this.baseElem = document.createElement('div')
+		this.baseElem.classList.add('tl-text')
+		this.baseElem.classList.add('tl-text-measure')
+		this.baseElem.tabIndex = -1
 	}
 
 	measureText(
@@ -74,31 +66,56 @@ export class TextManager {
 			disableOverflowWrapBreaking?: boolean
 		}
 	): BoxModel & { scrollWidth: number } {
-		// Duplicate our base element; we don't need to clone deep
-		const elm = this.baseElm?.cloneNode() as HTMLDivElement
-		this.baseElm.insertAdjacentElement('afterend', elm)
+		const div = document.createElement('div')
+		div.textContent = normalizeTextForDom(textToMeasure)
+		return this.measureHtml(div.innerHTML, opts)
+	}
 
-		elm.setAttribute('dir', 'auto')
+	measureHtml(
+		html: string,
+		opts: {
+			fontStyle: string
+			fontWeight: string
+			fontFamily: string
+			fontSize: number
+			lineHeight: number
+			/**
+			 * When maxWidth is a number, the text will be wrapped to that maxWidth. When maxWidth
+			 * is null, the text will be measured without wrapping, but explicit line breaks and
+			 * space are preserved.
+			 */
+			maxWidth: null | number
+			minWidth?: null | number
+			padding: string
+			disableOverflowWrapBreaking?: boolean
+		}
+	): BoxModel & { scrollWidth: number } {
+		// Duplicate our base element; we don't need to clone deep
+		const wrapperElm = this.baseElem.cloneNode() as HTMLDivElement
+		this.editor.getContainer().appendChild(wrapperElm)
+		wrapperElm.innerHTML = html
+		this.baseElem.insertAdjacentElement('afterend', wrapperElm)
+
+		wrapperElm.setAttribute('dir', 'auto')
 		// N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers")
 		// is necessary for ensuring correct mixed RTL/LTR behavior when exporting SVGs.
-		elm.style.setProperty('unicode-bidi', 'plaintext')
-		elm.style.setProperty('font-family', opts.fontFamily)
-		elm.style.setProperty('font-style', opts.fontStyle)
-		elm.style.setProperty('font-weight', opts.fontWeight)
-		elm.style.setProperty('font-size', opts.fontSize + 'px')
-		elm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
-		elm.style.setProperty('max-width', opts.maxWidth === null ? null : opts.maxWidth + 'px')
-		elm.style.setProperty('min-width', opts.minWidth === null ? null : opts.minWidth + 'px')
-		elm.style.setProperty('padding', opts.padding)
-		elm.style.setProperty(
+		wrapperElm.style.setProperty('unicode-bidi', 'plaintext')
+		wrapperElm.style.setProperty('font-family', opts.fontFamily)
+		wrapperElm.style.setProperty('font-style', opts.fontStyle)
+		wrapperElm.style.setProperty('font-weight', opts.fontWeight)
+		wrapperElm.style.setProperty('font-size', opts.fontSize + 'px')
+		wrapperElm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
+		wrapperElm.style.setProperty('max-width', opts.maxWidth === null ? null : opts.maxWidth + 'px')
+		wrapperElm.style.setProperty('min-width', opts.minWidth === null ? null : opts.minWidth + 'px')
+		wrapperElm.style.setProperty('padding', opts.padding)
+		wrapperElm.style.setProperty(
 			'overflow-wrap',
 			opts.disableOverflowWrapBreaking ? 'normal' : 'break-word'
 		)
 
-		elm.textContent = normalizeTextForDom(textToMeasure)
-		const scrollWidth = elm.scrollWidth
-		const rect = elm.getBoundingClientRect()
-		elm.remove()
+		const scrollWidth = wrapperElm.scrollWidth
+		const rect = wrapperElm.getBoundingClientRect()
+		wrapperElm.remove()
 
 		return {
 			x: 0,
@@ -223,8 +240,8 @@ export class TextManager {
 	): { text: string; box: BoxModel }[] {
 		if (textToMeasure === '') return []
 
-		const elm = this.baseElm?.cloneNode() as HTMLDivElement
-		this.baseElm.insertAdjacentElement('afterend', elm)
+		const elm = this.baseElem.cloneNode() as HTMLDivElement
+		this.editor.getContainer().appendChild(elm)
 
 		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
 		elm.setAttribute('dir', 'auto')
@@ -238,6 +255,7 @@ export class TextManager {
 		elm.style.setProperty('font-weight', opts.fontWeight)
 		elm.style.setProperty('line-height', `${opts.lineHeight * opts.fontSize}px`)
 		elm.style.setProperty('text-align', textAlignmentsForLtr[opts.textAlign])
+		elm.style.setProperty('font-style', opts.fontStyle)
 
 		const shouldTruncateToFirstLine =
 			opts.overflow === 'truncate-ellipsis' || opts.overflow === 'truncate-clip'

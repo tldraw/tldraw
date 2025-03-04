@@ -90,3 +90,15 @@ export const setStyleProperty = (
 	if (!elm) return
 	elm.style.setProperty(property, value as string)
 }
+
+const INPUTS = ['input', 'select', 'button', 'textarea']
+
+/** @internal */
+export function activeElementShouldCaptureKeys() {
+	const { activeElement } = document
+	return !!(
+		activeElement &&
+		((activeElement as HTMLElement).isContentEditable ||
+			INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1)
+	)
+}

@@ -2,14 +2,14 @@
 	position: absolute;
 	display: flex;
 	top: 0px;
-	left: -260px;
+	left: calc(var(--tla-sidebar-width) * -1);
 	height: 100%;
-	width: 260px;
+	width: var(--tla-sidebar-width);
 	z-index: 100;
 	transform: translate(0px, 0px);
 	flex-direction: column;
 	flex: 0 0 auto;
-	padding: 3px 12px 2px 12px;
+	padding: 3px 12px 4px 12px;
 	background: var(--tla-color-sidebar);
 	border-right: 1px solid transparent;
 	transition: transform 0.16s ease-in-out;
@@ -83,6 +83,10 @@
 	display: flex;
 	flex-direction: row;
 	flex: 0 0 auto;
+}
+
+.bottom {
+	margin-top: 12px;
 }
 
 .content {
@@ -260,7 +264,8 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	padding-right: 4px;
+	padding-right: 6px;
+	padding-left: 2px;
 	background-color: var(--tla-color-sidebar);
 }
 
@@ -271,10 +276,26 @@
 .user {
 	padding: 0px 8px;
 	gap: 8px;
+	text-align: left;
+	cursor: pointer;
+}
+.user:hover::after {
+	content: ' ';
+	position: absolute;
+	top: 2px;
+	bottom: 2px;
+	left: 0;
+	right: 0;
+	background: var(--tla-color-hover-1);
+	border-radius: 6px;
 }
 
 .userName {
-	flex-grow: 1;
+	flex: 1 1 auto;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	color: var(--tla-color-text-1);
 }
 
 .main-link {
@@ -294,7 +315,7 @@
 	background: var(--tla-color-sidebar);
 }
 
-.section_title {
+.sectionTitle {
 	position: relative;
 	width: 100%;
 	height: 36px;
@@ -303,6 +324,8 @@
 	flex-direction: row;
 	align-items: center;
 	overflow: hidden;
+	gap: 4px;
+	font-weight: bold;
 	color: var(--tla-color-text-3);
 }
 
@@ -326,12 +349,13 @@
 	justify-content: flex-start;
 	gap: 8px;
 	position: relative;
+	pointer-events: none;
 	z-index: 2;
 }
 
 .linkContent > .label {
 	padding: 0px;
-	flex: 2 1 auto;
+	flex: 0 1 auto;
 }
 
 .renameWrapper {
@@ -375,12 +399,12 @@
 }
 
 .linkMenu {
+	padding: 0px;
 	background: none;
 	border: none;
 	position: relative;
-	right: 4px;
 	outline: none;
-	margin-right: -12px;
+	margin-right: -10px;
 	width: 36px;
 	height: 36px;
 	display: flex;
@@ -396,6 +420,15 @@
 	.linkMenu {
 		display: none;
 	}
+	/*
+		For guest files we show a guest icon at the end of the filename
+		but we don't want it to jump out of the way when the user hovers
+	*/
+
+	.link[data-is-own-file='false'] .linkMenu {
+		visibility: hidden;
+		display: flex;
+	}
 
 	.workspace .linkMenu[data-state='open'],
 	.user .linkMenu[data-state='open'],
@@ -403,7 +436,13 @@
 	.workspace:hover .linkMenu,
 	.user:hover .linkMenu,
 	.link:hover .linkMenu {
+		visibility: visible;
 		display: flex;
+	}
+
+	.user .linkMenu[data-state='open']::after {
+		visibility: visible;
+		background-color: var(--tla-color-hover-2);
 	}
 
 	.linkMenu:hover {
@@ -419,14 +458,13 @@
 
 .guestBadge {
 	display: inline-flex;
-	justify-self: flex-end;
-	pointer-events: all;
+	pointer-events: none;
+	flex: 0 0 auto;
 }
 
 .guestBadgeTrigger {
-	margin-right: 6px;
+	margin-left: 4px;
 	border-radius: 50%;
-	pointer-events: all;
 	overflow: hidden;
 	display: inline-flex;
 	align-items: center;
@@ -438,5 +476,62 @@
 	z-index: 3;
 	padding: 0;
 	background: none;
+	pointer-events: all;
+	cursor: pointer;
 	color: var(--tla-color-text-1);
+}
+
+.cookieConsent {
+	background: var(--tla-color-sidebar);
+	padding: 12px;
+	border-radius: 4px;
+	border: 1px solid var(--color-low);
+	margin-bottom: 8px;
+}
+
+.cookieText {
+	font-size: 12px;
+	color: var(--tla-color-text-2);
+	margin-bottom: 8px;
+	line-height: 1.4;
+}
+
+.cookieText a {
+	color: var(--tla-color-primary);
+}
+
+.cookieButtons {
+	display: flex;
+	gap: 8px;
+	justify-content: space-between;
+}
+
+.cookieActions {
+	display: flex;
+	gap: 8px;
+}
+
+.cookieButton {
+	background: none;
+	border: none;
+	padding: 0;
+	color: var(--tla-color-text-2);
+	font-size: 12px;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.cookieButton:hover {
+	color: var(--tla-color-text-1);
+}
+
+.acceptButton {
+	color: var(--tla-color-primary);
+	font-weight: 700;
+}
+
+.bottom {
+	display: flex;
+	flex-direction: column;
+	flex: 0 0 auto;
 }

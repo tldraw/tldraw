@@ -187,6 +187,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						width={toDomPrecision(w)}
 						height={toDomPrecision(h)}
 						draggable={false}
+						// eslint-disable-next-line @typescript-eslint/no-deprecated
 						frameBorder="0"
 						referrerPolicy="no-referrer-when-downgrade"
 						style={{
@@ -230,7 +231,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 function Gist({
 	id,
-	file,
 	isInteractive,
 	width,
 	height,
@@ -238,22 +238,32 @@ function Gist({
 	pageRotation,
 }: {
 	id: string
-	file?: string
 	isInteractive: boolean
 	width: number
 	height: number
 	pageRotation: number
 	style?: React.CSSProperties
 }) {
+	// Security warning:
+	// Gists allow adding .json extensions to the URL which return JSONP.
+	// Furthermore, the JSONP can include callbacks that execute arbitrary JavaScript.
+	// It _is_ sandboxed by the iframe but we still want to disable it nonetheless.
+	// We restrict the id to only allow hexdecimal characters to prevent this.
+	// Read more:
+	//   https://github.com/bhaveshk90/Content-Security-Policy-CSP-Bypass-Techniques
+	//   https://github.com/renniepak/CSPBypass
+	if (!id.match(/^[0-9a-f]+$/)) throw Error('No gist id!')
+
 	return (
 		<iframe
 			className="tl-embed"
 			draggable={false}
 			width={toDomPrecision(width)}
 			height={toDomPrecision(height)}
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			frameBorder="0"
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			scrolling="no"
-			seamless
 			referrerPolicy="no-referrer-when-downgrade"
 			style={{
 				...style,
@@ -268,7 +278,7 @@ function Gist({
 					<base target="_blank">
 				</head>
 				<body>
-					<script src=${`https://gist.github.com/${id}.js${file ? `?file=${file}` : ''}`}></script>
+					<script src=${`https://gist.github.com/${id}.js`}></script>
 					<style type="text/css">
 						* { margin: 0px; }
 						table { height: 100%; background-color: red; }

@@ -14,6 +14,8 @@
 	/* Fonts */
 	--tla-font-ui: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
 		Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
 }
 
 .tla {
@@ -29,7 +31,7 @@
 
 .tla-theme__light {
 	--tla-color-sidebar: hsl(0, 0%, 99%);
-	--tla-color-tooltip: hsla(200, 14%, 4%, 0.838);
+	--tla-color-tooltip: hsla(200, 14%, 4%, 1);
 	--tla-color-canvas: hsl(210, 20%, 98%);
 	--tla-color-panel: hsl(0, 0%, 100%);
 	--tla-color-text-1: hsl(204, 8%, 5%);
@@ -96,6 +98,10 @@
 		inset 0px 0px 0px 1px var(--tla-color-panel);
 }
 
+.tla-focus-mode .tl-watermark_SEE-LICENSE {
+	visibility: hidden;
+}
+
 .tla .tl-container {
 	font-family: var(--tla-font-ui);
 	font-size: 12px;
@@ -113,8 +119,6 @@
 	top: 1px;
 	font-family: var(--tla-font-ui);
 	color: var(--tla-color-text-1);
-	text-rendering: optimizeLegibility;
-	-webkit-font-smoothing: antialiased;
 }
 
 .tla-text_ui__section {
@@ -123,8 +127,6 @@
 	font-weight: 500;
 	font-family: var(--tla-font-ui);
 	color: var(--tla-color-text-3);
-	text-rendering: optimizeLegibility;
-	-webkit-font-smoothing: antialiased;
 }
 
 .tla-text_ui__tiny {
@@ -133,8 +135,6 @@
 	font-weight: 800;
 	font-family: var(--tla-font-ui);
 	color: var(--tla-color-text-1);
-	text-rendering: optimizeLegibility;
-	-webkit-font-smoothing: antialiased;
 }
 
 .tla-text_ui__small {
@@ -143,8 +143,6 @@
 	font-weight: 500;
 	font-family: var(--tla-font-ui);
 	color: var(--tla-color-text-3);
-	text-rendering: optimizeLegibility;
-	-webkit-font-smoothing: antialiased;
 }
 
 .tla-text_ui__medium {
@@ -152,8 +150,6 @@
 	line-height: 1.3;
 	font-weight: 500;
 	font-family: var(--tla-font-ui);
-	text-rendering: optimizeLegibility;
-	-webkit-font-smoothing: antialiased;
 }
 
 .tla-text_ui__regular {
@@ -161,8 +157,6 @@
 	line-height: 1.3;
 	font-weight: 500;
 	font-family: var(--tla-font-ui);
-	text-rendering: optimizeLegibility;
-	-webkit-font-smoothing: antialiased;
 }
 
 .tla-text_ui__big {
@@ -197,25 +191,34 @@
 /* --------------------- Editor --------------------- */
 
 .tlui-layout__top {
-	display: flex;
-	flex-direction: row;
+	display: grid;
+	grid-template-columns: 1fr auto;
 	height: fit-content;
+	width: 100%;
 	max-width: 100%;
 	min-width: 0;
 	overflow: hidden;
+	gap: 12px;
 }
 
 .tlui-layout__top__left {
-	flex: 1 1;
-	height: auto;
+	grid-row: 1;
+	grid-column: 1;
 	width: fit-content;
+	max-width: 100%;
+	min-width: 0px;
+	height: auto;
 	overflow: hidden;
 }
 
 .tlui-layout__top__right {
-	flex: 1 1;
+	grid-row: 1;
+	grid-column: 2;
+	flex: 0 1;
 	height: auto;
 	width: fit-content;
+	max-width: 100%;
+	min-width: 0px;
 	overflow: hidden;
 }
 
@@ -233,6 +236,7 @@
 /* Fix the location of the focus button */
 
 .tlui-focus-button {
+	width: 40px;
 	margin-top: 4px;
 	margin-left: 4px;
 }
@@ -256,44 +260,4 @@
 .tla-lang-highlight-missing .i18n-msg,
 .tla-lang-highlight-missing .i18n-msg * {
 	text-shadow: none;
-}
-
-.tla-playground {
-	position: absolute;
-	inset: 0px;
-	padding: 1em;
-	background-color: #efefef;
-	overflow: auto;
-}
-
-/* Use standard spacing for headings */
-
-.tla-playground h1 {
-	margin-top: 0.67em;
-	margin-bottom: 0.67em;
-}
-
-.tla-playground h2 {
-	margin-top: 0.83em;
-	margin-bottom: 0.83em;
-}
-
-.tla-playground h3 {
-	margin-top: 1em;
-	margin-bottom: 1em;
-}
-
-.tla-playground h4 {
-	margin-top: 1.33em;
-	margin-bottom: 1.33em;
-}
-
-.tla-playground h5 {
-	margin-top: 1.67em;
-	margin-bottom: 1.67em;
-}
-
-.tla-playground h6 {
-	margin-top: 2.33em;
-	margin-bottom: 2.33em;
 }

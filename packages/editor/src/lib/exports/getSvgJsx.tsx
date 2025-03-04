@@ -6,7 +6,7 @@ import {
 	TLShapeId,
 	getDefaultColorTheme,
 } from '@tldraw/tlschema'
-import { hasOwnProperty, promiseWithResolve } from '@tldraw/utils'
+import { hasOwnProperty, promiseWithResolve, uniqueId } from '@tldraw/utils'
 import {
 	ComponentType,
 	Fragment,
@@ -21,6 +21,7 @@ import { flushSync } from 'react-dom'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { InnerShape, InnerShapeBackground } from '../components/Shape'
 import { Editor, TLRenderingShape } from '../editor/Editor'
+import { TLFontFace } from '../editor/managers/FontManager'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import {
 	SvgExportContext,
@@ -41,7 +42,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 	const {
 		scale = 1,
 		// should we include the background in the export? or is it transparent?
-		background = false,
+		background = editor.getInstanceState().exportBackground,
 		padding = editor.options.defaultSvgPadding,
 		preserveAspectRatio,
 	} = opts
@@ -102,6 +103,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 			editor={editor}
 			preserveAspectRatio={preserveAspectRatio}
 			scale={scale}
+			pixelRatio={opts.pixelRatio ?? null}
 			bbox={bbox}
 			background={background}
 			singleFrameShapeId={singleFrameShapeId}
@@ -121,6 +123,7 @@ function SvgExport({
 	editor,
 	preserveAspectRatio,
 	scale,
+	pixelRatio,
 	bbox,
 	background,
 	singleFrameShapeId,
@@ -132,6 +135,7 @@ function SvgExport({
 	editor: Editor
 	preserveAspectRatio?: string
 	scale: number
+	pixelRatio: number | null
 	bbox: Box
 	background: boolean
 	singleFrameShapeId: TLShapeId | null
@@ -177,8 +181,20 @@ function SvgExport({
 			isDarkMode,
 			waitUntil,
 			addExportDef,
+			scale,
+			pixelRatio,
+			async resolveAssetUrl(assetId, width) {
+				const asset = editor.getAsset(assetId)
+				if (!asset || (asset.type !== 'image' && asset.type !== 'video')) return null
+
+				return await editor.resolveAssetUrl(assetId, {
+					screenScale: scale * (width / asset.props.w),
+					shouldResolveToOriginal: pixelRatio === null,
+					dpr: pixelRatio ?? undefined,
+				})
+			},
 		}),
-		[isDarkMode, waitUntil, addExportDef]
+		[isDarkMode, waitUntil, addExportDef, scale, pixelRatio, editor]
 	)
 
 	const didRenderRef = useRef(false)
@@ -190,6 +206,7 @@ function SvgExport({
 		;(async () => {
 			const shapeDefs: Record<string, { pending: false; element: ReactElement }> = {}
 
+			// Then render everything. The shapes with assets should all hit the cache
 			const unorderedShapeElementPromises = renderingShapes.map(
 				async ({ id, opacity, index, backgroundIndex }) => {
 					// Don't render the frame if we're only exporting a single frame and it's children
@@ -325,6 +342,25 @@ function SvgExport({
 	}, [bbox, editor, exportContext, masksId, renderingShapes, singleFrameShapeId, stateAtom])
 
 	useEffect(() => {
+		const fontsInUse = new Set<TLFontFace>()
+		for (const { id } of renderingShapes) {
+			for (const font of editor.fonts.getShapeFontFaces(id)) {
+				fontsInUse.add(font)
+			}
+		}
+
+		for (const font of fontsInUse) {
+			addExportDef({
+				key: uniqueId(),
+				getElement: async () => {
+					const declaration = await editor.fonts.toEmbeddedCssDeclaration(font)
+					return <style>{declaration}</style>
+				},
+			})
+		}
+	}, [editor, renderingShapes, addExportDef])
+
+	useEffect(() => {
 		if (shapeElements === null) return
 		onMount()
 	}, [onMount, shapeElements])
@@ -392,7 +428,7 @@ function ForeignObjectShape({
 				y={bbox.minY}
 				width={bbox.w}
 				height={bbox.h}
-				className="tl-shape-foreign-object"
+				className="tl-shape-foreign-object tl-export-embed-styles"
 			>
 				<div
 					className={className}

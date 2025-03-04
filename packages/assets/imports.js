@@ -23,22 +23,37 @@ import embedIconsTldrawPng from './embed-icons/tldraw.png'
 import embedIconsValTownPng from './embed-icons/val_town.png'
 import embedIconsVimeoPng from './embed-icons/vimeo.png'
 import embedIconsYoutubePng from './embed-icons/youtube.png'
+import fontsIBMPlexMonoBoldWoff2 from './fonts/IBMPlexMono-Bold.woff2'
+import fontsIBMPlexMonoBoldItalicWoff2 from './fonts/IBMPlexMono-BoldItalic.woff2'
 import fontsIBMPlexMonoMediumWoff2 from './fonts/IBMPlexMono-Medium.woff2'
+import fontsIBMPlexMonoMediumItalicWoff2 from './fonts/IBMPlexMono-MediumItalic.woff2'
+import fontsIBMPlexSansBoldWoff2 from './fonts/IBMPlexSans-Bold.woff2'
+import fontsIBMPlexSansBoldItalicWoff2 from './fonts/IBMPlexSans-BoldItalic.woff2'
 import fontsIBMPlexSansMediumWoff2 from './fonts/IBMPlexSans-Medium.woff2'
+import fontsIBMPlexSansMediumItalicWoff2 from './fonts/IBMPlexSans-MediumItalic.woff2'
+import fontsIBMPlexSerifBoldWoff2 from './fonts/IBMPlexSerif-Bold.woff2'
+import fontsIBMPlexSerifBoldItalicWoff2 from './fonts/IBMPlexSerif-BoldItalic.woff2'
 import fontsIBMPlexSerifMediumWoff2 from './fonts/IBMPlexSerif-Medium.woff2'
-import fontsShantellSansTldrawishWoff2 from './fonts/Shantell_Sans-Tldrawish.woff2'
+import fontsIBMPlexSerifMediumItalicWoff2 from './fonts/IBMPlexSerif-MediumItalic.woff2'
+import fontsShantellSansInformalBoldWoff2 from './fonts/Shantell_Sans-Informal_Bold.woff2'
+import fontsShantellSansInformalBoldItalicWoff2 from './fonts/Shantell_Sans-Informal_Bold_Italic.woff2'
+import fontsShantellSansInformalRegularWoff2 from './fonts/Shantell_Sans-Informal_Regular.woff2'
+import fontsShantellSansInformalRegularItalicWoff2 from './fonts/Shantell_Sans-Informal_Regular_Italic.woff2'
 import iconsIcon0MergedSvg from './icons/icon/0_merged.svg'
 import translationsArJson from './translations/ar.json'
+import translationsBnJson from './translations/bn.json'
 import translationsCaJson from './translations/ca.json'
 import translationsCsJson from './translations/cs.json'
 import translationsDaJson from './translations/da.json'
 import translationsDeJson from './translations/de.json'
+import translationsElJson from './translations/el.json'
 import translationsEnJson from './translations/en.json'
 import translationsEsJson from './translations/es.json'
 import translationsFaJson from './translations/fa.json'
 import translationsFiJson from './translations/fi.json'
 import translationsFrJson from './translations/fr.json'
 import translationsGlJson from './translations/gl.json'
+import translationsGuInJson from './translations/gu-in.json'
 import translationsHeJson from './translations/he.json'
 import translationsHiInJson from './translations/hi-in.json'
 import translationsHrJson from './translations/hr.json'
@@ -46,13 +61,20 @@ import translationsHuJson from './translations/hu.json'
 import translationsIdJson from './translations/id.json'
 import translationsItJson from './translations/it.json'
 import translationsJaJson from './translations/ja.json'
+import translationsKmKhJson from './translations/km-kh.json'
+import translationsKnJson from './translations/kn.json'
 import translationsKoKrJson from './translations/ko-kr.json'
 import translationsKuJson from './translations/ku.json'
 import translationsLanguagesJson from './translations/languages.json'
 import translationsMainJson from './translations/main.json'
+import translationsMlJson from './translations/ml.json'
+import translationsMrJson from './translations/mr.json'
+import translationsMsJson from './translations/ms.json'
 import translationsMyJson from './translations/my.json'
 import translationsNeJson from './translations/ne.json'
+import translationsNlJson from './translations/nl.json'
 import translationsNoJson from './translations/no.json'
+import translationsPaJson from './translations/pa.json'
 import translationsPlJson from './translations/pl.json'
 import translationsPtBrJson from './translations/pt-br.json'
 import translationsPtPtJson from './translations/pt-pt.json'
@@ -61,10 +83,13 @@ import translationsRuJson from './translations/ru.json'
 import translationsSlJson from './translations/sl.json'
 import translationsSoJson from './translations/so.json'
 import translationsSvJson from './translations/sv.json'
+import translationsTaJson from './translations/ta.json'
 import translationsTeJson from './translations/te.json'
 import translationsThJson from './translations/th.json'
+import translationsTlJson from './translations/tl.json'
 import translationsTrJson from './translations/tr.json'
 import translationsUkJson from './translations/uk.json'
+import translationsUrJson from './translations/ur.json'
 import translationsViJson from './translations/vi.json'
 import translationsZhCnJson from './translations/zh-cn.json'
 import translationsZhTwJson from './translations/zh-tw.json'
@@ -77,10 +102,22 @@ export function getAssetUrlsByImport(opts) {
 	const iconsIcon0MergedSvg2 = formatAssetUrl(iconsIcon0MergedSvg, opts)
 	return {
 		fonts: {
-			monospace: formatAssetUrl(fontsIBMPlexMonoMediumWoff2, opts),
-			sansSerif: formatAssetUrl(fontsIBMPlexSansMediumWoff2, opts),
-			serif: formatAssetUrl(fontsIBMPlexSerifMediumWoff2, opts),
-			draw: formatAssetUrl(fontsShantellSansTldrawishWoff2, opts),
+			tldraw_mono_bold: formatAssetUrl(fontsIBMPlexMonoBoldWoff2, opts),
+			tldraw_mono_italic_bold: formatAssetUrl(fontsIBMPlexMonoBoldItalicWoff2, opts),
+			tldraw_mono: formatAssetUrl(fontsIBMPlexMonoMediumWoff2, opts),
+			tldraw_mono_italic: formatAssetUrl(fontsIBMPlexMonoMediumItalicWoff2, opts),
+			tldraw_sans_bold: formatAssetUrl(fontsIBMPlexSansBoldWoff2, opts),
+			tldraw_sans_italic_bold: formatAssetUrl(fontsIBMPlexSansBoldItalicWoff2, opts),
+			tldraw_sans: formatAssetUrl(fontsIBMPlexSansMediumWoff2, opts),
+			tldraw_sans_italic: formatAssetUrl(fontsIBMPlexSansMediumItalicWoff2, opts),
+			tldraw_serif_bold: formatAssetUrl(fontsIBMPlexSerifBoldWoff2, opts),
+			tldraw_serif_italic_bold: formatAssetUrl(fontsIBMPlexSerifBoldItalicWoff2, opts),
+			tldraw_serif: formatAssetUrl(fontsIBMPlexSerifMediumWoff2, opts),
+			tldraw_serif_italic: formatAssetUrl(fontsIBMPlexSerifMediumItalicWoff2, opts),
+			tldraw_draw_bold: formatAssetUrl(fontsShantellSansInformalBoldWoff2, opts),
+			tldraw_draw_italic_bold: formatAssetUrl(fontsShantellSansInformalBoldItalicWoff2, opts),
+			tldraw_draw: formatAssetUrl(fontsShantellSansInformalRegularWoff2, opts),
+			tldraw_draw_italic: formatAssetUrl(fontsShantellSansInformalRegularItalicWoff2, opts),
 		},
 		icons: {
 			'align-bottom': iconsIcon0MergedSvg2 + '#align-bottom',
@@ -99,9 +136,11 @@ export function getAssetUrlsByImport(opts) {
 			'arrowhead-triangle-inverted': iconsIcon0MergedSvg2 + '#arrowhead-triangle-inverted',
 			'arrowhead-triangle': iconsIcon0MergedSvg2 + '#arrowhead-triangle',
 			blob: iconsIcon0MergedSvg2 + '#blob',
+			bold: iconsIcon0MergedSvg2 + '#bold',
 			'bring-forward': iconsIcon0MergedSvg2 + '#bring-forward',
 			'bring-to-front': iconsIcon0MergedSvg2 + '#bring-to-front',
 			broken: iconsIcon0MergedSvg2 + '#broken',
+			bulletList: iconsIcon0MergedSvg2 + '#bulletList',
 			'check-circle': iconsIcon0MergedSvg2 + '#check-circle',
 			check: iconsIcon0MergedSvg2 + '#check',
 			'chevron-down': iconsIcon0MergedSvg2 + '#chevron-down',
@@ -112,6 +151,7 @@ export function getAssetUrlsByImport(opts) {
 			'chevrons-sw': iconsIcon0MergedSvg2 + '#chevrons-sw',
 			'clipboard-copied': iconsIcon0MergedSvg2 + '#clipboard-copied',
 			'clipboard-copy': iconsIcon0MergedSvg2 + '#clipboard-copy',
+			code: iconsIcon0MergedSvg2 + '#code',
 			color: iconsIcon0MergedSvg2 + '#color',
 			'cross-2': iconsIcon0MergedSvg2 + '#cross-2',
 			'cross-circle': iconsIcon0MergedSvg2 + '#cross-circle',
@@ -163,12 +203,16 @@ export function getAssetUrlsByImport(opts) {
 			'geo-x-box': iconsIcon0MergedSvg2 + '#geo-x-box',
 			github: iconsIcon0MergedSvg2 + '#github',
 			group: iconsIcon0MergedSvg2 + '#group',
+			heading: iconsIcon0MergedSvg2 + '#heading',
+			highlight: iconsIcon0MergedSvg2 + '#highlight',
 			'horizontal-align-end': iconsIcon0MergedSvg2 + '#horizontal-align-end',
 			'horizontal-align-middle': iconsIcon0MergedSvg2 + '#horizontal-align-middle',
 			'horizontal-align-start': iconsIcon0MergedSvg2 + '#horizontal-align-start',
 			'info-circle': iconsIcon0MergedSvg2 + '#info-circle',
+			italic: iconsIcon0MergedSvg2 + '#italic',
 			leading: iconsIcon0MergedSvg2 + '#leading',
 			link: iconsIcon0MergedSvg2 + '#link',
+			list: iconsIcon0MergedSvg2 + '#list',
 			lock: iconsIcon0MergedSvg2 + '#lock',
 			menu: iconsIcon0MergedSvg2 + '#menu',
 			minus: iconsIcon0MergedSvg2 + '#minus',
@@ -195,6 +239,7 @@ export function getAssetUrlsByImport(opts) {
 			'status-offline': iconsIcon0MergedSvg2 + '#status-offline',
 			'stretch-horizontal': iconsIcon0MergedSvg2 + '#stretch-horizontal',
 			'stretch-vertical': iconsIcon0MergedSvg2 + '#stretch-vertical',
+			strike: iconsIcon0MergedSvg2 + '#strike',
 			'text-align-center': iconsIcon0MergedSvg2 + '#text-align-center',
 			'text-align-left': iconsIcon0MergedSvg2 + '#text-align-left',
 			'text-align-right': iconsIcon0MergedSvg2 + '#text-align-right',
@@ -215,6 +260,7 @@ export function getAssetUrlsByImport(opts) {
 			'tool-text': iconsIcon0MergedSvg2 + '#tool-text',
 			trash: iconsIcon0MergedSvg2 + '#trash',
 			twitter: iconsIcon0MergedSvg2 + '#twitter',
+			underline: iconsIcon0MergedSvg2 + '#underline',
 			undo: iconsIcon0MergedSvg2 + '#undo',
 			ungroup: iconsIcon0MergedSvg2 + '#ungroup',
 			unlock: iconsIcon0MergedSvg2 + '#unlock',
@@ -227,16 +273,19 @@ export function getAssetUrlsByImport(opts) {
 		},
 		translations: {
 			ar: formatAssetUrl(translationsArJson, opts),
+			bn: formatAssetUrl(translationsBnJson, opts),
 			ca: formatAssetUrl(translationsCaJson, opts),
 			cs: formatAssetUrl(translationsCsJson, opts),
 			da: formatAssetUrl(translationsDaJson, opts),
 			de: formatAssetUrl(translationsDeJson, opts),
+			el: formatAssetUrl(translationsElJson, opts),
 			en: formatAssetUrl(translationsEnJson, opts),
 			es: formatAssetUrl(translationsEsJson, opts),
 			fa: formatAssetUrl(translationsFaJson, opts),
 			fi: formatAssetUrl(translationsFiJson, opts),
 			fr: formatAssetUrl(translationsFrJson, opts),
 			gl: formatAssetUrl(translationsGlJson, opts),
+			'gu-in': formatAssetUrl(translationsGuInJson, opts),
 			he: formatAssetUrl(translationsHeJson, opts),
 			'hi-in': formatAssetUrl(translationsHiInJson, opts),
 			hr: formatAssetUrl(translationsHrJson, opts),
@@ -244,13 +293,20 @@ export function getAssetUrlsByImport(opts) {
 			id: formatAssetUrl(translationsIdJson, opts),
 			it: formatAssetUrl(translationsItJson, opts),
 			ja: formatAssetUrl(translationsJaJson, opts),
+			'km-kh': formatAssetUrl(translationsKmKhJson, opts),
+			kn: formatAssetUrl(translationsKnJson, opts),
 			'ko-kr': formatAssetUrl(translationsKoKrJson, opts),
 			ku: formatAssetUrl(translationsKuJson, opts),
 			languages: formatAssetUrl(translationsLanguagesJson, opts),
 			main: formatAssetUrl(translationsMainJson, opts),
+			ml: formatAssetUrl(translationsMlJson, opts),
+			mr: formatAssetUrl(translationsMrJson, opts),
+			ms: formatAssetUrl(translationsMsJson, opts),
 			my: formatAssetUrl(translationsMyJson, opts),
 			ne: formatAssetUrl(translationsNeJson, opts),
+			nl: formatAssetUrl(translationsNlJson, opts),
 			no: formatAssetUrl(translationsNoJson, opts),
+			pa: formatAssetUrl(translationsPaJson, opts),
 			pl: formatAssetUrl(translationsPlJson, opts),
 			'pt-br': formatAssetUrl(translationsPtBrJson, opts),
 			'pt-pt': formatAssetUrl(translationsPtPtJson, opts),
@@ -259,10 +315,13 @@ export function getAssetUrlsByImport(opts) {
 			sl: formatAssetUrl(translationsSlJson, opts),
 			so: formatAssetUrl(translationsSoJson, opts),
 			sv: formatAssetUrl(translationsSvJson, opts),
+			ta: formatAssetUrl(translationsTaJson, opts),
 			te: formatAssetUrl(translationsTeJson, opts),
 			th: formatAssetUrl(translationsThJson, opts),
+			tl: formatAssetUrl(translationsTlJson, opts),
 			tr: formatAssetUrl(translationsTrJson, opts),
 			uk: formatAssetUrl(translationsUkJson, opts),
+			ur: formatAssetUrl(translationsUrJson, opts),
 			vi: formatAssetUrl(translationsViJson, opts),
 			'zh-cn': formatAssetUrl(translationsZhCnJson, opts),
 			'zh-tw': formatAssetUrl(translationsZhTwJson, opts),

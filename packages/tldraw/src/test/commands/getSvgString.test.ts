@@ -1,4 +1,4 @@
-import { DefaultDashStyle, createShapeId } from '@tldraw/editor'
+import { DefaultDashStyle, TLGeoShape, createShapeId, toRichText } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -20,7 +20,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 	editor.setStyleForNextShapes(DefaultDashStyle, 'solid')
 	editor.setStyleForSelectedShapes(DefaultDashStyle, 'solid')
-	editor.createShapes([
+	editor.createShapes<TLGeoShape>([
 		{
 			id: ids.boxA,
 			type: 'geo',
@@ -29,7 +29,7 @@ beforeEach(() => {
 			props: {
 				w: 100,
 				h: 100,
-				text: 'Hello world',
+				richText: toRichText('Hello world'),
 			},
 		},
 		{
@@ -65,10 +65,13 @@ it('gets an SVG', async () => {
 	expect(svg!.svg).toMatch(/^<svg/)
 })
 
-it('Does not get an SVG when no ids are provided', async () => {
-	const svg = await editor.getSvgString([])
+it('Returns all shapes when no ids are provided', async () => {
+	const svg = parseSvg(await editor.getSvgString([]))
 
-	expect(svg).toBeFalsy()
+	const elm = document.createElement('wrapper')
+	elm.appendChild(svg)
+
+	expect(elm).toMatchSnapshot('All shapes')
 })
 
 it('Gets the bounding box at the correct size', async () => {

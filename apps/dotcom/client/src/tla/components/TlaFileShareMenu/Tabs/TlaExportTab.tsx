@@ -1,9 +1,10 @@
 import classNames from 'classnames'
 import { useCallback, useRef, useState } from 'react'
 import {
+	Box,
 	Editor,
 	FileHelpers,
-	TLImageExportOptions,
+	TLExportType,
 	TLShape,
 	compact,
 	debounce,
@@ -226,13 +227,14 @@ function ExportImageButton() {
 			ids = editor.getSortedChildIdsForParent(editor.getCurrentPageId())
 		}
 
-		const opts: TLImageExportOptions = {
+		const opts = {
 			padding: exportPadding ? editor.options.defaultSvgPadding : 0,
 			background: exportBackground,
 			darkMode: exportTheme === 'auto' ? undefined : exportTheme === 'dark',
+			format: exportFormat as TLExportType,
 		}
 
-		exportAs(editor, ids, exportFormat as any, 'file', opts)
+		exportAs(editor, ids, opts)
 
 		trackEvent('export-image', {
 			source: 'file-share-menu',
@@ -333,21 +335,25 @@ async function getEditorImage(
 	cb: (info: { src: string; width: number; height: number }) => void
 ) {
 	const { exportPadding, exportBackground, exportTheme } = preferences
-	const result = await editor.getSvgString(
-		shapes.map((s) => s.id),
-		{
-			padding: exportPadding ? editor.options.defaultSvgPadding : 0,
-			background: exportBackground,
-			darkMode: exportTheme === 'auto' ? undefined : exportTheme === 'dark',
-		}
-	)
+
+	const commonBounds = Box.Common(shapes.map((s) => editor.getShapePageBounds(s)!))
+
+	// image max is 216x216, so let's say 500 to be nice and safe
+	const scale = Math.min(500 / commonBounds.width, 500 / commonBounds.height)
+
+	const result = await editor.toImage(shapes, {
+		scale,
+		format: 'png',
+		padding: exportPadding ? editor.options.defaultSvgPadding : 0,
+		background: exportBackground,
+		darkMode: exportTheme === 'auto' ? undefined : exportTheme === 'dark',
+	})
 
 	if (!result) return
 
-	const blob = new Blob([result.svg], { type: 'image/svg+xml' })
-	const src = await FileHelpers.blobToDataUrl(blob)
+	const src = await FileHelpers.blobToDataUrl(result.blob)
 
-	cb({ src, width: result.width, height: result.height })
+	cb({ src, width: Math.ceil(result.width / scale), height: Math.ceil(result.height / scale) })
 }
 
 const getEditorImageSlowly = debounce(getEditorImage, 60)

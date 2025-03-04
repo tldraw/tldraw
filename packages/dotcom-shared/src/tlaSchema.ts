@@ -37,6 +37,7 @@ export const tlaUserSchema = {
 		isWrapMode: { type: 'boolean', optional: true },
 		isDynamicSizeMode: { type: 'boolean', optional: true },
 		isPasteAtCursorMode: { type: 'boolean', optional: true },
+		allowAnalyticsCookie: { type: 'boolean', optional: true },
 	},
 	primaryKey: ['id'],
 	relationships: {},
@@ -60,6 +61,7 @@ export const tlaFileSchema = {
 		updatedAt: { type: 'number' },
 		isEmpty: { type: 'boolean' },
 		isDeleted: { type: 'boolean' },
+		createSource: { type: 'string', optional: true },
 	},
 	primaryKey: ['id'],
 	relationships: {
@@ -83,6 +85,7 @@ export const tlaFileStateSchema = {
 		lastSessionState: { type: 'string', optional: true },
 		lastVisitAt: { type: 'number', optional: true },
 		isFileOwner: { type: 'boolean', optional: true },
+		isPinned: { type: 'boolean', optional: true },
 	},
 	primaryKey: ['userId', 'fileId'],
 	relationships: {
@@ -131,16 +134,25 @@ type SchemaToRow<T extends TableSchema> = {
 }
 
 export type TlaFile = SchemaToRow<typeof tlaFileSchema>
-export type TlaFilePartial = Partial<TlaFile> & { id: TlaFile['id'] }
+export type TlaFilePartial = Partial<TlaFile> & {
+	id: TlaFile['id']
+}
+
 export type TlaFileState = SchemaToRow<typeof tlaFileStateSchema>
 export type TlaFileStatePartial = Partial<TlaFileState> & {
 	fileId: TlaFileState['fileId']
 	userId: TlaFileState['userId']
 }
 export type TlaUser = SchemaToRow<typeof tlaUserSchema>
-export type TlaUserPartial = Partial<TlaUser> & { id: TlaUser['id'] }
+export type TlaUserPartial = Partial<TlaUser> & {
+	id: TlaUser['id']
+}
 
 export type TlaRow = TlaFile | TlaFileState | TlaUser
+export interface TlaUserMutationNumber {
+	userId: string
+	mutationNumber: number
+}
 
 const immutableColumns: Record<string, Set<string>> = {
 	user: new Set<keyof TlaUser>(['id', 'email', 'createdAt', 'avatar']),
@@ -150,4 +162,17 @@ const immutableColumns: Record<string, Set<string>> = {
 
 export function isColumnMutable(tableName: keyof typeof immutableColumns, column: string) {
 	return !immutableColumns[tableName].has(column)
+}
+
+export interface TlaAsset {
+	objectName: string
+	fileId: string
+}
+
+export interface DB {
+	file: TlaFile
+	file_state: TlaFileState
+	user: TlaUser
+	user_mutation_number: TlaUserMutationNumber
+	asset: TlaAsset
 }

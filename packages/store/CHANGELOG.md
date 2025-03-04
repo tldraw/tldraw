@@ -1,3 +1,91 @@
+# v3.9.0 (Mon Mar 03 2025)
+
+### Release Notes
+
+#### Add `AtomMap` & refactor store ([#5496](https://github.com/tldraw/tldraw/pull/5496))
+
+- **BREAKING**. `store.createSelectedComputedCache` has been removed. Use `store.createCache` and create your own selector `computed` instead.
+- **BREAKING**. `createComputerCache` no longer accepts a single `isEqual` fn as its 3rd argument. Instead, pass in an options object, with the `isEqual` fn named `areRecordsEqual`. You can now pass `areResultsEqual`, too.
+
+---
+
+#### 🐛 Bug Fix
+
+- Update discord links [#5500](https://github.com/tldraw/tldraw/pull/5500) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@steveruizok](https://github.com/steveruizok) [@TodePond](https://github.com/TodePond))
+
+#### 🛠️ API Changes
+
+- Add `AtomMap` & refactor store [#5496](https://github.com/tldraw/tldraw/pull/5496) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 4
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
+# v3.8.0 (Wed Feb 12 2025)
+
+### Release Notes
+
+#### support react 19 ([#5293](https://github.com/tldraw/tldraw/pull/5293))
+
+- tldraw now supports react 19
+
+---
+
+#### 💄 Product Improvements
+
+- support react 19 [#5293](https://github.com/tldraw/tldraw/pull/5293) ([@SomeHats](https://github.com/SomeHats) [@mimecuvalo](https://github.com/mimecuvalo) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+
+#### Authors: 3
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
+# v3.7.0 (Tue Jan 07 2025)
+
+### Release Notes
+
+#### Execute reactor immediately on listen ([#5133](https://github.com/tldraw/tldraw/pull/5133))
+
+- Fixed a bug during development with React Strict Mode enabled where store.listen might end up not calling the listener.
+
+#### custom sync presence ([#5071](https://github.com/tldraw/tldraw/pull/5071))
+
+- It's now possible to customise what presence data is synced between clients, or disable presence syncing entirely.
+
+#### Improve rerenedring of the page menu and quick actions ([#5057](https://github.com/tldraw/tldraw/pull/5057))
+
+- Improves rendering of the pages menu and quick actions.
+
+---
+
+#### 🐛 Bug Fixes
+
+- Execute reactor immediately on listen [#5133](https://github.com/tldraw/tldraw/pull/5133) ([@ds300](https://github.com/ds300))
+
+#### 💄 Product Improvements
+
+- Improve rerenedring of the page menu and quick actions [#5057](https://github.com/tldraw/tldraw/pull/5057) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🛠️ API Changes
+
+- custom sync presence [#5071](https://github.com/tldraw/tldraw/pull/5071) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 3
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+---
+
 # v3.5.0 (Tue Nov 26 2024)
 
 ### Release Notes

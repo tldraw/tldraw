@@ -3,7 +3,7 @@ import { expect } from '@playwright/test'
 import { Editor } from './Editor'
 import { step } from './tla-test'
 
-const rootUrl = 'http://localhost:3000/q'
+const rootUrl = 'http://localhost:3000/'
 
 export class HomePage {
 	public readonly signInButton: Locator
@@ -19,7 +19,7 @@ export class HomePage {
 	@step
 	async loginAs(email: string) {
 		const isSideBarToggleVisible = await this.editor.sidebarToggle.isVisible()
-		// We are already logged in
+		// We are already signed in
 		if (isSideBarToggleVisible) return
 		if (this.page.url() !== rootUrl) {
 			await this.goto()
@@ -53,7 +53,6 @@ export class HomePage {
 
 	async isLoaded() {
 		await expect(async () => {
-			await expect(this.page).toHaveTitle(/tldraw/)
 			await expect(this.tldrawEditor).toBeVisible({ timeout: 10000 })
 		}).toPass()
 	}

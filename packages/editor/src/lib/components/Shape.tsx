@@ -1,6 +1,7 @@
+import { react } from '@tldraw/state'
 import { useQuickReactor, useStateTracking } from '@tldraw/state-react'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
-import { memo, useCallback, useRef } from 'react'
+import { memo, useCallback, useEffect, useRef } from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
@@ -40,6 +41,13 @@ export const Shape = memo(function Shape({
 
 	const containerRef = useRef<HTMLDivElement>(null)
 	const bgContainerRef = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		return react('load fonts', () => {
+			const fonts = editor.fonts.getShapeFontFaces(shape)
+			editor.fonts.requestFonts(fonts)
+		})
+	}, [editor, shape])
 
 	const memoizedStuffRef = useRef({
 		transform: '',
@@ -171,13 +179,19 @@ export const Shape = memo(function Shape({
 
 export const InnerShape = memo(
 	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
-		return useStateTracking('InnerShape:' + shape.type, () =>
-			// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
-			// calling the render method with stale data.
-			util.component(util.editor.store.unsafeGetWithoutCapture(shape.id) as T)
+		return useStateTracking(
+			'InnerShape:' + shape.type,
+			() =>
+				// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
+				// calling the render method with stale data.
+				util.component(util.editor.store.unsafeGetWithoutCapture(shape.id) as T),
+			[util, shape.id]
 		)
 	},
-	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
+	(prev, next) =>
+		prev.shape.props === next.shape.props &&
+		prev.shape.meta === next.shape.meta &&
+		prev.util === next.util
 )
 
 export const InnerShapeBackground = memo(
@@ -188,11 +202,17 @@ export const InnerShapeBackground = memo(
 		shape: T
 		util: ShapeUtil<T>
 	}) {
-		return useStateTracking('InnerShape:' + shape.type, () =>
-			// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
-			// calling the render method with stale data.
-			util.backgroundComponent?.(util.editor.store.unsafeGetWithoutCapture(shape.id) as T)
+		return useStateTracking(
+			'InnerShape:' + shape.type,
+			() =>
+				// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
+				// calling the render method with stale data.
+				util.backgroundComponent?.(util.editor.store.unsafeGetWithoutCapture(shape.id) as T),
+			[util, shape.id]
 		)
 	},
-	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
+	(prev, next) =>
+		prev.shape.props === next.shape.props &&
+		prev.shape.meta === next.shape.meta &&
+		prev.util === next.util
 )

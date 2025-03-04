@@ -15,49 +15,80 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 
 {/* START AUTO-GENERATED CHANGELOG */}
 
-## Current release: [v3.4.0](/releases/v3.4.0)
+## Current release: [v3.8.0](/releases/v3.8.0)
 
-Welcome to the 3.4.0 release of the tldraw SDK. This issue fixes a few bugs in our user interface, improves performance around images and videos, and even improves our very secret ability to accept pasted content from [Excalidraw](https://excalidraw.com/). See below for the full list of changes.
+This update brings a host of improvements across performance, user interface, and developer experience—all while squashing a number of bugs. Read on for a quick summary of the highlights.
 
-#### Breaking changes
+### What's New
 
-- The `id` attribute that was present on some shapes in the dom has been removed. There's now a data-shape-id attribute on every shape wrapper that can be used instead. ([#4694](https://github.com/tldraw/tldraw/pull/4694))
+#### Shape & Asset Enhancements
 
-#### Improvements
+- **ShapeUtil.configure for shape options** ([#5399](https://github.com/tldraw/tldraw/pull/5399)). Introduces a new utility for passing options to shape utils. (This change also moves note shape resize mode and max draw shape points to their respective configuration objects.)
+- **Note Shape Resize Option.** The note shape can be configured to resize by scale. ([#5273](https://github.com/tldraw/tldraw/pull/5273))
+- **Asset uploads updated** ([#5218](https://github.com/tldraw/tldraw/pull/5218)). The upload API now returns an object with both the asset `src` and optional metadata—allowing for richer asset records.
+- **New "select geo tool" shortcut** ([#5341](https://github.com/tldraw/tldraw/pull/5341)). Quickly select your most recent geometric tool with the `g` shortcut.
+- **Drag URLs onto the canvas** ([#5411](https://github.com/tldraw/tldraw/pull/5411)). Drag a URL or link onto the canvas to create a bookmark shape.
 
-- Clearer tooltip wording in the style panel. ([#4750](https://github.com/tldraw/tldraw/pull/4750))
-- Arrow labels no longer have their indictors showing behind them. ([#4749](https://github.com/tldraw/tldraw/pull/4749))
-- Limit the page name length in the move to page menu. ([#4747](https://github.com/tldraw/tldraw/pull/4747))
-- Improve performance of image/video rendering. ([#4659](https://github.com/tldraw/tldraw/pull/4659))
+#### Developer Experience & API Improvements
 
-#### API changes
+- **Exports DX Pass** ([#5114](https://github.com/tldraw/tldraw/pull/5114)). We’ve refined export functionality:
+  - The copy/export as JSON option has been removed.
+  - Export APIs (like `Editor.getSvgElement` and `Editor.getSvgString`) now handle shape selections more gracefully.
+  - Export contexts now expose `scale` and `pixelRatio` options and offer a `resolveAssetUrl` helper.
+  - A new `Editor.toImage` method simplifies creating images from your canvas.
+- **i18n Enhancements** ([#5208](https://github.com/tldraw/tldraw/pull/5208)). Expanded our localization support to cover the top 40 languages.
+- **React 19** ([#5293](https://github.com/tldraw/tldraw/pull/5293)). tldraw now supports React 19.
+- **Easier external content customisation** ([#5298](https://github.com/tldraw/tldraw/pull/5298), [#5402](https://github.com/tldraw/tldraw/pull/5402)). You can re-use our default handlers, and now customise pasted tldraw & excalidraw content.
+- **Customize input event handling** ([#5319](https://github.com/tldraw/tldraw/pull/5319)). Listen to the `before-event` event to run custom code before tldraw handles input events.
+- **Custom cropping** ([#5137](https://github.com/tldraw/tldraw/pull/5137)). There’s a new `onCrop` method that `ShapeUtil`s can implement to opt-into & customize cropping.
 
-- Add `labelColor` to note shapes. ([#4724](https://github.com/tldraw/tldraw/pull/4724))
-- There are a new set of APIs for working with unique DOM IDs in tldraw components: [`useUniqueSafeId`](https://staging.tldraw.dev/reference/editor/useUniqueSafeId) & [`useSharedSafeId`](https://staging.tldraw.dev/reference/editor/useSharedSafeId). ([#4694](https://github.com/tldraw/tldraw/pull/4694))
+### Breaking Changes
 
-#### Bug fixes
+- **Shape Options Configuration.** With the introduction of `ShapeUtil.configure`, if you pass in a shape util that shares a type with a default, it now replaces the default instead of crashing. In addition, the previous `options.maxDrawShapePoints` is now set via:
+  - `DrawShapeUtil.configure({ maxPoints })`
+  - `HighlightShapeUtil.configure({ maxPoints })` ([#5399](https://github.com/tldraw/tldraw/pull/5399), [#5349](https://github.com/tldraw/tldraw/pull/5349))
+- **Asset Upload API Changes.** In `@tldraw/tlschema`, `TLAssetStore.upload` now returns an object with `{ src, meta? }` rather than just the source string. Similarly, `Editor.uploadAsset` has been updated to reflect this change. ([#5218](https://github.com/tldraw/tldraw/pull/5218))
+- **Export Functionality.** The option to copy/export as JSON has been removed since it was not fully supported. Additionally, hooks like `useImageOrVideoAssetUrl` now require a `width` parameter, and export methods have been updated to export all shapes when no IDs are provided. ([#5114](https://github.com/tldraw/tldraw/pull/5114))
 
-- Writing `options` inline in the Tldraw component will no longer cause re-render loops. ([#4762](https://github.com/tldraw/tldraw/pull/4762))
-- Make sure toolbar button outlines match the border-radius of the button. ([#4759](https://github.com/tldraw/tldraw/pull/4759))
-- Make sure content pasted from Excalidraw keeps the correct color. ([#4752](https://github.com/tldraw/tldraw/pull/4752))
-- Don't highlight menu triggers that dont have their submenus open. ([#4710](https://github.com/tldraw/tldraw/pull/4710))
-- Pass through the correct event type for drag events. ([#4739](https://github.com/tldraw/tldraw/pull/4739))
-- Prevent multiple images accidentally being created when you drop one onto the canvas. ([#4704](https://github.com/tldraw/tldraw/pull/4704))
-- Make sure the link indicator is visible on sticky notes. ([#4708](https://github.com/tldraw/tldraw/pull/4708))
-- The insert embed dialog now parses URLs correctly. ([#4709](https://github.com/tldraw/tldraw/pull/4709))
-- Exports and other tldraw instances no longer can affect how each other are rendered. ([#4694](https://github.com/tldraw/tldraw/pull/4694))
-- Show the correct set of menu options in read-only mode. ([#4696](https://github.com/tldraw/tldraw/pull/4696))
+### Bug Fixes
 
-#### Authors
+- **UI & Interaction Bugs**
+  - Resolved dialog and edit menu glitches ([#5274](https://github.com/tldraw/tldraw/pull/5274)).
+  - Addressed problems with mousewheel events not working on scrollable elements ([#5356](https://github.com/tldraw/tldraw/pull/5356)).
+- **Asset & Export Fixes**
+  - Ensured images in exports use the uncropped width ([#5300](https://github.com/tldraw/tldraw/pull/5300)).
+  - Corrected paste behavior for text/plain via keyboard shortcuts ([#5303](https://github.com/tldraw/tldraw/pull/5303)).
 
-- [@nayounsang](https://github.com/nayounsang)
-- alex ([@SomeHats](https://github.com/SomeHats))
-- David Sheldrick ([@ds300](https://github.com/ds300))
-- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
-- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
-- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+### Performance & Reliability
+
+- **Improved performance for headings** ([#5413](https://github.com/tldraw/tldraw/pull/5413)). Improved frame performance by relocating computations to their point of use.
+
+### Authors
+
+A huge thank you to everyone who contributed to this release:
+
+- [@melnikkk](https://github.com/melnikkk)
+- [@SomeHats](https://github.com/SomeHats)
+- [@Cygra](https://github.com/Cygra)
+- [@ds300](https://github.com/ds300)
+- [@jamesbvaughan](https://github.com/jamesbvaughan)
+- [@TodePond](https://github.com/TodePond)
+- [@mimecuvalo](https://github.com/mimecuvalo)
+- [@MitjaBezensek](https://github.com/MitjaBezensek)
+- [@onurmatik](https://github.com/onurmatik)
+- [@ricardo-crespo](https://github.com/ricardo-crespo)
+- [@steveruizok](https://github.com/steveruizok)
+- [@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk)
 
 ## Previous releases
+
+- [v3.7.0](/releases/v3.7.0)
+
+- [v3.6.0](/releases/v3.6.0)
+
+- [v3.5.0](/releases/v3.5.0)
+
+- [v3.4.0](/releases/v3.4.0)
 
 - [v3.3.0](/releases/v3.3.0)
 

@@ -12,10 +12,12 @@ export interface TLEventMap {
 	crash: [{ error: unknown }]
 	'stop-camera-animation': []
 	'stop-following': []
+	'before-event': [TLEventInfo]
 	event: [TLEventInfo]
 	tick: [number]
 	frame: [number]
 	'select-all-text': [{ shapeId: TLShapeId }]
+	'place-caret': [{ shapeId: TLShapeId; point: { x: number; y: number } }]
 }
 
 /** @public */

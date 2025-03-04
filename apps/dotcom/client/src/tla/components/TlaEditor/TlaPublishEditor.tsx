@@ -1,33 +1,22 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
-import { useMemo, useRef } from 'react'
-import { SerializedSchema, TLComponents, TLRecord, Tldraw, usePassThroughWheelEvents } from 'tldraw'
+import { useMemo } from 'react'
+import { SerializedSchema, TLComponents, TLRecord, Tldraw } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { assetUrls } from '../../../utils/assetUrls'
 import { globalEditor } from '../../../utils/globalEditor'
-import { useSharing } from '../../../utils/sharing'
-import { useFileSystem } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
-import { useMaybeApp } from '../../hooks/useAppState'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
-import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
+import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
+import { TlaEditorPublishedSharePanel } from './editor-components/TlaEditorPublishedSharePanel'
 import styles from './editor.module.css'
+import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 const components: TLComponents = {
-	ErrorFallback: ({ error }) => {
-		throw error
-	},
-	SharePanel: () => {
-		const ref = useRef<HTMLDivElement>(null)
-		usePassThroughWheelEvents(ref)
-		const isAnonUser = !useMaybeApp()
-		return <TlaEditorTopRightPanel isAnonUser={isAnonUser} context="published-file" />
-	},
-	MenuPanel: () => {
-		const isAnonUser = !useMaybeApp()
-		return <TlaEditorTopLeftPanel isAnonUser={isAnonUser} />
-	},
+	ErrorFallback: TlaEditorErrorFallback,
+	SharePanel: TlaEditorPublishedSharePanel,
+	MenuPanel: () => <TlaEditorTopLeftPanel isAnonUser={true} />,
 }
 
 interface TlaPublishEditorProps {
@@ -40,8 +29,9 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 	useLegacyUrlParams()
 
 	const handleUiEvent = useHandleUiEvents()
-	const sharingUiOverrides = useSharing()
-	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
+	const fileEditorOverrides = useFileEditorOverrides({
+		fileSlug: undefined,
+	})
 
 	const snapshot = useMemo(
 		() => ({
@@ -57,7 +47,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
 				snapshot={snapshot}
-				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
+				overrides={[fileEditorOverrides]}
 				onUiEvent={handleUiEvent}
 				onMount={(editor) => {
 					;(window as any).app = editor

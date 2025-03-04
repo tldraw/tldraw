@@ -26,6 +26,7 @@ import {
 	createShapeId,
 	fetch,
 	structuredClone,
+	toRichText,
 } from '@tldraw/editor'
 import { getArrowBindings } from '../../shapes/arrow/shared'
 
@@ -191,7 +192,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 									...inCommon,
 									type: 'note',
 									props: {
-										text: v1Shape.text ?? '',
+										richText: toRichText(v1Shape.text ?? ''),
 										color: getV2Color(v1Shape.style.color),
 										size: getV2Size(v1Shape.style.size),
 										font: getV2Font(v1Shape.style.font),
@@ -210,7 +211,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 										geo: 'rectangle',
 										w: coerceDimension(v1Shape.size[0]),
 										h: coerceDimension(v1Shape.size[1]),
-										text: v1Shape.label ?? '',
+										richText: toRichText(v1Shape.label ?? ''),
 										fill: getV2Fill(v1Shape.style.isFilled, v1Shape.style.color),
 										labelColor: getV2Color(v1Shape.style.color),
 										color: getV2Color(v1Shape.style.color),
@@ -224,12 +225,12 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 
 							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
 
-							editor.updateShapes([
+							editor.updateShapes<TLGeoShape>([
 								{
 									id: inCommon.id,
 									type: 'geo',
 									props: {
-										text: v1Shape.label ?? '',
+										richText: toRichText(v1Shape.label ?? ''),
 									},
 								},
 							])
@@ -279,12 +280,12 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 
 							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
 
-							editor.updateShapes([
+							editor.updateShapes<TLGeoShape>([
 								{
 									id: inCommon.id,
 									type: 'geo',
 									props: {
-										text: v1Shape.label ?? '',
+										richText: toRichText(v1Shape.label ?? ''),
 									},
 								},
 							])
@@ -334,12 +335,12 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 
 							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
 
-							editor.updateShapes([
+							editor.updateShapes<TLGeoShape>([
 								{
 									id: inCommon.id,
 									type: 'geo',
 									props: {
-										text: v1Shape.label ?? '',
+										richText: toRichText(v1Shape.label ?? ''),
 									},
 								},
 							])
@@ -433,7 +434,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 									...inCommon,
 									type: 'text',
 									props: {
-										text: v1Shape.text ?? ' ',
+										richText: toRichText(v1Shape.text ?? ' '),
 										color: getV2Color(v1Shape.style.color),
 										size: getV2TextSize(v1Shape.style.size),
 										font: getV2Font(v1Shape.style.font),
@@ -1160,31 +1161,31 @@ const v1DashesToV2Dashes: Record<TLV1DashStyle, TLDefaultDashStyle> = {
 }
 
 function getV2Color(color: TLV1ColorStyle | undefined): TLDefaultColorStyle {
-	return color ? v1ColorsToV2Colors[color] ?? 'black' : 'black'
+	return color ? (v1ColorsToV2Colors[color] ?? 'black') : 'black'
 }
 
 function getV2Font(font: TLV1FontStyle | undefined): TLDefaultFontStyle {
-	return font ? v1FontsToV2Fonts[font] ?? 'draw' : 'draw'
+	return font ? (v1FontsToV2Fonts[font] ?? 'draw') : 'draw'
 }
 
 function getV2Align(align: TLV1AlignStyle | undefined): TLDefaultHorizontalAlignStyle {
-	return align ? v1AlignsToV2Aligns[align] ?? 'middle' : 'middle'
+	return align ? (v1AlignsToV2Aligns[align] ?? 'middle') : 'middle'
 }
 
 function getV2TextAlign(align: TLV1AlignStyle | undefined): TLDefaultTextAlignStyle {
-	return align ? v1TextAlignsToV2TextAligns[align] ?? 'middle' : 'middle'
+	return align ? (v1TextAlignsToV2TextAligns[align] ?? 'middle') : 'middle'
 }
 
 function getV2TextSize(size: TLV1SizeStyle | undefined): TLDefaultSizeStyle {
-	return size ? v1TextSizesToV2TextSizes[size] ?? 'm' : 'm'
+	return size ? (v1TextSizesToV2TextSizes[size] ?? 'm') : 'm'
 }
 
 function getV2Size(size: TLV1SizeStyle | undefined): TLDefaultSizeStyle {
-	return size ? v1SizesToV2Sizes[size] ?? 'l' : 'l'
+	return size ? (v1SizesToV2Sizes[size] ?? 'l') : 'l'
 }
 
 function getV2Dash(dash: TLV1DashStyle | undefined): TLDefaultDashStyle {
-	return dash ? v1DashesToV2Dashes[dash] ?? 'draw' : 'draw'
+	return dash ? (v1DashesToV2Dashes[dash] ?? 'draw') : 'draw'
 }
 
 function getV2Point(point: number[]): VecModel {

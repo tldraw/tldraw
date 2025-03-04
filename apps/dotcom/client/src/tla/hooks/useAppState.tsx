@@ -1,9 +1,8 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
-import { assertExists, atom, deleteFromLocalStorage, getFromLocalStorage } from 'tldraw'
+import { assertExists, atom } from 'tldraw'
 import { TldrawApp } from '../app/TldrawApp'
-import { useIntl } from '../utils/i18n'
-import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
+import { useTldrawAppUiEvents } from '../utils/app-ui-events'
 
 const appContext = createContext<TldrawApp | null>(null)
 
@@ -11,7 +10,6 @@ export const isClientTooOld$ = atom('isClientTooOld', false)
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
 	const [app, setApp] = useState(null as TldrawApp | null)
-	const intl = useIntl()
 	const auth = useAuth()
 	const { user, isLoaded } = useClerkUser()
 
@@ -20,6 +18,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			return
 		}
 	})
+	const trackEvent = useTldrawAppUiEvents()
 
 	if (!auth.isSignedIn || !user || !isLoaded) {
 		throw new Error('should have redirected in TlaRootProviders')
@@ -41,16 +40,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				onClientTooOld: () => {
 					isClientTooOld$.set(true)
 				},
-				intl,
+				trackEvent,
 			}).then(({ app }) => {
 				if (didCancel) {
 					app.dispose()
 					return
-				}
-				const claimTemporaryFileId = getFromLocalStorage(TEMPORARY_FILE_KEY)
-				if (claimTemporaryFileId) {
-					deleteFromLocalStorage(TEMPORARY_FILE_KEY)
-					app.claimTemporaryFile(claimTemporaryFileId)
 				}
 				_app = app
 				setApp(app)

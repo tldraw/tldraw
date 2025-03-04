@@ -1,16 +1,51 @@
-import Image from 'next/image'
+import Link from 'next/link'
+import { Icon, IconName } from '../common/icon'
 import { Section } from './section'
 import { SectionHeading } from './section-heading'
 
+const socialLinks = [
+	{
+		caption: 'Twitter',
+		icon: 'twitter' as IconName,
+		href: 'https://x.com/tldraw/',
+	},
+	{
+		caption: 'Discord',
+		icon: 'discord' as IconName,
+		href: 'https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink',
+	},
+	{
+		caption: 'GitHub',
+		icon: 'github' as IconName,
+		href: 'https://github.com/tldraw/tldraw',
+	},
+]
+
 export function TestimonialsSection() {
 	return (
-		<Section>
+		<Section className="bg-zinc-50 dark:bg-zinc-900 py-24 sm:py-24 md:py-32 lg:py-40 max-w-full">
 			<SectionHeading
-				subheading="Testimonials"
+				subheading="Community"
 				heading="Friends of the draw"
-				description="34,000+ GitHub stars. 60,000 followers on X. Join the 5,000+ strong community on Discord."
+				description={
+					<>
+						39,000 <Link href="https://github.com/tldraw">GitHub stars</Link>. 66,000 followers on{' '}
+						<Link href="https://x.com/tldraw">Twitter/X</Link>. Join the 8,000 strong community on{' '}
+						<Link href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink">
+							Discord
+						</Link>
+						.
+					</>
+				}
 			/>
-			<div className="flow-root px-5 md:px-0 relative">
+			<ul className="flex gap-6 items-center justify-center">
+				{socialLinks.map((item, index) => (
+					<li key={index}>
+						<SocialLink {...item} />
+					</li>
+				))}
+			</ul>
+			{/* <div className="flow-root px-5 md:px-0 relative">
 				<div className="-mt-8 sm:columns-2 lg:columns-3 gap-8">
 					{testimonials.map(({ name, role, avatar, quote }, index) => (
 						<div key={index} className="pt-8 sm:inline-block sm:w-full">
@@ -31,19 +66,28 @@ export function TestimonialsSection() {
 						</div>
 					))}
 				</div>
-				{/* Mailing list */}
-			</div>
+			</div> */}
 		</Section>
 	)
 }
 
-const testimonials = [
+const _testimonials: {
+	name: string
+	role: string
+	avatar: string
+	quote: string
+}[] = [
 	{
-		name: 'Alasdair Monk',
-		role: 'Developer at Github',
-		avatar: 'https://i.pravatar.cc/300?img=1',
-		quote:
-			'p much hands down my favourite tool right now is @tldraw – perfect level of fidelity for multiplayer whiteboarding',
+		name: 'Matt Palmer',
+		role: 'Developer Relations at Replit',
+		avatar: '/testimonial/matt_palmer.jpg',
+		quote: 'The @tldraw docs are excellent',
+	},
+	{
+		name: 'Ryan Mather',
+		role: 'Poetry Camera',
+		avatar: '/testimonial/ryan_mather.jpg',
+		quote: "these cats can't stop cooking",
 	},
 	{
 		name: 'Justin Duke',
@@ -98,3 +142,15 @@ const testimonials = [
 			'Props on @tldraw gave it a try, and I loved it.  Especially when it auto-detected the eraser when I flipped my stylus.  I had fun building the below for @getAllSpark.',
 	},
 ]
+
+function SocialLink({ caption, icon, href }: { caption: string; icon: IconName; href: string }) {
+	return (
+		<Link href={href} target="_blank" rel="noreferrer">
+			<span className="sr-only">{caption}</span>
+			<Icon
+				icon={icon}
+				className="h-10 text-black dark:text-white hover:text-zinc-600 dark:hover:text-zinc-100"
+			/>
+		</Link>
+	)
+}

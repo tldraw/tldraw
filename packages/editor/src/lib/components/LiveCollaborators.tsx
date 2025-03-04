@@ -75,6 +75,8 @@ const Collaborator = track(function Collaborator({
 	const { userId, chatMessage, brush, scribbles, selectedShapeIds, userName, cursor, color } =
 		latestPresence
 
+	if (!cursor) return null
+
 	// Add a little padding to the top-left of the viewport
 	// so that the cursor doesn't get cut off
 	const isCursorInViewport = !(
@@ -90,6 +92,7 @@ const Collaborator = track(function Collaborator({
 				<CollaboratorBrush
 					className="tl-collaborator__brush"
 					key={userId + '_brush'}
+					userId={userId}
 					brush={brush}
 					color={color}
 					opacity={0.1}
@@ -99,6 +102,7 @@ const Collaborator = track(function Collaborator({
 				<CollaboratorCursor
 					className="tl-collaborator__cursor"
 					key={userId + '_cursor'}
+					userId={userId}
 					point={cursor}
 					color={color}
 					zoom={zoomLevel}
@@ -109,6 +113,7 @@ const Collaborator = track(function Collaborator({
 				<CollaboratorHint
 					className="tl-collaborator__cursor-hint"
 					key={userId + '_cursor_hint'}
+					userId={userId}
 					point={cursor}
 					color={color}
 					zoom={zoomLevel}
@@ -121,6 +126,7 @@ const Collaborator = track(function Collaborator({
 						<CollaboratorScribble
 							key={userId + '_scribble_' + scribble.id}
 							className="tl-collaborator__scribble"
+							userId={userId}
 							scribble={scribble}
 							color={color}
 							zoom={zoomLevel}
@@ -136,6 +142,7 @@ const Collaborator = track(function Collaborator({
 						<CollaboratorShapeIndicator
 							className="tl-collaborator__shape-indicator"
 							key={userId + '_' + shapeId}
+							userId={userId}
 							shapeId={shapeId}
 							color={color}
 							opacity={0.5}
@@ -171,7 +178,7 @@ function useCollaboratorState(editor: Editor, latestPresence: TLInstancePresence
 	if (latestPresence) {
 		// We can do this on every render, it's free and cheaper than an effect
 		// remember, there can be lots and lots of cursors moving around all the time
-		rLastActivityTimestamp.current = latestPresence.lastActivityTimestamp
+		rLastActivityTimestamp.current = latestPresence.lastActivityTimestamp ?? Infinity
 	}
 
 	return state

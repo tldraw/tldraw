@@ -187,7 +187,7 @@ button.nameWidthSetter {
 /* ------------------- Share panel ------------------ */
 
 .topRightPanel {
-	height: 42px;
+	height: 44px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -197,7 +197,7 @@ button.nameWidthSetter {
 
 @media (max-width: 767px) {
 	.topRightPanel {
-		padding-right: 2px;
+		padding-right: 4px;
 	}
 }
 
@@ -235,4 +235,23 @@ button.nameWidthSetter {
 	z-index: 0;
 	pointer-events: none;
 	visibility: hidden;
+}
+
+.offlineIndicatorWrapper {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	padding-top: 3px;
+	height: fit-content;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+}
+
+@media (max-width: 1080px) {
+	.offlineIndicatorWrapper {
+		padding-top: 44px;
+	}
 }

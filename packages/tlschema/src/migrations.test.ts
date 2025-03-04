@@ -3,6 +3,7 @@ import { getTestMigration, testSchema } from './__tests__/migrationTestUtils'
 import { bookmarkAssetVersions } from './assets/TLBookmarkAsset'
 import { imageAssetVersions } from './assets/TLImageAsset'
 import { videoAssetVersions } from './assets/TLVideoAsset'
+import { toRichText } from './misc/TLRichText'
 import { assetVersions } from './records/TLAsset'
 import { cameraVersions } from './records/TLCamera'
 import { documentVersions } from './records/TLDocument'
@@ -209,7 +210,13 @@ describe('Store removing Icon and Code shapes', () => {
 					type: 'geo',
 					parentId: 'page:any',
 					index: 'a0',
-					props: { geo: 'rectangle', w: 1, h: 1, growY: 1, text: '' },
+					props: {
+						geo: 'rectangle',
+						w: 1,
+						h: 1,
+						growY: 1,
+						richText: toRichText(''),
+					},
 				} as any),
 			].map((shape) => [shape.id, shape])
 		)
@@ -1371,6 +1378,25 @@ describe('Make urls valid for all the shapes', () => {
 	}
 })
 
+describe('Add rich text', () => {
+	const migrations = [
+		['text shape', getTestMigration(textShapeVersions.AddRichText)],
+		['geo shape', getTestMigration(geoShapeVersions.AddRichText)],
+		['note shape', getTestMigration(noteShapeVersions.AddRichText)],
+	] as const
+
+	for (const [shapeName, { up }] of migrations) {
+		it(`works for ${shapeName}`, () => {
+			const shape = { props: { text: 'hello, world' } }
+			expect(up(shape)).toEqual({
+				props: { richText: toRichText('hello, world') },
+			})
+			// N.B. Explicitly no down state so that we force clients to update.
+			// expect(down(originalShape)).toEqual(shape)
+		})
+	}
+})
+
 describe('Make urls valid for all the assets', () => {
 	const migrations = [
 		['bookmark asset', getTestMigration(bookmarkAssetVersions.MakeUrlsValid)],
@@ -2027,6 +2053,70 @@ describe('Adding label color to note shapes', () => {
 
 	test('down works as expected', () => {
 		expect(down({ props: { labelColor: 'black' } })).toEqual({ props: {} })
+	})
+})
+
+describe('TLPresence NullableCameraCursor', () => {
+	const { up, down } = getTestMigration(instancePresenceVersions.NullableCameraCursor)
+
+	test('up works as expected', () => {
+		expect(
+			up({
+				lastActivityTimestamp: 123,
+				followingUserId: null,
+				color: '#FF0000',
+				camera: { x: 1, y: 2, z: 3 },
+				cursor: { type: 'default', x: 1, y: 2, rotation: 3 },
+				screenBounds: { x: 0, y: 0, w: 1, h: 1 },
+				selectedShapeIds: [],
+				brush: null,
+				scribbles: [],
+				chatMessage: '',
+				meta: {},
+			})
+		).toEqual({
+			lastActivityTimestamp: 123,
+			followingUserId: null,
+			color: '#FF0000',
+			camera: { x: 1, y: 2, z: 3 },
+			cursor: { type: 'default', x: 1, y: 2, rotation: 3 },
+			screenBounds: { x: 0, y: 0, w: 1, h: 1 },
+			selectedShapeIds: [],
+			brush: null,
+			scribbles: [],
+			chatMessage: '',
+			meta: {},
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				lastActivityTimestamp: null,
+				followingUserId: null,
+				color: '#FF0000',
+				camera: null,
+				cursor: null,
+				screenBounds: null,
+				selectedShapeIds: [],
+				brush: null,
+				scribbles: [],
+				chatMessage: '',
+				meta: {},
+			})
+		).toEqual({
+			lastActivityTimestamp: 0,
+			followingUserId: null,
+			color: '#FF0000',
+			camera: { x: 0, y: 0, z: 1 },
+			cursor: { type: 'default', x: 0, y: 0, rotation: 0 },
+			screenBounds: { x: 0, y: 0, w: 1, h: 1 },
+			selectedShapeIds: [],
+			brush: null,
+			scribbles: [],
+			chatMessage: '',
+			meta: {},
+		})
 	})
 })
 

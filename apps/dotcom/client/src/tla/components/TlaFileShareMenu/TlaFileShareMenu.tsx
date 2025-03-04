@@ -4,6 +4,7 @@ import {
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiMenuContextProvider,
+	preventDefault,
 	useValue,
 } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
@@ -25,7 +26,7 @@ export function TlaFileShareMenu({
 	children,
 }: {
 	// this share menu is shown when viewing a file, or a published file (snapshot), or when the logged out user is on the root (the scratchpad)
-	context: 'file' | 'published-file' | 'scratch'
+	context: 'file' | 'published-file' | 'scratch' | 'legacy'
 	fileId?: string
 	source: string
 	children: ReactNode
@@ -55,7 +56,8 @@ export function TlaFileShareMenu({
 
 	const okTabs = {
 		// If the context is a guest file or published file, show the anon share file
-		'anon-share': !isOwner && (context === 'file' || context === 'published-file'),
+		'anon-share':
+			!isOwner && (context === 'file' || context === 'published-file' || context === 'legacy'),
 		export: true,
 		// Can the current user configure the file's sharing settings?
 		share: context === 'file' && fileId && file && isOwner,
@@ -76,62 +78,64 @@ export function TlaFileShareMenu({
 	// todo: replace disabled tabs for signed out users with "sign in to do X" content
 
 	return (
-		<TldrawUiDropdownMenuRoot id={`share-${fileId}-${source}`}>
-			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
-				<TldrawUiDropdownMenuTrigger>{children}</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent
-					className={styles.shareMenu}
-					side="bottom"
-					alignOffset={-2}
-					sideOffset={4}
-				>
-					<TlaTabsRoot activeTab={tabToShowAsActive} onTabChange={handleTabChange}>
-						<TlaTabsTabs>
-							{/* Disable share when on a scratchpad file */}
-							{okTabs.share && (
-								<TlaTabsTab id="share" data-testid="tla-share-tab-button-share">
-									<F defaultMessage="Invite" />
+		<div onPointerDown={preventDefault}>
+			<TldrawUiDropdownMenuRoot id={`share-${fileId}-${source}`}>
+				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
+					<TldrawUiDropdownMenuTrigger>{children}</TldrawUiDropdownMenuTrigger>
+					<TldrawUiDropdownMenuContent
+						className={styles.shareMenu}
+						side="bottom"
+						alignOffset={-2}
+						sideOffset={4}
+					>
+						<TlaTabsRoot activeTab={tabToShowAsActive} onTabChange={handleTabChange}>
+							<TlaTabsTabs>
+								{/* Disable share when on a scratchpad file */}
+								{okTabs.share && (
+									<TlaTabsTab id="share" data-testid="tla-share-tab-button-share">
+										<F defaultMessage="Invite" />
+									</TlaTabsTab>
+								)}
+								{okTabs['anon-share'] && (
+									<TlaTabsTab id="anon-share" data-testid="tla-share-tab-button-anon-share">
+										<F defaultMessage="Share" />
+									</TlaTabsTab>
+								)}
+								{/* Always show export */}
+								<TlaTabsTab id="export" data-testid="tla-share-tab-button-export">
+									<F defaultMessage="Export" />
 								</TlaTabsTab>
+								{/* Show publish tab when there's a file and either the context is a published file or the user owns the file */}
+								{okTabs.publish && (
+									<TlaTabsTab id="publish" data-testid="tla-share-tab-button-publish">
+										<F defaultMessage="Publish" />
+									</TlaTabsTab>
+								)}
+							</TlaTabsTabs>
+							{okTabs.share && fileId && (
+								// We have a file and we're authenticated
+								<TlaTabsPage id="share" data-testid="tla-share-tab-page-share">
+									<TlaInviteTab fileId={fileId} />
+								</TlaTabsPage>
 							)}
 							{okTabs['anon-share'] && (
-								<TlaTabsTab id="anon-share" data-testid="tla-share-tab-button-anon-share">
-									<F defaultMessage="Share" />
-								</TlaTabsTab>
+								<TlaTabsPage id="anon-share" data-testid="tla-share-tab-page-anon-share">
+									<TlaAnonCopyLinkTab />
+								</TlaTabsPage>
 							)}
-							{/* Always show export */}
-							<TlaTabsTab id="export" data-testid="tla-share-tab-button-export">
-								<F defaultMessage="Export" />
-							</TlaTabsTab>
-							{/* Show publish tab when there's a file and either the context is a published file or the user owns the file */}
-							{okTabs.publish && (
-								<TlaTabsTab id="publish" data-testid="tla-share-tab-button-publish">
-									<F defaultMessage="Publish" />
-								</TlaTabsTab>
+							<TlaTabsPage id="export" data-testid="tla-share-tab-page-export">
+								<TlaExportTab />
+							</TlaTabsPage>
+							{/* Only show the publish tab if the file is owned by the user */}
+							{okTabs.publish && file && (
+								<TlaTabsPage id="publish" data-testid="tla-share-tab-page-publish">
+									<TlaPublishTab file={file} />
+								</TlaTabsPage>
 							)}
-						</TlaTabsTabs>
-						{okTabs.share && fileId && (
-							// We have a file and we're authenticated
-							<TlaTabsPage id="share" data-testid="tla-share-tab-page-share">
-								<TlaInviteTab fileId={fileId} />
-							</TlaTabsPage>
-						)}
-						{okTabs['anon-share'] && (
-							<TlaTabsPage id="anon-share" data-testid="tla-share-tab-page-anon-share">
-								<TlaAnonCopyLinkTab />
-							</TlaTabsPage>
-						)}
-						<TlaTabsPage id="export" data-testid="tla-share-tab-page-export">
-							<TlaExportTab />
-						</TlaTabsPage>
-						{/* Only show the publish tab if the file is owned by the user */}
-						{okTabs.publish && file && (
-							<TlaTabsPage id="publish" data-testid="tla-share-tab-page-publish">
-								<TlaPublishTab file={file} />
-							</TlaTabsPage>
-						)}
-					</TlaTabsRoot>
-				</TldrawUiDropdownMenuContent>
-			</TldrawUiMenuContextProvider>
-		</TldrawUiDropdownMenuRoot>
+						</TlaTabsRoot>
+					</TldrawUiDropdownMenuContent>
+				</TldrawUiMenuContextProvider>
+			</TldrawUiDropdownMenuRoot>
+		</div>
 	)
 }

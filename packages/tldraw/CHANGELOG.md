@@ -1,3 +1,355 @@
+# v3.9.0 (Mon Mar 03 2025)
+
+### Release Notes
+
+#### Fix issue with duplicating bound arrows. ([#5495](https://github.com/tldraw/tldraw/pull/5495))
+
+- Fix a bug with duplicating bound arrows.
+
+#### [botcom] Fix slow export menu in big files ([#5435](https://github.com/tldraw/tldraw/pull/5435))
+
+- Fixed a bug with export menu performance.
+
+#### Improve / fix layout methods: alignment, distribute, flip, stack. ([#5479](https://github.com/tldraw/tldraw/pull/5479))
+
+- Fixes several bugs when aligning / flipping / distributing / stretching / stacking a selection that included with arrows.
+- Fixed a bug with distribution with overlapping shapes
+- Fixed a bug with distribution that could lead to changed selection.
+- Fixed a bug preventing rotated shapes from being stretched.
+
+#### Fix text padding, add context to shape geometry ([#5487](https://github.com/tldraw/tldraw/pull/5487))
+
+- Improved horizontal padding for arrows bound to text shapes
+
+#### Remove canvas size dependency ([#5488](https://github.com/tldraw/tldraw/pull/5488))
+
+- API: removes canvas-size dependency.
+
+#### fix copy as svg mime type ([#5482](https://github.com/tldraw/tldraw/pull/5482))
+
+- Fix copy as svg
+
+#### [hotfixme] Option-cloning text shapes ([#5470](https://github.com/tldraw/tldraw/pull/5470))
+
+- Fixed a bug with cloning text shapes.
+
+#### assets: fix up regression with temporaryAssetPreview ([#5453](https://github.com/tldraw/tldraw/pull/5453))
+
+- Fix a regression with temporary image previews while images are uploading.
+
+---
+
+#### 🐛 Bug Fix
+
+- disable full-fat copy-as-svg on chrome [#5524](https://github.com/tldraw/tldraw/pull/5524) ([@ds300](https://github.com/ds300))
+- Update discord links [#5500](https://github.com/tldraw/tldraw/pull/5500) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@steveruizok](https://github.com/steveruizok) [@TodePond](https://github.com/TodePond))
+
+#### 🐛 Bug Fixes
+
+- pull writing image/svg to clipboard [#5533](https://github.com/tldraw/tldraw/pull/5533) ([@SomeHats](https://github.com/SomeHats))
+- Fix issue with duplicating bound arrows. [#5495](https://github.com/tldraw/tldraw/pull/5495) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- [botcom] Fix slow export menu in big files [#5435](https://github.com/tldraw/tldraw/pull/5435) ([@steveruizok](https://github.com/steveruizok))
+- Improve / fix layout methods: alignment, distribute, flip, stack. [#5479](https://github.com/tldraw/tldraw/pull/5479) ([@steveruizok](https://github.com/steveruizok))
+- fix copy as svg mime type [#5482](https://github.com/tldraw/tldraw/pull/5482) ([@SomeHats](https://github.com/SomeHats))
+- [hotfixme] Option-cloning text shapes [#5470](https://github.com/tldraw/tldraw/pull/5470) ([@steveruizok](https://github.com/steveruizok))
+- assets: fix up regression with temporaryAssetPreview [#5453](https://github.com/tldraw/tldraw/pull/5453) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 💄 Product Improvements
+
+- Fix text padding, add context to shape geometry [#5487](https://github.com/tldraw/tldraw/pull/5487) ([@steveruizok](https://github.com/steveruizok))
+- Remove canvas size dependency [#5488](https://github.com/tldraw/tldraw/pull/5488) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 7
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
+# v3.8.0 (Wed Feb 12 2025)
+
+### Release Notes
+
+#### Add tldraw and excalidraw to external content types ([#5402](https://github.com/tldraw/tldraw/pull/5402))
+
+- You can now customize how pasted tldraw and excalidraw content is handled with `registerExternalContentHandler`.
+
+#### Move computation to where it is needed ([#5413](https://github.com/tldraw/tldraw/pull/5413))
+
+- Slightly improve performance of frames.
+
+#### ShapeUtil.configure for shape options ([#5399](https://github.com/tldraw/tldraw/pull/5399))
+
+- introduces shape options & `ShapeUtil.configure`, a utility for passing options to a shape util
+- moves (unreleased) noteShapeResizeMode to NoteShapeOptions.resizeMode
+- If you pass tldraw a shape util with the same type as a default, it'll now replace the default rather than crash
+- **BREAKING** `options.maxDrawShapePoints` should now be specified with `DrawShapeUtil.configure({maxPoints})` and `HighlightShapeUtil.configure({maxPoints})`
+
+#### Shape options ([#5349](https://github.com/tldraw/tldraw/pull/5349))
+
+- introduces shape options
+- moves (unreleased) `noteShapeResizeMode` to `NoteShapeOptions.resizeMode`
+- moves `maxDrawShapePoints` to `DrawShapeOptions.maxPoints`
+- adds `maxPoints` to `HighlightShapeOptions.maxPoints`
+- 💥 breaking change if someone was using `options.maxDrawShapePoints`.
+
+#### Numeric shortcuts were still getting triggered when used inside some inputs (like the file rename input) ([#5378](https://github.com/tldraw/tldraw/pull/5378))
+
+- Fix an issue with numeric shortcuts working inside of editable elements.
+
+#### Use tick for asset debounce ([#5361](https://github.com/tldraw/tldraw/pull/5361))
+
+- Improve zoom performance when many shapes are in a document.
+
+#### Fix dialog interactions. ([#5366](https://github.com/tldraw/tldraw/pull/5366))
+
+- Improve dialog interactions: mouse down inside of it followed by mouse out outside of it no longer dismisses dialogs.
+
+#### Improve frame heading perf ([#5357](https://github.com/tldraw/tldraw/pull/5357))
+
+- Fix bug effecting performance when many frames are on the screen.
+
+#### Fix keyboard shortcut `1` not working for selecting the first tool ([#5358](https://github.com/tldraw/tldraw/pull/5358))
+
+- Fix a bug when 1 didn't work as a keyboard shortcut to select the first tool.
+
+#### Add option to disable numbered shortcuts on the toolbar ([#5340](https://github.com/tldraw/tldraw/pull/5340))
+
+- SDK: Added editor option to disable 0-9 keyboard shortcuts for the toolbar
+- Improved keyboard shortcuts for the toolbar
+
+#### Add "select geo tool" shortcut ([#5341](https://github.com/tldraw/tldraw/pull/5341))
+
+- Added `g` shortcut to select the most recent geometric tool.
+
+#### support react 19 ([#5293](https://github.com/tldraw/tldraw/pull/5293))
+
+- tldraw now supports react 19
+
+#### separately export default external content/asset handlers ([#5298](https://github.com/tldraw/tldraw/pull/5298))
+
+- You can now import each of our external asset/content handlers, so you can augment them without having to copy-paste them into your app
+
+#### BREAKING
+- `TLExternalAssetContent` has been renamed to `TLExternalAsset`
+
+#### fix pasting text/plain with keyboard shortcut ([#5303](https://github.com/tldraw/tldraw/pull/5303))
+
+- Fixed a bug with handling native paste events for plain text
+
+#### Use the uncropped width when requesting an image shape asset ([#5300](https://github.com/tldraw/tldraw/pull/5300))
+
+- Fixed a bug where a cropped image would use lower scaled assets the more it was cropped.
+
+#### Add editor option to allow sticky note resizing by scale ([#5273](https://github.com/tldraw/tldraw/pull/5273))
+
+- Added `options.noteShapeResizeMode` editor option to control how note shapes resize.
+
+#### Fix an error when embed util is not present. ([#5296](https://github.com/tldraw/tldraw/pull/5296))
+
+- Fix an issue with embeds logic not gracefully handling cases when we don't have an embed util.
+
+#### Add an onCrop handler to ShapeUtil ([#5137](https://github.com/tldraw/tldraw/pull/5137))
+
+- Add support for an onCrop handler on shape utils that allows you to prevent or modify the crop.
+- The `TLImageShapeCrop` type has been replaced by `TLShapeCrop`.
+
+#### edit menu: don't disable if not in select tool ([#5274](https://github.com/tldraw/tldraw/pull/5274))
+
+- Edit menu: fix accessing edit menu when not in the Select tool
+
+#### Fix for resizing snapshot bug ([#5211](https://github.com/tldraw/tldraw/pull/5211))
+
+- Fixed a bug that could occur when resizing on mobile
+
+#### Welcome dialog for preview users ([#5263](https://github.com/tldraw/tldraw/pull/5263))
+
+- Breaking SDK Changes
+  - TldrawUiToasts renamed to DefaultToasts
+  - TldrawUiDialogs renamed to DefaultDialogs
+- New SDK stuff
+  - Toasts overridable component added
+  - Dialogs overridable component added
+
+#### Asset uploads ([#5218](https://github.com/tldraw/tldraw/pull/5218))
+
+**Breaking change**
+
+- `@tldraw/tlschema`: `TLAssetStore.upload` used to return just the `src` of the uploaded asset. It now returns `{src: string, meta?: JsonObject}`. The returned metadata will be added to the asset record and thus allows the users to add some additional data to them when uploading.
+- `@tldraw/editor`: `Editor.uploadAsset` used to return `Promise<string>` and now returns `Promise<{ src: string; meta?: JsonObject }> `
+
+#### Exports DX pass ([#5114](https://github.com/tldraw/tldraw/pull/5114))
+
+#### Breaking changes / user facing changes
+- The copy/export as JSON option has been removed. Data copied/exported from here could not be used anyway. If you need this in your app, look into `Editor.getContentFromCurrentPage`.
+- `useImageOrVideoAssetUrl` now expects a `width` parameter representing the rendered width of the asset.
+- `Editor.getSvgElement` and `Editor.getSvgString` will now export all shapes on the current page instead of returning undefined when passed an empty array of shape ids.
+
+#### Product improvement
+- When exporting to an image, image assets are now downloaded at a resolution appropriate for how they will appear in the export.
+
+#### API changes
+- There's a new `Editor.toImage` method that makes creating an image from your canvas easier. (`exportToBlob` is deprecated in favour of it)
+- `SvgExportContext` now exposes the `scale` and `pixelRatio` options of the current export
+- `SvgExportContext` now has a `resolveAssetUrl` method to resolve an asset at a resolution appropriate for the export.
+- `copyAs(editor, ids, format, opts)` has been deprecated in favour of `copyAs(editor, ids, opts)`.
+- `exportAs(editor, ids, format, name, opts)` has been deprecated in favour of `exportAs(editor, ids, opts)`
+
+#### Added toast instead of throwing an error for the case when the amount… ([#5201](https://github.com/tldraw/tldraw/pull/5201))
+
+- added toast instead of throwing an error for the case when the amount of files is bigger than `maxFilesAtOnce`
+
+#### fix clipboard file upload ([#5223](https://github.com/tldraw/tldraw/pull/5223))
+
+- Fix pasting files copied from the local filesystem with cmd-v
+
+#### Provided an ability to select multiple arrow labels using ctrl/cmd key ([#5161](https://github.com/tldraw/tldraw/pull/5161))
+
+- Provided an ability to select multiple arrow labels using ctrl/cmd key
+
+---
+
+#### 🐛 Bug Fix
+
+- Fix line wobble issue [#5281](https://github.com/tldraw/tldraw/pull/5281) ([@jamesbvaughan](https://github.com/jamesbvaughan))
+- Revert "Fix for resizing snapshot bug (#5211)" [#5292](https://github.com/tldraw/tldraw/pull/5292) ([@mimecuvalo](https://github.com/mimecuvalo))
+- hard code context id for dialogs [#5279](https://github.com/tldraw/tldraw/pull/5279) ([@ds300](https://github.com/ds300))
+- Move examples from CodeSandbox to StackBlitz [#5255](https://github.com/tldraw/tldraw/pull/5255) ([@steveruizok](https://github.com/steveruizok))
+- Focus file input on create/duplicate [#5253](https://github.com/tldraw/tldraw/pull/5253) ([@ds300](https://github.com/ds300))
+- strings: rm some old ones, use nice apostrophes [#5213](https://github.com/tldraw/tldraw/pull/5213) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🐛 Bug Fixes
+
+- Numeric shortcuts were still getting triggered when used inside some inputs (like the file rename input) [#5378](https://github.com/tldraw/tldraw/pull/5378) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Improve frame heading perf [#5357](https://github.com/tldraw/tldraw/pull/5357) ([@steveruizok](https://github.com/steveruizok))
+- Fix keyboard shortcut `1` not working for selecting the first tool [#5358](https://github.com/tldraw/tldraw/pull/5358) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- fix pasting text/plain with keyboard shortcut [#5303](https://github.com/tldraw/tldraw/pull/5303) ([@ds300](https://github.com/ds300))
+- Use the uncropped width when requesting an image shape asset [#5300](https://github.com/tldraw/tldraw/pull/5300) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+- Fix an error when embed util is not present. [#5296](https://github.com/tldraw/tldraw/pull/5296) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@mimecuvalo](https://github.com/mimecuvalo))
+- edit menu: don't disable if not in select tool [#5274](https://github.com/tldraw/tldraw/pull/5274) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix for resizing snapshot bug [#5211](https://github.com/tldraw/tldraw/pull/5211) ([@steveruizok](https://github.com/steveruizok))
+- Added toast instead of throwing an error for the case when the amount… [#5201](https://github.com/tldraw/tldraw/pull/5201) ([@melnikkk](https://github.com/melnikkk))
+- fix clipboard file upload [#5223](https://github.com/tldraw/tldraw/pull/5223) ([@SomeHats](https://github.com/SomeHats))
+- i18n: rename two locale codes [#5212](https://github.com/tldraw/tldraw/pull/5212) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix lint. [#5182](https://github.com/tldraw/tldraw/pull/5182) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Provided an ability to select multiple arrow labels using ctrl/cmd key [#5161](https://github.com/tldraw/tldraw/pull/5161) ([@melnikkk](https://github.com/melnikkk))
+
+#### 💄 Product Improvements
+
+- Move computation to where it is needed [#5413](https://github.com/tldraw/tldraw/pull/5413) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Improve published file experience [#5371](https://github.com/tldraw/tldraw/pull/5371) ([@ds300](https://github.com/ds300))
+- Use tick for asset debounce [#5361](https://github.com/tldraw/tldraw/pull/5361) ([@steveruizok](https://github.com/steveruizok))
+- Fix dialog interactions. [#5366](https://github.com/tldraw/tldraw/pull/5366) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- support react 19 [#5293](https://github.com/tldraw/tldraw/pull/5293) ([@SomeHats](https://github.com/SomeHats) [@mimecuvalo](https://github.com/mimecuvalo) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Asset uploads [#5218](https://github.com/tldraw/tldraw/pull/5218) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🎉 New Features
+
+- Add "select geo tool" shortcut [#5341](https://github.com/tldraw/tldraw/pull/5341) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🛠️ API Changes
+
+- Add tldraw and excalidraw to external content types [#5402](https://github.com/tldraw/tldraw/pull/5402) ([@SomeHats](https://github.com/SomeHats))
+- ShapeUtil.configure for shape options [#5399](https://github.com/tldraw/tldraw/pull/5399) ([@SomeHats](https://github.com/SomeHats))
+- Shape options [#5349](https://github.com/tldraw/tldraw/pull/5349) ([@steveruizok](https://github.com/steveruizok))
+- Add option to disable numbered shortcuts on the toolbar [#5340](https://github.com/tldraw/tldraw/pull/5340) ([@steveruizok](https://github.com/steveruizok))
+- separately export default external content/asset handlers [#5298](https://github.com/tldraw/tldraw/pull/5298) ([@SomeHats](https://github.com/SomeHats))
+- Add editor option to allow sticky note resizing by scale [#5273](https://github.com/tldraw/tldraw/pull/5273) ([@steveruizok](https://github.com/steveruizok))
+- Add an onCrop handler to ShapeUtil [#5137](https://github.com/tldraw/tldraw/pull/5137) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk) [@mimecuvalo](https://github.com/mimecuvalo))
+- Welcome dialog for preview users [#5263](https://github.com/tldraw/tldraw/pull/5263) ([@ds300](https://github.com/ds300))
+- Exports DX pass [#5114](https://github.com/tldraw/tldraw/pull/5114) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 9
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Alexander Melnik ([@melnikkk](https://github.com/melnikkk))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- James Vaughan ([@jamesbvaughan](https://github.com/jamesbvaughan))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+
+---
+
+# v3.7.0 (Tue Jan 07 2025)
+
+### Release Notes
+
+#### Gist embed: restrict the url to a more strict format ([#5170](https://github.com/tldraw/tldraw/pull/5170))
+
+- Restrict Github Gists to a more strict URL format.
+
+#### embeds: fix Gist; fix Val Town; add support for <iframe> ([#5143](https://github.com/tldraw/tldraw/pull/5143))
+
+- Fixes bugs with Github Gist and Val Town; adds support for pasting `<iframe src="...">` embeds
+
+#### Fix max image dimension prop not getting applied. ([#5176](https://github.com/tldraw/tldraw/pull/5176))
+
+- Fix a bug with `maxImageDimension` not getting applied to pasted images.
+
+#### Allow expandSelectionOutlinePx to return a Box ([#5168](https://github.com/tldraw/tldraw/pull/5168))
+
+- Support expanding the selection outline by different amounts on each side by returning a `Box` from `expandSelectionOutlinePx`.
+
+#### custom sync presence ([#5071](https://github.com/tldraw/tldraw/pull/5071))
+
+- It's now possible to customise what presence data is synced between clients, or disable presence syncing entirely.
+
+#### Fix popover going off screen ([#5039](https://github.com/tldraw/tldraw/pull/5039))
+
+- Fixed a bug where popover menus might overflow the viewport
+
+#### Fix a bug when holding ctrl or meta and rotating ([#5087](https://github.com/tldraw/tldraw/pull/5087))
+
+- Fixed a bug with rotating image / croppable shapes.
+
+#### Improve rerenedring of the page menu and quick actions ([#5057](https://github.com/tldraw/tldraw/pull/5057))
+
+- Improves rendering of the pages menu and quick actions.
+
+---
+
+#### 🐛 Bug Fix
+
+- Reduce snow motion [#5148](https://github.com/tldraw/tldraw/pull/5148) ([@steveruizok](https://github.com/steveruizok))
+- [botcom] Support legacy routes [#5123](https://github.com/tldraw/tldraw/pull/5123) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fixes
+
+- Gist embed: restrict the url to a more strict format [#5170](https://github.com/tldraw/tldraw/pull/5170) ([@mimecuvalo](https://github.com/mimecuvalo))
+- embeds: fix Gist; fix Val Town; add support for <iframe> [#5143](https://github.com/tldraw/tldraw/pull/5143) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix max image dimension prop not getting applied. [#5176](https://github.com/tldraw/tldraw/pull/5176) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix popover going off screen [#5039](https://github.com/tldraw/tldraw/pull/5039) ([@hipstersmoothie](https://github.com/hipstersmoothie) [@ds300](https://github.com/ds300) [@steveruizok](https://github.com/steveruizok) [@mimecuvalo](https://github.com/mimecuvalo))
+- Fix a bug when holding ctrl or meta and rotating [#5087](https://github.com/tldraw/tldraw/pull/5087) ([@steveruizok](https://github.com/steveruizok))
+
+#### 💄 Product Improvements
+
+- Improve rerenedring of the page menu and quick actions [#5057](https://github.com/tldraw/tldraw/pull/5057) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🛠️ API Changes
+
+- Allow expandSelectionOutlinePx to return a Box [#5168](https://github.com/tldraw/tldraw/pull/5168) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+- custom sync presence [#5071](https://github.com/tldraw/tldraw/pull/5071) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 7
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Andrew Lisowski ([@hipstersmoothie](https://github.com/hipstersmoothie))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+
+---
+
 # v3.6.0 (Wed Dec 04 2024)
 
 ### Release Notes
