@@ -363,7 +363,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private async _doMutate(msg: ZClientSentMessage) {
 		this.assertCache()
-		const { insertedFiles, newGuestFiles, mutationNumber } = await this.db
+		const { insertedFiles, newGuestFiles } = await this.db
 			.transaction()
 			.execute(async (tx) => {
 				const insertedFiles: TlaFile[] = []
@@ -482,26 +482,27 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					this.cache.store.updateOptimisticData([update], msg.mutationId)
 				}
 				const result = await this.bumpMutationNumber(tx)
-				return { insertedFiles, newGuestFiles, mutationNumber: result.mutationNumber }
+
+				this.lastMutationTimestamp = Date.now()
+
+				const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
+				const mutationNumber = result.mutationNumber
+				assert(
+					mutationNumber > currentMutationNumber,
+					`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
+				)
+				this.log.debug('pushing mutation to cache', this.userId, mutationNumber)
+				this.cache.mutations.push({
+					mutationNumber,
+					mutationId: msg.mutationId,
+					timestamp: Date.now(),
+				})
+				return { insertedFiles, newGuestFiles }
 			})
 			.catch((e) => {
 				this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== msg.mutationId)
 				throw e
 			})
-
-		this.lastMutationTimestamp = Date.now()
-
-		const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
-		assert(
-			mutationNumber > currentMutationNumber,
-			`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
-		)
-		this.log.debug('pushing mutation to cache', this.userId, mutationNumber)
-		this.cache.mutations.push({
-			mutationNumber,
-			mutationId: msg.mutationId,
-			timestamp: Date.now(),
-		})
 
 		for (const file of insertedFiles) {
 			getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
