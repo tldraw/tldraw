@@ -12,14 +12,16 @@
 	],
 	"scripts": {
 		"dev": "concurrently 'yarn docker-up' 'yarn migrate --signal-success'",
-		"docker-up": "docker compose -f ./docker/docker-compose.yml up",
-		"docker-down": "docker compose -f ./docker/docker-compose.yml down",
+		"zero-server": "zero-cache-dev -p ../../../packages/dotcom-shared/src/thing.ts",
+		"docker-up": "docker compose --env-file .env -f ./docker/docker-compose.yml up",
+		"docker-down": "docker compose --env-file .env -f ./docker/docker-compose.yml down",
 		"migrate": "yarn tsx ./migrate.ts",
 		"clean": "yarn docker-down && ./clean.sh",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
 	},
 	"type": "module",
 	"dependencies": {
+		"@rocicorp/zero": "0.16.2025022800",
 		"concurrently": "^9.1.2",
 		"kysely": "^0.27.5",
 		"pg": "^8.13.1"

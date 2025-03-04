@@ -1,4 +1,5 @@
 // import { Query, QueryType, Smash, TableSchema, Zero } from '@rocicorp/zero'
+import { Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
 	CreateFilesResponseBody,
@@ -10,17 +11,13 @@ import {
 	TlaFileState,
 	TlaUser,
 	UserPreferencesKeys,
-	ZErrorCode,
 	Z_PROTOCOL_VERSION,
+	schema as zeroSchema,
+	ZErrorCode,
 } from '@tldraw/dotcom-shared'
-import { Result, assert, fetch, structuredClone, throttle, uniqueId } from '@tldraw/utils'
+import { assert, fetch, Result, structuredClone, throttle, uniqueId } from '@tldraw/utils'
 import pick from 'lodash.pick'
 import {
-	Signal,
-	TLDocument,
-	TLSessionStateSnapshot,
-	TLUiToastsContextType,
-	TLUserPreferences,
 	assertExists,
 	atom,
 	computed,
@@ -33,6 +30,11 @@ import {
 	objectMapKeys,
 	parseTldrawJsonFile,
 	react,
+	Signal,
+	TLDocument,
+	TLSessionStateSnapshot,
+	TLUiToastsContextType,
+	TLUserPreferences,
 } from 'tldraw'
 import { MULTIPLAYER_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
@@ -41,12 +43,13 @@ import { TLAppUiContextType } from '../utils/app-ui-events'
 import { getDateFormat } from '../utils/dates'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
-import { Zero } from './zero-polyfill'
+import { Zero as ZeroPolyfill } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
 
 let appId = 0
+const useProperZero = window.location.search.includes('zero')
 
 export class TldrawApp {
 	config = {
@@ -55,7 +58,7 @@ export class TldrawApp {
 
 	readonly id = appId++
 
-	readonly z: Zero
+	readonly z: ZeroPolyfill
 
 	private readonly user$: Signal<TlaUser | undefined>
 	private readonly files$: Signal<TlaFile[]>
@@ -89,25 +92,32 @@ export class TldrawApp {
 		trackEvent: TLAppUiContextType
 	) {
 		const sessionId = uniqueId()
-		this.z = new Zero({
-			// userID: userId,
-			// auth: encodedJWT,
-			getUri: async () => {
-				const params = new URLSearchParams({
-					sessionId,
-					protocolVersion: String(Z_PROTOCOL_VERSION),
+
+		this.z = useProperZero
+			? new Zero({
+					userID: userId,
+					schema: zeroSchema,
+					server: 'http://localhost:4848',
 				})
-				const token = await getToken()
-				params.set('accessToken', token || 'no-token-found')
-				return `${MULTIPLAYER_SERVER}/app/${userId}/connect?${params}`
-			},
-			// schema,
-			// This is often easier to develop with if you're frequently changing
-			// the schema. Switch to 'idb' for local-persistence.
-			onMutationRejected: this.showMutationRejectionToast,
-			onClientTooOld: () => onClientTooOld(),
-			trackEvent,
-		})
+			: new ZeroPolyfill({
+					// userID: userId,
+					// auth: encodedJWT,
+					getUri: async () => {
+						const params = new URLSearchParams({
+							sessionId,
+							protocolVersion: String(Z_PROTOCOL_VERSION),
+						})
+						const token = await getToken()
+						params.set('accessToken', token || 'no-token-found')
+						return `${MULTIPLAYER_SERVER}/app/${userId}/connect?${params}`
+					},
+					// schema,
+					// This is often easier to develop with if you're frequently changing
+					// the schema. Switch to 'idb' for local-persistence.
+					onMutationRejected: this.showMutationRejectionToast,
+					onClientTooOld: () => onClientTooOld(),
+					trackEvent,
+				})
 
 		this.user$ = this.signalizeQuery(
 			'user signal',
@@ -128,7 +138,7 @@ export class TldrawApp {
 		await this.z.query.user.where('id', this.userId).preload().complete
 		if (!this.user$.get()) {
 			didCreate = true
-			this.z.mutate.user.create(initialUserData)
+			this.z.mutate.user.insert(initialUserData)
 			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
 		}
 		await new Promise((resolve) => {
@@ -230,7 +240,7 @@ export class TldrawApp {
 				Object.entries(others).filter(([_, value]) => value !== null)
 			) as Partial<TLUserPreferences>
 
-			this.z.mutate((tx) => {
+			this.z.mutateBatch((tx) => {
 				tx.user.update({
 					id: user.id,
 					...(nonNull as any),
@@ -356,9 +366,9 @@ export class TldrawApp {
 				Object.assign(file, { name: this.getFallbackFileName(file.createdAt) })
 			}
 		}
-		this.z.mutate((tx) => {
-			tx.file.create(file)
-			tx.file_state.create({
+		this.z.mutateBatch((tx) => {
+			tx.file.upsert(file)
+			tx.file_state.upsert({
 				isFileOwner: true,
 				fileId: file.id,
 				userId: this.userId,
@@ -419,7 +429,7 @@ export class TldrawApp {
 
 		if (file.ownerId !== this.userId) throw Error('user cannot edit that file')
 
-		this.z.mutate((tx) => {
+		this.z.mutateBatch((tx) => {
 			tx.file.update({
 				id: fileId,
 				shared: !file.shared,
@@ -442,7 +452,7 @@ export class TldrawApp {
 		const name = this.getFileName(file)
 
 		// Optimistic update
-		this.z.mutate((tx) => {
+		this.z.mutateBatch((tx) => {
 			tx.file.update({
 				id: fileId,
 				name,
@@ -484,7 +494,7 @@ export class TldrawApp {
 		if (!file.published) return Result.ok('success')
 
 		// Optimistic update
-		this.z.mutate((tx) => {
+		this.z.mutateBatch((tx) => {
 			tx.file.update({
 				id: fileId,
 				published: false,
@@ -503,7 +513,7 @@ export class TldrawApp {
 		const file = this.getFile(fileId)
 
 		// Optimistic update, remove file and file states
-		return this.z.mutate((tx) => {
+		return this.z.mutateBatch((tx) => {
 			tx.file_state.delete({ fileId, userId: this.userId })
 			if (file?.ownerId === this.userId) {
 				tx.file.update({ id: fileId, isDeleted: true })
@@ -561,7 +571,7 @@ export class TldrawApp {
 	getOrCreateFileState(fileId: string) {
 		let fileState = this.getFileState(fileId)
 		if (!fileState) {
-			this.z.mutate.file_state.create({
+			const fs: TlaFileState = {
 				fileId,
 				userId: this.userId,
 				firstVisitAt: Date.now(),
@@ -572,9 +582,13 @@ export class TldrawApp {
 				// doesn't really matter what this is because it is
 				// overwritten by postgres
 				isFileOwner: this.isFileOwner(fileId),
-			})
+			}
+			this.z.mutate.file_state.insert(fs)
+			fileState = {
+				...fs,
+				file: this.getFile(fileId)!,
+			}
 		}
-		fileState = this.getFileState(fileId)
 		if (!fileState) throw Error('could not create file state')
 		return fileState
 	}
