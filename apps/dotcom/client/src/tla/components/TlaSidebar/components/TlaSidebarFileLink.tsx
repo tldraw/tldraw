@@ -207,6 +207,7 @@ export function TlaSidebarFileLinkInner({
 function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
 	const container = useContainer()
 	const ownerName = file.ownerName.trim()
+	const testId = `guest-badge-${file.name}`
 	const navigate = useNavigate()
 
 	const handleToolTipClick = useCallback(
@@ -222,7 +223,7 @@ function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
 	)
 
 	return (
-		<div className={styles.guestBadge}>
+		<div className={styles.guestBadge} data-testid={testId}>
 			<TlaTooltipRoot disableHoverableContent>
 				<TlaTooltipTrigger
 					dir="ltr"
