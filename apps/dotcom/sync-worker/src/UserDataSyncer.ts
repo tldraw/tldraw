@@ -194,11 +194,12 @@ export class UserDataSyncer {
 		this.log.debug('fetching fresh initial data from postgres')
 		// if the bootId changes during the boot process, we should stop silently
 		const userSql = getFetchUserDataSql(this.userId)
-		const initialData: ZStoreData = {
+		const initialData: ZStoreData & { mutationNumber?: number } = {
 			user: null as any,
 			files: [],
 			fileStates: [],
 			lsn: '0/0',
+			mutationNumber: 0,
 		}
 		// we connect to pg via a pooler, so in the case that the pool is exhausted
 		// we need to retry the connection. (also in the case that a neon branch is asleep apparently?)
@@ -223,9 +224,18 @@ export class UserDataSyncer {
 							case 'file_state':
 								initialData.fileStates.push(parseResultRow(fileStateKeys, row))
 								break
-							case 'meta':
+							case 'lsn':
 								assert(typeof row.lsn === 'string', 'lsn should be a string')
 								initialData.lsn = row.lsn
+								break
+							case 'user_mutation_number':
+								assert(
+									typeof row.mutationNumber === 'number' || row.mutationNumber === null,
+									'mutationNumber should be a number or null, got' + JSON.stringify(row)
+								)
+								if (row.mutationNumber !== null) {
+									initialData.mutationNumber = row.mutationNumber
+								}
 								break
 						}
 					})
@@ -274,6 +284,12 @@ export class UserDataSyncer {
 				type: 'initial_data',
 				initialData: res.initialData,
 			})
+			if (
+				'mutationNumber' in res.initialData &&
+				typeof res.initialData.mutationNumber === 'number'
+			) {
+				this.commitMutations(res.initialData.mutationNumber)
+			}
 		}
 
 		const initialData = this.store.getCommittedData()!
