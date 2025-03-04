@@ -9,10 +9,10 @@ import { getStorageStateFileName } from './helpers'
 const db = new Kysely<DB>({
 	dialect: new PostgresDialect({
 		pool: new pg.Pool({
-			connectionString: 'postgresql://user:password@127.0.0.1:6543/postgres',
+			connectionString: 'postgresql://user:password@127.0.0.1:6432/postgres',
 			application_name: 'migrate',
 			idleTimeoutMillis: 10_000,
-			max: 1,
+			max: 10,
 		}),
 	}),
 	log: ['error'],
