@@ -7230,6 +7230,7 @@ __metadata:
     jose: "npm:^5.9.6"
     kysely: "npm:^0.27.5"
     lazyrepo: "npm:0.0.0-alpha.27"
+    lodash.throttle: "npm:^4.1.1"
     pg: "npm:^8.13.1"
     pg-logical-replication: "npm:^2.0.7"
     react: "npm:^18.3.1"
