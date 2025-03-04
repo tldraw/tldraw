@@ -92,6 +92,7 @@ export default defineConfig({
 		reuseExistingServer: !process.env.CI,
 		cwd: path.join(__dirname, '../../../'),
 		// remove comment if you wish to see the output of the server
-		// stdout: 'pipe',
+		stdout: 'pipe',
+		stderr: 'pipe',
 	},
 })
