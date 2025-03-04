@@ -1,5 +1,5 @@
 import { Locator, Page, PlaywrightTestArgs, PlaywrightWorkerArgs } from '@playwright/test'
-import { Editor } from 'tldraw'
+import { Editor, sleep } from 'tldraw'
 
 declare const editor: Editor
 
@@ -91,4 +91,10 @@ export async function withMenu<T>(page: Page, path: string, cb: (item: Locator) 
 }
 export async function clickMenu(page: Page, path: string) {
 	await withMenu(page, path, (item) => item.click())
+}
+
+// We need a way to wait for the editor to finish a tick
+export function sleepFrames(frames = 2): Promise<void> {
+	// eslint-disable-next-line local/no-at-internal
+	return sleep(frames * (1000 / 60))
 }

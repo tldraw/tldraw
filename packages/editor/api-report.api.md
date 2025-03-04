@@ -13,6 +13,8 @@ import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
 import { Dispatch } from 'react';
+import { Editor as Editor_2 } from '@tiptap/core';
+import { EditorProviderProps } from '@tiptap/react';
 import { EffectScheduler } from '@tldraw/state';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
@@ -24,6 +26,7 @@ import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { LegacyMigrations } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
+import { Node as Node_2 } from '@tiptap/pm/model';
 import { PerformanceTracker } from '@tldraw/utils';
 import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
@@ -72,6 +75,7 @@ import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
+import { TLRichText } from '@tldraw/tlschema';
 import { TLScribble } from '@tldraw/tlschema';
 import { TLShape } from '@tldraw/tlschema';
 import { TLShapeCrop } from '@tldraw/tlschema';
@@ -747,6 +751,7 @@ export const defaultTldrawOptions: {
     readonly longPressDurationMs: 500;
     readonly maxExportDelayMs: 5000;
     readonly maxFilesAtOnce: 100;
+    readonly maxFontsToLoadBeforeRender: number;
     readonly maxPages: 40;
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
@@ -834,7 +839,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, textOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, fontAssetUrls, }: TLEditorOptions);
     // @deprecated (undocumented)
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
@@ -1195,6 +1200,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     focus({ focusContainer }?: {
         focusContainer?: boolean | undefined;
     }): this;
+    readonly fonts: FontManager;
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
     getAsset<T extends TLAsset>(asset: T | T['id']): T | undefined;
     getAssetForExternalContent(info: TLExternalAsset): Promise<TLAsset | undefined>;
@@ -1273,6 +1279,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getRenderingShapes(): TLRenderingShape[];
+    getRichTextEditor(): null | TiptapEditor;
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getSelectedShapeIds(): TLShapeId[];
     getSelectedShapes(): TLShape[];
@@ -1341,6 +1348,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         width: number;
     } | undefined>;
     getTemporaryAssetPreview(assetId: TLAssetId): string | undefined;
+    getTextOptions(): TLTextOptions;
     // @internal (undocumented)
     getUnorderedRenderingShapes(useEditorState: boolean): TLRenderingShape[];
     getViewportPageBounds(): Box;
@@ -1365,6 +1373,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     hasShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): boolean;
     protected readonly history: HistoryManager<TLRecord>;
+    // (undocumented)
+    readonly id: string;
     inputs: {
         buttons: Set<number>;
         keys: Set<string>;
@@ -1491,6 +1501,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     _setMetaKeyTimeout(): void;
     setOpacityForNextShapes(opacity: number, historyOptions?: TLHistoryBatchOptions): this;
     setOpacityForSelectedShapes(opacity: number): this;
+    setRichTextEditor(textEditor: null | TiptapEditor): this;
     setSelectedShapes(shapes: TLShape[] | TLShapeId[]): this;
     // @internal (undocumented)
     _setShiftKeyTimeout(): void;
@@ -1646,6 +1657,25 @@ export function extractSessionStateFromLegacySnapshot(store: Record<string, Unkn
 export const featureFlags: Record<string, DebugFlag<boolean>>;
 
 // @public (undocumented)
+export class FontManager {
+    constructor(editor: Editor, assetUrls?: {
+        [key: string]: string | undefined;
+    } | undefined);
+    // (undocumented)
+    ensureFontIsLoaded(font: TLFontFace): Promise<void>;
+    // (undocumented)
+    getShapeFontFaces(shape: TLShape | TLShapeId): TLFontFace[];
+    // (undocumented)
+    loadRequiredFontsForCurrentPage(limit?: number): Promise<void>;
+    // (undocumented)
+    requestFonts(fonts: TLFontFace[]): void;
+    // (undocumented)
+    toEmbeddedCssDeclaration(font: TLFontFace): Promise<string>;
+    // (undocumented)
+    trackFontsForShape(shape: TLShape | TLShapeId): void;
+}
+
+// @public (undocumented)
 export interface GapsSnapIndicator {
     // (undocumented)
     direction: 'horizontal' | 'vertical';
@@ -1733,6 +1763,9 @@ export function getCursor(cursor: TLCursorType, rotation?: number, color?: strin
 
 // @public (undocumented)
 export function getDefaultCdnBaseUrl(): string;
+
+// @public (undocumented)
+export function getFontsFromRichText(editor: Editor, richText: TLRichText, initialState: RichTextFontVisitorState): TLFontFace[];
 
 // @public (undocumented)
 export function getFreshUserPreferences(): TLUserPreferences;
@@ -2423,6 +2456,19 @@ export function resizeScaled(shape: TLBaseShape<any, {
 };
 
 // @public (undocumented)
+export type RichTextFontVisitor = (node: TiptapNode, state: RichTextFontVisitorState, addFont: (font: TLFontFace) => void) => RichTextFontVisitorState;
+
+// @public (undocumented)
+export interface RichTextFontVisitorState {
+    // (undocumented)
+    readonly family: string;
+    // (undocumented)
+    readonly style: string;
+    // (undocumented)
+    readonly weight: string;
+}
+
+// @public (undocumented)
 export const ROTATE_CORNER_TO_SELECTION_CORNER: {
     readonly bottom_left_rotate: "bottom_left";
     readonly bottom_right_rotate: "bottom_right";
@@ -2528,6 +2574,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     getBoundsSnapGeometry(_shape: Shape): BoundsSnapGeometry;
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     abstract getDefaultProps(): Shape['props'];
+    getFontFaces(shape: Shape): TLFontFace[];
     abstract getGeometry(shape: Shape, opts?: TLGeometryOpts): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
     getHandleSnapGeometry(_shape: Shape): HandleSnapGeometry;
@@ -2821,6 +2868,20 @@ export class TextManager {
         }[];
     };
     // (undocumented)
+    measureHtml(html: string, opts: {
+        maxWidth: null | number;
+        disableOverflowWrapBreaking?: boolean;
+        fontFamily: string;
+        fontSize: number;
+        fontStyle: string;
+        fontWeight: string;
+        lineHeight: number;
+        minWidth?: null | number;
+        padding: string;
+    }): BoxModel & {
+        scrollWidth: number;
+    };
+    // (undocumented)
     measureText(textToMeasure: string, opts: {
         maxWidth: null | number;
         disableOverflowWrapBreaking?: boolean;
@@ -2839,6 +2900,12 @@ export class TextManager {
         text: string;
     }[];
 }
+
+// @public
+export type TiptapEditor = Editor_2;
+
+// @public
+export type TiptapNode = Node_2;
 
 // @public (undocumented)
 export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor<any>;
@@ -2896,6 +2963,8 @@ export interface TLBrushProps {
     color?: string;
     // (undocumented)
     opacity?: number;
+    // (undocumented)
+    userId?: string;
 }
 
 // @public (undocumented)
@@ -2979,6 +3048,8 @@ export interface TLCollaboratorHintProps {
     // (undocumented)
     point: VecModel;
     // (undocumented)
+    userId: string;
+    // (undocumented)
     viewport: Box;
     // (undocumented)
     zoom: number;
@@ -3039,6 +3110,8 @@ export interface TLCursorProps {
     // (undocumented)
     point: null | VecModel;
     // (undocumented)
+    userId: string;
+    // (undocumented)
     zoom: number;
 }
 
@@ -3069,6 +3142,11 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public
 export interface TldrawEditorBaseProps {
+    assetUrls?: {
+        fonts?: {
+            [key: string]: string | undefined;
+        };
+    };
     autoFocus?: boolean;
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     cameraOptions?: Partial<TLCameraOptions>;
@@ -3083,6 +3161,7 @@ export interface TldrawEditorBaseProps {
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+    textOptions?: TLTextOptions;
     tools?: readonly TLStateNodeConstructor[];
     user?: TLUser;
 }
@@ -3177,6 +3256,7 @@ export interface TldrawOptions {
     readonly maxExportDelayMs: number;
     // (undocumented)
     readonly maxFilesAtOnce: number;
+    readonly maxFontsToLoadBeforeRender: number;
     // (undocumented)
     readonly maxPages: number;
     // (undocumented)
@@ -3251,6 +3331,10 @@ export interface TLEditorOptions {
     autoFocus?: boolean;
     bindingUtils: readonly TLAnyBindingUtilConstructor[];
     cameraOptions?: Partial<TLCameraOptions>;
+    // (undocumented)
+    fontAssetUrls?: {
+        [key: string]: string | undefined;
+    };
     getContainer(): HTMLElement;
     inferDarkMode?: boolean;
     initialState?: string;
@@ -3261,6 +3345,8 @@ export interface TLEditorOptions {
     options?: Partial<TldrawOptions>;
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
+    // (undocumented)
+    textOptions?: TLTextOptions;
     tools: readonly TLStateNodeConstructor[];
     user?: TLUser;
 }
@@ -3382,6 +3468,14 @@ export interface TLEventMap {
         pageId: TLPageId;
     }];
     // (undocumented)
+    'place-caret': [{
+        point: {
+            x: number;
+            y: number;
+        };
+        shapeId: TLShapeId;
+    }];
+    // (undocumented)
     'select-all-text': [{
         shapeId: TLShapeId;
     }];
@@ -3464,6 +3558,29 @@ export interface TLFilesExternalContent extends TLBaseExternalContent {
     shapeIdToReplace?: TLShapeId;
     // (undocumented)
     type: 'files';
+}
+
+// @public
+export interface TLFontFace {
+    readonly ascentOverride?: string;
+    readonly descentOverride?: string;
+    readonly family: string;
+    readonly featureSettings?: string;
+    readonly lineGapOverride?: string;
+    readonly src: TLFontFaceSource;
+    readonly stretch?: string;
+    readonly style?: string;
+    readonly unicodeRange?: string;
+    readonly weight?: string;
+}
+
+// @public
+export interface TLFontFaceSource {
+    // (undocumented)
+    format?: string;
+    // (undocumented)
+    tech?: string;
+    url: string;
 }
 
 // @public
@@ -3755,6 +3872,8 @@ export interface TLScribbleProps {
     // (undocumented)
     scribble: TLScribble;
     // (undocumented)
+    userId?: string;
+    // (undocumented)
     zoom: number;
 }
 
@@ -3828,6 +3947,8 @@ export interface TLShapeIndicatorProps {
     opacity?: number;
     // (undocumented)
     shapeId: TLShapeId;
+    // (undocumented)
+    userId?: string;
 }
 
 // @public
@@ -3966,6 +4087,8 @@ export interface TLSvgTextExternalContent extends TLBaseExternalContent {
 // @public (undocumented)
 export interface TLTextExternalContent extends TLBaseExternalContent {
     // (undocumented)
+    html?: string;
+    // (undocumented)
     text: string;
     // (undocumented)
     type: 'text';
@@ -3979,6 +4102,14 @@ export interface TLTextExternalContentSource {
     subtype: 'html' | 'json' | 'text' | 'url';
     // (undocumented)
     type: 'text';
+}
+
+// @public (undocumented)
+export interface TLTextOptions {
+    // (undocumented)
+    addFontsFromNode?: RichTextFontVisitor;
+    // (undocumented)
+    tipTapConfig?: EditorProviderProps;
 }
 
 // @public (undocumented)
@@ -4149,12 +4280,15 @@ export function useMaybeEditor(): Editor | null;
 export function useOnMount(onMount?: TLOnMountHandler): void;
 
 // @public (undocumented)
+export function usePassThroughMouseOverEvents(ref: RefObject<HTMLElement>): void;
+
+// @public (undocumented)
 export function usePassThroughWheelEvents(ref: RefObject<HTMLElement>): void;
 
-// @internal (undocumented)
+// @public (undocumented)
 export function usePeerIds(): string[];
 
-// @internal (undocumented)
+// @public (undocumented)
 export function usePresence(userId: string): null | TLInstancePresence;
 
 export { useQuickReactor }
@@ -4260,6 +4394,9 @@ export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?:
 export function useUniqueSafeId(suffix?: string): SafeId;
 
 export { useValue }
+
+// @public (undocumented)
+export function useViewportHeight(): number;
 
 // @internal (undocumented)
 export interface ValidLicenseKeyResult {

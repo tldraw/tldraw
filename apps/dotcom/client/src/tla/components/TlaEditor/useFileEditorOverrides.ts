@@ -14,6 +14,12 @@ import { useMaybeApp } from '../../hooks/useAppState'
 import { useIntl, useMsg } from '../../utils/i18n'
 import { editorMessages as messages } from './editor-messages'
 
+export async function download(editor: Editor, name: string) {
+	const blobToSave = await serializeTldrawJsonBlob(editor)
+	const file = new File([blobToSave], name, { type: 'application/json' })
+	downloadFile(file)
+}
+
 export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 	const app = useMaybeApp()
 	const untitledProject = useMsg(messages.untitledProject)
@@ -55,10 +61,7 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					async onSelect() {
 						trackEvent('download-file', { source: '' })
 						const defaultName = getFileName(editor) + TLDRAW_FILE_EXTENSION
-
-						const blobToSave = await serializeTldrawJsonBlob(editor)
-						const file = new File([blobToSave], defaultName, { type: 'application/json' })
-						downloadFile(file)
+						await download(editor, defaultName)
 					},
 				}
 

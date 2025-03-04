@@ -16,20 +16,68 @@ export function getAssetUrlsByMetaUrl(opts) {
 	)
 	return {
 		fonts: {
-			monospace: formatAssetUrl(
+			tldraw_mono_bold: formatAssetUrl(
+				new URL('./fonts/IBMPlexMono-Bold.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_mono_italic_bold: formatAssetUrl(
+				new URL('./fonts/IBMPlexMono-BoldItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_mono: formatAssetUrl(
 				new URL('./fonts/IBMPlexMono-Medium.woff2', import.meta.url).href,
 				opts
 			),
-			sansSerif: formatAssetUrl(
+			tldraw_mono_italic: formatAssetUrl(
+				new URL('./fonts/IBMPlexMono-MediumItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_sans_bold: formatAssetUrl(
+				new URL('./fonts/IBMPlexSans-Bold.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_sans_italic_bold: formatAssetUrl(
+				new URL('./fonts/IBMPlexSans-BoldItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_sans: formatAssetUrl(
 				new URL('./fonts/IBMPlexSans-Medium.woff2', import.meta.url).href,
 				opts
 			),
-			serif: formatAssetUrl(
+			tldraw_sans_italic: formatAssetUrl(
+				new URL('./fonts/IBMPlexSans-MediumItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_serif_bold: formatAssetUrl(
+				new URL('./fonts/IBMPlexSerif-Bold.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_serif_italic_bold: formatAssetUrl(
+				new URL('./fonts/IBMPlexSerif-BoldItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_serif: formatAssetUrl(
 				new URL('./fonts/IBMPlexSerif-Medium.woff2', import.meta.url).href,
 				opts
 			),
-			draw: formatAssetUrl(
-				new URL('./fonts/Shantell_Sans-Tldrawish.woff2', import.meta.url).href,
+			tldraw_serif_italic: formatAssetUrl(
+				new URL('./fonts/IBMPlexSerif-MediumItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_draw_bold: formatAssetUrl(
+				new URL('./fonts/Shantell_Sans-Informal_Bold.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_draw_italic_bold: formatAssetUrl(
+				new URL('./fonts/Shantell_Sans-Informal_Bold_Italic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_draw: formatAssetUrl(
+				new URL('./fonts/Shantell_Sans-Informal_Regular.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_draw_italic: formatAssetUrl(
+				new URL('./fonts/Shantell_Sans-Informal_Regular_Italic.woff2', import.meta.url).href,
 				opts
 			),
 		},
@@ -50,9 +98,11 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'arrowhead-triangle-inverted': iconsIcon0MergedSvg + '#arrowhead-triangle-inverted',
 			'arrowhead-triangle': iconsIcon0MergedSvg + '#arrowhead-triangle',
 			blob: iconsIcon0MergedSvg + '#blob',
+			bold: iconsIcon0MergedSvg + '#bold',
 			'bring-forward': iconsIcon0MergedSvg + '#bring-forward',
 			'bring-to-front': iconsIcon0MergedSvg + '#bring-to-front',
 			broken: iconsIcon0MergedSvg + '#broken',
+			bulletList: iconsIcon0MergedSvg + '#bulletList',
 			'check-circle': iconsIcon0MergedSvg + '#check-circle',
 			check: iconsIcon0MergedSvg + '#check',
 			'chevron-down': iconsIcon0MergedSvg + '#chevron-down',
@@ -63,6 +113,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'chevrons-sw': iconsIcon0MergedSvg + '#chevrons-sw',
 			'clipboard-copied': iconsIcon0MergedSvg + '#clipboard-copied',
 			'clipboard-copy': iconsIcon0MergedSvg + '#clipboard-copy',
+			code: iconsIcon0MergedSvg + '#code',
 			color: iconsIcon0MergedSvg + '#color',
 			corners: iconsIcon0MergedSvg + '#corners',
 			'cross-2': iconsIcon0MergedSvg + '#cross-2',
@@ -115,14 +166,18 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'geo-x-box': iconsIcon0MergedSvg + '#geo-x-box',
 			github: iconsIcon0MergedSvg + '#github',
 			group: iconsIcon0MergedSvg + '#group',
+			heading: iconsIcon0MergedSvg + '#heading',
 			height: iconsIcon0MergedSvg + '#height',
+			highlight: iconsIcon0MergedSvg + '#highlight',
 			'horizontal-align-end': iconsIcon0MergedSvg + '#horizontal-align-end',
 			'horizontal-align-middle': iconsIcon0MergedSvg + '#horizontal-align-middle',
 			'horizontal-align-start': iconsIcon0MergedSvg + '#horizontal-align-start',
 			image: iconsIcon0MergedSvg + '#image',
 			'info-circle': iconsIcon0MergedSvg + '#info-circle',
+			italic: iconsIcon0MergedSvg + '#italic',
 			leading: iconsIcon0MergedSvg + '#leading',
 			link: iconsIcon0MergedSvg + '#link',
+			list: iconsIcon0MergedSvg + '#list',
 			lock: iconsIcon0MergedSvg + '#lock',
 			menu: iconsIcon0MergedSvg + '#menu',
 			minus: iconsIcon0MergedSvg + '#minus',
@@ -149,6 +204,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'status-offline': iconsIcon0MergedSvg + '#status-offline',
 			'stretch-horizontal': iconsIcon0MergedSvg + '#stretch-horizontal',
 			'stretch-vertical': iconsIcon0MergedSvg + '#stretch-vertical',
+			strike: iconsIcon0MergedSvg + '#strike',
 			'text-align-center': iconsIcon0MergedSvg + '#text-align-center',
 			'text-align-left': iconsIcon0MergedSvg + '#text-align-left',
 			'text-align-right': iconsIcon0MergedSvg + '#text-align-right',
@@ -169,6 +225,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'tool-text': iconsIcon0MergedSvg + '#tool-text',
 			trash: iconsIcon0MergedSvg + '#trash',
 			twitter: iconsIcon0MergedSvg + '#twitter',
+			underline: iconsIcon0MergedSvg + '#underline',
 			undo: iconsIcon0MergedSvg + '#undo',
 			ungroup: iconsIcon0MergedSvg + '#ungroup',
 			unlock: iconsIcon0MergedSvg + '#unlock',

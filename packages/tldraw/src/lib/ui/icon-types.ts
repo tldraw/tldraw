@@ -19,9 +19,11 @@ export type TLUiIconType =
 	| 'arrowhead-triangle-inverted'
 	| 'arrowhead-triangle'
 	| 'blob'
+	| 'bold'
 	| 'bring-forward'
 	| 'bring-to-front'
 	| 'broken'
+	| 'bulletList'
 	| 'check-circle'
 	| 'check'
 	| 'chevron-down'
@@ -32,6 +34,7 @@ export type TLUiIconType =
 	| 'chevrons-sw'
 	| 'clipboard-copied'
 	| 'clipboard-copy'
+	| 'code'
 	| 'color'
 	| 'corners'
 	| 'cross-2'
@@ -84,14 +87,18 @@ export type TLUiIconType =
 	| 'geo-x-box'
 	| 'github'
 	| 'group'
+	| 'heading'
 	| 'height'
+	| 'highlight'
 	| 'horizontal-align-end'
 	| 'horizontal-align-middle'
 	| 'horizontal-align-start'
 	| 'image'
 	| 'info-circle'
+	| 'italic'
 	| 'leading'
 	| 'link'
+	| 'list'
 	| 'lock'
 	| 'menu'
 	| 'minus'
@@ -118,6 +125,7 @@ export type TLUiIconType =
 	| 'status-offline'
 	| 'stretch-horizontal'
 	| 'stretch-vertical'
+	| 'strike'
 	| 'text-align-center'
 	| 'text-align-left'
 	| 'text-align-right'
@@ -138,6 +146,7 @@ export type TLUiIconType =
 	| 'tool-text'
 	| 'trash'
 	| 'twitter'
+	| 'underline'
 	| 'undo'
 	| 'ungroup'
 	| 'unlock'
@@ -167,9 +176,11 @@ export const iconTypes = [
 	'arrowhead-triangle-inverted',
 	'arrowhead-triangle',
 	'blob',
+	'bold',
 	'bring-forward',
 	'bring-to-front',
 	'broken',
+	'bulletList',
 	'check-circle',
 	'check',
 	'chevron-down',
@@ -180,6 +191,7 @@ export const iconTypes = [
 	'chevrons-sw',
 	'clipboard-copied',
 	'clipboard-copy',
+	'code',
 	'color',
 	'corners',
 	'cross-2',
@@ -232,14 +244,18 @@ export const iconTypes = [
 	'geo-x-box',
 	'github',
 	'group',
+	'heading',
 	'height',
+	'highlight',
 	'horizontal-align-end',
 	'horizontal-align-middle',
 	'horizontal-align-start',
 	'image',
 	'info-circle',
+	'italic',
 	'leading',
 	'link',
+	'list',
 	'lock',
 	'menu',
 	'minus',
@@ -266,6 +282,7 @@ export const iconTypes = [
 	'status-offline',
 	'stretch-horizontal',
 	'stretch-vertical',
+	'strike',
 	'text-align-center',
 	'text-align-left',
 	'text-align-right',
@@ -286,6 +303,7 @@ export const iconTypes = [
 	'tool-text',
 	'trash',
 	'twitter',
+	'underline',
 	'undo',
 	'ungroup',
 	'unlock',

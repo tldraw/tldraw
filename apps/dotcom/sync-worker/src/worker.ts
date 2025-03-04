@@ -9,6 +9,7 @@ import {
 import { createRouter, handleApiRequest, handleUserAssetGet, notFound } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors } from 'itty-router'
+import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
@@ -122,6 +123,7 @@ const router = createRouter<Environment>()
 		return fetch(proxied)
 	})
 	.all('/health-check/*', healthCheckRoutes.fetch)
+	.all('/app/admin/*', adminRoutes.fetch)
 	.all('*', notFound)
 
 export default class Worker extends WorkerEntrypoint<Environment> {
