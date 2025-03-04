@@ -6,12 +6,14 @@ import { MainMenu } from './menus/MainMenu'
 import { MenuClickCapture } from './menus/MenuClickCapture'
 import { NavigationPanel } from './menus/NavigationPanel'
 import { PageMenu } from './menus/PageMenu'
+import { RichTextToolbar } from './menus/RichTextToolbar'
 import { StylePanel } from './menus/StylePanel'
 import { Toolbar } from './menus/Toolbar'
 
 interface Fixtures {
 	menuClickCapture: MenuClickCapture
 	toolbar: Toolbar
+	richTextToolbar: RichTextToolbar
 	stylePanel: StylePanel
 	actionsMenu: ActionsMenu
 	helpMenu: HelpMenu
@@ -54,6 +56,10 @@ const test = base.extend<Fixtures>({
 		const toolbar = new Toolbar(page)
 		await testUse(toolbar)
 	},
+	richTextToolbar: async ({ page }, testUse) => {
+		const richTextToolbar = new RichTextToolbar(page)
+		await testUse(richTextToolbar)
+	},
 	stylePanel: async ({ page }, testUse) => {
 		const stylePanel = new StylePanel(page)
 		await testUse(stylePanel)
@@ -84,6 +90,7 @@ const test = base.extend<Fixtures>({
 				exportAsSvg: true,
 				exportAsFormat: true,
 				createShapeId: true,
+				toRichText: true,
 			},
 			page
 		)

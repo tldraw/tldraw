@@ -15,6 +15,7 @@ import { StrictMode } from 'react'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
 import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'
+import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
 import {
 	renderTldrawComponent,
 	renderTldrawComponentWithEditor,
@@ -22,6 +23,13 @@ import {
 
 function checkAllShapes(editor: Editor, shapes: string[]) {
 	expect(Object.keys(editor!.shapeUtils)).toStrictEqual(shapes)
+}
+
+const textOptions = {
+	addFontsFromNode: defaultAddFontsFromNode,
+	tipTapConfig: {
+		extensions: tipTapDefaultExtensions,
+	},
 }
 
 describe('<TldrawEditor />', () => {
@@ -150,6 +158,7 @@ describe('<TldrawEditor />', () => {
 		rendered.rerender(
 			<TldrawEditor tools={defaultTools} initialState="select" store={newStore} onMount={onMount} />
 		)
+		await rendered.findAllByTestId('canvas')
 		expect(initialEditor.dispose).toHaveBeenCalledTimes(1)
 		expect(onMount).toHaveBeenCalledTimes(2)
 		expect(onMount.mock.lastCall[0].store).toBe(newStore)
@@ -165,6 +174,7 @@ describe('<TldrawEditor />', () => {
 				onMount={(editorApp) => {
 					editor = editorApp
 				}}
+				textOptions={textOptions}
 			/>,
 			{ waitForPatterns: false }
 		)
@@ -329,7 +339,12 @@ describe('<TldrawEditor />', () => {
 
 		const { editor } = await renderTldrawComponentWithEditor(
 			(onMount) => (
-				<TldrawEditor onMount={onMount} shapeUtils={defaultShapeUtils} snapshot={snapshot} />
+				<TldrawEditor
+					onMount={onMount}
+					shapeUtils={defaultShapeUtils}
+					snapshot={snapshot}
+					textOptions={textOptions}
+				/>
 			),
 			{ waitForPatterns: true }
 		)

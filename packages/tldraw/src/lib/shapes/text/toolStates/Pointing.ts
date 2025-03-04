@@ -7,6 +7,7 @@ import {
 	createShapeId,
 	isShapeId,
 	maybeSnapToGrid,
+	toRichText,
 } from '@tldraw/editor'
 
 export class Pointing extends StateNode {
@@ -127,7 +128,7 @@ export class Pointing extends StateNode {
 			x: point.x,
 			y: point.y,
 			props: {
-				text: '',
+				richText: toRichText(''),
 				autoSize,
 				w: width,
 				scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
