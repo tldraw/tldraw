@@ -14,7 +14,6 @@ import React, {
 } from 'react'
 
 import classNames from 'classnames'
-import { TLDeepLinkOptions } from '..'
 import { version } from '../version'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
@@ -44,7 +43,9 @@ import { useZoomCss } from './hooks/useZoomCss'
 import { LicenseProvider } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
 import { TldrawOptions } from './options'
+import { TLDeepLinkOptions } from './utils/deepLinks'
 import { stopEventPropagation } from './utils/dom'
+import { TLTextOptions } from './utils/richText'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /**
@@ -168,6 +169,11 @@ export interface TldrawEditorBaseProps {
 	cameraOptions?: Partial<TLCameraOptions>
 
 	/**
+	 * Text options for the editor.
+	 */
+	textOptions?: TLTextOptions
+
+	/**
 	 * Options for the editor.
 	 */
 	options?: Partial<TldrawOptions>
@@ -190,6 +196,11 @@ export interface TldrawEditorBaseProps {
 	 * remain in the store and participate in all other operations.
 	 */
 	isShapeHidden?(shape: TLShape, editor: Editor): boolean
+
+	/**
+	 * The URLs for the fonts to use in the editor.
+	 */
+	assetUrls?: { fonts?: { [key: string]: string | undefined } }
 }
 
 /**
@@ -372,10 +383,12 @@ function TldrawEditorWithReadyStore({
 	autoFocus = true,
 	inferDarkMode,
 	cameraOptions,
+	textOptions,
 	options,
 	licenseKey,
 	deepLinks: _deepLinks,
 	isShapeHidden,
+	assetUrls,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -430,9 +443,11 @@ function TldrawEditorWithReadyStore({
 				autoFocus,
 				inferDarkMode,
 				cameraOptions,
+				textOptions,
 				options,
 				licenseKey,
 				isShapeHidden,
+				fontAssetUrls: assetUrls?.fonts,
 			})
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
@@ -467,6 +482,8 @@ function TldrawEditorWithReadyStore({
 			setEditor,
 			licenseKey,
 			isShapeHidden,
+			textOptions,
+			assetUrls,
 		]
 	)
 
@@ -532,10 +549,41 @@ function TldrawEditorWithReadyStore({
 		[editor, autoFocus]
 	)
 
-	const { Canvas } = useEditorComponents()
+	const [_fontLoadingState, setFontLoadingState] = useState<{
+		editor: Editor
+		isLoaded: boolean
+	} | null>(null)
+	let fontLoadingState = _fontLoadingState
+	if (editor !== fontLoadingState?.editor) {
+		fontLoadingState = null
+	}
+	useEffect(() => {
+		if (!editor) return
+		let isCancelled = false
 
-	if (!editor) {
-		return <div className="tl-canvas" ref={canvasRef} />
+		setFontLoadingState({ editor, isLoaded: false })
+
+		editor.fonts
+			.loadRequiredFontsForCurrentPage(editor.options.maxFontsToLoadBeforeRender)
+			.finally(() => {
+				if (isCancelled) return
+				setFontLoadingState({ editor, isLoaded: true })
+			})
+
+		return () => {
+			isCancelled = true
+		}
+	}, [editor])
+
+	const { Canvas, LoadingScreen } = useEditorComponents()
+
+	if (!editor || !fontLoadingState?.isLoaded) {
+		return (
+			<>
+				{LoadingScreen && <LoadingScreen />}
+				<div className="tl-canvas" ref={canvasRef} />
+			</>
+		)
 	}
 
 	return (

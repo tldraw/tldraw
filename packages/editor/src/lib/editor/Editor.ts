@@ -1,4 +1,12 @@
-import { EMPTY_ARRAY, atom, computed, react, transact, unsafe__withoutCapture } from '@tldraw/state'
+import {
+	Atom,
+	EMPTY_ARRAY,
+	atom,
+	computed,
+	react,
+	transact,
+	unsafe__withoutCapture,
+} from '@tldraw/state'
 import {
 	ComputedCache,
 	RecordType,
@@ -34,6 +42,7 @@ import {
 	TLInstance,
 	TLInstancePageState,
 	TLMediaAsset,
+	TLNoteShape,
 	TLPOINTER_ID,
 	TLPage,
 	TLPageId,
@@ -82,7 +91,6 @@ import {
 	structuredClone,
 	uniqueId,
 } from '@tldraw/utils'
-import { Number } from 'core-js'
 import EventEmitter from 'eventemitter3'
 import {
 	TLEditorSnapshot,
@@ -129,6 +137,7 @@ import {
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { isAccelKey } from '../utils/keyboard'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
+import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
@@ -138,6 +147,7 @@ import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage
 import { ClickManager } from './managers/ClickManager'
 import { EdgeScrollManager } from './managers/EdgeScrollManager'
 import { FocusManager } from './managers/FocusManager'
+import { FontManager } from './managers/FontManager'
 import { HistoryManager } from './managers/HistoryManager'
 import { ScribbleManager } from './managers/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
@@ -224,8 +234,10 @@ export interface TLEditorOptions {
 	 * Options for the editor's camera.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
+	textOptions?: TLTextOptions
 	options?: Partial<TldrawOptions>
 	licenseKey?: string
+	fontAssetUrls?: { [key: string]: string | undefined }
 	/**
 	 * A predicate that should return true if the given shape should be hidden.
 	 * @param shape - The shape to check.
@@ -254,6 +266,7 @@ export interface TLRenderingShape {
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
+	readonly id = uniqueId()
 	constructor({
 		store,
 		user,
@@ -262,11 +275,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		tools,
 		getContainer,
 		cameraOptions,
+		textOptions,
 		initialState,
 		autoFocus,
 		inferDarkMode,
 		options,
 		isShapeHidden,
+		fontAssetUrls,
 	}: TLEditorOptions) {
 		super()
 
@@ -290,12 +305,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
 
+		this._textOptions = atom('text options', textOptions ?? null)
+
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 		this.disposables.add(() => this.user.dispose())
 
 		this.getContainer = getContainer
 
 		this.textMeasure = new TextManager(this)
+		this.fonts = new FontManager(this, fontAssetUrls)
+
 		this._tickManager = new TickManager(this)
 
 		class NewRoot extends RootState {
@@ -833,6 +852,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly textMeasure: TextManager
+
+	/**
+	 * A utility for managing the set of fonts that should be rendered in the document.
+	 *
+	 * @public
+	 */
+	readonly fonts: FontManager
 
 	/**
 	 * A manager for the editor's environment.
@@ -2022,6 +2048,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	setEditingShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
+		this.setRichTextEditor(null)
 		if (id !== this.getEditingShapeId()) {
 			if (id) {
 				const shape = this.getShape(id)
@@ -2040,10 +2067,47 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.run(
 				() => {
 					this._updateCurrentPageState({ editingShapeId: null })
+					this._currentRichTextEditor.set(null)
 				},
 				{ history: 'ignore' }
 			)
 		}
+		return this
+	}
+
+	// Rich text editor
+
+	private _currentRichTextEditor = atom('rich text editor', null as TiptapEditor | null)
+
+	/**
+	 * The current editing shape's text editor.
+	 *
+	 * @public
+	 */
+	@computed getRichTextEditor(): TiptapEditor | null {
+		return this._currentRichTextEditor.get()
+	}
+
+	/**
+	 * Set the current editing shape's rich text editor.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setRichTextEditor(richTextEditorView)
+	 * ```
+	 *
+	 * @param textEditor - The text editor to set as the current editing shape's text editor.
+	 *
+	 * @public
+	 */
+	setRichTextEditor(textEditor: TiptapEditor | null) {
+		// If the new editor is different from the current one, destroy the current one
+		const current = this._currentRichTextEditor.__unsafe__getWithoutCapture()
+		if (current !== textEditor) {
+			current?.destroy()
+		}
+
+		this._currentRichTextEditor.set(textEditor)
 		return this
 	}
 
@@ -2103,6 +2167,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getHintingShapeIds() {
 		return this.getCurrentPageState().hintingShapeIds
 	}
+
 	/**
 	 * The editor's current hinting shapes.
 	 *
@@ -2249,6 +2314,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		}
 		return this
+	}
+
+	private _textOptions: Atom<TLTextOptions | null>
+
+	/**
+	 * Get the current text options.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getTextOptions()
+	 * ```
+	 *
+	 *  @public */
+	getTextOptions() {
+		return assertExists(this._textOptions.get(), 'Cannot use text without setting textOptions')
 	}
 
 	/* --------------------- Camera --------------------- */
@@ -4225,7 +4305,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!this._shapeGeometryCaches[context]) {
 			this._shapeGeometryCaches[context] = this.store.createComputedCache(
 				'bounds',
-				(shape) => this.getShapeUtil(shape).getGeometry(shape, opts),
+				(shape) => {
+					this.fonts.trackFontsForShape(shape)
+					return this.getShapeUtil(shape).getGeometry(shape, opts)
+				},
 				{ areRecordsEqual: (a, b) => a.props === b.props }
 			)
 		}
@@ -4763,9 +4846,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Check labels first
 			if (
 				this.isShapeOfType<TLFrameShape>(shape, 'frame') ||
-				((this.isShapeOfType<TLArrowShape>(shape, 'arrow') ||
+				(this.isShapeOfType<TLArrowShape>(shape, 'arrow') && shape.props.text.trim()) ||
+				((this.isShapeOfType<TLNoteShape>(shape, 'note') ||
 					(this.isShapeOfType<TLGeoShape>(shape, 'geo') && shape.props.fill === 'none')) &&
-					shape.props.text.trim())
+					this.getShapeUtil(shape).getText(shape)?.trim())
 			) {
 				for (const childGeometry of (geometry as Group2d).children) {
 					if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
@@ -7289,7 +7373,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.createShape(myShape)
-	 * editor.createShape({ id: 'box1', type: 'text', props: { text: "ok" } })
+	 * editor.createShape({ id: 'box1', type: 'text', props: { richText: toRichText("ok") } })
 	 * ```
 	 *
 	 * @param shape - The shape (or shape partial) to create.
@@ -7307,7 +7391,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.createShapes([myShape])
-	 * editor.createShapes([{ id: 'box1', type: 'text', props: { text: "ok" } }])
+	 * editor.createShapes([{ id: 'box1', type: 'text', props: { richText: toRichText("ok") } }])
 	 * ```
 	 *
 	 * @param shapes - The shapes (or shape partials) to create.
@@ -10257,7 +10341,7 @@ function withIsolatedShapes<T>(
 				}
 			})
 
-			editor.store.applyDiff(reverseRecordsDiff(changes))
+			editor.store.applyDiff(reverseRecordsDiff(changes), { runCallbacks: false })
 		},
 		{ history: 'ignore' }
 	)

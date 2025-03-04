@@ -1,6 +1,6 @@
-import { useEditor, useValue } from '@tldraw/editor'
+import { tlenv, useEditor, useReactor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
-import React, { ReactNode } from 'react'
+import React, { ReactNode, useRef, useState } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
 import { FollowingIndicator } from './components/FollowingIndicator'
 import { TldrawUiButton } from './components/primitives/Button/TldrawUiButton'
@@ -108,6 +108,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 		HelperButtons,
 		DebugPanel,
 		CursorChatBubble,
+		RichTextToolbar,
 		Toasts,
 		Dialogs,
 	} = useTldrawUiComponents()
@@ -116,6 +117,43 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 	useNativeClipboardEvents()
 	useEditorEvents()
 
+	const rIsEditingAnything = useRef(false)
+	const rHidingTimeout = useRef(-1 as any)
+	const [hideToolbarWhileEditing, setHideToolbarWhileEditing] = useState(false)
+
+	useReactor(
+		'update hide toolbar while delayed',
+		() => {
+			const isMobileEnvironment = tlenv.isIos || tlenv.isAndroid
+			if (!isMobileEnvironment) return
+
+			const editingShape = editor.getEditingShapeId()
+			if (editingShape === null) {
+				if (rIsEditingAnything.current) {
+					rIsEditingAnything.current = false
+					clearTimeout(rHidingTimeout.current)
+					if (tlenv.isAndroid) {
+						// On Android, hide it after 150ms
+						rHidingTimeout.current = editor.timers.setTimeout(() => {
+							setHideToolbarWhileEditing(false)
+						}, 150)
+					} else {
+						// On iOS, just hide it immediately
+						setHideToolbarWhileEditing(false)
+					}
+				}
+				return
+			}
+
+			if (!rIsEditingAnything.current) {
+				rIsEditingAnything.current = true
+				clearTimeout(rHidingTimeout.current)
+				setHideToolbarWhileEditing(true)
+			}
+		},
+		[]
+	)
+
 	const { 'toggle-focus-mode': toggleFocus } = useActions()
 
 	return (
@@ -123,6 +161,9 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 			className={classNames('tlui-layout', {
 				'tlui-layout__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
 			})}
+			// When the virtual keyboard is opening we want it to hide immediately.
+			// But when the virtual keyboard is closing we want to wait a bit before showing it again.
+			data-iseditinganything={hideToolbarWhileEditing}
 			data-breakpoint={breakpoint}
 		>
 			{isFocusMode ? (
@@ -161,6 +202,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 					</div>
 				</>
 			)}
+			{RichTextToolbar && <RichTextToolbar />}
 			{Toasts && <Toasts />}
 			{Dialogs && <Dialogs />}
 			<FollowingIndicator />

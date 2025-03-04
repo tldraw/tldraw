@@ -26,6 +26,7 @@ export interface TLAppUiEventMap {
 	'delete-file': null
 	'rename-file': { name: string }
 	'duplicate-file': null
+	'download-file': null
 	'drop-tldr-file': null
 	'import-tldr-file': null
 	'change-user-name': null

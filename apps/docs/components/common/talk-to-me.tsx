@@ -1,7 +1,7 @@
 'use client'
 
 import { useLocalStorageState } from '@/utils/storage'
-import { ArrowRightCircleIcon, XMarkIcon } from '@heroicons/react/24/solid'
+import { XMarkIcon } from '@heroicons/react/24/solid'
 import Link from 'next/link'
 
 export function TalkToMe() {
@@ -25,16 +25,11 @@ export function TalkToMe() {
 				>
 					<div className="hidden md:flex flex-row gap-2 items-center">
 						Take our developer survey
-						<ArrowRightCircleIcon className="w-4 h-4 flex-shrink-0" />
 					</div>
 					<div className="hidden sm:flex md:hidden flex-row gap-2 items-center">
 						Take our survey
-						<ArrowRightCircleIcon className="w-4 h-4 flex-shrink-0" />
 					</div>
-					<div className="flex sm:hidden flex-row gap-2 items-center">
-						hi
-						<ArrowRightCircleIcon className="w-4 h-4 flex-shrink-0" />
-					</div>
+					<div className="flex sm:hidden flex-row gap-2 items-center">hey</div>
 				</Link>
 			</div>
 		</div>

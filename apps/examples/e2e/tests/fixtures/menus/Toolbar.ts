@@ -22,6 +22,7 @@ export class Toolbar {
 			eraser: this.page.getByTestId('tools.eraser'),
 			rectangle: this.page.getByTestId('tools.rectangle'),
 			hand: this.page.getByTestId('tools.hand'),
+			text: this.page.getByTestId('tools.text'),
 		}
 		this.popOverTools = {
 			popoverCloud: this.page.getByTestId('tools.more.cloud'),

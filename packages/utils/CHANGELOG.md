@@ -1,3 +1,33 @@
+# v3.9.0 (Mon Mar 03 2025)
+
+### Release Notes
+
+#### getImageSize: Fix inaccurate PNG image width height calculation by using exact pixels per meter value ([#5509](https://github.com/tldraw/tldraw/pull/5509))
+
+- Fixed a bug with `getImageSize` using inaccurate pixels per meter value which leads to discrepancies in calculating width and height in pixels for PNG images.
+
+---
+
+#### 🐛 Bug Fix
+
+- Update discord links [#5500](https://github.com/tldraw/tldraw/pull/5500) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@steveruizok](https://github.com/steveruizok) [@TodePond](https://github.com/TodePond))
+- switch to pg-logical-replication [#5433](https://github.com/tldraw/tldraw/pull/5433) ([@ds300](https://github.com/ds300))
+
+#### 🐛 Bug Fixes
+
+- getImageSize: Fix inaccurate PNG image width height calculation by using exact pixels per meter value [#5509](https://github.com/tldraw/tldraw/pull/5509) ([@xmliszt](https://github.com/xmliszt))
+
+#### Authors: 6
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Li Yuxuan ([@xmliszt](https://github.com/xmliszt))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.8.0 (Wed Feb 12 2025)
 
 ### Release Notes

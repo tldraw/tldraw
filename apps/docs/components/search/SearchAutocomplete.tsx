@@ -3,6 +3,7 @@ import { Combobox, ComboboxItem, ComboboxProvider, VisuallyHidden } from '@ariak
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Hit } from 'instantsearch.js'
+import { SendEventForHits } from 'instantsearch.js/es/lib/utils'
 import Link from 'next/link'
 import { Fragment, startTransition, useState } from 'react'
 import { Highlight } from 'react-instantsearch'
@@ -14,6 +15,7 @@ interface AutocompleteProps {
 	onChange(value: string): void
 	onInputChange(value: string): void
 	onClose(): void
+	sendEvent: SendEventForHits
 }
 
 export default function Autocomplete({
@@ -21,6 +23,7 @@ export default function Autocomplete({
 	onInputChange,
 	onChange,
 	onClose,
+	sendEvent,
 }: AutocompleteProps) {
 	const [open, setOpen] = useState(true)
 	const [value, setValue] = useState('')
@@ -62,7 +65,7 @@ export default function Autocomplete({
 							)}
 						>
 							<SearchInput value={value} />
-							<Results items={items} />
+							<Results items={items} sendEvent={sendEvent} />
 						</div>
 					</div>
 				</SearchDialog>
@@ -88,7 +91,7 @@ function SearchInput({ value }: { value: string }) {
 	)
 }
 
-function Results({ items }: { items: Hit<SearchEntry>[] }) {
+function Results({ items, sendEvent }: { items: Hit<SearchEntry>[]; sendEvent: SendEventForHits }) {
 	let section = ''
 	const renderedItems = items.map((hit) => {
 		const showChapter = hit.section !== section
@@ -114,7 +117,7 @@ function Results({ items }: { items: Hit<SearchEntry>[] }) {
 					)}
 					value={href}
 				>
-					<Link href={href}>
+					<Link href={href} onClick={() => sendEvent('click', hit, 'Hit clicked')}>
 						<Highlight attribute="title" hit={hit} />
 						<ContentHighlight hit={hit} />
 					</Link>
