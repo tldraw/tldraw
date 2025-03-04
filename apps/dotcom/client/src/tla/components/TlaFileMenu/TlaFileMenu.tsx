@@ -4,6 +4,7 @@ import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
 import { Fragment, ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+	TLDRAW_FILE_EXTENSION,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -101,13 +102,13 @@ export function FileItems({
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = routes.tlaFile(fileId, { asUrl: true })
-		copyTextToClipboard(url)
+		copyTextToClipboard(editor?.createDeepLink({ url }).toString() ?? url)
 		addToast({
 			id: 'copied-link',
 			title: copiedMsg,
 		})
 		trackEvent('copy-file-link', { source })
-	}, [fileId, addToast, copiedMsg, trackEvent, source])
+	}, [fileId, addToast, copiedMsg, trackEvent, source, editor])
 
 	const handlePinUnpinClick = useCallback(async () => {
 		app.pinOrUnpinFile(fileId)
@@ -149,7 +150,7 @@ export function FileItems({
 		const defaultName =
 			app.getFileName(fileId, false) ?? editor.getDocumentSettings().name ?? untitledProject
 		trackEvent('download-file', { source })
-		await download(editor, defaultName)
+		await download(editor, defaultName + TLDRAW_FILE_EXTENSION)
 	}, [app, editor, fileId, source, trackEvent, untitledProject])
 
 	const copyLinkMsg = useMsg(messages.copyLink)

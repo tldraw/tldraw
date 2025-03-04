@@ -1,3 +1,76 @@
+# v3.9.0 (Mon Mar 03 2025)
+
+### Release Notes
+
+#### Fix issue with duplicating bound arrows. ([#5495](https://github.com/tldraw/tldraw/pull/5495))
+
+- Fix a bug with duplicating bound arrows.
+
+#### [botcom] Fix slow export menu in big files ([#5435](https://github.com/tldraw/tldraw/pull/5435))
+
+- Fixed a bug with export menu performance.
+
+#### Improve / fix layout methods: alignment, distribute, flip, stack. ([#5479](https://github.com/tldraw/tldraw/pull/5479))
+
+- Fixes several bugs when aligning / flipping / distributing / stretching / stacking a selection that included with arrows.
+- Fixed a bug with distribution with overlapping shapes
+- Fixed a bug with distribution that could lead to changed selection.
+- Fixed a bug preventing rotated shapes from being stretched.
+
+#### Fix text padding, add context to shape geometry ([#5487](https://github.com/tldraw/tldraw/pull/5487))
+
+- Improved horizontal padding for arrows bound to text shapes
+
+#### Remove canvas size dependency ([#5488](https://github.com/tldraw/tldraw/pull/5488))
+
+- API: removes canvas-size dependency.
+
+#### fix copy as svg mime type ([#5482](https://github.com/tldraw/tldraw/pull/5482))
+
+- Fix copy as svg
+
+#### [hotfixme] Option-cloning text shapes ([#5470](https://github.com/tldraw/tldraw/pull/5470))
+
+- Fixed a bug with cloning text shapes.
+
+#### assets: fix up regression with temporaryAssetPreview ([#5453](https://github.com/tldraw/tldraw/pull/5453))
+
+- Fix a regression with temporary image previews while images are uploading.
+
+---
+
+#### 🐛 Bug Fix
+
+- disable full-fat copy-as-svg on chrome [#5524](https://github.com/tldraw/tldraw/pull/5524) ([@ds300](https://github.com/ds300))
+- Update discord links [#5500](https://github.com/tldraw/tldraw/pull/5500) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@steveruizok](https://github.com/steveruizok) [@TodePond](https://github.com/TodePond))
+
+#### 🐛 Bug Fixes
+
+- pull writing image/svg to clipboard [#5533](https://github.com/tldraw/tldraw/pull/5533) ([@SomeHats](https://github.com/SomeHats))
+- Fix issue with duplicating bound arrows. [#5495](https://github.com/tldraw/tldraw/pull/5495) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- [botcom] Fix slow export menu in big files [#5435](https://github.com/tldraw/tldraw/pull/5435) ([@steveruizok](https://github.com/steveruizok))
+- Improve / fix layout methods: alignment, distribute, flip, stack. [#5479](https://github.com/tldraw/tldraw/pull/5479) ([@steveruizok](https://github.com/steveruizok))
+- fix copy as svg mime type [#5482](https://github.com/tldraw/tldraw/pull/5482) ([@SomeHats](https://github.com/SomeHats))
+- [hotfixme] Option-cloning text shapes [#5470](https://github.com/tldraw/tldraw/pull/5470) ([@steveruizok](https://github.com/steveruizok))
+- assets: fix up regression with temporaryAssetPreview [#5453](https://github.com/tldraw/tldraw/pull/5453) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 💄 Product Improvements
+
+- Fix text padding, add context to shape geometry [#5487](https://github.com/tldraw/tldraw/pull/5487) ([@steveruizok](https://github.com/steveruizok))
+- Remove canvas size dependency [#5488](https://github.com/tldraw/tldraw/pull/5488) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 7
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.8.0 (Wed Feb 12 2025)
 
 ### Release Notes

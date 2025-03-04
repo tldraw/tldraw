@@ -6,6 +6,7 @@ import { useTransform } from '../../hooks/useTransform'
 
 /** @public */
 export interface TLCursorProps {
+	userId: string
 	className?: string
 	point: VecModel | null
 	zoom: number

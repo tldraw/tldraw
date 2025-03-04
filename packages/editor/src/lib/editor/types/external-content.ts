@@ -45,6 +45,7 @@ export interface TLBaseExternalContent {
 export interface TLTextExternalContent extends TLBaseExternalContent {
 	type: 'text'
 	text: string
+	html?: string
 }
 
 /** @public */
