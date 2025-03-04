@@ -4283,10 +4283,10 @@ export function usePassThroughMouseOverEvents(ref: RefObject<HTMLElement>): void
 // @public (undocumented)
 export function usePassThroughWheelEvents(ref: RefObject<HTMLElement>): void;
 
-// @internal (undocumented)
+// @public (undocumented)
 export function usePeerIds(): string[];
 
-// @internal (undocumented)
+// @public (undocumented)
 export function usePresence(userId: string): null | TLInstancePresence;
 
 export { useQuickReactor }
