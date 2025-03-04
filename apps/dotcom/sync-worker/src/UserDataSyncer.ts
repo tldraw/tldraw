@@ -137,6 +137,8 @@ export class UserDataSyncer {
 
 	stopInterval() {
 		if (this.interval) {
+			// flush changes
+			this.onInterval()
 			clearInterval(this.interval)
 			this.interval = null
 		}
