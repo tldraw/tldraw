@@ -5,6 +5,7 @@ import {
 	ExpressionBuilder,
 	NOBODY_CAN,
 	number,
+	PermissionRule,
 	PermissionsConfig,
 	relationships,
 	Row,
@@ -196,6 +197,15 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 			exists('states', (q) => q.where('userId', '=', authData.sub!))
 		)
 
+	const disallowIfDeleted = (_authData: AuthData, { cmp }: ExpressionBuilder<TlaSchema, 'file'>) =>
+		cmp('isDeleted', '=', false)
+
+	function and<TTable extends keyof TlaSchema['tables']>(
+		...rules: PermissionRule<AuthData, TlaSchema, TTable>[]
+	): PermissionRule<AuthData, TlaSchema, TTable> {
+		return (authData, eb) => eb.and(...rules.map((rule) => rule(authData, eb)))
+	}
+
 	return {
 		user: {
 			row: {
@@ -217,14 +227,13 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 				select: [allowIfFileOwner, userHasGuestFileState],
 				insert: [allowIfFileOwner],
 				update: {
-					preMutation: [allowIfFileOwner],
+					preMutation: [and(allowIfFileOwner, disallowIfDeleted)],
 					postMutation: [allowIfFileOwner],
 				},
 			},
 			cell: {
 				createdAt: NO_UPDATE,
 				ownerName: NO_UPDATE,
-				ownerId: NO_UPDATE,
 				ownerAvatar: NO_UPDATE,
 				createSource: NO_UPDATE,
 				updatedAt: NO_UPDATE,
@@ -238,6 +247,7 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 					preMutation: [allowIfIsUserId],
 					postMutation: [allowIfIsUserId],
 				},
+				delete: [allowIfIsUserId],
 			},
 			cell: {
 				isFileOwner: NO_UPDATE,

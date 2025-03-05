@@ -160,7 +160,10 @@ export class TldrawApp {
 			'user signal',
 			this.z.query.user.where('id', this.userId).one()
 		)
-		this.files$ = this.signalizeQuery('files signal', this.z.query.file)
+		this.files$ = this.signalizeQuery(
+			'files signal',
+			this.z.query.file.where('isDeleted', '=', false)
+		)
 		this.fileStates$ = this.signalizeQuery(
 			'file states signal',
 			this.z.query.file_state.where('userId', this.userId).related('file', (q: any) => q.one())
