@@ -9,16 +9,20 @@ import {
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
+	TlaSchema,
 	TlaUser,
 	UserPreferencesKeys,
+	Z_PROTOCOL_VERSION,
 	schema as zeroSchema,
 	ZErrorCode,
 } from '@tldraw/dotcom-shared'
 import {
 	assert,
 	fetch,
+	getFromLocalStorage,
 	promiseWithResolve,
 	Result,
+	setInLocalStorage,
 	structuredClone,
 	throttle,
 	uniqueId,
@@ -45,6 +49,7 @@ import {
 	TLUserPreferences,
 	transact,
 } from 'tldraw'
+import { MULTIPLAYER_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType } from '../utils/app-ui-events'
@@ -57,7 +62,12 @@ export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
 
 let appId = 0
-const useProperZero = window.location.search.includes('zero')
+const useProperZero = Boolean(getFromLocalStorage('useProperZero'))
+// @ts-expect-error
+window.zero = () => {
+	setInLocalStorage('useProperZero', String(useProperZero))
+	location.reload()
+}
 
 export class TldrawApp {
 	config = {
@@ -66,7 +76,7 @@ export class TldrawApp {
 
 	readonly id = appId++
 
-	readonly z: ZeroPolyfill
+	readonly z: ZeroPolyfill | Zero<TlaSchema>
 
 	private readonly user$: Signal<TlaUser | undefined>
 	private readonly files$: Signal<TlaFile[]>
@@ -76,7 +86,7 @@ export class TldrawApp {
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
 
 	changes: Map<Atom<any, unknown>, any> = new Map()
-	resovablePromise = promiseWithResolve<void>()
+	changesFlushed = null as null | ReturnType<typeof promiseWithResolve>
 
 	private signalizeQuery<TReturn>(name: string, query: any): Signal<TReturn> {
 		// fail if closed?
@@ -84,6 +94,9 @@ export class TldrawApp {
 		const val$ = atom(name, view.data)
 		view.addListener((res: any) => {
 			this.changes.set(val$, structuredClone(res))
+			if (!this.changesFlushed) {
+				this.changesFlushed = promiseWithResolve()
+			}
 			queueMicrotask(() => {
 				transact(() => {
 					this.changes.forEach((value, key) => {
@@ -91,8 +104,8 @@ export class TldrawApp {
 					})
 					this.changes.clear()
 				})
-				this.resovablePromise.resolve()
-				this.resovablePromise = promiseWithResolve()
+				this.changesFlushed?.resolve(undefined)
+				this.changesFlushed = null
 			})
 		})
 		this.disposables.push(() => {
@@ -105,14 +118,37 @@ export class TldrawApp {
 
 	private constructor(
 		public readonly userId: string,
-		getToken: () => Promise<string | undefined>
+		getToken: () => Promise<string | undefined>,
+		onClientTooOld: () => void,
+		trackEvent: TLAppUiContextType
 	) {
-		this.z = new Zero({
-			auth: getToken,
-			userID: userId,
-			schema: zeroSchema,
-			server: 'http://localhost:4848',
-		})
+		const sessionId = uniqueId()
+		this.z = useProperZero
+			? new Zero({
+					auth: getToken,
+					userID: userId,
+					schema: zeroSchema,
+					server: 'http://localhost:4848',
+				})
+			: new ZeroPolyfill({
+					// userID: userId,
+					// auth: encodedJWT,
+					getUri: async () => {
+						const params = new URLSearchParams({
+							sessionId,
+							protocolVersion: String(Z_PROTOCOL_VERSION),
+						})
+						const token = await getToken()
+						params.set('accessToken', token || 'no-token-found')
+						return `${MULTIPLAYER_SERVER}/app/${userId}/connect?${params}`
+					},
+					// schema,
+					// This is often easier to develop with if you're frequently changing
+					// the schema. Switch to 'idb' for local-persistence.
+					onMutationRejected: this.showMutationRejectionToast,
+					onClientTooOld: () => onClientTooOld(),
+					trackEvent,
+				})
 
 		this.user$ = this.signalizeQuery(
 			'user signal',
@@ -131,7 +167,7 @@ export class TldrawApp {
 	async preload(initialUserData: TlaUser) {
 		let didCreate = false
 		await this.z.query.user.where('id', this.userId).preload().complete
-		await this.resovablePromise
+		await this.changesFlushed
 		if (!this.user$.get()) {
 			didCreate = true
 			this.z.mutate.user.insert(initialUserData)
@@ -419,17 +455,20 @@ export class TldrawApp {
 		})
 	}
 
+	getFilePk(fileId: string) {
+		const file = this.getFile(fileId)
+		return { id: fileId, ownerId: file!.ownerId, publishedSlug: file!.publishedSlug }
+	}
+
 	toggleFileShared(fileId: string) {
 		const file = this.getUserOwnFiles().find((f) => f.id === fileId)
 		if (!file) throw Error('no file with id ' + fileId)
 
 		if (file.ownerId !== this.userId) throw Error('user cannot edit that file')
 
-		this.z.mutateBatch((tx) => {
-			tx.file.update({
-				id: fileId,
-				shared: !file.shared,
-			})
+		this.updateFile({
+			id: fileId,
+			shared: !file.shared,
 		})
 	}
 
@@ -448,13 +487,11 @@ export class TldrawApp {
 		const name = this.getFileName(file)
 
 		// Optimistic update
-		this.z.mutateBatch((tx) => {
-			tx.file.update({
-				id: fileId,
-				name,
-				published: true,
-				lastPublished: Date.now(),
-			})
+		this.updateFile({
+			...this.getFilePk(fileId),
+			name,
+			published: true,
+			lastPublished: Date.now(),
 		})
 	}
 
@@ -474,7 +511,10 @@ export class TldrawApp {
 
 	updateFile(partial: TlaFilePartial) {
 		this.requireFile(partial.id)
-		this.z.mutate.file.update(partial)
+		this.z.mutate.file.update({
+			...this.getFilePk(partial.id),
+			...partial,
+		})
 	}
 
 	/**
@@ -490,11 +530,9 @@ export class TldrawApp {
 		if (!file.published) return Result.ok('success')
 
 		// Optimistic update
-		this.z.mutateBatch((tx) => {
-			tx.file.update({
-				id: fileId,
-				published: false,
-			})
+		this.updateFile({
+			id: fileId,
+			published: false,
 		})
 
 		return Result.ok('success')
@@ -512,7 +550,7 @@ export class TldrawApp {
 		return this.z.mutateBatch((tx) => {
 			tx.file_state.delete({ fileId, userId: this.userId })
 			if (file?.ownerId === this.userId) {
-				tx.file.update({ id: fileId, isDeleted: true })
+				tx.file.update({ ...this.getFilePk(fileId), isDeleted: true })
 			}
 		})
 	}
@@ -542,10 +580,10 @@ export class TldrawApp {
 		}
 
 		if (sharedLinkType === 'no-access') {
-			this.z.mutate.file.update({ id: fileId, shared: false })
+			this.updateFile({ id: fileId, shared: false })
 			return
 		}
-		this.z.mutate.file.update({ id: fileId, shared: true, sharedLinkType })
+		this.updateFile({ id: fileId, shared: true, sharedLinkType })
 	}
 
 	updateUser(partial: Partial<TlaUser>) {
@@ -627,6 +665,7 @@ export class TldrawApp {
 		email: string
 		avatar: string
 		getToken(): Promise<string | undefined>
+		onClientTooOld(): void
 		trackEvent: TLAppUiContextType
 	}) {
 		// This is an issue: we may have a user record but not in the store.
@@ -634,7 +673,7 @@ export class TldrawApp {
 		// of the store... but we should probably identify that better.
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
-		const app = new TldrawApp(opts.userId, opts.getToken)
+		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld, opts.trackEvent)
 		// @ts-expect-error
 		window.app = app
 		const didCreate = await app.preload({

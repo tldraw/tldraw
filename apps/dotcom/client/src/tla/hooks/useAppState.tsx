@@ -40,6 +40,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 					const token = await auth.getToken()
 					return token || undefined
 				},
+				onClientTooOld: () => {
+					isClientTooOld$.set(true)
+				},
 				trackEvent,
 			}).then(({ app }) => {
 				if (didCancel) {
