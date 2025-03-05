@@ -37,7 +37,8 @@ export function NewsletterSignup({
 					.split('; ')
 					.find((row) => row.startsWith('hubspotutk='))
 					?.split('=')[1]
-				const { error } = await submitNewsletterSignup(_email, cookie)
+				const url = window.location.href
+				const { error } = await submitNewsletterSignup(_email, cookie, url)
 				if (error) throw error
 				setFormState('success')
 				// After a pause, we locally save that the user has submitted the form
