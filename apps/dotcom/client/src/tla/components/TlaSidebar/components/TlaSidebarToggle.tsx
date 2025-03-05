@@ -1,5 +1,5 @@
 import { useValue } from 'tldraw'
-import { globalEditor } from '../../../../utils/globalEditor'
+import { useGlobalEditor } from '../../../../utils/globalEditor'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { useMsg } from '../../../utils/i18n'
 import { getIsSidebarOpen, toggleSidebar } from '../../../utils/local-session-state'
@@ -10,7 +10,7 @@ import { messages } from './sidebar-shared'
 export function TlaSidebarToggle() {
 	const trackEvent = useTldrawAppUiEvents()
 	const toggleLbl = useMsg(messages.toggleSidebar)
-	const editor = globalEditor.get()
+	const editor = useGlobalEditor()
 
 	const hideSidebarToggle = useValue(
 		'hideSidebarToggle',
