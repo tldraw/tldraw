@@ -89,7 +89,7 @@ export class Zero {
 		// console.log('Mutation resolved', JSON.stringify(this.store.getOptimisticUpdates()))
 	}
 
-	dispose() {
+	close() {
 		clearTimeout(this.timeout)
 		if (this.pendingUpdates.length) {
 			this.sendPendingUpdates()
