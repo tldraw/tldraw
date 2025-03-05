@@ -20,6 +20,7 @@ export type DraggingHandleInfo = TLPointerEventInfo & {
 	onInteractionEnd?: string
 	isCreating?: boolean
 	creatingMarkId?: string
+	shapeUtilData?: object
 }
 
 export class DraggingHandle extends StateNode {
@@ -35,6 +36,7 @@ export class DraggingHandle extends StateNode {
 	initialPageRotation: any
 
 	info = {} as DraggingHandleInfo
+	shapeUtilData: object = {}
 
 	isPrecise = false
 	isPreciseId = null as TLShapeId | null
@@ -43,6 +45,7 @@ export class DraggingHandle extends StateNode {
 	override onEnter(info: DraggingHandleInfo) {
 		const { shape, isCreating, creatingMarkId, handle } = info
 		this.info = info
+		this.shapeUtilData = info.shapeUtilData ?? {}
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.shapeId = shape.id
 		this.markId = ''
@@ -284,7 +287,9 @@ export class DraggingHandle extends StateNode {
 		const changes = util.onHandleDrag?.(shape, {
 			handle: nextHandle,
 			isPrecise: this.isPrecise || altKey,
+			isCreatingShape: this.info.isCreating ?? false,
 			initial: initial,
+			data: this.shapeUtilData,
 		})
 
 		const next: TLShapePartial<any> = { id: shape.id, type: shape.type, ...changes }

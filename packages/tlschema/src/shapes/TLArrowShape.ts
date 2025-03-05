@@ -51,14 +51,14 @@ export type ElbowArrowSide = T.TypeOf<typeof ElbowArrowSide>
 
 /** @public */
 export interface ElbowArrowProps {
-	startEdge: ElbowArrowSide | null
-	endEdge: ElbowArrowSide | null
+	start: ElbowArrowSide | null
+	end: ElbowArrowSide | null
 }
 
 /** @public */
 export const ElbowArrowProps = T.object({
-	startEdge: ElbowArrowSide.nullable(),
-	endEdge: ElbowArrowSide.nullable(),
+	start: ElbowArrowSide.nullable(),
+	end: ElbowArrowSide.nullable(),
 })
 
 /** @public */

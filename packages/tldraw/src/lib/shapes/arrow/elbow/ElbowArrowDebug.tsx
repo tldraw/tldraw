@@ -70,7 +70,7 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 			<DebugEdge edge={info.edges.A.left} axis="y" scale={info.scale} stroke="orange" />
 			<DebugEdge edge={info.edges.B.left} axis="y" scale={info.scale} stroke="lightskyblue" />
 
-			{info.route && <DebugRoute route={info.route.path} />}
+			{info.route && <DebugRoute route={info.route.path} strokeWidth={10} />}
 			{steve?.path && (
 				<DebugRoute route={steve.path} stroke="white" strokeDasharray="0,9" strokeWidth={5} />
 			)}

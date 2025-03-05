@@ -26,25 +26,25 @@ class ArrowStepResult {
 
 export function getArrowPath(
 	g: ArrowNavigationGrid,
-	start?: 'up' | 'right' | 'down' | 'left',
-	end?: 'up' | 'right' | 'down' | 'left'
+	start?: 'top' | 'right' | 'bottom' | 'left',
+	end?: 'top' | 'right' | 'bottom' | 'left'
 ): { error: true } | { error: false; path: Vec[] } {
 	const { options } = g
 	const edgesA: [ArrowDirection, Vec, Vec][] = [
-		['up', g.A.top, g.A.expanded.top],
+		['top', g.A.top, g.A.expanded.top],
 		['right', g.A.right, g.A.expanded.right],
-		['down', g.A.bottom, g.A.expanded.bottom],
+		['bottom', g.A.bottom, g.A.expanded.bottom],
 		['left', g.A.left, g.A.expanded.left],
 	]
 
 	const edgesB: [ArrowDirection, Vec, Vec][] = [
-		['up', g.B.top, g.B.expanded.top],
+		['top', g.B.top, g.B.expanded.top],
 		['right', g.B.right, g.B.expanded.right],
-		['down', g.B.bottom, g.B.expanded.bottom],
+		['bottom', g.B.bottom, g.B.expanded.bottom],
 		['left', g.B.left, g.B.expanded.left],
 	]
 
-	let edges: [ArrowDirection, ArrowDirection] = ['up', 'up']
+	let edges: [ArrowDirection, ArrowDirection] = ['top', 'top']
 
 	// gapDir is h or v if is there are no overlaps, ie both left/above, right/above, right/below, or left/below
 
@@ -59,30 +59,30 @@ export function getArrowPath(
 
 		if (g.vPos === 'a-above-b') {
 			if (g.hPos === 'a-right-of-b') {
-				edges = ['left', 'up']
+				edges = ['left', 'top']
 			} else if (g.hPos === 'a-left-of-b') {
-				edges = ['right', 'up']
+				edges = ['right', 'top']
 			} else {
 				if (g.A.expanded.left.x > g.B.center.x) {
-					edges = ['left', 'up']
+					edges = ['left', 'top']
 				} else if (g.A.expanded.right.x < g.B.center.x) {
-					edges = ['right', 'up']
+					edges = ['right', 'top']
 				} else {
-					edges = ['down', 'up']
+					edges = ['bottom', 'top']
 				}
 			}
 		} else if (g.vPos === 'a-below-b') {
 			if (g.hPos === 'a-right-of-b') {
-				edges = ['left', 'down']
+				edges = ['left', 'bottom']
 			} else if (g.hPos === 'a-left-of-b') {
-				edges = ['right', 'down']
+				edges = ['right', 'bottom']
 			} else {
 				if (g.A.expanded.left.x > g.B.center.x) {
-					edges = ['left', 'down']
+					edges = ['left', 'bottom']
 				} else if (g.A.expanded.right.x < g.B.center.x) {
-					edges = ['right', 'down']
+					edges = ['right', 'bottom']
 				} else {
-					edges = ['up', 'down']
+					edges = ['top', 'bottom']
 				}
 			}
 		}
@@ -90,29 +90,29 @@ export function getArrowPath(
 		if (g.hPos === 'a-left-of-b') {
 			if (g.A.center.y < g.B.center.y) {
 				if (g.A.center.y < g.B.expanded.top.y) {
-					edges = ['right', 'up']
+					edges = ['right', 'top']
 				} else {
-					edges = ['up', 'up']
+					edges = ['top', 'top']
 				}
 			} else {
 				if (g.A.center.y > g.B.expanded.bottom.y) {
-					edges = ['right', 'down']
+					edges = ['right', 'bottom']
 				} else {
-					edges = ['down', 'down']
+					edges = ['bottom', 'bottom']
 				}
 			}
 		} else if (g.hPos === 'a-right-of-b') {
 			if (g.A.center.y < g.B.center.y) {
 				if (g.A.center.y < g.B.expanded.top.y) {
-					edges = ['left', 'up']
+					edges = ['left', 'top']
 				} else {
-					edges = ['up', 'up']
+					edges = ['top', 'top']
 				}
 			} else {
 				if (g.A.center.y > g.B.expanded.bottom.y) {
-					edges = ['left', 'down']
+					edges = ['left', 'bottom']
 				} else {
-					edges = ['down', 'down']
+					edges = ['bottom', 'bottom']
 				}
 			}
 		} else if (g.vPos === 'a-above-b') {
@@ -120,7 +120,7 @@ export function getArrowPath(
 			if (g.A.center.x < g.B.center.x) {
 				if (g.A.expanded.right.x < g.B.center.x) {
 					// l arrow, right to top
-					edges = ['right', 'up']
+					edges = ['right', 'top']
 				} else {
 					// c arrow, right to right
 					edges = ['right', 'right']
@@ -128,7 +128,7 @@ export function getArrowPath(
 			} else {
 				if (g.A.expanded.left.x > g.B.center.x) {
 					// l arrow, left to top
-					edges = ['left', 'up']
+					edges = ['left', 'top']
 				} else {
 					// c arrow, left to left
 					edges = ['left', 'left']
@@ -137,13 +137,13 @@ export function getArrowPath(
 		} else if (g.vPos === 'a-below-b') {
 			if (g.A.center.x < g.B.center.x) {
 				if (g.A.expanded.right.x < g.B.center.x) {
-					edges = ['right', 'down']
+					edges = ['right', 'bottom']
 				} else {
 					edges = ['right', 'right']
 				}
 			} else {
 				if (g.A.expanded.left.x > g.B.center.x) {
-					edges = ['left', 'down']
+					edges = ['left', 'bottom']
 				} else {
 					edges = ['left', 'left']
 				}
@@ -151,15 +151,15 @@ export function getArrowPath(
 		} else {
 			if (g.A.top.y < g.B.top.y) {
 				if (g.A.expanded.right.x < g.B.expanded.right.x) {
-					edges = ['up', 'right']
+					edges = ['top', 'right']
 				} else {
-					edges = ['up', 'left']
+					edges = ['top', 'left']
 				}
 			} else {
 				if (g.A.expanded.right.x < g.B.expanded.right.x) {
-					edges = ['down', 'right']
+					edges = ['bottom', 'right']
 				} else {
-					edges = ['down', 'left']
+					edges = ['bottom', 'left']
 				}
 			}
 		}
@@ -298,7 +298,7 @@ function _isMidPathPointValid(g: ArrowNavigationGrid, point: Vec) {
 function getNextPointInPath(
 	g: ArrowNavigationGrid,
 	result: ArrowStepResult,
-	dir: 'up' | 'right' | 'down' | 'left'
+	dir: 'top' | 'right' | 'bottom' | 'left'
 ): ArrowStepResult[] {
 	if (result.complete) return [result]
 	if (result.broken) return [result]
@@ -416,17 +416,17 @@ interface DirectionConfig {
 }
 
 const DIRECTION_CONFIG: Record<ArrowDirection, DirectionConfig> = {
-	up: {
+	top: {
 		condition: (pos, _) => pos.y > 0,
-		delta: DELTAS.up,
+		delta: DELTAS.top,
 	},
 	right: {
 		condition: (pos, size) => pos.x < size - 1,
 		delta: DELTAS.right,
 	},
-	down: {
+	bottom: {
 		condition: (pos, size) => pos.y < size - 1,
-		delta: DELTAS.down,
+		delta: DELTAS.bottom,
 	},
 	left: {
 		condition: (pos, _) => pos.x > 0,

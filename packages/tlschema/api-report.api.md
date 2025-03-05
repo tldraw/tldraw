@@ -42,6 +42,16 @@ export const arrowShapeMigrations: MigrationSequence;
 // @public (undocumented)
 export const arrowShapeProps: RecordProps<TLArrowShape>;
 
+// @public (undocumented)
+export const arrowShapeVersions: {
+    readonly AddElbow: "com.tldraw.shape.arrow/6";
+    readonly AddIsPrecise: "com.tldraw.shape.arrow/2";
+    readonly AddLabelColor: "com.tldraw.shape.arrow/1";
+    readonly AddLabelPosition: "com.tldraw.shape.arrow/3";
+    readonly AddScale: "com.tldraw.shape.arrow/5";
+    readonly ExtractBindings: "com.tldraw.shape.arrow/4";
+};
+
 // @public
 export const assetIdValidator: T.Validator<TLAssetId>;
 
@@ -258,6 +268,26 @@ export const drawShapeMigrations: TLPropsMigrations;
 
 // @public (undocumented)
 export const drawShapeProps: RecordProps<TLDrawShape>;
+
+// @public (undocumented)
+export interface ElbowArrowProps {
+    // (undocumented)
+    end: ElbowArrowSide | null;
+    // (undocumented)
+    start: ElbowArrowSide | null;
+}
+
+// @public (undocumented)
+export const ElbowArrowProps: T.ObjectValidator<{
+    end: "bottom" | "left" | "right" | "top" | null;
+    start: "bottom" | "left" | "right" | "top" | null;
+}>;
+
+// @public (undocumented)
+export const ElbowArrowSide: T.Validator<"bottom" | "left" | "right" | "top">;
+
+// @public (undocumented)
+export type ElbowArrowSide = T.TypeOf<typeof ElbowArrowSide>;
 
 // @public (undocumented)
 export const embedShapeMigrations: TLPropsMigrations;
@@ -679,6 +709,8 @@ export interface TLArrowShapeProps {
     color: TLDefaultColorStyle;
     // (undocumented)
     dash: TLDefaultDashStyle;
+    // (undocumented)
+    elbow: ElbowArrowProps | null;
     // (undocumented)
     end: VecModel;
     // (undocumented)

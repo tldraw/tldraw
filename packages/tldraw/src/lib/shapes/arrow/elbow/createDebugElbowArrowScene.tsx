@@ -127,8 +127,8 @@ export function createDebugElbowArrowScene(editor: Editor) {
 					id: arrowId,
 					props: {
 						elbow: {
-							startEdge: aSide,
-							endEdge: bSide,
+							start: aSide,
+							end: bSide,
 						},
 					},
 				})

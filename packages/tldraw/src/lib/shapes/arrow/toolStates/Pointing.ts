@@ -4,6 +4,7 @@ export class Pointing extends StateNode {
 	static override id = 'pointing'
 
 	shape?: TLArrowShape
+	shapeUtilData: any = {}
 
 	markId = ''
 
@@ -55,6 +56,7 @@ export class Pointing extends StateNode {
 				isCreating: true,
 				creatingMarkId: this.markId || undefined,
 				onInteractionEnd: 'arrow',
+				shapeUtilData: this.shapeUtilData,
 			})
 		}
 	}
@@ -113,7 +115,9 @@ export class Pointing extends StateNode {
 		const change = util.onHandleDrag?.(shape, {
 			handle: { ...startHandle, x: 0, y: 0 },
 			isPrecise: true,
+			isCreatingShape: true,
 			initial: initial,
+			data: this.shapeUtilData,
 		})
 
 		if (change) {
@@ -140,7 +144,9 @@ export class Pointing extends StateNode {
 			const change = util.onHandleDrag?.(shape, {
 				handle: { ...startHandle, x: 0, y: 0 },
 				isPrecise: this.didTimeout, // sure about that?
+				isCreatingShape: true,
 				initial: initial,
+				data: this.shapeUtilData,
 			})
 
 			if (change) {
@@ -157,7 +163,9 @@ export class Pointing extends StateNode {
 			const change = util.onHandleDrag?.(this.editor.getShape(shape)!, {
 				handle: { ...endHandle, x: point.x, y: point.y },
 				isPrecise: false, // sure about that?
+				isCreatingShape: true,
 				initial: initial,
+				data: this.shapeUtilData,
 			})
 
 			if (change) {

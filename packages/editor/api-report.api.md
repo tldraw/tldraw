@@ -14,6 +14,7 @@ import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
 import { Dispatch } from 'react';
 import { EffectScheduler } from '@tldraw/state';
+import { ElbowArrowSide } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
 import { ExoticComponent } from 'react';
@@ -1579,6 +1580,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 export const EditorContext: React_2.Context<Editor | null>;
 
 export { EffectScheduler }
+
+// @internal (undocumented)
+export const elbowArrowDebug: DebugFlag<{
+    aSide: ElbowArrowSide | null;
+    bSide: ElbowArrowSide | null;
+    visualDebugging: boolean;
+}>;
 
 // @public (undocumented)
 export class Ellipse2d extends Geometry2d {
@@ -3484,9 +3492,13 @@ export interface TLGridProps {
 // @public (undocumented)
 export interface TLHandleDragInfo<T extends TLShape> {
     // (undocumented)
+    data: any;
+    // (undocumented)
     handle: TLHandle;
     // (undocumented)
     initial?: T | undefined;
+    // (undocumented)
+    isCreatingShape: boolean;
     // (undocumented)
     isPrecise: boolean;
 }

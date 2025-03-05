@@ -1,6 +1,10 @@
 import { assertExists, ElbowArrowSide } from '@tldraw/editor'
-import { ElbowArrowRoute, measureRouteLengthSq, tryRouteArrow } from './elbowArrowRoutes'
+import { ElbowArrowRoute, measureRouteManhattanDistance, tryRouteArrow } from './elbowArrowRoutes'
 import { ElbowArrowInfoWithoutRoute } from './getElbowArrowInfo'
+
+// currently, other than some fairly mild heuristic based checks, we use these `pickBest` based
+// checks that take a prioritized list of potential arrows and returns the shortest arrow from the
+// first set with a valid entry. There's probably a much better/more efficient way to do this.
 
 export function routeArrowWithAutoEdgePicking(
 	info: ElbowArrowInfoWithoutRoute
@@ -55,6 +59,114 @@ export function routeArrowWithAutoEdgePicking(
 	}
 }
 
+export function routeArrowWithPartialEdgePicking(
+	info: ElbowArrowInfoWithoutRoute,
+	aSide: ElbowArrowSide
+) {
+	switch (aSide) {
+		case 'top':
+			return pickBest(info, [
+				[
+					['top', 'bottom'],
+					['top', 'right'],
+					['top', 'left'],
+					['top', 'top'],
+				],
+				[
+					['left', 'bottom'],
+					['right', 'bottom'],
+					['left', 'left'],
+					['right', 'right'],
+					['left', 'right'],
+					['right', 'left'],
+					['left', 'top'],
+					['right', 'top'],
+				],
+				[
+					['bottom', 'top'],
+					['bottom', 'right'],
+					['bottom', 'left'],
+					['bottom', 'bottom'],
+				],
+			])
+		case 'bottom':
+			return pickBest(info, [
+				[
+					['bottom', 'top'],
+					['bottom', 'right'],
+					['bottom', 'left'],
+					['bottom', 'bottom'],
+				],
+				[
+					['left', 'top'],
+					['right', 'top'],
+					['left', 'left'],
+					['right', 'right'],
+					['left', 'right'],
+					['right', 'left'],
+					['left', 'bottom'],
+					['right', 'bottom'],
+				],
+				[
+					['top', 'bottom'],
+					['top', 'right'],
+					['top', 'left'],
+					['top', 'top'],
+				],
+			])
+		case 'left':
+			return pickBest(info, [
+				[
+					['left', 'right'],
+					['left', 'bottom'],
+					['left', 'top'],
+					['left', 'left'],
+				],
+				[
+					['top', 'right'],
+					['bottom', 'right'],
+					['top', 'top'],
+					['bottom', 'bottom'],
+					['top', 'bottom'],
+					['bottom', 'top'],
+					['top', 'left'],
+					['bottom', 'left'],
+				],
+				[
+					['right', 'left'],
+					['right', 'top'],
+					['right', 'bottom'],
+					['right', 'right'],
+				],
+			])
+		case 'right':
+			return pickBest(info, [
+				[
+					['right', 'left'],
+					['right', 'top'],
+					['right', 'bottom'],
+					['right', 'right'],
+				],
+				[
+					['top', 'left'],
+					['bottom', 'left'],
+					['top', 'top'],
+					['bottom', 'bottom'],
+					['top', 'bottom'],
+					['bottom', 'top'],
+					['top', 'right'],
+					['bottom', 'right'],
+				],
+				[
+					['left', 'right'],
+					['left', 'bottom'],
+					['left', 'top'],
+					['left', 'left'],
+				],
+			])
+	}
+}
+
 /**
  * Pick the best route from a set of candidates, in descending priority. For example, this:
  * ```tsx
@@ -80,14 +192,16 @@ function pickBest(
 			bias++
 			const route = tryRouteArrow(info, edges[0], edges[1])
 			if (route) {
-				const lengthSq = measureRouteLengthSq(route)
+				const lengthSq = measureRouteManhattanDistance(route)
 				if (lengthSq + bias < bestLengthSq) {
 					bestLengthSq = lengthSq
 					bestRoute = route
 				}
 			}
 		}
-		if (bestRoute) return bestRoute
+		if (bestRoute) {
+			return bestRoute
+		}
 	}
 	return null
 }

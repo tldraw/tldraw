@@ -586,14 +586,12 @@ export function routeCrossAxisHiToHi(
 	}
 }
 
-export function measureRouteLengthSq(route: ElbowArrowRoute): number {
-	let lengthSq = 0
+export function measureRouteManhattanDistance(route: ElbowArrowRoute): number {
+	let distance = 0
 	for (let i = 0; i < route.path.length - 1; i++) {
 		const start = route.path[i]
 		const end = route.path[i + 1]
-		const dx = end.x - start.x
-		const dy = end.y - start.y
-		lengthSq += dx * dx + dy * dy
+		distance += Math.abs(end.x - start.x) + Math.abs(end.y - start.y)
 	}
-	return lengthSq
+	return distance
 }

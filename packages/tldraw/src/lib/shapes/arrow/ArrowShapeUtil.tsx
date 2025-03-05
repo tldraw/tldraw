@@ -23,6 +23,7 @@ import {
 	WeakCache,
 	arrowShapeMigrations,
 	arrowShapeProps,
+	elbowArrowDebug,
 	getDefaultColorTheme,
 	getPerfectDashProps,
 	lerp,
@@ -38,8 +39,6 @@ import {
 } from '@tldraw/editor'
 import React from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
-
-import { elbowArrowDebug } from '@tldraw/editor/src/lib/utils/debug-flags'
 import { ShapeFill } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
@@ -60,6 +59,7 @@ import {
 	getStraightArrowHandlePath,
 } from './arrowpaths'
 import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
+import { getShapeBoundsInArrowSpace } from './elbow/getElbowArrowInfo'
 import {
 	TLArrowBindings,
 	createOrUpdateArrowBinding,
@@ -125,8 +125,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override getDefaultProps(): TLArrowShape['props'] {
 		return {
 			elbow: {
-				startEdge: null,
-				endEdge: null,
+				start: null,
+				end: null,
 			},
 			dash: 'draw',
 			size: 'm',
@@ -216,7 +216,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override onHandleDrag(
 		shape: TLArrowShape,
-		{ handle, isPrecise }: TLHandleDragInfo<TLArrowShape>
+		{ handle, isPrecise, isCreatingShape }: TLHandleDragInfo<TLArrowShape>
 	) {
 		const handleId = handle.id as ARROW_HANDLES
 		const bindings = getArrowBindings(this.editor, shape)
@@ -256,6 +256,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				x: handle.x,
 				y: handle.y,
 			}
+			if (shape.props.elbow) {
+				update.props!.elbow = { ...shape.props.elbow, [handleId]: null }
+			}
 			return update
 		}
 
@@ -280,6 +283,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			update.props![handleId] = {
 				x: newPoint.x,
 				y: newPoint.y,
+			}
+			if (shape.props.elbow) {
+				update.props!.elbow = { ...shape.props.elbow, [handleId]: null }
 			}
 			return update
 		}
@@ -337,6 +343,29 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			normalizedAnchor,
 			isPrecise: precise,
 			isExact: this.editor.inputs.altKey,
+		}
+
+		if (
+			// if we're binding to a new target...
+			currentBinding?.toId !== target.id &&
+			// ...and this is an elbow arrow...
+			shape.props.elbow &&
+			/// ...and this isn't the start handle of a newly created shape...
+			!(isCreatingShape && handleId === 'start')
+		) {
+			// ...set the direction based on where we entered the target shape.
+			const targetBoundsInArrowSpace = getShapeBoundsInArrowSpace(this.editor, shape.id, target.id)!
+			const centerDelta = targetBoundsInArrowSpace.center.sub(handle)
+			const direction =
+				Math.abs(centerDelta.x) > Math.abs(centerDelta.y)
+					? centerDelta.x > 0
+						? 'left'
+						: 'right'
+					: centerDelta.y > 0
+						? 'top'
+						: 'bottom'
+
+			update.props!.elbow = { ...shape.props.elbow, [handleId]: direction }
 		}
 
 		createOrUpdateArrowBinding(this.editor, shape, target.id, b)

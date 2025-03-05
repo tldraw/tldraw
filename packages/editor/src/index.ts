@@ -405,6 +405,7 @@ export { dataUrlToFile, getDefaultCdnBaseUrl } from './lib/utils/assets'
 export { clampToBrowserMaxCanvasSize, type CanvasMaxSize } from './lib/utils/browserCanvasMaxSize'
 export {
 	debugFlags,
+	elbowArrowDebug,
 	featureFlags,
 	type DebugFlag,
 	type DebugFlagDef,
