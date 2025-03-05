@@ -102,9 +102,28 @@ export interface ElbowArrowBoxEdges {
 	left: ElbowArrowEdge | null
 }
 
-export interface ElbowArrowEdges {
-	A: ElbowArrowBoxEdges
-	B: ElbowArrowBoxEdges
+export interface ElbowArrowBox {
+	/** The original bounding box */
+	original: Box
+	/** The bounding box transformed by {@link ElbowArrowInfoWithoutRoute.scale}. */
+	transformed: Box
+	/**
+	 * The bounding box, expanded by {@link ArrowShapeOptions.expandElbowLegLength} & transformed
+	 * by {@link ElbowArrowInfoWithoutRoute.scale}.
+	 */
+	expanded: Box
+}
+
+export interface ElbowArrowTargetBox extends ElbowArrowBox {
+	/**
+	 * The usable edges of the box, after transforming by {@link scale}.
+	 */
+	edges: ElbowArrowBoxEdges
+	/**
+	 * The vertices of the bound shapes, in arrow space. These are not transformed by
+	 * {@link ElbowArrowInfoWithoutRoute.scale}.
+	 */
+	vertices: Vec[] | null
 }
 
 export interface ElbowArrowInfoWithoutRoute {
@@ -117,15 +136,11 @@ export interface ElbowArrowInfoWithoutRoute {
 	 * we only have to deal with cases where A is to the left of and above B.
 	 */
 	scale: ElbowArrowScale
-	/** The original bounding boxes */
-	original: ElbowArrowBoxes
-	/** The bounding boxes, transformed by {@link scale}. */
-	transformed: ElbowArrowBoxes
-	/**
-	 * The bounding boxes, expanded by {@link ArrowShapeOptions.expandElbowLegLength} & transformed
-	 * by {@link scale}.
-	 */
-	expanded: ElbowArrowBoxes
+
+	A: ElbowArrowTargetBox
+	B: ElbowArrowTargetBox
+	common: ElbowArrowBox
+
 	/**
 	 * The horizontal position of A relative to B, after transforming by {@link scale}. Note that
 	 * due to the transformation, a cannot be to the right of b.
@@ -136,10 +151,6 @@ export interface ElbowArrowInfoWithoutRoute {
 	 * due to the transformation, a cannot be below b.
 	 */
 	vPos: 'a-above-b' | 'a-overlaps-b' | 'a-contains-b' | 'a-inside-b' | 'a-matches-b'
-	/**
-	 * The usable edges of the boxes, after transforming by {@link scale}.
-	 */
-	edges: ElbowArrowEdges
 	/**
 	 * The gap between the right edge of A and the left edge of B, after transforming by {@link scale}.
 	 */
@@ -199,18 +210,8 @@ const elbowArrowInfoCache = createComputedCache(
 			scale.y = -1
 		}
 
-		const original = {
-			A: aBinding.bounds,
-			B: bBinding.bounds,
-			common: Box.Common([aBinding.bounds, bBinding.bounds]),
-		}
 		const transformedA = transformBox(aBinding.bounds, scale)
 		const transformedB = transformBox(bBinding.bounds, scale)
-		const transformed = {
-			A: transformedA,
-			B: transformedB,
-			common: Box.Common([transformedA, transformedB]),
-		}
 
 		const expandedA = aBinding.isPoint
 			? transformedA.clone()
@@ -218,124 +219,106 @@ const elbowArrowInfoCache = createComputedCache(
 		const expandedB = bBinding.isPoint
 			? transformedB.clone()
 			: transformedB.clone().expandBy(options.expandElbowLegLength)
-		const expanded = {
-			A: expandedA,
-			B: expandedB,
-			common: Box.Common([expandedA, expandedB]),
+
+		const common: ElbowArrowBox = {
+			original: Box.Common([aBinding.bounds, bBinding.bounds]),
+			transformed: Box.Common([transformedA, transformedB]),
+			expanded: Box.Common([expandedA, expandedB]),
 		}
 
 		let hPos: ElbowArrowInfo['hPos']
 		let vPos: ElbowArrowInfo['vPos']
 
-		if (transformed.A.maxX < transformed.B.minX) {
+		if (transformedA.maxX < transformedB.minX) {
 			hPos = 'a-left-of-b'
-		} else if (transformed.A.maxX > transformed.B.maxX && transformed.A.minX < transformed.B.minX) {
+		} else if (transformedA.maxX > transformedB.maxX && transformedA.minX < transformedB.minX) {
 			hPos = 'a-contains-b'
-		} else if (
-			transformed.B.maxX >= transformed.A.maxX &&
-			transformed.B.minX <= transformed.A.minX
-		) {
+		} else if (transformedB.maxX >= transformedA.maxX && transformedB.minX <= transformedA.minX) {
 			hPos = 'a-inside-b'
-		} else if (
-			transformed.B.maxX >= transformed.A.maxX &&
-			transformed.B.minX <= transformed.A.maxX
-		) {
+		} else if (transformedB.maxX >= transformedA.maxX && transformedB.minX <= transformedA.maxX) {
 			hPos = 'a-overlaps-b'
-		} else if (
-			transformed.A.maxX === transformed.B.maxX &&
-			transformed.A.minX === transformed.B.minX
-		) {
+		} else if (transformedA.maxX === transformedB.maxX && transformedA.minX === transformedB.minX) {
 			hPos = 'a-matches-b'
 		} else {
 			throw new Error(
-				`Invalid horizontal position: A.maxX = ${transformed.A.maxX}, A.minX = ${transformed.A.minX}, B.maxX = ${transformed.B.maxX}, B.minX = ${transformed.B.minX}`
+				`Invalid horizontal position: A.maxX = ${transformedA.maxX}, A.minX = ${transformedA.minX}, B.maxX = ${transformedB.maxX}, B.minX = ${transformedB.minX}`
 			)
 		}
 
-		if (transformed.A.maxY < transformed.B.minY) {
+		if (transformedA.maxY < transformedB.minY) {
 			vPos = 'a-above-b'
-		} else if (transformed.A.maxY > transformed.B.maxY && transformed.A.minY < transformed.B.minY) {
+		} else if (transformedA.maxY > transformedB.maxY && transformedA.minY < transformedB.minY) {
 			vPos = 'a-contains-b'
-		} else if (
-			transformed.B.maxY >= transformed.A.maxY &&
-			transformed.B.minY <= transformed.A.minY
-		) {
+		} else if (transformedB.maxY >= transformedA.maxY && transformedB.minY <= transformedA.minY) {
 			vPos = 'a-inside-b'
-		} else if (
-			transformed.B.maxY >= transformed.A.maxY &&
-			transformed.B.minY <= transformed.A.maxY
-		) {
+		} else if (transformedB.maxY >= transformedA.maxY && transformedB.minY <= transformedA.maxY) {
 			vPos = 'a-overlaps-b'
-		} else if (
-			transformed.A.maxY === transformed.B.maxY &&
-			transformed.A.minY === transformed.B.minY
-		) {
+		} else if (transformedA.maxY === transformedB.maxY && transformedA.minY === transformedB.minY) {
 			vPos = 'a-matches-b'
 		} else {
 			throw new Error(
-				`Invalid vertical position: A.maxY = ${transformed.A.maxY}, A.minY = ${transformed.A.minY}, B.maxY = ${transformed.B.maxY}, B.minY = ${transformed.B.minY}`
+				`Invalid vertical position: A.maxY = ${transformedA.maxY}, A.minY = ${transformedA.minY}, B.maxY = ${transformedB.maxY}, B.minY = ${transformedB.minY}`
 			)
 		}
 
-		const gapX = transformed.B.minX - transformed.A.maxX
-		const gapY = transformed.B.minY - transformed.A.maxY
+		const gapX = transformedB.minX - transformedA.maxX
+		const gapY = transformedB.minY - transformedA.maxY
 
-		const mx = gapX > options.minElbowLegLength * 2 ? transformed.A.maxX + gapX / 2 : null
-		const my = gapY > options.minElbowLegLength * 2 ? transformed.A.maxY + gapY / 2 : null
+		const mx = gapX > options.minElbowLegLength * 2 ? transformedA.maxX + gapX / 2 : null
+		const my = gapY > options.minElbowLegLength * 2 ? transformedA.maxY + gapY / 2 : null
 
-		const edges: ElbowArrowEdges = {
-			A: {
-				top: getUsableEdge(
-					{ bounds: transformed.A, isPoint: aBinding.isPoint },
-					{ bounds: transformed.B, isPoint: bBinding.isPoint },
-					'top',
-					options
-				),
-				right: getUsableEdge(
-					{ bounds: transformed.A, isPoint: aBinding.isPoint },
-					{ bounds: transformed.B, isPoint: bBinding.isPoint },
-					'right',
-					options
-				),
-				bottom: getUsableEdge(
-					{ bounds: transformed.A, isPoint: aBinding.isPoint },
-					{ bounds: transformed.B, isPoint: bBinding.isPoint },
-					'bottom',
-					options
-				),
-				left: getUsableEdge(
-					{ bounds: transformed.A, isPoint: aBinding.isPoint },
-					{ bounds: transformed.B, isPoint: bBinding.isPoint },
-					'left',
-					options
-				),
-			},
-			B: {
-				top: getUsableEdge(
-					{ bounds: transformed.B, isPoint: bBinding.isPoint },
-					{ bounds: transformed.A, isPoint: aBinding.isPoint },
-					'top',
-					options
-				),
-				right: getUsableEdge(
-					{ bounds: transformed.B, isPoint: bBinding.isPoint },
-					{ bounds: transformed.A, isPoint: aBinding.isPoint },
-					'right',
-					options
-				),
-				bottom: getUsableEdge(
-					{ bounds: transformed.B, isPoint: bBinding.isPoint },
-					{ bounds: transformed.A, isPoint: aBinding.isPoint },
-					'bottom',
-					options
-				),
-				left: getUsableEdge(
-					{ bounds: transformed.B, isPoint: bBinding.isPoint },
-					{ bounds: transformed.A, isPoint: aBinding.isPoint },
-					'left',
-					options
-				),
-			},
+		const edgesA: ElbowArrowBoxEdges = {
+			top: getUsableEdge(
+				{ bounds: transformedA, isPoint: aBinding.isPoint },
+				{ bounds: transformedB, isPoint: bBinding.isPoint },
+				'top',
+				options
+			),
+			right: getUsableEdge(
+				{ bounds: transformedA, isPoint: aBinding.isPoint },
+				{ bounds: transformedB, isPoint: bBinding.isPoint },
+				'right',
+				options
+			),
+			bottom: getUsableEdge(
+				{ bounds: transformedA, isPoint: aBinding.isPoint },
+				{ bounds: transformedB, isPoint: bBinding.isPoint },
+				'bottom',
+				options
+			),
+			left: getUsableEdge(
+				{ bounds: transformedA, isPoint: aBinding.isPoint },
+				{ bounds: transformedB, isPoint: bBinding.isPoint },
+				'left',
+				options
+			),
+		}
+
+		const edgesB = {
+			top: getUsableEdge(
+				{ bounds: transformedB, isPoint: bBinding.isPoint },
+				{ bounds: transformedA, isPoint: aBinding.isPoint },
+				'top',
+				options
+			),
+			right: getUsableEdge(
+				{ bounds: transformedB, isPoint: bBinding.isPoint },
+				{ bounds: transformedA, isPoint: aBinding.isPoint },
+				'right',
+				options
+			),
+			bottom: getUsableEdge(
+				{ bounds: transformedB, isPoint: bBinding.isPoint },
+				{ bounds: transformedA, isPoint: aBinding.isPoint },
+				'bottom',
+				options
+			),
+			left: getUsableEdge(
+				{ bounds: transformedB, isPoint: bBinding.isPoint },
+				{ bounds: transformedA, isPoint: aBinding.isPoint },
+				'left',
+				options
+			),
 		}
 
 		const steve = () => {
@@ -347,10 +330,21 @@ const elbowArrowInfoCache = createComputedCache(
 		const info: ElbowArrowInfoWithoutRoute = {
 			options,
 			scale,
-			original,
-			transformed,
-			expanded,
-			edges,
+			A: {
+				original: aBinding.bounds,
+				transformed: transformedA,
+				expanded: expandedA,
+				edges: edgesA,
+				vertices: aBinding.vertices,
+			},
+			B: {
+				original: bBinding.bounds,
+				transformed: transformedB,
+				expanded: expandedB,
+				edges: edgesB,
+				vertices: bBinding.vertices,
+			},
+			common,
 			hPos,
 			vPos,
 			gapX,
@@ -391,18 +385,22 @@ export function getElbowArrowInfo(editor: Editor, shapeId: TLShapeId) {
 function getBindingBounds(editor: Editor, binding: TLArrowBinding | undefined, point: VecModel) {
 	const defaultValue = Box.FromCenter(point, { x: 0, y: 0 })
 	if (!binding) {
-		return { bounds: defaultValue, isPoint: true }
+		return { bounds: defaultValue, vertices: null, isPoint: true }
 	}
 
-	const bounds = getShapeBoundsInArrowSpace(editor, binding.fromId, binding.toId)
-	if (!bounds) {
-		return { bounds: defaultValue, isPoint: true }
+	const geometry = getShapeGeometryInArrowSpace(editor, binding.fromId, binding.toId)
+	if (!geometry) {
+		return { bounds: defaultValue, vertices: null, isPoint: true }
 	}
 
-	return { bounds, isPoint: false }
+	return { bounds: geometry.bounds, vertices: geometry.vertices, isPoint: false }
 }
 
-export function getShapeBoundsInArrowSpace(editor: Editor, arrowId: TLShapeId, shapeId: TLShapeId) {
+export function getShapeGeometryInArrowSpace(
+	editor: Editor,
+	arrowId: TLShapeId,
+	shapeId: TLShapeId
+) {
 	const shapeGeometry = editor.getShapeGeometry(shapeId)
 	if (!shapeGeometry) {
 		return null
@@ -414,7 +412,7 @@ export function getShapeBoundsInArrowSpace(editor: Editor, arrowId: TLShapeId, s
 
 	const vertices = Mat.applyToPoints(shapeToArrowTransform, shapeGeometry.vertices)
 
-	return Box.FromPoints(vertices)
+	return { bounds: Box.FromPoints(vertices), vertices }
 }
 
 export function transformBox(box: Box, scale: ElbowArrowScale) {

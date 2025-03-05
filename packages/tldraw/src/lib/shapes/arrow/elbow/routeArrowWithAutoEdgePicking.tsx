@@ -32,9 +32,9 @@ export function routeArrowWithAutoEdgePicking(
 		}
 	} else {
 		if (
-			info.edges.A.right &&
-			info.edges.B.top &&
-			info.edges.A.right.expanded <= info.edges.B.top.crossCenter
+			info.A.edges.right &&
+			info.B.edges.top &&
+			info.A.edges.right.expanded <= info.B.edges.top.crossCenter
 		) {
 			return assertExists(tryRouteArrow(info, 'right', 'top'))
 		} else if (info.my !== null) {

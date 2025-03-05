@@ -28,7 +28,7 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 
 	if (!info) return null
 
-	const fullBox = Box.Common([info.original.A, info.original.B]).expandBy(50)
+	const fullBox = Box.Common([info.A.original, info.B.original]).expandBy(50)
 	const gizmoX = info.scale.x === 1 ? fullBox.minX : fullBox.maxX
 	const gizmoY = info.scale.y === 1 ? fullBox.minY : fullBox.maxY
 
@@ -61,14 +61,14 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 				<line x1={0} y1={0} x2={30} y2={0} stroke="red" />
 				<line x1={0} y1={0} x2={0} y2={30} stroke="blue" />
 			</g>
-			<DebugEdge edge={info.edges.A.top} axis="x" scale={info.scale} stroke="orange" />
-			<DebugEdge edge={info.edges.B.top} axis="x" scale={info.scale} stroke="lightskyblue" />
-			<DebugEdge edge={info.edges.A.right} axis="y" scale={info.scale} stroke="orange" />
-			<DebugEdge edge={info.edges.B.right} axis="y" scale={info.scale} stroke="lightskyblue" />
-			<DebugEdge edge={info.edges.A.bottom} axis="x" scale={info.scale} stroke="orange" />
-			<DebugEdge edge={info.edges.B.bottom} axis="x" scale={info.scale} stroke="lightskyblue" />
-			<DebugEdge edge={info.edges.A.left} axis="y" scale={info.scale} stroke="orange" />
-			<DebugEdge edge={info.edges.B.left} axis="y" scale={info.scale} stroke="lightskyblue" />
+			<DebugEdge edge={info.A.edges.top} axis="x" scale={info.scale} stroke="orange" />
+			<DebugEdge edge={info.B.edges.top} axis="x" scale={info.scale} stroke="lightskyblue" />
+			<DebugEdge edge={info.A.edges.right} axis="y" scale={info.scale} stroke="orange" />
+			<DebugEdge edge={info.B.edges.right} axis="y" scale={info.scale} stroke="lightskyblue" />
+			<DebugEdge edge={info.A.edges.bottom} axis="x" scale={info.scale} stroke="orange" />
+			<DebugEdge edge={info.B.edges.bottom} axis="x" scale={info.scale} stroke="lightskyblue" />
+			<DebugEdge edge={info.A.edges.left} axis="y" scale={info.scale} stroke="orange" />
+			<DebugEdge edge={info.B.edges.left} axis="y" scale={info.scale} stroke="lightskyblue" />
 
 			{info.route && <DebugRoute route={info.route.path} strokeWidth={10} />}
 			{steve?.path && (

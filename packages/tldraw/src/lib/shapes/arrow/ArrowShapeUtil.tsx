@@ -59,7 +59,7 @@ import {
 	getStraightArrowHandlePath,
 } from './arrowpaths'
 import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
-import { getShapeBoundsInArrowSpace } from './elbow/getElbowArrowInfo'
+import { getShapeGeometryInArrowSpace } from './elbow/getElbowArrowInfo'
 import {
 	TLArrowBindings,
 	createOrUpdateArrowBinding,
@@ -354,8 +354,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			!(isCreatingShape && handleId === 'start')
 		) {
 			// ...set the direction based on where we entered the target shape.
-			const targetBoundsInArrowSpace = getShapeBoundsInArrowSpace(this.editor, shape.id, target.id)!
-			const centerDelta = targetBoundsInArrowSpace.center.sub(handle)
+			const targetGeomInArrowSpace = getShapeGeometryInArrowSpace(this.editor, shape.id, target.id)!
+			const centerDelta = targetGeomInArrowSpace.bounds.center.sub(handle)
 			const direction =
 				Math.abs(centerDelta.x) > Math.abs(centerDelta.y)
 					? centerDelta.x > 0
