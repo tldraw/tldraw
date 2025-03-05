@@ -143,7 +143,7 @@ export const schema = createSchema(1, {
 	relationships: [fileRelationships, fileStateRelationships],
 })
 
-export type Schema = typeof schema
+export type TlaSchema = typeof schema
 export type TlaUser = Row<typeof schema.tables.user>
 export type TlaFile = Row<typeof schema.tables.file>
 export type TlaFileState = Row<typeof schema.tables.file_state>
@@ -152,7 +152,7 @@ interface AuthData {
 	sub: string | null
 }
 
-export const permissions = definePermissions<AuthData, Schema>(schema, () => {
+export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => {
 	// const allowIfLoggedIn = (
 	//   authData: AuthData,
 	//   { cmpLit }: ExpressionBuilder<Schema, keyof Schema["tables"]>
@@ -194,5 +194,5 @@ export const permissions = definePermissions<AuthData, Schema>(schema, () => {
 				},
 			},
 		},
-	} satisfies PermissionsConfig<AuthData, Schema>
+	} satisfies PermissionsConfig<AuthData, TlaSchema>
 })
