@@ -26,7 +26,7 @@ import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment, isDebugLogging } from './types'
-import { getLogger, getUserDurableObject } from './utils/durableObjects'
+import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
 import { getAuthFromSearchParams } from './utils/tla/getAuth'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -75,6 +75,9 @@ const router = createRouter<Environment>()
 		return stub.fetch(req)
 	})
 	.post('/app/tldr', createFiles)
+	.get('/app/replicator-status', (_, env) => {
+		return getReplicator(env).ping()
+	})
 	.get('/app/file/:roomId', (req, env) => {
 		if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
 			return forwardRoomRequest(req, env)

@@ -117,44 +117,48 @@ export class Zero {
 	}
 
 	private makeQuery<T>(table: string, data$: Signal<T>) {
+		const stuff = {
+			one() {
+				return this
+			},
+			preload: this.preload,
+			related(_x: any, _y: any) {
+				return this
+			},
+			materialize: () => {
+				let _data = data$.get() as any
+				let unsub = () => {}
+				return {
+					get data() {
+						return _data
+					},
+					addListener: (listener: (data: T) => void) => {
+						unsub = react('file listener', () => {
+							_data = data$.get()
+							if (!_data) return
+							if (table === 'file_state') {
+								const files = this.store.getFullData()?.files
+								if (!files) return
+								_data = (_data as TlaFileState[]).map((d) => ({
+									...d,
+									file: files.find((f) => f.id === d.fileId),
+								}))
+							}
+							return listener(_data)
+						})
+					},
+					destroy() {
+						unsub()
+						unsub = () => {}
+					},
+				}
+			},
+		}
 		return {
+			...stuff,
 			where: (column: string, _ownerId: string) => {
 				return {
-					one() {
-						return this
-					},
-					preload: this.preload,
-					related(_x: any, _y: any) {
-						return this
-					},
-					materialize: () => {
-						let _data = data$.get() as any
-						let unsub = () => {}
-						return {
-							get data() {
-								return _data
-							},
-							addListener: (listener: (data: T) => void) => {
-								unsub = react('file listener', () => {
-									_data = data$.get()
-									if (!_data) return
-									if (table === 'file_state') {
-										const files = this.store.getFullData()?.files
-										if (!files) return
-										_data = (_data as TlaFileState[]).map((d) => ({
-											...d,
-											file: files.find((f) => f.id === d.fileId),
-										}))
-									}
-									return listener(_data)
-								})
-							},
-							destroy() {
-								unsub()
-								unsub = () => {}
-							},
-						}
-					},
+					...stuff,
 					toString() {
 						return column
 					},
