@@ -33,7 +33,11 @@ export function NewsletterSignup({
 			setFormState('loading')
 			try {
 				const _email = new FormData(e.currentTarget)?.get('email') as string
-				const { error } = await submitNewsletterSignup(_email)
+				const cookie = document.cookie
+					.split('; ')
+					.find((row) => row.startsWith('hubspotutk='))
+					?.split('=')[1]
+				const { error } = await submitNewsletterSignup(_email, cookie)
 				if (error) throw error
 				setFormState('success')
 				// After a pause, we locally save that the user has submitted the form
