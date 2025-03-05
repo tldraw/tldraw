@@ -11,14 +11,22 @@ import {
 	TlaFileState,
 	TlaUser,
 	UserPreferencesKeys,
-	Z_PROTOCOL_VERSION,
 	schema as zeroSchema,
 	ZErrorCode,
 } from '@tldraw/dotcom-shared'
-import { assert, fetch, Result, structuredClone, throttle, uniqueId } from '@tldraw/utils'
+import {
+	assert,
+	fetch,
+	promiseWithResolve,
+	Result,
+	structuredClone,
+	throttle,
+	uniqueId,
+} from '@tldraw/utils'
 import pick from 'lodash.pick'
 import {
 	assertExists,
+	Atom,
 	atom,
 	computed,
 	createTLSchema,
@@ -35,8 +43,8 @@ import {
 	TLSessionStateSnapshot,
 	TLUiToastsContextType,
 	TLUserPreferences,
+	transact,
 } from 'tldraw'
-import { MULTIPLAYER_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType } from '../utils/app-ui-events'
@@ -65,17 +73,27 @@ export class TldrawApp {
 	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
 
 	private readonly abortController = new AbortController()
-	readonly disposables: (() => void)[] = [
-		() => this.abortController.abort(),
-		() => this.z.dispose(),
-	]
+	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
+
+	changes: Map<Atom<any, unknown>, any> = new Map()
+	resovablePromise = promiseWithResolve<void>()
 
 	private signalizeQuery<TReturn>(name: string, query: any): Signal<TReturn> {
 		// fail if closed?
 		const view = query.materialize()
 		const val$ = atom(name, view.data)
 		view.addListener((res: any) => {
-			val$.set(structuredClone(res) as any)
+			this.changes.set(val$, structuredClone(res))
+			queueMicrotask(() => {
+				transact(() => {
+					this.changes.forEach((value, key) => {
+						key.set(value)
+					})
+					this.changes.clear()
+				})
+				this.resovablePromise.resolve()
+				this.resovablePromise = promiseWithResolve()
+			})
 		})
 		this.disposables.push(() => {
 			view.destroy()
@@ -87,37 +105,14 @@ export class TldrawApp {
 
 	private constructor(
 		public readonly userId: string,
-		getToken: () => Promise<string | null>,
-		onClientTooOld: () => void,
-		trackEvent: TLAppUiContextType
+		getToken: () => Promise<string | undefined>
 	) {
-		const sessionId = uniqueId()
-
-		this.z = useProperZero
-			? new Zero({
-					userID: userId,
-					schema: zeroSchema,
-					server: 'http://localhost:4848',
-				})
-			: new ZeroPolyfill({
-					// userID: userId,
-					// auth: encodedJWT,
-					getUri: async () => {
-						const params = new URLSearchParams({
-							sessionId,
-							protocolVersion: String(Z_PROTOCOL_VERSION),
-						})
-						const token = await getToken()
-						params.set('accessToken', token || 'no-token-found')
-						return `${MULTIPLAYER_SERVER}/app/${userId}/connect?${params}`
-					},
-					// schema,
-					// This is often easier to develop with if you're frequently changing
-					// the schema. Switch to 'idb' for local-persistence.
-					onMutationRejected: this.showMutationRejectionToast,
-					onClientTooOld: () => onClientTooOld(),
-					trackEvent,
-				})
+		this.z = new Zero({
+			auth: getToken,
+			userID: userId,
+			schema: zeroSchema,
+			server: 'http://localhost:4848',
+		})
 
 		this.user$ = this.signalizeQuery(
 			'user signal',
@@ -136,6 +131,7 @@ export class TldrawApp {
 	async preload(initialUserData: TlaUser) {
 		let didCreate = false
 		await this.z.query.user.where('id', this.userId).preload().complete
+		await this.resovablePromise
 		if (!this.user$.get()) {
 			didCreate = true
 			this.z.mutate.user.insert(initialUserData)
@@ -368,7 +364,7 @@ export class TldrawApp {
 		}
 		this.z.mutateBatch((tx) => {
 			tx.file.upsert(file)
-			tx.file_state.upsert({
+			tx.file_state.insert({
 				isFileOwner: true,
 				fileId: file.id,
 				userId: this.userId,
@@ -630,8 +626,7 @@ export class TldrawApp {
 		fullName: string
 		email: string
 		avatar: string
-		getToken(): Promise<string | null>
-		onClientTooOld(): void
+		getToken(): Promise<string | undefined>
 		trackEvent: TLAppUiContextType
 	}) {
 		// This is an issue: we may have a user record but not in the store.
@@ -639,7 +634,7 @@ export class TldrawApp {
 		// of the store... but we should probably identify that better.
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
-		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld, opts.trackEvent)
+		const app = new TldrawApp(opts.userId, opts.getToken)
 		// @ts-expect-error
 		window.app = app
 		const didCreate = await app.preload({

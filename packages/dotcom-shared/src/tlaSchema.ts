@@ -168,18 +168,30 @@ export const permissions = definePermissions<AuthData, Schema>(schema, () => {
 			row: {
 				select: ANYONE_CAN,
 				insert: ANYONE_CAN,
+				update: {
+					preMutation: ANYONE_CAN,
+					postMutation: ANYONE_CAN,
+				},
 			},
 		},
 		file: {
 			row: {
 				select: ANYONE_CAN,
 				insert: ANYONE_CAN,
+				update: {
+					preMutation: ANYONE_CAN,
+					postMutation: ANYONE_CAN,
+				},
 			},
 		},
 		file_state: {
 			row: {
 				select: ANYONE_CAN,
 				insert: ANYONE_CAN,
+				update: {
+					preMutation: ANYONE_CAN,
+					postMutation: ANYONE_CAN,
+				},
 			},
 		},
 	} satisfies PermissionsConfig<AuthData, Schema>
