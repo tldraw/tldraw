@@ -63,6 +63,8 @@ export const PUBLISH_ENDPOINT = `/api/app/publish`
 
 let appId = 0
 const useProperZero = Boolean(getFromLocalStorage('useProperZero'))
+// eslint-disable-next-line no-console
+console.log('useProperZero', useProperZero)
 // @ts-expect-error
 window.zero = () => {
 	setInLocalStorage('useProperZero', String(useProperZero))
@@ -129,6 +131,10 @@ export class TldrawApp {
 					userID: userId,
 					schema: zeroSchema,
 					server: 'http://localhost:4848',
+					onUpdateNeeded(reason) {
+						console.error('update needed', reason)
+						onClientTooOld()
+					},
 				})
 			: new ZeroPolyfill({
 					// userID: userId,
@@ -154,10 +160,7 @@ export class TldrawApp {
 			'user signal',
 			this.z.query.user.where('id', this.userId).one()
 		)
-		this.files$ = this.signalizeQuery(
-			'files signal',
-			this.z.query.file.where('ownerId', this.userId)
-		)
+		this.files$ = this.signalizeQuery('files signal', this.z.query.file)
 		this.fileStates$ = this.signalizeQuery(
 			'file states signal',
 			this.z.query.file_state.where('userId', this.userId).related('file', (q: any) => q.one())
@@ -588,7 +591,7 @@ export class TldrawApp {
 
 	updateUser(partial: Partial<TlaUser>) {
 		const user = this.getUser()
-		this.z.mutate.user.update({
+		return this.z.mutate.user.update({
 			id: user.id,
 			...partial,
 		})

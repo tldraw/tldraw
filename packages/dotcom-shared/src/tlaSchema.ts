@@ -1,8 +1,9 @@
 import {
-	ANYONE_CAN,
 	boolean,
 	createSchema,
 	definePermissions,
+	ExpressionBuilder,
+	NOBODY_CAN,
 	number,
 	PermissionsConfig,
 	relationships,
@@ -76,11 +77,16 @@ export const file = table('file')
 	})
 	.primaryKey('id', 'ownerId', 'publishedSlug')
 
-const fileRelationships = relationships(file, ({ one }) => ({
+const fileRelationships = relationships(file, ({ one, many }) => ({
 	owner: one({
 		sourceField: ['ownerId'],
 		destField: ['id'],
 		destSchema: user,
+	}),
+	states: many({
+		sourceField: ['id'],
+		destField: ['fileId'],
+		destSchema: file_state,
 	}),
 }))
 
@@ -152,6 +158,13 @@ interface AuthData {
 	sub: string | null
 }
 
+const NO_UPDATE = {
+	update: {
+		preMutation: NOBODY_CAN,
+		postMutation: NOBODY_CAN,
+	},
+} as const
+
 export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => {
 	// const allowIfLoggedIn = (
 	//   authData: AuthData,
@@ -163,35 +176,71 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 	//   { cmp }: ExpressionBuilder<Schema, "message">
 	// ) => cmp("senderID", "=", authData.sub ?? "");
 
+	const allowIfIsUser = (authData: AuthData, { cmp }: ExpressionBuilder<TlaSchema, 'user'>) =>
+		cmp('id', '=', authData.sub!)
+
+	const allowIfFileOwner = (authData: AuthData, { cmp }: ExpressionBuilder<TlaSchema, 'file'>) =>
+		cmp('ownerId', '=', authData.sub!)
+
+	const allowIfIsUserId = (
+		authData: AuthData,
+		{ cmp }: ExpressionBuilder<TlaSchema, 'file_state'>
+	) => cmp('userId', '=', authData.sub!)
+
+	const userHasGuestFileState = (
+		authData: AuthData,
+		{ exists, cmp, and }: ExpressionBuilder<TlaSchema, 'file'>
+	) =>
+		and(
+			cmp('shared', '=', true),
+			exists('states', (q) => q.where('userId', '=', authData.sub!))
+		)
+
 	return {
 		user: {
 			row: {
-				select: ANYONE_CAN,
-				insert: ANYONE_CAN,
+				select: [allowIfIsUser],
+				insert: [allowIfIsUser],
 				update: {
-					preMutation: ANYONE_CAN,
-					postMutation: ANYONE_CAN,
+					preMutation: [allowIfIsUser],
+					postMutation: [allowIfIsUser],
 				},
+			},
+			cell: {
+				email: NO_UPDATE,
+				createdAt: NO_UPDATE,
+				updatedAt: NO_UPDATE,
 			},
 		},
 		file: {
 			row: {
-				select: ANYONE_CAN,
-				insert: ANYONE_CAN,
+				select: [allowIfFileOwner, userHasGuestFileState],
+				insert: [allowIfFileOwner],
 				update: {
-					preMutation: ANYONE_CAN,
-					postMutation: ANYONE_CAN,
+					preMutation: [allowIfFileOwner],
+					postMutation: [allowIfFileOwner],
 				},
+			},
+			cell: {
+				createdAt: NO_UPDATE,
+				ownerName: NO_UPDATE,
+				ownerId: NO_UPDATE,
+				ownerAvatar: NO_UPDATE,
+				createSource: NO_UPDATE,
+				updatedAt: NO_UPDATE,
 			},
 		},
 		file_state: {
 			row: {
-				select: ANYONE_CAN,
-				insert: ANYONE_CAN,
+				select: [allowIfIsUserId],
+				insert: [allowIfIsUserId],
 				update: {
-					preMutation: ANYONE_CAN,
-					postMutation: ANYONE_CAN,
+					preMutation: [allowIfIsUserId],
+					postMutation: [allowIfIsUserId],
 				},
+			},
+			cell: {
+				isFileOwner: NO_UPDATE,
 			},
 		},
 	} satisfies PermissionsConfig<AuthData, TlaSchema>
