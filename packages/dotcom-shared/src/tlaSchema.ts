@@ -220,6 +220,7 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 				email: NO_UPDATE,
 				createdAt: NO_UPDATE,
 				updatedAt: NO_UPDATE,
+				avatar: NO_UPDATE,
 			},
 		},
 		file: {
@@ -251,6 +252,7 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 			},
 			cell: {
 				isFileOwner: NO_UPDATE,
+				firstVisitAt: NO_UPDATE,
 			},
 		},
 	} satisfies PermissionsConfig<AuthData, TlaSchema>
