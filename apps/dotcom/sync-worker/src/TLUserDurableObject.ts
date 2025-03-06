@@ -29,6 +29,7 @@ import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 
+const ONE_MINUTE = 60 * 1000
 export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: Kysely<DB>
 	private measure: Analytics | undefined
@@ -118,7 +119,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	interval: NodeJS.Timeout | null = null
-	lastMutationTimestamp = Date.now()
+	lastMutationTimestamp = Date.now() + 2 * ONE_MINUTE + 5 * ONE_MINUTE * Math.random()
 
 	private maybeStartInterval() {
 		if (!this.interval) {
@@ -126,7 +127,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				// do cache persist + cleanup
 				this.cache?.onInterval()
 				// do a noop mutation every 5 minutes
-				if (Date.now() - this.lastMutationTimestamp > 5 * 60 * 1000) {
+				if (Date.now() - this.lastMutationTimestamp > 5 * ONE_MINUTE) {
 					this.bumpMutationNumber(this.db)
 						.then(() => {
 							this.lastMutationTimestamp = Date.now()
