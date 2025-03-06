@@ -41,7 +41,6 @@
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
-		"@nkzw/immutable-map": "^1.2.2",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"lodash.isequal": "^4.5.0"

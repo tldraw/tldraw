@@ -3625,13 +3625,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nkzw/immutable-map@npm:^1.2.2":
-  version: 1.2.2
-  resolution: "@nkzw/immutable-map@npm:1.2.2"
-  checksum: 10f4d1009cec8857e0f082bc000247d3bfb61b34bd8d8fa59056645739d103b02397d50e63b85f5dd2b114d1b80636528c7c42ae55ac71f1d1894e12b3ef5f26
-  languageName: node
-  linkType: hard
-
 "@nodelib/fs.scandir@npm:2.1.5":
   version: 2.1.5
   resolution: "@nodelib/fs.scandir@npm:2.1.5"
@@ -7407,7 +7400,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/store@workspace:packages/store"
   dependencies:
-    "@nkzw/immutable-map": "npm:^1.2.2"
     "@peculiar/webcrypto": "npm:^1.5.0"
     "@tldraw/state": "workspace:*"
     "@tldraw/utils": "workspace:*"
