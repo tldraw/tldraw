@@ -3,10 +3,10 @@ title: Asset props
 component: ./AssetPropsExample.tsx
 category: data/assets
 priority: 1
-keywords: [images, videos, gif, dimensions, accepted image types]
+keywords: [images, videos, audio, gif, dimensions, accepted image types]
 ---
 
-Control the assets (images, videos, etc.) that can be added to the canvas.
+Control the assets (images, videos, audio, etc.) that can be added to the canvas.
 
 ---
 

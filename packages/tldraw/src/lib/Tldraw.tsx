@@ -1,5 +1,6 @@
 import {
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
+	DEFAULT_SUPPORT_AUDIO_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	TLEditorComponents,
 	TLOnMountHandler,
@@ -85,6 +86,7 @@ export function Tldraw(props: TldrawProps) {
 		maxAssetSize,
 		acceptedImageMimeTypes,
 		acceptedVideoMimeTypes,
+		acceptedAudioMimeTypes,
 		onMount,
 		components = {},
 		shapeUtils = [],
@@ -133,6 +135,9 @@ export function Tldraw(props: TldrawProps) {
 	const _videoMimeTypes = useShallowArrayIdentity(
 		acceptedVideoMimeTypes ?? DEFAULT_SUPPORT_VIDEO_TYPES
 	)
+	const _audioMimeTypes = useShallowArrayIdentity(
+		acceptedAudioMimeTypes ?? DEFAULT_SUPPORT_AUDIO_TYPES
+	)
 
 	const textOptionsWithDefaults = useMemo((): TLTextOptions => {
 		return {
@@ -146,8 +151,8 @@ export function Tldraw(props: TldrawProps) {
 	}, [textOptions])
 
 	const mediaMimeTypes = useMemo(
-		() => [..._imageMimeTypes, ..._videoMimeTypes],
-		[_imageMimeTypes, _videoMimeTypes]
+		() => [..._imageMimeTypes, ..._videoMimeTypes, ..._audioMimeTypes],
+		[_imageMimeTypes, _videoMimeTypes, _audioMimeTypes]
 	)
 
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
@@ -174,6 +179,7 @@ export function Tldraw(props: TldrawProps) {
 					maxAssetSize={maxAssetSize}
 					acceptedImageMimeTypes={_imageMimeTypes}
 					acceptedVideoMimeTypes={_videoMimeTypes}
+					acceptedAudioMimeTypes={_audioMimeTypes}
 					onMount={onMount}
 				/>
 				{children}
@@ -188,6 +194,7 @@ function InsideOfEditorAndUiContext({
 	maxAssetSize,
 	acceptedImageMimeTypes,
 	acceptedVideoMimeTypes,
+	acceptedAudioMimeTypes,
 	onMount,
 }: TLExternalContentProps & {
 	onMount?: TLOnMountHandler
@@ -213,6 +220,7 @@ function InsideOfEditorAndUiContext({
 			maxAssetSize,
 			acceptedImageMimeTypes,
 			acceptedVideoMimeTypes,
+			acceptedAudioMimeTypes,
 			toasts,
 			msg,
 		})

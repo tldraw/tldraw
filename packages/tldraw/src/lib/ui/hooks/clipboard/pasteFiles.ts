@@ -1,7 +1,7 @@
 import { Editor, TLExternalContentSource, VecLike } from '@tldraw/editor'
 
 /**
- * When the clipboard has a file, create an image/video shape from the file and paste it into the scene.
+ * When the clipboard has a file, create an image/video/audio shape from the file and paste it into the scene.
  *
  * @param editor - The editor instance.
  * @param urls - The file urls.

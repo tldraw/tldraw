@@ -9,6 +9,7 @@ export interface TLUiSliderProps {
 	value: number | null
 	label: string
 	title: string
+	onPointerUp?(): void
 	onValueChange(value: number): void
 	onHistoryMark(id: string): void
 	'data-testid'?: string
@@ -22,6 +23,7 @@ export const TldrawUiSlider = memo(function Slider({
 	value,
 	label,
 	onValueChange,
+	onPointerUp,
 	['data-testid']: testId,
 }: TLUiSliderProps) {
 	const msg = useTranslation()
@@ -40,7 +42,8 @@ export const TldrawUiSlider = memo(function Slider({
 	const handlePointerUp = useCallback(() => {
 		if (!value) return
 		onValueChange(value)
-	}, [value, onValueChange])
+		onPointerUp?.()
+	}, [value, onValueChange, onPointerUp])
 
 	return (
 		<div className="tlui-slider__container">

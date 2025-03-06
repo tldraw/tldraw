@@ -72,6 +72,7 @@ export {
 	getArrowTerminalsInArrowSpace,
 	type TLArrowBindings,
 } from './lib/shapes/arrow/shared'
+export { AudioShapeUtil } from './lib/shapes/audio/AudioShapeUtil'
 export { BookmarkShapeUtil } from './lib/shapes/bookmark/BookmarkShapeUtil'
 export { DrawShapeTool } from './lib/shapes/draw/DrawShapeTool'
 export { DrawShapeUtil, type DrawShapeOptions } from './lib/shapes/draw/DrawShapeUtil'
@@ -121,9 +122,9 @@ export { useEditablePlainText, useEditableText } from './lib/shapes/shared/useEd
 export { useEditableRichText } from './lib/shapes/shared/useEditableRichText'
 export {
 	useAsset,
-	useImageOrVideoAsset,
-	type UseImageOrVideoAssetOptions,
-} from './lib/shapes/shared/useImageOrVideoAsset'
+	useMediaAsset,
+	type UseMediaAssetOptions,
+} from './lib/shapes/shared/useMediaAsset'
 export { PlainTextArea } from './lib/shapes/text/PlainTextArea'
 export { RichTextArea, type TextAreaProps } from './lib/shapes/text/RichTextArea'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'

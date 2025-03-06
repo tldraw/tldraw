@@ -55,6 +55,12 @@ export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 export const assetValidator: T.Validator<TLAsset>;
 
 // @public (undocumented)
+export const audioShapeMigrations: TLPropsMigrations;
+
+// @public (undocumented)
+export const audioShapeProps: RecordProps<TLAudioShape>;
+
+// @public (undocumented)
 export const bindingIdValidator: T.Validator<TLBindingId>;
 
 // @public (undocumented)
@@ -190,6 +196,10 @@ export const defaultShapeSchemas: {
     arrow: {
         migrations: MigrationSequence;
         props: RecordProps<TLArrowShape>;
+    };
+    audio: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLAudioShape>;
     };
     bookmark: {
         migrations: TLPropsMigrations;
@@ -706,7 +716,7 @@ export interface TLArrowShapeProps {
 }
 
 // @public (undocumented)
-export type TLAsset = TLBookmarkAsset | TLImageAsset | TLVideoAsset;
+export type TLAsset = TLBookmarkAsset | TLMediaAsset;
 
 // @public (undocumented)
 export interface TLAssetContext {
@@ -742,6 +752,38 @@ export interface TLAssetStore {
         meta?: JsonObject;
         src: string;
     }>;
+}
+
+// @public
+export type TLAudioAsset = TLBaseAsset<'audio', {
+    coverArt?: string;
+    fileSize?: number;
+    h: number;
+    isAnimated: boolean;
+    mimeType: null | string;
+    name: string;
+    src: null | string;
+    title?: string;
+    w: number;
+}>;
+
+// @public (undocumented)
+export type TLAudioShape = TLBaseShape<'audio', TLAudioShapeProps>;
+
+// @public (undocumented)
+export interface TLAudioShapeProps {
+    // (undocumented)
+    assetId: null | TLAssetId;
+    // (undocumented)
+    h: number;
+    // (undocumented)
+    playing: boolean;
+    // (undocumented)
+    time: number;
+    // (undocumented)
+    url: string;
+    // (undocumented)
+    w: number;
 }
 
 // @public (undocumented)
@@ -922,7 +964,7 @@ export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>;
 export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAlignStyle>;
 
 // @public
-export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
+export type TLDefaultShape = TLArrowShape | TLAudioShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
 
 // @public (undocumented)
 export type TLDefaultSizeStyle = T.TypeOf<typeof DefaultSizeStyle>;
@@ -1298,6 +1340,9 @@ export interface TLLineShapeProps {
 
 // @public (undocumented)
 export type TLLineShapeSplineStyle = T.TypeOf<typeof LineShapeSplineStyle>;
+
+// @public (undocumented)
+export type TLMediaAsset = TLAudioAsset | TLImageAsset | TLVideoAsset;
 
 // @public (undocumented)
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>;

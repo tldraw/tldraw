@@ -17,7 +17,7 @@ import classNames from 'classnames'
 import { memo, ReactEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
+import { useMediaAsset } from '../shared/useMediaAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 const videoSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
@@ -80,7 +80,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 	const prefersReducedMotion = usePrefersReducedMotion()
 	const { Spinner } = useEditorComponents()
 
-	const { asset, url } = useImageOrVideoAsset({
+	const { asset, url } = useMediaAsset({
 		shapeId: shape.id,
 		assetId: shape.props.assetId,
 		width: shape.props.w,

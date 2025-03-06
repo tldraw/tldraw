@@ -2,9 +2,8 @@ import {
 	Editor,
 	SvgExportContext,
 	TLAssetId,
-	TLImageAsset,
+	TLMediaAsset,
 	TLShapeId,
-	TLVideoAsset,
 	react,
 	useDelaySvgExport,
 	useEditor,
@@ -13,11 +12,11 @@ import {
 import { useEffect, useRef, useState } from 'react'
 
 /**
- * Options for {@link useImageOrVideoAsset}.
+ * Options for {@link useMediaAsset}.
  *
  * @public
  */
-export interface UseImageOrVideoAssetOptions {
+export interface UseMediaAssetOptions {
 	/** The asset ID you want a URL for. */
 	assetId: TLAssetId | null
 	/**
@@ -42,17 +41,17 @@ export interface UseImageOrVideoAssetOptions {
  *
  * @public
  */
-export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVideoAssetOptions) {
+export function useMediaAsset({ shapeId, assetId, width }: UseMediaAssetOptions) {
 	const editor = useEditor()
 	const exportInfo = useSvgExportContext()
 	const exportIsReady = useDelaySvgExport()
 
 	// We use a state to store the result of the asset resolution, and we're going to avoid updating this whenever we can
 	const [result, setResult] = useState<{
-		asset: (TLImageAsset | TLVideoAsset) | null
+		asset: TLMediaAsset | null
 		url: string | null
 	}>(() => ({
-		asset: assetId ? (editor.getAsset<TLImageAsset | TLVideoAsset>(assetId) ?? null) : null,
+		asset: assetId ? (editor.getAsset<TLMediaAsset>(assetId) ?? null) : null,
 		url: null as string | null,
 	}))
 
@@ -72,7 +71,7 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 			if (!exportInfo && shapeId && editor.getCulledShapes().has(shapeId)) return
 
 			// Get the fresh asset
-			const asset = editor.getAsset<TLImageAsset | TLVideoAsset>(assetId)
+			const asset = editor.getAsset<TLMediaAsset>(assetId)
 			if (!asset) return
 
 			// Set initial preview for the shape if it has no source (if it was pasted into a local project as base64)
@@ -94,7 +93,7 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 				? exportInfo.scale * (width / asset.props.w)
 				: editor.getZoomLevel() * (width / asset.props.w)
 
-			function resolve(asset: TLImageAsset | TLVideoAsset, url: string | null) {
+			function resolve(asset: TLMediaAsset, url: string | null) {
 				if (isCancelled) return // don't update if the hook has remounted
 				if (previousUrl.current === url) return // don't update the state if the url is the same
 				didAlreadyResolve.current = true // mark that we've resolved our first image
@@ -156,8 +155,8 @@ function resolveAssetUrl(
 }
 
 /**
- * @deprecated Use {@link useImageOrVideoAsset} instead.
+ * @deprecated Use {@link useMediaAsset} instead.
  *
  * @public
  */
-export const useAsset = useImageOrVideoAsset
+export const useAsset = useMediaAsset

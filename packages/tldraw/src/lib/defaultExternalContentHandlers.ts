@@ -1,6 +1,7 @@
 import {
 	AssetRecordType,
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
+	DEFAULT_SUPPORT_AUDIO_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	Editor,
 	MediaHelpers,
@@ -10,13 +11,12 @@ import {
 	TLBookmarkShape,
 	TLContent,
 	TLFileExternalAsset,
-	TLImageAsset,
+	TLMediaAsset,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
 	TLTextShapeProps,
 	TLUrlExternalAsset,
-	TLVideoAsset,
 	Vec,
 	VecLike,
 	assert,
@@ -27,6 +27,7 @@ import {
 	toRichText,
 } from '@tldraw/editor'
 import { EmbedDefinition } from './defaultEmbedDefinitions'
+import { AUDIO_HEIGHT, AUDIO_WIDTH } from './shapes/audio/AudioShapeUtil'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
@@ -69,6 +70,11 @@ export interface TLExternalContentProps {
 	 * DEFAULT_SUPPORT_VIDEO_TYPES.
 	 */
 	acceptedVideoMimeTypes?: readonly string[]
+	/**
+	 * The mime types of audio files that are allowed to be handled. Defaults to
+	 * DEFAULT_SUPPORT_AUDIO_TYPES.
+	 */
+	acceptedAudioMimeTypes?: readonly string[]
 }
 
 /** @public */
@@ -135,6 +141,7 @@ export async function defaultHandleExternalFileAsset(
 	{
 		acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
 		acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
+		acceptedAudioMimeTypes = DEFAULT_SUPPORT_AUDIO_TYPES,
 		maxAssetSize = DEFAULT_MAX_ASSET_SIZE,
 		maxImageDimension = DEFAULT_MAX_IMAGE_DIMENSION,
 		toasts,
@@ -143,14 +150,15 @@ export async function defaultHandleExternalFileAsset(
 ) {
 	const isImageType = acceptedImageMimeTypes.includes(file.type)
 	const isVideoType = acceptedVideoMimeTypes.includes(file.type)
+	const isAudioType = acceptedAudioMimeTypes.includes(file.type)
 
-	if (!isImageType && !isVideoType) {
+	if (!isImageType && !isVideoType && !isAudioType) {
 		toasts.addToast({
 			title: msg('assets.files.type-not-allowed'),
 			severity: 'error',
 		})
 	}
-	assert(isImageType || isVideoType, `File type not allowed: ${file.type}`)
+	assert(isImageType || isVideoType || isAudioType, `File type not allowed: ${file.type}`)
 
 	if (file.size > maxAssetSize) {
 		toasts.addToast({
@@ -170,6 +178,7 @@ export async function defaultHandleExternalFileAsset(
 		assetId,
 		isImageType,
 		isVideoType,
+		isAudioType,
 		maxImageDimension
 	)
 
@@ -313,6 +322,7 @@ export async function defaultHandleExternalFileContent(
 		maxImageDimension = DEFAULT_MAX_IMAGE_DIMENSION,
 		acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
 		acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
+		acceptedAudioMimeTypes = DEFAULT_SUPPORT_AUDIO_TYPES,
 		toasts,
 		msg,
 	}: TLDefaultExternalContentHandlerOpts
@@ -362,8 +372,12 @@ export async function defaultHandleExternalFileContent(
 			continue
 		}
 
-		// We can only accept certain extensions (either images or a videos)
-		const acceptedTypes = [...acceptedImageMimeTypes, ...acceptedVideoMimeTypes]
+		// We can only accept certain extensions (either images, videos, or audio)
+		const acceptedTypes = [
+			...acceptedImageMimeTypes,
+			...acceptedVideoMimeTypes,
+			...acceptedAudioMimeTypes,
+		]
 		if (!acceptedTypes.includes(file.type)) {
 			toasts.addToast({
 				title: msg('assets.files.type-not-allowed'),
@@ -376,6 +390,7 @@ export async function defaultHandleExternalFileContent(
 
 		const isImageType = acceptedImageMimeTypes.includes(file.type)
 		const isVideoType = acceptedVideoMimeTypes.includes(file.type)
+		const isAudioType = acceptedAudioMimeTypes.includes(file.type)
 		const hash = getHashForBuffer(await file.arrayBuffer())
 		const assetId: TLAssetId = AssetRecordType.createId(hash)
 		const assetInfo = await getMediaAssetInfoPartial(
@@ -383,6 +398,7 @@ export async function defaultHandleExternalFileContent(
 			assetId,
 			isImageType,
 			isVideoType,
+			isAudioType,
 			maxImageDimension
 		)
 		let temporaryAssetPreview
@@ -631,6 +647,7 @@ export async function getMediaAssetInfoPartial(
 	assetId: TLAssetId,
 	isImageType: boolean,
 	isVideoType: boolean,
+	isAudioType: boolean,
 	maxImageDimension?: number
 ) {
 	let fileType = file.type
@@ -640,27 +657,41 @@ export async function getMediaAssetInfoPartial(
 		fileType = 'video/mp4'
 	}
 
-	const size = isImageType
-		? await MediaHelpers.getImageSize(file)
-		: await MediaHelpers.getVideoSize(file)
+	const size = isAudioType
+		? { w: AUDIO_WIDTH, h: AUDIO_HEIGHT }
+		: isImageType
+			? await MediaHelpers.getImageSize(file)
+			: await MediaHelpers.getVideoSize(file)
+
+	let title
+	let coverArt
+	if (isAudioType) {
+		const { title: _title, coverArt: _coverArt } = await MediaHelpers.getAudioTags(file)
+		title = _title
+		coverArt = _coverArt
+	}
 
 	const isAnimated = (await MediaHelpers.isAnimated(file)) || isVideoType
 
 	const assetInfo = {
 		id: assetId,
-		type: isImageType ? 'image' : 'video',
+		type: isAudioType ? 'audio' : isImageType ? 'image' : 'video',
 		typeName: 'asset',
-		props: {
-			name: file.name,
-			src: '',
-			w: size.w,
-			h: size.h,
-			fileSize: file.size,
-			mimeType: fileType,
-			isAnimated,
-		},
+		props: Object.fromEntries(
+			Object.entries({
+				name: file.name,
+				src: '',
+				w: size.w,
+				h: size.h,
+				fileSize: file.size,
+				mimeType: fileType,
+				isAnimated,
+				title,
+				coverArt,
+			}).filter(([, v]) => v !== undefined)
+		),
 		meta: {},
-	} as TLImageAsset | TLVideoAsset
+	} as TLMediaAsset
 
 	if (maxImageDimension && isFinite(maxImageDimension)) {
 		const size = { w: assetInfo.props.w, h: assetInfo.props.h }
@@ -676,7 +707,7 @@ export async function getMediaAssetInfoPartial(
 
 /**
  * A helper function for an external content handler. It creates bookmarks,
- * images or video shapes corresponding to the type of assets provided.
+ * images, video, or audio shapes corresponding to the type of assets provided.
  *
  * @param editor - The editor instance
  *
@@ -699,10 +730,12 @@ export async function createShapesForAssets(
 	for (let i = 0; i < assets.length; i++) {
 		const asset = assets[i]
 		switch (asset.type) {
-			case 'image': {
+			case 'image':
+			case 'video':
+			case 'audio': {
 				partials.push({
 					id: createShapeId(),
-					type: 'image',
+					type: asset.type,
 					x: currentPoint.x,
 					y: currentPoint.y,
 					opacity: 1,
@@ -715,22 +748,6 @@ export async function createShapesForAssets(
 
 				currentPoint.x += asset.props.w
 				break
-			}
-			case 'video': {
-				partials.push({
-					id: createShapeId(),
-					type: 'video',
-					x: currentPoint.x,
-					y: currentPoint.y,
-					opacity: 1,
-					props: {
-						assetId: asset.id,
-						w: asset.props.w,
-						h: asset.props.h,
-					},
-				})
-
-				currentPoint.x += asset.props.w
 			}
 		}
 	}
