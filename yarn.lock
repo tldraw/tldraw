@@ -3603,9 +3603,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lingual/i18n-check@npm:^0.5.4":
-  version: 0.5.4
-  resolution: "@lingual/i18n-check@npm:0.5.4"
+"@lingual/i18n-check@npm:^0.5.5":
+  version: 0.5.5
+  resolution: "@lingual/i18n-check@npm:0.5.5"
   dependencies:
     "@formatjs/cli-lib": "npm:^6.6.6"
     "@formatjs/icu-messageformat-parser": "npm:^2.11.0"
@@ -3616,7 +3616,7 @@ __metadata:
     js-yaml: "npm:^4.1.0"
   bin:
     i18n-check: dist/bin/index.js
-  checksum: 100ef46e9e20392d39ab3b1e601dc0aea2e51b9fbf695497a08f7a5b4dc0dd0e7822891769b0a01cdeee68b89e9abeb3a5e7d2ae84a0b01e5d940b11da75d738
+  checksum: b24cd3b3e8a907045ec0fd4eed664c360313db09163825052faec15cb37350b8ba6151e4e5fcead7be946304a34d6a239bd522fcac1fec7090acfd770f5eeacf
   languageName: node
   linkType: hard
 
@@ -7597,7 +7597,7 @@ __metadata:
     "@eslint/compat": "npm:^1.2.5"
     "@eslint/eslintrc": "npm:^3.2.0"
     "@eslint/js": "npm:^9.19.0"
-    "@lingual/i18n-check": "npm:^0.5.4"
+    "@lingual/i18n-check": "npm:^0.5.5"
     "@microsoft/api-extractor": "npm:^7.49.1"
     "@next/eslint-plugin-next": "npm:^15.1.6"
     "@sentry/cli": "npm:^2.41.1"
