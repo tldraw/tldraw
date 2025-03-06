@@ -1,3 +1,4 @@
+import ImmutableMap from '@nkzw/immutable-map'
 import { atom, Atom, transact, UNINITIALIZED } from '@tldraw/state'
 import { assert } from '@tldraw/utils'
 
@@ -7,20 +8,22 @@ import { assert } from '@tldraw/utils'
  */
 export class AtomMap<K, V> implements Map<K, V> {
 	private valueMap: Map<K, Atom<V | UNINITIALIZED>>
-	private presentKeysAtom: Atom<ReadonlySet<K>>
+	private presentKeysAtom: Atom<ImmutableMap<string, null>>
 
 	constructor(
 		private readonly name: string,
 		entries?: Iterable<[K, V]>
 	) {
-		const presentKeys = new Set<K>()
+		const presentKeys = ImmutableMap<string, null>()
 		const valueMap = new Map<K, Atom<V>>()
-		if (entries) {
-			for (const [k, v] of entries) {
-				presentKeys.add(k)
-				valueMap.set(k, atom(`${name}:${String(k)}`, v))
+		presentKeys.withMutations((presentKeys) => {
+			if (entries) {
+				for (const [k, v] of entries) {
+					presentKeys.set(k as string, null)
+					valueMap.set(k, atom(`${name}:${String(k)}`, v))
+				}
 			}
-		}
+		})
 		this.valueMap = valueMap
 		this.presentKeysAtom = atom(`${name}:presentKeys`, presentKeys)
 	}
@@ -73,9 +76,7 @@ export class AtomMap<K, V> implements Map<K, V> {
 			} else {
 				this.valueMap.set(key, atom(`${this.name}:${String(key)}`, value))
 				this.presentKeysAtom.update((keys) => {
-					const newKeys = new Set(keys)
-					newKeys.add(key)
-					return newKeys
+					return keys.set(key as string, null)
 				})
 			}
 		})
@@ -103,9 +104,7 @@ export class AtomMap<K, V> implements Map<K, V> {
 			this.valueMap.delete(key)
 			valueAtom.set(UNINITIALIZED)
 			this.presentKeysAtom.update((keys) => {
-				const newKeys = new Set(keys)
-				newKeys.delete(key)
-				return newKeys
+				return keys.delete(key as string)
 			})
 			return true
 		})
@@ -113,7 +112,6 @@ export class AtomMap<K, V> implements Map<K, V> {
 
 	deleteMany(keys: Iterable<K>): [K, V][] {
 		return transact(() => {
-			let newPresentKeys
 			const deleted: [K, V][] = []
 
 			for (const key of keys) {
@@ -126,14 +124,12 @@ export class AtomMap<K, V> implements Map<K, V> {
 
 				this.valueMap.delete(key)
 				valueAtom.set(UNINITIALIZED)
-				if (!newPresentKeys) {
-					newPresentKeys = new Set(this.presentKeysAtom.__unsafe__getWithoutCapture())
-				}
-				newPresentKeys.delete(key)
 			}
 
-			if (newPresentKeys) {
-				this.presentKeysAtom.set(newPresentKeys)
+			if (deleted.length) {
+				this.presentKeysAtom.update((keys) => {
+					return keys.deleteAll(deleted.map(([key]) => key as string))
+				})
 			}
 
 			return deleted
@@ -145,7 +141,7 @@ export class AtomMap<K, V> implements Map<K, V> {
 			for (const valueAtom of this.valueMap.values()) {
 				valueAtom.set(UNINITIALIZED)
 			}
-			this.presentKeysAtom.set(new Set())
+			this.presentKeysAtom.set(ImmutableMap())
 			this.valueMap.clear()
 		})
 	}
