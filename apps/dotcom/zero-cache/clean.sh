@@ -1,2 +1,4 @@
 #!/bin/bash
-docker volume rm -f docker_tlapp_pgdata
+source .env
+docker volume rm -f docker_tlapp_pgdata && rm -rf "${ZSTART_REPLICA_FILE}"*
+
