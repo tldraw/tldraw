@@ -1,10 +1,6 @@
 'use server'
 
-export async function submitNewsletterSignup(
-	email: string,
-	cookie: string | undefined,
-	url: string
-) {
+export async function submitNewsletterSignup(email: string, hutk: string | undefined, url: string) {
 	const res = await fetch(
 		'https://api.hsforms.com/submissions/v3/integration/secure/submit/145620695/ff47937e-8c83-4f26-b00a-1ea4ae11a7c4',
 		{
@@ -22,7 +18,7 @@ export async function submitNewsletterSignup(
 					},
 				],
 				context: {
-					hutk: cookie,
+					hutk,
 					pageUri: url,
 					pageName: 'tldraw dev',
 				},
