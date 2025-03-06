@@ -2,8 +2,8 @@ import { getFromLocalStorage, setInLocalStorage } from '@tldraw/utils'
 import { useCallback, useLayoutEffect, useState } from 'react'
 
 /** @public */
-export function useLocalStorageState<T = any>(key: string, defaultValue: T) {
-	const [state, setState] = useState(defaultValue)
+export function useLocalStorageState<T = any>(key: string, defaultValue: T, initialValue?: T) {
+	const [state, setState] = useState(initialValue ?? defaultValue)
 
 	useLayoutEffect(() => {
 		const value = getFromLocalStorage(key)
@@ -13,8 +13,11 @@ export function useLocalStorageState<T = any>(key: string, defaultValue: T) {
 			} catch {
 				console.error(`Could not restore value ${key} from local storage.`)
 			}
+		} else {
+			setInLocalStorage(key, JSON.stringify(defaultValue))
+			setState(defaultValue)
 		}
-	}, [key])
+	}, [key, initialValue, defaultValue])
 
 	const updateValue = useCallback(
 		(setter: T | ((value: T) => T)) => {
