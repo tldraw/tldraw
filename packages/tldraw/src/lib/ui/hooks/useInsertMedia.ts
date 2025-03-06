@@ -1,6 +1,7 @@
 import {
 	DEFAULT_SUPPORTED_MEDIA_TYPE_LIST,
-	useEditor,
+	Editor,
+	useMaybeEditor,
 	useShallowArrayIdentity,
 } from '@tldraw/editor'
 import React, { useCallback, useEffect, useRef } from 'react'
@@ -8,11 +9,14 @@ import React, { useCallback, useEffect, useRef } from 'react'
 export const MimeTypeContext = React.createContext<string[] | undefined>([])
 
 export function useInsertMedia() {
-	const editor = useEditor()
+	const _editor = useMaybeEditor()
 	const inputRef = useRef<HTMLInputElement>()
 	const mimeTypes = useShallowArrayIdentity(React.useContext(MimeTypeContext))
 
 	useEffect(() => {
+		const editor = _editor as Editor
+		if (!editor) return
+
 		const input = window.document.createElement('input')
 		input.type = 'file'
 		input.accept = mimeTypes?.join(',') ?? DEFAULT_SUPPORTED_MEDIA_TYPE_LIST
@@ -35,7 +39,7 @@ export function useInsertMedia() {
 			inputRef.current = undefined
 			input.removeEventListener('change', onchange)
 		}
-	}, [editor, mimeTypes])
+	}, [_editor, mimeTypes])
 
 	return useCallback(() => {
 		inputRef.current?.click()

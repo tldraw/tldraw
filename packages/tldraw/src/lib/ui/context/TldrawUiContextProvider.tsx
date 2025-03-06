@@ -77,12 +77,7 @@ export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 							<TldrawUiDialogsProvider context={'tla'}>
 								<BreakPointProvider forceMobile={forceMobile}>
 									<TldrawUiComponentsProvider overrides={components}>
-										{editor ? (
-											// the internal providers are only valid when an editor is present
-											<InternalProviders overrides={overrides}>{children}</InternalProviders>
-										) : (
-											children
-										)}
+										<InternalProviders overrides={overrides}>{children}</InternalProviders>
 									</TldrawUiComponentsProvider>
 								</BreakPointProvider>
 							</TldrawUiDialogsProvider>

@@ -35,6 +35,7 @@
 		"itty-router": "^5.0.18",
 		"jose": "^5.9.6",
 		"kysely": "^0.27.5",
+		"lodash.throttle": "^4.1.1",
 		"pg": "^8.13.1",
 		"pg-logical-replication": "^2.0.7",
 		"react": "^18.3.1",
