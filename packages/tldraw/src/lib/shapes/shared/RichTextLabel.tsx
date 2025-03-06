@@ -8,8 +8,9 @@ import {
 	TLRichText,
 	TLShapeId,
 	preventDefault,
-	stopEventPropagation,
 	useEditor,
+	useReactor,
+	useValue,
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { renderHtmlFromRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
@@ -68,6 +69,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	textHeight,
 }: RichTextLabelProps) {
 	const editor = useEditor()
+	const isDragging = React.useRef(false)
 	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } =
 		useEditableRichText(shapeId, type, richText)
 	const html = useMemo(() => {
@@ -76,19 +78,44 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		}
 	}, [editor, richText])
 
+	const selectToolActive = useValue(
+		'isSelectToolActive',
+		() => editor.getCurrentToolId() === 'select',
+		[editor]
+	)
+
+	useReactor(
+		'isDragging',
+		() => {
+			editor.getInstanceState()
+			isDragging.current = editor.inputs.isDragging
+		},
+		[editor]
+	)
+
 	const legacyAlign = isLegacyAlign(align)
+
+	const handlePointerDown = (e: React.MouseEvent<HTMLDivElement>) => {
+		// This mousedown prevent default is to let dragging when over a link work.
+		if (e.target instanceof HTMLElement && (e.target.tagName === 'A' || e.target.closest('a'))) {
+			preventDefault(e)
+
+			if (!selectToolActive) return
+			const link = e.target.closest('a')?.getAttribute('href') ?? ''
+			const handlePointerUp = () => {
+				if (!isDragging.current) {
+					window.open(link, '_blank', 'noopener, noreferrer')
+				}
+				document.body.removeEventListener('pointerup', handlePointerUp)
+			}
+
+			document.body.addEventListener('pointerup', handlePointerUp)
+		}
+	}
 
 	const hasText = richText ? renderPlaintextFromRichText(editor, richText).length > 0 : false
 	if (!isEditing && !hasText) {
 		return null
-	}
-
-	const handlePointerDownCapture = (e: React.PointerEvent<HTMLDivElement>) => {
-		// Allow links to be clicked upon.
-		if (e.target instanceof HTMLElement && (e.target.tagName === 'A' || e.target.closest('a'))) {
-			preventDefault(e)
-			stopEventPropagation(e)
-		}
 	}
 
 	// TODO: probably combine tl-text and tl-arrow eventually
@@ -128,7 +155,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 							className="tl-rich-text"
 							// todo: see if I can abuse this
 							dangerouslySetInnerHTML={{ __html: html || '' }}
-							onPointerDownCapture={handlePointerDownCapture}
+							onPointerDown={handlePointerDown}
 							data-iseditinganything={isEditingAnything}
 						/>
 					)}
