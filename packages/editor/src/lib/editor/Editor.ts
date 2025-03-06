@@ -5342,7 +5342,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const invertedParentTransform = parentTransform.clone().invert()
 
-		const shapesToReparent = compact(ids.map((id) => this.getShape(id)))
+		const shapesToReparent = compact(ids.map((id) => this.getShape(id))).sort(sortByIndex)
 
 		// Ignore locked shapes so that we can reparent locked shapes, for example
 		// when a locked shape's parent is deleted.
