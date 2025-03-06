@@ -119,7 +119,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	interval: NodeJS.Timeout | null = null
-	lastMutationTimestamp = Date.now() + 2 * ONE_MINUTE + 5 * ONE_MINUTE * Math.random()
+	nextMutationTimestamp = Date.now() + 2 * ONE_MINUTE + 5 * ONE_MINUTE * Math.random()
 
 	private maybeStartInterval() {
 		if (!this.interval) {
@@ -127,10 +127,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				// do cache persist + cleanup
 				this.cache?.onInterval()
 				// do a noop mutation every 5 minutes
-				if (Date.now() - this.lastMutationTimestamp > 5 * ONE_MINUTE) {
+				if (Date.now() > this.nextMutationTimestamp) {
 					this.bumpMutationNumber(this.db)
 						.then(() => {
-							this.lastMutationTimestamp = Date.now()
+							this.nextMutationTimestamp = Date.now() + 5 * ONE_MINUTE
 						})
 						.catch((e) => this.captureException(e, { source: 'noop mutation' }))
 				}
@@ -483,7 +483,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 			const result = await this.bumpMutationNumber(tx)
 
-			this.lastMutationTimestamp = Date.now()
+			this.nextMutationTimestamp = Date.now() + 5 * ONE_MINUTE
 
 			const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
 			const mutationNumber = result.mutationNumber
