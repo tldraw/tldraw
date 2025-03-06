@@ -19,9 +19,11 @@ function getBrowserCanvasMaxSize(): CanvasMaxSize {
 	return maxCanvasSizes
 }
 
-// Extracted from https://github.com/jhildenbiddle/canvas-size
-// MIT License: https://github.com/jhildenbiddle/canvas-size/blob/master/LICENSE
-// Copyright (c) John Hildenbiddle
+/*!
+ * Extracted from https://github.com/jhildenbiddle/canvas-size
+ * MIT License: https://github.com/jhildenbiddle/canvas-size/blob/master/LICENSE
+ * Copyright (c) John Hildenbiddle
+ */
 
 const MAX_SAFE_CANVAS_DIMENSION = 8192
 const MAX_SAFE_CANVAS_AREA = 4096 * 4096

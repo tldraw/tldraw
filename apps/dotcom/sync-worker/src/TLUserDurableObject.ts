@@ -14,7 +14,7 @@ import {
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { assert, sleep } from '@tldraw/utils'
+import { assert, ExecutionQueue, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -115,7 +115,38 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private assertCache(): asserts this is { cache: UserDataSyncer } {
 		assert(this.cache, 'no cache')
-		this.cache.maybeStartInterval()
+	}
+
+	interval: NodeJS.Timeout | null = null
+	lastMutationTimestamp = Date.now()
+
+	private maybeStartInterval() {
+		if (!this.interval) {
+			this.interval = setInterval(() => {
+				// do cache persist + cleanup
+				this.cache?.onInterval()
+				// do a noop mutation every 5 minutes
+				if (Date.now() - this.lastMutationTimestamp > 5 * 60 * 1000) {
+					this.bumpMutationNumber(this.db)
+						.then(() => {
+							this.lastMutationTimestamp = Date.now()
+						})
+						.catch((e) => this.captureException(e, { source: 'noop mutation' }))
+				}
+
+				// clean up closed sockets if there are any
+				for (const socket of this.sockets) {
+					if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
+						this.sockets.delete(socket)
+					}
+				}
+
+				if (this.sockets.size === 0 && typeof this.interval === 'number') {
+					clearInterval(this.interval)
+					this.interval = null
+				}
+			}, 1000)
+		}
 	}
 
 	private readonly sockets = new Set<WebSocket>()
@@ -142,12 +173,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 		}
 	}
-
-	maybeClose() {
-		if (this.sockets.size === 0) {
-			this.cache?.stopInterval()
-		}
-	}
+	private readonly messageQueue = new ExecutionQueue()
 
 	async onRequest(req: IRequest) {
 		assert(this.userId, 'User ID not set')
@@ -174,19 +200,18 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 
 		serverWebSocket.addEventListener('message', (e) =>
-			this.handleSocketMessage(serverWebSocket, e.data.toString())
+			this.messageQueue.push(() => this.handleSocketMessage(serverWebSocket, e.data.toString()))
 		)
 		serverWebSocket.addEventListener('close', () => {
 			this.sockets.delete(serverWebSocket)
-			this.maybeClose()
 		})
 		serverWebSocket.addEventListener('error', (e) => {
 			this.captureException(e, { source: 'serverWebSocket "error" event' })
 			this.sockets.delete(serverWebSocket)
-			this.maybeClose()
 		})
 
 		this.sockets.add(serverWebSocket)
+		this.maybeStartInterval()
 
 		const initialData = this.cache.store.getCommittedData()
 		if (initialData) {
@@ -224,10 +249,27 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
+	async bumpMutationNumber(db: Kysely<DB> | Transaction<DB>) {
+		return db
+			.insertInto('user_mutation_number')
+			.values({
+				userId: this.userId!,
+				mutationNumber: 1,
+			})
+			.onConflict((oc) =>
+				oc.column('userId').doUpdateSet({
+					mutationNumber: sql`user_mutation_number."mutationNumber" + 1`,
+				})
+			)
+			.returning('mutationNumber')
+			.executeTakeFirstOrThrow()
+	}
+
 	private async rejectMutation(socket: WebSocket, mutationId: string, errorCode: ZErrorCode) {
 		this.assertCache()
 		this.logEvent({ type: 'reject_mutation', id: this.userId! })
 		this.cache.store.rejectMutation(mutationId)
+		this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== mutationId)
 		socket?.send(
 			JSON.stringify({
 				type: 'reject',
@@ -438,8 +480,25 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				}
 				this.cache.store.updateOptimisticData([update], msg.mutationId)
 			}
+			const result = await this.bumpMutationNumber(tx)
+
+			this.lastMutationTimestamp = Date.now()
+
+			const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
+			const mutationNumber = result.mutationNumber
+			assert(
+				mutationNumber > currentMutationNumber,
+				`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
+			)
+			this.log.debug('pushing mutation to cache', this.userId, mutationNumber)
+			this.cache.mutations.push({
+				mutationNumber,
+				mutationId: msg.mutationId,
+				timestamp: Date.now(),
+			})
 			return { insertedFiles, newGuestFiles }
 		})
+
 		for (const file of insertedFiles) {
 			getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
 		}
@@ -464,42 +523,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					this.logEvent({ type: 'connect_retry', id: this.userId! })
 				}
 			)
-			// TODO: We should probably handle a case where the above operation succeeds but the one below fails
-			this.log.debug('mutation success', this.userId, 'new guest files')
-			await this.db
-				.transaction()
-				.execute(async (tx) => {
-					const result = await tx
-						.insertInto('user_mutation_number')
-						.values({
-							userId: this.userId!,
-							mutationNumber: 1,
-						})
-						.onConflict((oc) =>
-							oc.column('userId').doUpdateSet({
-								mutationNumber: sql`user_mutation_number."mutationNumber" + 1`,
-							})
-						)
-						.returning('mutationNumber')
-						.executeTakeFirstOrThrow()
-					this.log.debug('mutation number success', this.userId)
-					const mutationNumber = Number(result.mutationNumber)
-					const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
-					assert(
-						mutationNumber > currentMutationNumber,
-						`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
-					)
-					this.log.debug('pushing mutation to cache', this.userId, mutationNumber)
-					this.cache.mutations.push({
-						mutationNumber,
-						mutationId: msg.mutationId,
-						timestamp: Date.now(),
-					})
-				})
-				.catch((e) => {
-					this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== msg.mutationId)
-					throw e
-				})
 		} catch (e: any) {
 			const code = e instanceof ZMutationError ? e.errorCode : ZErrorCode.unknown_error
 			this.captureException(e, {

@@ -4,12 +4,14 @@ import {
 	TLExternalContentSource,
 	Vec,
 	VecLike,
+	assert,
 	compact,
 	isDefined,
 	preventDefault,
 	stopEventPropagation,
 	uniq,
 	useEditor,
+	useMaybeEditor,
 	useValue,
 } from '@tldraw/editor'
 import lz from 'lz-string'
@@ -580,11 +582,12 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 
 /** @public */
 export function useMenuClipboardEvents() {
-	const editor = useEditor()
+	const editor = useMaybeEditor()
 	const trackEvent = useUiEvents()
 
 	const copy = useCallback(
 		async function onCopy(source: TLUiEventSource) {
+			assert(editor, 'editor is required for copy')
 			if (editor.getSelectedShapeIds().length === 0) return
 
 			await handleNativeOrMenuCopy(editor)
@@ -595,6 +598,7 @@ export function useMenuClipboardEvents() {
 
 	const cut = useCallback(
 		async function onCut(source: TLUiEventSource) {
+			if (!editor) return
 			if (editor.getSelectedShapeIds().length === 0) return
 
 			await handleNativeOrMenuCopy(editor)
@@ -610,6 +614,7 @@ export function useMenuClipboardEvents() {
 			source: TLUiEventSource,
 			point?: VecLike
 		) {
+			if (!editor) return
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
 			// input instead; e.g. when pasting text into a text shape's content
