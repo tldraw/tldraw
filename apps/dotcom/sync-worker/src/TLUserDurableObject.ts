@@ -22,7 +22,7 @@ import { Kysely, sql, Transaction } from 'kysely'
 import { Logger } from './Logger'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
-import { Analytics, Environment, TLUserDurableObjectEvent } from './types'
+import { Analytics, Environment, getUserDoSnapshotKey, TLUserDurableObjectEvent } from './types'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { getRoomDurableObject } from './utils/durableObjects'
@@ -648,7 +648,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		if (this.cache) {
 			await this.cache?.reboot({ hard: true, delay: false })
 		} else {
-			await this.env.USER_DO_SNAPSHOTS.delete(userId)
+			await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		}
 	}
 
