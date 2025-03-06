@@ -5,6 +5,7 @@ import {
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultVerticalAlignStyle,
+	TLEventInfo,
 	TLRichText,
 	TLShapeId,
 	preventDefault,
@@ -96,20 +97,23 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	const legacyAlign = isLegacyAlign(align)
 
 	const handlePointerDown = (e: React.MouseEvent<HTMLDivElement>) => {
-		// This mousedown prevent default is to let dragging when over a link work.
 		if (e.target instanceof HTMLElement && (e.target.tagName === 'A' || e.target.closest('a'))) {
+			// This mousedown prevent default is to let dragging when over a link work.
 			preventDefault(e)
 
 			if (!selectToolActive) return
 			const link = e.target.closest('a')?.getAttribute('href') ?? ''
-			const handlePointerUp = () => {
+			// We don't get the mouseup event later because we preventDefault
+			// so we have to do it manually.
+			const handlePointerUp = (e: TLEventInfo) => {
+				if (e.name !== 'pointer_up') return
+
 				if (!isDragging.current) {
 					window.open(link, '_blank', 'noopener, noreferrer')
 				}
-				document.body.removeEventListener('pointerup', handlePointerUp)
+				editor.off('event', handlePointerUp)
 			}
-
-			document.body.addEventListener('pointerup', handlePointerUp)
+			editor.on('event', handlePointerUp)
 		}
 	}
 
@@ -153,6 +157,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 					{richText && (
 						<div
 							className="tl-rich-text"
+							data-is-select-tool-active={selectToolActive}
 							// todo: see if I can abuse this
 							dangerouslySetInnerHTML={{ __html: html || '' }}
 							onPointerDown={handlePointerDown}
