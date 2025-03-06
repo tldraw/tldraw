@@ -70,6 +70,8 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 		const rInitialValue = React.useRef<string>(defaultValue ?? '')
 		const rCurrentValue = React.useRef<string>(defaultValue ?? '')
 
+		const isComposing = React.useRef(false)
+
 		const [isFocused, setIsFocused] = React.useState(false)
 		const handleFocus = React.useCallback(
 			(e: React.FocusEvent<HTMLInputElement>) => {
@@ -108,6 +110,10 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			(e: React.KeyboardEvent<HTMLInputElement>) => {
 				switch (e.key) {
 					case 'Enter': {
+						// In Chrome, if the user presses the Enter key while using the IME and calls
+						// `e.currentTarget.blur()` in the event callback here, it will trigger an
+						// `onChange` with a duplicated text value.
+						if (isComposing.current) return
 						e.currentTarget.blur()
 						stopEventPropagation(e)
 						onComplete?.(e.currentTarget.value)
@@ -133,6 +139,9 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			},
 			[onBlur]
 		)
+
+		const handleCompositionStart = React.useCallback(() => (isComposing.current = true), [])
+		const handleCompositionEnd = React.useCallback(() => (isComposing.current = false), [])
 
 		React.useEffect(() => {
 			if (!tlenv.isIos) return
@@ -176,6 +185,8 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 					onChange={handleChange}
 					onFocus={handleFocus}
 					onBlur={handleBlur}
+					onCompositionStart={handleCompositionStart}
+					onCompositionEnd={handleCompositionEnd}
 					autoFocus={autoFocus}
 					placeholder={placeholder}
 					value={value}

@@ -970,6 +970,10 @@ input,
 	text-decoration: underline;
 }
 
+.tl-rich-text[data-is-select-tool-active='false'] a {
+	cursor: inherit;
+}
+
 .tl-rich-text code {
 	font-family: var(--tl-font-mono);
 }

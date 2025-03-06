@@ -189,7 +189,8 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			// However, that caused selecting over list items to break.
 			// The handleDOMEvents in TipTap don't seem to support the pointerDownCapture event.
 			onPointerDownCapture={stopEventPropagation}
-			// onTouchEnd={stopEventPropagation} // moving this to the PointerStateExtension
+			// This onTouchEnd is important for Android to be able to change selection on text.
+			onTouchEnd={stopEventPropagation}
 			// On FF, there's a behavior where dragging a selection will grab that selection into
 			// the drag event. However, once the drag is over, and you select away from the textarea,
 			// starting a drag over the textarea will restart a selection drag instead of a shape drag.
