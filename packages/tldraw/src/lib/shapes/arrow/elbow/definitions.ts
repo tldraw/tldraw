@@ -4,6 +4,12 @@ export const DIRS = ['right', 'bottom', 'left', 'top'] as const
 
 export type ArrowDirection = (typeof DIRS)[number]
 
+export interface ElbowArrowOptions {
+	expandElbowLegLength: number
+	minElbowLegLength: number
+	minArrowDistanceFromCorner: number
+}
+
 export const DELTAS: Record<ArrowDirection, Vec> = {
 	top: new Vec(0, -1),
 	right: new Vec(1, 0),
@@ -25,16 +31,9 @@ export const ElbowArrowSideAxes = {
 	bottom: 'y',
 } as const
 
-export const ElbowArrowSideFallbacks = {
-	left: ['bottom', 'top', 'right'],
-	right: ['bottom', 'top', 'left'],
-	top: ['right', 'left', 'bottom'],
-	bottom: ['right', 'left', 'top'],
-} as const
-
 export const ElbowArrowAxes = {
 	x: {
-		v: (x: number, y: number) => ({ x, y }),
+		v: (x: number, y: number) => new Vec(x, y),
 		loEdge: 'left',
 		hiEdge: 'right',
 		mid: 'mx',
@@ -47,7 +46,7 @@ export const ElbowArrowAxes = {
 		crossMin: 'minY',
 	},
 	y: {
-		v: (y: number, x: number) => ({ x, y }),
+		v: (y: number, x: number) => new Vec(x, y),
 		loEdge: 'top',
 		hiEdge: 'bottom',
 		mid: 'my',

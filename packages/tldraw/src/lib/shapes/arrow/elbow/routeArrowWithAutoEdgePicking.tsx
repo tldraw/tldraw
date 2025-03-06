@@ -1,5 +1,5 @@
 import { assertExists, ElbowArrowSide } from '@tldraw/editor'
-import { ElbowArrowRoute, measureRouteManhattanDistance, tryRouteArrow } from './elbowArrowRoutes'
+import { ElbowArrowRoute, tryRouteArrow } from './elbowArrowRoutes'
 import { ElbowArrowInfoWithoutRoute } from './getElbowArrowInfo'
 
 // currently, other than some fairly mild heuristic based checks, we use these `pickBest` based
@@ -34,7 +34,7 @@ export function routeArrowWithAutoEdgePicking(
 		if (
 			info.A.edges.right &&
 			info.B.edges.top &&
-			info.A.edges.right.expanded <= info.B.edges.top.crossCenter
+			info.A.edges.right.expanded <= info.B.edges.top.crossTarget
 		) {
 			return assertExists(tryRouteArrow(info, 'right', 'top'))
 		} else if (info.my !== null) {
@@ -192,9 +192,8 @@ function pickBest(
 			bias++
 			const route = tryRouteArrow(info, edges[0], edges[1])
 			if (route) {
-				const lengthSq = measureRouteManhattanDistance(route)
-				if (lengthSq + bias < bestLengthSq) {
-					bestLengthSq = lengthSq
+				if (route.length + bias < bestLengthSq) {
+					bestLengthSq = route.length
 					bestRoute = route
 				}
 			}

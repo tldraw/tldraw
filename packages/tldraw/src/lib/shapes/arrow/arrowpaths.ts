@@ -1,5 +1,6 @@
 import { VecLike } from '@tldraw/editor'
-import { TLArrowInfo } from './arrow-types'
+import { TLArcArrowInfo, TLStraightArrowInfo } from './arrow-types'
+import { ElbowArrowRoute } from './elbow/elbowArrowRoutes'
 
 /* --------------------- Curved --------------------- */
 
@@ -9,7 +10,7 @@ import { TLArrowInfo } from './arrow-types'
  * @param info - The arrow info.
  * @public
  */
-export function getCurvedArrowHandlePath(info: TLArrowInfo & { isStraight: false }) {
+export function getCurvedArrowHandlePath(info: TLArcArrowInfo) {
 	const {
 		start,
 		end,
@@ -24,7 +25,7 @@ export function getCurvedArrowHandlePath(info: TLArrowInfo & { isStraight: false
  * @param info - The arrow info.
  * @public
  */
-export function getSolidCurvedArrowPath(info: TLArrowInfo & { isStraight: false }) {
+export function getSolidCurvedArrowPath(info: TLArcArrowInfo) {
 	const {
 		start,
 		end,
@@ -40,11 +41,21 @@ function getArrowPath(start: VecLike, end: VecLike) {
 }
 
 /** @public */
-export function getStraightArrowHandlePath(info: TLArrowInfo & { isStraight: true }) {
+export function getStraightArrowHandlePath(info: TLStraightArrowInfo) {
 	return getArrowPath(info.start.handle, info.end.handle)
 }
 
 /** @public */
-export function getSolidStraightArrowPath(info: TLArrowInfo & { isStraight: true }) {
+export function getSolidStraightArrowPath(info: TLStraightArrowInfo) {
 	return getArrowPath(info.start.point, info.end.point)
+}
+
+export function getSolidElbowArrowPath(route: ElbowArrowRoute) {
+	if (route.points.length < 2) return ''
+
+	const parts = [`M${route.points[0].x},${route.points[0].y}`]
+	for (let i = 1; i < route.points.length; i++) {
+		parts.push(`L${route.points[i].x},${route.points[i].y}`)
+	}
+	return parts.join('')
 }

@@ -5,6 +5,7 @@ import {
 	Editor,
 	Geometry2d,
 	Group2d,
+	Polyline2d,
 	Rectangle2d,
 	SVGContainer,
 	ShapeUtil,
@@ -49,17 +50,17 @@ import {
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
+import { ArrowPath } from './ArrowPath'
 import { ArrowShapeOptions } from './arrow-types'
 import { getArrowLabelFontSize, getArrowLabelPosition } from './arrowLabel'
 import { getArrowheadPathForType } from './arrowheads'
 import {
 	getCurvedArrowHandlePath,
-	getSolidCurvedArrowPath,
-	getSolidStraightArrowPath,
+	getSolidElbowArrowPath,
 	getStraightArrowHandlePath,
 } from './arrowpaths'
 import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
-import { getShapeGeometryInArrowSpace } from './elbow/getElbowArrowInfo'
+import { getBindingGeometryInArrowSpace } from './elbow/getElbowArrowInfo'
 import {
 	TLArrowBindings,
 	createOrUpdateArrowBinding,
@@ -82,8 +83,18 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	static override migrations = arrowShapeMigrations
 
 	override options: ArrowShapeOptions = {
-		expandElbowLegLength: 32,
-		minElbowLegLength: 24,
+		expandElbowLegLength: {
+			s: 21,
+			m: 36,
+			l: 44,
+			xl: 60,
+		},
+		minElbowLegLength: {
+			s: 13,
+			m: 22,
+			l: 27,
+			xl: 36,
+		},
 		minArrowDistanceFromCorner: 10,
 	}
 
@@ -150,18 +161,21 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const debugGeom: Geometry2d[] = []
 
-		const bodyGeom = info.isStraight
-			? new Edge2d({
-					start: Vec.From(info.start.point),
-					end: Vec.From(info.end.point),
-				})
-			: new Arc2d({
-					center: Vec.Cast(info.handleArc.center),
-					start: Vec.Cast(info.start.point),
-					end: Vec.Cast(info.end.point),
-					sweepFlag: info.bodyArc.sweepFlag,
-					largeArcFlag: info.bodyArc.largeArcFlag,
-				})
+		const bodyGeom =
+			info.type === 'straight'
+				? new Edge2d({
+						start: Vec.From(info.start.point),
+						end: Vec.From(info.end.point),
+					})
+				: info.type === 'arc'
+					? new Arc2d({
+							center: Vec.Cast(info.handleArc.center),
+							start: Vec.Cast(info.start.point),
+							end: Vec.Cast(info.end.point),
+							sweepFlag: info.bodyArc.sweepFlag,
+							largeArcFlag: info.bodyArc.largeArcFlag,
+						})
+					: new Polyline2d({ points: info.route.points })
 
 		let labelGeom
 		if (shape.props.text.trim()) {
@@ -193,13 +207,15 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				x: info.start.handle.x,
 				y: info.start.handle.y,
 			},
-			{
-				id: ARROW_HANDLES.MIDDLE,
-				type: 'virtual',
-				index: 'a2',
-				x: info.middle.x,
-				y: info.middle.y,
-			},
+			info.type === 'straight' || info.type === 'arc'
+				? {
+						id: ARROW_HANDLES.MIDDLE,
+						type: 'virtual',
+						index: 'a2',
+						x: info.middle.x,
+						y: info.middle.y,
+					}
+				: null,
 			{
 				id: ARROW_HANDLES.END,
 				type: 'vertex',
@@ -354,7 +370,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			!(isCreatingShape && handleId === 'start')
 		) {
 			// ...set the direction based on where we entered the target shape.
-			const targetGeomInArrowSpace = getShapeGeometryInArrowSpace(this.editor, shape.id, target.id)!
+			const targetGeomInArrowSpace = getBindingGeometryInArrowSpace(
+				this.editor,
+				shape.id,
+				target.id
+			)!
 			const centerDelta = targetGeomInArrowSpace.bounds.center.sub(handle)
 			const direction =
 				Math.abs(centerDelta.x) > Math.abs(centerDelta.y)
@@ -661,13 +681,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return (
 			<>
 				<SVGContainer style={{ minWidth: 50, minHeight: 50 }}>
+					{shape.props.elbow && elbowArrowDebug.get().visualDebugging && (
+						<ElbowArrowDebug arrow={shape} />
+					)}
 					<ArrowSvg
 						shape={shape}
 						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape?.id === shape.id}
 					/>
-					{shape.props.elbow && elbowArrowDebug.get().visualDebugging && (
-						<ElbowArrowDebug arrow={shape} />
-					)}
 				</SVGContainer>
 				{showArrowLabel && (
 					<TextLabel
@@ -714,8 +734,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
-
-		const path = info.isStraight ? getSolidStraightArrowPath(info) : getSolidCurvedArrowPath(info)
 
 		const includeClipPath =
 			(as && info.start.arrowhead !== 'arrow') ||
@@ -769,7 +787,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						/>
 					)}
 
-					<path d={path} />
+					<ArrowPath info={info} dash="solid" isForceSolid={true} />
 				</g>
 				{as && <path d={as} />}
 				{ae && <path d={ae} />}
@@ -870,9 +888,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 export function getArrowLength(editor: Editor, shape: TLArrowShape): number {
 	const info = getArrowInfo(editor, shape)!
 
-	return info.isStraight
+	return info.type === 'straight'
 		? Vec.Dist(info.start.handle, info.end.handle)
-		: Math.abs(info.handleArc.length)
+		: info.type === 'arc'
+			? Math.abs(info.handleArc.length)
+			: info.route.length
 }
 
 const ArrowSvg = track(function ArrowSvg({
@@ -906,8 +926,6 @@ const ArrowSvg = track(function ArrowSvg({
 	const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 	const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
 
-	const path = info.isStraight ? getSolidStraightArrowPath(info) : getSolidCurvedArrowPath(info)
-
 	let handlePath: null | React.JSX.Element = null
 
 	if (shouldDisplayHandles) {
@@ -926,7 +944,14 @@ const ArrowSvg = track(function ArrowSvg({
 			bindings.start || bindings.end ? (
 				<path
 					className="tl-arrow-hint"
-					d={info.isStraight ? getStraightArrowHandlePath(info) : getCurvedArrowHandlePath(info)}
+					d={
+						info.type === 'straight'
+							? getStraightArrowHandlePath(info)
+							: info.type === 'arc'
+								? getCurvedArrowHandlePath(info)
+								: // TODO #elbow-arrow - proper handle path
+									getSolidElbowArrowPath(info.route)
+					}
 					strokeDasharray={strokeDasharray}
 					strokeDashoffset={strokeDashoffset}
 					strokeWidth={sw}
@@ -952,15 +977,6 @@ const ArrowSvg = track(function ArrowSvg({
 				/>
 			) : null
 	}
-
-	const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-		info.isStraight ? info.length : Math.abs(info.bodyArc.length),
-		strokeWidth,
-		{
-			style: shape.props.dash,
-			forceSolid: isForceSolid,
-		}
-	)
 
 	const labelPosition = getArrowLabelPosition(editor, shape)
 
@@ -1003,7 +1019,12 @@ const ArrowSvg = track(function ArrowSvg({
 						height={toDomPrecision(bounds.height + 200)}
 						opacity={0}
 					/>
-					<path d={path} strokeDasharray={strokeDasharray} strokeDashoffset={strokeDashoffset} />
+					<ArrowPath
+						info={info}
+						dash={shape.props.dash}
+						strokeWidth={strokeWidth}
+						isForceSolid={isForceSolid}
+					/>
 				</g>
 				{as && clipStartArrowhead && shape.props.fill !== 'none' && (
 					<ShapeFill

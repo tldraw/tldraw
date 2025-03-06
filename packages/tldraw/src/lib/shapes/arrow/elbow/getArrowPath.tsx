@@ -1,5 +1,5 @@
 import { Box, Vec } from '@tldraw/editor'
-import { ArrowDirection, DELTAS, DIRS } from './constants'
+import { ArrowDirection, DELTAS, DIRS } from './definitions'
 import { ArrowNavigationGrid } from './getArrowNavigationGrid'
 
 class ArrowStepResult {

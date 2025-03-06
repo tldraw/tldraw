@@ -1,10 +1,12 @@
-import { TLArrowShapeArrowheadStyle, VecLike } from '@tldraw/editor'
+import { TLArrowShapeArrowheadStyle, TLDefaultSizeStyle, VecLike } from '@tldraw/editor'
+import { ElbowArrowRoute } from './elbow/elbowArrowRoutes'
+import { ElbowArrowInfo } from './elbow/getElbowArrowInfo'
 import { TLArrowBindings } from './shared'
 
 /** @public */
 export interface ArrowShapeOptions {
-	readonly expandElbowLegLength: number
-	readonly minElbowLegLength: number
+	readonly expandElbowLegLength: Record<TLDefaultSizeStyle, number>
+	readonly minElbowLegLength: Record<TLDefaultSizeStyle, number>
 	readonly minArrowDistanceFromCorner: number
 }
 
@@ -25,24 +27,36 @@ export interface TLArcInfo {
 	sweepFlag: number
 }
 
+export interface TLArcArrowInfo {
+	bindings: TLArrowBindings
+	type: 'arc'
+	start: TLArrowPoint
+	end: TLArrowPoint
+	middle: VecLike
+	handleArc: TLArcInfo
+	bodyArc: TLArcInfo
+	isValid: boolean
+}
+
+export interface TLStraightArrowInfo {
+	bindings: TLArrowBindings
+	type: 'straight'
+	start: TLArrowPoint
+	end: TLArrowPoint
+	middle: VecLike
+	isValid: boolean
+	length: number
+}
+
+export interface TLElbowArrowInfo {
+	type: 'elbow'
+	bindings: TLArrowBindings
+	start: TLArrowPoint
+	end: TLArrowPoint
+	elbow: ElbowArrowInfo
+	route: ElbowArrowRoute
+	isValid: boolean
+}
+
 /** @public */
-export type TLArrowInfo =
-	| {
-			bindings: TLArrowBindings
-			isStraight: false
-			start: TLArrowPoint
-			end: TLArrowPoint
-			middle: VecLike
-			handleArc: TLArcInfo
-			bodyArc: TLArcInfo
-			isValid: boolean
-	  }
-	| {
-			bindings: TLArrowBindings
-			isStraight: true
-			start: TLArrowPoint
-			end: TLArrowPoint
-			middle: VecLike
-			isValid: boolean
-			length: number
-	  }
+export type TLArrowInfo = TLArcArrowInfo | TLStraightArrowInfo | TLElbowArrowInfo

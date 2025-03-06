@@ -1,5 +1,5 @@
 import { Box, Vec } from '@tldraw/editor'
-import { ArrowShapeOptions } from '../arrow-types'
+import { ElbowArrowOptions } from './definitions'
 
 export interface BoxEdges {
 	/** Center of top edge */
@@ -40,7 +40,7 @@ export interface ArrowNavigationGridBox extends BoxEdges {
 }
 
 export interface ArrowNavigationGrid {
-	options: ArrowShapeOptions
+	options: ElbowArrowOptions
 	/** First box bounds */
 	A: ArrowNavigationGridBox
 	/** Second box bounds */
@@ -73,7 +73,7 @@ export interface ArrowNavigationGrid {
 export function getArrowNavigationGrid(
 	A: Box,
 	B: Box,
-	options: ArrowShapeOptions
+	options: ElbowArrowOptions
 ): ArrowNavigationGrid {
 	const AE = A.clone().expandBy(options.expandElbowLegLength)
 	const BE = B.clone().expandBy(options.expandElbowLegLength)

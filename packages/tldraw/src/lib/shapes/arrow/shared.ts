@@ -10,7 +10,9 @@ import {
 	Vec,
 } from '@tldraw/editor'
 import { createComputedCache } from '@tldraw/store'
+import { TLArrowInfo } from './arrow-types'
 import { getCurvedArrowInfo } from './curved-arrow'
+import { getElbowArrowInfo } from './elbow/getElbowArrowInfo'
 import { getStraightArrowInfo } from './straight-arrow'
 
 const MIN_ARROW_BEND = 8
@@ -62,7 +64,7 @@ export function getBoundShapeInfoForTerminal(
 	}
 }
 
-function getArrowTerminalInArrowSpace(
+export function getArrowTerminalInArrowSpace(
 	editor: Editor,
 	arrowPageTransform: Mat,
 	binding: TLArrowBinding,
@@ -109,12 +111,37 @@ export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBi
 	}
 }
 
-const arrowInfoCache = createComputedCache('arrow info', (editor: Editor, shape: TLArrowShape) => {
-	const bindings = getArrowBindings(editor, shape)
-	return getIsArrowStraight(shape)
-		? getStraightArrowInfo(editor, shape, bindings)
-		: getCurvedArrowInfo(editor, shape, bindings)
-})
+const arrowInfoCache = createComputedCache(
+	'arrow info',
+	(editor: Editor, shape: TLArrowShape): TLArrowInfo => {
+		const bindings = getArrowBindings(editor, shape)
+		if (shape.props.elbow) {
+			const straightInfo = getStraightArrowInfo(editor, shape, bindings)
+			const elbowInfo = getElbowArrowInfo(editor, shape, bindings)
+			if (!elbowInfo?.route) return straightInfo
+			return {
+				type: 'elbow',
+				bindings,
+				start: {
+					handle: straightInfo.start.handle,
+					point: elbowInfo.route.points[0],
+					arrowhead: shape.props.arrowheadStart,
+				},
+				end: {
+					handle: straightInfo.end.handle,
+					point: elbowInfo.route.points[elbowInfo.route.points.length - 1],
+					arrowhead: shape.props.arrowheadEnd,
+				},
+				elbow: elbowInfo,
+				route: elbowInfo.route,
+				isValid: true,
+			}
+		}
+		return getIsArrowStraight(shape)
+			? getStraightArrowInfo(editor, shape, bindings)
+			: getCurvedArrowInfo(editor, shape, bindings)
+	}
+)
 
 /** @public */
 export function getArrowInfo(editor: Editor, shape: TLArrowShape | TLShapeId) {

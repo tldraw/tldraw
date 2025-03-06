@@ -1,22 +1,30 @@
 import {
 	assert,
 	createShapeId,
+	DefaultSizeStyle,
 	Editor,
+	elbowArrowDebug,
 	lerp,
 	TLArrowShape,
 	TLGeoShape,
 	TLTextShape,
 } from '@tldraw/editor'
-import { elbowArrowDebug } from '@tldraw/editor/src/lib/utils/debug-flags'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { createOrUpdateArrowBinding } from '../shared'
+import { ElbowArrowOptions } from './definitions'
 
 const defaultSize = 150
 
 export function createDebugElbowArrowScene(editor: Editor) {
 	editor.markHistoryStoppingPoint()
 	editor.run(() => {
-		const { options } = editor.getShapeUtil<ArrowShapeUtil>('arrow')
+		const shapeOptions = editor.getShapeUtil<ArrowShapeUtil>('arrow').options
+		const size = editor.getStyleForNextShape(DefaultSizeStyle)
+		const options: ElbowArrowOptions = {
+			expandElbowLegLength: shapeOptions.expandElbowLegLength[size],
+			minElbowLegLength: shapeOptions.minElbowLegLength[size],
+			minArrowDistanceFromCorner: shapeOptions.minArrowDistanceFromCorner,
+		}
 		const { aSide, bSide } = elbowArrowDebug.get()
 
 		assert(options.expandElbowLegLength > options.minElbowLegLength)

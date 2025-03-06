@@ -1,5 +1,6 @@
 import { assert, Box, TLArrowShape, useEditor, useValue, VecLike } from '@tldraw/editor'
 import { SVGProps } from 'react'
+import { getArrowBindings } from '../shared'
 import {
 	ElbowArrowEdge,
 	ElbowArrowScale,
@@ -16,7 +17,11 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 		'elbow arrow grid',
 		() => {
 			try {
-				const info = getElbowArrowInfo(editor, arrow.id)
+				const info = getElbowArrowInfo(
+					editor,
+					editor.getShape(arrow.id)!,
+					getArrowBindings(editor, arrow)
+				)
 				return info
 			} catch (err) {
 				console.error(err)
@@ -70,7 +75,7 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 			<DebugEdge edge={info.A.edges.left} axis="y" scale={info.scale} stroke="orange" />
 			<DebugEdge edge={info.B.edges.left} axis="y" scale={info.scale} stroke="lightskyblue" />
 
-			{info.route && <DebugRoute route={info.route.path} strokeWidth={10} />}
+			{info.route && <DebugRoute route={info.route.points} strokeWidth={10} />}
 			{steve?.path && (
 				<DebugRoute route={steve.path} stroke="white" strokeDasharray="0,9" strokeWidth={5} />
 			)}

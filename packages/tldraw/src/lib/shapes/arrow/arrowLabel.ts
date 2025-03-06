@@ -7,12 +7,14 @@ import {
 	Editor,
 	Geometry2d,
 	Polygon2d,
+	Polyline2d,
 	TLArrowShape,
 	Vec,
 	VecLike,
 	WeakCache,
 	angleDistance,
 	clamp,
+	exhaustiveSwitchError,
 	getPointOnCircle,
 	intersectCirclePolygon,
 	intersectLineSegmentPolygon,
@@ -26,7 +28,7 @@ import {
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
 import { getArrowLength } from './ArrowShapeUtil'
-import { TLArrowInfo } from './arrow-types'
+import { TLArcArrowInfo, TLStraightArrowInfo } from './arrow-types'
 import { getArrowInfo } from './shared'
 
 const labelSizeCacheCache = new WeakCache<Editor, ComputedCache<Vec, TLArrowShape>>()
@@ -38,18 +40,21 @@ function getLabelSizeCache(editor: Editor) {
 			let width = 0
 			let height = 0
 
-			const bodyGeom = info.isStraight
-				? new Edge2d({
-						start: Vec.From(info.start.point),
-						end: Vec.From(info.end.point),
-					})
-				: new Arc2d({
-						center: Vec.Cast(info.handleArc.center),
-						start: Vec.Cast(info.start.point),
-						end: Vec.Cast(info.end.point),
-						sweepFlag: info.bodyArc.sweepFlag,
-						largeArcFlag: info.bodyArc.largeArcFlag,
-					})
+			const bodyGeom =
+				info.type === 'straight'
+					? new Edge2d({
+							start: Vec.From(info.start.point),
+							end: Vec.From(info.end.point),
+						})
+					: info.type === 'arc'
+						? new Arc2d({
+								center: Vec.Cast(info.handleArc.center),
+								start: Vec.Cast(info.start.point),
+								end: Vec.Cast(info.end.point),
+								sweepFlag: info.bodyArc.sweepFlag,
+								largeArcFlag: info.bodyArc.largeArcFlag,
+							})
+						: new Polyline2d({ points: info.route.points })
 
 			if (shape.props.text.trim()) {
 				const bodyBounds = bodyGeom.bounds
@@ -124,7 +129,7 @@ function getLabelToArrowPadding(shape: TLArrowShape) {
 function getStraightArrowLabelRange(
 	editor: Editor,
 	shape: TLArrowShape,
-	info: Extract<TLArrowInfo, { isStraight: true }>
+	info: TLStraightArrowInfo
 ): { start: number; end: number } {
 	const labelSize = getArrowLabelSize(editor, shape)
 	const labelToArrowPadding = getLabelToArrowPadding(shape)
@@ -167,7 +172,7 @@ function getStraightArrowLabelRange(
 function getCurvedArrowLabelRange(
 	editor: Editor,
 	shape: TLArrowShape,
-	info: Extract<TLArrowInfo, { isStraight: false }>
+	info: TLArcArrowInfo
 ): { start: number; end: number; dbg?: Geometry2d[] } {
 	const labelSize = getArrowLabelSize(editor, shape)
 	const labelToArrowPadding = getLabelToArrowPadding(shape)
@@ -284,21 +289,33 @@ export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
 		hasStartArrowhead: info.start.arrowhead !== 'none',
 		hasEndArrowhead: info.end.arrowhead !== 'none',
 	}
-	if (info.isStraight) {
-		const range = getStraightArrowLabelRange(editor, shape, info)
-		const clampedPosition = getClampedPosition(editor, shape, range, arrowheadInfo)
-		labelCenter = Vec.Lrp(info.start.point, info.end.point, clampedPosition)
-	} else {
-		const range = getCurvedArrowLabelRange(editor, shape, info)
-		if (range.dbg) debugGeom.push(...range.dbg)
-		const clampedPosition = getClampedPosition(editor, shape, range, arrowheadInfo)
-		const labelAngle = interpolateArcAngles(
-			Vec.Angle(info.bodyArc.center, info.start.point),
-			Vec.Angle(info.bodyArc.center, info.end.point),
-			Math.sign(shape.props.bend),
-			clampedPosition
-		)
-		labelCenter = getPointOnCircle(info.bodyArc.center, info.bodyArc.radius, labelAngle)
+	switch (info.type) {
+		case 'straight': {
+			const range = getStraightArrowLabelRange(editor, shape, info)
+			const clampedPosition = getClampedPosition(editor, shape, range, arrowheadInfo)
+			labelCenter = Vec.Lrp(info.start.point, info.end.point, clampedPosition)
+			break
+		}
+		case 'arc': {
+			const range = getCurvedArrowLabelRange(editor, shape, info)
+			if (range.dbg) debugGeom.push(...range.dbg)
+			const clampedPosition = getClampedPosition(editor, shape, range, arrowheadInfo)
+			const labelAngle = interpolateArcAngles(
+				Vec.Angle(info.bodyArc.center, info.start.point),
+				Vec.Angle(info.bodyArc.center, info.end.point),
+				Math.sign(shape.props.bend),
+				clampedPosition
+			)
+			labelCenter = getPointOnCircle(info.bodyArc.center, info.bodyArc.radius, labelAngle)
+			break
+		}
+		case 'elbow': {
+			// TODO #elbow-arrow
+			labelCenter = Vec.Lrp(info.start.point, info.end.point, 0.5)
+			break
+		}
+		default:
+			exhaustiveSwitchError(info, 'type')
 	}
 
 	const labelSize = getArrowLabelSize(editor, shape)

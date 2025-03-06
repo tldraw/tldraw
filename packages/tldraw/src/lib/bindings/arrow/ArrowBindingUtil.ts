@@ -223,7 +223,7 @@ export function updateArrowTerminal({
 	} satisfies TLShapePartial<TLArrowShape>
 
 	// fix up the bend:
-	if (!info.isStraight) {
+	if (info.type === 'arc') {
 		// find the new start/end points of the resulting arrow
 		const newStart = terminal === 'start' ? startPoint : info.start.handle
 		const newEnd = terminal === 'end' ? endPoint : info.end.handle

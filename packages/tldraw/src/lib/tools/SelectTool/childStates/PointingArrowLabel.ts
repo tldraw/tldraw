@@ -102,7 +102,8 @@ export class PointingArrowLabel extends StateNode {
 		)
 
 		let nextLabelPosition
-		if (info.isStraight) {
+		// TODO #elbow-arrow - proper label position
+		if (info.type === 'straight' || info.type === 'elbow') {
 			// straight arrows
 			const lineLength = Vec.Dist(info.start.point, info.end.point)
 			const segmentLength = Vec.Dist(info.end.point, nearestPoint)
