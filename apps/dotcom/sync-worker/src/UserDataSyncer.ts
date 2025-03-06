@@ -22,7 +22,7 @@ import {
 	parseResultRow,
 	userKeys,
 } from './getFetchEverythingSql'
-import { Environment, TLUserDurableObjectEvent } from './types'
+import { Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
@@ -137,7 +137,10 @@ export class UserDataSyncer {
 					}
 					this.log.debug('stashing snapshot')
 					this.lastStashEpoch = this.store.epoch
-					await this.env.USER_DO_SNAPSHOTS.put(this.userId, JSON.stringify(snapshot))
+					await this.env.USER_DO_SNAPSHOTS.put(
+						getUserDoSnapshotKey(this.env, this.userId),
+						JSON.stringify(snapshot)
+					)
 				}
 			},
 			1000,
@@ -197,7 +200,7 @@ export class UserDataSyncer {
 
 	private async loadInitialDataFromR2() {
 		this.log.debug('loading snapshot from R2')
-		const res = await this.env.USER_DO_SNAPSHOTS.get(this.userId)
+		const res = await this.env.USER_DO_SNAPSHOTS.get(getUserDoSnapshotKey(this.env, this.userId))
 		if (!res) {
 			this.log.debug('no snapshot found')
 			return null
