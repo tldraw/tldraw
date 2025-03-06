@@ -88,7 +88,7 @@ function areShortcutsDisabled(editor: Editor) {
 	return (
 		editor.menus.hasAnyOpenMenus() ||
 		(activeElement &&
-			(activeElement.getAttribute('contenteditable') ||
+			((activeElement as HTMLElement).isContentEditable ||
 				INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1))
 	)
 }
@@ -296,6 +296,13 @@ const handlePasteFromClipboardApi = async ({
 		things.push(
 			...fallbackFiles.map((f): ClipboardThing => ({ type: 'file', source: Promise.resolve(f) }))
 		)
+	} else if (fallbackFiles?.length && things.length === 0) {
+		// Files pasted in Safari from your computer don't have types, so we need to use the fallback files directly
+		// if they're available. This only works if pasted keyboard shortcuts. Pasting from the menu in Safari seems to never
+		// let you access files that are copied from your computer.
+		things.push(
+			...fallbackFiles.map((f): ClipboardThing => ({ type: 'file', source: Promise.resolve(f) }))
+		)
 	}
 
 	return await handleClipboardThings(editor, things, point)
@@ -473,6 +480,19 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 			// If the html is NOT a link, and we have NO OTHER texty content, then paste the html as text
 			if (!results.some((r) => r.type === 'text' && r.subtype !== 'html') && result.data.trim()) {
 				handleText(editor, stripHtml(result.data), point, results)
+				return
+			}
+
+			// If the html is NOT a link, and we have other texty content, then paste the html as a text shape
+			if (results.some((r) => r.type === 'text' && r.subtype !== 'html')) {
+				editor.markHistoryStoppingPoint('paste')
+				editor.putExternalContent({
+					type: 'text',
+					text: stripHtml(result.data),
+					html: result.data,
+					point,
+					sources: results,
+				})
 				return
 			}
 		}

@@ -283,7 +283,7 @@
     "translation": "Desfixo"
   },
   "bbbcefd7ce": {
-    "translation": "{total, plural, one {Cargando ficheiro .tldr...} other {Cargando {cargado} de {total} ficheiros .tldr...}}"
+    "translation": "{total, plural, one {Cargando ficheiro .tldr...} other {Cargando {uploaded} de {total} ficheiros .tldr...}}"
   },
   "bc88b0e89e": {
     "translation": "Compartido por {ownerName}"

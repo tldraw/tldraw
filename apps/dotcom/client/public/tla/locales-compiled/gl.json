@@ -93,7 +93,7 @@
   "b6d4223e60": "Inicia sesión",
   "b758336699": "Copiar ligazón",
   "bb792693e2": "Desfixo",
-  "bbbcefd7ce": "{total, plural, one {Cargando ficheiro .tldr...} other {Cargando {cargado} de {total} ficheiros .tldr...}}",
+  "bbbcefd7ce": "{total, plural, one {Cargando ficheiro .tldr...} other {Cargando {uploaded} de {total} ficheiros .tldr...}}",
   "bc88b0e89e": "Compartido por {ownerName}",
   "bcb62136a3": "Carga ficheiros .tldr",
   "c2276c9127": "Obtén máis información sobre como compartir.",

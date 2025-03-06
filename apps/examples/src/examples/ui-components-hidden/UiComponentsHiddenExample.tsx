@@ -22,6 +22,7 @@ const components: Required<TLUiComponents> = {
 	MenuPanel: null,
 	TopPanel: null,
 	CursorChatBubble: null,
+	RichTextToolbar: null,
 	Dialogs: null,
 	Toasts: null,
 }

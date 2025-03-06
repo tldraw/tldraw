@@ -149,14 +149,14 @@ it('adds children at a given index', () => {
 	// - box1 a1
 	// - box2 a1V
 	//   - ellipse1 a1
-	// - box3 a2
-	// - box5 a3
+	// - box5 a2
+	// - box3 a3
 	// - box4 a4
 
 	expect(editor.getShape(ids.box1)!.index).toBe('a1')
 	expect(editor.getShape(ids.box2)!.index).toBe('a1V')
-	expect(editor.getShape(ids.box3)!.index).toBe('a2')
+	expect(editor.getShape(ids.box3)!.index).toBe('a3')
 	expect(editor.getShape(ids.box4)!.index).toBe('a4')
-	expect(editor.getShape(ids.box5)!.index).toBe('a3')
+	expect(editor.getShape(ids.box5)!.index).toBe('a2')
 	expect(editor.getShape(ids.ellipse1)!.index).toBe('a1')
 })

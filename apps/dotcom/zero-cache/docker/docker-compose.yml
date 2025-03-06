@@ -10,7 +10,7 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - ${ZSTART_DB_PORT}:5432
+      - 6543:5432
     environment:
       POSTGRES_USER: user
       POSTGRES_DB: postgres
@@ -20,6 +20,7 @@ services:
       -c wal_level=logical
       -c max_wal_senders=10 
       -c max_replication_slots=5 
+      -c max_connections=300
       -c hot_standby=on 
       -c hot_standby_feedback=on
 #       Uncomment the following line to enable query logging
@@ -28,6 +29,20 @@ services:
       - tlapp_pgdata:/var/lib/postgresql/data
       - ./:/docker-entrypoint-initdb.d
       - ./postgres-logging.conf:/etc/postgresql/postgresql.conf
+
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    restart: always
+    ports:
+      - "6432:6432"
+    environment:
+      DATABASE_URL: postgres://user:password@zstart_postgres:5432/postgres
+    volumes:
+      - ./pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini
+      - ./userlist.txt:/etc/pgbouncer/userlist.txt
+# Don't show pg bouncer logs
+    command: >
+       sh -c "pgbouncer /etc/pgbouncer/pgbouncer.ini > /dev/null 2>&1"
 
 volumes:
   tlapp_pgdata:
