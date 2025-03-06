@@ -34,6 +34,12 @@ async function i18nUploadStrings() {
 			filter_untranslated: 1,
 		})
 	).items.map((item) => item.key_id)
+
+	if (!allProjectUntranslatedKeys.length) {
+		console.log('No new strings to translate.')
+		return
+	}
+
 	const orderDetails = {
 		project_id: projectId,
 		payment_method: 'credit_card' as const,
@@ -46,7 +52,7 @@ async function i18nUploadStrings() {
 		translation_tier: 1,
 	}
 
-	console.log('Placing order for new strings...')
+	console.log('Placing test order for new strings...')
 	const placeTranslationOrderDryRun = await lokaliseApi.orders().create(
 		{
 			...orderDetails,
@@ -62,6 +68,7 @@ async function i18nUploadStrings() {
 		process.exit(1)
 	}
 
+	console.log('Placing actual order for new strings...')
 	await lokaliseApi.orders().create(
 		{
 			...orderDetails,
