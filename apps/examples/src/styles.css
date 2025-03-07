@@ -455,7 +455,7 @@ a.example__sidebar__header-link {
 .MultiplayerExampleWrapper {
 	display: flex;
 	flex-direction: column;
-	container: example / size;
+	/* container: example / size; */
 	position: absolute;
 	inset: 0px;
 }
