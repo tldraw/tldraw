@@ -130,7 +130,6 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 					onPointerDown={handleButtonPointerDown}
 					onPointerUp={handleButtonPointerUp}
 					onClick={handleButtonClick}
-					data-focushack={i === 0}
 				>
 					<TldrawUiButtonIcon icon={item.icon} />
 				</TldrawUiButton>
