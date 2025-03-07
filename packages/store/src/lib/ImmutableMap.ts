@@ -35,7 +35,6 @@ function smi(i32: number) {
 const defaultValueOf = Object.prototype.valueOf
 
 function hash(o: any) {
-	// eslint-disable-next-line eqeqeq
 	if (o == null) {
 		return hashNullish(o)
 	}
@@ -47,7 +46,6 @@ function hash(o: any) {
 
 	const v = valueOf(o)
 
-	// eslint-disable-next-line eqeqeq
 	if (v == null) {
 		return hashNullish(v)
 	}
