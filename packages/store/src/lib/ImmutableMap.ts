@@ -291,6 +291,22 @@ export class ImmutableMap<K, V> {
 	asMutable() {
 		return this.__ownerID ? this : this.__ensureOwner(new OwnerID())
 	}
+
+	[Symbol.iterator](): Iterator<[K, V]> {
+		return this.entries()[Symbol.iterator]()
+	}
+
+	entries(): Iterable<[K, V]> {
+		return new MapIterator(this, ITERATE_ENTRIES, false)
+	}
+
+	keys(): Iterable<K> {
+		return new MapIterator(this, ITERATE_KEYS, false)
+	}
+
+	values(): Iterable<V> {
+		return new MapIterator(this, ITERATE_VALUES, false)
+	}
 }
 
 type MapNode<K, V> =
@@ -672,6 +688,104 @@ class ValueNode<K, V> {
 }
 
 // #pragma Iterators
+
+class MapIterator<K, V> implements Iterator<any>, Iterable<any> {
+	_stack
+
+	constructor(
+		map: ImmutableMap<K, V>,
+		public _type: IterationType,
+		public _reverse: boolean
+	) {
+		this._stack = map._root && mapIteratorFrame<K, V>(map._root)
+	}
+
+	[Symbol.iterator](): Iterator<any> {
+		return this
+	}
+
+	next() {
+		const type = this._type
+		let stack = this._stack
+		while (stack) {
+			const node = stack.node as any
+			const index = stack.index++
+			let maxIndex
+			if (node.entry) {
+				if (index === 0) {
+					return mapIteratorValue(type, node.entry)
+				}
+			} else if ('entries' in node && node.entries) {
+				maxIndex = node.entries.length - 1
+				if (index <= maxIndex) {
+					return mapIteratorValue(type, node.entries[this._reverse ? maxIndex - index : index])
+				}
+			} else {
+				maxIndex = node.nodes.length - 1
+				if (index <= maxIndex) {
+					const subNode = node.nodes[this._reverse ? maxIndex - index : index]
+					if (subNode) {
+						if (subNode.entry) {
+							return mapIteratorValue(type, subNode.entry)
+						}
+						stack = this._stack = mapIteratorFrame(subNode, stack)
+					}
+					continue
+				}
+			}
+			stack = this._stack = this._stack.__prev!
+		}
+		return iteratorDone() as any
+	}
+}
+
+function mapIteratorValue<K, V>(type: IterationType, entry: [K, V]) {
+	return iteratorValue(type, entry[0], entry[1])
+}
+
+interface IStack {
+	node: MapNode<unknown, unknown>
+	index: number
+	__prev?: IStack
+}
+
+function mapIteratorFrame<K, V>(
+	node: MapNode<K, V>,
+	prev?: { node: MapNode<K, V>; index: number; __prev?: IStack }
+): IStack {
+	return {
+		node: node,
+		index: 0,
+		__prev: prev,
+	}
+}
+
+const ITERATE_KEYS = 0
+const ITERATE_VALUES = 1
+const ITERATE_ENTRIES = 2
+
+type IterationType = typeof ITERATE_KEYS | typeof ITERATE_VALUES | typeof ITERATE_ENTRIES
+
+function iteratorValue<K, V>(
+	type: IterationType,
+	k: K,
+	v: V,
+	iteratorResult?: IteratorResult<any>
+) {
+	const value = type === ITERATE_KEYS ? k : type === ITERATE_VALUES ? v : [k, v]
+	// eslint-disable-next-line @typescript-eslint/no-unused-expressions -- TODO enable eslint here
+	iteratorResult
+		? (iteratorResult.value = value)
+		: (iteratorResult = {
+				value: value,
+				done: false,
+			})
+	return iteratorResult
+}
+
+export function iteratorDone() {
+	return { value: undefined, done: true }
+}
 
 function makeMap<K, V>(size: number, root?: MapNode<K, V>, ownerID?: OwnerID, hash?: number) {
 	const map = Object.create(ImmutableMap.prototype)

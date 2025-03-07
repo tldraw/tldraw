@@ -177,10 +177,10 @@ describe('AtomMap', () => {
 			expect(map.has('b')).toBe(true)
 			expect(map.has('c')).toBe(false)
 			expect(map.has('d')).toBe(true)
-			expect(Array.from(map.entries())).toEqual([
-				['b', 2],
-				['d', 4],
-			])
+			expect(Object.fromEntries(map.entries())).toEqual({
+				b: 2,
+				d: 4,
+			})
 		})
 
 		it('should trigger a single reaction for multiple deletions', () => {
