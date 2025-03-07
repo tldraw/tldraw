@@ -68,11 +68,16 @@
  */
 .tl-container__focused:not(.tl-container__no-focus-ring) .tlui-button:focus-visible {
 	border-radius: 10px;
-	outline: 2px solid hsl(213, 100%, 68%);
+	outline: 2px solid var(--color-focus);
 	outline-offset: -5px;
 }
 .tl-container__focused:not(.tl-container__no-focus-ring) .tlui-button__tool:focus-visible {
 	border-radius: 12px;
+}
+.tlui-slider__container:has(.tlui-slider__thumb:focus-visible) {
+	border-radius: 10px;
+	outline: 2px solid var(--color-focus);
+	outline-offset: -5px;
 }
 
 .tlui-button::after {
@@ -420,17 +425,18 @@
 
 /* --------------------- Slider --------------------- */
 
+.tlui-slider__container {
+	width: 100%;
+	padding: 0px var(--space-4);
+}
+
 .tlui-slider {
 	position: relative;
 	display: flex;
 	align-items: center;
 	user-select: none;
 	touch-action: none;
-}
-
-.tlui-slider__container {
 	width: 100%;
-	padding: 0px var(--space-4);
 }
 
 .tlui-slider__track {
@@ -478,10 +484,6 @@
 	box-shadow:
 		inset 0px 0px 0px 2px var(--color-text-1),
 		var(--shadow-1);
-}
-
-.tlui-slider__thumb:focus-visible {
-	box-shadow: inset 0 0 0 2px var(--color-focus);
 }
 
 /* ----------------------- Kbd ---------------------- */

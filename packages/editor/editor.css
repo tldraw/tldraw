@@ -147,7 +147,7 @@
 	--color-panel-contrast: hsl(0, 0%, 100%);
 	--color-panel-overlay: hsl(0, 0%, 100%, 82%);
 	--color-panel: hsl(0, 0%, 99%);
-	--color-focus: hsl(214, 100%, 29%);
+	--color-focus: hsl(219, 65%, 50%);
 	--color-selected: hsl(214, 84%, 56%);
 	--color-selected-contrast: hsl(0, 0%, 100%);
 	--color-selection-fill: hsl(210, 100%, 56%, 24%);
@@ -174,7 +174,6 @@
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
 	--shadow-4: 0px 0px 3px hsl(0, 0%, 0%, 19%), 0px 5px 4px hsl(0, 0%, 0%, 16%),
 		0px 2px 16px hsl(0, 0%, 0%, 6%), inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-focus-ring: inset 0 0 0 2px hsl(213, 100%, 68%);
 }
 
 .tl-theme__dark {
