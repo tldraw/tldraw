@@ -75,8 +75,9 @@ const router = createRouter<Environment>()
 		return stub.fetch(req)
 	})
 	.post('/app/tldr', createFiles)
-	.get('/app/replicator-status', (_, env) => {
-		return getReplicator(env).ping()
+	.get('/app/replicator-status', async (_, env) => {
+		await getReplicator(env).ping()
+		return new Response('ok')
 	})
 	.get('/app/file/:roomId', (req, env) => {
 		if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {

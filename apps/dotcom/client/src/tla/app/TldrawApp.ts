@@ -62,12 +62,14 @@ export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
 
 let appId = 0
-const useProperZero = Boolean(getFromLocalStorage('useProperZero'))
+const useProperZero = window.navigator.webdriver
+	? true
+	: Boolean(getFromLocalStorage('useProperZero'))
 // eslint-disable-next-line no-console
 console.log('useProperZero', useProperZero)
 // @ts-expect-error
 window.zero = () => {
-	setInLocalStorage('useProperZero', String(useProperZero))
+	setInLocalStorage('useProperZero', String(!useProperZero))
 	location.reload()
 }
 
@@ -135,6 +137,7 @@ export class TldrawApp {
 						console.error('update needed', reason)
 						onClientTooOld()
 					},
+					kvStore: window.navigator.webdriver ? 'mem' : 'idb',
 				})
 			: new ZeroPolyfill({
 					// userID: userId,

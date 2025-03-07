@@ -90,6 +90,7 @@ apps/examples/playwright-report
 apps/dotcom/client/test-results
 apps/dotcom/client/playwright-report
 apps/dotcom/client/e2e/.auth
+apps/dotcom/zero-cache/.schema.js
 
 
 apps/docs/content/gen
