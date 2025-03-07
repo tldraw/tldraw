@@ -1423,13 +1423,11 @@
 	height: 100%;
 	cursor: pointer;
 	margin: 0px;
-	display: none;
 	margin-left: -2px;
 	z-index: 10;
 }
 
 .tlui-page_menu__item__submenu[data-isediting='true'] {
-	display: block;
 	opacity: 1;
 }
 
@@ -1437,7 +1435,7 @@
 	opacity: 0;
 }
 
-.tlui-page_menu__item__submenu:focus-visible > .tlui-button {
+.tlui-page_menu__item__submenu > .tlui-button:focus-visible {
 	opacity: 1;
 }
 
@@ -1456,10 +1454,6 @@
 }
 
 @media (hover: hover) {
-	.tlui-page_menu__item__submenu {
-		display: block;
-	}
-
 	.tlui-page_menu__item__submenu[data-isediting='true'] > .tlui-button {
 		opacity: 0;
 	}
