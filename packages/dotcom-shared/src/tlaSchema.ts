@@ -188,14 +188,11 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 		{ cmp }: ExpressionBuilder<TlaSchema, 'file_state'>
 	) => cmp('userId', '=', authData.sub!)
 
+	// TODO: We should also check that the file is shared, but zero seems to have a problem with that
 	const userHasGuestFileState = (
 		authData: AuthData,
-		{ exists, cmp, and }: ExpressionBuilder<TlaSchema, 'file'>
-	) =>
-		and(
-			cmp('shared', '=', true),
-			exists('states', (q) => q.where('userId', '=', authData.sub!))
-		)
+		{ exists }: ExpressionBuilder<TlaSchema, 'file'>
+	) => exists('states', (q) => q.where('userId', '=', authData.sub!))
 
 	const disallowIfDeleted = (_authData: AuthData, { cmp }: ExpressionBuilder<TlaSchema, 'file'>) =>
 		cmp('isDeleted', '=', false)
