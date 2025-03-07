@@ -651,6 +651,12 @@
 	flex-direction: column;
 }
 
+.tlui-style-panel__section__common
+	.tlui-button__icon[data-focushack='true']:focus-visible
+	.tlui-icon {
+	filter: invert(1);
+}
+
 .tlui-style-panel__section:nth-of-type(n + 2):not(:last-child) {
 	border-bottom: 1px solid var(--color-divider);
 }

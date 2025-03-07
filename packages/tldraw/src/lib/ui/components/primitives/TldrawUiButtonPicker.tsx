@@ -111,7 +111,7 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 
 	return (
 		<div data-testid={`style.${uiType}`} className={classNames('tlui-buttons__grid')}>
-			{items.map((item) => (
+			{items.map((item, i) => (
 				<TldrawUiButton
 					type="icon"
 					key={item.value}
@@ -130,6 +130,7 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 					onPointerDown={handleButtonPointerDown}
 					onPointerUp={handleButtonPointerUp}
 					onClick={handleButtonClick}
+					data-focushack={i === 0}
 				>
 					<TldrawUiButtonIcon icon={item.icon} />
 				</TldrawUiButton>
