@@ -71,10 +71,13 @@
 	box-shadow: var(--shadow-focus-ring);
 } */
 .tl-container__focused:not(.tl-container__no-focus-ring) .tlui-button:focus-visible {
-	color: var(--color-selected-contrast);
+	color: var(--color-panel-contrast);
+}
+.tl-container__focused:not(.tl-container__no-focus-ring) .tlui-button:focus-visible .tlui-icon {
+	opacity: 1;
 }
 .tl-container__focused:not(.tl-container__no-focus-ring) .tlui-button:focus-visible::after {
-	background-color: var(--color-selected);
+	background-color: var(--color-text);
 	opacity: 1;
 }
 
@@ -1312,39 +1315,12 @@
 
 .tlui-page-menu__item {
 	position: relative;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: space-between;
-	gap: 0px;
-}
-
-.tlui-page-menu__item::after {
-	display: block;
-	content: '';
-	background-color: var(--color-muted-2);
-	position: absolute;
-	inset: 4px;
-	border-radius: 6px;
-	pointer-events: none;
-	opacity: 0;
-}
-
-.tlui-page-menu__item[data-highlight]::after {
-	opacity: 1;
 }
 
 @media (hover: hover) {
-	.tlui-page-menu__item:hover::after,
 	.tlui-page-menu__item:hover > .tlui-page_menu__item__submenu > .tlui-button {
 		opacity: 1;
 	}
-}
-
-/* Since we're adding an after hover effect to the page menu item, we want to hide the hovers on the individual buttons in the page menu item */
-.tlui-page-menu__item__button::after,
-.tlui-page_menu__item__submenu > .tlui-button::after {
-	display: none;
 }
 
 .tlui-page-menu__item:nth-of-type(n + 2) {
@@ -1405,7 +1381,7 @@
 	height: 100%;
 }
 
-.tlui-page_menu__item__sortable:focus-within {
+.tlui-page_menu__item__sortable:focus-visible {
 	z-index: var(--layer-focused-input);
 }
 
@@ -1435,11 +1411,15 @@
 
 .tlui-page_menu__item__submenu {
 	pointer-events: all;
-	flex: 0;
+	position: absolute;
+	right: 0px;
+	top: 0px;
+	height: 100%;
 	cursor: pointer;
 	margin: 0px;
 	display: none;
 	margin-left: -2px;
+	z-index: 10;
 }
 
 .tlui-page_menu__item__submenu[data-isediting='true'] {
@@ -1449,6 +1429,10 @@
 
 .tlui-page_menu__item__submenu > .tlui-button {
 	opacity: 0;
+}
+
+.tlui-page_menu__item__submenu:focus-visible > .tlui-button {
+	opacity: 1;
 }
 
 @media (any-pointer: coarse) {
@@ -1476,7 +1460,7 @@
 
 	.tlui-page_menu__item__submenu > .tlui-button[data-state='open'],
 	.tlui-page_menu__item__submenu:hover > .tlui-button,
-	.tlui-page_menu__item__sortable:focus-within > .tlui-page_menu__item__submenu > .tlui-button {
+	.tlui-page_menu__item__sortable:focus-visible > .tlui-page_menu__item__submenu > .tlui-button {
 		opacity: 1;
 	}
 }
