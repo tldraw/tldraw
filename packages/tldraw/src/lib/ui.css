@@ -1693,6 +1693,9 @@
 }
 
 .tlui-people-menu__more {
+	position: absolute;
+	top: 0px;
+	right: 0px;
 	min-width: 0px;
 	font-size: 11px;
 	font-weight: 600;
@@ -1713,6 +1716,7 @@
 	width: 220px;
 	height: fit-content;
 	max-height: 50vh;
+	padding-bottom: 4px;
 }
 
 .tlui-people-menu__section {
@@ -1785,14 +1789,9 @@
 	padding: 0px;
 }
 
-.tlui-people-menu__item {
-	display: flex;
-	justify-content: flex-start;
-	width: 100%;
-}
-
 .tlui-people-menu__item__button {
 	padding: 0 11px;
+	overflow: hidden;
 }
 
 .tlui-people-menu__item > .tlui-button__menu {
@@ -1804,24 +1803,40 @@
 	gap: 11px;
 }
 
+.tlui-people-menu__name {
+	text-align: left;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
 .tlui-people-menu__item__follow {
-	min-width: 44px;
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	max-width: 40px;
+	flex-shrink: 0;
 }
 
-.tlui-people-menu__item__follow[data-active='true'] .tlui-icon {
-	opacity: 1;
+.tlui-people-menu__item[data-follow='true'],
+.tlui-people-menu__item:has(.tlui-button:focus-visible) {
+	padding-right: 36px;
 }
 
-.tlui-people-menu__item__follow:focus-visible .tlui-icon {
+.tlui-people-menu__item[data-follow='true'] .tlui-people-menu__item__follow,
+.tlui-people-menu__item:has(.tlui-button:focus-visible) .tlui-people-menu__item__follow {
 	opacity: 1;
 }
 
 @media (hover: hover) {
-	.tlui-people-menu__item__follow .tlui-icon {
+	.tlui-people-menu__item__follow {
 		opacity: 0;
 	}
 
-	.tlui-people-menu__item__follow:hover .tlui-icon {
+	.tlui-people-menu__item:hover {
+		padding-right: 36px;
+	}
+	.tlui-people-menu__item:hover .tlui-people-menu__item__follow {
 		opacity: 1;
 	}
 }
