@@ -1,3 +1,4 @@
+import { useValue } from '@tldraw/state-react'
 import React, { useMemo } from 'react'
 import { RIGHT_MOUSE_BUTTON } from '../constants'
 import {
@@ -11,6 +12,7 @@ import { useEditor } from './useEditor'
 
 export function useCanvasEvents() {
 	const editor = useEditor()
+	const currentToolId = useValue('current tool id', () => editor?.getCurrentToolId(), [editor])
 
 	const events = useMemo(
 		function canvasEvents() {
@@ -49,8 +51,12 @@ export function useCanvasEvents() {
 				lastX = e.clientX
 				lastY = e.clientY
 
-				const coalescedEvents = e.nativeEvent.getCoalescedEvents()
-				for (const singleEvent of coalescedEvents) {
+				// For tools that benefit from a higher fidelity of events,
+				// we dispatch the coalesced events.
+				const events = ['draw', 'highlight'].includes(currentToolId)
+					? e.nativeEvent.getCoalescedEvents()
+					: [e]
+				for (const singleEvent of events) {
 					editor.dispatch({
 						type: 'pointer',
 						target: 'canvas',
@@ -162,7 +168,7 @@ export function useCanvasEvents() {
 				onClick,
 			}
 		},
-		[editor]
+		[editor, currentToolId]
 	)
 
 	return events
