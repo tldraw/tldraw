@@ -1,36 +1,35 @@
 import { atom, Atom, transact, UNINITIALIZED } from '@tldraw/state'
 import { assert } from '@tldraw/utils'
+import { emptyMap, ImmutableMap } from './ImmutableMap'
 
 /**
  * A drop-in replacement for Map that stores values in atoms and can be used in reactive contexts.
  * @public
  */
 export class AtomMap<K, V> implements Map<K, V> {
-	private valueMap: Map<K, Atom<V | UNINITIALIZED>>
-	private presentKeysAtom: Atom<ReadonlySet<K>>
+	private atoms: Atom<ImmutableMap<K, Atom<V | UNINITIALIZED>>>
 
 	constructor(
 		private readonly name: string,
 		entries?: Iterable<[K, V]>
 	) {
-		const presentKeys = new Set<K>()
-		const valueMap = new Map<K, Atom<V>>()
+		let atoms = emptyMap<K, Atom<V>>()
 		if (entries) {
-			for (const [k, v] of entries) {
-				presentKeys.add(k)
-				valueMap.set(k, atom(`${name}:${String(k)}`, v))
-			}
+			atoms = atoms.withMutations((atoms) => {
+				for (const [k, v] of entries) {
+					atoms.set(k, atom(`${name}:${String(k)}`, v))
+				}
+			})
 		}
-		this.valueMap = valueMap
-		this.presentKeysAtom = atom(`${name}:presentKeys`, presentKeys)
+		this.atoms = atom(`${name}:atoms`, atoms)
 	}
 
 	/** @internal */
 	getAtom(key: K): Atom<V | UNINITIALIZED> | undefined {
-		const valueAtom = this.valueMap.get(key)
+		const valueAtom = this.atoms.__unsafe__getWithoutCapture().get(key)
 		if (!valueAtom) {
 			// if the value is missing, we want to track whether it's in the present keys set
-			this.presentKeysAtom.get()
+			this.atoms.get()
 			return undefined
 		}
 		return valueAtom
@@ -43,7 +42,7 @@ export class AtomMap<K, V> implements Map<K, V> {
 	}
 
 	__unsafe__getWithoutCapture(key: K): V | undefined {
-		const valueAtom = this.valueMap.get(key)
+		const valueAtom = this.atoms.__unsafe__getWithoutCapture().get(key)
 		if (!valueAtom) return undefined
 		const value = valueAtom.__unsafe__getWithoutCapture()
 		assert(value !== UNINITIALIZED)
@@ -59,81 +58,68 @@ export class AtomMap<K, V> implements Map<K, V> {
 	}
 
 	__unsafe__hasWithoutCapture(key: K): boolean {
-		const valueAtom = this.valueMap.get(key)
+		const valueAtom = this.atoms.__unsafe__getWithoutCapture().get(key)
 		if (!valueAtom) return false
 		assert(valueAtom.__unsafe__getWithoutCapture() !== UNINITIALIZED)
 		return true
 	}
 
 	set(key: K, value: V) {
-		transact(() => {
-			const existingAtom = this.valueMap.get(key)
-			if (existingAtom) {
-				existingAtom.set(value)
-			} else {
-				this.valueMap.set(key, atom(`${this.name}:${String(key)}`, value))
-				this.presentKeysAtom.update((keys) => {
-					const newKeys = new Set(keys)
-					newKeys.add(key)
-					return newKeys
-				})
-			}
-		})
+		const existingAtom = this.atoms.__unsafe__getWithoutCapture().get(key)
+		if (existingAtom) {
+			existingAtom.set(value)
+		} else {
+			this.atoms.update((atoms) => {
+				return atoms.set(key, atom(`${this.name}:${String(key)}`, value))
+			})
+		}
 		return this
 	}
 
 	update(key: K, updater: (value: V) => V) {
-		return transact(() => {
-			const valueAtom = this.valueMap.get(key)
-			if (!valueAtom) {
-				throw new Error(`AtomMap: key ${key} not found`)
-			}
-			const value = valueAtom.__unsafe__getWithoutCapture()
-			assert(value !== UNINITIALIZED)
-			valueAtom.set(updater(value))
-		})
+		const valueAtom = this.atoms.__unsafe__getWithoutCapture().get(key)
+		if (!valueAtom) {
+			throw new Error(`AtomMap: key ${key} not found`)
+		}
+		const value = valueAtom.__unsafe__getWithoutCapture()
+		assert(value !== UNINITIALIZED)
+		valueAtom.set(updater(value))
 	}
 
 	delete(key: K) {
-		return transact(() => {
-			const valueAtom = this.valueMap.get(key)
-			if (!valueAtom) {
-				return false
-			}
-			this.valueMap.delete(key)
+		const valueAtom = this.atoms.__unsafe__getWithoutCapture().get(key)
+		if (!valueAtom) {
+			return false
+		}
+
+		transact(() => {
 			valueAtom.set(UNINITIALIZED)
-			this.presentKeysAtom.update((keys) => {
-				const newKeys = new Set(keys)
-				newKeys.delete(key)
-				return newKeys
+			this.atoms.update((atoms) => {
+				return atoms.delete(key)
 			})
-			return true
 		})
+		return true
 	}
 
 	deleteMany(keys: Iterable<K>): [K, V][] {
 		return transact(() => {
-			let newPresentKeys
 			const deleted: [K, V][] = []
+			const newAtoms = this.atoms.get().withMutations((atoms) => {
+				for (const key of keys) {
+					const valueAtom = atoms.get(key)
+					if (!valueAtom) continue
+					const oldValue = valueAtom.get()
+					assert(oldValue !== UNINITIALIZED)
 
-			for (const key of keys) {
-				const valueAtom = this.valueMap.get(key)
-				if (!valueAtom) continue
-				const oldValue = valueAtom.get()
-				assert(oldValue !== UNINITIALIZED)
+					deleted.push([key, oldValue])
 
-				deleted.push([key, oldValue])
-
-				this.valueMap.delete(key)
-				valueAtom.set(UNINITIALIZED)
-				if (!newPresentKeys) {
-					newPresentKeys = new Set(this.presentKeysAtom.__unsafe__getWithoutCapture())
+					atoms.delete(key)
+					valueAtom.set(UNINITIALIZED)
 				}
-				newPresentKeys.delete(key)
-			}
+			})
 
-			if (newPresentKeys) {
-				this.presentKeysAtom.set(newPresentKeys)
+			if (deleted.length) {
+				this.atoms.set(newAtoms)
 			}
 
 			return deleted
@@ -142,19 +128,15 @@ export class AtomMap<K, V> implements Map<K, V> {
 
 	clear() {
 		return transact(() => {
-			for (const valueAtom of this.valueMap.values()) {
+			for (const valueAtom of this.atoms.__unsafe__getWithoutCapture().values()) {
 				valueAtom.set(UNINITIALIZED)
 			}
-			this.presentKeysAtom.set(new Set())
-			this.valueMap.clear()
+			this.atoms.set(emptyMap())
 		})
 	}
 
 	*entries(): Generator<[K, V], undefined, unknown> {
-		// dereference the presentKeysAtom to make sure we track insertions
-		this.presentKeysAtom.get()
-		// then iterate over the valueMap so we get values inserted during iteration
-		for (const [key, valueAtom] of this.valueMap.entries()) {
+		for (const [key, valueAtom] of this.atoms.get()) {
 			const value = valueAtom.get()
 			assert(value !== UNINITIALIZED)
 			yield [key, value]
@@ -162,19 +144,13 @@ export class AtomMap<K, V> implements Map<K, V> {
 	}
 
 	*keys(): Generator<K, undefined, unknown> {
-		// dereference the presentKeysAtom to make sure we track insertions
-		this.presentKeysAtom.get()
-		// then iterate over the valueMap so we get keys inserted during iteration
-		for (const key of this.valueMap.keys()) {
+		for (const key of this.atoms.get().keys()) {
 			yield key
 		}
 	}
 
 	*values(): Generator<V, undefined, unknown> {
-		// dereference the presentKeysAtom to make sure we track insertions
-		this.presentKeysAtom.get()
-		// then iterate over the valueMap so we get values inserted during iteration
-		for (const valueAtom of this.valueMap.values()) {
+		for (const valueAtom of this.atoms.get().values()) {
 			const value = valueAtom.get()
 			assert(value !== UNINITIALIZED)
 			yield value
@@ -183,7 +159,7 @@ export class AtomMap<K, V> implements Map<K, V> {
 
 	// eslint-disable-next-line no-restricted-syntax
 	get size() {
-		return this.presentKeysAtom.get().size
+		return this.atoms.get().size
 	}
 
 	forEach(callbackfn: (value: V, key: K, map: AtomMap<K, V>) => void, thisArg?: any): void {
