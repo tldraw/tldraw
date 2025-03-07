@@ -168,10 +168,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	sentry
 	// eslint-disable-next-line local/prefer-class-methods
 	private captureException = (exception: unknown, extras?: Record<string, unknown>) => {
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.withScope((scope) => {
 			if (extras) scope.setExtras(extras)
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
+
 			this.sentry?.captureException(exception) as any
 		})
 		this.log.debug('ERROR', (exception as any)?.stack ?? exception)
