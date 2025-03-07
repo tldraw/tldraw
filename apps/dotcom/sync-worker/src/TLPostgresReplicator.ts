@@ -178,7 +178,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private readonly replicationService
 	private readonly slotName
-	private readonly wal2jsonPlugin = new Wal2JsonPlugin({})
+	private readonly wal2jsonPlugin = new Wal2JsonPlugin({
+		addTables: 'public.*',
+	})
 
 	private readonly db: Kysely<DB>
 	constructor(ctx: DurableObjectState, env: Environment) {
