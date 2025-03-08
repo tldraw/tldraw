@@ -1410,6 +1410,52 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.setCurrentTool('geo')
 				},
 			},
+			{
+				id: 'change-page-prev',
+				kbd: '?←',
+				onSelect: async (source) => {
+					// will select whatever the most recent geo tool was
+					trackEvent('change-page', { source, direction: 'prev' })
+					const pages = editor.getPages()
+					const currentPageIndex = pages.findIndex((page) => page.id === editor.getCurrentPageId())
+					if (currentPageIndex < 1) return
+					const prevPageIndex = currentPageIndex - 1
+					editor.setCurrentPage(pages[prevPageIndex].id)
+				},
+			},
+			{
+				id: 'change-page-next',
+				kbd: '?→',
+				onSelect: async (source) => {
+					// will select whatever the most recent geo tool was
+					const pages = editor.getPages()
+					const currentPageIndex = pages.findIndex((page) => page.id === editor.getCurrentPageId())
+
+					// If we're on the last page...
+					if (currentPageIndex === -1 || currentPageIndex >= pages.length - 1) {
+						// if the current page is blank or if we're in readonly mode, do nothing
+						if (editor.getCurrentPageShapes().length <= 0 || editor.getIsReadonly()) {
+							return
+						}
+						// Otherwise, create a new page
+						trackEvent('new-page', { source })
+						editor.run(() => {
+							editor.markHistoryStoppingPoint('creating page')
+							const newPageId = PageRecordType.createId()
+							editor.createPage({
+								name: helpers.msg('page-menu.new-page-initial-name'),
+								id: newPageId,
+							})
+							editor.setCurrentPage(newPageId)
+						})
+						return
+					}
+
+					const nextPageIndex = currentPageIndex + 1
+					editor.setCurrentPage(pages[nextPageIndex].id)
+					trackEvent('change-page', { source, direction: 'next' })
+				},
+			},
 		]
 
 		if (showCollaborationUi) {
