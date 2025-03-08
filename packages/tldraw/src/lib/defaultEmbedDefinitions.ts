@@ -1,7 +1,7 @@
 import { safeParseUrl } from '@tldraw/editor'
 
 // Only allow multiplayer embeds. If we add additional routes later for example '/help' this won't match
-const TLDRAW_APP_RE = /(^\/r\/[^/]+\/?$)/
+const TLDRAW_APP_RE = /(^\/[f|p|r|ro|s|v]\/[^/]+\/?$)/
 
 /** @public */
 export const DEFAULT_EMBED_DEFINITIONS = [
