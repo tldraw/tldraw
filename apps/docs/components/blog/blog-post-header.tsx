@@ -13,7 +13,10 @@ export async function BlogPostHeader({ article }: { article: Article }) {
 			</p>
 			<div className="flex flex-col justify-between mt-4 mb-8 text-sm sm:flex-row gap-y-2">
 				<span>{format(new Date(article.date ?? new Date()), 'MMMM dd, yyyy')}</span>
-				<ShareButton url={`https://tldraw.dev${article.path}`} size="base" />
+				<ShareButton
+					url={`https://tldraw.dev${article.path}/?utm_source=blog&utm_medium=referral&utm_campaign=share`}
+					size="base"
+				/>
 			</div>
 			{article.hero && <Image src={article.hero} alt={article.title} width="100%" />}
 		</section>
