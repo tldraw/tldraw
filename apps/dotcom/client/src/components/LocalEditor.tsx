@@ -1,13 +1,27 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { ReactNode } from 'react'
-import { Editor, TLComponents, Tldraw, TldrawOptions, useEvent } from 'tldraw'
+import {
+	Editor,
+	tipTapDefaultExtensions,
+	TLComponents,
+	Tldraw,
+	TldrawOptions,
+	useEvent,
+} from 'tldraw'
 import { useFileEditorOverrides } from '../tla/components/TlaEditor/useFileEditorOverrides'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { getScratchPersistenceKey } from '../utils/scratch-persistence-key'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
+import EmojiExtension from './Emojis/EmojiExtension'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
+
+const textOptions = {
+	tipTapConfig: {
+		extensions: [...tipTapDefaultExtensions, EmojiExtension],
+	},
+}
 
 export function LocalEditor({
 	components,
@@ -44,6 +58,7 @@ export function LocalEditor({
 				overrides={[fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}
+				textOptions={textOptions}
 				options={options}
 			>
 				<SneakyOnDropOverride isMultiplayer={false} />
