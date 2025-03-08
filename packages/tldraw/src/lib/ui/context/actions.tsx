@@ -1021,7 +1021,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$=,=',
 				readonlyOk: true,
 				onSelect(source) {
-					trackEvent('zoom-in', { source })
+					trackEvent('zoom-in', { source, towardsCursor: false })
 					editor.zoomIn(undefined, {
 						animation: { duration: editor.options.animationMediumMs },
 					})
@@ -1033,7 +1033,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '!$=,!=',
 				readonlyOk: true,
 				onSelect(source) {
-					trackEvent('zoom-in', { source })
+					trackEvent('zoom-in', { source, towardsCursor: true })
 					editor.zoomIn(editor.inputs.currentScreenPoint, {
 						animation: { duration: editor.options.animationMediumMs },
 					})
@@ -1045,7 +1045,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$-,-',
 				readonlyOk: true,
 				onSelect(source) {
-					trackEvent('zoom-out', { source })
+					trackEvent('zoom-out', { source, towardsCursor: false })
 					editor.zoomOut(undefined, {
 						animation: { duration: editor.options.animationMediumMs },
 					})
@@ -1057,7 +1057,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '!$-,!-',
 				readonlyOk: true,
 				onSelect(source) {
-					trackEvent('zoom-out', { source })
+					trackEvent('zoom-out', { source, towardsCursor: true })
 					editor.zoomOut(editor.inputs.currentScreenPoint, {
 						animation: { duration: editor.options.animationMediumMs },
 					})
