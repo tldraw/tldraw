@@ -144,7 +144,10 @@ export function useKeyboardShortcuts() {
 const MAPPED_KEYS: Record<string, string> = {
 	'→': 'right',
 	'←': 'left',
+	'↑': 'up',
+	'↓': 'down',
 }
+
 function getMappedKey(kbd: string) {
 	if (MAPPED_KEYS[kbd]) return MAPPED_KEYS[kbd]
 	return kbd
