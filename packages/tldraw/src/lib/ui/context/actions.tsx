@@ -1028,6 +1028,18 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'zoom-in-on-curson',
+				label: 'action.zoom-in',
+				kbd: '!$=,!=',
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('zoom-in', { source })
+					editor.zoomIn(editor.inputs.currentScreenPoint, {
+						animation: { duration: editor.options.animationMediumMs },
+					})
+				},
+			},
+			{
 				id: 'zoom-out',
 				label: 'action.zoom-out',
 				kbd: '$-,-',
@@ -1035,6 +1047,18 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('zoom-out', { source })
 					editor.zoomOut(undefined, {
+						animation: { duration: editor.options.animationMediumMs },
+					})
+				},
+			},
+			{
+				id: 'zoom-out-on-cursor',
+				label: 'action.zoom-out',
+				kbd: '!$-,!-',
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('zoom-out', { source })
+					editor.zoomOut(editor.inputs.currentScreenPoint, {
 						animation: { duration: editor.options.animationMediumMs },
 					})
 				},
