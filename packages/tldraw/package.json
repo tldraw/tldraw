@@ -64,6 +64,7 @@
 		"classnames": "^2.5.1",
 		"hotkeys-js": "^3.13.9",
 		"idb": "^7.1.1",
+		"lite-youtube-embed": "^0.3.3",
 		"lodash.isequal": "^4.5.0",
 		"lz-string": "^1.5.0"
 	},
