@@ -1415,12 +1415,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?left,?up',
 				onSelect: async (source) => {
 					// will select whatever the most recent geo tool was
-					trackEvent('change-page', { source, direction: 'prev' })
 					const pages = editor.getPages()
 					const currentPageIndex = pages.findIndex((page) => page.id === editor.getCurrentPageId())
 					if (currentPageIndex < 1) return
-					const prevPageIndex = currentPageIndex - 1
-					editor.setCurrentPage(pages[prevPageIndex].id)
+					trackEvent('change-page', { source, direction: 'prev' })
+					editor.setCurrentPage(pages[currentPageIndex - 1].id)
 				},
 			},
 			{
@@ -1451,8 +1450,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						return
 					}
 
-					const nextPageIndex = currentPageIndex + 1
-					editor.setCurrentPage(pages[nextPageIndex].id)
+					editor.setCurrentPage(pages[currentPageIndex + 1].id)
 					trackEvent('change-page', { source, direction: 'next' })
 				},
 			},
