@@ -781,7 +781,7 @@ Adds the ability to customize the embeds that are supported. You can now customi
 
 - Add licensing docs.
 
-#### images: show ghost preview image whilst uploading ([#3988](https://github.com/tldraw/tldraw/pull/3988))
+#### images: show ghost preview image while uploading ([#3988](https://github.com/tldraw/tldraw/pull/3988))
 
 - Media: add image and video upload indicators.
 
@@ -887,7 +887,7 @@ This was done because calling `editor.mark(id)` is a potential footgun unless yo
 - Preserve focus search param [#4344](https://github.com/tldraw/tldraw/pull/4344) ([@steveruizok](https://github.com/steveruizok))
 - why did we have this dpr constrained width/height stuff again? [#4297](https://github.com/tldraw/tldraw/pull/4297) ([@ds300](https://github.com/ds300))
 - license: allow wildcard to make apex domains also work [#4334](https://github.com/tldraw/tldraw/pull/4334) ([@mimecuvalo](https://github.com/mimecuvalo))
-- images: show ghost preview image whilst uploading [#3988](https://github.com/tldraw/tldraw/pull/3988) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
+- images: show ghost preview image while uploading [#3988](https://github.com/tldraw/tldraw/pull/3988) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
 - Add option for max pasted / dropped files [#4294](https://github.com/tldraw/tldraw/pull/4294) ([@steveruizok](https://github.com/steveruizok))
 - support custom delay for laser pointer [#4300](https://github.com/tldraw/tldraw/pull/4300) ([@raviteja83](https://github.com/raviteja83))
 - Allow non default z value for scribble points. [#4260](https://github.com/tldraw/tldraw/pull/4260) ([@MitjaBezensek](https://github.com/MitjaBezensek))

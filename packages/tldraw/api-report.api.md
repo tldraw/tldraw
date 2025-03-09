@@ -3153,11 +3153,15 @@ export interface TLUiEventMap {
     // (undocumented)
     'unlock-all': null;
     // (undocumented)
-    'zoom-in': null;
+    'zoom-in': {
+        towardsCursor: boolean;
+    };
     // (undocumented)
     'zoom-into-view': null;
     // (undocumented)
-    'zoom-out': null;
+    'zoom-out': {
+        towardsCursor: boolean;
+    };
     // (undocumented)
     'zoom-to-content': null;
     // (undocumented)

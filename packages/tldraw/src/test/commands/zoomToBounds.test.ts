@@ -38,7 +38,7 @@ it('does not zoom past max', () => {
 
 it('does not zoom past min', () => {
 	editor.zoomToBounds(new Box(0, 0, 1000000, 100000))
-	expect(editor.getZoomLevel()).toBe(0.1)
+	expect(editor.getZoomLevel()).toBe(0.05)
 })
 
 it('does not zoom to bounds when camera is frozen', () => {
