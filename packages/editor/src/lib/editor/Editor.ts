@@ -4003,7 +4003,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Create a page.
+	 * Create a page whilst ensuring that the page name is unique.
 	 *
 	 * @example
 	 * ```ts
