@@ -140,60 +140,39 @@ export function useKeyboardShortcuts() {
 	}, [actions, tools, isReadonlyMode, editor, isFocused])
 }
 
-// convenience mapping since all real keys need to be single characters, sorry
-const MAPPED_KEYS: Record<string, string> = {
-	'→': 'right',
-	'←': 'left',
-	'↑': 'up',
-	'↓': 'down',
-}
-
-function getMappedKey(kbd: string) {
-	if (MAPPED_KEYS[kbd]) return MAPPED_KEYS[kbd]
-	return kbd
-}
-
+// The "raw" kbd here will look something like "a" or a combination of keys "del,backspace",
+// or modifier keys (using ! for shift, $ for cmd, and ? for alt). We need to first split them
+// up by comma, then parse each key to get the actual key and modifiers.
 function getHotkeysStringFromKbd(kbd: string) {
 	return getKeys(kbd)
 		.map((kbd) => {
 			let str = ''
-			// The actual key being pressed (the others will be modifiers)
-			let k = ''
 
-			// Shift is !
-			// Alt is ?
-			// Cmd / control is $
+			const shift = kbd.includes('!')
+			const alt = kbd.includes('?')
+			const cmd = kbd.includes('$')
 
-			// so cmd+shift+u would be $!u
+			// remove the modifiers; the remaining string are the actual key
+			const k = kbd.replace(/[!?$]/g, '')
 
-			const [a, b, c] = kbd.split('')
-
-			if (c) {
-				// This is a 3 key combo, the third key (c) is the real key
-				k = getMappedKey(c)
-				const m = a + b // the modifiers...
-				if (m === '!?' || m === '?!') {
-					str = `shift+alt+${k}`
-				} else if (m === '!$' || m === '$!') {
-					str = `cmd+shift+${k},ctrl+shift+${k}`
-				} else if (m === '?$' || m === '$?') {
-					str = `cmd+alt+${k},ctrl+alt+${k}`
-				}
-			} else if (b) {
-				// This is a 2 key combo, the second key (b) is the real key
-				k = getMappedKey(b)
-				if (a === '!') {
-					str = `shift+${k}`
-				} else if (a === '?') {
-					str = `alt+${k}`
-				} else if (a === '$') {
-					str = `cmd+${k},ctrl+${k}`
-				}
+			if (shift && alt && cmd) {
+				str = `cmd+shift+alt+${k},ctrl+shift+alt+${k}`
+			} else if (shift && cmd) {
+				str = `cmd+shift+${k},ctrl+shift+${k}`
+			} else if (alt && cmd) {
+				str = `cmd+alt+${k},ctrl+alt+${k}`
+			} else if (alt && shift) {
+				str = `shift+alt+${k}`
+			} else if (shift) {
+				str = `shift+${k}`
+			} else if (alt) {
+				str = `alt+${k}`
+			} else if (cmd) {
+				str = `cmd+${k},ctrl+${k}`
 			} else {
-				// This is a single key combo, the only key (a) is the real key
-				k = getMappedKey(a)
 				str = k
 			}
+
 			return str
 		})
 		.join(',')

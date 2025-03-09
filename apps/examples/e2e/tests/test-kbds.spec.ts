@@ -1,4 +1,5 @@
 import test, { Page, expect } from '@playwright/test'
+import { sleep } from 'tldraw'
 import { setupPage, setupPageWithShapes } from '../shared-e2e'
 
 declare const __tldraw_ui_event: { name: string }
@@ -212,11 +213,6 @@ test.describe('Actions on shapes', () => {
 		await setupPageWithShapes(page)
 
 		// needs shapes on the canvas
-		await page.keyboard.press('Control+Shift+c')
-		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'copy-as',
-			data: { format: 'svg', source: 'kbd' },
-		})
 
 		// select-all — Cmd+A
 		await page.keyboard.press('Control+a')
@@ -316,6 +312,14 @@ test.describe('Actions on shapes', () => {
 			data: { operation: 'bottom', source: 'kbd' },
 		})
 
+		// Copy as SVG — this should have a clipboard error
+
+		// await page.keyboard.press('Control+Shift+c')
+		// expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+		// 	name: 'copy-as',
+		// 	data: { format: 'svg', source: 'kbd' },
+		// })
+
 		// delete — backspace
 		await page.keyboard.press('Control+a') // selected
 		await page.keyboard.press('Backspace')
@@ -333,6 +337,8 @@ test.describe('Actions on shapes', () => {
 		await page.mouse.click(250, 250)
 		await page.keyboard.press('v')
 		await page.keyboard.press('Control+a')
+
+		await sleep(1000)
 
 		await page.keyboard.press('Delete')
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({

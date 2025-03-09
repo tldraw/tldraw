@@ -966,7 +966,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'delete',
 				label: 'action.delete',
-				kbd: '⌫,del,backspace',
+				kbd: '⌫,del',
 				icon: 'trash',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1412,7 +1412,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'change-page-prev',
-				kbd: '?←,?↑',
+				kbd: '?left,?up',
 				onSelect: async (source) => {
 					// will select whatever the most recent geo tool was
 					trackEvent('change-page', { source, direction: 'prev' })
@@ -1425,7 +1425,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'change-page-next',
-				kbd: '?→,?↓',
+				kbd: '?right,?down',
 				onSelect: async (source) => {
 					// will select whatever the most recent geo tool was
 					const pages = editor.getPages()
