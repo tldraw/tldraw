@@ -83,8 +83,8 @@
 		"description": "Reference for the tldraw package's APIs (generated).",
 		"categories": [
 			{
-				"id": "editor",
-				"title": "@tldraw/editor",
+				"id": "tldraw",
+				"title": "tldraw",
 				"description": "",
 				"groups": [
 					{
@@ -123,8 +123,8 @@
 				"hero": null
 			},
 			{
-				"id": "state-react",
-				"title": "@tldraw/state-react",
+				"id": "editor",
+				"title": "@tldraw/editor",
 				"description": "",
 				"groups": [
 					{
@@ -203,8 +203,8 @@
 				"hero": null
 			},
 			{
-				"id": "store",
-				"title": "@tldraw/store",
+				"id": "state-react",
+				"title": "@tldraw/state-react",
 				"description": "",
 				"groups": [
 					{
@@ -243,8 +243,8 @@
 				"hero": null
 			},
 			{
-				"id": "sync-core",
-				"title": "@tldraw/sync-core",
+				"id": "store",
+				"title": "@tldraw/store",
 				"description": "",
 				"groups": [
 					{
@@ -323,8 +323,8 @@
 				"hero": null
 			},
 			{
-				"id": "tldraw",
-				"title": "tldraw",
+				"id": "sync-core",
+				"title": "@tldraw/sync-core",
 				"description": "",
 				"groups": [
 					{

@@ -28,7 +28,7 @@ export async function createApiMarkdown() {
 	fs.mkdirSync(OUTPUT_DIR)
 
 	const model = new TldrawApiModel()
-	const packageModels = []
+	let packageModels = []
 
 	// get all files in the INPUT_DIR
 	const files = fs.readdirSync(INPUT_DIR)
@@ -42,6 +42,13 @@ export async function createApiMarkdown() {
 		// add the parsed file to the packageModels array
 		packageModels.push(apiModel)
 	}
+
+	packageModels = packageModels.sort((a, b) => {
+		// compare without "@"
+		const aName = a.name.replace('@', '')
+		const bName = b.name.replace('@', '')
+		return aName.localeCompare(bName)
+	})
 
 	await model.preprocessReactComponents()
 
