@@ -429,6 +429,7 @@ export async function defaultHandleExternalFileContent(
 					severity: 'error',
 				})
 				console.error(error)
+				editor.deleteAssets([assetAndFile.asset.id])
 				return
 			}
 		})

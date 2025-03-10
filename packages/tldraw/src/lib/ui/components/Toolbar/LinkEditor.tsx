@@ -62,6 +62,10 @@ export function LinkEditor({ textEditor, value: initialValue, onComplete }: Link
 		}
 	}, [value])
 
+	useEffect(() => {
+		setValue(initialValue)
+	}, [initialValue])
+
 	return (
 		<>
 			<TldrawUiInput

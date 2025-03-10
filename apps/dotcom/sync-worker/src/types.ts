@@ -69,6 +69,11 @@ export function isDebugLogging(env: Environment) {
 	return env.TLDRAW_ENV === 'development' || env.TLDRAW_ENV === 'preview'
 }
 
+export function getUserDoSnapshotKey(env: Environment, userId: string) {
+	const snapshotPrefix = env.TLDRAW_ENV === 'preview' ? env.WORKER_NAME + '/' : ''
+	return `${snapshotPrefix}${userId}`
+}
+
 export type DBLoadResult =
 	| {
 			type: 'error'

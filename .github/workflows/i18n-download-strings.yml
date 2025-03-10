@@ -34,6 +34,9 @@ jobs:
       - name: Compile i18n strings
         run: 'yarn build-i18n'
 
+      - name: Validate the strings
+        run: 'yarn i18n-check -f react-intl --locales ./apps/dotcom/client/public/tla/locales/ --source en'
+
       - name: Commit and push changes
         if: always()
         env:
@@ -52,4 +55,4 @@ jobs:
           gh pr create --title "[automated] update i18n strings" --body "This PR updates the i18n strings.
 
           ### Change type
-          - [x] `other`" --base main --head update-i18n-strings
+          - [x] \`other\`" --base main --head update-i18n-strings

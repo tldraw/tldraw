@@ -185,7 +185,8 @@ function SvgExport({
 			pixelRatio,
 			async resolveAssetUrl(assetId, width) {
 				const asset = editor.getAsset(assetId)
-				if (!asset || (asset.type !== 'image' && asset.type !== 'video')) return null
+				if (!asset || (asset.type !== 'image' && asset.type !== 'video' && asset.type !== 'audio'))
+					return null
 
 				return await editor.resolveAssetUrl(assetId, {
 					screenScale: scale * (width / asset.props.w),

@@ -5341,7 +5341,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const invertedParentTransform = parentTransform.clone().invert()
 
-		const shapesToReparent = compact(ids.map((id) => this.getShape(id)))
+		const shapesToReparent = compact(ids.map((id) => this.getShape(id))).sort(sortByIndex)
 
 		// Ignore locked shapes so that we can reparent locked shapes, for example
 		// when a locked shape's parent is deleted.
@@ -8591,10 +8591,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		await Promise.allSettled(
 			content.assets.map(async (asset) => {
 				if (
-					(asset.type === 'image' || asset.type === 'video' || asset.type === 'audio') &&
-					!asset.props.src?.startsWith('data:image') &&
-					!asset.props.src?.startsWith('data:video') &&
-					!asset.props.src?.startsWith('data:audio') &&
+					['image', 'audio', 'video'].includes(asset.type) &&
+					!asset.props.src?.match(/^data:(image|video|audio)/) &&
 					!asset.props.src?.startsWith('http')
 				) {
 					const assetWithDataUrl = structuredClone(asset as TLMediaAsset)
@@ -8831,11 +8829,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				continue
 			}
 
-			if (
-				(asset.type === 'image' && asset.props.src?.startsWith('data:image')) ||
-				(asset.type === 'video' && asset.props.src?.startsWith('data:video')) ||
-				(asset.type === 'audio' && asset.props.src?.startsWith('data:audio'))
-			) {
+			if (asset.props.src?.match(/^data:(image|video|audio)/)) {
 				// it's src is a base64 image or video; we need to create a new asset without the src,
 				// then create a new asset from the original src. So we save a copy of the original asset,
 				// then delete the src from the original asset.

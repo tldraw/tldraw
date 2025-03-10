@@ -115,7 +115,7 @@ const migrations: Migration[] = [
 
 const ONE_MINUTE = 60 * 1000
 const PRUNE_INTERVAL = 10 * ONE_MINUTE
-const MAX_HISTORY_ROWS = 10_000
+const MAX_HISTORY_ROWS = 50_000
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 

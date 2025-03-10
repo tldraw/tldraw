@@ -72,7 +72,11 @@ export function useMediaAsset({ shapeId, assetId, width }: UseMediaAssetOptions)
 
 			// Get the fresh asset
 			const asset = editor.getAsset<TLMediaAsset>(assetId)
-			if (!asset) return
+			if (!asset) {
+				// If the asset is deleted, such as when an upload fails, set the URL to null
+				setResult((prev) => ({ ...prev, asset: null, url: null }))
+				return
+			}
 
 			// Set initial preview for the shape if it has no source (if it was pasted into a local project as base64)
 			if (!asset.props.src) {

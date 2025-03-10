@@ -9,8 +9,10 @@ import {
 	SerializedSchemaV1,
 	SerializedSchemaV2,
 	SerializedStore,
+	StoreSnapshot,
 	T,
 	TLAssetId,
+	TLMediaAsset,
 	TLRecord,
 	TLSchema,
 	TLStore,
@@ -297,8 +299,11 @@ export async function parseAndLoadDocument(
 	// this file before they'll get their camera etc.
 	// restored. we could change this in the future.
 	transact(() => {
-		editor.loadSnapshot(parseFileResult.value.getStoreSnapshot())
+		const snapshot = parseFileResult.value.getStoreSnapshot()
+		editor.loadSnapshot(snapshot)
 		editor.clearHistory()
+
+		extractAssets(editor, snapshot, msg, addToast)
 
 		const bounds = editor.getCurrentPageBounds()
 		if (bounds) {
@@ -307,4 +312,53 @@ export async function parseAndLoadDocument(
 	})
 
 	if (forceDarkMode) editor.user.updateUserPreferences({ colorScheme: 'dark' })
+}
+
+async function extractAssets(
+	editor: Editor,
+	snapshot: StoreSnapshot<TLRecord>,
+	msg: (id: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>) => string,
+	addToast: TLUiToastsContextType['addToast']
+) {
+	const mediaAssets = new Map<TLAssetId, TLMediaAsset>()
+	for (const record of Object.values(snapshot.store)) {
+		if (
+			record.typeName === 'asset' &&
+			record.props.src &&
+			record.props.src.startsWith('data:') &&
+			(record.type === 'image' || record.type === 'video' || record.type === 'audio')
+		) {
+			mediaAssets.set(record.id, record)
+		}
+	}
+
+	Promise.allSettled(
+		[...mediaAssets].map(async ([id, asset]) => {
+			try {
+				const blob = await fetch(asset.props.src!).then((r) => r.blob())
+				const file = new File([blob], asset.props.name, {
+					type: asset.props.mimeType!,
+				})
+
+				const newAsset = await editor.getAssetForExternalContent({
+					type: 'file',
+					file,
+				})
+
+				if (!newAsset) {
+					throw Error('Could not create an asset')
+				}
+
+				// Save the new asset under the old asset's id
+				editor.updateAssets([{ ...newAsset, id }])
+			} catch (error) {
+				addToast({
+					title: msg('assets.files.upload-failed'),
+					severity: 'error',
+				})
+				console.error(error)
+				return
+			}
+		})
+	)
 }
