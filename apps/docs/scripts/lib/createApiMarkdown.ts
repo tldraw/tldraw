@@ -44,7 +44,6 @@ export async function createApiMarkdown() {
 	}
 
 	packageModels = packageModels.sort((a, b) => {
-		// compare without "@"
 		const aName = a.name.replace('@', '')
 		const bName = b.name.replace('@', '')
 		return aName.localeCompare(bName)
