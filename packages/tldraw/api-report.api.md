@@ -2988,7 +2988,9 @@ export interface TLUiEventMap {
         locale: string;
     };
     // (undocumented)
-    'change-page': null;
+    'change-page': {
+        direction?: 'next' | 'prev';
+    };
     // (undocumented)
     'change-user-name': null;
     // (undocumented)
