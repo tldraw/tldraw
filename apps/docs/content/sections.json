@@ -123,6 +123,46 @@
 				"hero": null
 			},
 			{
+				"id": "state",
+				"title": "@tldraw/state",
+				"description": "",
+				"groups": [
+					{
+						"id": "Class",
+						"path": null
+					},
+					{
+						"id": "Function",
+						"path": null
+					},
+					{
+						"id": "Variable",
+						"path": null
+					},
+					{
+						"id": "Enum",
+						"path": null
+					},
+					{
+						"id": "Interface",
+						"path": null
+					},
+					{
+						"id": "TypeAlias",
+						"path": null
+					},
+					{
+						"id": "Namespace",
+						"path": null
+					},
+					{
+						"id": "Component",
+						"path": null
+					}
+				],
+				"hero": null
+			},
+			{
 				"id": "store",
 				"title": "@tldraw/store",
 				"description": "",
