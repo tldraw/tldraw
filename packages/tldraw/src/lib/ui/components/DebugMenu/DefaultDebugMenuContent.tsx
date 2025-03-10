@@ -211,7 +211,8 @@ export function FeatureFlags() {
 }
 
 export function DebugElbowArrowMenu() {
-	const { visualDebugging, aSide, bSide, targetStyle, supportPrecise } = useValue(elbowArrowDebug)
+	const { visualDebugging, aSide, bSide, targetStyle, supportPrecise, edgePicking } =
+		useValue(elbowArrowDebug)
 	const editor = useEditor()
 
 	return (
@@ -233,6 +234,32 @@ export function DebugElbowArrowMenu() {
 						elbowArrowDebug.update((p) => ({ ...p, supportPrecise: !supportPrecise }))
 					}}
 				/>
+				<TldrawUiMenuSubmenu id="edgePicking" label={`Edge picking (${edgePicking})`}>
+					<TldrawUiMenuCheckboxItem
+						id="entry-position"
+						label="Entry position"
+						checked={edgePicking === 'entry-position'}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, edgePicking: 'entry-position' }))
+						}}
+					/>
+					<TldrawUiMenuCheckboxItem
+						id="entry-velocity"
+						label="Entry velocity"
+						checked={edgePicking === 'entry-velocity'}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, edgePicking: 'entry-velocity' }))
+						}}
+					/>
+					<TldrawUiMenuCheckboxItem
+						id="position"
+						label="Position"
+						checked={edgePicking === 'position'}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, edgePicking: 'position' }))
+						}}
+					/>
+				</TldrawUiMenuSubmenu>
 				<TldrawUiMenuSubmenu id="target" label={`Target (${targetStyle})`}>
 					<TldrawUiMenuCheckboxItem
 						id="push"

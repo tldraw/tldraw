@@ -109,6 +109,8 @@ export interface ElbowArrowBox {
 }
 
 export interface ElbowArrowTargetBox extends ElbowArrowBox {
+	/** What specific point in the box are we aiming for? */
+	target: Vec
 	/**
 	 * How far away from this box should the arrow terminate to leave space for the arrowhead?
 	 */
@@ -138,6 +140,12 @@ export interface ElbowArrowInfoWithoutRoute {
 	 * we only have to deal with cases where A is to the left of and above B.
 	 */
 	scale: ElbowArrowScale
+
+	/**
+	 * If false, A is the start shape and B is the end shape. If true, A is the end shape and B is
+	 * the start shape.
+	 */
+	swapOrder: boolean
 
 	A: ElbowArrowTargetBox
 	B: ElbowArrowTargetBox
@@ -190,7 +198,7 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 		minArrowDistanceFromCorner: shapeOptions.minArrowDistanceFromCorner,
 	}
 
-	const swapOrder = !bindings.start?.props.side && bindings.end?.props.side
+	const swapOrder = !!(!bindings.start?.props.side && bindings.end?.props.side)
 
 	const startBinding = getElbowArrowBindingInfo(editor, arrow, bindings.start, arrow.props.start)
 	const endBinding = getElbowArrowBindingInfo(editor, arrow, bindings.end, arrow.props.end)
@@ -201,8 +209,6 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 	const { aSide, bSide } = swapOrder
 		? { aSide: bindings.end?.props.side, bSide: bindings.start?.props.side }
 		: { aSide: bindings.start?.props.side, bSide: bindings.end?.props.side }
-
-	// const centerBounds = Box.FromPoints([startBounds.center, endBounds.center])
 
 	const scale: ElbowArrowScale = { x: 1, y: 1 }
 	if (aBinding.bounds.center.x > bBinding.bounds.center.x) {
@@ -334,7 +340,9 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 	const info: ElbowArrowInfoWithoutRoute = {
 		options,
 		scale,
+		swapOrder,
 		A: {
+			target: aBinding.target,
 			arrowheadOffset: aBinding.arrowheadOffset,
 			original: aBinding.bounds,
 			transformed: transformedA,
@@ -343,6 +351,7 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 			geometries: aBinding.geometries,
 		},
 		B: {
+			target: bBinding.target,
 			arrowheadOffset: bBinding.arrowheadOffset,
 			original: bBinding.bounds,
 			transformed: transformedB,
@@ -383,6 +392,33 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 	return { ...info, route }
 }
 
+export function getRouteHandlePath(info: ElbowArrowInfo, route: ElbowArrowRoute): ElbowArrowRoute {
+	const startTarget = info.swapOrder ? info.B.target : info.A.target
+	const endTarget = info.swapOrder ? info.A.target : info.B.target
+
+	const firstSegmentLength = Vec.ManhattanDist(route.points[0], route.points[1])
+	const lastSegmentLength = Vec.ManhattanDist(
+		route.points[route.points.length - 2],
+		route.points[route.points.length - 1]
+	)
+
+	const newFirstSegmentLength = Vec.ManhattanDist(startTarget, route.points[1])
+	const newLastSegmentLength = Vec.ManhattanDist(route.points[route.points.length - 2], endTarget)
+
+	const firstSegmentLengthChange = firstSegmentLength - newFirstSegmentLength
+	const lastSegmentLengthChange = lastSegmentLength - newLastSegmentLength
+
+	const newPoints = route.points.slice()
+	newPoints[0] = startTarget
+	newPoints[newPoints.length - 1] = endTarget
+
+	return {
+		name: route.name,
+		length: route.length + firstSegmentLengthChange + lastSegmentLengthChange,
+		points: newPoints,
+	}
+}
+
 function getElbowArrowBindingInfo(
 	editor: Editor,
 	arrow: TLArrowShape,
@@ -396,10 +432,10 @@ function getElbowArrowBindingInfo(
 			let arrowheadOffset = 0
 			const arrowheadProp = binding.props.terminal === 'start' ? 'arrowheadStart' : 'arrowheadEnd'
 			if (arrow.props[arrowheadProp] !== 'none') {
-				const arrowStrokeSize = STROKE_SIZES[arrow.props.size] * arrow.props.scale
+				const arrowStrokeSize = (STROKE_SIZES[arrow.props.size] * arrow.props.scale) / 2
 				const targetScale = 'scale' in target.props ? target.props.scale : 1
 				const targetStrokeSize =
-					'size' in target.props ? (STROKE_SIZES[target.props.size] ?? 0) * targetScale : 0
+					'size' in target.props ? ((STROKE_SIZES[target.props.size] ?? 0) * targetScale) / 2 : 0
 
 				arrowheadOffset =
 					arrowStrokeSize + targetStrokeSize + BOUND_ARROW_OFFSET * arrow.props.scale
@@ -419,7 +455,7 @@ function getElbowArrowBindingInfo(
 		bounds: Box.FromCenter(point, { x: 0, y: 0 }),
 		geometries: [],
 		isPoint: true,
-		target: point,
+		target: Vec.From(point),
 		arrowheadOffset: 0,
 	}
 }

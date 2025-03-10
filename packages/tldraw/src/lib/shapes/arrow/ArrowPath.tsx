@@ -1,45 +1,28 @@
 import { exhaustiveSwitchError, getPerfectDashProps, TLDefaultDashStyle, Vec } from '@tldraw/editor'
+import { GetPerfectDashPropsOpts } from '@tldraw/editor/src/lib/editor/shapes/shared/getPerfectDashProps'
 import { SVGProps } from 'react'
 import { TLArcArrowInfo, TLArrowInfo, TLStraightArrowInfo } from './arrow-types'
-import { getSolidCurvedArrowPath, getSolidStraightArrowPath } from './arrowpaths'
 import { ElbowArrowRoute } from './elbow/elbowArrowRoutes'
+import { getRouteHandlePath } from './elbow/getElbowArrowInfo'
 
 export interface ArrowPathProps extends SVGProps<SVGPathElement & SVGGElement> {
 	info: TLArrowInfo
-	dash: TLDefaultDashStyle
+	dash: TLDefaultDashStyle | GetPerfectDashPropsOpts
 	strokeWidth?: number
 	isForceSolid: boolean
+	range: 'body' | 'handle'
 }
 
-export function ArrowPath({ info, dash, strokeWidth, isForceSolid, ...props }: ArrowPathProps) {
+export function ArrowPath({ info, range, ...props }: ArrowPathProps) {
 	switch (info.type) {
 		case 'straight':
-			return (
-				<StraightArrowPath
-					info={info}
-					dash={dash}
-					strokeWidth={strokeWidth}
-					isForceSolid={isForceSolid}
-					{...props}
-				/>
-			)
+			return <StraightArrowPath info={info} range={range} {...props} />
 		case 'arc':
-			return (
-				<ArcArrowPath
-					info={info}
-					dash={dash}
-					strokeWidth={strokeWidth}
-					isForceSolid={isForceSolid}
-					{...props}
-				/>
-			)
+			return <ArcArrowPath info={info} range={range} {...props} />
 		case 'elbow':
 			return (
 				<ElbowArrowPath
-					route={info.route}
-					dash={dash}
-					strokeWidth={strokeWidth}
-					isForceSolid={isForceSolid}
+					route={range === 'body' ? info.route : getRouteHandlePath(info.elbow, info.route)}
 					{...props}
 				/>
 			)
@@ -50,7 +33,7 @@ export function ArrowPath({ info, dash, strokeWidth, isForceSolid, ...props }: A
 
 export interface ElbowArrowPathProps extends SVGProps<SVGPathElement & SVGGElement> {
 	route: ElbowArrowRoute
-	dash: TLDefaultDashStyle
+	dash: TLDefaultDashStyle | GetPerfectDashPropsOpts
 	strokeWidth?: number
 	isForceSolid: boolean
 }
@@ -60,75 +43,101 @@ export function ElbowArrowPath({
 	dash,
 	strokeWidth,
 	isForceSolid,
+	markerStart,
+	markerEnd,
 	...props
 }: ElbowArrowPathProps) {
-	switch (dash) {
-		case 'solid':
-		case 'draw': {
-			const parts = [`M${route.points[0].x},${route.points[0].y}`]
-			for (let i = 1; i < route.points.length; i++) {
-				parts.push(`L${route.points[i].x},${route.points[i].y}`)
-			}
-			return <path d={parts.join('')} strokeWidth={strokeWidth} {...props} />
+	if (dash === 'solid' || dash === 'draw') {
+		const parts = [`M${route.points[0].x},${route.points[0].y}`]
+		for (let i = 1; i < route.points.length; i++) {
+			parts.push(`L${route.points[i].x},${route.points[i].y}`)
 		}
-		case 'dashed':
-		case 'dotted': {
-			const parts = []
-			for (let i = 1; i < route.points.length; i++) {
-				const A = Vec.ToFixed(route.points[i - 1])
-				const B = Vec.ToFixed(route.points[i])
-				const dist = Vec.Dist(A, B)
-				const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(dist, strokeWidth ?? 1, {
-					style: dash,
-					start: 'outset',
-					end: 'outset',
-					forceSolid: isForceSolid,
-				})
-				parts.push(
-					<line
-						key={i}
-						x1={A.x}
-						y1={A.y}
-						x2={B.x}
-						y2={B.y}
-						strokeDasharray={strokeDasharray}
-						strokeDashoffset={strokeDashoffset}
-					/>
-				)
-			}
-
-			return (
-				<g strokeWidth={strokeWidth} {...props}>
-					{parts}
-				</g>
-			)
-		}
-		default:
-			exhaustiveSwitchError(dash)
+		return (
+			<path
+				d={parts.join('')}
+				strokeWidth={strokeWidth}
+				{...props}
+				markerStart={markerStart}
+				markerEnd={markerEnd}
+			/>
+		)
 	}
+
+	const parts = []
+	for (let i = 1; i < route.points.length; i++) {
+		const A = Vec.ToFixed(route.points[i - 1])
+		const B = Vec.ToFixed(route.points[i])
+		const dist = Vec.Dist(A, B)
+		const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+			dist,
+			strokeWidth ?? 1,
+			typeof dash === 'string'
+				? { style: dash, start: 'outset', end: 'outset', forceSolid: isForceSolid }
+				: {
+						...dash,
+						start: i === 0 ? dash.start : 'outset',
+						end: i === route.points.length - 1 ? dash.end : 'outset',
+					}
+		)
+		parts.push(
+			<line
+				key={i}
+				x1={A.x}
+				y1={A.y}
+				x2={B.x}
+				y2={B.y}
+				strokeDasharray={strokeDasharray}
+				strokeDashoffset={strokeDashoffset}
+				markerStart={i === 0 ? markerStart : undefined}
+				markerEnd={i === route.points.length - 1 ? markerEnd : undefined}
+			/>
+		)
+	}
+
+	return (
+		<g strokeWidth={strokeWidth} {...props}>
+			{parts}
+		</g>
+	)
 }
 
 export interface StraightArrowPathProps extends SVGProps<SVGPathElement> {
 	info: TLStraightArrowInfo
-	dash: TLDefaultDashStyle
+	range: 'body' | 'handle'
+	dash: TLDefaultDashStyle | GetPerfectDashPropsOpts
 	strokeWidth?: number
 	isForceSolid: boolean
 }
 
 export function StraightArrowPath({
 	info,
+	range,
 	dash,
 	strokeWidth,
 	isForceSolid,
 	...props
 }: StraightArrowPathProps) {
-	const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(info.length, strokeWidth ?? 1, {
-		style: dash,
-		forceSolid: isForceSolid,
-	})
+	let start, end
+	switch (range) {
+		case 'body':
+			start = info.start.point
+			end = info.end.point
+			break
+		case 'handle':
+			start = info.start.handle
+			end = info.end.handle
+			break
+		default:
+			exhaustiveSwitchError(range)
+	}
 
-	// TODO: inline this?
-	const path = getSolidStraightArrowPath(info)
+	const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+		Vec.Dist(start, end),
+		strokeWidth ?? 1,
+		typeof dash === 'string' ? { style: dash, forceSolid: isForceSolid } : dash
+	)
+
+	const path = `M${start.x},${start.y}L${end.x},${end.y}`
 
 	return (
 		<path
@@ -143,28 +152,48 @@ export function StraightArrowPath({
 
 export interface ArcArrowPathProps extends SVGProps<SVGPathElement> {
 	info: TLArcArrowInfo
-	dash: TLDefaultDashStyle
+	range: 'body' | 'handle'
+	dash: TLDefaultDashStyle | GetPerfectDashPropsOpts
 	strokeWidth?: number
 	isForceSolid: boolean
 }
 export function ArcArrowPath({
 	info,
+	range,
 	dash,
 	strokeWidth,
 	isForceSolid,
 	...props
 }: ArcArrowPathProps) {
+	let start, end, radius, largeArcFlag, sweepFlag, length
+	switch (range) {
+		case 'body':
+			start = info.start.point
+			end = info.end.point
+			radius = info.bodyArc.radius
+			largeArcFlag = info.bodyArc.largeArcFlag
+			sweepFlag = info.bodyArc.sweepFlag
+			length = info.bodyArc.length
+			break
+		case 'handle':
+			start = info.start.handle
+			end = info.end.handle
+			radius = info.handleArc.radius
+			largeArcFlag = info.handleArc.largeArcFlag
+			sweepFlag = info.handleArc.sweepFlag
+			length = info.handleArc.length
+			break
+		default:
+			exhaustiveSwitchError(range)
+	}
+
 	const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-		info.bodyArc.length,
+		Math.abs(length),
 		strokeWidth ?? 1,
-		{
-			style: dash,
-			forceSolid: isForceSolid,
-		}
+		typeof dash === 'string' ? { style: dash, forceSolid: isForceSolid } : dash
 	)
 
-	// TODO: inline this?
-	const path = getSolidCurvedArrowPath(info)
+	const path = `M${start.x},${start.y} A${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${end.x},${end.y}`
 
 	return (
 		<path

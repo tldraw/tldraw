@@ -1,4 +1,4 @@
-import { assertExists, ElbowArrowSide } from '@tldraw/editor'
+import { ElbowArrowSide } from '@tldraw/editor'
 import { ElbowArrowRoute, tryRouteArrow } from './elbowArrowRoutes'
 import { ElbowArrowInfoWithoutRoute } from './getElbowArrowInfo'
 
@@ -33,26 +33,28 @@ export function routeArrowWithAutoEdgePicking(
 			info.B.edges.top &&
 			info.A.edges.right.expanded <= info.B.edges.top.crossTarget
 		) {
-			return assertExists(tryRouteArrow(info, 'right', 'top'))
-		} else if (info.my !== null) {
-			return assertExists(tryRouteArrow(info, 'bottom', 'top'))
-		} else {
-			return pickBest(info, [
-				[
-					['bottom', 'left'],
-					['bottom', 'right'],
-					['bottom', 'bottom'],
-				],
-				[
-					['left', 'top'],
-					['right', 'top'],
-				],
-				[
-					['right', 'right'],
-					['left', 'left'],
-				],
-			])
+			const route = tryRouteArrow(info, 'right', 'top')
+			if (route) return route
 		}
+		if (info.my !== null) {
+			const route = tryRouteArrow(info, 'bottom', 'top')
+			if (route) return route
+		}
+		return pickBest(info, [
+			[
+				['bottom', 'left'],
+				['bottom', 'right'],
+				['bottom', 'bottom'],
+			],
+			[
+				['left', 'top'],
+				['right', 'top'],
+			],
+			[
+				['right', 'right'],
+				['left', 'left'],
+			],
+		])
 	}
 }
 

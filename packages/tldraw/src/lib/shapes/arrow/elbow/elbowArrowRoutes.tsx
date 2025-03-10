@@ -1,7 +1,6 @@
 import { assert, ElbowArrowSide, Vec, VecLike } from '@tldraw/editor'
 import { ElbowArrowAxes, ElbowArrowAxis, ElbowArrowSideAxes } from './definitions'
 import { ElbowArrowInfoWithoutRoute } from './getElbowArrowInfo'
-import { isWithinRange } from './range'
 
 // combos:
 // hi → lo, lo → hi, lo → lo, hi → hi
@@ -125,16 +124,17 @@ export function routeSameAxisHiToLo(
 	// we can't draw this arrow if we don't have the proper edge we want:
 	if (!aEdge || !bEdge) return null
 
-	const legLength = Math.abs(aEdge.crossTarget - bEdge.crossTarget)
-	if (legLength < info.options.minElbowLegLength) {
-		// Arrow 1:
-		if (isWithinRange(aEdge.crossTarget, bEdge.cross)) {
-			return new ElbowArrowRouteBuilder(axis, 'same axis hi to lo 1')
-				.add(aEdge.value, aEdge.crossTarget)
-				.add(bEdge.value, aEdge.crossTarget)
-				.build()
-		}
-	}
+	// TODO: figure out if we want to re-enable this:
+	// const legLength = Math.abs(aEdge.crossTarget - bEdge.crossTarget)
+	// if (legLength < info.options.minElbowLegLength) {
+	// 	// Arrow 1:
+	// 	if (isWithinRange(aEdge.crossTarget, bEdge.cross)) {
+	// 		return new ElbowArrowRouteBuilder(axis, 'same axis hi to lo 1')
+	// 			.add(aEdge.value, aEdge.crossTarget)
+	// 			.add(bEdge.value, aEdge.crossTarget)
+	// 			.build()
+	// 	}
+	// }
 
 	const mid = info[axis.mid]
 	if (mid) {

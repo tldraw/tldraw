@@ -26,8 +26,8 @@ import {
 	arrowShapeMigrations,
 	arrowShapeProps,
 	elbowArrowDebug,
+	exhaustiveSwitchError,
 	getDefaultColorTheme,
-	getPerfectDashProps,
 	lerp,
 	mapObjectMapValues,
 	maybeSnapToGrid,
@@ -55,11 +55,6 @@ import { ArrowPath } from './ArrowPath'
 import { ArrowShapeOptions } from './arrow-types'
 import { getArrowLabelFontSize, getArrowLabelPosition } from './arrowLabel'
 import { getArrowheadPathForType } from './arrowheads'
-import {
-	getCurvedArrowHandlePath,
-	getSolidElbowArrowPath,
-	getStraightArrowHandlePath,
-} from './arrowpaths'
 import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
 import { getBindingGeometryInArrowSpace } from './elbow/getElbowArrowInfo'
 import {
@@ -85,16 +80,16 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override options: ArrowShapeOptions = {
 		expandElbowLegLength: {
-			s: 21,
+			s: 28,
 			m: 36,
 			l: 44,
-			xl: 60,
+			xl: 66,
 		},
 		minElbowLegLength: {
-			s: 13,
-			m: 22,
-			l: 27,
-			xl: 36,
+			s: 26,
+			m: 32,
+			l: 40,
+			xl: 62,
 		},
 		minArrowDistanceFromCorner: 10,
 	}
@@ -354,32 +349,79 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			side: currentBinding?.props.side ?? null,
 		}
 
-		if (
-			// if we're binding to a new target...
-			currentBinding?.toId !== target.id &&
-			// ...and this is an elbow arrow...
-			shape.props.kind === 'elbow' &&
-			/// ...and this isn't the start handle of a newly created shape...
-			!(isCreatingShape && handleId === 'start')
-		) {
-			// ...set the direction based on where we entered the target shape.
-			const targetGeomInArrowSpace = getBindingGeometryInArrowSpace(
-				this.editor,
-				shape.id,
-				target.id,
-				bindingProps
-			)!
-			const centerDelta = targetGeomInArrowSpace.bounds.center.sub(handle)
-			const side =
-				Math.abs(centerDelta.x) > Math.abs(centerDelta.y)
-					? centerDelta.x > 0
-						? 'left'
-						: 'right'
-					: centerDelta.y > 0
-						? 'top'
-						: 'bottom'
+		const edgePicking = elbowArrowDebug.get().edgePicking
+		switch (edgePicking) {
+			case 'entry-position': {
+				if (
+					// if we're binding to a new target...
+					currentBinding?.toId !== target.id &&
+					// ...and this is an elbow arrow...
+					shape.props.kind === 'elbow' &&
+					/// ...and this isn't the start handle of a newly created shape...
+					!(isCreatingShape && handleId === 'start')
+				) {
+					// ...set the direction based on where we entered the target shape.
+					const targetGeomInArrowSpace = getBindingGeometryInArrowSpace(
+						this.editor,
+						shape.id,
+						target.id,
+						bindingProps
+					)!
+					const centerDelta = targetGeomInArrowSpace.bounds.center.sub(handle)
+					const side =
+						Math.abs(centerDelta.x) > Math.abs(centerDelta.y)
+							? centerDelta.x > 0
+								? 'left'
+								: 'right'
+							: centerDelta.y > 0
+								? 'top'
+								: 'bottom'
 
-			bindingProps.side = side
+					bindingProps.side = side
+				}
+				break
+			}
+			case 'entry-velocity': {
+				if (
+					// if we're binding to a new target...
+					currentBinding?.toId !== target.id &&
+					// ...and this is an elbow arrow...
+					shape.props.kind === 'elbow' &&
+					/// ...and this isn't the start handle of a newly created shape...
+					!(isCreatingShape && handleId === 'start')
+				) {
+					const velocity = this.editor.inputs.pointerVelocity
+					const side =
+						Math.abs(velocity.x) > Math.abs(velocity.y)
+							? velocity.x > 0
+								? 'left'
+								: 'right'
+							: velocity.y > 0
+								? 'top'
+								: 'bottom'
+
+					bindingProps.side = side
+				}
+				break
+			}
+			case 'position': {
+				if (normalizedAnchor.x === 0.5 && normalizedAnchor.y === 0.5) {
+					bindingProps.side = null
+				} else {
+					const side =
+						Math.abs(normalizedAnchor.x - 0.5) > Math.abs(normalizedAnchor.y - 0.5)
+							? normalizedAnchor.x > 0.5
+								? 'right'
+								: 'left'
+							: normalizedAnchor.y > 0.5
+								? 'bottom'
+								: 'top'
+					bindingProps.side = side
+				}
+				break
+			}
+			default:
+				exhaustiveSwitchError(edgePicking)
 		}
 
 		createOrUpdateArrowBinding(this.editor, shape, target.id, bindingProps)
@@ -781,7 +823,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						/>
 					)}
 
-					<ArrowPath info={info} dash="solid" isForceSolid={true} />
+					<ArrowPath info={info} range="body" dash="solid" isForceSolid={true} />
 				</g>
 				{as && <path d={as} />}
 				{ae && <path d={ae} />}
@@ -922,54 +964,36 @@ const ArrowSvg = track(function ArrowSvg({
 
 	let handlePath: null | React.JSX.Element = null
 
-	if (shouldDisplayHandles) {
-		const sw = 2 / editor.getZoomLevel()
-		const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-			getArrowLength(editor, shape),
-			sw,
-			{
-				end: 'skip',
-				start: 'skip',
-				lengthRatio: 2.5,
-			}
+	if (shouldDisplayHandles && (bindings.start || bindings.end)) {
+		handlePath = (
+			<ArrowPath
+				className="tl-arrow-hint"
+				range="handle"
+				strokeWidth={2 / editor.getZoomLevel()}
+				dash={{ start: 'skip', end: 'skip', lengthRatio: 2.5 }}
+				isForceSolid={false}
+				info={info}
+				markerStart={
+					bindings.start
+						? bindings.start.props.isExact
+							? ''
+							: bindings.start.props.isPrecise
+								? `url(#${arrowheadCrossId})`
+								: `url(#${arrowheadDotId})`
+						: ''
+				}
+				markerEnd={
+					bindings.end
+						? bindings.end.props.isExact
+							? ''
+							: bindings.end.props.isPrecise
+								? `url(#${arrowheadCrossId})`
+								: `url(#${arrowheadDotId})`
+						: ''
+				}
+				opacity={0.16}
+			/>
 		)
-
-		handlePath =
-			bindings.start || bindings.end ? (
-				<path
-					className="tl-arrow-hint"
-					d={
-						info.type === 'straight'
-							? getStraightArrowHandlePath(info)
-							: info.type === 'arc'
-								? getCurvedArrowHandlePath(info)
-								: // TODO #elbow-arrow - proper handle path
-									getSolidElbowArrowPath(info.route)
-					}
-					strokeDasharray={strokeDasharray}
-					strokeDashoffset={strokeDashoffset}
-					strokeWidth={sw}
-					markerStart={
-						bindings.start
-							? bindings.start.props.isExact
-								? ''
-								: bindings.start.props.isPrecise
-									? `url(#${arrowheadCrossId})`
-									: `url(#${arrowheadDotId})`
-							: ''
-					}
-					markerEnd={
-						bindings.end
-							? bindings.end.props.isExact
-								? ''
-								: bindings.end.props.isPrecise
-									? `url(#${arrowheadCrossId})`
-									: `url(#${arrowheadDotId})`
-							: ''
-					}
-					opacity={0.16}
-				/>
-			) : null
 	}
 
 	const labelPosition = getArrowLabelPosition(editor, shape)
@@ -1015,6 +1039,7 @@ const ArrowSvg = track(function ArrowSvg({
 					/>
 					<ArrowPath
 						info={info}
+						range="body"
 						dash={shape.props.dash}
 						strokeWidth={strokeWidth}
 						isForceSolid={isForceSolid}
