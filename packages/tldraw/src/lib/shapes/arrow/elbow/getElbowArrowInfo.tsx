@@ -112,6 +112,11 @@ export interface ElbowArrowTargetBox extends ElbowArrowBox {
 	/** What specific point in the box are we aiming for? */
 	target: Vec
 	/**
+	 * If true, the arrow should end at `target`. If false, the arrow should end at the edge of the
+	 * shape, pointing at `target`.
+	 */
+	isExact: boolean
+	/**
 	 * How far away from this box should the arrow terminate to leave space for the arrowhead?
 	 */
 	arrowheadOffset: number
@@ -198,17 +203,14 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 		minArrowDistanceFromCorner: shapeOptions.minArrowDistanceFromCorner,
 	}
 
-	const swapOrder = !!(!bindings.start?.props.side && bindings.end?.props.side)
-
 	const startBinding = getElbowArrowBindingInfo(editor, arrow, bindings.start, arrow.props.start)
 	const endBinding = getElbowArrowBindingInfo(editor, arrow, bindings.end, arrow.props.end)
+
+	const swapOrder = !!(!startBinding.side && endBinding.side)
+
 	const { aBinding, bBinding } = swapOrder
 		? { aBinding: endBinding, bBinding: startBinding }
 		: { aBinding: startBinding, bBinding: endBinding }
-
-	const { aSide, bSide } = swapOrder
-		? { aSide: bindings.end?.props.side, bSide: bindings.start?.props.side }
-		: { aSide: bindings.start?.props.side, bSide: bindings.end?.props.side }
 
 	const scale: ElbowArrowScale = { x: 1, y: 1 }
 	if (aBinding.bounds.center.x > bBinding.bounds.center.x) {
@@ -333,7 +335,7 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 
 	const steve = () => {
 		const grid = getArrowNavigationGrid(aBinding.bounds, bBinding.bounds, options)
-		const path = getArrowPath(grid, aSide ?? undefined, bSide ?? undefined)
+		const path = getArrowPath(grid, aBinding.side ?? undefined, bBinding.side ?? undefined)
 		return { grid, path: path.error ? null : path.path }
 	}
 
@@ -343,6 +345,7 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 		swapOrder,
 		A: {
 			target: aBinding.target,
+			isExact: aBinding.isExact,
 			arrowheadOffset: aBinding.arrowheadOffset,
 			original: aBinding.bounds,
 			transformed: transformedA,
@@ -352,6 +355,7 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 		},
 		B: {
 			target: bBinding.target,
+			isExact: bBinding.isExact,
 			arrowheadOffset: bBinding.arrowheadOffset,
 			original: bBinding.bounds,
 			transformed: transformedB,
@@ -371,11 +375,15 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 	}
 
 	let route
-	if (aSide && bSide) {
-		route = tryRouteArrow(info, transformSide(aSide, info.scale), transformSide(bSide, info.scale))
+	if (aBinding.side && bBinding.side) {
+		route = tryRouteArrow(
+			info,
+			transformSide(aBinding.side, info.scale),
+			transformSide(bBinding.side, info.scale)
+		)
 	}
-	if (aSide && !bSide) {
-		route = routeArrowWithPartialEdgePicking(info, transformSide(aSide, info.scale))
+	if (aBinding.side && !bBinding.side) {
+		route = routeArrowWithPartialEdgePicking(info, transformSide(aBinding.side, info.scale))
 	}
 	if (!route) {
 		route = routeArrowWithAutoEdgePicking(info)
@@ -441,12 +449,34 @@ function getElbowArrowBindingInfo(
 					arrowStrokeSize + targetStrokeSize + BOUND_ARROW_OFFSET * arrow.props.scale
 			}
 
+			let side = binding.props.side
+			if (elbowArrowDebug.get().edgePicking === 'position') {
+				const centerDelta = geometry.bounds.center.sub(geometry.target)
+				if (
+					!binding.props.isPrecise ||
+					(binding.props.normalizedAnchor.x === 0.5 && binding.props.normalizedAnchor.y === 0.5)
+				) {
+					side = binding.props.side
+				} else {
+					side =
+						Math.abs(centerDelta.x) > Math.abs(centerDelta.y)
+							? centerDelta.x > 0
+								? 'left'
+								: 'right'
+							: centerDelta.y > 0
+								? 'top'
+								: 'bottom'
+				}
+			}
+
 			return {
 				isPoint: false,
+				isExact: binding.props.isExact,
 				bounds: geometry.bounds,
 				geometries: geometry.geometries,
 				target: geometry.target,
 				arrowheadOffset,
+				side,
 			}
 		}
 	}
@@ -454,9 +484,11 @@ function getElbowArrowBindingInfo(
 	return {
 		bounds: Box.FromCenter(point, { x: 0, y: 0 }),
 		geometries: [],
+		isExact: false,
 		isPoint: true,
 		target: Vec.From(point),
 		arrowheadOffset: 0,
+		side: null,
 	}
 }
 
@@ -695,24 +727,28 @@ function castPathSegmentIntoGeometry(
 	let nearestIntersection: VecLike | null = null
 	let nearestDistance = Infinity
 
-	for (const { isClosed, vertices } of target.geometries) {
-		const intersections = isClosed
-			? intersectLineSegmentPolygon(point2, farPoint, vertices)
-			: intersectLineSegmentPolyline(point2, farPoint, vertices)
+	if (target.isExact) {
+		nearestIntersection = target.target
+	} else {
+		for (const { isClosed, vertices } of target.geometries) {
+			const intersections = isClosed
+				? intersectLineSegmentPolygon(point2, farPoint, vertices)
+				: intersectLineSegmentPolyline(point2, farPoint, vertices)
 
-		if (!intersections) continue
+			if (!intersections) continue
 
-		for (const intersection of intersections) {
-			const distance = Vec.ManhattanDist(point1, intersection)
-			if (distance < nearestDistance) {
-				nearestDistance = distance
-				nearestIntersection = intersection
+			for (const intersection of intersections) {
+				const distance = Vec.ManhattanDist(point1, intersection)
+				if (distance < nearestDistance) {
+					nearestDistance = distance
+					nearestIntersection = intersection
+				}
 			}
 		}
 	}
 
 	if (nearestIntersection) {
-		if (target.arrowheadOffset !== 0) {
+		if (!target.isExact && target.arrowheadOffset !== 0) {
 			nearestIntersection = Vec.Nudge(nearestIntersection, point2, target.arrowheadOffset)
 		}
 
