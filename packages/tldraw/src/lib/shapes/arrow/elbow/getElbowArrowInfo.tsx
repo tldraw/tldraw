@@ -13,6 +13,7 @@ import {
 	lerp,
 	Mat,
 	TLArrowBinding,
+	TLArrowBindingProps,
 	TLArrowShape,
 	TLShapeId,
 	Vec,
@@ -390,7 +391,7 @@ function getElbowArrowBindingInfo(
 ) {
 	if (binding) {
 		const target = editor.getShape(binding.toId)
-		const geometry = getBindingGeometryInArrowSpace(editor, arrow.id, binding.toId)
+		const geometry = getBindingGeometryInArrowSpace(editor, arrow.id, binding.toId, binding.props)
 		if (geometry && target) {
 			let arrowheadOffset = 0
 			const arrowheadProp = binding.props.terminal === 'start' ? 'arrowheadStart' : 'arrowheadEnd'
@@ -426,7 +427,8 @@ function getElbowArrowBindingInfo(
 export function getBindingGeometryInArrowSpace(
 	editor: Editor,
 	arrowId: TLShapeId,
-	targetId: TLShapeId
+	targetId: TLShapeId,
+	bindingProps: TLArrowBindingProps
 ) {
 	const shapeGeometry = editor.getShapeGeometry(targetId)
 	if (!shapeGeometry) {
@@ -465,7 +467,16 @@ export function getBindingGeometryInArrowSpace(
 	visitGeo(shapeGeometry)
 
 	const bounds = new Box(minX, minY, maxX - minX, maxY - minY)
-	const target = Mat.applyToPoint(shapeToArrowTransform, shapeGeometry.bounds.center)
+	const normalizedAnchor =
+		elbowArrowDebug.get().supportPrecise && bindingProps.isPrecise
+			? bindingProps.normalizedAnchor
+			: { x: 0.5, y: 0.5 }
+
+	const targetInShapeSpace = {
+		x: lerp(shapeGeometry.bounds.minX, shapeGeometry.bounds.maxX, normalizedAnchor.x),
+		y: lerp(shapeGeometry.bounds.minY, shapeGeometry.bounds.maxY, normalizedAnchor.y),
+	}
+	const target = Mat.applyToPoint(shapeToArrowTransform, targetInShapeSpace)
 
 	return { bounds, geometries, target }
 }

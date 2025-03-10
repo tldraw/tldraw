@@ -26,10 +26,19 @@ export const pointerCaptureTrackingObject = createDebugValue(
 export const elbowArrowDebug = createDebugValue<{
 	visualDebugging: boolean
 	targetStyle: 'push' | 'center' | 'remove'
+	supportPrecise: boolean
 	aSide: ElbowArrowSide | null
 	bSide: ElbowArrowSide | null
 }>('elbowArrowDebug', {
-	defaults: { all: { visualDebugging: false, targetStyle: 'push', aSide: null, bSide: null } },
+	defaults: {
+		all: {
+			visualDebugging: false,
+			targetStyle: 'push',
+			supportPrecise: false,
+			aSide: null,
+			bSide: null,
+		},
+	},
 })
 
 /** @internal */

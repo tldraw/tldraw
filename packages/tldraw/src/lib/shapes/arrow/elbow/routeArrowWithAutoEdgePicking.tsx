@@ -10,26 +10,23 @@ export function routeArrowWithAutoEdgePicking(
 	info: ElbowArrowInfoWithoutRoute
 ): ElbowArrowRoute | null {
 	if (info.gapX > info.gapY) {
-		if (info.mx !== null) {
-			// hs prefer S arrows
-			return assertExists(tryRouteArrow(info, 'right', 'left'))
-		} else {
-			return pickBest(info, [
-				[
-					['right', 'top'],
-					['right', 'bottom'],
-					['right', 'right'],
-				],
-				[
-					['top', 'left'],
-					['bottom', 'left'],
-				],
-				[
-					['top', 'top'],
-					['bottom', 'bottom'],
-				],
-			])
-		}
+		return pickBest(info, [
+			[
+				// hs prefer S arrows
+				['right', 'left'],
+				['right', 'top'],
+				['right', 'bottom'],
+				['right', 'right'],
+			],
+			[
+				['top', 'left'],
+				['bottom', 'left'],
+			],
+			[
+				['top', 'top'],
+				['bottom', 'bottom'],
+			],
+		])
 	} else {
 		if (
 			info.A.edges.right &&

@@ -366,7 +366,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			const targetGeomInArrowSpace = getBindingGeometryInArrowSpace(
 				this.editor,
 				shape.id,
-				target.id
+				target.id,
+				bindingProps
 			)!
 			const centerDelta = targetGeomInArrowSpace.bounds.center.sub(handle)
 			const side =

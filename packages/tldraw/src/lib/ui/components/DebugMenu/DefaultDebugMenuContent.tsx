@@ -211,7 +211,7 @@ export function FeatureFlags() {
 }
 
 export function DebugElbowArrowMenu() {
-	const { visualDebugging, aSide, bSide, targetStyle } = useValue(elbowArrowDebug)
+	const { visualDebugging, aSide, bSide, targetStyle, supportPrecise } = useValue(elbowArrowDebug)
 	const editor = useEditor()
 
 	return (
@@ -223,6 +223,14 @@ export function DebugElbowArrowMenu() {
 					checked={visualDebugging}
 					onSelect={() => {
 						elbowArrowDebug.update((p) => ({ ...p, visualDebugging: !visualDebugging }))
+					}}
+				/>
+				<TldrawUiMenuCheckboxItem
+					id="precise"
+					label="Support precise"
+					checked={supportPrecise}
+					onSelect={() => {
+						elbowArrowDebug.update((p) => ({ ...p, supportPrecise: !supportPrecise }))
 					}}
 				/>
 				<TldrawUiMenuSubmenu id="target" label={`Target (${targetStyle})`}>
