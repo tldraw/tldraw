@@ -16,7 +16,7 @@ const categoryLinks = [
 	{
 		caption: 'Guides',
 		icon: AcademicCapIcon,
-		href: '/editor',
+		href: '/docs/editor',
 		active: (pathname: string) => ['/docs', '/community'].some((e) => pathname.startsWith(e)),
 	},
 	{
