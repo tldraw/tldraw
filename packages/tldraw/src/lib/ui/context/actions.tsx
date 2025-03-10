@@ -1028,7 +1028,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
-				id: 'zoom-in-on-curson',
+				id: 'zoom-in-on-cursor',
 				label: 'action.zoom-in',
 				kbd: '!$=,!=',
 				readonlyOk: true,

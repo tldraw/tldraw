@@ -159,7 +159,7 @@ test.describe('camera', () => {
 			],
 			steps: 50,
 		})
-		expect(await page.evaluate(() => editor.getZoomLevel())).toBe(0.1)
+		expect(await page.evaluate(() => editor.getZoomLevel())).toBe(0.05)
 
 		// now zoom in
 		await multiTouchGesture({
