@@ -83,46 +83,6 @@
 		"description": "Reference for the tldraw package's APIs (generated).",
 		"categories": [
 			{
-				"id": "tldraw",
-				"title": "tldraw",
-				"description": "",
-				"groups": [
-					{
-						"id": "Class",
-						"path": null
-					},
-					{
-						"id": "Function",
-						"path": null
-					},
-					{
-						"id": "Variable",
-						"path": null
-					},
-					{
-						"id": "Enum",
-						"path": null
-					},
-					{
-						"id": "Interface",
-						"path": null
-					},
-					{
-						"id": "TypeAlias",
-						"path": null
-					},
-					{
-						"id": "Namespace",
-						"path": null
-					},
-					{
-						"id": "Component",
-						"path": null
-					}
-				],
-				"hero": null
-			},
-			{
 				"id": "editor",
 				"title": "@tldraw/editor",
 				"description": "",
@@ -325,6 +285,46 @@
 			{
 				"id": "sync-core",
 				"title": "@tldraw/sync-core",
+				"description": "",
+				"groups": [
+					{
+						"id": "Class",
+						"path": null
+					},
+					{
+						"id": "Function",
+						"path": null
+					},
+					{
+						"id": "Variable",
+						"path": null
+					},
+					{
+						"id": "Enum",
+						"path": null
+					},
+					{
+						"id": "Interface",
+						"path": null
+					},
+					{
+						"id": "TypeAlias",
+						"path": null
+					},
+					{
+						"id": "Namespace",
+						"path": null
+					},
+					{
+						"id": "Component",
+						"path": null
+					}
+				],
+				"hero": null
+			},
+			{
+				"id": "tldraw",
+				"title": "tldraw",
 				"description": "",
 				"groups": [
 					{

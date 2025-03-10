@@ -43,9 +43,11 @@ export async function createApiMarkdown() {
 		packageModels.push(apiModel)
 	}
 
+	// Manually keep 'tldraw' package in same place as it was before the alphabetical sort
+	// for continuity and to prevent scroll issues when initially opening the API reference
 	packageModels = packageModels.sort((a, b) => {
-		const aName = a.name.replace('@', '')
-		const bName = b.name.replace('@', '')
+		const aName = a.name === 'tldraw' ? '@tldraw/tldraw' : a.name
+		const bName = b.name === 'tldraw' ? '@tldraw/tldraw' : b.name
 		return aName.localeCompare(bName)
 	})
 
