@@ -9,6 +9,8 @@ export type TLUiIconType =
 	| 'align-left'
 	| 'align-right'
 	| 'align-top'
+	| 'arrow-kind-bendy'
+	| 'arrow-kind-elbow'
 	| 'arrow-left'
 	| 'arrowhead-arrow'
 	| 'arrowhead-bar'
@@ -153,6 +155,8 @@ export const iconTypes = [
 	'align-left',
 	'align-right',
 	'align-top',
+	'arrow-kind-bendy',
+	'arrow-kind-elbow',
 	'arrow-left',
 	'arrowhead-arrow',
 	'arrowhead-bar',

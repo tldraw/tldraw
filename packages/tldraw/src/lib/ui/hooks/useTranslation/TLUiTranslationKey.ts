@@ -331,6 +331,7 @@ export type TLUiTranslationKey =
 	| 'style-panel.arrowheads'
 	| 'style-panel.arrowhead-start'
 	| 'style-panel.arrowhead-end'
+	| 'style-panel.arrow-kind'
 	| 'style-panel.color'
 	| 'style-panel.dash'
 	| 'style-panel.fill'

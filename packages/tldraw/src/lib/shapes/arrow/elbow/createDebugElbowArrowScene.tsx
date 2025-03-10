@@ -133,12 +133,6 @@ export function createDebugElbowArrowScene(editor: Editor) {
 					type: 'arrow',
 					meta: { isFromDebugElbowArrowScene: true },
 					id: arrowId,
-					props: {
-						elbow: {
-							start: aSide,
-							end: bSide,
-						},
-					},
 				})
 
 				createOrUpdateArrowBinding(editor, arrowId, shapeAId, {
@@ -146,6 +140,7 @@ export function createDebugElbowArrowScene(editor: Editor) {
 					normalizedAnchor: { x: 0.5, y: 0.5 },
 					isExact: false,
 					isPrecise: false,
+					side: aSide,
 				})
 
 				createOrUpdateArrowBinding(editor, arrowId, shapeBId, {
@@ -153,6 +148,7 @@ export function createDebugElbowArrowScene(editor: Editor) {
 					normalizedAnchor: { x: 0.5, y: 0.5 },
 					isExact: false,
 					isPrecise: false,
+					side: bSide,
 				})
 			}
 			frameX += frameWidth + spacing

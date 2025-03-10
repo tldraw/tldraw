@@ -13,8 +13,10 @@ export { type TLBookmarkAsset } from './assets/TLBookmarkAsset'
 export { type TLImageAsset } from './assets/TLImageAsset'
 export { type TLVideoAsset } from './assets/TLVideoAsset'
 export {
+	ElbowArrowSide,
 	arrowBindingMigrations,
 	arrowBindingProps,
+	arrowBindingVersions,
 	type TLArrowBinding,
 	type TLArrowBindingProps,
 } from './bindings/TLArrowBinding'
@@ -137,13 +139,13 @@ export { type ShapeWithCrop, type TLShapeCrop } from './shapes/ShapeWithCrop'
 export {
 	ArrowShapeArrowheadEndStyle,
 	ArrowShapeArrowheadStartStyle,
-	ElbowArrowProps,
-	ElbowArrowSide,
+	ArrowShapeKindStyle,
 	arrowShapeMigrations,
 	arrowShapeProps,
 	arrowShapeVersions,
 	type TLArrowShape,
 	type TLArrowShapeArrowheadStyle,
+	type TLArrowShapeKind,
 	type TLArrowShapeProps,
 } from './shapes/TLArrowShape'
 export {

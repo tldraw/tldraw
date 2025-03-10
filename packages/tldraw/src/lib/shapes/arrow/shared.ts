@@ -18,6 +18,7 @@ import { getStraightArrowInfo } from './straight-arrow'
 const MIN_ARROW_BEND = 8
 
 export function getIsArrowStraight(shape: TLArrowShape) {
+	if (shape.props.kind !== 'bendy') return false
 	return Math.abs(shape.props.bend) < MIN_ARROW_BEND * shape.props.scale // snap to +-8px
 }
 
@@ -115,7 +116,7 @@ const arrowInfoCache = createComputedCache(
 	'arrow info',
 	(editor: Editor, shape: TLArrowShape): TLArrowInfo => {
 		const bindings = getArrowBindings(editor, shape)
-		if (shape.props.elbow) {
+		if (shape.props.kind === 'elbow') {
 			const straightInfo = getStraightArrowInfo(editor, shape, bindings)
 			const elbowInfo = getElbowArrowInfo(editor, shape, bindings)
 			if (!elbowInfo?.route) return straightInfo

@@ -334,6 +334,7 @@ export const DEFAULT_TRANSLATION = {
 	'style-panel.arrowheads': 'Arrows',
 	'style-panel.arrowhead-start': 'Start',
 	'style-panel.arrowhead-end': 'End',
+	'style-panel.arrow-kind': 'Bend',
 	'style-panel.color': 'Color',
 	'style-panel.dash': 'Dash',
 	'style-panel.fill': 'Fill',

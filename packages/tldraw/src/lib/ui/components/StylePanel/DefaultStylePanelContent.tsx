@@ -1,6 +1,7 @@
 import {
 	ArrowShapeArrowheadEndStyle,
 	ArrowShapeArrowheadStartStyle,
+	ArrowShapeKindStyle,
 	DefaultColorStyle,
 	DefaultDashStyle,
 	DefaultFillStyle,
@@ -48,12 +49,14 @@ export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps)
 	const geo = styles.get(GeoShapeGeoStyle)
 	const arrowheadEnd = styles.get(ArrowShapeArrowheadEndStyle)
 	const arrowheadStart = styles.get(ArrowShapeArrowheadStartStyle)
+	const arrowKind = styles.get(ArrowShapeKindStyle)
 	const spline = styles.get(LineShapeSplineStyle)
 	const font = styles.get(DefaultFontStyle)
 
 	const hideGeo = geo === undefined
 	const hideArrowHeads = arrowheadEnd === undefined && arrowheadStart === undefined
 	const hideSpline = spline === undefined
+	const hideArrowKind = arrowKind === undefined
 	const hideText = font === undefined
 
 	const theme = getDefaultColorTheme({ isDarkMode: isDarkMode })
@@ -62,9 +65,10 @@ export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps)
 		<>
 			<CommonStylePickerSet theme={theme} styles={styles} />
 			{!hideText && <TextStylePickerSet theme={theme} styles={styles} />}
-			{!(hideGeo && hideArrowHeads && hideSpline) && (
+			{!(hideGeo && hideArrowHeads && hideSpline && hideArrowKind) && (
 				<div className="tlui-style-panel__section" aria-label="style panel styles">
 					<GeoStylePickerSet styles={styles} />
+					<ArrowStylePickerSet styles={styles} />
 					<ArrowheadStylePickerSet styles={styles} />
 					<SplineStylePickerSet styles={styles} />
 				</div>
@@ -335,7 +339,29 @@ export function SplineStylePickerSet({ styles }: StylePickerSetProps) {
 		/>
 	)
 }
+/** @public @react */
+export function ArrowStylePickerSet({ styles }: StylePickerSetProps) {
+	const handleValueChange = useStyleChangeCallback()
 
+	const arrowKind = styles.get(ArrowShapeKindStyle)
+	if (arrowKind === undefined) {
+		return null
+	}
+
+	return (
+		<DropdownPicker
+			id="arrow-kind"
+			type="menu"
+			label={'style-panel.arrow-kind'}
+			uiType="arrow-kind"
+			stylePanelType="arrow-kind"
+			style={ArrowShapeKindStyle}
+			items={STYLES.arrowKind}
+			value={arrowKind}
+			onValueChange={handleValueChange}
+		/>
+	)
+}
 /** @public @react */
 export function ArrowheadStylePickerSet({ styles }: StylePickerSetProps) {
 	const handleValueChange = useStyleChangeCallback()

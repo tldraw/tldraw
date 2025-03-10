@@ -179,8 +179,6 @@ export interface ElbowArrowInfo extends ElbowArrowInfoWithoutRoute {
 }
 
 export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings: TLArrowBindings) {
-	if (!arrow.props.elbow) return undefined
-
 	const shapeOptions = editor.getShapeUtil<ArrowShapeUtil>(arrow.type).options
 	const options: ElbowArrowOptions = {
 		expandElbowLegLength: shapeOptions.expandElbowLegLength[arrow.props.size],
@@ -188,7 +186,7 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 		minArrowDistanceFromCorner: shapeOptions.minArrowDistanceFromCorner,
 	}
 
-	const swapOrder = !arrow.props.elbow.start && arrow.props.elbow.end
+	const swapOrder = !bindings.start?.props.side && bindings.end?.props.side
 
 	const startBinding = getElbowArrowBindingInfo(editor, arrow, bindings.start, arrow.props.start)
 	const endBinding = getElbowArrowBindingInfo(editor, arrow, bindings.end, arrow.props.end)
@@ -197,8 +195,8 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 		: { aBinding: startBinding, bBinding: endBinding }
 
 	const { aSide, bSide } = swapOrder
-		? { aSide: arrow.props.elbow.end, bSide: arrow.props.elbow.start }
-		: { aSide: arrow.props.elbow.start, bSide: arrow.props.elbow.end }
+		? { aSide: bindings.end?.props.side, bSide: bindings.start?.props.side }
+		: { aSide: bindings.start?.props.side, bSide: bindings.end?.props.side }
 
 	// const centerBounds = Box.FromPoints([startBounds.center, endBounds.center])
 

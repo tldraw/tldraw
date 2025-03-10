@@ -11,6 +11,7 @@ import {
 	ShapeUtil,
 	SvgExportContext,
 	TLArrowBinding,
+	TLArrowBindingProps,
 	TLArrowShape,
 	TLArrowShapeProps,
 	TLHandle,
@@ -135,10 +136,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override getDefaultProps(): TLArrowShape['props'] {
 		return {
-			elbow: {
-				start: null,
-				end: null,
-			},
+			kind: 'bendy',
 			dash: 'draw',
 			size: 'm',
 			fill: 'none',
@@ -272,9 +270,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				x: handle.x,
 				y: handle.y,
 			}
-			if (shape.props.elbow) {
-				update.props!.elbow = { ...shape.props.elbow, [handleId]: null }
-			}
 			return update
 		}
 
@@ -299,9 +294,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			update.props![handleId] = {
 				x: newPoint.x,
 				y: newPoint.y,
-			}
-			if (shape.props.elbow) {
-				update.props!.elbow = { ...shape.props.elbow, [handleId]: null }
 			}
 			return update
 		}
@@ -354,18 +346,19 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			}
 		}
 
-		const b = {
+		const bindingProps: TLArrowBindingProps = {
 			terminal: handleId,
 			normalizedAnchor,
 			isPrecise: precise,
 			isExact: this.editor.inputs.altKey,
+			side: currentBinding?.props.side ?? null,
 		}
 
 		if (
 			// if we're binding to a new target...
 			currentBinding?.toId !== target.id &&
 			// ...and this is an elbow arrow...
-			shape.props.elbow &&
+			shape.props.kind === 'elbow' &&
 			/// ...and this isn't the start handle of a newly created shape...
 			!(isCreatingShape && handleId === 'start')
 		) {
@@ -376,7 +369,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				target.id
 			)!
 			const centerDelta = targetGeomInArrowSpace.bounds.center.sub(handle)
-			const direction =
+			const side =
 				Math.abs(centerDelta.x) > Math.abs(centerDelta.y)
 					? centerDelta.x > 0
 						? 'left'
@@ -385,10 +378,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						? 'top'
 						: 'bottom'
 
-			update.props!.elbow = { ...shape.props.elbow, [handleId]: direction }
+			bindingProps.side = side
 		}
 
-		createOrUpdateArrowBinding(this.editor, shape, target.id, b)
+		createOrUpdateArrowBinding(this.editor, shape, target.id, bindingProps)
 
 		this.editor.setHintingShapes([target.id])
 
@@ -681,7 +674,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return (
 			<>
 				<SVGContainer style={{ minWidth: 50, minHeight: 50 }}>
-					{shape.props.elbow && elbowArrowDebug.get().visualDebugging && (
+					{shape.props.kind === 'elbow' && elbowArrowDebug.get().visualDebugging && (
 						<ElbowArrowDebug arrow={shape} />
 					)}
 					<ArrowSvg

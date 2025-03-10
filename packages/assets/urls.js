@@ -40,6 +40,8 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'align-left': iconsIcon0MergedSvg + '#align-left',
 			'align-right': iconsIcon0MergedSvg + '#align-right',
 			'align-top': iconsIcon0MergedSvg + '#align-top',
+			'arrow-kind-bendy': iconsIcon0MergedSvg + '#arrow-kind-bendy',
+			'arrow-kind-elbow': iconsIcon0MergedSvg + '#arrow-kind-elbow',
 			'arrow-left': iconsIcon0MergedSvg + '#arrow-left',
 			'arrowhead-arrow': iconsIcon0MergedSvg + '#arrowhead-arrow',
 			'arrowhead-bar': iconsIcon0MergedSvg + '#arrowhead-bar',

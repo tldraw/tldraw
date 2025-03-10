@@ -1,4 +1,4 @@
-import { assert, Box, TLArrowShape, useEditor, useValue, VecLike } from '@tldraw/editor'
+import { Box, TLArrowShape, useEditor, useValue, VecLike } from '@tldraw/editor'
 import { SVGProps } from 'react'
 import { getArrowBindings } from '../shared'
 import {
@@ -11,7 +11,6 @@ import {
 const SHOW_STEVE = true
 
 export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
-	assert(arrow.props.elbow)
 	const editor = useEditor()
 	const info = useValue(
 		'elbow arrow grid',
