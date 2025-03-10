@@ -13,17 +13,26 @@ export function WatermarkSection() {
 			<div className="flex justify-center mb-8">
 				<WatermarkImage />
 			</div>
-			<p className="text-center max-w-xl text-balance mx-auto px-5 md:px-0">
+			<Paragraph>
 				You can use the tldraw SDK for free in your project—even in a commercial project—as long as
 				the <b>made with tldraw</b> watermark is present. See{' '}
 				<BlueA href="https://github.com/tldraw/tldraw/blob/main/LICENSE.md">
 					our standard license
 				</BlueA>{' '}
 				to learn more.
-			</p>
-			<p className="text-center max-w-xl text-balance mx-auto px-5 pt-4 md:px-0">
+			</Paragraph>
+			<Gap />
+			<Paragraph>
 				<BlueA href="#pricing">Our customers</BlueA> receive a license key to hide the watermark.
-			</p>
+			</Paragraph>
 		</Section>
 	)
+}
+
+function Paragraph({ children }: { children: React.ReactNode }) {
+	return <p className="text-center max-w-xl text-balance mx-auto px-5 md:px-0">{children}</p>
+}
+
+function Gap() {
+	return <div className="pt-4" />
 }
