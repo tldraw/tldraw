@@ -1,0 +1,735 @@
+---
+title: Editor
+status: published
+author: steveruizok
+date: 3/22/2023
+order: 1
+keywords:
+  - ui
+  - app
+  - editor
+  - control
+  - select
+---
+
+The [Editor](?) class is the main way of controlling tldraw's editor. You can use it to manage the editor's internal state, make changes to the document, or respond to changes that have occurred.
+
+By design, the [Editor](?)'s surface area is very large. Almost everything is available through it. Need to create some shapes? Use [Editor#createShapes](?). Need to delete them? Use [Editor#deleteShapes](?). Need a sorted array of every shape on the current page? Use [Editor#getCurrentPageShapesSorted](?).
+
+This page gives a broad idea of how the [Editor](?) class is organized and some of the architectural concepts involved. The full reference is available in the [Editor](?) API.
+
+## Using the editor
+
+You can access the editor in two ways:
+
+1. From the [Tldraw](?) component's `onMount` callback, where the editor is provided as the first argument in the callback.
+
+```tsx
+function App() {
+	return (
+		<Tldraw
+			onMount={(editor) => {
+				// your editor code here
+			}}
+		/>
+	)
+}
+```
+
+2. Via the [useEditor](?) hook. This must be called from within the JSX of the [Tldraw](?) component.
+
+```tsx
+function InsideOfContext() {
+	const editor = useEditor()
+	// your editor code here
+	return null // or whatever
+}
+
+function App() {
+	return (
+		<Tldraw>
+			<InsideOfContext />
+		</Tldraw>
+	)
+}
+```
+
+> If you are using the subcomponents as shown in [this example](/examples/editor-api/exploded), the editor instance is provided by the [TldrawEditor](?) component.
+
+## Store
+
+The editor holds the raw state of the document in its [Editor#store](?) property. Data is kept here as a table of JSON serializable records.
+
+For example, the store contains a [TLPage](?) record for each page in the current document, as well as an [TLInstancePageState](?) record for each page that stores information about the editor's state for that page, and a single [TLInstance](?) for each editor instance which stores the id of the user's current page.
+
+The editor also exposes many _computed_ values which are derived from other records in the store. For example, [Editor#getSelectedShapeIds](?) is a method that returns the editor's current selected shape ids for its current page.
+
+You can use these properties directly or you can use them in signals.
+
+```tsx
+import { track, useEditor } from 'tldraw'
+
+export const SelectedShapeIdsCount = track(() => {
+	const editor = useEditor()
+
+	return <div>{editor.getSelectedShapeIds().length}</div>
+})
+```
+
+### Changing the state
+
+The [Editor](?) class has many methods for updating its state. For example, you can change the current page's selection using [Editor#setSelectedShapes](?). You can also use other convenience methods, such as [Editor#select](?), [Editor#selectAll](?), or [Editor#selectNone](?).
+
+```ts
+editor.selectNone()
+editor.select(myShapeId, myOtherShapeId)
+editor.getSelectedShapeIds() // [myShapeId, myOtherShapeId]
+```
+
+Each change to the state happens within a transaction. You can batch changes into a single transaction using the [Editor#batch](?) method. It's a good idea to batch wherever possible, as this reduces the overhead for persisting or distributing those changes.
+
+### Listening for changes, and merging changes from other sources
+
+For information about how to synchronize the store with other processes, i.e. how to get data out and put data in, see the [Persistence](/docs/persistence) page.
+
+### Undo and redo
+
+The history stack in tldraw contains two types of data:
+
+- "diffs" the changes you make to the store
+- "marks" undo/redo stopping points, created by calling [Editor#markHistoryStoppingPoint](?)
+
+When you call [Editor#undo](?), the editor will undo each diff until it finds either a mark or the start of the stack. When you call [Editor#redo](?), the editor will redo each diff until it finds either a mark or the end of the stack.
+
+```ts
+editor.createShapes(...)
+// A
+editor.markHistoryStoppingPoint()
+editor.selectAll()
+editor.duplicateShapes(editor.getSelectedShapeIds())
+// B
+
+editor.undo() // will return to A
+editor.redo() // will return to B
+```
+
+You can call [Editor#bail](?) to undo and delete all the diffs to the nearest mark, so they cannot be redone.
+
+```ts
+editor.createShapes(...)
+// A
+editor.markHistoryStoppingPoint()
+editor.selectAll()
+editor.duplicateShapes(editor.getSelectedShapeIds())
+// B
+
+editor.bail() // will return to A
+editor.redo() // will do nothing
+```
+
+[Editor#markHistoryStoppingPoint](?) returns an id that you can use with [Editor#bailToMark](?) to bail to a specific mark.
+
+```ts
+// A
+const firstMark = editor.markHistoryStoppingPoint()
+editor.selectAll()
+// B
+const secondMark = editor.markHistoryStoppingPoint()
+editor.duplicateShapes(editor.getSelectedShapeIds())
+// C
+
+editor.bailToMark(firstMark) // will return to A
+```
+
+## Running code in context
+
+You can use the [Editor#run](?) method to run a function inside of a transaction. All changes made during the transaction will be settled at once. This improves performance and avoids unnecessary renders in the user interface.
+
+```ts
+editor.run(() => {
+	editor.createShapes(myShapes)
+	editor.sendToBack(myShapes)
+	editor.selectNone()
+})
+```
+
+You can also use [Editor#run](?) to execute code with contextual options.
+
+For example, you can use the options to perform actions without effecting the undo / redo history:
+
+```ts
+editor.run(
+	() => {
+		editor.createShapes(myShapes)
+		editor.sendToBack(myShapes)
+		editor.selectNone()
+	},
+	{ history: 'ignore' }
+)
+```
+
+You can also use the options to make changes to locked shapes.
+
+```ts
+editor.run(
+	() => {
+		editor.updateShapes(myLockedShapes)
+	},
+	{ ignoreShapeLock: true }
+)
+```
+
+## Events
+
+The [Editor](?) class receives events from its [Editor#dispatch](?) method. When the [Editor](?) receives an event, it is first handled internally to update [Editor#inputs](?) and other state before, and then sent into to the editor's state chart.
+
+You shouldn't need to use the [Editor#dispatch](?) method directly, however you may write code in the state chart that responds to these events. See the [Tools page](/docs/tools) to learn how to do that, or read below for a more detailed information about the state chart itself.
+
+### State Chart
+
+The [Editor](?) class has a "state chart", or a tree of [StateNode](?) instances, that contain the logic for the editor's tools such as the select tool or the draw tool. User interactions such as moving the cursor will produce different changes to the state depending on which nodes are active.
+
+Each node can be active or inactive. Each state node may also have zero or more children. When a state is active, and if the state has children, one (and only one) of its children must also be active. When a state node receives an event from its parent, it has the opportunity to handle the event before passing the event to its active child. The node can handle an event in any way: it can ignore the event, update records in the store, or run a _transition_ that changes which states nodes are active.
+
+When a user interaction is sent to the editor via its [Editor#dispatch](?) method, this event is sent to the editor's root state node ([Editor#root](?)) and passed then down through the chart's active states until either it reaches a leaf node or until one of those nodes produces a transaction.
+
+<Image
+	src="/images/api/events.png"
+	alt="A diagram showing an event being sent to the editor and handled in the state chart."
+	title="The editor passes an event into the state start where it is handled by each active state in order."
+/>
+
+### Path
+
+You can get the editor's current "path" of active states via `editor.root.path`. In the above example, the value would be `"root.select.idle"`.
+
+You can check whether a path is active via [Editor#isIn](?), or else check whether multiple paths are active via [Editor#isInAny](?).
+
+```ts
+editor.store.path // 'root.select.idle'
+
+editor.isIn('root.select') // true
+editor.isIn('root.select.idle') // true
+editor.isIn('root.select.pointing_shape') // false
+editor.isInAny('editor.select.idle', 'editor.select.pointing_shape') // true
+```
+
+Note that the paths you pass to [Editor#isIn](?) or [Editor#isInAny](?) can be the full path or a partial of the start of the path. For example, if the full path is `root.select.idle`, then [Editor#isIn](?) would return true for the paths `root`, `root.select`, or `root.select.idle`.
+
+> If all you're interested in is the state below `root`, there is a convenience method, [Editor#getCurrentToolId](?), that can help with the editor's currently selected tool.
+
+```tsx
+import { track, useEditor } from 'tldraw'
+
+export const BubbleToolUi = track(() => {
+	const editor = useEditor()
+
+	// Only show the UI if the bubble tool is active
+	if (!editor.getCurrentToolId() === 'bubble') return null
+	return <div>Creating bubble</div>
+})
+```
+
+## Side effects
+
+The [Editor#sideEffects](?) object lets you register callbacks for key parts of the lifecycle of records in the [Store](#Store).
+You can register callbacks for before or after a record is created, changed, or deleted.
+These callbacks are useful for applying constraints, maintaining relationships, or checking the integrity of different records in the document.
+For example, we use side effects to create a new [TLCamera](?) record every time a new page is made.
+
+The "before" callbacks allow you to modify the record itself, but shouldn't be used for modifying other records.
+You can create a different record in the place of what was asked, prevent a change (or make a different one) to an existing record, or stop something from being deleted.
+
+The "after" callbacks let you make changes to other records in response to something happening.
+You could create, update, or delete any related record, but you should avoid changing the same record that triggered the change.
+
+For example, if you wanted to know every time a new arrow is created, you could register a handler like this:
+
+```ts
+editor.sideEffects.registerAfterCreateHandler('shape', (newShape) => {
+	if (newShape.type === 'arrow') {
+		console.log('A new arrow shape was created', newShape)
+	}
+})
+```
+
+Side effect handlers are also given a `source` argument - either `"user"` or `"remote"`.
+This indicates whether the change originated from the current user, or from another remote user in the same multiplayer room.
+You could use this to e.g. prevent the current user from deleting shapes, but allow deletions from others in the same room.
+
+## Inputs
+
+The [Editor#inputs](?) object holds information about the user's current input state, including their cursor position (in page space _and_ screen space), which keys are pressed, what their multi-click state is, and whether they are dragging, pointing, pinching, and so on.
+
+Note that the modifier keys include a short delay after being released in order to prevent certain errors when modeling interactions. For example, when a user releases the "Shift" key, `editor.inputs.shiftKey` will remain `true` for another 100 milliseconds or so.
+
+This property is stored as regular data. It is not reactive.
+
+## Editor instance state
+
+The [Editor#getInstanceState](?) method returns settings that relate to each individual instance of the editor. In the case that the user has the same editor open in multiple tabs, or if there are multiple editors on the same page, then each editor will have its own instance state. See the [TLInstance](?) docs to learn more about the record itself.
+
+## User preferences
+
+The editor's user preferences are shared between all instances. See the the [UserPreferencesManager](?) for more about the user preferences.
+
+# Camera and coordinates
+
+The editor offers many methods and properties relating to the part of the infinite canvas that is displayed in the component. This section includes key concepts and methods that you can use to change or control which parts of the canvas are visible.
+
+## Viewport
+
+The viewport is the rectangular area contained by the editor.
+
+| Method                              | Description                                                                                                        |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| [Editor#getViewportScreenBounds](?) | A [Box](?) that describes the size and position of the component's canvas in actual screen pixels.                 |
+| [Editor#getViewportPageBounds](?)   | A [Box](?) that describes the size and position of the part of the current page that is displayed in the viewport. |
+
+## Screen vs. page coordinates
+
+In tldraw, coordinates can either be in page or screen space.
+
+A "screen point" refers to the point's distance from the top left corner of the component.
+
+A "page point" refers to the point's distance from the "zero point" of the canvas.
+
+When the camera is at `{x: 0, y: 0, z: 0}`, the screen point and page point will be identical. As the camera moves, however, the viewport will display a different part of the page; and so a screen point will correspond to a different page point.
+
+| Method                   | Description                                    |
+| ------------------------ | ---------------------------------------------- |
+| [Editor#screenToPage](?) | Convert a point in screen space to page space. |
+| [Editor#pageToScreen](?) | Convert a point in page space to screen space. |
+
+You can get the user's pointer position in both screen and page space.
+
+```ts
+const {
+	// The user's most recent page / screen points
+	currentPagePoint,
+	currentScreenPoint,
+	// The user's previous page / screen points
+	previousPagePoint,
+	previousScreenPoint,
+	// The last place where the most recent pointer down occurred
+	originPagePoint,
+	originScreenPoint,
+} = editor.inputs
+```
+
+## Camera options
+
+You can use the editor's camera options to configure the behavior of the editor's camera. There are many options available.
+
+### `wheelBehavior`
+
+When set to `'pan'`, scrolling the mousewheel will pan the camera. When set to `'zoom'`, scrolling the mousewheel will zoom the camera. When set to `none`, it will have no effect.
+
+### `panSpeed`
+
+The speed at which the camera pans. A pan can occur when the user holds the spacebar and drags, holds the middle mouse button and drags, drags while using the hand tool, or scrolls the mousewheel. The default value is `1`. A value of `0.5` would be twice as slow as default. A value of `2` would be twice as fast. When set to `0`, the camera will not pan.
+
+### `zoomSpeed`
+
+The speed at which the camera zooms. A zoom can occur when the user pinches or scrolls the mouse wheel. The default value is `1`. A value of `0.5` would be twice as slow as default. A value of `2` would be twice as fast. When set to `0`, the camera will not zoom.
+
+### `zoomSteps`
+
+The camera's "zoom steps" are an array of discrete zoom levels that the camera will move between when using the "zoom in" or "zoom out" controls.
+
+The first number in the `zoomSteps` array defines the camera's minimum zoom level. The last number in the `zoomSteps` array defines the camera's maximum zoom level.
+
+If the `constraints` are provided, then the actual value for the camera's zoom will be be calculated by multiplying the value from the `zoomSteps` array with the value from the `baseZoom`. See the `baseZoom` property for more information.
+
+### `isLocked`
+
+Whether the camera is locked. When the camera is locked, the camera will not move.
+
+### `constraints`
+
+By default the camera is free to move anywhere on the infinite canvas. However, you may provide the camera with a `constraints` object that constrains the camera based on a relationship between `bounds` (in page space) and the `viewport` (in screen space).
+
+### `constraints.bounds`
+
+A box model describing the bounds in page space.
+
+### `constraints.padding`
+
+An object with padding to apply to the `x` and `y` dimensions of the viewport. The padding is in screen space.
+
+### `constraints.origin`
+
+An object with an origin for the `x` and `y` dimensions. Depending on the `behavior`, the origin may be used to position the bounds within the viewport.
+
+For example, when the `behavior` is `fixed` and the `origin.x` is `0`, the bounds will be placed with its left side touching the left side of the viewport. When `origin.x` is `1` the bounds will be placed with its right side touching the right side of the viewport. By default the origin for each dimension is .5. This places the bounds in the center of the viewport.
+
+### `constraints.initialZoom`
+
+The `initialZoom` option defines the camera's initial zoom level and what the zoom should be when when the camera is reset. The zoom it produces is based on the value provided:
+
+| Value         | Description                                                                                    |
+| ------------- | ---------------------------------------------------------------------------------------------- |
+| `default`     | Sets the initial zoom to 100%.                                                                 |
+| `fit-x`       | The x axis will completely fill the viewport bounds.                                           |
+| `fit-y`       | The y axis will completely fill the viewport bounds.                                           |
+| `fit-min`     | The smaller axis will completely fill the viewport bounds.                                     |
+| `fit-max`     | The larger axis will completely fill the viewport bounds.                                      |
+| `fit-x-100`   | The x axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.       |
+| `fit-y-100`   | The y axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.       |
+| `fit-min-100` | The smaller axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller. |
+| `fit-max-100` | The larger axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.  |
+
+### `constraints.baseZoom`
+
+The `baseZoom` property defines the base property for the camera's zoom steps. It accepts the same values as `initialZoom`.
+
+When `constraints` are provided, then the actual value for the camera's zoom will be be calculated by multiplying the value from the `zoomSteps` array with the value from the `baseZoom`.
+
+For example, if the `baseZoom` is set to `default`, then a zoom step of 2 will be 200%. However, if the `baseZoom` is set to `fit-x`, then a zoom step value of 2 will be twice the zoom level at which the bounds width exactly fits within the viewport.
+
+### `constraints.behavior`
+
+The `behavior` property defines which logic should be used when calculating the bounds position.
+
+| Value     | Description                                                                                                                                 |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 'free'    | The bounds may be placed anywhere relative to the viewport. This is the default "infinite canvas" experience.                               |
+| 'inside'  | The bounds must stay entirely within the viewport.                                                                                          |
+| 'outside' | The bounds may partially leave the viewport but must never leave it completely.                                                             |
+| 'fixed'   | The bounds are placed in the viewport at a fixed location according to the `'origin'`.                                                      |
+| 'contain' | When the zoom is below the "fit zoom" for an axis, the bounds use the `'fixed'` behavior; when above, the bounds use the `inside` behavior. |
+
+## Controlling the camera
+
+There are several `Editor` methods available for controlling the camera.
+
+| Method                          | Description                                                                                         |
+| ------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [Editor#setCamera](?)           | Moves the camera to the provided coordinates.                                                       |
+| [Editor#zoomIn](?)              | Zooms the camera in to the nearest zoom step. See the `constraints.zoomSteps` for more information. |
+| [Editor#zoomOut](?)             | Zooms the camera in to the nearest zoom step. See the `constraints.zoomSteps` for more information. |
+| [Editor#zoomToFit](?)           | Zooms the camera in to the nearest zoom step. See the `constraints.zoomSteps` for more information. |
+| [Editor#zoomToBounds](?)        | Moves the camera to fit the given bounding box.                                                     |
+| [Editor#zoomToSelection](?)     | Moves the camera to fit the current selection.                                                      |
+| [Editor#zoomToUser](?)          | Moves the camera to center on a user's cursor.                                                      |
+| [Editor#resetZoom](?)           | Resets the zoom to 100% or to the `initialZoom` zoom level.                                         |
+| [Editor#centerOnPoint](?)       | Centers the camera on the given point.                                                              |
+| [Editor#stopCameraAnimation](?) | Stops any camera animation.                                                                         |
+
+## Camera state
+
+The camera may be in two states, `idle` or `moving`.
+
+You can get the current camera state with [Editor#getCameraState](?).
+
+# Bindings
+
+A binding is a relationship from one [shape](/docs/shapes) to another. They're used to connect
+shapes so they can update together or depend on one and other. For example: tldraw's default arrow
+shape uses bindings to connect the ends of the arrows to the shapes they're pointing to, one binding
+for each end of the arrow.
+
+You can create different types of binding that do all sorts of different things with relationships
+between shapes. For example, you could create a [sticker
+shape](/examples/shapes/tools/sticker-bindings) that sticks to any other shape it's dropped onto.
+
+## The binding object
+
+Bindings are records (JSON objects) that live in the [store](/docs/editor#store). For example,
+here's a binding record for one end of an arrow shape:
+
+```json
+{
+    "id": "binding:someId",
+    "typeName": "binding"
+    "type": "arrow",
+    "fromId": "shape:arrowId",
+    "toId": "shape:someOtherShapeId",
+    "props": {
+        "terminal": "end"
+        "isPrecise": true,
+        "isExact": false,
+        "normalizedAnchor": {
+            "x": 0.5,
+            "y": 0.5
+        },
+    },
+    "meta": {},
+}
+```
+
+Every binding contains some base information - its ID & the type of binding, as well as the ID of
+the shape that a binding comes _from_ and the ID of the shape that the binding goes _to_. These two
+properties work the same way, but it's often useful to have an explicit direction in a binding
+relationship. For example, an arrow binding always goes _from_ an arrow _to_ another shape.
+
+Bindings contain their own type-specific information in the `props` object. Each type of binding can
+have different props.
+
+Bindings also have a `meta` property which can be used by your application to add data to bindings
+you haven't built yourself. You can read more about the meta property
+[here](/docs/shapes#Meta-information).
+
+## Custom bindings
+
+To create a binding of your own, you can define a custom binding.
+
+### The binding type
+
+First, you need to create a type that describes what the binding object will look like:
+
+```ts
+import { TLBaseBinding } from 'tldraw'
+
+type StickerBinding = TLBaseBinding<'sticker', { x: number; y: number }>
+```
+
+With [TLBaseBinding](?) we define the binding's type (`sticker`) and `props` property (`{x: number,
+y: number}`). The type can be any string, and the props must be a plain JSON object (ie not a class
+instance).
+
+The [TLBaseBinding](?) helper adds the other base properties like `id`, `toId`, and `fromId`.
+
+### The `BindingUtil` class
+
+While bindings themselves are plain JSON objects, we use
+[`BindingUtil`](/reference/editor/BindingUtil) classes to define how bindings should work. They tell
+tldraw the structure of a binding, and what to do when it or the shapes it involves are created,
+updated, or deleted.
+
+```ts
+import { BindingUtil } from 'tldraw'
+
+class StickerBindingUtil extends BindingUtil<StickerBinding> {
+	static override type = 'sticker' as const
+
+	override getDefaultProps() {
+		return { x: 0.5, y: 0.5 }
+	}
+
+	override onAfterChangeToShape({ binding }) {
+		const sticker = this.editor.getShape(binding.fromShape)
+
+		// move the sticker so it stays attached to the to shape
+	}
+}
+```
+
+Each binding util needs a `type` and `getDefaultProps` to define its basic structure. You can also
+define a number of different callbacks describing how the binding should behave. See the
+[BindingUtil](?) reference or a [complete example of a
+binding](/examples/shapes/tools/sticker-bindings) for details.
+
+If the structure of your binding needs to change over time, you can provide
+[migrations](/docs/persistence#Shape-props-migrations) describing how old stored bindings can be
+brought up to date.
+
+## Image exports
+
+You can export the contents of the canvas to an image with [`Editor#toImage`](?).
+
+Image exports draw your shapes as an SVG, then convert the SVG to another format (like a PNG) if needed. Use [`Editor#getSvgElement`](?) or [`Editor#getSvgString`](?) if you want to work with the SVG directly.
+
+### Exporting custom shapes
+
+By default, custom shape exports use the [`ShapeUtil#component`](?) method that's used to render your shape normally. We embed the result in a [`<foreignObject>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject) element. This works well for most shapes, but isn't perfect (see [below](#Export-limitations)). For more control over exports, you can implement [`ShapeUtil#toSvg`](?) to properly convert your shape to an SVG.
+
+Use the [`useSvgExportContext`](?) hook to check if your shape is being rendered for an SVG export. If you need to load data or assets asynchronously, use the [`useDelaySvgExport`](?) hook to delay the export until you're ready.
+
+SVGs can't refer to any external assets like images, fonts, or CSS. Everything needs to be included inline in the SVG, with images and fonts converted to data URLs. `<foreignObject>` exports that use the `component` methods try to handle this automatically, but if you implement `toSvg` you'll need to do it yourself. You can use [`SvgExportContext#addExportDef`](?) to add definitions to the SVG that can be shared by multiple shapes.
+
+### Export limitations
+
+Hand-authored `toSvg` are typically very reliable and have good compatibility with other SVG tools. However, most SVG editors (and even some viewers) don't support the `<foreignObject>` element, so the default `component` based exports don't work as well outside of the browser. If you want to make sure that your exports look the same in all viewers, either implement `toSvg` or convert directly to a PNG or other raster format.
+
+Even within browsers though, `<foreignObject>`s and the method we use to create them aren't always 100% reliable. Chromium based browsers tend to work well, but Firefox occasionally has layout issues, and Safari has rendering quirks with effects like box shadows. It's sometimes useful to apply different styles during exports in certain browsers.
+
+We can only embed external assets such as images and font files if they're either hosted on the same origin as tldraw, or have [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) headers set. If external assets are missing from your export, check your browser's network tab to see if these are being requested and if anything is going wrong with them.
+
+# Common things to do with the editor
+
+### Create a shape id
+
+To create an id for a shape (a [TLShapeId](?)), use the libary's [createShapeId](?) helper.
+
+```ts
+import { createShapeId } from 'tldraw'
+
+createShapeId() // `shape:some-random-uuid`
+createShapeId('kyle') // `shape:kyle`
+```
+
+The `id` property of any record in tldraw is "branded" with the type of that record. For shapes, that means that all shape ids are formatted as `shape:{id}`. The TypeScript type of a record's `id` also includes a reference to the type of the record that it belongs to. TypeScript will complain if you use a regular `shape:some-id` string, but the [createShapeId](?) helper will provide the type.
+
+### Create shapes
+
+To create shapes, use the [Editor#createShape](?) or [Editor#createShapes](?) methods.
+
+```ts
+editor.createShapes([
+	{
+		id,
+		type: 'geo',
+		x: 0,
+		y: 0,
+		props: {
+			geo: 'rectangle',
+			w: 100,
+			h: 100,
+			dash: 'draw',
+			color: 'blue',
+			size: 'm',
+		},
+	},
+])
+```
+
+A shape must be a partial of the full shape (a [TLShapePartial](?)). All props are optional except for the `type` of the shape. The shape's corresponding [ShapeUtil](?) will provide the default props for any props not provided. The `id` will be created if not provided.
+
+### Update shapes
+
+To update shapes, use the [Editor#updateShape](?) or [Editor#updateShapes](?) methods.
+
+```ts
+editor.updateShapes([
+	{
+		id: shape.id, // required
+		type: shape.type, // required
+		x: 100,
+		y: 100,
+		props: {
+			w: 200,
+		},
+	},
+])
+```
+
+The update must be a partial of the full shape (a [TLShapePartial](?)). All props are optional except for the `type` of the shape and its `id`.
+
+### Delete shapes
+
+To delete shapes, use the [Editor#deleteShape](?) or [Editor#deleteShapes](?) methods.
+
+```ts
+editor.deleteShapes([shape.id])
+editor.deleteShapes([shape])
+```
+
+You can delete a shape using the shape's `id` or the shape record itself.
+
+### Get a shape
+
+You can get a shape with the [Editor#getShape](?) method.
+
+```ts
+editor.getShape(myShapeId)
+editor.getShape(myShape)
+```
+
+You can get a shape using the shape's `id` or the shape record itself.
+
+### Turn on read only mode
+
+You can use the [Editor#updateInstanceState](?) method to turn on read only mode.
+
+```ts
+editor.updateInstanceState({ isReadonly: true })
+```
+
+### Move the camera
+
+You can set the camera to a specific x, y, and zoom with the [Editor#setCamera](?) method.
+
+```ts
+editor.setCamera({ x: 0, y: 0, z: 1 })
+```
+
+### Freeze the camera
+
+You can prevent the user from changing the camera using the `Editor.setCameraOptions` method.
+
+```ts
+editor.setCameraOptions({ isLocked: true })
+```
+
+### Turn on dark mode
+
+You can turn on or off dark mode via the [UserPreferencesManager](?). Note that this effects all editor instances that share the same user—even instances in other tabs.
+
+```ts
+editor.user.updateUserPreferences({ colorScheme: 'dark' })
+```
+
+### Using the system color scheme
+
+You can also use the system color scheme via the [UserPreferencesManager](?).
+
+```ts
+editor.user.updateUserPreferences({ colorScheme: 'system' })
+```
+
+### Make changes without effecting the history
+
+You can use the [Editor#run](?) method to make changes without effecting the undo redo history.
+
+```ts
+editor.run(
+	() => {
+		editor.deleteShapes(myLockedShapes)
+	},
+	{ history: 'ignore' }
+)
+```
+
+### Make changes to locked shape
+
+You can use the [Editor#run](?) method to make changes to locked shapes without having to unlock them first.
+
+```ts
+editor.run(
+	() => {
+		editor.deleteShapes(myLockedShapes)
+	},
+	{ ignoreShapeLock: true }
+)
+```
+
+### Hiding shapes
+
+You can pass a `isShapeHidden` predicate when configuring tldraw. This predicate will be called for each shape to determine if it should be hidden.
+
+Hidden shapes will still be present in the store, but
+
+- They will not be shown on the canvas
+- They will not be included in hit test results via `editor.getShapeAtPoint` and `editor.getShapesAtPoint`
+- They will be excluded from the arrays returned by `editor.getRenderingShapes` and `editor.getCurrentPageRenderingShapesSorted`
+- They will not be exported in image exports or rendered when printing.
+
+Otherwise, they will behave as normal.
+
+One place where this might be problematic for you, depending on what features you're using `isShapeHidden` to implement, is that hidden shapes will still be selectable, e.g. via the `select-all` action (`Cmd+A` or `Ctrl+A`).
+
+You can prevent that by cleaning up the selection in a signal reaction that is set up in the `onMount` callback:
+
+```tsx
+<Tldraw
+	isShapeHidden={(shape) => shape.meta.hidden}
+	onMount={(editor) => {
+		// We don't prevent hidden shapes from being selected out of the box, because there are some situations where it's desirable.
+		// If you want to prevent hidden shapes from being selected, you can do so like this:
+		return react('clean up selection', () => {
+			const selectedShapeIds = editor.getSelectedShapeIds()
+			const filteredSelectedShapeIds = selectedShapeIds.filter((id) => !editor.isShapeHidden(id))
+			if (selectedShapeIds.length !== filteredSelectedShapeIds.length) {
+				editor.setSelectedShapes(filteredSelectedShapeIds)
+			}
+		})
+	}}
+/>
+```
+
+For example usages, see the [collaboration private content example](/examples/collaboration/sync-private-content) and the [layer panel example](/examples/ui/layer-panel).
+
+---
+
+See the [tldraw repository](https://github.com/tldraw/tldraw/tree/main/apps/examples) for an example of how to use tldraw's Editor API to control the editor.
