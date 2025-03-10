@@ -2,7 +2,7 @@
 
 This document is meant to be provide answers to frequently asked questions about the [tldraw developer SDK](https://tldraw.dev). For questions related to **[tldraw.com](https://tldraw.com)**, please see our [tldraw.com guides](https://tldraw.notion.site/tldraw-com-1283e4c324c08086b585d438f088580f).
 
-**Need more help?** See the [docs](https://tldraw.dev/docs) for our [guides](https://tldraw.dev/quick-start), [API reference](https://tldraw.dev/reference), and [examples](https://tldraw.dev/examples). You can also [join our Discord](https://discord.tldraw.com/?utm_source=github&utm_medium=social&utm_campaign=sociallink) to chat with the team and other developers.
+**Need more help?** See the [docs](https://tldraw.dev/docs) for our [guides](https://tldraw.dev/quick-start), [API reference](https://tldraw.dev/reference), and [examples](https://tldraw.dev/examples). You can also [join our Discord](https://discord.tldraw.com/?utm_source=github&utm_medium=repo&utm_campaign=faq) to chat with the team and other developers.
 
 **Want to help out?** That's great! See the **Contributing** section at the very bottom of this document.
 
