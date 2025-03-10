@@ -10,12 +10,16 @@ import {
 	embedShapeProps,
 	lerp,
 	resizeBox,
+	stopEventPropagation,
 	toDomPrecision,
 	useIsEditing,
 	useSvgExportContext,
 	useValue,
 } from '@tldraw/editor'
 
+import 'lite-youtube-embed/src/lite-yt-embed.css'
+import 'lite-youtube-embed/src/lite-yt-embed.js'
+import { createElement } from 'react'
 import {
 	DEFAULT_EMBED_DEFINITIONS,
 	EmbedDefinition,
@@ -176,6 +180,35 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			...embedShapePermissionDefaults,
 			...(embedInfo?.definition.overridePermissions ?? {}),
 		})
+
+		if (embedInfo?.definition.type === 'youtube') {
+			const urlObj = new URL(embedInfo.embedUrl)
+			const videoId = urlObj.pathname.match(/^\/embed\/([^/]+)\/?/)
+			const searchParams = new URLSearchParams(urlObj.search)
+			const timeStart = searchParams.get('t')
+			if (timeStart) {
+				searchParams.set('start', timeStart)
+			}
+			return createElement('lite-youtube', {
+				className: 'tl-embed',
+				videoid: videoId?.[1],
+				draggable: false,
+				onPointerDown: (e) => stopEventPropagation(e),
+				params: searchParams,
+				style: {
+					border: 0,
+					pointerEvents: isInteractive ? 'auto' : 'none',
+					// Fix for safari <https://stackoverflow.com/a/49150908>
+					zIndex: isInteractive ? '' : '-1',
+					boxShadow: getRotatedBoxShadow(pageRotation),
+					borderRadius: embedInfo?.definition.overrideOutlineRadius ?? 8,
+					background: embedInfo?.definition.backgroundColor,
+					width: toDomPrecision(w),
+					height: toDomPrecision(h),
+					maxWidth: 'none',
+				},
+			})
+		}
 
 		return (
 			<HTMLContainer className="tl-embed-container" id={shape.id}>
