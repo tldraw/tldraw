@@ -62,7 +62,7 @@ export async function exportToSvg(
 		const svg = renderTarget.firstElementChild
 		assert(svg instanceof SVGSVGElement, 'Expected an SVG element')
 
-		// And apply any changes to <foreignObject> elements that we need to make. Whilst we're in
+		// And apply any changes to <foreignObject> elements that we need to make. while we're in
 		// the document, these elements work exactly as we'd expect from other dom elements - they
 		// can load external resources, and any stylesheets in the document apply to them as we
 		// would expect them to. But when we pull the SVG into its own file or draw it to a canvas

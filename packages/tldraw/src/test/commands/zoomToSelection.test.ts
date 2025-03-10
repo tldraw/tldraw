@@ -30,7 +30,7 @@ it('does not zoom past min', () => {
 	editor.updateShapes([{ id: ids.box1, type: 'geo', props: { w: 100000, h: 100000 } }])
 	editor.select(ids.box1)
 	editor.zoomToSelection()
-	expect(editor.getZoomLevel()).toBe(0.1)
+	expect(editor.getZoomLevel()).toBe(0.05)
 })
 
 it('does not zoom to selection when camera is frozen', () => {

@@ -185,7 +185,7 @@
 
 - Renames `StoreOptions.multiplayerStatus` to `StoreOptions.collaboration.status`.
 
-#### images: show ghost preview image whilst uploading ([#3988](https://github.com/tldraw/tldraw/pull/3988))
+#### images: show ghost preview image while uploading ([#3988](https://github.com/tldraw/tldraw/pull/3988))
 
 - Media: add image and video upload indicators.
 
@@ -212,7 +212,7 @@
 #### 💄 Product Improvements
 
 - inline nanoid [#4410](https://github.com/tldraw/tldraw/pull/4410) ([@SomeHats](https://github.com/SomeHats))
-- images: show ghost preview image whilst uploading [#3988](https://github.com/tldraw/tldraw/pull/3988) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
+- images: show ghost preview image while uploading [#3988](https://github.com/tldraw/tldraw/pull/3988) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
 
 #### 🛠️ API Changes
 
