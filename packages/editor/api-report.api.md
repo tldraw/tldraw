@@ -4392,6 +4392,8 @@ export class Vec {
     // (undocumented)
     lrp(B: VecLike, t: number): Vec;
     // (undocumented)
+    static ManhattanDist(A: VecLike, B: VecLike): number;
+    // (undocumented)
     static Max(A: VecLike, B: VecLike): Vec;
     // (undocumented)
     static Med(A: VecLike, B: VecLike): Vec;

@@ -31,10 +31,18 @@ export const arrowBindingMigrations: TLPropsMigrations;
 export const arrowBindingProps: RecordProps<TLArrowBinding>;
 
 // @public (undocumented)
+export const arrowBindingVersions: {
+    AddSide: `com.tldraw.binding.arrow/${number}`;
+};
+
+// @public (undocumented)
 export const ArrowShapeArrowheadEndStyle: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
 
 // @public (undocumented)
 export const ArrowShapeArrowheadStartStyle: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
+
+// @public (undocumented)
+export const ArrowShapeKindStyle: EnumStyleProp<"bendy" | "elbow">;
 
 // @public (undocumented)
 export const arrowShapeMigrations: MigrationSequence;
@@ -268,20 +276,6 @@ export const drawShapeMigrations: TLPropsMigrations;
 
 // @public (undocumented)
 export const drawShapeProps: RecordProps<TLDrawShape>;
-
-// @public (undocumented)
-export interface ElbowArrowProps {
-    // (undocumented)
-    end: ElbowArrowSide | null;
-    // (undocumented)
-    start: ElbowArrowSide | null;
-}
-
-// @public (undocumented)
-export const ElbowArrowProps: T.ObjectValidator<{
-    end: "bottom" | "left" | "right" | "top" | null;
-    start: "bottom" | "left" | "right" | "top" | null;
-}>;
 
 // @public (undocumented)
 export const ElbowArrowSide: T.Validator<"bottom" | "left" | "right" | "top">;
@@ -688,6 +682,8 @@ export interface TLArrowBindingProps {
     // (undocumented)
     normalizedAnchor: VecModel;
     // (undocumented)
+    side: ElbowArrowSide | null;
+    // (undocumented)
     terminal: 'end' | 'start';
 }
 
@@ -696,6 +692,9 @@ export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>;
 
 // @public (undocumented)
 export type TLArrowShapeArrowheadStyle = T.TypeOf<typeof ArrowShapeArrowheadStartStyle>;
+
+// @public (undocumented)
+export type TLArrowShapeKind = T.TypeOf<typeof ArrowShapeKindStyle>;
 
 // @public (undocumented)
 export interface TLArrowShapeProps {
@@ -710,13 +709,13 @@ export interface TLArrowShapeProps {
     // (undocumented)
     dash: TLDefaultDashStyle;
     // (undocumented)
-    elbow: ElbowArrowProps | null;
-    // (undocumented)
     end: VecModel;
     // (undocumented)
     fill: TLDefaultFillStyle;
     // (undocumented)
     font: TLDefaultFontStyle;
+    // (undocumented)
+    kind: TLArrowShapeKind;
     // (undocumented)
     labelColor: TLDefaultColorStyle;
     // (undocumented)

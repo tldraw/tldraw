@@ -2,12 +2,15 @@ import {
 	assert,
 	Box,
 	Editor,
+	elbowArrowDebug,
 	ElbowArrowSide,
 	exhaustiveSwitchError,
 	Geometry2d,
 	Group2d,
 	intersectLineSegmentPolygon,
 	intersectLineSegmentPolyline,
+	invLerp,
+	lerp,
 	Mat,
 	TLArrowBinding,
 	TLArrowShape,
@@ -545,19 +548,21 @@ export function getUsableEdge(
 	const aValue = a.bounds[props.main]
 	const aExpanded = a.isPoint ? aValue : aValue + props.expand * options.expandElbowLegLength
 
-	let aCrossRange = expandRange(
+	const originalACrossRange = expandRange(
 		createRange(a.bounds[props.crossMin], a.bounds[props.crossMax]),
 		Math.abs(a.bounds[props.crossMin] - a.bounds[props.crossMax]) <
 			options.minArrowDistanceFromCorner * 2
 			? 0
 			: -options.minArrowDistanceFromCorner
 	)
+	let aCrossRange = originalACrossRange
 
 	// this edge is too small to be useful:
 	if (!aCrossRange) {
 		return null
 	}
 
+	assert(originalACrossRange)
 	const bRange = createRange(b.bounds[props.main], b.bounds[props.opposite])
 	if (!b.isPoint) {
 		bRange[props.bRangeExpand] -= options.minElbowLegLength * 2 * props.expand
@@ -589,13 +594,33 @@ export function getUsableEdge(
 		}
 	}
 
+	let crossTarget
+	switch (elbowArrowDebug.get().targetStyle) {
+		case 'push':
+			crossTarget = clampToRange(a.target[props.crossAxis], aCrossRange)
+			break
+		case 'center':
+			crossTarget = lerp(
+				aCrossRange.min,
+				aCrossRange.max,
+				invLerp(originalACrossRange.min, originalACrossRange.max, a.target[props.crossAxis])
+			)
+			break
+		case 'remove':
+			if (!isWithinRange(a.target[props.crossAxis], aCrossRange)) {
+				return null
+			}
+			crossTarget = a.target[props.crossAxis]
+			break
+	}
+
 	return {
 		value: aValue,
 		expanded: aExpanded,
 		cross: aCrossRange,
 		// crossTarget: clampToRange(a.bounds[props.crossMid], aCrossRange),
 		// crossTarget: lerp(aCrossRange.min, aCrossRange.max, 0.5),
-		crossTarget: clampToRange(a.target[props.crossAxis], aCrossRange),
+		crossTarget,
 		isPartial,
 	}
 }

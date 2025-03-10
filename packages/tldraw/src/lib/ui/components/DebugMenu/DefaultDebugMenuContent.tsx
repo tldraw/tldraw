@@ -211,7 +211,7 @@ export function FeatureFlags() {
 }
 
 export function DebugElbowArrowMenu() {
-	const { visualDebugging, aSide, bSide } = useValue(elbowArrowDebug)
+	const { visualDebugging, aSide, bSide, targetStyle } = useValue(elbowArrowDebug)
 	const editor = useEditor()
 
 	return (
@@ -225,6 +225,32 @@ export function DebugElbowArrowMenu() {
 						elbowArrowDebug.update((p) => ({ ...p, visualDebugging: !visualDebugging }))
 					}}
 				/>
+				<TldrawUiMenuSubmenu id="target" label={`Target (${targetStyle})`}>
+					<TldrawUiMenuCheckboxItem
+						id="push"
+						label="Push"
+						checked={targetStyle === 'push'}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, targetStyle: 'push' }))
+						}}
+					/>
+					<TldrawUiMenuCheckboxItem
+						id="center"
+						label="Center"
+						checked={targetStyle === 'center'}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, targetStyle: 'center' }))
+						}}
+					/>
+					<TldrawUiMenuCheckboxItem
+						id="remove"
+						label="Remove"
+						checked={targetStyle === 'remove'}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, targetStyle: 'remove' }))
+						}}
+					/>
+				</TldrawUiMenuSubmenu>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="samples">
 				<TldrawUiMenuItem
