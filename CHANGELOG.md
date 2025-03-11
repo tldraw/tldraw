@@ -1,3 +1,16 @@
+# v3.10.1 (Tue Mar 11 2025)
+
+#### 🐛 Bug Fix
+
+- `@tldraw/state-react`, `@tldraw/state`
+  - Hotfix API reference to fix links in state packages [#5610](https://github.com/tldraw/tldraw/pull/5610) ([@TodePond](https://github.com/TodePond))
+
+#### Authors: 1
+
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+
+---
+
 # v3.10.0 (Tue Mar 11 2025)
 
 ### Release Notes
