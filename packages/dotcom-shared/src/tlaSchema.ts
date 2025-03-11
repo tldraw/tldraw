@@ -145,7 +145,7 @@ export interface DB {
 	asset: TlaAsset
 }
 
-export const schema = createSchema(1, {
+export const schema = createSchema({
 	tables: [user, file, file_state],
 	relationships: [fileRelationships, fileStateRelationships],
 })
@@ -189,10 +189,17 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 	) => cmp('userId', '=', authData.sub!)
 
 	// TODO: We should also check that the file is shared, but zero seems to have a problem with that
-	const userHasGuestFileState = (
+	const userCanAccessFile = (
 		authData: AuthData,
-		{ exists }: ExpressionBuilder<TlaSchema, 'file'>
-	) => exists('states', (q) => q.where('userId', '=', authData.sub!))
+		{ exists, and, cmp, or }: ExpressionBuilder<TlaSchema, 'file'>
+	) =>
+		or(
+			cmp('ownerId', '=', authData.sub!),
+			and(
+				cmp('shared', '=', true),
+				exists('states', (q) => q.where('userId', '=', authData.sub!))
+			)
+		)
 
 	const disallowIfDeleted = (_authData: AuthData, { cmp }: ExpressionBuilder<TlaSchema, 'file'>) =>
 		cmp('isDeleted', '=', false)
@@ -222,7 +229,7 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 		},
 		file: {
 			row: {
-				select: [allowIfFileOwner, userHasGuestFileState],
+				select: [userCanAccessFile],
 				insert: [allowIfFileOwner],
 				update: {
 					preMutation: [and(allowIfFileOwner, disallowIfDeleted)],
