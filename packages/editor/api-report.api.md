@@ -1585,6 +1585,9 @@ export { EffectScheduler }
 export const elbowArrowDebug: DebugFlag<{
     aSide: ElbowArrowSide | null;
     bSide: ElbowArrowSide | null;
+    edgePicking: 'entry-position' | 'entry-velocity' | 'position';
+    supportPrecise: boolean;
+    targetStyle: 'center' | 'push' | 'remove';
     visualDebugging: boolean;
 }>;
 
@@ -1749,15 +1752,7 @@ export function getFreshUserPreferences(): TLUserPreferences;
 export function getIncrementedName(name: string, others: string[]): string;
 
 // @public (undocumented)
-export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: Partial<{
-    closed: boolean;
-    end: 'none' | 'outset' | 'skip';
-    forceSolid: boolean;
-    lengthRatio: number;
-    snap: number;
-    start: 'none' | 'outset' | 'skip';
-    style: TLDefaultDashStyle;
-}>): {
+export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: GetPerfectDashPropsOpts): {
     strokeDasharray: string;
     strokeDashoffset: string;
 };

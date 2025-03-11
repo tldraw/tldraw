@@ -51,7 +51,7 @@ import {
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
-import { ArrowPath } from './ArrowPath'
+import { getArrowBodyPath, getArrowHandlePath } from './ArrowPath'
 import { ArrowShapeOptions } from './arrow-types'
 import { getArrowLabelFontSize, getArrowLabelPosition } from './arrowLabel'
 import { getArrowheadPathForType } from './arrowheads'
@@ -823,7 +823,21 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						/>
 					)}
 
-					<ArrowPath info={info} range="body" dash="solid" isForceSolid={true} />
+					{getArrowBodyPath(
+						shape,
+						info,
+						shape.props.dash === 'draw'
+							? {
+									style: 'draw',
+									randomSeed: shape.id,
+									strokeWidth: 1,
+									passes: 1,
+									offset: 0,
+									roundness: strokeWidth * 2,
+									props: { strokeWidth: undefined },
+								}
+							: { style: 'solid', strokeWidth: 1, props: { strokeWidth: undefined } }
+					)}
 				</g>
 				{as && <path d={as} />}
 				{ae && <path d={ae} />}
@@ -965,35 +979,31 @@ const ArrowSvg = track(function ArrowSvg({
 	let handlePath: null | React.JSX.Element = null
 
 	if (shouldDisplayHandles && (bindings.start || bindings.end)) {
-		handlePath = (
-			<ArrowPath
-				className="tl-arrow-hint"
-				range="handle"
-				strokeWidth={2 / editor.getZoomLevel()}
-				dash={{ start: 'skip', end: 'skip', lengthRatio: 2.5 }}
-				isForceSolid={false}
-				info={info}
-				markerStart={
-					bindings.start
-						? bindings.start.props.isExact
-							? ''
-							: bindings.start.props.isPrecise
-								? `url(#${arrowheadCrossId})`
-								: `url(#${arrowheadDotId})`
-						: ''
-				}
-				markerEnd={
-					bindings.end
-						? bindings.end.props.isExact
-							? ''
-							: bindings.end.props.isPrecise
-								? `url(#${arrowheadCrossId})`
-								: `url(#${arrowheadDotId})`
-						: ''
-				}
-				opacity={0.16}
-			/>
-		)
+		handlePath = getArrowHandlePath(info, {
+			style: 'dashed',
+			start: 'skip',
+			end: 'skip',
+			lengthRatio: 2.5,
+			strokeWidth: 2 / editor.getZoomLevel(),
+			props: {
+				className: 'tl-arrow-hint',
+				markerStart: bindings.start
+					? bindings.start.props.isExact
+						? ''
+						: bindings.start.props.isPrecise
+							? `url(#${arrowheadCrossId})`
+							: `url(#${arrowheadDotId})`
+					: '',
+				markerEnd: bindings.end
+					? bindings.end.props.isExact
+						? ''
+						: bindings.end.props.isPrecise
+							? `url(#${arrowheadCrossId})`
+							: `url(#${arrowheadDotId})`
+					: '',
+				opacity: 0.16,
+			},
+		})
 	}
 
 	const labelPosition = getArrowLabelPosition(editor, shape)
@@ -1037,13 +1047,12 @@ const ArrowSvg = track(function ArrowSvg({
 						height={toDomPrecision(bounds.height + 200)}
 						opacity={0}
 					/>
-					<ArrowPath
-						info={info}
-						range="body"
-						dash={shape.props.dash}
-						strokeWidth={strokeWidth}
-						isForceSolid={isForceSolid}
-					/>
+					{getArrowBodyPath(shape, info, {
+						style: shape.props.dash,
+						strokeWidth,
+						forceSolid: isForceSolid,
+						randomSeed: shape.id,
+					})}
 				</g>
 				{as && clipStartArrowhead && shape.props.fill !== 'none' && (
 					<ShapeFill
