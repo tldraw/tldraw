@@ -12,7 +12,7 @@ import { useEditor } from './useEditor'
 
 export function useCanvasEvents() {
 	const editor = useEditor()
-	const currentToolId = useValue('current tool id', () => editor?.getCurrentToolId(), [editor])
+	const currentTool = useValue('current tool', () => editor.getCurrentTool(), [editor])
 
 	const events = useMemo(
 		function canvasEvents() {
@@ -53,9 +53,7 @@ export function useCanvasEvents() {
 
 				// For tools that benefit from a higher fidelity of events,
 				// we dispatch the coalesced events.
-				const events = ['draw', 'highlight'].includes(currentToolId)
-					? e.nativeEvent.getCoalescedEvents()
-					: [e]
+				const events = currentTool.useCoalescedEvents ? e.nativeEvent.getCoalescedEvents() : [e]
 				for (const singleEvent of events) {
 					editor.dispatch({
 						type: 'pointer',
@@ -168,7 +166,7 @@ export function useCanvasEvents() {
 				onClick,
 			}
 		},
-		[editor, currentToolId]
+		[editor, currentTool]
 	)
 
 	return events

@@ -2804,6 +2804,10 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     transition(id: string, info?: any): this;
     // (undocumented)
     type: 'branch' | 'leaf' | 'root';
+    // (undocumented)
+    static useCoalescedEvents: boolean;
+    // (undocumented)
+    useCoalescedEvents: boolean;
 }
 
 // @public (undocumented)
@@ -4004,6 +4008,8 @@ export interface TLStateNodeConstructor {
     initial?: string;
     // (undocumented)
     isLockable: boolean;
+    // (undocumented)
+    useCoalescedEvents: boolean;
 }
 
 // @public (undocumented)
