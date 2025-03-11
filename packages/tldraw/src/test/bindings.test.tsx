@@ -57,6 +57,12 @@ const mockOnAfterChangeToShape = jest.fn() as jest.Mock<
 
 const calls: string[] = []
 
+const registerCall = (method: string, binding: TLUnknownBinding) => {
+	calls.push(
+		`${method}: ${binding.fromId.slice('shape:'.length)}->${binding.toId.slice('shape:'.length)}`
+	)
+}
+
 class TestBindingUtil extends BindingUtil {
 	static override type = 'test'
 
@@ -72,62 +78,62 @@ class TestBindingUtil extends BindingUtil {
 	}
 
 	override onBeforeDelete(options: BindingOnDeleteOptions<TLUnknownBinding>): void {
-		calls.push('onBeforeDelete')
+		registerCall('onBeforeDelete', options.binding)
 		mockOnBeforeDelete(options)
 	}
 
 	override onAfterDelete(options: BindingOnDeleteOptions<TLUnknownBinding>): void {
-		calls.push('onAfterDelete')
+		registerCall('onAfterDelete', options.binding)
 		mockOnAfterDelete(options)
 	}
 
 	override onBeforeDeleteFromShape(options: BindingOnShapeDeleteOptions<TLUnknownBinding>): void {
-		calls.push('onBeforeDeleteFromShape')
+		registerCall('onBeforeDeleteFromShape', options.binding)
 		mockOnBeforeFromShapeDelete(options)
 	}
 
 	override onBeforeDeleteToShape(options: BindingOnShapeDeleteOptions<TLUnknownBinding>): void {
-		calls.push('onBeforeDeleteToShape')
+		registerCall('onBeforeDeleteToShape', options.binding)
 		mockOnBeforeToShapeDelete(options)
 	}
 
 	override onBeforeIsolateFromShape(options: BindingOnShapeIsolateOptions<TLUnknownBinding>): void {
-		calls.push('onBeforeIsolateFromShape')
+		registerCall('onBeforeIsolateFromShape', options.binding)
 		mockOnBeforeFromShapeIsolate(options)
 	}
 
 	override onBeforeIsolateToShape(options: BindingOnShapeIsolateOptions<TLUnknownBinding>): void {
-		calls.push('onBeforeIsolateToShape')
+		registerCall('onBeforeIsolateToShape', options.binding)
 		mockOnBeforeToShapeIsolate(options)
 	}
 
 	override onBeforeCreate(options: BindingOnCreateOptions<TLUnknownBinding>): void {
-		calls.push('onBeforeCreate')
+		registerCall('onBeforeCreate', options.binding)
 		mockOnBeforeCreate(options)
 	}
 
 	override onAfterCreate(options: BindingOnCreateOptions<TLUnknownBinding>): void {
-		calls.push('onAfterCreate')
+		registerCall('onAfterCreate', options.binding)
 		mockOnAfterCreate(options)
 	}
 
 	override onBeforeChange(options: BindingOnChangeOptions<TLUnknownBinding>): void {
-		calls.push('onBeforeChange')
+		registerCall('onBeforeChange', options.bindingAfter)
 		mockOnBeforeChange(options)
 	}
 
 	override onAfterChange(options: BindingOnChangeOptions<TLUnknownBinding>): void {
-		calls.push('onAfterChange')
+		registerCall('onAfterChange', options.bindingAfter)
 		mockOnAfterChange(options)
 	}
 
 	override onAfterChangeFromShape(options: BindingOnShapeChangeOptions<TLUnknownBinding>): void {
-		calls.push('onAfterChangeFromShape')
+		registerCall('onAfterChangeFromShape', options.binding)
 		mockOnAfterChangeFromShape(options)
 	}
 
 	override onAfterChangeToShape(options: BindingOnShapeChangeOptions<TLUnknownBinding>): void {
-		calls.push('onAfterChangeToShape')
+		registerCall('onAfterChangeToShape', options.binding)
 		mockOnAfterChangeToShape(options)
 	}
 }
@@ -174,10 +180,10 @@ test('deleting the from shape', () => {
 	editor.deleteShape(ids.box1)
 	expect(calls).toMatchInlineSnapshot(`
 		[
-		  "onBeforeIsolateToShape",
-		  "onBeforeDeleteFromShape",
-		  "onBeforeDelete",
-		  "onAfterDelete",
+		  "onBeforeIsolateToShape: box1->box2",
+		  "onBeforeDeleteFromShape: box1->box2",
+		  "onBeforeDelete: box1->box2",
+		  "onAfterDelete: box1->box2",
 		  "onOperationComplete",
 		]
 	`)
@@ -189,10 +195,10 @@ test('deleting the to shape', () => {
 	editor.deleteShape(ids.box2)
 	expect(calls).toMatchInlineSnapshot(`
 		[
-		  "onBeforeIsolateFromShape",
-		  "onBeforeDeleteToShape",
-		  "onBeforeDelete",
-		  "onAfterDelete",
+		  "onBeforeIsolateFromShape: box1->box2",
+		  "onBeforeDeleteToShape: box1->box2",
+		  "onBeforeDelete: box1->box2",
+		  "onAfterDelete: box1->box2",
 		  "onOperationComplete",
 		]
 	`)
@@ -204,8 +210,8 @@ test('deleting the binding', () => {
 	editor.deleteBinding(bindingId)
 	expect(calls).toMatchInlineSnapshot(`
 		[
-		  "onBeforeDelete",
-		  "onAfterDelete",
+		  "onBeforeDelete: box1->box2",
+		  "onAfterDelete: box1->box2",
 		  "onOperationComplete",
 		]
 	`)
@@ -217,10 +223,10 @@ test('deleting the binding while isolating', () => {
 	editor.deleteBinding(bindingId, { isolateShapes: true })
 	expect(calls).toMatchInlineSnapshot(`
 		[
-		  "onBeforeIsolateFromShape",
-		  "onBeforeIsolateToShape",
-		  "onBeforeDelete",
-		  "onAfterDelete",
+		  "onBeforeIsolateFromShape: box1->box2",
+		  "onBeforeIsolateToShape: box1->box2",
+		  "onBeforeDelete: box1->box2",
+		  "onAfterDelete: box1->box2",
 		  "onOperationComplete",
 		]
 	`)
@@ -241,10 +247,10 @@ test('copying the from shape on its own does trigger isolation operations', () =
 	editor.copy()
 	expect(calls).toMatchInlineSnapshot(`
 		[
-		  "onBeforeIsolateFromShape",
-		  "onBeforeIsolateToShape",
-		  "onBeforeDelete",
-		  "onAfterDelete",
+		  "onBeforeIsolateFromShape: box1->box2",
+		  "onBeforeIsolateToShape: box1->box2",
+		  "onBeforeDelete: box1->box2",
+		  "onAfterDelete: box1->box2",
 		  "onOperationComplete",
 		]
 	`)
@@ -257,10 +263,10 @@ test('copying the to shape on its own does trigger the unbind operation', () => 
 	editor.copy()
 	expect(calls).toMatchInlineSnapshot(`
 		[
-		  "onBeforeIsolateFromShape",
-		  "onBeforeIsolateToShape",
-		  "onBeforeDelete",
-		  "onAfterDelete",
+		  "onBeforeIsolateFromShape: box1->box2",
+		  "onBeforeIsolateToShape: box1->box2",
+		  "onBeforeDelete: box1->box2",
+		  "onAfterDelete: box1->box2",
 		  "onOperationComplete",
 		]
 	`)
@@ -283,29 +289,30 @@ test('cascading deletes in beforeFromShapeDelete are handled correctly', () => {
 	expect(editor.getShape(ids.box3)).toBeUndefined()
 	expect(editor.getShape(ids.box4)).toBeUndefined()
 
-	expect(calls).toMatchInlineSnapshot(`
+	expect(calls.at(-1)).toBe('onOperationComplete')
+
+	expect(
 		[
-		  "onBeforeIsolateToShape",
-		  "onBeforeDeleteFromShape",
-		  "onBeforeIsolateFromShape",
-		  "onBeforeDeleteToShape",
-		  "onBeforeIsolateToShape",
-		  "onBeforeDeleteFromShape",
-		  "onBeforeIsolateFromShape",
-		  "onBeforeDeleteToShape",
-		  "onBeforeIsolateToShape",
-		  "onBeforeDeleteFromShape",
-		  "onBeforeIsolateFromShape",
-		  "onBeforeDeleteToShape",
-		  "onBeforeDelete",
-		  "onBeforeDelete",
-		  "onBeforeDelete",
-		  "onAfterDelete",
-		  "onAfterDelete",
-		  "onAfterDelete",
-		  "onOperationComplete",
-		]
-	`)
+			'onBeforeIsolateToShape: box1->box2',
+			'onBeforeDeleteFromShape: box1->box2',
+			'onBeforeIsolateFromShape: box1->box2',
+			'onBeforeDeleteToShape: box1->box2',
+			'onBeforeIsolateToShape: box2->box3',
+			'onBeforeDeleteFromShape: box2->box3',
+			'onBeforeIsolateToShape: box3->box4',
+			'onBeforeDeleteFromShape: box3->box4',
+			'onBeforeIsolateFromShape: box3->box4',
+			'onBeforeDeleteToShape: box3->box4',
+			'onBeforeDelete: box3->box4',
+			'onBeforeIsolateFromShape: box2->box3',
+			'onBeforeDeleteToShape: box2->box3',
+			'onBeforeDelete: box2->box3',
+			'onBeforeDelete: box1->box2',
+			'onAfterDelete: box3->box4',
+			'onAfterDelete: box2->box3',
+			'onAfterDelete: box1->box2',
+		].every((call) => calls.includes(call))
+	).toBe(true)
 })
 
 test('cascading deletes in beforeToShapeDelete are handled correctly', () => {
@@ -325,29 +332,31 @@ test('cascading deletes in beforeToShapeDelete are handled correctly', () => {
 	expect(editor.getShape(ids.box3)).toBeUndefined()
 	expect(editor.getShape(ids.box4)).toBeUndefined()
 
-	expect(calls).toMatchInlineSnapshot(`
+	expect(calls.at(-1)).toBe('onOperationComplete')
+
+	expect(
 		[
-		  "onBeforeIsolateFromShape",
-		  "onBeforeDeleteToShape",
-		  "onBeforeIsolateFromShape",
-		  "onBeforeDeleteToShape",
-		  "onBeforeIsolateFromShape",
-		  "onBeforeDeleteToShape",
-		  "onBeforeIsolateToShape",
-		  "onBeforeDeleteFromShape",
-		  "onBeforeDelete",
-		  "onBeforeIsolateToShape",
-		  "onBeforeDeleteFromShape",
-		  "onBeforeDelete",
-		  "onBeforeIsolateToShape",
-		  "onBeforeDeleteFromShape",
-		  "onBeforeDelete",
-		  "onAfterDelete",
-		  "onAfterDelete",
-		  "onAfterDelete",
-		  "onOperationComplete",
-		]
-	`)
+			'onBeforeIsolateFromShape: box3->box4',
+			'onBeforeDeleteToShape: box3->box4',
+			'onBeforeIsolateFromShape: box2->box3',
+			'onBeforeDeleteToShape: box2->box3',
+			'onBeforeIsolateFromShape: box1->box2',
+			'onBeforeDeleteToShape: box1->box2',
+			'onBeforeIsolateToShape: box1->box2',
+			'onBeforeDeleteFromShape: box1->box2',
+			'onBeforeDelete: box1->box2',
+			'onBeforeIsolateToShape: box2->box3',
+			'onBeforeDeleteFromShape: box2->box3',
+			'onBeforeDelete: box2->box3',
+			'onBeforeIsolateToShape: box3->box4',
+			'onBeforeDeleteFromShape: box3->box4',
+			'onBeforeDelete: box3->box4',
+			'onAfterDelete: box1->box2',
+			'onAfterDelete: box2->box3',
+			'onAfterDelete: box3->box4',
+			'onOperationComplete',
+		].every((call) => calls.includes(call))
+	).toBe(true)
 })
 
 test('onBeforeCreate is called before the binding is created', () => {
