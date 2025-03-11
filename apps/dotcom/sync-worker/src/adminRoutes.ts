@@ -2,7 +2,7 @@ import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
 import { createPostgresConnectionPool } from './postgres'
 import { type Environment } from './types'
-import { getUserDurableObject } from './utils/durableObjects'
+import { getReplicator, getUserDurableObject } from './utils/durableObjects'
 import { getClerkClient, requireAuth } from './utils/tla/getAuth'
 
 async function requireUser(env: Environment, q: string) {
@@ -38,6 +38,11 @@ export const adminRoutes = createRouter<Environment>()
 
 		const user = getUserDurableObject(env, userRow.id)
 		return json(await user.admin_getData(userRow.id))
+	})
+	.get('/app/admin/replicator', async (res, env) => {
+		const replicator = getReplicator(env)
+		const diagnostics = await replicator.getDiagnostics()
+		return json(diagnostics)
 	})
 	.post('/app/admin/user/reboot', async (res, env) => {
 		const q = res.query['q']
