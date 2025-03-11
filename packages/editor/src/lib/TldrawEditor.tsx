@@ -201,12 +201,6 @@ export interface TldrawEditorBaseProps {
 	 * The URLs for the fonts to use in the editor.
 	 */
 	assetUrls?: { fonts?: { [key: string]: string | undefined } }
-
-	/**
-	 * If you have a CSP policy that blocks inline styles, you can use this prop to provide a
-	 * nonce to use in the editor's styles.
-	 */
-	nonce?: string
 }
 
 /**
@@ -392,7 +386,6 @@ function TldrawEditorWithReadyStore({
 	textOptions,
 	options,
 	licenseKey,
-	nonce,
 	deepLinks: _deepLinks,
 	isShapeHidden,
 	assetUrls,
@@ -453,7 +446,6 @@ function TldrawEditorWithReadyStore({
 				textOptions,
 				options,
 				licenseKey,
-				nonce,
 				isShapeHidden,
 				fontAssetUrls: assetUrls?.fonts,
 			})
@@ -489,7 +481,6 @@ function TldrawEditorWithReadyStore({
 			user,
 			setEditor,
 			licenseKey,
-			nonce,
 			isShapeHidden,
 			textOptions,
 			assetUrls,

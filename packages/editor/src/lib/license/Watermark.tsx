@@ -172,5 +172,5 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		}
 	}`
 
-	return <style nonce={editor.nonce}>{CSS}</style>
+	return <style nonce={editor.options.nonce}>{CSS}</style>
 })

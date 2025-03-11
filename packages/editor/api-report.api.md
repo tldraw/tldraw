@@ -755,6 +755,7 @@ export const defaultTldrawOptions: {
     readonly maxPages: 40;
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
+    readonly nonce: undefined;
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
 };
@@ -1434,8 +1435,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         param?: string;
         url?: string | URL;
     } | TLDeepLink): Editor;
-    // (undocumented)
-    readonly nonce?: string;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
     // (undocumented)
     readonly options: TldrawOptions;
@@ -3160,7 +3159,6 @@ export interface TldrawEditorBaseProps {
     initialState?: string;
     isShapeHidden?(shape: TLShape, editor: Editor): boolean;
     licenseKey?: string;
-    nonce?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
@@ -3266,6 +3264,7 @@ export interface TldrawOptions {
     readonly maxShapesPerPage: number;
     // (undocumented)
     readonly multiClickDurationMs: number;
+    readonly nonce: string | undefined;
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;
@@ -3344,8 +3343,6 @@ export interface TLEditorOptions {
     isShapeHidden?(shape: TLShape, editor: Editor): boolean;
     // (undocumented)
     licenseKey?: string;
-    // (undocumented)
-    nonce?: string;
     // (undocumented)
     options?: Partial<TldrawOptions>;
     shapeUtils: readonly TLAnyShapeUtilConstructor[];

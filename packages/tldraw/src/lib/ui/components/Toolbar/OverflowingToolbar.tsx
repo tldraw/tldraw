@@ -149,7 +149,7 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 
 	return (
 		<>
-			<style nonce={editor.nonce}>{css}</style>
+			<style nonce={editor.options.nonce}>{css}</style>
 			<div
 				className={classNames('tlui-toolbar__tools', {
 					'tlui-toolbar__tools__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
