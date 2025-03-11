@@ -5,7 +5,7 @@ import { useMemo } from 'react'
 /**
  * Creates a new computed signal and returns it. The computed signal will be created only once.
  *
- * See [[computed]]
+ * See {@link state#computed}
  *
  * @example
  * ```ts
