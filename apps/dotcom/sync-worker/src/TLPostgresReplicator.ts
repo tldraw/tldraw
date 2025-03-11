@@ -111,6 +111,12 @@ const migrations: Migration[] = [
 			PRAGMA optimize;
 		`,
 	},
+	{
+		id: '005_add_history_timestamp',
+		code: `
+			ALTER TABLE history ADD COLUMN timestamp INTEGER NOT NULL DEFAULT 0;
+		`,
+	},
 ]
 
 const ONE_MINUTE = 60 * 1000
@@ -349,6 +355,23 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
+	async getDiagnostics() {
+		const earliestHistoryRow = this.sqlite
+			.exec('select * from history order by rowid asc limit 1')
+			.toArray()[0]
+		const latestHistoryRow = this.sqlite
+			.exec('select * from history order by rowid desc limit 1')
+			.toArray()[0]
+		const activeUsers = this.sqlite.exec('select count(*) from active_user').one().count as number
+		const meta = this.sqlite.exec('select * from meta').one()
+		return {
+			earliestHistoryRow,
+			latestHistoryRow,
+			activeUsers,
+			meta,
+		}
+	}
+
 	private queue = new ExecutionQueue()
 
 	private async reboot(source: TLPostgresReplicatorRebootSource, delay = true) {
@@ -432,11 +455,12 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 					this.handleEvent(collator, change, false)
 					this.sqlite.exec(
-						'INSERT INTO history (lsn, userId, fileId, json) VALUES (?, ?, ?, ?)',
+						'INSERT INTO history (lsn, userId, fileId, json, timestamp) VALUES (?, ?, ?, ?, ?)',
 						lsn,
 						change.userId,
 						change.fileId,
-						JSON.stringify(change)
+						JSON.stringify(change),
+						Date.now()
 					)
 				}
 				this.log.debug('changes', collator.changes.size)

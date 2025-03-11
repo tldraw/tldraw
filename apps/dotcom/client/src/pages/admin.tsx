@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { fetch } from 'tldraw'
 import { useTldrawUser } from '../tla/hooks/useUser'
@@ -7,6 +7,7 @@ export function Component() {
 	const user = useTldrawUser()
 	const [data, setData] = useState(null)
 	const [error, setError] = useState(null as string | null)
+	const [replicatorData, setReplicatorData] = useState(null)
 	const [isRebooting, setIsRebooting] = useState(false)
 	const inputRef = useRef<HTMLInputElement>(null)
 	const loadData = useCallback(async () => {
@@ -38,6 +39,23 @@ export function Component() {
 		}
 	}, [loadData])
 
+	useEffect(() => {
+		if (user?.isTldraw) {
+			fetch('/api/app/admin/replicator')
+				.then(async (res) => {
+					if (!res.ok) {
+						setError(res.statusText + ': ' + (await res.text()))
+						return
+					}
+					setError(null)
+					setReplicatorData(await res.json())
+				})
+				.catch((e) => {
+					setError(e.message)
+				})
+		}
+	}, [user?.isTldraw])
+
 	if (!user?.isTldraw) {
 		return <Navigate to="/" replace />
 	}
@@ -63,6 +81,9 @@ export function Component() {
 					</button>
 				</>
 			)}
+			<h2>Replicator data</h2>
+			{replicatorData && <pre>{JSON.stringify(replicatorData, null, 2)}</pre>}
+			<h2>User data</h2>
 			{data && <pre>{JSON.stringify(data, null, 2)}</pre>}
 		</div>
 	)
