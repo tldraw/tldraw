@@ -94,6 +94,7 @@ export const arrowShapeProps: RecordProps<TLArrowShape> = {
 	scale: T.nonZeroNumber,
 }
 
+/** @public */
 export const arrowShapeVersions = createShapePropsMigrationIds('arrow', {
 	AddLabelColor: 1,
 	AddIsPrecise: 2,

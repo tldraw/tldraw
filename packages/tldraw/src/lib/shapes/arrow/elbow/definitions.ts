@@ -4,6 +4,7 @@ export const DIRS = ['right', 'bottom', 'left', 'top'] as const
 
 export type ArrowDirection = (typeof DIRS)[number]
 
+/** @public */
 export interface ElbowArrowOptions {
 	expandElbowLegLength: number
 	minElbowLegLength: number

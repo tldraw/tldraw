@@ -1752,7 +1752,15 @@ export function getFreshUserPreferences(): TLUserPreferences;
 export function getIncrementedName(name: string, others: string[]): string;
 
 // @public (undocumented)
-export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: GetPerfectDashPropsOpts): {
+export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: {
+    closed?: boolean;
+    end?: 'none' | 'outset' | 'skip';
+    forceSolid?: boolean;
+    lengthRatio?: number;
+    snap?: number;
+    start?: 'none' | 'outset' | 'skip';
+    style?: TLDefaultDashStyle;
+}): {
     strokeDasharray: string;
     strokeDashoffset: string;
 };
@@ -4311,10 +4319,10 @@ export class Vec {
     static AddXY(A: VecLike, x: number, y: number): Vec;
     // (undocumented)
     addXY(x: number, y: number): this;
-    // (undocumented)
     static Angle(A: VecLike, B: VecLike): number;
     // (undocumented)
     angle(B: VecLike): number;
+    static AngleBetween(A: VecLike, B: VecLike): number;
     // (undocumented)
     static Average(arr: VecLike[]): Vec;
     // (undocumented)

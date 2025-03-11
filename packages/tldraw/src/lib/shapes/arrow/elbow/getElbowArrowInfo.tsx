@@ -24,7 +24,7 @@ import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { BOUND_ARROW_OFFSET, STROKE_SIZES, TLArrowBindings } from '../shared'
 import { ElbowArrowOptions, ElbowArrowSideAxes, ElbowArrowSideOpposites } from './definitions'
 import { ElbowArrowRoute, tryRouteArrow } from './elbowArrowRoutes'
-import { ArrowNavigationGrid, getArrowNavigationGrid } from './getArrowNavigationGrid'
+import { getArrowNavigationGrid } from './getArrowNavigationGrid'
 import { getArrowPath } from './getArrowPath'
 import {
 	clampToRange,
@@ -39,11 +39,13 @@ import {
 	routeArrowWithPartialEdgePicking,
 } from './routeArrowWithAutoEdgePicking'
 
+/** @public */
 export interface ElbowArrowScale {
 	x: 1 | -1
 	y: 1 | -1
 }
 
+/** @public */
 export interface ElbowArrowBoxes {
 	/** The starting bounding box */
 	A: Box
@@ -53,6 +55,7 @@ export interface ElbowArrowBoxes {
 	common: Box
 }
 
+/** @public */
 export interface ElbowArrowRange {
 	min: number
 	max: number
@@ -60,6 +63,7 @@ export interface ElbowArrowRange {
 
 /**
  * An edge on a box.
+ * @public
  */
 export interface ElbowArrowEdge {
 	/**
@@ -76,7 +80,7 @@ export interface ElbowArrowEdge {
 	 */
 	cross: ElbowArrowRange
 	/**
-	 * The point of the target along the edge, constrained to within {@link cross}.
+	 * The point of the target along the edge, constrained to within {@link ElbowArrowEdge.cross}.
 	 */
 	crossTarget: number
 	/**
@@ -88,6 +92,7 @@ export interface ElbowArrowEdge {
 /**
  * The usable range of the edges of a box. Each edge might be null if the edge is not usable for
  * entry/exit.
+ * @public
  */
 export interface ElbowArrowBoxEdges {
 	top: ElbowArrowEdge | null
@@ -96,6 +101,9 @@ export interface ElbowArrowBoxEdges {
 	left: ElbowArrowEdge | null
 }
 
+/**
+ * @public
+ */
 export interface ElbowArrowBox {
 	/** The original bounding box */
 	original: Box
@@ -108,6 +116,9 @@ export interface ElbowArrowBox {
 	expanded: Box
 }
 
+/**
+ * @public
+ */
 export interface ElbowArrowTargetBox extends ElbowArrowBox {
 	/** What specific point in the box are we aiming for? */
 	target: Vec
@@ -121,7 +132,7 @@ export interface ElbowArrowTargetBox extends ElbowArrowBox {
 	 */
 	arrowheadOffset: number
 	/**
-	 * The usable edges of the box, after transforming by {@link scale}.
+	 * The usable edges of the box, after transforming by {@link ElbowArrowInfoWithoutRoute.scale}.
 	 */
 	edges: ElbowArrowBoxEdges
 	/**
@@ -135,6 +146,7 @@ export interface ElbowArrowTargetBox extends ElbowArrowBox {
 	}[]
 }
 
+/** @public */
 export interface ElbowArrowInfoWithoutRoute {
 	/**
 	 * The options used for this elbow arrow
@@ -157,40 +169,42 @@ export interface ElbowArrowInfoWithoutRoute {
 	common: ElbowArrowBox
 
 	/**
-	 * The horizontal position of A relative to B, after transforming by {@link scale}. Note that
+	 * The horizontal position of A relative to B, after transforming by {@link ElbowArrowInfoWithoutRoute.scale}. Note that
 	 * due to the transformation, a cannot be to the right of b.
 	 */
 	hPos: 'a-left-of-b' | 'a-overlaps-b' | 'a-contains-b' | 'a-inside-b' | 'a-matches-b'
 	/**
-	 * The vertical position of A relative to B, after transforming by {@link scale}. Note that
+	 * The vertical position of A relative to B, after transforming by {@link ElbowArrowInfoWithoutRoute.scale}. Note that
 	 * due to the transformation, a cannot be below b.
 	 */
 	vPos: 'a-above-b' | 'a-overlaps-b' | 'a-contains-b' | 'a-inside-b' | 'a-matches-b'
 	/**
-	 * The gap between the right edge of A and the left edge of B, after transforming by {@link scale}.
+	 * The gap between the right edge of A and the left edge of B, after transforming by {@link ElbowArrowInfoWithoutRoute.scale}.
 	 */
 	gapX: number
 	/**
-	 * The gap between the bottom edge of A and the top edge of B, after transforming by {@link scale}.
+	 * The gap between the bottom edge of A and the top edge of B, after transforming by {@link ElbowArrowInfoWithoutRoute.scale}.
 	 */
 	gapY: number
 	/**
 	 * The X coordinate of the middle line between the two boxes, after transforming by
-	 * {@link scale}. If the boxes are too close or overlap, this may be null.
+	 * {@link ElbowArrowInfoWithoutRoute.scale}. If the boxes are too close or overlap, this may be null.
 	 */
 	mx: number | null
 	/**
 	 * The Y coordinate of the middle line between the two boxes, after transforming by
-	 * {@link scale}. If the boxes are too close or overlap, this may be null.
+	 * {@link ElbowArrowInfoWithoutRoute.scale}. If the boxes are too close or overlap, this may be null.
 	 */
 	my: number | null
 
+	/** @internal */
 	steve(): {
-		grid: ArrowNavigationGrid
+		grid: any
 		path: Vec[] | null
 	}
 }
 
+/** @public */
 export interface ElbowArrowInfo extends ElbowArrowInfoWithoutRoute {
 	route: ElbowArrowRoute | null
 }

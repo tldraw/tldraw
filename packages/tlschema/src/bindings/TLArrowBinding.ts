@@ -41,6 +41,7 @@ export const arrowBindingProps: RecordProps<TLArrowBinding> = {
 /** @public */
 export type TLArrowBinding = TLBaseBinding<'arrow', TLArrowBindingProps>
 
+/** @public */
 export const arrowBindingVersions = createBindingPropsMigrationIds('arrow', {
 	AddSide: 1,
 })

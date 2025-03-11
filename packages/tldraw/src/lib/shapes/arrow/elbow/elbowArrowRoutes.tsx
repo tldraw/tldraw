@@ -58,6 +58,7 @@ class ElbowArrowRouteBuilder {
 	}
 }
 
+/** @public */
 export interface ElbowArrowRoute {
 	name: string
 	points: Vec[]

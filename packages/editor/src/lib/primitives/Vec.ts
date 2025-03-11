@@ -472,9 +472,6 @@ export class Vec {
 
 	/**
 	 * Get the angle from position A to position B.
-	 * @param A
-	 * @param B
-	 * @returns
 	 */
 	static Angle(A: VecLike, B: VecLike): number {
 		return Math.atan2(B.y - A.y, B.x - A.x)
@@ -483,9 +480,6 @@ export class Vec {
 	/**
 	 * Get the angle between vector A and vector B. This will return the smallest angle between the
 	 * two vectors, between -π and π. The sign indicates direction of angle.
-	 * @param A - The first vector.
-	 * @param B - The second vector.
-	 * @returns The angle between the two vectors.
 	 */
 	static AngleBetween(A: VecLike, B: VecLike): number {
 		const p = A.x * B.x + A.y * B.y

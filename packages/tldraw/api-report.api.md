@@ -183,6 +183,16 @@ export function ArrowLeftToolbarItem(): JSX_2.Element;
 export function ArrowRightToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
+export interface ArrowShapeOptions {
+    // (undocumented)
+    readonly expandElbowLegLength: Record<TLDefaultSizeStyle, number>;
+    // (undocumented)
+    readonly minArrowDistanceFromCorner: number;
+    // (undocumented)
+    readonly minElbowLegLength: Record<TLDefaultSizeStyle, number>;
+}
+
+// @public (undocumented)
 export class ArrowShapeTool extends StateNode {
     // (undocumented)
     static children(): TLStateNodeConstructor[];
@@ -926,6 +936,119 @@ export function EditMenuSubmenu(): JSX_2.Element | null;
 
 // @public (undocumented)
 export function EditSubmenu(): JSX_2.Element;
+
+// @public (undocumented)
+export interface ElbowArrowBox {
+    expanded: Box;
+    original: Box;
+    transformed: Box;
+}
+
+// @public
+export interface ElbowArrowBoxEdges {
+    // (undocumented)
+    bottom: ElbowArrowEdge | null;
+    // (undocumented)
+    left: ElbowArrowEdge | null;
+    // (undocumented)
+    right: ElbowArrowEdge | null;
+    // (undocumented)
+    top: ElbowArrowEdge | null;
+}
+
+// @public (undocumented)
+export interface ElbowArrowBoxes {
+    A: Box;
+    B: Box;
+    common: Box;
+}
+
+// @public
+export interface ElbowArrowEdge {
+    cross: ElbowArrowRange;
+    crossTarget: number;
+    expanded: number;
+    isPartial: boolean;
+    value: number;
+}
+
+// @public (undocumented)
+export interface ElbowArrowInfo extends ElbowArrowInfoWithoutRoute {
+    // (undocumented)
+    route: ElbowArrowRoute | null;
+}
+
+// @public (undocumented)
+export interface ElbowArrowInfoWithoutRoute {
+    // (undocumented)
+    A: ElbowArrowTargetBox;
+    // (undocumented)
+    B: ElbowArrowTargetBox;
+    // (undocumented)
+    common: ElbowArrowBox;
+    gapX: number;
+    gapY: number;
+    hPos: 'a-contains-b' | 'a-inside-b' | 'a-left-of-b' | 'a-matches-b' | 'a-overlaps-b';
+    mx: null | number;
+    my: null | number;
+    options: ElbowArrowOptions;
+    scale: ElbowArrowScale;
+    // @internal (undocumented)
+    steve(): {
+        grid: any;
+        path: null | Vec[];
+    };
+    swapOrder: boolean;
+    vPos: 'a-above-b' | 'a-contains-b' | 'a-inside-b' | 'a-matches-b' | 'a-overlaps-b';
+}
+
+// @public (undocumented)
+export interface ElbowArrowOptions {
+    // (undocumented)
+    expandElbowLegLength: number;
+    // (undocumented)
+    minArrowDistanceFromCorner: number;
+    // (undocumented)
+    minElbowLegLength: number;
+}
+
+// @public (undocumented)
+export interface ElbowArrowRange {
+    // (undocumented)
+    max: number;
+    // (undocumented)
+    min: number;
+}
+
+// @public (undocumented)
+export interface ElbowArrowRoute {
+    // (undocumented)
+    length: number;
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    points: Vec[];
+}
+
+// @public (undocumented)
+export interface ElbowArrowScale {
+    // (undocumented)
+    x: -1 | 1;
+    // (undocumented)
+    y: -1 | 1;
+}
+
+// @public (undocumented)
+export interface ElbowArrowTargetBox extends ElbowArrowBox {
+    arrowheadOffset: number;
+    edges: ElbowArrowBoxEdges;
+    geometries: {
+        isClosed: boolean;
+        vertices: Vec[];
+    }[];
+    isExact: boolean;
+    target: Vec;
+}
 
 // @public (undocumented)
 export function EllipseToolbarItem(): JSX_2.Element;
@@ -2102,6 +2225,26 @@ export interface ThemeStylePickerSetProps {
 }
 
 // @public (undocumented)
+export interface TLArcArrowInfo {
+    // (undocumented)
+    bindings: TLArrowBindings;
+    // (undocumented)
+    bodyArc: TLArcInfo;
+    // (undocumented)
+    end: TLArrowPoint;
+    // (undocumented)
+    handleArc: TLArcInfo;
+    // (undocumented)
+    isValid: boolean;
+    // (undocumented)
+    middle: VecLike;
+    // (undocumented)
+    start: TLArrowPoint;
+    // (undocumented)
+    type: 'arc';
+}
+
+// @public (undocumented)
 export interface TLArcInfo {
     // (undocumented)
     center: VecLike;
@@ -2371,6 +2514,24 @@ export interface TLEditorAssetUrls {
 }
 
 // @public (undocumented)
+export interface TLElbowArrowInfo {
+    // (undocumented)
+    bindings: TLArrowBindings;
+    // (undocumented)
+    elbow: ElbowArrowInfo;
+    // (undocumented)
+    end: TLArrowPoint;
+    // (undocumented)
+    isValid: boolean;
+    // (undocumented)
+    route: ElbowArrowRoute;
+    // (undocumented)
+    start: TLArrowPoint;
+    // (undocumented)
+    type: 'elbow';
+}
+
+// @public (undocumented)
 export type TLEmbedDefinition = CustomEmbedDefinition | EmbedDefinition;
 
 // @public (undocumented)
@@ -2391,6 +2552,24 @@ export interface TLExternalContentProps {
     acceptedVideoMimeTypes?: readonly string[];
     maxAssetSize?: number;
     maxImageDimension?: number;
+}
+
+// @public (undocumented)
+export interface TLStraightArrowInfo {
+    // (undocumented)
+    bindings: TLArrowBindings;
+    // (undocumented)
+    end: TLArrowPoint;
+    // (undocumented)
+    isValid: boolean;
+    // (undocumented)
+    length: number;
+    // (undocumented)
+    middle: VecLike;
+    // (undocumented)
+    start: TLArrowPoint;
+    // (undocumented)
+    type: 'straight';
 }
 
 // @public (undocumented)

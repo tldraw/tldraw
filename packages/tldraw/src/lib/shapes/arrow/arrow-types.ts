@@ -27,6 +27,7 @@ export interface TLArcInfo {
 	sweepFlag: number
 }
 
+/** @public */
 export interface TLArcArrowInfo {
 	bindings: TLArrowBindings
 	type: 'arc'
@@ -38,6 +39,7 @@ export interface TLArcArrowInfo {
 	isValid: boolean
 }
 
+/** @public */
 export interface TLStraightArrowInfo {
 	bindings: TLArrowBindings
 	type: 'straight'
@@ -48,6 +50,7 @@ export interface TLStraightArrowInfo {
 	length: number
 }
 
+/** @public */
 export interface TLElbowArrowInfo {
 	type: 'elbow'
 	bindings: TLArrowBindings

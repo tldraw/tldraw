@@ -66,7 +66,28 @@ export { registerDefaultSideEffects } from './lib/defaultSideEffects'
 export { defaultTools } from './lib/defaultTools'
 export { ArrowShapeTool } from './lib/shapes/arrow/ArrowShapeTool'
 export { ArrowShapeUtil } from './lib/shapes/arrow/ArrowShapeUtil'
-export { type TLArcInfo, type TLArrowInfo, type TLArrowPoint } from './lib/shapes/arrow/arrow-types'
+export {
+	type ArrowShapeOptions,
+	type TLArcArrowInfo,
+	type TLArcInfo,
+	type TLArrowInfo,
+	type TLArrowPoint,
+	type TLElbowArrowInfo,
+	type TLStraightArrowInfo,
+} from './lib/shapes/arrow/arrow-types'
+export { type ElbowArrowOptions } from './lib/shapes/arrow/elbow/definitions'
+export { type ElbowArrowRoute } from './lib/shapes/arrow/elbow/elbowArrowRoutes'
+export {
+	type ElbowArrowBox,
+	type ElbowArrowBoxEdges,
+	type ElbowArrowBoxes,
+	type ElbowArrowEdge,
+	type ElbowArrowInfo,
+	type ElbowArrowInfoWithoutRoute,
+	type ElbowArrowRange,
+	type ElbowArrowScale,
+	type ElbowArrowTargetBox,
+} from './lib/shapes/arrow/elbow/getElbowArrowInfo'
 export {
 	getArrowBindings,
 	getArrowTerminalsInArrowSpace,
