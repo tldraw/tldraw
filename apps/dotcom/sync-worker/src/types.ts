@@ -138,6 +138,8 @@ export type TLUserDurableObjectEvent =
 			type:
 				| 'reboot'
 				| 'full_data_fetch'
+				| 'full_data_fetch_hard'
+				| 'found_snapshot'
 				| 'reboot_error'
 				| 'rate_limited'
 				| 'broadcast_message'
@@ -146,6 +148,7 @@ export type TLUserDurableObjectEvent =
 				| 'replication_event'
 				| 'connect_retry'
 				| 'user_do_abort'
+				| 'not_enough_history_for_fast_reboot'
 			id: string
 	  }
 	| { type: 'reboot_duration'; id: string; duration: number }

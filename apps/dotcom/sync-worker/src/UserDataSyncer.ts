@@ -214,11 +214,12 @@ export class UserDataSyncer {
 			return null
 		}
 		this.log.debug('loaded snapshot from R2')
+		this.logEvent({ type: 'found_snapshot', id: this.userId })
 		return data
 	}
 
-	private async loadInitialDataFromPostgres() {
-		this.logEvent({ type: 'full_data_fetch', id: this.userId })
+	private async loadInitialDataFromPostgres(hard: boolean) {
+		this.logEvent({ type: hard ? 'full_data_fetch_hard' : 'full_data_fetch', id: this.userId })
 		this.log.debug('fetching fresh initial data from postgres')
 		// if the bootId changes during the boot process, we should stop silently
 		const userSql = getFetchUserDataSql(this.userId)
@@ -304,7 +305,7 @@ export class UserDataSyncer {
 		if (!this.store.getCommittedData() || hard) {
 			const res =
 				(!hard && (await this.loadInitialDataFromR2())) ||
-				(await this.loadInitialDataFromPostgres())
+				(await this.loadInitialDataFromPostgres(hard))
 
 			this.log.debug('got initial data')
 			this.store.initialize(res.initialData, res.optimisticUpdates)
@@ -322,7 +323,6 @@ export class UserDataSyncer {
 
 		const initialData = this.store.getCommittedData()!
 
-		// do an unnecessary assign here to tell typescript that the state might have changed
 		const guestFileIds = initialData.files.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
 		const res = await getReplicator(this.env).registerUser({
 			userId: this.userId,
@@ -332,6 +332,7 @@ export class UserDataSyncer {
 		})
 
 		if (res.type === 'reboot') {
+			this.logEvent({ type: 'not_enough_history_for_fast_reboot', id: this.userId })
 			if (hard) throw new Error('reboot loop, waiting')
 			return this.boot(true)
 		}
@@ -348,7 +349,6 @@ export class UserDataSyncer {
 			bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
 		}
 
-		// this will prevent more events from being added to the buffer
 		const end = Date.now()
 		this.logEvent({ type: 'reboot_duration', id: this.userId, duration: end - start })
 		this.log.debug('boot time', end - start, 'ms')
