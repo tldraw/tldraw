@@ -1,4 +1,4 @@
-import { Editor, TLShape, debounce, throttle } from '@tldraw/editor'
+import { Editor, TLShape, throttle } from '@tldraw/editor'
 
 function _updateHoveredShapeId(editor: Editor) {
 	// todo: consider replacing `get hoveredShapeId` with this; it would mean keeping hoveredShapeId in memory rather than in the store and possibly re-computing it more often than necessary
@@ -32,13 +32,7 @@ function _updateHoveredShapeId(editor: Editor) {
 }
 
 /** @internal */
-export const updateHoveredShapeIdThrottled = throttle(
-	_updateHoveredShapeId,
-	process.env.NODE_ENV === 'test' ? 0 : 32
-)
-
-/** @internal */
-export const updateHoveredShapeIdDebounced = debounce(
+export const updateHoveredShapeId = throttle(
 	_updateHoveredShapeId,
 	process.env.NODE_ENV === 'test' ? 0 : 32
 )

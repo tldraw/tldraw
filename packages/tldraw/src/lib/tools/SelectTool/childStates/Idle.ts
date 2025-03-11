@@ -19,10 +19,7 @@ import {
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
-import {
-	updateHoveredShapeIdDebounced,
-	updateHoveredShapeIdThrottled,
-} from '../../selection-logic/updateHoveredShapeId'
+import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
 import { kickoutOccludedShapes, startEditingShapeWithLabel } from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
@@ -41,23 +38,16 @@ export class Idle extends StateNode {
 
 	override onEnter() {
 		this.parent.setCurrentToolIdMask(undefined)
-		updateHoveredShapeIdThrottled(this.editor)
+		updateHoveredShapeId(this.editor)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	override onExit() {
-		updateHoveredShapeIdDebounced.cancel()
-		updateHoveredShapeIdThrottled.cancel()
+		updateHoveredShapeId.cancel()
 	}
 
 	override onPointerMove() {
-		if (this.editor.getCameraState() === 'moving') {
-			// When we're panning around, for performance reasons (esp. in larger rooms),
-			// We don't need to update the hovered shape as often, it really slows down things.
-			updateHoveredShapeIdDebounced(this.editor)
-		} else {
-			updateHoveredShapeIdThrottled(this.editor)
-		}
+		updateHoveredShapeId(this.editor)
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
