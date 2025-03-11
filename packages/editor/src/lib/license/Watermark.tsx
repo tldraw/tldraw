@@ -85,6 +85,7 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 })
 
 const LicenseStyles = memo(function LicenseStyles() {
+	const editor = useEditor()
 	const className = LicenseManager.className
 
 	const CSS = `/* ------------------- SEE LICENSE -------------------
@@ -171,5 +172,5 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		}
 	}`
 
-	return <style>{CSS}</style>
+	return <style nonce={editor.nonce}>{CSS}</style>
 })

@@ -1434,6 +1434,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         param?: string;
         url?: string | URL;
     } | TLDeepLink): Editor;
+    // (undocumented)
+    readonly nonce?: string;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
     // (undocumented)
     readonly options: TldrawOptions;
@@ -3158,6 +3160,7 @@ export interface TldrawEditorBaseProps {
     initialState?: string;
     isShapeHidden?(shape: TLShape, editor: Editor): boolean;
     licenseKey?: string;
+    nonce?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
@@ -3341,6 +3344,8 @@ export interface TLEditorOptions {
     isShapeHidden?(shape: TLShape, editor: Editor): boolean;
     // (undocumented)
     licenseKey?: string;
+    // (undocumented)
+    nonce?: string;
     // (undocumented)
     options?: Partial<TldrawOptions>;
     shapeUtils: readonly TLAnyShapeUtilConstructor[];

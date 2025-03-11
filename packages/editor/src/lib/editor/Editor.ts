@@ -238,6 +238,7 @@ export interface TLEditorOptions {
 	textOptions?: TLTextOptions
 	options?: Partial<TldrawOptions>
 	licenseKey?: string
+	nonce?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
 	/**
 	 * A predicate that should return true if the given shape should be hidden.
@@ -793,6 +794,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly options: TldrawOptions
 
 	readonly contextId = uniqueId()
+
+	readonly nonce?: string
 
 	/**
 	 * The editor's store
