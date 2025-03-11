@@ -6188,9 +6188,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocicorp/zero@npm:0.16.2025030600":
-  version: 0.16.2025030600
-  resolution: "@rocicorp/zero@npm:0.16.2025030600"
+"@rocicorp/zero@npm:0.17.2025031100":
+  version: 0.17.2025031100
+  resolution: "@rocicorp/zero@npm:0.17.2025031100"
   dependencies:
     "@badrap/valita": "npm:0.3.11"
     "@databases/escape-identifier": "npm:^1.0.3"
@@ -6222,7 +6222,7 @@ __metadata:
     js-xxhash: "npm:^4.0.0"
     json-custom-numbers: "npm:^3.1.1"
     kasi: "npm:^1.1.0"
-    nanoid: "npm:^5.0.8"
+    nanoid: "npm:^5.1.2"
     pg: "npm:^8.11.3"
     pg-format: "npm:pg-format-fix@^1.0.5"
     pg-logical-replication: "npm:^2.0.7"
@@ -6232,13 +6232,13 @@ __metadata:
     semver: "npm:^7.5.4"
     tsx: "npm:^4.19.1"
     url-pattern: "npm:^1.0.3"
-    ws: "npm:^8.18.0"
+    ws: "npm:^8.18.1"
   bin:
     zero-build-schema: out/zero/src/build-schema.js
     zero-cache: out/zero/src/cli.js
     zero-cache-dev: out/zero/src/zero-cache-dev.js
     zero-deploy-permissions: out/zero/src/deploy-permissions.js
-  checksum: 10/917e49868367793423f0a7c5b4b905146805dccf85cd8d1fb4b336998d06b81ea2d8de4a375b97114c8a163cf6e0ed2dbb0e5126c83eed04cbc680dfdca85da5
+  checksum: 10/470ebf30dabc93bdbd36d735af024f4f950644f220f708127978e9988c904a1685771e700ad96159cb879846a2e14f35748f32f9b0941bf06d1485892f9dde3c
   languageName: node
   linkType: hard
 
@@ -8232,7 +8232,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/dotcom-shared@workspace:packages/dotcom-shared"
   dependencies:
-    "@rocicorp/zero": "npm:0.16.2025030600"
+    "@rocicorp/zero": "npm:0.17.2025031100"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
@@ -8610,7 +8610,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/zero-cache@workspace:apps/dotcom/zero-cache"
   dependencies:
-    "@rocicorp/zero": "npm:0.16.2025030600"
+    "@rocicorp/zero": "npm:0.17.2025031100"
     concurrently: "npm:^9.1.2"
     dotenv: "npm:^16.4.7"
     esbuild: "npm:^0.24.2"
@@ -13150,7 +13150,7 @@ __metadata:
     "@radix-ui/react-popover": "npm:^1.1.5"
     "@radix-ui/react-select": "npm:^2.1.5"
     "@radix-ui/react-tooltip": "npm:^1.1.7"
-    "@rocicorp/zero": "npm:0.16.2025030600"
+    "@rocicorp/zero": "npm:0.17.2025031100"
     "@sentry/cli": "npm:^2.41.1"
     "@sentry/integrations": "npm:^7.120.3"
     "@sentry/react": "npm:^7.120.3"
@@ -20879,7 +20879,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:^5.0.8":
+"nanoid@npm:^5.1.2":
   version: 5.1.3
   resolution: "nanoid@npm:5.1.3"
   bin:
@@ -28136,7 +28136,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:^8.11.0, ws@npm:^8.16.0, ws@npm:^8.18.0":
+"ws@npm:^8.11.0, ws@npm:^8.16.0, ws@npm:^8.18.0, ws@npm:^8.18.1":
   version: 8.18.1
   resolution: "ws@npm:8.18.1"
   peerDependencies:

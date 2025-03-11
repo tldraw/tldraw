@@ -22,7 +22,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@rocicorp/zero": "0.16.2025030600",
+		"@rocicorp/zero": "0.17.2025031100",
 		"kysely": "^0.27.5",
 		"pg": "^8.13.1"
 	},
