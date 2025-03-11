@@ -896,7 +896,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     crash(error: unknown): this;
     createAssets(assets: TLAsset[]): this;
     createBinding<B extends TLBinding = TLBinding>(partial: TLBindingCreate<B>): this;
-    createBindings(partials: TLBindingCreate[]): this;
+    createBindings<B extends TLBinding = TLBinding>(partials: TLBindingCreate<B>[]): this;
     createDeepLink(opts?: {
         param?: string;
         to?: TLDeepLink;
