@@ -115,7 +115,7 @@ const migrations: Migration[] = [
 
 const ONE_MINUTE = 60 * 1000
 const PRUNE_INTERVAL = 10 * ONE_MINUTE
-const MAX_HISTORY_ROWS = 50_000
+const MAX_HISTORY_ROWS = 100_000
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -765,7 +765,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		const currentLsn = assertExists(this.getCurrentLsn())
 
 		if (lsn >= currentLsn) {
-			this.log.debug('resuming from current lsn', lsn, '>=', currentLsn)
+			this.log.debug('getResumeType: resuming from current lsn', lsn, '>=', currentLsn)
 			// targetLsn is now or in the future, we can register them and deliver events
 			// without needing to check the history
 			return { type: 'done' }
@@ -775,7 +775,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			.toArray()[0]?.lsn
 
 		if (!earliestLsn || lsn < earliestLsn) {
-			this.log.debug('not enough history', lsn, '<', earliestLsn)
+			this.log.debug('getResumeType: not enough history', lsn, '<', earliestLsn)
 			// not enough history, we can't resume
 			return { type: 'reboot' }
 		}
@@ -801,7 +801,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			.map(({ json, lsn }) => ({ change: JSON.parse(json) as Change, lsn }))
 
 		if (history.length === 0) {
-			this.log.debug('no history to replay, all good', lsn)
+			this.log.debug('getResumeType: no history to replay, all good', lsn)
 			return { type: 'done' }
 		}
 
@@ -817,7 +817,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				messages.push({ type: 'changes', changes, lsn })
 			}
 		}
-		this.log.debug('resuming', messages.length, messages)
+		this.log.debug('getResumeType: resuming', messages.length, messages)
 		return { type: 'done', messages }
 	}
 
@@ -885,6 +885,19 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
+	async requestLsnUpdate(userId: string) {
+		try {
+			this.log.debug('requestLsnUpdate', userId)
+			this.logEvent({ type: 'request_lsn_update' })
+			const lsn = assertExists(this.getCurrentLsn(), 'lsn should exist')
+			this._messageUser(userId, { type: 'changes', changes: [], lsn })
+		} catch (e) {
+			this.captureException(e)
+			throw e
+		}
+		return
+	}
+
 	async unregisterUser(userId: string) {
 		this.logEvent({ type: 'unregister_user' })
 		this.sqlite.exec(`DELETE FROM active_user WHERE id = ?`, userId)
@@ -908,6 +921,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			case 'reboot_error':
 			case 'register_user':
 			case 'unregister_user':
+			case 'request_lsn_update':
 			case 'get_file_record':
 				this.writeEvent({
 					blobs: [event.type],

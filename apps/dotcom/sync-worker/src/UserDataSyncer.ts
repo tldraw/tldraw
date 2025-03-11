@@ -92,6 +92,9 @@ interface StateSnapshot {
 	}>
 }
 
+const MUTATION_COMMIT_TIMEOUT = 10_000
+const LSN_COMMIT_TIMEOUT = 120_000
+
 export class UserDataSyncer {
 	state: BootState = {
 		type: 'init',
@@ -378,6 +381,9 @@ export class UserDataSyncer {
 		}
 	}
 
+	// start with a random offset to avoid thundering herd
+	lastLsnCommit = Date.now() + LSN_COMMIT_TIMEOUT + Math.random() * LSN_COMMIT_TIMEOUT
+
 	handleReplicationEvent(event: ZReplicationEvent) {
 		if (this.state.type === 'init') {
 			this.log.debug('ignoring during init', event)
@@ -444,6 +450,8 @@ export class UserDataSyncer {
 				this.commitMutations(maxMutationNumber)
 			}
 
+			this.log.debug('committing lsn', event.lsn)
+			this.lastLsnCommit = Date.now()
 			this.store.commitLsn(event.lsn)
 		})
 
@@ -492,11 +500,16 @@ export class UserDataSyncer {
 	async onInterval() {
 		// if any mutations have been not been committed for 5 seconds, let's reboot the cache
 		for (const mutation of this.mutations) {
-			if (Date.now() - mutation.timestamp > 5000) {
-				this.log.debug("Mutations haven't been committed for 5 seconds, rebooting", mutation)
+			if (Date.now() - mutation.timestamp > MUTATION_COMMIT_TIMEOUT) {
+				this.log.debug("Mutations haven't been committed for 10 seconds, rebooting", mutation)
 				this.reboot({ hard: true })
 				break
 			}
+		}
+
+		if (this.lastLsnCommit < Date.now() - LSN_COMMIT_TIMEOUT) {
+			this.log.debug('requesting lsn update', this.userId)
+			getReplicator(this.env).requestLsnUpdate(this.userId)
 		}
 	}
 }
