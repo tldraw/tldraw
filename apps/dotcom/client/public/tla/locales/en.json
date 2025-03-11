@@ -146,6 +146,9 @@
   "6609dd239e": {
     "translation": "Something went wrong"
   },
+  "6637a98151": {
+    "translation": "A new version of tldraw is available. Please reload the page to continue."
+  },
   "6a26f54883": {
     "translation": "Help"
   },
@@ -175,6 +178,9 @@
   },
   "764671e008": {
     "translation": "Chat with us on Discord"
+  },
+  "7697920637": {
+    "translation": "Please reload"
   },
   "777f9e90cf": {
     "translation": "Invalid request."
