@@ -141,19 +141,19 @@ export function useKeyboardShortcuts() {
 }
 
 // The "raw" kbd here will look something like "a" or a combination of keys "del,backspace",
-// or modifier keys (using ! for shift, $ for cmd, and ? for alt). We need to first split them
+// or modifier keys (using ⇧ for shift, ⌘ for cmd, and ⌥ for alt). We need to first split them
 // up by comma, then parse each key to get the actual key and modifiers.
 function getHotkeysStringFromKbd(kbd: string) {
 	return getKeys(kbd)
 		.map((kbd) => {
 			let str = ''
 
-			const shift = kbd.includes('!')
-			const alt = kbd.includes('?')
-			const cmd = kbd.includes('$')
+			const shift = kbd.includes('⇧')
+			const alt = kbd.includes('⌥')
+			const cmd = kbd.includes('⌘')
 
 			// remove the modifiers; the remaining string are the actual key
-			const k = kbd.replace(/[!?$]/g, '')
+			const k = kbd.replace(/[⇧⌥⌘]/g, '')
 
 			if (shift && alt && cmd) {
 				str = `cmd+shift+alt+${k},ctrl+shift+alt+${k}`

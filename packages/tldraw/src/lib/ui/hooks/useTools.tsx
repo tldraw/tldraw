@@ -162,7 +162,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				id: 'asset',
 				label: 'tool.asset',
 				icon: 'tool-media',
-				kbd: '$u',
+				kbd: '⌘u',
 				onSelect(source) {
 					helpers.insertMedia()
 					trackEvent('select-tool', { source, id: 'media' })
@@ -203,7 +203,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				label: 'tool.highlight',
 				icon: 'tool-highlight',
 				// TODO: pick a better shortcut
-				kbd: '!d',
+				kbd: '⇧d',
 				onSelect(source) {
 					editor.setCurrentTool('highlight')
 					trackEvent('select-tool', { source, id: 'highlight' })

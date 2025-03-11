@@ -49,7 +49,7 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					id: 'save-null',
 					label: 'action.save-copy',
 					readonlyOk: true,
-					kbd: '$s',
+					kbd: '⌘s',
 					onSelect() {
 						trackEvent('save-project-no-action', { source: 'kbd' })
 					},
