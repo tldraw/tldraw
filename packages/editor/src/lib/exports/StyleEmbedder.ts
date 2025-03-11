@@ -242,7 +242,7 @@ function styleFromComputedStyle(
 	{ defaultStyles, parentStyles }: ReadStyleOpts
 ) {
 	const styles: Record<string, string> = {}
-	for (const [property, _] of Object.entries(style)) {
+	for (const property in style) {
 		if (!shouldIncludeCssProperty(property)) continue
 
 		const value = style.getPropertyValue(property)

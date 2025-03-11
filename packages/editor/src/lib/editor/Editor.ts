@@ -4006,7 +4006,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Create a page.
+	 * Create a page whilst ensuring that the page name is unique.
 	 *
 	 * @example
 	 * ```ts
@@ -5613,7 +5613,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Create bindings from a list of partial bindings. You can omit the ID and most props of a
 	 * binding, but the `type`, `toId`, and `fromId` must all be provided.
 	 */
-	createBindings(partials: TLBindingCreate[]) {
+	createBindings<B extends TLBinding = TLBinding>(partials: TLBindingCreate<B>[]) {
 		const bindings: TLBinding[] = []
 		for (const partial of partials) {
 			const fromShape = this.getShape(partial.fromId)

@@ -1,3 +1,150 @@
+# v3.10.0 (Tue Mar 11 2025)
+
+### Release Notes
+
+#### Use ImmutableMap inside AtomMap ([#5567](https://github.com/tldraw/tldraw/pull/5567))
+
+- Fixed a perf regression that caused slowness mainly when loading documents.
+
+#### Add state packages to reference ([#5591](https://github.com/tldraw/tldraw/pull/5591))
+
+- Docs: Added the `state` and `state-react` packages to the API reference.
+
+#### export: fix style embedding for foreignObjects in Firefox ([#5593](https://github.com/tldraw/tldraw/pull/5593))
+
+- Fix exports / style embedding for foreignObjects in Firefox
+
+#### Fix broken docs sidebar link ([#5578](https://github.com/tldraw/tldraw/pull/5578))
+
+- Fixed a bug with…
+
+#### Fixes to the new blog post ([#5575](https://github.com/tldraw/tldraw/pull/5575))
+
+
+
+#### Whats new blog post ([#5573](https://github.com/tldraw/tldraw/pull/5573))
+
+
+
+#### Display BrokenAssetIcon when file upload fails ([#5552](https://github.com/tldraw/tldraw/pull/5552))
+
+- Improve UI around failed uploads to show that the asset is broken.
+
+#### rich text: fix links getting in the way of some tools and android selection ([#5568](https://github.com/tldraw/tldraw/pull/5568))
+
+- Fix issue with rich text links taking precedence over tools. Also, fix fine-grained selection on Android.
+
+#### fix reparentshapes preserve order ([#5565](https://github.com/tldraw/tldraw/pull/5565))
+
+- Modify the reparentShapes() function to ensure that the original order of the shapes is preserved when reparenting.
+
+#### Revert "Revert "Fix for resizing snapshot bug (#5211)" (#5292)" ([#5553](https://github.com/tldraw/tldraw/pull/5553))
+
+- Fixed a bug that could occur when resizing.
+
+#### media: extract base64 assets from .tldr files ([#5525](https://github.com/tldraw/tldraw/pull/5525))
+
+- Ensure .tldr files with embedded base64 assets get their assets rehydrated back into the local db.
+
+#### Make collaboration hooks public ([#5541](https://github.com/tldraw/tldraw/pull/5541))
+
+- Makes `usePeerIds` and `usePresence` public
+
+#### fix pasting files in safari ([#5545](https://github.com/tldraw/tldraw/pull/5545))
+
+- Fixed a bug with pasting files from your computer in Safari
+
+#### remove import from core-js ([#5544](https://github.com/tldraw/tldraw/pull/5544))
+
+- Fixed bug with loading TLDraw in an SSR environment by removing a core-js import  https://github.com/tldraw/tldraw/issues/5543
+
+#### [feature] add rich text and contextual toolbar ([#4895](https://github.com/tldraw/tldraw/pull/4895))
+
+- Rich text using ProseMirror as a first-class supported option in the Editor.
+
+#### Pass userId to collaboration components ([#5534](https://github.com/tldraw/tldraw/pull/5534))
+
+- Pass `userId` to collaboration components in `LiveCollaborators`
+
+---
+
+#### 🐛 Bug Fix
+
+- Add more postgres history, reduce ping overhead [#5604](https://github.com/tldraw/tldraw/pull/5604) ([@ds300](https://github.com/ds300))
+- Fix header width [#5598](https://github.com/tldraw/tldraw/pull/5598) ([@steveruizok](https://github.com/steveruizok))
+- Add state packages to reference [#5591](https://github.com/tldraw/tldraw/pull/5591) ([@TodePond](https://github.com/TodePond))
+- Remove link to dev survey [#5595](https://github.com/tldraw/tldraw/pull/5595) ([@TodePond](https://github.com/TodePond))
+- Redirect FAQ to notion page [#5594](https://github.com/tldraw/tldraw/pull/5594) ([@TodePond](https://github.com/TodePond))
+- example: add back context toolbar (original) [#5590](https://github.com/tldraw/tldraw/pull/5590) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix broken docs sidebar link [#5578](https://github.com/tldraw/tldraw/pull/5578) ([@lorenzolewis](https://github.com/lorenzolewis))
+- Fixes to the new blog post [#5575](https://github.com/tldraw/tldraw/pull/5575) ([@TodePond](https://github.com/TodePond))
+- Whats new blog post [#5573](https://github.com/tldraw/tldraw/pull/5573) ([@TodePond](https://github.com/TodePond))
+- Fix trailing single quote in docs [#5556](https://github.com/tldraw/tldraw/pull/5556) ([@lorenzolewis](https://github.com/lorenzolewis))
+- i18n: fix up latest upload pipeline missing env vars [#5571](https://github.com/tldraw/tldraw/pull/5571) ([@mimecuvalo](https://github.com/mimecuvalo))
+- i18n: add validation and auto-placing of orders [#5536](https://github.com/tldraw/tldraw/pull/5536) ([@mimecuvalo](https://github.com/mimecuvalo))
+- [dotcom] fix data leaking between preview branches [#5562](https://github.com/tldraw/tldraw/pull/5562) ([@ds300](https://github.com/ds300))
+- Make better use of replicator history [#5532](https://github.com/tldraw/tldraw/pull/5532) ([@ds300](https://github.com/ds300) [@MitjaBezensek](https://github.com/MitjaBezensek))
+- [automated] update i18n strings [#5550](https://github.com/tldraw/tldraw/pull/5550) ([@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@mimecuvalo](https://github.com/mimecuvalo) [@github-actions[bot]](https://github.com/github-actions[bot]))
+- algolia: add analytics [#5549](https://github.com/tldraw/tldraw/pull/5549) ([@mimecuvalo](https://github.com/mimecuvalo))
+- `@tldraw/editor`
+  - Add eslint rule for "whilst" [#5587](https://github.com/tldraw/tldraw/pull/5587) ([@steveruizok](https://github.com/steveruizok))
+  - Pass userId to collaboration components [#5534](https://github.com/tldraw/tldraw/pull/5534) ([@MathieuLoutre](https://github.com/MathieuLoutre))
+- `@tldraw/assets`, `@tldraw/dotcom-shared`, `@tldraw/editor`, `@tldraw/tldraw`, `@tldraw/state-react`, `@tldraw/state`, `@tldraw/store`, `@tldraw/sync-core`, `@tldraw/sync`, `tldraw`, `@tldraw/tlschema`, `@tldraw/utils`, `@tldraw/validate`, `@tldraw/worker-shared`
+  - CTA analytics [#5542](https://github.com/tldraw/tldraw/pull/5542) ([@TodePond](https://github.com/TodePond))
+
+#### 🐛 Bug Fixes
+
+- Fix broken people menu [#5579](https://github.com/tldraw/tldraw/pull/5579) ([@steveruizok](https://github.com/steveruizok))
+- setup pgbouncer for local dev (fix flaky e2e tests?) [#5548](https://github.com/tldraw/tldraw/pull/5548) ([@ds300](https://github.com/ds300))
+- `@tldraw/store`, `tldraw`
+  - Use ImmutableMap inside AtomMap [#5567](https://github.com/tldraw/tldraw/pull/5567) ([@ds300](https://github.com/ds300))
+- `@tldraw/editor`, `tldraw`
+  - export: fix style embedding for foreignObjects in Firefox [#5593](https://github.com/tldraw/tldraw/pull/5593) ([@mimecuvalo](https://github.com/mimecuvalo))
+  - rich text: fix links getting in the way of some tools and android selection [#5568](https://github.com/tldraw/tldraw/pull/5568) ([@mimecuvalo](https://github.com/mimecuvalo))
+  - fix reparentshapes preserve order [#5565](https://github.com/tldraw/tldraw/pull/5565) (riley@toonsquare.co)
+- `tldraw`
+  - Display BrokenAssetIcon when file upload fails [#5552](https://github.com/tldraw/tldraw/pull/5552) ([@kazu-2020](https://github.com/kazu-2020) [@mimecuvalo](https://github.com/mimecuvalo))
+  - [important dotcom perf fix] use useMaybeEditor in ui context [#5560](https://github.com/tldraw/tldraw/pull/5560) ([@ds300](https://github.com/ds300))
+  - Revert "Revert "Fix for resizing snapshot bug (#5211)" (#5292)" [#5553](https://github.com/tldraw/tldraw/pull/5553) ([@mimecuvalo](https://github.com/mimecuvalo))
+  - fix: prevent text duplication when using IME with Enter key in Chrome [#5540](https://github.com/tldraw/tldraw/pull/5540) ([@banqinghe](https://github.com/banqinghe) [@mimecuvalo](https://github.com/mimecuvalo))
+  - fix pasting files in safari [#5545](https://github.com/tldraw/tldraw/pull/5545) ([@bluedot74](https://github.com/bluedot74))
+- `@tldraw/editor`
+  - remove import from core-js [#5544](https://github.com/tldraw/tldraw/pull/5544) ([@bluedot74](https://github.com/bluedot74))
+
+#### 💄 Product Improvements
+
+- Migrate newsletter form to hubspot [#5557](https://github.com/tldraw/tldraw/pull/5557) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Add some randomness to prevent this happening in sync for online users. [#5563](https://github.com/tldraw/tldraw/pull/5563) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Add a tests for guest files [#5531](https://github.com/tldraw/tldraw/pull/5531) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- `@tldraw/editor`, `tldraw`, `@tldraw/utils`
+  - media: extract base64 assets from .tldr files [#5525](https://github.com/tldraw/tldraw/pull/5525) ([@mimecuvalo](https://github.com/mimecuvalo))
+- `@tldraw/editor`
+  - Make collaboration hooks public [#5541](https://github.com/tldraw/tldraw/pull/5541) ([@MathieuLoutre](https://github.com/MathieuLoutre))
+
+#### 🎉 New Features
+
+- `@tldraw/assets`, `@tldraw/editor`, `@tldraw/state`, `@tldraw/store`, `@tldraw/sync-core`, `tldraw`, `@tldraw/tlschema`, `@tldraw/utils`, `@tldraw/validate`
+  - [feature] add rich text and contextual toolbar [#4895](https://github.com/tldraw/tldraw/pull/4895) ([@mimecuvalo](https://github.com/mimecuvalo) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@SomeHats](https://github.com/SomeHats) [@ds300](https://github.com/ds300) [@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 14
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Josh Willis ([@bluedot74](https://github.com/bluedot74))
+- Lorenzo Lewis ([@lorenzolewis](https://github.com/lorenzolewis))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mathieu Triay ([@MathieuLoutre](https://github.com/MathieuLoutre))
+- mimata kazutaka ([@kazu-2020](https://github.com/kazu-2020))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Qinghe Ban ([@banqinghe](https://github.com/banqinghe))
+- Riley ([@dodo-Riley](https://github.com/dodo-Riley))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.9.0 (Mon Mar 03 2025)
 
 ### Release Notes
