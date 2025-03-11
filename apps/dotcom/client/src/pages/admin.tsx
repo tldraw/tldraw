@@ -60,7 +60,7 @@ export function Component() {
 		return <Navigate to="/" replace />
 	}
 	return (
-		<div style={{ flex: 1, overflow: 'scroll' }}>
+		<div style={{ flex: 1, overflow: 'scroll', userSelect: 'text' }}>
 			<h1>Very secret admin page</h1>
 			<div style={{ display: 'flex' }}>
 				<input ref={inputRef} type="text" placeholder="Email or id" />
@@ -82,9 +82,11 @@ export function Component() {
 				</>
 			)}
 			<h2>Replicator data</h2>
-			{replicatorData && <pre>{JSON.stringify(replicatorData, null, 2)}</pre>}
+			{replicatorData && (
+				<pre style={{ userSelect: 'text' }}>{JSON.stringify(replicatorData, null, 2)}</pre>
+			)}
 			<h2>User data</h2>
-			{data && <pre>{JSON.stringify(data, null, 2)}</pre>}
+			{data && <pre style={{ userSelect: 'text' }}>{JSON.stringify(data, null, 2)}</pre>}
 		</div>
 	)
 }
