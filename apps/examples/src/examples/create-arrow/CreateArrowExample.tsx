@@ -1,6 +1,8 @@
 import { createShapeId, Editor, TLArrowBinding, TLArrowShape, Tldraw, TLShapeId, Vec } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+// There's a guide at the bottom of this file!
+
 export default function CreateArrowExample() {
 	return (
 		<>
@@ -14,7 +16,6 @@ export default function CreateArrowExample() {
 						const shapeBId = createShapeId()
 
 						editor.createShapes([
-							// Create two shapes
 							{
 								id: shapeAId,
 								type: 'geo',
@@ -47,7 +48,9 @@ function createArrowBetweenShapes(
 		end?: Partial<Omit<TLArrowBinding['props'], 'terminal'>>
 	}
 ) {
-	const { start = {}, parentId } = options
+	const { start = {}, end = {}, parentId } = options
+
+	// [1]
 	const {
 		normalizedAnchor: startNormalizedAnchor = { x: 0.5, y: 0.5 },
 		isExact: startIsExact = false,
@@ -57,7 +60,10 @@ function createArrowBetweenShapes(
 		normalizedAnchor: endNormalizedAnchor = { x: 0.5, y: 0.5 },
 		isExact: endIsExact = false,
 		isPrecise: endIsPrecise = false,
-	} = start
+	} = end
+
+	const startTerminalNormalizedPosition = Vec.From(startNormalizedAnchor)
+	const endTerminalNormalizedPosition = Vec.From(endNormalizedAnchor)
 
 	const parent = parentId ? editor.getShape(parentId) : undefined
 	if (parentId && !parent) throw Error(`Parent shape with id ${parentId} not found`)
@@ -68,14 +74,7 @@ function createArrowBetweenShapes(
 	const startShapePageRotation = editor.getShapePageTransform(startShapeId).rotation()
 	const endShapePageRotation = editor.getShapePageTransform(endShapeId).rotation()
 
-	// We need both bounds to exist
 	if (!startShapePageBounds || !endShapePageBounds) return
-
-	// Normalized position: .5 .5 is center, 0 0 is topleft corner, 1 1 is bottom right corner
-	const startTerminalNormalizedPosition = Vec.From(startNormalizedAnchor)
-	const endTerminalNormalizedPosition = Vec.From(endNormalizedAnchor)
-
-	const arrowId = createShapeId()
 
 	const startTerminalPagePosition = Vec.Add(
 		startShapePageBounds.point,
@@ -92,9 +91,6 @@ function createArrowBetweenShapes(
 		)
 	)
 
-	// The arrow will be positioned at the top left-most point of the two shapes
-
-	// This needs to be in the coordinate space of the arrow's parent
 	const arrowPointInParentSpace = Vec.Min(startTerminalPagePosition, endTerminalPagePosition)
 	if (parent) {
 		arrowPointInParentSpace.setTo(
@@ -102,17 +98,17 @@ function createArrowBetweenShapes(
 		)
 	}
 
+	const arrowId = createShapeId()
 	editor.run(() => {
 		editor.markHistoryStoppingPoint('creating_arrow')
 		editor.createShape<TLArrowShape>({
 			id: arrowId,
-			parentId: parent?.id, // if undefined, the parent will be the page
 			type: 'arrow',
-			// These are in the parent space, which in this case is the page.
+			// [2]
 			x: arrowPointInParentSpace.x,
 			y: arrowPointInParentSpace.y,
 			props: {
-				// These are in "local" space
+				// [3]
 				start: {
 					x: arrowPointInParentSpace.x - startTerminalPagePosition.x,
 					y: arrowPointInParentSpace.x - startTerminalPagePosition.x,
@@ -131,7 +127,7 @@ function createArrowBetweenShapes(
 				type: 'arrow',
 				props: {
 					terminal: 'start',
-					normalizedAnchor: startNormalizedAnchor, // middle
+					normalizedAnchor: startNormalizedAnchor,
 					isExact: startIsExact,
 					isPrecise: startIsPrecise,
 				},
@@ -142,7 +138,7 @@ function createArrowBetweenShapes(
 				type: 'arrow',
 				props: {
 					terminal: 'end',
-					normalizedAnchor: endNormalizedAnchor, // middle
+					normalizedAnchor: endNormalizedAnchor,
 					isExact: endIsExact,
 					isPrecise: endIsPrecise,
 				},
@@ -150,3 +146,27 @@ function createArrowBetweenShapes(
 		])
 	})
 }
+
+/*
+Introduction:
+
+This example shows how to create an arrow between two shapes.
+
+[1] 
+The normalized anchor is the position inside the shape that the arrow connects to, where 0 0 is the
+top left corner and 1 1 is the bottom right. `isPrecise` needs to be enabled for this position to be
+used, otherwise it targets the center of the shape.
+
+By default, arrows don't intersect shapes they're connected to, and instead gracefully touch the
+outside of the shape's geometry. You can turn this off and make an arrow intersect a shape by
+setting `isExact` to true.
+
+[2]
+The arrow shape's position is in parent space, which in this case means the page.
+
+[3]
+The arrow's start and end positions are "local", which means they're relative to the arrow's
+position. Note: You don't need to set the arrow's start and end positions if they're bound to
+another shape, as it gets calculated automatically.
+
+*/
