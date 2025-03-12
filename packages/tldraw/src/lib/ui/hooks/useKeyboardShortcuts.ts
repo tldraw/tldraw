@@ -141,7 +141,7 @@ export function useKeyboardShortcuts() {
 }
 
 // The "raw" kbd here will look something like "a" or a combination of keys "del,backspace",
-// or modifier keys (using ⇧ for shift, ⌘ for cmd, and ⌥ for alt). We need to first split them
+// or modifier keys (using ⇧ for shift, ⌘ for cmd/ctrl, and ⌥ for alt). We need to first split them
 // up by comma, then parse each key to get the actual key and modifiers.
 function getHotkeysStringFromKbd(kbd: string) {
 	return getKeys(kbd)

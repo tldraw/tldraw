@@ -148,7 +148,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'redo',
 				label: 'action.redo',
 				icon: 'redo',
-				kbd: '⇧⌘z',
+				kbd: '⌘⇧z',
 				onSelect(source) {
 					trackEvent('redo', { source })
 					editor.redo()
@@ -228,7 +228,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.copy-as-svg.short',
 					['context-menu']: 'action.copy-as-svg.short',
 				},
-				kbd: '⇧⌘c',
+				kbd: '⌘⇧c',
 				readonlyOk: true,
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
@@ -475,7 +475,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'ungroup',
 				label: 'action.ungroup',
-				kbd: '⇧⌘g',
+				kbd: '⌘⇧g',
 				icon: 'ungroup',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -509,7 +509,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'remove-frame',
 				label: 'action.remove-frame',
-				kbd: '⇧⌘f',
+				kbd: '⌘⇧f',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 
@@ -662,7 +662,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.distribute-horizontal.short',
 				},
 				icon: 'distribute-horizontal',
-				kbd: '⇧⌥h',
+				kbd: '⌥⇧h',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -683,7 +683,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.distribute-vertical.short',
 				},
 				icon: 'distribute-vertical',
-				kbd: '⇧⌥V',
+				kbd: '⌥⇧V',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return

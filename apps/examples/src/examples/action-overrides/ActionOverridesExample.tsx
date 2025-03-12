@@ -44,7 +44,7 @@ component's `overrides` prop. To learn more about using this actions via a custo
 custom actions menu example.
 
 [2]
-For kbds, Shift = ⇧, Alt = ⌥, Cmd = ⌘, i.e. Cmd+Shift+U is ⇧⌘u. For more information on keyboard shortcuts see the
+For kbds, Shift = ⇧, Alt = ⌥, Cmd/Ctrl = ⌘, i.e. Cmd+Shift+U is ⌘⇧u. For more information on keyboard shortcuts see the
 keyboard shortcuts example.
 
 [3]
