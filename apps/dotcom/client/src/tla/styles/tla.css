@@ -204,7 +204,6 @@
 .tlui-layout__top__left {
 	grid-row: 1;
 	grid-column: 1;
-	width: fit-content;
 	max-width: 100%;
 	min-width: 0px;
 	height: auto;
