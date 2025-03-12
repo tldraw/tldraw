@@ -5,5 +5,5 @@ export const editorMessages = defineMessages({
 	untitledProject: { defaultMessage: 'Untitled file' },
 	downloadFile: { defaultMessage: 'Download file' },
 	copyToMyfiles: { defaultMessage: 'Copy to my files' },
-	anonymousUser: { defaultMessage: 'Guest User' },
+	anonymousUser: { defaultMessage: 'Guest' },
 })
