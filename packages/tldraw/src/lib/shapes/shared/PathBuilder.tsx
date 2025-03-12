@@ -1,25 +1,30 @@
 import {
 	assert,
 	exhaustiveSwitchError,
+	Geometry2dOptions,
 	getPerfectDashProps,
+	Group2d,
+	Polygon2d,
+	Polyline2d,
 	rng,
 	toDomPrecision,
 	Vec,
 	VecLike,
 } from '@tldraw/editor'
+import { getVerticesCountForLength } from '@tldraw/editor/src/lib/primitives/geometry/geometry-constants'
 import { SVGProps } from 'react'
 
-export interface BaseSvgPathBuilderOpts {
+export interface BasePathBuilderOpts {
 	strokeWidth: number
 	forceSolid?: boolean
 	props?: SVGProps<SVGPathElement & SVGGElement>
 }
 
-export interface SolidSvgPathBuilderOpts extends BaseSvgPathBuilderOpts {
+export interface SolidPathBuilderOpts extends BasePathBuilderOpts {
 	style: 'solid'
 }
 
-export interface DashedSvgPathBuilderOpts extends BaseSvgPathBuilderOpts {
+export interface DashedPathBuilderOpts extends BasePathBuilderOpts {
 	style: 'dashed' | 'dotted'
 	snap?: number
 	end?: 'skip' | 'outset' | 'none'
@@ -27,7 +32,7 @@ export interface DashedSvgPathBuilderOpts extends BaseSvgPathBuilderOpts {
 	lengthRatio?: number
 }
 
-export interface DrawSvgPathBuilderOpts extends BaseSvgPathBuilderOpts {
+export interface DrawPathBuilderOpts extends BasePathBuilderOpts {
 	style: 'draw'
 	randomSeed: string
 	offset?: number
@@ -35,31 +40,32 @@ export interface DrawSvgPathBuilderOpts extends BaseSvgPathBuilderOpts {
 	passes?: number
 }
 
-export type SvgPathBuilderOpts =
-	| SolidSvgPathBuilderOpts
-	| DashedSvgPathBuilderOpts
-	| DrawSvgPathBuilderOpts
+export type PathBuilderOpts = SolidPathBuilderOpts | DashedPathBuilderOpts | DrawPathBuilderOpts
 
 interface SegmentOpts {
 	offset?: number
 	roundness?: number
 }
 
-interface MoveToSvgPathBuilderSegment {
+interface LineOpts extends SegmentOpts {
+	geometry?: Omit<Geometry2dOptions, 'isClosed'> | false
+}
+
+interface MoveToPathBuilderSegment {
 	type: 'moveTo'
 	x: number
 	y: number
-	opts?: SegmentOpts
+	opts?: LineOpts
 }
 
-interface LineToSvgPathBuilderSegment {
+interface LineToPathBuilderSegment {
 	type: 'lineTo'
 	x: number
 	y: number
 	opts?: SegmentOpts
 }
 
-interface ArcToSvgPathBuilderSegment {
+interface ArcToPathBuilderSegment {
 	type: 'arcTo'
 	radius: number
 	largeArcFlag: boolean
@@ -69,18 +75,18 @@ interface ArcToSvgPathBuilderSegment {
 	opts?: SegmentOpts
 }
 
-type SvgPathBuilderSegment = LineToSvgPathBuilderSegment | ArcToSvgPathBuilderSegment
+type PathBuilderSegment = LineToPathBuilderSegment | ArcToPathBuilderSegment
 
-interface SvgPathBuilderLine {
-	initial: MoveToSvgPathBuilderSegment
-	segments: SvgPathBuilderSegment[]
+interface PathBuilderLine {
+	initial: MoveToPathBuilderSegment
+	segments: PathBuilderSegment[]
 	closed: boolean
 }
 
-export class SvgPathBuilder {
-	static throughPoints(points: VecLike[]) {
-		const path = new SvgPathBuilder()
-		path.moveTo(points[0].x, points[0].y)
+export class PathBuilder {
+	static throughPoints(points: VecLike[], opts?: LineOpts) {
+		const path = new PathBuilder()
+		path.moveTo(points[0].x, points[0].y, opts)
 		for (let i = 1; i < points.length; i++) {
 			path.lineTo(points[i].x, points[i].y)
 		}
@@ -89,7 +95,7 @@ export class SvgPathBuilder {
 
 	constructor() {}
 
-	private lines: SvgPathBuilderLine[] = []
+	private lines: PathBuilderLine[] = []
 
 	private currentLine() {
 		const lastLine = this.lines[this.lines.length - 1]
@@ -98,7 +104,7 @@ export class SvgPathBuilder {
 		return lastLine
 	}
 
-	moveTo(x: number, y: number, opts?: SegmentOpts) {
+	moveTo(x: number, y: number, opts?: LineOpts) {
 		this.lines.push({
 			initial: { type: 'moveTo', x, y, opts },
 			segments: [],
@@ -136,28 +142,11 @@ export class SvgPathBuilder {
 		return this
 	}
 
-	build(opts: SvgPathBuilderOpts) {
-		if (opts.forceSolid) {
-			return this.buildSolid(opts)
-		}
-		switch (opts.style) {
-			case 'solid':
-				return this.buildSolid(opts)
-			case 'dashed':
-			case 'dotted':
-				return this.buildDashed(opts)
-			case 'draw':
-				return this.buildDraw(opts)
-			default:
-				exhaustiveSwitchError(opts, 'style')
-		}
-	}
-
-	private buildSolid(opts: SvgPathBuilderOpts) {
-		const { strokeWidth, props } = opts
-
+	toD(opts: { closedOnly?: boolean } = {}) {
+		const closedOnly = opts.closedOnly ?? false
 		const parts = []
 		for (const { initial, segments, closed } of this.lines) {
+			if (closedOnly && !closed) continue
 			parts.push('M', toDomPrecision(initial.x), toDomPrecision(initial.y))
 			for (const segment of segments) {
 				switch (segment.type) {
@@ -182,11 +171,77 @@ export class SvgPathBuilder {
 				parts.push('Z')
 			}
 		}
-
-		return <path strokeWidth={strokeWidth} d={parts.join(' ')} {...props} />
+		return parts.join(' ')
 	}
 
-	private buildDashed(opts: DashedSvgPathBuilderOpts) {
+	toSvg(opts: PathBuilderOpts) {
+		if (opts.forceSolid) {
+			return this.toSolidSvg(opts)
+		}
+		switch (opts.style) {
+			case 'solid':
+				return this.toSolidSvg(opts)
+			case 'dashed':
+			case 'dotted':
+				return this.toDashedSvg(opts)
+			case 'draw':
+				return this.toDrawSvg(opts)
+			default:
+				exhaustiveSwitchError(opts, 'style')
+		}
+	}
+
+	toGeometry() {
+		const geometries = []
+		for (const { initial, segments, closed } of this.lines) {
+			if (initial.opts?.geometry === false) continue
+			const vertices = [new Vec(initial.x, initial.y)]
+			for (const segment of segments) {
+				switch (segment.type) {
+					case 'lineTo': {
+						vertices.push(new Vec(segment.x, segment.y))
+						break
+					}
+					case 'arcTo': {
+						const info = getArcSegmentInfo(vertices[vertices.length - 1], segment)
+						if (info === null) break
+						if (info === 'straight-line') {
+							vertices.push(new Vec(segment.x, segment.y))
+							break
+						}
+
+						const verticesCount = getVerticesCountForLength(info.length)
+						for (let i = 0; i < verticesCount + 1; i++) {
+							const t = (i / verticesCount) * info.sweepAngle
+							const point = Vec.Rot(info.startVector, t).mul(info.radius).add(info.center)
+							vertices.push(point)
+						}
+						break
+					}
+					default:
+						exhaustiveSwitchError(segment, 'type')
+				}
+			}
+
+			const geometry = closed
+				? new Polygon2d({ points: vertices, isFilled: false, ...initial.opts?.geometry })
+				: new Polyline2d({ points: vertices, ...initial.opts?.geometry })
+
+			geometries.push(geometry)
+		}
+
+		if (geometries.length === 0) return null
+		if (geometries.length === 1) return geometries[0]
+		return new Group2d({ children: geometries })
+	}
+
+	private toSolidSvg(opts: PathBuilderOpts) {
+		const { strokeWidth, props } = opts
+
+		return <path strokeWidth={strokeWidth} d={this.toD()} {...props} />
+	}
+
+	private toDashedSvg(opts: DashedPathBuilderOpts) {
 		const {
 			style,
 			strokeWidth,
@@ -298,7 +353,7 @@ export class SvgPathBuilder {
 		)
 	}
 
-	private buildDraw(opts: DrawSvgPathBuilderOpts) {
+	private toDrawSvg(opts: DrawPathBuilderOpts) {
 		const {
 			strokeWidth,
 			randomSeed,
@@ -308,12 +363,77 @@ export class SvgPathBuilder {
 			props,
 		} = opts
 
-		const random = rng(randomSeed)
-
 		const parts = []
 
+		const tangents = this.lines.map(({ initial, segments, closed }) => {
+			const tangents = []
+			const segmentCount = closed ? segments.length + 1 : segments.length
+
+			for (let i = 0; i < segmentCount; i++) {
+				let previous: PathBuilderSegment | MoveToPathBuilderSegment = segments[i - 1]
+				let current: PathBuilderSegment | MoveToPathBuilderSegment = segments[i]
+				let next: PathBuilderSegment | MoveToPathBuilderSegment = segments[i + 1]
+
+				if (!previous) previous = initial
+				if (!current) {
+					current = initial
+					next = segments[0]
+				}
+				if (!next) {
+					next = initial
+				}
+
+				let tangentBefore, tangentAfter
+				switch (current.type) {
+					case 'lineTo':
+					case 'moveTo': {
+						tangentBefore = Vec.Sub(previous, current).norm()
+						break
+					}
+					case 'arcTo': {
+						const info = getArcSegmentInfo(previous, current)
+						if (info === null || info === 'straight-line') {
+							tangentBefore = Vec.Sub(current, previous).norm().per()
+							break
+						}
+
+						tangentBefore = Vec.Per(info.endVector).mul(Math.sign(info.sweepAngle))
+						break
+					}
+					default:
+						exhaustiveSwitchError(current, 'type')
+				}
+
+				switch (next.type) {
+					case 'lineTo':
+					case 'moveTo': {
+						tangentAfter = Vec.Sub(next, current).norm()
+						break
+					}
+					case 'arcTo': {
+						const info = getArcSegmentInfo(current, next)
+						if (info === null || info === 'straight-line') {
+							tangentAfter = Vec.Sub(next, current).norm().per()
+							break
+						}
+
+						tangentAfter = Vec.Per(info.startVector).mul(Math.sign(info.sweepAngle))
+						break
+					}
+					default:
+						exhaustiveSwitchError(next, 'type')
+				}
+
+				tangents.push({ tangentBefore, tangentAfter })
+			}
+
+			return tangents
+		})
+
 		for (let pass = 0; pass < passes; pass++) {
-			for (const { initial, segments, closed } of this.lines) {
+			for (let lineIdx = 0; lineIdx < this.lines.length; lineIdx++) {
+				const { initial, segments, closed } = this.lines[lineIdx]
+				const random = rng(randomSeed + pass + lineIdx)
 				const initialOffset = initial.opts?.offset ?? defaultOffset
 				const initialPOffset = {
 					x: initial.x + random() * initialOffset,
@@ -345,6 +465,7 @@ export class SvgPathBuilder {
 					const segment = i === segments.length ? initial : segments[i]
 					const roundness = segment.opts?.roundness ?? defaultRoundness
 					const offsetP = offsetPoints[i]
+					const { tangentBefore, tangentAfter } = tangents[lineIdx][i]
 
 					const previousOffsetP = i === 0 ? initialPOffset : offsetPoints[i - 1]
 					const nextOffsetP =
@@ -355,16 +476,16 @@ export class SvgPathBuilder {
 					switch (segment.type) {
 						case 'lineTo':
 						case 'moveTo': {
-							if (!nextOffsetP) {
+							if (!nextOffsetP || roundness === 0) {
 								parts.push('L', toDomPrecision(offsetP.x), toDomPrecision(offsetP.y))
 								break
 							}
 
 							const nudgeBeforeAmount = Math.min(Vec.Dist(previousOffsetP, offsetP) / 2, roundness)
-							const nudgeBefore = Vec.Nudge(offsetP, previousOffsetP, nudgeBeforeAmount)
+							const nudgeBefore = Vec.Mul(tangentBefore, nudgeBeforeAmount).add(offsetP)
 
 							const nudgeAfterAmount = Math.min(Vec.Dist(nextOffsetP, offsetP) / 2, roundness)
-							const nudgeAfter = Vec.Nudge(offsetP, nextOffsetP, nudgeAfterAmount)
+							const nudgeAfter = Vec.Mul(tangentAfter, nudgeAfterAmount).add(offsetP)
 
 							parts.push(
 								'L',
@@ -404,37 +525,42 @@ export class SvgPathBuilder {
 		return <path strokeWidth={strokeWidth} d={parts.join(' ')} {...props} />
 	}
 
-	private segmentLength(lastPoint: VecLike, segment: SvgPathBuilderSegment) {
+	private segmentLength(lastPoint: VecLike, segment: PathBuilderSegment) {
 		switch (segment.type) {
 			case 'lineTo':
 				return Vec.Dist(lastPoint, segment)
-			case 'arcTo':
-				return arcSegmentLength(lastPoint, segment)
+			case 'arcTo': {
+				const info = getArcSegmentInfo(lastPoint, segment)
+				if (info === null) return 0
+				if (info === 'straight-line') return Vec.Dist(lastPoint, segment)
+				return info.length
+			}
 			default:
 				exhaustiveSwitchError(segment, 'type')
 		}
 	}
 }
+
 /*!
  * Adapted from https://github.com/rveciana/svg-path-properties
  * MIT License: https://github.com/rveciana/svg-path-properties/blob/master/LICENSE
  * https://github.com/rveciana/svg-path-properties/blob/74d850d14998274f6eae279424bdc2194f156490/src/arc.ts#L121
  */
-function arcSegmentLength(
+function getArcSegmentInfo(
 	lastPoint: VecLike,
-	{ radius, largeArcFlag, sweepFlag, x, y }: ArcToSvgPathBuilderSegment
+	{ radius, largeArcFlag, sweepFlag, x, y }: ArcToPathBuilderSegment
 ) {
 	// In accordance to: http://www.w3.org/TR/SVG/implnote.html#ArcOutOfRangeParameters
 	radius = Math.abs(radius)
 
 	// If the endpoints are identical, then this is equivalent to omitting the elliptical arc segment entirely.
 	if (lastPoint.x === x && lastPoint.y === y) {
-		return 0
+		return null
 	}
 
 	// If radius is 0 then this arc is treated as a straight line segment joining the endpoints.
 	if (radius === 0) {
-		return Vec.Dist(lastPoint, { x, y })
+		return 'straight-line'
 	}
 
 	// Following "Conversion from endpoint to center parameterization"
@@ -468,10 +594,10 @@ function arcSegmentLength(
 	}
 
 	// Step #3: Compute center
-	// const center = {
-	// 	x: transformedCenter.x + (lastPoint.x + x) / 2,
-	// 	y: transformedCenter.y + (lastPoint.y + y) / 2,
-	// }
+	const center = {
+		x: transformedCenter.x + (lastPoint.x + x) / 2,
+		y: transformedCenter.y + (lastPoint.y + y) / 2,
+	}
 
 	// Step #4: Compute start/sweep angles
 	// Start angle of the elliptical arc prior to the stretch and rotate operations.
@@ -496,5 +622,12 @@ function arcSegmentLength(
 	// We use % instead of `mod(..)` because we want it to be -360deg to 360deg(but actually in radians)
 	sweepAngle %= 2 * Math.PI
 
-	return Math.abs(sweepAngle * radius)
+	return {
+		length: Math.abs(sweepAngle * radius),
+		radius,
+		sweepAngle,
+		startVector,
+		endVector,
+		center,
+	}
 }
