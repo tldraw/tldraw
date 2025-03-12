@@ -7,7 +7,7 @@ const overrides: TLUiOverrides = {
 	actions(editor, actions) {
 		actions.lockCameraZoom = {
 			id: 'lock-camera-zoom',
-			kbd: '!k',
+			kbd: '⇧k',
 			onSelect() {
 				const isCameraZoomLockedAlready = editor.getCameraOptions().zoomSteps.length === 1
 				editor.setCameraOptions({
