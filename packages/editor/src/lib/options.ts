@@ -75,6 +75,11 @@ export interface TldrawOptions {
 	 * away and let the fonts load in in the background.
 	 */
 	readonly maxFontsToLoadBeforeRender: number
+	/**
+	 * If you have a CSP policy that blocks inline styles, you can use this prop to provide a
+	 * nonce to use in the editor's styles.
+	 */
+	readonly nonce: string | undefined
 }
 
 /** @public */
@@ -121,4 +126,5 @@ export const defaultTldrawOptions = {
 	exportProvider: Fragment,
 	enableToolbarKeyboardShortcuts: true,
 	maxFontsToLoadBeforeRender: Infinity,
+	nonce: undefined,
 } as const satisfies TldrawOptions
