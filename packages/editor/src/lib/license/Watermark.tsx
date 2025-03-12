@@ -157,7 +157,12 @@ To remove the watermark, please purchase a license at tldraw.dev.
 			animation: delayed_link 0.2s forwards ease-in-out;
 			animation-delay: 0.32s;
 		}
+
+		.${className} > a:focus-visible {
+			opacity: 1;
+		}
 	}
+
 
 	@keyframes delayed_link {
 		0% {
