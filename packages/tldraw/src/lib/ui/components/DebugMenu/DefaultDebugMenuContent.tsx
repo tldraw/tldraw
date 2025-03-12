@@ -39,6 +39,7 @@ export function DefaultDebugMenuContent() {
 	return (
 		<>
 			<TldrawUiMenuGroup id="items">
+				<TldrawUiMenuItem id="hard-reset" onSelect={hardResetEditor} label={'Hard reset'} />
 				<TldrawUiMenuItem
 					id="add-toast"
 					onSelect={() => {
@@ -166,7 +167,6 @@ export function DefaultDebugMenuContent() {
 					return null
 				})()}
 				<TldrawUiMenuItem id="throw-error" onSelect={() => setError(true)} label={'Throw error'} />
-				<TldrawUiMenuItem id="hard-reset" onSelect={hardResetEditor} label={'Hard reset'} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="flags">
 				<DebugFlags />
