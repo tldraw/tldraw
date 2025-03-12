@@ -3,6 +3,7 @@ import { getTestMigration, testSchema } from './__tests__/migrationTestUtils'
 import { bookmarkAssetVersions } from './assets/TLBookmarkAsset'
 import { imageAssetVersions } from './assets/TLImageAsset'
 import { videoAssetVersions } from './assets/TLVideoAsset'
+import { arrowBindingVersions } from './bindings/TLArrowBinding'
 import { assetVersions } from './records/TLAsset'
 import { cameraVersions } from './records/TLCamera'
 import { documentVersions } from './records/TLDocument'
@@ -2091,6 +2092,32 @@ describe('TLPresence NullableCameraCursor', () => {
 			chatMessage: '',
 			meta: {},
 		})
+	})
+})
+
+describe('Add elbow kind to arrow shape', () => {
+	const { up, down } = getTestMigration(arrowShapeVersions.AddElbow)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { kind: 'bendy' } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { kind: 'bendy' } })).toEqual({ props: {} })
+		expect(down({ props: { kind: 'elbow' } })).toEqual({ props: {} })
+	})
+})
+
+describe('Add side to arrow binding', () => {
+	const { up, down } = getTestMigration(arrowBindingVersions.AddSide)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { side: null } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { side: null } })).toEqual({ props: {} })
+		expect(down({ props: { side: 'top' } })).toEqual({ props: {} })
 	})
 })
 
