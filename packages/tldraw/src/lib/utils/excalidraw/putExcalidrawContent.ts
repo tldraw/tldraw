@@ -221,6 +221,7 @@ export async function putExcalidrawContent(
 					type: 'arrow',
 					props: {
 						text,
+						kind: element.elbowed ? 'elbow' : 'bendy',
 						bend: getBend(element, start, end),
 						dash: getDash(element),
 						size: strokeWidthsToSizes[element.strokeWidth] ?? 'm',
