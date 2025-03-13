@@ -13,7 +13,7 @@ export function Example({ article }: { article: Article }) {
 	return (
 		<div className="w-full mt-12">
 			{/* Disable auto focus using the preserveFocus search param */}
-			<Embed src={`${server}/${article.id}/full?preserveFocus=true`} />
+			<Embed src={`${server}/${article.id}/full?preserveFocus=true&utm_source=docs-embed`} />
 			<CodeFiles files={files} />
 		</div>
 	)
