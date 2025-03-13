@@ -1,3 +1,4 @@
+import assert from 'assert'
 import { writeFileSync } from 'fs'
 import * as tar from 'tar'
 import tmp from 'tmp'
@@ -5,6 +6,7 @@ import { exec } from './exec'
 import { PackageDetails, getAllPackageDetails } from './publishing'
 
 async function hasPackageChanged(pkg: PackageDetails) {
+	assert(process.env.TLDRAW_BEMO_URL, 'TLDRAW_BEMO_URL env var must be set')
 	const dir = tmp.dirSync({ unsafeCleanup: true })
 	const dirPath = dir.name
 	try {
@@ -21,7 +23,7 @@ async function hasPackageChanged(pkg: PackageDetails) {
 		const publishedManifest = getTarballManifestSync(publishedTarballPath)
 
 		const localTarballPath = `${dirPath}/local-package.tgz`
-		await exec('yarn', ['pack', '--out', localTarballPath], { pwd: pkg.dir })
+		await exec('yarn', ['pack', '--out', localTarballPath], { pwd: pkg.dir, env: process.env })
 
 		const localManifest = getTarballManifestSync(localTarballPath)
 
