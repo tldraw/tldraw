@@ -80,4 +80,7 @@ async function i18nUploadStrings() {
 	console.log('Finished placing order for new strings.')
 }
 
-i18nUploadStrings()
+i18nUploadStrings().catch((e) => {
+	console.error(e)
+	process.exit(1)
+})
