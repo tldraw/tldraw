@@ -7651,6 +7651,7 @@ __metadata:
     "@aws-sdk/lib-storage": "npm:^3.735.0"
     "@lokalise/node-api": "npm:^12.8.0"
     "@octokit/rest": "npm:^20.1.1"
+    "@types/diff": "npm:^7.0.1"
     "@types/is-ci": "npm:^3.0.4"
     "@types/minimist": "npm:^1.2.5"
     "@types/node": "npm:~20.11.30"
@@ -7659,6 +7660,7 @@ __metadata:
     "@typescript-eslint/utils": "npm:^8.21.0"
     ast-types: "npm:^0.14.2"
     cross-fetch: "npm:^3.2.0"
+    diff: "npm:^7.0.0"
     esbuild: "npm:^0.24.2"
     eslint: "npm:^9.19.0"
     glob: "npm:^8.1.0"
@@ -8073,6 +8075,13 @@ __metadata:
   dependencies:
     "@types/ms": "npm:*"
   checksum: 47876a852de8240bfdaf7481357af2b88cb660d30c72e73789abf00c499d6bc7cd5e52f41c915d1b9cd8ec9fef5b05688d7b7aef17f7f272c2d04679508d1053
+  languageName: node
+  linkType: hard
+
+"@types/diff@npm:^7.0.1":
+  version: 7.0.1
+  resolution: "@types/diff@npm:7.0.1"
+  checksum: ef8c5fe0ea56737e8967c3db5e78518134f704e8e2971cb4ba6f2ed46ed5e13b4bbe41a6b2b78122b8f47c618ac25550f85a681633636a3a020369042523295d
   languageName: node
   linkType: hard
 
@@ -12123,6 +12132,13 @@ __metadata:
   version: 4.0.2
   resolution: "diff@npm:4.0.2"
   checksum: ec09ec2101934ca5966355a229d77afcad5911c92e2a77413efda5455636c4cf2ce84057e2d7715227a2eeeda04255b849bd3ae3a4dd22eb22e86e76456df069
+  languageName: node
+  linkType: hard
+
+"diff@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "diff@npm:7.0.0"
+  checksum: e9b8e48d054c9c0c093c65ce8e2637af94b35f2427001607b14e5e0589e534ea3413a7f91ebe6d7c5a1494ace49cb7c7c3972f442ddd96a4767ff091999a082e
   languageName: node
   linkType: hard
 
