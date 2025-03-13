@@ -14,6 +14,7 @@ jobs:
     name: Trigger an SDK hotfix
     runs-on: ubuntu-latest
     concurrency: npm-publish
+    environment: npm deploy
 
     steps:
       - name: Generate a token
