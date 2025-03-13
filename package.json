@@ -54,7 +54,6 @@
 		"typecheck": "yarn refresh-assets && tsx internal/scripts/typecheck.ts",
 		"check-packages": "tsx internal/scripts/check-packages.ts",
 		"update-pr-template": "tsx internal/scripts/update-pr-template.ts",
-		"trigger-sdk-hotfix": "tsx internal/scripts/trigger-sdk-hotfix.ts",
 		"api-check": "lazy api-check",
 		"test-ci": "lazy test-ci",
 		"test": "lazy test",
