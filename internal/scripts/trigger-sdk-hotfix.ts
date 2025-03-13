@@ -68,6 +68,8 @@ async function main() {
 	const HEAD = (await exec('git', ['rev-parse', 'HEAD'])).trim()
 	await exec('git', ['fetch', 'origin', latestReleaseBranch])
 	await exec('git', ['checkout', latestReleaseBranch])
+	await exec('git', ['reset', `origin/${latestReleaseBranch}`, '--hard'])
+	await exec('git', ['log', '-1', '--oneline'])
 	await exec('git', ['cherry-pick', HEAD])
 
 	if (isDocsOnly) {
@@ -75,6 +77,7 @@ async function main() {
 		// run yarn again before building packages to make sure everything is ready
 		// in case HEAD included dev dependency changes
 		await exec('yarn', ['install'])
+		await exec('yarn', ['refresh-assets', '--force'])
 
 		const diff = await getAnyPackageDiff()
 		if (diff) {
