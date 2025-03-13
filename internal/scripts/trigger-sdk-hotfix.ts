@@ -71,7 +71,7 @@ async function main() {
 			if (formattedDiff.length > 1000) {
 				formattedDiff = formattedDiff.slice(0, 1000) + '\n...\n'
 			}
-			message += formatDiff(diff).slice(0, 1000)
+			message += formattedDiff
 
 			message += '\n💡 Please cherry-pick this PR manually and remove the sdk changes.'
 			message +=
