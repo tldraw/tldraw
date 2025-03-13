@@ -112,17 +112,18 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 	return (
 		<div data-testid={`style.${uiType}`} className={classNames('tlui-buttons__grid')}>
 			{items.map((item) => {
+				const label = title + ' — ' + msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)
 				return (
 					<TldrawUiButton
 						type="icon"
 						key={item.value}
 						data-id={item.value}
 						data-testid={`style.${uiType}.${item.value}`}
-						aria-label={item.value}
+						aria-label={label}
 						data-state={
 							value.type === 'shared' && value.value === item.value ? 'hinted' : undefined
 						}
-						title={title + ' — ' + msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)}
+						title={label}
 						className={classNames('tlui-button-grid__button')}
 						style={
 							style === (DefaultColorStyle as StyleProp<unknown>)
