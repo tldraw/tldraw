@@ -20,8 +20,8 @@ jobs:
         id: generate_token
         uses: actions/create-github-app-token@v1
         with:
-          app-id: ${{ vars.HUPPY_APP_ID }}
-          private-key: ${{ secrets.HUPPY_PRIVATE_KEY }}
+          app-id: ${{ secrets.HUPPY_APP_ID }}
+          private-key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
 
       - uses: actions/checkout@v3
         with:
