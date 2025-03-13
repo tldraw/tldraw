@@ -217,6 +217,7 @@ export type TLUiTranslationKey =
 	| 'tool.cloud'
 	| 'tool.diamond'
 	| 'tool.ellipse'
+	| 'tool.heart'
 	| 'tool.hexagon'
 	| 'tool.highlight'
 	| 'tool.line'

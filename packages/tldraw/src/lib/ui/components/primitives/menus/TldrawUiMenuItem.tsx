@@ -85,10 +85,10 @@ export function TldrawUiMenuItem<
 	if (isReadonlyMode && !readonlyOk) return null
 
 	const labelToUse = unwrapLabel(label, menuType)
-	const kbdTouse = kbd ? kbdStr(kbd) : undefined
+	const kbdToUse = kbd ? kbdStr(kbd) : undefined
 
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
-	const titleStr = labelStr && kbdTouse ? `${labelStr} ${kbdTouse}` : labelStr
+	const titleStr = labelStr && kbdToUse ? `${labelStr} ${kbdToUse}` : labelStr
 
 	switch (menuType) {
 		case 'menu': {
@@ -202,7 +202,7 @@ export function TldrawUiMenuItem<
 				<TldrawUiButton
 					type="tool"
 					data-testid={`tools.${id}`}
-					aria-label={labelToUse}
+					aria-label={labelStr}
 					data-value={id}
 					onClick={() => onSelect('toolbar')}
 					title={titleStr}
@@ -226,6 +226,7 @@ export function TldrawUiMenuItem<
 					onClick={() => {
 						onSelect('toolbar')
 					}}
+					aria-label={labelStr}
 					data-testid={`tools.more.${id}`}
 					title={titleStr}
 					disabled={disabled}
