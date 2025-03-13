@@ -1,6 +1,6 @@
-import { CodeFiles } from '@/components/content/code-files'
 import { Embed } from '@/components/content/embed'
 import { Article } from '@/types/content-types'
+import { CodeFiles } from './code-files'
 
 export function Example({ article }: { article: Article }) {
 	const server = 'https://examples.tldraw.com'
@@ -12,8 +12,7 @@ export function Example({ article }: { article: Article }) {
 
 	return (
 		<div className="w-full mt-12">
-			{/* Disable auto focus using the preserveFocus search param */}
-			<Embed src={`${server}/${article.id}/full?preserveFocus=true`} />
+			<Embed src={`${server}/${article.id}/full`} />
 			<CodeFiles files={files} />
 		</div>
 	)
