@@ -30,6 +30,8 @@ jobs:
           ref: refs/heads/production
           fetch-depth: 0
 
+      - uses: ./.github/actions/setup
+
       - name: Get Pull Request Number
         id: pr
         run: echo "::set-output name=pull_request_number::$(gh pr view --json number -q .number || echo "")"
