@@ -12,55 +12,64 @@ async function main() {
 		'DISCORD_DEPLOY_WEBHOOK_URL',
 		'PR_NUMBER',
 		'GITHUB_TOKEN',
+		// bemo URL is needed when building packages, which in this file
+		// happens during docs-only mode when we need to check for sdk changes.
+		// See the file
 		'TLDRAW_BEMO_URL',
 	])
 
 	const prNumber = parseInt(env.PR_NUMBER)
 
-	const octokit = new Octokit({
-		auth: env.GITHUB_TOKEN,
-	})
-	nicelog(`Checking PR ${prNumber} for "docs-hotfix-please" label...`)
+	const octokit = new Octokit({ auth: env.GITHUB_TOKEN })
+
+	nicelog(`Checking PR ${prNumber} labels...`)
 	const pr = await octokit.rest.pulls.get({
 		owner: 'tldraw',
 		repo: 'tldraw',
 		pull_number: prNumber,
 	})
 
-	// look for 'docs-hotfix-please' label
 	const docsHotfixPlease = pr.data.labels.find((label) => label.name === 'docs-hotfix-please')
 	const sdkHotfixPlease = pr.data.labels.find((label) => label.name === 'sdk-hotfix-please')
+
 	if (!docsHotfixPlease && !sdkHotfixPlease) {
 		nicelog('No "(docs|sdk)-hotfix-please" label found. Exiting...')
 		return
 	}
-	const isDocsOnly = docsHotfixPlease && !sdkHotfixPlease
 
 	nicelog(`Found "${sdkHotfixPlease || docsHotfixPlease}" label. Proceeding...`)
 
-	// first cherry-pick on top of latest release branch
-	const HEAD = (await exec('git', ['rev-parse', 'HEAD'])).trim()
+	const isDocsOnly = docsHotfixPlease && !sdkHotfixPlease
 
-	const latestOnNpm = (await exec('npm', ['show', 'tldraw', 'version'])).trim().split(/\n/g).pop()
-	nicelog('latestOnNpm', latestOnNpm)
-	const version = semver.parse(latestOnNpm)
+	// first cherry-pick HEAD on top of latest release branch
+	const latestFullReleaseVersion = (await exec('npm', ['show', 'tldraw', 'version']))
+		.trim()
+		.split(/\n/g)
+		.pop()
+
+	nicelog('Latest tldraw version on npm is', latestFullReleaseVersion)
+	const version = semver.parse(latestFullReleaseVersion)
 	if (!version) {
-		throw new Error(`Invalid version ${latestOnNpm}`)
+		throw new Error(
+			`Couldn't get latest tldraw package version from npm: '${latestFullReleaseVersion}'`
+		)
 	}
 
 	const latestReleaseBranch = `v${version.major}.${version.minor}.x`
-	nicelog('latest release branch', latestReleaseBranch)
+	nicelog('Latest release branch', latestReleaseBranch)
 
+	// cherry-pick HEAD on top of latest release branch
+	const HEAD = (await exec('git', ['rev-parse', 'HEAD'])).trim()
 	await exec('git', ['fetch', 'origin', latestReleaseBranch])
 	await exec('git', ['checkout', latestReleaseBranch])
-
-	// cherry-pick
 	await exec('git', ['cherry-pick', HEAD])
-
-	await exec('yarn', ['install'])
 
 	if (isDocsOnly) {
 		nicelog('Ensuring no SDK changes are present...')
+		// run yarn again before building packages to make sure everything is ready
+		// in case HEAD included dev dependency changes
+		await exec('yarn', ['install'])
+
 		const diff = await getAnyPackageDiff()
 		if (diff) {
 			let message = kleur.red().bold(`・ERROR・`)
