@@ -10,7 +10,6 @@ import { nicelog } from './lib/nicelog'
 async function main() {
 	const env = makeEnv([
 		'DISCORD_DEPLOY_WEBHOOK_URL',
-		'PR_NUMBER',
 		'GITHUB_TOKEN',
 		// bemo URL is needed when building packages, which in this file
 		// happens during docs-only mode when we need to check for sdk changes.
@@ -18,7 +17,14 @@ async function main() {
 		'TLDRAW_BEMO_URL',
 	])
 
-	const prNumber = parseInt(env.PR_NUMBER)
+	const lastCommitMessage = (await exec('git', ['log', '-1', '--oneline'])).trim()
+	const lastPRNumber = lastCommitMessage.match(/\(#(\d+)\)$/)?.[1]
+	if (!lastPRNumber) {
+		nicelog('No PR number found in last commit message. Exiting...')
+		return
+	}
+
+	const prNumber = parseInt(lastPRNumber)
 
 	const octokit = new Octokit({ auth: env.GITHUB_TOKEN })
 
