@@ -11,6 +11,7 @@ import {
 	sortByIndex,
 	structuredClone,
 } from '@tldraw/editor'
+import { ReactNode } from 'react'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import { kickoutOccludedShapes } from '../selectHelpers'
 
@@ -204,6 +205,23 @@ export class DraggingHandle extends StateNode {
 		this.editor.snaps.clearIndicators()
 
 		this.editor.setCursor({ type: 'default', rotation: 0 })
+	}
+
+	override getSvgOverlay(): ReactNode {
+		const shape = this.editor.getShape(this.shapeId)
+		if (!shape) return null
+		const util = this.editor.getShapeUtil(shape)
+		const handles = util.getHandles?.(shape)
+		if (!handles) return null
+		const handle = handles.find((h) => h.id === this.info.handle.id)
+		if (!handle) return null
+
+		return util.getHandleDragSvgOverlay?.(shape, {
+			handle,
+			isPrecise: this.isPrecise,
+			isCreatingShape: this.info.isCreating ?? false,
+			data: this.shapeUtilData,
+		})
 	}
 
 	private complete() {

@@ -26,7 +26,7 @@ export interface TLArrowBindingProps {
 	 * precise is whether to bind to the normalizedAnchor, or to the middle of the shape
 	 */
 	isPrecise: boolean
-	side: ElbowArrowSide | null
+	entrySide: ElbowArrowSide | null
 }
 
 /** @public */
@@ -35,7 +35,7 @@ export const arrowBindingProps: RecordProps<TLArrowBinding> = {
 	normalizedAnchor: vecModelValidator,
 	isExact: T.boolean,
 	isPrecise: T.boolean,
-	side: ElbowArrowSide.nullable(),
+	entrySide: ElbowArrowSide.nullable(),
 }
 
 /** @public */
@@ -53,10 +53,10 @@ export const arrowBindingMigrations = createBindingPropsMigrationSequence({
 		{
 			id: arrowBindingVersions.AddSide,
 			up: (props) => {
-				props.side = null
+				props.entrySide = null
 			},
 			down: (props) => {
-				delete props.side
+				delete props.entrySide
 			},
 		},
 	],

@@ -441,6 +441,18 @@ export function getRouteHandlePath(info: ElbowArrowInfo, route: ElbowArrowRoute)
 	}
 }
 
+export function getEdgeFromNormalizedAnchor(normalizedAnchor: VecLike) {
+	if (normalizedAnchor.x === 0.5 && normalizedAnchor.y === 0.5) {
+		return null
+	}
+
+	if (Math.abs(normalizedAnchor.x - 0.5) > Math.abs(normalizedAnchor.y - 0.5)) {
+		return normalizedAnchor.x < 0.5 ? 'left' : 'right'
+	}
+
+	return normalizedAnchor.y < 0.5 ? 'top' : 'bottom'
+}
+
 function getElbowArrowBindingInfo(
 	editor: Editor,
 	arrow: TLArrowShape,
@@ -463,25 +475,18 @@ function getElbowArrowBindingInfo(
 					arrowStrokeSize + targetStrokeSize + BOUND_ARROW_OFFSET * arrow.props.scale
 			}
 
-			let side = binding.props.side
-			if (elbowArrowDebug.get().edgePicking === 'position') {
-				const centerDelta = geometry.bounds.center.sub(geometry.target)
-				if (
-					!binding.props.isPrecise ||
-					(binding.props.normalizedAnchor.x === 0.5 && binding.props.normalizedAnchor.y === 0.5)
-				) {
-					side = binding.props.side
-				} else {
-					side =
-						Math.abs(centerDelta.x) > Math.abs(centerDelta.y)
-							? centerDelta.x > 0
-								? 'left'
-								: 'right'
-							: centerDelta.y > 0
-								? 'top'
-								: 'bottom'
-				}
-			}
+			const fastEdgePickingMode = elbowArrowDebug.get().fastEdgePicking
+			const side: ElbowArrowSide | null = binding.props.isPrecise
+				? getEdgeFromNormalizedAnchor(
+						Vec.RotWith(
+							binding.props.normalizedAnchor,
+							{ x: 0.5, y: 0.5 },
+							geometry.shapeToArrowTransform.rotation()
+						)
+					)
+				: fastEdgePickingMode === 'auto'
+					? null
+					: binding.props.entrySide
 
 			return {
 				isPoint: false,
@@ -518,9 +523,8 @@ export function getBindingGeometryInArrowSpace(
 	}
 
 	const arrowTransform = editor.getShapePageTransform(arrowId)
-	const inverseArrowTransform = Mat.Inverse(arrowTransform)
 	const shapeTransform = editor.getShapePageTransform(targetId)
-	const shapeToArrowTransform = Mat.Multiply(inverseArrowTransform, shapeTransform)
+	const shapeToArrowTransform = arrowTransform.clone().invert().multiply(shapeTransform)
 
 	const geometries: { vertices: Vec[]; isClosed: boolean }[] = []
 	let minX = Infinity
@@ -560,7 +564,7 @@ export function getBindingGeometryInArrowSpace(
 	}
 	const target = Mat.applyToPoint(shapeToArrowTransform, targetInShapeSpace)
 
-	return { bounds, geometries, target }
+	return { bounds, geometries, target, shapeToArrowTransform }
 }
 
 export function transformBox(box: Box, scale: ElbowArrowScale) {

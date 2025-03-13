@@ -1,4 +1,6 @@
 import { StateNode, TLKeyboardEventInfo, TLPointerEventInfo } from '@tldraw/editor'
+import { ReactNode } from 'react'
+import { TargetHandleOverlay } from '../TargetHandleOverlay'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
@@ -33,5 +35,9 @@ export class Idle extends StateNode {
 				})
 			}
 		}
+	}
+
+	override getSvgOverlay(): ReactNode {
+		return <TargetHandleOverlay />
 	}
 }

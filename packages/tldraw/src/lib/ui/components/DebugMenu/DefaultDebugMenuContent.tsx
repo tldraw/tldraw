@@ -211,7 +211,7 @@ export function FeatureFlags() {
 }
 
 export function DebugElbowArrowMenu() {
-	const { visualDebugging, aSide, bSide, targetStyle, supportPrecise, edgePicking } =
+	const { visualDebugging, aSide, bSide, targetStyle, supportPrecise, fastEdgePicking } =
 		useValue(elbowArrowDebug)
 	const editor = useEditor()
 
@@ -234,32 +234,6 @@ export function DebugElbowArrowMenu() {
 						elbowArrowDebug.update((p) => ({ ...p, supportPrecise: !supportPrecise }))
 					}}
 				/>
-				<TldrawUiMenuSubmenu id="edgePicking" label={`Edge picking (${edgePicking})`}>
-					<TldrawUiMenuCheckboxItem
-						id="entry-position"
-						label="Entry position"
-						checked={edgePicking === 'entry-position'}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, edgePicking: 'entry-position' }))
-						}}
-					/>
-					<TldrawUiMenuCheckboxItem
-						id="entry-velocity"
-						label="Entry velocity"
-						checked={edgePicking === 'entry-velocity'}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, edgePicking: 'entry-velocity' }))
-						}}
-					/>
-					<TldrawUiMenuCheckboxItem
-						id="position"
-						label="Position"
-						checked={edgePicking === 'position'}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, edgePicking: 'position' }))
-						}}
-					/>
-				</TldrawUiMenuSubmenu>
 				<TldrawUiMenuSubmenu id="target" label={`Target (${targetStyle})`}>
 					<TldrawUiMenuCheckboxItem
 						id="push"
@@ -283,6 +257,27 @@ export function DebugElbowArrowMenu() {
 						checked={targetStyle === 'remove'}
 						onSelect={() => {
 							elbowArrowDebug.update((p) => ({ ...p, targetStyle: 'remove' }))
+						}}
+					/>
+				</TldrawUiMenuSubmenu>
+				<TldrawUiMenuSubmenu
+					id="fast-edge-picking"
+					label={`Fast edge picking (${fastEdgePicking})`}
+				>
+					<TldrawUiMenuCheckboxItem
+						id="auto"
+						label="Auto"
+						checked={fastEdgePicking === 'auto'}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, fastEdgePicking: 'auto' }))
+						}}
+					/>
+					<TldrawUiMenuCheckboxItem
+						id="velocity"
+						label="Velocity"
+						checked={fastEdgePicking === 'velocity'}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, fastEdgePicking: 'velocity' }))
 						}}
 					/>
 				</TldrawUiMenuSubmenu>

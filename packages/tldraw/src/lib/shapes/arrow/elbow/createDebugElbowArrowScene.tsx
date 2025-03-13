@@ -140,7 +140,7 @@ export function createDebugElbowArrowScene(editor: Editor) {
 					normalizedAnchor: { x: 0.5, y: 0.5 },
 					isExact: false,
 					isPrecise: false,
-					side: aSide,
+					entrySide: aSide,
 				})
 
 				createOrUpdateArrowBinding(editor, arrowId, shapeBId, {
@@ -148,7 +148,7 @@ export function createDebugElbowArrowScene(editor: Editor) {
 					normalizedAnchor: { x: 0.5, y: 0.5 },
 					isExact: false,
 					isPrecise: false,
-					side: bSide,
+					entrySide: bSide,
 				})
 			}
 			frameX += frameWidth + spacing

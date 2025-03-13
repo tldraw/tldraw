@@ -1,5 +1,5 @@
 import { react } from '@tldraw/state'
-import { useQuickReactor, useValue } from '@tldraw/state-react'
+import { useComputed, useQuickReactor, useValue } from '@tldraw/state-react'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
@@ -168,6 +168,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 						<SnapIndicatorWrapper />
 						<SelectionForegroundWrapper />
 						<HandlesWrapper />
+						<ToolOverlaysWrapper />
 						<LiveCollaborators />
 					</div>
 				</div>
@@ -364,6 +365,32 @@ function HandleWrapper({
 		<g aria-label="handle" transform={`translate(${handle.x}, ${handle.y})`} {...events}>
 			<Handle shapeId={shapeId} handle={handle} zoom={zoom} isCoarse={isCoarse} />
 		</g>
+	)
+}
+
+function ToolOverlaysWrapper() {
+	const editor = useEditor()
+	const activeStateNode = useComputed(
+		'active state node',
+		() => {
+			let node = editor.root
+			let next
+			while ((next = node.getCurrent())) {
+				node = next
+			}
+			return node
+		},
+		[editor]
+	)
+
+	return useValue(
+		'tool overlays',
+		() => {
+			const result = activeStateNode.get().getSvgOverlay?.()
+			if (!result) return null
+			return <svg className="tl-overlays__item tl-tool-overlay">{result}</svg>
+		},
+		[activeStateNode]
 	)
 }
 
