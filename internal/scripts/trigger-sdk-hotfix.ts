@@ -68,6 +68,8 @@ async function main() {
 	const HEAD = (await exec('git', ['rev-parse', 'HEAD'])).trim()
 	await exec('git', ['fetch', 'origin', latestReleaseBranch])
 	await exec('git', ['checkout', latestReleaseBranch])
+	await exec('git', ['reset', `origin/${latestReleaseBranch}`, '--hard'])
+	await exec('git', ['log', '-1', '--oneline'])
 	await exec('git', ['cherry-pick', HEAD])
 
 	if (isDocsOnly) {
