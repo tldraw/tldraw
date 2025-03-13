@@ -1,4 +1,4 @@
-name: Trigger docs hotfix from pr label
+name: Trigger sdk hotfix
 
 on:
   push:
@@ -11,9 +11,9 @@ defaults:
 
 jobs:
   trigger:
-    name: Trigger a sdk hotfix if it's a docs-only change
+    name: Trigger an SDK hotfix
     runs-on: ubuntu-latest
-    concurrency: npm-publish 
+    concurrency: npm-publish
 
     steps:
       - name: Generate a token
@@ -33,15 +33,16 @@ jobs:
         id: pr
         run: echo "::set-output name=pull_request_number::$(gh pr view --json number -q .number || echo "")"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
 
       - name: Maybe trigger docs hotfix
         run: |
           set -e
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
-          yarn trigger-docs-hotfix
+          yarn trigger-sdk-hotfix
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
           PR_NUMBER: ${{ steps.pr.outputs.pull_request_number }}
           TLDRAW_BEMO_URL: https://demo.tldraw.xyz
+          DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
