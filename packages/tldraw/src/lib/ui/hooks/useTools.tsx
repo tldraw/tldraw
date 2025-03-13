@@ -227,7 +227,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 		]
 
-		toolsArray.push()
+		toolsArray.forEach((t) => (t.onSelect = t.onSelect.bind(t)))
 
 		const tools = Object.fromEntries(toolsArray.map((t) => [t.id, t]))
 
