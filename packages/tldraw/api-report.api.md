@@ -137,6 +137,15 @@ import { VecLike } from '@tldraw/editor';
 import { VecModel } from '@tldraw/editor';
 
 // @public (undocumented)
+export type A11yPriority = 'assertive' | 'polite';
+
+// @public (undocumented)
+export interface A11yProviderProps {
+    // (undocumented)
+    children: React.ReactNode;
+}
+
+// @public (undocumented)
 export interface ActionsProviderProps {
     // (undocumented)
     children: React_2.ReactNode;
@@ -678,6 +687,9 @@ export const DEFAULT_MAX_ASSET_SIZE: number;
 
 // @public
 export const DEFAULT_MAX_IMAGE_DIMENSION = 5000;
+
+// @public (undocumented)
+export const DefaultA11y: NamedExoticComponent<object>;
 
 // @public (undocumented)
 export const DefaultActionsMenu: NamedExoticComponent<TLUiActionsMenuProps>;
@@ -2419,6 +2431,9 @@ export function TldrawShapeIndicators(): JSX_2.Element | null;
 export const TldrawUi: React_3.NamedExoticComponent<TldrawUiProps>;
 
 // @public (undocumented)
+export function TldrawUiA11yProvider({ children }: A11yProviderProps): JSX_2.Element;
+
+// @public (undocumented)
 export const TldrawUiButton: React_2.ForwardRefExoticComponent<TLUiButtonProps & React_2.RefAttributes<HTMLButtonElement>>;
 
 // @public (undocumented)
@@ -2620,6 +2635,22 @@ export interface TLTypeFace {
 }
 
 // @public (undocumented)
+export interface TLUiA11y {
+    // (undocumented)
+    msg: string | undefined;
+    // (undocumented)
+    priority?: A11yPriority;
+}
+
+// @public (undocumented)
+export interface TLUiA11yContextType {
+    // (undocumented)
+    currentMsg: Atom<TLUiA11y>;
+    // (undocumented)
+    setMessage(msg: TLUiA11y): void;
+}
+
+// @public (undocumented)
 export interface TLUiActionItem<TransationKey extends string = string, IconType extends string = string> {
     // (undocumented)
     checkbox?: boolean;
@@ -2715,6 +2746,8 @@ export interface TLUiButtonProps extends React_2.HTMLAttributes<HTMLButtonElemen
 
 // @public (undocumented)
 export interface TLUiComponents {
+    // (undocumented)
+    A11y?: ComponentType | null;
     // (undocumented)
     ActionsMenu?: ComponentType<TLUiActionsMenuProps> | null;
     // (undocumented)
@@ -4085,6 +4118,9 @@ export function UnlockAllMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function unwrapLabel(label?: TLUiActionItem['label'], menuType?: string): string | undefined;
+
+// @public (undocumented)
+export function useA11y(): TLUiA11yContextType;
 
 // @public (undocumented)
 export function useActions(): TLUiActionsContextType;

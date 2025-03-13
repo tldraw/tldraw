@@ -6,6 +6,7 @@ import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
 	ContainerProvider,
+	DefaultA11y,
 	DefaultDialogs,
 	DefaultToasts,
 	EditorContext,
@@ -121,6 +122,7 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 				<TooltipProvider>{children}</TooltipProvider>
 				<DefaultDialogs />
 				<DefaultToasts />
+				<DefaultA11y />
 				<PutToastsInApp />
 			</TldrawUiContextProvider>
 		</EditorContext.Provider>
