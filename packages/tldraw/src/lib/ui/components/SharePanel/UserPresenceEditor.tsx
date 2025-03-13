@@ -65,9 +65,9 @@ export function UserPresenceEditor() {
 							if (!isEditingName) setIsEditingName(true)
 						}}
 					>
-						{userName}
+						{userName || msg('people-menu.anonymous-user')}
 					</div>
-					{userName === 'New User' ? (
+					{!userName ? (
 						<div className="tlui-people-menu__user__label">{msg('people-menu.user')}</div>
 					) : null}
 				</>

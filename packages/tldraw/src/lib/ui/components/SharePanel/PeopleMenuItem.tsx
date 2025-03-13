@@ -40,7 +40,9 @@ export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId
 				onDoubleClick={handleFollowClick}
 			>
 				<TldrawUiIcon icon="color" color={presence.color} />
-				<div className="tlui-people-menu__name">{presence.userName ?? 'New User'}</div>
+				<div className="tlui-people-menu__name">
+					{presence.userName?.trim() || msg('people-menu.anonymous-user')}
+				</div>
 			</TldrawUiButton>
 			<TldrawUiButton
 				type="icon"

@@ -1852,7 +1852,7 @@
 }
 
 .tlui-contextual-toolbar [data-isactive='true']::after {
-	background-color: var(--color-muted-1);
+	background-color: var(--color-muted-2);
 	opacity: 1;
 }
 

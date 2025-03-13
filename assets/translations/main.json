@@ -298,6 +298,7 @@
 	"people-menu.leading": "Following You",
 	"people-menu.user": "(You)",
 	"people-menu.invite": "Invite others",
+	"people-menu.anonymous-user": "New user",
 	"help-menu.import-tldr-file": "Import file…",
 	"help-menu.title": "Help and resources",
 	"help-menu.about": "About tldraw",
