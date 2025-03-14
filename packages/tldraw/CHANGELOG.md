@@ -1,3 +1,23 @@
+# v3.10.2 (Fri Mar 14 2025)
+
+### Release Notes
+
+#### rich text: add `textOptions` to `<TldrawImage />` ([#5649](https://github.com/tldraw/tldraw/pull/5649))
+
+- Fix a bug where `textOptions` was missing on `<TldrawImage />`
+
+---
+
+#### 🐛 Bug Fixes
+
+- rich text: add `textOptions` to `<TldrawImage />` [#5649](https://github.com/tldraw/tldraw/pull/5649) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 1
+
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
 # v3.10.0 (Tue Mar 11 2025)
 
 ### Release Notes

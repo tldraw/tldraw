@@ -1,3 +1,30 @@
+# v3.10.2 (Fri Mar 14 2025)
+
+### Release Notes
+
+#### rich text: add `textOptions` to `<TldrawImage />` ([#5649](https://github.com/tldraw/tldraw/pull/5649))
+
+- Fix a bug where `textOptions` was missing on `<TldrawImage />`
+
+---
+
+#### 🐛 Bug Fix
+
+- Add a dot (test new docs deployment thing) [#5641](https://github.com/tldraw/tldraw/pull/5641) ([@ds300](https://github.com/ds300))
+- docs: fix sorting for release history [#5617](https://github.com/tldraw/tldraw/pull/5617) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🐛 Bug Fixes
+
+- `tldraw`
+  - rich text: add `textOptions` to `<TldrawImage />` [#5649](https://github.com/tldraw/tldraw/pull/5649) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 2
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
 # v3.10.1 (Tue Mar 11 2025)
 
 #### 🐛 Bug Fix
