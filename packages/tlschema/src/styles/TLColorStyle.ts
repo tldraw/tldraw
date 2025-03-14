@@ -65,7 +65,7 @@ export const DefaultColorThemePalette: {
 			semi: '#e8e8e8',
 			pattern: '#494949',
 			highlight: {
-				srgb: '#fddd00',
+				srgb: '#1d1d1d',
 				p3: 'color(display-p3 0.972 0.8205 0.05)',
 			},
 		},
