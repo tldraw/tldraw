@@ -127,6 +127,7 @@ import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
+import { TLTextOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLUrlExternalAsset } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
@@ -2398,6 +2399,7 @@ export interface TldrawImageProps extends TLImageExportOptions {
     pageId?: TLPageId;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot;
+    textOptions?: TLTextOptions;
 }
 
 // @public (undocumented)
