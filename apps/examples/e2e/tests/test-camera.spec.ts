@@ -164,12 +164,12 @@ test.describe('camera', () => {
 		// now zoom in
 		await multiTouchGesture({
 			start: [
-				{ x: 149, y: 149 },
-				{ x: 151, y: 151 },
+				{ x: 200, y: 200 },
+				{ x: 200, y: 200 },
 			],
 			end: [
 				{ x: 0, y: 0 },
-				{ x: 300, y: 300 },
+				{ x: 400, y: 400 },
 			],
 			steps: 50,
 		})
