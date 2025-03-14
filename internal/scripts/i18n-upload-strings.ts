@@ -63,6 +63,11 @@ async function i18nUploadStrings() {
 		}
 	)
 
+	if (placeTranslationOrderDryRun.total === 0) {
+		console.log(`There are strings to translate but Lokalise can't do the order b/c it's 0. UGH.`)
+		return
+	}
+
 	if (placeTranslationOrderDryRun.total > 10) {
 		console.error('Cost of translations is exceeding expectations. Place a manual order.')
 		process.exit(1)
