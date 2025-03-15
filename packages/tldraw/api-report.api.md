@@ -1526,9 +1526,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     static type: "image";
 }
 
-// @public
-export function isEmptyRichText(richText: TLRichText): boolean;
-
 // @public (undocumented)
 export function KeyboardShortcutsMenuItem(): JSX_2.Element | null;
 

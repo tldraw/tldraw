@@ -17,6 +17,7 @@ import {
 	RichTextFontVisitorState,
 	TLFontFace,
 	TLRichText,
+	WeakCache,
 } from '@tldraw/editor'
 import { DefaultFontFaces } from '../../shapes/shared/defaultFonts'
 import TextDirection from './textDirection'
@@ -89,6 +90,8 @@ export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: T
 	return `<div class="tl-rich-text">${html}</div>`
 }
 
+const plainTextFromRichTextMap = new WeakCache<TLRichText, string>()
+
 /**
  * Renders plaintext from a rich text string.
  * @param editor - The editor instance.
@@ -98,10 +101,16 @@ export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: T
  * @public
  */
 export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText) {
-	const tipTapExtensions =
-		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-	return generateText(richText as JSONContent, tipTapExtensions, {
-		blockSeparator: '\n',
+	if (richText.content.length === 1) {
+		if (!(richText.content[0] as any).content) return ''
+	}
+
+	return plainTextFromRichTextMap.get(richText, () => {
+		const tipTapExtensions =
+			editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
+		return generateText(richText as JSONContent, tipTapExtensions, {
+			blockSeparator: '\n',
+		})
 	})
 }
 
@@ -149,18 +158,4 @@ export function defaultAddFontsFromNode(
 	addFont(fontsForWeight)
 
 	return state
-}
-
-/**
- * Check if the provided rich text is empty.
- *
- * @public
- */
-export function isEmptyRichText(richText: TLRichText): boolean {
-	if (richText.content.length === 1) {
-		const firstChild = richText.content[0] as any
-		if (!firstChild.content) return true
-	}
-
-	return false
 }
