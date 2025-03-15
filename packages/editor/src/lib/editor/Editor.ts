@@ -4218,7 +4218,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: (assets as TLAsset[]).map((a) => a.id)
 		if (ids.length <= 0) return this
 
-		this.run(() => this.store.remove(ids), { history: 'ignore' })
+		this.run(
+			() => {
+				this.store.props.assets.remove?.(ids)
+				this.store.remove(ids)
+			},
+			{ history: 'ignore' }
+		)
 		return this
 	}
 
