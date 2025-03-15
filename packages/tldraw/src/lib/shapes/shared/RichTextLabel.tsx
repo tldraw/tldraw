@@ -14,7 +14,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
-import { renderHtmlFromRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
+import { isEmptyRichText, renderHtmlFromRichText } from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
 import { TEXT_PROPS } from './default-shape-constants'
 import { isLegacyAlign } from './legacyProps'
@@ -117,7 +117,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		}
 	}
 
-	const hasText = richText ? renderPlaintextFromRichText(editor, richText).length > 0 : false
+	const hasText = richText && !isEmptyRichText(richText)
 	if (!isEditing && !hasText) {
 		return null
 	}
