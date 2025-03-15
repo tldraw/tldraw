@@ -1,3 +1,84 @@
+# v3.10.0 (Tue Mar 11 2025)
+
+### Release Notes
+
+#### [feature] add rich text and contextual toolbar ([#4895](https://github.com/tldraw/tldraw/pull/4895))
+
+- Rich text using ProseMirror as a first-class supported option in the Editor.
+
+---
+
+#### 🐛 Bug Fix
+
+- CTA analytics [#5542](https://github.com/tldraw/tldraw/pull/5542) ([@TodePond](https://github.com/TodePond))
+
+#### 🎉 New Features
+
+- [feature] add rich text and contextual toolbar [#4895](https://github.com/tldraw/tldraw/pull/4895) ([@mimecuvalo](https://github.com/mimecuvalo) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@SomeHats](https://github.com/SomeHats) [@ds300](https://github.com/ds300) [@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 6
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
+# v3.9.0 (Mon Mar 03 2025)
+
+#### 🐛 Bug Fix
+
+- Update discord links [#5500](https://github.com/tldraw/tldraw/pull/5500) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@steveruizok](https://github.com/steveruizok) [@TodePond](https://github.com/TodePond))
+
+#### Authors: 4
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
+# v3.8.0 (Wed Feb 12 2025)
+
+### Release Notes
+
+#### support react 19 ([#5293](https://github.com/tldraw/tldraw/pull/5293))
+
+- tldraw now supports react 19
+
+#### Asset uploads ([#5218](https://github.com/tldraw/tldraw/pull/5218))
+
+**Breaking change**
+
+- `@tldraw/tlschema`: `TLAssetStore.upload` used to return just the `src` of the uploaded asset. It now returns `{src: string, meta?: JsonObject}`. The returned metadata will be added to the asset record and thus allows the users to add some additional data to them when uploading.
+- `@tldraw/editor`: `Editor.uploadAsset` used to return `Promise<string>` and now returns `Promise<{ src: string; meta?: JsonObject }> `
+
+#### close sockets on 'close' event ([#5214](https://github.com/tldraw/tldraw/pull/5214))
+
+- sync: close the server sockets on disconnect to proactively clean up socket connections.
+
+---
+
+#### 💄 Product Improvements
+
+- support react 19 [#5293](https://github.com/tldraw/tldraw/pull/5293) ([@SomeHats](https://github.com/SomeHats) [@mimecuvalo](https://github.com/mimecuvalo) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Asset uploads [#5218](https://github.com/tldraw/tldraw/pull/5218) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- close sockets on 'close' event [#5214](https://github.com/tldraw/tldraw/pull/5214) ([@ds300](https://github.com/ds300))
+
+#### Authors: 5
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+---
+
 # v3.7.0 (Tue Jan 07 2025)
 
 ### Release Notes

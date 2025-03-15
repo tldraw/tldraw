@@ -8,9 +8,50 @@ import { Atom } from '@tldraw/state';
 import { Computed } from '@tldraw/state';
 import { Expand } from '@tldraw/utils';
 import { Result } from '@tldraw/utils';
+import { Signal } from '@tldraw/state';
+import { UNINITIALIZED } from '@tldraw/state';
 
 // @public
 export function assertIdType<R extends UnknownRecord>(id: string | undefined, type: RecordType<R, any>): asserts id is IdOf<R>;
+
+// @public
+export class AtomMap<K, V> implements Map<K, V> {
+    // (undocumented)
+    [Symbol.iterator](): Generator<[K, V], undefined, unknown>;
+    // (undocumented)
+    [Symbol.toStringTag]: string;
+    constructor(name: string, entries?: Iterable<[K, V]>);
+    // (undocumented)
+    __unsafe__getWithoutCapture(key: K): undefined | V;
+    // (undocumented)
+    __unsafe__hasWithoutCapture(key: K): boolean;
+    // (undocumented)
+    clear(): void;
+    // (undocumented)
+    delete(key: K): boolean;
+    // (undocumented)
+    deleteMany(keys: Iterable<K>): [K, V][];
+    // (undocumented)
+    entries(): Generator<[K, V], undefined, unknown>;
+    // (undocumented)
+    forEach(callbackfn: (value: V, key: K, map: AtomMap<K, V>) => void, thisArg?: any): void;
+    // (undocumented)
+    get(key: K): undefined | V;
+    // @internal (undocumented)
+    getAtom(key: K): Atom<UNINITIALIZED | V> | undefined;
+    // (undocumented)
+    has(key: K): boolean;
+    // (undocumented)
+    keys(): Generator<K, undefined, unknown>;
+    // (undocumented)
+    set(key: K, value: V): this;
+    // (undocumented)
+    get size(): number;
+    // (undocumented)
+    update(key: K, updater: (value: V) => V): void;
+    // (undocumented)
+    values(): Generator<V, undefined, unknown>;
+}
 
 // @public
 export interface BaseRecord<TypeName extends string, Id extends RecordId<UnknownRecord>> {
@@ -38,9 +79,17 @@ export interface ComputedCache<Data, R extends UnknownRecord> {
 }
 
 // @public
-export function createComputedCache<Context extends StoreObject<any>, Result, Record extends StoreObjectRecordType<Context> = StoreObjectRecordType<Context>>(name: string, derive: (context: Context, record: Record) => Result | undefined, isEqual?: (a: Record, b: Record) => boolean): {
+export function createComputedCache<Context extends StoreObject<any>, Result, Record extends StoreObjectRecordType<Context> = StoreObjectRecordType<Context>>(name: string, derive: (context: Context, record: Record) => Result | undefined, opts?: CreateComputedCacheOpts<Result, Record>): {
     get(context: Context, id: IdOf<Record>): Result | undefined;
 };
+
+// @public (undocumented)
+export interface CreateComputedCacheOpts<Data, R extends UnknownRecord> {
+    // (undocumented)
+    areRecordsEqual?(a: R, b: R): boolean;
+    // (undocumented)
+    areResultsEqual?(a: Data, b: Data): boolean;
+}
 
 // @internal (undocumented)
 export function createEmptyRecordsDiff<R extends UnknownRecord>(): RecordsDiff<R>;
@@ -347,8 +396,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // @internal (undocumented)
     atomic<T>(fn: () => T, runCallbacks?: boolean): T;
     clear(): void;
-    createComputedCache<Result, Record extends R = R>(name: string, derive: (record: Record) => Result | undefined, isEqual?: (a: Record, b: Record) => boolean): ComputedCache<Result, Record>;
-    createSelectedComputedCache<Selection, Result, Record extends R = R>(name: string, selector: (record: Record) => Selection | undefined, derive: (input: Selection) => Result | undefined): ComputedCache<Result, Record>;
+    createCache<Result, Record extends R = R>(create: (id: IdOf<Record>, recordSignal: Signal<R>) => Signal<Result>): {
+        get: (id: IdOf<Record>) => Result | undefined;
+    };
+    createComputedCache<Result, Record extends R = R>(name: string, derive: (record: Record) => Result | undefined, opts?: CreateComputedCacheOpts<Result, Record>): ComputedCache<Result, Record>;
     // (undocumented)
     dispose(): void;
     // @internal (undocumented)
@@ -456,7 +507,7 @@ export type StoreOperationCompleteHandler = (source: 'remote' | 'user') => void;
 
 // @public
 export class StoreQueries<R extends UnknownRecord> {
-    constructor(atoms: Atom<Record<IdOf<R>, Atom<R>>>, history: Atom<number, RecordsDiff<R>>);
+    constructor(recordMap: AtomMap<IdOf<R>, R>, history: Atom<number, RecordsDiff<R>>);
     // @internal
     __uncached_createIndex<TypeName extends R['typeName'], Property extends string & keyof Extract<R, {
         typeName: TypeName;
@@ -495,6 +546,9 @@ export class StoreQueries<R extends UnknownRecord> {
         typeName: TypeName;
     }>>>;
 }
+
+// @internal (undocumented)
+export type StoreRecord<S extends Store<any>> = S extends Store<infer R> ? R : never;
 
 // @public (undocumented)
 export class StoreSchema<R extends UnknownRecord, P = unknown> {

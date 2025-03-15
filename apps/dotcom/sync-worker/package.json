@@ -14,6 +14,7 @@
 		"dev": "./dev.sh",
 		"test-ci": "lazy inherit",
 		"test": "yarn run -T jest",
+		"clean": "rm -rf .wrangler/state",
 		"test-coverage": "lazy inherit",
 		"check-bundle-size": "yarn run -T tsx ../../../internal/scripts/check-worker-bundle.ts --entry src/worker.ts --size-limit-bytes 800000",
 		"reset-db": "./reset-db.sh",
@@ -24,6 +25,7 @@
 		"@supabase/auth-helpers-remix": "^0.2.6",
 		"@supabase/supabase-js": "^2.48.1",
 		"@tldraw/dotcom-shared": "workspace:*",
+		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
@@ -33,18 +35,19 @@
 		"itty-router": "^5.0.18",
 		"jose": "^5.9.6",
 		"kysely": "^0.27.5",
+		"lodash.throttle": "^4.1.1",
 		"pg": "^8.13.1",
-		"postgres": "patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch",
+		"pg-logical-replication": "^2.0.7",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250124.3",
+		"@cloudflare/workers-types": "^4.20250224.0",
 		"@types/pg": "^8.11.11",
 		"esbuild": "^0.24.2",
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "~5.4.5",
-		"wrangler": "^3.105.1"
+		"wrangler": "^3.111.0"
 	},
 	"jest": {
 		"preset": "../../../internal/config/jest/node/jest-preset.js",

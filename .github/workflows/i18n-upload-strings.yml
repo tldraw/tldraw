@@ -23,3 +23,5 @@ jobs:
         env:
           LOKALISE_API_TOKEN: ${{ secrets.LOKALISE_API_TOKEN }}
           LOKALISE_PROJECT_ID: ${{ secrets.LOKALISE_PROJECT_ID }}
+          LOKALISE_TEAM_ID: ${{ secrets.LOKALISE_TEAM_ID }}
+          LOKALISE_CARD_ID: ${{ secrets.LOKALISE_CARD_ID }}

@@ -15,47 +15,66 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 
 {/* START AUTO-GENERATED CHANGELOG */}
 
-## Current release: [v3.6.0](/releases/v3.6.0)
+## Current release: [v3.10.0](/releases/v3.10.0)
 
-Welcome to the 3.6.0 release of tldraw. This month's SDK release expands DX around helpers (e.g. toasts), and addresses various issues.
+Welcome to the 3.10.0 release of tldraw. This month's SDK release's big news is adding rich text to all of our shapes.
 
 ## What's new
 
-#### Expand helpers available in actions / toasts overrides. ([#5041](https://github.com/tldraw/tldraw/pull/5041))
+#### Rich text ([#4895](https://github.com/tldraw/tldraw/pull/4895))
 
-Makes new helper available via actions and tools overrides, things like clipboard interactions, toasts, exports, printing, and a couple more.
+Tldraw now has the supports rich text as a first-class primitive within the Editor. After deliberating on which rich text editor to choose, we settled on using [TipTap](https://tiptap.dev/) as our out-of-the-box solution. Our basic implementation includes the TipTap [StarterKit](https://tiptap.dev/docs/editor/extensions/functionality/starterkit) extension along with a couple extra extensions to make the experience butter-smooth.
+
+Of course, we wouldn't be providing this functionality if it wasn't extensible and remixable by the community. There is a `textOptions` property now that lets you customize TipTap and add/remove extensions as per your needs.
+
+Take a look at our [Shapes documentation](https://tldraw.dev/docs/shapes#Editing) to learn more.
+
+Please do jump in the [Discord](https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink) if you have any feedback or bugs about this new feature.
 
 #### Improvements
 
-- Create a utility type for making undefined properties optional [#5055](https://github.com/tldraw/tldraw/pull/5055)
-- Make sure notes snap to grid after position is updated [#5010](https://github.com/tldraw/tldraw/pull/5010)
-- Add incremental derivation example [#5038](https://github.com/tldraw/tldraw/pull/5038)
+- Ensure .tldr files with embedded base64 assets get their assets rehydrated back into the local db. [#5525](https://github.com/tldraw/tldraw/pull/5525)
+- Display BrokenAssetIcon when file upload fails [#5552](https://github.com/tldraw/tldraw/pull/5552)
 
 #### API changes
 
-- Expand helpers available in actions / toasts overrides. [#5041](https://github.com/tldraw/tldraw/pull/5041) ([@steveruizok](https://github.com/steveruizok))
-- `setEmbedDefinitions` used to be an instance method on the `EmbedShapeUtil` class, but has been converted into a static method on that class. [#5027](https://github.com/tldraw/tldraw/pull/5027)
-- Remove `ExtractOptionalKeys` and `ExtractRequiredKeys` types. https://github.com/tldraw/tldraw/pull/5055
+- Make collaboration hooks public (`usePeerIds` and `usePresence`) [#5541](https://github.com/tldraw/tldraw/pull/5541)
+- Pass userId to collaboration components [#5534](https://github.com/tldraw/tldraw/pull/5534)
 
 #### Bug fix
 
-- Fix up resolving assets when copy/pasting multiple items; also, fix up copy/pasting videos [#5061](https://github.com/tldraw/tldraw/pull/5061)
-- Fix properly clipping scaled text in frames when exporting [#5022](https://github.com/tldraw/tldraw/pull/5022)
-- Fix multiple concurrent exports from interfering with each-others fonts [#5022](https://github.com/tldraw/tldraw/pull/5022)
-- Fix issue with long press where the point would be incorrect [#5032](https://github.com/tldraw/tldraw/pull/5032)
-- Fix file name when exporting a single unnamed frame [#4918](https://github.com/tldraw/tldraw/pull/4918)
-- Fix first render of custom embeds [#5027](https://github.com/tldraw/tldraw/pull/5027)
+- Fix a perf regression that caused slowness mainly when loading documents. [#5567](https://github.com/tldraw/tldraw/pull/5567)
+- Fix exports / style embedding for foreignObjects in Firefox [#5593](https://github.com/tldraw/tldraw/pull/5593)
+- Fix the reparentShapes() function to ensure that the original order of the shapes is preserved when reparenting. [#5565](https://github.com/tldraw/tldraw/pull/5565)
+- Fix a bug that could occur when resizing [#5292](https://github.com/tldraw/tldraw/pull/5292)
+- Fix a bug with pasting files from your computer in Safari [#5545](https://github.com/tldraw/tldraw/pull/5545)
+- Fix bug with loading TLDraw in an SSR environment by removing a core-js import [#5543](https://github.com/tldraw/tldraw/pull/5543)
+- Prevent text duplication when using IME with Enter key in Chrome [#5540](https://github.com/tldraw/tldraw/pull/5540)
 
-#### Authors: 7
+#### Authors
 
 - alex ([@SomeHats](https://github.com/SomeHats))
 - David Sheldrick ([@ds300](https://github.com/ds300))
+- Josh Willis ([@bluedot74](https://github.com/bluedot74))
+- Lorenzo Lewis ([@lorenzolewis](https://github.com/lorenzolewis))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mathieu Triay ([@MathieuLoutre](https://github.com/MathieuLoutre))
+- mimata kazutaka ([@kazu-2020](https://github.com/kazu-2020))
 - Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
 - Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Qinghe Ban ([@banqinghe](https://github.com/banqinghe))
+- Riley ([@dodo-Riley](https://github.com/dodo-Riley))
 - Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
-- Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
 
 ## Previous releases
+
+- [v3.9.0](/releases/v3.9.0)
+
+- [v3.8.0](/releases/v3.8.0)
+
+- [v3.7.0](/releases/v3.7.0)
+
+- [v3.6.0](/releases/v3.6.0)
 
 - [v3.5.0](/releases/v3.5.0)
 

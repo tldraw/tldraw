@@ -26,6 +26,14 @@ export {
 	useValue,
 } from '@tldraw/state-react'
 export { resizeScaled } from './lib/editor/shapes/shared/resizeScaled'
+export {
+	getFontsFromRichText,
+	type RichTextFontVisitor,
+	type RichTextFontVisitorState,
+	type TLTextOptions,
+	type TiptapEditor,
+	type TiptapNode,
+} from './lib/utils/richText'
 export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalIndexedDb'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
@@ -101,7 +109,10 @@ export {
 	type TLShapeIndicatorProps,
 } from './lib/components/default-components/DefaultShapeIndicator'
 export { type TLShapeIndicatorErrorFallbackComponent } from './lib/components/default-components/DefaultShapeIndicatorErrorFallback'
-export { DefaultShapeIndicators } from './lib/components/default-components/DefaultShapeIndicators'
+export {
+	DefaultShapeIndicators,
+	type TLShapeIndicatorsProps,
+} from './lib/components/default-components/DefaultShapeIndicators'
 export {
 	DefaultSnapIndicator,
 	type TLSnapIndicatorProps,
@@ -163,6 +174,11 @@ export {
 } from './lib/editor/bindings/BindingUtil'
 export { ClickManager, type TLClickState } from './lib/editor/managers/ClickManager'
 export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager'
+export {
+	FontManager,
+	type TLFontFace,
+	type TLFontFaceSource,
+} from './lib/editor/managers/FontManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager'
 export { ScribbleManager, type ScribbleItem } from './lib/editor/managers/ScribbleManager'
 export {
@@ -184,9 +200,11 @@ export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseB
 export {
 	ShapeUtil,
 	type TLCropInfo,
+	type TLGeometryOpts,
 	type TLHandleDragInfo,
 	type TLResizeInfo,
 	type TLResizeMode,
+	type TLShapeUtilCanBeLaidOutOpts,
 	type TLShapeUtilCanBindOpts,
 	type TLShapeUtilCanvasSvgDef,
 	type TLShapeUtilConstructor,
@@ -243,6 +261,7 @@ export {
 	type TLBaseExternalContent,
 	type TLEmbedExternalContent,
 	type TLErrorExternalContentSource,
+	type TLExcalidrawExternalContent,
 	type TLExcalidrawExternalContentSource,
 	type TLExternalAsset,
 	type TLExternalContent,
@@ -252,6 +271,7 @@ export {
 	type TLSvgTextExternalContent,
 	type TLTextExternalContent,
 	type TLTextExternalContentSource,
+	type TLTldrawExternalContent,
 	type TLTldrawExternalContentSource,
 	type TLUrlExternalAsset,
 	type TLUrlExternalContent,
@@ -295,6 +315,7 @@ export { useIsCropping } from './lib/hooks/useIsCropping'
 export { useIsDarkMode } from './lib/hooks/useIsDarkMode'
 export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
+export { usePassThroughMouseOverEvents } from './lib/hooks/usePassThroughMouseOverEvents'
 export { usePassThroughWheelEvents } from './lib/hooks/usePassThroughWheelEvents'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
@@ -309,6 +330,7 @@ export {
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
+export { useViewportHeight } from './lib/hooks/useViewportHeight'
 export {
 	LicenseManager,
 	type InvalidLicenseKeyResult,
@@ -413,6 +435,7 @@ export {
 	type TLDeepLinkOptions,
 } from './lib/utils/deepLinks'
 export {
+	activeElementShouldCaptureKeys,
 	loopToHtmlElement,
 	preventDefault,
 	releasePointerCapture,

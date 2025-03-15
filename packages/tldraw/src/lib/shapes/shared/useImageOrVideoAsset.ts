@@ -5,13 +5,12 @@ import {
 	TLImageAsset,
 	TLShapeId,
 	TLVideoAsset,
-	debounce,
 	react,
 	useDelaySvgExport,
 	useEditor,
 	useSvgExportContext,
 } from '@tldraw/editor'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 /**
  * Options for {@link useImageOrVideoAsset}.
@@ -48,8 +47,6 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 	const exportInfo = useSvgExportContext()
 	const exportIsReady = useDelaySvgExport()
 
-	const resolveAssetUrlDebounced = useMemo(() => debounce(resolveAssetUrl, 500), [])
-
 	// We use a state to store the result of the asset resolution, and we're going to avoid updating this whenever we can
 	const [result, setResult] = useState<{
 		asset: (TLImageAsset | TLVideoAsset) | null
@@ -76,7 +73,11 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 
 			// Get the fresh asset
 			const asset = editor.getAsset<TLImageAsset | TLVideoAsset>(assetId)
-			if (!asset) return
+			if (!asset) {
+				// If the asset is deleted, such as when an upload fails, set the URL to null
+				setResult((prev) => ({ ...prev, asset: null, url: null }))
+				return
+			}
 
 			// Set initial preview for the shape if it has no source (if it was pasted into a local project as base64)
 			if (!asset.props.src) {
@@ -108,10 +109,20 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 
 			// If we already resolved the URL, debounce fetching potentially multiple image variations.
 			if (didAlreadyResolve.current) {
-				resolveAssetUrlDebounced(editor, assetId, screenScale, exportInfo, (url) =>
-					resolve(asset, url)
-				)
-				cancelDebounceFn = resolveAssetUrlDebounced.cancel // cancel the debounce when the hook unmounts
+				let tick = 0
+
+				const resolveAssetAfterAWhile = () => {
+					tick++
+					if (tick > 500 / 16) {
+						// debounce for 500ms
+						resolveAssetUrl(editor, assetId, screenScale, exportInfo, (url) => resolve(asset, url))
+						cancelDebounceFn?.()
+					}
+				}
+
+				cancelDebounceFn?.()
+				editor.on('tick', resolveAssetAfterAWhile)
+				cancelDebounceFn = () => editor.off('tick', resolveAssetAfterAWhile)
 			} else {
 				resolveAssetUrl(editor, assetId, screenScale, exportInfo, (url) => resolve(asset, url))
 			}
@@ -122,7 +133,7 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 			cancelDebounceFn?.()
 			isCancelled = true
 		}
-	}, [editor, assetId, exportInfo, exportIsReady, shapeId, resolveAssetUrlDebounced, width])
+	}, [editor, assetId, exportInfo, exportIsReady, shapeId, width])
 
 	return result
 }

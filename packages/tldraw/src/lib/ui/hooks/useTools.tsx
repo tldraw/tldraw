@@ -1,4 +1,4 @@
-import { Editor, GeoShapeGeoStyle, useEditor } from '@tldraw/editor'
+import { Editor, GeoShapeGeoStyle, useMaybeEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { TLUiEventSource, useUiEvents } from '../context/events'
@@ -41,12 +41,13 @@ export interface TLUiToolsProviderProps {
 
 /** @internal */
 export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
-	const editor = useEditor()
+	const editor = useMaybeEditor()
 	const trackEvent = useUiEvents()
 
 	const helpers = useDefaultHelpers()
 
 	const tools = React.useMemo<TLUiToolsContextType>(() => {
+		if (!editor) return {}
 		const toolsArray: TLUiToolItem<TLUiTranslationKey, TLUiIconType>[] = [
 			{
 				id: 'select',

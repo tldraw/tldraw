@@ -83,6 +83,8 @@ export class ExecutionQueue {
     // (undocumented)
     close(): void;
     // (undocumented)
+    isEmpty(): boolean;
+    // (undocumented)
     push<T>(task: () => T): Promise<Awaited<T>>;
 }
 
@@ -102,12 +104,18 @@ export { fetch_2 as fetch }
 export class FileHelpers {
     static blobToDataUrl(file: Blob): Promise<string>;
     static blobToText(file: Blob): Promise<string>;
-    // (undocumented)
+    // @deprecated (undocumented)
     static dataUrlToArrayBuffer(dataURL: string): Promise<ArrayBuffer>;
     // (undocumented)
     static rewriteMimeType(blob: Blob, newMimeType: string): Blob;
     // (undocumented)
     static rewriteMimeType(blob: File, newMimeType: string): File;
+    // (undocumented)
+    static urlToArrayBuffer(url: string): Promise<ArrayBuffer>;
+    // (undocumented)
+    static urlToBlob(url: string): Promise<Blob>;
+    // (undocumented)
+    static urlToDataUrl(url: string): Promise<string>;
 }
 
 // @internal
@@ -170,6 +178,9 @@ export function getIndicesBetween(below: IndexKey | null | undefined, above: Ind
 
 // @internal (undocumented)
 export function getOwnProperty<K extends string, V>(obj: Partial<Record<K, V>>, key: K): undefined | V;
+
+// @internal (undocumented)
+export function getOwnProperty<O extends object>(obj: O, key: string): O[keyof O] | undefined;
 
 // @internal (undocumented)
 export function getOwnProperty(obj: object, key: string): unknown;
@@ -285,6 +296,11 @@ export class MediaHelpers {
     // (undocumented)
     static usingObjectURL<T>(blob: Blob, fn: (url: string) => Promise<T>): Promise<T>;
 }
+
+// @internal (undocumented)
+export function mergeArraysAndReplaceDefaults<const Key extends string, T extends {
+    [K in Key]: string;
+}>(key: Key, customEntries: readonly T[], defaults: readonly T[]): T[];
 
 // @internal (undocumented)
 export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;

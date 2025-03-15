@@ -35,20 +35,17 @@
   "181b90f889": {
     "translation": "إنشاء ملف"
   },
+  "1bef75f760": {
+    "translation": "اسمح لـ tldraw بإرسال بريد إلكتروني إلي بخصوص هذا الأمر"
+  },
   "1da2e8106b": {
     "translation": "حدث خطأ غير متوقع."
   },
   "1dd1c5fb7f": {
     "translation": "اليوم"
   },
-  "1f9696d5f2": {
-    "translation": "تصدير المحتوى كملف .tldr: اذهب إلى \"الملف\" > \"حفظ نسخة\""
-  },
-  "20530afec1": {
-    "translation": "{count, plural, zero {جارٍ تحميل {count} ملف .tldr...} one {جارٍ تحميل ملف .tldr واحد...} two {جارٍ تحميل ملفي .tldr...} few {جارٍ تحميل {count} ملفات .tldr...} many {جارٍ تحميل {count} ملفًا .tldr...} other {جارٍ تحميل {count} ملف .tldr...}}"
-  },
-  "279f0531ff": {
-    "translation": "هل ما زلت تواجه صعوبة؟ اعلمنا بذلك على <a>hello@tldraw.com</a>"
+  "26e5b44256": {
+    "translation": "أعطنا ردود الفعل"
   },
   "299cb00a7a": {
     "translation": "فشل التحميل"
@@ -59,14 +56,14 @@
   "31418ce4ad": {
     "translation": "i18n: إبراز العناصر الناقصة"
   },
+  "32656a600c": {
+    "translation": "هل لاحظت شيئًا خاطئًا؟ هل لديك فكرة لتحسين tldraw؟ يسعدنا سماعها!"
+  },
   "335defdafe": {
     "translation": "يُرجى محاولة تحديث الصفحة."
   },
   "344a7f427f": {
     "translation": "المحرر"
-  },
-  "3b366e7232": {
-    "translation": "جرب tldraw الجديد (معاينة)"
   },
   "3bd1b98dbd": {
     "translation": "يتعذّر نشر التغييرات."
@@ -74,26 +71,26 @@
   "3c5e891bff": {
     "translation": "ثم التثبيت"
   },
-  "424cc22417": {
-    "translation": "أعِدني إلى الصفحة الرئيسية"
-  },
   "42e53c47c1": {
     "translation": "اتصل بالمالك لطلب الوصول."
   },
   "44db318ee5": {
     "translation": "احصل على المساعدة في Discord"
   },
-  "458cd104d7": {
-    "translation": "عذرًا، لا يمكنك الوصول إلى هذا الملف. إذا كنت تعرف من أنشأ الملف، فيمكنك طلب رابط دعوة جديد."
+  "46137245cd": {
+    "translation": "شكرًا لمساعدتنا على تحسين tldraw!"
   },
-  "45b78c248d": {
-    "translation": "الاستيراد من tldraw.com القديم"
+  "4778b9f3f2": {
+    "translation": "إعدادات الخصوصية"
   },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "هل أنت متأكد من أنك تريد نسيان هذا الملف؟"
+  },
+  "4c06678729": {
+    "translation": "نحن نستخدم ملفات تعريف الارتباط الخاصة بنا لتحسين خدماتنا. <a>اعرف المزيد</a>"
   },
   "4d1c8263ba": {
     "translation": "إعادة التحميل"
@@ -110,14 +107,14 @@
   "54d240fa41": {
     "translation": "يُرجى إبطاء السرعة."
   },
+  "554a05155c": {
+    "translation": "هل لا تزال تواجه مشكلة؟ <a>إبلاغ عن مشكلة</a>"
+  },
   "55505ba281": {
     "translation": "PNG"
   },
   "56c34c6410": {
     "translation": "سياسة الخصوصية"
-  },
-  "575d47a591": {
-    "translation": "مرحباً بكم في tldraw.com الجديد!"
   },
   "5817f82c16": {
     "translation": "اختياري - ساعدنا في فهم كيفية استخدام الأشخاص لـ tldraw، وكيف يمكننا تحسينه."
@@ -131,14 +128,17 @@
   "5d26ae7550": {
     "translation": "تعذر علينا تحميل بعض المحتوى الذي أنشأته قبل تسجيل الدخول."
   },
+  "5db1e9a8ca": {
+    "translation": "قم بملء هذا النموذج، أو <discord>دردش معنا على Discord</discord> أو <github>أرسل مشكلة على GitHub</github>."
+  },
+  "5f3c333678": {
+    "translation": "تم تقديم التعليقات"
+  },
   "5fb63579fc": {
     "translation": "نسخ"
   },
   "61057a0c84": {
     "translation": "لاحقًا"
-  },
-  "61b106397b": {
-    "translation": "للرجوع إلى موقع tldraw.com القديم، قم بتسجيل الخروج من قائمة المستخدم."
   },
   "625fd29749": {
     "translation": "أقدم"
@@ -173,14 +173,14 @@
   "761e93ede9": {
     "translation": "إدارة ملفات تعريف الارتباط"
   },
+  "764671e008": {
+    "translation": "تحدث معنا على Discord"
+  },
   "777f9e90cf": {
     "translation": "طلب غير صالح."
   },
-  "78e9815992": {
-    "translation": "فهمتها"
-  },
-  "791b8834d3": {
-    "translation": "تخطي الاستيراد"
+  "797799f35e": {
+    "translation": "إرسال مشكلة على GitHub"
   },
   "7cb5f8b4a5": {
     "translation": "نسيان"
@@ -188,20 +188,20 @@
   "7daeced9ff": {
     "translation": "نشر التغييرات"
   },
-  "7de66f8b93": {
-    "translation": "قم بالتسجيل للوصول إلى الإصدار التجريبي من tldraw.com، الذي يضيف ميزات إدارة الملفات والتعاون."
-  },
   "7fcdcc6455": {
     "translation": "نسيان الملف"
+  },
+  "81d389ac80": {
+    "translation": "تصدير المحتوى كملف .tldr: حدد \"تنزيل الملف\" في القائمة الموجودة في أعلى اليسار."
   },
   "85a082de1b": {
     "translation": "يُرجى تحديث الصفحة للحصول على أحدث إصدار من tldraw."
   },
+  "86353d2c41": {
+    "translation": "تمت إضافة ملفات {total} .tldr."
+  },
   "86c66437fd": {
     "translation": "إعادة تسمية الملف"
-  },
-  "8ad4303b83": {
-    "translation": "ًلا شكرا"
   },
   "8eb2c00e96": {
     "translation": "تمت المشاركة معك"
@@ -236,8 +236,8 @@
   "9e076f5885": {
     "translation": "غير موجود"
   },
-  "9e7dc2358c": {
-    "translation": "نحن نستخدم ملفات تعريف الارتباط عند جمع التحليلات لمساعدتنا على تحسين tldraw. بالنقر فوق \"قبول\"، فإنك توافق على <a>سياسة ملفات تعريف الارتباط</a> الخاصة بنا."
+  "9e93c98d88": {
+    "translation": "انسحب"
   },
   "a104439641": {
     "translation": "ترك مساحة"
@@ -254,6 +254,9 @@
   "a3debabee7": {
     "translation": "سياسة ملفات تعريف الارتباط"
   },
+  "a4d3b161ce": {
+    "translation": "يُقدِّم"
+  },
   "a6cc403d56": {
     "translation": "أي شخص لديه الرابط"
   },
@@ -265,9 +268,6 @@
   },
   "ab0df9ba36": {
     "translation": "تم الوصول إلى الحد الأقصى للملفات"
-  },
-  "abc5e29b0d": {
-    "translation": "هذا هو إصدار معاينة لموقع tldraw.com الجديد الذي يتميز بحفظ الملفات والتعاون والنشر."
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
@@ -281,6 +281,9 @@
   },
   "bb792693e2": {
     "translation": "إلغاء التثبيت"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, zero {} one {جاري تحميل ملف .tldr…} two {} few {} many {} other {جاري تحميل {uploaded} من {total} ملفات .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "شاركه {ownerName}"
@@ -324,8 +327,8 @@
   "d4bbf74f3e": {
     "translation": "تبديل الشريط الجانبي"
   },
-  "d59048f21f": {
-    "translation": "يتعلم أكثر"
+  "d5ef96e383": {
+    "translation": "تحميل الملف"
   },
   "d721757161": {
     "translation": "الموضوع"
@@ -336,32 +339,17 @@
   "d9100f3e10": {
     "translation": "اذهب هنا لرؤية المحتوى"
   },
-  "d9776f0775": {
-    "translation": "اشتراك"
-  },
-  "d98ac12774": {
-    "translation": "يرفض"
-  },
-  "d9fe660e4e": {
-    "translation": "عذرًا، لا يمكنك الوصول إلى مساحة العمل تلك."
-  },
   "dbbebf3c03": {
     "translation": "دعوة فقط"
   },
   "dfdb78a4e4": {
     "translation": "علامات تصحيح الأخطاء في التطبيق"
   },
-  "e2cd8064c2": {
-    "translation": "عذرًا، لا يمكنك الوصول إلى ذلك المستخدم."
-  },
   "e371526ad0": {
     "translation": "يعد ملف تعريف الارتباط هذا ضروريًا لكي يعمل tldraw، ولا يمكن تعطيله."
   },
   "e404559826": {
     "translation": "شروط الخدمة"
-  },
-  "e5aaee8a6b": {
-    "translation": "{count, plural, zero {تمت إضافة {count} ملف .tldr.} one {تمت إضافة ملف .tldr واحد.} two {تمت إضافة ملفي .tldr.} few {تمت إضافة {count} ملفات .tldr.} many {تمت إضافة {count} ملفًا .tldr.} other {تمت إضافة {count} ملف .tldr.}}"
   },
   "e78e14c5f1": {
     "translation": "تثبيت"
@@ -380,9 +368,6 @@
   },
   "ec611e9a08": {
     "translation": "قائمة الحسابات"
-  },
-  "ec9ad9950f": {
-    "translation": "عذرًا، هذا الملف غير موجود."
   },
   "ed53713239": {
     "translation": "i18n: مبرز"

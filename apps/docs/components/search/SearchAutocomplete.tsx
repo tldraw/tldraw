@@ -3,6 +3,7 @@ import { Combobox, ComboboxItem, ComboboxProvider, VisuallyHidden } from '@ariak
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Hit } from 'instantsearch.js'
+import { SendEventForHits } from 'instantsearch.js/es/lib/utils'
 import Link from 'next/link'
 import { Fragment, startTransition, useState } from 'react'
 import { Highlight } from 'react-instantsearch'
@@ -14,6 +15,7 @@ interface AutocompleteProps {
 	onChange(value: string): void
 	onInputChange(value: string): void
 	onClose(): void
+	sendEvent: SendEventForHits
 }
 
 export default function Autocomplete({
@@ -21,6 +23,7 @@ export default function Autocomplete({
 	onInputChange,
 	onChange,
 	onClose,
+	sendEvent,
 }: AutocompleteProps) {
 	const [open, setOpen] = useState(true)
 	const [value, setValue] = useState('')
@@ -49,7 +52,7 @@ export default function Autocomplete({
 		>
 			<div
 				className={twJoin(
-					'fixed w-screen h-screen left-0 top-14 sm:top-[6.5rem] md:top-0',
+					'fixed w-screen h-screen left-0 top-14 sm:top-[6.5rem] md:top-0 z-40',
 					'bg-white/90 dark:bg-zinc-950/90 pointer-events-none'
 				)}
 			>
@@ -62,7 +65,7 @@ export default function Autocomplete({
 							)}
 						>
 							<SearchInput value={value} />
-							<Results items={items} />
+							<Results items={items} sendEvent={sendEvent} />
 						</div>
 					</div>
 				</SearchDialog>
@@ -80,6 +83,7 @@ function SearchInput({ value }: { value: string }) {
 					className="h-full w-full mr-4 focus:outline-none text-black dark:text-white bg-transparent"
 					value={value}
 					autoFocus
+					placeholder="Search..."
 				/>
 			</div>
 			<span className="hidden md:block text-xs shrink-0">ESC</span>
@@ -87,7 +91,7 @@ function SearchInput({ value }: { value: string }) {
 	)
 }
 
-function Results({ items }: { items: Hit<SearchEntry>[] }) {
+function Results({ items, sendEvent }: { items: Hit<SearchEntry>[]; sendEvent: SendEventForHits }) {
 	let section = ''
 	const renderedItems = items.map((hit) => {
 		const showChapter = hit.section !== section
@@ -112,8 +116,13 @@ function Results({ items }: { items: Hit<SearchEntry>[] }) {
 						'[&_.ais-Highlight-nonHighlighted]:data-[active-item=true]:text-white'
 					)}
 					value={href}
+					onKeyDown={(e) => {
+						if (e.key === 'Enter') {
+							sendEvent('click', hit, 'Hit clicked via keyboard')
+						}
+					}}
 				>
-					<Link href={href}>
+					<Link href={href} onClick={() => sendEvent('click', hit, 'Hit clicked')}>
 						<Highlight attribute="title" hit={hit} />
 						<ContentHighlight hit={hit} />
 					</Link>
@@ -148,7 +157,7 @@ function SearchDialog({
 		<Dialog.Root open onOpenChange={onOpenChange}>
 			<Dialog.Portal>
 				<Dialog.Overlay />
-				<Dialog.Content className="fixed inset-0 z-20" style={{ pointerEvents: 'none' }}>
+				<Dialog.Content className="fixed inset-0 z-50" style={{ pointerEvents: 'none' }}>
 					<VisuallyHidden>
 						<Dialog.Title>Search</Dialog.Title>
 						<Dialog.Description>Search dialog</Dialog.Description>

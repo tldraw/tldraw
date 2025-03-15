@@ -1,3 +1,103 @@
+# v3.10.0 (Tue Mar 11 2025)
+
+### Release Notes
+
+#### media: extract base64 assets from .tldr files ([#5525](https://github.com/tldraw/tldraw/pull/5525))
+
+- Ensure .tldr files with embedded base64 assets get their assets rehydrated back into the local db.
+
+#### [feature] add rich text and contextual toolbar ([#4895](https://github.com/tldraw/tldraw/pull/4895))
+
+- Rich text using ProseMirror as a first-class supported option in the Editor.
+
+---
+
+#### 🐛 Bug Fix
+
+- CTA analytics [#5542](https://github.com/tldraw/tldraw/pull/5542) ([@TodePond](https://github.com/TodePond))
+
+#### 💄 Product Improvements
+
+- media: extract base64 assets from .tldr files [#5525](https://github.com/tldraw/tldraw/pull/5525) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🎉 New Features
+
+- [feature] add rich text and contextual toolbar [#4895](https://github.com/tldraw/tldraw/pull/4895) ([@mimecuvalo](https://github.com/mimecuvalo) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@SomeHats](https://github.com/SomeHats) [@ds300](https://github.com/ds300) [@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 6
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
+# v3.9.0 (Mon Mar 03 2025)
+
+### Release Notes
+
+#### getImageSize: Fix inaccurate PNG image width height calculation by using exact pixels per meter value ([#5509](https://github.com/tldraw/tldraw/pull/5509))
+
+- Fixed a bug with `getImageSize` using inaccurate pixels per meter value which leads to discrepancies in calculating width and height in pixels for PNG images.
+
+---
+
+#### 🐛 Bug Fix
+
+- Update discord links [#5500](https://github.com/tldraw/tldraw/pull/5500) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@steveruizok](https://github.com/steveruizok) [@TodePond](https://github.com/TodePond))
+- switch to pg-logical-replication [#5433](https://github.com/tldraw/tldraw/pull/5433) ([@ds300](https://github.com/ds300))
+
+#### 🐛 Bug Fixes
+
+- getImageSize: Fix inaccurate PNG image width height calculation by using exact pixels per meter value [#5509](https://github.com/tldraw/tldraw/pull/5509) ([@xmliszt](https://github.com/xmliszt))
+
+#### Authors: 6
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Li Yuxuan ([@xmliszt](https://github.com/xmliszt))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
+# v3.8.0 (Wed Feb 12 2025)
+
+### Release Notes
+
+#### ShapeUtil.configure for shape options ([#5399](https://github.com/tldraw/tldraw/pull/5399))
+
+- introduces shape options & `ShapeUtil.configure`, a utility for passing options to a shape util
+- moves (unreleased) noteShapeResizeMode to NoteShapeOptions.resizeMode
+- If you pass tldraw a shape util with the same type as a default, it'll now replace the default rather than crash
+- **BREAKING** `options.maxDrawShapePoints` should now be specified with `DrawShapeUtil.configure({maxPoints})` and `HighlightShapeUtil.configure({maxPoints})`
+
+#### support react 19 ([#5293](https://github.com/tldraw/tldraw/pull/5293))
+
+- tldraw now supports react 19
+
+---
+
+#### 💄 Product Improvements
+
+- support react 19 [#5293](https://github.com/tldraw/tldraw/pull/5293) ([@SomeHats](https://github.com/SomeHats) [@mimecuvalo](https://github.com/mimecuvalo) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+
+#### 🛠️ API Changes
+
+- ShapeUtil.configure for shape options [#5399](https://github.com/tldraw/tldraw/pull/5399) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 3
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
 # v3.7.0 (Tue Jan 07 2025)
 
 ### Release Notes

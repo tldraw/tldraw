@@ -445,7 +445,7 @@ export class UnionValidator<
 		matchingSchema: Validatable<any> | undefined
 		variant: string
 	} {
-		const variant = getOwnProperty(object, this.key) as string & keyof Config
+		const variant = getOwnProperty(object, this.key)! as string & keyof Config
 		if (!this.useNumberKeys && typeof variant !== 'string') {
 			throw new ValidationError(
 				`Expected a string for key "${this.key}", got ${typeToString(variant)}`

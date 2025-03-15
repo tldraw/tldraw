@@ -5,6 +5,7 @@ import { DiscordIcon } from '@/components/common/icon/discord'
 import { DocsSearchBar } from '@/components/docs/docs-search-bar'
 import { NavigationLink } from '@/components/navigation/link'
 import Handwritten404 from '@/public/images/404.svg'
+import { RocketLaunchIcon } from '@heroicons/react/16/solid'
 import { AcademicCapIcon, BookOpenIcon, NewspaperIcon, PlayIcon } from '@heroicons/react/20/solid'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -12,8 +13,13 @@ import Link from 'next/link'
 const links = [
 	{
 		caption: 'Quick Start',
-		icon: AcademicCapIcon,
+		icon: RocketLaunchIcon,
 		href: '/quick-start',
+	},
+	{
+		caption: 'Guides',
+		icon: AcademicCapIcon,
+		href: '/editor',
 	},
 	{
 		caption: 'Reference',
@@ -52,7 +58,7 @@ export default function NotFound() {
 				<p className="mt-32 max-w-md text-center text-balance text-sm">
 					You can always ask for help in our welcoming community on{' '}
 					<Link
-						href="https://discord.com/invite/SBBEVCA4PG"
+						href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink"
 						className="text-blue-500 hover:text-blue-600 dark:hover:text-blue-400"
 					>
 						<DiscordIcon className="h-3.5 mb-0.5 ml-0.5 inline" />

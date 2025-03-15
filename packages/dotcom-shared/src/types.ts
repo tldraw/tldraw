@@ -1,5 +1,5 @@
 import { stringEnum } from '@tldraw/utils'
-import type { SerializedSchema, SerializedStore, TLEditorSnapshot, TLRecord } from 'tldraw'
+import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 import {
 	TlaFile,
 	TlaFilePartial,
@@ -79,6 +79,7 @@ export interface ZStoreData {
 	files: TlaFile[]
 	fileStates: TlaFileState[]
 	user: TlaUser
+	lsn: string
 }
 
 export type ZRowUpdate = ZRowInsert | ZRowDeleteOrUpdate
@@ -106,7 +107,8 @@ export const ZErrorCode = stringEnum(
 	'client_too_old',
 	'forbidden',
 	'bad_request',
-	'rate_limit_exceeded'
+	'rate_limit_exceeded',
+	'max_files_reached'
 )
 export type ZErrorCode = keyof typeof ZErrorCode
 
@@ -139,18 +141,6 @@ export interface ZClientSentMessage {
 	updates: ZRowUpdate[]
 }
 
-export type TlaFileOpenState =
-	| { mode: 'create' }
-	| { mode: 'duplicate'; duplicateId: string }
-	| {
-			mode: 'slurp-legacy-file'
-			snapshot: TLEditorSnapshot
-	  }
-	| null
-	| undefined
-
-export type TlaFileOpenMode = NonNullable<TlaFileOpenState>['mode'] | null
-
 export const UserPreferencesKeys = [
 	'locale',
 	'animationSpeed',
@@ -163,3 +153,10 @@ export const UserPreferencesKeys = [
 	'name',
 	'color',
 ] as const satisfies Array<keyof TlaUser>
+
+export interface SubmitFeedbackRequestBody {
+	description: string
+	allowContact: boolean
+}
+
+export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000

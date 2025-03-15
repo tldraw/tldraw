@@ -21,6 +21,7 @@ export type TLUiEventSource =
 	| 'help-menu'
 	| 'helper-buttons'
 	| 'style-panel'
+	| 'rich-text-menu'
 	| 'unknown'
 
 /** @public */
@@ -29,7 +30,7 @@ export interface TLUiEventMap {
 	undo: null
 	redo: null
 	'change-language': { locale: string }
-	'change-page': null
+	'change-page': { direction?: 'prev' | 'next' }
 	'delete-page': null
 	'duplicate-page': null
 	'move-page': null
@@ -111,6 +112,17 @@ export interface TLUiEventMap {
 	'flatten-to-image': null
 	'open-url': { url: string }
 	'copy-link': null
+	'rich-text': {
+		operation:
+			| 'bold'
+			| 'strike'
+			| 'link'
+			| 'link-edit'
+			| 'link-visit'
+			| 'link-remove'
+			| 'heading'
+			| 'bulletList'
+	}
 }
 
 /** @public */

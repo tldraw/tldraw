@@ -6,6 +6,7 @@ import { TldrawAppSessionState } from './local-session-state'
 /** @public */
 export type TLAppUiEventSource =
 	| 'sidebar'
+	| 'sidebar-context-menu'
 	| 'user-preferences'
 	| 'file-rename-dialog'
 	| 'file-menu'
@@ -17,6 +18,7 @@ export type TLAppUiEventSource =
 	| 'top-bar'
 	| 'legacy-import-button'
 	| 'new-page'
+	| 'app'
 
 /** @public */
 export interface TLAppUiEventMap {
@@ -24,6 +26,7 @@ export interface TLAppUiEventMap {
 	'delete-file': null
 	'rename-file': { name: string }
 	'duplicate-file': null
+	'download-file': null
 	'drop-tldr-file': null
 	'import-tldr-file': null
 	'change-user-name': null
@@ -56,6 +59,9 @@ export interface TLAppUiEventMap {
 	'learn-more-button': null
 	'sidebar-toggle': { value: boolean }
 	'click-file-link': null
+	'open-preview-sign-up-modal': null
+	'first-connect-duration': { duration: number }
+	'create-user': null
 }
 
 /** @public */

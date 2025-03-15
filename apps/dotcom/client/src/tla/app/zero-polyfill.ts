@@ -12,7 +12,8 @@ import {
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
 import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { Signal, computed, react, transact, uniqueId } from 'tldraw'
+import { Signal, computed, react, sleep, transact, uniqueId } from 'tldraw'
+import { TLAppUiContextType } from '../utils/app-ui-events'
 
 export class Zero {
 	private socket: ClientWebSocketAdapter
@@ -21,12 +22,15 @@ export class Zero {
 	private timeout: NodeJS.Timeout | undefined = undefined
 	private currentMutationId = uniqueId()
 	private clientTooOld = false
+	private instantiationTime = Date.now()
+	private didReceiveFirstMessage = false
 
 	constructor(
 		private opts: {
 			getUri(): Promise<string>
 			onMutationRejected(errorCode: ZErrorCode): void
 			onClientTooOld(): void
+			trackEvent: TLAppUiContextType
 		}
 	) {
 		this.socket = new ClientWebSocketAdapter(opts.getUri)
@@ -41,6 +45,14 @@ export class Zero {
 			}
 		})
 		this.socket.onReceiveMessage((_msg) => {
+			if (!this.didReceiveFirstMessage) {
+				this.didReceiveFirstMessage = true
+				const timeSinceInstantiation = Date.now() - this.instantiationTime
+				this.opts.trackEvent('first-connect-duration', {
+					duration: timeSinceInstantiation,
+					source: 'app',
+				})
+			}
 			if (this.clientTooOld) {
 				// ignore incoming messages if the client is not supported
 				return
@@ -67,6 +79,14 @@ export class Zero {
 				}
 			}
 		})
+	}
+
+	async __e2e__waitForMutationResolution() {
+		let safety = 0
+		while (this.store.getOptimisticUpdates().length && safety++ < 100) {
+			await sleep(50)
+		}
+		// console.log('Mutation resolved', JSON.stringify(this.store.getOptimisticUpdates()))
 	}
 
 	dispose() {
@@ -167,14 +187,7 @@ export class Zero {
 				if (store?.files.find((f) => f.id === data.id)) {
 					throw new Error('file already exists')
 				}
-				this.makeOptimistic([
-					{ table: 'file', event: 'insert', row: data },
-					{
-						table: 'file_state',
-						event: 'insert',
-						row: { fileId: data.id, userId: store.user.id, firstVisitAt: Date.now() } as any,
-					},
-				])
+				this.makeOptimistic([{ table: 'file', event: 'insert', row: data }])
 			},
 			update: (data: TlaFilePartial) => {
 				const existing = this.store.getFullData()?.files.find((f) => f.id === data.id)

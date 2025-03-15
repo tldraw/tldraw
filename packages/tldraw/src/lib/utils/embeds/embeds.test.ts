@@ -140,7 +140,7 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		match: true,
 		output: {
 			type: 'google_maps',
-			embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14`,
+			embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=roadmap`,
 		},
 	},
 	{
@@ -148,7 +148,7 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		match: true,
 		output: {
 			type: 'google_maps',
-			embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14`,
+			embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=roadmap`,
 		},
 	},
 	{
@@ -156,7 +156,7 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		match: true,
 		output: {
 			type: 'google_maps',
-			embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=51.5041626,-0.2468738&zoom=14`,
+			embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=51.5041626,-0.2468738&zoom=14&maptype=roadmap`,
 		},
 	},
 	{
@@ -165,6 +165,22 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		output: {
 			type: 'google_maps',
 			embedUrl: `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2480.1159099846072!2d-0.11034668719177695!3d51.566108606294414!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x48761b96b188bb1b%3A0x9d8d2ab7a55d095e!2stldraw!5e0!3m2!1sen!2suk!4v1734706216129!5m2!1sen!2suk`,
+		},
+	},
+	{
+		url: 'https://www.google.com/maps/@52.2449313,0.0813192,1000m',
+		match: true,
+		output: {
+			type: 'google_maps',
+			embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=17.313261121327326&maptype=satellite`,
+		},
+	},
+	{
+		url: 'https://www.google.co.uk/maps/@51.5074,0.1278,1200m',
+		match: true,
+		output: {
+			type: 'google_maps',
+			embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=51.5074,0.1278&zoom=16.984468114035085&maptype=satellite`,
 		},
 	},
 	{
@@ -455,6 +471,22 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 		output: {
 			type: 'google_maps',
 			url: 'https://www.google.com/maps/@52.2449313,0.0813192,14z',
+		},
+	},
+	{
+		embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=satellite`,
+		match: true,
+		output: {
+			type: 'google_maps',
+			url: 'https://www.google.com/maps/@52.2449313,0.0813192,6279.322445186111m',
+		},
+	},
+	{
+		embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=51.5074,0.1278&zoom=12&maptype=roadmap`,
+		match: true,
+		output: {
+			type: 'google_maps',
+			url: 'https://www.google.com/maps/@51.5074,0.1278,12z',
 		},
 	},
 	{

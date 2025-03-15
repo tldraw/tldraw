@@ -16,7 +16,7 @@ export const UNINITIALIZED = Symbol.for('com.tldraw.state/UNINITIALIZED')
 /**
  * The type of the first value passed to a computed signal function as the 'prevValue' parameter.
  *
- * @see [[isUninitialized]].
+ * @see {@link isUninitialized}.
  * @public
  */
 export type UNINITIALIZED = typeof UNINITIALIZED
@@ -65,7 +65,7 @@ export interface WithDiff<Value, Diff> {
 /**
  * When writing incrementally-computed signals it is convenient (and usually more performant) to incrementally compute the diff too.
  *
- * You can use this function to wrap the return value of a computed signal function to indicate that the diff should be used instead of calculating a new one with [[AtomOptions.computeDiff]].
+ * You can use this function to wrap the return value of a computed signal function to indicate that the diff should be used instead of calculating a new one with {@link AtomOptions.computeDiff}.
  *
  * @example
  * ```ts
@@ -89,14 +89,14 @@ export function withDiff<Value, Diff>(value: Value, diff: Diff): WithDiff<Value,
 }
 
 /**
- * Options for creating computed signals. Used when calling [[computed]].
+ * Options for creating computed signals. Used when calling {@link state#computed}.
  * @public
  */
 export interface ComputedOptions<Value, Diff> {
 	/**
 	 * The maximum number of diffs to keep in the history buffer.
 	 *
-	 * If you don't need to compute diffs, or if you will supply diffs manually via [[Atom.set]], you can leave this as `undefined` and no history buffer will be created.
+	 * If you don't need to compute diffs, or if you will supply diffs manually via {@link Atom.set}, you can leave this as `undefined` and no history buffer will be created.
 	 *
 	 * If you expect the value to be part of an active effect subscription all the time, and to not change multiple times inside of a single transaction, you can set this to a relatively low number (e.g. 10).
 	 *
@@ -105,7 +105,7 @@ export interface ComputedOptions<Value, Diff> {
 	 */
 	historyLength?: number
 	/**
-	 * A method used to compute a diff between the atom's old and new values. If provided, it will not be used unless you also specify [[AtomOptions.historyLength]].
+	 * A method used to compute a diff between the atom's old and new values. If provided, it will not be used unless you also specify {@link AtomOptions.historyLength}.
 	 */
 	computeDiff?: ComputeDiff<Value, Diff>
 	/**
@@ -119,7 +119,7 @@ export interface ComputedOptions<Value, Diff> {
 }
 
 /**
- * A computed signal created via [[computed]].
+ * A computed signal created via {@link state#computed}.
  *
  * @public
  */
@@ -391,7 +391,7 @@ function computedDecorator(
 const isComputedMethodKey = '@@__isComputedMethod__@@'
 
 /**
- * Retrieves the underlying computed instance for a given property created with the [[computed]]
+ * Retrieves the underlying computed instance for a given property created with the {@link state#computed}
  * decorator.
  *
  * @example
@@ -458,7 +458,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
  * }
  * ```
  *
- * You may optionally pass in a [[ComputedOptions]] when used as a decorator:
+ * You may optionally pass in a {@link ComputedOptions} when used as a decorator:
  *
  * @example
  * ```ts

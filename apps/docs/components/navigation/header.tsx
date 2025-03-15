@@ -13,15 +13,8 @@ import { Suspense } from 'react'
 import { ThemeSwitch } from '../common/theme-switch'
 
 const mainLinks = [
-	{
-		caption: 'Product',
-		active: (pathname: string) => pathname === '/',
-		children: [
-			{ caption: 'Features', href: '/#features' },
-			{ caption: 'Pricing', href: '/#pricing' },
-			{ caption: 'FAQ', href: '/#faq' },
-		],
-	},
+	{ caption: 'Features', active: () => false, href: '/#features' },
+	{ caption: 'Pricing', active: () => false, href: '/#pricing' },
 	{
 		caption: 'Docs',
 		href: '/quick-start',
@@ -52,7 +45,7 @@ const socialLinks = [
 	{
 		caption: 'Discord',
 		icon: 'discord' as IconName,
-		href: 'https://discord.com/invite/SBBEVCA4PG',
+		href: 'https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink',
 	},
 	{
 		caption: 'GitHub',
@@ -68,7 +61,7 @@ export function Header() {
 	const opacityEffect = !pathname.startsWith('/blog') && pathname !== '/'
 
 	return (
-		<header className="fixed top-0 w-full bg-white dark:bg-zinc-950 z-10">
+		<header className="sticky top-0 w-full bg-white dark:bg-zinc-950 z-10">
 			<nav className="w-full max-w-screen-xl mx-auto px-5 h-14 md:h-[4.5rem] flex justify-between items-center text-zinc-800 dark:text-zinc-200 border-b border-zinc-100 dark:border-zinc-800 dark:md:border-transparent md:border-transparent">
 				<Link href="/" className="w-28">
 					<Logo className="h-6" />

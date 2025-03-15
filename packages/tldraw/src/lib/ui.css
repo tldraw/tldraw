@@ -61,12 +61,23 @@
 	text-align: left;
 }
 
-.tlui-button:focus-visible:not(:hover) {
-	/* todo: fix the indicator errors in radix dropdown menus before restoring */
-	/* outline: 1px solid var(--color-selected); */
-	outline: none;
-	outline-offset: -4px;
-	border-radius: var(--radius-3);
+/*
+ * We only want to show the focus ring if:
+ * - the container is focused
+ * - we're not using the mouse to interact (which is the .tl-container__no-focus-ring)
+ */
+.tl-container__focused:not(.tl-container__no-focus-ring) .tlui-button:focus-visible {
+	border-radius: 10px;
+	outline: 2px solid var(--color-focus);
+	outline-offset: -5px;
+}
+.tl-container__focused:not(.tl-container__no-focus-ring) .tlui-button__tool:focus-visible {
+	border-radius: 12px;
+}
+.tlui-slider__container:has(.tlui-slider__thumb:focus-visible) {
+	border-radius: 10px;
+	outline: 2px solid var(--color-focus);
+	outline-offset: -5px;
 }
 
 .tlui-button::after {
@@ -74,39 +85,30 @@
 	content: '';
 	position: absolute;
 	inset: 4px;
-	background-color: transparent;
 	border-radius: var(--radius-2);
-}
-
-.tlui-button[aria-expanded='true']::after {
-	background-color: var(--color-muted-0);
-	opacity: 1;
-}
-
-.tlui-button__icon + .tlui-button__label {
-	margin-left: var(--space-2);
+	background-color: var(--color-muted-2);
+	opacity: 0;
 }
 
 @media (hover: hover) {
-	.tlui-button:not(.tlui-menu__submenu__trigger)::after,
-	.tlui-button.tlui-menu__submenu__trigger[data-highlighted]::after {
-		background-color: var(--color-muted-2);
-		opacity: 0;
-	}
-
 	.tlui-button:not(:disabled):hover::after {
 		opacity: 1;
 	}
 }
 
-.tlui-button[data-state='hinted']::after {
-	background-color: var(--color-hint);
+.tlui-button__menu[data-highlighted]::after,
+.tlui-button[aria-expanded='true']::after {
 	opacity: 1;
 }
 
+.tlui-button[data-state='hinted']::after,
 .tlui-button[data-state='hinted']:not(:disabled, :focus-visible):active:after {
 	background: var(--color-hint);
 	opacity: 1;
+}
+
+.tlui-button__icon + .tlui-button__label {
+	margin-left: var(--space-2);
 }
 
 /* Low button  */
@@ -116,9 +118,14 @@
 	background-color: var(--color-low);
 }
 
+.tlui-button__low::after {
+	background-color: var(--color-muted-2);
+	opacity: 0;
+}
+
 @media (hover: hover) {
-	.tlui-button__low::after {
-		background-color: var(--color-muted-2);
+	.tlui-button__low:hover::after {
+		opacity: 1;
 	}
 }
 
@@ -160,19 +167,17 @@
 	margin: -4px 0px;
 }
 
+.tlui-button__menu::after {
+	inset: 4px;
+	border-radius: var(--radius-2);
+}
+
 .tlui-button__menu:nth-child(1) {
 	margin-top: 0px;
 }
 
 .tlui-button__menu:nth-last-child(1) {
 	margin-bottom: 0px;
-}
-
-@media (hover: hover) {
-	.tlui-button__menu::after {
-		inset: 4px;
-		border-radius: var(--radius-2);
-	}
 }
 
 /* Menu checkbox button */
@@ -215,10 +220,6 @@
 	margin-right: -2px;
 }
 
-.tlui-button__tool:focus-visible:not(:hover) {
-	border-radius: 12px;
-}
-
 .tlui-button__tool:nth-of-type(1) {
 	margin-left: 0px;
 }
@@ -227,15 +228,9 @@
 	margin-right: 0px;
 }
 
-@media (hover: hover) {
-	.tlui-button__tool::after {
-		inset: 4px;
-		border-radius: 8px;
-	}
-
-	.tlui-button__tool[aria-checked='true']:not(:disabled, :focus-visible):hover {
-		color: var(--color-selected-contrast);
-	}
+.tlui-button__tool::after {
+	inset: 4px;
+	border-radius: 8px;
 }
 
 .tlui-button__tool[aria-checked='true'] {
@@ -309,7 +304,8 @@
 .tlui-buttons__grid > .tlui-button {
 	margin: -2px;
 }
-.tlui-buttons__grid > .tlui-button:nth-of-type(4n) {
+.tlui-buttons__grid > .tlui-button:nth-of-type(4n),
+.tlui-buttons__vertical-align > .tlui-button:nth-of-type(3n) {
 	margin-right: 0px;
 }
 .tlui-buttons__grid > .tlui-button:nth-of-type(4n - 3) {
@@ -345,7 +341,7 @@
 	user-select: none;
 	contain: strict;
 	z-index: var(--layer-panels);
-	-webkit-transform: translate3d(0, 0, 0);
+	transform: translate3d(0, 0, 0);
 	--sab: env(safe-area-inset-bottom);
 	font-weight: 500;
 	line-height: 1.6;
@@ -429,17 +425,18 @@
 
 /* --------------------- Slider --------------------- */
 
+.tlui-slider__container {
+	width: 100%;
+	padding: 0px var(--space-4);
+}
+
 .tlui-slider {
 	position: relative;
 	display: flex;
 	align-items: center;
 	user-select: none;
 	touch-action: none;
-}
-
-.tlui-slider__container {
 	width: 100%;
-	padding: 0px var(--space-4);
 }
 
 .tlui-slider__track {
@@ -489,10 +486,6 @@
 		var(--shadow-1);
 }
 
-.tlui-slider__thumb:focus-visible {
-	box-shadow: inset 0 0 0 2px var(--color-focus);
-}
-
 /* ----------------------- Kbd ---------------------- */
 
 .tlui-kbd {
@@ -505,7 +498,7 @@
 	grid-template-columns: auto;
 	grid-auto-columns: minmax(1em, auto);
 	align-self: bottom;
-	color: var(--color-text-1);
+	color: currentColor;
 	margin-left: var(--space-4);
 }
 
@@ -898,7 +891,6 @@
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	background-color: var(--color-low);
 	border-radius: var(--radius-4);
 	z-index: var(--layer-panels);
 	pointer-events: all;
@@ -924,6 +916,19 @@
 .tlui-layout__mobile .tlui-toolbar *[data-state='open']::after {
 	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 }
+
+.tlui-layout__mobile .tlui-toolbar {
+	transition: transform 0.15s ease-out 0.05s;
+}
+
+/*
+ * On Android, when the virtual keyboard is up, we used to hide the tools.
+ * However, we disabled for this now.
+ */
+/* .tlui-layout__mobile[data-iseditinganything='true'] .tlui-toolbar {
+	transform: translate(0px, 120%);
+	transition: none;
+} */
 
 /* -------------------- Help Zone ------------------- */
 
@@ -1306,38 +1311,12 @@
 
 .tlui-page-menu__item {
 	position: relative;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: space-between;
-	gap: 0px;
 }
 
 @media (hover: hover) {
-	.tlui-page-menu__item::after {
-		display: block;
-		content: '';
-		background-color: var(--color-muted-2);
-		position: absolute;
-		inset: 4px;
-		border-radius: 6px;
-		pointer-events: none;
-		opacity: 0;
-	}
-
-	.tlui-page-menu__item:hover::after {
-		opacity: 1;
-	}
-
 	.tlui-page-menu__item:hover > .tlui-page_menu__item__submenu > .tlui-button {
 		opacity: 1;
 	}
-}
-
-/* Since we're adding an after hover effect to the page menu item, we want to hide the hovers on the individual buttons in the page menu item */
-.tlui-page-menu__item__button::after,
-.tlui-page_menu__item__submenu > .tlui-button::after {
-	display: none;
 }
 
 .tlui-page-menu__item:nth-of-type(n + 2) {
@@ -1398,7 +1377,7 @@
 	height: 100%;
 }
 
-.tlui-page_menu__item__sortable:focus-within {
+.tlui-page_menu__item__sortable:focus-visible {
 	z-index: var(--layer-focused-input);
 }
 
@@ -1428,20 +1407,30 @@
 
 .tlui-page_menu__item__submenu {
 	pointer-events: all;
-	flex: 0;
+	position: absolute;
+	right: 0px;
+	top: 0px;
+	height: 100%;
 	cursor: pointer;
 	margin: 0px;
-	display: none;
 	margin-left: -2px;
-}
-
-.tlui-page_menu__item__submenu[data-isediting='true'] {
-	display: block;
-	opacity: 1;
+	z-index: 10;
 }
 
 .tlui-page_menu__item__submenu > .tlui-button {
 	opacity: 0;
+}
+
+.tlui-page_menu__item__sortable:focus-visible > .tlui-page_menu__item__submenu > .tlui-button,
+.tlui-page_menu__item__submenu[data-isediting='true'],
+.tlui-page_menu__item__submenu > .tlui-button[data-state='open'],
+.tlui-page_menu__item__submenu > .tlui-button:focus-visible {
+	opacity: 1;
+}
+
+.tlui-page_menu__item__submenu > .tlui-button[data-state='open']::after {
+	border-radius: 0px;
+	background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 }
 
 @media (any-pointer: coarse) {
@@ -1459,17 +1448,11 @@
 }
 
 @media (hover: hover) {
-	.tlui-page_menu__item__submenu {
-		display: block;
-	}
-
 	.tlui-page_menu__item__submenu[data-isediting='true'] > .tlui-button {
 		opacity: 0;
 	}
 
-	.tlui-page_menu__item__submenu > .tlui-button[data-state='open'],
-	.tlui-page_menu__item__submenu:hover > .tlui-button,
-	.tlui-page_menu__item__sortable:focus-within > .tlui-page_menu__item__submenu > .tlui-button {
+	.tlui-page_menu__item__submenu:hover > .tlui-button {
 		opacity: 1;
 	}
 }
@@ -1700,6 +1683,9 @@
 }
 
 .tlui-people-menu__more {
+	position: absolute;
+	top: 0px;
+	right: 0px;
 	min-width: 0px;
 	font-size: 11px;
 	font-weight: 600;
@@ -1720,6 +1706,7 @@
 	width: 220px;
 	height: fit-content;
 	max-height: 50vh;
+	padding-bottom: 4px;
 }
 
 .tlui-people-menu__section {
@@ -1792,14 +1779,9 @@
 	padding: 0px;
 }
 
-.tlui-people-menu__item {
-	display: flex;
-	justify-content: flex-start;
-	width: 100%;
-}
-
 .tlui-people-menu__item__button {
 	padding: 0 11px;
+	overflow: hidden;
 }
 
 .tlui-people-menu__item > .tlui-button__menu {
@@ -1811,24 +1793,40 @@
 	gap: 11px;
 }
 
+.tlui-people-menu__name {
+	text-align: left;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
 .tlui-people-menu__item__follow {
-	min-width: 44px;
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	max-width: 40px;
+	flex-shrink: 0;
 }
 
-.tlui-people-menu__item__follow[data-active='true'] .tlui-icon {
-	opacity: 1;
+.tlui-people-menu__item[data-follow='true'],
+.tlui-people-menu__item:has(.tlui-button:focus-visible) {
+	padding-right: 36px;
 }
 
-.tlui-people-menu__item__follow:focus-visible .tlui-icon {
+.tlui-people-menu__item[data-follow='true'] .tlui-people-menu__item__follow,
+.tlui-people-menu__item:has(.tlui-button:focus-visible) .tlui-people-menu__item__follow {
 	opacity: 1;
 }
 
 @media (hover: hover) {
-	.tlui-people-menu__item__follow .tlui-icon {
+	.tlui-people-menu__item__follow {
 		opacity: 0;
 	}
 
-	.tlui-people-menu__item__follow:hover .tlui-icon {
+	.tlui-people-menu__item:hover {
+		padding-right: 36px;
+	}
+	.tlui-people-menu__item:hover .tlui-people-menu__item__follow {
 		opacity: 1;
 	}
 }
@@ -1837,4 +1835,55 @@
 	position: fixed;
 	inset: 0;
 	z-index: var(--layer-menu-click-capture);
+}
+
+/* --------------- Contextual Toolbar --------------- */
+
+.tlui-contextual-toolbar {
+	position: absolute;
+}
+
+/**
+ * N.B. We hide the toolbar while mousing down, so no need to turn these off.
+ */
+.tlui-contextual-toolbar,
+.tlui-contextual-toolbar * {
+	pointer-events: all;
+}
+
+.tlui-contextual-toolbar [data-isactive='true']::after {
+	background-color: var(--color-muted-2);
+	opacity: 1;
+}
+
+.tlui-rich-text__toolbar {
+	opacity: 0;
+	transition: opacity 0.08s ease-in-out;
+}
+
+.tlui-rich-text__toolbar,
+.tlui-rich-text__toolbar * {
+	pointer-events: none;
+}
+
+.tlui-rich-text__toolbar[data-visible='true'] {
+	opacity: 1;
+}
+
+.tlui-rich-text__toolbar[data-interactive='true'],
+.tlui-rich-text__toolbar[data-interactive='true'] * {
+	pointer-events: all;
+}
+
+.tlui-rich-text__toolbar-link-input {
+	margin-left: 12px;
+	/*
+	 * Nice touch tweak: keep the link editor toolbar the same as the default toolbar.
+	 * This is so the toolbar size stays stable going in and out of the link editor.
+	 */
+	width: 148px;
+}
+
+.tlui-rich-text__toolbar .tlui-input__wrapper {
+	height: 40px;
 }

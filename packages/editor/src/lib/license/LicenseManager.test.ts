@@ -56,19 +56,22 @@ describe('LicenseManager', () => {
 	})
 
 	it('Signals that it is development mode when appropriate', async () => {
-		// @ts-ignore
-		delete window.location
-		// @ts-ignore
-		window.location = new URL('http://localhost:3000')
+		const schemes = ['http', 'https']
+		for (const scheme of schemes) {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL(`${scheme}://localhost:3000`)
 
-		const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey, 'development')
-		const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
-		const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
-		expect(result).toMatchObject({
-			isLicenseParseable: true,
-			isDomainValid: false,
-			isDevelopment: true,
-		})
+			const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey, 'development')
+			const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+			const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
+			expect(result).toMatchObject({
+				isLicenseParseable: true,
+				isDomainValid: false,
+				isDevelopment: true,
+			})
+		}
 	})
 
 	it('Cleanses out valid keys that accidentally have zero-width characters or newlines', async () => {
