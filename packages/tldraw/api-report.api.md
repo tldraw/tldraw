@@ -1240,6 +1240,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         opacity: number;
         parentId: TLParentId;
         props: {
+            h: number;
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
             dash: "dashed" | "dotted" | "draw" | "solid";
@@ -1247,7 +1248,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             font: "draw" | "mono" | "sans" | "serif";
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             growY: number;
-            h: number;
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
             richText: {
                 content: unknown[];
@@ -1274,6 +1274,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         opacity: number;
         parentId: TLParentId;
         props: {
+            h: number;
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
             dash: "dashed" | "dotted" | "draw" | "solid";
@@ -1281,7 +1282,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             font: "draw" | "mono" | "sans" | "serif";
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             growY: number;
-            h: number;
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
             richText: {
                 content: unknown[];
@@ -4191,7 +4191,7 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
     handleKeyDown: (e: KeyboardEvent) => void;
     isEditing: boolean;
     isEditingAnything: boolean;
-    isEmpty: boolean;
+    isEmpty: boolean | undefined;
     rInput: RefObject<HTMLDivElement>;
 };
 

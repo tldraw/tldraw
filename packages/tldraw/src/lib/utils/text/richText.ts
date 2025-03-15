@@ -93,6 +93,20 @@ export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: T
 // A weak cache used to store plaintext that's been extracted from rich text.
 const plainTextFromRichTextCache = new WeakCache<TLRichText, string>()
 
+export function isEmptyRichText(richText: TLRichText) {
+	if (richText.content.length === 1) {
+		if (!(richText.content[0] as any).content) return true
+	}
+	return false
+}
+
+export function isSingleCharacterRichText(richText: TLRichText) {
+	if (richText.content.length === 1) {
+		if ((richText.content[0] as any)?.content?.length === 1) return true
+	}
+	return false
+}
+
 /**
  * Renders plaintext from a rich text string.
  * @param editor - The editor instance.
@@ -102,9 +116,7 @@ const plainTextFromRichTextCache = new WeakCache<TLRichText, string>()
  * @public
  */
 export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText) {
-	if (richText.content.length === 1) {
-		if (!(richText.content[0] as any).content) return ''
-	}
+	if (isEmptyRichText(richText)) return ''
 
 	return plainTextFromRichTextCache.get(richText, () => {
 		const tipTapExtensions =
