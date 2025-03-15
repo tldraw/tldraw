@@ -12,7 +12,7 @@ const components: TLComponents = {
 			[editor]
 		)
 
-		// [2
+		// [2]
 		const { ShapeIndicator } = useEditorComponents()
 		if (!ShapeIndicator) return null
 
@@ -24,6 +24,10 @@ const components: TLComponents = {
 			</div>
 		)
 	},
+	// [3]
+	// ShapeIndicators: () => {
+	// 	return <DefaultShapeIndicators showAll />
+	// },
 }
 
 export default function IndicatorsLogicExample() {
@@ -71,5 +75,11 @@ you want to show the indicators for.
 [2]
 You could override the default ShapeIndicator component in this
 same TLComponents object, but the default (DefaultIndicator.tsx)
-has a lot of logic for where and how to display the indicator
+has a lot of logic for where and how to display the indicator.
+
+[3]
+If all you want to do is show or hide all the indicators, you could 
+create an override for the ShapeIndicators component that returns the
+DefaultShapeIndicators component with `hideAll` or `showAll` props 
+set to true.
 */
