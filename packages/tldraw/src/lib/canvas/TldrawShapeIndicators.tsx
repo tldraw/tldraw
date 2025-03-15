@@ -20,5 +20,5 @@ export function TldrawShapeIndicators() {
 		[editor]
 	)
 
-	return <DefaultShapeIndicators hideAll={isInSelectState} />
+	return <DefaultShapeIndicators hideAll={!isInSelectState} />
 }

@@ -33,7 +33,7 @@ export const DefaultShapeIndicators = memo(function DefaultShapeIndicators({
 			const isChangingStyle = editor.getInstanceState().isChangingStyle
 
 			// todo: this is tldraw specific and is duplicated at the tldraw layer. What should we do here instead?
-			const isSelecting = editor.isInAny(
+			const isInSelectState = editor.isInAny(
 				'select.idle',
 				'select.brushing',
 				'select.scribble_brushing',
@@ -45,7 +45,7 @@ export const DefaultShapeIndicators = memo(function DefaultShapeIndicators({
 
 			// We hide all indicators if we're changing style or in certain interactions
 			// todo: move this to some kind of Tool.hideIndicators property
-			if (isChangingStyle || isSelecting) {
+			if (isChangingStyle || !isInSelectState) {
 				rPreviousSelectedShapeIds.current = next
 				return next
 			}
