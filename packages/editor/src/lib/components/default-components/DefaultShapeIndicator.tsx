@@ -73,7 +73,7 @@ export const DefaultShapeIndicator = memo(function DefaultShapeIndicator({
 	useLayoutEffect(() => {
 		const elm = rIndicator.current
 		if (!elm) return
-		elm.style.setProperty('opacity', hidden ? '0' : '1')
+		elm.style.setProperty('display', hidden ? 'none' : 'block')
 	}, [hidden])
 
 	return (
