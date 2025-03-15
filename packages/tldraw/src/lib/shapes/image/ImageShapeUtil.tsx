@@ -1,10 +1,14 @@
 import {
 	BaseBoxShapeUtil,
+	Box,
+	EMPTY_ARRAY,
 	Editor,
 	FileHelpers,
+	Group2d,
 	HTMLContainer,
 	Image,
 	MediaHelpers,
+	Rectangle2d,
 	SvgExportContext,
 	TLAsset,
 	TLAssetId,
@@ -15,6 +19,7 @@ import {
 	Vec,
 	WeakCache,
 	fetch,
+	getDefaultColorTheme,
 	imageShapeMigrations,
 	imageShapeProps,
 	lerp,
@@ -26,11 +31,21 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { memo, useEffect, useState } from 'react'
+import { ReactElement, memo, useEffect, useState } from 'react'
 
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { PlainTextLabel } from '../shared/PlainTextLabel'
+import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { getUncroppedSize } from '../shared/crop'
+import {
+	FONT_FAMILIES,
+	LABEL_FONT_SIZES,
+	LABEL_PADDING,
+	TEXT_PROPS,
+} from '../shared/default-shape-constants'
+import { DefaultFontFaces } from '../shared/defaultFonts'
+import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
@@ -54,6 +69,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	override canCrop() {
 		return true
 	}
+	override canEdit() {
+		return true
+	}
 
 	override getDefaultProps(): TLImageShape['props'] {
 		return {
@@ -65,7 +83,58 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			crop: null,
 			flipX: false,
 			flipY: false,
+
+			// Text properties
+			color: 'black',
+			labelColor: 'black',
+			fill: 'none',
+			size: 'm',
+			font: 'draw',
+			text: '',
+			align: 'middle',
+			verticalAlign: 'middle',
 		}
+	}
+
+	override getText(shape: TLImageShape) {
+		return shape.props.text
+	}
+
+	override getFontFaces(shape: TLImageShape) {
+		if (!shape.props.text) return EMPTY_ARRAY
+		return [DefaultFontFaces[`tldraw_${shape.props.font}`].normal.normal]
+	}
+
+	override getGeometry(shape: TLImageShape) {
+		const children = [
+			new Rectangle2d({
+				width: shape.props.w,
+				height: shape.props.h,
+				isFilled: true,
+			}),
+		]
+
+		if (shape.props.text) {
+			const textDimensions = this.editor.textMeasure.measureText(shape.props.text, {
+				...TEXT_PROPS,
+				fontFamily: FONT_FAMILIES[shape.props.font],
+				fontSize: LABEL_FONT_SIZES[shape.props.size],
+				maxWidth: shape.props.w - LABEL_PADDING * 2,
+			})
+
+			children.push(
+				new Rectangle2d({
+					x: 0,
+					y: shape.props.h + LABEL_PADDING,
+					width: shape.props.w,
+					height: textDimensions.h,
+					isFilled: true,
+					isLabel: true,
+				})
+			)
+		}
+
+		return new Group2d({ children })
 	}
 
 	override onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>) {
@@ -119,13 +188,14 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 
 	override async toSvg(shape: TLImageShape, ctx: SvgExportContext) {
-		if (!shape.props.assetId) return null
+		const props = shape.props
+		if (!props.assetId) return null
 
-		const asset = this.editor.getAsset(shape.props.assetId)
+		const asset = this.editor.getAsset(props.assetId)
 
 		if (!asset) return null
 
-		const { w } = getUncroppedSize(shape.props, shape.props.crop)
+		const { w } = getUncroppedSize(shape.props, props.crop)
 
 		const src = await imageSvgExportCache.get(asset, async () => {
 			let src = await ctx.resolveAssetUrl(asset.id, w)
@@ -150,7 +220,32 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		if (!src) return null
 
-		return <SvgImage shape={shape} src={src} />
+		let textEl
+		if (props.text) {
+			const theme = getDefaultColorTheme(ctx)
+
+			const textDimensions = this.editor.textMeasure.measureText(props.text, {
+				...TEXT_PROPS,
+				fontFamily: FONT_FAMILIES[props.font],
+				fontSize: LABEL_FONT_SIZES[props.size],
+				maxWidth: props.w - LABEL_PADDING * 2,
+			})
+			const bounds = new Box(0, props.h + LABEL_PADDING, props.w, textDimensions.h)
+			textEl = (
+				<SvgTextLabel
+					fontSize={LABEL_FONT_SIZES[props.size]}
+					font={props.font}
+					align={props.align}
+					verticalAlign={props.verticalAlign}
+					text={props.text}
+					labelColor={theme[props.labelColor].solid}
+					bounds={bounds}
+					padding={LABEL_PADDING}
+				/>
+			)
+		}
+
+		return <SvgImage shape={shape} src={src} textEl={textEl} />
 	}
 
 	override onDoubleClickEdge(shape: TLImageShape) {
@@ -221,6 +316,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) {
 	const editor = useEditor()
+	const theme = useDefaultColorTheme()
 
 	const { w } = getUncroppedSize(shape.props, shape.props.crop)
 	const { asset, url } = useImageOrVideoAsset({
@@ -232,7 +328,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 	const prefersReducedMotion = usePrefersReducedMotion()
 	const [staticFrameSrc, setStaticFrameSrc] = useState('')
 	const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
-
+	const isSelected = shape.id === editor.getOnlySelectedShapeId()
 	const isAnimated = asset && getIsAnimated(editor, asset.id)
 
 	useEffect(() => {
@@ -296,6 +392,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 	// We don't set crossOrigin for non-animated images because for Cloudflare we don't currently
 	// have that set up.
 	const crossOrigin = isAnimated ? 'anonymous' : undefined
+	const { fill, font, align, verticalAlign, size, text, color: labelColor } = shape.props
 
 	return (
 		<>
@@ -348,6 +445,22 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 				</div>
 				{shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</HTMLContainer>
+
+			<PlainTextLabel
+				shapeId={shape.id}
+				type={shape.type}
+				font={font}
+				fontSize={LABEL_FONT_SIZES[size]}
+				lineHeight={TEXT_PROPS.lineHeight}
+				padding={LABEL_PADDING}
+				fill={fill}
+				align={align}
+				verticalAlign={verticalAlign}
+				text={text}
+				isSelected={isSelected}
+				labelColor={theme[labelColor].solid}
+				wrap
+			/>
 		</>
 	)
 })
@@ -407,7 +520,15 @@ function getFlipStyle(shape: TLImageShape, size?: { width: number; height: numbe
 	}
 }
 
-function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
+function SvgImage({
+	shape,
+	src,
+	textEl,
+}: {
+	shape: TLImageShape
+	src: string
+	textEl: ReactElement | undefined
+}) {
 	const cropClipId = useUniqueSafeId()
 	const containerStyle = getCroppedContainerStyle(shape)
 	const crop = shape.props.crop
@@ -445,16 +566,20 @@ function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
 						}
 					/>
 				</g>
+				{textEl}
 			</>
 		)
 	} else {
 		return (
-			<image
-				href={src}
-				width={shape.props.w}
-				height={shape.props.h}
-				style={getFlipStyle(shape, { width: shape.props.w, height: shape.props.h })}
-			/>
+			<>
+				<image
+					href={src}
+					width={shape.props.w}
+					height={shape.props.h}
+					style={getFlipStyle(shape, { width: shape.props.w, height: shape.props.h })}
+				/>
+				{textEl}
+			</>
 		)
 	}
 }
