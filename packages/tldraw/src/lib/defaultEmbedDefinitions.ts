@@ -20,6 +20,8 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(TLDRAW_APP_RE)) {
+				// Add the "clean=true" search param to the URL to hide the sidebar
+				urlObj.searchParams.append('embed', 'true')
 				return url
 			}
 			return
@@ -27,6 +29,8 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		fromEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(TLDRAW_APP_RE)) {
+				// Add the "clean=true" search param to the URL to hide the sidebar
+				urlObj.searchParams.delete('embed')
 				return url
 			}
 			return
