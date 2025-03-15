@@ -62,7 +62,7 @@ describe('distributeShapes command', () => {
 	describe('when stacking horizontally', () => {
 		it('stacks the shapes based on the editors adjacentShapeMargin', () => {
 			editor.setSelectedShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
-			// @ts-ignore - private property
+			// @ts-expect-error
 			editor.options.adjacentShapeMargin = 1
 			editor.stackShapes(editor.getSelectedShapeIds(), 'horizontal')
 			jest.advanceTimersByTime(1000)
