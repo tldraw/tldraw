@@ -2415,7 +2415,7 @@ export const TldrawSelectionBackground: ({ bounds, rotation }: TLSelectionBackgr
 export const TldrawSelectionForeground: NamedExoticComponent<TLSelectionForegroundProps>;
 
 // @public (undocumented)
-export function TldrawShapeIndicators(): JSX_2.Element | null;
+export function TldrawShapeIndicators(): JSX_2.Element;
 
 // @public (undocumented)
 export const TldrawUi: React_3.NamedExoticComponent<TldrawUiProps>;
@@ -2990,7 +2990,9 @@ export interface TLUiEventMap {
         locale: string;
     };
     // (undocumented)
-    'change-page': null;
+    'change-page': {
+        direction?: 'next' | 'prev';
+    };
     // (undocumented)
     'change-user-name': null;
     // (undocumented)

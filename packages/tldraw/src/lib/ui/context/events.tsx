@@ -30,7 +30,7 @@ export interface TLUiEventMap {
 	undo: null
 	redo: null
 	'change-language': { locale: string }
-	'change-page': null
+	'change-page': { direction?: 'prev' | 'next' }
 	'delete-page': null
 	'duplicate-page': null
 	'move-page': null
