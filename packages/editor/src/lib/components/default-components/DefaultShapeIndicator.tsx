@@ -9,15 +9,15 @@ import { useEditorComponents } from '../../hooks/useEditorComponents'
 import { OptionalErrorBoundary } from '../ErrorBoundary'
 
 // need an extra layer of indirection here to allow hooks to be used inside the indicator render
-const EvenInnererIndicator = ({ shape, util }: { shape: TLShape; util: ShapeUtil<any> }) => {
+const EvenInnererIndicator = memo(({ shape, util }: { shape: TLShape; util: ShapeUtil<any> }) => {
 	return useStateTracking('Indicator: ' + shape.type, () =>
 		// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
 		// calling the render method with stale data.
 		util.indicator(util.editor.store.unsafeGetWithoutCapture(shape.id) as TLShape)
 	)
-}
+})
 
-const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }) => {
+const InnerIndicator = memo(({ editor, id }: { editor: Editor; id: TLShapeId }) => {
 	const shape = useValue('shape for indicator', () => editor.store.get(id), [editor, id])
 
 	const { ShapeIndicatorErrorFallback } = useEditorComponents()
@@ -34,7 +34,7 @@ const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }) => {
 			<EvenInnererIndicator key={shape.id} shape={shape} util={editor.getShapeUtil(shape)} />
 		</OptionalErrorBoundary>
 	)
-}
+})
 
 /** @public */
 export interface TLShapeIndicatorProps {
@@ -73,7 +73,7 @@ export const DefaultShapeIndicator = memo(function DefaultShapeIndicator({
 	useLayoutEffect(() => {
 		const elm = rIndicator.current
 		if (!elm) return
-		elm.style.setProperty('display', hidden ? 'none' : 'block')
+		elm.style.setProperty('opacity', hidden ? '0' : '1')
 	}, [hidden])
 
 	return (

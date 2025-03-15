@@ -109,7 +109,10 @@ export {
 	type TLShapeIndicatorProps,
 } from './lib/components/default-components/DefaultShapeIndicator'
 export { type TLShapeIndicatorErrorFallbackComponent } from './lib/components/default-components/DefaultShapeIndicatorErrorFallback'
-export { DefaultShapeIndicators } from './lib/components/default-components/DefaultShapeIndicators'
+export {
+	DefaultShapeIndicators,
+	type TLShapeIndicatorsProps,
+} from './lib/components/default-components/DefaultShapeIndicators'
 export {
 	DefaultSnapIndicator,
 	type TLSnapIndicatorProps,
