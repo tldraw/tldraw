@@ -47,7 +47,7 @@ test.describe('Rich text behaviour', () => {
 
 		const toolsForHTMLStyle = [
 			{ name: 'bold', tag: 'strong' },
-			// { name: 'italic', tag: 'emphasis' },
+			{ name: 'italic', tag: 'em' },
 			// // { name: 'strike', tag: 's' },
 			{ name: 'highlight', tag: 'mark' },
 			{ name: 'code', tag: 'code' },

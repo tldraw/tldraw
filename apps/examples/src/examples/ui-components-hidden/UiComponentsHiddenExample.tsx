@@ -25,6 +25,7 @@ const components: Required<TLUiComponents> = {
 	RichTextToolbar: null,
 	Dialogs: null,
 	Toasts: null,
+	A11y: null,
 }
 
 export default function UiComponentsHiddenExample() {
