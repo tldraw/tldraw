@@ -6509,8 +6509,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param shapes - The shapes (or shape ids) to pack.
 	 * @param gap - The padding to apply to the packed shapes. Defaults to 16.
 	 */
-	packShapes(shapes: TLShapeId[] | TLShape[], gap: number): this {
+	packShapes(shapes: TLShapeId[] | TLShape[], _gap?: number): this {
 		if (this.getIsReadonly()) return this
+
+		const gap = _gap ?? this.options.adjacentShapeMargin
 
 		const ids =
 			typeof shapes[0] === 'string'
