@@ -1521,7 +1521,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): this;
     readonly snaps: SnapManager;
     squashToMark(markId: string): this;
-    stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap: number): this;
+    stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap?: number): this;
     startFollowingUser(userId: string): this;
     stopCameraAnimation(): this;
     stopFollowingUser(): this;

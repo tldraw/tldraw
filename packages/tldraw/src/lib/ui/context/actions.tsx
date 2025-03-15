@@ -806,7 +806,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.markHistoryStoppingPoint('stack-vertical')
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.stackShapes(selectedShapeIds, 'vertical', 16)
+						editor.stackShapes(selectedShapeIds, 'vertical', editor.options.adjacentShapeMargin)
 						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
@@ -826,7 +826,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.markHistoryStoppingPoint('stack-horizontal')
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.stackShapes(selectedShapeIds, 'horizontal', 16)
+						editor.stackShapes(selectedShapeIds, 'horizontal', editor.options.adjacentShapeMargin)
 						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
