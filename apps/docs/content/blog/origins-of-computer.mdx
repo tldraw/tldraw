@@ -1,0 +1,195 @@
+---
+title: The origins of tldraw computer
+category: product
+description: We built a machine that runs on AI. Here's how it started.
+hero: /images/blog/computer-hero.gif
+date: 01/08/2025
+status: published
+author: luwilson
+---
+
+Last month, we launched [tldraw computer](https://tldraw.computer), a virtual computer that runs purely on AI. On the surface, it sounds like a ridiculous idea (and it is) but there's more to the story than you might expect.
+
+{/* But there's more to the story than you might expect. */}
+
+I'm Lu, one of the engineers that worked on tldraw computer. And if you're interested, I'm happy to share how it all began.
+
+{/* _Here's how and why we built tldraw computer._ */}
+
+{/* We built tldraw computer for a number of reasons, some of which may surprise you. And it did involve tackling a moderate handful of technical challenges. */}
+
+{/* <Video autoplay src="/images/blog/factorio.mp4" /> */}
+
+{/* Imagine a computer that doesn't run on code. */}
+
+{/* Could we take away everything a computer actually needs, and replace it with AI? Why would we do that? Why would we do something as ridiculous as that? And why? */}
+
+{/* Well... here's the story. */}
+
+{/* <br /> */}
+
+{/* ## Why build an AI computer? */}
+
+{/* First of all, why would we even build such a thing? */}
+
+## The draw of multi-step
+
+One motivation behind tldraw computer was the desire to make multi-step prompting more visible and interactive. Let me explain.
+
+The simplest way to use an AI model is to send it a request, and then get a response. Some people call this "single-step prompting".
+
+<Image src="/images/blog/making-computer/single-step.svg" caption="Single-step prompting." />
+
+However, in the year 2025, this is not how most AI tools work. Instead, they tend to chain together multiple requests as a sequence. Some people call this "multi-step prompting" or "prompt chaining".
+
+<Image src="/images/blog/making-computer/multi-step.svg" caption="Multi-step prompting." />
+
+As a user, you might only make one query, or press one button. But under the hood, the app will send many requests on your behalf, one after the other.
+
+Even a simple query sent to a chatbot might go through numerous steps before returning to you.
+
+<Image
+	src="/images/blog/making-computer/weather.svg"
+	caption="A single query can go through many steps."
+/>
+
+There might even be some decisions or loops involved in the workflow. There could be RAG, or API calls, or tool use, or all sorts of other intermediary steps.
+
+<Image
+	src="/images/blog/making-computer/loops-2.svg"
+	caption="Workflows can involve loops, branches and more."
+/>
+
+As you might be able to see from the diagrams, this kind of multi-step prompting can quickly become complex as more and more steps get added. Because of this, it's often **hidden** from the user. It's invisible magic that takes place in secret, and it's not accessible or customizable at all.
+
+<Image
+	src="/images/blog/making-computer/secrets.svg"
+	caption="What secrets do you hide, loading spinners?"
+/>
+
+We wanted to bring multi-step prompting above the surface by making it visible and interactive, so that both beginners and experts could explore and play with it. And we knew we were well equipped to take on this challenge with our [very good whiteboard library](https://tldraw.dev).
+
+Here's the same example, but this time, it's fully implemented in tldraw computer. You can try or fork the project yourself [here](#).
+
+{/* TODO: gif */}
+
+<Image src="/images/blog/making-computer/placeholder.svg" />
+
+## Factorio for AI slop
+
+Let's talk about aesthetic.
+
+{/* ~~Another driving factorio~~ */}
+
+{/* Another driving factor behind tldraw computer relates */}
+
+At tldraw, we are all tinkerers and we all love physical gadgets and gizmos. So I think it's fair to say that quite a lot of inspiration came from the world of charming physical devices and toys. I believe the term "cassette core" was used at one point.
+
+<Image src="/images/blog/making-computer/moodboard.png" />
+
+<br />
+
+<Image src="/images/blog/making-computer/lego.png" />
+
+The designs and user interfaces of classic games also emerged as an influence. Nostalgia was definitely a factor here.
+
+<Image
+	src="/images/blog/making-computer/games.png"
+	caption="A sketch and a screenshot from an early ideas session."
+/>
+
+At one point, we even dabbled with a skeuomorphic aesthetic, but this didn't go beyond the design stage.
+
+tldraw computer could have looked very different.
+
+<Image src="/images/blog/making-computer/blocks.png" caption="An abandoned design." />
+
+But perhaps the strongest influence came from [Factorio](https://factorio.com), a game that is infamously and relentlessly enjoyed by programmers around the world. At least three members of the tldraw team consider themselves to be keen Factorio "enthusiasts".
+
+<Image
+	src="/images/blog/making-computer/keen2.png"
+	alt="Steve Ruiz played factorio yesterday."
+	caption="How you know someone's a good engineer."
+/>
+
+Games like Factorio lean into the fun and satisfaction of building larger and larger more complex machines out of simple parts. We wanted to capture some of that feeling within tldraw computer, and we ended up referring to it as "Factorio for AI slop" in our [launch](https://x.com/tldraw/status/1869401294370447547). This caught some [attention](https://x.com/garrytan/status/1869431062952325338).
+
+<Image src="/images/blog/making-computer/factorio.gif" caption={`"it's uh factorio for ai slop"`} />
+
+{/* And with that, we had our game loop decided ... */}
+
+{/* <Image src="/images/blog/making-computer/loop.png" caption="The game loop, pulled from an early whiteboarding session." /> */}
+
+{/* ... which eventually became our application layer. Here are the wireframes for that. Looks like we stuck to them pretty closely! */}
+
+{/* <Image src="/images/blog/making-computer/application.png" caption="Our application layer wireframes." /> */}
+
+## Why it's called tldraw computer
+
+The very first sketches of tldraw computer can be found in [Steve Ruiz](https://twitter.com/steveruizok)'s notebook. Steve admits that the drawings represent "How I thought computers worked when I was a kid".
+
+This is perhaps the reason that **Computer** stuck as the internal name of the project.
+
+<Image
+	src="/images/blog/making-computer/placeholder.svg"
+	caption="An early sketch of tldraw computer."
+/>
+
+{/* There's one final ingredient that's worth explaining. */}
+
+{/* After the initial brainstorming sessions, CEO [Steve](https://twitter.com/steveruizok) returned after the weekend with a mockup. */}
+
+Here's another early mockup of tldraw computer. It's not dissimilar to the visual programming language [Scratch](https://scratch.mit.edu), with an always-open tray of building blocks to pick from and a "Run" button similar to Scratch's green flag.
+
+<Image
+	src="/images/blog/making-computer/tray.png"
+	caption="An early mockup showing a Scratch-like interface."
+/>
+
+The fun part, however, is being able to replace blocks of code with natural language. Here's the same mockup but with a code component replaced with something more abstract.
+
+<Image
+	src="/images/blog/making-computer/natural.png"
+	caption="Code replaced with natural language."
+/>
+
+We realised pretty early on that it felt magic to be able to replace literal data and code with more abstract natural language.
+
+Here are some wireframes from an early design document.
+
+<Image src="/images/blog/making-computer/rabbit.png" />
+
+<br />
+
+<Image src="/images/blog/making-computer/dogs.png" />
+
+This ability to represent code with natural language allowed us to make disgustingly high-level models of entire machines that felt like computers.
+
+<Image
+	src="/images/blog/making-computer/computer.png"
+	caption="A mockup of a computer program, from perhaps the earliest wireframe I can find from the project."
+/>
+
+Therefore, the name **Computer** stuck. So despite our efforts to come up with other names, we settled on the one we were always using. And that's the story of how tldraw computer narrowly avoided being called "Slop", "Goo", "Juice", "Pump" or "Blurp".
+
+<Image src="/images/blog/making-computer/blurp2.png" caption="Rejected name ideas." />
+
+{/* ## The prompt inside the prompt */}
+
+{/* ## Graph hell */}
+
+{/* ## Juice heaven */}
+
+## More computer
+
+Try out tldraw computer on [tldraw.computer](https://tldraw.computer). Or if you want to learn more, keep going down the rabbit hole.
+
+- Read [Google's blog post](https://ai.google.dev/showcase/tldraw) about tldraw computer.
+- Watch [Steve Ruiz's introduction](https://www.youtube.com/watch?v=NTDBqZdOGAM) to tldraw computer.
+- Hear Steve explain [how it works](https://www.youtube.com/watch?v=NTDBqZdOGAM).
+
+---
+
+As you might have noticed, we do a lot of experimentation at tldraw, and this new type of blog post is part of that.
+
+We're also [hiring](/jobs).
