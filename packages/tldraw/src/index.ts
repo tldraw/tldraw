@@ -517,6 +517,7 @@ export {
 } from './lib/utils/static-assets/assetUrls'
 export {
 	defaultAddFontsFromNode,
+	isEmptyRichText,
 	renderHtmlFromRichText,
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,

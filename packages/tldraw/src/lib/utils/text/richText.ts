@@ -150,3 +150,17 @@ export function defaultAddFontsFromNode(
 
 	return state
 }
+
+/**
+ * Check if the provided rich text is empty.
+ *
+ * @public
+ */
+export function isEmptyRichText(richText: TLRichText): boolean {
+	if (richText.content.length === 1) {
+		const firstChild = richText.content[0] as any
+		if (!firstChild.content) return true
+	}
+
+	return false
+}

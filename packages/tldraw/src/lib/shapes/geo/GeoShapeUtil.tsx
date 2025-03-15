@@ -35,6 +35,7 @@ import {
 
 import isEqual from 'lodash.isequal'
 import {
+	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
@@ -411,11 +412,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override getText(shape: TLGeoShape) {
-		if (shape.props.richText.content.length === 1) {
-			const firstChild = shape.props.richText.content[0] as any
-			if (!firstChild.content) return ''
-		}
-
+		if (isEmptyRichText(shape.props.richText)) return ''
 		return renderPlaintextFromRichText(this.editor, shape.props.richText)
 	}
 
