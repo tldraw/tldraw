@@ -44,7 +44,7 @@ export function HeroSection() {
                     developers and users.
                 </div>
             </div> */}
-			<p className="mt-0 sm:mt-5 px-5 text-center text-zinc-800 dark:text-zinc-200 sm:text-lg w-full text-balance w-[90%]">
+			<p className="mt-0 sm:mt-5 px-5 text-center text-zinc-800 dark:text-zinc-200 sm:text-lg w-full text-balance w-[90%] max-w-[800px]">
 				Have an idea for an infinite canvas? The tldraw SDK has everything you need to build instant
 				real-time collaborative whiteboards and more.
 			</p>

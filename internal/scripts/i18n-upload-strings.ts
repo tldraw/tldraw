@@ -34,6 +34,12 @@ async function i18nUploadStrings() {
 			filter_untranslated: 1,
 		})
 	).items.map((item) => item.key_id)
+
+	if (!allProjectUntranslatedKeys.length) {
+		console.log('No new strings to translate.')
+		return
+	}
+
 	const orderDetails = {
 		project_id: projectId,
 		payment_method: 'credit_card' as const,
@@ -46,7 +52,7 @@ async function i18nUploadStrings() {
 		translation_tier: 1,
 	}
 
-	console.log('Placing order for new strings...')
+	console.log('Placing test order for new strings...')
 	const placeTranslationOrderDryRun = await lokaliseApi.orders().create(
 		{
 			...orderDetails,
@@ -57,11 +63,17 @@ async function i18nUploadStrings() {
 		}
 	)
 
+	if (placeTranslationOrderDryRun.total === 0) {
+		console.log(`There are strings to translate but Lokalise can't do the order b/c it's 0. UGH.`)
+		return
+	}
+
 	if (placeTranslationOrderDryRun.total > 10) {
 		console.error('Cost of translations is exceeding expectations. Place a manual order.')
 		process.exit(1)
 	}
 
+	console.log('Placing actual order for new strings...')
 	await lokaliseApi.orders().create(
 		{
 			...orderDetails,
@@ -73,4 +85,7 @@ async function i18nUploadStrings() {
 	console.log('Finished placing order for new strings.')
 }
 
-i18nUploadStrings()
+i18nUploadStrings().catch((e) => {
+	console.error(e)
+	process.exit(1)
+})

@@ -119,7 +119,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	/**
 	 * Makes this scheduler become 'actively listening' to its parents.
 	 * If it has been executed before it will immediately become eligible to receive 'maybeScheduleEffect' calls.
-	 * If it has not executed before it will need to be manually executed once to become eligible for scheduling, i.e. by calling [[EffectScheduler.execute]].
+	 * If it has not executed before it will need to be manually executed once to become eligible for scheduling, i.e. by calling {@link state#EffectScheduler.execute}.
 	 * @public
 	 */
 	attach() {
@@ -131,7 +131,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 
 	/**
 	 * Makes this scheduler stop 'actively listening' to its parents.
-	 * It will no longer be eligible to receive 'maybeScheduleEffect' calls until [[EffectScheduler.attach]] is called again.
+	 * It will no longer be eligible to receive 'maybeScheduleEffect' calls until {@link state#EffectScheduler.attach} is called again.
 	 */
 	detach() {
 		this._isActivelyListening = false
@@ -165,7 +165,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
  *
  * You probably don't need to use this directly unless you're integrating this library with a framework of some kind.
  *
- * Instead, use the [[react]] and [[reactor]] functions.
+ * Instead, use the {@link react} and {@link reactor} functions.
  *
  * @example
  * ```ts
@@ -225,14 +225,14 @@ export interface EffectScheduler<Result> {
 	/**
 	 * Makes this scheduler become 'actively listening' to its parents.
 	 * If it has been executed before it will immediately become eligible to receive 'maybeScheduleEffect' calls.
-	 * If it has not executed before it will need to be manually executed once to become eligible for scheduling, i.e. by calling [[EffectScheduler.execute]].
+	 * If it has not executed before it will need to be manually executed once to become eligible for scheduling, i.e. by calling {@link state#EffectScheduler.execute}.
 	 * @public
 	 */
 	attach(): void
 
 	/**
 	 * Makes this scheduler stop 'actively listening' to its parents.
-	 * It will no longer be eligible to receive 'maybeScheduleEffect' calls until [[EffectScheduler.attach]] is called again.
+	 * It will no longer be eligible to receive 'maybeScheduleEffect' calls until {@link state#EffectScheduler.attach} is called again.
 	 */
 	detach(): void
 
@@ -287,13 +287,13 @@ export function react(
 }
 
 /**
- * The reactor is a user-friendly interface for starting and stopping an [[EffectScheduler]].
+ * The reactor is a user-friendly interface for starting and stopping an {@link state#EffectScheduler}.
  *
  * Calling .start() will attach the scheduler and execute the effect immediately the first time it is called.
  *
  * If the reactor is stopped, calling `.start()` will re-attach the scheduler but will only execute the effect if any of its parents have changed since it was stopped.
  *
- * You can create a reactor with [[reactor]].
+ * You can create a reactor with {@link reactor}.
  * @public
  */
 export interface Reactor<T = unknown> {
@@ -319,7 +319,7 @@ export interface Reactor<T = unknown> {
 }
 
 /**
- * Creates a [[Reactor]], which is a thin wrapper around an [[EffectScheduler]].
+ * Creates a {@link Reactor}, which is a thin wrapper around an {@link state#EffectScheduler}.
  *
  * @public
  */

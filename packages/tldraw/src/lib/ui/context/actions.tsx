@@ -806,7 +806,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.markHistoryStoppingPoint('stack-vertical')
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.stackShapes(selectedShapeIds, 'vertical', 16)
+						editor.stackShapes(selectedShapeIds, 'vertical', editor.options.adjacentShapeMargin)
 						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
@@ -826,7 +826,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.markHistoryStoppingPoint('stack-horizontal')
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.stackShapes(selectedShapeIds, 'horizontal', 16)
+						editor.stackShapes(selectedShapeIds, 'horizontal', editor.options.adjacentShapeMargin)
 						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
@@ -966,7 +966,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'delete',
 				label: 'action.delete',
-				kbd: '⌫,del,backspace',
+				kbd: '⌫,del',
 				icon: 'trash',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1408,6 +1408,50 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					// will select whatever the most recent geo tool was
 					trackEvent('select-tool', { source, id: `geo-previous` })
 					editor.setCurrentTool('geo')
+				},
+			},
+			{
+				id: 'change-page-prev',
+				kbd: '?left,?up',
+				onSelect: async (source) => {
+					// will select whatever the most recent geo tool was
+					const pages = editor.getPages()
+					const currentPageIndex = pages.findIndex((page) => page.id === editor.getCurrentPageId())
+					if (currentPageIndex < 1) return
+					trackEvent('change-page', { source, direction: 'prev' })
+					editor.setCurrentPage(pages[currentPageIndex - 1].id)
+				},
+			},
+			{
+				id: 'change-page-next',
+				kbd: '?right,?down',
+				onSelect: async (source) => {
+					// will select whatever the most recent geo tool was
+					const pages = editor.getPages()
+					const currentPageIndex = pages.findIndex((page) => page.id === editor.getCurrentPageId())
+
+					// If we're on the last page...
+					if (currentPageIndex === -1 || currentPageIndex >= pages.length - 1) {
+						// if the current page is blank or if we're in readonly mode, do nothing
+						if (editor.getCurrentPageShapes().length <= 0 || editor.getIsReadonly()) {
+							return
+						}
+						// Otherwise, create a new page
+						trackEvent('new-page', { source })
+						editor.run(() => {
+							editor.markHistoryStoppingPoint('creating page')
+							const newPageId = PageRecordType.createId()
+							editor.createPage({
+								name: helpers.msg('page-menu.new-page-initial-name'),
+								id: newPageId,
+							})
+							editor.setCurrentPage(newPageId)
+						})
+						return
+					}
+
+					editor.setCurrentPage(pages[currentPageIndex + 1].id)
+					trackEvent('change-page', { source, direction: 'next' })
 				},
 			},
 		]

@@ -76,12 +76,18 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			if (url.includes('/maps/embed?')) {
 				return url
 			} else if (url.includes('/maps/')) {
-				const match = url.match(/@(.*?),(.*?),(.*?)z/)
+				const match = url.match(/@(.*?),(.*?),(.*?)(z|m)/)
 				let result: string
 				if (match) {
-					const [, lat, lng, z] = match
+					const [, lat, lng, zoomOrMeters, mapTypeSymbol] = match
+					const mapType = mapTypeSymbol === 'z' ? 'roadmap' : 'satellite'
+					// Note: This meters to zoom equation is a rough approximation and not canonical.
+					const z =
+						mapType === 'roadmap'
+							? zoomOrMeters
+							: -Math.log2(parseInt(zoomOrMeters) / 14772321) / 0.8
 					const host = new URL(url).host.replace('www.', '')
-					result = `https://${host}/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=${lat},${lng}&zoom=${z}`
+					result = `https://${host}/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=${lat},${lng}&zoom=${z}&maptype=${mapType}`
 				} else {
 					result = ''
 				}
@@ -96,9 +102,13 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 
 			const matches = urlObj.pathname.match(/^\/maps\/embed\/v1\/view\/?$/)
 			if (matches && urlObj.searchParams.has('center') && urlObj.searchParams.get('zoom')) {
-				const zoom = urlObj.searchParams.get('zoom')
+				const zoom = urlObj.searchParams.get('zoom') ?? '12'
+				const mapType = urlObj.searchParams.get('maptype') ?? 'roadmap'
+				// Note: This zoom to meters equation is a rough approximation and not canonical.
+				const zoomOrMeters =
+					mapType === 'roadmap' ? zoom : 14772321 * Math.pow(2, parseInt(zoom) * -0.8)
 				const [lat, lon] = urlObj.searchParams.get('center')!.split(',')
-				return `https://www.google.com/maps/@${lat},${lon},${zoom}z`
+				return `https://www.google.com/maps/@${lat},${lon},${zoomOrMeters}${mapType === 'roadmap' ? 'z' : 'm'}`
 			}
 			return
 		},

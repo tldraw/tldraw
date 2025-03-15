@@ -1,3 +1,84 @@
+# v3.10.0 (Tue Mar 11 2025)
+
+### Release Notes
+
+#### Use ImmutableMap inside AtomMap ([#5567](https://github.com/tldraw/tldraw/pull/5567))
+
+- Fixed a perf regression that caused slowness mainly when loading documents.
+
+#### export: fix style embedding for foreignObjects in Firefox ([#5593](https://github.com/tldraw/tldraw/pull/5593))
+
+- Fix exports / style embedding for foreignObjects in Firefox
+
+#### Display BrokenAssetIcon when file upload fails ([#5552](https://github.com/tldraw/tldraw/pull/5552))
+
+- Improve UI around failed uploads to show that the asset is broken.
+
+#### rich text: fix links getting in the way of some tools and android selection ([#5568](https://github.com/tldraw/tldraw/pull/5568))
+
+- Fix issue with rich text links taking precedence over tools. Also, fix fine-grained selection on Android.
+
+#### fix reparentshapes preserve order ([#5565](https://github.com/tldraw/tldraw/pull/5565))
+
+- Modify the reparentShapes() function to ensure that the original order of the shapes is preserved when reparenting.
+
+#### Revert "Revert "Fix for resizing snapshot bug (#5211)" (#5292)" ([#5553](https://github.com/tldraw/tldraw/pull/5553))
+
+- Fixed a bug that could occur when resizing.
+
+#### media: extract base64 assets from .tldr files ([#5525](https://github.com/tldraw/tldraw/pull/5525))
+
+- Ensure .tldr files with embedded base64 assets get their assets rehydrated back into the local db.
+
+#### fix pasting files in safari ([#5545](https://github.com/tldraw/tldraw/pull/5545))
+
+- Fixed a bug with pasting files from your computer in Safari
+
+#### [feature] add rich text and contextual toolbar ([#4895](https://github.com/tldraw/tldraw/pull/4895))
+
+- Rich text using ProseMirror as a first-class supported option in the Editor.
+
+---
+
+#### 🐛 Bug Fix
+
+- CTA analytics [#5542](https://github.com/tldraw/tldraw/pull/5542) ([@TodePond](https://github.com/TodePond))
+
+#### 🐛 Bug Fixes
+
+- Use ImmutableMap inside AtomMap [#5567](https://github.com/tldraw/tldraw/pull/5567) ([@ds300](https://github.com/ds300))
+- export: fix style embedding for foreignObjects in Firefox [#5593](https://github.com/tldraw/tldraw/pull/5593) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Display BrokenAssetIcon when file upload fails [#5552](https://github.com/tldraw/tldraw/pull/5552) ([@kazu-2020](https://github.com/kazu-2020) [@mimecuvalo](https://github.com/mimecuvalo))
+- rich text: fix links getting in the way of some tools and android selection [#5568](https://github.com/tldraw/tldraw/pull/5568) ([@mimecuvalo](https://github.com/mimecuvalo))
+- fix reparentshapes preserve order [#5565](https://github.com/tldraw/tldraw/pull/5565) (riley@toonsquare.co)
+- [important dotcom perf fix] use useMaybeEditor in ui context [#5560](https://github.com/tldraw/tldraw/pull/5560) ([@ds300](https://github.com/ds300))
+- Revert "Revert "Fix for resizing snapshot bug (#5211)" (#5292)" [#5553](https://github.com/tldraw/tldraw/pull/5553) ([@mimecuvalo](https://github.com/mimecuvalo))
+- fix: prevent text duplication when using IME with Enter key in Chrome [#5540](https://github.com/tldraw/tldraw/pull/5540) ([@banqinghe](https://github.com/banqinghe) [@mimecuvalo](https://github.com/mimecuvalo))
+- fix pasting files in safari [#5545](https://github.com/tldraw/tldraw/pull/5545) ([@bluedot74](https://github.com/bluedot74))
+
+#### 💄 Product Improvements
+
+- media: extract base64 assets from .tldr files [#5525](https://github.com/tldraw/tldraw/pull/5525) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🎉 New Features
+
+- [feature] add rich text and contextual toolbar [#4895](https://github.com/tldraw/tldraw/pull/4895) ([@mimecuvalo](https://github.com/mimecuvalo) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@SomeHats](https://github.com/SomeHats) [@ds300](https://github.com/ds300) [@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 10
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Josh Willis ([@bluedot74](https://github.com/bluedot74))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- mimata kazutaka ([@kazu-2020](https://github.com/kazu-2020))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Qinghe Ban ([@banqinghe](https://github.com/banqinghe))
+- Riley ([@dodo-Riley](https://github.com/dodo-Riley))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.9.0 (Mon Mar 03 2025)
 
 ### Release Notes
