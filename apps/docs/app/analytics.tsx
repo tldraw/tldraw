@@ -8,7 +8,7 @@ import Cookies from 'js-cookie'
 import Script from 'next/script'
 import { useEffect, useState } from 'react'
 
-type CookieConsent = 'unknown' | 'opted-in' | 'opted-out'
+type CookieConsent = undefined | 'unknown' | 'opted-in' | 'opted-out'
 
 export default function Analytics() {
 	const [hasConsent, setHasConsent] = useState<CookieConsent>('unknown')
@@ -63,7 +63,9 @@ function CookieConsent({
 		}
 	}
 
-	if (hasConsent !== 'unknown') return null
+	if (hasConsent === undefined || hasConsent !== 'unknown') {
+		return null
+	}
 
 	return (
 		<>
