@@ -20,8 +20,10 @@ import {
 	TLGeoShape,
 	TLGeoShapeProps,
 	TLResizeInfo,
+	TLRichText,
 	TLShapeUtilCanvasSvgDef,
 	Vec,
+	WeakCache,
 	exhaustiveSwitchError,
 	geoShapeMigrations,
 	geoShapeProps,
@@ -63,6 +65,8 @@ import {
 import { getLines } from './getLines'
 
 const MIN_SIZE_WITH_LABEL = 17 * 3
+
+const textCache = new WeakCache<TLRichText, string>()
 
 /** @public */
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
@@ -412,8 +416,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override getText(shape: TLGeoShape) {
-		if (isEmptyRichText(shape.props.richText)) return ''
-		return renderPlaintextFromRichText(this.editor, shape.props.richText)
+		const { richText } = shape.props
+		return textCache.get(richText, () => {
+			if (isEmptyRichText(richText)) return ''
+			return renderPlaintextFromRichText(this.editor, richText)
+		})
 	}
 
 	override getFontFaces(shape: TLGeoShape): TLFontFace[] {
