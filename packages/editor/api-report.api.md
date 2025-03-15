@@ -689,7 +689,7 @@ export function DefaultSelectionForeground({ bounds, rotation }: TLSelectionFore
 export const DefaultShapeIndicator: NamedExoticComponent<TLShapeIndicatorProps>;
 
 // @public (undocumented)
-export const DefaultShapeIndicators: NamedExoticComponent<object>;
+export const DefaultShapeIndicators: NamedExoticComponent<TLShapeIndicatorsProps>;
 
 // @public (undocumented)
 export function DefaultSnapIndicator({ className, line, zoom }: TLSnapIndicatorProps): JSX_2.Element;
@@ -3949,6 +3949,12 @@ export interface TLShapeIndicatorProps {
     shapeId: TLShapeId;
     // (undocumented)
     userId?: string;
+}
+
+// @public (undocumented)
+export interface TLShapeIndicatorsProps {
+    hideAll?: boolean;
+    showAll?: boolean;
 }
 
 // @public
