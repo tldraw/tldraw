@@ -8,10 +8,10 @@ import Cookies from 'js-cookie'
 import Script from 'next/script'
 import { useEffect, useState } from 'react'
 
-type CookieConsent = 'not-initialized' | 'unknown' | 'opted-in' | 'opted-out'
+type CookieConsent = undefined | 'unknown' | 'opted-in' | 'opted-out'
 
 export default function Analytics() {
-	const [hasConsent, setHasConsent] = useState<CookieConsent>('not-initialized')
+	const [hasConsent, setHasConsent] = useState<CookieConsent>('unknown')
 
 	const onConsentChanged = (hasConsent: boolean) => {
 		Cookies.set('allowTracking', hasConsent ? 'true' : 'false')
@@ -63,7 +63,7 @@ function CookieConsent({
 		}
 	}
 
-	if (hasConsent === 'not-initialized' || hasConsent !== 'unknown') {
+	if (hasConsent === undefined || hasConsent !== 'unknown') {
 		return null
 	}
 

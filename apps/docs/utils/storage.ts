@@ -11,8 +11,8 @@ import { useCallback, useLayoutEffect, useState } from 'react'
  *
  * @public
  */
-export function useLocalStorageState<T = any>(key: string, defaultValue: T, initialValue?: T) {
-	const [state, setState] = useState(initialValue ?? defaultValue)
+export function useLocalStorageState<T = any>(key: string, defaultValue: T) {
+	const [state, setState] = useState<T | undefined>(undefined)
 
 	useLayoutEffect(() => {
 		const value = getFromLocalStorage(key)
@@ -26,7 +26,7 @@ export function useLocalStorageState<T = any>(key: string, defaultValue: T, init
 			setInLocalStorage(key, JSON.stringify(defaultValue))
 			setState(defaultValue)
 		}
-	}, [key, initialValue, defaultValue])
+	}, [key, defaultValue])
 
 	const updateValue = useCallback(
 		(setter: T | ((value: T) => T)) => {

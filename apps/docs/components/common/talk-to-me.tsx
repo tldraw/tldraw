@@ -9,11 +9,10 @@ type SurveyStatus = 'not-initialized' | 'not-dismissed' | 'dismissed'
 export function TalkToMe() {
 	const [surveyStatus, setSurveyStatus] = useLocalStorageState<SurveyStatus>(
 		'devrel-survey',
-		'not-dismissed',
-		'not-initialized'
+		'not-dismissed'
 	)
 
-	if (surveyStatus === 'not-initialized' || surveyStatus === 'dismissed') {
+	if (surveyStatus === undefined || surveyStatus === 'dismissed') {
 		return null
 	}
 

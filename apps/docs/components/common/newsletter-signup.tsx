@@ -24,11 +24,7 @@ export function NewsletterSignup({
 }) {
 	// If the user has submitted their email, we don't show the form anymore
 	const [newsletterSignupStatus, setNewsletterSignupStatus] =
-		useLocalStorageState<NewsletterSignupStatus>(
-			'dev_did_submit_newsletter',
-			'not-subscribed',
-			'not-initialized'
-		)
+		useLocalStorageState<NewsletterSignupStatus>('dev_did_submit_newsletter', 'not-subscribed')
 
 	// Todo: replace with react query or something to handle the async work
 	const [formState, setFormState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
@@ -62,7 +58,7 @@ export function NewsletterSignup({
 		[setNewsletterSignupStatus, formState]
 	)
 
-	if (newsletterSignupStatus === 'not-initialized') return null
+	if (newsletterSignupStatus === undefined) return null
 
 	// If the user has already submitted the form, we don't show it anymore,
 	// unless we're both in development mode AND the debug flag is enabled.
