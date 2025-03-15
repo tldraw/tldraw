@@ -2464,7 +2464,7 @@ Adds the ability to customize the embeds that are supported. You can now customi
 
 - Fix a bug with fractional indexing validation with the new jitter library.
 
-#### images: show ghost preview image whilst uploading ([#3988](https://github.com/tldraw/tldraw/pull/3988))
+#### images: show ghost preview image while uploading ([#3988](https://github.com/tldraw/tldraw/pull/3988))
 
 - Media: add image and video upload indicators.
 
@@ -2762,7 +2762,7 @@ This was done because calling `editor.mark(id)` is a potential footgun unless yo
 - `@tldraw/editor`, `tldraw`, `@tldraw/tlschema`
   - [api] Widen snapshots pit of success [#4392](https://github.com/tldraw/tldraw/pull/4392) ([@ds300](https://github.com/ds300))
 - `@tldraw/editor`, `@tldraw/sync`, `tldraw`
-  - images: show ghost preview image whilst uploading [#3988](https://github.com/tldraw/tldraw/pull/3988) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
+  - images: show ghost preview image while uploading [#3988](https://github.com/tldraw/tldraw/pull/3988) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
 
 #### 🎉 New Features
 

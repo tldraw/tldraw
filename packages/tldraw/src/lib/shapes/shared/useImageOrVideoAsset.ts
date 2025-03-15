@@ -21,7 +21,7 @@ export interface UseImageOrVideoAssetOptions {
 	/** The asset ID you want a URL for. */
 	assetId: TLAssetId | null
 	/**
-	 * The shape the asset is being used for. We won't update the resolved URL whilst the shape is
+	 * The shape the asset is being used for. We won't update the resolved URL while the shape is
 	 * off-screen.
 	 */
 	shapeId?: TLShapeId
