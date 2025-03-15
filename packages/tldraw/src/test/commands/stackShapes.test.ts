@@ -62,6 +62,8 @@ describe('distributeShapes command', () => {
 	describe('when stacking horizontally', () => {
 		it('stacks the shapes based on the editors adjacentShapeMargin', () => {
 			editor.setSelectedShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
+			// @ts-ignore - private property
+			editor.options.adjacentShapeMargin = 1
 			editor.stackShapes(editor.getSelectedShapeIds(), 'horizontal')
 			jest.advanceTimersByTime(1000)
 			// 200 distance gap between c and d
@@ -72,17 +74,17 @@ describe('distributeShapes command', () => {
 			})
 			editor.expectShapeToMatch({
 				id: ids.boxB,
-				x: 110,
+				x: 101,
 				y: 100,
 			})
 			editor.expectShapeToMatch({
 				id: ids.boxC,
-				x: 220,
+				x: 202,
 				y: 400,
 			})
 			editor.expectShapeToMatch({
 				id: ids.boxD,
-				x: 330,
+				x: 303,
 				y: 700,
 			})
 		})
