@@ -90,7 +90,8 @@ export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: T
 	return `<div class="tl-rich-text">${html}</div>`
 }
 
-const plainTextFromRichTextMap = new WeakCache<TLRichText, string>()
+// A weak cache used to store plaintext that's been extracted from rich text.
+const plainTextFromRichTextCache = new WeakCache<TLRichText, string>()
 
 /**
  * Renders plaintext from a rich text string.
@@ -105,7 +106,7 @@ export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText
 		if (!(richText.content[0] as any).content) return ''
 	}
 
-	return plainTextFromRichTextMap.get(richText, () => {
+	return plainTextFromRichTextCache.get(richText, () => {
 		const tipTapExtensions =
 			editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
 		return generateText(richText as JSONContent, tipTapExtensions, {
