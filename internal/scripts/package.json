@@ -44,7 +44,7 @@
 		"kleur": "^4.1.5",
 		"lazyrepo": "0.0.0-alpha.27",
 		"prettier": "^3.4.2",
-		"recast": "^0.22.0",
+		"recast": "^0.23.11",
 		"rimraf": "^4.4.1",
 		"semver": "^7.6.3",
 		"svgo": "^3.3.2",

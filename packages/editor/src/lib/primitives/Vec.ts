@@ -1,3 +1,4 @@
+import { atom, Atom } from '@tldraw/state'
 import { VecModel } from '@tldraw/tlschema'
 import { EASINGS } from './easings'
 import { toFixed } from './utils'
@@ -592,6 +593,38 @@ export class Vec {
 	static SnapToGrid(A: VecLike, gridSize = 8) {
 		return new Vec(Math.round(A.x / gridSize) * gridSize, Math.round(A.y / gridSize) * gridSize)
 	}
+}
+
+/**
+ * A {@link Vec} backed by atoms. When the atom changes, anything reading its values will re-evaluate.
+ * @public
+ */
+export class AtomVec extends Vec {
+	constructor(name: string, x = 0, y = 0, z = 1) {
+		super(x, y, z)
+		this._x = atom(`${name}.x`, x)
+		this._y = atom(`${name}.y`, y)
+		this._z = atom(`${name}.z`, z)
+
+		Object.defineProperties(this, {
+			x: {
+				get: () => this._x.get(),
+				set: (value: number) => this._x.set(value),
+			},
+			y: {
+				get: () => this._y.get(),
+				set: (value: number) => this._y.set(value),
+			},
+			z: {
+				get: () => this._z.get(),
+				set: (value: number) => this._z.set(value),
+			},
+		})
+	}
+
+	_x: Atom<number>
+	_y: Atom<number>
+	_z: Atom<number>
 }
 
 const ease = (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t)

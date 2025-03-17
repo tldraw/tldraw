@@ -6818,9 +6818,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/core-darwin-arm64@npm:1.11.10":
+  version: 1.11.10
+  resolution: "@swc/core-darwin-arm64@npm:1.11.10"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
 "@swc/core-darwin-x64@npm:1.10.11":
   version: 1.10.11
   resolution: "@swc/core-darwin-x64@npm:1.10.11"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@swc/core-darwin-x64@npm:1.11.10":
+  version: 1.11.10
+  resolution: "@swc/core-darwin-x64@npm:1.11.10"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
@@ -6832,9 +6846,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/core-linux-arm-gnueabihf@npm:1.11.10":
+  version: 1.11.10
+  resolution: "@swc/core-linux-arm-gnueabihf@npm:1.11.10"
+  conditions: os=linux & cpu=arm
+  languageName: node
+  linkType: hard
+
 "@swc/core-linux-arm64-gnu@npm:1.10.11":
   version: 1.10.11
   resolution: "@swc/core-linux-arm64-gnu@npm:1.10.11"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@swc/core-linux-arm64-gnu@npm:1.11.10":
+  version: 1.11.10
+  resolution: "@swc/core-linux-arm64-gnu@npm:1.11.10"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
@@ -6846,9 +6874,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/core-linux-arm64-musl@npm:1.11.10":
+  version: 1.11.10
+  resolution: "@swc/core-linux-arm64-musl@npm:1.11.10"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
 "@swc/core-linux-x64-gnu@npm:1.10.11":
   version: 1.10.11
   resolution: "@swc/core-linux-x64-gnu@npm:1.10.11"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@swc/core-linux-x64-gnu@npm:1.11.10":
+  version: 1.11.10
+  resolution: "@swc/core-linux-x64-gnu@npm:1.11.10"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
@@ -6860,9 +6902,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/core-linux-x64-musl@npm:1.11.10":
+  version: 1.11.10
+  resolution: "@swc/core-linux-x64-musl@npm:1.11.10"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
 "@swc/core-win32-arm64-msvc@npm:1.10.11":
   version: 1.10.11
   resolution: "@swc/core-win32-arm64-msvc@npm:1.10.11"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@swc/core-win32-arm64-msvc@npm:1.11.10":
+  version: 1.11.10
+  resolution: "@swc/core-win32-arm64-msvc@npm:1.11.10"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
@@ -6874,6 +6930,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/core-win32-ia32-msvc@npm:1.11.10":
+  version: 1.11.10
+  resolution: "@swc/core-win32-ia32-msvc@npm:1.11.10"
+  conditions: os=win32 & cpu=ia32
+  languageName: node
+  linkType: hard
+
 "@swc/core-win32-x64-msvc@npm:1.10.11":
   version: 1.10.11
   resolution: "@swc/core-win32-x64-msvc@npm:1.10.11"
@@ -6881,7 +6944,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core@npm:^1.10.11, @swc/core@npm:^1.7.26":
+"@swc/core-win32-x64-msvc@npm:1.11.10":
+  version: 1.11.10
+  resolution: "@swc/core-win32-x64-msvc@npm:1.11.10"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@swc/core@npm:^1.10.11":
   version: 1.10.11
   resolution: "@swc/core@npm:1.10.11"
   dependencies:
@@ -6924,6 +6994,52 @@ __metadata:
     "@swc/helpers":
       optional: true
   checksum: 249eaa3179ff2ae58d8b7214ea58f4e54b09fa9c7bc2bbfbf1e4d8094955a676c0cc4debab786487af43610771d13f9cefad802e4ce367a0d5f50f18c82fab50
+  languageName: node
+  linkType: hard
+
+"@swc/core@npm:^1.10.15":
+  version: 1.11.10
+  resolution: "@swc/core@npm:1.11.10"
+  dependencies:
+    "@swc/core-darwin-arm64": "npm:1.11.10"
+    "@swc/core-darwin-x64": "npm:1.11.10"
+    "@swc/core-linux-arm-gnueabihf": "npm:1.11.10"
+    "@swc/core-linux-arm64-gnu": "npm:1.11.10"
+    "@swc/core-linux-arm64-musl": "npm:1.11.10"
+    "@swc/core-linux-x64-gnu": "npm:1.11.10"
+    "@swc/core-linux-x64-musl": "npm:1.11.10"
+    "@swc/core-win32-arm64-msvc": "npm:1.11.10"
+    "@swc/core-win32-ia32-msvc": "npm:1.11.10"
+    "@swc/core-win32-x64-msvc": "npm:1.11.10"
+    "@swc/counter": "npm:^0.1.3"
+    "@swc/types": "npm:^0.1.19"
+  peerDependencies:
+    "@swc/helpers": "*"
+  dependenciesMeta:
+    "@swc/core-darwin-arm64":
+      optional: true
+    "@swc/core-darwin-x64":
+      optional: true
+    "@swc/core-linux-arm-gnueabihf":
+      optional: true
+    "@swc/core-linux-arm64-gnu":
+      optional: true
+    "@swc/core-linux-arm64-musl":
+      optional: true
+    "@swc/core-linux-x64-gnu":
+      optional: true
+    "@swc/core-linux-x64-musl":
+      optional: true
+    "@swc/core-win32-arm64-msvc":
+      optional: true
+    "@swc/core-win32-ia32-msvc":
+      optional: true
+    "@swc/core-win32-x64-msvc":
+      optional: true
+  peerDependenciesMeta:
+    "@swc/helpers":
+      optional: true
+  checksum: 4fcda5222fe4311dd6fe07586c72458f86a3a7ccee09cc7115ff3308f12d84a019d0b6996bcc778014f30f9a683de2d94a21498f69f8ed53941912c851716572
   languageName: node
   linkType: hard
 
@@ -6972,6 +7088,15 @@ __metadata:
   dependencies:
     "@swc/counter": "npm:^0.1.3"
   checksum: ddef1ad5bfead3acdfc41f14e79ba43a99200eb325afbad5716058dbe36358b0513400e9f22aff32432be84a98ae93df95a20b94192f69b8687144270e4eaa18
+  languageName: node
+  linkType: hard
+
+"@swc/types@npm:^0.1.19":
+  version: 0.1.19
+  resolution: "@swc/types@npm:0.1.19"
+  dependencies:
+    "@swc/counter": "npm:^0.1.3"
+  checksum: 693147cc9b23147164ddff9cb89477c369fbeb103319584779352a9ff1c72e0a70b97a89dfd97629040db8956d668d7b7a8fed328ffea46a3e8c18577e396994
   languageName: node
   linkType: hard
 
@@ -7673,7 +7798,7 @@ __metadata:
     minimist: "npm:^1.2.8"
     prettier: "npm:^3.4.2"
     proper-lockfile: "npm:^4.1.2"
-    recast: "npm:^0.22.0"
+    recast: "npm:^0.23.11"
     rimraf: "npm:^4.4.1"
     semver: "npm:^7.6.3"
     svgo: "npm:^3.3.2"
@@ -9208,14 +9333,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitejs/plugin-react-swc@npm:^3.7.2":
-  version: 3.7.2
-  resolution: "@vitejs/plugin-react-swc@npm:3.7.2"
+"@vitejs/plugin-react-swc@npm:^3.8.0":
+  version: 3.8.0
+  resolution: "@vitejs/plugin-react-swc@npm:3.8.0"
   dependencies:
-    "@swc/core": "npm:^1.7.26"
+    "@swc/core": "npm:^1.10.15"
   peerDependencies:
     vite: ^4 || ^5 || ^6
-  checksum: eba981d831c83b81eba6515a8999f3811423769810dd7b36b9b0e5fffbfecc0354198e6efa7df0cd43950007d110aa9f42f0f3a0bd9f4bdc70d23d5177cfe95e
+  checksum: aa6e1aff93d3acce9d91d87b28914d541f370c0d992ef696f4d4a59f214df326ccef0ad827f7b12c7e8552a8976a48a2d52e31e7f0da9799312879f5fd2d6519
   languageName: node
   linkType: hard
 
@@ -10076,7 +10201,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"assert@npm:^2.0.0, assert@npm:^2.1.0":
+"assert@npm:^2.1.0":
   version: 2.1.0
   resolution: "assert@npm:2.1.0"
   dependencies:
@@ -10096,21 +10221,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ast-types@npm:0.15.2":
-  version: 0.15.2
-  resolution: "ast-types@npm:0.15.2"
-  dependencies:
-    tslib: "npm:^2.0.1"
-  checksum: 81680bd5829cdec33524e9aa3434e23f3919c0c388927068a0ff2e8466f55b0f34eae53e0007b3668742910c289481ab4e1d486a5318f618ae2fc93b5e7e863b
-  languageName: node
-  linkType: hard
-
 "ast-types@npm:^0.14.2":
   version: 0.14.2
   resolution: "ast-types@npm:0.14.2"
   dependencies:
     tslib: "npm:^2.0.1"
   checksum: 7c74b3090c90aa600b49a7a8cecc99e329f190600bcaa75ad087472a1a5a7ef23795a17ea00a74c2a8e822b336cd4f874e2e1b815a9877b4dba5e401566b0433
+  languageName: node
+  linkType: hard
+
+"ast-types@npm:^0.16.1":
+  version: 0.16.1
+  resolution: "ast-types@npm:0.16.1"
+  dependencies:
+    tslib: "npm:^2.0.1"
+  checksum: f569b475eb1c8cb93888cb6e7b7e36dc43fa19a77e4eb132cbff6e3eb1598ca60f850db6e60b070e5a0ee8c1559fca921dac0916e576f2f104e198793b0bdd8d
   languageName: node
   linkType: hard
 
@@ -12310,7 +12435,7 @@ __metadata:
     "@types/react": "npm:^18.3.18"
     "@types/regexgen": "npm:^1.3.3"
     "@vercel/analytics": "npm:^1.4.1"
-    "@vitejs/plugin-react-swc": "npm:^3.7.2"
+    "@vitejs/plugin-react-swc": "npm:^3.8.0"
     browser-fs-access: "npm:^0.35.0"
     classnames: "npm:^2.5.1"
     dotenv: "npm:^16.4.7"
@@ -13939,7 +14064,7 @@ __metadata:
     "@tldraw/sync": "workspace:*"
     "@types/lodash": "npm:^4.17.14"
     "@vercel/analytics": "npm:^1.4.1"
-    "@vitejs/plugin-react-swc": "npm:^3.7.2"
+    "@vitejs/plugin-react-swc": "npm:^3.8.0"
     ag-grid-community: "npm:^32.3.3"
     ag-grid-react: "npm:^32.3.3"
     classnames: "npm:^2.5.1"
@@ -22434,16 +22559,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"recast@npm:^0.22.0":
-  version: 0.22.0
-  resolution: "recast@npm:0.22.0"
+"recast@npm:^0.23.11":
+  version: 0.23.11
+  resolution: "recast@npm:0.23.11"
   dependencies:
-    assert: "npm:^2.0.0"
-    ast-types: "npm:0.15.2"
+    ast-types: "npm:^0.16.1"
     esprima: "npm:~4.0.0"
     source-map: "npm:~0.6.1"
+    tiny-invariant: "npm:^1.3.3"
     tslib: "npm:^2.0.1"
-  checksum: a383710369a14c13af216977cf016d5923b35ff98b8b10d669bc3404b38141579860ba7b4c211addf85f88467aeb7bb619f10409fec1550a2abdfe2e39758e43
+  checksum: a622b7848efe13a59a40c9a1a3a8178433eae1048780e04d7392406e2d67fc29e3efa84b3aa8cfda28fd58989f4b59fa968bed295b739987a666bd11cc57a5b2
   languageName: node
   linkType: hard
 
@@ -24757,6 +24882,13 @@ __metadata:
   dependencies:
     convert-hrtime: "npm:^3.0.0"
   checksum: 8bcecbda97142e804ba03acf52117cc771c2933277b299bdf2e8a949960fda3e70d8159b3ba5f49495d662c4b8cc15e30dbb1a703b1a735eecce11682b98e8f9
+  languageName: node
+  linkType: hard
+
+"tiny-invariant@npm:^1.3.3":
+  version: 1.3.3
+  resolution: "tiny-invariant@npm:1.3.3"
+  checksum: 5e185c8cc2266967984ce3b352a4e57cb89dad5a8abb0dea21468a6ecaa67cd5bb47a3b7a85d08041008644af4f667fb8b6575ba38ba5fb00b3b5068306e59fe
   languageName: node
   linkType: hard
 

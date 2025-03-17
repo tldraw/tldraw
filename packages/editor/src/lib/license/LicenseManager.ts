@@ -73,10 +73,8 @@ export class LicenseManager {
 	public isDevelopment: boolean
 	public isTest: boolean
 	public isCryptoAvailable: boolean
-	state = atom<'pending' | 'licensed' | 'licensed-with-watermark' | 'unlicensed'>(
-		'license state',
+	@atom accessor state: 'pending' | 'licensed' | 'licensed-with-watermark' | 'unlicensed' =
 		'pending'
-	)
 	public verbose = true
 
 	constructor(
@@ -97,11 +95,11 @@ export class LicenseManager {
 			}
 
 			if (isUnlicensed) {
-				this.state.set('unlicensed')
+				this.state = 'unlicensed'
 			} else if ((result as ValidLicenseKeyResult).isLicensedWithWatermark) {
-				this.state.set('licensed-with-watermark')
+				this.state = 'licensed-with-watermark'
 			} else {
-				this.state.set('licensed')
+				this.state = 'licensed'
 			}
 		})
 	}

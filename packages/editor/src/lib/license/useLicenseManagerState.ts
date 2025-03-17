@@ -3,5 +3,5 @@ import { LicenseManager } from './LicenseManager'
 
 /** @internal */
 export function useLicenseManagerState(licenseManager: LicenseManager) {
-	return useValue('watermarkState', () => licenseManager.state.get(), [licenseManager])
+	return useValue('watermarkState', () => licenseManager.state, [licenseManager])
 }

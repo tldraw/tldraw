@@ -13,6 +13,7 @@ const throttleToNextFrame =
 			}
 		: _throttleToNextFrame
 
+/** @internal */
 export class TickManager {
 	constructor(public editor: Editor) {
 		this.editor.disposables.add(this.dispose)
@@ -80,7 +81,7 @@ export class TickManager {
 		if (Math.abs(next.y) < 0.01) next.y = 0
 
 		if (!pointerVelocity.equals(next)) {
-			this.editor.inputs.pointerVelocity = next
+			this.editor.inputs.pointerVelocity.setTo(next)
 		}
 	}
 }

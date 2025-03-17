@@ -8,6 +8,7 @@
 
 import { Atom } from '@tldraw/state';
 import { atom } from '@tldraw/state';
+import { AtomSet } from '@tldraw/store';
 import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
@@ -164,6 +165,17 @@ export function areAnglesCompatible(a: number, b: number): boolean;
 export { Atom }
 
 export { atom }
+
+// @public
+export class AtomVec extends Vec {
+    constructor(name: string, x?: number, y?: number, z?: number);
+    // (undocumented)
+    _x: Atom<number>;
+    // (undocumented)
+    _y: Atom<number>;
+    // (undocumented)
+    _z: Atom<number>;
+}
 
 // @public (undocumented)
 export function average(A: VecLike, B: VecLike): string;
@@ -910,26 +922,24 @@ export class Editor extends EventEmitter<TLEventMap> {
             collaboratorCount: number;
             editingShape: TLUnknownShape | undefined;
             inputs: {
-                buttons: Set<number>;
-                keys: Set<string>;
-                originScreenPoint: Vec;
-                originPagePoint: Vec;
-                currentScreenPoint: Vec;
-                currentPagePoint: Vec;
-                previousScreenPoint: Vec;
-                previousPagePoint: Vec;
-                pointerVelocity: Vec;
-                altKey: boolean;
-                ctrlKey: boolean;
-                isPen: boolean;
-                metaKey: boolean;
-                shiftKey: boolean;
+                buttons: number[];
+                currentPagePoint: VecModel;
+                currentScreenPoint: VecModel;
                 isDragging: boolean;
                 isEditing: boolean;
                 isPanning: boolean;
+                isPen: boolean;
                 isPinching: boolean;
                 isPointing: boolean;
                 isSpacebarPanning: boolean;
+                keys: string[];
+                metaKey: boolean;
+                originPagePoint: VecModel;
+                originScreenPoint: VecModel;
+                pointerVelocity: VecModel;
+                previousPagePoint: VecModel;
+                previousScreenPoint: VecModel;
+                shiftKey: boolean;
             };
             instanceState: TLInstance;
             pageState: TLInstancePageState;
@@ -1376,28 +1386,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     protected readonly history: HistoryManager<TLRecord>;
     // (undocumented)
     readonly id: string;
-    inputs: {
-        buttons: Set<number>;
-        keys: Set<string>;
-        originScreenPoint: Vec;
-        originPagePoint: Vec;
-        currentScreenPoint: Vec;
-        currentPagePoint: Vec;
-        previousScreenPoint: Vec;
-        previousPagePoint: Vec;
-        pointerVelocity: Vec;
-        altKey: boolean;
-        ctrlKey: boolean;
-        isPen: boolean;
-        metaKey: boolean;
-        shiftKey: boolean;
-        isDragging: boolean;
-        isEditing: boolean;
-        isPanning: boolean;
-        isPinching: boolean;
-        isPointing: boolean;
-        isSpacebarPanning: boolean;
-    };
+    inputs: InputManager;
     interrupt(): this;
     isAncestorSelected(shape: TLShape | TLShapeId): boolean;
     isDisposed: boolean;
@@ -1534,6 +1523,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly textMeasure: TextManager;
     // (undocumented)
     _tickCameraState(): void;
+    // @internal (undocumented)
+    readonly _tickManager: TickManager;
     readonly timers: {
         dispose: () => void;
         requestAnimationFrame: (callback: FrameRequestCallback) => number;
@@ -1985,6 +1976,54 @@ export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
 // @public (undocumented)
 export const inlineBase64AssetStore: TLAssetStore;
 
+// @public (undocumented)
+export class InputManager {
+    constructor(editor: Editor);
+    accessor altKey: boolean;
+    readonly buttons: AtomSet<number>;
+    accessor ctrlKey: boolean;
+    readonly currentPagePoint: AtomVec;
+    readonly currentScreenPoint: AtomVec;
+    accessor isDragging: boolean;
+    accessor isEditing: boolean;
+    accessor isPanning: boolean;
+    accessor isPen: boolean;
+    accessor isPinching: boolean;
+    accessor isPointing: boolean;
+    accessor isSpacebarPanning: boolean;
+    readonly keys: AtomSet<string>;
+    accessor metaKey: boolean;
+    readonly originPagePoint: AtomVec;
+    readonly originScreenPoint: AtomVec;
+    readonly pointerVelocity: AtomVec;
+    readonly previousPagePoint: AtomVec;
+    readonly previousScreenPoint: AtomVec;
+    accessor shiftKey: boolean;
+    // (undocumented)
+    toJson(): {
+        buttons: number[];
+        currentPagePoint: VecModel;
+        currentScreenPoint: VecModel;
+        isDragging: boolean;
+        isEditing: boolean;
+        isPanning: boolean;
+        isPen: boolean;
+        isPinching: boolean;
+        isPointing: boolean;
+        isSpacebarPanning: boolean;
+        keys: string[];
+        metaKey: boolean;
+        originPagePoint: VecModel;
+        originScreenPoint: VecModel;
+        pointerVelocity: VecModel;
+        previousPagePoint: VecModel;
+        previousScreenPoint: VecModel;
+        shiftKey: boolean;
+    };
+    // (undocumented)
+    updateFromEvent(info: TLPinchEventInfo | TLPointerEventInfo | TLWheelEventInfo): void;
+}
+
 // @public
 export function intersectCircleCircle(c1: VecLike, r1: number, c2: VecLike, r2: number): Vec[];
 
@@ -2061,7 +2100,7 @@ export class LicenseManager {
     // (undocumented)
     isTest: boolean;
     // (undocumented)
-    state: Atom<"licensed-with-watermark" | "licensed" | "pending" | "unlicensed", unknown>;
+    accessor state: 'licensed-with-watermark' | 'licensed' | 'pending' | 'unlicensed';
     // (undocumented)
     verbose: boolean;
 }
@@ -2902,6 +2941,27 @@ export class TextManager {
         box: BoxModel;
         text: string;
     }[];
+}
+
+// @internal (undocumented)
+export class TickManager {
+    constructor(editor: Editor);
+    // (undocumented)
+    cancelRaf?: (() => void) | null;
+    // (undocumented)
+    dispose(): void;
+    // (undocumented)
+    editor: Editor;
+    // (undocumented)
+    isPaused: boolean;
+    // (undocumented)
+    now: number;
+    // (undocumented)
+    start(): void;
+    // (undocumented)
+    tick(): void;
+    // (undocumented)
+    updatePointerVelocity(elapsed: number): void;
 }
 
 // @public

@@ -3,10 +3,11 @@ import { readFileSync, writeFileSync } from 'fs'
 import glob from 'glob'
 import path from 'path'
 import { parse, print, visit } from 'recast'
+import { recastTypescriptParser } from './recastTypescriptParser'
 
 export function sortUnions(tsbuildDir: string) {
 	for (const file of glob.sync(path.join(tsbuildDir, '**/*.d.ts'))) {
-		const code = parse(readFileSync(file, 'utf8'), { parser: require('recast/parsers/typescript') })
+		const code = parse(readFileSync(file, 'utf8'), { parser: recastTypescriptParser })
 
 		visit(code, {
 			visitTSUnionType(path) {

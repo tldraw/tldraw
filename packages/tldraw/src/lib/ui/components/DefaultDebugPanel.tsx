@@ -6,7 +6,7 @@ import {
 	useValue,
 	Vec,
 } from '@tldraw/editor'
-import { memo, useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef } from 'react'
 import { useTldrawUiComponents } from '../context/components'
 
 /** @internal */
@@ -25,22 +25,7 @@ export const DefaultDebugPanel = memo(function DefaultDebugPanel() {
 	)
 })
 
-function useTick(isEnabled = true) {
-	const [_, setTick] = useState(0)
-	const editor = useEditor()
-	useEffect(() => {
-		if (!isEnabled) return
-		const update = () => setTick((tick) => tick + 1)
-		editor.on('tick', update)
-		return () => {
-			editor.off('tick', update)
-		}
-	}, [editor, isEnabled])
-}
-
 const CurrentState = track(function CurrentState() {
-	useTick()
-
 	const editor = useEditor()
 
 	const path = editor.getPath()

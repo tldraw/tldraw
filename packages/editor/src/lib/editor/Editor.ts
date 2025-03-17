@@ -43,7 +43,6 @@ import {
 	TLInstance,
 	TLInstancePageState,
 	TLNoteShape,
-	TLPOINTER_ID,
 	TLPage,
 	TLPageId,
 	TLParentId,
@@ -150,6 +149,7 @@ import { EdgeScrollManager } from './managers/EdgeScrollManager'
 import { FocusManager } from './managers/FocusManager'
 import { FontManager } from './managers/FontManager'
 import { HistoryManager } from './managers/HistoryManager'
+import { InputManager } from './managers/InputManager'
 import { ScribbleManager } from './managers/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager'
@@ -160,12 +160,7 @@ import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
-import {
-	TLEventInfo,
-	TLPinchEventInfo,
-	TLPointerEventInfo,
-	TLWheelEventInfo,
-} from './types/event-types'
+import { TLEventInfo, TLPointerEventInfo } from './types/event-types'
 import { TLExternalAsset, TLExternalContent } from './types/external-content'
 import { TLHistoryBatchOptions } from './types/history-types'
 import {
@@ -823,7 +818,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	isDisposed = false
 
 	/** @internal */
-	private readonly _tickManager
+	readonly _tickManager
 
 	/**
 	 * A manager for the app's snapping feature.
@@ -1282,7 +1277,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}),
 					selectionCount: this.getSelectedShapes().length,
 					editingShape: editingShapeId ? this.getShape(editingShapeId) : undefined,
-					inputs: this.inputs,
+					inputs: this.inputs.toJson(),
 					pageState: this.getCurrentPageState(),
 					instanceState: this.getInstanceState(),
 					collaboratorCount: this.getCollaboratorsOnCurrentPage().length,
@@ -9077,118 +9072,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	inputs = {
-		/** The most recent pointer down's position in the current page space. */
-		originPagePoint: new Vec(),
-		/** The most recent pointer down's position in screen space. */
-		originScreenPoint: new Vec(),
-		/** The previous pointer position in the current page space. */
-		previousPagePoint: new Vec(),
-		/** The previous pointer position in screen space. */
-		previousScreenPoint: new Vec(),
-		/** The most recent pointer position in the current page space. */
-		currentPagePoint: new Vec(),
-		/** The most recent pointer position in screen space. */
-		currentScreenPoint: new Vec(),
-		/** A set containing the currently pressed keys. */
-		keys: new Set<string>(),
-		/** A set containing the currently pressed buttons. */
-		buttons: new Set<number>(),
-		/** Whether the input is from a pe. */
-		isPen: false,
-		/** Whether the shift key is currently pressed. */
-		shiftKey: false,
-		/** Whether the meta key is currently pressed. */
-		metaKey: false,
-		/** Whether the control or command key is currently pressed. */
-		ctrlKey: false,
-		/** Whether the alt or option key is currently pressed. */
-		altKey: false,
-		/** Whether the user is dragging. */
-		isDragging: false,
-		/** Whether the user is pointing. */
-		isPointing: false,
-		/** Whether the user is pinching. */
-		isPinching: false,
-		/** Whether the user is editing. */
-		isEditing: false,
-		/** Whether the user is panning. */
-		isPanning: false,
-		/** Whether the user is spacebar panning. */
-		isSpacebarPanning: false,
-		/** Velocity of mouse pointer, in pixels per millisecond */
-		pointerVelocity: new Vec(),
-	}
-
-	/**
-	 * Update the input points from a pointer, pinch, or wheel event.
-	 *
-	 * @param info - The event info.
-	 */
-	private _updateInputsFromEvent(
-		info: TLPointerEventInfo | TLPinchEventInfo | TLWheelEventInfo
-	): void {
-		const {
-			pointerVelocity,
-			previousScreenPoint,
-			previousPagePoint,
-			currentScreenPoint,
-			currentPagePoint,
-		} = this.inputs
-
-		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-		const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
-
-		const sx = info.point.x - screenBounds.x
-		const sy = info.point.y - screenBounds.y
-		const sz = info.point.z ?? 0.5
-
-		previousScreenPoint.setTo(currentScreenPoint)
-		previousPagePoint.setTo(currentPagePoint)
-
-		// The "screen bounds" is relative to the user's actual screen.
-		// The "screen point" is relative to the "screen bounds";
-		// it will be 0,0 when its actual screen position is equal
-		// to screenBounds.point. This is confusing!
-		currentScreenPoint.set(sx, sy)
-		const nx = sx / cz - cx
-		const ny = sy / cz - cy
-		if (isFinite(nx) && isFinite(ny)) {
-			currentPagePoint.set(nx, ny, sz)
-		}
-
-		this.inputs.isPen = info.type === 'pointer' && info.isPen
-
-		// Reset velocity on pointer down, or when a pinch starts or ends
-		if (info.name === 'pointer_down' || this.inputs.isPinching) {
-			pointerVelocity.set(0, 0)
-			this.inputs.originScreenPoint.setTo(currentScreenPoint)
-			this.inputs.originPagePoint.setTo(currentPagePoint)
-		}
-
-		// todo: We only have to do this if there are multiple users in the document
-		this.run(
-			() => {
-				this.store.put([
-					{
-						id: TLPOINTER_ID,
-						typeName: 'pointer',
-						x: currentPagePoint.x,
-						y: currentPagePoint.y,
-						lastActivityTimestamp:
-							// If our pointer moved only because we're following some other user, then don't
-							// update our last activity timestamp; otherwise, update it to the current timestamp.
-							info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.CAMERA_MOVE
-								? (this.store.unsafeGetWithoutCapture(TLPOINTER_ID)?.lastActivityTimestamp ??
-									this._tickManager.now)
-								: this._tickManager.now,
-						meta: {},
-					},
-				])
-			},
-			{ history: 'ignore' }
-		)
-	}
+	inputs = new InputManager(this)
 
 	/**
 	 * Dispatch a cancel event.
@@ -9812,7 +9696,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			case 'pinch': {
 				if (cameraOptions.isLocked) return
 				clearTimeout(this._longPressTimeout)
-				this._updateInputsFromEvent(info)
+				this.inputs.updateFromEvent(info)
 
 				switch (info.name) {
 					case 'pinch_start': {
@@ -9898,7 +9782,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			case 'wheel': {
 				if (cameraOptions.isLocked) return
 
-				this._updateInputsFromEvent(info)
+				this.inputs.updateFromEvent(info)
 
 				const { panSpeed, zoomSpeed, wheelBehavior } = cameraOptions
 
@@ -9962,7 +9846,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// Ignore pointer events while we're pinching
 				if (inputs.isPinching) return
 
-				this._updateInputsFromEvent(info)
+				this.inputs.updateFromEvent(info)
 				const { isPen } = info
 				const { isPenMode } = instanceState
 

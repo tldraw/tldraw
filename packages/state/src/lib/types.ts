@@ -11,7 +11,7 @@ export type RESET_VALUE = typeof RESET_VALUE
  *
  * There are two types of signal:
  *
- * - Atomic signals, created using {@link atom}. These are mutable references to values that can be changed using {@link Atom.set}.
+ * - Atomic signals, created using {@link (atom:1)}. These are mutable references to values that can be changed using {@link Atom.set}.
  * - Computed signals, created using {@link state#computed}. These are values that are computed from other signals. They are recomputed lazily if their dependencies change.
  *
  * @public

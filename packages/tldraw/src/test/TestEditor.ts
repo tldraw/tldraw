@@ -375,7 +375,10 @@ export class TestEditor extends Editor {
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
 			metaKey: this.inputs.metaKey,
-			accelKey: isAccelKey({ ...this.inputs, ...modifiers }),
+			accelKey: isAccelKey({
+				metaKey: this.inputs.metaKey,
+				ctrlKey: modifiers?.ctrlKey ?? this.inputs.ctrlKey,
+			}),
 			point: { x, y, z: null },
 			button: 0,
 			isPen: false,
