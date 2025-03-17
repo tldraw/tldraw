@@ -53,9 +53,7 @@ export function useLocalStore(
 				return asset.props.src
 			},
 			remove: async (assetIds) => {
-				for (const id of assetIds) {
-					await client.db.removeAsset(id)
-				}
+				await client.db.removeAssets(assetIds)
 			},
 			...rest.assets,
 		}

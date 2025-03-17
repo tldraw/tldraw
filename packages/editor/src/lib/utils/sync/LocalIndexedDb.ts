@@ -304,10 +304,12 @@ export class LocalIndexedDb {
 		})
 	}
 
-	async removeAsset(assetId: string) {
+	async removeAssets(assetId: string[]) {
 		await this.tx('readwrite', [Table.Assets], async (tx) => {
 			const assetsStore = tx.objectStore(Table.Assets)
-			await assetsStore.delete(assetId)
+			for (const id of assetId) {
+				await assetsStore.delete(id)
+			}
 		})
 	}
 }
