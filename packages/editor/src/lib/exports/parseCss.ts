@@ -111,6 +111,37 @@ export function parseCssValueUrls(value: string) {
 	}))
 }
 
+const currentColorProperties = new Set([
+	'border-block-end-color',
+	'border-block-start-color',
+	'border-bottom-color',
+	'border-inline-end-color',
+	'border-inline-start-color',
+	'border-left-color',
+	'border-right-color',
+	'border-top-color',
+	'caret-color',
+	'column-rule-color',
+	'outline-color',
+	'text-decoration',
+	'text-decoration-color',
+	'text-emphasis-color',
+])
+
+export function isPropertyCoveredByCurrentColor(
+	currentColor: string,
+	property: string,
+	value: string
+) {
+	if (currentColorProperties.has(property)) {
+		return (
+			value === 'currentColor' ||
+			value === currentColor ||
+			(property === 'text-decoration' && value === `none solid ${currentColor}`)
+		)
+	}
+}
+
 const inheritedProperties = new Set([
 	'border-collapse',
 	'border-spacing',
@@ -136,16 +167,18 @@ const inheritedProperties = new Set([
 	'orphans',
 	'overflow-wrap',
 	'quotes',
+	'stroke-linecap',
+	'stroke-linejoin',
 	'tab-size',
 	'text-align',
 	'text-align-last',
-	'text-decoration-color',
 	'text-indent',
 	'text-justify',
 	'text-shadow',
 	'text-transform',
 	'visibility',
 	'white-space',
+	'white-space-collapse',
 	'widows',
 	'word-break',
 	'word-spacing',

@@ -229,6 +229,7 @@ export function RichTextSVG({
 		verticalAlign === 'middle' ? 'center' : verticalAlign === 'start' ? 'flex-start' : 'flex-end'
 	const wrapperStyle = {
 		display: 'flex',
+		fontFamily: DefaultFontFamilies[font],
 		height: `100%`,
 		justifyContent,
 		alignItems,

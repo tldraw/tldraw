@@ -7,7 +7,12 @@ import {
 	getRenderedChildren,
 } from './domUtils'
 import { resourceToDataUrl } from './fetchCache'
-import { isPropertyInherited, parseCssValueUrls, shouldIncludeCssProperty } from './parseCss'
+import {
+	isPropertyCoveredByCurrentColor,
+	isPropertyInherited,
+	parseCssValueUrls,
+	shouldIncludeCssProperty,
+} from './parseCss'
 
 type Styles = { [K in string]?: string }
 type ReadonlyStyles = { readonly [K in string]?: string }
@@ -27,7 +32,7 @@ export class StyleEmbedder {
 	readRootElementStyles(rootElement: Element) {
 		// when reading a root, we always apply _all_ the styles, even if they match the defaults
 		this.readElementStyles(rootElement, {
-			shouldRespectDefaults: false,
+			shouldRespectDefaults: true,
 			shouldSkipInheritedParentStyles: false,
 		})
 
@@ -53,9 +58,14 @@ export class StyleEmbedder {
 			? getDefaultStylesForTagName(element.tagName.toLowerCase())
 			: NO_STYLES
 
-		const parentStyles = shouldSkipInheritedParentStyles
-			? (this.styles.get(element.parentElement as Element)?.self ?? NO_STYLES)
-			: NO_STYLES
+		let parentStyles = NO_STYLES
+		if (shouldSkipInheritedParentStyles) {
+			let el = element.parentElement
+			while (el) {
+				parentStyles = Object.assign({}, this.styles.get(el)?.self, parentStyles)
+				el = el.parentElement
+			}
+		}
 
 		const info: ElementStyleInfo = {
 			self: styleFromElement(element, { defaultStyles, parentStyles }),
@@ -230,6 +240,9 @@ function styleFromComputedStyleMap(
 
 		if (defaultStyles[property] === value) continue
 		if (parentStyles[property] === value && isPropertyInherited(property)) continue
+		if (isPropertyCoveredByCurrentColor(style.get('color')?.toString() || '', property, value))
+			continue
+		console.log(property)
 
 		styles[property] = value
 	}
@@ -249,6 +262,7 @@ function styleFromComputedStyle(
 
 		if (defaultStyles[property] === value) continue
 		if (parentStyles[property] === value && isPropertyInherited(property)) continue
+		if (isPropertyCoveredByCurrentColor(style.color, property, value)) continue
 
 		styles[property] = value
 	}
