@@ -1,12 +1,14 @@
 'use client'
 import { cn } from '@/utils/cn'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Button } from '../common/button'
 
 export function Embed(props: any) {
 	const [isExampleFocused, setIsExampleFocused] = useState(false)
+	const iframeRef = useRef<HTMLIFrameElement>(null)
 	function handleClick() {
 		setIsExampleFocused(true)
+		iframeRef.current?.focus()
 	}
 	return (
 		<div>
@@ -18,10 +20,11 @@ export function Embed(props: any) {
 					)}
 				>
 					<iframe
+						ref={iframeRef}
 						className="iframe"
 						src={props.src}
 						width="100%"
-						height={600}
+						height={550}
 						allow="autoplay; clipboard-read; clipboard-write"
 					/>
 					{!isExampleFocused && (
