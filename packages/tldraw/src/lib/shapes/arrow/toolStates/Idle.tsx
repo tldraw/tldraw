@@ -38,6 +38,6 @@ export class Idle extends StateNode {
 	}
 
 	override getSvgOverlay(): ReactNode {
-		return <TargetHandleOverlay />
+		return <TargetHandleOverlay arrow={null} />
 	}
 }

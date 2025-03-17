@@ -98,7 +98,7 @@ export function activeElementShouldCaptureKeys() {
 	const { activeElement } = document
 	return !!(
 		activeElement &&
-		(activeElement.getAttribute('contenteditable') ||
+		((activeElement as HTMLElement).isContentEditable ||
 			INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1)
 	)
 }

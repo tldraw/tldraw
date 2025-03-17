@@ -1,3 +1,4 @@
+import { assert } from '@tldraw/utils'
 import { ArraySet } from './ArraySet'
 import { HistoryBuffer } from './HistoryBuffer'
 import { maybeCaptureParent } from './capture'
@@ -6,14 +7,14 @@ import { advanceGlobalEpoch, atomDidChange, getGlobalEpoch } from './transaction
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
 
 /**
- * The options to configure an atom, passed into the [[atom]] function.
+ * The options to configure an atom, passed into the {@link atom} function.
  * @public
  */
 export interface AtomOptions<Value, Diff> {
 	/**
 	 * The maximum number of diffs to keep in the history buffer.
 	 *
-	 * If you don't need to compute diffs, or if you will supply diffs manually via [[Atom.set]], you can leave this as `undefined` and no history buffer will be created.
+	 * If you don't need to compute diffs, or if you will supply diffs manually via {@link Atom.set}, you can leave this as `undefined` and no history buffer will be created.
 	 *
 	 * If you expect the value to be part of an active effect subscription all the time, and to not change multiple times inside of a single transaction, you can set this to a relatively low number (e.g. 10).
 	 *
@@ -22,7 +23,7 @@ export interface AtomOptions<Value, Diff> {
 	 */
 	historyLength?: number
 	/**
-	 * A method used to compute a diff between the atom's old and new values. If provided, it will not be used unless you also specify [[AtomOptions.historyLength]].
+	 * A method used to compute a diff between the atom's old and new values. If provided, it will not be used unless you also specify {@link AtomOptions.historyLength}.
 	 */
 	computeDiff?: ComputeDiff<Value, Diff>
 	/**
@@ -36,9 +37,9 @@ export interface AtomOptions<Value, Diff> {
 }
 
 /**
- * An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].
+ * An Atom is a signal that can be updated directly by calling {@link Atom.set} or {@link Atom.update}.
  *
- * Atoms are created using the [[atom]] function.
+ * Atoms are created using the {@link atom} function.
  *
  * @example
  * ```ts
@@ -54,7 +55,7 @@ export interface Atom<Value, Diff = unknown> extends Signal<Value, Diff> {
 	 * Sets the value of this atom to the given value. If the value is the same as the current value, this is a no-op.
 	 *
 	 * @param value - The new value to set.
-	 * @param diff - The diff to use for the update. If not provided, the diff will be computed using [[AtomOptions.computeDiff]].
+	 * @param diff - The diff to use for the update. If not provided, the diff will be computed using {@link AtomOptions.computeDiff}.
 	 */
 	set(value: Value, diff?: Diff): Value
 	/**
@@ -156,9 +157,13 @@ export const _Atom = singleton('Atom', () => __Atom__)
 export type _Atom = InstanceType<typeof _Atom>
 
 /**
- * Creates a new [[Atom]].
+ * Creates a new {@link Atom}.
  *
- * An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].
+ * An Atom is a signal that can be updated directly by calling {@link Atom.set} or {@link Atom.update}.
+ *
+ * @param name - A name for the signal. This is used for debugging and profiling purposes, it does not need to be unique.
+ * @param initialValue - The initial value of the signal.
+ * @param options - The options to configure the atom. See {@link AtomOptions}.
  *
  * @example
  * ```ts
@@ -174,24 +179,51 @@ export type _Atom = InstanceType<typeof _Atom>
  * @public
  */
 export function atom<Value, Diff = unknown>(
-	/**
-	 * A name for the signal. This is used for debugging and profiling purposes, it does not need to be unique.
-	 */
 	name: string,
-	/**
-	 * The initial value of the signal.
-	 */
 	initialValue: Value,
-	/**
-	 * The options to configure the atom. See [[AtomOptions]].
-	 */
 	options?: AtomOptions<Value, Diff>
-): Atom<Value, Diff> {
-	return new _Atom(name, initialValue, options)
+): Atom<Value, Diff>
+/**
+ * Decorate an accessor property on a class to make it an backed by an {@link Atom}.
+ * @example
+ * ```ts
+ * class MyClass {
+ *     @atom accessor property = 'value'
+ * }
+ * ```
+ * @public
+ */
+export function atom<This, Value>(
+	target: ClassAccessorDecoratorTarget<This, Value>,
+	ctx: ClassAccessorDecoratorContext<This, Value>
+): ClassAccessorDecoratorResult<This, Value>
+export function atom(
+	...args:
+		| [name: string, initialValue: any, options?: AtomOptions<any, any>]
+		| [target: ClassAccessorDecoratorTarget<any, any>, ctx: ClassAccessorDecoratorContext<any, any>]
+): any {
+	if (typeof args[0] === 'string') {
+		return new _Atom(args[0], args[1], args[2])
+	}
+
+	const target = args[0]
+	const ctx = args[1]
+	assert(ctx.kind === 'accessor')
+	return {
+		get() {
+			return (target.get.call(this) as Atom<any>).get()
+		},
+		set(newValue: any) {
+			;(target.get.call(this) as Atom<any>).set(newValue)
+		},
+		init(initialValue: any) {
+			return atom(String(ctx.name), initialValue) as any
+		},
+	}
 }
 
 /**
- * Returns true if the given value is an [[Atom]].
+ * Returns true if the given value is an {@link Atom}.
  * @public
  */
 export function isAtom(value: unknown): value is Atom<unknown> {

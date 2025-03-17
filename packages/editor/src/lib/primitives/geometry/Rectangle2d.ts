@@ -1,7 +1,6 @@
 import { Box } from '../Box'
 import { Vec } from '../Vec'
-import { Geometry2dOptions } from './Geometry2d'
-import { Polygon2d } from './Polygon2d'
+import { Geometry2dOptions, Polygon2d } from './Geometry2d'
 
 /** @public */
 export class Rectangle2d extends Polygon2d {

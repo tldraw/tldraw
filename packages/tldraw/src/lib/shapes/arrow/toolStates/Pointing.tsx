@@ -80,7 +80,7 @@ export class Pointing extends StateNode {
 	}
 
 	override getSvgOverlay(): ReactNode {
-		return <TargetHandleOverlay />
+		return <TargetHandleOverlay arrow={this.shape ?? null} />
 	}
 
 	cancel() {

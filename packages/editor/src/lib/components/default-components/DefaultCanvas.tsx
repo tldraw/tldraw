@@ -388,7 +388,7 @@ function ToolOverlaysWrapper() {
 		() => {
 			const result = activeStateNode.get().getSvgOverlay?.()
 			if (!result) return null
-			return <svg className="tl-overlays__item tl-tool-overlay">{result}</svg>
+			return <svg className="tl-overlays__item tl-user-tool-overlay">{result}</svg>
 		},
 		[activeStateNode]
 	)

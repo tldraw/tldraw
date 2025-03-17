@@ -8,6 +8,7 @@ import {
 	TLArrowShape,
 	TLGeoShape,
 	TLTextShape,
+	toRichText,
 } from '@tldraw/editor'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { createOrUpdateArrowBinding } from '../shared'
@@ -95,7 +96,11 @@ export function createDebugElbowArrowScene(editor: Editor) {
 					x: 5,
 					y: -18,
 					parentId: wrapperId,
-					props: { text: `x: ${xLabel}; y: ${yLabel}`, size: 's', scale: 0.6 },
+					props: {
+						richText: toRichText(`x: ${xLabel}; y: ${yLabel}`),
+						size: 's',
+						scale: 0.6,
+					},
 				})
 
 				frameY += frameHeight + spacing

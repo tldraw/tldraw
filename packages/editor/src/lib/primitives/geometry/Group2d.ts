@@ -1,5 +1,6 @@
 import { Box } from '../Box'
-import { Vec } from '../Vec'
+import { Mat } from '../Mat'
+import { Vec, VecLike } from '../Vec'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
@@ -65,6 +66,23 @@ export class Group2d extends Geometry2d {
 
 	override hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean {
 		return !!this.children.filter((c) => !c.isLabel).find((c) => c.hitTestLineSegment(A, B, zoom))
+	}
+
+	override *intersectLineSegment(A: VecLike, B: VecLike, includeLabels = false) {
+		if (!includeLabels && this.isLabel) return
+
+		for (const child of this.children) {
+			yield* child.intersectLineSegment(A, B, includeLabels)
+		}
+	}
+
+	override transform(transform: Mat): Geometry2d {
+		return new Group2d({
+			children: this.children.map((c) => c.transform(transform)),
+			isLabel: this.isLabel,
+			debugColor: this.debugColor,
+			ignore: this.ignore,
+		})
 	}
 
 	getArea() {

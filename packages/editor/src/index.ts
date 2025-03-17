@@ -26,6 +26,14 @@ export {
 	useValue,
 } from '@tldraw/state-react'
 export { resizeScaled } from './lib/editor/shapes/shared/resizeScaled'
+export {
+	getFontsFromRichText,
+	type RichTextFontVisitor,
+	type RichTextFontVisitorState,
+	type TLTextOptions,
+	type TiptapEditor,
+	type TiptapNode,
+} from './lib/utils/richText'
 export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalIndexedDb'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
@@ -163,6 +171,11 @@ export {
 } from './lib/editor/bindings/BindingUtil'
 export { ClickManager, type TLClickState } from './lib/editor/managers/ClickManager'
 export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager'
+export {
+	FontManager,
+	type TLFontFace,
+	type TLFontFaceSource,
+} from './lib/editor/managers/FontManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager'
 export { ScribbleManager, type ScribbleItem } from './lib/editor/managers/ScribbleManager'
 export {
@@ -299,6 +312,7 @@ export { useIsCropping } from './lib/hooks/useIsCropping'
 export { useIsDarkMode } from './lib/hooks/useIsDarkMode'
 export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
+export { usePassThroughMouseOverEvents } from './lib/hooks/usePassThroughMouseOverEvents'
 export { usePassThroughWheelEvents } from './lib/hooks/usePassThroughWheelEvents'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
@@ -313,6 +327,7 @@ export {
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
+export { useViewportHeight } from './lib/hooks/useViewportHeight'
 export {
 	LicenseManager,
 	type InvalidLicenseKeyResult,
@@ -340,13 +355,16 @@ export { Arc2d } from './lib/primitives/geometry/Arc2d'
 export { Circle2d } from './lib/primitives/geometry/Circle2d'
 export { CubicBezier2d } from './lib/primitives/geometry/CubicBezier2d'
 export { CubicSpline2d } from './lib/primitives/geometry/CubicSpline2d'
-export { Edge2d } from './lib/primitives/geometry/Edge2d'
 export { Ellipse2d } from './lib/primitives/geometry/Ellipse2d'
-export { Geometry2d, type Geometry2dOptions } from './lib/primitives/geometry/Geometry2d'
+export {
+	Edge2d,
+	Geometry2d,
+	Polygon2d,
+	Polyline2d,
+	type Geometry2dOptions,
+} from './lib/primitives/geometry/Geometry2d'
 export { Group2d } from './lib/primitives/geometry/Group2d'
 export { Point2d } from './lib/primitives/geometry/Point2d'
-export { Polygon2d } from './lib/primitives/geometry/Polygon2d'
-export { Polyline2d } from './lib/primitives/geometry/Polyline2d'
 export { Rectangle2d } from './lib/primitives/geometry/Rectangle2d'
 export { Stadium2d } from './lib/primitives/geometry/Stadium2d'
 export {

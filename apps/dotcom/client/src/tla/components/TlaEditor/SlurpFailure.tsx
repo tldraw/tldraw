@@ -62,7 +62,7 @@ export function SlurpFailure({
 						defaultMessage="Still having trouble? {GetHelpLink}"
 						values={{
 							GetHelpLink: (
-								<ExternalLink to="https://discord.gg/rhsyWMUJxd">
+								<ExternalLink to="https://discord.tldraw.com/?utm_source=dotcom&utm_medium=organic&utm_campaign=slurp-failure">
 									<F defaultMessage="Get help on Discord" />
 								</ExternalLink>
 							),

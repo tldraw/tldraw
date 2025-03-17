@@ -5,6 +5,7 @@ import { toDomPrecision } from '../../primitives/utils'
 
 /** @public */
 export interface TLBrushProps {
+	userId?: string
 	brush: BoxModel
 	color?: string
 	opacity?: number

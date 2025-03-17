@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { EMPTY_ARRAY } from '@tldraw/state'
 import { LegacyMigrations, MigrationSequence } from '@tldraw/store'
 import {
 	RecordProps,
@@ -14,6 +15,7 @@ import { Box, SelectionHandle } from '../../primitives/Box'
 import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
+import { TLFontFace } from '../managers/FontManager'
 import { BoundsSnapGeometry } from '../managers/SnapManager/BoundsSnaps'
 import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
 import { SvgExportContext } from '../types/SvgExportContext'
@@ -169,6 +171,17 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	abstract indicator(shape: Shape): any
+
+	/**
+	 * Get the font faces that should be rendered in the document in order for this shape to render
+	 * correctly.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	getFontFaces(shape: Shape): TLFontFace[] {
+		return EMPTY_ARRAY
+	}
 
 	/**
 	 * Whether the shape can be snapped to by another shape.

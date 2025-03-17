@@ -45,7 +45,7 @@ const socialLinks = [
 	{
 		caption: 'Discord',
 		icon: 'discord' as IconName,
-		href: 'https://discord.com/invite/SBBEVCA4PG',
+		href: 'https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink',
 	},
 	{
 		caption: 'GitHub',

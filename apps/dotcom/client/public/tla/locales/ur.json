@@ -283,7 +283,7 @@
     "translation": "پن کھول دیں۔"
   },
   "bbbcefd7ce": {
-    "translation": "{total, plural, one {tldr فائل اپ لوڈ ہو رہی ہے…} other {tldr فائلوں میں سے {uploaded} اپ لوڈ ہو رہی ہے…}}"
+    "translation": "{total, plural, one {tldr فائل اپ لوڈ ہو رہی ہے…} other {tldr {total} فائلوں میں سے {uploaded} اپ لوڈ ہو رہی ہے…}}"
   },
   "bc88b0e89e": {
     "translation": "اشتراک کردہ بذریعہ {ownerName}"

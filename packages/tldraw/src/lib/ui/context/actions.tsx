@@ -17,7 +17,7 @@ import {
 	compact,
 	createShapeId,
 	openWindow,
-	useEditor,
+	useMaybeEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
@@ -76,7 +76,7 @@ function getExportName(editor: Editor, defaultName: string) {
 
 /** @internal */
 export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
-	const editor = useEditor()
+	const _editor = useMaybeEditor()
 	const showCollaborationUi = useShowCollaborationUi()
 	const helpers = useDefaultHelpers()
 	const trackEvent = useUiEvents()
@@ -85,6 +85,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 	// should this be a useMemo? looks like it doesn't actually deref any reactive values
 	const actions = React.useMemo<TLUiActionsContextType>(() => {
+		const editor = _editor as Editor
+		if (!editor) return {}
 		function mustGoBackToSelectToolFirst() {
 			if (!editor.isIn('select')) {
 				editor.complete()
@@ -1439,7 +1441,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		}
 
 		return actions
-	}, [helpers, editor, trackEvent, overrides, defaultDocumentName, showCollaborationUi])
+	}, [helpers, _editor, trackEvent, overrides, defaultDocumentName, showCollaborationUi])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
 }

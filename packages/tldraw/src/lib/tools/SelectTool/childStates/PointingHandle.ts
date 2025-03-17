@@ -1,13 +1,5 @@
-import {
-	Editor,
-	StateNode,
-	TLArrowShape,
-	TLHandle,
-	TLNoteShape,
-	TLPointerEventInfo,
-	Vec,
-} from '@tldraw/editor'
-import { getArrowBindings } from '../../../shapes/arrow/shared'
+import { Editor, StateNode, TLHandle, TLNoteShape, TLPointerEventInfo, Vec } from '@tldraw/editor'
+import { ReactNode } from 'react'
 import {
 	NOTE_CENTER_OFFSET,
 	getNoteAdjacentPositions,
@@ -28,19 +20,19 @@ export class PointingHandle extends StateNode {
 		this.didCtrlOnEnter = info.accelKey
 
 		const { shape } = info
-		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
-			const initialBinding = getArrowBindings(this.editor, shape)[info.handle.id as 'start' | 'end']
+		// if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+		// 	const initialBinding = getArrowBindings(this.editor, shape)[info.handle.id as 'start' | 'end']
 
-			if (initialBinding) {
-				this.editor.setHintingShapes([initialBinding.toId])
-			}
-		}
+		// 	if (initialBinding) {
+		// 		this.editor.setHintingShapes([initialBinding.toId])
+		// 	}
+		// }
 
 		this.editor.setCursor({ type: 'grabbing', rotation: 0 })
 	}
 
 	override onExit() {
-		this.editor.setHintingShapes([])
+		// this.editor.setHintingShapes([])
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
@@ -120,6 +112,23 @@ export class PointingHandle extends StateNode {
 
 	override onInterrupt() {
 		this.cancel()
+	}
+
+	override getSvgOverlay(): ReactNode {
+		const shape = this.editor.getShape(this.info.shape.id)
+		if (!shape) return null
+		const util = this.editor.getShapeUtil(shape)
+		const handles = util.getHandles?.(shape)
+		if (!handles) return null
+		const handle = handles.find((h) => h.id === this.info.handle.id)
+		if (!handle) return null
+
+		return util.getHandleDragSvgOverlay?.(shape, {
+			handle,
+			isPrecise: false,
+			isCreatingShape: false,
+			data: {},
+		})
 	}
 
 	private cancel() {

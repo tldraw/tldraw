@@ -24,6 +24,7 @@ import {
 	fetch,
 	getHashForBuffer,
 	getHashForString,
+	toRichText,
 } from '@tldraw/editor'
 import { EmbedDefinition } from './defaultEmbedDefinitions'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
@@ -32,6 +33,7 @@ import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { containBoxSize } from './utils/assets/assets'
 import { putExcalidrawContent } from './utils/excalidraw/putExcalidrawContent'
+import { renderRichTextFromHTML } from './utils/text/richText'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
 /**
@@ -411,6 +413,7 @@ export async function defaultHandleExternalFileContent(
 					severity: 'error',
 				})
 				console.error(error)
+				editor.deleteAssets([assetAndFile.asset.id])
 				return
 			}
 		})
@@ -422,7 +425,7 @@ export async function defaultHandleExternalFileContent(
 /** @public */
 export async function defaultHandleExternalTextContent(
 	editor: Editor,
-	{ point, text }: { point?: VecLike; text: string }
+	{ point, text, html }: { point?: VecLike; text: string; html?: string }
 ) {
 	const p =
 		point ??
@@ -432,23 +435,27 @@ export async function defaultHandleExternalTextContent(
 
 	const defaultProps = editor.getShapeUtil<TLTextShape>('text').getDefaultProps()
 
-	const textToPaste = cleanupText(text)
+	const cleanedUpPlaintext = cleanupText(text)
+	const richTextToPaste = html
+		? renderRichTextFromHTML(editor, html)
+		: toRichText(cleanedUpPlaintext)
 
-	// If we're pasting into a text shape, update the text.
-	const onlySelectedShape = editor.getOnlySelectedShape()
-	if (onlySelectedShape && 'text' in onlySelectedShape.props) {
-		editor.updateShapes([
-			{
-				id: onlySelectedShape.id,
-				type: onlySelectedShape.type,
-				props: {
-					text: textToPaste,
-				},
-			},
-		])
+	// todo: discuss
+	// If we have one shape with rich text selected, update the shape's text.
+	// const onlySelectedShape = editor.getOnlySelectedShape()
+	// if (onlySelectedShape && 'richText' in onlySelectedShape.props) {
+	// 	editor.updateShapes([
+	// 		{
+	// 			id: onlySelectedShape.id,
+	// 			type: onlySelectedShape.type,
+	// 			props: {
+	// 				richText: richTextToPaste,
+	// 			},
+	// 		},
+	// 	])
 
-		return
-	}
+	// 	return
+	// }
 
 	// Measure the text with default values
 	let w: number
@@ -456,16 +463,19 @@ export async function defaultHandleExternalTextContent(
 	let autoSize: boolean
 	let align = 'middle' as TLTextShapeProps['textAlign']
 
-	const isMultiLine = textToPaste.split('\n').length > 1
+	const htmlToMeasure = html ?? cleanedUpPlaintext.replace(/\n/g, '<br>')
+	const isMultiLine = html
+		? richTextToPaste.content.length > 1
+		: cleanedUpPlaintext.split('\n').length > 1
 
 	// check whether the text contains the most common characters in RTL languages
-	const isRtl = isRightToLeftLanguage(textToPaste)
+	const isRtl = isRightToLeftLanguage(cleanedUpPlaintext)
 
 	if (isMultiLine) {
 		align = isMultiLine ? (isRtl ? 'end' : 'start') : 'middle'
 	}
 
-	const rawSize = editor.textMeasure.measureText(textToPaste, {
+	const rawSize = editor.textMeasure.measureHtml(htmlToMeasure, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[defaultProps.font],
 		fontSize: FONT_SIZES[defaultProps.size],
@@ -478,7 +488,7 @@ export async function defaultHandleExternalTextContent(
 	)
 
 	if (rawSize.w > minWidth) {
-		const shrunkSize = editor.textMeasure.measureText(textToPaste, {
+		const shrunkSize = editor.textMeasure.measureHtml(htmlToMeasure, {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[defaultProps.font],
 			fontSize: FONT_SIZES[defaultProps.size],
@@ -506,7 +516,7 @@ export async function defaultHandleExternalTextContent(
 			x: p.x - w / 2,
 			y: p.y - h / 2,
 			props: {
-				text: textToPaste,
+				richText: richTextToPaste,
 				// if the text has more than one line, align it to the left
 				textAlign: align,
 				autoSize,

@@ -14,14 +14,14 @@ const searchClient = algoliasearch(
 
 export function Search({ type, onClose }: { type: SearchIndexName; onClose(): void }) {
 	return (
-		<InstantSearch indexName={getSearchIndexName(type)} searchClient={searchClient}>
+		<InstantSearch indexName={getSearchIndexName(type)} searchClient={searchClient} insights={true}>
 			<InstantSearchInner onClose={onClose} />
 		</InstantSearch>
 	)
 }
 
 function InstantSearchInner({ onClose }: { onClose(): void }) {
-	const { items } = useHits<SearchEntry>()
+	const { items, sendEvent } = useHits<SearchEntry>()
 	const { refine } = useSearchBox()
 	const router = useRouter()
 
@@ -37,6 +37,7 @@ function InstantSearchInner({ onClose }: { onClose(): void }) {
 			onInputChange={handleInputChange}
 			onChange={handleChange}
 			onClose={onClose}
+			sendEvent={sendEvent}
 		/>
 	)
 }

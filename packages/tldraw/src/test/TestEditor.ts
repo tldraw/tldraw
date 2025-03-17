@@ -38,6 +38,7 @@ import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { registerDefaultSideEffects } from '../lib/defaultSideEffects'
 import { defaultTools } from '../lib/defaultTools'
+import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
 import { shapesFromJsx } from './test-jsx'
 
 jest.useFakeTimers()
@@ -101,6 +102,12 @@ export class TestEditor extends Editor {
 			}),
 			getContainer: () => elm,
 			initialState: 'select',
+			textOptions: {
+				addFontsFromNode: defaultAddFontsFromNode,
+				tipTapConfig: {
+					extensions: tipTapDefaultExtensions,
+				},
+			},
 		})
 		this.elm = elm
 		this.bounds = bounds
@@ -117,6 +124,7 @@ export class TestEditor extends Editor {
 				fontSize: number
 				lineHeight: number
 				maxWidth: null | number
+				padding: string
 			}
 		): BoxModel & { scrollWidth: number } => {
 			const breaks = textToMeasure.split('\n')
@@ -135,6 +143,25 @@ export class TestEditor extends Editor {
 					opts.fontSize,
 				scrollWidth: opts.maxWidth === null ? w : Math.max(w, opts.maxWidth),
 			}
+		}
+
+		this.textMeasure.measureHtml = (
+			html: string,
+			opts: {
+				fontStyle: string
+				fontWeight: string
+				fontFamily: string
+				fontSize: number
+				lineHeight: number
+				maxWidth: null | number
+				padding: string
+			}
+		): BoxModel & { scrollWidth: number } => {
+			const textToMeasure = html
+				.split('</p><p dir="auto">')
+				.join('\n')
+				.replace(/<[^>]+>/g, '')
+			return this.textMeasure.measureText(textToMeasure, opts)
 		}
 
 		this.textMeasure.measureTextSpans = (textToMeasure, opts) => {
@@ -348,7 +375,10 @@ export class TestEditor extends Editor {
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
 			metaKey: this.inputs.metaKey,
-			accelKey: isAccelKey({ ...this.inputs, ...modifiers }),
+			accelKey: isAccelKey({
+				metaKey: this.inputs.metaKey,
+				ctrlKey: modifiers?.ctrlKey ?? this.inputs.ctrlKey,
+			}),
 			point: { x, y, z: null },
 			button: 0,
 			isPen: false,

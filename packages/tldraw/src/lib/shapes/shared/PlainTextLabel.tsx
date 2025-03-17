@@ -6,14 +6,14 @@ import {
 	TLDefaultVerticalAlignStyle,
 	TLShapeId,
 } from '@tldraw/editor'
-import React, { useEffect, useState } from 'react'
-import { TextArea } from '../text/TextArea'
+import React from 'react'
+import { PlainTextArea } from '../text/PlainTextArea'
 import { TextHelpers } from './TextHelpers'
 import { isLegacyAlign } from './legacyProps'
-import { useEditableText } from './useEditableText'
+import { useEditablePlainText } from './useEditablePlainText'
 
 /** @public */
-export interface TextLabelProps {
+export interface PlainTextLabelProps {
 	shapeId: TLShapeId
 	type: string
 	font: TLDefaultFontStyle
@@ -23,12 +23,11 @@ export interface TextLabelProps {
 	align: TLDefaultHorizontalAlignStyle
 	verticalAlign: TLDefaultVerticalAlignStyle
 	wrap?: boolean
-	text: string
+	text?: string
 	labelColor: string
 	bounds?: Box
-	isNote?: boolean
 	isSelected: boolean
-	onKeyDown?(e: React.KeyboardEvent<HTMLTextAreaElement>): void
+	onKeyDown?(e: KeyboardEvent): void
 	classNamePrefix?: string
 	style?: React.CSSProperties
 	textWidth?: number
@@ -36,11 +35,17 @@ export interface TextLabelProps {
 	padding?: number
 }
 
-/** @public @react */
-export const TextLabel = React.memo(function TextLabel({
-	shapeId: shapeId,
+/**
+ * Renders a text label that can be used inside of shapes.
+ * The component has the ability to be edited in place and furthermore
+ * supports rich text editing.
+ *
+ * @public @react
+ */
+export const PlainTextLabel = React.memo(function PlainTextLabel({
+	shapeId,
 	type,
-	text,
+	text: plaintext,
 	labelColor,
 	font,
 	fontSize,
@@ -55,21 +60,12 @@ export const TextLabel = React.memo(function TextLabel({
 	style,
 	textWidth,
 	textHeight,
-}: TextLabelProps) {
-	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } = useEditableText(
-		shapeId,
-		type,
-		text
-	)
+}: PlainTextLabelProps) {
+	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } =
+		useEditablePlainText(shapeId, type, plaintext)
 
-	const [initialText, setInitialText] = useState(text)
-
-	useEffect(() => {
-		if (!isEditing) setInitialText(text)
-	}, [isEditing, text])
-
-	const finalText = TextHelpers.normalizeTextForDom(text)
-	const hasText = finalText.length > 0
+	const finalPlainText = TextHelpers.normalizeTextForDom(plaintext || '')
+	const hasText = finalPlainText.length > 0
 
 	const legacyAlign = isLegacyAlign(align)
 
@@ -81,7 +77,7 @@ export const TextLabel = React.memo(function TextLabel({
 	const cssPrefix = classNamePrefix || 'tl-text'
 	return (
 		<div
-			className={`${cssPrefix}-label tl-text-wrapper`}
+			className={`${cssPrefix}-label tl-text-wrapper tl-plain-text-wrapper`}
 			data-font={font}
 			data-align={align}
 			data-hastext={!isEmpty}
@@ -109,20 +105,19 @@ export const TextLabel = React.memo(function TextLabel({
 				}}
 			>
 				<div className={`${cssPrefix} tl-text tl-text-content`} dir="auto">
-					{finalText.split('\n').map((lineOfText, index) => (
+					{finalPlainText.split('\n').map((lineOfText, index) => (
 						<div key={index} dir="auto">
 							{lineOfText}
 						</div>
 					))}
 				</div>
 				{(isEditingAnything || isSelected) && (
-					<TextArea
-						ref={rInput}
-						// We need to add the initial value as the key here because we need this component to
-						// 'reset' when this state changes and grab the latest defaultValue.
-						key={initialText}
-						text={text}
+					<PlainTextArea
+						// Fudge the ref type because we're using forwardRef and it's not typed correctly.
+						ref={rInput as any}
+						text={plaintext}
 						isEditing={isEditing}
+						shapeId={shapeId}
 						{...editableTextRest}
 						handleKeyDown={handleKeyDownCustom ?? editableTextRest.handleKeyDown}
 					/>
@@ -131,3 +126,9 @@ export const TextLabel = React.memo(function TextLabel({
 		</div>
 	)
 })
+
+/**
+ * @deprecated Use `PlainTextLabel` instead.
+ * @public
+ */
+export const TextLabel = PlainTextLabel

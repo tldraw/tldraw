@@ -12,7 +12,7 @@ import {
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
 import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { Signal, computed, react, transact, uniqueId } from 'tldraw'
+import { Signal, computed, react, sleep, transact, uniqueId } from 'tldraw'
 import { TLAppUiContextType } from '../utils/app-ui-events'
 
 export class Zero {
@@ -79,6 +79,14 @@ export class Zero {
 				}
 			}
 		})
+	}
+
+	async __e2e__waitForMutationResolution() {
+		let safety = 0
+		while (this.store.getOptimisticUpdates().length && safety++ < 100) {
+			await sleep(50)
+		}
+		// console.log('Mutation resolved', JSON.stringify(this.store.getOptimisticUpdates()))
 	}
 
 	dispose() {
@@ -179,14 +187,7 @@ export class Zero {
 				if (store?.files.find((f) => f.id === data.id)) {
 					throw new Error('file already exists')
 				}
-				this.makeOptimistic([
-					{ table: 'file', event: 'insert', row: data },
-					{
-						table: 'file_state',
-						event: 'insert',
-						row: { fileId: data.id, userId: store.user.id, firstVisitAt: Date.now() } as any,
-					},
-				])
+				this.makeOptimistic([{ table: 'file', event: 'insert', row: data }])
 			},
 			update: (data: TlaFilePartial) => {
 				const existing = this.store.getFullData()?.files.find((f) => f.id === data.id)

@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/utils",
 	"description": "A tiny little drawing app (private utilities).",
-	"version": "3.8.0",
+	"version": "3.10.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"

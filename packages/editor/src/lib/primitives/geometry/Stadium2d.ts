@@ -2,8 +2,7 @@ import { Box } from '../Box'
 import { Vec } from '../Vec'
 import { PI } from '../utils'
 import { Arc2d } from './Arc2d'
-import { Edge2d } from './Edge2d'
-import { Geometry2d, Geometry2dOptions } from './Geometry2d'
+import { Edge2d, Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class Stadium2d extends Geometry2d {

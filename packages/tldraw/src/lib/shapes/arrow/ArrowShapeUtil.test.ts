@@ -332,7 +332,9 @@ describe('Arrow labels', () => {
 		// Create an arrow with a label
 		editor.setCurrentTool('arrow').pointerDown(10, 10).pointerMove(100, 100).pointerUp()
 		const arrowId = editor.getOnlySelectedShape()!.id
-		editor.updateShapes([{ id: arrowId, type: 'arrow', props: { text: 'Test Label' } }])
+		editor.updateShapes<TLArrowShape>([
+			{ id: arrowId, type: 'arrow', props: { text: 'Test Label' } },
+		])
 	})
 
 	it('should create an arrow with a label', () => {
@@ -346,7 +348,9 @@ describe('Arrow labels', () => {
 
 	it('should update the label of an arrow', () => {
 		const arrowId = editor.getOnlySelectedShape()!.id
-		editor.updateShapes([{ id: arrowId, type: 'arrow', props: { text: 'New Label' } }])
+		editor.updateShapes<TLArrowShape>([
+			{ id: arrowId, type: 'arrow', props: { text: 'New Label' } },
+		])
 		expect(arrow(arrowId)).toMatchObject({
 			props: {
 				text: 'New Label',

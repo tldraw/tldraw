@@ -622,11 +622,11 @@ export class Vec {
  * A {@link Vec} backed by atoms. When the atom changes, anything reading its values will re-evaluate.
  */
 export class AtomVec extends Vec {
-	constructor(x = 0, y = 0, z = 1) {
+	constructor(name: string, x = 0, y = 0, z = 1) {
 		super(x, y, z)
-		this._x = atom('x', x)
-		this._y = atom('y', y)
-		this._z = atom('z', z)
+		this._x = atom(`${name}.x`, x)
+		this._y = atom(`${name}.y`, y)
+		this._z = atom(`${name}.z`, z)
 
 		Object.defineProperties(this, {
 			x: {

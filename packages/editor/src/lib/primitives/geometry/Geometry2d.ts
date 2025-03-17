@@ -1,5 +1,11 @@
 import { Box } from '../Box'
-import { Vec } from '../Vec'
+import { Mat } from '../Mat'
+import { Vec, VecLike } from '../Vec'
+import {
+	intersectLineSegmentPolygon,
+	intersectLineSegmentPolyline,
+	linesIntersect,
+} from '../intersect'
 import { pointInPolygon } from '../utils'
 
 /** @public */
@@ -77,6 +83,16 @@ export abstract class Geometry2d {
 		return this.distanceToLineSegment(A, B) <= distance
 	}
 
+	*intersectLineSegment(A: VecLike, B: VecLike, includeLabels = false) {
+		if (!includeLabels && this.isLabel) return
+
+		const intersections = this.isClosed
+			? intersectLineSegmentPolygon(A, B, this.vertices)
+			: intersectLineSegmentPolyline(A, B, this.vertices)
+
+		if (intersections) yield* intersections
+	}
+
 	nearestPointOnLineSegment(A: Vec, B: Vec): Vec {
 		const { vertices } = this
 		let nearest: Vec | undefined
@@ -103,6 +119,27 @@ export abstract class Geometry2d {
 			point.x > bounds.maxX + margin ||
 			point.y > bounds.maxY + margin
 		)
+	}
+
+	transform(transform: Mat): Geometry2d {
+		throw new Error('Not implemented')
+		// const vertices = transform.applyToPoints(this.vertices)
+		// if (this.isClosed) {
+		// 	return new Polygon2d({
+		// 		points: vertices,
+		// 		isFilled: this.isFilled,
+		// 		isLabel: this.isLabel,
+		// 		debugColor: this.debugColor,
+		// 		ignore: this.ignore,
+		// 	})
+		// }
+
+		// return new Polyline2d({
+		// 	points: vertices,
+		// 	isLabel: this.isLabel,
+		// 	debugColor: this.debugColor,
+		// 	ignore: this.ignore,
+		// })
 	}
 
 	private _vertices: Vec[] | undefined
@@ -203,4 +240,153 @@ export abstract class Geometry2d {
 	}
 
 	abstract getSvgPathData(first: boolean): string
+}
+
+// =================================================================================================
+// Because Geometry2d.transform depends on Polygon2d and Polyline2d (which in turn depend on
+// Edge2d), we need to define them here instead of in their own files. This prevents a circular
+// import error.
+// =================================================================================================
+
+/** @public */
+export class Edge2d extends Geometry2d {
+	start: Vec
+	end: Vec
+	d: Vec
+	u: Vec
+	ul: number
+
+	constructor(config: { start: Vec; end: Vec }) {
+		super({ ...config, isClosed: false, isFilled: false })
+		const { start, end } = config
+
+		this.start = start
+		this.end = end
+
+		this.d = start.clone().sub(end) // the delta from start to end
+		this.u = this.d.clone().uni() // the unit vector of the edge
+		this.ul = this.u.len() // the length of the unit vector
+	}
+
+	override getLength() {
+		return this.d.len()
+	}
+
+	midPoint(): Vec {
+		return this.start.lrp(this.end, 0.5)
+	}
+
+	override getVertices(): Vec[] {
+		return [this.start, this.end]
+	}
+
+	override nearestPoint(point: Vec): Vec {
+		const { start, end, d, u, ul: l } = this
+		if (d.len() === 0) return start // start and end are the same
+		if (l === 0) return start // no length in the unit vector
+		const k = Vec.Sub(point, start).dpr(u) / l
+		const cx = start.x + u.x * k
+		if (cx < Math.min(start.x, end.x)) return start.x < end.x ? start : end
+		if (cx > Math.max(start.x, end.x)) return start.x > end.x ? start : end
+		const cy = start.y + u.y * k
+		if (cy < Math.min(start.y, end.y)) return start.y < end.y ? start : end
+		if (cy > Math.max(start.y, end.y)) return start.y > end.y ? start : end
+		return new Vec(cx, cy)
+	}
+
+	override hitTestLineSegment(A: Vec, B: Vec, distance = 0): boolean {
+		return (
+			linesIntersect(A, B, this.start, this.end) || this.distanceToLineSegment(A, B) <= distance
+		)
+	}
+
+	getSvgPathData(first = true) {
+		const { start, end } = this
+		return `${first ? `M${start.toFixed()}` : ``} L${end.toFixed()}`
+	}
+}
+
+/** @public */
+export class Polyline2d extends Geometry2d {
+	points: Vec[]
+
+	constructor(config: Omit<Geometry2dOptions, 'isFilled' | 'isClosed'> & { points: Vec[] }) {
+		super({ isClosed: false, isFilled: false, ...config })
+		const { points } = config
+		this.points = points
+	}
+
+	_segments?: Edge2d[]
+
+	// eslint-disable-next-line no-restricted-syntax
+	get segments() {
+		if (!this._segments) {
+			this._segments = []
+			const { vertices } = this
+			for (let i = 0, n = vertices.length - 1; i < n; i++) {
+				const start = vertices[i]
+				const end = vertices[i + 1]
+				this._segments.push(new Edge2d({ start, end }))
+			}
+
+			if (this.isClosed) {
+				this._segments.push(new Edge2d({ start: vertices[vertices.length - 1], end: vertices[0] }))
+			}
+		}
+
+		return this._segments
+	}
+
+	override getLength() {
+		return this.segments.reduce((acc, segment) => acc + segment.length, 0)
+	}
+
+	getVertices() {
+		return this.points
+	}
+
+	nearestPoint(A: Vec): Vec {
+		const { segments } = this
+		let nearest = this.points[0]
+		let dist = Infinity
+		let p: Vec // current point on segment
+		let d: number // distance from A to p
+		for (let i = 0; i < segments.length; i++) {
+			p = segments[i].nearestPoint(A)
+			d = Vec.Dist2(p, A)
+			if (d < dist) {
+				nearest = p
+				dist = d
+			}
+		}
+		if (!nearest) throw Error('nearest point not found')
+		return nearest
+	}
+
+	hitTestLineSegment(A: Vec, B: Vec, distance = 0): boolean {
+		const { segments } = this
+		for (let i = 0, n = segments.length; i < n; i++) {
+			if (segments[i].hitTestLineSegment(A, B, distance)) {
+				return true
+			}
+		}
+		return false
+	}
+
+	getSvgPathData(): string {
+		const { vertices } = this
+		if (vertices.length < 2) return ''
+		return vertices.reduce((acc, vertex, i) => {
+			if (i === 0) return `M ${vertex.x} ${vertex.y}`
+			return `${acc} L ${vertex.x} ${vertex.y}`
+		}, '')
+	}
+}
+
+/** @public */
+export class Polygon2d extends Polyline2d {
+	constructor(config: Omit<Geometry2dOptions, 'isClosed'> & { points: Vec[] }) {
+		super({ ...config })
+		this.isClosed = true
+	}
 }

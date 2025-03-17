@@ -67,8 +67,7 @@ The frontend client is under [`client`](./client):
 
   ## Custom shapes
 
-To add support for custom shapes, see the [tldraw sync custom shapes
-docs](https://tldraw.dev/docs/sync#Custom-shapes--bindings).
+To add support for custom shapes, see the [tldraw sync custom shapes docs](https://tldraw.dev/docs/sync#Custom-shapes--bindings).
 
 ## Adding cloudflare to your own repo
 
@@ -123,7 +122,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 ## Community
 
-Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
+Have questions, comments or feedback? [Join our discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
 
 ## Contact
 

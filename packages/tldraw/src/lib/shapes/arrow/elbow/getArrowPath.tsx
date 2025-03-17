@@ -1,5 +1,5 @@
-import { Box, Vec } from '@tldraw/editor'
-import { ArrowDirection, DELTAS, DIRS } from './definitions'
+import { Box, ElbowArrowSide, Vec, VecModel } from '@tldraw/editor'
+import { ELBOW_ARROW_DIRS, ElbowArrowSideDeltas } from './definitions'
 import { ArrowNavigationGrid } from './getArrowNavigationGrid'
 
 class ArrowStepResult {
@@ -30,21 +30,21 @@ export function getArrowPath(
 	end?: 'top' | 'right' | 'bottom' | 'left'
 ): { error: true } | { error: false; path: Vec[] } {
 	const { options } = g
-	const edgesA: [ArrowDirection, Vec, Vec][] = [
+	const edgesA: [ElbowArrowSide, Vec, Vec][] = [
 		['top', g.A.top, g.A.expanded.top],
 		['right', g.A.right, g.A.expanded.right],
 		['bottom', g.A.bottom, g.A.expanded.bottom],
 		['left', g.A.left, g.A.expanded.left],
 	]
 
-	const edgesB: [ArrowDirection, Vec, Vec][] = [
+	const edgesB: [ElbowArrowSide, Vec, Vec][] = [
 		['top', g.B.top, g.B.expanded.top],
 		['right', g.B.right, g.B.expanded.right],
 		['bottom', g.B.bottom, g.B.expanded.bottom],
 		['left', g.B.left, g.B.expanded.left],
 	]
 
-	let edges: [ArrowDirection, ArrowDirection] = ['top', 'top']
+	let edges: [ElbowArrowSide, ElbowArrowSide] = ['top', 'top']
 
 	// gapDir is h or v if is there are no overlaps, ie both left/above, right/above, right/below, or left/below
 
@@ -313,13 +313,13 @@ function getNextPointInPath(
 		results.push(...getNextPointInPath(g, fwd_res, dir))
 	}
 
-	const ccw = DIRS[(4 + (DIRS.indexOf(dir) - 1)) % 4]
+	const ccw = ELBOW_ARROW_DIRS[(4 + (ELBOW_ARROW_DIRS.indexOf(dir) - 1)) % 4]
 	const ccw_res = getNext(g, pos, ccw, true, result.clone())
 	if (ccw_res) {
 		results.push(...getNextPointInPath(g, ccw_res, ccw))
 	}
 
-	const cw = DIRS[(DIRS.indexOf(dir) + 1) % 4]
+	const cw = ELBOW_ARROW_DIRS[(ELBOW_ARROW_DIRS.indexOf(dir) + 1) % 4]
 	const cw_res = getNext(g, pos, cw, true, result.clone())
 	if (cw_res) {
 		results.push(...getNextPointInPath(g, cw_res, cw))
@@ -412,32 +412,32 @@ function move(g: ArrowNavigationGrid, tpos: Vec, result: ArrowStepResult, corner
 
 interface DirectionConfig {
 	condition(pos: Vec, gridSize: number): boolean
-	delta: Vec
+	delta: VecModel
 }
 
-const DIRECTION_CONFIG: Record<ArrowDirection, DirectionConfig> = {
+const DIRECTION_CONFIG: Record<ElbowArrowSide, DirectionConfig> = {
 	top: {
 		condition: (pos, _) => pos.y > 0,
-		delta: DELTAS.top,
+		delta: ElbowArrowSideDeltas.top,
 	},
 	right: {
 		condition: (pos, size) => pos.x < size - 1,
-		delta: DELTAS.right,
+		delta: ElbowArrowSideDeltas.right,
 	},
 	bottom: {
 		condition: (pos, size) => pos.y < size - 1,
-		delta: DELTAS.bottom,
+		delta: ElbowArrowSideDeltas.bottom,
 	},
 	left: {
 		condition: (pos, _) => pos.x > 0,
-		delta: DELTAS.left,
+		delta: ElbowArrowSideDeltas.left,
 	},
 }
 
 function getNext(
 	g: ArrowNavigationGrid,
 	pos: Vec,
-	dir: ArrowDirection,
+	dir: ElbowArrowSide,
 	corner: boolean,
 	result: ArrowStepResult
 ): ArrowStepResult | null {

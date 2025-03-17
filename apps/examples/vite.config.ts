@@ -47,7 +47,16 @@ const TLDRAW_BEMO_URL_STRING =
 				: undefined
 
 export default defineConfig(({ mode }) => ({
-	plugins: [react({ tsDecorators: true }), exampleReadmePlugin()],
+	plugins: [
+		react({
+			useAtYourOwnRisk_mutateSwcOptions(options) {
+				options.jsc!.parser!.decorators = true
+				options.jsc!.transform!.decoratorVersion = '2022-03'
+			},
+		}),
+		,
+		exampleReadmePlugin(),
+	],
 	root: path.join(__dirname, 'src'),
 	publicDir: path.join(__dirname, 'public'),
 	build: {

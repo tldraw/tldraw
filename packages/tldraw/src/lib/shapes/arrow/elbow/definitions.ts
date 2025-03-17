@@ -1,8 +1,6 @@
-import { Vec } from '@tldraw/editor'
+import { ElbowArrowSide, Vec, VecModel } from '@tldraw/editor'
 
-export const DIRS = ['right', 'bottom', 'left', 'top'] as const
-
-export type ArrowDirection = (typeof DIRS)[number]
+export const ELBOW_ARROW_DIRS = ['right', 'bottom', 'left', 'top'] as const
 
 /** @public */
 export interface ElbowArrowOptions {
@@ -11,26 +9,26 @@ export interface ElbowArrowOptions {
 	minArrowDistanceFromCorner: number
 }
 
-export const DELTAS: Record<ArrowDirection, Vec> = {
-	top: new Vec(0, -1),
-	right: new Vec(1, 0),
-	bottom: new Vec(0, 1),
-	left: new Vec(-1, 0),
-}
+export const ElbowArrowSideDeltas = {
+	top: { x: 0, y: -1 },
+	right: { x: 1, y: 0 },
+	bottom: { x: 0, y: 1 },
+	left: { x: -1, y: 0 },
+} as const satisfies Record<ElbowArrowSide, VecModel>
 
 export const ElbowArrowSideOpposites = {
 	left: 'right',
 	right: 'left',
 	top: 'bottom',
 	bottom: 'top',
-} as const
+} as const satisfies Record<ElbowArrowSide, ElbowArrowSide>
 
 export const ElbowArrowSideAxes = {
 	left: 'x',
 	right: 'x',
 	top: 'y',
 	bottom: 'y',
-} as const
+} as const satisfies Record<ElbowArrowSide, 'x' | 'y'>
 
 export const ElbowArrowAxes = {
 	x: {

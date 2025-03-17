@@ -1,14 +1,15 @@
-import { tlenv, uniqueId, useEditor } from '@tldraw/editor'
+import { assert, tlenv, uniqueId, useMaybeEditor } from '@tldraw/editor'
 import { useCallback, useRef } from 'react'
 
 /** @internal */
 export function usePrint() {
-	const editor = useEditor()
+	const editor = useMaybeEditor()
 	const prevPrintEl = useRef<HTMLDivElement | null>(null)
 	const prevStyleEl = useRef<HTMLStyleElement | null>(null)
 
 	return useCallback(
 		async function printSelectionOrPages() {
+			assert(editor, 'usePrint: editor is required')
 			const el = document.createElement('div')
 			const style = document.createElement('style')
 

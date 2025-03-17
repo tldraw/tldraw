@@ -1,10 +1,13 @@
-import { DB, TlaFile, TlaRow, ZTable } from '@tldraw/dotcom-shared'
+import { DB, TlaFile, TlaFileState, TlaRow, TlaUser, ZTable } from '@tldraw/dotcom-shared'
 import {
 	ExecutionQueue,
 	assert,
+	assertExists,
 	exhaustiveSwitchError,
+	groupBy,
 	promiseWithResolve,
 	sleep,
+	stringEnum,
 	throttle,
 	uniqueId,
 } from '@tldraw/utils'
@@ -14,6 +17,7 @@ import { Kysely, sql } from 'kysely'
 
 import { LogicalReplicationService, Wal2Json, Wal2JsonPlugin } from 'pg-logical-replication'
 import { Logger } from './Logger'
+import { UserChangeCollator } from './UserChangeCollator'
 import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { createPostgresConnectionPool } from './postgres'
 import {
@@ -29,9 +33,18 @@ import {
 	getUserDurableObject,
 } from './utils/durableObjects'
 
+const relevantTables = stringEnum('user', 'file', 'file_state', 'user_mutation_number')
+
 interface ReplicationEvent {
 	command: 'insert' | 'update' | 'delete'
-	table: keyof DB | 'replicator_boot_id' | 'user_boot_id' | 'user_mutation_number'
+	table: keyof typeof relevantTables
+}
+
+interface Change {
+	event: ReplicationEvent
+	userId: string
+	fileId: string | null
+	row: TlaRow
 }
 
 interface Migration {
@@ -84,10 +97,31 @@ const migrations: Migration[] = [
 			INSERT INTO meta (lsn, slotName) VALUES ('0/0', 'init');
 		`,
 	},
+	{
+		id: '004_keep_event_log',
+		code: `
+		  CREATE TABLE history (
+				lsn TEXT NOT NULL,
+				userId TEXT NOT NULL,
+				fileId TEXT,
+				json TEXT NOT NULL
+			);
+			CREATE INDEX history_lsn_userId ON history (lsn, userId);
+			CREATE INDEX history_lsn_fileId ON history (lsn, fileId);
+			PRAGMA optimize;
+		`,
+	},
+	{
+		id: '005_add_history_timestamp',
+		code: `
+			ALTER TABLE history ADD COLUMN timestamp INTEGER NOT NULL DEFAULT 0;
+		`,
+	},
 ]
 
 const ONE_MINUTE = 60 * 1000
 const PRUNE_INTERVAL = 10 * ONE_MINUTE
+const MAX_HISTORY_ROWS = 100_000
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -138,6 +172,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			this.sentry?.captureException(exception) as any
 		})
+		this.log.debug('ERROR', (exception as any)?.stack ?? exception)
 		if (!this.sentry) {
 			console.error(`[TLPostgresReplicator]: `, exception)
 		}
@@ -217,12 +252,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	private _applyMigration(index: number) {
+		this.log.debug('running migration', migrations[index].id)
 		this.sqlite.exec(migrations[index].code)
 		this.sqlite.exec(
 			'insert into migrations (id, code) values (?, ?)',
 			migrations[index].id,
 			migrations[index].code
 		)
+		this.log.debug('ran migration', migrations[index].id)
 	}
 
 	private async _migrate() {
@@ -259,22 +296,26 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	override async alarm() {
-		this.ctx.storage.setAlarm(Date.now() + 3000)
-		this.maybeLogRpm()
-		// If we haven't heard anything from postgres for 5 seconds, trigger a heartbeat.
-		// Otherwise, if we haven't heard anything for 10 seconds, do a soft reboot.
-		if (Date.now() - this.lastPostgresMessageTime > 10000) {
-			this.log.debug('rebooting due to inactivity')
-			this.reboot('inactivity')
-		} else if (Date.now() - this.lastPostgresMessageTime > 5000) {
-			// this triggers a heartbeat
-			this.log.debug('triggering heartbeat due to inactivity')
-			this.replicationService.acknowledge('0/0')
+		try {
+			this.ctx.storage.setAlarm(Date.now() + 3000)
+			this.maybeLogRpm()
+			// If we haven't heard anything from postgres for 5 seconds, trigger a heartbeat.
+			// Otherwise, if we haven't heard anything for 10 seconds, do a soft reboot.
+			if (Date.now() - this.lastPostgresMessageTime > 10000) {
+				this.log.debug('rebooting due to inactivity')
+				this.reboot('inactivity')
+			} else if (Date.now() - this.lastPostgresMessageTime > 5000) {
+				// this triggers a heartbeat
+				this.log.debug('triggering heartbeat due to inactivity')
+				await this.replicationService.acknowledge('0/0')
+			}
+			await this.maybePrune()
+		} catch (e) {
+			this.captureException(e)
 		}
-		this.maybePruneUsers()
 	}
 
-	private async maybePruneUsers() {
+	private async maybePrune() {
 		const now = Date.now()
 		if (now - this.lastUserPruneTime < PRUNE_INTERVAL) return
 		const cutoffTime = now - PRUNE_INTERVAL
@@ -288,7 +329,18 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				await this.unregisterUser(id)
 			}
 		}
+		this.pruneHistory()
 		this.lastUserPruneTime = Date.now()
+	}
+
+	private pruneHistory() {
+		this.sqlite.exec(`
+      WITH max AS (
+        SELECT MAX(rowid) AS max_id FROM history
+      )
+      DELETE FROM history
+      WHERE rowid < (SELECT max_id FROM max) - ${MAX_HISTORY_ROWS};
+    `)
 	}
 
 	private maybeLogRpm() {
@@ -300,6 +352,23 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			})
 			this.postgresUpdates = 0
 			this.lastRpmLogTime = now
+		}
+	}
+
+	async getDiagnostics() {
+		const earliestHistoryRow = this.sqlite
+			.exec('select * from history order by rowid asc limit 1')
+			.toArray()[0]
+		const latestHistoryRow = this.sqlite
+			.exec('select * from history order by rowid desc limit 1')
+			.toArray()[0]
+		const activeUsers = this.sqlite.exec('select count(*) from active_user').one().count as number
+		const meta = this.sqlite.exec('select * from meta').one()
+		return {
+			earliestHistoryRow,
+			latestHistoryRow,
+			activeUsers,
+			meta,
 		}
 	}
 
@@ -361,6 +430,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 
 		this.replicationService.on('heartbeat', (lsn: string) => {
+			this.log.debug('heartbeat', lsn)
 			this.lastPostgresMessageTime = Date.now()
 			this.reportPostgresUpdate()
 			// don't call this.updateLsn here because it's not necessary
@@ -369,12 +439,47 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		})
 
 		this.replicationService.addListener('data', (lsn: string, log: Wal2Json.Output) => {
-			this.lastPostgresMessageTime = Date.now()
-			this.reportPostgresUpdate()
-			for (const change of log.change) {
-				this.handleEvent(change)
+			// ignore events received after disconnecting, if that can even happen
+			try {
+				if (this.state.type !== 'connected') return
+				this.postgresUpdates++
+				this.lastPostgresMessageTime = Date.now()
+				this.reportPostgresUpdate()
+				const collator = new UserChangeCollator()
+				for (const _change of log.change) {
+					const change = this.parseChange(_change)
+					if (!change) {
+						this.log.debug('IGNORING CHANGE', _change)
+						continue
+					}
+
+					this.handleEvent(collator, change, false)
+					this.sqlite.exec(
+						'INSERT INTO history (lsn, userId, fileId, json, timestamp) VALUES (?, ?, ?, ?, ?)',
+						lsn,
+						change.userId,
+						change.fileId,
+						JSON.stringify(change),
+						Date.now()
+					)
+				}
+				this.log.debug('changes', collator.changes.size)
+				for (const [userId, changes] of collator.changes) {
+					this._messageUser(userId, { type: 'changes', changes, lsn })
+				}
+				this.commitLsn(lsn)
+			} catch (e) {
+				this.captureException(e)
 			}
-			this.updateLsn(lsn)
+		})
+
+		this.replicationService.addListener('start', () => {
+			if (!this.getCurrentLsn()) {
+				// make a request to force an updateLsn()
+				sql`insert into replicator_boot_id ("replicatorId", "bootId") values (${this.ctx.id.toString()}, ${uniqueId()}) on conflict ("replicatorId") do update set "bootId" = excluded."bootId"`.execute(
+					this.db
+				)
+			}
 		})
 
 		const handleError = (e: Error) => {
@@ -395,7 +500,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		return this.sqlite.exec('SELECT lsn FROM meta').one().lsn as string | null
 	}
 
-	private async updateLsn(lsn: string) {
+	private async commitLsn(lsn: string) {
 		const result = await this.replicationService.acknowledge(lsn)
 		if (result) {
 			// if the current lsn in the meta table is null it means
@@ -412,80 +517,12 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	private onDidSequenceBreak() {
-		// re-register all active users to get their latest guest info
-		// do this in small batches to avoid overwhelming the system
-		const users = this.sqlite.exec('SELECT id FROM active_user').toArray()
-		this.reportActiveUsers()
-		const BATCH_SIZE = 5
-		const tick = () => {
-			if (users.length === 0) return
-			const batch = users.splice(0, BATCH_SIZE)
-			for (const user of batch) {
-				this.messageUser(user.id as string, { type: 'maybe_force_reboot' })
-			}
-			setTimeout(tick, 10)
+	private parseChange(change: Wal2Json.Change): Change | null {
+		const table = change.table as ReplicationEvent['table']
+		if (change.kind === 'truncate' || change.kind === 'message' || !(table in relevantTables)) {
+			return null
 		}
-		tick()
-	}
 
-	private reportPostgresUpdate = throttle(
-		() => getStatsDurableObjct(this.env).recordReplicatorPostgresUpdate(),
-		5000
-	)
-
-	private handleEvent(change: Wal2Json.Change) {
-		// ignore events received after disconnecting, if that can even happen
-		if (this.state.type !== 'connected') return
-
-		this.postgresUpdates++
-
-		// ignore our keepalive pings (we probably don't need this now we have the heartbeats)
-		if (change.table === 'replicator_boot_id') return
-
-		const { row, event } = this.getRowAndEvent(change)
-		// We shouldn't get these two, but just to be sure we'll filter them out
-		const { command, table } = event
-		if (command === 'truncate' || command === 'message') {
-			this.log.debug('ignoring event', event)
-			return
-		}
-		this.log.debug('handleEvent', event, row)
-		assert(this.state.type === 'connected', 'state should be connected in handleEvent')
-		try {
-			switch (table) {
-				case 'user_boot_id':
-					this.handleBootEvent(row, { command, table })
-					break
-				case 'user_mutation_number':
-					this.handleMutationConfirmationEvent(row, { command, table })
-					break
-				case 'file_state':
-					this.handleFileStateEvent(row, { command, table })
-					break
-				case 'file':
-					this.handleFileEvent(row, { command, table })
-					break
-				case 'user':
-					this.handleUserEvent(row, { command, table })
-					break
-				// We don't synchronize events for these tables
-				case 'asset':
-				case 'applied_migrations':
-					break
-				default:
-					this.captureException(new Error(`Unhandled table: ${table}`), {
-						event,
-						row,
-					})
-					break
-			}
-		} catch (e) {
-			this.captureException(e)
-		}
-	}
-
-	private getRowAndEvent(change: Wal2Json.Change) {
 		const row = {} as any
 		// take everything from change.columnnames and associated the values from change.columnvalues
 		if (change.kind === 'delete') {
@@ -501,99 +538,134 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			})
 		}
 
-		const event = {
-			command: change.kind,
-			table: change.table,
+		let userId = null as string | null
+		let fileId = null as string | null
+		switch (table) {
+			case 'user':
+				userId = (row as TlaUser).id
+				break
+			case 'file':
+				userId = (row as TlaFile).ownerId
+				fileId = (row as TlaFile).id
+				break
+			case 'file_state':
+				userId = (row as TlaFileState).userId
+				fileId = (row as TlaFileState).fileId
+				break
+			case 'user_mutation_number':
+				userId = (row as { userId: string }).userId
+				break
+			default: {
+				// assert never
+				const _x: never = table
+			}
 		}
-		return { row, event }
+
+		if (!userId) return null
+
+		return {
+			row,
+			event: {
+				command: change.kind,
+				table,
+			},
+			userId,
+			fileId,
+		}
 	}
 
-	private handleBootEvent(row: Row | null, event: ReplicationEvent) {
-		if (event.command === 'delete') return
-		assert(row && 'bootId' in row, 'bootId is required')
-		this.messageUser(row.userId, {
-			type: 'boot_complete',
-			userId: row.userId,
-			bootId: row.bootId,
-		})
+	private onDidSequenceBreak() {
+		// re-register all active users to get their latest guest info
+		// do this in small batches to avoid overwhelming the system
+		const users = this.sqlite.exec('SELECT id FROM active_user').toArray()
+		this.reportActiveUsers()
+		const BATCH_SIZE = 5
+		const tick = () => {
+			if (users.length === 0) return
+			const batch = users.splice(0, BATCH_SIZE)
+			for (const user of batch) {
+				this._messageUser(user.id as string, { type: 'maybe_force_reboot' })
+			}
+			setTimeout(tick, 10)
+		}
+		tick()
 	}
 
-	private handleMutationConfirmationEvent(row: Row | null, event: ReplicationEvent) {
+	private reportPostgresUpdate = throttle(
+		() => getStatsDurableObjct(this.env).recordReplicatorPostgresUpdate(),
+		5000
+	)
+
+	private handleEvent(collator: UserChangeCollator, change: Change, isReplay: boolean) {
+		// ignore events received after disconnecting, if that can even happen
+		if (this.state.type !== 'connected') return
+
+		// We shouldn't get these two, but just to be sure we'll filter them out
+		const { command, table } = change.event
+		this.log.debug('handleEvent', change)
+		assert(this.state.type === 'connected', 'state should be connected in handleEvent')
+		try {
+			switch (table) {
+				case 'user_mutation_number':
+					this.handleMutationConfirmationEvent(collator, change.row, { command, table })
+					break
+				case 'file_state':
+					this.handleFileStateEvent(collator, change.row, { command, table })
+					break
+				case 'file':
+					this.handleFileEvent(collator, change.row, { command, table }, isReplay)
+					break
+				case 'user':
+					this.handleUserEvent(collator, change.row, { command, table })
+					break
+				default: {
+					const _x: never = table
+					this.captureException(new Error(`Unhandled table: ${table}`), { change })
+					break
+				}
+			}
+		} catch (e) {
+			this.captureException(e)
+		}
+	}
+
+	private handleMutationConfirmationEvent(
+		collator: UserChangeCollator,
+		row: Row | null,
+		event: ReplicationEvent
+	) {
 		if (event.command === 'delete') return
 		assert(row && 'mutationNumber' in row, 'mutationNumber is required')
-		this.messageUser(row.userId, {
+		collator.addChange(row.userId, {
 			type: 'mutation_commit',
 			mutationNumber: row.mutationNumber,
 			userId: row.userId,
 		})
 	}
 
-	private handleFileStateEvent(row: Row | null, event: ReplicationEvent) {
+	private handleFileStateEvent(
+		collator: UserChangeCollator,
+		row: Row | null,
+		event: ReplicationEvent
+	) {
 		assert(row && 'userId' in row && 'fileId' in row, 'userId is required')
 		if (!this.userIsActive(row.userId)) return
 		if (event.command === 'insert') {
+			if (!row.isFileOwner) {
+				this.sqlite.exec(
+					`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
+					row.userId,
+					row.fileId
+				)
+			}
+		} else if (event.command === 'delete') {
 			this.sqlite.exec(
-				`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
+				`DELETE FROM user_file_subscriptions WHERE userId = ? AND fileId = ?`,
 				row.userId,
 				row.fileId
 			)
-			assert(typeof row.isFileOwner === 'boolean', 'isFileOwner is required')
-			if (!row.isFileOwner) {
-				// need to dispatch a file creation event to the user
-				this.getFileRecord(row.fileId).then((file) => {
-					// check that the subscription wasn't deleted before we managed to fetch the file record
-					const sub = this.sqlite
-						.exec(
-							`SELECT * FROM user_file_subscriptions WHERE userId = ? AND fileId = ?`,
-							row.userId,
-							row.fileId
-						)
-						.toArray()[0]
-					if (!sub) return
-
-					// alright we're good to go
-					this.messageUser(row.userId, {
-						type: 'row_update',
-						row: file as any,
-						table: 'file',
-						event: 'insert',
-						userId: row.userId,
-					})
-				})
-			}
-		} else if (event.command === 'delete') {
-			// If the file state being deleted does not belong to the file owner,
-			// we need to send a delete event for the file to the user
-			const sub = this.sqlite
-				.exec(
-					`SELECT * FROM user_file_subscriptions WHERE userId = ? AND fileId = ?`,
-					row.userId,
-					row.fileId
-				)
-				.toArray()[0]
-			if (!sub) {
-				// the file was deleted before the file state
-				this.log.debug('file state deleted before file', row)
-			} else {
-				this.sqlite.exec(
-					`DELETE FROM user_file_subscriptions WHERE userId = ? AND fileId = ?`,
-					row.userId,
-					row.fileId
-				)
-				// We forward a file delete event to the user
-				// even if they are the file owner. This is because the file_state
-				// deletion might happen before the file deletion and we don't get the
-				// ownerId on file delete events
-				this.messageUser(row.userId, {
-					type: 'row_update',
-					row: { id: row.fileId } as any,
-					table: 'file',
-					event: 'delete',
-					userId: row.userId,
-				})
-			}
 		}
-		this.messageUser(row.userId, {
+		collator.addChange(row.userId, {
 			type: 'row_update',
 			row: row as any,
 			table: event.table as ZTable,
@@ -602,28 +674,33 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		})
 	}
 
-	private handleFileEvent(row: Row | null, event: ReplicationEvent) {
-		assert(row && 'id' in row, 'row id is required')
-		const impactedUserIds = this.sqlite
-			.exec('SELECT userId FROM user_file_subscriptions WHERE fileId = ?', row.id)
-			.toArray()
-			.map((x) => x.userId as string)
+	private handleFileEvent(
+		collator: UserChangeCollator,
+		row: Row | null,
+		event: ReplicationEvent,
+		isReplay: boolean
+	) {
+		assert(row && 'id' in row && 'ownerId' in row, 'row id is required')
+		const impactedUserIds = [
+			row.ownerId,
+			...this.sqlite
+				.exec('SELECT userId FROM user_file_subscriptions WHERE fileId = ?', row.id)
+				.toArray()
+				.map((x) => x.userId as string),
+		]
 		// if the file state was deleted before the file, we might not have any impacted users
 		if (event.command === 'delete') {
-			getRoomDurableObject(this.env, row.id).appFileRecordDidDelete()
+			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordDidDelete(row)
 			this.sqlite.exec(`DELETE FROM user_file_subscriptions WHERE fileId = ?`, row.id)
 		} else if (event.command === 'update') {
 			assert('ownerId' in row, 'ownerId is required when updating file')
-			getRoomDurableObject(this.env, row.id).appFileRecordDidUpdate(row as TlaFile)
+			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordDidUpdate(row)
 		} else if (event.command === 'insert') {
 			assert('ownerId' in row, 'ownerId is required when inserting file')
-			if (!impactedUserIds.includes(row.ownerId)) {
-				impactedUserIds.push(row.ownerId)
-			}
-			getRoomDurableObject(this.env, row.id).appFileRecordCreated(row as TlaFile)
+			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordCreated(row)
 		}
 		for (const userId of impactedUserIds) {
-			this.messageUser(userId, {
+			collator.addChange(userId, {
 				type: 'row_update',
 				row: row as any,
 				table: event.table as ZTable,
@@ -633,16 +710,17 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	private handleUserEvent(row: Row | null, event: ReplicationEvent) {
+	private handleUserEvent(collator: UserChangeCollator, row: Row | null, event: ReplicationEvent) {
 		assert(row && 'id' in row, 'user id is required')
 		this.log.debug('USER EVENT', event.command, row.id)
-		this.messageUser(row.id, {
+		collator.addChange(row.id, {
 			type: 'row_update',
 			row: row as any,
 			table: event.table as ZTable,
 			event: event.command,
 			userId: row.id,
 		})
+		return [row.id]
 	}
 
 	private userIsActive(userId: string) {
@@ -654,51 +732,35 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		return { sequenceId: this.slotName }
 	}
 
-	private async waitUntilConnected() {
-		while (this.state.type !== 'connected') {
-			await this.state.promise
+	private async _messageUser(userId: string, event: ZReplicationEventWithoutSequenceInfo) {
+		this.log.debug('messageUser', userId, event)
+		if (!this.userIsActive(userId)) {
+			this.log.debug('user is not active', userId)
+			return
 		}
-	}
-
-	async getFileRecord(fileId: string) {
-		this.logEvent({ type: 'get_file_record' })
-		await this.waitUntilConnected()
-		assert(this.state.type === 'connected', 'state should be connected in getFileRecord')
-		try {
-			const res = await sql`select * from public.file where id = ${fileId}`.execute(this.db)
-			if (res.rows.length === 0) return null
-			return res.rows[0] as TlaFile
-		} catch (_e) {
-			return null
-		}
-	}
-
-	private async messageUser(userId: string, event: ZReplicationEventWithoutSequenceInfo) {
-		if (!this.userIsActive(userId)) return
 		try {
 			let q = this.userDispatchQueues.get(userId)
 			if (!q) {
 				q = new ExecutionQueue()
 				this.userDispatchQueues.set(userId, q)
 			}
+			const { sequenceNumber, sequenceIdSuffix } = this.sqlite
+				.exec(
+					'UPDATE active_user SET sequenceNumber = sequenceNumber + 1, lastUpdatedAt = ? WHERE id = ? RETURNING sequenceNumber, sequenceIdSuffix',
+					Date.now(),
+					userId
+				)
+				.one()
+			assert(typeof sequenceNumber === 'number', 'sequenceNumber should be a number')
+			assert(typeof sequenceIdSuffix === 'string', 'sequenceIdSuffix should be a string')
+
 			await q.push(async () => {
-				const { sequenceNumber, sequenceIdSuffix } = this.sqlite
-					.exec(
-						'UPDATE active_user SET sequenceNumber = sequenceNumber + 1, lastUpdatedAt = ? WHERE id = ? RETURNING sequenceNumber, sequenceIdSuffix',
-						Date.now(),
-						userId
-					)
-					.one()
-
 				const user = getUserDurableObject(this.env, userId)
-
-				assert(typeof sequenceNumber === 'number', 'sequenceNumber should be a number')
-				assert(typeof sequenceIdSuffix === 'string', 'sequenceIdSuffix should be a string')
 
 				const res = await user.handleReplicationEvent({
 					...event,
 					sequenceNumber,
-					sequenceId: this.slotName,
+					sequenceId: this.slotName + sequenceIdSuffix,
 				})
 				if (res === 'unregister') {
 					this.log.debug('unregistering user', userId, event)
@@ -706,7 +768,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				}
 			})
 		} catch (e) {
-			console.error('Error in messageUser', e)
+			this.captureException(e)
 		}
 	}
 
@@ -719,47 +781,145 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	async registerUser(userId: string) {
-		try {
-			this.log.debug('registering user', userId)
-			this.logEvent({ type: 'register_user' })
-			this.log.debug('reg user wait')
-			await this.waitUntilConnected()
-			this.log.debug('reg user connect')
-			assert(this.state.type === 'connected', 'state should be connected in registerUser')
-			const guestFiles = await sql<{
-				id: string
-			}>`SELECT "fileId" as id FROM file_state where "userId" = ${userId}`.execute(this.db)
-			this.log.debug('got guest files')
+	private getResumeType(
+		lsn: string,
+		userId: string,
+		guestFileIds: string[]
+	): { type: 'done'; messages?: ZReplicationEventWithoutSequenceInfo[] } | { type: 'reboot' } {
+		const currentLsn = assertExists(this.getCurrentLsn())
 
-			const sequenceIdSuffix = uniqueId()
+		if (lsn >= currentLsn) {
+			this.log.debug('getResumeType: resuming from current lsn', lsn, '>=', currentLsn)
+			// targetLsn is now or in the future, we can register them and deliver events
+			// without needing to check the history
+			return { type: 'done' }
+		}
+		const earliestLsn = this.sqlite
+			.exec<{ lsn: string }>('SELECT lsn FROM history ORDER BY rowid asc LIMIT 1')
+			.toArray()[0]?.lsn
+
+		if (!earliestLsn || lsn < earliestLsn) {
+			this.log.debug('getResumeType: not enough history', lsn, '<', earliestLsn)
+			// not enough history, we can't resume
+			return { type: 'reboot' }
+		}
+
+		const history = this.sqlite
+			.exec<{ json: string; lsn: string }>(
+				`
+			SELECT lsn, json
+			FROM history
+			WHERE
+			  lsn > ?
+				AND (
+				  userId = ? 
+					OR fileId IN (${guestFileIds.map((_, i) => '$' + (i + 1)).join(', ')})
+				)
+			ORDER BY rowid ASC
+		`,
+				lsn,
+				userId,
+				...guestFileIds
+			)
+			.toArray()
+			.map(({ json, lsn }) => ({ change: JSON.parse(json) as Change, lsn }))
+
+		if (history.length === 0) {
+			this.log.debug('getResumeType: no history to replay, all good', lsn)
+			return { type: 'done' }
+		}
+
+		const changesByLsn = groupBy(history, (x) => x.lsn)
+		const messages: ZReplicationEventWithoutSequenceInfo[] = []
+		for (const lsn of Object.keys(changesByLsn).sort()) {
+			const collator = new UserChangeCollator()
+			for (const change of changesByLsn[lsn]) {
+				this.handleEvent(collator, change.change, true)
+			}
+			const changes = collator.changes.get(userId)
+			if (changes?.length) {
+				messages.push({ type: 'changes', changes, lsn })
+			}
+		}
+		this.log.debug('getResumeType: resuming', messages.length, messages)
+		return { type: 'done', messages }
+	}
+
+	async registerUser({
+		userId,
+		lsn,
+		guestFileIds,
+		bootId,
+	}: {
+		userId: string
+		lsn: string
+		guestFileIds: string[]
+		bootId: string
+	}): Promise<{ type: 'done'; sequenceId: string; sequenceNumber: number } | { type: 'reboot' }> {
+		try {
+			while (!this.getCurrentLsn()) {
+				// this should only happen once per slot name change, which should never happen!
+				await sleep(100)
+			}
+
+			this.log.debug('registering user', userId, lsn, bootId, guestFileIds)
+			this.logEvent({ type: 'register_user' })
 
 			// clear user and subscriptions
 			this.sqlite.exec(`DELETE FROM active_user WHERE id = ?`, userId)
 			this.sqlite.exec(
 				`INSERT INTO active_user (id, sequenceNumber, sequenceIdSuffix, lastUpdatedAt) VALUES (?, 0, ?, ?)`,
 				userId,
-				sequenceIdSuffix,
+				bootId,
 				Date.now()
 			)
-			this.reportActiveUsers()
-			this.log.debug('inserted active user')
-			for (const file of guestFiles.rows) {
+
+			this.sqlite.exec(`DELETE FROM user_file_subscriptions WHERE userId = ?`, userId)
+			for (const fileId of guestFileIds) {
 				this.sqlite.exec(
 					`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
 					userId,
-					file.id
+					fileId
 				)
 			}
-			this.log.debug('inserted guest files', guestFiles.rows.length)
+			this.log.debug('inserted file subscriptions', guestFileIds.length)
+
+			this.reportActiveUsers()
+			this.log.debug('inserted active user')
+
+			const resume = this.getResumeType(lsn, userId, guestFileIds)
+			if (resume.type === 'reboot') {
+				return { type: 'reboot' }
+			}
+
+			if (resume.messages) {
+				for (const message of resume.messages) {
+					this._messageUser(userId, message)
+				}
+			}
+
 			return {
-				sequenceId: this.slotName,
+				type: 'done',
+				sequenceId: this.slotName + bootId,
 				sequenceNumber: 0,
 			}
 		} catch (e) {
 			this.captureException(e)
 			throw e
 		}
+	}
+
+	async requestLsnUpdate(userId: string) {
+		try {
+			this.log.debug('requestLsnUpdate', userId)
+			this.logEvent({ type: 'request_lsn_update' })
+			const lsn = assertExists(this.getCurrentLsn(), 'lsn should exist')
+			this._messageUser(userId, { type: 'changes', changes: [], lsn })
+		} catch (e) {
+			this.captureException(e)
+			throw e
+		}
+		return
 	}
 
 	async unregisterUser(userId: string) {
@@ -785,6 +945,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			case 'reboot_error':
 			case 'register_user':
 			case 'unregister_user':
+			case 'request_lsn_update':
 			case 'get_file_record':
 				this.writeEvent({
 					blobs: [event.type],

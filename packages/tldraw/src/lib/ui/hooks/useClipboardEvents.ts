@@ -4,12 +4,14 @@ import {
 	TLExternalContentSource,
 	Vec,
 	VecLike,
+	assert,
 	compact,
 	isDefined,
 	preventDefault,
 	stopEventPropagation,
 	uniq,
 	useEditor,
+	useMaybeEditor,
 	useValue,
 } from '@tldraw/editor'
 import lz from 'lz-string'
@@ -86,7 +88,7 @@ function areShortcutsDisabled(editor: Editor) {
 	return (
 		editor.menus.hasAnyOpenMenus() ||
 		(activeElement &&
-			(activeElement.getAttribute('contenteditable') ||
+			((activeElement as HTMLElement).isContentEditable ||
 				INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1))
 	)
 }
@@ -294,6 +296,13 @@ const handlePasteFromClipboardApi = async ({
 		things.push(
 			...fallbackFiles.map((f): ClipboardThing => ({ type: 'file', source: Promise.resolve(f) }))
 		)
+	} else if (fallbackFiles?.length && things.length === 0) {
+		// Files pasted in Safari from your computer don't have types, so we need to use the fallback files directly
+		// if they're available. This only works if pasted keyboard shortcuts. Pasting from the menu in Safari seems to never
+		// let you access files that are copied from your computer.
+		things.push(
+			...fallbackFiles.map((f): ClipboardThing => ({ type: 'file', source: Promise.resolve(f) }))
+		)
 	}
 
 	return await handleClipboardThings(editor, things, point)
@@ -473,6 +482,19 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 				handleText(editor, stripHtml(result.data), point, results)
 				return
 			}
+
+			// If the html is NOT a link, and we have other texty content, then paste the html as a text shape
+			if (results.some((r) => r.type === 'text' && r.subtype !== 'html')) {
+				editor.markHistoryStoppingPoint('paste')
+				editor.putExternalContent({
+					type: 'text',
+					text: stripHtml(result.data),
+					html: result.data,
+					point,
+					sources: results,
+				})
+				return
+			}
 		}
 
 		// Allow you to paste YouTube or Google Maps embeds, for example.
@@ -580,11 +602,12 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 
 /** @public */
 export function useMenuClipboardEvents() {
-	const editor = useEditor()
+	const editor = useMaybeEditor()
 	const trackEvent = useUiEvents()
 
 	const copy = useCallback(
 		async function onCopy(source: TLUiEventSource) {
+			assert(editor, 'editor is required for copy')
 			if (editor.getSelectedShapeIds().length === 0) return
 
 			await handleNativeOrMenuCopy(editor)
@@ -595,6 +618,7 @@ export function useMenuClipboardEvents() {
 
 	const cut = useCallback(
 		async function onCut(source: TLUiEventSource) {
+			if (!editor) return
 			if (editor.getSelectedShapeIds().length === 0) return
 
 			await handleNativeOrMenuCopy(editor)
@@ -610,6 +634,7 @@ export function useMenuClipboardEvents() {
 			source: TLUiEventSource,
 			point?: VecLike
 		) {
+			if (!editor) return
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
 			// input instead; e.g. when pasting text into a text shape's content

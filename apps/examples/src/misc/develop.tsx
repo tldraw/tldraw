@@ -53,6 +53,7 @@ function afterChangeHandler(prev: any, next: any) {
 export default function Develop() {
 	const performanceOverrides = usePerformance()
 	const debuggingOverrides = useDebugging()
+
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
@@ -66,6 +67,11 @@ export default function Develop() {
 						'shape',
 						afterChangeHandler
 					)
+					editor.on('before-event', (e) => {
+						if (e.name === 'key_down' && e.key === '§') {
+							debugger
+						}
+					})
 					return () => {
 						dispose()
 					}
