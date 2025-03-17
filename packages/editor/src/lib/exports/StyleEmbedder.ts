@@ -242,7 +242,6 @@ function styleFromComputedStyleMap(
 		if (parentStyles[property] === value && isPropertyInherited(property)) continue
 		if (isPropertyCoveredByCurrentColor(style.get('color')?.toString() || '', property, value))
 			continue
-		console.log(property)
 
 		styles[property] = value
 	}
