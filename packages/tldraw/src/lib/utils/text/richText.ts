@@ -100,13 +100,6 @@ export function isEmptyRichText(richText: TLRichText) {
 	return false
 }
 
-export function isSingleCharacterRichText(richText: TLRichText) {
-	if (richText.content.length === 1) {
-		if ((richText.content[0] as any)?.content[0]?.text.length === 1) return true
-	}
-	return false
-}
-
 /**
  * Renders plaintext from a rich text string.
  * @param editor - The editor instance.

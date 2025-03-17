@@ -36,7 +36,6 @@ import {
 import isEqual from 'lodash.isequal'
 import {
 	isEmptyRichText,
-	isSingleCharacterRichText,
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
@@ -729,7 +728,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const unscaledNextLabelSize = getUnscaledLabelSize(this.editor, next)
 
 		// When entering the first character in a label (not pasting in multiple characters...)
-		if (wasEmpty && !isEmpty && isSingleCharacterRichText(next.props.richText)) {
+		if (wasEmpty && !isEmpty && renderPlaintextFromRichText(this.editor, next.props.richText)) {
 			let unscaledW = Math.max(unscaledPrevWidth, unscaledNextLabelSize.w)
 			let unscaledH = Math.max(unscaledPrevHeight, unscaledNextLabelSize.h)
 
