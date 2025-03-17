@@ -51,6 +51,7 @@ export class InputManager {
 	/** Whether the user is spacebar panning. */
 	@atom accessor isSpacebarPanning = false
 
+	/** @internal */
 	updateFromEvent(info: TLPointerEventInfo | TLPinchEventInfo | TLWheelEventInfo) {
 		const {
 			pointerVelocity,
@@ -114,6 +115,7 @@ export class InputManager {
 		)
 	}
 
+	/** @internal */
 	toJson() {
 		return {
 			originPagePoint: this.originPagePoint.toJson(),

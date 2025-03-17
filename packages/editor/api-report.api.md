@@ -1999,7 +1999,7 @@ export class InputManager {
     readonly previousPagePoint: AtomVec;
     readonly previousScreenPoint: AtomVec;
     accessor shiftKey: boolean;
-    // (undocumented)
+    // @internal (undocumented)
     toJson(): {
         buttons: number[];
         currentPagePoint: VecModel;
@@ -2020,7 +2020,7 @@ export class InputManager {
         previousScreenPoint: VecModel;
         shiftKey: boolean;
     };
-    // (undocumented)
+    // @internal (undocumented)
     updateFromEvent(info: TLPinchEventInfo | TLPointerEventInfo | TLWheelEventInfo): void;
 }
 
