@@ -9,7 +9,7 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
 	const isEditing = commonUseEditableTextHandlers.isEditing
 	const editor = useEditor()
 	const rInput = useRef<HTMLDivElement>(null)
-	const isEmpty = richText && !isEmptyRichText(richText)
+	const isEmpty = richText && isEmptyRichText(richText)
 
 	useEffect(() => {
 		if (!isEditing) return
