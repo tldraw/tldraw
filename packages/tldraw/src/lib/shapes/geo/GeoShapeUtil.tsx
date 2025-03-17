@@ -710,7 +710,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		// If we got rid of the text, cancel out any growY from the prev text
 		const wasEmpty = isEmptyRichText(prev.props.richText)
 		const isEmpty = isEmptyRichText(next.props.richText)
-		if (wasEmpty && !isEmpty) {
+		if (!wasEmpty && isEmpty) {
 			return {
 				...next,
 				props: {
