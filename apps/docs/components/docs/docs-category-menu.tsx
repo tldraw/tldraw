@@ -14,6 +14,12 @@ const categoryLinks = [
 			['/quick-start', '/installation', '/releases'].some((e) => pathname.startsWith(e)),
 	},
 	{
+		caption: 'Examples',
+		icon: PlayIcon,
+		href: '/examples/basic/basic',
+		active: (pathname: string) => pathname.startsWith('/examples'),
+	},
+	{
 		caption: 'Guides',
 		icon: AcademicCapIcon,
 		href: '/docs/editor',
@@ -24,12 +30,6 @@ const categoryLinks = [
 		icon: CommandLineIcon,
 		href: '/reference/editor/Editor',
 		active: (pathname: string) => pathname.startsWith('/reference'),
-	},
-	{
-		caption: 'Examples',
-		icon: PlayIcon,
-		href: '/examples/basic/basic',
-		active: (pathname: string) => pathname.startsWith('/examples'),
 	},
 ]
 

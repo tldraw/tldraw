@@ -17,6 +17,11 @@ const links = [
 		href: '/quick-start',
 	},
 	{
+		caption: 'Examples',
+		icon: PlayIcon,
+		href: '/examples/basic/basic',
+	},
+	{
 		caption: 'Guides',
 		icon: AcademicCapIcon,
 		href: '/editor',
@@ -25,11 +30,6 @@ const links = [
 		caption: 'Reference',
 		icon: BookOpenIcon,
 		href: '/reference/editor/Editor',
-	},
-	{
-		caption: 'Examples',
-		icon: PlayIcon,
-		href: '/examples/basic/basic',
 	},
 	{
 		caption: 'Blog',
