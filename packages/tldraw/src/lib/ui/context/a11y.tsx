@@ -2,7 +2,7 @@ import { Atom, useAtom } from '@tldraw/editor'
 import { createContext, useContext, useMemo } from 'react'
 
 /** @public */
-export type A11yPriority = 'assertive' | 'polite'
+export type A11yPriority = 'polite' | 'assertive'
 
 /** @public */
 export interface TLUiA11y {
@@ -26,7 +26,7 @@ export interface A11yProviderProps {
 
 /** @public @react */
 export function TldrawUiA11yProvider({ children }: A11yProviderProps) {
-	const currentMsg = useAtom<TLUiA11y>('a11y', { msg: '', priority: 'assertive' })
+	const currentMsg = useAtom<TLUiA11y>('a11y', { msg: '', priority: 'polite' })
 	const ctx = useContext(A11yContext)
 
 	const current = useMemo(
