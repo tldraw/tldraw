@@ -68,7 +68,7 @@
 		"gray-matter": "^4.0.3",
 		"instantsearch.js": "^4.77.1",
 		"js-cookie": "^3.0.5",
-		"next": "^14.2.23",
+		"next": "patch:next@npm%3A14.2.23#~/.yarn/patches/next-npm-14.2.23-eedfdbfae5.patch",
 		"next-mdx-remote": "^5.0.0",
 		"next-themes": "^0.3.0",
 		"openai": "^4.80.1",
