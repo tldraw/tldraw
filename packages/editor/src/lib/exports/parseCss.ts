@@ -146,7 +146,8 @@ const inheritedProperties = new Set([
 	'border-collapse',
 	'border-spacing',
 	'caption-side',
-	'color',
+	// N.B. We shouldn't inherit 'color' because there's some UA styling, e.g. `mark` elements
+	// 'color',
 	'cursor',
 	'direction',
 	'empty-cells',
