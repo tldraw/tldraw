@@ -2105,6 +2105,8 @@ export class LocalIndexedDb {
     // (undocumented)
     pruneSessions(): Promise<void>;
     // (undocumented)
+    removeAssets(assetId: string[]): Promise<void>;
+    // (undocumented)
     storeAsset(assetId: string, blob: File): Promise<void>;
     // (undocumented)
     storeChanges({ schema, changes, sessionId, sessionStateSnapshot, }: {
