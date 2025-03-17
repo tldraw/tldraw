@@ -169,12 +169,6 @@ export { atom }
 // @public
 export class AtomVec extends Vec {
     constructor(name: string, x?: number, y?: number, z?: number);
-    // (undocumented)
-    _x: Atom<number>;
-    // (undocumented)
-    _y: Atom<number>;
-    // (undocumented)
-    _z: Atom<number>;
 }
 
 // @public (undocumented)

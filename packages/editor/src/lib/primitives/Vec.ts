@@ -622,9 +622,9 @@ export class AtomVec extends Vec {
 		})
 	}
 
-	_x: Atom<number>
-	_y: Atom<number>
-	_z: Atom<number>
+	private _x: Atom<number>
+	private _y: Atom<number>
+	private _z: Atom<number>
 }
 
 const ease = (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t)
