@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react'
 type CookieConsent = undefined | 'unknown' | 'opted-in' | 'opted-out'
 
 export default function Analytics() {
-	const [hasConsent, setHasConsent] = useState<CookieConsent>('unknown')
+	const [hasConsent, setHasConsent] = useState<CookieConsent>()
 
 	const onConsentChanged = (hasConsent: boolean) => {
 		Cookies.set('allowTracking', hasConsent ? 'true' : 'false')
