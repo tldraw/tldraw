@@ -1,7 +1,7 @@
 import { safeParseUrl } from '@tldraw/editor'
 
 // Only allow multiplayer embeds. If we add additional routes later for example '/help' this won't match
-const TLDRAW_APP_RE = /(^\/r\/[^/]+\/?$)/
+const TLDRAW_APP_RE = /(^\/[f|p|r|ro|s|v]\/[^/]+\/?$)/
 
 /** @public */
 export const DEFAULT_EMBED_DEFINITIONS = [
@@ -20,6 +20,8 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(TLDRAW_APP_RE)) {
+				// Add the "clean=true" search param to the URL to hide the sidebar
+				urlObj.searchParams.append('embed', 'true')
 				return url
 			}
 			return
@@ -27,6 +29,8 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		fromEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(TLDRAW_APP_RE)) {
+				// Add the "clean=true" search param to the URL to hide the sidebar
+				urlObj.searchParams.delete('embed')
 				return url
 			}
 			return

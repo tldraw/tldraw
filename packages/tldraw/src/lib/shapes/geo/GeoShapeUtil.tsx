@@ -430,18 +430,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const isOnlySelected = useValue(
 			'isGeoOnlySelected',
 			() => shape.id === editor.getOnlySelectedShapeId(),
-			[]
+			[editor]
 		)
 		const isEditingAnything = editor.getEditingShapeId() !== null
 		const plaintext = renderPlaintextFromRichText(this.editor, shape.props.richText)
 		const showHtmlContainer = isEditingAnything || !!plaintext.length
-		const isForceSolid = useValue(
-			'force solid',
-			() => {
-				return editor.getZoomLevel() < 0.2
-			},
-			[editor]
-		)
+		const isForceSolid = useValue('force solid', () => editor.getZoomLevel() < 0.2, [editor])
 
 		return (
 			<>

@@ -12,7 +12,7 @@ export function Example({ article }: { article: Article }) {
 
 	return (
 		<div className="w-full mt-12">
-			<Embed src={`${server}/${article.id}/full`} />
+			<Embed src={`${server}/${article.id}/full?utm_source=docs-embed`} />
 			<CodeFiles files={files} />
 		</div>
 	)

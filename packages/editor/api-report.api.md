@@ -689,7 +689,7 @@ export function DefaultSelectionForeground({ bounds, rotation }: TLSelectionFore
 export const DefaultShapeIndicator: NamedExoticComponent<TLShapeIndicatorProps>;
 
 // @public (undocumented)
-export const DefaultShapeIndicators: NamedExoticComponent<object>;
+export const DefaultShapeIndicators: NamedExoticComponent<TLShapeIndicatorsProps>;
 
 // @public (undocumented)
 export function DefaultSnapIndicator({ className, line, zoom }: TLSnapIndicatorProps): JSX_2.Element;
@@ -1438,7 +1438,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
     // (undocumented)
     readonly options: TldrawOptions;
-    packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
+    packShapes(shapes: TLShape[] | TLShapeId[], _gap?: number): this;
     pageToScreen(point: VecLike): Vec;
     pageToViewport(point: VecLike): Vec;
     popFocusedGroupId(): this;
@@ -1521,7 +1521,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): this;
     readonly snaps: SnapManager;
     squashToMark(markId: string): this;
-    stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap: number): this;
+    stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap?: number): this;
     startFollowingUser(userId: string): this;
     stopCameraAnimation(): this;
     stopFollowingUser(): this;
@@ -3949,6 +3949,12 @@ export interface TLShapeIndicatorProps {
     shapeId: TLShapeId;
     // (undocumented)
     userId?: string;
+}
+
+// @public (undocumented)
+export interface TLShapeIndicatorsProps {
+    hideAll?: boolean;
+    showAll?: boolean;
 }
 
 // @public

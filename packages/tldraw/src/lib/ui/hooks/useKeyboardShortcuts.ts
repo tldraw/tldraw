@@ -140,39 +140,39 @@ export function useKeyboardShortcuts() {
 	}, [actions, tools, isReadonlyMode, editor, isFocused])
 }
 
-// Shift is !
-// Alt is ?
-// Cmd / control is $
-// so cmd+shift+u would be $!u
-
+// The "raw" kbd here will look something like "a" or a combination of keys "del,backspace",
+// or modifier keys (using ! for shift, $ for cmd, and ? for alt). We need to first split them
+// up by comma, then parse each key to get the actual key and modifiers.
 function getHotkeysStringFromKbd(kbd: string) {
 	return getKeys(kbd)
 		.map((kbd) => {
 			let str = ''
-			const chars = kbd.split('')
-			if (chars.length === 1) {
-				str = chars[0]
+
+			const shift = kbd.includes('!')
+			const alt = kbd.includes('?')
+			const cmd = kbd.includes('$')
+
+			// remove the modifiers; the remaining string are the actual key
+			const k = kbd.replace(/[!?$]/g, '')
+
+			if (shift && alt && cmd) {
+				str = `cmd+shift+alt+${k},ctrl+shift+alt+${k}`
+			} else if (shift && cmd) {
+				str = `cmd+shift+${k},ctrl+shift+${k}`
+			} else if (alt && cmd) {
+				str = `cmd+alt+${k},ctrl+alt+${k}`
+			} else if (alt && shift) {
+				str = `shift+alt+${k}`
+			} else if (shift) {
+				str = `shift+${k}`
+			} else if (alt) {
+				str = `alt+${k}`
+			} else if (cmd) {
+				str = `cmd+${k},ctrl+${k}`
 			} else {
-				if (chars[0] === '!') {
-					str = `shift+${chars[1]}`
-				} else if (chars[0] === '?') {
-					if (chars.length === 3 && chars[1] === '!') {
-						str = `alt+shift+${chars[2]}`
-					} else {
-						str = `alt+${chars[1]}`
-					}
-				} else if (chars[0] === '$') {
-					if (chars[1] === '!') {
-						str = `cmd+shift+${chars[2]},ctrl+shift+${chars[2]}`
-					} else if (chars[1] === '?') {
-						str = `cmd+⌥+${chars[2]},ctrl+alt+${chars[2]}`
-					} else {
-						str = `cmd+${chars[1]},ctrl+${chars[1]}`
-					}
-				} else {
-					str = kbd
-				}
+				str = k
 			}
+
 			return str
 		})
 		.join(',')

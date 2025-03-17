@@ -127,6 +127,7 @@ import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
+import { TLTextOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLUrlExternalAsset } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
@@ -2398,6 +2399,7 @@ export interface TldrawImageProps extends TLImageExportOptions {
     pageId?: TLPageId;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot;
+    textOptions?: TLTextOptions;
 }
 
 // @public (undocumented)
@@ -2413,7 +2415,7 @@ export const TldrawSelectionBackground: ({ bounds, rotation }: TLSelectionBackgr
 export const TldrawSelectionForeground: NamedExoticComponent<TLSelectionForegroundProps>;
 
 // @public (undocumented)
-export function TldrawShapeIndicators(): JSX_2.Element | null;
+export function TldrawShapeIndicators(): JSX_2.Element;
 
 // @public (undocumented)
 export const TldrawUi: React_3.NamedExoticComponent<TldrawUiProps>;
@@ -2988,7 +2990,9 @@ export interface TLUiEventMap {
         locale: string;
     };
     // (undocumented)
-    'change-page': null;
+    'change-page': {
+        direction?: 'next' | 'prev';
+    };
     // (undocumented)
     'change-user-name': null;
     // (undocumented)
@@ -3153,11 +3157,15 @@ export interface TLUiEventMap {
     // (undocumented)
     'unlock-all': null;
     // (undocumented)
-    'zoom-in': null;
+    'zoom-in': {
+        towardsCursor: boolean;
+    };
     // (undocumented)
     'zoom-into-view': null;
     // (undocumented)
-    'zoom-out': null;
+    'zoom-out': {
+        towardsCursor: boolean;
+    };
     // (undocumented)
     'zoom-to-content': null;
     // (undocumented)

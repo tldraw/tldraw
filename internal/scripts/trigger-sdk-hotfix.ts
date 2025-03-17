@@ -7,8 +7,8 @@ import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 
-async function main() {
-	const env = makeEnv([
+function getEnv() {
+	return makeEnv([
 		'DISCORD_DEPLOY_WEBHOOK_URL',
 		'GITHUB_TOKEN',
 		// bemo URL is needed when building packages, which in this file
@@ -16,36 +16,63 @@ async function main() {
 		// See the file
 		'TLDRAW_BEMO_URL',
 	])
+}
 
+type Env = ReturnType<typeof getEnv>
+
+async function getPrDetails(env: Env) {
 	const lastCommitMessage = (await exec('git', ['log', '-1', '--oneline'])).trim()
 	const lastPRNumber = lastCommitMessage.match(/\(#(\d+)\)$/)?.[1]
 	if (!lastPRNumber) {
 		nicelog('No PR number found in last commit message. Exiting...')
-		return
+		return null
 	}
-
-	const prNumber = parseInt(lastPRNumber)
 
 	const octokit = new Octokit({ auth: env.GITHUB_TOKEN })
 
-	nicelog(`Checking PR ${prNumber} labels...`)
-	const pr = await octokit.rest.pulls.get({
-		owner: 'tldraw',
-		repo: 'tldraw',
-		pull_number: prNumber,
-	})
+	return await octokit.rest.pulls
+		.get({
+			owner: 'tldraw',
+			repo: 'tldraw',
+			pull_number: parseInt(lastPRNumber),
+		})
+		.then((res) => res.data!)
+}
 
-	const docsHotfixPlease = pr.data.labels.find((label) => label.name === 'docs-hotfix-please')
-	const sdkHotfixPlease = pr.data.labels.find((label) => label.name === 'sdk-hotfix-please')
+type PrDetails = NonNullable<Awaited<ReturnType<typeof getPrDetails>>>
+
+async function getTriggerType(env: Env, pr: PrDetails): Promise<'none' | 'SDK' | 'docs'> {
+	nicelog(`Checking PR ${pr.number} labels...`)
+
+	const docsHotfixPlease = pr.labels.find((label) => label.name === 'docs-hotfix-please')
+	const sdkHotfixPlease = pr.labels.find((label) => label.name === 'sdk-hotfix-please')
 
 	if (!docsHotfixPlease && !sdkHotfixPlease) {
 		nicelog('No "(docs|sdk)-hotfix-please" label found. Exiting...')
-		return
+		return 'none'
 	}
 
 	nicelog(`Found "${sdkHotfixPlease || docsHotfixPlease}" label. Proceeding...`)
 
 	const isDocsOnly = docsHotfixPlease && !sdkHotfixPlease
+	return isDocsOnly ? 'docs' : 'SDK'
+}
+
+async function main() {
+	const env = getEnv()
+
+	const pr = await getPrDetails(env)
+	if (!pr) return
+
+	const triggerType = await getTriggerType(env, pr)
+	if (triggerType === 'none') return
+
+	const discord = new Discord({
+		webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
+		totalSteps: 3,
+		shouldNotify: true,
+	})
+	await discord.message(`Triggering ${triggerType} hotfix...`)
 
 	// first cherry-pick HEAD on top of latest release branch
 	const latestFullReleaseVersion = (await exec('npm', ['show', 'tldraw', 'version']))
@@ -64,47 +91,53 @@ async function main() {
 	const latestReleaseBranch = `v${version.major}.${version.minor}.x`
 	nicelog('Latest release branch', latestReleaseBranch)
 
-	// cherry-pick HEAD on top of latest release branch
-	const HEAD = (await exec('git', ['rev-parse', 'HEAD'])).trim()
-	await exec('git', ['fetch', 'origin', latestReleaseBranch])
-	await exec('git', ['checkout', latestReleaseBranch])
-	await exec('git', ['reset', `origin/${latestReleaseBranch}`, '--hard'])
-	await exec('git', ['log', '-1', '--oneline'])
-	await exec('git', ['cherry-pick', HEAD])
+	await discord.step(`Cherry-picking PR #${pr} onto branch ${latestReleaseBranch}`, async () => {
+		// cherry-pick HEAD on top of latest release branch
+		const HEAD = (await exec('git', ['rev-parse', 'HEAD'])).trim()
+		await exec('git', ['fetch', 'origin', latestReleaseBranch])
+		await exec('git', ['checkout', latestReleaseBranch])
+		await exec('git', ['reset', `origin/${latestReleaseBranch}`, '--hard'])
+		await exec('git', ['log', '-1', '--oneline'])
+		await exec('git', ['cherry-pick', HEAD])
+	})
 
-	if (isDocsOnly) {
-		nicelog('Ensuring no SDK changes are present...')
-		// run yarn again before building packages to make sure everything is ready
-		// in case HEAD included dev dependency changes
-		await exec('yarn', ['install'])
-		await exec('yarn', ['refresh-assets', '--force'])
+	if (triggerType === 'docs') {
+		await discord.step(`Ensuring no SDK changes are present`, async () => {
+			// run yarn again before building packages to make sure everything is ready
+			// in case HEAD included dev dependency changes
+			await exec('yarn', ['install'])
+			await exec('yarn', ['refresh-assets', '--force'])
 
-		const diff = await getAnyPackageDiff()
-		if (diff) {
-			let message = kleur.red().bold(`・ERROR・`)
-			message += `\nCannot cherry-pick docs changes from PR '${kleur.cyan().bold(pr.data.title)}' https://github.com/tldraw/tldraw/pulls/${prNumber}`
-			message += '\nThis PR contains changes to the SDK.\n\n'
-			let formattedDiff = formatDiff(diff)
-			// truncate long diffs for discord's sake, it's not that valuable to see the whole thing
-			if (formattedDiff.length > 1000) {
-				formattedDiff = formattedDiff.slice(0, 1000) + '\n...\n'
+			const diff = await getAnyPackageDiff()
+			if (diff) {
+				let message = kleur.red().bold(`・ERROR・`)
+				message += `\nCannot cherry-pick docs changes from PR '${kleur.cyan().bold(pr.title)}' https://github.com/tldraw/tldraw/pulls/${pr}`
+				message += '\nThis PR contains changes to the SDK.\n\n'
+				let formattedDiff = formatDiff(diff)
+				// truncate long diffs for discord's sake, it's not that valuable to see the whole thing
+				if (formattedDiff.length > 1000) {
+					formattedDiff = formattedDiff.slice(0, 1000) + '\n...\n'
+				}
+				message += formattedDiff
+
+				message += '\n💡 Please cherry-pick this PR manually and remove the sdk changes.'
+				message +=
+					'\n   Or apply the sdk-hotfix-please PR label and rerun this action to publish the sdk changes if appropriate.'
+
+				throw new Error(message)
 			}
-			message += formattedDiff
-
-			message += '\n💡 Please cherry-pick this PR manually and remove the sdk changes.'
-			message +=
-				'\n   Or apply the sdk-hotfix-please PR label and rerun this action to publish the sdk changes if appropriate.'
-
-			throw new Error(message)
-		}
+		})
 	} else {
-		nicelog('Running tests against PR branch...')
-		await exec('yarn', ['test'])
+		await discord.step('Running sdk tests', async () => {
+			await exec('yarn', ['install'])
+			await exec('yarn', ['test', '--filter=packages/*'])
+		})
 	}
 
-	nicelog('Pushing to release branch')
+	await discord.step('Pushing to release branch', async () => {
+		await exec('git', ['push', 'origin', `HEAD:${latestReleaseBranch}`])
+	})
 	// return
-	await exec('git', ['push', 'origin', `HEAD:${latestReleaseBranch}`])
 }
 
 main().catch(async (e: Error) => {
