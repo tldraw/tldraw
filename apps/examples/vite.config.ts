@@ -54,7 +54,6 @@ export default defineConfig(({ mode }) => ({
 				options.jsc!.transform!.decoratorVersion = '2022-03'
 			},
 		}),
-		,
 		exampleReadmePlugin(),
 	],
 	root: path.join(__dirname, 'src'),
