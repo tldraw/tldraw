@@ -31,7 +31,6 @@ export class CounterShapeUtil extends BaseBoxShapeUtil<CounterShape> {
 			event.stopPropagation()
 			this.editor.updateShape({
 				id: shape.id,
-				type: 'counter',
 				props: { count: shape.props.count + change },
 			})
 		}

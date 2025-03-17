@@ -341,7 +341,6 @@ class LayoutBindingUtil extends BindingUtil<LayoutBinding> {
 			if (shape.x !== point.x || shape.y !== point.y) {
 				this.editor.updateShape({
 					id: binding.toId,
-					type: 'element',
 					x: point.x,
 					y: point.y,
 				})
@@ -358,7 +357,6 @@ class LayoutBindingUtil extends BindingUtil<LayoutBinding> {
 		if (width !== container.props.width || height !== container.props.height) {
 			this.editor.updateShape({
 				id: container.id,
-				type: 'container',
 				props: { width, height },
 			})
 		}

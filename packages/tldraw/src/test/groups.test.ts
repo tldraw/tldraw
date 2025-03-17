@@ -719,7 +719,7 @@ describe('the bounds of a rotated group', () => {
 		editor.select(ids.boxA, ids.boxB, ids.boxC)
 		editor.groupShapes(editor.getSelectedShapeIds())
 		const group = onlySelectedShape()
-		editor.updateShapes([{ id: group.id, type: 'group', rotation: Math.PI / 2, x: 10, y: 0 }])
+		editor.updateShapes([{ id: group.id, rotation: Math.PI / 2, x: 10, y: 0 }])
 
 		expect(editor.getShapePageBounds(group.id)!).toCloselyMatchObject({
 			x: 0,
@@ -759,7 +759,7 @@ describe('the bounds of a rotated group', () => {
 		editor.select(ids.boxA, ids.boxB, ids.boxC)
 		editor.groupShapes(editor.getSelectedShapeIds())
 		const group = onlySelectedShape()
-		editor.updateShapes([{ id: group.id, type: 'group', rotation: Math.PI / 2, x: 10, y: 0 }])
+		editor.updateShapes([{ id: group.id, rotation: Math.PI / 2, x: 10, y: 0 }])
 
 		expect(editor.getShapePageBounds(group.id)!).toCloselyMatchObject({
 			x: 0,
@@ -1974,7 +1974,7 @@ describe('Grouping / ungrouping locked shapes', () => {
 		editor.select(ids.boxA)
 
 		// Lock boxA
-		editor.updateShape({ id: ids.boxA, type: 'geo', isLocked: true })
+		editor.updateShape({ id: ids.boxA, isLocked: true })
 
 		// Select the group; when we ungroup, the children should be selected
 		editor.select(ids.groupA)

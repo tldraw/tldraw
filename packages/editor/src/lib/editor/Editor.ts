@@ -51,6 +51,7 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
+	TLShapeUpdatePartial,
 	TLStore,
 	TLStoreSnapshot,
 	TLUnknownBinding,
@@ -5300,7 +5301,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			typeof shapes[0] === 'string' ? (shapes as TLShapeId[]) : shapes.map((s) => (s as TLShape).id)
 		if (ids.length === 0) return this
 
-		const changes: TLShapePartial[] = []
+		const changes: TLShapeUpdatePartial[] = []
 
 		const parentTransform = isPageId(parentId)
 			? Mat.Identity()
@@ -5368,7 +5369,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					changes.push({
 						id: shape.id,
-						type: shape.type,
 						parentId: parentId,
 						x: newPoint.x,
 						y: newPoint.y,
@@ -5829,7 +5829,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: (shapes as TLShape[]).map((s) => s.id)
 
 		if (ids.length <= 0) return this
-		const changes: TLShapePartial[] = []
+		const changes: TLShapeUpdatePartial[] = []
 
 		for (const id of ids) {
 			const shape = this.getShape(id)!
@@ -6075,18 +6075,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 		this.run(() => {
 			if (allUnlocked) {
-				this.updateShapes(
-					shapesToToggle.map((shape) => ({ id: shape.id, type: shape.type, isLocked: true }))
-				)
+				this.updateShapes(shapesToToggle.map((shape) => ({ id: shape.id, isLocked: true })))
 				this.setSelectedShapes([])
 			} else if (allLocked) {
-				this.updateShapes(
-					shapesToToggle.map((shape) => ({ id: shape.id, type: shape.type, isLocked: false }))
-				)
+				this.updateShapes(shapesToToggle.map((shape) => ({ id: shape.id, isLocked: false })))
 			} else {
-				this.updateShapes(
-					shapesToToggle.map((shape) => ({ id: shape.id, type: shape.type, isLocked: true }))
-				)
+				this.updateShapes(shapesToToggle.map((shape) => ({ id: shape.id, isLocked: true })))
 			}
 		})
 
@@ -6471,7 +6465,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			shapeGap = _gap
 		}
 
-		const changes: TLShapePartial[] = []
+		const changes: TLShapeUpdatePartial[] = []
 
 		let v = shapeClustersToStack[0].pageBounds[max]
 
@@ -6650,7 +6644,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const commonAfter = Box.Common(shapeClustersToPack.map((s) => s.nextPageBounds))
 		const centerDelta = Vec.Sub(commonBounds.center, commonAfter.center)
 
-		const changes: TLShapePartial<any>[] = []
+		const changes: TLShapeUpdatePartial<any>[] = []
 
 		for (const { shapes, pageBounds, nextPageBounds } of shapeClustersToPack) {
 			const delta = Vec.Sub(nextPageBounds.point, pageBounds.point).add(centerDelta)
@@ -6758,7 +6752,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const commonBounds = Box.Common(allBounds)
 
-		const changes: TLShapePartial[] = []
+		const changes: TLShapeUpdatePartial[] = []
 
 		shapeClustersToAlign.forEach(({ shapes, pageBounds }) => {
 			const delta = new Vec()
@@ -6899,7 +6893,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			max = 'maxY'
 			dim = 'height'
 		}
-		const changes: TLShapePartial[] = []
+		const changes: TLShapeUpdatePartial[] = []
 
 		const first = shapeClustersToDistribute.sort((a, b) => a.pageBounds[min] - b.pageBounds[min])[0]
 		const last = shapeClustersToDistribute.sort((a, b) => b.pageBounds[max] - a.pageBounds[max])[0]
@@ -7250,7 +7244,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.updateShapes([
 				{
 					id,
-					type: initialShape.type as any,
 					x: initialShape.x + delta.x,
 					y: initialShape.y + delta.y,
 				},
@@ -7294,7 +7287,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			initialPageTransform: MatLike
 		}
 	) {
-		const { type } = options.initialShape
 		// If a shape is not aligned with the scale axis we need to treat it differently to avoid skewing.
 		// Instead of skewing we normalize the scale aspect ratio (i.e. keep the same scale magnitude in both axes)
 		// and then after applying the scale to the shape we also rotate it if required and translate it so that it's center
@@ -7322,7 +7314,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (Math.sign(scale.x) * Math.sign(scale.y) < 0) {
 			let { rotation } = Mat.Decompose(options.initialPageTransform)
 			rotation -= 2 * rotation
-			this.updateShapes([{ id, type, rotation }])
+			this.updateShapes([{ id, rotation }])
 		}
 
 		// Next we need to translate the shape so that it's center point ends up in the right place.
@@ -7352,7 +7344,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const postScaleShapePagePoint = Vec.Add(shapePageTransformOrigin, pageDelta)
 		const { x, y } = this.getPointInParentSpace(id, postScaleShapePagePoint)
 
-		this.updateShapes([{ id, type, x, y }])
+		this.updateShapes([{ id, x, y }])
 
 		return this
 	}
@@ -7609,7 +7601,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	animateShape(
-		partial: TLShapePartial | null | undefined,
+		partial: TLShapeUpdatePartial | null | undefined,
 		opts = { animation: DEFAULT_ANIMATION_OPTIONS } as TLCameraMoveOptions
 	): this {
 		return this.animateShapes([partial], opts)
@@ -7630,7 +7622,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	animateShapes(
-		partials: (TLShapePartial | null | undefined)[],
+		partials: (TLShapeUpdatePartial | null | undefined)[],
 		opts = { animation: DEFAULT_ANIMATION_OPTIONS } as TLCameraMoveOptions
 	): this {
 		if (!opts.animation) return this
@@ -7648,7 +7640,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const animations: ShapeAnimation[] = []
 
-		let partial: TLShapePartial | null | undefined, result: ShapeAnimation
+		let partial: TLShapeUpdatePartial | null | undefined, result: ShapeAnimation
 		for (let i = 0, n = partials.length; i < n; i++) {
 			partial = partials[i]
 			if (!partial) continue
@@ -7687,7 +7679,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const { animatingShapes } = this
 
-			const updates: TLShapePartial[] = []
+			const updates: TLShapeUpdatePartial[] = []
 
 			let animationIdForShape: string | undefined
 			for (let i = 0, n = animations.length; i < n; i++) {
@@ -7887,14 +7879,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.updateShape({ id: 'box1', type: 'geo', props: { w: 100, h: 100 } })
+	 * editor.updateShape({ id: 'box1', props: { w: 100, h: 100 } })
 	 * ```
 	 *
 	 * @param partial - The shape partial to update.
 	 *
 	 * @public
 	 */
-	updateShape<T extends TLUnknownShape>(partial: TLShapePartial<T> | null | undefined) {
+	updateShape<T extends TLUnknownShape>(partial: TLShapeUpdatePartial<T> | null | undefined) {
 		this.updateShapes([partial])
 		return this
 	}
@@ -7911,8 +7903,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updateShapes<T extends TLUnknownShape>(partials: (TLShapePartial<T> | null | undefined)[]) {
-		const compactedPartials: TLShapePartial<T>[] = Array(partials.length)
+	updateShapes<T extends TLUnknownShape>(partials: (TLShapeUpdatePartial<T> | null | undefined)[]) {
+		const compactedPartials: TLShapeUpdatePartial<T>[] = Array(partials.length)
 
 		for (let i = 0, n = partials.length; i < n; i++) {
 			const partial = partials[i]
@@ -7948,7 +7940,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	_updateShapes(_partials: (TLShapePartial | null | undefined)[]) {
+	_updateShapes(_partials: (TLShapeUpdatePartial | null | undefined)[]) {
 		if (this.getIsReadonly()) return
 
 		this.run(() => {
@@ -8248,7 +8240,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				shapesToUpdate.map((shape) => {
 					return {
 						id: shape.id,
-						type: shape.type,
 						opacity,
 					}
 				})
@@ -8308,7 +8299,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const updates: {
 				util: ShapeUtil
 				originalShape: TLShape
-				updatePartial: TLShapePartial
+				updatePartial: TLShapeUpdatePartial
 			}[] = []
 
 			// We can have many deep levels of grouped shape
@@ -8323,9 +8314,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					const util = this.getShapeUtil(shape)
 					const stylePropKey = this.styleProps[shape.type].get(style)
 					if (stylePropKey) {
-						const shapePartial: TLShapePartial = {
+						const shapePartial: TLShapeUpdatePartial = {
 							id: shape.id,
-							type: shape.type,
 							props: { [stylePropKey]: value },
 						}
 						updates.push({
@@ -8959,7 +8949,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					const localRotation = this.getShapeParentTransform(id).decompose().rotation
 					const localDelta = Vec.Rot(offset, -localRotation)
 
-					return { id: s.id, type: s.type, x: s.x + localDelta.x, y: s.y + localDelta.y }
+					return { id: s.id, x: s.x + localDelta.x, y: s.y + localDelta.y }
 				})
 			)
 		})

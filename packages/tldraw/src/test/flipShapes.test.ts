@@ -106,7 +106,7 @@ describe('When flipping horizontally', () => {
 	})
 
 	it('Flips rotated shapes', () => {
-		editor.updateShapes([{ id: ids.boxA, type: 'geo', rotation: PI }])
+		editor.updateShapes([{ id: ids.boxA, rotation: PI }])
 		editor.select(ids.boxA, ids.boxB)
 		const a = editor.getSelectionPageBounds()
 		editor.markHistoryStoppingPoint('flipped')
@@ -131,7 +131,7 @@ describe('When flipping horizontally', () => {
 
 	it('Flips the children of rotated shapes', () => {
 		editor.reparentShapes([ids.boxB], ids.boxA)
-		editor.updateShapes([{ id: ids.boxA, type: 'geo', rotation: PI }])
+		editor.updateShapes([{ id: ids.boxA, rotation: PI }])
 		editor.select(ids.boxB, ids.boxC)
 		const a = editor.getSelectionPageBounds()
 		editor.markHistoryStoppingPoint('flipped')
@@ -186,7 +186,7 @@ describe('When flipping vertically', () => {
 	})
 
 	it('Flips rotated shapes', () => {
-		editor.updateShapes([{ id: ids.boxA, type: 'geo', rotation: PI }])
+		editor.updateShapes([{ id: ids.boxA, rotation: PI }])
 		editor.select(ids.boxA, ids.boxB)
 		const a = editor.getSelectionPageBounds()
 		editor.markHistoryStoppingPoint('flipped')
@@ -210,7 +210,7 @@ describe('When flipping vertically', () => {
 
 	it('Flips the children of rotated shapes', () => {
 		editor.reparentShapes([ids.boxB], ids.boxA)
-		editor.updateShapes([{ id: ids.boxA, type: 'geo', rotation: PI }])
+		editor.updateShapes([{ id: ids.boxA, rotation: PI }])
 		editor.select(ids.boxB, ids.boxC)
 		const a = editor.getSelectionPageBounds()
 		editor.markHistoryStoppingPoint('flipped')

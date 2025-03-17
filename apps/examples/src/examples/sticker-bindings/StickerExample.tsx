@@ -160,7 +160,6 @@ class StickerBindingUtil extends BindingUtil<StickerBinding> {
 
 		this.editor.updateShape({
 			id: sticker.id,
-			type: 'sticker',
 			x: stickerParentAnchor.x,
 			y: stickerParentAnchor.y,
 		})

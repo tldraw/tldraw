@@ -580,7 +580,6 @@ export async function defaultHandleExternalUrlContent(
 		editor.updateShapes([
 			{
 				id: shape.id,
-				type: shape.type,
 				props: {
 					assetId: asset.id,
 				},
@@ -777,7 +776,6 @@ export function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 				const localDelta = Vec.Rot(offset, -localRotation)
 				return {
 					id: shape.id,
-					type: shape.type,
 					x: shape.x! - localDelta.x,
 					y: shape.y! - localDelta.y,
 				}
@@ -796,7 +794,6 @@ export function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 				const newPoint = { x: shape.x! - delta.x, y: shape.y! - delta.y }
 				return {
 					id: shape.id,
-					type: shape.type,
 					x: newPoint.x,
 					y: newPoint.y,
 				}

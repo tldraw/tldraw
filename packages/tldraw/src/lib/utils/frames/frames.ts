@@ -1,4 +1,12 @@
-import { Box, Editor, TLFrameShape, TLShapeId, TLShapePartial, Vec, compact } from '@tldraw/editor'
+import {
+	Box,
+	Editor,
+	TLFrameShape,
+	TLShapeId,
+	TLShapeUpdatePartial,
+	Vec,
+	compact,
+} from '@tldraw/editor'
 
 /**
  * Remove a frame.
@@ -67,7 +75,7 @@ export function fitFrameToContent(editor: Editor, id: TLShapeId, opts = {} as { 
 
 	const diff = new Vec(dx, dy).rot(frame.rotation)
 	editor.run(() => {
-		const changes: TLShapePartial[] = childIds.map((child) => {
+		const changes: TLShapeUpdatePartial[] = childIds.map((child) => {
 			const shape = editor.getShape(child)!
 			return {
 				id: shape.id,

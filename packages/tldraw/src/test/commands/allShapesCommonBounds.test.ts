@@ -15,7 +15,6 @@ it('gets common bounds', () => {
 	editor.updateShapes([
 		{
 			id: defaultShapesIds.box1,
-			type: 'geo',
 			rotation: 0,
 			x: 0,
 			y: 0,
@@ -23,7 +22,6 @@ it('gets common bounds', () => {
 		},
 		{
 			id: defaultShapesIds.box2,
-			type: 'geo',
 			rotation: 0,
 			x: 300,
 			y: 300,
@@ -31,7 +29,6 @@ it('gets common bounds', () => {
 		},
 		{
 			id: defaultShapesIds.ellipse1,
-			type: 'geo',
 			rotation: 0,
 			x: 100,
 			y: 500,
@@ -75,7 +72,6 @@ it('gets common bounds', () => {
 	editor.updateShapes([
 		{
 			id: defaultShapesIds.box2,
-			type: 'geo',
 			rotation: 0,
 			x: 50,
 			y: 50,

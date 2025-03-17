@@ -7,7 +7,7 @@ import {
 	TLPropsMigrations,
 	TLShape,
 	TLShapeCrop,
-	TLShapePartial,
+	TLShapeUpdatePartial,
 	TLUnknownShape,
 } from '@tldraw/tlschema'
 import { ReactElement } from 'react'
@@ -490,7 +490,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	onCrop?(
 		shape: Shape,
 		info: TLCropInfo<Shape>
-	): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void
+	): Omit<TLShapeUpdatePartial<Shape>, 'id'> | undefined | void
 
 	/**
 	 * A callback called when some other shapes are dragged over this one.
@@ -534,7 +534,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onResizeStart?(shape: Shape): TLShapePartial<Shape> | void
+	onResizeStart?(shape: Shape): TLShapeUpdatePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape changes from a resize.
@@ -547,7 +547,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	onResize?(
 		shape: Shape,
 		info: TLResizeInfo<Shape>
-	): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void
+	): Omit<TLShapeUpdatePartial<Shape>, 'id'> | undefined | void
 
 	/**
 	 * A callback called when a shape finishes resizing.
@@ -557,7 +557,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onResizeEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
+	onResizeEnd?(initial: Shape, current: Shape): TLShapeUpdatePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape starts being translated.
@@ -566,7 +566,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onTranslateStart?(shape: Shape): TLShapePartial<Shape> | void
+	onTranslateStart?(shape: Shape): TLShapeUpdatePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape changes from a translation.
@@ -576,7 +576,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onTranslate?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
+	onTranslate?(initial: Shape, current: Shape): TLShapeUpdatePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape finishes translating.
@@ -586,7 +586,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onTranslateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
+	onTranslateEnd?(initial: Shape, current: Shape): TLShapeUpdatePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape's handle changes.
@@ -596,7 +596,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onHandleDrag?(shape: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void
+	onHandleDrag?(shape: Shape, info: TLHandleDragInfo<Shape>): TLShapeUpdatePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape starts being rotated.
@@ -605,7 +605,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onRotateStart?(shape: Shape): TLShapePartial<Shape> | void
+	onRotateStart?(shape: Shape): TLShapeUpdatePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape changes from a rotation.
@@ -615,7 +615,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onRotate?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
+	onRotate?(initial: Shape, current: Shape): TLShapeUpdatePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape finishes rotating.
@@ -625,14 +625,14 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onRotateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
+	onRotateEnd?(initial: Shape, current: Shape): TLShapeUpdatePartial<Shape> | void
 
 	/**
 	 * Not currently used.
 	 *
 	 * @internal
 	 */
-	onBindingChange?(shape: Shape): TLShapePartial<Shape> | void
+	onBindingChange?(shape: Shape): TLShapeUpdatePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape's children change.
@@ -641,7 +641,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An array of shape updates, or void.
 	 * @public
 	 */
-	onChildrenChange?(shape: Shape): TLShapePartial[] | void
+	onChildrenChange?(shape: Shape): TLShapeUpdatePartial[] | void
 
 	/**
 	 * A callback called when a shape's handle is double clicked.
@@ -651,7 +651,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onDoubleClickHandle?(shape: Shape, handle: TLHandle): TLShapePartial<Shape> | void
+	onDoubleClickHandle?(shape: Shape, handle: TLHandle): TLShapeUpdatePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape's edge is double clicked.
@@ -660,7 +660,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onDoubleClickEdge?(shape: Shape): TLShapePartial<Shape> | void
+	onDoubleClickEdge?(shape: Shape): TLShapeUpdatePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape is double clicked.
@@ -669,7 +669,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onDoubleClick?(shape: Shape): TLShapePartial<Shape> | void
+	onDoubleClick?(shape: Shape): TLShapeUpdatePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape is clicked.
@@ -678,7 +678,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onClick?(shape: Shape): TLShapePartial<Shape> | void
+	onClick?(shape: Shape): TLShapeUpdatePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape finishes being editing.

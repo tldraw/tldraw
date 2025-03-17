@@ -105,7 +105,7 @@ describe('When translating a bound shape', () => {
 	})
 
 	it('updates the arrow when curved', () => {
-		editor.updateShapes([{ id: ids.arrow1, type: 'arrow', props: { bend: 20 } }])
+		editor.updateShapes([{ id: ids.arrow1, props: { bend: 20 } }])
 		editor.select(ids.box2)
 		editor.pointerDown(250, 250, { target: 'shape', shape: editor.getShape(ids.box2) })
 		editor.pointerMove(300, 300) // move box 2 by 50, 50
@@ -261,7 +261,7 @@ describe('Other cases when arrow are moved', () => {
 		})
 
 		// The arrow will not move because it is still bound to another shape
-		editor.updateShapes([{ id: ids.box4, type: 'geo', y: -600 }])
+		editor.updateShapes([{ id: ids.box4, y: -600 }])
 		editor.distributeShapes(editor.getSelectedShapeIds(), 'vertical')
 		jest.advanceTimersByTime(1000)
 
@@ -310,7 +310,7 @@ describe('When a shape is rotated', () => {
 			},
 		})
 
-		editor.updateShapes([{ id: ids.box2, type: 'geo', rotation: HALF_PI }])
+		editor.updateShapes([{ id: ids.box2, rotation: HALF_PI }])
 		editor.pointerMove(225, 350)
 
 		expect(bindings(arrowId)).toCloselyMatchObject({
@@ -430,7 +430,7 @@ describe('resizing', () => {
 		const arrow1 = editor.getCurrentPageShapes().at(-2)!
 		const arrow2 = editor.getCurrentPageShapes().at(-1)!
 
-		editor.updateShapes([{ id: arrow1.id, type: 'arrow', props: { bend: 50 } }])
+		editor.updateShapes([{ id: arrow1.id, props: { bend: 50 } }])
 
 		editor
 			.select(arrow1.id, arrow2.id)

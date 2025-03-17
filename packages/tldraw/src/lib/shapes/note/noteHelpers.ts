@@ -237,7 +237,6 @@ export function getNoteShapeForAdjacentPosition(
 
 		editor.updateShape({
 			id,
-			type: 'note',
 			x: topLeft.x,
 			y: topLeft.y,
 		})

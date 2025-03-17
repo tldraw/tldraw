@@ -418,13 +418,7 @@ test('onAfterChangeFromShape is called after the from shape is updated', () => {
 			foo: 'bar',
 		})
 	})
-	editor.updateShapes([
-		{
-			id: ids.box1,
-			type: 'geo',
-			meta: { foo: 'bar' },
-		},
-	])
+	editor.updateShapes([{ id: ids.box1, meta: { foo: 'bar' } }])
 	expect(editor.getShape(ids.box1)?.meta).toEqual({
 		foo: 'bar',
 	})
@@ -440,13 +434,7 @@ test('onAfterChangeToShape is called after the to shape is updated', () => {
 			foo: 'bar',
 		})
 	})
-	editor.updateShapes([
-		{
-			id: ids.box2,
-			type: 'geo',
-			meta: { foo: 'bar' },
-		},
-	])
+	editor.updateShapes([{ id: ids.box2, meta: { foo: 'bar' } }])
 	expect(editor.getShape(ids.box2)?.meta).toEqual({
 		foo: 'bar',
 	})

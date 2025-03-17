@@ -98,7 +98,6 @@ describe('When in the select.idle state', () => {
 
 		editor.updateShape({
 			id: ids.imageB,
-			type: 'image',
 			props: {
 				crop: { topLeft: { x: 0.1, y: 0.1 }, bottomRight: { x: 0.9, y: 0.9 } },
 			},

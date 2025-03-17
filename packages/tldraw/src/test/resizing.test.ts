@@ -300,7 +300,6 @@ describe('When resizing mulitple shapes...', () => {
 			editor.updateShapes([
 				{
 					id: ids.boxA,
-					type: 'geo',
 					x,
 					y,
 					rotation,
@@ -308,7 +307,6 @@ describe('When resizing mulitple shapes...', () => {
 				{
 					id: ids.boxB,
 					parentId: ids.boxA,
-					type: 'geo',
 					x: 100,
 					y: 100,
 					rotation: rotationB,
@@ -316,7 +314,6 @@ describe('When resizing mulitple shapes...', () => {
 				{
 					id: ids.boxC,
 					parentId: ids.boxA,
-					type: 'geo',
 					x: 200,
 					y: 200,
 					rotation: rotationB,
@@ -815,7 +812,6 @@ describe('When resizing a shape with children', () => {
 			.updateShapes([
 				{
 					id: ids.boxC,
-					type: 'geo',
 					parentId: ids.boxB,
 				},
 			])
@@ -850,7 +846,6 @@ describe('When resizing a shape with children', () => {
 			.updateShapes([
 				{
 					id: ids.boxA,
-					type: 'geo',
 					rotation: Math.PI,
 				},
 			])
@@ -880,14 +875,12 @@ describe('When resizing a shape with children', () => {
 			.updateShapes([
 				{
 					id: ids.boxA,
-					type: 'geo',
 					rotation: 0,
 					x: 10,
 					y: 10,
 				},
 				{
 					id: ids.boxB,
-					type: 'geo',
 					parentId: ids.boxA,
 					rotation: 0,
 					x: 0,
@@ -3452,16 +3445,14 @@ describe('resizing a selection of mixed rotations', () => {
 		expect(roundedPageBounds(ids.boxD)).toMatchObject({ x: 0, y: 20, w: 20, h: 5 })
 	})
 	it('does lock the aspect ratio if the rotations are not compatible', () => {
-		editor.updateShapes([{ id: ids.boxC, type: 'geo', rotation: Math.PI + Math.PI / 180 }])
+		editor.updateShapes([{ id: ids.boxC, rotation: Math.PI + Math.PI / 180 }])
 		editor.select(ids.boxA, ids.boxB, ids.boxC, ids.boxD)
 		editor.pointerDown(50, 50, { target: 'selection', handle: 'bottom_right' }).pointerMove(100, 25)
 		expect(roundedPageBounds(ids.boxA, 0.5)).toMatchObject({ x: 0, y: 0, w: 20, h: 20 })
 	})
 
 	it('does lock the aspect ratio if one of the shapes has a child with an incompatible aspect ratio', () => {
-		editor.updateShapes([
-			{ id: ids.boxC, type: 'geo', rotation: Math.PI + Math.PI / 180, parentId: ids.boxA },
-		])
+		editor.updateShapes([{ id: ids.boxC, rotation: Math.PI + Math.PI / 180, parentId: ids.boxA }])
 
 		editor.select(ids.boxA, ids.boxB, ids.boxD)
 		editor.pointerDown(50, 50, { target: 'selection', handle: 'bottom_right' }).pointerMove(100, 25)

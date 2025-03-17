@@ -164,7 +164,6 @@ describe('Snapping', () => {
 	beforeEach(() => {
 		editor.updateShape({
 			id: id,
-			type: 'line',
 			props: {
 				points: {
 					a1: { id: 'a1', index: 'a1', x: 0, y: 0 },

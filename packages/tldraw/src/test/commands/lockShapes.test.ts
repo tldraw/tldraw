@@ -99,7 +99,7 @@ describe('Locked shapes', () => {
 
 	it('Cannot be changed', () => {
 		const xBefore = editor.getShape(ids.lockedShapeA)!.x
-		editor.updateShapes([{ id: ids.lockedShapeA, type: 'geo', x: 100 }])
+		editor.updateShapes([{ id: ids.lockedShapeA, x: 100 }])
 		expect(editor.getShape(ids.lockedShapeA)!.x).toBe(xBefore)
 	})
 
@@ -188,7 +188,7 @@ describe('When forced', () => {
 	it('Can be changed', () => {
 		editor.run(
 			() => {
-				editor.updateShapes([{ id: ids.lockedShapeA, type: 'geo', x: 100 }])
+				editor.updateShapes([{ id: ids.lockedShapeA, x: 100 }])
 				expect(editor.getShape(ids.lockedShapeA)!.x).toBe(100)
 			},
 			{ ignoreShapeLock: true }

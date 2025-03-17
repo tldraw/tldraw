@@ -5,7 +5,7 @@ import {
 	TLLineShape,
 	TLPointerEventInfo,
 	TLShapeId,
-	TLShapePartial,
+	TLShapeUpdatePartial,
 	Vec,
 	snapAngle,
 	sortByIndex,
@@ -287,7 +287,7 @@ export class DraggingHandle extends StateNode {
 			initial: initial,
 		})
 
-		const next: TLShapePartial<any> = { id: shape.id, type: shape.type, ...changes }
+		const next: TLShapeUpdatePartial<any> = { id: shape.id, ...changes }
 
 		// Arrows
 		if (

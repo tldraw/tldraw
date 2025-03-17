@@ -594,7 +594,6 @@ To update shapes, use the [Editor#updateShape](?) or [Editor#updateShapes](?) me
 editor.updateShapes([
 	{
 		id: shape.id, // required
-		type: shape.type, // required
 		x: 100,
 		y: 100,
 		props: {
@@ -604,7 +603,7 @@ editor.updateShapes([
 ])
 ```
 
-The update must be a partial of the full shape (a [TLShapePartial](?)). All props are optional except for the `type` of the shape and its `id`.
+The update must be a partial of the full shape (a [TLShapeUpdatePartial](?)). All props are optional except for the `id` of the shape.
 
 ### Delete shapes
 

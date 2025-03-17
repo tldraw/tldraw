@@ -49,9 +49,9 @@ const moveShapesToPage2 = () => {
 	// directly maniuplate parentId like would happen in multiplayer situations
 
 	editor.updateShapes([
-		{ id: ids.box1, type: 'geo', parentId: ids.page2 },
-		{ id: ids.box2, type: 'geo', parentId: ids.page2 },
-		{ id: ids.group1, type: 'group', parentId: ids.page2 },
+		{ id: ids.box1, parentId: ids.page2 },
+		{ id: ids.box2, parentId: ids.page2 },
+		{ id: ids.group1, parentId: ids.page2 },
 	])
 }
 
@@ -753,22 +753,22 @@ describe('isShapeHidden', () => {
 
 	it('can be directly used via editor.isShapeHidden', () => {
 		expect(editor.isShapeHidden(editor.getShape(ids.box1)!)).toBe(false)
-		editor.updateShape({ id: ids.box1, type: 'geo', meta: { hidden: true } })
+		editor.updateShape({ id: ids.box1, meta: { hidden: true } })
 		expect(editor.isShapeHidden(editor.getShape(ids.box1)!)).toBe(true)
 	})
 
 	it('excludes hidden shapes from the rendering shapes array', () => {
 		expect(editor.getRenderingShapes().length).toBe(3)
-		editor.updateShape({ id: ids.box1, type: 'geo', meta: { hidden: true } })
+		editor.updateShape({ id: ids.box1, meta: { hidden: true } })
 		expect(editor.getRenderingShapes().length).toBe(2)
-		editor.updateShape({ id: ids.box2, type: 'geo', meta: { hidden: true } })
+		editor.updateShape({ id: ids.box2, meta: { hidden: true } })
 		expect(editor.getRenderingShapes().length).toBe(1)
 	})
 
 	it('excludes hidden shapes from hit testing', () => {
 		expect(editor.getShapeAtPoint({ x: 150, y: 150 })).toBeDefined()
 		expect(editor.getShapesAtPoint({ x: 150, y: 150 }).length).toBe(1)
-		editor.updateShape({ id: ids.box1, type: 'geo', meta: { hidden: true } })
+		editor.updateShape({ id: ids.box1, meta: { hidden: true } })
 		expect(editor.getShapeAtPoint({ x: 150, y: 150 })).not.toBeDefined()
 		expect(editor.getShapesAtPoint({ x: 150, y: 150 }).length).toBe(0)
 	})
@@ -784,13 +784,13 @@ describe('isShapeHidden', () => {
 			renderingShapes = editor.getRenderingShapes()
 		})
 		expect(renderingShapes.length).toBe(3)
-		editor.updateShape({ id: ids.box1, type: 'geo', meta: { hidden: true } })
+		editor.updateShape({ id: ids.box1, meta: { hidden: true } })
 		expect(renderingShapes.length).toBe(2)
 		isFilteringEnabled.set(false)
 		expect(renderingShapes.length).toBe(3)
 		isFilteringEnabled.set(true)
 		expect(renderingShapes.length).toBe(2)
-		editor.updateShape({ id: ids.box1, type: 'geo', meta: { hidden: false } })
+		editor.updateShape({ id: ids.box1, meta: { hidden: false } })
 		expect(renderingShapes.length).toBe(3)
 	})
 
@@ -800,13 +800,13 @@ describe('isShapeHidden', () => {
 
 		expect(editor.isShapeHidden(editor.getShape(groupId)!)).toBe(false)
 		expect(editor.isShapeHidden(editor.getShape(ids.box1)!)).toBe(false)
-		editor.updateShape({ id: groupId, type: 'group', meta: { hidden: true } })
+		editor.updateShape({ id: groupId, meta: { hidden: true } })
 		expect(editor.isShapeHidden(editor.getShape(groupId)!)).toBe(true)
 		expect(editor.isShapeHidden(editor.getShape(ids.box1)!)).toBe(true)
 	})
 
 	it('still allows hidden shapes to be selected', () => {
-		editor.updateShape({ id: ids.box1, type: 'geo', meta: { hidden: true } })
+		editor.updateShape({ id: ids.box1, meta: { hidden: true } })
 		editor.select(ids.box1)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		expect(editor.isShapeHidden(editor.getShape(ids.box1)!)).toBe(true)
@@ -814,13 +814,13 @@ describe('isShapeHidden', () => {
 
 	it('applies to getCurrentPageRenderingShapesSorted', () => {
 		expect(editor.getCurrentPageRenderingShapesSorted().length).toBe(3)
-		editor.updateShape({ id: ids.box1, type: 'geo', meta: { hidden: true } })
+		editor.updateShape({ id: ids.box1, meta: { hidden: true } })
 		expect(editor.getCurrentPageRenderingShapesSorted().length).toBe(2)
 	})
 
 	it('does not apply to getCurrentPageShapesSorted', () => {
 		expect(editor.getCurrentPageShapesSorted().length).toBe(3)
-		editor.updateShape({ id: ids.box1, type: 'geo', meta: { hidden: true } })
+		editor.updateShape({ id: ids.box1, meta: { hidden: true } })
 		expect(editor.getCurrentPageShapesSorted().length).toBe(3)
 	})
 })

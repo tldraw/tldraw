@@ -120,7 +120,7 @@ import { TLSelectionForegroundProps } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';
 import { TLShapeCrop } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
-import { TLShapePartial } from '@tldraw/editor';
+import { TLShapeUpdatePartial } from '@tldraw/editor';
 import { TLShapeUtilCanBeLaidOutOpts } from '@tldraw/editor';
 import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
@@ -245,7 +245,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     static migrations: MigrationSequence;
     // (undocumented)
-    onDoubleClickHandle(shape: TLArrowShape, handle: TLHandle): TLShapePartial<TLArrowShape> | void;
+    onDoubleClickHandle(shape: TLArrowShape, handle: TLHandle): TLShapeUpdatePartial<TLArrowShape> | void;
     // (undocumented)
     onEditEnd(shape: TLArrowShape): void;
     // (undocumented)
@@ -253,8 +253,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         id: TLShapeId;
         meta?: Partial<JsonObject> | undefined;
         props?: Partial<TLArrowShapeProps> | undefined;
-        type: "arrow";
-    } & Partial<Omit<TLArrowShape, "id" | "meta" | "props" | "type">>;
+    } & Partial<Omit<TLArrowShape, "id" | "meta" | "props">>;
     // (undocumented)
     onResize(shape: TLArrowShape, info: TLResizeInfo<TLArrowShape>): {
         props: {

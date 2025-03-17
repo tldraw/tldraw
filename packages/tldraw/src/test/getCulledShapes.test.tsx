@@ -196,8 +196,8 @@ it('works for shapes that are outside of the viewport, but are then moved inside
 
 	// Move box1 and box2 inside the viewport
 	editor.updateShapes([
-		{ id: box1Id, type: 'geo', x: 100 },
-		{ id: box2Id, type: 'geo', x: 200 },
+		{ id: box1Id, x: 100 },
+		{ id: box2Id, x: 200 },
 	])
 	// Arrow should also not be culled
 	expect(editor.getCulledShapes()).toEqual(new Set())

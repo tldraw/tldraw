@@ -20,14 +20,14 @@ it('zooms to selection bounds', () => {
 })
 
 it('does not zoom past max', () => {
-	editor.updateShapes([{ id: ids.box1, type: 'geo', props: { w: 1, h: 1 } }])
+	editor.updateShapes([{ id: ids.box1, props: { w: 1, h: 1 } }])
 	editor.select(ids.box1)
 	editor.zoomToSelection()
 	expect(editor.getZoomLevel()).toBe(1) // double check again when we're zooming in hard
 })
 
 it('does not zoom past min', () => {
-	editor.updateShapes([{ id: ids.box1, type: 'geo', props: { w: 100000, h: 100000 } }])
+	editor.updateShapes([{ id: ids.box1, props: { w: 100000, h: 100000 } }])
 	editor.select(ids.box1)
 	editor.zoomToSelection()
 	expect(editor.getZoomLevel()).toBe(0.05)

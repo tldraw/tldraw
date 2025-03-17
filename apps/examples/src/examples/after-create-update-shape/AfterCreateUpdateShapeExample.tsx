@@ -19,7 +19,6 @@ function ensureOnlyOneRedShape(editor: Editor, shapeId: TLShapeId) {
 	editor.updateShapes(
 		otherRedShapesOnPage.map((shape) => ({
 			id: shape.id,
-			type: shape.type,
 			props: {
 				color: 'black',
 			},

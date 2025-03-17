@@ -86,7 +86,6 @@ export class Cropping extends StateNode {
 		this.editor.updateShapes([
 			{
 				id: shape.id,
-				type: shape.type,
 				...partial,
 			},
 		])

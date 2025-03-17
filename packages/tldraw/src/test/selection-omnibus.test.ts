@@ -105,7 +105,7 @@ describe('Hovering shapes', () => {
 	})
 
 	it('hovers the margins or inside of filled shapes', () => {
-		editor.updateShape({ id: ids.box1, type: 'geo', props: { fill: 'solid' } })
+		editor.updateShape({ id: ids.box1, props: { fill: 'solid' } })
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerMove(-4, 50)
 		expect(editor.getHoveredShapeId()).toBe(ids.box1)
@@ -293,7 +293,7 @@ describe('when shape is hollow', () => {
 	})
 
 	it('missed on the label when the shape is locked', () => {
-		editor.updateShape({ id: ids.box1, type: 'geo', isLocked: true })
+		editor.updateShape({ id: ids.box1, isLocked: true })
 		editor.pointerMove(-100, -100)
 		expect(editor.getHoveredShapeId()).toBe(null)
 		expect(editor.getSelectedShapeIds()).toEqual([])
@@ -578,7 +578,7 @@ describe('when shape is inside of a frame', () => {
 	})
 
 	it('misses on pointer down over shape, misses on pointer up on the edge when locked', () => {
-		editor.updateShape({ id: ids.box1, type: 'geo', isLocked: true })
+		editor.updateShape({ id: ids.box1, isLocked: true })
 		editor.pointerMove(25, 25)
 		editor.pointerDown() // on the edge of box1 (which is empty)
 		expect(editor.getSelectedShapeIds()).toEqual([])
@@ -587,7 +587,7 @@ describe('when shape is inside of a frame', () => {
 	})
 
 	it('misses on pointer down over shape, misses on pointer up when locked', () => {
-		editor.updateShape({ id: ids.box1, type: 'geo', isLocked: true })
+		editor.updateShape({ id: ids.box1, isLocked: true })
 		editor.pointerMove(50, 50)
 		editor.pointerDown() // on the edge of box1 (which is empty)
 		expect(editor.getSelectedShapeIds()).toEqual([])
@@ -596,7 +596,7 @@ describe('when shape is inside of a frame', () => {
 	})
 
 	it('misses on pointer down over shape label, misses on pointer up when locked', () => {
-		editor.updateShape({ id: ids.box1, type: 'geo', isLocked: true })
+		editor.updateShape({ id: ids.box1, isLocked: true })
 		editor.pointerMove(75, 75)
 		editor.pointerDown() // on the edge of box1 (which is empty)
 		expect(editor.getSelectedShapeIds()).toEqual([])

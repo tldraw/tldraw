@@ -7,6 +7,7 @@ import {
 	toRichText,
 	createShapeId,
 	useEditor,
+	TLShapeUpdatePartial,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { useEffect } from 'react'
@@ -40,9 +41,8 @@ export default function APIExample() {
 		// Get the created shape
 		const shape = editor.getShape<TLGeoShape>(id)!
 
-		const shapeUpdate: TLShapePartial<TLGeoShape> = {
+		const shapeUpdate: TLShapeUpdatePartial<TLGeoShape> = {
 			id,
-			type: 'geo',
 			props: {
 				h: shape.props.h * 3,
 				richText: toRichText('hello world!'),

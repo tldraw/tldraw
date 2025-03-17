@@ -405,7 +405,6 @@ describe('When pasting into frames...', () => {
 			.updateShapes([
 				{
 					id: ids.frame2,
-					type: 'frame',
 					x: 50,
 					y: 50,
 					props: {

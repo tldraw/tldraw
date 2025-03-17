@@ -8,7 +8,7 @@ import {
 	TLNoteShape,
 	TLPointerEventInfo,
 	TLShape,
-	TLShapePartial,
+	TLShapeUpdatePartial,
 	TLTickEventInfo,
 	Vec,
 	bind,
@@ -214,7 +214,7 @@ export class Translating extends StateNode {
 	protected handleStart() {
 		const { movingShapes } = this.snapshot
 
-		const changes: TLShapePartial[] = []
+		const changes: TLShapeUpdatePartial[] = []
 
 		movingShapes.forEach((shape) => {
 			const util = this.editor.getShapeUtil(shape)
@@ -249,7 +249,7 @@ export class Translating extends StateNode {
 			}
 		}
 
-		const changes: TLShapePartial[] = []
+		const changes: TLShapeUpdatePartial[] = []
 
 		movingShapes.forEach((shape) => {
 			const current = this.editor.getShape(shape.id)!
@@ -277,7 +277,7 @@ export class Translating extends StateNode {
 
 		const { movingShapes } = snapshot
 
-		const changes: TLShapePartial[] = []
+		const changes: TLShapeUpdatePartial[] = []
 
 		movingShapes.forEach((shape) => {
 			const current = this.editor.getShape(shape.id)!
@@ -510,7 +510,7 @@ export function moveShapesToPoint({
 
 	editor.updateShapes(
 		compact(
-			shapeSnapshots.map(({ shape, pagePoint, parentTransform }): TLShapePartial | null => {
+			shapeSnapshots.map(({ shape, pagePoint, parentTransform }): TLShapeUpdatePartial | null => {
 				const newPagePoint = Vec.Add(pagePoint, averageSnap)
 
 				const newLocalPoint = parentTransform
@@ -519,7 +519,6 @@ export function moveShapesToPoint({
 
 				return {
 					id: shape.id,
-					type: shape.type,
 					x: newLocalPoint.x,
 					y: newLocalPoint.y,
 				}

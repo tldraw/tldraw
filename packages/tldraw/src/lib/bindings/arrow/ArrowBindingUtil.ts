@@ -12,7 +12,7 @@ import {
 	TLParentId,
 	TLShape,
 	TLShapeId,
-	TLShapePartial,
+	TLShapeUpdatePartial,
 	Vec,
 	approximately,
 	arrowBindingMigrations,
@@ -215,12 +215,11 @@ export function updateArrowTerminal({
 
 	const update = {
 		id: arrow.id,
-		type: 'arrow',
 		props: {
 			[terminal]: { x: point.x, y: point.y },
 			bend: arrow.props.bend,
 		},
-	} satisfies TLShapePartial<TLArrowShape>
+	} satisfies TLShapeUpdatePartial<TLArrowShape>
 
 	// fix up the bend:
 	if (!info.isStraight) {

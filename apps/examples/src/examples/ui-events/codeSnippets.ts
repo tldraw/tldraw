@@ -67,7 +67,7 @@ export function getCodeSnippet(name: string, data: any) {
 		codeSnippet = 'editor.rotateShapesBy(editor.getSelectedShapeIds(), <number>)'
 	} else if (name === 'edit-link') {
 		codeSnippet =
-			'editor.updateShapes([{ id: editor.getOnlySelectedShape().id, type: editor.getOnlySelectedShape().type, props: { url: <url> }, }, ])'
+			'editor.updateShapes([{ id: editor.getOnlySelectedShape().id, props: { url: <url> }, }, ])'
 	} else if (name.startsWith('export-as')) {
 		codeSnippet = `exportAs(editor.getSelectedShapeIds(), '${data.format}')`
 	} else if (name.startsWith('copy-as')) {
@@ -111,10 +111,10 @@ editor.setCurrentTool('${data.id}')`
 	} else if (name === 'print') {
 		codeSnippet = 'printSelectionOrPages()'
 	} else if (name === 'unlock-all') {
-		codeSnippet = `\n  const updates = [] as TLShapePartial[]
+		codeSnippet = `\n  const updates = [] as TLShapeUpdatePartial[]
 for (const shape of editor.getCurrentPageShapes()) {
   if (shape.isLocked) {
-    updates.push({ id: shape.id, type: shape.type, isLocked: false })
+    updates.push({ id: shape.id, isLocked: false })
   }
 }
 if (updates.length > 0) {

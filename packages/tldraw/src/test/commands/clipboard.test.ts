@@ -456,7 +456,6 @@ describe('When copying and pasting', () => {
 			.updateShapes([
 				{
 					id: editor.getCurrentPageShapes()[2].id,
-					type: 'group',
 					x: 400,
 					y: 400,
 				},

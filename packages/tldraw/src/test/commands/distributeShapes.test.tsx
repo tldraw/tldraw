@@ -67,7 +67,7 @@ describe('distributeShapes command', () => {
 		})
 
 		it('distributeShapes horizontally when shapes are clustered', () => {
-			editor.updateShapes([{ id: ids.boxC, type: 'geo', x: 25 }])
+			editor.updateShapes([{ id: ids.boxC, x: 25 }])
 			editor.selectAll()
 			editor.distributeShapes(editor.getSelectedShapeIds(), 'horizontal')
 			jest.advanceTimersByTime(1000)
@@ -90,7 +90,7 @@ describe('distributeShapes command', () => {
 		})
 
 		it('distributeShapes vertically when shapes are clustered', () => {
-			editor.updateShapes([{ id: ids.boxC, type: 'geo', y: 25 }])
+			editor.updateShapes([{ id: ids.boxC, y: 25 }])
 			editor.selectAll()
 			editor.distributeShapes(editor.getSelectedShapeIds(), 'vertical')
 			jest.advanceTimersByTime(1000)

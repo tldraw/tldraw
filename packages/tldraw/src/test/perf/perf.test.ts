@@ -1,4 +1,4 @@
-import { TLShapePartial, Vec, createShapeId } from '@tldraw/editor'
+import { TLShapePartial, TLShapeUpdatePartial, Vec, createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 import { PerformanceMeasurer } from './PerformanceMeasurer'
 
@@ -81,7 +81,6 @@ describe.skip('Example perf tests', () => {
 			.add(() => {
 				for (let i = 0; i < 200; i++) {
 					editor.updateShape({
-						type: 'geo',
 						id: ids[i],
 						x: (i % 10) * 220 + 1,
 						props: {
@@ -111,11 +110,10 @@ describe.skip('Example perf tests', () => {
 				}
 			})
 			.add(() => {
-				const shapesToUpdate: TLShapePartial[] = []
+				const shapesToUpdate: TLShapeUpdatePartial[] = []
 				for (let i = 0; i < 200; i++) {
 					shapesToUpdate.push({
 						id: ids[i],
-						type: 'geo',
 						x: (i % 10) * 220 + 1,
 						props: {
 							w: 201,

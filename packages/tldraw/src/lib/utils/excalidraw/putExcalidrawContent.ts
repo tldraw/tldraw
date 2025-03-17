@@ -354,7 +354,6 @@ export async function putExcalidrawContent(
 
 			return {
 				id: s.id,
-				type: s.type,
 				x: viewPortCenter.x + delta.x,
 				y: viewPortCenter.y + delta.y,
 			}

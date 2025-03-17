@@ -7,7 +7,7 @@ import {
 	TLHighlightShape,
 	TLKeyboardEventInfo,
 	TLPointerEventInfo,
-	TLShapePartial,
+	TLShapeUpdatePartial,
 	Vec,
 	VecModel,
 	createShapeId,
@@ -222,16 +222,15 @@ export class Drawing extends StateNode {
 					this.currentLineLength = this.getLineLength(segments)
 				}
 
-				const shapePartial: TLShapePartial<DrawableShape> = {
+				const shapePartial: TLShapeUpdatePartial<DrawableShape> = {
 					id: shape.id,
-					type: this.shapeType,
 					props: {
 						segments,
 					},
 				}
 
 				if (this.canClose()) {
-					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
+					;(shapePartial as TLShapeUpdatePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 						segments,
 						shape.props.size,
 						shape.props.scale
@@ -352,7 +351,7 @@ export class Drawing extends StateNode {
 						}
 					}
 
-					const shapePartial: TLShapePartial<DrawableShape> = {
+					const shapePartial: TLShapeUpdatePartial<DrawableShape> = {
 						id,
 						type: this.shapeType,
 						props: {
@@ -361,7 +360,7 @@ export class Drawing extends StateNode {
 					}
 
 					if (this.canClose()) {
-						;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
+						;(shapePartial as TLShapeUpdatePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 							segments,
 							size,
 							scale
@@ -421,16 +420,15 @@ export class Drawing extends StateNode {
 						this.currentLineLength = this.getLineLength(finalSegments)
 					}
 
-					const shapePartial: TLShapePartial<DrawableShape> = {
+					const shapePartial: TLShapeUpdatePartial<DrawableShape> = {
 						id,
-						type: this.shapeType,
 						props: {
 							segments: finalSegments,
 						},
 					}
 
 					if (this.canClose()) {
-						;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
+						;(shapePartial as TLShapeUpdatePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 							finalSegments,
 							size,
 							scale
@@ -563,16 +561,15 @@ export class Drawing extends StateNode {
 					points: [newSegment.points[0], newPoint],
 				}
 
-				const shapePartial: TLShapePartial<DrawableShape> = {
+				const shapePartial: TLShapeUpdatePartial<DrawableShape> = {
 					id,
-					type: this.shapeType,
 					props: {
 						segments: newSegments,
 					},
 				}
 
 				if (this.canClose()) {
-					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
+					;(shapePartial as TLShapeUpdatePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 						segments,
 						size,
 						scale
@@ -611,7 +608,7 @@ export class Drawing extends StateNode {
 					this.currentLineLength = this.getLineLength(newSegments)
 				}
 
-				const shapePartial: TLShapePartial<DrawableShape> = {
+				const shapePartial: TLShapeUpdatePartial<DrawableShape> = {
 					id,
 					type: this.shapeType,
 					props: {
@@ -620,7 +617,7 @@ export class Drawing extends StateNode {
 				}
 
 				if (this.canClose()) {
-					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
+					;(shapePartial as TLShapeUpdatePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 						newSegments,
 						size,
 						scale
@@ -631,7 +628,7 @@ export class Drawing extends StateNode {
 
 				// Set a maximum length for the lines array; after 200 points, complete the line.
 				if (newPoints.length > this.util.options.maxPointsPerShape) {
-					this.editor.updateShapes([{ id, type: this.shapeType, props: { isComplete: true } }])
+					this.editor.updateShapes([{ id, props: { isComplete: true } }])
 
 					const newShapeId = createShapeId()
 
@@ -707,9 +704,7 @@ export class Drawing extends StateNode {
 	complete() {
 		const { initialShape } = this
 		if (!initialShape) return
-		this.editor.updateShapes([
-			{ id: initialShape.id, type: initialShape.type, props: { isComplete: true } },
-		])
+		this.editor.updateShapes([{ id: initialShape.id, props: { isComplete: true } }])
 
 		this.parent.transition('idle')
 	}

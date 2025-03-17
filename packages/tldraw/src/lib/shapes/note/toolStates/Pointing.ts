@@ -135,7 +135,6 @@ export function createNoteShape(editor: Editor, id: TLShapeId, center: Vec) {
 	editor.updateShapes([
 		{
 			id,
-			type: 'note',
 			x: newPoint.x,
 			y: newPoint.y,
 		},
