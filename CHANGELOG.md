@@ -1,3 +1,34 @@
+# v3.10.3 (Tue Mar 18 2025)
+
+### Release Notes
+
+#### exports: fix Inter being embedded; reduce excessive styling ([#5676](https://github.com/tldraw/tldraw/pull/5676))
+
+- Fix issue with exports embedding Inter and having excessive styling.
+
+---
+
+#### 🐛 Bug Fix
+
+- docs: fix up dismissable content [#5668](https://github.com/tldraw/tldraw/pull/5668) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Hotfix: Track Enter key to accept search query (#5625) [#5666](https://github.com/tldraw/tldraw/pull/5666) ([@TodePond](https://github.com/TodePond))
+- [Hotfix] dismissibles [#5659](https://github.com/tldraw/tldraw/pull/5659) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fixes
+
+- `@tldraw/editor`, `tldraw`
+  - exports: fix Inter being embedded; reduce excessive styling [#5676](https://github.com/tldraw/tldraw/pull/5676) ([@mimecuvalo](https://github.com/mimecuvalo) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+
+#### Authors: 5
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.10.2 (Fri Mar 14 2025)
 
 ### Release Notes
