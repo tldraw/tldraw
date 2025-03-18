@@ -20,8 +20,7 @@ export async function refreshContent(opts = {} as { silent: boolean }) {
 	await addContentToDb(db, await generateContent())
 
 	if (!opts.silent) nicelog('◦ Generating / adding Examples content to db...')
-	const examplesContent = await generateExamplesContent()
-	await addContentToDb(db, examplesContent)
+	await addContentToDb(db, await generateExamplesContent())
 
 	if (!opts.silent) nicelog('◦ Generating / adding API content to db...')
 	await addContentToDb(db, await generateApiContent())
