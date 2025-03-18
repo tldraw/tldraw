@@ -91,6 +91,9 @@ export default defineConfig((env) => ({
 			ignored: ['**/playwright-report/**', '**/test-results/**'],
 		},
 	},
+	esbuild: {
+		target: 'es2022',
+	},
 	css: {
 		modules: {
 			scopeBehaviour: 'local',
