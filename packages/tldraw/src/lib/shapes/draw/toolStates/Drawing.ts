@@ -610,6 +610,7 @@ export class Drawing extends StateNode {
 				const newPoints = [...newSegment.points]
 
 				if (newPoints.length && this.mergeNextPoint) {
+					this.ohno('free: mergeNextPoint')
 					const { z } = newPoints[newPoints.length - 1]
 					newPoints[newPoints.length - 1] = {
 						x: newPoint.x,
@@ -619,6 +620,7 @@ export class Drawing extends StateNode {
 					// Note: we could recompute the line length here, but it's not really necessary
 					// this.currentLineLength = this.getLineLength(newSegments)
 				} else {
+					this.ohno('free: push newPoint')
 					this.currentLineLength += Vec.Dist(newPoints[newPoints.length - 1], newPoint)
 					newPoints.push(newPoint)
 				}
@@ -738,6 +740,7 @@ export class Drawing extends StateNode {
 		this.editor.updateShapes([
 			{ id: initialShape.id, type: initialShape.type, props: { isComplete: true } },
 		])
+		this.ohno(`complete: ${+JSON.stringify(this.editor.getShape(initialShape.id))}`)
 		;(window as any).sentry.captureException(new Error('complete'))
 
 		this.parent.transition('idle')
