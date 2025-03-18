@@ -1,5 +1,14 @@
-import { Editor, StateNode, TLHandle, TLNoteShape, TLPointerEventInfo, Vec } from '@tldraw/editor'
+import {
+	Editor,
+	StateNode,
+	TLArrowShape,
+	TLHandle,
+	TLNoteShape,
+	TLPointerEventInfo,
+	Vec,
+} from '@tldraw/editor'
 import { ReactNode } from 'react'
+import { getArrowBindings } from '../../../shapes/arrow/shared'
 import {
 	NOTE_CENTER_OFFSET,
 	getNoteAdjacentPositions,
@@ -20,19 +29,19 @@ export class PointingHandle extends StateNode {
 		this.didCtrlOnEnter = info.accelKey
 
 		const { shape } = info
-		// if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
-		// 	const initialBinding = getArrowBindings(this.editor, shape)[info.handle.id as 'start' | 'end']
+		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+			const initialBinding = getArrowBindings(this.editor, shape)[info.handle.id as 'start' | 'end']
 
-		// 	if (initialBinding) {
-		// 		this.editor.setHintingShapes([initialBinding.toId])
-		// 	}
-		// }
+			if (initialBinding) {
+				this.editor.setHintingShapes([initialBinding.toId])
+			}
+		}
 
 		this.editor.setCursor({ type: 'grabbing', rotation: 0 })
 	}
 
 	override onExit() {
-		// this.editor.setHintingShapes([])
+		this.editor.setHintingShapes([])
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 

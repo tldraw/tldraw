@@ -128,7 +128,7 @@ export class DraggingHandle extends StateNode {
 			this.isPrecise = false
 
 			if (initialBinding) {
-				// this.editor.setHintingShapes([initialBinding.toId])
+				this.editor.setHintingShapes([initialBinding.toId])
 
 				this.isPrecise = initialBinding.props.isPrecise
 				if (this.isPrecise) {
@@ -137,7 +137,7 @@ export class DraggingHandle extends StateNode {
 					this.resetExactTimeout()
 				}
 			} else {
-				// this.editor.setHintingShapes([])
+				this.editor.setHintingShapes([])
 			}
 		}
 		// -->
@@ -201,7 +201,7 @@ export class DraggingHandle extends StateNode {
 
 	override onExit() {
 		this.parent.setCurrentToolIdMask(undefined)
-		// this.editor.setHintingShapes([])
+		this.editor.setHintingShapes([])
 		this.editor.snaps.clearIndicators()
 
 		this.editor.setCursor({ type: 'default', rotation: 0 })
@@ -321,7 +321,7 @@ export class DraggingHandle extends StateNode {
 
 			if (bindingAfter) {
 				if (hintingShapeIds[0] !== bindingAfter.toId) {
-					// editor.setHintingShapes([bindingAfter.toId])
+					editor.setHintingShapes([bindingAfter.toId])
 					this.pointingId = bindingAfter.toId
 					this.isPrecise = pointerVelocity.len() < 0.5 || altKey
 					this.isPreciseId = this.isPrecise ? bindingAfter.toId : null
@@ -329,7 +329,7 @@ export class DraggingHandle extends StateNode {
 				}
 			} else {
 				if (hintingShapeIds.length > 0) {
-					// editor.setHintingShapes([])
+					editor.setHintingShapes([])
 					this.pointingId = null
 					this.isPrecise = false
 					this.isPreciseId = null

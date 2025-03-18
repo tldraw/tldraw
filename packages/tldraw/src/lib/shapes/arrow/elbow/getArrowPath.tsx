@@ -1,5 +1,6 @@
 import { Box, ElbowArrowSide, Vec, VecModel } from '@tldraw/editor'
-import { ELBOW_ARROW_DIRS, ElbowArrowSideDeltas } from './definitions'
+import { ElbowArrowSideDeltas } from '@tldraw/editor/src/lib/arrows/definitions'
+import { ELBOW_ARROW_DIRS } from './definitions'
 import { ArrowNavigationGrid } from './getArrowNavigationGrid'
 
 class ArrowStepResult {

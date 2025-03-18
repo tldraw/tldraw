@@ -1,6 +1,5 @@
 import {
 	Arc2d,
-	ArrowShapeKindStyle,
 	Box,
 	EMPTY_ARRAY,
 	Edge2d,
@@ -25,7 +24,6 @@ import {
 	TLShapeUtilCanBindOpts,
 	TLShapeUtilCanvasSvgDef,
 	Vec,
-	VecLike,
 	WeakCache,
 	arrowShapeMigrations,
 	arrowShapeProps,
@@ -43,6 +41,7 @@ import {
 	useSharedSafeId,
 	useValue,
 } from '@tldraw/editor'
+import { findArrowTarget } from '@tldraw/editor/src/lib/arrows/target'
 import React from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 import { PlainTextLabel } from '../shared/PlainTextLabel'
@@ -425,7 +424,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		createOrUpdateArrowBinding(this.editor, shape, target.id, bindingProps)
 
-		// this.editor.setHintingShapes([target.id])
+		this.editor.setHintingShapes([target.id])
 
 		const newBindings = getArrowBindings(this.editor, shape)
 		if (newBindings.start && newBindings.end && newBindings.start.toId === newBindings.end.toId) {
@@ -1133,29 +1132,4 @@ function ArrowheadCrossDef() {
 			<line x1="1.5" y1="4.5" x2="4.5" y2="1.5" strokeDasharray="100%" />
 		</marker>
 	)
-}
-
-const targetFilterFallback = { type: 'arrow' }
-export function findArrowTarget(
-	editor: Editor,
-	arrow: TLArrowShape | null,
-	point: VecLike = editor.inputs.currentPagePoint
-) {
-	const arrowKind = arrow ? arrow.props.kind : editor.getStyleForNextShape(ArrowShapeKindStyle)
-
-	return editor.getShapeAtPoint(point, {
-		hitInside: true,
-		hitFrameInside: true,
-		margin: arrowKind === 'elbow' ? 8 : 0,
-		filter: (targetShape) => {
-			return (
-				!targetShape.isLocked &&
-				editor.canBindShapes({
-					fromShape: arrow ?? targetFilterFallback,
-					toShape: targetShape,
-					binding: 'arrow',
-				})
-			)
-		},
-	})
 }

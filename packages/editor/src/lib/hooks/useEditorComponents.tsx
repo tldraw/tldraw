@@ -1,4 +1,5 @@
 import { ComponentType, ReactNode, createContext, useContext, useMemo } from 'react'
+import { DefaultArrowHints } from '../components/default-components/DefaultArrowHints'
 import { DefaultBackground } from '../components/default-components/DefaultBackground'
 import { DefaultBrush, TLBrushProps } from '../components/default-components/DefaultBrush'
 import {
@@ -74,6 +75,7 @@ export interface TLEditorComponents {
 	OnTheCanvas?: ComponentType | null
 	InFrontOfTheCanvas?: ComponentType | null
 	LoadingScreen?: ComponentType | null
+	ArrowHints?: ComponentType | null
 
 	// These will always have defaults
 	ErrorFallback?: TLErrorFallbackComponent
@@ -118,6 +120,7 @@ export function EditorComponentsProvider({
 			SelectionForeground: DefaultSelectionForeground,
 			ShapeIndicators: DefaultShapeIndicators,
 			ShapeIndicator: DefaultShapeIndicator,
+			ArrowHints: DefaultArrowHints,
 			OnTheCanvas: null,
 			InFrontOfTheCanvas: null,
 			Canvas: DefaultCanvas,

@@ -44,7 +44,7 @@
 	/* User handles need to be above selection edges / corners, matters for sticky note clone handles */
 	--layer-overlays-user-handles: 105;
 	--layer-overlays-user-indicator-hint: 110;
-	--layer-overlays-user-tool-overlay: 115;
+	--layer-overlays-user-arrow-hints: 115;
 	--layer-overlays-collaborator-cursor-hint: 120;
 	--layer-overlays-collaborator-cursor: 130;
 
@@ -458,8 +458,8 @@ input,
 	stroke-width: calc(2.5px * var(--tl-scale));
 }
 
-.tl-user-tool-overlay {
-	z-index: var(--layer-overlays-user-tool-overlay);
+.tl-user-arrow-hints {
+	z-index: var(--layer-overlays-user-arrow-hints);
 }
 
 /* behind collaborator cursor */
@@ -583,6 +583,21 @@ input,
 	.tl-handle__create {
 		opacity: 1;
 	}
+}
+
+/* --------------------- Arrow Hints -------------------- */
+
+.tl-arrow-hint-handle {
+	fill: var(--color-selected-contrast);
+	stroke: var(--color-selection-stroke);
+	stroke-width: calc(1.5px * var(--tl-scale));
+	r: calc(4px * var(--tl-scale));
+}
+
+.tl-arrow-hint-handle__active {
+	stroke: transparent;
+	fill: var(--color-selection-fill);
+	r: calc(12px * var(--tl-scale));
 }
 
 /* ------------------ Bounds Detail ----------------- */

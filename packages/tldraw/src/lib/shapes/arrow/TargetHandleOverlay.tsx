@@ -11,8 +11,9 @@ import {
 	Vec,
 	VecLike,
 } from '@tldraw/editor'
-import { ArrowShapeUtil, findArrowTarget } from './ArrowShapeUtil'
-import { ElbowArrowSideDeltas } from './elbow/definitions'
+import { ElbowArrowSideDeltas } from '@tldraw/editor/src/lib/arrows/definitions'
+import { findArrowTarget } from '@tldraw/editor/src/lib/arrows/target'
+import { ArrowShapeUtil } from './ArrowShapeUtil'
 
 const targetFilterFallback = { type: 'arrow' }
 
