@@ -70,7 +70,7 @@
 		"npm": ">=7.0.0",
 		"node": "^20.0.0"
 	},
-	"packageManager": "yarn@4.0.2",
+	"packageManager": "yarn@4.7.0+sha256.293632d8a095d8ea4786eb2c5798c83c37544abed17ed31186a3ec4549a07c06",
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json}": [
 			"prettier --write --cache --log-level=warn"
