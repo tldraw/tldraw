@@ -237,7 +237,6 @@ export function RichTextSVG({
 	}
 	const style = {
 		fontSize: `${fontSize}px`,
-		fontFamily: DefaultFontFamilies[font],
 		wrap: wrap ? 'wrap' : 'nowrap',
 		color: labelColor,
 		lineHeight: TEXT_PROPS.lineHeight,
