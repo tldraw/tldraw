@@ -7512,7 +7512,10 @@ __metadata:
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
+    "@types/react": "npm:^18.3.18"
     lodash.isequal: "npm:^4.5.0"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
     tldraw: "workspace:*"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
@@ -7537,6 +7540,7 @@ __metadata:
     "@tldraw/validate": "workspace:*"
     "@tldraw/worker-shared": "workspace:*"
     "@types/pg": "npm:^8.11.11"
+    "@types/react": "npm:^18.3.18"
     esbuild: "npm:^0.24.2"
     itty-router: "npm:^5.0.18"
     jose: "npm:^5.9.6"
@@ -7570,6 +7574,7 @@ __metadata:
     "@tldraw/validate": "workspace:*"
     "@types/benchmark": "npm:^2.1.5"
     "@types/core-js": "npm:^2.5.8"
+    "@types/react": "npm:^18.3.18"
     "@types/wicg-file-system-access": "npm:^2020.9.8"
     "@use-gesture/react": "npm:^10.3.1"
     benchmark: "npm:^2.1.4"
@@ -7583,6 +7588,8 @@ __metadata:
     jest-environment-jsdom: "npm:^29.7.0"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash.isequal: "npm:^4.5.0"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
     resize-observer-polyfill: "npm:^1.5.1"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
@@ -7695,6 +7702,8 @@ __metadata:
     "@types/lodash": "npm:^4.17.14"
     "@types/react": "npm:^18.3.18"
     lodash: "npm:^4.17.21"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
     react-dom: ^18.2.0 || ^19.0.0
@@ -7735,9 +7744,12 @@ __metadata:
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
+    "@types/react": "npm:^18.3.18"
     "@types/uuid-readable": "npm:^0.0.3"
     lodash.isequal: "npm:^4.5.0"
     nanoevents: "npm:^7.0.1"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
     tldraw: "workspace:*"
     typescript: "npm:~5.4.5"
     uuid-by-string: "npm:^4.0.0"
@@ -7757,8 +7769,11 @@ __metadata:
     "@tldraw/state-react": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
     "@tldraw/utils": "workspace:*"
+    "@types/react": "npm:^18.3.18"
     lodash.isequal: "npm:^4.5.0"
     nanoevents: "npm:^7.0.1"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
     tldraw: "workspace:*"
     typescript: "npm:~5.4.5"
     uuid-by-string: "npm:^4.0.0"
@@ -7774,8 +7789,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/tldraw@workspace:packages/namespaced-tldraw"
   dependencies:
+    "@types/react": "npm:^18.3.18"
     chokidar-cli: "npm:^3.0.0"
     lazyrepo: "npm:0.0.0-alpha.27"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
     tldraw: "workspace:*"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
@@ -7793,6 +7811,7 @@ __metadata:
     "@tldraw/validate": "workspace:*"
     kleur: "npm:^4.1.5"
     lazyrepo: "npm:0.0.0-alpha.27"
+    react: "npm:^18.3.1"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
     react-dom: ^18.2.0 || ^19.0.0
@@ -13938,6 +13957,7 @@ __metadata:
     "@tldraw/state": "workspace:*"
     "@tldraw/sync": "workspace:*"
     "@types/lodash": "npm:^4.17.14"
+    "@types/react": "npm:^18.3.18"
     "@vercel/analytics": "npm:^1.4.1"
     "@vitejs/plugin-react-swc": "npm:^3.7.2"
     ag-grid-community: "npm:^32.3.3"
@@ -24783,6 +24803,7 @@ __metadata:
     "@tldraw/editor": "workspace:*"
     "@types/fs-extra": "npm:^11.0.4"
     "@types/node-fetch": "npm:^2.6.12"
+    "@types/react": "npm:^18.3.18"
     "@types/vscode": "npm:^1.96.0"
     "@typescript-eslint/eslint-plugin": "npm:^8.21.0"
     "@typescript-eslint/parser": "npm:^8.21.0"
@@ -24796,6 +24817,8 @@ __metadata:
     mocha: "npm:^9.2.2"
     node-fetch: "npm:^2.7.0"
     process: "npm:^0.11.10"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
     tldraw: "workspace:*"
     ts-loader: "npm:^9.5.2"
     tslib: "npm:^2.8.1"
@@ -24834,6 +24857,7 @@ __metadata:
     "@tldraw/store": "workspace:*"
     "@types/classnames": "npm:^2.3.4"
     "@types/lz-string": "npm:^1.5.0"
+    "@types/react": "npm:^18.3.18"
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.5.1"
     hotkeys-js: "npm:^3.13.9"
@@ -24843,6 +24867,8 @@ __metadata:
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash.isequal: "npm:^4.5.0"
     lz-string: "npm:^1.5.0"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
     resize-observer-polyfill: "npm:^1.5.1"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
