@@ -85,7 +85,7 @@ test.describe('camera', () => {
 	test('panning', async ({ isMobile, page }) => {
 		test.skip(!isMobile)
 		client = await page.context().newCDPSession(page)
-		expect(await page.evaluate(() => editor.inputs.currentPagePoint)).toEqual({
+		expect(await page.evaluate(() => editor.inputs.currentPagePoint.toJson())).toEqual({
 			x: 50,
 			y: 50,
 			z: 0,
