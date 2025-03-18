@@ -740,7 +740,7 @@ export class Drawing extends StateNode {
 		this.editor.updateShapes([
 			{ id: initialShape.id, type: initialShape.type, props: { isComplete: true } },
 		])
-		this.ohno(`complete: ${+JSON.stringify(this.editor.getShape(initialShape.id))}`)
+		this.ohno(`complete: ${JSON.stringify(this.editor.getShape(initialShape.id))}`)
 		;(window as any).sentry.captureException(new Error('complete'))
 
 		this.parent.transition('idle')
