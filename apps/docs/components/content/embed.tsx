@@ -10,6 +10,9 @@ export function Embed(props: any) {
 		setIsExampleFocused(true)
 		iframeRef.current?.focus()
 	}
+	function handleBlur() {
+		setIsExampleFocused(false)
+	}
 	return (
 		<div>
 			<div className="bg-zinc-100 dark:bg-zinc-700 py-1 md:rounded-2xl -mx-5 md:-mx-1 md:px-1">
@@ -26,6 +29,7 @@ export function Embed(props: any) {
 						width="100%"
 						height={550}
 						allow="autoplay; clipboard-read; clipboard-write"
+						onBlur={handleBlur}
 					/>
 					{!isExampleFocused && (
 						<div
