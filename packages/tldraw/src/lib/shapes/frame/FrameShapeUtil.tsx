@@ -82,14 +82,34 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const height = isVertical ? labelWidth : labelHeight
 
 		// Calculate label position based on side
-		const positions = [
-			{ x: offsetX, y: -labelHeight - offsetY },
-			{ x: -labelHeight - offsetY, y: shape.props.h - offsetX - labelWidth },
-			{ x: shape.props.w - offsetX - labelWidth, y: shape.props.h + offsetY },
-			{ x: shape.props.w + offsetY, y: offsetX },
-		]
+		let x: number, y: number
 
-		const { x, y } = positions[labelSide]
+		switch (labelSide) {
+			case 0: {
+				// top
+				x = -labelWidth - offsetX
+				y = -labelHeight - offsetY
+				break
+			}
+			case 1: {
+				// right
+				x = -labelHeight - offsetY
+				y = shape.props.h - offsetX
+				break
+			}
+			case 2: {
+				// bottom
+				x = shape.props.w + offsetY
+				y = offsetX
+				break
+			}
+			case 3: {
+				// left
+				x = offsetX
+				y = -labelHeight - offsetY
+				break
+			}
+		}
 
 		return new Group2d({
 			children: [
