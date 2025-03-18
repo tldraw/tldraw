@@ -4,9 +4,6 @@ import {
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	DefaultContextMenuContent,
-	DefaultSpinner,
-	ErrorScreen,
-	LoadingScreen,
 	TldrawEditor,
 	TldrawHandles,
 	TldrawScribble,
@@ -14,15 +11,15 @@ import {
 	TldrawSelectionForeground,
 	TldrawShapeIndicators,
 	TldrawUi,
+	defaultAddFontsFromNode,
 	defaultBindingUtils,
-	defaultEditorAssetUrls,
 	defaultShapeTools,
 	defaultShapeUtils,
 	defaultTools,
 	registerDefaultExternalContentHandlers,
 	registerDefaultSideEffects,
+	tipTapDefaultExtensions,
 	useEditor,
-	usePreloadAssets,
 	useToasts,
 	useTranslation,
 } from 'tldraw'
@@ -40,31 +37,26 @@ const defaultComponents = {
 	Handles: TldrawHandles,
 }
 
+const allDefaultTools = [...defaultTools, ...defaultShapeTools]
+const defaultTextOptions = {
+	tipTapConfig: {
+		extensions: tipTapDefaultExtensions,
+	},
+	addFontsFromNode: defaultAddFontsFromNode,
+}
+
 //[2]
 export default function ExplodedExample() {
-	const assetLoading = usePreloadAssets(defaultEditorAssetUrls)
-
-	if (assetLoading.error) {
-		return <ErrorScreen>Could not load assets.</ErrorScreen>
-	}
-
-	if (!assetLoading.done) {
-		return (
-			<LoadingScreen>
-				<DefaultSpinner />
-			</LoadingScreen>
-		)
-	}
-
 	return (
 		<div className="tldraw__editor">
 			<TldrawEditor
 				initialState="select"
 				shapeUtils={defaultShapeUtils}
 				bindingUtils={defaultBindingUtils}
-				tools={[...defaultTools, ...defaultShapeTools]}
+				tools={allDefaultTools}
 				components={defaultComponents}
 				persistenceKey="exploded-example"
+				textOptions={defaultTextOptions}
 			>
 				<TldrawUi>
 					<InsideEditorAndUiContext />
@@ -81,19 +73,14 @@ function InsideEditorAndUiContext() {
 
 	// [3]
 	useEffect(() => {
-		registerDefaultExternalContentHandlers(
-			editor,
-			{
-				maxImageDimension: 5000,
-				maxAssetSize: 10 * 1024 * 1024, // 10mb
-				acceptedImageMimeTypes: DEFAULT_SUPPORTED_IMAGE_TYPES,
-				acceptedVideoMimeTypes: DEFAULT_SUPPORT_VIDEO_TYPES,
-			},
-			{
-				toasts,
-				msg,
-			}
-		)
+		registerDefaultExternalContentHandlers(editor, {
+			maxImageDimension: 5000,
+			maxAssetSize: 10 * 1024 * 1024, // 10mb
+			acceptedImageMimeTypes: DEFAULT_SUPPORTED_IMAGE_TYPES,
+			acceptedVideoMimeTypes: DEFAULT_SUPPORT_VIDEO_TYPES,
+			toasts,
+			msg,
+		})
 
 		const cleanupSideEffects = registerDefaultSideEffects(editor)
 

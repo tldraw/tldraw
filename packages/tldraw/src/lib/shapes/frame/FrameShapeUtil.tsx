@@ -27,9 +27,9 @@ import {
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { FrameHeading } from './components/FrameHeading'
 import {
-	getFrameHeadingInfo,
 	getFrameHeadingOpts,
 	getFrameHeadingSide,
+	getFrameHeadingSize,
 	getFrameHeadingTranslation,
 } from './frameHelpers'
 
@@ -58,13 +58,13 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const { editor } = this
 		const z = editor.getZoomLevel()
 		const opts = getFrameHeadingOpts(shape, 'black')
-		const headingInfo = getFrameHeadingInfo(editor, shape, opts)
+		const box = getFrameHeadingSize(editor, shape, opts)
 		const labelSide = getFrameHeadingSide(editor, shape)
 
 		// wow this fucking sucks!!!
 		let x: number, y: number, w: number, h: number
 
-		const { w: hw, h: hh } = headingInfo.box
+		const { w: hw, h: hh } = box
 		const scaledW = Math.min(hw, shape.props.w * z)
 		const scaledH = Math.min(hh, shape.props.h * z)
 
@@ -123,7 +123,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override component(shape: TLFrameShape) {
-		const bounds = this.editor.getShapeGeometry(shape).bounds
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 
@@ -155,20 +154,20 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				<SVGContainer>
 					<rect
 						className={classNames('tl-frame__body', { 'tl-frame__creating': isCreating })}
-						width={bounds.width}
-						height={bounds.height}
-						fill={frameFill}
-						stroke={frameStroke}
+						width={shape.props.w}
+						height={shape.props.h}
+						fill={theme.solid}
+						stroke={theme.text}
 					/>
 				</SVGContainer>
 				{isCreating ? null : (
 					<FrameHeading
 						id={shape.id}
 						name={shape.props.name}
-						width={bounds.width}
-						height={bounds.height}
 						fill={frameHeadingFill}
 						color={frameHeadingText}
+						width={shape.props.w}
+						height={shape.props.h}
 					/>
 				)}
 			</>
@@ -185,7 +184,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		// Truncate with ellipsis
 		const opts: TLCreateTextJsxFromSpansOpts = getFrameHeadingOpts(shape, theme.text)
 
-		const { box: labelBounds, spans } = getFrameHeadingInfo(this.editor, shape, opts)
+		const frameTitle = defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203)
+		const labelBounds = getFrameHeadingSize(this.editor, shape, opts)
+		const spans = this.editor.textMeasure.measureTextSpans(frameTitle, opts)
 		const text = createTextJsxFromSpans(this.editor, spans, opts)
 
 		return (
@@ -216,12 +217,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	indicator(shape: TLFrameShape) {
-		const bounds = this.editor.getShapeGeometry(shape).bounds
-
 		return (
 			<rect
-				width={toDomPrecision(bounds.width)}
-				height={toDomPrecision(bounds.height)}
+				width={toDomPrecision(shape.props.w)}
+				height={toDomPrecision(shape.props.h)}
 				className={`tl-frame-indicator`}
 			/>
 		)

@@ -1,6 +1,7 @@
 import { Section } from '@/components/marketing/section'
 import { SectionHeading } from '@/components/marketing/section-heading'
 import Link from 'next/link'
+import { BlueA } from '../common/blue-a'
 import { DisclosureToggle } from './DisclosureToggle'
 
 export function FAQSection() {
@@ -30,6 +31,17 @@ export function FAQSection() {
 
 const faq = [
 	{
+		q: 'Is the tldraw SDK free to use?',
+		a: (
+			<>
+				You can use the tldraw SDK for free in commercial or non-commercial contexts so long as the
+				watermark is present. If you want to remove the watermark, you can purchase a license from
+				us. See our <BlueA href="#license">license</BlueA> and{' '}
+				<BlueA href="#pricing">pricing</BlueA> sections for more information.
+			</>
+		),
+	},
+	{
 		q: 'Is the tldraw SDK open source?',
 		a: (
 			<>
@@ -41,24 +53,40 @@ const faq = [
 		),
 	},
 	{
-		q: 'How can I get help and support with the SDK?',
+		q: 'How can I get help and support with the tldraw SDK?',
 		a: (
 			<>
 				The best place for community support is either{' '}
 				<BlueA href="https://github.com/tldraw/tldraw">GitHub</BlueA> or{' '}
-				<BlueA href="https://discord.com/invite/SBBEVCA4PG">Discord</BlueA>.
+				<BlueA href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=faq">
+					Discord
+				</BlueA>
+				.
 			</>
 		),
 	},
-
 	{
 		q: 'Where can I find examples of apps built with the tldraw SDK?',
 		a: (
 			<>
-				We have a <BlueA href="https://github.com/tldraw/awesome-tldraw">awesome-tldraw</BlueA> repo
-				where we collect links to awesome projects built with tldraw. You can also check out the
-				#show-and-tell channel on our{' '}
-				<BlueA href="https://discord.com/invite/SBBEVCA4PG">Discord</BlueA> community.
+				Check out the #show-and-tell channel on our{' '}
+				<BlueA href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=faq">
+					Discord
+				</BlueA>{' '}
+				community. We have a{' '}
+				<BlueA href="https://github.com/tldraw/awesome-tldraw">awesome-tldraw</BlueA> repo where we
+				collect links to awesome projects built with tldraw.
+			</>
+		),
+	},
+	{
+		q: 'What is the difference between tldraw.com and the tldraw SDK?',
+		a: (
+			<>
+				The <BlueA href="https://tldraw.com">tldraw.com</BlueA> website is a big free demo of the
+				tldraw SDK. The source for both projects is available on our{' '}
+				<BlueA href="https://github.com/tldraw/tldraw">GitHub</BlueA>. You can use tldraw.com at
+				work or for personal projects.
 			</>
 		),
 	},
@@ -68,7 +96,10 @@ const faq = [
 			<>
 				You can request features through our{' '}
 				<BlueA href="https://github.com/tldraw/tldraw">GitHub</BlueA> or in our{' '}
-				<BlueA href="https://discord.com/invite/SBBEVCA4PG">Discord</BlueA>.
+				<BlueA href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=faq">
+					Discord
+				</BlueA>
+				.
 			</>
 		),
 	},
@@ -134,11 +165,3 @@ const faq = [
 		),
 	},
 ]
-
-function BlueA({ href, children }: { href: string; children: React.ReactNode }) {
-	return (
-		<a href={href} className="text-blue-500 hover:text-blue-600">
-			{children}
-		</a>
-	)
-}

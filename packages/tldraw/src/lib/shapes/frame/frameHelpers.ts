@@ -17,6 +17,14 @@ export function getFrameHeadingSide(editor: Editor, shape: TLFrameShape): 0 | 1 
 }
 
 /**
+ * We use a weak map here to prevent re-measuring the text width of frames that haven't changed their names.
+ * It's only really important for performance reasons while zooming in and out. The measured text size is
+ * independent of the zoom level, so we can cache the expensive part (measurement) and apply those changes
+ * using the zoom level.
+ */
+const measurementWeakmap = new WeakMap()
+
+/**
  * Get the frame heading info (size and text) for a frame shape.
  *
  * @param editor The editor instance.
@@ -25,32 +33,27 @@ export function getFrameHeadingSide(editor: Editor, shape: TLFrameShape): 0 | 1 
  *
  * @returns The frame heading's size (as a Box) and JSX text spans.
  */
-export function getFrameHeadingInfo(
+export function getFrameHeadingSize(
 	editor: Editor,
 	shape: TLFrameShape,
 	opts: TLCreateTextJsxFromSpansOpts
 ) {
 	if (process.env.NODE_ENV === 'test') {
 		// can't really measure text in tests
-		return {
-			box: new Box(0, -opts.height, shape.props.w, opts.height),
-			spans: [],
-		}
+		return new Box(0, -opts.height, shape.props.w, opts.height)
 	}
 
-	const spans = editor.textMeasure.measureTextSpans(
-		defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203),
-		opts
-	)
-
-	const firstSpan = spans[0]
-	const lastSpan = last(spans)!
-	const labelTextWidth = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
-
-	return {
-		box: new Box(0, -opts.height, labelTextWidth, opts.height),
-		spans,
+	let width = measurementWeakmap.get(shape.props)
+	if (!width) {
+		const frameTitle = defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203)
+		const spans = editor.textMeasure.measureTextSpans(frameTitle, opts)
+		const firstSpan = spans[0]
+		const lastSpan = last(spans)!
+		width = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
+		measurementWeakmap.set(shape.props, width)
 	}
+
+	return new Box(0, -opts.height, width, opts.height)
 }
 
 export function getFrameHeadingOpts(

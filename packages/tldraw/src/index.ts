@@ -41,10 +41,23 @@ export {
 	type TLEmbedShapePermissions,
 } from './lib/defaultEmbedDefinitions'
 export {
+	DEFAULT_MAX_ASSET_SIZE,
+	DEFAULT_MAX_IMAGE_DIMENSION,
 	centerSelectionAroundPoint,
-	getMediaAssetInfoPartial as createMediaAssetInfoSkeleton,
+	createEmptyBookmarkShape,
 	createShapesForAssets,
+	defaultHandleExternalEmbedContent,
+	defaultHandleExternalExcalidrawContent,
+	defaultHandleExternalFileAsset,
+	defaultHandleExternalFileContent,
+	defaultHandleExternalSvgTextContent,
+	defaultHandleExternalTextContent,
+	defaultHandleExternalTldrawContent,
+	defaultHandleExternalUrlAsset,
+	defaultHandleExternalUrlContent,
+	getMediaAssetInfoPartial,
 	registerDefaultExternalContentHandlers,
+	type TLDefaultExternalContentHandlerOpts,
 	type TLExternalContentProps,
 } from './lib/defaultExternalContentHandlers'
 export { defaultShapeTools } from './lib/defaultShapeTools'
@@ -61,20 +74,34 @@ export {
 } from './lib/shapes/arrow/shared'
 export { BookmarkShapeUtil } from './lib/shapes/bookmark/BookmarkShapeUtil'
 export { DrawShapeTool } from './lib/shapes/draw/DrawShapeTool'
-export { DrawShapeUtil } from './lib/shapes/draw/DrawShapeUtil'
+export { DrawShapeUtil, type DrawShapeOptions } from './lib/shapes/draw/DrawShapeUtil'
 export { EmbedShapeUtil } from './lib/shapes/embed/EmbedShapeUtil'
 export { FrameShapeTool } from './lib/shapes/frame/FrameShapeTool'
 export { FrameShapeUtil } from './lib/shapes/frame/FrameShapeUtil'
 export { GeoShapeTool } from './lib/shapes/geo/GeoShapeTool'
 export { GeoShapeUtil } from './lib/shapes/geo/GeoShapeUtil'
 export { HighlightShapeTool } from './lib/shapes/highlight/HighlightShapeTool'
-export { HighlightShapeUtil } from './lib/shapes/highlight/HighlightShapeUtil'
+export {
+	HighlightShapeUtil,
+	type HighlightShapeOptions,
+} from './lib/shapes/highlight/HighlightShapeUtil'
 export { ImageShapeUtil } from './lib/shapes/image/ImageShapeUtil'
 export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
 export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
-export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
-export { TextLabel, type TextLabelProps } from './lib/shapes/shared/TextLabel'
+export { NoteShapeUtil, type NoteShapeOptions } from './lib/shapes/note/NoteShapeUtil'
+export {
+	PlainTextLabel,
+	TextLabel,
+	type PlainTextLabelProps,
+} from './lib/shapes/shared/PlainTextLabel'
+export { RichTextLabel, type RichTextLabelProps } from './lib/shapes/shared/RichTextLabel'
+export {
+	getCropBox,
+	getDefaultCrop,
+	getUncroppedSize,
+	type CropBoxOptions,
+} from './lib/shapes/shared/crop'
 export {
 	ARROW_LABEL_FONT_SIZES,
 	FONT_FAMILIES,
@@ -83,15 +110,24 @@ export {
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from './lib/shapes/shared/default-shape-constants'
+export {
+	DefaultFontFaces,
+	allDefaultFontFaces,
+	type TLDefaultFont,
+	type TLDefaultFonts,
+} from './lib/shapes/shared/defaultFonts'
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
-export { useEditableText } from './lib/shapes/shared/useEditableText'
+export { useEditablePlainText, useEditableText } from './lib/shapes/shared/useEditablePlainText'
+export { useEditableRichText } from './lib/shapes/shared/useEditableRichText'
 export {
 	useAsset,
 	useImageOrVideoAsset,
 	type UseImageOrVideoAssetOptions,
 } from './lib/shapes/shared/useImageOrVideoAsset'
+export { PlainTextArea } from './lib/shapes/text/PlainTextArea'
+export { RichTextArea, type TextAreaProps } from './lib/shapes/text/RichTextArea'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
-export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'
+export { TextShapeUtil, type TextShapeOptions } from './lib/shapes/text/TextShapeUtil'
 export { VideoShapeUtil } from './lib/shapes/video/VideoShapeUtil'
 export { type StyleValuesForUi } from './lib/styles'
 export { EraserTool } from './lib/tools/EraserTool/EraserTool'
@@ -206,6 +242,14 @@ export {
 	type ThemeStylePickerSetProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
 export {
+	DefaultRichTextToolbar,
+	type TLUiRichTextToolbarProps,
+} from './lib/ui/components/Toolbar/DefaultRichTextToolbar'
+export {
+	DefaultRichTextToolbarContent,
+	type DefaultRichTextToolbarContentProps,
+} from './lib/ui/components/Toolbar/DefaultRichTextToolbarContent'
+export {
 	DefaultToolbar,
 	type DefaultToolbarProps,
 } from './lib/ui/components/Toolbar/DefaultToolbar'
@@ -318,6 +362,10 @@ export {
 	TldrawUiButtonPicker,
 	type TLUiButtonPickerProps,
 } from './lib/ui/components/primitives/TldrawUiButtonPicker'
+export {
+	TldrawUiContextualToolbar,
+	type TLUiContextualToolbarProps,
+} from './lib/ui/components/primitives/TldrawUiContextualToolbar'
 export {
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
@@ -436,7 +484,6 @@ export { useCollaborationStatus, useShowCollaborationUi } from './lib/ui/hooks/u
 export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
 export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
-export { usePreloadAssets } from './lib/ui/hooks/usePreloadAssets'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
 export { useRelevantStyles } from './lib/ui/hooks/useRelevantStyles'
 export {
@@ -458,15 +505,24 @@ export { useDefaultHelpers, type TLUiOverrideHelpers, type TLUiOverrides } from 
 export { containBoxSize, downsizeImage, type BoxWidthHeight } from './lib/utils/assets/assets'
 export { preloadFont, type TLTypeFace } from './lib/utils/assets/preload-font'
 export { getEmbedInfo, type TLEmbedResult } from './lib/utils/embeds/embeds'
+export { putExcalidrawContent } from './lib/utils/excalidraw/putExcalidrawContent'
 export { copyAs, type CopyAsOptions, type TLCopyType } from './lib/utils/export/copyAs'
 export { exportToBlob } from './lib/utils/export/export'
-export { exportAs, type ExportAsOptions } from './lib/utils/export/exportAs'
+export { downloadFile, exportAs, type ExportAsOptions } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export {
 	defaultEditorAssetUrls,
 	setDefaultEditorAssetUrls,
 	type TLEditorAssetUrls,
 } from './lib/utils/static-assets/assetUrls'
+export {
+	defaultAddFontsFromNode,
+	renderHtmlFromRichText,
+	renderHtmlFromRichTextForMeasurement,
+	renderPlaintextFromRichText,
+	renderRichTextFromHTML,
+	tipTapDefaultExtensions,
+} from './lib/utils/text/richText'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
 export {
 	TLV1AlignStyle,

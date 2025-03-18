@@ -3,13 +3,17 @@
 
 import { SupabaseClient } from '@supabase/supabase-js'
 import {
+	APP_ASSET_UPLOAD_ENDPOINT,
 	DB,
+	FILE_PREFIX,
+	LOCAL_FILE_PREFIX,
+	PUBLISH_PREFIX,
 	READ_ONLY_LEGACY_PREFIX,
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
+	SNAPSHOT_PREFIX,
 	TlaFile,
-	TlaFileOpenMode,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import {
@@ -26,6 +30,7 @@ import {
 	assert,
 	assertExists,
 	exhaustiveSwitchError,
+	retry,
 	uniqueId,
 } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
@@ -36,13 +41,16 @@ import { AlarmScheduler } from './AlarmScheduler'
 import { PERSIST_INTERVAL_MS } from './config'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
+import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { createSupabaseClient } from './utils/createSupabaseClient'
+import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
 import { getAuthFromSearchParams } from './utils/tla/getAuth'
+import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 
 const MAX_CONNECTIONS = 50
 
@@ -52,11 +60,6 @@ interface DocumentInfo {
 	version: number
 	slug: string
 	isApp: boolean
-	// Create mode is used by the app to bypass the 'room not found' check.
-	// i.e. if this is a new file it creates the file, even if it wasn't
-	// added to the user's app database yet.
-	appMode: TlaFileOpenMode
-	duplicateId: string | null
 	deleted: boolean
 }
 
@@ -247,11 +250,6 @@ export class TLDrawDurableObject extends DurableObject {
 			'roomId must be present'
 		)
 		const isApp = new URL(req.url).pathname.startsWith('/app/')
-		const appMode = isApp
-			? (new URL(req.url).searchParams.get('mode') as TlaFileOpenMode) ?? null
-			: null
-
-		const duplicateId = isApp ? new URL(req.url).searchParams.get('duplicateId') : null
 
 		if (this._documentInfo) {
 			assert(this._documentInfo.slug === slug, 'slug must match')
@@ -260,8 +258,6 @@ export class TLDrawDurableObject extends DurableObject {
 				version: CURRENT_DOCUMENT_INFO_VERSION,
 				slug,
 				isApp,
-				appMode,
-				duplicateId,
 				deleted: false,
 			})
 		}
@@ -315,16 +311,28 @@ export class TLDrawDurableObject extends DurableObject {
 	// this might return null if the file doesn't exist yet in the backend, or if it was deleted
 	_fileRecordCache: TlaFile | null = null
 	async getAppFileRecord(): Promise<TlaFile | null> {
-		if (this._fileRecordCache) {
-			return this._fileRecordCache
-		}
 		try {
-			this._fileRecordCache = await this.db
-				.selectFrom('file')
-				.where('id', '=', this.documentInfo.slug)
-				.selectAll()
-				.executeTakeFirstOrThrow()
-			return this._fileRecordCache
+			return await retry(
+				async () => {
+					if (this._fileRecordCache) {
+						return this._fileRecordCache
+					}
+					const result = await this.db
+						.selectFrom('file')
+						.where('id', '=', this.documentInfo.slug)
+						.selectAll()
+						.executeTakeFirst()
+					if (!result) {
+						throw new Error('File not found')
+					}
+					this._fileRecordCache = result
+					return this._fileRecordCache
+				},
+				{
+					attempts: 10,
+					waitDuration: 100,
+				}
+			)
 		} catch (_e) {
 			return null
 		}
@@ -397,14 +405,7 @@ export class TLDrawDurableObject extends DurableObject {
 						openMode = ROOM_OPEN_MODE.READ_ONLY
 					}
 				}
-			} else if (!this.documentInfo.appMode) {
-				// If there is no owner that means it's a temporary room, but if they didn't add the create
-				// flag don't let them in.
-				// This prevents people from just creating rooms by typing extra chars in the URL because we only
-				// add that flag in temporary rooms.
-				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 			}
-			// otherwise, it's a temporary room and we let them in
 		}
 
 		try {
@@ -493,6 +494,53 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 	}
 
+	async handleFileCreateFromSource() {
+		assert(this._fileRecordCache, 'we need to have a file record to create a file from source')
+		const split = this._fileRecordCache.createSource?.split('/')
+		if (!split || split?.length !== 2) {
+			return { type: 'room_not_found' as const }
+		}
+
+		let data: RoomSnapshot | string | null | undefined = undefined
+		const [prefix, id] = split
+		switch (prefix) {
+			case FILE_PREFIX: {
+				await getRoomDurableObject(this.env, id).awaitPersist()
+				data = await this.r2.rooms
+					.get(getR2KeyForRoom({ slug: id, isApp: true }))
+					.then((r) => r?.text())
+				break
+			}
+			case ROOM_PREFIX:
+				data = await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_WRITE)
+				break
+			case READ_ONLY_PREFIX:
+				data = await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_ONLY)
+				break
+			case READ_ONLY_LEGACY_PREFIX:
+				data = await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_ONLY_LEGACY)
+				break
+			case SNAPSHOT_PREFIX:
+				data = await getLegacyRoomData(this.env, id, 'snapshot')
+				break
+			case PUBLISH_PREFIX:
+				data = await getPublishedRoomSnapshot(this.env, id)
+				break
+			case LOCAL_FILE_PREFIX:
+				// create empty room, the client will populate it
+				data = new TLSyncRoom({ schema: createTLSchema() }).getSnapshot()
+				break
+		}
+
+		if (!data) {
+			return { type: 'room_not_found' as const }
+		}
+		const serialized = typeof data === 'string' ? data : JSON.stringify(data)
+		const snapshot = typeof data === 'string' ? JSON.parse(data) : data
+		await this.r2.rooms.put(this._fileRecordCache.id, serialized)
+		return { type: 'room_found' as const, snapshot }
+	}
+
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
 	async loadFromDatabase(slug: string): Promise<DBLoadResult> {
 		try {
@@ -502,40 +550,13 @@ export class TLDrawDurableObject extends DurableObject {
 			if (roomFromBucket) {
 				return { type: 'room_found', snapshot: await roomFromBucket.json() }
 			}
-
-			if (
-				this.documentInfo.appMode === 'create' ||
-				this.documentInfo.appMode === 'slurp-legacy-file'
-			) {
-				return {
-					type: 'room_found',
-					snapshot: new TLSyncRoom({
-						schema: createTLSchema(),
-					}).getSnapshot(),
+			if (this._fileRecordCache?.createSource) {
+				const res = await this.handleFileCreateFromSource()
+				if (res.type === 'room_found') {
+					// save it to the bucket so we don't try to create from source again
+					await this.r2.rooms.put(key, JSON.stringify(res.snapshot))
 				}
-			}
-
-			if (this.documentInfo.appMode === 'duplicate') {
-				assert(this.documentInfo.duplicateId, 'duplicateId must be present')
-				// load the duplicate id
-				let data: string | undefined = undefined
-				try {
-					const otherRoom = this.env.TLDR_DOC.get(
-						this.env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${this.documentInfo.duplicateId}`)
-					) as any as TLDrawDurableObject
-					data = await otherRoom.getCurrentSerializedSnapshot()
-				} catch (_e) {
-					data = await this.r2.rooms
-						.get(getR2KeyForRoom({ slug: this.documentInfo.duplicateId, isApp: true }))
-						.then((r) => r?.text())
-				}
-
-				if (!data) {
-					return { type: 'room_not_found' }
-				}
-				// otherwise copy the snapshot
-				await this.r2.rooms.put(key, data)
-				return { type: 'room_found', snapshot: JSON.parse(data) }
+				return res
 			}
 
 			if (this.documentInfo.isApp) {
@@ -614,7 +635,7 @@ export class TLDrawDurableObject extends DurableObject {
 				})
 				asset.props.src = asset.props.src.replace(objectName, newObjectName)
 				assert(this.env.MULTIPLAYER_SERVER, 'MULTIPLAYER_SERVER must be present')
-				asset.props.src = `${this.env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/api/app/uploads/${newObjectName}`
+				asset.props.src = `${this.env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}${APP_ASSET_UPLOAD_ENDPOINT}${newObjectName}`
 
 				asset.meta.fileId = slug
 				store.put(asset)
@@ -657,11 +678,16 @@ export class TLDrawDurableObject extends DurableObject {
 
 				// Update the updatedAt timestamp in the database
 				if (this.documentInfo.isApp) {
-					await this.db
+					// don't await on this because otherwise
+					// if this logic is invoked during another db transaction
+					// (e.g. when publishing a file)
+					// that transaction will deadlock
+					this.db
 						.updateTable('file')
 						.set({ updatedAt: new Date().getTime() })
 						.where('id', '=', this.documentInfo.slug)
 						.execute()
+						.catch((e) => this.reportError(e))
 				}
 			})
 		} catch (e) {
@@ -688,6 +714,19 @@ export class TLDrawDurableObject extends DurableObject {
 		await this.scheduler.onAlarm()
 	}
 
+	async appFileRecordCreated(file: TlaFile) {
+		if (this._fileRecordCache) return
+		this._fileRecordCache = file
+
+		this.setDocumentInfo({
+			version: CURRENT_DOCUMENT_INFO_VERSION,
+			slug: file.id,
+			isApp: true,
+			deleted: false,
+		})
+		await this.getRoom()
+	}
+
 	async appFileRecordDidUpdate(file: TlaFile) {
 		if (!file) {
 			console.error('file record updated but no file found')
@@ -699,8 +738,6 @@ export class TLDrawDurableObject extends DurableObject {
 				version: CURRENT_DOCUMENT_INFO_VERSION,
 				slug: file.id,
 				isApp: true,
-				appMode: null,
-				duplicateId: null,
 				deleted: false,
 			})
 		}
@@ -739,38 +776,81 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 	}
 
-	async appFileRecordDidDelete() {
-		// force isOrWasCreateMode to be false so next open will check the database
+	async appFileRecordDidDelete({
+		id,
+		publishedSlug,
+	}: Pick<TlaFile, 'id' | 'ownerId' | 'publishedSlug'>) {
 		if (this._documentInfo?.deleted) return
 
 		this._fileRecordCache = null
 
+		// prevent new connections while we clean everything up
 		this.setDocumentInfo({
 			version: CURRENT_DOCUMENT_INFO_VERSION,
 			slug: this.documentInfo.slug,
 			isApp: true,
-			appMode: null,
-			duplicateId: null,
 			deleted: true,
 		})
 
 		await this.executionQueue.push(async () => {
-			const room = await this.getRoom()
-			for (const session of room.getSessions()) {
-				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
+			if (this._room) {
+				const room = await this.getRoom()
+				for (const session of room.getSessions()) {
+					room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
+				}
+				room.close()
 			}
-			room.close()
 			// setting _room to null will prevent any further persists from going through
 			this._room = null
 			// delete should be handled by the delete endpoint now
+
+			// Delete published slug mapping
+			await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(publishedSlug)
+
+			// remove published files
+			const publishedPrefixKey = getR2KeyForRoom({
+				slug: `${id}/${publishedSlug}`,
+				isApp: true,
+			})
+
+			const publishedHistory = await listAllObjectKeys(this.env.ROOM_SNAPSHOTS, publishedPrefixKey)
+			if (publishedHistory.length > 0) {
+				await this.env.ROOM_SNAPSHOTS.delete(publishedHistory)
+			}
+
+			// remove edit history
+			const r2Key = getR2KeyForRoom({ slug: id, isApp: true })
+			const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, r2Key)
+			if (editHistory.length > 0) {
+				await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
+			}
+
+			// remove main file
+			await this.env.ROOMS.delete(r2Key)
+
+			// finally clear storage so we don't keep the data around
+			this.ctx.storage.deleteAll()
 		})
 	}
 
 	/**
 	 * @internal
 	 */
-	async getCurrentSerializedSnapshot() {
-		const room = await this.getRoom()
-		return room.getCurrentSerializedSnapshot()
+	async awaitPersist() {
+		if (!this._documentInfo) return
+		await this.persistToDatabase()
 	}
+}
+
+async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<string[]> {
+	const keys: string[] = []
+	let cursor: string | undefined
+
+	do {
+		const result = await bucket.list({ prefix, cursor })
+		keys.push(...result.objects.map((o) => o.key))
+		cursor = result.truncated ? result.cursor : undefined
+	} while (cursor)
+
+	return keys
 }

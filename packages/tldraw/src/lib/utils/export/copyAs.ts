@@ -10,7 +10,7 @@ import {
 	doesClipboardSupportType,
 	getAdditionalClipboardWriteType,
 } from '../clipboard'
-import { exportToImagePromise } from './export'
+import { exportToImagePromiseForClipboard } from './export'
 
 /** @public */
 export type TLCopyType = 'svg' | 'png'
@@ -62,10 +62,10 @@ export function copyAs(
 
 	if (!navigator.clipboard) return Promise.reject(new Error('Copy not supported'))
 	if (navigator.clipboard.write as any) {
-		const { blobPromise, mimeType } = exportToImagePromise(editor, ids, opts)
+		const { blobPromise, mimeType } = exportToImagePromiseForClipboard(editor, ids, opts)
 
 		const types: Record<string, Promise<Blob>> = { [mimeType]: blobPromise }
-		const additionalMimeType = getAdditionalClipboardWriteType(mimeType)
+		const additionalMimeType = getAdditionalClipboardWriteType(opts.format)
 		if (additionalMimeType && doesClipboardSupportType(additionalMimeType)) {
 			types[additionalMimeType] = blobPromise.then((blob) =>
 				FileHelpers.rewriteMimeType(blob, additionalMimeType)

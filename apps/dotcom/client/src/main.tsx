@@ -7,7 +7,7 @@ import '../sentry.client.config'
 import '../styles/globals.css'
 import { Head } from './components/Head/Head'
 import { routes } from './routeDefs'
-import { SetPreviewFlag, router } from './routes'
+import { router } from './routes'
 
 const browserRouter = createBrowserRouter(router)
 
@@ -19,14 +19,18 @@ if (!PUBLISHABLE_KEY) {
 }
 
 createRoot(document.getElementById('root')!).render(
-	<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={routes.tlaRoot()}>
-		<SetPreviewFlag>
-			<HelmetProvider>
-				<Head />
-				<RouterProvider router={browserRouter} />
-				<VercelAnalytics debug={false} />
-			</HelmetProvider>
-		</SetPreviewFlag>
+	<ClerkProvider
+		publishableKey={PUBLISHABLE_KEY}
+		afterSignOutUrl={routes.tlaRoot()}
+		signInUrl="/"
+		signInFallbackRedirectUrl={routes.tlaRoot()}
+		signUpFallbackRedirectUrl={routes.tlaRoot()}
+	>
+		<HelmetProvider>
+			<Head />
+			<RouterProvider router={browserRouter} />
+			<VercelAnalytics debug={false} />
+		</HelmetProvider>
 	</ClerkProvider>
 )
 

@@ -52,6 +52,13 @@
 				"description": "Release notes for the tldraw SDK.",
 				"groups": [],
 				"hero": null
+			},
+			{
+				"id": "customers",
+				"title": "Customers",
+				"description": "Case studies and customer stories.",
+				"groups": [],
+				"hero": null
 			}
 		],
 		"sidebar_behavior": "hidden"
@@ -78,6 +85,86 @@
 			{
 				"id": "editor",
 				"title": "@tldraw/editor",
+				"description": "",
+				"groups": [
+					{
+						"id": "Class",
+						"path": null
+					},
+					{
+						"id": "Function",
+						"path": null
+					},
+					{
+						"id": "Variable",
+						"path": null
+					},
+					{
+						"id": "Enum",
+						"path": null
+					},
+					{
+						"id": "Interface",
+						"path": null
+					},
+					{
+						"id": "TypeAlias",
+						"path": null
+					},
+					{
+						"id": "Namespace",
+						"path": null
+					},
+					{
+						"id": "Component",
+						"path": null
+					}
+				],
+				"hero": null
+			},
+			{
+				"id": "state",
+				"title": "@tldraw/state",
+				"description": "",
+				"groups": [
+					{
+						"id": "Class",
+						"path": null
+					},
+					{
+						"id": "Function",
+						"path": null
+					},
+					{
+						"id": "Variable",
+						"path": null
+					},
+					{
+						"id": "Enum",
+						"path": null
+					},
+					{
+						"id": "Interface",
+						"path": null
+					},
+					{
+						"id": "TypeAlias",
+						"path": null
+					},
+					{
+						"id": "Namespace",
+						"path": null
+					},
+					{
+						"id": "Component",
+						"path": null
+					}
+				],
+				"hero": null
+			},
+			{
+				"id": "state-react",
+				"title": "@tldraw/state-react",
 				"description": "",
 				"groups": [
 					{
@@ -156,8 +243,8 @@
 				"hero": null
 			},
 			{
-				"id": "sync-core",
-				"title": "@tldraw/sync-core",
+				"id": "sync",
+				"title": "@tldraw/sync",
 				"description": "",
 				"groups": [
 					{
@@ -196,8 +283,8 @@
 				"hero": null
 			},
 			{
-				"id": "sync",
-				"title": "@tldraw/sync",
+				"id": "sync-core",
+				"title": "@tldraw/sync-core",
 				"description": "",
 				"groups": [
 					{

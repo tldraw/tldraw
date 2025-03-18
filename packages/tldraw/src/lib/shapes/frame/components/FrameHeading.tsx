@@ -1,9 +1,9 @@
 import { TLFrameShape, TLShapeId, useEditor, useIsEditing, useValue } from '@tldraw/editor'
-import { useEffect, useRef } from 'react'
+import { memo, useEffect, useRef } from 'react'
 import { getFrameHeadingSide, getFrameHeadingTranslation } from '../frameHelpers'
 import { FrameLabelInput } from './FrameLabelInput'
 
-export function FrameHeading({
+export const FrameHeading = memo(function FrameHeading({
 	id,
 	name,
 	width,
@@ -68,4 +68,4 @@ export function FrameHeading({
 			</div>
 		</div>
 	)
-}
+})

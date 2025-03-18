@@ -21,8 +21,8 @@
 		"react-dom": "^18.2.0"
 	},
 	"devDependencies": {
-		"@types/react": "^18.2.0",
-		"@types/react-dom": "^18.2.0",
+		"@types/react": "^18.3.18",
+		"@types/react-dom": "^18.3.5",
 		"@typescript-eslint/eslint-plugin": "^8.11.0",
 		"@typescript-eslint/parser": "^8.11.0",
 		"@vitejs/plugin-react-swc": "^3.7.0",

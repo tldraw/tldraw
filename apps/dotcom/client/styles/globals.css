@@ -447,3 +447,8 @@ a {
 	min-width: 36px;
 	height: 36px;
 }
+
+.tlui-guest-icon {
+	/* https://stackoverflow.com/a/23735769/1810018 */
+	-webkit-transform: translateZ(0);
+}

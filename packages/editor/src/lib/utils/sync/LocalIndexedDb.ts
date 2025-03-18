@@ -303,6 +303,15 @@ export class LocalIndexedDb {
 			await assetsStore.put(blob, assetId)
 		})
 	}
+
+	async removeAssets(assetId: string[]) {
+		await this.tx('readwrite', [Table.Assets], async (tx) => {
+			const assetsStore = tx.objectStore(Table.Assets)
+			for (const id of assetId) {
+				await assetsStore.delete(id)
+			}
+		})
+	}
 }
 
 /** @internal */

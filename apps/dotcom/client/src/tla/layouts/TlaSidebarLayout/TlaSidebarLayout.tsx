@@ -18,7 +18,14 @@ const MIN_SIDEBAR_WIDTH = 150
 const DEF_SIDEBAR_WIDTH = 260
 const MAX_SIDEBAR_WIDTH = 500
 
-export function TlaSidebarLayout({ children }: { children: ReactNode; collapsible?: boolean }) {
+export function TlaSidebarLayout({
+	isEmbed,
+	children,
+}: {
+	isEmbed?: boolean
+	children: ReactNode
+	collapsible?: boolean
+}) {
 	const isSidebarOpen = useIsSidebarOpen()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
 
@@ -74,10 +81,8 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 		if (rResizeState.current.name === 'resizing') {
 			const { startX, startWidth } = rResizeState.current
 
-			const newWidth = clamp(
-				startWidth + (moveEvent.clientX - startX),
-				MIN_SIDEBAR_WIDTH,
-				MAX_SIDEBAR_WIDTH
+			const newWidth = Math.floor(
+				clamp(startWidth + (moveEvent.clientX - startX), MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH)
 			)
 
 			if (newWidth !== getLocalSessionStateUnsafe().sidebarWidth) {
@@ -156,27 +161,33 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 		<div
 			ref={rLayoutContainer}
 			className={styles.layout}
-			data-sidebar={isSidebarOpen}
-			data-sidebarmobile={isSidebarOpenMobile}
+			data-sidebar={!isEmbed && isSidebarOpen}
+			data-sidebarmobile={!isEmbed && isSidebarOpenMobile}
 			data-testid="tla-sidebar-layout"
 		>
-			<TlaSidebar />
-			{children}
-			<div className={styles.toggleContainer}>
-				<TlaSidebarToggle />
-				<TlaSidebarToggleMobile />
-			</div>
-			{isSidebarOpen && (
-				<div
-					className={styles.resizeHandle}
-					onPointerDown={handlePointerDown}
-					onPointerMove={handlePointerMove}
-					draggable={false}
-					onDoubleClick={handleDoubleClick}
-					onLostPointerCapture={handlePointerUp}
-				>
-					<div className={styles.resizeHandleIndicator}></div>
-				</div>
+			{isEmbed ? (
+				children
+			) : (
+				<>
+					<TlaSidebar />
+					{children}
+					<div className={styles.toggleContainer}>
+						<TlaSidebarToggle />
+						<TlaSidebarToggleMobile />
+					</div>
+					{isSidebarOpen && (
+						<div
+							className={styles.resizeHandle}
+							onPointerDown={handlePointerDown}
+							onPointerMove={handlePointerMove}
+							draggable={false}
+							onDoubleClick={handleDoubleClick}
+							onLostPointerCapture={handlePointerUp}
+						>
+							<div className={styles.resizeHandleIndicator}></div>
+						</div>
+					)}
+				</>
 			)}
 		</div>
 	)

@@ -212,11 +212,6 @@ test.describe('Actions on shapes', () => {
 		await setupPageWithShapes(page)
 
 		// needs shapes on the canvas
-		await page.keyboard.press('Control+Shift+c')
-		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'copy-as',
-			data: { format: 'svg', source: 'kbd' },
-		})
 
 		// select-all — Cmd+A
 		await page.keyboard.press('Control+a')
@@ -316,6 +311,14 @@ test.describe('Actions on shapes', () => {
 			data: { operation: 'bottom', source: 'kbd' },
 		})
 
+		// Copy as SVG — this should have a clipboard error
+
+		// await page.keyboard.press('Control+Shift+c')
+		// expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+		// 	name: 'copy-as',
+		// 	data: { format: 'svg', source: 'kbd' },
+		// })
+
 		// delete — backspace
 		await page.keyboard.press('Control+a') // selected
 		await page.keyboard.press('Backspace')
@@ -338,6 +341,65 @@ test.describe('Actions on shapes', () => {
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 			name: 'delete-shapes',
 			data: { source: 'kbd' },
+		})
+
+		// Next, previous pages — Alt+ArrowLeft, Alt+ArrowRight
+
+		// Try a previous page move. We can't go lower since we're on the first page.
+		// So the most recent event should be the previous delete
+
+		await page.keyboard.press('Alt+ArrowLeft')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'delete-shapes',
+			data: { source: 'kbd' },
+		})
+
+		// Next page. Since there's only one page and the page is empty, nothing should happen.
+
+		await page.keyboard.press('Alt+ArrowRight')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'delete-shapes',
+			data: { source: 'kbd' },
+		})
+
+		// make something on the new page and delete it
+		await page.keyboard.press('r')
+		await page.mouse.click(100, 100)
+
+		// If there's something on the page, we can create the next page by moving up
+		await page.keyboard.press('Alt+ArrowRight')
+
+		// We'll also have a change page here... but the most recent will be the new page
+
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'new-page',
+			data: { source: 'kbd' },
+		})
+
+		// We can go back down...
+		await page.keyboard.press('Alt+ArrowLeft')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'change-page',
+			data: { source: 'kbd', direction: 'prev' },
+		})
+
+		// We can go up again
+		await page.keyboard.press('Alt+ArrowRight')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'change-page',
+			data: { source: 'kbd', direction: 'next' },
+		})
+
+		// We can back down and up with the up and down keys too...
+		await page.keyboard.press('Alt+ArrowUp')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'change-page',
+			data: { source: 'kbd', direction: 'prev' },
+		})
+		await page.keyboard.press('Alt+ArrowDown')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'change-page',
+			data: { source: 'kbd', direction: 'next' },
 		})
 
 		/* ---------------------- Misc ---------------------- */

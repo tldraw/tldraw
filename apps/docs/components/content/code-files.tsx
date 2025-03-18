@@ -1,7 +1,8 @@
 import { cn } from '@/utils/cn'
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
 
-import { createHighlighterCoreSync, createJavaScriptRegexEngine, hastToHtml } from 'shiki/core'
+import { createJavaScriptRegexEngine } from '@shikijs/engine-javascript'
+import { createHighlighterCoreSync, hastToHtml } from 'shiki/core'
 import css from 'shiki/dist/langs/css.mjs'
 import ts from 'shiki/dist/langs/typescript.mjs'
 import theme from 'shiki/dist/themes/github-dark.mjs'

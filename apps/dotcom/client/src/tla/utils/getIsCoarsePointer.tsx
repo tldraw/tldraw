@@ -13,5 +13,5 @@ const isForcedFinePointer = tlenv.isFirefox && !tlenv.isAndroid && !tlenv.isIos
 
 export function getIsCoarsePointer() {
 	// default to true if matchMedia is not supported, which is extremely unlikely
-	return isForcedFinePointer ? false : mql?.matches ?? true
+	return isForcedFinePointer ? false : (mql?.matches ?? true)
 }

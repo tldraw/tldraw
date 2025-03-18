@@ -8,9 +8,8 @@ export function PricingSection() {
 	return (
 		<Section id="pricing">
 			<SectionHeading
-				subheading="Pricing"
-				heading="Purchase a License"
-				description="Remove the watermark and access additional support."
+				heading="Pricing"
+				description="Use the SDK free with our watermark or purchase a license."
 			/>
 			<div className="mt-20 flow-root">
 				<div className="isolate mx-auto px-8 md:px-5 -mt-16 grid max-w-sm grid-cols-1 gap-y-16 divide-y divide-gray-100 sm:mx-auto lg:-mx-8 lg:mt-0 lg:max-w-none lg:grid-cols-3 lg:divide-x lg:divide-y-0 xl:-mx-4">
@@ -36,7 +35,7 @@ export function PricingSection() {
 										</span>
 										<span className="text-sm/6 font-semibold">/month</span>
 									</p>
-									<p className="mt-3 text-sm/6 opacity-[.9]">Annual agreement, paid quarterly</p>
+									<p className="mt-3 text-sm/6 opacity-[.9]">Annual agreement</p>
 								</>
 							)}
 							<PricingButton tier={tier} />
@@ -72,7 +71,7 @@ const tiers = [
 		name: 'Startup Lite',
 		type: 'secondary',
 		price: {
-			monthly: '$499',
+			monthly: '$500',
 			annually: '$6,000',
 		},
 		href: '/buy/startup-lite',
@@ -85,13 +84,13 @@ const tiers = [
 		name: 'Startup',
 		type: 'secondary',
 		price: {
-			monthly: '$999',
+			monthly: '$1,000',
 			annually: '$12,000',
 		},
 		href: '/buy/startup',
 		teamSize: 'Up to 10 employees',
 		description: 'For small teams who need to speak to us.',
-		features: ['No watermark', 'Two hours of support per month'],
+		features: ['No watermark', 'Up to two hours of support per month'],
 	},
 	{
 		id: 'business',

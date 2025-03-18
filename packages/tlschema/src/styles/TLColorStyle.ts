@@ -76,7 +76,7 @@ export const DefaultColorThemePalette: {
 			pattern: '#494949',
 			highlight: {
 				srgb: '#fddd00',
-				p3: 'color(display-p3 0.972 0.8705 0.05)',
+				p3: 'color(display-p3 0.972 0.8205 0.05)',
 			},
 		},
 		blue: {
@@ -330,7 +330,7 @@ export const DefaultColorThemePalette: {
 			pattern: '#989898',
 			highlight: {
 				srgb: '#d2b700',
-				p3: 'color(display-p3 0.8078 0.7225 0.0312)',
+				p3: 'color(display-p3 0.8078 0.6225 0.0312)',
 			},
 		},
 		blue: {

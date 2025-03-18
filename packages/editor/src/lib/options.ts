@@ -29,7 +29,6 @@ export interface TldrawOptions {
 	readonly dragDistanceSquared: number
 	readonly defaultSvgPadding: number
 	readonly cameraSlideFriction: number
-	readonly maxPointsPerDrawShape: number
 	readonly gridSteps: readonly {
 		readonly min: number
 		readonly mid: number
@@ -70,6 +69,21 @@ export interface TldrawOptions {
 	 * When frame colors are enabled, frames will be drawn with a colored border and fill.
 	 */
 	readonly showFrameColors: boolean
+	/**
+	 * By default, the toolbar items are accessible via number shortcuts according to their order. To disable this, set this option to false.
+	 */
+	readonly enableToolbarKeyboardShortcuts: boolean
+	/**
+	 * The maximum number of fonts that will be loaded while blocking the main rendering of the
+	 * canvas. If there are more than this number of fonts needed, we'll just show the canvas right
+	 * away and let the fonts load in in the background.
+	 */
+	readonly maxFontsToLoadBeforeRender: number
+	/**
+	 * If you have a CSP policy that blocks inline styles, you can use this prop to provide a
+	 * nonce to use in the editor's styles.
+	 */
+	readonly nonce: string | undefined
 }
 
 /** @public */
@@ -85,7 +99,6 @@ export const defaultTldrawOptions = {
 	dragDistanceSquared: 16, // 4 squared
 	defaultSvgPadding: 32,
 	cameraSlideFriction: 0.09,
-	maxPointsPerDrawShape: 500,
 	gridSteps: [
 		{ min: -1, mid: 0.15, step: 64 },
 		{ min: 0.05, mid: 0.375, step: 16 },
@@ -116,4 +129,7 @@ export const defaultTldrawOptions = {
 	createTextOnCanvasDoubleClick: true,
 	exportProvider: Fragment,
 	showFrameColors: false,
+	enableToolbarKeyboardShortcuts: true,
+	maxFontsToLoadBeforeRender: Infinity,
+	nonce: undefined,
 } as const satisfies TldrawOptions

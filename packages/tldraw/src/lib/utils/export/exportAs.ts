@@ -93,7 +93,8 @@ function getTimestamp() {
 	return `${year}-${month}-${day} ${hours}.${minutes}.${seconds}`
 }
 
-function downloadFile(file: File) {
+/** @internal */
+export function downloadFile(file: File) {
 	const link = document.createElement('a')
 	const url = URL.createObjectURL(file)
 	link.href = url

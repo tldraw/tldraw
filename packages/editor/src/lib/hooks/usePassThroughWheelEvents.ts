@@ -5,12 +5,18 @@ import { useContainer } from './useContainer'
 /** @public */
 export function usePassThroughWheelEvents(ref: RefObject<HTMLElement>) {
 	if (!ref) throw Error('usePassThroughWheelEvents must be passed a ref')
-
 	const container = useContainer()
 
 	useEffect(() => {
 		function onWheel(e: WheelEvent) {
 			if ((e as any).isSpecialRedispatchedEvent) return
+
+			// if the element is scrollable, don't redispatch the event
+			const elm = ref.current
+			if (elm && elm.scrollHeight > elm.clientHeight) {
+				return
+			}
+
 			preventDefault(e)
 			const cvs = container.querySelector('.tl-canvas')
 			if (!cvs) return

@@ -1,0 +1,399 @@
+{
+  "0095a9fa74": {
+    "translation": "Izvoz"
+  },
+  "03b3e13197": {
+    "translation": "Povucite datoteku u bočnu traku na ovoj stranici. Ili odaberite opciju 'Uvezi datoteku' iz korisničkog izbornika."
+  },
+  "043973ec1f": {
+    "translation": "Još uvijek imate problema? {GetHelpLink}"
+  },
+  "05596b840b": {
+    "translation": "Otvori tldraw."
+  },
+  "06b9281e39": {
+    "translation": "Auto"
+  },
+  "07dbd11b21": {
+    "translation": "Datoteka bez naslova"
+  },
+  "08331c1710": {
+    "translation": "Ograničenje brzine premašeno, pokušajte ponovno kasnije."
+  },
+  "0b27918290": {
+    "translation": "File"
+  },
+  "0b9a4cde72": {
+    "translation": "Izbornik datoteka"
+  },
+  "110a4b01be": {
+    "translation": "Objaviti"
+  },
+  "13ddd375ad": {
+    "translation": "Izvezi kao"
+  },
+  "181b90f889": {
+    "translation": "Stvori datoteku"
+  },
+  "1bef75f760": {
+    "translation": "Dopusti tldrawu da mi pošalje e-poruku o ovome"
+  },
+  "1da2e8106b": {
+    "translation": "Došlo je do neočekivane pogreške."
+  },
+  "1dd1c5fb7f": {
+    "translation": "Danas"
+  },
+  "26e5b44256": {
+    "translation": "Pošaljite nam povratne informacije"
+  },
+  "299cb00a7a": {
+    "translation": "Prijenos nije uspio"
+  },
+  "31246941ad": {
+    "translation": "Morate se prijaviti da vidite ovu datoteku."
+  },
+  "31418ce4ad": {
+    "translation": "i18n: Oznaka nedostaje"
+  },
+  "32656a600c": {
+    "translation": "Vidite nešto pogrešno? Imate li ideju kako poboljšati tldraw? Voljeli bismo to čuti!"
+  },
+  "335defdafe": {
+    "translation": "Pokušajte osvježiti stranicu."
+  },
+  "344a7f427f": {
+    "translation": "Urednik"
+  },
+  "3bd1b98dbd": {
+    "translation": "Nije moguće objaviti promjene."
+  },
+  "3c5e891bff": {
+    "translation": "Prikvačeno"
+  },
+  "42e53c47c1": {
+    "translation": "Kontaktirajte vlasnika da zatražite pristup."
+  },
+  "44db318ee5": {
+    "translation": "Zatražite pomoć na Discordu"
+  },
+  "46137245cd": {
+    "translation": "Hvala što nam pomažete poboljšati tldraw!"
+  },
+  "4778b9f3f2": {
+    "translation": "Postavke privatnosti"
+  },
+  "47839e47a5": {
+    "translation": "tldraw"
+  },
+  "4908687e50": {
+    "translation": "Jeste li sigurni da želite zaboraviti ovu datoteku?"
+  },
+  "4c06678729": {
+    "translation": "Koristimo kolačiće prve strane za poboljšanje naših usluga. <a>Saznajte više</a>"
+  },
+  "4d1c8263ba": {
+    "translation": "Ponovno učitaj"
+  },
+  "50db1b7e1e": {
+    "translation": "Nije moguće poništiti objavu datoteke."
+  },
+  "517bb809d9": {
+    "translation": "Izbornik stranice"
+  },
+  "54286b1d01": {
+    "translation": "Dosegnuto je ograničenje broja suradnika"
+  },
+  "54d240fa41": {
+    "translation": "Molim te uspori."
+  },
+  "554a05155c": {
+    "translation": "Još uvijek imate problema? <a>Prijavite problem</a>"
+  },
+  "55505ba281": {
+    "translation": "PNG"
+  },
+  "56c34c6410": {
+    "translation": "Politika privatnosti"
+  },
+  "5817f82c16": {
+    "translation": "Izborno — Pomozite nam razumjeti kako ljudi koriste tldraw i kako ga možemo poboljšati."
+  },
+  "5a95a425f7": {
+    "translation": "Udio"
+  },
+  "5d160eb095": {
+    "translation": "Vaša sesija"
+  },
+  "5d26ae7550": {
+    "translation": "Nismo uspjeli prenijeti dio sadržaja koji ste izradili prije nego što ste se prijavili."
+  },
+  "5db1e9a8ca": {
+    "translation": "Ispunite ovaj obrazac, <discord>razgovarajte s nama na Discordu</discord> ili <github>pošaljite problem na GitHubu</github>."
+  },
+  "5f3c333678": {
+    "translation": "Povratne informacije poslane"
+  },
+  "5fb63579fc": {
+    "translation": "Kopirati"
+  },
+  "61057a0c84": {
+    "translation": "Kasnije"
+  },
+  "625fd29749": {
+    "translation": "Starije"
+  },
+  "6609dd239e": {
+    "translation": "Nešto nije u redu"
+  },
+  "6637a98151": {
+    "translation": "Dostupna je nova verzija tldraw-a. Ponovno učitajte stranicu za nastavak."
+  },
+  "6a26f54883": {
+    "translation": "Pomoć"
+  },
+  "6dc0836c1b": {
+    "translation": "Nemate potrebna dopuštenja za izvođenje ove radnje."
+  },
+  "6dfc62f621": {
+    "translation": "Slijedite ove korake za ručni uvoz sadržaja:"
+  },
+  "70a6facb9d": {
+    "translation": "Ovaj tjedan"
+  },
+  "73ab799383": {
+    "translation": "Ova verzija tldraw više nije podržana."
+  },
+  "7408cf0d7b": {
+    "translation": "Molimo ponovno učitajte stranicu"
+  },
+  "752b79f137": {
+    "translation": "Dosegli ste maksimalan broj datoteka. Morate izbrisati stare datoteke prije stvaranja novih."
+  },
+  "7573b8110a": {
+    "translation": "Nema pristupa"
+  },
+  "761e93ede9": {
+    "translation": "Upravljanje kolačićima"
+  },
+  "7697920637": {
+    "translation": "Molimo ponovno učitajte"
+  },
+  "764671e008": {
+    "translation": "Razgovarajte s nama na Discordu"
+  },
+  "777f9e90cf": {
+    "translation": "Neispravan zahtjev."
+  },
+  "797799f35e": {
+    "translation": "Pošaljite problem na GitHub"
+  },
+  "7cb5f8b4a5": {
+    "translation": "Zaboraviti"
+  },
+  "7daeced9ff": {
+    "translation": "Objavi promjene"
+  },
+  "7fcdcc6455": {
+    "translation": "Zaboravi datoteku"
+  },
+  "81d389ac80": {
+    "translation": "Izvezite sadržaj kao .tldr datoteku: odaberite 'Preuzmi datoteku' u gornjem lijevom izborniku."
+  },
+  "85a082de1b": {
+    "translation": "Osvježite stranicu kako biste dobili najnoviju verziju tldraw-a."
+  },
+  "86353d2c41": {
+    "translation": "Dodane {total} .tldr datoteke."
+  },
+  "86c66437fd": {
+    "translation": "Preimenuj datoteku"
+  },
+  "8eb2c00e96": {
+    "translation": "Podijeljeno s vama"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Oko"
+  },
+  "8ff3d0a705": {
+    "translation": "Stopa ograničena"
+  },
+  "902b0d55fd": {
+    "translation": "Greška"
+  },
+  "904a830405": {
+    "translation": "Preimenovati"
+  },
+  "91e49bb0eb": {
+    "translation": "Kopiraj u moje datoteke"
+  },
+  "96165d6df5": {
+    "translation": "Ovaj mjesec"
+  },
+  "9914a0ce04": {
+    "translation": "Svjetlo"
+  },
+  "9bef626805": {
+    "translation": "Izbriši datoteku"
+  },
+  "9ceb927baa": {
+    "translation": "Objavite ovu datoteku"
+  },
+  "9e076f5885": {
+    "translation": "Nije pronađeno"
+  },
+  "9e93c98d88": {
+    "translation": "Isključi se"
+  },
+  "a104439641": {
+    "translation": "Padding"
+  },
+  "a18366b217": {
+    "translation": "tamno"
+  },
+  "a1c915578c": {
+    "translation": "Datoteka koju tražite ne postoji."
+  },
+  "a239905023": {
+    "translation": "Izvoz slike"
+  },
+  "a3debabee7": {
+    "translation": "Politika kolačića"
+  },
+  "a4d3b161ce": {
+    "translation": "Pošalji"
+  },
+  "a6cc403d56": {
+    "translation": "Svatko s vezom"
+  },
+  "a768caa988": {
+    "translation": "Analitika"
+  },
+  "a9ded1e5ce": {
+    "translation": "Pozadina"
+  },
+  "ab0df9ba36": {
+    "translation": "Dosegnuto je ograničenje datoteke"
+  },
+  "af3dc88931": {
+    "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
+    "translation": "Posljednji put objavljeno <date></date>"
+  },
+  "b6d4223e60": {
+    "translation": "Prijavite se"
+  },
+  "b758336699": {
+    "translation": "Kopiraj vezu"
+  },
+  "bb792693e2": {
+    "translation": "Otkvači"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {Prijenos .tldr datoteke…} few {} other {Prijenos {uploaded} od {total} .tldr datoteka…}}"
+  },
+  "bc88b0e89e": {
+    "translation": "Dijeli {ownerName}"
+  },
+  "bcb62136a3": {
+    "translation": "Učitajte .tldr datoteke"
+  },
+  "c2276c9127": {
+    "translation": "Saznajte više o dijeljenju."
+  },
+  "c303bd1095": {
+    "translation": "Nije moguće objaviti datoteku."
+  },
+  "c4408d3350": {
+    "translation": "Prihvatiti"
+  },
+  "c655b27b1e": {
+    "translation": "i18n: Dugi niz"
+  },
+  "c6a00f137b": {
+    "translation": "Pozvati"
+  },
+  "c87aacf567": {
+    "translation": "Odjavi se"
+  },
+  "cceaefbc20": {
+    "translation": "Podijelite ovu datoteku"
+  },
+  "cd15a75c26": {
+    "translation": "SVG"
+  },
+  "cd16f555de": {
+    "translation": "Neophodno — potrebno za spremanje vaših datoteka i postavki i njihovu sinkronizaciju na vašim uređajima."
+  },
+  "cea291e45e": {
+    "translation": "Saznajte više o objavljivanju."
+  },
+  "d3d2e61733": {
+    "translation": "Zatvoriti"
+  },
+  "d4bbf74f3e": {
+    "translation": "Uključi/isključi bočnu traku"
+  },
+  "d5ef96e383": {
+    "translation": "Preuzmite datoteku"
+  },
+  "d721757161": {
+    "translation": "Tema"
+  },
+  "d876a9fe1a": {
+    "translation": "Pokušajte ponovno"
+  },
+  "d9100f3e10": {
+    "translation": "Idite ovdje da vidite sadržaj"
+  },
+  "dbbebf3c03": {
+    "translation": "Samo na poziv"
+  },
+  "dfdb78a4e4": {
+    "translation": "Oznake za otklanjanje pogrešaka aplikacije"
+  },
+  "e371526ad0": {
+    "translation": "Ovaj je kolačić potreban za rad tldraw-a i ne može se onemogućiti."
+  },
+  "e404559826": {
+    "translation": "Uvjeti usluge"
+  },
+  "e78e14c5f1": {
+    "translation": "Pin"
+  },
+  "e8d1090cb9": {
+    "translation": "Koristimo kolačiće da ostanete prijavljeni, da sinkroniziramo vaše datoteke i da prikupimo analitiku kako bismo poboljšali tldraw. Pročitajte naša <a>pravila o kolačićima</a> kako biste saznali više."
+  },
+  "ea4788705e": {
+    "translation": "Otkazati"
+  },
+  "ebfe9ce86e": {
+    "translation": "Jučer"
+  },
+  "ec59b960ea": {
+    "translation": "Ova je datoteka dosegla maksimalan broj aktivnih suradnika."
+  },
+  "ec611e9a08": {
+    "translation": "Izbornik računa"
+  },
+  "ed53713239": {
+    "translation": "i18n: Naglasak"
+  },
+  "ed75712b0e": {
+    "translation": "Duplikat"
+  },
+  "f2a6c498fb": {
+    "translation": "Izbrisati"
+  },
+  "f43fb62093": {
+    "translation": "Povratak na tldraw."
+  },
+  "fb15c53f22": {
+    "translation": "Gledatelj"
+  },
+  "fd1be3efcf": {
+    "translation": "Jeste li sigurni da želite izbrisati ovu datoteku?"
+  },
+  "fed5ec05eb": {
+    "translation": "Kopirana veza"
+  }
+}

@@ -1,4 +1,5 @@
 import type { Locator, Page } from '@playwright/test'
+import { TldrawApp } from '../../src/tla/app/TldrawApp'
 import { expect, step } from './tla-test'
 
 export class Sidebar {
@@ -49,6 +50,8 @@ export class Sidebar {
 		await this.page.keyboard.press('Enter')
 		const newNumDocuments = await this.getNumberOfFiles()
 		expect(newNumDocuments).toBe(numDocuments + 1)
+		// give the websocket a chance to catch up
+		await this.mutationResolution()
 	}
 
 	async getNumberOfFiles() {
@@ -57,7 +60,7 @@ export class Sidebar {
 
 	async openAccountMenu() {
 		await this.sidebarBottom.hover()
-		await this.page.getByRole('button', { name: 'Account menu' }).click()
+		await this.page.getByTestId('tla-sidebar-user-link').click()
 	}
 
 	@step
@@ -65,10 +68,13 @@ export class Sidebar {
 		await this.openAccountMenu()
 		await this.themeButton.hover()
 		await this.darkModeButton.click()
+		await this.mutationResolution()
 	}
 
 	@step
 	async openLanguageMenu(languageButtonText: string) {
+		// need the editor to be mounted for the menu to be available
+		await expect(this.page.getByTestId('canvas')).toBeVisible()
 		await this.openAccountMenu()
 		await this.page.getByText(languageButtonText).hover()
 	}
@@ -89,6 +95,7 @@ export class Sidebar {
 		await this.openLanguageMenu(languageButtonText)
 		await this.page.getByRole('menuitemcheckbox', { name: language }).click()
 		await this.page.keyboard.press('Escape')
+		await this.mutationResolution()
 	}
 
 	@step
@@ -143,6 +150,7 @@ export class Sidebar {
 	@step
 	private async deleteFromFileMenu() {
 		await this.page.getByRole('menuitem', { name: 'Delete' }).click()
+		await this.mutationResolution()
 	}
 
 	@step
@@ -150,6 +158,13 @@ export class Sidebar {
 		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
 		await this.renameFromFileMenu(newName)
+		await this.mutationResolution()
+	}
+
+	async mutationResolution() {
+		await this.page.evaluate(() =>
+			((window as any).app as TldrawApp).z.__e2e__waitForMutationResolution()
+		)
 	}
 
 	@step
@@ -158,6 +173,7 @@ export class Sidebar {
 		const input = this.page.getByRole('textbox')
 		await input.fill(name)
 		await this.page.keyboard.press('Enter')
+		await this.mutationResolution()
 	}
 
 	@step
@@ -170,6 +186,7 @@ export class Sidebar {
 			await input.fill(name)
 		}
 		await this.page.keyboard.press('Enter')
+		await this.mutationResolution()
 	}
 
 	@step
@@ -177,6 +194,7 @@ export class Sidebar {
 		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
 		await this.page.getByRole('menuitem', { name: 'Pin' }).click()
+		await this.mutationResolution()
 	}
 
 	@step
@@ -184,6 +202,7 @@ export class Sidebar {
 		const fileLink = this.getFileLink('pinned', index)
 		await this.openFileMenu(fileLink)
 		await this.page.getByRole('menuitem', { name: 'Unpin' }).click()
+		await this.mutationResolution()
 	}
 
 	@step
@@ -191,6 +210,7 @@ export class Sidebar {
 		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
 		await this.duplicateFromFileMenu(name)
+		await this.mutationResolution()
 	}
 
 	@step

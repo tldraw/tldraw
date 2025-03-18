@@ -4,6 +4,7 @@ import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { Editor } from '../editor/Editor'
 import { TLSvgExportOptions } from '../editor/types/misc-types'
+import { SVG_EXPORT_CLASSNAME } from './FontEmbedder'
 import { StyleEmbedder } from './StyleEmbedder'
 import { embedMedia } from './embedMedia'
 import { getSvgJsx } from './getSvgJsx'
@@ -26,7 +27,7 @@ export async function exportToSvg(
 	// <foreignObject> elements have their styles and content inlined correctly.
 	const container = editor.getContainer()
 	const renderTarget = document.createElement('div')
-	renderTarget.className = 'tldraw-svg-export'
+	renderTarget.className = SVG_EXPORT_CLASSNAME
 	// we hide the element visually, but we don't want it to be focusable or interactive in any way either
 	renderTarget.inert = true
 	renderTarget.tabIndex = -1
@@ -61,7 +62,7 @@ export async function exportToSvg(
 		const svg = renderTarget.firstElementChild
 		assert(svg instanceof SVGSVGElement, 'Expected an SVG element')
 
-		// And apply any changes to <foreignObject> elements that we need to make. Whilst we're in
+		// And apply any changes to <foreignObject> elements that we need to make. while we're in
 		// the document, these elements work exactly as we'd expect from other dom elements - they
 		// can load external resources, and any stylesheets in the document apply to them as we
 		// would expect them to. But when we pull the SVG into its own file or draw it to a canvas
@@ -83,9 +84,9 @@ export async function exportToSvg(
 
 async function applyChangesToForeignObjects(svg: SVGSVGElement) {
 	// If any shapes have their own <foreignObject> elements, we don't want to mess with them. Our
-	// ones that we need to embed will have a class of `tl-shape-foreign-object`.
+	// ones that we need to embed will have a class of `tl-export-embed-styles`.
 	const foreignObjectChildren = [
-		...svg.querySelectorAll('foreignObject.tl-shape-foreign-object > *'),
+		...svg.querySelectorAll('foreignObject.tl-export-embed-styles > *'),
 	]
 	if (!foreignObjectChildren.length) return
 

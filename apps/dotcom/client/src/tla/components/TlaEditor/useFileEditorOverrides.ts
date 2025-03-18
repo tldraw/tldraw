@@ -1,65 +1,89 @@
-import { fileSave } from 'browser-fs-access'
-import { useMemo } from 'react'
-import { TLDRAW_FILE_EXTENSION, TLStore, TLUiOverrides, serializeTldrawJsonBlob } from 'tldraw'
+import { useCallback, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+	Editor,
+	TLDRAW_FILE_EXTENSION,
+	TLStore,
+	TLUiOverrides,
+	downloadFile,
+	serializeTldrawJsonBlob,
+} from 'tldraw'
+import { routes } from '../../../routeDefs'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { useMsg } from '../../utils/i18n'
+import { useIntl, useMsg } from '../../utils/i18n'
 import { editorMessages as messages } from './editor-messages'
+
+export async function download(editor: Editor, name: string) {
+	const blobToSave = await serializeTldrawJsonBlob(editor)
+	const file = new File([blobToSave], name, { type: 'application/json' })
+	downloadFile(file)
+}
 
 export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 	const app = useMaybeApp()
-	const handleUiEvent = useHandleUiEvents()
 	const untitledProject = useMsg(messages.untitledProject)
+	const intl = useIntl()
+	const navigate = useNavigate()
+	const trackEvent = useHandleUiEvents()
+
+	const getFileName = useCallback(
+		(editor: Editor) => {
+			const documentName =
+				((fileSlug ? app?.getFileName(fileSlug, false) : null) ??
+					editor?.getDocumentSettings().name) ||
+				// rather than displaying the date for the project here, display Untitled project
+				untitledProject
+			const defaultName = saveFileNames.get(editor.store) || documentName
+
+			return defaultName
+		},
+		[app, fileSlug, untitledProject]
+	)
 
 	const overrides = useMemo<TLUiOverrides>(() => {
-		if (!app) return {}
-
 		return {
+			translations: {
+				en: {
+					'people-menu.anonymous-user': intl.formatMessage(messages.anonymousUser),
+				},
+			},
 			actions(editor, actions) {
 				// Add a shortcut that does nothing but blocks the command+s shortcut
 				actions['save-null'] = {
-					id: 'save-file-copy',
+					id: 'save-null',
 					label: 'action.save-copy',
 					readonlyOk: true,
 					kbd: '$s',
 					onSelect() {
-						handleUiEvent('save-project-no-action', { source: 'kbd' })
+						trackEvent('save-project-no-action', { source: 'kbd' })
 					},
 				}
 				actions['save-file-copy'] = {
 					id: 'save-file-copy',
-					label: 'action.save-copy',
+					label: intl.formatMessage(messages.downloadFile),
 					readonlyOk: true,
-					kbd: '$!s',
 					async onSelect() {
-						handleUiEvent('save-project-to-file', { source: '' })
-						const documentName =
-							((fileSlug ? app?.getFileName(fileSlug, false) : null) ??
-								editor?.getDocumentSettings().name) ||
-							// rather than displaying the date for the project here, display Untitled project
-							untitledProject
-						const defaultName =
-							saveFileNames.get(editor.store) || `${documentName}${TLDRAW_FILE_EXTENSION}`
+						trackEvent('download-file', { source: '' })
+						const defaultName = getFileName(editor) + TLDRAW_FILE_EXTENSION
+						await download(editor, defaultName)
+					},
+				}
 
-						const blobToSave = serializeTldrawJsonBlob(editor)
-						let handle
-						try {
-							handle = await fileSave(blobToSave, {
-								fileName: defaultName,
-								extensions: [TLDRAW_FILE_EXTENSION],
-								description: 'tldraw project',
-							})
-						} catch {
-							// user cancelled
-							return
-						}
-
-						if (handle) {
-							// we deliberately don't store the handle for re-use
-							// next time. we always want to save a copy, but to
-							// help the user out we'll remember the last name
-							// they used
-							saveFileNames.set(editor.store, handle.name)
+				actions['copy-to-my-files'] = {
+					id: 'copy-to-my-files',
+					label: intl.formatMessage(messages.copyToMyfiles),
+					readonlyOk: true,
+					async onSelect() {
+						const defaultName = getFileName(editor)
+						const res = app?.createFile({
+							name: defaultName,
+							createSource: window.location.pathname.slice(1),
+						})
+						if (res?.ok) {
+							const { file } = res.value
+							navigate(routes.tlaFile(file.id))
+							trackEvent('create-file', { source: 'legacy-import-button' })
 						}
 					},
 				}
@@ -67,7 +91,7 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 				return actions
 			},
 		}
-	}, [app, fileSlug, handleUiEvent, untitledProject])
+	}, [app, getFileName, intl, navigate, trackEvent])
 
 	return overrides
 }

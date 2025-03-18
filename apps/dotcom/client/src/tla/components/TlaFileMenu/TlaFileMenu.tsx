@@ -1,13 +1,13 @@
 /* ---------------------- Menu ---------------------- */
 
-import { TlaFile, TlaFileOpenState } from '@tldraw/dotcom-shared'
+import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
 import { Fragment, ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+	TLDRAW_FILE_EXTENSION,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
-	TldrawUiMenuActionItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
@@ -15,6 +15,7 @@ import {
 	getIncrementedName,
 	uniqueId,
 	useDialogs,
+	useMaybeEditor,
 	useToasts,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
@@ -26,6 +27,8 @@ import { useFileSidebarFocusContext } from '../../providers/FileInputFocusProvid
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
 import { defineMessages, useMsg } from '../../utils/i18n'
+import { editorMessages } from '../TlaEditor/editor-messages'
+import { download } from '../TlaEditor/useFileEditorOverrides'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 
 const messages = defineMessages({
@@ -78,7 +81,7 @@ export function TlaFileMenu({
 	)
 }
 
-function FileItems({
+export function FileItems({
 	source,
 	fileId,
 	onRenameAction,
@@ -88,6 +91,7 @@ function FileItems({
 	onRenameAction(): void
 }) {
 	const app = useApp()
+	const editor = useMaybeEditor()
 	const { addDialog } = useDialogs()
 	const navigate = useNavigate()
 	const { addToast } = useToasts()
@@ -98,13 +102,13 @@ function FileItems({
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = routes.tlaFile(fileId, { asUrl: true })
-		copyTextToClipboard(url)
+		copyTextToClipboard(editor?.createDeepLink({ url }).toString() ?? url)
 		addToast({
 			id: 'copied-link',
 			title: copiedMsg,
 		})
 		trackEvent('copy-file-link', { source })
-	}, [fileId, addToast, copiedMsg, trackEvent, source])
+	}, [fileId, addToast, copiedMsg, trackEvent, source, editor])
 
 	const handlePinUnpinClick = useCallback(async () => {
 		app.pinOrUnpinFile(fileId)
@@ -116,14 +120,23 @@ function FileItems({
 		const newFileId = uniqueId()
 		const file = app.getFile(fileId)
 		if (!file) return
-		const res = app.createFile({ id: newFileId, name: getDuplicateName(file, app) })
+		trackEvent('duplicate-file', { source })
+		const res = app.createFile({
+			id: newFileId,
+			name: getDuplicateName(file, app),
+			createSource: `${FILE_PREFIX}/${fileId}`,
+		})
+		// copy the state too
+		const prevState = app.getFileState(fileId)
+		app.getOrCreateFileState(newFileId)
+		app.updateFileState(newFileId, {
+			lastSessionState: prevState?.lastSessionState,
+		})
 		if (res.ok) {
 			focusCtx.shouldRenameNextNewFile = true
-			navigate(routes.tlaFile(newFileId), {
-				state: { mode: 'duplicate', duplicateId: fileId } satisfies TlaFileOpenState,
-			})
+			navigate(routes.tlaFile(newFileId))
 		}
-	}, [app, fileId, focusCtx, navigate])
+	}, [app, fileId, focusCtx, navigate, trackEvent, source])
 
 	const handleDeleteClick = useCallback(() => {
 		addDialog({
@@ -131,12 +144,22 @@ function FileItems({
 		})
 	}, [fileId, addDialog])
 
+	const untitledProject = useMsg(editorMessages.untitledProject)
+	const handleDownloadClick = useCallback(async () => {
+		if (!editor) return
+		const defaultName =
+			app.getFileName(fileId, false) ?? editor.getDocumentSettings().name ?? untitledProject
+		trackEvent('download-file', { source })
+		await download(editor, defaultName + TLDRAW_FILE_EXTENSION)
+	}, [app, editor, fileId, source, trackEvent, untitledProject])
+
 	const copyLinkMsg = useMsg(messages.copyLink)
 	const renameMsg = useMsg(messages.rename)
 	const duplicateMsg = useMsg(messages.duplicate)
 	const pinMsg = useMsg(messages.pin)
 	const unpinMsg = useMsg(messages.unpin)
 	const deleteOrForgetMsg = useMsg(isOwner ? messages.delete : messages.forget)
+	const downloadFile = useMsg(editorMessages.downloadFile)
 
 	return (
 		<Fragment>
@@ -164,8 +187,12 @@ function FileItems({
 					readonlyOk
 					onSelect={handlePinUnpinClick}
 				/>
-				{/* <TldrawUiMenuItem label={intl.formatMessage(messages.pin)} id="pin" readonlyOk onSelect={handlePinClick} /> */}
-				<TldrawUiMenuActionItem actionId={'save-file-copy'} />
+				<TldrawUiMenuItem
+					label={downloadFile}
+					id="download-file"
+					readonlyOk
+					onSelect={handleDownloadClick}
+				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">
 				<TldrawUiMenuItem
@@ -179,7 +206,7 @@ function FileItems({
 	)
 }
 
-function FileItemsWrapper({
+export function FileItemsWrapper({
 	showAsSubMenu,
 	children,
 }: {

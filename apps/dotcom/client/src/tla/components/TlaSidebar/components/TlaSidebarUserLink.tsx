@@ -16,7 +16,11 @@ export function TlaSidebarUserLink() {
 
 	return (
 		<TlaAccountMenu source="sidebar">
-			<button className={classNames(styles.user, 'tla-text_ui__regular')} title={accountMenuLbl}>
+			<button
+				className={classNames(styles.user, 'tla-text_ui__regular')}
+				title={accountMenuLbl}
+				data-testid="tla-sidebar-user-link"
+			>
 				<TlaAvatar img={user.avatar} />
 				<div className={classNames(styles.userName, 'notranslate')}>{user.name}</div>
 			</button>
