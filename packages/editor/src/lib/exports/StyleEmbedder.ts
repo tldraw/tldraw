@@ -32,7 +32,7 @@ export class StyleEmbedder {
 	readRootElementStyles(rootElement: Element) {
 		// when reading a root, we always apply _all_ the styles, even if they match the defaults
 		this.readElementStyles(rootElement, {
-			shouldRespectDefaults: true,
+			shouldRespectDefaults: false,
 			shouldSkipInheritedParentStyles: false,
 		})
 
