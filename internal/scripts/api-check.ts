@@ -26,6 +26,7 @@ async function main() {
 			rootDir: '.',
 			paths: {},
 			esModuleInterop: true,
+			target: 'es2015',
 		},
 		files: [],
 	}
