@@ -121,7 +121,7 @@ export const defaultTldrawOptions = {
 	laserDelayMs: 1200,
 	maxExportDelayMs: 5000,
 	temporaryAssetPreviewLifetimeMs: 180000,
-	actionShortcutsLocation: 'swap',
+	actionShortcutsLocation: 'toolbar',
 	createTextOnCanvasDoubleClick: true,
 	exportProvider: Fragment,
 	enableToolbarKeyboardShortcuts: true,
