@@ -5,12 +5,21 @@ import sqlite3 from 'sqlite3'
 import { PUBLIC_DIR } from './utils'
 
 export async function generateLlmsTxt(db: Database<sqlite3.Database, sqlite3.Statement>) {
+	const docsDbQuery = await db.all('SELECT * FROM articles WHERE sectionId = "docs"')
 	const examplesDbQuery = await db.all('SELECT * FROM articles WHERE sectionId = "examples"')
 
 	const lines = []
+
+	lines.push(`# tldraw SDK Documentation`)
+	lines.push(``)
+	for (const guide of docsDbQuery) {
+		lines.push(`## ${guide.title}`)
+		lines.push(``)
+		lines.push(`${guide.content.trim()}`)
+	}
+
 	lines.push(`# tldraw SDK Examples`)
 	lines.push(``)
-
 	for (const example of examplesDbQuery) {
 		lines.push(`## ${example.title}`)
 		lines.push(``)
