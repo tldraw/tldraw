@@ -27,6 +27,8 @@ async function main() {
 			paths: {},
 			esModuleInterop: true,
 			target: 'es2015',
+			module: 'esnext',
+			moduleResolution: 'node',
 		},
 		files: [],
 	}
