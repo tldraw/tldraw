@@ -62,10 +62,11 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const { editor } = this
 		const z = editor.getZoomLevel()
 		const labelSide = getFrameHeadingSide(editor, shape)
-		const dimension = labelSide % 2 ? shape.props.h : shape.props.w
+		const isVertical = labelSide % 2 === 1
+
+		const dimension = isVertical ? shape.props.h : shape.props.w
 		const opts = getFrameHeadingOpts(shape, 'black', dimension)
 		const headingSize = getFrameHeadingSize(editor, shape, opts)
-
 		const isShowingFrameColors = showFrameColors(editor, shape)
 
 		const offsetX = isShowingFrameColors ? 0 : -8 / z
@@ -74,37 +75,21 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const extraWidth = FRAME_HEADING_EXTRA_WIDTH / z
 		const minWidth = FRAME_HEADING_MIN_WIDTH / z
 
-		// wow this fucking sucks!!!
-		const _labelWidth = clamp(headingSize.w / z + extraWidth, minWidth, dimension + extraWidth)
-		const _labelHeight = headingSize.h / z
+		const labelWidth = clamp(headingSize.w / z + extraWidth, minWidth, dimension + extraWidth)
+		const labelHeight = headingSize.h / z
 
-		const w = labelSide % 2 ? _labelHeight : _labelWidth
-		const h = labelSide % 2 ? _labelWidth : _labelHeight
+		const width = isVertical ? labelHeight : labelWidth
+		const height = isVertical ? labelWidth : labelHeight
 
-		let x: number, y: number
+		// Calculate label position based on side
+		const positions = [
+			{ x: offsetX, y: -labelHeight - offsetY },
+			{ x: -labelHeight - offsetY, y: shape.props.h - offsetX - labelWidth },
+			{ x: shape.props.w - offsetX - labelWidth, y: shape.props.h + offsetY },
+			{ x: shape.props.w + offsetY, y: offsetX },
+		]
 
-		switch (labelSide) {
-			case 0: {
-				x = offsetX
-				y = -_labelHeight + -offsetY
-				break
-			}
-			case 1: {
-				x = -_labelHeight + -offsetY
-				y = shape.props.h + -offsetX + -_labelWidth
-				break
-			}
-			case 2: {
-				x = shape.props.w + -offsetX + -_labelWidth
-				y = shape.props.h + offsetY
-				break
-			}
-			case 3: {
-				x = shape.props.w + offsetY
-				y = offsetX
-				break
-			}
-		}
+		const { x, y } = positions[labelSide]
 
 		return new Group2d({
 			children: [
@@ -116,8 +101,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				new Rectangle2d({
 					x,
 					y,
-					width: w,
-					height: h,
+					width,
+					height,
 					isFilled: true,
 					isLabel: true,
 				}),
