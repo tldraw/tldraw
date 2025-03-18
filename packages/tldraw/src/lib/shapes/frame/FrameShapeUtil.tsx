@@ -87,26 +87,26 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		switch (labelSide) {
 			case 0: {
 				// top
-				x = -labelWidth - offsetX
+				x = offsetX
 				y = -labelHeight - offsetY
 				break
 			}
 			case 1: {
 				// right
 				x = -labelHeight - offsetY
-				y = shape.props.h - offsetX
+				y = shape.props.h - offsetX - labelWidth
 				break
 			}
 			case 2: {
 				// bottom
-				x = shape.props.w + offsetY
-				y = offsetX
+				x = shape.props.w - offsetX - labelWidth
+				y = shape.props.h + offsetY
 				break
 			}
 			case 3: {
 				// left
-				x = offsetX
-				y = -labelHeight - offsetY
+				x = shape.props.w + offsetY
+				y = offsetX
 				break
 			}
 		}
