@@ -75,6 +75,13 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			// If we're not still editing the original shape, then don't do anything.
 			if (editor.getEditingShapeId() !== shapeId) return
 
+			// Because React can double-render, especially in Strict Mode,
+			// We need to make sure we're not setting the text editor twice.
+			// This became more much more prevalent in React 19, but also
+			// it started manifesting in some cases in Next 14.2
+			// (which maybe patches React 18.3 in weird ways).
+			if (rTextEditor.current) return
+
 			const textEditor = props.editor
 			editor.setRichTextEditor(textEditor)
 			rTextEditor.current = textEditor
