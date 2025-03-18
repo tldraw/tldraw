@@ -58,11 +58,17 @@ export class StyleEmbedder {
 			? getDefaultStylesForTagName(element.tagName.toLowerCase())
 			: NO_STYLES
 
-		let parentStyles = NO_STYLES
+		const parentStyles = Object.assign({}, NO_STYLES) as Styles
 		if (shouldSkipInheritedParentStyles) {
 			let el = element.parentElement
+			// Keep going up the tree to find all the relevant styles
 			while (el) {
-				parentStyles = Object.assign({}, this.styles.get(el)?.self, parentStyles)
+				const currentStyles = this.styles.get(el)?.self
+				for (const style in currentStyles) {
+					if (!parentStyles[style]) {
+						parentStyles[style] = currentStyles[style]
+					}
+				}
 				el = el.parentElement
 			}
 		}
