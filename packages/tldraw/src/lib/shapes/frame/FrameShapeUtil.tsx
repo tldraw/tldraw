@@ -1,6 +1,5 @@
 import {
 	BaseBoxShapeUtil,
-	Editor,
 	Geometry2d,
 	Group2d,
 	Rectangle2d,
@@ -67,15 +66,19 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const dimension = isVertical ? shape.props.h : shape.props.w
 		const opts = getFrameHeadingOpts(shape, 'black', dimension)
 		const headingSize = getFrameHeadingSize(editor, shape, opts)
-		const isShowingFrameColors = showFrameColors(editor, shape)
+		const isShowingFrameColors = editor.options.showFrameColors
 
-		const offsetX = isShowingFrameColors ? 0 : -8 / z
+		const offsetX = (isShowingFrameColors ? 0 : -8) / z
 		const offsetY = 4 / z
 
 		const extraWidth = FRAME_HEADING_EXTRA_WIDTH / z
 		const minWidth = FRAME_HEADING_MIN_WIDTH / z
 
-		const labelWidth = clamp(headingSize.w / z + extraWidth, minWidth, dimension + extraWidth)
+		const labelWidth = clamp(
+			headingSize.w / z + extraWidth,
+			minWidth,
+			dimension + (isShowingFrameColors ? 0 : extraWidth)
+		)
 		const labelHeight = headingSize.h / z
 
 		const width = isVertical ? labelHeight : labelWidth
@@ -288,20 +291,4 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			h: lerp(startShape.props.h, endShape.props.h, t),
 		}
 	}
-}
-
-function showFrameColors(editor: Editor, shape: TLFrameShape) {
-	return editor.options.showFrameColors && shape.props.color !== 'black'
-}
-
-function useShowFrameColors(editor: Editor, shapeId: TLFrameShape['id']) {
-	return useValue(
-		'show frame colors',
-		() => {
-			const shape = editor.getShape<TLFrameShape>(shapeId)
-			if (!shape) return false
-			return showFrameColors(editor, shape)
-		},
-		[editor]
-	)
 }
