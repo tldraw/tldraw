@@ -156,10 +156,11 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		)
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const showFrameColors = useShowFrameColors(this.editor, shape.id)
+		const showFrameColors = this.editor.options.showFrameColors // useShowFrameColors(this.editor, shape.id)
 		const frameFill = showFrameColors ? color.frame.fill : theme.solid
 		const frameStroke = showFrameColors ? color.frame.stroke : theme.text
-		const frameHeadingFill = showFrameColors ? color.fill : theme.blue.fill
+		const frameHeadingStroke = showFrameColors ? color.frame.headingStroke : theme.solid
+		const frameHeadingFill = showFrameColors ? color.frame.headingFill : theme.solid
 		const frameHeadingText = showFrameColors ? color.frame.text : theme.text
 
 		return (
@@ -178,6 +179,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 						id={shape.id}
 						name={shape.props.name}
 						fill={frameHeadingFill}
+						stroke={frameHeadingStroke}
 						color={frameHeadingText}
 						width={shape.props.w}
 						height={shape.props.h}

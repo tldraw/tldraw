@@ -9,6 +9,7 @@ export const FrameHeading = memo(function FrameHeading({
 	width,
 	height,
 	fill,
+	stroke,
 	color,
 	offsetX,
 }: {
@@ -17,6 +18,7 @@ export const FrameHeading = memo(function FrameHeading({
 	width: number
 	height: number
 	fill: string
+	stroke: string
 	color: string
 	offsetX: number
 }) {
@@ -65,7 +67,10 @@ export const FrameHeading = memo(function FrameHeading({
 				transform: `${translation} scale(var(--tl-scale)) translateX(${offsetX}px)`,
 			}}
 		>
-			<div className="tl-frame-heading-hit-area" style={{ color, backgroundColor: fill }}>
+			<div
+				className="tl-frame-heading-hit-area"
+				style={{ color, backgroundColor: fill, boxShadow: `inset 0px 0px 0px 1px ${stroke}` }}
+			>
 				<FrameLabelInput ref={rInput} id={id} name={name} isEditing={isEditing} />
 			</div>
 		</div>

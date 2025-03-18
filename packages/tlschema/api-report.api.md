@@ -895,6 +895,8 @@ export interface TLDefaultColorThemeColor {
     // (undocumented)
     frame: {
         fill: string;
+        headingFill: string;
+        headingStroke: string;
         stroke: string;
         text: string;
     };

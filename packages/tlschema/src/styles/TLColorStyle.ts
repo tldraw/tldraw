@@ -26,6 +26,8 @@ export interface TLDefaultColorThemeColor {
 	pattern: string
 	fill: string // same as solid
 	frame: {
+		headingStroke: string
+		headingFill: string
 		stroke: string
 		fill: string
 		text: string
@@ -64,9 +66,11 @@ export const DefaultColorThemePalette: {
 			solid: '#1d1d1d',
 			fill: '#1d1d1d',
 			frame: {
-				stroke: '#1d1d1d',
-				fill: '#e8e8e8',
-				text: '#ffffff',
+				headingStroke: '#999999',
+				headingFill: '#ffffff',
+				stroke: '#999999',
+				fill: '#ffffff',
+				text: '#000000',
 			},
 			note: {
 				fill: '#FCE19C',
@@ -83,9 +87,11 @@ export const DefaultColorThemePalette: {
 			solid: '#4465e9',
 			fill: '#4465e9',
 			frame: {
+				headingStroke: '#4465e9',
+				headingFill: '#dce1f8',
 				stroke: '#4465e9',
 				fill: '#dce1f8',
-				text: '#ffffff',
+				text: '#000000',
 			},
 			note: {
 				fill: '#8AA3FF',
@@ -102,9 +108,11 @@ export const DefaultColorThemePalette: {
 			solid: '#099268',
 			fill: '#099268',
 			frame: {
+				headingStroke: '#099268',
+				headingFill: '#d3e9e3',
 				stroke: '#099268',
-				fill: '#6FC896',
-				text: '#ffffff',
+				fill: '#d3e9e3',
+				text: '#000000',
 			},
 			note: {
 				fill: '#6FC896',
@@ -121,9 +129,11 @@ export const DefaultColorThemePalette: {
 			solid: '#9fa8b2',
 			fill: '#9fa8b2',
 			frame: {
+				headingStroke: '#9fa8b2',
+				headingFill: '#eceef0',
 				stroke: '#9fa8b2',
 				fill: '#eceef0',
-				text: '#ffffff',
+				text: '#000000',
 			},
 			note: {
 				fill: '#C0CAD3',
@@ -140,9 +150,11 @@ export const DefaultColorThemePalette: {
 			solid: '#4ba1f1',
 			fill: '#4ba1f1',
 			frame: {
+				headingStroke: '#4ba1f1',
+				headingFill: '#ddedfa',
 				stroke: '#4ba1f1',
 				fill: '#ddedfa',
-				text: '#ffffff',
+				text: '#000000',
 			},
 			note: {
 				fill: '#9BC4FD',
@@ -159,9 +171,11 @@ export const DefaultColorThemePalette: {
 			solid: '#4cb05e',
 			fill: '#4cb05e',
 			frame: {
+				headingStroke: '#4cb05e',
+				headingFill: '#dbf0e0',
 				stroke: '#4cb05e',
 				fill: '#dbf0e0',
-				text: '#ffffff',
+				text: '#000000',
 			},
 			note: {
 				fill: '#98D08A',
@@ -178,9 +192,11 @@ export const DefaultColorThemePalette: {
 			solid: '#f87777',
 			fill: '#f87777',
 			frame: {
+				headingStroke: '#f87777',
+				headingFill: '#f4dadb',
 				stroke: '#f87777',
 				fill: '#f4dadb',
-				text: '#ffffff',
+				text: '#000000',
 			},
 			note: {
 				fill: '#F7A5A1',
@@ -197,9 +213,11 @@ export const DefaultColorThemePalette: {
 			solid: '#e085f4',
 			fill: '#e085f4',
 			frame: {
+				headingStroke: '#e085f4',
+				headingFill: '#f5eafa',
 				stroke: '#e085f4',
 				fill: '#f5eafa',
-				text: '#ffffff',
+				text: '#000000',
 			},
 			note: {
 				fill: '#DFB0F9',
@@ -216,9 +234,11 @@ export const DefaultColorThemePalette: {
 			solid: '#e16919',
 			fill: '#e16919',
 			frame: {
+				headingStroke: '#e16919',
+				headingFill: '#f8e2d4',
 				stroke: '#e16919',
 				fill: '#f8e2d4',
-				text: '#ffffff',
+				text: '#000000',
 			},
 			note: {
 				fill: '#FAA475',
@@ -235,9 +255,11 @@ export const DefaultColorThemePalette: {
 			solid: '#e03131',
 			fill: '#e03131',
 			frame: {
+				headingStroke: '#e03131',
+				headingFill: '#f4dadb',
 				stroke: '#e03131',
 				fill: '#f4dadb',
-				text: '#ffffff',
+				text: '#000000',
 			},
 			note: {
 				fill: '#FC8282',
@@ -254,9 +276,11 @@ export const DefaultColorThemePalette: {
 			solid: '#ae3ec9',
 			fill: '#ae3ec9',
 			frame: {
+				headingStroke: '#ae3ec9',
+				headingFill: '#ecdcf2',
 				stroke: '#ae3ec9',
 				fill: '#ecdcf2',
-				text: '#ffffff',
+				text: '#000000',
 			},
 			note: {
 				fill: '#DB91FD',
@@ -273,9 +297,11 @@ export const DefaultColorThemePalette: {
 			solid: '#f1ac4b',
 			fill: '#f1ac4b',
 			frame: {
+				headingStroke: '#f1ac4b',
+				headingFill: '#f9f0e6',
 				stroke: '#f1ac4b',
 				fill: '#f9f0e6',
-				text: '#ffffff',
+				text: '#000000',
 			},
 			note: {
 				fill: '#FED49A',
@@ -294,6 +320,8 @@ export const DefaultColorThemePalette: {
 			semi: '#f5f5f5',
 			pattern: '#f9f9f9',
 			frame: {
+				headingStroke: '#7d7d7d',
+				headingFill: '#ffffff',
 				stroke: '#7d7d7d',
 				fill: '#ffffff',
 				text: '#000000',
@@ -318,9 +346,11 @@ export const DefaultColorThemePalette: {
 			solid: '#f2f2f2',
 			fill: '#f2f2f2',
 			frame: {
-				stroke: '#f2f2f2',
-				fill: '#2c3036',
-				text: '#000000',
+				headingStroke: '#5c5c5c',
+				headingFill: '#252525',
+				stroke: '#5c5c5c',
+				fill: '#0c0c0c',
+				text: '#f2f2f2',
 			},
 			note: {
 				fill: '#2c2c2c',
@@ -337,9 +367,11 @@ export const DefaultColorThemePalette: {
 			solid: '#4f72fc', // 3c60f0
 			fill: '#4f72fc',
 			frame: {
-				stroke: '#4f72fc',
-				fill: '#262d40',
-				text: '#000000',
+				headingStroke: '#384994',
+				headingFill: '#1C2036',
+				stroke: '#384994',
+				fill: '#11141f',
+				text: '#f2f2f2',
 			},
 			note: {
 				fill: '#2A3F98',
@@ -356,9 +388,11 @@ export const DefaultColorThemePalette: {
 			solid: '#099268',
 			fill: '#099268',
 			frame: {
-				stroke: '#099268',
-				fill: '#253231',
-				text: '#000000',
+				headingStroke: '#10513C',
+				headingFill: '#14241f',
+				stroke: '#10513C',
+				fill: '#0E1614',
+				text: '#f2f2f2',
 			},
 			note: {
 				fill: '#014429',
@@ -375,9 +409,11 @@ export const DefaultColorThemePalette: {
 			solid: '#9398b0',
 			fill: '#9398b0',
 			frame: {
-				stroke: '#9398b0',
-				fill: '#33373c',
-				text: '#000000',
+				headingStroke: '#42474D',
+				headingFill: '#23262A',
+				stroke: '#42474D',
+				fill: '#151719',
+				text: '#f2f2f2',
 			},
 			note: {
 				fill: '#56595F',
@@ -394,9 +430,11 @@ export const DefaultColorThemePalette: {
 			solid: '#4dabf7',
 			fill: '#4dabf7',
 			frame: {
-				stroke: '#4dabf7',
-				fill: '#2a3642',
-				text: '#000000',
+				headingStroke: '#075797',
+				headingFill: '#142839',
+				stroke: '#075797',
+				fill: '#0B1823',
+				text: '#f2f2f2',
 			},
 			note: {
 				fill: '#1F5495',
@@ -413,9 +451,11 @@ export const DefaultColorThemePalette: {
 			solid: '#40c057',
 			fill: '#40c057',
 			frame: {
-				stroke: '#40c057',
-				fill: '#2a3830',
-				text: '#000000',
+				headingStroke: '#1C5427',
+				headingFill: '#18251A',
+				stroke: '#1C5427',
+				fill: '#0F1911',
+				text: '#f2f2f2',
 			},
 			note: {
 				fill: '#21581D',
@@ -432,9 +472,11 @@ export const DefaultColorThemePalette: {
 			solid: '#ff8787',
 			fill: '#ff8787',
 			frame: {
+				headingStroke: '#ff8787',
+				headingFill: '#3b3235',
 				stroke: '#ff8787',
 				fill: '#3b3235',
-				text: '#000000',
+				text: '#f2f2f2',
 			},
 			note: {
 				fill: '#923632',
@@ -451,9 +493,11 @@ export const DefaultColorThemePalette: {
 			solid: '#e599f7',
 			fill: '#e599f7',
 			frame: {
-				stroke: '#e599f7',
-				fill: '#383442',
-				text: '#000000',
+				headingStroke: '#834592',
+				headingFill: '#2D2230',
+				stroke: '#834592',
+				fill: '#1C151E',
+				text: '#f2f2f2',
 			},
 			note: {
 				fill: '#762F8E',
@@ -470,6 +514,8 @@ export const DefaultColorThemePalette: {
 			solid: '#f76707',
 			fill: '#f76707',
 			frame: {
+				headingStroke: '#f76707',
+				headingFill: '#3a2e2a',
 				stroke: '#f76707',
 				fill: '#3a2e2a',
 				text: '#000000',
@@ -489,6 +535,8 @@ export const DefaultColorThemePalette: {
 			solid: '#e03131',
 			fill: '#e03131',
 			frame: {
+				headingStroke: '#e03131',
+				headingFill: '#36292b',
 				stroke: '#e03131',
 				fill: '#36292b',
 				text: '#000000',
@@ -508,6 +556,8 @@ export const DefaultColorThemePalette: {
 			solid: '#ae3ec9',
 			fill: '#ae3ec9',
 			frame: {
+				headingStroke: '#ae3ec9',
+				headingFill: '#31293c',
 				stroke: '#ae3ec9',
 				fill: '#31293c',
 				text: '#000000',
@@ -527,6 +577,8 @@ export const DefaultColorThemePalette: {
 			solid: '#ffc034',
 			fill: '#ffc034',
 			frame: {
+				headingStroke: '#ffc034',
+				headingFill: '#3c3934',
 				stroke: '#ffc034',
 				fill: '#3c3934',
 				text: '#000000',
@@ -548,6 +600,8 @@ export const DefaultColorThemePalette: {
 			semi: '#f5f5f5',
 			pattern: '#f9f9f9',
 			frame: {
+				headingStroke: '#2c2c2c',
+				headingFill: '#030303',
 				stroke: '#2c2c2c',
 				fill: '#030303',
 				text: '#000000',
