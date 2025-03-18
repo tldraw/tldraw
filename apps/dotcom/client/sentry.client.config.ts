@@ -55,4 +55,7 @@ Sentry.init({
 	},
 })
 
+// @ts-expect-error
+window.sentry = Sentry
+
 setGlobalErrorReporter((error) => Sentry.captureException(error))

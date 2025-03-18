@@ -68,6 +68,7 @@ export class Drawing extends StateNode {
 			if (this.markId) {
 				this.editor.bailToMark(this.markId)
 				this.startShape()
+				this.ohno('onPointerMove: isPen && !inputs.isPen && this.markId')
 				return
 			}
 		}
@@ -277,11 +278,20 @@ export class Drawing extends StateNode {
 		this.initialShape = this.editor.getShape<DrawableShape>(id)
 	}
 
+	ohno(message: string) {
+		;(window as any).sentry.addBreadcrumb({
+			message: message,
+		})
+	}
+
 	private updateDrawingShape() {
 		const { initialShape } = this
 		const { inputs } = this.editor
 
-		if (!initialShape) return
+		if (!initialShape) {
+			this.ohno('updateDrawingShape: no initialShape')
+			return
+		}
 
 		const {
 			id,
@@ -290,13 +300,17 @@ export class Drawing extends StateNode {
 
 		const shape = this.editor.getShape<DrawableShape>(id)!
 
-		if (!shape) return
+		if (!shape) {
+			this.ohno('updateDrawingShape: no shape')
+			return
+		}
 
 		const { segments } = shape.props
 
 		const { x, y, z } = this.editor.getPointInShapeSpace(shape, inputs.currentPagePoint).toFixed()
 		const pressure = this.isPenOrStylus ? +(inputs.currentPagePoint.z! * 1.25).toFixed(2) : 0.5
 		const newPoint = { x, y, z: pressure }
+		this.ohno(`newpoint(${this.segmentMode}): ` + JSON.stringify(newPoint))
 
 		switch (this.segmentMode) {
 			case 'starting_straight': {
@@ -368,7 +382,10 @@ export class Drawing extends StateNode {
 						)
 					}
 
+					this.ohno('starting_straight: newSegment: ' + JSON.stringify(newSegment))
 					this.editor.updateShapes<TLDrawShape | TLHighlightShape>([shapePartial])
+				} else {
+					this.ohno('starting_straight: !hasMovedFarEnough')
 				}
 				break
 			}
@@ -437,7 +454,10 @@ export class Drawing extends StateNode {
 						)
 					}
 
+					this.ohno('starting_free: newFreeSegment: ' + JSON.stringify(newFreeSegment))
 					this.editor.updateShapes([shapePartial])
+				} else {
+					this.ohno('starting_free: !hasMovedFarEnough')
 				}
 
 				break
@@ -579,6 +599,7 @@ export class Drawing extends StateNode {
 					)
 				}
 
+				this.ohno('straight: newPoint: ' + JSON.stringify(newPoint))
 				this.editor.updateShapes([shapePartial])
 
 				break
@@ -627,6 +648,7 @@ export class Drawing extends StateNode {
 					)
 				}
 
+				this.ohno('free: newPoint: ' + JSON.stringify(newPoint))
 				this.editor.updateShapes([shapePartial])
 
 				// Set a maximum length for the lines array; after 200 points, complete the line.
@@ -636,6 +658,7 @@ export class Drawing extends StateNode {
 					const newShapeId = createShapeId()
 
 					const props = this.editor.getShape<DrawableShape>(id)!.props
+					this.ohno('splitting!')
 
 					this.editor.createShapes<DrawableShape>([
 						{
@@ -664,7 +687,12 @@ export class Drawing extends StateNode {
 
 				break
 			}
+			default: {
+				this.ohno('updateDrawingShape: default ' + this.segmentMode)
+				break
+			}
 		}
+		this.ohno('updateDrawingShape: end')
 	}
 
 	private getLineLength(segments: TLDrawShapeSegment[]) {
@@ -710,11 +738,13 @@ export class Drawing extends StateNode {
 		this.editor.updateShapes([
 			{ id: initialShape.id, type: initialShape.type, props: { isComplete: true } },
 		])
+		;(window as any).sentry.captureException(new Error('complete'))
 
 		this.parent.transition('idle')
 	}
 
 	cancel() {
+		;(window as any).sentry.captureException(new Error('cancel'))
 		this.parent.transition('idle', this.info)
 	}
 }
