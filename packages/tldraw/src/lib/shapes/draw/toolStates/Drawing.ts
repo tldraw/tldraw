@@ -20,6 +20,7 @@ import {
 import { HighlightShapeUtil } from '../../highlight/HighlightShapeUtil'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { DrawShapeUtil } from '../DrawShapeUtil'
+import { diffRecord } from './diff'
 
 type DrawableShape = TLDrawShape | TLHighlightShape
 
@@ -650,8 +651,11 @@ export class Drawing extends StateNode {
 					)
 				}
 
+				const before = this.editor.getShape(id)!
 				this.ohno('free: newPoint: ' + JSON.stringify(newPoint))
 				this.editor.updateShapes([shapePartial])
+				const after = this.editor.getShape(id)!
+				this.ohno('diff: ' + JSON.stringify(diffRecord(before, after)))
 
 				// Set a maximum length for the lines array; after 200 points, complete the line.
 				if (newPoints.length > this.util.options.maxPointsPerShape) {
