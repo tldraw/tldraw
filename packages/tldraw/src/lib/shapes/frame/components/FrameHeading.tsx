@@ -10,6 +10,7 @@ export const FrameHeading = memo(function FrameHeading({
 	height,
 	fill,
 	color,
+	offsetX,
 }: {
 	id: TLShapeId
 	name: string
@@ -17,6 +18,7 @@ export const FrameHeading = memo(function FrameHeading({
 	height: number
 	fill: string
 	color: string
+	offsetX: number
 }) {
 	const editor = useEditor()
 	const { side, translation } = useValue(
@@ -36,7 +38,7 @@ export const FrameHeading = memo(function FrameHeading({
 				translation: getFrameHeadingTranslation(shape, labelSide, false),
 			}
 		},
-		[editor, id]
+		[editor, offsetX, id]
 	)
 
 	const rInput = useRef<HTMLInputElement>(null)
@@ -60,7 +62,7 @@ export const FrameHeading = memo(function FrameHeading({
 					side === 0 || side === 2 ? Math.ceil(width) : Math.ceil(height)
 				}px + var(--fow))`,
 				bottom: '100%',
-				transform: `${translation} scale(var(--tl-scale)) translateX(var(--fho))`,
+				transform: `${translation} scale(var(--tl-scale)) translateX(${offsetX}px)`,
 			}}
 		>
 			<div className="tl-frame-heading-hit-area" style={{ color, backgroundColor: fill }}>

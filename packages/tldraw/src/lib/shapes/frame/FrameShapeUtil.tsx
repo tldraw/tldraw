@@ -1,5 +1,6 @@
 import {
 	BaseBoxShapeUtil,
+	Editor,
 	Geometry2d,
 	Group2d,
 	Rectangle2d,
@@ -10,6 +11,7 @@ import {
 	TLGroupShape,
 	TLResizeInfo,
 	TLShape,
+	clamp,
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
@@ -19,7 +21,6 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-
 import {
 	TLCreateTextJsxFromSpansOpts,
 	createTextJsxFromSpans,
@@ -32,6 +33,9 @@ import {
 	getFrameHeadingSize,
 	getFrameHeadingTranslation,
 } from './frameHelpers'
+
+const FRAME_HEADING_EXTRA_WIDTH = 14
+const FRAME_HEADING_MIN_WIDTH = 32 // --fmw
 
 export function defaultEmptyAs(str: string, dflt: string) {
 	if (str.match(/^\s*$/)) {
@@ -57,44 +61,47 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	override getGeometry(shape: TLFrameShape): Geometry2d {
 		const { editor } = this
 		const z = editor.getZoomLevel()
-		const opts = getFrameHeadingOpts(shape, 'black')
-		const box = getFrameHeadingSize(editor, shape, opts)
 		const labelSide = getFrameHeadingSide(editor, shape)
+		const dimension = labelSide % 2 ? shape.props.h : shape.props.w
+		const opts = getFrameHeadingOpts(shape, 'black', dimension)
+		const headingSize = getFrameHeadingSize(editor, shape, opts)
+
+		const isShowingFrameColors = showFrameColors(editor, shape)
+
+		const offsetX = isShowingFrameColors ? 0 : -8 / z
+		const offsetY = 4 / z
+
+		const extraWidth = FRAME_HEADING_EXTRA_WIDTH / z
+		const minWidth = FRAME_HEADING_MIN_WIDTH / z
 
 		// wow this fucking sucks!!!
-		let x: number, y: number, w: number, h: number
+		const _labelWidth = clamp(headingSize.w / z + extraWidth, minWidth, dimension + extraWidth)
+		const _labelHeight = headingSize.h / z
 
-		const { w: hw, h: hh } = box
-		const scaledW = Math.min(hw, shape.props.w * z)
-		const scaledH = Math.min(hh, shape.props.h * z)
+		const w = labelSide % 2 ? _labelHeight : _labelWidth
+		const h = labelSide % 2 ? _labelWidth : _labelHeight
+
+		let x: number, y: number
 
 		switch (labelSide) {
 			case 0: {
-				x = -8 / z
-				y = (-hh - 4) / z
-				w = (scaledW + 16) / z
-				h = hh / z
+				x = offsetX
+				y = -_labelHeight + -offsetY
 				break
 			}
 			case 1: {
-				x = (-hh - 4) / z
-				h = (scaledH + 16) / z
-				y = shape.props.h - h + 8 / z
-				w = hh / z
+				x = -_labelHeight + -offsetY
+				y = shape.props.h + -offsetX + -_labelWidth
 				break
 			}
 			case 2: {
-				x = shape.props.w - (scaledW + 8) / z
-				y = shape.props.h + 4 / z
-				w = (scaledH + 16) / z
-				h = hh / z
+				x = shape.props.w + -offsetX + -_labelWidth
+				y = shape.props.h + offsetY
 				break
 			}
 			case 3: {
-				x = shape.props.w + 4 / z
-				h = (scaledH + 16) / z
-				y = -8 / z
-				w = hh / z
+				x = shape.props.w + offsetY
+				y = offsetX
 				break
 			}
 		}
@@ -143,10 +150,11 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			[shape.id]
 		)
 
-		const showFrameColors = this.editor.options.showFrameColors
-		const frameFill = showFrameColors ? color.frame.fill : theme.white.solid
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const showFrameColors = useShowFrameColors(this.editor, shape.id)
+		const frameFill = showFrameColors ? color.frame.fill : theme.solid
 		const frameStroke = showFrameColors ? color.frame.stroke : theme.text
-		const frameHeadingFill = showFrameColors ? color.fill : theme.background
+		const frameHeadingFill = showFrameColors ? color.fill : theme.blue.fill
 		const frameHeadingText = showFrameColors ? color.frame.text : theme.text
 
 		return (
@@ -156,8 +164,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 						className={classNames('tl-frame__body', { 'tl-frame__creating': isCreating })}
 						width={shape.props.w}
 						height={shape.props.h}
-						fill={theme.solid}
-						stroke={theme.text}
+						fill={frameFill}
+						stroke={frameStroke}
 					/>
 				</SVGContainer>
 				{isCreating ? null : (
@@ -168,6 +176,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 						color={frameHeadingText}
 						width={shape.props.w}
 						height={shape.props.h}
+						offsetX={showFrameColors ? 0 : -8}
 					/>
 				)}
 			</>
@@ -182,7 +191,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const labelTranslate = getFrameHeadingTranslation(shape, labelSide, true)
 
 		// Truncate with ellipsis
-		const opts: TLCreateTextJsxFromSpansOpts = getFrameHeadingOpts(shape, theme.text)
+		const opts: TLCreateTextJsxFromSpansOpts = getFrameHeadingOpts(shape, theme.text, labelSide)
 
 		const frameTitle = defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203)
 		const labelBounds = getFrameHeadingSize(this.editor, shape, opts)
@@ -272,4 +281,20 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			h: lerp(startShape.props.h, endShape.props.h, t),
 		}
 	}
+}
+
+function showFrameColors(editor: Editor, shape: TLFrameShape) {
+	return editor.options.showFrameColors && shape.props.color !== 'black'
+}
+
+function useShowFrameColors(editor: Editor, shapeId: TLFrameShape['id']) {
+	return useValue(
+		'show frame colors',
+		() => {
+			const shape = editor.getShape<TLFrameShape>(shapeId)
+			if (!shape) return false
+			return showFrameColors(editor, shape)
+		},
+		[editor]
+	)
 }
