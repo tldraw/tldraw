@@ -472,18 +472,18 @@ export const DefaultColorThemePalette: {
 			solid: '#ff8787',
 			fill: '#ff8787',
 			frame: {
-				headingStroke: '#ff8787',
-				headingFill: '#3b3235',
-				stroke: '#ff8787',
-				fill: '#3b3235',
-				text: '#f2f2f2',
+				headingStroke: '#6f3232', // Darker and desaturated variant of solid
+				headingFill: '#341818', // Deep, muted dark red
+				stroke: '#6f3232', // Matches headingStroke
+				fill: '#181212', // Darker, muted background shade
+				text: '#f2f2f2', // Consistent bright text color
 			},
 			note: {
-				fill: '#923632',
+				fill: '#7a3333', // Medium-dark, muted variant of solid
 				text: '#f2f2f2',
 			},
-			semi: '#3b3235',
-			pattern: '#a56767',
+			semi: '#3c2b2b', // Subdued, darker neutral-red tone
+			pattern: '#a56767', // Existing pattern shade retained
 			highlight: {
 				srgb: '#db005b',
 				p3: 'color(display-p3 0.7849 0.0585 0.3589)',
@@ -493,9 +493,9 @@ export const DefaultColorThemePalette: {
 			solid: '#e599f7',
 			fill: '#e599f7',
 			frame: {
-				headingStroke: '#834592',
+				headingStroke: '#6c367a',
 				headingFill: '#2D2230',
-				stroke: '#834592',
+				stroke: '#6c367a',
 				fill: '#1C151E',
 				text: '#f2f2f2',
 			},
@@ -514,18 +514,18 @@ export const DefaultColorThemePalette: {
 			solid: '#f76707',
 			fill: '#f76707',
 			frame: {
-				headingStroke: '#f76707',
-				headingFill: '#3a2e2a',
-				stroke: '#f76707',
-				fill: '#3a2e2a',
-				text: '#000000',
+				headingStroke: '#773a0e', // Darker, muted version of solid
+				headingFill: '#2f1d13', // Deep, warm, muted background
+				stroke: '#773a0e', // Matches headingStroke
+				fill: '#1c1512', // Darker, richer muted background
+				text: '#f2f2f2', // Bright text for contrast
 			},
 			note: {
-				fill: '#843906',
+				fill: '#7c3905', // Muted dark variant for note fill
 				text: '#f2f2f2',
 			},
-			semi: '#3a2e2a',
-			pattern: '#9f552d',
+			semi: '#3b2e27', // Muted neutral-orange tone
+			pattern: '#9f552d', // Retained existing shade
 			highlight: {
 				srgb: '#d07a00',
 				p3: 'color(display-p3 0.7699 0.4937 0.0085)',
@@ -535,18 +535,18 @@ export const DefaultColorThemePalette: {
 			solid: '#e03131',
 			fill: '#e03131',
 			frame: {
-				headingStroke: '#e03131',
-				headingFill: '#36292b',
-				stroke: '#e03131',
-				fill: '#36292b',
-				text: '#000000',
+				headingStroke: '#701e1e', // Darker, muted variation of solid
+				headingFill: '#301616', // Deep, muted reddish backdrop
+				stroke: '#701e1e', // Matches headingStroke
+				fill: '#1b1313', // Rich, dark muted background
+				text: '#f2f2f2', // Bright text for readability
 			},
 			note: {
-				fill: '#89231A',
+				fill: '#7e201f', // Muted dark variant for note fill
 				text: '#f2f2f2',
 			},
-			semi: '#36292b',
-			pattern: '#8f3734',
+			semi: '#382726', // Dark neutral-red tone
+			pattern: '#8f3734', // Existing pattern color retained
 			highlight: {
 				srgb: '#de002c',
 				p3: 'color(display-p3 0.7978 0.0509 0.2035)',
@@ -556,18 +556,18 @@ export const DefaultColorThemePalette: {
 			solid: '#ae3ec9',
 			fill: '#ae3ec9',
 			frame: {
-				headingStroke: '#ae3ec9',
-				headingFill: '#31293c',
-				stroke: '#ae3ec9',
-				fill: '#31293c',
-				text: '#000000',
+				headingStroke: '#6d1583', // Darker, muted variation of solid
+				headingFill: '#27152e', // Deep, rich muted violet backdrop
+				stroke: '#6d1583', // Matches headingStroke
+				fill: '#1b0f21', // Darker muted violet background
+				text: '#f2f2f2', // Consistent bright text color
 			},
 			note: {
-				fill: '#681683',
+				fill: '#5f1c70', // Muted dark variant for note fill
 				text: '#f2f2f2',
 			},
-			semi: '#31293c',
-			pattern: '#763a8b',
+			semi: '#342938', // Dark neutral-violet tone
+			pattern: '#763a8b', // Retained existing pattern color
 			highlight: {
 				srgb: '#9e00ee',
 				p3: 'color(display-p3 0.5651 0.0079 0.8986)',
@@ -577,18 +577,18 @@ export const DefaultColorThemePalette: {
 			solid: '#ffc034',
 			fill: '#ffc034',
 			frame: {
-				headingStroke: '#ffc034',
-				headingFill: '#3c3934',
-				stroke: '#ffc034',
-				fill: '#3c3934',
-				text: '#000000',
+				headingStroke: '#684e12', // Darker, muted variant of solid
+				headingFill: '#2a2113', // Rich, muted dark-yellow background
+				stroke: '#684e12', // Matches headingStroke
+				fill: '#1e1911', // Darker muted shade for background fill
+				text: '#f2f2f2', // Bright text color for readability
 			},
 			note: {
-				fill: '#98571B',
+				fill: '#8a5e1c', // Muted, dark complementary variant
 				text: '#f2f2f2',
 			},
-			semi: '#3c3934',
-			pattern: '#fecb92',
+			semi: '#3b352b', // Dark muted neutral-yellow tone
+			pattern: '#fecb92', // Existing shade retained
 			highlight: {
 				srgb: '#d2b700',
 				p3: 'color(display-p3 0.8078 0.7225 0.0312)',

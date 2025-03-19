@@ -213,7 +213,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const frameFill = showFrameColors ? color.frame.fill : theme.solid
 		const frameStroke = showFrameColors ? color.frame.stroke : theme.text
 		const frameHeadingStroke = showFrameColors ? color.frame.headingStroke : theme.solid
-		const frameHeadingFill = showFrameColors ? color.frame.headingFill : 'blue'
+		const frameHeadingFill = showFrameColors ? color.frame.headingFill : theme.background
 		const frameHeadingText = showFrameColors ? color.frame.text : theme.text
 
 		return (
