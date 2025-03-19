@@ -21,7 +21,7 @@ export function QrCode({ url }: { url: string }) {
 			const blob = new Blob([svgString], { type: 'image/svg+xml' })
 			FileHelpers.blobToDataUrl(blob).then(setQrCode)
 		})
-	}, [url, setQrCode, qrCode, editor])
+	}, [url, setQrCode, editor])
 
 	// When qr code is there, set it as src
 	useLayoutEffect(() => {
