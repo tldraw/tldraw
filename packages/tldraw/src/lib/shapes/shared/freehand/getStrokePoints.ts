@@ -52,6 +52,11 @@ export function getStrokePoints(
 		}
 	}
 
+	// if we accidentally stripped out most of the line, revert to the original points
+	if (!simulatePressure && pts.length < rawInputPoints.length * 0.5) {
+		pts = rawInputPoints.map(Vec.From)
+	}
+
 	if (pts.length === 0)
 		return [
 			{
