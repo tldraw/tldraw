@@ -65,7 +65,7 @@ export function CodeFiles({
 					))}
 				</div>
 				<button
-					className="hidden w-8 m-[-8px] hover:text-zinc-100 md:flex items-center justify-center"
+					className="hidden w-8 mx-[-8px] hover:text-zinc-100 md:flex items-center justify-center"
 					onClick={handleCopy}
 				>
 					<div className={cn('transition-opacity duration-300')}>
