@@ -30,7 +30,7 @@ async function getMarkdownForOverview(db: DbType) {
 
 	result += `## Guides\n\n`
 	for (const guide of guides) {
-		result += `- [${guide.title}](https://tldraw.dev/docs/${guide.id})\n`
+		result += `- [${guide.title}](https://tldraw.dev/${guide.sectionId}/${guide.id})\n`
 	}
 
 	result += `\n## Examples\n\n`
