@@ -12,6 +12,7 @@ import {
 	T,
 	TLBaseBinding,
 	TLBaseShape,
+	TLShape,
 	Tldraw,
 	Vec,
 	clamp,
@@ -339,7 +340,7 @@ class LayoutBindingUtil extends BindingUtil<LayoutBinding> {
 			)
 
 			if (shape.x !== point.x || shape.y !== point.y) {
-				this.editor.updateShape({
+				this.editor.updateShape<TLShape>({
 					id: binding.toId,
 					x: point.x,
 					y: point.y,
@@ -355,7 +356,7 @@ class LayoutBindingUtil extends BindingUtil<LayoutBinding> {
 		const height = CONTAINER_PADDING + 100 + CONTAINER_PADDING
 
 		if (width !== container.props.width || height !== container.props.height) {
-			this.editor.updateShape({
+			this.editor.updateShape<ContainerShape>({
 				id: container.id,
 				props: { width, height },
 			})

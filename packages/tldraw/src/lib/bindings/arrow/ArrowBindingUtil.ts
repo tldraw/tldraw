@@ -251,7 +251,7 @@ export function updateArrowTerminal({
 		}
 	}
 
-	editor.updateShape(update)
+	editor.updateShape<TLArrowShape>(update)
 	if (unbind) {
 		removeArrowBinding(editor, arrow, terminal)
 	}

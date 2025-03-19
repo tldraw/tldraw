@@ -177,14 +177,14 @@ export class Pointing extends StateNode {
 			const topLeft = new Vec(shapeX, shapeY)
 			const gridSnappedPoint = maybeSnapToGrid(topLeft, this.editor)
 			const gridDelta = Vec.Sub(topLeft, gridSnappedPoint)
-			this.editor.updateShape({
-				...shape,
+			this.editor.updateShape<TLTextShape>({
+				id: shape.id,
 				x: shapeX - gridDelta.x,
 				y: shapeY - gridDelta.y,
 			})
 		} else {
-			this.editor.updateShape({
-				...shape,
+			this.editor.updateShape<TLTextShape>({
+				id: shape.id,
 				x: shapeX,
 				y: shapeY,
 			})

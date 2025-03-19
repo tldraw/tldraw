@@ -70,8 +70,8 @@ export class DraggingHandle extends StateNode {
 			// create a new vertex handle at that point; and make this handle
 			// the handle that we're dragging.
 			if (this.initialHandle.type === 'create') {
-				this.editor.updateShape({
-					...shape,
+				this.editor.updateShape<TLLineShape>({
+					id: shape.id,
 					props: {
 						points: {
 							...shape.props.points,

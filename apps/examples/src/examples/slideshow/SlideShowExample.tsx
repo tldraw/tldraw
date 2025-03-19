@@ -76,7 +76,6 @@ function InsideSlidesContext() {
 
 					editor.updateShape<TLFrameShape>({
 						id: shapeId,
-						type: 'frame',
 						x: slide.index * (SLIDE_SIZE.w + SLIDE_MARGIN),
 						props: {
 							name,

@@ -370,7 +370,7 @@ export class Resizing extends StateNode {
 
 				if (delta.x !== 0 || delta.y !== 0) {
 					for (const child of children) {
-						this.editor.updateShape({
+						this.editor.updateShape<TLShape>({
 							id: child.id,
 							x: child.x - delta.x,
 							y: child.y - delta.y,
@@ -384,7 +384,7 @@ export class Resizing extends StateNode {
 			for (const { children } of frames) {
 				if (!children.length) continue
 				for (const child of children) {
-					this.editor.updateShape({
+					this.editor.updateShape<TLShape>({
 						id: child.id,
 						x: child.x,
 						y: child.y,

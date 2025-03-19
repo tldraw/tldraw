@@ -1,4 +1,4 @@
-import { TLArrowShape, TLShapeId, Vec, createShapeId } from '@tldraw/editor'
+import { TLArrowShape, TLGeoShape, TLShapeId, Vec, createShapeId } from '@tldraw/editor'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
@@ -480,7 +480,7 @@ describe('When starting an arrow inside of multiple shapes', () => {
 	it('starts a filled shape if it is above the hollow shape', () => {
 		// box2 - small, hollow
 		// box1 - big, filled
-		editor.updateShape({ id: ids.box1, props: { fill: 'solid' } })
+		editor.updateShape<TLGeoShape>({ id: ids.box1, props: { fill: 'solid' } })
 		editor.bringToFront([ids.box1])
 
 		expect(
@@ -526,7 +526,7 @@ describe('When starting an arrow inside of multiple shapes', () => {
 	it('starts a small hollow shape if it is above the bigger filled shape', () => {
 		// box1 - big, hollow
 		// box2 - small, filled
-		editor.updateShape({ id: ids.box2, props: { fill: 'solid' } })
+		editor.updateShape<TLGeoShape>({ id: ids.box2, props: { fill: 'solid' } })
 		editor.bringToFront([ids.box2])
 
 		editor.setCurrentTool('arrow')

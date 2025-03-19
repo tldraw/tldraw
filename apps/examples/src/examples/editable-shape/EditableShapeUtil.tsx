@@ -63,7 +63,7 @@ export class EditableShapeUtil extends BaseBoxShapeUtil<IMyEditableShape> {
 				{isEditing ? (
 					<button
 						onClick={() => {
-							this.editor.updateShape({
+							this.editor.updateShape<IMyEditableShape>({
 								id: shape.id,
 								props: {
 									...shape.props,

@@ -119,7 +119,6 @@ export class PointingArrowLabel extends StateNode {
 		this.didDrag = true
 		this.editor.updateShape<TLArrowShape>({
 			id: shape.id,
-			type: shape.type,
 			props: { labelPosition: nextLabelPosition },
 		})
 	}

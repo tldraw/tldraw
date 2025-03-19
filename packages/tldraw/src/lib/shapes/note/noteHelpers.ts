@@ -235,11 +235,7 @@ export function getNoteShapeForAdjacentPosition(
 			)
 		)
 
-		editor.updateShape({
-			id,
-			x: topLeft.x,
-			y: topLeft.y,
-		})
+		editor.updateShape<TLNoteShape>({ id, x: topLeft.x, y: topLeft.y })
 
 		nextNote = editor.getShape(id)!
 	}

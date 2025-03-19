@@ -49,11 +49,10 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
 
 			editor.updateShape<TLUnknownShape & { props: { richText: TLRichText } }>({
 				id: shapeId,
-				type,
 				props: { richText },
 			})
 		},
-		[editor, shapeId, type]
+		[editor, shapeId]
 	)
 
 	return {

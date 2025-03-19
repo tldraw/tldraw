@@ -1,4 +1,4 @@
-import { createShapeId } from '@tldraw/editor'
+import { TLGeoShape, createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -271,7 +271,7 @@ it('does not update a locked shape, even if spreading in a full shape', () => {
 	editor.createShape({ id: myShapeId, type: 'geo', isLocked: true })
 	const myLockedShape = editor.getShape(myShapeId)!
 	// include the `isLocked` property, but don't change it
-	editor.updateShape({ ...myLockedShape, x: 100 })
+	editor.updateShape<TLGeoShape>({ id: myLockedShape.id, x: 100 })
 	expect(editor.getShape(myShapeId)).toMatchObject(myLockedShape)
 })
 
@@ -281,7 +281,7 @@ it('works when forced', () => {
 	const myLockedShape = editor.getShape(myShapeId)!
 
 	// no change from update
-	editor.updateShape({ ...myLockedShape, x: 100 })
+	editor.updateShape<TLGeoShape>({ id: myLockedShape.id, x: 100 })
 	expect(editor.getShape(myShapeId)).toMatchObject(myLockedShape)
 
 	// no change from delete
@@ -291,7 +291,7 @@ it('works when forced', () => {
 	// update works
 	editor.run(
 		() => {
-			editor.updateShape({ ...myLockedShape, x: 100 })
+			editor.updateShape<TLGeoShape>({ id: myLockedShape.id, x: 100 })
 		},
 		{ ignoreShapeLock: true }
 	)

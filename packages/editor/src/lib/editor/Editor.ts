@@ -1197,13 +1197,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```ts
 	 * // updating with
 	 * editor.run(() => {
-	 * 	editor.updateShape({ ...myShape, x: 100 })
+	 * 	editor.updateShape<TLGeoShape>({ id: myShape.id, x: 100 })
 	 * }, { history: "ignore" })
 	 *
 	 * // forcing changes / deletions for locked shapes
 	 * editor.toggleLock([myShape])
 	 * editor.run(() => {
-	 * 	editor.updateShape({ ...myShape, x: 100 })
+	 * 	editor.updateShape<TLGeoShape>({ id: myShape.id, x: 100 })
 	 * 	editor.deleteShape(myShape)
 	 * }, { ignoreShapeLock: true }, )
 	 * ```
@@ -7063,7 +7063,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					if (parentTransform) localOffset.rot(-parentTransform.rotation())
 					shapeLocalOffset.add(shape)
 					const changes = this.getChangesToTranslateShape(shape, shapeLocalOffset)
-					this.updateShape(changes)
+					this.updateShape<TLShape>(changes)
 
 					// Then resize
 					this.resizeShape(shape.id, scale, {
@@ -7879,7 +7879,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.updateShape({ id: 'box1', props: { w: 100, h: 100 } })
+	 * editor.updateShape<TLGeoShape>({ id: 'box1', props: { w: 100, h: 100 } })
 	 * ```
 	 *
 	 * @param partial - The shape partial to update.

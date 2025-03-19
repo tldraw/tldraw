@@ -1,4 +1,10 @@
-import { TLShapePartial, TLShapeUpdatePartial, Vec, createShapeId } from '@tldraw/editor'
+import {
+	TLGeoShape,
+	TLShapePartial,
+	TLShapeUpdatePartial,
+	Vec,
+	createShapeId,
+} from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 import { PerformanceMeasurer } from './PerformanceMeasurer'
 
@@ -80,7 +86,7 @@ describe.skip('Example perf tests', () => {
 			})
 			.add(() => {
 				for (let i = 0; i < 200; i++) {
-					editor.updateShape({
+					editor.updateShape<TLGeoShape>({
 						id: ids[i],
 						x: (i % 10) * 220 + 1,
 						props: {
@@ -150,7 +156,7 @@ describe.skip('Example perf tests', () => {
 			})
 			.after(() => {
 				const shape = editor.getCurrentPageShapes()[0]
-				editor.updateShape({ ...shape, x: shape.x + 1 })
+				editor.updateShape<TLGeoShape>({ id: shape.id, x: shape.x + 1 })
 			})
 
 		const renderingShapes2 = new PerformanceMeasurer('Measure rendering bounds with 200 shapes', {
@@ -176,7 +182,7 @@ describe.skip('Example perf tests', () => {
 			})
 			.after(() => {
 				const shape = editor.getCurrentPageShapes()[0]
-				editor.updateShape({ ...shape, x: shape.x + 1 })
+				editor.updateShape<TLGeoShape>({ id: shape.id, x: shape.x + 1 })
 			})
 
 		PerformanceMeasurer.Table(renderingShapes, renderingShapes2)

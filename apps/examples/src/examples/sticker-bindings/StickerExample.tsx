@@ -12,6 +12,7 @@ import {
 	TLBaseBinding,
 	TLBaseShape,
 	TLPointerEventInfo,
+	TLShape,
 	TLUiComponents,
 	TLUiOverrides,
 	Tldraw,
@@ -158,7 +159,7 @@ class StickerBindingUtil extends BindingUtil<StickerBinding> {
 			.invert()
 			.applyToPoint(pageAnchor)
 
-		this.editor.updateShape({
+		this.editor.updateShape<TLShape>({
 			id: sticker.id,
 			x: stickerParentAnchor.x,
 			y: stickerParentAnchor.y,

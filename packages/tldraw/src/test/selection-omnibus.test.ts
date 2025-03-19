@@ -69,7 +69,6 @@ describe('Hovering shapes', () => {
 
 		editor.updateShape<TLGeoShape>({
 			id: ids.box1,
-			type: 'geo',
 			props: { richText: toRichText('hello') },
 		})
 
@@ -81,7 +80,6 @@ describe('Hovering shapes', () => {
 	it('selects a shape with a full label on pointer down', () => {
 		editor.updateShape<TLGeoShape>({
 			id: ids.box1,
-			type: 'geo',
 			props: { richText: toRichText('hello') },
 		})
 
@@ -105,7 +103,7 @@ describe('Hovering shapes', () => {
 	})
 
 	it('hovers the margins or inside of filled shapes', () => {
-		editor.updateShape({ id: ids.box1, props: { fill: 'solid' } })
+		editor.updateShape<TLGeoShape>({ id: ids.box1, props: { fill: 'solid' } })
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerMove(-4, 50)
 		expect(editor.getHoveredShapeId()).toBe(ids.box1)
@@ -293,7 +291,7 @@ describe('when shape is hollow', () => {
 	})
 
 	it('missed on the label when the shape is locked', () => {
-		editor.updateShape({ id: ids.box1, isLocked: true })
+		editor.updateShape<TLGeoShape>({ id: ids.box1, isLocked: true })
 		editor.pointerMove(-100, -100)
 		expect(editor.getHoveredShapeId()).toBe(null)
 		expect(editor.getSelectedShapeIds()).toEqual([])
@@ -578,7 +576,7 @@ describe('when shape is inside of a frame', () => {
 	})
 
 	it('misses on pointer down over shape, misses on pointer up on the edge when locked', () => {
-		editor.updateShape({ id: ids.box1, isLocked: true })
+		editor.updateShape<TLGeoShape>({ id: ids.box1, isLocked: true })
 		editor.pointerMove(25, 25)
 		editor.pointerDown() // on the edge of box1 (which is empty)
 		expect(editor.getSelectedShapeIds()).toEqual([])
@@ -587,7 +585,7 @@ describe('when shape is inside of a frame', () => {
 	})
 
 	it('misses on pointer down over shape, misses on pointer up when locked', () => {
-		editor.updateShape({ id: ids.box1, isLocked: true })
+		editor.updateShape<TLGeoShape>({ id: ids.box1, isLocked: true })
 		editor.pointerMove(50, 50)
 		editor.pointerDown() // on the edge of box1 (which is empty)
 		expect(editor.getSelectedShapeIds()).toEqual([])
@@ -596,7 +594,7 @@ describe('when shape is inside of a frame', () => {
 	})
 
 	it('misses on pointer down over shape label, misses on pointer up when locked', () => {
-		editor.updateShape({ id: ids.box1, isLocked: true })
+		editor.updateShape<TLGeoShape>({ id: ids.box1, isLocked: true })
 		editor.pointerMove(75, 75)
 		editor.pointerDown() // on the edge of box1 (which is empty)
 		expect(editor.getSelectedShapeIds()).toEqual([])
@@ -721,7 +719,7 @@ describe('when a frame has multiple children', () => {
 
 	// it('selects the smaller of two overlapping hollow shapes on pointer up when both are the child of a frame', () => {
 	// 	// make box2 smaller
-	// 	editor.updateShape({ ...box2, props: { w: 99, h: 99 } })
+	// 	editor.updateShape<TLGeoShape>({ id: box2.id, props: { w: 99, h: 99 } })
 
 	// 	editor.pointerMove(64, 64)
 	// 	expect(editor.hoveredShapeId).toBe(null)
@@ -732,7 +730,7 @@ describe('when a frame has multiple children', () => {
 
 	// 	// make box2 bigger...
 	// 	editor.selectNone()
-	// 	editor.updateShape({ ...box2, props: { w: 101, h: 101 } })
+	// 	editor.updateShape<TLGeoShape>({ id: box2.id, props: { w: 101, h: 101 } })
 
 	// 	editor.pointerMove(64, 64)
 	// 	expect(editor.hoveredShapeId).toBe(null)
@@ -773,8 +771,8 @@ describe('when a frame has multiple children', () => {
 	})
 
 	it('brush selects shapes when containing them in a drag from outside of the frame', () => {
-		editor.updateShape({ ...box1, x: 10, y: 10, props: { w: 10, h: 10 } })
-		editor.updateShape({ ...box2, x: 20, y: 20, props: { w: 10, h: 10 } })
+		editor.updateShape<TLGeoShape>({ id: box1.id, x: 10, y: 10, props: { w: 10, h: 10 } })
+		editor.updateShape<TLGeoShape>({ id: box2.id, x: 20, y: 20, props: { w: 10, h: 10 } })
 
 		editor.pointerMove(-50, -50)
 		expect(editor.getHoveredShapeId()).toBe(null)
@@ -786,8 +784,8 @@ describe('when a frame has multiple children', () => {
 	})
 
 	it('brush selects shapes when containing them in a drag from outside of the frame and also having the current page point outside of the frame without containing the frame', () => {
-		editor.updateShape({ ...box1, x: 10, y: 10, props: { w: 10, h: 10 } })
-		editor.updateShape({ ...box2, x: 20, y: 20, props: { w: 10, h: 10 } })
+		editor.updateShape<TLGeoShape>({ id: box1.id, x: 10, y: 10, props: { w: 10, h: 10 } })
+		editor.updateShape<TLGeoShape>({ id: box2.id, x: 20, y: 20, props: { w: 10, h: 10 } })
 
 		editor.pointerMove(5, -50)
 		expect(editor.getHoveredShapeId()).toBe(null)
@@ -799,8 +797,8 @@ describe('when a frame has multiple children', () => {
 	})
 
 	it('selects only the frame when brush wraps the entire frame', () => {
-		editor.updateShape({ ...box1, x: 10, y: 10, props: { w: 10, h: 10 } })
-		editor.updateShape({ ...box2, x: 20, y: 20, props: { w: 10, h: 10 } })
+		editor.updateShape<TLGeoShape>({ id: box1.id, x: 10, y: 10, props: { w: 10, h: 10 } })
+		editor.updateShape<TLGeoShape>({ id: box2.id, x: 20, y: 20, props: { w: 10, h: 10 } })
 
 		editor.pointerMove(-50, -50)
 		expect(editor.getHoveredShapeId()).toBe(null)

@@ -2,6 +2,7 @@ import {
 	Box,
 	GroupShapeUtil,
 	TLArrowShape,
+	TLGeoShape,
 	TLGroupShape,
 	TLLineShape,
 	TLShape,
@@ -1974,7 +1975,7 @@ describe('Grouping / ungrouping locked shapes', () => {
 		editor.select(ids.boxA)
 
 		// Lock boxA
-		editor.updateShape({ id: ids.boxA, isLocked: true })
+		editor.updateShape<TLGeoShape>({ id: ids.boxA, isLocked: true })
 
 		// Select the group; when we ungroup, the children should be selected
 		editor.select(ids.groupA)

@@ -17,6 +17,7 @@ import {
 	TLImageShape,
 	TLNoteShape,
 	TLPageId,
+	TLShape,
 	TLShapeId,
 	TLTextShape,
 	TLVideoShape,
@@ -562,7 +563,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								})
 
 								if (change) {
-									editor.updateShape(change)
+									editor.updateShape<TLShape>(change)
 								}
 
 								const freshBinding = getArrowBindings(
