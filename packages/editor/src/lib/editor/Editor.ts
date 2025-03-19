@@ -2102,12 +2102,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setRichTextEditor(textEditor: TiptapEditor | null) {
-		// If the new editor is different from the current one, destroy the current one
-		const current = this._currentRichTextEditor.__unsafe__getWithoutCapture()
-		if (current !== textEditor) {
-			current?.destroy()
-		}
-
 		this._currentRichTextEditor.set(textEditor)
 		return this
 	}
