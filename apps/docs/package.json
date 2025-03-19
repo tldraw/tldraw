@@ -37,6 +37,7 @@
 		"create-api-markdown": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/create-api-markdown.ts",
 		"refresh-content": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/refresh-content.ts",
 		"refresh-everything": "yarn fetch-api-source && yarn fetch-releases && yarn create-api-markdown && yarn refresh-content && yarn format && yarn update-algolia-index",
+		"refresh-api": "yarn fetch-api-source && yarn create-api-markdown && yarn refresh-content && yarn update-algolia-index",
 		"update-algolia-index": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/update-algolia-index.ts",
 		"clean": "rm -rf node_modules .yarn",
 		"format": "yarn run -T prettier --write .",
