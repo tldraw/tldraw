@@ -11,6 +11,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		`https://cdn.tldraw.com`,
 		`https://*.tldraw.workers.dev`,
 		`https://*.ingest.sentry.io`,
+		`https://*.ingest.us.sentry.io`,
 		// for thumbnail server
 		'http://localhost:5002',
 		'https://*.clerk.accounts.dev',

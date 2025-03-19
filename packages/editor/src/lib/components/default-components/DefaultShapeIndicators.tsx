@@ -30,14 +30,17 @@ export const DefaultShapeIndicators = memo(function DefaultShapeIndicators({
 			const prev = rPreviousSelectedShapeIds.current
 			const next = new Set<TLShapeId>()
 
-			const isChangingStyle = editor.getInstanceState().isChangingStyle
+			const instanceState = editor.getInstanceState()
+
+			const isChangingStyle = instanceState.isChangingStyle
 
 			// todo: this is tldraw specific and is duplicated at the tldraw layer. What should we do here instead?
+
+			const isIdleOrEditing = editor.isInAny('select.idle', 'select.editing_shape')
+
 			const isInSelectState = editor.isInAny(
-				'select.idle',
 				'select.brushing',
 				'select.scribble_brushing',
-				'select.editing_shape',
 				'select.pointing_shape',
 				'select.pointing_selection',
 				'select.pointing_handle'
@@ -45,24 +48,20 @@ export const DefaultShapeIndicators = memo(function DefaultShapeIndicators({
 
 			// We hide all indicators if we're changing style or in certain interactions
 			// todo: move this to some kind of Tool.hideIndicators property
-			if (isChangingStyle || !isInSelectState) {
+			if (isChangingStyle || !(isIdleOrEditing || isInSelectState)) {
 				rPreviousSelectedShapeIds.current = next
 				return next
 			}
 
 			// We always want to show indicators for the selected shapes, if any
-			const selected = editor.getSelectedShapeIds()
-			for (const id of selected) {
+			for (const id of editor.getSelectedShapeIds()) {
 				next.add(id)
 			}
 
 			// If we're idle or editing a shape, we want to also show an indicator for the hovered shape, if any
-			if (editor.isInAny('select.idle', 'select.editing_shape')) {
-				const instanceState = editor.getInstanceState()
-				if (instanceState.isHoveringCanvas && !instanceState.isCoarsePointer) {
-					const hovered = editor.getHoveredShapeId()
-					if (hovered) next.add(hovered)
-				}
+			if (isIdleOrEditing && instanceState.isHoveringCanvas && !instanceState.isCoarsePointer) {
+				const hovered = editor.getHoveredShapeId()
+				if (hovered) next.add(hovered)
 			}
 
 			// Ok, has anything changed?
@@ -73,7 +72,7 @@ export const DefaultShapeIndicators = memo(function DefaultShapeIndicators({
 				return next
 			}
 
-			// If any of the new ids are not in the previous set, then the selection has changed
+			// Set difference check
 			for (const id of next) {
 				if (!prev.has(id)) {
 					rPreviousSelectedShapeIds.current = next
@@ -81,7 +80,6 @@ export const DefaultShapeIndicators = memo(function DefaultShapeIndicators({
 				}
 			}
 
-			// If nothing has changed, then return the previous value
 			return prev
 		},
 		[editor]
