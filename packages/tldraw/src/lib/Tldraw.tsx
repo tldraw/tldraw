@@ -16,6 +16,7 @@ import {
 } from '@tldraw/editor'
 import { useMemo } from 'react'
 import { TldrawHandles } from './canvas/TldrawHandles'
+import { TldrawInFrontOfTheCanvas } from './canvas/TldrawInFrontOfTheCanvas'
 import { TldrawScribble } from './canvas/TldrawScribble'
 import { TldrawSelectionBackground } from './canvas/TldrawSelectionBackground'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
@@ -96,6 +97,17 @@ export function Tldraw(props: TldrawProps) {
 	} = props
 
 	const _components = useShallowObjectIdentity(components)
+	const InFrontOfTheCanvas = useMemo(() => {
+		const UserInFrontOfTheCanvas = _components.InFrontOfTheCanvas
+		if (!UserInFrontOfTheCanvas) return TldrawInFrontOfTheCanvas
+		return () => (
+			<>
+				<TldrawInFrontOfTheCanvas />
+				<UserInFrontOfTheCanvas />
+			</>
+		)
+	}, [_components.InFrontOfTheCanvas])
+
 	const componentsWithDefault = useMemo(
 		() => ({
 			Scribble: TldrawScribble,
@@ -105,8 +117,9 @@ export function Tldraw(props: TldrawProps) {
 			SelectionBackground: TldrawSelectionBackground,
 			Handles: TldrawHandles,
 			..._components,
+			InFrontOfTheCanvas,
 		}),
-		[_components]
+		[_components, InFrontOfTheCanvas]
 	)
 
 	const _shapeUtils = useShallowArrayIdentity(shapeUtils)

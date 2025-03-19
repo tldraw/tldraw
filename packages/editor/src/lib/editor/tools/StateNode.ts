@@ -1,6 +1,5 @@
 import { Atom, Computed, atom, computed } from '@tldraw/state'
 import { PerformanceTracker } from '@tldraw/utils'
-import { ReactNode } from 'react'
 import { debugFlags } from '../../utils/debug-flags'
 import type { Editor } from '../Editor'
 import {
@@ -129,8 +128,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		return this._isActive.get()
 	}
 	private _isActive: Atom<boolean>
-
-	getSvgOverlay?(): ReactNode
 
 	/**
 	 * Transition to a new active child state node.

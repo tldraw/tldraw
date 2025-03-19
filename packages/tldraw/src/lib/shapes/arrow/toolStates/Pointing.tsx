@@ -1,6 +1,4 @@
 import { StateNode, TLArrowShape, createShapeId, maybeSnapToGrid } from '@tldraw/editor'
-import { ReactNode } from 'react'
-import { TargetHandleOverlay } from '../TargetHandleOverlay'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -29,7 +27,7 @@ export class Pointing extends StateNode {
 		if (!target) {
 			this.createArrowShape()
 		} else {
-			this.editor.setHintingShapes([target.id])
+			// this.editor.setHintingShapes([target.id])
 		}
 
 		this.startPreciseTimeout()
@@ -37,7 +35,7 @@ export class Pointing extends StateNode {
 
 	override onExit() {
 		this.shape = undefined
-		this.editor.setHintingShapes([])
+		// this.editor.setHintingShapes([])
 		this.clearPreciseTimeout()
 	}
 
@@ -79,16 +77,12 @@ export class Pointing extends StateNode {
 		this.cancel()
 	}
 
-	override getSvgOverlay(): ReactNode {
-		return <TargetHandleOverlay arrow={this.shape ?? null} />
-	}
-
 	cancel() {
 		if (this.shape) {
 			// the arrow might not have been created yet!
 			this.editor.bailToMark(this.markId)
 		}
-		this.editor.setHintingShapes([])
+		// this.editor.setHintingShapes([])
 		this.parent.transition('idle')
 	}
 

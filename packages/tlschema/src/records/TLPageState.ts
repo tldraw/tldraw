@@ -7,23 +7,10 @@ import {
 } from '@tldraw/store'
 import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { ElbowArrowSide } from '../bindings/TLArrowBinding'
 import { idValidator } from '../misc/id-validator'
 import { shapeIdValidator } from '../shapes/TLBaseShape'
 import { pageIdValidator, TLPage } from './TLPage'
 import { TLShapeId } from './TLShape'
-
-export interface TLArrowHintState {
-	arrowShapeId: TLShapeId | null
-	targetShapeId: TLShapeId
-	hoverSide: ElbowArrowSide | null
-}
-
-export const TLArrowHintState = T.object<TLArrowHintState>({
-	arrowShapeId: shapeIdValidator.nullable(),
-	targetShapeId: shapeIdValidator,
-	hoverSide: ElbowArrowSide.nullable(),
-})
 
 /**
  * TLInstancePageState
@@ -42,7 +29,6 @@ export interface TLInstancePageState
 	editingShapeId: TLShapeId | null
 	croppingShapeId: TLShapeId | null
 	focusedGroupId: TLShapeId | null
-	arrowHints: TLArrowHintState | null
 	meta: JsonObject
 }
 
@@ -60,7 +46,6 @@ export const instancePageStateValidator: T.Validator<TLInstancePageState> = T.mo
 		editingShapeId: shapeIdValidator.nullable(),
 		croppingShapeId: shapeIdValidator.nullable(),
 		focusedGroupId: shapeIdValidator.nullable(),
-		arrowHints: TLArrowHintState.nullable(),
 		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 	})
 )
@@ -72,7 +57,6 @@ export const instancePageStateVersions = createMigrationIds('com.tldraw.instance
 	AddMeta: 3,
 	RenameProperties: 4,
 	RenamePropertiesAgain: 5,
-	AddArrowHints: 6,
 } as const)
 
 /** @public */
@@ -145,15 +129,6 @@ export const instancePageStateMigrations = createRecordMigrationSequence({
 				delete record.focusedGroupId
 			},
 		},
-		{
-			id: instancePageStateVersions.AddArrowHints,
-			up: (record: any) => {
-				record.arrowHints = null
-			},
-			down: (record: any) => {
-				delete record.arrowHints
-			},
-		},
 	],
 })
 
@@ -174,7 +149,6 @@ export const InstancePageStateRecordType = createRecordType<TLInstancePageState>
 			erasingShapeIds: true,
 			hoveredShapeId: true,
 			focusedGroupId: true,
-			arrowHints: true,
 		},
 	}
 ).withDefaultProperties(
@@ -187,7 +161,6 @@ export const InstancePageStateRecordType = createRecordType<TLInstancePageState>
 		hintingShapeIds: [],
 		focusedGroupId: null,
 		meta: {},
-		arrowHints: null,
 	})
 )
 

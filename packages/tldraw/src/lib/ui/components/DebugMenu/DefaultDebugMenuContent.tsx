@@ -260,10 +260,7 @@ export function DebugElbowArrowMenu() {
 						}}
 					/>
 				</TldrawUiMenuSubmenu>
-				<TldrawUiMenuSubmenu
-					id="fast-edge-picking"
-					label={`Fast edge picking (${fastEdgePicking})`}
-				>
+				<TldrawUiMenuSubmenu id="fast-edge-picking" label={`Edge picking (${fastEdgePicking})`}>
 					<TldrawUiMenuCheckboxItem
 						id="auto"
 						label="Auto"
@@ -278,6 +275,14 @@ export function DebugElbowArrowMenu() {
 						checked={fastEdgePicking === 'velocity'}
 						onSelect={() => {
 							elbowArrowDebug.update((p) => ({ ...p, fastEdgePicking: 'velocity' }))
+						}}
+					/>
+					<TldrawUiMenuCheckboxItem
+						id="hints"
+						label="Hints"
+						checked={fastEdgePicking === 'hints'}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, fastEdgePicking: 'hints' }))
 						}}
 					/>
 				</TldrawUiMenuSubmenu>

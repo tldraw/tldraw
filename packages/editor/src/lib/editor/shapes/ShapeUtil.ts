@@ -10,7 +10,7 @@ import {
 	TLShapePartial,
 	TLUnknownShape,
 } from '@tldraw/tlschema'
-import { ReactElement, ReactNode } from 'react'
+import { ReactElement } from 'react'
 import { Box, SelectionHandle } from '../../primitives/Box'
 import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
@@ -597,12 +597,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	onHandleDrag?(shape: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void
-
-	/**
-	 * Get some SVG JSX to render over the canvas while a handle is being dragged. Things here
-	 * should be in viewport-space, not page- or shape-space.
-	 */
-	getHandleDragSvgOverlay?(shape: Shape, info: TLHandleDragInfo<Shape>): ReactNode
 
 	/**
 	 * A callback called when a shape starts being rotated.

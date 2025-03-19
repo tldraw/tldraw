@@ -1,6 +1,4 @@
 import { TLArrowShapeArrowheadStyle, TLDefaultSizeStyle, VecLike } from '@tldraw/editor'
-import { ComponentType } from 'react'
-import { ArrowConnectionHandleProps } from './DefaultArrowConnectionHandle'
 import { ElbowArrowRoute } from './elbow/elbowArrowRoutes'
 import { ElbowArrowInfo } from './elbow/getElbowArrowInfo'
 import { TLArrowBindings } from './shared'
@@ -10,7 +8,7 @@ export interface ArrowShapeOptions {
 	readonly expandElbowLegLength: Record<TLDefaultSizeStyle, number>
 	readonly minElbowLegLength: Record<TLDefaultSizeStyle, number>
 	readonly minArrowDistanceFromCorner: number
-	readonly ConnectionHandle: ComponentType<ArrowConnectionHandleProps>
+	readonly minHandleDistance: number
 }
 
 /** @public */

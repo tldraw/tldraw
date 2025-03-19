@@ -61,7 +61,6 @@ import {
 	isPageId,
 	isShapeId,
 } from '@tldraw/tlschema'
-import { TLArrowHintState } from '@tldraw/tlschema/src/records/TLPageState'
 import {
 	FileHelpers,
 	IndexKey,
@@ -2197,17 +2196,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.run(
 			() => {
 				this._updateCurrentPageState({ hintingShapeIds: dedupe(ids) })
-			},
-			{ history: 'ignore' }
-		)
-		return this
-	}
-
-	/** @internal */
-	setArrowHints(arrowHints: TLArrowHintState | null): this {
-		this.run(
-			() => {
-				this._updateCurrentPageState({ arrowHints })
 			},
 			{ history: 'ignore' }
 		)

@@ -55,6 +55,7 @@ beforeEach(() => {
 		isPrecise: false,
 		normalizedAnchor: { x: 0.5, y: 0.5 },
 		entrySide: null,
+		forceSide: null,
 	})
 
 	createOrUpdateArrowBinding(editor, ids.arrow1, ids.box2, {
@@ -63,6 +64,7 @@ beforeEach(() => {
 		isPrecise: false,
 		normalizedAnchor: { x: 0.5, y: 0.5 },
 		entrySide: null,
+		forceSide: null,
 	})
 })
 

@@ -28,7 +28,6 @@ import {
 	arrowShapeMigrations,
 	arrowShapeProps,
 	elbowArrowDebug,
-	exhaustiveSwitchError,
 	getDefaultColorTheme,
 	lerp,
 	mapObjectMapValues,
@@ -41,7 +40,6 @@ import {
 	useSharedSafeId,
 	useValue,
 } from '@tldraw/editor'
-import { findArrowTarget } from '@tldraw/editor/src/lib/arrows/target'
 import React from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 import { PlainTextLabel } from '../shared/PlainTextLabel'
@@ -52,10 +50,9 @@ import { DefaultFontFaces } from '../shared/defaultFonts'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getArrowBodyPath, getArrowHandlePath } from './ArrowPath'
-import { DefaultArrowConnectionHandle } from './DefaultArrowConnectionHandle'
-import { TargetHandleOverlay } from './TargetHandleOverlay'
 import { ArrowShapeOptions } from './arrow-types'
 import { getArrowLabelFontSize, getArrowLabelPosition } from './arrowLabel'
+import { getArrowTargetInfo } from './arrowTarget'
 import { getArrowheadPathForType } from './arrowheads'
 import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
 import {
@@ -93,7 +90,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			xl: 62,
 		},
 		minArrowDistanceFromCorner: 10,
-		ConnectionHandle: DefaultArrowConnectionHandle,
+		minHandleDistance: 16,
 	}
 
 	override canEdit() {
@@ -226,10 +223,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		].filter(Boolean) as TLHandle[]
 	}
 
-	override getHandleDragSvgOverlay(shape: TLArrowShape, info: TLHandleDragInfo<TLArrowShape>) {
-		return <TargetHandleOverlay arrow={shape} />
-	}
-
 	override getText(shape: TLArrowShape) {
 		return shape.props.text
 	}
@@ -280,9 +273,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 
 		const point = this.editor.getShapePageTransform(shape.id)!.applyToPoint(handle)
-		const target = findArrowTarget(this.editor, shape, point)
+		const targetInfo = getArrowTargetInfo(this.editor)
 
-		if (!target) {
+		if (!targetInfo) {
 			if (
 				// if we're creating a shape for the first time...
 				isCreatingShape &&
@@ -324,68 +317,92 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		// we've got a target! the handle is being dragged over a shape, bind to it
 
-		const targetGeometry = this.editor.getShapeGeometry(target)
-		const targetBounds = Box.ZeroFix(targetGeometry.bounds)
-		const arrowTransform = this.editor.getShapePageTransform(update.id)!
-		const targetTransform = this.editor.getShapePageTransform(target.id)!
-		const targetToArrowTransform = arrowTransform.clone().invert().multiply(targetTransform)
-		const pointInPageSpace = arrowTransform.applyToPoint(handle)
-		const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
+		const { target, precise, normalizedAnchor } = targetInfo
+		// const targetGeometry = this.editor.getShapeGeometry(target)
+		// const targetBounds = Box.ZeroFix(targetGeometry.bounds)
+		// const arrowTransform = this.editor.getShapePageTransform(update.id)!
+		// const targetTransform = this.editor.getShapePageTransform(target.id)!
+		// const targetToArrowTransform = arrowTransform.clone().invert().multiply(targetTransform)
+		// const pointInPageSpace = arrowTransform.applyToPoint(handle)
+		// const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
 
-		let precise = isPrecise
+		// let precise = isPrecise
+		// if (!precise) {
+		// 	// If we're switching to a new bound shape, then precise only if moving slowly
+		// 	if (!currentBinding || (currentBinding && target.id !== currentBinding.toId)) {
+		// 		precise = this.editor.inputs.pointerVelocity.len() < 0.5
+		// 	}
+		// }
 
-		if (!precise) {
-			// If we're switching to a new bound shape, then precise only if moving slowly
-			if (!currentBinding || (currentBinding && target.id !== currentBinding.toId)) {
-				precise = this.editor.inputs.pointerVelocity.len() < 0.5
-			}
-		}
+		// if (!isPrecise) {
+		// 	if (!targetGeometry.isClosed) {
+		// 		precise = true
+		// 	}
 
-		if (!isPrecise) {
-			if (!targetGeometry.isClosed) {
-				precise = true
-			}
+		// 	// Double check that we're not going to be doing an imprecise snap on
+		// 	// the same shape twice, as this would result in a zero length line
+		// 	if (otherBinding && target.id === otherBinding.toId && otherBinding.props.isPrecise) {
+		// 		precise = true
+		// 	}
+		// }
 
-			// Double check that we're not going to be doing an imprecise snap on
-			// the same shape twice, as this would result in a zero length line
-			if (otherBinding && target.id === otherBinding.toId && otherBinding.props.isPrecise) {
-				precise = true
-			}
-		}
+		// const normalizedAnchor = {
+		// 	x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
+		// 	y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
+		// }
 
-		const normalizedAnchor = {
-			x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
-			y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
-		}
-
-		if (precise) {
-			// Turn off precision if we're within a certain distance to the center of the shape.
-			// Funky math but we want the snap distance to be 4 at the minimum and either
-			// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
-			const snapDistance =
-				Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
-				this.editor.getZoomLevel()
-			switch (shape.props.kind) {
-				// for bendy arrows, just snap to the center
-				case 'bendy':
-					if (Vec.Dist(pointInTargetSpace, targetBounds.center) < snapDistance) {
-						normalizedAnchor.x = 0.5
-						normalizedAnchor.y = 0.5
-					}
-					break
-				// for elbow arrows, snap on each axis independently, but rotate the axis to match that of the arrow:
-				case 'elbow':
-					if (Math.abs(pointInTargetSpace.x - targetBounds.center.x) < snapDistance) {
-						normalizedAnchor.x = 0.5
-					}
-					if (Math.abs(pointInTargetSpace.y - targetBounds.center.y) < snapDistance) {
-						normalizedAnchor.y = 0.5
-					}
-					break
-				default:
-					exhaustiveSwitchError(shape.props.kind)
-			}
-		}
+		// if (precise) {
+		// 	// Turn off precision if we're within a certain distance to the center of the shape.
+		// 	// Funky math but we want the snap distance to be 4 at the minimum and either
+		// 	// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
+		// 	const snapDistance =
+		// 		Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
+		// 		this.editor.getZoomLevel()
+		// 	switch (shape.props.kind) {
+		// 		// for bendy arrows, just snap to the center
+		// 		case 'bendy':
+		// 			if (Vec.Dist(pointInTargetSpace, targetBounds.center) < snapDistance) {
+		// 				normalizedAnchor.x = 0.5
+		// 				normalizedAnchor.y = 0.5
+		// 			}
+		// 			break
+		// 		// for elbow arrows, snap on each axis independently, but rotate the axis to match that of the arrow:
+		// 		case 'elbow':
+		// 			if (Vec.Dist(pointInTargetSpace, targetBounds.center) < snapDistance) {
+		// 				normalizedAnchor.x = 0.5
+		// 				normalizedAnchor.y = 0.5
+		// 			} else if (Math.abs(targetInfo.centerInPageSpace.x - pointInPageSpace.x) < snapDistance) {
+		// 				const snappedPointInPageSpace = {
+		// 					x: targetInfo.centerInPageSpace.x,
+		// 					y: pointInPageSpace.y,
+		// 				}
+		// 				const snappedPointInTargetSpace = this.editor.getPointInShapeSpace(
+		// 					target,
+		// 					snappedPointInPageSpace
+		// 				)
+		// 				normalizedAnchor.x =
+		// 					(snappedPointInTargetSpace.x - targetBounds.minX) / targetBounds.width
+		// 				normalizedAnchor.y =
+		// 					(snappedPointInTargetSpace.y - targetBounds.minY) / targetBounds.height
+		// 			} else if (Math.abs(targetInfo.centerInPageSpace.y - pointInPageSpace.y) < snapDistance) {
+		// 				const snappedPointInPageSpace = {
+		// 					x: pointInPageSpace.x,
+		// 					y: targetInfo.centerInPageSpace.y,
+		// 				}
+		// 				const snappedPointInTargetSpace = this.editor.getPointInShapeSpace(
+		// 					target,
+		// 					snappedPointInPageSpace
+		// 				)
+		// 				normalizedAnchor.x =
+		// 					(snappedPointInTargetSpace.x - targetBounds.minX) / targetBounds.width
+		// 				normalizedAnchor.y =
+		// 					(snappedPointInTargetSpace.y - targetBounds.minY) / targetBounds.height
+		// 			}
+		// 			break
+		// 		default:
+		// 			exhaustiveSwitchError(shape.props.kind)
+		// 	}
+		// }
 
 		const bindingProps: TLArrowBindingProps = {
 			terminal: handleId,
@@ -393,6 +410,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			isPrecise: precise,
 			isExact: this.editor.inputs.altKey,
 			entrySide: currentBinding?.props.entrySide ?? null,
+			forceSide: null,
 		}
 
 		if (
@@ -422,9 +440,15 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			}
 		}
 
+		if (elbowArrowDebug.get().fastEdgePicking === 'hints' && !precise) {
+			bindingProps.forceSide = targetInfo.closestSide
+			normalizedAnchor.x = 0.5
+			normalizedAnchor.y = 0.5
+		}
+
 		createOrUpdateArrowBinding(this.editor, shape, target.id, bindingProps)
 
-		this.editor.setHintingShapes([target.id])
+		// this.editor.setHintingShapes([target.id])
 
 		const newBindings = getArrowBindings(this.editor, shape)
 		if (newBindings.start && newBindings.end && newBindings.start.toId === newBindings.end.toId) {

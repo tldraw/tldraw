@@ -476,17 +476,20 @@ function getElbowArrowBindingInfo(
 			}
 
 			const fastEdgePickingMode = elbowArrowDebug.get().fastEdgePicking
-			const side: ElbowArrowSide | null = binding.props.isPrecise
-				? getEdgeFromNormalizedAnchor(
-						Vec.RotWith(
-							binding.props.normalizedAnchor,
-							{ x: 0.5, y: 0.5 },
-							geometry.shapeToArrowTransform.rotation()
-						)
+			let side: ElbowArrowSide | null = null
+			if (binding.props.forceSide) {
+				side = binding.props.forceSide
+			} else if (binding.props.isPrecise) {
+				side = getEdgeFromNormalizedAnchor(
+					Vec.RotWith(
+						binding.props.normalizedAnchor,
+						{ x: 0.5, y: 0.5 },
+						geometry.shapeToArrowTransform.rotation()
 					)
-				: fastEdgePickingMode === 'auto'
-					? null
-					: binding.props.entrySide
+				)
+			} else if (fastEdgePickingMode === 'velocity') {
+				side = binding.props.entrySide
+			}
 
 			return {
 				isPoint: false,

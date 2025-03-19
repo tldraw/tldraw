@@ -168,7 +168,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 						<SnapIndicatorWrapper />
 						<SelectionForegroundWrapper />
 						<HandlesWrapper />
-						<ArrowHintsWrapper />
+						<CustomOverlaysWrapper />
 						<LiveCollaborators />
 					</div>
 				</div>
@@ -368,13 +368,13 @@ function HandleWrapper({
 	)
 }
 
-function ArrowHintsWrapper() {
+function CustomOverlaysWrapper() {
 	const editor = useEditor()
-	const { ArrowHints } = useEditorComponents()
+	const { Overlays } = useEditorComponents()
 
-	if (!ArrowHints) return null
+	if (!Overlays) return null
 
-	return <ArrowHints />
+	return <Overlays />
 }
 
 function ShapesWithSVGs() {

@@ -7,7 +7,6 @@ import {
 	TLPointerEventInfo,
 	Vec,
 } from '@tldraw/editor'
-import { ReactNode } from 'react'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import {
 	NOTE_CENTER_OFFSET,
@@ -121,23 +120,6 @@ export class PointingHandle extends StateNode {
 
 	override onInterrupt() {
 		this.cancel()
-	}
-
-	override getSvgOverlay(): ReactNode {
-		const shape = this.editor.getShape(this.info.shape.id)
-		if (!shape) return null
-		const util = this.editor.getShapeUtil(shape)
-		const handles = util.getHandles?.(shape)
-		if (!handles) return null
-		const handle = handles.find((h) => h.id === this.info.handle.id)
-		if (!handle) return null
-
-		return util.getHandleDragSvgOverlay?.(shape, {
-			handle,
-			isPrecise: false,
-			isCreatingShape: false,
-			data: {},
-		})
 	}
 
 	private cancel() {

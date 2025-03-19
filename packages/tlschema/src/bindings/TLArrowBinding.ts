@@ -27,6 +27,7 @@ export interface TLArrowBindingProps {
 	 */
 	isPrecise: boolean
 	entrySide: ElbowArrowSide | null
+	forceSide: ElbowArrowSide | null
 }
 
 /** @public */
@@ -36,6 +37,7 @@ export const arrowBindingProps: RecordProps<TLArrowBinding> = {
 	isExact: T.boolean,
 	isPrecise: T.boolean,
 	entrySide: ElbowArrowSide.nullable(),
+	forceSide: ElbowArrowSide.nullable(),
 }
 
 /** @public */
@@ -54,9 +56,11 @@ export const arrowBindingMigrations = createBindingPropsMigrationSequence({
 			id: arrowBindingVersions.AddSide,
 			up: (props) => {
 				props.entrySide = null
+				props.forceSide = null
 			},
 			down: (props) => {
 				delete props.entrySide
+				delete props.forceSide
 			},
 		},
 	],
