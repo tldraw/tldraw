@@ -35,6 +35,8 @@ import {
 
 const FRAME_HEADING_EXTRA_WIDTH = 14
 const FRAME_HEADING_MIN_WIDTH = 32 // --fmw
+const FRAME_HEADING_NOCOLORS_OFFSET_X = -8
+const FRAME_HEADING_OFFSET_Y = 4
 
 export function defaultEmptyAs(str: string, dflt: string) {
 	if (str.match(/^\s*$/)) {
@@ -59,50 +61,99 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override getGeometry(shape: TLFrameShape): Geometry2d {
 		const { editor } = this
+
 		const z = editor.getZoomLevel()
+
+		// Which dimension measures the top edge after rotation?
 		const labelSide = getFrameHeadingSide(editor, shape)
 		const isVertical = labelSide % 2 === 1
+		const rotatedTopEdgeWidth = isVertical ? shape.props.h : shape.props.w
 
-		const dimension = isVertical ? shape.props.h : shape.props.w
-		const opts = getFrameHeadingOpts(shape, 'black', dimension)
+		// Get the size of the heading (max width equal to the rotatedTopEdgeWidth)
+		const opts = getFrameHeadingOpts(shape, 'black', rotatedTopEdgeWidth)
 		const headingSize = getFrameHeadingSize(editor, shape, opts)
+
+		// If NOT showing frame colors, we need to offset the label
+		// to the left so that the title is in line with the shape edge
+		// and add that extra width to the right side of the label
 		const isShowingFrameColors = editor.options.showFrameColors
 
-		const offsetX = (isShowingFrameColors ? 0 : -8) / z
-		const offsetY = 4 / z
-
+		// Scale everything into **screen space**
 		const extraWidth = FRAME_HEADING_EXTRA_WIDTH / z
 		const minWidth = FRAME_HEADING_MIN_WIDTH / z
+		const maxWidth = rotatedTopEdgeWidth + (isShowingFrameColors ? 0 : extraWidth)
 
-		const labelWidth = clamp(
-			headingSize.w / z + extraWidth,
-			minWidth,
-			dimension + (isShowingFrameColors ? 0 : extraWidth)
-		)
+		const labelWidth = headingSize.w / z
 		const labelHeight = headingSize.h / z
 
-		const width = isVertical ? labelHeight : labelWidth
-		const height = isVertical ? labelWidth : labelHeight
+		const clampedLabelWidth = clamp(labelWidth + extraWidth, minWidth, maxWidth)
 
-		// Calculate label position based on side
+		const offsetX = (isShowingFrameColors ? 0 : FRAME_HEADING_NOCOLORS_OFFSET_X) / z
+		const offsetY = FRAME_HEADING_OFFSET_Y / z
+
+		// In page space
+		const width = isVertical ? labelHeight : clampedLabelWidth
+		const height = isVertical ? clampedLabelWidth : labelHeight
+
+		/* Calculate label position based on side. The position needs to always appear at the top left
+		of the shape, regardless of rotation. 
+		
+       Displayed              Actual     
+			 
+			 0deg
+       ┌───────┐              ┌───────┐       
+       └───────┘              └───────┘       
+       ┌─────────────┐        ┌─────────────┐ 
+       │x            │        │ x           │ 
+       │             │        │             │ 
+       │             │        │             │ 
+       └─────────────┘        └─────────────┘ 
+       
+			 90deg
+
+       ┌───────┐                              
+       └───────┘              ┌───────┐       
+       ┌───────┐              │       │       
+       │      x│              │       │       
+       │       │              │       │       
+       │       │           ┌─┐│       │       
+       │       │           │ ││       │       
+       │       │           │ ││       │       
+       │       │           │ ││x      │       
+       └───────┘           └─┘└───────┘       
+
+
+			The label must be between a minimum and maximum.
+			The minimum is arbitrary; the maximum is the width
+			of the edge of the frame where the label will be shown.
+
+			┌─┐             ┌───────┐       ┌─────────────┐ 
+			└─┘             └───────┘       └─────────────┘ 
+			┌─────────────┐ ┌─────────────┐ ┌─────────────┐ 
+			│ x           │ │ x           │ │ x           │ 
+			│             │ │             │ │             │ 
+			│             │ │             │ │             │ 
+			└─────────────┘ └─────────────┘ └─────────────┘ 
+		*/
+
 		let x: number, y: number
 
 		switch (labelSide) {
 			case 0: {
 				// top
 				x = offsetX
-				y = -labelHeight - offsetY
+				y = -(labelHeight + offsetY)
 				break
 			}
 			case 1: {
 				// right
-				x = -labelHeight - offsetY
-				y = shape.props.h - offsetX - labelWidth
+				x = -(labelHeight + offsetY)
+				y = shape.props.h - (offsetX + clampedLabelWidth)
 				break
 			}
 			case 2: {
 				// bottom
-				x = shape.props.w - offsetX - labelWidth
+				x = shape.props.w - (offsetX + clampedLabelWidth)
 				y = shape.props.h + offsetY
 				break
 			}
@@ -158,12 +209,11 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			[shape.id]
 		)
 
-		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const showFrameColors = this.editor.options.showFrameColors // useShowFrameColors(this.editor, shape.id)
 		const frameFill = showFrameColors ? color.frame.fill : theme.solid
 		const frameStroke = showFrameColors ? color.frame.stroke : theme.text
 		const frameHeadingStroke = showFrameColors ? color.frame.headingStroke : theme.solid
-		const frameHeadingFill = showFrameColors ? color.frame.headingFill : theme.solid
+		const frameHeadingFill = showFrameColors ? color.frame.headingFill : 'blue'
 		const frameHeadingText = showFrameColors ? color.frame.text : theme.text
 
 		return (
