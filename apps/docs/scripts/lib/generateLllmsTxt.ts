@@ -35,6 +35,11 @@ async function getMarkdownForOverview(db: DbType) {
 		result += `- [${example.title}](https://tldraw.dev/examples/${example.id})\n`
 	}
 
+	result += `\n## Markdown exports of resources\n`
+	result += `\n- [All guides and examples](https://tldraw.dev/llms-full.txt)`
+	result += `\n- [Guides only](https://tldraw.dev/llms-docs.txt)`
+	result += `\n- [Examples only](https://tldraw.dev/llms-examples.txt)`
+
 	return result
 }
 
