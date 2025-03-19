@@ -4197,7 +4197,7 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
     handleKeyDown: (e: KeyboardEvent) => void;
     isEditing: boolean;
     isEditingAnything: boolean;
-    isEmpty: boolean;
+    isEmpty: boolean | undefined;
     rInput: RefObject<HTMLDivElement>;
 };
 

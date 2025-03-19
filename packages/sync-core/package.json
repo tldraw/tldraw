@@ -41,7 +41,10 @@
 		"pack-tarball": "yarn pack"
 	},
 	"devDependencies": {
+		"@types/react": "^18.3.18",
 		"@types/uuid-readable": "^0.0.3",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
 		"tldraw": "workspace:*",
 		"typescript": "~5.4.5",
 		"uuid-by-string": "^4.0.0",
