@@ -2021,6 +2021,31 @@ export interface RichTextLabelProps {
     wrap?: boolean;
 }
 
+// @public
+export function RichTextSVG({ bounds, richText, fontSize, font, align, verticalAlign, wrap, labelColor, padding, }: RichTextSVGProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface RichTextSVGProps {
+    // (undocumented)
+    align: TLDefaultHorizontalAlignStyle;
+    // (undocumented)
+    bounds: Box;
+    // (undocumented)
+    font: TLDefaultFontStyle;
+    // (undocumented)
+    fontSize: number;
+    // (undocumented)
+    labelColor: string;
+    // (undocumented)
+    padding: number;
+    // (undocumented)
+    richText: TLRichText;
+    // (undocumented)
+    verticalAlign: TLDefaultVerticalAlignStyle;
+    // (undocumented)
+    wrap?: boolean;
+}
+
 // @public (undocumented)
 export function RotateCWMenuItem(): JSX_2.Element;
 
