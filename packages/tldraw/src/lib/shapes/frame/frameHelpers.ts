@@ -57,26 +57,21 @@ export function getFrameHeadingSize(
 	return new Box(0, -opts.height, width, opts.height)
 }
 
-export function getFrameHeadingOpts(
-	shape: TLFrameShape,
-	color: string,
-	width: number
-): TLCreateTextJsxFromSpansOpts {
+export function getFrameHeadingOpts(width: number): TLCreateTextJsxFromSpansOpts {
 	return {
 		fontSize: 12,
 		fontFamily: 'Inter, sans-serif',
 		textAlign: 'start' as const,
 		width: width,
-		height: 24, // --fh
+		height: 24, // --frame-height
 		padding: 0,
 		lineHeight: 1,
 		fontStyle: 'normal',
 		fontWeight: 'normal',
 		overflow: 'truncate-ellipsis' as const,
 		verticalTextAlign: 'middle' as const,
-		fill: color,
-		offsetY: -(32 + 2), // --fmw + (border width * 2)
-		offsetX: 2, // border width * 2
+		offsetY: -(32 + 2), // --frame-minimum-height + (border width * 2)
+		offsetX: 0,
 	}
 }
 

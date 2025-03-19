@@ -70,7 +70,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const rotatedTopEdgeWidth = isVertical ? shape.props.h : shape.props.w
 
 		// Get the size of the heading (max width equal to the rotatedTopEdgeWidth)
-		const opts = getFrameHeadingOpts(shape, 'black', rotatedTopEdgeWidth)
+		const opts = getFrameHeadingOpts(rotatedTopEdgeWidth)
 		const headingSize = getFrameHeadingSize(editor, shape, opts)
 
 		// If NOT showing frame colors, we need to offset the label
@@ -224,6 +224,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 						width={shape.props.w}
 						height={shape.props.h}
 						fill={frameFill}
+						x={1}
 						stroke={frameStroke}
 					/>
 				</SVGContainer>
@@ -236,7 +237,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 						color={frameHeadingText}
 						width={shape.props.w}
 						height={shape.props.h}
-						offsetX={showFrameColors ? 0 : -8}
+						offsetX={showFrameColors ? -0 : -8}
 					/>
 				)}
 			</>
@@ -251,7 +252,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const labelTranslate = getFrameHeadingTranslation(shape, labelSide, true)
 
 		// Truncate with ellipsis
-		const opts: TLCreateTextJsxFromSpansOpts = getFrameHeadingOpts(shape, theme.text, labelSide)
+		const opts: TLCreateTextJsxFromSpansOpts = getFrameHeadingOpts(labelSide)
 
 		const frameTitle = defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203)
 		const labelBounds = getFrameHeadingSize(this.editor, shape, opts)

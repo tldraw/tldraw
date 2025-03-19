@@ -62,7 +62,7 @@ export const FrameHeading = memo(function FrameHeading({
 				overflow: isEditing ? 'visible' : 'hidden',
 				maxWidth: `calc(var(--tl-zoom) * ${
 					side === 0 || side === 2 ? Math.ceil(width) : Math.ceil(height)
-				}px + ${editor.options.showFrameColors ? '0px' : 'var(--fow)'})`,
+				}px + ${editor.options.showFrameColors ? '0px' : 'var(--frame-offset-width)'})`,
 				bottom: '100%',
 				transform: `${translation} scale(var(--tl-scale)) translateX(${offsetX}px)`,
 			}}

@@ -600,10 +600,10 @@ export const DefaultColorThemePalette: {
 			semi: '#f5f5f5',
 			pattern: '#f9f9f9',
 			frame: {
-				headingStroke: '#2c2c2c',
-				headingFill: '#030303',
-				stroke: '#2c2c2c',
-				fill: '#030303',
+				headingStroke: '#ffffff',
+				headingFill: '#ffffff',
+				stroke: '#ffffff',
+				fill: '#ffffff',
 				text: '#000000',
 			},
 			note: {
