@@ -185,11 +185,11 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		// XXX: When creating a brand new shape and double-clicking into it quickly to edit it,
 		// there's some kind of race condition happening where the editor doesn't focus properly.
 		const timeout = editor.timers.setTimeout(() => {
-			// if (rCreateInfo.current.caretPosition) {
-			// 	textEditorInstance.commands.focus()
-			// } else {
-			// 	textEditorInstance.commands.focus('end')
-			// }
+			if (rCreateInfo.current.caretPosition || rCreateInfo.current.selectAll) {
+				textEditorInstance.commands.focus()
+			} else {
+				textEditorInstance.commands.focus('end')
+			}
 		}, 100)
 
 		rTextEditor.current = textEditorInstance
