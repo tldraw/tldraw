@@ -12,7 +12,10 @@ export async function generateLlmsTxt(db: DbType) {
 	const docsMarkdown = await getMarkdownForDocs(db)
 
 	fs.writeFileSync(path.join(PUBLIC_DIR, 'llms.txt'), overviewMarkdown)
-	fs.writeFileSync(path.join(PUBLIC_DIR, 'llms-full.txt'), `${docsMarkdown}\n${examplesMarkdown}`)
+	fs.writeFileSync(
+		path.join(PUBLIC_DIR, 'llms-full.txt'),
+		`${docsMarkdown}\n--------------------------------\n\n${examplesMarkdown}`
+	)
 	fs.writeFileSync(path.join(PUBLIC_DIR, 'llms-examples.txt'), examplesMarkdown)
 	fs.writeFileSync(path.join(PUBLIC_DIR, 'llms-docs.txt'), docsMarkdown)
 }
@@ -44,61 +47,46 @@ async function getMarkdownForOverview(db: DbType) {
 }
 
 async function getMarkdownForDocs(db: DbType) {
-	const lines = []
+	let result = `# tldraw SDK Documentation\n`
 	const guides = await db.all(
 		'SELECT * FROM articles WHERE sectionId = "docs" OR sectionId = "getting-started"'
 	)
 
-	lines.push(`# tldraw SDK Documentation`)
 	for (const guide of guides) {
-		lines.push(``)
-		lines.push(`## ${guide.title}`)
-		lines.push(``)
-		lines.push(`${guide.content.trim()}`)
+		result += `\n--------\n`
+		result += `\n# ${guide.title}\n\n${guide.content.trim()}\n`
 	}
 
-	return lines.join('\n')
+	return result
 }
 
 async function getMarkdownForExamples(db: DbType) {
 	const examples = await db.all('SELECT * FROM articles WHERE sectionId = "examples"')
 
-	const lines = []
-	lines.push(`# tldraw SDK Examples`)
+	let result = `# tldraw SDK Examples`
 	for (const example of examples) {
-		lines.push(``)
-		lines.push(`## ${example.title}`)
-		lines.push(``)
+		result += `\n\n--------`
+		result += `\n\n# ${example.title}`
 
-		// I think the categories are confusing the model, so I'm removing them.
-		// It's hyper-focusing on some examples and ignoring others.
-		// Keywords seem to be more helpful.
-		// const category = example.categoryId[0].toUpperCase() + example.categoryId.slice(1).replaceAll('-', ' ')
-		// lines.push(`Category: ${category}`)
-
-		lines.push(`Keywords: ${example.keywords.trim()}`)
+		result += `\n\nKeywords: ${example.keywords.trim()}`
 		if (example.description?.trim()) {
-			lines.push(``)
-			lines.push(`${example.description.trim()}`)
+			result += `\n\n${example.description.trim()}`
 		}
-		lines.push(``)
-		lines.push(`${example.content.trim()}`)
-		lines.push(``)
 
-		lines.push(getMarkdownForFile('App.tsx', example.componentCode))
+		result += `\n\n${example.content.trim()}`
+		result += getMarkdownForFile('App.tsx', example.componentCode)
 
 		const files = JSON.parse(example.componentCodeFiles)
 		for (const name in files) {
-			lines.push(getMarkdownForFile(name, files[name]))
+			result += getMarkdownForFile(name, files[name])
 		}
 	}
 
-	return lines.join('\n')
+	return result
 }
 
 const ALLOWED_FILE_TYPES = ['tsx', 'ts', 'js', 'jsx', 'json', 'md', 'css', 'html']
 function getMarkdownForFile(fileName: string, fileContent: string) {
-	const lines = []
 	const type = fileName.split('.').pop()
 
 	// Skip non-code files, eg: PDFs, PNGs
@@ -106,11 +94,9 @@ function getMarkdownForFile(fileName: string, fileContent: string) {
 		return
 	}
 
-	lines.push(`### ${fileName}`)
-	lines.push(``)
-	lines.push(`\`\`\`${type}`)
-	lines.push(fileContent.trim())
-	lines.push(`\`\`\``)
-
-	return lines.join('\n')
+	let result = `\n\n## ${fileName}`
+	result += `\n\n\`\`\`${type}`
+	result += `\n${fileContent.trim()}`
+	result += `\n\`\`\``
+	return result
 }
