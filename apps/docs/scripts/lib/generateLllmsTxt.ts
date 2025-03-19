@@ -10,7 +10,7 @@ export async function generateLlmsTxt(db: DbType) {
 	const examplesMarkdown = await getMarkdownForExamples(db)
 	const docsMarkdown = await getMarkdownForDocs(db)
 
-	fs.writeFileSync(path.join(PUBLIC_DIR, 'llms-full.txt'), `${examplesMarkdown}\n${docsMarkdown}`)
+	fs.writeFileSync(path.join(PUBLIC_DIR, 'llms-full.txt'), `${docsMarkdown}\n${examplesMarkdown}`)
 	fs.writeFileSync(path.join(PUBLIC_DIR, 'llms-examples.txt'), examplesMarkdown)
 	fs.writeFileSync(path.join(PUBLIC_DIR, 'llms-docs.txt'), docsMarkdown)
 	fs.writeFileSync(path.join(PUBLIC_DIR, 'llms-api.txt'), 'Coming soon.')
@@ -39,14 +39,14 @@ async function getMarkdownForExamples(db: DbType) {
 
 	const lines = []
 	lines.push(`# tldraw SDK Examples`)
-	lines.push(``)
 	for (const example of examples) {
+		lines.push(``)
 		lines.push(`## ${example.title}`)
 		lines.push(``)
 
-		// I think the categories are confusing the model, so I'm removing them
-		// It's hyper-focusing on some of them and ignoring others
-		// Keywords seem to be more helpful to it
+		// I think the categories are confusing the model, so I'm removing them.
+		// It's hyper-focusing on some examples and ignoring others.
+		// Keywords seem to be more helpful.
 		// const category = example.categoryId[0].toUpperCase() + example.categoryId.slice(1).replaceAll('-', ' ')
 		// lines.push(`Category: ${category}`)
 
@@ -58,29 +58,32 @@ async function getMarkdownForExamples(db: DbType) {
 		lines.push(``)
 		lines.push(`${example.content.trim()}`)
 		lines.push(``)
-		addExampleFileToLines(lines, 'App.tsx', example.componentCode)
+
+		lines.push(getMarkdownForFile('App.tsx', example.componentCode))
+
 		const files = JSON.parse(example.componentCodeFiles)
 		for (const name in files) {
-			const content = files[name]
-			addExampleFileToLines(lines, name, content)
+			lines.push(getMarkdownForFile(name, files[name]))
 		}
-		lines.push(``)
 	}
 
 	return lines.join('\n')
 }
 
-function addExampleFileToLines(lines: string[], name: string, content: string) {
-	const type = name.split('.').pop()
+function getMarkdownForFile(fileName: string, fileContent: string) {
+	const lines = []
+	const type = fileName.split('.').pop()
 
 	// Skip non-code files, eg: PDFs, PNGs
 	if (!ALLOWED_FILE_TYPES.includes(type ?? '')) {
 		return
 	}
 
-	lines.push(`### ${name}`)
+	lines.push(`### ${fileName}`)
 	lines.push(``)
 	lines.push(`\`\`\`${type}`)
-	lines.push(content.trim())
+	lines.push(fileContent.trim())
 	lines.push(`\`\`\``)
+
+	return lines.join('\n')
 }
