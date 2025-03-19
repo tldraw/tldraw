@@ -5,4 +5,4 @@ content.db
 .next
 .vercel
 .envrc
-llms.txt
+llms*.txt
