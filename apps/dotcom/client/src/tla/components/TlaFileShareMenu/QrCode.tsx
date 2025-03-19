@@ -15,15 +15,13 @@ export function QrCode({ url }: { url: string }) {
 	const editor = useGlobalEditor()
 
 	useEffect(() => {
-		if (!qrCode) {
-			if (!editor) return
+		if (!editor) return
 
-			createQRCodeImageDataString(url).then((svgString) => {
-				const blob = new Blob([svgString], { type: 'image/svg+xml' })
-				FileHelpers.blobToDataUrl(blob).then(setQrCode)
-			})
-		}
-	}, [url, setQrCode, qrCode, editor])
+		createQRCodeImageDataString(url).then((svgString) => {
+			const blob = new Blob([svgString], { type: 'image/svg+xml' })
+			FileHelpers.blobToDataUrl(blob).then(setQrCode)
+		})
+	}, [url, setQrCode, editor])
 
 	// When qr code is there, set it as src
 	useLayoutEffect(() => {
