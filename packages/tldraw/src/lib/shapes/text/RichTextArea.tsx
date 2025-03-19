@@ -130,6 +130,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			},
 			onFocus,
 			onBlur,
+			// onCreate is called after a `setTimeout(0)`
 			onCreate: (props) => {
 				// If we're not still editing the original shape, then don't do anything.
 				if (editor.getEditingShapeId() !== shapeId) return
