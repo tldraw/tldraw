@@ -192,8 +192,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 
-		const color = theme[shape.props.color]
-
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isCreating = useValue(
 			'is creating this shape',
@@ -209,7 +207,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			[shape.id]
 		)
 
-		const showFrameColors = this.editor.options.showFrameColors // useShowFrameColors(this.editor, shape.id)
+		const showFrameColors = this.editor.options.showFrameColors
+
+		const color = theme[shape.props.color]
 		const frameFill = showFrameColors ? color.frame.fill : theme.black.frame.fill
 		const frameStroke = showFrameColors ? color.frame.stroke : theme.black.frame.stroke
 		const frameHeadingStroke = showFrameColors ? color.frame.headingStroke : theme.background
@@ -259,24 +259,35 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const spans = this.editor.textMeasure.measureTextSpans(frameTitle, opts)
 		const text = createTextJsxFromSpans(this.editor, spans, opts)
 
+		const showFrameColors = this.editor.options.showFrameColors
+
+		const color = theme[shape.props.color]
+		const frameFill = showFrameColors ? color.frame.fill : theme.black.frame.fill
+		const frameStroke = showFrameColors ? color.frame.stroke : theme.black.frame.stroke
+		const frameHeadingStroke = showFrameColors ? color.frame.headingStroke : theme.background
+		const frameHeadingFill = showFrameColors ? color.frame.headingFill : theme.background
+		const frameHeadingText = showFrameColors ? color.frame.text : theme.text
+
 		return (
 			<>
 				<rect
 					width={shape.props.w}
 					height={shape.props.h}
-					fill={theme.solid}
-					stroke={theme.black.solid}
+					fill={frameFill}
+					stroke={frameStroke}
 					strokeWidth={1}
-					rx={1}
-					ry={1}
+					x={1}
+					rx={4}
+					ry={4}
 				/>
-				<g transform={labelTranslate}>
+				<g fill={frameHeadingText} transform={labelTranslate}>
 					<rect
-						x={labelBounds.x - 8}
+						x={labelBounds.x}
 						y={labelBounds.y - 4}
-						width={labelBounds.width + 20}
+						width={labelBounds.width}
 						height={labelBounds.height}
-						fill={theme.background}
+						fill={frameHeadingFill}
+						stroke={frameHeadingStroke}
 						rx={4}
 						ry={4}
 					/>
