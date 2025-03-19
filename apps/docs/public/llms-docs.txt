@@ -1,0 +1,2032 @@
+# tldraw SDK Documentation
+
+## Editor
+
+The [`Editor`](/reference/editor/Editor) class is the main way of controlling tldraw's editor. You can use it to manage the editor's internal state, make changes to the document, or respond to changes that have occurred.
+
+By design, the [`Editor`](/reference/editor/Editor)'s surface area is very large. Almost everything is available through it. Need to create some shapes? Use [`Editor.createShapes`](/reference/editor/Editor#createShapes). Need to delete them? Use [`Editor.deleteShapes`](/reference/editor/Editor#deleteShapes). Need a sorted array of every shape on the current page? Use [`Editor.getCurrentPageShapesSorted`](/reference/editor/Editor#getCurrentPageShapesSorted).
+
+This page gives a broad idea of how the [`Editor`](/reference/editor/Editor) class is organized and some of the architectural concepts involved. The full reference is available in the [`Editor`](/reference/editor/Editor) API.
+
+## Using the editor
+
+You can access the editor in two ways:
+
+1. From the [`Tldraw`](/reference/tldraw/Tldraw) component's `onMount` callback, where the editor is provided as the first argument in the callback.
+
+```tsx
+function App() {
+	return (
+		<Tldraw
+			onMount={(editor) => {
+				// your editor code here
+			}}
+		/>
+	)
+}
+```
+
+2. Via the [`useEditor`](/reference/editor/useEditor) hook. This must be called from within the JSX of the [`Tldraw`](/reference/tldraw/Tldraw) component.
+
+```tsx
+function InsideOfContext() {
+	const editor = useEditor()
+	// your editor code here
+	return null // or whatever
+}
+
+function App() {
+	return (
+		<Tldraw>
+			<InsideOfContext />
+		</Tldraw>
+	)
+}
+```
+
+> If you are using the subcomponents as shown in [this example](/examples/editor-api/exploded), the editor instance is provided by the [`TldrawEditor`](/reference/editor/TldrawEditor) component.
+
+## Store
+
+The editor holds the raw state of the document in its [`Editor.store`](/reference/editor/Editor#store) property. Data is kept here as a table of JSON serializable records.
+
+For example, the store contains a [`TLPage`](/reference/tlschema/TLPage) record for each page in the current document, as well as an [`TLInstancePageState`](/reference/tlschema/TLInstancePageState) record for each page that stores information about the editor's state for that page, and a single [`TLInstance`](/reference/tlschema/TLInstance) for each editor instance which stores the id of the user's current page.
+
+The editor also exposes many _computed_ values which are derived from other records in the store. For example, [`Editor.getSelectedShapeIds`](/reference/editor/Editor#getSelectedShapeIds) is a method that returns the editor's current selected shape ids for its current page.
+
+You can use these properties directly or you can use them in signals.
+
+```tsx
+import { track, useEditor } from 'tldraw'
+
+export const SelectedShapeIdsCount = track(() => {
+	const editor = useEditor()
+
+	return <div>{editor.getSelectedShapeIds().length}</div>
+})
+```
+
+### Changing the state
+
+The [`Editor`](/reference/editor/Editor) class has many methods for updating its state. For example, you can change the current page's selection using [`Editor.setSelectedShapes`](/reference/editor/Editor#setSelectedShapes). You can also use other convenience methods, such as [`Editor.select`](/reference/editor/Editor#select), [`Editor.selectAll`](/reference/editor/Editor#selectAll), or [`Editor.selectNone`](/reference/editor/Editor#selectNone).
+
+```ts
+editor.selectNone()
+editor.select(myShapeId, myOtherShapeId)
+editor.getSelectedShapeIds() // [myShapeId, myOtherShapeId]
+```
+
+Each change to the state happens within a transaction. You can batch changes into a single transaction using the [`Editor.batch`](/reference/editor/Editor#batch) method. It's a good idea to batch wherever possible, as this reduces the overhead for persisting or distributing those changes.
+
+### Listening for changes, and merging changes from other sources
+
+For information about how to synchronize the store with other processes, i.e. how to get data out and put data in, see the [Persistence](/docs/persistence) page.
+
+### Undo and redo
+
+The history stack in tldraw contains two types of data:
+
+- "diffs" the changes you make to the store
+- "marks" undo/redo stopping points, created by calling [`Editor.markHistoryStoppingPoint`](/reference/editor/Editor#markHistoryStoppingPoint)
+
+When you call [`Editor.undo`](/reference/editor/Editor#undo), the editor will undo each diff until it finds either a mark or the start of the stack. When you call [`Editor.redo`](/reference/editor/Editor#redo), the editor will redo each diff until it finds either a mark or the end of the stack.
+
+```ts
+editor.createShapes(...)
+// A
+editor.markHistoryStoppingPoint()
+editor.selectAll()
+editor.duplicateShapes(editor.getSelectedShapeIds())
+// B
+
+editor.undo() // will return to A
+editor.redo() // will return to B
+```
+
+You can call [`Editor.bail`](/reference/editor/Editor#bail) to undo and delete all the diffs to the nearest mark, so they cannot be redone.
+
+```ts
+editor.createShapes(...)
+// A
+editor.markHistoryStoppingPoint()
+editor.selectAll()
+editor.duplicateShapes(editor.getSelectedShapeIds())
+// B
+
+editor.bail() // will return to A
+editor.redo() // will do nothing
+```
+
+[`Editor.markHistoryStoppingPoint`](/reference/editor/Editor#markHistoryStoppingPoint) returns an id that you can use with [`Editor.bailToMark`](/reference/editor/Editor#bailToMark) to bail to a specific mark.
+
+```ts
+// A
+const firstMark = editor.markHistoryStoppingPoint()
+editor.selectAll()
+// B
+const secondMark = editor.markHistoryStoppingPoint()
+editor.duplicateShapes(editor.getSelectedShapeIds())
+// C
+
+editor.bailToMark(firstMark) // will return to A
+```
+
+## Running code in context
+
+You can use the [`Editor.run`](/reference/editor/Editor#run) method to run a function inside of a transaction. All changes made during the transaction will be settled at once. This improves performance and avoids unnecessary renders in the user interface.
+
+```ts
+editor.run(() => {
+	editor.createShapes(myShapes)
+	editor.sendToBack(myShapes)
+	editor.selectNone()
+})
+```
+
+You can also use [`Editor.run`](/reference/editor/Editor#run) to execute code with contextual options.
+
+For example, you can use the options to perform actions without effecting the undo / redo history:
+
+```ts
+editor.run(
+	() => {
+		editor.createShapes(myShapes)
+		editor.sendToBack(myShapes)
+		editor.selectNone()
+	},
+	{ history: 'ignore' }
+)
+```
+
+You can also use the options to make changes to locked shapes.
+
+```ts
+editor.run(
+	() => {
+		editor.updateShapes(myLockedShapes)
+	},
+	{ ignoreShapeLock: true }
+)
+```
+
+## Events
+
+The [`Editor`](/reference/editor/Editor) class receives events from its [`Editor.dispatch`](/reference/editor/Editor#dispatch) method. When the [`Editor`](/reference/editor/Editor) receives an event, it is first handled internally to update [`Editor.inputs`](/reference/editor/Editor#inputs) and other state before, and then sent into to the editor's state chart.
+
+You shouldn't need to use the [`Editor.dispatch`](/reference/editor/Editor#dispatch) method directly, however you may write code in the state chart that responds to these events. See the [Tools page](/docs/tools) to learn how to do that, or read below for a more detailed information about the state chart itself.
+
+### State Chart
+
+The [`Editor`](/reference/editor/Editor) class has a "state chart", or a tree of [`StateNode`](/reference/editor/StateNode) instances, that contain the logic for the editor's tools such as the select tool or the draw tool. User interactions such as moving the cursor will produce different changes to the state depending on which nodes are active.
+
+Each node can be active or inactive. Each state node may also have zero or more children. When a state is active, and if the state has children, one (and only one) of its children must also be active. When a state node receives an event from its parent, it has the opportunity to handle the event before passing the event to its active child. The node can handle an event in any way: it can ignore the event, update records in the store, or run a _transition_ that changes which states nodes are active.
+
+When a user interaction is sent to the editor via its [`Editor.dispatch`](/reference/editor/Editor#dispatch) method, this event is sent to the editor's root state node ([`Editor.root`](/reference/editor/Editor#root)) and passed then down through the chart's active states until either it reaches a leaf node or until one of those nodes produces a transaction.
+
+<Image
+	src="/images/api/events.png"
+	alt="A diagram showing an event being sent to the editor and handled in the state chart."
+	title="The editor passes an event into the state start where it is handled by each active state in order."
+/>
+
+### Path
+
+You can get the editor's current "path" of active states via `editor.root.path`. In the above example, the value would be `"root.select.idle"`.
+
+You can check whether a path is active via [`Editor.isIn`](/reference/editor/Editor#isIn), or else check whether multiple paths are active via [`Editor.isInAny`](/reference/editor/Editor#isInAny).
+
+```ts
+editor.store.path // 'root.select.idle'
+
+editor.isIn('root.select') // true
+editor.isIn('root.select.idle') // true
+editor.isIn('root.select.pointing_shape') // false
+editor.isInAny('editor.select.idle', 'editor.select.pointing_shape') // true
+```
+
+Note that the paths you pass to [`Editor.isIn`](/reference/editor/Editor#isIn) or [`Editor.isInAny`](/reference/editor/Editor#isInAny) can be the full path or a partial of the start of the path. For example, if the full path is `root.select.idle`, then [`Editor.isIn`](/reference/editor/Editor#isIn) would return true for the paths `root`, `root.select`, or `root.select.idle`.
+
+> If all you're interested in is the state below `root`, there is a convenience method, [`Editor.getCurrentToolId`](/reference/editor/Editor#getCurrentToolId), that can help with the editor's currently selected tool.
+
+```tsx
+import { track, useEditor } from 'tldraw'
+
+export const BubbleToolUi = track(() => {
+	const editor = useEditor()
+
+	// Only show the UI if the bubble tool is active
+	if (!editor.getCurrentToolId() === 'bubble') return null
+	return <div>Creating bubble</div>
+})
+```
+
+## Side effects
+
+The [`Editor.sideEffects`](/reference/editor/Editor#sideEffects) object lets you register callbacks for key parts of the lifecycle of records in the [Store](#Store).
+You can register callbacks for before or after a record is created, changed, or deleted.
+These callbacks are useful for applying constraints, maintaining relationships, or checking the integrity of different records in the document.
+For example, we use side effects to create a new [`TLCamera`](/reference/tlschema/TLCamera) record every time a new page is made.
+
+The "before" callbacks allow you to modify the record itself, but shouldn't be used for modifying other records.
+You can create a different record in the place of what was asked, prevent a change (or make a different one) to an existing record, or stop something from being deleted.
+
+The "after" callbacks let you make changes to other records in response to something happening.
+You could create, update, or delete any related record, but you should avoid changing the same record that triggered the change.
+
+For example, if you wanted to know every time a new arrow is created, you could register a handler like this:
+
+```ts
+editor.sideEffects.registerAfterCreateHandler('shape', (newShape) => {
+	if (newShape.type === 'arrow') {
+		console.log('A new arrow shape was created', newShape)
+	}
+})
+```
+
+Side effect handlers are also given a `source` argument - either `"user"` or `"remote"`.
+This indicates whether the change originated from the current user, or from another remote user in the same multiplayer room.
+You could use this to e.g. prevent the current user from deleting shapes, but allow deletions from others in the same room.
+
+## Inputs
+
+The [`Editor.inputs`](/reference/editor/Editor#inputs) object holds information about the user's current input state, including their cursor position (in page space _and_ screen space), which keys are pressed, what their multi-click state is, and whether they are dragging, pointing, pinching, and so on.
+
+Note that the modifier keys include a short delay after being released in order to prevent certain errors when modeling interactions. For example, when a user releases the "Shift" key, `editor.inputs.shiftKey` will remain `true` for another 100 milliseconds or so.
+
+This property is stored as regular data. It is not reactive.
+
+## Editor instance state
+
+The [`Editor.getInstanceState`](/reference/editor/Editor#getInstanceState) method returns settings that relate to each individual instance of the editor. In the case that the user has the same editor open in multiple tabs, or if there are multiple editors on the same page, then each editor will have its own instance state. See the [`TLInstance`](/reference/tlschema/TLInstance) docs to learn more about the record itself.
+
+## User preferences
+
+The editor's user preferences are shared between all instances. See the the [`UserPreferencesManager`](/reference/editor/UserPreferencesManager) for more about the user preferences.
+
+# Camera and coordinates
+
+The editor offers many methods and properties relating to the part of the infinite canvas that is displayed in the component. This section includes key concepts and methods that you can use to change or control which parts of the canvas are visible.
+
+## Viewport
+
+The viewport is the rectangular area contained by the editor.
+
+| Method                              | Description                                                                                                        |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| [`Editor.getViewportScreenBounds`](/reference/editor/Editor#getViewportScreenBounds) | A [`Box`](/reference/editor/Box) that describes the size and position of the component's canvas in actual screen pixels.                 |
+| [`Editor.getViewportPageBounds`](/reference/editor/Editor#getViewportPageBounds)   | A [`Box`](/reference/editor/Box) that describes the size and position of the part of the current page that is displayed in the viewport. |
+
+## Screen vs. page coordinates
+
+In tldraw, coordinates can either be in page or screen space.
+
+A "screen point" refers to the point's distance from the top left corner of the component.
+
+A "page point" refers to the point's distance from the "zero point" of the canvas.
+
+When the camera is at `{x: 0, y: 0, z: 0}`, the screen point and page point will be identical. As the camera moves, however, the viewport will display a different part of the page; and so a screen point will correspond to a different page point.
+
+| Method                   | Description                                    |
+| ------------------------ | ---------------------------------------------- |
+| [`Editor.screenToPage`](/reference/editor/Editor#screenToPage) | Convert a point in screen space to page space. |
+| [`Editor.pageToScreen`](/reference/editor/Editor#pageToScreen) | Convert a point in page space to screen space. |
+
+You can get the user's pointer position in both screen and page space.
+
+```ts
+const {
+	// The user's most recent page / screen points
+	currentPagePoint,
+	currentScreenPoint,
+	// The user's previous page / screen points
+	previousPagePoint,
+	previousScreenPoint,
+	// The last place where the most recent pointer down occurred
+	originPagePoint,
+	originScreenPoint,
+} = editor.inputs
+```
+
+## Camera options
+
+You can use the editor's camera options to configure the behavior of the editor's camera. There are many options available.
+
+### `wheelBehavior`
+
+When set to `'pan'`, scrolling the mousewheel will pan the camera. When set to `'zoom'`, scrolling the mousewheel will zoom the camera. When set to `none`, it will have no effect.
+
+### `panSpeed`
+
+The speed at which the camera pans. A pan can occur when the user holds the spacebar and drags, holds the middle mouse button and drags, drags while using the hand tool, or scrolls the mousewheel. The default value is `1`. A value of `0.5` would be twice as slow as default. A value of `2` would be twice as fast. When set to `0`, the camera will not pan.
+
+### `zoomSpeed`
+
+The speed at which the camera zooms. A zoom can occur when the user pinches or scrolls the mouse wheel. The default value is `1`. A value of `0.5` would be twice as slow as default. A value of `2` would be twice as fast. When set to `0`, the camera will not zoom.
+
+### `zoomSteps`
+
+The camera's "zoom steps" are an array of discrete zoom levels that the camera will move between when using the "zoom in" or "zoom out" controls.
+
+The first number in the `zoomSteps` array defines the camera's minimum zoom level. The last number in the `zoomSteps` array defines the camera's maximum zoom level.
+
+If the `constraints` are provided, then the actual value for the camera's zoom will be be calculated by multiplying the value from the `zoomSteps` array with the value from the `baseZoom`. See the `baseZoom` property for more information.
+
+### `isLocked`
+
+Whether the camera is locked. When the camera is locked, the camera will not move.
+
+### `constraints`
+
+By default the camera is free to move anywhere on the infinite canvas. However, you may provide the camera with a `constraints` object that constrains the camera based on a relationship between `bounds` (in page space) and the `viewport` (in screen space).
+
+### `constraints.bounds`
+
+A box model describing the bounds in page space.
+
+### `constraints.padding`
+
+An object with padding to apply to the `x` and `y` dimensions of the viewport. The padding is in screen space.
+
+### `constraints.origin`
+
+An object with an origin for the `x` and `y` dimensions. Depending on the `behavior`, the origin may be used to position the bounds within the viewport.
+
+For example, when the `behavior` is `fixed` and the `origin.x` is `0`, the bounds will be placed with its left side touching the left side of the viewport. When `origin.x` is `1` the bounds will be placed with its right side touching the right side of the viewport. By default the origin for each dimension is .5. This places the bounds in the center of the viewport.
+
+### `constraints.initialZoom`
+
+The `initialZoom` option defines the camera's initial zoom level and what the zoom should be when when the camera is reset. The zoom it produces is based on the value provided:
+
+| Value         | Description                                                                                    |
+| ------------- | ---------------------------------------------------------------------------------------------- |
+| `default`     | Sets the initial zoom to 100%.                                                                 |
+| `fit-x`       | The x axis will completely fill the viewport bounds.                                           |
+| `fit-y`       | The y axis will completely fill the viewport bounds.                                           |
+| `fit-min`     | The smaller axis will completely fill the viewport bounds.                                     |
+| `fit-max`     | The larger axis will completely fill the viewport bounds.                                      |
+| `fit-x-100`   | The x axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.       |
+| `fit-y-100`   | The y axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.       |
+| `fit-min-100` | The smaller axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller. |
+| `fit-max-100` | The larger axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.  |
+
+### `constraints.baseZoom`
+
+The `baseZoom` property defines the base property for the camera's zoom steps. It accepts the same values as `initialZoom`.
+
+When `constraints` are provided, then the actual value for the camera's zoom will be be calculated by multiplying the value from the `zoomSteps` array with the value from the `baseZoom`.
+
+For example, if the `baseZoom` is set to `default`, then a zoom step of 2 will be 200%. However, if the `baseZoom` is set to `fit-x`, then a zoom step value of 2 will be twice the zoom level at which the bounds width exactly fits within the viewport.
+
+### `constraints.behavior`
+
+The `behavior` property defines which logic should be used when calculating the bounds position.
+
+| Value     | Description                                                                                                                                 |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 'free'    | The bounds may be placed anywhere relative to the viewport. This is the default "infinite canvas" experience.                               |
+| 'inside'  | The bounds must stay entirely within the viewport.                                                                                          |
+| 'outside' | The bounds may partially leave the viewport but must never leave it completely.                                                             |
+| 'fixed'   | The bounds are placed in the viewport at a fixed location according to the `'origin'`.                                                      |
+| 'contain' | When the zoom is below the "fit zoom" for an axis, the bounds use the `'fixed'` behavior; when above, the bounds use the `inside` behavior. |
+
+## Controlling the camera
+
+There are several `Editor` methods available for controlling the camera.
+
+| Method                          | Description                                                                                         |
+| ------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [`Editor.setCamera`](/reference/editor/Editor#setCamera)           | Moves the camera to the provided coordinates.                                                       |
+| [`Editor.zoomIn`](/reference/editor/Editor#zoomIn)              | Zooms the camera in to the nearest zoom step. See the `constraints.zoomSteps` for more information. |
+| [`Editor.zoomOut`](/reference/editor/Editor#zoomOut)             | Zooms the camera in to the nearest zoom step. See the `constraints.zoomSteps` for more information. |
+| [`Editor.zoomToFit`](/reference/editor/Editor#zoomToFit)           | Zooms the camera in to the nearest zoom step. See the `constraints.zoomSteps` for more information. |
+| [`Editor.zoomToBounds`](/reference/editor/Editor#zoomToBounds)        | Moves the camera to fit the given bounding box.                                                     |
+| [`Editor.zoomToSelection`](/reference/editor/Editor#zoomToSelection)     | Moves the camera to fit the current selection.                                                      |
+| [`Editor.zoomToUser`](/reference/editor/Editor#zoomToUser)          | Moves the camera to center on a user's cursor.                                                      |
+| [`Editor.resetZoom`](/reference/editor/Editor#resetZoom)           | Resets the zoom to 100% or to the `initialZoom` zoom level.                                         |
+| [`Editor.centerOnPoint`](/reference/editor/Editor#centerOnPoint)       | Centers the camera on the given point.                                                              |
+| [`Editor.stopCameraAnimation`](/reference/editor/Editor#stopCameraAnimation) | Stops any camera animation.                                                                         |
+
+## Camera state
+
+The camera may be in two states, `idle` or `moving`.
+
+You can get the current camera state with [`Editor.getCameraState`](/reference/editor/Editor#getCameraState).
+
+# Bindings
+
+A binding is a relationship from one [shape](/docs/shapes) to another. They're used to connect
+shapes so they can update together or depend on one and other. For example: tldraw's default arrow
+shape uses bindings to connect the ends of the arrows to the shapes they're pointing to, one binding
+for each end of the arrow.
+
+You can create different types of binding that do all sorts of different things with relationships
+between shapes. For example, you could create a [sticker
+shape](/examples/shapes/tools/sticker-bindings) that sticks to any other shape it's dropped onto.
+
+## The binding object
+
+Bindings are records (JSON objects) that live in the [store](/docs/editor#store). For example,
+here's a binding record for one end of an arrow shape:
+
+```json
+{
+    "id": "binding:someId",
+    "typeName": "binding"
+    "type": "arrow",
+    "fromId": "shape:arrowId",
+    "toId": "shape:someOtherShapeId",
+    "props": {
+        "terminal": "end"
+        "isPrecise": true,
+        "isExact": false,
+        "normalizedAnchor": {
+            "x": 0.5,
+            "y": 0.5
+        },
+    },
+    "meta": {},
+}
+```
+
+Every binding contains some base information - its ID & the type of binding, as well as the ID of
+the shape that a binding comes _from_ and the ID of the shape that the binding goes _to_. These two
+properties work the same way, but it's often useful to have an explicit direction in a binding
+relationship. For example, an arrow binding always goes _from_ an arrow _to_ another shape.
+
+Bindings contain their own type-specific information in the `props` object. Each type of binding can
+have different props.
+
+Bindings also have a `meta` property which can be used by your application to add data to bindings
+you haven't built yourself. You can read more about the meta property
+[here](/docs/shapes#Meta-information).
+
+## Custom bindings
+
+To create a binding of your own, you can define a custom binding.
+
+### The binding type
+
+First, you need to create a type that describes what the binding object will look like:
+
+```ts
+import { TLBaseBinding } from 'tldraw'
+
+type StickerBinding = TLBaseBinding<'sticker', { x: number; y: number }>
+```
+
+With [`TLBaseBinding`](/reference/tlschema/TLBaseBinding) we define the binding's type (`sticker`) and `props` property (`{x: number,
+y: number}`). The type can be any string, and the props must be a plain JSON object (ie not a class
+instance).
+
+The [`TLBaseBinding`](/reference/tlschema/TLBaseBinding) helper adds the other base properties like `id`, `toId`, and `fromId`.
+
+### The `BindingUtil` class
+
+While bindings themselves are plain JSON objects, we use
+[`BindingUtil`](/reference/editor/BindingUtil) classes to define how bindings should work. They tell
+tldraw the structure of a binding, and what to do when it or the shapes it involves are created,
+updated, or deleted.
+
+```ts
+import { BindingUtil } from 'tldraw'
+
+class StickerBindingUtil extends BindingUtil<StickerBinding> {
+	static override type = 'sticker' as const
+
+	override getDefaultProps() {
+		return { x: 0.5, y: 0.5 }
+	}
+
+	override onAfterChangeToShape({ binding }) {
+		const sticker = this.editor.getShape(binding.fromShape)
+
+		// move the sticker so it stays attached to the to shape
+	}
+}
+```
+
+Each binding util needs a `type` and `getDefaultProps` to define its basic structure. You can also
+define a number of different callbacks describing how the binding should behave. See the
+[`BindingUtil`](/reference/editor/BindingUtil) reference or a [complete example of a
+binding](/examples/shapes/tools/sticker-bindings) for details.
+
+If the structure of your binding needs to change over time, you can provide
+[migrations](/docs/persistence#Shape-props-migrations) describing how old stored bindings can be
+brought up to date.
+
+## Image exports
+
+You can export the contents of the canvas to an image with [`Editor.toImage`](/reference/editor/Editor#toImage).
+
+Image exports draw your shapes as an SVG, then convert the SVG to another format (like a PNG) if needed. Use [`Editor.getSvgElement`](/reference/editor/Editor#getSvgElement) or [`Editor.getSvgString`](/reference/editor/Editor#getSvgString) if you want to work with the SVG directly.
+
+### Exporting custom shapes
+
+By default, custom shape exports use the [`ShapeUtil.component`](/reference/editor/ShapeUtil#component) method that's used to render your shape normally. We embed the result in a [`<foreignObject>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject) element. This works well for most shapes, but isn't perfect (see [below](#Export-limitations)). For more control over exports, you can implement [`ShapeUtil.toSvg`](/reference/editor/ShapeUtil#toSvg) to properly convert your shape to an SVG.
+
+Use the [`useSvgExportContext`](/reference/editor/useSvgExportContext) hook to check if your shape is being rendered for an SVG export. If you need to load data or assets asynchronously, use the [`useDelaySvgExport`](/reference/editor/useDelaySvgExport) hook to delay the export until you're ready.
+
+SVGs can't refer to any external assets like images, fonts, or CSS. Everything needs to be included inline in the SVG, with images and fonts converted to data URLs. `<foreignObject>` exports that use the `component` methods try to handle this automatically, but if you implement `toSvg` you'll need to do it yourself. You can use [`SvgExportContext.addExportDef`](/reference/editor/SvgExportContext#addExportDef) to add definitions to the SVG that can be shared by multiple shapes.
+
+### Export limitations
+
+Hand-authored `toSvg` are typically very reliable and have good compatibility with other SVG tools. However, most SVG editors (and even some viewers) don't support the `<foreignObject>` element, so the default `component` based exports don't work as well outside of the browser. If you want to make sure that your exports look the same in all viewers, either implement `toSvg` or convert directly to a PNG or other raster format.
+
+Even within browsers though, `<foreignObject>`s and the method we use to create them aren't always 100% reliable. Chromium based browsers tend to work well, but Firefox occasionally has layout issues, and Safari has rendering quirks with effects like box shadows. It's sometimes useful to apply different styles during exports in certain browsers.
+
+We can only embed external assets such as images and font files if they're either hosted on the same origin as tldraw, or have [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) headers set. If external assets are missing from your export, check your browser's network tab to see if these are being requested and if anything is going wrong with them.
+
+# Common things to do with the editor
+
+### Create a shape id
+
+To create an id for a shape (a [`TLShapeId`](/reference/tlschema/TLShapeId)), use the libary's [`createShapeId`](/reference/tlschema/createShapeId) helper.
+
+```ts
+import { createShapeId } from 'tldraw'
+
+createShapeId() // `shape:some-random-uuid`
+createShapeId('kyle') // `shape:kyle`
+```
+
+The `id` property of any record in tldraw is "branded" with the type of that record. For shapes, that means that all shape ids are formatted as `shape:{id}`. The TypeScript type of a record's `id` also includes a reference to the type of the record that it belongs to. TypeScript will complain if you use a regular `shape:some-id` string, but the [`createShapeId`](/reference/tlschema/createShapeId) helper will provide the type.
+
+### Create shapes
+
+To create shapes, use the [`Editor.createShape`](/reference/editor/Editor#createShape) or [`Editor.createShapes`](/reference/editor/Editor#createShapes) methods.
+
+```ts
+editor.createShapes([
+	{
+		id,
+		type: 'geo',
+		x: 0,
+		y: 0,
+		props: {
+			geo: 'rectangle',
+			w: 100,
+			h: 100,
+			dash: 'draw',
+			color: 'blue',
+			size: 'm',
+		},
+	},
+])
+```
+
+A shape must be a partial of the full shape (a [`TLShapePartial`](/reference/tlschema/TLShapePartial)). All props are optional except for the `type` of the shape. The shape's corresponding [`ShapeUtil`](/reference/editor/ShapeUtil) will provide the default props for any props not provided. The `id` will be created if not provided.
+
+### Update shapes
+
+To update shapes, use the [`Editor.updateShape`](/reference/editor/Editor#updateShape) or [`Editor.updateShapes`](/reference/editor/Editor#updateShapes) methods.
+
+```ts
+editor.updateShapes([
+	{
+		id: shape.id, // required
+		type: shape.type, // required
+		x: 100,
+		y: 100,
+		props: {
+			w: 200,
+		},
+	},
+])
+```
+
+The update must be a partial of the full shape (a [`TLShapePartial`](/reference/tlschema/TLShapePartial)). All props are optional except for the `type` of the shape and its `id`.
+
+### Delete shapes
+
+To delete shapes, use the [`Editor.deleteShape`](/reference/editor/Editor#deleteShape) or [`Editor.deleteShapes`](/reference/editor/Editor#deleteShapes) methods.
+
+```ts
+editor.deleteShapes([shape.id])
+editor.deleteShapes([shape])
+```
+
+You can delete a shape using the shape's `id` or the shape record itself.
+
+### Get a shape
+
+You can get a shape with the [`Editor.getShape`](/reference/editor/Editor#getShape) method.
+
+```ts
+editor.getShape(myShapeId)
+editor.getShape(myShape)
+```
+
+You can get a shape using the shape's `id` or the shape record itself.
+
+### Turn on read only mode
+
+You can use the [`Editor.updateInstanceState`](/reference/editor/Editor#updateInstanceState) method to turn on read only mode.
+
+```ts
+editor.updateInstanceState({ isReadonly: true })
+```
+
+### Move the camera
+
+You can set the camera to a specific x, y, and zoom with the [`Editor.setCamera`](/reference/editor/Editor#setCamera) method.
+
+```ts
+editor.setCamera({ x: 0, y: 0, z: 1 })
+```
+
+### Freeze the camera
+
+You can prevent the user from changing the camera using the `Editor.setCameraOptions` method.
+
+```ts
+editor.setCameraOptions({ isLocked: true })
+```
+
+### Turn on dark mode
+
+You can turn on or off dark mode via the [`UserPreferencesManager`](/reference/editor/UserPreferencesManager). Note that this effects all editor instances that share the same user—even instances in other tabs.
+
+```ts
+editor.user.updateUserPreferences({ colorScheme: 'dark' })
+```
+
+### Using the system color scheme
+
+You can also use the system color scheme via the [`UserPreferencesManager`](/reference/editor/UserPreferencesManager).
+
+```ts
+editor.user.updateUserPreferences({ colorScheme: 'system' })
+```
+
+### Make changes without effecting the history
+
+You can use the [`Editor.run`](/reference/editor/Editor#run) method to make changes without effecting the undo redo history.
+
+```ts
+editor.run(
+	() => {
+		editor.deleteShapes(myLockedShapes)
+	},
+	{ history: 'ignore' }
+)
+```
+
+### Make changes to locked shape
+
+You can use the [`Editor.run`](/reference/editor/Editor#run) method to make changes to locked shapes without having to unlock them first.
+
+```ts
+editor.run(
+	() => {
+		editor.deleteShapes(myLockedShapes)
+	},
+	{ ignoreShapeLock: true }
+)
+```
+
+### Hiding shapes
+
+You can pass a `isShapeHidden` predicate when configuring tldraw. This predicate will be called for each shape to determine if it should be hidden.
+
+Hidden shapes will still be present in the store, but
+
+- They will not be shown on the canvas
+- They will not be included in hit test results via `editor.getShapeAtPoint` and `editor.getShapesAtPoint`
+- They will be excluded from the arrays returned by `editor.getRenderingShapes` and `editor.getCurrentPageRenderingShapesSorted`
+- They will not be exported in image exports or rendered when printing.
+
+Otherwise, they will behave as normal.
+
+One place where this might be problematic for you, depending on what features you're using `isShapeHidden` to implement, is that hidden shapes will still be selectable, e.g. via the `select-all` action (`Cmd+A` or `Ctrl+A`).
+
+You can prevent that by cleaning up the selection in a signal reaction that is set up in the `onMount` callback:
+
+```tsx
+<Tldraw
+	isShapeHidden={(shape) => shape.meta.hidden}
+	onMount={(editor) => {
+		// We don't prevent hidden shapes from being selected out of the box, because there are some situations where it's desirable.
+		// If you want to prevent hidden shapes from being selected, you can do so like this:
+		return react('clean up selection', () => {
+			const selectedShapeIds = editor.getSelectedShapeIds()
+			const filteredSelectedShapeIds = selectedShapeIds.filter((id) => !editor.isShapeHidden(id))
+			if (selectedShapeIds.length !== filteredSelectedShapeIds.length) {
+				editor.setSelectedShapes(filteredSelectedShapeIds)
+			}
+		})
+	}}
+/>
+```
+
+For example usages, see the [collaboration private content example](/examples/collaboration/sync-private-content) and the [layer panel example](/examples/ui/layer-panel).
+
+---
+
+See the [tldraw repository](https://github.com/tldraw/tldraw/tree/main/apps/examples) for an example of how to use tldraw's Editor API to control the editor.
+## Shapes
+
+In tldraw, a shape is something that can exist on the page, like an arrow, an image, or some text.
+
+This article is about shapes: what they are, how they work, and how to create your own shapes. If you'd prefer to see an example, see the tldraw repository's [examples app](https://github.com/tldraw/tldraw/tree/main/apps/examples) for examples of how to create custom shapes in tldraw.
+
+## Types of shape
+
+We make a distinction between three types of shapes: "core", "default", and "custom".
+
+### Core shapes
+
+The editor's core shapes are shapes that are built in and always present. At the moment the only core shape is the [group shape](/reference/tlschema/TLGroupShape).
+
+### Default shapes
+
+The default shapes are all of the shapes that are included by default in the [`Tldraw`](/reference/tldraw/Tldraw) component, such as the [`TLArrowShape`](/reference/tlschema/TLArrowShape) or [`TLDrawShape`](/reference/tlschema/TLDrawShape). They are exported from the `tldraw` library as [`defaultShapeUtils`](/reference/tldraw/defaultShapeUtils).
+
+### Custom shapes
+
+Custom shapes are shapes that were created by you or someone you love. Find more information about custom shapes [below](#Custom-shapes-1).
+
+## The shape object
+
+Shapes are just records (JSON objects) that sit in the [store](/docs/editor#Store). For example, here's a shape record for a rectangle geo shape:
+
+```ts
+{
+    "parentId": "page:somePage",
+    "id": "shape:someId",
+    "typeName": "shape",
+    "type": "geo",
+    "x": 106,
+    "y": 294,
+    "rotation": 0,
+    "index": "a28",
+    "opacity": 1,
+    "isLocked": false,
+    "props": {
+        "w": 200,
+        "h": 200,
+        "geo": "rectangle",
+        "color": "black",
+        "labelColor": "black",
+        "fill": "none",
+        "dash": "draw",
+        "size": "m",
+        "font": "draw",
+        "text": "diagram",
+        "align": "middle",
+        "verticalAlign": "middle",
+        "growY": 0,
+        "url": ""
+    },
+    "meta": {},
+}
+```
+
+### Base properties
+
+Every shape contains some base information. These include the shape's type, position, rotation, opacity, and more. You can find the full list of base properties [here](/reference/tlschema/TLBaseShape).
+
+### Props
+
+Every shape also contains some shape-specific information, called `props`. Each type of shape can have different props. For example, the `props` of a text shape are much different than the props of an arrow shape.
+
+### Meta
+
+Meta information is information that is not used by tldraw but is instead used by your application. For example, you might want to store the name of the user who created a shape, or the date that the shape was created. You can find more information about meta information [below](#Meta-information).
+
+## The `ShapeUtil` class
+
+While tldraw's shapes themselves are simple JSON objects, we use [`ShapeUtil`](/reference/editor/ShapeUtil) classes to answer questions about shapes. For example, when the editor needs to render a text shape, it will find the [`TextShapeUtil`](/reference/tldraw/TextShapeUtil) and call its [`ShapeUtil.component`](/reference/editor/ShapeUtil#component) method, passing in the text shape object as an argument.
+
+---
+
+## Custom shapes
+
+You can create your own custom shapes. In the examples below, we will create a custom "card" shape. It'll be a simple rectangle with some text inside.
+
+> For an example of how to create custom shapes, see our [custom shapes example](/examples/shapes/tools/custom-shape).
+
+### Shape type
+
+In tldraw's data model, each shape is represented by a JSON object. Let's first create a type that describes what this object will look like.
+
+```ts
+import { TLBaseShape } from 'tldraw'
+
+type CardShape = TLBaseShape<'card', { w: number; h: number }>
+```
+
+With the [`TLBaseShape`](/reference/tlschema/TLBaseShape) helper, we define the shape's `type` property (`card`) and the shape's `props` property (`{ w: number, h: number }`). The type can be any string but the props must be a regular [JSON-serializable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#description) JavaScript object.
+
+The [`TLBaseShape`](/reference/tlschema/TLBaseShape) helper adds the other base properties of a shape, such as `x`, `y`, `rotation`, and `opacity`.
+
+### Shape Util
+
+While tldraw's shapes themselves are simple JSON objects, we use [`ShapeUtil`](/reference/editor/ShapeUtil) classes to answer questions about shapes.
+
+Let's create a [`ShapeUtil`](/reference/editor/ShapeUtil) class for the shape.
+
+```tsx
+import { HTMLContainer, ShapeUtil } from 'tldraw'
+
+class CardShapeUtil extends ShapeUtil<CardShape> {
+	static override type = 'card' as const
+
+	getDefaultProps(): CardShape['props'] {
+		return {
+			w: 100,
+			h: 100,
+		}
+	}
+
+	getGeometry(shape: CardShape) {
+		return new Rectangle2d({
+			width: shape.props.w,
+			height: shape.props.h,
+			isFilled: true,
+		})
+	}
+
+	component(shape: CardShape) {
+		return <HTMLContainer>Hello</HTMLContainer>
+	}
+
+	indicator(shape: CardShape) {
+		return <rect width={shape.props.w} height={shape.props.h} />
+	}
+}
+```
+
+This is a minimal [`ShapeUtil`](/reference/editor/ShapeUtil). We've given it a static property `type` that matches the type of our shape, we've provided implementations for the abstract methods [`ShapeUtil.getDefaultProps`](/reference/editor/ShapeUtil#getDefaultProps), [`ShapeUtil.getBounds`](/reference/editor/ShapeUtil#getBounds), [`ShapeUtil.component`](/reference/editor/ShapeUtil#component), and [`ShapeUtil.indicator`](/reference/editor/ShapeUtil#indicator).
+
+We still have work to do on the `CardShapeUtil` class, but we'll come back to it later. For now, let's put the shape onto the canvas by passing it to the [`Tldraw`](/reference/tldraw/Tldraw) component.
+
+### The `shapeUtils` prop
+
+We pass an array of our shape utils into the [`Tldraw`](/reference/tldraw/Tldraw) component's `shapeUtils` prop.
+
+```tsx
+const MyCustomShapes = [CardShapeUtil]
+
+export default function () {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw shapeUtils={MyCustomShapes} />
+		</div>
+	)
+}
+```
+
+We can create one of our custom card shapes using the [`Editor`](/reference/editor/Editor) API. We'll do this by setting the `onMount` prop of the [`Tldraw`](/reference/tldraw/Tldraw) component.
+
+```tsx
+export default function () {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				shapeUtils={MyCustomShapes}
+				onMount={(editor) => {
+					editor.createShapes([{ type: 'card' }])
+				}}
+			/>
+		</div>
+	)
+}
+```
+
+Once the page refreshes, we should now have our custom shape on the canvas.
+
+### Meta information
+
+Shapes also have a `meta` property (see [`TLBaseShape.meta`](/reference/tlschema/TLBaseShape#meta)) that you can fill with your own data. This should feel like a bit of a hack, however it's intended to be an escape hatch for applications where you want to use tldraw's existing shapes but also want to attach a bit of extra data to the shape.
+
+Note that tldraw's regular shape definitions have an unknown object for the shape's `meta` property. To type your shape's meta, use a union like this:
+
+```ts
+type MyShapeWithMeta = TLGeoShape & { meta: { createdBy: string } }
+
+const shape = editor.getShape<MyShapeWithMeta>(myGeoShape.id)
+```
+
+You can update a shape's `meta` property in the same way you would update its props, using [`Editor.updateShapes`](/reference/editor/Editor#updateShapes).
+
+```ts
+editor.updateShapes<MyShapeWithMeta>([
+	{
+		id: myGeoShape.id,
+		type: 'geo',
+		meta: {
+			createdBy: 'Steve',
+		},
+	},
+])
+```
+
+Like [`TLBaseShape.props`](/reference/tlschema/TLBaseShape#props), the data in a [`TLBaseShape.meta`](/reference/tlschema/TLBaseShape#meta) object must be JSON serializable.
+
+In addition to setting meta properties this way, you can also set the default meta data for shapes using the Editor's [`Editor.getInitialMetaForShape`](/reference/editor/Editor#getInitialMetaForShape) method.
+
+```tsx
+editor.getInitialMetaForShape = (shape: TLShape) => {
+	if (shape.type === 'text') {
+		return { createdBy: currentUser.id, lastModified: Date.now() }
+	} else {
+		return { createdBy: currentUser.id }
+	}
+}
+```
+
+Whenever new shapes are created using the [`Editor.createShapes`](/reference/editor/Editor#createShapes) method, the shape's meta property will be set using the [`Editor.getInitialMetaForShape`](/reference/editor/Editor#getInitialMetaForShape) method. By default this method returns an empty object.
+
+### Using starter shapes
+
+You can use "starter" shape utils like [`BaseBoxShapeUtil`](/reference/editor/BaseBoxShapeUtil) to get regular rectangular shape behavior.
+
+### Flags
+
+You can use flags like [`ShapeUtil.hideRotateHandle`](/reference/editor/ShapeUtil#hideRotateHandle) to hide different parts of the UI when the shape is selected, or else to control different behaviors of the shape.
+
+### Interaction
+
+You can turn on `pointer-events` to allow users to interact inside of the shape.
+
+### Editing
+
+You can make shapes "editable" to help decide when they're interactive or not.
+
+### Labels (plain text and rich text)
+
+Our shapes have the ability to have include labels. Those labels can either have plain text (the `text` prop) or rich text (`richText`), as desired.
+For rich text, the tldraw editor provides first-class support for [TipTap](https://tiptap.dev/) out of the box. The underlying document for the richText is
+a TipTap JSON-stringified document that is stored within the `richText` property. (For that reason, we don't do character-by-character synchronization of
+the text within a shape. This was a design choice as much of tldraw's text ends up being short-form).
+
+If you would like to use rich text within your shape you can use our [`RichTextLabel`](/reference/tldraw/RichTextLabel) component to help you get started with rendering rich text. Under the hood
+this uses [`RichTextArea`](/reference/tldraw/RichTextArea) which loads a TipTap instance and to handle the editing of rich text.
+
+If you would like to use plain text you would use the corresponding [`PlainTextLabel`](/reference/tldraw/PlainTextLabel) and [`PlainTextArea`](/reference/tldraw/PlainTextArea) components.
+
+#### Text measurement
+
+One of the challenges with our shapes is getting an accurate measurement of the bounds of the shape.
+Traditionally you could have used our [`TextManager.measureText`](/reference/editor/TextManager#measureText). However, because rich text is HTML, the API to use for that is [`TextManager.measureHtml`](/reference/editor/TextManager#measureHtml)
+
+#### Extending TipTap
+
+Here's a simple example of how you could add a custom extension (in this case `FontFamily`) to the editor:
+
+```ts
+const textOptions = {
+	tipTapConfig: {
+		extensions: [...tipTapDefaultExtensions, FontFamily],
+	},
+}
+
+export default function RichTextCustomExtensionExample() {
+	return (
+		<div className="tldraw__editor">
+			<Tldraw
+				persistenceKey="rich-text-custom-extension"
+				components={components}
+				textOptions={textOptions}
+			/>
+		</div>
+	)
+}
+```
+
+On our [examples site](https://examples.tldraw.com/) please filter by "rich text" and you will find examples on how to add custom extensions or UI to tailor the rich text.
+
+#### Exports for rich text
+
+One of the other challenges right now with rich text is the exports. We use the SVG `foreignObject` to insert rich text into the shapes.
+This isn't ideal and we're looking in the future to help improve this.
+
+### Migrations
+
+You can add migrations for your shape props by adding a `migrations` property to your shape's util class. See [the persistence docs](/docs/persistence#Shape-props-migrations) for more information.
+## Tools
+
+In tldraw, a **tool** is what we call any top-level state in our state chart. For example, the select tool, the draw tool, and the arrow tool are all top-level states that the user can be in.
+
+<Image
+	title="Tools"
+	src="/images/api/tools.png"
+	alt="A diagram showing the state chart of tldraw. The top row of states (apart from the Root state) are annotated as tools."
+	title="The first level of states in the start chart are known as tools."
+/>
+
+For more detailed information about the state chart, and how it works, go to the [Editor page](/docs/editor). Or read below for more information about tools, and how to make your own.
+
+## Types of tool
+
+The tldraw editor comes with some in-built **core tools**: the [select tool](/reference/tldraw/SelectTool), the [zoom tool](/reference/tldraw/ZoomTool), and the [text tool](/reference/tldraw/TextShapeTool). These are always added to the state chart.
+
+There are also some **default tools** available, like the [draw tool](/reference/tldraw/DrawShapeTool), the [hand tool](/reference/tldraw/HandTool), the [arrow tool](/reference/tldraw/ArrowShapeTool), and more. The `<Tldraw>` component automatically adds these tools to the state chart.
+
+You can also create your own **custom tools**. You can add them to the state chart by passing an array of them to the [`Tldraw`](/reference/tldraw/Tldraw) component's `tools` prop.
+
+Note: You might also want to add a tool to the user interface in various ways, such as the toolbar. See the [User Interface](/docs/user-interface) section for more on changing the menus.
+
+## Transitioning
+
+You can change the current active tool using [editor.setCurrentTool](/reference/editor/Editor#setCurrentTool).
+
+```ts
+editor.setCurrentTool('select')
+```
+
+You can "deep transition" by using a path of active tool ids.
+
+```ts
+editor.setCurrentTool('select.eraser.pointing')
+```
+
+## Inside a tool
+
+Every tool has an **id**. This is used to identify it in the state chart.
+
+```ts
+class MyTool extends StateNode {
+	static override id = 'my-tool'
+}
+```
+
+Tools can contain **children**. For example, the [hand tool](/reference/tldraw/HandTool) has three children, `Idle`, `Pointing` and `Dragging`. If a state has children, it must also have an `initial` state, so that it knows which state to start in.
+
+```ts
+class MyIdleState extends StateNode {
+	static override id = 'my-idle-state'
+}
+
+class MyPointingState extends StateNode {
+	static override id = 'my-pointing-state'
+}
+
+class MyTool extends StateNode {
+	static override id = 'my-tool'
+	static override initial = 'my-idle-state'
+	static override children() {
+		return [MyIdleState, MyPointingState]
+	}
+}
+```
+
+### Handling events
+
+When the editor receives an [event](/reference/editor/TLEventHandlers) via its [`Editor.dispatch`](/reference/editor/Editor#dispatch) method, the event is first processed in order to update its inputs, then passed to the editor's state chart.
+
+Beginning at the root, each node will first handle the event and then pass the event to its current active child state. This continues until either: the event is handled on a state without any children; or the event is handled in a way that produces a transition.
+
+### Parents handle events before children
+
+```ts
+class MyIdleState extends StateNode {
+	static override id = 'my-idle-state'
+
+	onPointerDown(info: TLPointerEventInfo) {
+		console.log('world')
+	}
+}
+
+class MyTool extends StateNode {
+	static override id = 'my-tool'
+	static override initial = 'my-idle-state'
+	static override children() {
+		return [MyIdleState]
+	}
+
+	onPointerDown(info: TLPointerEventInfo) {
+		console.log('hello')
+	}
+}
+```
+
+Using the example above, if a `pointer_down` event is passed to the editor while the `MyTool` state is active, `MyTool`'s `onPointerDown` method will be called first, then `MyIdleState`'s `onPointerDown` method will be called second.
+
+### Transitions stop the process
+
+```ts
+class MyIdleState extends StateNode {
+	static override id = 'my-idle-state'
+
+	onPointerDown(info: TLPointerEventInfo) {
+		console.log("this won't run")
+	}
+}
+
+class MyTool extends StateNode {
+	static override id = 'my-tool'
+	static override initial = 'my-idle-state'
+	static override children = [MyIdleState]
+
+	onPointerDown(info: TLPointerEventInfo) {
+		editor.setCurrentTool('select')
+	}
+}
+```
+
+If `MyTool`'s `onPointerDown` handler produced a transition (changing anything about which states are active) then the chain would stop and the event would not be handled on `MyIdleState`.
+## User interface
+
+The user interface in tldraw includes the menus, toolbars, keyboard shortcuts, and analytics events in the editor.
+
+## Hiding the UI
+
+You can hide the default tldraw user interface entirely using the `hideUi` prop. This turns off both the visuals as well as the keyboard shortcuts.
+
+```tsx
+function Example() {
+	return <Tldraw hideUi />
+}
+```
+
+Here's [an example](https://examples.tldraw.com/hide-ui) of what that looks like. Note that while you can't select any other tools using the keyboard shortcuts, you can still use the `setCurrentTool` method to change the tool. If you open the console and enter:
+
+```ts
+editor.setCurrentTool('draw')
+```
+
+...then you can start drawing.
+
+All of our user interface works by controlling the editor via its `Editor` methods. If you hide the user interface, you can still use these same editor's methods to control the editor. Our [custom user interface example](https://examples.tldraw.com/custom-ui) shows this in action.
+
+The source for these examples are available in the [tldraw repository](https://github.com/tldraw/tldraw/blob/main/apps/examples/src) or on [our website](https://tldraw.dev/examples/basic/basic).
+
+## Events
+
+The [`Tldraw`](/reference/tldraw/Tldraw) component has a prop, `onUiEvent`, that the user interface will call when certain events occur.
+
+```tsx
+function Example() {
+	function handleEvent(name, data) {
+		// do something with the event
+	}
+
+	return <Tldraw onUiEvent={handleEvent} />
+}
+```
+
+The `onUiEvent` callback is called with the name of the event as a string and an object with information about the event's source (e.g. `menu` or `context-menu`) and possibly other data specific to each event, such as the direction in an `align-shapes` event.
+
+Note that `onUiEvent` is only called when interacting with the user interface. It is not called when running commands manually against the app, e.g. calling [`Editor.alignShapes`](/reference/editor/Editor#alignShapes) will not call `onUiEvent`.
+
+See the [tldraw repository](https://github.com/tldraw/tldraw/tree/main/apps/examples) for an example of how to customize tldraw's user interface.
+
+## Overrides
+
+The content of tldraw's menus can be controlled via the `overrides` prop. This prop accepts a [TLUiOverrides](/reference/tldraw/TLUiOverrides) object, which has methods for each part of the user interface, such as the `toolbar` or `keyboardShortcutsMenu`.
+
+### Actions
+
+The user interface has a set of shared `actions` that are used in the menus and keyboard shortcuts. These actions can be overridden by passing a new set of actions to the `overrides.actions` method.
+
+To create, update, or delete actions, provide an `actions` method that receives both the editor and the [default actions](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/context/actions.tsx) and returns a mutated actions object.
+
+```ts
+const myOverrides: TLUiOverrides = {
+	actions(editor, actions) {
+		// You can delete actions, but remember to
+		// also delete the menu items that reference them!
+		delete actions['insert-embed']
+
+		// Create a new action or replace an existing one
+		actions['my-new-action'] = {
+			id: 'my-new-action',
+			label: 'My new action',
+			readonlyOk: true,
+			kbd: '$u',
+			onSelect(source: any) {
+				// Whatever you want to happen when the action is run
+				window.alert('My new action just happened!')
+			},
+		}
+		return actions
+	},
+}
+```
+
+The `actions` object is a map of [TLUiActionItem](/reference/tldraw/TLUiActionItem)s, with each item keyed under its `id`.
+
+### Tools
+
+Tools work in the same manner as actions. You can override the default tools by passing a `tools` method that accepts the [default tools object](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/hooks/useTools.tsx) and returns a mutated version of that object.
+
+```ts
+const myOverrides: TLUiOverrides = {
+	tools(editor, tools) {
+		// Create a tool item in the ui's context.
+		tools.card = {
+			id: 'card',
+			icon: 'color',
+			label: 'tools.card',
+			kbd: 'c',
+			onSelect: () => {
+				// Whatever you want to happen when the tool is selected.
+				editor.setCurrentTool('card')
+			},
+		}
+		return tools
+	},
+}
+```
+
+The `tools` object is a map of [TLUiToolItem](/reference/tldraw/TLUiToolItem)s, with each item keyed under its `id`.
+
+### Translations
+
+The `translations` method accepts a table of new translations. For example, if you wanted a tool to reference a key `"tools.card"`, then you should at minimum provide an english translation for this key.
+
+```ts
+const myOverrides: TLUiOverrides = {
+	translations: {
+		en: {
+			'tools.card': 'Card',
+		},
+	},
+}
+```
+## Persistence
+
+In tldraw, persistence means storing information about the editor's state to a database and then restoring it later.
+
+The simplest implementation is the browser's local storage. But this also provides the hooks for a sync engine, which can send realtime incremental updates of the canvas to your backend server, allowing multiple people to collaborate on the canvas.
+
+## The `"persistenceKey"` prop
+
+Both the `<Tldraw>` or `<TldrawEditor>` components support local persistence and cross-tab synchronization via the `persistenceKey` prop. Passing a value to this prop will persist the contents of the editor locally to the browser's IndexedDb.
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function () {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw persistenceKey="my-persistence-key" />
+		</div>
+	)
+}
+```
+
+Using a `persistenceKey` will synchronize data automatically with any other tldraw component with the same `persistenceKey` prop, even if that component is in a different browser tab.
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function () {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<div style={{ width: '50%', height: '100%' }}>
+				<Tldraw persistenceKey="my-persistence-key" />
+			</div>
+			<div style={{ width: '50%', height: '100%' }}>
+				<Tldraw persistenceKey="my-persistence-key" />
+			</div>
+		</div>
+	)
+}
+```
+
+In the example above, both editors would synchronize their document locally. They would still have two independent instance states (e.g. selections) but the document would be kept in sync and persisted under the same key.
+
+## State Snapshots
+
+You can get a JSON snapshot of the document content and the user 'session' state using the [`getSnapshot`](/reference/editor/getSnapshot) function.
+
+```tsx
+function SaveButton({ documentId, userId }) {
+	const editor = useEditor()
+	return (
+		<button
+			onClick={() => {
+				const { document, session } = getSnapshot(editor.store)
+				// If you are building a multi-user app, you probably want to store
+				// the document and session states separately because the
+				// session state is user-specific and normally shouldn't be shared.
+				await saveDocumentState(documentId, document)
+				await saveSessionState(documentId, userId, session)
+			}}
+		>
+			Save
+		</button>
+	)
+}
+```
+
+To load the snapshot back into an existing editor, use the [`loadSnapshot`](/reference/editor/loadSnapshot) function.
+
+```tsx
+function LoadButton({ documentId, userId }) {
+	const editor = useEditor()
+	return (
+		<button
+			onClick={() => {
+				const document = await loadDocumentState(documentId)
+				const session = await loadSessionState(documentId, userId)
+				editor.setCurrentTool('select') // need to reset tool state separately
+				loadSnapshot(editor.store, { document, session })
+			}}
+		>
+			Load
+		</button>
+	)
+}
+```
+
+You can also pass a snapshot as a prop to set the initial editor state.
+
+```tsx
+function MyApp({ userId, documentId }) {
+	const [snapshot, setSnapshot] = useState(null)
+
+	useEffect(() => {
+		async function load() {
+			const document = await getDocumentState(documentId)
+			const session = await getSessionState(documentId, userId)
+			setSnapshot({ document, session })
+		}
+
+		load()
+	}, [documentId, userId])
+
+	return snapshot ? <Tldraw snapshot={snapshot} /> : null
+}
+```
+
+When tldraw loads a snapshot, it will run any necessary migrations to bring the data up to the latest tldraw schema version.
+
+## The `"store"` prop
+
+While it's possible to load the editor and then load data into its store, we've found it best to create the store, set its data, and then pass the store into the editor.
+
+The `store` property of the `<Tldraw>` / `<TldrawEditor>` components accepts a store that you've defined outside of the component.
+
+```tsx
+export default function () {
+	const [store] = useState(() => {
+		// Create the store
+		const newStore = createTLStore()
+
+		// Get the snapshot
+		const stringified = localStorage.getItem('my-editor-snapshot')
+		const snapshot = JSON.parse(stringified)
+
+		// Load the snapshot
+		loadSnapshot(newStore, snapshot)
+
+		return newStore
+	})
+
+	return <Tldraw persistenceKey="my-persistence-key" store={store} />
+}
+```
+
+Sometimes you won't be able to access the store's data synchronously. To handle this case, the `store` property also accepts a [`TLStoreWithStatus`](/reference/editor/TLStoreWithStatus).
+
+```tsx
+export default function () {
+	const [storeWithStatus, setStoreWithStatus] = useState<TLStoreWithStatus>({
+		status: 'loading',
+	})
+
+	useEffect(() => {
+		let cancelled = false
+		async function loadRemoteSnapshot() {
+			// Get the snapshot
+			const snapshot = await getRemoteSnapshot()
+			if (cancelled) return
+
+			// Create the store
+			const newStore = createTLStore()
+
+			// Load the snapshot
+			loadSnapshot(newStore, snapshot)
+
+			// Update the store with status
+			setStoreWithStatus({
+				store: newStore,
+				status: 'ready',
+			})
+		}
+
+		loadRemoteSnapshot()
+
+		return () => {
+			cancelled = true
+		}
+	})
+
+	return <Tldraw persistenceKey="my-persistence-key" store={storeWithStatus} />
+}
+```
+
+For a good example of this pattern, see the [yjs-example](https://github.com/tldraw/tldraw-yjs-example).
+
+## Listening for changes
+
+You can listen for incremental updates to the document state by calling `editor.store.listen`, e.g.
+
+```ts
+const unlisten = editor.store.listen(
+	(update) => {
+		console.log('update', update)
+	},
+	{ scope: 'document', source: 'user' }
+)
+```
+
+These updates contain information about which records were added, removed, and updated. See [`HistoryEntry`](/reference/store/HistoryEntry)
+
+The `scope` filter can be used to listen for changes to a specific record scope, e.g. `document`, `session`, `presence`, or `all`.
+
+The `source` filter can be used to listen for changes from a specific source, e.g. `user`, `remote`, or `all`. (See [`Store.mergeRemoteChanges`](/reference/store/Store#mergeRemoteChanges) for more information on remote changes.)
+
+Note that these incremental updates do not include the schema version. You should make sure that you keep a record of the latest schema version for your snapshots.
+
+You can get the schema version by calling `editor.store.schema.serialize()` and the returned value can replace the `schema` property in the snapshot next time you need to load a snapshot. The schema does not change at runtime so you only need to do this once per session.
+
+## Handling remote changes
+
+If you need to synchronize changes from a remote source, e.g. a multiplayer backend, you can use the `editor.store.mergeRemoteChanges` method. This will 'tag' the changes with the `source` property as `'remote'` so you can filter them out when listening for changes.
+
+```ts
+myRemoteSource.on('change', (changes) => {
+	editor.store.mergeRemoteChanges(() => {
+		changes.forEach((change) => {
+			// Apply the changes to the store
+			editor.store.put(/* ... */)
+		})
+	})
+})
+```
+
+## Migrations
+
+Tldraw uses migrations to bring data from old snapshots up to date. These run automatically when calling [`loadSnapshot`](/reference/editor/loadSnapshot).
+
+### Running migrations manually
+
+If you need to run migrations on a snapshot without loading it into the store, you can call [`StoreSchema.migrateStoreSnapshot`](/reference/store/StoreSchema#migrateStoreSnapshot) directly.
+
+```ts
+import { createTLSchema } from 'tldraw'
+
+const snapshot = await getSnapshotFromSomewhere()
+const migrationResult = createTLSchema().migrateStoreSnapshot(snapshot)
+if (migrationResult.type === 'success') {
+	console.log('Migrated snapshot', migrationResult.value)
+} else {
+	console.error('Migration failed', migrationResult.reason)
+}
+```
+
+### Custom migrations
+
+Tldraw supports a couple of ways of adding custom data types to the tldraw store:
+
+- [Custom shape types](/docs/shapes#Custom-shapes-1)
+- [`meta` properties](/docs/shapes#Meta-information) on all of our built-in record types.
+
+You might wish to migrate your custom data types over time as you make changes to them.
+
+To enable this, tldraw provides two ways to add custom migrations:
+
+1. **Shape props migrations**, specifically for migrating the shape.props objects on your custom shape types.
+2. **The `migrations` config option**, which is more general purpose but much less commonly needed. This will allow you to migrate any data in the store.
+
+#### Shape props migrations
+
+If you have a custom shape type, you can define a `migrations` property on the shape util class. Use the `createShapePropsMigrationSequence` helper to define this property.
+
+```ts
+import { createShapePropsMigrationSequence, createShapePropsMigrationIds, ShapeUtil } from 'tldraw'
+
+// Migrations must start a 1 and be sequential integers.
+const Versions = createShapePropMigrationIds('custom-shape', {
+	AddColor: 1,
+})
+
+class MyCustomShapeUtil extends ShapeUtil {
+	static type = 'custom-shape'
+	static migrations = createShapePropsMigrationSequence({
+		sequence: [
+			{
+				id: Versions.AddColor,
+				up(props) {
+					// set the default color
+					props.color = 'black'
+				},
+			},
+		],
+	})
+
+	// ...
+}
+```
+
+#### The `migrations` config option
+
+First create a set of migration ids.
+
+```ts
+import { createMigrationIds } from 'tldraw'
+
+// The first argument is a unique namespace for your migration sequence.
+// We recommend using a reverse domain name, e.g. we use 'com.tldraw.foo.bar'
+const SEQUENCE_ID = 'com.example.my-app'
+
+const Versions = createMigrationIds(SEQUENCE_ID, {
+	// Migrations must start at 1 and be sequential integers.
+	AddColor: 1,
+})
+```
+
+Then create a migration sequence.
+
+```ts
+import { createMigrationSequence, isShape } from 'tldraw'
+
+const myMigrations = createMigrationSequence({
+	sequenceId: SEQUENCE_ID,
+	sequence: [
+		{
+			id: Versions.AddColor,
+			// Scope can be one of
+			// - 'store' to have the up function called on the whole snapshot at once
+			// - 'record' to have the up function called on each record individually
+			scope: 'record',
+			// if scope is 'record', you can filter which records the migration runs on
+			filter: (record) => isShape(record) && record.type === 'custom-shape',
+			up(record) {
+				record.props.color = 'black'
+			},
+		},
+	],
+})
+```
+
+And finally pass your migrations in to tldraw via the `migrations` config option. There are a few places where you might need to do this, depending on how specialized your usage of Tldraw is:
+
+```tsx
+// When rendering the Tldraw component
+<Tldraw
+  ...
+	migrations={[myMigrations]}
+	/>
+
+// or when creating the store
+store = createTLStore({
+	...
+	migrations: [myMigrations],
+})
+
+// or when creating the schema
+schema = createTLSchema({
+	...
+	migrations: [myMigrations],
+})
+```
+
+### Updating legacy shape migrations (defineMigrations)
+
+You can convert your legacy migrations to the new migrations format by the following process:
+
+1. Wrap your version numbers in `createShapePropsMigrationIds`
+
+```diff
+- const Versions = {
++ const Versions = createShapePropMigrationIds('custom-shape', {
+    AddColor: 1
+- }
++ })
+```
+
+2. Replace your `defineMigrations` call with `createShapePropsMigrationSequence`
+
+```ts
+const migrations = defineMigrations({
+	currentVersion: Versions.AddColor,
+	migrators: {
+		[Versions.AddColor]: {
+			up: (shape: any) => ({ ...shape, props: { ...shape.props, color: 'black' } }),
+			down: ({ props: { color, ...props }, ...shape }: any) => ({ ...shape, props }),
+		},
+	},
+})
+```
+
+Becomes
+
+```ts
+const migrations = createShapePropsMigrationSequence({
+	sequence: [
+		{
+			id: Versions.AddColor,
+			// [!!!] You no longer have access to the top-level shape object.
+			// Only the shape.props object is passed in to the migrator function.
+			up(props) {
+				// [!!!] You no longer need to return a new copy of the shape object.
+				// Instead, you can modify the props object in place.
+				props.color = 'black'
+			},
+			// [!!!] You no longer need to specify a down migration.
+		},
+	],
+})
+```
+
+## Examples
+
+### Local persistence
+
+Tldraw ships with a local-only sync engine based on `IndexedDb` and `BroadcastChannel` called [`TLLocalSyncClient`](https://github.com/tldraw/tldraw/blob/main/packages/editor/src/lib/utils/sync/TLLocalSyncClient.ts).
+
+### Shape props migrations example
+
+Our [custom-config example](/examples/shapes/tools/custom-config) shows how to add custom shape props migrations to the tldraw store.
+
+### Meta properties migrations example
+
+Our [custom-config example](/examples/shapes/tools/custom-config) shows how to add custom migrations to the tldraw store.
+## Assets
+
+Assets are dynamic records that store data about a shared asset. For example, our image and video
+shapes refer to assets rather than embedding their source files directly. Asset storage and
+retrieval is controlled by [`TLAssetStore`](/reference/tlschema/TLAssetStore). Different [`TLStore`](/reference/tlschema/TLStore) setups require different asset setups:
+
+- By default, the store is in-memory only, so [`inlineBase64AssetStore`](/reference/editor/inlineBase64AssetStore) converts images to data
+  URLs.
+- When using the [`persistenceKey` prop](/docs/persistence#The-persistenceKey-prop), the store is
+  synced to the browser's local
+  [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API), so we store images
+  there too.
+- When using a [multiplayer sync server](/docs/sync), you would implement TLAssetStore to upload
+  images to e.g. an S3 bucket.
+
+## Examples
+
+While we're working on docs for this part of the project, please refer to the examples below:
+
+- [Using images
+  hosted](/examples/data/assets/hosted-images)
+- [Customizing the default asset
+  options](/examples/data/assets/asset-props)
+- [Handling pasted / dropped external
+  content](/examples/data/assets/external-content-sources)
+- [A simple asset store that uploads content to a remote
+  server](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/client/App.tsx)
+- [A more complex asset store that optimizes images when retrieving
+  them](https://github.com/tldraw/tldraw/blob/main/packages/sync/src/useSyncDemo.ts#L87)
+## Collaboration
+
+The tldraw SDK includes deep support for real-time collaboration. The easiest way to add collaboration to your project is with our [tldraw sync](#tldraw-sync) library. Or you can use our low-level data APIs to integrate [other backends](#Using-other-collaboration-backends).
+
+<div className="article__image" style={{ border: 'none' }}>
+	<img
+		alt="Multiplayer example using tldraw sync"
+		src="/images/multiplayer.gif"
+		style={{
+			// learn this one weird trick for transparent animated gifs. doctors hate her!!!
+			mask: 'url(/images/multiplayer_mask.png) luminance center 100% / 100% no-repeat',
+			WebkitMask: 'url(/images/multiplayer_mask.png) luminance center 100% / 100% no-repeat',
+		}}
+	/>
+</div>
+
+## tldraw sync
+
+[tldraw sync](/docs/sync) is our library for fast multi-user collaboration. It's purpose-built for the tldraw canvas and it's what we use to power collaboration on our flagship app tldraw.com.
+
+You can read our full article on [tldraw sync](/docs/sync).
+
+### tldraw sync demo
+
+To make it easier to get started with collaboration in tldraw, we've included a "demo" hook in the sync library that connects to a hosted backend. You can see a working example at [this sandbox](https://stackblitz.com/edit/vitejs-vite-ahoswhus?file=src%2FApp.tsx?file=%2Fsrc%2FApp.tsx%3A9%2C50).
+
+Let's say you have an app running locally that looks like this:
+
+```tsx
+import { Tldraw } from 'tldraw'
+
+function MyApp() {
+	return <Tldraw />
+}
+```
+
+To make this app collaborative, first install the `@tldraw/sync` library:
+
+```bash
+npm install @tldraw/sync
+```
+
+Back in your code, import the `useSyncDemo` hook from the `@tldraw/sync` library. In the `MyApp` component, call the `useSyncDemo` hook with a room ID. Pass the [`store`](/docs/persistence#The-store-prop) returned by `useSyncDemo` to the tldraw component's `store` prop.
+
+```tsx
+import { Tldraw } from 'tldraw'
+import { useSyncDemo } from '@tldraw/sync'
+
+function MyApp() {
+	const store = useSyncDemo({ roomId: 'my-unique-room-id' })
+	return <Tldraw store={store} />
+}
+```
+
+In your browser, open an incognito window and visit your project's URL. You can also use a different browser or different device. The key is the room ID: any apps connecting to the same room ID will enter into a shared collaboration session.
+
+### Limitations of the demo
+
+The sync demo is great for prototyping but you should not use it in production. Data on the demo server only lasts for up to 24 hours, and anyone using the same room id will be able to edit the same room's project.
+
+### Using tldraw sync in production
+
+To use tldraw sync in production, you will need to self-host the tldraw sync server. To learn more, see our article on [tldraw sync](/docs/sync).
+
+> We don't offer a hosted solution for tldraw sync in production, but if you're interested in that please let us know at hello@tldraw.com.
+
+## Using other collaboration backends
+
+While tldraw sync is our recommended and best-supported backend for tldraw, we designed the tldraw SDK to work with any data solution.
+
+As a reference, our [tldraw-yjs example](https://github.com/tldraw/tldraw-yjs-example) shows an integration between tldraw and the [Yjs](https://yjs.dev) CRDT library.
+
+Whichever backend you choose, adding collaboration to tldraw will involve synchronizing data, sharing user presence, and handling user assets.
+
+### Synchronizing data
+
+For more information about how to synchronize the tldraw editor's store with other processes (i.e. how to get data out and put data in, including from remote sources) see the [Persistence](/docs/persistence) page.
+
+### User presence
+
+The tldraw SDK has support for displaying the 'presence' of other users. Presence information consists of the user id, name, and color, as well as their canvas context, such as their current page, pointer position, selection, viewport.
+
+A user's presence is stored as `instance_presence` ([`TLInstancePresence`](/reference/tlschema/TLInstancePresence))records in the editor's store, however the data itself may be derived from other sources.
+
+We provide a helper, [`createPresenceStateDerivation`](/reference/tlschema/createPresenceStateDerivation), for constructing a reactive signal for an `instance_presence` record locally, which can then be sent to other clients somehow.
+
+To the editor, any `instance_presence` records that belong to other users (i.e. those with a different user id than the editor's configured user id) are considered "collaborators". The editor has two methods, `getCollaborators` and `getCollaboratorsOnCurrentPage`, which return reactive signals about the current collaborators.
+
+See the [yjs-example](https://github.com/tldraw/tldraw-yjs-example/blob/45dfe7589ae44e4aaf9bb7359d0372f3a88bd597/src/useYjsStore.ts) for an example of how these records may be created, shared, and updated.
+
+### Collaboration UI
+
+The `tldraw` library includes several components specifically designed for collaboration.
+You can remove, replace, or customize these using the editor's `components` prop. See [`TLComponents`](/reference/tldraw/TLComponents) for more info.
+
+- Collaborator cursors: [`TLComponents.CollaboratorCursor`](/reference/tldraw/TLComponents#CollaboratorCursor)
+- Cursor chat: [`TLComponents.CursorChatBubble`](/reference/tldraw/TLComponents#CursorChatBubble)
+- Offline indicator: [`TLComponents.TopPanel`](/reference/tldraw/TLComponents#TopPanel)
+- Collaborator list: [`TLComponents.SharePanel`](/reference/tldraw/TLComponents#SharePanel)
+## tldraw sync
+
+You can add realtime multi-user collaboration to your tldraw app by using **tldraw sync**. It's our library for fast, fault-tolerant shared document syncing, and is used in production on our flagship app [tldraw.com](https://tldraw.com).
+
+We offer a [hosted demo](/docs/collaboration#tldraw-sync-demo) of tldraw sync which is suitable for prototyping. To use tldraw sync in production, you will need to host it yourself.
+
+## Deploying tldraw sync
+
+There are two main ways to go about hosting tldraw sync:
+
+1. Deploy a full backend to Cloudflare using our template (recommended).
+2. Integrate tldraw sync into your own JavaScript backend using our examples and docs as a guide.
+
+### Use our Cloudflare template
+
+The best way to get started hosting your own backend is to clone and deploy [our Cloudflare template](https://github.com/tldraw/tldraw-sync-cloudflare). The template provides a production-grade minimal setup of the system that runs on tldraw.com.
+
+It uses:
+
+- [Durable Objects](https://developers.cloudflare.com/durable-objects/) to provide a unique WebSocket server per room.
+- [R2](https://developers.cloudflare.com/r2/) to persist document snapshots and store large binary assets like images and videos.
+
+There are some features that we have not provided and you might want to add yourself:
+
+- Authentication and authorization.
+- Rate limiting and size limiting for asset uploads.
+- Storing snapshots of documents over time for long-term history.
+- Listing and searching for rooms.
+
+Make sure you also read the section below about [deployment concerns](#deployment-concerns).
+
+[Get started with the Cloudflare template](https://github.com/tldraw/tldraw-sync-cloudflare).
+
+### Integrate tldraw sync into your own backend
+
+The `@tldraw/sync-core` library can be used to integrate tldraw sync into any JavaScript server environment that supports WebSockets.
+
+We have a [simple server example](https://github.com/tldraw/tldraw/tree/main/templates/simple-server-example), supporting both NodeJS and Bun, to use as a reference for how things should be stitched together.
+
+## What does a tldraw sync backend do?
+
+A backend for tldraw sync consists of two or three parts:
+
+- A **WebSocket server** that provides rooms for each shared document, and is responsible for synchronizing and persisting document state.
+- An **asset storage** provider for large binary files like images and videos.
+- (If using the built-in bookmark shape) An **unfurling service** to extract metadata about bookmark URLs.
+
+On the frontend, there is just one part: the **sync client**, created using the [`useSync`](/reference/sync/useSync) hook from the `@tldraw/sync` package.
+
+Pulling all four of these together, here's what a simple client implementation might look like:
+
+```tsx
+import { Tldraw, TLAssetStore, Editor } from 'tldraw'
+import { useSync } from '@tldraw/sync'
+import { uploadFileAndReturnUrl } from './assets'
+import { convertUrlToBookmarkAsset } from './unfurl'
+
+function MyEditorComponent({myRoomId}) {
+	// This hook creates a sync client that manages the websocket connection to the server
+	// and coordinates updates to the document state.
+	const store = useSync({
+		// This is how you tell the sync client which server and room to connect to.
+		uri: `wss://my-custom-backend.com/connect/${myRoomId}`,
+		// This is how you tell the sync client how to store and retrieve blobs.
+		assets: myAssetStore,
+	})
+	// When the tldraw Editor mounts, you can register an asset handler for the bookmark URLs.
+	return <Tldraw store={store} onMount={registerUrlHandler} />
+}
+
+const myAssetStore: TLAssetStore {
+	upload(file, asset) {
+		return uploadFileAndReturnUrl(file)
+	},
+	resolve(asset) {
+		return asset.props.src
+	},
+}
+
+function registerUrlHandler(editor: Editor) {
+	editor.registerExternalAssetHandler('url', async ({url}) => {
+		return await convertUrlToBookmarkAsset(url)
+	})
+}
+```
+
+And [here's a full working example](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/client/App.tsx) of the client-side code.
+
+### WebSocket server
+
+The `@tldraw/sync-core` package exports a class called [`TLSocketRoom`](/reference/sync-core/TLSocketRoom) that should be created server-side on a per-document basis.
+
+`TLSocketRoom` is used to
+
+- Store an authoritative in-memory copy of the document state
+- Transparently set up communication between multiple sync clients via WebSockets.
+- Provide hooks for persisting the document state when it changes.
+
+<Callout type="info">
+	You should make sure that there's only ever one `TLSocketRoom` globally for each room in your app.
+	If there's more than one, users won't see each other and will overwrite others' changes. We use
+	[Durable Objects](https://developers.cloudflare.com/durable-objects/) to achieve this on
+	tldraw.com.
+</Callout>
+
+Read the reference docs for [`TLSocketRoom`](/reference/sync-core/TLSocketRoom), and see an example of how to use it in the [simple server example](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/server/rooms.ts).
+
+### Asset storage
+
+As well as synchronizing the rapidly-changing document data, tldraw also needs a way to store and
+retrieve large binary assets like images or videos.
+
+You'll need to make sure your backend can handle asset uploads & downloads, then implement
+[`TLAssetStore`](/reference/tlschema/TLAssetStore) to connect it to tldraw.
+
+- Read about [how assets work in tldraw](/docs/assets).
+- Read the [`TLAssetStore`](/reference/tlschema/TLAssetStore) reference docs.
+- See a complete example of an asset store in the
+  [`tldraw-sync-cloudflare`](https://github.com/tldraw/tldraw/blob/main/templates/sync-cloudflare/client/multiplayerAssetStore.tsx)
+  template.
+
+### Unfurling service
+
+If you want to use the built-in bookmark shape, you'll need to use or implement an unfurling service that returns metadata about URLs.
+
+This should be registered with the [`Editor`](/reference/editor/Editor) when it loads.
+
+```tsx
+<Tldraw
+	store={store}
+	onMount={(editor) => {
+		editor.registerExternalAssetHandler('url', unfurlBookmarkUrl)
+	}}
+/>
+```
+
+Refer to the simple server example for example [client](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/client/App.tsx) and [server](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/server/unfurl.ts) code.
+
+## Using tldraw sync in your app
+
+### Custom shapes & bindings
+
+`@tldraw/sync` validates the contents of your document and runs migrations to make sure clients of
+different versions can collaborate without issue. To support this, you need to make sure that both
+the sync client and server know about any custom shapes or bindings you've added.
+
+#### On the client
+
+You can pass `shapeUtils` and `bindingUtils` props to `useSync`. Unlike `<Tldraw />`,
+these don't automatically include tldraw's default shapes like arrows and rectangles. You should
+pass those in explicitly if you're using them:
+
+```tsx
+import { Tldraw, defaultShapeUtils, defaultBindingUtils } from 'tldraw'
+import { useSync } from '@tldraw/sync'
+
+function MyApp() {
+	const store = useSync({
+		uri: '...',
+		assets: myAssetStore,
+		shapeUtils: useMemo(() => [...customShapeUtils, ...defaultShapeUtils], []),
+		bindingUtils: useMemo(() => [...customBindingUtils, ...defaultBindingUtils], []),
+	})
+
+	return <Tldraw store={store} shapeUtils={customShapeUtils} bindingUtils={customBindingUtils} />
+}
+```
+
+#### On the server
+
+Use [`createTLSchema`](/reference/tlschema/createTLSchema) to create a store schema, and pass that into [`TLSocketRoom`](/reference/sync-core/TLSocketRoom). You can
+use shape/binding utils here, but schema will only look at two properties:
+[`props`](/reference/editor/ShapeUtil#props) and
+[`migrations`](/docs/persistence#Shape-props-migrations). You need to provide the default shape
+schemas if you're using them.
+
+```tsx
+import { createTLSchema, defaultShapeSchemas, defaultBindingSchemas } from '@tldraw/tlschema'
+import { TLSocketRoom } from '@tldraw/sync-core'
+
+const schema = createTLSchema({
+	shapes: {
+		...defaultShapeSchemas,
+
+		myCustomShape: {
+			// Validations for this shapes `props`.
+			props: myCustomShapeProps,
+			// Migrations between versions of this shape.
+			migrations: myCustomShapeMigrations,
+		},
+
+		// The schema knows about this shape, but it has no migrations or validation.
+		mySimpleShape: {},
+	},
+	bindings: defaultBindingSchemas,
+})
+
+// Later, in your app server:
+const room = new TLSocketRoom({
+	schema: schema,
+	// ...
+})
+```
+
+Both `props` and `migration` are optional. If you omit `props`, you won't have any server-side
+validation for your shape, which could result in bad data being stored. If you omit `migrations`,
+clients on different versions won't be able to collaborate without errors.
+
+### Deployment concerns
+
+<Callout type="warning">
+	You must make sure that the tldraw version in your client matches the version on the server. We
+	don't guarantee server backwards compatibility forever, and very occasionally we might release a
+	version where the backend cannot meaningfully support older clients, in which case tldraw will
+	display a "please refresh the page" message. So you should make sure that the backend is updated
+	at the same time as the client, and that the new backend is up and running just before the new
+	client rolls out.
+</Callout>
+
+### Migrating data from a legacy system
+
+If you have been using some other solution for data sync, you can migrate your existing data to the tldraw sync format.
+
+[`TLSocketRoom`](/reference/sync-core/TLSocketRoom) supports loading [`TLStoreSnapshot`](/reference/tlschema/TLStoreSnapshot) snapshots, so in your data loading code you can add a backwards-compatibility layer that lazily imports data from your old system and converts it to a `TLStoreSnapshot`.
+
+Something like
+
+```tsx
+import { TLSocketRoom } from '@tldraw/sync-core'
+
+async function loadOrMakeRoom(roomId: string) {
+	const data = await loadRoomDataFromCurrentStore(roomId)
+	if (data) {
+		return new TLSocketRoom({ initialSnapshot: data })
+	}
+	const legacyData = await loadRoomDataFromLegacyStore(roomId)
+	if (legacyData) {
+		// Convert your old data to a TLStoreSnapshot.
+		const snapshot = convertOldDataToSnapshot(legacyData)
+		// Load it into the room.
+		const room = new TLSocketRoom({ initialSnapshot: snapshot })
+		// Save an updated copy of the snapshot in the new place
+		// so that next time we can load it directly.
+		await saveRoomData(roomId, room.getCurrentSnapshot())
+		// Optionally delete the old data.
+		await deleteLegacyRoomData(roomId)
+		// And finally return the room.
+		return room
+	}
+	// If there's no data at all, just make a new blank room.
+	return new TLSocketRoom()
+}
+```

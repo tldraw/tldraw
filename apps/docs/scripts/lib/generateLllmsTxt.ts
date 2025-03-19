@@ -4,23 +4,43 @@ import { Database } from 'sqlite'
 import sqlite3 from 'sqlite3'
 import { PUBLIC_DIR } from './utils'
 
-export async function generateLlmsTxt(db: Database<sqlite3.Database, sqlite3.Statement>) {
-	const docsDbQuery = await db.all('SELECT * FROM articles WHERE sectionId = "docs"')
-	const examplesDbQuery = await db.all('SELECT * FROM articles WHERE sectionId = "examples"')
+type DbType = Database<sqlite3.Database, sqlite3.Statement>
 
+export async function generateLlmsTxt(db: DbType) {
+	const examplesMarkdown = await getMarkdownForExamples(db)
+	const docsMarkdown = await getMarkdownForDocs(db)
+
+	fs.writeFileSync(path.join(PUBLIC_DIR, 'llms-full.txt'), `${examplesMarkdown}\n${docsMarkdown}`)
+	fs.writeFileSync(path.join(PUBLIC_DIR, 'llms-examples.txt'), examplesMarkdown)
+	fs.writeFileSync(path.join(PUBLIC_DIR, 'llms-docs.txt'), docsMarkdown)
+	fs.writeFileSync(path.join(PUBLIC_DIR, 'llms-api.txt'), 'Coming soon.')
+	fs.writeFileSync(path.join(PUBLIC_DIR, 'llms.txt'), 'Coming soon.')
+}
+
+const ALLOWED_FILE_TYPES = ['tsx', 'ts', 'js', 'jsx', 'json', 'md', 'css', 'html']
+
+async function getMarkdownForDocs(db: DbType) {
 	const lines = []
+	const guides = await db.all('SELECT * FROM articles WHERE sectionId = "docs"')
 
 	lines.push(`# tldraw SDK Documentation`)
 	lines.push(``)
-	for (const guide of docsDbQuery) {
+	for (const guide of guides) {
 		lines.push(`## ${guide.title}`)
 		lines.push(``)
 		lines.push(`${guide.content.trim()}`)
 	}
 
+	return lines.join('\n')
+}
+
+async function getMarkdownForExamples(db: DbType) {
+	const examples = await db.all('SELECT * FROM articles WHERE sectionId = "examples"')
+
+	const lines = []
 	lines.push(`# tldraw SDK Examples`)
 	lines.push(``)
-	for (const example of examplesDbQuery) {
+	for (const example of examples) {
 		lines.push(`## ${example.title}`)
 		lines.push(``)
 
@@ -38,21 +58,19 @@ export async function generateLlmsTxt(db: Database<sqlite3.Database, sqlite3.Sta
 		lines.push(``)
 		lines.push(`${example.content.trim()}`)
 		lines.push(``)
-		addFileToLines(lines, 'App.tsx', example.componentCode)
+		addExampleFileToLines(lines, 'App.tsx', example.componentCode)
 		const files = JSON.parse(example.componentCodeFiles)
 		for (const name in files) {
 			const content = files[name]
-			addFileToLines(lines, name, content)
+			addExampleFileToLines(lines, name, content)
 		}
 		lines.push(``)
 	}
 
-	fs.writeFileSync(path.join(PUBLIC_DIR, 'llms.txt'), lines.join('\n'))
+	return lines.join('\n')
 }
 
-const ALLOWED_FILE_TYPES = ['tsx', 'ts', 'js', 'jsx', 'json', 'md', 'css', 'html']
-
-function addFileToLines(lines: string[], name: string, content: string) {
+function addExampleFileToLines(lines: string[], name: string, content: string) {
 	const type = name.split('.').pop()
 
 	// Skip non-code files, eg: PDFs, PNGs
