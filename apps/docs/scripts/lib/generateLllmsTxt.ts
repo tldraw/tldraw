@@ -20,7 +20,9 @@ export async function generateLlmsTxt(db: DbType) {
 async function getMarkdownForOverview(db: DbType) {
 	let result = `# tldraw SDK\n\n`
 
-	const guides = await db.all('SELECT * FROM articles WHERE sectionId = "docs"')
+	const guides = await db.all(
+		'SELECT * FROM articles WHERE sectionId = "docs" OR sectionId = "getting-started"'
+	)
 	const examples = await db.all('SELECT * FROM articles WHERE sectionId = "examples"')
 
 	result += `## Guides\n\n`
@@ -38,7 +40,9 @@ async function getMarkdownForOverview(db: DbType) {
 
 async function getMarkdownForDocs(db: DbType) {
 	const lines = []
-	const guides = await db.all('SELECT * FROM articles WHERE sectionId = "docs"')
+	const guides = await db.all(
+		'SELECT * FROM articles WHERE sectionId = "docs" OR sectionId = "getting-started"'
+	)
 
 	lines.push(`# tldraw SDK Documentation`)
 	for (const guide of guides) {
