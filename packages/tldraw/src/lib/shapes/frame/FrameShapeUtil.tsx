@@ -249,10 +249,12 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 		// rotate right 45 deg
 		const labelSide = getFrameHeadingSide(this.editor, shape)
+		const isVertical = labelSide % 2 === 1
+		const rotatedTopEdgeWidth = isVertical ? shape.props.h : shape.props.w
 		const labelTranslate = getFrameHeadingTranslation(shape, labelSide, true)
 
 		// Truncate with ellipsis
-		const opts: TLCreateTextJsxFromSpansOpts = getFrameHeadingOpts(labelSide)
+		const opts: TLCreateTextJsxFromSpansOpts = getFrameHeadingOpts(rotatedTopEdgeWidth - 12)
 
 		const frameTitle = defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203)
 		const labelBounds = getFrameHeadingSize(this.editor, shape, opts)
@@ -282,16 +284,16 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				/>
 				<g fill={frameHeadingText} transform={labelTranslate}>
 					<rect
-						x={labelBounds.x}
-						y={labelBounds.y - 4}
-						width={labelBounds.width}
+						x={labelBounds.x - (showFrameColors ? 0 : 8)}
+						y={labelBounds.y - 8}
+						width={Math.min(rotatedTopEdgeWidth, labelBounds.width + 12)}
 						height={labelBounds.height}
 						fill={frameHeadingFill}
 						stroke={frameHeadingStroke}
 						rx={4}
 						ry={4}
 					/>
-					{text}
+					<g transform={`translate(${showFrameColors ? 8 : 0}, 4)`}>{text}</g>
 				</g>
 			</>
 		)
