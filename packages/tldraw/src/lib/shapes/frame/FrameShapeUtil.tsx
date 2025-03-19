@@ -278,13 +278,13 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 					fill={frameFill}
 					stroke={frameStroke}
 					strokeWidth={1}
-					x={1}
+					x={0}
 					rx={4}
 					ry={4}
 				/>
 				<g fill={frameHeadingText} transform={labelTranslate}>
 					<rect
-						x={labelBounds.x - (showFrameColors ? 0 : 8)}
+						x={labelBounds.x - (showFrameColors ? 0 : 6)}
 						y={labelBounds.y - 8}
 						width={Math.min(rotatedTopEdgeWidth, labelBounds.width + 12)}
 						height={labelBounds.height}
