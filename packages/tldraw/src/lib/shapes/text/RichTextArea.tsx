@@ -1,5 +1,10 @@
 import { EditorView } from '@tiptap/pm/view'
-import { EditorEvents, EditorProvider, JSONContent, type Editor as TTEditor } from '@tiptap/react'
+import {
+	EditorEvents,
+	JSONContent,
+	Editor as TextEditor,
+	type Editor as TTEditor,
+} from '@tiptap/react'
 import {
 	Editor,
 	TLRichText,
@@ -7,6 +12,7 @@ import {
 	preventDefault,
 	stopEventPropagation,
 	useEditor,
+	useEvent,
 	useUniqueSafeId,
 } from '@tldraw/editor'
 import React, { useCallback, useLayoutEffect, useRef } from 'react'
@@ -62,7 +68,13 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		time: Date.now(),
 	})
 
+	const rInitialRichText = useRef(richText)
 	const rTextEditor = useRef<TTEditor | null>(null)
+	const rTextEditorEl = useRef<HTMLDivElement>(null)
+
+	useLayoutEffect(() => {
+		rInitialRichText.current = richText
+	}, [richText])
 
 	// The order of events is:
 	// - editor begins editing any shape
@@ -74,13 +86,6 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		(props: EditorEvents['create']) => {
 			// If we're not still editing the original shape, then don't do anything.
 			if (editor.getEditingShapeId() !== shapeId) return
-
-			// Because React can double-render, especially in Strict Mode,
-			// We need to make sure we're not setting the text editor twice.
-			// This became more much more prevalent in React 19, but also
-			// it started manifesting in some cases in Next 14.2
-			// (which maybe patches React 18.3 in weird ways).
-			if (rTextEditor.current) return
 
 			const textEditor = props.editor
 			editor.setRichTextEditor(textEditor)
@@ -108,6 +113,9 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 					// If no position, default to select all.
 					textEditor.chain().focus().selectAll().run()
 				}
+				// XXX: When creating a brand new shape and double-clicking into it quickly to edit it,
+				// there's some kind of race condition happening where the editor doesn't focus properly.
+				// editor.timers.setTimeout(() => textEditor.commands.focus(), 100)
 				return
 			}
 
@@ -139,23 +147,72 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		}
 	}, [editor, isEditing])
 
+	const onChange = useEvent(handleChange)
 	const handleUpdate = useCallback(
 		(props: EditorEvents['update']) => {
-			handleChange({ richText: props.editor.state.doc.toJSON() })
+			onChange({ richText: props.editor.state.doc.toJSON() })
 		},
-		[handleChange]
+		[onChange]
 	)
 
-	const onKeyDown = useCallback(
+	const onKeyDown = useEvent(handleKeyDown)
+	const onKeyDownWrapped = useCallback(
 		(view: EditorView, event: KeyboardEvent) => {
 			if (event.key === 'Tab') {
 				handleTab(editor, view, event)
 			}
 
-			handleKeyDown(event)
+			onKeyDown(event)
 		},
-		[editor, handleKeyDown]
+		[editor, onKeyDown]
 	)
+
+	const onFocus = useEvent(handleFocus)
+	const onBlur = useEvent(handleBlur)
+	const onDoubleClick = useEvent(handleDoubleClick)
+	useLayoutEffect(() => {
+		if (!isEditing || !tipTapConfig || !rTextEditorEl.current) return
+
+		const { editorProps, ...restOfTipTapConfig } = tipTapConfig
+
+		// Because React can double-render in Strict Mode,
+		// we need to make sure we're not setting the text editor twice.
+		// This became more much more prevalent in React 19, but also
+		// it started manifesting in some cases in Next 14.2
+		// (which maybe patches React 18.3 in weird ways).
+		// So we used to use EditorProvider but we into weird
+		// rendering issues.
+		new TextEditor({
+			element: rTextEditorEl.current,
+			autofocus: true,
+			editable: isEditing,
+			onUpdate: handleUpdate,
+			onFocus,
+			onBlur,
+			onCreate: handleCreate,
+			editorProps: {
+				handleKeyDown: onKeyDownWrapped,
+				handleDoubleClick: (view, pos, event) => onDoubleClick(event),
+				...editorProps,
+			},
+			coreExtensionOptions: {
+				clipboardTextSerializer: {
+					blockSeparator: '\n',
+				},
+			},
+			...restOfTipTapConfig,
+			content: rInitialRichText.current as JSONContent,
+		})
+	}, [
+		isEditing,
+		tipTapConfig,
+		onFocus,
+		onBlur,
+		onDoubleClick,
+		handleCreate,
+		handleUpdate,
+		onKeyDownWrapped,
+	])
 
 	// We had to disable this. This was causing keyboard issues in iOS.
 	// One way to have it exhibit the issue was to have the shape selected,
@@ -182,8 +239,6 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		return null
 	}
 
-	const { editorProps, ...restOfTipTapConfig } = tipTapConfig
-
 	return (
 		<div
 			id={tipTapId}
@@ -204,30 +259,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			// This prevents that default behavior in FF.
 			onDragStart={preventDefault}
 		>
-			<div className="tl-rich-text">
-				<EditorProvider
-					autofocus
-					editable={isEditing}
-					onUpdate={handleUpdate}
-					onFocus={handleFocus}
-					onBlur={handleBlur}
-					onCreate={handleCreate}
-					immediatelyRender={true}
-					shouldRerenderOnTransaction={false}
-					editorProps={{
-						handleKeyDown: onKeyDown,
-						handleDoubleClick: (view, pos, event) => handleDoubleClick(event),
-						...editorProps,
-					}}
-					coreExtensionOptions={{
-						clipboardTextSerializer: {
-							blockSeparator: '\n',
-						},
-					}}
-					{...restOfTipTapConfig}
-					content={richText as JSONContent}
-				/>
-			</div>
+			<div className="tl-rich-text" ref={rTextEditorEl} />
 		</div>
 	)
 })
