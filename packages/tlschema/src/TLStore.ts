@@ -7,7 +7,7 @@ import {
 	StoreValidationFailure,
 } from '@tldraw/store'
 import { IndexKey, JsonObject, annotateError, structuredClone } from '@tldraw/utils'
-import { TLAsset } from './records/TLAsset'
+import { TLAsset, TLAssetId } from './records/TLAsset'
 import { CameraRecordType, TLCameraId } from './records/TLCamera'
 import { DocumentRecordType, TLDOCUMENT_ID } from './records/TLDocument'
 import { TLINSTANCE_ID } from './records/TLInstance'
@@ -113,6 +113,13 @@ export interface TLAssetStore {
 	 * @returns The URL of the resolved asset, or `null` if the asset is not available
 	 */
 	resolve?(asset: TLAsset, ctx: TLAssetContext): Promise<string | null> | string | null
+	/**
+	 * Remove an asset from storage. This is called when the asset is no longer needed, e.g. when
+	 * the user deletes it from the editor.
+	 * @param asset - the asset being removed
+	 * @returns A promise that resolves when the asset has been removed
+	 */
+	remove?(assetIds: TLAssetId[]): Promise<void>
 }
 
 /** @public */

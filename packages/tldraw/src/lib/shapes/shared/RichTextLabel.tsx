@@ -229,6 +229,7 @@ export function RichTextSVG({
 		verticalAlign === 'middle' ? 'center' : verticalAlign === 'start' ? 'flex-start' : 'flex-end'
 	const wrapperStyle = {
 		display: 'flex',
+		fontFamily: DefaultFontFamilies[font],
 		height: `100%`,
 		justifyContent,
 		alignItems,
@@ -236,7 +237,6 @@ export function RichTextSVG({
 	}
 	const style = {
 		fontSize: `${fontSize}px`,
-		fontFamily: DefaultFontFamilies[font],
 		wrap: wrap ? 'wrap' : 'nowrap',
 		color: labelColor,
 		lineHeight: TEXT_PROPS.lineHeight,
