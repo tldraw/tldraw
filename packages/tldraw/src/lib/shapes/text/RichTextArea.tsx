@@ -182,7 +182,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		// (which maybe patches React 18.3 in weird ways).
 		// So we used to use EditorProvider but we into weird
 		// rendering issues.
-		new TextEditor({
+		const textEditorInstance = new TextEditor({
 			element: rTextEditorEl.current,
 			autofocus: true,
 			editable: isEditing,
@@ -203,6 +203,8 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			...restOfTipTapConfig,
 			content: rInitialRichText.current as JSONContent,
 		})
+
+		return () => textEditorInstance.destroy()
 	}, [
 		isEditing,
 		tipTapConfig,
