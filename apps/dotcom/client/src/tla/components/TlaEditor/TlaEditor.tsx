@@ -7,6 +7,7 @@ import {
 	TLUiDialogsContextType,
 	Tldraw,
 	createSessionStateSnapshotSignal,
+	parseDeepLinkString,
 	react,
 	throttle,
 	tltime,
@@ -107,11 +108,14 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			}
 
 			const fileState = app.getFileState(fileId)
-			if (fileState?.lastSessionState) {
+			const deepLink = new URLSearchParams(window.location.search).get('d')
+			if (fileState?.lastSessionState && !deepLink) {
 				editor.loadSnapshot(
 					{ session: JSON.parse(fileState.lastSessionState.trim() || 'null') },
 					{ forceOverwriteSessionState: true }
 				)
+			} else if (deepLink) {
+				editor.navigateToDeepLink(parseDeepLinkString(deepLink))
 			}
 			const sessionState$ = createSessionStateSnapshotSignal(editor.store)
 			const updateSessionState = throttle((state: TLSessionStateSnapshot) => {
