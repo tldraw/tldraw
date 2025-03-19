@@ -35,6 +35,7 @@ import {
 
 import isEqual from 'lodash.isequal'
 import {
+	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
@@ -433,8 +434,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			[editor]
 		)
 		const isEditingAnything = editor.getEditingShapeId() !== null
-		const plaintext = renderPlaintextFromRichText(this.editor, shape.props.richText)
-		const showHtmlContainer = isEditingAnything || !!plaintext.length
+		const isEmpty = isEmptyRichText(shape.props.richText)
+		const showHtmlContainer = isEditingAnything || !isEmpty
 		const isForceSolid = useValue('force solid', () => editor.getZoomLevel() < 0.2, [editor])
 
 		return (
@@ -545,7 +546,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		ctx.addExportDef(getFillDefForExport(props.fill))
 
 		let textEl
-		if (renderPlaintextFromRichText(this.editor, props.richText)) {
+		if (!isEmptyRichText(props.richText)) {
 			const theme = getDefaultColorTheme(ctx)
 			const bounds = new Box(0, 0, props.w, props.h + props.growY)
 			textEl = (
@@ -590,7 +591,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		const min = MIN_SIZE_WITH_LABEL
 
-		if (renderPlaintextFromRichText(this.editor, shape.props.richText)) {
+		if (!isEmptyRichText(shape.props.richText)) {
 			let newW = Math.max(Math.abs(unscaledW), min)
 			let newH = Math.max(Math.abs(unscaledH), min)
 
@@ -654,7 +655,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override onBeforeCreate(shape: TLGeoShape) {
-		if (!renderPlaintextFromRichText(this.editor, shape.props.richText)) {
+		if (isEmptyRichText(shape.props.richText)) {
 			if (shape.props.growY) {
 				// No text / some growY, set growY to 0
 				return {
@@ -706,9 +707,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		// If we got rid of the text, cancel out any growY from the prev text
-		const prevPlaintext = renderPlaintextFromRichText(this.editor, prev.props.richText)
-		const nextPlaintext = renderPlaintextFromRichText(this.editor, next.props.richText)
-		if (prevPlaintext && !nextPlaintext) {
+		const wasEmpty = isEmptyRichText(prev.props.richText)
+		const isEmpty = isEmptyRichText(next.props.richText)
+		if (!wasEmpty && isEmpty) {
 			return {
 				...next,
 				props: {
@@ -727,7 +728,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const unscaledNextLabelSize = getUnscaledLabelSize(this.editor, next)
 
 		// When entering the first character in a label (not pasting in multiple characters...)
-		if (!prevPlaintext && nextPlaintext && nextPlaintext.length === 1) {
+		if (wasEmpty && !isEmpty && renderPlaintextFromRichText(this.editor, next.props.richText)) {
 			let unscaledW = Math.max(unscaledPrevWidth, unscaledNextLabelSize.w)
 			let unscaledH = Math.max(unscaledPrevHeight, unscaledNextLabelSize.h)
 
@@ -834,7 +835,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 	const { richText, font, size, w } = shape.props
 
-	if (!richText || !renderPlaintextFromRichText(editor, richText)) {
+	if (!richText || isEmptyRichText(richText)) {
 		return { w: 0, h: 0 }
 	}
 
