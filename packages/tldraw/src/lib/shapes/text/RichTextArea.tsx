@@ -15,7 +15,7 @@ import {
 	useEvent,
 	useUniqueSafeId,
 } from '@tldraw/editor'
-import React, { useCallback, useLayoutEffect, useRef } from 'react'
+import React, { useLayoutEffect, useRef } from 'react'
 
 /** @public */
 export interface TextAreaProps {
@@ -53,8 +53,6 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		handleChange,
 		handleBlur,
 		handleKeyDown,
-		// TODO: need to handle this still?
-		// handleInputPointerDown,
 		handleDoubleClick,
 	},
 	ref
@@ -62,18 +60,17 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 	const editor = useEditor()
 	const tipTapId = useUniqueSafeId('tip-tap-editor')
 	const tipTapConfig = editor.getTextOptions().tipTapConfig
-	const rCreateInfo = useRef({
-		selectAll: false,
-		caretPosition: null as { x: number; y: number } | null,
-		time: Date.now(),
-	})
 
 	const rInitialRichText = useRef(richText)
 	const rTextEditor = useRef<TTEditor | null>(null)
 	const rTextEditorEl = useRef<HTMLDivElement>(null)
 
 	useLayoutEffect(() => {
-		rInitialRichText.current = richText
+		if (!rTextEditor.current) {
+			rInitialRichText.current = richText
+		} else if (rInitialRichText.current !== richText) {
+			rTextEditor.current.commands.setContent(richText as JSONContent)
+		}
 	}, [richText])
 
 	// The order of events is:
@@ -81,61 +78,22 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 	// - we set listeners for select all / place caret events
 	// - if the user is editing this shape, this component is rendered
 	// - editor emits the select all event / place caret event
-	// - the text editor is created
-	const handleCreate = useCallback(
-		(props: EditorEvents['create']) => {
-			// If we're not still editing the original shape, then don't do anything.
-			if (editor.getEditingShapeId() !== shapeId) return
-
-			const textEditor = props.editor
-			editor.setRichTextEditor(textEditor)
-			rTextEditor.current = textEditor
-
-			const { selectAll, caretPosition } = rCreateInfo.current
-
-			if (selectAll) {
-				// Select all of the text
-				textEditor.chain().focus().selectAll().run()
-				return
-			}
-
-			if (caretPosition) {
-				// Set the initial caret screen position
-				const pos = textEditor.view.posAtCoords({
-					left: caretPosition.x,
-					top: caretPosition.y,
-				})?.pos
-
-				if (pos) {
-					// Focus to that position.
-					textEditor.chain().focus().setTextSelection(pos).run()
-				} else {
-					// If no position, default to select all.
-					textEditor.chain().focus().selectAll().run()
-				}
-				// XXX: When creating a brand new shape and double-clicking into it quickly to edit it,
-				// there's some kind of race condition happening where the editor doesn't focus properly.
-				// editor.timers.setTimeout(() => textEditor.commands.focus(), 100)
-				return
-			}
-
-			// XXX: When creating a brand new shape and double-clicking into it quickly to edit it,
-			// there's some kind of race condition happening where the editor doesn't focus properly.
-			editor.timers.setTimeout(() => textEditor.commands.focus('end'), 100)
-		},
-		[editor, shapeId]
-	)
+	// - the text editor is onCreate callback is called
+	const rCreateInfo = useRef({
+		selectAll: false,
+		caretPosition: null as { x: number; y: number } | null,
+	})
 
 	useLayoutEffect(() => {
 		function selectAllIfEditing(event: { shapeId: TLShapeId }) {
 			if (event.shapeId === editor.getEditingShapeId()) {
-				rCreateInfo.current = { ...rCreateInfo.current, selectAll: true }
+				rCreateInfo.current.selectAll = true
 			}
 		}
 
 		function placeCaret(event: { shapeId: TLShapeId; point: { x: number; y: number } }) {
 			if (event.shapeId === editor.getEditingShapeId()) {
-				rCreateInfo.current = { ...rCreateInfo.current, caretPosition: event.point }
+				rCreateInfo.current.caretPosition = event.point
 			}
 		}
 
@@ -148,25 +106,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 	}, [editor, isEditing])
 
 	const onChange = useEvent(handleChange)
-	const handleUpdate = useCallback(
-		(props: EditorEvents['update']) => {
-			onChange({ richText: props.editor.state.doc.toJSON() })
-		},
-		[onChange]
-	)
-
 	const onKeyDown = useEvent(handleKeyDown)
-	const onKeyDownWrapped = useCallback(
-		(view: EditorView, event: KeyboardEvent) => {
-			if (event.key === 'Tab') {
-				handleTab(editor, view, event)
-			}
-
-			onKeyDown(event)
-		},
-		[editor, onKeyDown]
-	)
-
 	const onFocus = useEvent(handleFocus)
 	const onBlur = useEvent(handleBlur)
 	const onDoubleClick = useEvent(handleDoubleClick)
@@ -175,23 +115,58 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 
 		const { editorProps, ...restOfTipTapConfig } = tipTapConfig
 
-		// Because React can double-render in Strict Mode,
-		// we need to make sure we're not setting the text editor twice.
-		// This became more much more prevalent in React 19, but also
-		// it started manifesting in some cases in Next 14.2
-		// (which maybe patches React 18.3 in weird ways).
-		// So we used to use EditorProvider but we into weird
-		// rendering issues.
+		// Because React can double-render in Strict Mode, we need to make sure we're not setting
+		// the text editor twice. This became more much more prevalent in React 19, but also it
+		// started manifesting in some cases in Next 14.2 (which maybe patches React 18.3 in weird
+		// ways). So we used to use EditorProvider but we into weird rendering issues.
 		const textEditorInstance = new TextEditor({
 			element: rTextEditorEl.current,
 			autofocus: true,
 			editable: isEditing,
-			onUpdate: handleUpdate,
+			onUpdate: (props: EditorEvents['update']) => {
+				const content: TLRichText = props.editor.state.doc.toJSON()
+				rInitialRichText.current = content
+				onChange({ richText: content })
+			},
 			onFocus,
 			onBlur,
-			onCreate: handleCreate,
+			// onCreate is called after a `setTimeout(0)`
+			onCreate: (props) => {
+				// If we're not still editing the original shape, then don't do anything.
+				if (editor.getEditingShapeId() !== shapeId) return
+
+				const textEditor = props.editor
+				editor.setRichTextEditor(textEditor)
+
+				const { selectAll, caretPosition } = rCreateInfo.current
+
+				if (selectAll) {
+					// Select all of the text
+					textEditor.chain().focus().selectAll().run()
+				} else if (caretPosition) {
+					// Set the initial caret screen position
+					const pos = textEditor.view.posAtCoords({
+						left: caretPosition.x,
+						top: caretPosition.y,
+					})?.pos
+
+					if (pos) {
+						// Focus to that position.
+						textEditor.chain().focus().setTextSelection(pos).run()
+					} else {
+						// If no position, default to select all.
+						textEditor.chain().focus().selectAll().run()
+					}
+				}
+			},
 			editorProps: {
-				handleKeyDown: onKeyDownWrapped,
+				handleKeyDown: (view: EditorView, event: KeyboardEvent) => {
+					if (event.key === 'Tab') {
+						handleTab(editor, view, event)
+					}
+
+					onKeyDown(event)
+				},
 				handleDoubleClick: (view, pos, event) => onDoubleClick(event),
 				...editorProps,
 			},
@@ -204,38 +179,37 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			content: rInitialRichText.current as JSONContent,
 		})
 
-		return () => textEditorInstance.destroy()
+		// XXX: When creating a brand new shape and double-clicking into it quickly to edit it,
+		// there's some kind of race condition happening where the editor doesn't focus properly.
+		const timeout = editor.timers.setTimeout(() => {
+			if (rCreateInfo.current.caretPosition || rCreateInfo.current.selectAll) {
+				textEditorInstance.commands.focus()
+			} else {
+				textEditorInstance.commands.focus('end')
+			}
+
+			rCreateInfo.current.selectAll = false
+			rCreateInfo.current.caretPosition = null
+		}, 100)
+
+		rTextEditor.current = textEditorInstance
+
+		return () => {
+			rTextEditor.current = null
+			clearTimeout(timeout)
+			textEditorInstance.destroy()
+		}
 	}, [
 		isEditing,
 		tipTapConfig,
 		onFocus,
 		onBlur,
 		onDoubleClick,
-		handleCreate,
-		handleUpdate,
-		onKeyDownWrapped,
+		onChange,
+		onKeyDown,
+		editor,
+		shapeId,
 	])
-
-	// We had to disable this. This was causing keyboard issues in iOS.
-	// One way to have it exhibit the issue was to have the shape selected,
-	// then double-click in the area outside the label bounds.
-	// const handleBlur = useCallback(() => {
-	// 	// On iOS Safari, the blur event is fired when the virtual keyboard is closed.
-	// 	// If we're showing this toolbar on iOS, then we need to close the editor when
-	// 	// this happens. However, the blur event is sometimes fired immediately as the
-	// 	// component renders, so we want to wait a short amount of time before this
-	// 	// logic kicks in.
-	// 	if (tlenv.isSafari && tlenv.isIos) {
-	// 		if (editor.getEditingShapeId() === shapeId) {
-	// 			// There's a chance we get some immediate blurs during render
-	// 			if (Date.now() - rCreateInfo.current.time > 500) {
-	// 				// The user either blurred or just pressed "done"
-	// 				editor.setEditingShape(null)
-	// 			}
-	// 		}
-	// 	}
-	// 	_handleBlur?.()
-	// }, [editor, _handleBlur, shapeId])
 
 	if (!isEditing || !tipTapConfig) {
 		return null
