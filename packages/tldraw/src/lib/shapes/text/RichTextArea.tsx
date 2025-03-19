@@ -143,10 +143,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 				if (selectAll) {
 					// Select all of the text
 					textEditor.chain().focus().selectAll().run()
-					return
-				}
-
-				if (caretPosition) {
+				} else if (caretPosition) {
 					// Set the initial caret screen position
 					const pos = textEditor.view.posAtCoords({
 						left: caretPosition.x,
@@ -190,6 +187,9 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			} else {
 				textEditorInstance.commands.focus('end')
 			}
+
+			rCreateInfo.current.selectAll = false
+			rCreateInfo.current.caretPosition = null
 		}, 100)
 
 		rTextEditor.current = textEditorInstance
