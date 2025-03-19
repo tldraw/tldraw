@@ -1460,6 +1460,7 @@ input,
 	background-color: var(--color-panel);
 	border-radius: var(--radius-1);
 	border-color: var(--color-selected);
+	border-width: 1.5px;
 }
 
 .tl-frame-name-input {

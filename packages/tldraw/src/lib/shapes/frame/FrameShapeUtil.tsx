@@ -210,9 +210,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		)
 
 		const showFrameColors = this.editor.options.showFrameColors // useShowFrameColors(this.editor, shape.id)
-		const frameFill = showFrameColors ? color.frame.fill : theme.solid
-		const frameStroke = showFrameColors ? color.frame.stroke : theme.text
-		const frameHeadingStroke = showFrameColors ? color.frame.headingStroke : theme.solid
+		const frameFill = showFrameColors ? color.frame.fill : theme.black.frame.fill
+		const frameStroke = showFrameColors ? color.frame.stroke : theme.black.frame.stroke
+		const frameHeadingStroke = showFrameColors ? color.frame.headingStroke : theme.background
 		const frameHeadingFill = showFrameColors ? color.frame.headingFill : theme.background
 		const frameHeadingText = showFrameColors ? color.frame.text : theme.text
 
