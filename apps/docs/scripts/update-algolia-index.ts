@@ -273,7 +273,7 @@ async function updateAlgoliaIndex() {
 					'asc(articleIndex)',
 					'asc(headingIndex)',
 				],
-				distinct: 4,
+				distinct: 3,
 				attributeForDistinct: 'section',
 				advancedSyntax: true,
 			})
