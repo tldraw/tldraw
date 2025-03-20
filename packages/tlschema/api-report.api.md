@@ -683,12 +683,14 @@ export type TLArrowBinding = TLBaseBinding<'arrow', TLArrowBindingProps>;
 
 // @public (undocumented)
 export interface TLArrowBindingProps {
+    // (undocumented)
+    entrySide: ElbowArrowSide | null;
+    // (undocumented)
+    forceSide: ElbowArrowSide | null;
     isExact: boolean;
     isPrecise: boolean;
     // (undocumented)
     normalizedAnchor: VecModel;
-    // (undocumented)
-    side: ElbowArrowSide | null;
     // (undocumented)
     terminal: 'end' | 'start';
 }

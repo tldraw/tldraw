@@ -23,6 +23,8 @@ function computeArrowTargetInfo(editor: Editor) {
 	const { currentBinding, otherBinding } = getCurrentBindings(editor) ?? {}
 
 	const isPrecise = getIsPrecise(editor)
+	const isCreatingStart = getIsCreatingStartHandle(editor)
+	const isExact = editor.inputs.altKey
 
 	const target = editor.getShapeAtPoint(pointInPageSpace, {
 		hitInside: true,
@@ -126,6 +128,7 @@ function computeArrowTargetInfo(editor: Editor) {
 	const snapDistance =
 		Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
 		editor.getZoomLevel()
+
 	if (precise) {
 		switch (arrowKind) {
 			// for bendy arrows, just snap to the center
@@ -140,7 +143,10 @@ function computeArrowTargetInfo(editor: Editor) {
 				if (Vec.Dist(pointInTargetSpace, targetBounds.center) < snapDistance) {
 					normalizedAnchor.x = 0.5
 					normalizedAnchor.y = 0.5
-				} else if (Math.abs(targetCenterInPageSpace.x - pointInPageSpace.x) < snapDistance) {
+				} else if (
+					!isExact &&
+					Math.abs(targetCenterInPageSpace.x - pointInPageSpace.x) < snapDistance
+				) {
 					const snappedPointInPageSpace = {
 						x: targetCenterInPageSpace.x,
 						y: pointInPageSpace.y,
@@ -155,7 +161,10 @@ function computeArrowTargetInfo(editor: Editor) {
 						(snappedPointInTargetSpace.y - targetBounds.minY) / targetBounds.height
 
 					closestSide = targetCenterInPageSpace.y > pointInPageSpace.y ? 'top' : 'bottom'
-				} else if (Math.abs(targetCenterInPageSpace.y - pointInPageSpace.y) < snapDistance) {
+				} else if (
+					!isExact &&
+					Math.abs(targetCenterInPageSpace.y - pointInPageSpace.y) < snapDistance
+				) {
 					const snappedPointInPageSpace = {
 						x: pointInPageSpace.x,
 						y: targetCenterInPageSpace.y,
@@ -176,16 +185,26 @@ function computeArrowTargetInfo(editor: Editor) {
 				exhaustiveSwitchError(arrowKind)
 		}
 	} else if (arrowKind === 'elbow') {
-		normalizedAnchor.x = 0.5
-		normalizedAnchor.y = 0.5
 		if (Vec.Dist(pointInTargetSpace, targetBounds.center) < snapDistance) {
 			closestSide = null
+			normalizedAnchor.x = 0.5
+			normalizedAnchor.y = 0.5
 		} else {
 			if (Math.abs(normalizedAnchor.x - 0.5) < Math.abs(normalizedAnchor.y - 0.5)) {
-				closestSide = normalizedAnchor.x < 0.5 ? 'left' : 'right'
-			} else {
 				closestSide = normalizedAnchor.y < 0.5 ? 'top' : 'bottom'
+			} else {
+				closestSide = normalizedAnchor.x < 0.5 ? 'left' : 'right'
 			}
+		}
+	}
+
+	if (closestSide && !isExact) {
+		const handlePoint = handlePointsInPageSpace[closestSide]
+		if (handlePoint) {
+			const handlePointInTargetSpace = editor.getPointInShapeSpace(target, handlePoint)
+			normalizedAnchor.x = (handlePointInTargetSpace.x - targetBounds.minX) / targetBounds.width
+			normalizedAnchor.y = (handlePointInTargetSpace.y - targetBounds.minY) / targetBounds.height
+			precise = true
 		}
 	}
 
@@ -219,6 +238,7 @@ function computeArrowTargetInfo(editor: Editor) {
 		closestSide,
 		normalizedAnchor,
 		precise,
+		isExact,
 	}
 }
 
@@ -256,6 +276,19 @@ function getIsPrecise(editor: Editor) {
 			const binding = getArrowBindings(editor, node.info.shape)[handleId]
 			return binding?.props.isPrecise ?? false
 		}
+	}
+
+	return false
+}
+
+function getIsCreatingStartHandle(editor: Editor) {
+	// if (editor.isIn('select.dragging_handle')) {
+	// 	const node: DraggingHandle = editor.getStateDescendant('select.dragging_handle')!
+	// 	return node.info.isCreating ?? false
+	// }
+
+	if (editor.isIn('arrow')) {
+		return true
 	}
 
 	return false

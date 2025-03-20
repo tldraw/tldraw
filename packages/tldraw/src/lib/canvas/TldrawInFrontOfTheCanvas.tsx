@@ -56,8 +56,9 @@ export const TldrawArrowHints = track(function TldrawArrowHints() {
 
 	if (!targetInfo) return null
 
-	const { handlePointsInPageSpace, closestSide, arrowKind } = targetInfo
-	const showEdgeHints = arrowKind === 'elbow' && elbowArrowDebug.get().fastEdgePicking === 'hints'
+	const { handlePointsInPageSpace, closestSide, arrowKind, isExact } = targetInfo
+	const showEdgeHints =
+		!isExact && arrowKind === 'elbow' && elbowArrowDebug.get().fastEdgePicking === 'hints'
 	const showOutline = !showEdgeHints || closestSide === null
 
 	return (
