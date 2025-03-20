@@ -7239,7 +7239,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tiptap/extension-link@npm:3.0.0-next.6, @tiptap/extension-link@npm:^3.0.0-next.6":
+"@tiptap/extension-link@npm:^3.0.0-next.6":
   version: 3.0.0-next.6
   resolution: "@tiptap/extension-link@npm:3.0.0-next.6"
   dependencies:
@@ -21988,18 +21988,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prosemirror-view@npm:^1.0.0, prosemirror-view@npm:^1.1.0, prosemirror-view@npm:^1.27.0, prosemirror-view@npm:^1.31.0, prosemirror-view@npm:^1.37.1":
-  version: 1.37.2
-  resolution: "prosemirror-view@npm:1.37.2"
-  dependencies:
-    prosemirror-model: "npm:^1.20.0"
-    prosemirror-state: "npm:^1.0.0"
-    prosemirror-transform: "npm:^1.1.0"
-  checksum: 10/a6073928a7bd75eb4bd31389b52f7f99fe58140927623856105da542b6923583619d23e99856b7a8b1ee27f2877624d0d0251d1407ce6c72473b7854c1385172
-  languageName: node
-  linkType: hard
-
-"prosemirror-view@npm:^1.37.2":
+"prosemirror-view@npm:^1.0.0, prosemirror-view@npm:^1.1.0, prosemirror-view@npm:^1.27.0, prosemirror-view@npm:^1.31.0, prosemirror-view@npm:^1.37.1, prosemirror-view@npm:^1.37.2":
   version: 1.38.1
   resolution: "prosemirror-view@npm:1.38.1"
   dependencies:
@@ -24885,7 +24874,6 @@ __metadata:
     "@tiptap/core": "npm:3.0.0-next.6"
     "@tiptap/extension-code": "npm:3.0.0-next.6"
     "@tiptap/extension-highlight": "npm:3.0.0-next.6"
-    "@tiptap/extension-link": "npm:3.0.0-next.6"
     "@tiptap/extension-list": "npm:3.0.0-next.6"
     "@tiptap/pm": "npm:3.0.0-next.6"
     "@tiptap/react": "npm:3.0.0-next.6"
