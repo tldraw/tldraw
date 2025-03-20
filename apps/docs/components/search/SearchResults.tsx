@@ -1,15 +1,63 @@
-import { SearchEntry } from '@/utils/algolia'
+'use client'
+import { getSearchIndexName, SearchEntry } from '@/utils/algolia'
+import { searchClient } from '@/utils/search-api'
 import { Combobox, ComboboxItem, ComboboxProvider, VisuallyHidden } from '@ariakit/react'
-import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
+
+import { MagnifyingGlassIcon } from '@heroicons/react/24/solid'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Hit } from 'instantsearch.js'
 import { SendEventForHits } from 'instantsearch.js/es/lib/utils'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { Fragment, startTransition, useState } from 'react'
-import { Highlight } from 'react-instantsearch'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Fragment, startTransition, useEffect, useState } from 'react'
+import { Highlight, useHits, useSearchBox } from 'react-instantsearch'
+import { InstantSearchNext } from 'react-instantsearch-nextjs'
 import { twJoin } from 'tailwind-merge'
+import { debounce } from 'tldraw'
 import { ContentHighlight } from './ContentHighlight'
+
+export function SearchResults() {
+	return (
+		<InstantSearchNext
+			indexName={getSearchIndexName('docs')}
+			searchClient={searchClient}
+			insights={true}
+			future={{ preserveSharedStateOnUnmount: true }}
+		>
+			<InstantSearchInner onClose={() => {}} />
+		</InstantSearchNext>
+	)
+}
+
+function InstantSearchInner({ onClose }: { onClose(): void }) {
+	const { items, sendEvent } = useHits<SearchEntry>()
+	const { refine } = useSearchBox()
+	const router = useRouter()
+
+	const searchParams = useSearchParams()
+	const query = searchParams.get('query') || ''
+
+	useEffect(() => {
+		refine(query)
+	}, [query])
+
+	const handleChange = (path: string) => {
+		router.push(path)
+		onClose()
+	}
+
+	const handleInputChange = debounce((query: string) => refine(query), 500)
+
+	return (
+		<SearchAutocomplete
+			items={items}
+			onInputChange={handleInputChange}
+			onChange={handleChange}
+			onClose={onClose}
+			sendEvent={sendEvent}
+		/>
+	)
+}
 
 interface AutocompleteProps {
 	items: Hit<SearchEntry>[]
@@ -19,7 +67,7 @@ interface AutocompleteProps {
 	sendEvent: SendEventForHits
 }
 
-export default function SearchAutocomplete({
+function SearchAutocomplete({
 	items,
 	onInputChange,
 	onChange,
@@ -27,7 +75,9 @@ export default function SearchAutocomplete({
 	sendEvent,
 }: AutocompleteProps) {
 	const [open, setOpen] = useState(true)
-	const [value, setValue] = useState('')
+	const searchParams = useSearchParams()
+	const query = searchParams.get('query') || ''
+	const [value, setValue] = useState(query)
 
 	const handleOpenChange = (open: boolean) => {
 		if (!open) {
@@ -52,24 +102,25 @@ export default function SearchAutocomplete({
 			setSelectedValue={(newValue) => onChange(newValue)}
 		>
 			<div
-				className={twJoin(
-					'fixed w-screen h-screen left-0 top-14 sm:top-[6.5rem] md:top-0 z-40',
-					'bg-white/90 dark:bg-zinc-950/90 pointer-events-none'
-				)}
+				className={
+					twJoin()
+					// 'left-0 top-14 sm:top-[6.5rem] md:top-0 z-40'
+					// 'bg-white/90 dark:bg-zinc-950/90 pointer-events-none'
+				}
 			>
-				<SearchDialog onOpenChange={handleOpenChange}>
-					<div className="w-full max-w-3xl mx-auto px-5 lg:px-12 pt-[4.5rem]">
-						<div
-							className={twJoin(
-								'pointer-events-auto bg-zinc-50 dark:bg-zinc-900 rounded-lg',
-								'overflow-hidden focus-within:ring-2 focus-within:ring-blue-500'
-							)}
-						>
-							<SearchInput value={value} />
-							<Results items={items} sendEvent={sendEvent} />
-						</div>
+				{/* <SearchDialog onOpenChange={handleOpenChange}> */}
+				<div className="w-full mb-12">
+					<div
+						className={twJoin(
+							'pointer-events-auto bg-zinc-50 dark:bg-zinc-900 rounded-lg',
+							'overflow-hidden'
+						)}
+					>
+						<SearchInput value={value} />
+						<Results items={items} sendEvent={sendEvent} />
 					</div>
-				</SearchDialog>
+				</div>
+				{/* </SearchDialog> */}
 			</div>
 		</ComboboxProvider>
 	)
@@ -139,12 +190,7 @@ function Results({ items, sendEvent }: { items: Hit<SearchEntry>[]; sendEvent: S
 	})
 
 	return (
-		<div
-			className={twJoin(
-				'max-h-[32rem] overflow-y-auto p-4 pt-0',
-				'border-t border-zinc-100 dark:border-zinc-800'
-			)}
-		>
+		<div className={twJoin(' p-4 pt-0', 'border-t border-zinc-100 dark:border-zinc-800')}>
 			{items.length === 0 && (
 				<div className="text-center py-8 text-zinc-400 dark:text-zinc-600">No results found.</div>
 			)}
@@ -163,7 +209,7 @@ function SearchDialog({
 	return (
 		<Dialog.Root open onOpenChange={onOpenChange}>
 			<Dialog.Portal>
-				<Dialog.Overlay />
+				{/* <Dialog.Overlay /> */}
 				<Dialog.Content className="fixed inset-0 z-50" style={{ pointerEvents: 'none' }}>
 					<VisuallyHidden>
 						<Dialog.Title>Search</Dialog.Title>
