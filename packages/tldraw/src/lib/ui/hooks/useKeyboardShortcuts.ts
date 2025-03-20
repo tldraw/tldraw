@@ -55,7 +55,7 @@ export function useKeyboardShortcuts() {
 			if (isReadonlyMode && !action.readonlyOk) continue
 			if (SKIP_KBDS.includes(action.id)) continue
 
-			hot(getHotkeysStringFromKbd(action.kbd), (event) => {
+			hot(action.kbd, (event) => {
 				if (areShortcutsDisabled(editor)) return
 				preventDefault(event)
 				action.onSelect('kbd')
@@ -69,7 +69,7 @@ export function useKeyboardShortcuts() {
 
 			if (SKIP_KBDS.includes(tool.id)) continue
 
-			hot(getHotkeysStringFromKbd(tool.kbd), (event) => {
+			hot(tool.kbd, (event) => {
 				if (areShortcutsDisabled(editor)) return
 				preventDefault(event)
 				tool.onSelect('kbd')
@@ -138,60 +138,6 @@ export function useKeyboardShortcuts() {
 			disposables.forEach((d) => d())
 		}
 	}, [actions, tools, isReadonlyMode, editor, isFocused])
-}
-
-// The "raw" kbd here will look something like "a" or a combination of keys "del,backspace",
-// or modifier keys (using ⇧ for shift, ⌘ for cmd/ctrl, and ⌥ for alt). We need to first split them
-// up by comma, then parse each key to get the actual key and modifiers.
-function getHotkeysStringFromKbd(kbd: string) {
-	return getKeys(kbd)
-		.map((kbd) => {
-			let str = ''
-
-			const shift = kbd.includes('⇧')
-			const alt = kbd.includes('⌥')
-			const cmd = kbd.includes('⌘')
-
-			// remove the modifiers; the remaining string are the actual key
-			const k = kbd.replace(/[⇧⌥⌘]/g, '')
-
-			if (shift && alt && cmd) {
-				str = `cmd+shift+alt+${k},ctrl+shift+alt+${k}`
-			} else if (shift && cmd) {
-				str = `cmd+shift+${k},ctrl+shift+${k}`
-			} else if (alt && cmd) {
-				str = `cmd+alt+${k},ctrl+alt+${k}`
-			} else if (alt && shift) {
-				str = `shift+alt+${k}`
-			} else if (shift) {
-				str = `shift+${k}`
-			} else if (alt) {
-				str = `alt+${k}`
-			} else if (cmd) {
-				str = `cmd+${k},ctrl+${k}`
-			} else {
-				str = k
-			}
-
-			return str
-		})
-		.join(',')
-}
-
-// Logic to split kbd string from hotkeys-js util.
-function getKeys(key: string) {
-	if (typeof key !== 'string') key = ''
-	key = key.replace(/\s/g, '')
-	const keys = key.split(',')
-	let index = keys.lastIndexOf('')
-
-	for (; index >= 0; ) {
-		keys[index - 1] += ','
-		keys.splice(index, 1)
-		index = keys.lastIndexOf('')
-	}
-
-	return keys
 }
 
 export function areShortcutsDisabled(editor: Editor) {

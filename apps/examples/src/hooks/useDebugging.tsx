@@ -26,7 +26,7 @@ export function useDebugging(): TLUiOverrides {
 				},
 				label: 'Log shapes',
 				readonlyOk: true,
-				kbd: '⌥⇧l',
+				kbd: 'alt+shift+l',
 			} as TLUiActionItem
 
 			actions['track-changes'] = {

@@ -6,7 +6,7 @@ import { TLUiEventSource } from '../../../context/events'
 import { useReadonly } from '../../../hooks/useReadonly'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
-import { kbdStr } from '../../../kbd-utils'
+import { kbd as kbdConvert } from '../../../kbd-utils'
 import { Spinner } from '../../Spinner'
 import { TldrawUiButton } from '../Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../Button/TldrawUiButtonIcon'
@@ -85,7 +85,7 @@ export function TldrawUiMenuItem<
 	if (isReadonlyMode && !readonlyOk) return null
 
 	const labelToUse = unwrapLabel(label, menuType)
-	const kbdToUse = kbd ? kbdStr(kbd) : undefined
+	const kbdToUse = kbd ? kbdConvert(kbd) : undefined
 
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 	const titleStr = labelStr && kbdToUse ? `${labelStr} ${kbdToUse}` : labelStr

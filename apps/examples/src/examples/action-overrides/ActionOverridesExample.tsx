@@ -12,7 +12,7 @@ export default function BasicExample() {
 							label: 'My action',
 							icon: 'circle',
 							// [2]
-							kbd: '⌘u',
+							kbd: 'cmd+u',
 							onSelect(source) {
 								// [3]
 								helpers.addToast({ title: `My action was selected from ${source}!` })
@@ -25,7 +25,7 @@ export default function BasicExample() {
 							'my-action': myCustomAction,
 							delete: {
 								...actions['delete'],
-								kbd: '⇧x',
+								kbd: 'shift+x',
 							},
 						}
 
@@ -44,8 +44,7 @@ component's `overrides` prop. To learn more about using this actions via a custo
 custom actions menu example.
 
 [2]
-For kbds, Shift = ⇧, Alt = ⌥, Cmd/Ctrl = ⌘, i.e. Cmd+Shift+U is ⌘⇧u. For more information on keyboard shortcuts see the
-keyboard shortcuts example.
+For more information on keyboard shortcuts see the keyboard shortcuts example.
 
 [3]
 You can access UI helpers like addToast, removeToast, etc. from the helpers object.

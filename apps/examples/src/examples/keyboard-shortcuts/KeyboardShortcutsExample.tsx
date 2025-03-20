@@ -10,7 +10,7 @@ const overrides: TLUiOverrides = {
 		const newActions = {
 			...actions,
 			'toggle-grid': { ...actions['toggle-grid'], kbd: 'x' },
-			'copy-as-png': { ...actions['copy-as-png'], kbd: '⌘1' },
+			'copy-as-png': { ...actions['copy-as-png'], kbd: 'cmd+1' },
 		}
 
 		return newActions
