@@ -4,7 +4,7 @@ import { useState } from 'react'
 /**
  * Creates a new atom and returns it. The atom will be created only once.
  *
- * See [[atom]]
+ * See {@link state#atom}
  *
  * @example
  * ```ts

@@ -202,6 +202,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override onEditEnd(shape: TLTextShape) {
+		// todo: find a way to check if the rich text has any nodes that aren't empty spaces
 		const trimmedText = renderPlaintextFromRichText(this.editor, shape.props.richText).trimEnd()
 
 		if (trimmedText.length === 0) {

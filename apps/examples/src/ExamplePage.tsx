@@ -61,7 +61,7 @@ export function ExamplePage({
 							</a>
 							<a
 								target="_blank"
-								href="https://discord.tldraw.com/?utm_source=examples&utm_medium=organic&utm_campaign=sociallink"
+								href="https://discord.tldraw.com/?utm_source=examples&utm_medium=organic&utm_campaign=examples"
 								rel="noopener noreferrer"
 								title="discord"
 								className="hoverable"
@@ -126,7 +126,7 @@ export function ExamplePage({
 							className="example__sidebar__footer-link example__sidebar__footer-link--grey"
 							target="_blank"
 							rel="noopener noreferrer"
-							href="https://tldraw.dev"
+							href="https://tldraw.dev/?utm_source=examples&utm_medium=organic&utm_campaign=examples"
 						>
 							Visit the docs
 						</a>
@@ -153,7 +153,7 @@ function ExampleSidebarListItem({
 
 	return (
 		<li className="examples__sidebar__item" data-active={isActive}>
-			<Link to={example.path} className="examples__sidebar__item__link hoverable" />
+			<Link replace to={example.path} className="examples__sidebar__item__link hoverable" />
 			<div className="examples__sidebar__item__title">
 				<span>{example.title}</span>
 			</div>

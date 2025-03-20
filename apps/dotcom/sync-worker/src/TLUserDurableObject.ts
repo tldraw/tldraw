@@ -29,7 +29,6 @@ import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 
-const ONE_MINUTE = 60 * 1000
 export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: Kysely<DB>
 	private measure: Analytics | undefined
@@ -119,21 +118,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	interval: NodeJS.Timeout | null = null
-	nextMutationTimestamp = Date.now() + 2 * ONE_MINUTE + 5 * ONE_MINUTE * Math.random()
 
 	private maybeStartInterval() {
 		if (!this.interval) {
 			this.interval = setInterval(() => {
 				// do cache persist + cleanup
 				this.cache?.onInterval()
-				// do a noop mutation every 5 minutes
-				if (Date.now() > this.nextMutationTimestamp) {
-					this.bumpMutationNumber(this.db)
-						.then(() => {
-							this.nextMutationTimestamp = Date.now() + 5 * ONE_MINUTE
-						})
-						.catch((e) => this.captureException(e, { source: 'noop mutation' }))
-				}
 
 				// clean up closed sockets if there are any
 				for (const socket of this.sockets) {
@@ -482,8 +472,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				this.cache.store.updateOptimisticData([update], msg.mutationId)
 			}
 			const result = await this.bumpMutationNumber(tx)
-
-			this.nextMutationTimestamp = Date.now() + 5 * ONE_MINUTE
 
 			const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
 			const mutationNumber = result.mutationNumber

@@ -1,3 +1,77 @@
+# v3.10.0 (Tue Mar 11 2025)
+
+### Release Notes
+
+#### export: fix style embedding for foreignObjects in Firefox ([#5593](https://github.com/tldraw/tldraw/pull/5593))
+
+- Fix exports / style embedding for foreignObjects in Firefox
+
+#### rich text: fix links getting in the way of some tools and android selection ([#5568](https://github.com/tldraw/tldraw/pull/5568))
+
+- Fix issue with rich text links taking precedence over tools. Also, fix fine-grained selection on Android.
+
+#### fix reparentshapes preserve order ([#5565](https://github.com/tldraw/tldraw/pull/5565))
+
+- Modify the reparentShapes() function to ensure that the original order of the shapes is preserved when reparenting.
+
+#### media: extract base64 assets from .tldr files ([#5525](https://github.com/tldraw/tldraw/pull/5525))
+
+- Ensure .tldr files with embedded base64 assets get their assets rehydrated back into the local db.
+
+#### Make collaboration hooks public ([#5541](https://github.com/tldraw/tldraw/pull/5541))
+
+- Makes `usePeerIds` and `usePresence` public
+
+#### remove import from core-js ([#5544](https://github.com/tldraw/tldraw/pull/5544))
+
+- Fixed bug with loading TLDraw in an SSR environment by removing a core-js import  https://github.com/tldraw/tldraw/issues/5543
+
+#### [feature] add rich text and contextual toolbar ([#4895](https://github.com/tldraw/tldraw/pull/4895))
+
+- Rich text using ProseMirror as a first-class supported option in the Editor.
+
+#### Pass userId to collaboration components ([#5534](https://github.com/tldraw/tldraw/pull/5534))
+
+- Pass `userId` to collaboration components in `LiveCollaborators`
+
+---
+
+#### 🐛 Bug Fix
+
+- Add eslint rule for "whilst" [#5587](https://github.com/tldraw/tldraw/pull/5587) ([@steveruizok](https://github.com/steveruizok))
+- CTA analytics [#5542](https://github.com/tldraw/tldraw/pull/5542) ([@TodePond](https://github.com/TodePond))
+- Pass userId to collaboration components [#5534](https://github.com/tldraw/tldraw/pull/5534) ([@MathieuLoutre](https://github.com/MathieuLoutre))
+
+#### 🐛 Bug Fixes
+
+- export: fix style embedding for foreignObjects in Firefox [#5593](https://github.com/tldraw/tldraw/pull/5593) ([@mimecuvalo](https://github.com/mimecuvalo))
+- rich text: fix links getting in the way of some tools and android selection [#5568](https://github.com/tldraw/tldraw/pull/5568) ([@mimecuvalo](https://github.com/mimecuvalo))
+- fix reparentshapes preserve order [#5565](https://github.com/tldraw/tldraw/pull/5565) (riley@toonsquare.co)
+- remove import from core-js [#5544](https://github.com/tldraw/tldraw/pull/5544) ([@bluedot74](https://github.com/bluedot74))
+
+#### 💄 Product Improvements
+
+- media: extract base64 assets from .tldr files [#5525](https://github.com/tldraw/tldraw/pull/5525) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Make collaboration hooks public [#5541](https://github.com/tldraw/tldraw/pull/5541) ([@MathieuLoutre](https://github.com/MathieuLoutre))
+
+#### 🎉 New Features
+
+- [feature] add rich text and contextual toolbar [#4895](https://github.com/tldraw/tldraw/pull/4895) ([@mimecuvalo](https://github.com/mimecuvalo) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@SomeHats](https://github.com/SomeHats) [@ds300](https://github.com/ds300) [@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 9
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Josh Willis ([@bluedot74](https://github.com/bluedot74))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mathieu Triay ([@MathieuLoutre](https://github.com/MathieuLoutre))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Riley ([@dodo-Riley](https://github.com/dodo-Riley))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.9.0 (Mon Mar 03 2025)
 
 ### Release Notes
@@ -781,7 +855,7 @@ Adds the ability to customize the embeds that are supported. You can now customi
 
 - Add licensing docs.
 
-#### images: show ghost preview image whilst uploading ([#3988](https://github.com/tldraw/tldraw/pull/3988))
+#### images: show ghost preview image while uploading ([#3988](https://github.com/tldraw/tldraw/pull/3988))
 
 - Media: add image and video upload indicators.
 
@@ -887,7 +961,7 @@ This was done because calling `editor.mark(id)` is a potential footgun unless yo
 - Preserve focus search param [#4344](https://github.com/tldraw/tldraw/pull/4344) ([@steveruizok](https://github.com/steveruizok))
 - why did we have this dpr constrained width/height stuff again? [#4297](https://github.com/tldraw/tldraw/pull/4297) ([@ds300](https://github.com/ds300))
 - license: allow wildcard to make apex domains also work [#4334](https://github.com/tldraw/tldraw/pull/4334) ([@mimecuvalo](https://github.com/mimecuvalo))
-- images: show ghost preview image whilst uploading [#3988](https://github.com/tldraw/tldraw/pull/3988) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
+- images: show ghost preview image while uploading [#3988](https://github.com/tldraw/tldraw/pull/3988) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
 - Add option for max pasted / dropped files [#4294](https://github.com/tldraw/tldraw/pull/4294) ([@steveruizok](https://github.com/steveruizok))
 - support custom delay for laser pointer [#4300](https://github.com/tldraw/tldraw/pull/4300) ([@raviteja83](https://github.com/raviteja83))
 - Allow non default z value for scribble points. [#4260](https://github.com/tldraw/tldraw/pull/4260) ([@MitjaBezensek](https://github.com/MitjaBezensek))

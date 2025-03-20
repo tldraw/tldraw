@@ -43,6 +43,11 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 
 	const overrides = useMemo<TLUiOverrides>(() => {
 		return {
+			translations: {
+				en: {
+					'people-menu.anonymous-user': intl.formatMessage(messages.anonymousUser),
+				},
+			},
 			actions(editor, actions) {
 				// Add a shortcut that does nothing but blocks the command+s shortcut
 				actions['save-null'] = {

@@ -111,11 +111,17 @@ const migrations: Migration[] = [
 			PRAGMA optimize;
 		`,
 	},
+	{
+		id: '005_add_history_timestamp',
+		code: `
+			ALTER TABLE history ADD COLUMN timestamp INTEGER NOT NULL DEFAULT 0;
+		`,
+	},
 ]
 
 const ONE_MINUTE = 60 * 1000
 const PRUNE_INTERVAL = 10 * ONE_MINUTE
-const MAX_HISTORY_ROWS = 50_000
+const MAX_HISTORY_ROWS = 100_000
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -349,6 +355,23 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
+	async getDiagnostics() {
+		const earliestHistoryRow = this.sqlite
+			.exec('select * from history order by rowid asc limit 1')
+			.toArray()[0]
+		const latestHistoryRow = this.sqlite
+			.exec('select * from history order by rowid desc limit 1')
+			.toArray()[0]
+		const activeUsers = this.sqlite.exec('select count(*) from active_user').one().count as number
+		const meta = this.sqlite.exec('select * from meta').one()
+		return {
+			earliestHistoryRow,
+			latestHistoryRow,
+			activeUsers,
+			meta,
+		}
+	}
+
 	private queue = new ExecutionQueue()
 
 	private async reboot(source: TLPostgresReplicatorRebootSource, delay = true) {
@@ -432,11 +455,12 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 					this.handleEvent(collator, change, false)
 					this.sqlite.exec(
-						'INSERT INTO history (lsn, userId, fileId, json) VALUES (?, ?, ?, ?)',
+						'INSERT INTO history (lsn, userId, fileId, json, timestamp) VALUES (?, ?, ?, ?, ?)',
 						lsn,
 						change.userId,
 						change.fileId,
-						JSON.stringify(change)
+						JSON.stringify(change),
+						Date.now()
 					)
 				}
 				this.log.debug('changes', collator.changes.size)
@@ -765,7 +789,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		const currentLsn = assertExists(this.getCurrentLsn())
 
 		if (lsn >= currentLsn) {
-			this.log.debug('resuming from current lsn', lsn, '>=', currentLsn)
+			this.log.debug('getResumeType: resuming from current lsn', lsn, '>=', currentLsn)
 			// targetLsn is now or in the future, we can register them and deliver events
 			// without needing to check the history
 			return { type: 'done' }
@@ -775,7 +799,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			.toArray()[0]?.lsn
 
 		if (!earliestLsn || lsn < earliestLsn) {
-			this.log.debug('not enough history', lsn, '<', earliestLsn)
+			this.log.debug('getResumeType: not enough history', lsn, '<', earliestLsn)
 			// not enough history, we can't resume
 			return { type: 'reboot' }
 		}
@@ -801,7 +825,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			.map(({ json, lsn }) => ({ change: JSON.parse(json) as Change, lsn }))
 
 		if (history.length === 0) {
-			this.log.debug('no history to replay, all good', lsn)
+			this.log.debug('getResumeType: no history to replay, all good', lsn)
 			return { type: 'done' }
 		}
 
@@ -817,7 +841,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				messages.push({ type: 'changes', changes, lsn })
 			}
 		}
-		this.log.debug('resuming', messages.length, messages)
+		this.log.debug('getResumeType: resuming', messages.length, messages)
 		return { type: 'done', messages }
 	}
 
@@ -885,6 +909,19 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
+	async requestLsnUpdate(userId: string) {
+		try {
+			this.log.debug('requestLsnUpdate', userId)
+			this.logEvent({ type: 'request_lsn_update' })
+			const lsn = assertExists(this.getCurrentLsn(), 'lsn should exist')
+			this._messageUser(userId, { type: 'changes', changes: [], lsn })
+		} catch (e) {
+			this.captureException(e)
+			throw e
+		}
+		return
+	}
+
 	async unregisterUser(userId: string) {
 		this.logEvent({ type: 'unregister_user' })
 		this.sqlite.exec(`DELETE FROM active_user WHERE id = ?`, userId)
@@ -908,6 +945,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			case 'reboot_error':
 			case 'register_user':
 			case 'unregister_user':
+			case 'request_lsn_update':
 			case 'get_file_record':
 				this.writeEvent({
 					blobs: [event.type],

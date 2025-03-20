@@ -7,7 +7,7 @@ export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions = {
 	wheelBehavior: 'pan',
 	panSpeed: 1,
 	zoomSpeed: 1,
-	zoomSteps: [0.1, 0.25, 0.5, 1, 2, 4, 8],
+	zoomSteps: [0.05, 0.1, 0.25, 0.5, 1, 2, 4, 8],
 }
 
 /** @internal */

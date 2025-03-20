@@ -45,9 +45,12 @@ export function Component({ error }: { error?: unknown }) {
 		)
 	}
 
+	// use a search param to hide the sidebar completely
+	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
+
 	return (
-		<TlaSidebarLayout collapsible>
-			{errorElem ?? <TlaEditor fileSlug={fileSlug} deepLinks />}
+		<TlaSidebarLayout collapsible isEmbed={isEmbed}>
+			{errorElem ?? <TlaEditor fileSlug={fileSlug} deepLinks isEmbed={isEmbed} />}
 		</TlaSidebarLayout>
 	)
 }

@@ -14,7 +14,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
-import { renderHtmlFromRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
+import { renderHtmlFromRichText } from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
 import { TEXT_PROPS } from './default-shape-constants'
 import { isLegacyAlign } from './legacyProps'
@@ -117,8 +117,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		}
 	}
 
-	const hasText = richText ? renderPlaintextFromRichText(editor, richText).length > 0 : false
-	if (!isEditing && !hasText) {
+	if (!isEditing && isEmpty) {
 		return null
 	}
 
@@ -229,6 +228,7 @@ export function RichTextSVG({
 		verticalAlign === 'middle' ? 'center' : verticalAlign === 'start' ? 'flex-start' : 'flex-end'
 	const wrapperStyle = {
 		display: 'flex',
+		fontFamily: DefaultFontFamilies[font],
 		height: `100%`,
 		justifyContent,
 		alignItems,
@@ -236,7 +236,6 @@ export function RichTextSVG({
 	}
 	const style = {
 		fontSize: `${fontSize}px`,
-		fontFamily: DefaultFontFamilies[font],
 		wrap: wrap ? 'wrap' : 'nowrap',
 		color: labelColor,
 		lineHeight: TEXT_PROPS.lineHeight,

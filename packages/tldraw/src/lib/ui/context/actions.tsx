@@ -806,7 +806,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.markHistoryStoppingPoint('stack-vertical')
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.stackShapes(selectedShapeIds, 'vertical', 16)
+						editor.stackShapes(selectedShapeIds, 'vertical', editor.options.adjacentShapeMargin)
 						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
@@ -826,7 +826,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.markHistoryStoppingPoint('stack-horizontal')
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.stackShapes(selectedShapeIds, 'horizontal', 16)
+						editor.stackShapes(selectedShapeIds, 'horizontal', editor.options.adjacentShapeMargin)
 						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
@@ -1021,8 +1021,20 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '⌘=,=',
 				readonlyOk: true,
 				onSelect(source) {
-					trackEvent('zoom-in', { source })
+					trackEvent('zoom-in', { source, towardsCursor: false })
 					editor.zoomIn(undefined, {
+						animation: { duration: editor.options.animationMediumMs },
+					})
+				},
+			},
+			{
+				id: 'zoom-in-on-cursor',
+				label: 'action.zoom-in',
+				kbd: '!$=,!=',
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('zoom-in', { source, towardsCursor: true })
+					editor.zoomIn(editor.inputs.currentScreenPoint, {
 						animation: { duration: editor.options.animationMediumMs },
 					})
 				},
@@ -1033,8 +1045,20 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '⌘-,-',
 				readonlyOk: true,
 				onSelect(source) {
-					trackEvent('zoom-out', { source })
+					trackEvent('zoom-out', { source, towardsCursor: false })
 					editor.zoomOut(undefined, {
+						animation: { duration: editor.options.animationMediumMs },
+					})
+				},
+			},
+			{
+				id: 'zoom-out-on-cursor',
+				label: 'action.zoom-out',
+				kbd: '!$-,!-',
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('zoom-out', { source, towardsCursor: true })
+					editor.zoomOut(editor.inputs.currentScreenPoint, {
 						animation: { duration: editor.options.animationMediumMs },
 					})
 				},

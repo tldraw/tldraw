@@ -354,7 +354,7 @@ function SvgExport({
 				key: uniqueId(),
 				getElement: async () => {
 					const declaration = await editor.fonts.toEmbeddedCssDeclaration(font)
-					return <style>{declaration}</style>
+					return <style nonce={editor.options.nonce}>{declaration}</style>
 				},
 			})
 		}

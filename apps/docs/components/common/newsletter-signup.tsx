@@ -11,6 +11,8 @@ import { FormEventHandler, useCallback, useState } from 'react'
 // when debugging is true, the form will always show (even if the user has submitted)
 const DEBUGGING = false
 
+type NewsletterSignupStatus = 'not-subscribed' | 'subscribed'
+
 export function NewsletterSignup({
 	bg = true,
 	size = 'large',
@@ -21,7 +23,8 @@ export function NewsletterSignup({
 	hideAfterSubmit?: boolean
 }) {
 	// If the user has submitted their email, we don't show the form anymore
-	const [didSubmit, setDidSubmit] = useLocalStorageState('dev_did_submit_newsletter', false)
+	const [newsletterSignupStatus, setNewsletterSignupStatus, isLoaded] =
+		useLocalStorageState<NewsletterSignupStatus>('dev_did_submit_newsletter', 'not-subscribed')
 
 	// Todo: replace with react query or something to handle the async work
 	const [formState, setFormState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
@@ -43,7 +46,7 @@ export function NewsletterSignup({
 				setFormState('success')
 				// After a pause, we locally save that the user has submitted the form
 				setTimeout(() => {
-					setDidSubmit(true)
+					setNewsletterSignupStatus('subscribed')
 					setTimeout(() => setFormState('idle'), 3000)
 				}, 3000)
 			} catch {
@@ -52,12 +55,18 @@ export function NewsletterSignup({
 				setTimeout(() => setFormState('idle'), 3000)
 			}
 		},
-		[setDidSubmit, formState]
+		[setNewsletterSignupStatus, formState]
 	)
+
+	if (!isLoaded) return null
 
 	// If the user has already submitted the form, we don't show it anymore,
 	// unless we're both in development mode AND the debug flag is enabled.
-	if (hideAfterSubmit && didSubmit && !(DEBUGGING && process.env.NODE_ENV === 'development')) {
+	if (
+		hideAfterSubmit &&
+		newsletterSignupStatus === 'subscribed' &&
+		!(DEBUGGING && process.env.NODE_ENV === 'development')
+	) {
 		return null
 	}
 
