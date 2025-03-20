@@ -89,7 +89,7 @@
 	"action.toggle-focus-mode.menu": "حالت تمرکز",
 	"action.toggle-grid": "تغییر وضعیت خطوط راهنما",
 	"action.toggle-grid.menu": "نمایش خطوط راهنما",
-	"action.toggle-lock": "قفل‌کردن \/ بازکردن قفل",
+	"action.toggle-lock": "قفل‌کردن / بازکردن قفل",
 	"action.toggle-paste-at-cursor": "جابجایی در مکان نما را تغییر دهید",
 	"action.toggle-paste-at-cursor.menu": "در مکان نما جایگذاری کنید",
 	"action.toggle-reduce-motion": "تغییر وضعیت کاهش حرکت",
