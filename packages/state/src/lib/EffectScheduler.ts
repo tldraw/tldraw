@@ -287,9 +287,9 @@ export function react(
 }
 
 /**
- * The reactor is a user-friendly interface for starting and stopping an {@link state#EffectScheduler}.
+ * The reactor is a user-friendly interface for starting and stopping an `EffectScheduler`.
  *
- * Calling .start() will attach the scheduler and execute the effect immediately the first time it is called.
+ * Calling `.start()` will attach the scheduler and execute the effect immediately the first time it is called.
  *
  * If the reactor is stopped, calling `.start()` will re-attach the scheduler but will only execute the effect if any of its parents have changed since it was stopped.
  *
