@@ -4,6 +4,7 @@ import {
 	StyleProp,
 	TLDefaultColorStyle,
 	TLDefaultColorTheme,
+	useEditor,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { ReactElement, memo, useMemo, useRef } from 'react'
@@ -40,6 +41,7 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 		onHistoryMark,
 		theme,
 	} = props
+	const editor = useEditor()
 	const msg = useTranslation()
 
 	const rPointing = useRef(false)
@@ -64,6 +66,8 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 				(['TEXTAREA', 'INPUT'].includes(origActiveEl.nodeName) || origActiveEl.isContentEditable)
 			) {
 				origActiveEl.focus()
+			} else {
+				editor.getContainer().focus()
 			}
 			rPointingOriginalActiveElement.current = null
 		}
@@ -107,7 +111,7 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 			handleButtonPointerEnter,
 			handleButtonPointerUp,
 		}
-	}, [value, onHistoryMark, onValueChange, style])
+	}, [editor, value, onHistoryMark, onValueChange, style])
 
 	return (
 		<div data-testid={`style.${uiType}`} className={classNames('tlui-buttons__grid')}>
