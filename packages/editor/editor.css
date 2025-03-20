@@ -953,6 +953,15 @@ input,
 .tl-rich-text ol {
 	text-align: left;
 	margin: 0;
+	padding-left: 3.25ch;
+}
+
+.tl-rich-text ol:has(> li:nth-child(10)) {
+	padding-left: 4.25ch;
+}
+
+.tl-rich-text ol:has(> li:nth-child(100)) {
+	padding-left: 5.25ch;
 }
 
 .tl-rich-text h1,
