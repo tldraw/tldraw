@@ -30,7 +30,7 @@ const router: RouterType<IRequest, any, any> = Router()
 	// To enable blob storage for assets, we add a simple endpoint supporting PUT and GET requests
 	.put('/uploads/:id', async (req) => {
 		const id = (req.params as any).id as string
-		await storeAsset(id, req.raw)
+		await storeAsset(id, (await req.blob()).stream() as any)
 		return json({ ok: true })
 	})
 	.get('/uploads/:id', async (req) => {

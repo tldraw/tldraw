@@ -43,7 +43,7 @@ export function PeopleMenu({ displayUserWhenAlone, children }: PeopleMenuProps) 
 									backgroundColor: userColor,
 								}}
 							>
-								{userName === 'New User' ? '' : (userName[0] ?? '')}
+								{userName?.[0] ?? ''}
 							</div>
 						)}
 					</div>

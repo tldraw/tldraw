@@ -30,6 +30,9 @@ export class FocusManager {
 			editor.updateInstanceState({ isFocused: !!autoFocus })
 		}
 		this.updateContainerClass()
+
+		document.body.addEventListener('keydown', this.handleKeyDown.bind(this))
+		document.body.addEventListener('mousedown', this.handleMouseDown.bind(this))
 	}
 
 	/**
@@ -50,6 +53,19 @@ export class FocusManager {
 		} else {
 			container.classList.remove('tl-container__focused')
 		}
+		container.classList.add('tl-container__no-focus-ring')
+	}
+
+	private handleKeyDown(keyEvent: KeyboardEvent) {
+		const container = this.editor.getContainer()
+		if (keyEvent.key === 'Tab') {
+			container.classList.remove('tl-container__no-focus-ring')
+		}
+	}
+
+	private handleMouseDown() {
+		const container = this.editor.getContainer()
+		container.classList.add('tl-container__no-focus-ring')
 	}
 
 	focus() {
@@ -62,6 +78,8 @@ export class FocusManager {
 	}
 
 	dispose() {
+		document.body.removeEventListener('keydown', this.handleKeyDown.bind(this))
+		document.body.removeEventListener('mousedown', this.handleMouseDown.bind(this))
 		this.disposeSideEffectListener?.()
 	}
 }

@@ -116,6 +116,11 @@ function Results({ items, sendEvent }: { items: Hit<SearchEntry>[]; sendEvent: S
 						'[&_.ais-Highlight-nonHighlighted]:data-[active-item=true]:text-white'
 					)}
 					value={href}
+					onKeyDown={(e) => {
+						if (e.key === 'Enter') {
+							sendEvent('click', hit, 'Hit clicked via keyboard')
+						}
+					}}
 				>
 					<Link href={href} onClick={() => sendEvent('click', hit, 'Hit clicked')}>
 						<Highlight attribute="title" hit={hit} />

@@ -127,6 +127,7 @@ export type TLPostgresReplicatorRebootSource =
 
 export type TLPostgresReplicatorEvent =
 	| { type: 'reboot'; source: TLPostgresReplicatorRebootSource }
+	| { type: 'request_lsn_update' }
 	| { type: 'reboot_error' | 'register_user' | 'unregister_user' | 'get_file_record' }
 	| { type: 'reboot_duration'; duration: number }
 	| { type: 'rpm'; rpm: number }
@@ -137,6 +138,8 @@ export type TLUserDurableObjectEvent =
 			type:
 				| 'reboot'
 				| 'full_data_fetch'
+				| 'full_data_fetch_hard'
+				| 'found_snapshot'
 				| 'reboot_error'
 				| 'rate_limited'
 				| 'broadcast_message'
@@ -145,6 +148,7 @@ export type TLUserDurableObjectEvent =
 				| 'replication_event'
 				| 'connect_retry'
 				| 'user_do_abort'
+				| 'not_enough_history_for_fast_reboot'
 			id: string
 	  }
 	| { type: 'reboot_duration'; id: string; duration: number }

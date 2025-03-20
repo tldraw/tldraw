@@ -689,7 +689,7 @@ export function DefaultSelectionForeground({ bounds, rotation }: TLSelectionFore
 export const DefaultShapeIndicator: NamedExoticComponent<TLShapeIndicatorProps>;
 
 // @public (undocumented)
-export const DefaultShapeIndicators: NamedExoticComponent<object>;
+export const DefaultShapeIndicators: NamedExoticComponent<TLShapeIndicatorsProps>;
 
 // @public (undocumented)
 export function DefaultSnapIndicator({ className, line, zoom }: TLSnapIndicatorProps): JSX_2.Element;
@@ -755,6 +755,7 @@ export const defaultTldrawOptions: {
     readonly maxPages: 40;
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
+    readonly nonce: undefined;
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
 };
@@ -770,7 +771,7 @@ export const defaultUserPreferences: Readonly<{
     isSnapMode: false;
     isWrapMode: false;
     locale: "ar" | "bn" | "ca" | "cs" | "da" | "de" | "el" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "gu-in" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "km-kh" | "kn" | "ko-kr" | "ml" | "mr" | "ms" | "ne" | "nl" | "no" | "pa" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "ta" | "te" | "th" | "tl" | "tr" | "uk" | "ur" | "vi" | "zh-cn" | "zh-tw";
-    name: "New User";
+    name: "";
 }>;
 
 // @public
@@ -896,7 +897,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     crash(error: unknown): this;
     createAssets(assets: TLAsset[]): this;
     createBinding<B extends TLBinding = TLBinding>(partial: TLBindingCreate<B>): this;
-    createBindings(partials: TLBindingCreate[]): this;
+    createBindings<B extends TLBinding = TLBinding>(partials: TLBindingCreate<B>[]): this;
     createDeepLink(opts?: {
         param?: string;
         to?: TLDeepLink;
@@ -1437,7 +1438,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
     // (undocumented)
     readonly options: TldrawOptions;
-    packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
+    packShapes(shapes: TLShape[] | TLShapeId[], _gap?: number): this;
     pageToScreen(point: VecLike): Vec;
     pageToViewport(point: VecLike): Vec;
     popFocusedGroupId(): this;
@@ -1520,7 +1521,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): this;
     readonly snaps: SnapManager;
     squashToMark(markId: string): this;
-    stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap: number): this;
+    stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap?: number): this;
     startFollowingUser(userId: string): this;
     stopCameraAnimation(): this;
     stopFollowingUser(): this;
@@ -2103,6 +2104,8 @@ export class LocalIndexedDb {
     pending(): Promise<void>;
     // (undocumented)
     pruneSessions(): Promise<void>;
+    // (undocumented)
+    removeAssets(assetId: string[]): Promise<void>;
     // (undocumented)
     storeAsset(assetId: string, blob: File): Promise<void>;
     // (undocumented)
@@ -3263,6 +3266,7 @@ export interface TldrawOptions {
     readonly maxShapesPerPage: number;
     // (undocumented)
     readonly multiClickDurationMs: number;
+    readonly nonce: string | undefined;
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;
@@ -3947,6 +3951,12 @@ export interface TLShapeIndicatorProps {
     shapeId: TLShapeId;
     // (undocumented)
     userId?: string;
+}
+
+// @public (undocumented)
+export interface TLShapeIndicatorsProps {
+    hideAll?: boolean;
+    showAll?: boolean;
 }
 
 // @public
