@@ -30,7 +30,7 @@ function testCloneHandles(x: number, y: number, rotation: number) {
 		const handleInPageSpace = editor.getShapePageTransform(shape).applyToPoint(handle)
 		editor.select(shape.id)
 		editor.pointerMove(handleInPageSpace.x, handleInPageSpace.y)
-		expect(editor.inputs.currentPagePoint).toMatchObject({
+		expect(editor.inputs.currentPagePoint()).toMatchObject({
 			x: handleInPageSpace.x,
 			y: handleInPageSpace.y,
 		})

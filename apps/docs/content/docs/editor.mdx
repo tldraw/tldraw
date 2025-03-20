@@ -261,7 +261,7 @@ You could use this to e.g. prevent the current user from deleting shapes, but al
 
 The [Editor#inputs](?) object holds information about the user's current input state, including their cursor position (in page space _and_ screen space), which keys are pressed, what their multi-click state is, and whether they are dragging, pointing, pinching, and so on.
 
-Note that the modifier keys include a short delay after being released in order to prevent certain errors when modeling interactions. For example, when a user releases the "Shift" key, `editor.inputs.shiftKey` will remain `true` for another 100 milliseconds or so.
+Note that the modifier keys include a short delay after being released in order to prevent certain errors when modeling interactions. For example, when a user releases the "Shift" key, `editor.inputs.shiftKey()` will remain `true` for another 100 milliseconds or so.
 
 This property is stored as regular data. It is not reactive.
 

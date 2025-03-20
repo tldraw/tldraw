@@ -28,18 +28,20 @@ export class Dragging extends StateNode {
 
 	private update() {
 		const { initialCamera, editor } = this
-		const { currentScreenPoint, originScreenPoint } = editor.inputs
 
-		const delta = Vec.Sub(currentScreenPoint, originScreenPoint).div(editor.getZoomLevel())
+		const delta = Vec.Sub(
+			editor.inputs.currentScreenPoint(),
+			editor.inputs.originScreenPoint()
+		).div(editor.getZoomLevel())
 		if (delta.len2() === 0) return
 		editor.setCamera(initialCamera.clone().add(delta))
 	}
 
 	private complete() {
 		const { editor } = this
-		const { pointerVelocity } = editor.inputs
+		const pointerVelocity = editor.inputs.pointerVelocity()
 
-		const velocityAtPointerUp = Math.min(pointerVelocity.len(), 2)
+		const velocityAtPointerUp = Math.min(Vec.Len(pointerVelocity), 2)
 
 		if (velocityAtPointerUp > 0.1) {
 			this.editor.slideCamera({ speed: velocityAtPointerUp, direction: pointerVelocity })

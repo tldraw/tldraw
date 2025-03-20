@@ -32,9 +32,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 				// Weird route: selecting locked shapes on long press
 				if (editor.getInstanceState().isCoarsePointer) {
 					const selectedShapes = editor.getSelectedShapes()
-					const {
-						inputs: { currentPagePoint },
-					} = editor
+					const currentPagePoint = editor.inputs.currentPagePoint()
 
 					// get all of the shapes under the current pointer
 					const shapesAtPoint = editor.getShapesAtPoint(currentPagePoint)

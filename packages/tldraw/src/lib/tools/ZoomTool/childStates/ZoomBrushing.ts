@@ -29,9 +29,8 @@ export class ZoomBrushing extends StateNode {
 	}
 
 	private update() {
-		const {
-			inputs: { originPagePoint, currentPagePoint },
-		} = this.editor
+		const originPagePoint = this.editor.inputs.originPagePoint()
+		const currentPagePoint = this.editor.inputs.currentPagePoint()
 
 		this.zoomBrush.setTo(Box.FromPoints([originPagePoint, currentPagePoint]))
 		this.editor.updateInstanceState({ zoomBrush: this.zoomBrush.toJson() })
@@ -46,14 +45,14 @@ export class ZoomBrushing extends StateNode {
 		const threshold = 8 / this.editor.getZoomLevel()
 		// If the selected area is small then treat it as a click
 		if (zoomBrush.width < threshold && zoomBrush.height < threshold) {
-			const point = this.editor.inputs.currentScreenPoint
-			if (this.editor.inputs.altKey) {
+			const point = this.editor.inputs.currentScreenPoint()
+			if (this.editor.inputs.altKey()) {
 				this.editor.zoomOut(point, { animation: { duration: 220 } })
 			} else {
 				this.editor.zoomIn(point, { animation: { duration: 220 } })
 			}
 		} else {
-			const targetZoom = this.editor.inputs.altKey ? this.editor.getZoomLevel() / 2 : undefined
+			const targetZoom = this.editor.inputs.altKey() ? this.editor.getZoomLevel() / 2 : undefined
 			this.editor.zoomToBounds(zoomBrush, { targetZoom, animation: { duration: 220 } })
 		}
 

@@ -31,7 +31,7 @@ export class Lasering extends StateNode {
 	}
 
 	private pushPointToScribble() {
-		const { x, y } = this.editor.inputs.currentPagePoint
+		const { x, y } = this.editor.inputs.currentPagePoint()
 		this.editor.scribbles.addPoint(this.scribbleId, x, y)
 	}
 

@@ -5,7 +5,7 @@ export function selectOnCanvasPointerUp(
 	info: TLPointerEventInfo | TLClickEventInfo
 ) {
 	const selectedShapeIds = editor.getSelectedShapeIds()
-	const { currentPagePoint } = editor.inputs
+	const currentPagePoint = editor.inputs.currentPagePoint()
 	const { shiftKey, altKey, accelKey } = info
 	const additiveSelectionKey = shiftKey || accelKey
 

@@ -11,7 +11,7 @@ export class Pointing extends StateNode {
 		this.markId = ''
 		this.didTimeout = false
 
-		const target = this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
+		const target = this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint(), {
 			filter: (targetShape) => {
 				return (
 					!targetShape.isLocked &&
@@ -39,7 +39,7 @@ export class Pointing extends StateNode {
 	}
 
 	override onPointerMove() {
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.isDragging()) {
 			if (!this.shape) {
 				this.createArrowShape()
 			}
@@ -85,7 +85,7 @@ export class Pointing extends StateNode {
 	}
 
 	createArrowShape() {
-		const { originPagePoint } = this.editor.inputs
+		const originPagePoint = this.editor.inputs.originPagePoint()
 
 		const id = createShapeId()
 
@@ -152,7 +152,7 @@ export class Pointing extends StateNode {
 		{
 			const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
 			const initial = this.shape
-			const point = this.editor.getPointInShapeSpace(shape, this.editor.inputs.currentPagePoint)
+			const point = this.editor.getPointInShapeSpace(shape, this.editor.inputs.currentPagePoint())
 			const endHandle = handles.find((h) => h.id === 'end')!
 			const change = util.onHandleDrag?.(this.editor.getShape(shape)!, {
 				handle: { ...endHandle, x: point.x, y: point.y },

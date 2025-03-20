@@ -8,6 +8,7 @@
 
 import { Atom } from '@tldraw/state';
 import { atom } from '@tldraw/state';
+import { AtomSet } from '@tldraw/store';
 import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
@@ -909,28 +910,7 @@ export class Editor extends EventEmitter<TLEventMap> {
             activeStateNode: string;
             collaboratorCount: number;
             editingShape: TLUnknownShape | undefined;
-            inputs: {
-                buttons: Set<number>;
-                keys: Set<string>;
-                originScreenPoint: Vec;
-                originPagePoint: Vec;
-                currentScreenPoint: Vec;
-                currentPagePoint: Vec;
-                previousScreenPoint: Vec;
-                previousPagePoint: Vec;
-                pointerVelocity: Vec;
-                altKey: boolean;
-                ctrlKey: boolean;
-                isPen: boolean;
-                metaKey: boolean;
-                shiftKey: boolean;
-                isDragging: boolean;
-                isEditing: boolean;
-                isPanning: boolean;
-                isPinching: boolean;
-                isPointing: boolean;
-                isSpacebarPanning: boolean;
-            };
+            inputs: InputManager;
             instanceState: TLInstance;
             pageState: TLInstancePageState;
             selectedShapes: ({
@@ -1376,28 +1356,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     protected readonly history: HistoryManager<TLRecord>;
     // (undocumented)
     readonly id: string;
-    inputs: {
-        buttons: Set<number>;
-        keys: Set<string>;
-        originScreenPoint: Vec;
-        originPagePoint: Vec;
-        currentScreenPoint: Vec;
-        currentPagePoint: Vec;
-        previousScreenPoint: Vec;
-        previousPagePoint: Vec;
-        pointerVelocity: Vec;
-        altKey: boolean;
-        ctrlKey: boolean;
-        isPen: boolean;
-        metaKey: boolean;
-        shiftKey: boolean;
-        isDragging: boolean;
-        isEditing: boolean;
-        isPanning: boolean;
-        isPinching: boolean;
-        isPointing: boolean;
-        isSpacebarPanning: boolean;
-    };
+    inputs: InputManager;
     interrupt(): this;
     isAncestorSelected(shape: TLShape | TLShapeId): boolean;
     isDisposed: boolean;
@@ -1459,7 +1418,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }> : TLExternalContent<E>) => void) | null): this;
     renamePage(page: TLPage | TLPageId, name: string): this;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
-    resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
+    resetZoom(point?: VecLike, opts?: TLCameraMoveOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, opts?: TLResizeShapeOptions): this;
     // (undocumented)
     resolveAssetsInContent(content: TLContent | undefined): Promise<TLContent | undefined>;
@@ -1534,6 +1493,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly textMeasure: TextManager;
     // (undocumented)
     _tickCameraState(): void;
+    // @internal (undocumented)
+    readonly tickManager: TickManager;
     readonly timers: {
         dispose: () => void;
         requestAnimationFrame: (callback: FrameRequestCallback) => number;
@@ -1576,8 +1537,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     }>;
     readonly user: UserPreferencesManager;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
-    zoomIn(point?: Vec, opts?: TLCameraMoveOptions): this;
-    zoomOut(point?: Vec, opts?: TLCameraMoveOptions): this;
+    zoomIn(point?: VecLike, opts?: TLCameraMoveOptions): this;
+    zoomOut(point?: VecLike, opts?: TLCameraMoveOptions): this;
     zoomToBounds(bounds: BoxLike, opts?: {
         inset?: number;
         targetZoom?: number;
@@ -1985,6 +1946,54 @@ export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
 // @public (undocumented)
 export const inlineBase64AssetStore: TLAssetStore;
 
+// @public (undocumented)
+export class InputManager {
+    constructor(editor: Editor);
+    accelKey(): boolean;
+    altKey(): boolean;
+    buttons: AtomSet<number>;
+    ctrlKey(): boolean;
+    currentPagePoint(): ReadonlyVec;
+    currentScreenPoint(): ReadonlyVec;
+    isDragging(): boolean;
+    isEditing(): boolean;
+    isPanning(): boolean;
+    isPen(): boolean;
+    isPinching(): boolean;
+    isPointing(): boolean;
+    isSpacebarPanning(): boolean;
+    readonly keys: AtomSet<string>;
+    metaKey(): boolean;
+    originPagePoint(): ReadonlyVec;
+    originScreenPoint(): ReadonlyVec;
+    pointerVelocity(): ReadonlyVec;
+    previousPagePoint(): ReadonlyVec;
+    previousScreenPoint(): ReadonlyVec;
+    // @internal (undocumented)
+    setAltKey(altKey: boolean): void;
+    // @internal (undocumented)
+    setCtrlKey(ctrlKey: boolean): void;
+    // @internal (undocumented)
+    setIsDragging(isDragging: boolean): void;
+    // @internal (undocumented)
+    setIsPanning(isPanning: boolean): void;
+    // @internal (undocumented)
+    setIsPinching(isPinching: boolean): void;
+    // @internal (undocumented)
+    setIsPointing(isPointing: boolean): void;
+    // @internal (undocumented)
+    setIsSpacebarPanning(isSpacebarPanning: boolean): void;
+    // @internal (undocumented)
+    setMetaKey(metaKey: boolean): void;
+    // @internal (undocumented)
+    setPointerVelocity(pointerVelocity: ReadonlyVec): void;
+    // @internal (undocumented)
+    setShiftKey(shiftKey: boolean): void;
+    shiftKey(): boolean;
+    // @internal
+    updateFromEvent(info: TLPinchEventInfo | TLPointerEventInfo | TLWheelEventInfo): void;
+}
+
 // @public
 export function intersectCircleCircle(c1: VecLike, r1: number, c2: VecLike, r2: number): Vec[];
 
@@ -2254,7 +2263,7 @@ export interface MatModel {
 }
 
 // @public
-export function maybeSnapToGrid(point: Vec, editor: Editor): Vec;
+export function maybeSnapToGrid(point: VecLike, editor: Editor): Vec;
 
 // @public
 export function MenuClickCapture(): false | JSX_2.Element;
@@ -2391,6 +2400,16 @@ export class ReadonlySharedStyleMap {
     get size(): number;
     // (undocumented)
     values(): IterableIterator<SharedStyle<unknown>>;
+}
+
+// @public (undocumented)
+export interface ReadonlyVec {
+    // (undocumented)
+    readonly x: number;
+    // (undocumented)
+    readonly y: number;
+    // (undocumented)
+    readonly z?: number;
 }
 
 // @public (undocumented)
@@ -2902,6 +2921,27 @@ export class TextManager {
         box: BoxModel;
         text: string;
     }[];
+}
+
+// @internal (undocumented)
+export class TickManager {
+    constructor(editor: Editor);
+    // (undocumented)
+    cancelRaf?: (() => void) | null;
+    // (undocumented)
+    dispose(): void;
+    // (undocumented)
+    editor: Editor;
+    // (undocumented)
+    isPaused: boolean;
+    // (undocumented)
+    now: number;
+    // (undocumented)
+    start(): void;
+    // (undocumented)
+    tick(): void;
+    // (undocumented)
+    updatePointerVelocity(elapsed: number): void;
 }
 
 // @public

@@ -12,9 +12,7 @@ export class Pointing extends StateNode {
 	override onEnter() {
 		const zoomLevel = this.editor.getZoomLevel()
 		const currentPageShapesSorted = this.editor.getCurrentPageRenderingShapesSorted()
-		const {
-			inputs: { currentPagePoint },
-		} = this.editor
+		const currentPagePoint = this.editor.inputs.currentPagePoint()
 
 		const erasing = new Set<TLShapeId>()
 
@@ -62,7 +60,7 @@ export class Pointing extends StateNode {
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.isDragging()) {
 			this.startErasing(info)
 		}
 	}

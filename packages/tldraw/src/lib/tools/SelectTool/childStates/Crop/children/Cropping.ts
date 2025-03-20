@@ -62,8 +62,8 @@ export class Cropping extends StateNode {
 		const util = this.editor.getShapeUtil<ShapeWithCrop>(shape.type)
 		if (!util) return
 
-		const currentPagePoint = this.editor.inputs.currentPagePoint.clone().sub(cursorHandleOffset)
-		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
+		const currentPagePoint = Vec.Sub(this.editor.inputs.currentPagePoint(), cursorHandleOffset)
+		const originPagePoint = Vec.Sub(this.editor.inputs.originPagePoint(), cursorHandleOffset)
 
 		const change = currentPagePoint.clone().sub(originPagePoint).rot(-shape.rotation)
 
@@ -116,9 +116,7 @@ export class Cropping extends StateNode {
 
 	private createSnapshot() {
 		const selectionRotation = this.editor.getSelectionRotation()
-		const {
-			inputs: { originPagePoint },
-		} = this.editor
+		const originPagePoint = this.editor.inputs.originPagePoint()
 
 		const shape = this.editor.getOnlySelectedShape() as ShapeWithCrop
 

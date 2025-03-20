@@ -238,7 +238,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const otherHandleId = handleId === ARROW_HANDLES.START ? ARROW_HANDLES.END : ARROW_HANDLES.START
 		const otherBinding = bindings[otherHandleId]
 
-		if (this.editor.inputs.ctrlKey) {
+		if (this.editor.inputs.ctrlKey()) {
 			// todo: maybe double check that this isn't equal to the other handle too?
 			// Skip binding
 			removeArrowBinding(this.editor, shape, handleId)
@@ -288,7 +288,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		if (!precise) {
 			// If we're switching to a new bound shape, then precise only if moving slowly
 			if (!currentBinding || (currentBinding && target.id !== currentBinding.toId)) {
-				precise = this.editor.inputs.pointerVelocity.len() < 0.5
+				precise = Vec.Len(this.editor.inputs.pointerVelocity()) < 0.5
 			}
 		}
 
@@ -327,7 +327,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			terminal: handleId,
 			normalizedAnchor,
 			isPrecise: precise,
-			isExact: this.editor.inputs.altKey,
+			isExact: this.editor.inputs.altKey(),
 		}
 
 		createOrUpdateArrowBinding(this.editor, shape, target.id, b)

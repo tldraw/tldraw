@@ -31,7 +31,7 @@ it('requires a move to begin drawing', () => {
 	editor.pointerMove(0, 0)
 	editor.pointerDown()
 	editor.pointerMove(2, 0)
-	expect(editor.inputs.isDragging).toBe(false)
+	expect(editor.inputs.isDragging()).toBe(false)
 })
 
 describe('Making an arrow on the page', () => {

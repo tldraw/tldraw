@@ -88,7 +88,7 @@ export function useKeyboardShortcuts() {
 
 			editor.inputs.keys.add('Comma')
 
-			const { x, y, z } = editor.inputs.currentPagePoint
+			const { x, y, z } = editor.inputs.currentPagePoint()
 			const screenpoints = editor.pageToScreen({ x, y })
 
 			const info: TLPointerEventInfo = {
@@ -115,7 +115,7 @@ export function useKeyboardShortcuts() {
 
 			editor.inputs.keys.delete('Comma')
 
-			const { x, y, z } = editor.inputs.currentScreenPoint
+			const { x, y, z } = editor.inputs.currentScreenPoint()
 			const info: TLPointerEventInfo = {
 				type: 'pointer',
 				name: 'pointer_up',

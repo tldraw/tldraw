@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Vec, useEditor, usePrefersReducedMotion } from 'tldraw'
+import { Vec, VecLike, useEditor, usePrefersReducedMotion } from 'tldraw'
 
 const MAX_GUST_SPEED = 2
 const GUST_ROTATION_DURATION = 30_000
@@ -82,7 +82,7 @@ class Snowstorm {
 	}
 
 	// Main render loop
-	render(screenPoint: Vec, pointerVelocity: Vec, time: number) {
+	render(screenPoint: VecLike, pointerVelocity: VecLike, time: number) {
 		if (!this.active) return
 
 		const q = Math.sin(time / GUST_ROTATION_DURATION)
@@ -90,7 +90,7 @@ class Snowstorm {
 		// make wind gradually cycle between 0 and 10, maybe a bit randomly, like gusts of wind
 		this.baseWindX = q * MAX_GUST_SPEED
 
-		const pointerLen = pointerVelocity.len2()
+		const pointerLen = Vec.Len2(pointerVelocity)
 
 		for (const flake of this.flakes) {
 			const dist2 = Vec.Dist2(screenPoint, new Vec(flake.x, flake.y))
@@ -217,7 +217,7 @@ export function SnowStorm() {
 			}
 
 			camera.setTo(newCamera)
-			snowstorm.render(editor.inputs.currentScreenPoint, editor.inputs.pointerVelocity, time)
+			snowstorm.render(editor.inputs.currentScreenPoint(), editor.inputs.pointerVelocity(), time)
 		}
 
 		snowstorm.start()

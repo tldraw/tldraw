@@ -24,7 +24,7 @@ class IdleState extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
-				const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint)
+				const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint())
 
 				if (hitShape) {
 					this.onPointerDown({
@@ -39,7 +39,7 @@ class IdleState extends StateNode {
 				break
 			}
 			case 'shape': {
-				if (editor.inputs.shiftKey) {
+				if (editor.inputs.shiftKey()) {
 					editor.select(...editor.getSelectedShapeIds(), info.shape.id)
 				} else {
 					if (!editor.getSelectedShapeIds().includes(info.shape.id)) {
@@ -59,7 +59,7 @@ class IdleState extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
-				const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint)
+				const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint())
 
 				if (hitShape) {
 					this.onDoubleClick({
@@ -69,7 +69,7 @@ class IdleState extends StateNode {
 					})
 					return
 				}
-				const { currentPagePoint } = editor.inputs
+				const currentPagePoint = editor.inputs.currentPagePoint()
 				editor.createShapes([
 					{
 						id: createShapeId(),
@@ -101,7 +101,7 @@ class PointingState extends StateNode {
 	}
 	//[b]
 	override onPointerMove() {
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.isDragging()) {
 			this.parent.transition('dragging', { shapes: [...this.editor.getSelectedShapes()] })
 		}
 	}
@@ -123,7 +123,8 @@ class DraggingState extends StateNode {
 	//[d]
 	override onPointerMove() {
 		const { initialDraggingShapes } = this
-		const { originPagePoint, currentPagePoint } = this.editor.inputs
+		const originPagePoint = this.editor.inputs.originPagePoint()
+		const currentPagePoint = this.editor.inputs.currentPagePoint()
 
 		this.editor.updateShapes(
 			initialDraggingShapes.map((shape) => {

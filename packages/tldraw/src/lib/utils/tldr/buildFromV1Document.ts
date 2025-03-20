@@ -523,7 +523,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 					const util = editor.getShapeUtil<TLArrowShape>('arrow')
 
 					// dumb but necessary
-					editor.inputs.ctrlKey = false
+					editor.inputs.setCtrlKey(false)
 
 					for (const handleId of ['start', 'end'] as const) {
 						const bindingId = v1Shape.handles[handleId].bindingId

@@ -1,4 +1,5 @@
 import {
+	ReadonlyVec,
 	StateNode,
 	TLArrowShape,
 	TLHandle,
@@ -28,7 +29,7 @@ export class DraggingHandle extends StateNode {
 	shapeId = '' as TLShapeId
 	initialHandle = {} as TLHandle
 	initialAdjacentHandle = null as TLHandle | null
-	initialPagePoint = {} as Vec
+	initialPagePoint: ReadonlyVec = { x: 0, y: 0 }
 
 	markId = ''
 	initialPageTransform: any
@@ -87,7 +88,7 @@ export class DraggingHandle extends StateNode {
 
 		this.initialPageTransform = this.editor.getShapePageTransform(shape)!
 		this.initialPageRotation = this.initialPageTransform.rotation()
-		this.initialPagePoint = this.editor.inputs.originPagePoint.clone()
+		this.initialPagePoint = this.editor.inputs.originPagePoint()
 
 		this.editor.setCursor({ type: isCreating ? 'cross' : 'grabbing', rotation: 0 })
 
@@ -238,10 +239,6 @@ export class DraggingHandle extends StateNode {
 		const { initialHandle, initialPageRotation, initialAdjacentHandle } = this
 		const hintingShapeIds = this.editor.getHintingShapeIds()
 		const isSnapMode = this.editor.user.getIsSnapMode()
-		const {
-			snaps,
-			inputs: { currentPagePoint, shiftKey, ctrlKey, altKey, pointerVelocity },
-		} = editor
 
 		const initial = this.info.shape
 
@@ -249,13 +246,11 @@ export class DraggingHandle extends StateNode {
 		if (!shape) return
 		const util = editor.getShapeUtil(shape)
 
-		let point = currentPagePoint
-			.clone()
-			.sub(initialPagePoint)
+		let point = Vec.Sub(editor.inputs.currentPagePoint(), initialPagePoint)
 			.rot(-initialPageRotation)
 			.add(initialHandle)
 
-		if (shiftKey && initialAdjacentHandle && initialHandle.id !== 'middle') {
+		if (editor.inputs.shiftKey() && initialAdjacentHandle && initialHandle.id !== 'middle') {
 			const angle = Vec.Angle(initialAdjacentHandle, point)
 			const snappedAngle = snapAngle(angle, 24)
 			const angleDifference = snappedAngle - angle
@@ -267,12 +262,15 @@ export class DraggingHandle extends StateNode {
 
 		let nextHandle = { ...initialHandle, x: point.x, y: point.y }
 
-		if (initialHandle.canSnap && (isSnapMode ? !ctrlKey : ctrlKey)) {
+		if (
+			initialHandle.canSnap &&
+			(isSnapMode ? !editor.inputs.ctrlKey() : editor.inputs.ctrlKey())
+		) {
 			// We're snapping
 			const pageTransform = editor.getShapePageTransform(shape.id)
 			if (!pageTransform) throw Error('Expected a page transform')
 
-			const snap = snaps.handles.snapHandle({ currentShapeId: shapeId, handle: nextHandle })
+			const snap = editor.snaps.handles.snapHandle({ currentShapeId: shapeId, handle: nextHandle })
 
 			if (snap) {
 				snap.nudge.rot(-editor.getShapeParentTransform(shape)!.rotation())
@@ -283,7 +281,7 @@ export class DraggingHandle extends StateNode {
 
 		const changes = util.onHandleDrag?.(shape, {
 			handle: nextHandle,
-			isPrecise: this.isPrecise || altKey,
+			isPrecise: this.isPrecise || editor.inputs.altKey(),
 			initial: initial,
 		})
 
@@ -300,7 +298,7 @@ export class DraggingHandle extends StateNode {
 				if (hintingShapeIds[0] !== bindingAfter.toId) {
 					editor.setHintingShapes([bindingAfter.toId])
 					this.pointingId = bindingAfter.toId
-					this.isPrecise = pointerVelocity.len() < 0.5 || altKey
+					this.isPrecise = Vec.Len(editor.inputs.pointerVelocity()) < 0.5 || editor.inputs.altKey()
 					this.isPreciseId = this.isPrecise ? bindingAfter.toId : null
 					this.resetExactTimeout()
 				}

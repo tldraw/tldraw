@@ -4,6 +4,7 @@ import {
 	TLShapeId,
 	TLTextShape,
 	Vec,
+	VecLike,
 	createShapeId,
 	isShapeId,
 	maybeSnapToGrid,
@@ -37,11 +38,11 @@ export class Pointing extends StateNode {
 		if (Date.now() - this.enterTime < 150) return
 
 		const { editor } = this
-		const { isPointing } = editor.inputs
 
-		if (!isPointing) return
+		if (!editor.inputs.isPointing()) return
 
-		const { originPagePoint, currentPagePoint } = editor.inputs
+		const originPagePoint = editor.inputs.originPagePoint()
+		const currentPagePoint = editor.inputs.currentPagePoint()
 
 		const currentDragDist = Math.abs(originPagePoint.x - currentPagePoint.x)
 
@@ -107,7 +108,7 @@ export class Pointing extends StateNode {
 	private complete() {
 		this.editor.markHistoryStoppingPoint('creating text shape')
 		const id = createShapeId()
-		const { originPagePoint } = this.editor.inputs
+		const originPagePoint = this.editor.inputs.originPagePoint()
 		const shape = this.createTextShape(id, originPagePoint, true, 20)
 		if (!shape) return
 
@@ -121,7 +122,7 @@ export class Pointing extends StateNode {
 		this.editor.bailToMark(this.markId)
 	}
 
-	private createTextShape(id: TLShapeId, point: Vec, autoSize: boolean, width: number) {
+	private createTextShape(id: TLShapeId, point: VecLike, autoSize: boolean, width: number) {
 		this.editor.createShape<TLTextShape>({
 			id,
 			type: 'text',

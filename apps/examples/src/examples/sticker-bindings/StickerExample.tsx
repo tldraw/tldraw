@@ -180,7 +180,7 @@ class StickerTool extends StateNode {
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
-		const { currentPagePoint } = this.editor.inputs
+		const currentPagePoint = this.editor.inputs.currentPagePoint()
 		const stickerId = createShapeId()
 		this.editor.markHistoryStoppingPoint()
 		this.editor.createShape({

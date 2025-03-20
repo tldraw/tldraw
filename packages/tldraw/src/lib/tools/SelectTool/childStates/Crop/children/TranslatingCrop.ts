@@ -1,4 +1,10 @@
-import { ShapeWithCrop, StateNode, TLKeyboardEventInfo, TLPointerEventInfo } from '@tldraw/editor'
+import {
+	ShapeWithCrop,
+	StateNode,
+	TLKeyboardEventInfo,
+	TLPointerEventInfo,
+	Vec,
+} from '@tldraw/editor'
 import { getTranslateCroppedImageChange } from './crop_helpers'
 
 type Snapshot = ReturnType<TranslatingCrop['createSnapshot']>
@@ -94,8 +100,10 @@ export class TranslatingCrop extends StateNode {
 
 		if (!shape) return
 
-		const { originPagePoint, currentPagePoint } = this.editor.inputs
-		const delta = currentPagePoint.clone().sub(originPagePoint)
+		const delta = Vec.Sub(
+			this.editor.inputs.currentPagePoint(),
+			this.editor.inputs.originPagePoint()
+		)
 		const partial = getTranslateCroppedImageChange(this.editor, shape, delta)
 
 		if (partial) {

@@ -180,6 +180,7 @@ export {
 	type TLFontFaceSource,
 } from './lib/editor/managers/FontManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager'
+export { InputManager } from './lib/editor/managers/InputManager'
 export { ScribbleManager, type ScribbleItem } from './lib/editor/managers/ScribbleManager'
 export {
 	BoundsSnaps,
@@ -195,6 +196,7 @@ export {
 	type SnapIndicator,
 } from './lib/editor/managers/SnapManager/SnapManager'
 export { TextManager, type TLMeasureTextSpanOpts } from './lib/editor/managers/TextManager'
+export { TickManager } from './lib/editor/managers/TickManager'
 export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesManager'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
 export {
@@ -352,7 +354,7 @@ export {
 	type SelectionHandle,
 } from './lib/primitives/Box'
 export { Mat, type MatLike, type MatModel } from './lib/primitives/Mat'
-export { Vec, type VecLike } from './lib/primitives/Vec'
+export { Vec, type ReadonlyVec, type VecLike } from './lib/primitives/Vec'
 export { EASINGS } from './lib/primitives/easings'
 export { Arc2d } from './lib/primitives/geometry/Arc2d'
 export { Circle2d } from './lib/primitives/geometry/Circle2d'

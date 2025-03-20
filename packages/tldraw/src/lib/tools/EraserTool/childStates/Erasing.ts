@@ -19,7 +19,7 @@ export class Erasing extends StateNode {
 		this.markId = this.editor.markHistoryStoppingPoint('erase scribble begin')
 		this.info = info
 
-		const { originPagePoint } = this.editor.inputs
+		const originPagePoint = this.editor.inputs.originPagePoint()
 		this.excludedShapeIds = new Set(
 			this.editor
 				.getCurrentPageShapes()
@@ -51,7 +51,7 @@ export class Erasing extends StateNode {
 	}
 
 	private pushPointToScribble() {
-		const { x, y } = this.editor.inputs.currentPagePoint
+		const { x, y } = this.editor.inputs.currentPagePoint()
 		this.editor.scribbles.addPoint(this.scribbleId, x, y)
 	}
 
@@ -81,9 +81,8 @@ export class Erasing extends StateNode {
 		const erasingShapeIds = editor.getErasingShapeIds()
 		const zoomLevel = editor.getZoomLevel()
 		const currentPageShapes = editor.getCurrentPageRenderingShapesSorted()
-		const {
-			inputs: { currentPagePoint, previousPagePoint },
-		} = editor
+		const currentPagePoint = editor.inputs.currentPagePoint()
+		const previousPagePoint = editor.inputs.previousPagePoint()
 
 		this.pushPointToScribble()
 

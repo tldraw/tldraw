@@ -12,6 +12,7 @@ import {
 	TLShapeId,
 	TLTickEventInfo,
 	Vec,
+	VecLike,
 	pointInPolygon,
 	polygonsIntersect,
 } from '@tldraw/editor'
@@ -29,11 +30,11 @@ export class Brushing extends StateNode {
 	initialStartShape: TLShape | null = null
 
 	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
-		const { altKey, currentPagePoint } = this.editor.inputs
+		const currentPagePoint = this.editor.inputs.currentPagePoint()
 
 		this.isWrapMode = this.editor.user.getIsWrapMode()
 
-		if (altKey) {
+		if (this.editor.inputs.altKey()) {
 			this.parent.transition('scribble_brushing', info)
 			return
 		}
@@ -83,7 +84,7 @@ export class Brushing extends StateNode {
 	}
 
 	override onKeyDown(info: TLKeyboardEventInfo) {
-		if (this.editor.inputs.altKey) {
+		if (this.editor.inputs.altKey()) {
 			this.parent.transition('scribble_brushing', info)
 		} else {
 			this.hitTestShapes()
@@ -101,15 +102,14 @@ export class Brushing extends StateNode {
 
 	private hitTestShapes() {
 		const { editor, excludedShapeIds, isWrapMode } = this
-		const {
-			inputs: { originPagePoint, currentPagePoint, shiftKey, ctrlKey },
-		} = editor
+		const originPagePoint = editor.inputs.originPagePoint()
+		const currentPagePoint = editor.inputs.currentPagePoint()
 
 		// We'll be collecting shape ids of selected shapes; if we're holding shift key, we start from our initial shapes
-		const results = new Set(shiftKey ? this.initialSelectedShapeIds : [])
+		const results = new Set(editor.inputs.shiftKey() ? this.initialSelectedShapeIds : [])
 
 		// In wrap mode, we need to completely enclose a shape to select it
-		const isWrapping = isWrapMode ? !ctrlKey : ctrlKey
+		const isWrapping = isWrapMode ? !editor.inputs.ctrlKey() : editor.inputs.ctrlKey()
 
 		// Set the brush to contain the current and origin points
 		const brush = Box.FromPoints([originPagePoint, currentPagePoint])
@@ -184,7 +184,7 @@ export class Brushing extends StateNode {
 
 	private handleHit(
 		shape: TLShape,
-		currentPagePoint: Vec,
+		currentPagePoint: VecLike,
 		currentPageId: TLPageId,
 		results: Set<TLShapeId>,
 		corners: Vec[]

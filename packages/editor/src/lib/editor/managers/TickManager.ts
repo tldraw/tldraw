@@ -1,5 +1,5 @@
 import { throttleToNextFrame as _throttleToNextFrame, bind } from '@tldraw/utils'
-import { Vec } from '../../primitives/Vec'
+import { ReadonlyVec, Vec } from '../../primitives/Vec'
 import { Editor } from '../Editor'
 
 const throttleToNextFrame =
@@ -13,6 +13,7 @@ const throttleToNextFrame =
 			}
 		: _throttleToNextFrame
 
+/** @internal */
 export class TickManager {
 	constructor(public editor: Editor) {
 		this.editor.disposables.add(this.dispose)
@@ -54,33 +55,30 @@ export class TickManager {
 		this.cancelRaf?.()
 	}
 
-	private prevPoint = new Vec()
+	private prevPoint: ReadonlyVec = { x: 0, y: 0 }
 
 	updatePointerVelocity(elapsed: number) {
-		const {
-			prevPoint,
-			editor: {
-				inputs: { currentScreenPoint, pointerVelocity },
-			},
-		} = this
+		const prevPoint = this.prevPoint
+		const currentScreenPoint = this.editor.inputs.currentScreenPoint()
+		const pointerVelocity = this.editor.inputs.pointerVelocity()
 
 		if (elapsed === 0) return
 
 		const delta = Vec.Sub(currentScreenPoint, prevPoint)
-		this.prevPoint = currentScreenPoint.clone()
+		this.prevPoint = currentScreenPoint
 
 		const length = delta.len()
 		const direction = length ? delta.div(length) : new Vec(0, 0)
 
 		// consider adjusting this with an easing rather than a linear interpolation
-		const next = pointerVelocity.clone().lrp(direction.mul(length / elapsed), 0.5)
+		const next = Vec.Lrp(pointerVelocity, direction.mul(length / elapsed), 0.5)
 
 		// if the velocity is very small, just set it to 0
 		if (Math.abs(next.x) < 0.01) next.x = 0
 		if (Math.abs(next.y) < 0.01) next.y = 0
 
-		if (!pointerVelocity.equals(next)) {
-			this.editor.inputs.pointerVelocity = next
+		if (!Vec.Equals(pointerVelocity, next)) {
+			this.editor.inputs.setPointerVelocity({ x: next.x, y: next.y })
 		}
 	}
 }

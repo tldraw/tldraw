@@ -69,9 +69,7 @@ export class Idle extends StateNode {
 
 				const selectedShapeIds = this.editor.getSelectedShapeIds()
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
-				const {
-					inputs: { currentPagePoint },
-				} = this.editor
+				const currentPagePoint = this.editor.inputs.currentPagePoint()
 
 				if (
 					selectedShapeIds.length > 1 ||
@@ -110,7 +108,7 @@ export class Idle extends StateNode {
 			}
 			case 'handle': {
 				if (this.editor.getIsReadonly()) break
-				if (this.editor.inputs.altKey) {
+				if (this.editor.inputs.altKey()) {
 					this.parent.transition('pointing_shape', info)
 				} else {
 					// If we're holding ctrl key, we might select it, or start brushing...
@@ -175,7 +173,7 @@ export class Idle extends StateNode {
 	}
 
 	override onDoubleClick(info: TLClickEventInfo) {
-		if (this.editor.inputs.shiftKey || info.phase !== 'up') return
+		if (this.editor.inputs.shiftKey() || info.phase !== 'up') return
 
 		// We don't want to double click while toggling shapes
 		if (info.ctrlKey || info.shiftKey) return
@@ -194,8 +192,8 @@ export class Idle extends StateNode {
 				const hitShape =
 					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
 						? hoveredShape
-						: (this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
-							this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
+						: (this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint()) ??
+							this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint(), {
 								margin: this.editor.options.hitTestMargin / this.editor.getZoomLevel(),
 								hitInside: false,
 							}))
@@ -236,7 +234,7 @@ export class Idle extends StateNode {
 					return
 				}
 
-				if (!this.editor.inputs.shiftKey) {
+				if (!this.editor.inputs.shiftKey()) {
 					this.handleDoubleClickOnCanvas(info)
 				}
 				break
@@ -346,7 +344,7 @@ export class Idle extends StateNode {
 				const hitShape =
 					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
 						? hoveredShape
-						: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
+						: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint(), {
 								margin: this.editor.options.hitTestMargin / this.editor.getZoomLevel(),
 								hitInside: false,
 								hitLabels: true,
@@ -366,9 +364,7 @@ export class Idle extends StateNode {
 
 				const selectedShapeIds = this.editor.getSelectedShapeIds()
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
-				const {
-					inputs: { currentPagePoint },
-				} = this.editor
+				const currentPagePoint = this.editor.inputs.currentPagePoint()
 
 				if (
 					selectedShapeIds.length > 1 ||
@@ -538,7 +534,7 @@ export class Idle extends StateNode {
 
 		const pointInShapeSpace = this.editor.getPointInShapeSpace(
 			shape,
-			this.editor.inputs.currentPagePoint
+			this.editor.inputs.currentPagePoint()
 		)
 
 		// todo: Extract into general hit test for arrows
@@ -565,7 +561,7 @@ export class Idle extends StateNode {
 
 		const id = createShapeId()
 
-		const { x, y } = this.editor.inputs.currentPagePoint
+		const { x, y } = this.editor.inputs.currentPagePoint()
 
 		this.editor.createShapes<TLTextShape>([
 			{
@@ -603,7 +599,7 @@ export class Idle extends StateNode {
 		} = this
 
 		// We want to use the "actual" shift key state,
-		// not the one that's in the editor.inputs.shiftKey,
+		// not the one that's in the editor.inputs.shiftKey(),
 		// because that one uses a short timeout on release
 		const shiftKey = keys.has('ShiftLeft')
 

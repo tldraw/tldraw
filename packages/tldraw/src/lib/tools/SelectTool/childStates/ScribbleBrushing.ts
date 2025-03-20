@@ -24,7 +24,7 @@ export class ScribbleBrushing extends StateNode {
 
 	override onEnter() {
 		this.initialSelectedShapeIds = new Set<TLShapeId>(
-			this.editor.inputs.shiftKey ? this.editor.getSelectedShapeIds() : []
+			this.editor.inputs.shiftKey() ? this.editor.getSelectedShapeIds() : []
 		)
 		this.newlySelectedShapeIds = new Set<TLShapeId>()
 		this.size = 0
@@ -60,7 +60,7 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	override onKeyUp() {
-		if (!this.editor.inputs.altKey) {
+		if (!this.editor.inputs.altKey()) {
 			this.parent.transition('brushing')
 		} else {
 			this.updateScribbleSelection(false)
@@ -76,7 +76,7 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	private pushPointToScribble() {
-		const { x, y } = this.editor.inputs.currentPagePoint
+		const { x, y } = this.editor.inputs.currentPagePoint()
 		this.editor.scribbles.addPoint(this.scribbleId, x, y)
 	}
 
@@ -84,9 +84,10 @@ export class ScribbleBrushing extends StateNode {
 		const { editor } = this
 		// const zoomLevel = this.editor.getZoomLevel()
 		const currentPageShapes = this.editor.getCurrentPageRenderingShapesSorted()
-		const {
-			inputs: { shiftKey, originPagePoint, previousPagePoint, currentPagePoint },
-		} = this.editor
+		const shiftKey = this.editor.inputs.shiftKey()
+		const originPagePoint = this.editor.inputs.originPagePoint()
+		const previousPagePoint = this.editor.inputs.previousPagePoint()
+		const currentPagePoint = this.editor.inputs.currentPagePoint()
 
 		const { newlySelectedShapeIds, initialSelectedShapeIds } = this
 

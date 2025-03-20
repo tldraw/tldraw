@@ -1,6 +1,6 @@
 import { TLShape, createShapeId } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
-import { Vec } from '../../../../primitives/Vec'
+import { Vec, VecLike } from '../../../../primitives/Vec'
 import { Editor } from '../../../Editor'
 import { TLBaseBoxShape } from '../../../shapes/BaseBoxShapeUtil'
 import { TLPointerEventInfo } from '../../../types/event-types'
@@ -11,8 +11,8 @@ export class Pointing extends StateNode {
 	static override id = 'pointing'
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		if (this.editor.inputs.isDragging) {
-			const { originPagePoint } = this.editor.inputs
+		if (this.editor.inputs.isDragging()) {
+			const originPagePoint = this.editor.inputs.originPagePoint()
 
 			const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType
 
@@ -71,7 +71,7 @@ export class Pointing extends StateNode {
 	}
 
 	complete() {
-		const { originPagePoint } = this.editor.inputs
+		const originPagePoint = this.editor.inputs.originPagePoint()
 
 		const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType as TLBaseBoxShape['type']
 
@@ -140,9 +140,9 @@ export class Pointing extends StateNode {
  *
  * @public
  */
-export function maybeSnapToGrid(point: Vec, editor: Editor): Vec {
+export function maybeSnapToGrid(point: VecLike, editor: Editor): Vec {
 	const isGridMode = editor.getInstanceState().isGridMode
 	const gridSize = editor.getDocumentSettings().gridSize
-	if (isGridMode) return point.clone().snapToGrid(gridSize)
-	return point.clone()
+	if (isGridMode) return Vec.SnapToGrid(point, gridSize)
+	return Vec.From(point)
 }

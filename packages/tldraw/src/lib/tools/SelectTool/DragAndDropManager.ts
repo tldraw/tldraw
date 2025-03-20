@@ -1,4 +1,4 @@
-import { Editor, TLShape, TLShapeId, Vec, bind, compact } from '@tldraw/editor'
+import { Editor, TLShape, TLShapeId, Vec, VecLike, bind, compact } from '@tldraw/editor'
 import { getOccludedChildren } from './selectHelpers'
 
 const INITIAL_POINTER_LAG_DURATION = 20
@@ -25,14 +25,14 @@ export class DragAndDropManager {
 			)
 
 			this.prevDroppingShapeId =
-				this.editor.getDroppingOverShape(this.editor.inputs.originPagePoint, movingShapes)?.id ??
+				this.editor.getDroppingOverShape(this.editor.inputs.originPagePoint(), movingShapes)?.id ??
 				null
 			this.first = false
 		}
 
 		if (this.droppingNodeTimer === null) {
 			this.setDragTimer(movingShapes, INITIAL_POINTER_LAG_DURATION, cb)
-		} else if (this.editor.inputs.pointerVelocity.len() > 0.5) {
+		} else if (Vec.Len(this.editor.inputs.pointerVelocity()) > 0.5) {
 			clearTimeout(this.droppingNodeTimer)
 			this.setDragTimer(movingShapes, FAST_POINTER_LAG_DURATION, cb)
 		}
@@ -41,13 +41,13 @@ export class DragAndDropManager {
 	private setDragTimer(movingShapes: TLShape[], duration: number, cb: () => void) {
 		this.droppingNodeTimer = this.editor.timers.setTimeout(() => {
 			this.editor.run(() => {
-				this.handleDrag(this.editor.inputs.currentPagePoint, movingShapes, cb)
+				this.handleDrag(this.editor.inputs.currentPagePoint(), movingShapes, cb)
 			})
 			this.droppingNodeTimer = null
 		}, duration)
 	}
 
-	private handleDrag(point: Vec, movingShapes: TLShape[], cb?: () => void) {
+	private handleDrag(point: VecLike, movingShapes: TLShape[], cb?: () => void) {
 		movingShapes = compact(movingShapes.map((shape) => this.editor.getShape(shape.id)))
 
 		const nextDroppingShapeId = this.editor.getDroppingOverShape(point, movingShapes)?.id ?? null
@@ -116,7 +116,7 @@ export class DragAndDropManager {
 	dropShapes(shapes: TLShape[]) {
 		const { prevDroppingShapeId } = this
 
-		this.handleDrag(this.editor.inputs.currentPagePoint, shapes)
+		this.handleDrag(this.editor.inputs.currentPagePoint(), shapes)
 
 		if (prevDroppingShapeId) {
 			const shape = this.editor.getShape(prevDroppingShapeId)

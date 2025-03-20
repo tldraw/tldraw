@@ -5,6 +5,7 @@ import {
 	TLShapePartial,
 	TLTextShape,
 	Tldraw,
+	Vec,
 	createShapeId,
 	toRichText,
 } from 'tldraw'
@@ -35,7 +36,7 @@ class Idle extends StateNode {
 		const { editor } = this
 		switch (info.target) {
 			case 'canvas': {
-				const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint)
+				const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint())
 				if (hitShape) {
 					this.onPointerDown({
 						...info,
@@ -48,7 +49,7 @@ class Idle extends StateNode {
 				break
 			}
 			case 'shape': {
-				if (editor.inputs.shiftKey) {
+				if (editor.inputs.shiftKey()) {
 					editor.updateShape<TLTextShape>({
 						id: info.shape.id,
 						type: 'text',
@@ -67,7 +68,7 @@ class Idle extends StateNode {
 		if (info.phase !== 'up') return
 		switch (info.target) {
 			case 'canvas': {
-				const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint)
+				const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint())
 
 				if (hitShape) {
 					this.onDoubleClick({
@@ -77,7 +78,7 @@ class Idle extends StateNode {
 					})
 					return
 				}
-				const { currentPagePoint } = editor.inputs
+				const currentPagePoint = editor.inputs.currentPagePoint()
 				editor.createShape<TLTextShape>({
 					type: 'text',
 					x: currentPagePoint.x + OFFSET,
@@ -106,7 +107,7 @@ class Pointing extends StateNode {
 	}
 
 	override onPointerMove() {
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.isDragging()) {
 			this.parent.transition('dragging', { shape: this.shape })
 		}
 	}
@@ -121,7 +122,7 @@ class Dragging extends StateNode {
 
 	// [b]
 	override onEnter(info: { shape: TLShapePartial }) {
-		const { currentPagePoint } = this.editor.inputs
+		const currentPagePoint = this.editor.inputs.currentPagePoint()
 		const newShape: TLShapePartial<TLTextShape> = {
 			id: createShapeId(),
 			type: 'text',
@@ -144,8 +145,11 @@ class Dragging extends StateNode {
 
 	override onPointerMove() {
 		const { shape } = this
-		const { originPagePoint, currentPagePoint } = this.editor.inputs
-		const distance = originPagePoint.dist(currentPagePoint)
+
+		const distance = Vec.Dist(
+			this.editor.inputs.originPagePoint(),
+			this.editor.inputs.currentPagePoint()
+		)
 		if (shape) {
 			this.editor.updateShape<TLTextShape>({
 				id: shape.id,

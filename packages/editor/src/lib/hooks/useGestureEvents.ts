@@ -105,7 +105,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 					const util = editor.getShapeUtil(shape)
 					if (util.canScroll(shape)) {
 						const bounds = editor.getShapePageBounds(editingShapeId)
-						if (bounds?.containsPoint(editor.inputs.currentPagePoint)) {
+						if (bounds?.containsPoint(editor.inputs.currentPagePoint())) {
 							return
 						}
 					}

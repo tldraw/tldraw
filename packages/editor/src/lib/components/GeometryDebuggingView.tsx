@@ -1,22 +1,8 @@
 import { track } from '@tldraw/state-react'
 import { modulate } from '@tldraw/utils'
-import { useEffect, useState } from 'react'
 import { useEditor } from '../hooks/useEditor'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
-
-function useTick(isEnabled = true) {
-	const [_, setTick] = useState(0)
-	const editor = useEditor()
-	useEffect(() => {
-		if (!isEnabled) return
-		const update = () => setTick((tick) => tick + 1)
-		editor.on('tick', update)
-		return () => {
-			editor.off('tick', update)
-		}
-	}, [editor, isEnabled])
-}
 
 export const GeometryDebuggingView = track(function GeometryDebuggingView({
 	showStroke = true,
@@ -29,13 +15,9 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 }) {
 	const editor = useEditor()
 
-	useTick(showClosestPointOnOutline)
-
 	const zoomLevel = editor.getZoomLevel()
 	const renderingShapes = editor.getRenderingShapes()
-	const {
-		inputs: { currentPagePoint },
-	} = editor
+	const currentPagePoint = editor.inputs.currentPagePoint()
 
 	return (
 		<svg

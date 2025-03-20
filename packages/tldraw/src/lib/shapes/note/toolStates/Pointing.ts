@@ -5,6 +5,7 @@ import {
 	TLPointerEventInfo,
 	TLShapeId,
 	Vec,
+	VecLike,
 	createShapeId,
 	maybeSnapToGrid,
 } from '@tldraw/editor'
@@ -32,20 +33,20 @@ export class Pointing extends StateNode {
 		this.markId = editor.markHistoryStoppingPoint(`creating_note:${id}`)
 
 		// Check for note pits; if the pointer is close to one, place the note centered on the pit
-		const center = this.editor.inputs.originPagePoint.clone()
+		let center = this.editor.inputs.originPagePoint()
 		const offset = getNoteShapeAdjacentPositionOffset(
 			this.editor,
 			center,
 			this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1
 		)
 		if (offset) {
-			center.sub(offset)
+			center = Vec.Sub(center, offset)
 		}
 		this.shape = createNoteShape(this.editor, id, center)
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.isDragging()) {
 			this.editor.setCurrentTool('select.translating', {
 				...info,
 				target: 'shape',
@@ -96,7 +97,7 @@ export class Pointing extends StateNode {
 	}
 }
 
-export function getNoteShapeAdjacentPositionOffset(editor: Editor, center: Vec, scale: number) {
+export function getNoteShapeAdjacentPositionOffset(editor: Editor, center: VecLike, scale: number) {
 	let min = NOTE_ADJACENT_POSITION_SNAP_RADIUS / editor.getZoomLevel() // in screen space
 	let offset: Vec | undefined
 	for (const pit of getAvailableNoteAdjacentPositions(editor, 0, scale, 0)) {
@@ -111,7 +112,7 @@ export function getNoteShapeAdjacentPositionOffset(editor: Editor, center: Vec, 
 	return offset
 }
 
-export function createNoteShape(editor: Editor, id: TLShapeId, center: Vec) {
+export function createNoteShape(editor: Editor, id: TLShapeId, center: VecLike) {
 	editor
 		.createShape({
 			id,

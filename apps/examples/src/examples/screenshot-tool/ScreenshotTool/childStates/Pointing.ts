@@ -7,7 +7,7 @@ export class ScreenshotPointing extends StateNode {
 
 	// [1]
 	override onPointerMove() {
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.isDragging()) {
 			this.parent.transition('dragging')
 		}
 	}

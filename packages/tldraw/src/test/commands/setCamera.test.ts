@@ -543,11 +543,11 @@ describe('When constraints are free', () => {
 
 	it('zooms onto mouse position', () => {
 		editor.pointerMove(100, 100)
-		expect(editor.inputs.currentPagePoint).toMatchObject({ x: 100, y: 100 })
-		editor.zoomIn(editor.inputs.currentScreenPoint, { immediate: true })
-		expect(editor.inputs.currentPagePoint).toMatchObject({ x: 100, y: 100 })
-		editor.zoomOut(editor.inputs.currentScreenPoint, { immediate: true })
-		expect(editor.inputs.currentPagePoint).toMatchObject({ x: 100, y: 100 })
+		expect(editor.inputs.currentPagePoint()).toMatchObject({ x: 100, y: 100 })
+		editor.zoomIn(editor.inputs.currentScreenPoint(), { immediate: true })
+		expect(editor.inputs.currentPagePoint()).toMatchObject({ x: 100, y: 100 })
+		editor.zoomOut(editor.inputs.currentScreenPoint(), { immediate: true })
+		expect(editor.inputs.currentPagePoint()).toMatchObject({ x: 100, y: 100 })
 	})
 })
 

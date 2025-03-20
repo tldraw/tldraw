@@ -139,17 +139,17 @@ describe('shapes that are moved to another page', () => {
 it('Begins dragging from pointer move', () => {
 	editor.pointerDown(0, 0)
 	editor.pointerMove(2, 2)
-	expect(editor.inputs.isDragging).toBe(false)
+	expect(editor.inputs.isDragging()).toBe(false)
 	editor.pointerMove(10, 10)
-	expect(editor.inputs.isDragging).toBe(true)
+	expect(editor.inputs.isDragging()).toBe(true)
 })
 
 it('Begins dragging from wheel', () => {
 	editor.pointerDown(0, 0)
 	editor.wheel(2, 2)
-	expect(editor.inputs.isDragging).toBe(false)
+	expect(editor.inputs.isDragging()).toBe(false)
 	editor.wheel(10, 10)
-	expect(editor.inputs.isDragging).toBe(true)
+	expect(editor.inputs.isDragging()).toBe(true)
 })
 
 it('Does not create an undo stack item when first clicking on an empty canvas', () => {
@@ -263,35 +263,44 @@ describe('Editor.TickManager', () => {
 		// between two animation frames, but we're calling it directly here.
 		const tick = (ms: number) => {
 			// @ts-ignore
-			editor._tickManager.updatePointerVelocity(ms)
+			editor.tickManager.updatePointerVelocity(ms)
 		}
 
 		// 1. pointer velocity should be 0 when there is no movement
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0, y: 0 })
+		expect(editor.inputs.pointerVelocity()).toCloselyMatchObject({ x: 0, y: 0 })
 
 		editor.pointerMove(10, 10)
 
 		// 2. moving is not enough, we also need to wait a frame before the velocity is updated
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0, y: 0 })
+		expect(editor.inputs.pointerVelocity()).toCloselyMatchObject({ x: 0, y: 0 })
 
 		// 3. once time passes, the pointer velocity should be updated
 		tick(16)
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0.3125, y: 0.3125 })
+		expect(editor.inputs.pointerVelocity()).toCloselyMatchObject({ x: 0.3125, y: 0.3125 })
 
 		// 4. let's do it again, it should be updated again. move, tick, measure
 		editor.pointerMove(20, 20)
 		tick(16)
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0.46875, y: 0.46875 })
+		expect(editor.inputs.pointerVelocity()).toCloselyMatchObject({
+			x: 0.46875,
+			y: 0.46875,
+		})
 
 		// 5. if we tick again without movement, the velocity should decay
 		tick(16)
 
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0.23437, y: 0.23437 })
+		expect(editor.inputs.pointerVelocity()).toCloselyMatchObject({
+			x: 0.23437,
+			y: 0.23437,
+		})
 
 		// 6. if updatePointerVelocity is (for whatever reason) called with an elapsed time of zero milliseconds, it should be ignored
 		tick(0)
 
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0.23437, y: 0.23437 })
+		expect(editor.inputs.pointerVelocity()).toCloselyMatchObject({
+			x: 0.23437,
+			y: 0.23437,
+		})
 	})
 })
 
@@ -659,9 +668,9 @@ describe('middle-click panning', () => {
 			button: 1,
 		})
 		editor.pointerMove(100, 100)
-		expect(editor.inputs.isPanning).toBe(true)
+		expect(editor.inputs.isPanning()).toBe(true)
 		editor.pointerUp(100, 100)
-		expect(editor.inputs.isPanning).toBe(false)
+		expect(editor.inputs.isPanning()).toBe(false)
 	})
 
 	it('does not clear thee isPanning state if the space bar is down', () => {
@@ -670,51 +679,51 @@ describe('middle-click panning', () => {
 			button: 1,
 		})
 		editor.pointerMove(100, 100)
-		expect(editor.inputs.isPanning).toBe(true)
+		expect(editor.inputs.isPanning()).toBe(true)
 		editor.keyDown(' ')
 		editor.pointerUp(100, 100, {
 			button: 1,
 		})
-		expect(editor.inputs.isPanning).toBe(true)
+		expect(editor.inputs.isPanning()).toBe(true)
 
 		editor.keyUp(' ')
-		expect(editor.inputs.isPanning).toBe(false)
+		expect(editor.inputs.isPanning()).toBe(false)
 	})
 })
 
 describe('dragging', () => {
 	it('drags correctly at 100% zoom', () => {
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.isDragging()).toBe(false)
 		editor.pointerMove(0, 0).pointerDown()
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.isDragging()).toBe(false)
 		editor.pointerMove(0, 1)
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.isDragging()).toBe(false)
 		editor.pointerMove(0, 5)
-		expect(editor.inputs.isDragging).toBe(true)
+		expect(editor.inputs.isDragging()).toBe(true)
 	})
 
 	it('drags correctly at 150% zoom', () => {
 		editor.setCamera({ x: 0, y: 0, z: 8 }).forceTick()
 
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.isDragging()).toBe(false)
 		editor.pointerMove(0, 0).pointerDown()
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.isDragging()).toBe(false)
 		editor.pointerMove(0, 2)
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.isDragging()).toBe(false)
 		editor.pointerMove(0, 5)
-		expect(editor.inputs.isDragging).toBe(true)
+		expect(editor.inputs.isDragging()).toBe(true)
 	})
 
 	it('drags correctly at 50% zoom', () => {
 		editor.setCamera({ x: 0, y: 0, z: 0.1 }).forceTick()
 
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.isDragging()).toBe(false)
 		editor.pointerMove(0, 0).pointerDown()
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.isDragging()).toBe(false)
 		editor.pointerMove(0, 2)
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.isDragging()).toBe(false)
 		editor.pointerMove(0, 5)
-		expect(editor.inputs.isDragging).toBe(true)
+		expect(editor.inputs.isDragging()).toBe(true)
 	})
 })
 

@@ -11,7 +11,7 @@ export class MicroSelectTool extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
-				const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint)
+				const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint())
 
 				if (hitShape) {
 					this.onPointerDown({
@@ -39,7 +39,7 @@ export class MicroSelectTool extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
-				const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint)
+				const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint())
 
 				if (hitShape) {
 					this.onDoubleClick({
@@ -49,7 +49,7 @@ export class MicroSelectTool extends StateNode {
 					})
 					return
 				}
-				const { currentPagePoint } = editor.inputs
+				const currentPagePoint = editor.inputs.currentPagePoint()
 				editor.createShapes([
 					{
 						id: createShapeId(),

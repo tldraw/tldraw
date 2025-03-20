@@ -10,7 +10,6 @@ import {
 	TLShapeId,
 	preventDefault,
 	useEditor,
-	useReactor,
 	useValue,
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
@@ -70,7 +69,6 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	textHeight,
 }: RichTextLabelProps) {
 	const editor = useEditor()
-	const isDragging = React.useRef(false)
 	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } =
 		useEditableRichText(shapeId, type, richText)
 	const html = useMemo(() => {
@@ -82,15 +80,6 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	const selectToolActive = useValue(
 		'isSelectToolActive',
 		() => editor.getCurrentToolId() === 'select',
-		[editor]
-	)
-
-	useReactor(
-		'isDragging',
-		() => {
-			editor.getInstanceState()
-			isDragging.current = editor.inputs.isDragging
-		},
 		[editor]
 	)
 
@@ -108,7 +97,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 			const handlePointerUp = (e: TLEventInfo) => {
 				if (e.name !== 'pointer_up') return
 
-				if (!isDragging.current) {
+				if (!editor.inputs.isDragging()) {
 					window.open(link, '_blank', 'noopener, noreferrer')
 				}
 				editor.off('event', handlePointerUp)

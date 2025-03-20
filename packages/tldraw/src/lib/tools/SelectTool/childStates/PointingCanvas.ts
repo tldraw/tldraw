@@ -16,7 +16,7 @@ export class PointingCanvas extends StateNode {
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.isDragging()) {
 			this.parent.transition('brushing', info)
 		}
 	}

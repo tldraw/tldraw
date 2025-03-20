@@ -26,13 +26,13 @@ export class ScreenshotDragging extends StateNode {
 	}
 
 	private update() {
-		const {
-			inputs: { shiftKey, altKey, originPagePoint, currentPagePoint },
-		} = this.editor
+		const inputs = this.editor.inputs
+		const originPagePoint = inputs.originPagePoint()
+		const currentPagePoint = inputs.currentPagePoint()
 
 		const box = Box.FromPoints([originPagePoint, currentPagePoint])
 
-		if (shiftKey) {
+		if (inputs.shiftKey()) {
 			if (box.w > box.h * (16 / 9)) {
 				box.h = box.w * (9 / 16)
 			} else {
@@ -48,7 +48,7 @@ export class ScreenshotDragging extends StateNode {
 			}
 		}
 
-		if (altKey) {
+		if (inputs.altKey()) {
 			box.w *= 2
 			box.h *= 2
 			box.x = originPagePoint.x - box.w / 2
@@ -71,7 +71,7 @@ export class ScreenshotDragging extends StateNode {
 		})
 
 		if (shapes.length) {
-			if (editor.inputs.ctrlKey) {
+			if (editor.inputs.ctrlKey()) {
 				// Copy the shapes to the clipboard
 				copyAs(
 					editor,

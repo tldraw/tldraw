@@ -113,7 +113,7 @@ export class Idle extends StateNode {
 	override onDoubleClick(info: TLClickEventInfo) {
 		// Without this, the double click's "settle" would trigger the reset
 		// after the user double clicked the edge to begin cropping
-		if (this.editor.inputs.shiftKey || info.phase !== 'up') return
+		if (this.editor.inputs.shiftKey() || info.phase !== 'up') return
 
 		const croppingShapeId = this.editor.getCroppingShapeId()
 		if (!croppingShapeId) return
@@ -165,7 +165,7 @@ export class Idle extends StateNode {
 		} = this
 
 		// We want to use the "actual" shift key state,
-		// not the one that's in the editor.inputs.shiftKey,
+		// not the one that's in the editor.inputs.shiftKey(),
 		// because that one uses a short timeout on release
 		const shiftKey = keys.has('ShiftLeft')
 
