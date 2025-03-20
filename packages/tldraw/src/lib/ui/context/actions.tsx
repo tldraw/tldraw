@@ -1030,7 +1030,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-in-on-cursor',
 				label: 'action.zoom-in',
-				kbd: '!$=,!=',
+				kbd: 'shift+cmd+=,shift+=',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-in', { source, towardsCursor: true })
@@ -1054,7 +1054,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-out-on-cursor',
 				label: 'action.zoom-out',
-				kbd: '!$-,!-',
+				kbd: 'shift+cmd+-,shift+-',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-out', { source, towardsCursor: true })

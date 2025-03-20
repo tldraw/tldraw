@@ -55,7 +55,7 @@ export function useKeyboardShortcuts() {
 			if (isReadonlyMode && !action.readonlyOk) continue
 			if (SKIP_KBDS.includes(action.id)) continue
 
-			hot(action.kbd, (event) => {
+			hot(getHotkeysStringFromKbd(action.kbd), (event) => {
 				if (areShortcutsDisabled(editor)) return
 				preventDefault(event)
 				action.onSelect('kbd')
@@ -69,7 +69,7 @@ export function useKeyboardShortcuts() {
 
 			if (SKIP_KBDS.includes(tool.id)) continue
 
-			hot(tool.kbd, (event) => {
+			hot(getHotkeysStringFromKbd(tool.kbd), (event) => {
 				if (areShortcutsDisabled(editor)) return
 				preventDefault(event)
 				tool.onSelect('kbd')
@@ -146,4 +146,34 @@ export function areShortcutsDisabled(editor: Editor) {
 		editor.getEditingShapeId() !== null ||
 		editor.getCrashingError()
 	)
+}
+
+// The "raw" kbd here will look something like "a" or a combination of keys "del,backspace".
+// We need to first split them up by comma, then parse each key to make sure cmd+ctrl are
+// both included.
+function getHotkeysStringFromKbd(kbd: string) {
+	return getKeys(kbd)
+		.map((kbd) => {
+			if (kbd.includes('cmd+')) {
+				kbd = `${kbd},${kbd.replace('cmd+', 'ctrl+')}`
+			}
+			return kbd
+		})
+		.join(',')
+}
+
+// Logic to split kbd string from hotkeys-js util.
+function getKeys(key: string) {
+	if (typeof key !== 'string') key = ''
+	key = key.replace(/\s/g, '')
+	const keys = key.split(',')
+	let index = keys.lastIndexOf('')
+
+	for (; index >= 0; ) {
+		keys[index - 1] += ','
+		keys.splice(index, 1)
+		index = keys.lastIndexOf('')
+	}
+
+	return keys
 }
