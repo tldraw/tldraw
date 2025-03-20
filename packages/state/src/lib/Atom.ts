@@ -7,7 +7,7 @@ import { advanceGlobalEpoch, atomDidChange, getGlobalEpoch } from './transaction
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
 
 /**
- * The options to configure an atom, passed into the {@link atom} function.
+ * The options to configure an atom, passed into the {@link (atom:1)} function.
  * @public
  */
 export interface AtomOptions<Value, Diff> {
@@ -39,7 +39,7 @@ export interface AtomOptions<Value, Diff> {
 /**
  * An Atom is a signal that can be updated directly by calling {@link Atom.set} or {@link Atom.update}.
  *
- * Atoms are created using the {@link atom} function.
+ * Atoms are created using the {@link (atom:1)} function.
  *
  * @example
  * ```ts

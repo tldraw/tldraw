@@ -69,6 +69,7 @@ export default defineConfig(({ mode }) => ({
 	},
 	server: {
 		port: 5420,
+		allowedHosts: true,
 	},
 	clearScreen: false,
 	optimizeDeps: {
