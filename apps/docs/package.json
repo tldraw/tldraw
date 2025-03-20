@@ -35,6 +35,7 @@
 		"fetch-releases": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/fetch-releases.ts",
 		"check-links": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/check-broken-links.ts",
 		"create-api-markdown": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/create-api-markdown.ts",
+		"create-llms-txt": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/create-llms-txt.ts",
 		"refresh-content": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/refresh-content.ts",
 		"refresh-everything": "yarn fetch-api-source && yarn fetch-releases && yarn create-api-markdown && yarn refresh-content && yarn format && yarn update-algolia-index",
 		"refresh-api": "yarn fetch-api-source && yarn create-api-markdown && yarn refresh-content && yarn update-algolia-index",
