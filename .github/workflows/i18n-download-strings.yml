@@ -30,6 +30,7 @@ jobs:
         env:
           LOKALISE_API_TOKEN: ${{ secrets.LOKALISE_API_TOKEN }}
           LOKALISE_PROJECT_ID: ${{ secrets.LOKALISE_PROJECT_ID }}
+          LOKALISE_TLDRAW_PROJECT_ID: ${{ secrets.LOKALISE_TLDRAW_PROJECT_ID }}
 
       - name: Compile i18n strings
         run: 'yarn build-i18n'
