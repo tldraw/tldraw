@@ -1802,7 +1802,7 @@ export interface OverflowingToolbarProps {
 }
 
 // @public (undocumented)
-export const PageItemInput: ({ name, id, isCurrentPage, onCancel, }: PageItemInputProps) => JSX_2.Element;
+export const PageItemInput: ({ name, id, isCurrentPage, onCancel, onComplete }: PageItemInputProps) => JSX_2.Element;
 
 // @public (undocumented)
 export interface PageItemInputProps {
@@ -1814,6 +1814,8 @@ export interface PageItemInputProps {
     name: string;
     // (undocumented)
     onCancel(): void;
+    // (undocumented)
+    onComplete?(): void;
 }
 
 // @public (undocumented)
