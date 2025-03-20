@@ -8,7 +8,8 @@ async function fetchAndSave(
 	dirPath: string,
 	sortJson: boolean,
 	fileResolver: (fileName: string) => string,
-	space: string | number = '\t'
+	space: string | number,
+	skipEnglish = false
 ) {
 	const bundleZip = await fetch(url)
 	// Need to unzip the bundle
@@ -21,6 +22,9 @@ async function fetchAndSave(
 			continue
 		}
 		const fileName = fileResolver(bundle.files[locale].name)
+		if (skipEnglish && fileName === 'en.json') {
+			continue
+		}
 		const filePath = path.resolve(dirPath, fileName)
 		const file = await bundle.files[locale].async('text')
 		const json = JSON.parse(file)
@@ -72,7 +76,9 @@ async function i18nDownloadTldrawStrings() {
 		downloadResult.bundle_url,
 		dirPath,
 		false /* sort json */,
-		(fileName) => fileName.split('/')[0].replace('_', '-').toLowerCase() + '.json'
+		(fileName) => fileName.split('/')[0].replace('_', '-').toLowerCase() + '.json',
+		'\t',
+		true /* skip english */
 	)
 
 	console.log('Downloaded files successfully!')

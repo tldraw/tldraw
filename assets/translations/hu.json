@@ -89,7 +89,7 @@
 	"action.toggle-focus-mode.menu": "Fókusz mód",
 	"action.toggle-grid": "Rács be- és kikapcsolása",
 	"action.toggle-grid.menu": "Rács megjelenítése",
-	"action.toggle-lock": "Zárolás \/ Feloldás",
+	"action.toggle-lock": "Zárolás / Feloldás",
 	"action.toggle-paste-at-cursor": "Beillesztés váltása a kurzornál",
 	"action.toggle-paste-at-cursor.menu": "Beillesztés a kurzorba",
 	"action.toggle-reduce-motion": "Mozgáscsökkentés be- és kikapcsolása",
