@@ -275,6 +275,7 @@ async function updateAlgoliaIndex() {
 				],
 				distinct: 4,
 				attributeForDistinct: 'section',
+				advancedSyntax: true,
 			})
 
 			const resultsToShowForEmptySearch = entries
