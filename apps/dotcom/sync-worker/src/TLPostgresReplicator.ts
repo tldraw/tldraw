@@ -447,6 +447,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				this.reportPostgresUpdate()
 				const collator = new UserChangeCollator()
 				for (const _change of log.change) {
+					if (_change.kind === 'message' && (_change as any).prefix === 'requestLsnUpdate') {
+						this.requestLsnUpdate((_change as any).content)
+						continue
+					}
 					const change = this.parseChange(_change)
 					if (!change) {
 						this.log.debug('IGNORING CHANGE', _change)
@@ -909,7 +913,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	async requestLsnUpdate(userId: string) {
+	private async requestLsnUpdate(userId: string) {
 		try {
 			this.log.debug('requestLsnUpdate', userId)
 			this.logEvent({ type: 'request_lsn_update' })
