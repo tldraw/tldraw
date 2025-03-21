@@ -1,15 +1,7 @@
-import {
-	Editor,
-	elbowArrowDebug,
-	modulate,
-	toDomPrecision,
-	useEditor,
-	useEditorComponents,
-} from '@tldraw/editor'
+import { Editor, modulate, toDomPrecision, useEditor, useEditorComponents } from '@tldraw/editor'
 import { track, useQuickReactor, useValue } from '@tldraw/state-react'
-import classNames from 'classnames'
 import { Fragment, useState } from 'react'
-import { getArrowTargetInfo } from '../shapes/arrow/arrowTarget'
+import { getArrowTargetState } from '../shapes/arrow/arrowTarget'
 import { DraggingHandle } from '../tools/SelectTool/childStates/DraggingHandle'
 import { PointingHandle } from '../tools/SelectTool/childStates/PointingHandle'
 
@@ -52,14 +44,13 @@ export const TldrawArrowHints = track(function TldrawArrowHints() {
 	const editor = useEditor()
 	const { ShapeIndicator } = useEditorComponents()
 
-	const targetInfo = useValue('arrow target info', () => getArrowTargetInfo(editor), [editor])
+	const targetInfo = useValue('arrow target info', () => getArrowTargetState(editor), [editor])
 
 	if (!targetInfo) return null
 
-	const { handlePointsInPageSpace, closestSide, arrowKind, isExact } = targetInfo
-	const showEdgeHints =
-		!isExact && arrowKind === 'elbow' && elbowArrowDebug.get().fastEdgePicking === 'hints'
-	const showOutline = !showEdgeHints || closestSide === null
+	const { handlesInPageSpace, snap, anchorInPageSpace, arrowKind, isExact } = targetInfo
+	const showEdgeHints = !isExact && arrowKind === 'elbow'
+	const showOutline = !showEdgeHints || snap === 'center' || snap === 'edge' || snap === 'none'
 
 	return (
 		<>
@@ -67,18 +58,24 @@ export const TldrawArrowHints = track(function TldrawArrowHints() {
 
 			{showEdgeHints && (
 				<svg className="tl-user-arrow-hints tl-overlays__item">
-					{Object.entries(handlePointsInPageSpace).map(([side, point]) => {
-						if (!point) return null
+					<circle
+						cx={anchorInPageSpace.x}
+						cy={anchorInPageSpace.y}
+						className={`tl-arrow-hint-snap tl-arrow-hint-snap__${snap ?? 'none'}`}
+					/>
+
+					{Object.entries(handlesInPageSpace).map(([side, handle]) => {
+						if (!handle.isEnabled) return null
 						return (
 							<Fragment key={side}>
-								{side === closestSide && (
+								{/* {side ==r= snap.side && (
 									<circle
-										cx={point.x}
-										cy={point.y}
-										className={classNames('tl-arrow-hint-handle__active')}
+										cx={handle.point.x}
+										cy={handle.point.y}
+										className="tl-arrow-hint-handle__active"
 									/>
-								)}
-								<circle cx={point.x} cy={point.y} className={classNames('tl-arrow-hint-handle')} />
+								)} */}
+								<circle cx={handle.point.x} cy={handle.point.y} className="tl-arrow-hint-handle" />
 							</Fragment>
 						)
 					})}

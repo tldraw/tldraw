@@ -1,4 +1,5 @@
 import { StateNode, TLArrowShape, createShapeId, maybeSnapToGrid } from '@tldraw/editor'
+import { clearArrowTargetState, updateArrowTargetState } from '../arrowTarget'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -12,22 +13,20 @@ export class Pointing extends StateNode {
 		this.markId = ''
 		this.didTimeout = false
 
-		const target = this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
-			filter: (targetShape) => {
-				return (
-					!targetShape.isLocked &&
-					this.editor.canBindShapes({ fromShape: 'arrow', toShape: targetShape, binding: 'arrow' })
-				)
-			},
-			margin: 0,
-			hitInside: true,
-			renderingOnly: true,
+		const targetState = updateArrowTargetState({
+			editor: this.editor,
+			pointInPageSpace: this.editor.inputs.currentPagePoint,
+			arrow: undefined,
+			isPrecise: false,
+			isExact: this.editor.inputs.altKey,
+			currentBinding: undefined,
+			otherBinding: undefined,
+			terminal: 'start',
+			isCreatingShape: true,
 		})
 
-		if (!target) {
+		if (!targetState) {
 			this.createArrowShape()
-		} else {
-			// this.editor.setHintingShapes([target.id])
 		}
 
 		this.startPreciseTimeout()
@@ -35,7 +34,7 @@ export class Pointing extends StateNode {
 
 	override onExit() {
 		this.shape = undefined
-		// this.editor.setHintingShapes([])
+		clearArrowTargetState(this.editor)
 		this.clearPreciseTimeout()
 	}
 

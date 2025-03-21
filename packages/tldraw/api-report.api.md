@@ -196,6 +196,16 @@ export function ArrowRightToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export interface ArrowShapeOptions {
     // (undocumented)
+    readonly bendyArrowCenterSnapDistance: number;
+    // (undocumented)
+    readonly elbowArrowAxisSnapDistance: number;
+    // (undocumented)
+    readonly elbowArrowCenterSnapDistance: number;
+    // (undocumented)
+    readonly elbowArrowEdgeSnapDistance: number;
+    // (undocumented)
+    readonly elbowArrowPointSnapDistance: number;
+    // (undocumented)
     readonly expandElbowLegLength: Record<TLDefaultSizeStyle, number>;
     // (undocumented)
     readonly minArrowDistanceFromCorner: number;
@@ -1025,8 +1035,8 @@ export interface ElbowArrowInfoWithoutRoute {
     gapX: number;
     gapY: number;
     hPos: 'a-contains-b' | 'a-inside-b' | 'a-left-of-b' | 'a-matches-b' | 'a-overlaps-b';
-    mx: null | number;
-    my: null | number;
+    midX: null | number;
+    midY: null | number;
     options: ElbowArrowOptions;
     scale: ElbowArrowScale;
     // @internal (undocumented)
@@ -1078,10 +1088,7 @@ export interface ElbowArrowScale {
 export interface ElbowArrowTargetBox extends ElbowArrowBox {
     arrowheadOffset: number;
     edges: ElbowArrowBoxEdges;
-    geometries: {
-        isClosed: boolean;
-        vertices: Vec[];
-    }[];
+    geometry: Geometry2d | undefined;
     isExact: boolean;
     target: Vec;
 }

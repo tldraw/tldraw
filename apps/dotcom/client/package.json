@@ -68,7 +68,7 @@
 		"@types/node": "~20.11.30",
 		"@types/qrcode": "^1.5.5",
 		"@types/react": "^18.3.18",
-		"@vitejs/plugin-react-swc": "^3.8.0",
+		"@vitejs/plugin-react-swc": "^3.7.2",
 		"dotenv": "^16.4.7",
 		"eslint": "^9.19.0",
 		"eslint-plugin-formatjs": "^5.2.13",

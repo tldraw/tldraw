@@ -1,7 +1,7 @@
 import { Box } from '../Box'
 import { Mat } from '../Mat'
 import { Vec, VecLike } from '../Vec'
-import { Geometry2d, Geometry2dOptions } from './Geometry2d'
+import { Geometry2d, Geometry2dFilters, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class Group2d extends Geometry2d {
@@ -26,11 +26,14 @@ export class Group2d extends Geometry2d {
 		if (this.children.length === 0) throw Error('Group2d must have at least one child')
 	}
 
-	override getVertices(): Vec[] {
-		return this.children.filter((c) => !c.isLabel).flatMap((c) => c.vertices)
+	override getVertices(filters: Geometry2dFilters): Vec[] {
+		if (this.isExcludedByFilter(filters)) return []
+		return this.children
+			.filter((c) => !c.isExcludedByFilter(filters))
+			.flatMap((c) => c.getVertices(filters))
 	}
 
-	override nearestPoint(point: Vec): Vec {
+	override nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec {
 		let dist = Infinity
 		let nearest: Vec | undefined
 
@@ -43,7 +46,8 @@ export class Group2d extends Geometry2d {
 		let p: Vec
 		let d: number
 		for (const child of children) {
-			p = child.nearestPoint(point)
+			if (child.isExcludedByFilter(filters)) continue
+			p = child.nearestPoint(point, filters)
 			d = Vec.Dist2(p, point)
 			if (d < dist) {
 				dist = d
@@ -54,25 +58,39 @@ export class Group2d extends Geometry2d {
 		return nearest
 	}
 
-	override distanceToPoint(point: Vec, hitInside = false) {
-		return Math.min(...this.children.map((c, i) => c.distanceToPoint(point, hitInside || i > 0)))
+	override distanceToPoint(point: Vec, hitInside = false, filters?: Geometry2dFilters) {
+		let smallestDistance = Infinity
+		for (const child of this.children) {
+			if (child.isExcludedByFilter(filters)) continue
+			const distance = child.distanceToPoint(point, hitInside, filters)
+			if (distance < smallestDistance) {
+				smallestDistance = distance
+			}
+		}
+		return smallestDistance
 	}
 
-	override hitTestPoint(point: Vec, margin: number, hitInside: boolean): boolean {
+	override hitTestPoint(
+		point: Vec,
+		margin: number,
+		hitInside: boolean,
+		filters = Geometry2dFilters.EXCLUDE_LABELS
+	): boolean {
 		return !!this.children
-			.filter((c) => !c.isLabel)
+			.filter((c) => !c.isExcludedByFilter(filters))
 			.find((c) => c.hitTestPoint(point, margin, hitInside))
 	}
 
-	override hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean {
-		return !!this.children.filter((c) => !c.isLabel).find((c) => c.hitTestLineSegment(A, B, zoom))
+	override hitTestLineSegment(A: Vec, B: Vec, zoom: number, filters?: Geometry2dFilters): boolean {
+		return !!this.children
+			.filter((c) => !c.isExcludedByFilter(filters))
+			.find((c) => c.hitTestLineSegment(A, B, zoom))
 	}
 
-	override *intersectLineSegment(A: VecLike, B: VecLike, includeLabels = false) {
-		if (!includeLabels && this.isLabel) return
-
+	override *intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
 		for (const child of this.children) {
-			yield* child.intersectLineSegment(A, B, includeLabels)
+			if (child.isExcludedByFilter(filters)) continue
+			yield* child.intersectLineSegment(A, B, filters)
 		}
 	}
 

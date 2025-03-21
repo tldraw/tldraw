@@ -6,9 +6,6 @@ import {
 	ElbowArrowSide,
 	exhaustiveSwitchError,
 	Geometry2d,
-	Group2d,
-	intersectLineSegmentPolygon,
-	intersectLineSegmentPolyline,
 	invLerp,
 	lerp,
 	Mat,
@@ -136,14 +133,9 @@ export interface ElbowArrowTargetBox extends ElbowArrowBox {
 	 */
 	edges: ElbowArrowBoxEdges
 	/**
-	 * The geometries of the bound shapes, in arrow space. Each entry in the array represents either
-	 * a polygon or polyline depending on `isClosed`. These are not transformed by
-	 * {@link ElbowArrowInfoWithoutRoute.scale}.
+	 * The geometry of the bound shape, in arrow space.
 	 */
-	geometries: {
-		vertices: Vec[]
-		isClosed: boolean
-	}[]
+	geometry: Geometry2d | undefined
 }
 
 /** @public */
@@ -190,12 +182,12 @@ export interface ElbowArrowInfoWithoutRoute {
 	 * The X coordinate of the middle line between the two boxes, after transforming by
 	 * {@link ElbowArrowInfoWithoutRoute.scale}. If the boxes are too close or overlap, this may be null.
 	 */
-	mx: number | null
+	midX: number | null
 	/**
 	 * The Y coordinate of the middle line between the two boxes, after transforming by
 	 * {@link ElbowArrowInfoWithoutRoute.scale}. If the boxes are too close or overlap, this may be null.
 	 */
-	my: number | null
+	midY: number | null
 
 	/** @internal */
 	steve(): {
@@ -365,7 +357,7 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 			transformed: transformedA,
 			expanded: expandedA,
 			edges: edgesA,
-			geometries: aBinding.geometries,
+			geometry: aBinding.geometry,
 		},
 		B: {
 			target: bBinding.target,
@@ -375,15 +367,15 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 			transformed: transformedB,
 			expanded: expandedB,
 			edges: edgesB,
-			geometries: bBinding.geometries,
+			geometry: bBinding.geometry,
 		},
 		common,
 		hPos,
 		vPos,
 		gapX,
 		gapY,
-		mx,
-		my,
+		midX: mx,
+		midY: my,
 
 		steve,
 	}
@@ -475,7 +467,7 @@ function getElbowArrowBindingInfo(
 					arrowStrokeSize + targetStrokeSize + BOUND_ARROW_OFFSET * arrow.props.scale
 			}
 
-			const fastEdgePickingMode = elbowArrowDebug.get().fastEdgePicking
+			const impreciseEdgePickingMode = elbowArrowDebug.get().impreciseEdgePicking
 			let side: ElbowArrowSide | null = null
 			if (binding.props.forceSide) {
 				side = binding.props.forceSide
@@ -487,7 +479,7 @@ function getElbowArrowBindingInfo(
 						geometry.shapeToArrowTransform.rotation()
 					)
 				)
-			} else if (fastEdgePickingMode === 'velocity') {
+			} else if (impreciseEdgePickingMode === 'velocity') {
 				side = binding.props.entrySide
 			}
 
@@ -495,7 +487,7 @@ function getElbowArrowBindingInfo(
 				isPoint: false,
 				isExact: binding.props.isExact,
 				bounds: geometry.bounds,
-				geometries: geometry.geometries,
+				geometry: geometry.geometry,
 				target: geometry.target,
 				arrowheadOffset,
 				side,
@@ -520,8 +512,8 @@ export function getBindingGeometryInArrowSpace(
 	targetId: TLShapeId,
 	bindingProps: TLArrowBindingProps
 ) {
-	const shapeGeometry = editor.getShapeGeometry(targetId)
-	if (!shapeGeometry) {
+	const targetGeometryInTargetSpace = editor.getShapeGeometry(targetId)
+	if (!targetGeometryInTargetSpace) {
 		return null
 	}
 
@@ -529,45 +521,32 @@ export function getBindingGeometryInArrowSpace(
 	const shapeTransform = editor.getShapePageTransform(targetId)
 	const shapeToArrowTransform = arrowTransform.clone().invert().multiply(shapeTransform)
 
-	const geometries: { vertices: Vec[]; isClosed: boolean }[] = []
-	let minX = Infinity
-	let minY = Infinity
-	let maxX = -Infinity
-	let maxY = -Infinity
-	const visitGeo = (geo: Geometry2d) => {
-		if (geo instanceof Group2d) {
-			for (const child of geo.children) visitGeo(child)
-		} else {
-			const transformedVertices = []
-			for (const vertex of geo.vertices) {
-				const transformed = Mat.applyToPoint(shapeToArrowTransform, vertex)
-				minX = Math.min(minX, transformed.x)
-				minY = Math.min(minY, transformed.y)
-				maxX = Math.max(maxX, transformed.x)
-				maxY = Math.max(maxY, transformed.y)
-				transformedVertices.push(transformed)
-			}
-			geometries.push({
-				vertices: transformedVertices,
-				isClosed: geo.isClosed,
-			})
-		}
-	}
-	visitGeo(shapeGeometry)
+	const targetGeometryInArrowSpace = targetGeometryInTargetSpace.transform(shapeToArrowTransform)
 
-	const bounds = new Box(minX, minY, maxX - minX, maxY - minY)
-	const normalizedAnchor =
-		elbowArrowDebug.get().supportPrecise && bindingProps.isPrecise
-			? bindingProps.normalizedAnchor
-			: { x: 0.5, y: 0.5 }
+	const normalizedAnchor = bindingProps.isPrecise
+		? bindingProps.normalizedAnchor
+		: { x: 0.5, y: 0.5 }
 
 	const targetInShapeSpace = {
-		x: lerp(shapeGeometry.bounds.minX, shapeGeometry.bounds.maxX, normalizedAnchor.x),
-		y: lerp(shapeGeometry.bounds.minY, shapeGeometry.bounds.maxY, normalizedAnchor.y),
+		x: lerp(
+			targetGeometryInTargetSpace.bounds.minX,
+			targetGeometryInTargetSpace.bounds.maxX,
+			normalizedAnchor.x
+		),
+		y: lerp(
+			targetGeometryInTargetSpace.bounds.minY,
+			targetGeometryInTargetSpace.bounds.maxY,
+			normalizedAnchor.y
+		),
 	}
 	const target = Mat.applyToPoint(shapeToArrowTransform, targetInShapeSpace)
 
-	return { bounds, geometries, target, shapeToArrowTransform }
+	return {
+		bounds: targetGeometryInArrowSpace.bounds,
+		geometry: targetGeometryInArrowSpace,
+		target,
+		shapeToArrowTransform,
+	}
 }
 
 export function transformBox(box: Box, scale: ElbowArrowScale) {
@@ -750,20 +729,15 @@ function castPathSegmentIntoGeometry(
 
 	if (target.isExact) {
 		nearestIntersection = target.target
-	} else {
-		for (const { isClosed, vertices } of target.geometries) {
-			const intersections = isClosed
-				? intersectLineSegmentPolygon(point2, farPoint, vertices)
-				: intersectLineSegmentPolyline(point2, farPoint, vertices)
-
-			if (!intersections) continue
-
-			for (const intersection of intersections) {
-				const distance = Vec.ManhattanDist(point1, intersection)
-				if (distance < nearestDistance) {
-					nearestDistance = distance
-					nearestIntersection = intersection
-				}
+	} else if (target.geometry) {
+		for (const intersection of target.geometry.intersectLineSegment(point2, farPoint, {
+			includeLabels: false,
+			includeInternal: false,
+		})) {
+			const distance = Vec.ManhattanDist(point1, intersection)
+			if (distance < nearestDistance) {
+				nearestDistance = distance
+				nearestIntersection = intersection
 			}
 		}
 	}

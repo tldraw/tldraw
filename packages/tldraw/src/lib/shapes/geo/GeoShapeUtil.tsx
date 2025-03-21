@@ -346,7 +346,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		// not sure if bug
 
 		const lines = getLines(shape.props, STROKE_SIZES[shape.props.size] * shape.props.scale)
-		const edges = lines ? lines.map((line) => new Polyline2d({ points: line })) : []
+		const edges = lines
+			? lines.map((line) => new Polyline2d({ points: line, isInternal: true }))
+			: []
 
 		// todo: use centroid for label position
 
@@ -398,7 +400,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			case 'triangle':
 			case 'x-box':
 				// poly-line type shapes hand snap points for each vertex & the center
-				return { outline: outline, points: [...outline.getVertices(), geometry.bounds.center] }
+				return { outline: outline, points: [...outline.vertices, geometry.bounds.center] }
 			case 'cloud':
 			case 'ellipse':
 			case 'heart':

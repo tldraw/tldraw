@@ -27,10 +27,10 @@ export interface Atom<Value, Diff = unknown> extends Signal<Value, Diff> {
 }
 
 // @public
-export function atom<Value, Diff = unknown>(name: string, initialValue: Value, options?: AtomOptions<Value, Diff>): Atom<Value, Diff>;
-
-// @public
-export function atom<This, Value>(target: ClassAccessorDecoratorTarget<This, Value>, ctx: ClassAccessorDecoratorContext<This, Value>): ClassAccessorDecoratorResult<This, Value>;
+export function atom<Value, Diff = unknown>(
+name: string,
+initialValue: Value,
+options?: AtomOptions<Value, Diff>): Atom<Value, Diff>;
 
 // @public
 export interface AtomOptions<Value, Diff> {

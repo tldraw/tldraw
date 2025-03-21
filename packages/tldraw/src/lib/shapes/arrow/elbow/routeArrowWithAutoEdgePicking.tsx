@@ -36,7 +36,7 @@ export function routeArrowWithAutoEdgePicking(
 			const route = tryRouteArrow(info, 'right', 'top')
 			if (route) return route
 		}
-		if (info.my !== null) {
+		if (info.midY !== null) {
 			const route = tryRouteArrow(info, 'bottom', 'top')
 			if (route) return route
 		}

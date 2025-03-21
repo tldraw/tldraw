@@ -305,6 +305,8 @@ export class Box {
     // (undocumented)
     get aspectRatio(): number;
     // (undocumented)
+    get bottom(): number;
+    // (undocumented)
     get center(): Vec;
     set center(v: Vec);
     // (undocumented)
@@ -357,6 +359,8 @@ export class Box {
     // (undocumented)
     includes(B: Box): boolean;
     // (undocumented)
+    get left(): number;
+    // (undocumented)
     get maxX(): number;
     // (undocumented)
     get maxY(): number;
@@ -382,6 +386,8 @@ export class Box {
     // (undocumented)
     resize(handle: SelectionCorner | SelectionEdge | string, dx: number, dy: number): void;
     // (undocumented)
+    get right(): number;
+    // (undocumented)
     scale(n: number): this;
     // (undocumented)
     set(x?: number, y?: number, w?: number, h?: number): this;
@@ -399,6 +405,8 @@ export class Box {
     toFixed(): this;
     // (undocumented)
     toJson(): BoxModel;
+    // (undocumented)
+    get top(): number;
     // (undocumented)
     translate(delta: VecLike): this;
     // (undocumented)
@@ -1596,8 +1604,13 @@ export { EffectScheduler }
 export const elbowArrowDebug: DebugFlag<{
     aSide: ElbowArrowSide | null;
     bSide: ElbowArrowSide | null;
-    edgePicking: 'entry-position' | 'entry-velocity' | 'position';
-    supportPrecise: boolean;
+    impreciseEdgePicking: 'auto' | 'velocity';
+    preciseEdgePicking: {
+        snapAxis: boolean;
+        snapEdges: boolean;
+        snapNone: boolean;
+        snapPoints: boolean;
+    };
     targetStyle: 'center' | 'push' | 'remove';
     visualDebugging: boolean;
 }>;
@@ -1713,9 +1726,9 @@ export abstract class Geometry2d {
     // (undocumented)
     debugColor?: string;
     // (undocumented)
-    distanceToLineSegment(A: Vec, B: Vec): number;
+    distanceToLineSegment(A: Vec, B: Vec, filters?: Geometry2dFilters): number;
     // (undocumented)
-    distanceToPoint(point: Vec, hitInside?: boolean): number;
+    distanceToPoint(point: Vec, hitInside?: boolean, filters?: Geometry2dFilters): number;
     // (undocumented)
     getArea(): number;
     // (undocumented)
@@ -1725,17 +1738,23 @@ export abstract class Geometry2d {
     // (undocumented)
     abstract getSvgPathData(first: boolean): string;
     // (undocumented)
-    abstract getVertices(): Vec[];
+    abstract getVertices(filters: Geometry2dFilters): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec, B: Vec, distance?: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec, distance?: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
-    hitTestPoint(point: Vec, margin?: number, hitInside?: boolean): boolean;
+    hitTestPoint(point: Vec, margin?: number, hitInside?: boolean, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     ignore?: boolean;
     // (undocumented)
+    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): Generator<VecLike, void, undefined>;
+    // (undocumented)
     isClosed: boolean;
     // (undocumented)
+    isExcludedByFilter(filters?: Geometry2dFilters): boolean;
+    // (undocumented)
     isFilled: boolean;
+    // (undocumented)
+    isInternal: boolean;
     // (undocumented)
     isLabel: boolean;
     // (undocumented)
@@ -1743,14 +1762,32 @@ export abstract class Geometry2d {
     // (undocumented)
     get length(): number;
     // (undocumented)
-    abstract nearestPoint(point: Vec): Vec;
-    // (undocumented)
+    abstract nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec;
+    // @deprecated (undocumented)
     nearestPointOnLineSegment(A: Vec, B: Vec): Vec;
     // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
+    transform(transform: Mat): Geometry2d;
+    // (undocumented)
     get vertices(): Vec[];
 }
+
+// @public (undocumented)
+export interface Geometry2dFilters {
+    // (undocumented)
+    readonly includeInternal?: boolean;
+    // (undocumented)
+    readonly includeLabels?: boolean;
+}
+
+// @public (undocumented)
+export const Geometry2dFilters: {
+    EXCLUDE_INTERNAL: Geometry2dFilters;
+    EXCLUDE_LABELS: Geometry2dFilters;
+    EXCLUDE_NON_STANDARD: Geometry2dFilters;
+    INCLUDE_ALL: Geometry2dFilters;
+};
 
 // @public (undocumented)
 export interface Geometry2dOptions {
@@ -1762,6 +1799,8 @@ export interface Geometry2dOptions {
     isClosed: boolean;
     // (undocumented)
     isFilled: boolean;
+    // (undocumented)
+    isInternal?: boolean;
     // (undocumented)
     isLabel?: boolean;
 }
@@ -1859,7 +1898,7 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     children: Geometry2d[];
     // (undocumented)
-    distanceToPoint(point: Vec, hitInside?: boolean): number;
+    distanceToPoint(point: Vec, hitInside?: boolean, filters?: Geometry2dFilters): number;
     // (undocumented)
     getArea(): number;
     // (undocumented)
@@ -1867,17 +1906,21 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     getSvgPathData(): string;
     // (undocumented)
-    getVertices(): Vec[];
+    getVertices(filters: Geometry2dFilters): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec, zoom: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
-    hitTestPoint(point: Vec, margin: number, hitInside: boolean): boolean;
+    hitTestPoint(point: Vec, margin: number, hitInside: boolean, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     ignoredChildren: Geometry2d[];
     // (undocumented)
-    nearestPoint(point: Vec): Vec;
+    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): Generator<VecLike, void, undefined>;
+    // (undocumented)
+    nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec;
     // (undocumented)
     toSimpleSvgPath(): string;
+    // (undocumented)
+    transform(transform: Mat): Geometry2d;
 }
 
 // @public (undocumented)
@@ -3313,6 +3356,8 @@ export interface TLEditorComponents {
     LoadingScreen?: ComponentType | null;
     // (undocumented)
     OnTheCanvas?: ComponentType | null;
+    // (undocumented)
+    Overlays?: ComponentType | null;
     // (undocumented)
     Scribble?: ComponentType<TLScribbleProps> | null;
     // (undocumented)

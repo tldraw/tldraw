@@ -1,6 +1,5 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export { AtomMap } from './lib/AtomMap'
-export { AtomSet } from './lib/AtomSet'
 export type { BaseRecord, IdOf, RecordId, UnknownRecord } from './lib/BaseRecord'
 export { IncrementalSetConstructor } from './lib/IncrementalSetConstructor'
 export { RecordType, assertIdType, createRecordType, type RecordScope } from './lib/RecordType'

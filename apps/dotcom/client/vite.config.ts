@@ -27,14 +27,7 @@ function urlOrLocalFallback(mode: string, url: string | undefined, localFallback
 
 // https://vitejs.dev/config/
 export default defineConfig((env) => ({
-	plugins: [
-		react({
-			useAtYourOwnRisk_mutateSwcOptions(options) {
-				options.jsc!.parser!.decorators = true
-				options.jsc!.transform!.decoratorVersion = '2022-03'
-			},
-		}),
-	],
+	plugins: [react({ tsDecorators: true })],
 	publicDir: './public',
 	build: {
 		// output source maps to .map files and include //sourceMappingURL comments in JavaScript files

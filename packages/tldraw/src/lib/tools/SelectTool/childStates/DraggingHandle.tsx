@@ -11,6 +11,7 @@ import {
 	sortByIndex,
 	structuredClone,
 } from '@tldraw/editor'
+import { clearArrowTargetState } from '../../../shapes/arrow/arrowTarget'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import { kickoutOccludedShapes } from '../selectHelpers'
 
@@ -201,6 +202,7 @@ export class DraggingHandle extends StateNode {
 	override onExit() {
 		this.parent.setCurrentToolIdMask(undefined)
 		// this.editor.setHintingShapes([])
+		clearArrowTargetState(this.editor)
 		this.editor.snaps.clearIndicators()
 
 		this.editor.setCursor({ type: 'default', rotation: 0 })

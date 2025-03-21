@@ -26,8 +26,13 @@ export const pointerCaptureTrackingObject = createDebugValue(
 export const elbowArrowDebug = createDebugValue<{
 	visualDebugging: boolean
 	targetStyle: 'push' | 'center' | 'remove'
-	fastEdgePicking: 'velocity' | 'auto' | 'hints'
-	supportPrecise: boolean
+	impreciseEdgePicking: 'velocity' | 'auto'
+	preciseEdgePicking: {
+		snapEdges: boolean
+		snapPoints: boolean
+		snapNone: boolean
+		snapAxis: boolean
+	}
 	aSide: ElbowArrowSide | null
 	bSide: ElbowArrowSide | null
 }>('elbowArrowDebug', {
@@ -35,8 +40,13 @@ export const elbowArrowDebug = createDebugValue<{
 		all: {
 			visualDebugging: false,
 			targetStyle: 'remove',
-			fastEdgePicking: 'hints',
-			supportPrecise: true,
+			impreciseEdgePicking: 'auto',
+			preciseEdgePicking: {
+				snapEdges: true,
+				snapPoints: true,
+				snapNone: true,
+				snapAxis: true,
+			},
 			aSide: null,
 			bSide: null,
 		},

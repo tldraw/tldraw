@@ -359,6 +359,7 @@ export { Ellipse2d } from './lib/primitives/geometry/Ellipse2d'
 export {
 	Edge2d,
 	Geometry2d,
+	Geometry2dFilters,
 	Polygon2d,
 	Polyline2d,
 	type Geometry2dOptions,

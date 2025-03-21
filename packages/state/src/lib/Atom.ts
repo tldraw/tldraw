@@ -1,4 +1,3 @@
-import { assert } from '@tldraw/utils'
 import { ArraySet } from './ArraySet'
 import { HistoryBuffer } from './HistoryBuffer'
 import { maybeCaptureParent } from './capture'
@@ -7,7 +6,7 @@ import { advanceGlobalEpoch, atomDidChange, getGlobalEpoch } from './transaction
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
 
 /**
- * The options to configure an atom, passed into the {@link (atom:1)} function.
+ * The options to configure an atom, passed into the {@link atom} function.
  * @public
  */
 export interface AtomOptions<Value, Diff> {
@@ -39,7 +38,7 @@ export interface AtomOptions<Value, Diff> {
 /**
  * An Atom is a signal that can be updated directly by calling {@link Atom.set} or {@link Atom.update}.
  *
- * Atoms are created using the {@link (atom:1)} function.
+ * Atoms are created using the {@link atom} function.
  *
  * @example
  * ```ts
@@ -161,10 +160,6 @@ export type _Atom = InstanceType<typeof _Atom>
  *
  * An Atom is a signal that can be updated directly by calling {@link Atom.set} or {@link Atom.update}.
  *
- * @param name - A name for the signal. This is used for debugging and profiling purposes, it does not need to be unique.
- * @param initialValue - The initial value of the signal.
- * @param options - The options to configure the atom. See {@link AtomOptions}.
- *
  * @example
  * ```ts
  * const name = atom('name', 'John')
@@ -179,47 +174,20 @@ export type _Atom = InstanceType<typeof _Atom>
  * @public
  */
 export function atom<Value, Diff = unknown>(
+	/**
+	 * A name for the signal. This is used for debugging and profiling purposes, it does not need to be unique.
+	 */
 	name: string,
+	/**
+	 * The initial value of the signal.
+	 */
 	initialValue: Value,
+	/**
+	 * The options to configure the atom. See {@link AtomOptions}.
+	 */
 	options?: AtomOptions<Value, Diff>
-): Atom<Value, Diff>
-/**
- * Decorate an accessor property on a class to make it an backed by an {@link Atom}.
- * @example
- * ```ts
- * class MyClass {
- *     @atom accessor property = 'value'
- * }
- * ```
- * @public
- */
-export function atom<This, Value>(
-	target: ClassAccessorDecoratorTarget<This, Value>,
-	ctx: ClassAccessorDecoratorContext<This, Value>
-): ClassAccessorDecoratorResult<This, Value>
-export function atom(
-	...args:
-		| [name: string, initialValue: any, options?: AtomOptions<any, any>]
-		| [target: ClassAccessorDecoratorTarget<any, any>, ctx: ClassAccessorDecoratorContext<any, any>]
-): any {
-	if (typeof args[0] === 'string') {
-		return new _Atom(args[0], args[1], args[2])
-	}
-
-	const target = args[0]
-	const ctx = args[1]
-	assert(ctx.kind === 'accessor')
-	return {
-		get() {
-			return (target.get.call(this) as Atom<any>).get()
-		},
-		set(newValue: any) {
-			;(target.get.call(this) as Atom<any>).set(newValue)
-		},
-		init(initialValue: any) {
-			return atom(String(ctx.name), initialValue) as any
-		},
-	}
+): Atom<Value, Diff> {
+	return new _Atom(name, initialValue, options)
 }
 
 /**

@@ -1,30 +1,84 @@
-import { Box, Editor, Mat, Vec, VecLike } from '@tldraw/editor'
-import { Computed, computed } from '@tldraw/state'
-import { ArrowShapeKindStyle, ElbowArrowSide, TLArrowShape } from '@tldraw/tlschema'
-import { WeakCache, exhaustiveSwitchError, mapObjectMapValues, objectMapKeys } from '@tldraw/utils'
-import { DraggingHandle } from '../../tools/SelectTool/childStates/DraggingHandle'
-import { PointingHandle } from '../../tools/SelectTool/childStates/PointingHandle'
+import { atom, Atom, Box, clamp, Editor, elbowArrowDebug, Mat, Vec, VecLike } from '@tldraw/editor'
+import {
+	ArrowShapeKindStyle,
+	ElbowArrowSide,
+	TLArrowBinding,
+	TLArrowShape,
+	TLArrowShapeKind,
+	TLShape,
+} from '@tldraw/tlschema'
+import {
+	invLerp,
+	mapObjectMapValues,
+	objectMapEntries,
+	objectMapKeys,
+	WeakCache,
+} from '@tldraw/utils'
 import { ArrowShapeUtil } from './ArrowShapeUtil'
-import { ElbowArrowSideDeltas } from './elbow/definitions'
-import { getArrowBindings } from './shared'
+import { ElbowArrowAxes, ElbowArrowSideAxes, ElbowArrowSideDeltas } from './elbow/definitions'
 
-const targetFilterFallback = { type: 'arrow' }
+export interface UpdateArrowTargetStateOpts {
+	editor: Editor
+	pointInPageSpace: VecLike
+	arrow: TLArrowShape | undefined
+	isPrecise: boolean
+	isExact: boolean
+	currentBinding: TLArrowBinding | undefined
+	otherBinding: TLArrowBinding | undefined
+	terminal: 'start' | 'end'
+	isCreatingShape: boolean
+}
 
-function computeArrowTargetInfo(editor: Editor) {
-	const pointInPageSpace = editor.inputs.currentPagePoint
+export interface ArrowTargetState {
+	target: TLShape
+	arrowKind: TLArrowShapeKind
+
+	handlesInPageSpace: {
+		top: { point: VecLike; isEnabled: boolean }
+		bottom: { point: VecLike; isEnabled: boolean }
+		left: { point: VecLike; isEnabled: boolean }
+		right: { point: VecLike; isEnabled: boolean }
+	}
+
+	isExact: boolean
+	isPrecise: boolean
+
+	centerInPageSpace: VecLike
+	anchorInPageSpace: VecLike
+	snap: 'center' | 'point' | 'axis' | 'edge' | 'none'
+	normalizedAnchor: VecLike
+}
+
+const arrowTargetStore = new WeakCache<Editor, Atom<ArrowTargetState | null>>()
+
+function getArrowTargetAtom(editor: Editor) {
+	return arrowTargetStore.get(editor, () => atom('arrowTarget', null))
+}
+
+export function getArrowTargetState(editor: Editor) {
+	return getArrowTargetAtom(editor).get()
+}
+
+export function clearArrowTargetState(editor: Editor) {
+	getArrowTargetAtom(editor).set(null)
+}
+
+export function updateArrowTargetState({
+	editor,
+	pointInPageSpace,
+	arrow,
+	isPrecise,
+	isExact,
+	currentBinding,
+	otherBinding,
+	terminal,
+	isCreatingShape,
+}: UpdateArrowTargetStateOpts): ArrowTargetState | null {
+	const opts = elbowArrowDebug.get()
 	const util = editor.getShapeUtil<ArrowShapeUtil>('arrow')
-	const onlySelectedShape = editor.getOnlySelectedShape()
-	const arrow =
-		onlySelectedShape && editor.isShapeOfType<TLArrowShape>(onlySelectedShape, 'arrow')
-			? onlySelectedShape
-			: null
 	const arrowKind = arrow ? arrow.props.kind : editor.getStyleForNextShape(ArrowShapeKindStyle)
 
-	const { currentBinding, otherBinding } = getCurrentBindings(editor) ?? {}
-
-	const isPrecise = getIsPrecise(editor)
-	const isCreatingStart = getIsCreatingStartHandle(editor)
-	const isExact = editor.inputs.altKey
+	const isInitialStartCreation = isCreatingShape && terminal === 'start'
 
 	const target = editor.getShapeAtPoint(pointInPageSpace, {
 		hitInside: true,
@@ -42,28 +96,40 @@ function computeArrowTargetInfo(editor: Editor) {
 		},
 	})
 
-	if (!target) return null
+	if (!target) {
+		getArrowTargetAtom(editor).set(null)
+		return null
+	}
 
-	const targetGeometry = editor.getShapeGeometry(target)
-	const targetBounds = Box.ZeroFix(targetGeometry.bounds)
-	const targetCenterInTargetSpace = targetGeometry.center
+	const targetGeometryInTargetSpace = editor.getShapeGeometry(target)
+	const targetBoundsInTargetSpace = Box.ZeroFix(targetGeometryInTargetSpace.bounds)
+	const targetCenterInTargetSpace = targetGeometryInTargetSpace.center
 	const arrowTransform = arrow ? editor.getShapePageTransform(arrow.id) : Mat.Identity()
 	const targetTransform = editor.getShapePageTransform(target)
 	const targetToArrowTransform = arrowTransform.clone().invert().multiply(targetTransform)
 	const targetToArrowRotation = targetToArrowTransform.rotation()
 	const pointInTargetSpace = editor.getPointInShapeSpace(target, pointInPageSpace)
 
-	const castDistance = Math.max(targetGeometry.bounds.width, targetGeometry.bounds.height)
+	const castDistance = Math.max(
+		targetGeometryInTargetSpace.bounds.width,
+		targetGeometryInTargetSpace.bounds.height
+	)
 
-	const handlePointsInPageSpace = mapObjectMapValues(ElbowArrowSideDeltas, (_, delta) => {
+	const handlesInPageSpace = mapObjectMapValues(ElbowArrowSideDeltas, (side, delta) => {
+		const axis = ElbowArrowAxes[ElbowArrowSideAxes[side]]
+
 		const castPoint = Vec.Mul(delta, castDistance)
 			.rot(-targetToArrowRotation)
 			.add(targetCenterInTargetSpace)
 
-		let handlePointInTargetSpace: VecLike | null = null
+		let isEnabled = true
+		let handlePointInTargetSpace: VecLike = axis.v(
+			targetBoundsInTargetSpace[side],
+			targetBoundsInTargetSpace[axis.crossMid]
+		)
 		let furthestDistance = 0
 
-		for (const intersection of targetGeometry.intersectLineSegment(
+		for (const intersection of targetGeometryInTargetSpace.intersectLineSegment(
 			targetCenterInTargetSpace,
 			castPoint
 		)) {
@@ -71,32 +137,30 @@ function computeArrowTargetInfo(editor: Editor) {
 			if (distance > furthestDistance) {
 				furthestDistance = distance
 				handlePointInTargetSpace = intersection
+				isEnabled = true
 			}
 		}
 
-		const handlePointInPageSpace = handlePointInTargetSpace
-			? targetTransform.applyToPoint(handlePointInTargetSpace)
-			: null
+		const handlePointInPageSpace = targetTransform.applyToPoint(handlePointInTargetSpace)
 
-		return handlePointInPageSpace
+		return { point: handlePointInPageSpace, isEnabled }
 	})
 
 	const zoomLevel = editor.getZoomLevel()
 	const minDistScaled2 = (util.options.minHandleDistance / zoomLevel) ** 2
 
 	const targetCenterInPageSpace = targetTransform.applyToPoint(targetCenterInTargetSpace)
-	for (const side of objectMapKeys(handlePointsInPageSpace)) {
-		const point = handlePointsInPageSpace[side]
-		if (!point) continue
-		const dist2 = Vec.Dist2(point, targetCenterInPageSpace)
+	for (const side of objectMapKeys(handlesInPageSpace)) {
+		const handle = handlesInPageSpace[side]
+		const dist2 = Vec.Dist2(handle.point, targetCenterInPageSpace)
 		if (dist2 < minDistScaled2) {
-			handlePointsInPageSpace[side] = null
+			handle.isEnabled = false
 		}
 	}
 
 	let precise = isPrecise
 
-	if (!precise) {
+	if (!precise && !isInitialStartCreation) {
 		// If we're switching to a new bound shape, then precise only if moving slowly
 		if (!currentBinding || (currentBinding && target.id !== currentBinding.toId)) {
 			precise = editor.inputs.pointerVelocity.len() < 0.5
@@ -104,7 +168,7 @@ function computeArrowTargetInfo(editor: Editor) {
 	}
 
 	if (!isPrecise) {
-		if (!targetGeometry.isClosed) {
+		if (!targetGeometryInTargetSpace.isClosed) {
 			precise = true
 		}
 
@@ -115,191 +179,173 @@ function computeArrowTargetInfo(editor: Editor) {
 		}
 	}
 
-	const normalizedAnchor = {
-		x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
-		y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
+	const shouldSnapCenter = !isExact && isPrecise
+	const shouldSnapEdges =
+		!isExact && isPrecise && arrowKind === 'elbow' && opts.preciseEdgePicking.snapEdges
+	const shouldSnapPoints =
+		!isExact && isPrecise && arrowKind === 'elbow' && opts.preciseEdgePicking.snapPoints
+	const shouldSnapInside =
+		arrowKind === 'bendy' ? isPrecise : isPrecise && opts.preciseEdgePicking.snapNone
+	const shouldSnapAxis =
+		!isExact && isPrecise && arrowKind === 'elbow' && opts.preciseEdgePicking.snapAxis
+
+	// we run through all the snapping options from least to most specific:
+	let snap: ArrowTargetState['snap'] = 'none'
+	let anchorInPageSpace: VecLike = pointInPageSpace
+
+	if (!shouldSnapInside) {
+		snap = 'center'
+		anchorInPageSpace = targetCenterInPageSpace
 	}
 
-	let closestSide: ElbowArrowSide | null = null
+	if (shouldSnapEdges) {
+		const snapDistance = calculateSnapDistance(
+			editor,
+			targetBoundsInTargetSpace,
+			util.options.elbowArrowEdgeSnapDistance
+		)
 
-	// Turn off precision if we're within a certain distance to the center of the shape.
-	// Funky math but we want the snap distance to be 4 at the minimum and either
-	// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
-	const snapDistance =
-		Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
-		editor.getZoomLevel()
+		const nearestPointOnEdgeInTargetSpace = targetGeometryInTargetSpace.nearestPoint(
+			pointInTargetSpace,
+			{
+				includeLabels: false,
+				includeInternal: false,
+			}
+		)
 
-	if (precise) {
-		switch (arrowKind) {
-			// for bendy arrows, just snap to the center
-			case 'bendy':
-				if (Vec.Dist(pointInTargetSpace, targetBounds.center) < snapDistance) {
-					normalizedAnchor.x = 0.5
-					normalizedAnchor.y = 0.5
-				}
-				break
-			// for elbow arrows, snap on each axis independently, but rotate the axis to match that of the arrow:
-			case 'elbow':
-				if (Vec.Dist(pointInTargetSpace, targetBounds.center) < snapDistance) {
-					normalizedAnchor.x = 0.5
-					normalizedAnchor.y = 0.5
-				} else if (
-					!isExact &&
-					Math.abs(targetCenterInPageSpace.x - pointInPageSpace.x) < snapDistance
-				) {
-					const snappedPointInPageSpace = {
-						x: targetCenterInPageSpace.x,
-						y: pointInPageSpace.y,
-					}
-					const snappedPointInTargetSpace = editor.getPointInShapeSpace(
-						target,
-						snappedPointInPageSpace
-					)
-					normalizedAnchor.x =
-						(snappedPointInTargetSpace.x - targetBounds.minX) / targetBounds.width
-					normalizedAnchor.y =
-						(snappedPointInTargetSpace.y - targetBounds.minY) / targetBounds.height
+		const nearestPointOnEdgeInPageSpace = targetTransform.applyToPoint(
+			nearestPointOnEdgeInTargetSpace
+		)
 
-					closestSide = targetCenterInPageSpace.y > pointInPageSpace.y ? 'top' : 'bottom'
-				} else if (
-					!isExact &&
-					Math.abs(targetCenterInPageSpace.y - pointInPageSpace.y) < snapDistance
-				) {
-					const snappedPointInPageSpace = {
-						x: pointInPageSpace.x,
-						y: targetCenterInPageSpace.y,
-					}
-					const snappedPointInTargetSpace = editor.getPointInShapeSpace(
-						target,
-						snappedPointInPageSpace
-					)
-					normalizedAnchor.x =
-						(snappedPointInTargetSpace.x - targetBounds.minX) / targetBounds.width
-					normalizedAnchor.y =
-						(snappedPointInTargetSpace.y - targetBounds.minY) / targetBounds.height
+		const distance = Vec.Dist(nearestPointOnEdgeInPageSpace, pointInPageSpace)
 
-					closestSide = targetCenterInPageSpace.x > pointInPageSpace.x ? 'left' : 'right'
-				}
-				break
-			default:
-				exhaustiveSwitchError(arrowKind)
+		if (distance < snapDistance) {
+			snap = 'edge'
+			anchorInPageSpace = nearestPointOnEdgeInPageSpace
 		}
-	} else if (arrowKind === 'elbow') {
-		if (Vec.Dist(pointInTargetSpace, targetBounds.center) < snapDistance) {
-			closestSide = null
-			normalizedAnchor.x = 0.5
-			normalizedAnchor.y = 0.5
-		} else {
-			if (Math.abs(normalizedAnchor.x - 0.5) < Math.abs(normalizedAnchor.y - 0.5)) {
-				closestSide = normalizedAnchor.y < 0.5 ? 'top' : 'bottom'
-			} else {
-				closestSide = normalizedAnchor.x < 0.5 ? 'left' : 'right'
+	}
+
+	if (shouldSnapAxis) {
+		const snapDistance = calculateSnapDistance(
+			editor,
+			targetBoundsInTargetSpace,
+			util.options.elbowArrowAxisSnapDistance
+		)
+
+		const distanceFromXAxis = Math.abs(targetCenterInPageSpace.x - pointInPageSpace.x)
+		const distanceFromYAxis = Math.abs(targetCenterInPageSpace.y - pointInPageSpace.y)
+
+		const snapAxis =
+			distanceFromXAxis < distanceFromYAxis && distanceFromXAxis < snapDistance
+				? 'x'
+				: distanceFromYAxis < snapDistance
+					? 'y'
+					: null
+
+		if (snapAxis) {
+			const axis = ElbowArrowAxes[snapAxis]
+			const side =
+				targetCenterInPageSpace[axis.cross] > pointInPageSpace[axis.cross]
+					? axis.crossLoEdge
+					: axis.crossHiEdge
+
+			const snappedPointInPageSpace = handlesInPageSpace[side].isEnabled
+				? handlesInPageSpace[side].point
+				: axis.v(targetCenterInPageSpace[axis.self], pointInPageSpace[axis.cross])
+
+			snap = 'axis'
+			anchorInPageSpace = snappedPointInPageSpace
+		}
+	}
+
+	if (shouldSnapPoints) {
+		const snapDistance = calculateSnapDistance(
+			editor,
+			targetBoundsInTargetSpace,
+			util.options.elbowArrowPointSnapDistance
+		)
+
+		let closestSide: ElbowArrowSide | null = null
+		let closestDistance = Infinity
+
+		for (const [side, handle] of objectMapEntries(handlesInPageSpace)) {
+			if (!handle.isEnabled) continue
+			const distance = Vec.Dist(handle.point, pointInPageSpace)
+			if (distance < snapDistance && distance < closestDistance) {
+				closestDistance = distance
+				closestSide = side
 			}
 		}
-	}
 
-	if (closestSide && !isExact) {
-		const handlePoint = handlePointsInPageSpace[closestSide]
-		if (handlePoint) {
-			const handlePointInTargetSpace = editor.getPointInShapeSpace(target, handlePoint)
-			normalizedAnchor.x = (handlePointInTargetSpace.x - targetBounds.minX) / targetBounds.width
-			normalizedAnchor.y = (handlePointInTargetSpace.y - targetBounds.minY) / targetBounds.height
-			precise = true
+		if (closestSide) {
+			snap = 'point'
+			anchorInPageSpace = handlesInPageSpace[closestSide].point
 		}
 	}
 
-	// const possibleHandles: [ElbowArrowSide | null, VecLike | null][] =
-	// 	objectMapEntries(handlePointsInPageSpace)
-	// possibleHandles.push([null, targetCenterInPageSpace])
+	if (shouldSnapCenter) {
+		const snapDistance = calculateSnapDistance(
+			editor,
+			targetBoundsInTargetSpace,
+			arrowKind === 'elbow'
+				? util.options.elbowArrowCenterSnapDistance
+				: util.options.bendyArrowCenterSnapDistance
+		)
 
-	// let closestHandle: [ElbowArrowSide | null, VecLike | null] | null = null
-	// let closestDistance = Infinity
+		if (Vec.Dist(pointInTargetSpace, targetBoundsInTargetSpace.center) < snapDistance) {
+			snap = 'center'
+			anchorInPageSpace = targetCenterInPageSpace
+		}
+	}
 
-	// for (const [side, point] of possibleHandles) {
-	// 	if (!point) continue
-	// 	const distance = Vec.Dist2(point, pointInPageSpace)
-	// 	if (distance < closestDistance) {
-	// 		closestDistance = distance
-	// 		closestHandle = [side, point]
-	// 	}
-	// }
+	const snapPointInTargetSpace = editor.getPointInShapeSpace(target, anchorInPageSpace)
 
-	// assert(closestHandle)
+	const normalizedAnchor = {
+		x: invLerp(
+			targetBoundsInTargetSpace.minX,
+			targetBoundsInTargetSpace.maxX,
+			snapPointInTargetSpace.x
+		),
+		y: invLerp(
+			targetBoundsInTargetSpace.minY,
+			targetBoundsInTargetSpace.maxY,
+			snapPointInTargetSpace.y
+		),
+	}
 
-	return {
+	const result: ArrowTargetState = {
 		target,
 		arrowKind,
-		handlePointsInPageSpace,
+		handlesInPageSpace,
 		centerInPageSpace: targetCenterInPageSpace,
-		// closestHandle: {
-		// 	side: closestSide[0],
-		// 	point: closestSide[1],
-		// },
-		closestSide,
-		normalizedAnchor,
-		precise,
+		anchorInPageSpace,
 		isExact,
+		isPrecise: precise,
+		snap,
+		normalizedAnchor,
 	}
+
+	getArrowTargetAtom(editor).set(result)
+
+	return result
 }
 
-function getCurrentBindings(editor: Editor) {
-	if (editor.isInAny('select.pointing_handle', 'select.dragging_handle')) {
-		const node = editor.root.getCurrent()!.getCurrent()! as PointingHandle | DraggingHandle
-		const handleId = node.info.handle.id
-		if (
-			editor.isShapeOfType<TLArrowShape>(node.info.shape, 'arrow') &&
-			(handleId === 'start' || handleId === 'end')
-		) {
-			const bindings = getArrowBindings(editor, node.info.shape)
-			const currentBinding = bindings[handleId]
-			const otherBinding = handleId === 'start' ? bindings.end : bindings.start
-			return { currentBinding, otherBinding }
-		}
-	}
+const targetFilterFallback = { type: 'arrow' }
 
-	return null
-}
-
-function getIsPrecise(editor: Editor) {
-	if (editor.isIn('select.dragging_handle')) {
-		const node: DraggingHandle = editor.getStateDescendant('select.dragging_handle')!
-		return node.isPrecise
-	}
-
-	if (editor.isIn('select.pointing_handle')) {
-		const node: PointingHandle = editor.getStateDescendant('select.pointing_handle')!
-		const handleId = node.info.handle.id
-		if (
-			editor.isShapeOfType<TLArrowShape>(node.info.shape, 'arrow') &&
-			(handleId === 'start' || handleId === 'end')
-		) {
-			const binding = getArrowBindings(editor, node.info.shape)[handleId]
-			return binding?.props.isPrecise ?? false
-		}
-	}
-
-	return false
-}
-
-function getIsCreatingStartHandle(editor: Editor) {
-	// if (editor.isIn('select.dragging_handle')) {
-	// 	const node: DraggingHandle = editor.getStateDescendant('select.dragging_handle')!
-	// 	return node.info.isCreating ?? false
-	// }
-
-	if (editor.isIn('arrow')) {
-		return true
-	}
-
-	return false
-}
-
-const arrowTargetInfoCache = new WeakCache<
-	Editor,
-	Computed<ReturnType<typeof computeArrowTargetInfo> | null>
->()
-export function getArrowTargetInfo(editor: Editor) {
-	return arrowTargetInfoCache
-		.get(editor, (editor) => computed('arrow target info', () => computeArrowTargetInfo(editor)))
-		.get()
+/**
+ * Funky math but we want the snap distance to be 4 at the minimum and either 16 or 16% of the
+ * smaller dimension of the target shape, whichever is smaller
+ */
+function calculateSnapDistance(
+	editor: Editor,
+	targetBoundsInTargetSpace: Box,
+	idealSnapDistance: number
+) {
+	return (
+		clamp(
+			Math.min(targetBoundsInTargetSpace.width, targetBoundsInTargetSpace.height) * 0.15,
+			4,
+			idealSnapDistance
+		) / editor.getZoomLevel()
+	)
 }

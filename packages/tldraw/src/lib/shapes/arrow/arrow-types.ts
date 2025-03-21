@@ -9,6 +9,12 @@ export interface ArrowShapeOptions {
 	readonly minElbowLegLength: Record<TLDefaultSizeStyle, number>
 	readonly minArrowDistanceFromCorner: number
 	readonly minHandleDistance: number
+
+	readonly bendyArrowCenterSnapDistance: number
+	readonly elbowArrowCenterSnapDistance: number
+	readonly elbowArrowEdgeSnapDistance: number
+	readonly elbowArrowPointSnapDistance: number
+	readonly elbowArrowAxisSnapDistance: number
 }
 
 /** @public */

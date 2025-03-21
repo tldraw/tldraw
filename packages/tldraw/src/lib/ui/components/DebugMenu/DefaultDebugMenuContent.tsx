@@ -211,7 +211,7 @@ export function FeatureFlags() {
 }
 
 export function DebugElbowArrowMenu() {
-	const { visualDebugging, aSide, bSide, targetStyle, supportPrecise, fastEdgePicking } =
+	const { visualDebugging, aSide, bSide, targetStyle, impreciseEdgePicking, preciseEdgePicking } =
 		useValue(elbowArrowDebug)
 	const editor = useEditor()
 
@@ -226,15 +226,7 @@ export function DebugElbowArrowMenu() {
 						elbowArrowDebug.update((p) => ({ ...p, visualDebugging: !visualDebugging }))
 					}}
 				/>
-				<TldrawUiMenuCheckboxItem
-					id="precise"
-					label="Support precise"
-					checked={supportPrecise}
-					onSelect={() => {
-						elbowArrowDebug.update((p) => ({ ...p, supportPrecise: !supportPrecise }))
-					}}
-				/>
-				<TldrawUiMenuSubmenu id="target" label={`Target (${targetStyle})`}>
+				<TldrawUiMenuSubmenu id="target" label={`Target`}>
 					<TldrawUiMenuCheckboxItem
 						id="push"
 						label="Push"
@@ -260,29 +252,79 @@ export function DebugElbowArrowMenu() {
 						}}
 					/>
 				</TldrawUiMenuSubmenu>
-				<TldrawUiMenuSubmenu id="fast-edge-picking" label={`Edge picking (${fastEdgePicking})`}>
+				<TldrawUiMenuSubmenu id="imprecise-edge-picking" label={`Imprecise edge picking`}>
 					<TldrawUiMenuCheckboxItem
 						id="auto"
 						label="Auto"
-						checked={fastEdgePicking === 'auto'}
+						checked={impreciseEdgePicking === 'auto'}
 						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, fastEdgePicking: 'auto' }))
+							elbowArrowDebug.update((p) => ({ ...p, impreciseEdgePicking: 'auto' }))
 						}}
 					/>
 					<TldrawUiMenuCheckboxItem
 						id="velocity"
 						label="Velocity"
-						checked={fastEdgePicking === 'velocity'}
+						checked={impreciseEdgePicking === 'velocity'}
 						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, fastEdgePicking: 'velocity' }))
+							elbowArrowDebug.update((p) => ({ ...p, impreciseEdgePicking: 'velocity' }))
+						}}
+					/>
+				</TldrawUiMenuSubmenu>
+				<TldrawUiMenuSubmenu id="precise-edge-picking" label={`Precise edge picking`}>
+					<TldrawUiMenuCheckboxItem
+						id="snap-edges"
+						label="Snap edges"
+						checked={preciseEdgePicking.snapEdges}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({
+								...p,
+								preciseEdgePicking: {
+									...p.preciseEdgePicking,
+									snapEdges: !p.preciseEdgePicking.snapEdges,
+								},
+							}))
 						}}
 					/>
 					<TldrawUiMenuCheckboxItem
-						id="hints"
-						label="Hints"
-						checked={fastEdgePicking === 'hints'}
+						id="snap-points"
+						label="Snap points"
+						checked={preciseEdgePicking.snapPoints}
 						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, fastEdgePicking: 'hints' }))
+							elbowArrowDebug.update((p) => ({
+								...p,
+								preciseEdgePicking: {
+									...p.preciseEdgePicking,
+									snapPoints: !p.preciseEdgePicking.snapPoints,
+								},
+							}))
+						}}
+					/>
+					<TldrawUiMenuCheckboxItem
+						id="snap-none"
+						label="Snap none"
+						checked={preciseEdgePicking.snapNone}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({
+								...p,
+								preciseEdgePicking: {
+									...p.preciseEdgePicking,
+									snapNone: !p.preciseEdgePicking.snapNone,
+								},
+							}))
+						}}
+					/>
+					<TldrawUiMenuCheckboxItem
+						id="snap-axis"
+						label="Snap axis"
+						checked={preciseEdgePicking.snapAxis}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({
+								...p,
+								preciseEdgePicking: {
+									...p.preciseEdgePicking,
+									snapAxis: !p.preciseEdgePicking.snapAxis,
+								},
+							}))
 						}}
 					/>
 				</TldrawUiMenuSubmenu>

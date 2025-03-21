@@ -1,7 +1,22 @@
 import { StateNode, TLKeyboardEventInfo, TLPointerEventInfo } from '@tldraw/editor'
+import { clearArrowTargetState, updateArrowTargetState } from '../arrowTarget'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
+
+	override onPointerMove(info: TLPointerEventInfo) {
+		updateArrowTargetState({
+			editor: this.editor,
+			pointInPageSpace: this.editor.inputs.currentPagePoint,
+			arrow: undefined,
+			isPrecise: false,
+			isExact: this.editor.inputs.altKey,
+			currentBinding: undefined,
+			otherBinding: undefined,
+			terminal: 'start',
+			isCreatingShape: true,
+		})
+	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
 		this.parent.transition('pointing', info)
@@ -9,6 +24,17 @@ export class Idle extends StateNode {
 
 	override onEnter() {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
+		updateArrowTargetState({
+			editor: this.editor,
+			pointInPageSpace: this.editor.inputs.currentPagePoint,
+			arrow: undefined,
+			isPrecise: false,
+			isExact: this.editor.inputs.altKey,
+			currentBinding: undefined,
+			otherBinding: undefined,
+			terminal: 'start',
+			isCreatingShape: true,
+		})
 	}
 
 	override onCancel() {
@@ -16,7 +42,7 @@ export class Idle extends StateNode {
 	}
 
 	override onExit() {
-		// this.editor.setHintingShapes([])
+		clearArrowTargetState(this.editor)
 	}
 
 	override onKeyUp(info: TLKeyboardEventInfo) {

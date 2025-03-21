@@ -9,10 +9,33 @@ import {
 import { pointInPolygon } from '../utils'
 
 /** @public */
+export interface Geometry2dFilters {
+	readonly includeLabels?: boolean
+	readonly includeInternal?: boolean
+}
+
+/** @public */
+export const Geometry2dFilters: {
+	EXCLUDE_NON_STANDARD: Geometry2dFilters
+	INCLUDE_ALL: Geometry2dFilters
+	EXCLUDE_LABELS: Geometry2dFilters
+	EXCLUDE_INTERNAL: Geometry2dFilters
+} = {
+	EXCLUDE_NON_STANDARD: {
+		includeLabels: false,
+		includeInternal: false,
+	},
+	INCLUDE_ALL: { includeLabels: true, includeInternal: true },
+	EXCLUDE_LABELS: { includeLabels: false, includeInternal: true },
+	EXCLUDE_INTERNAL: { includeLabels: true, includeInternal: false },
+}
+
+/** @public */
 export interface Geometry2dOptions {
 	isFilled: boolean
 	isClosed: boolean
 	isLabel?: boolean
+	isInternal?: boolean
 	debugColor?: string
 	ignore?: boolean
 }
@@ -22,6 +45,7 @@ export abstract class Geometry2d {
 	isFilled = false
 	isClosed = true
 	isLabel = false
+	isInternal = false
 	debugColor?: string
 	ignore?: boolean
 
@@ -29,20 +53,29 @@ export abstract class Geometry2d {
 		this.isFilled = opts.isFilled
 		this.isClosed = opts.isClosed
 		this.isLabel = opts.isLabel ?? false
+		this.isInternal = opts.isInternal ?? false
 		this.debugColor = opts.debugColor
 		this.ignore = opts.ignore
 	}
 
-	abstract getVertices(): Vec[]
+	isExcludedByFilter(filters?: Geometry2dFilters) {
+		if (!filters) return false
+		if (this.isLabel && !filters.includeLabels) return true
+		if (this.isInternal && !filters.includeInternal) return true
+		return false
+	}
 
-	abstract nearestPoint(point: Vec): Vec
+	abstract getVertices(filters: Geometry2dFilters): Vec[]
+
+	abstract nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec
 
 	// hitTestPoint(point: Vec, margin = 0, hitInside = false) {
 	// 	// We've removed the broad phase here; that should be done outside of the call
 	// 	return this.distanceToPoint(point, hitInside) <= margin
 	// }
 
-	hitTestPoint(point: Vec, margin = 0, hitInside = false) {
+	hitTestPoint(point: Vec, margin = 0, hitInside = false, filters?: Geometry2dFilters) {
+		if (this.isExcludedByFilter(filters)) return false
 		// First check whether the point is inside
 		if (this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)) {
 			return true
@@ -51,17 +84,17 @@ export abstract class Geometry2d {
 		return Vec.Dist2(point, this.nearestPoint(point)) <= margin * margin
 	}
 
-	distanceToPoint(point: Vec, hitInside = false) {
+	distanceToPoint(point: Vec, hitInside = false, filters?: Geometry2dFilters) {
 		return (
-			point.dist(this.nearestPoint(point)) *
+			point.dist(this.nearestPoint(point, filters)) *
 			(this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)
 				? -1
 				: 1)
 		)
 	}
 
-	distanceToLineSegment(A: Vec, B: Vec) {
-		if (A.equals(B)) return this.distanceToPoint(A)
+	distanceToLineSegment(A: Vec, B: Vec, filters?: Geometry2dFilters) {
+		if (A.equals(B)) return this.distanceToPoint(A, false, filters)
 		const { vertices } = this
 		let nearest: Vec | undefined
 		let dist = Infinity
@@ -79,12 +112,12 @@ export abstract class Geometry2d {
 		return this.isClosed && this.isFilled && pointInPolygon(nearest, this.vertices) ? -dist : dist
 	}
 
-	hitTestLineSegment(A: Vec, B: Vec, distance = 0): boolean {
-		return this.distanceToLineSegment(A, B) <= distance
+	hitTestLineSegment(A: Vec, B: Vec, distance = 0, filters?: Geometry2dFilters): boolean {
+		return this.distanceToLineSegment(A, B, filters) <= distance
 	}
 
-	*intersectLineSegment(A: VecLike, B: VecLike, includeLabels = false) {
-		if (!includeLabels && this.isLabel) return
+	*intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
+		if (this.isExcludedByFilter(filters)) return
 
 		const intersections = this.isClosed
 			? intersectLineSegmentPolygon(A, B, this.vertices)
@@ -93,6 +126,7 @@ export abstract class Geometry2d {
 		if (intersections) yield* intersections
 	}
 
+	/** @deprecated Iterate the vertices instead. */
 	nearestPointOnLineSegment(A: Vec, B: Vec): Vec {
 		const { vertices } = this
 		let nearest: Vec | undefined
@@ -122,24 +156,25 @@ export abstract class Geometry2d {
 	}
 
 	transform(transform: Mat): Geometry2d {
-		throw new Error('Not implemented')
-		// const vertices = transform.applyToPoints(this.vertices)
-		// if (this.isClosed) {
-		// 	return new Polygon2d({
-		// 		points: vertices,
-		// 		isFilled: this.isFilled,
-		// 		isLabel: this.isLabel,
-		// 		debugColor: this.debugColor,
-		// 		ignore: this.ignore,
-		// 	})
-		// }
+		const vertices = transform.applyToPoints(this.vertices)
+		if (this.isClosed) {
+			return new Polygon2d({
+				points: vertices,
+				isFilled: this.isFilled,
+				isLabel: this.isLabel,
+				isInternal: this.isInternal,
+				debugColor: this.debugColor,
+				ignore: this.ignore,
+			})
+		}
 
-		// return new Polyline2d({
-		// 	points: vertices,
-		// 	isLabel: this.isLabel,
-		// 	debugColor: this.debugColor,
-		// 	ignore: this.ignore,
-		// })
+		return new Polyline2d({
+			points: vertices,
+			isLabel: this.isLabel,
+			isInternal: this.isInternal,
+			debugColor: this.debugColor,
+			ignore: this.ignore,
+		})
 	}
 
 	private _vertices: Vec[] | undefined
@@ -147,7 +182,7 @@ export abstract class Geometry2d {
 	// eslint-disable-next-line no-restricted-syntax
 	get vertices(): Vec[] {
 		if (!this._vertices) {
-			this._vertices = this.getVertices()
+			this._vertices = this.getVertices(Geometry2dFilters.EXCLUDE_LABELS)
 		}
 
 		return this._vertices

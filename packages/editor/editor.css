@@ -594,10 +594,19 @@ input,
 	r: calc(4px * var(--tl-scale));
 }
 
-.tl-arrow-hint-handle__active {
+.tl-arrow-hint-snap {
 	stroke: transparent;
 	fill: var(--color-selection-fill);
 	r: calc(12px * var(--tl-scale));
+}
+
+.tl-arrow-hint-snap__none,
+.tl-arrow-hint-snap__center {
+	display: none;
+}
+
+.tl-arrow-hint-snap__edge {
+	r: calc(8px * var(--tl-scale));
 }
 
 /* ------------------ Bounds Detail ----------------- */

@@ -44,17 +44,17 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 		<>
 			{/* <DebugBox box={transformBox(info.expanded.A, info.scale)} stroke="orange" /> */}
 			{/* <DebugBox box={transformBox(info.expanded.B, info.scale)} stroke="lightskyblue" /> */}
-			{info.mx !== null && (
+			{info.midX !== null && (
 				<DebugLine
-					a={{ x: info.mx * info.scale.x, y: fullBox.minY }}
-					b={{ x: info.mx * info.scale.x, y: fullBox.maxY }}
+					a={{ x: info.midX * info.scale.x, y: fullBox.minY }}
+					b={{ x: info.midX * info.scale.x, y: fullBox.maxY }}
 					stroke="red"
 				/>
 			)}
-			{info.my !== null && (
+			{info.midY !== null && (
 				<DebugLine
-					a={{ x: fullBox.minX, y: info.my * info.scale.y }}
-					b={{ x: fullBox.maxX, y: info.my * info.scale.y }}
+					a={{ x: fullBox.minX, y: info.midY * info.scale.y }}
+					b={{ x: fullBox.maxX, y: info.midY * info.scale.y }}
 					stroke="blue"
 				/>
 			)}
