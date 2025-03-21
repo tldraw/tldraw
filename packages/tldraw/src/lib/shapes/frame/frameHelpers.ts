@@ -85,7 +85,7 @@ export function getFrameHeadingTranslation(
 	let labelTranslate: string
 	switch (side) {
 		case 0: // top
-			labelTranslate = `translate(0${u}, 0${u})`
+			labelTranslate = ``
 			break
 		case 3: // right
 			labelTranslate = `translate(${toDomPrecision(shape.props.w)}${u}, 0${u}) rotate(90${r})`
