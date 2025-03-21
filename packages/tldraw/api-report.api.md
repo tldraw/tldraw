@@ -1809,7 +1809,7 @@ export interface OverflowingToolbarProps {
 }
 
 // @public (undocumented)
-export const PageItemInput: ({ name, id, isCurrentPage, onCancel, }: PageItemInputProps) => JSX_2.Element;
+export const PageItemInput: ({ name, id, isCurrentPage, onCancel, onComplete, }: PageItemInputProps) => JSX_2.Element;
 
 // @public (undocumented)
 export interface PageItemInputProps {
@@ -1821,6 +1821,8 @@ export interface PageItemInputProps {
     name: string;
     // (undocumented)
     onCancel(): void;
+    // (undocumented)
+    onComplete?(): void;
 }
 
 // @public (undocumented)
@@ -2022,6 +2024,31 @@ export interface RichTextLabelProps {
     textWidth?: number;
     // (undocumented)
     type: string;
+    // (undocumented)
+    verticalAlign: TLDefaultVerticalAlignStyle;
+    // (undocumented)
+    wrap?: boolean;
+}
+
+// @public
+export function RichTextSVG({ bounds, richText, fontSize, font, align, verticalAlign, wrap, labelColor, padding, }: RichTextSVGProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface RichTextSVGProps {
+    // (undocumented)
+    align: TLDefaultHorizontalAlignStyle;
+    // (undocumented)
+    bounds: Box;
+    // (undocumented)
+    font: TLDefaultFontStyle;
+    // (undocumented)
+    fontSize: number;
+    // (undocumented)
+    labelColor: string;
+    // (undocumented)
+    padding: number;
+    // (undocumented)
+    richText: TLRichText;
     // (undocumented)
     verticalAlign: TLDefaultVerticalAlignStyle;
     // (undocumented)
@@ -4204,7 +4231,7 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
     handleKeyDown: (e: KeyboardEvent) => void;
     isEditing: boolean;
     isEditingAnything: boolean;
-    isEmpty: boolean;
+    isEmpty: boolean | undefined;
     rInput: RefObject<HTMLDivElement>;
 };
 

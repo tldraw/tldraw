@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import { uniqueId } from 'tldraw'
 import { getRandomName, openNewTab } from '../fixtures/helpers'
 import { expect, test } from '../fixtures/tla-test'
 
@@ -459,4 +460,56 @@ test('can export a file as an image', async ({ page, shareMenu }) => {
 	expect(fs.existsSync(filePath)).toBeTruthy()
 	const stats = fs.statSync(filePath)
 	expect(stats.size).toBeGreaterThan(0)
+})
+
+test('can follow a deep link to a never-seen file', async ({ editor, browser, shareMenu }) => {
+	const text = uniqueId()
+	await editor.createNewPage()
+	await editor.createTextShape(text)
+
+	await shareMenu.open()
+	expect(await shareMenu.isInviteButtonVisible()).toBe(true)
+	const url = await shareMenu.copyLink()
+	// close the share menu
+	await shareMenu.page.keyboard.press('Escape')
+	// create a new empty page
+	await editor.createNewPage()
+
+	const { newEditor } = await openNewTab(browser, {
+		url,
+		allowClipboard: true,
+		userProps: { user: 'suppy', index: test.info().parallelIndex },
+	})
+
+	await newEditor.expectShapesCount(1)
+	expect(newEditor.page.getByText(text)).toBeVisible()
+})
+
+test('can follow a deep link to an already-seen file', async ({ editor, shareMenu, browser }) => {
+	const text = uniqueId()
+
+	await shareMenu.open()
+	await shareMenu.inviteTabButton.click()
+	// close the share menu
+	await shareMenu.page.keyboard.press('Escape')
+
+	const { newEditor, newShareMenu } = await openNewTab(browser, {
+		url: editor.page.url(),
+		allowClipboard: true,
+		userProps: { user: 'suppy', index: test.info().parallelIndex },
+	})
+
+	await newEditor.createNewPage()
+	await newEditor.createTextShape(text)
+	await newEditor.expectShapesCount(1)
+
+	await newShareMenu.open()
+	await newShareMenu.anonShareTabButton.click()
+	const url = await newShareMenu.copyLink()
+
+	await newEditor.createNewPage()
+
+	await editor.page.goto(url)
+	await editor.expectShapesCount(1)
+	await expect(editor.page.getByText(text)).toBeVisible()
 })

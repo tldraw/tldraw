@@ -189,9 +189,7 @@ test.describe('Focus', () => {
 		await page.waitForSelector('.tl-shape')
 
 		const blueButton = await page.$('.tlui-button[data-testid="style.color.blue"]')
-		await blueButton?.dispatchEvent('pointerdown')
 		await blueButton?.click()
-		await blueButton?.dispatchEvent('pointerup')
 
 		// Text should still be focused.
 		expect(
