@@ -97,6 +97,16 @@ export function TlaFileError({ error }: { error: unknown }) {
 				/>
 			)
 		}
+		case TLSyncErrorCloseEventReason.CLIENT_TOO_OLD: {
+			return (
+				<TlaFileErrorContent
+					header={<F defaultMessage="Please reload" />}
+					para1={
+						<F defaultMessage="A new version of tldraw is available. Please reload the page to continue." />
+					}
+				/>
+			)
+		}
 
 		default:
 			return <DefaultError />

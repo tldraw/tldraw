@@ -9,7 +9,7 @@ export default function StaticAssetsExample() {
 				assetUrls={{
 					fonts: {
 						// [1]
-						draw: '/ComicMono.woff',
+						tldraw_draw: '/ComicMono.woff',
 					},
 					icons: {
 						'tool-arrow': '/custom-arrow-icon.svg',

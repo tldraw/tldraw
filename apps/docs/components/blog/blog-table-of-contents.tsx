@@ -15,7 +15,9 @@ export async function BlogTableOfContents({ article }: { article: Article }) {
 			<BlogAuthors article={article} />
 			<HeadingsMenu headings={headings} />
 			<ExtraSideBarButtons>
-				<ShareButton url={`https://tldraw.dev${article.path}`} />
+				<ShareButton
+					url={`https://tldraw.dev${article.path}/?utm_source=blog&utm_medium=referral&utm_campaign=share`}
+				/>
 				<BackToTopButton />
 			</ExtraSideBarButtons>
 		</Aside>

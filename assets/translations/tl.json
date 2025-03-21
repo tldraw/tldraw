@@ -89,7 +89,7 @@
 	"action.toggle-focus-mode.menu": "Focus mode",
 	"action.toggle-grid": "I-toggle ang grid",
 	"action.toggle-grid.menu": "Ipakita ang grid",
-	"action.toggle-lock": "I-lock \/ I-unlock",
+	"action.toggle-lock": "I-lock / I-unlock",
 	"action.toggle-paste-at-cursor": "I-toggle ang paste sa cursor",
 	"action.toggle-paste-at-cursor.menu": "Idikit sa cursor",
 	"action.toggle-reduce-motion": "I-toggle ang bawasan ang paggalaw",

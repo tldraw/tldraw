@@ -4,6 +4,7 @@ import {
 	StyleProp,
 	TLDefaultColorStyle,
 	TLDefaultColorTheme,
+	useEditor,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { ReactElement, memo, useMemo, useRef } from 'react'
@@ -40,6 +41,7 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 		onHistoryMark,
 		theme,
 	} = props
+	const editor = useEditor()
 	const msg = useTranslation()
 
 	const rPointing = useRef(false)
@@ -64,6 +66,8 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 				(['TEXTAREA', 'INPUT'].includes(origActiveEl.nodeName) || origActiveEl.isContentEditable)
 			) {
 				origActiveEl.focus()
+			} else {
+				editor.getContainer().focus()
 			}
 			rPointingOriginalActiveElement.current = null
 		}
@@ -107,33 +111,38 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 			handleButtonPointerEnter,
 			handleButtonPointerUp,
 		}
-	}, [value, onHistoryMark, onValueChange, style])
+	}, [editor, value, onHistoryMark, onValueChange, style])
 
 	return (
 		<div data-testid={`style.${uiType}`} className={classNames('tlui-buttons__grid')}>
-			{items.map((item) => (
-				<TldrawUiButton
-					type="icon"
-					key={item.value}
-					data-id={item.value}
-					data-testid={`style.${uiType}.${item.value}`}
-					aria-label={item.value}
-					data-state={value.type === 'shared' && value.value === item.value ? 'hinted' : undefined}
-					title={title + ' — ' + msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)}
-					className={classNames('tlui-button-grid__button')}
-					style={
-						style === (DefaultColorStyle as StyleProp<unknown>)
-							? { color: theme[item.value as TLDefaultColorStyle].solid }
-							: undefined
-					}
-					onPointerEnter={handleButtonPointerEnter}
-					onPointerDown={handleButtonPointerDown}
-					onPointerUp={handleButtonPointerUp}
-					onClick={handleButtonClick}
-				>
-					<TldrawUiButtonIcon icon={item.icon} />
-				</TldrawUiButton>
-			))}
+			{items.map((item) => {
+				const label = title + ' — ' + msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)
+				return (
+					<TldrawUiButton
+						type="icon"
+						key={item.value}
+						data-id={item.value}
+						data-testid={`style.${uiType}.${item.value}`}
+						aria-label={label}
+						data-state={
+							value.type === 'shared' && value.value === item.value ? 'hinted' : undefined
+						}
+						title={label}
+						className={classNames('tlui-button-grid__button')}
+						style={
+							style === (DefaultColorStyle as StyleProp<unknown>)
+								? { color: theme[item.value as TLDefaultColorStyle].solid }
+								: undefined
+						}
+						onPointerEnter={handleButtonPointerEnter}
+						onPointerDown={handleButtonPointerDown}
+						onPointerUp={handleButtonPointerUp}
+						onClick={handleButtonClick}
+					>
+						<TldrawUiButtonIcon icon={item.icon} />
+					</TldrawUiButton>
+				)
+			})}
 		</div>
 	)
 }) as <T extends string>(props: TLUiButtonPickerProps<T>) => ReactElement

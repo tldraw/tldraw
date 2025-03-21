@@ -65,6 +65,7 @@ export function DocsFeedbackWidget({ className }: { className?: string }) {
 		async (e) => {
 			e.preventDefault()
 			if (state === 'loading') return
+			if (!sessionId) return
 
 			try {
 				const form = e.currentTarget

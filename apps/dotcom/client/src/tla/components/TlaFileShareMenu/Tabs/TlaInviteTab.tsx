@@ -3,6 +3,7 @@ import { useCallback } from 'react'
 import { useEditor, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
+import { useEditorDeepLink } from '../../../hooks/useDeepLink'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useTldrawUser } from '../../../hooks/useUser'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
@@ -37,6 +38,7 @@ export function TlaInviteTab({ fileId }: { fileId: string }) {
 	)
 
 	const isOwner = useIsFileOwner(fileId)
+	const url = useEditorDeepLink()
 
 	return (
 		<>
@@ -48,7 +50,7 @@ export function TlaInviteTab({ fileId }: { fileId: string }) {
 					</TlaMenuControlGroup>
 				)}
 				{isShared && <TlaCopyLinkButton isShared={isShared} fileId={fileId} />}
-				{isShared && <QrCode url={routes.tlaFile(fileId, { asUrl: true })} />}
+				{isShared && <QrCode url={url ?? ''} />}
 			</TlaMenuSection>
 		</>
 	)

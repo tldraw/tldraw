@@ -48,6 +48,7 @@ export const components: TLComponents = {
 
 interface TlaEditorProps {
 	fileSlug: string
+	isEmbed?: boolean
 	deepLinks?: boolean
 }
 
