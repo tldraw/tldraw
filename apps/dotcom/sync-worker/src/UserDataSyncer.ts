@@ -12,7 +12,7 @@ import {
 import { react, transact } from '@tldraw/state'
 import { ExecutionQueue, assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
-import { Kysely } from 'kysely'
+import { Kysely, sql } from 'kysely'
 import throttle from 'lodash.throttle'
 import { Logger } from './Logger'
 import {
@@ -509,7 +509,9 @@ export class UserDataSyncer {
 
 		if (this.lastLsnCommit < Date.now() - LSN_COMMIT_TIMEOUT) {
 			this.log.debug('requesting lsn update', this.userId)
-			getReplicator(this.env).requestLsnUpdate(this.userId)
+			sql`SELECT pg_logical_emit_message(true, 'requestLsnUpdate', ${this.userId});`.execute(
+				this.db
+			)
 		}
 	}
 }
