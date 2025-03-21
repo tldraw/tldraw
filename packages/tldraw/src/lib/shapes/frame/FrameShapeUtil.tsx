@@ -184,6 +184,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			[shape.id]
 		)
 
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const zoomLevel = useValue('zoom level', () => this.editor.getZoomLevel(), [this.editor])
+
 		const showFrameColors = this.options.showColors
 
 		const color = theme[shape.props.color]
@@ -198,12 +201,12 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				<SVGContainer>
 					<rect
 						className={classNames('tl-frame__body', { 'tl-frame__creating': isCreating })}
-						width={shape.props.w + 1 / this.editor.getZoomLevel()}
-						height={shape.props.h + 1 / this.editor.getZoomLevel()}
+						width={shape.props.w + 1 / zoomLevel}
+						height={shape.props.h + 1 / zoomLevel}
 						fill={frameFill}
 						stroke={frameStroke}
-						y={-0.5 / this.editor.getZoomLevel()}
-						x={-0.5 / this.editor.getZoomLevel()}
+						y={-0.5 / zoomLevel}
+						x={-0.5 / zoomLevel}
 					/>
 				</SVGContainer>
 				{isCreating ? null : (
