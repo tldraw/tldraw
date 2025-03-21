@@ -40,5 +40,8 @@ export const updateHoveredShapeIdThrottled = throttle(
 /** @internal */
 export const updateHoveredShapeIdDebounced = debounce(
 	_updateHoveredShapeId,
-	process.env.NODE_ENV === 'test' ? 0 : 32
+	process.env.NODE_ENV === 'test' ? 0 : 32,
+	{
+		leading: process.env.NODE_ENV === 'test',
+	}
 )
