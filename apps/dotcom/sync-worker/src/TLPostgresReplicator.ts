@@ -318,6 +318,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private async maybePrune() {
 		const now = Date.now()
 		if (now - this.lastUserPruneTime < PRUNE_INTERVAL) return
+		this.logEvent({ type: 'prune' })
 		const cutoffTime = now - PRUNE_INTERVAL
 		const usersWithoutRecentUpdates = this.ctx.storage.sql
 			.exec('SELECT id FROM active_user WHERE lastUpdatedAt < ?', cutoffTime)
@@ -950,6 +951,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			case 'register_user':
 			case 'unregister_user':
 			case 'request_lsn_update':
+			case 'prune':
 			case 'get_file_record':
 				this.writeEvent({
 					blobs: [event.type],
