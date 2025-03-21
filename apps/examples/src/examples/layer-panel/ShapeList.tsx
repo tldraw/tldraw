@@ -1,6 +1,6 @@
 import { capitalize } from 'lodash'
 import { useState } from 'react'
-import { Editor, TLShapeId, useEditor, useValue } from 'tldraw'
+import { Editor, TLFrameShape, TLShape, TLShapeId, useEditor, useValue } from 'tldraw'
 import { VisibilityOff, VisibilityOn } from '../../icons/icons'
 
 const selectedBg = '#E8F4FE'
@@ -72,9 +72,12 @@ function ShapeItem({
 							onBlur={() => setIsEditingName(false)}
 							onChange={(ev) => {
 								if (shape.type === 'frame') {
-									editor.updateShape({ ...shape, props: { name: ev.target.value } })
+									editor.updateShape<TLFrameShape>({
+										id: shape.id,
+										props: { name: ev.target.value },
+									})
 								} else {
-									editor.updateShape({ ...shape, meta: { name: ev.target.value } })
+									editor.updateShape<TLShape>({ id: shape.id, meta: { name: ev.target.value } })
 								}
 							}}
 							onKeyDown={(ev) => {
@@ -90,7 +93,7 @@ function ShapeItem({
 					<button
 						className="shape-visibility-toggle"
 						onClick={(ev) => {
-							editor.updateShape({ ...shape, meta: { hidden: !shape.meta.hidden } })
+							editor.updateShape<TLShape>({ id: shape.id, meta: { hidden: !shape.meta.hidden } })
 							ev.stopPropagation()
 						}}
 					>

@@ -16,13 +16,7 @@ beforeEach(() => {
 it('Uses typescript generics', () => {
 	expect(() => {
 		// No error here because no generic, the editor doesn't know what this guy is
-		editor.updateShapes([
-			{
-				id: ids.box1,
-				type: 'geo',
-				props: { w: 'OH NO' },
-			},
-		])
+		editor.updateShapes([{ id: ids.box1, props: { w: 'OH NO' } }])
 
 		// Yep error here because we are giving the wrong props to the shape
 		editor.updateShapes<TLGeoShape>([
@@ -82,14 +76,7 @@ it('Uses typescript generics', () => {
 
 it('updates shapes', () => {
 	editor.markHistoryStoppingPoint('update shapes')
-	editor.updateShapes([
-		{
-			id: ids.box1,
-			type: 'geo',
-			x: 200,
-			y: 200,
-		},
-	])
+	editor.updateShapes([{ id: ids.box1, x: 200, y: 200 }])
 
 	expect(editor.getShape(ids.box1)).toMatchObject({
 		x: 200,
@@ -149,9 +136,7 @@ it('updates shapes', () => {
 
 describe('When a shape has a different shape as a parent...', () => {
 	it("Prevents updateShapes from updating a shape's parentId", () => {
-		editor.updateShapes([
-			{ id: ids.ellipse1, type: 'geo', parentId: ids.box1, props: { geo: 'ellipse' } },
-		])
+		editor.updateShapes([{ id: ids.ellipse1, parentId: ids.box1, props: { geo: 'ellipse' } }])
 	})
 })
 
@@ -164,14 +149,14 @@ it('Throws out all shapes if any update is invalid', () => {
 	])
 
 	expect(() => {
-		editor.updateShapes([{ id: ids.box1, type: 'geo', x: 100, y: 0 }])
+		editor.updateShapes([{ id: ids.box1, x: 100, y: 0 }])
 	}).not.toThrow()
 
 	expect(() => {
 		editor.updateShapes([
-			{ id: ids.box1, type: 'geo', x: 200 },
+			{ id: ids.box1, x: 200 },
 			// @ts-expect-error
-			{ id: ids.ellipse1, type: 'geo', x: 'two hundred' }, // invalid x
+			{ id: ids.ellipse1, x: 'two hundred' }, // invalid x
 		])
 	}).toThrow()
 

@@ -67,7 +67,6 @@ describe('Editor.styles', () => {
 		editor.updateShapes([
 			{
 				id: defaultShapesIds.box1,
-				type: 'geo',
 				props: { h: 200, w: 200, color: 'red', dash: 'solid' },
 			},
 		])
@@ -132,14 +131,7 @@ describe('Editor.styles', () => {
 		const initialStyles = editor.getSharedStyles()
 
 		// update position of one of the shapes - not a style prop, so maps to same styles
-		editor.updateShapes([
-			{
-				id: defaultShapesIds.box1,
-				type: 'geo',
-				x: 1000,
-				y: 1000,
-			},
-		])
+		editor.updateShapes([{ id: defaultShapesIds.box1, x: 1000, y: 1000 }])
 
 		expect(editor.getSharedStyles()).toBe(initialStyles)
 	})

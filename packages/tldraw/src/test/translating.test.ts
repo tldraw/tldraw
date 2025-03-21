@@ -297,7 +297,7 @@ describe('When cloning...', () => {
 	})
 
 	it('clones a parent and its descendants and removes descendants when stopping cloning', () => {
-		editor.updateShapes([{ id: ids.line1, type: 'geo', parentId: ids.box2 }])
+		editor.updateShapes([{ id: ids.line1, parentId: ids.box2 }])
 		expect(editor.getShape(ids.line1)!.parentId).toBe(ids.box2)
 		editor.select(ids.box2).pointerDown(250, 250, ids.box2).pointerMove(250, 240) // [0, -10]
 
@@ -620,23 +620,21 @@ describe('snapping with single shapes', () => {
 
 	it('does not snap to shapes that are not visible in the viewport', () => {
 		// move A off screen
-		editor.updateShapes([{ id: ids.box1, type: 'geo', x: -20 }])
+		editor.updateShapes([{ id: ids.box1, x: -20 }])
 
 		editor.pointerDown(25, 5, ids.box2).pointerMove(36, 5, { ctrlKey: true })
 		expect(editor.snaps.getIndicators()!.length).toBe(0)
 
-		editor.updateShapes([{ id: ids.box1, type: 'geo', x: editor.getViewportScreenBounds().w + 10 }])
+		editor.updateShapes([{ id: ids.box1, x: editor.getViewportScreenBounds().w + 10 }])
 		editor.pointerMove(33, 5, { ctrlKey: true })
 
 		expect(editor.snaps.getIndicators()!.length).toBe(0)
-		editor.updateShapes([{ id: ids.box1, type: 'geo', y: -20 }])
+		editor.updateShapes([{ id: ids.box1, y: -20 }])
 
 		editor.pointerMove(5, 5, { ctrlKey: true })
 		expect(editor.snaps.getIndicators()!.length).toBe(0)
 
-		editor.updateShapes([
-			{ id: ids.box1, type: 'geo', x: 0, y: editor.getViewportScreenBounds().h + 10 },
-		])
+		editor.updateShapes([{ id: ids.box1, x: 0, y: editor.getViewportScreenBounds().h + 10 }])
 
 		editor.pointerMove(5, 5, { ctrlKey: true })
 		expect(editor.snaps.getIndicators()!.length).toBe(0)
@@ -649,7 +647,7 @@ describe('snapping with single shapes', () => {
 		// └──────┘
 
 		// move B up one pixel
-		editor.updateShapes([{ id: ids.box2, type: 'geo', y: editor.getShape(ids.box2)!.y - 1 }])
+		editor.updateShapes([{ id: ids.box2, y: editor.getShape(ids.box2)!.y - 1 }])
 
 		editor.pointerDown(25, 5, ids.box2).pointerMove(36, 5, { ctrlKey: true })
 
@@ -679,7 +677,7 @@ describe('snapping with single shapes', () => {
 		//  └──────┘                 ▼
 
 		// move B into place
-		editor.updateShapes([{ id: ids.box2, type: 'geo', x: 1, y: 20 }])
+		editor.updateShapes([{ id: ids.box2, x: 1, y: 20 }])
 
 		editor.pointerDown(6, 25, ids.box2).pointerMove(6, 35, { ctrlKey: true })
 
@@ -1593,7 +1591,7 @@ describe('translating a shape with a child', () => {
 		// │                   │
 		// └───────────────────┘
 		editor.createShapes([box(ids.box1, 0, 0, 50, 50), box(ids.box2, 1, 1)])
-		editor.updateShapes([{ id: ids.box2, type: 'geo', parentId: ids.box1 }])
+		editor.updateShapes([{ id: ids.box2, parentId: ids.box1 }])
 
 		editor.pointerDown(25, 25, ids.box1).pointerMove(50, 25, { ctrlKey: true })
 
@@ -2055,7 +2053,7 @@ describe('Note shape grid helper positions / pits', () => {
 		editor
 			.createShape({ type: 'note' })
 			.createShape({ type: 'note', x: 500, y: 500 })
-			.updateShape({ ...editor.getLastCreatedShape(), props: { growY: 100 } })
+			.updateShape<TLNoteShape>({ id: editor.getLastCreatedShape().id, props: { growY: 100 } })
 			.pointerMove(600, 600)
 			// start translating
 			.pointerDown()
@@ -2074,7 +2072,7 @@ describe('Note shape grid helper positions / pits', () => {
 	it('Snaps correctly to the bottom when the not-translating shape has growY', () => {
 		editor
 			.createShape({ type: 'note' })
-			.updateShape({ ...editor.getLastCreatedShape(), props: { growY: 100 } })
+			.updateShape<TLNoteShape>({ id: editor.getLastCreatedShape().id, props: { growY: 100 } })
 			.createShape({ type: 'note', x: 500, y: 500 })
 			.pointerMove(600, 600)
 			// start translating
@@ -2227,11 +2225,11 @@ describe('cancelling a translate operation', () => {
 			.select(shapeId)
 		const shape = editor.getOnlySelectedShape()!
 		editor.markHistoryStoppingPoint(`before`)
-		editor.updateShape({ ...shape, meta: { a: 'before' } })
+		editor.updateShape<TLGeoShape>({ id: shape.id, meta: { a: 'before' } })
 		editor.markHistoryStoppingPoint(`creating:${shapeId}`)
-		editor.updateShape({ ...shape, meta: { a: 'creating' } })
+		editor.updateShape<TLGeoShape>({ id: shape.id, meta: { a: 'creating' } })
 		editor.markHistoryStoppingPoint(`after`)
-		editor.updateShape({ ...shape, meta: { a: 'after' } })
+		editor.updateShape<TLGeoShape>({ id: shape.id, meta: { a: 'after' } })
 		editor.pointerMove(0, 0)
 		editor.setCurrentTool('select.translating', {
 			type: 'pointer',
@@ -2275,11 +2273,11 @@ describe('cancelling a translate operation', () => {
 			.select(shapeId)
 		const shape = editor.getOnlySelectedShape()!
 		editor.markHistoryStoppingPoint(`before`)
-		editor.updateShape({ ...shape, meta: { a: 'before' } })
+		editor.updateShape<TLGeoShape>({ id: shape.id, meta: { a: 'before' } })
 		editor.markHistoryStoppingPoint(`creating:${shapeId}`)
-		editor.updateShape({ ...shape, meta: { a: 'creating' } })
+		editor.updateShape<TLGeoShape>({ id: shape.id, meta: { a: 'creating' } })
 		editor.markHistoryStoppingPoint(`after`)
-		editor.updateShape({ ...shape, meta: { a: 'after' } })
+		editor.updateShape<TLGeoShape>({ id: shape.id, meta: { a: 'after' } })
 		editor.pointerMove(0, 0)
 		editor.setCurrentTool('select.translating', {
 			type: 'pointer',

@@ -1,3 +1,4 @@
+import { TLNoteShape } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 import { NoteShapeTool } from './NoteShapeTool'
 
@@ -241,8 +242,8 @@ describe('Adjacent note position helpers (sticky pits)', () => {
 	})
 
 	it('Falls into correct pit below notes with growY', () => {
-		editor.createShape({ type: 'note', x: 0, y: 0 }).updateShape({
-			...editor.getLastCreatedShape(),
+		editor.createShape({ type: 'note', x: 0, y: 0 }).updateShape<TLNoteShape>({
+			id: editor.getLastCreatedShape().id,
 			props: { growY: 100 },
 		})
 

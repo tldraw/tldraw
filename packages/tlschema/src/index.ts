@@ -126,6 +126,7 @@ export {
 	type TLShape,
 	type TLShapeId,
 	type TLShapePartial,
+	type TLShapeUpdatePartial,
 	type TLUnknownShape,
 } from './records/TLShape'
 export {

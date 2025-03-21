@@ -11,6 +11,7 @@ import {
 	TLGroupShape,
 	TLShapeId,
 	TLShapePartial,
+	TLShapeUpdatePartial,
 	TLTextShape,
 	Vec,
 	approximately,
@@ -274,7 +275,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							shapes.map((shape) => {
 								return {
 									id: shape.id,
-									type: shape.type,
 									props: {
 										...shape.props,
 										w: 8,
@@ -1237,10 +1237,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.unlock-all',
 				onSelect(source) {
 					trackEvent('unlock-all', { source })
-					const updates = [] as TLShapePartial[]
+					const updates = [] as TLShapeUpdatePartial[]
 					for (const shape of editor.getCurrentPageShapes()) {
 						if (shape.isLocked) {
-							updates.push({ id: shape.id, type: shape.type, isLocked: false })
+							updates.push({ id: shape.id, isLocked: false })
 						}
 					}
 					if (updates.length > 0) {

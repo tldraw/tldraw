@@ -81,6 +81,7 @@ import { TLShape } from '@tldraw/tlschema';
 import { TLShapeCrop } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
+import { TLShapeUpdatePartial } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
 import { TLStoreSchema } from '@tldraw/tlschema';
@@ -844,8 +845,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @deprecated (undocumented)
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
-    animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
-    animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
+    animateShape(partial: null | TLShapeUpdatePartial | undefined, opts?: TLCameraMoveOptions): this;
+    animateShapes(partials: (null | TLShapeUpdatePartial | undefined)[], opts?: TLCameraMoveOptions): this;
     // @internal (undocumented)
     annotateError(error: unknown, { origin, willCrashApp, tags, extras, }: {
         extras?: Record<string, unknown>;
@@ -1565,10 +1566,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     _updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, opts?: TLHistoryBatchOptions): void;
     updatePage(partial: RequiredKeys<Partial<TLPage>, 'id'>): this;
-    updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined): this;
-    updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[]): this;
+    updateShape<T extends TLUnknownShape>(partial: null | TLShapeUpdatePartial<T> | undefined): this;
+    updateShapes<T extends TLUnknownShape>(partials: (null | TLShapeUpdatePartial<T> | undefined)[]): this;
     // @internal (undocumented)
-    _updateShapes(_partials: (null | TLShapePartial | undefined)[]): void;
+    _updateShapes(_partials: (null | TLShapeUpdatePartial | undefined)[]): void;
     updateViewportScreenBounds(screenBounds: Box | HTMLElement, center?: boolean): this;
     uploadAsset(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<{
         meta?: JsonObject;
@@ -2594,27 +2595,27 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onBeforeCreate?(next: Shape): Shape | void;
     onBeforeUpdate?(prev: Shape, next: Shape): Shape | void;
     // @internal
-    onBindingChange?(shape: Shape): TLShapePartial<Shape> | void;
-    onChildrenChange?(shape: Shape): TLShapePartial[] | void;
-    onClick?(shape: Shape): TLShapePartial<Shape> | void;
-    onCrop?(shape: Shape, info: TLCropInfo<Shape>): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void;
-    onDoubleClick?(shape: Shape): TLShapePartial<Shape> | void;
-    onDoubleClickEdge?(shape: Shape): TLShapePartial<Shape> | void;
-    onDoubleClickHandle?(shape: Shape, handle: TLHandle): TLShapePartial<Shape> | void;
+    onBindingChange?(shape: Shape): TLShapeUpdatePartial<Shape> | void;
+    onChildrenChange?(shape: Shape): TLShapeUpdatePartial[] | void;
+    onClick?(shape: Shape): TLShapeUpdatePartial<Shape> | void;
+    onCrop?(shape: Shape, info: TLCropInfo<Shape>): Omit<TLShapeUpdatePartial<Shape>, 'id'> | undefined | void;
+    onDoubleClick?(shape: Shape): TLShapeUpdatePartial<Shape> | void;
+    onDoubleClickEdge?(shape: Shape): TLShapeUpdatePartial<Shape> | void;
+    onDoubleClickHandle?(shape: Shape, handle: TLHandle): TLShapeUpdatePartial<Shape> | void;
     onDragShapesOut?(shape: Shape, shapes: TLShape[]): void;
     onDragShapesOver?(shape: Shape, shapes: TLShape[]): void;
     onDropShapesOver?(shape: Shape, shapes: TLShape[]): void;
     onEditEnd?(shape: Shape): void;
-    onHandleDrag?(shape: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void;
-    onResize?(shape: Shape, info: TLResizeInfo<Shape>): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void;
-    onResizeEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
-    onResizeStart?(shape: Shape): TLShapePartial<Shape> | void;
-    onRotate?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
-    onRotateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
-    onRotateStart?(shape: Shape): TLShapePartial<Shape> | void;
-    onTranslate?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
-    onTranslateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
-    onTranslateStart?(shape: Shape): TLShapePartial<Shape> | void;
+    onHandleDrag?(shape: Shape, info: TLHandleDragInfo<Shape>): TLShapeUpdatePartial<Shape> | void;
+    onResize?(shape: Shape, info: TLResizeInfo<Shape>): Omit<TLShapeUpdatePartial<Shape>, 'id'> | undefined | void;
+    onResizeEnd?(initial: Shape, current: Shape): TLShapeUpdatePartial<Shape> | void;
+    onResizeStart?(shape: Shape): TLShapeUpdatePartial<Shape> | void;
+    onRotate?(initial: Shape, current: Shape): TLShapeUpdatePartial<Shape> | void;
+    onRotateEnd?(initial: Shape, current: Shape): TLShapeUpdatePartial<Shape> | void;
+    onRotateStart?(shape: Shape): TLShapeUpdatePartial<Shape> | void;
+    onTranslate?(initial: Shape, current: Shape): TLShapeUpdatePartial<Shape> | void;
+    onTranslateEnd?(initial: Shape, current: Shape): TLShapeUpdatePartial<Shape> | void;
+    onTranslateStart?(shape: Shape): TLShapeUpdatePartial<Shape> | void;
     options: {};
     static props?: RecordProps<TLUnknownShape>;
     // @internal

@@ -1450,6 +1450,13 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
 } & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
 
 // @public (undocumented)
+export type TLShapeUpdatePartial<T extends TLShape = TLShape> = T extends T ? {
+    id: TLShapeId;
+    meta?: Partial<T['meta']>;
+    props?: Partial<T['props']>;
+} & Partial<Omit<T, 'id' | 'meta' | 'props'>> : never;
+
+// @public (undocumented)
 export type TLStore = Store<TLRecord, TLStoreProps>;
 
 // @public (undocumented)

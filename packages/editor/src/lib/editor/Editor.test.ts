@@ -83,7 +83,7 @@ describe('updateShape', () => {
 		const shape = editor.getShape(id) as ICustomShape
 		expect(shape.props).toEqual({ w: 100, h: 100, text: 'Hello' })
 
-		editor.updateShape({ ...shape, props: { ...shape.props, text: undefined } })
+		editor.updateShape<ICustomShape>({ id: shape.id, props: { ...shape.props, text: undefined } })
 		const updatedShape = editor.getShape(id) as ICustomShape
 		expect(updatedShape.props).toEqual({ w: 100, h: 100, text: undefined })
 	})

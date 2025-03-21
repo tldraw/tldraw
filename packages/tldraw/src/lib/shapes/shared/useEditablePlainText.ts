@@ -76,11 +76,10 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
 			const normalizedPlaintext = TextHelpers.normalizeText(plaintext || '')
 			editor.updateShape<TLUnknownShape & { props: { text: string } }>({
 				id: shapeId,
-				type,
 				props: { text: normalizedPlaintext },
 			})
 		},
-		[editor, shapeId, type]
+		[editor, shapeId]
 	)
 
 	return {

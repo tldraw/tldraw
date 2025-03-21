@@ -50,7 +50,6 @@ export class myInteractiveShape extends BaseBoxShapeUtil<IMyInteractiveShape> {
 					onChange={() =>
 						this.editor.updateShape<IMyInteractiveShape>({
 							id: shape.id,
-							type: 'my-interactive-shape',
 							props: { checked: !shape.props.checked },
 						})
 					}
@@ -67,7 +66,6 @@ export class myInteractiveShape extends BaseBoxShapeUtil<IMyInteractiveShape> {
 					onChange={(e) =>
 						this.editor.updateShape<IMyInteractiveShape>({
 							id: shape.id,
-							type: 'my-interactive-shape',
 							props: { text: e.currentTarget.value },
 						})
 					}

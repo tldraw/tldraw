@@ -1,4 +1,4 @@
-import { isShapeId, TLShape, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
+import { isShapeId, TLShape, TLShapeId, TLShapeUpdatePartial } from '@tldraw/tlschema'
 import { compact } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
 import { Mat } from '../primitives/Mat'
@@ -89,7 +89,6 @@ export function applyRotationToSnapshotShapes({
 
 			return {
 				id: shape.id,
-				type: shape.type,
 				x: newLocalPoint.x,
 				y: newLocalPoint.y,
 				rotation: newRotation,
@@ -99,7 +98,7 @@ export function applyRotationToSnapshotShapes({
 
 	// Handle change
 
-	const changes: TLShapePartial[] = []
+	const changes: TLShapeUpdatePartial[] = []
 
 	shapeSnapshots.forEach(({ shape }) => {
 		const current = editor.getShape(shape.id)

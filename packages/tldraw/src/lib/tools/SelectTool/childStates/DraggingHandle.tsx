@@ -5,7 +5,7 @@ import {
 	TLLineShape,
 	TLPointerEventInfo,
 	TLShapeId,
-	TLShapePartial,
+	TLShapeUpdatePartial,
 	Vec,
 	snapAngle,
 	sortByIndex,
@@ -70,8 +70,8 @@ export class DraggingHandle extends StateNode {
 			// create a new vertex handle at that point; and make this handle
 			// the handle that we're dragging.
 			if (this.initialHandle.type === 'create') {
-				this.editor.updateShape({
-					...shape,
+				this.editor.updateShape<TLLineShape>({
+					id: shape.id,
 					props: {
 						points: {
 							...shape.props.points,
@@ -287,7 +287,7 @@ export class DraggingHandle extends StateNode {
 			initial: initial,
 		})
 
-		const next: TLShapePartial<any> = { id: shape.id, type: shape.type, ...changes }
+		const next: TLShapeUpdatePartial<any> = { id: shape.id, ...changes }
 
 		// Arrows
 		if (
