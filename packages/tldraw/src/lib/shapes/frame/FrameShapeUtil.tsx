@@ -34,9 +34,9 @@ import {
 } from './frameHelpers'
 
 // Some of these values are repeated in CSS and need to match
-const FRAME_HEADING_EXTRA_WIDTH = 14
+const FRAME_HEADING_EXTRA_WIDTH = 12
 const FRAME_HEADING_MIN_WIDTH = 32
-const FRAME_HEADING_NOCOLORS_OFFSET_X = -8
+const FRAME_HEADING_NOCOLORS_OFFSET_X = -7
 const FRAME_HEADING_OFFSET_Y = 4
 
 /** @public */
@@ -94,14 +94,14 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		// Scale everything into **screen space**
 		const extraWidth = FRAME_HEADING_EXTRA_WIDTH / z
 		const minWidth = FRAME_HEADING_MIN_WIDTH / z
-		const maxWidth = rotatedTopEdgeWidth + (isShowingFrameColors ? 0 : extraWidth)
+		const maxWidth = rotatedTopEdgeWidth + (isShowingFrameColors ? 1 : extraWidth)
 
 		const labelWidth = headingSize.w / z
 		const labelHeight = headingSize.h / z
 
 		const clampedLabelWidth = clamp(labelWidth + extraWidth, minWidth, maxWidth)
 
-		const offsetX = (isShowingFrameColors ? 0 : FRAME_HEADING_NOCOLORS_OFFSET_X) / z
+		const offsetX = (isShowingFrameColors ? -1 : FRAME_HEADING_NOCOLORS_OFFSET_X) / z
 		const offsetY = FRAME_HEADING_OFFSET_Y / z
 
 		// In page space
@@ -198,11 +198,12 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				<SVGContainer>
 					<rect
 						className={classNames('tl-frame__body', { 'tl-frame__creating': isCreating })}
-						width={shape.props.w}
-						height={shape.props.h}
+						width={shape.props.w + 1 / this.editor.getZoomLevel()}
+						height={shape.props.h + 1 / this.editor.getZoomLevel()}
 						fill={frameFill}
-						x={1}
 						stroke={frameStroke}
+						y={-0.5 / this.editor.getZoomLevel()}
+						x={-0.5 / this.editor.getZoomLevel()}
 					/>
 				</SVGContainer>
 				{isCreating ? null : (
@@ -214,7 +215,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 						color={frameHeadingText}
 						width={shape.props.w}
 						height={shape.props.h}
-						offsetX={showFrameColors ? -0 : -8}
+						offsetX={showFrameColors ? -1 : -7}
 						showColors={this.options.showColors}
 					/>
 				)}
@@ -257,8 +258,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 					stroke={frameStroke}
 					strokeWidth={1}
 					x={0}
-					rx={4}
-					ry={4}
+					rx={0}
+					ry={0}
 				/>
 				<g fill={frameHeadingText} transform={labelTranslate}>
 					<rect

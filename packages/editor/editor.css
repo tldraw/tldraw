@@ -1403,8 +1403,6 @@ input,
 
 .tl-frame__body {
 	stroke-width: calc(1px * var(--tl-scale));
-	rx: calc(3px * var(--tl-scale));
-	ry: calc(3px * var(--tl-scale));
 }
 
 .tl-frame__creating {
