@@ -124,6 +124,7 @@ import { TLShapePartial } from '@tldraw/editor';
 import { TLShapeUtilCanBeLaidOutOpts } from '@tldraw/editor';
 import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
+import { TLShapeUtilConstructor } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
@@ -1169,6 +1170,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     canReceiveNewChildrenOfType(shape: TLShape, _type: TLShape['type']): boolean;
     // (undocumented)
     component(shape: TLFrameShape): JSX_2.Element;
+    // (undocumented)
+    static configure<T extends TLShapeUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
+        options: infer Options;
+    } ? Partial<Options> : never): T;
     // (undocumented)
     getDefaultProps(): TLFrameShape['props'];
     // (undocumented)

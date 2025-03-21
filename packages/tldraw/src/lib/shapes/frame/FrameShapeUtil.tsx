@@ -1,5 +1,6 @@
 import {
 	BaseBoxShapeUtil,
+	DefaultColorStyle,
 	Geometry2d,
 	Group2d,
 	Rectangle2d,
@@ -10,6 +11,7 @@ import {
 	TLGroupShape,
 	TLResizeInfo,
 	TLShape,
+	TLShapeUtilConstructor,
 	clamp,
 	frameShapeMigrations,
 	frameShapeProps,
@@ -62,6 +64,22 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override options: FrameShapeOptions = {
 		showColors: false,
+	}
+
+	// evil crimes :)
+	// By default, showColors is off. Because they use style props, which are picked up
+	// automatically, we don't have DefaultColorStyle in the props in the schema by default.
+	// Instead, when someone calls .configure to turn the option on, we manually add in the color
+	// style here so it plays nicely with the other editor APIs.
+	static override configure<T extends TLShapeUtilConstructor<any, any>>(
+		this: T,
+		options: T extends new (...args: any[]) => { options: infer Options } ? Partial<Options> : never
+	): T {
+		const withOptions = super.configure.call(this, options) as T
+		if ((options as any).showColors) {
+			;(withOptions as any).props = { ...withOptions.props, color: DefaultColorStyle }
+		}
+		return withOptions
 	}
 
 	override canEdit() {
