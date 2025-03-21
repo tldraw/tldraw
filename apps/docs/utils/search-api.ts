@@ -1,3 +1,5 @@
+import algoliasearch from 'algoliasearch'
+
 export const SEARCH_RESULTS = {
 	articles: [],
 	apiDocs: [],
@@ -9,3 +11,8 @@ export function searchBucket(sectionId: string) {
 export function sectionTypeBucket(sectionId: string) {
 	return ['examples', 'reference'].includes(sectionId) ? sectionId : 'docs'
 }
+
+export const searchClient = algoliasearch(
+	process.env.NEXT_PUBLIC_ALGOLIA_APP_ID!,
+	process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY!
+)
