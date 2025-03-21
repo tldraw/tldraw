@@ -7,6 +7,7 @@ import { Idle } from '../draw/toolStates/Idle'
 export class HighlightShapeTool extends StateNode {
 	static override id = 'highlight'
 	static override initial = 'idle'
+	static override useCoalescedEvents = true
 	static override children(): TLStateNodeConstructor[] {
 		return [Idle, Drawing]
 	}
