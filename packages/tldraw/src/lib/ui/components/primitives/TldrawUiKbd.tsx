@@ -14,9 +14,11 @@ export function TldrawUiKbd({ children, visibleOnMobileLayout = false }: TLUiKbd
 	if (!visibleOnMobileLayout && breakpoint < PORTRAIT_BREAKPOINT.MOBILE) return null
 	return (
 		<kbd className="tlui-kbd">
-			{kbd(children).map((k, i) => (
-				<span key={i}>{k}</span>
-			))}
+			{kbd(children)
+				.split('')
+				.map((k, i) => (
+					<span key={i}>{k}</span>
+				))}
 		</kbd>
 	)
 }
