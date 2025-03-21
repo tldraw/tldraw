@@ -917,6 +917,7 @@ input,
 	 * However, that was from 8 years ago and the browser caret issue
 	 * it mentions seems to be fixed. So, we're re-enabling it.
 	 * We'll tell ProseMirror maybe to get rid of this on their end.
+	 *
 	 */
 	-webkit-font-variant-ligatures: inherit;
 	font-variant-ligatures: inherit;
@@ -953,6 +954,15 @@ input,
 .tl-rich-text ol {
 	text-align: left;
 	margin: 0;
+	padding-left: 3.25ch;
+}
+
+.tl-rich-text ol:has(> li:nth-child(10)) {
+	padding-left: 4.25ch;
+}
+
+.tl-rich-text ol:has(> li:nth-child(100)) {
+	padding-left: 5.25ch;
 }
 
 .tl-rich-text h1,
