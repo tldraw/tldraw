@@ -57,10 +57,10 @@ export function getFrameHeadingSize(
 	return new Box(0, -opts.height, width, opts.height)
 }
 
-export function getFrameHeadingOpts(width: number): TLCreateTextJsxFromSpansOpts {
+export function getFrameHeadingOpts(width: number, isSvg: boolean): TLCreateTextJsxFromSpansOpts {
 	return {
 		fontSize: 12,
-		fontFamily: 'Inter, sans-serif',
+		fontFamily: isSvg ? 'Arial' : 'Inter, sans-serif',
 		textAlign: 'start' as const,
 		width: width,
 		height: 24, // --frame-height
