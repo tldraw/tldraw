@@ -60,15 +60,15 @@ export const DefaultColorThemePalette: {
 	lightMode: {
 		id: 'light',
 		text: '#000000',
-		background: 'rgb(249, 250, 251)',
+		background: '#f9fafb',
 		solid: '#fcfffe',
 		black: {
 			solid: '#1d1d1d',
 			fill: '#1d1d1d',
 			frame: {
-				headingStroke: '#999999',
+				headingStroke: '#717171',
 				headingFill: '#ffffff',
-				stroke: '#999999',
+				stroke: '#717171',
 				fill: '#ffffff',
 				text: '#000000',
 			},
@@ -87,10 +87,10 @@ export const DefaultColorThemePalette: {
 			solid: '#4465e9',
 			fill: '#4465e9',
 			frame: {
-				headingStroke: '#4465e9',
-				headingFill: '#dce1f8',
-				stroke: '#4465e9',
-				fill: '#dce1f8',
+				headingStroke: '#6681ec',
+				headingFill: '#f9fafe',
+				stroke: '#6681ec',
+				fill: '#f9fafe',
 				text: '#000000',
 			},
 			note: {
@@ -108,10 +108,10 @@ export const DefaultColorThemePalette: {
 			solid: '#099268',
 			fill: '#099268',
 			frame: {
-				headingStroke: '#099268',
-				headingFill: '#d3e9e3',
-				stroke: '#099268',
-				fill: '#d3e9e3',
+				headingStroke: '#37a684',
+				headingFill: '#f8fcfa',
+				stroke: '#37a684',
+				fill: '#f8fcfa',
 				text: '#000000',
 			},
 			note: {
@@ -129,10 +129,10 @@ export const DefaultColorThemePalette: {
 			solid: '#9fa8b2',
 			fill: '#9fa8b2',
 			frame: {
-				headingStroke: '#9fa8b2',
-				headingFill: '#eceef0',
-				stroke: '#9fa8b2',
-				fill: '#eceef0',
+				headingStroke: '#aaaaab',
+				headingFill: '#fbfcfc',
+				stroke: '#aaaaab',
+				fill: '#fcfcfd',
 				text: '#000000',
 			},
 			note: {
@@ -150,10 +150,10 @@ export const DefaultColorThemePalette: {
 			solid: '#4ba1f1',
 			fill: '#4ba1f1',
 			frame: {
-				headingStroke: '#4ba1f1',
-				headingFill: '#ddedfa',
-				stroke: '#4ba1f1',
-				fill: '#ddedfa',
+				headingStroke: '#6cb2f3',
+				headingFill: '#f8fbfe',
+				stroke: '#6cb2f3',
+				fill: '#fafcff',
 				text: '#000000',
 			},
 			note: {
@@ -171,10 +171,10 @@ export const DefaultColorThemePalette: {
 			solid: '#4cb05e',
 			fill: '#4cb05e',
 			frame: {
-				headingStroke: '#4cb05e',
-				headingFill: '#dbf0e0',
-				stroke: '#4cb05e',
-				fill: '#dbf0e0',
+				headingStroke: '#6dbe7c',
+				headingFill: '#f8fcf9',
+				stroke: '#6dbe7c',
+				fill: '#fafdfa',
 				text: '#000000',
 			},
 			note: {
@@ -192,10 +192,10 @@ export const DefaultColorThemePalette: {
 			solid: '#f87777',
 			fill: '#f87777',
 			frame: {
-				headingStroke: '#f87777',
-				headingFill: '#f4dadb',
-				stroke: '#f87777',
-				fill: '#f4dadb',
+				headingStroke: '#f89090',
+				headingFill: '#fffafa',
+				stroke: '#f89090',
+				fill: '#fffbfb',
 				text: '#000000',
 			},
 			note: {
@@ -213,10 +213,10 @@ export const DefaultColorThemePalette: {
 			solid: '#e085f4',
 			fill: '#e085f4',
 			frame: {
-				headingStroke: '#e085f4',
-				headingFill: '#f5eafa',
-				stroke: '#e085f4',
-				fill: '#f5eafa',
+				headingStroke: '#e59bf5',
+				headingFill: '#fefaff',
+				stroke: '#e59bf5',
+				fill: '#fefbff',
 				text: '#000000',
 			},
 			note: {
@@ -234,10 +234,10 @@ export const DefaultColorThemePalette: {
 			solid: '#e16919',
 			fill: '#e16919',
 			frame: {
-				headingStroke: '#e16919',
-				headingFill: '#f8e2d4',
-				stroke: '#e16919',
-				fill: '#f8e2d4',
+				headingStroke: '#e68544',
+				headingFill: '#fef9f6',
+				stroke: '#e68544',
+				fill: '#fef9f6',
 				text: '#000000',
 			},
 			note: {
@@ -255,10 +255,10 @@ export const DefaultColorThemePalette: {
 			solid: '#e03131',
 			fill: '#e03131',
 			frame: {
-				headingStroke: '#e03131',
-				headingFill: '#f7ecec',
-				stroke: '#e03131',
-				fill: '#f9f3f3',
+				headingStroke: '#e55757',
+				headingFill: '#fef7f7',
+				stroke: '#e55757',
+				fill: '#fef9f9',
 				text: '#000000',
 			},
 			note: {
@@ -276,10 +276,10 @@ export const DefaultColorThemePalette: {
 			solid: '#ae3ec9',
 			fill: '#ae3ec9',
 			frame: {
-				headingStroke: '#ae3ec9',
-				headingFill: '#ecdcf2',
-				stroke: '#ae3ec9',
-				fill: '#ecdcf2',
+				headingStroke: '#bc62d3',
+				headingFill: '#fcf7fd',
+				stroke: '#bc62d3',
+				fill: '#fdf9fd',
 				text: '#000000',
 			},
 			note: {
@@ -297,10 +297,10 @@ export const DefaultColorThemePalette: {
 			solid: '#f1ac4b',
 			fill: '#f1ac4b',
 			frame: {
-				headingStroke: '#f1ac4b',
-				headingFill: '#f9f0e6',
-				stroke: '#f1ac4b',
-				fill: '#f9f0e6',
+				headingStroke: '#f3bb6c',
+				headingFill: '#fefcf8',
+				stroke: '#f3bb6c',
+				fill: '#fffdfa',
 				text: '#000000',
 			},
 			note: {
