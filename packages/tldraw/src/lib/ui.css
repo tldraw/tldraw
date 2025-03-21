@@ -281,6 +281,7 @@
 .tlui-buttons__horizontal {
 	display: flex;
 	flex-direction: row;
+	align-items: center;
 }
 .tlui-buttons__horizontal > * {
 	margin-left: -2px;
@@ -596,7 +597,7 @@
 	border-right: 2px solid var(--color-background);
 	border-bottom: 2px solid var(--color-background);
 	border-bottom-right-radius: var(--radius-4);
-	background-color: var(--color-low);
+	background-color: var(--color-background);
 }
 
 .tlui-menu-zone *[data-state='open']::after {
@@ -1256,7 +1257,23 @@
 	}
 }
 
-/* ------------------- Page Select ------------------ */
+/* ------------------- Main Menu and Page Select ------------------ */
+
+.tlui-main-menu {
+	color: var(--color-text-3);
+}
+
+.tlui-top-panel-separator {
+	color: var(--color-text-3);
+	pointer-events: none;
+	padding: 0 8px;
+}
+
+@media (hover: hover) {
+	.tlui-main-menu:hover {
+		color: var(--color-text-1);
+	}
+}
 
 .tlui-page-menu__wrapper {
 	position: relative;
@@ -1265,10 +1282,6 @@
 	width: 260px;
 	height: fit-content;
 	max-height: 50vh;
-}
-
-.tlui-page-menu__trigger {
-	width: 128px;
 }
 
 .tlui-page-menu__header {

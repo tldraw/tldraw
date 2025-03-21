@@ -1,7 +1,9 @@
 import * as Dialog from '@radix-ui/react-alert-dialog'
 import { Dispatch, createContext, useContext, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { TldrawUiButton } from 'tldraw'
 import { Example, examples } from './examples'
+import { SidebarToggle } from './icons/icons'
 
 const dialogContext = createContext<{
 	example: Example | null
@@ -27,112 +29,131 @@ export function ExamplePage({
 	example: Example
 	children: React.ReactNode
 }) {
+	const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 	const categories = examples.map((e) => e.id)
 	const [filterValue, setFilterValue] = useState('')
 	const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFilterValue(e.target.value)
 	}
+
+	const sidebar = (
+		<div className="example__sidebar scroll-light">
+			<div className="example__sidebar__header">
+				<Link className="example__sidebar__header__logo" to="/">
+					<TldrawLogo />
+				</Link>
+				<div className="example__sidebar__header__socials">
+					<a
+						target="_blank"
+						href="https://twitter.com/tldraw"
+						rel="noopener noreferrer"
+						title="twitter"
+						className="hoverable"
+					>
+						<SocialIcon icon="twitter" />
+					</a>
+					<a
+						target="_blank"
+						href="https://github.com/tldraw/tldraw"
+						rel="noopener noreferrer"
+						title="github"
+						className="hoverable"
+					>
+						<SocialIcon icon="github" />
+					</a>
+					<a
+						target="_blank"
+						href="https://discord.tldraw.com/?utm_source=examples&utm_medium=organic&utm_campaign=examples"
+						rel="noopener noreferrer"
+						title="discord"
+						className="hoverable"
+					>
+						<SocialIcon icon="discord" />
+					</a>
+				</div>
+			</div>
+			<div className="example__sidebar__header-links">
+				<a className="example__sidebar__header-link" href="/develop">
+					Develop
+				</a>
+			</div>
+			<input
+				className="example__sidebar__filter"
+				placeholder="Filter…"
+				value={filterValue}
+				onChange={handleFilterChange}
+			/>
+			<ul className="example__sidebar__categories scroll-light">
+				{categories.map((currentCategory) => (
+					<li key={currentCategory} className="example__sidebar__category">
+						<h3 className="example__sidebar__category__header">{currentCategory}</h3>
+						<ul className="example__sidebar__category__items">
+							{examples
+								.find((category) => category.id === currentCategory)
+								?.value.filter((example) => {
+									const excludedWords = ['a', 'the', '', ' ']
+									const terms = filterValue
+										.toLowerCase()
+										.split(' ')
+										.filter((term) => !excludedWords.includes(term))
+									if (!terms.length) return true
+									return (
+										terms.some((term) => example.title.toLowerCase().includes(term)) ||
+										example.keywords.some((keyword) =>
+											terms.some((term) => keyword.toLowerCase().includes(term))
+										)
+									)
+								})
+								.map((sidebarExample) => (
+									<ExampleSidebarListItem
+										key={sidebarExample.path}
+										example={sidebarExample}
+										isActive={sidebarExample.path === example.path}
+									/>
+								))}
+						</ul>
+					</li>
+				))}
+			</ul>
+			<div className="example__sidebar__footer-links">
+				<a
+					className="example__sidebar__footer-link example__sidebar__footer-link--grey"
+					target="_blank"
+					rel="noopener noreferrer"
+					href="https://github.com/tldraw/tldraw/issues/new?assignees=&labels=Example%20Request&projects=&template=example_request.yml&title=%5BExample Request%5D%3A+"
+				>
+					Request an example
+				</a>
+				<a
+					className="example__sidebar__footer-link example__sidebar__footer-link--grey"
+					target="_blank"
+					rel="noopener noreferrer"
+					href="https://tldraw.dev/?utm_source=examples&utm_medium=organic&utm_campaign=examples"
+				>
+					Visit the docs
+				</a>
+			</div>
+		</div>
+	)
+
 	return (
 		<DialogContextProvider>
 			<div className="example">
-				<div className="example__sidebar scroll-light">
-					<div className="example__sidebar__header">
-						<Link className="example__sidebar__header__logo" to="/">
-							<TldrawLogo />
-						</Link>
-						<div className="example__sidebar__header__socials">
-							<a
-								target="_blank"
-								href="https://twitter.com/tldraw"
-								rel="noopener noreferrer"
-								title="twitter"
-								className="hoverable"
-							>
-								<SocialIcon icon="twitter" />
-							</a>
-							<a
-								target="_blank"
-								href="https://github.com/tldraw/tldraw"
-								rel="noopener noreferrer"
-								title="github"
-								className="hoverable"
-							>
-								<SocialIcon icon="github" />
-							</a>
-							<a
-								target="_blank"
-								href="https://discord.tldraw.com/?utm_source=examples&utm_medium=organic&utm_campaign=examples"
-								rel="noopener noreferrer"
-								title="discord"
-								className="hoverable"
-							>
-								<SocialIcon icon="discord" />
-							</a>
-						</div>
-					</div>
-					<div className="example__sidebar__header-links">
-						<a className="example__sidebar__header-link" href="/develop">
-							Develop
-						</a>
-					</div>
-					<input
-						className="example__sidebar__filter"
-						placeholder="Filter…"
-						value={filterValue}
-						onChange={handleFilterChange}
-					/>
-					<ul className="example__sidebar__categories scroll-light">
-						{categories.map((currentCategory) => (
-							<li key={currentCategory} className="example__sidebar__category">
-								<h3 className="example__sidebar__category__header">{currentCategory}</h3>
-								<ul className="example__sidebar__category__items">
-									{examples
-										.find((category) => category.id === currentCategory)
-										?.value.filter((example) => {
-											const excludedWords = ['a', 'the', '', ' ']
-											const terms = filterValue
-												.toLowerCase()
-												.split(' ')
-												.filter((term) => !excludedWords.includes(term))
-											if (!terms.length) return true
-											return (
-												terms.some((term) => example.title.toLowerCase().includes(term)) ||
-												example.keywords.some((keyword) =>
-													terms.some((term) => keyword.toLowerCase().includes(term))
-												)
-											)
-										})
-										.map((sidebarExample) => (
-											<ExampleSidebarListItem
-												key={sidebarExample.path}
-												example={sidebarExample}
-												isActive={sidebarExample.path === example.path}
-											/>
-										))}
-								</ul>
-							</li>
-						))}
-					</ul>
-					<div className="example__sidebar__footer-links">
-						<a
-							className="example__sidebar__footer-link example__sidebar__footer-link--grey"
-							target="_blank"
-							rel="noopener noreferrer"
-							href="https://github.com/tldraw/tldraw/issues/new?assignees=&labels=Example%20Request&projects=&template=example_request.yml&title=%5BExample Request%5D%3A+"
-						>
-							Request an example
-						</a>
-						<a
-							className="example__sidebar__footer-link example__sidebar__footer-link--grey"
-							target="_blank"
-							rel="noopener noreferrer"
-							href="https://tldraw.dev/?utm_source=examples&utm_medium=organic&utm_campaign=examples"
-						>
-							Visit the docs
-						</a>
-					</div>
-				</div>
+				{isSidebarOpen && sidebar}
 				<div className="example__content">
+					<TldrawUiButton
+						className="example__sidebar__toggle"
+						type="icon"
+						title="Toggle sidebar"
+						onClick={() => {
+							setIsSidebarOpen(!isSidebarOpen)
+						}}
+						style={{
+							top: example.multiplayer ? 42 : 0,
+						}}
+					>
+						<SidebarToggle />
+					</TldrawUiButton>
 					{children}
 					<Dialogs />
 				</div>
@@ -165,14 +186,6 @@ function ExampleSidebarListItem({
 					>
 						<InfoIcon />
 					</button>
-					<Link
-						to={`${example.path}/full`}
-						className="example__sidebar__item__button hoverable"
-						aria-label="Standalone"
-						title="View standalone example"
-					>
-						<StandaloneIcon />
-					</Link>
 				</div>
 			)}
 		</li>
@@ -236,19 +249,6 @@ function SocialIcon({ icon }: { icon: string }) {
 				height: 16,
 			}}
 		/>
-	)
-}
-
-function StandaloneIcon() {
-	return (
-		<svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-			<path
-				d="M2 2.5C2 2.22386 2.22386 2 2.5 2H5.5C5.77614 2 6 2.22386 6 2.5C6 2.77614 5.77614 3 5.5 3H3V5.5C3 5.77614 2.77614 6 2.5 6C2.22386 6 2 5.77614 2 5.5V2.5ZM9 2.5C9 2.22386 9.22386 2 9.5 2H12.5C12.7761 2 13 2.22386 13 2.5V5.5C13 5.77614 12.7761 6 12.5 6C12.2239 6 12 5.77614 12 5.5V3H9.5C9.22386 3 9 2.77614 9 2.5ZM2.5 9C2.77614 9 3 9.22386 3 9.5V12H5.5C5.77614 12 6 12.2239 6 12.5C6 12.7761 5.77614 13 5.5 13H2.5C2.22386 13 2 12.7761 2 12.5V9.5C2 9.22386 2.22386 9 2.5 9ZM12.5 9C12.7761 9 13 9.22386 13 9.5V12.5C13 12.7761 12.7761 13 12.5 13H9.5C9.22386 13 9 12.7761 9 12.5C9 12.2239 9.22386 12 9.5 12H12V9.5C12 9.22386 12.2239 9 12.5 9Z"
-				fill="currentColor"
-				fillRule="evenodd"
-				clipRule="evenodd"
-			/>
-		</svg>
 	)
 }
 

@@ -110,7 +110,6 @@ function TlaEditorInner({
 				onUiEvent={handleUiEvent}
 				components={components}
 				deepLinks
-				options={{ actionShortcutsLocation: 'toolbar' }}
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />

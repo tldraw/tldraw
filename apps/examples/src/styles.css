@@ -500,3 +500,14 @@ a.example__sidebar__header-link {
 	position: relative;
 	flex: 1;
 }
+
+.example__content .tlui-menu-zone {
+	padding-left: 40px;
+}
+
+.example__sidebar__toggle {
+	position: absolute;
+	top: 0;
+	left: 4px;
+	z-index: 301;
+}
