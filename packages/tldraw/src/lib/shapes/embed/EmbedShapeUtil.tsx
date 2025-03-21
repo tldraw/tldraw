@@ -184,7 +184,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						className="tl-embed"
 						sandbox={sandbox}
 						src={embedInfo.embedUrl}
-						allowFullScreen
 						width={toDomPrecision(w)}
 						height={toDomPrecision(h)}
 						draggable={false}

@@ -33,16 +33,16 @@ import {
 	getFrameHeadingTranslation,
 } from './frameHelpers'
 
+// Some of these values are repeated in CSS and need to match
 const FRAME_HEADING_EXTRA_WIDTH = 14
-const FRAME_HEADING_MIN_WIDTH = 32 // --fmw
+const FRAME_HEADING_MIN_WIDTH = 32
 const FRAME_HEADING_NOCOLORS_OFFSET_X = -8
 const FRAME_HEADING_OFFSET_Y = 4
 
 /** @public */
 export interface FrameShapeOptions {
 	/**
-	 * How should the note shape resize? By default it does not resize (except automatically based on its text content),
-	 * but you can set it to be user-resizable using scale.
+	 * When true, the frame will display colors for the shape's headings and background.
 	 */
 	showColors: boolean
 }
@@ -108,46 +108,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const width = isVertical ? labelHeight : clampedLabelWidth
 		const height = isVertical ? clampedLabelWidth : labelHeight
 
-		/* Calculate label position based on side. The position needs to always appear at the top left
-		of the shape, regardless of rotation. 
-		
-       Displayed              Actual     
-			 
-			 0deg
-       ┌───────┐              ┌───────┐       
-       └───────┘              └───────┘       
-       ┌─────────────┐        ┌─────────────┐ 
-       │x            │        │ x           │ 
-       │             │        │             │ 
-       │             │        │             │ 
-       └─────────────┘        └─────────────┘ 
-       
-			 90deg
-
-       ┌───────┐                              
-       └───────┘              ┌───────┐       
-       ┌───────┐              │       │       
-       │      x│              │       │       
-       │       │              │       │       
-       │       │           ┌─┐│       │       
-       │       │           │ ││       │       
-       │       │           │ ││       │       
-       │       │           │ ││x      │       
-       └───────┘           └─┘└───────┘       
-
-
-			The label must be between a minimum and maximum.
-			The minimum is arbitrary; the maximum is the width
-			of the edge of the frame where the label will be shown.
-
-			┌─┐             ┌───────┐       ┌─────────────┐ 
-			└─┘             └───────┘       └─────────────┘ 
-			┌─────────────┐ ┌─────────────┐ ┌─────────────┐ 
-			│ x           │ │ x           │ │ x           │ 
-			│             │ │             │ │             │ 
-			│             │ │             │ │             │ 
-			└─────────────┘ └─────────────┘ └─────────────┘ 
-		*/
+		// Calculate label position based on side. The position needs to always appear
+		// at the top left of the shape, regardless of rotation. The label must be
+		// between a minimum and maximum. The minimum is arbitrary; the maximum is the
+		// width of the edge of the frame where the label will be shown.
 
 		let x: number, y: number
 
