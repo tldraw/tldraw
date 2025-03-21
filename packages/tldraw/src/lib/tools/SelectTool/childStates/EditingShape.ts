@@ -11,7 +11,7 @@ import {
 import { getTextLabels } from '../../../utils/shapes/shapes'
 import { renderPlaintextFromRichText } from '../../../utils/text/richText'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
-import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
+import { updateHoveredShapeIdThrottled } from '../../selection-logic/updateHoveredShapeId'
 
 interface EditingShapeInfo {
 	isCreatingTextWhileToolLocked?: boolean
@@ -34,7 +34,7 @@ export class EditingShape extends StateNode {
 			this.parent.setCurrentToolIdMask('text')
 		}
 
-		updateHoveredShapeId(this.editor)
+		updateHoveredShapeIdThrottled(this.editor)
 		this.editor.select(editingShape)
 	}
 
@@ -45,7 +45,7 @@ export class EditingShape extends StateNode {
 		// Clear the editing shape
 		this.editor.setEditingShape(null)
 
-		updateHoveredShapeId.cancel()
+		updateHoveredShapeIdThrottled.cancel()
 
 		const shape = this.editor.getShape(editingShapeId)!
 		const util = this.editor.getShapeUtil(shape)
@@ -74,7 +74,7 @@ export class EditingShape extends StateNode {
 		switch (info.target) {
 			case 'shape':
 			case 'canvas': {
-				updateHoveredShapeId(this.editor)
+				updateHoveredShapeIdThrottled(this.editor)
 				return
 			}
 		}
@@ -192,7 +192,7 @@ export class EditingShape extends StateNode {
 		} else if (isMobile && isEditToEditAction) {
 			this.editor.emit('select-all-text', { shapeId: hitShape.id })
 		}
-		updateHoveredShapeId(this.editor)
+		updateHoveredShapeIdThrottled(this.editor)
 	}
 
 	override onComplete(info: TLCompleteEventInfo) {
