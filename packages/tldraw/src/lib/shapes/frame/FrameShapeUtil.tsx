@@ -38,6 +38,15 @@ const FRAME_HEADING_MIN_WIDTH = 32 // --fmw
 const FRAME_HEADING_NOCOLORS_OFFSET_X = -8
 const FRAME_HEADING_OFFSET_Y = 4
 
+/** @public */
+export interface FrameShapeOptions {
+	/**
+	 * How should the note shape resize? By default it does not resize (except automatically based on its text content),
+	 * but you can set it to be user-resizable using scale.
+	 */
+	showColors: boolean
+}
+
 export function defaultEmptyAs(str: string, dflt: string) {
 	if (str.match(/^\s*$/)) {
 		return dflt
@@ -50,6 +59,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	static override type = 'frame' as const
 	static override props = frameShapeProps
 	static override migrations = frameShapeMigrations
+
+	override options: FrameShapeOptions = {
+		showColors: false,
+	}
 
 	override canEdit() {
 		return true
@@ -76,7 +89,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		// If NOT showing frame colors, we need to offset the label
 		// to the left so that the title is in line with the shape edge
 		// and add that extra width to the right side of the label
-		const isShowingFrameColors = editor.options.showFrameColors
+		const isShowingFrameColors = this.options.showColors
 
 		// Scale everything into **screen space**
 		const extraWidth = FRAME_HEADING_EXTRA_WIDTH / z
@@ -207,7 +220,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			[shape.id]
 		)
 
-		const showFrameColors = this.editor.options.showFrameColors
+		const showFrameColors = this.options.showColors
 
 		const color = theme[shape.props.color]
 		const frameFill = showFrameColors ? color.frame.fill : theme.black.frame.fill
@@ -238,6 +251,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 						width={shape.props.w}
 						height={shape.props.h}
 						offsetX={showFrameColors ? -0 : -8}
+						showColors={this.options.showColors}
 					/>
 				)}
 			</>
@@ -261,7 +275,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const spans = this.editor.textMeasure.measureTextSpans(frameTitle, opts)
 		const text = createTextJsxFromSpans(this.editor, spans, opts)
 
-		const showFrameColors = this.editor.options.showFrameColors
+		const showFrameColors = this.options.showColors
 
 		const color = theme[shape.props.color]
 		const frameFill = showFrameColors ? color.frame.fill : theme.black.frame.fill

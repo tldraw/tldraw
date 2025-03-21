@@ -1143,6 +1143,11 @@ export const FONT_FAMILIES: Record<TLDefaultFontStyle, string>;
 export const FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public (undocumented)
+export interface FrameShapeOptions {
+    showColors: boolean;
+}
+
+// @public (undocumented)
 export class FrameShapeTool extends BaseBoxShapeTool {
     // (undocumented)
     static id: string;
@@ -1182,6 +1187,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     onDragShapesOver(frame: TLFrameShape, shapes: TLShape[]): void;
     // (undocumented)
     onResize(shape: any, info: TLResizeInfo<any>): any;
+    // (undocumented)
+    options: FrameShapeOptions;
     // (undocumented)
     static props: RecordProps<TLFrameShape>;
     // (undocumented)

@@ -66,10 +66,6 @@ export interface TldrawOptions {
 	 */
 	readonly exportProvider: ComponentType<{ children: React.ReactNode }>
 	/**
-	 * When frame colors are enabled, frames will be drawn with a colored border and fill.
-	 */
-	readonly showFrameColors: boolean
-	/**
 	 * By default, the toolbar items are accessible via number shortcuts according to their order. To disable this, set this option to false.
 	 */
 	readonly enableToolbarKeyboardShortcuts: boolean
@@ -128,7 +124,6 @@ export const defaultTldrawOptions = {
 	actionShortcutsLocation: 'swap',
 	createTextOnCanvasDoubleClick: true,
 	exportProvider: Fragment,
-	showFrameColors: false,
 	enableToolbarKeyboardShortcuts: true,
 	maxFontsToLoadBeforeRender: Infinity,
 	nonce: undefined,

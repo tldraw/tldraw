@@ -8070,9 +8070,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this._extractSharedStyles(this.getShape(childIds[i])!, sharedStyleMap)
 			}
 		} else {
-			// oof, I knew there would be something annoying with showFrameColors.
-			// we need to skip the color prop for frames if showFrameColors is false
-			if (shape.type === 'frame' && !this.options.showFrameColors) {
+			// oof, I knew there would be something annoying with showColors.
+			// we need to skip the color prop for frames if showColors is false
+			// todo: extract to frame shape somehow
+			if (shape.type === 'frame' && !(this.getShapeUtil('frame')!.options as any).showColors) {
 				for (const [style, propKey] of this.styleProps[shape.type]) {
 					if (style.id === 'tldraw:color') {
 						continue
@@ -8157,7 +8158,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!currentTool) return styles
 
 		if (currentTool.shapeType) {
-			if (currentTool.shapeType === 'frame' && !this.options.showFrameColors) {
+			if (
+				currentTool.shapeType === 'frame' &&
+				!(this.getShapeUtil('frame')!.options as any).showColors
+			) {
 				for (const style of this.styleProps[currentTool.shapeType].keys()) {
 					if (style.id === 'tldraw:color') continue
 					styles.applyValue(style, this.getStyleForNextShape(style))
