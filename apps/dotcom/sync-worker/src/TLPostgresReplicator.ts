@@ -319,6 +319,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		const now = Date.now()
 		if (now - this.lastUserPruneTime < PRUNE_INTERVAL) return
 		this.logEvent({ type: 'prune' })
+		this.log.debug('pruning')
 		const cutoffTime = now - PRUNE_INTERVAL
 		const usersWithoutRecentUpdates = this.ctx.storage.sql
 			.exec('SELECT id FROM active_user WHERE lastUpdatedAt < ?', cutoffTime)
