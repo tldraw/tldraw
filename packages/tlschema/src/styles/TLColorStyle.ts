@@ -256,9 +256,9 @@ export const DefaultColorThemePalette: {
 			fill: '#e03131',
 			frame: {
 				headingStroke: '#e03131',
-				headingFill: '#f4dadb',
+				headingFill: '#f7ecec',
 				stroke: '#e03131',
-				fill: '#f4dadb',
+				fill: '#f9f3f3',
 				text: '#000000',
 			},
 			note: {
