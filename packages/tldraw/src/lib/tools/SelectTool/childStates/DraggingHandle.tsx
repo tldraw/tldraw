@@ -88,7 +88,7 @@ export class DraggingHandle extends StateNode {
 
 		this.initialPageTransform = this.editor.getShapePageTransform(shape)!
 		this.initialPageRotation = this.initialPageTransform.rotation()
-		this.initialPagePoint = this.editor.inputs.originPagePoint()
+		this.initialPagePoint = this.editor.inputs.getOriginPagePoint()
 
 		this.editor.setCursor({ type: isCreating ? 'cross' : 'grabbing', rotation: 0 })
 
@@ -246,11 +246,11 @@ export class DraggingHandle extends StateNode {
 		if (!shape) return
 		const util = editor.getShapeUtil(shape)
 
-		let point = Vec.Sub(editor.inputs.currentPagePoint(), initialPagePoint)
+		let point = Vec.Sub(editor.inputs.getCurrentPagePoint(), initialPagePoint)
 			.rot(-initialPageRotation)
 			.add(initialHandle)
 
-		if (editor.inputs.shiftKey() && initialAdjacentHandle && initialHandle.id !== 'middle') {
+		if (editor.inputs.getShiftKey() && initialAdjacentHandle && initialHandle.id !== 'middle') {
 			const angle = Vec.Angle(initialAdjacentHandle, point)
 			const snappedAngle = snapAngle(angle, 24)
 			const angleDifference = snappedAngle - angle
@@ -264,7 +264,7 @@ export class DraggingHandle extends StateNode {
 
 		if (
 			initialHandle.canSnap &&
-			(isSnapMode ? !editor.inputs.ctrlKey() : editor.inputs.ctrlKey())
+			(isSnapMode ? !editor.inputs.getCtrlKey() : editor.inputs.getCtrlKey())
 		) {
 			// We're snapping
 			const pageTransform = editor.getShapePageTransform(shape.id)
@@ -281,7 +281,7 @@ export class DraggingHandle extends StateNode {
 
 		const changes = util.onHandleDrag?.(shape, {
 			handle: nextHandle,
-			isPrecise: this.isPrecise || editor.inputs.altKey(),
+			isPrecise: this.isPrecise || editor.inputs.getAltKey(),
 			initial: initial,
 		})
 
@@ -298,7 +298,8 @@ export class DraggingHandle extends StateNode {
 				if (hintingShapeIds[0] !== bindingAfter.toId) {
 					editor.setHintingShapes([bindingAfter.toId])
 					this.pointingId = bindingAfter.toId
-					this.isPrecise = Vec.Len(editor.inputs.pointerVelocity()) < 0.5 || editor.inputs.altKey()
+					this.isPrecise =
+						Vec.Len(editor.inputs.getPointerVelocity()) < 0.5 || editor.inputs.getAltKey()
 					this.isPreciseId = this.isPrecise ? bindingAfter.toId : null
 					this.resetExactTimeout()
 				}

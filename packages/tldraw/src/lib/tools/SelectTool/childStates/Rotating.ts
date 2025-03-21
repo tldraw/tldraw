@@ -138,8 +138,8 @@ export class Rotating extends StateNode {
 	_getRotationFromPointerPosition({ snapToNearestDegree }: { snapToNearestDegree: boolean }) {
 		const selectionRotation = this.editor.getSelectionRotation()
 		const selectionBounds = this.editor.getSelectionRotatedPageBounds()
-		const shiftKey = this.editor.inputs.shiftKey()
-		const currentPagePoint = this.editor.inputs.currentPagePoint()
+		const shiftKey = this.editor.inputs.getShiftKey()
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		const { initialCursorAngle, initialShapesRotation } = this.snapshot
 
 		if (!selectionBounds) return initialShapesRotation

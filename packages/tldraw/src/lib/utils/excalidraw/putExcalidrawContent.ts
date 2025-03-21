@@ -320,7 +320,7 @@ export async function putExcalidrawContent(
 		index = getIndexAbove(index)
 	}
 
-	const p = point ?? (editor.inputs.shiftKey() ? editor.inputs.currentPagePoint() : undefined)
+	const p = point ?? (editor.inputs.getShiftKey() ? editor.inputs.getCurrentPagePoint() : undefined)
 
 	editor.putContentOntoCurrentPage(tldrawContent, {
 		point: p,

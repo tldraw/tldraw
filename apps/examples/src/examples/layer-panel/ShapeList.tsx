@@ -42,7 +42,7 @@ function ShapeItem({
 					}}
 					onClick={() => {
 						// We synchronize the selection state of the layer panel items with the selection state of the shapes in the editor.
-						if (editor.inputs.ctrlKey() || editor.inputs.shiftKey()) {
+						if (editor.inputs.getCtrlKey() || editor.inputs.getShiftKey()) {
 							if (isSelected) {
 								editor.deselect(shape)
 							} else {

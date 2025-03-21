@@ -280,7 +280,7 @@ class PinTool extends StateNode {
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
-		const currentPagePoint = this.editor.inputs.currentPagePoint()
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		const pinId = createShapeId()
 		this.editor.markHistoryStoppingPoint()
 		this.editor.createShape({

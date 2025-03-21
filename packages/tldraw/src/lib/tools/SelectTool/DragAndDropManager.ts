@@ -25,14 +25,14 @@ export class DragAndDropManager {
 			)
 
 			this.prevDroppingShapeId =
-				this.editor.getDroppingOverShape(this.editor.inputs.originPagePoint(), movingShapes)?.id ??
-				null
+				this.editor.getDroppingOverShape(this.editor.inputs.getOriginPagePoint(), movingShapes)
+					?.id ?? null
 			this.first = false
 		}
 
 		if (this.droppingNodeTimer === null) {
 			this.setDragTimer(movingShapes, INITIAL_POINTER_LAG_DURATION, cb)
-		} else if (Vec.Len(this.editor.inputs.pointerVelocity()) > 0.5) {
+		} else if (Vec.Len(this.editor.inputs.getPointerVelocity()) > 0.5) {
 			clearTimeout(this.droppingNodeTimer)
 			this.setDragTimer(movingShapes, FAST_POINTER_LAG_DURATION, cb)
 		}
@@ -41,7 +41,7 @@ export class DragAndDropManager {
 	private setDragTimer(movingShapes: TLShape[], duration: number, cb: () => void) {
 		this.droppingNodeTimer = this.editor.timers.setTimeout(() => {
 			this.editor.run(() => {
-				this.handleDrag(this.editor.inputs.currentPagePoint(), movingShapes, cb)
+				this.handleDrag(this.editor.inputs.getCurrentPagePoint(), movingShapes, cb)
 			})
 			this.droppingNodeTimer = null
 		}, duration)
@@ -116,7 +116,7 @@ export class DragAndDropManager {
 	dropShapes(shapes: TLShape[]) {
 		const { prevDroppingShapeId } = this
 
-		this.handleDrag(this.editor.inputs.currentPagePoint(), shapes)
+		this.handleDrag(this.editor.inputs.getCurrentPagePoint(), shapes)
 
 		if (prevDroppingShapeId) {
 			const shape = this.editor.getShape(prevDroppingShapeId)

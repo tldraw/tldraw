@@ -61,7 +61,7 @@ export class PointingHandle extends StateNode {
 
 	override onPointerMove(info: TLPointerEventInfo) {
 		const { editor } = this
-		if (editor.inputs.isDragging()) {
+		if (editor.inputs.getIsDragging()) {
 			if (this.didCtrlOnEnter) {
 				this.parent.transition('brushing', info)
 			} else {
@@ -84,7 +84,7 @@ export class PointingHandle extends StateNode {
 			if (nextNote) {
 				// Center the shape on the current pointer
 				const centeredOnPointer = editor
-					.getPointInParentSpace(nextNote, editor.inputs.originPagePoint())
+					.getPointInParentSpace(nextNote, editor.inputs.getOriginPagePoint())
 					.sub(Vec.Rot(NOTE_CENTER_OFFSET.clone().mul(shape.props.scale), nextNote.rotation))
 				editor.updateShape({ ...nextNote, x: centeredOnPointer.x, y: centeredOnPointer.y })
 

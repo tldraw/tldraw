@@ -197,7 +197,7 @@ export class ClickManager {
 				if (
 					this._clickState !== 'idle' &&
 					this._clickScreenPoint &&
-					Vec.Dist2(this._clickScreenPoint, this.editor.inputs.currentScreenPoint()) >
+					Vec.Dist2(this._clickScreenPoint, this.editor.inputs.getCurrentScreenPoint()) >
 						(this.editor.getInstanceState().isCoarsePointer
 							? this.editor.options.coarseDragDistanceSquared
 							: this.editor.options.dragDistanceSquared)

@@ -185,8 +185,8 @@ export class Resizing extends StateNode {
 	}
 
 	private updateShapes() {
-		const altKey = this.editor.inputs.altKey()
-		const shiftKey = this.editor.inputs.shiftKey()
+		const altKey = this.editor.inputs.getAltKey()
+		const shiftKey = this.editor.inputs.getShiftKey()
 		const {
 			frames,
 			shapeSnapshots,
@@ -239,13 +239,14 @@ export class Resizing extends StateNode {
 		//                            │
 		//                   cursorHandleOffset.x
 
-		const ctrlKey = this.editor.inputs.ctrlKey()
+		const ctrlKey = this.editor.inputs.getCtrlKey()
 
-		const currentPagePoint = Vec.Sub(this.editor.inputs.currentPagePoint(), cursorHandleOffset).sub(
-			this.creationCursorOffset
-		)
+		const currentPagePoint = Vec.Sub(
+			this.editor.inputs.getCurrentPagePoint(),
+			cursorHandleOffset
+		).sub(this.creationCursorOffset)
 
-		const originPagePoint = Vec.Sub(this.editor.inputs.originPagePoint(), cursorHandleOffset)
+		const originPagePoint = Vec.Sub(this.editor.inputs.getOriginPagePoint(), cursorHandleOffset)
 
 		if (this.editor.getInstanceState().isGridMode && !ctrlKey) {
 			const { gridSize } = this.editor.getDocumentSettings()
@@ -353,7 +354,7 @@ export class Resizing extends StateNode {
 			})
 		}
 
-		if (this.editor.inputs.ctrlKey()) {
+		if (this.editor.inputs.getCtrlKey()) {
 			this.didHoldCommand = true
 
 			for (const { id, children } of frames) {
@@ -444,7 +445,7 @@ export class Resizing extends StateNode {
 	_createSnapshot() {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		const selectionRotation = this.editor.getSelectionRotation()
-		const originPagePoint = this.editor.inputs.originPagePoint()
+		const originPagePoint = this.editor.inputs.getOriginPagePoint()
 
 		const selectionBounds = this.editor.getSelectionRotatedPageBounds()!
 

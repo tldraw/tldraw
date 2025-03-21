@@ -18,7 +18,7 @@ export class PointingSelection extends StateNode {
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		if (this.editor.inputs.isDragging()) {
+		if (this.editor.inputs.getIsDragging()) {
 			this.startTranslating(info)
 		}
 	}
@@ -37,7 +37,7 @@ export class PointingSelection extends StateNode {
 		const hitShape =
 			hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
 				? hoveredShape
-				: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint(), {
+				: this.editor.getShapeAtPoint(this.editor.inputs.getCurrentPagePoint(), {
 						hitInside: true,
 						margin: 0,
 						renderingOnly: true,

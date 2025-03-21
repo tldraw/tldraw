@@ -40,7 +40,7 @@ export class PointingResizeHandle extends StateNode {
 	}
 
 	override onPointerMove() {
-		if (this.editor.inputs.isDragging()) {
+		if (this.editor.inputs.getIsDragging()) {
 			this.startResizing()
 		}
 	}

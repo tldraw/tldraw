@@ -17,7 +17,7 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 
 	const zoomLevel = editor.getZoomLevel()
 	const renderingShapes = editor.getRenderingShapes()
-	const currentPagePoint = editor.inputs.currentPagePoint()
+	const currentPagePoint = editor.inputs.getCurrentPagePoint()
 
 	return (
 		<svg

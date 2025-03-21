@@ -2721,8 +2721,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// Dispatch a new pointer move because the pointer's page will have changed
 			// (its screen position will compute to a new page position given the new camera position)
-			const currentScreenPoint = this.inputs.currentScreenPoint()
-			const currentPagePoint = this.inputs.currentPagePoint()
+			const currentScreenPoint = this.inputs.getCurrentScreenPoint()
+			const currentPagePoint = this.inputs.getCurrentPagePoint()
 			const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 
 			// compare the next page point (derived from the current camera) to the current page point
@@ -2738,11 +2738,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// weird but true: we need to put the screen point back into client space
 					point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
 					pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
-					ctrlKey: this.inputs.ctrlKey(),
-					altKey: this.inputs.altKey(),
-					shiftKey: this.inputs.shiftKey(),
-					metaKey: this.inputs.metaKey(),
-					accelKey: this.inputs.accelKey(),
+					ctrlKey: this.inputs.getCtrlKey(),
+					altKey: this.inputs.getAltKey(),
+					shiftKey: this.inputs.getShiftKey(),
+					metaKey: this.inputs.getMetaKey(),
+					accelKey: this.inputs.getAccelKey(),
 					button: 0,
 					isPen: this.getInstanceState().isPenMode ?? false,
 				}
@@ -9481,11 +9481,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			type: 'keyboard',
 			name: 'key_up',
 			key: 'Shift',
-			shiftKey: this.inputs.shiftKey(),
-			ctrlKey: this.inputs.ctrlKey(),
-			altKey: this.inputs.altKey(),
-			metaKey: this.inputs.metaKey(),
-			accelKey: this.inputs.accelKey(),
+			shiftKey: this.inputs.getShiftKey(),
+			ctrlKey: this.inputs.getCtrlKey(),
+			altKey: this.inputs.getAltKey(),
+			metaKey: this.inputs.getMetaKey(),
+			accelKey: this.inputs.getAccelKey(),
 			code: 'ShiftLeft',
 		})
 	}
@@ -9501,11 +9501,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			type: 'keyboard',
 			name: 'key_up',
 			key: 'Alt',
-			shiftKey: this.inputs.shiftKey(),
-			ctrlKey: this.inputs.ctrlKey(),
-			altKey: this.inputs.altKey(),
-			metaKey: this.inputs.metaKey(),
-			accelKey: this.inputs.accelKey(),
+			shiftKey: this.inputs.getShiftKey(),
+			ctrlKey: this.inputs.getCtrlKey(),
+			altKey: this.inputs.getAltKey(),
+			metaKey: this.inputs.getMetaKey(),
+			accelKey: this.inputs.getAccelKey(),
 			code: 'AltLeft',
 		})
 	}
@@ -9521,11 +9521,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			type: 'keyboard',
 			name: 'key_up',
 			key: 'Ctrl',
-			shiftKey: this.inputs.shiftKey(),
-			ctrlKey: this.inputs.ctrlKey(),
-			altKey: this.inputs.altKey(),
-			metaKey: this.inputs.metaKey(),
-			accelKey: this.inputs.accelKey(),
+			shiftKey: this.inputs.getShiftKey(),
+			ctrlKey: this.inputs.getCtrlKey(),
+			altKey: this.inputs.getAltKey(),
+			metaKey: this.inputs.getMetaKey(),
+			accelKey: this.inputs.getAccelKey(),
 			code: 'ControlLeft',
 		})
 	}
@@ -9541,11 +9541,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			type: 'keyboard',
 			name: 'key_up',
 			key: 'Meta',
-			shiftKey: this.inputs.shiftKey(),
-			ctrlKey: this.inputs.ctrlKey(),
-			altKey: this.inputs.altKey(),
-			metaKey: this.inputs.metaKey(),
-			accelKey: this.inputs.accelKey(),
+			shiftKey: this.inputs.getShiftKey(),
+			ctrlKey: this.inputs.getCtrlKey(),
+			altKey: this.inputs.getAltKey(),
+			metaKey: this.inputs.getMetaKey(),
+			accelKey: this.inputs.getAccelKey(),
 			code: 'MetaLeft',
 		})
 	}
@@ -9633,7 +9633,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (info.name === 'cancel' || info.name === 'complete') {
 				this.inputs.setIsDragging(false)
 
-				if (this.inputs.isPanning()) {
+				if (this.inputs.getIsPanning()) {
 					this.inputs.setIsPanning(false)
 					this.inputs.setIsSpacebarPanning(false)
 					this.setCursor({ type: this._prevCursor, rotation: 0 })
@@ -9648,7 +9648,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			clearTimeout(this._shiftKeyTimeout)
 			this._shiftKeyTimeout = -1
 			inputs.setShiftKey(true)
-		} else if (!info.shiftKey && inputs.shiftKey() && this._shiftKeyTimeout === -1) {
+		} else if (!info.shiftKey && inputs.getShiftKey() && this._shiftKeyTimeout === -1) {
 			this._shiftKeyTimeout = this.timers.setTimeout(this._setShiftKeyTimeout, 150)
 		}
 
@@ -9656,7 +9656,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			clearTimeout(this._altKeyTimeout)
 			this._altKeyTimeout = -1
 			inputs.setAltKey(true)
-		} else if (!info.altKey && inputs.altKey() && this._altKeyTimeout === -1) {
+		} else if (!info.altKey && inputs.getAltKey() && this._altKeyTimeout === -1) {
 			this._altKeyTimeout = this.timers.setTimeout(this._setAltKeyTimeout, 150)
 		}
 
@@ -9664,7 +9664,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			clearTimeout(this._ctrlKeyTimeout)
 			this._ctrlKeyTimeout = -1
 			inputs.setCtrlKey(true)
-		} else if (!info.ctrlKey && inputs.ctrlKey() && this._ctrlKeyTimeout === -1) {
+		} else if (!info.ctrlKey && inputs.getCtrlKey() && this._ctrlKeyTimeout === -1) {
 			this._ctrlKeyTimeout = this.timers.setTimeout(this._setCtrlKeyTimeout, 150)
 		}
 
@@ -9672,11 +9672,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			clearTimeout(this._metaKeyTimeout)
 			this._metaKeyTimeout = -1
 			inputs.setMetaKey(true)
-		} else if (!info.metaKey && inputs.metaKey() && this._metaKeyTimeout === -1) {
+		} else if (!info.metaKey && inputs.getMetaKey() && this._metaKeyTimeout === -1) {
 			this._metaKeyTimeout = this.timers.setTimeout(this._setMetaKeyTimeout, 150)
 		}
 
-		if (!inputs.isPointing()) {
+		if (!inputs.getIsPointing()) {
 			inputs.setIsDragging(false)
 		}
 
@@ -9692,9 +9692,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				switch (info.name) {
 					case 'pinch_start': {
-						if (inputs.isPinching()) return
+						if (inputs.getIsPinching()) return
 
-						if (!inputs.isEditing()) {
+						if (!inputs.getIsEditing()) {
 							this._pinchStart = this.getCamera().z
 							if (!this._selectedShapeIdsAtPointerDown.length) {
 								this._selectedShapeIdsAtPointerDown = [...pageState.selectedShapeIds]
@@ -9710,7 +9710,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						return // Stop here!
 					}
 					case 'pinch': {
-						if (!inputs.isPinching()) return
+						if (!inputs.getIsPinching()) return
 
 						const {
 							point: { z = 1 },
@@ -9744,7 +9744,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						return // Stop here!
 					}
 					case 'pinch_end': {
-						if (!inputs.isPinching()) return this
+						if (!inputs.getIsPinching()) return this
 
 						// Stop pinching
 						inputs.setIsPinching(false)
@@ -9793,12 +9793,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					// If the camera behavior is "zoom" and the ctrl key is pressed, then pan;
 					// If the camera behavior is "pan" and the ctrl key is not pressed, then zoom
-					if (inputs.ctrlKey()) behavior = wheelBehavior === 'pan' ? 'zoom' : 'pan'
+					if (inputs.getCtrlKey()) behavior = wheelBehavior === 'pan' ? 'zoom' : 'pan'
 
 					switch (behavior) {
 						case 'zoom': {
 							// Zoom in on current screen point using the wheel delta
-							const { x, y } = this.inputs.currentScreenPoint()
+							const { x, y } = this.inputs.getCurrentScreenPoint()
 							let delta = dz
 
 							// If we're forcing zoom, then we need to do the wheel normalization math here
@@ -9836,7 +9836,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 			case 'pointer': {
 				// Ignore pointer events while we're pinching
-				if (inputs.isPinching()) return
+				if (inputs.getIsPinching()) return
 
 				this.inputs.updateFromEvent(info)
 				const { isPen } = info
@@ -9847,7 +9847,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// If we're in pen mode and the input is not a pen type, then stop here
 						if (isPenMode && !isPen) return
 
-						if (!this.inputs.isPanning()) {
+						if (!this.inputs.getIsPanning()) {
 							// Start a long press timeout
 							this._longPressTimeout = this.timers.setTimeout(() => {
 								const vsb = this.getViewportScreenBounds()
@@ -9857,7 +9857,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 									// viewport bounds, and will be again when this event is handled...
 									// so we need to counter-adjust from the stored value so that the
 									// new value is set correctly.
-									point: Vec.AddXY(this.inputs.originScreenPoint(), vsb.x, vsb.y),
+									point: Vec.AddXY(this.inputs.getOriginScreenPoint(), vsb.x, vsb.y),
 									name: 'long_press',
 								})
 							}, this.options.longPressDurationMs)
@@ -9887,7 +9887,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							this.setCurrentTool('eraser')
 						} else if (info.button === MIDDLE_MOUSE_BUTTON) {
 							// Middle mouse pan activates panning unless we're already panning (with spacebar)
-							if (!this.inputs.isPanning()) {
+							if (!this.inputs.getIsPanning()) {
 								this._prevCursor = this.getInstanceState().cursor.type
 							}
 							this.inputs.setIsPanning(true)
@@ -9896,7 +9896,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						// We might be panning because we did a middle mouse click, or because we're holding spacebar and started a regular click
 						// Also stop here, we don't want the state chart to receive the event
-						if (this.inputs.isPanning()) {
+						if (this.inputs.getIsPanning()) {
 							this.stopCameraAnimation()
 							this.setCursor({ type: 'grabbing', rotation: 0 })
 							return this
@@ -9911,10 +9911,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
 
 						// If we've started panning, then clear any long press timeout
-						if (this.inputs.isPanning() && this.inputs.isPointing()) {
+						if (this.inputs.getIsPanning() && this.inputs.getIsPointing()) {
 							// Handle spacebar / middle mouse button panning
-							const currentScreenPoint = this.inputs.currentScreenPoint()
-							const previousScreenPoint = this.inputs.previousScreenPoint()
+							const currentScreenPoint = this.inputs.getCurrentScreenPoint()
+							const previousScreenPoint = this.inputs.getPreviousScreenPoint()
 							const { panSpeed } = cameraOptions
 							const offset = Vec.Sub(currentScreenPoint, previousScreenPoint)
 							this.setCamera(
@@ -9926,9 +9926,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 
 						if (
-							inputs.isPointing() &&
-							!inputs.isDragging() &&
-							Vec.Dist2(inputs.originPagePoint(), inputs.currentPagePoint()) * this.getZoomLevel() >
+							inputs.getIsPointing() &&
+							!inputs.getIsDragging() &&
+							Vec.Dist2(inputs.getOriginPagePoint(), inputs.getCurrentPagePoint()) *
+								this.getZoomLevel() >
 								(instanceState.isCoarsePointer
 									? this.options.coarseDragDistanceSquared
 									: this.options.dragDistanceSquared) /
@@ -9960,12 +9961,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 							info.button = 0
 						}
 
-						if (inputs.isPanning()) {
+						if (inputs.getIsPanning()) {
 							if (!inputs.keys.has('Space')) {
 								inputs.setIsPanning(false)
 								inputs.setIsSpacebarPanning(false)
 							}
-							const slideDirection = this.inputs.pointerVelocity()
+							const slideDirection = this.inputs.getPointerVelocity()
 							const slideSpeed = Math.min(2, Vec.Len(slideDirection))
 
 							switch (info.button) {
@@ -10011,17 +10012,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						// If the space key is pressed (but meta / control isn't!) activate panning
 						if (info.code === 'Space' && !info.ctrlKey) {
-							if (!this.inputs.isPanning()) {
+							if (!this.inputs.getIsPanning()) {
 								this._prevCursor = instanceState.cursor.type
 							}
 
 							this.inputs.setIsPanning(true)
 							this.inputs.setIsSpacebarPanning(true)
 							clearTimeout(this._longPressTimeout)
-							this.setCursor({ type: this.inputs.isPointing() ? 'grabbing' : 'grab', rotation: 0 })
+							this.setCursor({
+								type: this.inputs.getIsPointing() ? 'grabbing' : 'grab',
+								rotation: 0,
+							})
 						}
 
-						if (this.inputs.isSpacebarPanning()) {
+						if (this.inputs.getIsSpacebarPanning()) {
 							let offset: Vec | undefined
 							switch (info.code) {
 								case 'ArrowUp': {

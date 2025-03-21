@@ -15,7 +15,7 @@ export class PointingShape extends StateNode {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		const selectionBounds = this.editor.getSelectionRotatedPageBounds()
 		const focusedGroupId = this.editor.getFocusedGroupId()
-		const currentPagePoint = this.editor.inputs.currentPagePoint()
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		const { shiftKey, altKey, accelKey } = info
 
 		this.hitShape = info.shape
@@ -63,7 +63,7 @@ export class PointingShape extends StateNode {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		const focusedGroupId = this.editor.getFocusedGroupId()
 		const zoomLevel = this.editor.getZoomLevel()
-		const currentPagePoint = this.editor.inputs.currentPagePoint()
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
 		const additiveSelectionKey = info.shiftKey || info.accelKey
 
@@ -205,7 +205,7 @@ export class PointingShape extends StateNode {
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		if (this.editor.inputs.isDragging()) {
+		if (this.editor.inputs.getIsDragging()) {
 			if (this.didCtrlOnEnter) {
 				this.parent.transition('brushing', info)
 			} else {

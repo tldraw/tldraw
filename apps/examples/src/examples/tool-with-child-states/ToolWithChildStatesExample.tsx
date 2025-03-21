@@ -36,7 +36,7 @@ class Idle extends StateNode {
 		const { editor } = this
 		switch (info.target) {
 			case 'canvas': {
-				const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint())
+				const hitShape = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint())
 				if (hitShape) {
 					this.onPointerDown({
 						...info,
@@ -49,7 +49,7 @@ class Idle extends StateNode {
 				break
 			}
 			case 'shape': {
-				if (editor.inputs.shiftKey()) {
+				if (editor.inputs.getShiftKey()) {
 					editor.updateShape<TLTextShape>({
 						id: info.shape.id,
 						type: 'text',
@@ -68,7 +68,7 @@ class Idle extends StateNode {
 		if (info.phase !== 'up') return
 		switch (info.target) {
 			case 'canvas': {
-				const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint())
+				const hitShape = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint())
 
 				if (hitShape) {
 					this.onDoubleClick({
@@ -78,7 +78,7 @@ class Idle extends StateNode {
 					})
 					return
 				}
-				const currentPagePoint = editor.inputs.currentPagePoint()
+				const currentPagePoint = editor.inputs.getCurrentPagePoint()
 				editor.createShape<TLTextShape>({
 					type: 'text',
 					x: currentPagePoint.x + OFFSET,
@@ -107,7 +107,7 @@ class Pointing extends StateNode {
 	}
 
 	override onPointerMove() {
-		if (this.editor.inputs.isDragging()) {
+		if (this.editor.inputs.getIsDragging()) {
 			this.parent.transition('dragging', { shape: this.shape })
 		}
 	}
@@ -122,7 +122,7 @@ class Dragging extends StateNode {
 
 	// [b]
 	override onEnter(info: { shape: TLShapePartial }) {
-		const currentPagePoint = this.editor.inputs.currentPagePoint()
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		const newShape: TLShapePartial<TLTextShape> = {
 			id: createShapeId(),
 			type: 'text',
@@ -147,8 +147,8 @@ class Dragging extends StateNode {
 		const { shape } = this
 
 		const distance = Vec.Dist(
-			this.editor.inputs.originPagePoint(),
-			this.editor.inputs.currentPagePoint()
+			this.editor.inputs.getOriginPagePoint(),
+			this.editor.inputs.getCurrentPagePoint()
 		)
 		if (shape) {
 			this.editor.updateShape<TLTextShape>({

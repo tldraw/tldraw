@@ -5,7 +5,7 @@ export function getHitShapeOnCanvasPointerDown(
 	hitLabels = false
 ): TLShape | undefined {
 	const zoomLevel = editor.getZoomLevel()
-	const currentPagePoint = editor.inputs.currentPagePoint()
+	const currentPagePoint = editor.inputs.getCurrentPagePoint()
 
 	return (
 		// hovered shape at point

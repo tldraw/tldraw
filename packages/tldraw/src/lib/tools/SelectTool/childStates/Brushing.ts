@@ -30,11 +30,11 @@ export class Brushing extends StateNode {
 	initialStartShape: TLShape | null = null
 
 	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
-		const currentPagePoint = this.editor.inputs.currentPagePoint()
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
 		this.isWrapMode = this.editor.user.getIsWrapMode()
 
-		if (this.editor.inputs.altKey()) {
+		if (this.editor.inputs.getAltKey()) {
 			this.parent.transition('scribble_brushing', info)
 			return
 		}
@@ -84,7 +84,7 @@ export class Brushing extends StateNode {
 	}
 
 	override onKeyDown(info: TLKeyboardEventInfo) {
-		if (this.editor.inputs.altKey()) {
+		if (this.editor.inputs.getAltKey()) {
 			this.parent.transition('scribble_brushing', info)
 		} else {
 			this.hitTestShapes()
@@ -102,14 +102,14 @@ export class Brushing extends StateNode {
 
 	private hitTestShapes() {
 		const { editor, excludedShapeIds, isWrapMode } = this
-		const originPagePoint = editor.inputs.originPagePoint()
-		const currentPagePoint = editor.inputs.currentPagePoint()
+		const originPagePoint = editor.inputs.getOriginPagePoint()
+		const currentPagePoint = editor.inputs.getCurrentPagePoint()
 
 		// We'll be collecting shape ids of selected shapes; if we're holding shift key, we start from our initial shapes
-		const results = new Set(editor.inputs.shiftKey() ? this.initialSelectedShapeIds : [])
+		const results = new Set(editor.inputs.getShiftKey() ? this.initialSelectedShapeIds : [])
 
 		// In wrap mode, we need to completely enclose a shape to select it
-		const isWrapping = isWrapMode ? !editor.inputs.ctrlKey() : editor.inputs.ctrlKey()
+		const isWrapping = isWrapMode ? !editor.inputs.getCtrlKey() : editor.inputs.getCtrlKey()
 
 		// Set the brush to contain the current and origin points
 		const brush = Box.FromPoints([originPagePoint, currentPagePoint])

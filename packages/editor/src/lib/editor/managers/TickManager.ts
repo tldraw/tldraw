@@ -59,8 +59,8 @@ export class TickManager {
 
 	updatePointerVelocity(elapsed: number) {
 		const prevPoint = this.prevPoint
-		const currentScreenPoint = this.editor.inputs.currentScreenPoint()
-		const pointerVelocity = this.editor.inputs.pointerVelocity()
+		const currentScreenPoint = this.editor.inputs.getCurrentScreenPoint()
+		const pointerVelocity = this.editor.inputs.getPointerVelocity()
 
 		if (elapsed === 0) return
 

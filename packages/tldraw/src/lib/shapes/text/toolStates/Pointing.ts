@@ -39,10 +39,10 @@ export class Pointing extends StateNode {
 
 		const { editor } = this
 
-		if (!editor.inputs.isPointing()) return
+		if (!editor.inputs.getIsPointing()) return
 
-		const originPagePoint = editor.inputs.originPagePoint()
-		const currentPagePoint = editor.inputs.currentPagePoint()
+		const originPagePoint = editor.inputs.getOriginPagePoint()
+		const currentPagePoint = editor.inputs.getCurrentPagePoint()
 
 		const currentDragDist = Math.abs(originPagePoint.x - currentPagePoint.x)
 
@@ -108,7 +108,7 @@ export class Pointing extends StateNode {
 	private complete() {
 		this.editor.markHistoryStoppingPoint('creating text shape')
 		const id = createShapeId()
-		const originPagePoint = this.editor.inputs.originPagePoint()
+		const originPagePoint = this.editor.inputs.getOriginPagePoint()
 		const shape = this.createTextShape(id, originPagePoint, true, 20)
 		if (!shape) return
 

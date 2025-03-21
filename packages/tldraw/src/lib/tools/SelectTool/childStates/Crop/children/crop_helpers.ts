@@ -12,7 +12,7 @@ export function getTranslateCroppedImageChange(editor: Editor, shape: ShapeWithC
 		return
 	}
 
-	const flatten: 'x' | 'y' | null = editor.inputs.shiftKey()
+	const flatten: 'x' | 'y' | null = editor.inputs.getShiftKey()
 		? Math.abs(delta.x) < Math.abs(delta.y)
 			? 'x'
 			: 'y'

@@ -730,9 +730,9 @@ export function useNativeClipboardEvents() {
 			// |    Y 		|         N            |       Y 				 |
 			// |    N 		|         Y            |       Y 				 |
 			// |    Y 		|         Y            |       N 				 |
-			if (editor.inputs.shiftKey()) pasteAtCursor = true
+			if (editor.inputs.getShiftKey()) pasteAtCursor = true
 			if (editor.user.getIsPasteAtCursorMode()) pasteAtCursor = !pasteAtCursor
-			if (pasteAtCursor) point = editor.inputs.currentPagePoint()
+			if (pasteAtCursor) point = editor.inputs.getCurrentPagePoint()
 
 			const pasteFromEvent = () => {
 				if (e.clipboardData) {

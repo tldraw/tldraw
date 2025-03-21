@@ -30,7 +30,7 @@ export function getRotationSnapshot({
 
 	return {
 		pageCenter,
-		initialCursorAngle: pageCenter.angle(editor.inputs.originPagePoint()),
+		initialCursorAngle: pageCenter.angle(editor.inputs.getOriginPagePoint()),
 		initialShapesRotation: rotation,
 		shapeSnapshots: shapes.map((shape) => ({
 			shape,

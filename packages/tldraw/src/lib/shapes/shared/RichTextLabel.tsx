@@ -97,7 +97,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 			const handlePointerUp = (e: TLEventInfo) => {
 				if (e.name !== 'pointer_up') return
 
-				if (!editor.inputs.isDragging()) {
+				if (!editor.inputs.getIsDragging()) {
 					window.open(link, '_blank', 'noopener, noreferrer')
 				}
 				editor.off('event', handlePointerUp)

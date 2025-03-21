@@ -8,7 +8,7 @@ export class PointingCrop extends StateNode {
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		if (this.editor.inputs.isDragging()) {
+		if (this.editor.inputs.getIsDragging()) {
 			this.editor.setCurrentTool('select.crop.translating_crop', info)
 		}
 	}

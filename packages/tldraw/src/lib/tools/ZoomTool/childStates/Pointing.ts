@@ -14,7 +14,7 @@ export class Pointing extends StateNode {
 	}
 
 	override onPointerMove() {
-		if (this.editor.inputs.isDragging()) {
+		if (this.editor.inputs.getIsDragging()) {
 			this.parent.transition('zoom_brushing', this.info)
 		}
 	}
@@ -24,8 +24,8 @@ export class Pointing extends StateNode {
 	}
 
 	private complete() {
-		const currentScreenPoint = this.editor.inputs.currentScreenPoint()
-		if (this.editor.inputs.altKey()) {
+		const currentScreenPoint = this.editor.inputs.getCurrentScreenPoint()
+		if (this.editor.inputs.getAltKey()) {
 			this.editor.zoomOut(currentScreenPoint, { animation: { duration: 220 } })
 		} else {
 			this.editor.zoomIn(currentScreenPoint, { animation: { duration: 220 } })

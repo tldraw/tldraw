@@ -81,7 +81,7 @@ export class EdgeScrollManager {
 
 	private getEdgeScroll() {
 		const { editor } = this
-		const { x, y } = editor.inputs.currentScreenPoint()
+		const { x, y } = editor.inputs.getCurrentScreenPoint()
 		const screenBounds = editor.getViewportScreenBounds()
 
 		const {
@@ -104,8 +104,8 @@ export class EdgeScrollManager {
 	private moveCameraWhenCloseToEdge(proximityFactor: { x: number; y: number }) {
 		const { editor } = this
 		if (
-			!editor.inputs.isDragging() ||
-			editor.inputs.isPanning() ||
+			!editor.inputs.getIsDragging() ||
+			editor.inputs.getIsPanning() ||
 			editor.getCameraOptions().isLocked
 		)
 			return

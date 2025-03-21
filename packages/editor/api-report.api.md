@@ -1949,26 +1949,63 @@ export const inlineBase64AssetStore: TLAssetStore;
 // @public (undocumented)
 export class InputManager {
     constructor(editor: Editor);
-    accelKey(): boolean;
-    altKey(): boolean;
-    buttons: AtomSet<number>;
-    ctrlKey(): boolean;
-    currentPagePoint(): ReadonlyVec;
-    currentScreenPoint(): ReadonlyVec;
-    isDragging(): boolean;
-    isEditing(): boolean;
-    isPanning(): boolean;
-    isPen(): boolean;
-    isPinching(): boolean;
-    isPointing(): boolean;
-    isSpacebarPanning(): boolean;
+    // @deprecated (undocumented)
+    get accelKey(): boolean;
+    // @deprecated (undocumented)
+    get altKey(): boolean;
+    readonly buttons: AtomSet<number>;
+    // @deprecated (undocumented)
+    get ctrlKey(): boolean;
+    // @deprecated (undocumented)
+    get currentPagePoint(): ReadonlyVec;
+    // @deprecated (undocumented)
+    get currentScreenPoint(): ReadonlyVec;
+    getAccelKey(): boolean;
+    getAltKey(): boolean;
+    getCtrlKey(): boolean;
+    getCurrentPagePoint(): ReadonlyVec;
+    getCurrentScreenPoint(): ReadonlyVec;
+    getIsDragging(): boolean;
+    getIsEditing(): boolean;
+    getIsPanning(): boolean;
+    getIsPen(): boolean;
+    getIsPinching(): boolean;
+    getIsPointing(): boolean;
+    getIsSpacebarPanning(): boolean;
+    getMetaKey(): boolean;
+    getOriginPagePoint(): ReadonlyVec;
+    getOriginScreenPoint(): ReadonlyVec;
+    getPointerVelocity(): ReadonlyVec;
+    getPreviousPagePoint(): ReadonlyVec;
+    getPreviousScreenPoint(): ReadonlyVec;
+    getShiftKey(): boolean;
+    // @deprecated (undocumented)
+    get isDragging(): boolean;
+    // @deprecated (undocumented)
+    get isEditing(): boolean;
+    // @deprecated (undocumented)
+    get isPanning(): boolean;
+    // @deprecated (undocumented)
+    get isPen(): boolean;
+    // @deprecated (undocumented)
+    get isPinching(): boolean;
+    // @deprecated (undocumented)
+    get isPointing(): boolean;
+    // @deprecated (undocumented)
+    get isSpacebarPanning(): boolean;
     readonly keys: AtomSet<string>;
-    metaKey(): boolean;
-    originPagePoint(): ReadonlyVec;
-    originScreenPoint(): ReadonlyVec;
-    pointerVelocity(): ReadonlyVec;
-    previousPagePoint(): ReadonlyVec;
-    previousScreenPoint(): ReadonlyVec;
+    // @deprecated (undocumented)
+    get metaKey(): boolean;
+    // @deprecated (undocumented)
+    get originPagePoint(): ReadonlyVec;
+    // @deprecated (undocumented)
+    get originScreenPoint(): ReadonlyVec;
+    // @deprecated (undocumented)
+    get pointerVelocity(): ReadonlyVec;
+    // @deprecated (undocumented)
+    get previousPagePoint(): ReadonlyVec;
+    // @deprecated (undocumented)
+    get previousScreenPoint(): ReadonlyVec;
     // @internal (undocumented)
     setAltKey(altKey: boolean): void;
     // @internal (undocumented)
@@ -1989,7 +2026,8 @@ export class InputManager {
     setPointerVelocity(pointerVelocity: ReadonlyVec): void;
     // @internal (undocumented)
     setShiftKey(shiftKey: boolean): void;
-    shiftKey(): boolean;
+    // @deprecated (undocumented)
+    get shiftKey(): boolean;
     // @internal
     updateFromEvent(info: TLPinchEventInfo | TLPointerEventInfo | TLWheelEventInfo): void;
 }

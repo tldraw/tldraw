@@ -11,7 +11,7 @@ export class StickerTool extends StateNode {
 	}
 
 	override onPointerDown() {
-		const currentPagePoint = this.editor.inputs.currentPagePoint()
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		this.editor.createShape<TLTextShape>({
 			type: 'text',
 			x: currentPagePoint.x - OFFSET,

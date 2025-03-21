@@ -101,8 +101,8 @@ export class TranslatingCrop extends StateNode {
 		if (!shape) return
 
 		const delta = Vec.Sub(
-			this.editor.inputs.currentPagePoint(),
-			this.editor.inputs.originPagePoint()
+			this.editor.inputs.getCurrentPagePoint(),
+			this.editor.inputs.getOriginPagePoint()
 		)
 		const partial = getTranslateCroppedImageChange(this.editor, shape, delta)
 

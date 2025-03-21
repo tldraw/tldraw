@@ -795,7 +795,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	override onDoubleClick(shape: TLGeoShape) {
 		// Little easter egg: double-clicking a rectangle / checkbox while
 		// holding alt will toggle between check-box and rectangle
-		if (this.editor.inputs.altKey()) {
+		if (this.editor.inputs.getAltKey()) {
 			switch (shape.props.geo) {
 				case 'rectangle': {
 					return {
