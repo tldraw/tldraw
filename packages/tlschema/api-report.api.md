@@ -893,6 +893,14 @@ export interface TLDefaultColorThemeColor {
     // (undocumented)
     fill: string;
     // (undocumented)
+    frame: {
+        fill: string;
+        headingFill: string;
+        headingStroke: string;
+        stroke: string;
+        text: string;
+    };
+    // (undocumented)
     highlight: {
         p3: string;
         srgb: string;
@@ -998,6 +1006,8 @@ export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>;
 
 // @public (undocumented)
 export interface TLFrameShapeProps {
+    // (undocumented)
+    color: TLDefaultColorStyle;
     // (undocumented)
     h: number;
     // (undocumented)

@@ -74,6 +74,8 @@ export const FrameLabelInput = forwardRef<
 				onKeyDown={handleKeyDown}
 				onBlur={handleBlur}
 				onChange={handleChange}
+				onPointerDown={isEditing ? stopEventPropagation : undefined}
+				draggable={false}
 			/>
 			{defaultEmptyAs(name, 'Frame') + String.fromCharCode(8203)}
 		</div>
