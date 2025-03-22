@@ -136,7 +136,6 @@ export type TLPostgresReplicatorEvent =
 export type TLUserDurableObjectEvent =
 	| {
 			type:
-				| 'reboot'
 				| 'full_data_fetch'
 				| 'full_data_fetch_hard'
 				| 'found_snapshot'
@@ -149,7 +148,9 @@ export type TLUserDurableObjectEvent =
 				| 'connect_retry'
 				| 'user_do_abort'
 				| 'not_enough_history_for_fast_reboot'
+				| 'register_user_error'
 			id: string
 	  }
 	| { type: 'reboot_duration'; id: string; duration: number }
 	| { type: 'cold_start_time'; id: string; duration: number }
+	| { type: 'reboot'; id: string; cause: string }
