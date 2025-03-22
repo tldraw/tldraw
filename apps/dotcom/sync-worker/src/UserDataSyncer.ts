@@ -176,18 +176,18 @@ export class UserDataSyncer {
 				await sleep(3000)
 			}
 			const res = await Promise.race([
-				this.boot(hard).then(() => 'ok'),
-				sleep(5000).then(() => 'timeout'),
+				this.boot(hard).then(() => 'ok' as const),
+				sleep(10000).then(() => 'timeout' as const),
 			]).catch((e) => {
 				// don't log if the replicator failed
 				// just retry
 				if (e === REPLICATOR_FAIL) {
-					return 'error'
+					return 'replicator_fail' as const
 				}
 				this.logEvent({ type: 'reboot_error', id: this.userId })
 				this.log.debug('reboot error', e.stack)
 				this.captureException(e)
-				return 'error'
+				return 'error' as const
 			})
 			this.log.debug('rebooted', res)
 			if (res === 'ok') {
