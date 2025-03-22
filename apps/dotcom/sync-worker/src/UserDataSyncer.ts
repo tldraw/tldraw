@@ -163,7 +163,7 @@ export class UserDataSyncer {
 
 	async reboot({ delay, hard, cause }: { delay: boolean; hard: boolean; cause: string }) {
 		this.numConsecutiveReboots++
-		if (this.numConsecutiveReboots > 10) {
+		if (this.numConsecutiveReboots > 5) {
 			this.logEvent({ type: 'user_do_abort', id: this.userId })
 			getStatsDurableObjct(this.env).recordUserDoAbort()
 			this.ctx.abort()
@@ -193,7 +193,7 @@ export class UserDataSyncer {
 			if (res === 'ok') {
 				this.numConsecutiveReboots = 0
 			} else {
-				const hard = this.numConsecutiveReboots >= 5
+				const hard = this.numConsecutiveReboots >= 3
 				this.reboot({ hard, delay: true, cause: hard ? 'retry_hard' : 'retry' })
 			}
 		})
