@@ -95,6 +95,8 @@ interface StateSnapshot {
 const MUTATION_COMMIT_TIMEOUT = 10_000
 const LSN_COMMIT_TIMEOUT = 120_000
 
+const REPLICATOR_FAIL = new Error('replicator fail')
+
 export class UserDataSyncer {
 	state: BootState = {
 		type: 'init',
@@ -128,7 +130,7 @@ export class UserDataSyncer {
 		private log: Logger
 	) {
 		this.sentry = createSentry(ctx, env)
-		this.reboot({ delay: false })
+		this.reboot({ delay: false, hard: false, cause: 'init' })
 		const persist = throttle(
 			async () => {
 				const initialData = this.store.getCommittedData()
@@ -159,7 +161,7 @@ export class UserDataSyncer {
 
 	numConsecutiveReboots = 0
 
-	async reboot({ delay = true, hard = false }: { delay?: boolean; hard?: boolean } = {}) {
+	async reboot({ delay, hard, cause }: { delay: boolean; hard: boolean; cause: string }) {
 		this.numConsecutiveReboots++
 		if (this.numConsecutiveReboots > 5) {
 			this.logEvent({ type: 'user_do_abort', id: this.userId })
@@ -167,26 +169,31 @@ export class UserDataSyncer {
 			this.ctx.abort()
 			return
 		}
-		this.log.debug('rebooting')
-		this.logEvent({ type: 'reboot', id: this.userId })
+		this.log.debug('rebooting:', cause)
+		this.logEvent({ type: 'reboot', id: this.userId, cause })
 		await this.queue.push(async () => {
 			if (delay) {
-				await sleep(1000)
+				await sleep(3000)
 			}
 			const res = await Promise.race([
-				this.boot(hard).then(() => 'ok'),
-				sleep(5000).then(() => 'timeout'),
+				this.boot(hard).then(() => 'ok' as const),
+				sleep(10000).then(() => 'timeout' as const),
 			]).catch((e) => {
+				// don't log if the replicator failed, this is captured during boot
+				if (e === REPLICATOR_FAIL) {
+					return 'replicator_fail' as const
+				}
 				this.logEvent({ type: 'reboot_error', id: this.userId })
 				this.log.debug('reboot error', e.stack)
 				this.captureException(e)
-				return 'error'
+				return 'error' as const
 			})
 			this.log.debug('rebooted', res)
 			if (res === 'ok') {
 				this.numConsecutiveReboots = 0
 			} else {
-				this.reboot({ hard: true })
+				const hard = this.numConsecutiveReboots >= 3
+				this.reboot({ hard, delay: true, cause: res + hard ? '_hard' : '' })
 			}
 		})
 	}
@@ -324,12 +331,25 @@ export class UserDataSyncer {
 		const initialData = this.store.getCommittedData()!
 
 		const guestFileIds = initialData.files.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
-		const res = await getReplicator(this.env).registerUser({
-			userId: this.userId,
-			lsn: initialData.lsn,
-			guestFileIds,
-			bootId: this.state.bootId,
-		})
+		const res = await getReplicator(this.env)
+			.registerUser({
+				userId: this.userId,
+				lsn: initialData.lsn,
+				guestFileIds,
+				bootId: this.state.bootId,
+			})
+			.catch((e) => {
+				// this should only really throw due to network errors,
+				// taking a second before retrying should fix it
+				this.log.debug('register user error', e)
+				this.logEvent({ type: 'register_user_error', id: this.userId })
+				this.captureException(e)
+				return { type: 'replicator_fail' as const }
+			})
+
+		if (res.type === 'replicator_fail') {
+			throw REPLICATOR_FAIL
+		}
 
 		if (res.type === 'reboot') {
 			this.logEvent({ type: 'not_enough_history_for_fast_reboot', id: this.userId })
@@ -377,7 +397,7 @@ export class UserDataSyncer {
 			})
 		} catch (e) {
 			this.captureException(e)
-			this.reboot()
+			this.reboot({ hard: true, delay: false, cause: 'handleRowUpdateEvent' })
 		}
 	}
 
@@ -404,9 +424,9 @@ export class UserDataSyncer {
 		}
 
 		if (this.state.sequenceId !== event.sequenceId) {
-			// the replicator has restarted, so we need to reboot
+			// the replicator has restarted, so we need to soft reboot
 			this.log.debug('force reboot', this.state, event)
-			this.reboot()
+			this.reboot({ hard: false, delay: true, cause: 'force_reboot' })
 			return
 		}
 
@@ -416,7 +436,7 @@ export class UserDataSyncer {
 				event.sequenceNumber,
 				this.state.lastSequenceNumber
 			)
-			this.reboot()
+			this.reboot({ hard: false, delay: true, cause: 'sequence_number_mismatch' })
 			return
 		}
 
@@ -502,7 +522,7 @@ export class UserDataSyncer {
 		for (const mutation of this.mutations) {
 			if (Date.now() - mutation.timestamp > MUTATION_COMMIT_TIMEOUT) {
 				this.log.debug("Mutations haven't been committed for 10 seconds, rebooting", mutation)
-				this.reboot({ hard: true })
+				this.reboot({ hard: true, delay: false, cause: 'mutation_commit_timeout' })
 				break
 			}
 		}
