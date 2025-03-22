@@ -179,8 +179,7 @@ export class UserDataSyncer {
 				this.boot(hard).then(() => 'ok' as const),
 				sleep(10000).then(() => 'timeout' as const),
 			]).catch((e) => {
-				// don't log if the replicator failed
-				// just retry
+				// don't log if the replicator failed, this is captured during boot
 				if (e === REPLICATOR_FAIL) {
 					return 'replicator_fail' as const
 				}
@@ -194,7 +193,7 @@ export class UserDataSyncer {
 				this.numConsecutiveReboots = 0
 			} else {
 				const hard = this.numConsecutiveReboots >= 3
-				this.reboot({ hard, delay: true, cause: hard ? 'retry_hard' : 'retry' })
+				this.reboot({ hard, delay: true, cause: res + hard ? '_hard' : '' })
 			}
 		})
 	}
