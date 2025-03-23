@@ -31,7 +31,6 @@ import {
 	lerp,
 	toRichText,
 	useValue,
-	whyAmIRunning,
 } from '@tldraw/editor'
 
 import isEqual from 'lodash.isequal'
@@ -439,8 +438,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const isEmpty = isEmptyRichText(shape.props.richText)
 		const showHtmlContainer = isEditingAnythingAndHovering || !isEmpty
 		const isForceSolid = useValue('force solid', () => editor.getZoomLevel() < 0.2, [editor])
-
-		whyAmIRunning()
 
 		return (
 			<>
