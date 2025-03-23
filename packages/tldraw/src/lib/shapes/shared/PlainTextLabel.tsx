@@ -61,7 +61,7 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 	textWidth,
 	textHeight,
 }: PlainTextLabelProps) {
-	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } =
+	const { rInput, isEmpty, isEditing, isEditingAnythingAndHovering, ...editableTextRest } =
 		useEditablePlainText(shapeId, type, plaintext)
 
 	const finalPlainText = TextHelpers.normalizeTextForDom(plaintext || '')
@@ -82,7 +82,7 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 			data-align={align}
 			data-hastext={!isEmpty}
 			data-isediting={isEditing}
-			data-iseditinganything={isEditingAnything}
+			data-iseditinganything={isEditingAnythingAndHovering}
 			data-textwrap={!!wrap}
 			data-isselected={isSelected}
 			style={{
@@ -111,7 +111,7 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 						</div>
 					))}
 				</div>
-				{(isEditingAnything || isSelected) && (
+				{(isEditingAnythingAndHovering || isSelected) && (
 					<PlainTextArea
 						// Fudge the ref type because we're using forwardRef and it's not typed correctly.
 						ref={rInput as any}

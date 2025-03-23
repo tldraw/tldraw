@@ -31,6 +31,7 @@ import {
 	lerp,
 	toRichText,
 	useValue,
+	whyAmIRunning,
 } from '@tldraw/editor'
 
 import isEqual from 'lodash.isequal'
@@ -50,6 +51,7 @@ import {
 } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
+import { useIsEditingAnythingAndHovering } from '../shared/useEditablePlainText'
 import { GeoShapeBody } from './components/GeoShapeBody'
 import {
 	cloudOutline,
@@ -433,10 +435,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			() => shape.id === editor.getOnlySelectedShapeId(),
 			[editor]
 		)
-		const isEditingAnything = editor.getEditingShapeId() !== null
+		const isEditingAnythingAndHovering = useIsEditingAnythingAndHovering(editor, shape.id)
 		const isEmpty = isEmptyRichText(shape.props.richText)
-		const showHtmlContainer = isEditingAnything || !isEmpty
+		const showHtmlContainer = isEditingAnythingAndHovering || !isEmpty
 		const isForceSolid = useValue('force solid', () => editor.getZoomLevel() < 0.2, [editor])
+
+		whyAmIRunning()
 
 		return (
 			<>

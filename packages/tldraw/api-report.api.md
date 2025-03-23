@@ -4207,7 +4207,7 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
     handleInputPointerDown: (e: React_3.PointerEvent<Element>) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
     isEditing: boolean;
-    isEditingAnything: boolean;
+    isEditingAnythingAndHovering: boolean;
     isEmpty: boolean;
     rInput: React_3.RefObject<HTMLTextAreaElement>;
 };
@@ -4223,7 +4223,7 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
     handleInputPointerDown: (e: PointerEvent_2<Element>) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
     isEditing: boolean;
-    isEditingAnything: boolean;
+    isEditingAnythingAndHovering: boolean;
     isEmpty: boolean | undefined;
     rInput: RefObject<HTMLDivElement>;
 };
