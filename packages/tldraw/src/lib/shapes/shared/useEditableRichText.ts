@@ -1,6 +1,5 @@
-import { TLRichText, TLShapeId, TLUnknownShape, useEditor } from '@tldraw/editor'
+import { TLRichText, TLShapeId, TLUnknownShape, isEmptyRichText, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
-import { isEmptyRichText } from '../../utils/text/richText'
 import { useEditableTextCommon } from './useEditablePlainText'
 
 /** @public */

@@ -2030,6 +2030,9 @@ export const isAccelKey: <InputType extends {
 }>(e: InputType) => boolean;
 
 // @public
+export function isEmptyRichText(richText: TLRichText): boolean;
+
+// @public
 export const isSafeFloat: (n: number) => boolean;
 
 // @internal (undocumented)

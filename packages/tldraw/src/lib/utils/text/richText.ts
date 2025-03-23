@@ -14,6 +14,7 @@ import StarterKit from '@tiptap/starter-kit'
 import {
 	Editor,
 	getOwnProperty,
+	isEmptyRichText,
 	RichTextFontVisitorState,
 	TLFontFace,
 	TLRichText,
@@ -92,13 +93,6 @@ export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: T
 
 // A weak cache used to store plaintext that's been extracted from rich text.
 const plainTextFromRichTextCache = new WeakCache<TLRichText, string>()
-
-export function isEmptyRichText(richText: TLRichText) {
-	if (richText.content.length === 1) {
-		if (!(richText.content[0] as any).content) return true
-	}
-	return false
-}
 
 /**
  * Renders plaintext from a rich text string.
