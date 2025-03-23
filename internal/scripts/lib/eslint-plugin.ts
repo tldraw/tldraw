@@ -13,6 +13,61 @@ const { ESLintUtils } = utils
 import TSESTree = utils.TSESTree
 
 exports.rules = {
+	// Rule to enforce using "while" instead of "whilst"
+	'no-whilst': ESLintUtils.RuleCreator.withoutDocs({
+		create(context) {
+			// If we're in the ESLint plugin file, don't apply the rule to avoid
+			// self-reference issues
+			if (context.filename.includes('eslint-plugin.ts')) {
+				return {}
+			}
+
+			return {
+				Literal(node) {
+					if (typeof node.value === 'string' && node.value.includes('whilst')) {
+						context.report({
+							messageId: 'noWhilst',
+							node,
+							fix: (fixer) => {
+								return fixer.replaceText(node, node.raw.replace(/whilst/g, 'while'))
+							},
+						})
+					}
+				},
+				JSXText(node) {
+					if (node.value.includes('whilst')) {
+						context.report({
+							messageId: 'noWhilst',
+							node,
+							fix: (fixer) => {
+								return fixer.replaceText(node, node.value.replace(/whilst/g, 'while'))
+							},
+						})
+					}
+				},
+				TemplateElement(node) {
+					if (node.value.raw.includes('whilst')) {
+						context.report({
+							messageId: 'noWhilst',
+							node,
+							fix: (fixer) => {
+								return fixer.replaceText(node, node.value.raw.replace(/whilst/g, 'while'))
+							},
+						})
+					}
+				},
+			}
+		},
+		meta: {
+			messages: {
+				noWhilst: 'Use "while" instead of "whilst" to maintain American English style, sorry.',
+			},
+			type: 'problem',
+			schema: [],
+			fixable: 'code',
+		},
+		defaultOptions: [],
+	}),
 	'no-export-star': ESLintUtils.RuleCreator.withoutDocs({
 		create(context) {
 			return {

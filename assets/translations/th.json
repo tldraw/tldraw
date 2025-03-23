@@ -89,7 +89,7 @@
 	"action.toggle-focus-mode.menu": "โหมดโฟกัส",
 	"action.toggle-grid": "แสดงตาราง",
 	"action.toggle-grid.menu": "แสดงตาราง",
-	"action.toggle-lock": "ล็อก \/ ปลดล็อก",
+	"action.toggle-lock": "ล็อก / ปลดล็อก",
 	"action.toggle-paste-at-cursor": "เปิดปิดการวางที่เคอร์เซอร์",
 	"action.toggle-paste-at-cursor.menu": "วางที่เคอร์เซอร์",
 	"action.toggle-reduce-motion": "เปิดปิดการลดการเคลื่อนไหว",

@@ -11,6 +11,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		`https://cdn.tldraw.com`,
 		`https://*.tldraw.workers.dev`,
 		`https://*.ingest.sentry.io`,
+		`https://*.ingest.us.sentry.io`,
 		// for thumbnail server
 		'http://localhost:5002',
 		'https://*.clerk.accounts.dev',
@@ -24,8 +25,6 @@ export const cspDirectives: { [key: string]: string[] } = {
 	'img-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'media-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'script-src': [
-		// need wasm for zero
-		`'unsafe-eval'`,
 		`'self'`,
 		'https://challenges.cloudflare.com',
 		'https://*.clerk.accounts.dev',

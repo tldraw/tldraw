@@ -7,7 +7,12 @@ import {
 	getRenderedChildren,
 } from './domUtils'
 import { resourceToDataUrl } from './fetchCache'
-import { isPropertyInherited, parseCssValueUrls, shouldIncludeCssProperty } from './parseCss'
+import {
+	isPropertyCoveredByCurrentColor,
+	isPropertyInherited,
+	parseCssValueUrls,
+	shouldIncludeCssProperty,
+} from './parseCss'
 
 type Styles = { [K in string]?: string }
 type ReadonlyStyles = { readonly [K in string]?: string }
@@ -53,9 +58,20 @@ export class StyleEmbedder {
 			? getDefaultStylesForTagName(element.tagName.toLowerCase())
 			: NO_STYLES
 
-		const parentStyles = shouldSkipInheritedParentStyles
-			? (this.styles.get(element.parentElement as Element)?.self ?? NO_STYLES)
-			: NO_STYLES
+		const parentStyles = Object.assign({}, NO_STYLES) as Styles
+		if (shouldSkipInheritedParentStyles) {
+			let el = element.parentElement
+			// Keep going up the tree to find all the relevant styles
+			while (el) {
+				const currentStyles = this.styles.get(el)?.self
+				for (const style in currentStyles) {
+					if (!parentStyles[style]) {
+						parentStyles[style] = currentStyles[style]
+					}
+				}
+				el = el.parentElement
+			}
+		}
 
 		const info: ElementStyleInfo = {
 			self: styleFromElement(element, { defaultStyles, parentStyles }),
@@ -230,6 +246,8 @@ function styleFromComputedStyleMap(
 
 		if (defaultStyles[property] === value) continue
 		if (parentStyles[property] === value && isPropertyInherited(property)) continue
+		if (isPropertyCoveredByCurrentColor(style.get('color')?.toString() || '', property, value))
+			continue
 
 		styles[property] = value
 	}
@@ -242,13 +260,14 @@ function styleFromComputedStyle(
 	{ defaultStyles, parentStyles }: ReadStyleOpts
 ) {
 	const styles: Record<string, string> = {}
-	for (const [property, _] of Object.entries(style)) {
+	for (const property in style) {
 		if (!shouldIncludeCssProperty(property)) continue
 
 		const value = style.getPropertyValue(property)
 
 		if (defaultStyles[property] === value) continue
 		if (parentStyles[property] === value && isPropertyInherited(property)) continue
+		if (isPropertyCoveredByCurrentColor(style.color, property, value)) continue
 
 		styles[property] = value
 	}

@@ -4,6 +4,8 @@ status: published
 author: steveruizok
 date: 3/22/2023
 order: 1
+keywords:
+  - hello world
 ---
 
 To use the tldraw SDK, first install the `tldraw` package:
@@ -89,9 +91,9 @@ If you're using a bundler like webpack or rollup, you can import the assets dire
 
 There are three options:
 
-- `import {getAssetUrlsByImport} from '@tldraw/assets/imports`: import asset files using import statements. You'll need to configure your bundler to treat imports of .svg, .png, .json, and .woff2 files as external assets.
-- `import {getAssetUrlsByImport} from '@tldraw/assets/imports.vite`: import asset files, appending `?url` to the asset path. This works correctly with [vite](https://vitejs.dev/guide/assets#explicit-url-imports) without any extra configuration needed.
-- `import {getAssetUrlsByMeta} from '@tldraw/assets/urls`: get asset urls using `new URL(path, import.meta.url)`. This is a standards-based approach that works natively in most modern browsers & bundlers.
+- `import {getAssetUrlsByImport} from '@tldraw/assets/imports'`: import asset files using import statements. You'll need to configure your bundler to treat imports of .svg, .png, .json, and .woff2 files as external assets.
+- `import {getAssetUrlsByImport} from '@tldraw/assets/imports.vite'`: import asset files, appending `?url` to the asset path. This works correctly with [vite](https://vitejs.dev/guide/assets#explicit-url-imports) without any extra configuration needed.
+- `import {getAssetUrlsByMeta} from '@tldraw/assets/urls'`: get asset urls using `new URL(path, import.meta.url)`. This is a standards-based approach that works natively in most modern browsers & bundlers.
 
 Call the function, and pass the resulting `assetUrls` into the `Tldraw` component:
 

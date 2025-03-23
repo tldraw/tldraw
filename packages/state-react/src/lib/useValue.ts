@@ -2,10 +2,13 @@
 import { Signal, computed, react } from '@tldraw/state'
 import { useMemo, useRef, useSyncExternalStore } from 'react'
 
+/** @public */
+export function useValue<Value>(value: Signal<Value>): Value
+
 /**
  * Extracts the value from a signal and subscribes to it.
  *
- * Note that you do not need to use this hook if you are wrapping the component with [[track]]
+ * Note that you do not need to use this hook if you are wrapping the component with {@link track}
  *
  * @example
  * ```ts
@@ -17,7 +20,7 @@ import { useMemo, useRef, useSyncExternalStore } from 'react'
  * }
  * ```
  *
- * You can also pass a function to compute the value and it will be memoized as in [[useComputed]]:
+ * You can also pass a function to compute the value and it will be memoized as in {@link state#useComputed}:
  *
  * @example
  * ```ts
@@ -37,9 +40,8 @@ import { useMemo, useRef, useSyncExternalStore } from 'react'
  *
  * @public
  */
-export function useValue<Value>(value: Signal<Value>): Value
-/** @public */
 export function useValue<Value>(name: string, fn: () => Value, deps: unknown[]): Value
+
 /** @public */
 export function useValue() {
 	const args = arguments
