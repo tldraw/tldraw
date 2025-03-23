@@ -1,6 +1,7 @@
 import { getSchema, JSONContent, Editor as TTEditor } from '@tiptap/core'
 import { Node } from '@tiptap/pm/model'
 import { EditorProviderProps } from '@tiptap/react'
+import { EMPTY_ARRAY } from '@tldraw/state'
 import { TLRichText } from '@tldraw/tlschema'
 import { assert, WeakCache } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
@@ -61,7 +62,7 @@ export function getFontsFromRichText(
 	richText: TLRichText,
 	initialState: RichTextFontVisitorState
 ) {
-	if (isEmptyRichText(richText)) return []
+	if (isEmptyRichText(richText)) return EMPTY_ARRAY
 	return fontsFromTextCache.get(richText, () => {
 		const { tipTapConfig, addFontsFromNode } = editor.getTextOptions()
 		assert(tipTapConfig, 'textOptions.tipTapConfig must be set to use rich text')
