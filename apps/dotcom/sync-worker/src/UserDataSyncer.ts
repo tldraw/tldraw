@@ -128,7 +128,7 @@ export class UserDataSyncer {
 		private log: Logger
 	) {
 		this.sentry = createSentry(ctx, env)
-		this.reboot({ delay: true })
+		this.reboot({ delay: false, source: 'constructor' })
 		const persist = throttle(
 			async () => {
 				const initialData = this.store.getCommittedData()
@@ -159,7 +159,15 @@ export class UserDataSyncer {
 
 	numConsecutiveReboots = 0
 
-	async reboot({ delay = true, hard = false }: { delay?: boolean; hard?: boolean } = {}) {
+	async reboot({
+		delay = true,
+		hard = false,
+		source,
+	}: {
+		delay?: boolean
+		hard?: boolean
+		source: string
+	}) {
 		this.numConsecutiveReboots++
 		if (this.numConsecutiveReboots > 8) {
 			this.logEvent({ type: 'user_do_abort', id: this.userId })
@@ -179,14 +187,14 @@ export class UserDataSyncer {
 			]).catch((e) => {
 				this.logEvent({ type: 'reboot_error', id: this.userId })
 				this.log.debug('reboot error', e.stack)
-				this.captureException(e)
+				this.captureException(e, { source })
 				return 'error'
 			})
 			this.log.debug('rebooted', res)
 			if (res === 'ok') {
 				this.numConsecutiveReboots = 0
 			} else {
-				this.reboot({ hard: this.numConsecutiveReboots > 4 })
+				this.reboot({ hard: this.numConsecutiveReboots > 4, source: source + '_retry' })
 			}
 		})
 	}
@@ -282,76 +290,89 @@ export class UserDataSyncer {
 		} satisfies StateSnapshot
 	}
 
+	private isBooting = false
+
 	private async boot(hard: boolean): Promise<void> {
-		this.log.debug('booting')
-		// todo: clean up old resources if necessary?
-		const start = Date.now()
-		this.state = {
-			type: 'connecting',
-			// preserve the promise so any awaiters do eventually get resolved
-			bootId: uniqueId(),
-			bufferedEvents: [],
+		if (this.isBooting) {
+			this.log.debug('already booting')
+			throw new Error('already booting')
 		}
-		/**
-		 * BOOTUP SEQUENCE
-		 * 1. Generate a unique boot id
-		 * 2. Fetch data from R2, or fetch fresh data from postgres
-		 * 3. Send initial data to client
-		 * 4. Register with the replicator
-		 * 5. Ignore any events that come in before the sequence id ends with our boot id
-		 * 6. Buffer any events that come in with a valid sequence id
-		 * 7. Once the replicator responds to the registration request, apply the buffered events
-		 */
-		if (!this.store.getCommittedData() || hard) {
-			const res =
-				(!hard && (await this.loadInitialDataFromR2())) ||
-				(await this.loadInitialDataFromPostgres(hard))
-
-			this.log.debug('got initial data')
-			this.store.initialize(res.initialData, res.optimisticUpdates)
-			this.broadcast({
-				type: 'initial_data',
-				initialData: res.initialData,
-			})
-			if (
-				'mutationNumber' in res.initialData &&
-				typeof res.initialData.mutationNumber === 'number'
-			) {
-				this.commitMutations(res.initialData.mutationNumber)
+		this.isBooting = true
+		try {
+			this.log.debug('booting')
+			// todo: clean up old resources if necessary?
+			const start = Date.now()
+			this.state = {
+				type: 'connecting',
+				// preserve the promise so any awaiters do eventually get resolved
+				bootId: uniqueId(),
+				bufferedEvents: [],
 			}
+			/**
+			 * BOOTUP SEQUENCE
+			 * 1. Generate a unique boot id
+			 * 2. Fetch data from R2, or fetch fresh data from postgres
+			 * 3. Send initial data to client
+			 * 4. Register with the replicator
+			 * 5. Ignore any events that come in before the sequence id ends with our boot id
+			 * 6. Buffer any events that come in with a valid sequence id
+			 * 7. Once the replicator responds to the registration request, apply the buffered events
+			 */
+			if (!this.store.getCommittedData() || hard) {
+				const res =
+					(!hard && (await this.loadInitialDataFromR2())) ||
+					(await this.loadInitialDataFromPostgres(hard))
+
+				this.log.debug('got initial data')
+				this.store.initialize(res.initialData, res.optimisticUpdates)
+				this.broadcast({
+					type: 'initial_data',
+					initialData: res.initialData,
+				})
+				if (
+					'mutationNumber' in res.initialData &&
+					typeof res.initialData.mutationNumber === 'number'
+				) {
+					this.commitMutations(res.initialData.mutationNumber)
+				}
+			}
+
+			const initialData = this.store.getCommittedData()!
+
+			const guestFileIds = initialData.files
+				.filter((f) => f.ownerId !== this.userId)
+				.map((f) => f.id)
+			const res = await getReplicator(this.env).registerUser({
+				userId: this.userId,
+				lsn: initialData.lsn,
+				guestFileIds,
+				bootId: this.state.bootId,
+			})
+
+			if (res.type === 'reboot') {
+				this.logEvent({ type: 'not_enough_history_for_fast_reboot', id: this.userId })
+				if (hard) throw new Error('reboot loop, waiting')
+				return this.boot(true)
+			}
+
+			const bufferedEvents = this.state.bufferedEvents
+			this.state = {
+				type: 'connected',
+				bootId: this.state.bootId,
+				sequenceId: res.sequenceId,
+				lastSequenceNumber: res.sequenceNumber,
+			}
+
+			if (bufferedEvents.length > 0) {
+				bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
+			}
+
+			const end = Date.now()
+			this.logEvent({ type: 'reboot_duration', id: this.userId, duration: end - start })
+			this.log.debug('boot time', end - start, 'ms')
+		} finally {
+			this.isBooting = false
 		}
-
-		const initialData = this.store.getCommittedData()!
-
-		const guestFileIds = initialData.files.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
-		const res = await getReplicator(this.env).registerUser({
-			userId: this.userId,
-			lsn: initialData.lsn,
-			guestFileIds,
-			bootId: this.state.bootId,
-		})
-
-		if (res.type === 'reboot') {
-			this.logEvent({ type: 'not_enough_history_for_fast_reboot', id: this.userId })
-			if (hard) throw new Error('reboot loop, waiting')
-			return this.boot(true)
-		}
-
-		const bufferedEvents = this.state.bufferedEvents
-		this.state = {
-			type: 'connected',
-			bootId: this.state.bootId,
-			sequenceId: res.sequenceId,
-			lastSequenceNumber: res.sequenceNumber,
-		}
-
-		if (bufferedEvents.length > 0) {
-			bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
-		}
-
-		const end = Date.now()
-		this.logEvent({ type: 'reboot_duration', id: this.userId, duration: end - start })
-		this.log.debug('boot time', end - start, 'ms')
 	}
 
 	// It is important that this method is synchronous!!!!
@@ -377,7 +398,7 @@ export class UserDataSyncer {
 			})
 		} catch (e) {
 			this.captureException(e)
-			this.reboot()
+			this.reboot({ source: 'handleRowUpdateEvent' })
 		}
 	}
 
@@ -406,7 +427,7 @@ export class UserDataSyncer {
 		if (this.state.sequenceId !== event.sequenceId) {
 			// the replicator has restarted, so we need to reboot
 			this.log.debug('force reboot', this.state, event)
-			this.reboot()
+			this.reboot({ source: 'handleReplicationEvent(force reboot)' })
 			return
 		}
 
@@ -416,7 +437,7 @@ export class UserDataSyncer {
 				event.sequenceNumber,
 				this.state.lastSequenceNumber
 			)
-			this.reboot()
+			this.reboot({ source: 'handleReplicationEvent(sequence number mismatch)' })
 			return
 		}
 
@@ -502,7 +523,7 @@ export class UserDataSyncer {
 		for (const mutation of this.mutations) {
 			if (Date.now() - mutation.timestamp > MUTATION_COMMIT_TIMEOUT) {
 				this.log.debug("Mutations haven't been committed for 10 seconds, rebooting", mutation)
-				this.reboot({ hard: true })
+				this.reboot({ hard: true, source: 'onInterval' })
 				break
 			}
 		}
