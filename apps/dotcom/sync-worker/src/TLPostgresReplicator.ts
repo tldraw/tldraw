@@ -328,9 +328,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			id: string
 		}[]
 		for (const { id } of usersWithoutRecentUpdates) {
-			if (await getUserDurableObject(this.env, id).notActive()) {
-				await this.unregisterUser(id)
-			}
+			await this.unregisterUser(id)
 		}
 		this.pruneHistory()
 		this.lastUserPruneTime = Date.now()
