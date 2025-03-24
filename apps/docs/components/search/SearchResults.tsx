@@ -114,6 +114,7 @@ function SearchInput() {
 			const indexQuery = searchParams.get('index') === 'blog' ? 'index=blog&' : ''
 			const query = comboboxRef.current?.value || ''
 			router.push(`/search?${indexQuery}query=${encodeURIComponent(query.trim())}`)
+			comboboxRef.current?.blur()
 		},
 		[router, searchParams, comboboxRef]
 	)
