@@ -128,7 +128,7 @@ export class UserDataSyncer {
 		private log: Logger
 	) {
 		this.sentry = createSentry(ctx, env)
-		this.reboot({ delay: false })
+		this.reboot({ delay: true })
 		const persist = throttle(
 			async () => {
 				const initialData = this.store.getCommittedData()
@@ -161,7 +161,7 @@ export class UserDataSyncer {
 
 	async reboot({ delay = true, hard = false }: { delay?: boolean; hard?: boolean } = {}) {
 		this.numConsecutiveReboots++
-		if (this.numConsecutiveReboots > 5) {
+		if (this.numConsecutiveReboots > 8) {
 			this.logEvent({ type: 'user_do_abort', id: this.userId })
 			getStatsDurableObjct(this.env).recordUserDoAbort()
 			this.ctx.abort()
@@ -171,11 +171,11 @@ export class UserDataSyncer {
 		this.logEvent({ type: 'reboot', id: this.userId })
 		await this.queue.push(async () => {
 			if (delay) {
-				await sleep(1000)
+				await sleep(Math.random() * 5000)
 			}
 			const res = await Promise.race([
 				this.boot(hard).then(() => 'ok'),
-				sleep(5000).then(() => 'timeout'),
+				sleep(10000).then(() => 'timeout'),
 			]).catch((e) => {
 				this.logEvent({ type: 'reboot_error', id: this.userId })
 				this.log.debug('reboot error', e.stack)
@@ -186,7 +186,7 @@ export class UserDataSyncer {
 			if (res === 'ok') {
 				this.numConsecutiveReboots = 0
 			} else {
-				this.reboot({ hard: true })
+				this.reboot({ hard: this.numConsecutiveReboots > 4 })
 			}
 		})
 	}
