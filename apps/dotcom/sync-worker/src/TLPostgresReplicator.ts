@@ -940,7 +940,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	private writeEvent(eventData: EventData) {
-		writeDataPoint(this.measure, this.env, 'replicator', eventData)
+		writeDataPoint(this.sentry, this.measure, this.env, 'replicator', eventData)
 	}
 
 	logEvent(event: TLPostgresReplicatorEvent) {

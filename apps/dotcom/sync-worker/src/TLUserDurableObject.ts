@@ -597,7 +597,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	private writeEvent(eventData: EventData) {
-		writeDataPoint(this.measure, this.env, 'user_durable_object', eventData)
+		writeDataPoint(this.sentry, this.measure, this.env, 'user_durable_object', eventData)
 	}
 
 	logEvent(event: TLUserDurableObjectEvent) {
