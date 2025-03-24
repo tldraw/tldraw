@@ -5,7 +5,7 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { Hit } from 'instantsearch.js'
 import { SendEventForHits } from 'instantsearch.js/es/lib/utils'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { Fragment, startTransition, useState } from 'react'
 import { Highlight } from 'react-instantsearch'
 import { twJoin } from 'tailwind-merge'
@@ -77,9 +77,11 @@ export default function SearchAutocomplete({
 
 function SearchInput({ value }: { value: string }) {
 	const router = useRouter()
+	const pathName = usePathname()
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key !== 'Enter') return
-		router.push(`/search?query=${encodeURIComponent(value.trim())}`)
+		const indexQuery = pathName.startsWith('/blog') ? 'index=blog&' : ''
+		router.push(`/search?${indexQuery}query=${encodeURIComponent(value.trim())}`)
 	}
 	return (
 		<div className="w-full h-10 flex items-center px-4">
@@ -87,13 +89,11 @@ function SearchInput({ value }: { value: string }) {
 				<MagnifyingGlassIcon className="h-4 shrink-0" />
 				<Combobox
 					className="h-full w-full mr-4 focus:outline-none text-black dark:text-white bg-transparent"
-					value={value}
 					autoFocus
 					placeholder="Search..."
 					onKeyDown={handleKeyDown}
 				/>
 			</div>
-			{/* <span className="hidden md:block text-xs shrink-0">ESC</span> */}
 		</div>
 	)
 }
