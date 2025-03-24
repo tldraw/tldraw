@@ -28,7 +28,6 @@ export {
 export { resizeScaled } from './lib/editor/shapes/shared/resizeScaled'
 export {
 	getFontsFromRichText,
-	isEmptyRichText,
 	type RichTextFontVisitor,
 	type RichTextFontVisitorState,
 	type TLTextOptions,

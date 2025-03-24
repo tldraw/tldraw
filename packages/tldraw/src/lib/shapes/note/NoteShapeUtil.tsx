@@ -19,7 +19,6 @@ import {
 	exhaustiveSwitchError,
 	getDefaultColorTheme,
 	getFontsFromRichText,
-	isEmptyRichText,
 	lerp,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -46,6 +45,7 @@ import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers
 
 import isEqual from 'lodash.isequal'
 import {
+	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'

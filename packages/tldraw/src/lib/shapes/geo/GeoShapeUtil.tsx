@@ -28,7 +28,6 @@ import {
 	getDefaultColorTheme,
 	getFontsFromRichText,
 	getPolygonVertices,
-	isEmptyRichText,
 	lerp,
 	toRichText,
 	useValue,
@@ -36,6 +35,7 @@ import {
 
 import isEqual from 'lodash.isequal'
 import {
+	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
