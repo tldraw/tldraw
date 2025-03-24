@@ -60,7 +60,6 @@
 		"@types/proper-lockfile": "^4.1.4",
 		"@types/tmp": "^0.2.6",
 		"diff": "^7.0.0",
-		"globals": "^16.0.0",
 		"ignore": "^5.3.2",
 		"jszip": "^3.10.1",
 		"minimist": "^1.2.8",
