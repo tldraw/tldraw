@@ -35,6 +35,7 @@ export const elbowArrowDebug = createDebugValue<{
 	}
 	aSide: ElbowArrowSide | null
 	bSide: ElbowArrowSide | null
+	shortest: 'distance' | 'count'
 }>('elbowArrowDebug', {
 	defaults: {
 		all: {
@@ -49,6 +50,7 @@ export const elbowArrowDebug = createDebugValue<{
 			},
 			aSide: null,
 			bSide: null,
+			shortest: 'distance',
 		},
 	},
 })

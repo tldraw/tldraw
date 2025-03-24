@@ -1057,6 +1057,8 @@ export interface ElbowArrowOptions {
     minArrowDistanceFromCorner: number;
     // (undocumented)
     minElbowLegLength: number;
+    // (undocumented)
+    shortestArrowMeasure: 'count' | 'distance';
 }
 
 // @public (undocumented)
@@ -1070,7 +1072,7 @@ export interface ElbowArrowRange {
 // @public (undocumented)
 export interface ElbowArrowRoute {
     // (undocumented)
-    length: number;
+    distance: number;
     // (undocumented)
     name: string;
     // (undocumented)

@@ -211,8 +211,15 @@ export function FeatureFlags() {
 }
 
 export function DebugElbowArrowMenu() {
-	const { visualDebugging, aSide, bSide, targetStyle, impreciseEdgePicking, preciseEdgePicking } =
-		useValue(elbowArrowDebug)
+	const {
+		visualDebugging,
+		aSide,
+		bSide,
+		targetStyle,
+		impreciseEdgePicking,
+		preciseEdgePicking,
+		shortest,
+	} = useValue(elbowArrowDebug)
 	const editor = useEditor()
 
 	return (
@@ -325,6 +332,24 @@ export function DebugElbowArrowMenu() {
 									snapAxis: !p.preciseEdgePicking.snapAxis,
 								},
 							}))
+						}}
+					/>
+				</TldrawUiMenuSubmenu>
+				<TldrawUiMenuSubmenu id="shortest" label={`Shortest arrow`}>
+					<TldrawUiMenuCheckboxItem
+						id="distance"
+						label="Distance"
+						checked={shortest === 'distance'}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, shortest: 'distance' }))
+						}}
+					/>
+					<TldrawUiMenuCheckboxItem
+						id="count"
+						label="Count"
+						checked={shortest === 'count'}
+						onSelect={() => {
+							elbowArrowDebug.update((p) => ({ ...p, shortest: 'count' }))
 						}}
 					/>
 				</TldrawUiMenuSubmenu>

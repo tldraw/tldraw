@@ -183,16 +183,18 @@ function pickBest(
 	info: ElbowArrowInfoWithoutRoute,
 	edgeSets: [ElbowArrowSide, ElbowArrowSide][][]
 ) {
+	const isDistance = info.options.shortestArrowMeasure === 'distance'
 	for (const set of edgeSets) {
 		let bestRoute: ElbowArrowRoute | null = null
-		let bestLengthSq = Infinity
+		let bestLength = Infinity
 		let bias = 0
 		for (const edges of set) {
 			bias++
 			const route = tryRouteArrow(info, edges[0], edges[1])
 			if (route) {
-				if (route.length + bias < bestLengthSq) {
-					bestLengthSq = route.length
+				const length = isDistance ? route.distance : route.points.length
+				if (length + bias < bestLength) {
+					bestLength = length
 					bestRoute = route
 				}
 			}

@@ -207,6 +207,7 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 		expandElbowLegLength: shapeOptions.expandElbowLegLength[arrow.props.size],
 		minElbowLegLength: shapeOptions.minElbowLegLength[arrow.props.size],
 		minArrowDistanceFromCorner: shapeOptions.minArrowDistanceFromCorner,
+		shortestArrowMeasure: elbowArrowDebug.get().shortest,
 	}
 
 	const startBinding = getElbowArrowBindingInfo(editor, arrow, bindings.start, arrow.props.start)
@@ -428,7 +429,7 @@ export function getRouteHandlePath(info: ElbowArrowInfo, route: ElbowArrowRoute)
 
 	return {
 		name: route.name,
-		length: route.length + firstSegmentLengthChange + lastSegmentLengthChange,
+		distance: route.distance + firstSegmentLengthChange + lastSegmentLengthChange,
 		points: newPoints,
 	}
 }
@@ -748,7 +749,7 @@ function castPathSegmentIntoGeometry(
 		}
 
 		const newDistance = Vec.ManhattanDist(point2, nearestIntersection)
-		route.length += newDistance - initialDistance
+		route.distance += newDistance - initialDistance
 		point1.x = nearestIntersection.x
 		point1.y = nearestIntersection.y
 	}

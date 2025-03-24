@@ -266,18 +266,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const otherHandleId = handleId === ARROW_HANDLES.START ? ARROW_HANDLES.END : ARROW_HANDLES.START
 		const otherBinding = bindings[otherHandleId]
 
-		if (this.editor.inputs.ctrlKey) {
-			// todo: maybe double check that this isn't equal to the other handle too?
-			// Skip binding
-			removeArrowBinding(this.editor, shape, handleId)
-
-			update.props![handleId] = {
-				x: handle.x,
-				y: handle.y,
-			}
-			return update
-		}
-
 		const targetInfo = updateArrowTargetState({
 			editor: this.editor,
 			pointInPageSpace: this.editor.getShapePageTransform(shape.id)!.applyToPoint(handle),
@@ -885,7 +873,7 @@ export function getArrowLength(editor: Editor, shape: TLArrowShape): number {
 		? Vec.Dist(info.start.handle, info.end.handle)
 		: info.type === 'arc'
 			? Math.abs(info.handleArc.length)
-			: info.route.length
+			: info.route.distance
 }
 
 const ArrowSvg = track(function ArrowSvg({

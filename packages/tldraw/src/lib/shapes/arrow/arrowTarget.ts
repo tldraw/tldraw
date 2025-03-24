@@ -74,6 +74,12 @@ export function updateArrowTargetState({
 	terminal,
 	isCreatingShape,
 }: UpdateArrowTargetStateOpts): ArrowTargetState | null {
+	// no target picking when ctrl is held:
+	if (editor.inputs.ctrlKey) {
+		getArrowTargetAtom(editor).set(null)
+		return null
+	}
+
 	const opts = elbowArrowDebug.get()
 	const util = editor.getShapeUtil<ArrowShapeUtil>('arrow')
 	const arrowKind = arrow ? arrow.props.kind : editor.getStyleForNextShape(ArrowShapeKindStyle)

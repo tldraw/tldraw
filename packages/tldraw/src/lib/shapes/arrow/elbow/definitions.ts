@@ -7,6 +7,7 @@ export interface ElbowArrowOptions {
 	expandElbowLegLength: number
 	minElbowLegLength: number
 	minArrowDistanceFromCorner: number
+	shortestArrowMeasure: 'distance' | 'count'
 }
 
 export const ElbowArrowSideDeltas = {

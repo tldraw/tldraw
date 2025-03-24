@@ -53,7 +53,7 @@ class ElbowArrowRouteBuilder {
 		return {
 			name: this.name,
 			points: this.points,
-			length: measureRouteManhattanDistance(this.points),
+			distance: measureRouteManhattanDistance(this.points),
 		}
 	}
 }
@@ -62,7 +62,7 @@ class ElbowArrowRouteBuilder {
 export interface ElbowArrowRoute {
 	name: string
 	points: Vec[]
-	length: number
+	distance: number
 }
 
 const routes = {

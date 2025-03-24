@@ -25,6 +25,7 @@ export function createDebugElbowArrowScene(editor: Editor) {
 			expandElbowLegLength: shapeOptions.expandElbowLegLength[size],
 			minElbowLegLength: shapeOptions.minElbowLegLength[size],
 			minArrowDistanceFromCorner: shapeOptions.minArrowDistanceFromCorner,
+			shortestArrowMeasure: elbowArrowDebug.get().shortest,
 		}
 		const { aSide, bSide } = elbowArrowDebug.get()
 

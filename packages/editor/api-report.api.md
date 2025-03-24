@@ -1612,6 +1612,7 @@ export const elbowArrowDebug: DebugFlag<{
         snapNone: boolean;
         snapPoints: boolean;
     };
+    shortest: 'count' | 'distance';
     targetStyle: 'center' | 'push' | 'remove';
     visualDebugging: boolean;
 }>;
