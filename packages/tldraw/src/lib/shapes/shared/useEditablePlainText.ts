@@ -94,9 +94,9 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
 }
 
 /** @internal */
-export function useIsEditingAnythingAndHovering(editor: Editor, shapeId: TLShapeId) {
+export function useIsReadyForEditing(editor: Editor, shapeId: TLShapeId) {
 	return useValue(
-		'is_editing_anything',
+		'isReadyForEditing',
 		() => {
 			const editingShapeId = editor.getEditingShapeId()
 			return (
@@ -113,7 +113,7 @@ export function useIsEditingAnythingAndHovering(editor: Editor, shapeId: TLShape
 export function useEditableTextCommon(shapeId: TLShapeId) {
 	const editor = useEditor()
 	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === shapeId, [editor])
-	const isEditingAnythingAndHovering = useIsEditingAnythingAndHovering(editor, shapeId)
+	const isReadyForEditing = useIsReadyForEditing(editor, shapeId)
 
 	const handleInputPointerDown = useCallback(
 		(e: React.PointerEvent) => {
@@ -146,7 +146,7 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 		handleInputPointerDown,
 		handleDoubleClick: stopEventPropagation,
 		isEditing,
-		isEditingAnythingAndHovering,
+		isReadyForEditing,
 	}
 }
 

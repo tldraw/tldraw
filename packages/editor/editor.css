@@ -897,14 +897,15 @@ input,
 	cursor: var(--tl-cursor-default);
 }
 
+.tl-rich-text[data-is-ready-for-editing='true'],
+.tl-text-wrapper[data-is-ready-for-editing='true'] .tl-text-input {
+	cursor: var(--tl-cursor-text);
+}
+
 .tl-text-input::selection {
 	background: var(--color-selected);
 	color: var(--color-selected-contrast);
 	text-shadow: none;
-}
-
-.tl-rich-text[data-iseditinganything='true'] {
-	cursor: var(--tl-cursor-text);
 }
 
 .tl-rich-text .ProseMirror {

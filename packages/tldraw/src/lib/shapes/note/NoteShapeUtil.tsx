@@ -50,7 +50,7 @@ import {
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
-import { useIsEditingAnythingAndHovering } from '../shared/useEditablePlainText'
+import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import {
 	CLONE_HANDLE_MARGIN,
 	NOTE_CENTER_OFFSET,
@@ -276,7 +276,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
-		const isEditingAnythingAndHovering = useIsEditingAnythingAndHovering(this.editor, shape.id)
+		const isReadyForEditing = useIsReadyForEditing(this.editor, shape.id)
 		const isEmpty = isEmptyRichText(richText)
 
 		return (
@@ -296,7 +296,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						boxShadow: hideShadows ? 'none' : getNoteShadow(shape.id, rotation, scale),
 					}}
 				>
-					{(isSelected || isEditingAnythingAndHovering || !isEmpty) && (
+					{(isSelected || isReadyForEditing || !isEmpty) && (
 						<RichTextLabel
 							shapeId={id}
 							type={type}

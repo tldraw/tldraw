@@ -50,7 +50,7 @@ import {
 } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
-import { useIsEditingAnythingAndHovering } from '../shared/useEditablePlainText'
+import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { GeoShapeBody } from './components/GeoShapeBody'
 import {
 	cloudOutline,
@@ -434,9 +434,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			() => shape.id === editor.getOnlySelectedShapeId(),
 			[editor]
 		)
-		const isEditingAnythingAndHovering = useIsEditingAnythingAndHovering(editor, shape.id)
+		const isReadyForEditing = useIsReadyForEditing(editor, shape.id)
 		const isEmpty = isEmptyRichText(shape.props.richText)
-		const showHtmlContainer = isEditingAnythingAndHovering || !isEmpty
+		const showHtmlContainer = isReadyForEditing || !isEmpty
 		const isForceSolid = useValue('force solid', () => editor.getZoomLevel() < 0.2, [editor])
 
 		return (
