@@ -17,8 +17,6 @@ import {
 	useValue,
 } from '@tldraw/editor'
 
-import 'lite-youtube-embed/src/lite-yt-embed.css'
-import 'lite-youtube-embed/src/lite-yt-embed.js'
 import { createElement } from 'react'
 import {
 	DEFAULT_EMBED_DEFINITIONS,
@@ -35,6 +33,13 @@ const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
 		.filter(([_perm, isEnabled]) => isEnabled)
 		.map(([perm]) => perm)
 		.join(' ')
+}
+
+let hasLoadedLiteYouTubeEmbed = false
+async function loadLiteYouTubeEmbed() {
+	if (hasLoadedLiteYouTubeEmbed) return
+	hasLoadedLiteYouTubeEmbed = true
+	await import('lite-youtube-embed/src/lite-yt-embed.js' as any)
 }
 
 /** @public */
@@ -182,6 +187,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		})
 
 		if (embedInfo?.definition.type === 'youtube') {
+			loadLiteYouTubeEmbed()
 			const urlObj = new URL(embedInfo.embedUrl)
 			const videoId = urlObj.pathname.match(/^\/embed\/([^/]+)\/?/)
 			const searchParams = new URLSearchParams(urlObj.search)
