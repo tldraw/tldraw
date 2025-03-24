@@ -3,8 +3,8 @@ import { Metadata } from 'next'
 export const metadata: Metadata = {
 	metadataBase: new URL('https://tldraw.dev'),
 	title: {
-		default: 'Docs',
-		template: `%s • tldraw Docs`,
+		default: 'Search',
+		template: `%s • tldraw SDK`,
 	},
 	description: 'Documentation for the tldraw SDK.',
 }
