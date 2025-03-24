@@ -7,7 +7,7 @@ import { TLUiIconType, iconTypes } from './icon-types'
 export interface TLUiAssetUrls extends TLEditorAssetUrls {
 	icons: Record<TLUiIconType | Exclude<string, TLUiIconType>, string>
 	translations: Record<(typeof LANGUAGES)[number]['locale'], string>
-	embedIcons: Record<(typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'], string>
+	embedIcons: Partial<Record<(typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'], string>>
 }
 
 /** @public */
@@ -39,7 +39,7 @@ export function setDefaultUiAssetUrls(urls: TLUiAssetUrls) {
 
 /** @internal */
 export function useDefaultUiAssetUrlsWithOverrides(
-	overrides?: RecursivePartial<TLUiAssetUrls>
+	overrides?: RecursivePartial<TLUiAssetUrlOverrides>
 ): TLUiAssetUrls {
 	if (!overrides) return defaultUiAssetUrls
 

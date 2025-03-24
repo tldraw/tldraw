@@ -22,6 +22,10 @@ export function AssetUrlsProvider({
 			image.decode()
 		}
 		for (const src of Object.values(assetUrls.embedIcons)) {
+			if (!src) {
+				continue
+			}
+
 			const image = Image()
 			image.src = src
 			image.decode()
