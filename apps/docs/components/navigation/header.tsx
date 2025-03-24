@@ -92,7 +92,9 @@ export function Header() {
 					<ThemeSwitch />
 				</ul>
 				<div className="flex items-center sm:hidden -mr-2">
-					<SearchButton type={pathname.startsWith('/blog') ? 'blog' : 'docs'} layout="mobile" />
+					{!pathname.startsWith('/search') && (
+						<SearchButton type={pathname.startsWith('/blog') ? 'blog' : 'docs'} layout="mobile" />
+					)}
 					<Suspense>
 						<MobileMenu main={mainLinks} social={socialLinks} />
 					</Suspense>
