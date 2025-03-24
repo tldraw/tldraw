@@ -965,7 +965,7 @@ export type StoreObjectRecordType<Context extends StoreObject<any>> =
 	Context extends Store<infer R> ? R : Context extends { store: Store<infer R> } ? R : never
 
 /**
- * Free version of {@link Store.createComputedCache}.
+ * Freestanding version of {@link Store.createComputedCache}.
  *
  * @example
  * ```ts

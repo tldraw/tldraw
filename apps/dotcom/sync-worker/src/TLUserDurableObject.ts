@@ -133,6 +133,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				}
 
 				if (this.sockets.size === 0 && typeof this.interval === 'number') {
+					this.log.debug('no sockets left')
 					clearInterval(this.interval)
 					this.interval = null
 				}
@@ -527,22 +528,18 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	async handleReplicationEvent(event: ZReplicationEvent) {
 		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
 		this.log.debug('replication event', event, !!this.cache)
-		if (await this.notActive()) {
+		if (!this.cache) {
 			this.log.debug('requesting to unregister')
 			return 'unregister'
 		}
 
 		try {
-			this.cache?.handleReplicationEvent(event)
+			this.cache.handleReplicationEvent(event)
 		} catch (e) {
 			this.captureException(e)
 		}
 
 		return 'ok'
-	}
-
-	async notActive() {
-		return !this.cache
 	}
 
 	/* --------------  */
@@ -597,7 +594,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	private writeEvent(eventData: EventData) {
-		writeDataPoint(this.measure, this.env, 'user_durable_object', eventData)
+		writeDataPoint(this.sentry, this.measure, this.env, 'user_durable_object', eventData)
 	}
 
 	logEvent(event: TLUserDurableObjectEvent) {
@@ -638,7 +635,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	async admin_forceHardReboot(userId: string) {
 		if (this.cache) {
-			await this.cache?.reboot({ hard: true, delay: false, cause: 'admin' })
+			await this.cache?.reboot({ hard: true, delay: false, cause: 'admin', forceRegister: true })
 		} else {
 			await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		}
