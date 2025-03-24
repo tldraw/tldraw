@@ -1,3 +1,209 @@
+# v3.11.0 (Thu Mar 20 2025)
+
+### Release Notes
+
+#### style panel: be able to hit Enter to continue editing after selection ([#5705](https://github.com/tldraw/tldraw/pull/5705))
+
+- Style panel: be able to hit Enter to continue editing after selection
+
+#### rich text: tweak numbered list padding depending on # of items ([#5709](https://github.com/tldraw/tldraw/pull/5709))
+
+- Fix issue with rich text numbered lists escaping geometry bounds
+
+#### text: fix editing for React 19/StrictMode ([#5689](https://github.com/tldraw/tldraw/pull/5689))
+
+- Fix developing with StrictMode + React 19 when editing text.
+
+#### rich text: add RichTextSVG to exports ([#5700](https://github.com/tldraw/tldraw/pull/5700))
+
+- Add `RichTextSVG` to the exports.
+
+#### [Fix] Rich text perf issue ([#5658](https://github.com/tldraw/tldraw/pull/5658))
+
+- Improved performance related to rich text.
+
+#### [Friendly Spellcheck]: Fix comments of types.ts file in @tldraw/state ([#5683](https://github.com/tldraw/tldraw/pull/5683))
+
+- Fixed typos found in the `Signal` interface's comments
+
+#### exports: fix Inter being embedded; reduce excessive styling ([#5676](https://github.com/tldraw/tldraw/pull/5676))
+
+- Fix issue with exports embedding Inter and having excessive styling.
+
+#### Improve examples UX on tldraw.dev ([#5667](https://github.com/tldraw/tldraw/pull/5667))
+
+- Docs: Improved UX of examples on the tldraw.dev
+
+#### assets: be able to remove assets that are unused ([#5628](https://github.com/tldraw/tldraw/pull/5628))
+
+- Cleanup assets from the local indexedDB that are proactively deleted.
+
+#### Allow embedding other multiplayer routes and also tldraw app routes ([#5326](https://github.com/tldraw/tldraw/pull/5326))
+
+- Fixed a bug with…
+
+#### 5% minimum zoom / zoom-towards-cursor ([#5584](https://github.com/tldraw/tldraw/pull/5584))
+
+- Added a new minimum zoom step at 5%
+- Added new keyboard shortcuts for zoom in or out towards your cursor (Shift +, Shift -)
+
+#### [Fix] indicators hideAll / showAll ([#5654](https://github.com/tldraw/tldraw/pull/5654))
+
+- Improved performance on large projects when hiding / showing shape indicators.
+- Added `hideAll` and `showAll` props to the `ShapeIndicators` component props
+
+#### Add page navigation kbds ([#5586](https://github.com/tldraw/tldraw/pull/5586))
+
+- Added keyboard shortcuts (option + arrows) for navigating between pages.
+
+#### [Fix] Use adjacent shape margin option in stackShapes, packShapes ([#5656](https://github.com/tldraw/tldraw/pull/5656))
+
+- Adjusts distance for `stackShapes`.
+
+#### rich text: add `textOptions` to `<TldrawImage />` ([#5649](https://github.com/tldraw/tldraw/pull/5649))
+
+- Fix a bug where `textOptions` was missing on `<TldrawImage />`
+
+#### a11y: make toolbar button labels better; fix missing str ([#5632](https://github.com/tldraw/tldraw/pull/5632))
+
+- Improve labels for screen readers on toolbar buttons. Fix missing 'heart' string.
+
+#### embeds: add support for google maps satellite mode ([#5630](https://github.com/tldraw/tldraw/pull/5630))
+
+- Adds support for satellite mode in Google Map embeds
+
+#### 'New user' -> 'Guest user' (dotcom only) ([#5614](https://github.com/tldraw/tldraw/pull/5614))
+
+- Add a translation key 'people-menu.anonymous-user' with the default string 'New User'
+- BREAKING CHANGE: `editor.user.getName()` no longer returns `'New user'` if the user has no name set. Instead it returns the empty string `''`.
+- BREAKING CHANGE: `defaultUserPreferences.name` is no longer the string `'New user'`, it is now the empty string `''`
+
+#### template: fix Bun server image uploads ([#5627](https://github.com/tldraw/tldraw/pull/5627))
+
+- Fix up image uploads in our simple-server-example when using Bun
+
+#### fonts: fix up invalid google font url ([#5626](https://github.com/tldraw/tldraw/pull/5626))
+
+- Fix Inter font on some of our templates.
+
+#### a11y: focus ring ([#5401](https://github.com/tldraw/tldraw/pull/5401))
+
+- a11y: enable focus ring.
+
+#### bookmark: add apostrophe to common html entities ([#5620](https://github.com/tldraw/tldraw/pull/5620))
+
+- bookmark: add apostrophe to common html entities
+
+#### security: provide a way to pass through `nonce` to the editor ([#5607](https://github.com/tldraw/tldraw/pull/5607))
+
+- Provide support to pass through `nonce` to the Editor.
+
+---
+
+#### 🐛 Bug Fix
+
+- Improve search config [#5714](https://github.com/tldraw/tldraw/pull/5714) ([@TodePond](https://github.com/TodePond))
+- update export snapshots, take 2 [#5711](https://github.com/tldraw/tldraw/pull/5711) ([@mimecuvalo](https://github.com/mimecuvalo) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- [automated] update i18n strings [#5704](https://github.com/tldraw/tldraw/pull/5704) ([@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@mimecuvalo](https://github.com/mimecuvalo) [@github-actions[bot]](https://github.com/github-actions[bot]))
+- i18n: download the tldraw project as well automatically [#5703](https://github.com/tldraw/tldraw/pull/5703) ([@mimecuvalo](https://github.com/mimecuvalo))
+- templates: rm yarn.lock files [#5690](https://github.com/tldraw/tldraw/pull/5690) ([@mimecuvalo](https://github.com/mimecuvalo))
+- [dotcom] Fix qr code links [#5695](https://github.com/tldraw/tldraw/pull/5695) ([@ds300](https://github.com/ds300))
+- fix sentry csp [#5685](https://github.com/tldraw/tldraw/pull/5685) ([@ds300](https://github.com/ds300))
+- Tiny fixes to focus example guides [#5679](https://github.com/tldraw/tldraw/pull/5679) ([@TodePond](https://github.com/TodePond))
+- Improve examples UX on tldraw.dev [#5667](https://github.com/tldraw/tldraw/pull/5667) ([@TodePond](https://github.com/TodePond))
+- script: add pretty cmd for current diff [#5678](https://github.com/tldraw/tldraw/pull/5678) ([@mimecuvalo](https://github.com/mimecuvalo))
+- examples: make nav not do full page reload [#5677](https://github.com/tldraw/tldraw/pull/5677) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix readme images [#5669](https://github.com/tldraw/tldraw/pull/5669) ([@TodePond](https://github.com/TodePond))
+- docs: fix up dismissable content [#5668](https://github.com/tldraw/tldraw/pull/5668) ([@mimecuvalo](https://github.com/mimecuvalo))
+- [automated] update i18n strings [#5665](https://github.com/tldraw/tldraw/pull/5665) ([@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@github-actions[bot]](https://github.com/github-actions[bot]))
+- fonts: update outdated static assets example [#5650](https://github.com/tldraw/tldraw/pull/5650) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Track Enter key to accept search query [#5625](https://github.com/tldraw/tldraw/pull/5625) ([@TodePond](https://github.com/TodePond))
+- use discord steps for trigger-sdk-hotfix script [#5648](https://github.com/tldraw/tldraw/pull/5648) ([@ds300](https://github.com/ds300))
+- i18n: temporarily patch order placement to avoid Lokalise bug [#5647](https://github.com/tldraw/tldraw/pull/5647) ([@mimecuvalo](https://github.com/mimecuvalo))
+- error logging for i18n-upload-strings [#5639](https://github.com/tldraw/tldraw/pull/5639) ([@ds300](https://github.com/ds300))
+- Track embedded examples on docs site [#5643](https://github.com/tldraw/tldraw/pull/5643) ([@TodePond](https://github.com/TodePond))
+- Add a dot (test new docs deployment thing) [#5641](https://github.com/tldraw/tldraw/pull/5641) ([@ds300](https://github.com/ds300))
+- trigger-sdk-hotfix refresh assets [#5640](https://github.com/tldraw/tldraw/pull/5640) ([@ds300](https://github.com/ds300))
+- Use correct punctuation in comments in sync.mdx [#5638](https://github.com/tldraw/tldraw/pull/5638) ([@ds300](https://github.com/ds300))
+- fetch-depth 0 again? [#5637](https://github.com/tldraw/tldraw/pull/5637) ([@ds300](https://github.com/ds300))
+- debug trigger-sdk-hotfix [#5636](https://github.com/tldraw/tldraw/pull/5636) ([@ds300](https://github.com/ds300))
+- fix checkout step [#5635](https://github.com/tldraw/tldraw/pull/5635) ([@ds300](https://github.com/ds300))
+- fix trigger-sdk-hotfix script? [#5633](https://github.com/tldraw/tldraw/pull/5633) ([@ds300](https://github.com/ds300))
+- [infra] add setup action back [#5631](https://github.com/tldraw/tldraw/pull/5631) ([@ds300](https://github.com/ds300))
+- Trigger docs/SDK release from a PR label [#5629](https://github.com/tldraw/tldraw/pull/5629) ([@ds300](https://github.com/ds300))
+- fix header truncation on safari [#5618](https://github.com/tldraw/tldraw/pull/5618) ([@ds300](https://github.com/ds300))
+- docs: fix sorting for release history [#5617](https://github.com/tldraw/tldraw/pull/5617) ([@mimecuvalo](https://github.com/mimecuvalo))
+- dotcom: handle 'client too old' error [#5609](https://github.com/tldraw/tldraw/pull/5609) ([@ds300](https://github.com/ds300))
+- `@tldraw/editor`
+  - update export snapshots [#5710](https://github.com/tldraw/tldraw/pull/5710) ([@mimecuvalo](https://github.com/mimecuvalo))
+  - Example: create arrow between shapes [#5602](https://github.com/tldraw/tldraw/pull/5602) ([@steveruizok](https://github.com/steveruizok) [@TodePond](https://github.com/TodePond))
+- `@tldraw/dotcom-shared`, `@tldraw/editor`, `@tldraw/tldraw`, `@tldraw/state-react`, `@tldraw/sync-core`, `@tldraw/sync`, `tldraw`, `@tldraw/tlschema`
+  - upgrade yarn to 4.7 [#5687](https://github.com/tldraw/tldraw/pull/5687) ([@SomeHats](https://github.com/SomeHats))
+- `@tldraw/state`
+  - [Friendly Spellcheck]: Fix comments of types.ts file in @tldraw/state [#5683](https://github.com/tldraw/tldraw/pull/5683) ([@Jastor11](https://github.com/Jastor11))
+- `tldraw`
+  - toolbar: tweak selected color [#5624](https://github.com/tldraw/tldraw/pull/5624) ([@mimecuvalo](https://github.com/mimecuvalo))
+  - debug: move hard reset option to avoid fat finger [#5616](https://github.com/tldraw/tldraw/pull/5616) ([@mimecuvalo](https://github.com/mimecuvalo))
+- `@tldraw/editor`, `tldraw`
+  - a11y: focus ring [#5401](https://github.com/tldraw/tldraw/pull/5401) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
+- `@tldraw/state-react`, `@tldraw/state`
+  - Fix API links for state packages [#5606](https://github.com/tldraw/tldraw/pull/5606) ([@TodePond](https://github.com/TodePond))
+
+#### 🐛 Bug Fixes
+
+- template: fix Bun server image uploads [#5627](https://github.com/tldraw/tldraw/pull/5627) ([@mimecuvalo](https://github.com/mimecuvalo))
+- fonts: fix up invalid google font url [#5626](https://github.com/tldraw/tldraw/pull/5626) ([@mimecuvalo](https://github.com/mimecuvalo))
+- `tldraw`
+  - style panel: be able to hit Enter to continue editing after selection, pt 2 [#5713](https://github.com/tldraw/tldraw/pull/5713) ([@mimecuvalo](https://github.com/mimecuvalo))
+  - style panel: be able to hit Enter to continue editing after selection [#5705](https://github.com/tldraw/tldraw/pull/5705) ([@mimecuvalo](https://github.com/mimecuvalo))
+  - rich text: add RichTextSVG to exports [#5700](https://github.com/tldraw/tldraw/pull/5700) ([@mimecuvalo](https://github.com/mimecuvalo))
+  - rich text: add `textOptions` to `<TldrawImage />` [#5649](https://github.com/tldraw/tldraw/pull/5649) ([@mimecuvalo](https://github.com/mimecuvalo))
+  - a11y: make toolbar button labels better; fix missing str [#5632](https://github.com/tldraw/tldraw/pull/5632) ([@mimecuvalo](https://github.com/mimecuvalo))
+  - bookmark: add apostrophe to common html entities [#5620](https://github.com/tldraw/tldraw/pull/5620) ([@mimecuvalo](https://github.com/mimecuvalo))
+- `@tldraw/editor`
+  - rich text: tweak numbered list padding depending on # of items [#5709](https://github.com/tldraw/tldraw/pull/5709) ([@mimecuvalo](https://github.com/mimecuvalo))
+- `@tldraw/editor`, `tldraw`
+  - text: fix editing for React 19/StrictMode [#5689](https://github.com/tldraw/tldraw/pull/5689) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats))
+  - exports: fix Inter being embedded; reduce excessive styling [#5676](https://github.com/tldraw/tldraw/pull/5676) ([@mimecuvalo](https://github.com/mimecuvalo) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+  - [Fix] indicators hideAll / showAll [#5654](https://github.com/tldraw/tldraw/pull/5654) ([@steveruizok](https://github.com/steveruizok))
+
+#### 💄 Product Improvements
+
+- Don't show dismissible elements until we are sure of their status [#5570](https://github.com/tldraw/tldraw/pull/5570) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@steveruizok](https://github.com/steveruizok))
+- `@tldraw/editor`, `tldraw`
+  - [Fix] Rich text perf issue [#5658](https://github.com/tldraw/tldraw/pull/5658) ([@steveruizok](https://github.com/steveruizok) [@mimecuvalo](https://github.com/mimecuvalo))
+  - [Fix] Use adjacent shape margin option in stackShapes, packShapes [#5656](https://github.com/tldraw/tldraw/pull/5656) ([@steveruizok](https://github.com/steveruizok))
+- `@tldraw/editor`, `@tldraw/tlschema`
+  - assets: be able to remove assets that are unused [#5628](https://github.com/tldraw/tldraw/pull/5628) ([@mimecuvalo](https://github.com/mimecuvalo))
+- `tldraw`
+  - Allow embedding other multiplayer routes and also tldraw app routes [#5326](https://github.com/tldraw/tldraw/pull/5326) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@steveruizok](https://github.com/steveruizok))
+  - embeds: add support for google maps satellite mode [#5630](https://github.com/tldraw/tldraw/pull/5630) ([@mimecuvalo](https://github.com/mimecuvalo))
+- `@tldraw/editor`, `@tldraw/sync`, `tldraw`
+  - 5% minimum zoom / zoom-towards-cursor [#5584](https://github.com/tldraw/tldraw/pull/5584) ([@steveruizok](https://github.com/steveruizok))
+- `@tldraw/editor`, `tldraw`, `@tldraw/tlschema`
+  - 'New user' -> 'Guest user' (dotcom only) [#5614](https://github.com/tldraw/tldraw/pull/5614) ([@ds300](https://github.com/ds300))
+
+#### 🎉 New Features
+
+- `tldraw`
+  - Add page navigation kbds [#5586](https://github.com/tldraw/tldraw/pull/5586) ([@steveruizok](https://github.com/steveruizok))
+- `@tldraw/editor`, `@tldraw/store`, `tldraw`
+  - security: provide a way to pass through `nonce` to the editor [#5607](https://github.com/tldraw/tldraw/pull/5607) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 9
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Jeff Astor ([@Jastor11](https://github.com/Jastor11))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.10.0 (Tue Mar 11 2025)
 
 ### Release Notes
@@ -2464,7 +2670,7 @@ Adds the ability to customize the embeds that are supported. You can now customi
 
 - Fix a bug with fractional indexing validation with the new jitter library.
 
-#### images: show ghost preview image whilst uploading ([#3988](https://github.com/tldraw/tldraw/pull/3988))
+#### images: show ghost preview image while uploading ([#3988](https://github.com/tldraw/tldraw/pull/3988))
 
 - Media: add image and video upload indicators.
 
@@ -2762,7 +2968,7 @@ This was done because calling `editor.mark(id)` is a potential footgun unless yo
 - `@tldraw/editor`, `tldraw`, `@tldraw/tlschema`
   - [api] Widen snapshots pit of success [#4392](https://github.com/tldraw/tldraw/pull/4392) ([@ds300](https://github.com/ds300))
 - `@tldraw/editor`, `@tldraw/sync`, `tldraw`
-  - images: show ghost preview image whilst uploading [#3988](https://github.com/tldraw/tldraw/pull/3988) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
+  - images: show ghost preview image while uploading [#3988](https://github.com/tldraw/tldraw/pull/3988) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
 
 #### 🎉 New Features
 

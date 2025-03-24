@@ -116,7 +116,12 @@ export {
 	TextLabel,
 	type PlainTextLabelProps,
 } from './lib/shapes/shared/PlainTextLabel'
-export { RichTextLabel, type RichTextLabelProps } from './lib/shapes/shared/RichTextLabel'
+export {
+	RichTextLabel,
+	RichTextSVG,
+	type RichTextLabelProps,
+	type RichTextSVGProps,
+} from './lib/shapes/shared/RichTextLabel'
 export {
 	getCropBox,
 	getDefaultCrop,

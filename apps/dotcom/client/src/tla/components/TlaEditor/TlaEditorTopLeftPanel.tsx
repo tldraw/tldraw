@@ -151,6 +151,8 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const [isRenaming, setIsRenaming] = useState(false)
 	const pageMenuLbl = useMsg(messages.pageMenu)
 
+	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
+
 	const fileSlug = useParams<{ fileSlug: string }>().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
 	const isOwner = useIsFileOwner(fileSlug)
 
@@ -204,7 +206,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	return (
 		<>
 			{/* spacer for the sidebar toggle button */}
-			<div style={{ width: 40 }} />
+			{isEmbed ? null : <div style={{ width: 40 }} />}
 			<TlaFileNameEditor
 				source="file-header"
 				isRenaming={isRenaming}

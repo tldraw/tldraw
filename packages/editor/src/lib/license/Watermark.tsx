@@ -85,6 +85,7 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 })
 
 const LicenseStyles = memo(function LicenseStyles() {
+	const editor = useEditor()
 	const className = LicenseManager.className
 
 	const CSS = `/* ------------------- SEE LICENSE -------------------
@@ -156,7 +157,12 @@ To remove the watermark, please purchase a license at tldraw.dev.
 			animation: delayed_link 0.2s forwards ease-in-out;
 			animation-delay: 0.32s;
 		}
+
+		.${className} > a:focus-visible {
+			opacity: 1;
+		}
 	}
+
 
 	@keyframes delayed_link {
 		0% {
@@ -171,5 +177,5 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		}
 	}`
 
-	return <style>{CSS}</style>
+	return <style nonce={editor.options.nonce}>{CSS}</style>
 })

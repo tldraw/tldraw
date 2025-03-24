@@ -42,6 +42,7 @@ export function DefaultDebugMenuContent() {
 	return (
 		<>
 			<TldrawUiMenuGroup id="items">
+				<TldrawUiMenuItem id="hard-reset" onSelect={hardResetEditor} label={'Hard reset'} />
 				<TldrawUiMenuItem
 					id="add-toast"
 					onSelect={() => {
@@ -169,7 +170,6 @@ export function DefaultDebugMenuContent() {
 					return null
 				})()}
 				<TldrawUiMenuItem id="throw-error" onSelect={() => setError(true)} label={'Throw error'} />
-				<TldrawUiMenuItem id="hard-reset" onSelect={hardResetEditor} label={'Hard reset'} />
 				<DebugElbowArrowMenu />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="flags">
@@ -503,6 +503,7 @@ const DebugFlagToggle = track(function DebugFlagToggle({
 let t = 0
 
 function createNShapes(editor: Editor, n: number) {
+	const gap = editor.options.adjacentShapeMargin
 	const shapesToCreate: TLShapePartial[] = Array(n)
 	const cols = Math.floor(Math.sqrt(n))
 
@@ -511,8 +512,8 @@ function createNShapes(editor: Editor, n: number) {
 		shapesToCreate[i] = {
 			id: createShapeId('box' + t),
 			type: 'geo',
-			x: (i % cols) * 132,
-			y: Math.floor(i / cols) * 132,
+			x: (i % cols) * (100 + gap),
+			y: Math.floor(i / cols) * (100 + gap),
 		}
 	}
 

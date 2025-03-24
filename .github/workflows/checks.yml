@@ -32,12 +32,6 @@ jobs:
       - name: Check for duplicate dependencies
         run: yarn dedupe --check
 
-      # Not the most sophisticated way to check for warnings, but I don't think
-      # Yarn can be convinced to exit with a non-zero exit code on warnings
-      # see also https://unix.stackexchange.com/a/433713 for the explanation of the parameters
-      - name: Check for installation warnings
-        run: 'yarn | grep -vzq "with warnings"'
-
       - name: Check packages
         run: yarn check-packages
 

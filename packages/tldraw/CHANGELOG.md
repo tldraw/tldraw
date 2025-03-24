@@ -1,3 +1,125 @@
+# v3.11.0 (Thu Mar 20 2025)
+
+### Release Notes
+
+#### style panel: be able to hit Enter to continue editing after selection ([#5705](https://github.com/tldraw/tldraw/pull/5705))
+
+- Style panel: be able to hit Enter to continue editing after selection
+
+#### text: fix editing for React 19/StrictMode ([#5689](https://github.com/tldraw/tldraw/pull/5689))
+
+- Fix developing with StrictMode + React 19 when editing text.
+
+#### rich text: add RichTextSVG to exports ([#5700](https://github.com/tldraw/tldraw/pull/5700))
+
+- Add `RichTextSVG` to the exports.
+
+#### [Fix] Rich text perf issue ([#5658](https://github.com/tldraw/tldraw/pull/5658))
+
+- Improved performance related to rich text.
+
+#### exports: fix Inter being embedded; reduce excessive styling ([#5676](https://github.com/tldraw/tldraw/pull/5676))
+
+- Fix issue with exports embedding Inter and having excessive styling.
+
+#### Allow embedding other multiplayer routes and also tldraw app routes ([#5326](https://github.com/tldraw/tldraw/pull/5326))
+
+- Fixed a bug with…
+
+#### 5% minimum zoom / zoom-towards-cursor ([#5584](https://github.com/tldraw/tldraw/pull/5584))
+
+- Added a new minimum zoom step at 5%
+- Added new keyboard shortcuts for zoom in or out towards your cursor (Shift +, Shift -)
+
+#### [Fix] indicators hideAll / showAll ([#5654](https://github.com/tldraw/tldraw/pull/5654))
+
+- Improved performance on large projects when hiding / showing shape indicators.
+- Added `hideAll` and `showAll` props to the `ShapeIndicators` component props
+
+#### Add page navigation kbds ([#5586](https://github.com/tldraw/tldraw/pull/5586))
+
+- Added keyboard shortcuts (option + arrows) for navigating between pages.
+
+#### [Fix] Use adjacent shape margin option in stackShapes, packShapes ([#5656](https://github.com/tldraw/tldraw/pull/5656))
+
+- Adjusts distance for `stackShapes`.
+
+#### rich text: add `textOptions` to `<TldrawImage />` ([#5649](https://github.com/tldraw/tldraw/pull/5649))
+
+- Fix a bug where `textOptions` was missing on `<TldrawImage />`
+
+#### a11y: make toolbar button labels better; fix missing str ([#5632](https://github.com/tldraw/tldraw/pull/5632))
+
+- Improve labels for screen readers on toolbar buttons. Fix missing 'heart' string.
+
+#### embeds: add support for google maps satellite mode ([#5630](https://github.com/tldraw/tldraw/pull/5630))
+
+- Adds support for satellite mode in Google Map embeds
+
+#### 'New user' -> 'Guest user' (dotcom only) ([#5614](https://github.com/tldraw/tldraw/pull/5614))
+
+- Add a translation key 'people-menu.anonymous-user' with the default string 'New User'
+- BREAKING CHANGE: `editor.user.getName()` no longer returns `'New user'` if the user has no name set. Instead it returns the empty string `''`.
+- BREAKING CHANGE: `defaultUserPreferences.name` is no longer the string `'New user'`, it is now the empty string `''`
+
+#### a11y: focus ring ([#5401](https://github.com/tldraw/tldraw/pull/5401))
+
+- a11y: enable focus ring.
+
+#### bookmark: add apostrophe to common html entities ([#5620](https://github.com/tldraw/tldraw/pull/5620))
+
+- bookmark: add apostrophe to common html entities
+
+#### security: provide a way to pass through `nonce` to the editor ([#5607](https://github.com/tldraw/tldraw/pull/5607))
+
+- Provide support to pass through `nonce` to the Editor.
+
+---
+
+#### 🐛 Bug Fix
+
+- upgrade yarn to 4.7 [#5687](https://github.com/tldraw/tldraw/pull/5687) ([@SomeHats](https://github.com/SomeHats))
+- toolbar: tweak selected color [#5624](https://github.com/tldraw/tldraw/pull/5624) ([@mimecuvalo](https://github.com/mimecuvalo))
+- a11y: focus ring [#5401](https://github.com/tldraw/tldraw/pull/5401) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
+- debug: move hard reset option to avoid fat finger [#5616](https://github.com/tldraw/tldraw/pull/5616) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🐛 Bug Fixes
+
+- style panel: be able to hit Enter to continue editing after selection, pt 2 [#5713](https://github.com/tldraw/tldraw/pull/5713) ([@mimecuvalo](https://github.com/mimecuvalo))
+- style panel: be able to hit Enter to continue editing after selection [#5705](https://github.com/tldraw/tldraw/pull/5705) ([@mimecuvalo](https://github.com/mimecuvalo))
+- text: fix editing for React 19/StrictMode [#5689](https://github.com/tldraw/tldraw/pull/5689) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats))
+- rich text: add RichTextSVG to exports [#5700](https://github.com/tldraw/tldraw/pull/5700) ([@mimecuvalo](https://github.com/mimecuvalo))
+- exports: fix Inter being embedded; reduce excessive styling [#5676](https://github.com/tldraw/tldraw/pull/5676) ([@mimecuvalo](https://github.com/mimecuvalo) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- [Fix] indicators hideAll / showAll [#5654](https://github.com/tldraw/tldraw/pull/5654) ([@steveruizok](https://github.com/steveruizok))
+- rich text: add `textOptions` to `<TldrawImage />` [#5649](https://github.com/tldraw/tldraw/pull/5649) ([@mimecuvalo](https://github.com/mimecuvalo))
+- a11y: make toolbar button labels better; fix missing str [#5632](https://github.com/tldraw/tldraw/pull/5632) ([@mimecuvalo](https://github.com/mimecuvalo))
+- bookmark: add apostrophe to common html entities [#5620](https://github.com/tldraw/tldraw/pull/5620) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 💄 Product Improvements
+
+- [Fix] Rich text perf issue [#5658](https://github.com/tldraw/tldraw/pull/5658) ([@steveruizok](https://github.com/steveruizok) [@mimecuvalo](https://github.com/mimecuvalo))
+- Allow embedding other multiplayer routes and also tldraw app routes [#5326](https://github.com/tldraw/tldraw/pull/5326) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@steveruizok](https://github.com/steveruizok))
+- 5% minimum zoom / zoom-towards-cursor [#5584](https://github.com/tldraw/tldraw/pull/5584) ([@steveruizok](https://github.com/steveruizok))
+- [Fix] Use adjacent shape margin option in stackShapes, packShapes [#5656](https://github.com/tldraw/tldraw/pull/5656) ([@steveruizok](https://github.com/steveruizok))
+- embeds: add support for google maps satellite mode [#5630](https://github.com/tldraw/tldraw/pull/5630) ([@mimecuvalo](https://github.com/mimecuvalo))
+- 'New user' -> 'Guest user' (dotcom only) [#5614](https://github.com/tldraw/tldraw/pull/5614) ([@ds300](https://github.com/ds300))
+
+#### 🎉 New Features
+
+- Add page navigation kbds [#5586](https://github.com/tldraw/tldraw/pull/5586) ([@steveruizok](https://github.com/steveruizok))
+- security: provide a way to pass through `nonce` to the editor [#5607](https://github.com/tldraw/tldraw/pull/5607) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 6
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.10.0 (Tue Mar 11 2025)
 
 ### Release Notes
@@ -1097,7 +1219,7 @@ Adds the ability to customize the embeds that are supported. You can now customi
 
 - bookmark: dont show broken favicon and cleanup HTML entities in title
 
-#### images: show ghost preview image whilst uploading ([#3988](https://github.com/tldraw/tldraw/pull/3988))
+#### images: show ghost preview image while uploading ([#3988](https://github.com/tldraw/tldraw/pull/3988))
 
 - Media: add image and video upload indicators.
 
@@ -1231,7 +1353,7 @@ This was done because calling `editor.mark(id)` is a potential footgun unless yo
 - Deep Links [#4333](https://github.com/tldraw/tldraw/pull/4333) ([@ds300](https://github.com/ds300))
 - Gracefully handle deleted tools & actions (remix) [#4345](https://github.com/tldraw/tldraw/pull/4345) ([@steveruizok](https://github.com/steveruizok))
 - Interpolation: draw/highlight points, discrete props [#4241](https://github.com/tldraw/tldraw/pull/4241) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git) [@steveruizok](https://github.com/steveruizok))
-- images: show ghost preview image whilst uploading [#3988](https://github.com/tldraw/tldraw/pull/3988) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
+- images: show ghost preview image while uploading [#3988](https://github.com/tldraw/tldraw/pull/3988) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
 - text shape: dont make a fixed width unless more intentional drag [#4293](https://github.com/tldraw/tldraw/pull/4293) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
 - Add option for max pasted / dropped files [#4294](https://github.com/tldraw/tldraw/pull/4294) ([@steveruizok](https://github.com/steveruizok))
 - support custom delay for laser pointer [#4300](https://github.com/tldraw/tldraw/pull/4300) ([@raviteja83](https://github.com/raviteja83))

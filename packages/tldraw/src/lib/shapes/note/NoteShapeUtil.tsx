@@ -45,6 +45,7 @@ import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers
 
 import isEqual from 'lodash.isequal'
 import {
+	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
@@ -408,7 +409,7 @@ function getNoteSizeAdjustments(editor: Editor, shape: TLNoteShape) {
 function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 	const { richText } = shape.props
 
-	if (!renderPlaintextFromRichText(editor, richText)) {
+	if (isEmptyRichText(richText)) {
 		const minHeight = LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2
 		return { labelHeight: minHeight, labelWidth: 100, fontSizeAdjustment: 0 }
 	}
@@ -496,6 +497,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				// cmd enter is the y axis (shift inverts direction)
 				const isRTL = !!(
 					translation.dir === 'rtl' ||
+					// todo: can we check a partial of the text, so that we don't have to render the whole thing?
 					isRightToLeftLanguage(renderPlaintextFromRichText(editor, shape.props.richText))
 				)
 

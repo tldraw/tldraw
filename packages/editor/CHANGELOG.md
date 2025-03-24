@@ -1,3 +1,94 @@
+# v3.11.0 (Thu Mar 20 2025)
+
+### Release Notes
+
+#### rich text: tweak numbered list padding depending on # of items ([#5709](https://github.com/tldraw/tldraw/pull/5709))
+
+- Fix issue with rich text numbered lists escaping geometry bounds
+
+#### text: fix editing for React 19/StrictMode ([#5689](https://github.com/tldraw/tldraw/pull/5689))
+
+- Fix developing with StrictMode + React 19 when editing text.
+
+#### [Fix] Rich text perf issue ([#5658](https://github.com/tldraw/tldraw/pull/5658))
+
+- Improved performance related to rich text.
+
+#### exports: fix Inter being embedded; reduce excessive styling ([#5676](https://github.com/tldraw/tldraw/pull/5676))
+
+- Fix issue with exports embedding Inter and having excessive styling.
+
+#### assets: be able to remove assets that are unused ([#5628](https://github.com/tldraw/tldraw/pull/5628))
+
+- Cleanup assets from the local indexedDB that are proactively deleted.
+
+#### 5% minimum zoom / zoom-towards-cursor ([#5584](https://github.com/tldraw/tldraw/pull/5584))
+
+- Added a new minimum zoom step at 5%
+- Added new keyboard shortcuts for zoom in or out towards your cursor (Shift +, Shift -)
+
+#### [Fix] indicators hideAll / showAll ([#5654](https://github.com/tldraw/tldraw/pull/5654))
+
+- Improved performance on large projects when hiding / showing shape indicators.
+- Added `hideAll` and `showAll` props to the `ShapeIndicators` component props
+
+#### [Fix] Use adjacent shape margin option in stackShapes, packShapes ([#5656](https://github.com/tldraw/tldraw/pull/5656))
+
+- Adjusts distance for `stackShapes`.
+
+#### 'New user' -> 'Guest user' (dotcom only) ([#5614](https://github.com/tldraw/tldraw/pull/5614))
+
+- Add a translation key 'people-menu.anonymous-user' with the default string 'New User'
+- BREAKING CHANGE: `editor.user.getName()` no longer returns `'New user'` if the user has no name set. Instead it returns the empty string `''`.
+- BREAKING CHANGE: `defaultUserPreferences.name` is no longer the string `'New user'`, it is now the empty string `''`
+
+#### a11y: focus ring ([#5401](https://github.com/tldraw/tldraw/pull/5401))
+
+- a11y: enable focus ring.
+
+#### security: provide a way to pass through `nonce` to the editor ([#5607](https://github.com/tldraw/tldraw/pull/5607))
+
+- Provide support to pass through `nonce` to the Editor.
+
+---
+
+#### 🐛 Bug Fix
+
+- update export snapshots [#5710](https://github.com/tldraw/tldraw/pull/5710) ([@mimecuvalo](https://github.com/mimecuvalo))
+- upgrade yarn to 4.7 [#5687](https://github.com/tldraw/tldraw/pull/5687) ([@SomeHats](https://github.com/SomeHats))
+- a11y: focus ring [#5401](https://github.com/tldraw/tldraw/pull/5401) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
+- Example: create arrow between shapes [#5602](https://github.com/tldraw/tldraw/pull/5602) ([@steveruizok](https://github.com/steveruizok) [@TodePond](https://github.com/TodePond))
+
+#### 🐛 Bug Fixes
+
+- rich text: tweak numbered list padding depending on # of items [#5709](https://github.com/tldraw/tldraw/pull/5709) ([@mimecuvalo](https://github.com/mimecuvalo))
+- text: fix editing for React 19/StrictMode [#5689](https://github.com/tldraw/tldraw/pull/5689) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats))
+- exports: fix Inter being embedded; reduce excessive styling [#5676](https://github.com/tldraw/tldraw/pull/5676) ([@mimecuvalo](https://github.com/mimecuvalo) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- [Fix] indicators hideAll / showAll [#5654](https://github.com/tldraw/tldraw/pull/5654) ([@steveruizok](https://github.com/steveruizok))
+
+#### 💄 Product Improvements
+
+- [Fix] Rich text perf issue [#5658](https://github.com/tldraw/tldraw/pull/5658) ([@steveruizok](https://github.com/steveruizok) [@mimecuvalo](https://github.com/mimecuvalo))
+- assets: be able to remove assets that are unused [#5628](https://github.com/tldraw/tldraw/pull/5628) ([@mimecuvalo](https://github.com/mimecuvalo))
+- 5% minimum zoom / zoom-towards-cursor [#5584](https://github.com/tldraw/tldraw/pull/5584) ([@steveruizok](https://github.com/steveruizok))
+- [Fix] Use adjacent shape margin option in stackShapes, packShapes [#5656](https://github.com/tldraw/tldraw/pull/5656) ([@steveruizok](https://github.com/steveruizok))
+- 'New user' -> 'Guest user' (dotcom only) [#5614](https://github.com/tldraw/tldraw/pull/5614) ([@ds300](https://github.com/ds300))
+
+#### 🎉 New Features
+
+- security: provide a way to pass through `nonce` to the editor [#5607](https://github.com/tldraw/tldraw/pull/5607) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 6
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.10.0 (Tue Mar 11 2025)
 
 ### Release Notes
@@ -855,7 +946,7 @@ Adds the ability to customize the embeds that are supported. You can now customi
 
 - Add licensing docs.
 
-#### images: show ghost preview image whilst uploading ([#3988](https://github.com/tldraw/tldraw/pull/3988))
+#### images: show ghost preview image while uploading ([#3988](https://github.com/tldraw/tldraw/pull/3988))
 
 - Media: add image and video upload indicators.
 
@@ -961,7 +1052,7 @@ This was done because calling `editor.mark(id)` is a potential footgun unless yo
 - Preserve focus search param [#4344](https://github.com/tldraw/tldraw/pull/4344) ([@steveruizok](https://github.com/steveruizok))
 - why did we have this dpr constrained width/height stuff again? [#4297](https://github.com/tldraw/tldraw/pull/4297) ([@ds300](https://github.com/ds300))
 - license: allow wildcard to make apex domains also work [#4334](https://github.com/tldraw/tldraw/pull/4334) ([@mimecuvalo](https://github.com/mimecuvalo))
-- images: show ghost preview image whilst uploading [#3988](https://github.com/tldraw/tldraw/pull/3988) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
+- images: show ghost preview image while uploading [#3988](https://github.com/tldraw/tldraw/pull/3988) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
 - Add option for max pasted / dropped files [#4294](https://github.com/tldraw/tldraw/pull/4294) ([@steveruizok](https://github.com/steveruizok))
 - support custom delay for laser pointer [#4300](https://github.com/tldraw/tldraw/pull/4300) ([@raviteja83](https://github.com/raviteja83))
 - Allow non default z value for scribble points. [#4260](https://github.com/tldraw/tldraw/pull/4260) ([@MitjaBezensek](https://github.com/MitjaBezensek))

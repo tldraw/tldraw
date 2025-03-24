@@ -74,12 +74,12 @@ function MyEditorComponent({myRoomId}) {
 	// This hook creates a sync client that manages the websocket connection to the server
 	// and coordinates updates to the document state.
 	const store = useSync({
-		// This is how you tell the sync client which server and room to connect to
+		// This is how you tell the sync client which server and room to connect to.
 		uri: `wss://my-custom-backend.com/connect/${myRoomId}`,
-		// This is how you tell the sync client how to store and retrieve blobs
+		// This is how you tell the sync client how to store and retrieve blobs.
 		assets: myAssetStore,
 	})
-	// When the tldraw Editor mounts, you can register an asset handler for the bookmark URLs
+	// When the tldraw Editor mounts, you can register an asset handler for the bookmark URLs.
 	return <Tldraw store={store} onMount={registerUrlHandler} />
 }
 
@@ -198,19 +198,19 @@ const schema = createTLSchema({
 		...defaultShapeSchemas,
 
 		myCustomShape: {
-			// validations for this shapes `props`
+			// Validations for this shapes `props`.
 			props: myCustomShapeProps,
-			// migrations between versions of this shape
+			// Migrations between versions of this shape.
 			migrations: myCustomShapeMigrations,
 		},
 
-		// the schema knows about this shape, but it has no migrations or validation
+		// The schema knows about this shape, but it has no migrations or validation.
 		mySimpleShape: {},
 	},
 	bindings: defaultBindingSchemas,
 })
 
-// later, in your app server:
+// Later, in your app server:
 const room = new TLSocketRoom({
 	schema: schema,
 	// ...
@@ -250,19 +250,19 @@ async function loadOrMakeRoom(roomId: string) {
 	}
 	const legacyData = await loadRoomDataFromLegacyStore(roomId)
 	if (legacyData) {
-		// convert your old data to a TLStoreSnapshot
+		// Convert your old data to a TLStoreSnapshot.
 		const snapshot = convertOldDataToSnapshot(legacyData)
-		// load it into the room
+		// Load it into the room.
 		const room = new TLSocketRoom({ initialSnapshot: snapshot })
-		// save an updated copy of the snapshot in the new place
-		// so that next time we can load it directly
+		// Save an updated copy of the snapshot in the new place
+		// so that next time we can load it directly.
 		await saveRoomData(roomId, room.getCurrentSnapshot())
-		// optionally delete the old data
+		// Optionally delete the old data.
 		await deleteLegacyRoomData(roomId)
-		// and finally return the room
+		// And finally return the room.
 		return room
 	}
-	// if there's no data at all, just make a new blank room
+	// If there's no data at all, just make a new blank room.
 	return new TLSocketRoom()
 }
 ```

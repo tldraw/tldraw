@@ -89,7 +89,7 @@
 	"action.toggle-focus-mode.menu": "專注模式",
 	"action.toggle-grid": "切換網格",
 	"action.toggle-grid.menu": "顯示網格",
-	"action.toggle-lock": "鎖定\/解鎖",
+	"action.toggle-lock": "鎖定/解鎖",
 	"action.toggle-paste-at-cursor": "在游標位置切換貼上",
 	"action.toggle-paste-at-cursor.menu": "在游標位置貼上",
 	"action.toggle-reduce-motion": "切換減少活動",

@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/tlschema",
 	"description": "A tiny little drawing app (schema).",
-	"version": "3.10.0",
+	"version": "3.11.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -43,7 +43,8 @@
 	},
 	"devDependencies": {
 		"kleur": "^4.1.5",
-		"lazyrepo": "0.0.0-alpha.27"
+		"lazyrepo": "0.0.0-alpha.27",
+		"react": "^18.3.1"
 	},
 	"jest": {
 		"preset": "../../internal/config/jest/node/jest-preset.js",

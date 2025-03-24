@@ -279,6 +279,9 @@
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Last published <date></date>"
   },
+  "b028909917": {
+    "translation": "Guest user"
+  },
   "b6d4223e60": {
     "translation": "Sign in"
   },
