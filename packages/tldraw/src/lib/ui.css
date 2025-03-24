@@ -1904,12 +1904,19 @@ lite-youtube::before {
 	position: absolute;
 	top: 0;
 	/* Pixel-perfect port of YT's gradient PNG, using https://github.com/bluesmoon/pngtocss plus optimizations */
-	background-image: linear-gradient(180deg, rgb(0 0 0 / 67%) 0%, rgb(0 0 0 / 54%) 14%, rgb(0 0 0 / 15%) 54%, rgb(0 0 0 / 5%) 72%, rgb(0 0 0 / 0%) 94%);
+	background-image: linear-gradient(
+		180deg,
+		rgb(0 0 0 / 67%) 0%,
+		rgb(0 0 0 / 54%) 14%,
+		rgb(0 0 0 / 15%) 54%,
+		rgb(0 0 0 / 5%) 72%,
+		rgb(0 0 0 / 0%) 94%
+	);
 	height: 99px;
 	width: 100%;
-	font-family: "YouTube Noto",Roboto,Arial,Helvetica,sans-serif;
+	font-family: 'YouTube Noto', Roboto, Arial, Helvetica, sans-serif;
 	color: hsl(0deg 0% 93.33%);
-	text-shadow: 0 0 2px rgba(0,0,0,.5);
+	text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 	font-size: 18px;
 	padding: 25px 20px;
 	overflow: hidden;
@@ -1926,7 +1933,7 @@ lite-youtube:hover::before {
 	thanks https://css-tricks.com/responsive-iframes/
 */
 lite-youtube::after {
-	content: "";
+	content: '';
 	display: block;
 	padding-bottom: calc(100% / (16 / 9));
 }
@@ -1953,7 +1960,7 @@ lite-youtube > .lty-playbtn {
 	cursor: pointer;
 	z-index: 1;
 	filter: grayscale(100%);
-	transition: filter .1s cubic-bezier(0, 0, 0.2, 1);
+	transition: filter 0.1s cubic-bezier(0, 0, 0.2, 1);
 	border: 0;
 }
 
