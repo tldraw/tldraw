@@ -149,6 +149,7 @@ export default [
 			'local/prefer-class-methods': 'error',
 			'local/tsdoc-param-matching': 'error',
 			'local/no-whilst': 'error',
+			'local/no-instanceof-global': 'error',
 			'no-only-tests/no-only-tests': 'error',
 			'formatjs/enforce-default-message': ['error', 'literal'],
 

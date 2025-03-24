@@ -590,6 +590,53 @@ exports.rules = {
 			}
 		},
 	}),
+	'no-instanceof-global': ESLintUtils.RuleCreator.withoutDocs({
+		meta: {
+			type: 'problem',
+			docs: {
+				description: 'Disallow instanceof global',
+			},
+			schema: [],
+			messages: {
+				disallowed:
+					"Cannot use instanceof with global value `{{ name }}` because it's not safe across realms. See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof#instanceof_and_multiple_realms for details.",
+			},
+		},
+		defaultOptions: [],
+		create(context) {
+			return {
+				BinaryExpression: (node) => {
+					if (node.operator !== 'instanceof') {
+						return
+					}
+
+					const right = node.right
+					if (right.type !== 'Identifier') {
+						return
+					}
+
+					const scope = context.sourceCode.getScope(node)
+					const reference = scope.references.find((r) => r.identifier.name === right.name)
+
+					if (!reference) {
+						throw new Error('Could not find reference')
+					}
+
+					if (!reference.resolved) {
+						throw new Error('Reference is not resolved')
+					}
+
+					if (reference.resolved.scope.type === 'global' && reference.resolved.defs.length === 0) {
+						context.report({
+							node,
+							messageId: 'disallowed',
+							data: { name: right.name },
+						})
+					}
+				},
+			}
+		},
+	}),
 }
 
 function checkParams(
