@@ -22,13 +22,13 @@ export function writeDataPoint(
 			doubles,
 			indexes,
 		})
-	} catch (e) {
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		sentry?.withScope((scope) => {
-			scope.setExtra('name', name)
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			sentry.captureException(e)
-		})
-		console.error('Failed to write data point', e)
+	} catch (_e) {
+		// // eslint-disable-next-line @typescript-eslint/no-deprecated
+		// sentry?.withScope((scope) => {
+		// 	scope.setExtra('name', name)
+		// 	// eslint-disable-next-line @typescript-eslint/no-deprecated
+		// 	sentry.captureException(e)
+		// })
+		// console.error('Failed to write data point', e)
 	}
 }
