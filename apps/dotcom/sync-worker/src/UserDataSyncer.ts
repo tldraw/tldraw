@@ -128,7 +128,7 @@ export class UserDataSyncer {
 		private log: Logger
 	) {
 		this.sentry = createSentry(ctx, env)
-		this.reboot({ delay: true })
+		this.reboot({ delay: false })
 		const persist = throttle(
 			async () => {
 				const initialData = this.store.getCommittedData()
