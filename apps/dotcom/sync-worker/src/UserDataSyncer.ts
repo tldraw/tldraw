@@ -301,14 +301,7 @@ export class UserDataSyncer {
 		} satisfies StateSnapshot
 	}
 
-	private isBooting = false
-
 	private async boot(hard: boolean, signal: AbortSignal, done: PromiseWithResolve): Promise<void> {
-		if (this.isBooting) {
-			this.log.debug('already booting')
-			throw new Error('already booting')
-		}
-		this.isBooting = true
 		try {
 			this.log.debug('booting')
 			// todo: clean up old resources if necessary?
@@ -390,7 +383,6 @@ export class UserDataSyncer {
 			this.logEvent({ type: 'reboot_duration', id: this.userId, duration: end - start })
 			this.log.debug('boot time', end - start, 'ms')
 		} finally {
-			this.isBooting = false
 			done.resolve(null)
 		}
 	}
