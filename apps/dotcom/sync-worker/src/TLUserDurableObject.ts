@@ -136,7 +136,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					clearInterval(this.interval)
 					this.interval = null
 				}
-			}, 1000)
+			}, 2000)
 		}
 	}
 
