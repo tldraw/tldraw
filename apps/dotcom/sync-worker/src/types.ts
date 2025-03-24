@@ -133,12 +133,13 @@ export type TLPostgresReplicatorEvent =
 	| { type: 'rpm'; rpm: number }
 	| { type: 'active_users'; count: number }
 
+export type UserBootMode = 'soft' | 'soft+reregister' | 'hard'
+
 export type TLUserDurableObjectEvent =
 	| {
 			type:
 				| 'reboot'
-				| 'full_data_fetch'
-				| 'full_data_fetch_hard'
+				| `full_data_fetch_${UserBootMode}`
 				| 'found_snapshot'
 				| 'reboot_error'
 				| 'rate_limited'
