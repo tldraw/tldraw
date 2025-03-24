@@ -39,6 +39,7 @@ import { useToasts } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from './utils/text/richText'
+import { TldrawShape } from './shapes/TldrawShape'
 
 /**
  * Override the default react components used by the editor and UI. Set components to null to
@@ -104,6 +105,7 @@ export function Tldraw(props: TldrawProps) {
 			SelectionForeground: TldrawSelectionForeground,
 			SelectionBackground: TldrawSelectionBackground,
 			Handles: TldrawHandles,
+			Shape: TldrawShape,
 			..._components,
 		}),
 		[_components]

@@ -37,7 +37,7 @@ export const Shape = memo(function Shape({
 }) {
 	const editor = useEditor()
 
-	const { ShapeErrorFallback } = useEditorComponents()
+	const { Shape: EditorShape, ShapeErrorFallback } = useEditorComponents()
 
 	const containerRef = useRef<HTMLDivElement>(null)
 	const bgContainerRef = useRef<HTMLDivElement>(null)
@@ -142,9 +142,7 @@ export const Shape = memo(function Shape({
 		[editor]
 	)
 
-	if (!shape) return null
-
-	const isFilledShape = 'fill' in shape.props && shape.props.fill !== 'none'
+	if (!shape || !EditorShape) return null
 
 	return (
 		<>
@@ -161,18 +159,11 @@ export const Shape = memo(function Shape({
 					</OptionalErrorBoundary>
 				</div>
 			)}
-			<div
-				ref={containerRef}
-				className="tl-shape"
-				data-shape-type={shape.type}
-				data-shape-is-filled={isFilledShape}
-				data-shape-id={shape.id}
-				draggable={false}
-			>
+			<EditorShape ref={containerRef} shape={shape}>
 				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
 					<InnerShape shape={shape} util={util} />
 				</OptionalErrorBoundary>
-			</div>
+			</EditorShape>
 		</>
 	)
 })

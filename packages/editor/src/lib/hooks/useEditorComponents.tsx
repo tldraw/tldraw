@@ -1,4 +1,4 @@
-import { ComponentType, ReactNode, createContext, useContext, useMemo } from 'react'
+import { ComponentType, ForwardRefExoticComponent, ReactNode, RefAttributes, createContext, useContext, useMemo } from 'react'
 import { DefaultBackground } from '../components/default-components/DefaultBackground'
 import { DefaultBrush, TLBrushProps } from '../components/default-components/DefaultBrush'
 import {
@@ -47,6 +47,7 @@ import {
 import { DefaultSpinner } from '../components/default-components/DefaultSpinner'
 import { DefaultSvgDefs } from '../components/default-components/DefaultSvgDefs'
 import { useShallowObjectIdentity } from './useIdentity'
+import { DefaultShape, TLShapeProps } from '../components/default-components/DefaultShape'
 
 /** @public */
 export interface TLEditorComponents {
@@ -74,6 +75,7 @@ export interface TLEditorComponents {
 	OnTheCanvas?: ComponentType | null
 	InFrontOfTheCanvas?: ComponentType | null
 	LoadingScreen?: ComponentType | null
+	Shape?: ForwardRefExoticComponent<TLShapeProps & RefAttributes<HTMLDivElement>> | null
 
 	// These will always have defaults
 	ErrorFallback?: TLErrorFallbackComponent
@@ -122,6 +124,7 @@ export function EditorComponentsProvider({
 			InFrontOfTheCanvas: null,
 			Canvas: DefaultCanvas,
 			LoadingScreen: DefaultLoadingScreen,
+			Shape: DefaultShape,
 			..._overrides,
 		}),
 		[_overrides]

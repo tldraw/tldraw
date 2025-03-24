@@ -9,6 +9,7 @@ import {
 	TldrawScribble,
 	TldrawSelectionBackground,
 	TldrawSelectionForeground,
+	TldrawShape,
 	TldrawShapeIndicators,
 	TldrawUi,
 	defaultAddFontsFromNode,
@@ -35,6 +36,7 @@ const defaultComponents = {
 	SelectionForeground: TldrawSelectionForeground,
 	SelectionBackground: TldrawSelectionBackground,
 	Handles: TldrawHandles,
+	Shape: TldrawShape,
 }
 
 const allDefaultTools = [...defaultTools, ...defaultShapeTools]

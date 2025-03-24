@@ -92,6 +92,10 @@ export {
 	type TLHandlesProps,
 } from './lib/components/default-components/DefaultHandles'
 export {
+	DefaultShape,
+	type TLShapeProps,
+} from './lib/components/default-components/DefaultShape'
+export {
 	DefaultScribble,
 	type TLScribbleProps,
 } from './lib/components/default-components/DefaultScribble'
