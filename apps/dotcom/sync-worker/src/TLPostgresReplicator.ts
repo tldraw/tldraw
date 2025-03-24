@@ -121,7 +121,7 @@ const migrations: Migration[] = [
 
 const ONE_MINUTE = 60 * 1000
 const PRUNE_INTERVAL = 10 * ONE_MINUTE
-const MAX_HISTORY_ROWS = 100_000
+const MAX_HISTORY_ROWS = 20_000
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -240,6 +240,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				await sql`SELECT pg_create_logical_replication_slot(${this.slotName}, 'wal2json') WHERE NOT EXISTS (SELECT 1 FROM pg_replication_slots WHERE slot_name = ${this.slotName})`.execute(
 					this.db
 				)
+				this.pruneHistory()
 			})
 			.then(() => {
 				this.reboot('constructor', false).catch((e) => {
@@ -327,9 +328,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			id: string
 		}[]
 		for (const { id } of usersWithoutRecentUpdates) {
-			if (await getUserDurableObject(this.env, id).notActive()) {
-				await this.unregisterUser(id)
-			}
+			await this.unregisterUser(id)
 		}
 		this.pruneHistory()
 		this.lastUserPruneTime = Date.now()
