@@ -1,5 +1,5 @@
 import { react } from '@tldraw/state'
-import { useQuickReactor, useStateTracking } from '@tldraw/state-react'
+import { useQuickReactor, useStateTracking, useValue } from '@tldraw/state-react'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import { memo, useCallback, useEffect, useRef } from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
@@ -44,10 +44,10 @@ export const Shape = memo(function Shape({
 
 	useEffect(() => {
 		return react('load fonts', () => {
-			const fonts = editor.fonts.getShapeFontFaces(shape)
+			const fonts = editor.fonts.getShapeFontFaces(id)
 			editor.fonts.requestFonts(fonts)
 		})
-	}, [editor, shape])
+	}, [editor, id])
 
 	const memoizedStuffRef = useRef({
 		transform: '',
