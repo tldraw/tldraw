@@ -921,15 +921,6 @@
 	transition: transform 0.15s ease-out 0.05s;
 }
 
-/*
- * On Android, when the virtual keyboard is up, we used to hide the tools.
- * However, we disabled for this now.
- */
-/* .tlui-layout__mobile[data-iseditinganything='true'] .tlui-toolbar {
-	transform: translate(0px, 120%);
-	transition: none;
-} */
-
 /* -------------------- Help Zone ------------------- */
 
 .tlui-help-menu {

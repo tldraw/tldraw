@@ -318,6 +318,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private async maybePrune() {
 		const now = Date.now()
 		if (now - this.lastUserPruneTime < PRUNE_INTERVAL) return
+		this.logEvent({ type: 'prune' })
+		this.log.debug('pruning')
 		const cutoffTime = now - PRUNE_INTERVAL
 		const usersWithoutRecentUpdates = this.ctx.storage.sql
 			.exec('SELECT id FROM active_user WHERE lastUpdatedAt < ?', cutoffTime)
@@ -447,6 +449,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				this.reportPostgresUpdate()
 				const collator = new UserChangeCollator()
 				for (const _change of log.change) {
+					if (_change.kind === 'message' && (_change as any).prefix === 'requestLsnUpdate') {
+						this.requestLsnUpdate((_change as any).content)
+						continue
+					}
 					const change = this.parseChange(_change)
 					if (!change) {
 						this.log.debug('IGNORING CHANGE', _change)
@@ -909,7 +915,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	async requestLsnUpdate(userId: string) {
+	private async requestLsnUpdate(userId: string) {
 		try {
 			this.log.debug('requestLsnUpdate', userId)
 			this.logEvent({ type: 'request_lsn_update' })
@@ -934,7 +940,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	private writeEvent(eventData: EventData) {
-		writeDataPoint(this.measure, this.env, 'replicator', eventData)
+		writeDataPoint(this.sentry, this.measure, this.env, 'replicator', eventData)
 	}
 
 	logEvent(event: TLPostgresReplicatorEvent) {
@@ -946,6 +952,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			case 'register_user':
 			case 'unregister_user':
 			case 'request_lsn_update':
+			case 'prune':
 			case 'get_file_record':
 				this.writeEvent({
 					blobs: [event.type],

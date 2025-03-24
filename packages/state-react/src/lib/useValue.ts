@@ -2,6 +2,9 @@
 import { Signal, computed, react } from '@tldraw/state'
 import { useMemo, useRef, useSyncExternalStore } from 'react'
 
+/** @public */
+export function useValue<Value>(value: Signal<Value>): Value
+
 /**
  * Extracts the value from a signal and subscribes to it.
  *
@@ -37,9 +40,8 @@ import { useMemo, useRef, useSyncExternalStore } from 'react'
  *
  * @public
  */
-export function useValue<Value>(value: Signal<Value>): Value
-/** @public */
 export function useValue<Value>(name: string, fn: () => Value, deps: unknown[]): Value
+
 /** @public */
 export function useValue() {
 	const args = arguments
