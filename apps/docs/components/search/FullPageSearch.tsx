@@ -8,7 +8,7 @@ import { SendEventForHits } from 'instantsearch.js/es/lib/utils'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createRef, Fragment, useCallback, useEffect, useState } from 'react'
-import { Highlight, useHits, useSearchBox } from 'react-instantsearch'
+import { Configure, Highlight, useHits, useSearchBox } from 'react-instantsearch'
 import { InstantSearchNext } from 'react-instantsearch-nextjs'
 import { twJoin } from 'tailwind-merge'
 import { debounce } from 'tldraw'
@@ -27,6 +27,7 @@ export function FullPageSearch() {
 			insights={true}
 			future={{ preserveSharedStateOnUnmount: true }}
 		>
+			<Configure distinct={4} hitsPerPage={40} />
 			<InstantSearchInner onClose={() => {}} />
 		</InstantSearchNext>
 	)
