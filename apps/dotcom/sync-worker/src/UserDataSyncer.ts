@@ -512,6 +512,7 @@ export class UserDataSyncer {
 			sql`SELECT pg_logical_emit_message(true, 'requestLsnUpdate', ${this.userId});`.execute(
 				this.db
 			)
+			this.lastLsnCommit = Date.now()
 		}
 	}
 }
