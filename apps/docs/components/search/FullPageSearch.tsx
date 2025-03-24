@@ -14,7 +14,7 @@ import { twJoin } from 'tailwind-merge'
 import { debounce } from 'tldraw'
 import { ContentHighlight } from './ContentHighlight'
 
-export function SearchResults() {
+export function FullPageSearch() {
 	const searchParams = useSearchParams()
 	const indexName = searchParams.get('index') || 'docs'
 	if (indexName !== 'docs' && indexName !== 'blog') {

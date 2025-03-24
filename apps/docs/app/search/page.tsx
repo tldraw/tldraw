@@ -1,6 +1,6 @@
 import { DocsMobileSidebar } from '@/components/docs/docs-mobile-sidebar'
 import { DocsSidebar } from '@/components/docs/docs-sidebar'
-import { SearchResults } from '@/components/search/SearchResults'
+import { FullPageSearch } from '@/components/search/FullPageSearch'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,7 +12,7 @@ export default function Page() {
 				<DocsMobileSidebar />
 			</div>
 			<main className="relative w-full max-w-3xl px-5 pt-24 shrink md:pr-0 lg:pl-12 xl:pr-12 md:pt-0 min-w-[1px]">
-				<SearchResults />
+				<FullPageSearch />
 			</main>
 		</div>
 	)

@@ -6,7 +6,7 @@ import { searchClient } from '@/utils/search-api'
 import { useRouter } from 'next/navigation'
 import { useHits, useSearchBox } from 'react-instantsearch'
 import { InstantSearchNext } from 'react-instantsearch-nextjs'
-import SearchAutocomplete from './SearchAutocomplete'
+import SearchDialog from './SearchDialog'
 
 export function Search({ type, onClose }: { type: SearchIndexName; onClose(): void }) {
 	return (
@@ -33,7 +33,7 @@ function InstantSearchInner({ onClose }: { onClose(): void }) {
 	const handleInputChange = debounce((query: string) => refine(query), 500)
 
 	return (
-		<SearchAutocomplete
+		<SearchDialog
 			items={items}
 			onInputChange={handleInputChange}
 			onChange={handleChange}
