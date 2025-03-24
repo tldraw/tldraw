@@ -6,6 +6,8 @@ import React from 'react'
  *
  * This allows you to use reactive values transparently.
  *
+ * See the `track` component wrapper, which uses this under the hood.
+ *
  * @example
  * ```ts
  * function MyComponent() {
@@ -16,7 +18,6 @@ import React from 'react'
  * }
  * ```
  *
- * @see the `track` component wrapper, which uses this under the hood.
  *
  * @public
  */
