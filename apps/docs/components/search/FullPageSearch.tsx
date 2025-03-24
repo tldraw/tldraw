@@ -28,22 +28,23 @@ export function FullPageSearch() {
 			future={{ preserveSharedStateOnUnmount: true }}
 		>
 			<Configure distinct={4} hitsPerPage={40} />
-			<InstantSearchInner onClose={() => {}} />
+			<InstantSearchInner />
 		</InstantSearchNext>
 	)
 }
 
-function InstantSearchInner({ onClose }: { onClose(): void }) {
+function InstantSearchInner() {
 	const { items, sendEvent } = useHits<SearchEntry>()
 	const { refine } = useSearchBox()
 	const router = useRouter()
+	const [open, setOpen] = useState(true)
 
 	const searchParams = useSearchParams()
 	const urlQuery = searchParams.get('query') || ''
 
 	const handleChange = (path: string) => {
+		setOpen(false)
 		router.push(path)
-		onClose()
 	}
 
 	const updateSearchQuery = debounce((value: string) => refine(value), 500)
@@ -53,13 +54,15 @@ function InstantSearchInner({ onClose }: { onClose(): void }) {
 	}, [urlQuery, refine])
 
 	return (
-		<SearchAutocomplete
-			items={items}
-			onInputChange={updateSearchQuery}
-			onChange={handleChange}
-			sendEvent={sendEvent}
-			defaultValue={urlQuery}
-		/>
+		open && (
+			<SearchAutocomplete
+				items={items}
+				onInputChange={updateSearchQuery}
+				onChange={handleChange}
+				sendEvent={sendEvent}
+				defaultValue={urlQuery}
+			/>
+		)
 	)
 }
 
@@ -78,17 +81,13 @@ function SearchAutocomplete({
 	onChange,
 	sendEvent,
 }: AutocompleteProps) {
-	const [open, setOpen] = useState(true)
-
 	return (
 		<ComboboxProvider<string>
 			defaultSelectedValue=""
 			defaultValue={defaultValue}
-			open={open}
-			setOpen={setOpen}
-			includesBaseElement={false}
-			setValue={onInputChange}
-			setSelectedValue={onChange}
+			includesBaseElement={true}
+			setValue={(newValue) => onInputChange(newValue)}
+			setSelectedValue={(newValue) => onChange(newValue)}
 		>
 			<div className="w-full mb-12">
 				<div
@@ -115,7 +114,6 @@ function SearchInput() {
 			const indexQuery = searchParams.get('index') === 'blog' ? 'index=blog&' : ''
 			const query = comboboxRef.current?.value || ''
 			router.push(`/search?${indexQuery}query=${encodeURIComponent(query.trim())}`)
-			comboboxRef.current?.blur()
 		},
 		[router, searchParams, comboboxRef]
 	)
@@ -140,6 +138,8 @@ function SearchInput() {
 					ref={comboboxRef}
 					className="h-full w-full mr-4 focus:outline-none text-black dark:text-white bg-transparent"
 					placeholder="Search..."
+					// TODO: Autofocus should happen when you get here via pressing enter, but not after following a link
+					// autoFocus
 					onKeyDown={handleKeyDown}
 				/>
 			</div>
