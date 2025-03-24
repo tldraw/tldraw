@@ -153,7 +153,7 @@ function ExampleSidebarListItem({
 
 	return (
 		<li className="examples__sidebar__item" data-active={isActive}>
-			<Link replace to={example.path} className="examples__sidebar__item__link hoverable" />
+			<Link to={example.path} className="examples__sidebar__item__link hoverable" />
 			<div className="examples__sidebar__item__title">
 				<span>{example.title}</span>
 			</div>
