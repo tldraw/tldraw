@@ -89,13 +89,8 @@ function SearchAutocomplete({
 			setValue={(newValue) => onInputChange(newValue)}
 			setSelectedValue={(newValue) => onChange(newValue)}
 		>
-			<div className="w-full mb-12">
-				<div
-					className={twJoin(
-						'pointer-events-auto bg-zinc-50 dark:bg-zinc-900 rounded-lg'
-						// 'focus-within:ring-2 focus-within:ring-blue-500'
-					)}
-				>
+			<div className="w-full mb-12 h-full">
+				<div className="pointer-events-auto min-h-full">
 					<SearchInput />
 					<Results items={items} sendEvent={sendEvent} />
 				</div>
@@ -131,8 +126,8 @@ function SearchInput() {
 	}, [comboboxRef])
 
 	return (
-		<div className="md:sticky border-b border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 w-full md:top-[4.5rem] h-12 flex items-center z-20">
-			<div className="flex h-full grow items-center gap-3 bg-zinc-50 dark:bg-zinc-900 rounded-t-lg px-4">
+		<div className="md:sticky bg-white dark:bg-zinc-950 w-full md:top-[4.5rem] h-12 md:h-14 flex items-center z-20 md:pb-2">
+			<div className="flex h-full grow items-center gap-3 bg-zinc-50 dark:bg-zinc-900 rounded-lg px-4">
 				<MagnifyingGlassIcon className="h-4 shrink-0" />
 				<Combobox
 					ref={comboboxRef}
@@ -186,12 +181,11 @@ function Results({ items, sendEvent }: { items: Hit<SearchEntry>[]; sendEvent: S
 		)
 	})
 
-	return (
-		<div className="p-4 pt-0">
-			{items.length === 0 && (
-				<div className="text-center py-8 text-zinc-400 dark:text-zinc-600">No results found.</div>
-			)}
-			{items.length !== 0 && renderedItems}
+	return items.length === 0 ? (
+		<div className="sticky top-32 text-center py-8 text-zinc-400 dark:text-zinc-600">
+			No results found.
 		</div>
+	) : (
+		renderedItems
 	)
 }
