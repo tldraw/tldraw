@@ -121,7 +121,7 @@ const migrations: Migration[] = [
 
 const ONE_MINUTE = 60 * 1000
 const PRUNE_INTERVAL = 10 * ONE_MINUTE
-const MAX_HISTORY_ROWS = 100_000
+const MAX_HISTORY_ROWS = 20_000
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -182,7 +182,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private readonly replicationService
 	private readonly slotName
-	private readonly wal2jsonPlugin = new Wal2JsonPlugin({})
+	private readonly wal2jsonPlugin = new Wal2JsonPlugin({
+		addTables:
+			'public.user,public.file,public.file_state,public.user_mutation_number,public.replicator_boot_id',
+	})
 
 	private readonly db: Kysely<DB>
 	constructor(ctx: DurableObjectState, env: Environment) {
@@ -240,6 +243,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				await sql`SELECT pg_create_logical_replication_slot(${this.slotName}, 'wal2json') WHERE NOT EXISTS (SELECT 1 FROM pg_replication_slots WHERE slot_name = ${this.slotName})`.execute(
 					this.db
 				)
+				this.pruneHistory()
 			})
 			.then(() => {
 				this.reboot('constructor', false).catch((e) => {
@@ -327,9 +331,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			id: string
 		}[]
 		for (const { id } of usersWithoutRecentUpdates) {
-			if (await getUserDurableObject(this.env, id).notActive()) {
-				await this.unregisterUser(id)
-			}
+			await this.unregisterUser(id)
 		}
 		this.pruneHistory()
 		this.lastUserPruneTime = Date.now()
@@ -940,7 +942,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	private writeEvent(eventData: EventData) {
-		writeDataPoint(this.measure, this.env, 'replicator', eventData)
+		writeDataPoint(this.sentry, this.measure, this.env, 'replicator', eventData)
 	}
 
 	logEvent(event: TLPostgresReplicatorEvent) {
