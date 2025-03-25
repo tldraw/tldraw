@@ -2,7 +2,7 @@
 import { getSearchIndexName, SearchEntry } from '@/utils/algolia'
 import { searchClient } from '@/utils/search-api'
 import { Combobox, ComboboxItem, ComboboxProvider } from '@ariakit/react'
-import { MagnifyingGlassIcon } from '@heroicons/react/24/solid'
+import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import { Hit } from 'instantsearch.js'
 import { SendEventForHits } from 'instantsearch.js/es/lib/utils'
 import Link from 'next/link'
@@ -126,9 +126,9 @@ function SearchInput() {
 	}, [comboboxRef])
 
 	return (
-		<div className="md:sticky bg-white dark:bg-zinc-950 w-full md:top-[4.5rem] md:h-14 flex items-center z-20 md:pb-6">
+		<div className="md:sticky bg-white dark:bg-zinc-950 w-full md:top-16 flex items-center z-20 md:pb-4 border-b border-zinc-200 dark:border-zinc-800">
 			<div className="flex h-10 grow items-center gap-3 bg-zinc-50 dark:bg-zinc-900 rounded-lg px-4">
-				<MagnifyingGlassIcon className="h-4 shrink-0" />
+				<MagnifyingGlassIcon className="h-4 shrink-0 text-black dark:text-white" />
 				<Combobox
 					ref={comboboxRef}
 					className="h-full w-full mr-4 focus:outline-none text-black dark:text-white bg-transparent"
