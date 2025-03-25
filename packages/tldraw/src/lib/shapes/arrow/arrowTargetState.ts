@@ -186,7 +186,7 @@ export function updateArrowTargetState({
 		}
 	}
 
-	let precise = isPrecise
+	let precise = isPrecise || isExact
 
 	if (!precise && !isInitialStartCreation) {
 		// If we're switching to a new bound shape, then precise only if moving slowly
@@ -207,15 +207,15 @@ export function updateArrowTargetState({
 		}
 	}
 
-	const shouldSnapCenter = !isExact && isPrecise
+	const shouldSnapCenter = !isExact && precise
 	const shouldSnapEdges =
-		!isExact && isPrecise && arrowKind === 'elbow' && opts.preciseEdgePicking.snapEdges
+		!isExact && precise && arrowKind === 'elbow' && opts.preciseEdgePicking.snapEdges
 	const shouldSnapPoints =
-		!isExact && isPrecise && arrowKind === 'elbow' && opts.preciseEdgePicking.snapPoints
+		!isExact && precise && arrowKind === 'elbow' && opts.preciseEdgePicking.snapPoints
 	const shouldSnapInside =
-		arrowKind === 'bendy' ? isPrecise : isPrecise && opts.preciseEdgePicking.snapNone
+		arrowKind === 'bendy' ? precise : precise && opts.preciseEdgePicking.snapNone
 	const shouldSnapAxis =
-		!isExact && isPrecise && arrowKind === 'elbow' && opts.preciseEdgePicking.snapAxis
+		!isExact && precise && arrowKind === 'elbow' && opts.preciseEdgePicking.snapAxis
 
 	// we run through all the snapping options from least to most specific:
 	let snap: ArrowTargetState['snap'] = 'none'
