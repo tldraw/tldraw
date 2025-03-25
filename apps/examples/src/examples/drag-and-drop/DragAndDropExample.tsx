@@ -18,6 +18,7 @@ type MyCounterShape = TLBaseShape<'my-counter-shape', Record<string, never>>
 
 // [2]
 const SLOT_SIZE = 100
+const COUNTER_RADIUS = SLOT_SIZE / 2 - 10
 class MyCounterShapeUtil extends ShapeUtil<MyCounterShape> {
 	static override type = 'my-counter-shape' as const
 
@@ -33,7 +34,7 @@ class MyCounterShapeUtil extends ShapeUtil<MyCounterShape> {
 	}
 
 	getGeometry(): Geometry2d {
-		return new Circle2d({ radius: SLOT_SIZE / 2 - 10, isFilled: true })
+		return new Circle2d({ radius: COUNTER_RADIUS, isFilled: true })
 	}
 
 	component() {
@@ -49,7 +50,7 @@ class MyCounterShapeUtil extends ShapeUtil<MyCounterShape> {
 	}
 
 	indicator() {
-		return <circle r={SLOT_SIZE / 2 - 10} cx={SLOT_SIZE / 2 - 10} cy={SLOT_SIZE / 2 - 10} />
+		return <circle r={COUNTER_RADIUS} cx={COUNTER_RADIUS} cy={COUNTER_RADIUS} />
 	}
 }
 
@@ -113,8 +114,34 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 		)
 	}
 
-	indicator() {
-		return <rect width={SLOT_SIZE * 5} height={SLOT_SIZE * 2} />
+	indicator(shape: MyGridShape) {
+		const children = this.editor.getCurrentPageShapes().filter((s) => s.parentId === shape.id)
+		let minX = 0
+		let minY = 0
+		let maxX = SLOT_SIZE * 5
+		let maxY = SLOT_SIZE * 2
+
+		for (const child of children) {
+			const childX = child.x
+			const childY = child.y
+			minX = Math.min(minX, childX)
+			minY = Math.min(minY, childY)
+			maxX = Math.max(maxX, childX + SLOT_SIZE)
+			maxY = Math.max(maxY, childY + SLOT_SIZE)
+		}
+
+		return (
+			<rect
+				x={minX}
+				y={minY}
+				width={maxX - minX}
+				height={maxY - minY}
+				fill="rgba(0, 0, 0, 0.1)"
+				stroke="black"
+			/>
+		)
+
+		// return <rect width={SLOT_SIZE * 5} height={SLOT_SIZE * 2} />
 	}
 }
 
@@ -128,6 +155,17 @@ export default function DragAndDropExample() {
 					editor.createShape({ type: 'my-counter-shape', x: 700, y: 100 })
 					editor.createShape({ type: 'my-counter-shape', x: 750, y: 200 })
 					editor.createShape({ type: 'my-counter-shape', x: 770, y: 300 })
+
+					editor.sideEffects.registerBeforeChangeHandler('instance_page_state', (prev, next) => {
+						next.selectedShapeIds = next.selectedShapeIds.filter((id) => {
+							const shape = editor.getShape(id)
+							if (shape?.type === 'my-grid-shape') {
+								return false
+							}
+							return true
+						})
+						return next
+					})
 				}}
 			/>
 		</div>
