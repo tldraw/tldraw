@@ -138,8 +138,6 @@ function SearchInput() {
 					ref={comboboxRef}
 					className="h-full w-full mr-4 focus:outline-none text-black dark:text-white bg-transparent"
 					placeholder="Search..."
-					// TODO: Autofocus should happen when you get here via pressing enter, but not after following a link
-					// autoFocus
 					onKeyDown={handleKeyDown}
 				/>
 			</div>
@@ -188,7 +186,7 @@ function Results({ items, sendEvent }: { items: Hit<SearchEntry>[]; sendEvent: S
 	})
 
 	return (
-		<div className={twJoin(' p-4 pt-0', 'border-t border-zinc-100 dark:border-zinc-800')}>
+		<div className="p-4 pt-0 border-t border-zinc-100 dark:border-zinc-800">
 			{items.length === 0 && (
 				<div className="text-center py-8 text-zinc-400 dark:text-zinc-600">No results found.</div>
 			)}
