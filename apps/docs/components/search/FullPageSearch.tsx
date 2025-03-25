@@ -126,8 +126,8 @@ function SearchInput() {
 	}, [comboboxRef])
 
 	return (
-		<div className="md:sticky bg-white dark:bg-zinc-950 w-full md:top-[4.5rem] h-12 md:h-14 flex items-center z-20 md:pb-2">
-			<div className="flex h-full grow items-center gap-3 bg-zinc-50 dark:bg-zinc-900 rounded-lg px-4">
+		<div className="md:sticky bg-white dark:bg-zinc-950 w-full md:top-[4.5rem] md:h-14 flex items-center z-20 md:pb-6">
+			<div className="flex h-10 grow items-center gap-3 bg-zinc-50 dark:bg-zinc-900 rounded-lg px-4">
 				<MagnifyingGlassIcon className="h-4 shrink-0" />
 				<Combobox
 					ref={comboboxRef}
@@ -163,7 +163,7 @@ function Results({ items, sendEvent }: { items: Hit<SearchEntry>[]; sendEvent: S
 						'[&_mark]:text-black [&_mark]:data-[active-item=true]:text-white',
 						'dark:[&_mark]:text-white',
 						'[&_.ais-Highlight-nonHighlighted]:data-[active-item=true]:text-white',
-						'hover:bg-zinc-200 dark:hover:bg-zinc-700'
+						'hover:text-zinc-800 dark:hover:text-zinc-200'
 					)}
 					value={href}
 					onKeyDown={(e) => {
