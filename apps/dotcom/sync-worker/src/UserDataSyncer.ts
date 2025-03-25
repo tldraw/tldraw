@@ -183,20 +183,20 @@ export class UserDataSyncer {
 			}
 			const controller = new AbortController()
 			const signal = controller.signal
-			const bootDone = promiseWithResolve()
 			const res = await Promise.race([
-				this.boot(hard, signal, bootDone).then(() => 'ok'),
+				this.boot(hard, signal)
+					.then(() => 'ok' as const)
+					.catch((e) => {
+						this.logEvent({ type: 'reboot_error', id: this.userId })
+						this.log.debug('reboot error', e.stack)
+						this.captureException(e, { source })
+						return 'error' as const
+					}),
 				sleep(30_000).then(() => {
 					controller.abort()
-					return 'timeout'
+					return 'timeout' as const
 				}),
-			]).catch((e) => {
-				this.logEvent({ type: 'reboot_error', id: this.userId })
-				this.log.debug('reboot error', e.stack)
-				this.captureException(e, { source })
-				return 'error'
-			})
-			await bootDone
+			])
 			this.log.debug('rebooted', res)
 			if (res === 'ok') {
 				this.numConsecutiveReboots = 0
@@ -301,90 +301,84 @@ export class UserDataSyncer {
 		} satisfies StateSnapshot
 	}
 
-	private async boot(hard: boolean, signal: AbortSignal, done: PromiseWithResolve): Promise<void> {
-		try {
-			this.log.debug('booting')
-			// todo: clean up old resources if necessary?
-			const start = Date.now()
-			this.state = {
-				type: 'connecting',
-				// preserve the promise so any awaiters do eventually get resolved
-				bootId: uniqueId(),
-				bufferedEvents: [],
-			}
-			/**
-			 * BOOTUP SEQUENCE
-			 * 1. Generate a unique boot id
-			 * 2. Fetch data from R2, or fetch fresh data from postgres
-			 * 3. Send initial data to client
-			 * 4. Register with the replicator
-			 * 5. Ignore any events that come in before the sequence id ends with our boot id
-			 * 6. Buffer any events that come in with a valid sequence id
-			 * 7. Once the replicator responds to the registration request, apply the buffered events
-			 */
-			if (!this.store.getCommittedData() || hard) {
-				const res =
-					(!hard && (await this.loadInitialDataFromR2(signal))) ||
-					(await this.loadInitialDataFromPostgres(hard, signal))
-
-				if (signal.aborted) return
-
-				this.log.debug('got initial data')
-				this.store.initialize(res.initialData, res.optimisticUpdates)
-				this.broadcast({
-					type: 'initial_data',
-					initialData: res.initialData,
-				})
-				if (
-					'mutationNumber' in res.initialData &&
-					typeof res.initialData.mutationNumber === 'number'
-				) {
-					this.commitMutations(res.initialData.mutationNumber)
-				}
-			}
-
-			const initialData = this.store.getCommittedData()!
-
-			const guestFileIds = initialData.files
-				.filter((f) => f.ownerId !== this.userId)
-				.map((f) => f.id)
-
-			const res = await getReplicator(this.env).registerUser({
-				userId: this.userId,
-				lsn: initialData.lsn,
-				guestFileIds,
-				bootId: this.state.bootId,
-			})
-
-			if (signal.aborted) {
-				this.log.debug('aborting because of timeout')
-				return
-			}
-
-			if (res.type === 'reboot') {
-				this.logEvent({ type: 'not_enough_history_for_fast_reboot', id: this.userId })
-				if (hard) throw new Error('reboot loop, waiting')
-				return this.boot(true, signal, done)
-			}
-
-			const bufferedEvents = this.state.bufferedEvents
-			this.state = {
-				type: 'connected',
-				bootId: this.state.bootId,
-				sequenceId: res.sequenceId,
-				lastSequenceNumber: res.sequenceNumber,
-			}
-
-			if (bufferedEvents.length > 0) {
-				bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
-			}
-
-			const end = Date.now()
-			this.logEvent({ type: 'reboot_duration', id: this.userId, duration: end - start })
-			this.log.debug('boot time', end - start, 'ms')
-		} finally {
-			done.resolve(null)
+	private async boot(hard: boolean, signal: AbortSignal): Promise<void> {
+		this.log.debug('boot hard:', hard)
+		// todo: clean up old resources if necessary?
+		const start = Date.now()
+		this.state = {
+			type: 'connecting',
+			// preserve the promise so any awaiters do eventually get resolved
+			bootId: uniqueId(),
+			bufferedEvents: [],
 		}
+		/**
+		 * BOOTUP SEQUENCE
+		 * 1. Generate a unique boot id
+		 * 2. Fetch data from R2, or fetch fresh data from postgres
+		 * 3. Send initial data to client
+		 * 4. Register with the replicator
+		 * 5. Ignore any events that come in before the sequence id ends with our boot id
+		 * 6. Buffer any events that come in with a valid sequence id
+		 * 7. Once the replicator responds to the registration request, apply the buffered events
+		 */
+		if (!this.store.getCommittedData() || hard) {
+			const res =
+				(!hard && (await this.loadInitialDataFromR2(signal))) ||
+				(await this.loadInitialDataFromPostgres(hard, signal))
+
+			if (signal.aborted) return
+
+			this.log.debug('got initial data')
+			this.store.initialize(res.initialData, res.optimisticUpdates)
+			this.broadcast({
+				type: 'initial_data',
+				initialData: res.initialData,
+			})
+			if (
+				'mutationNumber' in res.initialData &&
+				typeof res.initialData.mutationNumber === 'number'
+			) {
+				this.commitMutations(res.initialData.mutationNumber)
+			}
+		}
+
+		const initialData = this.store.getCommittedData()!
+
+		const guestFileIds = initialData.files.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
+
+		const res = await getReplicator(this.env).registerUser({
+			userId: this.userId,
+			lsn: initialData.lsn,
+			guestFileIds,
+			bootId: this.state.bootId,
+		})
+
+		if (signal.aborted) {
+			this.log.debug('aborting because of timeout')
+			return
+		}
+
+		if (res.type === 'reboot') {
+			this.logEvent({ type: 'not_enough_history_for_fast_reboot', id: this.userId })
+			if (hard) throw new Error('reboot loop, waiting')
+			return this.boot(true, signal)
+		}
+
+		const bufferedEvents = this.state.bufferedEvents
+		this.state = {
+			type: 'connected',
+			bootId: this.state.bootId,
+			sequenceId: res.sequenceId,
+			lastSequenceNumber: res.sequenceNumber,
+		}
+
+		if (bufferedEvents.length > 0) {
+			bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
+		}
+
+		const end = Date.now()
+		this.logEvent({ type: 'reboot_duration', id: this.userId, duration: end - start })
+		this.log.debug('boot time', end - start, 'ms')
 	}
 
 	// It is important that this method is synchronous!!!!
