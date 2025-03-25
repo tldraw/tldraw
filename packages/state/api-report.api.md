@@ -42,6 +42,8 @@ export interface AtomOptions<Value, Diff> {
 // @internal (undocumented)
 export interface Child {
     // (undocumented)
+    __debug_mode__: boolean;
+    // (undocumented)
     isActivelyListening: boolean;
     // (undocumented)
     lastTraversedEpoch: number;
@@ -91,6 +93,8 @@ export const EffectScheduler: new <Result>(name: string, runEffect: (lastReacted
 
 // @public (undocumented)
 export interface EffectScheduler<Result> {
+    // @internal (undocumented)
+    __debug_mode__: boolean;
     attach(): void;
     detach(): void;
     execute(): Result;

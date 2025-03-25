@@ -6,6 +6,7 @@ import {
 	react,
 	transact,
 	unsafe__withoutCapture,
+	whyAmIRunning,
 } from '@tldraw/state'
 import {
 	ComputedCache,
@@ -4424,6 +4425,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	@computed private _getShapePageBoundsCache(): ComputedCache<Box, TLShape> {
 		return this.store.createComputedCache<Box, TLShape>('pageBoundsCache', (shape) => {
+			whyAmIRunning()
 			const pageTransform = this._getShapePageTransformCache().get(shape.id)
 
 			if (!pageTransform) return new Box()

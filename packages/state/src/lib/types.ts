@@ -55,6 +55,7 @@ export interface Child {
 	readonly parents: Signal<any, any>[]
 	readonly parentEpochs: number[]
 	isActivelyListening: boolean
+	__debug_mode__: boolean
 }
 
 /**

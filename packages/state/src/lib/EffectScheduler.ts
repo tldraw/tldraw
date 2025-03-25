@@ -1,5 +1,5 @@
 import { ArraySet } from './ArraySet'
-import { startCapturingParents, stopCapturingParents } from './capture'
+import { logChangedParents, startCapturingParents, stopCapturingParents } from './capture'
 import { GLOBAL_START_EPOCH } from './constants'
 import { attach, detach, haveParentsChanged, singleton } from './helpers'
 import { getGlobalEpoch } from './transactions'
@@ -55,6 +55,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 
 	private lastReactedEpoch = GLOBAL_START_EPOCH
 	private _scheduleCount = 0
+	__debug_mode__ = false
 
 	/**
 	 * The number of times this effect has been scheduled.
@@ -87,12 +88,18 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 		// bail out if no atoms have changed since the last time we ran this effect
 		if (this.lastReactedEpoch === getGlobalEpoch()) return
 
+		const changedParents: Signal<any>[] | undefined = this.__debug_mode__ ? [] : undefined
+
 		// bail out if we have parents and they have not changed since last time
-		if (this.parents.length && !haveParentsChanged(this)) {
+		if (this.parents.length && !haveParentsChanged(this, changedParents)) {
 			this.lastReactedEpoch = getGlobalEpoch()
 			return
 		}
 		// if we don't have parents it's probably the first time this is running.
+		if (this.__debug_mode__) {
+			this.__debug_mode__ = false
+			if (changedParents?.length) logChangedParents(changedParents, this.name)
+		}
 		this.scheduleEffect()
 	}
 
@@ -145,6 +152,11 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	 * @returns The result of the effect.
 	 */
 	execute(): Result {
+		if (this.__debug_mode__) {
+			// eslint-disable-next-line no-console
+			console.log(`'${this.name}' is running because it was invoked manually`)
+			this.__debug_mode__ = false
+		}
 		try {
 			startCapturingParents(this)
 			// Important! We have to make a note of the current epoch before running the effect.
@@ -189,6 +201,8 @@ export const EffectScheduler = singleton(
 )
 /** @public */
 export interface EffectScheduler<Result> {
+	/** @internal */
+	__debug_mode__: boolean
 	/**
 	 * Whether this scheduler is attached and actively listening to its parents.
 	 * @public

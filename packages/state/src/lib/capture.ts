@@ -138,30 +138,14 @@ export function whyAmIRunning() {
 	if (!child) {
 		throw new Error('whyAmIRunning() called outside of a reactive context')
 	}
+	child.__debug_mode__ = true
+}
 
-	const changedParents = []
-	for (let i = 0; i < child.parents.length; i++) {
-		const parent = child.parents[i]
-
-		if (parent.lastChangedEpoch > child.parentEpochs[i]) {
-			changedParents.push(parent)
-		}
-	}
-
-	if (changedParents.length === 0) {
+export function logChangedParents(changedParents: Signal<any>[], name: string) {
+	// eslint-disable-next-line no-console
+	console.log(`'${name}' is recomputing because:`)
+	for (const p of changedParents) {
 		// eslint-disable-next-line no-console
-		console.log((child as any).name, 'is running but none of the parents changed')
-	} else {
-		// eslint-disable-next-line no-console
-		console.log((child as any).name, 'is running because:')
-		for (const changedParent of changedParents) {
-			// eslint-disable-next-line no-console
-			console.log(
-				'\t',
-				(changedParent as any).name,
-				'changed =>',
-				changedParent.__unsafe__getWithoutCapture(true)
-			)
-		}
+		console.log(`    '${p.name}' changed =>`, p.get())
 	}
 }

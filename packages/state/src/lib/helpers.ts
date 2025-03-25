@@ -16,13 +16,17 @@ function isChild(x: any): x is Child {
  * @param child The child to check.
  * @returns True if the child's parents have changed, false otherwise.
  */
-export function haveParentsChanged(child: Child) {
+export function haveParentsChanged(
+	child: Child,
+	changedParents?: Array<Signal<any>> | undefined
+): boolean {
 	for (let i = 0, n = child.parents.length; i < n; i++) {
 		// Get the parent's value without capturing it.
 		child.parents[i].__unsafe__getWithoutCapture(true)
 
 		// If the parent's epoch does not match the child's view of the parent's epoch, then the parent has changed.
 		if (child.parents[i].lastChangedEpoch !== child.parentEpochs[i]) {
+			changedParents?.push(child.parents[i])
 			return true
 		}
 	}
