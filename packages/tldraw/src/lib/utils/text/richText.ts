@@ -8,7 +8,6 @@ import {
 } from '@tiptap/core'
 import Code from '@tiptap/extension-code'
 import Highlight from '@tiptap/extension-highlight'
-import Link from '@tiptap/extension-link'
 import { Node } from '@tiptap/pm/model'
 import StarterKit from '@tiptap/starter-kit'
 import {
@@ -34,6 +33,7 @@ const KeyboardShiftEnterTweakExtension = Extension.create({
 
 // We change the default Code to override what's in the StarterKit.
 // It allows for other attributes/extensions.
+// @ts-ignore this is fine.
 Code.config.excludes = undefined
 
 // We want the highlighting to take precedence over bolding/italics/links
@@ -51,10 +51,10 @@ export const tipTapDefaultExtensions: Extensions = [
 		blockquote: false,
 		codeBlock: false,
 		horizontalRule: false,
-	}),
-	Link.configure({
-		openOnClick: false,
-		autolink: true,
+		link: {
+			openOnClick: false,
+			autolink: true,
+		},
 	}),
 	Highlight,
 	KeyboardShiftEnterTweakExtension,
