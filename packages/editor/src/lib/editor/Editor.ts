@@ -9860,8 +9860,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						const { panSpeed, zoomSpeed } = cameraOptions
 						const zoom = cz + (delta ?? 0) * zoomSpeed * cz
-						console.log('touch deltaZ', delta)
-						console.log('touch zoom', zoom)
 
 						this._setCamera(
 							new Vec(
@@ -9904,7 +9902,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 			case 'wheel': {
 				if (cameraOptions.isLocked) return
-				console.log('wheel')
 				this._updateInputsFromEvent(info)
 
 				const { panSpeed, zoomSpeed, wheelBehavior } = cameraOptions
