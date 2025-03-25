@@ -97,6 +97,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		elbowArrowEdgeSnapDistance: 20,
 		elbowArrowPointSnapDistance: 24,
 		elbowArrowAxisSnapDistance: 16,
+
+		hoverPreciseTimeout: 600,
+		pointingPreciseTimeout: 320,
 	}
 
 	override canEdit() {

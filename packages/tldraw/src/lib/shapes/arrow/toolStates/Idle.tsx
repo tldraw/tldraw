@@ -1,40 +1,27 @@
-import { StateNode, TLKeyboardEventInfo, TLPointerEventInfo } from '@tldraw/editor'
+import { StateNode, TLKeyboardEventInfo, TLPointerEventInfo, TLShapeId } from '@tldraw/editor'
+import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { clearArrowTargetState, updateArrowTargetState } from '../arrowTargetState'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
 
-	override onPointerMove(info: TLPointerEventInfo) {
-		updateArrowTargetState({
-			editor: this.editor,
-			pointInPageSpace: this.editor.inputs.currentPagePoint,
-			arrow: undefined,
-			isPrecise: false,
-			isExact: this.editor.inputs.altKey,
-			currentBinding: undefined,
-			otherBinding: undefined,
-			terminal: 'start',
-			isCreatingShape: true,
-		})
+	options = this.editor.getShapeUtil<ArrowShapeUtil>('arrow').options
+
+	isPrecise = false
+	isPreciseTimerId: number | null = null
+	preciseTargetId: TLShapeId | null = null
+
+	override onPointerMove() {
+		this.update()
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
-		this.parent.transition('pointing', info)
+		this.parent.transition('pointing', { ...info, isPrecise: this.isPrecise })
 	}
 
 	override onEnter() {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
-		updateArrowTargetState({
-			editor: this.editor,
-			pointInPageSpace: this.editor.inputs.currentPagePoint,
-			arrow: undefined,
-			isPrecise: false,
-			isExact: this.editor.inputs.altKey,
-			currentBinding: undefined,
-			otherBinding: undefined,
-			terminal: 'start',
-			isCreatingShape: true,
-		})
+		this.update()
 	}
 
 	override onCancel() {
@@ -43,6 +30,9 @@ export class Idle extends StateNode {
 
 	override onExit() {
 		clearArrowTargetState(this.editor)
+		if (this.isPreciseTimerId !== null) {
+			clearTimeout(this.isPreciseTimerId)
+		}
 	}
 
 	override onKeyUp(info: TLKeyboardEventInfo) {
@@ -61,6 +51,38 @@ export class Idle extends StateNode {
 					target: 'shape',
 					shape: onlySelectedShape,
 				})
+			}
+		}
+	}
+
+	update() {
+		const targetState = updateArrowTargetState({
+			editor: this.editor,
+			pointInPageSpace: this.editor.inputs.currentPagePoint,
+			arrow: undefined,
+			isPrecise: this.isPrecise,
+			isExact: this.editor.inputs.altKey,
+			currentBinding: undefined,
+			otherBinding: undefined,
+			terminal: 'start',
+			isCreatingShape: true,
+		})
+
+		if (targetState && targetState.target.id !== this.preciseTargetId) {
+			if (this.isPreciseTimerId !== null) {
+				clearTimeout(this.isPreciseTimerId)
+			}
+
+			this.preciseTargetId = targetState.target.id
+			this.isPreciseTimerId = this.editor.timers.setTimeout(() => {
+				this.isPrecise = true
+				this.update()
+			}, this.options.hoverPreciseTimeout)
+		} else if (!targetState && this.preciseTargetId) {
+			this.isPrecise = false
+			this.preciseTargetId = null
+			if (this.isPreciseTimerId !== null) {
+				clearTimeout(this.isPreciseTimerId)
 			}
 		}
 	}

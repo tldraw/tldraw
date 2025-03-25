@@ -209,11 +209,15 @@ export interface ArrowShapeOptions {
     // (undocumented)
     readonly expandElbowLegLength: Record<TLDefaultSizeStyle, number>;
     // (undocumented)
+    readonly hoverPreciseTimeout: number;
+    // (undocumented)
     readonly minArrowDistanceFromCorner: number;
     // (undocumented)
     readonly minElbowLegLength: Record<TLDefaultSizeStyle, number>;
     // (undocumented)
     readonly minHandleDistance: number;
+    // (undocumented)
+    readonly pointingPreciseTimeout: number;
 }
 
 // @public (undocumented)

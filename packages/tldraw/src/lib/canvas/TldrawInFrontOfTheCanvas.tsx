@@ -48,7 +48,7 @@ export const TldrawArrowHints = track(function TldrawArrowHints() {
 
 	if (!targetInfo) return null
 
-	const { handlesInPageSpace, snap, anchorInPageSpace, arrowKind, isExact } = targetInfo
+	const { handlesInPageSpace, snap, anchorInPageSpace, arrowKind, isExact, isPrecise } = targetInfo
 	const showEdgeHints = !isExact && arrowKind === 'elbow'
 	const showOutline = !showEdgeHints || snap === 'center' || snap === 'edge' || snap === 'none'
 
@@ -61,7 +61,7 @@ export const TldrawArrowHints = track(function TldrawArrowHints() {
 					<circle
 						cx={anchorInPageSpace.x}
 						cy={anchorInPageSpace.y}
-						className={`tl-arrow-hint-snap tl-arrow-hint-snap__${snap ?? 'none'}`}
+						className={`tl-arrow-hint-snap tl-arrow-hint-snap__${isPrecise ? snap : 'none'}`}
 					/>
 
 					{Object.entries(handlesInPageSpace).map(([side, handle]) => {
