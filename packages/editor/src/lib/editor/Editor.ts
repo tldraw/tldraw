@@ -9676,7 +9676,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _restoreToolId = 'select'
 
 	/** @internal */
-	private _pinchStart = 1
+	private _pinchZ = 1
 
 	/** @internal */
 	private _didPinch = false
@@ -9819,7 +9819,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (inputs.isPinching) return
 
 						if (!inputs.isEditing) {
-							this._pinchStart = this.getCamera().z
+							this._pinchZ = this.getCamera().z
 							if (!this._selectedShapeIdsAtPointerDown.length) {
 								this._selectedShapeIdsAtPointerDown = [...pageState.selectedShapeIds]
 							}
@@ -9855,12 +9855,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
 
+						let delta = z - this._pinchZ
+						this._pinchZ = z
+
 						const { panSpeed, zoomSpeed } = cameraOptions
+						const zoom = cz + (delta ?? 0) * zoomSpeed * cz
+						console.log('touch deltaZ', delta)
+						console.log('touch zoom', zoom)
+
 						this._setCamera(
 							new Vec(
-								cx + (dx * panSpeed) / cz - x / cz + x / (z * zoomSpeed),
-								cy + (dy * panSpeed) / cz - y / cz + y / (z * zoomSpeed),
-								z * zoomSpeed
+								cx + (dx * panSpeed) / cz + x / zoom - x / cz,
+								cy + (dy * panSpeed) / cz + y / zoom - y / cz,
+								zoom
 							),
 							{ immediate: true }
 						)
@@ -9897,7 +9904,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 			case 'wheel': {
 				if (cameraOptions.isLocked) return
-
+				console.log('wheel')
 				this._updateInputsFromEvent(info)
 
 				const { panSpeed, zoomSpeed, wheelBehavior } = cameraOptions
@@ -9925,7 +9932,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 							const { x, y } = this.inputs.currentScreenPoint
 							let delta = dz
 
-							// If we're forcing zoom, then we need to do the wheel normalization math here
 							if (wheelBehavior === 'zoom') {
 								if (Math.abs(dy) > 10) {
 									delta = (10 * Math.sign(dy)) / 100
