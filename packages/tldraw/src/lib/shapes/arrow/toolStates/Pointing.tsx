@@ -1,5 +1,5 @@
 import { StateNode, TLArrowShape, createShapeId, maybeSnapToGrid } from '@tldraw/editor'
-import { clearArrowTargetState, updateArrowTargetState } from '../arrowTarget'
+import { clearArrowTargetState, updateArrowTargetState } from '../arrowTargetState'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'

@@ -52,7 +52,7 @@ import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getArrowBodyPath, getArrowHandlePath } from './ArrowPath'
 import { ArrowShapeOptions } from './arrow-types'
 import { getArrowLabelFontSize, getArrowLabelPosition } from './arrowLabel'
-import { updateArrowTargetState } from './arrowTarget'
+import { updateArrowTargetState } from './arrowTargetState'
 import { getArrowheadPathForType } from './arrowheads'
 import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
 import {
@@ -326,7 +326,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			isPrecise: targetInfo.isPrecise,
 			isExact: this.editor.inputs.altKey,
 			entrySide: currentBinding?.props.entrySide ?? null,
-			forceSide: null, // targetInfo.snap.side,
 		}
 
 		if (
@@ -649,13 +648,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return (
 			<>
 				<SVGContainer style={{ minWidth: 50, minHeight: 50 }}>
-					{shape.props.kind === 'elbow' && elbowArrowDebug.get().visualDebugging && (
-						<ElbowArrowDebug arrow={shape} />
-					)}
 					<ArrowSvg
 						shape={shape}
 						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape?.id === shape.id}
 					/>
+					{shape.props.kind === 'elbow' && elbowArrowDebug.get().visualDebugging && (
+						<ElbowArrowDebug arrow={shape} />
+					)}
 				</SVGContainer>
 				{showArrowLabel && (
 					<PlainTextLabel

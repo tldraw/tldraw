@@ -1,5 +1,5 @@
 import { StateNode, TLKeyboardEventInfo, TLPointerEventInfo } from '@tldraw/editor'
-import { clearArrowTargetState, updateArrowTargetState } from '../arrowTarget'
+import { clearArrowTargetState, updateArrowTargetState } from '../arrowTargetState'
 
 export class Idle extends StateNode {
 	static override id = 'idle'

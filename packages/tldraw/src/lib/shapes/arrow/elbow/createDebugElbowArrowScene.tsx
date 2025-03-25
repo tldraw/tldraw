@@ -9,10 +9,11 @@ import {
 	TLGeoShape,
 	TLTextShape,
 	toRichText,
+	Vec,
 } from '@tldraw/editor'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { createOrUpdateArrowBinding } from '../shared'
-import { ElbowArrowOptions } from './definitions'
+import { ElbowArrowOptions, ElbowArrowSideDeltas } from './definitions'
 
 const defaultSize = 150
 
@@ -27,7 +28,7 @@ export function createDebugElbowArrowScene(editor: Editor) {
 			minArrowDistanceFromCorner: shapeOptions.minArrowDistanceFromCorner,
 			shortestArrowMeasure: elbowArrowDebug.get().shortest,
 		}
-		const { aSide, bSide } = elbowArrowDebug.get()
+		const { startSide, endSide } = elbowArrowDebug.get()
 
 		assert(options.expandElbowLegLength > options.minElbowLegLength)
 		assert(options.expandElbowLegLength * 4 < defaultSize)
@@ -106,13 +107,13 @@ export function createDebugElbowArrowScene(editor: Editor) {
 
 				frameY += frameHeight + spacing
 
-				const shapeAId = createShapeId()
-				const shapeBId = createShapeId()
+				const startShapeId = createShapeId()
+				const endShapeId = createShapeId()
 
 				editor.createShape<TLGeoShape>({
 					type: 'geo',
 					meta: { isFromDebugElbowArrowScene: true },
-					id: shapeAId,
+					id: startShapeId,
 					x: offsetX,
 					y: offsetY,
 					parentId: wrapperId,
@@ -124,7 +125,7 @@ export function createDebugElbowArrowScene(editor: Editor) {
 
 				editor.createShape<TLGeoShape>({
 					type: 'geo',
-					id: shapeBId,
+					id: endShapeId,
 					x: x + offsetX,
 					y: y + offsetY,
 					parentId: wrapperId,
@@ -141,22 +142,28 @@ export function createDebugElbowArrowScene(editor: Editor) {
 					id: arrowId,
 				})
 
-				createOrUpdateArrowBinding(editor, arrowId, shapeAId, {
+				const startNormalizedAnchor = startSide
+					? Vec.Mul(ElbowArrowSideDeltas[startSide], 0.1).addXY(0.5, 0.5).toJson()
+					: { x: 0.5, y: 0.5 }
+
+				const endNormalizedAnchor = endSide
+					? Vec.Mul(ElbowArrowSideDeltas[endSide], 0.1).addXY(0.5, 0.5).toJson()
+					: { x: 0.5, y: 0.5 }
+
+				createOrUpdateArrowBinding(editor, arrowId, startShapeId, {
 					terminal: 'start',
-					normalizedAnchor: { x: 0.5, y: 0.5 },
+					normalizedAnchor: startNormalizedAnchor,
 					isExact: false,
 					isPrecise: false,
-					entrySide: aSide,
-					forceSide: aSide,
+					entrySide: startSide,
 				})
 
-				createOrUpdateArrowBinding(editor, arrowId, shapeBId, {
+				createOrUpdateArrowBinding(editor, arrowId, endShapeId, {
 					terminal: 'end',
-					normalizedAnchor: { x: 0.5, y: 0.5 },
+					normalizedAnchor: endNormalizedAnchor,
 					isExact: false,
 					isPrecise: false,
-					entrySide: bSide,
-					forceSide: bSide,
+					entrySide: endSide,
 				})
 			}
 			frameX += frameWidth + spacing

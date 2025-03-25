@@ -7,7 +7,7 @@ import {
 	TLPointerEventInfo,
 	Vec,
 } from '@tldraw/editor'
-import { updateArrowTargetState } from '../../../shapes/arrow/arrowTarget'
+import { updateArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import {
 	NOTE_CENTER_OFFSET,

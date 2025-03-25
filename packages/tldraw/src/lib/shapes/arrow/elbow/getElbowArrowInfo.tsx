@@ -1,4 +1,5 @@
 import {
+	approximately,
 	assert,
 	Box,
 	Editor,
@@ -431,11 +432,13 @@ export function getRouteHandlePath(info: ElbowArrowInfo, route: ElbowArrowRoute)
 		name: route.name,
 		distance: route.distance + firstSegmentLengthChange + lastSegmentLengthChange,
 		points: newPoints,
+		aEdgePicking: route.aEdgePicking,
+		bEdgePicking: route.bEdgePicking,
 	}
 }
 
 export function getEdgeFromNormalizedAnchor(normalizedAnchor: VecLike) {
-	if (normalizedAnchor.x === 0.5 && normalizedAnchor.y === 0.5) {
+	if (approximately(normalizedAnchor.x, 0.5) && approximately(normalizedAnchor.y, 0.5)) {
 		return null
 	}
 
@@ -470,9 +473,7 @@ function getElbowArrowBindingInfo(
 
 			const impreciseEdgePickingMode = elbowArrowDebug.get().impreciseEdgePicking
 			let side: ElbowArrowSide | null = null
-			if (binding.props.forceSide) {
-				side = binding.props.forceSide
-			} else if (binding.props.isPrecise) {
+			if (binding.props.isPrecise) {
 				side = getEdgeFromNormalizedAnchor(
 					Vec.RotWith(
 						binding.props.normalizedAnchor,

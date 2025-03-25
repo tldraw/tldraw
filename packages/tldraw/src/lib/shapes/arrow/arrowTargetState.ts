@@ -1,19 +1,26 @@
-import { atom, Atom, Box, clamp, Editor, elbowArrowDebug, Mat, Vec, VecLike } from '@tldraw/editor'
 import {
 	ArrowShapeKindStyle,
+	atom,
+	Atom,
+	Box,
+	clamp,
+	Editor,
+	elbowArrowDebug,
 	ElbowArrowSide,
+	exhaustiveSwitchError,
+	invLerp,
+	mapObjectMapValues,
+	Mat,
+	objectMapEntries,
+	objectMapKeys,
 	TLArrowBinding,
 	TLArrowShape,
 	TLArrowShapeKind,
 	TLShape,
-} from '@tldraw/tlschema'
-import {
-	invLerp,
-	mapObjectMapValues,
-	objectMapEntries,
-	objectMapKeys,
+	Vec,
+	VecLike,
 	WeakCache,
-} from '@tldraw/utils'
+} from '@tldraw/editor'
 import { ArrowShapeUtil } from './ArrowShapeUtil'
 import { ElbowArrowAxes, ElbowArrowSideAxes, ElbowArrowSideDeltas } from './elbow/definitions'
 
@@ -113,7 +120,6 @@ export function updateArrowTargetState({
 	const arrowTransform = arrow ? editor.getShapePageTransform(arrow.id) : Mat.Identity()
 	const targetTransform = editor.getShapePageTransform(target)
 	const targetToArrowTransform = arrowTransform.clone().invert().multiply(targetTransform)
-	const targetToArrowRotation = targetToArrowTransform.rotation()
 	const pointInTargetSpace = editor.getPointInShapeSpace(target, pointInPageSpace)
 
 	const castDistance = Math.max(
@@ -121,11 +127,27 @@ export function updateArrowTargetState({
 		targetGeometryInTargetSpace.bounds.height
 	)
 
+	let hintTransformRelativeToTarget
+	const hintRotationMode = elbowArrowDebug.get().hintRotation
+	switch (hintRotationMode) {
+		case 'arrow':
+			hintTransformRelativeToTarget = -targetToArrowTransform.rotation()
+			break
+		case 'target':
+			hintTransformRelativeToTarget = 0
+			break
+		case 'page':
+			hintTransformRelativeToTarget = -targetTransform.rotation()
+			break
+		default:
+			exhaustiveSwitchError(hintRotationMode)
+	}
+
 	const handlesInPageSpace = mapObjectMapValues(ElbowArrowSideDeltas, (side, delta) => {
 		const axis = ElbowArrowAxes[ElbowArrowSideAxes[side]]
 
-		const castPoint = Vec.Mul(delta, castDistance)
-			.rot(-targetToArrowRotation)
+		const farPoint = Vec.Mul(delta, castDistance)
+			.rot(hintTransformRelativeToTarget)
 			.add(targetCenterInTargetSpace)
 
 		let isEnabled = true
@@ -137,7 +159,7 @@ export function updateArrowTargetState({
 
 		for (const intersection of targetGeometryInTargetSpace.intersectLineSegment(
 			targetCenterInTargetSpace,
-			castPoint
+			farPoint
 		)) {
 			const distance = Vec.Dist2(intersection, targetCenterInTargetSpace)
 			if (distance > furthestDistance) {
@@ -149,7 +171,7 @@ export function updateArrowTargetState({
 
 		const handlePointInPageSpace = targetTransform.applyToPoint(handlePointInTargetSpace)
 
-		return { point: handlePointInPageSpace, isEnabled }
+		return { point: handlePointInPageSpace, isEnabled, far: targetTransform.applyToPoint(farPoint) }
 	})
 
 	const zoomLevel = editor.getZoomLevel()
@@ -238,8 +260,16 @@ export function updateArrowTargetState({
 			util.options.elbowArrowAxisSnapDistance
 		)
 
-		const distanceFromXAxis = Math.abs(targetCenterInPageSpace.x - pointInPageSpace.x)
-		const distanceFromYAxis = Math.abs(targetCenterInPageSpace.y - pointInPageSpace.y)
+		const distanceFromXAxis = Vec.DistanceToLineSegment(
+			handlesInPageSpace.left.far,
+			handlesInPageSpace.right.far,
+			pointInPageSpace
+		)
+		const distanceFromYAxis = Vec.DistanceToLineSegment(
+			handlesInPageSpace.top.far,
+			handlesInPageSpace.bottom.far,
+			pointInPageSpace
+		)
 
 		const snapAxis =
 			distanceFromXAxis < distanceFromYAxis && distanceFromXAxis < snapDistance
@@ -250,14 +280,19 @@ export function updateArrowTargetState({
 
 		if (snapAxis) {
 			const axis = ElbowArrowAxes[snapAxis]
-			const side =
-				targetCenterInPageSpace[axis.cross] > pointInPageSpace[axis.cross]
-					? axis.crossLoEdge
-					: axis.crossHiEdge
+
+			const loDist2 = Vec.Dist2(handlesInPageSpace[axis.loEdge].far, pointInPageSpace)
+			const hiDist2 = Vec.Dist2(handlesInPageSpace[axis.hiEdge].far, pointInPageSpace)
+
+			const side = loDist2 < hiDist2 ? axis.loEdge : axis.hiEdge
 
 			const snappedPointInPageSpace = handlesInPageSpace[side].isEnabled
 				? handlesInPageSpace[side].point
-				: axis.v(targetCenterInPageSpace[axis.self], pointInPageSpace[axis.cross])
+				: Vec.NearestPointOnLineSegment(
+						handlesInPageSpace[axis.loEdge].far,
+						handlesInPageSpace[axis.hiEdge].far,
+						pointInPageSpace
+					)
 
 			snap = 'axis'
 			anchorInPageSpace = snappedPointInPageSpace

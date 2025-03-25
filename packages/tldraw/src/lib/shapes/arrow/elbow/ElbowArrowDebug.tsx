@@ -58,9 +58,7 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 					stroke="blue"
 				/>
 			)}
-			<text x={fullBox.minX + 5} y={fullBox.minY + 13}>
-				{label}
-			</text>
+
 			<g transform={`translate(${gizmoX}, ${gizmoY}) scale(${info.scale.x}, ${info.scale.y})`}>
 				<line x1={0} y1={0} x2={30} y2={0} stroke="red" />
 				<line x1={0} y1={0} x2={0} y2={30} stroke="blue" />
@@ -79,6 +77,40 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 				<DebugRoute route={steve.path} stroke="white" strokeDasharray="0,9" strokeWidth={5} />
 			)}
 			{steve?.path && <DebugRoute route={steve.path} stroke="deeppink" strokeDasharray="0,9" />}
+
+			<text
+				x={fullBox.minX + 5}
+				y={fullBox.minY - 3}
+				fontSize={10}
+				fill="black"
+				stroke="var(--color-background)"
+				strokeWidth={2}
+				paintOrder="stroke"
+			>
+				{label}
+			</text>
+			<text
+				x={info.A.expanded.x * info.scale.x}
+				y={info.A.expanded.y * info.scale.y}
+				fontSize={10}
+				fill="black"
+				stroke="var(--color-background)"
+				strokeWidth={2}
+				paintOrder="stroke"
+			>
+				A{info.route && ` - ${info.route.aEdgePicking}`}
+			</text>
+			<text
+				x={info.B.expanded.x * info.scale.x}
+				y={info.B.expanded.y * info.scale.y}
+				fontSize={10}
+				fill="black"
+				stroke="var(--color-background)"
+				strokeWidth={2}
+				paintOrder="stroke"
+			>
+				B{info.route && ` - ${info.route.bEdgePicking}`}
+			</text>
 		</>
 	)
 }
@@ -105,6 +137,7 @@ function DebugRoute({ route, ...props }: { route: VecLike[] } & SVGProps<SVGPoly
 			fill="none"
 			stroke="darkorchid"
 			strokeWidth={3}
+			opacity={0.5}
 			points={route.map((r) => `${r.x},${r.y}`).join(' ')}
 			{...props}
 		/>

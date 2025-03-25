@@ -608,7 +608,10 @@ export function dataUrlToFile(url: string, filename: string, mimeType: string): 
 export function debugEnableLicensing(): void;
 
 // @internal (undocumented)
-export type DebugFlag<T> = DebugFlagDef<T> & Atom<T>;
+export interface DebugFlag<T> extends DebugFlagDef<T>, Atom<T> {
+    // (undocumented)
+    reset(): void;
+}
 
 // @internal (undocumented)
 export interface DebugFlagDef<T> {
@@ -1603,8 +1606,8 @@ export { EffectScheduler }
 
 // @internal (undocumented)
 export const elbowArrowDebug: DebugFlag<{
-    aSide: ElbowArrowSide | null;
-    bSide: ElbowArrowSide | null;
+    endSide: ElbowArrowSide | null;
+    hintRotation: 'arrow' | 'page' | 'target';
     impreciseEdgePicking: 'auto' | 'velocity';
     preciseEdgePicking: {
         snapAxis: boolean;
@@ -1613,6 +1616,7 @@ export const elbowArrowDebug: DebugFlag<{
         snapPoints: boolean;
     };
     shortest: 'count' | 'distance';
+    startSide: ElbowArrowSide | null;
     targetStyle: 'center' | 'push' | 'remove';
     visualDebugging: boolean;
 }>;

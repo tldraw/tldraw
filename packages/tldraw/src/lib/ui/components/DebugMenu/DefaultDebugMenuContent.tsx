@@ -4,6 +4,7 @@ import {
 	TLShapePartial,
 	createShapeId,
 	debugFlags,
+	elbowArrowDebug,
 	featureFlags,
 	hardResetEditor,
 	track,
@@ -11,7 +12,6 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import { elbowArrowDebug } from '@tldraw/editor/src/lib/utils/debug-flags'
 import React from 'react'
 import { createDebugElbowArrowScene } from '../../../shapes/arrow/elbow/createDebugElbowArrowScene'
 import { useDialogs } from '../../context/dialogs'
@@ -213,12 +213,13 @@ export function FeatureFlags() {
 export function DebugElbowArrowMenu() {
 	const {
 		visualDebugging,
-		aSide,
-		bSide,
+		startSide,
+		endSide,
 		targetStyle,
 		impreciseEdgePicking,
 		preciseEdgePicking,
 		shortest,
+		hintRotation,
 	} = useValue(elbowArrowDebug)
 	const editor = useEditor()
 
@@ -233,50 +234,26 @@ export function DebugElbowArrowMenu() {
 						elbowArrowDebug.update((p) => ({ ...p, visualDebugging: !visualDebugging }))
 					}}
 				/>
-				<TldrawUiMenuSubmenu id="target" label={`Target`}>
-					<TldrawUiMenuCheckboxItem
-						id="push"
-						label="Push"
-						checked={targetStyle === 'push'}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, targetStyle: 'push' }))
-						}}
-					/>
-					<TldrawUiMenuCheckboxItem
-						id="center"
-						label="Center"
-						checked={targetStyle === 'center'}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, targetStyle: 'center' }))
-						}}
-					/>
-					<TldrawUiMenuCheckboxItem
-						id="remove"
-						label="Remove"
-						checked={targetStyle === 'remove'}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, targetStyle: 'remove' }))
-						}}
-					/>
-				</TldrawUiMenuSubmenu>
-				<TldrawUiMenuSubmenu id="imprecise-edge-picking" label={`Imprecise edge picking`}>
-					<TldrawUiMenuCheckboxItem
-						id="auto"
-						label="Auto"
-						checked={impreciseEdgePicking === 'auto'}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, impreciseEdgePicking: 'auto' }))
-						}}
-					/>
-					<TldrawUiMenuCheckboxItem
-						id="velocity"
-						label="Velocity"
-						checked={impreciseEdgePicking === 'velocity'}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, impreciseEdgePicking: 'velocity' }))
-						}}
-					/>
-				</TldrawUiMenuSubmenu>
+				<DropdownSelect
+					id="target"
+					label="Target"
+					items={['push', 'center', 'remove']}
+					value={targetStyle}
+					onChange={(value) => {
+						elbowArrowDebug.update((p) => ({ ...p, targetStyle: value }))
+					}}
+				/>
+
+				<DropdownSelect
+					id="imprecise-edge-picking"
+					label={`Imprecise edge picking`}
+					items={['auto', 'velocity']}
+					value={impreciseEdgePicking}
+					onChange={(value) => {
+						elbowArrowDebug.update((p) => ({ ...p, impreciseEdgePicking: value }))
+					}}
+				/>
+
 				<TldrawUiMenuSubmenu id="precise-edge-picking" label={`Precise edge picking`}>
 					<TldrawUiMenuCheckboxItem
 						id="snap-edges"
@@ -335,24 +312,26 @@ export function DebugElbowArrowMenu() {
 						}}
 					/>
 				</TldrawUiMenuSubmenu>
-				<TldrawUiMenuSubmenu id="shortest" label={`Shortest arrow`}>
-					<TldrawUiMenuCheckboxItem
-						id="distance"
-						label="Distance"
-						checked={shortest === 'distance'}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, shortest: 'distance' }))
-						}}
-					/>
-					<TldrawUiMenuCheckboxItem
-						id="count"
-						label="Count"
-						checked={shortest === 'count'}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, shortest: 'count' }))
-						}}
-					/>
-				</TldrawUiMenuSubmenu>
+
+				<DropdownSelect
+					id="shortest"
+					label={`Shortest arrow`}
+					items={['distance', 'count']}
+					value={shortest}
+					onChange={(value) => {
+						elbowArrowDebug.update((p) => ({ ...p, shortest: value }))
+					}}
+				/>
+
+				<DropdownSelect
+					id="hint-rotation"
+					label={`Hint rotation`}
+					items={['target', 'arrow', 'page']}
+					value={hintRotation}
+					onChange={(value) => {
+						elbowArrowDebug.update((p) => ({ ...p, hintRotation: value }))
+					}}
+				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="samples">
 				<TldrawUiMenuItem
@@ -360,90 +339,33 @@ export function DebugElbowArrowMenu() {
 					onSelect={() => createDebugElbowArrowScene(editor)}
 					label={'Create samples'}
 				/>
-				<TldrawUiMenuSubmenu id="a-side" label={`Start (${aSide ?? 'auto'})`}>
-					<TldrawUiMenuCheckboxItem
-						id="a-auto"
-						label="Auto"
-						checked={aSide === null}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, aSide: null }))
-						}}
-					/>
-					<TldrawUiMenuCheckboxItem
-						id="a-left"
-						label="Left"
-						checked={aSide === 'left'}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, aSide: 'left' }))
-						}}
-					/>
-					<TldrawUiMenuCheckboxItem
-						id="a-right"
-						label="Right"
-						checked={aSide === 'right'}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, aSide: 'right' }))
-						}}
-					/>
-					<TldrawUiMenuCheckboxItem
-						id="a-top"
-						label="Top"
-						checked={aSide === 'top'}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, aSide: 'top' }))
-						}}
-					/>
-					<TldrawUiMenuCheckboxItem
-						id="a-bottom"
-						label="Bottom"
-						checked={aSide === 'bottom'}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, aSide: 'bottom' }))
-						}}
-					/>
-				</TldrawUiMenuSubmenu>
-				<TldrawUiMenuSubmenu id="b-side" label={`End (${bSide ?? 'auto'})`}>
-					<TldrawUiMenuCheckboxItem
-						id="b-auto"
-						label="Auto"
-						checked={bSide === null}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, bSide: null }))
-						}}
-					/>
-					<TldrawUiMenuCheckboxItem
-						id="b-left"
-						label="Left"
-						checked={bSide === 'left'}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, bSide: 'left' }))
-						}}
-					/>
-					<TldrawUiMenuCheckboxItem
-						id="b-right"
-						label="Right"
-						checked={bSide === 'right'}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, bSide: 'right' }))
-						}}
-					/>
-					<TldrawUiMenuCheckboxItem
-						id="b-top"
-						label="Top"
-						checked={bSide === 'top'}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, bSide: 'top' }))
-						}}
-					/>
-					<TldrawUiMenuCheckboxItem
-						id="b-bottom"
-						label="Bottom"
-						checked={bSide === 'bottom'}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({ ...p, bSide: 'bottom' }))
-						}}
-					/>
-				</TldrawUiMenuSubmenu>
+				<DropdownSelect
+					id="start-side"
+					label={`Start`}
+					items={[{ value: null, label: 'Auto' }, 'left', 'right', 'top', 'bottom']}
+					value={startSide}
+					onChange={(value) => {
+						elbowArrowDebug.update((p) => ({ ...p, startSide: value }))
+					}}
+				/>
+				<DropdownSelect
+					id="b-side"
+					label={`End`}
+					items={[{ value: null, label: 'Auto' }, 'left', 'right', 'top', 'bottom']}
+					value={endSide}
+					onChange={(value) => {
+						elbowArrowDebug.update((p) => ({ ...p, endSide: value }))
+					}}
+				/>
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="reset">
+				<TldrawUiMenuItem
+					id="reset-elbow-arrows"
+					onSelect={() => {
+						elbowArrowDebug.reset()
+					}}
+					label={'Reset'}
+				/>
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)
@@ -545,4 +467,46 @@ function createNShapes(editor: Editor, n: number) {
 	editor.run(() => {
 		editor.createShapes(shapesToCreate).setSelectedShapes(shapesToCreate.map((s) => s.id))
 	})
+}
+
+function DropdownSelect<T extends string | number | null>({
+	id,
+	label,
+	items,
+	value,
+	onChange,
+}: {
+	id: string
+	label: string
+	items: (T | { label: string; value: T })[]
+	value: T
+	onChange(value: T): void
+}) {
+	return (
+		<TldrawUiMenuSubmenu id={id} label={label}>
+			{items.map((rawItem) => {
+				const item =
+					rawItem && typeof rawItem === 'object'
+						? rawItem
+						: {
+								value: rawItem,
+								label: String(rawItem)
+									.replace(/([a-z0-9])([A-Z])/g, (m) => `${m[0]} ${m[1].toLowerCase()}`)
+									.replace(/^[a-z]/, (m) => m.toUpperCase()),
+							}
+
+				return (
+					<TldrawUiMenuCheckboxItem
+						key={item.value}
+						id={String(item.value)}
+						label={item.label}
+						checked={item.value === value}
+						onSelect={() => {
+							onChange(item.value)
+						}}
+					/>
+				)
+			})}
+		</TldrawUiMenuSubmenu>
+	)
 }

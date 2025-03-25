@@ -75,7 +75,10 @@ export {
 	type TLElbowArrowInfo,
 	type TLStraightArrowInfo,
 } from './lib/shapes/arrow/arrow-types'
-export { type ElbowArrowOptions } from './lib/shapes/arrow/elbow/definitions'
+export {
+	type ElbowArrowOptions,
+	type ElbowArrowSideReason,
+} from './lib/shapes/arrow/elbow/definitions'
 export { type ElbowArrowRoute } from './lib/shapes/arrow/elbow/elbowArrowRoutes'
 export {
 	type ElbowArrowBox,

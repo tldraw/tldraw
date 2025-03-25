@@ -1,5 +1,8 @@
 import { ElbowArrowSide, Vec, VecModel } from '@tldraw/editor'
 
+/** @internal */
+export type ElbowArrowSideReason = 'manual' | 'auto' | 'fallback'
+
 export const ELBOW_ARROW_DIRS = ['right', 'bottom', 'left', 'top'] as const
 
 /** @public */

@@ -1071,6 +1071,10 @@ export interface ElbowArrowRange {
 
 // @public (undocumented)
 export interface ElbowArrowRoute {
+    // @internal (undocumented)
+    aEdgePicking: ElbowArrowSideReason;
+    // @internal (undocumented)
+    bEdgePicking: ElbowArrowSideReason;
     // (undocumented)
     distance: number;
     // (undocumented)
@@ -1086,6 +1090,9 @@ export interface ElbowArrowScale {
     // (undocumented)
     y: -1 | 1;
 }
+
+// @internal (undocumented)
+export type ElbowArrowSideReason = 'auto' | 'fallback' | 'manual';
 
 // @public (undocumented)
 export interface ElbowArrowTargetBox extends ElbowArrowBox {

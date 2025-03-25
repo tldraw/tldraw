@@ -1,4 +1,5 @@
 import { ElbowArrowSide } from '@tldraw/editor'
+import { ElbowArrowSideReason } from './definitions'
 import { ElbowArrowRoute, tryRouteArrow } from './elbowArrowRoutes'
 import { ElbowArrowInfoWithoutRoute } from './getElbowArrowInfo'
 
@@ -13,18 +14,18 @@ export function routeArrowWithAutoEdgePicking(
 		return pickBest(info, [
 			[
 				// hs prefer S arrows
-				['right', 'left'],
-				['right', 'top'],
-				['right', 'bottom'],
-				['right', 'right'],
+				['right', 'left', 'auto', 'auto'],
+				['right', 'top', 'auto', 'auto'],
+				['right', 'bottom', 'auto', 'auto'],
+				['right', 'right', 'auto', 'auto'],
 			],
 			[
-				['top', 'left'],
-				['bottom', 'left'],
+				['top', 'left', 'auto', 'auto'],
+				['bottom', 'left', 'auto', 'auto'],
 			],
 			[
-				['top', 'top'],
-				['bottom', 'bottom'],
+				['top', 'top', 'auto', 'auto'],
+				['bottom', 'bottom', 'auto', 'auto'],
 			],
 		])
 	} else {
@@ -34,25 +35,33 @@ export function routeArrowWithAutoEdgePicking(
 			info.A.edges.right.expanded <= info.B.edges.top.crossTarget
 		) {
 			const route = tryRouteArrow(info, 'right', 'top')
-			if (route) return route
+			if (route) {
+				route.aEdgePicking = 'auto'
+				route.bEdgePicking = 'auto'
+				return route
+			}
 		}
 		if (info.midY !== null) {
 			const route = tryRouteArrow(info, 'bottom', 'top')
-			if (route) return route
+			if (route) {
+				route.aEdgePicking = 'auto'
+				route.bEdgePicking = 'auto'
+				return route
+			}
 		}
 		return pickBest(info, [
 			[
-				['bottom', 'left'],
-				['bottom', 'right'],
-				['bottom', 'bottom'],
+				['bottom', 'left', 'auto', 'auto'],
+				['bottom', 'right', 'auto', 'auto'],
+				['bottom', 'bottom', 'auto', 'auto'],
 			],
 			[
-				['left', 'top'],
-				['right', 'top'],
+				['left', 'top', 'auto', 'auto'],
+				['right', 'top', 'auto', 'auto'],
 			],
 			[
-				['right', 'right'],
-				['left', 'left'],
+				['right', 'right', 'auto', 'auto'],
+				['left', 'left', 'auto', 'auto'],
 			],
 		])
 	}
@@ -66,101 +75,101 @@ export function routeArrowWithPartialEdgePicking(
 		case 'top':
 			return pickBest(info, [
 				[
-					['top', 'bottom'],
-					['top', 'right'],
-					['top', 'left'],
-					['top', 'top'],
+					['top', 'bottom', 'manual', 'auto'],
+					['top', 'right', 'manual', 'auto'],
+					['top', 'left', 'manual', 'auto'],
+					['top', 'top', 'manual', 'auto'],
 				],
 				[
-					['left', 'bottom'],
-					['right', 'bottom'],
-					['left', 'left'],
-					['right', 'right'],
-					['left', 'right'],
-					['right', 'left'],
-					['left', 'top'],
-					['right', 'top'],
+					['left', 'bottom', 'fallback', 'auto'],
+					['right', 'bottom', 'fallback', 'auto'],
+					['left', 'left', 'fallback', 'auto'],
+					['right', 'right', 'fallback', 'auto'],
+					['left', 'right', 'fallback', 'auto'],
+					['right', 'left', 'fallback', 'auto'],
+					['left', 'top', 'fallback', 'auto'],
+					['right', 'top', 'fallback', 'auto'],
 				],
 				[
-					['bottom', 'top'],
-					['bottom', 'right'],
-					['bottom', 'left'],
-					['bottom', 'bottom'],
+					['bottom', 'top', 'fallback', 'auto'],
+					['bottom', 'right', 'fallback', 'auto'],
+					['bottom', 'left', 'fallback', 'auto'],
+					['bottom', 'bottom', 'fallback', 'auto'],
 				],
 			])
 		case 'bottom':
 			return pickBest(info, [
 				[
-					['bottom', 'top'],
-					['bottom', 'right'],
-					['bottom', 'left'],
-					['bottom', 'bottom'],
+					['bottom', 'top', 'manual', 'auto'],
+					['bottom', 'right', 'manual', 'auto'],
+					['bottom', 'left', 'manual', 'auto'],
+					['bottom', 'bottom', 'manual', 'auto'],
 				],
 				[
-					['left', 'top'],
-					['right', 'top'],
-					['left', 'left'],
-					['right', 'right'],
-					['left', 'right'],
-					['right', 'left'],
-					['left', 'bottom'],
-					['right', 'bottom'],
+					['left', 'top', 'fallback', 'auto'],
+					['right', 'top', 'fallback', 'auto'],
+					['left', 'left', 'fallback', 'auto'],
+					['right', 'right', 'fallback', 'auto'],
+					['left', 'right', 'fallback', 'auto'],
+					['right', 'left', 'fallback', 'auto'],
+					['left', 'bottom', 'fallback', 'auto'],
+					['right', 'bottom', 'fallback', 'auto'],
 				],
 				[
-					['top', 'bottom'],
-					['top', 'right'],
-					['top', 'left'],
-					['top', 'top'],
+					['top', 'bottom', 'fallback', 'auto'],
+					['top', 'right', 'fallback', 'auto'],
+					['top', 'left', 'fallback', 'auto'],
+					['top', 'top', 'fallback', 'auto'],
 				],
 			])
 		case 'left':
 			return pickBest(info, [
 				[
-					['left', 'right'],
-					['left', 'bottom'],
-					['left', 'top'],
-					['left', 'left'],
+					['left', 'right', 'manual', 'auto'],
+					['left', 'bottom', 'manual', 'auto'],
+					['left', 'top', 'manual', 'auto'],
+					['left', 'left', 'manual', 'auto'],
 				],
 				[
-					['top', 'right'],
-					['bottom', 'right'],
-					['top', 'top'],
-					['bottom', 'bottom'],
-					['top', 'bottom'],
-					['bottom', 'top'],
-					['top', 'left'],
-					['bottom', 'left'],
+					['top', 'right', 'fallback', 'auto'],
+					['bottom', 'right', 'fallback', 'auto'],
+					['top', 'top', 'fallback', 'auto'],
+					['bottom', 'bottom', 'fallback', 'auto'],
+					['top', 'bottom', 'fallback', 'auto'],
+					['bottom', 'top', 'fallback', 'auto'],
+					['top', 'left', 'fallback', 'auto'],
+					['bottom', 'left', 'fallback', 'auto'],
 				],
 				[
-					['right', 'left'],
-					['right', 'top'],
-					['right', 'bottom'],
-					['right', 'right'],
+					['right', 'left', 'fallback', 'auto'],
+					['right', 'top', 'fallback', 'auto'],
+					['right', 'bottom', 'fallback', 'auto'],
+					['right', 'right', 'fallback', 'auto'],
 				],
 			])
 		case 'right':
 			return pickBest(info, [
 				[
-					['right', 'left'],
-					['right', 'top'],
-					['right', 'bottom'],
-					['right', 'right'],
+					['right', 'left', 'manual', 'auto'],
+					['right', 'top', 'manual', 'auto'],
+					['right', 'bottom', 'manual', 'auto'],
+					['right', 'right', 'manual', 'auto'],
 				],
 				[
-					['top', 'left'],
-					['bottom', 'left'],
-					['top', 'top'],
-					['bottom', 'bottom'],
-					['top', 'bottom'],
-					['bottom', 'top'],
-					['top', 'right'],
-					['bottom', 'right'],
+					['top', 'left', 'fallback', 'auto'],
+					['bottom', 'left', 'fallback', 'auto'],
+					['top', 'top', 'fallback', 'auto'],
+					['bottom', 'bottom', 'fallback', 'auto'],
+					['top', 'bottom', 'fallback', 'auto'],
+					['bottom', 'top', 'fallback', 'auto'],
+					['top', 'right', 'fallback', 'auto'],
+					['bottom', 'right', 'fallback', 'auto'],
 				],
 				[
-					['left', 'right'],
-					['left', 'bottom'],
-					['left', 'top'],
-					['left', 'left'],
+					['left', 'right', 'fallback', 'auto'],
+					['left', 'bottom', 'fallback', 'auto'],
+					['left', 'top', 'fallback', 'auto'],
+					['left', 'left', 'fallback', 'auto'],
 				],
 			])
 	}
@@ -181,7 +190,7 @@ export function routeArrowWithPartialEdgePicking(
  */
 function pickBest(
 	info: ElbowArrowInfoWithoutRoute,
-	edgeSets: [ElbowArrowSide, ElbowArrowSide][][]
+	edgeSets: [ElbowArrowSide, ElbowArrowSide, ElbowArrowSideReason, ElbowArrowSideReason][][]
 ) {
 	const isDistance = info.options.shortestArrowMeasure === 'distance'
 	for (const set of edgeSets) {
@@ -192,6 +201,8 @@ function pickBest(
 			bias++
 			const route = tryRouteArrow(info, edges[0], edges[1])
 			if (route) {
+				route.aEdgePicking = edges[2]
+				route.bEdgePicking = edges[3]
 				const length = isDistance ? route.distance : route.points.length
 				if (length + bias < bestLength) {
 					bestLength = length

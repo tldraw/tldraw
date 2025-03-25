@@ -685,8 +685,6 @@ export type TLArrowBinding = TLBaseBinding<'arrow', TLArrowBindingProps>;
 export interface TLArrowBindingProps {
     // (undocumented)
     entrySide: ElbowArrowSide | null;
-    // (undocumented)
-    forceSide: ElbowArrowSide | null;
     isExact: boolean;
     isPrecise: boolean;
     // (undocumented)

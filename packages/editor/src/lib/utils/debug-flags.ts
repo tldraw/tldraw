@@ -33,9 +33,10 @@ export const elbowArrowDebug = createDebugValue<{
 		snapNone: boolean
 		snapAxis: boolean
 	}
-	aSide: ElbowArrowSide | null
-	bSide: ElbowArrowSide | null
+	startSide: ElbowArrowSide | null
+	endSide: ElbowArrowSide | null
 	shortest: 'distance' | 'count'
+	hintRotation: 'target' | 'arrow' | 'page'
 }>('elbowArrowDebug', {
 	defaults: {
 		all: {
@@ -48,9 +49,10 @@ export const elbowArrowDebug = createDebugValue<{
 				snapNone: true,
 				snapAxis: true,
 			},
-			aSide: null,
-			bSide: null,
+			startSide: null,
+			endSide: null,
 			shortest: 'distance',
+			hintRotation: 'arrow',
 		},
 	},
 })
@@ -182,7 +184,9 @@ function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 		})
 	}
 
-	return Object.assign(valueAtom, def)
+	return Object.assign(valueAtom, def, {
+		reset: () => valueAtom.set(defaultValue),
+	})
 }
 
 function getStoredInitialValue(name: string) {
@@ -239,4 +243,6 @@ export interface DebugFlagDef<T> {
 }
 
 /** @internal */
-export type DebugFlag<T> = DebugFlagDef<T> & Atom<T>
+export interface DebugFlag<T> extends DebugFlagDef<T>, Atom<T> {
+	reset(): void
+}

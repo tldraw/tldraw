@@ -1,7 +1,7 @@
 import { Editor, modulate, toDomPrecision, useEditor, useEditorComponents } from '@tldraw/editor'
 import { track, useQuickReactor, useValue } from '@tldraw/state-react'
 import { Fragment, useState } from 'react'
-import { getArrowTargetState } from '../shapes/arrow/arrowTarget'
+import { getArrowTargetState } from '../shapes/arrow/arrowTargetState'
 import { DraggingHandle } from '../tools/SelectTool/childStates/DraggingHandle'
 import { PointingHandle } from '../tools/SelectTool/childStates/PointingHandle'
 

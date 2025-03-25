@@ -1,5 +1,10 @@
 import { assert, ElbowArrowSide, Vec, VecLike } from '@tldraw/editor'
-import { ElbowArrowAxes, ElbowArrowAxis, ElbowArrowSideAxes } from './definitions'
+import {
+	ElbowArrowAxes,
+	ElbowArrowAxis,
+	ElbowArrowSideAxes,
+	ElbowArrowSideReason,
+} from './definitions'
 import { ElbowArrowInfoWithoutRoute } from './getElbowArrowInfo'
 
 // combos:
@@ -54,6 +59,8 @@ class ElbowArrowRouteBuilder {
 			name: this.name,
 			points: this.points,
 			distance: measureRouteManhattanDistance(this.points),
+			aEdgePicking: 'manual',
+			bEdgePicking: 'manual',
 		}
 	}
 }
@@ -63,6 +70,10 @@ export interface ElbowArrowRoute {
 	name: string
 	points: Vec[]
 	distance: number
+	/** @internal */
+	aEdgePicking: ElbowArrowSideReason
+	/** @internal */
+	bEdgePicking: ElbowArrowSideReason
 }
 
 const routes = {

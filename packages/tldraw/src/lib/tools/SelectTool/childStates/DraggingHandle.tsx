@@ -11,7 +11,7 @@ import {
 	sortByIndex,
 	structuredClone,
 } from '@tldraw/editor'
-import { clearArrowTargetState } from '../../../shapes/arrow/arrowTarget'
+import { clearArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import { kickoutOccludedShapes } from '../selectHelpers'
 
