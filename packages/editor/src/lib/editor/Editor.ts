@@ -9929,6 +9929,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							const { x, y } = this.inputs.currentScreenPoint
 							let delta = dz
 
+							// If we're forcing zoom, then we need to do the wheel normalization math here
 							if (wheelBehavior === 'zoom') {
 								if (Math.abs(dy) > 10) {
 									delta = (10 * Math.sign(dy)) / 100
@@ -9938,14 +9939,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 
 							const zoom = cz + (delta ?? 0) * zoomSpeed * cz
-							this._setCamera(
-								new Vec(
-									cx + (x / zoom - x) - (x / cz - x),
-									cy + (y / zoom - y) - (y / cz - y),
-									zoom
-								),
-								{ immediate: true }
-							)
+							this._setCamera(new Vec(cx + x / zoom - x / cz, cy + y / zoom - y / cz, zoom), {
+								immediate: true,
+							})
 							this.maybeTrackPerformance('Zooming')
 							return
 						}
