@@ -103,14 +103,19 @@ function SearchInput() {
 	const comboboxRef = createRef<HTMLInputElement>()
 	const router = useRouter()
 	const searchParams = useSearchParams()
+
+	const updateUrl = useCallback(() => {
+		const indexParam = searchParams.get('index') === 'blog' ? 'index=blog&' : ''
+		const queryParam = comboboxRef.current?.value || ''
+		router.push(`/search?${indexParam}query=${encodeURIComponent(queryParam.trim())}`)
+	}, [router, searchParams, comboboxRef])
+
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLInputElement>) => {
 			if (e.key !== 'Enter') return
-			const indexQuery = searchParams.get('index') === 'blog' ? 'index=blog&' : ''
-			const query = comboboxRef.current?.value || ''
-			router.push(`/search?${indexQuery}query=${encodeURIComponent(query.trim())}`)
+			updateUrl()
 		},
-		[router, searchParams, comboboxRef]
+		[updateUrl]
 	)
 
 	useEffect(() => {
@@ -126,8 +131,8 @@ function SearchInput() {
 	}, [comboboxRef])
 
 	return (
-		<div className="md:sticky bg-white dark:bg-zinc-950 w-full md:top-16 flex items-center z-20 md:pb-4 border-b border-zinc-200 dark:border-zinc-800">
-			<div className="flex h-10 grow items-center gap-3 bg-zinc-50 dark:bg-zinc-900 rounded-lg px-4">
+		<div className="md:sticky bg-white dark:bg-zinc-950 w-full md:top-4 flex items-center z-20 md:pb-4">
+			<div className="flex h-10 grow items-center gap-3 bg-zinc-50 dark:bg-zinc-900 rounded-lg px-4 focus-within:ring-blue-500 focus-within:ring-2 min-w-full">
 				<MagnifyingGlassIcon className="h-4 shrink-0 text-black dark:text-white" />
 				<Combobox
 					ref={comboboxRef}
@@ -182,7 +187,7 @@ function Results({ items, sendEvent }: { items: Hit<SearchEntry>[]; sendEvent: S
 	})
 
 	return items.length === 0 ? (
-		<div className="sticky top-32 text-center py-8 text-zinc-400 dark:text-zinc-600">
+		<div className="sticky top-[4.5rem] text-center py-8 text-zinc-400 dark:text-zinc-600">
 			No results found.
 		</div>
 	) : (
