@@ -2102,12 +2102,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setRichTextEditor(textEditor: TiptapEditor | null) {
-		// If the new editor is different from the current one, destroy the current one
-		const current = this._currentRichTextEditor.__unsafe__getWithoutCapture()
-		if (current !== textEditor) {
-			current?.destroy()
-		}
-
 		this._currentRichTextEditor.set(textEditor)
 		return this
 	}
@@ -8145,8 +8139,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!currentTool) return styles
 
 		if (currentTool.shapeType) {
-			for (const style of this.styleProps[currentTool.shapeType].keys()) {
-				styles.applyValue(style, this.getStyleForNextShape(style))
+			if (
+				currentTool.shapeType === 'frame' &&
+				!(this.getShapeUtil('frame')!.options as any).showColors
+			) {
+				for (const style of this.styleProps[currentTool.shapeType].keys()) {
+					if (style.id === 'tldraw:color') continue
+					styles.applyValue(style, this.getStyleForNextShape(style))
+				}
+			} else {
+				for (const style of this.styleProps[currentTool.shapeType].keys()) {
+					styles.applyValue(style, this.getStyleForNextShape(style))
+				}
 			}
 		}
 

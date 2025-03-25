@@ -71,8 +71,9 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 }: RichTextLabelProps) {
 	const editor = useEditor()
 	const isDragging = React.useRef(false)
-	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } =
+	const { rInput, isEmpty, isEditing, isReadyForEditing, ...editableTextRest } =
 		useEditableRichText(shapeId, type, richText)
+
 	const html = useMemo(() => {
 		if (richText) {
 			return renderHtmlFromRichText(editor, richText)
@@ -117,9 +118,8 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		}
 	}
 
-	if (!isEditing && isEmpty) {
-		return null
-	}
+	// Should be guarded higher up so that this doesn't render... but repeated here. This should never be true.
+	if (!isEditing && isEmpty) return null
 
 	// TODO: probably combine tl-text and tl-arrow eventually
 	const cssPrefix = classNamePrefix || 'tl-text'
@@ -130,7 +130,6 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 			data-align={align}
 			data-hastext={!isEmpty}
 			data-isediting={isEditing}
-			data-iseditinganything={isEditingAnything}
 			data-textwrap={!!wrap}
 			data-isselected={isSelected}
 			style={{
@@ -160,12 +159,11 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 							// todo: see if I can abuse this
 							dangerouslySetInnerHTML={{ __html: html || '' }}
 							onPointerDown={handlePointerDown}
-							data-iseditinganything={isEditingAnything}
+							data-is-ready-for-editing={isReadyForEditing}
 						/>
 					)}
 				</div>
-				{/* todo: it might be okay to have just isEditing here */}
-				{(isEditingAnything || isSelected) && (
+				{(isReadyForEditing || isSelected) && (
 					<RichTextArea
 						// Fudge the ref type because we're using forwardRef and it's not typed correctly.
 						ref={rInput as any}
