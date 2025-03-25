@@ -4287,7 +4287,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _shapeGeometryCaches: Record<string, ComputedCache<Geometry2d, TLShape>> = {}
 
 	/**
-	 * Get the geometry of a shape.
+	 * Get the geometry of a shape in shape-space.
 	 *
 	 * @example
 	 * ```ts
@@ -4314,6 +4314,44 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		}
 		return this._shapeGeometryCaches[context].get(
+			typeof shape === 'string' ? shape : shape.id
+		)! as T
+	}
+
+	private _shapePageGeometryCaches: Record<string, ComputedCache<Geometry2d, TLShape>> = {}
+
+	/**
+	 * Get the geometry of a shape in page-space.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getShapePageGeometry(myShape)
+	 * editor.getShapePageGeometry(myShapeId)
+	 * editor.getShapePageGeometry(myShapeId, { context: "arrow" })
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to get the geometry for.
+	 * @param opts - Additional options about the request for geometry. Passed to {@link ShapeUtil.getGeometry}.
+	 *
+	 * @public
+	 */
+	getShapePageGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T {
+		const context = opts?.context ?? 'none'
+		if (!this._shapePageGeometryCaches[context]) {
+			this._shapePageGeometryCaches[context] = this.store.createComputedCache(
+				'bounds',
+				(shape) => {
+					const geometry = this.getShapeGeometry(shape.id, opts)
+					const pageTransform = this.getShapePageTransform(shape.id)
+					return geometry.transform(pageTransform)
+				},
+				{
+					// we only depend directly on the shape id, and changing geometry/transform will update us anyway
+					areRecordsEqual: () => true,
+				}
+			)
+		}
+		return this._shapePageGeometryCaches[context].get(
 			typeof shape === 'string' ? shape : shape.id
 		)! as T
 	}
@@ -4424,15 +4462,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	@computed private _getShapePageBoundsCache(): ComputedCache<Box, TLShape> {
 		return this.store.createComputedCache<Box, TLShape>('pageBoundsCache', (shape) => {
-			const pageTransform = this._getShapePageTransformCache().get(shape.id)
-
-			if (!pageTransform) return new Box()
-
-			const result = Box.FromPoints(
-				Mat.applyToPoints(pageTransform, this.getShapeGeometry(shape).vertices)
-			)
-
-			return result
+			return this.getShapePageGeometry(shape).bounds
 		})
 	}
 
@@ -4506,11 +4536,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (frameAncestors.length === 0) return undefined
 
 			const pageMask = frameAncestors
-				.map<Vec[] | undefined>((s) =>
-					// Apply the frame transform to the frame outline to get the frame outline in the current page space
-					this._getShapePageTransformCache()
-						.get(s.id)!
-						.applyToPoints(this.getShapeGeometry(s).vertices)
+				.map<Vec[] | undefined>(
+					(s) =>
+						// Apply the frame transform to the frame outline to get the frame outline in the current page space
+						this.getShapePageGeometry(s.id).vertices
 				)
 				.reduce((acc, b) => {
 					if (!(b && acc)) return undefined
