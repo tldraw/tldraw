@@ -635,7 +635,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	async admin_forceHardReboot(userId: string) {
 		if (this.cache) {
-			await this.cache?.reboot({ hard: true, delay: false })
+			await this.cache?.reboot({ hard: true, delay: false, source: 'admin' })
 		} else {
 			await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		}
