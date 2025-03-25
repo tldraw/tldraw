@@ -19,7 +19,7 @@ interface AutocompleteProps {
 	sendEvent: SendEventForHits
 }
 
-export default function SearchAutocomplete({
+export default function SearchDialog({
 	items,
 	onInputChange,
 	onChange,
@@ -57,7 +57,7 @@ export default function SearchAutocomplete({
 					'bg-white/90 dark:bg-zinc-950/90 pointer-events-none'
 				)}
 			>
-				<SearchDialog onOpenChange={handleOpenChange}>
+				<SearchDialogWrapper onOpenChange={handleOpenChange}>
 					<div className="w-full max-w-3xl mx-auto px-5 lg:px-12 pt-[4.5rem]">
 						<div
 							className={twJoin(
@@ -69,7 +69,7 @@ export default function SearchAutocomplete({
 							<Results items={items} sendEvent={sendEvent} />
 						</div>
 					</div>
-				</SearchDialog>
+				</SearchDialogWrapper>
 			</div>
 		</ComboboxProvider>
 	)
@@ -153,7 +153,7 @@ function Results({ items, sendEvent }: { items: Hit<SearchEntry>[]; sendEvent: S
 	)
 }
 
-function SearchDialog({
+function SearchDialogWrapper({
 	children,
 	onOpenChange,
 }: {
