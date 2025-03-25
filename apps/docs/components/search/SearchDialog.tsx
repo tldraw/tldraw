@@ -120,7 +120,8 @@ function Results({ items, sendEvent }: { items: Hit<SearchEntry>[]; sendEvent: S
 						'[&_mark]:bg-transparent [&_mark]:font-bold',
 						'[&_mark]:text-black [&_mark]:data-[active-item=true]:text-white',
 						'dark:[&_mark]:text-white',
-						'[&_.ais-Highlight-nonHighlighted]:data-[active-item=true]:text-white'
+						'[&_.ais-Highlight-nonHighlighted]:data-[active-item=true]:text-white',
+						'hover:bg-zinc-200 dark:hover:bg-zinc-700'
 					)}
 					value={href}
 					onKeyDown={(e) => {
