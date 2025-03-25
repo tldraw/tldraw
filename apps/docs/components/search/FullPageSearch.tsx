@@ -131,7 +131,7 @@ function SearchInput() {
 	}, [comboboxRef])
 
 	return (
-		<div className="sticky border-b border-zinc-100 dark:border-zinc-800 bg-white w-full top-[4.5rem] h-12 flex items-center  z-20">
+		<div className="md:sticky border-b border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 w-full md:top-[4.5rem] h-12 flex items-center z-20">
 			<div className="flex h-full grow items-center gap-3 bg-zinc-50 dark:bg-zinc-900 rounded-t-lg px-4">
 				<MagnifyingGlassIcon className="h-4 shrink-0" />
 				<Combobox
