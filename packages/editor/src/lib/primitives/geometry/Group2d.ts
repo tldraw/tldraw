@@ -1,5 +1,4 @@
 import { Box } from '../Box'
-import { Mat } from '../Mat'
 import { Vec, VecLike } from '../Vec'
 import { Geometry2d, Geometry2dFilters, Geometry2dOptions } from './Geometry2d'
 
@@ -92,15 +91,6 @@ export class Group2d extends Geometry2d {
 			if (child.isExcludedByFilter(filters)) continue
 			yield* child.intersectLineSegment(A, B, filters)
 		}
-	}
-
-	override transform(transform: Mat): Geometry2d {
-		return new Group2d({
-			children: this.children.map((c) => c.transform(transform)),
-			isLabel: this.isLabel,
-			debugColor: this.debugColor,
-			ignore: this.ignore,
-		})
 	}
 
 	getArea() {

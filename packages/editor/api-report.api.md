@@ -1774,7 +1774,7 @@ export abstract class Geometry2d {
     // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
-    transform(transform: Mat): Geometry2d;
+    transform(transform: MatModel): Geometry2d;
     // (undocumented)
     get vertices(): Vec[];
 }
@@ -1925,8 +1925,6 @@ export class Group2d extends Geometry2d {
     nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec;
     // (undocumented)
     toSimpleSvgPath(): string;
-    // (undocumented)
-    transform(transform: Mat): Geometry2d;
 }
 
 // @public (undocumented)
@@ -2274,9 +2272,9 @@ export class Mat {
     // (undocumented)
     rotation(): number;
     // (undocumented)
-    static Scale(x: number, y: number): MatModel;
+    static Scale(x: number, y: number): Mat;
     // (undocumented)
-    static Scale(x: number, y: number, cx: number, cy: number): MatModel;
+    static Scale(x: number, y: number, cx: number, cy: number): Mat;
     // (undocumented)
     scale(x: number, y: number): this;
     // (undocumented)
@@ -4292,6 +4290,21 @@ export { track }
 export { transact }
 
 export { transaction }
+
+// @public (undocumented)
+export class TransformedGeometry2d extends Geometry2d {
+    constructor(geometry: Geometry2d, matrix: MatModel);
+    // (undocumented)
+    getSvgPathData(): string;
+    // (undocumented)
+    getVertices(filters: Geometry2dFilters): Vec[];
+    // (undocumented)
+    hitTestPoint(point: Vec, margin?: number, hitInside?: boolean, filters?: Geometry2dFilters): boolean;
+    // (undocumented)
+    nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec;
+    // (undocumented)
+    transform(transform: MatModel): Geometry2d;
+}
 
 // @public (undocumented)
 export type UiEvent = TLCancelEvent | TLClickEvent | TLCompleteEvent | TLKeyboardEvent | TLPinchEvent | TLPointerEvent;
