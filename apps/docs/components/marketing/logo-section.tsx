@@ -14,9 +14,6 @@ export function LogoSection() {
 						<MaskedLogo key={index} src={src} url={url} alt={alt} small />
 					))}
 				</div>
-				<h2 className="text-center text-sm mt-8">
-					The best product teams build their canvas with tldraw.
-				</h2>
 			</section>
 			<section className="flex sm:hidden w-full max-w-screen-xl mx-auto px-2 pt-4 flex-col items-center text-[#000] dark:text-[#fff]">
 				<div className="w-full flex flex-wrap items-center justify-center lg:justify-center gap-0">
@@ -28,9 +25,6 @@ export function LogoSection() {
 						</>
 					))}
 				</div>
-				<h2 className="text-center text-sm mt-8">
-					The best product teams trust their canvas with tldraw.
-				</h2>
 			</section>
 		</>
 	)

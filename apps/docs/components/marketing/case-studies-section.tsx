@@ -20,8 +20,8 @@ export function CaseStudiesSection() {
 		<Section>
 			<SectionHeading
 				subheading="Case Studies"
-				heading="Used by the best"
-				description="Great products choose tldraw for whiteboards, design tools, image annotation, generative content, and more."
+				heading="Made with tldraw"
+				description="Great products choose tldraw to build whiteboards, design tools, education apps, and more."
 			/>
 			<div className="grid grid-cols-6 gap-x-8 gap-y-12 md:gap-y-8">
 				{caseStudies.map(({ logo, screenshot, name, url }, index) => (

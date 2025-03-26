@@ -1,4 +1,5 @@
 import { NewsletterSignup } from '@/components/common/newsletter-signup'
+import { CaseStudiesSection } from '@/components/marketing/case-studies-section'
 import { CTASection } from '@/components/marketing/cta-section'
 import { DetailsSection } from '@/components/marketing/details-section'
 import { FAQSection } from '@/components/marketing/faq-section'
@@ -8,20 +9,18 @@ import { InstallationSection } from '@/components/marketing/installation-section
 import { LogoSection } from '@/components/marketing/logo-section'
 import { PricingSection } from '@/components/marketing/pricing-section'
 import { TestimonialsSection } from '@/components/marketing/testimonials-section'
-import { WatermarkSection } from '@/components/marketing/watermark-section'
 
 export default function Page() {
 	return (
 		<>
 			<HeroSection />
 			<LogoSection />
-			<PricingSection />
 			<InstallationSection />
 			<FeaturesSection />
 			<DetailsSection />
 			{/* <CustomizationSection /> */}
-			{/* <CaseStudiesSection /> */}
-			<WatermarkSection />
+			{/* <WatermarkSection /> */}
+			<CaseStudiesSection />
 			<PricingSection />
 			<TestimonialsSection />
 			<FAQSection />
