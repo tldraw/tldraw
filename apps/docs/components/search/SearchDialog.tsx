@@ -80,8 +80,8 @@ function SearchInput({ value }: { value: string }) {
 	const pathName = usePathname()
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key !== 'Enter') return
-		const indexQuery = pathName.startsWith('/blog') ? 'index=blog&' : ''
-		router.push(`/search?${indexQuery}query=${encodeURIComponent(value.trim())}`)
+		const searchPath = pathName.startsWith('/blog') ? '/search/blog' : '/search'
+		router.push(`${searchPath}?query=${encodeURIComponent(value.trim())}`)
 	}
 	return (
 		<div className="w-full h-10 flex items-center px-4">

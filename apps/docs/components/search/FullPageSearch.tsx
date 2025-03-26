@@ -6,7 +6,7 @@ import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import { Hit } from 'instantsearch.js'
 import { SendEventForHits } from 'instantsearch.js/es/lib/utils'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createRef, Fragment, useCallback, useEffect, useState } from 'react'
 import { Configure, Highlight, useHits, useSearchBox } from 'react-instantsearch'
 import { InstantSearchNext } from 'react-instantsearch-nextjs'
@@ -14,12 +14,7 @@ import { twJoin } from 'tailwind-merge'
 import { debounce } from 'tldraw'
 import { ContentHighlight } from './ContentHighlight'
 
-export function FullPageSearch() {
-	const searchParams = useSearchParams()
-	const indexName = searchParams.get('index') || 'docs'
-	if (indexName !== 'docs' && indexName !== 'blog') {
-		throw new Error(`Invalid search index name: ${indexName}`)
-	}
+export function FullPageSearch({ indexName }: { indexName: 'docs' | 'blog' }) {
 	return (
 		<InstantSearchNext
 			indexName={getSearchIndexName(indexName)}
@@ -28,12 +23,12 @@ export function FullPageSearch() {
 			future={{ preserveSharedStateOnUnmount: true }}
 		>
 			<Configure distinct={4} hitsPerPage={40} />
-			<InstantSearchInner />
+			<InstantSearchInner indexName={indexName} />
 		</InstantSearchNext>
 	)
 }
 
-function InstantSearchInner() {
+function InstantSearchInner({ indexName }: { indexName: 'docs' | 'blog' }) {
 	const { items, sendEvent } = useHits<SearchEntry>()
 	const { refine } = useSearchBox()
 	const router = useRouter()
@@ -61,6 +56,7 @@ function InstantSearchInner() {
 				onChange={handleChange}
 				sendEvent={sendEvent}
 				defaultValue={urlQuery}
+				indexName={indexName}
 			/>
 		)
 	)
@@ -72,6 +68,7 @@ interface AutocompleteProps {
 	onInputChange(value: string): void
 	defaultValue: string
 	sendEvent: SendEventForHits
+	indexName: 'docs' | 'blog'
 }
 
 function SearchAutocomplete({
@@ -80,6 +77,7 @@ function SearchAutocomplete({
 	onInputChange,
 	onChange,
 	sendEvent,
+	indexName,
 }: AutocompleteProps) {
 	return (
 		<ComboboxProvider<string>
@@ -91,7 +89,7 @@ function SearchAutocomplete({
 		>
 			<div className="w-full mb-12 h-full">
 				<div className="pointer-events-auto min-h-full">
-					<SearchInput />
+					<SearchInput indexName={indexName} />
 					<Results items={items} sendEvent={sendEvent} />
 				</div>
 			</div>
@@ -99,16 +97,16 @@ function SearchAutocomplete({
 	)
 }
 
-function SearchInput() {
+function SearchInput({ indexName }: { indexName: 'docs' | 'blog' }) {
 	const comboboxRef = createRef<HTMLInputElement>()
 	const router = useRouter()
-	const searchParams = useSearchParams()
+	const pathname = usePathname()
+	const capitalizedIndexName = indexName.charAt(0).toUpperCase() + indexName.slice(1)
 
 	const updateUrl = useCallback(() => {
-		const indexParam = searchParams.get('index') === 'blog' ? 'index=blog&' : ''
 		const queryParam = comboboxRef.current?.value || ''
-		router.push(`/search?${indexParam}query=${encodeURIComponent(queryParam.trim())}`)
-	}, [router, searchParams, comboboxRef])
+		router.push(`${pathname}?query=${encodeURIComponent(queryParam.trim())}`)
+	}, [comboboxRef, router, pathname])
 
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -137,7 +135,7 @@ function SearchInput() {
 				<Combobox
 					ref={comboboxRef}
 					className="h-full w-full mr-4 focus:outline-none text-black dark:text-white bg-transparent"
-					placeholder="Search..."
+					placeholder={`Search ${capitalizedIndexName}...`}
 					onKeyDown={handleKeyDown}
 				/>
 			</div>

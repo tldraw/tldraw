@@ -8,7 +8,7 @@ import { SocialLink } from '@/components/navigation/social-link'
 import { SearchButton } from '@/components/search/SearchButton'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import Link from 'next/link'
-import { ReadonlyURLSearchParams, usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { Suspense } from 'react'
 import { ThemeSwitch } from '../common/theme-switch'
 
@@ -18,27 +18,22 @@ const mainLinks = [
 	{
 		caption: 'Docs',
 		href: '/quick-start',
-		active: (pathname: string, searchParams?: ReadonlyURLSearchParams) => {
-			return (
-				[
-					'/quick-start',
-					'/installation',
-					'/releases',
-					'/docs',
-					'/community',
-					'/reference',
-					'/examples',
-				].some((e) => pathname.startsWith(e)) ||
-				(pathname.startsWith('/search') && (searchParams?.get('index') || 'docs') === 'docs')
-			)
-		},
+		active: (pathname: string) =>
+			[
+				'/quick-start',
+				'/installation',
+				'/releases',
+				'/docs',
+				'/community',
+				'/reference',
+				'/examples',
+				'/search',
+			].some((e) => pathname.startsWith(e)) && !pathname.startsWith('/search/blog'),
 	},
 	{
 		caption: 'Blog',
 		href: '/blog',
-		active: (pathname: string, searchParams?: ReadonlyURLSearchParams) =>
-			pathname.startsWith('/blog') ||
-			(pathname.startsWith('/search') && searchParams?.get('index') === 'blog'),
+		active: (pathname: string) => ['/blog', '/search/blog'].some((e) => pathname.startsWith(e)),
 	},
 ]
 
@@ -62,7 +57,6 @@ const socialLinks = [
 
 export function Header() {
 	const pathname = usePathname()
-	const searchParams = useSearchParams()
 	const { scrollY } = useScroll()
 	const navOpacity = useTransform(scrollY, [0, 32], [1, 0])
 	const opacityEffect = pathname !== '/'
@@ -77,7 +71,7 @@ export function Header() {
 				<ul className="hidden sm:flex md:hidden gap-8">
 					{mainLinks.map((item, index) => (
 						<li key={index}>
-							<NavigationLink {...item} active={item.active(pathname, searchParams)} />
+							<NavigationLink {...item} active={item.active(pathname)} />
 						</li>
 					))}
 				</ul>
@@ -87,7 +81,7 @@ export function Header() {
 				>
 					{mainLinks.map((item, index) => (
 						<li key={index}>
-							<NavigationLink {...item} active={item.active(pathname, searchParams)} />
+							<NavigationLink {...item} active={item.active(pathname)} />
 						</li>
 					))}
 				</motion.ul>
