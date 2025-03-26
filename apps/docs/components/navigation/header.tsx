@@ -89,7 +89,7 @@ export function Header() {
 					className="hidden sm:flex w-28 gap-4 justify-end xl:!opacity-100"
 				>
 					{socialLinks.map((item, index) => (
-						<li key={index} className="">
+						<li key={index}>
 							<SocialLink {...item} />
 						</li>
 					))}
