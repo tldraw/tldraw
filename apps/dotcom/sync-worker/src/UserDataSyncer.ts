@@ -109,7 +109,7 @@ function migrateStateSnapshot(snapshot: StateSnapshot): void {
 }
 
 const MUTATION_COMMIT_TIMEOUT = 10_000
-export const LSN_COMMIT_TIMEOUT = 120_000
+export const LSN_COMMIT_TIMEOUT = 10_000
 
 export class UserDataSyncer {
 	state: BootState = {

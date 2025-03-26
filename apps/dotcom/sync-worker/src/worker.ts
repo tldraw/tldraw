@@ -158,6 +158,10 @@ const router = createRouter<Environment>()
 			return new Response('Error', { status: 500 })
 		}
 	})
+	.get('/replicator-version', async (_, env) => {
+		const res = await getReplicator(env).ping()
+		return json({ versionId: res.versionId })
+	})
 	.all('*', notFound)
 
 export default class Worker extends WorkerEntrypoint<Environment> {
