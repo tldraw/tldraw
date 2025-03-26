@@ -360,7 +360,12 @@ export { CubicBezier2d } from './lib/primitives/geometry/CubicBezier2d'
 export { CubicSpline2d } from './lib/primitives/geometry/CubicSpline2d'
 export { Edge2d } from './lib/primitives/geometry/Edge2d'
 export { Ellipse2d } from './lib/primitives/geometry/Ellipse2d'
-export { Geometry2d, type Geometry2dOptions } from './lib/primitives/geometry/Geometry2d'
+export {
+	Geometry2d,
+	Geometry2dFilters,
+	TransformedGeometry2d,
+	type Geometry2dOptions,
+} from './lib/primitives/geometry/Geometry2d'
 export { Group2d } from './lib/primitives/geometry/Group2d'
 export { Point2d } from './lib/primitives/geometry/Point2d'
 export { Polygon2d } from './lib/primitives/geometry/Polygon2d'

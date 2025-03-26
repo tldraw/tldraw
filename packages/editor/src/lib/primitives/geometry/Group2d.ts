@@ -81,7 +81,12 @@ export class Group2d extends Geometry2d {
 			.find((c) => c.hitTestPoint(point, margin, hitInside))
 	}
 
-	override hitTestLineSegment(A: Vec, B: Vec, zoom: number, filters?: Geometry2dFilters): boolean {
+	override hitTestLineSegment(
+		A: Vec,
+		B: Vec,
+		zoom: number,
+		filters = Geometry2dFilters.EXCLUDE_LABELS
+	): boolean {
 		return !!this.children
 			.filter((c) => !c.isExcludedByFilter(filters))
 			.find((c) => c.hitTestLineSegment(A, B, zoom))
