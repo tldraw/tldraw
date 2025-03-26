@@ -124,6 +124,7 @@ import { TLShapePartial } from '@tldraw/editor';
 import { TLShapeUtilCanBeLaidOutOpts } from '@tldraw/editor';
 import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
+import { TLShapeUtilConstructor } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
@@ -1290,6 +1291,11 @@ export const FONT_FAMILIES: Record<TLDefaultFontStyle, string>;
 export const FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public (undocumented)
+export interface FrameShapeOptions {
+    showColors: boolean;
+}
+
+// @public (undocumented)
 export class FrameShapeTool extends BaseBoxShapeTool {
     // (undocumented)
     static id: string;
@@ -1312,6 +1318,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     component(shape: TLFrameShape): JSX_2.Element;
     // (undocumented)
+    static configure<T extends TLShapeUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
+        options: infer Options;
+    } ? Partial<Options> : never): T;
+    // (undocumented)
     getDefaultProps(): TLFrameShape['props'];
     // (undocumented)
     getGeometry(shape: TLFrameShape): Geometry2d;
@@ -1329,6 +1339,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     onDragShapesOver(frame: TLFrameShape, shapes: TLShape[]): void;
     // (undocumented)
     onResize(shape: any, info: TLResizeInfo<any>): any;
+    // (undocumented)
+    options: FrameShapeOptions;
     // (undocumented)
     static props: RecordProps<TLFrameShape>;
     // (undocumented)
@@ -4393,8 +4405,8 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
     handleInputPointerDown: (e: React_3.PointerEvent<Element>) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
     isEditing: boolean;
-    isEditingAnything: boolean;
     isEmpty: boolean;
+    isReadyForEditing: boolean;
     rInput: React_3.RefObject<HTMLTextAreaElement>;
 };
 
@@ -4409,8 +4421,8 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
     handleInputPointerDown: (e: PointerEvent_2<Element>) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
     isEditing: boolean;
-    isEditingAnything: boolean;
     isEmpty: boolean | undefined;
+    isReadyForEditing: boolean;
     rInput: RefObject<HTMLDivElement>;
 };
 

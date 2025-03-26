@@ -128,6 +128,6 @@ export class Group2d extends Geometry2d {
 	}
 
 	getSvgPathData(): string {
-		return this.children.map((c, i) => (c.isLabel ? '' : c.getSvgPathData(i === 0))).join(' ')
+		return this.children.map((c) => (c.isLabel ? '' : c.getSvgPathData(true))).join(' ')
 	}
 }

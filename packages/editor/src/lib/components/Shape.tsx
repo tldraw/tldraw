@@ -44,10 +44,10 @@ export const Shape = memo(function Shape({
 
 	useEffect(() => {
 		return react('load fonts', () => {
-			const fonts = editor.fonts.getShapeFontFaces(shape)
+			const fonts = editor.fonts.getShapeFontFaces(id)
 			editor.fonts.requestFonts(fonts)
 		})
-	}, [editor, shape])
+	}, [editor, id])
 
 	const memoizedStuffRef = useRef({
 		transform: '',
