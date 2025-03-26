@@ -1,6 +1,7 @@
 /* eslint-disable */
 /// <reference path="./.sst/platform/config.d.ts" />
 import { execSync } from 'child_process'
+import { writeFileSync } from 'fs'
 
 export default $config({
 	app(input) {
@@ -10,6 +11,9 @@ export default $config({
 			home: 'aws',
 			region: process.env.AWS_REGION || 'eu-north-1',
 			providers: {
+				aws: {
+					profile: 'preview',
+				},
 				command: true,
 			},
 		}
@@ -17,6 +21,8 @@ export default $config({
 	async run() {
 		const zeroVersion = execSync('npm list @rocicorp/zero | grep @rocicorp/zero | cut -f 3 -d @')
 			.toString()
+			.trim()
+			.split('\n')[0]
 			.trim()
 
 		// S3 Bucket
@@ -47,6 +53,7 @@ export default $config({
 			ZERO_CVR_MAX_CONNS: '10',
 			ZERO_UPSTREAM_MAX_CONNS: '10',
 		}
+		writeFileSync('blah.env', JSON.stringify(commonEnv, null, 2))
 
 		// Replication Manager Service
 		const replicationManager = cluster.addService(`replication-manager`, {
@@ -146,7 +153,7 @@ export default $config({
 		new command.local.Command(
 			'zero-deploy-permissions',
 			{
-				create: `npx zero-deploy-permissions -p ../../src/schema.ts`,
+				create: `npx zero-deploy-permissions -p ../../apps/dotcom/zero-cache/.schema.js`,
 				// Run the Command on every deploy ...
 				triggers: [Date.now()],
 				environment: {
