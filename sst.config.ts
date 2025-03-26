@@ -40,7 +40,7 @@ export default $config({
 			ZERO_UPSTREAM_DB: conn.value,
 			ZERO_CVR_DB: conn.value,
 			ZERO_CHANGE_DB: conn.value,
-			ZERO_AUTH_SECRET: zeroAuthSecret.value,
+			ZERO_AUTH_JWKS_URL: zeroAuthSecret.value,
 			ZERO_REPLICA_FILE: 'sync-replica.db',
 			ZERO_LITESTREAM_BACKUP_URL: $interpolate`s3://${replicationBucket.name}/backup`,
 			ZERO_IMAGE_URL: `rocicorp/zero:${zeroVersion}`,
