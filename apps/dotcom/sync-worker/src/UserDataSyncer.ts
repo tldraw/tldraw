@@ -109,7 +109,7 @@ function migrateStateSnapshot(snapshot: StateSnapshot): void {
 }
 
 const MUTATION_COMMIT_TIMEOUT = 10_000
-export const LSN_COMMIT_TIMEOUT = 120_000
+export const LSN_COMMIT_TIMEOUT = 10_000
 
 export class UserDataSyncer {
 	state: BootState = {
@@ -145,7 +145,10 @@ export class UserDataSyncer {
 	) {
 		this.sentry = createSentry(ctx, env)
 		this.reboot({ delay: false, mode: 'soft', source: 'constructor' })
-		getReplicator(env).ping()
+
+		if (env.TLDRAW_ENV === 'development') {
+			getReplicator(env).ping()
+		}
 
 		const persist = throttle(
 			async () => {
@@ -354,12 +357,14 @@ export class UserDataSyncer {
 			if (res.type === 'postgres') {
 				// if we reset from postgres we have the latest data and optimistic updates
 				// can all be cleared.
+				this.log.debug('clearing optimistic updates')
 				this.commitMutations(+Infinity)
 			}
 
 			// We can skip registerUser if we're in soft mode (on DO launch), and if the snapshot that
 			// we loaded was made recently enough that the replicator won't have pruned us yet.
 			if (mode === 'soft' && Date.now() - res.data.timestamp < LSN_COMMIT_TIMEOUT * 2) {
+				this.log.debug('no need to register user')
 				this._completeBoot({
 					bufferedEvents: this.state.bufferedEvents,
 					sequenceId: res.data.sequenceId,
@@ -374,6 +379,7 @@ export class UserDataSyncer {
 
 		const guestFileIds = initialData.files.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
 		const bootId = uniqueId()
+		this.log.debug('registering user', this.userId, guestFileIds, bootId)
 		const res = await getReplicator(this.env).registerUser({
 			userId: this.userId,
 			lsn: initialData.lsn,

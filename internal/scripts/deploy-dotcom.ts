@@ -265,7 +265,7 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 		},
 	})
-	await wranglerDeploy({
+	const { versionId } = await wranglerDeploy({
 		location: worker,
 		dryRun,
 		env: env.TLDRAW_ENV,
@@ -290,6 +290,25 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			environment: workerId,
 		},
 	})
+
+	if (!dryRun) {
+		let safety = 0
+		while (true) {
+			safety++
+			if (safety > 10) {
+				throw new Error('Could not get version ID from multiplayer server')
+			}
+			await new Promise((r) => setTimeout(r, 1000))
+
+			const res = await fetch(`${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/replicator-version`)
+			if (!res.ok) continue
+
+			const json = await res.json()
+			if (json.versionId === versionId) {
+				break
+			}
+		}
+	}
 }
 
 let didUpdateImageResizeWorker = false

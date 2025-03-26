@@ -763,7 +763,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	async ping() {
 		this.log.debug('ping')
-		return { sequenceId: this.slotName }
+		return { sequenceId: this.slotName, versionId: this.env.CF_VERSION_METADATA.id }
 	}
 
 	private async _messageUser(userId: string, event: ZReplicationEventWithoutSequenceInfo) {
@@ -791,16 +791,11 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			await q.push(async () => {
 				const user = getUserDurableObject(this.env, userId)
 
-				const res = await user.handleReplicationEvent({
+				await user.handleReplicationEvent({
 					...event,
 					sequenceNumber,
 					sequenceId: this.slotName + sequenceIdSuffix,
 				})
-				if (res === 'unregister') {
-					this.log.debug('unregistering user', userId, event)
-					this.unregisterUser(userId)
-					this.reportActiveUsers()
-				}
 			})
 		} catch (e) {
 			this.captureException(e)
