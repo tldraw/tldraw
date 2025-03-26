@@ -2,17 +2,16 @@ import { Button } from '@/components/common/button'
 import { Demo } from '@/components/marketing/demo'
 import { ArrowRightIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
-import { ArrowDown } from './arrow-down'
 
 export function HeroSection() {
 	return (
-		<section className="max-w-screen-xl w-full mx-auto md:px-5 flex flex-col items-center my-8">
+		<section className="max-w-screen-xl w-full mx-auto my-[64px] sm:my-[128px] md:px-5 flex flex-col items-center">
 			<div className="relative max-w-[100%] lg:max-w-[80%]">
 				<h1 className="hidden sm:block relative text-center font-black text-black dark:text-white text-balance leading-tight text-4xl md:text-5xl md:leading-tight px-[8px] pt-12 pb-0">
 					Build <mark>perfect</mark> whiteboards in React with the{' '}
 					<span className="whitespace-nowrap">tldraw SDK</span>
 				</h1>
-				<h1 className="block text-center text-balance sm:hidden relative font-black text-black dark:text-white text-center text-4xl leading-tight px-[8px] pt-12 pb-6">
+				<h1 className="block text-center text-balance sm:hidden relative font-black text-black dark:text-white text-center text-3xl leading-tight px-[8px] pt-12 pb-6">
 					Build <mark>perfect</mark>
 					<br />
 					whiteboards in React
@@ -59,10 +58,10 @@ export function HeroSection() {
 					newTab
 				/>
 			</div>
-			<div className="pt-2">
+			{/* <div className="pt-2">
 				<div className="font-hand text-blue-500 text-lg">try it here</div>
 				<ArrowDown className="h-14 text-blue-500 ml-auto -mt-0 -mr-6" animationDelay={0} />
-			</div>
+			</div> */}
 			<Demo />
 			<div className="w-full flex items-center justify-center md:justify-end text-sm font-semibold pb-4">
 				<Link

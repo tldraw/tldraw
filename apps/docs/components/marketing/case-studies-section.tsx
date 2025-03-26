@@ -16,7 +16,7 @@ export function CaseStudiesSection() {
 	return (
 		<Section>
 			<SectionHeading
-				subheading="Case Studies"
+				subheading="Customers"
 				heading="Made with tldraw"
 				description="Great products choose tldraw to build whiteboards, design tools, education apps, and more."
 			/>
