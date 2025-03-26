@@ -109,3 +109,6 @@ license-report.html
 
 .bundle-meta.json
 .zed
+
+# sst
+.sst

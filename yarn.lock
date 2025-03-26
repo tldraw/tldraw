@@ -8353,6 +8353,7 @@ __metadata:
     "@sentry/cli": "npm:^2.41.1"
     "@swc/core": "npm:^1.10.11"
     "@swc/jest": "npm:^0.2.37"
+    "@types/aws-lambda": "npm:8.10.148"
     "@types/glob": "npm:^8.1.0"
     "@types/jest": "npm:^29.5.14"
     "@types/node": "npm:~20.11.30"
@@ -8728,6 +8729,13 @@ __metadata:
   version: 5.0.4
   resolution: "@types/aria-query@npm:5.0.4"
   checksum: 10/c0084c389dc030daeaf0115a92ce43a3f4d42fc8fef2d0e22112d87a42798d4a15aac413019d4a63f868327d52ad6740ab99609462b442fe6b9286b172d2e82e
+  languageName: node
+  linkType: hard
+
+"@types/aws-lambda@npm:8.10.148":
+  version: 8.10.148
+  resolution: "@types/aws-lambda@npm:8.10.148"
+  checksum: 10/73bbb423969a50e8911227892fcafc770f8e75f55a9913679d0e65e9eb01723eefd0362161ad6acdf38ffe7da5c319f22cc4de63724d97bcf1f9951f9173f64d
   languageName: node
   linkType: hard
 
