@@ -9863,7 +9863,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						this._pinchZ = z
 
 						const { panSpeed, zoomSpeed } = cameraOptions
-						const zoom = cz + (delta ?? 0) * zoomSpeed * cz
+						const zoom = cz + (delta ?? 0) * zoomSpeed
 
 						this._setCamera(
 							new Vec(
