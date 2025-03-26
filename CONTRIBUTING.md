@@ -16,7 +16,7 @@ To create a pull request:
 2. [Create a separate branch](https://docs.github.com/en/desktop/contributing-and-collaborating-using-github-desktop/managing-branches) for your changes
 3. Make your changes, and ensure that it is formatted by [Prettier](https://prettier.io) and type-checks without errors in [TypeScript](https://www.typescriptlang.org/)
 4. Write tests that validate your change and/or fix.
-5. Run `yarn build` and then run tests with `yarn test-ci`.
+5. Run `pnpm build` and then run tests with `pnpm test-ci`.
 6. Push your branch and open a PR. 🚀
 
 Before your code is merged, you will need to sign our [contributor license agreement](https://github.com/tldraw/tldraw/blob/main/CLA.md), which is handled automatically via GitHub comments. Your PR will be reviewed and merged in within a day or two if everything looks good.

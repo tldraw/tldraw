@@ -45,7 +45,7 @@ jobs:
         run: |
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
-          yarn tsx ./internal/scripts/publish-patch.ts
+          pnpm tsx ./internal/scripts/publish-patch.ts
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

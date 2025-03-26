@@ -10,10 +10,16 @@ import {
 	ZTable,
 } from '@tldraw/dotcom-shared'
 import { react, transact } from '@tldraw/state'
-import { ExecutionQueue, assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
+import {
+	ExecutionQueue,
+	assert,
+	promiseWithResolve,
+	sleep,
+	throttle,
+	uniqueId,
+} from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { Kysely, sql } from 'kysely'
-import throttle from 'lodash.throttle'
 import { Logger } from './Logger'
 import {
 	fileKeys,

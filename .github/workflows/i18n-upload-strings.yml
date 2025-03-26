@@ -19,7 +19,7 @@ jobs:
       - uses: ./.github/actions/setup
 
       - name: Upload i18n strings
-        run: 'yarn i18n-upload-strings'
+        run: 'pnpm i18n-upload-strings'
         env:
           LOKALISE_API_TOKEN: ${{ secrets.LOKALISE_API_TOKEN }}
           LOKALISE_PROJECT_ID: ${{ secrets.LOKALISE_PROJECT_ID }}

@@ -21,7 +21,7 @@ async function buildApi(sourcePackageDir: string) {
 	rimraf.sync(glob.sync(path.join(sourcePackageDir, 'api')))
 	// extract public api
 	try {
-		await exec('yarn', ['run', '-T', 'api-extractor', 'run', isCI ? null : '--local'], {
+		await exec('pnpm', ['api-extractor', 'run', isCI ? null : '--local'], {
 			pwd: sourcePackageDir,
 			processStderrLine: (line) => {
 				process.stderr.write(`${line}\n`)

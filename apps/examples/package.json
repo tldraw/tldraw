@@ -28,7 +28,7 @@
 	"scripts": {
 		"dev": "vite --host",
 		"build": "vite build",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"lint": "pnpm tsx ../../internal/scripts/lint.ts",
 		"e2e": "playwright test -c ./e2e/playwright.config.ts",
 		"e2e-ui": "playwright test --ui -c ./e2e/playwright.config.ts"
 	},
@@ -42,6 +42,7 @@
 		"@tiptap/starter-kit": "^2.9.1",
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/dotcom-shared": "workspace:*",
+		"@tldraw/editor": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/sync": "workspace:*",
 		"@vercel/analytics": "^1.4.1",

@@ -1,5 +1,5 @@
 name: Setup tldraw/tldraw
-description: Set up node & yarn
+description: Set up node & pnpm
 
 runs:
   using: composite
@@ -14,8 +14,8 @@ runs:
       uses: actions/setup-node@v3
       with:
         node-version: 20.11.0
-        cache: 'yarn'
+        cache: 'pnpm'
 
     - name: Install dependencies
-      run: yarn install --immutable
+      run: pnpm install --frozen-lockfile
       shell: bash

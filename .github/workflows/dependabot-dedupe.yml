@@ -26,7 +26,7 @@ jobs:
           git config user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Dedupe dependencies
-        run: yarn dedupe
+        run: pnpm dedupe
 
       - name: Commit changes
         run: |

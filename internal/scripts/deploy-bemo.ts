@@ -46,7 +46,7 @@ async function main() {
 	await discord.message(`--- **${env.TLDRAW_ENV} bemo deploy pre-flight** ---`)
 
 	await discord.step('setting up deploy', async () => {
-		await exec('yarn', ['lazy', 'prebuild'])
+		await exec('pnpm', ['lazy', 'prebuild'])
 	})
 
 	await discord.step('cloudflare deploy dry run', async () => {

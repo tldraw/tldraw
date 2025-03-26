@@ -28,7 +28,7 @@ async function updatePRTemplate(check: boolean) {
 	)
 	if (check && updated !== prTemplate) {
 		console.error(
-			'❌ PR template labels section is out of date. Run `yarn update-pr-template` to fix it.'
+			'❌ PR template labels section is out of date. Run `pnpm update-pr-template` to fix it.'
 		)
 		console.error(
 			'💡 Were you trying to change the labels section manually? Update internal/scripts/lib/labels.ts instead.'
@@ -54,7 +54,7 @@ async function updatePRTemplate(check: boolean) {
 			missingLabels.map((l) => JSON.stringify(l)).join(', ')
 		)
 		console.error(
-			`Add them yourself or update internal/scripts/lib/labels.ts and re-run \`yarn update-pr-template\` to remove them.`
+			`Add them yourself or update internal/scripts/lib/labels.ts and re-run \`pnpm update-pr-template\` to remove them.`
 		)
 		process.exit(1)
 	}

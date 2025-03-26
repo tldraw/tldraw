@@ -22,8 +22,8 @@ jobs:
 
       - name: Generate changelog
         run: |
-          yarn auto changelog --dry-run
-          yarn auto changelog --dry-run > changelog.md
+          pnpm auto changelog --dry-run
+          pnpm auto changelog --dry-run > changelog.md
         env:
           GH_TOKEN: ${{ github.token }}
 

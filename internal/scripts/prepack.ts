@@ -12,7 +12,7 @@ export async function preparePackage({ sourcePackageDir }: { sourcePackageDir: s
 
 	const manifest = JSON.parse(readFileSync(path.join(sourcePackageDir, 'package.json'), 'utf8'))
 
-	execSync('yarn run -T lazy build', { cwd: sourcePackageDir, stdio: 'inherit' })
+	execSync('pnpm lazy build', { cwd: sourcePackageDir, stdio: 'inherit' })
 
 	// save package.json and reinstate it in postpack
 	copyFileSync(

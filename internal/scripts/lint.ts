@@ -8,14 +8,14 @@ async function main() {
 
 	try {
 		await exec(
-			'yarn',
+			'pnpm',
 			['prettier', shouldFix ? '--write' : '--check', '--log-level=warn', '--cache', relativeCwd],
 			{
 				pwd: REPO_ROOT,
 			}
 		)
 		await exec(
-			'yarn',
+			'pnpm',
 			[
 				'eslint',
 				'--report-unused-disable-directives',

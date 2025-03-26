@@ -36,7 +36,7 @@ The local development server will run our examples app. The basic example will s
 
 To run the local development server, first clone this repo.
 
-Enable [corepack](https://nodejs.org/api/corepack.html) to make sure you have the right version of `yarn`:
+Enable [corepack](https://nodejs.org/api/corepack.html) to make sure you have the right version of `pnpm`:
 
 ```bash
 corepack enable
@@ -45,13 +45,13 @@ corepack enable
 Install dependencies:
 
 ```bash
-yarn
+pnpm i
 ```
 
 Start the local development server:
 
 ```bash
-yarn dev
+pnpm dev
 ```
 
 Open the example project at `localhost:5420`.

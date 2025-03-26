@@ -26,17 +26,17 @@ jobs:
       - uses: ./.github/actions/setup
 
       - name: Download i18n strings
-        run: 'yarn i18n-download-strings'
+        run: 'pnpm i18n-download-strings'
         env:
           LOKALISE_API_TOKEN: ${{ secrets.LOKALISE_API_TOKEN }}
           LOKALISE_PROJECT_ID: ${{ secrets.LOKALISE_PROJECT_ID }}
           LOKALISE_TLDRAW_PROJECT_ID: ${{ secrets.LOKALISE_TLDRAW_PROJECT_ID }}
 
       - name: Compile i18n strings
-        run: 'yarn build-i18n'
+        run: 'pnpm build-i18n'
 
       - name: Validate the strings
-        run: 'yarn i18n-check -f react-intl --locales ./apps/dotcom/client/public/tla/locales/ --source en'
+        run: 'pnpm i18n-check -f react-intl --locales ./apps/dotcom/client/public/tla/locales/ --source en'
 
       - name: Commit and push changes
         if: always()

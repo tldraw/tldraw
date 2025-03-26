@@ -31,18 +31,20 @@
 	"files": [],
 	"scripts": {
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
+		"test": "pnpm jest",
 		"test-coverage": "lazy inherit",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
-		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
-		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
-		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
+		"lint": "pnpm tsx ../../internal/scripts/lint.ts",
+		"build": "pnpm tsx ../../internal/scripts/build-package.ts",
+		"build-api": "pnpm tsx ../../internal/scripts/build-api.ts",
+		"prepack": "pnpm tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
-		"pack-tarball": "yarn pack"
+		"pack-tarball": "pnpm pack"
 	},
 	"devDependencies": {
+		"@types/lodash.isequal": "^4.5.8",
 		"@types/react": "^18.3.18",
 		"@types/uuid-readable": "^0.0.3",
+		"@types/ws": "^8.5.14",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"tldraw": "workspace:*",

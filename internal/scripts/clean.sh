@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eux
 
-yarn run lazy run clean || true
+pnpm run lazy run clean || true
 
 # a function called 'goodbye' that takes a string as an argument
 function goodbye() {
@@ -37,4 +37,4 @@ rm -rf {packages,apps}/vscode/extension/editor
 rm -rf apps/docs/content.json
 
 corepack enable
-yarn
+pnpm i

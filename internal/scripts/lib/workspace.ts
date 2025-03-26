@@ -1,4 +1,4 @@
-import glob from 'glob'
+import { Project } from 'lazyrepo/src/project/Project'
 import path from 'path'
 import { REPO_ROOT, readJsonIfExists } from './file'
 
@@ -30,25 +30,12 @@ async function readPackage(packageJsonFile: string): Promise<Package> {
 	}
 }
 
-async function getChildWorkspaces(parent: Package): Promise<Package[]> {
-	if (!parent.packageJson.workspaces) return []
-
-	const foundPackages = []
-	for (const workspace of parent.packageJson.workspaces) {
-		const workspacePath = path.join(parent.path, workspace)
-		for (const packageJsonFilePath of glob.sync(path.join(workspacePath, 'package.json'))) {
-			const child = await readPackage(packageJsonFilePath)
-			foundPackages.push(child)
-			if (child.packageJson.workspaces) {
-				foundPackages.push(...(await getChildWorkspaces(child)))
-			}
-		}
-	}
-
-	return foundPackages
-}
-
 export async function getAllWorkspacePackages() {
-	const rootWorkspace = await readPackage(path.join(REPO_ROOT, 'package.json'))
-	return await getChildWorkspaces(rootWorkspace)
+	const project = Project.fromCwd(REPO_ROOT)
+	const packages = []
+	for (const workspace of project.workspacesByDir.keys()) {
+		if (workspace === project.root.dir) continue
+		packages.push(await readPackage(path.join(workspace, 'package.json')))
+	}
+	return packages
 }

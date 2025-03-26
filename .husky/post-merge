@@ -3,11 +3,11 @@
 
 set -e
 
-# This notifies the user if the yarn.lock file has changed.
-CHANGED=$(git diff HEAD@{1} --stat -- ./yarn.lock | wc -l)
+# This notifies the user if the pnpm-lock.yaml file has changed.
+CHANGED=$(git diff HEAD@{1} --stat -- ./pnpm-lock.yaml | wc -l)
 if (( CHANGED > 0 )); then
     echo
-    echo "🚨 🚨 🚨 yarn.lock has changed! 🚨 🚨 🚨 "
-    echo "run 'yarn' to get the latest!"
+    echo "🚨 🚨 🚨 pnpm-lock.yaml has changed! 🚨 🚨 🚨 "
+    echo "run 'pnpm i' to get the latest!"
     echo
 fi

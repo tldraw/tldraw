@@ -31,7 +31,7 @@ jobs:
         id: playwright-version
         run: |
           cd apps/examples
-          yarn info @playwright/test --json > playwright.json
+          pnpm info @playwright/test --json > playwright.json
           echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./playwright.json').children.Version)")" >> $GITHUB_ENV
 
       - uses: actions/cache@v3
@@ -47,7 +47,7 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
 
       - name: Run Playwright tests
-        run: 'yarn e2e'
+        run: 'pnpm e2e'
         working-directory: apps/examples
 
       - uses: actions/upload-artifact@v4

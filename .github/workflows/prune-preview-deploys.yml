@@ -29,7 +29,7 @@ jobs:
       - uses: ./.github/actions/setup
 
       - name: Prune preview deploys
-        run: yarn tsx internal/scripts/prune-preview-deploys.ts
+        run: pnpm tsx internal/scripts/prune-preview-deploys.ts
         env:
           GH_TOKEN: ${{ github.token }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
