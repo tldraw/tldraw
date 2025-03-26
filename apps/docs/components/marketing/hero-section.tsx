@@ -48,14 +48,14 @@ export function HeroSection() {
 				<Button
 					id="hero-quick-start"
 					href="/quick-start"
-					caption="Get started"
+					caption="Read the Quick Start Guide"
 					type="black"
 					size="lg"
 				/>
 				<Button
 					id="hero-github"
 					href="https://github.com/tldraw/tldraw"
-					caption="39K stars"
+					caption="39K stars on GitHub"
 					type="tertiary"
 					size="lg"
 					icon="github"
