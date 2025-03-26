@@ -25,6 +25,7 @@ There are two main ways to go about hosting tldraw sync:
 
 1. Deploy a full backend to Cloudflare using our template (recommended).
 2. Integrate tldraw sync into your own JavaScript backend using our examples and docs as a guide.
+3. Deploy to [Jamsocket](https://jamsocket.com)
 
 ### Use our Cloudflare template
 
@@ -46,11 +47,22 @@ Make sure you also read the section below about [deployment concerns](#deploymen
 
 [Get started with the Cloudflare template](https://github.com/tldraw/tldraw-sync-cloudflare).
 
+### Deploying with Jamsocket
+
+tldraw can be deployed on [Jamsocket](https://jamsocket.com), a platform for hosting WebSocket backends that allows you to run it in your own
+AWS account.
+
+When hosted on Jamsocket, documents are stored to S3 as regular objects.
+
+To get started with tldraw sync on Jamsocket, see the [`jamsocket-tldraw-demo` repository](https://github.com/jamsocket/jamsocket-tldraw-demo).
+
 ### Integrate tldraw sync into your own backend
 
 The `@tldraw/sync-core` library can be used to integrate tldraw sync into any JavaScript server environment that supports WebSockets.
 
 We have a [simple server example](https://github.com/tldraw/tldraw/tree/main/templates/simple-server-example), supporting both NodeJS and Bun, to use as a reference for how things should be stitched together.
+
+This approach is also compatible with [Plane](https://plane.dev/), the open-source WebSocket server used by Jamsocket.
 
 ## What does a tldraw sync backend do?
 
@@ -115,7 +127,8 @@ The `@tldraw/sync-core` package exports a class called [`TLSocketRoom`](?) that 
 	You should make sure that there's only ever one `TLSocketRoom` globally for each room in your app.
 	If there's more than one, users won't see each other and will overwrite others' changes. We use
 	[Durable Objects](https://developers.cloudflare.com/durable-objects/) to achieve this on
-	tldraw.com.
+	tldraw.com. [Jamsocket](https://jamsocket.com) provides an abstraction similar to Durable Objects
+	on AWS and other cloud providers.
 </Callout>
 
 Read the reference docs for [`TLSocketRoom`](?), and see an example of how to use it in the [simple server example](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/server/rooms.ts).
