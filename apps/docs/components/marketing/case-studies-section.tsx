@@ -1,19 +1,16 @@
 import { Section } from '@/components/marketing/section'
 import { SectionHeading } from '@/components/marketing/section-heading'
-import { cn } from '@/utils/cn'
-import Image from 'next/image'
-import Link from 'next/link'
+import Forma from '../../public/images/case-studies/89.png'
+import Craft from '../../public/images/case-studies/90.png'
 import CraftLogo from '../../public/images/case-studies/craft-logo.png'
-import Craft from '../../public/images/case-studies/craft.jpg'
 import FormaLogo from '../../public/images/case-studies/forma-logo.png'
-import Forma from '../../public/images/case-studies/forma.jpg'
 import JamLogo from '../../public/images/case-studies/jam-logo.png'
 import Jam from '../../public/images/case-studies/jam.jpg'
 import LegendKeeperLogo from '../../public/images/case-studies/legend-keeper-logo.png'
 import LegendKeeper from '../../public/images/case-studies/legend-keeper.png'
 import PixelpaperLogo from '../../public/images/case-studies/pixelpaper-logo.png'
 import Pixelpaper from '../../public/images/case-studies/pixelpaper.jpg'
-import { Card } from './card'
+import { LogoSection } from './logo-section'
 
 export function CaseStudiesSection() {
 	return (
@@ -23,7 +20,7 @@ export function CaseStudiesSection() {
 				heading="Made with tldraw"
 				description="Great products choose tldraw to build whiteboards, design tools, education apps, and more."
 			/>
-			<div className="grid grid-cols-6 gap-x-8 gap-y-12 md:gap-y-8">
+			{/* <div className="grid grid-cols-6 gap-x-8 gap-y-12 md:gap-y-8">
 				{caseStudies.map(({ logo, screenshot, name, url }, index) => (
 					<Link
 						key={index}
@@ -35,13 +32,13 @@ export function CaseStudiesSection() {
 								: 'col-span-6 md:col-span-2 flex-col md:flex-col-reverse'
 						)}
 					>
-						<Image src={logo} alt={`${name} Logo`} className="h-8 w-auto mx-auto" />
 						<Card darker>
 							<Image src={screenshot} alt={`${name} x tldraw`} className="w-full h-auto" />
 						</Card>
 					</Link>
 				))}
-			</div>
+			</div> */}
+			<LogoSection />
 		</Section>
 	)
 }

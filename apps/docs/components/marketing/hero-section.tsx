@@ -2,12 +2,13 @@ import { Button } from '@/components/common/button'
 import { Demo } from '@/components/marketing/demo'
 import { ArrowRightIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
+import { ArrowDown } from './arrow-down'
 
 export function HeroSection() {
 	return (
-		<section className="max-w-screen-xl w-full mx-auto md:px-5 flex flex-col items-center py-8 sm:py-16">
+		<section className="max-w-screen-xl w-full mx-auto md:px-5 flex flex-col items-center my-8">
 			<div className="relative max-w-[100%] lg:max-w-[80%]">
-				<h1 className="hidden sm:block relative text-center font-black text-black dark:text-white text-balance leading-tight text-4xl md:text-5xl md:leading-tight px-[8px] pt-12 pb-6">
+				<h1 className="hidden sm:block relative text-center font-black text-black dark:text-white text-balance leading-tight text-4xl md:text-5xl md:leading-tight px-[8px] pt-12 pb-0">
 					Build <mark>perfect</mark> whiteboards in React with the{' '}
 					<span className="whitespace-nowrap">tldraw SDK</span>
 				</h1>
@@ -40,15 +41,11 @@ export function HeroSection() {
                     developers and users.
                 </div>
             </div> */}
-			<p className="mt-0 sm:mt-5 px-5 text-center text-zinc-800 dark:text-zinc-200 sm:text-lg w-full text-balance w-[90%] max-w-[800px]">
-				Have an idea for an infinite canvas? The <b>tldraw SDK</b> has everything you need to build
-				instant real-time collaborative whiteboards and more.
-			</p>
-			<div className="pt-5 flex flex-row items-center sm:items-start sm:flex-row gap-x-4 gap-y-2 mt-6 sm:mt-9 flex-wrap justify-center sm:max-width-xl pb-8 sm:pb-16">
+			<div className="pt-5 flex flex-row items-center sm:items-start sm:flex-row gap-x-4 gap-y-4 mt-6 sm:mt-9 flex-wrap justify-center sm:max-width-xl pb-8 sm:pb-16">
 				<Button
 					id="hero-quick-start"
 					href="/quick-start"
-					caption="Read the Quick Start Guide"
+					caption="Read the quick start guide"
 					type="black"
 					size="lg"
 				/>
@@ -61,10 +58,10 @@ export function HeroSection() {
 					icon="github"
 					newTab
 				/>
-				{/* <div className="pt-2">
-                <div className="font-hand text-blue-500 text-lg">or try here</div>
-                <ArrowDown className="h-14 text-blue-500 ml-auto -mt-2 -mr-6" animationDelay={1.2} />
-            </div> */}
+			</div>
+			<div className="pt-2">
+				<div className="font-hand text-blue-500 text-lg">try it here</div>
+				<ArrowDown className="h-14 text-blue-500 ml-auto -mt-0 -mr-6" animationDelay={0} />
 			</div>
 			<Demo />
 			<div className="w-full flex items-center justify-center md:justify-end text-sm font-semibold pb-4">

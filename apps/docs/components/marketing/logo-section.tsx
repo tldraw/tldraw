@@ -15,7 +15,7 @@ export function LogoSection() {
 					))}
 				</div>
 			</section>
-			<section className="flex sm:hidden w-full max-w-screen-xl mx-auto px-2 pt-4 flex-col items-center text-[#000] dark:text-[#fff]">
+			<section className="mt-10 flex sm:hidden w-full max-w-screen-xl mx-auto px-2 pt-4 flex-col items-center text-[#000] dark:text-[#fff]">
 				<div className="w-full flex flex-wrap items-center justify-center lg:justify-center gap-0">
 					{logos.map((section, i) => (
 						<>

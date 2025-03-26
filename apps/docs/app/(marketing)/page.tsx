@@ -6,7 +6,6 @@ import { FAQSection } from '@/components/marketing/faq-section'
 import { FeaturesSection } from '@/components/marketing/features-section'
 import { HeroSection } from '@/components/marketing/hero-section'
 import { InstallationSection } from '@/components/marketing/installation-section'
-import { LogoSection } from '@/components/marketing/logo-section'
 import { PricingSection } from '@/components/marketing/pricing-section'
 import { TestimonialsSection } from '@/components/marketing/testimonials-section'
 
@@ -14,13 +13,12 @@ export default function Page() {
 	return (
 		<>
 			<HeroSection />
-			<LogoSection />
+			<CaseStudiesSection />
 			<InstallationSection />
 			<FeaturesSection />
 			<DetailsSection />
 			{/* <CustomizationSection /> */}
 			{/* <WatermarkSection /> */}
-			<CaseStudiesSection />
 			<PricingSection />
 			<TestimonialsSection />
 			<FAQSection />
