@@ -460,7 +460,9 @@ test.describe('Shape Navigation', () => {
 		await setupPage(page)
 	})
 
-	test('Tab navigation between shapes', async () => {
+	test('Tab navigation between shapes', async ({ isMobile }) => {
+		if (isMobile) return // can't test this on mobile
+
 		// Create multiple shapes
 		await page.keyboard.press('r')
 		await page.mouse.click(100, 100)
@@ -488,7 +490,9 @@ test.describe('Shape Navigation', () => {
 		})
 	})
 
-	test('Directional navigation between shapes', async () => {
+	test('Directional navigation between shapes', async ({ isMobile }) => {
+		if (isMobile) return // can't test this on mobile
+
 		// Create shapes in different directions
 		await page.keyboard.press('r')
 		await page.mouse.click(200, 200) // Center shape
