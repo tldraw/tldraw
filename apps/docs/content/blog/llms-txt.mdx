@@ -12,7 +12,7 @@ In the year 2025, developers are using an increasing number of AI tools when bui
 
 However, AI models are not always up-to-date. Their training data usually has a [half-year lag](https://support.anthropic.com/en/articles/8114494-how-up-to-date-is-claude-s-training-data) at minimum, and this can be a problem for library creators like us. We might release a new feature in the [tldraw SDK](https://www.notion.so/1a73e4c324c080e6a878ea8a6a1f1b53?pvs=21) and models wouldn’t know anything about it. In worst-case-scenarios, LLMs might suggest outdated code and APIs that no longer work.
 
-We’ve seen this happen in the wild, with models sometimes recommending code from some of the [earliest versions](https://tldraw.dev/blog/product/tldraws-upcoming-relaunch) of tldraw. For example, here’s ChatGPT using a function we removed 12 months ago.
+We’ve seen this happen in the wild, with models sometimes recommending code from some of the [earliest versions](https://tldraw.dev/blog/product/tldraws-upcoming-relaunch/?utm_source=blog&utm_medium=announcement&utm_campaign=llms-txt) of tldraw. For example, here’s ChatGPT using a function we removed 12 months ago.
 
 ![ChatGPT suggesting the now-removed `zoomToContent` method](/images/blog/llms-txt/zoom.png)
 
@@ -65,7 +65,7 @@ We do use some custom components in these, so the generated file isn’t strictl
 
 ![llms-docs.txt snippet of FocusLines](/images/blog/llms-txt/focus.png)
 
-Our [examples](https://tldraw.dev/examples) are all written in separate files but we already collect them into MDX files too, so that they can each have their own page on our [docs site](https://www.notion.so/1a73e4c324c080e6a878ea8a6a1f1b53?pvs=21). Many examples contain multiple files, so we collect them up and place them into our markdown inside code blocks. We exclude any unhelpfully large files, like the `snapshot.json` files we use to load default content in [some examples](https://tldraw.dev/examples/shapes/tools/layout-bindings).
+Our [examples](https://tldraw.dev/examples/?utm_source=blog&utm_medium=announcement&utm_campaign=llms-txt) are all written in separate files but we already collect them into MDX files too, so that they can each have their own page on our [docs site](https://tldraw.dev/examples/?utm_source=blog&utm_medium=announcement&utm_campaign=llms-txt). Many examples contain multiple files, so we collect them up and place them into our markdown inside code blocks. We exclude any unhelpfully large files, like the `snapshot.json` files we use to load default content in [some examples](https://tldraw.dev/examples/shapes/tools/layout-bindings/?utm_source=blog&utm_medium=announcement&utm_campaign=llms-txt).
 
 ![llms-examples.txt snippet](/images/blog/llms-txt/example.png)
 
@@ -195,7 +195,7 @@ One piece of advice we have for you is to directly instruct the LLM to make use 
 
 This is only the beginning. We haven’t yet tailored the contents of our `llms.txt` files, and we haven’t yet evaluated how well they work within our wider developer community. We know how much [creative prompting](https://jacalulu.substack.com/p/hilarious-methods-for-effective-prompting) can improve an LLM’s output, so we know that there’s scope to improve the text we include in these files.
 
-We’d love to hear from you about whether our `llms.txt` files help you or not. We want to hear about the success cases as well as the failure cases. Come and tell us how it goes on [discord](https://discord.tldraw.com/).
+We’d love to hear from you about whether our `llms.txt` files help you or not. We want to hear about the success cases as well as the failure cases. Come and tell us how it goes on [discord](https://discord.tldraw.com/?utm_source=blog&utm_medium=announcement&utm_campaign=llms-txt).
 
 We’ll soon make all of our markdown files discoverable from our docs site, but for now, you can find them at the following URLs:
 
@@ -206,8 +206,8 @@ We’ll soon make all of our markdown files discoverable from our docs site, but
 
 ---
 
-This project has been part of a larger initiative to improve the discoverability and experience of our docs site. There are many more changes coming, such as improved examples pages, extra API references, and better search. If you have any feedback or requests around our docs, come and tell us on [discord](https://www.notion.so/LLMs-txt-1c23e4c324c08039bddec03d0aeccaee?pvs=21).
+This project has been part of a larger initiative to improve the discoverability and experience of our docs site. There are many more changes coming, such as improved examples pages, extra API references, and better search. If you have any feedback or requests around our docs, come and tell us on [discord](https://discord.tldraw.com/?utm_source=blog&utm_medium=announcement&utm_campaign=llms-txt).
 
-To build something with the tldraw SDK, [start here](https://tldraw.dev/quick-start).
+To build something with the tldraw SDK, [start here](https://tldraw.dev/quick-start/?utm_source=blog&utm_medium=announcement&utm_campaign=llms-txt).
 
 ![Preview of some upcoming docs changes](/images/blog/llms-txt/docs.gif)
