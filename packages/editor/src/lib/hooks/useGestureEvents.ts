@@ -133,13 +133,13 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			editor.dispatch(info)
 		}
 
-		let initDistanceBetweenFingers = 0 // the distance between the two fingers when the pinch starts
+		let initDistanceBetweenFingers = 1 // the distance between the two fingers when the pinch starts
 		let initZoom = 1 // the browser's zoom level when the pinch starts
 		let currZoom = 1 // the current zoom level according to the pinch gesture recognizer
-		const currDistanceBetweenFingers = 0
+		let currDistanceBetweenFingers = 0
 		const initPointBetweenFingers = new Vec()
 		const prevPointBetweenFingers = new Vec()
-		let prevDistanceBetweenFingers = 0
+		let prevScaleBetweenFingers = 0
 
 		const onPinchStart: PinchHandler = (gesture) => {
 			const elm = ref.current
@@ -211,7 +211,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 
 		const onPinch: PinchHandler = (gesture) => {
 			const elm = ref.current
-			const { event, origin, offset } = gesture
+			const { event, origin, offset, da } = gesture
 
 			if (event instanceof WheelEvent) return
 			if (!(event.target === elm || elm?.contains(event.target as Node))) return
@@ -222,6 +222,9 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			const isSafariTrackpadPinch =
 				gesture.type === 'gesturechange' || gesture.type === 'gestureend'
 
+			// The distance between the two touch points
+			currDistanceBetweenFingers = da[0]
+
 			// Only update the zoom if the pointers are far enough apart;
 			// a very small touchDistance means that the user has probably
 			// pinched out and their fingers are touching; this produces
@@ -229,11 +232,11 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 
 			const dx = origin[0] - prevPointBetweenFingers.x
 			const dy = origin[1] - prevPointBetweenFingers.y
-			const dz = offset[0] - prevDistanceBetweenFingers
+			const dz = offset[0] - prevScaleBetweenFingers
 
 			prevPointBetweenFingers.x = origin[0]
 			prevPointBetweenFingers.y = origin[1]
-			prevDistanceBetweenFingers = offset[0]
+			prevScaleBetweenFingers = offset[0]
 
 			updatePinchState(isSafariTrackpadPinch)
 
