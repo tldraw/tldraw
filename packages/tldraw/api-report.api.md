@@ -904,6 +904,8 @@ export class DrawShapeTool extends StateNode {
     onExit(): void;
     // (undocumented)
     shapeType: string;
+    // (undocumented)
+    static useCoalescedEvents: boolean;
 }
 
 // @public (undocumented)
@@ -1465,6 +1467,8 @@ export class HighlightShapeTool extends StateNode {
     onExit(): void;
     // (undocumented)
     shapeType: string;
+    // (undocumented)
+    static useCoalescedEvents: boolean;
 }
 
 // @public (undocumented)
