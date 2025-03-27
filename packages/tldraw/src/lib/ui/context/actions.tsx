@@ -82,6 +82,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const helpers = useDefaultHelpers()
 	const trackEvent = useUiEvents()
 	const path = useValue('path', () => _editor?.getPath(), [_editor])
+	const hasSelectedShapes = useValue(
+		'selectedShapes',
+		() => !!_editor?.getSelectedShapeIds().length,
+		[_editor]
+	)
 
 	const defaultDocumentName = helpers.msg('document.default-name')
 
@@ -1520,27 +1525,32 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					}
 				},
 			},
-			{
-				id: 'select-next-shape',
-				kbd: 'tab',
-				onSelect(source) {
-					if (path.startsWith('select.')) {
-						editor.selectAdjacentShape('next')
-						trackEvent('select-adjacent-shape', { source, direction: 'next' })
-					}
-				},
-			},
-			{
-				id: 'select-prev-shape',
-				kbd: '!tab',
-				onSelect(source) {
-					if (path.startsWith('select.')) {
-						editor.selectAdjacentShape('prev')
-						trackEvent('select-adjacent-shape', { source, direction: 'prev' })
-					}
-				},
-			},
 		]
+
+		if (hasSelectedShapes) {
+			actionItems.push(
+				{
+					id: 'select-next-shape',
+					kbd: 'tab',
+					onSelect(source) {
+						if (path.startsWith('select.')) {
+							editor.selectAdjacentShape('next')
+							trackEvent('select-adjacent-shape', { source, direction: 'next' })
+						}
+					},
+				},
+				{
+					id: 'select-prev-shape',
+					kbd: '!tab',
+					onSelect(source) {
+						if (path.startsWith('select.')) {
+							editor.selectAdjacentShape('prev')
+							trackEvent('select-adjacent-shape', { source, direction: 'prev' })
+						}
+					},
+				}
+			)
+		}
 
 		if (showCollaborationUi) {
 			actionItems.push({
@@ -1548,7 +1558,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.open-cursor-chat',
 				readonlyOk: true,
 				kbd: '/',
-				onSelect(source: any) {
+				onSelect(source) {
 					trackEvent('open-cursor-chat', { source })
 
 					// Don't open cursor chat if we're on a touch device
@@ -1571,7 +1581,16 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		}
 
 		return actions
-	}, [helpers, _editor, trackEvent, overrides, defaultDocumentName, showCollaborationUi, path])
+	}, [
+		helpers,
+		_editor,
+		trackEvent,
+		overrides,
+		defaultDocumentName,
+		showCollaborationUi,
+		path,
+		hasSelectedShapes,
+	])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
 }
