@@ -1,12 +1,17 @@
 import {
 	Editor,
+	elbowArrowDebug,
+	minBy,
 	modulate,
+	objectMapKeys,
 	toDomPrecision,
 	track,
 	useEditor,
 	useEditorComponents,
 	useQuickReactor,
 	useValue,
+	Vec,
+	VecLike,
 } from '@tldraw/editor'
 import { Fragment, useState } from 'react'
 import { getArrowTargetState } from '../shapes/arrow/arrowTargetState'
@@ -56,9 +61,29 @@ export const TldrawArrowHints = track(function TldrawArrowHints() {
 
 	if (!targetInfo) return null
 
-	const { handlesInPageSpace, snap, anchorInPageSpace, arrowKind, isExact, isPrecise } = targetInfo
+	const {
+		handlesInPageSpace,
+		snap,
+		anchorInPageSpace,
+		centerInPageSpace,
+		arrowKind,
+		isExact,
+		isPrecise,
+	} = targetInfo
+
+	const needsAxisHints = elbowArrowDebug.get().axisBinding === 'axis'
 	const showEdgeHints = !isExact && arrowKind === 'elbow'
-	const showOutline = !showEdgeHints || snap === 'center' || snap === 'edge' || snap === null
+	const showOutline =
+		!showEdgeHints || snap === 'edge' || (!needsAxisHints && snap === 'center') || snap === null
+
+	const closestSide = minBy(objectMapKeys(handlesInPageSpace), (side) =>
+		Vec.Dist2(handlesInPageSpace[side].point, anchorInPageSpace)
+	)
+	const showAxis = showEdgeHints && (snap === 'axis' || snap === 'center') && needsAxisHints
+	const showXAxis =
+		showAxis && (closestSide === 'left' || closestSide === 'right' || snap === 'center')
+	const showYAxis =
+		showAxis && (closestSide === 'top' || closestSide === 'bottom' || snap === 'center')
 
 	return (
 		<>
@@ -72,17 +97,26 @@ export const TldrawArrowHints = track(function TldrawArrowHints() {
 						className={`tl-arrow-hint-snap tl-arrow-hint-snap__${isPrecise ? snap : 'none'}`}
 					/>
 
+					{showXAxis && (
+						<>
+							{/* <AxisTick point={handlesInPageSpace.left.point} direction={centerInPageSpace} />
+							<AxisTick point={handlesInPageSpace.right.point} direction={centerInPageSpace} /> */}
+							<AxisTick point={centerInPageSpace} direction={handlesInPageSpace.right.point} />
+						</>
+					)}
+
+					{showYAxis && (
+						<>
+							{/* <AxisTick point={handlesInPageSpace.top.point} direction={centerInPageSpace} />
+							<AxisTick point={handlesInPageSpace.bottom.point} direction={centerInPageSpace} /> */}
+							<AxisTick point={centerInPageSpace} direction={handlesInPageSpace.bottom.point} />
+						</>
+					)}
+
 					{Object.entries(handlesInPageSpace).map(([side, handle]) => {
 						if (!handle.isEnabled) return null
 						return (
 							<Fragment key={side}>
-								{/* {side ==r= snap.side && (
-									<circle
-										cx={handle.point.x}
-										cy={handle.point.y}
-										className="tl-arrow-hint-handle__active"
-									/>
-								)} */}
 								<circle cx={handle.point.x} cy={handle.point.y} className="tl-arrow-hint-handle" />
 							</Fragment>
 						)
@@ -92,6 +126,27 @@ export const TldrawArrowHints = track(function TldrawArrowHints() {
 		</>
 	)
 })
+
+function AxisTick({
+	point,
+	direction,
+	size = 16,
+}: {
+	point: VecLike
+	direction: VecLike
+	size?: number
+}) {
+	const editor = useEditor()
+	const axisTickSize = useValue('axis tick size', () => size / editor.getZoomLevel(), [
+		editor,
+		size,
+	])
+
+	const start = Vec.Nudge(point, direction, axisTickSize)
+	const end = Vec.Nudge(point, direction, -axisTickSize)
+
+	return <line className="tl-arrow-hint-axis" x1={start.x} y1={start.y} x2={end.x} y2={end.y} />
+}
 
 function shouldShowArrowHints(editor: Editor) {
 	if (editor.isInAny('arrow.idle', 'arrow.pointing')) return true

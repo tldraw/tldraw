@@ -38,7 +38,7 @@ export const elbowArrowDebug = createDebugValue<{
 	shortest: 'distance' | 'count'
 	hintRotation: 'target' | 'arrow' | 'page'
 	hintBinding: 'edge' | 'center'
-	axisBinding: 'closest-edge' | 'axis'
+	axisBinding: 'axis' | 'closest-point'
 }>('elbowArrowDebug', {
 	defaults: {
 		all: {
@@ -56,7 +56,7 @@ export const elbowArrowDebug = createDebugValue<{
 			shortest: 'distance',
 			hintRotation: 'arrow',
 			hintBinding: 'center',
-			axisBinding: 'closest-edge',
+			axisBinding: 'closest-point',
 		},
 	},
 })

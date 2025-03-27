@@ -594,6 +594,11 @@ input,
 	r: calc(4px * var(--tl-scale));
 }
 
+.tl-arrow-hint-axis {
+	stroke: var(--color-selection-stroke);
+	stroke-width: calc(1.5px * var(--tl-scale));
+}
+
 .tl-arrow-hint-snap {
 	stroke: transparent;
 	fill: var(--color-selection-fill);
@@ -601,7 +606,8 @@ input,
 }
 
 .tl-arrow-hint-snap__none,
-.tl-arrow-hint-snap__center {
+.tl-arrow-hint-snap__center,
+.tl-arrow-hint-snap__axis {
 	display: none;
 }
 

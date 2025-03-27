@@ -284,6 +284,12 @@ export const ElbowArrowSide: T.Validator<"bottom" | "left" | "right" | "top">;
 export type ElbowArrowSide = T.TypeOf<typeof ElbowArrowSide>;
 
 // @public (undocumented)
+export const ElbowArrowSnap: T.Validator<"axis" | "center" | "edge" | "point">;
+
+// @public (undocumented)
+export type ElbowArrowSnap = T.TypeOf<typeof ElbowArrowSnap>;
+
+// @public (undocumented)
 export const embedShapeMigrations: TLPropsMigrations;
 
 // @public (undocumented)
@@ -689,6 +695,8 @@ export interface TLArrowBindingProps {
     isPrecise: boolean;
     // (undocumented)
     normalizedAnchor: VecModel;
+    // (undocumented)
+    snap: ElbowArrowSnap | null;
     // (undocumented)
     terminal: 'end' | 'start';
 }

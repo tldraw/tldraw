@@ -37,6 +37,8 @@ import {
 	routeArrowWithPartialEdgePicking,
 } from './routeArrowWithAutoEdgePicking'
 
+export type ElbowArrowSideWithAxis = ElbowArrowSide | 'x' | 'y'
+
 /** @public */
 export interface ElbowArrowScale {
 	x: 1 | -1
@@ -341,9 +343,35 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 		),
 	}
 
+	const aSide =
+		aBinding.side === null
+			? null
+			: aBinding.side === 'x'
+				? transformedA.center.x > transformedB.center.x
+					? 'left'
+					: 'right'
+				: aBinding.side === 'y'
+					? transformedA.center.y > transformedB.center.y
+						? 'top'
+						: 'bottom'
+					: transformSide(aBinding.side, scale)
+
+	const bSide =
+		bBinding.side === null
+			? null
+			: bBinding.side === 'x'
+				? transformedB.center.x > transformedA.center.x
+					? 'left'
+					: 'right'
+				: bBinding.side === 'y'
+					? transformedB.center.y > transformedA.center.y
+						? 'top'
+						: 'bottom'
+					: transformSide(bBinding.side, scale)
+
 	const steve = () => {
 		const grid = getArrowNavigationGrid(aBinding.bounds, bBinding.bounds, options)
-		const path = getArrowPath(grid, aBinding.side ?? undefined, bBinding.side ?? undefined)
+		const path = getArrowPath(grid, aSide ?? undefined, bSide ?? undefined)
 		return { grid, path: path.error ? null : path.path }
 	}
 
@@ -383,15 +411,11 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 	}
 
 	let route
-	if (aBinding.side && bBinding.side) {
-		route = tryRouteArrow(
-			info,
-			transformSide(aBinding.side, info.scale),
-			transformSide(bBinding.side, info.scale)
-		)
+	if (aSide && bSide) {
+		route = tryRouteArrow(info, aSide, bSide)
 	}
-	if (aBinding.side && !bBinding.side) {
-		route = routeArrowWithPartialEdgePicking(info, transformSide(aBinding.side, info.scale))
+	if (aSide && !bSide) {
+		route = routeArrowWithPartialEdgePicking(info, aSide)
 	}
 	if (!route) {
 		route = routeArrowWithAutoEdgePicking(info)
@@ -472,7 +496,7 @@ function getElbowArrowBindingInfo(
 			}
 
 			const impreciseEdgePickingMode = elbowArrowDebug.get().impreciseEdgePicking
-			let side: ElbowArrowSide | null = null
+			let side: ElbowArrowSideWithAxis | null = null
 			let targetPoint = geometry.target
 			if (binding.props.isPrecise) {
 				side = getEdgeFromNormalizedAnchor(
@@ -487,6 +511,9 @@ function getElbowArrowBindingInfo(
 					(binding.props.snap === 'point' || binding.props.snap === 'axis')
 				) {
 					targetPoint = geometry.center
+				}
+				if (elbowArrowDebug.get().preciseEdgePicking.snapAxis && binding.props.snap === 'axis') {
+					side = side === 'left' || side === 'right' ? 'x' : 'y'
 				}
 			} else if (impreciseEdgePickingMode === 'velocity') {
 				side = binding.props.entrySide

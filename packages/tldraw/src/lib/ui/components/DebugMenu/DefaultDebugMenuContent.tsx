@@ -348,7 +348,7 @@ export function DebugElbowArrowMenu() {
 				<DropdownSelect
 					id="axis-binding"
 					label={`Axis binding`}
-					items={['closest-edge', 'axis']}
+					items={['closest-point', 'axis']}
 					value={axisBinding}
 					onChange={(value) => {
 						elbowArrowDebug.update((p) => ({ ...p, axisBinding: value }))

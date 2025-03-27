@@ -295,7 +295,7 @@ export function updateArrowTargetState({
 						pointInPageSpace
 					)
 
-			snap = 'axis'
+			snap = opts.axisBinding === 'closest-point' ? 'point' : 'axis'
 			anchorInPageSpace = snappedPointInPageSpace
 		}
 	}

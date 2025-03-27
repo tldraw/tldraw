@@ -1606,7 +1606,9 @@ export { EffectScheduler }
 
 // @internal (undocumented)
 export const elbowArrowDebug: DebugFlag<{
+    axisBinding: 'axis' | 'closest-point';
     endSide: ElbowArrowSide | null;
+    hintBinding: 'center' | 'edge';
     hintRotation: 'arrow' | 'page' | 'target';
     impreciseEdgePicking: 'auto' | 'velocity';
     preciseEdgePicking: {
