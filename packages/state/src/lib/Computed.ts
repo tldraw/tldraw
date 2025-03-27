@@ -2,12 +2,7 @@
 import { assert } from '@tldraw/utils'
 import { ArraySet } from './ArraySet'
 import { HistoryBuffer } from './HistoryBuffer'
-import {
-	logChangedParents,
-	maybeCaptureParent,
-	startCapturingParents,
-	stopCapturingParents,
-} from './capture'
+import { maybeCaptureParent, startCapturingParents, stopCapturingParents } from './capture'
 import { GLOBAL_START_EPOCH } from './constants'
 import { EMPTY_ARRAY, equals, haveParentsChanged, singleton } from './helpers'
 import { getGlobalEpoch, getIsReacting, getReactionEpoch } from './transactions'
@@ -150,7 +145,7 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 	lastChangedEpoch = GLOBAL_START_EPOCH
 	lastTraversedEpoch = GLOBAL_START_EPOCH
 
-	__debug_mode__ = false
+	__debug_ancestor_epochs__: Map<Signal<any, any>, number> | null = null
 
 	/**
 	 * The epoch when the reactor was last checked.
@@ -205,15 +200,13 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 
 		const globalEpoch = getGlobalEpoch()
 
-		const changedParents: Signal<any>[] | undefined = this.__debug_mode__ ? [] : undefined
-
 		if (
 			!isNew &&
 			(this.lastCheckedEpoch === globalEpoch ||
 				(this.isActivelyListening &&
 					getIsReacting() &&
 					this.lastTraversedEpoch < getReactionEpoch()) ||
-				!haveParentsChanged(this, changedParents))
+				!haveParentsChanged(this))
 		) {
 			this.lastCheckedEpoch = globalEpoch
 			if (this.error) {
@@ -229,11 +222,6 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 
 		try {
 			startCapturingParents(this)
-			if (this.__debug_mode__) {
-				this.__debug_mode__ = false
-				if (changedParents?.length) logChangedParents(changedParents, this.name)
-			}
-
 			const result = this.derive(this.state, this.lastCheckedEpoch)
 			const newState = result instanceof WithDiff ? result.value : result
 			const isUninitialized = this.state === UNINITIALIZED

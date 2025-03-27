@@ -42,11 +42,13 @@ export interface AtomOptions<Value, Diff> {
 // @internal (undocumented)
 export interface Child {
     // (undocumented)
-    __debug_mode__: boolean;
+    __debug_ancestor_epochs__: Map<Signal<any, any>, number> | null;
     // (undocumented)
     isActivelyListening: boolean;
     // (undocumented)
     lastTraversedEpoch: number;
+    // (undocumented)
+    readonly name: string;
     // (undocumented)
     readonly parentEpochs: number[];
     // (undocumented)
@@ -94,7 +96,7 @@ export const EffectScheduler: new <Result>(name: string, runEffect: (lastReacted
 // @public (undocumented)
 export interface EffectScheduler<Result> {
     // @internal (undocumented)
-    __debug_mode__: boolean;
+    __debug_ancestor_epochs__: Map<Signal<any, any>, number> | null;
     attach(): void;
     detach(): void;
     execute(): Result;
@@ -105,6 +107,8 @@ export interface EffectScheduler<Result> {
     maybeExecute(): void;
     // @internal (undocumented)
     maybeScheduleEffect(): void;
+    // (undocumented)
+    readonly name: string;
     // @internal (undocumented)
     readonly parentEpochs: number[];
     // @internal (undocumented)
