@@ -194,8 +194,10 @@ export interface TldrawEditorBaseProps {
 	 * Hidden shapes will not render in the editor, and they will not be eligible for hit test via
 	 * {@link Editor#getShapeAtPoint} and {@link Editor#getShapesAtPoint}. But otherwise they will
 	 * remain in the store and participate in all other operations.
+	 *
+	 * Return 'force_show' to show the shape even if it is the child of a hidden parent shape.
 	 */
-	isShapeHidden?(shape: TLShape, editor: Editor): boolean
+	isShapeHidden?(shape: TLShape, editor: Editor): boolean | 'force_show'
 
 	/**
 	 * The URLs for the fonts to use in the editor.

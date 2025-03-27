@@ -3159,7 +3159,7 @@ export interface TldrawEditorBaseProps {
     deepLinks?: TLDeepLinkOptions | true;
     inferDarkMode?: boolean;
     initialState?: string;
-    isShapeHidden?(shape: TLShape, editor: Editor): boolean;
+    isShapeHidden?(shape: TLShape, editor: Editor): 'force_show' | boolean;
     licenseKey?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
@@ -3342,7 +3342,7 @@ export interface TLEditorOptions {
     getContainer(): HTMLElement;
     inferDarkMode?: boolean;
     initialState?: string;
-    isShapeHidden?(shape: TLShape, editor: Editor): boolean;
+    isShapeHidden?(shape: TLShape, editor: Editor): 'force_show' | boolean;
     // (undocumented)
     licenseKey?: string;
     // (undocumented)
