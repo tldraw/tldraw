@@ -156,6 +156,7 @@ export function createDebugElbowArrowScene(editor: Editor) {
 					isExact: false,
 					isPrecise: false,
 					entrySide: startSide,
+					snap: null,
 				})
 
 				createOrUpdateArrowBinding(editor, arrowId, endShapeId, {
@@ -164,6 +165,7 @@ export function createDebugElbowArrowScene(editor: Editor) {
 					isExact: false,
 					isPrecise: false,
 					entrySide: endSide,
+					snap: null,
 				})
 			}
 			frameX += frameWidth + spacing

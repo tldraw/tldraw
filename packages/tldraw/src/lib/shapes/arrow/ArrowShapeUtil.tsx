@@ -329,6 +329,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			isPrecise: targetInfo.isPrecise,
 			isExact: this.editor.inputs.altKey,
 			entrySide: currentBinding?.props.entrySide ?? null,
+			snap: targetInfo.snap,
 		}
 
 		if (

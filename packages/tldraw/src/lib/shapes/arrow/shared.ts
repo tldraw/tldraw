@@ -117,19 +117,22 @@ const arrowInfoCache = createComputedCache(
 	(editor: Editor, shape: TLArrowShape): TLArrowInfo => {
 		const bindings = getArrowBindings(editor, shape)
 		if (shape.props.kind === 'elbow') {
-			const straightInfo = getStraightArrowInfo(editor, shape, bindings)
 			const elbowInfo = getElbowArrowInfo(editor, shape, bindings)
-			if (!elbowInfo?.route) return straightInfo
+			if (!elbowInfo?.route) return getStraightArrowInfo(editor, shape, bindings)
+
+			const start = elbowInfo.swapOrder ? elbowInfo.B : elbowInfo.A
+			const end = elbowInfo.swapOrder ? elbowInfo.A : elbowInfo.B
+
 			return {
 				type: 'elbow',
 				bindings,
 				start: {
-					handle: straightInfo.start.handle,
+					handle: start.target,
 					point: elbowInfo.route.points[0],
 					arrowhead: shape.props.arrowheadStart,
 				},
 				end: {
-					handle: straightInfo.end.handle,
+					handle: end.target,
 					point: elbowInfo.route.points[elbowInfo.route.points.length - 1],
 					arrowhead: shape.props.arrowheadEnd,
 				},

@@ -220,6 +220,8 @@ export function DebugElbowArrowMenu() {
 		preciseEdgePicking,
 		shortest,
 		hintRotation,
+		hintBinding,
+		axisBinding,
 	} = useValue(elbowArrowDebug)
 	const editor = useEditor()
 
@@ -330,6 +332,26 @@ export function DebugElbowArrowMenu() {
 					value={hintRotation}
 					onChange={(value) => {
 						elbowArrowDebug.update((p) => ({ ...p, hintRotation: value }))
+					}}
+				/>
+
+				<DropdownSelect
+					id="hint-binding"
+					label={`Hint binding`}
+					items={['edge', 'center']}
+					value={hintBinding}
+					onChange={(value) => {
+						elbowArrowDebug.update((p) => ({ ...p, hintBinding: value }))
+					}}
+				/>
+
+				<DropdownSelect
+					id="axis-binding"
+					label={`Axis binding`}
+					items={['closest-edge', 'axis']}
+					value={axisBinding}
+					onChange={(value) => {
+						elbowArrowDebug.update((p) => ({ ...p, axisBinding: value }))
 					}}
 				/>
 			</TldrawUiMenuGroup>
@@ -492,6 +514,7 @@ function DropdownSelect<T extends string | number | null>({
 								value: rawItem,
 								label: String(rawItem)
 									.replace(/([a-z0-9])([A-Z])/g, (m) => `${m[0]} ${m[1].toLowerCase()}`)
+									.replace(/-/g, ' ')
 									.replace(/^[a-z]/, (m) => m.toUpperCase()),
 							}
 

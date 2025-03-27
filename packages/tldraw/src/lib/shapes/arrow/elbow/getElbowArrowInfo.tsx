@@ -473,6 +473,7 @@ function getElbowArrowBindingInfo(
 
 			const impreciseEdgePickingMode = elbowArrowDebug.get().impreciseEdgePicking
 			let side: ElbowArrowSide | null = null
+			let targetPoint = geometry.target
 			if (binding.props.isPrecise) {
 				side = getEdgeFromNormalizedAnchor(
 					Vec.RotWith(
@@ -481,6 +482,12 @@ function getElbowArrowBindingInfo(
 						geometry.shapeToArrowTransform.rotation()
 					)
 				)
+				if (
+					elbowArrowDebug.get().hintBinding === 'center' &&
+					(binding.props.snap === 'point' || binding.props.snap === 'axis')
+				) {
+					targetPoint = geometry.center
+				}
 			} else if (impreciseEdgePickingMode === 'velocity') {
 				side = binding.props.entrySide
 			}
@@ -490,7 +497,7 @@ function getElbowArrowBindingInfo(
 				isExact: binding.props.isExact,
 				bounds: geometry.bounds,
 				geometry: geometry.geometry,
-				target: geometry.target,
+				target: targetPoint,
 				arrowheadOffset,
 				side,
 			}
@@ -525,9 +532,8 @@ export function getBindingGeometryInArrowSpace(
 
 	const targetGeometryInArrowSpace = targetGeometryInTargetSpace.transform(shapeToArrowTransform)
 
-	const normalizedAnchor = bindingProps.isPrecise
-		? bindingProps.normalizedAnchor
-		: { x: 0.5, y: 0.5 }
+	const center = { x: 0.5, y: 0.5 }
+	const normalizedAnchor = bindingProps.isPrecise ? bindingProps.normalizedAnchor : center
 
 	const targetInShapeSpace = {
 		x: lerp(
@@ -541,12 +547,27 @@ export function getBindingGeometryInArrowSpace(
 			normalizedAnchor.y
 		),
 	}
-	const target = Mat.applyToPoint(shapeToArrowTransform, targetInShapeSpace)
+	const centerInShapeSpace = {
+		x: lerp(
+			targetGeometryInTargetSpace.bounds.minX,
+			targetGeometryInTargetSpace.bounds.maxX,
+			center.x
+		),
+		y: lerp(
+			targetGeometryInTargetSpace.bounds.minY,
+			targetGeometryInTargetSpace.bounds.maxY,
+			center.y
+		),
+	}
+
+	const targetInArrowSpace = Mat.applyToPoint(shapeToArrowTransform, targetInShapeSpace)
+	const centerInArrowSpace = Mat.applyToPoint(shapeToArrowTransform, centerInShapeSpace)
 
 	return {
 		bounds: targetGeometryInArrowSpace.bounds,
 		geometry: targetGeometryInArrowSpace,
-		target,
+		target: targetInArrowSpace,
+		center: centerInArrowSpace,
 		shapeToArrowTransform,
 	}
 }

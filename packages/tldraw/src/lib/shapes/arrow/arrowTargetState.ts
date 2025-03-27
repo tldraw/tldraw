@@ -7,6 +7,7 @@ import {
 	Editor,
 	elbowArrowDebug,
 	ElbowArrowSide,
+	ElbowArrowSnap,
 	exhaustiveSwitchError,
 	invLerp,
 	mapObjectMapValues,
@@ -52,7 +53,7 @@ export interface ArrowTargetState {
 
 	centerInPageSpace: VecLike
 	anchorInPageSpace: VecLike
-	snap: 'center' | 'point' | 'axis' | 'edge' | 'none'
+	snap: ElbowArrowSnap | null
 	normalizedAnchor: VecLike
 }
 
@@ -218,7 +219,7 @@ export function updateArrowTargetState({
 		!isExact && precise && arrowKind === 'elbow' && opts.preciseEdgePicking.snapAxis
 
 	// we run through all the snapping options from least to most specific:
-	let snap: ArrowTargetState['snap'] = 'none'
+	let snap: ElbowArrowSnap | null = null
 	let anchorInPageSpace: VecLike = pointInPageSpace
 
 	if (!shouldSnapInside) {

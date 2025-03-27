@@ -58,7 +58,7 @@ export const TldrawArrowHints = track(function TldrawArrowHints() {
 
 	const { handlesInPageSpace, snap, anchorInPageSpace, arrowKind, isExact, isPrecise } = targetInfo
 	const showEdgeHints = !isExact && arrowKind === 'elbow'
-	const showOutline = !showEdgeHints || snap === 'center' || snap === 'edge' || snap === 'none'
+	const showOutline = !showEdgeHints || snap === 'center' || snap === 'edge' || snap === null
 
 	return (
 		<>
