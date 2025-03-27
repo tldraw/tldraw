@@ -38,6 +38,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	static override props = lineShapeProps
 	static override migrations = lineShapeMigrations
 
+	override canTabTo() {
+		return false
+	}
 	override hideResizeHandles() {
 		return true
 	}
