@@ -18,7 +18,6 @@ import {
 	createShapeId,
 	openWindow,
 	useMaybeEditor,
-	useValue,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
@@ -81,19 +80,13 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const showCollaborationUi = useShowCollaborationUi()
 	const helpers = useDefaultHelpers()
 	const trackEvent = useUiEvents()
-	const path = useValue('path', () => _editor?.getPath(), [_editor])
-	const hasSelectedShapes = useValue(
-		'selectedShapes',
-		() => !!_editor?.getSelectedShapeIds().length,
-		[_editor]
-	)
 
 	const defaultDocumentName = helpers.msg('document.default-name')
 
 	// should this be a useMemo? looks like it doesn't actually deref any reactive values
 	const actions = React.useMemo<TLUiActionsContextType>(() => {
 		const editor = _editor as Editor
-		if (!editor || !path) return {}
+		if (!editor) return {}
 		function mustGoBackToSelectToolFirst() {
 			if (!editor.isIn('select')) {
 				editor.complete()
@@ -1485,72 +1478,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('change-page', { source, direction: 'next' })
 				},
 			},
-			{
-				id: 'select-horz-prev-shape',
-				kbd: '$left',
-				onSelect(source) {
-					if (path.startsWith('select.')) {
-						editor.selectAdjacentShape('left')
-						trackEvent('select-adjacent-shape', { source, direction: 'left' })
-					}
-				},
-			},
-			{
-				id: 'select-horz-next-shape',
-				kbd: '$right',
-				onSelect(source) {
-					if (path.startsWith('select.')) {
-						editor.selectAdjacentShape('right')
-						trackEvent('select-adjacent-shape', { source, direction: 'right' })
-					}
-				},
-			},
-			{
-				id: 'select-vert-prev-shape',
-				kbd: '$up',
-				onSelect(source) {
-					if (path.startsWith('select.')) {
-						editor.selectAdjacentShape('up')
-						trackEvent('select-adjacent-shape', { source, direction: 'up' })
-					}
-				},
-			},
-			{
-				id: 'select-vert-next-shape',
-				kbd: '$down',
-				onSelect(source) {
-					if (path.startsWith('select.')) {
-						editor.selectAdjacentShape('down')
-						trackEvent('select-adjacent-shape', { source, direction: 'down' })
-					}
-				},
-			},
 		]
-
-		if (hasSelectedShapes) {
-			actionItems.push(
-				{
-					id: 'select-next-shape',
-					kbd: 'tab',
-					onSelect(source) {
-						if (path.startsWith('select.')) {
-							editor.selectAdjacentShape('next')
-							trackEvent('select-adjacent-shape', { source, direction: 'next' })
-						}
-					},
-				},
-				{
-					id: 'select-prev-shape',
-					kbd: '!tab',
-					onSelect(source) {
-						if (path.startsWith('select.')) {
-							editor.selectAdjacentShape('prev')
-							trackEvent('select-adjacent-shape', { source, direction: 'prev' })
-						}
-					},
-				}
-			)
-		}
 
 		if (showCollaborationUi) {
 			actionItems.push({
@@ -1581,16 +1509,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		}
 
 		return actions
-	}, [
-		helpers,
-		_editor,
-		trackEvent,
-		overrides,
-		defaultDocumentName,
-		showCollaborationUi,
-		path,
-		hasSelectedShapes,
-	])
+	}, [helpers, _editor, trackEvent, overrides, defaultDocumentName, showCollaborationUi])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
 }
