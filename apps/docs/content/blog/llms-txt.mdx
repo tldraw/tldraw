@@ -121,7 +121,7 @@ export default function CustomTldraw() {
 
 For a start, the imports for tldraw are outdated. Nowadays, you should import from `"tldraw"`, not `"@tldraw/tldraw"`.
 
-Even if we fix that, there are further issues. Overriding the `Toolbar` component is the right idea, but it doesn’t have a `children` prop, so it doesn’t work as intended. What’s more, the `deleteShapes` function takes an array of shape IDs, but `getCurrentPageShapeIds` returns a set, so there’s a type mismatch here. There are also mistakes with the `TldrawUiMenuItem` component too.
+Even if we fix that, there are further issues. Overriding the `Toolbar` component is the right idea, but it doesn’t have a `children` prop, so it doesn’t work as intended. What’s more, the `deleteShapes` function takes an array of shape IDs, but `getCurrentPageShapeIds` returns a set, so there’s a type mismatch here. There are mistakes with the `TldrawUiMenuItem` component too.
 
 In all cases, the LLM was heading in the right direction, but lacked some accuracy with our APIs. In some cases, it used code that would have worked over a year ago. This results in an app that doesn’t even load. It would take a fair amount of rewriting to get it working as intended.
 
