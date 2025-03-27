@@ -1,15 +1,5 @@
 import { Section } from '@/components/marketing/section'
 import { SectionHeading } from '@/components/marketing/section-heading'
-import Forma from '../../public/images/case-studies/89.png'
-import Craft from '../../public/images/case-studies/90.png'
-import CraftLogo from '../../public/images/case-studies/craft-logo.png'
-import FormaLogo from '../../public/images/case-studies/forma-logo.png'
-import JamLogo from '../../public/images/case-studies/jam-logo.png'
-import Jam from '../../public/images/case-studies/jam.jpg'
-import LegendKeeperLogo from '../../public/images/case-studies/legend-keeper-logo.png'
-import LegendKeeper from '../../public/images/case-studies/legend-keeper.png'
-import PixelpaperLogo from '../../public/images/case-studies/pixelpaper-logo.png'
-import Pixelpaper from '../../public/images/case-studies/pixelpaper.jpg'
 import { LogoSection } from './logo-section'
 
 export function CaseStudiesSection() {
@@ -43,20 +33,20 @@ export function CaseStudiesSection() {
 	)
 }
 
-const caseStudies = [
-	{ logo: CraftLogo, screenshot: Craft, name: 'Craft', url: 'https://www.craft.do/' },
-	{
-		logo: LegendKeeperLogo,
-		screenshot: LegendKeeper,
-		name: 'LegendKeeper',
-		url: 'https://www.legendkeeper.com/',
-	},
-	{
-		logo: PixelpaperLogo,
-		screenshot: Pixelpaper,
-		name: 'Pixelpaper',
-		url: 'https://pixelpaper.io/',
-	},
-	{ logo: FormaLogo, screenshot: Forma, name: 'Autodesk Forma', url: 'https://tldraw.com/' },
-	{ logo: JamLogo, screenshot: Jam, name: 'Jam', url: 'https://tldraw.com/' },
-]
+// const caseStudies = [
+// 	{ logo: CraftLogo, screenshot: Craft, name: 'Craft', url: 'https://www.craft.do/' },
+// 	{
+// 		logo: LegendKeeperLogo,
+// 		screenshot: LegendKeeper,
+// 		name: 'LegendKeeper',
+// 		url: 'https://www.legendkeeper.com/',
+// 	},
+// 	{
+// 		logo: PixelpaperLogo,
+// 		screenshot: Pixelpaper,
+// 		name: 'Pixelpaper',
+// 		url: 'https://pixelpaper.io/',
+// 	},
+// 	{ logo: FormaLogo, screenshot: Forma, name: 'Autodesk Forma', url: 'https://tldraw.com/' },
+// 	{ logo: JamLogo, screenshot: Jam, name: 'Jam', url: 'https://tldraw.com/' },
+// ]
