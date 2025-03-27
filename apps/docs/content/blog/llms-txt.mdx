@@ -1,0 +1,213 @@
+---
+title: LLMs.txt – Teaching AI models to build with tldraw
+category: product
+description: We turned our entire docs into a text file so that we can feed it to LLMs.
+hero: /images/blog/llms-txt/hero.gif
+date: 03/27/2025
+status: published
+author: luwilson
+---
+
+In the year 2025, developers are using an increasing number of AI tools when building software. Whether that’s by asking ChatGPT a question, asking Cursor to refactor a codebase, or hitting the tab key twenty times in a row, LLMs are now a part of many people’s daily practice.
+
+However, AI models are not always up-to-date. Their training data usually has a [half-year lag](https://support.anthropic.com/en/articles/8114494-how-up-to-date-is-claude-s-training-data) at minimum, and this can be a problem for library creators like us. We might release a new feature in the [tldraw SDK](https://www.notion.so/1a73e4c324c080e6a878ea8a6a1f1b53?pvs=21) and models wouldn’t know anything about it. In worst-case-scenarios, LLMs might suggest outdated code and APIs that no longer work.
+
+We’ve seen this happen in the wild, with models sometimes recommending code from some of the [earliest versions](https://tldraw.dev/blog/product/tldraws-upcoming-relaunch) of tldraw. For example, here’s ChatGPT using a function we removed 12 months ago.
+
+![ChatGPT suggesting the now-removed `zoomToContent` method](/images/blog/llms-txt/zoom.png)
+
+In other cases, models resort to hallucinating imaginary APIs. Here’s Claude dreaming up a fake function that has never existed.
+
+![Claude suggesting a fake function for selecting nothing](/images/blog/llms-txt/select-none.png)
+
+Luckily, there’s something we can do.
+
+## LLMs.txt
+
+`llms.txt` is an emerging practice for teaching AI models how to use your tool.
+
+Originally [proposed](https://www.answer.ai/posts/2024-09-03-llmstxt.html) by Answer.AI, `llms.txt` is a text file that you place somewhere in your docs, but unlike most other files, it’s not intended for humans. Instead, it’s designed to be read by LLMs, to help them to understand whatever it is you’re offering. For us, that’s a very good whiteboard SDK.
+
+The idea is that models are much better at reading plain text and markdown than they are at reading websites. Markdown is clearer than HTML. There’s no clutter. It also uses up drastically fewer tokens.
+
+Crucially, plain text is also portable, meaning you can use the `llms.txt` file however and wherever you want.
+
+- You can download the file, and upload it to something like ChatGPT or Claude or NotebookML to be used as a reference.
+- You can refer to it via link, so that your assistant can access and read it.
+- You can use it within a prompt if your context window is large enough.
+
+![Attaching a full docs reference in a ChatGPT question](/images/blog/llms-txt/attachment.png)
+
+Many teams have now adopted the `llms.txt` strategy, including [Cloudflare](https://developers.cloudflare.com/llms.txt), [Vercel](https://sdk.vercel.ai/llms.txt), and even some model providers themselves, like [Anthropic](https://docs.anthropic.com/llms-full.txt). You can find extensive examples of these on the [various](https://llmstxt.site/) [directories](https://directory.llmstxt.cloud/) that are now appearing.
+
+You might notice that the typical approach is to provide two files:
+
+- The main `llms.txt` file is usually a contents page. It’s a list of links to other pages on your docs site. It serves as a signpost for models that can browse the web.
+- The longer `llms-full.txt` contains _all_ of your docs inline. Although it can get large, it does contain all the information an LLM might need.
+
+We decided to do the same. As requested by many of you, we now provide markdown files at [tldraw.dev/llms.txt](http://tldraw.dev/llms.txt) and [tldraw.dev/llms-full.txt](http://tldraw.dev/llms-full.txt). We also provide a further breakdown, with our examples listed in full at [tldraw.dev/llms-examples.txt](http://tldraw.dev/llms-examples.txt) and our docs at [tldraw.dev/llms-docs.txt](http://tldraw.dev/llms-docs.txt).
+
+## How we do it
+
+We automatically generate all of these files as part of our docs build process. This way, they always stay up-to-date.
+
+For the main `llms.txt` file, it’s as simple as iterating through all our guides and examples, and listing them out alongside their URL. For now, these URLs point to the web pages themselves, but there’s scope for us to link directly to markdown versions of these in the future, if that helps. The main purpose of this file is to show the surface area of our SDK and where to navigate to explore it further.
+
+![llms.txt snippet](/images/blog/llms-txt/llms.png)
+
+The `llms-full.txt` file takes slightly more work.
+
+Luckily, we already write our guides in MDX format, so it’s a simple job to collect them together into a long list.
+
+![llms-docs.txt snippet](/images/blog/llms-txt/llms-docs.png)
+
+We do use some custom components in these, so the generated file isn’t strictly markdown. For example, we use a component named `FocusLines` to highlight individual lines of code. We could strip these out, but it also feels fine to leave them in. They don’t take up much space, and they might actually be useful to the LLM that’s reading them.
+
+![llms-docs.txt snippet of FocusLines](/images/blog/llms-txt/focus.png)
+
+Our [examples](https://tldraw.dev/examples) are all written in separate files but we already collect them into MDX files too, so that they can each have their own page on our [docs site](https://www.notion.so/1a73e4c324c080e6a878ea8a6a1f1b53?pvs=21). Many examples contain multiple files, so we collect them up and place them into our markdown inside code blocks. We exclude any unhelpfully large files, like the `snapshot.json` files we use to load default content in [some examples](https://tldraw.dev/examples/shapes/tools/layout-bindings).
+
+![llms-examples.txt snippet](/images/blog/llms-txt/example.png)
+
+From all the feedback we get, we know that developers like our examples and find them helpful, so it makes sense for us to improve them and add more. Now that we’re also generating `llms.txt` files from our examples, they’re even more worth our time.
+
+## Does it work?
+
+Let’s put our newly generated files to the test. For this challenge, we’ll ask ChatGPT to do a fairly straightforward task:
+
+![Create a tldraw example that adds a 'clear canvas' button to the toolbar. The button should be the left-most icon of the toolbar.](/images/blog/llms-txt/clear-canvas.png)
+
+We’ll compare what happens when we _don’t_ provide an `llms.txt` file to what happens when we do.
+
+### Without `llms.txt`
+
+When we don’t provide any help, the response has some clear problems. Let’s take a look.
+
+```tsx
+import { Tldraw, TldrawUiMenuItem, useEditor } from '@tldraw/tldraw'
+import '@tldraw/tldraw/tldraw.css'
+import { ReactNode } from 'react'
+
+function CustomClearButton(): ReactNode {
+	const editor = useEditor()
+
+	const handleClear = () => {
+		const allShapeIds = editor.getCurrentPageShapeIds()
+		editor.deleteShapes(allShapeIds)
+	}
+
+	return (
+		<TldrawUiMenuItem id="clear" label="Clear" readonlyOk onSelect={handleClear} icon="trash" />
+	)
+}
+
+export default function CustomTldraw() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				components={{
+					Toolbar: ({ children }) => (
+						<div style={{ display: 'flex' }}>
+							<CustomClearButton />
+							{children}
+						</div>
+					),
+				}}
+			/>
+		</div>
+	)
+}
+```
+
+For a start, the imports for tldraw are outdated. Nowadays, you should import from `"tldraw"`, not `"@tldraw/tldraw"`.
+
+Even if we fix that, there are further issues. Overriding the `Toolbar` component is the right idea, but it doesn’t have a `children` prop, so it doesn’t work as intended. What’s more, the `deleteShapes` function takes an array of shape IDs, but `getCurrentPageShapeIds` returns a set, so there’s a type mismatch there. There are also mistakes with the `TldrawUiMenuItem` component too.
+
+In all cases, the LLM was heading in the right direction, but lacked some accuracy with our APIs. In some cases, it used code that would have worked over a year ago. This results in an app that doesn’t even load. It would take a fair amount of rewriting to get it working as intended.
+
+### With `llms.txt`
+
+When we provide the model with `llms-full.txt` and the additional instruction, “Refer to the docs that I have given you”, we get a much better response that works out of the box.
+
+```tsx
+import {
+	DefaultToolbar,
+	DefaultToolbarContent,
+	TLComponents,
+	Tldraw,
+	TldrawUiIcon,
+	useEditor,
+} from 'tldraw'
+import 'tldraw/tldraw.css'
+
+const ClearCanvasButton = () => {
+	const editor = useEditor()
+	return (
+		<button
+			title="Clear canvas"
+			onClick={() => {
+				editor.deleteShapes(Array.from(editor.getCurrentPageShapeIds()))
+			}}
+			style={{
+				background: 'none',
+				border: 'none',
+				cursor: 'pointer',
+				padding: '6px',
+			}}
+		>
+			<TldrawUiIcon icon="trash" />
+		</button>
+	)
+}
+
+// Override toolbar component
+const components: TLComponents = {
+	Toolbar: (props) => {
+		return (
+			<DefaultToolbar {...props}>
+				<ClearCanvasButton />
+				<DefaultToolbarContent />
+			</DefaultToolbar>
+		)
+	},
+}
+
+export default function ClearCanvasExample() {
+	return (
+		<div className="tldraw__editor">
+			<Tldraw components={components} />
+		</div>
+	)
+}
+```
+
+It uses the correct `"tldraw"` import, it correctly converts the result from `getCurrentPageShapeIds` into an array, and it knows to use the `DefaultToolbar` component.
+
+Here it is in action.
+
+![The generated example](/images/blog/llms-txt/generation.gif)
+
+It’s worth bearing in mind that this is only one example and you may find different results with different tasks. At the very least, an `llms.txt` file should not make an LLM’s response any _worse_. At best, as shown by the above test, it can help a lot.
+
+One piece of advice we have for you is to directly instruct the LLM to make use of the attached or included file. Without an explicit instruction to do so, the model often ignores it.
+
+## Next steps
+
+This is only the beginning. We haven’t yet tailored the contents of our `llms.txt` files, and we haven’t yet evaluated how well they work within our wider developer community. We know how much [creative prompting](https://jacalulu.substack.com/p/hilarious-methods-for-effective-prompting) can improve an LLM’s output, so we know that there’s scope to improve the text we include in these files.
+
+We’d love to hear from you about whether our `llms.txt` files help you or not. We want to hear about the success cases as well as the failure cases. Come and tell us how it goes on [discord](https://discord.tldraw.com/).
+
+We’ll soon make all of our markdown files discoverable from our docs site, but for now, you can find them at the following URLs:
+
+- [tldraw.dev/llms.txt](http://tldraw.dev/llms.txt)
+- [tldraw.dev/llms-full.txt](http://tldraw.dev/llms-full.txt)
+- [tldraw.dev/llms-examples.txt](http://tldraw.dev/llms-examples.txt)
+- [tldraw.dev/llms-docs.txt](http://tldraw.dev/llms-docs.txt)
+
+---
+
+This project has been part of a larger initiative to improve the discoverability and experience of our docs site. There are many more changes coming, such as improved examples pages, extra API references, and better search. If you have any feedback or requests around our docs, come and tell us on [discord](https://www.notion.so/LLMs-txt-1c23e4c324c08039bddec03d0aeccaee?pvs=21).
+
+To build something with the tldraw SDK, [start here](https://tldraw.dev/quick-start).
+
+![Preview of some upcoming docs changes](/images/blog/llms-txt/docs.gif)
