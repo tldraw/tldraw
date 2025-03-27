@@ -1588,6 +1588,8 @@ export class LineShapeTool extends StateNode {
 // @public (undocumented)
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
+    canTabTo(): boolean;
+    // (undocumented)
     component(shape: TLLineShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLLineShape['props'];
