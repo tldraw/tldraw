@@ -245,6 +245,6 @@ export function getNoteShapeForAdjacentPosition(
 		nextNote = editor.getShape(id)!
 	}
 
-	editor.zoomToShapeIfOffscreen()
+	editor.zoomToSelectionIfOffscreen()
 	return nextNote
 }

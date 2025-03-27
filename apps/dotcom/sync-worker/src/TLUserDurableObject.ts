@@ -597,7 +597,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	private writeEvent(eventData: EventData) {
-		writeDataPoint(this.measure, this.env, 'user_durable_object', eventData)
+		writeDataPoint(this.sentry, this.measure, this.env, 'user_durable_object', eventData)
 	}
 
 	logEvent(event: TLUserDurableObjectEvent) {
@@ -635,7 +635,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	async admin_forceHardReboot(userId: string) {
 		if (this.cache) {
-			await this.cache?.reboot({ hard: true, delay: false })
+			await this.cache?.reboot({ hard: true, delay: false, source: 'admin' })
 		} else {
 			await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		}

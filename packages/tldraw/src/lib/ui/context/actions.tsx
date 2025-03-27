@@ -17,7 +17,6 @@ import {
 	compact,
 	createShapeId,
 	openWindow,
-	selectAdjacentShape,
 	useMaybeEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -1491,7 +1490,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$left',
 				onSelect(source) {
 					if (path.startsWith('select.')) {
-						selectAdjacentShape(editor, 'left')
+						editor.selectAdjacentShape('left')
 						trackEvent('select-adjacent-shape', { source, direction: 'left' })
 					}
 				},
@@ -1501,7 +1500,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$right',
 				onSelect(source) {
 					if (path.startsWith('select.')) {
-						selectAdjacentShape(editor, 'right')
+						editor.selectAdjacentShape('right')
 						trackEvent('select-adjacent-shape', { source, direction: 'right' })
 					}
 				},
@@ -1511,7 +1510,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$up',
 				onSelect(source) {
 					if (path.startsWith('select.')) {
-						selectAdjacentShape(editor, 'up')
+						editor.selectAdjacentShape('up')
 						trackEvent('select-adjacent-shape', { source, direction: 'up' })
 					}
 				},
@@ -1521,7 +1520,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$down',
 				onSelect(source) {
 					if (path.startsWith('select.')) {
-						selectAdjacentShape(editor, 'down')
+						editor.selectAdjacentShape('down')
 						trackEvent('select-adjacent-shape', { source, direction: 'down' })
 					}
 				},
@@ -1534,8 +1533,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					id: 'select-next-shape',
 					kbd: 'tab',
 					onSelect(source) {
-						if (path.startsWith('select.') && editor.getSelectedShapeIds().length) {
-							selectAdjacentShape(editor, 'next')
+						if (path.startsWith('select.')) {
+							editor.selectAdjacentShape('next')
 							trackEvent('select-adjacent-shape', { source, direction: 'next' })
 						}
 					},
@@ -1544,8 +1543,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					id: 'select-prev-shape',
 					kbd: '!tab',
 					onSelect(source) {
-						if (path.startsWith('select.') && editor.getSelectedShapeIds().length) {
-							selectAdjacentShape(editor, 'prev')
+						if (path.startsWith('select.')) {
+							editor.selectAdjacentShape('prev')
 							trackEvent('select-adjacent-shape', { source, direction: 'prev' })
 						}
 					},

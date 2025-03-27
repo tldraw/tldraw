@@ -34,12 +34,6 @@ export {
 	type TiptapEditor,
 	type TiptapNode,
 } from './lib/utils/richText'
-export {
-	getNearestAdjacentShape,
-	getShapesInReadingOrder,
-	selectAdjacentShape,
-	type AdjacentDirection,
-} from './lib/utils/shapeNavigation'
 export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalIndexedDb'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
@@ -299,7 +293,11 @@ export {
 	type TLSvgExportOptions,
 	type TLSvgOptions,
 } from './lib/editor/types/misc-types'
-export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
+export {
+	type TLAdjacentDirection,
+	type TLResizeHandle,
+	type TLSelectionHandle,
+} from './lib/editor/types/selection-types'
 export { getSvgAsImage } from './lib/exports/getSvgAsImage'
 export { tlenv } from './lib/globals/environment'
 export { tlmenus } from './lib/globals/menus'

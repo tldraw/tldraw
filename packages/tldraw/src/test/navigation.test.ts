@@ -1,4 +1,4 @@
-import { createShapeId, selectAdjacentShape } from '@tldraw/editor'
+import { createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -62,7 +62,7 @@ describe('Shape navigation', () => {
 		editor.select(ids.box1)
 
 		// Try to navigate to next shape
-		selectAdjacentShape(editor, 'next')
+		editor.selectAdjacentShape('next')
 
 		// Should not select box2 since canTabTo is false
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
@@ -81,7 +81,7 @@ describe('Shape navigation', () => {
 		editor.select(ids.box1, ids.box2)
 
 		// Navigate to next shape
-		selectAdjacentShape(editor, 'next')
+		editor.selectAdjacentShape('next')
 
 		// Should select only box3
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
@@ -99,13 +99,13 @@ describe('Shape navigation', () => {
 		// Select the first shape
 		editor.select(ids.box1)
 
-		// Spy on zoomToShapeIfOffscreen method
-		const zoomSpy = jest.spyOn(editor, 'zoomToShapeIfOffscreen')
+		// Spy on zoomToSelectionIfOffscreen method
+		const zoomSpy = jest.spyOn(editor, 'zoomToSelectionIfOffscreen')
 
 		// Navigate to next shape (offscreen)
-		selectAdjacentShape(editor, 'next')
+		editor.selectAdjacentShape('next')
 
-		// Should have called zoomToShapeIfOffscreen
+		// Should have called zoomToSelectionIfOffscreen
 		expect(zoomSpy).toHaveBeenCalled()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.offscreenBox])
 	})
@@ -132,7 +132,7 @@ describe('Shape navigation', () => {
 		editor.select(ids.box1)
 
 		// Navigate to next shape (which is culled)
-		selectAdjacentShape(editor, 'next')
+		editor.selectAdjacentShape('next')
 
 		// Should still select the culled shape
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
@@ -167,7 +167,7 @@ describe('Shape navigation', () => {
 			editor.select(ids.boxA)
 
 			// Navigate to next shape from A
-			selectAdjacentShape(editor, 'next')
+			editor.selectAdjacentShape('next')
 
 			// Should select C, not B (because C is closer with shallow angle)
 			expect(editor.getSelectedShapeIds()).toEqual([ids.boxC])
@@ -199,7 +199,7 @@ describe('Shape navigation', () => {
 			editor.select(ids.center)
 
 			// Navigate right
-			selectAdjacentShape(editor, 'right')
+			editor.selectAdjacentShape('right')
 
 			// Should prefer right85 because it's more directly to the right
 			expect(editor.getSelectedShapeIds()).toEqual([ids.right85])
@@ -232,19 +232,19 @@ describe('Shape navigation', () => {
 			editor.select(ids.center)
 
 			// Test navigation in each direction
-			selectAdjacentShape(editor, 'right')
+			editor.selectAdjacentShape('right')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.right])
 
 			editor.select(ids.center)
-			selectAdjacentShape(editor, 'left')
+			editor.selectAdjacentShape('left')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.left])
 
 			editor.select(ids.center)
-			selectAdjacentShape(editor, 'up')
+			editor.selectAdjacentShape('up')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.up])
 
 			editor.select(ids.center)
-			selectAdjacentShape(editor, 'down')
+			editor.selectAdjacentShape('down')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.down])
 		})
 
@@ -270,7 +270,7 @@ describe('Shape navigation', () => {
 			editor.select(ids.center)
 
 			// Navigate right - should select nearRight as it's closest
-			selectAdjacentShape(editor, 'right')
+			editor.selectAdjacentShape('right')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.nearRight])
 		})
 
@@ -295,19 +295,19 @@ describe('Shape navigation', () => {
 			editor.select(ids.box3)
 
 			// Navigate 'up' from box3 should go to box2
-			selectAdjacentShape(editor, 'up')
+			editor.selectAdjacentShape('up')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
 
 			// Navigate 'left' from box2 should go to box1
-			selectAdjacentShape(editor, 'left')
+			editor.selectAdjacentShape('left')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 
 			// Navigate 'right' from box1 should go back to box2
-			selectAdjacentShape(editor, 'right')
+			editor.selectAdjacentShape('right')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
 
 			// Navigate 'down' from box2 should go back to box3
-			selectAdjacentShape(editor, 'down')
+			editor.selectAdjacentShape('down')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
 		})
 	})
@@ -327,14 +327,14 @@ describe('Shape navigation', () => {
 			editor.select(shapeIds[0])
 
 			// Tab through all shapes
-			selectAdjacentShape(editor, 'next')
+			editor.selectAdjacentShape('next')
 			expect(editor.getSelectedShapeIds()).toEqual([shapeIds[1]])
 
-			selectAdjacentShape(editor, 'next')
+			editor.selectAdjacentShape('next')
 			expect(editor.getSelectedShapeIds()).toEqual([shapeIds[2]])
 
 			// Should cycle back to first shape
-			selectAdjacentShape(editor, 'next')
+			editor.selectAdjacentShape('next')
 			expect(editor.getSelectedShapeIds()).toEqual([shapeIds[0]])
 		})
 
@@ -346,7 +346,7 @@ describe('Shape navigation', () => {
 			editor.selectNone()
 
 			// Try to navigate - should select a shape
-			selectAdjacentShape(editor, 'next')
+			editor.selectAdjacentShape('next')
 
 			// Should have selected a shape rather than erroring
 			expect(editor.getSelectedShapeIds().length).toBeGreaterThan(0)
@@ -376,20 +376,20 @@ describe('Shape navigation', () => {
 			editor.select(ids.row1Shape1)
 
 			// Navigate through shapes and verify reading order
-			selectAdjacentShape(editor, 'next')
+			editor.selectAdjacentShape('next')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.row1Shape2])
 
-			selectAdjacentShape(editor, 'next')
+			editor.selectAdjacentShape('next')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.row1Shape3])
 
-			selectAdjacentShape(editor, 'next')
+			editor.selectAdjacentShape('next')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.row2Shape1])
 
-			selectAdjacentShape(editor, 'next')
+			editor.selectAdjacentShape('next')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.row2Shape2])
 
 			// And back to row1Shape1 to complete the cycle
-			selectAdjacentShape(editor, 'next')
+			editor.selectAdjacentShape('next')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.row1Shape1])
 		})
 
@@ -407,14 +407,14 @@ describe('Shape navigation', () => {
 			editor.select(shapeIds[2])
 
 			// Tab backward through all shapes
-			selectAdjacentShape(editor, 'prev')
+			editor.selectAdjacentShape('prev')
 			expect(editor.getSelectedShapeIds()).toEqual([shapeIds[1]])
 
-			selectAdjacentShape(editor, 'prev')
+			editor.selectAdjacentShape('prev')
 			expect(editor.getSelectedShapeIds()).toEqual([shapeIds[0]])
 
 			// Should cycle back to last shape
-			selectAdjacentShape(editor, 'prev')
+			editor.selectAdjacentShape('prev')
 			expect(editor.getSelectedShapeIds()).toEqual([shapeIds[2]])
 		})
 
@@ -431,7 +431,7 @@ describe('Shape navigation', () => {
 			editor.select(ids.box2, ids.box3)
 
 			// Navigate to previous shape
-			selectAdjacentShape(editor, 'prev')
+			editor.selectAdjacentShape('prev')
 
 			// Should select only box1
 			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
@@ -450,18 +450,18 @@ describe('Shape navigation', () => {
 			editor.select(ids.box2)
 
 			// Navigate next
-			selectAdjacentShape(editor, 'next')
+			editor.selectAdjacentShape('next')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
 
 			// Navigate prev twice
-			selectAdjacentShape(editor, 'prev')
+			editor.selectAdjacentShape('prev')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
 
-			selectAdjacentShape(editor, 'prev')
+			editor.selectAdjacentShape('prev')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 
 			// Navigate next again
-			selectAdjacentShape(editor, 'next')
+			editor.selectAdjacentShape('next')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
 		})
 	})
