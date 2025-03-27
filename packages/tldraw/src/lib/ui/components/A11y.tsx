@@ -1,4 +1,4 @@
-import { getShapesInReadingOrder, useEditor } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { useCallback, useRef } from 'react'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
@@ -10,10 +10,10 @@ export function SkipToMainContent() {
 
 	const handleNavigateToFirstShape = useCallback(() => {
 		button.current?.blur()
-		const shapes = getShapesInReadingOrder(editor)
+		const shapes = editor.getCurrentPageShapesInReadingOrder()
 		if (!shapes.length) return
 		editor.setSelectedShapes([shapes[0].id])
-		editor.zoomToShapeIfOffscreen(256)
+		editor.zoomToSelectionIfOffscreen(256)
 	}, [editor])
 
 	return (
