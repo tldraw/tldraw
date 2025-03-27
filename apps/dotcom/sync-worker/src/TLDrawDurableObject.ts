@@ -76,6 +76,8 @@ export class TLDrawDurableObject extends DurableObject {
 
 	_room: Promise<TLSocketRoom<TLRecord, SessionMeta>> | null = null
 
+	sentry: ReturnType<typeof createSentry> | null = null
+
 	getRoom() {
 		if (!this._documentInfo) {
 			throw new Error('documentInfo must be present when accessing room')
@@ -180,6 +182,7 @@ export class TLDrawDurableObject extends DurableObject {
 		this.storage = state.storage
 		this.sentryDSN = env.SENTRY_DSN
 		this.measure = env.MEASURE
+		this.sentry = createSentry(this.state, this.env)
 		this.supabaseClient = createSupabaseClient(env)
 
 		this.supabaseTable = env.TLDRAW_ENV === 'production' ? 'drawings' : 'drawings_staging'
@@ -456,7 +459,7 @@ export class TLDrawDurableObject extends DurableObject {
 	}, 2000)
 
 	private writeEvent(name: string, eventData: EventData) {
-		writeDataPoint(this.measure, this.env, name, eventData)
+		writeDataPoint(this.sentry, this.measure, this.env, name, eventData)
 	}
 
 	logEvent(event: TLServerEvent) {
@@ -695,12 +698,9 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 	}
 	private reportError(e: unknown) {
-		const sentryDSN = this.sentryDSN
-		if (sentryDSN) {
-			const sentry = createSentry(this.state, this.env)
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			sentry?.captureException(e)
-		}
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		this.sentry?.captureException(e)
+		console.error(e)
 	}
 
 	async schedulePersist() {
