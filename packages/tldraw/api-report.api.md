@@ -904,6 +904,8 @@ export class DrawShapeTool extends StateNode {
     onExit(): void;
     // (undocumented)
     shapeType: string;
+    // (undocumented)
+    static useCoalescedEvents: boolean;
 }
 
 // @public (undocumented)
@@ -1465,6 +1467,8 @@ export class HighlightShapeTool extends StateNode {
     onExit(): void;
     // (undocumented)
     shapeType: string;
+    // (undocumented)
+    static useCoalescedEvents: boolean;
 }
 
 // @public (undocumented)
@@ -2695,7 +2699,7 @@ export type TLUiAssetUrlOverrides = RecursivePartial<TLUiAssetUrls>;
 // @public (undocumented)
 export interface TLUiAssetUrls extends TLEditorAssetUrls {
     // (undocumented)
-    embedIcons: Record<(typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'], string>;
+    embedIcons: Partial<Record<(typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'], string>>;
     // (undocumented)
     icons: Record<Exclude<string, TLUiIconType> | TLUiIconType, string>;
     // (undocumented)
