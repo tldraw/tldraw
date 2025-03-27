@@ -14,6 +14,10 @@ export function SkipToMainContent() {
 		if (!shapes.length) return
 		editor.setSelectedShapes([shapes[0].id])
 		editor.zoomToSelectionIfOffscreen(256)
+
+		// N.B. If we don't do this, then we go into editing mode for some reason...
+		// Not sure of a better solution at the moment...
+		editor.timers.setTimeout(() => editor.getContainer().focus(), 100)
 	}, [editor])
 
 	return (
