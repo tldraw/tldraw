@@ -1,5 +1,6 @@
-import test, { Page, expect } from '@playwright/test'
+import { Page, expect } from '@playwright/test'
 import { setupPage, setupPageWithShapes } from '../shared-e2e'
+import test from './fixtures/fixtures'
 
 declare const __tldraw_ui_event: { name: string }
 
@@ -449,6 +450,97 @@ test.describe('Delete bug', () => {
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 			name: 'delete-shapes',
 			data: { source: 'kbd' },
+		})
+	})
+})
+
+test.describe('Shape Navigation', () => {
+	test.beforeEach(async ({ browser }) => {
+		page = await browser.newPage()
+		await setupPage(page)
+	})
+
+	test('Tab navigation between shapes', async () => {
+		// Create multiple shapes
+		await page.keyboard.press('r')
+		await page.mouse.click(100, 100)
+		await page.keyboard.press('r')
+		await page.mouse.click(250, 100)
+		await page.keyboard.press('r')
+		await page.mouse.click(400, 100)
+		await page.keyboard.press('v')
+
+		// Click on the first shape to select it
+		await page.mouse.click(100, 100)
+
+		// Navigate forward with Tab
+		await page.keyboard.press('Tab')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'select-adjacent-shape',
+			data: { direction: 'next', source: 'kbd' },
+		})
+
+		// Navigate backward with Shift+Tab
+		await page.keyboard.press('Shift+Tab')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'select-adjacent-shape',
+			data: { direction: 'prev', source: 'kbd' },
+		})
+	})
+
+	test('Directional navigation between shapes', async () => {
+		// Create shapes in different directions
+		await page.keyboard.press('r')
+		await page.mouse.click(200, 200) // Center shape
+		await page.keyboard.press('r')
+		await page.mouse.click(300, 200) // Right shape
+		await page.keyboard.press('r')
+		await page.mouse.click(100, 200) // Left shape
+		await page.keyboard.press('r')
+		await page.mouse.click(200, 100) // Up shape
+		await page.keyboard.press('r')
+		await page.mouse.click(200, 300) // Down shape
+		await page.keyboard.press('v')
+
+		// Select center shape
+		await page.mouse.click(200, 200)
+
+		// Test navigation to the right
+		await page.keyboard.press('Control+ArrowRight')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'select-adjacent-shape',
+			data: { direction: 'right', source: 'kbd' },
+		})
+
+		// Navigate back to center
+		await page.mouse.click(200, 200)
+
+		// Disabled: I think this conflicts with browser nav.
+		// // Test navigation to the left
+		// await page.keyboard.press('Control+ArrowLeft')
+		// expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+		// 	name: 'select-adjacent-shape',
+		// 	data: { direction: 'left', source: 'kbd' },
+		// })
+
+		// Navigate back to center
+		await page.mouse.click(200, 200)
+
+		// Test navigation up
+		await page.keyboard.press('Control+ArrowUp')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'select-adjacent-shape',
+			data: { direction: 'up', source: 'kbd' },
+		})
+
+		// Navigate back to center
+		await page.mouse.click(200, 200)
+
+		// Test navigation down
+		await page.keyboard.press('Control+ArrowDown')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'select-adjacent-shape',
+			data: { direction: 'down', source: 'kbd' },
 		})
 	})
 })

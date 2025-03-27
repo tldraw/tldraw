@@ -17,7 +17,9 @@ import {
 	compact,
 	createShapeId,
 	openWindow,
+	selectAdjacentShape,
 	useMaybeEditor,
+	useValue,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
@@ -80,13 +82,14 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const showCollaborationUi = useShowCollaborationUi()
 	const helpers = useDefaultHelpers()
 	const trackEvent = useUiEvents()
+	const path = useValue('path', () => _editor?.getPath(), [_editor])
 
 	const defaultDocumentName = helpers.msg('document.default-name')
 
 	// should this be a useMemo? looks like it doesn't actually deref any reactive values
 	const actions = React.useMemo<TLUiActionsContextType>(() => {
 		const editor = _editor as Editor
-		if (!editor) return {}
+		if (!editor || !path) return {}
 		function mustGoBackToSelectToolFirst() {
 			if (!editor.isIn('select')) {
 				editor.complete()
@@ -1478,6 +1481,66 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('change-page', { source, direction: 'next' })
 				},
 			},
+			{
+				id: 'select-horz-prev-shape',
+				kbd: '$left',
+				onSelect(source) {
+					if (path.startsWith('select.')) {
+						selectAdjacentShape(editor, 'left')
+						trackEvent('select-adjacent-shape', { source, direction: 'left' })
+					}
+				},
+			},
+			{
+				id: 'select-horz-next-shape',
+				kbd: '$right',
+				onSelect(source) {
+					if (path.startsWith('select.')) {
+						selectAdjacentShape(editor, 'right')
+						trackEvent('select-adjacent-shape', { source, direction: 'right' })
+					}
+				},
+			},
+			{
+				id: 'select-vert-prev-shape',
+				kbd: '$up',
+				onSelect(source) {
+					if (path.startsWith('select.')) {
+						selectAdjacentShape(editor, 'up')
+						trackEvent('select-adjacent-shape', { source, direction: 'up' })
+					}
+				},
+			},
+			{
+				id: 'select-vert-next-shape',
+				kbd: '$down',
+				onSelect(source) {
+					if (path.startsWith('select.')) {
+						selectAdjacentShape(editor, 'down')
+						trackEvent('select-adjacent-shape', { source, direction: 'down' })
+					}
+				},
+			},
+			{
+				id: 'select-next-shape',
+				kbd: 'tab',
+				onSelect(source) {
+					if (path.startsWith('select.')) {
+						selectAdjacentShape(editor, 'next')
+						trackEvent('select-adjacent-shape', { source, direction: 'next' })
+					}
+				},
+			},
+			{
+				id: 'select-prev-shape',
+				kbd: '!tab',
+				onSelect(source) {
+					if (path.startsWith('select.')) {
+						selectAdjacentShape(editor, 'prev')
+						trackEvent('select-adjacent-shape', { source, direction: 'prev' })
+					}
+				},
+			},
 		]
 
 		if (showCollaborationUi) {
@@ -1509,7 +1572,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		}
 
 		return actions
-	}, [helpers, _editor, trackEvent, overrides, defaultDocumentName, showCollaborationUi])
+	}, [helpers, _editor, trackEvent, overrides, defaultDocumentName, showCollaborationUi, path])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
 }

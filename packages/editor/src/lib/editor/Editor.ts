@@ -3020,6 +3020,41 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Zoom the camera to the current selection if offscreen.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.zoomToShapeIfOffscreen()
+	 * ```
+	 *
+	 * @public
+	 */
+	zoomToShapeIfOffscreen(padding = 16) {
+		const selectionPageBounds = this.getSelectionPageBounds()
+		const viewportPageBounds = this.getViewportPageBounds()
+		if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
+			const eb = selectionPageBounds
+				.clone()
+				// Expand the bounds by the padding
+				.expandBy(padding / this.getZoomLevel())
+				// then expand the bounds to include the viewport bounds
+				.expand(viewportPageBounds)
+
+			// then use the difference between the centers to calculate the offset
+			const nextBounds = viewportPageBounds.clone().translate({
+				x: (eb.center.x - viewportPageBounds.center.x) * 2,
+				y: (eb.center.y - viewportPageBounds.center.y) * 2,
+			})
+			this.zoomToBounds(nextBounds, {
+				animation: {
+					duration: this.options.animationMediumMs,
+				},
+				inset: 0,
+			})
+		}
+	}
+
+	/**
 	 * Zoom the camera to fit a bounding box (in the current page space).
 	 *
 	 * @example

@@ -104,6 +104,9 @@ import { whyAmIRunning } from '@tldraw/state';
 // @internal (undocumented)
 export function activeElementShouldCaptureKeys(): boolean;
 
+// @public (undocumented)
+export type AdjacentDirection = 'down' | 'left' | 'next' | 'prev' | 'right' | 'up';
+
 // @public
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
 
@@ -1584,6 +1587,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     } & TLCameraMoveOptions): this;
     zoomToFit(opts?: TLCameraMoveOptions): this;
     zoomToSelection(opts?: TLCameraMoveOptions): this;
+    zoomToShapeIfOffscreen(padding?: number): void;
     zoomToUser(userId: string, opts?: TLCameraMoveOptions): this;
 }
 
@@ -1774,6 +1778,9 @@ export function getFreshUserPreferences(): TLUserPreferences;
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
 
+// @public
+export function getNearestAdjacentShape(editor: Editor, currentShapeId: TLShapeId, direction: 'down' | 'left' | 'right' | 'up'): TLShapeId;
+
 // @public (undocumented)
 export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: Partial<{
     closed: boolean;
@@ -1822,6 +1829,9 @@ export function getRotationSnapshot({ editor, ids, }: {
     editor: Editor;
     ids: TLShapeId[];
 }): null | TLRotationSnapshot;
+
+// @public
+export function getShapesInReadingOrder(editor: Editor): TLShape[];
 
 // @public (undocumented)
 export function getSnapshot(store: TLStore): TLEditorSnapshot;
@@ -1874,6 +1884,8 @@ export class Group2d extends Geometry2d {
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind(): boolean;
+    // (undocumented)
+    canTabTo(): boolean;
     // (undocumented)
     component(shape: TLGroupShape): JSX_2.Element | null;
     // (undocumented)
@@ -2534,6 +2546,9 @@ export class ScribbleManager {
 }
 
 // @public (undocumented)
+export function selectAdjacentShape(editor: Editor, direction: AdjacentDirection): void;
+
+// @public (undocumented)
 export type SelectionCorner = 'bottom_left' | 'bottom_right' | 'top_left' | 'top_right';
 
 // @public (undocumented)
@@ -2566,6 +2581,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canResize(_shape: Shape): boolean;
     canScroll(_shape: Shape): boolean;
     canSnap(_shape: Shape): boolean;
+    canTabTo(_shape: Shape): boolean;
     abstract component(shape: Shape): any;
     static configure<T extends TLShapeUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
         options: infer Options;

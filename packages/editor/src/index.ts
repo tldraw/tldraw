@@ -34,6 +34,12 @@ export {
 	type TiptapEditor,
 	type TiptapNode,
 } from './lib/utils/richText'
+export {
+	getNearestAdjacentShape,
+	getShapesInReadingOrder,
+	selectAdjacentShape,
+	type AdjacentDirection,
+} from './lib/utils/shapeNavigation'
 export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalIndexedDb'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'

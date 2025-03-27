@@ -218,6 +218,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canSnap(): boolean;
     // (undocumented)
+    canTabTo(): boolean;
+    // (undocumented)
     component(shape: TLArrowShape): JSX_2.Element | null;
     // (undocumented)
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
@@ -909,6 +911,8 @@ export class DrawShapeTool extends StateNode {
 // @public (undocumented)
 export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
+    canTabTo(): boolean;
+    // (undocumented)
     component(shape: TLDrawShape): JSX_2.Element;
     // (undocumented)
     expandSelectionOutlinePx(shape: TLDrawShape): number;
@@ -1471,6 +1475,8 @@ export class HighlightShapeTool extends StateNode {
 export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     backgroundComponent(shape: TLHighlightShape): JSX_2.Element;
+    // (undocumented)
+    canTabTo(): boolean;
     // (undocumented)
     component(shape: TLHighlightShape): JSX_2.Element;
     // (undocumented)
@@ -3138,6 +3144,10 @@ export interface TLUiEventMap {
     'rotate-cw': null;
     // (undocumented)
     'save-project-to-file': null;
+    // (undocumented)
+    'select-adjacent-shape': {
+        direction: 'down' | 'left' | 'next' | 'prev' | 'right' | 'up';
+    };
     // (undocumented)
     'select-all-shapes': null;
     // (undocumented)
