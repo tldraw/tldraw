@@ -133,10 +133,10 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			editor.dispatch(info)
 		}
 
-		let initDistanceBetweenFingers = 1 // the distance between the two fingers when the pinch starts
+		let initDistanceBetweenFingers = 0 // the distance between the two fingers when the pinch starts
 		let initZoom = 1 // the browser's zoom level when the pinch starts
 		let currZoom = 1 // the current zoom level according to the pinch gesture recognizer
-		let currDistanceBetweenFingers = 0
+		const currDistanceBetweenFingers = 0
 		const initPointBetweenFingers = new Vec()
 		const prevPointBetweenFingers = new Vec()
 		let prevDistanceBetweenFingers = 0
@@ -145,7 +145,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			const elm = ref.current
 			pinchState = 'not sure'
 
-			const { event, origin, da, offset } = gesture
+			const { event, origin, da } = gesture
 
 			if (event instanceof WheelEvent) return
 			if (!(event.target === elm || elm?.contains(event.target as Node))) return
@@ -154,7 +154,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			prevPointBetweenFingers.y = origin[1]
 			initPointBetweenFingers.x = origin[0]
 			initPointBetweenFingers.y = origin[1]
-			initDistanceBetweenFingers = offset[0]
+			initDistanceBetweenFingers = da[0]
 			initZoom = editor.getZoomLevel()
 
 			editor.dispatch({
@@ -211,7 +211,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 
 		const onPinch: PinchHandler = (gesture) => {
 			const elm = ref.current
-			const { event, origin, offset, da, delta, movement } = gesture
+			const { event, origin, offset } = gesture
 
 			if (event instanceof WheelEvent) return
 			if (!(event.target === elm || elm?.contains(event.target as Node))) return

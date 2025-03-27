@@ -9841,7 +9841,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (!inputs.isPinching) return
 
 						const {
-							point: { z = 1 },
 							delta: { x: dx, y: dy, z: dz },
 						} = info
 
