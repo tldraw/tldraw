@@ -44,7 +44,7 @@ export function MaskedLogo({
 			<img
 				src={src}
 				className={clsx(
-					small ? 'xl:h-[56px] h-[40px]' : 'lg:h-[64px] h-[48px]',
+					small ? 'xl:h-[48px] h-[48px]' : 'lg:h-[48px] h-[48px]',
 					'w-auto invisible'
 				)}
 			/>

@@ -21,12 +21,11 @@ const socialLinks = [
 	},
 ]
 
-export function TestimonialsSection() {
+export function CommunitySection() {
 	return (
-		<Section className="bg-zinc-50 dark:bg-zinc-900 py-24 sm:py-24 md:py-32 lg:py-40 max-w-full">
+		<Section id="community">
 			<SectionHeading
-				subheading="Community"
-				heading="Friends of the draw"
+				heading="Join the Community"
 				description={
 					<>
 						39K <Link href="https://github.com/tldraw">GitHub stars</Link>. 66K followers on{' '}

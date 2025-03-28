@@ -10,10 +10,7 @@ export function Section({
 	className?: string
 }) {
 	return (
-		<section
-			id={id}
-			className={cn('w-full max-w-screen-xl mx-auto md:px-6 my-32 lg:my-40', className)}
-		>
+		<section id={id} className={cn('w-full max-w-screen-xl mx-auto md:px-6', className)}>
 			{children}
 		</section>
 	)

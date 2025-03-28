@@ -5,9 +5,8 @@ import { Button } from '../common/button'
 
 export function InstallationSection() {
 	return (
-		<Section>
+		<Section id="installation">
 			<SectionHeading
-				subheading="code"
 				heading="Installation"
 				description="Install the tldraw package, import the styles, and render the component in your React app."
 			/>
@@ -15,11 +14,14 @@ export function InstallationSection() {
 				<CodeFiles files={[code.terminal]} hideTabs className="w-full my-0" />
 				<CodeFiles files={[code.app]} className="w-full my-0" />
 				<div className="flex gap-4 flex-wrap items-center justify-center px-4">
-					<Button id="code-examples" href="/examples" type="tertiary" caption="Browse examples" />
+					<Button id="code-examples" href="/examples" caption="Browse examples" />
 					<Button
 						id="code-quick-start-"
-						href="/quick-start"
-						caption="Read the quick start guide"
+						href="https://stackblitz.com/edit/vitejs-vite-ahoswhus?file=src%2FApp.tsx"
+						caption="Open in StackBlitz"
+						arrow="right"
+						type="tertiary"
+						newTab
 					/>{' '}
 				</div>
 			</div>

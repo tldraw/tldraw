@@ -2,31 +2,30 @@ import { MaskedLogo } from './masked-logo'
 
 export function LogoSection() {
 	return (
-		<>
-			<section className="hidden sm:flex w-full max-w-screen-xl mx-auto px-2 lg:px-5 text-base flex-col items-center text-[#000] dark:text-[#fff]">
-				<div className="w-full flex flex-wrap sm:flex-nowrap items-center justify-center lg:justify-center gap-0">
-					{logos[0].map(({ src, alt, url }, index) => (
-						<MaskedLogo key={index} src={src} url={url} alt={alt} />
-					))}
-				</div>
-				<div className="w-full flex flex-wrap w-[80%] lg:w-[80%] items-center justify-center lg:justify-center gap-x-0 gap-y-5">
-					{logos[1].map(({ src, alt, url }, index) => (
-						<MaskedLogo key={index} src={src} url={url} alt={alt} small />
-					))}
-				</div>
-			</section>
-			<section className="mt-10 flex sm:hidden w-full max-w-screen-xl mx-auto px-2 pt-4 flex-col items-center text-[#000] dark:text-[#fff]">
-				<div className="w-full flex flex-wrap items-center justify-center lg:justify-center gap-0">
-					{logos.map((section, i) => (
-						<>
-							{section.map(({ src, alt, url }, index) => (
-								<MaskedLogo key={index} src={src} url={url} alt={alt} small={i > 0} />
-							))}
-						</>
-					))}
-				</div>
-			</section>
-		</>
+		<section className="flex w-full max-w-screen-xl mx-auto gap-6 px-2 flex-col items-center text-[#000] dark:text-[#fff]">
+			<div className="uppercase tracking-wider text-zinc-800 font-bold text-xs text-center px-5 md:px-0">
+				Made with tldraw
+			</div>
+			<div className="w-full hidden xl:flex flex-wrap items-center justify-center lg:justify-center gap-0">
+				{logos.map((section, i) => (
+					<>
+						{section.map(({ src, alt, url }, index) => (
+							<MaskedLogo key={index} src={src} url={url} alt={alt} small={i > 0} />
+						))}
+					</>
+				))}
+			</div>
+			<div className="w-full flex xl:hidden flex-wrap max-w-xl items-center justify-center lg:justify-center gap-0">
+				{logos.map((section, i) => (
+					<>
+						{section.map(({ src, alt, url }, index) => (
+							<MaskedLogo key={index} src={src} url={url} alt={alt} small={i > 0} />
+						))}
+					</>
+				))}
+			</div>
+			{/* <div className="text-sm text-zinc-800">Incredible things are happening on the canvas.</div> */}
+		</section>
 	)
 }
 
