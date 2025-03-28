@@ -26,4 +26,4 @@ export const MULTIPLAYER_SERVER =
 export const ZERO_SERVER =
 	(isStagingEnv || isProductionEnv) && typeof location !== 'undefined'
 		? process.env.ZERO_SERVER
-		: 'http://localhost:4848'
+		: 'http://viewsyncerloadb-sttzctxt-2142531293.eu-north-1.elb.amazonaws.com/'
