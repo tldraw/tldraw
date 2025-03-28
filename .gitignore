@@ -91,7 +91,7 @@ apps/dotcom/client/test-results
 apps/dotcom/client/playwright-report
 apps/dotcom/client/e2e/.auth
 apps/dotcom/zero-cache/.schema.js
-
+sst-env.d.ts
 
 apps/docs/content/gen
 apps/docs/content/releases
