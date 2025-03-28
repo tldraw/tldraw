@@ -689,7 +689,7 @@ export const DEFAULT_MAX_ASSET_SIZE: number;
 export const DEFAULT_MAX_IMAGE_DIMENSION = 5000;
 
 // @public (undocumented)
-export const DefaultA11y: NamedExoticComponent<object>;
+export const DefaultA11yAnnouncer: NamedExoticComponent<object>;
 
 // @public (undocumented)
 export const DefaultActionsMenu: NamedExoticComponent<TLUiActionsMenuProps>;
@@ -2645,9 +2645,9 @@ export interface TLUiA11y {
 // @public (undocumented)
 export interface TLUiA11yContextType {
     // (undocumented)
-    currentMsg: Atom<TLUiA11y>;
+    announce(msg: TLUiA11y): void;
     // (undocumented)
-    setMessage(msg: TLUiA11y): void;
+    currentMsg: Atom<TLUiA11y>;
 }
 
 // @public (undocumented)

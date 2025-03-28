@@ -12,7 +12,7 @@ export interface TLUiA11y {
 
 /** @public */
 export interface TLUiA11yContextType {
-	setMessage(msg: TLUiA11y): void
+	announce(msg: TLUiA11y): void
 	currentMsg: Atom<TLUiA11y>
 }
 
@@ -32,7 +32,7 @@ export function TldrawUiA11yProvider({ children }: A11yProviderProps) {
 	const current = useMemo(
 		() => ({
 			currentMsg,
-			setMessage(msg: TLUiA11y) {
+			announce(msg: TLUiA11y) {
 				if (!msg) return
 				currentMsg.set(msg)
 			},

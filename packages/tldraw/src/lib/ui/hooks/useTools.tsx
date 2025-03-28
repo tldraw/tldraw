@@ -50,13 +50,13 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 	const msg = useTranslation()
 	const helpers = useDefaultHelpers()
 
-	const postSelectAction = React.useCallback(
+	const onToolSelect = React.useCallback(
 		(
 			source: TLUiEventSource,
 			tool: TLUiToolItem<TLUiTranslationKey, TLUiIconType>,
 			id?: string
 		) => {
-			a11y.setMessage({ msg: msg(tool.label) })
+			a11y.announce({ msg: msg(tool.label) })
 			trackEvent('select-tool', { source, id: id ?? tool.id })
 		},
 		[a11y, msg, trackEvent]
@@ -84,7 +84,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 						currentNode.enter({}, currentNode.id)
 					}
 					editor.setCurrentTool('select')
-					postSelectAction(source, this)
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -95,7 +95,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					editor.setCurrentTool('hand')
-					postSelectAction(source, this)
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -105,7 +105,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'e',
 				onSelect(source) {
 					editor.setCurrentTool('eraser')
-					postSelectAction(source, this)
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -115,7 +115,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'd,b,x',
 				onSelect(source) {
 					editor.setCurrentTool('draw')
-					postSelectAction(source, this)
+					onToolSelect(source, this)
 				},
 			},
 			...[...GeoShapeGeoStyle.values].map((id) => ({
@@ -130,7 +130,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					editor.run(() => {
 						editor.setStyleForNextShapes(GeoShapeGeoStyle, id)
 						editor.setCurrentTool('geo')
-						postSelectAction(source, this, `geo-${id}`)
+						onToolSelect(source, this, `geo-${id}`)
 					})
 				},
 			})),
@@ -141,7 +141,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'a',
 				onSelect(source) {
 					editor.setCurrentTool('arrow')
-					postSelectAction(source, this)
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -151,7 +151,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'l',
 				onSelect(source) {
 					editor.setCurrentTool('line')
-					postSelectAction(source, this)
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -161,7 +161,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'f',
 				onSelect(source) {
 					editor.setCurrentTool('frame')
-					postSelectAction(source, this)
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -171,7 +171,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 't',
 				onSelect(source) {
 					editor.setCurrentTool('text')
-					postSelectAction(source, this)
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -181,7 +181,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: '$u',
 				onSelect(source) {
 					helpers.insertMedia()
-					postSelectAction(source, this, 'media')
+					onToolSelect(source, this, 'media')
 				},
 			},
 			{
@@ -191,7 +191,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'n',
 				onSelect(source) {
 					editor.setCurrentTool('note')
-					postSelectAction(source, this)
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -202,7 +202,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'k',
 				onSelect(source) {
 					editor.setCurrentTool('laser')
-					postSelectAction(source, this)
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -211,7 +211,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				icon: 'dot',
 				onSelect(source) {
 					helpers.addDialog({ component: EmbedDialog })
-					postSelectAction(source, this)
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -222,7 +222,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: '!d',
 				onSelect(source) {
 					editor.setCurrentTool('highlight')
-					postSelectAction(source, this)
+					onToolSelect(source, this)
 				},
 			},
 		]
@@ -236,7 +236,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 		}
 
 		return tools
-	}, [overrides, editor, helpers, postSelectAction])
+	}, [overrides, editor, helpers, onToolSelect])
 
 	return <ToolsContext.Provider value={tools}>{children}</ToolsContext.Provider>
 }

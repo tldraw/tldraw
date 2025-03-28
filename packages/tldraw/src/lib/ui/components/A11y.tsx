@@ -3,7 +3,7 @@ import { memo, useEffect } from 'react'
 import { useA11y } from '../context/a11y'
 
 /** @public @react */
-export const DefaultA11y = memo(function TldrawUiA11y() {
+export const DefaultA11yAnnouncer = memo(function TldrawUiA11yAnnouncer() {
 	const currentMsg = useA11y()
 	const msg = useValue('a11y-msg', () => currentMsg.currentMsg.get(), [])
 

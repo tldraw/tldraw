@@ -1,6 +1,6 @@
 import { useShallowObjectIdentity } from '@tldraw/editor'
 import { ComponentType, ReactNode, createContext, useContext, useMemo } from 'react'
-import { DefaultA11y } from '../components/A11y'
+import { DefaultA11yAnnouncer } from '../components/A11y'
 import {
 	DefaultActionsMenu,
 	TLUiActionsMenuProps,
@@ -112,7 +112,7 @@ export function TldrawUiComponentsProvider({
 					TopPanel: showCollaborationUi ? DefaultTopPanel : null,
 					Dialogs: DefaultDialogs,
 					Toasts: DefaultToasts,
-					A11y: DefaultA11y,
+					A11y: DefaultA11yAnnouncer,
 					..._overrides,
 				}),
 				[_overrides, showCollaborationUi]

@@ -2,7 +2,7 @@
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
 export { usePrefersReducedMotion } from './lib/shapes/shared/usePrefersReducedMotion'
-export { DefaultA11y } from './lib/ui/components/A11y'
+export { DefaultA11yAnnouncer } from './lib/ui/components/A11y'
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
 export { DefaultDialogs } from './lib/ui/components/Dialogs'
 export { DefaultToasts } from './lib/ui/components/Toasts'
