@@ -55,6 +55,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 
 	private lastReactedEpoch = GLOBAL_START_EPOCH
 	private _scheduleCount = 0
+	__debug_ancestor_epochs__: Map<Signal<any, any>, number> | null = null
 
 	/**
 	 * The number of times this effect has been scheduled.
@@ -189,6 +190,7 @@ export const EffectScheduler = singleton(
 )
 /** @public */
 export interface EffectScheduler<Result> {
+	/** @internal */
 	/**
 	 * Whether this scheduler is attached and actively listening to its parents.
 	 * @public
@@ -197,6 +199,12 @@ export interface EffectScheduler<Result> {
 
 	/** @internal */
 	readonly lastTraversedEpoch: number
+
+	/** @public */
+	readonly name: string
+
+	/** @internal */
+	__debug_ancestor_epochs__: Map<Signal<any, any>, number> | null
 
 	/**
 	 * The number of times this effect has been scheduled.

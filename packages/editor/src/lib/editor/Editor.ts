@@ -1216,7 +1216,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	run(fn: () => void, opts?: TLEditorRunOptions): this {
 		const previousIgnoreShapeLock = this._shouldIgnoreShapeLock
 		this._shouldIgnoreShapeLock = opts?.ignoreShapeLock ?? previousIgnoreShapeLock
-
 		try {
 			this.history.batch(fn, opts)
 		} finally {
