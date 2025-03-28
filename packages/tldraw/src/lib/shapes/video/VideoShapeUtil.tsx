@@ -43,6 +43,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			time: 0,
 			playing: true,
 			url: '',
+			altText: '',
 		}
 	}
 
