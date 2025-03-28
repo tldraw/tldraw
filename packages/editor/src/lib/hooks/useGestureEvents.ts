@@ -135,7 +135,6 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 
 		let initDistanceBetweenFingers = 1 // the distance between the two fingers when the pinch starts
 		let initZoom = 1 // the browser's zoom level when the pinch starts
-		let currZoom = 1 // the current zoom level according to the pinch gesture recognizer
 		let currDistanceBetweenFingers = 0
 		const initPointBetweenFingers = new Vec()
 		const prevPointBetweenFingers = new Vec()
@@ -239,7 +238,8 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 
 			switch (pinchState) {
 				case 'zooming': {
-					currZoom = offset[0]
+					const currZoom = offset[0] ** editor.getCameraOptions().zoomSpeed
+					console.log(`curr zoom original = ${offset[0]} scaled = ${currZoom}`)
 
 					editor.dispatch({
 						type: 'pinch',
@@ -278,7 +278,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			if (event instanceof WheelEvent) return
 			if (!(event.target === elm || elm?.contains(event.target as Node))) return
 
-			const scale = offset[0]
+			const scale = offset[0] ** editor.getCameraOptions().zoomSpeed
 
 			pinchState = 'not sure'
 
@@ -309,14 +309,36 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 		target: ref,
 		eventOptions: { passive: false },
 		pinch: {
-			from: () => [editor.getZoomLevel(), 0], // Return the camera z to use when pinch starts
+			from: () => {
+				const { zoomSpeed } = editor.getCameraOptions()
+				const level = editor.getZoomLevel()
+				console.log('from', {
+					original: level,
+					scaled: level ** (1 / zoomSpeed),
+				})
+				return [level ** (1 / zoomSpeed), 0]
+			}, // Return the camera z to use when pinch starts
 			scaleBounds: () => {
 				const baseZoom = editor.getBaseZoom()
-				const zoomSteps = editor.getCameraOptions().zoomSteps
+				const { zoomSteps, zoomSpeed } = editor.getCameraOptions()
 				const zoomMin = zoomSteps[0] * baseZoom
 				const zoomMax = zoomSteps[zoomSteps.length - 1] * baseZoom
 
-				return { from: editor.getZoomLevel(), max: zoomMax, min: zoomMin }
+				console.log('scale bounds', {
+					original: {
+						max: zoomMax,
+						min: zoomMin,
+					},
+					scaled: {
+						max: zoomMax ** (1 / zoomSpeed),
+						min: zoomMin ** (1 / zoomSpeed),
+					},
+				})
+
+				return {
+					max: zoomMax ** (1 / zoomSpeed),
+					min: zoomMin ** (1 / zoomSpeed),
+				}
 			},
 		},
 	})
