@@ -625,6 +625,7 @@ export interface DebugFlagDefaults<T> {
 
 // @internal (undocumented)
 export const debugFlags: {
+    readonly a11y: DebugFlag<boolean>;
     readonly debugCursors: DebugFlag<boolean>;
     readonly debugGeometry: DebugFlag<boolean>;
     readonly debugSvg: DebugFlag<boolean>;
