@@ -6205,9 +6205,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocicorp/zero@npm:0.17.2025031100":
-  version: 0.17.2025031100
-  resolution: "@rocicorp/zero@npm:0.17.2025031100"
+"@rocicorp/zero@npm:0.17.2025031904":
+  version: 0.17.2025031904
+  resolution: "@rocicorp/zero@npm:0.17.2025031904"
   dependencies:
     "@badrap/valita": "npm:0.3.11"
     "@databases/escape-identifier": "npm:^1.0.3"
@@ -6255,7 +6255,7 @@ __metadata:
     zero-cache: out/zero/src/cli.js
     zero-cache-dev: out/zero/src/zero-cache-dev.js
     zero-deploy-permissions: out/zero/src/deploy-permissions.js
-  checksum: 10/470ebf30dabc93bdbd36d735af024f4f950644f220f708127978e9988c904a1685771e700ad96159cb879846a2e14f35748f32f9b0941bf06d1485892f9dde3c
+  checksum: 10/7305b0f5c5e398a124c690efd4db58bf0da58282c27a1bfe569ed40661aced29a8a8e5fc407ae87fb69daeb12be5408d6857591923b14b3c3795bd1d3d7f4aad
   languageName: node
   linkType: hard
 
@@ -8249,7 +8249,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/dotcom-shared@workspace:packages/dotcom-shared"
   dependencies:
-    "@rocicorp/zero": "npm:0.17.2025031100"
+    "@rocicorp/zero": "npm:0.17.2025031904"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
@@ -8629,7 +8629,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/zero-cache@workspace:apps/dotcom/zero-cache"
   dependencies:
-    "@rocicorp/zero": "npm:0.17.2025031100"
+    "@rocicorp/zero": "npm:0.17.2025031904"
     concurrently: "npm:^9.1.2"
     dotenv: "npm:^16.4.7"
     esbuild: "npm:^0.24.2"
@@ -13319,7 +13319,7 @@ __metadata:
     "@radix-ui/react-popover": "npm:^1.1.5"
     "@radix-ui/react-select": "npm:^2.1.5"
     "@radix-ui/react-tooltip": "npm:^1.1.7"
-    "@rocicorp/zero": "npm:0.17.2025031100"
+    "@rocicorp/zero": "npm:0.17.2025031904"
     "@sentry/cli": "npm:^2.41.1"
     "@sentry/integrations": "npm:^7.120.3"
     "@sentry/react": "npm:^7.120.3"

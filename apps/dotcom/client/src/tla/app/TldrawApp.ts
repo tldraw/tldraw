@@ -49,7 +49,7 @@ import {
 	TLUserPreferences,
 	transact,
 } from 'tldraw'
-import { MULTIPLAYER_SERVER } from '../../utils/config'
+import { MULTIPLAYER_SERVER, ZERO_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType } from '../utils/app-ui-events'
@@ -132,7 +132,7 @@ export class TldrawApp {
 					auth: getToken,
 					userID: userId,
 					schema: zeroSchema,
-					server: 'http://localhost:4848',
+					server: ZERO_SERVER,
 					onUpdateNeeded(reason) {
 						console.error('update needed', reason)
 						onClientTooOld()
