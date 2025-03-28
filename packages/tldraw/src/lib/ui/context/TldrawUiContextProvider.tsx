@@ -5,6 +5,7 @@ import { MimeTypeContext } from '../hooks/useInsertMedia'
 import { ToolsProvider } from '../hooks/useTools'
 import { TldrawUiTranslationProvider } from '../hooks/useTranslation/useTranslation'
 import { TLUiOverrides, useMergedOverrides, useMergedTranslationOverrides } from '../overrides'
+import { TldrawUiA11yProvider } from './a11y'
 import { ActionsProvider } from './actions'
 import { AssetUrlsProvider } from './asset-urls'
 import { BreakPointProvider } from './breakpoints'
@@ -75,11 +76,13 @@ export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 					<TldrawUiEventsProvider onEvent={onUiEvent}>
 						<TldrawUiToastsProvider>
 							<TldrawUiDialogsProvider context={'tla'}>
-								<BreakPointProvider forceMobile={forceMobile}>
-									<TldrawUiComponentsProvider overrides={components}>
-										<InternalProviders overrides={overrides}>{children}</InternalProviders>
-									</TldrawUiComponentsProvider>
-								</BreakPointProvider>
+								<TldrawUiA11yProvider>
+									<BreakPointProvider forceMobile={forceMobile}>
+										<TldrawUiComponentsProvider overrides={components}>
+											<InternalProviders overrides={overrides}>{children}</InternalProviders>
+										</TldrawUiComponentsProvider>
+									</BreakPointProvider>
+								</TldrawUiA11yProvider>
 							</TldrawUiDialogsProvider>
 						</TldrawUiToastsProvider>
 					</TldrawUiEventsProvider>
