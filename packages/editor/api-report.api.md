@@ -16,6 +16,7 @@ import { Dispatch } from 'react';
 import { Editor as Editor_2 } from '@tiptap/core';
 import { EditorProviderProps } from '@tiptap/react';
 import { EffectScheduler } from '@tldraw/state';
+import { ElbowArrowSide } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
 import { ExoticComponent } from 'react';
@@ -304,6 +305,8 @@ export class Box {
     // (undocumented)
     get aspectRatio(): number;
     // (undocumented)
+    get bottom(): number;
+    // (undocumented)
     get center(): Vec;
     set center(v: Vec);
     // (undocumented)
@@ -356,6 +359,8 @@ export class Box {
     // (undocumented)
     includes(B: Box): boolean;
     // (undocumented)
+    get left(): number;
+    // (undocumented)
     get maxX(): number;
     // (undocumented)
     get maxY(): number;
@@ -381,6 +386,8 @@ export class Box {
     // (undocumented)
     resize(handle: SelectionCorner | SelectionEdge | string, dx: number, dy: number): void;
     // (undocumented)
+    get right(): number;
+    // (undocumented)
     scale(n: number): this;
     // (undocumented)
     set(x?: number, y?: number, w?: number, h?: number): this;
@@ -398,6 +405,8 @@ export class Box {
     toFixed(): this;
     // (undocumented)
     toJson(): BoxModel;
+    // (undocumented)
+    get top(): number;
     // (undocumented)
     translate(delta: VecLike): this;
     // (undocumented)
@@ -599,7 +608,10 @@ export function dataUrlToFile(url: string, filename: string, mimeType: string): 
 export function debugEnableLicensing(): void;
 
 // @internal (undocumented)
-export type DebugFlag<T> = DebugFlagDef<T> & Atom<T>;
+export interface DebugFlag<T> extends DebugFlagDef<T>, Atom<T> {
+    // (undocumented)
+    reset(): void;
+}
 
 // @internal (undocumented)
 export interface DebugFlagDef<T> {
@@ -1593,6 +1605,25 @@ export const EditorContext: React_2.Context<Editor | null>;
 
 export { EffectScheduler }
 
+// @internal (undocumented)
+export const elbowArrowDebug: DebugFlag<{
+    axisBinding: 'axis' | 'closest-point';
+    endSide: ElbowArrowSide | null;
+    hintBinding: 'center' | 'edge';
+    hintRotation: 'arrow' | 'page' | 'target';
+    impreciseEdgePicking: 'auto' | 'velocity';
+    preciseEdgePicking: {
+        snapAxis: boolean;
+        snapEdges: boolean;
+        snapNone: boolean;
+        snapPoints: boolean;
+    };
+    shortest: 'count' | 'distance';
+    startSide: ElbowArrowSide | null;
+    targetStyle: 'center' | 'push' | 'remove';
+    visualDebugging: boolean;
+}>;
+
 // @public (undocumented)
 export class Ellipse2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
@@ -1704,9 +1735,9 @@ export abstract class Geometry2d {
     // (undocumented)
     debugColor?: string;
     // (undocumented)
-    distanceToLineSegment(A: Vec, B: Vec): number;
+    distanceToLineSegment(A: Vec, B: Vec, filters?: Geometry2dFilters): number;
     // (undocumented)
-    distanceToPoint(point: Vec, hitInside?: boolean): number;
+    distanceToPoint(point: Vec, hitInside?: boolean, filters?: Geometry2dFilters): number;
     // (undocumented)
     getArea(): number;
     // (undocumented)
@@ -1716,17 +1747,23 @@ export abstract class Geometry2d {
     // (undocumented)
     abstract getSvgPathData(first: boolean): string;
     // (undocumented)
-    abstract getVertices(): Vec[];
+    abstract getVertices(filters: Geometry2dFilters): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec, B: Vec, distance?: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec, distance?: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
-    hitTestPoint(point: Vec, margin?: number, hitInside?: boolean): boolean;
+    hitTestPoint(point: Vec, margin?: number, hitInside?: boolean, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     ignore?: boolean;
     // (undocumented)
+    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): Generator<VecLike, void, undefined>;
+    // (undocumented)
     isClosed: boolean;
     // (undocumented)
+    isExcludedByFilter(filters?: Geometry2dFilters): boolean;
+    // (undocumented)
     isFilled: boolean;
+    // (undocumented)
+    isInternal: boolean;
     // (undocumented)
     isLabel: boolean;
     // (undocumented)
@@ -1734,14 +1771,32 @@ export abstract class Geometry2d {
     // (undocumented)
     get length(): number;
     // (undocumented)
-    abstract nearestPoint(point: Vec): Vec;
-    // (undocumented)
+    abstract nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec;
+    // @deprecated (undocumented)
     nearestPointOnLineSegment(A: Vec, B: Vec): Vec;
     // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
+    transform(transform: MatModel): Geometry2d;
+    // (undocumented)
     get vertices(): Vec[];
 }
+
+// @public (undocumented)
+export interface Geometry2dFilters {
+    // (undocumented)
+    readonly includeInternal?: boolean;
+    // (undocumented)
+    readonly includeLabels?: boolean;
+}
+
+// @public (undocumented)
+export const Geometry2dFilters: {
+    EXCLUDE_INTERNAL: Geometry2dFilters;
+    EXCLUDE_LABELS: Geometry2dFilters;
+    EXCLUDE_NON_STANDARD: Geometry2dFilters;
+    INCLUDE_ALL: Geometry2dFilters;
+};
 
 // @public (undocumented)
 export interface Geometry2dOptions {
@@ -1753,6 +1808,8 @@ export interface Geometry2dOptions {
     isClosed: boolean;
     // (undocumented)
     isFilled: boolean;
+    // (undocumented)
+    isInternal?: boolean;
     // (undocumented)
     isLabel?: boolean;
 }
@@ -1776,15 +1833,15 @@ export function getFreshUserPreferences(): TLUserPreferences;
 export function getIncrementedName(name: string, others: string[]): string;
 
 // @public (undocumented)
-export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: Partial<{
-    closed: boolean;
-    end: 'none' | 'outset' | 'skip';
-    forceSolid: boolean;
-    lengthRatio: number;
-    snap: number;
-    start: 'none' | 'outset' | 'skip';
-    style: TLDefaultDashStyle;
-}>): {
+export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: {
+    closed?: boolean;
+    end?: 'none' | 'outset' | 'skip';
+    forceSolid?: boolean;
+    lengthRatio?: number;
+    snap?: number;
+    start?: 'none' | 'outset' | 'skip';
+    style?: TLDefaultDashStyle;
+}): {
     strokeDasharray: string;
     strokeDashoffset: string;
 };
@@ -1850,7 +1907,7 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     children: Geometry2d[];
     // (undocumented)
-    distanceToPoint(point: Vec, hitInside?: boolean): number;
+    distanceToPoint(point: Vec, hitInside?: boolean, filters?: Geometry2dFilters): number;
     // (undocumented)
     getArea(): number;
     // (undocumented)
@@ -1858,15 +1915,17 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     getSvgPathData(): string;
     // (undocumented)
-    getVertices(): Vec[];
+    getVertices(filters: Geometry2dFilters): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec, zoom: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
-    hitTestPoint(point: Vec, margin: number, hitInside: boolean): boolean;
+    hitTestPoint(point: Vec, margin: number, hitInside: boolean, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     ignoredChildren: Geometry2d[];
     // (undocumented)
-    nearestPoint(point: Vec): Vec;
+    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): Generator<VecLike, void, undefined>;
+    // (undocumented)
+    nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec;
     // (undocumented)
     toSimpleSvgPath(): string;
 }
@@ -2216,9 +2275,9 @@ export class Mat {
     // (undocumented)
     rotation(): number;
     // (undocumented)
-    static Scale(x: number, y: number): MatModel;
+    static Scale(x: number, y: number): Mat;
     // (undocumented)
-    static Scale(x: number, y: number, cx: number, cy: number): MatModel;
+    static Scale(x: number, y: number, cx: number, cy: number): Mat;
     // (undocumented)
     scale(x: number, y: number): this;
     // (undocumented)
@@ -3312,6 +3371,8 @@ export interface TLEditorComponents {
     // (undocumented)
     OnTheCanvas?: ComponentType | null;
     // (undocumented)
+    Overlays?: ComponentType | null;
+    // (undocumented)
     Scribble?: ComponentType<TLScribbleProps> | null;
     // (undocumented)
     SelectionBackground?: ComponentType<TLSelectionBackgroundProps> | null;
@@ -3610,9 +3671,13 @@ export interface TLGridProps {
 // @public (undocumented)
 export interface TLHandleDragInfo<T extends TLShape> {
     // (undocumented)
+    data: any;
+    // (undocumented)
     handle: TLHandle;
     // (undocumented)
     initial?: T | undefined;
+    // (undocumented)
+    isCreatingShape: boolean;
     // (undocumented)
     isPrecise: boolean;
 }
@@ -4236,6 +4301,21 @@ export { transact }
 export { transaction }
 
 // @public (undocumented)
+export class TransformedGeometry2d extends Geometry2d {
+    constructor(geometry: Geometry2d, matrix: MatModel);
+    // (undocumented)
+    getSvgPathData(): string;
+    // (undocumented)
+    getVertices(filters: Geometry2dFilters): Vec[];
+    // (undocumented)
+    hitTestPoint(point: Vec, margin?: number, hitInside?: boolean, filters?: Geometry2dFilters): boolean;
+    // (undocumented)
+    nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec;
+    // (undocumented)
+    transform(transform: MatModel): Geometry2d;
+}
+
+// @public (undocumented)
 export type UiEvent = TLCancelEvent | TLClickEvent | TLCompleteEvent | TLKeyboardEvent | TLPinchEvent | TLPointerEvent;
 
 // @public (undocumented)
@@ -4458,10 +4538,10 @@ export class Vec {
     static AddXY(A: VecLike, x: number, y: number): Vec;
     // (undocumented)
     addXY(x: number, y: number): this;
-    // (undocumented)
     static Angle(A: VecLike, B: VecLike): number;
     // (undocumented)
     angle(B: VecLike): number;
+    static AngleBetween(A: VecLike, B: VecLike): number;
     // (undocumented)
     static Average(arr: VecLike[]): Vec;
     // (undocumented)
@@ -4533,6 +4613,8 @@ export class Vec {
     static Lrp(A: VecLike, B: VecLike, t: number): Vec;
     // (undocumented)
     lrp(B: VecLike, t: number): Vec;
+    // (undocumented)
+    static ManhattanDist(A: VecLike, B: VecLike): number;
     // (undocumented)
     static Max(A: VecLike, B: VecLike): Vec;
     // (undocumented)

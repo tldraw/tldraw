@@ -61,7 +61,7 @@ export function getCurvedArrowInfo(
 	if (Vec.Equals(a, b)) {
 		return {
 			bindings,
-			isStraight: true,
+			type: 'straight',
 			start: {
 				handle: a,
 				point: a,
@@ -361,7 +361,7 @@ export function getCurvedArrowInfo(
 
 	return {
 		bindings,
-		isStraight: false,
+		type: 'arc',
 		start: {
 			point: a,
 			handle: terminalsInArrowSpace.start,

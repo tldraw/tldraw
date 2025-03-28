@@ -6,11 +6,13 @@ import {
 	Editor,
 	Geometry2d,
 	Group2d,
+	Polyline2d,
 	Rectangle2d,
 	SVGContainer,
 	ShapeUtil,
 	SvgExportContext,
 	TLArrowBinding,
+	TLArrowBindingProps,
 	TLArrowShape,
 	TLArrowShapeProps,
 	TLFontFace,
@@ -25,8 +27,8 @@ import {
 	WeakCache,
 	arrowShapeMigrations,
 	arrowShapeProps,
+	elbowArrowDebug,
 	getDefaultColorTheme,
-	getPerfectDashProps,
 	lerp,
 	mapObjectMapValues,
 	maybeSnapToGrid,
@@ -40,7 +42,6 @@ import {
 } from '@tldraw/editor'
 import React from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
-
 import { PlainTextLabel } from '../shared/PlainTextLabel'
 import { ShapeFill } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
@@ -48,14 +49,12 @@ import { ARROW_LABEL_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default
 import { DefaultFontFaces } from '../shared/defaultFonts'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
+import { getArrowBodyPath, getArrowHandlePath } from './ArrowPath'
+import { ArrowShapeOptions } from './arrow-types'
 import { getArrowLabelFontSize, getArrowLabelPosition } from './arrowLabel'
+import { updateArrowTargetState } from './arrowTargetState'
 import { getArrowheadPathForType } from './arrowheads'
-import {
-	getCurvedArrowHandlePath,
-	getSolidCurvedArrowPath,
-	getSolidStraightArrowPath,
-	getStraightArrowHandlePath,
-} from './arrowpaths'
+import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
 import {
 	TLArrowBindings,
 	createOrUpdateArrowBinding,
@@ -76,6 +75,32 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	static override type = 'arrow' as const
 	static override props = arrowShapeProps
 	static override migrations = arrowShapeMigrations
+
+	override options: ArrowShapeOptions = {
+		expandElbowLegLength: {
+			s: 28,
+			m: 36,
+			l: 44,
+			xl: 66,
+		},
+		minElbowLegLength: {
+			s: 26,
+			m: 32,
+			l: 40,
+			xl: 62,
+		},
+		minArrowDistanceFromCorner: 10,
+		minHandleDistance: 16,
+
+		bendyArrowCenterSnapDistance: 16,
+		elbowArrowCenterSnapDistance: 24,
+		elbowArrowEdgeSnapDistance: 20,
+		elbowArrowPointSnapDistance: 24,
+		elbowArrowAxisSnapDistance: 16,
+
+		hoverPreciseTimeout: 600,
+		pointingPreciseTimeout: 320,
+	}
 
 	override canEdit() {
 		return true
@@ -119,6 +144,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override getDefaultProps(): TLArrowShape['props'] {
 		return {
+			kind: 'bendy',
 			dash: 'draw',
 			size: 'm',
 			fill: 'none',
@@ -141,18 +167,21 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const debugGeom: Geometry2d[] = []
 
-		const bodyGeom = info.isStraight
-			? new Edge2d({
-					start: Vec.From(info.start.point),
-					end: Vec.From(info.end.point),
-				})
-			: new Arc2d({
-					center: Vec.Cast(info.handleArc.center),
-					start: Vec.Cast(info.start.point),
-					end: Vec.Cast(info.end.point),
-					sweepFlag: info.bodyArc.sweepFlag,
-					largeArcFlag: info.bodyArc.largeArcFlag,
-				})
+		const bodyGeom =
+			info.type === 'straight'
+				? new Edge2d({
+						start: Vec.From(info.start.point),
+						end: Vec.From(info.end.point),
+					})
+				: info.type === 'arc'
+					? new Arc2d({
+							center: Vec.Cast(info.handleArc.center),
+							start: Vec.Cast(info.start.point),
+							end: Vec.Cast(info.end.point),
+							sweepFlag: info.bodyArc.sweepFlag,
+							largeArcFlag: info.bodyArc.largeArcFlag,
+						})
+					: new Polyline2d({ points: info.route.points })
 
 		let labelGeom
 		if (shape.props.text.trim()) {
@@ -184,13 +213,15 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				x: info.start.handle.x,
 				y: info.start.handle.y,
 			},
-			{
-				id: ARROW_HANDLES.MIDDLE,
-				type: 'virtual',
-				index: 'a2',
-				x: info.middle.x,
-				y: info.middle.y,
-			},
+			shape.props.kind === 'bendy' && (info.type === 'straight' || info.type === 'arc')
+				? {
+						id: ARROW_HANDLES.MIDDLE,
+						type: 'virtual',
+						index: 'a2',
+						x: info.middle.x,
+						y: info.middle.y,
+					}
+				: null,
 			{
 				id: ARROW_HANDLES.END,
 				type: 'vertex',
@@ -207,7 +238,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override onHandleDrag(
 		shape: TLArrowShape,
-		{ handle, isPrecise }: TLHandleDragInfo<TLArrowShape>
+		{ handle, isPrecise, isCreatingShape }: TLHandleDragInfo<TLArrowShape>
 	) {
 		const handleId = handle.id as ARROW_HANDLES
 		const bindings = getArrowBindings(this.editor, shape)
@@ -238,33 +269,48 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const otherHandleId = handleId === ARROW_HANDLES.START ? ARROW_HANDLES.END : ARROW_HANDLES.START
 		const otherBinding = bindings[otherHandleId]
 
-		if (this.editor.inputs.ctrlKey) {
-			// todo: maybe double check that this isn't equal to the other handle too?
-			// Skip binding
-			removeArrowBinding(this.editor, shape, handleId)
-
-			update.props![handleId] = {
-				x: handle.x,
-				y: handle.y,
-			}
-			return update
-		}
-
-		const point = this.editor.getShapePageTransform(shape.id)!.applyToPoint(handle)
-
-		const target = this.editor.getShapeAtPoint(point, {
-			hitInside: true,
-			hitFrameInside: true,
-			margin: 0,
-			filter: (targetShape) => {
-				return (
-					!targetShape.isLocked &&
-					this.editor.canBindShapes({ fromShape: shape, toShape: targetShape, binding: 'arrow' })
-				)
-			},
+		const targetInfo = updateArrowTargetState({
+			editor: this.editor,
+			pointInPageSpace: this.editor.getShapePageTransform(shape.id)!.applyToPoint(handle),
+			arrow: shape,
+			isPrecise: isPrecise,
+			isExact: this.editor.inputs.altKey,
+			currentBinding,
+			otherBinding,
+			terminal: handleId,
+			isCreatingShape,
 		})
 
-		if (!target) {
+		if (!targetInfo) {
+			if (
+				// if we're creating a shape for the first time...
+				isCreatingShape &&
+				// ...and it's an elbow arrow...
+				shape.props.kind === 'elbow' &&
+				// ...by dragging the end handle...
+				handleId === 'end' &&
+				// ...and we just exited the starting target shape...
+				currentBinding &&
+				currentBinding.toId === otherBinding?.toId
+			) {
+				// ...then we want to set the "entry side" (in this case actually the exit side) of
+				// the start binding:
+				const velocity = this.editor.inputs.pointerVelocity
+				const side =
+					Math.abs(velocity.x) > Math.abs(velocity.y)
+						? velocity.x > 0
+							? 'right'
+							: 'left'
+						: velocity.y > 0
+							? 'bottom'
+							: 'top'
+
+				createOrUpdateArrowBinding(this.editor, shape, otherBinding.toId, {
+					...otherBinding.props,
+					entrySide: side,
+				})
+			}
+
 			// todo: maybe double check that this isn't equal to the other handle too?
 			removeArrowBinding(this.editor, shape, handleId)
 			const newPoint = maybeSnapToGrid(new Vec(handle.x, handle.y), this.editor)
@@ -277,62 +323,45 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		// we've got a target! the handle is being dragged over a shape, bind to it
 
-		const targetGeometry = this.editor.getShapeGeometry(target)
-		const targetBounds = Box.ZeroFix(targetGeometry.bounds)
-		const pageTransform = this.editor.getShapePageTransform(update.id)!
-		const pointInPageSpace = pageTransform.applyToPoint(handle)
-		const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
-
-		let precise = isPrecise
-
-		if (!precise) {
-			// If we're switching to a new bound shape, then precise only if moving slowly
-			if (!currentBinding || (currentBinding && target.id !== currentBinding.toId)) {
-				precise = this.editor.inputs.pointerVelocity.len() < 0.5
-			}
-		}
-
-		if (!isPrecise) {
-			if (!targetGeometry.isClosed) {
-				precise = true
-			}
-
-			// Double check that we're not going to be doing an imprecise snap on
-			// the same shape twice, as this would result in a zero length line
-			if (otherBinding && target.id === otherBinding.toId && otherBinding.props.isPrecise) {
-				precise = true
-			}
-		}
-
-		const normalizedAnchor = {
-			x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
-			y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
-		}
-
-		if (precise) {
-			// Turn off precision if we're within a certain distance to the center of the shape.
-			// Funky math but we want the snap distance to be 4 at the minimum and either
-			// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
-			if (
-				Vec.Dist(pointInTargetSpace, targetBounds.center) <
-				Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
-					this.editor.getZoomLevel()
-			) {
-				normalizedAnchor.x = 0.5
-				normalizedAnchor.y = 0.5
-			}
-		}
-
-		const b = {
+		const bindingProps: TLArrowBindingProps = {
 			terminal: handleId,
-			normalizedAnchor,
-			isPrecise: precise,
+			normalizedAnchor: targetInfo.normalizedAnchor,
+			isPrecise: targetInfo.isPrecise,
 			isExact: this.editor.inputs.altKey,
+			entrySide: currentBinding?.props.entrySide ?? null,
+			snap: targetInfo.snap,
 		}
 
-		createOrUpdateArrowBinding(this.editor, shape, target.id, b)
+		if (
+			// if we're binding to a new target...
+			currentBinding?.toId !== targetInfo.target.id &&
+			/// ...and this isn't the start handle of a newly created shape...
+			!(isCreatingShape && handleId === 'start')
+		) {
+			// ...then we just "entered" the target shape.
 
-		this.editor.setHintingShapes([target.id])
+			if (shape.props.kind === 'elbow') {
+				// for elbow arrows, we want to pick a side based on the velocity of the pointer.
+				const velocity = this.editor.inputs.pointerVelocity
+				const side =
+					Math.abs(velocity.x) > Math.abs(velocity.y)
+						? velocity.x > 0
+							? 'left'
+							: 'right'
+						: velocity.y > 0
+							? 'top'
+							: 'bottom'
+
+				bindingProps.entrySide = side
+			} else {
+				// for straight arrows, we have no side to pick.
+				bindingProps.entrySide = null
+			}
+		}
+
+		createOrUpdateArrowBinding(this.editor, shape, targetInfo.target.id, bindingProps)
+
+		// this.editor.setHintingShapes([target.id])
 
 		const newBindings = getArrowBindings(this.editor, shape)
 		if (newBindings.start && newBindings.end && newBindings.start.toId === newBindings.end.toId) {
@@ -627,6 +656,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						shape={shape}
 						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape?.id === shape.id}
 					/>
+					{shape.props.kind === 'elbow' && elbowArrowDebug.get().visualDebugging && (
+						<ElbowArrowDebug arrow={shape} />
+					)}
 				</SVGContainer>
 				{showArrowLabel && (
 					<PlainTextLabel
@@ -673,8 +705,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
-
-		const path = info.isStraight ? getSolidStraightArrowPath(info) : getSolidCurvedArrowPath(info)
 
 		const includeClipPath =
 			(as && info.start.arrowhead !== 'arrow') ||
@@ -728,7 +758,21 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						/>
 					)}
 
-					<path d={path} />
+					{getArrowBodyPath(
+						shape,
+						info,
+						shape.props.dash === 'draw'
+							? {
+									style: 'draw',
+									randomSeed: shape.id,
+									strokeWidth: 1,
+									passes: 1,
+									offset: 0,
+									roundness: strokeWidth * 2,
+									props: { strokeWidth: undefined },
+								}
+							: { style: 'solid', strokeWidth: 1, props: { strokeWidth: undefined } }
+					)}
 				</g>
 				{as && <path d={as} />}
 				{ae && <path d={ae} />}
@@ -828,9 +872,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 export function getArrowLength(editor: Editor, shape: TLArrowShape): number {
 	const info = getArrowInfo(editor, shape)!
 
-	return info.isStraight
+	return info.type === 'straight'
 		? Vec.Dist(info.start.handle, info.end.handle)
-		: Math.abs(info.handleArc.length)
+		: info.type === 'arc'
+			? Math.abs(info.handleArc.length)
+			: info.route.distance
 }
 
 const ArrowSvg = track(function ArrowSvg({
@@ -864,61 +910,35 @@ const ArrowSvg = track(function ArrowSvg({
 	const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 	const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
 
-	const path = info.isStraight ? getSolidStraightArrowPath(info) : getSolidCurvedArrowPath(info)
-
 	let handlePath: null | React.JSX.Element = null
 
-	if (shouldDisplayHandles) {
-		const sw = 2 / editor.getZoomLevel()
-		const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-			getArrowLength(editor, shape),
-			sw,
-			{
-				end: 'skip',
-				start: 'skip',
-				lengthRatio: 2.5,
-			}
-		)
-
-		handlePath =
-			bindings.start || bindings.end ? (
-				<path
-					className="tl-arrow-hint"
-					d={info.isStraight ? getStraightArrowHandlePath(info) : getCurvedArrowHandlePath(info)}
-					strokeDasharray={strokeDasharray}
-					strokeDashoffset={strokeDashoffset}
-					strokeWidth={sw}
-					markerStart={
-						bindings.start
-							? bindings.start.props.isExact
-								? ''
-								: bindings.start.props.isPrecise
-									? `url(#${arrowheadCrossId})`
-									: `url(#${arrowheadDotId})`
-							: ''
-					}
-					markerEnd={
-						bindings.end
-							? bindings.end.props.isExact
-								? ''
-								: bindings.end.props.isPrecise
-									? `url(#${arrowheadCrossId})`
-									: `url(#${arrowheadDotId})`
-							: ''
-					}
-					opacity={0.16}
-				/>
-			) : null
+	if (shouldDisplayHandles && (bindings.start || bindings.end)) {
+		handlePath = getArrowHandlePath(info, {
+			style: 'dashed',
+			start: 'skip',
+			end: 'skip',
+			lengthRatio: 2.5,
+			strokeWidth: 2 / editor.getZoomLevel(),
+			props: {
+				className: 'tl-arrow-hint',
+				markerStart: bindings.start
+					? bindings.start.props.isExact
+						? ''
+						: bindings.start.props.isPrecise
+							? `url(#${arrowheadCrossId})`
+							: `url(#${arrowheadDotId})`
+					: '',
+				markerEnd: bindings.end
+					? bindings.end.props.isExact
+						? ''
+						: bindings.end.props.isPrecise
+							? `url(#${arrowheadCrossId})`
+							: `url(#${arrowheadDotId})`
+					: '',
+				opacity: 0.16,
+			},
+		})
 	}
-
-	const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-		info.isStraight ? info.length : Math.abs(info.bodyArc.length),
-		strokeWidth,
-		{
-			style: shape.props.dash,
-			forceSolid: isForceSolid,
-		}
-	)
 
 	const labelPosition = getArrowLabelPosition(editor, shape)
 
@@ -961,7 +981,12 @@ const ArrowSvg = track(function ArrowSvg({
 						height={toDomPrecision(bounds.height + 200)}
 						opacity={0}
 					/>
-					<path d={path} strokeDasharray={strokeDasharray} strokeDashoffset={strokeDashoffset} />
+					{getArrowBodyPath(shape, info, {
+						style: shape.props.dash,
+						strokeWidth,
+						forceSolid: isForceSolid,
+						randomSeed: shape.id,
+					})}
 				</g>
 				{as && clipStartArrowhead && shape.props.fill !== 'none' && (
 					<ShapeFill

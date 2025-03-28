@@ -11,6 +11,7 @@ import {
 	sortByIndex,
 	structuredClone,
 } from '@tldraw/editor'
+import { clearArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import { kickoutOccludedShapes } from '../selectHelpers'
 
@@ -20,6 +21,7 @@ export type DraggingHandleInfo = TLPointerEventInfo & {
 	onInteractionEnd?: string
 	isCreating?: boolean
 	creatingMarkId?: string
+	shapeUtilData?: object
 }
 
 export class DraggingHandle extends StateNode {
@@ -35,6 +37,7 @@ export class DraggingHandle extends StateNode {
 	initialPageRotation: any
 
 	info = {} as DraggingHandleInfo
+	shapeUtilData: object = {}
 
 	isPrecise = false
 	isPreciseId = null as TLShapeId | null
@@ -43,6 +46,7 @@ export class DraggingHandle extends StateNode {
 	override onEnter(info: DraggingHandleInfo) {
 		const { shape, isCreating, creatingMarkId, handle } = info
 		this.info = info
+		this.shapeUtilData = info.shapeUtilData ?? {}
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.shapeId = shape.id
 		this.markId = ''
@@ -124,7 +128,7 @@ export class DraggingHandle extends StateNode {
 			this.isPrecise = false
 
 			if (initialBinding) {
-				this.editor.setHintingShapes([initialBinding.toId])
+				// this.editor.setHintingShapes([initialBinding.toId])
 
 				this.isPrecise = initialBinding.props.isPrecise
 				if (this.isPrecise) {
@@ -133,7 +137,7 @@ export class DraggingHandle extends StateNode {
 					this.resetExactTimeout()
 				}
 			} else {
-				this.editor.setHintingShapes([])
+				// this.editor.setHintingShapes([])
 			}
 		}
 		// -->
@@ -197,7 +201,8 @@ export class DraggingHandle extends StateNode {
 
 	override onExit() {
 		this.parent.setCurrentToolIdMask(undefined)
-		this.editor.setHintingShapes([])
+		// this.editor.setHintingShapes([])
+		clearArrowTargetState(this.editor)
 		this.editor.snaps.clearIndicators()
 
 		this.editor.setCursor({ type: 'default', rotation: 0 })
@@ -236,7 +241,6 @@ export class DraggingHandle extends StateNode {
 	private update() {
 		const { editor, shapeId, initialPagePoint } = this
 		const { initialHandle, initialPageRotation, initialAdjacentHandle } = this
-		const hintingShapeIds = this.editor.getHintingShapeIds()
 		const isSnapMode = this.editor.user.getIsSnapMode()
 		const {
 			snaps,
@@ -248,6 +252,10 @@ export class DraggingHandle extends StateNode {
 		const shape = editor.getShape(shapeId)
 		if (!shape) return
 		const util = editor.getShapeUtil(shape)
+
+		const initialBinding = editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
+			? getArrowBindings(editor, shape)[initialHandle.id as 'start' | 'end']
+			: undefined
 
 		let point = currentPagePoint
 			.clone()
@@ -284,7 +292,9 @@ export class DraggingHandle extends StateNode {
 		const changes = util.onHandleDrag?.(shape, {
 			handle: nextHandle,
 			isPrecise: this.isPrecise || altKey,
+			isCreatingShape: this.info.isCreating ?? false,
 			initial: initial,
+			data: this.shapeUtilData,
 		})
 
 		const next: TLShapePartial<any> = { id: shape.id, type: shape.type, ...changes }
@@ -297,16 +307,16 @@ export class DraggingHandle extends StateNode {
 			const bindingAfter = getArrowBindings(editor, shape)[initialHandle.id as 'start' | 'end']
 
 			if (bindingAfter) {
-				if (hintingShapeIds[0] !== bindingAfter.toId) {
-					editor.setHintingShapes([bindingAfter.toId])
+				if (initialBinding?.toId !== bindingAfter.toId) {
+					// editor.setHintingShapes([bindingAfter.toId])
 					this.pointingId = bindingAfter.toId
 					this.isPrecise = pointerVelocity.len() < 0.5 || altKey
 					this.isPreciseId = this.isPrecise ? bindingAfter.toId : null
 					this.resetExactTimeout()
 				}
 			} else {
-				if (hintingShapeIds.length > 0) {
-					editor.setHintingShapes([])
+				if (initialBinding) {
+					// editor.setHintingShapes([])
 					this.pointingId = null
 					this.isPrecise = false
 					this.isPreciseId = null
