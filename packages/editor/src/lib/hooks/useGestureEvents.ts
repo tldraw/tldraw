@@ -239,7 +239,6 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			switch (pinchState) {
 				case 'zooming': {
 					const currZoom = offset[0] ** editor.getCameraOptions().zoomSpeed
-					console.log(`curr zoom original = ${offset[0]} scaled = ${currZoom}`)
 
 					editor.dispatch({
 						type: 'pinch',
@@ -311,29 +310,14 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 		pinch: {
 			from: () => {
 				const { zoomSpeed } = editor.getCameraOptions()
-				const level = editor.getZoomLevel()
-				console.log('from', {
-					original: level,
-					scaled: level ** (1 / zoomSpeed),
-				})
-				return [level ** (1 / zoomSpeed), 0]
+				const level = editor.getZoomLevel() ** (1 / zoomSpeed)
+				return [level, 0]
 			}, // Return the camera z to use when pinch starts
 			scaleBounds: () => {
 				const baseZoom = editor.getBaseZoom()
 				const { zoomSteps, zoomSpeed } = editor.getCameraOptions()
 				const zoomMin = zoomSteps[0] * baseZoom
 				const zoomMax = zoomSteps[zoomSteps.length - 1] * baseZoom
-
-				console.log('scale bounds', {
-					original: {
-						max: zoomMax,
-						min: zoomMin,
-					},
-					scaled: {
-						max: zoomMax ** (1 / zoomSpeed),
-						min: zoomMin ** (1 / zoomSpeed),
-					},
-				})
 
 				return {
 					max: zoomMax ** (1 / zoomSpeed),
