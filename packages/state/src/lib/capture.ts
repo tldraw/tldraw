@@ -192,6 +192,11 @@ function collectChangedAncestors(
 
 function logChangedAncestors(child: Child, ancestorEpochs: Map<Signal<any>, number>) {
 	const changeTree = collectChangedAncestors(child, ancestorEpochs)
+	if (Object.keys(changeTree).length === 0) {
+		// eslint-disable-next-line no-console
+		console.log(`Effect(${child.name}) was executed manually.`)
+		return
+	}
 
 	let str = isComputed(child)
 		? `Computed(${child.name}) is recomputing because:`
