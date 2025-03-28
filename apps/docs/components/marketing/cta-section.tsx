@@ -4,7 +4,7 @@ import { Button } from '../common/button'
 
 export function CTASection() {
 	return (
-		<Section className="bg-zinc-50 dark:bg-zinc-900 py-24 sm:py-24 md:py-32 lg:py-40 max-w-full">
+		<Section>
 			<SectionHeading
 				heading="Get started today"
 				subheading="to action"
@@ -32,14 +32,11 @@ export function CTASection() {
             </div> */}
 			<div className="flex flex-col items-center justify-center gap-4 -mt-4">
 				<div className="flex flex-row items-center justify-center gap-4">
-					<Button id="hero-quick-start" href="/quick-start" caption="Read the docs" type="black" />
 					<Button
-						id="hero-dot-com"
-						href="https://tldraw.com"
-						caption="Try the app"
-						type="tertiary"
-						icon="play"
-						newTab
+						id="hero-quick-start"
+						href="/quick-start"
+						caption="Read the quick start guide"
+						type="black"
 					/>
 				</div>
 			</div>

@@ -12,11 +12,11 @@ import {
 import { usePathname } from 'next/navigation'
 
 const icons = {
-	announcements: MegaphoneIcon,
-	'release-notes': TagIcon,
-	product: TldrawIcon,
 	'all-posts': RectangleStackIcon,
+	announcements: MegaphoneIcon,
 	customers: RocketLaunchIcon,
+	product: TldrawIcon,
+	'release-notes': TagIcon,
 }
 
 export function BlogCategoryMenu({ categories }: { categories: Category[] }) {

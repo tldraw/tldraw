@@ -16,15 +16,17 @@ export function SectionHeading({
 					{subheading}
 				</div>
 			)}
-			<h2
-				className={cn(
-					'text-black dark:text-white font-black text-2xl sm:text-3xl md:text-4xl text-center px-5 md:px-0',
-					subheading && 'mt-2 md:mt-3',
-					description ? 'mb-6' : 'mb-12'
-				)}
-			>
-				{heading}
-			</h2>
+			<div className="pt-[64px] mt-[-64px]">
+				<h2
+					className={cn(
+						'text-black dark:text-white font-black text-2xl sm:text-3xl md:text-4xl text-center px-5 md:px-0',
+						subheading && 'mt-2 md:mt-3',
+						description ? 'mb-6' : 'mb-12'
+					)}
+				>
+					{heading}
+				</h2>
+			</div>
 			{description && (
 				<p className="text-center max-w-lg text-balance mb-16 mx-auto px-5 md:px-0">
 					{description}

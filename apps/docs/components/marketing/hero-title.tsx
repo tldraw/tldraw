@@ -1,6 +1,6 @@
-export function HeroSection() {
+export function HeroTitle() {
 	return (
-		<section className="max-w-screen-xl w-full mx-auto md:px-5 flex flex-col items-center">
+		<div className="max-w-screen-xl w-full mx-auto md:px-5 flex items-center justify-center">
 			<div className="relative max-w-[100%] lg:max-w-[80%]">
 				<h1 className="hidden sm:block relative text-center font-black text-black dark:text-white text-balance leading-tight text-4xl md:text-5xl md:leading-tight px-[8px]">
 					Build <mark>perfect</mark> whiteboards in React with the{' '}
@@ -14,14 +14,6 @@ export function HeroSection() {
 					with the <span className="whitespace-nowrap">tldraw SDK</span>
 				</h1>
 			</div>
-		</section>
+		</div>
 	)
 }
-
-// const avatars = [
-// 	'https://i.pravatar.cc/300?img=1',
-// 	'https://i.pravatar.cc/300?img=2',
-// 	'https://i.pravatar.cc/300?img=3',
-// 	'https://i.pravatar.cc/300?img=4',
-// 	'https://i.pravatar.cc/300?img=5',
-// ]

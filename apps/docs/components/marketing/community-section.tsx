@@ -21,16 +21,16 @@ const socialLinks = [
 	},
 ]
 
-export function TestimonialsSection() {
+export function CommunitySection() {
 	return (
-		<Section className="bg-zinc-50 dark:bg-zinc-900 py-24 sm:py-24 md:py-32 lg:py-40 max-w-full">
+		<Section id="community">
 			<SectionHeading
-				subheading="Community"
-				heading="Friends of the draw"
+				heading="Join the Community"
 				description={
 					<>
-						39,000 <Link href="https://github.com/tldraw">GitHub stars</Link>. 66,000 followers on{' '}
-						<Link href="https://x.com/tldraw">Twitter/X</Link>. Join the 8,000 strong community on{' '}
+						39K <Link href="https://github.com/tldraw">GitHub stars</Link>. 66K followers on{' '}
+						<Link href="https://x.com/tldraw">Twitter/X</Link>. Join 8K drawheads in our community
+						on{' '}
 						<Link href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink">
 							Discord
 						</Link>

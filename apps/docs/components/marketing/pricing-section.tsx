@@ -1,104 +1,84 @@
 import { Section } from '@/components/marketing/section'
 import { SectionHeading } from '@/components/marketing/section-heading'
-import { CheckCircleIcon, UsersIcon } from '@heroicons/react/20/solid'
+import { ReactNode } from 'react'
+import { BlueA } from '../common/blue-a'
 
-import { PricingButton } from './pricing-button'
+function TierItem({ children }: { children: ReactNode }) {
+	return <div className="text-black dark:text-white">{children}</div>
+}
+
+function TierTitle({ children }: { children: ReactNode }) {
+	return <h4 className="text-xl/4 font-bold mb-5">{children}</h4>
+}
+
+function TierDescription({ children }: { children: ReactNode }) {
+	return <p className="my-3">{children}</p>
+}
+
+function TierFeature({ children }: { children: ReactNode }) {
+	return <p className="my-3 text-zinc-800 dark:text-zinc-400">{children}</p>
+}
+
+function TierListSeparator() {
+	return (
+		<>
+			<div className="py-3" />
+			<hr />
+			<div className="py-3" />
+		</>
+	)
+}
 
 export function PricingSection() {
 	return (
 		<Section id="pricing">
 			<SectionHeading
-				heading="Pricing"
-				description="Use the SDK free with our watermark or purchase a license."
+				heading="Pricing & License"
+				description="Use the SDK free with our watermark or purchase a license to hide it. Small team? Small price."
 			/>
-			<div className="mt-20 flow-root">
-				<div className="isolate mx-auto px-8 md:px-5 -mt-16 grid max-w-sm grid-cols-1 gap-y-16 divide-y divide-gray-100 sm:mx-auto lg:-mx-8 lg:mt-0 lg:max-w-none lg:grid-cols-3 lg:divide-x lg:divide-y-0 xl:-mx-4">
-					{tiers.map((tier) => (
-						<div key={tier.id} className="pt-16 lg:px-8 lg:pt-0 xl:px-14">
-							<h3 id={tier.id} className="text-lg/5 font-semibold text-black dark:text-white">
-								{tier.name}
-							</h3>
-							{tier.id === 'business' ? (
-								<>
-									<p className="mt-6 flex items-baseline gap-x-1">
-										<span className="text-5xl font-semibold tracking-tight text-black dark:text-white">
-											Custom
-										</span>
-									</p>
-									<p className="mt-3 text-sm/6 opacity-[.9]">Value based pricing available</p>
-								</>
-							) : (
-								<>
-									<p className="mt-6 flex items-baseline gap-x-1">
-										<span className="text-5xl font-semibold tracking-tight text-black dark:text-white">
-											{tier.price.monthly}
-										</span>
-										<span className="text-sm/6 font-semibold">/month</span>
-									</p>
-									<p className="mt-3 text-sm/6 opacity-[.9]">Annual agreement</p>
-								</>
-							)}
-							<PricingButton tier={tier} />
-							<p className="mt-10 text-sm/6 font-semibold text-black dark:text-white">
-								{tier.description}
-							</p>
-							<ul role="list" className="mt-6 space-y-3 text-sm/6">
-								<li className="flex gap-x-3">
-									<UsersIcon className="h-6 w-5 flex-none text-black-500" /> {tier.teamSize}
-								</li>
-								<hr />
-								{tier.features.map((feature) => (
-									<li key={feature} className="flex gap-x-3">
-										<CheckCircleIcon
-											aria-hidden="true"
-											className="h-6 w-5 flex-none text-black-500"
-										/>
-										{feature}
-									</li>
-								))}
-							</ul>
-						</div>
-					))}
-				</div>
+			<div className="flex flex-col w-full max-w-lg mx-auto px-5">
+				<TierItem>
+					<TierTitle>Startup Lite</TierTitle>
+					<TierDescription>$6000/year, paid annually.</TierDescription>
+					<TierFeature>For companies with 10 or fewer people.</TierFeature>
+					<TierFeature>Includes a license key to remove our watermark.</TierFeature>
+					<p className="my-3">
+						<BlueA href="/buy/startup-lite">Contact us</BlueA>
+					</p>
+				</TierItem>
+				<div className="py-3" />
+				<TierItem>
+					<TierTitle>Startup</TierTitle>
+					<TierDescription>$12000/year, paid annually.</TierDescription>
+					<TierFeature>For companies with 10 or fewer people.</TierFeature>
+					<TierFeature>Up to two hours of support per month.</TierFeature>
+					<TierFeature>Includes a license key to remove our watermark.</TierFeature>
+					<p className="my-3">
+						<BlueA href="/buy/startup">Contact us</BlueA>
+					</p>
+				</TierItem>
+				<div className="py-3" />
+				<TierItem>
+					<TierTitle>Business</TierTitle>
+					<TierDescription>For teams of any size.</TierDescription>
+					<TierFeature>Includes a license key to remove our watermark.</TierFeature>
+					<TierFeature>Custom pricing, agreements, support, and more.</TierFeature>
+					<p className="my-3">
+						<BlueA href="/buy/startup-lite">Contact us</BlueA>
+					</p>
+				</TierItem>
+				<TierListSeparator />
+				<TierItem>
+					<TierTitle>Free</TierTitle>
+					<TierFeature>Use the full tldraw SDK for free.</TierFeature>
+					<TierFeature>
+						Must display our lovely <b>made with tldraw</b> watermark.
+					</TierFeature>
+					<p className="my-3">
+						<BlueA href="/quick-start">Get started</BlueA>
+					</p>
+				</TierItem>
 			</div>
 		</Section>
 	)
 }
-
-const tiers = [
-	{
-		id: 'lite',
-		name: 'Startup Lite',
-		type: 'secondary',
-		price: {
-			monthly: '$500',
-			annually: '$6,000',
-		},
-		href: '/buy/startup-lite',
-		description: 'For small teams getting started.',
-		teamSize: 'Up to 10 employees',
-		features: ['No watermark'],
-	},
-	{
-		id: 'startup',
-		name: 'Startup',
-		type: 'secondary',
-		price: {
-			monthly: '$1,000',
-			annually: '$12,000',
-		},
-		href: '/buy/startup',
-		teamSize: 'Up to 10 employees',
-		description: 'For small teams who need to speak to us.',
-		features: ['No watermark', 'Up to two hours of support per month'],
-	},
-	{
-		id: 'business',
-		name: 'Business',
-		type: 'primary',
-		href: '/buy/business',
-		teamSize: 'No limit on team size',
-		description: 'For larger teams and enterprises.',
-		features: ['No watermark', 'Premium support', 'Custom agreements', 'Dedicated account manager'],
-	},
-] as const

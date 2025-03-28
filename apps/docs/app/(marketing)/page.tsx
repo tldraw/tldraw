@@ -1,34 +1,47 @@
 import { NewsletterSignup } from '@/components/common/newsletter-signup'
-import { CTASection } from '@/components/marketing/cta-section'
-import { DetailsSection } from '@/components/marketing/details-section'
+import { CommunitySection } from '@/components/marketing/community-section'
+import { DemoSection } from '@/components/marketing/demo-section'
 import { FAQSection } from '@/components/marketing/faq-section'
-import { FeaturesSection } from '@/components/marketing/features-section'
-import { HeroSection } from '@/components/marketing/hero-section'
+import { HeroCtas } from '@/components/marketing/hero-ctas'
+import { HeroTitle } from '@/components/marketing/hero-title'
 import { InstallationSection } from '@/components/marketing/installation-section'
 import { LogoSection } from '@/components/marketing/logo-section'
 import { PricingSection } from '@/components/marketing/pricing-section'
-import { TestimonialsSection } from '@/components/marketing/testimonials-section'
-import { WatermarkSection } from '@/components/marketing/watermark-section'
+
+function SectionGap() {
+	return <div className="h-[140px] md:h-[184px]" />
+}
 
 export default function Page() {
 	return (
 		<>
-			<HeroSection />
+			<div className="h-[64px] md:h-[160px]" />
+			<HeroTitle />
+			<div className="h-[64px] md:h-[64px]" />
+			<HeroCtas />
+			<div className="h-[96px] md:h-[96px]" />
+			<DemoSection />
+			<div className="h-[96px] md:h-[96px]" />
 			<LogoSection />
-			<PricingSection />
-			<InstallationSection />
-			<FeaturesSection />
-			<DetailsSection />
-			{/* <CustomizationSection /> */}
 			{/* <CaseStudiesSection /> */}
-			<WatermarkSection />
+			{/* <FeaturesSection />
+			<DetailsSection /> */}
+			{/* <CustomizationSection /> */}
+			{/* <WatermarkSection /> */}
+			<SectionGap />
+			<InstallationSection />
+			<SectionGap />
 			<PricingSection />
-			<TestimonialsSection />
+			<SectionGap />
 			<FAQSection />
-			<CTASection />
-			<div className="my-32 lg:my-40">
+			<SectionGap />
+			<CommunitySection />
+			{/* <CTASection /> */}
+			<div className="h-[64px] md:h-[64px]" />
+			<div className="w-full px-5">
 				<NewsletterSignup bg={false} hideAfterSubmit={false} />
 			</div>
+			<SectionGap />
 		</>
 	)
 }

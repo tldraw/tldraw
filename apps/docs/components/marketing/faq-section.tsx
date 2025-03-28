@@ -8,7 +8,6 @@ export function FAQSection() {
 	return (
 		<Section id="faq">
 			<SectionHeading
-				subheading="FAQ"
 				heading="Frequently Asked Questions"
 				description={
 					<>
@@ -36,7 +35,7 @@ const faq = [
 			<>
 				You can use the tldraw SDK for free in commercial or non-commercial contexts so long as the
 				watermark is present. If you want to remove the watermark, you can purchase a license from
-				us. See our <BlueA href="#license">license</BlueA> and{' '}
+				us. See our <BlueA href="/legal/tldraw-license">license</BlueA> and{' '}
 				<BlueA href="#pricing">pricing</BlueA> sections for more information.
 			</>
 		),
@@ -45,10 +44,11 @@ const faq = [
 		q: 'Is the tldraw SDK open source?',
 		a: (
 			<>
-				Our license is not exactly <BlueA href="https://opensource.org/osd">Open Source</BlueA> but
-				you can view the source code on{' '}
+				You can view the source code on{' '}
 				<BlueA href="https://github.com/tldraw/tldraw">GitHub</BlueA>. We accept contributions from
-				the community and work in public.
+				the community and work in public. Our <BlueA href="/legal/tldraw-license">license</BlueA> is
+				not exactly <BlueA href="https://opensource.org/osd">Open Source</BlueA> but the library is
+				free to use with our watermark.
 			</>
 		),
 	},
@@ -109,7 +109,7 @@ const faq = [
 			<>
 				Yes. From tldraw 3.0 onward, you can use the SDK for free in commercial or non-commercial
 				contexts so long as the watermark is present. If you want to remove the watermark, you can
-				purchase a license from us.
+				<BlueA href="#pricing">purchase</BlueA> a license from us.
 			</>
 		),
 	},
