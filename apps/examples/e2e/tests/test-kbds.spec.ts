@@ -1,6 +1,9 @@
 import { Page, expect } from '@playwright/test'
+import { Editor } from 'tldraw'
 import { setupPage, setupPageWithShapes } from '../shared-e2e'
 import test from './fixtures/fixtures'
+
+declare const editor: Editor
 
 declare const __tldraw_ui_event: { name: string }
 
@@ -477,16 +480,16 @@ test.describe('Shape Navigation', () => {
 
 		// Navigate forward with Tab
 		await page.keyboard.press('Tab')
-		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'select-adjacent-shape',
-			data: { direction: 'next', source: 'kbd' },
+		expect(await page.evaluate(() => editor.getOnlySelectedShape())).toMatchObject({
+			x: 150,
+			y: 0,
 		})
 
 		// Navigate backward with Shift+Tab
 		await page.keyboard.press('Shift+Tab')
-		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'select-adjacent-shape',
-			data: { direction: 'prev', source: 'kbd' },
+		expect(await page.evaluate(() => editor.getOnlySelectedShape())).toMatchObject({
+			x: 0,
+			y: 0,
 		})
 	})
 
@@ -511,20 +514,20 @@ test.describe('Shape Navigation', () => {
 
 		// Test navigation to the right
 		await page.keyboard.press('Control+ArrowRight')
-		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'select-adjacent-shape',
-			data: { direction: 'right', source: 'kbd' },
+		expect(await page.evaluate(() => editor.getOnlySelectedShape())).toMatchObject({
+			x: 200,
+			y: 100,
 		})
 
 		// Navigate back to center
 		await page.mouse.click(200, 200)
 
-		// Disabled: I think this conflicts with browser nav.
+		// Disabled: I think this conflicts with browser nav or something.
 		// // Test navigation to the left
 		// await page.keyboard.press('Control+ArrowLeft')
-		// expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-		// 	name: 'select-adjacent-shape',
-		// 	data: { direction: 'left', source: 'kbd' },
+		// expect(await page.evaluate(() => editor.getOnlySelectedShape())).toMatchObject({
+		// 	x: 200,
+		// 	y: 100
 		// })
 
 		// Navigate back to center
@@ -532,9 +535,9 @@ test.describe('Shape Navigation', () => {
 
 		// Test navigation up
 		await page.keyboard.press('Control+ArrowUp')
-		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'select-adjacent-shape',
-			data: { direction: 'up', source: 'kbd' },
+		expect(await page.evaluate(() => editor.getOnlySelectedShape())).toMatchObject({
+			x: 100,
+			y: 100,
 		})
 
 		// Navigate back to center
@@ -542,9 +545,9 @@ test.describe('Shape Navigation', () => {
 
 		// Test navigation down
 		await page.keyboard.press('Control+ArrowDown')
-		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'select-adjacent-shape',
-			data: { direction: 'down', source: 'kbd' },
+		expect(await page.evaluate(() => editor.getOnlySelectedShape())).toMatchObject({
+			x: 100,
+			y: 200,
 		})
 	})
 })

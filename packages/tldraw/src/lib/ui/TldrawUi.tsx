@@ -2,6 +2,7 @@ import { tlenv, useEditor, useReactor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode, useRef, useState } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
+import { SkipToMainContent } from './components/A11y'
 import { FollowingIndicator } from './components/FollowingIndicator'
 import { TldrawUiButton } from './components/primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './components/primitives/Button/TldrawUiButtonIcon'
@@ -209,6 +210,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 			{Dialogs && <Dialogs />}
 			<FollowingIndicator />
 			{CursorChatBubble && <CursorChatBubble />}
+			<SkipToMainContent />
 		</div>
 	)
 })
