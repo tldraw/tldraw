@@ -9,7 +9,7 @@ import { LogoSection } from '@/components/marketing/logo-section'
 import { PricingSection } from '@/components/marketing/pricing-section'
 
 function SectionGap() {
-	return <div className="h-[96px] md:h-[184px]" />
+	return <div className="h-[140px] md:h-[184px]" />
 }
 
 export default function Page() {
@@ -38,7 +38,9 @@ export default function Page() {
 			<CommunitySection />
 			{/* <CTASection /> */}
 			<div className="h-[64px] md:h-[64px]" />
-			<NewsletterSignup bg={false} hideAfterSubmit={false} />
+			<div className="w-full px-5">
+				<NewsletterSignup bg={false} hideAfterSubmit={false} />
+			</div>
 			<SectionGap />
 		</>
 	)

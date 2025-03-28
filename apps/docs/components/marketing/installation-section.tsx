@@ -7,8 +7,8 @@ export function InstallationSection() {
 	return (
 		<Section id="installation">
 			<SectionHeading
-				heading="Installation"
-				description="Install the tldraw package, import the styles, and render the component in your React app."
+				heading="Our canvas, your app"
+				description="Install tldraw in any React app. Extend, customize, and develop on top."
 			/>
 			<div className="flex flex-col items-center gap-8 mx-auto mt-8 md:max-w-2xl">
 				<CodeFiles files={[code.terminal]} hideTabs className="w-full my-0" />

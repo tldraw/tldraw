@@ -3,7 +3,7 @@ import { MaskedLogo } from './masked-logo'
 export function LogoSection() {
 	return (
 		<section className="flex w-full max-w-screen-xl mx-auto gap-6 px-2 flex-col items-center text-[#000] dark:text-[#fff]">
-			<div className="uppercase tracking-wider text-zinc-800 font-bold text-xs text-center px-5 md:px-0">
+			<div className="uppercase tracking-wider text-zinc-800 dark:text-zinc-400 font-bold text-xs text-center px-5 md:px-0">
 				Made with tldraw
 			</div>
 			<div className="w-full hidden xl:flex flex-wrap items-center justify-center lg:justify-center gap-0">
