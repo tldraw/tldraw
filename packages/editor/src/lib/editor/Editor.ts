@@ -1866,8 +1866,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const nextNextShape = row[i + 2]
 
 				// Only consider adjustment if the next two shapes are relatively close to each other.
-				const dist1 = Vec.Dist(currentShape.center, nextShape.center)
-				const dist2 = Vec.Dist(currentShape.center, nextNextShape.center)
+				const dist1 = Vec.Dist2(currentShape.center, nextShape.center)
+				const dist2 = Vec.Dist2(currentShape.center, nextNextShape.center)
 
 				// Check if the 2nd shape is actually closer to the current shape.
 				if (dist2 < dist1 * 0.9) {
@@ -1932,7 +1932,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Ok, now score that subset of shapes.
 		const scoredShapes = shapesInDirection.map(({ shape, center }) => {
 			// Distance is the primary weighting factor.
-			const distance = Vec.Dist(currentCenter, center)
+			const distance = Vec.Dist2(currentCenter, center)
 
 			// Distance along the primary axis.
 			const dirProp = ['left', 'right'].includes(direction) ? 'x' : 'y'
