@@ -14,11 +14,11 @@ export default function Page() {
 		<>
 			<HeroSection />
 			<CaseStudiesSection />
-			<InstallationSection />
 			<FeaturesSection />
 			<DetailsSection />
 			{/* <CustomizationSection /> */}
 			{/* <WatermarkSection /> */}
+			<InstallationSection />
 			<PricingSection />
 			<TestimonialsSection />
 			<FAQSection />
