@@ -10,6 +10,11 @@ import { useEditor } from './useEditor'
 export function useDocumentEvents() {
 	const editor = useEditor()
 	const container = useContainer()
+	const hasSelectedShapes = useValue(
+		'hasSelectedShapes',
+		() => !!editor.getSelectedShapeIds().length,
+		[editor]
+	)
 
 	const isAppFocused = useValue('isFocused', () => editor.getIsFocused(), [editor])
 
@@ -123,6 +128,23 @@ export function useDocumentEvents() {
 				case 'Tab': {
 					if (areShortcutsDisabled(editor)) {
 						return
+					}
+					if (hasSelectedShapes) {
+						// This is used in tandem with shape navigation.
+						preventDefault(e)
+					}
+					break
+				}
+				case 'ArrowLeft':
+				case 'ArrowRight':
+				case 'ArrowUp':
+				case 'ArrowDown': {
+					if (areShortcutsDisabled(editor)) {
+						return
+					}
+					if (hasSelectedShapes && (e.metaKey || e.ctrlKey)) {
+						// This is used in tandem with shape navigation.
+						preventDefault(e)
 					}
 					break
 				}
@@ -271,7 +293,7 @@ export function useDocumentEvents() {
 			container.removeEventListener('keydown', handleKeyDown)
 			container.removeEventListener('keyup', handleKeyUp)
 		}
-	}, [editor, container, isAppFocused])
+	}, [editor, container, isAppFocused, hasSelectedShapes])
 }
 
 function areShortcutsDisabled(editor: Editor) {

@@ -65,6 +65,7 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 						stopEventPropagation(e)
 						preventDefault(e)
 					}}
+					title="made with tldraw"
 					onClick={() => runtime.openWindow(url, '_blank')}
 					style={{ mask: maskCss, WebkitMask: maskCss }}
 				/>
@@ -77,6 +78,7 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 					onPointerDown={(e) => {
 						stopEventPropagation(e)
 					}}
+					title="made with tldraw"
 					style={{ mask: maskCss, WebkitMask: maskCss }}
 				/>
 			)}

@@ -51,6 +51,9 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		overlayOpacity: 0.35,
 	}
 
+	override canTabTo() {
+		return false
+	}
 	override hideResizeHandles(shape: TLHighlightShape) {
 		return getIsDot(shape)
 	}

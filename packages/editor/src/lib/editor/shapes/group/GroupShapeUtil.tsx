@@ -14,6 +14,10 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	static override props = groupShapeProps
 	static override migrations = groupShapeMigrations
 
+	override canTabTo() {
+		return false
+	}
+
 	override hideSelectionBoundsFg() {
 		return true
 	}

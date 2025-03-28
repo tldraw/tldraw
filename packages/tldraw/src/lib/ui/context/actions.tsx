@@ -1486,7 +1486,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.open-cursor-chat',
 				readonlyOk: true,
 				kbd: '/',
-				onSelect(source: any) {
+				onSelect(source) {
 					trackEvent('open-cursor-chat', { source })
 
 					// Don't open cursor chat if we're on a touch device
