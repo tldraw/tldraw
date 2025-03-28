@@ -65,6 +65,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			crop: null,
 			flipX: false,
 			flipY: false,
+			altText: '',
 		}
 	}
 
