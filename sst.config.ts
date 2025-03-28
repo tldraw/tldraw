@@ -1,7 +1,6 @@
 /* eslint-disable */
 /// <reference path="./.sst/platform/config.d.ts" />
-import { execSync } from 'child_process'
-import { writeFileSync } from 'fs'
+import { readFileSync, writeFileSync } from 'fs'
 
 export default $config({
 	app(input) {
@@ -19,11 +18,9 @@ export default $config({
 		}
 	},
 	async run() {
-		const zeroVersion = execSync('npm list @rocicorp/zero | grep @rocicorp/zero | cut -f 3 -d @')
-			.toString()
-			.trim()
-			.split('\n')[0]
-			.trim()
+		const zeroVersion = JSON.parse(readFileSync('apps/dotcom/zero-cache/package.json').toString())
+			.dependencies['@rocicorp/zero']
+		console.log('Zero version:', zeroVersion)
 
 		// S3 Bucket
 		const replicationBucket = new sst.aws.Bucket(`replication-bucket`)
@@ -52,6 +49,7 @@ export default $config({
 			ZERO_IMAGE_URL: `rocicorp/zero:${zeroVersion}`,
 			ZERO_CVR_MAX_CONNS: '10',
 			ZERO_UPSTREAM_MAX_CONNS: '10',
+			ZERO_APP_PUBLICATIONS: 'zero_data',
 		}
 		writeFileSync('blah.env', JSON.stringify(commonEnv, null, 2))
 
