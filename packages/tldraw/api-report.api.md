@@ -1531,11 +1531,19 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     canCrop(): boolean;
     // (undocumented)
+    canEdit(): boolean;
+    // (undocumented)
     component(shape: TLImageShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLImageShape['props'];
     // (undocumented)
+    getFontFaces(shape: TLImageShape): TLFontFace[];
+    // (undocumented)
+    getGeometry(shape: TLImageShape): Group2d;
+    // (undocumented)
     getInterpolatedProps(startShape: TLImageShape, endShape: TLImageShape, t: number): TLImageShapeProps;
+    // (undocumented)
+    getText(shape: TLImageShape): string;
     // (undocumented)
     indicator(shape: TLImageShape): JSX_2.Element | null;
     // (undocumented)
@@ -4356,6 +4364,12 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     component(shape: TLVideoShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLVideoShape['props'];
+    // (undocumented)
+    getFontFaces(shape: TLVideoShape): TLFontFace[];
+    // (undocumented)
+    getGeometry(shape: TLVideoShape): Group2d;
+    // (undocumented)
+    getText(shape: TLVideoShape): string;
     // (undocumented)
     indicator(shape: TLVideoShape): JSX_2.Element;
     // (undocumented)
