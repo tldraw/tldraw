@@ -107,7 +107,6 @@ export class Pointing extends StateNode {
 		this.editor.select(id)
 		this.editor.updateShape<TLGeoShape>({
 			id: shape.id,
-			type: 'geo',
 			x: newPoint.x,
 			y: newPoint.y,
 			props: {

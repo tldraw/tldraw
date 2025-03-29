@@ -10,7 +10,7 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
-	TLShapePartial,
+	TLShapeUpdatePartial,
 	TLTextShape,
 	TLTickEventInfo,
 	Vec,
@@ -150,7 +150,7 @@ export class Resizing extends StateNode {
 	private handleResizeStart() {
 		const { shapeSnapshots } = this.snapshot
 
-		const changes: TLShapePartial[] = []
+		const changes: TLShapeUpdatePartial[] = []
 
 		shapeSnapshots.forEach(({ shape }) => {
 			const util = this.editor.getShapeUtil(shape)
@@ -168,7 +168,7 @@ export class Resizing extends StateNode {
 	private handleResizeEnd() {
 		const { shapeSnapshots } = this.snapshot
 
-		const changes: TLShapePartial[] = []
+		const changes: TLShapeUpdatePartial[] = []
 
 		shapeSnapshots.forEach(({ shape }) => {
 			const current = this.editor.getShape(shape.id)!
@@ -370,9 +370,8 @@ export class Resizing extends StateNode {
 
 				if (delta.x !== 0 || delta.y !== 0) {
 					for (const child of children) {
-						this.editor.updateShape({
+						this.editor.updateShape<TLShape>({
 							id: child.id,
-							type: child.type,
 							x: child.x - delta.x,
 							y: child.y - delta.y,
 						})
@@ -385,9 +384,8 @@ export class Resizing extends StateNode {
 			for (const { children } of frames) {
 				if (!children.length) continue
 				for (const child of children) {
-					this.editor.updateShape({
+					this.editor.updateShape<TLShape>({
 						id: child.id,
-						type: child.type,
 						x: child.x,
 						y: child.y,
 					})

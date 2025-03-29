@@ -85,7 +85,6 @@ describe('custom shape bounds snapping - translate', () => {
 		beforeEach(() => {
 			editor.updateShape<TestShape>({
 				id: ids.test,
-				type: 'test',
 				props: { boundsSnapPoints: [{ x: 50, y: 50 }] },
 			})
 		})
@@ -127,7 +126,6 @@ describe('custom shape bounds snapping - translate', () => {
 		beforeEach(() => {
 			editor.updateShape<TestShape>({
 				id: ids.test,
-				type: 'test',
 				props: { boundsSnapPoints: [] },
 			})
 		})
@@ -289,7 +287,6 @@ describe('custom handle snapping', () => {
 		beforeEach(() => {
 			editor.updateShape<TestShape>({
 				id: ids.test,
-				type: 'test',
 				props: { handleOutline: null },
 			})
 		})
@@ -306,7 +303,6 @@ describe('custom handle snapping', () => {
 		beforeEach(() => {
 			editor.updateShape<TestShape>({
 				id: ids.test,
-				type: 'test',
 				props: {
 					// a diagonal line from the top left to the bottom right
 					handleOutline: [
@@ -353,7 +349,6 @@ describe('custom handle snapping', () => {
 		beforeEach(() => {
 			editor.updateShape<TestShape>({
 				id: ids.test,
-				type: 'test',
 				props: {
 					handlePoints: [
 						{ x: 30, y: 30 },
@@ -380,7 +375,6 @@ describe('custom handle snapping', () => {
 		beforeEach(() => {
 			editor.updateShape<TestShape>({
 				id: ids.test,
-				type: 'test',
 				props: {
 					handlePoints: editor
 						.getShapeGeometry(ids.test)
@@ -419,7 +413,6 @@ describe('custom handle snapping', () => {
 			editor.deleteShape(ids.line)
 			editor.updateShape<TestShape>({
 				id: ids.test,
-				type: 'test',
 				x: 0,
 				y: 0,
 				props: {
@@ -455,7 +448,6 @@ describe('custom handle snapping', () => {
 			beforeEach(() => {
 				editor.updateShape<TestShape>({
 					id: ids.test,
-					type: 'test',
 					props: {
 						selfSnapOutline: [
 							{ x: 20, y: 50 },

@@ -1,4 +1,4 @@
-import { TLParentId, TLShape, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
+import { TLParentId, TLShape, TLShapeId, TLShapeUpdatePartial } from '@tldraw/tlschema'
 import { IndexKey, compact, getIndicesBetween, sortByIndex } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
 import { Vec } from '../primitives/Vec'
@@ -28,7 +28,7 @@ export function getReorderingShapesChanges(
 		parents.get(parentId)!.moving.add(shape)
 	}
 
-	const changes: TLShapePartial[] = []
+	const changes: TLShapeUpdatePartial[] = []
 
 	switch (operation) {
 		case 'toBack': {
@@ -63,7 +63,7 @@ export function getReorderingShapesChanges(
  * @param children The parent's children
  * @param changes The changes array to push changes to
  */
-function reorderToBack(moving: Set<TLShape>, children: TLShape[], changes: TLShapePartial[]) {
+function reorderToBack(moving: Set<TLShape>, children: TLShape[], changes: TLShapeUpdatePartial[]) {
 	const len = children.length
 
 	// If all of the children are moving, there's nothing to do
@@ -112,7 +112,11 @@ function reorderToBack(moving: Set<TLShape>, children: TLShape[], changes: TLSha
  * @param children The parent's children
  * @param changes The changes array to push changes to
  */
-function reorderToFront(moving: Set<TLShape>, children: TLShape[], changes: TLShapePartial[]) {
+function reorderToFront(
+	moving: Set<TLShape>,
+	children: TLShape[],
+	changes: TLShapeUpdatePartial[]
+) {
 	const len = children.length
 
 	// If all of the children are moving, there's nothing to do
@@ -194,7 +198,7 @@ function reorderForward(
 	editor: Editor,
 	moving: Set<TLShape>,
 	children: TLShape[],
-	changes: TLShapePartial[],
+	changes: TLShapeUpdatePartial[],
 	opts?: { considerAllShapes?: boolean }
 ) {
 	const isOverlapping = getOverlapChecker(editor, moving)
@@ -253,7 +257,7 @@ function reorderBackward(
 	editor: Editor,
 	moving: Set<TLShape>,
 	children: TLShape[],
-	changes: TLShapePartial[],
+	changes: TLShapeUpdatePartial[],
 	opts?: { considerAllShapes?: boolean }
 ) {
 	const isOverlapping = getOverlapChecker(editor, moving)

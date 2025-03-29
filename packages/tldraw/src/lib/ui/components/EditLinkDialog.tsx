@@ -98,9 +98,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	const handleClear = useCallback(() => {
 		const onlySelectedShape = editor.getOnlySelectedShape()
 		if (!onlySelectedShape) return
-		editor.updateShapes([
-			{ id: onlySelectedShape.id, type: onlySelectedShape.type, props: { url: '' } },
-		])
+		editor.updateShapes([{ id: onlySelectedShape.id, props: { url: '' } }])
 		onClose()
 	}, [editor, onClose])
 
@@ -113,13 +111,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 		if (onlySelectedShape && 'url' in onlySelectedShape.props) {
 			// Here would be a good place to validate the next shape—would setting the empty
 			if (onlySelectedShape.props.url !== urlInputState.safe) {
-				editor.updateShapes([
-					{
-						id: onlySelectedShape.id,
-						type: onlySelectedShape.type,
-						props: { url: urlInputState.safe },
-					},
-				])
+				editor.updateShapes([{ id: onlySelectedShape.id, props: { url: urlInputState.safe } }])
 			}
 		}
 		onClose()

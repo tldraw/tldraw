@@ -111,21 +111,9 @@ describe('when multiple shapes are selected', () => {
 
 	it('aligns center, when shapes are rotated', () => {
 		editor.updateShapes([
-			{
-				id: ids.boxA,
-				type: 'geo',
-				rotation: PI,
-			},
-			{
-				id: ids.boxB,
-				type: 'geo',
-				rotation: PI,
-			},
-			{
-				id: ids.boxC,
-				type: 'geo',
-				rotation: PI,
-			},
+			{ id: ids.boxA, rotation: PI },
+			{ id: ids.boxB, rotation: PI },
+			{ id: ids.boxC, rotation: PI },
 		])
 
 		editor.alignShapes(editor.getSelectedShapeIds(), 'center-vertical')
@@ -150,21 +138,9 @@ describe('when multiple shapes are selected', () => {
 
 	it('aligns top-left, when shapes are rotated', () => {
 		editor.updateShapes([
-			{
-				id: ids.boxA,
-				type: 'geo',
-				rotation: 0.2,
-			},
-			{
-				id: ids.boxB,
-				type: 'geo',
-				rotation: 0.4,
-			},
-			{
-				id: ids.boxC,
-				type: 'geo',
-				rotation: 0.6,
-			},
+			{ id: ids.boxA, rotation: 0.2 },
+			{ id: ids.boxB, rotation: 0.4 },
+			{ id: ids.boxC, rotation: 0.6 },
 		])
 
 		editor.alignShapes(editor.getSelectedShapeIds(), 'top')
@@ -189,21 +165,9 @@ describe('when multiple shapes are selected', () => {
 
 	it('aligns bottom-right, when shapes are rotated', () => {
 		editor.updateShapes([
-			{
-				id: ids.boxA,
-				type: 'geo',
-				rotation: 0.2,
-			},
-			{
-				id: ids.boxB,
-				type: 'geo',
-				rotation: 0.4,
-			},
-			{
-				id: ids.boxC,
-				type: 'geo',
-				rotation: 0.6,
-			},
+			{ id: ids.boxA, rotation: 0.2 },
+			{ id: ids.boxB, rotation: 0.4 },
+			{ id: ids.boxC, rotation: 0.6 },
 		])
 
 		editor.setSelectedShapes([ids.boxA, ids.boxB, ids.boxC])

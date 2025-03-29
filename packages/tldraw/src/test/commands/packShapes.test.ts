@@ -66,7 +66,7 @@ describe('editor.packShapes', () => {
 	})
 
 	it('packs rotated shapes', () => {
-		editor.updateShapes([{ id: ids.boxA, type: 'geo', rotation: Math.PI }])
+		editor.updateShapes([{ id: ids.boxA, rotation: Math.PI }])
 		editor.selectAll().packShapes(editor.getSelectedShapeIds(), 16)
 		jest.advanceTimersByTime(1000)
 		expect(

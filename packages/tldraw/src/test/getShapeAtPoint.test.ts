@@ -148,7 +148,6 @@ describe('with hitLabels=true', () => {
 		expect(editor.getShapeAtPoint({ x: 350, y: 350 }, opts)?.id).toBe(ids.box3)
 		editor.updateShape<TLGeoShape>({
 			id: ids.box2,
-			type: 'geo',
 			props: { richText: toRichText('hello') },
 		})
 		expect(editor.getShapeAtPoint({ x: 350, y: 350 }, opts)?.id).toBe(ids.box2)

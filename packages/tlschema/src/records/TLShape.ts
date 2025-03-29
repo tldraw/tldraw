@@ -70,6 +70,15 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
 	: never
 
 /** @public */
+export type TLShapeUpdatePartial<T extends TLShape = TLShape> = T extends T
+	? {
+			id: TLShapeId
+			props?: Partial<T['props']>
+			meta?: Partial<T['meta']>
+		} & Partial<Omit<T, 'id' | 'props' | 'meta'>>
+	: never
+
+/** @public */
 export type TLShapeId = RecordId<TLUnknownShape>
 
 /** @public */

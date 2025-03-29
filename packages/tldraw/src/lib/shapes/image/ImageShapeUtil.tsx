@@ -11,7 +11,7 @@ import {
 	TLImageShape,
 	TLImageShapeProps,
 	TLResizeInfo,
-	TLShapePartial,
+	TLShapeUpdatePartial,
 	Vec,
 	WeakCache,
 	fetch,
@@ -171,9 +171,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const pointDelta = new Vec(crop.topLeft.x * w, crop.topLeft.y * h).rot(shape.rotation)
 
-		const partial: TLShapePartial<TLImageShape> = {
+		const partial: TLShapeUpdatePartial<TLImageShape> = {
 			id: shape.id,
-			type: shape.type,
 			x: shape.x - pointDelta.x,
 			y: shape.y - pointDelta.y,
 			props: {

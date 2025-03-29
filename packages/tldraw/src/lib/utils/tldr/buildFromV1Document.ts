@@ -17,6 +17,7 @@ import {
 	TLImageShape,
 	TLNoteShape,
 	TLPageId,
+	TLShape,
 	TLShapeId,
 	TLTextShape,
 	TLVideoShape,
@@ -246,7 +247,6 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								editor.updateShapes([
 									{
 										id: inCommon.id,
-										type: 'geo',
 										x: coerceNumber(shape.x) - (newW - w) / 2,
 										y: coerceNumber(shape.y) - (newH - h) / 2,
 										props: {
@@ -301,7 +301,6 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								editor.updateShapes([
 									{
 										id: inCommon.id,
-										type: 'geo',
 										x: coerceNumber(shape.x) - (newW - w) / 2,
 										y: coerceNumber(shape.y) - (newH - h) / 2,
 										props: {
@@ -356,7 +355,6 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								editor.updateShapes([
 									{
 										id: inCommon.id,
-										type: 'geo',
 										x: coerceNumber(shape.x) - (newW - w) / 2,
 										y: coerceNumber(shape.y) - (newH - h) / 2,
 										props: {
@@ -565,7 +563,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								})
 
 								if (change) {
-									editor.updateShape(change)
+									editor.updateShape<TLShape>(change)
 								}
 
 								const freshBinding = getArrowBindings(
