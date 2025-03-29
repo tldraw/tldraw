@@ -73,7 +73,7 @@ Each image has an associated asset record, so we'll create that first. We need a
 `assetId` so that we can later associate it with the image.
 
 [3]
-We create the image sgape and pass in the `assetId` that we created earlier. This
+We create the image shape and pass in the `assetId` that we created earlier. This
 will link our image shape to the asset record. Notice that we create the shape with
 the same dimensions as the image, later on the user may resize the image, but we 
 don't want to resize our asset, this is one of the reasons why it's important to 
