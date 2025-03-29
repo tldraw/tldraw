@@ -1,13 +1,4 @@
-import {
-	Editor,
-	Mat,
-	MatModel,
-	TLArrowShape,
-	Vec,
-	VecLike,
-	intersectLineSegmentPolygon,
-	intersectLineSegmentPolyline,
-} from '@tldraw/editor'
+import { Editor, Mat, MatModel, TLArrowShape, Vec, VecLike } from '@tldraw/editor'
 import { TLArrowInfo } from './arrow-types'
 import {
 	BOUND_ARROW_OFFSET,
@@ -240,17 +231,19 @@ function updateArrowheadPointWithBoundShape(
 	const targetFrom = Mat.applyToPoint(Mat.Inverse(targetShapeInfo.transform), pageFrom)
 	const targetTo = Mat.applyToPoint(Mat.Inverse(targetShapeInfo.transform), pageTo)
 
-	const isClosed = targetShapeInfo.isClosed
-	const fn = isClosed ? intersectLineSegmentPolygon : intersectLineSegmentPolyline
-
-	const intersection = fn(targetFrom, targetTo, targetShapeInfo.outline)
+	const intersection = Array.from(
+		targetShapeInfo.geometry.intersectLineSegment(targetFrom, targetTo, {
+			includeLabels: false,
+			includeInternal: false,
+		})
+	)
 
 	let targetInt: VecLike | undefined
 
-	if (intersection !== null) {
+	if (intersection.length) {
 		targetInt =
 			intersection.sort((p1, p2) => Vec.Dist2(p1, targetFrom) - Vec.Dist2(p2, targetFrom))[0] ??
-			(isClosed ? undefined : targetTo)
+			(targetShapeInfo.isClosed ? undefined : targetTo)
 	}
 
 	if (targetInt === undefined) {
