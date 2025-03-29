@@ -22,3 +22,10 @@ export const MULTIPLAYER_SERVER =
 	(isStagingEnv || isProductionEnv) && typeof location !== 'undefined'
 		? `${window.location.origin}/api`
 		: process.env.MULTIPLAYER_SERVER.replace(/^http/, 'ws')
+
+export const ZERO_SERVER =
+	(isStagingEnv || isProductionEnv) && typeof location !== 'undefined'
+		? process.env.ZERO_SERVER
+		: 'http://localhost:4848/'
+
+console.log('ZERO_SERVER', ZERO_SERVER)

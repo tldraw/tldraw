@@ -119,6 +119,15 @@ async function migrate(summary: string[], dryRun: boolean) {
 			throw DRY_RUN_ROLLBACK
 		}
 	})
+	let exists = await sql`SELECT FROM pg_database WHERE datname = 'zstart_cdb'`.execute(db)
+	if (!exists.rows.length) {
+		await sql`CREATE DATABASE zstart_cdb`.execute(db)
+	}
+	exists = await sql`SELECT FROM pg_database WHERE datname = 'zstart_cvr'`.execute(db)
+	if (!exists.rows.length) {
+		await sql`CREATE DATABASE zstart_cvr`.execute(db)
+	}
+
 	await db.destroy()
 }
 async function run() {

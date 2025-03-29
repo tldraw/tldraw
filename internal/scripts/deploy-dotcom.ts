@@ -52,6 +52,7 @@ const env = makeEnv([
 	'HEALTH_WORKER_UPDOWN_WEBHOOK_PATH',
 	'IMAGE_WORKER',
 	'MULTIPLAYER_SERVER',
+	'ZERO_SERVER',
 	'R2_ACCESS_KEY_ID',
 	'R2_ACCESS_KEY_SECRET',
 	'RELEASE_COMMIT_HASH',
@@ -84,6 +85,7 @@ const sentryReleaseName = `${env.TLDRAW_ENV}-${previewId ? previewId + '-' : ''}
 if (previewId) {
 	env.ASSET_UPLOAD = `https://${previewId}-tldraw-assets.tldraw.workers.dev`
 	env.MULTIPLAYER_SERVER = `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
+	env.ZERO_SERVER = `TODO`
 	env.IMAGE_WORKER = `https://${previewId}-images.tldraw.xyz`
 }
 
@@ -175,6 +177,7 @@ async function prepareDotcomApp() {
 			ASSET_UPLOAD: env.ASSET_UPLOAD,
 			IMAGE_WORKER: env.IMAGE_WORKER,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
+			ZERO_SERVER: env.ZERO_SERVER,
 			NEXT_PUBLIC_GC_API_KEY: env.GC_MAPS_API_KEY,
 			SENTRY_AUTH_TOKEN: env.SENTRY_AUTH_TOKEN,
 			SENTRY_ORG: 'tldraw',

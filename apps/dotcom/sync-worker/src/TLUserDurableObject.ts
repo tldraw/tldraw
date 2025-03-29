@@ -21,7 +21,6 @@ import { IRequest, Router } from 'itty-router'
 import { Kysely, sql, Transaction } from 'kysely'
 import { Logger } from './Logger'
 import { createPostgresConnectionPool } from './postgres'
-import { getR2KeyForRoom } from './r2'
 import { Analytics, Environment, getUserDoSnapshotKey, TLUserDurableObjectEvent } from './types'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
 import { EventData, writeDataPoint } from './utils/analytics'
@@ -428,30 +427,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								.where('userId', '=', userId)
 								.execute()
 						} else {
-							const { id, ...rest } = update.row as any
-
+							const { id } = update.row as any
 							await tx.updateTable(update.table).set(updates).where('id', '=', id).execute()
-							if (update.table === 'file') {
-								const currentFile = this.cache.store.getFullData()?.files.find((f) => f.id === id)
-								if (
-									currentFile &&
-									rest.published !== undefined &&
-									currentFile.published !== rest.published
-								) {
-									if (rest.published) {
-										await this.publishSnapshot(currentFile)
-									} else {
-										await this.unpublishSnapshot(currentFile)
-									}
-								} else if (
-									currentFile &&
-									currentFile.published &&
-									rest.lastPublished !== undefined &&
-									currentFile.lastPublished < rest.lastPublished
-								) {
-									await this.publishSnapshot(currentFile)
-								}
-							}
 						}
 						break
 					}
@@ -546,55 +523,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	/* --------------  */
-
-	private async publishSnapshot(file: TlaFile) {
-		if (file.ownerId !== this.userId) {
-			throw new ZMutationError(ZErrorCode.forbidden, 'Cannot publish file that is not our own')
-		}
-
-		try {
-			// make sure the room's snapshot is up to date
-			await getRoomDurableObject(this.env, file.id).awaitPersist()
-			// and that it exists
-			const snapshot = await this.env.ROOMS.get(getR2KeyForRoom({ slug: file.id, isApp: true }))
-
-			if (!snapshot) {
-				throw new Error('Snapshot not found')
-			}
-			const blob = await snapshot.blob()
-
-			// Create a new slug for the published room
-			await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put(file.publishedSlug, file.id)
-
-			// Bang the snapshot into the database
-			await this.env.ROOM_SNAPSHOTS.put(
-				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true }),
-				blob
-			)
-			const currentTime = new Date().toISOString()
-			await this.env.ROOM_SNAPSHOTS.put(
-				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}|${currentTime}`, isApp: true }),
-				blob
-			)
-		} catch (e) {
-			throw new ZMutationError(ZErrorCode.publish_failed, 'Failed to publish snapshot', e)
-		}
-	}
-
-	private async unpublishSnapshot(file: TlaFile) {
-		if (file.ownerId !== this.userId) {
-			throw new ZMutationError(ZErrorCode.forbidden, 'Cannot unpublish file that is not our own')
-		}
-
-		try {
-			await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(file.publishedSlug)
-			await this.env.ROOM_SNAPSHOTS.delete(
-				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true })
-			)
-		} catch (e) {
-			throw new ZMutationError(ZErrorCode.unpublish_failed, 'Failed to unpublish snapshot', e)
-		}
-	}
 
 	private writeEvent(eventData: EventData) {
 		writeDataPoint(this.sentry, this.measure, this.env, 'user_durable_object', eventData)
