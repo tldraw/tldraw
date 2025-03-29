@@ -115,12 +115,13 @@ export async function wranglerDeploy({
 		}
 	)
 
-	if (dryRun) return
+	if (dryRun) return { versionId: 'dry-run' }
 
 	const versionMatch = out.match(/Current Version ID: (.+)/)
 	if (!versionMatch) {
 		throw new Error('Could not find the deploy ID in wrangler output')
 	}
+	const versionId = versionMatch[1]
 
 	const workerNameMatch = out.match(/Uploaded ([^ ]+)/)
 
@@ -129,7 +130,7 @@ export async function wranglerDeploy({
 	}
 
 	if (sentry) {
-		const release = `${sentry.environment ?? workerNameMatch[1]}.${versionMatch[1]}`
+		const release = `${sentry.environment ?? workerNameMatch[1]}.${versionId}`
 
 		const sentryEnv = {
 			SENTRY_AUTH_TOKEN: sentry.authToken,
@@ -162,6 +163,7 @@ export async function wranglerDeploy({
 			}
 		)
 	}
+	return { versionId }
 }
 
 export interface ServiceBinding {
