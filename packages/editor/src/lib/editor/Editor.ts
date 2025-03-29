@@ -241,10 +241,12 @@ export interface TLEditorOptions {
 	fontAssetUrls?: { [key: string]: string | undefined }
 	/**
 	 * A predicate that should return true if the given shape should be hidden.
+	 *
+	 * It may also return 'force_show' to show the shape even if it is the child of a hidden parent shape.
 	 * @param shape - The shape to check.
 	 * @param editor - The editor instance.
 	 */
-	isShapeHidden?(shape: TLShape, editor: Editor): boolean
+	isShapeHidden?(shape: TLShape, editor: Editor): boolean | 'force_show'
 }
 
 /**
@@ -773,14 +775,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	}
 
-	private readonly _isShapeHiddenPredicate?: (shape: TLShape, editor: Editor) => boolean
+	private readonly _isShapeHiddenPredicate?: (
+		shape: TLShape,
+		editor: Editor
+	) => boolean | 'force_show'
 	@computed
 	private getIsShapeHiddenCache() {
 		if (!this._isShapeHiddenPredicate) return null
 		return this.store.createComputedCache<boolean, TLShape>('isShapeHidden', (shape: TLShape) => {
-			const hiddenParent = this.findShapeAncestor(shape, (p) => this.isShapeHidden(p))
-			if (hiddenParent) return true
-			return this._isShapeHiddenPredicate!(shape, this) ?? false
+			const isShapeHidden = this._isShapeHiddenPredicate!(shape, this)
+			const isParentHidden = PageRecordType.isId(shape.parentId)
+				? false
+				: this.isShapeHidden(shape.parentId)
+
+			if (isParentHidden) return isShapeHidden !== 'force_show'
+			return isShapeHidden === true
 		})
 	}
 	isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean {
@@ -3711,7 +3720,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const addShapeById = (id: TLShapeId, opacity: number, isAncestorErasing: boolean) => {
 			const shape = this.getShape(id)
 			if (!shape) return
-			if (this.isShapeHidden(shape)) return
+
+			if (this.isShapeHidden(shape)) {
+				// process children just in case they are overriding the hidden state with force_show
+				const isErasing = isAncestorErasing || erasingShapeIds.includes(id)
+				for (const childId of this.getSortedChildIdsForParent(id)) {
+					addShapeById(childId, opacity, isErasing)
+				}
+				return
+			}
 
 			opacity *= shape.opacity
 			let isShapeErasing = false

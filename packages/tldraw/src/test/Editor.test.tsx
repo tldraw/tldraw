@@ -719,11 +719,12 @@ describe('dragging', () => {
 })
 
 describe('isShapeHidden', () => {
-	const isShapeHidden = jest.fn((shape: TLShape) => {
+	const isShapeHidden = jest.fn((shape: TLShape): boolean | 'force_show' => {
 		return !!shape.meta.hidden
 	})
 
 	beforeEach(() => {
+		isShapeHidden.mockClear()
 		editor = new TestEditor({ isShapeHidden })
 
 		editor.createShapes([
@@ -803,6 +804,34 @@ describe('isShapeHidden', () => {
 		editor.updateShape({ id: groupId, type: 'group', meta: { hidden: true } })
 		expect(editor.isShapeHidden(editor.getShape(groupId)!)).toBe(true)
 		expect(editor.isShapeHidden(editor.getShape(ids.box1)!)).toBe(true)
+	})
+
+	it('allows children to override with force_show', () => {
+		isShapeHidden.mockImplementation((shape: TLShape) => {
+			if (shape.meta.force_show) return 'force_show'
+			return !!shape.meta.hidden
+		})
+		const groupId = createShapeId('group')
+		editor.groupShapes([ids.box1, ids.box2], { groupId })
+		editor.deleteShape(ids.box3)
+
+		editor.updateShape({ id: groupId, type: 'group', meta: { hidden: true } })
+		expect(editor.isShapeHidden(editor.getShape(groupId)!)).toBe(true)
+		expect(editor.isShapeHidden(editor.getShape(ids.box1)!)).toBe(true)
+		expect(editor.isShapeHidden(editor.getShape(ids.box2)!)).toBe(true)
+
+		editor.updateShape({ id: ids.box1, type: 'geo', meta: { force_show: true } })
+		expect(editor.isShapeHidden(editor.getShape(groupId)!)).toBe(true)
+		expect(editor.isShapeHidden(editor.getShape(ids.box1)!)).toBe(false)
+		expect(editor.isShapeHidden(editor.getShape(ids.box2)!)).toBe(true)
+
+		expect(editor.getRenderingShapes().map((s) => s.id)).toEqual([ids.box1])
+
+		editor.select(ids.box1)
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+		expect(editor.getCurrentPageRenderingShapesSorted().length).toBe(1)
+		expect(editor.getCurrentPageShapesSorted().length).toBe(3)
 	})
 
 	it('still allows hidden shapes to be selected', () => {
