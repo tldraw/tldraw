@@ -21,14 +21,15 @@
 		"react-dom": "^18.2.0 || ^19.0.0"
 	},
 	"devDependencies": {
+		"@types/lodash.isequal": "^4.5.8",
 		"@types/react": "^18.3.18",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1"
 	},
 	"scripts": {
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"test": "pnpm jest",
+		"lint": "pnpm tsx ../../internal/scripts/lint.ts"
 	},
 	"jest": {
 		"preset": "../../internal/config/jest/node/jest-preset.js",

@@ -30,7 +30,7 @@ const expectedPackageJsonScriptsForPublishedLibraries = {
 	'build-api': tsScript('build-api.ts'),
 	prepack: tsScript('prepack.ts'),
 	postpack: (packageDir: string) => scriptPath(packageDir, 'postpack.sh'),
-	'pack-tarball': () => 'yarn pack',
+	'pack-tarball': () => 'pnpm pack',
 }
 
 // individual packages can have different scripts than the above if needed
@@ -91,7 +91,7 @@ async function checkPackageJsonScripts({
 					[
 						'❌ ',
 						kleur.red(`${name}: `),
-						kleur.blue(`$ yarn ${scriptName}`),
+						kleur.blue(`$ pnpm ${scriptName}`),
 						kleur.grey(' -> '),
 						kleur.red(actualScript ?? '<missing>'),
 						kleur.gray(' (expected: '),
@@ -107,7 +107,7 @@ async function checkPackageJsonScripts({
 					[
 						'✅ ',
 						kleur.green(`${name}: `),
-						kleur.blue(`$ yarn ${scriptName}`),
+						kleur.blue(`$ pnpm ${scriptName}`),
 						kleur.grey(' -> '),
 						kleur.green(actualScript ?? '<missing>'),
 					].join('')
@@ -222,7 +222,7 @@ async function checkTsConfigs({
 		}
 	}
 	if (numErrors > 0) {
-		nicelog('Run `yarn check-tsconfigs --fix` to fix these problems')
+		nicelog('Run `pnpm check-tsconfigs --fix` to fix these problems')
 		return false
 	}
 
@@ -234,7 +234,7 @@ function scriptPath(packageDir: string, scriptName: string) {
 }
 
 function tsScript(scriptName: string) {
-	return (packageDir: string) => `yarn run -T tsx ${scriptPath(packageDir, scriptName)}`
+	return (packageDir: string) => `pnpm tsx ${scriptPath(packageDir, scriptName)}`
 }
 
 async function checkLibraryContents({

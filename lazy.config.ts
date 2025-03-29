@@ -4,7 +4,7 @@ const config = {
 	baseCacheConfig: {
 		include: [
 			'<rootDir>/package.json',
-			'<rootDir>/yarn.lock',
+			'<rootDir>/pnpm-lock.yaml',
 			'<rootDir>/lazy.config.ts',
 			'<rootDir>/internal/config/**/*',
 			'<rootDir>/internal/scripts/**/*',
@@ -62,7 +62,7 @@ const config = {
 			cache: 'none',
 		},
 		'test-ci': {
-			baseCommand: 'yarn run -T jest',
+			baseCommand: 'pnpm exec jest',
 			runsAfter: { 'refresh-assets': {} },
 			cache: {
 				inputs: {
@@ -71,7 +71,7 @@ const config = {
 			},
 		},
 		'test-coverage': {
-			baseCommand: 'yarn run -T jest --coverage',
+			baseCommand: 'pnpm exec jest --coverage',
 			runsAfter: { 'refresh-assets': {} },
 		},
 		lint: {

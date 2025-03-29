@@ -34,15 +34,15 @@
 	],
 	"scripts": {
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
-		"benchmark": "yarn run -T tsx ./internal/scripts/benchmark.ts",
+		"test": "pnpm jest",
+		"benchmark": "pnpm tsx ./internal/scripts/benchmark.ts",
 		"test-coverage": "lazy inherit",
-		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
-		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
-		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
+		"build": "pnpm tsx ../../internal/scripts/build-package.ts",
+		"build-api": "pnpm tsx ../../internal/scripts/build-api.ts",
+		"prepack": "pnpm tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
-		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"pack-tarball": "pnpm pack",
+		"lint": "pnpm tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
 		"@tiptap/core": "^2.9.1",
@@ -72,8 +72,10 @@
 		"@testing-library/jest-dom": "^5.17.0",
 		"@testing-library/react": "^15.0.7",
 		"@types/benchmark": "^2.1.5",
+		"@types/lodash.isequal": "^4.5.8",
 		"@types/react": "^18.3.18",
 		"@types/wicg-file-system-access": "^2020.9.8",
+		"@use-gesture/core": "^10.3.1",
 		"benchmark": "^2.1.4",
 		"fake-indexeddb": "^4.0.2",
 		"jest-canvas-mock": "^2.5.2",

@@ -9,9 +9,9 @@ This repo contains a template for using [tldraw](https://github.com/tldraw/tldra
 
 ## Local development
 
-Install dependencies with `yarn` or `npm install`.
+Install dependencies with `pnpm install` or `npm install`.
 
-Run the development server with `yarn dev` or `npm run dev`.
+Run the development server with `pnpm dev` or `npm run dev`.
 
 Open `http://localhost:3000/` in your browser to see the app.
 

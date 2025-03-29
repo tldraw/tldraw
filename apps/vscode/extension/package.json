@@ -122,16 +122,17 @@
 	},
 	"scripts": {
 		"dev": "tsx scripts/dev.ts",
-		"build": "cd ../editor && yarn build && cd ../extension && tsx scripts/build.ts",
+		"build": "cd ../editor && pnpm build && cd ../extension && tsx scripts/build.ts",
 		"get-info": "vsce show tldraw-org.tldraw-vscode --json > extension.json",
-		"package": "yarn build && tsx scripts/package.ts",
+		"package": "pnpm build && tsx scripts/package.ts",
 		"publish": "tsx scripts/publish.ts",
-		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
-		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf editor && rm -rf temp & yarn"
+		"lint": "pnpm tsx ../../../internal/scripts/lint.ts",
+		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf editor && rm -rf temp & pnpm i"
 	},
 	"devDependencies": {
 		"@tldraw/editor": "workspace:*",
 		"@types/fs-extra": "^11.0.4",
+		"@types/lodash": "^4.17.14",
 		"@types/node-fetch": "^2.6.12",
 		"@types/react": "^18.3.18",
 		"@types/vscode": "^1.96.0",

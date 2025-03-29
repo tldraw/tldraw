@@ -11,12 +11,12 @@
 		"defaults"
 	],
 	"scripts": {
-		"dev": "concurrently 'yarn docker-up' 'yarn migrate --signal-success'",
+		"dev": "concurrently 'pnpm docker-up' 'pnpm migrate --signal-success'",
 		"docker-up": "docker compose -f ./docker/docker-compose.yml up",
 		"docker-down": "docker compose -f ./docker/docker-compose.yml down",
-		"migrate": "yarn tsx ./migrate.ts",
-		"clean": "yarn docker-down && ./clean.sh",
-		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
+		"migrate": "pnpm tsx ./migrate.ts",
+		"clean": "pnpm docker-down && ./clean.sh",
+		"lint": "pnpm tsx ../../../internal/scripts/lint.ts"
 	},
 	"type": "module",
 	"dependencies": {
@@ -25,6 +25,7 @@
 		"pg": "^8.13.1"
 	},
 	"devDependencies": {
+		"@types/pg": "^8.11.11",
 		"dotenv": "^16.4.7",
 		"lazyrepo": "0.0.0-alpha.27",
 		"tsx": "^4.19.2"

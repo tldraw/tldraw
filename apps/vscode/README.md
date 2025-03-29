@@ -6,19 +6,19 @@ This folder contains the source for the tldraw VS Code extension.
 
 ## 1. Install dependencies
 
-- Run `yarn` from the root folder
+- Run `pnpm i` from the root folder
 
 ## 2. Start the editor
 
 In the root folder:
 
-- Run `yarn dev-vscode`.
+- Run `pnpm dev-vscode`.
 
 This will start the development server for the `apps/vscode/editor` project and open the `apps/vscode/extension` folder in a new VS Code window.
 
 In the `apps/vscode/extension` window, open the terminal and:
 
-- Install dependencies (`yarn`)
+- Install dependencies (`pnpm i`)
 - Start the VS Code debugger (`Menu > Run > Start Debugging` or by pressing `F5`). This will open another VS Code window with the extension running.
 
 Open a `.tldr` file from the file explorer or create a new `.tldr` file from the command palette.
@@ -40,8 +40,8 @@ To publish:
 
 In the `apps/vscode/extension` folder:
 
-- Run `yarn package`
-- Run `yarn publish`
+- Run `pnpm package`
+- Run `pnpm publish`
 
 ## Project overview
 

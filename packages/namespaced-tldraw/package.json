@@ -29,17 +29,17 @@
 	"types": "./.tsbuild/index.d.ts",
 	"scripts": {
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
+		"test": "pnpm jest",
 		"test-coverage": "lazy inherit",
 		"predev": "node ./scripts/copy-css-files.mjs",
 		"dev": "chokidar '../tldraw/tldraw.css' -c 'node ./scripts/copy-css-files.mjs'",
 		"prebuild": "node ./scripts/copy-css-files.mjs",
-		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
-		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
-		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
+		"build": "pnpm tsx ../../internal/scripts/build-package.ts",
+		"build-api": "pnpm tsx ../../internal/scripts/build-api.ts",
+		"prepack": "pnpm tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
-		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"pack-tarball": "pnpm pack",
+		"lint": "pnpm tsx ../../internal/scripts/lint.ts"
 	},
 	"files": [
 		"tldraw.css"

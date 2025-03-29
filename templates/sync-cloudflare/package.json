@@ -10,7 +10,7 @@
 	"license": "MIT",
 	"type": "module",
 	"scripts": {
-		"dev": "concurrently --kill-others --names client,worker --prefix-colors blue,red yarn:dev:client yarn:dev:worker",
+		"dev": "concurrently --kill-others --names client,worker --prefix-colors blue,red pnpm:dev:client pnpm:dev:worker",
 		"dev:client": "vite",
 		"dev:worker": "wrangler dev",
 		"build": "tsc && vite build",

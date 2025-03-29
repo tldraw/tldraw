@@ -6,8 +6,8 @@
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
 		"start": "wrangler dev",
-		"check-bundle-size": "yarn run -T tsx ../scripts/check-worker-bundle.ts --entry src/index.ts --size-limit-bytes 35000",
-		"lint": "yarn run -T tsx ../scripts/lint.ts"
+		"check-bundle-size": "pnpm tsx ../scripts/check-worker-bundle.ts --entry src/index.ts --size-limit-bytes 35000",
+		"lint": "pnpm tsx ../scripts/lint.ts"
 	},
 	"dependencies": {
 		"@tldraw/utils": "workspace:*"

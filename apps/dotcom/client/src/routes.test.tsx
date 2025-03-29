@@ -1,4 +1,3 @@
-import { expect } from '@jest/globals'
 import type { MatcherFunction } from 'expect'
 import { join } from 'path'
 import { ReactElement } from 'react'
@@ -26,6 +25,17 @@ const toMatchAny: MatcherFunction<[regexes: unknown]> = function (actual, regexe
 			message: () =>
 				`expected ${this.utils.printReceived(actual)} to match at least one of the regexes ${this.utils.printExpected(regexes)}`,
 			pass: false,
+		}
+	}
+}
+
+declare global {
+	namespace jest {
+		interface Expect {
+			toMatchAny(regexes: string[]): void
+		}
+		interface Matchers<R> {
+			toMatchAny(regexes: string[]): R
 		}
 	}
 }

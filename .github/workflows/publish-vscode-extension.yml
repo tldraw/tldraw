@@ -29,14 +29,14 @@ jobs:
       - uses: ./.github/actions/setup
 
       - name: Build types
-        run: yarn build-types
+        run: pnpm build-types
 
       - name: Get extension info from the marketplace
         working-directory: 'apps/vscode/extension'
-        run: yarn get-info
+        run: pnpm get-info
 
       - name: Publish extension
-        run: yarn tsx ./internal/scripts/publish-vscode-extension.ts
+        run: pnpm tsx ./internal/scripts/publish-vscode-extension.ts
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
           TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') }}
