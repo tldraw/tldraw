@@ -5,18 +5,12 @@ const altKey = tlenv.isDarwin ? '⌥' : 'Alt'
 
 /** @public */
 export function kbd(str: string) {
-	if (str === ',') return [',']
+	if (str === ',') return ','
 
 	return str
 		.split(',')[0]
-		.split('')
-		.map((sub) => {
-			const subStr = sub.replace(/\$/g, cmdKey).replace(/\?/g, altKey).replace(/!/g, '⇧')
-			return subStr[0].toUpperCase() + subStr.slice(1)
-		})
-}
-
-/** @public */
-export function kbdStr(str: string) {
-	return '— ' + kbd(str).join(' ')
+		.replace(/cmd\+/g, cmdKey)
+		.replace(/alt\+/g, altKey)
+		.replace(/shift\+/g, '⇧')
+		.toUpperCase()
 }
