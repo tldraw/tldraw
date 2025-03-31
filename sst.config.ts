@@ -120,7 +120,7 @@ export default $config({
 				retention: '1 month',
 			},
 			loadBalancer: {
-				domain: 'pr-5551.zero.tldraw.com',
+				domain: 'zero.tldraw.com',
 				public: true,
 				rules: [{ listen: '443/https', forward: '4848/http' }],
 			},
