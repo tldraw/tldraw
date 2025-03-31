@@ -17,6 +17,9 @@ export const IMAGE_WORKER = process.env.IMAGE_WORKER
 if (!process.env.MULTIPLAYER_SERVER) {
 	throw new Error('Missing MULTIPLAYER_SERVER env var')
 }
+if (!process.env.ZERO_SERVER) {
+	throw new Error('Missing ZERO_SERVER env var')
+}
 export const MULTIPLAYER_SERVER =
 	// if we're on the client in a production-ish environment, the origin should be on the same domain
 	(isStagingEnv || isProductionEnv) && typeof location !== 'undefined'
