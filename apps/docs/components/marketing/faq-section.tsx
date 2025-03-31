@@ -6,7 +6,7 @@ import { DisclosureToggle } from './DisclosureToggle'
 
 export function FAQSection() {
 	return (
-		<Section id="faq">
+		<Section id="faq" className="max-w-full w-lg">
 			<SectionHeading
 				heading="Frequently Asked Questions"
 				description={
@@ -19,7 +19,7 @@ export function FAQSection() {
 					</>
 				}
 			/>
-			<div className="px-5 max-w-2xl mx-auto">
+			<div className="px-5 w-[680px] max-w-full mx-auto">
 				{faq.map(({ q, a }, index) => (
 					<DisclosureToggle key={index} q={q} a={a} />
 				))}
