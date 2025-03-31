@@ -109,6 +109,7 @@ async function main() {
 	// 1. get the dotcom app ready to go (env vars and pre-build)
 	await discord.step('building dotcom app', async () => {
 		await createSentryRelease()
+		await deployZero()
 		await prepareDotcomApp()
 		await uploadSourceMaps()
 		await coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
@@ -330,6 +331,17 @@ async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 			},
 		}
 	)
+}
+
+async function deployZero() {
+	const stage = env.TLDRAW_ENV === 'preview' ? 'preview' : env.TLDRAW_ENV
+	const result = await exec('yarn', ['sst', 'deploy', '--stage', stage])
+	console.log('💡[408]: deploy-dotcom.ts:339: result=', result)
+	const line = result.split('\n').filter((l) => l.includes('view-syncer'))[0]
+	console.log('💡[409]: deploy-dotcom.ts:341: line=', line)
+	const url = line.split(':')[1]
+	console.log('💡[410]: deploy-dotcom.ts:343: url=', url)
+	env.ZERO_SERVER = url
 }
 
 async function deploySpa(): Promise<{ deploymentUrl: string; inspectUrl: string }> {
