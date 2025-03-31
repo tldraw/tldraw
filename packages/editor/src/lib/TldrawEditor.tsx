@@ -50,7 +50,7 @@ import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /**
  * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components, when passing in a
- * {@link store#TLStore} directly. If you would like tldraw to create a store for you, use
+ * `TLStore` directly. If you would like tldraw to create a store for you, use
  * {@link TldrawEditorWithoutStoreProps}.
  *
  * @public
@@ -64,7 +64,7 @@ export interface TldrawEditorWithStoreProps {
 
 /**
  * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components, when not passing in a
- * {@link store#TLStore} directly. If you would like to pass in a store directly, use
+ * `TLStore` directly. If you would like to pass in a store directly, use
  * {@link TldrawEditorWithStoreProps}.
  *
  * @public
