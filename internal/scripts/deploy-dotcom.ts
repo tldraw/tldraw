@@ -32,6 +32,10 @@ const imageResize = path.relative(
 	path.resolve(REPO_ROOT, './apps/dotcom/image-resize-worker')
 )
 const dotcom = path.relative(process.cwd(), path.resolve(REPO_ROOT, './apps/dotcom/client'))
+const zeroCacheFolder = path.relative(
+	process.cwd(),
+	path.resolve(REPO_ROOT, './apps/dotcom/zero-cache')
+)
 
 const { previewId, sha } = getDeployInfo()
 
@@ -344,7 +348,7 @@ async function deployZero() {
 	await exec('yarn', ['sst', 'secret', 'set', 'ZeroAuthSecret', clerkJWKSUrl, '--stage', stage])
 	await exec('yarn', ['sst', 'unlock', '--stage', stage])
 	await exec('yarn', ['sst', 'refresh', '--stage', stage])
-	await exec('yarn', ['bundle-schema'], { pwd: '/apps/dotcom/zero-cache' })
+	await exec('yarn', ['bundle-schema'], { pwd: zeroCacheFolder })
 
 	const result = await exec('yarn', ['sst', 'deploy', '--stage', stage, '--verbose'])
 	const line = result.split('\n').filter((l) => l.includes('view-syncer: http'))[0]
