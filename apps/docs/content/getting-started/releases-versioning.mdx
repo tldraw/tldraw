@@ -15,72 +15,62 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 
 {/* START AUTO-GENERATED CHANGELOG */}
 
-## Current release: [v3.8.0](/releases/v3.8.0)
+## Current release: [v3.10.0](/releases/v3.10.0)
 
-This update brings a host of improvements across performance, user interface, and developer experience—all while squashing a number of bugs. Read on for a quick summary of the highlights.
+Welcome to the 3.10.0 release of tldraw. This month's SDK release's big news is adding rich text to all of our shapes.
 
-### What's New
+## What's new
 
-#### Shape & Asset Enhancements
+#### Rich text ([#4895](https://github.com/tldraw/tldraw/pull/4895))
 
-- **ShapeUtil.configure for shape options** ([#5399](https://github.com/tldraw/tldraw/pull/5399)). Introduces a new utility for passing options to shape utils. (This change also moves note shape resize mode and max draw shape points to their respective configuration objects.)
-- **Note Shape Resize Option.** The note shape can be configured to resize by scale. ([#5273](https://github.com/tldraw/tldraw/pull/5273))
-- **Asset uploads updated** ([#5218](https://github.com/tldraw/tldraw/pull/5218)). The upload API now returns an object with both the asset `src` and optional metadata—allowing for richer asset records.
-- **New "select geo tool" shortcut** ([#5341](https://github.com/tldraw/tldraw/pull/5341)). Quickly select your most recent geometric tool with the `g` shortcut.
-- **Drag URLs onto the canvas** ([#5411](https://github.com/tldraw/tldraw/pull/5411)). Drag a URL or link onto the canvas to create a bookmark shape.
+Tldraw now has the supports rich text as a first-class primitive within the Editor. After deliberating on which rich text editor to choose, we settled on using [TipTap](https://tiptap.dev/) as our out-of-the-box solution. Our basic implementation includes the TipTap [StarterKit](https://tiptap.dev/docs/editor/extensions/functionality/starterkit) extension along with a couple extra extensions to make the experience butter-smooth.
 
-#### Developer Experience & API Improvements
+Of course, we wouldn't be providing this functionality if it wasn't extensible and remixable by the community. There is a `textOptions` property now that lets you customize TipTap and add/remove extensions as per your needs.
 
-- **Exports DX Pass** ([#5114](https://github.com/tldraw/tldraw/pull/5114)). We’ve refined export functionality:
-  - The copy/export as JSON option has been removed.
-  - Export APIs (like `Editor.getSvgElement` and `Editor.getSvgString`) now handle shape selections more gracefully.
-  - Export contexts now expose `scale` and `pixelRatio` options and offer a `resolveAssetUrl` helper.
-  - A new `Editor.toImage` method simplifies creating images from your canvas.
-- **i18n Enhancements** ([#5208](https://github.com/tldraw/tldraw/pull/5208)). Expanded our localization support to cover the top 40 languages.
-- **React 19** ([#5293](https://github.com/tldraw/tldraw/pull/5293)). tldraw now supports React 19.
-- **Easier external content customisation** ([#5298](https://github.com/tldraw/tldraw/pull/5298), [#5402](https://github.com/tldraw/tldraw/pull/5402)). You can re-use our default handlers, and now customise pasted tldraw & excalidraw content.
-- **Customize input event handling** ([#5319](https://github.com/tldraw/tldraw/pull/5319)). Listen to the `before-event` event to run custom code before tldraw handles input events.
-- **Custom cropping** ([#5137](https://github.com/tldraw/tldraw/pull/5137)). There’s a new `onCrop` method that `ShapeUtil`s can implement to opt-into & customize cropping.
+Take a look at our [Shapes documentation](https://tldraw.dev/docs/shapes#Editing) to learn more.
 
-### Breaking Changes
+Please do jump in the [Discord](https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink) if you have any feedback or bugs about this new feature.
 
-- **Shape Options Configuration.** With the introduction of `ShapeUtil.configure`, if you pass in a shape util that shares a type with a default, it now replaces the default instead of crashing. In addition, the previous `options.maxDrawShapePoints` is now set via:
-  - `DrawShapeUtil.configure({ maxPoints })`
-  - `HighlightShapeUtil.configure({ maxPoints })` ([#5399](https://github.com/tldraw/tldraw/pull/5399), [#5349](https://github.com/tldraw/tldraw/pull/5349))
-- **Asset Upload API Changes.** In `@tldraw/tlschema`, `TLAssetStore.upload` now returns an object with `{ src, meta? }` rather than just the source string. Similarly, `Editor.uploadAsset` has been updated to reflect this change. ([#5218](https://github.com/tldraw/tldraw/pull/5218))
-- **Export Functionality.** The option to copy/export as JSON has been removed since it was not fully supported. Additionally, hooks like `useImageOrVideoAssetUrl` now require a `width` parameter, and export methods have been updated to export all shapes when no IDs are provided. ([#5114](https://github.com/tldraw/tldraw/pull/5114))
+#### Improvements
 
-### Bug Fixes
+- Ensure .tldr files with embedded base64 assets get their assets rehydrated back into the local db. [#5525](https://github.com/tldraw/tldraw/pull/5525)
+- Display BrokenAssetIcon when file upload fails [#5552](https://github.com/tldraw/tldraw/pull/5552)
 
-- **UI & Interaction Bugs**
-  - Resolved dialog and edit menu glitches ([#5274](https://github.com/tldraw/tldraw/pull/5274)).
-  - Addressed problems with mousewheel events not working on scrollable elements ([#5356](https://github.com/tldraw/tldraw/pull/5356)).
-- **Asset & Export Fixes**
-  - Ensured images in exports use the uncropped width ([#5300](https://github.com/tldraw/tldraw/pull/5300)).
-  - Corrected paste behavior for text/plain via keyboard shortcuts ([#5303](https://github.com/tldraw/tldraw/pull/5303)).
+#### API changes
 
-### Performance & Reliability
+- Make collaboration hooks public (`usePeerIds` and `usePresence`) [#5541](https://github.com/tldraw/tldraw/pull/5541)
+- Pass userId to collaboration components [#5534](https://github.com/tldraw/tldraw/pull/5534)
 
-- **Improved performance for headings** ([#5413](https://github.com/tldraw/tldraw/pull/5413)). Improved frame performance by relocating computations to their point of use.
+#### Bug fix
 
-### Authors
+- Fix a perf regression that caused slowness mainly when loading documents. [#5567](https://github.com/tldraw/tldraw/pull/5567)
+- Fix exports / style embedding for foreignObjects in Firefox [#5593](https://github.com/tldraw/tldraw/pull/5593)
+- Fix the reparentShapes() function to ensure that the original order of the shapes is preserved when reparenting. [#5565](https://github.com/tldraw/tldraw/pull/5565)
+- Fix a bug that could occur when resizing [#5292](https://github.com/tldraw/tldraw/pull/5292)
+- Fix a bug with pasting files from your computer in Safari [#5545](https://github.com/tldraw/tldraw/pull/5545)
+- Fix bug with loading TLDraw in an SSR environment by removing a core-js import [#5543](https://github.com/tldraw/tldraw/pull/5543)
+- Prevent text duplication when using IME with Enter key in Chrome [#5540](https://github.com/tldraw/tldraw/pull/5540)
 
-A huge thank you to everyone who contributed to this release:
+#### Authors
 
-- [@melnikkk](https://github.com/melnikkk)
-- [@SomeHats](https://github.com/SomeHats)
-- [@Cygra](https://github.com/Cygra)
-- [@ds300](https://github.com/ds300)
-- [@jamesbvaughan](https://github.com/jamesbvaughan)
-- [@TodePond](https://github.com/TodePond)
-- [@mimecuvalo](https://github.com/mimecuvalo)
-- [@MitjaBezensek](https://github.com/MitjaBezensek)
-- [@onurmatik](https://github.com/onurmatik)
-- [@ricardo-crespo](https://github.com/ricardo-crespo)
-- [@steveruizok](https://github.com/steveruizok)
-- [@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk)
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Josh Willis ([@bluedot74](https://github.com/bluedot74))
+- Lorenzo Lewis ([@lorenzolewis](https://github.com/lorenzolewis))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mathieu Triay ([@MathieuLoutre](https://github.com/MathieuLoutre))
+- mimata kazutaka ([@kazu-2020](https://github.com/kazu-2020))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Qinghe Ban ([@banqinghe](https://github.com/banqinghe))
+- Riley ([@dodo-Riley](https://github.com/dodo-Riley))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
 
 ## Previous releases
+
+- [v3.9.0](/releases/v3.9.0)
+
+- [v3.8.0](/releases/v3.8.0)
 
 - [v3.7.0](/releases/v3.7.0)
 

@@ -6,7 +6,7 @@
     "translation": "Ku jiid faylka dhinaca bar-side ee boggan. Ama ka dooro 'Faylka Import' ee liiska isticmaalaha."
   },
   "043973ec1f": {
-    "translation": "Weli dhib baa haysta? [%1$s: GetHelpLink]"
+    "translation": "Weli dhib baa haysta? {GetHelpLink}"
   },
   "05596b840b": {
     "translation": "Fur tldraw."
@@ -146,6 +146,9 @@
   "6609dd239e": {
     "translation": "Wax baa khaldamay"
   },
+  "6637a98151": {
+    "translation": "Nooc cusub oo tldraw ah ayaa diyaar ah. Fadlan dib u soo deji bogga si aad u sii waddo."
+  },
   "6a26f54883": {
     "translation": "Caawin"
   },
@@ -173,6 +176,9 @@
   "761e93ede9": {
     "translation": "Maamul cookies"
   },
+  "7697920637": {
+    "translation": "Fadlan dib u soo deji"
+  },
   "764671e008": {
     "translation": "Nagala hadal Discord"
   },
@@ -198,7 +204,7 @@
     "translation": "Fadlan dib u cusbooneysii bogga si aad u hesho nuqulkii ugu dambeeyay ee tldraw."
   },
   "86353d2c41": {
-    "translation": "Lagu daray [%1$s: total] .tldr files."
+    "translation": "Lagu daray {total} .tldr files."
   },
   "86c66437fd": {
     "translation": "Magaca beddelo faylka"
@@ -283,7 +289,7 @@
     "translation": "Furi"
   },
   "bbbcefd7ce": {
-    "translation": "{total, plural, one {Soo dejinaya faylka .tldr…} other {Soo dejinta [%1$s:la soo geliyey] ee [%1$s: total] .tldr files…}}"
+    "translation": "{total, plural, one {Soo dejinaya faylka .tldr…} other {Soo dejinta {uploaded} ee {total} .tldr files…}}"
   },
   "bc88b0e89e": {
     "translation": "Waxaa wadaaga {ownerName}"

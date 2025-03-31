@@ -132,7 +132,7 @@ export function userPrefersReducedMotion() {
 
 /** @public */
 export const defaultUserPreferences = Object.freeze({
-	name: 'New User',
+	name: '',
 	locale: getDefaultTranslationLocale(),
 	color: getRandomColor(),
 

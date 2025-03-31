@@ -2102,12 +2102,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setRichTextEditor(textEditor: TiptapEditor | null) {
-		// If the new editor is different from the current one, destroy the current one
-		const current = this._currentRichTextEditor.__unsafe__getWithoutCapture()
-		if (current !== textEditor) {
-			current?.destroy()
-		}
-
 		this._currentRichTextEditor.set(textEditor)
 		return this
 	}
@@ -4003,7 +3997,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Create a page.
+	 * Create a page whilst ensuring that the page name is unique.
 	 *
 	 * @example
 	 * ```ts
@@ -4218,7 +4212,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: (assets as TLAsset[]).map((a) => a.id)
 		if (ids.length <= 0) return this
 
-		this.run(() => this.store.remove(ids), { history: 'ignore' })
+		this.run(
+			() => {
+				this.store.props.assets.remove?.(ids)
+				this.store.remove(ids)
+			},
+			{ history: 'ignore' }
+		)
 		return this
 	}
 
@@ -5342,7 +5342,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const invertedParentTransform = parentTransform.clone().invert()
 
-		const shapesToReparent = compact(ids.map((id) => this.getShape(id)))
+		const shapesToReparent = compact(ids.map((id) => this.getShape(id))).sort(sortByIndex)
 
 		// Ignore locked shapes so that we can reparent locked shapes, for example
 		// when a locked shape's parent is deleted.
@@ -5610,7 +5610,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Create bindings from a list of partial bindings. You can omit the ID and most props of a
 	 * binding, but the `type`, `toId`, and `fromId` must all be provided.
 	 */
-	createBindings(partials: TLBindingCreate[]) {
+	createBindings<B extends TLBinding = TLBinding>(partials: TLBindingCreate<B>[]) {
 		const bindings: TLBinding[] = []
 		for (const partial of partials) {
 			const fromShape = this.getShape(partial.fromId)
@@ -6328,21 +6328,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.stackShapes([box1, box2], 'horizontal', 32)
-	 * editor.stackShapes(editor.getSelectedShapeIds(), 'horizontal', 32)
+	 * editor.stackShapes([box1, box2], 'horizontal')
+	 * editor.stackShapes(editor.getSelectedShapeIds(), 'horizontal')
 	 * ```
 	 *
 	 * @param shapes - The shapes (or shape ids) to stack.
 	 * @param operation - Whether to stack horizontally or vertically.
-	 * @param gap - The gap to leave between shapes.
+	 * @param gap - The gap to leave between shapes. By default, uses the editor's `adjacentShapeMargin` option.
 	 *
 	 * @public
 	 */
 	stackShapes(
 		shapes: TLShapeId[] | TLShape[],
 		operation: 'horizontal' | 'vertical',
-		gap: number
+		gap?: number
 	): this {
+		const _gap = gap ?? this.options.adjacentShapeMargin
 		const ids =
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
@@ -6400,7 +6401,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		const len = shapeClustersToStack.length
-		if ((gap === 0 && len < 3) || len < 2) return this
+		if ((_gap === 0 && len < 3) || len < 2) return this
 
 		let val: 'x' | 'y'
 		let min: 'minX' | 'minY'
@@ -6421,7 +6422,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		let shapeGap: number = 0
 
-		if (gap === 0) {
+		if (_gap === 0) {
 			// note: this is not used in the current tldraw.com; there we use a specified stack
 
 			const gaps: Record<number, number> = {}
@@ -6461,7 +6462,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		} else {
 			// If a gap was provided, then use that instead.
-			shapeGap = gap
+			shapeGap = _gap
 		}
 
 		const changes: TLShapePartial[] = []
@@ -6500,16 +6501,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.packShapes([box1, box2], 32)
+	 * editor.packShapes([box1, box2])
 	 * editor.packShapes(editor.getSelectedShapeIds(), 32)
 	 * ```
 	 *
 	 *
 	 * @param shapes - The shapes (or shape ids) to pack.
-	 * @param gap - The padding to apply to the packed shapes. Defaults to 16.
+	 * @param gap - The padding to apply to the packed shapes. Defaults to the editor's `adjacentShapeMargin` option.
 	 */
-	packShapes(shapes: TLShapeId[] | TLShape[], gap: number): this {
+	packShapes(shapes: TLShapeId[] | TLShape[], _gap?: number): this {
 		if (this.getIsReadonly()) return this
+
+		const gap = _gap ?? this.options.adjacentShapeMargin
 
 		const ids =
 			typeof shapes[0] === 'string'
@@ -8136,8 +8139,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!currentTool) return styles
 
 		if (currentTool.shapeType) {
-			for (const style of this.styleProps[currentTool.shapeType].keys()) {
-				styles.applyValue(style, this.getStyleForNextShape(style))
+			if (
+				currentTool.shapeType === 'frame' &&
+				!(this.getShapeUtil('frame')!.options as any).showColors
+			) {
+				for (const style of this.styleProps[currentTool.shapeType].keys()) {
+					if (style.id === 'tldraw:color') continue
+					styles.applyValue(style, this.getStyleForNextShape(style))
+				}
+			} else {
+				for (const style of this.styleProps[currentTool.shapeType].keys()) {
+					styles.applyValue(style, this.getStyleForNextShape(style))
+				}
 			}
 		}
 

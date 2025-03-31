@@ -17,6 +17,7 @@ import {
 	RichTextFontVisitorState,
 	TLFontFace,
 	TLRichText,
+	WeakCache,
 } from '@tldraw/editor'
 import { DefaultFontFaces } from '../../shapes/shared/defaultFonts'
 import TextDirection from './textDirection'
@@ -89,6 +90,16 @@ export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: T
 	return `<div class="tl-rich-text">${html}</div>`
 }
 
+// A weak cache used to store plaintext that's been extracted from rich text.
+const plainTextFromRichTextCache = new WeakCache<TLRichText, string>()
+
+export function isEmptyRichText(richText: TLRichText) {
+	if (richText.content.length === 1) {
+		if (!(richText.content[0] as any).content) return true
+	}
+	return false
+}
+
 /**
  * Renders plaintext from a rich text string.
  * @param editor - The editor instance.
@@ -98,10 +109,14 @@ export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: T
  * @public
  */
 export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText) {
-	const tipTapExtensions =
-		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-	return generateText(richText as JSONContent, tipTapExtensions, {
-		blockSeparator: '\n',
+	if (isEmptyRichText(richText)) return ''
+
+	return plainTextFromRichTextCache.get(richText, () => {
+		const tipTapExtensions =
+			editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
+		return generateText(richText as JSONContent, tipTapExtensions, {
+			blockSeparator: '\n',
+		})
 	})
 }
 

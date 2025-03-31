@@ -80,7 +80,7 @@ export class UserPreferencesManager {
 	}
 
 	@computed getName() {
-		return this.user.userPreferences.get().name ?? defaultUserPreferences.name
+		return this.user.userPreferences.get().name?.trim() ?? defaultUserPreferences.name
 	}
 
 	@computed getLocale() {

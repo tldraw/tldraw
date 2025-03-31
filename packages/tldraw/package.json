@@ -1,7 +1,7 @@
 {
 	"name": "tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "3.9.0",
+	"version": "3.11.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -77,10 +77,13 @@
 		"@testing-library/react": "^15.0.7",
 		"@types/classnames": "^2.3.4",
 		"@types/lz-string": "^1.5.0",
+		"@types/react": "^18.3.18",
 		"chokidar-cli": "^3.0.0",
 		"jest-canvas-mock": "^2.5.2",
 		"jest-environment-jsdom": "^29.7.0",
 		"lazyrepo": "0.0.0-alpha.27",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
 		"resize-observer-polyfill": "^1.5.1"
 	},
 	"jest": {

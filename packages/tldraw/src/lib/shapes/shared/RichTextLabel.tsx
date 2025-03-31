@@ -5,14 +5,16 @@ import {
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultVerticalAlignStyle,
+	TLEventInfo,
 	TLRichText,
 	TLShapeId,
 	preventDefault,
-	stopEventPropagation,
 	useEditor,
+	useReactor,
+	useValue,
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
-import { renderHtmlFromRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
+import { renderHtmlFromRichText } from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
 import { TEXT_PROPS } from './default-shape-constants'
 import { isLegacyAlign } from './legacyProps'
@@ -68,28 +70,56 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	textHeight,
 }: RichTextLabelProps) {
 	const editor = useEditor()
-	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } =
+	const isDragging = React.useRef(false)
+	const { rInput, isEmpty, isEditing, isReadyForEditing, ...editableTextRest } =
 		useEditableRichText(shapeId, type, richText)
+
 	const html = useMemo(() => {
 		if (richText) {
 			return renderHtmlFromRichText(editor, richText)
 		}
 	}, [editor, richText])
 
+	const selectToolActive = useValue(
+		'isSelectToolActive',
+		() => editor.getCurrentToolId() === 'select',
+		[editor]
+	)
+
+	useReactor(
+		'isDragging',
+		() => {
+			editor.getInstanceState()
+			isDragging.current = editor.inputs.isDragging
+		},
+		[editor]
+	)
+
 	const legacyAlign = isLegacyAlign(align)
 
-	const hasText = richText ? renderPlaintextFromRichText(editor, richText).length > 0 : false
-	if (!isEditing && !hasText) {
-		return null
-	}
-
-	const handlePointerDownCapture = (e: React.PointerEvent<HTMLDivElement>) => {
-		// Allow links to be clicked upon.
+	const handlePointerDown = (e: React.MouseEvent<HTMLDivElement>) => {
 		if (e.target instanceof HTMLElement && (e.target.tagName === 'A' || e.target.closest('a'))) {
+			// This mousedown prevent default is to let dragging when over a link work.
 			preventDefault(e)
-			stopEventPropagation(e)
+
+			if (!selectToolActive) return
+			const link = e.target.closest('a')?.getAttribute('href') ?? ''
+			// We don't get the mouseup event later because we preventDefault
+			// so we have to do it manually.
+			const handlePointerUp = (e: TLEventInfo) => {
+				if (e.name !== 'pointer_up') return
+
+				if (!isDragging.current) {
+					window.open(link, '_blank', 'noopener, noreferrer')
+				}
+				editor.off('event', handlePointerUp)
+			}
+			editor.on('event', handlePointerUp)
 		}
 	}
+
+	// Should be guarded higher up so that this doesn't render... but repeated here. This should never be true.
+	if (!isEditing && isEmpty) return null
 
 	// TODO: probably combine tl-text and tl-arrow eventually
 	const cssPrefix = classNamePrefix || 'tl-text'
@@ -100,7 +130,6 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 			data-align={align}
 			data-hastext={!isEmpty}
 			data-isediting={isEditing}
-			data-iseditinganything={isEditingAnything}
 			data-textwrap={!!wrap}
 			data-isselected={isSelected}
 			style={{
@@ -126,15 +155,15 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 					{richText && (
 						<div
 							className="tl-rich-text"
+							data-is-select-tool-active={selectToolActive}
 							// todo: see if I can abuse this
 							dangerouslySetInnerHTML={{ __html: html || '' }}
-							onPointerDownCapture={handlePointerDownCapture}
-							data-iseditinganything={isEditingAnything}
+							onPointerDown={handlePointerDown}
+							data-is-ready-for-editing={isReadyForEditing}
 						/>
 					)}
 				</div>
-				{/* todo: it might be okay to have just isEditing here */}
-				{(isEditingAnything || isSelected) && (
+				{(isReadyForEditing || isSelected) && (
 					<RichTextArea
 						// Fudge the ref type because we're using forwardRef and it's not typed correctly.
 						ref={rInput as any}
@@ -197,6 +226,7 @@ export function RichTextSVG({
 		verticalAlign === 'middle' ? 'center' : verticalAlign === 'start' ? 'flex-start' : 'flex-end'
 	const wrapperStyle = {
 		display: 'flex',
+		fontFamily: DefaultFontFamilies[font],
 		height: `100%`,
 		justifyContent,
 		alignItems,
@@ -204,7 +234,6 @@ export function RichTextSVG({
 	}
 	const style = {
 		fontSize: `${fontSize}px`,
-		fontFamily: DefaultFontFamilies[font],
 		wrap: wrap ? 'wrap' : 'nowrap',
 		color: labelColor,
 		lineHeight: TEXT_PROPS.lineHeight,

@@ -146,6 +146,9 @@
   "6609dd239e": {
     "translation": "Algo saíu mal"
   },
+  "6637a98151": {
+    "translation": "Hai unha nova versión de tldraw dispoñible. Volve cargar a páxina para continuar."
+  },
   "6a26f54883": {
     "translation": "Axuda"
   },
@@ -172,6 +175,9 @@
   },
   "761e93ede9": {
     "translation": "Xestionar cookies"
+  },
+  "7697920637": {
+    "translation": "Volve cargar"
   },
   "764671e008": {
     "translation": "Chatea connosco en Discord"
@@ -283,7 +289,7 @@
     "translation": "Desfixo"
   },
   "bbbcefd7ce": {
-    "translation": "{total, plural, one {Cargando ficheiro .tldr...} other {Cargando {cargado} de {total} ficheiros .tldr...}}"
+    "translation": "{total, plural, one {Cargando ficheiro .tldr...} other {Cargando {uploaded} de {total} ficheiros .tldr...}}"
   },
   "bc88b0e89e": {
     "translation": "Compartido por {ownerName}"

@@ -11,8 +11,8 @@ export type RESET_VALUE = typeof RESET_VALUE
  *
  * There are two types of signal:
  *
- * - Atomic signals, created using [[atom]]. These are mutable references to values that can be changed using [[Atom.set]].
- * - Computed signals, created using [[computed]]. These are values that are computed from other signals. They are recomputed lazily if their dependencies change.
+ * - Atomic signals, created using {@link atom}. These are mutable references to values that can be changed using {@link Atom.set}.
+ * - Computed signals, created using {@link state#computed}. These are values that are computed from other signals. They are recomputed lazily if their dependencies change.
  *
  * @public
  */
@@ -29,13 +29,13 @@ export interface Signal<Value, Diff = unknown> {
 	get(): Value
 
 	/**
-	 * The epoch when this signal's value last changed. Note tha this is not the same as when the value was last computed.
-	 * A signal may recopmute it's value without changing it.
+	 * The epoch when this signal's value last changed. Note that this is not the same as when the value was last computed.
+	 * A signal may recompute it's value without changing it.
 	 */
 	lastChangedEpoch: number
 	/**
 	 * Returns the sequence of diffs between the the value at the given epoch and the current value.
-	 * Returns the [[RESET_VALUE]] constant if there is not enough information to compute the diff sequence.
+	 * Returns the {@link state#RESET_VALUE} constant if there is not enough information to compute the diff sequence.
 	 * @param epoch - The epoch to get diffs since.
 	 */
 	getDiffSince(epoch: number): RESET_VALUE | Diff[]
@@ -60,7 +60,7 @@ export interface Child {
 /**
  * Computes the diff between the previous and current value.
  *
- * If the diff cannot be computed for whatever reason, it should return [[RESET_VALUE]].
+ * If the diff cannot be computed for whatever reason, it should return {@link state#RESET_VALUE}.
  *
  * @public
  */

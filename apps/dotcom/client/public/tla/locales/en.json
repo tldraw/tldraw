@@ -146,6 +146,9 @@
   "6609dd239e": {
     "translation": "Something went wrong"
   },
+  "6637a98151": {
+    "translation": "A new version of tldraw is available. Please reload the page to continue."
+  },
   "6a26f54883": {
     "translation": "Help"
   },
@@ -175,6 +178,9 @@
   },
   "764671e008": {
     "translation": "Chat with us on Discord"
+  },
+  "7697920637": {
+    "translation": "Please reload"
   },
   "777f9e90cf": {
     "translation": "Invalid request."
@@ -272,6 +278,9 @@
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Last published <date></date>"
+  },
+  "b028909917": {
+    "translation": "Guest user"
   },
   "b6d4223e60": {
     "translation": "Sign in"

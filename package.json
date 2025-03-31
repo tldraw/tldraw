@@ -51,6 +51,7 @@
 		"preview-app": "VITE_PREVIEW=1 yarn dev-app",
 		"lint": "lazy lint",
 		"format": "prettier --write --cache '**/*.{yml,yaml,json,md,mdx,html,css,js,jsx,ts,tsx,cjs,mjs}'",
+		"format-current": "prettier --write --cache $(git diff --name-only --diff-filter d | xargs)",
 		"typecheck": "yarn refresh-assets && tsx internal/scripts/typecheck.ts",
 		"check-packages": "tsx internal/scripts/check-packages.ts",
 		"update-pr-template": "tsx internal/scripts/update-pr-template.ts",
@@ -61,6 +62,7 @@
 		"e2e": "lazy e2e --filter='apps/examples'",
 		"e2e-dotcom": "lazy e2e --filter='apps/dotcom/*'",
 		"e2e-dotcom-x10": "lazy e2e-x10 --filter='apps/dotcom/*'",
+		"i18n-check": "i18n-check",
 		"i18n-upload-strings": "tsx internal/scripts/i18n-upload-strings.ts",
 		"i18n-download-strings": "tsx internal/scripts/i18n-download-strings.ts"
 	},
@@ -68,7 +70,7 @@
 		"npm": ">=7.0.0",
 		"node": "^20.0.0"
 	},
-	"packageManager": "yarn@4.0.2",
+	"packageManager": "yarn@4.7.0+sha256.293632d8a095d8ea4786eb2c5798c83c37544abed17ed31186a3ec4549a07c06",
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json}": [
 			"prettier --write --cache --log-level=warn"
@@ -78,6 +80,7 @@
 		"@eslint/compat": "^1.2.5",
 		"@eslint/eslintrc": "^3.2.0",
 		"@eslint/js": "^9.19.0",
+		"@lingual/i18n-check": "^0.5.5",
 		"@microsoft/api-extractor": "^7.49.1",
 		"@next/eslint-plugin-next": "^15.1.6",
 		"@swc/core": "^1.10.11",

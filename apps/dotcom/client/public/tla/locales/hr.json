@@ -146,6 +146,9 @@
   "6609dd239e": {
     "translation": "Nešto nije u redu"
   },
+  "6637a98151": {
+    "translation": "Dostupna je nova verzija tldraw-a. Ponovno učitajte stranicu za nastavak."
+  },
   "6a26f54883": {
     "translation": "Pomoć"
   },
@@ -172,6 +175,9 @@
   },
   "761e93ede9": {
     "translation": "Upravljanje kolačićima"
+  },
+  "7697920637": {
+    "translation": "Molimo ponovno učitajte"
   },
   "764671e008": {
     "translation": "Razgovarajte s nama na Discordu"
@@ -271,7 +277,7 @@
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
-    "translation": "Posljednji put objavljeno <datum></datum>"
+    "translation": "Posljednji put objavljeno <date></date>"
   },
   "b6d4223e60": {
     "translation": "Prijavite se"

@@ -56,7 +56,14 @@ export class Resizing extends StateNode {
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.creationCursorOffset = creationCursorOffset
 
-		this.snapshot = this._createSnapshot()
+		try {
+			// On rare and mysterious occasions, the user can enter the resizing state with no shapes selected
+			this.snapshot = this._createSnapshot()
+		} catch (e) {
+			console.error(e)
+			this.cancel()
+			return
+		}
 
 		this.markId = ''
 
@@ -442,6 +449,8 @@ export class Resizing extends StateNode {
 		} = this.editor
 
 		const selectionBounds = this.editor.getSelectionRotatedPageBounds()!
+
+		if (!selectionBounds) throw Error('Resizing but nothing is selected')
 
 		const dragHandlePoint = Vec.RotWith(
 			selectionBounds.getHandlePoint(this.info.handle!),

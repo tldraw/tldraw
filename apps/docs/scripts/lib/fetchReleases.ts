@@ -104,7 +104,17 @@ export async function fetchReleases() {
 			const contentAfter = releasesPageContent.slice(endIndex + CHANGELOG_END_TAG.length)
 
 			const changelogIndexMarkdown = changelogIndex
-				.sort((a, b) => b.tagName.localeCompare(a.tagName))
+				.sort((a, b) => {
+					const versionA = a.tagName.replace(/^v/, '').split('.').map(Number)
+					const versionB = b.tagName.replace(/^v/, '').split('.').map(Number)
+
+					// Compare major version
+					if (versionB[0] !== versionA[0]) return versionB[0] - versionA[0]
+					// Compare minor version
+					if (versionB[1] !== versionA[1]) return versionB[1] - versionA[1]
+					// Compare patch version
+					return versionB[2] - versionA[2]
+				})
 				.map(({ body, tagName }, i) => {
 					if (i === 0) {
 						return (
