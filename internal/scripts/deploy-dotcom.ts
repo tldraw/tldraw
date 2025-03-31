@@ -73,6 +73,9 @@ const env = makeEnv([
 		: 'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
 ])
 
+const BOTCOM_POSTGRES_CONNECTION_STRING =
+	env.NEON_PREVIEW_DB_CONNECTION_STRING || env.BOTCOM_POSTGRES_CONNECTION_STRING
+
 const clerkJWKSUrl =
 	env.TLDRAW_ENV === 'production'
 		? 'https://clerk.tldraw.com/.well-known/jwks.json'
@@ -224,8 +227,6 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 		await setWranglerPreviewConfig(worker, { name: workerId })
 		didUpdateTlsyncWorker = true
 	}
-	const BOTCOM_POSTGRES_CONNECTION_STRING =
-		env.NEON_PREVIEW_DB_CONNECTION_STRING || env.BOTCOM_POSTGRES_CONNECTION_STRING
 	const BOTCOM_POSTGRES_POOLED_CONNECTION_STRING =
 		env.NEON_PREVIEW_DB_POOLED_CONNECTION_STRING || env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING
 	await exec('yarn', ['workspace', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null], {
@@ -343,7 +344,7 @@ async function deployZero() {
 		'secret',
 		'set',
 		'PostgresConnectionString',
-		env.BOTCOM_POSTGRES_CONNECTION_STRING,
+		BOTCOM_POSTGRES_CONNECTION_STRING,
 		'--stage',
 		stage,
 	])
