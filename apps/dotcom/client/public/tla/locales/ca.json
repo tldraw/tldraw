@@ -146,6 +146,9 @@
   "6609dd239e": {
     "translation": "Alguna cosa va fallar"
   },
+  "6637a98151": {
+    "translation": "Hi ha disponible una nova versió de tldraw. Torneu a carregar la pàgina per continuar."
+  },
   "6a26f54883": {
     "translation": "Ajuda"
   },
@@ -172,6 +175,9 @@
   },
   "761e93ede9": {
     "translation": "Gestionar cookies"
+  },
+  "7697920637": {
+    "translation": "Torneu a carregar"
   },
   "764671e008": {
     "translation": "Xateja amb nosaltres a Discord"
@@ -271,7 +277,7 @@
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
-    "translation": "Darrera publicació <data></data>"
+    "translation": "Darrera publicació <date></date>"
   },
   "b6d4223e60": {
     "translation": "Inicia sessió"
@@ -283,7 +289,7 @@
     "translation": "Desenganxa"
   },
   "bbbcefd7ce": {
-    "translation": "{total, plural, one {S'està penjant el fitxer .tldr...} other {S'estan penjant {carregats} de {total} fitxers .tldr...}}"
+    "translation": "{total, plural, one {S'està penjant el fitxer .tldr...} other {S'estan penjant {uploaded} de {total} fitxers .tldr...}}"
   },
   "bc88b0e89e": {
     "translation": "Compartit per {ownerName}"

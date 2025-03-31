@@ -112,6 +112,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 		ImageToolbar,
 		Toasts,
 		Dialogs,
+		A11y,
 	} = useTldrawUiComponents()
 
 	useKeyboardShortcuts()
@@ -200,6 +201,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 							{HelpMenu && <HelpMenu />}
 						</div>
 						{isDebugMode && DebugPanel && <DebugPanel />}
+						{A11y && <A11y />}
 					</div>
 				</>
 			)}

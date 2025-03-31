@@ -17,7 +17,7 @@ import {
 	compact,
 	createShapeId,
 	openWindow,
-	useEditor,
+	useMaybeEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
@@ -76,7 +76,7 @@ function getExportName(editor: Editor, defaultName: string) {
 
 /** @internal */
 export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
-	const editor = useEditor()
+	const _editor = useMaybeEditor()
 	const showCollaborationUi = useShowCollaborationUi()
 	const helpers = useDefaultHelpers()
 	const trackEvent = useUiEvents()
@@ -85,6 +85,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 	// should this be a useMemo? looks like it doesn't actually deref any reactive values
 	const actions = React.useMemo<TLUiActionsContextType>(() => {
+		const editor = _editor as Editor
+		if (!editor) return {}
 		function mustGoBackToSelectToolFirst() {
 			if (!editor.isIn('select')) {
 				editor.complete()
@@ -804,7 +806,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.markHistoryStoppingPoint('stack-vertical')
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.stackShapes(selectedShapeIds, 'vertical', 16)
+						editor.stackShapes(selectedShapeIds, 'vertical', editor.options.adjacentShapeMargin)
 						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
@@ -824,7 +826,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.markHistoryStoppingPoint('stack-horizontal')
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.stackShapes(selectedShapeIds, 'horizontal', 16)
+						editor.stackShapes(selectedShapeIds, 'horizontal', editor.options.adjacentShapeMargin)
 						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
@@ -964,7 +966,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'delete',
 				label: 'action.delete',
-				kbd: '⌫,del,backspace',
+				kbd: '⌫,del',
 				icon: 'trash',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1019,8 +1021,20 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$=,=',
 				readonlyOk: true,
 				onSelect(source) {
-					trackEvent('zoom-in', { source })
+					trackEvent('zoom-in', { source, towardsCursor: false })
 					editor.zoomIn(undefined, {
+						animation: { duration: editor.options.animationMediumMs },
+					})
+				},
+			},
+			{
+				id: 'zoom-in-on-cursor',
+				label: 'action.zoom-in',
+				kbd: '!$=,!=',
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('zoom-in', { source, towardsCursor: true })
+					editor.zoomIn(editor.inputs.currentScreenPoint, {
 						animation: { duration: editor.options.animationMediumMs },
 					})
 				},
@@ -1031,8 +1045,20 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$-,-',
 				readonlyOk: true,
 				onSelect(source) {
-					trackEvent('zoom-out', { source })
+					trackEvent('zoom-out', { source, towardsCursor: false })
 					editor.zoomOut(undefined, {
+						animation: { duration: editor.options.animationMediumMs },
+					})
+				},
+			},
+			{
+				id: 'zoom-out-on-cursor',
+				label: 'action.zoom-out',
+				kbd: '!$-,!-',
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('zoom-out', { source, towardsCursor: true })
+					editor.zoomOut(editor.inputs.currentScreenPoint, {
 						animation: { duration: editor.options.animationMediumMs },
 					})
 				},
@@ -1408,6 +1434,50 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.setCurrentTool('geo')
 				},
 			},
+			{
+				id: 'change-page-prev',
+				kbd: '?left,?up',
+				onSelect: async (source) => {
+					// will select whatever the most recent geo tool was
+					const pages = editor.getPages()
+					const currentPageIndex = pages.findIndex((page) => page.id === editor.getCurrentPageId())
+					if (currentPageIndex < 1) return
+					trackEvent('change-page', { source, direction: 'prev' })
+					editor.setCurrentPage(pages[currentPageIndex - 1].id)
+				},
+			},
+			{
+				id: 'change-page-next',
+				kbd: '?right,?down',
+				onSelect: async (source) => {
+					// will select whatever the most recent geo tool was
+					const pages = editor.getPages()
+					const currentPageIndex = pages.findIndex((page) => page.id === editor.getCurrentPageId())
+
+					// If we're on the last page...
+					if (currentPageIndex === -1 || currentPageIndex >= pages.length - 1) {
+						// if the current page is blank or if we're in readonly mode, do nothing
+						if (editor.getCurrentPageShapes().length <= 0 || editor.getIsReadonly()) {
+							return
+						}
+						// Otherwise, create a new page
+						trackEvent('new-page', { source })
+						editor.run(() => {
+							editor.markHistoryStoppingPoint('creating page')
+							const newPageId = PageRecordType.createId()
+							editor.createPage({
+								name: helpers.msg('page-menu.new-page-initial-name'),
+								id: newPageId,
+							})
+							editor.setCurrentPage(newPageId)
+						})
+						return
+					}
+
+					editor.setCurrentPage(pages[currentPageIndex + 1].id)
+					trackEvent('change-page', { source, direction: 'next' })
+				},
+			},
 		]
 
 		if (showCollaborationUi) {
@@ -1439,7 +1509,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		}
 
 		return actions
-	}, [helpers, editor, trackEvent, overrides, defaultDocumentName, showCollaborationUi])
+	}, [helpers, _editor, trackEvent, overrides, defaultDocumentName, showCollaborationUi])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
 }

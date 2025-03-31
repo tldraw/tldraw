@@ -31,7 +31,7 @@ export interface TLUiEventMap {
 	undo: null
 	redo: null
 	'change-language': { locale: string }
-	'change-page': null
+	'change-page': { direction?: 'prev' | 'next' }
 	'delete-page': null
 	'duplicate-page': null
 	'move-page': null
@@ -74,8 +74,8 @@ export interface TLUiEventMap {
 	'select-none-shapes': null
 	'rotate-ccw': null
 	'rotate-cw': null
-	'zoom-in': null
-	'zoom-out': null
+	'zoom-in': { towardsCursor: boolean }
+	'zoom-out': { towardsCursor: boolean }
 	'zoom-to-fit': null
 	'zoom-to-selection': null
 	'reset-zoom': null

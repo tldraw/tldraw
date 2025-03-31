@@ -1,7 +1,7 @@
 import { safeParseUrl } from '@tldraw/editor'
 
 // Only allow multiplayer embeds. If we add additional routes later for example '/help' this won't match
-const TLDRAW_APP_RE = /(^\/r\/[^/]+\/?$)/
+const TLDRAW_APP_RE = /(^\/[f|p|r|ro|s|v]\/[^/]+\/?$)/
 
 /** @public */
 export const DEFAULT_EMBED_DEFINITIONS = [
@@ -20,6 +20,8 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(TLDRAW_APP_RE)) {
+				// Add the "clean=true" search param to the URL to hide the sidebar
+				urlObj.searchParams.append('embed', 'true')
 				return url
 			}
 			return
@@ -27,6 +29,8 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		fromEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(TLDRAW_APP_RE)) {
+				// Add the "clean=true" search param to the URL to hide the sidebar
+				urlObj.searchParams.delete('embed')
 				return url
 			}
 			return
@@ -76,12 +80,18 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			if (url.includes('/maps/embed?')) {
 				return url
 			} else if (url.includes('/maps/')) {
-				const match = url.match(/@(.*?),(.*?),(.*?)z/)
+				const match = url.match(/@(.*?),(.*?),(.*?)(z|m)/)
 				let result: string
 				if (match) {
-					const [, lat, lng, z] = match
+					const [, lat, lng, zoomOrMeters, mapTypeSymbol] = match
+					const mapType = mapTypeSymbol === 'z' ? 'roadmap' : 'satellite'
+					// Note: This meters to zoom equation is a rough approximation and not canonical.
+					const z =
+						mapType === 'roadmap'
+							? zoomOrMeters
+							: -Math.log2(parseInt(zoomOrMeters) / 14772321) / 0.8
 					const host = new URL(url).host.replace('www.', '')
-					result = `https://${host}/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=${lat},${lng}&zoom=${z}`
+					result = `https://${host}/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=${lat},${lng}&zoom=${z}&maptype=${mapType}`
 				} else {
 					result = ''
 				}
@@ -96,9 +106,13 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 
 			const matches = urlObj.pathname.match(/^\/maps\/embed\/v1\/view\/?$/)
 			if (matches && urlObj.searchParams.has('center') && urlObj.searchParams.get('zoom')) {
-				const zoom = urlObj.searchParams.get('zoom')
+				const zoom = urlObj.searchParams.get('zoom') ?? '12'
+				const mapType = urlObj.searchParams.get('maptype') ?? 'roadmap'
+				// Note: This zoom to meters equation is a rough approximation and not canonical.
+				const zoomOrMeters =
+					mapType === 'roadmap' ? zoom : 14772321 * Math.pow(2, parseInt(zoom) * -0.8)
 				const [lat, lon] = urlObj.searchParams.get('center')!.split(',')
-				return `https://www.google.com/maps/@${lat},${lon},${zoom}z`
+				return `https://www.google.com/maps/@${lat},${lon},${zoomOrMeters}${mapType === 'roadmap' ? 'z' : 'm'}`
 			}
 			return
 		},
@@ -230,13 +244,16 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			const hostname = urlObj.hostname.replace(/^www./, '')
 			if (hostname === 'youtu.be') {
 				const videoId = urlObj.pathname.split('/').filter(Boolean)[0]
-				return `https://www.youtube.com/embed/${videoId}`
+				return `https://www.youtube.com/embed/${videoId}${urlObj.search}`
 			} else if (
 				(hostname === 'youtube.com' || hostname === 'm.youtube.com') &&
 				urlObj.pathname.match(/^\/watch/)
 			) {
 				const videoId = urlObj.searchParams.get('v')
-				return `https://www.youtube.com/embed/${videoId}`
+				const searchParams = new URLSearchParams(urlObj.search)
+				searchParams.delete('v')
+				const search = searchParams.toString() ? '?' + searchParams.toString() : ''
+				return `https://www.youtube.com/embed/${videoId}${search}`
 			}
 			return
 		},
@@ -248,7 +265,9 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			if (hostname === 'youtube.com') {
 				const matches = urlObj.pathname.match(/^\/embed\/([^/]+)\/?/)
 				if (matches) {
-					return `https://www.youtube.com/watch?v=${matches[1]}`
+					const params = new URLSearchParams(urlObj.search)
+					params.set('v', matches?.[1] ?? '')
+					return `https://www.youtube.com/watch?${params.toString()}`
 				}
 			}
 			return

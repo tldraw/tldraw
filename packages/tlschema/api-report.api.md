@@ -738,6 +738,7 @@ export type TLAssetShape = Extract<TLShape, {
 
 // @public
 export interface TLAssetStore {
+    remove?(assetIds: TLAssetId[]): Promise<void>;
     resolve?(asset: TLAsset, ctx: TLAssetContext): null | Promise<null | string> | string;
     upload(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<{
         meta?: JsonObject;
@@ -893,6 +894,14 @@ export interface TLDefaultColorThemeColor {
     // (undocumented)
     fill: string;
     // (undocumented)
+    frame: {
+        fill: string;
+        headingFill: string;
+        headingStroke: string;
+        stroke: string;
+        text: string;
+    };
+    // (undocumented)
     highlight: {
         p3: string;
         srgb: string;
@@ -998,6 +1007,8 @@ export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>;
 
 // @public (undocumented)
 export interface TLFrameShapeProps {
+    // (undocumented)
+    color: TLDefaultColorStyle;
     // (undocumented)
     h: number;
     // (undocumented)

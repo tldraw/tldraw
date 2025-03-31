@@ -44,10 +44,12 @@ import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers
 
 import isEqual from 'lodash.isequal'
 import {
+	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
+import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import {
 	CLONE_HANDLE_MARGIN,
 	NOTE_CENTER_OFFSET,
@@ -273,6 +275,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
+		const isReadyForEditing = useIsReadyForEditing(this.editor, shape.id)
+		const isEmpty = isEmptyRichText(richText)
+
 		return (
 			<>
 				<div
@@ -290,21 +295,23 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						boxShadow: hideShadows ? 'none' : getNoteShadow(shape.id, rotation, scale),
 					}}
 				>
-					<RichTextLabel
-						shapeId={id}
-						type={type}
-						font={font}
-						fontSize={(fontSizeAdjustment || LABEL_FONT_SIZES[size]) * scale}
-						lineHeight={TEXT_PROPS.lineHeight}
-						align={align}
-						verticalAlign={verticalAlign}
-						richText={richText}
-						isSelected={isSelected}
-						labelColor={labelColor === 'black' ? theme[color].note.text : theme[labelColor].fill}
-						wrap
-						padding={LABEL_PADDING * scale}
-						onKeyDown={handleKeyDown}
-					/>
+					{(isSelected || isReadyForEditing || !isEmpty) && (
+						<RichTextLabel
+							shapeId={id}
+							type={type}
+							font={font}
+							fontSize={(fontSizeAdjustment || LABEL_FONT_SIZES[size]) * scale}
+							lineHeight={TEXT_PROPS.lineHeight}
+							align={align}
+							verticalAlign={verticalAlign}
+							richText={richText}
+							isSelected={isSelected}
+							labelColor={labelColor === 'black' ? theme[color].note.text : theme[labelColor].fill}
+							wrap
+							padding={LABEL_PADDING * scale}
+							onKeyDown={handleKeyDown}
+						/>
+					)}
 				</div>
 				{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</>
@@ -407,7 +414,7 @@ function getNoteSizeAdjustments(editor: Editor, shape: TLNoteShape) {
 function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 	const { richText } = shape.props
 
-	if (!renderPlaintextFromRichText(editor, richText)) {
+	if (isEmptyRichText(richText)) {
 		const minHeight = LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2
 		return { labelHeight: minHeight, labelWidth: 100, fontSizeAdjustment: 0 }
 	}
@@ -495,6 +502,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				// cmd enter is the y axis (shift inverts direction)
 				const isRTL = !!(
 					translation.dir === 'rtl' ||
+					// todo: can we check a partial of the text, so that we don't have to render the whole thing?
 					isRightToLeftLanguage(renderPlaintextFromRichText(editor, shape.props.richText))
 				)
 

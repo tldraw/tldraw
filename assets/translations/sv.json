@@ -89,7 +89,7 @@
 	"action.toggle-focus-mode.menu": "Fokuseringsläge",
 	"action.toggle-grid": "Aktivera rutnät",
 	"action.toggle-grid.menu": "Visa rutnät",
-	"action.toggle-lock": "Lås \/ Lås upp",
+	"action.toggle-lock": "Lås / Lås upp",
 	"action.toggle-paste-at-cursor": "Aktivera klistra in vid markören",
 	"action.toggle-paste-at-cursor.menu": "Klistra in vid markören",
 	"action.toggle-reduce-motion": "Aktivera minska rörelse",

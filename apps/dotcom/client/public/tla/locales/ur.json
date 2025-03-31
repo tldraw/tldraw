@@ -146,6 +146,9 @@
   "6609dd239e": {
     "translation": "کچھ غلط ہو گیا۔"
   },
+  "6637a98151": {
+    "translation": "tldraw کا ایک نیا ورژن دستیاب ہے۔ جاری رکھنے کے لیے براہ کرم صفحہ کو دوبارہ لوڈ کریں۔"
+  },
   "6a26f54883": {
     "translation": "مدد"
   },
@@ -172,6 +175,9 @@
   },
   "761e93ede9": {
     "translation": "کوکیز کا نظم کریں۔"
+  },
+  "7697920637": {
+    "translation": "براہ کرم دوبارہ لوڈ کریں۔"
   },
   "764671e008": {
     "translation": "Discord پر ہمارے ساتھ چیٹ کریں۔"
@@ -283,7 +289,7 @@
     "translation": "پن کھول دیں۔"
   },
   "bbbcefd7ce": {
-    "translation": "{total, plural, one {tldr فائل اپ لوڈ ہو رہی ہے…} other {tldr فائلوں میں سے {uploaded} اپ لوڈ ہو رہی ہے…}}"
+    "translation": "{total, plural, one {tldr فائل اپ لوڈ ہو رہی ہے…} other {tldr {total} فائلوں میں سے {uploaded} اپ لوڈ ہو رہی ہے…}}"
   },
   "bc88b0e89e": {
     "translation": "اشتراک کردہ بذریعہ {ownerName}"

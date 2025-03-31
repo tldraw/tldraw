@@ -49,6 +49,7 @@ export function getFrameHeadingSize(
 		const spans = editor.textMeasure.measureTextSpans(frameTitle, opts)
 		const firstSpan = spans[0]
 		const lastSpan = last(spans)!
+
 		width = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
 		measurementWeakmap.set(shape.props, width)
 	}
@@ -56,25 +57,21 @@ export function getFrameHeadingSize(
 	return new Box(0, -opts.height, width, opts.height)
 }
 
-export function getFrameHeadingOpts(
-	shape: TLFrameShape,
-	color: string
-): TLCreateTextJsxFromSpansOpts {
+export function getFrameHeadingOpts(width: number, isSvg: boolean): TLCreateTextJsxFromSpansOpts {
 	return {
 		fontSize: 12,
-		fontFamily: 'Inter, sans-serif',
+		fontFamily: isSvg ? 'Arial' : 'Inter, sans-serif',
 		textAlign: 'start' as const,
-		width: shape.props.w,
-		height: 32,
+		width: width,
+		height: 24, // --frame-height
 		padding: 0,
 		lineHeight: 1,
 		fontStyle: 'normal',
 		fontWeight: 'normal',
 		overflow: 'truncate-ellipsis' as const,
 		verticalTextAlign: 'middle' as const,
-		fill: color,
-		offsetY: -(32 + 2),
-		offsetX: 2,
+		offsetY: -(32 + 2), // --frame-minimum-height + (border width * 2)
+		offsetX: 0,
 	}
 }
 

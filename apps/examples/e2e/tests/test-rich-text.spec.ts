@@ -12,6 +12,7 @@ test.describe('more rich text', () => {
 	}) => {
 		await toolbar.tools.select.click()
 		await page.mouse.dblclick(150, 150)
+		await sleep(500) // racey here
 		await page.keyboard.type('id like to go to india')
 		expect(page.getByTestId('rich-text-area')).toHaveText('id like to go to india')
 	})
@@ -19,6 +20,7 @@ test.describe('more rich text', () => {
 	test('Click with text tool to create and edit text on the canvas', async ({ page, toolbar }) => {
 		await toolbar.tools.text.click()
 		await page.mouse.click(150, 150)
+		await sleep(500) // racey here
 		await page.keyboard.type('Live in a big white house in the forest')
 		expect(page.getByTestId('rich-text-area')).toHaveText('Live in a big white house in the forest')
 

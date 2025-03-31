@@ -9,10 +9,11 @@ import {
 	ZStoreData,
 	ZTable,
 } from '@tldraw/dotcom-shared'
-import { transact } from '@tldraw/state'
+import { react, transact } from '@tldraw/state'
 import { ExecutionQueue, assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
-import { Kysely } from 'kysely'
+import { Kysely, sql } from 'kysely'
+import throttle from 'lodash.throttle'
 import { Logger } from './Logger'
 import {
 	fileKeys,
@@ -21,7 +22,7 @@ import {
 	parseResultRow,
 	userKeys,
 } from './getFetchEverythingSql'
-import { Environment, TLUserDurableObjectEvent } from './types'
+import { Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
@@ -91,6 +92,9 @@ interface StateSnapshot {
 	}>
 }
 
+const MUTATION_COMMIT_TIMEOUT = 10_000
+const LSN_COMMIT_TIMEOUT = 120_000
+
 export class UserDataSyncer {
 	state: BootState = {
 		type: 'init',
@@ -114,8 +118,6 @@ export class UserDataSyncer {
 		}
 	}
 
-	interval: NodeJS.Timeout | null = null
-
 	constructor(
 		private ctx: DurableObjectState,
 		private env: Environment,
@@ -126,54 +128,81 @@ export class UserDataSyncer {
 		private log: Logger
 	) {
 		this.sentry = createSentry(ctx, env)
-		this.reboot({ delay: false })
-	}
-
-	maybeStartInterval() {
-		if (!this.interval) {
-			this.interval = setInterval(() => this.onInterval(), 1000)
-		}
-	}
-
-	stopInterval() {
-		if (this.interval) {
-			clearInterval(this.interval)
-			this.interval = null
-		}
+		this.reboot({ delay: false, source: 'constructor' })
+		const persist = throttle(
+			async () => {
+				const initialData = this.store.getCommittedData()
+				if (initialData) {
+					const snapshot: StateSnapshot = {
+						version: stateVersion,
+						initialData,
+						optimisticUpdates: this.store.getOptimisticUpdates(),
+					}
+					this.log.debug('stashing snapshot')
+					this.lastStashEpoch = this.store.epoch
+					await this.env.USER_DO_SNAPSHOTS.put(
+						getUserDoSnapshotKey(this.env, this.userId),
+						JSON.stringify(snapshot)
+					)
+				}
+			},
+			1000,
+			{ trailing: true, leading: false }
+		)
+		react('persist user store', () => {
+			const _fullData = this.store.getFullData()
+			persist()
+		})
 	}
 
 	private queue = new ExecutionQueue()
 
 	numConsecutiveReboots = 0
 
-	async reboot({ delay = true, hard = false }: { delay?: boolean; hard?: boolean } = {}) {
+	async reboot({
+		delay = true,
+		hard = false,
+		source,
+	}: {
+		delay?: boolean
+		hard?: boolean
+		source: string
+	}) {
 		this.numConsecutiveReboots++
-		if (this.numConsecutiveReboots > 5) {
+		if (this.numConsecutiveReboots > 8) {
 			this.logEvent({ type: 'user_do_abort', id: this.userId })
 			getStatsDurableObjct(this.env).recordUserDoAbort()
 			this.ctx.abort()
 			return
 		}
-		this.log.debug('rebooting')
+		this.log.debug('rebooting', source)
 		this.logEvent({ type: 'reboot', id: this.userId })
 		await this.queue.push(async () => {
 			if (delay) {
-				await sleep(1000)
+				await sleep(Math.random() * 5000)
 			}
+			const controller = new AbortController()
+			const bootPromise = this.boot(hard, controller.signal)
+				.then(() => 'ok' as const)
+				.catch((e) => {
+					this.logEvent({ type: 'reboot_error', id: this.userId })
+					this.log.debug('reboot error', e.stack)
+					this.captureException(e, { source })
+					return 'error' as const
+				})
 			const res = await Promise.race([
-				this.boot(hard).then(() => 'ok'),
-				sleep(5000).then(() => 'timeout'),
-			]).catch((e) => {
-				this.logEvent({ type: 'reboot_error', id: this.userId })
-				this.log.debug('reboot error', e.stack)
-				this.captureException(e)
-				return 'error'
-			})
+				bootPromise,
+				sleep(30_000).then(() => {
+					controller.abort()
+					return 'timeout' as const
+				}),
+			])
+			await bootPromise
 			this.log.debug('rebooted', res)
 			if (res === 'ok') {
 				this.numConsecutiveReboots = 0
 			} else {
-				this.reboot({ hard: true })
+				this.reboot({ hard: this.numConsecutiveReboots > 4, source: source + '_retry' })
 			}
 		})
 	}
@@ -188,45 +217,51 @@ export class UserDataSyncer {
 		this.broadcast({ type: 'commit', mutationIds: mutationIds })
 	}
 
-	private async loadInitialDataFromR2() {
+	private async loadInitialDataFromR2(signal: AbortSignal) {
 		this.log.debug('loading snapshot from R2')
-		const res = await this.env.USER_DO_SNAPSHOTS.get(this.userId)
+		const res = await this.env.USER_DO_SNAPSHOTS.get(getUserDoSnapshotKey(this.env, this.userId))
+		if (signal.aborted) return null
 		if (!res) {
 			this.log.debug('no snapshot found')
 			return null
 		}
 		const data = (await res.json()) as StateSnapshot
+		if (signal.aborted) return null
 		if (data.version !== stateVersion) {
 			this.log.debug('snapshot version mismatch')
 			return null
 		}
 		this.log.debug('loaded snapshot from R2')
+		this.logEvent({ type: 'found_snapshot', id: this.userId })
 		return data
 	}
 
-	private async loadInitialDataFromPostgres() {
-		this.logEvent({ type: 'full_data_fetch', id: this.userId })
+	private async loadInitialDataFromPostgres(hard: boolean, signal: AbortSignal) {
+		this.logEvent({ type: hard ? 'full_data_fetch_hard' : 'full_data_fetch', id: this.userId })
 		this.log.debug('fetching fresh initial data from postgres')
 		// if the bootId changes during the boot process, we should stop silently
 		const userSql = getFetchUserDataSql(this.userId)
-		const initialData: ZStoreData = {
+		const initialData: ZStoreData & { mutationNumber?: number } = {
 			user: null as any,
 			files: [],
 			fileStates: [],
 			lsn: '0/0',
+			mutationNumber: 0,
 		}
 		// we connect to pg via a pooler, so in the case that the pool is exhausted
 		// we need to retry the connection. (also in the case that a neon branch is asleep apparently?)
 		await retryOnConnectionFailure(
 			async () => {
 				// sync initial data
+				if (signal.aborted) return
 				initialData.user = null as any
 				initialData.files = []
 				initialData.fileStates = []
 
 				await this.db.transaction().execute(async (tx) => {
 					const result = await userSql.execute(tx)
-					return result.rows.forEach((row: any) => {
+					if (signal.aborted) return
+					result.rows.forEach((row: any) => {
 						assert(this.state.type === 'connecting', 'state should be connecting in boot')
 						switch (row.table) {
 							case 'user':
@@ -238,9 +273,18 @@ export class UserDataSyncer {
 							case 'file_state':
 								initialData.fileStates.push(parseResultRow(fileStateKeys, row))
 								break
-							case 'meta':
+							case 'lsn':
 								assert(typeof row.lsn === 'string', 'lsn should be a string')
 								initialData.lsn = row.lsn
+								break
+							case 'user_mutation_number':
+								assert(
+									typeof row.mutationNumber === 'number' || row.mutationNumber === null,
+									'mutationNumber should be a number or null, got' + JSON.stringify(row)
+								)
+								if (row.mutationNumber !== null) {
+									initialData.mutationNumber = row.mutationNumber
+								}
 								break
 						}
 					})
@@ -258,8 +302,8 @@ export class UserDataSyncer {
 		} satisfies StateSnapshot
 	}
 
-	private async boot(hard: boolean): Promise<void> {
-		this.log.debug('booting')
+	private async boot(hard: boolean, signal: AbortSignal): Promise<void> {
+		this.log.debug('boot hard:', hard)
 		// todo: clean up old resources if necessary?
 		const start = Date.now()
 		this.state = {
@@ -280,8 +324,10 @@ export class UserDataSyncer {
 		 */
 		if (!this.store.getCommittedData() || hard) {
 			const res =
-				(!hard && (await this.loadInitialDataFromR2())) ||
-				(await this.loadInitialDataFromPostgres())
+				(!hard && (await this.loadInitialDataFromR2(signal))) ||
+				(await this.loadInitialDataFromPostgres(hard, signal))
+
+			if (signal.aborted) return
 
 			this.log.debug('got initial data')
 			this.store.initialize(res.initialData, res.optimisticUpdates)
@@ -289,12 +335,18 @@ export class UserDataSyncer {
 				type: 'initial_data',
 				initialData: res.initialData,
 			})
+			if (
+				'mutationNumber' in res.initialData &&
+				typeof res.initialData.mutationNumber === 'number'
+			) {
+				this.commitMutations(res.initialData.mutationNumber)
+			}
 		}
 
 		const initialData = this.store.getCommittedData()!
 
-		// do an unnecessary assign here to tell typescript that the state might have changed
 		const guestFileIds = initialData.files.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
+
 		const res = await getReplicator(this.env).registerUser({
 			userId: this.userId,
 			lsn: initialData.lsn,
@@ -302,9 +354,15 @@ export class UserDataSyncer {
 			bootId: this.state.bootId,
 		})
 
+		if (signal.aborted) {
+			this.log.debug('aborting because of timeout')
+			return
+		}
+
 		if (res.type === 'reboot') {
+			this.logEvent({ type: 'not_enough_history_for_fast_reboot', id: this.userId })
 			if (hard) throw new Error('reboot loop, waiting')
-			return this.boot(true)
+			return this.boot(true, signal)
 		}
 
 		const bufferedEvents = this.state.bufferedEvents
@@ -319,7 +377,6 @@ export class UserDataSyncer {
 			bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
 		}
 
-		// this will prevent more events from being added to the buffer
 		const end = Date.now()
 		this.logEvent({ type: 'reboot_duration', id: this.userId, duration: end - start })
 		this.log.debug('boot time', end - start, 'ms')
@@ -348,9 +405,12 @@ export class UserDataSyncer {
 			})
 		} catch (e) {
 			this.captureException(e)
-			this.reboot()
+			this.reboot({ source: 'handleRowUpdateEvent' })
 		}
 	}
+
+	// start with a random offset to avoid thundering herd
+	lastLsnCommit = Date.now() + LSN_COMMIT_TIMEOUT + Math.random() * LSN_COMMIT_TIMEOUT
 
 	handleReplicationEvent(event: ZReplicationEvent) {
 		if (this.state.type === 'init') {
@@ -374,7 +434,7 @@ export class UserDataSyncer {
 		if (this.state.sequenceId !== event.sequenceId) {
 			// the replicator has restarted, so we need to reboot
 			this.log.debug('force reboot', this.state, event)
-			this.reboot()
+			this.reboot({ source: 'handleReplicationEvent(force reboot)' })
 			return
 		}
 
@@ -384,7 +444,7 @@ export class UserDataSyncer {
 				event.sequenceNumber,
 				this.state.lastSequenceNumber
 			)
-			this.reboot()
+			this.reboot({ source: 'handleReplicationEvent(sequence number mismatch)' })
 			return
 		}
 
@@ -402,16 +462,24 @@ export class UserDataSyncer {
 		}
 
 		transact(() => {
+			let maxMutationNumber = -1
 			for (const ev of event.changes) {
 				if (ev.type === 'mutation_commit') {
-					this.commitMutations(ev.mutationNumber)
+					if (ev.mutationNumber > maxMutationNumber) {
+						maxMutationNumber = ev.mutationNumber
+					}
 					continue
 				}
 
 				assert(ev.type === 'row_update', `event type should be row_update got ${event.type}`)
 				this.handleRowUpdateEvent(ev)
 			}
+			if (maxMutationNumber >= 0) {
+				this.commitMutations(maxMutationNumber)
+			}
 
+			this.log.debug('committing lsn', event.lsn)
+			this.lastLsnCommit = Date.now()
 			this.store.commitLsn(event.lsn)
 		})
 
@@ -457,27 +525,25 @@ export class UserDataSyncer {
 		this.broadcast({ type: 'update', update })
 	}
 
-	private async onInterval() {
+	async onInterval() {
 		// if any mutations have been not been committed for 5 seconds, let's reboot the cache
-		if (this.store.epoch != this.lastStashEpoch && this.state.type === 'connected') {
-			const initialData = this.store.getCommittedData()
-			if (initialData) {
-				const snapshot: StateSnapshot = {
-					version: stateVersion,
-					initialData,
-					optimisticUpdates: this.store.getOptimisticUpdates(),
-				}
-				this.log.debug('stashing snapshot')
-				this.lastStashEpoch = this.store.epoch
-				await this.env.USER_DO_SNAPSHOTS.put(this.userId, JSON.stringify(snapshot))
-			}
-		}
 		for (const mutation of this.mutations) {
-			if (Date.now() - mutation.timestamp > 5000) {
-				this.log.debug("Mutations haven't been committed for 5 seconds, rebooting", mutation)
-				this.reboot({ hard: true })
+			if (Date.now() - mutation.timestamp > MUTATION_COMMIT_TIMEOUT) {
+				this.log.debug("Mutations haven't been committed for 10 seconds, rebooting", mutation)
+				this.reboot({ hard: true, source: 'onInterval' })
 				break
 			}
+		}
+
+		if (this.lastLsnCommit < Date.now() - LSN_COMMIT_TIMEOUT) {
+			this.log.debug('requesting lsn update', this.userId)
+			sql`SELECT pg_logical_emit_message(true, 'requestLsnUpdate', ${this.userId});`
+				.execute(this.db)
+				.catch((e) => {
+					this.log.debug('failed to request lsn update', e)
+					this.captureException(e)
+				})
+			this.lastLsnCommit = Date.now()
 		}
 	}
 }
