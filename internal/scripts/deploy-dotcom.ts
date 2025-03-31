@@ -343,12 +343,9 @@ async function deployZero() {
 	])
 	await exec('yarn', ['sst', 'secret', 'set', 'ZeroAuthSecret', clerkJWKSUrl, '--stage', stage])
 	await exec('yarn', ['sst', 'unlock', '--stage', stage])
-	const result = await exec('yarn', ['sst', 'deploy', '--stage', stage])
-	console.log('💡[408]: deploy-dotcom.ts:339: result=', result)
+	const result = await exec('yarn', ['sst', 'deploy', '--stage', stage, '--verbose'])
 	const line = result.split('\n').filter((l) => l.includes('view-syncer: http'))[0]
-	console.log('💡[409]: deploy-dotcom.ts:341: line=', line)
 	const url = line.split(':')[1].trim()
-	console.log('💡[410]: deploy-dotcom.ts:343: url=', url)
 	if (!url || url.length === 0) {
 		throw new Error('Could not find view-syncer URL in SST output ' + result)
 	}
