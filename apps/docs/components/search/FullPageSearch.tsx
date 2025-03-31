@@ -8,15 +8,14 @@ import { SendEventForHits } from 'instantsearch.js/es/lib/utils'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createRef, Fragment, useCallback, useEffect, useState } from 'react'
-import { Configure, Highlight, useHits, useSearchBox } from 'react-instantsearch'
-import { InstantSearchNext } from 'react-instantsearch-nextjs'
+import { Configure, Highlight, InstantSearch, useHits, useSearchBox } from 'react-instantsearch'
 import { twJoin } from 'tailwind-merge'
 import { debounce } from 'tldraw'
 import { ContentHighlight } from './ContentHighlight'
 
 export function FullPageSearch({ indexName }: { indexName: 'docs' | 'blog' }) {
 	return (
-		<InstantSearchNext
+		<InstantSearch
 			indexName={getSearchIndexName(indexName)}
 			searchClient={searchClient}
 			insights={true}
@@ -24,7 +23,7 @@ export function FullPageSearch({ indexName }: { indexName: 'docs' | 'blog' }) {
 		>
 			<Configure distinct={4} hitsPerPage={40} />
 			<InstantSearchInner indexName={indexName} />
-		</InstantSearchNext>
+		</InstantSearch>
 	)
 }
 

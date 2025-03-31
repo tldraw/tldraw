@@ -7482,7 +7482,6 @@ __metadata:
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     react-instantsearch: "npm:^7.15.1"
-    react-instantsearch-nextjs: "npm:^0.4.5"
     rehype-autolink-headings: "npm:^7.1.0"
     rehype-slug: "npm:^6.0.0"
     rehype-slug-custom-id: "npm:^2.0.0"
@@ -22204,16 +22203,6 @@ __metadata:
     algoliasearch: ">= 3.1 < 6"
     react: ">= 16.8.0 < 20"
   checksum: 10/3948d88414d015ec0517efb297c8cd0ac4fa7bdb699e485d700d14e78244f7a5b6526aa3afaf919150dfe14576c4f6458a585593485c90d6b6cad5873af3aaf1
-  languageName: node
-  linkType: hard
-
-"react-instantsearch-nextjs@npm:^0.4.5":
-  version: 0.4.5
-  resolution: "react-instantsearch-nextjs@npm:0.4.5"
-  peerDependencies:
-    next: ">= 13.4 < 16"
-    react-instantsearch: ">= 7.1.0 < 8"
-  checksum: 10/e36401eeab2f87389e70193ce08271f6a1bcb64cf5588fece5fec60e093a4d5cfb29fc1576626c7d4db1f35d7fa6a41bdde0341e1216a0462c29ad7088ce5be1
   languageName: node
   linkType: hard
 

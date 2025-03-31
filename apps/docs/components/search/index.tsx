@@ -4,20 +4,19 @@ import { SearchEntry, SearchIndexName, getSearchIndexName } from '@/utils/algoli
 import { debounce } from '@/utils/debounce'
 import { searchClient } from '@/utils/search-api'
 import { useRouter } from 'next/navigation'
-import { useHits, useSearchBox } from 'react-instantsearch'
-import { InstantSearchNext } from 'react-instantsearch-nextjs'
+import { InstantSearch, useHits, useSearchBox } from 'react-instantsearch'
 import SearchDialog from './SearchDialog'
 
 export function Search({ type, onClose }: { type: SearchIndexName; onClose(): void }) {
 	return (
-		<InstantSearchNext
+		<InstantSearch
 			indexName={getSearchIndexName(type)}
 			searchClient={searchClient}
 			insights={true}
 			future={{ preserveSharedStateOnUnmount: true }}
 		>
 			<InstantSearchInner onClose={onClose} />
-		</InstantSearchNext>
+		</InstantSearch>
 	)
 }
 
