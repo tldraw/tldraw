@@ -32,6 +32,7 @@
 		"internal/*"
 	],
 	"scripts": {
+		"aws-login": "aws sso login --sso-session=tldraw",
 		"clean": "internal/scripts/clean.sh",
 		"postinstall": "husky install && yarn refresh-assets",
 		"refresh-assets": "lazy refresh-assets",
