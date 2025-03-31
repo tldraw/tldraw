@@ -1,4 +1,4 @@
-import { isProductionEnv, isStagingEnv } from './env'
+import { isPreviewEnv, isProductionEnv, isStagingEnv } from './env'
 
 export const BOOKMARK_ENDPOINT = '/api/unfurl'
 
@@ -24,7 +24,7 @@ export const MULTIPLAYER_SERVER =
 		: process.env.MULTIPLAYER_SERVER.replace(/^http/, 'ws')
 
 export const ZERO_SERVER =
-	(isStagingEnv || isProductionEnv) && typeof location !== 'undefined'
+	(isStagingEnv || isProductionEnv || isPreviewEnv) && typeof location !== 'undefined'
 		? process.env.ZERO_SERVER
 		: 'http://localhost:4848/'
 
