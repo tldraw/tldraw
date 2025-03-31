@@ -48,6 +48,19 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		return shape.props.url
 	}
 
+	override getAriaAltText(shape: TLBookmarkShape) {
+		const asset = (
+			shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
+		) as TLBookmarkAsset
+
+		if (!asset.props.title) return undefined
+
+		return (
+			convertCommonTitleHTMLEntities(asset.props.title) +
+			(asset.props.description ? ', ' + asset.props.description : '')
+		)
+	}
+
 	override getDefaultProps(): TLBookmarkShape['props'] {
 		return {
 			url: '',

@@ -452,6 +452,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 		return undefined
 	}
 
+	getAriaAltText(_shape: Shape): string | undefined {
+		return undefined
+	}
+
 	//  Events
 
 	/**

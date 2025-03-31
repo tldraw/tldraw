@@ -248,6 +248,7 @@ export type TLUiTranslationKey =
 	| 'tool.rich-text-link-remove'
 	| 'tool.rich-text-header'
 	| 'tool.rich-text-bulletList'
+	| 'tool.bookmark'
 	| 'a11y.skip-to-main-content'
 	| 'a11y.shape'
 	| 'a11y.shape-index'

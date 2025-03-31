@@ -56,6 +56,11 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return shape.props.url
 	}
 
+	override getAriaAltText(shape: TLEmbedShape) {
+		const embedInfo = this.getEmbedDefinition(shape.props.url)
+		return embedInfo?.definition.title
+	}
+
 	override hideSelectionBoundsFg(shape: TLEmbedShape) {
 		return !this.canResize(shape)
 	}

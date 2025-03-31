@@ -1,5 +1,6 @@
 import {
 	debugFlags,
+	Editor,
 	EffectScheduler,
 	throttle,
 	TLGeoShape,
@@ -8,10 +9,11 @@ import {
 	TLVideoShape,
 	useContainer,
 	useEditor,
+	useMaybeEditor,
 	useValue,
 } from '@tldraw/editor'
 import { memo, useCallback, useEffect, useRef } from 'react'
-import { TLUiA11y, useA11y } from '../context/a11y'
+import { useA11y } from '../context/a11y'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 
@@ -49,7 +51,7 @@ export function SkipToMainContent() {
 export const DefaultA11yAnnouncer = memo(function TldrawUiA11yAnnouncer() {
 	const a11y = useA11y()
 	const msg = useValue('a11y-msg', () => a11y.currentMsg.get(), [])
-	useA11yDebug(msg)
+	useA11yDebug(msg.msg)
 
 	useSelectedShapesAnnouncer()
 
@@ -71,77 +73,111 @@ export const DefaultA11yAnnouncer = memo(function TldrawUiA11yAnnouncer() {
 	)
 })
 
+/**
+ * Core function to generate accessibility announcements for selected shapes
+ * @public
+ */
+export function generateShapeAnnouncementMessage(args: {
+	editor: Editor
+	selectedShapeIds: TLShapeId[]
+	msg(id: string, values?: Record<string, any>): string
+}) {
+	const { editor, selectedShapeIds, msg } = args
+	let a11yLive = ''
+	const numShapes = selectedShapeIds.length
+
+	if (numShapes > 1) {
+		a11yLive = msg('a11y.multiple-shapes').replace('{num}', numShapes.toString())
+	} else if (numShapes === 1) {
+		const shapeId = selectedShapeIds[0]
+		const shape = editor.getShape(shapeId)
+		if (!shape) return ''
+
+		const shapeUtil = editor.getShapeUtil(shape.type)
+		const altText = shapeUtil.getAriaAltText?.(shape) ?? ''
+		a11yLive = shapeUtil.getAriaLiveText?.(shape) ?? ''
+
+		if (!a11yLive) {
+			const isMedia = ['image', 'video'].includes(shape.type)
+			// Yeah, yeah this is a bit of a hack, we should get better translations.
+			let shapeType = ''
+			if (shape.type === 'geo') {
+				shapeType = msg(`geo-style.${(shape as TLGeoShape).props.geo}`)
+			} else if (isMedia) {
+				shapeType = msg(`a11y.shape-${shape.type}`)
+			} else {
+				shapeType = msg(`tool.${shape.type}`)
+			}
+
+			// Get shape index in reading order
+			const readingOrderShapes = editor.getCurrentPageShapesInReadingOrder()
+			const currentShapeIndex = (
+				readingOrderShapes.findIndex((s) => s.id === shapeId) + 1
+			).toString()
+			const totalShapes = readingOrderShapes.length.toString()
+			const shapeIndex = msg('a11y.shape-index')
+				.replace('{num}', currentShapeIndex)
+				.replace('{total}', totalShapes)
+
+			// Get describing text (alt text or shape text)
+			let describingText = ''
+			if (isMedia) {
+				describingText = (shape as TLImageShape | TLVideoShape).props.altText
+			} else if (altText) {
+				describingText = altText
+			} else {
+				describingText = shapeUtil.getText?.(shape) ?? ''
+			}
+			const textStr = describingText ? `, ${msg('a11y.text')}: ${describingText}` : ''
+
+			// Build the full announcement
+			a11yLive = `${shapeType}, ${msg('a11y.shape')}, ${shapeIndex}${textStr}`
+		}
+	}
+
+	return a11yLive
+}
+
 /** @public */
 export const useSelectedShapesAnnouncer = () => {
-	const editor = useEditor()
+	const editor = useMaybeEditor()
 	const a11y = useA11y()
 	const msg = useTranslation()
 
 	useEffect(() => {
-		const setA11yLive = (shapes: TLShapeId[]) => {
-			let a11yLive = ''
-			const numShapes = shapes.length
-			if (numShapes > 1) {
-				a11yLive = msg('a11y.multiple-shapes').replace('{num}', numShapes.toString())
-			} else if (numShapes === 1) {
-				const shapeId = shapes[0]
-				const shape = editor.getShape(shapeId)
-				if (!shape) return
-				const shapeUtil = editor.getShapeUtil(shape.type)
-				a11yLive = shapeUtil.getAriaLiveText(shape) ?? ''
-				if (!a11yLive) {
-					const text = shapeUtil.getText(shape)
-					const isMedia = ['image', 'video'].includes(shape.type)
-					// Yeah, yeah this is a bit of a hack, we should get better translations.
-					let shapeType = ''
-					if (shape.type === 'geo') {
-						shapeType = msg(`geo-style.${(shape as TLGeoShape).props.geo}`)
-					} else if (isMedia) {
-						shapeType = msg(`a11y.shape-${shape.type}`)
-					} else {
-						shapeType = msg(`tool.${shape.type}`)
-					}
-					const readingOrderShapes = editor.getCurrentPageShapesInReadingOrder()
-					const currentShapeIndex = (
-						readingOrderShapes.findIndex((s) => s.id === shapeId) + 1
-					).toString()
-					const totalShapes = readingOrderShapes.length.toString()
-					const shapeIndex = msg('a11y.shape-index')
-						.replace('{num}', currentShapeIndex)
-						.replace('{total}', totalShapes)
-					let textStr = ''
-					if (isMedia) {
-						const altText = (shape as TLImageShape | TLVideoShape).props.altText
-						textStr = altText ? `, ${msg('a11y.text')}: ${altText}` : ''
-					} else {
-						textStr = text ? `, ${msg('a11y.text')}: ${text}` : ''
-					}
+		if (!editor) return
 
-					// Example: Arrow left, Shape, 3 of 9, Text: hello, world'
-					a11yLive = `${shapeType}, ${msg('a11y.shape')}, ${shapeIndex}${textStr}`
-				}
+		const announceSelectedShapes = (selectedShapeIds: TLShapeId[]) => {
+			const a11yLive = generateShapeAnnouncementMessage({
+				editor,
+				selectedShapeIds,
+				msg,
+			})
+
+			if (a11yLive) {
+				a11y.announce({ msg: a11yLive })
 			}
-
-			a11y.announce({ msg: a11yLive })
 		}
-		const setA11yLiveDebounced = throttle(setA11yLive, 1000)
+
+		const announceSelectedShapesDebounced = throttle(announceSelectedShapes, 1000)
 
 		const scheduler = new EffectScheduler('useSelectedShapesAnnouncer', () => {
 			const selectedShapes = editor.getSelectedShapeIds()
-			setA11yLiveDebounced(selectedShapes)
+			announceSelectedShapesDebounced(selectedShapes)
 		})
 
 		scheduler.attach()
 		scheduler.execute()
 
+		announceSelectedShapes(editor.getSelectedShapeIds())
 		return () => {
 			scheduler.detach()
-			setA11yLiveDebounced.cancel()
+			announceSelectedShapesDebounced.cancel()
 		}
 	}, [editor, a11y, msg])
 }
 
-const useA11yDebug = (msg: TLUiA11y) => {
+const useA11yDebug = (msg: string | undefined) => {
 	const container = useContainer()
 
 	useEffect(() => {
@@ -156,7 +192,12 @@ const useA11yDebug = (msg: TLUiA11y) => {
 			}
 			const handleKeyUp = (e: KeyboardEvent) => {
 				const el = document.activeElement
-				if (e.key === 'Tab' && el && el !== document.body && el !== container) {
+				if (
+					e.key === 'Tab' &&
+					el &&
+					el !== document.body &&
+					!el.classList.contains('tl-container')
+				) {
 					const label = el.getAttribute('aria-label') || el.getAttribute('title') || el.textContent
 					if (label) {
 						log(label)
@@ -164,8 +205,8 @@ const useA11yDebug = (msg: TLUiA11y) => {
 				}
 			}
 
-			if (msg.msg) {
-				log(msg.msg)
+			if (msg) {
+				log(msg)
 			}
 
 			document.addEventListener('keyup', handleKeyUp)
