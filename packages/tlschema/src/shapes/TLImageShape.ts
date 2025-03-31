@@ -169,7 +169,7 @@ export const imageShapeMigrations = createShapePropsMigrationSequence({
 		{
 			id: Versions.AddAltText,
 			up: (props) => {
-				props.altText = 11
+				props.altText = ''
 			},
 			down: (props) => {
 				delete props.altText

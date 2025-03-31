@@ -177,6 +177,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 				onHistoryMark={onHistoryMark}
 				min={100}
 				steps={300}
+				data-testid="tool.image-zoom"
 				title={msg('tool.image-zoom')}
 			/>
 			<TldrawUiDropdownMenuRoot id="image-toolbar-aspect-ratio">
@@ -210,6 +211,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			</TldrawUiDropdownMenuRoot>
 			<TldrawUiButton
 				type="icon"
+				title={msg('tool.replace-media')}
 				onClick={() => {
 					trackEvent('replace-media', { source })
 					insertMedia()
@@ -219,6 +221,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			</TldrawUiButton>
 			<TldrawUiButton
 				type="icon"
+				title={msg('tool.flip-horz')}
 				onClick={() => {
 					trackEvent('flip-shapes', { operation: 'horizontal', source })
 					editor.markHistoryStoppingPoint('flip horizontal')
@@ -229,6 +232,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			</TldrawUiButton>
 			<TldrawUiButton
 				type="icon"
+				title={msg('tool.flip-vert')}
 				onClick={() => {
 					trackEvent('flip-shapes', { operation: 'vertical', source })
 					editor.markHistoryStoppingPoint('flip vertical')
@@ -239,6 +243,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			</TldrawUiButton>
 			<TldrawUiButton
 				type="icon"
+				title={msg('tool.rotate-cw')}
 				onClick={() => {
 					trackEvent('rotate-cw', { source })
 					editor.markHistoryStoppingPoint('rotate-cw')
