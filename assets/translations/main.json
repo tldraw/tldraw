@@ -241,6 +241,8 @@
 	"tool.aspect-ratio.landscape": "Landscape (4:3)",
 	"tool.aspect-ratio.portrait": "Portrait (3:4)",
 	"tool.aspect-ratio.wide": "Wide (16:9)",
+	"tool.image-alt-text": "Alt text",
+	"tool.image-alt-text-confirm": "Confirm",
 	"tool.rich-text-bold": "Bold",
 	"tool.rich-text-italic": "Italic",
 	"tool.rich-text-code": "Code",

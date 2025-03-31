@@ -90,6 +90,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			size: 'm',
 			font: 'draw',
 			text: '',
+			altText: '',
 			align: 'middle',
 			verticalAlign: 'middle',
 			zoom: 1,
@@ -407,6 +408,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 						src={loadedSrc}
 						referrerPolicy="strict-origin-when-cross-origin"
 						draggable={false}
+						alt={shape.props.altText}
 					/>
 				</div>
 			)}
@@ -435,6 +437,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 							src={loadedSrc}
 							referrerPolicy="strict-origin-when-cross-origin"
 							draggable={false}
+							alt={shape.props.altText}
 						/>
 					)}
 					{nextSrc && (
@@ -446,6 +449,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 							src={nextSrc}
 							referrerPolicy="strict-origin-when-cross-origin"
 							draggable={false}
+							alt={shape.props.altText}
 							onLoad={() => setLoadedUrl(nextSrc)}
 						/>
 					)}

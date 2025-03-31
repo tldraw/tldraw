@@ -1870,22 +1870,22 @@
 	opacity: 1;
 }
 
-.tlui-rich-text__toolbar {
+.tlui-contextual-toolbar {
 	opacity: 0;
 	transition: opacity 0.08s ease-in-out;
 }
 
-.tlui-rich-text__toolbar,
-.tlui-rich-text__toolbar * {
+.tlui-contextual-toolbar,
+.tlui-contextual-toolbar * {
 	pointer-events: none;
 }
 
-.tlui-rich-text__toolbar[data-visible='true'] {
+.tlui-contextual-toolbar[data-visible='true'] {
 	opacity: 1;
 }
 
-.tlui-rich-text__toolbar[data-interactive='true'],
-.tlui-rich-text__toolbar[data-interactive='true'] * {
+.tlui-contextual-toolbar[data-interactive='true'],
+.tlui-contextual-toolbar[data-interactive='true'] * {
 	pointer-events: all;
 }
 
@@ -1898,6 +1898,32 @@
 	width: 148px;
 }
 
-.tlui-rich-text__toolbar .tlui-input__wrapper {
+.tlui-image__toolbar-alt-text-input {
+	margin-left: 12px;
+	/*
+	 * Nice touch tweak: keep the link editor toolbar the same as the default toolbar.
+	 * This is so the toolbar size stays stable going in and out of the alt text editor.
+	 */
+	width: 317.5px;
+}
+
+.tlui-contextual-toolbar .tlui-input__wrapper {
 	height: 40px;
+}
+
+.tlui-image__toolbar .tlui-slider__container {
+	width: 125px;
+}
+
+.tlui-image__toolbar .tlui-slider {
+	height: 100%;
+}
+
+.tlui-image__toolbar .tlui-slider__track {
+	height: 32px;
+}
+
+.tlui-image__toolbar .tlui-slider__thumb {
+	width: 14px;
+	height: 14px;
 }

@@ -1109,6 +1109,8 @@ export interface TLImageShapeProps {
     // (undocumented)
     align: TLDefaultHorizontalAlignStyle;
     // (undocumented)
+    altText: string;
+    // (undocumented)
     assetId: null | TLAssetId;
     // (undocumented)
     color: TLDefaultColorStyle;
@@ -1539,6 +1541,8 @@ export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>;
 export interface TLVideoShapeProps {
     // (undocumented)
     align: TLDefaultHorizontalAlignStyle;
+    // (undocumented)
+    altText: string;
     // (undocumented)
     assetId: null | TLAssetId;
     // (undocumented)

@@ -51,6 +51,7 @@ export interface TLImageShapeProps {
 	align: TLDefaultHorizontalAlignStyle
 	verticalAlign: TLDefaultVerticalAlignStyle
 	text: string
+	altText: string
 }
 
 /** @public */
@@ -77,6 +78,7 @@ export const imageShapeProps: RecordProps<TLImageShape> = {
 	align: DefaultHorizontalAlignStyle,
 	verticalAlign: DefaultVerticalAlignStyle,
 	text: T.string,
+	altText: T.string,
 }
 
 const Versions = createShapePropsMigrationIds('image', {
@@ -86,6 +88,7 @@ const Versions = createShapePropsMigrationIds('image', {
 	AddFlipProps: 4,
 	AddTextProps: 5,
 	AddZoomProp: 6,
+	AddAltText: 7,
 })
 
 export { Versions as imageShapeVersions }
@@ -143,15 +146,15 @@ export const imageShapeMigrations = createShapePropsMigrationSequence({
 				props.align = 'middle'
 				props.verticalAlign = 'middle'
 			},
-			down: (_props) => {
-				delete _props.labelColor
-				delete _props.color
-				delete _props.fill
-				delete _props.size
-				delete _props.font
-				delete _props.align
-				delete _props.verticalAlign
-				delete _props.text
+			down: (props) => {
+				delete props.labelColor
+				delete props.color
+				delete props.fill
+				delete props.size
+				delete props.font
+				delete props.align
+				delete props.verticalAlign
+				delete props.text
 			},
 		},
 		{
@@ -159,8 +162,17 @@ export const imageShapeMigrations = createShapePropsMigrationSequence({
 			up: (props) => {
 				props.zoom = 1
 			},
-			down: (_props) => {
-				delete _props.zoom
+			down: (props) => {
+				delete props.zoom
+			},
+		},
+		{
+			id: Versions.AddAltText,
+			up: (props) => {
+				props.altText = 11
+			},
+			down: (props) => {
+				delete props.altText
 			},
 		},
 	],

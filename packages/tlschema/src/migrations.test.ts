@@ -2088,6 +2088,30 @@ describe('Add zoom to image shape', () => {
 	})
 })
 
+describe('Add alt text to image shape', () => {
+	const { up, down } = getTestMigration(imageShapeVersions.AddAltText)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { altText: '' } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { altText: 'yo' } })).toEqual({ props: {} })
+	})
+})
+
+describe('Add alt text to video shape', () => {
+	const { up, down } = getTestMigration(videoShapeVersions.AddAltText)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { altText: '' } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { altText: 'yo' } })).toEqual({ props: {} })
+	})
+})
+
 describe('Make video asset file size optional', () => {
 	const { up, down } = getTestMigration(videoAssetVersions.MakeFileSizeOptional)
 

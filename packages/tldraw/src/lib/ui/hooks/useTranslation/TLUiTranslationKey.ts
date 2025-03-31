@@ -245,6 +245,8 @@ export type TLUiTranslationKey =
 	| 'tool.aspect-ratio.landscape'
 	| 'tool.aspect-ratio.portrait'
 	| 'tool.aspect-ratio.wide'
+	| 'tool.image-alt-text'
+	| 'tool.image-alt-text-confirm'
 	| 'tool.rich-text-bold'
 	| 'tool.rich-text-italic'
 	| 'tool.rich-text-code'

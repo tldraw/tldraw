@@ -628,27 +628,6 @@ input,
 	border-radius: var(--radius-1);
 }
 
-.tl-image__toolbar {
-	position: absolute;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	pointer-events: all;
-}
-
-.tl-image__toolbar .tlui-slider__container {
-	width: 125px;
-}
-
-.tl-image__toolbar .tlui-slider__track {
-	height: 32px;
-}
-
-.tl-image__toolbar .tlui-slider__thumb {
-	width: 14px;
-	height: 14px;
-}
-
 /* --------------------- Nametag -------------------- */
 
 .tl-collaborator-cursor {

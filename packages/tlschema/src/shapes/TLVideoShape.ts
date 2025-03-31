@@ -39,6 +39,7 @@ export interface TLVideoShapeProps {
 	align: TLDefaultHorizontalAlignStyle
 	verticalAlign: TLDefaultVerticalAlignStyle
 	text: string
+	altText: string
 }
 
 /** @public */
@@ -62,12 +63,14 @@ export const videoShapeProps: RecordProps<TLVideoShape> = {
 	align: DefaultHorizontalAlignStyle,
 	verticalAlign: DefaultVerticalAlignStyle,
 	text: T.string,
+	altText: T.string,
 }
 
 const Versions = createShapePropsMigrationIds('video', {
 	AddUrlProp: 1,
 	MakeUrlsValid: 2,
 	AddTextProps: 3,
+	AddAltText: 4,
 })
 
 export { Versions as videoShapeVersions }
@@ -105,15 +108,24 @@ export const videoShapeMigrations = createShapePropsMigrationSequence({
 				props.align = 'middle'
 				props.verticalAlign = 'middle'
 			},
-			down: (_props) => {
-				delete _props.labelColor
-				delete _props.color
-				delete _props.fill
-				delete _props.size
-				delete _props.font
-				delete _props.align
-				delete _props.verticalAlign
-				delete _props.text
+			down: (props) => {
+				delete props.labelColor
+				delete props.color
+				delete props.fill
+				delete props.size
+				delete props.font
+				delete props.align
+				delete props.verticalAlign
+				delete props.text
+			},
+		},
+		{
+			id: Versions.AddAltText,
+			up: (props) => {
+				props.altText = ''
+			},
+			down: (props) => {
+				delete props.altText
 			},
 		},
 	],

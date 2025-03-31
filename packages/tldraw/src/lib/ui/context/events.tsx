@@ -55,6 +55,8 @@ export interface TLUiEventMap {
 	'insert-embed': null
 	'insert-media': null
 	'replace-media': null
+	'alt-text-start': null
+	'set-alt-text': null
 	'align-shapes': {
 		operation: 'left' | 'center-horizontal' | 'right' | 'top' | 'center-vertical' | 'bottom'
 	}

@@ -66,6 +66,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			size: 'm',
 			font: 'draw',
 			text: '',
+			altText: '',
 			align: 'middle',
 			verticalAlign: 'middle',
 		}
