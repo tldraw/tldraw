@@ -94,7 +94,7 @@ export const TldrawArrowHints = track(function TldrawArrowHints() {
 					<circle
 						cx={anchorInPageSpace.x}
 						cy={anchorInPageSpace.y}
-						className={`tl-arrow-hint-snap tl-arrow-hint-snap__${isPrecise ? snap : 'none'}`}
+						className={`tl-arrow-hint-snap tl-arrow-hint-snap__${isPrecise ? (snap ?? 'none') : 'none'}`}
 					/>
 
 					{showXAxis && (
