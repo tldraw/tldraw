@@ -342,7 +342,7 @@ async function deployZero() {
 		stage,
 	])
 	await exec('yarn', ['sst', 'secret', 'set', 'ZeroAuthSecret', clerkJWKSUrl, '--stage', stage])
-	await exec('yarn', ['sst', 'unlock']) // whyy
+	await exec('yarn', ['sst', 'unlock', '--stage', stage])
 	const result = await exec('yarn', ['sst', 'deploy', '--stage', stage])
 	console.log('💡[408]: deploy-dotcom.ts:339: result=', result)
 	const line = result.split('\n').filter((l) => l.includes('view-syncer: http'))[0]
