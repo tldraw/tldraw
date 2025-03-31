@@ -347,7 +347,6 @@ async function deployZero() {
 	])
 	await exec('yarn', ['sst', 'secret', 'set', 'ZeroAuthSecret', clerkJWKSUrl, '--stage', stage])
 	await exec('yarn', ['sst', 'unlock', '--stage', stage])
-	await exec('yarn', ['sst', 'refresh', '--stage', stage])
 	await exec('yarn', ['bundle-schema'], { pwd: zeroCacheFolder })
 
 	const result = await exec('yarn', ['sst', 'deploy', '--stage', stage, '--verbose'])
