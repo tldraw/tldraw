@@ -70,6 +70,9 @@ jobs:
       - name: Build types
         run: yarn build-types
 
+      - name: Move aws config
+        run: cp -R .aws ~/.aws
+
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -114,4 +117,3 @@ jobs:
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
           WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
-          AWS_CONFIG_FILE: ./.aws/config
