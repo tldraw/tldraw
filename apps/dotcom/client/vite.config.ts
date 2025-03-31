@@ -45,8 +45,7 @@ export default defineConfig((env) => ({
 				.map(([key, value]) => [`process.env.${key}`, JSON.stringify(value)])
 		),
 		'process.env.MULTIPLAYER_SERVER': urlOrLocalFallback(env.mode, getMultiplayerServerURL(), 8787),
-		'process.env.ZERO_SERVER':
-			"'wss://viewsyncerloadb-sttzctxt-2142531293.eu-north-1.elb.amazonaws.com/'",
+		'process.env.ZERO_SERVER': urlOrLocalFallback(env.mode, process.env.ZERO_SERVER, 4848),
 		'process.env.ASSET_UPLOAD': urlOrLocalFallback(env.mode, process.env.ASSET_UPLOAD, 8788),
 		'process.env.IMAGE_WORKER': urlOrLocalFallback(env.mode, process.env.IMAGE_WORKER, 8786),
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.TLDRAW_ENV ?? 'development'),
