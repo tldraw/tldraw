@@ -7,10 +7,15 @@ on:
       - main
       - production
 
+permissions:
+  id-token: write
+  contents: read
+
 env:
   CI: 1
   PRINT_GITHUB_ANNOTATIONS: 1
   TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
+  AWS_REGION: 'eu-north-1'
 defaults:
   run:
     shell: bash
@@ -64,6 +69,12 @@ jobs:
 
       - name: Build types
         run: yarn build-types
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::571248596162:role/huppy-bot
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy
         run: yarn tsx internal/scripts/deploy-dotcom.ts

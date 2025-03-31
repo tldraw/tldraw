@@ -52,7 +52,6 @@ const env = makeEnv([
 	'HEALTH_WORKER_UPDOWN_WEBHOOK_PATH',
 	'IMAGE_WORKER',
 	'MULTIPLAYER_SERVER',
-	'ZERO_SERVER',
 	'R2_ACCESS_KEY_ID',
 	'R2_ACCESS_KEY_SECRET',
 	'RELEASE_COMMIT_HASH',
@@ -85,7 +84,6 @@ const sentryReleaseName = `${env.TLDRAW_ENV}-${previewId ? previewId + '-' : ''}
 if (previewId) {
 	env.ASSET_UPLOAD = `https://${previewId}-tldraw-assets.tldraw.workers.dev`
 	env.MULTIPLAYER_SERVER = `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
-	env.ZERO_SERVER = `TODO`
 	env.IMAGE_WORKER = `https://${previewId}-images.tldraw.xyz`
 }
 
@@ -109,8 +107,8 @@ async function main() {
 	// 1. get the dotcom app ready to go (env vars and pre-build)
 	await discord.step('building dotcom app', async () => {
 		await createSentryRelease()
-		await deployZero()
-		await prepareDotcomApp()
+		const zeroUrl = await deployZero()
+		await prepareDotcomApp(zeroUrl)
 		await uploadSourceMaps()
 		await coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
 	})
@@ -170,7 +168,7 @@ async function main() {
 	await discord.message(`**Deploy complete!**`)
 }
 
-async function prepareDotcomApp() {
+async function prepareDotcomApp(zeroUrl: string) {
 	// pre-build the app:
 	await exec('yarn', ['build-app'], {
 		env: {
@@ -178,7 +176,7 @@ async function prepareDotcomApp() {
 			ASSET_UPLOAD: env.ASSET_UPLOAD,
 			IMAGE_WORKER: env.IMAGE_WORKER,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
-			ZERO_SERVER: env.ZERO_SERVER,
+			ZERO_SERVER: zeroUrl,
 			NEXT_PUBLIC_GC_API_KEY: env.GC_MAPS_API_KEY,
 			SENTRY_AUTH_TOKEN: env.SENTRY_AUTH_TOKEN,
 			SENTRY_ORG: 'tldraw',
@@ -334,14 +332,17 @@ async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 }
 
 async function deployZero() {
-	const stage = env.TLDRAW_ENV === 'preview' ? 'preview' : env.TLDRAW_ENV
+	const stage = previewId ? previewId : env.TLDRAW_ENV
 	const result = await exec('yarn', ['sst', 'deploy', '--stage', stage])
 	console.log('💡[408]: deploy-dotcom.ts:339: result=', result)
-	const line = result.split('\n').filter((l) => l.includes('view-syncer'))[0]
+	const line = result.split('\n').filter((l) => l.includes('view-syncer: http'))[0]
 	console.log('💡[409]: deploy-dotcom.ts:341: line=', line)
-	const url = line.split(':')[1]
+	const url = line.split(':')[1].trim()
 	console.log('💡[410]: deploy-dotcom.ts:343: url=', url)
-	env.ZERO_SERVER = url
+	if (!url || url.length === 0) {
+		throw new Error('Could not find view-syncer URL in SST output ' + result)
+	}
+	return url
 }
 
 async function deploySpa(): Promise<{ deploymentUrl: string; inspectUrl: string }> {
