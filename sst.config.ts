@@ -11,7 +11,7 @@ export default $config({
 			region: process.env.AWS_REGION || 'eu-north-1',
 			providers: {
 				aws: {
-					profile: 'preview',
+					profile: process.env.TLDRAW_ENV ?? 'preview',
 				},
 				command: true,
 			},
