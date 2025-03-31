@@ -19,7 +19,7 @@ export function FAQSection() {
 					</>
 				}
 			/>
-			<div className="px-5 w-[680px] max-w-full mx-auto">
+			<div className="px-8 w-[680px] max-w-full mx-auto">
 				{faq.map(({ q, a }, index) => (
 					<DisclosureToggle key={index} q={q} a={a} />
 				))}

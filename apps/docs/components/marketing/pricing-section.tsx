@@ -1,11 +1,16 @@
 import { Section } from '@/components/marketing/section'
 import { SectionHeading } from '@/components/marketing/section-heading'
+import { cn } from '@/utils/cn'
 import { ReactNode } from 'react'
-import { BlueA } from '../common/blue-a'
 
 function TierItem({ children }: { children: ReactNode }) {
 	return (
-		<div className="text-black dark:text-white rounded border border-zinc-300 dark:border-zinc-300">
+		<div
+			className={cn(
+				'text-black dark:text-white',
+				'p-2 border border-zinc-300 dark:border-zinc-800 rounded-md'
+			)}
+		>
 			{children}
 		</div>
 	)
@@ -26,7 +31,16 @@ function TierFeature({ children }: { children: ReactNode }) {
 function TierLink({ children, href }: { children: ReactNode; href: string }) {
 	return (
 		<p className="m-3">
-			<BlueA href={href}>{children}</BlueA>
+			<a href={href} className="text-blue-500 hover:text-blue-600">
+				{children}
+			</a>
+			{/* <a
+				href={href}
+				className="border rounded-md px-3 py-2 w-full border-blue-500 hover:border-blue-600 text-blue-500 hover:text-blue-600"
+			>
+				{children}
+				<ArrowRightIcon className="ml-2 inline h-[16px]" />
+			</a> */}
 		</p>
 	)
 }
@@ -51,26 +65,26 @@ export function PricingSection() {
 			<div className="flex flex-col max-w-full w-[680px] mx-auto px-5">
 				<TierItem>
 					<TierTitle>Startup Lite</TierTitle>
-					<TierDescription>$6000/year, paid annually.</TierDescription>
-					<TierFeature>For companies with 10 or fewer people.</TierFeature>
+					<TierDescription>$6000 for one year license.</TierDescription>
+					<TierFeature>For companies with less than 10 people.</TierFeature>
 					<TierFeature>Includes a license key to remove our watermark.</TierFeature>
 					<TierLink href="/buy/startup-lite">Contact us</TierLink>
 				</TierItem>
 				<div className="py-3" />
 				<TierItem>
 					<TierTitle>Startup</TierTitle>
-					<TierDescription>$12000/year, paid annually.</TierDescription>
-					<TierFeature>For companies with 10 or fewer people.</TierFeature>
-					<TierFeature>Up to two hours of support per month.</TierFeature>
+					<TierDescription>$12000 for one year license.</TierDescription>
+					<TierFeature>For companies with less than 10 people.</TierFeature>
 					<TierFeature>Includes a license key to remove our watermark.</TierFeature>
+					<TierFeature>Up to two hours of support per month.</TierFeature>
 					<TierLink href="/buy/startup">Contact us</TierLink>
 				</TierItem>
 				<div className="py-3" />
 				<TierItem>
 					<TierTitle>Business</TierTitle>
-					<TierDescription>For teams of any size.</TierDescription>
-					<TierFeature>Includes a license key to remove our watermark.</TierFeature>
+					<TierDescription>For companies of any size.</TierDescription>
 					<TierFeature>Custom pricing, agreements, support, and more.</TierFeature>
+					<TierFeature>Includes a license key to remove our watermark.</TierFeature>
 					<TierLink href="/buy/business">Contact us</TierLink>
 				</TierItem>
 				<TierListSeparator />
