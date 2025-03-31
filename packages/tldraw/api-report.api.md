@@ -139,6 +139,15 @@ import { VecLike } from '@tldraw/editor';
 import { VecModel } from '@tldraw/editor';
 
 // @public (undocumented)
+export type A11yPriority = 'assertive' | 'polite';
+
+// @public (undocumented)
+export interface A11yProviderProps {
+    // (undocumented)
+    children: React.ReactNode;
+}
+
+// @public (undocumented)
 export interface ActionsProviderProps {
     // (undocumented)
     children: React_2.ReactNode;
@@ -682,6 +691,9 @@ export const DEFAULT_MAX_ASSET_SIZE: number;
 export const DEFAULT_MAX_IMAGE_DIMENSION = 5000;
 
 // @public (undocumented)
+export const DefaultA11yAnnouncer: NamedExoticComponent<object>;
+
+// @public (undocumented)
 export const DefaultActionsMenu: NamedExoticComponent<TLUiActionsMenuProps>;
 
 // @public (undocumented)
@@ -904,6 +916,8 @@ export class DrawShapeTool extends StateNode {
     onExit(): void;
     // (undocumented)
     shapeType: string;
+    // (undocumented)
+    static useCoalescedEvents: boolean;
 }
 
 // @public (undocumented)
@@ -1465,6 +1479,8 @@ export class HighlightShapeTool extends StateNode {
     onExit(): void;
     // (undocumented)
     shapeType: string;
+    // (undocumented)
+    static useCoalescedEvents: boolean;
 }
 
 // @public (undocumented)
@@ -2460,6 +2476,9 @@ export function TldrawShapeIndicators(): JSX_2.Element;
 export const TldrawUi: React_3.NamedExoticComponent<TldrawUiProps>;
 
 // @public (undocumented)
+export function TldrawUiA11yProvider({ children }: A11yProviderProps): JSX_2.Element;
+
+// @public (undocumented)
 export const TldrawUiButton: React_2.ForwardRefExoticComponent<TLUiButtonProps & React_2.RefAttributes<HTMLButtonElement>>;
 
 // @public (undocumented)
@@ -2661,6 +2680,22 @@ export interface TLTypeFace {
 }
 
 // @public (undocumented)
+export interface TLUiA11y {
+    // (undocumented)
+    msg: string | undefined;
+    // (undocumented)
+    priority?: A11yPriority;
+}
+
+// @public (undocumented)
+export interface TLUiA11yContextType {
+    // (undocumented)
+    announce(msg: TLUiA11y): void;
+    // (undocumented)
+    currentMsg: Atom<TLUiA11y>;
+}
+
+// @public (undocumented)
 export interface TLUiActionItem<TransationKey extends string = string, IconType extends string = string> {
     // (undocumented)
     checkbox?: boolean;
@@ -2695,7 +2730,7 @@ export type TLUiAssetUrlOverrides = RecursivePartial<TLUiAssetUrls>;
 // @public (undocumented)
 export interface TLUiAssetUrls extends TLEditorAssetUrls {
     // (undocumented)
-    embedIcons: Record<(typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'], string>;
+    embedIcons: Partial<Record<(typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'], string>>;
     // (undocumented)
     icons: Record<Exclude<string, TLUiIconType> | TLUiIconType, string>;
     // (undocumented)
@@ -2756,6 +2791,8 @@ export interface TLUiButtonProps extends React_2.HTMLAttributes<HTMLButtonElemen
 
 // @public (undocumented)
 export interface TLUiComponents {
+    // (undocumented)
+    A11y?: ComponentType | null;
     // (undocumented)
     ActionsMenu?: ComponentType<TLUiActionsMenuProps> | null;
     // (undocumented)
@@ -4132,6 +4169,9 @@ export function UnlockAllMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function unwrapLabel(label?: TLUiActionItem['label'], menuType?: string): string | undefined;
+
+// @public (undocumented)
+export function useA11y(): TLUiA11yContextType;
 
 // @public (undocumented)
 export function useActions(): TLUiActionsContextType;

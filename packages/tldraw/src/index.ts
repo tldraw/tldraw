@@ -2,6 +2,7 @@
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
 export { usePrefersReducedMotion } from './lib/shapes/shared/usePrefersReducedMotion'
+export { DefaultA11yAnnouncer } from './lib/ui/components/A11y'
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
 export { DefaultDialogs } from './lib/ui/components/Dialogs'
 export { DefaultToasts } from './lib/ui/components/Toasts'
@@ -17,8 +18,6 @@ export {
 	TldrawUiMenuToolItem,
 	type TLUiMenuToolItemProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuToolItem'
-export { TldrawUiDialogsProvider, type TLUiDialogsProviderProps } from './lib/ui/context/dialogs'
-export { TldrawUiToastsProvider, type TLUiToastsProviderProps } from './lib/ui/context/toasts'
 export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
@@ -440,6 +439,14 @@ export {
 	type TLUiContextProviderProps,
 } from './lib/ui/context/TldrawUiContextProvider'
 export {
+	TldrawUiA11yProvider,
+	useA11y,
+	type A11yPriority,
+	type A11yProviderProps,
+	type TLUiA11y,
+	type TLUiA11yContextType,
+} from './lib/ui/context/a11y'
+export {
 	unwrapLabel,
 	useActions,
 	type ActionsProviderProps,
@@ -459,10 +466,12 @@ export {
 	type TLUiComponentsProviderProps,
 } from './lib/ui/context/components'
 export {
+	TldrawUiDialogsProvider,
 	useDialogs,
 	type TLUiDialog,
 	type TLUiDialogProps,
 	type TLUiDialogsContextType,
+	type TLUiDialogsProviderProps,
 } from './lib/ui/context/dialogs'
 export {
 	TldrawUiEventsProvider,
@@ -475,11 +484,13 @@ export {
 	type TLUiEventSource,
 } from './lib/ui/context/events'
 export {
+	TldrawUiToastsProvider,
 	useToasts,
 	type AlertSeverity,
 	type TLUiToast,
 	type TLUiToastAction,
 	type TLUiToastsContextType,
+	type TLUiToastsProviderProps,
 } from './lib/ui/context/toasts'
 export { useCanRedo, useCanUndo } from './lib/ui/hooks/menu-hooks'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'

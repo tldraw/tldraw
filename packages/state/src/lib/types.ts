@@ -54,7 +54,9 @@ export interface Child {
 	readonly parentSet: ArraySet<Signal<any, any>>
 	readonly parents: Signal<any, any>[]
 	readonly parentEpochs: number[]
+	readonly name: string
 	isActivelyListening: boolean
+	__debug_ancestor_epochs__: Map<Signal<any, any>, number> | null
 }
 
 /**
