@@ -15,7 +15,6 @@ const DEBUGGING = false
 type NewsletterSignupStatus = 'not-subscribed' | 'subscribed'
 
 export function NewsletterSignup({
-	bg = true,
 	size = 'large',
 	hideAfterSubmit = true,
 }: {
