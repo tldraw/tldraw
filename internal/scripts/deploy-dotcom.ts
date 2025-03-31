@@ -351,7 +351,7 @@ async function deployZero() {
 
 	const result = await exec('yarn', ['sst', 'deploy', '--stage', stage, '--verbose'])
 	const line = result.split('\n').filter((l) => l.includes('view-syncer: http'))[0]
-	const url = line.split(':')[1].trim()
+	const url = line.split(': ')[1].trim()
 	if (!url || url.length === 0) {
 		throw new Error('Could not find view-syncer URL in SST output ' + result)
 	}
