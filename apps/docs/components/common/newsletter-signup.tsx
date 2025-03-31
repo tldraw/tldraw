@@ -76,7 +76,7 @@ export function NewsletterSignup({
 	return (
 		<div
 			className={cn(
-				bg ? 'bg-zinc-50 dark:bg-zinc-900' : 'bg-transparent',
+				'bg-transparent',
 				size === 'small' ? 'mt-12 rounded-lg text-xs xl:-ml-4 p-4 pb-1' : 'rounded-xl text-center'
 			)}
 		>

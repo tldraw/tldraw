@@ -14,7 +14,7 @@ import { usePathname } from 'next/navigation'
 const icons = {
 	'all-posts': RectangleStackIcon,
 	announcements: MegaphoneIcon,
-	customers: RocketLaunchIcon,
+	'case-studies': RocketLaunchIcon,
 	product: TldrawIcon,
 	'release-notes': TagIcon,
 }

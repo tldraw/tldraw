@@ -18,7 +18,8 @@ export function BlogPostPage({ article }: { article: Article }) {
 			<main className="relative w-full px-5 py-24 shrink md:overflow-x-hidden md:pr-0 lg:pl-12 xl:pr-12 md:pt-0">
 				<BlogPostHeader article={article} />
 				<Content mdx={article.content ?? ''} type={article.sectionId} />
-				<section className="py-16 mt-16 border-t border-zinc-100">
+				<section className="pt-24 pb-16 mt-16 flex flex-col">
+					<h4 className="text-center text-md font-bold pb-3">Subscribe to our mailing list</h4>
 					<NewsletterSignup />
 				</section>
 			</main>

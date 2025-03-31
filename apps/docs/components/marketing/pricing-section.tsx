@@ -63,6 +63,7 @@ export function PricingSection() {
 				description="Use the SDK free with our watermark or purchase a license to hide it. Small team? Small price."
 			/>
 			<div className="flex flex-col max-w-full w-[680px] mx-auto px-5">
+				<p></p>
 				<TierItem>
 					<TierTitle>Startup Lite</TierTitle>
 					<TierDescription>$6000 for one year license.</TierDescription>
