@@ -10,7 +10,11 @@ export default $config({
 			home: 'aws',
 			region: process.env.AWS_REGION || 'eu-north-1',
 			providers: {
-				aws: {},
+				aws: process.env.CI
+					? {}
+					: {
+							profile: 'preview',
+						},
 				command: true,
 			},
 		}
