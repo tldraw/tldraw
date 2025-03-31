@@ -112,3 +112,6 @@ license-report.html
 
 # sst
 .sst
+
+.aws/*
+!.aws/config
