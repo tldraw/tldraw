@@ -1,14 +1,15 @@
 import {
 	Arc2d,
-	Geometry2d,
 	Group2d,
 	StateNode,
 	TLArrowShape,
 	TLPointerEventInfo,
 	TLShapeId,
 	Vec,
+	exhaustiveSwitchError,
 	getPointInArcT,
 } from '@tldraw/editor'
+import { uninterpolateAlongElbowArrowRoute } from '../../../shapes/arrow/elbow/interpolateAlongElbowArrowRoute'
 import { getArrowInfo } from '../../../shapes/arrow/shared'
 
 export class PointingArrowLabel extends StateNode {
@@ -91,26 +92,43 @@ export class PointingArrowLabel extends StateNode {
 
 		const info = getArrowInfo(this.editor, shape)!
 
-		const groupGeometry = this.editor.getShapeGeometry<Group2d>(shape)
-		const bodyGeometry = groupGeometry.children[0] as Geometry2d
-		const pointInShapeSpace = this.editor.getPointInShapeSpace(
-			shape,
-			this.editor.inputs.currentPagePoint
-		)
-		const nearestPoint = bodyGeometry.nearestPoint(
-			Vec.Add(pointInShapeSpace, this._labelDragOffset)
-		)
+		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
+		const pointInShapeSpace = this.editor
+			.getPointInShapeSpace(shape, this.editor.inputs.currentPagePoint)
+			.add(this._labelDragOffset)
 
 		let nextLabelPosition
-		// TODO #elbow-arrow - proper label position
-		if (info.type === 'straight' || info.type === 'elbow') {
-			// straight arrows
-			const lineLength = Vec.Dist(info.start.point, info.end.point)
-			const segmentLength = Vec.Dist(info.end.point, nearestPoint)
-			nextLabelPosition = 1 - segmentLength / lineLength
-		} else {
-			const { _center, measure, angleEnd, angleStart } = groupGeometry.children[0] as Arc2d
-			nextLabelPosition = getPointInArcT(measure, angleStart, angleEnd, _center.angle(nearestPoint))
+		switch (info.type) {
+			case 'straight': {
+				const nearestPoint = geometry.nearestPoint(pointInShapeSpace, {
+					includeInternal: false,
+					includeLabels: false,
+				})
+				const lineLength = Vec.Dist(info.start.point, info.end.point)
+				const segmentLength = Vec.Dist(info.end.point, nearestPoint)
+				nextLabelPosition = 1 - segmentLength / lineLength
+				break
+			}
+			case 'arc': {
+				const nearestPoint = geometry.nearestPoint(pointInShapeSpace, {
+					includeInternal: false,
+					includeLabels: false,
+				})
+				const { _center, measure, angleEnd, angleStart } = geometry.children[0] as Arc2d
+				nextLabelPosition = getPointInArcT(
+					measure,
+					angleStart,
+					angleEnd,
+					_center.angle(nearestPoint)
+				)
+				break
+			}
+			case 'elbow': {
+				nextLabelPosition = uninterpolateAlongElbowArrowRoute(info.route, pointInShapeSpace)
+				break
+			}
+			default:
+				exhaustiveSwitchError(info, 'type')
 		}
 
 		if (isNaN(nextLabelPosition)) {

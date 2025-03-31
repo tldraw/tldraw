@@ -28,6 +28,7 @@ import {
 } from '../shared/default-shape-constants'
 import { getArrowLength } from './ArrowShapeUtil'
 import { TLArcArrowInfo, TLStraightArrowInfo } from './arrow-types'
+import { interpolateAlongElbowArrowRoute } from './elbow/interpolateAlongElbowArrowRoute'
 import { getArrowInfo } from './shared'
 
 const labelSizeCache = createComputedCache(
@@ -308,8 +309,7 @@ export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
 			break
 		}
 		case 'elbow': {
-			// TODO #elbow-arrow
-			labelCenter = Vec.Lrp(info.start.point, info.end.point, 0.5)
+			labelCenter = interpolateAlongElbowArrowRoute(info.route, shape.props.labelPosition)
 			break
 		}
 		default:
