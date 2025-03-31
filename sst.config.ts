@@ -10,9 +10,7 @@ export default $config({
 			home: 'aws',
 			region: process.env.AWS_REGION || 'eu-north-1',
 			providers: {
-				aws: {
-					profile: process.env.TLDRAW_ENV ?? 'preview',
-				},
+				aws: {},
 				command: true,
 			},
 		}

@@ -15,6 +15,7 @@ env:
   CI: 1
   PRINT_GITHUB_ANNOTATIONS: 1
   TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
+  AWS_ACCOUNT_NUMBER: ${{ (github.ref == 'refs/heads/production' && '892899106134') || (github.ref == 'refs/heads/main' && '028814013491') || '571248596162'  }}
   AWS_REGION: 'eu-north-1'
 defaults:
   run:
@@ -73,7 +74,7 @@ jobs:
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::571248596162:role/huppy-bot
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_NUMBER }}:role/huppy-bot
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy
