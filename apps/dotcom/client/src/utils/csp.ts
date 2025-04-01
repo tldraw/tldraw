@@ -1,5 +1,3 @@
-import { ZERO_SERVER } from './config'
-
 export const cspDirectives: { [key: string]: string[] } = {
 	'default-src': [`'self'`],
 	'connect-src': [
@@ -20,7 +18,9 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://clerk.tldraw.com',
 		'https://clerk.staging.tldraw.com',
 		// zero
-		ZERO_SERVER,
+		'https://*.zero.tldraw.com',
+		'https://zero.tldraw.com',
+		'http://localhost:4848',
 	],
 	'font-src': [`'self'`, `https://fonts.googleapis.com`, `https://fonts.gstatic.com`, 'data:'],
 	'frame-src': [`https:`],
