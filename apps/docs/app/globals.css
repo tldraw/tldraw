@@ -101,12 +101,11 @@ div.hs-fieldtype-textarea {
 }
 
 mark {
-	margin: 0 -0.4em;
-	padding: 0.1em 0.4em;
-	background: transparent;
+	margin: -1px -1px;
+	padding: 1px 1px;
+	border-radius: 3px;
+	background: #ffc80046;
 	color: inherit;
-	text-decoration: underline;
-	text-decoration-color: #ffc700;
 	-webkit-box-decoration-break: clone;
 	box-decoration-break: clone;
 }

@@ -1,6 +1,9 @@
 import { Section } from '@/components/marketing/section'
+import { CheckBadgeIcon } from '@heroicons/react/24/solid'
 import { BlueA } from '../common/blue-a'
+import { RequestForm } from './request-form'
 import { SectionSubtitle } from './section-description'
+import { SectionProse } from './section-prose'
 import { SectionTitle } from './section-title'
 
 export function PricingSection() {
@@ -11,39 +14,46 @@ export function PricingSection() {
 				Get started for free with our watermark. Purchase a license to hide it. Small team? Small
 				price.
 			</SectionSubtitle>
-			<div className="flex flex-col max-w-full w-[680px] mx-auto px-5 text-black dark:text-white gap-5">
+			<SectionProse>
+				<h3 className="font-bold">Free</h3>
 				<p>
-					<b>You can use tldraw SDK for free</b>, including in commercial applications, so long as
-					the &quot;made with tldraw&quot; watermark is present on the canvas. The watermark
-					captures anonymous data about where it is used. For more information, see our{' '}
+					You can use the tldraw SDK for free, including in commercial applications, so long as the
+					&quot;made with tldraw&quot; watermark is present on the canvas. The watermark captures
+					anonymous data about where it is used. For more information, see our{' '}
 					<BlueA href="/legal/tldraw-license">default license</BlueA>.
 				</p>
-				<div className="w-full flex justify-center">
-					<hr className="w-full max-w-[100px]" />
-				</div>
-				<p>To use the tldraw SDK without the watermark, you can purchase a license plan.</p>
-				<ul className="flex flex-col gap-5 list-disc pl-4">
-					<li>
-						<b>Individuals and companies of ten people or fewer</b> can purchase our{' '}
-						<BlueA href="/buy/startup-lite">Startup plan</BlueA> for a flat $6,000 per year.
-					</li>
-					<li>
-						<b>Companies with more than ten people</b> can purchase a{' '}
-						<BlueA href="/buy/business">Business</BlueA> plan. This plan&apos;s features and its
-						pricing can be adjusted to fit your needs.
-					</li>
-				</ul>
+				<hr className="my-2" />
 				<p>
-					Both plans include a{' '}
+					To use the tldraw SDK without the watermark, you can purchase a license. You will receive
+					a{' '}
 					<BlueA href="https://tldraw.notion.site/License-keys-in-tldraw-e5e8566857f64a709ef23ab30336e66c">
 						license key
 					</BlueA>{' '}
-					that will hide the watermark on your domain.
+					that will hide the watermark on your domains.
 				</p>
+				<h3 className="font-bold">Startup</h3>
 				<p>
-					If you have questions, see the <BlueA href="#pricing">FAQ section</BlueA> or{' '}
-					<BlueA href="mailto:sales@tldraw.com">contact us</BlueA>.
+					Individuals and companies of ten people or fewer can purchase our{' '}
+					<BlueA href="/buy/startup-lite">startup plan</BlueA> for $6,000 per year.
 				</p>
+				<h3 className="font-bold">Business</h3>
+				<p>
+					Companies with more than ten people can purchase a{' '}
+					<BlueA href="/buy/business">business</BlueA> plan. This plan&apos;s features and its
+					pricing can be adjusted to fit your needs.
+				</p>
+			</SectionProse>
+			<div className="mt-16 py-1 md:rounded-2xl md:mx-auto md:px-1 bg-zinc-200 dark:bg-zinc-800 w-full max-w-2xl">
+				<div className="relative w-full h-full bg-zinc-900 md:rounded-xl shadow p-5 md:p-8 overflow-hidden text-zinc-300">
+					<div className="flex items-center gap-1 mb-4 -mt-1">
+						<h3 className="text-white font-black text-xl md:text-2xl">Get in touch</h3>
+						<CheckBadgeIcon className="h-6 shrink-0 text-blue-400" />
+					</div>
+					<p className="pr-8">
+						Interested in purchasing a license for the tldraw SDK? Please fill out our form.
+					</p>
+					<RequestForm form="general" />
+				</div>
 			</div>
 		</Section>
 	)

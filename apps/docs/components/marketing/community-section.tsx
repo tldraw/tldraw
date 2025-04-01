@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Icon, IconName } from '../common/icon'
+import { NewsletterSignup } from '../common/newsletter-signup'
 import { Section } from './section'
 import { SectionSubtitle } from './section-description'
 import { SectionTitle } from './section-title'
@@ -9,16 +10,19 @@ const socialLinks = [
 		caption: 'Twitter',
 		icon: 'twitter' as IconName,
 		href: 'https://x.com/tldraw/',
+		stat: '66K+',
 	},
 	{
 		caption: 'Discord',
 		icon: 'discord' as IconName,
 		href: 'https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink',
+		stat: '8K+',
 	},
 	{
 		caption: 'GitHub',
 		icon: 'github' as IconName,
 		href: 'https://github.com/tldraw/tldraw',
+		stat: '39K+',
 	},
 ]
 
@@ -26,14 +30,7 @@ export function CommunitySection() {
 	return (
 		<Section id="community">
 			<SectionTitle>Join the Community</SectionTitle>
-			<SectionSubtitle>
-				39K <Link href="https://github.com/tldraw">GitHub stars</Link>. 66K followers on{' '}
-				<Link href="https://x.com/tldraw">Twitter/X</Link>. Join 8K drawheads in our community on{' '}
-				<Link href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink">
-					Discord
-				</Link>
-				.{' '}
-			</SectionSubtitle>
+			<SectionSubtitle>Get help, get inspiration, and talk to the team.</SectionSubtitle>
 			<ul className="flex gap-6 items-center justify-center">
 				{socialLinks.map((item, index) => (
 					<li key={index}>
@@ -63,6 +60,10 @@ export function CommunitySection() {
 					))}
 				</div>
 			</div> */}
+			<div className="h-[64px] md:h-[64px]" />
+			<div className="w-full px-5">
+				<NewsletterSignup bg={false} hideAfterSubmit={false} />
+			</div>
 		</Section>
 	)
 }
@@ -139,14 +140,33 @@ const _testimonials: {
 	},
 ]
 
-function SocialLink({ caption, icon, href }: { caption: string; icon: IconName; href: string }) {
+function SocialLink({
+	caption,
+	icon,
+	stat,
+	href,
+}: {
+	caption: string
+	icon: IconName
+	href: string
+	stat: string
+}) {
 	return (
-		<Link href={href} target="_blank" rel="noreferrer">
+		<Link href={href} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-2">
 			<span className="sr-only">{caption}</span>
 			<Icon
 				icon={icon}
 				className="h-10 text-black dark:text-white hover:text-zinc-600 dark:hover:text-zinc-100"
 			/>
+			<p>{stat}</p>
 		</Link>
 	)
 }
+
+// 39K{' '}
+// 				<Link href="https://github.com/tldraw">GitHub stars</Link>. 66K followers on{' '}
+// 				<Link href="https://x.com/tldraw">Twitter/X</Link>. Join 8K drawheads in our community on{' '}
+// 				<Link href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink">
+// 					Discord
+// 				</Link>
+// 				.{' '}

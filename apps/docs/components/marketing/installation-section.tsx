@@ -11,7 +11,7 @@ export function InstallationSection() {
 			<SectionSubtitle>
 				Get the full tldraw canvas as a React component. Extend, customize, and develop on top.
 			</SectionSubtitle>
-			<div className="flex flex-col items-center gap-8 mx-auto mt-8 md:max-w-2xl">
+			<div className="flex flex-col items-center gap-8 mx-auto mt-8 w-full max-w-2xl px-5">
 				<CodeFiles files={[code.terminal]} hideTabs className="w-full my-0" />
 				<CodeFiles files={[code.app]} className="w-full my-0" />
 				<div className="flex gap-4 flex-wrap items-center justify-center px-4">

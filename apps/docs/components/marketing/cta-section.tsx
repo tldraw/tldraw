@@ -38,6 +38,11 @@ export function CTASection() {
 						caption="Read the quick start guide"
 						type="black"
 					/>
+					<Button
+						id="hero-discord"
+						href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink"
+						caption="Join the Discord"
+					/>
 				</div>
 			</div>
 		</Section>
