@@ -173,7 +173,7 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 	const allowIfFileOwner = (authData: AuthData, { cmp }: ExpressionBuilder<TlaSchema, 'file'>) =>
 		cmp('ownerId', '=', authData.sub!)
 
-	const allowIfIsUserId = (
+	const allowIfIsUserIdMatches = (
 		authData: AuthData,
 		{ cmp }: ExpressionBuilder<TlaSchema, 'file_state'>
 	) => cmp('userId', '=', authData.sub!)
@@ -235,13 +235,13 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 		},
 		file_state: {
 			row: {
-				select: [allowIfIsUserId],
-				insert: [allowIfIsUserId],
+				select: [allowIfIsUserIdMatches],
+				insert: [allowIfIsUserIdMatches],
 				update: {
-					preMutation: [allowIfIsUserId],
-					postMutation: [allowIfIsUserId],
+					preMutation: [allowIfIsUserIdMatches],
+					postMutation: [allowIfIsUserIdMatches],
 				},
-				delete: [allowIfIsUserId],
+				delete: [allowIfIsUserIdMatches],
 			},
 			cell: {
 				isFileOwner: NO_UPDATE,
