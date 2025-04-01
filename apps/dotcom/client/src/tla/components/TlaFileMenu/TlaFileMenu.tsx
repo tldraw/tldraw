@@ -128,7 +128,7 @@ export function FileItems({
 		})
 		// copy the state too
 		const prevState = app.getFileState(fileId)
-		app.getOrCreateFileState(newFileId)
+		app.createFileStateIfNotExists(newFileId)
 		app.updateFileState(newFileId, {
 			lastSessionState: prevState?.lastSessionState,
 		})

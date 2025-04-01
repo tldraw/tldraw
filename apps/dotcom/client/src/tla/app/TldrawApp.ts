@@ -317,13 +317,14 @@ export class TldrawApp {
 
 		for (const fileId of myFileIds) {
 			const file = myFiles[fileId]
-			let state = myStates[fileId]
+			let state: (typeof myStates)[string] | undefined = myStates[fileId]
 			if (!file) continue
 			if (!state && !file.isDeleted && file.ownerId === this.userId) {
 				// create a file state for this file
 				// this allows us to 'undelete' soft-deleted files by manually toggling 'isDeleted' in the backend
-				state = this.getOrCreateFileState(fileId)
-			} else if (!state) {
+				state = this.fileStates$.get().find((fs) => fs.fileId === fileId)
+			}
+			if (!state) {
 				// if the file is deleted, we don't want to show it in the recent files
 				continue
 			}
@@ -407,7 +408,7 @@ export class TldrawApp {
 		}
 		this.z.mutateBatch((tx) => {
 			tx.file.upsert(file)
-			tx.file_state.insert({
+			tx.file_state.upsert({
 				isFileOwner: true,
 				fileId: file.id,
 				userId: this.userId,
@@ -609,8 +610,9 @@ export class TldrawApp {
 		this.updateUser(exportPreferences)
 	}
 
-	getOrCreateFileState(fileId: string) {
-		let fileState = this.getFileState(fileId)
+	async createFileStateIfNotExists(fileId: string) {
+		await this.changesFlushed
+		const fileState = this.getFileState(fileId)
 		if (!fileState) {
 			const fs: TlaFileState = {
 				fileId,
@@ -624,14 +626,8 @@ export class TldrawApp {
 				// overwritten by postgres
 				isFileOwner: this.isFileOwner(fileId),
 			}
-			this.z.mutate.file_state.insert(fs)
-			fileState = {
-				...fs,
-				file: this.getFile(fileId)!,
-			}
+			this.z.mutate.file_state.upsert(fs)
 		}
-		if (!fileState) throw Error('could not create file state')
-		return fileState
 	}
 
 	getFileState(fileId: string) {
@@ -644,8 +640,8 @@ export class TldrawApp {
 		this.z.mutate.file_state.update({ ...partial, fileId, userId: fileState.userId })
 	}
 
-	onFileEnter(fileId: string) {
-		this.getOrCreateFileState(fileId)
+	async onFileEnter(fileId: string) {
+		await this.createFileStateIfNotExists(fileId)
 		this.updateFileState(fileId, {
 			lastVisitAt: Date.now(),
 		})
