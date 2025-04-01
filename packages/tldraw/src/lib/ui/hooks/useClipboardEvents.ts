@@ -479,7 +479,10 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 
 			// If the html is NOT a link, and we have NO OTHER texty content, then paste the html as text
 			if (!results.some((r) => r.type === 'text' && r.subtype !== 'html') && result.data.trim()) {
-				handleText(editor, stripHtml(result.data) ?? ' ', point, results)
+				const html = stripHtml(result.data) ?? ''
+				if (html) {
+					handleText(editor, stripHtml(result.data), point, results)
+				}
 				return
 			}
 
