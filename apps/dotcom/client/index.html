@@ -27,8 +27,8 @@
 				}
 			}
 		</script>
-		<script>
-			if (typeof process.env.TLDRAW_ENV === 'string' && process.env.TLDRAW_ENV === 'development') {
+		<script type="module">
+			if (import.meta.env.MODE === 'development') {
 				fetch('/api/app/replicator-status').then(console.log).catch(console.error)
 			}
 		</script>
