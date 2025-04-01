@@ -1,6 +1,6 @@
 /* eslint-disable */
 /// <reference path="./.sst/platform/config.d.ts" />
-import { readFileSync, writeFileSync } from 'fs'
+import { readFileSync } from 'fs'
 
 const githubPrNumber = process.env.GITHUB_REF?.match(/refs\/pull\/(\d+)\/merge/)?.[1]
 
@@ -38,7 +38,6 @@ export default $config({
 	async run() {
 		const zeroVersion = JSON.parse(readFileSync('apps/dotcom/zero-cache/package.json').toString())
 			.dependencies['@rocicorp/zero']
-		console.log('Zero version:', zeroVersion)
 
 		// S3 Bucket
 		const replicationBucket = new sst.aws.Bucket(`replication-bucket`)
@@ -69,7 +68,6 @@ export default $config({
 			ZERO_UPSTREAM_MAX_CONNS: '10',
 			ZERO_APP_PUBLICATIONS: 'zero_data',
 		}
-		writeFileSync('blah.env', JSON.stringify(commonEnv, null, 2))
 
 		// Replication Manager Service
 		const replicationManager = cluster.addService(`replication-manager`, {
