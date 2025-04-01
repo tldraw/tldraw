@@ -336,7 +336,7 @@ async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 }
 
 async function deployZero() {
-	if (process.env.DO_PREVIEW_SST_ZERO_DEPLOY !== 'true') {
+	if (process.env.TLDRAW_ENV === 'preview' && process.env.DO_PREVIEW_SST_ZERO_DEPLOY !== 'true') {
 		nicelog('Skipping SST zero deploy')
 		// TODO: use fly.io here
 		return 'https://skipped-zero-deploy.zero.tldraw.com'
