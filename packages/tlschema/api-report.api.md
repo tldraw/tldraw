@@ -5,6 +5,9 @@
 ```ts
 
 import { BaseRecord } from '@tldraw/store';
+import { BoxModel as BoxModel_2 } from '.';
+import { EnumStyleProp as EnumStyleProp_2 } from './StyleProp';
+import { EnumStyleProp as EnumStyleProp_3 } from '../styles/StyleProp';
 import { Expand } from '@tldraw/utils';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
@@ -13,6 +16,7 @@ import { MakeUndefinedOptional } from '@tldraw/utils';
 import { MigrationId } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
+import { RecordProps as RecordProps_2 } from './recordsWithProps';
 import { RecordType } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { Signal } from '@tldraw/state';
@@ -22,19 +26,37 @@ import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { StoreValidator } from '@tldraw/store';
 import { T } from '@tldraw/validate';
+import { TLArrowBinding as TLArrowBinding_2 } from './bindings/TLArrowBinding';
+import { TLArrowShape as TLArrowShape_2 } from './shapes/TLArrowShape';
+import { TLBookmarkShape as TLBookmarkShape_2 } from './shapes/TLBookmarkShape';
+import { TLDrawShape as TLDrawShape_2 } from './shapes/TLDrawShape';
+import { TLEmbedShape as TLEmbedShape_2 } from './shapes/TLEmbedShape';
+import { TLFrameShape as TLFrameShape_2 } from './shapes/TLFrameShape';
+import { TLGeoShape as TLGeoShape_2 } from './shapes/TLGeoShape';
+import { TLGroupShape as TLGroupShape_2 } from './shapes/TLGroupShape';
+import { TLHighlightShape as TLHighlightShape_2 } from './shapes/TLHighlightShape';
+import { TLImageShape as TLImageShape_2 } from './shapes/TLImageShape';
+import { TLLineShape as TLLineShape_2 } from './shapes/TLLineShape';
+import { TLNoteShape as TLNoteShape_2 } from './shapes/TLNoteShape';
+import { TLPageId as TLPageId_2 } from '.';
+import { TLPropsMigrations as TLPropsMigrations_2 } from '../recordsWithProps';
+import { TLScribble as TLScribble_2 } from '.';
+import { TLShapeId as TLShapeId_2 } from '.';
+import { TLTextShape as TLTextShape_2 } from './shapes/TLTextShape';
+import { TLVideoShape as TLVideoShape_2 } from './shapes/TLVideoShape';
 import { UnknownRecord } from '@tldraw/store';
 
 // @public (undocumented)
-export const arrowBindingMigrations: TLPropsMigrations;
+export const arrowBindingMigrations: TLPropsMigrations_2;
 
 // @public (undocumented)
 export const arrowBindingProps: RecordProps<TLArrowBinding>;
 
 // @public (undocumented)
-export const ArrowShapeArrowheadEndStyle: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
+export const ArrowShapeArrowheadEndStyle: EnumStyleProp_3<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
 
 // @public (undocumented)
-export const ArrowShapeArrowheadStartStyle: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
+export const ArrowShapeArrowheadStartStyle: EnumStyleProp_3<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
 
 // @public (undocumented)
 export const arrowShapeMigrations: MigrationSequence;
@@ -58,7 +80,7 @@ export const assetValidator: T.Validator<TLAsset>;
 export const bindingIdValidator: T.Validator<TLBindingId>;
 
 // @public (undocumented)
-export const bookmarkShapeMigrations: TLPropsMigrations;
+export const bookmarkShapeMigrations: TLPropsMigrations_2;
 
 // @public (undocumented)
 export const bookmarkShapeProps: RecordProps<TLBookmarkShape>;
@@ -149,7 +171,7 @@ export function createTLSchema({ shapes, bindings, migrations, }?: {
 export const defaultBindingSchemas: {
     arrow: {
         migrations: TLPropsMigrations;
-        props: RecordProps<TLArrowBinding>;
+        props: RecordProps_2<TLArrowBinding_2>;
     };
 };
 
@@ -157,7 +179,7 @@ export const defaultBindingSchemas: {
 export const defaultColorNames: readonly ["black", "grey", "light-violet", "violet", "blue", "light-blue", "yellow", "orange", "green", "light-green", "light-red", "red", "white"];
 
 // @public (undocumented)
-export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
+export const DefaultColorStyle: EnumStyleProp_2<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
 
 // @public (undocumented)
 export const DefaultColorThemePalette: {
@@ -166,10 +188,10 @@ export const DefaultColorThemePalette: {
 };
 
 // @public (undocumented)
-export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
+export const DefaultDashStyle: EnumStyleProp_2<"dashed" | "dotted" | "draw" | "solid">;
 
 // @public (undocumented)
-export const DefaultFillStyle: EnumStyleProp<"fill" | "none" | "pattern" | "semi" | "solid">;
+export const DefaultFillStyle: EnumStyleProp_2<"fill" | "none" | "pattern" | "semi" | "solid">;
 
 // @public (undocumented)
 export const DefaultFontFamilies: {
@@ -180,87 +202,87 @@ export const DefaultFontFamilies: {
 };
 
 // @public (undocumented)
-export const DefaultFontStyle: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
+export const DefaultFontStyle: EnumStyleProp_2<"draw" | "mono" | "sans" | "serif">;
 
 // @public (undocumented)
-export const DefaultHorizontalAlignStyle: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
+export const DefaultHorizontalAlignStyle: EnumStyleProp_2<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
 
 // @public (undocumented)
 export const defaultShapeSchemas: {
     arrow: {
         migrations: MigrationSequence;
-        props: RecordProps<TLArrowShape>;
+        props: RecordProps_2<TLArrowShape_2>;
     };
     bookmark: {
         migrations: TLPropsMigrations;
-        props: RecordProps<TLBookmarkShape>;
+        props: RecordProps_2<TLBookmarkShape_2>;
     };
     draw: {
         migrations: TLPropsMigrations;
-        props: RecordProps<TLDrawShape>;
+        props: RecordProps_2<TLDrawShape_2>;
     };
     embed: {
         migrations: TLPropsMigrations;
-        props: RecordProps<TLEmbedShape>;
+        props: RecordProps_2<TLEmbedShape_2>;
     };
     frame: {
         migrations: TLPropsMigrations;
-        props: RecordProps<TLFrameShape>;
+        props: RecordProps_2<TLFrameShape_2>;
     };
     geo: {
         migrations: TLPropsMigrations;
-        props: RecordProps<TLGeoShape>;
+        props: RecordProps_2<TLGeoShape_2>;
     };
     group: {
         migrations: TLPropsMigrations;
-        props: RecordProps<TLGroupShape>;
+        props: RecordProps_2<TLGroupShape_2>;
     };
     highlight: {
         migrations: TLPropsMigrations;
-        props: RecordProps<TLHighlightShape>;
+        props: RecordProps_2<TLHighlightShape_2>;
     };
     image: {
         migrations: TLPropsMigrations;
-        props: RecordProps<TLImageShape>;
+        props: RecordProps_2<TLImageShape_2>;
     };
     line: {
         migrations: TLPropsMigrations;
-        props: RecordProps<TLLineShape>;
+        props: RecordProps_2<TLLineShape_2>;
     };
     note: {
         migrations: TLPropsMigrations;
-        props: RecordProps<TLNoteShape>;
+        props: RecordProps_2<TLNoteShape_2>;
     };
     text: {
         migrations: TLPropsMigrations;
-        props: RecordProps<TLTextShape>;
+        props: RecordProps_2<TLTextShape_2>;
     };
     video: {
         migrations: TLPropsMigrations;
-        props: RecordProps<TLVideoShape>;
+        props: RecordProps_2<TLVideoShape_2>;
     };
 };
 
 // @public (undocumented)
-export const DefaultSizeStyle: EnumStyleProp<"l" | "m" | "s" | "xl">;
+export const DefaultSizeStyle: EnumStyleProp_2<"l" | "m" | "s" | "xl">;
 
 // @public (undocumented)
-export const DefaultTextAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
+export const DefaultTextAlignStyle: EnumStyleProp_2<"end" | "middle" | "start">;
 
 // @public (undocumented)
-export const DefaultVerticalAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
+export const DefaultVerticalAlignStyle: EnumStyleProp_2<"end" | "middle" | "start">;
 
 // @public (undocumented)
 export const DocumentRecordType: RecordType<TLDocument, never>;
 
 // @public (undocumented)
-export const drawShapeMigrations: TLPropsMigrations;
+export const drawShapeMigrations: TLPropsMigrations_2;
 
 // @public (undocumented)
 export const drawShapeProps: RecordProps<TLDrawShape>;
 
 // @public (undocumented)
-export const embedShapeMigrations: TLPropsMigrations;
+export const embedShapeMigrations: TLPropsMigrations_2;
 
 // @public (undocumented)
 export const embedShapeProps: RecordProps<TLEmbedShape>;
@@ -274,16 +296,16 @@ export class EnumStyleProp<T> extends StyleProp<T> {
 }
 
 // @public (undocumented)
-export const frameShapeMigrations: TLPropsMigrations;
+export const frameShapeMigrations: TLPropsMigrations_2;
 
 // @public (undocumented)
 export const frameShapeProps: RecordProps<TLFrameShape>;
 
 // @public (undocumented)
-export const GeoShapeGeoStyle: EnumStyleProp<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
+export const GeoShapeGeoStyle: EnumStyleProp_3<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
 
 // @public (undocumented)
-export const geoShapeMigrations: TLPropsMigrations;
+export const geoShapeMigrations: TLPropsMigrations_2;
 
 // @public (undocumented)
 export const geoShapeProps: RecordProps<TLGeoShape>;
@@ -298,7 +320,7 @@ export function getDefaultTranslationLocale(): TLLanguage['locale'];
 
 // @public (undocumented)
 export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo): {
-    brush: BoxModel | null;
+    brush: BoxModel_2 | null;
     camera: {
         x: number;
         y: number;
@@ -306,7 +328,7 @@ export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo)
     };
     chatMessage: string;
     color: string;
-    currentPageId: TLPageId;
+    currentPageId: TLPageId_2;
     cursor: {
         rotation: number;
         type: string;
@@ -316,9 +338,9 @@ export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo)
     followingUserId: null | string;
     lastActivityTimestamp: number;
     meta: {};
-    screenBounds: BoxModel;
-    scribbles: TLScribble[];
-    selectedShapeIds: TLShapeId[];
+    screenBounds: BoxModel_2;
+    scribbles: TLScribble_2[];
+    selectedShapeIds: TLShapeId_2[];
     userId: string;
     userName: string;
 } | null;
@@ -327,13 +349,13 @@ export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo)
 export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>): Map<StyleProp<unknown>, string>;
 
 // @public (undocumented)
-export const groupShapeMigrations: TLPropsMigrations;
+export const groupShapeMigrations: TLPropsMigrations_2;
 
 // @public (undocumented)
 export const groupShapeProps: RecordProps<TLGroupShape>;
 
 // @public (undocumented)
-export const highlightShapeMigrations: TLPropsMigrations;
+export const highlightShapeMigrations: TLPropsMigrations_2;
 
 // @public (undocumented)
 export const highlightShapeProps: RecordProps<TLHighlightShape>;
@@ -345,7 +367,7 @@ export function idValidator<Id extends RecordId<UnknownRecord>>(prefix: Id['__ty
 export const ImageShapeCrop: T.ObjectValidator<TLShapeCrop>;
 
 // @public (undocumented)
-export const imageShapeMigrations: TLPropsMigrations;
+export const imageShapeMigrations: TLPropsMigrations_2;
 
 // @public (undocumented)
 export const imageShapeProps: RecordProps<TLImageShape>;
@@ -525,16 +547,16 @@ export const LANGUAGES: readonly [{
 }];
 
 // @public (undocumented)
-export const lineShapeMigrations: TLPropsMigrations;
+export const lineShapeMigrations: TLPropsMigrations_2;
 
 // @public (undocumented)
 export const lineShapeProps: RecordProps<TLLineShape>;
 
 // @public (undocumented)
-export const LineShapeSplineStyle: EnumStyleProp<"cubic" | "line">;
+export const LineShapeSplineStyle: EnumStyleProp_3<"cubic" | "line">;
 
 // @public (undocumented)
-export const noteShapeMigrations: TLPropsMigrations;
+export const noteShapeMigrations: TLPropsMigrations_2;
 
 // @public (undocumented)
 export const noteShapeProps: RecordProps<TLNoteShape>;
@@ -637,7 +659,7 @@ export class StyleProp<Type> implements T.Validatable<Type> {
 export type StylePropValue<T extends StyleProp<any>> = T extends StyleProp<infer U> ? U : never;
 
 // @public (undocumented)
-export const textShapeMigrations: TLPropsMigrations;
+export const textShapeMigrations: TLPropsMigrations_2;
 
 // @public (undocumented)
 export const textShapeProps: RecordProps<TLTextShape>;
@@ -1558,7 +1580,7 @@ export interface VecModel {
 export const vecModelValidator: T.ObjectValidator<VecModel>;
 
 // @public (undocumented)
-export const videoShapeMigrations: TLPropsMigrations;
+export const videoShapeMigrations: TLPropsMigrations_2;
 
 // @public (undocumented)
 export const videoShapeProps: RecordProps<TLVideoShape>;

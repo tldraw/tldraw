@@ -68,6 +68,7 @@ import { TLBookmarkShape } from '@tldraw/editor';
 import { TLBookmarkShapeProps } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
 import { TLContent } from '@tldraw/editor';
+import { TLCopyType as TLCopyType_2 } from '../..';
 import { TLCropInfo } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
 import { TLDefaultColorThemeColor } from '@tldraw/editor';
@@ -83,6 +84,7 @@ import { TLDrawShapeProps } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
 import { TLEditorComponents } from '@tldraw/editor';
 import { TLEditorSnapshot } from '@tldraw/editor';
+import { TLEmbedResult as TLEmbedResult_2 } from '../..';
 import { TLEmbedShape } from '@tldraw/editor';
 import { TLEmbedShapeProps } from '@tldraw/editor';
 import { TLExportType } from '@tldraw/editor';
@@ -130,6 +132,9 @@ import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLTextOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
+import { TLUiDialog as TLUiDialog_2 } from './context/dialogs';
+import { TLUiEventSource as TLUiEventSource_2 } from './context/events';
+import { TLUiToast as TLUiToast_2 } from './context/toasts';
 import { TLUrlExternalAsset } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
@@ -4223,23 +4228,23 @@ export function useDefaultColorTheme(): {
 
 // @public (undocumented)
 export function useDefaultHelpers(): {
-    addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+    addDialog: (dialog: Omit<TLUiDialog_2, "id"> & {
         id?: string | undefined;
     }) => string;
-    addToast: (toast: Omit<TLUiToast, "id"> & {
+    addToast: (toast: Omit<TLUiToast_2, "id"> & {
         id?: string | undefined;
     }) => string;
     clearDialogs: () => void;
     clearToasts: () => void;
-    copy: (source: TLUiEventSource) => Promise<void>;
-    copyAs: (ids: TLShapeId[], format?: TLCopyType) => void;
-    cut: (source: TLUiEventSource) => Promise<void>;
+    copy: (source: TLUiEventSource_2) => Promise<void>;
+    copyAs: (ids: TLShapeId[], format?: TLCopyType_2) => void;
+    cut: (source: TLUiEventSource_2) => Promise<void>;
     exportAs: (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
-    getEmbedDefinition: (url: string) => TLEmbedResult;
+    getEmbedDefinition: (url: string) => TLEmbedResult_2;
     insertMedia: () => void;
     isMobile: boolean;
     msg: (id?: string | undefined) => string;
-    paste: (data: ClipboardItem[] | DataTransfer, source: TLUiEventSource, point?: VecLike | undefined) => Promise<void>;
+    paste: (data: ClipboardItem[] | DataTransfer, source: TLUiEventSource_2, point?: VecLike | undefined) => Promise<void>;
     printSelectionOrPages: () => Promise<void>;
     removeDialog: (id: string) => string;
     removeToast: (id: string) => string;
