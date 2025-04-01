@@ -139,7 +139,21 @@ function Results({ items, sendEvent }: { items: Hit<SearchEntry>[]; sendEvent: S
 			)}
 		>
 			{items.length === 0 && (
-				<div className="text-center py-8 text-zinc-400 dark:text-zinc-600">No results found.</div>
+				<div className="text-center py-8 text-zinc-400 dark:text-zinc-600">
+					<p>No results found.</p>
+					<p className="mt-2">
+						Will you tell us what you{"'"}re looking for on our{' '}
+						<a
+							className="text-blue-500 hover:text-blue-600"
+							target="_blank"
+							href="https://discord.tldraw.com/?utm_source=blog&utm_medium=search&utm_campaign=no-results-found"
+							rel="noreferrer"
+						>
+							discord
+						</a>
+						?
+					</p>
+				</div>
 			)}
 			{items.length !== 0 && renderedItems}
 		</div>
