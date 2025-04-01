@@ -37,6 +37,7 @@ export type TLUiIconType =
 	| 'code'
 	| 'color'
 	| 'corners'
+	| 'crop'
 	| 'cross-2'
 	| 'cross-circle'
 	| 'dash-dashed'
@@ -194,6 +195,7 @@ export const iconTypes = [
 	'code',
 	'color',
 	'corners',
+	'crop',
 	'cross-2',
 	'cross-circle',
 	'dash-dashed',

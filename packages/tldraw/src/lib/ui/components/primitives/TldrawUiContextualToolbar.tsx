@@ -18,7 +18,6 @@ const MOVE_TIMEOUT = 150
 const HIDE_VISIBILITY_TIMEOUT = 16
 const SHOW_VISIBILITY_TIMEOUT = 16
 const MIN_DISTANCE_TO_REPOSITION_SQUARED = 16 ** 2
-const CHANGE_ONLY_WHEN_Y_CHANGES = true
 const TOOLBAR_GAP = 8
 const SCREEN_MARGIN = 16
 const HIDE_TOOLBAR_WHEN_CAMERA_IS_MOVING = true
@@ -31,6 +30,7 @@ export interface TLUiContextualToolbarProps {
 	isMousingDown?: boolean
 	getSelectionBounds(): Box | undefined
 	forcePositionUpdateAtom?: Atom<number, unknown>
+	changeOnlyWhenYChanges?: boolean
 }
 
 /**
@@ -45,6 +45,7 @@ export const TldrawUiContextualToolbar = ({
 	isMousingDown,
 	getSelectionBounds,
 	forcePositionUpdateAtom,
+	changeOnlyWhenYChanges = false,
 }: TLUiContextualToolbarProps) => {
 	const editor = useEditor()
 	const toolbarRef = useRef<HTMLDivElement>(null)
@@ -53,7 +54,7 @@ export const TldrawUiContextualToolbar = ({
 	usePassThroughMouseOverEvents(toolbarRef as RefObject<HTMLDivElement>)
 
 	const { isVisible, isInteractive, hide, show, position, move } =
-		useToolbarVisibilityStateMachine()
+		useToolbarVisibilityStateMachine(changeOnlyWhenYChanges)
 
 	// annoying react stuff: we don't want the toolbar position function to depend on the react state so we'll double with a ref
 	const rCouldShowToolbar = useRef(false)
@@ -225,14 +226,14 @@ export function getToolbarScreenPosition(
 	return { x, y }
 }
 
-function sufficientlyDistant(curr: Vec, next: Vec) {
-	if (CHANGE_ONLY_WHEN_Y_CHANGES) {
+function sufficientlyDistant(curr: Vec, next: Vec, changeOnlyWhenYChanges: boolean) {
+	if (changeOnlyWhenYChanges) {
 		return Vec.Sub(next, curr).y ** 2 >= MIN_DISTANCE_TO_REPOSITION_SQUARED
 	}
 	return Vec.Len2(Vec.Sub(next, curr)) >= MIN_DISTANCE_TO_REPOSITION_SQUARED
 }
 
-export function useToolbarVisibilityStateMachine() {
+export function useToolbarVisibilityStateMachine(changeOnlyWhenYChanges: boolean) {
 	const editor = useEditor()
 
 	const rState = useRef<
@@ -281,7 +282,7 @@ export function useToolbarVisibilityStateMachine() {
 			rStablePositionTimeout.current = editor.timers.setTimeout(() => {
 				if (
 					rState.current.name === 'shown' &&
-					sufficientlyDistant(rNextPosition.current, rCurrPosition.current)
+					sufficientlyDistant(rNextPosition.current, rCurrPosition.current, changeOnlyWhenYChanges)
 				) {
 					const { x, y } = rNextPosition.current
 					rCurrPosition.current = new Vec(x, y)
@@ -289,7 +290,7 @@ export function useToolbarVisibilityStateMachine() {
 				}
 			}, MOVE_TIMEOUT)
 		},
-		[editor]
+		[editor, changeOnlyWhenYChanges]
 	)
 
 	/**

@@ -8,7 +8,7 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import isEqual from 'lodash.isequal'
-import { useCallback } from 'react'
+import { useCallback, useLayoutEffect } from 'react'
 import { getUncroppedSize } from '../../../shapes/shared/crop'
 import { useUiEvents } from '../../context/events'
 import { useInsertMedia } from '../../hooks/useInsertMedia'
@@ -45,18 +45,30 @@ const ASPECT_RATIO_TO_VALUE: Record<ASPECT_RATIO_OPTION, number> = {
 /** @public */
 export interface DefaultImageToolbarContentProps {
 	imageShape: TLImageShape
-	onEditAltTextStart?(): void
+	isManipulating: boolean
+	onToolbarSetChange(): void
+	onEditAltTextStart(): void
+	onManipulatingStart(): void
+	onManipulatingEnd(): void
 }
 
 /** @public @react */
 export const DefaultImageToolbarContent = track(function DefaultImageToolbarContent({
 	imageShape,
+	isManipulating,
+	onToolbarSetChange,
 	onEditAltTextStart,
+	onManipulatingStart,
+	onManipulatingEnd,
 }: DefaultImageToolbarContentProps) {
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 	const source = 'image-menu'
+
+	useLayoutEffect(() => {
+		onToolbarSetChange()
+	}, [onToolbarSetChange])
 
 	const insertMedia = useInsertMedia({ shapeIdToReplace: imageShape?.id })
 
@@ -168,7 +180,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const shapeAspectRatio = imageShape.props.w / imageShape.props.h
 	const isOriginalCrop = !crop || isEqual(crop, defaultCrop)
 
-	return (
+	const croppingTools = (
 		<>
 			<TldrawUiSlider
 				value={imageShape.props.zoom * 100}
@@ -209,17 +221,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 					))}
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiDropdownMenuRoot>
-			<TldrawUiButton
-				type="icon"
-				title={msg('tool.replace-media')}
-				onClick={() => {
-					trackEvent('replace-media', { source })
-					insertMedia()
-				}}
-			>
-				<TldrawUiButtonIcon small icon="image" />
-			</TldrawUiButton>
-			<TldrawUiButton
+			{/* <TldrawUiButton
 				type="icon"
 				title={msg('tool.flip-horz')}
 				onClick={() => {
@@ -240,7 +242,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 				}}
 			>
 				<TldrawUiButtonIcon small icon="height" />
-			</TldrawUiButton>
+			</TldrawUiButton> */}
 			<TldrawUiButton
 				type="icon"
 				title={msg('tool.rotate-cw')}
@@ -255,10 +257,40 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 				<TldrawUiButtonIcon small icon="rotate-cw" />
 			</TldrawUiButton>
 			<TldrawUiButton
+				type="icon"
+				onClick={onManipulatingEnd}
+				style={{ borderLeft: '1px solid var(--color-divider)', marginLeft: '2px' }}
+			>
+				<TldrawUiButtonIcon small icon="check" />
+			</TldrawUiButton>
+		</>
+	)
+
+	return (
+		<>
+			{!isManipulating && (
+				<TldrawUiButton
+					type="icon"
+					title={msg('tool.replace-media')}
+					onClick={() => {
+						trackEvent('replace-media', { source })
+						insertMedia()
+					}}
+				>
+					<TldrawUiButtonIcon small icon="image" />
+				</TldrawUiButton>
+			)}
+			{!isManipulating && (
+				<TldrawUiButton type="icon" title={msg('tool.image-crop')} onClick={onManipulatingStart}>
+					<TldrawUiButtonIcon small icon="crop" />
+				</TldrawUiButton>
+			)}
+			{isManipulating && croppingTools}
+			<TldrawUiButton
 				type="normal"
 				onClick={() => {
 					trackEvent('alt-text-start', { source })
-					onEditAltTextStart?.()
+					onEditAltTextStart()
 				}}
 			>
 				{msg('tool.image-alt-text')}

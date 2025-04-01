@@ -1,4 +1,4 @@
-import { Box, TLImageShape, track, useEditor, useValue } from '@tldraw/editor'
+import { Box, TLImageShape, track, useAtom, useEditor, useValue } from '@tldraw/editor'
 import { useCallback, useState } from 'react'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { AltTextEditor } from './AltTextEditor'
@@ -38,10 +38,19 @@ function ContextualToolbarInner({
 }) {
 	const editor = useEditor()
 	const [isEditingAltText, setIsEditingAltText] = useState(false)
-	const onEditAltTextStart = useCallback(() => setIsEditingAltText(true), [])
+	const [isManipulating, setIsManipulating] = useState(false)
+	const forcePositionUpdateAtom = useAtom('force toolbar position update', 0)
+	const handleEditAltTextStart = useCallback(() => setIsEditingAltText(true), [])
+	const handleManipulatingStart = useCallback(() => setIsManipulating(true), [])
+	const handleManipulatingEnd = useCallback(() => setIsManipulating(false), [])
+	const handleToolbarSetChange = useCallback(
+		() => forcePositionUpdateAtom.update((n) => n + 1),
+		[forcePositionUpdateAtom]
+	)
 	const onEditAltTextComplete = useCallback(() => {
 		setIsEditingAltText(false)
-	}, [])
+		handleToolbarSetChange()
+	}, [handleToolbarSetChange])
 	const getSelectionBounds = () => {
 		const fullBounds = editor.getSelectionRotatedScreenBounds()
 		if (!fullBounds) return undefined
@@ -50,8 +59,11 @@ function ContextualToolbarInner({
 
 	return (
 		<TldrawUiContextualToolbar
+			// TODO: fix this, I can't get the render timing right at the moment
+			key={forcePositionUpdateAtom.get()}
 			className="tlui-image__toolbar"
 			getSelectionBounds={getSelectionBounds}
+			forcePositionUpdateAtom={forcePositionUpdateAtom}
 		>
 			{children ? (
 				children
@@ -64,7 +76,11 @@ function ContextualToolbarInner({
 			) : (
 				<DefaultImageToolbarContent
 					imageShape={imageShape}
-					onEditAltTextStart={onEditAltTextStart}
+					isManipulating={isManipulating}
+					onEditAltTextStart={handleEditAltTextStart}
+					onManipulatingStart={handleManipulatingStart}
+					onManipulatingEnd={handleManipulatingEnd}
+					onToolbarSetChange={handleToolbarSetChange}
 				/>
 			)}
 		</TldrawUiContextualToolbar>

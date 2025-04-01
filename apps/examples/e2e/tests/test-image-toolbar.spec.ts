@@ -63,6 +63,9 @@ test.describe('Image toolbar behaviour', () => {
 
 		expect(initialZoom).toBe(1) // Default zoom should be 1
 
+		const manipulator = page.getByTitle('Crop image')
+		await manipulator.click()
+
 		// Find and use the slider
 		const slider = page.getByTestId('tool.image-zoom')
 		await slider.click()
@@ -87,6 +90,9 @@ test.describe('Image toolbar behaviour', () => {
 	test('aspect ratio dropdown changes image crop', async ({ page, isMobile }) => {
 		if (isMobile) return
 
+		const manipulator = page.getByTitle('Crop image')
+		await manipulator.click()
+
 		// Open aspect ratio dropdown
 		await page.getByTitle('Aspect Ratio').click()
 
@@ -102,6 +108,9 @@ test.describe('Image toolbar behaviour', () => {
 
 		expect(isSquare).toBe(true)
 
+		// Open aspect ratio dropdown
+		await page.getByTitle('Aspect Ratio').click()
+
 		// Try another aspect ratio - landscape
 		await page.getByText('Landscape').click()
 
@@ -115,8 +124,11 @@ test.describe('Image toolbar behaviour', () => {
 		expect(isLandscape).toBe(true)
 	})
 
-	test('flip buttons flip the image', async ({ page, isMobile }) => {
+	test.skip('flip buttons flip the image', async ({ page, isMobile }) => {
 		if (isMobile) return
+
+		const manipulator = page.getByTitle('Crop image')
+		await manipulator.click()
 
 		// Get initial state
 		const initialState = await page.evaluate(() => {
@@ -166,6 +178,9 @@ test.describe('Image toolbar behaviour', () => {
 
 	test('rotate button rotates the image', async ({ page, isMobile }) => {
 		if (isMobile) return
+
+		const manipulator = page.getByTitle('Crop image')
+		await manipulator.click()
 
 		// Get initial rotation
 		const initialRotation = await page.evaluate(() => {

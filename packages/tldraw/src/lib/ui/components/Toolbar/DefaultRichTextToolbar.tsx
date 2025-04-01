@@ -99,6 +99,7 @@ function ContextualToolbarInner({
 			getSelectionBounds={getSelectionBounds}
 			isMousingDown={isMousingDown}
 			forcePositionUpdateAtom={forcePositionUpdateAtom}
+			changeOnlyWhenYChanges={true}
 		>
 			{children ? (
 				children

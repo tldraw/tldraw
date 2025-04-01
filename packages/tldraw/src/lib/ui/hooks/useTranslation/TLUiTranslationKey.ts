@@ -250,6 +250,7 @@ export type TLUiTranslationKey =
 	| 'tool.aspect-ratio.landscape'
 	| 'tool.aspect-ratio.portrait'
 	| 'tool.aspect-ratio.wide'
+	| 'tool.image-crop'
 	| 'tool.image-alt-text'
 	| 'tool.image-alt-text-desc'
 	| 'tool.image-alt-text-confirm'

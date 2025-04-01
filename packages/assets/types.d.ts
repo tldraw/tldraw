@@ -57,6 +57,7 @@ export type AssetUrls = {
 		code: string
 		color: string
 		corners: string
+		crop: string
 		'cross-2': string
 		'cross-circle': string
 		'dash-dashed': string
