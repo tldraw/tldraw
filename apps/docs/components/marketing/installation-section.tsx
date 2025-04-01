@@ -1,15 +1,16 @@
 import { CodeFiles } from '@/components/content/code-files'
 import { Section } from '@/components/marketing/section'
-import { SectionHeading } from '@/components/marketing/section-heading'
 import { Button } from '../common/button'
+import { SectionSubtitle } from './section-description'
+import { SectionTitle } from './section-title'
 
 export function InstallationSection() {
 	return (
 		<Section id="installation">
-			<SectionHeading
-				heading="Our canvas. Your code."
-				description="You can include tldraw as a component in any React app. Extend, customize, and develop on top."
-			/>
+			<SectionTitle>Our canvas. Your code.</SectionTitle>
+			<SectionSubtitle>
+				Get the full tldraw canvas as a React component. Extend, customize, and develop on top.
+			</SectionSubtitle>
 			<div className="flex flex-col items-center gap-8 mx-auto mt-8 md:max-w-2xl">
 				<CodeFiles files={[code.terminal]} hideTabs className="w-full my-0" />
 				<CodeFiles files={[code.app]} className="w-full my-0" />
@@ -18,7 +19,7 @@ export function InstallationSection() {
 					<Button
 						id="code-quick-start-"
 						href="https://stackblitz.com/edit/vitejs-vite-ahoswhus?file=src%2FApp.tsx"
-						caption="Open in StackBlitz"
+						caption="Open Sandbox"
 						arrow="right"
 						type="tertiary"
 						newTab

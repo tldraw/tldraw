@@ -1,6 +1,5 @@
 import { Card } from '@/components/marketing/card'
 import { Section } from '@/components/marketing/section'
-import { SectionHeading } from '@/components/marketing/section-heading'
 import FeaturesRichMedia from '@/public/images/features/media.png'
 import FeaturesMultiplayer from '@/public/images/features/multiplayer.png'
 import FeaturesPerformance from '@/public/images/features/performance.png'
@@ -8,15 +7,17 @@ import FeaturesReact from '@/public/images/features/react.png'
 import FeaturesShapes from '@/public/images/features/shapes.png'
 import Image from 'next/image'
 import Link from 'next/link'
+import { SectionSubtitle } from './section-description'
+import { SectionTitle } from './section-title'
 
 export function FeaturesSection() {
 	return (
 		<Section id="features">
-			<SectionHeading
-				subheading="features"
-				heading="Made for developers"
-				description="We've designed the tldraw SDK to be a solid foundation for developers: built for the web, packed with table-stakes features, and designed for extensibility."
-			/>
+			<SectionTitle>Made for developers</SectionTitle>
+			<SectionSubtitle>
+				We&apos;ve designed the tldraw SDK to be a solid foundation for developers: built for the
+				web, packed with table-stakes features, and designed for extensibility.
+			</SectionSubtitle>
 			<div className="grid grid-cols-6 gap-x-8 sm:gap-y-8">
 				<Card className="col-span-6 md:col-span-3">
 					<div className="relative p-5 pb-8 lg:px-10 lg:py-9">

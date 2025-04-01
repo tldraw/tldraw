@@ -1,15 +1,15 @@
 import { Section } from '@/components/marketing/section'
-import { SectionHeading } from '@/components/marketing/section-heading'
 import { LogoSection } from './logo-section'
+import { SectionSubtitle } from './section-description'
+import { SectionTitle } from './section-title'
 
 export function CaseStudiesSection() {
 	return (
 		<Section>
-			<SectionHeading
-				subheading="Customers"
-				heading="Made with tldraw"
-				description="Great products choose tldraw to build whiteboards, design tools, education apps, and more."
-			/>
+			<SectionTitle>Made with tldraw</SectionTitle>
+			<SectionSubtitle>
+				Great products choose tldraw to build whiteboards, design tools, education apps, and more.
+			</SectionSubtitle>
 			{/* <div className="grid grid-cols-6 gap-x-8 gap-y-12 md:gap-y-8">
 				{caseStudies.map(({ logo, screenshot, name, url }, index) => (
 					<Link

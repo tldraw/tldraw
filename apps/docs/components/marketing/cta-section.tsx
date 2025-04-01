@@ -1,15 +1,15 @@
 import { Section } from '@/components/marketing/section'
-import { SectionHeading } from '@/components/marketing/section-heading'
 import { Button } from '../common/button'
+import { SectionSubtitle } from './section-description'
+import { SectionTitle } from './section-title'
 
 export function CTASection() {
 	return (
 		<Section>
-			<SectionHeading
-				heading="Get started today"
-				subheading="to action"
-				description="Follow our quick start guide and build something today with the tldraw SDK."
-			/>
+			<SectionTitle>Get started today</SectionTitle>
+			<SectionSubtitle>
+				Follow our quick start guide and build something today with the tldraw SDK.
+			</SectionSubtitle>
 			{/* <div className="flex items-center justify-center gap-3 mb-12 -mt-6">
                 <ul className="flex">
                     {avatars.map((avatar, index) => (
