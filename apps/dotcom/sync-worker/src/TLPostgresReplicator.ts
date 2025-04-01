@@ -1010,7 +1010,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	private async publishSnapshot(file: TlaFile) {
-		console.log('publishing snapshot', file.id, file.publishedSlug)
 		try {
 			// make sure the room's snapshot is up to date
 			await getRoomDurableObject(this.env, file.id).awaitPersist()
