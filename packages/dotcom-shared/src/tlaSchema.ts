@@ -167,16 +167,6 @@ const NO_UPDATE = {
 } as const
 
 export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => {
-	// const allowIfLoggedIn = (
-	//   authData: AuthData,
-	//   { cmpLit }: ExpressionBuilder<Schema, keyof Schema["tables"]>
-	// ) => cmpLit(authData.sub, "IS NOT", null);
-
-	// const allowIfMessageSender = (
-	//   authData: AuthData,
-	//   { cmp }: ExpressionBuilder<Schema, "message">
-	// ) => cmp("senderID", "=", authData.sub ?? "");
-
 	const allowIfIsUser = (authData: AuthData, { cmp }: ExpressionBuilder<TlaSchema, 'user'>) =>
 		cmp('id', '=', authData.sub!)
 
@@ -188,7 +178,6 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 		{ cmp }: ExpressionBuilder<TlaSchema, 'file_state'>
 	) => cmp('userId', '=', authData.sub!)
 
-	// TODO: We should also check that the file is shared, but zero seems to have a problem with that
 	const userCanAccessFile = (
 		authData: AuthData,
 		{ exists, and, cmp, or }: ExpressionBuilder<TlaSchema, 'file'>
