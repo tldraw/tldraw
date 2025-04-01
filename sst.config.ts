@@ -2,8 +2,6 @@
 /// <reference path="./.sst/platform/config.d.ts" />
 import { readFileSync, writeFileSync } from 'fs'
 
-// const deployInfo = getDeployInfo()
-
 const githubPrNumber = process.env.GITHUB_REF?.match(/refs\/pull\/(\d+)\/merge/)?.[1]
 
 let previewId = null as null | string
