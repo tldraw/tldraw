@@ -13,7 +13,7 @@ let domain = undefined as undefined | string
 if (process.env.TLDRAW_ENV === 'preview' && previewId) {
 	domain = `${previewId}.zero.tldraw.com`
 } else if (process.env.TDLRAW_ENV === 'production') {
-	domain = 'zero.tldraw.com'
+	domain = 'production.zero.tldraw.com'
 } else if (process.env.TDLRAW_ENV === 'staging') {
 	domain = 'staging.zero.tldraw.com'
 }
