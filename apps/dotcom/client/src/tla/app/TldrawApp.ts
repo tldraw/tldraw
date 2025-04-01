@@ -62,7 +62,7 @@ export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
 
 let appId = 0
-const useProperZero = Boolean(getFromLocalStorage('useProperZero'))
+const useProperZero = getFromLocalStorage('useProperZero') === 'true'
 // eslint-disable-next-line no-console
 console.log('useProperZero', useProperZero)
 // @ts-expect-error
