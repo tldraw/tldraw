@@ -136,7 +136,9 @@ export default $config({
 			loadBalancer: {
 				domain,
 				public: true,
-				rules: [{ listen: '443/https', forward: '4848/http' }],
+				rules: domain
+					? [{ listen: '443/https', forward: '4848/http' }]
+					: [{ listen: '80/http', forward: '4848/http' }],
 			},
 			transform: {
 				target: {
