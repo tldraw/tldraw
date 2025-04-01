@@ -7,9 +7,7 @@ on:
       - main
       - production
 
-permissions:
-  id-token: write
-  contents: write
+permissions: write-all
 
 env:
   CI: 1
