@@ -252,6 +252,7 @@ export const DEFAULT_TRANSLATION = {
 	'tool.aspect-ratio.portrait': 'Portrait (3:4)',
 	'tool.aspect-ratio.wide': 'Wide (16:9)',
 	'tool.image-alt-text': 'Alt text',
+	'tool.image-alt-text-desc': 'Describe the image…',
 	'tool.image-alt-text-confirm': 'Confirm',
 	'tool.rich-text-bold': 'Bold',
 	'tool.rich-text-italic': 'Italic',

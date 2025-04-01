@@ -51,6 +51,7 @@ export function AltTextEditor({ imageShape, value: initialValue, onComplete }: A
 				className="tlui-image__toolbar-alt-text-input"
 				data-testid="image-toolbar.alt-text-input"
 				value={altText}
+				placeholder={msg('tool.image-alt-text-desc')}
 				onValueChange={handleValueChange}
 				onComplete={handleComplete}
 				onCancel={handleAltTextCancel}
