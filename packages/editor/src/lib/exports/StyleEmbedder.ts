@@ -476,8 +476,8 @@ function getDefaultStyleFrame() {
 
 function destroyDefaultStyleFrame() {
 	if (defaultStyleFrame) {
-		// defaultStyleFrame.then(({ iframe }) => document.body.removeChild(iframe))
-		// defaultStyleFrame = undefined
+		defaultStyleFrame.then(({ iframe }) => document.body.removeChild(iframe))
+		defaultStyleFrame = undefined
 	}
 }
 
@@ -499,7 +499,7 @@ function populateDefaultStylesForTagName(tagName: string) {
 		const styles = element.computedStyleMap
 			? styleFromComputedStyleMap(element.computedStyleMap(), defaultStyleReadOptions)
 			: styleFromComputedStyle(getComputedStyle(element), defaultStyleReadOptions)
-		// foreignObject.removeChild(element)
+		foreignObject.removeChild(element)
 		defaultStylesByTagName[tagName] = { type: 'resolved', styles, promise }
 		return styles
 	})
