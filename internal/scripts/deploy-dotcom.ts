@@ -73,6 +73,7 @@ const env = makeEnv([
 	'WORKER_SENTRY_DSN',
 	'BOTCOM_POSTGRES_CONNECTION_STRING',
 	'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
+	'DO_PREVIEW_SST_ZERO_DEPLOY',
 ])
 
 const clerkJWKSUrl =
@@ -335,6 +336,11 @@ async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 }
 
 async function deployZero() {
+	if (process.env.DO_PREVIEW_SST_ZERO_DEPLOY !== 'true') {
+		nicelog('Skipping SST zero deploy')
+		// TODO: use fly.io here
+		return 'https://skipped-zero-deploy.zero.tldraw.com'
+	}
 	const stage = previewId ? previewId : env.TLDRAW_ENV
 	await exec('yarn', [
 		'sst',
