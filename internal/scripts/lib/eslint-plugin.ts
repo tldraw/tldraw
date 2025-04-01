@@ -5,12 +5,12 @@ import ts = require('typescript')
 // @ts-ignore - no import/require
 import utils = require('@typescript-eslint/utils')
 import { TSDocParser } from '@microsoft/tsdoc'
+import { RuleContext } from '@typescript-eslint/utils/dist/ts-eslint'
 
 const { isReassignmentTarget } = require('tsutils') as typeof import('tsutils')
 
 const { ESLintUtils } = utils
 import TSESTree = utils.TSESTree
-import TSESLint = utils.TSESLint
 
 exports.rules = {
 	// Rule to enforce using "while" instead of "whilst"
@@ -593,7 +593,7 @@ exports.rules = {
 }
 
 function checkParams(
-	context: TSESLint.RuleContext<'paramMismatch' | 'paramMissing', []>,
+	context: RuleContext<'paramMismatch' | 'paramMissing', []>,
 	node:
 		| TSESTree.FunctionDeclaration
 		| TSESTree.TSAbstractMethodDefinition
@@ -635,7 +635,7 @@ function checkParams(
 }
 
 function getTSDocComment(
-	context: TSESLint.RuleContext<'paramMismatch' | 'paramMissing', []>,
+	context: RuleContext<'paramMismatch' | 'paramMissing', []>,
 	node:
 		| TSESTree.FunctionDeclaration
 		| TSESTree.TSAbstractMethodDefinition

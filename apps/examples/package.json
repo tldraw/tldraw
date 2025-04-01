@@ -35,7 +35,6 @@
 	"dependencies": {
 		"@playwright/test": "^1.50.0",
 		"@radix-ui/react-alert-dialog": "^1.1.5",
-		"@tailwindcss/vite": "^4.0.17",
 		"@tiptap/core": "^2.9.1",
 		"@tiptap/extension-font-family": "^2.9.1",
 		"@tiptap/extension-text-style": "^2.9.1",
