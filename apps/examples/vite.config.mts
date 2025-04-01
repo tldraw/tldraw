@@ -1,7 +1,7 @@
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react-swc'
 import path from 'path'
 import { PluginOption, defineConfig } from 'vite'
-
 const PR_NUMBER = process.env.VERCEL_GIT_PULL_REQUEST_ID
 
 function getEnv() {
@@ -47,7 +47,7 @@ const TLDRAW_BEMO_URL_STRING =
 				: undefined
 
 export default defineConfig(({ mode }) => ({
-	plugins: [react({ tsDecorators: true }), exampleReadmePlugin()],
+	plugins: [react({ tsDecorators: true }), exampleReadmePlugin(), tailwindcss()],
 	root: path.join(__dirname, 'src'),
 	publicDir: path.join(__dirname, 'public'),
 	build: {

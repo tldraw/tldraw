@@ -101,11 +101,15 @@ async function applyChangesToForeignObjects(svg: SVGSVGElement) {
 		// urls, and things like videos will be converted to images.
 		await Promise.all(foreignObjectChildren.map((el) => embedMedia(el as HTMLElement)))
 
+		await styleEmbedder.collectDefaultStyles([
+			...svg.querySelectorAll('foreignObject.tl-export-embed-styles *'),
+		])
+
 		// read the computed styles of every element (+ it's children & pseudo-elements) in the
 		// document. we do this in a single pass before we start embedding any CSS stuff to avoid
 		// constantly forcing the browser to recompute styles & layout.
 		for (const el of foreignObjectChildren) {
-			styleEmbedder.readRootElementStyles(el as HTMLElement)
+			await styleEmbedder.readRootElementStyles(el as HTMLElement)
 		}
 
 		// fetch any resources that we need to embed in the CSS, like background images.
