@@ -119,10 +119,22 @@ export class MediaHelpers {
 	 * Load an image from a url.
 	 * @public
 	 */
-	static loadImage(src: string): Promise<HTMLImageElement> {
+	static getImageAndDimensions(
+		src: string
+	): Promise<{ w: number; h: number; image: HTMLImageElement }> {
 		return new Promise((resolve, reject) => {
 			const img = Image()
-			img.onload = () => resolve(img)
+			img.onload = () => {
+				document.body.appendChild(img)
+				// Sigh, Firefox doesn't have naturalWidth or naturalHeight for SVGs. :-/
+				// We have to attach to dom and use clientWidth/clientHeight.
+				const dimensions = {
+					w: img.naturalWidth || img.clientWidth,
+					h: img.naturalHeight || img.clientHeight,
+				}
+				document.body.removeChild(img)
+				resolve({ ...dimensions, image: img })
+			}
 			img.onerror = (e) => {
 				console.error(e)
 				reject(new Error('Could not load image'))
@@ -130,6 +142,10 @@ export class MediaHelpers {
 			img.crossOrigin = 'anonymous'
 			img.referrerPolicy = 'strict-origin-when-cross-origin'
 			img.src = src
+			img.style.visibility = 'hidden'
+			img.style.position = 'absolute'
+			img.style.opacity = '0'
+			img.style.zIndex = '-9999'
 		})
 	}
 
@@ -153,7 +169,7 @@ export class MediaHelpers {
 	 * @public
 	 */
 	static async getImageSize(blob: Blob): Promise<{ w: number; h: number }> {
-		const image = await MediaHelpers.usingObjectURL(blob, MediaHelpers.loadImage)
+		const { w, h } = await MediaHelpers.usingObjectURL(blob, MediaHelpers.getImageAndDimensions)
 
 		try {
 			if (blob.type === 'image/png') {
@@ -170,8 +186,8 @@ export class MediaHelpers {
 							const pixelsPerMeter = 72 / 0.0254
 							const pixelRatio = Math.max(physData.ppux / pixelsPerMeter, 1)
 							return {
-								w: Math.round(image.naturalWidth / pixelRatio),
-								h: Math.round(image.naturalHeight / pixelRatio),
+								w: Math.round(w / pixelRatio),
+								h: Math.round(h / pixelRatio),
 							}
 						}
 					}
@@ -179,9 +195,9 @@ export class MediaHelpers {
 			}
 		} catch (err) {
 			console.error(err)
-			return { w: image.naturalWidth, h: image.naturalHeight }
+			return { w, h }
 		}
-		return { w: image.naturalWidth, h: image.naturalHeight }
+		return { w, h }
 	}
 
 	static async isAnimated(file: Blob): Promise<boolean> {
