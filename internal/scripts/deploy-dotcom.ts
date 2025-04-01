@@ -32,6 +32,10 @@ const imageResize = path.relative(
 	path.resolve(REPO_ROOT, './apps/dotcom/image-resize-worker')
 )
 const dotcom = path.relative(process.cwd(), path.resolve(REPO_ROOT, './apps/dotcom/client'))
+const zeroCacheFolder = path.relative(
+	process.cwd(),
+	path.resolve(REPO_ROOT, './apps/dotcom/zero-cache')
+)
 
 const { previewId, sha } = getDeployInfo()
 
@@ -67,11 +71,15 @@ const env = makeEnv([
 	'VERCEL_TOKEN',
 	'VITE_CLERK_PUBLISHABLE_KEY',
 	'WORKER_SENTRY_DSN',
-	previewId ? 'NEON_PREVIEW_DB_CONNECTION_STRING' : 'BOTCOM_POSTGRES_CONNECTION_STRING',
-	previewId
-		? 'NEON_PREVIEW_DB_POOLED_CONNECTION_STRING'
-		: 'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
+	'BOTCOM_POSTGRES_CONNECTION_STRING',
+	'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
+	'DO_PREVIEW_SST_ZERO_DEPLOY',
 ])
+
+const clerkJWKSUrl =
+	env.TLDRAW_ENV === 'production'
+		? 'https://clerk.tldraw.com/.well-known/jwks.json'
+		: 'https://clerk.staging.tldraw.com/.well-known/jwks.json'
 
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
@@ -107,7 +115,8 @@ async function main() {
 	// 1. get the dotcom app ready to go (env vars and pre-build)
 	await discord.step('building dotcom app', async () => {
 		await createSentryRelease()
-		await prepareDotcomApp()
+		const zeroUrl = await deployZero()
+		await prepareDotcomApp(zeroUrl)
 		await uploadSourceMaps()
 		await coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
 	})
@@ -167,7 +176,7 @@ async function main() {
 	await discord.message(`**Deploy complete!**`)
 }
 
-async function prepareDotcomApp() {
+async function prepareDotcomApp(zeroUrl: string) {
 	// pre-build the app:
 	await exec('yarn', ['build-app'], {
 		env: {
@@ -175,6 +184,7 @@ async function prepareDotcomApp() {
 			ASSET_UPLOAD: env.ASSET_UPLOAD,
 			IMAGE_WORKER: env.IMAGE_WORKER,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
+			ZERO_SERVER: zeroUrl,
 			NEXT_PUBLIC_GC_API_KEY: env.GC_MAPS_API_KEY,
 			SENTRY_AUTH_TOKEN: env.SENTRY_AUTH_TOKEN,
 			SENTRY_ORG: 'tldraw',
@@ -217,13 +227,9 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 		await setWranglerPreviewConfig(worker, { name: workerId })
 		didUpdateTlsyncWorker = true
 	}
-	const BOTCOM_POSTGRES_CONNECTION_STRING =
-		env.NEON_PREVIEW_DB_CONNECTION_STRING || env.BOTCOM_POSTGRES_CONNECTION_STRING
-	const BOTCOM_POSTGRES_POOLED_CONNECTION_STRING =
-		env.NEON_PREVIEW_DB_POOLED_CONNECTION_STRING || env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING
 	await exec('yarn', ['workspace', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null], {
 		env: {
-			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 		},
 	})
 	await wranglerDeploy({
@@ -239,8 +245,8 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			WORKER_NAME: workerId,
 			CLERK_SECRET_KEY: env.CLERK_SECRET_KEY,
 			CLERK_PUBLISHABLE_KEY: env.VITE_CLERK_PUBLISHABLE_KEY,
-			BOTCOM_POSTGRES_CONNECTION_STRING,
-			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+			BOTCOM_POSTGRES_CONNECTION_STRING: env.BOTCOM_POSTGRES_CONNECTION_STRING,
+			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
 			DISCORD_FEEDBACK_WEBHOOK_URL: env.DISCORD_FEEDBACK_WEBHOOK_URL,
 			HEALTH_CHECK_BEARER_TOKEN: env.HEALTH_CHECK_BEARER_TOKEN,
@@ -327,6 +333,35 @@ async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 			},
 		}
 	)
+}
+
+async function deployZero() {
+	if (process.env.DO_PREVIEW_SST_ZERO_DEPLOY !== 'true') {
+		nicelog('Skipping SST zero deploy')
+		// TODO: use fly.io here
+		return 'https://skipped-zero-deploy.zero.tldraw.com'
+	}
+	const stage = previewId ? previewId : env.TLDRAW_ENV
+	await exec('yarn', [
+		'sst',
+		'secret',
+		'set',
+		'PostgresConnectionString',
+		env.BOTCOM_POSTGRES_CONNECTION_STRING,
+		'--stage',
+		stage,
+	])
+	await exec('yarn', ['sst', 'secret', 'set', 'ZeroAuthSecret', clerkJWKSUrl, '--stage', stage])
+	await exec('yarn', ['sst', 'unlock', '--stage', stage])
+	await exec('yarn', ['bundle-schema'], { pwd: zeroCacheFolder })
+
+	const result = await exec('yarn', ['sst', 'deploy', '--stage', stage, '--verbose'])
+	const line = result.split('\n').filter((l) => l.includes('view-syncer: http'))[0]
+	const url = line.split(': ')[1].trim()
+	if (!url || url.length === 0) {
+		throw new Error('Could not find view-syncer URL in SST output ' + result)
+	}
+	return url
 }
 
 async function deploySpa(): Promise<{ deploymentUrl: string; inspectUrl: string }> {

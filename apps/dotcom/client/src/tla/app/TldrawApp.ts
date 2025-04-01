@@ -1,4 +1,5 @@
 // import { Query, QueryType, Smash, TableSchema, Zero } from '@rocicorp/zero'
+import { Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
 	CreateFilesResponseBody,
@@ -8,20 +9,28 @@ import {
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
+	TlaSchema,
 	TlaUser,
 	UserPreferencesKeys,
-	ZErrorCode,
 	Z_PROTOCOL_VERSION,
+	schema as zeroSchema,
+	ZErrorCode,
 } from '@tldraw/dotcom-shared'
-import { Result, assert, fetch, structuredClone, throttle, uniqueId } from '@tldraw/utils'
+import {
+	assert,
+	fetch,
+	getFromLocalStorage,
+	promiseWithResolve,
+	Result,
+	setInLocalStorage,
+	structuredClone,
+	throttle,
+	uniqueId,
+} from '@tldraw/utils'
 import pick from 'lodash.pick'
 import {
-	Signal,
-	TLDocument,
-	TLSessionStateSnapshot,
-	TLUiToastsContextType,
-	TLUserPreferences,
 	assertExists,
+	Atom,
 	atom,
 	computed,
 	createTLSchema,
@@ -33,20 +42,34 @@ import {
 	objectMapKeys,
 	parseTldrawJsonFile,
 	react,
+	Signal,
+	TLDocument,
+	TLSessionStateSnapshot,
+	TLUiToastsContextType,
+	TLUserPreferences,
+	transact,
 } from 'tldraw'
-import { MULTIPLAYER_SERVER } from '../../utils/config'
+import { MULTIPLAYER_SERVER, ZERO_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType } from '../utils/app-ui-events'
 import { getDateFormat } from '../utils/dates'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
-import { Zero } from './zero-polyfill'
+import { Zero as ZeroPolyfill } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
 
 let appId = 0
+const useProperZero = getFromLocalStorage('useProperZero') === 'true'
+// eslint-disable-next-line no-console
+console.log('useProperZero', useProperZero)
+// @ts-expect-error
+window.zero = () => {
+	setInLocalStorage('useProperZero', String(!useProperZero))
+	location.reload()
+}
 
 export class TldrawApp {
 	config = {
@@ -55,24 +78,37 @@ export class TldrawApp {
 
 	readonly id = appId++
 
-	readonly z: Zero
+	readonly z: ZeroPolyfill | Zero<TlaSchema>
 
 	private readonly user$: Signal<TlaUser | undefined>
 	private readonly files$: Signal<TlaFile[]>
 	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
 
 	private readonly abortController = new AbortController()
-	readonly disposables: (() => void)[] = [
-		() => this.abortController.abort(),
-		() => this.z.dispose(),
-	]
+	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
+
+	changes: Map<Atom<any, unknown>, any> = new Map()
+	changesFlushed = null as null | ReturnType<typeof promiseWithResolve>
 
 	private signalizeQuery<TReturn>(name: string, query: any): Signal<TReturn> {
 		// fail if closed?
 		const view = query.materialize()
 		const val$ = atom(name, view.data)
 		view.addListener((res: any) => {
-			val$.set(structuredClone(res) as any)
+			this.changes.set(val$, structuredClone(res))
+			if (!this.changesFlushed) {
+				this.changesFlushed = promiseWithResolve()
+			}
+			queueMicrotask(() => {
+				transact(() => {
+					this.changes.forEach((value, key) => {
+						key.set(value)
+					})
+					this.changes.clear()
+				})
+				this.changesFlushed?.resolve(undefined)
+				this.changesFlushed = null
+			})
 		})
 		this.disposables.push(() => {
 			view.destroy()
@@ -84,30 +120,42 @@ export class TldrawApp {
 
 	private constructor(
 		public readonly userId: string,
-		getToken: () => Promise<string | null>,
+		getToken: () => Promise<string | undefined>,
 		onClientTooOld: () => void,
 		trackEvent: TLAppUiContextType
 	) {
 		const sessionId = uniqueId()
-		this.z = new Zero({
-			// userID: userId,
-			// auth: encodedJWT,
-			getUri: async () => {
-				const params = new URLSearchParams({
-					sessionId,
-					protocolVersion: String(Z_PROTOCOL_VERSION),
+		this.z = useProperZero
+			? new Zero({
+					auth: getToken,
+					userID: userId,
+					schema: zeroSchema,
+					server: ZERO_SERVER,
+					onUpdateNeeded(reason) {
+						console.error('update needed', reason)
+						onClientTooOld()
+					},
+					kvStore: window.navigator.webdriver ? 'mem' : 'idb',
 				})
-				const token = await getToken()
-				params.set('accessToken', token || 'no-token-found')
-				return `${MULTIPLAYER_SERVER}/app/${userId}/connect?${params}`
-			},
-			// schema,
-			// This is often easier to develop with if you're frequently changing
-			// the schema. Switch to 'idb' for local-persistence.
-			onMutationRejected: this.showMutationRejectionToast,
-			onClientTooOld: () => onClientTooOld(),
-			trackEvent,
-		})
+			: new ZeroPolyfill({
+					// userID: userId,
+					// auth: encodedJWT,
+					getUri: async () => {
+						const params = new URLSearchParams({
+							sessionId,
+							protocolVersion: String(Z_PROTOCOL_VERSION),
+						})
+						const token = await getToken()
+						params.set('accessToken', token || 'no-token-found')
+						return `${MULTIPLAYER_SERVER}/app/${userId}/connect?${params}`
+					},
+					// schema,
+					// This is often easier to develop with if you're frequently changing
+					// the schema. Switch to 'idb' for local-persistence.
+					onMutationRejected: this.showMutationRejectionToast,
+					onClientTooOld: () => onClientTooOld(),
+					trackEvent,
+				})
 
 		this.user$ = this.signalizeQuery(
 			'user signal',
@@ -115,7 +163,7 @@ export class TldrawApp {
 		)
 		this.files$ = this.signalizeQuery(
 			'files signal',
-			this.z.query.file.where('ownerId', this.userId)
+			this.z.query.file.where('isDeleted', '=', false)
 		)
 		this.fileStates$ = this.signalizeQuery(
 			'file states signal',
@@ -126,9 +174,10 @@ export class TldrawApp {
 	async preload(initialUserData: TlaUser) {
 		let didCreate = false
 		await this.z.query.user.where('id', this.userId).preload().complete
+		await this.changesFlushed
 		if (!this.user$.get()) {
 			didCreate = true
-			this.z.mutate.user.create(initialUserData)
+			this.z.mutate.user.insert(initialUserData)
 			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
 		}
 		await new Promise((resolve) => {
@@ -230,7 +279,7 @@ export class TldrawApp {
 				Object.entries(others).filter(([_, value]) => value !== null)
 			) as Partial<TLUserPreferences>
 
-			this.z.mutate((tx) => {
+			this.z.mutateBatch((tx) => {
 				tx.user.update({
 					id: user.id,
 					...(nonNull as any),
@@ -268,13 +317,14 @@ export class TldrawApp {
 
 		for (const fileId of myFileIds) {
 			const file = myFiles[fileId]
-			let state = myStates[fileId]
+			let state: (typeof myStates)[string] | undefined = myStates[fileId]
 			if (!file) continue
 			if (!state && !file.isDeleted && file.ownerId === this.userId) {
 				// create a file state for this file
 				// this allows us to 'undelete' soft-deleted files by manually toggling 'isDeleted' in the backend
-				state = this.getOrCreateFileState(fileId)
-			} else if (!state) {
+				state = this.fileStates$.get().find((fs) => fs.fileId === fileId)
+			}
+			if (!state) {
 				// if the file is deleted, we don't want to show it in the recent files
 				continue
 			}
@@ -356,9 +406,9 @@ export class TldrawApp {
 				Object.assign(file, { name: this.getFallbackFileName(file.createdAt) })
 			}
 		}
-		this.z.mutate((tx) => {
-			tx.file.create(file)
-			tx.file_state.create({
+		this.z.mutateBatch((tx) => {
+			tx.file.upsert(file)
+			tx.file_state.upsert({
 				isFileOwner: true,
 				fileId: file.id,
 				userId: this.userId,
@@ -413,17 +463,20 @@ export class TldrawApp {
 		})
 	}
 
+	getFilePk(fileId: string) {
+		const file = this.getFile(fileId)
+		return { id: fileId, ownerId: file!.ownerId, publishedSlug: file!.publishedSlug }
+	}
+
 	toggleFileShared(fileId: string) {
 		const file = this.getUserOwnFiles().find((f) => f.id === fileId)
 		if (!file) throw Error('no file with id ' + fileId)
 
 		if (file.ownerId !== this.userId) throw Error('user cannot edit that file')
 
-		this.z.mutate((tx) => {
-			tx.file.update({
-				id: fileId,
-				shared: !file.shared,
-			})
+		this.updateFile({
+			id: fileId,
+			shared: !file.shared,
 		})
 	}
 
@@ -442,13 +495,11 @@ export class TldrawApp {
 		const name = this.getFileName(file)
 
 		// Optimistic update
-		this.z.mutate((tx) => {
-			tx.file.update({
-				id: fileId,
-				name,
-				published: true,
-				lastPublished: Date.now(),
-			})
+		this.updateFile({
+			...this.getFilePk(fileId),
+			name,
+			published: true,
+			lastPublished: Date.now(),
 		})
 	}
 
@@ -468,7 +519,10 @@ export class TldrawApp {
 
 	updateFile(partial: TlaFilePartial) {
 		this.requireFile(partial.id)
-		this.z.mutate.file.update(partial)
+		this.z.mutate.file.update({
+			...this.getFilePk(partial.id),
+			...partial,
+		})
 	}
 
 	/**
@@ -484,11 +538,9 @@ export class TldrawApp {
 		if (!file.published) return Result.ok('success')
 
 		// Optimistic update
-		this.z.mutate((tx) => {
-			tx.file.update({
-				id: fileId,
-				published: false,
-			})
+		this.updateFile({
+			id: fileId,
+			published: false,
 		})
 
 		return Result.ok('success')
@@ -503,10 +555,10 @@ export class TldrawApp {
 		const file = this.getFile(fileId)
 
 		// Optimistic update, remove file and file states
-		return this.z.mutate((tx) => {
+		return this.z.mutateBatch((tx) => {
 			tx.file_state.delete({ fileId, userId: this.userId })
 			if (file?.ownerId === this.userId) {
-				tx.file.update({ id: fileId, isDeleted: true })
+				tx.file.update({ ...this.getFilePk(fileId), isDeleted: true })
 			}
 		})
 	}
@@ -536,15 +588,15 @@ export class TldrawApp {
 		}
 
 		if (sharedLinkType === 'no-access') {
-			this.z.mutate.file.update({ id: fileId, shared: false })
+			this.updateFile({ id: fileId, shared: false })
 			return
 		}
-		this.z.mutate.file.update({ id: fileId, shared: true, sharedLinkType })
+		this.updateFile({ id: fileId, shared: true, sharedLinkType })
 	}
 
 	updateUser(partial: Partial<TlaUser>) {
 		const user = this.getUser()
-		this.z.mutate.user.update({
+		return this.z.mutate.user.update({
 			id: user.id,
 			...partial,
 		})
@@ -558,10 +610,11 @@ export class TldrawApp {
 		this.updateUser(exportPreferences)
 	}
 
-	getOrCreateFileState(fileId: string) {
-		let fileState = this.getFileState(fileId)
+	async createFileStateIfNotExists(fileId: string) {
+		await this.changesFlushed
+		const fileState = this.getFileState(fileId)
 		if (!fileState) {
-			this.z.mutate.file_state.create({
+			const fs: TlaFileState = {
 				fileId,
 				userId: this.userId,
 				firstVisitAt: Date.now(),
@@ -572,11 +625,9 @@ export class TldrawApp {
 				// doesn't really matter what this is because it is
 				// overwritten by postgres
 				isFileOwner: this.isFileOwner(fileId),
-			})
+			}
+			this.z.mutate.file_state.upsert(fs)
 		}
-		fileState = this.getFileState(fileId)
-		if (!fileState) throw Error('could not create file state')
-		return fileState
 	}
 
 	getFileState(fileId: string) {
@@ -589,8 +640,8 @@ export class TldrawApp {
 		this.z.mutate.file_state.update({ ...partial, fileId, userId: fileState.userId })
 	}
 
-	onFileEnter(fileId: string) {
-		this.getOrCreateFileState(fileId)
+	async onFileEnter(fileId: string) {
+		await this.createFileStateIfNotExists(fileId)
 		this.updateFileState(fileId, {
 			lastVisitAt: Date.now(),
 		})
@@ -616,7 +667,7 @@ export class TldrawApp {
 		fullName: string
 		email: string
 		avatar: string
-		getToken(): Promise<string | null>
+		getToken(): Promise<string | undefined>
 		onClientTooOld(): void
 		trackEvent: TLAppUiContextType
 	}) {
