@@ -123,9 +123,15 @@ test.describe('sidebar actions', () => {
 		}, page)
 	})
 
-	test('delete the document via the file menu', async ({ sidebar, deleteFileDialog, page }) => {
+	test('delete the document via the file menu', async ({
+		editor,
+		sidebar,
+		deleteFileDialog,
+		page,
+	}) => {
 		const url = page.url()
 		const current = 'delete me'
+		await editor.isLoaded()
 		await test.step('rename the file', async () => {
 			await sidebar.renameFile(0, current)
 		})
@@ -148,9 +154,11 @@ test.describe('sidebar actions', () => {
 		})
 	})
 
-	test('duplicate the document via the file menu', async ({ page, sidebar }) => {
+	test('duplicate the document via the file menu', async ({ editor, page, sidebar }) => {
+		await editor.isLoaded()
 		const fileName = getRandomName()
 		expect(await sidebar.getNumberOfFiles()).toBe(1)
+
 		await sidebar.renameFile(0, fileName)
 		await sidebar.duplicateFile(0)
 		await expectBeforeAndAfterReload(async () => {
@@ -166,7 +174,8 @@ test.describe('sidebar actions', () => {
 		}, page)
 	})
 
-	test('duplicate with custom name', async ({ page, sidebar }) => {
+	test('duplicate with custom name', async ({ editor, page, sidebar }) => {
+		await editor.isLoaded()
 		const fileName = getRandomName()
 		const duplicateName = getRandomName()
 		expect(await sidebar.getNumberOfFiles()).toBe(1)
@@ -185,7 +194,8 @@ test.describe('sidebar actions', () => {
 		}, page)
 	})
 
-	test('can copy a file link from the file menu', async ({ page, context, sidebar }) => {
+	test('can copy a file link from the file menu', async ({ editor, page, context, sidebar }) => {
+		await editor.isLoaded()
 		await context.grantPermissions(['clipboard-read', 'clipboard-write'])
 		const url = page.url()
 		const copiedUrl = await sidebar.copyFileLink(0)
