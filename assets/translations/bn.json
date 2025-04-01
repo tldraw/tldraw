@@ -89,7 +89,7 @@
 	"action.toggle-focus-mode.menu": "ফোকাস মোড",
 	"action.toggle-grid": "গ্রিড টগল করুন",
 	"action.toggle-grid.menu": "গ্রিড দেখান",
-	"action.toggle-lock": "লক\/আনলক",
+	"action.toggle-lock": "লক/আনলক",
 	"action.toggle-paste-at-cursor": "কার্সারে টগল পেস্ট করুন",
 	"action.toggle-paste-at-cursor.menu": "কার্সারে আটকান",
 	"action.toggle-reduce-motion": "গতি কমাতে টগল করুন",

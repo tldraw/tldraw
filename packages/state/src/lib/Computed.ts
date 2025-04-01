@@ -145,6 +145,8 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 	lastChangedEpoch = GLOBAL_START_EPOCH
 	lastTraversedEpoch = GLOBAL_START_EPOCH
 
+	__debug_ancestor_epochs__: Map<Signal<any, any>, number> | null = null
+
 	/**
 	 * The epoch when the reactor was last checked.
 	 */

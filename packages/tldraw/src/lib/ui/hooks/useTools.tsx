@@ -1,10 +1,12 @@
 import { Editor, GeoShapeGeoStyle, useMaybeEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { EmbedDialog } from '../components/EmbedDialog'
+import { useA11y } from '../context/a11y'
 import { TLUiEventSource, useUiEvents } from '../context/events'
 import { TLUiIconType } from '../icon-types'
 import { useDefaultHelpers } from '../overrides'
 import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
+import { useTranslation } from './useTranslation/useTranslation'
 
 /** @public */
 export interface TLUiToolItem<
@@ -44,7 +46,21 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 	const editor = useMaybeEditor()
 	const trackEvent = useUiEvents()
 
+	const a11y = useA11y()
+	const msg = useTranslation()
 	const helpers = useDefaultHelpers()
+
+	const onToolSelect = React.useCallback(
+		(
+			source: TLUiEventSource,
+			tool: TLUiToolItem<TLUiTranslationKey, TLUiIconType>,
+			id?: string
+		) => {
+			a11y.announce({ msg: msg(tool.label) })
+			trackEvent('select-tool', { source, id: id ?? tool.id })
+		},
+		[a11y, msg, trackEvent]
+	)
 
 	const tools = React.useMemo<TLUiToolsContextType>(() => {
 		if (!editor) return {}
@@ -68,7 +84,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 						currentNode.enter({}, currentNode.id)
 					}
 					editor.setCurrentTool('select')
-					trackEvent('select-tool', { source, id: 'select' })
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -79,7 +95,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					editor.setCurrentTool('hand')
-					trackEvent('select-tool', { source, id: 'hand' })
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -89,7 +105,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'e',
 				onSelect(source) {
 					editor.setCurrentTool('eraser')
-					trackEvent('select-tool', { source, id: 'eraser' })
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -99,7 +115,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'd,b,x',
 				onSelect(source) {
 					editor.setCurrentTool('draw')
-					trackEvent('select-tool', { source, id: 'draw' })
+					onToolSelect(source, this)
 				},
 			},
 			...[...GeoShapeGeoStyle.values].map((id) => ({
@@ -114,7 +130,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					editor.run(() => {
 						editor.setStyleForNextShapes(GeoShapeGeoStyle, id)
 						editor.setCurrentTool('geo')
-						trackEvent('select-tool', { source, id: `geo-${id}` })
+						onToolSelect(source, this, `geo-${id}`)
 					})
 				},
 			})),
@@ -125,7 +141,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'a',
 				onSelect(source) {
 					editor.setCurrentTool('arrow')
-					trackEvent('select-tool', { source, id: 'arrow' })
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -135,7 +151,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'l',
 				onSelect(source) {
 					editor.setCurrentTool('line')
-					trackEvent('select-tool', { source, id: 'line' })
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -145,7 +161,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'f',
 				onSelect(source) {
 					editor.setCurrentTool('frame')
-					trackEvent('select-tool', { source, id: 'frame' })
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -155,7 +171,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 't',
 				onSelect(source) {
 					editor.setCurrentTool('text')
-					trackEvent('select-tool', { source, id: 'text' })
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -165,7 +181,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: '$u',
 				onSelect(source) {
 					helpers.insertMedia()
-					trackEvent('select-tool', { source, id: 'media' })
+					onToolSelect(source, this, 'media')
 				},
 			},
 			{
@@ -175,7 +191,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'n',
 				onSelect(source) {
 					editor.setCurrentTool('note')
-					trackEvent('select-tool', { source, id: 'note' })
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -186,7 +202,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'k',
 				onSelect(source) {
 					editor.setCurrentTool('laser')
-					trackEvent('select-tool', { source, id: 'laser' })
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -195,7 +211,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				icon: 'dot',
 				onSelect(source) {
 					helpers.addDialog({ component: EmbedDialog })
-					trackEvent('select-tool', { source, id: 'embed' })
+					onToolSelect(source, this)
 				},
 			},
 			{
@@ -206,12 +222,12 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: '!d',
 				onSelect(source) {
 					editor.setCurrentTool('highlight')
-					trackEvent('select-tool', { source, id: 'highlight' })
+					onToolSelect(source, this)
 				},
 			},
 		]
 
-		toolsArray.push()
+		toolsArray.forEach((t) => (t.onSelect = t.onSelect.bind(t)))
 
 		const tools = Object.fromEntries(toolsArray.map((t) => [t.id, t]))
 
@@ -220,7 +236,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 		}
 
 		return tools
-	}, [overrides, editor, trackEvent, helpers])
+	}, [overrides, editor, helpers, onToolSelect])
 
 	return <ToolsContext.Provider value={tools}>{children}</ToolsContext.Provider>
 }

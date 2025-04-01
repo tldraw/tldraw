@@ -897,14 +897,15 @@ input,
 	cursor: var(--tl-cursor-default);
 }
 
+.tl-rich-text[data-is-ready-for-editing='true'],
+.tl-text-wrapper[data-is-ready-for-editing='true'] .tl-text-input {
+	cursor: var(--tl-cursor-text);
+}
+
 .tl-text-input::selection {
 	background: var(--color-selected);
 	color: var(--color-selected-contrast);
 	text-shadow: none;
-}
-
-.tl-rich-text[data-iseditinganything='true'] {
-	cursor: var(--tl-cursor-text);
 }
 
 .tl-rich-text .ProseMirror {
@@ -917,6 +918,7 @@ input,
 	 * However, that was from 8 years ago and the browser caret issue
 	 * it mentions seems to be fixed. So, we're re-enabling it.
 	 * We'll tell ProseMirror maybe to get rid of this on their end.
+	 *
 	 */
 	-webkit-font-variant-ligatures: inherit;
 	font-variant-ligatures: inherit;
@@ -953,6 +955,15 @@ input,
 .tl-rich-text ol {
 	text-align: left;
 	margin: 0;
+	padding-left: 3.25ch;
+}
+
+.tl-rich-text ol:has(> li:nth-child(10)) {
+	padding-left: 4.25ch;
+}
+
+.tl-rich-text ol:has(> li:nth-child(100)) {
+	padding-left: 5.25ch;
 }
 
 .tl-rich-text h1,
@@ -1411,13 +1422,17 @@ input,
 }
 
 .tl-frame-heading {
+	--frame-padding-x: 6px;
+	--frame-height: 24px;
+	--frame-minimum-width: 32px;
+	--frame-offset-width: 16px;
 	display: flex;
 	align-items: center;
 	position: absolute;
 	transform-origin: 0% 100%;
 	overflow: hidden;
 	max-width: 100%;
-	min-width: 32px;
+	min-width: var(--frame-minimum-width);
 	height: auto;
 	font-size: 12px;
 	padding-bottom: 4px;
@@ -1429,32 +1444,33 @@ input,
 	/* scale from bottom left corner so we can pin it to the top left corner of the frame */
 	transform-origin: 0% 100%;
 	display: flex;
-	height: 100%;
+	height: var(--frame-height);
 	width: 100%;
 	align-items: center;
 	border-radius: var(--radius-1);
-	background-color: var(--color-background);
 }
 
 .tl-frame-label {
 	pointer-events: all;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	padding: var(--space-3) var(--space-3);
+	padding: 0px var(--frame-padding-x);
+	border-radius: var(--radius-1);
 	position: relative;
 	font-size: inherit;
 	white-space: pre;
-	border: 1px solid transparent;
 }
 
 .tl-frame-label__editing {
 	color: transparent;
 	white-space: pre;
 	width: auto;
+	min-width: var(--frame-minimum-width);
+	height: 100%;
 	overflow: visible;
 	background-color: var(--color-panel);
-	border-radius: var(--radius-1);
 	border-color: var(--color-selected);
+	box-shadow: inset 0px 0px 0px 1.5px var(--color-selected);
 }
 
 .tl-frame-name-input {
@@ -1462,7 +1478,7 @@ input,
 	border: none;
 	background: none;
 	outline: none;
-	padding: var(--space-3) var(--space-3);
+	padding: 0px var(--frame-padding-x);
 	inset: 0px;
 	height: 100%;
 	width: 100%;
