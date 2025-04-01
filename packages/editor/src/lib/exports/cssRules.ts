@@ -5,19 +5,12 @@ type CanSkipRule = (
 	value: string,
 	property: string,
 	options: {
-		styles: StylePropertyMapReadOnly | CSSStyleDeclaration
+		getStyle(property: string): string
 		parentStyles: ReadonlyStyles
 		defaultStyles: ReadonlyStyles
 		currentColor: string
 	}
 ) => boolean
-
-const getStyle = (styles: StylePropertyMapReadOnly | CSSStyleDeclaration, property: string) => {
-	if (styles instanceof CSSStyleDeclaration) {
-		return styles.getPropertyValue(property)
-	}
-	return styles.get(property)?.toString()
-}
 
 const isCoveredByCurrentColor: CanSkipRule = (value, property, { currentColor }) => {
 	return value === 'currentColor' || value === currentColor
@@ -29,9 +22,9 @@ const isInherited: CanSkipRule = (value, property, { parentStyles }) => {
 
 const isExcludedBorder =
 	(borderDirection: string): CanSkipRule =>
-	(value, property, { styles }) => {
-		const borderWidth = getStyle(styles, `border-${borderDirection}-width`)
-		const borderStyle = getStyle(styles, `border-${borderDirection}-style`)
+	(value, property, { getStyle }) => {
+		const borderWidth = getStyle(`border-${borderDirection}-width`)
+		const borderStyle = getStyle(`border-${borderDirection}-style`)
 
 		if (borderWidth === '0px') return true
 		if (borderStyle === 'none') return true

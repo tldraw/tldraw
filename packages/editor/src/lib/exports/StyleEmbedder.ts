@@ -246,7 +246,12 @@ function styleFromComputedStyleMap(
 ) {
 	const styles: Record<string, string> = {}
 	const currentColor = style.get('color')?.toString() || ''
-	const ruleOptions = { currentColor, parentStyles, defaultStyles, styles: style }
+	const ruleOptions = {
+		currentColor,
+		parentStyles,
+		defaultStyles,
+		getStyle: (property: string) => style.get(property)?.toString() ?? '',
+	}
 	for (const property of style.keys()) {
 		if (!shouldIncludeCssProperty(property)) continue
 
@@ -269,7 +274,12 @@ function styleFromComputedStyle(
 ) {
 	const styles: Record<string, string> = {}
 	const currentColor = style.color
-	const ruleOptions = { currentColor, parentStyles, defaultStyles, styles: style }
+	const ruleOptions = {
+		currentColor,
+		parentStyles,
+		defaultStyles,
+		getStyle: (property: string) => style.getPropertyValue(property),
+	}
 
 	for (const property in style) {
 		if (!shouldIncludeCssProperty(property)) continue
@@ -298,6 +308,7 @@ function formatCss(style: ReadonlyStyles) {
 // so they're not affected by the current document's styles
 let defaultStyleFrame:
 	| Promise<{
+			url: string
 			iframe: HTMLIFrameElement
 			foreignObject: SVGForeignObjectElement
 			document: Document
@@ -309,12 +320,6 @@ const defaultStylesByTagName: Record<
 	| { type: 'resolved'; styles: ReadonlyStyles; promise: Promise<ReadonlyStyles> }
 	| { type: 'pending'; promise: Promise<ReadonlyStyles> }
 > = {}
-
-const emptyFrameBlob = new Blob(
-	['<svg xmlns="http://www.w3.org/2000/svg"><foreignObject/></svg>'],
-	{ type: 'image/svg+xml' }
-)
-const emptyFrameUrl = URL.createObjectURL(emptyFrameBlob)
 
 function getDefaultStyleFrame() {
 	if (!defaultStyleFrame) {
@@ -330,10 +335,16 @@ function getDefaultStyleFrame() {
 				pointerEvents: 'none',
 			})
 
+			const emptyFrameBlob = new Blob(
+				['<svg xmlns="http://www.w3.org/2000/svg"><foreignObject/></svg>'],
+				{ type: 'image/svg+xml' }
+			)
+			const emptyFrameUrl = URL.createObjectURL(emptyFrameBlob)
+
 			frame.onload = () => {
 				const contentDocument = frame.contentDocument!
 				const foreignObject = contentDocument.querySelector('foreignObject')!
-				resolve({ iframe: frame, foreignObject, document: contentDocument })
+				resolve({ url: emptyFrameUrl, iframe: frame, foreignObject, document: contentDocument })
 			}
 
 			frame.src = emptyFrameUrl
@@ -345,7 +356,10 @@ function getDefaultStyleFrame() {
 
 function destroyDefaultStyleFrame() {
 	if (defaultStyleFrame) {
-		defaultStyleFrame.then(({ iframe }) => document.body.removeChild(iframe))
+		defaultStyleFrame.then(({ url, iframe }) => {
+			URL.revokeObjectURL(url)
+			document.body.removeChild(iframe)
+		})
 		defaultStyleFrame = undefined
 	}
 }
