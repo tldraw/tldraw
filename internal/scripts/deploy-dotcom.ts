@@ -183,7 +183,7 @@ async function prepareDotcomApp(zeroUrl: string) {
 			ASSET_UPLOAD: env.ASSET_UPLOAD,
 			IMAGE_WORKER: env.IMAGE_WORKER,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
-			ZERO_SERVER: 'https://pr-5551.zero.tldraw.com',
+			ZERO_SERVER: zeroUrl,
 			NEXT_PUBLIC_GC_API_KEY: env.GC_MAPS_API_KEY,
 			SENTRY_AUTH_TOKEN: env.SENTRY_AUTH_TOKEN,
 			SENTRY_ORG: 'tldraw',

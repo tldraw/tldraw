@@ -2,6 +2,24 @@
 /// <reference path="./.sst/platform/config.d.ts" />
 import { readFileSync, writeFileSync } from 'fs'
 
+// const deployInfo = getDeployInfo()
+
+const githubPrNumber = process.env.GITHUB_REF?.match(/refs\/pull\/(\d+)\/merge/)?.[1]
+
+let previewId = null as null | string
+if (process.env.TLDRAW_ENV === 'preview' && githubPrNumber) {
+	previewId = `pr-${githubPrNumber}`
+}
+
+let domain = undefined as undefined | string
+if (process.env.TLDRAW_ENV === 'preview' && previewId) {
+	domain = `${previewId}.zero.tldraw.com`
+} else if (process.env.TDLRAW_ENV === 'production') {
+	domain = 'zero.tldraw.com'
+} else if (process.env.TDLRAW_ENV === 'staging') {
+	domain = 'staging.zero.tldraw.com'
+}
+
 export default $config({
 	app(input) {
 		return {
@@ -120,7 +138,7 @@ export default $config({
 				retention: '1 month',
 			},
 			loadBalancer: {
-				domain: 'zero.tldraw.com',
+				domain,
 				public: true,
 				rules: [{ listen: '443/https', forward: '4848/http' }],
 			},
