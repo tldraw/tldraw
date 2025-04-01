@@ -31,6 +31,7 @@ const imageResize = path.relative(
 	process.cwd(),
 	path.resolve(REPO_ROOT, './apps/dotcom/image-resize-worker')
 )
+const zeroCache = path.relative(process.cwd(), path.resolve(REPO_ROOT, './apps/dotcom/zero-cache'))
 const dotcom = path.relative(process.cwd(), path.resolve(REPO_ROOT, './apps/dotcom/client'))
 
 const { previewId, sha } = getDeployInfo()
@@ -97,7 +98,7 @@ async function main() {
 
 	await discord.step('setting up deploy', async () => {
 		// make sure the tldraw .css files are built:
-		await exec('yarn', ['lazy', 'prebuild'])
+		await exec('pnpm', ['lazy', 'prebuild'])
 
 		// link to vercel and supabase projects:
 		await vercelCli('link', ['--project', env.VERCEL_PROJECT_ID])
@@ -169,7 +170,7 @@ async function main() {
 
 async function prepareDotcomApp() {
 	// pre-build the app:
-	await exec('yarn', ['build-app'], {
+	await exec('pnpm', ['build-app'], {
 		env: {
 			NEXT_PUBLIC_TLDRAW_RELEASE_INFO: `${env.RELEASE_COMMIT_HASH} ${new Date().toISOString()}`,
 			ASSET_UPLOAD: env.ASSET_UPLOAD,
@@ -221,7 +222,8 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 		env.NEON_PREVIEW_DB_CONNECTION_STRING || env.BOTCOM_POSTGRES_CONNECTION_STRING
 	const BOTCOM_POSTGRES_POOLED_CONNECTION_STRING =
 		env.NEON_PREVIEW_DB_POOLED_CONNECTION_STRING || env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING
-	await exec('yarn', ['workspace', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null], {
+	await exec('pnpm', ['migrate', dryRun ? '--dry-run' : null], {
+		pwd: zeroCache,
 		env: {
 			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 		},
@@ -303,10 +305,8 @@ async function deployHealthWorker({ dryRun }: { dryRun: boolean }) {
 type ExecOpts = NonNullable<Parameters<typeof exec>[2]>
 async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 	return exec(
-		'yarn',
+		'pnpm',
 		[
-			'run',
-			'-T',
 			'vercel',
 			command,
 			'--token',
@@ -359,7 +359,7 @@ const sentryEnv = {
 }
 
 const execSentry = (command: string, args: string[]) =>
-	exec(`yarn`, ['run', '-T', 'sentry-cli', command, ...args], { env: sentryEnv })
+	exec(`pnpm`, ['sentry-cli', command, ...args], { env: sentryEnv })
 
 async function createSentryRelease() {
 	await execSentry('releases', ['new', sentryReleaseName])

@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -eux
 
-yarn
+pnpm i --frozen-lockfile

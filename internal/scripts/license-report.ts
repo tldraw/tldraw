@@ -1,29 +1,31 @@
 // For all package.jsons found in the monorepo, generate a license report
 // by running the `license-report --output=html` script in each package.
 
-import { execPromise } from '@auto-it/core'
-import { execSync } from 'child_process'
 import { writeFileSync } from 'fs'
+import { exec } from './lib/exec'
+import { getAllWorkspacePackages } from './lib/workspace'
 
-// Use `yarn workspace list` to get all the packages in the monorepo
 async function main() {
 	const devOnly = process.argv.includes('--dev')
 	const prodOnly = process.argv.includes('--prod')
 
 	const htmlTables: { title: string; content: string }[] = []
 
-	const workspaceList = execSync('yarn workspaces list', {
-		encoding: 'utf-8',
-	})
-	const lines = workspaceList.split('\n')
-	lines.pop() // remove // Done
-	for (let i = 0; i < lines.length; i++) {
-		const location = lines[i].split(': ')[1]
+	const packages = await getAllWorkspacePackages()
+
+	for (const pkg of packages) {
+		const location = pkg.path
 		try {
 			console.log('running license-report in', location)
-			const report = await execPromise(
-				`yarn license-report --package=${location}/package.json --department.value=tldraw  --relatedTo.label=Package --relatedTo.value=${location} --output=html --only=${devOnly ? 'dev' : prodOnly ? 'prod' : 'dev,prod,peer,opt'}`
-			)
+			const report = await exec('pnpm', [
+				'license-report',
+				`--package=${location}/package.json`,
+				'--department.value=tldraw',
+				'--relatedTo.label=Package',
+				`--relatedTo.value=${location}`,
+				'--output=html',
+				`--only=${devOnly ? 'dev' : prodOnly ? 'prod' : 'dev,prod,peer,opt'}`,
+			])
 			// Extract the <table> contents from the report
 			const table = report.match(/<tbody>.*<\/tbody>/gs)
 			if (!table) {

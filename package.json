@@ -24,23 +24,16 @@
 		"canvas",
 		"infinite"
 	],
-	"workspaces": [
-		"packages/*",
-		"apps/*",
-		"apps/vscode/*",
-		"apps/dotcom/*",
-		"internal/*"
-	],
 	"scripts": {
 		"clean": "internal/scripts/clean.sh",
-		"postinstall": "husky install && yarn refresh-assets",
+		"postinstall": "husky install && pnpm refresh-assets",
 		"refresh-assets": "lazy refresh-assets",
 		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw' --filter='apps/bemo-worker' --filter='apps/dotcom/image-resize-worker'",
 		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='apps/vscode/{extension,editor}'",
 		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/dotcom/*' --filter='packages/tldraw'",
 		"dev-docs": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/docs'",
 		"dev-huppy": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter 'internal/huppy'",
-		"dev-tools": "yarn tsx internal/scripts/get-pr-numbers.ts && lazy run dev --filter='internal/dev-tools'",
+		"dev-tools": "pnpm exec tsx internal/scripts/get-pr-numbers.ts && lazy run dev --filter='internal/dev-tools'",
 		"build": "lazy build",
 		"build-app": "lazy run build --filter 'apps/dotcom/client'",
 		"build-docs": "lazy run build --filter 'apps/docs'",
@@ -48,11 +41,11 @@
 		"build-api": "lazy build-api",
 		"build-i18n": "lazy build-i18n",
 		"build-package": "lazy build-package",
-		"preview-app": "VITE_PREVIEW=1 yarn dev-app",
+		"preview-app": "VITE_PREVIEW=1 pnpm dev-app",
 		"lint": "lazy lint",
 		"format": "prettier --write --cache '**/*.{yml,yaml,json,md,mdx,html,css,js,jsx,ts,tsx,cjs,mjs}'",
 		"format-current": "prettier --write --cache $(git diff --name-only --diff-filter d | xargs)",
-		"typecheck": "yarn refresh-assets && tsx internal/scripts/typecheck.ts",
+		"typecheck": "pnpm refresh-assets && tsx internal/scripts/typecheck.ts",
 		"check-packages": "tsx internal/scripts/check-packages.ts",
 		"update-pr-template": "tsx internal/scripts/update-pr-template.ts",
 		"api-check": "lazy api-check",
@@ -70,7 +63,7 @@
 		"npm": ">=7.0.0",
 		"node": "^20.0.0"
 	},
-	"packageManager": "yarn@4.7.0+sha256.293632d8a095d8ea4786eb2c5798c83c37544abed17ed31186a3ec4549a07c06",
+	"packageManager": "pnpm@10.7.0+sha256.35cab26953bf90847e798839db58c9a2a82d526b7af179fd2a103c18242cadc6",
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json}": [
 			"prettier --write --cache --log-level=warn"
@@ -120,21 +113,19 @@
 		"it slows down installs quite a bit though, so we replace it with an empty package."
 	],
 	"resolutions": {
-		"@microsoft/api-extractor@^7.35.4": "patch:@microsoft/api-extractor@npm%3A7.35.4#./.yarn/patches/@microsoft-api-extractor-npm-7.35.4-5f4f0357b4.patch",
-		"vectra@^0.4.4": "patch:vectra@npm%3A0.4.4#./.yarn/patches/vectra-npm-0.4.4-6aac3f6c29.patch",
-		"domino@^2.1.6": "patch:domino@npm%3A2.1.6#./.yarn/patches/domino-npm-2.1.6-b0dc3de857.patch",
-		"canvas": "npm:empty-npm-package@1.0.0",
-		"postgres@npm:^3.4.4": "patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch",
-		"@microsoft/tsdoc@npm:~0.15.1": "patch:@microsoft/tsdoc@npm%3A0.15.1#~/.yarn/patches/@microsoft-tsdoc-npm-0.15.1-e24295d9bd.patch",
-		"@microsoft/tsdoc@npm:0.15.1": "patch:@microsoft/tsdoc@npm%3A0.15.1#~/.yarn/patches/@microsoft-tsdoc-npm-0.15.1-e24295d9bd.patch"
+		"canvas": "npm:empty-npm-package@1.0.0"
 	},
 	"dependencies": {
 		"@sentry/cli": "^2.41.1",
-		"@yarnpkg/types": "^4.0.0",
 		"cross-env": "^7.0.3",
 		"esbuild": "^0.24.2",
 		"mime": "^4.0.6",
 		"purgecss": "^5.0.0",
 		"svgo": "^3.3.2"
+	},
+	"pnpm": {
+		"patchedDependencies": {
+			"@microsoft/tsdoc": "patches/@microsoft__tsdoc.patch"
+		}
 	}
 }

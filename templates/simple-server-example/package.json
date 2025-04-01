@@ -10,15 +10,15 @@
 	"license": "MIT",
 	"main": "./src/server/server.ts",
 	"scripts": {
-		"dev-node": "concurrently -n server,client -c red,blue \"yarn dev-server-node\" \"yarn dev-client\"",
-		"dev-bun": "concurrently -n server,client -c red,blue \"yarn dev-server-bun\" \"yarn dev-client\"",
-		"dev-server-node": "yarn run -T tsx watch ./src/server/server.node.ts",
+		"dev-node": "concurrently -n server,client -c red,blue \"pnpm dev-server-node\" \"pnpm dev-client\"",
+		"dev-bun": "concurrently -n server,client -c red,blue \"pnpm dev-server-bun\" \"pnpm dev-client\"",
+		"dev-server-node": "pnpm tsx watch ./src/server/server.node.ts",
 		"dev-server-bun": "npx bun --watch ./src/server/server.bun.ts",
 		"dev-client": "vite dev",
 		"test-ci": "echo 'No tests yet'",
-		"test": "yarn run -T jest --passWithNoTests",
+		"test": "pnpm jest --passWithNoTests",
 		"test-coverage": "lazy inherit",
-		"lint": "yarn run -T tsx ../../scripts/lint.ts"
+		"lint": "pnpm tsx ../../scripts/lint.ts"
 	},
 	"devDependencies": {
 		"@types/bun": "^1.1.6",

@@ -57,13 +57,13 @@ export async function setAllVersions(version: string) {
 		)
 	}
 
-	await exec('yarn', ['refresh-assets', '--force'], { env: { ALLOW_REFRESH_ASSETS_CHANGES: '1' } })
+	await exec('pnpm', ['refresh-assets', '--force'], { env: { ALLOW_REFRESH_ASSETS_CHANGES: '1' } })
 
 	const lernaJson = JSON.parse(readFileSync('lerna.json', 'utf8'))
 	lernaJson.version = version
 	writeFileSync('lerna.json', JSON.stringify(lernaJson, null, '\t') + '\n')
 
-	execSync('yarn')
+	execSync('pnpm')
 }
 
 export async function getLatestVersion() {
@@ -109,8 +109,8 @@ export async function publish(distTag?: string) {
 		throw new Error('NPM_TOKEN not set')
 	}
 
-	execSync(`yarn config set npmAuthToken ${npmToken}`, { stdio: 'inherit' })
-	execSync(`yarn config set npmRegistryServer https://registry.npmjs.org`, { stdio: 'inherit' })
+	execSync(`pnpm config set npmAuthToken ${npmToken}`, { stdio: 'inherit' })
+	execSync(`pnpm config set npmRegistryServer https://registry.npmjs.org`, { stdio: 'inherit' })
 
 	const packages = await getAllPackageDetails()
 
@@ -127,7 +127,7 @@ export async function publish(distTag?: string) {
 				let output = ''
 				try {
 					await exec(
-						`yarn`,
+						`pnpm`,
 						['npm', 'publish', '--tag', String(tag), '--tolerate-republish', '--access', 'public'],
 						{
 							pwd: packageDetails.dir,

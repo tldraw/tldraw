@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { render, RenderResult } from '@testing-library/react'
 import { Editor, promiseWithResolve } from '@tldraw/editor'
 import { ReactElement } from 'react'
 
@@ -16,7 +16,7 @@ import { ReactElement } from 'react'
 export async function renderTldrawComponent(
 	element: ReactElement,
 	{ waitForPatterns }: { waitForPatterns: boolean }
-) {
+): Promise<RenderResult> {
 	const result = render(element)
 	await result.findAllByTestId('canvas')
 	if (waitForPatterns) await result.findByTestId('ready-pattern-fill-defs')
@@ -26,7 +26,7 @@ export async function renderTldrawComponent(
 export async function renderTldrawComponentWithEditor(
 	cb: (onMount: (editor: Editor) => void) => ReactElement,
 	opts: { waitForPatterns: boolean }
-) {
+): Promise<{ editor: Editor; rendered: RenderResult }> {
 	const editorPromise = promiseWithResolve<Editor>()
 	const element = cb((editor) => {
 		editorPromise.resolve(editor)

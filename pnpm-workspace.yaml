@@ -1,0 +1,20 @@
+packages:
+  - packages/*
+  - apps/*
+  - apps/vscode/*
+  - apps/dotcom/*
+  - internal/*
+patchedDependencies:
+  '@microsoft/tsdoc': patches/@microsoft__tsdoc.patch
+ignoredBuiltDependencies:
+  - core-js
+onlyBuiltDependencies:
+  - '@clerk/shared'
+  - '@sentry/cli'
+  - '@swc/core'
+  - esbuild
+  - keytar
+  - postinstall-postinstall
+  - sharp
+  - sqlite3
+  - workerd

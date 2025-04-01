@@ -26,39 +26,36 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - name: Check version constraints
-        run: yarn constraints
-
       - name: Check for duplicate dependencies
-        run: yarn dedupe --check
+        run: pnpm dedupe --check
 
       - name: Check packages
-        run: yarn check-packages
+        run: pnpm check-packages
 
       - name: Typecheck
-        run: yarn build-types
+        run: pnpm build-types
 
       - name: Check bundle sizes
-        run: yarn lazy check-bundle-size
+        run: pnpm lazy check-bundle-size
 
       - name: Check PR template
-        run: yarn update-pr-template --check
+        run: pnpm update-pr-template --check
         env:
           GH_TOKEN: ${{ github.token }}
 
       - name: Lint
-        run: yarn lint
+        run: pnpm lint
 
       - name: Check API declarations and docs work as intended
-        run: yarn api-check
+        run: pnpm api-check
 
       - name: Check dotcom localizations
         run: |
-          yarn build-i18n 
-          git diff --exit-code --quiet ./apps/dotcom/client/public/tla/locales/ ./apps/dotcom/client/public/tla/locales-compiled/ || (echo "Please run yarn build-i18n and commit the changes" && exit 1)
+          pnpm build-i18n 
+          git diff --exit-code --quiet ./apps/dotcom/client/public/tla/locales/ ./apps/dotcom/client/public/tla/locales-compiled/ || (echo "Please run pnpm build-i18n and commit the changes" && exit 1)
 
       - name: Test
-        run: yarn test-ci
+        run: pnpm test-ci
 
   build:
     name: 'Build all projects'
@@ -74,7 +71,7 @@ jobs:
       - name: Build all projects
         # the sed pipe makes sure that github annotations come through without
         # turbo's prefix
-        run: "yarn build | sed -E 's/^.*? ::/::/'"
+        run: "pnpm build | sed -E 's/^.*? ::/::/'"
 
       - name: Pack public packages
-        run: "yarn lazy pack-tarball | sed -E 's/^.*? ::/::/'"
+        run: "pnpm lazy pack-tarball | sed -E 's/^.*? ::/::/'"

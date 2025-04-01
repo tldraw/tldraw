@@ -51,10 +51,11 @@
 		"typescript": "~5.4.5"
 	},
 	"scripts": {
-		"lint": "yarn run -T tsx lint.ts"
+		"lint": "pnpm tsx lint.ts"
 	},
 	"dependencies": {
 		"@lokalise/node-api": "^12.8.0",
+		"@microsoft/tsdoc": "^0.15.1",
 		"@octokit/rest": "^20.1.1",
 		"@types/minimist": "^1.2.5",
 		"@types/proper-lockfile": "^4.1.4",
@@ -63,7 +64,9 @@
 		"ignore": "^5.3.2",
 		"jszip": "^3.10.1",
 		"minimist": "^1.2.8",
+		"octokit": "^3.2.1",
 		"proper-lockfile": "^4.1.2",
+		"strip-ansi": "^7.1.0",
 		"tar": "^7.4.3",
 		"tmp": "^0.2.3",
 		"toml": "^3.0.0"

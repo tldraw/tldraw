@@ -38,7 +38,7 @@ them faster.
 
 ## Development
 
-To install dependencies, run `yarn`. To start a local development server, run `yarn dev`. This will
+To install dependencies, run `pnpm install`. To start a local development server, run `pnpm dev`. This will
 start a [`vite`](https://vitejs.dev/) dev server for the frontend of your application, and a
 [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) dev server for your workers
 backend. The app should now be running at http://localhost:5137 (and the server at
@@ -98,7 +98,7 @@ also [configure a custom
 domain](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/).
 
 Finally, deploy your client HTML & JavaScript. Create a production build with
-`TLDRAW_WORKER_URL=https://your.workers.domain.com yarn build`. Publish the resulting build (in
+`TLDRAW_WORKER_URL=https://your.workers.domain.com pnpm build`. Publish the resulting build (in
 `dist/`) on a host of your choosing - we use [Vercel](https://vercel.com).
 
 When you visit your published client, it should connect to your cloudflare workers domain and sync

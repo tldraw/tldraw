@@ -45,10 +45,10 @@ nicelog('The multiplayer server is', process.env.MULTIPLAYER_SERVER)
 
 async function build() {
 	// make sure we have the latest routes
-	await exec('yarn', ['test', 'src/routes.test.tsx'])
+	await exec('pnpm', ['test', 'src/routes.test.tsx'])
 	const spaRoutes = loadSpaRoutes()
 	await exec('vite', ['build', '--emptyOutDir'])
-	await exec('yarn', ['run', '-T', 'sentry-cli', 'sourcemaps', 'inject', 'dist/assets'])
+	await exec('pnpm', ['sentry-cli', 'sourcemaps', 'inject', 'dist/assets'])
 	// Clear output static folder (in case we are running locally and have already built the app once before)
 	await exec('rm', ['-rf', '.vercel/output'])
 	mkdirSync('.vercel/output', { recursive: true })
