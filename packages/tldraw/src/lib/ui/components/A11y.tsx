@@ -58,7 +58,7 @@ export const DefaultA11yAnnouncer = memo(function TldrawUiA11yAnnouncer() {
 	return (
 		msg.msg && (
 			<div
-				aria-live={msg.priority || 'polite'}
+				aria-live={msg.priority || 'assertive'}
 				role="status"
 				aria-hidden="false"
 				style={{
