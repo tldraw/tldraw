@@ -12,10 +12,17 @@ permissions: write-all
 env:
   CI: 1
   PRINT_GITHUB_ANNOTATIONS: 1
-  TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
-  AWS_ACCOUNT_NUMBER: ${{ (github.ref == 'refs/heads/production' && '892899106134') || (github.ref == 'refs/heads/main' && '028814013491') || '571248596162'  }}
+  TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview' }}
+  AWS_ACCOUNT_NUMBER: ${{ (github.ref == 'refs/heads/production' && '892899106134') || (github.ref == 'refs/heads/main' && '028814013491') || '571248596162' }}
   AWS_REGION: 'eu-north-1'
-  DEPLOY_TO: ${{ (TLDRAW_ENV == 'preview' && !contains(github.event.pull_request.labels.*.name, 'preview-sst-zero-deploy-please') && 'flyio') || 'sst' }}
+  DEPLOY_TO: ${{
+    github.ref == 'refs/heads/production' || github.ref == 'refs/heads/main' || (
+    github.event.pull_request != null &&
+    contains(join(github.event.pull_request.labels.*.name, ','), 'preview-sst-zero-deploy-please')
+    )
+    && 'sst' || 'flyio'
+    }}
+
 defaults:
   run:
     shell: bash
@@ -51,7 +58,7 @@ jobs:
           branch: pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }}
 
-      - id: Create Neon Branch
+      - id: Create-Neon-Branch
         # only run on PR branches
         if: github.event_name == 'pull_request'
         uses: neondatabase/create-branch-action@v5
