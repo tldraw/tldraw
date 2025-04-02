@@ -380,8 +380,8 @@ function updateFlyioToml(appName: string): void {
 async function deployZeroViaFlyIo() {
 	const appName = `${previewId}-zero-cache`
 	updateFlyioToml(appName)
-	await exec('fly', ['app', 'create', appName], { pwd: zeroCacheFolder })
-	await exec('fly', ['deploy', '-a', appName, '-c', 'flyio.toml'], { pwd: zeroCacheFolder })
+	await exec('flyctl', ['app', 'create', appName], { pwd: zeroCacheFolder })
+	await exec('flyctl', ['deploy', '-a', appName, '-c', 'flyio.toml'], { pwd: zeroCacheFolder })
 	return `https://${appName}.fly.dev`
 }
 
