@@ -46,6 +46,7 @@ async function isPrClosedForAWhile(prNumber: number) {
 	return result
 }
 
+const CLOUDFLARE_WORKER_REGEX = /^pr-(\d+)-/
 async function listPreviewWorkerDeployments() {
 	const res = await fetch(
 		`https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/workers/scripts`,
@@ -63,7 +64,7 @@ async function listPreviewWorkerDeployments() {
 		throw new Error('Failed to list workers ' + JSON.stringify(data))
 	}
 
-	return data.result.map((r) => r.id).filter((id) => id.match(/^pr-(\d+)-/))
+	return data.result.map((r) => r.id).filter((id) => id.match(CLOUDFLARE_WORKER_REGEX))
 }
 
 async function deletePreviewWorkerDeployment(id: string) {
@@ -128,6 +129,7 @@ async function deleteFlyioPreviewApp(appName: string) {
 	}
 }
 
+const NEON_PREVIEW_DB_REGEX = /^pr-\d+$/
 async function listPreviewDatabases() {
 	const url = `https://console.neon.tech/api/v2/projects/${env.NEON_PROJECT_ID}/branches`
 	const res = await fetch(url, {
@@ -140,10 +142,10 @@ async function listPreviewDatabases() {
 		return []
 	}
 	return ((await res.json()) as { branches: { name: string }[] }).branches
-		.filter((b) => /^pr-\d+$/.test(b.name))
+		.filter((b) => NEON_PREVIEW_DB_REGEX.test(b.name))
 		.map((b) => b.name)
 }
-
+const ZERO_CACHE_APP_REGEX = /^pr-\d+-zero-cache$/
 async function listFlyioPreviewApps() {
 	// This is the kind of output this returns.
 	// We'll skip the first line then get the first column of each line.
@@ -158,7 +160,7 @@ async function listFlyioPreviewApps() {
 		return name
 	})
 
-	return appNames.filter((name) => /^pr-\d+-zero-cache$/.test(name))
+	return appNames.filter((name) => ZERO_CACHE_APP_REGEX.test(name))
 }
 
 async function main() {
