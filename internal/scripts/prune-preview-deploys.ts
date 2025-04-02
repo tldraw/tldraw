@@ -145,6 +145,10 @@ async function listPreviewDatabases() {
 }
 
 async function listFlyioPreviewApps() {
+	// This is the kind of output this returns.
+	// We'll skip the first line then get the first column of each line.
+	// NAME                    OWNER           STATUS          LATEST DEPLOY
+	// pr-5795-zero-cache      tldraw-gb-ltd   deployed        39m37s ago
 	const result = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
 	const lines = result.trim().split('\n')
 	if (lines.length <= 1) return []
