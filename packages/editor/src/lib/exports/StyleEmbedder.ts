@@ -7,6 +7,7 @@ import {
 	getRenderedChildren,
 } from './domUtils'
 import { resourceToDataUrl } from './fetchCache'
+import { normalizeCss } from './normalizeCss'
 import {
 	isPropertyCoveredByCurrentColor,
 	isPropertyInherited,
@@ -165,7 +166,7 @@ export class StyleEmbedder {
 	}
 
 	embedStyles(): string {
-		let css = ''
+		let css = normalizeCss
 
 		for (const [element, info] of this.styles) {
 			if (info.after || info.before) {
@@ -297,6 +298,9 @@ function getDefaultStyleFrame() {
 		const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
 		const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject')
 		svg.appendChild(foreignObject)
+		const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
+		style.textContent = normalizeCss
+		svg.appendChild(style)
 		frameDocument.body.appendChild(svg)
 		defaultStyleFrame = { iframe: frame, foreignObject, document: frameDocument }
 	}

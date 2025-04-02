@@ -8153,6 +8153,7 @@ __metadata:
     "@types/wicg-file-system-access": "npm:^2020.9.8"
     "@use-gesture/react": "npm:^10.3.1"
     benchmark: "npm:^2.1.4"
+    chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.5.1"
     core-js: "npm:^3.40.0"
     eventemitter3: "npm:^4.0.7"
