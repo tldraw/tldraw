@@ -1,4 +1,5 @@
 import * as github from '@actions/github'
+import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 
@@ -121,6 +122,14 @@ async function deletePreviewDatabase(prNumber: number) {
 	nicelog('status', res.status)
 }
 
+async function deleteFlyioPreviewApp(prNumber: number) {
+	const appName = `pr-${prNumber}-zero-cache`
+	const result = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
+	if (result.indexOf(appName) >= 0) {
+		await exec('flyctl', ['apps', 'destroy', appName])
+	}
+}
+
 async function main() {
 	const previewDeployments = await ListPreviewWorkerDeployments()
 	for (const deployment of previewDeployments) {
@@ -129,6 +138,7 @@ async function main() {
 			nicelog(`Deleting ${deployment} because PR is closed`)
 			await deletePreviewWorkerDeployment(deployment)
 			await deletePreviewDatabase(prNumber)
+			await deleteFlyioPreviewApp(prNumber)
 		} else {
 			nicelog(`Skipping ${deployment} because PR is still open`)
 		}
