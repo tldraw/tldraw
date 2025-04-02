@@ -384,15 +384,17 @@ async function deployZeroViaSst() {
 }
 
 function updateFlyioToml(appName: string): void {
-	const tomlFilePath = path.join(zeroCacheFolder, 'flyio.toml')
-	const fileContent = fs.readFileSync(tomlFilePath, 'utf-8')
+	const tomlTemplate = path.join(zeroCacheFolder, 'flyio.template.toml')
+	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio.toml')
+
+	const fileContent = fs.readFileSync(tomlTemplate, 'utf-8')
 
 	const updatedContent = fileContent
 		.replace('__APP_NAME', appName)
 		.replace('__ZERO_VERSION', zeroVersion)
 		.replaceAll('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
 
-	fs.writeFileSync(tomlFilePath, updatedContent, 'utf-8')
+	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 }
 
 async function deployZeroViaFlyIo() {
