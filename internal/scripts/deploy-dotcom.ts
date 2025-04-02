@@ -43,6 +43,9 @@ const zeroVersion = JSON.parse(fs.readFileSync(zeroCachePackageJsonPath).toStrin
 	'@rocicorp/zero'
 ]
 
+const deployViaFlyIo =
+	process.env.TLDRAW_ENV === 'preview' && process.env.DO_PREVIEW_SST_ZERO_DEPLOY !== 'true'
+
 const { previewId, sha } = getDeployInfo()
 
 // Do not use `process.env` directly in this script. Add your variable to `makeEnv` and use it via
@@ -226,6 +229,19 @@ async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
 	})
 }
 
+async function deployPermissionsToFlyIo() {
+	const schemaPath = path.join(REPO_ROOT, 'packages', 'dotcom-shared', 'src', 'tlaSchema.ts')
+	const permissionsFile = 'permissions.sql'
+	await exec('npx', [
+		'zero-deploy-permissions',
+		'--schema-path',
+		schemaPath,
+		'--output-file',
+		permissionsFile,
+	])
+	await exec('psql', [env.BOTCOM_POSTGRES_CONNECTION_STRING, '-f', permissionsFile])
+}
+
 let didUpdateTlsyncWorker = false
 async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-multiplayer`
@@ -238,6 +254,9 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 		},
 	})
+	if (deployViaFlyIo) {
+		await deployPermissionsToFlyIo()
+	}
 	await wranglerDeploy({
 		location: worker,
 		dryRun,
@@ -377,18 +396,6 @@ function updateFlyioToml(appName: string): void {
 	fs.writeFileSync(tomlFilePath, updatedContent, 'utf-8')
 }
 
-async function deployPermissions() {
-	const schemaPath = path.join(REPO_ROOT, 'packages', 'dotcom-shared', 'src', 'tlaSchema.ts')
-	await exec('npx', [
-		'zero-deploy-permissions',
-		'--schema-path',
-		schemaPath,
-		'--output-file',
-		'permissions.sql',
-	])
-	await exec('psql', [env.BOTCOM_POSTGRES_CONNECTION_STRING, '-f', 'permissions.sql'])
-}
-
 async function deployZeroViaFlyIo() {
 	const appName = `${previewId}-zero-cache`
 	updateFlyioToml(appName)
@@ -399,12 +406,11 @@ async function deployZeroViaFlyIo() {
 		})
 	}
 	await exec('flyctl', ['deploy', '-a', appName, '-c', 'flyio.toml'], { pwd: zeroCacheFolder })
-	await deployPermissions()
 	return `https://${appName}.fly.dev`
 }
 
 async function deployZero() {
-	if (process.env.TLDRAW_ENV === 'preview' && process.env.DO_PREVIEW_SST_ZERO_DEPLOY !== 'true') {
+	if (deployViaFlyIo) {
 		return await deployZeroViaFlyIo()
 	} else {
 		return await deployZeroViaSst()
