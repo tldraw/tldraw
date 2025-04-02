@@ -8,7 +8,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import { createRouter, handleApiRequest, handleUserAssetGet, notFound } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { cors } from 'itty-router'
+import { cors, json } from 'itty-router'
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
@@ -128,6 +128,10 @@ const router = createRouter<Environment>()
 	})
 	.all('/health-check/*', healthCheckRoutes.fetch)
 	.all('/app/admin/*', adminRoutes.fetch)
+	.get('/replicator-version', async (_, env) => {
+		const res = await getReplicator(env).ping()
+		return json({ versionId: res.versionId })
+	})
 	.all('*', notFound)
 
 export default class Worker extends WorkerEntrypoint<Environment> {
