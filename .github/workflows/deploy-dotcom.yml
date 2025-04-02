@@ -58,7 +58,7 @@ jobs:
           branch: pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }}
 
-      - id: Create-Neon-Branch
+      - id: create-branch
         # only run on PR branches
         if: github.event_name == 'pull_request'
         uses: neondatabase/create-branch-action@v5
