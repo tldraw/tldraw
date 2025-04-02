@@ -10,6 +10,7 @@ import {
 	throttleToNextFrame,
 	uniqueId,
 } from '@tldraw/utils'
+import isEqual from 'lodash.isequal'
 import { AtomMap } from './AtomMap'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { RecordScope } from './RecordType'
@@ -660,7 +661,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	private isMergingRemoteChanges = false
 
 	/**
-	 * Merge changes from a remote source without triggering listeners.
+	 * Merge changes from a remote source
 	 *
 	 * @param fn - A function that merges the external changes.
 	 * @public
@@ -675,10 +676,15 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		}
 
 		try {
-			this.isMergingRemoteChanges = true
-			transact(fn)
+			this.atomic(() => {
+				try {
+					this.isMergingRemoteChanges = true
+					fn()
+				} finally {
+					this.isMergingRemoteChanges = false
+				}
+			})
 		} finally {
-			this.isMergingRemoteChanges = false
 			this.ensureStoreIsUsable()
 		}
 	}
@@ -838,7 +844,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			}
 
 			for (const { before, after } of events.values()) {
-				if (before && after) {
+				if (before && after && before !== after && !isEqual(before, after)) {
 					this.sideEffects.handleAfterChange(before, after, source)
 				} else if (before && !after) {
 					this.sideEffects.handleAfterDelete(before, source)

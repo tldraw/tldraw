@@ -3,7 +3,7 @@ import { BaseRecord, RecordId } from '../BaseRecord'
 import { createMigrationSequence } from '../migrate'
 import { RecordsDiff, reverseRecordsDiff } from '../RecordsDiff'
 import { createRecordType } from '../RecordType'
-import { CollectionDiff, Store } from '../Store'
+import { CollectionDiff, HistoryEntry, Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
 
 interface Book extends BaseRecord<'book', RecordId<Book>> {
@@ -1209,5 +1209,77 @@ describe('after callbacks', () => {
 
 		expect(store.get(book1Id)!.numPages).toBe(1007)
 		expect(step).toBe(9)
+	})
+
+	test('fired during mergeRemoteChanges are flushed at the end so that they end up with user scope', () => {
+		const diffs: HistoryEntry<Book>[] = []
+		store.listen((entry) => {
+			diffs.push(entry)
+		})
+		store.sideEffects.registerAfterCreateHandler('book', (record) => {
+			if (record.title.startsWith('Harry Potter')) {
+				store.put([
+					{
+						...record,
+						title: record.title + ' is a really great book fr fr',
+					},
+				])
+			}
+		})
+
+		store.mergeRemoteChanges(() => {
+			store.put([
+				{
+					...book1,
+					title: "Harry Potter and the Philosopher's Stone",
+				},
+			])
+		})
+
+		expect(diffs).toMatchInlineSnapshot(`
+		[
+		  {
+		    "changes": {
+		      "added": {
+		        "book:darkness": {
+		          "author": "author:ursula",
+		          "id": "book:darkness",
+		          "numPages": 1,
+		          "title": "Harry Potter and the Philosopher's Stone",
+		          "typeName": "book",
+		        },
+		      },
+		      "removed": {},
+		      "updated": {},
+		    },
+		    "source": "remote",
+		  },
+		  {
+		    "changes": {
+		      "added": {},
+		      "removed": {},
+		      "updated": {
+		        "book:darkness": [
+		          {
+		            "author": "author:ursula",
+		            "id": "book:darkness",
+		            "numPages": 1,
+		            "title": "Harry Potter and the Philosopher's Stone",
+		            "typeName": "book",
+		          },
+		          {
+		            "author": "author:ursula",
+		            "id": "book:darkness",
+		            "numPages": 1,
+		            "title": "Harry Potter and the Philosopher's Stone is a really great book fr fr",
+		            "typeName": "book",
+		          },
+		        ],
+		      },
+		    },
+		    "source": "user",
+		  },
+		]
+	`)
 	})
 })
