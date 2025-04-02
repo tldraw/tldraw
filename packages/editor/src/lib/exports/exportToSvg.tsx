@@ -105,7 +105,7 @@ async function applyChangesToForeignObjects(svg: SVGSVGElement) {
 		// document. we do this in a single pass before we start embedding any CSS stuff to avoid
 		// constantly forcing the browser to recompute styles & layout.
 		for (const el of foreignObjectChildren) {
-			await styleEmbedder.readRootElementStyles(el as HTMLElement)
+			styleEmbedder.readRootElementStyles(el as HTMLElement)
 		}
 
 		// fetch any resources that we need to embed in the CSS, like background images.
