@@ -864,7 +864,17 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		return transact(() => {
 			if (this._isInAtomicOp) {
 				if (!this.pendingAfterEvents) this.pendingAfterEvents = new Map()
-				return fn()
+				const prevSideEffectsEnabled = this.sideEffects.isEnabled()
+				try {
+					// if we are in an atomic context with side effects ON allow switching them OFF.
+					// but don't allow switching them ON if they had been marked OFF before.
+					if (prevSideEffectsEnabled && !runCallbacks) {
+						this.sideEffects.setIsEnabled(false)
+					}
+					return fn()
+				} finally {
+					this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
+				}
 			}
 
 			this.pendingAfterEvents = new Map()
