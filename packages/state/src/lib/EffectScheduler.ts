@@ -120,7 +120,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	/**
 	 * Makes this scheduler become 'actively listening' to its parents.
 	 * If it has been executed before it will immediately become eligible to receive 'maybeScheduleEffect' calls.
-	 * If it has not executed before it will need to be manually executed once to become eligible for scheduling, i.e. by calling {@link state#EffectScheduler.execute}.
+	 * If it has not executed before it will need to be manually executed once to become eligible for scheduling, i.e. by calling `EffectScheduler.execute`.
 	 * @public
 	 */
 	attach() {
@@ -132,7 +132,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 
 	/**
 	 * Makes this scheduler stop 'actively listening' to its parents.
-	 * It will no longer be eligible to receive 'maybeScheduleEffect' calls until {@link state#EffectScheduler.attach} is called again.
+	 * It will no longer be eligible to receive 'maybeScheduleEffect' calls until `EffectScheduler.attach` is called again.
 	 */
 	detach() {
 		this._isActivelyListening = false
@@ -233,14 +233,14 @@ export interface EffectScheduler<Result> {
 	/**
 	 * Makes this scheduler become 'actively listening' to its parents.
 	 * If it has been executed before it will immediately become eligible to receive 'maybeScheduleEffect' calls.
-	 * If it has not executed before it will need to be manually executed once to become eligible for scheduling, i.e. by calling {@link state#EffectScheduler.execute}.
+	 * If it has not executed before it will need to be manually executed once to become eligible for scheduling, i.e. by calling `EffectScheduler.execute`.
 	 * @public
 	 */
 	attach(): void
 
 	/**
 	 * Makes this scheduler stop 'actively listening' to its parents.
-	 * It will no longer be eligible to receive 'maybeScheduleEffect' calls until {@link state#EffectScheduler.attach} is called again.
+	 * It will no longer be eligible to receive 'maybeScheduleEffect' calls until `EffectScheduler.attach` is called again.
 	 */
 	detach(): void
 
@@ -327,7 +327,7 @@ export interface Reactor<T = unknown> {
 }
 
 /**
- * Creates a {@link Reactor}, which is a thin wrapper around an {@link state#EffectScheduler}.
+ * Creates a {@link Reactor}, which is a thin wrapper around an `EffectScheduler`.
  *
  * @public
  */
