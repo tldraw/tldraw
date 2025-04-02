@@ -43,9 +43,6 @@ const zeroVersion = JSON.parse(fs.readFileSync(zeroCachePackageJsonPath).toStrin
 	'@rocicorp/zero'
 ]
 
-const deployViaFlyIo =
-	process.env.TLDRAW_ENV === 'preview' && process.env.DO_PREVIEW_SST_ZERO_DEPLOY !== 'true'
-
 const { previewId, sha } = getDeployInfo()
 
 // Do not use `process.env` directly in this script. Add your variable to `makeEnv` and use it via
@@ -82,8 +79,10 @@ const env = makeEnv([
 	'WORKER_SENTRY_DSN',
 	'BOTCOM_POSTGRES_CONNECTION_STRING',
 	'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
-	'DO_PREVIEW_SST_ZERO_DEPLOY',
+	'DEPLOY_TO',
 ])
+
+const deployViaFlyIo = env.DEPLOY_TO === 'flyio'
 
 const clerkJWKSUrl =
 	env.TLDRAW_ENV === 'production'
