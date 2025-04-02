@@ -743,11 +743,13 @@ export async function createShapesForAssets(
 			editor.createAssets(assetsToCreate)
 		}
 
-		// Create the shapes
-		editor.createShapes(partials).select(...partials.map((p) => p.id))
+		editor.store.atomic(() => {
+			// Create the shapes
+			editor.createShapes(partials).select(...partials.map((p) => p.id))
 
-		// Re-position shapes so that the center of the group is at the provided point
-		centerSelectionAroundPoint(editor, position)
+			// Re-position shapes so that the center of the group is at the provided point
+			centerSelectionAroundPoint(editor, position)
+		})
 	})
 
 	return partials.map((p) => p.id)
