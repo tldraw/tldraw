@@ -2,6 +2,7 @@ import { GetObjectCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/clien
 import { Upload } from '@aws-sdk/lib-storage'
 import assert from 'assert'
 import { execSync } from 'child_process'
+import * as fs from 'fs'
 import { existsSync, readdirSync, writeFileSync } from 'fs'
 import path from 'path'
 import { PassThrough } from 'stream'
@@ -36,6 +37,11 @@ const zeroCacheFolder = path.relative(
 	process.cwd(),
 	path.resolve(REPO_ROOT, './apps/dotcom/zero-cache')
 )
+
+const zeroCachePackageJsonPath = path.join(zeroCacheFolder, 'package.json')
+const zeroVersion = JSON.parse(fs.readFileSync(zeroCachePackageJsonPath).toString()).dependencies[
+	'@rocicorp/zero'
+]
 
 const { previewId, sha } = getDeployInfo()
 
@@ -335,12 +341,7 @@ async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 	)
 }
 
-async function deployZero() {
-	if (process.env.TLDRAW_ENV === 'preview' && process.env.DO_PREVIEW_SST_ZERO_DEPLOY !== 'true') {
-		nicelog('Skipping SST zero deploy')
-		// TODO: use fly.io here
-		return 'https://skipped-zero-deploy.zero.tldraw.com'
-	}
+async function deployZeroViaSst() {
 	const stage = previewId ? previewId : env.TLDRAW_ENV
 	await exec('yarn', [
 		'sst',
@@ -362,6 +363,34 @@ async function deployZero() {
 		throw new Error('Could not find view-syncer URL in SST output ' + result)
 	}
 	return url
+}
+
+function updateFlyioToml(appName: string): void {
+	const tomlFilePath = path.join(zeroCacheFolder, 'flyio.toml')
+	const fileContent = fs.readFileSync(tomlFilePath, 'utf-8')
+
+	const updatedContent = fileContent
+		.replace('__APP_NAME', appName)
+		.replace('__ZERO_VERSION', zeroVersion)
+		.replace('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
+
+	fs.writeFileSync(tomlFilePath, updatedContent, 'utf-8')
+}
+
+async function deployZeroViaFlyIo() {
+	const appName = `${previewId}-zero-cache`
+	updateFlyioToml(appName)
+	await exec('fly', ['app', 'create', appName], { pwd: zeroCacheFolder })
+	await exec('fly', ['deploy', '-a', appName, '-c', 'flyio.toml'], { pwd: zeroCacheFolder })
+	return `https://${appName}.fly.dev`
+}
+
+async function deployZero() {
+	if (process.env.TLDRAW_ENV === 'preview' && process.env.DO_PREVIEW_SST_ZERO_DEPLOY !== 'true') {
+		return await deployZeroViaFlyIo()
+	} else {
+		return await deployZeroViaSst()
+	}
 }
 
 async function deploySpa(): Promise<{ deploymentUrl: string; inspectUrl: string }> {

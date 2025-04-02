@@ -75,6 +75,9 @@ jobs:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_NUMBER }}:role/huppy-bot
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Setup Fly IO
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
       - name: Deploy
         run: yarn tsx internal/scripts/deploy-dotcom.ts
         env:
@@ -114,3 +117,4 @@ jobs:
           VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
           WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
           DO_PREVIEW_SST_ZERO_DEPLOY: ${{ contains(github.event.pull_request.labels.*.name, 'preview-sst-zero-deploy-please') }}
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
