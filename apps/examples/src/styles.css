@@ -500,3 +500,7 @@ a.example__sidebar__header-link {
 	position: relative;
 	flex: 1;
 }
+
+* {
+	border: solid 0;
+}

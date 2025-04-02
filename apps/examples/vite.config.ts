@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react-swc'
 import path from 'path'
 import { PluginOption, defineConfig } from 'vite'
+
 const PR_NUMBER = process.env.VERCEL_GIT_PULL_REQUEST_ID
 
 function getEnv() {

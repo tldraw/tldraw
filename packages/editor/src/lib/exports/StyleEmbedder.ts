@@ -1,4 +1,4 @@
-import { assert, getOwnProperty, objectMapValues, uniqueId } from '@tldraw/utils'
+import { assertExists, getOwnProperty, objectMapValues, uniqueId } from '@tldraw/utils'
 import { FontEmbedder } from './FontEmbedder'
 import { ReadonlyStyles, Styles, cssRules } from './cssRules'
 import {
@@ -22,18 +22,6 @@ export class StyleEmbedder {
 	constructor(private readonly root: Element) {}
 	private readonly styles = new Map<Element, ElementStyleInfo>()
 	readonly fonts = new FontEmbedder()
-
-	async collectDefaultStyles(elements: Element[]) {
-		const collected = new Set<string>()
-		const promises = []
-		for (const element of elements) {
-			const tagName = element.tagName.toLowerCase()
-			if (collected.has(tagName)) continue
-			collected.add(tagName)
-			promises.push(populateDefaultStylesForTagName(tagName))
-		}
-		await Promise.all(promises)
-	}
 
 	readRootElementStyles(rootElement: Element) {
 		// when reading a root, we always apply _all_ the styles, even if they match the defaults
@@ -307,92 +295,43 @@ function formatCss(style: ReadonlyStyles) {
 // when we're figuring out the default values for a tag, we need read them from a separate document
 // so they're not affected by the current document's styles
 let defaultStyleFrame:
-	| Promise<{
-			url: string
-			iframe: HTMLIFrameElement
-			foreignObject: SVGForeignObjectElement
-			document: Document
-	  }>
+	| { iframe: HTMLIFrameElement; foreignObject: SVGForeignObjectElement; document: Document }
 	| undefined
-
-const defaultStylesByTagName: Record<
-	string,
-	| { type: 'resolved'; styles: ReadonlyStyles; promise: Promise<ReadonlyStyles> }
-	| { type: 'pending'; promise: Promise<ReadonlyStyles> }
-> = {}
-
+const defaultStylesByTagName: Record<string, ReadonlyStyles> = {}
 function getDefaultStyleFrame() {
 	if (!defaultStyleFrame) {
-		defaultStyleFrame = new Promise((resolve) => {
-			const frame = document.createElement('iframe')
-			Object.assign(frame.style, {
-				position: 'absolute',
-				top: '-10000px',
-				left: '-10000px',
-				width: '1px',
-				height: '1px',
-				opacity: '0',
-				pointerEvents: 'none',
-			})
-
-			const emptyFrameBlob = new Blob(
-				['<svg xmlns="http://www.w3.org/2000/svg"><foreignObject/></svg>'],
-				{ type: 'image/svg+xml' }
-			)
-			const emptyFrameUrl = URL.createObjectURL(emptyFrameBlob)
-
-			frame.onload = () => {
-				const contentDocument = frame.contentDocument!
-				const foreignObject = contentDocument.querySelector('foreignObject')!
-				resolve({ url: emptyFrameUrl, iframe: frame, foreignObject, document: contentDocument })
-			}
-
-			frame.src = emptyFrameUrl
-			document.body.appendChild(frame)
-		})
+		const frame = document.createElement('iframe')
+		frame.style.display = 'none'
+		document.body.appendChild(frame)
+		const frameDocument = assertExists(frame.contentDocument, 'frame must have a document')
+		const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+		const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject')
+		svg.appendChild(foreignObject)
+		frameDocument.body.appendChild(svg)
+		defaultStyleFrame = { iframe: frame, foreignObject, document: frameDocument }
 	}
 	return defaultStyleFrame
 }
 
 function destroyDefaultStyleFrame() {
 	if (defaultStyleFrame) {
-		defaultStyleFrame.then(({ url, iframe }) => {
-			URL.revokeObjectURL(url)
-			document.body.removeChild(iframe)
-		})
+		document.body.removeChild(defaultStyleFrame.iframe)
 		defaultStyleFrame = undefined
 	}
 }
 
 const defaultStyleReadOptions: ReadStyleOpts = { defaultStyles: NO_STYLES, parentStyles: NO_STYLES }
-function populateDefaultStylesForTagName(tagName: string) {
-	const existing = defaultStylesByTagName[tagName]
-	if (existing && existing.type === 'resolved') {
-		return existing.promise
-	}
-
-	if (existing && existing.type === 'pending') {
-		return existing.promise
-	}
-
-	const promise = getDefaultStyleFrame().then(({ foreignObject, document }) => {
-		const element = document.createElementNS('http://www.w3.org/1999/xhtml', tagName)
-		element.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml')
+function getDefaultStylesForTagName(tagName: string) {
+	let existing = defaultStylesByTagName[tagName]
+	if (!existing) {
+		const { foreignObject, document } = getDefaultStyleFrame()
+		const element = document.createElement(tagName)
 		foreignObject.appendChild(element)
-		const styles = element.computedStyleMap
+		existing = element.computedStyleMap
 			? styleFromComputedStyleMap(element.computedStyleMap(), defaultStyleReadOptions)
 			: styleFromComputedStyle(getComputedStyle(element), defaultStyleReadOptions)
 		foreignObject.removeChild(element)
-		defaultStylesByTagName[tagName] = { type: 'resolved', styles, promise }
-		return styles
-	})
-
-	defaultStylesByTagName[tagName] = { type: 'pending', promise }
-	return promise
-}
-
-function getDefaultStylesForTagName(tagName: string) {
-	const existing = defaultStylesByTagName[tagName]
-	assert(existing && existing.type === 'resolved', 'default styles must be populated & resolved')
-	return existing.styles
+		defaultStylesByTagName[tagName] = existing
+	}
+	return existing
 }
