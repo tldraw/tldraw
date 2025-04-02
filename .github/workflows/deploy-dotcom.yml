@@ -78,6 +78,11 @@ jobs:
       - name: Setup Fly IO
         uses: superfly/flyctl-actions/setup-flyctl@master
 
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
       - name: Deploy
         run: yarn tsx internal/scripts/deploy-dotcom.ts
         env:

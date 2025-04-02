@@ -377,6 +377,18 @@ function updateFlyioToml(appName: string): void {
 	fs.writeFileSync(tomlFilePath, updatedContent, 'utf-8')
 }
 
+async function deployPermissions() {
+	const schemaPath = path.join(REPO_ROOT, 'packages', 'dotcom-shared', 'src', 'tlaSchema.ts')
+	await exec('npx', [
+		'zero-deploy-permissions',
+		'--schema-path',
+		schemaPath,
+		'--output-file',
+		'permissions.sql',
+	])
+	await exec('psql', [env.BOTCOM_POSTGRES_CONNECTION_STRING, '-f', 'permissions.sql'])
+}
+
 async function deployZeroViaFlyIo() {
 	const appName = `${previewId}-zero-cache`
 	updateFlyioToml(appName)
@@ -387,6 +399,7 @@ async function deployZeroViaFlyIo() {
 		})
 	}
 	await exec('flyctl', ['deploy', '-a', appName, '-c', 'flyio.toml'], { pwd: zeroCacheFolder })
+	await deployPermissions()
 	return `https://${appName}.fly.dev`
 }
 
