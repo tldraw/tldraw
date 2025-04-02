@@ -15,13 +15,6 @@ env:
   TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview' }}
   AWS_ACCOUNT_NUMBER: ${{ (github.ref == 'refs/heads/production' && '892899106134') || (github.ref == 'refs/heads/main' && '028814013491') || '571248596162' }}
   AWS_REGION: 'eu-north-1'
-  DEPLOY_TO: ${{
-    github.ref == 'refs/heads/production' || github.ref == 'refs/heads/main' || (
-    github.event.pull_request != null &&
-    contains(join(github.event.pull_request.labels.*.name, ','), 'preview-sst-zero-deploy-please')
-    )
-    && 'sst' || 'flyio'
-    }}
 
 defaults:
   run:
@@ -42,6 +35,17 @@ jobs:
       #   with:
       #     webhook: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
       #     content: 'Preparing ${{ env.TLDRAW_ENV }} dotcom deploy: ${{ github.event.head_commit.message }} by ${{ github.event.head_commit.author.name }}'
+
+      - name: Determine deploy target
+        id: deploy_target
+        run: |
+          if [[ "${GITHUB_REF}" == "refs/heads/production" || "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            echo "DEPLOY_TO=sst" >> $GITHUB_ENV
+          elif echo "${{ toJSON(github.event.pull_request.labels.*.name) }}" | grep -q "preview-sst-zero-deploy-please"; then
+            echo "DEPLOY_TO=sst" >> $GITHUB_ENV
+          else
+            echo "DEPLOY_TO=flyio" >> $GITHUB_ENV
+          fi
 
       - name: Check out code
         uses: actions/checkout@v3
