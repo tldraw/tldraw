@@ -253,7 +253,7 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 		},
 	})
-	if (deployViaFlyIo) {
+	if (!dryRun && deployViaFlyIo) {
 		await deployPermissionsToFlyIo()
 	}
 	await wranglerDeploy({
