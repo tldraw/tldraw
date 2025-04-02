@@ -128,7 +128,7 @@ async function deleteFlyioPreviewApp(appName: string) {
 	}
 }
 
-async function listNeonBranches() {
+async function listPreviewDatabases() {
 	const url = `https://console.neon.tech/api/v2/projects/${env.NEON_PROJECT_ID}/branches`
 	const res = await fetch(url, {
 		headers: {
@@ -144,7 +144,7 @@ async function listNeonBranches() {
 		.map((b) => b.name)
 }
 
-async function listFlyIoApps() {
+async function listFlyioPreviewApps() {
 	const result = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
 	const lines = result.trim().split('\n')
 	if (lines.length <= 1) return []
@@ -161,9 +161,9 @@ async function main() {
 	nicelog('Pruning preview deployments')
 	await processItems(listPreviewWorkerDeployments, deletePreviewWorkerDeployment)
 	nicelog('Pruning preview databases')
-	await processItems(listNeonBranches, deletePreviewDatabase)
+	await processItems(listPreviewDatabases, deletePreviewDatabase)
 	nicelog('Pruning preview fly.io apps')
-	await processItems(listFlyIoApps, deleteFlyioPreviewApp)
+	await processItems(listFlyioPreviewApps, deleteFlyioPreviewApp)
 	nicelog('Done')
 }
 
