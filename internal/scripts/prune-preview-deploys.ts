@@ -140,7 +140,7 @@ async function listPreviewDatabases() {
 		return []
 	}
 	return ((await res.json()) as { branches: { name: string }[] }).branches
-		.filter((b) => /^pr-\d+-/.test(b.name))
+		.filter((b) => /^pr-\d+$/.test(b.name))
 		.map((b) => b.name)
 }
 
