@@ -739,11 +739,11 @@ export async function createShapesForAssets(
 	editor.run(() => {
 		// Create any assets
 		const assetsToCreate = assets.filter((asset) => !editor.getAsset(asset.id))
-		if (assetsToCreate.length) {
-			editor.createAssets(assetsToCreate)
-		}
 
 		editor.store.atomic(() => {
+			if (assetsToCreate.length) {
+				editor.createAssets(assetsToCreate)
+			}
 			// Create the shapes
 			editor.createShapes(partials).select(...partials.map((p) => p.id))
 
