@@ -866,7 +866,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				if (!this.pendingAfterEvents) this.pendingAfterEvents = new Map()
 				const prevSideEffectsEnabled = this.sideEffects.isEnabled()
 				try {
-					// if we are in an atomic context with side effects ON allow switching them OFF.
+					// if we are in an atomic context with side effects ON allow switching before* callbacks OFF.
 					// but don't allow switching them ON if they had been marked OFF before.
 					if (prevSideEffectsEnabled && !runCallbacks) {
 						this.sideEffects.setIsEnabled(false)
