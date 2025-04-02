@@ -12,9 +12,17 @@ permissions: write-all
 env:
   CI: 1
   PRINT_GITHUB_ANNOTATIONS: 1
-  TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
-  AWS_ACCOUNT_NUMBER: ${{ (github.ref == 'refs/heads/production' && '892899106134') || (github.ref == 'refs/heads/main' && '028814013491') || '571248596162'  }}
+  TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview' }}
+  AWS_ACCOUNT_NUMBER: ${{ (github.ref == 'refs/heads/production' && '892899106134') || (github.ref == 'refs/heads/main' && '028814013491') || '571248596162' }}
   AWS_REGION: 'eu-north-1'
+  DEPLOY_TO: ${{
+    github.ref == 'refs/heads/production' || github.ref == 'refs/heads/main' || (
+    github.event.pull_request != null &&
+    contains(join(github.event.pull_request.labels.*.name, ','), 'preview-sst-zero-deploy-please')
+    )
+    && 'sst' || 'flyio'
+    }}
+
 defaults:
   run:
     shell: bash
@@ -70,10 +78,21 @@ jobs:
         run: yarn build-types
 
       - name: Configure AWS credentials using OIDC
+        if: env.DEPLOY_TO == 'sst'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_NUMBER }}:role/huppy-bot
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Fly cli
+        if: env.DEPLOY_TO == 'flyio'
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Install PostgreSQL client
+        if: env.DEPLOY_TO == 'flyio'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
 
       - name: Deploy
         run: yarn tsx internal/scripts/deploy-dotcom.ts
@@ -113,4 +132,4 @@ jobs:
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
           WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
-          DO_PREVIEW_SST_ZERO_DEPLOY: ${{ contains(github.event.pull_request.labels.*.name, 'preview-sst-zero-deploy-please') }}
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
