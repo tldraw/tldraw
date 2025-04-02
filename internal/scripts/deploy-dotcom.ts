@@ -372,7 +372,7 @@ function updateFlyioToml(appName: string): void {
 	const updatedContent = fileContent
 		.replace('__APP_NAME', appName)
 		.replace('__ZERO_VERSION', zeroVersion)
-		.replace('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
+		.replaceAll('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
 
 	fs.writeFileSync(tomlFilePath, updatedContent, 'utf-8')
 }
