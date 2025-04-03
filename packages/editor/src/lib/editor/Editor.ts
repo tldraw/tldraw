@@ -87,6 +87,7 @@ import {
 	last,
 	lerp,
 	maxBy,
+	minBy,
 	sortById,
 	sortByIndex,
 	structuredClone,
@@ -1779,20 +1780,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	selectAdjacentShape(direction: TLAdjacentDirection) {
-		const currentShapeId = this.getSelectedShapeIds()[0]
+		const readingOrderShapes = this.getCurrentPageShapesInReadingOrder()
+		const selectedShapeIds = this.getSelectedShapeIds()
+		const currentShapeId: TLShapeId | undefined =
+			selectedShapeIds.length === 1
+				? selectedShapeIds[0]
+				: readingOrderShapes.find((shape) => selectedShapeIds.includes(shape.id))?.id
 
-		let shapes: TLShape[] = []
 		let adjacentShapeId: TLShapeId
 		if (direction === 'next' || direction === 'prev') {
-			shapes = this.getCurrentPageShapesInReadingOrder()
-			const shapeIds = shapes.map((shape) => shape.id)
+			const shapeIds = readingOrderShapes.map((shape) => shape.id)
 
-			const currentIndex = shapeIds.indexOf(currentShapeId)
+			const currentIndex = currentShapeId ? shapeIds.indexOf(currentShapeId) : -1
 			const adjacentIndex =
-				(currentIndex +
-					(['next', 'right', 'down'].includes(direction) ? 1 : -1) +
-					shapeIds.length) %
-				shapeIds.length
+				(currentIndex + (direction === 'next' ? 1 : -1) + shapeIds.length) % shapeIds.length
 			adjacentShapeId = shapeIds[adjacentIndex]
 		} else {
 			if (!currentShapeId) return
@@ -1803,7 +1804,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!shape) return
 
 		this.setSelectedShapes([shape.id])
-		this.zoomToSelectionIfOffscreen(256)
+		this.zoomToSelectionIfOffscreen(256, {
+			animation: {
+				duration: this.options.animationMediumMs,
+			},
+			inset: 0,
+		})
 	}
 
 	/**
@@ -1930,7 +1936,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (shapesInDirection.length === 0) return currentShapeId
 
 		// Ok, now score that subset of shapes.
-		const scoredShapes = shapesInDirection.map(({ shape, center }) => {
+		const lowestScoringShape = minBy(shapesInDirection, ({ center }) => {
 			// Distance is the primary weighting factor.
 			const distance = Vec.Dist2(currentCenter, center)
 
@@ -1951,17 +1957,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// 1. Shapes directly in line with the current shape
 			// 2. Shapes closer to the current shape
 			// 3. Shapes with less angular deviation from the primary direction
-			const score =
+			return (
 				distance * 1.0 + // Base distance
 				offAxisDeviation * 2.0 + // Heavy penalty for off-axis deviation
 				(distance - directionalDistance) * 1.5 + // Penalty for diagonal distance
-				angleDeviation * 0.5 // Slight penalty for angular deviation
-
-			return { shape, score }
+				angleDeviation * 0.5
+			) // Slight penalty for angular deviation
 		})
 
-		scoredShapes.sort((a, b) => a.score - b.score)
-		return scoredShapes[0].shape.id
+		return lowestScoringShape!.shape.id
 	}
 
 	/**
@@ -3210,7 +3214,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	zoomToSelectionIfOffscreen(padding = 16) {
+	zoomToSelectionIfOffscreen(
+		padding = 16,
+		opts?: { targetZoom?: number; inset?: number } & TLCameraMoveOptions
+	) {
 		const selectionPageBounds = this.getSelectionPageBounds()
 		const viewportPageBounds = this.getViewportPageBounds()
 		if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
@@ -3226,12 +3233,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				x: (eb.center.x - viewportPageBounds.center.x) * 2,
 				y: (eb.center.y - viewportPageBounds.center.y) * 2,
 			})
-			this.zoomToBounds(nextBounds, {
-				animation: {
-					duration: this.options.animationMediumMs,
-				},
-				inset: 0,
-			})
+			this.zoomToBounds(nextBounds, opts)
 		}
 	}
 
