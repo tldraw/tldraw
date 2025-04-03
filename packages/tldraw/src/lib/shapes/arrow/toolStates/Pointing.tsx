@@ -1,32 +1,38 @@
 import { StateNode, TLArrowShape, createShapeId, maybeSnapToGrid } from '@tldraw/editor'
+import { ArrowShapeUtil } from '../ArrowShapeUtil'
+import { clearArrowTargetState, updateArrowTargetState } from '../arrowTargetState'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
+	options = this.editor.getShapeUtil<ArrowShapeUtil>('arrow').options
+
 	shape?: TLArrowShape
+	shapeUtilData: any = {}
+
+	isPrecise = false
+	isPreciseTimerId: number | null = null
 
 	markId = ''
 
-	override onEnter() {
+	override onEnter(info: { isPrecise?: boolean }) {
 		this.markId = ''
-		this.didTimeout = false
+		this.isPrecise = !!info.isPrecise
 
-		const target = this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
-			filter: (targetShape) => {
-				return (
-					!targetShape.isLocked &&
-					this.editor.canBindShapes({ fromShape: 'arrow', toShape: targetShape, binding: 'arrow' })
-				)
-			},
-			margin: 0,
-			hitInside: true,
-			renderingOnly: true,
+		const targetState = updateArrowTargetState({
+			editor: this.editor,
+			pointInPageSpace: this.editor.inputs.currentPagePoint,
+			arrow: undefined,
+			isPrecise: this.isPrecise,
+			isExact: this.editor.inputs.altKey,
+			currentBinding: undefined,
+			otherBinding: undefined,
+			terminal: 'start',
+			isCreatingShape: true,
 		})
 
-		if (!target) {
+		if (!targetState) {
 			this.createArrowShape()
-		} else {
-			this.editor.setHintingShapes([target.id])
 		}
 
 		this.startPreciseTimeout()
@@ -34,7 +40,7 @@ export class Pointing extends StateNode {
 
 	override onExit() {
 		this.shape = undefined
-		this.editor.setHintingShapes([])
+		clearArrowTargetState(this.editor)
 		this.clearPreciseTimeout()
 	}
 
@@ -55,6 +61,7 @@ export class Pointing extends StateNode {
 				isCreating: true,
 				creatingMarkId: this.markId || undefined,
 				onInteractionEnd: 'arrow',
+				shapeUtilData: this.shapeUtilData,
 			})
 		}
 	}
@@ -80,7 +87,7 @@ export class Pointing extends StateNode {
 			// the arrow might not have been created yet!
 			this.editor.bailToMark(this.markId)
 		}
-		this.editor.setHintingShapes([])
+		// this.editor.setHintingShapes([])
 		this.parent.transition('idle')
 	}
 
@@ -113,7 +120,9 @@ export class Pointing extends StateNode {
 		const change = util.onHandleDrag?.(shape, {
 			handle: { ...startHandle, x: 0, y: 0 },
 			isPrecise: true,
+			isCreatingShape: true,
 			initial: initial,
+			data: this.shapeUtilData,
 		})
 
 		if (change) {
@@ -139,8 +148,10 @@ export class Pointing extends StateNode {
 			const startHandle = handles.find((h) => h.id === 'start')!
 			const change = util.onHandleDrag?.(shape, {
 				handle: { ...startHandle, x: 0, y: 0 },
-				isPrecise: this.didTimeout, // sure about that?
+				isPrecise: this.isPrecise,
+				isCreatingShape: true,
 				initial: initial,
+				data: this.shapeUtilData,
 			})
 
 			if (change) {
@@ -156,8 +167,10 @@ export class Pointing extends StateNode {
 			const endHandle = handles.find((h) => h.id === 'end')!
 			const change = util.onHandleDrag?.(this.editor.getShape(shape)!, {
 				handle: { ...endHandle, x: point.x, y: point.y },
-				isPrecise: false, // sure about that?
+				isPrecise: false,
+				isCreatingShape: true,
 				initial: initial,
+				data: this.shapeUtilData,
 			})
 
 			if (change) {
@@ -169,15 +182,15 @@ export class Pointing extends StateNode {
 		this.shape = this.editor.getShape(shape.id)
 	}
 
-	private preciseTimeout = -1
-	private didTimeout = false
 	private startPreciseTimeout() {
-		this.preciseTimeout = this.editor.timers.setTimeout(() => {
+		this.isPreciseTimerId = this.editor.timers.setTimeout(() => {
 			if (!this.getIsActive()) return
-			this.didTimeout = true
-		}, 320)
+			this.isPrecise = true
+		}, this.options.pointingPreciseTimeout)
 	}
 	private clearPreciseTimeout() {
-		clearTimeout(this.preciseTimeout)
+		if (this.isPreciseTimerId !== null) {
+			clearTimeout(this.isPreciseTimerId)
+		}
 	}
 }

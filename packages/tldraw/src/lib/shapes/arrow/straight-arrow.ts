@@ -36,7 +36,7 @@ export function getStraightArrowInfo(
 	if (Vec.Equals(a, b)) {
 		return {
 			bindings,
-			isStraight: true,
+			type: 'straight',
 			start: {
 				handle: a,
 				point: a,
@@ -198,7 +198,7 @@ export function getStraightArrowInfo(
 
 	return {
 		bindings,
-		isStraight: true,
+		type: 'straight',
 		start: {
 			handle: terminalsInArrowSpace.start,
 			point: a,
