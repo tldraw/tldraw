@@ -11,6 +11,10 @@ on:
     branches:
       - 'v*.*.x'
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   deploy:
     name: Publish patch release
