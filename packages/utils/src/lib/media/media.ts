@@ -125,14 +125,24 @@ export class MediaHelpers {
 		return new Promise((resolve, reject) => {
 			const img = Image()
 			img.onload = () => {
-				document.body.appendChild(img)
-				// Sigh, Firefox doesn't have naturalWidth or naturalHeight for SVGs. :-/
-				// We have to attach to dom and use clientWidth/clientHeight.
-				const dimensions = {
-					w: img.naturalWidth || img.clientWidth,
-					h: img.naturalHeight || img.clientHeight,
+				let dimensions
+				if (img.naturalWidth) {
+					dimensions = {
+						w: img.naturalWidth,
+						h: img.naturalHeight,
+					}
+				} else {
+					// Sigh, Firefox doesn't have naturalWidth or naturalHeight for SVGs. :-/
+					// We have to attach to dom and use clientWidth/clientHeight.
+					document.body.appendChild(img)
+					// Sigh, Firefox doesn't have naturalWidth or naturalHeight for SVGs. :-/
+					// We have to attach to dom and use clientWidth/clientHeight.
+					dimensions = {
+						w: img.clientWidth,
+						h: img.clientHeight,
+					}
+					document.body.removeChild(img)
 				}
-				document.body.removeChild(img)
 				resolve({ ...dimensions, image: img })
 			}
 			img.onerror = (e) => {
