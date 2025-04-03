@@ -134,7 +134,7 @@ describe('When a shape is rotated...', () => {
 		// Rotate boxB by 90 degrees and move it to 0,0 for simplicity's sake
 		editor.select(ids.boxB)
 		editor.rotateShapesBy([ids.boxB], Math.PI / 2)
-		editor.updateShapes([{ id: ids.boxB, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
+		editor.updateShapes([{ id: ids.boxB, x: 0, y: 0, props: { w: 100, h: 100 } }])
 		// Make box A a child of box B
 		editor.reparentShapes([ids.boxA], ids.boxB)
 		// editor.updateShapes([{ id: ids.boxB, type: 'geo', x: 10, y: 10 }])
@@ -241,12 +241,11 @@ describe('When undo redo is on...', () => {
 describe('When nudging a rotated shape...', () => {
 	it('Moves the page point correctly', () => {
 		editor.setSelectedShapes([ids.boxA])
-		const shapeA = editor.getShape(ids.boxA)!
 
-		editor.updateShapes([{ id: ids.boxA, type: shapeA.type, rotation: 90 }])
+		editor.updateShapes([{ id: ids.boxA, rotation: 90 }])
 		expect(nudgeAndGet([ids.boxA], 'ArrowRight', false)).toMatchObject([{ x: 11, y: 10 }])
 
-		editor.updateShapes([{ id: ids.boxA, type: shapeA.type, rotation: -90 }])
+		editor.updateShapes([{ id: ids.boxA, rotation: -90 }])
 		expect(nudgeAndGet([ids.boxA], 'ArrowDown', false)).toMatchObject([{ x: 11, y: 11 }])
 	})
 })
@@ -273,16 +272,8 @@ describe('When nudging multiple rotated shapes...', () => {
 		])
 
 		editor.updateShapes([
-			{
-				id: shapeA.id,
-				type: shapeA.type,
-				rotation: -90,
-			},
-			{
-				id: shapeB.id,
-				type: shapeB.type,
-				rotation: 90,
-			},
+			{ id: shapeA.id, rotation: -90 },
+			{ id: shapeB.id, rotation: 90 },
 		])
 		expect(nudgeAndGet([ids.boxA, ids.boxB], 'ArrowDown', false)).toMatchObject([
 			{ x: 11, y: 11 },

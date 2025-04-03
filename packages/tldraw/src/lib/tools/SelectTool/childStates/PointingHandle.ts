@@ -86,7 +86,11 @@ export class PointingHandle extends StateNode {
 				const centeredOnPointer = editor
 					.getPointInParentSpace(nextNote, editor.inputs.originPagePoint)
 					.sub(Vec.Rot(NOTE_CENTER_OFFSET.clone().mul(shape.props.scale), nextNote.rotation))
-				editor.updateShape({ ...nextNote, x: centeredOnPointer.x, y: centeredOnPointer.y })
+				editor.updateShape<TLNoteShape>({
+					id: nextNote.id,
+					x: centeredOnPointer.x,
+					y: centeredOnPointer.y,
+				})
 
 				// Then select and begin translating the shape
 				editor

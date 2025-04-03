@@ -76,7 +76,6 @@ export class Pointing extends StateNode {
 			this.editor.updateShapes([
 				{
 					id: this.shape.id,
-					type: this.shape.type,
 					props: {
 						points,
 					},

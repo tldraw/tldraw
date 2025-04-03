@@ -96,9 +96,8 @@ describe('When in the select.idle state', () => {
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.imageB])
 		expect(editor.getCroppingShapeId()).toBe(ids.imageB)
 
-		editor.updateShape({
+		editor.updateShape<TLImageShape>({
 			id: ids.imageB,
-			type: 'image',
 			props: {
 				crop: { topLeft: { x: 0.1, y: 0.1 }, bottomRight: { x: 0.9, y: 0.9 } },
 			},

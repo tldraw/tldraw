@@ -1,4 +1,4 @@
-import { Editor, ShapeWithCrop, TLShapePartial, Vec, structuredClone } from '@tldraw/editor'
+import { Editor, ShapeWithCrop, TLShapeUpdatePartial, Vec, structuredClone } from '@tldraw/editor'
 import { getUncroppedSize } from '../../../../../shapes/shared/crop'
 
 export function getTranslateCroppedImageChange(editor: Editor, shape: ShapeWithCrop, delta: Vec) {
@@ -37,9 +37,8 @@ export function getTranslateCroppedImageChange(editor: Editor, shape: ShapeWithC
 	newCrop.bottomRight.x = newCrop.topLeft.x + xCrop
 	newCrop.bottomRight.y = newCrop.topLeft.y + yCrop
 
-	const partial: TLShapePartial<typeof shape> = {
+	const partial: TLShapeUpdatePartial<typeof shape> = {
 		id: shape.id,
-		type: shape.type,
 		props: {
 			crop: newCrop,
 		},

@@ -51,7 +51,6 @@ class Idle extends StateNode {
 				if (editor.inputs.shiftKey) {
 					editor.updateShape<TLTextShape>({
 						id: info.shape.id,
-						type: 'text',
 						props: { richText: toRichText('👻 boo!') },
 					})
 				} else {
@@ -149,7 +148,6 @@ class Dragging extends StateNode {
 		if (shape) {
 			this.editor.updateShape<TLTextShape>({
 				id: shape.id,
-				type: 'text',
 				props: {
 					richText: toRichText(this.emojiArray[Math.floor(distance / 20) % this.emojiArray.length]),
 				},

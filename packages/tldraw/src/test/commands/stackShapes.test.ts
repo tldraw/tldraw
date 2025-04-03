@@ -144,7 +144,7 @@ describe('distributeShapes command', () => {
 		})
 
 		it('stacks the shapes based on the average', () => {
-			editor.updateShapes([{ id: ids.boxD, type: 'geo', x: 540, y: 700 }])
+			editor.updateShapes([{ id: ids.boxD, x: 540, y: 700 }])
 			editor.setSelectedShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
 			editor.stackShapes(editor.getSelectedShapeIds(), 'horizontal', 0)
 			jest.advanceTimersByTime(1000)
@@ -227,7 +227,7 @@ describe('distributeShapes command', () => {
 		})
 
 		it('stacks the shapes based on the average', () => {
-			editor.updateShapes([{ id: ids.boxD, type: 'geo', x: 700, y: 540 }])
+			editor.updateShapes([{ id: ids.boxD, x: 700, y: 540 }])
 			editor.setSelectedShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
 			editor.stackShapes(editor.getSelectedShapeIds(), 'vertical', 0)
 			jest.advanceTimersByTime(1000)

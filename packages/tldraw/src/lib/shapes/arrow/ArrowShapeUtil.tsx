@@ -17,7 +17,7 @@ import {
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
-	TLShapePartial,
+	TLShapeUpdatePartial,
 	TLShapeUtilCanBeLaidOutOpts,
 	TLShapeUtilCanBindOpts,
 	TLShapeUtilCanvasSvgDef,
@@ -231,7 +231,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		// Start or end, pointing the arrow...
 
-		const update: TLShapePartial<TLArrowShape> = { id: shape.id, type: 'arrow', props: {} }
+		const update: TLShapeUpdatePartial<TLArrowShape> = { id: shape.id, props: {} }
 
 		const currentBinding = bindings[handleId]
 
@@ -574,12 +574,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override onDoubleClickHandle(
 		shape: TLArrowShape,
 		handle: TLHandle
-	): TLShapePartial<TLArrowShape> | void {
+	): TLShapeUpdatePartial<TLArrowShape> | void {
 		switch (handle.id) {
 			case ARROW_HANDLES.START: {
 				return {
 					id: shape.id,
-					type: shape.type,
 					props: {
 						...shape.props,
 						arrowheadStart: shape.props.arrowheadStart === 'none' ? 'arrow' : 'none',
@@ -589,7 +588,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			case ARROW_HANDLES.END: {
 				return {
 					id: shape.id,
-					type: shape.type,
 					props: {
 						...shape.props,
 						arrowheadEnd: shape.props.arrowheadEnd === 'none' ? 'arrow' : 'none',

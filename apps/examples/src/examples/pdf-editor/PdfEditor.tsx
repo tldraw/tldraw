@@ -96,7 +96,6 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 					editor.updateShapes(
 						shapes.map((shape, i) => ({
 							id: shape.id,
-							type: shape.type,
 							isLocked: shape.isLocked,
 							index: indexes[i],
 						}))
