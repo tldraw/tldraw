@@ -4,14 +4,11 @@ import { BlogSidebar } from '@/components/blog/blog-sidebar'
 import { BlogTableOfContents } from '@/components/blog/blog-table-of-contents'
 import { Content } from '@/components/content'
 import { Article } from '@/types/content-types'
-import { NewsletterSignup } from '../common/newsletter-signup'
 
 export function BlogPostPage({ article }: { article: Article }) {
 	return (
 		<div className="w-full max-w-screen-xl mx-auto md:px-5 md:flex md:pt-8 isolate">
-			<BlogSidebar>
-				<NewsletterSignup size="small" />
-			</BlogSidebar>
+			<BlogSidebar>{/* <NewsletterSignup size="small" /> */}</BlogSidebar>
 			<div className="fixed z-10 flex items-center justify-between w-full h-12 px-5 bg-white border-b border-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 backdrop-blur md:hidden">
 				<BlogMobileSidebar />
 			</div>
@@ -20,7 +17,7 @@ export function BlogPostPage({ article }: { article: Article }) {
 				<Content mdx={article.content ?? ''} type={article.sectionId} />
 				<section className="pt-24 pb-16 mt-16 flex flex-col">
 					<h4 className="text-center text-md font-bold pb-3">Subscribe to our mailing list</h4>
-					<NewsletterSignup />
+					{/* <NewsletterSignup /> */}
 				</section>
 			</main>
 			<BlogTableOfContents article={article} />

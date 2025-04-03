@@ -104,8 +104,26 @@ mark {
 	margin: -1px -1px;
 	padding: 1px 1px;
 	border-radius: 3px;
-	background: #ffc80046;
+	background-color: #ffc80046;
 	color: inherit;
 	-webkit-box-decoration-break: clone;
 	box-decoration-break: clone;
+}
+
+.special {
+	--r: 18px;
+	--rl: -1;
+	--b: 4px;
+	background: none;
+	text-shadow:
+		calc(var(--r) * 1) 0px var(--b) rgba(255, 208, 0, 0.03),
+		calc(var(--r) * 0.75) 0px var(--b) rgba(255, 140, 0, 0.04),
+		calc(var(--r) * 0.5) 0px var(--b) rgba(255, 187, 0, 0.09),
+		calc(var(--r) * 0.25) 0px var(--b) rgba(255, 187, 0, 0.12),
+		calc(var(--r) * 0.12) 0px var(--b) rgba(255, 217, 0, 0.32),
+		calc(var(--r) * 1 * var(--rl)) 0px rgba(255, 140, 0, 0.02),
+		calc(var(--r) * 0.75 * var(--rl)) 0px var(--b) rgba(255, 208, 0, 0.04),
+		calc(var(--r) * 0.5 * var(--rl)) 0px var(--b) rgba(255, 187, 0, 0.08),
+		calc(var(--r) * 0.25 * var(--rl)) 0px var(--b) rgba(255, 187, 0, 0.12),
+		calc(var(--r) * 0.12 * var(--rl)) 0px var(--b) rgba(255, 217, 0, 0.32);
 }
