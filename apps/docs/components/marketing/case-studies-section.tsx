@@ -13,14 +13,14 @@ export function CaseStudiesSection() {
 				<div>
 					<CaseStudiesGridBig>
 						<CaseStudyJustLogoCard
-							href="/blog/clickup-case-study"
+							href="/blog/case-studies/clickup"
 							src="/images/case-studies/clickup-hero.png"
 							logo="/images/case-studies/clickup-logo.svg"
 						>
 							<b>ClickUp</b> rebuilt their Whiteboard feature.{' '}
 						</CaseStudyJustLogoCard>
 						<CaseStudyJustLogoCard
-							href="/blog/autodesk-case-study"
+							href="/blog/case-studies/autodesk"
 							src="/images/case-studies/autodesk-hero.png"
 							logo="/images/case-studies/autodesk-logo.svg"
 						>
@@ -29,28 +29,28 @@ export function CaseStudiesSection() {
 					</CaseStudiesGridBig>
 					<CaseStudiesGridSmall>
 						<CaseStudyJustLogoSmallCard
-							href="/blog/jam-case-study"
+							href="/blog/case-studies/jam"
 							src="/images/case-studies/jam-hero.png"
 							logo="/images/case-studies/jam-logo.svg"
 						>
 							<b>Jam</b> upgraded their screenshot annotation feature.
 						</CaseStudyJustLogoSmallCard>
 						<CaseStudyJustLogoSmallCard
-							href="/blog/craft-case-study"
+							href="/blog/case-studies/craft"
 							src="/images/case-studies/craft-hero.png"
 							logo="/images/case-studies/craft-logo.svg"
 						>
 							<b>Craft</b> added a collaborative whiteboard to their productivity app.
 						</CaseStudyJustLogoSmallCard>
 						<CaseStudyJustLogoSmallCard
-							href="/blog/padlet-case-study"
+							href="/blog/case-studies/padlet"
 							src="/images/case-studies/padlet-hero.png"
 							logo="/images/case-studies/padlet-logo.svg"
 						>
 							<b>Padlet</b> built their Sandbox experience for teachers and students.
 						</CaseStudyJustLogoSmallCard>
 						<CaseStudyJustLogoSmallCard
-							href="/blog/roam-case-study"
+							href="/blog/case-studies/roam"
 							src="/images/case-studies/roam-hero.png"
 							logo="/images/case-studies/roam-logo.svg"
 						>
@@ -58,21 +58,21 @@ export function CaseStudiesSection() {
 						</CaseStudyJustLogoSmallCard>
 
 						<CaseStudyJustLogoSmallCard
-							href="/blog/mobbin-case-study"
+							href="/blog/case-studies/mobbin"
 							src="/images/case-studies/mobbin-hero.png"
 							logo="/images/case-studies/mobbin-logo.svg"
 						>
 							<b>Mobbin</b> created internal tools for managing content and training models.
 						</CaseStudyJustLogoSmallCard>
 						<CaseStudyJustLogoSmallCard
-							href="/blog/legendkeeper-case-study"
+							href="/blog/case-studies/legendkeeper"
 							src="/images/case-studies/legendkeeper-hero.png"
 							logo="/images/case-studies/legendkeeper-logo.svg"
 						>
 							<b>LegendKeeper</b> built a boards feature for their world-building wiki.
 						</CaseStudyJustLogoSmallCard>
 						<CaseStudyJustLogoSmallCard
-							href="/blog/bigbluebutton-case-study"
+							href="/blog/case-studies/bigbluebutton"
 							src="/images/case-studies/bigbluebutton-hero.png"
 							logo="/images/case-studies/bigbluebutton-logo.svg"
 						>
