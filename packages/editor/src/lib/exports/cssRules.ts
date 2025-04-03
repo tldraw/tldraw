@@ -20,6 +20,7 @@ const isInherited: CanSkipRule = (value, property, { parentStyles }) => {
 	return parentStyles[property] === value
 }
 
+// see comment below about why we exclude border styles
 const isExcludedBorder =
 	(borderDirection: string): CanSkipRule =>
 	(value, property, { getStyle }) => {
