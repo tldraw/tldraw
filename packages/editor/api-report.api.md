@@ -567,7 +567,7 @@ export class CubicBezier2d extends Polyline2d {
     // (undocumented)
     static GetAtT(segment: CubicBezier2d, t: number): Vec;
     // (undocumented)
-    getLength(precision?: number): number;
+    getLength(filters?: Geometry2dFilters, precision?: number): number;
     // (undocumented)
     getSvgPathData(first?: boolean): string;
     // (undocumented)
@@ -1322,6 +1322,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     getShapeNearestSibling(siblingShape: TLShape, targetShape: TLShape | undefined): TLShape | undefined;
     getShapePageBounds(shape: TLShape | TLShapeId): Box | undefined;
+    getShapePageGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T;
     getShapePageTransform(shape: TLShape | TLShapeId): Mat;
     getShapeParent(shape?: TLShape | TLShapeId): TLShape | undefined;
     getShapeParentTransform(shape: TLShape | TLShapeId): Mat;
@@ -1735,27 +1736,34 @@ export abstract class Geometry2d {
     // (undocumented)
     debugColor?: string;
     // (undocumented)
-    distanceToLineSegment(A: Vec, B: Vec, filters?: Geometry2dFilters): number;
+    distanceToLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): number;
     // (undocumented)
-    distanceToPoint(point: Vec, hitInside?: boolean, filters?: Geometry2dFilters): number;
+    distanceToPoint(point: VecLike, hitInside?: boolean, filters?: Geometry2dFilters): number;
     // (undocumented)
     getArea(): number;
     // (undocumented)
     getBounds(): Box;
     // (undocumented)
-    getLength(): number;
+    getLength(_filters?: Geometry2dFilters): number;
     // (undocumented)
     abstract getSvgPathData(first: boolean): string;
     // (undocumented)
     abstract getVertices(filters: Geometry2dFilters): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec, B: Vec, distance?: number, filters?: Geometry2dFilters): boolean;
+    hitTestLineSegment(A: VecLike, B: VecLike, distance?: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     hitTestPoint(point: Vec, margin?: number, hitInside?: boolean, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     ignore?: boolean;
+    interpolateAlongEdge(t: number, _filters?: Geometry2dFilters): Vec;
     // (undocumented)
-    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): Generator<VecLike, void, undefined>;
+    intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[];
     // (undocumented)
     isClosed: boolean;
     // (undocumented)
@@ -1771,13 +1779,14 @@ export abstract class Geometry2d {
     // (undocumented)
     get length(): number;
     // (undocumented)
-    abstract nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec;
+    abstract nearestPoint(point: VecLike, filters?: Geometry2dFilters): Vec;
     // @deprecated (undocumented)
     nearestPointOnLineSegment(A: Vec, B: Vec): Vec;
     // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
     transform(transform: MatModel): Geometry2d;
+    uninterpolateAlongEdge(point: VecLike, _filters?: Geometry2dFilters): number;
     // (undocumented)
     get vertices(): Vec[];
 }
@@ -1907,27 +1916,39 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     children: Geometry2d[];
     // (undocumented)
-    distanceToPoint(point: Vec, hitInside?: boolean, filters?: Geometry2dFilters): number;
+    distanceToPoint(point: VecLike, hitInside?: boolean, filters?: Geometry2dFilters): number;
     // (undocumented)
     getArea(): number;
     // (undocumented)
-    getLength(): number;
+    getLength(filters?: Geometry2dFilters): number;
     // (undocumented)
     getSvgPathData(): string;
     // (undocumented)
     getVertices(filters: Geometry2dFilters): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec, B: Vec, zoom: number, filters?: Geometry2dFilters): boolean;
+    hitTestLineSegment(A: VecLike, B: VecLike, zoom: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     hitTestPoint(point: Vec, margin: number, hitInside: boolean, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     ignoredChildren: Geometry2d[];
     // (undocumented)
-    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): Generator<VecLike, void, undefined>;
+    interpolateAlongEdge(t: number, filters?: Geometry2dFilters): Vec;
+    // (undocumented)
+    intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[];
     // (undocumented)
     nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec;
     // (undocumented)
     toSimpleSvgPath(): string;
+    // (undocumented)
+    transform(transform: Mat): Geometry2d;
+    // (undocumented)
+    uninterpolateAlongEdge(point: VecLike, filters?: Geometry2dFilters): number;
 }
 
 // @public (undocumented)
@@ -4308,11 +4329,25 @@ export { transaction }
 export class TransformedGeometry2d extends Geometry2d {
     constructor(geometry: Geometry2d, matrix: MatModel);
     // (undocumented)
+    distanceToLineSegment(A: Vec, B: Vec, filters?: Geometry2dFilters): number;
+    // (undocumented)
+    distanceToPoint(point: Vec, hitInside?: boolean, filters?: Geometry2dFilters): number;
+    // (undocumented)
     getSvgPathData(): string;
     // (undocumented)
     getVertices(filters: Geometry2dFilters): Vec[];
     // (undocumented)
+    hitTestLineSegment(A: Vec, B: Vec, distance?: number, filters?: Geometry2dFilters): boolean;
+    // (undocumented)
     hitTestPoint(point: Vec, margin?: number, hitInside?: boolean, filters?: Geometry2dFilters): boolean;
+    // (undocumented)
+    intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[];
     // (undocumented)
     nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec;
     // (undocumented)

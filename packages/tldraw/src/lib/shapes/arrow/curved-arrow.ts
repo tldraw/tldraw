@@ -9,8 +9,6 @@ import {
 	centerOfCircleFromThreePoints,
 	clockwiseAngleDist,
 	counterClockwiseAngleDist,
-	intersectCirclePolygon,
-	intersectCirclePolyline,
 	isSafeFloat,
 } from '@tldraw/editor'
 import { TLArcInfo, TLArrowInfo } from './arrow-types'
@@ -118,13 +116,15 @@ export function getCurvedArrowInfo(
 		const endInStartShapeLocalSpace = Mat.applyToPoint(inverseTransform, endInPageSpace)
 
 		const { isClosed } = startShapeInfo
-		const fn = isClosed ? intersectCirclePolygon : intersectCirclePolyline
-
 		let point: VecLike | undefined
+		let intersections = Array.from(
+			startShapeInfo.geometry.intersectCircle(centerInStartShapeLocalSpace, handleArc.radius, {
+				includeLabels: false,
+				includeInternal: false,
+			})
+		)
 
-		let intersections = fn(centerInStartShapeLocalSpace, handleArc.radius, startShapeInfo.outline)
-
-		if (intersections) {
+		if (intersections.length) {
 			const angleToStart = centerInStartShapeLocalSpace.angle(startInStartShapeLocalSpace)
 			const angleToEnd = centerInStartShapeLocalSpace.angle(endInStartShapeLocalSpace)
 			const dAB = distFn(angleToStart, angleToEnd)
@@ -187,11 +187,13 @@ export function getCurvedArrowInfo(
 		const endInEndShapeLocalSpace = Mat.applyToPoint(inverseTransform, endInPageSpace)
 
 		const isClosed = endShapeInfo.isClosed
-		const fn = isClosed ? intersectCirclePolygon : intersectCirclePolyline
-
 		let point: VecLike | undefined
-
-		let intersections = fn(centerInEndShapeLocalSpace, handleArc.radius, endShapeInfo.outline)
+		let intersections = Array.from(
+			endShapeInfo.geometry.intersectCircle(centerInEndShapeLocalSpace, handleArc.radius, {
+				includeLabels: false,
+				includeInternal: false,
+			})
+		)
 
 		if (intersections) {
 			const angleToStart = centerInEndShapeLocalSpace.angle(startInEndShapeLocalSpace)

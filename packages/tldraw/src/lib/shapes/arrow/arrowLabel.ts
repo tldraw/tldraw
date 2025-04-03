@@ -296,7 +296,7 @@ function getCurvedArrowLabelRange(
 	return { start, end, dbg }
 }
 
-function getElbowArrowLabelRange(editor: Editor, shape: TLArcArrowInfo, info: TLElbowArrowInfo) {
+function getElbowArrowLabelRange(editor: Editor, shape: TLArrowShape, info: TLElbowArrowInfo) {
 	return { start: 0, end: 1 }
 }
 

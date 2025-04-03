@@ -1,5 +1,7 @@
+import { EMPTY_ARRAY } from '@tldraw/state'
 import { assert, invLerp, lerp } from '@tldraw/utils'
 import { Box } from '../Box'
+import { Mat } from '../Mat'
 import { Vec, VecLike } from '../Vec'
 import { Geometry2d, Geometry2dFilters, Geometry2dOptions } from './Geometry2d'
 
@@ -81,17 +83,43 @@ export class Group2d extends Geometry2d {
 			.find((c) => c.hitTestPoint(point, margin, hitInside))
 	}
 
-	override hitTestLineSegment(A: Vec, B: Vec, zoom: number, filters?: Geometry2dFilters): boolean {
+	override hitTestLineSegment(
+		A: VecLike,
+		B: VecLike,
+		zoom: number,
+		filters = Geometry2dFilters.EXCLUDE_LABELS
+	): boolean {
 		return !!this.children
 			.filter((c) => !c.isExcludedByFilter(filters))
 			.find((c) => c.hitTestLineSegment(A, B, zoom))
 	}
 
-	override *intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
-		for (const child of this.children) {
-			if (child.isExcludedByFilter(filters)) continue
-			yield* child.intersectLineSegment(A, B, filters)
-		}
+	override intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
+		return this.children.flatMap((child) => {
+			if (child.isExcludedByFilter(filters)) return EMPTY_ARRAY
+			return child.intersectLineSegment(A, B, filters)
+		})
+	}
+
+	override intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters) {
+		return this.children.flatMap((child) => {
+			if (child.isExcludedByFilter(filters)) return EMPTY_ARRAY
+			return child.intersectCircle(center, radius, filters)
+		})
+	}
+
+	override intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters) {
+		return this.children.flatMap((child) => {
+			if (child.isExcludedByFilter(filters)) return EMPTY_ARRAY
+			return child.intersectPolygon(polygon, filters)
+		})
+	}
+
+	override intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters) {
+		return this.children.flatMap((child) => {
+			if (child.isExcludedByFilter(filters)) return EMPTY_ARRAY
+			return child.intersectPolyline(polyline, filters)
+		})
 	}
 
 	override interpolateAlongEdge(t: number, filters?: Geometry2dFilters): Vec {
@@ -147,6 +175,15 @@ export class Group2d extends Geometry2d {
 		return childTLength / totalLength
 	}
 
+	override transform(transform: Mat): Geometry2d {
+		return new Group2d({
+			children: this.children.map((c) => c.transform(transform)),
+			isLabel: this.isLabel,
+			debugColor: this.debugColor,
+			ignore: this.ignore,
+		})
+	}
+
 	getArea() {
 		// todo: this is a temporary solution, assuming that the first child defines the group size; we would want to flatten the group and then find the area of the hull polygon
 		return this.children[0].area
@@ -187,6 +224,6 @@ export class Group2d extends Geometry2d {
 	}
 
 	getSvgPathData(): string {
-		return this.children.map((c) => (c.isLabel ? '' : c.getSvgPathData(true))).join(' ')
+		return this.children.map((c, i) => (c.isLabel ? '' : c.getSvgPathData(i === 0))).join(' ')
 	}
 }

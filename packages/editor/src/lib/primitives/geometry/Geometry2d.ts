@@ -3,11 +3,13 @@ import { Box } from '../Box'
 import { Mat, MatModel } from '../Mat'
 import { Vec, VecLike } from '../Vec'
 import {
+	intersectCirclePolygon,
+	intersectCirclePolyline,
 	intersectLineSegmentPolygon,
 	intersectLineSegmentPolyline,
 	intersectPolys,
 } from '../intersect'
-import { pointInPolygon } from '../utils'
+import { approximately, pointInPolygon } from '../utils'
 
 /** @public */
 export interface Geometry2dFilters {
@@ -89,8 +91,8 @@ export abstract class Geometry2d {
 		)
 	}
 
-	distanceToLineSegment(A: Vec, B: Vec, filters?: Geometry2dFilters) {
-		if (A.equals(B)) return this.distanceToPoint(A, false, filters)
+	distanceToLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
+		if (Vec.Equals(A, B)) return this.distanceToPoint(A, false, filters)
 		const { vertices } = this
 		let nearest: Vec | undefined
 		let dist = Infinity
@@ -108,24 +110,38 @@ export abstract class Geometry2d {
 		return this.isClosed && this.isFilled && pointInPolygon(nearest, this.vertices) ? -dist : dist
 	}
 
-	hitTestLineSegment(A: Vec, B: Vec, distance = 0, filters?: Geometry2dFilters): boolean {
+	hitTestLineSegment(A: VecLike, B: VecLike, distance = 0, filters?: Geometry2dFilters): boolean {
 		return this.distanceToLineSegment(A, B, filters) <= distance
 	}
 
-	*intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
-		if (this.isExcludedByFilter(filters)) return
+	intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): VecLike[] {
+		if (this.isExcludedByFilter(filters)) return []
 
 		const intersections = this.isClosed
 			? intersectLineSegmentPolygon(A, B, this.vertices)
 			: intersectLineSegmentPolyline(A, B, this.vertices)
 
-		if (intersections) yield* intersections
+		return intersections ?? []
+	}
+
+	intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): VecLike[] {
+		if (this.isExcludedByFilter(filters)) return []
+		const intersections = this.isClosed
+			? intersectCirclePolygon(center, radius, this.vertices)
+			: intersectCirclePolyline(center, radius, this.vertices)
+
+		return intersections ?? []
 	}
 
 	intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[] {
 		if (this.isExcludedByFilter(filters)) return []
 
 		return intersectPolys(polygon, this.vertices, true, this.isClosed)
+	}
+
+	intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[] {
+		if (this.isExcludedByFilter(filters)) return []
+		return intersectPolys(polyline, this.vertices, false, this.isClosed)
 	}
 
 	/**
@@ -340,8 +356,6 @@ export class TransformedGeometry2d extends Geometry2d {
 	private readonly inverse: MatModel
 	private readonly decomposed
 
-	private approximateScale: number
-
 	constructor(
 		private readonly geometry: Geometry2d,
 		private readonly matrix: MatModel
@@ -350,9 +364,10 @@ export class TransformedGeometry2d extends Geometry2d {
 		this.inverse = Mat.Inverse(matrix)
 		this.decomposed = Mat.Decompose(matrix)
 
-		// for scalar values like `margin`, we can't properly transform them. so we use an
-		// approximation (the geometric mean of the scale factors)
-		this.approximateScale = Math.sqrt(this.decomposed.scaleX * this.decomposed.scaleY)
+		assert(
+			approximately(this.decomposed.scaleX, this.decomposed.scaleY),
+			'non-uniform scaling is not yet supported'
+		)
 	}
 
 	getVertices(filters: Geometry2dFilters): Vec[] {
@@ -374,10 +389,60 @@ export class TransformedGeometry2d extends Geometry2d {
 	): boolean {
 		return this.geometry.hitTestPoint(
 			Mat.applyToPoint(this.inverse, point),
-			margin / this.approximateScale,
+			margin / this.decomposed.scaleX,
 			hitInside,
 			filters
 		)
+	}
+
+	override distanceToPoint(point: Vec, hitInside = false, filters?: Geometry2dFilters) {
+		return (
+			this.geometry.distanceToPoint(Mat.applyToPoint(this.inverse, point), hitInside, filters) *
+			this.decomposed.scaleX
+		)
+	}
+
+	override distanceToLineSegment(A: Vec, B: Vec, filters?: Geometry2dFilters) {
+		return (
+			this.geometry.distanceToLineSegment(
+				Mat.applyToPoint(this.inverse, A),
+				Mat.applyToPoint(this.inverse, B),
+				filters
+			) * this.decomposed.scaleX
+		)
+	}
+
+	override hitTestLineSegment(A: Vec, B: Vec, distance = 0, filters?: Geometry2dFilters): boolean {
+		return this.geometry.hitTestLineSegment(
+			Mat.applyToPoint(this.inverse, A),
+			Mat.applyToPoint(this.inverse, B),
+			distance / this.decomposed.scaleX,
+			filters
+		)
+	}
+
+	override intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
+		return this.geometry.intersectLineSegment(
+			Mat.applyToPoint(this.inverse, A),
+			Mat.applyToPoint(this.inverse, B),
+			filters
+		)
+	}
+
+	override intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters) {
+		return this.geometry.intersectCircle(
+			Mat.applyToPoint(this.inverse, center),
+			radius / this.decomposed.scaleX,
+			filters
+		)
+	}
+
+	override intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[] {
+		return this.geometry.intersectPolygon(Mat.applyToPoints(this.inverse, polygon), filters)
+	}
+
+	override intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[] {
+		return this.geometry.intersectPolyline(Mat.applyToPoints(this.inverse, polyline), filters)
 	}
 
 	override transform(transform: MatModel): Geometry2d {

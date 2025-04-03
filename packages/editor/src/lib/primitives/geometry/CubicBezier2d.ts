@@ -1,5 +1,5 @@
 import { Vec } from '../Vec'
-import { Geometry2dOptions } from './Geometry2d'
+import { Geometry2dFilters, Geometry2dOptions } from './Geometry2d'
 import { Polyline2d } from './Polyline2d'
 
 /** @public */
@@ -89,7 +89,7 @@ export class CubicBezier2d extends Polyline2d {
 		)
 	}
 
-	override getLength(precision = 32) {
+	override getLength(filters?: Geometry2dFilters, precision = 32) {
 		let n1: Vec,
 			p1 = this.a,
 			length = 0
