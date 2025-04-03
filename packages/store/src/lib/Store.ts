@@ -676,14 +676,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		}
 
 		try {
-			this.atomic(() => {
-				try {
-					this.isMergingRemoteChanges = true
-					fn()
-				} finally {
-					this.isMergingRemoteChanges = false
-				}
-			})
+			this.atomic(fn, true, true)
 		} finally {
 			this.ensureStoreIsUsable()
 		}
@@ -829,9 +822,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			this.pendingAfterEvents.set(id, { before, after })
 		}
 	}
-	private flushAtomicCallbacks() {
+	private flushAtomicCallbacks(isMergingRemoteChanges: boolean) {
 		let updateDepth = 0
-		const source = this.isMergingRemoteChanges ? 'remote' : 'user'
+		let source: ChangeSource = isMergingRemoteChanges ? 'remote' : 'user'
 		while (this.pendingAfterEvents) {
 			const events = this.pendingAfterEvents
 			this.pendingAfterEvents = null
@@ -855,16 +848,27 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 			if (!this.pendingAfterEvents) {
 				this.sideEffects.handleOperationComplete(source)
+			} else {
+				// if the side effects triggered by a remote operation resulted in more effects,
+				// those extra effects should not be marked as originating remotely.
+				source = 'user'
 			}
 		}
 	}
 	private _isInAtomicOp = false
 	/** @internal */
-	atomic<T>(fn: () => T, runCallbacks = true): T {
+	atomic<T>(
+		fn: () => T,
+		runCallbacks = true,
+		// why do we pass this in rather than using this.isMergingRemoteChanges?
+		// to allow setting isMergingRemoteChanges to false before handling the
+		isMergingRemoteChanges = false
+	): T {
 		return transact(() => {
 			if (this._isInAtomicOp) {
 				if (!this.pendingAfterEvents) this.pendingAfterEvents = new Map()
 				const prevSideEffectsEnabled = this.sideEffects.isEnabled()
+				assert(!isMergingRemoteChanges, 'cannot call mergeRemoteChanges while in atomic operation')
 				try {
 					// if we are in an atomic context with side effects ON allow switching before* callbacks OFF.
 					// but don't allow switching them ON if they had been marked OFF before.
@@ -881,16 +885,23 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			const prevSideEffectsEnabled = this.sideEffects.isEnabled()
 			this.sideEffects.setIsEnabled(runCallbacks ?? prevSideEffectsEnabled)
 			this._isInAtomicOp = true
+
+			if (isMergingRemoteChanges) {
+				this.isMergingRemoteChanges = true
+			}
+
 			try {
 				const result = fn()
+				this.isMergingRemoteChanges = false
 
-				this.flushAtomicCallbacks()
+				this.flushAtomicCallbacks(isMergingRemoteChanges)
 
 				return result
 			} finally {
 				this.pendingAfterEvents = null
 				this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
 				this._isInAtomicOp = false
+				this.isMergingRemoteChanges = false
 			}
 		})
 	}

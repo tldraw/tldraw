@@ -1226,12 +1226,15 @@ describe('callbacks', () => {
 		expect(step).toBe(9)
 	})
 
-	test('fired during mergeRemoteChanges are flushed at the end so that they end up with user scope', () => {
+	test('fired during mergeRemoteChanges are flushed at the end so that they end up receiving remote source but outputting user source changes', () => {
 		const diffs: HistoryEntry<Book>[] = []
 		store.listen((entry) => {
 			diffs.push(entry)
 		})
-		store.sideEffects.registerAfterCreateHandler('book', (record) => {
+
+		const firstOrderEffectSources: string[] = []
+		store.sideEffects.registerAfterCreateHandler('book', (record, source) => {
+			firstOrderEffectSources.push(source)
 			if (record.title.startsWith('Harry Potter')) {
 				store.put([
 					{
@@ -1242,6 +1245,11 @@ describe('callbacks', () => {
 			}
 		})
 
+		const secondOrderEffectSources: string[] = []
+		store.sideEffects.registerAfterChangeHandler('book', (from, to, source) => {
+			secondOrderEffectSources.push(source)
+		})
+
 		store.mergeRemoteChanges(() => {
 			store.put([
 				{
@@ -1250,6 +1258,19 @@ describe('callbacks', () => {
 				},
 			])
 		})
+
+		expect(firstOrderEffectSources).toMatchInlineSnapshot(`
+		[
+		  "remote",
+		]
+	`)
+
+		// recursive changes are always user
+		expect(secondOrderEffectSources).toMatchInlineSnapshot(`
+		[
+		  "user",
+		]
+	`)
 
 		expect(diffs).toMatchInlineSnapshot(`
 		[
