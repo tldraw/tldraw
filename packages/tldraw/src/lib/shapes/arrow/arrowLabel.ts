@@ -31,37 +31,40 @@ import { TLArcArrowInfo, TLElbowArrowInfo, TLStraightArrowInfo } from './arrow-t
 import { interpolateAlongElbowArrowRoute } from './elbow/interpolateAlongElbowArrowRoute'
 import { getArrowInfo } from './shared'
 
-const labelSizeCache = createComputedCache(
-	'arrow label size',
+const arrowBodyGeometryCache = createComputedCache(
+	'arrow body geometry',
 	(editor: Editor, shape: TLArrowShape) => {
-		editor.fonts.trackFontsForShape(shape)
 		const info = getArrowInfo(editor, shape)!
-		let width = 0
-		let height = 0
-
-		let bodyGeom: Geometry2d
 		switch (info.type) {
 			case 'straight':
-				bodyGeom = new Edge2d({
+				return new Edge2d({
 					start: Vec.From(info.start.point),
 					end: Vec.From(info.end.point),
 				})
-				break
 			case 'arc':
-				bodyGeom = new Arc2d({
+				return new Arc2d({
 					center: Vec.Cast(info.handleArc.center),
 					start: Vec.Cast(info.start.point),
 					end: Vec.Cast(info.end.point),
 					sweepFlag: info.bodyArc.sweepFlag,
 					largeArcFlag: info.bodyArc.largeArcFlag,
 				})
-				break
 			case 'elbow':
-				bodyGeom = new Polyline2d({ points: info.route.points })
-				break
+				return new Polyline2d({ points: info.route.points })
 			default:
 				exhaustiveSwitchError(info, 'type')
 		}
+	}
+)
+
+const labelSizeCache = createComputedCache(
+	'arrow label size',
+	(editor: Editor, shape: TLArrowShape) => {
+		editor.fonts.trackFontsForShape(shape)
+		let width = 0
+		let height = 0
+
+		const bodyGeom = arrowBodyGeometryCache.get(editor, shape.id)!
 
 		if (shape.props.text.trim()) {
 			const bodyBounds = bodyGeom.bounds
@@ -170,6 +173,19 @@ function getStraightArrowLabelRange(
 	const start = Vec.Dist(info.start.point, startConstrained) / info.length
 	const end = Vec.Dist(info.start.point, endConstrained) / info.length
 	return { start, end }
+}
+
+/**
+ * Return the range of possible label positions for an arrow. The full possible range is 0 to 1, but
+ * as the label itself takes up space the usable range is smaller.
+ */
+function getArrowLabelRange(editor: Editor, shape: TLArrowShape, info: TLArcArrowInfo) {
+	const bodyGeom = arrowBodyGeometryCache.get(editor, shape.id)!
+
+	const labelSize = getArrowLabelSize(editor, shape)
+	const labelToArrowPadding = getLabelToArrowPadding(shape)
+
+	// we can calculate the range by sticking the center of the label at the very start/end of the arrow, and seeing where the label intersects with the arrow.
 }
 
 /**

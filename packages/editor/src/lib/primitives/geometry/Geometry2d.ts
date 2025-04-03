@@ -1,7 +1,12 @@
+import { assert, invLerp } from '@tldraw/utils'
 import { Box } from '../Box'
 import { Mat, MatModel } from '../Mat'
 import { Vec, VecLike } from '../Vec'
-import { intersectLineSegmentPolygon, intersectLineSegmentPolyline } from '../intersect'
+import {
+	intersectLineSegmentPolygon,
+	intersectLineSegmentPolyline,
+	intersectPolys,
+} from '../intersect'
 import { pointInPolygon } from '../utils'
 
 /** @public */
@@ -63,7 +68,7 @@ export abstract class Geometry2d {
 
 	abstract getVertices(filters: Geometry2dFilters): Vec[]
 
-	abstract nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec
+	abstract nearestPoint(point: VecLike, filters?: Geometry2dFilters): Vec
 
 	hitTestPoint(point: Vec, margin = 0, hitInside = false, filters?: Geometry2dFilters) {
 		if (this.isExcludedByFilter(filters)) return false
@@ -75,9 +80,9 @@ export abstract class Geometry2d {
 		return Vec.Dist2(point, this.nearestPoint(point)) <= margin * margin
 	}
 
-	distanceToPoint(point: Vec, hitInside = false, filters?: Geometry2dFilters) {
+	distanceToPoint(point: VecLike, hitInside = false, filters?: Geometry2dFilters) {
 		return (
-			point.dist(this.nearestPoint(point, filters)) *
+			Vec.Dist(point, this.nearestPoint(point, filters)) *
 			(this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)
 				? -1
 				: 1)
@@ -115,6 +120,81 @@ export abstract class Geometry2d {
 			: intersectLineSegmentPolyline(A, B, this.vertices)
 
 		if (intersections) yield* intersections
+	}
+
+	intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[] {
+		if (this.isExcludedByFilter(filters)) return []
+
+		return intersectPolys(polygon, this.vertices, true, this.isClosed)
+	}
+
+	/**
+	 * Find a point along the edge of the geometry that is a fraction `t` along the entire way round.
+	 */
+	interpolateAlongEdge(t: number, _filters?: Geometry2dFilters): Vec {
+		const { vertices } = this
+
+		if (t <= 0) return vertices[0]
+
+		const distanceToTravel = t * this.length
+		let distanceTraveled = 0
+
+		for (let i = 0; i < (this.isClosed ? vertices.length : vertices.length - 1); i++) {
+			const curr = vertices[i]
+			const next = vertices[(i + 1) % vertices.length]
+			const dist = Vec.Dist(curr, next)
+			const newDistanceTraveled = distanceTraveled + dist
+			if (newDistanceTraveled >= distanceToTravel) {
+				const p = Vec.Lrp(
+					curr,
+					next,
+					invLerp(distanceTraveled, newDistanceTraveled, distanceToTravel)
+				)
+				return p
+			}
+			distanceTraveled = newDistanceTraveled
+		}
+
+		return this.isClosed ? vertices[0] : vertices[vertices.length - 1]
+	}
+
+	/**
+	 * Take `point`, find the closest point to it on the edge of the geometry, and return how far
+	 * along the edge it is as a fraction of the total length.
+	 */
+	uninterpolateAlongEdge(point: VecLike, _filters?: Geometry2dFilters): number {
+		const { vertices, length } = this
+		let closestSegment = null
+		let closestDistance = Infinity
+		let distanceTraveled = 0
+
+		for (let i = 0; i < (this.isClosed ? vertices.length : vertices.length - 1); i++) {
+			const curr = vertices[i]
+			const next = vertices[(i + 1) % vertices.length]
+
+			const nearestPoint = Vec.NearestPointOnLineSegment(curr, next, point, true)
+			const distance = Vec.Dist(nearestPoint, point)
+
+			if (distance < closestDistance) {
+				closestDistance = distance
+				closestSegment = {
+					start: curr,
+					end: next,
+					nearestPoint,
+					distanceToStart: distanceTraveled,
+				}
+			}
+
+			distanceTraveled += Vec.ManhattanDist(curr, next)
+		}
+
+		assert(closestSegment)
+
+		const distanceAlongRoute =
+			closestSegment.distanceToStart +
+			Vec.ManhattanDist(closestSegment.start, closestSegment.nearestPoint)
+
+		return distanceAlongRoute / length
 	}
 
 	/** @deprecated Iterate the vertices instead. */
@@ -230,21 +310,21 @@ export abstract class Geometry2d {
 	// eslint-disable-next-line no-restricted-syntax
 	get length() {
 		if (this._length) return this._length
-		this._length = this.getLength()
+		this._length = this.getLength(Geometry2dFilters.EXCLUDE_LABELS)
 		return this._length
 	}
 
-	getLength() {
+	getLength(_filters?: Geometry2dFilters) {
 		const { vertices } = this
 		let n1: Vec,
 			p1 = vertices[0],
 			length = 0
-		for (let i = 1; i < vertices.length; i++) {
-			n1 = vertices[i]
-			length += Vec.Dist2(p1, n1)
+		for (let i = 1; i < (this.isClosed ? vertices.length : vertices.length - 1); i++) {
+			n1 = vertices[i % vertices.length]
+			length += Vec.Dist(p1, n1)
 			p1 = n1
 		}
-		return Math.sqrt(length)
+		return length
 	}
 
 	abstract getSvgPathData(first: boolean): string

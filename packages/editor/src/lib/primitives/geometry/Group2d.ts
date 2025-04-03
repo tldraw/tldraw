@@ -1,3 +1,4 @@
+import { assert, invLerp, lerp } from '@tldraw/utils'
 import { Box } from '../Box'
 import { Vec, VecLike } from '../Vec'
 import { Geometry2d, Geometry2dFilters, Geometry2dOptions } from './Geometry2d'
@@ -57,7 +58,7 @@ export class Group2d extends Geometry2d {
 		return nearest
 	}
 
-	override distanceToPoint(point: Vec, hitInside = false, filters?: Geometry2dFilters) {
+	override distanceToPoint(point: VecLike, hitInside = false, filters?: Geometry2dFilters) {
 		let smallestDistance = Infinity
 		for (const child of this.children) {
 			if (child.isExcludedByFilter(filters)) continue
@@ -93,6 +94,59 @@ export class Group2d extends Geometry2d {
 		}
 	}
 
+	override interpolateAlongEdge(t: number, filters?: Geometry2dFilters): Vec {
+		const totalLength = this.getLength(filters)
+
+		const distanceToTravel = t * totalLength
+		let distanceTraveled = 0
+		for (const child of this.children) {
+			if (child.isExcludedByFilter(filters)) continue
+			const childLength = child.length
+			const newDistanceTraveled = distanceTraveled + childLength
+			if (newDistanceTraveled >= distanceToTravel) {
+				return child.interpolateAlongEdge(
+					invLerp(distanceTraveled, newDistanceTraveled, distanceToTravel),
+					filters
+				)
+			}
+			distanceTraveled = newDistanceTraveled
+		}
+
+		return this.children[this.children.length - 1].interpolateAlongEdge(1, filters)
+	}
+
+	override uninterpolateAlongEdge(point: VecLike, filters?: Geometry2dFilters): number {
+		const totalLength = this.getLength(filters)
+
+		let closestChild = null
+		let closestDistance = Infinity
+		let distanceTraveled = 0
+
+		for (const child of this.children) {
+			if (child.isExcludedByFilter(filters)) continue
+			const childLength = child.getLength(filters)
+			const newDistanceTraveled = distanceTraveled + childLength
+
+			const distance = child.distanceToPoint(point, false, filters)
+			if (distance < closestDistance) {
+				closestDistance = distance
+				closestChild = {
+					startLength: distanceTraveled,
+					endLength: newDistanceTraveled,
+					child,
+				}
+			}
+
+			distanceTraveled = newDistanceTraveled
+		}
+
+		assert(closestChild)
+
+		const childT = closestChild.child.uninterpolateAlongEdge(point, filters)
+		const childTLength = lerp(closestChild.startLength, closestChild.endLength, childT)
+		return childTLength / totalLength
+	}
+
 	getArea() {
 		// todo: this is a temporary solution, assuming that the first child defines the group size; we would want to flatten the group and then find the area of the hull polygon
 		return this.children[0].area
@@ -123,8 +177,13 @@ export class Group2d extends Geometry2d {
 		return path
 	}
 
-	getLength(): number {
-		return this.children.reduce((a, c) => (c.isLabel ? a : a + c.length), 0)
+	getLength(filters?: Geometry2dFilters): number {
+		let length = 0
+		for (const child of this.children) {
+			if (child.isExcludedByFilter(filters)) continue
+			length += child.length
+		}
+		return length
 	}
 
 	getSvgPathData(): string {
