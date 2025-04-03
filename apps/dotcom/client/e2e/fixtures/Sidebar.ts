@@ -1,5 +1,4 @@
 import type { Locator, Page } from '@playwright/test'
-import { TldrawApp } from '../../src/tla/app/TldrawApp'
 import { expect, step } from './tla-test'
 
 export class Sidebar {
@@ -162,9 +161,7 @@ export class Sidebar {
 	}
 
 	async mutationResolution() {
-		await this.page.evaluate(() =>
-			((window as any).app as TldrawApp).z.__e2e__waitForMutationResolution()
-		)
+		await this.page.evaluate(() => (window as any).app.z.__e2e__waitForMutationResolution?.())
 	}
 
 	@step
