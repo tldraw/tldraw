@@ -165,7 +165,7 @@ async function listFlyioPreviewApps() {
 }
 
 async function listAmazonClusters() {
-	const client = new ECSClient({ region: 'eu-north-1', profile: 'preview' })
+	const client = new ECSClient({ region: 'eu-north-1' })
 	const data = await client.send(new ListClustersCommand({}))
 	if (!data.clusterArns) {
 		return []
