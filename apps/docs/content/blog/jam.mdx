@@ -5,32 +5,30 @@ description: When Jam.dev wanted to upgrade their one-click bug reports, Jam cho
 hero: /images/case-studies/jam-hero.png
 date: 04/04/2025
 status: published
-author: alixwiesser
+author: alixwiesser,luwilson,steveruizok
 ---
 
 ## Challenge
 
-Jam’s browser extension gives developers an instant solution for reporting bugs. With one click, Jam will create a shareable bug report with all of the technical context—console logs, network requests, device info—as well as a screenshot that a user can annotate to show what’s wrong.
+Jam’s browser extension gives developers an instant solution for reporting bugs. With one click, Jam creates a shareable bug report with all of the technical context—console logs, network requests, device info—as well as a screenshot that a user can annotate to show what’s wrong.
 
-This last step—annotating the screenshot—was a problem for Jam. Developers loved the ability to scribble on screenshots but struggled with the annotation tool’s performance and limited features.
-
-It was time for an upgrade.
+This last step—annotating the screenshot—was a key part of the process, so the Jam team decided it was time to upgrade it with new features and improved performance.
 
 After estimating the work involved in improving the existing tool and comparing third-party solutions, Jam chose to build their new annotation tool on top of the tldraw SDK.
 
 ## Solution
 
+<Image
+	src="/images/case-studies/Jam-long.gif"
+	alt="Complete bug reporting workflow: capture, annotate, and share"
+	caption="Complete bug reporting workflow: capture, annotate, and share"
+/>
+
 Within 24 hours of deciding to build with tldraw, Jam had their first prototype—with all core features implemented by a single developer. Just six weeks later, they’d shipped the new screenshot annotation tool to their full user base.
 
-In building their new tool, the team was able to leverage tldraw’s built-in tools for drawing and basic shapes. The team also had interactions like undo and redo, copy and paste, and image export from day one, and were able to drive the tldraw editor using their existing toolbar components.
+In building their new tool, the team was able to use tldraw’s built-in tools for drawing and basic shapes. The team also had interactions like undo and redo, copy and paste, and image export from day one, and were able to drive the tldraw editor using their existing toolbar components.
 
-Jam also went beyond tldraw’s built-in features. When annotating screenshots, Jam’s users needed a way to obscure sensitive information. The team solved the problem with a custom blur element, built using tldraw’s Custom Shape APIs, that blends in seamlessly with the rest of the tool.
-
-<Image
-	src="/images/blog/jam-blur-tool.gif"
-	alt="Custom blur tool protecting sensitive information in a bug report."
-	title="Custom blur tool protecting sensitive information in a bug report."
-/>
+Jam also went beyond tldraw’s built-in features. When annotating screenshots, Jam’s users needed a way to obscure sensitive information. The team solved the problem with a custom blur element that blends in seamlessly with the rest of the tools, built using tldraw’s Custom Shape APIs.
 
 ## Results
 
@@ -45,11 +43,10 @@ Jam’s new screenshot annotation tool, built with the tldraw SDK, helps develop
 
 ## Update 2025
 
-But wait, there’s more! More recently, Jam used the tldraw SDK to develop their new video annotations feature. Check out [Jam's explainer on their tldraw video annotation integration](https://www.youtube.com/watch?v=tHQW_K2pEgI) to hear the full story.
+But wait, there’s more! More recently, Jam used the tldraw SDK to develop their new video annotations feature. Check out [Jam's explainer on their tldraw video annotation integration](https://www.youtube.com/watch?v=tHQW_K2pEgI&embeds_referring_euri=https%3A%2F%2Fwww.notion.so%2F&source_ve_path=MjM4NTE) to hear the full story.
 
-<YouTube
-	src="https://www.youtube.com/watch?v=tHQW_K2pEgI"
-	caption="Jam.dev: How We Built Video Annotations with tldraw"
-/>
+<YouTube src="https://www.youtube.com/watch?v=tHQW_K2pEgI" />
 
-Want to learn more about building with tldraw? Get started today with the [tldraw SDK](http://tldraw.dev).
+<br />
+
+Want to build your own canvas feature? Get started today with the [tldraw SDK](http://tldraw.dev).
