@@ -1,5 +1,5 @@
 ---
-title: When Google phased out Jamboard, Padlet built a better whiteboard with tldraw
+title: How Padlet built its Sandbox with tldraw
 category: case-studies
 description: Millions of educators and students use Padlet every day. When they needed a new whiteboard, they turned to tldraw—and built Sandbox in record time.
 hero: /images/blog/jam-markup-graphic.svg
@@ -10,31 +10,21 @@ author: alixwiesser
 
 ## Challenge
 
-Padlet is a digital platform that enables users to create, organize, and share content in a collaborative space. Somewhere between a simple document and a full-fledged website, Padlet allows individuals and teams to build interactive boards, portfolios, and presentations with ease.
+Padlet is a popular digital collaboration platform for education. Each month, over 40 million teachers and students create and share content on boards, portfolios, and presentations.
 
-In September 2023, Padlet—a company with over 40 million monthly active users—faced an unexpected challenge. Google announced it was phasing out Jamboard, the whiteboarding tool Padlet relied on for their EdTech platform.
+When Google announced in 2023 that it was phasing out its Jamboard product, Padlet saw an opportunity. The team decided to step up and provide their users with a new whiteboarding experience tailored to the education segment.
 
-Padlet needed a replacement that supported education-specific safety requirements, real-time collaboration, and cross-time compatibility—and they needed it fast.
-
-By mid-April 2024, after considering various options, including building their own whiteboard from scratch, Padlet realized they didn’t have time to reinvent the wheel, and that doing so would mean sacrificing features—such as content moderation—that were important for their launch.
-
-What they needed to find was a powerful, extensible foundation to deliver a whiteboarding solution their users could rely on.
+After evaluating its options, and with a narrow window for development, Padlet chose to build their vision with the tldraw SDK.
 
 ## Solution
 
-By the end of April 2024, the Padlet team landed on tldraw’s SDK “because it’s lightweight, fast, and packed with tools right from the start”—and immediately got to work.
+The tldraw SDK gave the team a strong foundation for their Sandbox product. From day one, the team had a fast canvas, solid performance across browsers, and a total system for user interactions.
 
-Within just two and a half months of starting full-scale development, Padlet successfully launched Padlet Sandbox at The International Society for Technology in Education (ISTE) Conference in June 2024.
+Despite the head start, there was still plenty left to build.
 
-Padlet Sandbox is a collaborative digital canvas for drawing, writing, and media integration, designed for interactive documents, presentations, and activities. The numbers speak for themselves:
+Padlet had already developed dozens of content blocks for its first product, Boards. Because tldraw’s canvas supported the same web primitives as the rest of their product, the team was able to leverage its custom shapes APIs to include these Boards features directly into the new Sandbox product.
 
-- 436,000 monthly visitors
-- 140,000 new Sandboxes created every month
-- ~10% of all new Padlets are now Sandboxes
-
-Padlet Sandbox offers a structured yet flexible whiteboarding experience tailored for education, built on tldraw’s core technology. Some features include Play Mode for distraction-free presentation; classroom-specific sharing & permissions capabilities; as well as dashboards and templates.
-
-Student safety was non-negotiable. With robust content moderation tools, Padlet Sandbox ensures a secure learning environment with admin controls, safety net customizations, and automatic filters.
+Using the new camera controls API, Padlet adapted the default infinite canvas to a fixed view. They added a view of tabs, turning the canvas into a slideshow better suited to the classroom. Going beyond the whiteboard, the Padlet team added _actions_ as a new primitive to the canvas, enabling navigation between pages and sandboxes.
 
 <Callout type="quote">
 “Content moderation was one of the more important features since we want Sandbox to be safe for use for children in classrooms. With the help of tldraw's team from the Discord channel, we managed to navigate and extend the SDK to support our use case.”
@@ -43,9 +33,11 @@ Student safety was non-negotiable. With robust content moderation tools, Padlet 
 
 </Callout>
 
+There were challenges too. Padlet is built with Vue but tldraw is built with React, requiring a bridge between the two frameworks. The team struggled to find a reliable backend for collaboration until the timely release of tldraw sync. With help from the tldraw team and its Discord community, Padlet was able to build their bridge, migrate their multiplayer, and push through to release.
+
 ## Results
 
-Padlet’s decision to leverage tldraw saved months of development time while allowing them to deliver a feature-rich, safe, and scalable whiteboarding solution.
+After just ten weeks of development, the team launched [Padlet Sandbox](https://padlet.help/l/en/article/dzll9blbvu-introducing-padlet-sandbox) on time and to extraordinary results. Each month, over 400,000 people use the sandbox feature, creating 140,000+ new Sandboxes. More than 10% of all new Padlets are sandboxes.
 
 <Callout type="quote">
 “I can say that we've saved a lot of engineering time by using tldraw, and with tldraw’s technical support, it’s easier to develop the project in the way that we want and provide teachers and students with the tool that they need.”
@@ -54,21 +46,6 @@ Padlet’s decision to leverage tldraw saved months of development time while al
 
 </Callout>
 
-If Padlet had built Sandbox from scratch, they would have had to sacrifice key features—including the vital content moderation tools that ensure a safe environment for students.
+Development didn’t end there. Since launch, the team has shipped new speech bubbles, connectors, and support for PDF exports. Most recently, and with help from tldraw’s simple data format, the team integrated its automated content moderation, [Safety Net](https://padlet.blog/safety-net/), to keep sandboxes safe for education.
 
-From the initial crisis of losing Google Jamboard to a seamless launch in record time, tldraw helped Padlet go from idea to execution with speed, flexibility, and quality.
-
-Padlet Sandbox is now a cornerstone of Padlet’s offerings, proving that the right technology partnership can make all the difference.
-
----
-
-To try Padlet Sandbox, go to [sandbox.new](http://sandbox.new).
-
-Watch [Padlet’s Sandbox Walkthrough video](https://www.youtube.com/watch?v=Uf-C-A787xw):
-
-<YouTube
-	src="https://www.youtube.com/watch?v=Uf-C-A787xw"
-	caption="Jam.dev: How We Built Video Annotations with tldraw"
-/>
-
-Want to learn more about building with tldraw? Get started today with the [tldraw SDK](http://tldraw.dev).
+To try Padlet Sandbox, visit [sandbox.new](http://sandbox.new). Want to know more? Check out their [blog post](https://padlet.blog/introducing-padlet-sandbox/) or see Padlet’s [walkthrough video](https://www.youtube.com/watch?v=Uf-C-A787xw). And if you’re ready to build your own canvas idea, get started today with the [tldraw SDK](http://tldraw.dev).
