@@ -1724,9 +1724,13 @@ export abstract class Geometry2d {
     // (undocumented)
     ignore?: boolean;
     // (undocumented)
-    intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): Generator<VecLike, void, undefined>;
+    intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): VecLike[];
     // (undocumented)
-    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): Generator<VecLike, void, undefined>;
+    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[];
     // (undocumented)
     isClosed: boolean;
     // (undocumented)
@@ -1894,7 +1898,13 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     ignoredChildren: Geometry2d[];
     // (undocumented)
-    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): Generator<VecLike, void, undefined>;
+    intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[];
     // (undocumented)
     nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec;
     // (undocumented)
@@ -4277,9 +4287,13 @@ export class TransformedGeometry2d extends Geometry2d {
     // (undocumented)
     hitTestPoint(point: Vec, margin?: number, hitInside?: boolean, filters?: Geometry2dFilters): boolean;
     // (undocumented)
-    intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): Generator<VecLike, void, undefined>;
+    intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): VecLike[];
     // (undocumented)
-    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): Generator<VecLike, void, undefined>;
+    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[];
     // (undocumented)
     nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec;
     // (undocumented)

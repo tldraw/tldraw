@@ -25,6 +25,7 @@ import {
 	WeakCache,
 	arrowShapeMigrations,
 	arrowShapeProps,
+	debugFlags,
 	getDefaultColorTheme,
 	getPerfectDashProps,
 	lerp,
@@ -156,7 +157,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		let labelGeom
 		if (shape.props.text.trim()) {
 			const labelPosition = getArrowLabelPosition(this.editor, shape)
-			debugGeom.push(...labelPosition.debugGeom)
+			if (debugFlags.debugGeometry.get()) debugGeom.push(...labelPosition.debugGeom)
 			labelGeom = new Rectangle2d({
 				x: labelPosition.box.x,
 				y: labelPosition.box.y,

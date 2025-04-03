@@ -7,6 +7,7 @@ import {
 	intersectCirclePolyline,
 	intersectLineSegmentPolygon,
 	intersectLineSegmentPolyline,
+	intersectPolys,
 } from '../intersect'
 import { approximately, pointInPolygon } from '../utils'
 
@@ -113,23 +114,34 @@ export abstract class Geometry2d {
 		return this.distanceToLineSegment(A, B, filters) <= distance
 	}
 
-	*intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
-		if (this.isExcludedByFilter(filters)) return
+	intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): VecLike[] {
+		if (this.isExcludedByFilter(filters)) return []
 
 		const intersections = this.isClosed
 			? intersectLineSegmentPolygon(A, B, this.vertices)
 			: intersectLineSegmentPolyline(A, B, this.vertices)
 
-		if (intersections) yield* intersections
+		return intersections ?? []
 	}
 
-	*intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters) {
-		if (this.isExcludedByFilter(filters)) return
+	intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): VecLike[] {
+		if (this.isExcludedByFilter(filters)) return []
 		const intersections = this.isClosed
 			? intersectCirclePolygon(center, radius, this.vertices)
 			: intersectCirclePolyline(center, radius, this.vertices)
 
-		if (intersections) yield* intersections
+		return intersections ?? []
+	}
+
+	intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[] {
+		if (this.isExcludedByFilter(filters)) return []
+
+		return intersectPolys(polygon, this.vertices, true, this.isClosed)
+	}
+
+	intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[] {
+		if (this.isExcludedByFilter(filters)) return []
+		return intersectPolys(polyline, this.vertices, false, this.isClosed)
 	}
 
 	/** @deprecated Iterate the vertices instead. */
@@ -354,6 +366,14 @@ export class TransformedGeometry2d extends Geometry2d {
 			radius / this.decomposed.scaleX,
 			filters
 		)
+	}
+
+	override intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[] {
+		return this.geometry.intersectPolygon(Mat.applyToPoints(this.inverse, polygon), filters)
+	}
+
+	override intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[] {
+		return this.geometry.intersectPolyline(Mat.applyToPoints(this.inverse, polyline), filters)
 	}
 
 	override transform(transform: MatModel): Geometry2d {

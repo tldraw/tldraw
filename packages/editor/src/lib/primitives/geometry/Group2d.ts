@@ -1,3 +1,4 @@
+import { EMPTY_ARRAY } from '@tldraw/state'
 import { Box } from '../Box'
 import { Mat } from '../Mat'
 import { Vec, VecLike } from '../Vec'
@@ -92,11 +93,32 @@ export class Group2d extends Geometry2d {
 			.find((c) => c.hitTestLineSegment(A, B, zoom))
 	}
 
-	override *intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
-		for (const child of this.children) {
-			if (child.isExcludedByFilter(filters)) continue
-			yield* child.intersectLineSegment(A, B, filters)
-		}
+	override intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
+		return this.children.flatMap((child) => {
+			if (child.isExcludedByFilter(filters)) return EMPTY_ARRAY
+			return child.intersectLineSegment(A, B, filters)
+		})
+	}
+
+	override intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters) {
+		return this.children.flatMap((child) => {
+			if (child.isExcludedByFilter(filters)) return EMPTY_ARRAY
+			return child.intersectCircle(center, radius, filters)
+		})
+	}
+
+	override intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters) {
+		return this.children.flatMap((child) => {
+			if (child.isExcludedByFilter(filters)) return EMPTY_ARRAY
+			return child.intersectPolygon(polygon, filters)
+		})
+	}
+
+	override intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters) {
+		return this.children.flatMap((child) => {
+			if (child.isExcludedByFilter(filters)) return EMPTY_ARRAY
+			return child.intersectPolyline(polyline, filters)
+		})
 	}
 
 	override transform(transform: Mat): Geometry2d {
