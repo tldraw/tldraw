@@ -191,7 +191,7 @@ async function main() {
 	await processItems(listPreviewDatabases, deletePreviewDatabase)
 	nicelog('Pruning fly.io preview apps')
 	await processItems(listFlyioPreviewApps, deleteFlyioPreviewApp)
-	nicelog('Pruning sset preview stages')
+	nicelog('Pruning sst preview stages')
 	await processItems(listAmazonClusters, deleteSstPreviewApp)
 	nicelog('Done')
 }
