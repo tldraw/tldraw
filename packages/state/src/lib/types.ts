@@ -11,8 +11,8 @@ export type RESET_VALUE = typeof RESET_VALUE
  *
  * There are two types of signal:
  *
- * - Atomic signals, created using {@link (atom:1)}. These are mutable references to values that can be changed using {@link Atom.set}.
- * - Computed signals, created using {@link state#computed}. These are values that are computed from other signals. They are recomputed lazily if their dependencies change.
+ * - Atomic signals, created using {@link atom}. These are mutable references to values that can be changed using {@link Atom.set}.
+ * - Computed signals, created using `computed`. These are values that are computed from other signals. They are recomputed lazily if their dependencies change.
  *
  * @public
  */
@@ -35,7 +35,7 @@ export interface Signal<Value, Diff = unknown> {
 	lastChangedEpoch: number
 	/**
 	 * Returns the sequence of diffs between the the value at the given epoch and the current value.
-	 * Returns the {@link state#RESET_VALUE} constant if there is not enough information to compute the diff sequence.
+	 * Returns the `RESET_VALUE` constant if there is not enough information to compute the diff sequence.
 	 * @param epoch - The epoch to get diffs since.
 	 */
 	getDiffSince(epoch: number): RESET_VALUE | Diff[]
@@ -54,7 +54,9 @@ export interface Child {
 	readonly parentSet: ArraySet<Signal<any, any>>
 	readonly parents: Signal<any, any>[]
 	readonly parentEpochs: number[]
+	readonly name: string
 	isActivelyListening: boolean
+	__debug_ancestor_epochs__: Map<Signal<any, any>, number> | null
 }
 
 /**

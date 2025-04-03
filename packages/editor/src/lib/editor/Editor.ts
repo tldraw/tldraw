@@ -241,10 +241,33 @@ export interface TLEditorOptions {
 	fontAssetUrls?: { [key: string]: string | undefined }
 	/**
 	 * A predicate that should return true if the given shape should be hidden.
+	 *
+	 * @deprecated Use {@link Editor#getShapeVisibility} instead.
+	 *
 	 * @param shape - The shape to check.
 	 * @param editor - The editor instance.
 	 */
 	isShapeHidden?(shape: TLShape, editor: Editor): boolean
+
+	/**
+	 * Provides a way to hide shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * getShapeVisibility={(shape, editor) => shape.meta.hidden ? 'hidden' : 'inherit'}
+	 * ```
+	 *
+	 * - `'inherit' | undefined` - (default) The shape will be visible unless its parent is hidden.
+	 * - `'hidden'` - The shape will be hidden.
+	 * - `'visible'` - The shape will be visible.
+	 *
+	 * @param shape - The shape to check.
+	 * @param editor - The editor instance.
+	 */
+	getShapeVisibility?(
+		shape: TLShape,
+		editor: Editor
+	): 'visible' | 'hidden' | 'inherit' | null | undefined
 }
 
 /**
@@ -281,12 +304,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 		autoFocus,
 		inferDarkMode,
 		options,
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		isShapeHidden,
+		getShapeVisibility,
 		fontAssetUrls,
 	}: TLEditorOptions) {
 		super()
+		assert(
+			!(isShapeHidden && getShapeVisibility),
+			'Cannot use both isShapeHidden and getShapeVisibility'
+		)
 
-		this._isShapeHiddenPredicate = isShapeHidden
+		this._getShapeVisibility = isShapeHidden
+			? // eslint-disable-next-line @typescript-eslint/no-deprecated
+				(shape: TLShape, editor: Editor) => (isShapeHidden(shape, editor) ? 'hidden' : 'inherit')
+			: getShapeVisibility
 
 		this.options = { ...defaultTldrawOptions, ...options }
 
@@ -773,18 +805,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	}
 
-	private readonly _isShapeHiddenPredicate?: (shape: TLShape, editor: Editor) => boolean
+	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']
 	@computed
 	private getIsShapeHiddenCache() {
-		if (!this._isShapeHiddenPredicate) return null
+		if (!this._getShapeVisibility) return null
 		return this.store.createComputedCache<boolean, TLShape>('isShapeHidden', (shape: TLShape) => {
-			const hiddenParent = this.findShapeAncestor(shape, (p) => this.isShapeHidden(p))
-			if (hiddenParent) return true
-			return this._isShapeHiddenPredicate!(shape, this) ?? false
+			const visibility = this._getShapeVisibility!(shape, this)
+			const isParentHidden = PageRecordType.isId(shape.parentId)
+				? false
+				: this.isShapeHidden(shape.parentId)
+
+			if (isParentHidden) return visibility !== 'visible'
+			return visibility === 'hidden'
 		})
 	}
 	isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean {
-		if (!this._isShapeHiddenPredicate) return false
+		if (!this._getShapeVisibility) return false
 		return !!this.getIsShapeHiddenCache!()!.get(
 			typeof shapeOrId === 'string' ? shapeOrId : shapeOrId.id
 		)
@@ -1216,7 +1252,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	run(fn: () => void, opts?: TLEditorRunOptions): this {
 		const previousIgnoreShapeLock = this._shouldIgnoreShapeLock
 		this._shouldIgnoreShapeLock = opts?.ignoreShapeLock ?? previousIgnoreShapeLock
-
 		try {
 			this.history.batch(fn, opts)
 		} finally {
@@ -3712,7 +3747,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const addShapeById = (id: TLShapeId, opacity: number, isAncestorErasing: boolean) => {
 			const shape = this.getShape(id)
 			if (!shape) return
-			if (this.isShapeHidden(shape)) return
+
+			if (this.isShapeHidden(shape)) {
+				// process children just in case they are overriding the hidden state
+				const isErasing = isAncestorErasing || erasingShapeIds.includes(id)
+				for (const childId of this.getSortedChildIdsForParent(id)) {
+					addShapeById(childId, opacity, isErasing)
+				}
+				return
+			}
 
 			opacity *= shape.opacity
 			let isShapeErasing = false
@@ -9859,12 +9902,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
 
-						const { panSpeed, zoomSpeed } = cameraOptions
+						const { panSpeed } = cameraOptions
 						this._setCamera(
 							new Vec(
-								cx + (dx * panSpeed) / cz - x / cz + x / (z * zoomSpeed),
-								cy + (dy * panSpeed) / cz - y / cz + y / (z * zoomSpeed),
-								z * zoomSpeed
+								cx + (dx * panSpeed) / cz - x / cz + x / z,
+								cy + (dy * panSpeed) / cz - y / cz + y / z,
+								z
 							),
 							{ immediate: true }
 						)
@@ -9939,14 +9982,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 
 							const zoom = cz + (delta ?? 0) * zoomSpeed * cz
-							this._setCamera(
-								new Vec(
-									cx + (x / zoom - x) - (x / cz - x),
-									cy + (y / zoom - y) - (y / cz - y),
-									zoom
-								),
-								{ immediate: true }
-							)
+							this._setCamera(new Vec(cx + x / zoom - x / cz, cy + y / zoom - y / cz, zoom), {
+								immediate: true,
+							})
 							this.maybeTrackPerformance('Zooming')
 							return
 						}
