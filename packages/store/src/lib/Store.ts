@@ -774,7 +774,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	): ComputedCache<Result, Record> {
 		return this.createCache((id, record) => {
 			const recordSignal = opts?.areRecordsEqual
-				? computed(atom.name + ':equals', () => record.get(), { isEqual: opts.areRecordsEqual })
+				? computed(`${name}:${id}:isEqual`, () => record.get(), { isEqual: opts.areRecordsEqual })
 				: record
 
 			return computed<Result | undefined>(

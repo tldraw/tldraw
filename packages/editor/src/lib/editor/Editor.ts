@@ -1216,7 +1216,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	run(fn: () => void, opts?: TLEditorRunOptions): this {
 		const previousIgnoreShapeLock = this._shouldIgnoreShapeLock
 		this._shouldIgnoreShapeLock = opts?.ignoreShapeLock ?? previousIgnoreShapeLock
-
 		try {
 			this.history.batch(fn, opts)
 		} finally {
@@ -8139,8 +8138,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!currentTool) return styles
 
 		if (currentTool.shapeType) {
-			for (const style of this.styleProps[currentTool.shapeType].keys()) {
-				styles.applyValue(style, this.getStyleForNextShape(style))
+			if (
+				currentTool.shapeType === 'frame' &&
+				!(this.getShapeUtil('frame')!.options as any).showColors
+			) {
+				for (const style of this.styleProps[currentTool.shapeType].keys()) {
+					if (style.id === 'tldraw:color') continue
+					styles.applyValue(style, this.getStyleForNextShape(style))
+				}
+			} else {
+				for (const style of this.styleProps[currentTool.shapeType].keys()) {
+					styles.applyValue(style, this.getStyleForNextShape(style))
+				}
 			}
 		}
 
@@ -9849,12 +9858,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
 
-						const { panSpeed, zoomSpeed } = cameraOptions
+						const { panSpeed } = cameraOptions
 						this._setCamera(
 							new Vec(
-								cx + (dx * panSpeed) / cz - x / cz + x / (z * zoomSpeed),
-								cy + (dy * panSpeed) / cz - y / cz + y / (z * zoomSpeed),
-								z * zoomSpeed
+								cx + (dx * panSpeed) / cz - x / cz + x / z,
+								cy + (dy * panSpeed) / cz - y / cz + y / z,
+								z
 							),
 							{ immediate: true }
 						)
@@ -9929,14 +9938,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 
 							const zoom = cz + (delta ?? 0) * zoomSpeed * cz
-							this._setCamera(
-								new Vec(
-									cx + (x / zoom - x) - (x / cz - x),
-									cy + (y / zoom - y) - (y / cz - y),
-									zoom
-								),
-								{ immediate: true }
-							)
+							this._setCamera(new Vec(cx + x / zoom - x / cz, cy + y / zoom - y / cz, zoom), {
+								immediate: true,
+							})
 							this.maybeTrackPerformance('Zooming')
 							return
 						}

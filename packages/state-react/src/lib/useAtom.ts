@@ -4,7 +4,7 @@ import { useState } from 'react'
 /**
  * Creates a new atom and returns it. The atom will be created only once.
  *
- * See {@link state#atom}
+ * See `atom`.
  *
  * @example
  * ```ts
@@ -15,20 +15,15 @@ import { useState } from 'react'
  * })
  * ```
  *
+ * @param name - The name of the atom. This does not need to be globally unique. It is used for debugging and performance profiling.
+ * @param valueOrInitialiser - The initial value of the atom. If this is a function, it will be called to get the initial value.
+ * @param options - Options for the atom.
+ *
  * @public
  */
 export function useAtom<Value, Diff = unknown>(
-	/**
-	 * The name of the atom. This does not need to be globally unique. It is used for debugging and performance profiling.
-	 */
 	name: string,
-	/**
-	 * The initial value of the atom. If this is a function, it will be called to get the initial value.
-	 */
 	valueOrInitialiser: Value | (() => Value),
-	/**
-	 * Options for the atom.
-	 */
 	options?: AtomOptions<Value, Diff>
 ): Atom<Value, Diff> {
 	return useState(() => {

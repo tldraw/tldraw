@@ -1,149 +1,117 @@
-interface TableSchema {
-	tableName: string
-	columns: Columns
-	primaryKey: string[]
-	relationships: any
-}
+import {
+	boolean,
+	createSchema,
+	definePermissions,
+	ExpressionBuilder,
+	NOBODY_CAN,
+	number,
+	PermissionRule,
+	PermissionsConfig,
+	relationships,
+	Row,
+	string,
+	table,
+} from '@rocicorp/zero'
 
 export interface ZColumn {
 	optional?: boolean
 	type: 'string' | 'number' | 'boolean'
 }
 
-interface Columns {
-	[key: string]: ZColumn
-}
+export const user = table('user')
+	.columns({
+		id: string(),
+		name: string(),
+		email: string(),
+		avatar: string(),
+		color: string(),
+		exportFormat: string(),
+		exportTheme: string(),
+		exportBackground: boolean(),
+		exportPadding: boolean(),
+		createdAt: number(),
+		updatedAt: number(),
+		flags: string(),
+		locale: string().optional(),
+		animationSpeed: number().optional(),
+		edgeScrollSpeed: number().optional(),
+		colorScheme: string().optional(),
+		isSnapMode: boolean().optional(),
+		isWrapMode: boolean().optional(),
+		isDynamicSizeMode: boolean().optional(),
+		isPasteAtCursorMode: boolean().optional(),
+		allowAnalyticsCookie: boolean().optional(),
+	})
+	.primaryKey('id')
 
-export const tlaUserSchema = {
-	tableName: 'user',
-	columns: {
-		id: { type: 'string' },
-		name: { type: 'string' },
-		email: { type: 'string' },
-		avatar: { type: 'string' },
-		color: { type: 'string' },
-		exportFormat: { type: 'string' },
-		exportTheme: { type: 'string' },
-		exportBackground: { type: 'boolean' },
-		exportPadding: { type: 'boolean' },
-		createdAt: { type: 'number' },
-		updatedAt: { type: 'number' },
-		flags: { type: 'string' },
-		locale: { type: 'string', optional: true },
-		animationSpeed: { type: 'number', optional: true },
-		edgeScrollSpeed: { type: 'number', optional: true },
-		colorScheme: { type: 'string', optional: true },
-		isSnapMode: { type: 'boolean', optional: true },
-		isWrapMode: { type: 'boolean', optional: true },
-		isDynamicSizeMode: { type: 'boolean', optional: true },
-		isPasteAtCursorMode: { type: 'boolean', optional: true },
-		allowAnalyticsCookie: { type: 'boolean', optional: true },
-	},
-	primaryKey: ['id'],
-	relationships: {},
-} as const satisfies TableSchema
+export const file_state = table('file_state')
+	.columns({
+		userId: string(),
+		fileId: string(),
+		firstVisitAt: number().optional(),
+		lastEditAt: number().optional(),
+		lastSessionState: string().optional(),
+		lastVisitAt: number().optional(),
+		isFileOwner: boolean().optional(),
+		isPinned: boolean().optional(),
+	})
+	.primaryKey('userId', 'fileId')
 
-export const tlaFileSchema = {
-	tableName: 'file',
-	columns: {
-		id: { type: 'string' },
-		name: { type: 'string' },
-		ownerId: { type: 'string' },
-		ownerName: { type: 'string' },
-		ownerAvatar: { type: 'string' },
-		thumbnail: { type: 'string' },
-		shared: { type: 'boolean' },
-		sharedLinkType: { type: 'string' },
-		published: { type: 'boolean' },
-		lastPublished: { type: 'number' },
-		publishedSlug: { type: 'string' },
-		createdAt: { type: 'number' },
-		updatedAt: { type: 'number' },
-		isEmpty: { type: 'boolean' },
-		isDeleted: { type: 'boolean' },
-		createSource: { type: 'string', optional: true },
-	},
-	primaryKey: ['id'],
-	relationships: {
-		owner: {
-			source: 'ownerId',
-			dest: {
-				schema: () => tlaUserSchema,
-				field: 'id',
-			},
-		},
-	},
-} as const satisfies TableSchema
+export const file = table('file')
+	.columns({
+		id: string(),
+		name: string(),
+		ownerId: string(),
+		ownerName: string(),
+		ownerAvatar: string(),
+		thumbnail: string(),
+		shared: boolean(),
+		sharedLinkType: string(),
+		published: boolean(),
+		lastPublished: number(),
+		publishedSlug: string(),
+		createdAt: number(),
+		updatedAt: number(),
+		isEmpty: boolean(),
+		isDeleted: boolean(),
+		createSource: string().optional(),
+	})
+	.primaryKey('id', 'ownerId', 'publishedSlug')
 
-export const tlaFileStateSchema = {
-	tableName: 'file_state',
-	columns: {
-		userId: { type: 'string' },
-		fileId: { type: 'string' },
-		firstVisitAt: { type: 'number', optional: true },
-		lastEditAt: { type: 'number', optional: true },
-		lastSessionState: { type: 'string', optional: true },
-		lastVisitAt: { type: 'number', optional: true },
-		isFileOwner: { type: 'boolean', optional: true },
-		isPinned: { type: 'boolean', optional: true },
-	},
-	primaryKey: ['userId', 'fileId'],
-	relationships: {
-		user: {
-			source: 'userId',
-			dest: {
-				schema: () => tlaUserSchema,
-				field: 'id',
-			},
-		},
-		file: {
-			source: 'fileId',
-			dest: {
-				schema: () => tlaFileSchema,
-				field: 'id',
-			},
-		},
-	},
-} as const satisfies TableSchema
+const fileRelationships = relationships(file, ({ one, many }) => ({
+	owner: one({
+		sourceField: ['ownerId'],
+		destField: ['id'],
+		destSchema: user,
+	}),
+	states: many({
+		sourceField: ['id'],
+		destField: ['fileId'],
+		destSchema: file_state,
+	}),
+}))
 
-// export const schema = {
-// 	version: 1,
-// 	tables: {
-// 		user: userSchema,
-// 		file: fileSchema,
-// 		file_state: fileStateSchema,
-// 	},
-// }
+const fileStateRelationships = relationships(file_state, ({ one }) => ({
+	file: one({
+		sourceField: ['fileId'],
+		destField: ['id'],
+		destSchema: file,
+	}),
+	user: one({
+		sourceField: ['userId'],
+		destField: ['id'],
+		destSchema: user,
+	}),
+}))
 
-// export type TlaSchema = typeof schema
-
-type _ColumnToValue<T extends ZColumn> = T['type'] extends 'string'
-	? string
-	: T['type'] extends 'number'
-		? number
-		: T['type'] extends 'boolean'
-			? boolean
-			: never
-
-type ColumnToValue<T extends ZColumn> = T['optional'] extends true
-	? _ColumnToValue<T> | null
-	: _ColumnToValue<T>
-
-type SchemaToRow<T extends TableSchema> = {
-	[K in keyof T['columns']]: ColumnToValue<T['columns'][K]>
-}
-
-export type TlaFile = SchemaToRow<typeof tlaFileSchema>
 export type TlaFilePartial = Partial<TlaFile> & {
 	id: TlaFile['id']
 }
 
-export type TlaFileState = SchemaToRow<typeof tlaFileStateSchema>
 export type TlaFileStatePartial = Partial<TlaFileState> & {
 	fileId: TlaFileState['fileId']
 	userId: TlaFileState['userId']
 }
-export type TlaUser = SchemaToRow<typeof tlaUserSchema>
 export type TlaUserPartial = Partial<TlaUser> & {
 	id: TlaUser['id']
 }
@@ -176,3 +144,109 @@ export interface DB {
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
 }
+
+export const schema = createSchema({
+	tables: [user, file, file_state],
+	relationships: [fileRelationships, fileStateRelationships],
+})
+
+export type TlaSchema = typeof schema
+export type TlaUser = Row<typeof schema.tables.user>
+export type TlaFile = Row<typeof schema.tables.file>
+export type TlaFileState = Row<typeof schema.tables.file_state>
+
+interface AuthData {
+	sub: string | null
+}
+
+const NO_UPDATE = {
+	update: {
+		preMutation: NOBODY_CAN,
+		postMutation: NOBODY_CAN,
+	},
+} as const
+
+export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => {
+	const allowIfIsUser = (authData: AuthData, { cmp }: ExpressionBuilder<TlaSchema, 'user'>) =>
+		cmp('id', '=', authData.sub!)
+
+	const allowIfFileOwner = (authData: AuthData, { cmp }: ExpressionBuilder<TlaSchema, 'file'>) =>
+		cmp('ownerId', '=', authData.sub!)
+
+	const allowIfIsUserIdMatches = (
+		authData: AuthData,
+		{ cmp }: ExpressionBuilder<TlaSchema, 'file_state'>
+	) => cmp('userId', '=', authData.sub!)
+
+	const userCanAccessFile = (
+		authData: AuthData,
+		{ exists, and, cmp, or }: ExpressionBuilder<TlaSchema, 'file'>
+	) =>
+		or(
+			cmp('ownerId', '=', authData.sub!),
+			and(
+				cmp('shared', '=', true),
+				exists('states', (q) => q.where('userId', '=', authData.sub!))
+			)
+		)
+
+	const disallowIfDeleted = (_authData: AuthData, { cmp }: ExpressionBuilder<TlaSchema, 'file'>) =>
+		cmp('isDeleted', '=', false)
+
+	function and<TTable extends keyof TlaSchema['tables']>(
+		...rules: PermissionRule<AuthData, TlaSchema, TTable>[]
+	): PermissionRule<AuthData, TlaSchema, TTable> {
+		return (authData, eb) => eb.and(...rules.map((rule) => rule(authData, eb)))
+	}
+
+	return {
+		user: {
+			row: {
+				select: [allowIfIsUser],
+				insert: [allowIfIsUser],
+				update: {
+					preMutation: [allowIfIsUser],
+					postMutation: [allowIfIsUser],
+				},
+			},
+			cell: {
+				email: NO_UPDATE,
+				createdAt: NO_UPDATE,
+				updatedAt: NO_UPDATE,
+				avatar: NO_UPDATE,
+			},
+		},
+		file: {
+			row: {
+				select: [userCanAccessFile],
+				insert: [allowIfFileOwner],
+				update: {
+					preMutation: [and(allowIfFileOwner, disallowIfDeleted)],
+					postMutation: [allowIfFileOwner],
+				},
+			},
+			cell: {
+				createdAt: NO_UPDATE,
+				ownerName: NO_UPDATE,
+				ownerAvatar: NO_UPDATE,
+				createSource: NO_UPDATE,
+				updatedAt: NO_UPDATE,
+			},
+		},
+		file_state: {
+			row: {
+				select: [allowIfIsUserIdMatches],
+				insert: [allowIfIsUserIdMatches],
+				update: {
+					preMutation: [allowIfIsUserIdMatches],
+					postMutation: [allowIfIsUserIdMatches],
+				},
+				delete: [allowIfIsUserIdMatches],
+			},
+			cell: {
+				isFileOwner: NO_UPDATE,
+				firstVisitAt: NO_UPDATE,
+			},
+		},
+	} satisfies PermissionsConfig<AuthData, TlaSchema>
+})

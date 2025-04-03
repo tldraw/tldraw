@@ -921,15 +921,6 @@
 	transition: transform 0.15s ease-out 0.05s;
 }
 
-/*
- * On Android, when the virtual keyboard is up, we used to hide the tools.
- * However, we disabled for this now.
- */
-/* .tlui-layout__mobile[data-iseditinganything='true'] .tlui-toolbar {
-	transform: translate(0px, 120%);
-	transition: none;
-} */
-
 /* -------------------- Help Zone ------------------- */
 
 .tlui-help-menu {
@@ -1634,6 +1625,7 @@
 }
 
 /* ------------------- People Menu ------------------- */
+
 .tlui-people-menu__avatars-button {
 	display: flex;
 	align-items: center;
@@ -1706,7 +1698,6 @@
 	width: 220px;
 	height: fit-content;
 	max-height: 50vh;
-	padding-bottom: 4px;
 }
 
 .tlui-people-menu__section {
@@ -1777,6 +1768,14 @@
 	gap: 8px;
 	height: 100%;
 	padding: 0px;
+}
+
+.tlui-people-menu__item {
+	position: relative;
+}
+
+.tlui-people-menu__item:last-of-type .tlui-button__menu {
+	margin-bottom: 0;
 }
 
 .tlui-people-menu__item__button {

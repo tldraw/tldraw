@@ -16,15 +16,12 @@ import { Signal } from '@tldraw/state';
 export function track<T extends FunctionComponent<any>>(baseComponent: T): React_2.NamedExoticComponent<React_2.ComponentProps<T>>;
 
 // @public
-export function useAtom<Value, Diff = unknown>(
-name: string,
-valueOrInitialiser: (() => Value) | Value,
-options?: AtomOptions<Value, Diff>): Atom<Value, Diff>;
-
-// @public
-export function useComputed<Value>(name: string, compute: () => Value, deps: any[]): Computed<Value>;
+export function useAtom<Value, Diff = unknown>(name: string, valueOrInitialiser: (() => Value) | Value, options?: AtomOptions<Value, Diff>): Atom<Value, Diff>;
 
 // @public (undocumented)
+export function useComputed<Value>(name: string, compute: () => Value, deps: any[]): Computed<Value>;
+
+// @public
 export function useComputed<Value, Diff = unknown>(name: string, compute: () => Value, opts: ComputedOptions<Value, Diff>, deps: any[]): Computed<Value>;
 
 // @public (undocumented)
@@ -36,10 +33,10 @@ export function useReactor(name: string, reactFn: () => void, deps?: any[] | und
 // @public
 export function useStateTracking<T>(name: string, render: () => T, deps?: unknown[]): T;
 
-// @public
+// @public (undocumented)
 export function useValue<Value>(value: Signal<Value>): Value;
 
-// @public (undocumented)
+// @public
 export function useValue<Value>(name: string, fn: () => Value, deps: unknown[]): Value;
 
 // (No @packageDocumentation comment for this package)

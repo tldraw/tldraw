@@ -124,6 +124,7 @@ import { TLShapePartial } from '@tldraw/editor';
 import { TLShapeUtilCanBeLaidOutOpts } from '@tldraw/editor';
 import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
+import { TLShapeUtilConstructor } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
@@ -136,6 +137,15 @@ import { UnknownRecord } from '@tldraw/editor';
 import { Vec } from '@tldraw/editor';
 import { VecLike } from '@tldraw/editor';
 import { VecModel } from '@tldraw/editor';
+
+// @public (undocumented)
+export type A11yPriority = 'assertive' | 'polite';
+
+// @public (undocumented)
+export interface A11yProviderProps {
+    // (undocumented)
+    children: React.ReactNode;
+}
 
 // @public (undocumented)
 export interface ActionsProviderProps {
@@ -681,6 +691,9 @@ export const DEFAULT_MAX_ASSET_SIZE: number;
 export const DEFAULT_MAX_IMAGE_DIMENSION = 5000;
 
 // @public (undocumented)
+export const DefaultA11yAnnouncer: NamedExoticComponent<object>;
+
+// @public (undocumented)
 export const DefaultActionsMenu: NamedExoticComponent<TLUiActionsMenuProps>;
 
 // @public (undocumented)
@@ -903,6 +916,8 @@ export class DrawShapeTool extends StateNode {
     onExit(): void;
     // (undocumented)
     shapeType: string;
+    // (undocumented)
+    static useCoalescedEvents: boolean;
 }
 
 // @public (undocumented)
@@ -1143,6 +1158,11 @@ export const FONT_FAMILIES: Record<TLDefaultFontStyle, string>;
 export const FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public (undocumented)
+export interface FrameShapeOptions {
+    showColors: boolean;
+}
+
+// @public (undocumented)
 export class FrameShapeTool extends BaseBoxShapeTool {
     // (undocumented)
     static id: string;
@@ -1165,6 +1185,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     component(shape: TLFrameShape): JSX_2.Element;
     // (undocumented)
+    static configure<T extends TLShapeUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
+        options: infer Options;
+    } ? Partial<Options> : never): T;
+    // (undocumented)
     getDefaultProps(): TLFrameShape['props'];
     // (undocumented)
     getGeometry(shape: TLFrameShape): Geometry2d;
@@ -1182,6 +1206,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     onDragShapesOver(frame: TLFrameShape, shapes: TLShape[]): void;
     // (undocumented)
     onResize(shape: any, info: TLResizeInfo<any>): any;
+    // (undocumented)
+    options: FrameShapeOptions;
     // (undocumented)
     static props: RecordProps<TLFrameShape>;
     // (undocumented)
@@ -1453,6 +1479,8 @@ export class HighlightShapeTool extends StateNode {
     onExit(): void;
     // (undocumented)
     shapeType: string;
+    // (undocumented)
+    static useCoalescedEvents: boolean;
 }
 
 // @public (undocumented)
@@ -1802,7 +1830,7 @@ export interface OverflowingToolbarProps {
 }
 
 // @public (undocumented)
-export const PageItemInput: ({ name, id, isCurrentPage, onCancel, }: PageItemInputProps) => JSX_2.Element;
+export const PageItemInput: ({ name, id, isCurrentPage, onCancel, onComplete, }: PageItemInputProps) => JSX_2.Element;
 
 // @public (undocumented)
 export interface PageItemInputProps {
@@ -1814,6 +1842,8 @@ export interface PageItemInputProps {
     name: string;
     // (undocumented)
     onCancel(): void;
+    // (undocumented)
+    onComplete?(): void;
 }
 
 // @public (undocumented)
@@ -2446,6 +2476,9 @@ export function TldrawShapeIndicators(): JSX_2.Element;
 export const TldrawUi: React_3.NamedExoticComponent<TldrawUiProps>;
 
 // @public (undocumented)
+export function TldrawUiA11yProvider({ children }: A11yProviderProps): JSX_2.Element;
+
+// @public (undocumented)
 export const TldrawUiButton: React_2.ForwardRefExoticComponent<TLUiButtonProps & React_2.RefAttributes<HTMLButtonElement>>;
 
 // @public (undocumented)
@@ -2647,6 +2680,22 @@ export interface TLTypeFace {
 }
 
 // @public (undocumented)
+export interface TLUiA11y {
+    // (undocumented)
+    msg: string | undefined;
+    // (undocumented)
+    priority?: A11yPriority;
+}
+
+// @public (undocumented)
+export interface TLUiA11yContextType {
+    // (undocumented)
+    announce(msg: TLUiA11y): void;
+    // (undocumented)
+    currentMsg: Atom<TLUiA11y>;
+}
+
+// @public (undocumented)
 export interface TLUiActionItem<TransationKey extends string = string, IconType extends string = string> {
     // (undocumented)
     checkbox?: boolean;
@@ -2681,7 +2730,7 @@ export type TLUiAssetUrlOverrides = RecursivePartial<TLUiAssetUrls>;
 // @public (undocumented)
 export interface TLUiAssetUrls extends TLEditorAssetUrls {
     // (undocumented)
-    embedIcons: Record<(typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'], string>;
+    embedIcons: Partial<Record<(typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'], string>>;
     // (undocumented)
     icons: Record<Exclude<string, TLUiIconType> | TLUiIconType, string>;
     // (undocumented)
@@ -2742,6 +2791,8 @@ export interface TLUiButtonProps extends React_2.HTMLAttributes<HTMLButtonElemen
 
 // @public (undocumented)
 export interface TLUiComponents {
+    // (undocumented)
+    A11y?: ComponentType | null;
     // (undocumented)
     ActionsMenu?: ComponentType<TLUiActionsMenuProps> | null;
     // (undocumented)
@@ -4120,6 +4171,9 @@ export function UnlockAllMenuItem(): JSX_2.Element;
 export function unwrapLabel(label?: TLUiActionItem['label'], menuType?: string): string | undefined;
 
 // @public (undocumented)
+export function useA11y(): TLUiA11yContextType;
+
+// @public (undocumented)
 export function useActions(): TLUiActionsContextType;
 
 // @public @deprecated (undocumented)
@@ -4205,8 +4259,8 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
     handleInputPointerDown: (e: React_3.PointerEvent<Element>) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
     isEditing: boolean;
-    isEditingAnything: boolean;
     isEmpty: boolean;
+    isReadyForEditing: boolean;
     rInput: React_3.RefObject<HTMLTextAreaElement>;
 };
 
@@ -4221,8 +4275,8 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
     handleInputPointerDown: (e: PointerEvent_2<Element>) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
     isEditing: boolean;
-    isEditingAnything: boolean;
     isEmpty: boolean | undefined;
+    isReadyForEditing: boolean;
     rInput: RefObject<HTMLDivElement>;
 };
 

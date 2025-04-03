@@ -55,6 +55,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 
 	private lastReactedEpoch = GLOBAL_START_EPOCH
 	private _scheduleCount = 0
+	__debug_ancestor_epochs__: Map<Signal<any, any>, number> | null = null
 
 	/**
 	 * The number of times this effect has been scheduled.
@@ -119,7 +120,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	/**
 	 * Makes this scheduler become 'actively listening' to its parents.
 	 * If it has been executed before it will immediately become eligible to receive 'maybeScheduleEffect' calls.
-	 * If it has not executed before it will need to be manually executed once to become eligible for scheduling, i.e. by calling {@link state#EffectScheduler.execute}.
+	 * If it has not executed before it will need to be manually executed once to become eligible for scheduling, i.e. by calling `EffectScheduler.execute`.
 	 * @public
 	 */
 	attach() {
@@ -131,7 +132,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 
 	/**
 	 * Makes this scheduler stop 'actively listening' to its parents.
-	 * It will no longer be eligible to receive 'maybeScheduleEffect' calls until {@link state#EffectScheduler.attach} is called again.
+	 * It will no longer be eligible to receive 'maybeScheduleEffect' calls until `EffectScheduler.attach` is called again.
 	 */
 	detach() {
 		this._isActivelyListening = false
@@ -189,6 +190,7 @@ export const EffectScheduler = singleton(
 )
 /** @public */
 export interface EffectScheduler<Result> {
+	/** @internal */
 	/**
 	 * Whether this scheduler is attached and actively listening to its parents.
 	 * @public
@@ -197,6 +199,12 @@ export interface EffectScheduler<Result> {
 
 	/** @internal */
 	readonly lastTraversedEpoch: number
+
+	/** @public */
+	readonly name: string
+
+	/** @internal */
+	__debug_ancestor_epochs__: Map<Signal<any, any>, number> | null
 
 	/**
 	 * The number of times this effect has been scheduled.
@@ -225,14 +233,14 @@ export interface EffectScheduler<Result> {
 	/**
 	 * Makes this scheduler become 'actively listening' to its parents.
 	 * If it has been executed before it will immediately become eligible to receive 'maybeScheduleEffect' calls.
-	 * If it has not executed before it will need to be manually executed once to become eligible for scheduling, i.e. by calling {@link state#EffectScheduler.execute}.
+	 * If it has not executed before it will need to be manually executed once to become eligible for scheduling, i.e. by calling `EffectScheduler.execute`.
 	 * @public
 	 */
 	attach(): void
 
 	/**
 	 * Makes this scheduler stop 'actively listening' to its parents.
-	 * It will no longer be eligible to receive 'maybeScheduleEffect' calls until {@link state#EffectScheduler.attach} is called again.
+	 * It will no longer be eligible to receive 'maybeScheduleEffect' calls until `EffectScheduler.attach` is called again.
 	 */
 	detach(): void
 
@@ -287,9 +295,9 @@ export function react(
 }
 
 /**
- * The reactor is a user-friendly interface for starting and stopping an {@link state#EffectScheduler}.
+ * The reactor is a user-friendly interface for starting and stopping an `EffectScheduler`.
  *
- * Calling .start() will attach the scheduler and execute the effect immediately the first time it is called.
+ * Calling `.start()` will attach the scheduler and execute the effect immediately the first time it is called.
  *
  * If the reactor is stopped, calling `.start()` will re-attach the scheduler but will only execute the effect if any of its parents have changed since it was stopped.
  *
@@ -319,7 +327,7 @@ export interface Reactor<T = unknown> {
 }
 
 /**
- * Creates a {@link Reactor}, which is a thin wrapper around an {@link state#EffectScheduler}.
+ * Creates a {@link Reactor}, which is a thin wrapper around an `EffectScheduler`.
  *
  * @public
  */
