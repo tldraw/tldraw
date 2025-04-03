@@ -6,6 +6,9 @@ on:
     # run once per day at midnight or whatever
     - cron: '0 0 * * *'
 
+permissions:
+  id-token: 'write'
+
 env:
   CI: 1
   PRINT_GITHUB_ANNOTATIONS: 1
