@@ -27,7 +27,7 @@ import {
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
 import { getArrowLength } from './ArrowShapeUtil'
-import { TLArcArrowInfo, TLStraightArrowInfo } from './arrow-types'
+import { TLArcArrowInfo, TLElbowArrowInfo, TLStraightArrowInfo } from './arrow-types'
 import { interpolateAlongElbowArrowRoute } from './elbow/interpolateAlongElbowArrowRoute'
 import { getArrowInfo } from './shared'
 
@@ -39,21 +39,29 @@ const labelSizeCache = createComputedCache(
 		let width = 0
 		let height = 0
 
-		const bodyGeom =
-			info.type === 'straight'
-				? new Edge2d({
-						start: Vec.From(info.start.point),
-						end: Vec.From(info.end.point),
-					})
-				: info.type === 'arc'
-					? new Arc2d({
-							center: Vec.Cast(info.handleArc.center),
-							start: Vec.Cast(info.start.point),
-							end: Vec.Cast(info.end.point),
-							sweepFlag: info.bodyArc.sweepFlag,
-							largeArcFlag: info.bodyArc.largeArcFlag,
-						})
-					: new Polyline2d({ points: info.route.points })
+		let bodyGeom: Geometry2d
+		switch (info.type) {
+			case 'straight':
+				bodyGeom = new Edge2d({
+					start: Vec.From(info.start.point),
+					end: Vec.From(info.end.point),
+				})
+				break
+			case 'arc':
+				bodyGeom = new Arc2d({
+					center: Vec.Cast(info.handleArc.center),
+					start: Vec.Cast(info.start.point),
+					end: Vec.Cast(info.end.point),
+					sweepFlag: info.bodyArc.sweepFlag,
+					largeArcFlag: info.bodyArc.largeArcFlag,
+				})
+				break
+			case 'elbow':
+				bodyGeom = new Polyline2d({ points: info.route.points })
+				break
+			default:
+				exhaustiveSwitchError(info, 'type')
+		}
 
 		if (shape.props.text.trim()) {
 			const bodyBounds = bodyGeom.bounds
@@ -271,6 +279,11 @@ function getCurvedArrowLabelRange(
 	const end = angleDistance(startAngle, constrainedEndAngle, direction) / fullDistance
 	return { start, end, dbg }
 }
+
+function getElbowArrowLabelRange(editor: Editor, shape: TLArcArrowInfo, info: TLElbowArrowInfo) {
+	return { start: 0, end: 1 }
+}
+
 interface ArrowheadInfo {
 	hasStartBinding: boolean
 	hasEndBinding: boolean
@@ -309,7 +322,9 @@ export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
 			break
 		}
 		case 'elbow': {
-			labelCenter = interpolateAlongElbowArrowRoute(info.route, shape.props.labelPosition)
+			const range = getElbowArrowLabelRange(editor, shape, info)
+			const clampedPosition = getClampedPosition(editor, shape, range, arrowheadInfo)
+			labelCenter = interpolateAlongElbowArrowRoute(info.route, clampedPosition)
 			break
 		}
 		default:
