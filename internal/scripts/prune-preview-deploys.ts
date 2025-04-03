@@ -202,9 +202,11 @@ async function processItems(
 ) {
 	const items = await fetchFn()
 	for (const item of items) {
-		console.log('Processing', item)
 		const number = Number(item.match(/pr-(\d+)/)?.[1])
-		console.log('Number', number)
+		if (!number || isNaN(number)) {
+			nicelog(`Skipping ${item} because it doesn't match the regex`)
+			continue
+		}
 		if (await isPrClosedForAWhile(number)) {
 			nicelog(`Deleting ${item} because PR is closed`)
 			await deleteFn(item)
