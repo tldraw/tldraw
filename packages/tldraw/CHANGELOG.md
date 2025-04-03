@@ -1,3 +1,24 @@
+# v3.11.1 (Thu Apr 03 2025)
+
+### Release Notes
+
+#### Alex/3.11.1 ([#5811](https://github.com/tldraw/tldraw/pull/5811))
+
+- Fix the zoomSpeed setting not being correctly applied to pinch gestures
+- Fix unexpected borders showing in exports from pages that use tailwindcss
+
+---
+
+#### 🐛 Bug Fix
+
+- Alex/3.11.1 [#5811](https://github.com/tldraw/tldraw/pull/5811) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+---
+
 # v3.11.0 (Thu Mar 20 2025)
 
 ### Release Notes

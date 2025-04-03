@@ -1,3 +1,28 @@
+# v3.11.1 (Thu Apr 03 2025)
+
+### Release Notes
+
+#### Alex/3.11.1 ([#5811](https://github.com/tldraw/tldraw/pull/5811))
+
+- Fix the zoomSpeed setting not being correctly applied to pinch gestures
+- Fix unexpected borders showing in exports from pages that use tailwindcss
+
+---
+
+#### 🐛 Bug Fix
+
+- Don't include json files in llms.txt outputs [#5763](https://github.com/tldraw/tldraw/pull/5763) ([@TodePond](https://github.com/TodePond))
+- Hotfix `llms.txt` (#5688) [#5752](https://github.com/tldraw/tldraw/pull/5752) ([@TodePond](https://github.com/TodePond))
+- `@tldraw/editor`, `tldraw`
+  - Alex/3.11.1 [#5811](https://github.com/tldraw/tldraw/pull/5811) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+
+---
+
 # v3.11.0 (Thu Mar 20 2025)
 
 ### Release Notes
