@@ -87,6 +87,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override canSnap() {
 		return false
 	}
+	override canTabTo() {
+		return false
+	}
 	override hideResizeHandles() {
 		return true
 	}

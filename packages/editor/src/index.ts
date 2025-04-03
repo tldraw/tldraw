@@ -293,7 +293,11 @@ export {
 	type TLSvgExportOptions,
 	type TLSvgOptions,
 } from './lib/editor/types/misc-types'
-export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
+export {
+	type TLAdjacentDirection,
+	type TLResizeHandle,
+	type TLSelectionHandle,
+} from './lib/editor/types/selection-types'
 export { getSvgAsImage } from './lib/exports/getSvgAsImage'
 export { tlenv } from './lib/globals/environment'
 export { tlmenus } from './lib/globals/menus'
