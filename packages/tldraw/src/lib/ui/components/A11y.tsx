@@ -27,7 +27,12 @@ export function SkipToMainContent() {
 		const shapes = editor.getCurrentPageShapesInReadingOrder()
 		if (!shapes.length) return
 		editor.setSelectedShapes([shapes[0].id])
-		editor.zoomToSelectionIfOffscreen(256)
+		editor.zoomToSelectionIfOffscreen(256, {
+			animation: {
+				duration: editor.options.animationMediumMs,
+			},
+			inset: 0,
+		})
 
 		// N.B. If we don't do this, then we go into editing mode for some reason...
 		// Not sure of a better solution at the moment...

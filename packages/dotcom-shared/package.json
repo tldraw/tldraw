@@ -7,7 +7,9 @@
 	"types": "./.tsbuild/index.d.ts",
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
+	"type": "module",
 	"dependencies": {
+		"@rocicorp/zero": "0.17.2025032801",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",

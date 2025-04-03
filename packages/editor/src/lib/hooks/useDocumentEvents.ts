@@ -10,11 +10,6 @@ import { useEditor } from './useEditor'
 export function useDocumentEvents() {
 	const editor = useEditor()
 	const container = useContainer()
-	const hasSelectedShapes = useValue(
-		'hasSelectedShapes',
-		() => !!editor.getSelectedShapeIds().length,
-		[editor]
-	)
 
 	const isAppFocused = useValue('isFocused', () => editor.getIsFocused(), [editor])
 
@@ -109,6 +104,7 @@ export function useDocumentEvents() {
 
 			if ((e as any).isKilled) return
 			;(e as any).isKilled = true
+			const hasSelectedShapes = !!editor.getSelectedShapeIds().length
 
 			switch (e.key) {
 				case '=':
@@ -293,7 +289,7 @@ export function useDocumentEvents() {
 			container.removeEventListener('keydown', handleKeyDown)
 			container.removeEventListener('keyup', handleKeyUp)
 		}
-	}, [editor, container, isAppFocused, hasSelectedShapes])
+	}, [editor, container, isAppFocused])
 }
 
 function areShortcutsDisabled(editor: Editor) {

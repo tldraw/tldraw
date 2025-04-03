@@ -1589,7 +1589,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     } & TLCameraMoveOptions): this;
     zoomToFit(opts?: TLCameraMoveOptions): this;
     zoomToSelection(opts?: TLCameraMoveOptions): this;
-    zoomToSelectionIfOffscreen(padding?: number): void;
+    zoomToSelectionIfOffscreen(padding?: number, opts?: {
+        inset?: number;
+        targetZoom?: number;
+    } & TLCameraMoveOptions): void;
     zoomToUser(userId: string, opts?: TLCameraMoveOptions): this;
 }
 
