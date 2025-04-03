@@ -257,6 +257,10 @@ export interface TLEditorOptions {
 	 * getShapeVisibility={(shape, editor) => shape.meta.hidden ? 'hidden' : 'inherit'}
 	 * ```
 	 *
+	 * - `'inherit' | undefined` - (default) The shape will be visible unless its parent is hidden.
+	 * - `'hidden'` - The shape will be hidden.
+	 * - `'visible'` - The shape will be visible.
+	 *
 	 * @param shape - The shape to check.
 	 * @param editor - The editor instance.
 	 */
