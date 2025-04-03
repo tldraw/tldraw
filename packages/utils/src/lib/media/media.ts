@@ -151,11 +151,11 @@ export class MediaHelpers {
 			}
 			img.crossOrigin = 'anonymous'
 			img.referrerPolicy = 'strict-origin-when-cross-origin'
-			img.src = src
 			img.style.visibility = 'hidden'
 			img.style.position = 'absolute'
 			img.style.opacity = '0'
 			img.style.zIndex = '-9999'
+			img.src = src
 		})
 	}
 
