@@ -185,15 +185,15 @@ async function deleteSstPreviewApp(stage: string) {
 }
 
 async function main() {
-	nicelog('Pruning preview deployments\n')
+	nicelog('Pruning preview deployments')
 	await processItems(listPreviewWorkerDeployments, deletePreviewWorkerDeployment)
-	nicelog('Pruning preview databases\n')
+	nicelog('\nPruning preview databases')
 	await processItems(listPreviewDatabases, deletePreviewDatabase)
-	nicelog('Pruning fly.io preview apps\n')
+	nicelog('\nPruning fly.io preview apps')
 	await processItems(listFlyioPreviewApps, deleteFlyioPreviewApp)
-	nicelog('Pruning sst preview stages\n')
+	nicelog('\nPruning sst preview stages')
 	await processItems(listAmazonClusters, deleteSstPreviewApp)
-	nicelog('Done')
+	nicelog('\nDone')
 }
 
 async function processItems(
