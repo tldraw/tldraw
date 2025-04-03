@@ -719,7 +719,7 @@ You can prevent that by cleaning up the selection in a signal reaction that is s
 
 ```tsx
 <Tldraw
-	getShapeVisibility={(shape) => shape.meta.hidden ? 'hidden' : 'inherit'}
+	getShapeVisibility={(shape) => (shape.meta.hidden ? 'hidden' : 'inherit')}
 	onMount={(editor) => {
 		// We don't prevent hidden shapes from being selected out of the box, because there are some situations where it's desirable.
 		// If you want to prevent hidden shapes from being selected, you can do so like this:
