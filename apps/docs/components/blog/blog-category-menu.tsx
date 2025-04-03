@@ -3,18 +3,13 @@
 import { TldrawIcon } from '@/components/common/icon/tldraw'
 import { NavigationLink } from '@/components/navigation/link'
 import { Category } from '@/types/content-types'
-import {
-	MegaphoneIcon,
-	RectangleStackIcon,
-	RocketLaunchIcon,
-	TagIcon,
-} from '@heroicons/react/20/solid'
+import { FlagIcon, MegaphoneIcon, RectangleStackIcon, TagIcon } from '@heroicons/react/20/solid'
 import { usePathname } from 'next/navigation'
 
 const icons = {
 	'all-posts': RectangleStackIcon,
 	announcements: MegaphoneIcon,
-	'case-studies': RocketLaunchIcon,
+	'case-studies': FlagIcon,
 	product: TldrawIcon,
 	'release-notes': TagIcon,
 }
