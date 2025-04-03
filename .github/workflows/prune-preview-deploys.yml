@@ -1,6 +1,7 @@
 name: Prune preview deploys
 
 on:
+  pull_request:
   schedule:
     # run once per day at midnight or whatever
     - cron: '0 0 * * *'
