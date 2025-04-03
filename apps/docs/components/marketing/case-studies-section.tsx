@@ -1,18 +1,21 @@
 import { Section } from '@/components/marketing/section'
+import { cn } from '@/utils/cn'
 import Link from 'next/link'
 import { ReactNode } from 'react'
+import { MaskedLogo } from './masked-logo'
 import { SectionSubtitle } from './section-description'
 import { SectionTitle } from './section-title'
 
 export function CaseStudiesSection() {
 	return (
-		<Section className="w-full max-w-[100%]">
+		<Section className="w-full max-w-[100%]" id="case-studies">
 			<div className="max-w-6xl mx-auto">
 				<SectionTitle>Made with tldraw</SectionTitle>
 				<SectionSubtitle>Powering excellent products from world-class teams.</SectionSubtitle>
 				<div>
 					<CaseStudiesGridBig>
 						<CaseStudyJustLogoCard
+							id="clickup"
 							href="/blog/case-studies/clickup"
 							src="/images/case-studies/clickup-hero.png"
 							logo="/images/case-studies/clickup-logo.svg"
@@ -20,6 +23,7 @@ export function CaseStudiesSection() {
 							<b>ClickUp</b> rebuilt their Whiteboard feature.{' '}
 						</CaseStudyJustLogoCard>
 						<CaseStudyJustLogoCard
+							id="autodesk"
 							href="/blog/case-studies/autodesk"
 							src="/images/case-studies/autodesk-hero.png"
 							logo="/images/case-studies/autodesk-logo.svg"
@@ -29,20 +33,22 @@ export function CaseStudiesSection() {
 					</CaseStudiesGridBig>
 					<CaseStudiesGridSmall>
 						<CaseStudyJustLogoSmallCard
+							id="jam"
 							href="/blog/case-studies/jam"
 							src="/images/case-studies/jam-hero.png"
 							logo="/images/case-studies/jam-logo.svg"
 						>
 							<b>Jam</b> upgraded their screenshot annotation feature.
 						</CaseStudyJustLogoSmallCard>
-						<CaseStudyJustLogoSmallCard
+						{/* <CaseStudyJustLogoSmallCard
 							href="/blog/case-studies/craft"
 							src="/images/case-studies/craft-hero.png"
 							logo="/images/case-studies/craft-logo.svg"
 						>
 							<b>Craft</b> added a collaborative whiteboard to their productivity app.
-						</CaseStudyJustLogoSmallCard>
+						</CaseStudyJustLogoSmallCard> */}
 						<CaseStudyJustLogoSmallCard
+							id="padlet"
 							href="/blog/case-studies/padlet"
 							src="/images/case-studies/padlet-hero.png"
 							logo="/images/case-studies/padlet-logo.svg"
@@ -50,6 +56,7 @@ export function CaseStudiesSection() {
 							<b>Padlet</b> built their Sandbox experience for teachers and students.
 						</CaseStudyJustLogoSmallCard>
 						<CaseStudyJustLogoSmallCard
+							id="roam"
 							href="/blog/case-studies/roam"
 							src="/images/case-studies/roam-hero.png"
 							logo="/images/case-studies/roam-logo.svg"
@@ -58,6 +65,7 @@ export function CaseStudiesSection() {
 						</CaseStudyJustLogoSmallCard>
 
 						<CaseStudyJustLogoSmallCard
+							id="mobbin"
 							href="/blog/case-studies/mobbin"
 							src="/images/case-studies/mobbin-hero.png"
 							logo="/images/case-studies/mobbin-logo.svg"
@@ -65,6 +73,7 @@ export function CaseStudiesSection() {
 							<b>Mobbin</b> created internal tools for managing content and training models.
 						</CaseStudyJustLogoSmallCard>
 						<CaseStudyJustLogoSmallCard
+							id="legendkeeper"
 							href="/blog/case-studies/legendkeeper"
 							src="/images/case-studies/legendkeeper-hero.png"
 							logo="/images/case-studies/legendkeeper-logo.svg"
@@ -72,11 +81,28 @@ export function CaseStudiesSection() {
 							<b>LegendKeeper</b> built a boards feature for their world-building wiki.
 						</CaseStudyJustLogoSmallCard>
 						<CaseStudyJustLogoSmallCard
+							id="bigbluebutton"
 							href="/blog/case-studies/bigbluebutton"
 							src="/images/case-studies/bigbluebutton-hero.png"
 							logo="/images/case-studies/bigbluebutton-logo.svg"
 						>
 							<b>BigBlueButton</b> rebuilt their virtual classroom on tldraw.
+						</CaseStudyJustLogoSmallCard>
+						{/* <CaseStudyJustLogoSmallCard
+							id="opennote"
+							href="/blog/case-studies/opennote"
+							src="/images/case-studies/opennote-hero.png"
+							logo="/images/case-studies/opennote-logo.svg"
+						>
+							<b>Opennote</b> added a whiteboard to their AI chat.
+						</CaseStudyJustLogoSmallCard> */}
+						<CaseStudyJustLogoSmallCard
+							id="matilda"
+							href="/blog/case-studies/matilda"
+							src="/images/case-studies/matilda-hero.png"
+							logo="/images/case-studies/matilda-logo.svg"
+						>
+							<b>Matilda</b> unified their app experience with tldraw.
 						</CaseStudyJustLogoSmallCard>
 					</CaseStudiesGridSmall>
 				</div>
@@ -105,62 +131,99 @@ export function CaseStudiesSection() {
 
 function CaseStudyJustLogoCard({
 	children,
+	id,
 	src,
 	href,
 	logo,
 }: {
 	children: ReactNode
+	id: string
 	src: string
 	href: string
 	logo: string
 }) {
 	return (
-		<Link href={href}>
-			<div className="bg-white relative dark:bg-black border border-border-zinc-200 hover:border-zinc-200 dark:border-black dark:hover:border-zinc-800 group transition-all delay-[.05s] relative w-full aspect-video overflow-hidden rounded-lg">
-				<div
-					className="absolute inset-0 z-[1] opacity-[0] group-hover:opacity-[1] bg-white dark:bg-black bg-cover transition-all delay-[.05s] bg-bottom"
-					style={{ backgroundImage: `url(${src})` }}
-				/>
-				<div className="absolute inset-0 z-[2] flex items-center justify-center opacity-[1] group-hover:opacity-[0] transition-all delay-[.05s]">
-					<CaseStudyLogoBig src={logo} />
-				</div>
-			</div>
-			<p className="pt-5 px-0">{children}</p>
-		</Link>
+		<div className="group/link" id={id}>
+			<CaseStudyCard>
+				<CaseStudyImage src={src} />
+				<Link href={href}>
+					<div className="absolute inset-0 z-[2] flex items-center justify-center opacity-[1] group-hover:opacity-[0] transition-all delay-[.05s]">
+						<CaseStudyLogoBig src={logo} />
+					</div>
+				</Link>
+			</CaseStudyCard>
+			<CaseStudyCopy href={href}>{children}</CaseStudyCopy>
+		</div>
 	)
 }
 
 function CaseStudyJustLogoSmallCard({
 	children,
+	id,
 	src,
 	href,
 	logo,
 }: {
 	children: ReactNode
+	id: string
 	src: string
 	href: string
 	logo: string
 }) {
 	return (
-		<Link href={href}>
-			<div className="bg-white relative dark:bg-black border border-border-zinc-200 hover:border-zinc-200 dark:border-black dark:hover:border-zinc-800 group transition-all delay-[.05s] relative overflow-hidden rounded-lg aspect-video w-full">
-				<div
-					className="absolute inset-0 z-[1] opacity-[0] group-hover:opacity-[1] bg-white dark:bg-black bg-cover transition-all delay-[.05s]"
-					style={{ backgroundImage: `url(${src})` }}
-				/>
-				<div className="absolute inset-0 z-[2] flex items-center justify-center opacity-[1] group-hover:opacity-[0] transition-all delay-[.05s]">
-					<CaseStudyLogoBig src={logo} />
-				</div>
-			</div>
-			<p className="pt-5 px-0">{children}</p>
-		</Link>
+		<div className="group" id={id}>
+			<CaseStudyCard>
+				<CaseStudyImage src={src} />
+				<Link href={href}>
+					<div className="absolute inset-0 z-[2] flex items-center justify-center opacity-[1] group-hover:opacity-[0] transition-all delay-[.05s]">
+						<CaseStudyLogoBig src={logo} />
+					</div>
+				</Link>
+			</CaseStudyCard>
+			<CaseStudyCopy href={href}>{children}</CaseStudyCopy>
+		</div>
+	)
+}
+
+function CaseStudyCard({ children }: { children: ReactNode }) {
+	return (
+		<div
+			className={cn(
+				'bg-white relative dark:bg-black group transition-all delay-[.05s] relative overflow-hidden rounded-lg h-[160px] sm:h-auto sm:aspect-video w-full',
+				'border border-border-zinc-200 hover:border-transparent dark:border-zinc-800 dark:hover:border-transparent'
+			)}
+		>
+			{children}
+		</div>
+	)
+}
+
+function CaseStudyImage({ src }: { src: string }) {
+	return (
+		<div
+			className="absolute inset-0 z-[1] opacity-[0] group-hover:opacity-[1] bg-white dark:bg-black bg-cover transition-all delay-[.05s]"
+			style={{ backgroundImage: `url(${src})` }}
+		/>
+	)
+}
+
+function CaseStudyCopy({ children, href }: { children: ReactNode; href: string }) {
+	return (
+		<p className="pt-5 px-0">
+			{children} Read the{' '}
+			<Link href={href} className="group-hover:text-blue-600 dark:group-hover:text-blue-400">
+				case study
+			</Link>
+			.
+		</p>
 	)
 }
 
 function CaseStudyLogoBig({ src }: { src: string }) {
 	return (
 		<div className="flex-shrink-0">
-			<img className="w-auto h-[96px]" src={src} />
+			<MaskedLogo src={src} />
+			{/* <img className="w-auto h-[96px]" src={src} /> */}
 		</div>
 	)
 }

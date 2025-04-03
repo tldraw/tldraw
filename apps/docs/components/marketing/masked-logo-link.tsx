@@ -1,21 +1,23 @@
 'use client'
 
-import { cn } from '@/utils/cn'
-import clsx from 'clsx'
+import Link from 'next/link'
 import { useLayoutEffect, useRef } from 'react'
+import { MaskedLogo } from './masked-logo'
 
 function getMaskStyle(url: string): string {
 	return `url(${url}) center 100% / 100% no-repeat`
 }
 
-export function MaskedLogo({
+export function MaskedLogoLink({
 	src,
+	url,
+	alt,
 	small,
-	hover,
 }: {
 	src: string
+	url: string
+	alt: string
 	small?: boolean
-	hover?: boolean
 }) {
 	const ref = useRef<HTMLAnchorElement>(null)
 
@@ -29,16 +31,8 @@ export function MaskedLogo({
 	}, [ref, src])
 
 	return (
-		<div
-			className={cn(
-				'text-black-0 dark:text-white masked-logo',
-				hover ? 'opacity-[.5] hover:opacity-[1]' : ''
-			)}
-			style={{
-				mask: getMaskStyle(src),
-			}}
-		>
-			<img src={src} className={clsx(small ? 'h-[32px]' : 'h-[96px]', 'w-auto invisible')} />
-		</div>
+		<Link ref={ref} href={url} title={alt} target="_blank">
+			<MaskedLogo src={src} small={small} />
+		</Link>
 	)
 }

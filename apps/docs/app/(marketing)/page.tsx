@@ -3,10 +3,8 @@ import { CommunitySection } from '@/components/marketing/community-section'
 import { CTASection } from '@/components/marketing/cta-section'
 import { DemoSection } from '@/components/marketing/demo-section'
 import { FAQSection } from '@/components/marketing/faq-section'
-import { HeroCtas } from '@/components/marketing/hero-ctas'
-import { HeroTitle } from '@/components/marketing/hero-title'
+import { HeroSection } from '@/components/marketing/hero-section'
 import { InstallationSection } from '@/components/marketing/installation-section'
-import { LogoSection } from '@/components/marketing/logo-section'
 import { PricingSection } from '@/components/marketing/pricing-section'
 import { WhatItIsSection } from '@/components/marketing/what-it-is-section'
 
@@ -18,19 +16,15 @@ export default function Page() {
 	return (
 		<>
 			<div className="h-[64px] md:h-[160px]" />
-			<HeroTitle />
-			<div className="h-[64px] md:h-[64px]" />
-			<HeroCtas />
+			<HeroSection />
 			<div className="h-[96px] md:h-[96px]" />
 			<DemoSection />
-			<div className="h-[96px] md:h-[96px]" />
-			<LogoSection />
+			<SectionGap />
 			{/* <CaseStudiesSection /> */}
 			{/* <FeaturesSection />
 			<DetailsSection /> */}
 			{/* <CustomizationSection /> */}
 			{/* <WatermarkSection /> */}
-			<SectionGap />
 			<InstallationSection />
 			<SectionGap />
 			<CaseStudiesSection />
