@@ -138,7 +138,7 @@ const router = createRouter<Environment>()
 	.post('/app/zero/push', async (req, env) => {
 		try {
 			console.log('/app/zero/push')
-			const processor = new PushProcessor(schema, connectionProvider(makePostgresConnector(env)))
+			const processor = new PushProcessor(schema, connectionProvider(makePostgresConnector(env)), 'debug')
 			const result = await processor.process(createMutators(), req.query, await req.json())
 			return json(result)
 		} catch (e) {
