@@ -16,7 +16,7 @@ export function BlogPostPage({ article }: { article: Article }) {
 				<BlogPostHeader article={article} />
 				<Content mdx={article.content ?? ''} type={article.sectionId} />
 				<section className="pt-24 pb-16 mt-16 flex flex-col">
-					<h4 className="text-center text-md font-bold pb-3">Subscribe to our mailing list</h4>
+					{/* <h4 className="text-center text-md font-bold pb-3">Subscribe to our mailing list</h4> */}
 					{/* <NewsletterSignup /> */}
 				</section>
 			</main>
