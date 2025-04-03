@@ -841,7 +841,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, textOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, fontAssetUrls, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, textOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, getShapeVisibility, fontAssetUrls, }: TLEditorOptions);
     // @deprecated (undocumented)
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
@@ -3162,9 +3162,11 @@ export interface TldrawEditorBaseProps {
     className?: string;
     components?: TLEditorComponents;
     deepLinks?: TLDeepLinkOptions | true;
+    getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined | void;
     inferDarkMode?: boolean;
     initialState?: string;
-    isShapeHidden?(shape: TLShape, editor: Editor): 'force_show' | boolean;
+    // @deprecated
+    isShapeHidden?(shape: TLShape, editor: Editor): boolean;
     licenseKey?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
@@ -3345,9 +3347,11 @@ export interface TLEditorOptions {
         [key: string]: string | undefined;
     };
     getContainer(): HTMLElement;
+    getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined | void;
     inferDarkMode?: boolean;
     initialState?: string;
-    isShapeHidden?(shape: TLShape, editor: Editor): 'force_show' | boolean;
+    // @deprecated
+    isShapeHidden?(shape: TLShape, editor: Editor): boolean;
     // (undocumented)
     licenseKey?: string;
     // (undocumented)

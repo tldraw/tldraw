@@ -191,13 +191,29 @@ export interface TldrawEditorBaseProps {
 	/**
 	 * Predicate for whether or not a shape should be hidden.
 	 *
+	 * @deprecated Use {@link TldrawEditorBaseProps#getShapeVisibility} instead.
+	 */
+	isShapeHidden?(shape: TLShape, editor: Editor): boolean
+
+	/**
+	 * Provides a way to hide shapes.
+	 *
 	 * Hidden shapes will not render in the editor, and they will not be eligible for hit test via
 	 * {@link Editor#getShapeAtPoint} and {@link Editor#getShapesAtPoint}. But otherwise they will
 	 * remain in the store and participate in all other operations.
 	 *
-	 * Return 'force_show' to show the shape even if it is the child of a hidden parent shape.
+	 * @example
+	 * ```ts
+	 * getShapeVisibility={(shape, editor) => shape.meta.hidden ? 'hidden' : 'inherit'}
+	 * ```
+	 *
+	 * @param shape - The shape to check.
+	 * @param editor - The editor instance.
 	 */
-	isShapeHidden?(shape: TLShape, editor: Editor): boolean | 'force_show'
+	getShapeVisibility?(
+		shape: TLShape,
+		editor: Editor
+	): 'visible' | 'hidden' | 'inherit' | null | undefined | void
 
 	/**
 	 * The URLs for the fonts to use in the editor.
@@ -389,7 +405,9 @@ function TldrawEditorWithReadyStore({
 	options,
 	licenseKey,
 	deepLinks: _deepLinks,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	isShapeHidden,
+	getShapeVisibility,
 	assetUrls,
 }: Required<
 	TldrawEditorProps & {
@@ -449,6 +467,7 @@ function TldrawEditorWithReadyStore({
 				options,
 				licenseKey,
 				isShapeHidden,
+				getShapeVisibility,
 				fontAssetUrls: assetUrls?.fonts,
 			})
 
@@ -484,6 +503,7 @@ function TldrawEditorWithReadyStore({
 			setEditor,
 			licenseKey,
 			isShapeHidden,
+			getShapeVisibility,
 			textOptions,
 			assetUrls,
 		]

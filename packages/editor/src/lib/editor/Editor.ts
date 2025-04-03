@@ -242,11 +242,28 @@ export interface TLEditorOptions {
 	/**
 	 * A predicate that should return true if the given shape should be hidden.
 	 *
-	 * It may also return 'force_show' to show the shape even if it is the child of a hidden parent shape.
+	 * @deprecated Use {@link Editor#getShapeVisibility} instead.
+	 *
 	 * @param shape - The shape to check.
 	 * @param editor - The editor instance.
 	 */
-	isShapeHidden?(shape: TLShape, editor: Editor): boolean | 'force_show'
+	isShapeHidden?(shape: TLShape, editor: Editor): boolean
+
+	/**
+	 * Provides a way to hide shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * getShapeVisibility={(shape, editor) => shape.meta.hidden ? 'hidden' : 'inherit'}
+	 * ```
+	 *
+	 * @param shape - The shape to check.
+	 * @param editor - The editor instance.
+	 */
+	getShapeVisibility?(
+		shape: TLShape,
+		editor: Editor
+	): 'visible' | 'hidden' | 'inherit' | null | undefined | void
 }
 
 /**
@@ -283,12 +300,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 		autoFocus,
 		inferDarkMode,
 		options,
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		isShapeHidden,
+		getShapeVisibility,
 		fontAssetUrls,
 	}: TLEditorOptions) {
 		super()
+		assert(
+			!(isShapeHidden && getShapeVisibility),
+			'Cannot use both isShapeHidden and getShapeVisibility'
+		)
 
-		this._isShapeHiddenPredicate = isShapeHidden
+		this._getShapeVisibility = isShapeHidden
+			? // eslint-disable-next-line @typescript-eslint/no-deprecated
+				(shape: TLShape, editor: Editor) => (isShapeHidden(shape, editor) ? 'hidden' : 'inherit')
+			: getShapeVisibility
 
 		this.options = { ...defaultTldrawOptions, ...options }
 
@@ -775,25 +801,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	}
 
-	private readonly _isShapeHiddenPredicate?: (
-		shape: TLShape,
-		editor: Editor
-	) => boolean | 'force_show'
+	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']
 	@computed
 	private getIsShapeHiddenCache() {
-		if (!this._isShapeHiddenPredicate) return null
+		if (!this._getShapeVisibility) return null
 		return this.store.createComputedCache<boolean, TLShape>('isShapeHidden', (shape: TLShape) => {
-			const isShapeHidden = this._isShapeHiddenPredicate!(shape, this)
+			const visibility = this._getShapeVisibility!(shape, this)
 			const isParentHidden = PageRecordType.isId(shape.parentId)
 				? false
 				: this.isShapeHidden(shape.parentId)
 
-			if (isParentHidden) return isShapeHidden !== 'force_show'
-			return isShapeHidden === true
+			if (isParentHidden) return visibility !== 'visible'
+			return visibility === 'hidden'
 		})
 	}
 	isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean {
-		if (!this._isShapeHiddenPredicate) return false
+		if (!this._getShapeVisibility) return false
 		return !!this.getIsShapeHiddenCache!()!.get(
 			typeof shapeOrId === 'string' ? shapeOrId : shapeOrId.id
 		)
@@ -3722,7 +3745,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (!shape) return
 
 			if (this.isShapeHidden(shape)) {
-				// process children just in case they are overriding the hidden state with force_show
+				// process children just in case they are overriding the hidden state
 				const isErasing = isAncestorErasing || erasingShapeIds.includes(id)
 				for (const childId of this.getSortedChildIdsForParent(id)) {
 					addShapeById(childId, opacity, isErasing)
