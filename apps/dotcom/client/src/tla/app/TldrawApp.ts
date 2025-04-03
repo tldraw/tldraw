@@ -3,6 +3,7 @@ import { Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
 	CreateFilesResponseBody,
+	createMutators,
 	CreateSnapshotRequestBody,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
@@ -131,6 +132,7 @@ export class TldrawApp {
 					userID: userId,
 					schema: zeroSchema,
 					server: ZERO_SERVER,
+					mutators: createMutators(),
 					onUpdateNeeded(reason) {
 						console.error('update needed', reason)
 						onClientTooOld()

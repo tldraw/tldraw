@@ -1964,10 +1964,39 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@dotenvx/dotenvx@npm:^1.39.0":
+  version: 1.39.0
+  resolution: "@dotenvx/dotenvx@npm:1.39.0"
+  dependencies:
+    commander: "npm:^11.1.0"
+    dotenv: "npm:^16.4.5"
+    eciesjs: "npm:^0.4.10"
+    execa: "npm:^5.1.1"
+    fdir: "npm:^6.2.0"
+    ignore: "npm:^5.3.0"
+    object-treeify: "npm:1.1.33"
+    picomatch: "npm:^4.0.2"
+    which: "npm:^4.0.0"
+  bin:
+    dotenvx: src/cli/dotenvx.js
+    git-dotenvx: src/cli/dotenvx.js
+  checksum: 10/68a102c0a91f0131f2b5d75052cf1586e20251f114004e91bde025a529383f7f1580a62a7a94ea9cc5a7e7873409f5c92c95850aeb818879f7e814bcbc7b0b6c
+  languageName: node
+  linkType: hard
+
 "@drdgvhbh/postgres-error-codes@npm:^0.0.6":
   version: 0.0.6
   resolution: "@drdgvhbh/postgres-error-codes@npm:0.0.6"
   checksum: 10/fe4abda57ee95e5ee3500d81cdd27aedb47ade6a70fef0d3c1c3365d2e3dcae538f47752178545da7eb658428968b0ec0ae3fb4bb92256b90a4a407f1d3b6b8d
+  languageName: node
+  linkType: hard
+
+"@ecies/ciphers@npm:^0.2.2":
+  version: 0.2.3
+  resolution: "@ecies/ciphers@npm:0.2.3"
+  peerDependencies:
+    "@noble/ciphers": ^1.0.0
+  checksum: 10/fdf01fd5e687a74802df60d21ff9be5aa6cdf692dcf671186e94eb17e9c260a4652b64c7127b277af20c35d3ccc733003cefb2fdaee93e8b516fa71d317d503f
   languageName: node
   linkType: hard
 
@@ -4342,6 +4371,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@noble/ciphers@npm:^1.0.0":
+  version: 1.2.1
+  resolution: "@noble/ciphers@npm:1.2.1"
+  checksum: 10/7fa0d32529d8da6323b08afec97218f6d6bc0d1e135243bf10f7587a2819495c3f3f4a5af1f41045501bb1ade94238c76960366a5d6441970e49ba9cacb88740
+  languageName: node
+  linkType: hard
+
+"@noble/curves@npm:^1.6.0":
+  version: 1.8.1
+  resolution: "@noble/curves@npm:1.8.1"
+  dependencies:
+    "@noble/hashes": "npm:1.7.1"
+  checksum: 10/e861db372cc0734b02a4c61c0f5a6688d4a7555edca3d8a9e7c846c9aa103ca52d3c3818e8bc333a1a95b5be7f370ff344668d5d759471b11c2d14c7f24b3984
+  languageName: node
+  linkType: hard
+
+"@noble/hashes@npm:1.7.1, @noble/hashes@npm:^1.5.0":
+  version: 1.7.1
+  resolution: "@noble/hashes@npm:1.7.1"
+  checksum: 10/ca3120da0c3e7881d6a481e9667465cc9ebbee1329124fb0de442e56d63fef9870f8cc96f264ebdb18096e0e36cebc0e6e979a872d545deb0a6fed9353f17e05
+  languageName: node
+  linkType: hard
+
 "@nodelib/fs.scandir@npm:2.1.5":
   version: 2.1.5
   resolution: "@nodelib/fs.scandir@npm:2.1.5"
@@ -6444,13 +6496,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocicorp/zero@npm:0.17.2025032801":
-  version: 0.17.2025032801
-  resolution: "@rocicorp/zero@npm:0.17.2025032801"
+"@rocicorp/zero@npm:0.18.2025040300, @rocicorp/zero@npm:^0.18.2025040300":
+  version: 0.18.2025040300
+  resolution: "@rocicorp/zero@npm:0.18.2025040300"
   dependencies:
     "@badrap/valita": "npm:0.3.11"
     "@databases/escape-identifier": "npm:^1.0.3"
     "@databases/sql": "npm:^3.3.0"
+    "@dotenvx/dotenvx": "npm:^1.39.0"
     "@drdgvhbh/postgres-error-codes": "npm:^0.0.6"
     "@fastify/cors": "npm:^10.0.0"
     "@fastify/websocket": "npm:^11.0.0"
@@ -6471,7 +6524,6 @@ __metadata:
     command-line-usage: "npm:^7.0.3"
     compare-utf8: "npm:^0.1.1"
     defu: "npm:^6.1.4"
-    dotenv: "npm:^16.4.5"
     eventemitter3: "npm:^5.0.1"
     fastify: "npm:^5.0.0"
     jose: "npm:^5.9.3"
@@ -6479,22 +6531,22 @@ __metadata:
     json-custom-numbers: "npm:^3.1.1"
     kasi: "npm:^1.1.0"
     nanoid: "npm:^5.1.2"
-    pg: "npm:^8.11.3"
     pg-format: "npm:pg-format-fix@^1.0.5"
-    pg-logical-replication: "npm:^2.0.7"
-    pg-protocol: "npm:^1.7.0"
     postgres: "npm:^3.4.4"
-    postgres-array: "npm:^3.0.2"
+    prettier: "npm:^3.5.3"
     semver: "npm:^7.5.4"
     tsx: "npm:^4.19.1"
     url-pattern: "npm:^1.0.3"
     ws: "npm:^8.18.1"
   bin:
+    analyze-query: out/zero/src/analyze-query.js
+    ast-to-zql: out/zero/src/ast-to-zql.js
+    transform-query: out/zero/src/transform-query.js
     zero-build-schema: out/zero/src/build-schema.js
     zero-cache: out/zero/src/cli.js
     zero-cache-dev: out/zero/src/zero-cache-dev.js
     zero-deploy-permissions: out/zero/src/deploy-permissions.js
-  checksum: 10/be1158e2fa28b7d5eea306710ede43054399cce7437c67a019b2b04228aaeb30aab59057efb5cb2d3ece373fd0e25f4593dffc0522199f7a48d6a96b27876dcb
+  checksum: 10/753a283a40ac38a6eefbdb873f044ff70b1fa7e039553db56b6787661f97373441fa8be264777678e83419c5173de34604f66f3d5f86ed77b18f3e24c9c3ad0f
   languageName: node
   linkType: hard
 
@@ -8488,7 +8540,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/dotcom-shared@workspace:packages/dotcom-shared"
   dependencies:
-    "@rocicorp/zero": "npm:0.17.2025032801"
+    "@rocicorp/zero": "npm:0.18.2025040300"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
@@ -8511,6 +8563,7 @@ __metadata:
   dependencies:
     "@clerk/backend": "npm:^1.23.7"
     "@cloudflare/workers-types": "npm:^4.20250224.0"
+    "@rocicorp/zero": "npm:^0.18.2025040300"
     "@supabase/auth-helpers-remix": "npm:^0.2.6"
     "@supabase/supabase-js": "npm:^2.48.1"
     "@tldraw/dotcom-shared": "workspace:*"
@@ -8531,6 +8584,7 @@ __metadata:
     lodash.throttle: "npm:^4.1.1"
     pg: "npm:^8.13.1"
     pg-logical-replication: "npm:^2.0.7"
+    postgres: "npm:^3.4.5"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     typescript: "npm:~5.4.5"
@@ -8869,7 +8923,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/zero-cache@workspace:apps/dotcom/zero-cache"
   dependencies:
-    "@rocicorp/zero": "npm:0.17.2025032801"
+    "@rocicorp/zero": "npm:0.18.2025040300"
     concurrently: "npm:^9.1.2"
     dotenv: "npm:^16.4.7"
     esbuild: "npm:^0.24.2"
@@ -12607,6 +12661,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"commander@npm:^11.1.0":
+  version: 11.1.0
+  resolution: "commander@npm:11.1.0"
+  checksum: 10/66bd2d8a0547f6cb1d34022efb25f348e433b0e04ad76a65279b1b09da108f59a4d3001ca539c60a7a46ea38bcf399fc17d91adad76a8cf43845d8dcbaf5cda1
+  languageName: node
+  linkType: hard
+
 "commander@npm:^13.1.0":
   version: 13.1.0
   resolution: "commander@npm:13.1.0"
@@ -13559,7 +13620,7 @@ __metadata:
     "@radix-ui/react-popover": "npm:^1.1.5"
     "@radix-ui/react-select": "npm:^2.1.5"
     "@radix-ui/react-tooltip": "npm:^1.1.7"
-    "@rocicorp/zero": "npm:0.17.2025032801"
+    "@rocicorp/zero": "npm:0.18.2025040300"
     "@sentry/cli": "npm:^2.41.1"
     "@sentry/integrations": "npm:^7.120.3"
     "@sentry/react": "npm:^7.120.3"
@@ -13683,6 +13744,18 @@ __metadata:
   dependencies:
     safe-buffer: "npm:^5.0.1"
   checksum: 10/878e1aab8a42773320bc04c6de420bee21aebd71810e40b1799880a8a1c4594bcd6adc3d4213a0fb8147d4c3f529d8f9a618d7f59ad5a9a41b142058aceda23f
+  languageName: node
+  linkType: hard
+
+"eciesjs@npm:^0.4.10":
+  version: 0.4.14
+  resolution: "eciesjs@npm:0.4.14"
+  dependencies:
+    "@ecies/ciphers": "npm:^0.2.2"
+    "@noble/ciphers": "npm:^1.0.0"
+    "@noble/curves": "npm:^1.6.0"
+    "@noble/hashes": "npm:^1.5.0"
+  checksum: 10/08ca96834fe73d632f2c3e0c72afac3889d22304a5e17373d888c73613fe86dec4d791cf93ed884c85b704860f4ce9396cd2d027b3bb5cbd153f85f2b6eeaf32
   languageName: node
   linkType: hard
 
@@ -15212,7 +15285,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"execa@npm:^5.0.0":
+"execa@npm:^5.0.0, execa@npm:^5.1.1":
   version: 5.1.1
   resolution: "execa@npm:5.1.1"
   dependencies:
@@ -15571,6 +15644,18 @@ __metadata:
   dependencies:
     pend: "npm:~1.2.0"
   checksum: 10/db3e34fa483b5873b73f248e818f8a8b59a6427fd8b1436cd439c195fdf11e8659419404826059a642b57d18075c856d06d6a50a1413b714f12f833a9341ead3
+  languageName: node
+  linkType: hard
+
+"fdir@npm:^6.2.0":
+  version: 6.4.3
+  resolution: "fdir@npm:6.4.3"
+  peerDependencies:
+    picomatch: ^3 || ^4
+  peerDependenciesMeta:
+    picomatch:
+      optional: true
+  checksum: 10/8e6d20f4590dc168de1374a9cadaa37e20ca6e0b822aa247c230e7ea1d9e9674a68cd816146435e4ecc98f9285091462ab7e5e56eebc9510931a1794e4db68b2
   languageName: node
   linkType: hard
 
@@ -17345,7 +17430,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ignore@npm:^5.2.0, ignore@npm:^5.3.1, ignore@npm:^5.3.2":
+"ignore@npm:^5.2.0, ignore@npm:^5.3.0, ignore@npm:^5.3.1, ignore@npm:^5.3.2":
   version: 5.3.2
   resolution: "ignore@npm:5.3.2"
   checksum: 10/cceb6a457000f8f6a50e1196429750d782afce5680dd878aa4221bd79972d68b3a55b4b1458fc682be978f4d3c6a249046aa0880637367216444ab7b014cfc98
@@ -21927,6 +22012,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"object-treeify@npm:1.1.33":
+  version: 1.1.33
+  resolution: "object-treeify@npm:1.1.33"
+  checksum: 10/1c7865240037d7c2d39e28b96598538af59b545dc49cfc45d8c0a96baa343fc3335cbef26ede8c6dc48073368ec16bf194c276ffdedf32b41f3c3c8ef4d27fef
+  languageName: node
+  linkType: hard
+
 "object.assign@npm:^4.1.4, object.assign@npm:^4.1.7":
   version: 4.1.7
   resolution: "object.assign@npm:4.1.7"
@@ -22870,7 +22962,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-protocol@npm:*, pg-protocol@npm:^1.7.0, pg-protocol@npm:^1.7.1":
+"pg-protocol@npm:*, pg-protocol@npm:^1.7.1":
   version: 1.7.1
   resolution: "pg-protocol@npm:1.7.1"
   checksum: 10/5ccb6e01381261f2f4a995ccc9b135c6071ffe63c0b4bf0b6078dab2ab8567b1a5f64407a0a444ff3e4b689b9b91b2533b930f1a041afcdae8fca5345a18c30d
@@ -22905,7 +22997,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg@npm:>=6.2.2, pg@npm:^8.11.3, pg@npm:^8.13.1":
+"pg@npm:>=6.2.2, pg@npm:^8.13.1":
   version: 8.13.3
   resolution: "pg@npm:8.13.3"
   dependencies:
@@ -22950,7 +23042,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"picomatch@npm:2 || 3 || 4":
+"picomatch@npm:2 || 3 || 4, picomatch@npm:^4.0.2":
   version: 4.0.2
   resolution: "picomatch@npm:4.0.2"
   checksum: 10/ce617b8da36797d09c0baacb96ca8a44460452c89362d7cb8f70ca46b4158ba8bc3606912de7c818eb4a939f7f9015cef3c766ec8a0c6bfc725fdc078e39c717
@@ -23222,17 +23314,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postgres-array@npm:^3.0.2, postgres-array@npm:~3.0.1":
-  version: 3.0.4
-  resolution: "postgres-array@npm:3.0.4"
-  checksum: 10/9d0fed9f8a4674cbc31a4e568dc5d068f6e32b4b5c62deae2c4908c75303be0c5aef023fc04dfb8feaf6d63af1a17257e528ef606e8128bffe1f9d6844ad8ffa
-  languageName: node
-  linkType: hard
-
 "postgres-array@npm:~2.0.0":
   version: 2.0.0
   resolution: "postgres-array@npm:2.0.0"
   checksum: 10/aff99e79714d1271fe942fec4ffa2007b755e7e7dc3d2feecae3f1ceecb86fd3637c8138037fc3d9e7ec369231eeb136843c0b25927bf1ce295245a40ef849b4
+  languageName: node
+  linkType: hard
+
+"postgres-array@npm:~3.0.1":
+  version: 3.0.4
+  resolution: "postgres-array@npm:3.0.4"
+  checksum: 10/9d0fed9f8a4674cbc31a4e568dc5d068f6e32b4b5c62deae2c4908c75303be0c5aef023fc04dfb8feaf6d63af1a17257e528ef606e8128bffe1f9d6844ad8ffa
   languageName: node
   linkType: hard
 
@@ -23289,7 +23381,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postgres@npm:^3.4.4":
+"postgres@npm:^3.4.4, postgres@npm:^3.4.5":
   version: 3.4.5
   resolution: "postgres@npm:3.4.5"
   checksum: 10/b51341a8640bd63c42caf2a866c8b6bcac0d4cc1b85985f01eb3fd941eb7bf3fe5200bcf6983eaa1d42ae7555d85f4ff51d35916b5543b95aecfe98b76213611
@@ -23381,6 +23473,15 @@ __metadata:
   bin:
     prettier: bin/prettier.cjs
   checksum: 10/a3e806fb0b635818964d472d35d27e21a4e17150c679047f5501e1f23bd4aa806adf660f0c0d35214a210d5d440da6896c2e86156da55f221a57938278dc326e
+  languageName: node
+  linkType: hard
+
+"prettier@npm:^3.5.3":
+  version: 3.5.3
+  resolution: "prettier@npm:3.5.3"
+  bin:
+    prettier: bin/prettier.cjs
+  checksum: 10/7050c08f674d9e49fbd9a4c008291d0715471f64e94cc5e4b01729affce221dfc6875c8de7e66b728c64abc9352eefb7eaae071b5f79d30081be207b53774b78
   languageName: node
   linkType: hard
 

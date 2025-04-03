@@ -31,7 +31,7 @@
 		"@radix-ui/react-popover": "^1.1.5",
 		"@radix-ui/react-select": "^2.1.5",
 		"@radix-ui/react-tooltip": "^1.1.7",
-		"@rocicorp/zero": "0.17.2025032801",
+		"@rocicorp/zero": "0.18.2025040300",
 		"@sentry/integrations": "^7.120.3",
 		"@sentry/react": "^7.120.3",
 		"@tldraw/assets": "workspace:*",

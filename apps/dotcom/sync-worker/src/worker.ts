@@ -5,13 +5,20 @@ import {
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
+	createMutators,
+	schema,
 } from '@tldraw/dotcom-shared'
 import { createRouter, handleApiRequest, handleUserAssetGet, notFound } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { cors } from 'itty-router'
+import { cors, json } from 'itty-router'
+import {
+	PushProcessor,
+	connectionProvider,
+} from '../../../../node_modules/@rocicorp/zero/out/zero/src/pg'
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
+import { makePostgresConnector } from './postgres'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { getReadonlySlug } from './routes/getReadonlySlug'
@@ -128,6 +135,16 @@ const router = createRouter<Environment>()
 	})
 	.all('/health-check/*', healthCheckRoutes.fetch)
 	.all('/app/admin/*', adminRoutes.fetch)
+	.post('/app/zero/push', async (req, env) => {
+		try {
+			console.log('/app/zero/push')
+			const processor = new PushProcessor(schema, connectionProvider(makePostgresConnector(env)))
+			const result = await processor.process(createMutators(), req.query, await req.json())
+			return json(result)
+		} catch (e) {
+			return new Response('Error', { status: 500 })
+		}
+	})
 	.all('*', notFound)
 
 export default class Worker extends WorkerEntrypoint<Environment> {
