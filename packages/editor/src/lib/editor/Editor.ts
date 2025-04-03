@@ -242,10 +242,33 @@ export interface TLEditorOptions {
 	fontAssetUrls?: { [key: string]: string | undefined }
 	/**
 	 * A predicate that should return true if the given shape should be hidden.
+	 *
+	 * @deprecated Use {@link Editor#getShapeVisibility} instead.
+	 *
 	 * @param shape - The shape to check.
 	 * @param editor - The editor instance.
 	 */
 	isShapeHidden?(shape: TLShape, editor: Editor): boolean
+
+	/**
+	 * Provides a way to hide shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * getShapeVisibility={(shape, editor) => shape.meta.hidden ? 'hidden' : 'inherit'}
+	 * ```
+	 *
+	 * - `'inherit' | undefined` - (default) The shape will be visible unless its parent is hidden.
+	 * - `'hidden'` - The shape will be hidden.
+	 * - `'visible'` - The shape will be visible.
+	 *
+	 * @param shape - The shape to check.
+	 * @param editor - The editor instance.
+	 */
+	getShapeVisibility?(
+		shape: TLShape,
+		editor: Editor
+	): 'visible' | 'hidden' | 'inherit' | null | undefined
 }
 
 /**
@@ -282,12 +305,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 		autoFocus,
 		inferDarkMode,
 		options,
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		isShapeHidden,
+		getShapeVisibility,
 		fontAssetUrls,
 	}: TLEditorOptions) {
 		super()
+		assert(
+			!(isShapeHidden && getShapeVisibility),
+			'Cannot use both isShapeHidden and getShapeVisibility'
+		)
 
-		this._isShapeHiddenPredicate = isShapeHidden
+		this._getShapeVisibility = isShapeHidden
+			? // eslint-disable-next-line @typescript-eslint/no-deprecated
+				(shape: TLShape, editor: Editor) => (isShapeHidden(shape, editor) ? 'hidden' : 'inherit')
+			: getShapeVisibility
 
 		this.options = { ...defaultTldrawOptions, ...options }
 
@@ -774,18 +806,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	}
 
-	private readonly _isShapeHiddenPredicate?: (shape: TLShape, editor: Editor) => boolean
+	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']
 	@computed
 	private getIsShapeHiddenCache() {
-		if (!this._isShapeHiddenPredicate) return null
+		if (!this._getShapeVisibility) return null
 		return this.store.createComputedCache<boolean, TLShape>('isShapeHidden', (shape: TLShape) => {
-			const hiddenParent = this.findShapeAncestor(shape, (p) => this.isShapeHidden(p))
-			if (hiddenParent) return true
-			return this._isShapeHiddenPredicate!(shape, this) ?? false
+			const visibility = this._getShapeVisibility!(shape, this)
+			const isParentHidden = PageRecordType.isId(shape.parentId)
+				? false
+				: this.isShapeHidden(shape.parentId)
+
+			if (isParentHidden) return visibility !== 'visible'
+			return visibility === 'hidden'
 		})
 	}
 	isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean {
-		if (!this._isShapeHiddenPredicate) return false
+		if (!this._getShapeVisibility) return false
 		return !!this.getIsShapeHiddenCache!()!.get(
 			typeof shapeOrId === 'string' ? shapeOrId : shapeOrId.id
 		)
@@ -3929,7 +3965,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const addShapeById = (id: TLShapeId, opacity: number, isAncestorErasing: boolean) => {
 			const shape = this.getShape(id)
 			if (!shape) return
-			if (this.isShapeHidden(shape)) return
+
+			if (this.isShapeHidden(shape)) {
+				// process children just in case they are overriding the hidden state
+				const isErasing = isAncestorErasing || erasingShapeIds.includes(id)
+				for (const childId of this.getSortedChildIdsForParent(id)) {
+					addShapeById(childId, opacity, isErasing)
+				}
+				return
+			}
 
 			opacity *= shape.opacity
 			let isShapeErasing = false
@@ -4504,7 +4548,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _shapeGeometryCaches: Record<string, ComputedCache<Geometry2d, TLShape>> = {}
 
 	/**
-	 * Get the geometry of a shape.
+	 * Get the geometry of a shape in shape-space.
 	 *
 	 * @example
 	 * ```ts
@@ -4531,6 +4575,44 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		}
 		return this._shapeGeometryCaches[context].get(
+			typeof shape === 'string' ? shape : shape.id
+		)! as T
+	}
+
+	private _shapePageGeometryCaches: Record<string, ComputedCache<Geometry2d, TLShape>> = {}
+
+	/**
+	 * Get the geometry of a shape in page-space.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getShapePageGeometry(myShape)
+	 * editor.getShapePageGeometry(myShapeId)
+	 * editor.getShapePageGeometry(myShapeId, { context: "arrow" })
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to get the geometry for.
+	 * @param opts - Additional options about the request for geometry. Passed to {@link ShapeUtil.getGeometry}.
+	 *
+	 * @public
+	 */
+	getShapePageGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T {
+		const context = opts?.context ?? 'none'
+		if (!this._shapePageGeometryCaches[context]) {
+			this._shapePageGeometryCaches[context] = this.store.createComputedCache(
+				'bounds',
+				(shape) => {
+					const geometry = this.getShapeGeometry(shape.id, opts)
+					const pageTransform = this.getShapePageTransform(shape.id)
+					return geometry.transform(pageTransform)
+				},
+				{
+					// we only depend directly on the shape id, and changing geometry/transform will update us anyway
+					areRecordsEqual: () => true,
+				}
+			)
+		}
+		return this._shapePageGeometryCaches[context].get(
 			typeof shape === 'string' ? shape : shape.id
 		)! as T
 	}
@@ -4641,15 +4723,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	@computed private _getShapePageBoundsCache(): ComputedCache<Box, TLShape> {
 		return this.store.createComputedCache<Box, TLShape>('pageBoundsCache', (shape) => {
-			const pageTransform = this._getShapePageTransformCache().get(shape.id)
-
-			if (!pageTransform) return new Box()
-
-			const result = Box.FromPoints(
-				Mat.applyToPoints(pageTransform, this.getShapeGeometry(shape).vertices)
-			)
-
-			return result
+			return this.getShapePageGeometry(shape).bounds
 		})
 	}
 
@@ -4723,11 +4797,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (frameAncestors.length === 0) return undefined
 
 			const pageMask = frameAncestors
-				.map<Vec[] | undefined>((s) =>
-					// Apply the frame transform to the frame outline to get the frame outline in the current page space
-					this._getShapePageTransformCache()
-						.get(s.id)!
-						.applyToPoints(this.getShapeGeometry(s).vertices)
+				.map<Vec[] | undefined>(
+					(s) =>
+						// Apply the frame transform to the frame outline to get the frame outline in the current page space
+						this.getShapePageGeometry(s.id).vertices
 				)
 				.reduce((acc, b) => {
 					if (!(b && acc)) return undefined
