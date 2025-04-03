@@ -1,4 +1,5 @@
 import * as github from '@actions/github'
+import { ECSClient, ListClustersCommand } from '@aws-sdk/client-ecs'
 import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
@@ -163,14 +164,36 @@ async function listFlyioPreviewApps() {
 	return appNames.filter((name) => ZERO_CACHE_APP_REGEX.test(name))
 }
 
+async function listAmazonClusters() {
+	const client = new ECSClient({ region: 'eu-north-1' })
+	const data = await client.send(new ListClustersCommand({}))
+	if (!data.clusterArns) {
+		return []
+	}
+	const names = []
+	for (const arn of data.clusterArns) {
+		const match = arn.match(/tldraw-(pr-\d+)-/)
+		if (match) {
+			names.push(match[1])
+		}
+	}
+	return names
+}
+
+async function deleteSstPreviewApp(stage: string) {
+	await exec('yarn', ['sst', 'remove', '--stage', stage])
+}
+
 async function main() {
 	nicelog('Pruning preview deployments')
 	await processItems(listPreviewWorkerDeployments, deletePreviewWorkerDeployment)
-	nicelog('Pruning preview databases')
+	nicelog('\nPruning preview databases')
 	await processItems(listPreviewDatabases, deletePreviewDatabase)
-	nicelog('Pruning preview fly.io apps')
+	nicelog('\nPruning fly.io preview apps')
 	await processItems(listFlyioPreviewApps, deleteFlyioPreviewApp)
-	nicelog('Done')
+	nicelog('\nPruning sst preview stages')
+	await processItems(listAmazonClusters, deleteSstPreviewApp)
+	nicelog('\nDone')
 }
 
 async function processItems(
@@ -179,9 +202,11 @@ async function processItems(
 ) {
 	const items = await fetchFn()
 	for (const item of items) {
-		console.log('Processing', item)
-		const number = Number(item.match(/pr-(\d+)-/)?.[1])
-		console.log('Number', number)
+		const number = Number(item.match(/pr-(\d+)/)?.[1])
+		if (!number || isNaN(number)) {
+			nicelog(`Skipping ${item} because it doesn't match the regex`)
+			continue
+		}
 		if (await isPrClosedForAWhile(number)) {
 			nicelog(`Deleting ${item} because PR is closed`)
 			await deleteFn(item)

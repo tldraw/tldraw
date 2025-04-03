@@ -78,6 +78,7 @@
 		]
 	},
 	"devDependencies": {
+		"@aws-sdk/client-ecs": "^3.778.0",
 		"@eslint/compat": "^1.2.5",
 		"@eslint/eslintrc": "^3.2.0",
 		"@eslint/js": "^9.19.0",

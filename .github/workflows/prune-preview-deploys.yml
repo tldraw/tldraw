@@ -5,6 +5,9 @@ on:
     # run once per day at midnight or whatever
     - cron: '0 0 * * *'
 
+permissions:
+  id-token: 'write'
+
 env:
   CI: 1
   PRINT_GITHUB_ANNOTATIONS: 1
@@ -30,6 +33,12 @@ jobs:
 
       - name: Setup Fly IO
         uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::571248596162:role/huppy-bot
+          aws-region: 'eu-north-1'
 
       - name: Prune preview deploys
         run: yarn tsx internal/scripts/prune-preview-deploys.ts
