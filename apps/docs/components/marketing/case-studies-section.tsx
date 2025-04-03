@@ -16,7 +16,7 @@ export function CaseStudiesSection() {
 					<CaseStudiesGridBig>
 						<CaseStudyJustLogoCard
 							id="clickup"
-							href="/blog/clickup-case-study"
+							href="/blog/case-studies/clickup"
 							src="/images/case-studies/clickup-hero.png"
 							logo="/images/case-studies/clickup-logo.svg"
 						>
@@ -24,7 +24,7 @@ export function CaseStudiesSection() {
 						</CaseStudyJustLogoCard>
 						<CaseStudyJustLogoCard
 							id="autodesk"
-							href="/blog/autodesk-case-study"
+							href="/blog/case-studies/autodesk"
 							src="/images/case-studies/autodesk-hero.png"
 							logo="/images/case-studies/autodesk-logo.svg"
 						>
@@ -34,14 +34,14 @@ export function CaseStudiesSection() {
 					<CaseStudiesGridSmall>
 						<CaseStudyJustLogoSmallCard
 							id="jam"
-							href="/blog/jam-case-study"
+							href="/blog/case-studies/jam"
 							src="/images/case-studies/jam-hero.png"
 							logo="/images/case-studies/jam-logo.svg"
 						>
 							<b>Jam</b> upgraded their screenshot annotation feature.
 						</CaseStudyJustLogoSmallCard>
 						{/* <CaseStudyJustLogoSmallCard
-							href="/blog/craft-case-study"
+							href="/blog/case-studies/craft"
 							src="/images/case-studies/craft-hero.png"
 							logo="/images/case-studies/craft-logo.svg"
 						>
@@ -49,7 +49,7 @@ export function CaseStudiesSection() {
 						</CaseStudyJustLogoSmallCard> */}
 						<CaseStudyJustLogoSmallCard
 							id="padlet"
-							href="/blog/padlet-case-study"
+							href="/blog/case-studies/padlet"
 							src="/images/case-studies/padlet-hero.png"
 							logo="/images/case-studies/padlet-logo.svg"
 						>
@@ -57,7 +57,7 @@ export function CaseStudiesSection() {
 						</CaseStudyJustLogoSmallCard>
 						<CaseStudyJustLogoSmallCard
 							id="roam"
-							href="/blog/roam-case-study"
+							href="/blog/case-studies/roam"
 							src="/images/case-studies/roam-hero.png"
 							logo="/images/case-studies/roam-logo.svg"
 						>
@@ -66,7 +66,7 @@ export function CaseStudiesSection() {
 
 						<CaseStudyJustLogoSmallCard
 							id="mobbin"
-							href="/blog/mobbin-case-study"
+							href="/blog/case-studies/mobbin"
 							src="/images/case-studies/mobbin-hero.png"
 							logo="/images/case-studies/mobbin-logo.svg"
 						>
@@ -74,7 +74,7 @@ export function CaseStudiesSection() {
 						</CaseStudyJustLogoSmallCard>
 						<CaseStudyJustLogoSmallCard
 							id="legendkeeper"
-							href="/blog/legendkeeper-case-study"
+							href="/blog/case-studies/legendkeeper"
 							src="/images/case-studies/legendkeeper-hero.png"
 							logo="/images/case-studies/legendkeeper-logo.svg"
 						>
@@ -82,7 +82,7 @@ export function CaseStudiesSection() {
 						</CaseStudyJustLogoSmallCard>
 						<CaseStudyJustLogoSmallCard
 							id="bigbluebutton"
-							href="/blog/bigbluebutton-case-study"
+							href="/blog/case-studies/bigbluebutton"
 							src="/images/case-studies/bigbluebutton-hero.png"
 							logo="/images/case-studies/bigbluebutton-logo.svg"
 						>
@@ -90,7 +90,7 @@ export function CaseStudiesSection() {
 						</CaseStudyJustLogoSmallCard>
 						{/* <CaseStudyJustLogoSmallCard
 							id="opennote"
-							href="/blog/opennote-case-study"
+							href="/blog/case-studies/opennote"
 							src="/images/case-studies/opennote-hero.png"
 							logo="/images/case-studies/opennote-logo.svg"
 						>
@@ -98,7 +98,7 @@ export function CaseStudiesSection() {
 						</CaseStudyJustLogoSmallCard> */}
 						<CaseStudyJustLogoSmallCard
 							id="matilda"
-							href="/blog/matilda-case-study"
+							href="/blog/case-studies/matilda"
 							src="/images/case-studies/matilda-hero.png"
 							logo="/images/case-studies/matilda-logo.svg"
 						>
