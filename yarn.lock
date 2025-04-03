@@ -19528,6 +19528,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lite-youtube-embed@npm:^0.3.3":
+  version: 0.3.3
+  resolution: "lite-youtube-embed@npm:0.3.3"
+  checksum: 10/575ff8e600464881db366120d5d7628f8902008a5bc2a7e207f3d3d6e82ae7bc2d5e9acb9caa4e15932824afbc38a53bc6477f37435651a012f8acbbd78be0a3
+  languageName: node
+  linkType: hard
+
 "load-json-file@npm:^4.0.0":
   version: 4.0.0
   resolution: "load-json-file@npm:4.0.0"
@@ -26951,6 +26958,7 @@ __metadata:
     jest-canvas-mock: "npm:^2.5.2"
     jest-environment-jsdom: "npm:^29.7.0"
     lazyrepo: "npm:0.0.0-alpha.27"
+    lite-youtube-embed: "npm:^0.3.3"
     lodash.isequal: "npm:^4.5.0"
     lz-string: "npm:^1.5.0"
     react: "npm:^18.3.1"
