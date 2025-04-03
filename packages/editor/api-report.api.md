@@ -4341,9 +4341,9 @@ export class TransformedGeometry2d extends Geometry2d {
     // (undocumented)
     hitTestPoint(point: Vec, margin?: number, hitInside?: boolean, filters?: Geometry2dFilters): boolean;
     // (undocumented)
-    intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): VecLike[];
+    intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): Vec[];
     // (undocumented)
-    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): VecLike[];
+    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): Vec[];
     // (undocumented)
     intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[];
     // (undocumented)

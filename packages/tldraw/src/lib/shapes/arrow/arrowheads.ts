@@ -19,7 +19,6 @@ function getArrowPoints(
 	side: 'start' | 'end',
 	strokeWidth: number
 ): TLArrowPointsInfo {
-	// TODO #elbow-arrow - proper elbow arrow impl
 	const point = side === 'end' ? info.end.point : info.start.point
 	let int: VecLike
 

@@ -201,14 +201,13 @@ export abstract class Geometry2d {
 				}
 			}
 
-			distanceTraveled += Vec.ManhattanDist(curr, next)
+			distanceTraveled += Vec.Dist(curr, next)
 		}
 
 		assert(closestSegment)
 
 		const distanceAlongRoute =
-			closestSegment.distanceToStart +
-			Vec.ManhattanDist(closestSegment.start, closestSegment.nearestPoint)
+			closestSegment.distanceToStart + Vec.Dist(closestSegment.start, closestSegment.nearestPoint)
 
 		return distanceAlongRoute / length
 	}
@@ -422,27 +421,39 @@ export class TransformedGeometry2d extends Geometry2d {
 	}
 
 	override intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
-		return this.geometry.intersectLineSegment(
-			Mat.applyToPoint(this.inverse, A),
-			Mat.applyToPoint(this.inverse, B),
-			filters
+		return Mat.applyToPoints(
+			this.matrix,
+			this.geometry.intersectLineSegment(
+				Mat.applyToPoint(this.inverse, A),
+				Mat.applyToPoint(this.inverse, B),
+				filters
+			)
 		)
 	}
 
 	override intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters) {
-		return this.geometry.intersectCircle(
-			Mat.applyToPoint(this.inverse, center),
-			radius / this.decomposed.scaleX,
-			filters
+		return Mat.applyToPoints(
+			this.matrix,
+			this.geometry.intersectCircle(
+				Mat.applyToPoint(this.inverse, center),
+				radius / this.decomposed.scaleX,
+				filters
+			)
 		)
 	}
 
 	override intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[] {
-		return this.geometry.intersectPolygon(Mat.applyToPoints(this.inverse, polygon), filters)
+		return Mat.applyToPoints(
+			this.matrix,
+			this.geometry.intersectPolygon(Mat.applyToPoints(this.inverse, polygon), filters)
+		)
 	}
 
 	override intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[] {
-		return this.geometry.intersectPolyline(Mat.applyToPoints(this.inverse, polyline), filters)
+		return Mat.applyToPoints(
+			this.matrix,
+			this.geometry.intersectPolyline(Mat.applyToPoints(this.inverse, polyline), filters)
+		)
 	}
 
 	override transform(transform: MatModel): Geometry2d {

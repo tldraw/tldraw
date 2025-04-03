@@ -1,16 +1,12 @@
 import {
-	Arc2d,
 	Group2d,
 	StateNode,
 	TLArrowShape,
 	TLPointerEventInfo,
 	TLShapeId,
 	Vec,
-	exhaustiveSwitchError,
-	getPointInArcT,
 } from '@tldraw/editor'
-import { uninterpolateAlongElbowArrowRoute } from '../../../shapes/arrow/elbow/interpolateAlongElbowArrowRoute'
-import { getArrowInfo } from '../../../shapes/arrow/shared'
+import { arrowBodyGeometryCache } from '../../../shapes/arrow/arrowLabel'
 
 export class PointingArrowLabel extends StateNode {
 	static override id = 'pointing_arrow_label'
@@ -90,46 +86,13 @@ export class PointingArrowLabel extends StateNode {
 		const shape = this.editor.getShape<TLArrowShape>(this.shapeId)
 		if (!shape) return
 
-		const info = getArrowInfo(this.editor, shape)!
-
-		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
 		const pointInShapeSpace = this.editor
 			.getPointInShapeSpace(shape, this.editor.inputs.currentPagePoint)
 			.add(this._labelDragOffset)
 
-		let nextLabelPosition
-		switch (info.type) {
-			case 'straight': {
-				const nearestPoint = geometry.nearestPoint(pointInShapeSpace, {
-					includeInternal: false,
-					includeLabels: false,
-				})
-				const lineLength = Vec.Dist(info.start.point, info.end.point)
-				const segmentLength = Vec.Dist(info.end.point, nearestPoint)
-				nextLabelPosition = 1 - segmentLength / lineLength
-				break
-			}
-			case 'arc': {
-				const nearestPoint = geometry.nearestPoint(pointInShapeSpace, {
-					includeInternal: false,
-					includeLabels: false,
-				})
-				const { _center, measure, angleEnd, angleStart } = geometry.children[0] as Arc2d
-				nextLabelPosition = getPointInArcT(
-					measure,
-					angleStart,
-					angleEnd,
-					_center.angle(nearestPoint)
-				)
-				break
-			}
-			case 'elbow': {
-				nextLabelPosition = uninterpolateAlongElbowArrowRoute(info.route, pointInShapeSpace)
-				break
-			}
-			default:
-				exhaustiveSwitchError(info, 'type')
-		}
+		let nextLabelPosition = arrowBodyGeometryCache
+			.get(this.editor, shape.id)!
+			.uninterpolateAlongEdge(pointInShapeSpace)
 
 		if (isNaN(nextLabelPosition)) {
 			nextLabelPosition = 0.5
