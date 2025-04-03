@@ -213,7 +213,7 @@ export interface TldrawEditorBaseProps {
 	getShapeVisibility?(
 		shape: TLShape,
 		editor: Editor
-	): 'visible' | 'hidden' | 'inherit' | null | undefined | void
+	): 'visible' | 'hidden' | 'inherit' | null | undefined
 
 	/**
 	 * The URLs for the fonts to use in the editor.

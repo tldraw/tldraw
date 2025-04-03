@@ -3162,7 +3162,7 @@ export interface TldrawEditorBaseProps {
     className?: string;
     components?: TLEditorComponents;
     deepLinks?: TLDeepLinkOptions | true;
-    getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined | void;
+    getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
     inferDarkMode?: boolean;
     initialState?: string;
     // @deprecated
@@ -3347,7 +3347,7 @@ export interface TLEditorOptions {
         [key: string]: string | undefined;
     };
     getContainer(): HTMLElement;
-    getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined | void;
+    getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
     inferDarkMode?: boolean;
     initialState?: string;
     // @deprecated

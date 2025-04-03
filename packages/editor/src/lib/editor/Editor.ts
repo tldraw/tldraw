@@ -263,7 +263,7 @@ export interface TLEditorOptions {
 	getShapeVisibility?(
 		shape: TLShape,
 		editor: Editor
-	): 'visible' | 'hidden' | 'inherit' | null | undefined | void
+	): 'visible' | 'hidden' | 'inherit' | null | undefined
 }
 
 /**
