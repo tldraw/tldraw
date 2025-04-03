@@ -95,6 +95,6 @@ export class Arc2d extends Geometry2d {
 	}
 
 	override getLength() {
-		return this.measure * this.radius
+		return Math.abs(this.measure * this.radius)
 	}
 }

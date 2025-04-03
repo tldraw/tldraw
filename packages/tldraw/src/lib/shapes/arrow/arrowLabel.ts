@@ -5,6 +5,7 @@ import {
 	Edge2d,
 	Editor,
 	Geometry2d,
+	Group2d,
 	Polygon2d,
 	Polyline2d,
 	TLArrowShape,
@@ -27,11 +28,10 @@ import {
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
 import { getArrowLength } from './ArrowShapeUtil'
-import { TLArcArrowInfo, TLElbowArrowInfo, TLStraightArrowInfo } from './arrow-types'
-import { interpolateAlongElbowArrowRoute } from './elbow/interpolateAlongElbowArrowRoute'
+import { TLArcArrowInfo, TLArrowInfo, TLElbowArrowInfo, TLStraightArrowInfo } from './arrow-types'
 import { getArrowInfo } from './shared'
 
-const arrowBodyGeometryCache = createComputedCache(
+export const arrowBodyGeometryCache = createComputedCache(
 	'arrow body geometry',
 	(editor: Editor, shape: TLArrowShape) => {
 		const info = getArrowInfo(editor, shape)!
@@ -179,13 +179,70 @@ function getStraightArrowLabelRange(
  * Return the range of possible label positions for an arrow. The full possible range is 0 to 1, but
  * as the label itself takes up space the usable range is smaller.
  */
-function getArrowLabelRange(editor: Editor, shape: TLArrowShape, info: TLArcArrowInfo) {
+function getArrowLabelRange(editor: Editor, shape: TLArrowShape, info: TLArrowInfo) {
 	const bodyGeom = arrowBodyGeometryCache.get(editor, shape.id)!
+	const dbg: Geometry2d[] = [new Group2d({ children: [bodyGeom], debugColor: 'lime' })]
 
 	const labelSize = getArrowLabelSize(editor, shape)
 	const labelToArrowPadding = getLabelToArrowPadding(shape)
+	const paddingAmount = labelToArrowPadding / bodyGeom.length
+	console.log({ paddingAmount, length: bodyGeom.length })
 
-	// we can calculate the range by sticking the center of the label at the very start/end of the arrow, and seeing where the label intersects with the arrow.
+	// we can calculate the range by sticking the center of the label at the very start/end of the
+	// arrow, and seeing where the label intersects with the arrow. Then, if we move the label's
+	// center to that point, that'll be the start/end of the range.
+	const startPosition = bodyGeom.interpolateAlongEdge(paddingAmount)
+	const endPosition = bodyGeom.interpolateAlongEdge(1 - paddingAmount)
+
+	const startIntersections = bodyGeom.intersectPolygon(
+		Box.FromCenter(startPosition, labelSize).corners
+	)
+	const endIntersections = bodyGeom.intersectPolygon(Box.FromCenter(endPosition, labelSize).corners)
+
+	for (const pt of [
+		...(startIntersections ?? []),
+		...(endIntersections ?? []),
+		startPosition,
+		endPosition,
+	]) {
+		dbg.push(
+			new Circle2d({
+				x: pt.x - 3,
+				y: pt.y - 3,
+				radius: 3,
+				isFilled: false,
+				debugColor: 'magenta',
+				ignore: true,
+			})
+		)
+	}
+	dbg.push(
+		new Polygon2d({
+			points: Box.FromCenter(startPosition, labelSize).corners,
+			debugColor: 'lime',
+			isFilled: false,
+			ignore: true,
+		}),
+		new Polygon2d({
+			points: Box.FromCenter(endPosition, labelSize).corners,
+			debugColor: 'lime',
+			isFilled: false,
+			ignore: true,
+		})
+	)
+
+	const startConstrained = furthest(info.start.point, startIntersections)
+	const endConstrained = furthest(info.end.point, endIntersections)
+
+	let startT = startConstrained ? bodyGeom.uninterpolateAlongEdge(startConstrained) : 0.5
+	let endT = endConstrained ? bodyGeom.uninterpolateAlongEdge(endConstrained) : 0.5
+
+	if (startT > endT) {
+		startT = 0.5
+		endT = 0.5
+	}
+
+	return { start: startT, end: endT, dbg }
 }
 
 /**
@@ -307,7 +364,6 @@ interface ArrowheadInfo {
 	hasEndArrowhead: boolean
 }
 export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
-	let labelCenter
 	const debugGeom: Geometry2d[] = []
 	const info = getArrowInfo(editor, shape)!
 
@@ -317,35 +373,39 @@ export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
 		hasStartArrowhead: info.start.arrowhead !== 'none',
 		hasEndArrowhead: info.end.arrowhead !== 'none',
 	}
-	switch (info.type) {
-		case 'straight': {
-			const range = getStraightArrowLabelRange(editor, shape, info)
-			const clampedPosition = getClampedPosition(editor, shape, range, arrowheadInfo)
-			labelCenter = Vec.Lrp(info.start.point, info.end.point, clampedPosition)
-			break
-		}
-		case 'arc': {
-			const range = getCurvedArrowLabelRange(editor, shape, info)
-			if (range.dbg) debugGeom.push(...range.dbg)
-			const clampedPosition = getClampedPosition(editor, shape, range, arrowheadInfo)
-			const labelAngle = interpolateArcAngles(
-				Vec.Angle(info.bodyArc.center, info.start.point),
-				Vec.Angle(info.bodyArc.center, info.end.point),
-				Math.sign(shape.props.bend),
-				clampedPosition
-			)
-			labelCenter = getPointOnCircle(info.bodyArc.center, info.bodyArc.radius, labelAngle)
-			break
-		}
-		case 'elbow': {
-			const range = getElbowArrowLabelRange(editor, shape, info)
-			const clampedPosition = getClampedPosition(editor, shape, range, arrowheadInfo)
-			labelCenter = interpolateAlongElbowArrowRoute(info.route, clampedPosition)
-			break
-		}
-		default:
-			exhaustiveSwitchError(info, 'type')
-	}
+
+	const range = getArrowLabelRange(editor, shape, info)
+	if (range.dbg) debugGeom.push(...range.dbg)
+
+	const clampedPosition = getClampedPosition(editor, shape, range, arrowheadInfo)
+	const bodyGeom = arrowBodyGeometryCache.get(editor, shape.id)!
+	console.log({ clampedPosition })
+	const labelCenter = bodyGeom.interpolateAlongEdge(clampedPosition)
+
+	// switch (info.type) {
+	// 	case 'straight': {
+	// 		labelCenter = Vec.Lrp(info.start.point, info.end.point, clampedPosition)
+	// 		break
+	// 	}
+	// 	case 'arc': {
+	// 		const clampedPosition = getClampedPosition(editor, shape, range, arrowheadInfo)
+	// 		const labelAngle = interpolateArcAngles(
+	// 			Vec.Angle(info.bodyArc.center, info.start.point),
+	// 			Vec.Angle(info.bodyArc.center, info.end.point),
+	// 			Math.sign(shape.props.bend),
+	// 			clampedPosition
+	// 		)
+	// 		labelCenter = getPointOnCircle(info.bodyArc.center, info.bodyArc.radius, labelAngle)
+	// 		break
+	// 	}
+	// 	case 'elbow': {
+	// 		const clampedPosition = getClampedPosition(editor, shape, range, arrowheadInfo)
+	// 		labelCenter = interpolateAlongElbowArrowRoute(info.route, clampedPosition)
+	// 		break
+	// 	}
+	// 	default:
+	// 		exhaustiveSwitchError(info, 'type')
+	// }
 
 	const labelSize = getArrowLabelSize(editor, shape)
 
