@@ -49,3 +49,34 @@ describe('When panning', () => {
 		)
 	})
 })
+
+describe('When in the Hand tool...', () => {
+	beforeEach(() => {
+		editor.setCurrentTool('hand')
+		editor.setCamera({ x: 10, y: 10, z: 1 })
+	})
+
+	it('nudges camera', () => {
+		editor.keyDown('ArrowUp')
+		expect(editor.getCamera()).toMatchObject({ x: 10, y: 9 })
+	})
+
+	it('nudges camera more with Shift key', () => {
+		editor.keyDown('Shift')
+		editor.keyDown('ArrowUp')
+		editor.keyUp('ArrowUp')
+
+		expect(editor.getCamera()).toMatchObject({ x: 10, y: 0 })
+	})
+
+	it('nudges camera and holds', () => {
+		editor.keyDown('ArrowUp')
+		editor.keyRepeat('ArrowUp')
+		editor.keyRepeat('ArrowUp')
+		editor.keyRepeat('ArrowUp')
+		editor.keyRepeat('ArrowUp')
+		editor.keyUp('ArrowUp')
+
+		expect(editor.getCamera()).toMatchObject({ x: 10, y: 5 })
+	})
+})
