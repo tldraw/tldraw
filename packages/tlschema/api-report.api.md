@@ -605,6 +605,7 @@ export type ShapeWithCrop = TLBaseShape<string, {
     crop: null | TLShapeCrop;
     h: number;
     w: number;
+    zoom: number;
 }>;
 
 // @public
@@ -1119,6 +1120,8 @@ export interface TLImageShapeProps {
     // (undocumented)
     align: TLDefaultHorizontalAlignStyle;
     // (undocumented)
+    altText: string;
+    // (undocumented)
     assetId: null | TLAssetId;
     // (undocumented)
     color: TLDefaultColorStyle;
@@ -1148,6 +1151,8 @@ export interface TLImageShapeProps {
     verticalAlign: TLDefaultVerticalAlignStyle;
     // (undocumented)
     w: number;
+    // (undocumented)
+    zoom: number;
 }
 
 // @public
@@ -1461,6 +1466,8 @@ export interface TLShapeCrop {
     // (undocumented)
     bottomRight: VecModel;
     // (undocumented)
+    isCircle?: boolean;
+    // (undocumented)
     topLeft: VecModel;
 }
 
@@ -1545,6 +1552,8 @@ export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>;
 export interface TLVideoShapeProps {
     // (undocumented)
     align: TLDefaultHorizontalAlignStyle;
+    // (undocumented)
+    altText: string;
     // (undocumented)
     assetId: null | TLAssetId;
     // (undocumented)

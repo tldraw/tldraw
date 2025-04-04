@@ -4,22 +4,6 @@ import { vecModelValidator } from '../misc/geometry-types'
 import { TLAssetId } from '../records/TLAsset'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
-import {
-	DefaultColorStyle,
-	DefaultLabelColorStyle,
-	TLDefaultColorStyle,
-} from '../styles/TLColorStyle'
-import { DefaultFillStyle, TLDefaultFillStyle } from '../styles/TLFillStyle'
-import { DefaultFontStyle, TLDefaultFontStyle } from '../styles/TLFontStyle'
-import {
-	DefaultHorizontalAlignStyle,
-	TLDefaultHorizontalAlignStyle,
-} from '../styles/TLHorizontalAlignStyle'
-import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
-import {
-	DefaultVerticalAlignStyle,
-	TLDefaultVerticalAlignStyle,
-} from '../styles/TLVerticalAlignStyle'
 import { TLShapeCrop } from './ShapeWithCrop'
 import { TLBaseShape } from './TLBaseShape'
 
@@ -27,6 +11,7 @@ import { TLBaseShape } from './TLBaseShape'
 export const ImageShapeCrop: T.ObjectValidator<TLShapeCrop> = T.object({
 	topLeft: vecModelValidator,
 	bottomRight: vecModelValidator,
+	isCircle: T.boolean.optional(),
 })
 
 /** @public */
@@ -39,16 +24,8 @@ export interface TLImageShapeProps {
 	crop: TLShapeCrop | null
 	flipX: boolean
 	flipY: boolean
-
-	// Text properties
-	labelColor: TLDefaultColorStyle
-	color: TLDefaultColorStyle
-	fill: TLDefaultFillStyle
-	size: TLDefaultSizeStyle
-	font: TLDefaultFontStyle
-	align: TLDefaultHorizontalAlignStyle
-	verticalAlign: TLDefaultVerticalAlignStyle
-	text: string
+	zoom: number
+	altText: string
 }
 
 /** @public */
@@ -64,16 +41,8 @@ export const imageShapeProps: RecordProps<TLImageShape> = {
 	crop: ImageShapeCrop.nullable(),
 	flipX: T.boolean,
 	flipY: T.boolean,
-
-	// Text properties
-	labelColor: DefaultLabelColorStyle,
-	color: DefaultColorStyle,
-	fill: DefaultFillStyle,
-	size: DefaultSizeStyle,
-	font: DefaultFontStyle,
-	align: DefaultHorizontalAlignStyle,
-	verticalAlign: DefaultVerticalAlignStyle,
-	text: T.string,
+	zoom: T.nonZeroNumber,
+	altText: T.string,
 }
 
 const Versions = createShapePropsMigrationIds('image', {
@@ -81,7 +50,8 @@ const Versions = createShapePropsMigrationIds('image', {
 	AddCropProp: 2,
 	MakeUrlsValid: 3,
 	AddFlipProps: 4,
-	AddTextProps: 5,
+	AddZoomProp: 5,
+	AddAltText: 6,
 })
 
 export { Versions as imageShapeVersions }
@@ -128,26 +98,21 @@ export const imageShapeMigrations = createShapePropsMigrationSequence({
 			},
 		},
 		{
-			id: Versions.AddTextProps,
+			id: Versions.AddZoomProp,
 			up: (props) => {
-				props.color = 'black'
-				props.labelColor = 'black'
-				props.fill = 'none'
-				props.size = 'm'
-				props.font = 'draw'
-				props.text = ''
-				props.align = 'middle'
-				props.verticalAlign = 'middle'
+				props.zoom = 1
 			},
-			down: (_props) => {
-				delete _props.labelColor
-				delete _props.color
-				delete _props.fill
-				delete _props.size
-				delete _props.font
-				delete _props.align
-				delete _props.verticalAlign
-				delete _props.text
+			down: (props) => {
+				delete props.zoom
+			},
+		},
+		{
+			id: Versions.AddAltText,
+			up: (props) => {
+				props.altText = ''
+			},
+			down: (props) => {
+				delete props.altText
 			},
 		},
 	],

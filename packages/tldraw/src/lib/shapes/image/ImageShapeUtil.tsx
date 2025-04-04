@@ -1,14 +1,10 @@
 import {
 	BaseBoxShapeUtil,
-	Box,
-	EMPTY_ARRAY,
 	Editor,
 	FileHelpers,
-	Group2d,
 	HTMLContainer,
 	Image,
 	MediaHelpers,
-	Rectangle2d,
 	SvgExportContext,
 	TLAsset,
 	TLAssetId,
@@ -19,7 +15,6 @@ import {
 	Vec,
 	WeakCache,
 	fetch,
-	getDefaultColorTheme,
 	imageShapeMigrations,
 	imageShapeProps,
 	lerp,
@@ -31,21 +26,10 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { ReactElement, memo, useEffect, useState } from 'react'
-
+import { memo, useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { PlainTextLabel } from '../shared/PlainTextLabel'
-import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { getUncroppedSize } from '../shared/crop'
-import {
-	FONT_FAMILIES,
-	LABEL_FONT_SIZES,
-	LABEL_PADDING,
-	TEXT_PROPS,
-} from '../shared/default-shape-constants'
-import { DefaultFontFaces } from '../shared/defaultFonts'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
@@ -69,9 +53,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	override canCrop() {
 		return true
 	}
-	override canEdit() {
-		return true
-	}
 
 	override getDefaultProps(): TLImageShape['props'] {
 		return {
@@ -83,58 +64,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			crop: null,
 			flipX: false,
 			flipY: false,
-
-			// Text properties
-			color: 'black',
-			labelColor: 'black',
-			fill: 'none',
-			size: 'm',
-			font: 'draw',
-			text: '',
-			align: 'middle',
-			verticalAlign: 'middle',
+			altText: '',
+			zoom: 1,
 		}
-	}
-
-	override getText(shape: TLImageShape) {
-		return shape.props.text
-	}
-
-	override getFontFaces(shape: TLImageShape) {
-		if (!shape.props.text) return EMPTY_ARRAY
-		return [DefaultFontFaces[`tldraw_${shape.props.font}`].normal.normal]
-	}
-
-	override getGeometry(shape: TLImageShape) {
-		const children = [
-			new Rectangle2d({
-				width: shape.props.w,
-				height: shape.props.h,
-				isFilled: true,
-			}),
-		]
-
-		if (shape.props.text) {
-			const textDimensions = this.editor.textMeasure.measureText(shape.props.text, {
-				...TEXT_PROPS,
-				fontFamily: FONT_FAMILIES[shape.props.font],
-				fontSize: LABEL_FONT_SIZES[shape.props.size],
-				maxWidth: shape.props.w - LABEL_PADDING * 2,
-			})
-
-			children.push(
-				new Rectangle2d({
-					x: 0,
-					y: shape.props.h + LABEL_PADDING,
-					width: shape.props.w,
-					height: textDimensions.h,
-					isFilled: true,
-					isLabel: true,
-				})
-			)
-		}
-
-		return new Group2d({ children })
 	}
 
 	override onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>) {
@@ -173,6 +105,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				x: flipCropHorizontally ? 1 - topLeft.x : bottomRight.x,
 				y: flipCropVertically ? 1 - topLeft.y : bottomRight.y,
 			},
+			isCircle: shape.props.crop.isCircle,
 		}
 		return resized
 	}
@@ -220,32 +153,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		if (!src) return null
 
-		let textEl
-		if (props.text) {
-			const theme = getDefaultColorTheme(ctx)
-
-			const textDimensions = this.editor.textMeasure.measureText(props.text, {
-				...TEXT_PROPS,
-				fontFamily: FONT_FAMILIES[props.font],
-				fontSize: LABEL_FONT_SIZES[props.size],
-				maxWidth: props.w - LABEL_PADDING * 2,
-			})
-			const bounds = new Box(0, props.h + LABEL_PADDING, props.w, textDimensions.h)
-			textEl = (
-				<SvgTextLabel
-					fontSize={LABEL_FONT_SIZES[props.size]}
-					font={props.font}
-					align={props.align}
-					verticalAlign={props.verticalAlign}
-					text={props.text}
-					labelColor={theme[props.labelColor].solid}
-					bounds={bounds}
-					padding={LABEL_PADDING}
-				/>
-			)
-		}
-
-		return <SvgImage shape={shape} src={src} textEl={textEl} />
+		return <SvgImage shape={shape} src={src} />
 	}
 
 	override onDoubleClickEdge(shape: TLImageShape) {
@@ -310,13 +218,13 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			w: lerp(startShape.props.w, endShape.props.w, t),
 			h: lerp(startShape.props.h, endShape.props.h, t),
 			crop: interpolateCrop(startShape, endShape),
+			zoom: lerp(startShape.props.zoom, endShape.props.zoom, t),
 		}
 	}
 }
 
 const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) {
 	const editor = useEditor()
-	const theme = useDefaultColorTheme()
 
 	const { w } = getUncroppedSize(shape.props, shape.props.crop)
 	const { asset, url } = useImageOrVideoAsset({
@@ -328,7 +236,6 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 	const prefersReducedMotion = usePrefersReducedMotion()
 	const [staticFrameSrc, setStaticFrameSrc] = useState('')
 	const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
-	const isSelected = shape.id === editor.getOnlySelectedShapeId()
 	const isAnimated = asset && getIsAnimated(editor, asset.id)
 
 	useEffect(() => {
@@ -392,7 +299,6 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 	// We don't set crossOrigin for non-animated images because for Cloudflare we don't currently
 	// have that set up.
 	const crossOrigin = isAnimated ? 'anonymous' : undefined
-	const { fill, font, align, verticalAlign, size, text, color: labelColor } = shape.props
 
 	return (
 		<>
@@ -405,12 +311,18 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 						src={loadedSrc}
 						referrerPolicy="strict-origin-when-cross-origin"
 						draggable={false}
+						alt={shape.props.altText}
 					/>
 				</div>
 			)}
 			<HTMLContainer
 				id={shape.id}
-				style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
+				style={{
+					overflow: 'hidden',
+					width: shape.props.w,
+					height: shape.props.h,
+					borderRadius: shape.props.crop?.isCircle ? '50%' : undefined,
+				}}
 			>
 				<div className={classNames('tl-image-container')} style={containerStyle}>
 					{/* We have two images: the currently loaded image, and the next image that
@@ -428,6 +340,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 							src={loadedSrc}
 							referrerPolicy="strict-origin-when-cross-origin"
 							draggable={false}
+							alt={shape.props.altText}
 						/>
 					)}
 					{nextSrc && (
@@ -439,28 +352,13 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 							src={nextSrc}
 							referrerPolicy="strict-origin-when-cross-origin"
 							draggable={false}
+							alt={shape.props.altText}
 							onLoad={() => setLoadedUrl(nextSrc)}
 						/>
 					)}
 				</div>
 				{shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</HTMLContainer>
-
-			<PlainTextLabel
-				shapeId={shape.id}
-				type={shape.type}
-				font={font}
-				fontSize={LABEL_FONT_SIZES[size]}
-				lineHeight={TEXT_PROPS.lineHeight}
-				padding={LABEL_PADDING}
-				fill={fill}
-				align={align}
-				verticalAlign={verticalAlign}
-				text={text}
-				isSelected={isSelected}
-				labelColor={theme[labelColor].solid}
-				wrap
-			/>
 		</>
 	)
 })
@@ -505,12 +403,31 @@ function getCroppedContainerStyle(shape: TLImageShape) {
 }
 
 function getFlipStyle(shape: TLImageShape, size?: { width: number; height: number }) {
-	const { flipX, flipY } = shape.props
-	if (!flipX && !flipY) return undefined
+	const { flipX, flipY, zoom, crop } = shape.props
+	if (!flipX && !flipY && zoom === 1) return undefined
 
-	const scale = `scale(${flipX ? -1 : 1}, ${flipY ? -1 : 1})`
+	let cropOffsetX
+	let cropOffsetY
+	if (crop) {
+		// We have to do all this extra math because of the whole transform origin around 0,0
+		// instead of center in SVG-land, ugh.
+		const { w, h } = getUncroppedSize(shape.props, crop)
+		const xCropSize = crop.bottomRight.x - crop.topLeft.x
+		const yCropSize = crop.bottomRight.y - crop.topLeft.y
+		const min = 0.5 * (shape.props.zoom - 1)
+		const max = min * -1
+		const xMinWithCrop = min + (1 - xCropSize)
+		const yMinWithCrop = min + (1 - yCropSize)
+		const xPositionScaled = 1 - (crop.topLeft.x - xMinWithCrop) / (max - xMinWithCrop)
+		const yPositionScaled = 1 - (crop.topLeft.y - yMinWithCrop) / (max - yMinWithCrop)
+		cropOffsetX = xPositionScaled * (w * zoom - shape.props.w)
+		cropOffsetY = yPositionScaled * (h * zoom - shape.props.h)
+	}
+
+	const scale = `scale(${flipX ? -1 * zoom : zoom}, ${flipY ? -1 * zoom : zoom})`
 	const translate = size
-		? `translate(${flipX ? size.width : 0}px, ${flipY ? size.height : 0}px)`
+		? `translate(${(flipX ? size.width * zoom : 0) - (cropOffsetX ? cropOffsetX : 0)}px,
+		             ${(flipY ? size.height * zoom : 0) - (cropOffsetY ? cropOffsetY : 0)}px)`
 		: ''
 
 	return {
@@ -520,15 +437,7 @@ function getFlipStyle(shape: TLImageShape, size?: { width: number; height: numbe
 	}
 }
 
-function SvgImage({
-	shape,
-	src,
-	textEl,
-}: {
-	shape: TLImageShape
-	src: string
-	textEl: ReactElement | undefined
-}) {
+function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
 	const cropClipId = useUniqueSafeId()
 	const containerStyle = getCroppedContainerStyle(shape)
 	const crop = shape.props.crop
@@ -551,7 +460,16 @@ function SvgImage({
 			<>
 				<defs>
 					<clipPath id={cropClipId}>
-						<polygon points={points.map((p) => `${p.x},${p.y}`).join(' ')} />
+						{crop.isCircle ? (
+							<ellipse
+								cx={croppedWidth / 2}
+								cy={croppedHeight / 2}
+								rx={croppedWidth / 2}
+								ry={croppedHeight / 2}
+							/>
+						) : (
+							<polygon points={points.map((p) => `${p.x},${p.y}`).join(' ')} />
+						)}
 					</clipPath>
 				</defs>
 				<g clipPath={`url(#${cropClipId})`}>
@@ -559,27 +477,19 @@ function SvgImage({
 						href={src}
 						width={width}
 						height={height}
-						style={
-							flip
-								? { ...flip, transform: `${cropTransform} ${flip.transform}` }
-								: { transform: cropTransform }
-						}
+						style={flip ? { ...flip } : { transform: cropTransform }}
 					/>
 				</g>
-				{textEl}
 			</>
 		)
 	} else {
 		return (
-			<>
-				<image
-					href={src}
-					width={shape.props.w}
-					height={shape.props.h}
-					style={getFlipStyle(shape, { width: shape.props.w, height: shape.props.h })}
-				/>
-				{textEl}
-			</>
+			<image
+				href={src}
+				width={shape.props.w}
+				height={shape.props.h}
+				style={getFlipStyle(shape, { width: shape.props.w, height: shape.props.h })}
+			/>
 		)
 	}
 }
