@@ -5,16 +5,17 @@ import {
 	PencilIcon,
 } from '@heroicons/react/24/solid'
 import { Section } from './section'
-import { SectionHeading } from './section-heading'
+import { SectionSubtitle } from './section-description'
+import { SectionTitle } from './section-title'
 
 export function DetailsSection() {
 	return (
 		<Section>
-			<SectionHeading
-				subheading="details"
-				heading="Beautiful software"
-				description="Thousands of carefully considered details that turn canvas conventions into best-in-class user experience."
-			/>
+			<SectionTitle>Very good</SectionTitle>
+			<SectionSubtitle>
+				Thousands of carefully considered details that turn canvas conventions into best-in-class
+				user experience.
+			</SectionSubtitle>
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 px-5">
 				{details.map(({ icon, heading, description }, index) => {
 					const Icon = icon
