@@ -102,6 +102,49 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			return editor.isIn('select') && editor.getSelectedShapeIds().length > 0
 		}
 
+		function scaleShapes(scaleFactor: number) {
+			if (!canApplySelectionAction()) return
+			if (mustGoBackToSelectToolFirst()) return
+
+			editor.markHistoryStoppingPoint('resize shapes')
+
+			const selectedShapeIds = editor.getSelectedShapeIds()
+			if (selectedShapeIds.length === 0) return
+
+			editor.run(() => {
+				// Get the selected shapes
+				const shapes = selectedShapeIds.map((id) => editor.getShape(id)).filter(Boolean)
+
+				// Update each shape
+				shapes.forEach((shape) => {
+					if (!shape) return
+
+					// Get current bounds
+					const bounds = editor.getShapePageBounds(shape.id)
+					if (!bounds) return
+					if (!('w' in shape.props) || !('h' in shape.props)) return
+
+					// Don't make it too small.
+					if (shape.props.w < 32 || shape.props.h < 32) return
+
+					// Calculate new width and height
+					const newWidth = shape.props.w * scaleFactor
+					const newHeight = shape.props.h * scaleFactor
+
+					// Update the shape's width and height properties
+					editor.updateShape({
+						id: shape.id,
+						type: shape.type,
+						props: {
+							...shape.props,
+							w: newWidth,
+							h: newHeight,
+						},
+					})
+				})
+			})
+		}
+
 		const actionItems: TLUiActionItem<TLUiTranslationKey, TLUiIconType>[] = [
 			{
 				id: 'edit-link',
@@ -1476,6 +1519,22 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					editor.setCurrentPage(pages[currentPageIndex + 1].id)
 					trackEvent('change-page', { source, direction: 'next' })
+				},
+			},
+			{
+				id: 'embiggen-shapes',
+				kbd: '$!?=',
+				onSelect: async (source) => {
+					scaleShapes(1.1)
+					trackEvent('embiggen-shapes', { source })
+				},
+			},
+			{
+				id: 'emsmallen-shapes',
+				kbd: '$!?-',
+				onSelect: async (source) => {
+					scaleShapes(0.9)
+					trackEvent('emsmallen-shapes', { source })
 				},
 			},
 		]
