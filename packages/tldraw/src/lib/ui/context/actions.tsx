@@ -22,13 +22,16 @@ import {
 import * as React from 'react'
 import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
+import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { flattenShapesToImages } from '../hooks/useFlatten'
 import { useShowCollaborationUi } from '../hooks/useIsMultiplayer'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
+import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
 import { TLUiOverrideHelpers, useDefaultHelpers } from '../overrides'
+import { useA11y } from './a11y'
 import { TLUiEventSource, useUiEvents } from './events'
 
 /** @public */
@@ -80,6 +83,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const showCollaborationUi = useShowCollaborationUi()
 	const helpers = useDefaultHelpers()
 	const trackEvent = useUiEvents()
+	const a11y = useA11y()
+	const msg = useTranslation()
 
 	const defaultDocumentName = helpers.msg('document.default-name')
 
@@ -1478,6 +1483,27 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('change-page', { source, direction: 'next' })
 				},
 			},
+			{
+				id: 'a11y-repeat-shape-announce',
+				kbd: '?r',
+				onSelect: async (source) => {
+					const selectedShapeIds = editor.getSelectedShapeIds()
+					if (!selectedShapeIds.length) return
+					const a11yLive = generateShapeAnnouncementMessage({
+						editor,
+						selectedShapeIds,
+						msg,
+					})
+
+					if (a11yLive) {
+						a11y.announce({ msg: '' })
+						editor.timers.requestAnimationFrame(() => {
+							a11y.announce({ msg: a11yLive })
+						})
+						trackEvent('a11y-repeat-shape-announce', { source })
+					}
+				},
+			},
 		]
 
 		if (showCollaborationUi) {
@@ -1509,7 +1535,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		}
 
 		return actions
-	}, [helpers, _editor, trackEvent, overrides, defaultDocumentName, showCollaborationUi])
+	}, [helpers, _editor, trackEvent, overrides, defaultDocumentName, showCollaborationUi, msg, a11y])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
 }

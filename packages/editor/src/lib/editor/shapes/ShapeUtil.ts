@@ -448,11 +448,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 		return undefined
 	}
 
-	getAriaLiveText(_shape: Shape): string | undefined {
-		return undefined
-	}
-
-	getAriaAltText(_shape: Shape): string | undefined {
+	getAriaDescriptor(_shape: Shape): string | undefined {
 		return undefined
 	}
 

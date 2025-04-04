@@ -90,7 +90,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return { w: 160 * 2, h: 90 * 2, name: '', color: 'black' }
 	}
 
-	override getAriaAltText(shape: TLFrameShape) {
+	override getAriaDescriptor(shape: TLFrameShape) {
 		return shape.props.name
 	}
 

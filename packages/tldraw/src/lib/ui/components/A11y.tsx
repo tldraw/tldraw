@@ -4,9 +4,7 @@ import {
 	EffectScheduler,
 	throttle,
 	TLGeoShape,
-	TLImageShape,
 	TLShapeId,
-	TLVideoShape,
 	useContainer,
 	useEditor,
 	useMaybeEditor,
@@ -99,45 +97,32 @@ export function generateShapeAnnouncementMessage(args: {
 		if (!shape) return ''
 
 		const shapeUtil = editor.getShapeUtil(shape.type)
-		const altText = shapeUtil.getAriaAltText?.(shape) ?? ''
-		a11yLive = shapeUtil.getAriaLiveText?.(shape) ?? ''
 
-		if (!a11yLive) {
-			const isMedia = ['image', 'video'].includes(shape.type)
-			// Yeah, yeah this is a bit of a hack, we should get better translations.
-			let shapeType = ''
-			if (shape.type === 'geo') {
-				shapeType = msg(`geo-style.${(shape as TLGeoShape).props.geo}`)
-			} else if (isMedia) {
-				shapeType = msg(`a11y.shape-${shape.type}`)
-			} else {
-				shapeType = msg(`tool.${shape.type}`)
-			}
-
-			// Get shape index in reading order
-			const readingOrderShapes = editor.getCurrentPageShapesInReadingOrder()
-			const currentShapeIndex = (
-				readingOrderShapes.findIndex((s) => s.id === shapeId) + 1
-			).toString()
-			const totalShapes = readingOrderShapes.length.toString()
-			const shapeIndex = msg('a11y.shape-index')
-				.replace('{num}', currentShapeIndex)
-				.replace('{total}', totalShapes)
-
-			// Get describing text (alt text or shape text)
-			let describingText = ''
-			if (isMedia) {
-				describingText = (shape as TLImageShape | TLVideoShape).props.altText
-			} else if (altText) {
-				describingText = altText
-			} else {
-				describingText = shapeUtil.getText?.(shape) ?? ''
-			}
-			const textStr = describingText ? `, ${msg('a11y.text')}: ${describingText}` : ''
-
-			// Build the full announcement
-			a11yLive = `${shapeType}, ${msg('a11y.shape')}, ${shapeIndex}${textStr}`
+		const isMedia = ['image', 'video'].includes(shape.type)
+		// Yeah, yeah this is a bit of a hack, we should get better translations.
+		let shapeType = ''
+		if (shape.type === 'geo') {
+			shapeType = msg(`geo-style.${(shape as TLGeoShape).props.geo}`)
+		} else if (isMedia) {
+			shapeType = msg(`a11y.shape-${shape.type}`)
+		} else {
+			shapeType = msg(`tool.${shape.type}`)
 		}
+
+		// Get shape index in reading order
+		const readingOrderShapes = editor.getCurrentPageShapesInReadingOrder()
+		const currentShapeIndex = (readingOrderShapes.findIndex((s) => s.id === shapeId) + 1).toString()
+		const totalShapes = readingOrderShapes.length.toString()
+		const shapeIndex = msg('a11y.shape-index')
+			.replace('{num}', currentShapeIndex)
+			.replace('{total}', totalShapes)
+
+		// Get describing text (alt text or shape text)
+		const describingText =
+			shapeUtil.getAriaDescriptor(shape) || shapeUtil.getText(shape) || msg('a11y.shape-empty')
+
+		// Build the full announcement
+		a11yLive = `${describingText}, ${shapeType}. ${shapeIndex}`
 	}
 
 	return a11yLive

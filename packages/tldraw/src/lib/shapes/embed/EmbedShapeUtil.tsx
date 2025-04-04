@@ -56,7 +56,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return shape.props.url
 	}
 
-	override getAriaAltText(shape: TLEmbedShape) {
+	override getAriaDescriptor(shape: TLEmbedShape) {
 		const embedInfo = this.getEmbedDefinition(shape.props.url)
 		return embedInfo?.definition.title
 	}
