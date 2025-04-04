@@ -99,6 +99,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		elbowArrowPointSnapDistance: 24,
 		elbowArrowAxisSnapDistance: 16,
 
+		labelCenterSnapDistance: 10,
+
 		hoverPreciseTimeout: 600,
 		pointingPreciseTimeout: 320,
 	}

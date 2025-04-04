@@ -6,6 +6,7 @@ import {
 	TLShapeId,
 	Vec,
 } from '@tldraw/editor'
+import { ArrowShapeUtil } from '../../../shapes/arrow/ArrowShapeUtil'
 import { arrowBodyGeometryCache } from '../../../shapes/arrow/arrowLabel'
 
 export class PointingArrowLabel extends StateNode {
@@ -86,6 +87,10 @@ export class PointingArrowLabel extends StateNode {
 		const shape = this.editor.getShape<TLArrowShape>(this.shapeId)
 		if (!shape) return
 
+		const options = this.editor.getShapeUtil<ArrowShapeUtil>('arrow').options
+		const geometry = arrowBodyGeometryCache.get(this.editor, shape.id)!
+		const transform = this.editor.getShapePageTransform(shape.id)
+
 		const pointInShapeSpace = this.editor
 			.getPointInShapeSpace(shape, this.editor.inputs.currentPagePoint)
 			.add(this._labelDragOffset)
@@ -95,6 +100,18 @@ export class PointingArrowLabel extends StateNode {
 			.uninterpolateAlongEdge(pointInShapeSpace)
 
 		if (isNaN(nextLabelPosition)) {
+			nextLabelPosition = 0.5
+		}
+
+		const nextLabelPoint = transform.applyToPoint(geometry.interpolateAlongEdge(nextLabelPosition))
+		const labelCenterPoint = transform.applyToPoint(geometry.interpolateAlongEdge(0.5))
+
+		const distanceToLabelCenter = Vec.Dist2(nextLabelPoint, labelCenterPoint)
+
+		if (
+			distanceToLabelCenter <
+			(options.labelCenterSnapDistance / this.editor.getZoomLevel()) ** 2
+		) {
 			nextLabelPosition = 0.5
 		}
 

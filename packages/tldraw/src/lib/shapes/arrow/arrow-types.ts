@@ -16,6 +16,8 @@ export interface ArrowShapeOptions {
 	readonly elbowArrowPointSnapDistance: number
 	readonly elbowArrowAxisSnapDistance: number
 
+	readonly labelCenterSnapDistance: number
+
 	readonly hoverPreciseTimeout: number
 	readonly pointingPreciseTimeout: number
 }

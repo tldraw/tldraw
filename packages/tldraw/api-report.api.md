@@ -221,6 +221,8 @@ export interface ArrowShapeOptions {
     // (undocumented)
     readonly hoverPreciseTimeout: number;
     // (undocumented)
+    readonly labelCenterSnapDistance: number;
+    // (undocumented)
     readonly minArrowDistanceFromCorner: number;
     // (undocumented)
     readonly minElbowLegLength: Record<TLDefaultSizeStyle, number>;
