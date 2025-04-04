@@ -176,7 +176,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			{
 				id: 'asset',
-				label: 'tool.asset',
+				label: 'tool.media',
 				icon: 'tool-media',
 				kbd: '$u',
 				onSelect(source) {

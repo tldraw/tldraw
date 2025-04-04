@@ -2629,6 +2629,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     editor: Editor;
     // @internal (undocumented)
     expandSelectionOutlinePx(shape: Shape): Box | number;
+    // (undocumented)
+    getAriaDescriptor(_shape: Shape): string | undefined;
     getBoundsSnapGeometry(_shape: Shape): BoundsSnapGeometry;
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     abstract getDefaultProps(): Shape['props'];

@@ -26,7 +26,7 @@ export interface A11yProviderProps {
 
 /** @public @react */
 export function TldrawUiA11yProvider({ children }: A11yProviderProps) {
-	const currentMsg = useAtom<TLUiA11y>('a11y', { msg: '', priority: 'polite' })
+	const currentMsg = useAtom<TLUiA11y>('a11y', { msg: '', priority: 'assertive' })
 	const ctx = useContext(A11yContext)
 
 	const current = useMemo(

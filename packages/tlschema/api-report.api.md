@@ -1117,6 +1117,8 @@ export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>;
 // @public (undocumented)
 export interface TLImageShapeProps {
     // (undocumented)
+    altText: string;
+    // (undocumented)
     assetId: null | TLAssetId;
     // (undocumented)
     crop: null | TLShapeCrop;
@@ -1527,6 +1529,8 @@ export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>;
 
 // @public (undocumented)
 export interface TLVideoShapeProps {
+    // (undocumented)
+    altText: string;
     // (undocumented)
     assetId: null | TLAssetId;
     // (undocumented)
