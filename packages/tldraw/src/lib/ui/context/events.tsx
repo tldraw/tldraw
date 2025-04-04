@@ -114,6 +114,7 @@ export interface TLUiEventMap {
 	'emsmallen-shapes': null
 	'flatten-to-image': null
 	'open-url': { url: string }
+	'open-context-menu': null
 	'copy-link': null
 	'rich-text': {
 		operation:
