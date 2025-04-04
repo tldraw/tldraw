@@ -83,8 +83,8 @@ export const STYLES = {
 		{ value: 'heart', icon: 'geo-heart' },
 	],
 	arrowKind: [
-		{ value: 'bendy', icon: 'arrow-kind-bendy' },
-		{ value: 'elbow', icon: 'arrow-kind-elbow' },
+		{ value: 'bendy', icon: 'arrow-bendy' },
+		{ value: 'elbow', icon: 'arrow-elbow' },
 	],
 	arrowheadStart: [
 		{ value: 'none', icon: 'arrowhead-none' },

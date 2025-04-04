@@ -283,6 +283,7 @@ export {
 } from './lib/ui/components/Toolbar/DefaultToolbar'
 export {
 	ArrowDownToolbarItem,
+	ArrowElbowToolbarItem,
 	ArrowLeftToolbarItem,
 	ArrowRightToolbarItem,
 	ArrowToolbarItem,
@@ -302,6 +303,7 @@ export {
 	LaserToolbarItem,
 	LineToolbarItem,
 	NoteToolbarItem,
+	OctagonToolbarItem,
 	OvalToolbarItem,
 	RectangleToolbarItem,
 	RhombusToolbarItem,

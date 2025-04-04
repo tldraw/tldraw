@@ -1,4 +1,4 @@
-import { GeoShapeGeoStyle, useEditor, useValue } from '@tldraw/editor'
+import { ArrowShapeKindStyle, GeoShapeGeoStyle, useEditor, useValue } from '@tldraw/editor'
 import { TLUiToolItem, useTools } from '../../hooks/useTools'
 import { TldrawUiMenuToolItem } from '../primitives/menus/TldrawUiMenuToolItem'
 
@@ -14,26 +14,36 @@ export function DefaultToolbarContent() {
 			<TextToolbarItem />
 			<NoteToolbarItem />
 			<AssetToolbarItem />
+
 			<RectangleToolbarItem />
 			<EllipseToolbarItem />
 			<TriangleToolbarItem />
 			<DiamondToolbarItem />
+
 			<HexagonToolbarItem />
 			<OvalToolbarItem />
 			<RhombusToolbarItem />
-			<StarToolbarItem />
-			<CloudToolbarItem />
-			<HeartToolbarItem />
+			<TrapezoidToolbarItem />
+
+			<PentagonToolbarItem />
+			<OctagonToolbarItem />
 			<XBoxToolbarItem />
 			<CheckBoxToolbarItem />
+
 			<ArrowLeftToolbarItem />
 			<ArrowUpToolbarItem />
 			<ArrowDownToolbarItem />
 			<ArrowRightToolbarItem />
+
+			<StarToolbarItem />
+			<CloudToolbarItem />
+			<HeartToolbarItem />
+			<FrameToolbarItem />
+
+			<ArrowElbowToolbarItem />
 			<LineToolbarItem />
 			<HighlightToolbarItem />
 			<LaserToolbarItem />
-			<FrameToolbarItem />
 		</>
 	)
 }
@@ -42,14 +52,20 @@ export function DefaultToolbarContent() {
 export function useIsToolSelected(tool: TLUiToolItem) {
 	const editor = useEditor()
 	const geo = tool.meta?.geo
+	const arrowKind = tool.meta?.arrowKind
 	return useValue(
 		'is tool selected',
 		() => {
 			const activeToolId = editor.getCurrentToolId()
-			const geoState = editor.getSharedStyles().getAsKnownValue(GeoShapeGeoStyle)
-			return geo ? activeToolId === 'geo' && geoState === geo : activeToolId === tool.id
+			if (activeToolId === 'arrow') {
+				return arrowKind === editor.getSharedStyles().getAsKnownValue(ArrowShapeKindStyle)
+			} else if (activeToolId === 'geo') {
+				return geo === editor.getSharedStyles().getAsKnownValue(GeoShapeGeoStyle)
+			} else {
+				return activeToolId === tool.id
+			}
 		},
-		[editor, tool.id, geo]
+		[editor, tool.id, geo, arrowKind]
 	)
 }
 
@@ -88,6 +104,11 @@ export function EraserToolbarItem() {
 /** @public @react */
 export function ArrowToolbarItem() {
 	return <ToolbarItem tool="arrow" />
+}
+
+/** @public @react */
+export function ArrowElbowToolbarItem() {
+	return <ToolbarItem tool="arrow-elbow" />
 }
 
 /** @public @react */
@@ -138,6 +159,11 @@ export function RhombusToolbarItem() {
 /** @public @react */
 export function PentagonToolbarItem() {
 	return <ToolbarItem tool="pentagon" />
+}
+
+/** @public @react */
+export function OctagonToolbarItem() {
+	return <ToolbarItem tool="octagon" />
 }
 
 /** @public @react */

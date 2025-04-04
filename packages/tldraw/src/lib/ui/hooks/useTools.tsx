@@ -1,4 +1,4 @@
-import { Editor, GeoShapeGeoStyle, useMaybeEditor } from '@tldraw/editor'
+import { ArrowShapeKindStyle, Editor, GeoShapeGeoStyle, useMaybeEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { useA11y } from '../context/a11y'
@@ -139,9 +139,30 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				label: 'tool.arrow',
 				icon: 'tool-arrow',
 				kbd: 'a',
+				meta: {
+					arrowKind: 'bendy',
+				},
 				onSelect(source) {
-					editor.setCurrentTool('arrow')
-					onToolSelect(source, this)
+					editor.run(() => {
+						editor.setStyleForNextShapes(ArrowShapeKindStyle, 'bendy')
+						editor.setCurrentTool('arrow')
+						onToolSelect(source, this, 'arrow-bendy')
+					})
+				},
+			},
+			{
+				id: `arrow-elbow`,
+				label: `tool.arrow-elbow`,
+				meta: {
+					arrowKind: 'elbow',
+				},
+				icon: 'arrow-elbow',
+				onSelect(source: TLUiEventSource) {
+					editor.run(() => {
+						editor.setStyleForNextShapes(ArrowShapeKindStyle, 'elbow')
+						editor.setCurrentTool('arrow')
+						onToolSelect(source, this, 'arrow-elbow')
+					})
 				},
 			},
 			{
