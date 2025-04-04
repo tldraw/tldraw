@@ -150,6 +150,7 @@ const router = createRouter<Environment>()
 			)
 			return json(result)
 		} catch (e) {
+			console.error('Error processing push', e)
 			return new Response('Error', { status: 500 })
 		}
 	})
