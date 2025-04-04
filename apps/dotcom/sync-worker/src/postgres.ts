@@ -38,10 +38,10 @@ export function makePostgresConnector(env: Environment): PostgresSQL<any> {
 			return res.rows
 		},
 		begin(fn: (tx: PostgresTransaction) => Promise<any>): Promise<any> {
-			return db.transaction().execute(() =>
+			return db.transaction().execute((tx) =>
 				fn({
 					async unsafe(sqlString: string, params: unknown[]): Promise<any[]> {
-						const res = await db.executeQuery(CompiledQuery.raw(sqlString, params))
+						const res = await tx.executeQuery(CompiledQuery.raw(sqlString, params))
 						return res.rows
 					},
 				})
