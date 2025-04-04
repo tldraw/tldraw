@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { memo, useCallback } from 'react'
 import { useDialogs, useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
@@ -40,15 +41,21 @@ export const TlaSidebarCookieConsent = memo(function TlaSidebarCookieConsent() {
 				/>
 			</p>
 			<div className={styles.cookieButtons}>
-				<button className={styles.cookieButton} onClick={handleCustomize}>
+				<button
+					className={classNames('tla-button-text', styles.cookieButton)}
+					onClick={handleCustomize}
+				>
 					<F defaultMessage="Privacy settings" />
 				</button>
 				<div className={styles.cookieActions}>
-					<button className={styles.cookieButton} onClick={handleReject}>
+					<button
+						className={classNames('tla-button-text', styles.cookieButton)}
+						onClick={handleReject}
+					>
 						<F defaultMessage="Opt out" />
 					</button>
 					<button
-						className={`${styles.cookieButton} ${styles.acceptButton}`}
+						className={`${classNames('tla-button-text', styles.cookieButton)} ${styles.acceptButton}`}
 						onClick={handleAccept}
 					>
 						<F defaultMessage="Accept" />
