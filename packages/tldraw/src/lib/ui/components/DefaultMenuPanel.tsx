@@ -34,6 +34,7 @@ export const DefaultMenuPanel = memo(function MenuPanel() {
 				{PageMenu && !isSinglePageMode && <PageMenu />}
 				{showQuickActions ? (
 					<>
+						<span className="tlui-top-panel-separator">/</span>
 						{QuickActions && <QuickActions />}
 						{ActionsMenu && <ActionsMenu />}
 					</>
