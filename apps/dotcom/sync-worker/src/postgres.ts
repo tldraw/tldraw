@@ -1,5 +1,9 @@
+import type {
+	PostgresSQL,
+	PostgresTransaction,
+} from '@rocicorp/zero/out/zero-pg/src/postgres-connection'
 import { DB } from '@tldraw/dotcom-shared'
-import { Kysely, PostgresDialect } from 'kysely'
+import { CompiledQuery, Kysely, PostgresDialect } from 'kysely'
 import * as pg from 'pg'
 import { Environment } from './types'
 
@@ -23,4 +27,25 @@ export function createPostgresConnectionPool(env: Environment, name: string, max
 		log: ['error'],
 	})
 	return db
+}
+
+export function makePostgresConnector(env: Environment): PostgresSQL<any> {
+	const db = createPostgresConnectionPool(env, 'makePostgresConnector', 5)
+
+	return {
+		async unsafe(sqlString: string, params: unknown[]): Promise<any[]> {
+			const res = await db.executeQuery(CompiledQuery.raw(sqlString, params))
+			return res.rows
+		},
+		begin(fn: (tx: PostgresTransaction) => Promise<any>): Promise<any> {
+			return db.transaction().execute((tx) =>
+				fn({
+					async unsafe(sqlString: string, params: unknown[]): Promise<any[]> {
+						const res = await tx.executeQuery(CompiledQuery.raw(sqlString, params))
+						return res.rows
+					},
+				})
+			)
+		},
+	}
 }

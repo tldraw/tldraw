@@ -3,6 +3,7 @@ import { Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
 	CreateFilesResponseBody,
+	createMutators,
 	CreateSnapshotRequestBody,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
@@ -78,7 +79,7 @@ export class TldrawApp {
 
 	readonly id = appId++
 
-	readonly z: ZeroPolyfill | Zero<TlaSchema>
+	readonly z: ZeroPolyfill | Zero<TlaSchema, ReturnType<typeof createMutators>>
 
 	private readonly user$: Signal<TlaUser | undefined>
 	private readonly files$: Signal<TlaFile[]>
@@ -126,11 +127,12 @@ export class TldrawApp {
 	) {
 		const sessionId = uniqueId()
 		this.z = useProperZero
-			? new Zero({
+			? new Zero<TlaSchema, ReturnType<typeof createMutators>>({
 					auth: getToken,
 					userID: userId,
 					schema: zeroSchema,
 					server: ZERO_SERVER,
+					mutators: createMutators(userId),
 					onUpdateNeeded(reason) {
 						console.error('update needed', reason)
 						onClientTooOld()
@@ -138,7 +140,7 @@ export class TldrawApp {
 					kvStore: window.navigator.webdriver ? 'mem' : 'idb',
 				})
 			: new ZeroPolyfill({
-					// userID: userId,
+					userId,
 					// auth: encodedJWT,
 					getUri: async () => {
 						const params = new URLSearchParams({
@@ -279,11 +281,9 @@ export class TldrawApp {
 				Object.entries(others).filter(([_, value]) => value !== null)
 			) as Partial<TLUserPreferences>
 
-			this.z.mutateBatch((tx) => {
-				tx.user.update({
-					id: user.id,
-					...(nonNull as any),
-				})
+			this.z.mutate.user.update({
+				id: user.id,
+				...(nonNull as any),
 			})
 		},
 	})
@@ -406,19 +406,17 @@ export class TldrawApp {
 				Object.assign(file, { name: this.getFallbackFileName(file.createdAt) })
 			}
 		}
-		this.z.mutateBatch((tx) => {
-			tx.file.upsert(file)
-			tx.file_state.upsert({
-				isFileOwner: true,
-				fileId: file.id,
-				userId: this.userId,
-				firstVisitAt: null,
-				isPinned: false,
-				lastEditAt: null,
-				lastSessionState: null,
-				lastVisitAt: null,
-			})
-		})
+		const fileState = {
+			isFileOwner: true,
+			fileId: file.id,
+			userId: this.userId,
+			firstVisitAt: null,
+			isPinned: false,
+			lastEditAt: null,
+			lastSessionState: null,
+			lastVisitAt: null,
+		}
+		this.z.mutate.file.insertWithFileState({ file, fileState })
 
 		return Result.ok({ file })
 	}
@@ -553,14 +551,10 @@ export class TldrawApp {
 	 */
 	async deleteOrForgetFile(fileId: string) {
 		const file = this.getFile(fileId)
+		if (!file) return
 
 		// Optimistic update, remove file and file states
-		return this.z.mutateBatch((tx) => {
-			tx.file_state.delete({ fileId, userId: this.userId })
-			if (file?.ownerId === this.userId) {
-				tx.file.update({ ...this.getFilePk(fileId), isDeleted: true })
-			}
-		})
+		this.z.mutate.file.deleteOrForget(file)
 	}
 
 	/**
@@ -626,7 +620,7 @@ export class TldrawApp {
 				// overwritten by postgres
 				isFileOwner: this.isFileOwner(fileId),
 			}
-			this.z.mutate.file_state.upsert(fs)
+			this.z.mutate.file_state.insert(fs)
 		}
 	}
 

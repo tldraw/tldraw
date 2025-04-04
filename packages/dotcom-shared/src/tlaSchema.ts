@@ -3,9 +3,7 @@ import {
 	createSchema,
 	definePermissions,
 	ExpressionBuilder,
-	NOBODY_CAN,
 	number,
-	PermissionRule,
 	PermissionsConfig,
 	relationships,
 	Row,
@@ -122,14 +120,20 @@ export interface TlaUserMutationNumber {
 	mutationNumber: number
 }
 
-const immutableColumns: Record<string, Set<string>> = {
-	user: new Set<keyof TlaUser>(['id', 'email', 'createdAt', 'avatar']),
-	file: new Set<keyof TlaFile>(['id', 'ownerId', 'createdAt']),
-	file_state: new Set<keyof TlaFileState>(['userId', 'fileId', 'firstVisitAt', 'isFileOwner']),
-}
+export const immutableColumns = {
+	user: new Set<keyof TlaUser>(['email', 'createdAt', 'updatedAt', 'avatar']),
+	file: new Set<keyof TlaFile>([
+		'ownerName',
+		'ownerAvatar',
+		'createSource',
+		'updatedAt',
+		'createdAt',
+	]),
+	file_state: new Set<keyof TlaFileState>(['firstVisitAt', 'isFileOwner']),
+} as const
 
 export function isColumnMutable(tableName: keyof typeof immutableColumns, column: string) {
-	return !immutableColumns[tableName].has(column)
+	return !immutableColumns[tableName].has(column as never)
 }
 
 export interface TlaAsset {
@@ -159,19 +163,9 @@ interface AuthData {
 	sub: string | null
 }
 
-const NO_UPDATE = {
-	update: {
-		preMutation: NOBODY_CAN,
-		postMutation: NOBODY_CAN,
-	},
-} as const
-
 export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => {
 	const allowIfIsUser = (authData: AuthData, { cmp }: ExpressionBuilder<TlaSchema, 'user'>) =>
 		cmp('id', '=', authData.sub!)
-
-	const allowIfFileOwner = (authData: AuthData, { cmp }: ExpressionBuilder<TlaSchema, 'file'>) =>
-		cmp('ownerId', '=', authData.sub!)
 
 	const allowIfIsUserIdMatches = (
 		authData: AuthData,
@@ -190,62 +184,20 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 			)
 		)
 
-	const disallowIfDeleted = (_authData: AuthData, { cmp }: ExpressionBuilder<TlaSchema, 'file'>) =>
-		cmp('isDeleted', '=', false)
-
-	function and<TTable extends keyof TlaSchema['tables']>(
-		...rules: PermissionRule<AuthData, TlaSchema, TTable>[]
-	): PermissionRule<AuthData, TlaSchema, TTable> {
-		return (authData, eb) => eb.and(...rules.map((rule) => rule(authData, eb)))
-	}
-
 	return {
 		user: {
 			row: {
 				select: [allowIfIsUser],
-				insert: [allowIfIsUser],
-				update: {
-					preMutation: [allowIfIsUser],
-					postMutation: [allowIfIsUser],
-				},
-			},
-			cell: {
-				email: NO_UPDATE,
-				createdAt: NO_UPDATE,
-				updatedAt: NO_UPDATE,
-				avatar: NO_UPDATE,
 			},
 		},
 		file: {
 			row: {
 				select: [userCanAccessFile],
-				insert: [allowIfFileOwner],
-				update: {
-					preMutation: [and(allowIfFileOwner, disallowIfDeleted)],
-					postMutation: [allowIfFileOwner],
-				},
-			},
-			cell: {
-				createdAt: NO_UPDATE,
-				ownerName: NO_UPDATE,
-				ownerAvatar: NO_UPDATE,
-				createSource: NO_UPDATE,
-				updatedAt: NO_UPDATE,
 			},
 		},
 		file_state: {
 			row: {
 				select: [allowIfIsUserIdMatches],
-				insert: [allowIfIsUserIdMatches],
-				update: {
-					preMutation: [allowIfIsUserIdMatches],
-					postMutation: [allowIfIsUserIdMatches],
-				},
-				delete: [allowIfIsUserIdMatches],
-			},
-			cell: {
-				isFileOwner: NO_UPDATE,
-				firstVisitAt: NO_UPDATE,
 			},
 		},
 	} satisfies PermissionsConfig<AuthData, TlaSchema>

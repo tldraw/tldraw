@@ -2,6 +2,7 @@
 export * from './OptimisticAppStore'
 export * from './constants'
 export { default as getLicenseKey } from './license'
+export * from './mutators'
 export * from './routes'
 export * from './tlaSchema'
 export * from './types'
