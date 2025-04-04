@@ -1,16 +1,11 @@
 import {
 	BaseBoxShapeUtil,
-	Box,
-	EMPTY_ARRAY,
-	Group2d,
 	HTMLContainer,
 	MediaHelpers,
-	Rectangle2d,
 	SvgExportContext,
 	TLAsset,
 	TLVideoShape,
 	WeakCache,
-	getDefaultColorTheme,
 	toDomPrecision,
 	useEditor,
 	useEditorComponents,
@@ -22,16 +17,6 @@ import classNames from 'classnames'
 import { ReactEventHandler, memo, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { PlainTextLabel } from '../shared/PlainTextLabel'
-import { SvgTextLabel } from '../shared/SvgTextLabel'
-import {
-	FONT_FAMILIES,
-	LABEL_FONT_SIZES,
-	LABEL_PADDING,
-	TEXT_PROPS,
-} from '../shared/default-shape-constants'
-import { DefaultFontFaces } from '../shared/defaultFonts'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
@@ -58,59 +43,8 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			time: 0,
 			playing: true,
 			url: '',
-
-			// Text properties
-			color: 'black',
-			labelColor: 'black',
-			fill: 'none',
-			size: 'm',
-			font: 'draw',
-			text: '',
 			altText: '',
-			align: 'middle',
-			verticalAlign: 'middle',
 		}
-	}
-
-	override getText(shape: TLVideoShape) {
-		return shape.props.text
-	}
-
-	override getFontFaces(shape: TLVideoShape) {
-		if (!shape.props.text) return EMPTY_ARRAY
-		return [DefaultFontFaces[`tldraw_${shape.props.font}`].normal.normal]
-	}
-
-	override getGeometry(shape: TLVideoShape) {
-		const children = [
-			new Rectangle2d({
-				width: shape.props.w,
-				height: shape.props.h,
-				isFilled: true,
-			}),
-		]
-
-		if (shape.props.text) {
-			const textDimensions = this.editor.textMeasure.measureText(shape.props.text, {
-				...TEXT_PROPS,
-				fontFamily: FONT_FAMILIES[shape.props.font],
-				fontSize: LABEL_FONT_SIZES[shape.props.size],
-				maxWidth: shape.props.w - LABEL_PADDING * 2,
-			})
-
-			children.push(
-				new Rectangle2d({
-					x: 0,
-					y: shape.props.h + LABEL_PADDING,
-					width: shape.props.w,
-					height: textDimensions.h,
-					isFilled: true,
-					isLabel: true,
-				})
-			)
-		}
-
-		return new Group2d({ children })
 	}
 
 	component(shape: TLVideoShape) {
@@ -137,37 +71,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 		if (!src) return null
 
-		let textEl
-		if (props.text) {
-			const theme = getDefaultColorTheme(ctx)
-
-			const textDimensions = this.editor.textMeasure.measureText(props.text, {
-				...TEXT_PROPS,
-				fontFamily: FONT_FAMILIES[props.font],
-				fontSize: LABEL_FONT_SIZES[props.size],
-				maxWidth: props.w - LABEL_PADDING * 2,
-			})
-			const bounds = new Box(0, props.h + LABEL_PADDING, props.w, textDimensions.h)
-			textEl = (
-				<SvgTextLabel
-					fontSize={LABEL_FONT_SIZES[props.size]}
-					font={props.font}
-					align={props.align}
-					verticalAlign={props.verticalAlign}
-					text={props.text}
-					labelColor={theme[props.labelColor].solid}
-					bounds={bounds}
-					padding={LABEL_PADDING}
-				/>
-			)
-		}
-
-		return (
-			<>
-				<image href={src} width={props.w} height={props.h} />
-				{textEl}
-			</>
-		)
+		return <image href={src} width={props.w} height={props.h} />
 	}
 }
 
@@ -177,7 +81,6 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 	const isEditing = useIsEditing(shape.id)
 	const prefersReducedMotion = usePrefersReducedMotion()
 	const { Spinner } = useEditorComponents()
-	const theme = useDefaultColorTheme()
 
 	const { asset, url } = useImageOrVideoAsset({
 		shapeId: shape.id,
@@ -213,9 +116,6 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 			video.currentTime = 0
 		}
 	}, [rVideo, prefersReducedMotion])
-
-	const { fill, font, align, verticalAlign, size, text, color: labelColor } = shape.props
-	const isSelected = shape.id === editor.getOnlySelectedShapeId()
 
 	return (
 		<>
@@ -269,22 +169,6 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 				</div>
 			</HTMLContainer>
 			{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
-
-			<PlainTextLabel
-				shapeId={shape.id}
-				type={shape.type}
-				font={font}
-				fontSize={LABEL_FONT_SIZES[size]}
-				lineHeight={TEXT_PROPS.lineHeight}
-				padding={LABEL_PADDING}
-				fill={fill}
-				align={align}
-				verticalAlign={verticalAlign}
-				text={text}
-				isSelected={isSelected}
-				labelColor={theme[labelColor].solid}
-				wrap
-			/>
 		</>
 	)
 })
