@@ -29,7 +29,7 @@ export function SkipToMainContent() {
 	return (
 		<TldrawUiButton
 			ref={button}
-			type="normal"
+			type="low"
 			tabIndex={1}
 			className="tl-skip-to-main-content"
 			onClick={handleNavigateToFirstShape}
