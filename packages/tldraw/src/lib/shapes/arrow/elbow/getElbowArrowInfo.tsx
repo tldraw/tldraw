@@ -286,8 +286,15 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 	const gapX = transformedB.minX - transformedA.maxX
 	const gapY = transformedB.minY - transformedA.maxY
 
-	const mx = gapX > options.minElbowLegLength * 2 ? transformedA.maxX + gapX / 2 : null
-	const my = gapY > options.minElbowLegLength * 2 ? transformedA.maxY + gapY / 2 : null
+	const customMidpoint = elbowArrowDebug.get().customMidpoint
+	const mx =
+		gapX > options.minElbowLegLength * 2
+			? lerp(expandedA.maxX, expandedB.minX, customMidpoint ? arrow.props.elbowMid.x : 0.5)
+			: null
+	const my =
+		gapY > options.minElbowLegLength * 2
+			? lerp(expandedA.maxY, expandedB.minY, customMidpoint ? arrow.props.elbowMid.y : 0.5)
+			: null
 
 	const edgesA: ElbowArrowBoxEdges = {
 		top: getUsableEdge(

@@ -6,6 +6,7 @@ import {
 	Editor,
 	Geometry2d,
 	Group2d,
+	IndexKey,
 	Polyline2d,
 	Rectangle2d,
 	SVGContainer,
@@ -25,11 +26,14 @@ import {
 	TLShapeUtilCanvasSvgDef,
 	Vec,
 	WeakCache,
+	approximately,
 	arrowShapeMigrations,
 	arrowShapeProps,
+	clamp,
 	debugFlags,
 	elbowArrowDebug,
 	getDefaultColorTheme,
+	invLerp,
 	lerp,
 	mapObjectMapValues,
 	maybeSnapToGrid,
@@ -56,6 +60,7 @@ import { getArrowLabelFontSize, getArrowLabelPosition } from './arrowLabel'
 import { updateArrowTargetState } from './arrowTargetState'
 import { getArrowheadPathForType } from './arrowheads'
 import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
+import { ElbowArrowAxes } from './elbow/definitions'
 import {
 	TLArrowBindings,
 	createOrUpdateArrowBinding,
@@ -65,10 +70,12 @@ import {
 	removeArrowBinding,
 } from './shared'
 
-enum ARROW_HANDLES {
-	START = 'start',
-	MIDDLE = 'middle',
-	END = 'end',
+enum ArrowHandles {
+	Start = 'start',
+	Middle = 'middle',
+	MiddleX = 'middleX',
+	MiddleY = 'middleY',
+	End = 'end',
 }
 
 /** @public */
@@ -148,6 +155,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override getDefaultProps(): TLArrowShape['props'] {
 		return {
 			kind: 'bendy',
+			elbowMid: { x: 0.5, y: 0.5 },
 			dash: 'draw',
 			size: 'm',
 			fill: 'none',
@@ -210,31 +218,68 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override getHandles(shape: TLArrowShape): TLHandle[] {
 		const info = getArrowInfo(this.editor, shape)!
 
-		return [
+		const handles: TLHandle[] = [
 			{
-				id: ARROW_HANDLES.START,
+				id: ArrowHandles.Start,
 				type: 'vertex',
-				index: 'a0',
+				index: 'a1' as IndexKey,
 				x: info.start.handle.x,
 				y: info.start.handle.y,
 			},
-			shape.props.kind === 'bendy' && (info.type === 'straight' || info.type === 'arc')
-				? {
-						id: ARROW_HANDLES.MIDDLE,
-						type: 'virtual',
-						index: 'a2',
-						x: info.middle.x,
-						y: info.middle.y,
-					}
-				: null,
 			{
-				id: ARROW_HANDLES.END,
+				id: ArrowHandles.End,
 				type: 'vertex',
-				index: 'a3',
+				index: 'a5' as IndexKey,
 				x: info.end.handle.x,
 				y: info.end.handle.y,
 			},
-		].filter(Boolean) as TLHandle[]
+		]
+
+		if (shape.props.kind === 'bendy' && (info.type === 'straight' || info.type === 'arc')) {
+			handles.push({
+				id: ArrowHandles.Middle,
+				type: 'virtual',
+				index: 'a3' as IndexKey,
+				x: info.middle.x,
+				y: info.middle.y,
+			})
+		}
+
+		if (
+			shape.props.kind === 'elbow' &&
+			info.type === 'elbow' &&
+			elbowArrowDebug.get().customMidpoint
+		) {
+			const xIndex = info.route.points.findIndex(
+				(p) => info.elbow.midX !== null && approximately(p.x, info.elbow.midX)
+			)
+			if (xIndex !== -1) {
+				const yCoord = lerp(info.route.points[xIndex].y, info.route.points[xIndex + 1].y, 0.5)
+				handles.push({
+					id: ArrowHandles.MiddleX,
+					type: 'vertex',
+					index: 'a2' as IndexKey,
+					x: info.route.points[xIndex].x,
+					y: yCoord,
+				})
+			}
+
+			const yIndex = info.route.points.findIndex(
+				(p) => info.elbow.midY !== null && approximately(p.y, info.elbow.midY)
+			)
+			if (yIndex !== -1) {
+				const xCoord = lerp(info.route.points[yIndex].x, info.route.points[yIndex + 1].x, 0.5)
+				handles.push({
+					id: ArrowHandles.MiddleY,
+					type: 'virtual',
+					index: 'a4' as IndexKey,
+					x: xCoord,
+					y: info.route.points[yIndex].y,
+				})
+			}
+		}
+
+		return handles
 	}
 
 	override getText(shape: TLArrowShape) {
@@ -245,10 +290,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		shape: TLArrowShape,
 		{ handle, isPrecise, isCreatingShape }: TLHandleDragInfo<TLArrowShape>
 	) {
-		const handleId = handle.id as ARROW_HANDLES
+		const handleId = handle.id as ArrowHandles
 		const bindings = getArrowBindings(this.editor, shape)
 
-		if (handleId === ARROW_HANDLES.MIDDLE) {
+		if (handleId === ArrowHandles.Middle) {
 			// Bending the arrow...
 			const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape, bindings)
 
@@ -265,13 +310,44 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			return { id: shape.id, type: shape.type, props: { bend } }
 		}
 
+		if (handleId === ArrowHandles.MiddleX || handleId === ArrowHandles.MiddleY) {
+			const info = getArrowInfo(this.editor, shape)
+			if (info?.type !== 'elbow') return
+
+			const shapeToPageTransform = this.editor.getShapePageTransform(shape.id)!
+			const handlePagePoint = shapeToPageTransform.applyToPoint(handle)
+			const axis = handleId === ArrowHandles.MiddleX ? ElbowArrowAxes.x : ElbowArrowAxes.y
+
+			const lo = info.elbow.A.expanded[axis.max]
+			const hi = info.elbow.B.expanded[axis.min]
+			const mid = lerp(lo, hi, 0.5)
+
+			const distance =
+				Vec.DistanceToLineSegment(
+					shapeToPageTransform.applyToPoint(axis.v(mid, 0)),
+					shapeToPageTransform.applyToPoint(axis.v(mid, 1)),
+					handlePagePoint,
+					false
+				) * this.editor.getZoomLevel()
+
+			const newMid = distance < 16 ? 0.5 : clamp(invLerp(lo, hi, handle[axis.self]), 0, 1)
+
+			return {
+				id: shape.id,
+				type: shape.type,
+				props: {
+					elbowMid: axis.v(newMid, shape.props.elbowMid[axis.cross]).toJson(),
+				},
+			}
+		}
+
 		// Start or end, pointing the arrow...
 
 		const update: TLShapePartial<TLArrowShape> = { id: shape.id, type: 'arrow', props: {} }
 
 		const currentBinding = bindings[handleId]
 
-		const otherHandleId = handleId === ARROW_HANDLES.START ? ARROW_HANDLES.END : ARROW_HANDLES.START
+		const otherHandleId = handleId === ArrowHandles.Start ? ArrowHandles.End : ArrowHandles.Start
 		const otherBinding = bindings[otherHandleId]
 
 		const targetInfo = updateArrowTargetState({
@@ -442,7 +518,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			})
 		}
 
-		for (const handleName of [ARROW_HANDLES.START, ARROW_HANDLES.END] as const) {
+		for (const handleName of [ArrowHandles.Start, ArrowHandles.End] as const) {
 			const binding = bindings[handleName]
 			if (!binding) continue
 
@@ -610,7 +686,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		handle: TLHandle
 	): TLShapePartial<TLArrowShape> | void {
 		switch (handle.id) {
-			case ARROW_HANDLES.START: {
+			case ArrowHandles.Start: {
 				return {
 					id: shape.id,
 					type: shape.type,
@@ -620,7 +696,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					},
 				}
 			}
-			case ARROW_HANDLES.END: {
+			case ArrowHandles.End: {
 				return {
 					id: shape.id,
 					type: shape.type,

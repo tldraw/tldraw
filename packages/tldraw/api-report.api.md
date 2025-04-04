@@ -287,12 +287,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     onEditEnd(shape: TLArrowShape): void;
     // (undocumented)
-    onHandleDrag(shape: TLArrowShape, { handle, isPrecise, isCreatingShape }: TLHandleDragInfo<TLArrowShape>): {
+    onHandleDrag(shape: TLArrowShape, { handle, isPrecise, isCreatingShape }: TLHandleDragInfo<TLArrowShape>): ({
         id: TLShapeId;
         meta?: Partial<JsonObject> | undefined;
         props?: Partial<TLArrowShapeProps> | undefined;
         type: "arrow";
-    } & Partial<Omit<TLArrowShape, "id" | "meta" | "props" | "type">>;
+    } & Partial<Omit<TLArrowShape, "id" | "meta" | "props" | "type">>) | undefined;
     // (undocumented)
     onResize(shape: TLArrowShape, info: TLResizeInfo<TLArrowShape>): {
         props: {

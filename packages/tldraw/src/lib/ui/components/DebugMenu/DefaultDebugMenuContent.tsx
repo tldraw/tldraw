@@ -222,6 +222,7 @@ export function DebugElbowArrowMenu() {
 		hintRotation,
 		hintBinding,
 		axisBinding,
+		customMidpoint,
 	} = useValue(elbowArrowDebug)
 	const editor = useEditor()
 
@@ -352,6 +353,15 @@ export function DebugElbowArrowMenu() {
 					value={axisBinding}
 					onChange={(value) => {
 						elbowArrowDebug.update((p) => ({ ...p, axisBinding: value }))
+					}}
+				/>
+
+				<TldrawUiMenuCheckboxItem
+					id="custom-midpoint"
+					label="Custom midpoint"
+					checked={customMidpoint}
+					onSelect={() => {
+						elbowArrowDebug.update((p) => ({ ...p, customMidpoint: !customMidpoint }))
 					}}
 				/>
 			</TldrawUiMenuGroup>

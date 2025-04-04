@@ -723,6 +723,8 @@ export interface TLArrowShapeProps {
     // (undocumented)
     dash: TLDefaultDashStyle;
     // (undocumented)
+    elbowMid: VecModel;
+    // (undocumented)
     end: VecModel;
     // (undocumented)
     fill: TLDefaultFillStyle;

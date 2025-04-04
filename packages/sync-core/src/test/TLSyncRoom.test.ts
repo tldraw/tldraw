@@ -66,6 +66,7 @@ const oldArrow: TLBaseShape<'arrow', Omit<TLArrowShapeProps, 'labelColor'>> = {
 	opacity: 1,
 	props: {
 		kind: 'bendy',
+		elbowMid: { x: 0.5, y: 0.5 },
 		dash: 'draw',
 		size: 'm',
 		fill: 'none',
