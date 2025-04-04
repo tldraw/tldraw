@@ -157,6 +157,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					arrowKind: 'elbow',
 				},
 				icon: 'arrow-elbow',
+				kbd: 'c', // "connector"
 				onSelect(source: TLUiEventSource) {
 					editor.run(() => {
 						editor.setStyleForNextShapes(ArrowShapeKindStyle, 'elbow')
