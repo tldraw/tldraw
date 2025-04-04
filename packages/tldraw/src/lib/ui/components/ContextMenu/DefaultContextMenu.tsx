@@ -20,6 +20,15 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 
 	const { Canvas } = useEditorComponents()
 
+	// When hitting `Escape` while the context menu is open, we want to prevent
+	// the default behavior of losing focus on the shape. Otherwise,
+	// it's pretty annoying from an accessibility perspective.
+	const preventEscapeFromLosingShapeFocus = useCallback((e: KeyboardEvent) => {
+		if (e.key === 'Escape') {
+			e.stopPropagation()
+		}
+	}, [])
+
 	const cb = useCallback(
 		(isOpen: boolean) => {
 			if (!isOpen) {
@@ -28,7 +37,16 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 				if (onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)) {
 					editor.setSelectedShapes([])
 				}
+
+				editor.timers.requestAnimationFrame(() => {
+					document.body.removeEventListener('keydown', preventEscapeFromLosingShapeFocus, {
+						capture: true,
+					})
+				})
 			} else {
+				document.body.addEventListener('keydown', preventEscapeFromLosingShapeFocus, {
+					capture: true,
+				})
 				// Weird route: selecting locked shapes on long press
 				if (editor.getInstanceState().isCoarsePointer) {
 					const selectedShapes = editor.getSelectedShapes()
@@ -56,7 +74,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 				}
 			}
 		},
-		[editor]
+		[editor, preventEscapeFromLosingShapeFocus]
 	)
 
 	const container = useContainer()
