@@ -857,13 +857,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 	private _isInAtomicOp = false
 	/** @internal */
-	atomic<T>(
-		fn: () => T,
-		runCallbacks = true,
-		// why do we pass this in rather than using this.isMergingRemoteChanges?
-		// to allow setting isMergingRemoteChanges to false before handling the
-		isMergingRemoteChanges = false
-	): T {
+	atomic<T>(fn: () => T, runCallbacks = true, isMergingRemoteChanges = false): T {
 		return transact(() => {
 			if (this._isInAtomicOp) {
 				if (!this.pendingAfterEvents) this.pendingAfterEvents = new Map()
