@@ -3114,6 +3114,10 @@ export interface TLUiEventMap {
     // (undocumented)
     'edit-link': null;
     // (undocumented)
+    'embiggen-shapes': null;
+    // (undocumented)
+    'emsmallen-shapes': null;
+    // (undocumented)
     'exit-pen-mode': null;
     // (undocumented)
     'export-all-as': {

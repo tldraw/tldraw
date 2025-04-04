@@ -110,6 +110,8 @@ export interface TLUiEventMap {
 	'open-cursor-chat': null
 	'zoom-tool': null
 	'unlock-all': null
+	'embiggen-shapes': null
+	'emsmallen-shapes': null
 	'flatten-to-image': null
 	'open-url': { url: string }
 	'copy-link': null
