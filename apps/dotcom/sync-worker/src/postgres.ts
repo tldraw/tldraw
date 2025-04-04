@@ -5,7 +5,6 @@ import type {
 import { DB } from '@tldraw/dotcom-shared'
 import { CompiledQuery, Kysely, PostgresDialect } from 'kysely'
 import * as pg from 'pg'
-import postgres from 'postgres'
 import { Environment } from './types'
 
 const int8TypeId = 20
@@ -31,12 +30,10 @@ export function createPostgresConnectionPool(env: Environment, name: string, max
 }
 
 export function makePostgresConnector(env: Environment): PostgresSQL<any> {
-	return getPostgres(env, { pooled: true, name: 'blah' })
-	const db = createPostgresConnectionPool(env, 'makePostgresConnector')
+	const db = createPostgresConnectionPool(env, 'makePostgresConnector', 5)
 
 	return {
 		async unsafe(sqlString: string, params: unknown[]): Promise<any[]> {
-			console.log('sqlString', sqlString)
 			const res = await db.executeQuery(CompiledQuery.raw(sqlString, params))
 			return res.rows
 		},
@@ -44,7 +41,6 @@ export function makePostgresConnector(env: Environment): PostgresSQL<any> {
 			return db.transaction().execute(() =>
 				fn({
 					async unsafe(sqlString: string, params: unknown[]): Promise<any[]> {
-						console.log('sqlString', sqlString)
 						const res = await db.executeQuery(CompiledQuery.raw(sqlString, params))
 						return res.rows
 					},
@@ -52,27 +48,4 @@ export function makePostgresConnector(env: Environment): PostgresSQL<any> {
 			)
 		},
 	}
-}
-
-export function getPostgres(
-	env: Environment,
-	{ pooled, name, idleTimeout = 30 }: { pooled: boolean; name: string; idleTimeout?: number }
-) {
-	return postgres(
-		pooled ? env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING : env.BOTCOM_POSTGRES_CONNECTION_STRING,
-		{
-			types: {
-				bigint: {
-					from: [20], // PostgreSQL OID for BIGINT
-					parse: (value: string) => Number(value), // Convert string to number
-					to: 20,
-					serialize: (value: number) => String(value), // Convert number to string
-				},
-			},
-			idle_timeout: idleTimeout,
-			connection: {
-				application_name: name,
-			},
-		}
-	)
 }

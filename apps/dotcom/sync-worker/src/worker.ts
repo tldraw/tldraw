@@ -34,7 +34,7 @@ import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment, isDebugLogging } from './types'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
-import { getAuthFromSearchParams } from './utils/tla/getAuth'
+import { getAuth, requireAuth } from './utils/tla/getAuth'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
@@ -67,7 +67,7 @@ const router = createRouter<Environment>()
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.get('/app/:userId/connect', async (req, env) => {
 		// forward req to the user durable object
-		const auth = await getAuthFromSearchParams(req, env)
+		const auth = await getAuth(req, env)
 		if (!auth) {
 			// eslint-disable-next-line no-console
 			console.log('auth not found')
@@ -136,10 +136,18 @@ const router = createRouter<Environment>()
 	.all('/health-check/*', healthCheckRoutes.fetch)
 	.all('/app/admin/*', adminRoutes.fetch)
 	.post('/app/zero/push', async (req, env) => {
+		const auth = await requireAuth(req, env)
 		try {
-			console.log('/app/zero/push')
-			const processor = new PushProcessor(schema, connectionProvider(makePostgresConnector(env)), 'debug')
-			const result = await processor.process(createMutators(), req.query, await req.json())
+			const processor = new PushProcessor(
+				schema,
+				connectionProvider(makePostgresConnector(env)),
+				'debug'
+			)
+			const result = await processor.process(
+				createMutators(auth.userId),
+				req.query,
+				await req.json()
+			)
 			return json(result)
 		} catch (e) {
 			return new Response('Error', { status: 500 })

@@ -1,9 +1,12 @@
+import { MakeCustomMutatorInterfaces } from '@rocicorp/zero/out/zero-client/src/client/custom'
 import {
+	createMutators,
 	OptimisticAppStore,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
 	TlaFileStatePartial,
+	TlaSchema,
 	TlaUser,
 	TlaUserPartial,
 	ZClientSentMessage,
@@ -12,7 +15,7 @@ import {
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
 import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { Signal, computed, react, sleep, transact, uniqueId } from 'tldraw'
+import { computed, objectMapKeys, react, Signal, sleep, transact, uniqueId } from 'tldraw'
 import { TLAppUiContextType } from '../utils/app-ui-events'
 
 export class Zero {
@@ -27,6 +30,7 @@ export class Zero {
 
 	constructor(
 		private opts: {
+			userId: string
 			getUri(): Promise<string>
 			onMutationRejected(errorCode: ZErrorCode): void
 			onClientTooOld(): void
@@ -79,7 +83,25 @@ export class Zero {
 				}
 			}
 		})
+		const mutatorWrapper = (mutatorFn: any) => {
+			return (params: any) => {
+				transact(() => mutatorFn(this.____mutators, params))
+			}
+		}
+		const mutators = createMutators(opts.userId) as any
+		const tempMutate = (this.mutate = {} as any)
+		for (const m of objectMapKeys(mutators)) {
+			if (typeof mutators[m] === 'function') {
+				tempMutate[m] = mutatorWrapper(mutators[m])
+			} else if (typeof mutators[m] === 'object') {
+				for (const k of objectMapKeys(mutators[m])) {
+					tempMutate[m][k] = mutatorWrapper(mutators[m][k])
+				}
+			}
+		}
 	}
+
+	mutate: MakeCustomMutatorInterfaces<TlaSchema, ReturnType<typeof createMutators>>
 
 	async __e2e__waitForMutationResolution() {
 		let safety = 0
@@ -184,6 +206,7 @@ export class Zero {
 		},
 	}
 	readonly ____mutators = {
+		location: 'client',
 		file: {
 			insert: (data: TlaFile) => {
 				const store = this.store.getFullData()
@@ -250,12 +273,6 @@ export class Zero {
 			},
 		},
 	}
-	mutateBatch(fn: (txn: Zero['____mutators']) => void) {
-		transact(() => {
-			fn(this.____mutators)
-		})
-	}
-	mutate = this.____mutators
 
 	private sendPendingUpdates() {
 		if (this.socket.isDisposed) return
