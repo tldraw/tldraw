@@ -154,8 +154,8 @@ export function areShortcutsDisabled(editor: Editor) {
 function getHotkeysStringFromKbd(kbd: string) {
 	return getKeys(kbd)
 		.map((kbd) => {
-			if (kbd.includes('cmd+')) {
-				kbd = `${kbd},${kbd.replace('cmd+', 'ctrl+')}`
+			if (kbd.includes('accel+')) {
+				kbd = `${kbd.replace('accel+', 'cmd+')},${kbd.replace('accel+', 'ctrl+')}`
 			}
 			return kbd
 		})

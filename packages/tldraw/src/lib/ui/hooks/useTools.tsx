@@ -162,7 +162,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				id: 'asset',
 				label: 'tool.asset',
 				icon: 'tool-media',
-				kbd: 'cmd+u',
+				kbd: 'accel+u',
 				onSelect(source) {
 					helpers.insertMedia()
 					trackEvent('select-tool', { source, id: 'media' })

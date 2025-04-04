@@ -12,7 +12,7 @@ export default function BasicExample() {
 							label: 'My action',
 							icon: 'circle',
 							// [2]
-							kbd: 'cmd+u',
+							kbd: 'accel+u',
 							onSelect(source) {
 								// [3]
 								helpers.addToast({ title: `My action was selected from ${source}!` })

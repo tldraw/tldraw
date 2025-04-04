@@ -9,7 +9,7 @@ export function kbd(str: string) {
 
 	return str
 		.split(',')[0]
-		.replace(/cmd\+/g, cmdKey)
+		.replace(/accel\+/g, cmdKey)
 		.replace(/alt\+/g, altKey)
 		.replace(/shift\+/g, '⇧')
 		.toUpperCase()

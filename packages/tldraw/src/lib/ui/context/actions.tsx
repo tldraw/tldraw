@@ -119,7 +119,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'insert-embed',
 				label: 'action.insert-embed',
-				kbd: 'cmd+i',
+				kbd: 'accel+i',
 				onSelect(source) {
 					trackEvent('insert-embed', { source })
 					helpers.addDialog({ component: EmbedDialog })
@@ -128,7 +128,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'insert-media',
 				label: 'action.insert-media',
-				kbd: 'cmd+u',
+				kbd: 'accel+u',
 				onSelect(source) {
 					trackEvent('insert-media', { source })
 					helpers.insertMedia()
@@ -138,7 +138,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'undo',
 				label: 'action.undo',
 				icon: 'undo',
-				kbd: 'cmd+z',
+				kbd: 'accel+z',
 				onSelect(source) {
 					trackEvent('undo', { source })
 					editor.undo()
@@ -148,7 +148,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'redo',
 				label: 'action.redo',
 				icon: 'redo',
-				kbd: 'cmd+shift+z',
+				kbd: 'accel+shift+z',
 				onSelect(source) {
 					trackEvent('redo', { source })
 					editor.redo()
@@ -228,7 +228,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.copy-as-svg.short',
 					['context-menu']: 'action.copy-as-svg.short',
 				},
-				kbd: 'cmd+shift+c',
+				kbd: 'accel+shift+c',
 				readonlyOk: true,
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
@@ -427,7 +427,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'duplicate',
-				kbd: 'cmd+d',
+				kbd: 'accel+d',
 				label: 'action.duplicate',
 				icon: 'duplicate',
 				onSelect(source) {
@@ -475,7 +475,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'ungroup',
 				label: 'action.ungroup',
-				kbd: 'cmd+shift+g',
+				kbd: 'accel+shift+g',
 				icon: 'ungroup',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -489,7 +489,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'group',
 				label: 'action.group',
-				kbd: 'cmd+g',
+				kbd: 'accel+g',
 				icon: 'group',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -509,7 +509,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'remove-frame',
 				label: 'action.remove-frame',
-				kbd: 'cmd+shift+f',
+				kbd: 'accel+shift+f',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 
@@ -890,7 +890,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'cut',
 				label: 'action.cut',
-				kbd: 'cmd+x',
+				kbd: 'accel+x',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -902,7 +902,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'copy',
 				label: 'action.copy',
-				kbd: 'cmd+c',
+				kbd: 'accel+c',
 				readonlyOk: true,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -914,7 +914,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'paste',
 				label: 'action.paste',
-				kbd: 'cmd+v',
+				kbd: 'accel+v',
 				onSelect(source) {
 					navigator.clipboard
 						?.read()
@@ -937,7 +937,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'select-all',
 				label: 'action.select-all',
-				kbd: 'cmd+a',
+				kbd: 'accel+a',
 				readonlyOk: true,
 				onSelect(source) {
 					editor.run(() => {
@@ -1018,7 +1018,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-in',
 				label: 'action.zoom-in',
-				kbd: 'cmd+=,=',
+				kbd: 'accel+=,=',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-in', { source, towardsCursor: false })
@@ -1030,7 +1030,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-in-on-cursor',
 				label: 'action.zoom-in',
-				kbd: 'shift+cmd+=,shift+=',
+				kbd: 'shift+accel+=,shift+=',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-in', { source, towardsCursor: true })
@@ -1042,7 +1042,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-out',
 				label: 'action.zoom-out',
-				kbd: 'cmd+-,-',
+				kbd: 'accel+-,-',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-out', { source, towardsCursor: false })
@@ -1054,7 +1054,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-out-on-cursor',
 				label: 'action.zoom-out',
-				kbd: 'shift+cmd+-,shift+-',
+				kbd: 'shift+accel+-,shift+-',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-out', { source, towardsCursor: true })
@@ -1117,7 +1117,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: 'action.toggle-dark-mode',
 					menu: 'action.toggle-dark-mode.menu',
 				},
-				kbd: 'cmd+/',
+				kbd: 'accel+/',
 				readonlyOk: true,
 				onSelect(source) {
 					const value = editor.user.getIsDarkMode() ? 'light' : 'dark'
@@ -1255,7 +1255,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.toggle-focus-mode.menu',
 				},
 				readonlyOk: true,
-				kbd: 'cmd+.',
+				kbd: 'accel+.',
 				checkbox: true,
 				onSelect(source) {
 					// this needs to be deferred because it causes the menu
@@ -1277,7 +1277,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.toggle-grid.menu',
 				},
 				readonlyOk: true,
-				kbd: "cmd+'",
+				kbd: "accel+'",
 				onSelect(source) {
 					trackEvent('toggle-grid-mode', { source })
 					editor.updateInstanceState({ isGridMode: !editor.getInstanceState().isGridMode })
@@ -1302,7 +1302,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'print',
 				label: 'action.print',
-				kbd: 'cmd+p',
+				kbd: 'accel+p',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('print', { source })

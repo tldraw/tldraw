@@ -16,7 +16,7 @@ const overrides: TLUiOverrides = {
 			'text-search': {
 				id: 'text-search',
 				label: 'Search',
-				kbd: 'cmd+f',
+				kbd: 'accel+f',
 				onSelect() {
 					if (!showSearch.get()) {
 						showSearch.set(true)
