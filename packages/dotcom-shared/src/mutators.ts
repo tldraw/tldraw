@@ -13,10 +13,10 @@ import {
 
 function disallowImmutableMutations<
 	S extends TlaFilePartial | TlaFileStatePartial | TlaUserPartial,
->(data: S, columns: Set<keyof S>) {
-	for (const column of columns) {
-		if (data[column] !== undefined) {
-			throw new Error(`Cannot modify immutable column ${String(column)}`)
+>(data: S, immutableColumns: Set<keyof S>) {
+	for (const immutableColumn of immutableColumns) {
+		if (data[immutableColumn] !== undefined) {
+			throw new Error(`Cannot modify immutable column ${String(immutableColumn)}`)
 		}
 	}
 }
