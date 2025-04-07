@@ -20,6 +20,7 @@ import { Logger } from './Logger'
 import { UserChangeCollator } from './UserChangeCollator'
 import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { createPostgresConnectionPool } from './postgres'
+import { getR2KeyForRoom } from './r2'
 import {
 	Analytics,
 	Environment,
@@ -45,6 +46,7 @@ interface Change {
 	userId: string
 	fileId: string | null
 	row: TlaRow
+	previous?: TlaRow
 }
 
 interface Migration {
@@ -532,6 +534,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 
 		const row = {} as any
+		const previous = {} as any
 		// take everything from change.columnnames and associated the values from change.columnvalues
 		if (change.kind === 'delete') {
 			const oldkeys = change.oldkeys
@@ -539,6 +542,16 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			assert(oldkeys.keyvalues, 'oldkeys is required for delete events')
 			oldkeys.keynames.forEach((key, i) => {
 				row[key] = oldkeys.keyvalues[i]
+			})
+		} else if (change.kind === 'update') {
+			const oldkeys = change.oldkeys
+			assert(oldkeys, 'oldkeys is required for delete events')
+			assert(oldkeys.keyvalues, 'oldkeys is required for delete events')
+			oldkeys.keynames.forEach((key, i) => {
+				previous[key] = oldkeys.keyvalues[i]
+			})
+			change.columnnames.forEach((col, i) => {
+				row[col] = change.columnvalues[i]
 			})
 		} else {
 			change.columnnames.forEach((col, i) => {
@@ -573,6 +586,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 		return {
 			row,
+			previous,
 			event: {
 				command: change.kind,
 				table,
@@ -621,7 +635,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 					this.handleFileStateEvent(collator, change.row, { command, table })
 					break
 				case 'file':
-					this.handleFileEvent(collator, change.row, { command, table }, isReplay)
+					this.handleFileEvent(collator, change.row, change.previous, { command, table }, isReplay)
 					break
 				case 'user':
 					this.handleUserEvent(collator, change.row, { command, table })
@@ -685,6 +699,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private handleFileEvent(
 		collator: UserChangeCollator,
 		row: Row | null,
+		previous: Row | undefined,
 		event: ReplicationEvent,
 		isReplay: boolean
 	) {
@@ -703,6 +718,16 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		} else if (event.command === 'update') {
 			assert('ownerId' in row, 'ownerId is required when updating file')
 			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordDidUpdate(row)
+			if (previous && !isReplay) {
+				const prevFile = previous as TlaFile
+				if (row.published && !(prevFile as TlaFile).published) {
+					this.publishSnapshot(row)
+				} else if (!row.published && (prevFile as TlaFile).published) {
+					this.unpublishSnapshot(row)
+				} else if (row.published && row.lastPublished > prevFile.lastPublished) {
+					this.publishSnapshot(row)
+				}
+			}
 		} else if (event.command === 'insert') {
 			assert('ownerId' in row, 'ownerId is required when inserting file')
 			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordCreated(row)
@@ -981,6 +1006,47 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				break
 			default:
 				exhaustiveSwitchError(event)
+		}
+	}
+
+	private async publishSnapshot(file: TlaFile) {
+		try {
+			// make sure the room's snapshot is up to date
+			await getRoomDurableObject(this.env, file.id).awaitPersist()
+			// and that it exists
+			const snapshot = await this.env.ROOMS.get(getR2KeyForRoom({ slug: file.id, isApp: true }))
+
+			if (!snapshot) {
+				throw new Error('Snapshot not found')
+			}
+			const blob = await snapshot.blob()
+
+			// Create a new slug for the published room
+			await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put(file.publishedSlug, file.id)
+
+			// Bang the snapshot into the database
+			await this.env.ROOM_SNAPSHOTS.put(
+				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true }),
+				blob
+			)
+			const currentTime = new Date().toISOString()
+			await this.env.ROOM_SNAPSHOTS.put(
+				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}|${currentTime}`, isApp: true }),
+				blob
+			)
+		} catch (e) {
+			this.log.debug('Error publishing snapshot', e)
+		}
+	}
+
+	private async unpublishSnapshot(file: TlaFile) {
+		try {
+			await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(file.publishedSlug)
+			await this.env.ROOM_SNAPSHOTS.delete(
+				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true })
+			)
+		} catch (e) {
+			this.log.debug('Error unpublishing snapshot', e)
 		}
 	}
 }

@@ -9,6 +9,10 @@ permissions:
   pull-requests: write
   repository-projects: write
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   dedupe:
     name: Dedupe Dependabot PRs

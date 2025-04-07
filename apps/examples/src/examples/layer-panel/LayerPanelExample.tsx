@@ -36,7 +36,9 @@ export default function LayerPanelExample() {
 				persistenceKey="layer-panel-example"
 				components={components}
 				// [3]
-				isShapeHidden={(s) => !!s.meta.hidden}
+				getShapeVisibility={(s) =>
+					s.meta.force_show ? 'visible' : s.meta.hidden ? 'hidden' : 'inherit'
+				}
 				// this is just to provide some initial content, so visitors can see the layer panel in action
 				snapshot={snapshot as any as TLEditorSnapshot}
 			/>

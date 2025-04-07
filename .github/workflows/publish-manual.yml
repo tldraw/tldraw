@@ -9,6 +9,10 @@ concurrency:
 # Package publishing is manually triggered on github actions dashboard
 on: workflow_dispatch
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   deploy:
     name: '(Re)Publish public packages manually'

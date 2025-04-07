@@ -50,7 +50,7 @@ import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /**
  * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components, when passing in a
- * {@link store#TLStore} directly. If you would like tldraw to create a store for you, use
+ * `TLStore` directly. If you would like tldraw to create a store for you, use
  * {@link TldrawEditorWithoutStoreProps}.
  *
  * @public
@@ -64,7 +64,7 @@ export interface TldrawEditorWithStoreProps {
 
 /**
  * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components, when not passing in a
- * {@link store#TLStore} directly. If you would like to pass in a store directly, use
+ * `TLStore` directly. If you would like to pass in a store directly, use
  * {@link TldrawEditorWithStoreProps}.
  *
  * @public
@@ -191,11 +191,33 @@ export interface TldrawEditorBaseProps {
 	/**
 	 * Predicate for whether or not a shape should be hidden.
 	 *
+	 * @deprecated Use {@link TldrawEditorBaseProps#getShapeVisibility} instead.
+	 */
+	isShapeHidden?(shape: TLShape, editor: Editor): boolean
+
+	/**
+	 * Provides a way to hide shapes.
+	 *
 	 * Hidden shapes will not render in the editor, and they will not be eligible for hit test via
 	 * {@link Editor#getShapeAtPoint} and {@link Editor#getShapesAtPoint}. But otherwise they will
 	 * remain in the store and participate in all other operations.
+	 *
+	 * @example
+	 * ```ts
+	 * getShapeVisibility={(shape, editor) => shape.meta.hidden ? 'hidden' : 'inherit'}
+	 * ```
+	 *
+	 * - `'inherit' | undefined` - (default) The shape will be visible unless its parent is hidden.
+	 * - `'hidden'` - The shape will be hidden.
+	 * - `'visible'` - The shape will be visible.
+	 *
+	 * @param shape - The shape to check.
+	 * @param editor - The editor instance.
 	 */
-	isShapeHidden?(shape: TLShape, editor: Editor): boolean
+	getShapeVisibility?(
+		shape: TLShape,
+		editor: Editor
+	): 'visible' | 'hidden' | 'inherit' | null | undefined
 
 	/**
 	 * The URLs for the fonts to use in the editor.
@@ -387,7 +409,9 @@ function TldrawEditorWithReadyStore({
 	options,
 	licenseKey,
 	deepLinks: _deepLinks,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	isShapeHidden,
+	getShapeVisibility,
 	assetUrls,
 }: Required<
 	TldrawEditorProps & {
@@ -447,6 +471,7 @@ function TldrawEditorWithReadyStore({
 				options,
 				licenseKey,
 				isShapeHidden,
+				getShapeVisibility,
 				fontAssetUrls: assetUrls?.fonts,
 			})
 
@@ -482,6 +507,7 @@ function TldrawEditorWithReadyStore({
 			setEditor,
 			licenseKey,
 			isShapeHidden,
+			getShapeVisibility,
 			textOptions,
 			assetUrls,
 		]
