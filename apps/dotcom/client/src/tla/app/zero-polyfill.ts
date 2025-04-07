@@ -86,7 +86,7 @@ export class Zero {
 		})
 		const mutatorWrapper = (mutatorFn: any) => {
 			return (params: any) => {
-				transact(() => mutatorFn(this.____mutators, params))
+				transact(() => mutatorFn({ mutate: this.____mutators, location: 'client' }, params))
 			}
 		}
 		const mutators = createMutators(opts.userId) as any
@@ -96,6 +96,9 @@ export class Zero {
 				tempMutate[m] = mutatorWrapper(mutators[m])
 			} else if (typeof mutators[m] === 'object') {
 				for (const k of objectMapKeys(mutators[m])) {
+					if (!tempMutate[m]) {
+						tempMutate[m] = {}
+					}
 					tempMutate[m][k] = mutatorWrapper(mutators[m][k])
 				}
 			}
@@ -207,7 +210,6 @@ export class Zero {
 		},
 	}
 	readonly ____mutators = {
-		location: 'client',
 		file: {
 			insert: (data: TlaFile) => {
 				const store = this.store.getFullData()
