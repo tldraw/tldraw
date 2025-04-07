@@ -36,7 +36,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				fullName: user.fullName || '',
 				email: user.emailAddresses[0]?.emailAddress || '',
 				avatar: user.imageUrl || '',
-				getToken: async () => await auth.getToken(),
+				getToken: async () => {
+					const token = await auth.getToken()
+					return token || undefined
+				},
 				onClientTooOld: () => {
 					isClientTooOld$.set(true)
 				},

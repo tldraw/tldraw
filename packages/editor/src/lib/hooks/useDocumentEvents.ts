@@ -104,6 +104,7 @@ export function useDocumentEvents() {
 
 			if ((e as any).isKilled) return
 			;(e as any).isKilled = true
+			const hasSelectedShapes = !!editor.getSelectedShapeIds().length
 
 			switch (e.key) {
 				case '=':
@@ -123,6 +124,23 @@ export function useDocumentEvents() {
 				case 'Tab': {
 					if (areShortcutsDisabled(editor)) {
 						return
+					}
+					if (hasSelectedShapes) {
+						// This is used in tandem with shape navigation.
+						preventDefault(e)
+					}
+					break
+				}
+				case 'ArrowLeft':
+				case 'ArrowRight':
+				case 'ArrowUp':
+				case 'ArrowDown': {
+					if (areShortcutsDisabled(editor)) {
+						return
+					}
+					if (hasSelectedShapes && (e.metaKey || e.ctrlKey)) {
+						// This is used in tandem with shape navigation.
+						preventDefault(e)
 					}
 					break
 				}
