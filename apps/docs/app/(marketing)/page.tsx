@@ -6,6 +6,7 @@ import { FAQSection } from '@/components/marketing/faq-section'
 import { HeroSection } from '@/components/marketing/hero-section'
 import { InstallationSection } from '@/components/marketing/installation-section'
 import { PricingSection } from '@/components/marketing/pricing-section'
+import { RequestForm } from '@/components/marketing/request-form'
 import { WhatItIsSection } from '@/components/marketing/what-it-is-section'
 
 function SectionGap() {
@@ -34,6 +35,16 @@ export default function Page() {
 			<CommunitySection />
 			<SectionGap />
 			<PricingSection />
+			<div className="h-12" />
+			<div className="py-1 md:rounded-2xl md:mx-auto md:px-1 bg-zinc-200 dark:bg-zinc-800 w-full max-w-2xl">
+				<div className="relative w-full h-full bg-zinc-900 md:rounded-xl shadow p-5 md:p-8 overflow-hidden text-zinc-300">
+					<div className="flex items-center gap-1 mb-4 -mt-1">
+						<h3 className="text-white font-black text-xl md:text-2xl">Request a license</h3>
+						{/* <CheckBadgeIcon className="h-6 shrink-0 text-blue-400" /> */}
+					</div>
+					<RequestForm form="general" />
+				</div>
+			</div>
 			<SectionGap />
 			<FAQSection />
 			<SectionGap />

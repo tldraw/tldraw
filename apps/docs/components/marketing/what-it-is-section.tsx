@@ -1,11 +1,15 @@
 import { BlueA } from '../common/blue-a'
 import { Section } from './section'
+import { SectionSubtitle } from './section-description'
 import { SectionH3 } from './section-h3'
 import { SectionProse } from './section-prose'
+import { SectionTitle } from './section-title'
 
 export function WhatItIsSection() {
 	return (
 		<Section id="features">
+			<SectionTitle>What&apos;s inside</SectionTitle>
+			<SectionSubtitle>Have an idea that uses a canvas? Build it with tldraw.</SectionSubtitle>
 			<SectionProse>
 				<h3>
 					<b>We bring the canvas</b>, you build the product.

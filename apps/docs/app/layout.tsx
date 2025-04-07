@@ -1,3 +1,4 @@
+import AutoRefresh from '@/components/common/autorefresh'
 import { Footer } from '@/components/navigation/footer'
 import { Header } from '@/components/navigation/header'
 import { cn } from '@/utils/cn'
@@ -9,6 +10,14 @@ import Analytics from './analytics'
 import './github-dark.css'
 import './github-light.css'
 import './globals.css'
+
+function Wrapper({ children }: { children: React.ReactNode }) {
+	if (process.env.NODE_ENV === 'development') {
+		return <AutoRefresh>{children}</AutoRefresh>
+	}
+
+	return children
+}
 
 export const metadata: Metadata = {
 	metadataBase: new URL('https://tldraw.dev'),
@@ -55,18 +64,20 @@ const ShantellSans = localFont({
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
 	return (
-		<html
-			lang="en"
-			className={cn(GeistSans.variable, ShantellSans.variable, 'font-sans antialiased')}
-		>
-			<body className="overflow-x-hidden bg-white text-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
-				<ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-					<Header />
-					{children}
-					<Footer />
-					<Analytics />
-				</ThemeProvider>
-			</body>
-		</html>
+		<Wrapper>
+			<html
+				lang="en"
+				className={cn(GeistSans.variable, ShantellSans.variable, 'font-sans antialiased')}
+			>
+				<body className="overflow-x-hidden bg-white text-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
+					<ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+						<Header />
+						{children}
+						<Footer />
+						<Analytics />
+					</ThemeProvider>
+				</body>
+			</html>
+		</Wrapper>
 	)
 }
