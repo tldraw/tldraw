@@ -31,7 +31,7 @@ export function PricingSection() {
 				<p>
 					Individuals and companies of less than ten people can purchase a license for <b>$6,000</b>{' '}
 					per year. Larger companies or teams that need support from the tldraw team can design a
-					package with custom pricing, developer support, and custom contract terms.
+					package with custom pricing, develop er support, and custom contract terms.
 				</p>
 				<p>
 					All customers receive a{' '}
