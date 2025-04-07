@@ -263,7 +263,10 @@ async function deployPermissionsToFlyIo() {
 		'--output-file',
 		permissionsFile,
 	])
-	await exec('psql', [env.BOTCOM_POSTGRES_CONNECTION_STRING, '-f', permissionsFile])
+	const result = await exec('psql', [env.BOTCOM_POSTGRES_CONNECTION_STRING, '-f', permissionsFile])
+	if (result.toLowerCase().includes('error')) {
+		throw new Error('Error deploying permissions to fly.io')
+	}
 }
 
 let didUpdateTlsyncWorker = false
