@@ -81,7 +81,6 @@ export class TldrawApp {
 	readonly z: ZeroPolyfill | Zero<TlaSchema>
 
 	private readonly user$: Signal<TlaUser | undefined>
-	private readonly files$: Signal<TlaFile[]>
 	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
 
 	private readonly abortController = new AbortController()
@@ -157,23 +156,21 @@ export class TldrawApp {
 					trackEvent,
 				})
 
-		this.user$ = this.signalizeQuery(
-			'user signal',
-			this.z.query.user.where('id', this.userId).one()
-		)
-		this.files$ = this.signalizeQuery(
-			'files signal',
-			this.z.query.file.where('isDeleted', '=', false)
-		)
-		this.fileStates$ = this.signalizeQuery(
-			'file states signal',
-			this.z.query.file_state.where('userId', this.userId).related('file', (q: any) => q.one())
-		)
+		this.user$ = this.signalizeQuery('user signal', this.userQuery())
+		this.fileStates$ = this.signalizeQuery('file states signal', this.fileStatesQuery())
+	}
+
+	private userQuery() {
+		return this.z.query.user.where('id', this.userId).one()
+	}
+
+	private fileStatesQuery() {
+		return this.z.query.file_state.where('userId', this.userId).related('file', (q: any) => q.one())
 	}
 
 	async preload(initialUserData: TlaUser) {
 		let didCreate = false
-		await this.z.query.user.where('id', this.userId).preload().complete
+		await this.userQuery().preload({ ttl: 'forever' }).complete
 		await this.changesFlushed
 		if (!this.user$.get()) {
 			didCreate = true
@@ -187,8 +184,7 @@ export class TldrawApp {
 		if (!this.user$.get()) {
 			throw Error('could not create user')
 		}
-		await this.z.query.file_state.where('userId', this.userId).preload().complete
-		await this.z.query.file.where('ownerId', this.userId).preload().complete
+		await this.fileStatesQuery().preload({ ttl: 'forever' }).complete
 		return didCreate
 	}
 
@@ -288,8 +284,9 @@ export class TldrawApp {
 		},
 	})
 
+	@computed
 	getUserOwnFiles() {
-		return this.files$.get()
+		return this.getUserFileStates().map((f) => f.file)
 	}
 
 	getUserFileStates() {
@@ -346,7 +343,6 @@ export class TldrawApp {
 
 		// stash the ordering for next time
 		this.lastRecentFileOrdering = nextRecentFileOrdering
-
 		return nextRecentFileOrdering
 	}
 
