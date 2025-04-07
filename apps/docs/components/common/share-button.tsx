@@ -23,7 +23,7 @@ export function ShareButton({
 				setTimeout(() => setCopied(false), 1500)
 			}}
 			className={cn(
-				'flex items-center gap-1.5 text-blue-500 hover:text-blue-600 dark:hover:text-blue-400',
+				'flex items-center gap-1.5 text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 mb-4',
 				size === 'small' && 'text-xs',
 				className
 			)}

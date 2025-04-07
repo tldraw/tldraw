@@ -20,7 +20,7 @@ export function useValue<Value>(value: Signal<Value>): Value
  * }
  * ```
  *
- * You can also pass a function to compute the value and it will be memoized as in {@link state#useComputed}:
+ * You can also pass a function to compute the value and it will be memoized as in `useComputed`:
  *
  * @example
  * ```ts

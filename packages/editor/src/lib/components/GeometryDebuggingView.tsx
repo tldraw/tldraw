@@ -114,13 +114,13 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 function GeometryStroke({ geometry }: { geometry: Geometry2d }) {
 	if (geometry instanceof Group2d) {
 		return (
-			<>
+			<g stroke={geometry.debugColor}>
 				{[...geometry.children, ...geometry.ignoredChildren].map((child, i) => (
 					<GeometryStroke geometry={child} key={i} />
 				))}
-			</>
+			</g>
 		)
 	}
 
-	return <path d={geometry.toSimpleSvgPath()} />
+	return <path d={geometry.toSimpleSvgPath()} stroke={geometry.debugColor} />
 }

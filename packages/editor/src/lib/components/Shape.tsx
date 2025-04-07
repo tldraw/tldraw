@@ -1,7 +1,7 @@
 import { react } from '@tldraw/state'
 import { useQuickReactor, useStateTracking } from '@tldraw/state-react'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
-import { memo, useCallback, useEffect, useRef } from 'react'
+import { memo, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
@@ -104,22 +104,18 @@ export const Shape = memo(function Shape({
 	)
 
 	// This stuff changes pretty infrequently, so we can change them together
-	useQuickReactor(
-		'set opacity and z-index',
-		() => {
-			const container = containerRef.current
-			const bgContainer = bgContainerRef.current
+	useLayoutEffect(() => {
+		const container = containerRef.current
+		const bgContainer = bgContainerRef.current
 
-			// Opacity
-			setStyleProperty(container, 'opacity', opacity)
-			setStyleProperty(bgContainer, 'opacity', opacity)
+		// Opacity
+		setStyleProperty(container, 'opacity', opacity)
+		setStyleProperty(bgContainer, 'opacity', opacity)
 
-			// Z-Index
-			setStyleProperty(container, 'z-index', index)
-			setStyleProperty(bgContainer, 'z-index', backgroundIndex)
-		},
-		[opacity, index, backgroundIndex]
-	)
+		// Z-Index
+		setStyleProperty(container, 'z-index', index)
+		setStyleProperty(bgContainer, 'z-index', backgroundIndex)
+	}, [opacity, index, backgroundIndex])
 
 	useQuickReactor(
 		'set display',

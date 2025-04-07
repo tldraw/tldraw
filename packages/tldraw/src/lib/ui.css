@@ -1625,6 +1625,7 @@
 }
 
 /* ------------------- People Menu ------------------- */
+
 .tlui-people-menu__avatars-button {
 	display: flex;
 	align-items: center;
@@ -1697,7 +1698,6 @@
 	width: 220px;
 	height: fit-content;
 	max-height: 50vh;
-	padding-bottom: 4px;
 }
 
 .tlui-people-menu__section {
@@ -1768,6 +1768,14 @@
 	gap: 8px;
 	height: 100%;
 	padding: 0px;
+}
+
+.tlui-people-menu__item {
+	position: relative;
+}
+
+.tlui-people-menu__item:last-of-type .tlui-button__menu {
+	margin-bottom: 0;
 }
 
 .tlui-people-menu__item__button {
@@ -1877,4 +1885,18 @@
 
 .tlui-rich-text__toolbar .tlui-input__wrapper {
 	height: 40px;
+}
+
+/* ------------------- Accessibilty ------------------- */
+
+.tl-skip-to-main-content {
+	position: fixed;
+	top: 48px;
+	left: -9999px;
+	padding: 8px 16px;
+	z-index: var(--layer-toasts);
+}
+
+.tl-skip-to-main-content:focus {
+	left: 8px;
 }

@@ -13,8 +13,7 @@ import { Suspense } from 'react'
 import { ThemeSwitch } from '../common/theme-switch'
 
 const mainLinks = [
-	{ caption: 'Features', active: () => false, href: '/#features' },
-	{ caption: 'Pricing', active: () => false, href: '/#pricing' },
+	// { caption: 'Features', active: () => false, href: '/#features' },
 	{
 		caption: 'Docs',
 		href: '/quick-start',
@@ -31,6 +30,12 @@ const mainLinks = [
 			].some((e) => pathname.startsWith(e)) && !pathname.startsWith('/search/blog'),
 	},
 	{
+		caption: 'Examples',
+		href: '/examples',
+		active: (pathname: string) => ['/examples'].some((e) => pathname.startsWith(e)),
+	},
+	{ caption: 'Pricing', active: () => false, href: '/#pricing' },
+	{
 		caption: 'Blog',
 		href: '/blog',
 		active: (pathname: string) => ['/blog', '/search/blog'].some((e) => pathname.startsWith(e)),
@@ -39,7 +44,7 @@ const mainLinks = [
 
 const socialLinks = [
 	{
-		caption: 'Twitter',
+		caption: 'Twitter/X',
 		icon: 'twitter' as IconName,
 		href: 'https://x.com/tldraw/',
 	},

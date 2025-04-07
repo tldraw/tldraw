@@ -293,6 +293,47 @@ export function intersectPolygonPolygon(
 	return orderClockwise([...result.values()])
 }
 
+/**
+ * Find all the points where `polyA` and `polyB` intersect and returns them in an undefined order.
+ * To find the polygon that's the intersection of polyA and polyB, use `intersectPolygonPolygon`
+ * instead, which orders the points and includes internal points.
+ *
+ * @param polyA - The first polygon.
+ * @param polyB - The second polygon.
+ * @param isAClosed - Whether `polyA` is a closed polygon or a polyline.
+ * @param isBClosed - Whether `polyB` is a closed polygon or a polyline.
+ * @public
+ */
+export function intersectPolys(
+	polyA: VecLike[],
+	polyB: VecLike[],
+	isAClosed: boolean,
+	isBClosed: boolean
+): VecLike[] {
+	const result: Map<string, VecLike> = new Map()
+
+	// Add all intersection points to result
+	for (let i = 0, n = isAClosed ? polyA.length : polyA.length - 1; i < n; i++) {
+		const currentA = polyA[i]
+		const nextA = polyA[(i + 1) % polyA.length]
+
+		for (let j = 0, m = isBClosed ? polyB.length : polyB.length - 1; j < m; j++) {
+			const currentB = polyB[j]
+			const nextB = polyB[(j + 1) % polyB.length]
+			const intersection = intersectLineSegmentLineSegment(currentA, nextA, currentB, nextB)
+
+			if (intersection !== null) {
+				const id = getPointId(intersection)
+				if (!result.has(id)) {
+					result.set(id, intersection)
+				}
+			}
+		}
+	}
+
+	return [...result.values()]
+}
+
 function getPointId(point: VecLike) {
 	return `${point.x},${point.y}`
 }

@@ -1,5 +1,6 @@
 import { useShallowObjectIdentity } from '@tldraw/editor'
 import { ComponentType, ReactNode, createContext, useContext, useMemo } from 'react'
+import { DefaultA11yAnnouncer } from '../components/A11y'
 import {
 	DefaultActionsMenu,
 	TLUiActionsMenuProps,
@@ -40,7 +41,7 @@ import {
 import { DefaultToolbar } from '../components/Toolbar/DefaultToolbar'
 import { DefaultTopPanel } from '../components/TopPanel/DefaultTopPanel'
 import { DefaultZoomMenu, TLUiZoomMenuProps } from '../components/ZoomMenu/DefaultZoomMenu'
-import { useShowCollaborationUi } from '../hooks/useIsMultiplayer'
+import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 
 /** @public */
 export interface TLUiComponents {
@@ -66,6 +67,7 @@ export interface TLUiComponents {
 	CursorChatBubble?: ComponentType | null
 	Dialogs?: ComponentType | null
 	Toasts?: ComponentType | null
+	A11y?: ComponentType | null
 }
 
 const TldrawUiComponentsContext = createContext<TLUiComponents | null>(null)
@@ -110,6 +112,7 @@ export function TldrawUiComponentsProvider({
 					TopPanel: showCollaborationUi ? DefaultTopPanel : null,
 					Dialogs: DefaultDialogs,
 					Toasts: DefaultToasts,
+					A11y: DefaultA11yAnnouncer,
 					..._overrides,
 				}),
 				[_overrides, showCollaborationUi]

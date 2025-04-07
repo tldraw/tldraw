@@ -182,21 +182,22 @@ export class UserDataSyncer {
 				await sleep(Math.random() * 5000)
 			}
 			const controller = new AbortController()
-			const signal = controller.signal
+			const bootPromise = this.boot(hard, controller.signal)
+				.then(() => 'ok' as const)
+				.catch((e) => {
+					this.logEvent({ type: 'reboot_error', id: this.userId })
+					this.log.debug('reboot error', e.stack)
+					this.captureException(e, { source })
+					return 'error' as const
+				})
 			const res = await Promise.race([
-				this.boot(hard, signal)
-					.then(() => 'ok' as const)
-					.catch((e) => {
-						this.logEvent({ type: 'reboot_error', id: this.userId })
-						this.log.debug('reboot error', e.stack)
-						this.captureException(e, { source })
-						return 'error' as const
-					}),
+				bootPromise,
 				sleep(30_000).then(() => {
 					controller.abort()
 					return 'timeout' as const
 				}),
 			])
+			await bootPromise
 			this.log.debug('rebooted', res)
 			if (res === 'ok') {
 				this.numConsecutiveReboots = 0

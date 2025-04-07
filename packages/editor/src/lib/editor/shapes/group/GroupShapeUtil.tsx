@@ -2,8 +2,6 @@ import { TLGroupShape, groupShapeMigrations, groupShapeProps } from '@tldraw/tls
 import { SVGContainer } from '../../../components/SVGContainer'
 import { Geometry2d } from '../../../primitives/geometry/Geometry2d'
 import { Group2d } from '../../../primitives/geometry/Group2d'
-import { Polygon2d } from '../../../primitives/geometry/Polygon2d'
-import { Polyline2d } from '../../../primitives/geometry/Polyline2d'
 import { Rectangle2d } from '../../../primitives/geometry/Rectangle2d'
 import { ShapeUtil } from '../ShapeUtil'
 import { DashedOutlineBox } from './DashedOutlineBox'
@@ -13,6 +11,10 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	static override type = 'group' as const
 	static override props = groupShapeProps
 	static override migrations = groupShapeMigrations
+
+	override canTabTo() {
+		return false
+	}
 
 	override hideSelectionBoundsFg() {
 		return true
@@ -35,19 +37,9 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		return new Group2d({
 			children: children.map((childId) => {
 				const shape = this.editor.getShape(childId)!
-				const geometry = this.editor.getShapeGeometry(childId)
-				const points = this.editor.getShapeLocalTransform(shape)!.applyToPoints(geometry.vertices)
-
-				if (geometry.isClosed) {
-					return new Polygon2d({
-						points,
-						isFilled: true,
-					})
-				}
-
-				return new Polyline2d({
-					points,
-				})
+				return this.editor
+					.getShapeGeometry(childId)
+					.transform(this.editor.getShapeLocalTransform(shape)!)
 			}),
 		})
 	}
