@@ -1,5 +1,16 @@
-import { debugFlags, stopEventPropagation, useEditor, useValue } from '@tldraw/editor'
-import { MouseEvent, memo, useCallback, useEffect, useRef } from 'react'
+import {
+	debugFlags,
+	Editor,
+	react,
+	stopEventPropagation,
+	TLGeoShape,
+	TLShapeId,
+	useContainer,
+	useEditor,
+	useMaybeEditor,
+	useValue,
+} from '@tldraw/editor'
+import { memo, MouseEvent, useCallback, useEffect, useRef } from 'react'
 import { useA11y } from '../context/a11y'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
@@ -45,42 +56,16 @@ export function SkipToMainContent() {
 
 /** @public @react */
 export const DefaultA11yAnnouncer = memo(function TldrawUiA11yAnnouncer() {
-	const currentMsg = useA11y()
-	const msg = useValue('a11y-msg', () => currentMsg.currentMsg.get(), [])
+	const a11y = useA11y()
+	const msg = useValue('a11y-msg', () => a11y.currentMsg.get(), [])
+	useA11yDebug(msg.msg)
 
-	useEffect(() => {
-		if (debugFlags.a11y.get()) {
-			const log = (msg: string) => {
-				// eslint-disable-next-line no-console
-				console.debug(
-					`%ca11y%c: ${msg}`,
-					`color: white; background: #40C057; padding: 2px;border-radius: 3px;`,
-					'font-weight: normal'
-				)
-			}
-			const handleKeyDown = (e: KeyboardEvent) => {
-				const el = document.activeElement
-				if (e.key === 'Tab' && el) {
-					const label = el.getAttribute('aria-label') || el.getAttribute('title') || el.textContent
-					if (label) {
-						log(label)
-					}
-				}
-			}
-
-			if (msg.msg) {
-				log(msg.msg)
-			}
-
-			document.addEventListener('keydown', handleKeyDown)
-			return () => document.removeEventListener('keydown', handleKeyDown)
-		}
-	}, [msg])
+	useSelectedShapesAnnouncer()
 
 	return (
 		msg.msg && (
 			<div
-				aria-live={msg.priority || 'polite'}
+				aria-live={msg.priority || 'assertive'}
 				role="status"
 				aria-hidden="false"
 				style={{
@@ -94,3 +79,124 @@ export const DefaultA11yAnnouncer = memo(function TldrawUiA11yAnnouncer() {
 		)
 	)
 })
+
+/**
+ * Core function to generate accessibility announcements for selected shapes
+ * @public
+ */
+export function generateShapeAnnouncementMessage(args: {
+	editor: Editor
+	selectedShapeIds: TLShapeId[]
+	msg(id: string, values?: Record<string, any>): string
+}) {
+	const { editor, selectedShapeIds, msg } = args
+	let a11yLive = ''
+	const numShapes = selectedShapeIds.length
+
+	if (numShapes > 1) {
+		a11yLive = msg('a11y.multiple-shapes').replace('{num}', numShapes.toString())
+	} else if (numShapes === 1) {
+		const shapeId = selectedShapeIds[0]
+		const shape = editor.getShape(shapeId)
+		if (!shape) return ''
+
+		const shapeUtil = editor.getShapeUtil(shape.type)
+
+		const isMedia = ['image', 'video'].includes(shape.type)
+		// Yeah, yeah this is a bit of a hack, we should get better translations.
+		let shapeType = ''
+		if (shape.type === 'geo') {
+			shapeType = msg(`geo-style.${(shape as TLGeoShape).props.geo}`)
+		} else if (isMedia) {
+			shapeType = msg(`a11y.shape-${shape.type}`)
+		} else {
+			shapeType = msg(`tool.${shape.type}`)
+		}
+
+		// Get shape index in reading order
+		const readingOrderShapes = editor.getCurrentPageShapesInReadingOrder()
+		const currentShapeIndex = (readingOrderShapes.findIndex((s) => s.id === shapeId) + 1).toString()
+		const totalShapes = readingOrderShapes.length.toString()
+		const shapeIndex = msg('a11y.shape-index')
+			.replace('{num}', currentShapeIndex)
+			.replace('{total}', totalShapes)
+
+		// Get describing text (alt text or shape text)
+		const describingText = shapeUtil.getAriaDescriptor(shape) || shapeUtil.getText(shape) || ''
+
+		// Build the full announcement
+		a11yLive = (describingText ? `${describingText}, ` : '') + `${shapeType}. ${shapeIndex}`
+	}
+
+	return a11yLive
+}
+
+/** @public */
+export const useSelectedShapesAnnouncer = () => {
+	const editor = useMaybeEditor()
+	const a11y = useA11y()
+	const msg = useTranslation()
+
+	useEffect(() => {
+		if (!editor) return
+
+		const announceSelectedShapes = (selectedShapeIds: TLShapeId[]) => {
+			const a11yLive = generateShapeAnnouncementMessage({
+				editor,
+				selectedShapeIds,
+				msg,
+			})
+
+			if (a11yLive) {
+				a11y.announce({ msg: a11yLive })
+			}
+		}
+
+		const stopListening = react('useSelectedShapesAnnouncer', () => {
+			const selectedShapes = editor.getSelectedShapeIds()
+			announceSelectedShapes(selectedShapes)
+		})
+
+		return () => {
+			stopListening()
+		}
+	}, [editor, a11y, msg])
+}
+
+const useA11yDebug = (msg: string | undefined) => {
+	const container = useContainer()
+
+	useEffect(() => {
+		if (debugFlags.a11y.get()) {
+			const log = (msg: string) => {
+				// eslint-disable-next-line no-console
+				console.debug(
+					`%ca11y%c: ${msg}`,
+					`color: white; background: #40C057; padding: 2px;border-radius: 3px;`,
+					'font-weight: normal'
+				)
+			}
+			const handleKeyUp = (e: KeyboardEvent) => {
+				const el = document.activeElement
+				if (
+					e.key === 'Tab' &&
+					el &&
+					el !== document.body &&
+					!el.classList.contains('tl-container')
+				) {
+					const label = el.getAttribute('aria-label') || el.getAttribute('title') || el.textContent
+					if (label) {
+						log(label)
+					}
+				}
+			}
+
+			if (msg) {
+				log(msg)
+			}
+
+			document.addEventListener('keyup', handleKeyUp)
+			return () => document.removeEventListener('keyup', handleKeyUp)
+		}
+	}, [container, msg])
+}
