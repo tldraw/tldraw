@@ -3,7 +3,6 @@ import { BlogPostPreview } from '@/components/blog/blog-post-preview'
 import { BlogSidebar } from '@/components/blog/blog-sidebar'
 import { PageTitle } from '@/components/common/page-title'
 import { Article } from '@/types/content-types'
-import { NewsletterSignup } from '../common/newsletter-signup'
 import { SearchButton } from '../search/SearchButton'
 
 export function BlogCategoryPage({
@@ -17,9 +16,7 @@ export function BlogCategoryPage({
 }) {
 	return (
 		<div className="w-full max-w-screen-xl mx-auto md:px-5 md:flex md:pt-8 isolate">
-			<BlogSidebar>
-				<NewsletterSignup size="small" />
-			</BlogSidebar>
+			<BlogSidebar>{/* <NewsletterSignup size="small" /> */}</BlogSidebar>
 			<div className="fixed z-10 flex items-center justify-between w-full h-12 px-5 bg-white border-b border-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 backdrop-blur md:hidden">
 				<BlogMobileSidebar />
 				<SearchButton type="blog" layout="mobile" className="hidden -mr-2 sm:block" />
@@ -38,9 +35,9 @@ export function BlogCategoryPage({
 							<BlogPostPreview key={index} article={article} />
 						))}
 				</section>
-				<section className="py-16 mt-16 border-t border-zinc-100 dark:border-zinc-800">
+				{/* <section className="py-16 mt-16 border-t border-zinc-100 dark:border-zinc-800">
 					<NewsletterSignup />
-				</section>
+				</section> */}
 			</main>
 		</div>
 	)

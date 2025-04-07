@@ -7,6 +7,9 @@ type HubspotFormProps =
 			form: 'business'
 	  }
 	| {
+			form: 'general'
+	  }
+	| {
 			form: 'startup'
 			plan: 'startup' | 'startup-lite'
 	  }
@@ -14,6 +17,7 @@ type HubspotFormProps =
 const forms = {
 	business: 'b8b7b29f-3987-4c37-b64f-bffff5b3fd17',
 	startup: '5f90bdd3-d97d-4ba7-9ace-2f7eabd0b21e',
+	general: 'bd0dbb79-0dcb-406d-9257-59455fb6275f',
 }
 
 const plans = {
@@ -46,7 +50,7 @@ function HubspotForm(props: HubspotFormProps) {
 		})
 	}, [props])
 
-	return <div id="hubspotForm"></div>
+	return <div id="hubspotForm" />
 }
 
 export function RequestForm(props: HubspotFormProps) {
