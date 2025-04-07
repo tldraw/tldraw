@@ -1,9 +1,51 @@
 ---
-title: How Autodesk built Forma Board with tldraw
+title: How Autodesk powers architecture-scale collaboration with tldraw’s SDK
 category: case-studies
-description: Autodesk used tldraw’s SDK to build the Forma Board directly into their cloud-based design tool.
+description: Autodesk used tldraw to build Forma Board inside their high-performance cloud design tool.
 hero: /images/case-studies/autodesk-hero.png
-date: 04/04/2025
+date: 04/08/2025
 status: draft
 author: alixwiesser,luwilson,steveruizok
 ---
+
+## Challenge
+
+Architects and engineers use Autodesk Forma to design high-resolution 3D models in the early planning phases of a project. Teams evaluate real-world factors such as sustainability metrics, sunlight and noise exposure, and often analyze multiple proposals in parallel.
+
+The Autodesk team discovered that their users were often switching between tools to share feedback about designs made in their application.
+
+<Callout type="quote">
+People would take a screenshot and they would dump that into Miro, for example, and they'll have those discussions there.\
+— **Jørgen Braseth, Principal Engineer at Autodesk**
+
+</Callout>
+
+Because of this, communication around decision-making became scattered and spread across tools not designed for architectural-scale data. As a solution, Autodesk wanted a way to bring collaboration and design review into the same space without compromising on performance. For that, they turned to the tldraw SDK.
+
+## Solution
+
+<Image src="/images/case-studies/Autodesk-content.png" />
+
+Autodesk built Forma Board, an interactive collaboration layer that runs within Forma.
+
+To achieve this, the team extended the tldraw SDK with live previews for PDFs, 3D models, and their in-house Revit format. They also added custom layout and snapping logic tailored for architectural workflows.
+
+The ability to place HTML directly onto the tldraw canvas was a “make-or-break” feature, according to Jørgen Braseth, principal engineer. It enabled the reuse of existing web components from the rest of the Forma app.
+
+<Callout type="quote">
+Being able to reuse those components directly as shapes on our board is very valuable to us because it lets other squads in our setup build their stuff, and then we can just use it.\
+— **Jørgen Braseth**
+
+</Callout>
+
+Now, teams use Forma Board to compare proposals, review feedback, present findings, and document project changes—all within the same environment.
+
+## Results
+
+Forma Board is tightly integrated into Autodesk Forma, helping teams to communicate trade-offs while keeping a persistent visual record of decisions. High-resolution drawings and documents load smoothly, even at scale, and the tooling feels native—not bolted on.
+
+Because Forma Board is built on tldraw, its evolution can continue without compromising performance or flexibility. More recently, the team added the ability to export a board’s contents as a PDF, enabled by updates to the tldraw SDK.
+
+To learn more about Autodesk’s Forma Board, read [their updates here](https://www.autodesk.com/products/forma/overview?term=1-YEAR&tab=subscription). For a visual walkthrough of the app, see their [feature video](https://www.youtube.com/watch?v=2NwAyglw6qQ). And if you’re interested in bringing a canvas into your app, get started today with the [tldraw SDK](http://tldraw.dev/).
+
+<YouTube src="https://www.youtube.com/watch?v=2NwAyglw6qQ" />
