@@ -68,7 +68,7 @@ describe('A11y Shape Announcements', () => {
 			msg: mockTranslate,
 		})
 
-		expect(message).toBe('rectangle, Shape, 1 of 1, Text: Hello')
+		expect(message).toBe('Hello, rectangle. 1 of 1')
 	})
 
 	it('announces image shape with alt text', () => {
@@ -86,7 +86,7 @@ describe('A11y Shape Announcements', () => {
 			msg: mockTranslate,
 		})
 
-		expect(message).toBe('image, Shape, 1 of 1, Text: A test image')
+		expect(message).toBe('A test image, image. 1 of 1')
 	})
 
 	it('returns empty string when no shapes are selected', () => {
