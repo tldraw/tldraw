@@ -1,7 +1,7 @@
 import {
 	debugFlags,
 	Editor,
-	EffectScheduler,
+	react,
 	stopEventPropagation,
 	throttle,
 	TLGeoShape,
