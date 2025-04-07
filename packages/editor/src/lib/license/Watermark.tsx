@@ -1,6 +1,5 @@
 import { useValue } from '@tldraw/state-react'
 import { memo, useRef } from 'react'
-import { tlenv } from '../globals/environment'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
 import { usePassThroughWheelEvents } from '../hooks/usePassThroughWheelEvents'
@@ -57,31 +56,17 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 			draggable={false}
 			{...events}
 		>
-			{tlenv.isWebview ? (
-				<a
-					draggable={false}
-					role="button"
-					onPointerDown={(e) => {
-						stopEventPropagation(e)
-						preventDefault(e)
-					}}
-					title="made with tldraw"
-					onClick={() => runtime.openWindow(url, '_blank')}
-					style={{ mask: maskCss, WebkitMask: maskCss }}
-				/>
-			) : (
-				<a
-					href={url}
-					target="_blank"
-					rel="noreferrer"
-					draggable={false}
-					onPointerDown={(e) => {
-						stopEventPropagation(e)
-					}}
-					title="made with tldraw"
-					style={{ mask: maskCss, WebkitMask: maskCss }}
-				/>
-			)}
+			<button
+				draggable={false}
+				role="button"
+				onPointerDown={(e) => {
+					stopEventPropagation(e)
+					preventDefault(e)
+				}}
+				title="made with tldraw"
+				onClick={() => runtime.openWindow(url, '_blank')}
+				style={{ mask: maskCss, WebkitMask: maskCss }}
+			/>
 		</div>
 	)
 })
@@ -117,7 +102,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		box-sizing: content-box;
 	}
 
-	.${className} > a {
+	.${className} > button {
 		position: absolute;
 		width: 96px;
 		height: 32px;
@@ -125,6 +110,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		cursor: inherit;
 		color: var(--color-text);
 		opacity: .38;
+		border: 0;
 		background-color: currentColor;
 	}
 
@@ -139,13 +125,13 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		height: 48px;
 	}
 
-	.${className}[data-mobile='true'] > a {
+	.${className}[data-mobile='true'] > button {
 		width: 8px;
 		height: 32px;
 	}
 
 	@media (hover: hover) {
-		.${className} > a {
+		.${className} > button {
 			pointer-events: none;
 		}
 
@@ -155,12 +141,12 @@ To remove the watermark, please purchase a license at tldraw.dev.
 			transition-delay: 0.32s;
 		}
 
-		.${className}:hover > a {
+		.${className}:hover > button {
 			animation: delayed_link 0.2s forwards ease-in-out;
 			animation-delay: 0.32s;
 		}
 
-		.${className} > a:focus-visible {
+		.${className} > button:focus-visible {
 			opacity: 1;
 		}
 	}

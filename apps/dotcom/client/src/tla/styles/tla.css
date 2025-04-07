@@ -263,12 +263,10 @@
 
 /* --------------------- a11y --------------------- */
 
+/** Buttons/A tags */
 .tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
-	aside
+	:has(aside, [data-radix-popper-content-wrapper], .tlui-dialog__overlay)
 	button:not(.tla-button-text):focus-visible,
-.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
-	[data-radix-popper-content-wrapper]
-	button:focus-visible,
 .tl-container__focused:not(.tl-container__no-focus-ring) button:not(.tlui-button):focus-visible,
 .tl-container__focused:not(.tl-container__no-focus-ring) .tlui-layout__top a:focus-visible {
 	border-radius: 10px;
@@ -276,6 +274,22 @@
 	outline-offset: -5px;
 }
 
+/** Switches */
+.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
+	aside .tla-switch:has(input:focus-visible) > div {
+	border-radius: 10px;
+	outline: 2px solid var(--color-focus);
+	outline-offset: 1px;
+}
+
+/** Comboboxes/select dropdowns */
+.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
+	aside button[role="combobox"]:not(.tlui-button):focus-visible {
+	border-radius: 0;
+	outline-offset: 0;
+}
+
+/** Text buttons, specifically from the cookie consent */
 .tla:has(.tl-container__focused:not(.tl-container__no-focus-ring)) aside a:focus-visible,
 .tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
 	aside
@@ -283,6 +297,7 @@
 	outline: 2px solid var(--color-focus);
 }
 
+/** Primary buttons in the top area (e.g. Share, Sign in) */
 .tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
 	aside
 	.tla-primary-button:not(.tlui-button):focus-visible,
@@ -290,4 +305,15 @@
 	.tla-primary-button:not(.tlui-button):focus-visible {
 	border-radius: 8px;
 	outline-offset: 0;
+}
+
+/**
+ * omg there's two types of primary buttons
+ * This is for the buttons in the Share dialog.
+ */
+.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
+	aside
+	.tla-button:not(.tlui-button):focus-visible {
+	border-radius: var(--tla-radius-2);
+	outline-offset: 1px;
 }
