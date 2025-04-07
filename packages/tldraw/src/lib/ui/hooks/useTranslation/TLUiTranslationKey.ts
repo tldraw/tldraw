@@ -250,7 +250,6 @@ export type TLUiTranslationKey =
 	| 'tool.rich-text-bulletList'
 	| 'tool.bookmark'
 	| 'a11y.skip-to-main-content'
-	| 'a11y.shape-empty'
 	| 'a11y.shape-index'
 	| 'a11y.shape-image'
 	| 'a11y.shape-video'

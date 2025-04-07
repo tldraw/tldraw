@@ -251,7 +251,6 @@ export const DEFAULT_TRANSLATION = {
 	'tool.rich-text-bulletList': 'Bulleted list',
 	'tool.bookmark': 'Bookmark',
 	'a11y.skip-to-main-content': 'Move focus to canvas',
-	'a11y.shape-empty': 'Empty',
 	'a11y.shape-index': '{num} of {total}',
 	'a11y.shape-image': 'Image',
 	'a11y.shape-video': 'Video',

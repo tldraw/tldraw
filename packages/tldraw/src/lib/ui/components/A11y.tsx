@@ -3,7 +3,6 @@ import {
 	Editor,
 	react,
 	stopEventPropagation,
-	throttle,
 	TLGeoShape,
 	TLShapeId,
 	useContainer,
@@ -123,11 +122,10 @@ export function generateShapeAnnouncementMessage(args: {
 			.replace('{total}', totalShapes)
 
 		// Get describing text (alt text or shape text)
-		const describingText =
-			shapeUtil.getAriaDescriptor(shape) || shapeUtil.getText(shape) || msg('a11y.shape-empty')
+		const describingText = shapeUtil.getAriaDescriptor(shape) || shapeUtil.getText(shape) || ''
 
 		// Build the full announcement
-		a11yLive = `${describingText}, ${shapeType}. ${shapeIndex}`
+		a11yLive = (describingText ? `${describingText}, ` : '') + `${shapeType}. ${shapeIndex}`
 	}
 
 	return a11yLive
@@ -154,16 +152,13 @@ export const useSelectedShapesAnnouncer = () => {
 			}
 		}
 
-		const announceSelectedShapesDebounced = throttle(announceSelectedShapes, 1000)
-
 		const stopListening = react('useSelectedShapesAnnouncer', () => {
 			const selectedShapes = editor.getSelectedShapeIds()
-			announceSelectedShapesDebounced(selectedShapes)
+			announceSelectedShapes(selectedShapes)
 		})
 
 		return () => {
 			stopListening()
-			announceSelectedShapesDebounced.cancel()
 		}
 	}, [editor, a11y, msg])
 }
