@@ -253,22 +253,6 @@ async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
 	})
 }
 
-async function deployPermissionsToFlyIo() {
-	const schemaPath = path.join(REPO_ROOT, 'packages', 'dotcom-shared', 'src', 'tlaSchema.ts')
-	const permissionsFile = 'permissions.sql'
-	await exec('npx', [
-		'zero-deploy-permissions',
-		'--schema-path',
-		schemaPath,
-		'--output-file',
-		permissionsFile,
-	])
-	const result = await exec('psql', [env.BOTCOM_POSTGRES_CONNECTION_STRING, '-f', permissionsFile])
-	if (result.toLowerCase().includes('error')) {
-		throw new Error('Error deploying permissions to fly.io')
-	}
-}
-
 let didUpdateTlsyncWorker = false
 async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-multiplayer`
@@ -281,9 +265,6 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 		},
 	})
-	if (!dryRun && deployViaFlyIo) {
-		await deployPermissionsToFlyIo()
-	}
 	await wranglerDeploy({
 		location: worker,
 		dryRun,
@@ -418,6 +399,22 @@ function updateFlyioToml(appName: string): void {
 	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 }
 
+async function deployPermissionsToFlyIo() {
+	const schemaPath = path.join(REPO_ROOT, 'packages', 'dotcom-shared', 'src', 'tlaSchema.ts')
+	const permissionsFile = 'permissions.sql'
+	await exec('npx', [
+		'zero-deploy-permissions',
+		'--schema-path',
+		schemaPath,
+		'--output-file',
+		permissionsFile,
+	])
+	const result = await exec('psql', [env.BOTCOM_POSTGRES_CONNECTION_STRING, '-f', permissionsFile])
+	if (result.toLowerCase().includes('error')) {
+		throw new Error('Error deploying permissions to fly.io')
+	}
+}
+
 async function deployZeroViaFlyIo() {
 	if (!flyioAppName) {
 		throw new Error('Fly.io app name is not defined')
@@ -430,6 +427,7 @@ async function deployZeroViaFlyIo() {
 		})
 	}
 	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio.toml'], { pwd: zeroCacheFolder })
+	await deployPermissionsToFlyIo()
 }
 
 async function deployZero() {
