@@ -1102,18 +1102,20 @@ export interface EventsProviderProps {
 }
 
 // @public (undocumented)
-export function ExampleDialog({ title, body, cancel, confirm, displayDontShowAgain, onCancel, onContinue, }: ExampleDialogProps): JSX_2.Element;
+export function ExampleDialog({ title, body, cancel, confirm, displayDontShowAgain, maxWidth, onCancel, onContinue, }: ExampleDialogProps): JSX_2.Element;
 
 // @public (undocumented)
 export interface ExampleDialogProps {
     // (undocumented)
-    body?: string;
+    body?: React_3.ReactNode;
     // (undocumented)
     cancel?: string;
     // (undocumented)
     confirm?: string;
     // (undocumented)
     displayDontShowAgain?: boolean;
+    // (undocumented)
+    maxWidth?: string;
     // (undocumented)
     onCancel(): void;
     // (undocumented)

@@ -41,7 +41,7 @@ export const DefaultToolbar = memo(function DefaultToolbar({ children }: Default
 				: breakpoint < PORTRAIT_BREAKPOINT.TABLET
 
 	return (
-		<div ref={ref} className="tlui-toolbar">
+		<div ref={ref} className="tlui-toolbar" role="toolbar">
 			<div className="tlui-toolbar__inner">
 				<div className="tlui-toolbar__left">
 					{!isReadonlyMode && (

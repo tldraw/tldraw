@@ -35,7 +35,7 @@ export function ExamplePage({
 	return (
 		<DialogContextProvider>
 			<div className="example">
-				<div className="example__sidebar scroll-light">
+				<aside className="example__sidebar scroll-light">
 					<div className="example__sidebar__header">
 						<Link className="example__sidebar__header__logo" to="/">
 							<TldrawLogo />
@@ -131,8 +131,8 @@ export function ExamplePage({
 							Visit the docs
 						</a>
 					</div>
-				</div>
-				<div className="example__content">
+				</aside>
+				<div className="example__content" role="main">
 					{children}
 					<Dialogs />
 				</div>
@@ -153,15 +153,15 @@ function ExampleSidebarListItem({
 
 	return (
 		<li className="examples__sidebar__item" data-active={isActive}>
-			<Link to={example.path} className="examples__sidebar__item__link hoverable" />
-			<div className="examples__sidebar__item__title">
-				<span>{example.title}</span>
-			</div>
+			<Link to={example.path} className="examples__sidebar__item__link">
+				{example.title}
+			</Link>
 			{isActive && (
 				<div className="example__sidebar__item__buttons">
 					<button
 						className="example__sidebar__item__button hoverable"
 						onClick={() => setExampleDialog(example)}
+						aria-label="Info"
 					>
 						<InfoIcon />
 					</button>
@@ -279,5 +279,5 @@ function ExternalLinkIcon() {
 }
 
 function TldrawLogo() {
-	return <img className="examples__tldraw__logo" src="tldraw_dev_light.png" />
+	return <img className="examples__tldraw__logo" src="tldraw_dev_light.png" alt="tldraw logo" />
 }

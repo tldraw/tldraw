@@ -57,7 +57,6 @@ export const TldrawUiSlider = memo(function Slider({
 			<Root
 				data-testid={testId}
 				className="tlui-slider"
-				area-label="Opacity"
 				dir="ltr"
 				min={0}
 				max={steps}
@@ -73,7 +72,9 @@ export const TldrawUiSlider = memo(function Slider({
 				<Track className="tlui-slider__track" dir="ltr">
 					{value !== null && <Range className="tlui-slider__range" dir="ltr" />}
 				</Track>
-				{value !== null && <Thumb className="tlui-slider__thumb" dir="ltr" />}
+				{value !== null && (
+					<Thumb aria-label={msg('style-panel.opacity')} className="tlui-slider__thumb" dir="ltr" />
+				)}
 			</Root>
 		</div>
 	)
