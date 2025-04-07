@@ -8,10 +8,10 @@ import Cookies from 'js-cookie'
 import Script from 'next/script'
 import { useEffect, useState } from 'react'
 
-type CookieConsent = undefined | 'unknown' | 'opted-in' | 'opted-out'
+type CookieConsent = 'unknown' | 'opted-in' | 'opted-out'
 
 export default function Analytics() {
-	const [hasConsent, setHasConsent] = useState<CookieConsent>()
+	const [hasConsent, setHasConsent] = useState<CookieConsent>('unknown')
 
 	const onConsentChanged = (hasConsent: boolean) => {
 		Cookies.set('allowTracking', hasConsent ? 'true' : 'false')
@@ -63,13 +63,11 @@ function CookieConsent({
 		}
 	}
 
-	if (hasConsent === undefined || hasConsent !== 'unknown') {
-		return null
-	}
+	if (hasConsent !== 'unknown') return null
 
 	return (
 		<>
-			<div className="select-none pointer-events-all p-3 gap-3 w-auto fixed max-w-full z-50 bottom-2 left-2 rounded rounded-lg shadow shadow-xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex justify-items-center flex-col sm:flex-row sm:gap-8">
+			<div className="select-none pointer-events-all p-3 gap-3 fixed max-w-full z-50 bottom-2 left-2 rounded rounded-lg shadow shadow-xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex items-center flex-col sm:flex-row sm:gap-8">
 				<p className="text-xs leading-relaxed text-zinc-950 dark:text-zinc-100">
 					We use cookies on this website.
 					<br /> Learn more in our{' '}

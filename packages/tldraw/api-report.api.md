@@ -227,7 +227,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canSnap(): boolean;
     // (undocumented)
-    canTabTo(): boolean;
+    canTabTo(shape: TLArrowShape): boolean;
     // (undocumented)
     component(shape: TLArrowShape): JSX_2.Element | null;
     // (undocumented)
@@ -1893,14 +1893,12 @@ export function parseTldrawJsonFile({ json, schema, }: {
 export function PasteMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function PeopleMenu({ displayUserWhenAlone, children }: PeopleMenuProps): JSX_2.Element;
+export function PeopleMenu({ children }: PeopleMenuProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export interface PeopleMenuProps {
     // (undocumented)
     children?: ReactNode;
-    // (undocumented)
-    displayUserWhenAlone: boolean;
 }
 
 // @public

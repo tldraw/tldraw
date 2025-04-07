@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { useMsg } from '../../../utils/i18n'
 import { TlaFileMenu } from '../../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
@@ -19,7 +20,10 @@ export function TlaSidebarFileLinkMenu({
 			source="sidebar"
 			onRenameAction={onRenameAction}
 			trigger={
-				<button className={styles.linkMenu} title={fileMenuLbl}>
+				<button
+					className={classNames('tla-sidebar-file-menu', styles.linkMenu)}
+					title={fileMenuLbl}
+				>
 					<TlaIcon icon="dots-vertical-strong" />
 				</button>
 			}

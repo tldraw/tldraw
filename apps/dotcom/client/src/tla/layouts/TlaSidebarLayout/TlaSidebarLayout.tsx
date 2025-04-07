@@ -158,7 +158,7 @@ export function TlaSidebarLayout({
 	}, [])
 
 	return (
-		<div
+		<aside
 			ref={rLayoutContainer}
 			className={styles.layout}
 			data-sidebar={!isEmbed && isSidebarOpen}
@@ -189,6 +189,6 @@ export function TlaSidebarLayout({
 					)}
 				</>
 			)}
-		</div>
+		</aside>
 	)
 }
