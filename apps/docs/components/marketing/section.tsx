@@ -12,7 +12,7 @@ export function Section({
 	return (
 		<section
 			id={id}
-			className={cn('w-full max-w-screen-xl mx-auto md:px-6 my-32 lg:my-40', className)}
+			className={cn('w-full w-full max-w-2xl mx-auto md:px-6 pt-[64px] mt-[-64px]', className)}
 		>
 			{children}
 		</section>

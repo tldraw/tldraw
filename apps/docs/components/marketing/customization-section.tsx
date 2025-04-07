@@ -1,6 +1,5 @@
 import { Example } from '@/components/marketing/example'
 import { Section } from '@/components/marketing/section'
-import { SectionHeading } from '@/components/marketing/section-heading'
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
 import {
 	ArrowLongRightIcon,
@@ -11,15 +10,16 @@ import {
 } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 import { ArrowUp } from './arrow-up'
+import { SectionSubtitle } from './section-description'
+import { SectionTitle } from './section-title'
 
 export async function CustomizationSection() {
 	return (
 		<Section>
-			<SectionHeading
-				subheading="Features"
-				heading="100% Customizable"
-				description="Make the canvas 100% yours with tldraw. Here are a few examples of how to do that."
-			/>
+			<SectionTitle>Build with tldraw</SectionTitle>
+			<SectionSubtitle>
+				Make the canvas 100% yours with tldraw. Here are a few examples of how to do that.
+			</SectionSubtitle>
 			<TabGroup>
 				<TabList className="relative flex sm:justify-center overflow-x-auto gap-8 mb-12 px-5">
 					<div className="absolute inset-x-0 bottom-0 h-px bg-zinc-100 dark:bg-zinc-800" />

@@ -35,7 +35,7 @@ export function TlaEditorTopRightPanel({
 	if (isAnonUser) {
 		return (
 			<div ref={ref} className={classNames(styles.topRightPanel)}>
-				<PeopleMenu displayUserWhenAlone={false} />
+				<PeopleMenu />
 				<TlaSignedOutShareButton fileId={fileId} context={context} />
 				<SignInButton
 					mode="modal"
@@ -55,7 +55,7 @@ export function TlaEditorTopRightPanel({
 
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
-			<PeopleMenu displayUserWhenAlone={false} />
+			<PeopleMenu />
 			{context === 'legacy' && <LegacyImportButton />}
 			<TlaFileShareMenu fileId={fileId!} source="file-header" context={context}>
 				<TlaCtaButton

@@ -1,4 +1,4 @@
-import { useCollaborationStatus } from '../../hooks/useIsMultiplayer'
+import { useCollaborationStatus } from '../../hooks/useCollaborationStatus'
 import { OfflineIndicator } from '../OfflineIndicator/OfflineIndicator'
 import { CenteredTopPanelContainer } from './CenteredTopPanelContainer'
 

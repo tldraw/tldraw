@@ -9,7 +9,7 @@ export const TlaCtaButton = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<H
 				ref={ref}
 				type="button"
 				draggable={false}
-				className={classNames(styles.ctaButton)}
+				className={classNames('tla-primary-button', styles.ctaButton)}
 				{...props}
 			/>
 		)

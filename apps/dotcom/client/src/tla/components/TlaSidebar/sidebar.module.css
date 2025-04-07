@@ -390,8 +390,8 @@
 	border: none;
 	position: absolute;
 	top: 0px;
-	left: 0px;
-	width: 100%;
+	left: 3px;
+	width: calc(100% - 6px);
 	height: 100%;
 	cursor: pointer;
 	z-index: 2;
@@ -419,6 +419,9 @@
 @media (hover: hover) {
 	.linkMenu {
 		display: none;
+	}
+	:global(.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))) .linkMenu {
+		display: flex;
 	}
 	/*
 		For guest files we show a guest icon at the end of the filename

@@ -3,20 +3,15 @@
 import { TldrawIcon } from '@/components/common/icon/tldraw'
 import { NavigationLink } from '@/components/navigation/link'
 import { Category } from '@/types/content-types'
-import {
-	MegaphoneIcon,
-	RectangleStackIcon,
-	RocketLaunchIcon,
-	TagIcon,
-} from '@heroicons/react/20/solid'
+import { FlagIcon, MegaphoneIcon, RectangleStackIcon, TagIcon } from '@heroicons/react/20/solid'
 import { usePathname } from 'next/navigation'
 
 const icons = {
-	announcements: MegaphoneIcon,
-	'release-notes': TagIcon,
-	product: TldrawIcon,
 	'all-posts': RectangleStackIcon,
-	customers: RocketLaunchIcon,
+	announcements: MegaphoneIcon,
+	'case-studies': FlagIcon,
+	product: TldrawIcon,
+	'release-notes': TagIcon,
 }
 
 export function BlogCategoryMenu({ categories }: { categories: Category[] }) {

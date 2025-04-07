@@ -260,3 +260,34 @@
 .tla-lang-highlight-missing .i18n-msg * {
 	text-shadow: none;
 }
+
+/* --------------------- a11y --------------------- */
+
+.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
+	aside
+	button:not(.tla-button-text):focus-visible,
+.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
+	[data-radix-popper-content-wrapper]
+	button:focus-visible,
+.tl-container__focused:not(.tl-container__no-focus-ring) button:not(.tlui-button):focus-visible,
+.tl-container__focused:not(.tl-container__no-focus-ring) .tlui-layout__top a:focus-visible {
+	border-radius: 10px;
+	outline: 2px solid var(--color-focus);
+	outline-offset: -5px;
+}
+
+.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring)) aside a:focus-visible,
+.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
+	aside
+	.tla-button-text:focus-visible {
+	outline: 2px solid var(--color-focus);
+}
+
+.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
+	aside
+	.tla-primary-button:not(.tlui-button):focus-visible,
+.tl-container__focused:not(.tl-container__no-focus-ring)
+	.tla-primary-button:not(.tlui-button):focus-visible {
+	border-radius: 8px;
+	outline-offset: 0;
+}

@@ -1,28 +1,24 @@
 import { Section } from '@/components/marketing/section'
-import { SectionHeading } from '@/components/marketing/section-heading'
 import Link from 'next/link'
 import { BlueA } from '../common/blue-a'
 import { DisclosureToggle } from './DisclosureToggle'
+import { SectionSubtitle } from './section-description'
+import { SectionTitle } from './section-title'
 
 export function FAQSection() {
 	return (
-		<Section id="faq">
-			<SectionHeading
-				subheading="FAQ"
-				heading="Frequently Asked Questions"
-				description={
-					<>
-						Have more questions?{' '}
-						<Link href="mailto:hello@tldraw.com" className="text-blue-500 hover:text-blue-600">
-							Contact us
-						</Link>{' '}
-						and we’ll respond as quickly as possible.
-					</>
-				}
-			/>
-			<div className="px-5 max-w-2xl mx-auto">
+		<Section id="faq" className="max-w-full w-lg">
+			<SectionTitle>Frequently Asked Questions</SectionTitle>
+			<SectionSubtitle>
+				Have more questions?{' '}
+				<Link href="mailto:hello@tldraw.com" className="text-blue-500 hover:text-blue-600">
+					Contact us
+				</Link>{' '}
+				and we’ll respond as quickly as possible.
+			</SectionSubtitle>
+			<div className="px-8 w-full max-w-2xl mx-auto">
 				{faq.map(({ q, a }, index) => (
-					<DisclosureToggle key={index} q={q} a={a} />
+					<DisclosureToggle key={index} q={q} a={a} index={index} />
 				))}
 			</div>
 		</Section>
@@ -36,7 +32,7 @@ const faq = [
 			<>
 				You can use the tldraw SDK for free in commercial or non-commercial contexts so long as the
 				watermark is present. If you want to remove the watermark, you can purchase a license from
-				us. See our <BlueA href="#license">license</BlueA> and{' '}
+				us. See our <BlueA href="/legal/tldraw-license">license</BlueA> and{' '}
 				<BlueA href="#pricing">pricing</BlueA> sections for more information.
 			</>
 		),
@@ -45,10 +41,11 @@ const faq = [
 		q: 'Is the tldraw SDK open source?',
 		a: (
 			<>
-				Our license is not exactly <BlueA href="https://opensource.org/osd">Open Source</BlueA> but
-				you can view the source code on{' '}
+				You can view the source code on{' '}
 				<BlueA href="https://github.com/tldraw/tldraw">GitHub</BlueA>. We accept contributions from
-				the community and work in public.
+				the community and work in public. Our <BlueA href="/legal/tldraw-license">license</BlueA> is
+				not exactly <BlueA href="https://opensource.org/osd">Open Source</BlueA> but the library is
+				free to use with our watermark.
 			</>
 		),
 	},
@@ -73,9 +70,7 @@ const faq = [
 				<BlueA href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=faq">
 					Discord
 				</BlueA>{' '}
-				community. We have a{' '}
-				<BlueA href="https://github.com/tldraw/awesome-tldraw">awesome-tldraw</BlueA> repo where we
-				collect links to awesome projects built with tldraw.
+				community.
 			</>
 		),
 	},
@@ -104,12 +99,12 @@ const faq = [
 		),
 	},
 	{
-		q: 'Can I use tldraw in a commercial application?',
+		q: 'Can I use the tldraw SDK in a commercial application?',
 		a: (
 			<>
-				Yes. From tldraw 3.0 onward, you can use the SDK for free in commercial or non-commercial
-				contexts so long as the watermark is present. If you want to remove the watermark, you can
-				purchase a license from us.
+				Yes, you can use the SDK for free in commercial or non-commercial contexts so long as the
+				watermark is present. If you want to remove the watermark, you can
+				<BlueA href="#pricing">purchase</BlueA> a license from us.
 			</>
 		),
 	},
@@ -126,7 +121,8 @@ const faq = [
 					license key
 				</BlueA>{' '}
 				that you can use to remove the watermark. If you want to use the SDK for free, you have to
-				keep the watermark as it is. Read our standard default license for more information.
+				keep the watermark as it is. See our <BlueA href="#pricing">pricing</BlueA> for more
+				information.
 			</>
 		),
 	},
@@ -134,8 +130,8 @@ const faq = [
 		q: 'Does the SDK collect diagnostics?',
 		a: (
 			<>
-				The only information we collect relates to requests for our static assets (such as our
-				default fonts, icons and watermark). If you{' '}
+				We collect anonymous usage information in two ways: from requests for our static assets
+				(such as our default fonts, icons and watermark), and from our watermark. If you{' '}
 				<BlueA href="/installation#Static-Assets">self-host</BlueA> all static assets and have a
 				license to remove the watermark then all no external requests are made.
 			</>
@@ -146,8 +142,13 @@ const faq = [
 		a: (
 			<>
 				Yes, though your app will have to embed React for the component. The SDK uses React for
-				rendering only, and most of the tldraw SDK is regular TypeScript; so we may add first-class
-				support for alternative renderers such as Svelte or Vue in the future.
+				rendering only, and most of the tldraw SDK is regular TypeScript. If you would like to have
+				first-class support for alternative renderers such as Svelte or Vue, please let us know on
+				the{' '}
+				<BlueA href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=faq">
+					Discord
+				</BlueA>
+				.
 			</>
 		),
 	},
@@ -155,12 +156,11 @@ const faq = [
 		q: 'Where can I find the AI stuff?',
 		a: (
 			<>
-				Oh, the AI stuff. You can try our{' '}
-				<BlueA href="https://makereal.tldraw.com">Make Real</BlueA> for drawing user interfaces with
-				tldraw. We also have <BlueA href="https://teach.tldraw.com">Teach</BlueA> for working with
-				an AI on the canvas. And we have <BlueA href="https://computer.tldraw.com">Computer</BlueA>{' '}
-				for building AI-powered workflows. Follow us on{' '}
-				<BlueA href="https://x.com/tldraw">X/Twitter</BlueA> for the latest!
+				You can try our <BlueA href="https://makereal.tldraw.com">Make Real</BlueA> for drawing user
+				interfaces with tldraw. We also have <BlueA href="https://teach.tldraw.com">Teach</BlueA>{' '}
+				for working with an AI on the canvas. And we have{' '}
+				<BlueA href="https://computer.tldraw.com">Computer</BlueA> for building AI-powered
+				workflows. Follow us on <BlueA href="https://x.com/tldraw">X/Twitter</BlueA> for the latest!
 			</>
 		),
 	},
