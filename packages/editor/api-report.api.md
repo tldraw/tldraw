@@ -703,7 +703,7 @@ export const DefaultSvgDefs: () => null;
 
 // @public (undocumented)
 export const defaultTldrawOptions: {
-    readonly actionShortcutsLocation: "swap";
+    readonly actionShortcutsLocation: "toolbar";
     readonly adjacentShapeMargin: 10;
     readonly animationMediumMs: 320;
     readonly cameraMovingTimeoutMs: 64;

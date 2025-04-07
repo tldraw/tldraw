@@ -73,7 +73,6 @@ function LocalTldraw() {
 						}
 					})
 				}}
-				options={{ actionShortcutsLocation: 'toolbar' }}
 			>
 				<SneakyDarkModeSync />
 			</LocalEditor>

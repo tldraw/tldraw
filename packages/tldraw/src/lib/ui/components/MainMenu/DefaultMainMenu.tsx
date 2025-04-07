@@ -27,8 +27,13 @@ export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiM
 	return (
 		<_Dropdown.Root dir="ltr" open={isOpen} onOpenChange={onOpenChange} modal={false}>
 			<_Dropdown.Trigger asChild dir="ltr">
-				<TldrawUiButton type="icon" data-testid="main-menu.button" title={msg('menu.title')}>
-					<TldrawUiButtonIcon icon="menu" small />
+				<TldrawUiButton
+					type="icon"
+					className="tlui-main-menu"
+					data-testid="main-menu.button"
+					title={msg('menu.title')}
+				>
+					<TldrawUiButtonIcon icon="dots-vertical" small />
 				</TldrawUiButton>
 			</_Dropdown.Trigger>
 			<_Dropdown.Portal container={container}>
