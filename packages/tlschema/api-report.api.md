@@ -1118,37 +1118,21 @@ export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>;
 // @public (undocumented)
 export interface TLImageShapeProps {
     // (undocumented)
-    align: TLDefaultHorizontalAlignStyle;
-    // (undocumented)
     altText: string;
     // (undocumented)
     assetId: null | TLAssetId;
     // (undocumented)
-    color: TLDefaultColorStyle;
-    // (undocumented)
     crop: null | TLShapeCrop;
-    // (undocumented)
-    fill: TLDefaultFillStyle;
     // (undocumented)
     flipX: boolean;
     // (undocumented)
     flipY: boolean;
     // (undocumented)
-    font: TLDefaultFontStyle;
-    // (undocumented)
     h: number;
-    // (undocumented)
-    labelColor: TLDefaultColorStyle;
     // (undocumented)
     playing: boolean;
     // (undocumented)
-    size: TLDefaultSizeStyle;
-    // (undocumented)
-    text: string;
-    // (undocumented)
     url: string;
-    // (undocumented)
-    verticalAlign: TLDefaultVerticalAlignStyle;
     // (undocumented)
     w: number;
     // (undocumented)
@@ -1551,33 +1535,17 @@ export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>;
 // @public (undocumented)
 export interface TLVideoShapeProps {
     // (undocumented)
-    align: TLDefaultHorizontalAlignStyle;
-    // (undocumented)
     altText: string;
     // (undocumented)
     assetId: null | TLAssetId;
     // (undocumented)
-    color: TLDefaultColorStyle;
-    // (undocumented)
-    fill: TLDefaultFillStyle;
-    // (undocumented)
-    font: TLDefaultFontStyle;
-    // (undocumented)
     h: number;
     // (undocumented)
-    labelColor: TLDefaultColorStyle;
-    // (undocumented)
     playing: boolean;
-    // (undocumented)
-    size: TLDefaultSizeStyle;
-    // (undocumented)
-    text: string;
     // (undocumented)
     time: number;
     // (undocumented)
     url: string;
-    // (undocumented)
-    verticalAlign: TLDefaultVerticalAlignStyle;
     // (undocumented)
     w: number;
 }

@@ -841,7 +841,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, textOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, fontAssetUrls, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, textOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, getShapeVisibility, fontAssetUrls, }: TLEditorOptions);
     // @deprecated (undocumented)
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
@@ -1240,6 +1240,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     getCurrentPageShapeIdsSorted(): TLShapeId[];
     getCurrentPageShapes(): TLShape[];
+    getCurrentPageShapesInReadingOrder(): TLShape[];
     getCurrentPageShapesSorted(): TLShape[];
     getCurrentPageState(): TLInstancePageState;
     getCurrentTool(): StateNode;
@@ -1268,6 +1269,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getIsReadonly(): boolean;
     // @internal
     getMarkIdMatching(idSubstring: string): null | string;
+    getNearestAdjacentShape(currentShapeId: TLShapeId, direction: 'down' | 'left' | 'right' | 'up'): TLShapeId;
     getOnlySelectedShape(): null | TLShape;
     getOnlySelectedShapeId(): null | TLShapeId;
     // @deprecated (undocumented)
@@ -1310,6 +1312,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     getShapeNearestSibling(siblingShape: TLShape, targetShape: TLShape | undefined): TLShape | undefined;
     getShapePageBounds(shape: TLShape | TLShapeId): Box | undefined;
+    getShapePageGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T;
     getShapePageTransform(shape: TLShape | TLShapeId): Mat;
     getShapeParent(shape?: TLShape | TLShapeId): TLShape | undefined;
     getShapeParentTransform(shape: TLShape | TLShapeId): Mat;
@@ -1478,6 +1481,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     screenToPage(point: VecLike): Vec;
     readonly scribbles: ScribbleManager;
     select(...shapes: TLShape[] | TLShapeId[]): this;
+    // (undocumented)
+    selectAdjacentShape(direction: TLAdjacentDirection): void;
     selectAll(): this;
     selectNone(): this;
     sendBackward(shapes: TLShape[] | TLShapeId[], opts?: {
@@ -1585,6 +1590,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     } & TLCameraMoveOptions): this;
     zoomToFit(opts?: TLCameraMoveOptions): this;
     zoomToSelection(opts?: TLCameraMoveOptions): this;
+    zoomToSelectionIfOffscreen(padding?: number, opts?: {
+        inset?: number;
+        targetZoom?: number;
+    } & TLCameraMoveOptions): void;
     zoomToUser(userId: string, opts?: TLCameraMoveOptions): this;
 }
 
@@ -1704,9 +1713,9 @@ export abstract class Geometry2d {
     // (undocumented)
     debugColor?: string;
     // (undocumented)
-    distanceToLineSegment(A: Vec, B: Vec): number;
+    distanceToLineSegment(A: Vec, B: Vec, filters?: Geometry2dFilters): number;
     // (undocumented)
-    distanceToPoint(point: Vec, hitInside?: boolean): number;
+    distanceToPoint(point: Vec, hitInside?: boolean, filters?: Geometry2dFilters): number;
     // (undocumented)
     getArea(): number;
     // (undocumented)
@@ -1716,17 +1725,29 @@ export abstract class Geometry2d {
     // (undocumented)
     abstract getSvgPathData(first: boolean): string;
     // (undocumented)
-    abstract getVertices(): Vec[];
+    abstract getVertices(filters: Geometry2dFilters): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec, B: Vec, distance?: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec, distance?: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
-    hitTestPoint(point: Vec, margin?: number, hitInside?: boolean): boolean;
+    hitTestPoint(point: Vec, margin?: number, hitInside?: boolean, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     ignore?: boolean;
     // (undocumented)
+    intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
     isClosed: boolean;
     // (undocumented)
+    isExcludedByFilter(filters?: Geometry2dFilters): boolean;
+    // (undocumented)
     isFilled: boolean;
+    // (undocumented)
+    isInternal: boolean;
     // (undocumented)
     isLabel: boolean;
     // (undocumented)
@@ -1734,14 +1755,32 @@ export abstract class Geometry2d {
     // (undocumented)
     get length(): number;
     // (undocumented)
-    abstract nearestPoint(point: Vec): Vec;
-    // (undocumented)
+    abstract nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec;
+    // @deprecated (undocumented)
     nearestPointOnLineSegment(A: Vec, B: Vec): Vec;
     // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
+    transform(transform: MatModel): Geometry2d;
+    // (undocumented)
     get vertices(): Vec[];
 }
+
+// @public (undocumented)
+export interface Geometry2dFilters {
+    // (undocumented)
+    readonly includeInternal?: boolean;
+    // (undocumented)
+    readonly includeLabels?: boolean;
+}
+
+// @public (undocumented)
+export const Geometry2dFilters: {
+    EXCLUDE_INTERNAL: Geometry2dFilters;
+    EXCLUDE_LABELS: Geometry2dFilters;
+    EXCLUDE_NON_STANDARD: Geometry2dFilters;
+    INCLUDE_ALL: Geometry2dFilters;
+};
 
 // @public (undocumented)
 export interface Geometry2dOptions {
@@ -1753,6 +1792,8 @@ export interface Geometry2dOptions {
     isClosed: boolean;
     // (undocumented)
     isFilled: boolean;
+    // (undocumented)
+    isInternal?: boolean;
     // (undocumented)
     isLabel?: boolean;
 }
@@ -1850,7 +1891,7 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     children: Geometry2d[];
     // (undocumented)
-    distanceToPoint(point: Vec, hitInside?: boolean): number;
+    distanceToPoint(point: Vec, hitInside?: boolean, filters?: Geometry2dFilters): number;
     // (undocumented)
     getArea(): number;
     // (undocumented)
@@ -1858,23 +1899,35 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     getSvgPathData(): string;
     // (undocumented)
-    getVertices(): Vec[];
+    getVertices(filters: Geometry2dFilters): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec, zoom: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
-    hitTestPoint(point: Vec, margin: number, hitInside: boolean): boolean;
+    hitTestPoint(point: Vec, margin: number, hitInside: boolean, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     ignoredChildren: Geometry2d[];
     // (undocumented)
-    nearestPoint(point: Vec): Vec;
+    intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec;
     // (undocumented)
     toSimpleSvgPath(): string;
+    // (undocumented)
+    transform(transform: Mat): Geometry2d;
 }
 
 // @public (undocumented)
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind(): boolean;
+    // (undocumented)
+    canTabTo(): boolean;
     // (undocumented)
     component(shape: TLGroupShape): JSX_2.Element | null;
     // (undocumented)
@@ -2567,6 +2620,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canResize(_shape: Shape): boolean;
     canScroll(_shape: Shape): boolean;
     canSnap(_shape: Shape): boolean;
+    canTabTo(_shape: Shape): boolean;
     abstract component(shape: Shape): any;
     static configure<T extends TLShapeUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
         options: infer Options;
@@ -2916,6 +2970,9 @@ export type TiptapEditor = Editor_2;
 export type TiptapNode = Node_2;
 
 // @public (undocumented)
+export type TLAdjacentDirection = 'down' | 'left' | 'next' | 'prev' | 'right' | 'up';
+
+// @public (undocumented)
 export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor<any>;
 
 // @public (undocumented)
@@ -3162,8 +3219,10 @@ export interface TldrawEditorBaseProps {
     className?: string;
     components?: TLEditorComponents;
     deepLinks?: TLDeepLinkOptions | true;
+    getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
     inferDarkMode?: boolean;
     initialState?: string;
+    // @deprecated
     isShapeHidden?(shape: TLShape, editor: Editor): boolean;
     licenseKey?: string;
     onMount?: TLOnMountHandler;
@@ -3345,8 +3404,10 @@ export interface TLEditorOptions {
         [key: string]: string | undefined;
     };
     getContainer(): HTMLElement;
+    getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
     inferDarkMode?: boolean;
     initialState?: string;
+    // @deprecated
     isShapeHidden?(shape: TLShape, editor: Editor): boolean;
     // (undocumented)
     licenseKey?: string;
@@ -4236,6 +4297,35 @@ export { track }
 export { transact }
 
 export { transaction }
+
+// @public (undocumented)
+export class TransformedGeometry2d extends Geometry2d {
+    constructor(geometry: Geometry2d, matrix: MatModel);
+    // (undocumented)
+    distanceToLineSegment(A: Vec, B: Vec, filters?: Geometry2dFilters): number;
+    // (undocumented)
+    distanceToPoint(point: Vec, hitInside?: boolean, filters?: Geometry2dFilters): number;
+    // (undocumented)
+    getSvgPathData(): string;
+    // (undocumented)
+    getVertices(filters: Geometry2dFilters): Vec[];
+    // (undocumented)
+    hitTestLineSegment(A: Vec, B: Vec, distance?: number, filters?: Geometry2dFilters): boolean;
+    // (undocumented)
+    hitTestPoint(point: Vec, margin?: number, hitInside?: boolean, filters?: Geometry2dFilters): boolean;
+    // (undocumented)
+    intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[];
+    // (undocumented)
+    nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec;
+    // (undocumented)
+    transform(transform: MatModel): Geometry2d;
+}
 
 // @public (undocumented)
 export type UiEvent = TLCancelEvent | TLClickEvent | TLCompleteEvent | TLKeyboardEvent | TLPinchEvent | TLPointerEvent;

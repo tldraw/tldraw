@@ -4,6 +4,7 @@ import {
 	PageRecordType,
 	TLGeoShapeProps,
 	TLShape,
+	TldrawEditorProps,
 	atom,
 	createShapeId,
 	debounce,
@@ -718,13 +719,14 @@ describe('dragging', () => {
 	})
 })
 
-describe('isShapeHidden', () => {
-	const isShapeHidden = jest.fn((shape: TLShape) => {
-		return !!shape.meta.hidden
-	})
+describe('getShapeVisibility', () => {
+	const getShapeVisibility = jest.fn(((shape: TLShape) => {
+		return shape.meta.visibility as any
+	}) satisfies TldrawEditorProps['getShapeVisibility'])
 
 	beforeEach(() => {
-		editor = new TestEditor({ isShapeHidden })
+		getShapeVisibility.mockClear()
+		editor = new TestEditor({ getShapeVisibility })
 
 		editor.createShapes([
 			{
@@ -753,44 +755,44 @@ describe('isShapeHidden', () => {
 
 	it('can be directly used via editor.isShapeHidden', () => {
 		expect(editor.isShapeHidden(editor.getShape(ids.box1)!)).toBe(false)
-		editor.updateShape({ id: ids.box1, type: 'geo', meta: { hidden: true } })
+		editor.updateShape({ id: ids.box1, type: 'geo', meta: { visibility: 'hidden' } })
 		expect(editor.isShapeHidden(editor.getShape(ids.box1)!)).toBe(true)
 	})
 
 	it('excludes hidden shapes from the rendering shapes array', () => {
 		expect(editor.getRenderingShapes().length).toBe(3)
-		editor.updateShape({ id: ids.box1, type: 'geo', meta: { hidden: true } })
+		editor.updateShape({ id: ids.box1, type: 'geo', meta: { visibility: 'hidden' } })
 		expect(editor.getRenderingShapes().length).toBe(2)
-		editor.updateShape({ id: ids.box2, type: 'geo', meta: { hidden: true } })
+		editor.updateShape({ id: ids.box2, type: 'geo', meta: { visibility: 'hidden' } })
 		expect(editor.getRenderingShapes().length).toBe(1)
 	})
 
 	it('excludes hidden shapes from hit testing', () => {
 		expect(editor.getShapeAtPoint({ x: 150, y: 150 })).toBeDefined()
 		expect(editor.getShapesAtPoint({ x: 150, y: 150 }).length).toBe(1)
-		editor.updateShape({ id: ids.box1, type: 'geo', meta: { hidden: true } })
+		editor.updateShape({ id: ids.box1, type: 'geo', meta: { visibility: 'hidden' } })
 		expect(editor.getShapeAtPoint({ x: 150, y: 150 })).not.toBeDefined()
 		expect(editor.getShapesAtPoint({ x: 150, y: 150 }).length).toBe(0)
 	})
 
 	it('uses the callback reactively', () => {
 		const isFilteringEnabled = atom('', true)
-		isShapeHidden.mockImplementation((shape: TLShape) => {
-			if (!isFilteringEnabled.get()) return false
-			return !!shape.meta.hidden
+		getShapeVisibility.mockImplementation((shape: TLShape) => {
+			if (!isFilteringEnabled.get()) return 'inherit'
+			return shape.meta.visibility
 		})
 		let renderingShapes = editor.getRenderingShapes()
 		react('setRenderingShapes', () => {
 			renderingShapes = editor.getRenderingShapes()
 		})
 		expect(renderingShapes.length).toBe(3)
-		editor.updateShape({ id: ids.box1, type: 'geo', meta: { hidden: true } })
+		editor.updateShape({ id: ids.box1, type: 'geo', meta: { visibility: 'hidden' } })
 		expect(renderingShapes.length).toBe(2)
 		isFilteringEnabled.set(false)
 		expect(renderingShapes.length).toBe(3)
 		isFilteringEnabled.set(true)
 		expect(renderingShapes.length).toBe(2)
-		editor.updateShape({ id: ids.box1, type: 'geo', meta: { hidden: false } })
+		editor.updateShape({ id: ids.box1, type: 'geo', meta: { visibility: 'inherit' } })
 		expect(renderingShapes.length).toBe(3)
 	})
 
@@ -800,13 +802,13 @@ describe('isShapeHidden', () => {
 
 		expect(editor.isShapeHidden(editor.getShape(groupId)!)).toBe(false)
 		expect(editor.isShapeHidden(editor.getShape(ids.box1)!)).toBe(false)
-		editor.updateShape({ id: groupId, type: 'group', meta: { hidden: true } })
+		editor.updateShape({ id: groupId, type: 'group', meta: { visibility: 'hidden' } })
 		expect(editor.isShapeHidden(editor.getShape(groupId)!)).toBe(true)
 		expect(editor.isShapeHidden(editor.getShape(ids.box1)!)).toBe(true)
 	})
 
 	it('still allows hidden shapes to be selected', () => {
-		editor.updateShape({ id: ids.box1, type: 'geo', meta: { hidden: true } })
+		editor.updateShape({ id: ids.box1, type: 'geo', meta: { visibility: 'hidden' } })
 		editor.select(ids.box1)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		expect(editor.isShapeHidden(editor.getShape(ids.box1)!)).toBe(true)
@@ -814,14 +816,28 @@ describe('isShapeHidden', () => {
 
 	it('applies to getCurrentPageRenderingShapesSorted', () => {
 		expect(editor.getCurrentPageRenderingShapesSorted().length).toBe(3)
-		editor.updateShape({ id: ids.box1, type: 'geo', meta: { hidden: true } })
+		editor.updateShape({ id: ids.box1, type: 'geo', meta: { visibility: 'hidden' } })
 		expect(editor.getCurrentPageRenderingShapesSorted().length).toBe(2)
 	})
 
 	it('does not apply to getCurrentPageShapesSorted', () => {
 		expect(editor.getCurrentPageShapesSorted().length).toBe(3)
-		editor.updateShape({ id: ids.box1, type: 'geo', meta: { hidden: true } })
+		editor.updateShape({ id: ids.box1, type: 'geo', meta: { visibility: 'hidden' } })
 		expect(editor.getCurrentPageShapesSorted().length).toBe(3)
+	})
+
+	it('allows overriding hidden parents with "visible" value', () => {
+		const groupId = createShapeId('group')
+		editor.groupShapes([ids.box1, ids.box2], { groupId })
+
+		expect(editor.isShapeHidden(editor.getShape(groupId)!)).toBe(false)
+		expect(editor.isShapeHidden(editor.getShape(ids.box1)!)).toBe(false)
+		editor.updateShape({ id: groupId, type: 'group', meta: { visibility: 'hidden' } })
+		expect(editor.isShapeHidden(editor.getShape(groupId)!)).toBe(true)
+		expect(editor.isShapeHidden(editor.getShape(ids.box1)!)).toBe(true)
+		editor.updateShape({ id: ids.box1, type: 'geo', meta: { visibility: 'visible' } })
+		expect(editor.isShapeHidden(editor.getShape(groupId)!)).toBe(true)
+		expect(editor.isShapeHidden(editor.getShape(ids.box1)!)).toBe(false)
 	})
 })
 

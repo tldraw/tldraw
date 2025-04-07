@@ -24,6 +24,7 @@ import {
 	WeakCache,
 	arrowShapeMigrations,
 	arrowShapeProps,
+	debugFlags,
 	getDefaultColorTheme,
 	getPerfectDashProps,
 	lerp,
@@ -39,7 +40,6 @@ import {
 } from '@tldraw/editor'
 import React from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
-
 import { PlainTextLabel } from '../shared/PlainTextLabel'
 import { ShapeFill } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
@@ -84,6 +84,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return toShapeType !== 'arrow'
 	}
 	override canSnap() {
+		return false
+	}
+	override canTabTo() {
 		return false
 	}
 	override hideResizeHandles() {
@@ -156,7 +159,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		let labelGeom
 		if (shape.props.text.trim()) {
 			const labelPosition = getArrowLabelPosition(this.editor, shape)
-			debugGeom.push(...labelPosition.debugGeom)
+			if (debugFlags.debugGeometry.get()) debugGeom.push(...labelPosition.debugGeom)
 			labelGeom = new Rectangle2d({
 				x: labelPosition.box.x,
 				y: labelPosition.box.y,

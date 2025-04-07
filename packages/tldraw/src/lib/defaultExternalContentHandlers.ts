@@ -764,15 +764,17 @@ export async function createShapesForAssets(
 	editor.run(() => {
 		// Create any assets
 		const assetsToCreate = assets.filter((asset) => !editor.getAsset(asset.id))
-		if (assetsToCreate.length) {
-			editor.createAssets(assetsToCreate)
-		}
 
-		// Create the shapes
-		editor.createShapes(partials).select(...partials.map((p) => p.id))
+		editor.store.atomic(() => {
+			if (assetsToCreate.length) {
+				editor.createAssets(assetsToCreate)
+			}
+			// Create the shapes
+			editor.createShapes(partials).select(...partials.map((p) => p.id))
 
-		// Re-position shapes so that the center of the group is at the provided point
-		centerSelectionAroundPoint(editor, position)
+			// Re-position shapes so that the center of the group is at the provided point
+			centerSelectionAroundPoint(editor, position)
+		})
 	})
 
 	return partials.map((p) => p.id)

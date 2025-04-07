@@ -2,6 +2,10 @@ name: Get draft changelog
 
 on: workflow_dispatch
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   deploy:
     name: 'Get draft changlog'
