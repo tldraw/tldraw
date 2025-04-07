@@ -7,8 +7,8 @@ export function TlaSidebarWorkspaceLink() {
 
 	return (
 		<div className={styles.workspace} data-testid="tla-sidebar-logo-icon">
-			<TlaIconWrapper role="presentation" data-size="m">
-				<TlaIcon className="tla-tldraw-sidebar-icon" icon="tldraw" />
+			<TlaIconWrapper data-size="m">
+				<TlaIcon className="tla-tldraw-sidebar-icon" icon="tldraw" ariaLabel="tldraw" />
 			</TlaIconWrapper>
 			<div className={classNames(styles.label, 'tla-text_ui__title', 'notranslate')}>
 				{brandName}
