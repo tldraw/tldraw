@@ -1891,13 +1891,12 @@
 
 .tl-skip-to-main-content {
 	position: fixed;
-	top: 42px;
+	top: 48px;
 	left: -9999px;
 	padding: 8px 16px;
-	background-color: var(--color-text-0);
-	color: var(--color-background);
+	z-index: var(--layer-toasts);
 }
 
 .tl-skip-to-main-content:focus {
-	left: 2px;
+	left: 8px;
 }
