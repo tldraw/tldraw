@@ -390,8 +390,8 @@
 	border: none;
 	position: absolute;
 	top: 0px;
-	left: 0px;
-	width: 100%;
+	left: 3px;
+	width: calc(100% - 6px);
 	height: 100%;
 	cursor: pointer;
 	z-index: 2;
