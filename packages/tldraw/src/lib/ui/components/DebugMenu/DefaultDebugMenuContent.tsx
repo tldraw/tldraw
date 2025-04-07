@@ -105,13 +105,6 @@ export function DefaultDebugMenuContent() {
 										void null
 									},
 								},
-								{
-									label: 'Danger',
-									type: 'danger',
-									onClick: () => {
-										void null
-									},
-								},
 							],
 						})
 						addToast({
