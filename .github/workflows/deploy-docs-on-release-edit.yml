@@ -4,6 +4,10 @@ on:
   release:
     types: [edited]
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   deploy:
     name: Deploy docs on release edit

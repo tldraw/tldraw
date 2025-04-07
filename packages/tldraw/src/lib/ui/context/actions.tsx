@@ -24,8 +24,8 @@ import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
+import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 import { flattenShapesToImages } from '../hooks/useFlatten'
-import { useShowCollaborationUi } from '../hooks/useIsMultiplayer'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
 import { TLUiIconType } from '../icon-types'
 import { TLUiOverrideHelpers, useDefaultHelpers } from '../overrides'
@@ -1486,7 +1486,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.open-cursor-chat',
 				readonlyOk: true,
 				kbd: '/',
-				onSelect(source: any) {
+				onSelect(source) {
 					trackEvent('open-cursor-chat', { source })
 
 					// Don't open cursor chat if we're on a touch device

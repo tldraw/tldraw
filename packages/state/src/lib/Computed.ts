@@ -89,7 +89,7 @@ export function withDiff<Value, Diff>(value: Value, diff: Diff): WithDiff<Value,
 }
 
 /**
- * Options for creating computed signals. Used when calling {@link state#computed}.
+ * Options for creating computed signals. Used when calling `computed`.
  * @public
  */
 export interface ComputedOptions<Value, Diff> {
@@ -119,7 +119,7 @@ export interface ComputedOptions<Value, Diff> {
 }
 
 /**
- * A computed signal created via {@link state#computed}.
+ * A computed signal created via `computed`.
  *
  * @public
  */
@@ -393,7 +393,7 @@ function computedDecorator(
 const isComputedMethodKey = '@@__isComputedMethod__@@'
 
 /**
- * Retrieves the underlying computed instance for a given property created with the {@link state#computed}
+ * Retrieves the underlying computed instance for a given property created with the `computed`
  * decorator.
  *
  * @example
