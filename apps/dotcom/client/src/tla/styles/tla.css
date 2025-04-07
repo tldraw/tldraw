@@ -276,7 +276,9 @@
 
 /** Switches */
 .tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
-	aside .tla-switch:has(input:focus-visible) > div {
+	aside
+	.tla-switch:has(input:focus-visible)
+	> div {
 	border-radius: 10px;
 	outline: 2px solid var(--color-focus);
 	outline-offset: 1px;
@@ -284,7 +286,8 @@
 
 /** Comboboxes/select dropdowns */
 .tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
-	aside button[role="combobox"]:not(.tlui-button):focus-visible {
+	aside
+	button[role='combobox']:not(.tlui-button):focus-visible {
 	border-radius: 0;
 	outline-offset: 0;
 }
