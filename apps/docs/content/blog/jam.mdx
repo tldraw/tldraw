@@ -12,7 +12,7 @@ author: alixwiesser,luwilson,steveruizok
 
 Jam’s browser extension gives developers an instant solution for reporting bugs. With one click, Jam creates a shareable bug report with all of the technical context—console logs, network requests, device info—as well as a screenshot that a user can annotate to show what’s wrong.
 
-This last step—annotating the screenshot—is a key part of the process. Developers loved the ability to scribble on screenshots but the Jam team knew they could do better. They decided it was time for an upgrade.
+This last step—annotating the screenshot—is a key part of the process. Jam users loved the ability to scribble on screenshots but the team knew they could make the tool better. They decided it was time for an upgrade.
 
 After estimating the work involved in improving the existing tool and comparing third-party solutions, Jam chose to build their new annotation tool on top of the tldraw SDK.
 
@@ -26,7 +26,7 @@ After estimating the work involved in improving the existing tool and comparing 
 
 Within 24 hours of deciding to build with tldraw, Jam had their first prototype—with all core features implemented by a single developer. Just six weeks later, they’d shipped the new screenshot annotation tool to their full user base.
 
-In building their new tool, the team was able to use tldraw’s built-in tools for drawing and basic shapes. The team also had interactions like undo and redo, copy and paste, and image export from day one, and were able to drive the tldraw editor using their existing toolbar components.
+In building their new tool, the team was able to use tldraw’s built-in tools for drawing and basic shapes. The team also had interactions like undo and redo, copy and paste, and image export from day one, and were able to drive the tldraw editor using their existing toolbar components. They didn't need to rebuild these from scratch.
 
 Jam also went beyond tldraw’s built-in features. When annotating screenshots, Jam’s users needed a way to obscure sensitive information. The team solved the problem with a custom blur element that blends in seamlessly with the rest of the tools, built using tldraw’s Custom Shape APIs.
 
