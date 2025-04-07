@@ -6496,7 +6496,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocicorp/zero@npm:0.18.2025040300, @rocicorp/zero@npm:^0.18.2025040300":
+"@rocicorp/zero@npm:0.18.2025040300":
   version: 0.18.2025040300
   resolution: "@rocicorp/zero@npm:0.18.2025040300"
   dependencies:
@@ -8563,7 +8563,7 @@ __metadata:
   dependencies:
     "@clerk/backend": "npm:^1.23.7"
     "@cloudflare/workers-types": "npm:^4.20250224.0"
-    "@rocicorp/zero": "npm:^0.18.2025040300"
+    "@rocicorp/zero": "npm:0.18.2025040300"
     "@supabase/auth-helpers-remix": "npm:^0.2.6"
     "@supabase/supabase-js": "npm:^2.48.1"
     "@tldraw/dotcom-shared": "workspace:*"
