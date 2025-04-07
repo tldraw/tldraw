@@ -10,6 +10,7 @@ import {
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
+	TlaMutators,
 	TlaSchema,
 	TlaUser,
 	UserPreferencesKeys,
@@ -79,7 +80,7 @@ export class TldrawApp {
 
 	readonly id = appId++
 
-	readonly z: ZeroPolyfill | Zero<TlaSchema, ReturnType<typeof createMutators>>
+	readonly z: ZeroPolyfill | Zero<TlaSchema, TlaMutators>
 
 	private readonly user$: Signal<TlaUser | undefined>
 	private readonly files$: Signal<TlaFile[]>
@@ -127,7 +128,7 @@ export class TldrawApp {
 	) {
 		const sessionId = uniqueId()
 		this.z = useProperZero
-			? new Zero<TlaSchema, ReturnType<typeof createMutators>>({
+			? new Zero<TlaSchema, TlaMutators>({
 					auth: getToken,
 					userID: userId,
 					schema: zeroSchema,

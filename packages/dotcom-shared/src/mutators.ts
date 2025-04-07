@@ -21,6 +21,8 @@ function disallowImmutableMutations<
 	}
 }
 
+export type TlaMutators = ReturnType<typeof createMutators>
+
 export function createMutators(userId: string) {
 	return {
 		user: {

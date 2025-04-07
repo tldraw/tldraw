@@ -6,6 +6,7 @@ import {
 	TlaFilePartial,
 	TlaFileState,
 	TlaFileStatePartial,
+	TlaMutators,
 	TlaSchema,
 	TlaUser,
 	TlaUserPartial,
@@ -101,7 +102,7 @@ export class Zero {
 		}
 	}
 
-	mutate: MakeCustomMutatorInterfaces<TlaSchema, ReturnType<typeof createMutators>>
+	mutate: MakeCustomMutatorInterfaces<TlaSchema, TlaMutators>
 
 	async __e2e__waitForMutationResolution() {
 		let safety = 0
