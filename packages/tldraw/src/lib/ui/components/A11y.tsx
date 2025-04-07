@@ -156,17 +156,13 @@ export const useSelectedShapesAnnouncer = () => {
 
 		const announceSelectedShapesDebounced = throttle(announceSelectedShapes, 1000)
 
-		const scheduler = new EffectScheduler('useSelectedShapesAnnouncer', () => {
+		const stopListening = react('useSelectedShapesAnnouncer', () => {
 			const selectedShapes = editor.getSelectedShapeIds()
 			announceSelectedShapesDebounced(selectedShapes)
 		})
 
-		scheduler.attach()
-		scheduler.execute()
-
-		announceSelectedShapes(editor.getSelectedShapeIds())
 		return () => {
-			scheduler.detach()
+			stopListening()
 			announceSelectedShapesDebounced.cancel()
 		}
 	}, [editor, a11y, msg])
