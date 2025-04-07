@@ -3,7 +3,7 @@ import { MaskedLogo } from './masked-logo'
 
 export function LogoSection() {
 	return (
-		<section className="flex w-full max-w-screen-xl mx-auto gap-6 px-2 flex-col items-center text-[#000] dark:text-[#fff] opacity-[.7]">
+		<section className="flex w-full max-w-screen-xl mx-auto gap-6 px-5 sm:px-2 flex-col items-center text-[#000] dark:text-[#fff] opacity-[.5]">
 			<Link
 				className="w-full flex flex-wrap max-w-xl items-center justify-center lg:justify-center gap-x-5"
 				href="#case-studies"
