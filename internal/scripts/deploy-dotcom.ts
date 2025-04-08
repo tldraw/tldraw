@@ -265,6 +265,9 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 		},
 	})
+	if (!dryRun && deployViaFlyIo) {
+		await deployPermissionsToFlyIo()
+	}
 	const { versionId } = await wranglerDeploy({
 		location: worker,
 		dryRun,
