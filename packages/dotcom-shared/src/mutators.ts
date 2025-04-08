@@ -1,5 +1,5 @@
-import { CustomMutatorDefs, Transaction } from '@rocicorp/zero'
-import { assert } from 'tldraw'
+import type { CustomMutatorDefs, Transaction } from '@rocicorp/zero'
+import { assert } from '@tldraw/utils'
 import { MAX_NUMBER_OF_FILES } from './constants'
 import {
 	TlaFile,
