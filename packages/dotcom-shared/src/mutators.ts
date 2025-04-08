@@ -12,14 +12,13 @@ import {
 	immutableColumns,
 	schema,
 } from './tlaSchema'
+import { ZErrorCode } from './types'
 
 function disallowImmutableMutations<
 	S extends TlaFilePartial | TlaFileStatePartial | TlaUserPartial,
 >(data: S, immutableColumns: Set<keyof S>) {
 	for (const immutableColumn of immutableColumns) {
-		if (data[immutableColumn] !== undefined) {
-			throw new Error(`Cannot modify immutable column ${String(immutableColumn)}`)
-		}
+		assert(!data[immutableColumn], ZErrorCode.forbidden)
 	}
 }
 
@@ -29,9 +28,7 @@ async function assertNotMaxFiles(tx: Transaction<TlaSchema>, userId: string) {
 	if (tx.location === 'client') {
 		const count = (await tx.query.file.where('ownerId', userId).where('isDeleted', false).run())
 			.length
-		if (count >= MAX_NUMBER_OF_FILES) {
-			throw new Error('You have reached the maximum number of files')
-		}
+		assert(count < MAX_NUMBER_OF_FILES, ZErrorCode.max_files_reached)
 	} else {
 		// On the server, don't fetch all files because we don't need them
 		const rows = Array.from(
@@ -40,9 +37,7 @@ async function assertNotMaxFiles(tx: Transaction<TlaSchema>, userId: string) {
 				[userId]
 			)
 		) as { count: number }[]
-		if (rows[0].count >= MAX_NUMBER_OF_FILES) {
-			throw new Error('You have reached the maximum number of files')
-		}
+		assert(rows[0].count < MAX_NUMBER_OF_FILES, ZErrorCode.max_files_reached)
 	}
 }
 
@@ -50,18 +45,18 @@ export function createMutators(userId: string) {
 	return {
 		user: {
 			insert: async (tx, user: TlaUser) => {
-				assert(userId === user.id, 'Can only create your own user')
+				assert(userId === user.id, ZErrorCode.forbidden)
 				await tx.mutate.user.insert(user)
 			},
 			update: async (tx, user: TlaUserPartial) => {
-				assert(userId === user.id, 'Can only update your own user')
+				assert(userId === user.id, ZErrorCode.forbidden)
 				disallowImmutableMutations(user, immutableColumns.user)
 				await tx.mutate.user.update(user)
 			},
 		},
 		file: {
 			insert: async (tx, file: TlaFile) => {
-				assert(file.ownerId === userId, 'Can only create your own file')
+				assert(file.ownerId === userId, ZErrorCode.forbidden)
 				await assertNotMaxFiles(tx, userId)
 
 				await tx.mutate.file.insert(file)
@@ -70,7 +65,7 @@ export function createMutators(userId: string) {
 				tx,
 				{ file, fileState }: { file: TlaFile; fileState: TlaFileState }
 			) => {
-				assert(file.ownerId === userId, 'Can only create your own file')
+				assert(file.ownerId === userId, ZErrorCode.forbidden)
 				await assertNotMaxFiles(tx, userId)
 
 				await tx.mutate.file.upsert(file)
@@ -90,9 +85,9 @@ export function createMutators(userId: string) {
 			update: async (tx, _file: TlaFilePartial) => {
 				disallowImmutableMutations(_file, immutableColumns.file)
 				const file = await tx.query.file.where('id', _file.id).one().run()
-				assert(file, 'File not found')
-				assert(!file.isDeleted, 'File is deleted')
-				assert(file.ownerId === userId, 'Can only update your own file')
+				assert(file, ZErrorCode.bad_request)
+				assert(!file.isDeleted, ZErrorCode.bad_request)
+				assert(file.ownerId === userId, ZErrorCode.forbidden)
 
 				await tx.mutate.file.update({
 					..._file,
@@ -104,24 +99,24 @@ export function createMutators(userId: string) {
 		},
 		file_state: {
 			insert: async (tx, fileState: TlaFileState) => {
-				assert(fileState.userId === userId, 'Can only create your own file state')
+				assert(fileState.userId === userId, ZErrorCode.forbidden)
 				if (tx.location === 'server') {
 					// the user won't be able to see the file in the client if they are not the owner
 					const file = await tx.query.file.where('id', fileState.fileId).one().run()
-					assert(file, 'File not found')
+					assert(file, ZErrorCode.bad_request)
 					if (file?.ownerId !== userId) {
-						assert(file?.shared, 'File is not shared')
+						assert(file?.shared, ZErrorCode.forbidden)
 					}
 				}
 				await tx.mutate.file_state.upsert(fileState)
 			},
 			update: async (tx, fileState: TlaFileStatePartial) => {
-				assert(fileState.userId === userId, 'Can only update your own file state')
+				assert(fileState.userId === userId, ZErrorCode.forbidden)
 				disallowImmutableMutations(fileState, immutableColumns.file_state)
 				await tx.mutate.file_state.update(fileState)
 			},
 			delete: async (tx, fileState: { fileId: string; userId: string }) => {
-				assert(fileState.userId === userId, 'Can only delete your own file state')
+				assert(fileState.userId === userId, ZErrorCode.forbidden)
 				await tx.mutate.file_state.delete({ fileId: fileState.fileId, userId: fileState.userId })
 			},
 		},

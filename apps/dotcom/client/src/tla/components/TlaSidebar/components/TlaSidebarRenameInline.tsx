@@ -28,7 +28,7 @@ export function TlaSidebarRenameInline({
 
 		if (name) {
 			// Only update the name if there is a name there to update
-			app.updateFile({ id: fileId, name })
+			app.updateFile(fileId, { name })
 			wasSaved.current = true
 		}
 		trackEvent('rename-file', { name, source })

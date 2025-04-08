@@ -8,7 +8,6 @@ import {
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
 	TlaFile,
-	TlaFilePartial,
 	TlaFileState,
 	TlaMutators,
 	TlaSchema,
@@ -370,15 +369,19 @@ export class TldrawApp {
 		return numberOfFiles < this.config.maxNumberOfFiles
 	}
 
+	private showMaxFilesToast() {
+		this.toasts?.addToast({
+			title: this.getIntl().formatMessage(this.messages.max_files_title),
+			description: this.getIntl().formatMessage(this.messages.max_files_reached),
+			keepOpen: true,
+		})
+	}
+
 	createFile(
 		fileOrId?: string | Partial<TlaFile>
 	): Result<{ file: TlaFile }, 'max number of files reached'> {
 		if (!this.canCreateNewFile()) {
-			this.toasts?.addToast({
-				title: this.getIntl().formatMessage(this.messages.max_files_title),
-				description: this.getIntl().formatMessage(this.messages.max_files_reached),
-				keepOpen: true,
-			})
+			this.showMaxFilesToast()
 			return Result.err('max number of files reached')
 		}
 
@@ -418,6 +421,12 @@ export class TldrawApp {
 			lastVisitAt: null,
 		}
 		this.z.mutate.file.insertWithFileState({ file, fileState })
+		// todo: add server error handling for real Zero
+		// .server.catch((res: { error: string; details: string }) => {
+		// 	if (res.details === ZErrorCode.max_files_reached) {
+		// 		this.showMaxFilesToast()
+		// 	}
+		// })
 
 		return Result.ok({ file })
 	}
@@ -473,7 +482,7 @@ export class TldrawApp {
 
 		if (file.ownerId !== this.userId) throw Error('user cannot edit that file')
 
-		this.updateFile({
+		this.z.mutate.file.update({
 			id: fileId,
 			shared: !file.shared,
 		})
@@ -494,8 +503,8 @@ export class TldrawApp {
 		const name = this.getFileName(file)
 
 		// Optimistic update
-		this.updateFile({
-			...this.getFilePk(fileId),
+		this.z.mutate.file.update({
+			id: fileId,
 			name,
 			published: true,
 			lastPublished: Date.now(),
@@ -516,14 +525,6 @@ export class TldrawApp {
 		return assertExists(this.getFile(fileId), 'no file with id ' + fileId)
 	}
 
-	updateFile(partial: TlaFilePartial) {
-		this.requireFile(partial.id)
-		this.z.mutate.file.update({
-			...this.getFilePk(partial.id),
-			...partial,
-		})
-	}
-
 	/**
 	 * Unpublish a file.
 	 *
@@ -537,7 +538,7 @@ export class TldrawApp {
 		if (!file.published) return Result.ok('success')
 
 		// Optimistic update
-		this.updateFile({
+		this.z.mutate.file.update({
 			id: fileId,
 			published: false,
 		})
@@ -583,10 +584,10 @@ export class TldrawApp {
 		}
 
 		if (sharedLinkType === 'no-access') {
-			this.updateFile({ id: fileId, shared: false })
+			this.z.mutate.file.update({ id: fileId, shared: false })
 			return
 		}
-		this.updateFile({ id: fileId, shared: true, sharedLinkType })
+		this.z.mutate.file.update({ id: fileId, shared: true, sharedLinkType })
 	}
 
 	updateUser(partial: Partial<TlaUser>) {
@@ -633,6 +634,10 @@ export class TldrawApp {
 		const fileState = this.getFileState(fileId)
 		if (!fileState) return
 		this.z.mutate.file_state.update({ ...partial, fileId, userId: fileState.userId })
+	}
+
+	updateFile(fileId: string, partial: Partial<TlaFile>) {
+		this.z.mutate.file.update({ id: fileId, ...partial })
 	}
 
 	async onFileEnter(fileId: string) {
