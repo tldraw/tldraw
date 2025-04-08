@@ -3,11 +3,8 @@ import { MaskedLogo } from './masked-logo'
 
 export function LogoSection() {
 	return (
-		<section className="flex w-full max-w-screen-xl mx-auto gap-6 px-5 sm:px-2 flex-col items-center text-[#000] dark:text-[#fff] opacity-[.5]">
-			<Link
-				className="w-full flex flex-wrap max-w-xl items-center justify-center lg:justify-center gap-x-5"
-				href="#case-studies"
-			>
+		<section className="group relative h-[72px] w-full max-w-screen-xl flex flex-col gap-6 text-[#000] dark:text-[#fff]">
+			<div className="absolute inset-0 w-full flex flex-wrap max-w-xl mx-auto items-center justify-center gap-x-5 px-5 sm:px-2 opacity-[.32] group-hover:opacity-[.05] transition-all delay-[.025s] group-hover:blur-md">
 				{logos.map((section) => (
 					<>
 						{section.map(({ src }, index) => (
@@ -15,6 +12,12 @@ export function LogoSection() {
 						))}
 					</>
 				))}
+			</div>
+			<Link
+				href="#case-studies"
+				className="absolute inset-0 w-full flex items-center justify-center font-semibold opacity-0 group-hover:opacity-100 transition-all delay-[.05s] text-zinc-800 dark:text-zinc-200"
+			>
+				See our case studies
 			</Link>
 			{/* <div className="w-full hidden xl:flex flex-wrap items-center justify-center lg:justify-center gap-0">
 				{logos.map((section, i) => (
@@ -54,6 +57,11 @@ const logos: {
 			src: '/images/case-studies/clickup-logo.svg',
 			alt: 'ClickUp',
 			url: 'https://clickup.com/',
+		},
+		{
+			src: '/images/case-studies/mobbin-logo.svg',
+			alt: 'Autodesk',
+			url: 'https://www.mobbin.com',
 		},
 		{
 			src: '/images/case-studies/craft-logo.svg',

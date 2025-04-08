@@ -17,42 +17,6 @@ interface CaseStudyInfo {
 
 const caseStudiesBig: CaseStudyInfo[] = [
 	{
-		id: 'jam',
-		href: '/blog/case-studies/jam',
-		src: '/images/case-studies/jam-hero.png',
-		logo: '/images/case-studies/jam-logo.svg',
-		content: (
-			<>
-				<b>Jam</b> upgraded their screenshot annotation feature.
-			</>
-		),
-		caseStudy: true,
-	},
-	{
-		id: 'padlet',
-		href: '/blog/case-studies/padlet',
-		src: '/images/case-studies/padlet-hero.png',
-		logo: '/images/case-studies/padlet-logo.svg',
-		content: (
-			<>
-				<b>Padlet</b> built their Sandbox experience for teachers and students.
-			</>
-		),
-		caseStudy: true,
-	},
-	{
-		id: 'mobbin',
-		href: '/blog/case-studies/mobbin',
-		src: '/images/case-studies/mobbin-hero.png',
-		logo: '/images/case-studies/mobbin-logo.svg',
-		content: (
-			<>
-				<b>Mobbin</b> created internal tools for managing content and training models.
-			</>
-		),
-		caseStudy: true,
-	},
-	{
 		id: 'clickup',
 		href: '/blog/case-studies/clickup',
 		src: '/images/case-studies/clickup-hero.png',
@@ -79,6 +43,42 @@ const caseStudiesBig: CaseStudyInfo[] = [
 ]
 
 const caseStudiesSmall: CaseStudyInfo[] = [
+	{
+		id: 'padlet',
+		href: '/blog/case-studies/padlet',
+		src: '/images/case-studies/padlet-hero.png',
+		logo: '/images/case-studies/padlet-logo.svg',
+		content: (
+			<>
+				<b>Padlet</b> built their Sandbox experience for teachers and students.
+			</>
+		),
+		caseStudy: true,
+	},
+	{
+		id: 'jam',
+		href: '/blog/case-studies/jam',
+		src: '/images/case-studies/jam-hero.png',
+		logo: '/images/case-studies/jam-logo.svg',
+		content: (
+			<>
+				<b>Jam</b> upgraded their screenshot annotation feature.
+			</>
+		),
+		caseStudy: true,
+	},
+	{
+		id: 'mobbin',
+		href: '/blog/case-studies/mobbin',
+		src: '/images/case-studies/mobbin-hero.png',
+		logo: '/images/case-studies/mobbin-logo.svg',
+		content: (
+			<>
+				<b>Mobbin</b> created internal tools for managing content and training models.
+			</>
+		),
+		caseStudy: true,
+	},
 	{
 		id: 'roam',
 		href: '/blog/case-studies/roam',
@@ -134,7 +134,10 @@ export function CaseStudiesSection() {
 		<Section className="w-full max-w-[100%]" id="case-studies">
 			<div className="max-w-6xl mx-auto">
 				<SectionTitle>Made with tldraw</SectionTitle>
-				<SectionSubtitle>Powering excellent products from world-class teams.</SectionSubtitle>
+				<SectionSubtitle>
+					The tldraw SDK is used in world-class applications across productivity, education, design,
+					and more.
+				</SectionSubtitle>
 				<div>
 					<CaseStudiesGridBig>
 						{caseStudiesBig.map((study, index) => (
@@ -239,7 +242,7 @@ function CaseStudyCardContainer({ children }: { children: ReactNode }) {
 		<div
 			className={cn(
 				'bg-white relative dark:bg-black group transition-all delay-[.05s] relative overflow-hidden rounded-lg h-[160px] md:h-auto sm:aspect-video w-full',
-				'border border-border-zinc-200 dark:border-zinc-800'
+				'border border-zinc-200 dark:border-zinc-800 group-hover:border-zinc-400 group-dark:border-zinc-600'
 			)}
 		>
 			{children}

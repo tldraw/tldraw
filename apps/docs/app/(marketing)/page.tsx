@@ -32,8 +32,6 @@ export default function Page() {
 			<SectionGap />
 			<WhatItIsSection />
 			<SectionGap />
-			<CommunitySection />
-			<SectionGap />
 			<PricingSection />
 			<div className="h-12" />
 			<div className="py-1 md:rounded-2xl md:mx-auto md:px-1 bg-zinc-200 dark:bg-zinc-800 w-full md:max-w-2xl">
@@ -49,6 +47,8 @@ export default function Page() {
 			<FAQSection />
 			<SectionGap />
 			<CTASection />
+			<SectionGap />
+			<CommunitySection />
 			<SectionGap />
 		</>
 	)
