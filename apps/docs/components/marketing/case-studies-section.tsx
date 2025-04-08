@@ -193,9 +193,7 @@ function CaseStudyJustLogoCard({
 			<CaseStudyCardContainer>
 				<CaseStudyImage src={src} />
 				<Link href={href}>
-					<div className="absolute inset-0 z-[2] flex items-center justify-center opacity-[1] group-hover/link:opacity-[0] transition-all delay-[.05s]">
-						<CaseStudyLogoBig src={logo} />
-					</div>
+					<CaseStudyLogoBig src={logo} />
 				</Link>
 			</CaseStudyCardContainer>
 			<CaseStudyCopy href={href} caseStudy={caseStudy}>
@@ -224,11 +222,13 @@ function CaseStudyJustLogoSmallCard({
 		<div className="group/link" id={id}>
 			<CaseStudyCardContainer>
 				<CaseStudyImage src={src} />
-				<Link href={href}>
-					<div className="absolute inset-0 z-[2] flex items-center justify-center opacity-[1] group-hover/link:opacity-[0] transition-all delay-[.05s]">
+				{caseStudy ? (
+					<Link href={href}>
 						<CaseStudyLogoBig src={logo} />
-					</div>
-				</Link>
+					</Link>
+				) : (
+					<CaseStudyLogoBig src={logo} />
+				)}
 			</CaseStudyCardContainer>
 			<CaseStudyCopy href={href} caseStudy={caseStudy}>
 				{children}
@@ -241,7 +241,7 @@ function CaseStudyCardContainer({ children }: { children: ReactNode }) {
 	return (
 		<div
 			className={cn(
-				'bg-white relative dark:bg-black group transition-all delay-[.05s] relative overflow-hidden rounded-lg h-[160px] md:h-auto sm:aspect-video w-full',
+				'bg-white relative dark:bg-black group transition-all delay-[.05s] overflow-hidden rounded-lg h-[160px] md:h-auto sm:aspect-video w-full',
 				'border border-zinc-200 dark:border-zinc-800 group-hover:border-zinc-400 group-dark:border-zinc-600'
 			)}
 		>
@@ -290,8 +290,10 @@ function CaseStudyCopy({
 
 function CaseStudyLogoBig({ src }: { src: string }) {
 	return (
-		<div className="flex-shrink-0">
-			<MaskedLogo src={src} />
+		<div className="absolute inset-0 z-[2] flex items-center justify-center opacity-[1] group-hover/link:opacity-[0] transition-all delay-[.05s]">
+			<div className="flex-shrink-0">
+				<MaskedLogo src={src} />
+			</div>
 		</div>
 	)
 }
