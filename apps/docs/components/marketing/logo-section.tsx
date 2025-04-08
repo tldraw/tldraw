@@ -3,7 +3,7 @@ import { MaskedLogo } from './masked-logo'
 
 export function LogoSection() {
 	return (
-		<section className="group relative h-[72px] w-full max-w-screen-xl flex flex-col gap-6 text-[#000] dark:text-[#fff]">
+		<section className="group relative h-[100px] w-full max-w-screen-xl flex flex-col gap-6 text-[#000] dark:text-[#fff]">
 			<div className="absolute inset-0 w-full flex flex-wrap max-w-xl mx-auto items-center justify-center gap-x-5 px-5 sm:px-2 opacity-[.32] group-hover:opacity-[.05] transition-all delay-[.025s] group-hover:blur-md">
 				{logos.map((section) => (
 					<>

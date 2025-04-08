@@ -29,9 +29,9 @@ export function PricingSection() {
 					<b>How much does a license cost?</b>
 				</p>
 				<p>
-					Individuals and companies of less than ten people can purchase a license for <b>$6,000</b>{' '}
-					per year. Larger companies or teams that need support from the tldraw team can design a
-					package with custom pricing, develop er support, and custom contract terms.
+					Individuals and teams of less than ten people can purchase a license for <b>$6,000</b> per
+					year. Larger companies or teams that need support from tldraw can design a package with
+					custom pricing, support, and contract terms.
 				</p>
 				<p>
 					All customers receive a{' '}

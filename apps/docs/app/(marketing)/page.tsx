@@ -16,7 +16,7 @@ function SectionGap() {
 export default function Page() {
 	return (
 		<>
-			<div className="h-[32px] md:h-[120px]" />
+			<div className="h-[40px] md:h-[120px]" />
 			<HeroSection />
 			<div className="h-[96px] md:h-[96px]" />
 			<DemoSection />

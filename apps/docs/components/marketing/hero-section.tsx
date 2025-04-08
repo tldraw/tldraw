@@ -19,7 +19,7 @@ export function HeroSection() {
 					<h1 className="w-full font-black text-black dark:text-white text-balance leading-tight text-4xl md:text-5xl px-4">
 						Incredible things are happening on the canvas
 					</h1>
-					<div className="h-12" />
+					<div className="h-8" />
 					<LogoSection />
 					<div className="h-20" />
 					<HeroCtas />

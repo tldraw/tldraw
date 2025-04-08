@@ -127,6 +127,54 @@ const caseStudiesSmall: CaseStudyInfo[] = [
 		),
 		caseStudy: false,
 	},
+	{
+		id: 'opennote',
+		href: '/blog/case-studies/opennote',
+		src: '/images/case-studies/opennote-hero.png',
+		logo: '/images/case-studies/opennote-logo.svg',
+		content: (
+			<>
+				<b>Opennote</b> added a whiteboard as input to their AI assistant.
+			</>
+		),
+		caseStudy: false,
+	},
+	// {
+	// 	id: 'glean',
+	// 	href: '/blog/case-studies/glean',
+	// 	src: '/images/case-studies/glean-hero.png',
+	// 	logo: '/images/case-studies/glean-logo.svg',
+	// 	content: (
+	// 		<>
+	// 			<b>Glean</b> added visual note-taking to their app for students.
+	// 		</>
+	// 	),
+	// 	caseStudy: false,
+	// },
+	{
+		id: 'graze',
+		href: '/blog/case-studies/graze',
+		src: '/images/case-studies/graze-hero.png',
+		logo: '/images/case-studies/graze-logo.svg',
+		content: (
+			<>
+				<b>Graze</b> created a drag and drop feed designer for Bluesky.
+			</>
+		),
+		caseStudy: false,
+	},
+	{
+		id: 'sublime',
+		href: '/blog/case-studies/sublime',
+		src: '/images/case-studies/sublime-hero.png',
+		logo: '/images/case-studies/sublime-logo.svg',
+		content: (
+			<>
+				<b>Sublime</b> added a board view to their knowledge management app.
+			</>
+		),
+		caseStudy: false,
+	},
 ]
 
 export function CaseStudiesSection() {
