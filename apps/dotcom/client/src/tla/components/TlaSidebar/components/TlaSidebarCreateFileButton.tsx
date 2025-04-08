@@ -24,7 +24,7 @@ export function TlaSidebarCreateFileButton() {
 
 	const handleSidebarCreate = useCallback(async () => {
 		if (!rCanCreate.current) return
-		const res = app.createFile()
+		const res = await app.createFile()
 		if (res.ok) {
 			const isMobile = getIsCoarsePointer()
 			if (!isMobile) {
