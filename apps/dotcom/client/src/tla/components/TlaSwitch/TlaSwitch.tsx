@@ -22,6 +22,7 @@ export function TlaSwitch({ checked, onChange, disabled, ...rest }: TlaSwitchPro
 			<input
 				name="shared"
 				disabled={disabled}
+				role="switch"
 				type="checkbox"
 				checked={checked}
 				onChange={handleChange}

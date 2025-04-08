@@ -264,6 +264,7 @@ export const DEFAULT_TRANSLATION = {
 	'menu.language': 'Language',
 	'menu.preferences': 'Preferences',
 	'menu.view': 'View',
+	'context-menu.title': 'Context menu',
 	'context-menu.edit': 'Edit',
 	'context-menu.arrange': 'Arrange',
 	'context-menu.copy-as': 'Copy as',

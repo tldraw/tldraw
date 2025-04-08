@@ -185,9 +185,9 @@ export interface TLUiDropdownMenuGroupProps {
 /** @public @react */
 export function TldrawUiDropdownMenuGroup({ children }: TLUiDropdownMenuGroupProps) {
 	return (
-		<_DropdownMenu.Group dir="ltr" className="tlui-menu__group">
+		<div dir="ltr" className="tlui-menu__group">
 			{children}
-		</_DropdownMenu.Group>
+		</div>
 	)
 }
 

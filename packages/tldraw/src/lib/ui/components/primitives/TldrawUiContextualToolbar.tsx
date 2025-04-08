@@ -32,7 +32,7 @@ export const TldrawUiContextualToolbar = React.forwardRef<
 			className={classNames('tlui-contextual-toolbar', className)}
 			onPointerDown={stopEventPropagation}
 		>
-			<div className="tlui-menu tlui-buttons__horizontal" role="radiogroup">
+			<div className="tlui-menu tlui-buttons__horizontal" role="toolbar">
 				{children}
 			</div>
 		</div>
