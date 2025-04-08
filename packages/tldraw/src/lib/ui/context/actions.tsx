@@ -130,7 +130,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					// Don't make it too small.
 					if (scaleFactor < 1.0 && (shape.props.w < 32 || shape.props.h < 32)) return
 
-					editor.resizeShape(shape.id, new Vec(scaleFactor, scaleFactor))
+					editor.resizeShape(shape.id, new Vec(scaleFactor, scaleFactor), {
+						scaleOrigin: editor.getSelectionPageBounds()?.center,
+					})
 				})
 			})
 		}
