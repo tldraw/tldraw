@@ -33,7 +33,7 @@ export function TlaTabsRoot({
 
 export function TlaTabsTabs({ children }: { children: ReactNode }) {
 	return (
-		<div className={c.tabs}>
+		<div className={c.tabs} role="tablist">
 			{children}
 			<div className={c.line} />
 		</div>
@@ -61,6 +61,9 @@ export function TlaTabsTab({
 			data-active={activeTab === id}
 			onClick={handleClick}
 			disabled={disabled}
+			aria-selected={activeTab === id}
+			aria-controls={`tla-tabpanel-${id}`}
+			role="tab"
 			{...props}
 		/>
 	)
@@ -69,5 +72,5 @@ export function TlaTabsTab({
 export function TlaTabsPage({ id, ...props }: { id: string } & HTMLAttributes<HTMLDivElement>) {
 	const { activeTab } = useContext(tabsContext)
 	if (activeTab !== id) return null
-	return <div {...props} />
+	return <div id={`tla-tabpanel-${id}`} role="tabpanel" {...props} />
 }

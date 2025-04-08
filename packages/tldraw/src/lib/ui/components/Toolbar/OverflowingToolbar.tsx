@@ -160,7 +160,7 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 				className={classNames('tlui-toolbar__tools', {
 					'tlui-toolbar__tools__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
 				})}
-				role="radiogroup"
+				role="toolbar"
 			>
 				<div id={`${id}_main`} ref={mainToolsRef} className="tlui-toolbar__tools__list">
 					<TldrawUiMenuContextProvider type="toolbar" sourceId="toolbar">
