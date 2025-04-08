@@ -46,11 +46,23 @@ export function WhatItIsSection() {
 				<SectionH3>Ready for AI</SectionH3>
 				<p>
 					Experimenting with AI? Try the{' '}
-					<BlueA href="https://github.com/tldraw/ai">tldraw ai</BlueA> module. Create prompts,
-					interpret content, and drive the canvas with language models. See our experiments:{' '}
-					<BlueA href="https://makereal.tldraw.com/">Make Real</BlueA>,{' '}
-					<BlueA href="https://teach.tldraw.com/">Teach</BlueA>, and{' '}
-					<BlueA href="https://computer.tldraw.com/">tldraw computer</BlueA>.
+					<BlueA newTab href="https://github.com/tldraw/ai">
+						tldraw ai
+					</BlueA>{' '}
+					module. Create prompts, interpret content, and drive the canvas with language models. See
+					our experiments:{' '}
+					<BlueA newTab href="https://makereal.tldraw.com/">
+						Make Real
+					</BlueA>
+					,{' '}
+					<BlueA newTab href="https://teach.tldraw.com/">
+						Teach
+					</BlueA>
+					, and{' '}
+					<BlueA newTab href="https://computer.tldraw.com/">
+						tldraw computer
+					</BlueA>
+					.
 				</p>
 			</SectionProse>
 		</Section>
