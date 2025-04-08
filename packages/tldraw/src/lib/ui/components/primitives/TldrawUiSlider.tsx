@@ -42,12 +42,21 @@ export const TldrawUiSlider = memo(function Slider({
 		onValueChange(value)
 	}, [value, onValueChange])
 
+	// N.B. Annoying. For a11y purposes, we need Tab to work.
+	// For some reason, Radix has some custom behavior here
+	// that interferes with tabbing past the slider and then
+	// you get stuck in the slider.
+	const handleKeyEvent = useCallback((event: React.KeyboardEvent) => {
+		if (event.key === 'Tab') {
+			event.stopPropagation()
+		}
+	}, [])
+
 	return (
 		<div className="tlui-slider__container">
 			<Root
 				data-testid={testId}
 				className="tlui-slider"
-				area-label="Opacity"
 				dir="ltr"
 				min={0}
 				max={steps}
@@ -56,12 +65,16 @@ export const TldrawUiSlider = memo(function Slider({
 				onPointerDown={handlePointerDown}
 				onValueChange={handleValueChange}
 				onPointerUp={handlePointerUp}
+				onKeyDownCapture={handleKeyEvent}
+				onKeyUpCapture={handleKeyEvent}
 				title={title + ' — ' + msg(label as TLUiTranslationKey)}
 			>
 				<Track className="tlui-slider__track" dir="ltr">
 					{value !== null && <Range className="tlui-slider__range" dir="ltr" />}
 				</Track>
-				{value !== null && <Thumb className="tlui-slider__thumb" dir="ltr" />}
+				{value !== null && (
+					<Thumb aria-label={msg('style-panel.opacity')} className="tlui-slider__thumb" dir="ltr" />
+				)}
 			</Root>
 		</div>
 	)

@@ -9,6 +9,7 @@ import {
 	TLEmbedShape,
 	TLFrameShape,
 	TLGroupShape,
+	TLShape,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
@@ -22,13 +23,16 @@ import {
 import * as React from 'react'
 import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
+import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
+import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 import { flattenShapesToImages } from '../hooks/useFlatten'
-import { useShowCollaborationUi } from '../hooks/useIsMultiplayer'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
+import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
 import { TLUiOverrideHelpers, useDefaultHelpers } from '../overrides'
+import { useA11y } from './a11y'
 import { TLUiEventSource, useUiEvents } from './events'
 
 /** @public */
@@ -80,6 +84,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const showCollaborationUi = useShowCollaborationUi()
 	const helpers = useDefaultHelpers()
 	const trackEvent = useUiEvents()
+	const a11y = useA11y()
+	const msg = useTranslation()
 
 	const defaultDocumentName = helpers.msg('document.default-name')
 
@@ -113,34 +119,18 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 			editor.run(() => {
 				// Get the selected shapes
-				const shapes = selectedShapeIds.map((id) => editor.getShape(id)).filter(Boolean)
+				const shapes = selectedShapeIds
+					.map((id) => editor.getShape(id))
+					.filter(Boolean) as TLShape[]
 
 				// Update each shape
 				shapes.forEach((shape) => {
-					if (!shape) return
-
-					// Get current bounds
-					const bounds = editor.getShapePageBounds(shape.id)
-					if (!bounds) return
 					if (!('w' in shape.props) || !('h' in shape.props)) return
 
 					// Don't make it too small.
-					if (shape.props.w < 32 || shape.props.h < 32) return
+					if (scaleFactor < 1.0 && (shape.props.w < 32 || shape.props.h < 32)) return
 
-					// Calculate new width and height
-					const newWidth = shape.props.w * scaleFactor
-					const newHeight = shape.props.h * scaleFactor
-
-					// Update the shape's width and height properties
-					editor.updateShape({
-						id: shape.id,
-						type: shape.type,
-						props: {
-							...shape.props,
-							w: newWidth,
-							h: newHeight,
-						},
-					})
+					editor.resizeShape(shape.id, new Vec(scaleFactor, scaleFactor))
 				})
 			})
 		}
@@ -1572,6 +1562,27 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('emsmallen-shapes', { source })
 				},
 			},
+			{
+				id: 'a11y-repeat-shape-announce',
+				kbd: '?r',
+				onSelect: async (source) => {
+					const selectedShapeIds = editor.getSelectedShapeIds()
+					if (!selectedShapeIds.length) return
+					const a11yLive = generateShapeAnnouncementMessage({
+						editor,
+						selectedShapeIds,
+						msg,
+					})
+
+					if (a11yLive) {
+						a11y.announce({ msg: '' })
+						editor.timers.requestAnimationFrame(() => {
+							a11y.announce({ msg: a11yLive })
+						})
+						trackEvent('a11y-repeat-shape-announce', { source })
+					}
+				},
+			},
 		]
 
 		if (showCollaborationUi) {
@@ -1603,7 +1614,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		}
 
 		return actions
-	}, [helpers, _editor, trackEvent, overrides, defaultDocumentName, showCollaborationUi])
+	}, [helpers, _editor, trackEvent, overrides, defaultDocumentName, showCollaborationUi, msg, a11y])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
 }

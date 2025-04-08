@@ -3,7 +3,6 @@ import { BlogPostPreview } from '@/components/blog/blog-post-preview'
 import { BlogSidebar } from '@/components/blog/blog-sidebar'
 import { PageTitle } from '@/components/common/page-title'
 import { Article } from '@/types/content-types'
-import { NewsletterSignup } from '../common/newsletter-signup'
 import { SearchButton } from '../search/SearchButton'
 
 export function BlogCategoryPage({
@@ -17,14 +16,12 @@ export function BlogCategoryPage({
 }) {
 	return (
 		<div className="w-full max-w-screen-xl mx-auto md:px-5 md:flex md:pt-8 isolate">
-			<BlogSidebar>
-				<NewsletterSignup size="small" />
-			</BlogSidebar>
-			<div className="fixed z-10 flex items-center justify-between w-full h-12 px-5 bg-white border-b border-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 backdrop-blur md:hidden">
+			<BlogSidebar>{/* <NewsletterSignup size="small" /> */}</BlogSidebar>
+			<div className="sticky top-14 z-10 flex items-center justify-between w-full h-12 px-5 bg-white border-b border-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 backdrop-blur md:hidden">
 				<BlogMobileSidebar />
 				<SearchButton type="blog" layout="mobile" className="hidden -mr-2 sm:block" />
 			</div>
-			<main className="relative w-full px-5 py-24 shrink md:overflow-x-hidden md:pr-0 lg:pl-12 md:pt-0">
+			<main className="relative w-full px-5 py-12 shrink md:overflow-x-hidden md:pr-0 lg:pl-12 md:pt-0">
 				<section className="pb-6 mb-6 border-b md:mb-8 md:pb-8 border-zinc-100 dark:border-zinc-800">
 					<PageTitle>{title}</PageTitle>
 					{description && (
@@ -38,9 +35,9 @@ export function BlogCategoryPage({
 							<BlogPostPreview key={index} article={article} />
 						))}
 				</section>
-				<section className="py-16 mt-16 border-t border-zinc-100 dark:border-zinc-800">
+				{/* <section className="py-16 mt-16 border-t border-zinc-100 dark:border-zinc-800">
 					<NewsletterSignup />
-				</section>
+				</section> */}
 			</main>
 		</div>
 	)
