@@ -42,10 +42,15 @@ const faq = [
 		a: (
 			<>
 				You can view the source code on{' '}
-				<BlueA href="https://github.com/tldraw/tldraw">GitHub</BlueA>. We accept contributions from
-				the community and work in public. Our <BlueA href="/legal/tldraw-license">license</BlueA> is
-				not exactly <BlueA href="https://opensource.org/osd">Open Source</BlueA> but the library is
-				free to use with our watermark.
+				<BlueA newTab href="https://github.com/tldraw/tldraw">
+					GitHub
+				</BlueA>
+				. We accept contributions from the community and work in public. Our{' '}
+				<BlueA href="/legal/tldraw-license">license</BlueA> is not exactly{' '}
+				<BlueA newTab href="https://opensource.org/osd">
+					Open Source
+				</BlueA>{' '}
+				but the library is free to use with our watermark.
 			</>
 		),
 	},
@@ -54,8 +59,14 @@ const faq = [
 		a: (
 			<>
 				The best place for community support is either{' '}
-				<BlueA href="https://github.com/tldraw/tldraw">GitHub</BlueA> or{' '}
-				<BlueA href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=faq">
+				<BlueA newTab href="https://github.com/tldraw/tldraw">
+					GitHub
+				</BlueA>{' '}
+				or{' '}
+				<BlueA
+					newTab
+					href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=faq"
+				>
 					Discord
 				</BlueA>
 				.
@@ -67,7 +78,10 @@ const faq = [
 		a: (
 			<>
 				Check out the #show-and-tell channel on our{' '}
-				<BlueA href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=faq">
+				<BlueA
+					newTab
+					href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=faq"
+				>
 					Discord
 				</BlueA>{' '}
 				community.
@@ -78,10 +92,16 @@ const faq = [
 		q: 'What is the difference between tldraw.com and the tldraw SDK?',
 		a: (
 			<>
-				The <BlueA href="https://tldraw.com">tldraw.com</BlueA> website is a big free demo of the
-				tldraw SDK. The source for both projects is available on our{' '}
-				<BlueA href="https://github.com/tldraw/tldraw">GitHub</BlueA>. You can use tldraw.com at
-				work or for personal projects.
+				The{' '}
+				<BlueA newTab href="https://tldraw.com">
+					tldraw.com
+				</BlueA>{' '}
+				website is a big free demo of the tldraw SDK. The source for both projects is available on
+				our{' '}
+				<BlueA newTab href="https://github.com/tldraw/tldraw">
+					GitHub
+				</BlueA>
+				. You can use tldraw.com at work or for personal projects.
 			</>
 		),
 	},
@@ -90,8 +110,14 @@ const faq = [
 		a: (
 			<>
 				You can request features through our{' '}
-				<BlueA href="https://github.com/tldraw/tldraw">GitHub</BlueA> or in our{' '}
-				<BlueA href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=faq">
+				<BlueA newTab href="https://github.com/tldraw/tldraw">
+					GitHub
+				</BlueA>{' '}
+				or in our{' '}
+				<BlueA
+					newTab
+					href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=faq"
+				>
 					Discord
 				</BlueA>
 				.
@@ -115,6 +141,7 @@ const faq = [
 				You can remove the watermark by <BlueA href="#pricing">purchasing a license</BlueA> from us.
 				We will send you a{' '}
 				<BlueA
+					newTab
 					href="https://tldraw.notion.site/License-keys-in-tldraw-e5e8566857f64a709ef23ab30336e66c
 "
 				>
@@ -145,7 +172,10 @@ const faq = [
 				rendering only, and most of the tldraw SDK is regular TypeScript. If you would like to have
 				first-class support for alternative renderers such as Svelte or Vue, please let us know on
 				the{' '}
-				<BlueA href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=faq">
+				<BlueA
+					newTab
+					href="https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=faq"
+				>
 					Discord
 				</BlueA>
 				.
@@ -156,11 +186,23 @@ const faq = [
 		q: 'Where can I find the AI stuff?',
 		a: (
 			<>
-				You can try our <BlueA href="https://makereal.tldraw.com">Make Real</BlueA> for drawing user
-				interfaces with tldraw. We also have <BlueA href="https://teach.tldraw.com">Teach</BlueA>{' '}
+				You can try our{' '}
+				<BlueA newTab href="https://makereal.tldraw.com">
+					Make Real
+				</BlueA>{' '}
+				for drawing user interfaces with tldraw. We also have{' '}
+				<BlueA newTab href="https://teach.tldraw.com">
+					Teach
+				</BlueA>{' '}
 				for working with an AI on the canvas. And we have{' '}
-				<BlueA href="https://computer.tldraw.com">Computer</BlueA> for building AI-powered
-				workflows. Follow us on <BlueA href="https://x.com/tldraw">X/Twitter</BlueA> for the latest!
+				<BlueA newTab href="https://computer.tldraw.com">
+					Computer
+				</BlueA>{' '}
+				for building AI-powered workflows. Follow us on{' '}
+				<BlueA newTab href="https://x.com/tldraw">
+					X/Twitter
+				</BlueA>{' '}
+				for the latest!
 			</>
 		),
 	},
