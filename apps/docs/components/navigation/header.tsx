@@ -18,9 +18,16 @@ const mainLinks = [
 		caption: 'Docs',
 		href: '/quick-start',
 		active: (pathname: string) =>
-			['/quick-start', '/installation', '/releases', '/docs', '/community', '/reference'].some(
-				(e) => pathname.startsWith(e)
-			),
+			[
+				'/quick-start',
+				'/installation',
+				'/releases',
+				'/docs',
+				'/community',
+				'/reference',
+				'/examples',
+				'/search',
+			].some((e) => pathname.startsWith(e)) && !pathname.startsWith('/search/blog'),
 	},
 	{
 		caption: 'Examples',
@@ -31,7 +38,7 @@ const mainLinks = [
 	{
 		caption: 'Blog',
 		href: '/blog',
-		active: (pathname: string) => pathname.startsWith('/blog'),
+		active: (pathname: string) => ['/blog', '/search/blog'].some((e) => pathname.startsWith(e)),
 	},
 ]
 
@@ -57,7 +64,8 @@ export function Header() {
 	const pathname = usePathname()
 	const { scrollY } = useScroll()
 	const navOpacity = useTransform(scrollY, [0, 32], [1, 0])
-	const opacityEffect = !pathname.startsWith('/blog') && pathname !== '/'
+	const opacityEffect = pathname !== '/'
+	const socialsOpacityEffect = pathname === '/search'
 
 	return (
 		<header className="sticky top-0 w-full bg-white dark:bg-zinc-950 z-10">
@@ -82,16 +90,21 @@ export function Header() {
 						</li>
 					))}
 				</motion.ul>
-				<ul className="hidden sm:flex w-28 gap-4 justify-end">
+				<motion.ul
+					style={{ opacity: socialsOpacityEffect ? navOpacity : 1 }}
+					className="hidden sm:flex w-28 gap-4 justify-end xl:!opacity-100"
+				>
 					{socialLinks.map((item, index) => (
 						<li key={index}>
 							<SocialLink {...item} />
 						</li>
 					))}
 					<ThemeSwitch />
-				</ul>
+				</motion.ul>
 				<div className="flex items-center sm:hidden -mr-2">
-					<SearchButton type={pathname.startsWith('/blog') ? 'blog' : 'docs'} layout="mobile" />
+					{!pathname.startsWith('/search') && (
+						<SearchButton type={pathname.startsWith('/blog') ? 'blog' : 'docs'} layout="mobile" />
+					)}
 					<Suspense>
 						<MobileMenu main={mainLinks} social={socialLinks} />
 					</Suspense>

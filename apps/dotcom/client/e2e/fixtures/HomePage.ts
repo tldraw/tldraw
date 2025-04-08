@@ -31,7 +31,7 @@ export class HomePage {
 		await this.page.waitForTimeout(1000)
 		await this.page.getByLabel('Enter verification code. Digit').fill('424242')
 		await expect(async () => {
-			await expect(this.page.getByRole('button', { name: 'Share' })).toBeVisible()
+			await expect(this.page.getByTestId('tla-sidebar-toggle')).toBeVisible()
 		}).toPass()
 	}
 

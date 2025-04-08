@@ -177,13 +177,6 @@ li.examples__sidebar__item {
 
 .examples__sidebar__item__link {
 	display: block;
-	position: absolute;
-	inset: 0px;
-	height: 100%;
-}
-
-.examples__sidebar__item__title {
-	max-width: 100%;
 	font-weight: 500;
 	margin: 0px;
 	overflow: hidden;
@@ -255,7 +248,7 @@ li.examples__sidebar__item {
 .example__sidebar__footer-link {
 	padding: 8px 8px;
 	border-radius: 6px;
-	background-color: var(--focus);
+	background-color: hsl(214, 92%, 50%);
 	display: flex;
 	flex: 1 1 auto;
 	text-align: center;

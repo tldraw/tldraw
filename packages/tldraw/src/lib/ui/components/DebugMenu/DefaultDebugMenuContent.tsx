@@ -49,10 +49,6 @@ export function DefaultDebugMenuContent() {
 							description: 'Hey, attend to this thing over here. It might be important!',
 							keepOpen: true,
 							severity: 'success',
-							// icon?: string
-							// title?: string
-							// description?: string
-							// actions?: TLUiToastAction[]
 						})
 						addToast({
 							id: uniqueId(),
@@ -83,10 +79,6 @@ export function DefaultDebugMenuContent() {
 									},
 								},
 							],
-							// icon?: string
-							// title?: string
-							// description?: string
-							// actions?: TLUiToastAction[]
 						})
 						addToast({
 							id: uniqueId(),
@@ -172,8 +164,6 @@ export function DefaultDebugMenuContent() {
 				<DebugFlags />
 				<FeatureFlags />
 			</TldrawUiMenuGroup>
-
-			{/* {...children} */}
 		</>
 	)
 }
@@ -209,10 +199,11 @@ export function FeatureFlags() {
 /** @public */
 export interface ExampleDialogProps {
 	title?: string
-	body?: string
+	body?: React.ReactNode
 	cancel?: string
 	confirm?: string
 	displayDontShowAgain?: boolean
+	maxWidth?: string
 	onCancel(): void
 	onContinue(): void
 }
@@ -224,6 +215,7 @@ export function ExampleDialog({
 	cancel = 'Cancel',
 	confirm = 'Continue',
 	displayDontShowAgain = false,
+	maxWidth = '350',
 	onCancel,
 	onContinue,
 }: ExampleDialogProps) {
@@ -235,7 +227,7 @@ export function ExampleDialog({
 				<TldrawUiDialogTitle>{title}</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody style={{ maxWidth: 350 }}>{body}</TldrawUiDialogBody>
+			<TldrawUiDialogBody style={{ maxWidth }}>{body}</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				{displayDontShowAgain && (
 					<TldrawUiButton

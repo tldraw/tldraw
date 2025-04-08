@@ -587,6 +587,16 @@
 	color: var(--color-warn);
 }
 
+.tlui-a11y-audit {
+	border-collapse: collapse;
+}
+
+.tlui-a11y-audit th,
+.tlui-a11y-audit td {
+	padding: 8px;
+	border: 1px solid var(--color-low-border);
+}
+
 /* -------------------- Menu Zone ------------------- */
 
 .tlui-menu-zone {

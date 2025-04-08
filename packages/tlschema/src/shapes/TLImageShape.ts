@@ -23,6 +23,7 @@ export interface TLImageShapeProps {
 	crop: TLShapeCrop | null
 	flipX: boolean
 	flipY: boolean
+	altText: string
 }
 
 /** @public */
@@ -38,6 +39,7 @@ export const imageShapeProps: RecordProps<TLImageShape> = {
 	crop: ImageShapeCrop.nullable(),
 	flipX: T.boolean,
 	flipY: T.boolean,
+	altText: T.string,
 }
 
 const Versions = createShapePropsMigrationIds('image', {
@@ -45,6 +47,7 @@ const Versions = createShapePropsMigrationIds('image', {
 	AddCropProp: 2,
 	MakeUrlsValid: 3,
 	AddFlipProps: 4,
+	AddAltText: 5,
 })
 
 export { Versions as imageShapeVersions }
@@ -88,6 +91,15 @@ export const imageShapeMigrations = createShapePropsMigrationSequence({
 			down: (props) => {
 				delete props.flipX
 				delete props.flipY
+			},
+		},
+		{
+			id: Versions.AddAltText,
+			up: (props) => {
+				props.altText = ''
+			},
+			down: (props) => {
+				delete props.altText
 			},
 		},
 	],

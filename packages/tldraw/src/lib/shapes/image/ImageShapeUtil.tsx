@@ -65,7 +65,12 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			crop: null,
 			flipX: false,
 			flipY: false,
+			altText: '',
 		}
+	}
+
+	override getAriaDescriptor(shape: TLImageShape) {
+		return shape.props.altText
 	}
 
 	override onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>) {

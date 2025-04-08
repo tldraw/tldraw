@@ -5,6 +5,7 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { Hit } from 'instantsearch.js'
 import { SendEventForHits } from 'instantsearch.js/es/lib/utils'
 import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
 import { Fragment, startTransition, useState } from 'react'
 import { Highlight } from 'react-instantsearch'
 import { twJoin } from 'tailwind-merge'
@@ -18,7 +19,7 @@ interface AutocompleteProps {
 	sendEvent: SendEventForHits
 }
 
-export default function Autocomplete({
+export default function SearchDialog({
 	items,
 	onInputChange,
 	onChange,
@@ -56,7 +57,7 @@ export default function Autocomplete({
 					'bg-white/90 dark:bg-zinc-950/90 pointer-events-none'
 				)}
 			>
-				<SearchDialog onOpenChange={handleOpenChange}>
+				<SearchDialogWrapper onOpenChange={handleOpenChange}>
 					<div className="w-full max-w-3xl mx-auto px-5 lg:px-12 pt-[4.5rem]">
 						<div
 							className={twJoin(
@@ -68,25 +69,31 @@ export default function Autocomplete({
 							<Results items={items} sendEvent={sendEvent} />
 						</div>
 					</div>
-				</SearchDialog>
+				</SearchDialogWrapper>
 			</div>
 		</ComboboxProvider>
 	)
 }
 
 function SearchInput({ value }: { value: string }) {
+	const router = useRouter()
+	const pathName = usePathname()
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		if (e.key !== 'Enter') return
+		const searchPath = pathName.startsWith('/blog') ? '/search/blog' : '/search'
+		router.push(`${searchPath}?query=${encodeURIComponent(value.trim())}`)
+	}
 	return (
 		<div className="w-full h-10 flex items-center px-4">
 			<div className="flex h-full grow items-center gap-3">
 				<MagnifyingGlassIcon className="h-4 shrink-0" />
 				<Combobox
 					className="h-full w-full mr-4 focus:outline-none text-black dark:text-white bg-transparent"
-					value={value}
 					autoFocus
 					placeholder="Search..."
+					onKeyDown={handleKeyDown}
 				/>
 			</div>
-			<span className="hidden md:block text-xs shrink-0">ESC</span>
 		</div>
 	)
 }
@@ -113,7 +120,8 @@ function Results({ items, sendEvent }: { items: Hit<SearchEntry>[]; sendEvent: S
 						'[&_mark]:bg-transparent [&_mark]:font-bold',
 						'[&_mark]:text-black [&_mark]:data-[active-item=true]:text-white',
 						'dark:[&_mark]:text-white',
-						'[&_.ais-Highlight-nonHighlighted]:data-[active-item=true]:text-white'
+						'[&_.ais-Highlight-nonHighlighted]:data-[active-item=true]:text-white',
+						'hover:text-zinc-800 dark:hover:text-zinc-200'
 					)}
 					value={href}
 					onKeyDown={(e) => {
@@ -160,7 +168,7 @@ function Results({ items, sendEvent }: { items: Hit<SearchEntry>[]; sendEvent: S
 	)
 }
 
-function SearchDialog({
+function SearchDialogWrapper({
 	children,
 	onOpenChange,
 }: {
