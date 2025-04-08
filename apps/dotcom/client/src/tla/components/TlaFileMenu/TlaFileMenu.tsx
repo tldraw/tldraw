@@ -121,7 +121,7 @@ export function FileItems({
 		const file = app.getFile(fileId)
 		if (!file) return
 		trackEvent('duplicate-file', { source })
-		const res = app.createFile({
+		const res = await app.createFile({
 			id: newFileId,
 			name: getDuplicateName(file, app),
 			createSource: `${FILE_PREFIX}/${fileId}`,

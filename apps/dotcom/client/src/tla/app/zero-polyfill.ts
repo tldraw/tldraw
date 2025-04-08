@@ -16,7 +16,7 @@ import {
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
 import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { computed, objectMapKeys, react, Signal, sleep, transact, uniqueId } from 'tldraw'
+import { assert, computed, objectMapKeys, react, Signal, sleep, transact, uniqueId } from 'tldraw'
 import { TLAppUiContextType } from '../utils/app-ui-events'
 
 export class Zero {
@@ -86,7 +86,9 @@ export class Zero {
 		})
 		const mutatorWrapper = (mutatorFn: any) => {
 			return (params: any) => {
-				transact(() => mutatorFn({ mutate: this.____mutators, location: 'client' }, params))
+				transact(() =>
+					mutatorFn({ mutate: this.____mutators, query: this.query, location: 'client' }, params)
+				)
 			}
 		}
 		const mutators = createMutators(opts.userId) as any
@@ -112,7 +114,6 @@ export class Zero {
 		while (this.store.getOptimisticUpdates().length && safety++ < 100) {
 			await sleep(50)
 		}
-		// console.log('Mutation resolved', JSON.stringify(this.store.getOptimisticUpdates()))
 	}
 
 	close() {
@@ -144,9 +145,6 @@ export class Zero {
 
 	private makeQuery<T>(table: string, data$: Signal<T>) {
 		const stuff = {
-			one() {
-				return this
-			},
 			preload: this.preload,
 			related(_x: any, _y: any) {
 				return this
@@ -182,9 +180,21 @@ export class Zero {
 		}
 		return {
 			...stuff,
-			where: (column: string, _ownerId: string) => {
+			where: (column: string, op: string, value: any) => {
+				assert(op === '=', 'Only = operator is supported')
 				return {
 					...stuff,
+					one() {
+						return {
+							...this,
+							run: () => {
+								return (data$.get() as any[]).find((d) => d[column] === value)
+							},
+						}
+					},
+					run: () => {
+						return (data$.get() as any[]).filter((d) => d[column] === value)
+					},
 					toString() {
 						return column
 					},

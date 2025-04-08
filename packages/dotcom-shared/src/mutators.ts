@@ -26,8 +26,9 @@ export type TlaMutators = ReturnType<typeof createMutators>
 
 async function assertNotMaxFiles(tx: Transaction<TlaSchema>, userId: string) {
 	if (tx.location === 'client') {
-		const count = (await tx.query.file.where('ownerId', userId).where('isDeleted', false).run())
-			.length
+		const count = (await tx.query.file.where('ownerId', '=', userId).run()).filter(
+			(f) => !f.isDeleted
+		).length
 		assert(count < MAX_NUMBER_OF_FILES, ZErrorCode.max_files_reached)
 	} else {
 		// On the server, don't fetch all files because we don't need them
@@ -84,7 +85,7 @@ export function createMutators(userId: string) {
 			},
 			update: async (tx, _file: TlaFilePartial) => {
 				disallowImmutableMutations(_file, immutableColumns.file)
-				const file = await tx.query.file.where('id', _file.id).one().run()
+				const file = await tx.query.file.where('id', '=', _file.id).one().run()
 				assert(file, ZErrorCode.bad_request)
 				assert(!file.isDeleted, ZErrorCode.bad_request)
 				assert(file.ownerId === userId, ZErrorCode.forbidden)
@@ -102,7 +103,7 @@ export function createMutators(userId: string) {
 				assert(fileState.userId === userId, ZErrorCode.forbidden)
 				if (tx.location === 'server') {
 					// the user won't be able to see the file in the client if they are not the owner
-					const file = await tx.query.file.where('id', fileState.fileId).one().run()
+					const file = await tx.query.file.where('id', '=', fileState.fileId).one().run()
 					assert(file, ZErrorCode.bad_request)
 					if (file?.ownerId !== userId) {
 						assert(file?.shared, ZErrorCode.forbidden)

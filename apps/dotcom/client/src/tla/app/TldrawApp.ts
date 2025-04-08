@@ -161,7 +161,7 @@ export class TldrawApp {
 
 		this.user$ = this.signalizeQuery(
 			'user signal',
-			this.z.query.user.where('id', this.userId).one()
+			this.z.query.user.where('id', '=', this.userId).one()
 		)
 		this.files$ = this.signalizeQuery(
 			'files signal',
@@ -169,13 +169,13 @@ export class TldrawApp {
 		)
 		this.fileStates$ = this.signalizeQuery(
 			'file states signal',
-			this.z.query.file_state.where('userId', this.userId).related('file', (q: any) => q.one())
+			this.z.query.file_state.where('userId', '=', this.userId).related('file', (q: any) => q.one())
 		)
 	}
 
 	async preload(initialUserData: TlaUser) {
 		let didCreate = false
-		await this.z.query.user.where('id', this.userId).preload().complete
+		await this.z.query.user.where('id', '=', this.userId).preload().complete
 		await this.changesFlushed
 		if (!this.user$.get()) {
 			didCreate = true
@@ -189,8 +189,8 @@ export class TldrawApp {
 		if (!this.user$.get()) {
 			throw Error('could not create user')
 		}
-		await this.z.query.file_state.where('userId', this.userId).preload().complete
-		await this.z.query.file.where('ownerId', this.userId).preload().complete
+		await this.z.query.file_state.where('userId', '=', this.userId).preload().complete
+		await this.z.query.file.where('ownerId', '=', this.userId).preload().complete
 		return didCreate
 	}
 
@@ -377,9 +377,9 @@ export class TldrawApp {
 		})
 	}
 
-	createFile(
+	async createFile(
 		fileOrId?: string | Partial<TlaFile>
-	): Result<{ file: TlaFile }, 'max number of files reached'> {
+	): Promise<Result<{ file: TlaFile }, 'max number of files reached'>> {
 		if (!this.canCreateNewFile()) {
 			this.showMaxFilesToast()
 			return Result.err('max number of files reached')
@@ -420,7 +420,7 @@ export class TldrawApp {
 			lastSessionState: null,
 			lastVisitAt: null,
 		}
-		this.z.mutate.file.insertWithFileState({ file, fileState })
+		await this.z.mutate.file.insertWithFileState({ file, fileState })
 		// todo: add server error handling for real Zero
 		// .server.catch((res: { error: string; details: string }) => {
 		// 	if (res.details === ZErrorCode.max_files_reached) {
@@ -465,8 +465,8 @@ export class TldrawApp {
 		return
 	}
 
-	slurpFile() {
-		return this.createFile({
+	async slurpFile() {
+		return await this.createFile({
 			createSource: `${LOCAL_FILE_PREFIX}/${getScratchPersistenceKey()}`,
 		})
 	}
