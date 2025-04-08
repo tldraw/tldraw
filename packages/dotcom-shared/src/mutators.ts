@@ -26,7 +26,9 @@ export type TlaMutators = ReturnType<typeof createMutators>
 
 async function assertNotMaxFiles(tx: Transaction<TlaSchema>, userId: string) {
 	if (tx.location === 'client') {
-		const count = (await tx.query.file.where('ownerId', '=', userId).run()).length
+		const count = (await tx.query.file.where('ownerId', '=', userId).run()).filter(
+			(f) => !f.isDeleted
+		).length
 		assert(count < MAX_NUMBER_OF_FILES, ZErrorCode.max_files_reached)
 	} else {
 		// On the server, don't fetch all files because we don't need them
