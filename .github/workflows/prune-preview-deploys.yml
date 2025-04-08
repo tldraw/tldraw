@@ -18,7 +18,7 @@ defaults:
 jobs:
   deploy:
     name: Prune preview deploys
-    timeout-minutes: 15
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     environment: deploy-staging
 

@@ -83,6 +83,7 @@ const env = makeEnv([
 ])
 
 const deployViaFlyIo = env.DEPLOY_TO === 'flyio'
+const flyioAppName = deployViaFlyIo ? `${previewId}-zero-cache` : undefined
 
 const clerkJWKSUrl =
 	env.TLDRAW_ENV === 'production'
@@ -123,8 +124,7 @@ async function main() {
 	// 1. get the dotcom app ready to go (env vars and pre-build)
 	await discord.step('building dotcom app', async () => {
 		await createSentryRelease()
-		const zeroUrl = await deployZero()
-		await prepareDotcomApp(zeroUrl)
+		await prepareDotcomApp()
 		await uploadSourceMaps()
 		await coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
 	})
@@ -146,6 +146,10 @@ async function main() {
 	})
 	await discord.step('deploying multiplayer worker to cloudflare', async () => {
 		await deployTlsyncWorker({ dryRun: false })
+	})
+	// We need to deploy zero after `deployTlsyncWorker` because we need to run migrations first
+	await discord.step('deploying zero', async () => {
+		await deployZero()
 	})
 	await discord.step('deploying image resizer to cloudflare', async () => {
 		await deployImageResizeWorker({ dryRun: false })
@@ -184,7 +188,28 @@ async function main() {
 	await discord.message(`**Deploy complete!**`)
 }
 
-async function prepareDotcomApp(zeroUrl: string) {
+function getZeroUrl() {
+	switch (env.TLDRAW_ENV) {
+		case 'preview': {
+			if (deployViaFlyIo) {
+				return `https://${flyioAppName}.fly.dev/`
+			} else {
+				return `https://${previewId}.zero.tldraw.com/`
+			}
+		}
+		case 'staging':
+			return 'https://staging.zero.tldraw.com/'
+		case 'production':
+			return 'https://production.zero.tldraw.com/'
+	}
+	return undefined
+}
+
+async function prepareDotcomApp() {
+	const zeroUrl = getZeroUrl()
+	if (!zeroUrl) {
+		throw new Error('No zero URL found')
+	}
 	// pre-build the app:
 	await exec('yarn', ['build-app'], {
 		env: {
@@ -373,14 +398,7 @@ async function deployZeroViaSst() {
 	await exec('yarn', ['sst', 'secret', 'set', 'ZeroAuthSecret', clerkJWKSUrl, '--stage', stage])
 	await exec('yarn', ['sst', 'unlock', '--stage', stage])
 	await exec('yarn', ['bundle-schema'], { pwd: zeroCacheFolder })
-
-	const result = await exec('yarn', ['sst', 'deploy', '--stage', stage, '--verbose'])
-	const line = result.split('\n').filter((l) => l.includes('view-syncer: http'))[0]
-	const url = line.split(': ')[1].trim()
-	if (!url || url.length === 0) {
-		throw new Error('Could not find view-syncer URL in SST output ' + result)
-	}
-	return url
+	await exec('yarn', ['sst', 'deploy', '--stage', stage, '--verbose'])
 }
 
 function updateFlyioToml(appName: string): void {
@@ -398,23 +416,24 @@ function updateFlyioToml(appName: string): void {
 }
 
 async function deployZeroViaFlyIo() {
-	const appName = `${previewId}-zero-cache`
-	updateFlyioToml(appName)
+	if (!flyioAppName) {
+		throw new Error('Fly.io app name is not defined')
+	}
+	updateFlyioToml(flyioAppName)
 	const apps = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
-	if (apps.indexOf(appName) === -1) {
-		await exec('flyctl', ['app', 'create', appName, '-o', 'tldraw-gb-ltd'], {
+	if (apps.indexOf(flyioAppName) === -1) {
+		await exec('flyctl', ['app', 'create', flyioAppName, '-o', 'tldraw-gb-ltd'], {
 			pwd: zeroCacheFolder,
 		})
 	}
-	await exec('flyctl', ['deploy', '-a', appName, '-c', 'flyio.toml'], { pwd: zeroCacheFolder })
-	return `https://${appName}.fly.dev`
+	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio.toml'], { pwd: zeroCacheFolder })
 }
 
 async function deployZero() {
 	if (deployViaFlyIo) {
-		return await deployZeroViaFlyIo()
+		await deployZeroViaFlyIo()
 	} else {
-		return await deployZeroViaSst()
+		await deployZeroViaSst()
 	}
 }
 

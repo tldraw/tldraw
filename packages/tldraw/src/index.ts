@@ -2,7 +2,7 @@
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
 export { usePrefersReducedMotion } from './lib/shapes/shared/usePrefersReducedMotion'
-export { DefaultA11yAnnouncer } from './lib/ui/components/A11y'
+export { DefaultA11yAnnouncer, useSelectedShapesAnnouncer } from './lib/ui/components/A11y'
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
 export { DefaultDialogs } from './lib/ui/components/Dialogs'
 export { DefaultToasts } from './lib/ui/components/Toasts'
@@ -494,9 +494,12 @@ export {
 } from './lib/ui/context/toasts'
 export { useCanRedo, useCanUndo } from './lib/ui/hooks/menu-hooks'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
+export {
+	useCollaborationStatus,
+	useShowCollaborationUi,
+} from './lib/ui/hooks/useCollaborationStatus'
 export { useCopyAs } from './lib/ui/hooks/useCopyAs'
 export { useExportAs } from './lib/ui/hooks/useExportAs'
-export { useCollaborationStatus, useShowCollaborationUi } from './lib/ui/hooks/useIsMultiplayer'
 export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
 export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'

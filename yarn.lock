@@ -11322,10 +11322,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axe-core@npm:^4.10.0":
-  version: 4.10.1
-  resolution: "axe-core@npm:4.10.1"
-  checksum: 10/53b53111f18082a40781ff7e405bcf6cbba6c3d9ec6905ee0bdab3704d0062fcee00ceb220adfb73f4787a7fda30b8f6d2edc8f0e70123a589c5f90ce016f6b7
+"axe-core@npm:^4.10.0, axe-core@npm:^4.10.3":
+  version: 4.10.3
+  resolution: "axe-core@npm:4.10.3"
+  checksum: 10/9ff51ad0fd0fdec5c0247ea74e8ace5990b54c7f01f8fa3e5cd8ba98b0db24d8ebd7bab4a9bd4d75c28c4edcd1eac455b44c8c6c258c6a98f3d2f88bc60af4cc
   languageName: node
   linkType: hard
 
@@ -26944,6 +26944,7 @@ __metadata:
     "@types/classnames": "npm:^2.3.4"
     "@types/lz-string": "npm:^1.5.0"
     "@types/react": "npm:^18.3.18"
+    axe-core: "npm:^4.10.3"
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.5.1"
     hotkeys-js: "npm:^3.13.9"

@@ -113,6 +113,7 @@ export interface TLUiEventMap {
 	'embiggen-shapes': null
 	'emsmallen-shapes': null
 	'flatten-to-image': null
+	'a11y-repeat-shape-announce': null
 	'open-url': { url: string }
 	'copy-link': null
 	'rich-text': {
