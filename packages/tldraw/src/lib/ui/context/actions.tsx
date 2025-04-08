@@ -125,11 +125,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 				// Update each shape
 				shapes.forEach((shape) => {
-					if (!('w' in shape.props) || !('h' in shape.props)) return
-
-					// Don't make it too small.
-					if (scaleFactor < 1.0 && (shape.props.w < 32 || shape.props.h < 32)) return
-
 					editor.resizeShape(shape.id, new Vec(scaleFactor, scaleFactor), {
 						scaleOrigin: editor.getSelectionPageBounds()?.center,
 					})
@@ -1525,7 +1520,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'emsmallen-shapes',
 				kbd: '$!?-',
 				onSelect: async (source) => {
-					scaleShapes(0.9)
+					scaleShapes(1 / 1.1)
 					trackEvent('emsmallen-shapes', { source })
 				},
 			},
