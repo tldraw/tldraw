@@ -36,5 +36,5 @@ rm -rf {packages,apps}/vscode/extension/temp
 rm -rf {packages,apps}/vscode/extension/editor
 rm -rf apps/docs/content.json
 
-corepack enable
+npm i -g corepack
 yarn
