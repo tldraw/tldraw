@@ -20,14 +20,12 @@ export async function generateMetadata({
 	} else if (content.type === 'article' && content.article.sectionId === 'blog') {
 		const metadata: Metadata = { title: content.article.title }
 		if (content.article.description) metadata.description = content.article.description
-		const socialImage =
-			content.article.socialImage ?? content.article.thumbnail ?? content.article.hero
-		if (socialImage) {
+		if (content.article.socialImage) {
 			metadata.openGraph = {
-				images: [{ url: socialImage }],
+				images: [{ url: content.article.socialImage }],
 			}
 			metadata.twitter = {
-				images: [{ url: socialImage }],
+				images: [{ url: content.article.socialImage }],
 			}
 		}
 		return metadata
