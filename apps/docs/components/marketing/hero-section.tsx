@@ -12,7 +12,7 @@ export function HeroSection() {
 						className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-full text-sm font-semibold"
 						href="/blog/announcements/announcing-tldraw-series-a"
 					>
-						tldraw announces its $10M Series A.{' '}
+						tldraw announces its $10M Series A{' '}
 						<ArrowRightIcon className="relative bottom-[1px] h-[12px] inline-block" />
 					</Link>
 					<div className="h-20" />
