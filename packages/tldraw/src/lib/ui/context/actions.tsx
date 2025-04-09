@@ -1514,6 +1514,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'a11y-open-context-menu',
 				kbd: '$Enter',
+				readonlyOk: true,
 				onSelect: async () => {
 					if (!canApplySelectionAction()) return
 
