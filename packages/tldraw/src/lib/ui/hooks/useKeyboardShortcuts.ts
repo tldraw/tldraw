@@ -149,15 +149,40 @@ export function areShortcutsDisabled(editor: Editor) {
 }
 
 // The "raw" kbd here will look something like "a" or a combination of keys "del,backspace".
-// We need to first split them up by comma, then parse each key to make sure cmd+ctrl are
-// both included.
+// We need to first split them up by comma, then parse each key to ensure backwards compatibility
+// with the old kbd format. We used to have symbols to denote cmd/alt/shift,
+// using ! for shift, $ for cmd, and ? for alt.
 function getHotkeysStringFromKbd(kbd: string) {
 	return getKeys(kbd)
 		.map((kbd) => {
-			if (kbd.includes('accel+')) {
-				kbd = `${kbd.replace('accel+', 'cmd+')},${kbd.replace('accel+', 'ctrl+')}`
+			let str = ''
+
+			const shift = kbd.includes('!')
+			const alt = kbd.includes('?')
+			const cmd = kbd.includes('$')
+
+			// remove the modifiers; the remaining string are the actual key
+			const k = kbd.replace(/[!?$]/g, '')
+
+			if (shift && alt && cmd) {
+				str = `cmd+shift+alt+${k},ctrl+shift+alt+${k}`
+			} else if (shift && cmd) {
+				str = `cmd+shift+${k},ctrl+shift+${k}`
+			} else if (alt && cmd) {
+				str = `cmd+alt+${k},ctrl+alt+${k}`
+			} else if (alt && shift) {
+				str = `shift+alt+${k}`
+			} else if (shift) {
+				str = `shift+${k}`
+			} else if (alt) {
+				str = `alt+${k}`
+			} else if (cmd) {
+				str = `cmd+${k},ctrl+${k}`
+			} else {
+				str = k
 			}
-			return kbd
+
+			return str
 		})
 		.join(',')
 }

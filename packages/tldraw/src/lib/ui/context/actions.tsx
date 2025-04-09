@@ -124,7 +124,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'insert-embed',
 				label: 'action.insert-embed',
-				kbd: 'accel+i',
+				kbd: 'cmd+i,ctrl+i',
 				onSelect(source) {
 					trackEvent('insert-embed', { source })
 					helpers.addDialog({ component: EmbedDialog })
@@ -133,7 +133,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'insert-media',
 				label: 'action.insert-media',
-				kbd: 'accel+u',
+				kbd: 'cmd+u,ctrl+u',
 				onSelect(source) {
 					trackEvent('insert-media', { source })
 					helpers.insertMedia()
@@ -143,7 +143,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'undo',
 				label: 'action.undo',
 				icon: 'undo',
-				kbd: 'accel+z',
+				kbd: 'cmd+z,ctrl+z',
 				onSelect(source) {
 					trackEvent('undo', { source })
 					editor.undo()
@@ -153,7 +153,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'redo',
 				label: 'action.redo',
 				icon: 'redo',
-				kbd: 'accel+shift+z',
+				kbd: 'cmd+shift+z,ctrl+shift+z',
 				onSelect(source) {
 					trackEvent('redo', { source })
 					editor.redo()
@@ -233,7 +233,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.copy-as-svg.short',
 					['context-menu']: 'action.copy-as-svg.short',
 				},
-				kbd: 'accel+shift+c',
+				kbd: 'cmd+shift+c,ctrl+shift+c',
 				readonlyOk: true,
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
@@ -432,7 +432,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'duplicate',
-				kbd: 'accel+d',
+				kbd: 'cmd+d,ctrl+d',
 				label: 'action.duplicate',
 				icon: 'duplicate',
 				onSelect(source) {
@@ -480,7 +480,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'ungroup',
 				label: 'action.ungroup',
-				kbd: 'accel+shift+g',
+				kbd: 'cmd+shift+g,ctrl+shift+g',
 				icon: 'ungroup',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -494,7 +494,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'group',
 				label: 'action.group',
-				kbd: 'accel+g',
+				kbd: 'cmd+g,ctrl+g',
 				icon: 'group',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -514,7 +514,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'remove-frame',
 				label: 'action.remove-frame',
-				kbd: 'accel+shift+f',
+				kbd: 'cmd+shift+f,ctrl+shift+f',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 
@@ -895,7 +895,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'cut',
 				label: 'action.cut',
-				kbd: 'accel+x',
+				kbd: 'cmd+x,ctrl+x',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -907,7 +907,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'copy',
 				label: 'action.copy',
-				kbd: 'accel+c',
+				kbd: 'cmd+c,ctrl+c',
 				readonlyOk: true,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -919,7 +919,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'paste',
 				label: 'action.paste',
-				kbd: 'accel+v',
+				kbd: 'cmd+v,ctrl+v',
 				onSelect(source) {
 					navigator.clipboard
 						?.read()
@@ -942,7 +942,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'select-all',
 				label: 'action.select-all',
-				kbd: 'accel+a',
+				kbd: 'cmd+a,ctrl+a',
 				readonlyOk: true,
 				onSelect(source) {
 					editor.run(() => {
@@ -1023,7 +1023,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-in',
 				label: 'action.zoom-in',
-				kbd: 'accel+=,=',
+				kbd: 'cmd+=,ctrl+u,=',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-in', { source, towardsCursor: false })
@@ -1035,7 +1035,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-in-on-cursor',
 				label: 'action.zoom-in',
-				kbd: 'shift+accel+=,shift+=',
+				kbd: 'shift+cmd+=,shift+ctrl+=,shift+=',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-in', { source, towardsCursor: true })
@@ -1047,7 +1047,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-out',
 				label: 'action.zoom-out',
-				kbd: 'accel+-,-',
+				kbd: 'cmd+-,ctrl+-,-',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-out', { source, towardsCursor: false })
@@ -1059,7 +1059,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-out-on-cursor',
 				label: 'action.zoom-out',
-				kbd: 'shift+accel+-,shift+-',
+				kbd: 'shift+cmd+-,shift+ctrl+-,shift+-',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-out', { source, towardsCursor: true })
@@ -1122,7 +1122,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: 'action.toggle-dark-mode',
 					menu: 'action.toggle-dark-mode.menu',
 				},
-				kbd: 'accel+/',
+				kbd: 'cmd+/,ctrl+/',
 				readonlyOk: true,
 				onSelect(source) {
 					const value = editor.user.getIsDarkMode() ? 'light' : 'dark'
@@ -1260,7 +1260,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.toggle-focus-mode.menu',
 				},
 				readonlyOk: true,
-				kbd: 'accel+.',
+				kbd: 'cmd+.,ctrl+.',
 				checkbox: true,
 				onSelect(source) {
 					// this needs to be deferred because it causes the menu
@@ -1282,7 +1282,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.toggle-grid.menu',
 				},
 				readonlyOk: true,
-				kbd: "accel+'",
+				kbd: "cmd+',ctrl+'",
 				onSelect(source) {
 					trackEvent('toggle-grid-mode', { source })
 					editor.updateInstanceState({ isGridMode: !editor.getInstanceState().isGridMode })
@@ -1307,7 +1307,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'print',
 				label: 'action.print',
-				kbd: 'accel+p',
+				kbd: 'cmd+p,ctrl+p',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('print', { source })
@@ -1485,7 +1485,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'a11y-repeat-shape-announce',
-				kbd: '?r',
+				kbd: 'alt+r',
 				onSelect: async (source) => {
 					const selectedShapeIds = editor.getSelectedShapeIds()
 					if (!selectedShapeIds.length) return
