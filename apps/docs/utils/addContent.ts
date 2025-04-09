@@ -34,6 +34,7 @@ export async function addContentToDb(
       description,
       hero,
 	  thumbnail,
+	  socialImage,
       status,
       date,
       sourceUrl,
@@ -43,7 +44,7 @@ export async function addContentToDb(
 	  apiTags,
       content,
 			path
-    ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	)
 
 	for (let i = 0; i < content.sections.length; i++) {
@@ -100,6 +101,7 @@ export async function addContentToDb(
 				article.description,
 				article.hero,
 				article.thumbnail,
+				article.socialImage,
 				article.status,
 				article.date,
 				article.sourceUrl,

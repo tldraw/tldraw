@@ -105,7 +105,9 @@ export interface Article extends ContentPage {
 	/** The article's hero image (optional). */
 	hero: string | null
 	/** The article's thumbnail image (optional). */
-	thumbnail: string
+	thumbnail: string | null
+	/** The article's social image (optional). */
+	socialImage: string | null
 	/** The article's status (draft, published, hidden, etc) */
 	status: ArticleStatus
 	/** The date on which the article was published (optional). */
