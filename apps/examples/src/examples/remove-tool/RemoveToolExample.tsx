@@ -8,7 +8,6 @@ export default function RemoveToolExample() {
 				<Tldraw
 					overrides={{
 						tools: (_editor, tools) => {
-							console.log(tools)
 							// Remove the text tool
 							delete tools.text
 							return tools
