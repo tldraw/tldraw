@@ -265,7 +265,7 @@
 
 /** Buttons/A tags */
 .tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
-	:has(nav, [data-radix-popper-content-wrapper], .tlui-dialog__overlay)
+	:is(nav, [data-radix-popper-content-wrapper], .tlui-dialog__overlay)
 	button:not(.tla-button-text):focus-visible,
 .tl-container__focused:not(.tl-container__no-focus-ring) button:not(.tlui-button):focus-visible,
 .tl-container__focused:not(.tl-container__no-focus-ring) .tlui-layout__top a:focus-visible {

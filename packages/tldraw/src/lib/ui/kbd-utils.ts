@@ -9,7 +9,9 @@ export function kbd(str: string) {
 
 	return str
 		.split(',')[0]
-		.split('')
+		.split(/(\[\[[^\]]+\]\])/g)
+		.map((s) => (s.startsWith('[[') ? s.replace(/[[\]]/g, '') : s.split('')))
+		.flat()
 		.map((sub) => {
 			const subStr = sub.replace(/\$/g, cmdKey).replace(/\?/g, altKey).replace(/!/g, '⇧')
 			return subStr[0].toUpperCase() + subStr.slice(1)
