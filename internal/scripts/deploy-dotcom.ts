@@ -212,6 +212,7 @@ async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
 
 let didUpdateTlsyncWorker = false
 async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
+	return nicelog('skipping tlsync worker deploy for style hotfix')
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-multiplayer`
 	if (previewId && !didUpdateTlsyncWorker) {
 		await setWranglerPreviewConfig(worker, { name: workerId })
