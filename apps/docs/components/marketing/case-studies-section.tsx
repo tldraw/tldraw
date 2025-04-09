@@ -325,7 +325,7 @@ function CaseStudyCopy({
 					Read the{' '}
 					<Link
 						href={href}
-						className="group-hover/link:text-blue-600 dark:group-hover/link:text-blue-400"
+						className="text-blue-600 dark:text-blue-400 sm:text-zinc-800 sm:group-hover/link:text-blue-600 sm:dark:group-hover/link:text-blue-400"
 					>
 						case study
 					</Link>
