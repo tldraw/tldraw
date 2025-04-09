@@ -15,7 +15,7 @@ env:
   TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview' }}
   AWS_ACCOUNT_NUMBER: ${{ (github.ref == 'refs/heads/production' && '892899106134') || (github.ref == 'refs/heads/main' && '028814013491') || '571248596162' }}
   AWS_REGION: 'eu-north-1'
-  DEPLOY_DOTCOM: ${{ (github.ref == 'refs/heads/production' || github.ref == 'refs/heads/main') || (github.ref == 'refs/heads/preview' && (github.event.pull_request.labels.*.name contains 'preview-dotcom-please' || github.event.pull_request.changed_files.* contains 'apps/dotcom')) }}
+  DEPLOY_DOTCOM: ${{ github.ref == 'refs/heads/production' || github.ref == 'refs/heads/main' || (github.ref == 'refs/heads/preview' && (contains(toJSON(github.event.pull_request.labels), 'preview-dotcom-please') || contains(toJSON(github.event.pull_request.changed_files), 'apps/dotcom'))) }}
 defaults:
   run:
     shell: bash
