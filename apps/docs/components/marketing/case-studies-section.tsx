@@ -188,9 +188,9 @@ export function CaseStudiesSection() {
 				</SectionSubtitle>
 				<div>
 					<CaseStudiesGridBig>
-						{caseStudiesBig.map((study, index) => (
+						{caseStudiesBig.map((study) => (
 							<CaseStudyJustLogoCard
-								key={index}
+								key={study.id}
 								id={study.id}
 								href={study.href}
 								src={study.src}
@@ -202,9 +202,9 @@ export function CaseStudiesSection() {
 						))}
 					</CaseStudiesGridBig>
 					<CaseStudiesGridSmall>
-						{caseStudiesSmall.map((study, index) => (
+						{caseStudiesSmall.map((study) => (
 							<CaseStudyJustLogoSmallCard
-								key={index}
+								key={study.id}
 								id={study.id}
 								href={study.href}
 								src={study.src}
