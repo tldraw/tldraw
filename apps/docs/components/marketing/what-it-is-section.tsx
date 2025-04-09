@@ -1,4 +1,5 @@
 import { BlueA } from '../common/blue-a'
+import { Image } from '../content/image'
 import { Section } from './section'
 import { SectionSubtitle } from './section-description'
 import { SectionH3 } from './section-h3'
@@ -20,6 +21,13 @@ export function WhatItIsSection() {
 					fast in HTML and CSS. It is built entirely in React, with each shape returning its own
 					React component.
 				</p>
+				<div className="h-1" />
+				<Image
+					src="/images/landing/react.png"
+					href="/quick-start"
+					caption="A modern canvas written in React. Supports media, interactive content, and even embedded websites."
+				/>
+				<div className="h-2" />
 				<SectionH3>Feature complete</SectionH3>
 				<p>
 					The SDK comes feature complete with default tools for selection, drawing, erasing,
@@ -28,6 +36,13 @@ export function WhatItIsSection() {
 					<BlueA href="/docs/persistence">persistence</BlueA>, migration, embedded content, gifs,
 					videos, rich text, image export, cross-tab synchronization, and more.
 				</p>
+				<div className="h-1" />
+				<Image
+					src="/images/landing/freehand-styles.png"
+					href="/docs/editor"
+					caption="All of the features and systems you expect from a canvas. Obsessively polished."
+				/>
+				<div className="h-2" />
 				<SectionH3>Made for developers</SectionH3>
 				<p>
 					Keep what you need, discard the rest, and build your own. The tldraw SDK is built from the
@@ -36,6 +51,13 @@ export function WhatItIsSection() {
 					<BlueA href="/docs/user-interface">user interface</BlueA> using our included primitives or
 					build a new one.
 				</p>
+				<div className="h-1" />
+				<Image
+					src="/images/landing/toolbar-minimap.png"
+					href="/docs/user-interface"
+					caption="Deep customization across the user interface, available elements, and canvas design."
+				/>
+				<div className="h-2" />
 				<SectionH3>Collaboration</SectionH3>
 				<p>
 					Looking for collaboration? The SDK has you covered. With the{' '}
@@ -43,6 +65,13 @@ export function WhatItIsSection() {
 					connect for low-latency, highly optimized multiplayer collaboration. Connect your own
 					backend with our <BlueA href="/docs/collaboration">collaboration</BlueA> APIs.
 				</p>
+				<div className="h-1" />
+				<Image
+					src="/images/landing/cursors.png"
+					href="/docs/collaboration"
+					caption="The tldraw SDK has built-in collaboration features like cursor chat and viewport following."
+				/>
+				<div className="h-2" />
 				<SectionH3>Ready for AI</SectionH3>
 				<p>
 					Experimenting with AI? Try the{' '}
@@ -64,6 +93,11 @@ export function WhatItIsSection() {
 					</BlueA>
 					.
 				</p>
+				<div className="h-1" />
+				<Image
+					src="/images/landing/ai.png"
+					caption="Teach uses an LLM to drive tldraw's runtime API, creating and editing shapes on the canvas."
+				/>
 			</SectionProse>
 		</Section>
 	)

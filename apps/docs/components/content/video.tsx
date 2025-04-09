@@ -1,5 +1,8 @@
+import Link from 'next/link'
+
 export function Video({
 	src,
+	href,
 	thumbnail,
 	caption,
 	lazy = false,
@@ -9,22 +12,28 @@ export function Video({
 	thumbnail?: string
 	caption?: string
 	autoplay?: boolean
+	href?: string
 	lazy?: boolean
 }) {
 	return (
-		<span className="block mb-5">
-			<span className="block bg-zinc-100 dark:bg-zinc-800 py-1 md:rounded-2xl -mx-5 md:mx-0 md:px-1">
+		<span className="block">
+			<Link
+				href={href ?? src}
+				target="_blank"
+				rel="noreferrer"
+				className="block bg-zinc-100 dark:bg-zinc-800 py-1 sm:rounded-2xl -mx-5 sm:mx-0 sm:px-1"
+			>
 				<video
-					className="w-full md:rounded-xl overflow-hidden !my-0 shadow"
+					className="w-full sm:rounded-xl !my-0 shadow"
 					src={src}
 					poster={thumbnail}
-					controls
+					controls={false}
 					preload={lazy ? 'metadata' : 'auto'}
 					autoPlay={autoplay}
 					muted={autoplay}
 					loop={autoplay}
 				/>
-			</span>
+			</Link>
 			{caption && <span className="block text-xs text-zinc-500 mt-3 text-center">{caption}</span>}
 		</span>
 	)

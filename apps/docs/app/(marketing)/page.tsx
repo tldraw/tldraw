@@ -1,3 +1,4 @@
+import { Video } from '@/components/content/video'
 import { CaseStudiesSection } from '@/components/marketing/case-studies-section'
 import { CommunitySection } from '@/components/marketing/community-section'
 import { CTASection } from '@/components/marketing/cta-section'
@@ -47,7 +48,17 @@ export default function Page() {
 			<FAQSection />
 			<SectionGap />
 			<CTASection />
-			<SectionGap />
+			<div className="h-20" />
+			<div className="flex items-center justify-center w-full max-w-2xl mx-auto mb-8">
+				<Video
+					src="/images/landing/make-real-video-900.mp4"
+					lazy
+					autoplay
+					href="https://makereal.tldraw.com"
+					caption="Incredible things are happening on the canvas."
+				/>
+			</div>
+			<div className="h-20" />
 			<CommunitySection />
 			<SectionGap />
 		</>
