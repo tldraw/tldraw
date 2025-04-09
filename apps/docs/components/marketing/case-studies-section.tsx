@@ -189,7 +189,7 @@ export function CaseStudiesSection() {
 				<div>
 					<CaseStudiesGridBig>
 						{caseStudiesBig.map((study) => (
-							<CaseStudyJustLogoCard
+							<CaseStudyJustLogoSmallCard
 								key={study.id}
 								id={study.id}
 								href={study.href}
@@ -198,7 +198,7 @@ export function CaseStudiesSection() {
 								caseStudy={study.caseStudy}
 							>
 								{study.content}
-							</CaseStudyJustLogoCard>
+							</CaseStudyJustLogoSmallCard>
 						))}
 					</CaseStudiesGridBig>
 					<CaseStudiesGridSmall>
@@ -218,36 +218,6 @@ export function CaseStudiesSection() {
 				</div>
 			</div>
 		</Section>
-	)
-}
-
-function CaseStudyJustLogoCard({
-	children,
-	id,
-	src,
-	href,
-	logo,
-	caseStudy,
-}: {
-	children: ReactNode
-	id: string
-	src: string
-	href: string
-	logo: string
-	caseStudy: boolean
-}) {
-	return (
-		<div className="group/link" id={id}>
-			<CaseStudyCardContainer>
-				<CaseStudyImage src={src} />
-				<Link href={href}>
-					<CaseStudyLogoBig src={logo} />
-				</Link>
-			</CaseStudyCardContainer>
-			<CaseStudyCopy href={href} caseStudy={caseStudy}>
-				{children}
-			</CaseStudyCopy>
-		</div>
 	)
 }
 
