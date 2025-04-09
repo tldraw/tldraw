@@ -62,6 +62,8 @@ export function getCropBox<T extends ShapeWithCrop>(
 	const pointDelta = new Vec(0, 0)
 
 	let hasCropChanged = false
+	const topLeftLimit = -0.5 * (shape.props.zoom - 1)
+	const bottomRightLimit = 0.5 * (shape.props.zoom + 1)
 
 	// Set y dimension
 	switch (handle) {
@@ -78,8 +80,8 @@ export function getCropBox<T extends ShapeWithCrop>(
 				newCrop.topLeft.y = newCrop.bottomRight.y - minHeight / h
 				pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
 			} else {
-				if (newCrop.topLeft.y <= 0) {
-					newCrop.topLeft.y = 0
+				if (newCrop.topLeft.y <= topLeftLimit) {
+					newCrop.topLeft.y = topLeftLimit
 					pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
 				} else {
 					pointDelta.y = change.y
@@ -93,7 +95,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 			if (h < minHeight) break
 			hasCropChanged = true
 			// bottom
-			newCrop.bottomRight.y = Math.min(1, newCrop.bottomRight.y + change.y / h)
+			newCrop.bottomRight.y = Math.min(bottomRightLimit, newCrop.bottomRight.y + change.y / h)
 			const heightAfterCrop = h * (newCrop.bottomRight.y - newCrop.topLeft.y)
 
 			if (heightAfterCrop < minHeight) {
@@ -118,8 +120,8 @@ export function getCropBox<T extends ShapeWithCrop>(
 				newCrop.topLeft.x = newCrop.bottomRight.x - minWidth / w
 				pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
 			} else {
-				if (newCrop.topLeft.x <= 0) {
-					newCrop.topLeft.x = 0
+				if (newCrop.topLeft.x <= topLeftLimit) {
+					newCrop.topLeft.x = topLeftLimit
 					pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
 				} else {
 					pointDelta.x = change.x
@@ -133,7 +135,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 			if (w < minWidth) break
 			hasCropChanged = true
 			// right
-			newCrop.bottomRight.x = Math.min(1, newCrop.bottomRight.x + change.x / w)
+			newCrop.bottomRight.x = Math.min(bottomRightLimit, newCrop.bottomRight.x + change.x / w)
 			const widthAfterCrop = w * (newCrop.bottomRight.x - newCrop.topLeft.x)
 
 			if (widthAfterCrop < minWidth) {
@@ -155,6 +157,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 			w: (newCrop.bottomRight.x - newCrop.topLeft.x) * w,
 			h: (newCrop.bottomRight.y - newCrop.topLeft.y) * h,
 			crop: newCrop,
+			zoom: shape.props.zoom,
 		},
 	}
 }

@@ -307,7 +307,11 @@ export function defaultHandleExternalEmbedContent<T>(
 /** @public */
 export async function defaultHandleExternalFileContent(
 	editor: Editor,
-	{ point, files }: { point?: VecLike; files: File[] },
+	{
+		point,
+		files,
+		shapeIdToReplace,
+	}: { point?: VecLike; files: File[]; shapeIdToReplace?: TLShapeId },
 	{
 		maxAssetSize = DEFAULT_MAX_ASSET_SIZE,
 		maxImageDimension = DEFAULT_MAX_IMAGE_DIMENSION,
@@ -419,7 +423,28 @@ export async function defaultHandleExternalFileContent(
 		})
 	)
 
-	createShapesForAssets(editor, assetPartials, pagePoint)
+	if (shapeIdToReplace) {
+		editor.run(() => {
+			assert(assetPartials.length === 1, `Should only be one file when replacing.`)
+			const asset = assetPartials[0]
+			if (!editor.getAsset(asset.id)) {
+				editor.createAssets([asset])
+			}
+
+			editor.updateShape({
+				id: shapeIdToReplace,
+				props: {
+					assetId: asset.id,
+					crop: { topLeft: { x: 0, y: 0 }, bottomRight: { x: 1, y: 1 } },
+					zoom: 1,
+					w: (asset as TLImageAsset).props.w,
+					h: (asset as TLImageAsset).props.h,
+				},
+			} as TLShapePartial)
+		})
+	} else {
+		createShapesForAssets(editor, assetPartials, pagePoint)
+	}
 }
 
 /** @public */

@@ -11,6 +11,7 @@ import { TLBaseShape } from './TLBaseShape'
 export const ImageShapeCrop: T.ObjectValidator<TLShapeCrop> = T.object({
 	topLeft: vecModelValidator,
 	bottomRight: vecModelValidator,
+	isCircle: T.boolean.optional(),
 })
 
 /** @public */
@@ -23,6 +24,7 @@ export interface TLImageShapeProps {
 	crop: TLShapeCrop | null
 	flipX: boolean
 	flipY: boolean
+	zoom: number
 	altText: string
 }
 
@@ -39,6 +41,7 @@ export const imageShapeProps: RecordProps<TLImageShape> = {
 	crop: ImageShapeCrop.nullable(),
 	flipX: T.boolean,
 	flipY: T.boolean,
+	zoom: T.nonZeroNumber,
 	altText: T.string,
 }
 
@@ -48,6 +51,7 @@ const Versions = createShapePropsMigrationIds('image', {
 	MakeUrlsValid: 3,
 	AddFlipProps: 4,
 	AddAltText: 5,
+	AddZoomProp: 6,
 })
 
 export { Versions as imageShapeVersions }
@@ -100,6 +104,15 @@ export const imageShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				delete props.altText
+			},
+		},
+		{
+			id: Versions.AddZoomProp,
+			up: (props) => {
+				props.zoom = 1
+			},
+			down: (props) => {
+				delete props.zoom
 			},
 		},
 	],

@@ -246,6 +246,14 @@ export {
 	type ThemeStylePickerSetProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
 export {
+	DefaultImageToolbar,
+	type TLUiImageToolbarProps,
+} from './lib/ui/components/Toolbar/DefaultImageToolbar'
+export {
+	DefaultImageToolbarContent,
+	type DefaultImageToolbarContentProps,
+} from './lib/ui/components/Toolbar/DefaultImageToolbarContent'
+export {
 	DefaultRichTextToolbar,
 	type TLUiRichTextToolbarProps,
 } from './lib/ui/components/Toolbar/DefaultRichTextToolbar'
