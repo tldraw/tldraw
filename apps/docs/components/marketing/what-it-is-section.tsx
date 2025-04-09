@@ -96,6 +96,7 @@ export function WhatItIsSection() {
 				<div className="h-1" />
 				<Image
 					src="/images/landing/ai.png"
+					href="https://tldraw.computer"
 					caption="Teach uses an LLM to drive tldraw's runtime API, creating and editing shapes on the canvas."
 				/>
 			</SectionProse>
