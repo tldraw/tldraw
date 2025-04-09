@@ -38,7 +38,6 @@ jobs:
 
       - name: Determine deploy target
         id: deploy_target
-        if: ${{ env.DEPLOY_DOTCOM == 'true' }}
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/production" || "${GITHUB_REF}" == "refs/heads/main" ]]; then
             echo "DEPLOY_TO=sst" >> $GITHUB_ENV
