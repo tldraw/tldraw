@@ -90,7 +90,7 @@ export class ContentDatabase {
 	async getCategoryArticles(sectionId: string, categoryId: string) {
 		const db = await this.getDb()
 		const articles = await db.all<Article[]>(
-			'SELECT id, title, description, sectionId, categoryId, authorId, hero, date, path FROM articles WHERE sectionId = ? AND categoryId = ?',
+			'SELECT id, title, description, sectionId, categoryId, authorId, hero, thumbnail, socialImage, date, path FROM articles WHERE sectionId = ? AND categoryId = ?',
 			sectionId,
 			categoryId
 		)

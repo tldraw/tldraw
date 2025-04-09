@@ -15,7 +15,7 @@ export function BlogPostPreview({ article }: { article: Article }) {
 			<div className="bg-zinc-100 dark:bg-zinc-800 py-1 md:rounded-2xl -mx-5 md:mx-0 md:px-1 w-full md:w-1/3 shrink-0">
 				<div className="relative w-full aspect-video">
 					<Image
-						src={article.hero ?? ''}
+						src={article.thumbnail ?? article.hero ?? ''}
 						alt={article.title}
 						fill
 						className="object-cover object-center md:rounded-xl !my-0 shadow"
