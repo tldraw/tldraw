@@ -112,30 +112,30 @@ async function main() {
 		await coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
 	})
 
-	await discord.step('cloudflare deploy dry run', async () => {
-		await deployAssetUploadWorker({ dryRun: true })
-		await deployHealthWorker({ dryRun: true })
-		await deployTlsyncWorker({ dryRun: true })
-		await deployImageResizeWorker({ dryRun: true })
-	})
+	// await discord.step('cloudflare deploy dry run', async () => {
+	// 	await deployAssetUploadWorker({ dryRun: true })
+	// 	await deployHealthWorker({ dryRun: true })
+	// 	await deployTlsyncWorker({ dryRun: true })
+	// 	await deployImageResizeWorker({ dryRun: true })
+	// })
 
 	// --- point of no return! do the deploy for real --- //
 
 	await discord.message(`--- **pre-flight complete, starting real dotcom deploy** ---`)
 
 	// 2. deploy the cloudflare workers:
-	await discord.step('deploying asset uploader to cloudflare', async () => {
-		await deployAssetUploadWorker({ dryRun: false })
-	})
-	await discord.step('deploying multiplayer worker to cloudflare', async () => {
-		await deployTlsyncWorker({ dryRun: false })
-	})
-	await discord.step('deploying image resizer to cloudflare', async () => {
-		await deployImageResizeWorker({ dryRun: false })
-	})
-	await discord.step('deploying health worker to cloudflare', async () => {
-		await deployHealthWorker({ dryRun: false })
-	})
+	// await discord.step('deploying asset uploader to cloudflare', async () => {
+	// 	await deployAssetUploadWorker({ dryRun: false })
+	// })
+	// await discord.step('deploying multiplayer worker to cloudflare', async () => {
+	// 	await deployTlsyncWorker({ dryRun: false })
+	// })
+	// await discord.step('deploying image resizer to cloudflare', async () => {
+	// 	await deployImageResizeWorker({ dryRun: false })
+	// })
+	// await discord.step('deploying health worker to cloudflare', async () => {
+	// 	await deployHealthWorker({ dryRun: false })
+	// })
 
 	// 3. deploy the pre-build dotcom app:
 	const { deploymentUrl, inspectUrl } = await discord.step(
@@ -212,7 +212,6 @@ async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
 
 let didUpdateTlsyncWorker = false
 async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
-	return nicelog('skipping tlsync worker deploy for style hotfix')
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-multiplayer`
 	if (previewId && !didUpdateTlsyncWorker) {
 		await setWranglerPreviewConfig(worker, { name: workerId })
