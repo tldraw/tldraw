@@ -26,7 +26,7 @@ const caseStudiesBig: CaseStudyInfo[] = [
 				<b>ClickUp</b> rebuilt their Whiteboard feature.
 			</>
 		),
-		caseStudy: false,
+		caseStudy: true,
 	},
 	{
 		id: 'autodesk',
@@ -38,7 +38,7 @@ const caseStudiesBig: CaseStudyInfo[] = [
 				<b>Autodesk</b> built a board for Forma, the architectural design app.
 			</>
 		),
-		caseStudy: false,
+		caseStudy: true,
 	},
 ]
 
