@@ -53,6 +53,7 @@ export const debugFlags = {
 	debugGeometry: createDebugValue('debugGeometry', { defaults: { all: false } }),
 	hideShapes: createDebugValue('hideShapes', { defaults: { all: false } }),
 	editOnType: createDebugValue('editOnType', { defaults: { all: false } }),
+	a11y: createDebugValue('a11y', { defaults: { all: false } }),
 } as const
 
 declare global {

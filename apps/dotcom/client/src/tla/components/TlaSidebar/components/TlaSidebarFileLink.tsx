@@ -176,6 +176,7 @@ export function TlaSidebarFileLinkInner({
 			<Link
 				ref={linkRef}
 				onKeyDown={handleKeyDown}
+				aria-label={fileName}
 				onClick={(event) => {
 					// Don't navigate if we are already on the file page
 					// unless the user is holding ctrl or cmd to open in a new tab

@@ -11,22 +11,28 @@
 		"defaults"
 	],
 	"scripts": {
-		"dev": "concurrently 'yarn docker-up' 'yarn migrate --signal-success'",
-		"docker-up": "docker compose -f ./docker/docker-compose.yml up",
-		"docker-down": "docker compose -f ./docker/docker-compose.yml down",
+		"dev": "concurrently 'yarn docker-up' 'yarn migrate --signal-success' 'yarn bundle-schema:watch' 'yarn zero-server'",
+		"bundle-schema": "esbuild --bundle --platform=node --format=esm --outfile=./.schema.js ../../../packages/dotcom-shared/src/tlaSchema.ts",
+		"bundle-schema:watch": "esbuild --bundle --watch --platform=node --format=esm --outfile=./.schema.js ../../../packages/dotcom-shared/src/tlaSchema.ts",
+		"zero-server": "nodemon --watch ./.schema.js --exec 'zero-cache-dev -p ./.schema.js' --signal SIGINT",
+		"docker-up": "docker compose --env-file .env -f ./docker/docker-compose.yml up",
+		"docker-down": "docker compose --env-file .env -f ./docker/docker-compose.yml down",
 		"migrate": "yarn tsx ./migrate.ts",
 		"clean": "yarn docker-down && ./clean.sh",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
 	},
 	"type": "module",
 	"dependencies": {
-		"concurrently": "^9.1.2",
+		"@rocicorp/zero": "0.17.2025032801",
 		"kysely": "^0.27.5",
 		"pg": "^8.13.1"
 	},
 	"devDependencies": {
+		"concurrently": "^9.1.2",
 		"dotenv": "^16.4.7",
+		"esbuild": "^0.24.2",
 		"lazyrepo": "0.0.0-alpha.27",
+		"nodemon": "^3.1.9",
 		"tsx": "^4.19.2"
 	}
 }

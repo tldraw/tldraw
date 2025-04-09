@@ -230,7 +230,7 @@ export function advanceGlobalEpoch() {
  * A `rollback` callback is passed into the function.
  * Calling this will prevent the transaction from committing and will revert any signals that were updated during the transaction to their state before the transaction began.
  *
- *  * @example
+ * @example
  * ```ts
  * const firstName = atom('John')
  * const lastName = atom('Doe')
@@ -289,7 +289,7 @@ export function transaction<T>(fn: (rollback: () => void) => T) {
 }
 
 /**
- * Like [transaction](#transaction), but does not create a new transaction if there is already one in progress.
+ * Like {@link transaction}, but does not create a new transaction if there is already one in progress.
  *
  * @param fn - The function to run in a transaction.
  * @public

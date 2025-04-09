@@ -20,6 +20,7 @@ import { Logger } from './Logger'
 import { UserChangeCollator } from './UserChangeCollator'
 import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { createPostgresConnectionPool } from './postgres'
+import { getR2KeyForRoom } from './r2'
 import {
 	Analytics,
 	Environment,
@@ -45,6 +46,7 @@ interface Change {
 	userId: string
 	fileId: string | null
 	row: TlaRow
+	previous?: TlaRow
 }
 
 interface Migration {
@@ -121,7 +123,7 @@ const migrations: Migration[] = [
 
 const ONE_MINUTE = 60 * 1000
 const PRUNE_INTERVAL = 10 * ONE_MINUTE
-const MAX_HISTORY_ROWS = 100_000
+const MAX_HISTORY_ROWS = 20_000
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -182,7 +184,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private readonly replicationService
 	private readonly slotName
-	private readonly wal2jsonPlugin = new Wal2JsonPlugin({})
+	private readonly wal2jsonPlugin = new Wal2JsonPlugin({
+		addTables:
+			'public.user,public.file,public.file_state,public.user_mutation_number,public.replicator_boot_id',
+	})
 
 	private readonly db: Kysely<DB>
 	constructor(ctx: DurableObjectState, env: Environment) {
@@ -240,6 +245,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				await sql`SELECT pg_create_logical_replication_slot(${this.slotName}, 'wal2json') WHERE NOT EXISTS (SELECT 1 FROM pg_replication_slots WHERE slot_name = ${this.slotName})`.execute(
 					this.db
 				)
+				this.pruneHistory()
 			})
 			.then(() => {
 				this.reboot('constructor', false).catch((e) => {
@@ -318,6 +324,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private async maybePrune() {
 		const now = Date.now()
 		if (now - this.lastUserPruneTime < PRUNE_INTERVAL) return
+		this.logEvent({ type: 'prune' })
+		this.log.debug('pruning')
 		const cutoffTime = now - PRUNE_INTERVAL
 		const usersWithoutRecentUpdates = this.ctx.storage.sql
 			.exec('SELECT id FROM active_user WHERE lastUpdatedAt < ?', cutoffTime)
@@ -325,9 +333,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			id: string
 		}[]
 		for (const { id } of usersWithoutRecentUpdates) {
-			if (await getUserDurableObject(this.env, id).notActive()) {
-				await this.unregisterUser(id)
-			}
+			await this.unregisterUser(id)
 		}
 		this.pruneHistory()
 		this.lastUserPruneTime = Date.now()
@@ -447,6 +453,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				this.reportPostgresUpdate()
 				const collator = new UserChangeCollator()
 				for (const _change of log.change) {
+					if (_change.kind === 'message' && (_change as any).prefix === 'requestLsnUpdate') {
+						this.requestLsnUpdate((_change as any).content)
+						continue
+					}
 					const change = this.parseChange(_change)
 					if (!change) {
 						this.log.debug('IGNORING CHANGE', _change)
@@ -524,6 +534,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 
 		const row = {} as any
+		const previous = {} as any
 		// take everything from change.columnnames and associated the values from change.columnvalues
 		if (change.kind === 'delete') {
 			const oldkeys = change.oldkeys
@@ -531,6 +542,16 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			assert(oldkeys.keyvalues, 'oldkeys is required for delete events')
 			oldkeys.keynames.forEach((key, i) => {
 				row[key] = oldkeys.keyvalues[i]
+			})
+		} else if (change.kind === 'update') {
+			const oldkeys = change.oldkeys
+			assert(oldkeys, 'oldkeys is required for delete events')
+			assert(oldkeys.keyvalues, 'oldkeys is required for delete events')
+			oldkeys.keynames.forEach((key, i) => {
+				previous[key] = oldkeys.keyvalues[i]
+			})
+			change.columnnames.forEach((col, i) => {
+				row[col] = change.columnvalues[i]
 			})
 		} else {
 			change.columnnames.forEach((col, i) => {
@@ -565,6 +586,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 		return {
 			row,
+			previous,
 			event: {
 				command: change.kind,
 				table,
@@ -613,7 +635,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 					this.handleFileStateEvent(collator, change.row, { command, table })
 					break
 				case 'file':
-					this.handleFileEvent(collator, change.row, { command, table }, isReplay)
+					this.handleFileEvent(collator, change.row, change.previous, { command, table }, isReplay)
 					break
 				case 'user':
 					this.handleUserEvent(collator, change.row, { command, table })
@@ -677,6 +699,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private handleFileEvent(
 		collator: UserChangeCollator,
 		row: Row | null,
+		previous: Row | undefined,
 		event: ReplicationEvent,
 		isReplay: boolean
 	) {
@@ -695,6 +718,16 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		} else if (event.command === 'update') {
 			assert('ownerId' in row, 'ownerId is required when updating file')
 			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordDidUpdate(row)
+			if (previous && !isReplay) {
+				const prevFile = previous as TlaFile
+				if (row.published && !(prevFile as TlaFile).published) {
+					this.publishSnapshot(row)
+				} else if (!row.published && (prevFile as TlaFile).published) {
+					this.unpublishSnapshot(row)
+				} else if (row.published && row.lastPublished > prevFile.lastPublished) {
+					this.publishSnapshot(row)
+				}
+			}
 		} else if (event.command === 'insert') {
 			assert('ownerId' in row, 'ownerId is required when inserting file')
 			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordCreated(row)
@@ -909,7 +942,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	async requestLsnUpdate(userId: string) {
+	private async requestLsnUpdate(userId: string) {
 		try {
 			this.log.debug('requestLsnUpdate', userId)
 			this.logEvent({ type: 'request_lsn_update' })
@@ -934,7 +967,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	private writeEvent(eventData: EventData) {
-		writeDataPoint(this.measure, this.env, 'replicator', eventData)
+		writeDataPoint(this.sentry, this.measure, this.env, 'replicator', eventData)
 	}
 
 	logEvent(event: TLPostgresReplicatorEvent) {
@@ -946,6 +979,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			case 'register_user':
 			case 'unregister_user':
 			case 'request_lsn_update':
+			case 'prune':
 			case 'get_file_record':
 				this.writeEvent({
 					blobs: [event.type],
@@ -972,6 +1006,47 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				break
 			default:
 				exhaustiveSwitchError(event)
+		}
+	}
+
+	private async publishSnapshot(file: TlaFile) {
+		try {
+			// make sure the room's snapshot is up to date
+			await getRoomDurableObject(this.env, file.id).awaitPersist()
+			// and that it exists
+			const snapshot = await this.env.ROOMS.get(getR2KeyForRoom({ slug: file.id, isApp: true }))
+
+			if (!snapshot) {
+				throw new Error('Snapshot not found')
+			}
+			const blob = await snapshot.blob()
+
+			// Create a new slug for the published room
+			await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put(file.publishedSlug, file.id)
+
+			// Bang the snapshot into the database
+			await this.env.ROOM_SNAPSHOTS.put(
+				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true }),
+				blob
+			)
+			const currentTime = new Date().toISOString()
+			await this.env.ROOM_SNAPSHOTS.put(
+				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}|${currentTime}`, isApp: true }),
+				blob
+			)
+		} catch (e) {
+			this.log.debug('Error publishing snapshot', e)
+		}
+	}
+
+	private async unpublishSnapshot(file: TlaFile) {
+		try {
+			await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(file.publishedSlug)
+			await this.env.ROOM_SNAPSHOTS.delete(
+				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true })
+			)
+		} catch (e) {
+			this.log.debug('Error unpublishing snapshot', e)
 		}
 	}
 }

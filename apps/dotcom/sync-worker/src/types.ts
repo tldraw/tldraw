@@ -128,7 +128,7 @@ export type TLPostgresReplicatorRebootSource =
 export type TLPostgresReplicatorEvent =
 	| { type: 'reboot'; source: TLPostgresReplicatorRebootSource }
 	| { type: 'request_lsn_update' }
-	| { type: 'reboot_error' | 'register_user' | 'unregister_user' | 'get_file_record' }
+	| { type: 'reboot_error' | 'register_user' | 'unregister_user' | 'get_file_record' | 'prune' }
 	| { type: 'reboot_duration'; duration: number }
 	| { type: 'rpm'; rpm: number }
 	| { type: 'active_users'; count: number }

@@ -17,6 +17,7 @@ import { arrowShapeVersions } from './shapes/TLArrowShape'
 import { bookmarkShapeVersions } from './shapes/TLBookmarkShape'
 import { drawShapeVersions } from './shapes/TLDrawShape'
 import { embedShapeVersions } from './shapes/TLEmbedShape'
+import { frameShapeVersions } from './shapes/TLFrameShape'
 import { geoShapeVersions } from './shapes/TLGeoShape'
 import { highlightShapeVersions } from './shapes/TLHighlightShape'
 import { imageShapeVersions } from './shapes/TLImageShape'
@@ -2028,6 +2029,30 @@ describe('Add flipX, flipY to image shape', () => {
 	})
 })
 
+describe('Add alt text to image shape', () => {
+	const { up, down } = getTestMigration(imageShapeVersions.AddAltText)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { altText: '' } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { altText: 'yo' } })).toEqual({ props: {} })
+	})
+})
+
+describe('Add alt text to video shape', () => {
+	const { up, down } = getTestMigration(videoShapeVersions.AddAltText)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { altText: '' } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { altText: 'yo' } })).toEqual({ props: {} })
+	})
+})
+
 describe('Make video asset file size optional', () => {
 	const { up, down } = getTestMigration(videoAssetVersions.MakeFileSizeOptional)
 
@@ -2117,6 +2142,18 @@ describe('TLPresence NullableCameraCursor', () => {
 			chatMessage: '',
 			meta: {},
 		})
+	})
+})
+
+describe('Adding color to frame shapes', () => {
+	const { up, down } = getTestMigration(frameShapeVersions.AddColorProp)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { color: 'black' } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { color: 'black' } })).toEqual({ props: {} })
 	})
 })
 

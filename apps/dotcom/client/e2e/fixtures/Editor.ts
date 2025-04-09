@@ -65,4 +65,22 @@ export class Editor {
 	async openPageMenu() {
 		await this.pageMenu.click()
 	}
+
+	@step
+	async createNewPage() {
+		await this.page.getByTestId('page-menu.button').click()
+		await expect(this.page.getByTestId('page-menu.item').first()).toBeVisible()
+		const count = await this.page.getByTestId('page-menu.item').count()
+		await this.page.getByTestId('page-menu.create').click()
+		await expect(this.page.getByTestId('page-menu.item')).toHaveCount(count + 1)
+		await this.page.keyboard.press('Enter')
+		await this.page.keyboard.press('Escape')
+	}
+
+	@step
+	async createTextShape(text: string) {
+		await this.page.locator('.tl-background').click({ clickCount: 2 })
+		await this.page.locator('div[contenteditable="true"]').fill(text)
+		await this.page.pause()
+	}
 }

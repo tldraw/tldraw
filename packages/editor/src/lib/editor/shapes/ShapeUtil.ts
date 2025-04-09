@@ -194,6 +194,16 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
+	 * Whether the shape can be tabbed to.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	canTabTo(_shape: Shape): boolean {
+		return true
+	}
+
+	/**
 	 * Whether the shape can be scrolled while editing.
 	 *
 	 * @public
@@ -435,6 +445,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	getText(_shape: Shape): string | undefined {
+		return undefined
+	}
+
+	getAriaDescriptor(_shape: Shape): string | undefined {
 		return undefined
 	}
 

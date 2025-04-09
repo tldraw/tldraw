@@ -201,6 +201,7 @@ exports[`putExcalidrawContent test fixtures image.json 1`] = `
     "opacity": 1,
     "parentId": "page:page",
     "props": {
+      "altText": "",
       "assetId": "asset:11",
       "crop": null,
       "flipX": false,

@@ -15,58 +15,64 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 
 {/* START AUTO-GENERATED CHANGELOG */}
 
-## Current release: [v3.10.0](/releases/v3.10.0)
+## Current release: [v3.11.0](/releases/v3.11.0)
 
-Welcome to the 3.10.0 release of tldraw. This month's SDK release's big news is adding rich text to all of our shapes.
-
-## What's new
-
-#### Rich text ([#4895](https://github.com/tldraw/tldraw/pull/4895))
-
-Tldraw now has the supports rich text as a first-class primitive within the Editor. After deliberating on which rich text editor to choose, we settled on using [TipTap](https://tiptap.dev/) as our out-of-the-box solution. Our basic implementation includes the TipTap [StarterKit](https://tiptap.dev/docs/editor/extensions/functionality/starterkit) extension along with a couple extra extensions to make the experience butter-smooth.
-
-Of course, we wouldn't be providing this functionality if it wasn't extensible and remixable by the community. There is a `textOptions` property now that lets you customize TipTap and add/remove extensions as per your needs.
-
-Take a look at our [Shapes documentation](https://tldraw.dev/docs/shapes#Editing) to learn more.
-
-Please do jump in the [Discord](https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink) if you have any feedback or bugs about this new feature.
+Welcome to the 3.11.0 release of tldraw. This release follows up our 3.10 release to mainly address rich text issues.
+We had fairly smooth release of our new transition to rich text as a first-class primitive in tldraw in general.
+Thanks to everyone for their continued feedback!
 
 #### Improvements
 
-- Ensure .tldr files with embedded base64 assets get their assets rehydrated back into the local db. [#5525](https://github.com/tldraw/tldraw/pull/5525)
-- Display BrokenAssetIcon when file upload fails [#5552](https://github.com/tldraw/tldraw/pull/5552)
+- Added a new minimum zoom step at 5% ([#5584](https://github.com/tldraw/tldraw/pull/5584))
+- Added new keyboard shortcuts for zoom in or out towards your cursor (Shift +, Shift -) ([#5584](https://github.com/tldraw/tldraw/pull/5584))
+- Style panel: be able to hit Enter to continue editing after selection ([#5705](https://github.com/tldraw/tldraw/pull/5705))
+- a11y: focus ring ([#5401](https://github.com/tldraw/tldraw/pull/5401))
+- Security: provide a way to pass through `nonce` to the editor ([#5607](https://github.com/tldraw/tldraw/pull/5607))
+- Improved performance related to rich text when there are a lot of shapes on the board. ([#5658](https://github.com/tldraw/tldraw/pull/5658))
+- Cleanup assets from the local indexedDB that are proactively deleted. ([#5628](https://github.com/tldraw/tldraw/pull/5628))
+- Allow embedding other multiplayer routes and also tldraw app routes ([#5326](https://github.com/tldraw/tldraw/pull/5326))
+- Improved performance on large projects when hiding / showing shape indicators. ([#5654](https://github.com/tldraw/tldraw/pull/5654))
+- Added `hideAll` and `showAll` props to the `ShapeIndicators` component props ([#5654](https://github.com/tldraw/tldraw/pull/5654))
+- Added keyboard shortcuts (option + arrows) for navigating between pages. ([#5654](https://github.com/tldraw/tldraw/pull/5654))
+- Adjusts distance for `stackShapes`. ([#5656](https://github.com/tldraw/tldraw/pull/5656))
+- Adds support for satellite mode in Google Map embeds ([#5630](https://github.com/tldraw/tldraw/pull/5630))
+- 'New user' -> 'Guest user' ([#5614](https://github.com/tldraw/tldraw/pull/5614))
+  - BREAKING CHANGE: `editor.user.getName()` no longer returns `'New user'` if the user has no name set. Instead it returns the empty string `''`.
+  - BREAKING CHANGE: `defaultUserPreferences.name` is no longer the string `'New user'`, it is now the empty string `''`
 
 #### API changes
 
-- Make collaboration hooks public (`usePeerIds` and `usePresence`) [#5541](https://github.com/tldraw/tldraw/pull/5541)
-- Pass userId to collaboration components [#5534](https://github.com/tldraw/tldraw/pull/5534)
+- Add `RichTextSVG` to the exports. [#5700](https://github.com/tldraw/tldraw/pull/5700)
 
 #### Bug fix
 
-- Fix a perf regression that caused slowness mainly when loading documents. [#5567](https://github.com/tldraw/tldraw/pull/5567)
-- Fix exports / style embedding for foreignObjects in Firefox [#5593](https://github.com/tldraw/tldraw/pull/5593)
-- Fix the reparentShapes() function to ensure that the original order of the shapes is preserved when reparenting. [#5565](https://github.com/tldraw/tldraw/pull/5565)
-- Fix a bug that could occur when resizing [#5292](https://github.com/tldraw/tldraw/pull/5292)
-- Fix a bug with pasting files from your computer in Safari [#5545](https://github.com/tldraw/tldraw/pull/5545)
-- Fix bug with loading TLDraw in an SSR environment by removing a core-js import [#5543](https://github.com/tldraw/tldraw/pull/5543)
-- Prevent text duplication when using IME with Enter key in Chrome [#5540](https://github.com/tldraw/tldraw/pull/5540)
+- Fix issue with rich text numbered lists escaping geometry bounds ([#5709](https://github.com/tldraw/tldraw/pull/5709))
+- Fix developing with StrictMode + React 19 when editing text. ([#5689](https://github.com/tldraw/tldraw/pull/5689))
+- Fix issue with exports embedding Inter and having excessive styling. ([#5676](https://github.com/tldraw/tldraw/pull/5676))
+- Fix a bug where `textOptions` was missing on `<TldrawImage />` ([#5649](https://github.com/tldraw/tldraw/pull/5649))
+- Fix labels for screen readers on toolbar buttons. Fix missing 'heart' string. ([#5632](https://github.com/tldraw/tldraw/pull/5632))
+- Fix missing i18n strings for latest rich text items [#5704](https://github.com/tldraw/tldraw/pull/5704)
+- Upgrade Yarn to 4.7 [#5687](https://github.com/tldraw/tldraw/pull/5687)
+
+#### Templates
+
+- Fix Bun server image uploads ([#5627](https://github.com/tldraw/tldraw/pull/5627))
+- Remove yarn.lock files (was keeping tldraw versions old) [#5690](https://github.com/tldraw/tldraw/pull/5690)
+- Fix Inter font on some of our templates. [#5626](https://github.com/tldraw/tldraw/pull/5626)
 
 #### Authors
 
 - alex ([@SomeHats](https://github.com/SomeHats))
 - David Sheldrick ([@ds300](https://github.com/ds300))
-- Josh Willis ([@bluedot74](https://github.com/bluedot74))
-- Lorenzo Lewis ([@lorenzolewis](https://github.com/lorenzolewis))
+- Jeff Astor ([@Jastor11](https://github.com/Jastor11))
 - Lu Wilson ([@TodePond](https://github.com/TodePond))
-- Mathieu Triay ([@MathieuLoutre](https://github.com/MathieuLoutre))
-- mimata kazutaka ([@kazu-2020](https://github.com/kazu-2020))
 - Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
 - Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
-- Qinghe Ban ([@banqinghe](https://github.com/banqinghe))
-- Riley ([@dodo-Riley](https://github.com/dodo-Riley))
 - Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
 
 ## Previous releases
+
+- [v3.10.0](/releases/v3.10.0)
 
 - [v3.9.0](/releases/v3.9.0)
 

@@ -31,6 +31,7 @@ export interface TLUiEventMap {
 	redo: null
 	'change-language': { locale: string }
 	'change-page': { direction?: 'prev' | 'next' }
+	'select-adjacent-shape': { direction: 'prev' | 'next' | 'left' | 'right' | 'up' | 'down' }
 	'delete-page': null
 	'duplicate-page': null
 	'move-page': null
@@ -110,6 +111,7 @@ export interface TLUiEventMap {
 	'zoom-tool': null
 	'unlock-all': null
 	'flatten-to-image': null
+	'a11y-repeat-shape-announce': null
 	'open-url': { url: string }
 	'copy-link': null
 	'rich-text': {

@@ -33,6 +33,7 @@ export const TlaButton = forwardRef<
 			ref={ref}
 			data-state={isLoading ? 'loading' : 'ready'}
 			className={classNames(
+				'tla-button',
 				styles.button,
 				{
 					[styles.cta]: variant === 'cta',

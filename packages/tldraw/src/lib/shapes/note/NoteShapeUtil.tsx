@@ -50,6 +50,7 @@ import {
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
+import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import {
 	CLONE_HANDLE_MARGIN,
 	NOTE_CENTER_OFFSET,
@@ -275,6 +276,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
+		const isReadyForEditing = useIsReadyForEditing(this.editor, shape.id)
+		const isEmpty = isEmptyRichText(richText)
+
 		return (
 			<>
 				<div
@@ -292,21 +296,23 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						boxShadow: hideShadows ? 'none' : getNoteShadow(shape.id, rotation, scale),
 					}}
 				>
-					<RichTextLabel
-						shapeId={id}
-						type={type}
-						font={font}
-						fontSize={(fontSizeAdjustment || LABEL_FONT_SIZES[size]) * scale}
-						lineHeight={TEXT_PROPS.lineHeight}
-						align={align}
-						verticalAlign={verticalAlign}
-						richText={richText}
-						isSelected={isSelected}
-						labelColor={labelColor === 'black' ? theme[color].note.text : theme[labelColor].fill}
-						wrap
-						padding={LABEL_PADDING * scale}
-						onKeyDown={handleKeyDown}
-					/>
+					{(isSelected || isReadyForEditing || !isEmpty) && (
+						<RichTextLabel
+							shapeId={id}
+							type={type}
+							font={font}
+							fontSize={(fontSizeAdjustment || LABEL_FONT_SIZES[size]) * scale}
+							lineHeight={TEXT_PROPS.lineHeight}
+							align={align}
+							verticalAlign={verticalAlign}
+							richText={richText}
+							isSelected={isSelected}
+							labelColor={labelColor === 'black' ? theme[color].note.text : theme[labelColor].fill}
+							wrap
+							padding={LABEL_PADDING * scale}
+							onKeyDown={handleKeyDown}
+						/>
+					)}
 				</div>
 				{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</>

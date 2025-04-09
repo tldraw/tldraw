@@ -8,11 +8,21 @@ export const FrameHeading = memo(function FrameHeading({
 	name,
 	width,
 	height,
+	fill,
+	stroke,
+	color,
+	offsetX,
+	showColors,
 }: {
 	id: TLShapeId
 	name: string
 	width: number
 	height: number
+	fill: string
+	stroke: string
+	color: string
+	offsetX: number
+	showColors: boolean
 }) {
 	const editor = useEditor()
 	const { side, translation } = useValue(
@@ -32,7 +42,7 @@ export const FrameHeading = memo(function FrameHeading({
 				translation: getFrameHeadingTranslation(shape, labelSide, false),
 			}
 		},
-		[editor, id]
+		[editor, offsetX, id]
 	)
 
 	const rInput = useRef<HTMLInputElement>(null)
@@ -54,12 +64,15 @@ export const FrameHeading = memo(function FrameHeading({
 				overflow: isEditing ? 'visible' : 'hidden',
 				maxWidth: `calc(var(--tl-zoom) * ${
 					side === 0 || side === 2 ? Math.ceil(width) : Math.ceil(height)
-				}px + var(--space-5))`,
+				}px + ${showColors ? '0px' : 'var(--frame-offset-width)'})`,
 				bottom: '100%',
-				transform: `${translation} scale(var(--tl-scale)) translateX(calc(-1 * var(--space-3))`,
+				transform: `${translation} scale(var(--tl-scale)) translateX(${offsetX}px)`,
 			}}
 		>
-			<div className="tl-frame-heading-hit-area">
+			<div
+				className="tl-frame-heading-hit-area"
+				style={{ color, backgroundColor: fill, boxShadow: `inset 0px 0px 0px 1px ${stroke}` }}
+			>
 				<FrameLabelInput ref={rInput} id={id} name={name} isEditing={isEditing} />
 			</div>
 		</div>

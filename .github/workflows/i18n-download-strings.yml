@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: '0 10 * * 1'
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   download:
     name: 'Download latest strings'

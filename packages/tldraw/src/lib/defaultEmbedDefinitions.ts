@@ -244,13 +244,16 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			const hostname = urlObj.hostname.replace(/^www./, '')
 			if (hostname === 'youtu.be') {
 				const videoId = urlObj.pathname.split('/').filter(Boolean)[0]
-				return `https://www.youtube.com/embed/${videoId}`
+				return `https://www.youtube.com/embed/${videoId}${urlObj.search}`
 			} else if (
 				(hostname === 'youtube.com' || hostname === 'm.youtube.com') &&
 				urlObj.pathname.match(/^\/watch/)
 			) {
 				const videoId = urlObj.searchParams.get('v')
-				return `https://www.youtube.com/embed/${videoId}`
+				const searchParams = new URLSearchParams(urlObj.search)
+				searchParams.delete('v')
+				const search = searchParams.toString() ? '?' + searchParams.toString() : ''
+				return `https://www.youtube.com/embed/${videoId}${search}`
 			}
 			return
 		},
@@ -262,7 +265,9 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			if (hostname === 'youtube.com') {
 				const matches = urlObj.pathname.match(/^\/embed\/([^/]+)\/?/)
 				if (matches) {
-					return `https://www.youtube.com/watch?v=${matches[1]}`
+					const params = new URLSearchParams(urlObj.search)
+					params.set('v', matches?.[1] ?? '')
+					return `https://www.youtube.com/watch?${params.toString()}`
 				}
 			}
 			return

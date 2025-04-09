@@ -293,7 +293,11 @@ export {
 	type TLSvgExportOptions,
 	type TLSvgOptions,
 } from './lib/editor/types/misc-types'
-export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
+export {
+	type TLAdjacentDirection,
+	type TLResizeHandle,
+	type TLSelectionHandle,
+} from './lib/editor/types/selection-types'
 export { getSvgAsImage } from './lib/exports/getSvgAsImage'
 export { tlenv } from './lib/globals/environment'
 export { tlmenus } from './lib/globals/menus'
@@ -360,7 +364,12 @@ export { CubicBezier2d } from './lib/primitives/geometry/CubicBezier2d'
 export { CubicSpline2d } from './lib/primitives/geometry/CubicSpline2d'
 export { Edge2d } from './lib/primitives/geometry/Edge2d'
 export { Ellipse2d } from './lib/primitives/geometry/Ellipse2d'
-export { Geometry2d, type Geometry2dOptions } from './lib/primitives/geometry/Geometry2d'
+export {
+	Geometry2d,
+	Geometry2dFilters,
+	TransformedGeometry2d,
+	type Geometry2dOptions,
+} from './lib/primitives/geometry/Geometry2d'
 export { Group2d } from './lib/primitives/geometry/Group2d'
 export { Point2d } from './lib/primitives/geometry/Point2d'
 export { Polygon2d } from './lib/primitives/geometry/Polygon2d'

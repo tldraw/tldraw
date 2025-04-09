@@ -1,3 +1,25 @@
+# v3.11.0 (Thu Mar 20 2025)
+
+### Release Notes
+
+#### [Friendly Spellcheck]: Fix comments of types.ts file in @tldraw/state ([#5683](https://github.com/tldraw/tldraw/pull/5683))
+
+- Fixed typos found in the `Signal` interface's comments
+
+---
+
+#### 🐛 Bug Fix
+
+- [Friendly Spellcheck]: Fix comments of types.ts file in @tldraw/state [#5683](https://github.com/tldraw/tldraw/pull/5683) ([@Jastor11](https://github.com/Jastor11))
+- Fix API links for state packages [#5606](https://github.com/tldraw/tldraw/pull/5606) ([@TodePond](https://github.com/TodePond))
+
+#### Authors: 2
+
+- Jeff Astor ([@Jastor11](https://github.com/Jastor11))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+
+---
+
 # v3.10.0 (Tue Mar 11 2025)
 
 ### Release Notes

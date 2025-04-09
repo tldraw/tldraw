@@ -17,7 +17,7 @@ export function TlaSwitch({ checked, onChange, disabled, ...rest }: TlaSwitchPro
 	)
 
 	return (
-		<div className={classNames(styles.container, disabled && styles.disabled)}>
+		<div className={classNames('tla-switch', styles.container, disabled && styles.disabled)}>
 			<div className={styles.switch} data-checked={checked} />
 			<input
 				name="shared"

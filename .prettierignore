@@ -33,3 +33,5 @@ apps/dotcom/client/public/**/*.*
 **/.clasp.json
 
 apps/dotcom/zero-cache/docker/docker-compose.yml
+
+lerna.json

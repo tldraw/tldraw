@@ -32,6 +32,7 @@
 		"internal/*"
 	],
 	"scripts": {
+		"aws-login": "aws sso login --sso-session=tldraw",
 		"clean": "internal/scripts/clean.sh",
 		"postinstall": "husky install && yarn refresh-assets",
 		"refresh-assets": "lazy refresh-assets",
@@ -77,6 +78,7 @@
 		]
 	},
 	"devDependencies": {
+		"@aws-sdk/client-ecs": "^3.778.0",
 		"@eslint/compat": "^1.2.5",
 		"@eslint/eslintrc": "^3.2.0",
 		"@eslint/js": "^9.19.0",
@@ -85,6 +87,7 @@
 		"@next/eslint-plugin-next": "^15.1.6",
 		"@swc/core": "^1.10.11",
 		"@swc/jest": "^0.2.37",
+		"@types/aws-lambda": "8.10.148",
 		"@types/glob": "^8.1.0",
 		"@types/jest": "^29.5.14",
 		"@types/node": "~20.11.30",
@@ -124,7 +127,6 @@
 		"vectra@^0.4.4": "patch:vectra@npm%3A0.4.4#./.yarn/patches/vectra-npm-0.4.4-6aac3f6c29.patch",
 		"domino@^2.1.6": "patch:domino@npm%3A2.1.6#./.yarn/patches/domino-npm-2.1.6-b0dc3de857.patch",
 		"canvas": "npm:empty-npm-package@1.0.0",
-		"postgres@npm:^3.4.4": "patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch",
 		"@microsoft/tsdoc@npm:~0.15.1": "patch:@microsoft/tsdoc@npm%3A0.15.1#~/.yarn/patches/@microsoft-tsdoc-npm-0.15.1-e24295d9bd.patch",
 		"@microsoft/tsdoc@npm:0.15.1": "patch:@microsoft/tsdoc@npm%3A0.15.1#~/.yarn/patches/@microsoft-tsdoc-npm-0.15.1-e24295d9bd.patch"
 	},
@@ -135,6 +137,7 @@
 		"esbuild": "^0.24.2",
 		"mime": "^4.0.6",
 		"purgecss": "^5.0.0",
+		"sst": "^3.10.13",
 		"svgo": "^3.3.2"
 	}
 }
