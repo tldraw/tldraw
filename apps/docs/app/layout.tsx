@@ -59,7 +59,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
 			lang="en"
 			className={cn(GeistSans.variable, ShantellSans.variable, 'font-sans antialiased')}
 		>
-			<body className="overflow-x-hidden bg-white text-zinc-600 dark:bg-zinc-950 dark:text-zinc-400">
+			<body className="overflow-x-hidden bg-white text-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
 				<ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
 					<Header />
 					{children}

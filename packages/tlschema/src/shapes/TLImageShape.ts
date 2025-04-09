@@ -50,8 +50,8 @@ const Versions = createShapePropsMigrationIds('image', {
 	AddCropProp: 2,
 	MakeUrlsValid: 3,
 	AddFlipProps: 4,
-	AddZoomProp: 5,
-	AddAltText: 6,
+	AddAltText: 5,
+	AddZoomProp: 6,
 })
 
 export { Versions as imageShapeVersions }
@@ -98,21 +98,21 @@ export const imageShapeMigrations = createShapePropsMigrationSequence({
 			},
 		},
 		{
-			id: Versions.AddZoomProp,
-			up: (props) => {
-				props.zoom = 1
-			},
-			down: (props) => {
-				delete props.zoom
-			},
-		},
-		{
 			id: Versions.AddAltText,
 			up: (props) => {
 				props.altText = ''
 			},
 			down: (props) => {
 				delete props.altText
+			},
+		},
+		{
+			id: Versions.AddZoomProp,
+			up: (props) => {
+				props.zoom = 1
+			},
+			down: (props) => {
+				delete props.zoom
 			},
 		},
 	],

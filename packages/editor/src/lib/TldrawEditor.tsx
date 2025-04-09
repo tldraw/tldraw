@@ -284,6 +284,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 			className={classNames(`${TL_CONTAINER_CLASS} tl-theme__light`, className)}
 			onPointerDown={stopEventPropagation}
 			tabIndex={-1}
+			role="application"
 		>
 			<OptionalErrorBoundary
 				fallback={ErrorFallback}

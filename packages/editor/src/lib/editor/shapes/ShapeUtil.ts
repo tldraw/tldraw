@@ -448,6 +448,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 		return undefined
 	}
 
+	getAriaDescriptor(_shape: Shape): string | undefined {
+		return undefined
+	}
+
 	//  Events
 
 	/**

@@ -208,7 +208,8 @@ button.nameWidthSetter {
 
 .brand {
 	color: var(--tla-color-text-1);
-	padding: 0px 8px 4px 4px;
+	margin-top: -4px;
+	padding: 4px 8px 4px 4px;
 	height: 40px;
 	display: flex;
 	align-items: center;

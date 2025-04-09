@@ -48,7 +48,6 @@
 
 .ImageAnnotator .ImageOverlayScreen {
 	pointer-events: none;
-	z-index: -1;
 	fill: var(--color-background);
 	fill-opacity: 0.8;
 	stroke: none;

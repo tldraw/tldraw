@@ -28,6 +28,7 @@ export function TldrawCropHandles({
 						${toDomPrecision(size)},${toDomPrecision(0 - offset)}`}
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.top_left"
+				role="button"
 				aria-label="top_left handle"
 			/>
 			{/* Top */}
@@ -41,6 +42,7 @@ export function TldrawCropHandles({
 				y2={toDomPrecision(0 - offset)}
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.top"
+				role="button"
 				aria-label="top handle"
 			/>
 			{/* Top right */}
@@ -54,6 +56,7 @@ export function TldrawCropHandles({
 						${toDomPrecision(width + offset)},${toDomPrecision(size)}`}
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.top_right"
+				role="button"
 				aria-label="top_right handle"
 			/>
 			{/* Right */}
@@ -67,6 +70,7 @@ export function TldrawCropHandles({
 				y2={toDomPrecision(height / 2 + size)}
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.right"
+				role="button"
 				aria-label="right handle"
 			/>
 			{/* Bottom right */}
@@ -78,6 +82,7 @@ export function TldrawCropHandles({
 						${toDomPrecision(width - size)},${toDomPrecision(height + offset)}`}
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.bottom_right"
+				role="button"
 				aria-label="bottom_right handle"
 			/>
 			{/* Bottom */}
@@ -91,6 +96,7 @@ export function TldrawCropHandles({
 				y2={toDomPrecision(height + offset)}
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.bottom"
+				role="button"
 				aria-label="bottom handle"
 			/>
 			{/* Bottom left */}
@@ -104,6 +110,7 @@ export function TldrawCropHandles({
 						${toDomPrecision(0 - offset)},${toDomPrecision(height - size)}`}
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.bottom_left"
+				role="button"
 				aria-label="bottom_left handle"
 			/>
 			{/* Left */}
@@ -117,6 +124,7 @@ export function TldrawCropHandles({
 				y2={toDomPrecision(height / 2 + size)}
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.left"
+				role="button"
 				aria-label="left handle"
 			/>
 		</svg>

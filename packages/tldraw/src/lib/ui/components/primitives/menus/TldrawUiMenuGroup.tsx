@@ -1,4 +1,3 @@
-import { ContextMenuGroup } from '@radix-ui/react-context-menu'
 import { ReactNode } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
@@ -40,13 +39,9 @@ export function TldrawUiMenuGroup({ id, label, children }: TLUiMenuGroupProps) {
 		}
 		case 'context-menu': {
 			return (
-				<ContextMenuGroup
-					dir="ltr"
-					className="tlui-menu__group"
-					data-testid={`${sourceId}-group.${id}`}
-				>
+				<div dir="ltr" className="tlui-menu__group" data-testid={`${sourceId}-group.${id}`}>
 					{children}
-				</ContextMenuGroup>
+				</div>
 			)
 		}
 		case 'keyboard-shortcuts': {

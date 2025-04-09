@@ -1,4 +1,4 @@
-import { useShowCollaborationUi } from '../../hooks/useIsMultiplayer'
+import { useShowCollaborationUi } from '../../hooks/useCollaborationStatus'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'

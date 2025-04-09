@@ -1,34 +1,44 @@
-import { NewsletterSignup } from '@/components/common/newsletter-signup'
+import { CaseStudiesSection } from '@/components/marketing/case-studies-section'
+import { CommunitySection } from '@/components/marketing/community-section'
 import { CTASection } from '@/components/marketing/cta-section'
-import { DetailsSection } from '@/components/marketing/details-section'
+import { DemoSection } from '@/components/marketing/demo-section'
 import { FAQSection } from '@/components/marketing/faq-section'
-import { FeaturesSection } from '@/components/marketing/features-section'
 import { HeroSection } from '@/components/marketing/hero-section'
 import { InstallationSection } from '@/components/marketing/installation-section'
-import { LogoSection } from '@/components/marketing/logo-section'
 import { PricingSection } from '@/components/marketing/pricing-section'
-import { TestimonialsSection } from '@/components/marketing/testimonials-section'
-import { WatermarkSection } from '@/components/marketing/watermark-section'
+import { WhatItIsSection } from '@/components/marketing/what-it-is-section'
+
+function SectionGap() {
+	return <div className="h-[140px] md:h-[184px]" />
+}
 
 export default function Page() {
 	return (
 		<>
+			<div className="h-[64px] md:h-[160px]" />
 			<HeroSection />
-			<LogoSection />
-			<PricingSection />
-			<InstallationSection />
-			<FeaturesSection />
-			<DetailsSection />
-			{/* <CustomizationSection /> */}
+			<div className="h-[96px] md:h-[96px]" />
+			<DemoSection />
+			<SectionGap />
 			{/* <CaseStudiesSection /> */}
-			<WatermarkSection />
+			{/* <FeaturesSection />
+			<DetailsSection /> */}
+			{/* <CustomizationSection /> */}
+			{/* <WatermarkSection /> */}
+			<InstallationSection />
+			<SectionGap />
+			<CaseStudiesSection />
+			<SectionGap />
+			<WhatItIsSection />
+			<SectionGap />
+			<CommunitySection />
+			<SectionGap />
 			<PricingSection />
-			<TestimonialsSection />
+			<SectionGap />
 			<FAQSection />
+			<SectionGap />
 			<CTASection />
-			<div className="my-32 lg:my-40">
-				<NewsletterSignup bg={false} hideAfterSubmit={false} />
-			</div>
+			<SectionGap />
 		</>
 	)
 }

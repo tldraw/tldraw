@@ -126,7 +126,7 @@ async function deletePreviewDatabase(branchName: string) {
 async function deleteFlyioPreviewApp(appName: string) {
 	const result = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
 	if (result.indexOf(appName) >= 0) {
-		await exec('flyctl', ['apps', 'destroy', appName])
+		await exec('flyctl', ['apps', 'destroy', appName, '-y'])
 	}
 }
 

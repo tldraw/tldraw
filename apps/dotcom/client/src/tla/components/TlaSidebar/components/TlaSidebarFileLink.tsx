@@ -172,10 +172,12 @@ export function TlaSidebarFileLinkInner({
 			onDoubleClick={isOwnFile ? handleRenameAction : undefined}
 			// We use this id to scroll the active file link into view when creating or deleting files.
 			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
+			role="listitem"
 		>
 			<Link
 				ref={linkRef}
 				onKeyDown={handleKeyDown}
+				aria-label={fileName}
 				onClick={(event) => {
 					// Don't navigate if we are already on the file page
 					// unless the user is holding ctrl or cmd to open in a new tab

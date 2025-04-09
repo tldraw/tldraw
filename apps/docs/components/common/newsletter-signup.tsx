@@ -6,6 +6,7 @@ import { cn } from '@/utils/cn'
 import { useLocalStorageState } from '@/utils/storage'
 import { Field, Input, Label } from '@headlessui/react'
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/20/solid'
+import { track } from '@vercel/analytics/react'
 import { FormEventHandler, useCallback, useState } from 'react'
 
 // when debugging is true, the form will always show (even if the user has submitted)
@@ -14,7 +15,6 @@ const DEBUGGING = false
 type NewsletterSignupStatus = 'not-subscribed' | 'subscribed'
 
 export function NewsletterSignup({
-	bg = true,
 	size = 'large',
 	hideAfterSubmit = true,
 }: {
@@ -34,6 +34,7 @@ export function NewsletterSignup({
 			if (formState !== 'idle') return
 			e.preventDefault()
 			setFormState('loading')
+			track('newsletter-signup')
 			try {
 				const _email = new FormData(e.currentTarget)?.get('email') as string
 				const hubspotCookie = document.cookie
@@ -50,6 +51,7 @@ export function NewsletterSignup({
 					setTimeout(() => setFormState('idle'), 3000)
 				}, 3000)
 			} catch {
+				track('newsletter-signup-error')
 				setFormState('error')
 				// After a pause, we set the form state to idle
 				setTimeout(() => setFormState('idle'), 3000)
@@ -73,23 +75,19 @@ export function NewsletterSignup({
 	return (
 		<div
 			className={cn(
-				bg ? 'bg-zinc-50 dark:bg-zinc-900' : 'bg-transparent',
-				size === 'small'
-					? 'mt-12 rounded-lg text-xs xl:-ml-4 p-4 pb-1'
-					: 'rounded-xl p-8 sm:p-12 text-center'
+				'bg-transparent',
+				size === 'small' ? 'mt-12 rounded-lg text-xs xl:-ml-4 p-4 pb-1' : 'rounded-xl text-center'
 			)}
 		>
 			<h3
 				className={cn(
 					'text-black dark:text-white',
-					size === 'small'
-						? 'text-base leading-tight mb-2 font-semibold'
-						: 'text-2xl mb-3 font-bold'
+					size === 'small' ? 'text-base leading-tight mb-2 font-semibold' : 'hidden'
 				)}
 			>
 				Subscribe to our Newsletter
 			</h3>
-			<p className={cn(size === 'small' ? 'mb-4' : 'mb-8 text-zinc-800 dark:text-zinc-100')}>
+			<p className={cn(size === 'small' ? 'mb-4' : 'hidden')}>
 				Team news, product updates and deep dives from the team.
 			</p>
 			<form
@@ -126,7 +124,7 @@ export function NewsletterSignup({
 				/>
 			</form>
 			{(formState === 'idle' || formState === 'loading') && size === 'large' && (
-				<p className="mb-3 text-sm">Join 1,000+ subscribers</p>
+				<p className="mb-3 text-sm">Join 3,000+ subscribers</p>
 			)}
 			{formState === 'success' && (
 				<p

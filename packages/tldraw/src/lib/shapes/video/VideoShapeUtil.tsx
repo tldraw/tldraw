@@ -47,6 +47,10 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		}
 	}
 
+	override getAriaDescriptor(shape: TLVideoShape) {
+		return shape.props.altText
+	}
+
 	component(shape: TLVideoShape) {
 		return <VideoShape shape={shape} />
 	}

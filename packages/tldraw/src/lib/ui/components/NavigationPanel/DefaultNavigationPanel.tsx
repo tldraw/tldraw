@@ -33,7 +33,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 
 	return (
 		<div ref={ref} className="tlui-navigation-panel">
-			<div className="tlui-buttons__horizontal">
+			<div className="tlui-buttons__horizontal" role="toolbar">
 				{ZoomMenu && breakpoint < PORTRAIT_BREAKPOINT.TABLET ? (
 					<ZoomMenu />
 				) : collapsed ? (

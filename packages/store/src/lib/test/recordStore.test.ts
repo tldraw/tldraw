@@ -3,7 +3,7 @@ import { BaseRecord, RecordId } from '../BaseRecord'
 import { createMigrationSequence } from '../migrate'
 import { RecordsDiff, reverseRecordsDiff } from '../RecordsDiff'
 import { createRecordType } from '../RecordType'
-import { CollectionDiff, Store } from '../Store'
+import { CollectionDiff, HistoryEntry, Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
 
 interface Book extends BaseRecord<'book', RecordId<Book>> {
@@ -1076,7 +1076,7 @@ describe('diffs', () => {
 	})
 })
 
-describe('after callbacks', () => {
+describe('callbacks', () => {
 	let store: Store<Book>
 	let callbacks: any[] = []
 
@@ -1098,6 +1098,11 @@ describe('after callbacks', () => {
 	let onAfterCreate: jest.Mock
 	let onAfterChange: jest.Mock
 	let onAfterDelete: jest.Mock
+
+	let onBeforeCreate: jest.Mock
+	let onBeforeChange: jest.Mock
+	let onBeforeDelete: jest.Mock
+
 	let onOperationComplete: jest.Mock
 
 	beforeEach(() => {
@@ -1111,12 +1116,22 @@ describe('after callbacks', () => {
 		onAfterCreate = jest.fn((record) => callbacks.push({ type: 'create', record }))
 		onAfterChange = jest.fn((from, to) => callbacks.push({ type: 'change', from, to }))
 		onAfterDelete = jest.fn((record) => callbacks.push({ type: 'delete', record }))
+
+		onBeforeCreate = jest.fn((record) => record)
+		onBeforeChange = jest.fn((_from, to) => to)
+		onBeforeDelete = jest.fn((_record) => {})
+
 		onOperationComplete = jest.fn(() => callbacks.push({ type: 'complete' }))
 		callbacks = []
 
 		store.sideEffects.registerAfterCreateHandler('book', onAfterCreate)
 		store.sideEffects.registerAfterChangeHandler('book', onAfterChange)
 		store.sideEffects.registerAfterDeleteHandler('book', onAfterDelete)
+
+		store.sideEffects.registerBeforeCreateHandler('book', onBeforeCreate)
+		store.sideEffects.registerBeforeChangeHandler('book', onBeforeChange)
+		store.sideEffects.registerBeforeDeleteHandler('book', onBeforeDelete)
+
 		store.sideEffects.registerOperationCompleteHandler(onOperationComplete)
 	})
 
@@ -1209,5 +1224,159 @@ describe('after callbacks', () => {
 
 		expect(store.get(book1Id)!.numPages).toBe(1007)
 		expect(step).toBe(9)
+	})
+
+	test('fired during mergeRemoteChanges are flushed at the end so that they end up receiving remote source but outputting user source changes', () => {
+		const diffs: HistoryEntry<Book>[] = []
+		store.listen((entry) => {
+			diffs.push(entry)
+		})
+
+		const firstOrderEffectSources: string[] = []
+		store.sideEffects.registerAfterCreateHandler('book', (record, source) => {
+			firstOrderEffectSources.push(source)
+			if (record.title.startsWith('Harry Potter')) {
+				store.put([
+					{
+						...record,
+						title: record.title + ' is a really great book fr fr',
+					},
+				])
+			}
+		})
+
+		const secondOrderEffectSources: string[] = []
+		store.sideEffects.registerAfterChangeHandler('book', (from, to, source) => {
+			secondOrderEffectSources.push(source)
+		})
+
+		store.mergeRemoteChanges(() => {
+			store.put([
+				{
+					...book1,
+					title: "Harry Potter and the Philosopher's Stone",
+				},
+			])
+		})
+
+		expect(firstOrderEffectSources).toMatchInlineSnapshot(`
+		[
+		  "remote",
+		]
+	`)
+
+		// recursive changes are always user
+		expect(secondOrderEffectSources).toMatchInlineSnapshot(`
+		[
+		  "user",
+		]
+	`)
+
+		expect(diffs).toMatchInlineSnapshot(`
+		[
+		  {
+		    "changes": {
+		      "added": {
+		        "book:darkness": {
+		          "author": "author:ursula",
+		          "id": "book:darkness",
+		          "numPages": 1,
+		          "title": "Harry Potter and the Philosopher's Stone",
+		          "typeName": "book",
+		        },
+		      },
+		      "removed": {},
+		      "updated": {},
+		    },
+		    "source": "remote",
+		  },
+		  {
+		    "changes": {
+		      "added": {},
+		      "removed": {},
+		      "updated": {
+		        "book:darkness": [
+		          {
+		            "author": "author:ursula",
+		            "id": "book:darkness",
+		            "numPages": 1,
+		            "title": "Harry Potter and the Philosopher's Stone",
+		            "typeName": "book",
+		          },
+		          {
+		            "author": "author:ursula",
+		            "id": "book:darkness",
+		            "numPages": 1,
+		            "title": "Harry Potter and the Philosopher's Stone is a really great book fr fr",
+		            "typeName": "book",
+		          },
+		        ],
+		      },
+		    },
+		    "source": "user",
+		  },
+		]
+	`)
+	})
+
+	test('noop changes do not fire with store.atomic', () => {
+		const book1A = book1
+		const book1B = {
+			...book1,
+			title: book1.title + ' is a really great book fr fr',
+		}
+		const book1C = structuredClone(book1A)
+		store.put([book1A])
+
+		store.atomic(() => {
+			store.put([book1B])
+			store.put([book1C])
+		})
+		expect(onAfterChange).toHaveBeenCalledTimes(0)
+
+		store.atomic(() => {
+			store.put([book1B])
+			store.put([book1C])
+			store.put([book1B])
+		})
+
+		expect(onAfterChange).toHaveBeenCalledTimes(1)
+	})
+
+	test('an atomic block with callbacks enabled can be overridden with an atomic block with callbacks disabled which causes the beforeCallbacks only to not run', () => {
+		store.atomic(() => {
+			store.put([book1])
+			store.atomic(() => {
+				store.put([book2])
+			}, false)
+		})
+
+		expect(onBeforeCreate).toHaveBeenCalledTimes(1)
+		expect(onAfterCreate).toHaveBeenCalledTimes(2)
+
+		store.atomic(() => {
+			store.update(book1Id, (book) => ({
+				...book,
+				numPages: book.numPages + 1,
+			}))
+			store.atomic(() => {
+				store.update(book2Id, (book) => ({
+					...book,
+					numPages: book.numPages + 1,
+				}))
+			}, false)
+		})
+
+		expect(onBeforeChange).toHaveBeenCalledTimes(1)
+		expect(onAfterChange).toHaveBeenCalledTimes(2)
+
+		store.atomic(() => {
+			store.remove([book1Id])
+			store.atomic(() => {
+				store.remove([book2Id])
+			}, false)
+		})
+		expect(onBeforeDelete).toHaveBeenCalledTimes(1)
+		expect(onAfterDelete).toHaveBeenCalledTimes(2)
 	})
 })

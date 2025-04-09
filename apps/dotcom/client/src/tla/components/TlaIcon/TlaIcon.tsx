@@ -13,11 +13,13 @@ export function TlaIcon({
 	className = '',
 	invertIcon,
 	inline,
+	ariaLabel,
 }: {
 	icon: string
 	className?: string
 	invertIcon?: boolean
 	inline?: boolean
+	ariaLabel?: string
 }) {
 	const ref = useRef<HTMLDivElement>(null)
 
@@ -44,6 +46,8 @@ export function TlaIcon({
 		<span
 			ref={ref}
 			className={_className}
+			role="img"
+			aria-label={ariaLabel}
 			style={{
 				mask: getMaskStyle(icon),
 				transform: invertIcon ? 'scale(-1, 1)' : undefined,
