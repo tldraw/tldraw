@@ -9,6 +9,8 @@ export function kbd(str: string) {
 
 	return str
 		.split(',')[0]
+		// If the string contains [[Tab]], we don't split these up
+		// as they're meant to be atomic.
 		.split(/(\[\[[^\]]+\]\])/g)
 		.map((s) => (s.startsWith('[[') ? s.replace(/[[\]]/g, '') : s.split('')))
 		.flat()
