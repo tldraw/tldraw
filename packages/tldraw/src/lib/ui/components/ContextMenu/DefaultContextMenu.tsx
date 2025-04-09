@@ -1,6 +1,7 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
 import { preventDefault, useContainer, useEditor, useEditorComponents } from '@tldraw/editor'
-import { ReactNode, memo, useCallback, useEffect } from 'react'
+import { ReactNode, memo, useCallback, useEffect, useRef } from 'react'
+import { useUiEvents } from '../../context/events'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultContextMenuContent } from './DefaultContextMenuContent'
@@ -17,45 +18,44 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	disabled = false,
 }: TLUiContextMenuProps) {
 	const editor = useEditor()
+	const trackEvent = useUiEvents()
+	const isOpenRef = useRef(false)
 
 	const { Canvas } = useEditorComponents()
 
-	// When hitting `Escape` while the context menu is open, we want to prevent
-	// the default behavior of losing focus on the shape. Otherwise,
-	// it's pretty annoying from an accessibility perspective.
-	const preventEscapeFromLosingShapeFocus = useCallback((e: KeyboardEvent) => {
-		if (e.key === 'Escape') {
-			e.stopPropagation()
-		}
-	}, [])
-
 	useEffect(() => {
-		// Make sure to remove the event listener when the component unmounts.
+		// When hitting `Escape` while the context menu is open, we want to prevent
+		// the default behavior of losing focus on the shape. Otherwise,
+		// it's pretty annoying from an accessibility perspective.
+		const preventEscapeFromLosingShapeFocus = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') {
+				e.stopPropagation()
+			}
+		}
+
+		// N.B. We need the `capture: true` to make sure the useDocumentEvents doesn't run first
+		// which does `editor.cancel()`
+		document.body.addEventListener('keydown', preventEscapeFromLosingShapeFocus, {
+			capture: true,
+		})
 		return () => {
 			document.body.removeEventListener('keydown', preventEscapeFromLosingShapeFocus, {
 				capture: true,
 			})
 		}
-	}, [preventEscapeFromLosingShapeFocus])
+	}, [])
 
 	const cb = useCallback(
 		(isOpen: boolean) => {
+			isOpenRef.current = isOpen
+
 			if (!isOpen) {
 				const onlySelectedShape = editor.getOnlySelectedShape()
 
 				if (onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)) {
 					editor.setSelectedShapes([])
 				}
-
-				editor.timers.requestAnimationFrame(() => {
-					document.body.removeEventListener('keydown', preventEscapeFromLosingShapeFocus, {
-						capture: true,
-					})
-				})
 			} else {
-				document.body.addEventListener('keydown', preventEscapeFromLosingShapeFocus, {
-					capture: true,
-				})
 				// Weird route: selecting locked shapes on long press
 				if (editor.getInstanceState().isCoarsePointer) {
 					const selectedShapes = editor.getSelectedShapes()
@@ -81,9 +81,11 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 						}
 					}
 				}
+
+				trackEvent('open-context-menu', { source: 'unknown' })
 			}
 		},
-		[editor, preventEscapeFromLosingShapeFocus]
+		[editor, trackEvent]
 	)
 
 	const container = useContainer()

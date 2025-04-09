@@ -1514,7 +1514,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'a11y-open-context-menu',
 				kbd: '$Enter',
-				onSelect: async (source) => {
+				onSelect: async () => {
 					if (!canApplySelectionAction()) return
 
 					// For multiple shapes or a single shape, get the selection bounds
@@ -1528,7 +1528,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					// Convert page coordinates to screen coordinates
 					const screenPoint = editor.pageToScreen(new Vec(centerX, centerY))
 
-					// Dispatch the right-click event at the center of the selection
 					editor
 						.getContainer()
 						.querySelector('.tl-canvas')
@@ -1542,8 +1541,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 								buttons: 2,
 							})
 						)
-
-					trackEvent('open-context-menu', { source })
 				},
 			},
 			{
