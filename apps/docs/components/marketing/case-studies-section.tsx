@@ -38,7 +38,7 @@ const caseStudiesBig: CaseStudyInfo[] = [
 				<b>Autodesk</b> built a board for Forma, the architectural design app.
 			</>
 		),
-		caseStudy: true,
+		caseStudy: false,
 	},
 ]
 
