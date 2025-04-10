@@ -111,6 +111,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		color: var(--color-text);
 		opacity: .38;
 		border: 0;
+		padding: 0;
 		background-color: currentColor;
 	}
 

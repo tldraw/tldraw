@@ -15,7 +15,7 @@ export function TldrawUiKbd({ children, visibleOnMobileLayout = false }: TLUiKbd
 	return (
 		<kbd className="tlui-kbd">
 			{kbd(children)
-				.split('')
+				// .split('')
 				.map((k, i) => (
 					<span key={i}>{k}</span>
 				))}

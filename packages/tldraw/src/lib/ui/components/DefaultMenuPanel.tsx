@@ -28,8 +28,8 @@ export const DefaultMenuPanel = memo(function MenuPanel() {
 	if (!MainMenu && !PageMenu && !showQuickActions) return null
 
 	return (
-		<div ref={ref} className="tlui-menu-zone">
-			<div className="tlui-buttons__horizontal">
+		<nav ref={ref} className="tlui-menu-zone">
+			<div className="tlui-buttons__horizontal" role="toolbar">
 				{MainMenu && <MainMenu />}
 				{PageMenu && !isSinglePageMode && <PageMenu />}
 				{showQuickActions ? (
@@ -39,6 +39,6 @@ export const DefaultMenuPanel = memo(function MenuPanel() {
 					</>
 				) : null}
 			</div>
-		</div>
+		</nav>
 	)
 })

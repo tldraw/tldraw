@@ -1442,6 +1442,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'change-page-prev',
 				kbd: 'alt+left,alt+up',
+				readonlyOk: true,
 				onSelect: async (source) => {
 					// will select whatever the most recent geo tool was
 					const pages = editor.getPages()
@@ -1454,6 +1455,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'change-page-next',
 				kbd: 'alt+right,alt+down',
+				readonlyOk: true,
 				onSelect: async (source) => {
 					// will select whatever the most recent geo tool was
 					const pages = editor.getPages()
@@ -1486,6 +1488,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'a11y-repeat-shape-announce',
 				kbd: 'alt+r',
+				label: 'a11y.repeat-shape',
+				readonlyOk: true,
 				onSelect: async (source) => {
 					const selectedShapeIds = editor.getSelectedShapeIds()
 					if (!selectedShapeIds.length) return

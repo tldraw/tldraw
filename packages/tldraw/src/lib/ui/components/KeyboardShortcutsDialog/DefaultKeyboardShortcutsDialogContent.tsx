@@ -71,6 +71,49 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="align-center-horizontal" />
 				<TldrawUiMenuActionItem actionId="align-right" />
 			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup label="shortcuts-dialog.a11y" id="a11y">
+				<TldrawUiMenuItem
+					id="a11y-select-next-shape"
+					label="a11y.select-shape"
+					kbd="[[Tab]]"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="a11y-select-next-shape-direction"
+					label="a11y.select-shape-direction"
+					kbd="$+↑→↓←"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="a11y-pan-camera"
+					label="a11y.pan-camera"
+					kbd="[[Space]]+↑→↓←"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="a11y-move-shape"
+					label="a11y.move-shape"
+					kbd="↑→↓←"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="a11y-move-shape-faster"
+					label="a11y.move-shape-faster"
+					kbd="!+↑→↓←"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuActionItem actionId="a11y-repeat-shape-announce" />
+			</TldrawUiMenuGroup>
 			{showCollaborationUi && (
 				<TldrawUiMenuGroup label="shortcuts-dialog.collaboration" id="collaboration">
 					<TldrawUiMenuActionItem actionId="open-cursor-chat" />

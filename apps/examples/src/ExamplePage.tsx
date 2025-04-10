@@ -35,7 +35,7 @@ export function ExamplePage({
 	return (
 		<DialogContextProvider>
 			<div className="example">
-				<aside className="example__sidebar scroll-light">
+				<nav className="example__sidebar scroll-light">
 					<div className="example__sidebar__header">
 						<Link className="example__sidebar__header__logo" to="/">
 							<TldrawLogo />
@@ -131,7 +131,7 @@ export function ExamplePage({
 							Visit the docs
 						</a>
 					</div>
-				</aside>
+				</nav>
 				<div className="example__content" role="main">
 					{children}
 					<Dialogs />
