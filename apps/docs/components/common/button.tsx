@@ -56,6 +56,8 @@ export function Button({
 			'text-black dark:text-white dark:hover:text-zinc-200 hover:text-zinc-700',
 		className
 	)
+	// no word wrapping
+	const spanClassName = cn('whitespace-nowrap')
 	if (href)
 		return (
 			<Link
@@ -70,7 +72,7 @@ export function Button({
 			>
 				{arrow === 'left' && <ArrowLongLeftIcon className={cn(iconSizes[size])} />}
 				{icon && <Icon icon={icon} className={cn(iconSizes[size])} />}
-				<span>{caption}</span>
+				<span className={spanClassName}>{caption}</span>
 				{arrow === 'right' && <ArrowLongRightIcon className={cn(iconSizes[size])} />}
 			</Link>
 		)
@@ -85,7 +87,7 @@ export function Button({
 			>
 				{arrow === 'left' && <ArrowLongLeftIcon className={cn(iconSizes[size])} />}
 				{icon && <Icon icon={icon} className={cn(iconSizes[size])} />}
-				<span>{caption}</span>
+				<span className={spanClassName}>{caption}</span>
 				{arrow === 'right' && <ArrowLongRightIcon className={cn(iconSizes[size])} />}
 				{loading && (
 					<div
@@ -113,7 +115,7 @@ export function Button({
 			>
 				{arrow === 'left' && <ArrowLongLeftIcon className={cn(iconSizes[size])} />}
 				{icon && <Icon icon={icon} className={cn(iconSizes[size])} />}
-				<span>{caption}</span>
+				<span className={spanClassName}>{caption}</span>
 				{arrow === 'right' && <ArrowLongRightIcon className={cn(iconSizes[size])} />}
 				{(pending || loading) && (
 					<div
