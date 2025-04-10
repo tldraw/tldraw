@@ -1023,7 +1023,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-in',
 				label: 'action.zoom-in',
-				kbd: 'cmd+=,ctrl+u,=',
+				kbd: 'cmd+=,ctrl+=,=',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-in', { source, towardsCursor: false })
