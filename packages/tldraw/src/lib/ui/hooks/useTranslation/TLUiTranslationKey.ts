@@ -262,6 +262,7 @@ export type TLUiTranslationKey =
 	| 'a11y.enlarge-shape'
 	| 'a11y.shrink-shape'
 	| 'a11y.pan-camera'
+	| 'a11y.open-context-menu'
 	| 'menu.title'
 	| 'menu.theme'
 	| 'menu.copy-as'
