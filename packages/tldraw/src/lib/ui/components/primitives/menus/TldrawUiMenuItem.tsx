@@ -11,6 +11,7 @@ import { Spinner } from '../../Spinner'
 import { TldrawUiButton } from '../Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from '../Button/TldrawUiButtonLabel'
+import { TldrawUiToolbarButton } from '../Button/TldrawUiToolbarButton'
 import { TldrawUiDropdownMenuItem } from '../TldrawUiDropdownMenu'
 import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
@@ -158,7 +159,19 @@ export function TldrawUiMenuItem<
 				</TldrawUiButton>
 			)
 		}
-		case 'small-icons':
+		case 'small-icons': {
+			return (
+				<TldrawUiToolbarButton
+					data-testid={`${sourceId}.${id}`}
+					type="icon"
+					title={titleStr}
+					disabled={disabled}
+					onClick={() => onSelect(sourceId)}
+				>
+					<TldrawUiButtonIcon icon={icon!} small />
+				</TldrawUiToolbarButton>
+			)
+		}
 		case 'icons': {
 			return (
 				<TldrawUiButton
@@ -168,7 +181,7 @@ export function TldrawUiMenuItem<
 					disabled={disabled}
 					onClick={() => onSelect(sourceId)}
 				>
-					<TldrawUiButtonIcon icon={icon!} small={menuType === 'small-icons'} />
+					<TldrawUiButtonIcon icon={icon!} />
 				</TldrawUiButton>
 			)
 		}
@@ -199,7 +212,7 @@ export function TldrawUiMenuItem<
 		}
 		case 'toolbar': {
 			return (
-				<TldrawUiButton
+				<TldrawUiToolbarButton
 					type="tool"
 					data-testid={`tools.${id}`}
 					aria-label={labelStr}
@@ -211,11 +224,11 @@ export function TldrawUiMenuItem<
 						preventDefault(e)
 						onSelect('toolbar')
 					}}
-					role="radio"
-					aria-checked={isSelected ? 'true' : 'false'}
+					role="option"
+					aria-pressed={isSelected ? 'true' : 'false'}
 				>
 					<TldrawUiButtonIcon icon={icon!} />
-				</TldrawUiButton>
+				</TldrawUiToolbarButton>
 			)
 		}
 		case 'toolbar-overflow': {
@@ -230,8 +243,8 @@ export function TldrawUiMenuItem<
 					data-testid={`tools.more.${id}`}
 					title={titleStr}
 					disabled={disabled}
-					role="radio"
-					aria-checked={isSelected ? 'true' : 'false'}
+					role="option"
+					aria-pressed={isSelected ? 'true' : 'false'}
 					data-value={id}
 				>
 					<TldrawUiButtonIcon icon={icon!} />

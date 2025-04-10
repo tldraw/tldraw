@@ -233,15 +233,15 @@
 	border-radius: 8px;
 }
 
-.tlui-button__tool[aria-checked='true'] {
+.tlui-button__tool[aria-pressed='true'] {
 	color: var(--color-selected-contrast);
 }
 
-.tlui-button__tool[aria-checked='true']:not(:disabled, :focus-visible):active {
+.tlui-button__tool[aria-pressed='true']:not(:disabled, :focus-visible):active {
 	color: var(--color-selected-contrast);
 }
 
-.tlui-button__tool[aria-checked='true']:not(:disabled)::after {
+.tlui-button__tool[aria-pressed='true']:not(:disabled)::after {
 	background: var(--color-selected);
 	opacity: 1;
 }

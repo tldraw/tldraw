@@ -1,11 +1,12 @@
+import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
 import { ReactNode, memo, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiToolbarButton } from '../primitives/Button/TldrawUiToolbarButton'
 import {
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
@@ -47,13 +48,15 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 	return (
 		<TldrawUiPopover id="actions-menu">
 			<TldrawUiPopoverTrigger>
-				<TldrawUiButton
-					type="icon"
-					data-testid="actions-menu.button"
-					title={msg('actions-menu.title')}
-				>
-					<TldrawUiButtonIcon icon="dots-vertical" small />
-				</TldrawUiButton>
+				<PopoverPrimitive.Anchor>
+					<TldrawUiToolbarButton
+						type="icon"
+						data-testid="actions-menu.button"
+						title={msg('actions-menu.title')}
+					>
+						<TldrawUiButtonIcon icon="dots-vertical" small />
+					</TldrawUiToolbarButton>
+				</PopoverPrimitive.Anchor>
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent
 				side={breakpoint >= PORTRAIT_BREAKPOINT.TABLET ? 'bottom' : 'top'}

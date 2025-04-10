@@ -1,11 +1,11 @@
 import * as _Dropdown from '@radix-ui/react-dropdown-menu'
 import { useContainer, useEditor, useValue } from '@tldraw/editor'
-import { ReactNode, forwardRef, memo, useCallback } from 'react'
+import { ReactNode, memo, useCallback } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiToolbarButton } from '../primitives/Button/TldrawUiToolbarButton'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultZoomMenuContent } from './DefaultZoomMenuContent'
 
@@ -26,9 +26,7 @@ export const DefaultZoomMenu = memo(function DefaultZoomMenu({ children }: TLUiZ
 
 	return (
 		<_Dropdown.Root dir="ltr" open={isOpen} onOpenChange={onOpenChange} modal={false}>
-			<_Dropdown.Trigger asChild dir="ltr">
-				<ZoomTriggerButton />
-			</_Dropdown.Trigger>
+			<ZoomTriggerButton />
 			<_Dropdown.Portal container={container}>
 				<_Dropdown.Content
 					className="tlui-menu"
@@ -47,37 +45,36 @@ export const DefaultZoomMenu = memo(function DefaultZoomMenu({ children }: TLUiZ
 	)
 })
 
-const ZoomTriggerButton = forwardRef<HTMLButtonElement, any>(
-	function ZoomTriggerButton(props, ref) {
-		const editor = useEditor()
-		const breakpoint = useBreakpoint()
-		const zoom = useValue('zoom', () => editor.getZoomLevel(), [editor])
-		const msg = useTranslation()
+const ZoomTriggerButton = () => {
+	const editor = useEditor()
+	const breakpoint = useBreakpoint()
+	const zoom = useValue('zoom', () => editor.getZoomLevel(), [editor])
+	const msg = useTranslation()
 
-		const handleDoubleClick = useCallback(() => {
-			editor.resetZoom(editor.getViewportScreenCenter(), {
-				animation: { duration: editor.options.animationMediumMs },
-			})
-		}, [editor])
+	const handleDoubleClick = useCallback(() => {
+		editor.resetZoom(editor.getViewportScreenCenter(), {
+			animation: { duration: editor.options.animationMediumMs },
+		})
+	}, [editor])
 
-		return (
-			<TldrawUiButton
-				ref={ref}
-				{...props}
-				type="icon"
-				title={`${msg('navigation-zone.zoom')}`}
-				data-testid="minimap.zoom-menu-button"
-				className={
-					breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
-						? 'tlui-zoom-menu__button'
-						: 'tlui-zoom-menu__button__pct'
-				}
-				onDoubleClick={handleDoubleClick}
-			>
+	return (
+		<TldrawUiToolbarButton
+			asChild
+			type="icon"
+			title={`${msg('navigation-zone.zoom')}`}
+			data-testid="minimap.zoom-menu-button"
+			className={
+				breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
+					? 'tlui-zoom-menu__button'
+					: 'tlui-zoom-menu__button__pct'
+			}
+			onDoubleClick={handleDoubleClick}
+		>
+			<_Dropdown.Trigger dir="ltr">
 				{breakpoint < PORTRAIT_BREAKPOINT.MOBILE ? null : (
 					<span style={{ flexGrow: 0, textAlign: 'center' }}>{Math.floor(zoom * 100)}%</span>
 				)}
-			</TldrawUiButton>
-		)
-	}
-)
+			</_Dropdown.Trigger>
+		</TldrawUiToolbarButton>
+	)
+}
