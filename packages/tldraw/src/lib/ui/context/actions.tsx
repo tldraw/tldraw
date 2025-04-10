@@ -125,12 +125,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 				// Update each shape
 				shapes.forEach((shape) => {
-					if (!('w' in shape.props) || !('h' in shape.props)) return
-
-					// Don't make it too small.
-					if (scaleFactor < 1.0 && (shape.props.w < 32 || shape.props.h < 32)) return
-
-					editor.resizeShape(shape.id, new Vec(scaleFactor, scaleFactor))
+					editor.resizeShape(shape.id, new Vec(scaleFactor, scaleFactor), {
+						scaleOrigin: editor.getSelectionPageBounds()?.center,
+					})
 				})
 			})
 		}
@@ -1470,6 +1467,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'change-page-prev',
 				kbd: '?left,?up',
+				readonlyOk: true,
 				onSelect: async (source) => {
 					// will select whatever the most recent geo tool was
 					const pages = editor.getPages()
@@ -1482,6 +1480,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'change-page-next',
 				kbd: '?right,?down',
+				readonlyOk: true,
 				onSelect: async (source) => {
 					// will select whatever the most recent geo tool was
 					const pages = editor.getPages()
@@ -1512,7 +1511,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
-				id: 'a11y-open-context-menu',
+				id: 'open-context-menu',
+				label: 'a11y.open-context-menu',
 				kbd: '$Enter',
 				readonlyOk: true,
 				onSelect: async () => {
@@ -1545,24 +1545,28 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
-				id: 'embiggen-shapes',
+				id: 'enlarge-shapes',
+				label: 'a11y.enlarge-shape',
 				kbd: '$!?=',
 				onSelect: async (source) => {
 					scaleShapes(1.1)
-					trackEvent('embiggen-shapes', { source })
+					trackEvent('enlarge-shapes', { source })
 				},
 			},
 			{
-				id: 'emsmallen-shapes',
+				id: 'shrink-shapes',
+				label: 'a11y.shrink-shape',
 				kbd: '$!?-',
 				onSelect: async (source) => {
-					scaleShapes(0.9)
-					trackEvent('emsmallen-shapes', { source })
+					scaleShapes(1 / 1.1)
+					trackEvent('shrink-shapes', { source })
 				},
 			},
 			{
 				id: 'a11y-repeat-shape-announce',
+				label: 'a11y.repeat-shape',
 				kbd: '?r',
+				readonlyOk: true,
 				onSelect: async (source) => {
 					const selectedShapeIds = editor.getSelectedShapeIds()
 					if (!selectedShapeIds.length) return

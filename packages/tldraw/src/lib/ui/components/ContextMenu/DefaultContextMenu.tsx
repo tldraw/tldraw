@@ -3,6 +3,7 @@ import { preventDefault, useContainer, useEditor, useEditorComponents } from '@t
 import { ReactNode, memo, useCallback, useEffect, useRef } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultContextMenuContent } from './DefaultContextMenuContent'
 
@@ -20,6 +21,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
 	const isOpenRef = useRef(false)
+	const msg = useTranslation()
 
 	const { Canvas } = useEditorComponents()
 
@@ -106,6 +108,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 					<_ContextMenu.Content
 						className="tlui-menu scrollable"
 						data-testid="context-menu"
+						aria-label={msg('context-menu.title')}
 						alignOffset={-4}
 						collisionPadding={4}
 						onContextMenu={preventDefault}

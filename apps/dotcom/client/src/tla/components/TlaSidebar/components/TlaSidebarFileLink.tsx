@@ -172,6 +172,7 @@ export function TlaSidebarFileLinkInner({
 			onDoubleClick={isOwnFile ? handleRenameAction : undefined}
 			// We use this id to scroll the active file link into view when creating or deleting files.
 			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
+			role="listitem"
 		>
 			<Link
 				ref={linkRef}
