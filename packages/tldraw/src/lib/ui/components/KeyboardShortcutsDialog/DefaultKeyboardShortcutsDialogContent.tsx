@@ -83,7 +83,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem
 					id="a11y-select-next-shape-direction"
 					label="a11y.select-shape-direction"
-					kbd="$+↑→↓←"
+					kbd="cmd+↑→↓←"
 					onSelect={() => {
 						/* do nothing */
 					}}
@@ -107,7 +107,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem
 					id="a11y-move-shape-faster"
 					label="a11y.move-shape-faster"
-					kbd="!+↑→↓←"
+					kbd="shift+↑→↓←"
 					onSelect={() => {
 						/* do nothing */
 					}}

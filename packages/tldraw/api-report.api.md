@@ -3629,7 +3629,6 @@ export interface TLUiToolItem<TranslationKey extends string = string, IconType e
     icon: IconType;
     // (undocumented)
     id: string;
-    // (undocumented)
     kbd?: string;
     // (undocumented)
     label: TranslationKey;

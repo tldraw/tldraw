@@ -7,7 +7,7 @@ runs:
     # see https://github.com/actions/setup-node/issues/899 for one of the reasons why this
     # needs to be done before action/setup-node
     - name: Enable corepack
-      run: corepack enable
+      run: npm i -g corepack
       shell: bash
 
     - name: Setup Node.js Environment
