@@ -9,6 +9,7 @@ import {
 	TLEmbedShape,
 	TLFrameShape,
 	TLGroupShape,
+	TLShape,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
@@ -105,6 +106,30 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 		function canApplySelectionAction() {
 			return editor.isIn('select') && editor.getSelectedShapeIds().length > 0
+		}
+
+		function scaleShapes(scaleFactor: number) {
+			if (!canApplySelectionAction()) return
+			if (mustGoBackToSelectToolFirst()) return
+
+			editor.markHistoryStoppingPoint('resize shapes')
+
+			const selectedShapeIds = editor.getSelectedShapeIds()
+			if (selectedShapeIds.length === 0) return
+
+			editor.run(() => {
+				// Get the selected shapes
+				const shapes = selectedShapeIds
+					.map((id) => editor.getShape(id))
+					.filter(Boolean) as TLShape[]
+
+				// Update each shape
+				shapes.forEach((shape) => {
+					editor.resizeShape(shape.id, new Vec(scaleFactor, scaleFactor), {
+						scaleOrigin: editor.getSelectionPageBounds()?.center,
+					})
+				})
+			})
 		}
 
 		const actionItems: TLUiActionItem<TLUiTranslationKey, TLUiIconType>[] = [
@@ -1483,6 +1508,24 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					editor.setCurrentPage(pages[currentPageIndex + 1].id)
 					trackEvent('change-page', { source, direction: 'next' })
+				},
+			},
+			{
+				id: 'enlarge-shapes',
+				label: 'a11y.enlarge-shape',
+				kbd: 'cmd+alt+shift+=,ctrl+alt+shift+=',
+				onSelect: async (source) => {
+					scaleShapes(1.1)
+					trackEvent('enlarge-shapes', { source })
+				},
+			},
+			{
+				id: 'shrink-shapes',
+				label: 'a11y.shrink-shape',
+				kbd: 'cmd+alt+shift+-,ctrl+alt+shift+-',
+				onSelect: async (source) => {
+					scaleShapes(1 / 1.1)
+					trackEvent('shrink-shapes', { source })
 				},
 			},
 			{
