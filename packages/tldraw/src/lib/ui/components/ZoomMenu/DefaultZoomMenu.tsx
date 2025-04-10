@@ -57,11 +57,13 @@ const ZoomTriggerButton = () => {
 		})
 	}, [editor])
 
+	const value = `${Math.floor(zoom * 100)}%`
 	return (
 		<TldrawUiToolbarButton
 			asChild
 			type="icon"
-			title={`${msg('navigation-zone.zoom')}`}
+			aria-label={`${msg('navigation-zone.zoom')} — ${value}`}
+			title={`${msg('navigation-zone.zoom')} — ${value}`}
 			data-testid="minimap.zoom-menu-button"
 			className={
 				breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
@@ -72,7 +74,7 @@ const ZoomTriggerButton = () => {
 		>
 			<_Dropdown.Trigger dir="ltr">
 				{breakpoint < PORTRAIT_BREAKPOINT.MOBILE ? null : (
-					<span style={{ flexGrow: 0, textAlign: 'center' }}>{Math.floor(zoom * 100)}%</span>
+					<span style={{ flexGrow: 0, textAlign: 'center' }}>{value}</span>
 				)}
 			</_Dropdown.Trigger>
 		</TldrawUiToolbarButton>

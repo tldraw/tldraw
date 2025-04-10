@@ -246,6 +246,7 @@
 	"tool.rich-text-bulletList": "Bulleted list",
 	"tool.rich-text-toolbar-title": "Rich text toolbar",
 	"tool.bookmark": "Bookmark",
+	"a11y.status": "Status",
 	"a11y.skip-to-main-content": "Move focus to canvas",
 	"a11y.shape-index": "{num} of {total}",
 	"a11y.shape-image": "Image",
