@@ -1,5 +1,5 @@
 import * as Popover from '@radix-ui/react-popover'
-import { preventDefault, useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
+import { useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -57,7 +57,6 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 					side="bottom"
 					sideOffset={2}
 					collisionPadding={4}
-					onEscapeKeyDown={preventDefault}
 				>
 					<div className="tlui-people-menu__wrapper">
 						<div className="tlui-people-menu__section">
