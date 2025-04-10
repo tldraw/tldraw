@@ -1511,19 +1511,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
-				id: 'embiggen-shapes',
+				id: 'enlarge-shapes',
+				label: 'a11y.enlarge-shape',
 				kbd: '$!?=',
 				onSelect: async (source) => {
 					scaleShapes(1.1)
-					trackEvent('embiggen-shapes', { source })
+					trackEvent('enlarge-shapes', { source })
 				},
 			},
 			{
-				id: 'emsmallen-shapes',
+				id: 'shrink-shapes',
+				label: 'a11y.shrink-shape',
 				kbd: '$!?-',
 				onSelect: async (source) => {
 					scaleShapes(1 / 1.1)
-					trackEvent('emsmallen-shapes', { source })
+					trackEvent('shrink-shapes', { source })
 				},
 			},
 			{
