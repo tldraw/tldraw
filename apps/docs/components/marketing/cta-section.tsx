@@ -31,7 +31,7 @@ export function CTASection() {
                 </div>
             </div> */}
 			<div className="flex flex-col items-center justify-center gap-4 -mt-4">
-				<div className="flex flex-row items-center justify-center gap-4">
+				<div className="flex flex-row flex-wrap items-center justify-center gap-4">
 					<Button
 						id="hero-quick-start"
 						href="/quick-start"
