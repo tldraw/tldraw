@@ -1513,7 +1513,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'enlarge-shapes',
 				label: 'a11y.enlarge-shape',
-				kbd: '$!?=',
+				kbd: 'cmd+alt+shift+=,ctrl+alt+shift+=',
 				onSelect: async (source) => {
 					scaleShapes(1.1)
 					trackEvent('enlarge-shapes', { source })
@@ -1522,7 +1522,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'shrink-shapes',
 				label: 'a11y.shrink-shape',
-				kbd: '$!?-',
+				kbd: 'cmd+alt+shift+-,ctrl+alt+shift+-',
 				onSelect: async (source) => {
 					scaleShapes(1 / 1.1)
 					trackEvent('shrink-shapes', { source })
