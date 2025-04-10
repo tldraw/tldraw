@@ -363,10 +363,6 @@ export {
 	type TLUiButtonLabelProps,
 } from './lib/ui/components/primitives/Button/TldrawUiButtonLabel'
 export {
-	TldrawUiToolbarButton,
-	type TLUiToolbarButtonProps,
-} from './lib/ui/components/primitives/Button/TldrawUiToolbarButton'
-export {
 	TldrawUiButtonPicker,
 	type TLUiButtonPickerProps,
 } from './lib/ui/components/primitives/TldrawUiButtonPicker'
@@ -418,7 +414,13 @@ export {
 export { TldrawUiSlider, type TLUiSliderProps } from './lib/ui/components/primitives/TldrawUiSlider'
 export {
 	TldrawUiToolbar,
+	TldrawUiToolbarButton,
+	TldrawUiToolbarToggleGroup,
+	TldrawUiToolbarToggleItem,
+	type TLUiToolbarButtonProps,
 	type TLUiToolbarProps,
+	type TLUiToolbarToggleGroupProps,
+	type TLUiToolbarToggleItemProps,
 } from './lib/ui/components/primitives/TldrawUiToolbar'
 export {
 	TldrawUiMenuCheckboxItem,

@@ -285,7 +285,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 			onPointerDown={stopEventPropagation}
 			tabIndex={-1}
 			role="application"
-			aria-label={_options?.branding ?? "tldraw"}
+			aria-label={_options?.branding ?? 'tldraw'}
 		>
 			<OptionalErrorBoundary
 				fallback={ErrorFallback}

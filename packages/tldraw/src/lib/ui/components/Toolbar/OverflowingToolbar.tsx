@@ -15,13 +15,12 @@ import { areShortcutsDisabled } from '../../hooks/useKeyboardShortcuts'
 import { TLUiToolItem } from '../../hooks/useTools'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiToolbarButton } from '../primitives/Button/TldrawUiToolbarButton'
 import {
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
 } from '../primitives/TldrawUiPopover'
-import { TldrawUiToolbar } from '../primitives/TldrawUiToolbar'
+import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 
 export const IsInOverflowContext = createContext(false)
@@ -187,9 +186,10 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 								</PopoverPrimitive.Anchor>
 							</TldrawUiPopoverTrigger>
 							<TldrawUiPopoverContent side="top" align="center">
-								<div
+								<TldrawUiToolbar
 									className="tlui-buttons__grid"
 									data-testid="tools.more-content"
+									label={msg('tool-panel.more')}
 									id={`${id}_more`}
 									onClick={() => {
 										tlmenus.deleteOpenMenu(popoverId, editor.contextId)
@@ -199,7 +199,7 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 									<TldrawUiMenuContextProvider type="toolbar-overflow" sourceId="toolbar">
 										{children}
 									</TldrawUiMenuContextProvider>
-								</div>
+								</TldrawUiToolbar>
 							</TldrawUiPopoverContent>
 						</TldrawUiPopover>
 					</IsInOverflowContext.Provider>

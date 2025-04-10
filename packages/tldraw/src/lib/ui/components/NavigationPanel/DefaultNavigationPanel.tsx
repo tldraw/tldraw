@@ -8,8 +8,7 @@ import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { kbdStr } from '../../kbd-utils'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiToolbarButton } from '../primitives/Button/TldrawUiToolbarButton'
-import { TldrawUiToolbar } from '../primitives/TldrawUiToolbar'
+import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 
 /** @public @react */
 export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {

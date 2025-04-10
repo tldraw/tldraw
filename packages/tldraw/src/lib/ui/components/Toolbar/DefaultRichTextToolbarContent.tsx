@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiToolbarButton } from '../primitives/Button/TldrawUiToolbarButton'
+import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 
 /** @public */
 export interface DefaultRichTextToolbarContentProps {

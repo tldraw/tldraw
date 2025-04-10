@@ -11,9 +11,9 @@ import { Spinner } from '../../Spinner'
 import { TldrawUiButton } from '../Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from '../Button/TldrawUiButtonLabel'
-import { TldrawUiToolbarButton } from '../Button/TldrawUiToolbarButton'
 import { TldrawUiDropdownMenuItem } from '../TldrawUiDropdownMenu'
 import { TldrawUiKbd } from '../TldrawUiKbd'
+import { TldrawUiToolbarButton } from '../TldrawUiToolbar'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -159,7 +159,8 @@ export function TldrawUiMenuItem<
 				</TldrawUiButton>
 			)
 		}
-		case 'small-icons': {
+		case 'small-icons':
+		case 'icons': {
 			return (
 				<TldrawUiToolbarButton
 					data-testid={`${sourceId}.${id}`}
@@ -170,19 +171,6 @@ export function TldrawUiMenuItem<
 				>
 					<TldrawUiButtonIcon icon={icon!} small />
 				</TldrawUiToolbarButton>
-			)
-		}
-		case 'icons': {
-			return (
-				<TldrawUiButton
-					data-testid={`${sourceId}.${id}`}
-					type="icon"
-					title={titleStr}
-					disabled={disabled}
-					onClick={() => onSelect(sourceId)}
-				>
-					<TldrawUiButtonIcon icon={icon!} />
-				</TldrawUiButton>
 			)
 		}
 		case 'keyboard-shortcuts': {
@@ -213,19 +201,19 @@ export function TldrawUiMenuItem<
 		case 'toolbar': {
 			return (
 				<TldrawUiToolbarButton
-					type="tool"
-					data-testid={`tools.${id}`}
 					aria-label={labelStr}
+					aria-pressed={isSelected ? 'true' : 'false'}
+					data-testid={`tools.${id}`}
 					data-value={id}
-					onClick={() => onSelect('toolbar')}
-					title={titleStr}
 					disabled={disabled}
+					onClick={() => onSelect('toolbar')}
 					onTouchStart={(e) => {
 						preventDefault(e)
 						onSelect('toolbar')
 					}}
 					role="option"
-					aria-pressed={isSelected ? 'true' : 'false'}
+					title={titleStr}
+					type="tool"
 				>
 					<TldrawUiButtonIcon icon={icon!} />
 				</TldrawUiToolbarButton>
@@ -233,22 +221,20 @@ export function TldrawUiMenuItem<
 		}
 		case 'toolbar-overflow': {
 			return (
-				<TldrawUiButton
-					type="icon"
-					className="tlui-button-grid__button"
-					onClick={() => {
-						onSelect('toolbar')
-					}}
+				<TldrawUiToolbarButton
 					aria-label={labelStr}
-					data-testid={`tools.more.${id}`}
-					title={titleStr}
-					disabled={disabled}
-					role="option"
 					aria-pressed={isSelected ? 'true' : 'false'}
+					className="tlui-button-grid__button"
+					data-testid={`tools.more.${id}`}
 					data-value={id}
+					disabled={disabled}
+					onClick={() => onSelect('toolbar')}
+					role="option"
+					title={titleStr}
+					type="icon"
 				>
 					<TldrawUiButtonIcon icon={icon!} />
-				</TldrawUiButton>
+				</TldrawUiToolbarButton>
 			)
 		}
 		default: {

@@ -5,7 +5,7 @@ import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiToolbarButton } from '../primitives/Button/TldrawUiToolbarButton'
+import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultZoomMenuContent } from './DefaultZoomMenuContent'
 

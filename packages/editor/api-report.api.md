@@ -3265,6 +3265,7 @@ export interface TldrawOptions {
     readonly adjacentShapeMargin: number;
     // (undocumented)
     readonly animationMediumMs: number;
+    readonly branding?: string;
     // (undocumented)
     readonly cameraMovingTimeoutMs: number;
     // (undocumented)

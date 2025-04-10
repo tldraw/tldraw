@@ -98,6 +98,7 @@ export function activeElementShouldCaptureKeys(allowButtons = false) {
 	return !!(
 		activeElement &&
 		((activeElement as HTMLElement).isContentEditable ||
-			elements.indexOf(activeElement.tagName.toLowerCase()) > -1)
+			elements.indexOf(activeElement.tagName.toLowerCase()) > -1 ||
+			activeElement.classList.contains('tlui-slider__thumb'))
 	)
 }
