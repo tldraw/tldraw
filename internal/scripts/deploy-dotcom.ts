@@ -104,6 +104,8 @@ if (previewId) {
 	env.IMAGE_WORKER = `https://${previewId}-images.tldraw.xyz`
 }
 
+const zeroPushUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/push`
+
 async function main() {
 	assert(
 		env.TLDRAW_ENV === 'staging' || env.TLDRAW_ENV === 'production' || env.TLDRAW_ENV === 'preview',
@@ -380,6 +382,7 @@ async function deployZeroViaSst() {
 		stage,
 	])
 	await exec('yarn', ['sst', 'secret', 'set', 'ZeroAuthSecret', clerkJWKSUrl, '--stage', stage])
+	await exec('yarn', ['sst', 'secret', 'set', 'ZeroPushUrl', zeroPushUrl, '--stage', stage])
 	await exec('yarn', ['sst', 'unlock', '--stage', stage])
 	await exec('yarn', ['bundle-schema'], { pwd: zeroCacheFolder })
 	await exec('yarn', ['sst', 'deploy', '--stage', stage, '--verbose'])
@@ -395,6 +398,7 @@ function updateFlyioToml(appName: string): void {
 		.replace('__APP_NAME', appName)
 		.replace('__ZERO_VERSION', zeroVersion)
 		.replaceAll('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
+		.replaceAll('__ZERO_PUSH_URL', zeroPushUrl)
 
 	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 }
