@@ -54,6 +54,7 @@ export default $config({
 
 		const conn = new sst.Secret('PostgresConnectionString')
 		const zeroAuthSecret = new sst.Secret('ZeroAuthSecret')
+		const zeroPushUrl = new sst.Secret('ZeroPushUrl')
 
 		// Common environment variables
 		const commonEnv = {
@@ -67,6 +68,7 @@ export default $config({
 			ZERO_CVR_MAX_CONNS: '10',
 			ZERO_UPSTREAM_MAX_CONNS: '10',
 			ZERO_APP_PUBLICATIONS: 'zero_data',
+			ZERO_PUSH_URL: zeroPushUrl.value,
 		}
 
 		// Replication Manager Service
