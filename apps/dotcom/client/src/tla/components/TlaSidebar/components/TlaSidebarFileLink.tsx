@@ -60,7 +60,7 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 		if (isMobile) {
 			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
 			if (newName) {
-				app.updateFile({ id: fileId, name: newName })
+				app.updateFile(fileId, { name: newName })
 			}
 		} else {
 			setIsRenaming(true)

@@ -1,9 +1,13 @@
+import { MakeCustomMutatorInterfaces } from '@rocicorp/zero/out/zero-client/src/client/custom'
 import {
+	createMutators,
 	OptimisticAppStore,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
 	TlaFileStatePartial,
+	TlaMutators,
+	TlaSchema,
 	TlaUser,
 	TlaUserPartial,
 	ZClientSentMessage,
@@ -12,7 +16,7 @@ import {
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
 import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { Signal, computed, react, sleep, transact, uniqueId } from 'tldraw'
+import { assert, computed, objectMapKeys, react, Signal, sleep, transact, uniqueId } from 'tldraw'
 import { TLAppUiContextType } from '../utils/app-ui-events'
 
 export class Zero {
@@ -27,6 +31,7 @@ export class Zero {
 
 	constructor(
 		private opts: {
+			userId: string
 			getUri(): Promise<string>
 			onMutationRejected(errorCode: ZErrorCode): void
 			onClientTooOld(): void
@@ -79,14 +84,36 @@ export class Zero {
 				}
 			}
 		})
+		const mutatorWrapper = (mutatorFn: any) => {
+			return (params: any) => {
+				transact(() =>
+					mutatorFn({ mutate: this.____mutators, query: this.query, location: 'client' }, params)
+				)
+			}
+		}
+		const mutators = createMutators(opts.userId) as any
+		const tempMutate = (this.mutate = {} as any)
+		for (const m of objectMapKeys(mutators)) {
+			if (typeof mutators[m] === 'function') {
+				tempMutate[m] = mutatorWrapper(mutators[m])
+			} else if (typeof mutators[m] === 'object') {
+				for (const k of objectMapKeys(mutators[m])) {
+					if (!tempMutate[m]) {
+						tempMutate[m] = {}
+					}
+					tempMutate[m][k] = mutatorWrapper(mutators[m][k])
+				}
+			}
+		}
 	}
+
+	mutate: MakeCustomMutatorInterfaces<TlaSchema, TlaMutators>
 
 	async __e2e__waitForMutationResolution() {
 		let safety = 0
 		while (this.store.getOptimisticUpdates().length && safety++ < 100) {
 			await sleep(50)
 		}
-		// console.log('Mutation resolved', JSON.stringify(this.store.getOptimisticUpdates()))
 	}
 
 	close() {
@@ -118,9 +145,6 @@ export class Zero {
 
 	private makeQuery<T>(table: string, data$: Signal<T>) {
 		const stuff = {
-			one() {
-				return this
-			},
 			preload: this.preload,
 			related(_x: any, _y: any) {
 				return this
@@ -156,9 +180,21 @@ export class Zero {
 		}
 		return {
 			...stuff,
-			where: (column: string, _ownerId: string) => {
+			where: (column: string, op: string, value: any) => {
+				assert(op === '=', 'Only = operator is supported')
 				return {
 					...stuff,
+					one() {
+						return {
+							...this,
+							run: () => {
+								return (data$.get() as any[]).find((d) => d[column] === value)
+							},
+						}
+					},
+					run: () => {
+						return (data$.get() as any[]).filter((d) => d[column] === value)
+					},
 					toString() {
 						return column
 					},
@@ -250,12 +286,6 @@ export class Zero {
 			},
 		},
 	}
-	mutateBatch(fn: (txn: Zero['____mutators']) => void) {
-		transact(() => {
-			fn(this.____mutators)
-		})
-	}
-	mutate = this.____mutators
 
 	private sendPendingUpdates() {
 		if (this.socket.isDisposed) return
