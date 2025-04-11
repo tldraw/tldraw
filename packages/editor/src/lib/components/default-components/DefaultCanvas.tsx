@@ -168,7 +168,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 						<SnapIndicatorWrapper />
 						<SelectionForegroundWrapper />
 						<HandlesWrapper />
-						<CustomOverlaysWrapper />
 						<LiveCollaborators />
 					</div>
 				</div>
@@ -366,15 +365,6 @@ function HandleWrapper({
 			<Handle shapeId={shapeId} handle={handle} zoom={zoom} isCoarse={isCoarse} />
 		</g>
 	)
-}
-
-function CustomOverlaysWrapper() {
-	const editor = useEditor()
-	const { Overlays } = useEditorComponents()
-
-	if (!Overlays) return null
-
-	return <Overlays />
 }
 
 function ShapesWithSVGs() {

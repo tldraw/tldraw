@@ -1012,7 +1012,6 @@ export function EditSubmenu(): JSX_2.Element;
 export interface ElbowArrowBox {
     expanded: Box;
     original: Box;
-    transformed: Box;
 }
 
 // @public
@@ -1038,15 +1037,20 @@ export interface ElbowArrowBoxes {
 export interface ElbowArrowEdge {
     cross: ElbowArrowRange;
     crossTarget: number;
-    expanded: number;
+    expanded: null | number;
     isPartial: boolean;
     value: number;
 }
 
 // @public (undocumented)
 export interface ElbowArrowInfo extends ElbowArrowInfoWithoutRoute {
-    // (undocumented)
     route: ElbowArrowRoute | null;
+    // @internal (undocumented)
+    steve(): {
+        grid: any;
+        path: null | Vec[];
+    };
+    swapOrder: boolean;
 }
 
 // @public (undocumented)
@@ -1059,22 +1063,15 @@ export interface ElbowArrowInfoWithoutRoute {
     common: ElbowArrowBox;
     gapX: number;
     gapY: number;
-    hPos: 'a-contains-b' | 'a-inside-b' | 'a-left-of-b' | 'a-matches-b' | 'a-overlaps-b';
     midX: null | number;
     midY: null | number;
     options: ElbowArrowOptions;
-    scale: ElbowArrowScale;
-    // @internal (undocumented)
-    steve(): {
-        grid: any;
-        path: null | Vec[];
-    };
-    swapOrder: boolean;
-    vPos: 'a-above-b' | 'a-contains-b' | 'a-inside-b' | 'a-matches-b' | 'a-overlaps-b';
 }
 
 // @public (undocumented)
 export interface ElbowArrowOptions {
+    // (undocumented)
+    elbowMidpoint: VecLike;
     // (undocumented)
     expandElbowLegLength: number;
     // (undocumented)
@@ -1122,8 +1119,11 @@ export type ElbowArrowSideReason = 'auto' | 'fallback' | 'manual';
 export interface ElbowArrowTargetBox extends ElbowArrowBox {
     arrowheadOffset: number;
     edges: ElbowArrowBoxEdges;
-    geometry: Geometry2d | undefined;
+    geometry: Geometry2d | null;
     isExact: boolean;
+    // (undocumented)
+    isPoint: boolean;
+    minEndSegmentLength: number;
     target: Vec;
 }
 

@@ -318,8 +318,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			const handlePagePoint = shapeToPageTransform.applyToPoint(handle)
 			const axis = handleId === ArrowHandles.MiddleX ? ElbowArrowAxes.x : ElbowArrowAxes.y
 
-			const lo = info.elbow.A.expanded[axis.max]
-			const hi = info.elbow.B.expanded[axis.min]
+			const flip = info.elbow[axis.gap] < 0
+			const lo = flip ? info.elbow.B.expanded[axis.max] : info.elbow.A.expanded[axis.max]
+			const hi = flip ? info.elbow.A.expanded[axis.min] : info.elbow.B.expanded[axis.min]
 			const mid = lerp(lo, hi, 0.5)
 
 			const distance =

@@ -71,7 +71,6 @@ export interface TLEditorComponents {
 	Spinner?: ComponentType | null
 	SelectionForeground?: ComponentType<TLSelectionForegroundProps> | null
 	SelectionBackground?: ComponentType<TLSelectionBackgroundProps> | null
-	Overlays?: ComponentType | null
 	OnTheCanvas?: ComponentType | null
 	InFrontOfTheCanvas?: ComponentType | null
 	LoadingScreen?: ComponentType | null
@@ -119,7 +118,6 @@ export function EditorComponentsProvider({
 			SelectionForeground: DefaultSelectionForeground,
 			ShapeIndicators: DefaultShapeIndicators,
 			ShapeIndicator: DefaultShapeIndicator,
-			Overlays: null,
 			OnTheCanvas: null,
 			InFrontOfTheCanvas: null,
 			Canvas: DefaultCanvas,

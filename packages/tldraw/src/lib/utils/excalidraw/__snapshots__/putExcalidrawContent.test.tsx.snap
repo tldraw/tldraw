@@ -165,6 +165,25 @@ exports[`putExcalidrawContent test fixtures bound-arrows.json 1`] = `
 }
 `;
 
+exports[`putExcalidrawContent test fixtures bound-elbow-arrows.json 1`] = `
+{
+  "document:document": {
+    "gridSize": 10,
+    "id": "document:document",
+    "meta": {},
+    "name": "",
+    "typeName": "document",
+  },
+  "page:page": {
+    "id": "page:page",
+    "index": "a1",
+    "meta": {},
+    "name": "Page 1",
+    "typeName": "page",
+  },
+}
+`;
+
 exports[`putExcalidrawContent test fixtures image.json 1`] = `
 {
   "asset:11": {

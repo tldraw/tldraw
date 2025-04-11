@@ -23,6 +23,7 @@ export function createDebugElbowArrowScene(editor: Editor) {
 		const shapeOptions = editor.getShapeUtil<ArrowShapeUtil>('arrow').options
 		const size = editor.getStyleForNextShape(DefaultSizeStyle)
 		const options: ElbowArrowOptions = {
+			elbowMidpoint: { x: 0.5, y: 0.5 },
 			expandElbowLegLength: shapeOptions.expandElbowLegLength[size],
 			minElbowLegLength: shapeOptions.minElbowLegLength[size],
 			minArrowDistanceFromCorner: shapeOptions.minArrowDistanceFromCorner,

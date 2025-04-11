@@ -1,12 +1,8 @@
 import { Box, TLArrowShape, useEditor, useValue, VecLike } from '@tldraw/editor'
 import { SVGProps } from 'react'
 import { getArrowBindings } from '../shared'
-import {
-	ElbowArrowEdge,
-	ElbowArrowScale,
-	getElbowArrowInfo,
-	transformPoint,
-} from './getElbowArrowInfo'
+import { ElbowArrowEdge } from './definitions'
+import { getElbowArrowInfo } from './getElbowArrowInfo'
 
 const SHOW_STEVE = true
 
@@ -33,10 +29,8 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 	if (!info) return null
 
 	const fullBox = Box.Common([info.A.original, info.B.original]).expandBy(50)
-	const gizmoX = info.scale.x === 1 ? fullBox.minX : fullBox.maxX
-	const gizmoY = info.scale.y === 1 ? fullBox.minY : fullBox.maxY
 
-	const label = [info.hPos, info.vPos, info.route?.name].filter(Boolean).join(', ')
+	const label = info.route?.name ?? ''
 
 	const steve = SHOW_STEVE ? info.steve() : null
 
@@ -46,31 +40,32 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 			{/* <DebugBox box={transformBox(info.expanded.B, info.scale)} stroke="lightskyblue" /> */}
 			{info.midX !== null && (
 				<DebugLine
-					a={{ x: info.midX * info.scale.x, y: fullBox.minY }}
-					b={{ x: info.midX * info.scale.x, y: fullBox.maxY }}
+					a={{ x: info.midX, y: fullBox.minY }}
+					b={{ x: info.midX, y: fullBox.maxY }}
 					stroke="red"
 				/>
 			)}
 			{info.midY !== null && (
 				<DebugLine
-					a={{ x: fullBox.minX, y: info.midY * info.scale.y }}
-					b={{ x: fullBox.maxX, y: info.midY * info.scale.y }}
+					a={{ x: fullBox.minX, y: info.midY }}
+					b={{ x: fullBox.maxX, y: info.midY }}
 					stroke="blue"
 				/>
 			)}
 
-			<g transform={`translate(${gizmoX}, ${gizmoY}) scale(${info.scale.x}, ${info.scale.y})`}>
-				<line x1={0} y1={0} x2={30} y2={0} stroke="red" />
-				<line x1={0} y1={0} x2={0} y2={30} stroke="blue" />
-			</g>
-			<DebugEdge edge={info.A.edges.top} axis="x" scale={info.scale} stroke="orange" />
-			<DebugEdge edge={info.B.edges.top} axis="x" scale={info.scale} stroke="lightskyblue" />
-			<DebugEdge edge={info.A.edges.right} axis="y" scale={info.scale} stroke="orange" />
-			<DebugEdge edge={info.B.edges.right} axis="y" scale={info.scale} stroke="lightskyblue" />
-			<DebugEdge edge={info.A.edges.bottom} axis="x" scale={info.scale} stroke="orange" />
-			<DebugEdge edge={info.B.edges.bottom} axis="x" scale={info.scale} stroke="lightskyblue" />
-			<DebugEdge edge={info.A.edges.left} axis="y" scale={info.scale} stroke="orange" />
-			<DebugEdge edge={info.B.edges.left} axis="y" scale={info.scale} stroke="lightskyblue" />
+			<DebugBox box={info.A.original} stroke="orange" />
+			<DebugBox box={info.A.expanded} stroke="orange" strokeWidth={0.5} />
+			<DebugBox box={info.B.original} stroke="lightskyblue" />
+			<DebugBox box={info.B.expanded} stroke="lightskyblue" strokeWidth={0.5} />
+
+			<DebugEdge edge={info.A.edges.top} axis="x" stroke="orange" />
+			<DebugEdge edge={info.B.edges.top} axis="x" stroke="lightskyblue" />
+			<DebugEdge edge={info.A.edges.right} axis="y" stroke="orange" />
+			<DebugEdge edge={info.B.edges.right} axis="y" stroke="lightskyblue" />
+			<DebugEdge edge={info.A.edges.bottom} axis="x" stroke="orange" />
+			<DebugEdge edge={info.B.edges.bottom} axis="x" stroke="lightskyblue" />
+			<DebugEdge edge={info.A.edges.left} axis="y" stroke="orange" />
+			<DebugEdge edge={info.B.edges.left} axis="y" stroke="lightskyblue" />
 
 			{info.route && <DebugRoute route={info.route.points} strokeWidth={10} />}
 			{steve?.path && (
@@ -90,8 +85,8 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 				{label}
 			</text>
 			<text
-				x={info.A.expanded.x * info.scale.x}
-				y={info.A.expanded.y * info.scale.y}
+				x={info.A.expanded.x}
+				y={info.A.expanded.y}
 				fontSize={10}
 				fill="black"
 				stroke="var(--color-background)"
@@ -101,8 +96,8 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 				A{info.route && ` - ${info.route.aEdgePicking}`}
 			</text>
 			<text
-				x={info.B.expanded.x * info.scale.x}
-				y={info.B.expanded.y * info.scale.y}
+				x={info.B.expanded.x}
+				y={info.B.expanded.y}
 				fontSize={10}
 				fill="black"
 				stroke="var(--color-background)"
@@ -147,15 +142,13 @@ function DebugRoute({ route, ...props }: { route: VecLike[] } & SVGProps<SVGPoly
 function DebugEdge({
 	edge,
 	axis,
-	scale,
 	...props
 }: {
 	edge: ElbowArrowEdge | null
 	axis: 'x' | 'y'
-	scale: ElbowArrowScale
 } & Omit<SVGProps<SVGLineElement>, 'scale'>) {
-	if (!edge) return null
-	const vec = (vec: VecLike) => transformPoint(axis === 'x' ? { x: vec.y, y: vec.x } : vec, scale)
+	if (!edge || edge.expanded === null) return null
+	const vec = (vec: VecLike) => (axis === 'x' ? { x: vec.y, y: vec.x } : vec)
 
 	return (
 		<g>
@@ -163,20 +156,38 @@ function DebugEdge({
 				a={vec({ x: edge.expanded, y: edge.cross.min })}
 				b={vec({ x: edge.expanded, y: edge.cross.max })}
 				strokeDasharray="0"
+				strokeWidth={1.5}
 				{...props}
 			/>
 			<DebugLine
 				a={vec({ x: edge.expanded - 4, y: edge.cross.min })}
 				b={vec({ x: edge.expanded + 4, y: edge.cross.min })}
 				strokeDasharray="0"
+				strokeWidth={1.5}
 				{...props}
 			/>
 			<DebugLine
 				a={vec({ x: edge.expanded - 4, y: edge.cross.max })}
 				b={vec({ x: edge.expanded + 4, y: edge.cross.max })}
 				strokeDasharray="0"
+				strokeWidth={1.5}
 				{...props}
 			/>
 		</g>
+	)
+}
+
+function DebugBox({ box, ...props }: { box: Box } & SVGProps<SVGRectElement>) {
+	return (
+		<rect
+			x={box.minX}
+			y={box.minY}
+			width={box.width}
+			height={box.height}
+			strokeDasharray="4,4"
+			strokeWidth={1}
+			fill="none"
+			{...props}
+		/>
 	)
 }

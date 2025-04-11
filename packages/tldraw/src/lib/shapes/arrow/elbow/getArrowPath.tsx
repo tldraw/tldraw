@@ -1,5 +1,5 @@
 import { Box, ElbowArrowSide, Vec, VecModel } from '@tldraw/editor'
-import { ELBOW_ARROW_DIRS, ElbowArrowSideDeltas } from './definitions'
+import { ElbowArrowSideDeltas, ElbowArrowSides } from './definitions'
 import { ArrowNavigationGrid } from './getArrowNavigationGrid'
 
 class ArrowStepResult {
@@ -313,13 +313,13 @@ function getNextPointInPath(
 		results.push(...getNextPointInPath(g, fwd_res, dir))
 	}
 
-	const ccw = ELBOW_ARROW_DIRS[(4 + (ELBOW_ARROW_DIRS.indexOf(dir) - 1)) % 4]
+	const ccw = ElbowArrowSides[(4 + (ElbowArrowSides.indexOf(dir) - 1)) % 4]
 	const ccw_res = getNext(g, pos, ccw, true, result.clone())
 	if (ccw_res) {
 		results.push(...getNextPointInPath(g, ccw_res, ccw))
 	}
 
-	const cw = ELBOW_ARROW_DIRS[(ELBOW_ARROW_DIRS.indexOf(dir) + 1) % 4]
+	const cw = ElbowArrowSides[(ElbowArrowSides.indexOf(dir) + 1) % 4]
 	const cw_res = getNext(g, pos, cw, true, result.clone())
 	if (cw_res) {
 		results.push(...getNextPointInPath(g, cw_res, cw))

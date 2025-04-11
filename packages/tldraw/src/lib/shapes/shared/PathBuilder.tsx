@@ -11,8 +11,11 @@ import {
 	Vec,
 	VecLike,
 } from '@tldraw/editor'
-import { getVerticesCountForLength } from '@tldraw/editor/src/lib/primitives/geometry/geometry-constants'
 import { SVGProps } from 'react'
+
+function getVerticesCountForLength(length: number, spacing = 20) {
+	return Math.max(8, Math.ceil(length / spacing))
+}
 
 export interface BasePathBuilderOpts {
 	strokeWidth: number

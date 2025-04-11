@@ -52,7 +52,8 @@ function getArrowPoints(
 		case 'elbow': {
 			const previousPoint =
 				side === 'end' ? info.route.points[info.route.points.length - 2] : info.route.points[1]
-			const length = clamp(info.route.distance / 5, strokeWidth, strokeWidth * 3)
+			const previousSegmentLength = Vec.ManhattanDist(previousPoint, point)
+			const length = clamp(previousSegmentLength / 2, strokeWidth, strokeWidth * 3)
 			int = previousPoint ? Vec.Nudge(point, previousPoint, length) : point
 			break
 		}

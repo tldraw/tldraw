@@ -1,6 +1,5 @@
 import { TLArrowShapeArrowheadStyle, TLDefaultSizeStyle, VecLike } from '@tldraw/editor'
-import { ElbowArrowRoute } from './elbow/elbowArrowRoutes'
-import { ElbowArrowInfo } from './elbow/getElbowArrowInfo'
+import { ElbowArrowInfo, ElbowArrowRoute } from './elbow/definitions'
 import { TLArrowBindings } from './shared'
 
 /** @public */

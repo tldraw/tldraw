@@ -6,7 +6,6 @@ import {
 	elbowArrowDebug,
 	ElbowArrowSide,
 	exhaustiveSwitchError,
-	Geometry2d,
 	invLerp,
 	lerp,
 	Mat,
@@ -20,8 +19,18 @@ import {
 } from '@tldraw/editor'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { BOUND_ARROW_OFFSET, STROKE_SIZES, TLArrowBindings } from '../shared'
-import { ElbowArrowOptions, ElbowArrowSideAxes, ElbowArrowSideOpposites } from './definitions'
-import { ElbowArrowRoute, tryRouteArrow } from './elbowArrowRoutes'
+import {
+	ElbowArrowBinding,
+	ElbowArrowBox,
+	ElbowArrowBoxEdges,
+	ElbowArrowEdge,
+	ElbowArrowInfo,
+	ElbowArrowInfoWithoutRoute,
+	ElbowArrowOptions,
+	ElbowArrowRoute,
+	ElbowArrowSideWithAxis,
+	ElbowArrowTargetBox,
+} from './definitions'
 import { getArrowNavigationGrid } from './getArrowNavigationGrid'
 import { getArrowPath } from './getArrowPath'
 import {
@@ -32,181 +41,17 @@ import {
 	rangeSize,
 	subtractRange,
 } from './range'
+import { tryRouteArrow } from './routes/elbowArrowRoutes'
+import { ElbowArrowWorkingInfo } from './routes/ElbowArrowWorkingInfo'
 import {
 	routeArrowWithAutoEdgePicking,
 	routeArrowWithPartialEdgePicking,
-} from './routeArrowWithAutoEdgePicking'
-
-export type ElbowArrowSideWithAxis = ElbowArrowSide | 'x' | 'y'
-
-/** @public */
-export interface ElbowArrowScale {
-	x: 1 | -1
-	y: 1 | -1
-}
-
-/** @public */
-export interface ElbowArrowBoxes {
-	/** The starting bounding box */
-	A: Box
-	/** The ending bounding box */
-	B: Box
-	/** The common bounding box of A and B */
-	common: Box
-}
-
-/** @public */
-export interface ElbowArrowRange {
-	min: number
-	max: number
-}
-
-/**
- * An edge on a box.
- * @public
- */
-export interface ElbowArrowEdge {
-	/**
-	 * The co-ordinate of the edge. An x-coordinate if left/right, a y-coordinate if top/bottom.
-	 */
-	value: number
-	/**
-	 * The co-ordinate of the edge, expanded by {@link ArrowShapeOptions.expandElbowLegLength}.
-	 */
-	expanded: number
-	/**
-	 * The usable range of the edge along its cross-axis. Y-coordinates if left/right, x-coordinated
-	 * if top/bottom.
-	 */
-	cross: ElbowArrowRange
-	/**
-	 * The point of the target along the edge, constrained to within {@link ElbowArrowEdge.cross}.
-	 */
-	crossTarget: number
-	/**
-	 * Whether the cross-axis range is shrunk from the original range to make space for the other shape.
-	 */
-	isPartial: boolean
-}
-
-/**
- * The usable range of the edges of a box. Each edge might be null if the edge is not usable for
- * entry/exit.
- * @public
- */
-export interface ElbowArrowBoxEdges {
-	top: ElbowArrowEdge | null
-	right: ElbowArrowEdge | null
-	bottom: ElbowArrowEdge | null
-	left: ElbowArrowEdge | null
-}
-
-/**
- * @public
- */
-export interface ElbowArrowBox {
-	/** The original bounding box */
-	original: Box
-	/** The bounding box transformed by {@link ElbowArrowInfoWithoutRoute.scale}. */
-	transformed: Box
-	/**
-	 * The bounding box, expanded by {@link ArrowShapeOptions.expandElbowLegLength} & transformed
-	 * by {@link ElbowArrowInfoWithoutRoute.scale}.
-	 */
-	expanded: Box
-}
-
-/**
- * @public
- */
-export interface ElbowArrowTargetBox extends ElbowArrowBox {
-	/** What specific point in the box are we aiming for? */
-	target: Vec
-	/**
-	 * If true, the arrow should end at `target`. If false, the arrow should end at the edge of the
-	 * shape, pointing at `target`.
-	 */
-	isExact: boolean
-	/**
-	 * How far away from this box should the arrow terminate to leave space for the arrowhead?
-	 */
-	arrowheadOffset: number
-	/**
-	 * The usable edges of the box, after transforming by {@link ElbowArrowInfoWithoutRoute.scale}.
-	 */
-	edges: ElbowArrowBoxEdges
-	/**
-	 * The geometry of the bound shape, in arrow space.
-	 */
-	geometry: Geometry2d | undefined
-}
-
-/** @public */
-export interface ElbowArrowInfoWithoutRoute {
-	/**
-	 * The options used for this elbow arrow
-	 */
-	options: ElbowArrowOptions
-	/**
-	 * The scale applied to some of the values in this object. We use the scale to flip the boxes so
-	 * we only have to deal with cases where A is to the left of and above B.
-	 */
-	scale: ElbowArrowScale
-
-	/**
-	 * If false, A is the start shape and B is the end shape. If true, A is the end shape and B is
-	 * the start shape.
-	 */
-	swapOrder: boolean
-
-	A: ElbowArrowTargetBox
-	B: ElbowArrowTargetBox
-	common: ElbowArrowBox
-
-	/**
-	 * The horizontal position of A relative to B, after transforming by {@link ElbowArrowInfoWithoutRoute.scale}. Note that
-	 * due to the transformation, a cannot be to the right of b.
-	 */
-	hPos: 'a-left-of-b' | 'a-overlaps-b' | 'a-contains-b' | 'a-inside-b' | 'a-matches-b'
-	/**
-	 * The vertical position of A relative to B, after transforming by {@link ElbowArrowInfoWithoutRoute.scale}. Note that
-	 * due to the transformation, a cannot be below b.
-	 */
-	vPos: 'a-above-b' | 'a-overlaps-b' | 'a-contains-b' | 'a-inside-b' | 'a-matches-b'
-	/**
-	 * The gap between the right edge of A and the left edge of B, after transforming by {@link ElbowArrowInfoWithoutRoute.scale}.
-	 */
-	gapX: number
-	/**
-	 * The gap between the bottom edge of A and the top edge of B, after transforming by {@link ElbowArrowInfoWithoutRoute.scale}.
-	 */
-	gapY: number
-	/**
-	 * The X coordinate of the middle line between the two boxes, after transforming by
-	 * {@link ElbowArrowInfoWithoutRoute.scale}. If the boxes are too close or overlap, this may be null.
-	 */
-	midX: number | null
-	/**
-	 * The Y coordinate of the middle line between the two boxes, after transforming by
-	 * {@link ElbowArrowInfoWithoutRoute.scale}. If the boxes are too close or overlap, this may be null.
-	 */
-	midY: number | null
-
-	/** @internal */
-	steve(): {
-		grid: any
-		path: Vec[] | null
-	}
-}
-
-/** @public */
-export interface ElbowArrowInfo extends ElbowArrowInfoWithoutRoute {
-	route: ElbowArrowRoute | null
-}
+} from './routes/routeArrowWithAutoEdgePicking'
 
 export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings: TLArrowBindings) {
 	const shapeOptions = editor.getShapeUtil<ArrowShapeUtil>(arrow.type).options
 	const options: ElbowArrowOptions = {
+		elbowMidpoint: elbowArrowDebug.get().customMidpoint ? arrow.props.elbowMid : { x: 0.5, y: 0.5 },
 		expandElbowLegLength: shapeOptions.expandElbowLegLength[arrow.props.size],
 		minElbowLegLength: shapeOptions.minElbowLegLength[arrow.props.size],
 		minArrowDistanceFromCorner: shapeOptions.minArrowDistanceFromCorner,
@@ -222,221 +67,183 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 		? { aBinding: endBinding, bBinding: startBinding }
 		: { aBinding: startBinding, bBinding: endBinding }
 
-	const scale: ElbowArrowScale = { x: 1, y: 1 }
-	if (aBinding.bounds.center.x > bBinding.bounds.center.x) {
-		scale.x = -1
+	const { info, route } = routeArrow(aBinding, bBinding, options)
+
+	if (route) {
+		castPathSegmentIntoGeometry('first', info.A, info.B, route, options)
+		castPathSegmentIntoGeometry('last', info.B, info.A, route, options)
+		fixTinyEndNubs(route, aBinding, bBinding)
+
+		if (swapOrder) route.points.reverse()
 	}
-	if (aBinding.bounds.center.y > bBinding.bounds.center.y) {
-		scale.y = -1
-	}
-
-	const transformedA = transformBox(aBinding.bounds, scale)
-	const transformedB = transformBox(bBinding.bounds, scale)
-	const transformedATarget = transformPoint(aBinding.target, scale)
-	const transformedBTarget = transformPoint(bBinding.target, scale)
-
-	const expandedA = aBinding.isPoint
-		? transformedA.clone()
-		: transformedA.clone().expandBy(options.expandElbowLegLength)
-	const expandedB = bBinding.isPoint
-		? transformedB.clone()
-		: transformedB.clone().expandBy(options.expandElbowLegLength)
-
-	const common: ElbowArrowBox = {
-		original: Box.Common([aBinding.bounds, bBinding.bounds]),
-		transformed: Box.Common([transformedA, transformedB]),
-		expanded: Box.Common([expandedA, expandedB]),
-	}
-
-	let hPos: ElbowArrowInfo['hPos']
-	let vPos: ElbowArrowInfo['vPos']
-
-	if (transformedA.maxX < transformedB.minX) {
-		hPos = 'a-left-of-b'
-	} else if (transformedA.maxX > transformedB.maxX && transformedA.minX < transformedB.minX) {
-		hPos = 'a-contains-b'
-	} else if (transformedB.maxX >= transformedA.maxX && transformedB.minX <= transformedA.minX) {
-		hPos = 'a-inside-b'
-	} else if (transformedB.maxX >= transformedA.maxX && transformedB.minX <= transformedA.maxX) {
-		hPos = 'a-overlaps-b'
-	} else if (transformedA.maxX === transformedB.maxX && transformedA.minX === transformedB.minX) {
-		hPos = 'a-matches-b'
-	} else {
-		throw new Error(
-			`Invalid horizontal position: A.maxX = ${transformedA.maxX}, A.minX = ${transformedA.minX}, B.maxX = ${transformedB.maxX}, B.minX = ${transformedB.minX}`
-		)
-	}
-
-	if (transformedA.maxY < transformedB.minY) {
-		vPos = 'a-above-b'
-	} else if (transformedA.maxY > transformedB.maxY && transformedA.minY < transformedB.minY) {
-		vPos = 'a-contains-b'
-	} else if (transformedB.maxY >= transformedA.maxY && transformedB.minY <= transformedA.minY) {
-		vPos = 'a-inside-b'
-	} else if (transformedB.maxY >= transformedA.maxY && transformedB.minY <= transformedA.maxY) {
-		vPos = 'a-overlaps-b'
-	} else if (transformedA.maxY === transformedB.maxY && transformedA.minY === transformedB.minY) {
-		vPos = 'a-matches-b'
-	} else {
-		throw new Error(
-			`Invalid vertical position: A.maxY = ${transformedA.maxY}, A.minY = ${transformedA.minY}, B.maxY = ${transformedB.maxY}, B.minY = ${transformedB.minY}`
-		)
-	}
-
-	const gapX = transformedB.minX - transformedA.maxX
-	const gapY = transformedB.minY - transformedA.maxY
-
-	const customMidpoint = elbowArrowDebug.get().customMidpoint
-	const mx =
-		gapX > options.minElbowLegLength * 2
-			? lerp(expandedA.maxX, expandedB.minX, customMidpoint ? arrow.props.elbowMid.x : 0.5)
-			: null
-	const my =
-		gapY > options.minElbowLegLength * 2
-			? lerp(expandedA.maxY, expandedB.minY, customMidpoint ? arrow.props.elbowMid.y : 0.5)
-			: null
-
-	const edgesA: ElbowArrowBoxEdges = {
-		top: getUsableEdge(
-			{ bounds: transformedA, target: transformedATarget, isPoint: aBinding.isPoint },
-			{ bounds: transformedB, target: transformedBTarget, isPoint: bBinding.isPoint },
-			'top',
-			options
-		),
-		right: getUsableEdge(
-			{ bounds: transformedA, target: transformedATarget, isPoint: aBinding.isPoint },
-			{ bounds: transformedB, target: transformedBTarget, isPoint: bBinding.isPoint },
-			'right',
-			options
-		),
-		bottom: getUsableEdge(
-			{ bounds: transformedA, target: transformedATarget, isPoint: aBinding.isPoint },
-			{ bounds: transformedB, target: transformedBTarget, isPoint: bBinding.isPoint },
-			'bottom',
-			options
-		),
-		left: getUsableEdge(
-			{ bounds: transformedA, target: transformedATarget, isPoint: aBinding.isPoint },
-			{ bounds: transformedB, target: transformedBTarget, isPoint: bBinding.isPoint },
-			'left',
-			options
-		),
-	}
-
-	const edgesB = {
-		top: getUsableEdge(
-			{ bounds: transformedB, target: transformedBTarget, isPoint: bBinding.isPoint },
-			{ bounds: transformedA, target: transformedATarget, isPoint: aBinding.isPoint },
-			'top',
-			options
-		),
-		right: getUsableEdge(
-			{ bounds: transformedB, target: transformedBTarget, isPoint: bBinding.isPoint },
-			{ bounds: transformedA, target: transformedATarget, isPoint: aBinding.isPoint },
-			'right',
-			options
-		),
-		bottom: getUsableEdge(
-			{ bounds: transformedB, target: transformedBTarget, isPoint: bBinding.isPoint },
-			{ bounds: transformedA, target: transformedATarget, isPoint: aBinding.isPoint },
-			'bottom',
-			options
-		),
-		left: getUsableEdge(
-			{ bounds: transformedB, target: transformedBTarget, isPoint: bBinding.isPoint },
-			{ bounds: transformedA, target: transformedATarget, isPoint: aBinding.isPoint },
-			'left',
-			options
-		),
-	}
-
-	const aSide =
-		aBinding.side === null
-			? null
-			: aBinding.side === 'x'
-				? transformedA.center.x > transformedB.center.x
-					? 'left'
-					: 'right'
-				: aBinding.side === 'y'
-					? transformedA.center.y > transformedB.center.y
-						? 'top'
-						: 'bottom'
-					: transformSide(aBinding.side, scale)
-
-	const bSide =
-		bBinding.side === null
-			? null
-			: bBinding.side === 'x'
-				? transformedB.center.x > transformedA.center.x
-					? 'left'
-					: 'right'
-				: bBinding.side === 'y'
-					? transformedB.center.y > transformedA.center.y
-						? 'top'
-						: 'bottom'
-					: transformSide(bBinding.side, scale)
 
 	const steve = () => {
 		const grid = getArrowNavigationGrid(aBinding.bounds, bBinding.bounds, options)
-		const path = getArrowPath(grid, aSide ?? undefined, bSide ?? undefined)
+		const path = getArrowPath(
+			grid,
+			getSideToUse(aBinding, bBinding, info.A.edges) ?? undefined,
+			getSideToUse(bBinding, aBinding, info.B.edges) ?? undefined
+		)
 		return { grid, path: path.error ? null : path.path }
+	}
+
+	return { ...info, swapOrder, steve, route }
+}
+
+function routeArrow(
+	aBinding: ElbowArrowBinding,
+	bBinding: ElbowArrowBinding,
+	options: ElbowArrowOptions
+) {
+	let edgesA = {
+		top: getUsableEdge(aBinding, bBinding, 'top', options),
+		right: getUsableEdge(aBinding, bBinding, 'right', options),
+		bottom: getUsableEdge(aBinding, bBinding, 'bottom', options),
+		left: getUsableEdge(aBinding, bBinding, 'left', options),
+	}
+
+	let edgesB = {
+		top: getUsableEdge(bBinding, aBinding, 'top', options),
+		right: getUsableEdge(bBinding, aBinding, 'right', options),
+		bottom: getUsableEdge(bBinding, aBinding, 'bottom', options),
+		left: getUsableEdge(bBinding, aBinding, 'left', options),
+	}
+
+	const aIsUsable = hasUsableEdge(edgesA, aBinding.side)
+	const bIsUsable = hasUsableEdge(edgesB, bBinding.side)
+	let needsNewEdges = false
+
+	if (!aIsUsable || !bIsUsable) {
+		needsNewEdges = true
+		if (!aIsUsable) {
+			bBinding = convertBindingToPoint(bBinding)
+		}
+
+		if (!bIsUsable) {
+			aBinding = convertBindingToPoint(aBinding)
+		}
+
+		if (bBinding.bounds.containsPoint(aBinding.target, options.expandElbowLegLength + 1)) {
+			bBinding = convertBindingToPoint(bBinding)
+		}
+
+		if (aBinding.bounds.containsPoint(bBinding.target, options.expandElbowLegLength + 1)) {
+			aBinding = convertBindingToPoint(aBinding)
+		}
+	}
+
+	if (needsNewEdges) {
+		edgesA = {
+			top: getUsableEdge(aBinding, bBinding, 'top', options),
+			right: getUsableEdge(aBinding, bBinding, 'right', options),
+			bottom: getUsableEdge(aBinding, bBinding, 'bottom', options),
+			left: getUsableEdge(aBinding, bBinding, 'left', options),
+		}
+
+		edgesB = {
+			top: getUsableEdge(bBinding, aBinding, 'top', options),
+			right: getUsableEdge(bBinding, aBinding, 'right', options),
+			bottom: getUsableEdge(bBinding, aBinding, 'bottom', options),
+			left: getUsableEdge(bBinding, aBinding, 'left', options),
+		}
+	}
+
+	const expandedA = aBinding.isPoint
+		? aBinding.bounds
+		: aBinding.bounds.clone().expandBy(options.expandElbowLegLength)
+	const expandedB = bBinding.isPoint
+		? bBinding.bounds
+		: bBinding.bounds.clone().expandBy(options.expandElbowLegLength)
+
+	const common: ElbowArrowBox = {
+		original: Box.Common([aBinding.bounds, bBinding.bounds]),
+		expanded: Box.Common([expandedA, expandedB]),
+	}
+
+	let gapX = bBinding.bounds.minX - aBinding.bounds.maxX
+	if (gapX < 0) {
+		gapX = aBinding.bounds.minX - bBinding.bounds.maxX
+		if (gapX < 0) {
+			gapX = 0
+		}
+		gapX = -gapX
+	}
+	let gapY = bBinding.bounds.minY - aBinding.bounds.maxY
+	if (gapY < 0) {
+		gapY = aBinding.bounds.minY - bBinding.bounds.maxY
+		if (gapY < 0) {
+			gapY = 0
+		}
+		gapY = -gapY
+	}
+
+	let mx: number | null = null
+	if (gapX > 0 && (aBinding.isPoint || bBinding.isPoint)) {
+		mx = lerp(aBinding.bounds.maxX, bBinding.bounds.minX, options.elbowMidpoint.x)
+	} else if (gapX < 0 && (aBinding.isPoint || bBinding.isPoint)) {
+		mx = lerp(aBinding.bounds.minX, bBinding.bounds.maxX, options.elbowMidpoint.x)
+	} else if (gapX > options.minElbowLegLength * 2) {
+		mx = lerp(expandedA.maxX, expandedB.minX, options.elbowMidpoint.x)
+	} else if (gapX < -options.minElbowLegLength * 2) {
+		mx = lerp(expandedA.minX, expandedB.maxX, 1 - options.elbowMidpoint.x)
+	}
+
+	let my: number | null = null
+	if (gapY > 0 && (aBinding.isPoint || bBinding.isPoint)) {
+		my = lerp(aBinding.bounds.maxY, bBinding.bounds.minY, options.elbowMidpoint.y)
+	} else if (gapY < 0 && (aBinding.isPoint || bBinding.isPoint)) {
+		my = lerp(aBinding.bounds.minY, bBinding.bounds.maxY, options.elbowMidpoint.y)
+	} else if (gapY > options.minElbowLegLength * 2) {
+		my = lerp(expandedA.maxY, expandedB.minY, options.elbowMidpoint.y)
+	} else if (gapY < -options.minElbowLegLength * 2) {
+		my = lerp(expandedA.minY, expandedB.maxY, 1 - options.elbowMidpoint.y)
 	}
 
 	const info: ElbowArrowInfoWithoutRoute = {
 		options,
-		scale,
-		swapOrder,
 		A: {
+			isPoint: aBinding.isPoint,
 			target: aBinding.target,
 			isExact: aBinding.isExact,
 			arrowheadOffset: aBinding.arrowheadOffset,
+			minEndSegmentLength: aBinding.minEndSegmentLength,
 			original: aBinding.bounds,
-			transformed: transformedA,
 			expanded: expandedA,
 			edges: edgesA,
 			geometry: aBinding.geometry,
 		},
 		B: {
+			isPoint: bBinding.isPoint,
 			target: bBinding.target,
 			isExact: bBinding.isExact,
 			arrowheadOffset: bBinding.arrowheadOffset,
+			minEndSegmentLength: bBinding.minEndSegmentLength,
 			original: bBinding.bounds,
-			transformed: transformedB,
 			expanded: expandedB,
 			edges: edgesB,
 			geometry: bBinding.geometry,
 		},
 		common,
-		hPos,
-		vPos,
 		gapX,
 		gapY,
 		midX: mx,
 		midY: my,
-
-		steve,
 	}
+
+	const workingInfo = new ElbowArrowWorkingInfo(info)
+	const aSide = getSideToUse(aBinding, bBinding, info.A.edges)
+	const bSide = getSideToUse(bBinding, aBinding, info.B.edges)
 
 	let route
 	if (aSide && bSide) {
-		route = tryRouteArrow(info, aSide, bSide)
-	}
-	if (aSide && !bSide) {
-		route = routeArrowWithPartialEdgePicking(info, aSide)
-	}
-	if (!route) {
-		route = routeArrowWithAutoEdgePicking(info)
-	}
-	if (route) {
-		route = transformRoute(route, info.scale)
-
-		castPathSegmentIntoGeometry('first', info.A, route)
-		castPathSegmentIntoGeometry('last', info.B, route)
-
-		if (swapOrder) route.points.reverse()
+		route = tryRouteArrow(workingInfo, aSide, bSide)
+	} else if (aSide && !bSide) {
+		route = routeArrowWithPartialEdgePicking(workingInfo, aSide)
+	} else {
+		route = routeArrowWithAutoEdgePicking(workingInfo)
 	}
 
-	return { ...info, route }
+	return { info, route }
 }
 
 export function getRouteHandlePath(info: ElbowArrowInfo, route: ElbowArrowRoute): ElbowArrowRoute {
@@ -485,7 +292,10 @@ function getElbowArrowBindingInfo(
 	arrow: TLArrowShape,
 	binding: TLArrowBinding | undefined,
 	point: VecModel
-) {
+): ElbowArrowBinding {
+	const arrowStrokeSize = (STROKE_SIZES[arrow.props.size] * arrow.props.scale) / 2
+	const minEndSegmentLength = arrowStrokeSize * arrow.props.scale * 3
+
 	if (binding) {
 		const target = editor.getShape(binding.toId)
 		const geometry = getBindingGeometryInArrowSpace(editor, arrow.id, binding.toId, binding.props)
@@ -493,7 +303,6 @@ function getElbowArrowBindingInfo(
 			let arrowheadOffset = 0
 			const arrowheadProp = binding.props.terminal === 'start' ? 'arrowheadStart' : 'arrowheadEnd'
 			if (arrow.props[arrowheadProp] !== 'none') {
-				const arrowStrokeSize = (STROKE_SIZES[arrow.props.size] * arrow.props.scale) / 2
 				const targetScale = 'scale' in target.props ? target.props.scale : 1
 				const targetStrokeSize =
 					'size' in target.props ? ((STROKE_SIZES[target.props.size] ?? 0) * targetScale) / 2 : 0
@@ -533,19 +342,23 @@ function getElbowArrowBindingInfo(
 				geometry: geometry.geometry,
 				target: targetPoint,
 				arrowheadOffset,
+				minEndSegmentLength,
 				side,
+				snap: binding.props.snap,
 			}
 		}
 	}
 
 	return {
 		bounds: Box.FromCenter(point, { x: 0, y: 0 }),
-		geometries: [],
+		geometry: null,
 		isExact: false,
 		isPoint: true,
 		target: Vec.From(point),
 		arrowheadOffset: 0,
+		minEndSegmentLength,
 		side: null,
+		snap: null,
 	}
 }
 
@@ -606,30 +419,6 @@ export function getBindingGeometryInArrowSpace(
 	}
 }
 
-export function transformBox(box: Box, scale: ElbowArrowScale) {
-	return new Box(
-		box.x * scale.x - (scale.x === 1 ? 0 : box.width),
-		box.y * scale.y - (scale.y === 1 ? 0 : box.height),
-		box.width,
-		box.height
-	)
-}
-
-export function transformPoint(point: VecLike, scale: ElbowArrowScale) {
-	return new Vec(point.x * scale.x, point.y * scale.y)
-}
-
-export function transformRoute(route: ElbowArrowRoute, scale: ElbowArrowScale): ElbowArrowRoute {
-	return {
-		...route,
-		points: route.points.map((r) => transformPoint(r, scale)),
-	}
-}
-
-export function transformSide(side: ElbowArrowSide, scale: ElbowArrowScale) {
-	return scale[ElbowArrowSideAxes[side]] === 1 ? side : ElbowArrowSideOpposites[side]
-}
-
 const sideProps = {
 	top: {
 		expand: -1,
@@ -682,7 +471,7 @@ export function getUsableEdge(
 	const props = sideProps[side]
 
 	const aValue = a.bounds[props.main]
-	const aExpanded = a.isPoint ? aValue : aValue + props.expand * options.expandElbowLegLength
+	const aExpanded = a.isPoint ? null : aValue + props.expand * options.expandElbowLegLength
 
 	const originalACrossRange = expandRange(
 		createRange(a.bounds[props.crossMin], a.bounds[props.crossMax]),
@@ -761,6 +550,77 @@ export function getUsableEdge(
 	}
 }
 
+function hasUsableEdge(edges: ElbowArrowBoxEdges, side: ElbowArrowSideWithAxis | null) {
+	if (side === null) {
+		return !!(edges.bottom || edges.left || edges.right || edges.top)
+	}
+
+	if (side === 'x') {
+		return !!edges.left || !!edges.right
+	}
+
+	if (side === 'y') {
+		return !!edges.top || !!edges.bottom
+	}
+
+	return !!edges[side]
+}
+
+function getSideToUse(
+	binding: ElbowArrowBinding,
+	other: ElbowArrowBinding,
+	edges: ElbowArrowBoxEdges | null
+): ElbowArrowSide | null {
+	switch (binding.side) {
+		case null:
+			return null
+		case 'x':
+			if (binding.bounds.center.x > other.bounds.center.x && edges?.left) {
+				return 'left'
+			} else if (edges?.right) {
+				return 'right'
+			}
+			return null
+		case 'y':
+			if (binding.bounds.center.y > other.bounds.center.y && edges?.top) {
+				return 'top'
+			} else if (edges?.bottom) {
+				return 'bottom'
+			}
+			return null
+		default:
+			return binding.side
+	}
+}
+
+function convertBindingToPoint(binding: ElbowArrowBinding): ElbowArrowBinding {
+	if (binding.isPoint) return binding
+
+	let side: ElbowArrowSideWithAxis | null = null
+	let arrowheadOffset = 0
+	if (binding.snap === 'axis' || binding.snap === 'edge' || binding.snap === 'point') {
+		arrowheadOffset = binding.arrowheadOffset
+		if (binding.side === 'x' || binding.side === 'left' || binding.side === 'right') {
+			side = 'x'
+		}
+		if (binding.side === 'y' || binding.side === 'top' || binding.side === 'bottom') {
+			side = 'y'
+		}
+	}
+
+	return {
+		side,
+		bounds: new Box(binding.target.x, binding.target.y, 0, 0),
+		geometry: binding.geometry,
+		target: binding.target,
+		arrowheadOffset,
+		minEndSegmentLength: binding.minEndSegmentLength,
+		isExact: binding.isExact,
+		isPoint: true,
+		snap: binding.snap,
+	}
+}
+
 /**
  * Make sure the first path segments goes fully into the target, and doesn't just point to its
  * bounding box. This modifies the route in-place.
@@ -768,8 +628,12 @@ export function getUsableEdge(
 function castPathSegmentIntoGeometry(
 	segment: 'first' | 'last',
 	target: ElbowArrowTargetBox,
-	route: ElbowArrowRoute
+	other: ElbowArrowTargetBox,
+	route: ElbowArrowRoute,
+	options: ElbowArrowOptions
 ) {
+	if (target.arrowheadOffset === 0) return
+
 	const point1 = segment === 'first' ? route.points[0] : route.points[route.points.length - 1]
 	const point2 = segment === 'first' ? route.points[1] : route.points[route.points.length - 2]
 
@@ -800,13 +664,65 @@ function castPathSegmentIntoGeometry(
 	}
 
 	if (nearestIntersection) {
-		if (!target.isExact && target.arrowheadOffset !== 0) {
-			nearestIntersection = Vec.Nudge(nearestIntersection, point2, target.arrowheadOffset)
+		let offset = target.arrowheadOffset
+
+		const currentFinalSegmentLength = Vec.ManhattanDist(point2, nearestIntersection)
+		if (currentFinalSegmentLength < options.minElbowLegLength) {
+			const targetLength = options.minElbowLegLength - target.arrowheadOffset
+			offset = currentFinalSegmentLength - targetLength
+		}
+		if (offset < target.minEndSegmentLength) {
+			if (target.geometry?.bounds.containsPoint(other.target)) {
+				offset = Math.max(0, offset)
+			} else {
+				offset = -target.arrowheadOffset
+			}
+		}
+
+		if (!target.isExact && offset !== 0) {
+			nearestIntersection = Vec.Nudge(nearestIntersection, point2, offset)
 		}
 
 		const newDistance = Vec.ManhattanDist(point2, nearestIntersection)
 		route.distance += newDistance - initialDistance
 		point1.x = nearestIntersection.x
 		point1.y = nearestIntersection.y
+
+		if (offset < 0) {
+			route.points.splice(
+				segment === 'first' ? 1 : route.points.length - 1,
+				0,
+				Vec.Lrp(point2, point1, 0.5)
+			)
+		}
+	}
+}
+
+function fixTinyEndNubs(
+	route: ElbowArrowRoute,
+	aBinding: ElbowArrowBinding,
+	bBinding: ElbowArrowBinding
+) {
+	if (!route) return
+
+	if (route.points.length >= 3) {
+		const firstSegmentLength = Vec.ManhattanDist(route.points[0], route.points[1])
+		if (firstSegmentLength < aBinding.minEndSegmentLength) {
+			route.points[1] = Vec.Nudge(route.points[0], route.points[2], aBinding.minEndSegmentLength)
+		}
+	}
+
+	if (route.points.length >= 3) {
+		const lastSegmentLength = Vec.ManhattanDist(
+			route.points[route.points.length - 2],
+			route.points[route.points.length - 1]
+		)
+		if (lastSegmentLength < bBinding.minEndSegmentLength) {
+			route.points[route.points.length - 2] = Vec.Nudge(
+				route.points[route.points.length - 1],
+				route.points[route.points.length - 3],
+				bBinding.minEndSegmentLength
+			)
+		}
 	}
 }

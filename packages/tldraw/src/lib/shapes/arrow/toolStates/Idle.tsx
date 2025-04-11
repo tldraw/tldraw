@@ -35,8 +35,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	override onKeyDown(info: TLKeyboardEventInfo) {
-		console.log('onKeyDown', info.key)
+	override onKeyDown() {
 		this.update()
 	}
 
