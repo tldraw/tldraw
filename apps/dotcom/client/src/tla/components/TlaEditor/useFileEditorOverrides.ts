@@ -76,7 +76,7 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					readonlyOk: true,
 					async onSelect() {
 						const defaultName = getFileName(editor)
-						const res = app?.createFile({
+						const res = await app?.createFile({
 							name: defaultName,
 							createSource: window.location.pathname.slice(1),
 						})
