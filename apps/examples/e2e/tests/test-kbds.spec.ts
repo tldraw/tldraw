@@ -414,6 +414,16 @@ test.describe('Actions on shapes', () => {
 			name: 'toggle-lock',
 		})
 
+		await page.keyboard.press('Control+Shift+Alt+=')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'enlarge-shapes',
+		})
+
+		await page.keyboard.press('Control+Shift+Alt+-')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'shrink-shapes',
+		})
+
 		// await page.keyboard.press('Control+i')
 		// expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 		// 	name: 'open-menu',

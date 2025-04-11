@@ -9,6 +9,7 @@ import {
 	TLEmbedShape,
 	TLFrameShape,
 	TLGroupShape,
+	TLShape,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
@@ -107,6 +108,30 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			return editor.isIn('select') && editor.getSelectedShapeIds().length > 0
 		}
 
+		function scaleShapes(scaleFactor: number) {
+			if (!canApplySelectionAction()) return
+			if (mustGoBackToSelectToolFirst()) return
+
+			editor.markHistoryStoppingPoint('resize shapes')
+
+			const selectedShapeIds = editor.getSelectedShapeIds()
+			if (selectedShapeIds.length === 0) return
+
+			editor.run(() => {
+				// Get the selected shapes
+				const shapes = selectedShapeIds
+					.map((id) => editor.getShape(id))
+					.filter(Boolean) as TLShape[]
+
+				// Update each shape
+				shapes.forEach((shape) => {
+					editor.resizeShape(shape.id, new Vec(scaleFactor, scaleFactor), {
+						scaleOrigin: editor.getSelectionPageBounds()?.center,
+					})
+				})
+			})
+		}
+
 		const actionItems: TLUiActionItem<TLUiTranslationKey, TLUiIconType>[] = [
 			{
 				id: 'edit-link',
@@ -124,7 +149,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'insert-embed',
 				label: 'action.insert-embed',
-				kbd: '$i',
+				kbd: 'cmd+i,ctrl+i',
 				onSelect(source) {
 					trackEvent('insert-embed', { source })
 					helpers.addDialog({ component: EmbedDialog })
@@ -133,7 +158,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'insert-media',
 				label: 'action.insert-media',
-				kbd: '$u',
+				kbd: 'cmd+u,ctrl+u',
 				onSelect(source) {
 					trackEvent('insert-media', { source })
 					helpers.insertMedia()
@@ -143,7 +168,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'undo',
 				label: 'action.undo',
 				icon: 'undo',
-				kbd: '$z',
+				kbd: 'cmd+z,ctrl+z',
 				onSelect(source) {
 					trackEvent('undo', { source })
 					editor.undo()
@@ -153,7 +178,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'redo',
 				label: 'action.redo',
 				icon: 'redo',
-				kbd: '$!z',
+				kbd: 'cmd+shift+z,ctrl+shift+z',
 				onSelect(source) {
 					trackEvent('redo', { source })
 					editor.redo()
@@ -233,7 +258,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.copy-as-svg.short',
 					['context-menu']: 'action.copy-as-svg.short',
 				},
-				kbd: '$!c',
+				kbd: 'cmd+shift+c,ctrl+shift+c',
 				readonlyOk: true,
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
@@ -432,7 +457,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'duplicate',
-				kbd: '$d',
+				kbd: 'cmd+d,ctrl+d',
 				label: 'action.duplicate',
 				icon: 'duplicate',
 				onSelect(source) {
@@ -480,7 +505,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'ungroup',
 				label: 'action.ungroup',
-				kbd: '$!g',
+				kbd: 'cmd+shift+g,ctrl+shift+g',
 				icon: 'ungroup',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -494,7 +519,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'group',
 				label: 'action.group',
-				kbd: '$g',
+				kbd: 'cmd+g,ctrl+g',
 				icon: 'group',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -514,7 +539,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'remove-frame',
 				label: 'action.remove-frame',
-				kbd: '$!f',
+				kbd: 'cmd+shift+f,ctrl+shift+f',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 
@@ -549,7 +574,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'align-left',
 				label: 'action.align-left',
-				kbd: '?A',
+				kbd: 'alt+A',
 				icon: 'align-left',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -570,7 +595,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: 'action.align-center-horizontal',
 					['context-menu']: 'action.align-center-horizontal.short',
 				},
-				kbd: '?H',
+				kbd: 'alt+H',
 				icon: 'align-center-horizontal',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -588,7 +613,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'align-right',
 				label: 'action.align-right',
-				kbd: '?D',
+				kbd: 'alt+D',
 				icon: 'align-right',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -609,7 +634,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: 'action.align-center-vertical',
 					['context-menu']: 'action.align-center-vertical.short',
 				},
-				kbd: '?V',
+				kbd: 'alt+V',
 				icon: 'align-center-vertical',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -628,7 +653,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'align-top',
 				label: 'action.align-top',
 				icon: 'align-top',
-				kbd: '?W',
+				kbd: 'alt+W',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -646,7 +671,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'align-bottom',
 				label: 'action.align-bottom',
 				icon: 'align-bottom',
-				kbd: '?S',
+				kbd: 'alt+S',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -667,7 +692,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.distribute-horizontal.short',
 				},
 				icon: 'distribute-horizontal',
-				kbd: '?!h',
+				kbd: 'alt+shift+h',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -688,7 +713,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.distribute-vertical.short',
 				},
 				icon: 'distribute-vertical',
-				kbd: '?!V',
+				kbd: 'alt+shift+V',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -748,7 +773,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: 'action.flip-horizontal',
 					['context-menu']: 'action.flip-horizontal.short',
 				},
-				kbd: '!h',
+				kbd: 'shift+h',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -765,7 +790,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'flip-vertical',
 				label: { default: 'action.flip-vertical', ['context-menu']: 'action.flip-vertical.short' },
-				kbd: '!v',
+				kbd: 'shift+v',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -854,7 +879,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'bring-forward',
 				label: 'action.bring-forward',
 				icon: 'bring-forward',
-				kbd: '?]',
+				kbd: 'alt+]',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -868,7 +893,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'send-backward',
 				label: 'action.send-backward',
 				icon: 'send-backward',
-				kbd: '?[',
+				kbd: 'alt+[',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -895,7 +920,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'cut',
 				label: 'action.cut',
-				kbd: '$x',
+				kbd: 'cmd+x,ctrl+x',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -907,7 +932,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'copy',
 				label: 'action.copy',
-				kbd: '$c',
+				kbd: 'cmd+c,ctrl+c',
 				readonlyOk: true,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -919,7 +944,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'paste',
 				label: 'action.paste',
-				kbd: '$v',
+				kbd: 'cmd+v,ctrl+v',
 				onSelect(source) {
 					navigator.clipboard
 						?.read()
@@ -942,7 +967,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'select-all',
 				label: 'action.select-all',
-				kbd: '$a',
+				kbd: 'cmd+a,ctrl+a',
 				readonlyOk: true,
 				onSelect(source) {
 					editor.run(() => {
@@ -1023,7 +1048,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-in',
 				label: 'action.zoom-in',
-				kbd: '$=,=',
+				kbd: 'cmd+=,ctrl+=,=',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-in', { source, towardsCursor: false })
@@ -1035,7 +1060,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-in-on-cursor',
 				label: 'action.zoom-in',
-				kbd: '!$=,!=',
+				kbd: 'shift+cmd+=,shift+ctrl+=,shift+=',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-in', { source, towardsCursor: true })
@@ -1047,7 +1072,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-out',
 				label: 'action.zoom-out',
-				kbd: '$-,-',
+				kbd: 'cmd+-,ctrl+-,-',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-out', { source, towardsCursor: false })
@@ -1059,7 +1084,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-out-on-cursor',
 				label: 'action.zoom-out',
-				kbd: '!$-,!-',
+				kbd: 'shift+cmd+-,shift+ctrl+-,shift+-',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-out', { source, towardsCursor: true })
@@ -1072,7 +1097,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'zoom-to-100',
 				label: 'action.zoom-to-100',
 				icon: 'reset-zoom',
-				kbd: '!0',
+				kbd: 'shift+0',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('reset-zoom', { source })
@@ -1084,7 +1109,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-to-fit',
 				label: 'action.zoom-to-fit',
-				kbd: '!1',
+				kbd: 'shift+1',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-to-fit', { source })
@@ -1094,7 +1119,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-to-selection',
 				label: 'action.zoom-to-selection',
-				kbd: '!2',
+				kbd: 'shift+2',
 				readonlyOk: true,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1122,7 +1147,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: 'action.toggle-dark-mode',
 					menu: 'action.toggle-dark-mode.menu',
 				},
-				kbd: '$/',
+				kbd: 'cmd+/,ctrl+/',
 				readonlyOk: true,
 				onSelect(source) {
 					const value = editor.user.getIsDarkMode() ? 'light' : 'dark'
@@ -1260,7 +1285,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.toggle-focus-mode.menu',
 				},
 				readonlyOk: true,
-				kbd: '$.',
+				kbd: 'cmd+.,ctrl+.',
 				checkbox: true,
 				onSelect(source) {
 					// this needs to be deferred because it causes the menu
@@ -1282,7 +1307,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.toggle-grid.menu',
 				},
 				readonlyOk: true,
-				kbd: "$'",
+				kbd: "cmd+',ctrl+'",
 				onSelect(source) {
 					trackEvent('toggle-grid-mode', { source })
 					editor.updateInstanceState({ isGridMode: !editor.getInstanceState().isGridMode })
@@ -1307,7 +1332,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'print',
 				label: 'action.print',
-				kbd: '$p',
+				kbd: 'cmd+p,ctrl+p',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('print', { source })
@@ -1352,7 +1377,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'toggle-lock',
 				label: 'action.toggle-lock',
-				kbd: '!l',
+				kbd: 'shift+l',
 				onSelect(source) {
 					editor.markHistoryStoppingPoint('locking')
 					trackEvent('toggle-lock', { source })
@@ -1379,7 +1404,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'select-white-color',
 				label: 'color-style.white',
-				kbd: '?t',
+				kbd: 'alt+t',
 				onSelect(source) {
 					const style = DefaultColorStyle
 					editor.run(() => {
@@ -1395,7 +1420,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'select-fill-fill',
 				label: 'fill-style.fill',
-				kbd: '?f',
+				kbd: 'alt+f',
 				onSelect(source) {
 					const style = DefaultFillStyle
 					editor.run(() => {
@@ -1411,7 +1436,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'flatten-to-image',
 				label: 'action.flatten-to-image',
-				kbd: '!f',
+				kbd: 'shift+f',
 				onSelect: async (source) => {
 					const ids = editor.getSelectedShapeIds()
 					if (ids.length === 0) return
@@ -1441,7 +1466,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'change-page-prev',
-				kbd: '?left,?up',
+				kbd: 'alt+left,alt+up',
 				readonlyOk: true,
 				onSelect: async (source) => {
 					// will select whatever the most recent geo tool was
@@ -1454,7 +1479,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'change-page-next',
-				kbd: '?right,?down',
+				kbd: 'alt+right,alt+down',
 				readonlyOk: true,
 				onSelect: async (source) => {
 					// will select whatever the most recent geo tool was
@@ -1486,9 +1511,27 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'enlarge-shapes',
+				label: 'a11y.enlarge-shape',
+				kbd: 'cmd+alt+shift+=,ctrl+alt+shift+=',
+				onSelect: async (source) => {
+					scaleShapes(1.1)
+					trackEvent('enlarge-shapes', { source })
+				},
+			},
+			{
+				id: 'shrink-shapes',
+				label: 'a11y.shrink-shape',
+				kbd: 'cmd+alt+shift+-,ctrl+alt+shift+-',
+				onSelect: async (source) => {
+					scaleShapes(1 / 1.1)
+					trackEvent('shrink-shapes', { source })
+				},
+			},
+			{
 				id: 'a11y-repeat-shape-announce',
+				kbd: 'alt+r',
 				label: 'a11y.repeat-shape',
-				kbd: '?r',
 				readonlyOk: true,
 				onSelect: async (source) => {
 					const selectedShapeIds = editor.getSelectedShapeIds()
