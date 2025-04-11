@@ -4,7 +4,9 @@ import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTldrawUiComponents } from '../../context/components'
 import { useReadonly } from '../../hooks/useReadonly'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { MobileStylePanel } from '../MobileStylePanel'
+import { TldrawUiToolbar } from '../primitives/TldrawUiToolbar'
 import { DefaultToolbarContent } from './DefaultToolbarContent'
 import { OverflowingToolbar } from './OverflowingToolbar'
 import { ToggleToolLockedButton } from './ToggleToolLockedButton'
@@ -24,6 +26,7 @@ export interface DefaultToolbarProps {
  */
 export const DefaultToolbar = memo(function DefaultToolbar({ children }: DefaultToolbarProps) {
 	const editor = useEditor()
+	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 	const isReadonlyMode = useReadonly()
 	const activeToolId = useValue('current tool id', () => editor.getCurrentToolId(), [editor])
@@ -47,13 +50,13 @@ export const DefaultToolbar = memo(function DefaultToolbar({ children }: Default
 					{!isReadonlyMode && (
 						<div className="tlui-toolbar__extras">
 							{showQuickActions && (
-								<div
+								<TldrawUiToolbar
 									className="tlui-toolbar__extras__controls tlui-buttons__horizontal"
-									role="toolbar"
+									label={msg('actions-menu.title')}
 								>
 									{QuickActions && <QuickActions />}
 									{ActionsMenu && <ActionsMenu />}
-								</div>
+								</TldrawUiToolbar>
 							)}
 							<ToggleToolLockedButton activeToolId={activeToolId} />
 						</div>
