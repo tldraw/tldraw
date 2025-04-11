@@ -21,7 +21,6 @@ import { CSSProperties } from 'react';
 import { CubicSpline2d } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
 import { Extensions } from '@tiptap/core';
-import { ForwardRefExoticComponent } from 'react';
 import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
@@ -44,7 +43,6 @@ import { ReadonlySharedStyleMap } from '@tldraw/editor';
 import { RecordProps } from '@tldraw/editor';
 import { Rectangle2d } from '@tldraw/editor';
 import { RecursivePartial } from '@tldraw/editor';
-import { RefAttributes } from 'react';
 import { RefObject } from 'react';
 import { Result } from '@tldraw/editor';
 import { RichTextFontVisitorState } from '@tldraw/editor';
@@ -2626,13 +2624,13 @@ export const TldrawUiSlider: NamedExoticComponent<TLUiSliderProps>;
 export function TldrawUiToastsProvider({ children }: TLUiToastsProviderProps): JSX_2.Element;
 
 // @public (undocumented)
-export const TldrawUiToolbar: ForwardRefExoticComponent<TLUiToolbarProps & RefAttributes<HTMLDivElement>>;
+export const TldrawUiToolbar: React_3.ForwardRefExoticComponent<TLUiToolbarProps & React_3.RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
-export const TldrawUiToolbarButton: ForwardRefExoticComponent<TLUiToolbarButtonProps & RefAttributes<HTMLButtonElement>>;
+export const TldrawUiToolbarButton: React_3.ForwardRefExoticComponent<TLUiToolbarButtonProps & React_3.RefAttributes<HTMLButtonElement>>;
 
 // @public (undocumented)
-export const TldrawUiToolbarToggleGroup: ({ children, className, type, }: TLUiToolbarToggleGroupProps) => JSX_2.Element;
+export const TldrawUiToolbarToggleGroup: ({ children, className, type, ...props }: TLUiToolbarToggleGroupProps) => JSX_2.Element;
 
 // @public (undocumented)
 export const TldrawUiToolbarToggleItem: ({ children, className, type, value, ...props }: TLUiToolbarToggleItemProps) => JSX_2.Element;
@@ -3640,11 +3638,11 @@ export interface TLUiToastsProviderProps {
 }
 
 // @public (undocumented)
-export interface TLUiToolbarButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
+export interface TLUiToolbarButtonProps extends React_3.HTMLAttributes<HTMLButtonElement> {
     // (undocumented)
     asChild?: boolean;
     // (undocumented)
-    children?: ReactNode;
+    children?: React_3.ReactNode;
     // (undocumented)
     className?: string;
     // (undocumented)
@@ -3656,9 +3654,9 @@ export interface TLUiToolbarButtonProps extends React.HTMLAttributes<HTMLButtonE
 }
 
 // @public (undocumented)
-export interface TLUiToolbarProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface TLUiToolbarProps extends React_3.HTMLAttributes<HTMLDivElement> {
     // (undocumented)
-    children?: ReactNode;
+    children?: React_3.ReactNode;
     // (undocumented)
     className?: string;
     // (undocumented)
@@ -3668,19 +3666,23 @@ export interface TLUiToolbarProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 // @public (undocumented)
-export interface TLUiToolbarToggleGroupProps {
+export interface TLUiToolbarToggleGroupProps extends React_3.HTMLAttributes<HTMLDivElement> {
     // (undocumented)
-    children?: ReactNode;
+    children?: React_3.ReactNode;
     // (undocumented)
     className?: string;
+    // (undocumented)
+    defaultValue?: any;
+    // (undocumented)
+    dir?: 'ltr' | 'rtl';
     // (undocumented)
     type: 'multiple' | 'single';
 }
 
 // @public (undocumented)
-export interface TLUiToolbarToggleItemProps extends React.HTMLAttributes<HTMLButtonElement> {
+export interface TLUiToolbarToggleItemProps extends React_3.HTMLAttributes<HTMLButtonElement> {
     // (undocumented)
-    children?: ReactNode;
+    children?: React_3.ReactNode;
     // (undocumented)
     className?: string;
     // (undocumented)
