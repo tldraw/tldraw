@@ -18,7 +18,7 @@ import { Kysely, sql } from 'kysely'
 import { LogicalReplicationService, Wal2Json, Wal2JsonPlugin } from 'pg-logical-replication'
 import { Logger } from './Logger'
 import { UserChangeCollator } from './UserChangeCollator'
-import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
+import { LSN_COMMIT_TIMEOUT, ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import {
@@ -122,7 +122,7 @@ const migrations: Migration[] = [
 ]
 
 const ONE_MINUTE = 60 * 1000
-const PRUNE_INTERVAL = 10 * ONE_MINUTE
+const PRUNE_INTERVAL = 4 * LSN_COMMIT_TIMEOUT
 const MAX_HISTORY_ROWS = 20_000
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
@@ -335,6 +335,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		for (const { id } of usersWithoutRecentUpdates) {
 			await this.unregisterUser(id)
 		}
+		this.reportActiveUsers()
 		this.pruneHistory()
 		this.lastUserPruneTime = Date.now()
 	}
@@ -762,7 +763,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	async ping() {
 		this.log.debug('ping')
-		return { sequenceId: this.slotName }
+		return { sequenceId: this.slotName, versionId: this.env.CF_VERSION_METADATA.id }
 	}
 
 	private async _messageUser(userId: string, event: ZReplicationEventWithoutSequenceInfo) {
@@ -790,15 +791,11 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			await q.push(async () => {
 				const user = getUserDurableObject(this.env, userId)
 
-				const res = await user.handleReplicationEvent({
+				await user.handleReplicationEvent({
 					...event,
 					sequenceNumber,
 					sequenceId: this.slotName + sequenceIdSuffix,
 				})
-				if (res === 'unregister') {
-					this.log.debug('unregistering user', userId, event)
-					this.unregisterUser(userId)
-				}
 			})
 		} catch (e) {
 			this.captureException(e)
@@ -958,7 +955,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	async unregisterUser(userId: string) {
 		this.logEvent({ type: 'unregister_user' })
 		this.sqlite.exec(`DELETE FROM active_user WHERE id = ?`, userId)
-		this.reportActiveUsers()
 		const queue = this.userDispatchQueues.get(userId)
 		if (queue) {
 			queue.close()

@@ -132,6 +132,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				}
 
 				if (this.sockets.size === 0 && typeof this.interval === 'number') {
+					this.log.debug('no sockets left')
 					clearInterval(this.interval)
 					this.interval = null
 				}
@@ -504,22 +505,17 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	async handleReplicationEvent(event: ZReplicationEvent) {
 		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
 		this.log.debug('replication event', event, !!this.cache)
-		if (await this.notActive()) {
-			this.log.debug('requesting to unregister')
-			return 'unregister'
+		if (!this.cache) {
+			return 'ok'
 		}
 
 		try {
-			this.cache?.handleReplicationEvent(event)
+			this.cache.handleReplicationEvent(event)
 		} catch (e) {
 			this.captureException(e)
 		}
 
 		return 'ok'
-	}
-
-	async notActive() {
-		return !this.cache
 	}
 
 	/* --------------  */
@@ -563,7 +559,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	async admin_forceHardReboot(userId: string) {
 		if (this.cache) {
-			await this.cache?.reboot({ hard: true, delay: false, source: 'admin' })
+			await this.cache?.reboot({ mode: 'hard', delay: false, source: 'admin' })
 		} else {
 			await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		}
