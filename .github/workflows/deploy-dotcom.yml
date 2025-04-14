@@ -40,6 +40,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: true
+          fetch-depth: 0
 
       - uses: ./.github/actions/setup
 
@@ -52,7 +53,7 @@ jobs:
             echo "DEPLOY_ZERO=sst" >> $GITHUB_ENV
           elif echo "${{ toJSON(github.event.pull_request.labels.*.name) }}" | grep -q "preview-flyio-zero-deploy-please"; then
             echo "DEPLOY_ZERO=flyio" >> $GITHUB_ENV
-          elif git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^apps/dotcom/'; then
+          elif git fetch origin "${GITHUB_BASE_REF}" && git diff --name-only origin/"${GITHUB_BASE_REF}"...HEAD | grep -q '^apps/dotcom/'; then
             gh pr edit ${{ github.event.pull_request.number }} --add-label "preview-flyio-zero-deploy-please"
             echo "DEPLOY_ZERO=flyio" >> $GITHUB_ENV
           else
