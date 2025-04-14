@@ -545,6 +545,7 @@ export {
 	type TLEditorAssetUrls,
 } from './lib/utils/static-assets/assetUrls'
 export {
+	KeyboardShiftEnterTweakExtension,
 	defaultAddFontsFromNode,
 	renderHtmlFromRichText,
 	renderHtmlFromRichTextForMeasurement,
@@ -553,6 +554,7 @@ export {
 	tipTapDefaultExtensions,
 } from './lib/utils/text/richText'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
+export { TextDirection } from './lib/utils/text/textDirection'
 export {
 	TLV1AlignStyle,
 	TLV1AssetType,

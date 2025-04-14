@@ -7,7 +7,6 @@ export class DrawShapeTool extends StateNode {
 	static override id = 'draw'
 	static override initial = 'idle'
 	static override isLockable = false
-	static override useCoalescedEvents = true
 	static override children(): TLStateNodeConstructor[] {
 		return [Idle, Drawing]
 	}

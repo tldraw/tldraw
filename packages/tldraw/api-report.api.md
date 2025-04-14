@@ -20,6 +20,7 @@ import { ComponentType } from 'react';
 import { CSSProperties } from 'react';
 import { CubicSpline2d } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
+import { Extension } from '@tiptap/core';
 import { Extensions } from '@tiptap/core';
 import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
@@ -920,8 +921,6 @@ export class DrawShapeTool extends StateNode {
     onExit(): void;
     // (undocumented)
     shapeType: string;
-    // (undocumented)
-    static useCoalescedEvents: boolean;
 }
 
 // @public (undocumented)
@@ -1491,8 +1490,6 @@ export class HighlightShapeTool extends StateNode {
     onExit(): void;
     // (undocumented)
     shapeType: string;
-    // (undocumented)
-    static useCoalescedEvents: boolean;
 }
 
 // @public (undocumented)
@@ -1569,6 +1566,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     static type: "image";
 }
+
+// @public (undocumented)
+export const KeyboardShiftEnterTweakExtension: Extension<any, any>;
 
 // @public (undocumented)
 export function KeyboardShortcutsMenuItem(): JSX_2.Element | null;
@@ -2195,6 +2195,9 @@ export interface TextAreaProps {
     // (undocumented)
     text?: string;
 }
+
+// @public (undocumented)
+export const TextDirection: Extension<any, any>;
 
 // @public @deprecated (undocumented)
 export const TextLabel: React_3.NamedExoticComponent<PlainTextLabelProps>;
