@@ -14,6 +14,7 @@ import {
 	TlaUser,
 	UserPreferencesKeys,
 	Z_PROTOCOL_VERSION,
+	Zero as ZeroPolyfill,
 	schema as zeroSchema,
 	ZErrorCode,
 } from '@tldraw/dotcom-shared'
@@ -57,7 +58,6 @@ import { TLAppUiContextType } from '../utils/app-ui-events'
 import { getDateFormat } from '../utils/dates'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
-import { Zero as ZeroPolyfill } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`

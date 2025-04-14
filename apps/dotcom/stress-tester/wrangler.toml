@@ -1,0 +1,33 @@
+name = "stress-tester"
+main = "src/worker.ts"
+compatibility_date = "2024-10-30"
+workers_dev = true
+compatibility_flags = ["nodejs_compat"]
+
+[dev]
+port = 8887
+ip = "0.0.0.0"
+
+# these migrations are append-only. you can't change them. if you do need to change something, do so
+# by creating new migrations
+[[migrations]]
+tag = "v1"                            # Should be unique for each entry
+new_sqlite_classes = ["STWorkerDO", "STCoordinatorDO"]
+
+[env.dev.vars]
+TEST_AUTH_SECRET = "placeholder_secret"
+ACCESS_TOKEN = "hello"
+
+#################### Durable objects ####################
+# durable objects have the same configuration in all environments:
+[durable_objects]
+bindings = [
+	{ name = "ST_WORKER", class_name = "STWorkerDO" },
+	{ name = "ST_COORDINATOR", class_name = "STCoordinatorDO" },
+]
+
+[env.dev.durable_objects]
+bindings = [
+	{ name = "ST_WORKER", class_name = "STWorkerDO" },
+	{ name = "ST_COORDINATOR", class_name = "STCoordinatorDO" },
+]
