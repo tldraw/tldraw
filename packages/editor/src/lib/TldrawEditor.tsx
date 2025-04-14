@@ -670,7 +670,7 @@ export interface LoadingScreenProps {
 
 /** @public @react */
 export function LoadingScreen({ children }: LoadingScreenProps) {
-	return <div className="tl-loading">{children}</div>
+	return <div className="tl-loading" aria-busy="true" tabIndex={0}>{children}</div>
 }
 
 /** @public @react */

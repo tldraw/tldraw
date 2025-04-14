@@ -12,8 +12,7 @@ export function Spinner(props: React.SVGProps<SVGSVGElement>) {
 			viewBox="0 0 16 16"
 			{...props}
 			aria-label={msg('app.loading')}
-			role="alert"
-			aria-busy="true"
+			aria-hidden="false"
 		>
 			<g strokeWidth={2} fill="none" fillRule="evenodd">
 				<circle strokeOpacity={0.25} cx={8} cy={8} r={7} stroke="currentColor" />

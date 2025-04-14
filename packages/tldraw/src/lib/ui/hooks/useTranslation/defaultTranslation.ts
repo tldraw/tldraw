@@ -249,7 +249,7 @@ export const DEFAULT_TRANSLATION = {
 	'tool.rich-text-link-remove': 'Remove link',
 	'tool.rich-text-header': 'Header',
 	'tool.rich-text-bulletList': 'Bulleted list',
-	'tool.rich-text-toolbar-title': 'Rich text toolbar',
+	'tool.rich-text-toolbar-title': 'Text formatting',
 	'tool.bookmark': 'Bookmark',
 	'a11y.status': 'Status',
 	'a11y.skip-to-main-content': 'Move focus to canvas',
