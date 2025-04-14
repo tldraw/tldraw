@@ -107,7 +107,7 @@ export function useCanvasEvents() {
 				if (
 					e.target.tagName !== 'A' &&
 					e.target.tagName !== 'TEXTAREA' &&
-					e.target.isContentEditable &&
+					!e.target.isContentEditable &&
 					// When in EditingShape state, we are actually clicking on a 'DIV'
 					// not A/TEXTAREA/contenteditable element yet. So, to preserve cursor position
 					// for edit mode on mobile we need to not preventDefault.
