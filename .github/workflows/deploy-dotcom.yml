@@ -44,7 +44,7 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - name: Determine deploy target
+      - name: Determine zero deploy target
         id: deploy_target
         env:
           GH_TOKEN: ${{ github.token }}
