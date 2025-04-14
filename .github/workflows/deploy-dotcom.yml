@@ -46,6 +46,8 @@ jobs:
 
       - name: Determine deploy target
         id: deploy_target
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/production" || "${GITHUB_REF}" == "refs/heads/main" ]]; then
             echo "DEPLOY_ZERO=sst" >> $GITHUB_ENV
