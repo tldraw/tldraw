@@ -200,7 +200,7 @@ function getZeroUrl() {
 			} else if (deployZero === 'sst') {
 				return `https://${previewId}.zero.tldraw.com/`
 			} else {
-				return undefined
+				return 'https://zero-backend-not-deployed.tldraw.com'
 			}
 		}
 		case 'staging':
@@ -208,14 +208,10 @@ function getZeroUrl() {
 		case 'production':
 			return 'https://production.zero.tldraw.com/'
 	}
-	return undefined
+	return 'https://zero-backend-not-deployed.tldraw.com'
 }
 
 async function prepareDotcomApp() {
-	const zeroUrl = getZeroUrl()
-	if (!zeroUrl) {
-		throw new Error('No zero URL found')
-	}
 	// pre-build the app:
 	await exec('yarn', ['build-app'], {
 		env: {
@@ -223,7 +219,7 @@ async function prepareDotcomApp() {
 			ASSET_UPLOAD: env.ASSET_UPLOAD,
 			IMAGE_WORKER: env.IMAGE_WORKER,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
-			ZERO_SERVER: zeroUrl,
+			ZERO_SERVER: getZeroUrl(),
 			NEXT_PUBLIC_GC_API_KEY: env.GC_MAPS_API_KEY,
 			SENTRY_AUTH_TOKEN: env.SENTRY_AUTH_TOKEN,
 			SENTRY_ORG: 'tldraw',
