@@ -82,7 +82,7 @@ const env = makeEnv([
 	'DEPLOY_ZERO',
 ])
 
-const deployZero = env.DEPLOY_ZERO as 'flyio' | 'sst' | false
+const deployZero = env.DEPLOY_ZERO === 'false' ? false : (env.DEPLOY_ZERO as 'flyio' | 'sst')
 const flyioAppName = deployZero === 'flyio' ? `${previewId}-zero-cache` : undefined
 
 const clerkJWKSUrl =
