@@ -191,6 +191,8 @@ export function FileItems({
 					readonlyOk
 					onSelect={handlePinUnpinClick}
 				/>
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="file-actions-2">
 				<TlImportFileActionGroup label={importFileMsg} />
 				<TldrawUiMenuItem
 					label={downloadFile}
