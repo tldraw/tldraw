@@ -1,6 +1,6 @@
 import { ElbowArrowSide } from '@tldraw/editor'
 import { ElbowArrowRoute } from '../definitions'
-import { ElbowArrowRouteBuilder2 } from './ElbowArrowRouteBuilder'
+import { ElbowArrowRouteBuilder } from './ElbowArrowRouteBuilder'
 import { ElbowArrowTransform, ElbowArrowWorkingInfo } from './ElbowArrowWorkingInfo'
 
 /**
@@ -31,10 +31,11 @@ export function routeRightToLeft(info: ElbowArrowWorkingInfo): ElbowArrowRoute |
 
 	if (info.gapX > 0 && info.midX) {
 		// Arrow 1:
-		return new ElbowArrowRouteBuilder2(info, 'to left 1')
+		return new ElbowArrowRouteBuilder(info, 'to left 1')
 			.add(aEdge.value, aEdge.crossTarget)
 			.add(info.midX, aEdge.crossTarget)
 			.add(info.midX, bEdge.crossTarget)
+			.midpointHandle('x')
 			.add(bEdge.value, bEdge.crossTarget)
 			.build()
 	}
@@ -43,11 +44,12 @@ export function routeRightToLeft(info: ElbowArrowWorkingInfo): ElbowArrowRoute |
 
 	if (info.midY) {
 		// Arrow 2:
-		return new ElbowArrowRouteBuilder2(info, 'to left 2')
+		return new ElbowArrowRouteBuilder(info, 'to left 2')
 			.add(aEdge.value, aEdge.crossTarget)
 			.add(aEdge.expanded, aEdge.crossTarget)
 			.add(aEdge.expanded, info.midY)
 			.add(bEdge.expanded, info.midY)
+			.midpointHandle('y')
 			.add(bEdge.expanded, bEdge.crossTarget)
 			.add(bEdge.value, bEdge.crossTarget)
 			.build()
@@ -84,7 +86,7 @@ export function routeRightToLeft(info: ElbowArrowWorkingInfo): ElbowArrowRoute |
 
 	if (arrow3Distance < arrow4Distance && arrow3Distance < arrow5Distance) {
 		// Arrow 3:
-		return new ElbowArrowRouteBuilder2(info, 'to left 3')
+		return new ElbowArrowRouteBuilder(info, 'to left 3')
 			.add(aEdge.value, aEdge.crossTarget)
 			.add(info.common.expanded.right, aEdge.crossTarget)
 			.add(info.common.expanded.right, info.common.expanded.bottom)
@@ -96,7 +98,7 @@ export function routeRightToLeft(info: ElbowArrowWorkingInfo): ElbowArrowRoute |
 
 	if (arrow4Distance < arrow5Distance) {
 		// Arrow 4:
-		return new ElbowArrowRouteBuilder2(info, 'to left 4')
+		return new ElbowArrowRouteBuilder(info, 'to left 4')
 			.add(aEdge.value, aEdge.crossTarget)
 			.add(aEdge.expanded, aEdge.crossTarget)
 			.add(aEdge.expanded, info.common.expanded.top)
@@ -108,12 +110,13 @@ export function routeRightToLeft(info: ElbowArrowWorkingInfo): ElbowArrowRoute |
 
 	if (info.midX !== null) {
 		// Arrow 5:
-		return new ElbowArrowRouteBuilder2(info, 'to left 5')
+		return new ElbowArrowRouteBuilder(info, 'to left 5')
 			.add(aEdge.value, aEdge.crossTarget)
 			.add(aEdge.expanded, aEdge.crossTarget)
 			.add(aEdge.expanded, info.A.expanded.bottom)
 			.add(info.midX, info.A.expanded.bottom)
 			.add(info.midX, info.B.expanded.top)
+			.midpointHandle('y')
 			.add(bEdge.expanded, info.B.expanded.top)
 			.add(bEdge.expanded, bEdge.crossTarget)
 			.add(bEdge.value, bEdge.crossTarget)
@@ -156,7 +159,7 @@ export function routeRightToTop(info: ElbowArrowWorkingInfo): ElbowArrowRoute | 
 		bEdge.crossTarget > (aEdge.expanded ?? aEdge.value)
 	) {
 		// Arrow 1:
-		return new ElbowArrowRouteBuilder2(info, 'to top 1')
+		return new ElbowArrowRouteBuilder(info, 'to top 1')
 			.add(aEdge.value, aEdge.crossTarget)
 			.add(bEdge.crossTarget, aEdge.crossTarget)
 			.add(bEdge.crossTarget, bEdge.value)
@@ -165,10 +168,11 @@ export function routeRightToTop(info: ElbowArrowWorkingInfo): ElbowArrowRoute | 
 
 	if (info.gapX > 0 && info.midX && bEdge.expanded) {
 		// Arrow 2:
-		return new ElbowArrowRouteBuilder2(info, 'to top 2')
+		return new ElbowArrowRouteBuilder(info, 'to top 2')
 			.add(aEdge.value, aEdge.crossTarget)
 			.add(info.midX, aEdge.crossTarget)
 			.add(info.midX, bEdge.expanded)
+			.midpointHandle('x')
 			.add(bEdge.crossTarget, bEdge.expanded)
 			.add(bEdge.crossTarget, bEdge.value)
 			.build()
@@ -176,11 +180,12 @@ export function routeRightToTop(info: ElbowArrowWorkingInfo): ElbowArrowRoute | 
 
 	if (info.gapY > 0 && aEdge.expanded && bEdge.crossTarget < aEdge.expanded && info.midY) {
 		// Arrow 3:
-		return new ElbowArrowRouteBuilder2(info, 'to top 3')
+		return new ElbowArrowRouteBuilder(info, 'to top 3')
 			.add(aEdge.value, aEdge.crossTarget)
 			.add(aEdge.expanded, aEdge.crossTarget)
 			.add(aEdge.expanded, info.midY)
 			.add(bEdge.crossTarget, info.midY)
+			.midpointHandle('y')
 			.add(bEdge.crossTarget, bEdge.value)
 			.build()
 	}
@@ -211,7 +216,7 @@ export function routeRightToTop(info: ElbowArrowWorkingInfo): ElbowArrowRoute | 
 
 	if (arrow4Length < arrow5Length && arrow4Length < arrow6Length) {
 		// Arrow 4:
-		return new ElbowArrowRouteBuilder2(info, 'to top 4')
+		return new ElbowArrowRouteBuilder(info, 'to top 4')
 			.add(aEdge.value, aEdge.crossTarget)
 			.add(info.common.expanded.right, aEdge.crossTarget)
 			.add(info.common.expanded.right, info.common.expanded.top)
@@ -227,11 +232,12 @@ export function routeRightToTop(info: ElbowArrowWorkingInfo): ElbowArrowRoute | 
 		arrow5Length < arrow6Length
 	) {
 		// Arrow 5:
-		return new ElbowArrowRouteBuilder2(info, 'to top 5')
+		return new ElbowArrowRouteBuilder(info, 'to top 5')
 			.add(aEdge.value, aEdge.crossTarget)
 			.add(aEdge.expanded, aEdge.crossTarget)
 			.add(aEdge.expanded, info.midY)
 			.add(info.B.expanded.left, info.midY)
+			.midpointHandle('y')
 			.add(info.B.expanded.left, bEdge.expanded)
 			.add(bEdge.crossTarget, bEdge.expanded)
 			.add(bEdge.crossTarget, bEdge.value)
@@ -240,12 +246,13 @@ export function routeRightToTop(info: ElbowArrowWorkingInfo): ElbowArrowRoute | 
 
 	if (bEdge.expanded !== null && aEdge.expanded !== null && info.midX !== null) {
 		// Arrow 6:
-		return new ElbowArrowRouteBuilder2(info, 'to top 6')
+		return new ElbowArrowRouteBuilder(info, 'to top 6')
 			.add(aEdge.value, aEdge.crossTarget)
 			.add(aEdge.expanded, aEdge.crossTarget)
 			.add(aEdge.expanded, info.A.expanded.bottom)
 			.add(info.midX, info.A.expanded.bottom)
 			.add(info.midX, bEdge.expanded)
+			.midpointHandle('x')
 			.add(bEdge.crossTarget, bEdge.expanded)
 			.add(bEdge.crossTarget, bEdge.value)
 			.build()
@@ -287,7 +294,7 @@ export function routeRightToRight(info: ElbowArrowWorkingInfo): ElbowArrowRoute 
 			bEdge.crossTarget < info.A.expanded.top)
 	) {
 		// Arrow 1
-		return new ElbowArrowRouteBuilder2(info, 'to right 1')
+		return new ElbowArrowRouteBuilder(info, 'to right 1')
 			.add(aEdge.value, aEdge.crossTarget)
 			.add(info.common.expanded.right, aEdge.crossTarget)
 			.add(info.common.expanded.right, bEdge.crossTarget)
@@ -307,10 +314,11 @@ export function routeRightToRight(info: ElbowArrowWorkingInfo): ElbowArrowRoute 
 
 		const topOrBottom = viaBottomLength < viaTopLength ? 'bottom' : 'top'
 		// Arrow 2:
-		return new ElbowArrowRouteBuilder2(info, `to right 2 via ${topOrBottom}`)
+		return new ElbowArrowRouteBuilder(info, `to right 2 via ${topOrBottom}`)
 			.add(aEdge.value, aEdge.crossTarget)
 			.add(info.midX, aEdge.crossTarget)
 			.add(info.midX, info.B.expanded[topOrBottom])
+			.midpointHandle('x')
 			.add(bEdge.expanded, info.B.expanded[topOrBottom])
 			.add(bEdge.expanded, bEdge.crossTarget)
 			.add(bEdge.value, bEdge.crossTarget)
@@ -327,12 +335,13 @@ export function routeRightToRight(info: ElbowArrowWorkingInfo): ElbowArrowRoute 
 
 		const topOrBottom = viaBottomLength < viaTopLength ? 'bottom' : 'top'
 		// Arrow 3:
-		return new ElbowArrowRouteBuilder2(info, `to right 3 via ${topOrBottom}`)
+		return new ElbowArrowRouteBuilder(info, `to right 3 via ${topOrBottom}`)
 			.add(aEdge.value, aEdge.crossTarget)
 			.add(aEdge.expanded, aEdge.crossTarget)
 			.add(aEdge.expanded, info.A.expanded[topOrBottom])
 			.add(info.midX, info.A.expanded[topOrBottom])
 			.add(info.midX, bEdge.crossTarget)
+			.midpointHandle('x')
 			.add(bEdge.value, bEdge.crossTarget)
 			.build()
 	}

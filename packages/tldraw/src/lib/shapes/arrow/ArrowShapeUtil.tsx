@@ -61,6 +61,7 @@ import { updateArrowTargetState } from './arrowTargetState'
 import { getArrowheadPathForType } from './arrowheads'
 import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
 import { ElbowArrowAxes } from './elbow/definitions'
+import { getElbowArrowSnapLines } from './elbow/elbowArrowSnapLines'
 import {
 	TLArrowBindings,
 	createOrUpdateArrowBinding,
@@ -248,35 +249,17 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		if (
 			shape.props.kind === 'elbow' &&
 			info.type === 'elbow' &&
+			info.route.midpointHandle &&
 			elbowArrowDebug.get().customMidpoint
 		) {
-			const xIndex = info.route.points.findIndex(
-				(p) => info.elbow.midX !== null && approximately(p.x, info.elbow.midX)
-			)
-			if (xIndex !== -1) {
-				const yCoord = lerp(info.route.points[xIndex].y, info.route.points[xIndex + 1].y, 0.5)
-				handles.push({
-					id: ArrowHandles.MiddleX,
-					type: 'vertex',
-					index: 'a2' as IndexKey,
-					x: info.route.points[xIndex].x,
-					y: yCoord,
-				})
-			}
+			const axis = ElbowArrowAxes[info.route.midpointHandle.axis]
 
-			const yIndex = info.route.points.findIndex(
-				(p) => info.elbow.midY !== null && approximately(p.y, info.elbow.midY)
-			)
-			if (yIndex !== -1) {
-				const xCoord = lerp(info.route.points[yIndex].x, info.route.points[yIndex + 1].x, 0.5)
-				handles.push({
-					id: ArrowHandles.MiddleY,
-					type: 'virtual',
-					index: 'a4' as IndexKey,
-					x: xCoord,
-					y: info.route.points[yIndex].y,
-				})
-			}
+			handles.push({
+				id: axis.self === 'x' ? ArrowHandles.MiddleX : ArrowHandles.MiddleY,
+				type: 'vertex',
+				index: 'a2' as IndexKey,
+				...axis.v(info.route.midpointHandle.self, info.route.midpointHandle.cross).toJson(),
+			})
 		}
 
 		return handles
@@ -314,24 +297,45 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			const info = getArrowInfo(this.editor, shape)
 			if (info?.type !== 'elbow') return
 
+			console.log(getElbowArrowSnapLines(this.editor))
+
 			const shapeToPageTransform = this.editor.getShapePageTransform(shape.id)!
 			const handlePagePoint = shapeToPageTransform.applyToPoint(handle)
 			const axis = handleId === ArrowHandles.MiddleX ? ElbowArrowAxes.x : ElbowArrowAxes.y
 
-			const flip = info.elbow[axis.gap] < 0
+			const flip = false // info.elbow[axis.gap] < 0
 			const lo = flip ? info.elbow.B.expanded[axis.max] : info.elbow.A.expanded[axis.max]
 			const hi = flip ? info.elbow.A.expanded[axis.min] : info.elbow.B.expanded[axis.min]
 			const mid = lerp(lo, hi, 0.5)
 
+			const origin = { x: 0, y: 0 }
+			const midUp = shapeToPageTransform.applyToPoint(axis.v(mid, 0))
+			const midDown = shapeToPageTransform.applyToPoint(axis.v(mid, 1))
+
+			const angle = Vec.Angle(midUp, midDown)
+
+			const handleDistance = Vec.DistanceToLineSegment(
+				handlePagePoint,
+				shapeToPageTransform.applyToPoint(Vec.Add(handle, axis.v(0, 1))),
+				origin,
+				false
+			)
+			for (const [snapAngle, points] of getElbowArrowSnapLines(this.editor)) {
+				if (approximately(angle, snapAngle)) {
+					console.log(
+						'found snap points',
+						points,
+						Vec.DistanceToLineSegment(midUp, midDown, { x: 0, y: 0 }, false)
+					)
+				}
+			}
+
 			const distance =
-				Vec.DistanceToLineSegment(
-					shapeToPageTransform.applyToPoint(axis.v(mid, 0)),
-					shapeToPageTransform.applyToPoint(axis.v(mid, 1)),
-					handlePagePoint,
-					false
-				) * this.editor.getZoomLevel()
+				Vec.DistanceToLineSegment(midUp, midDown, handlePagePoint, false) *
+				this.editor.getZoomLevel()
 
 			const newMid = distance < 16 ? 0.5 : clamp(invLerp(lo, hi, handle[axis.self]), 0, 1)
+			console.log({ newMid, lo, hi, handle: handle[axis.self] })
 
 			return {
 				id: shape.id,

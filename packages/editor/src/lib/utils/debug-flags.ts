@@ -58,7 +58,7 @@ export const elbowArrowDebug = createDebugValue<{
 			hintRotation: 'target',
 			hintBinding: 'edge',
 			axisBinding: 'closest-point',
-			customMidpoint: false,
+			customMidpoint: true,
 		},
 	},
 })

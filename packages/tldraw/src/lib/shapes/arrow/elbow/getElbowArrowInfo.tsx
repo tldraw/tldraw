@@ -273,6 +273,7 @@ export function getRouteHandlePath(info: ElbowArrowInfo, route: ElbowArrowRoute)
 		aEdgePicking: route.aEdgePicking,
 		bEdgePicking: route.bEdgePicking,
 		skipPointsWhenDrawing: route.skipPointsWhenDrawing,
+		midpointHandle: route.midpointHandle,
 	}
 }
 

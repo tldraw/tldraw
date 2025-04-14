@@ -21,6 +21,14 @@ export interface ElbowArrowRoute {
 	/** @internal */
 	bEdgePicking: ElbowArrowSideReason
 	skipPointsWhenDrawing: Set<Vec>
+	midpointHandle: ElbowArrowMidpointHandle | null
+}
+
+/** @public */
+export interface ElbowArrowMidpointHandle {
+	axis: 'x' | 'y'
+	self: number
+	cross: number
 }
 
 export const ElbowArrowSides = ['right', 'bottom', 'left', 'top'] as const

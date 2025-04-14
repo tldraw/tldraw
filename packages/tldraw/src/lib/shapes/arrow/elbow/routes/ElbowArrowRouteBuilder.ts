@@ -1,10 +1,10 @@
-import { Vec, VecLike } from '@tldraw/editor'
-import { ElbowArrowRoute } from '../definitions'
+import { assert, lerp, Vec, VecLike } from '@tldraw/editor'
+import { ElbowArrowAxes, ElbowArrowMidpointHandle, ElbowArrowRoute } from '../definitions'
 import { ElbowArrowWorkingInfo } from './ElbowArrowWorkingInfo'
 
 const MIN_DISTANCE = 0.01
 
-export class ElbowArrowRouteBuilder2 {
+export class ElbowArrowRouteBuilder {
 	points: Vec[] = []
 
 	constructor(
@@ -44,6 +44,23 @@ export class ElbowArrowRouteBuilder2 {
 		return this
 	}
 
+	private _midpointHandle: ElbowArrowMidpointHandle | null = null
+	midpointHandle(axisName: 'x' | 'y'): this {
+		assert(this._midpointHandle === null, 'midX/midY called multiple times')
+		const axis = ElbowArrowAxes[axisName]
+		this._midpointHandle = {
+			axis: axisName,
+			self: this.points[this.points.length - 1][axis.self],
+			cross: lerp(
+				this.points[this.points.length - 2][axis.cross],
+				this.points[this.points.length - 1][axis.cross],
+				0.5
+			),
+		}
+
+		return this
+	}
+
 	build(): ElbowArrowRoute {
 		return {
 			name: this.name,
@@ -52,6 +69,7 @@ export class ElbowArrowRouteBuilder2 {
 			aEdgePicking: 'manual',
 			bEdgePicking: 'manual',
 			skipPointsWhenDrawing: new Set(),
+			midpointHandle: this._midpointHandle,
 		}
 	}
 }
