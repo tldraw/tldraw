@@ -1,15 +1,19 @@
 import {
 	assert,
+	clamp,
 	exhaustiveSwitchError,
 	Geometry2dOptions,
 	getPerfectDashProps,
 	Group2d,
+	invLerp,
+	lerp,
 	Polygon2d,
 	Polyline2d,
 	rng,
 	toDomPrecision,
 	Vec,
 	VecLike,
+	VecModel,
 } from '@tldraw/editor'
 import { SVGProps } from 'react'
 
@@ -443,13 +447,27 @@ export class PathBuilder {
 					y: initial.y + random() * initialOffset,
 				}
 
-				const offsetPoints = segments.map(({ x, y, opts }) => {
-					const offset = opts?.offset ?? defaultOffset
-					return {
-						x: x + random() * offset,
-						y: y + random() * offset,
+				const offsetPoints: VecModel[] = []
+				let lastDistance = Vec.Dist(initialPOffset, segments[0])
+
+				for (let i = 0; i < segments.length; i++) {
+					const segment = segments[i]
+					const nextSegment =
+						i === segments.length - 1 ? (closed ? segments[0] : null) : segments[i + 1]
+					const nextDistance = nextSegment ? Vec.Dist(segment, nextSegment) : Infinity
+
+					const shortestDistance =
+						Math.min(lastDistance, nextDistance) - (segment.opts?.roundness ?? defaultRoundness)
+
+					const offset = clamp(segment.opts?.offset ?? defaultOffset, 0, shortestDistance / 10)
+					const offsetPoint = {
+						x: segment.x + random() * offset,
+						y: segment.y + random() * offset,
 					}
-				})
+
+					offsetPoints.push(offsetPoint)
+					lastDistance = nextDistance
+				}
 
 				if (closed) {
 					const roundness = initial.opts?.roundness ?? defaultRoundness
@@ -484,10 +502,30 @@ export class PathBuilder {
 								break
 							}
 
-							const nudgeBeforeAmount = Math.min(Vec.Dist(previousOffsetP, offsetP) / 2, roundness)
+							const clampedRoundness = lerp(
+								roundness,
+								0,
+								clamp(
+									invLerp(
+										Math.PI / 2,
+										Math.PI,
+										Math.abs(Vec.AngleBetween(tangentBefore, tangentAfter))
+									),
+									0,
+									1
+								)
+							)
+
+							const nudgeBeforeAmount = Math.min(
+								Vec.Dist(previousOffsetP, offsetP) / 2,
+								clampedRoundness
+							)
 							const nudgeBefore = Vec.Mul(tangentBefore, nudgeBeforeAmount).add(offsetP)
 
-							const nudgeAfterAmount = Math.min(Vec.Dist(nextOffsetP, offsetP) / 2, roundness)
+							const nudgeAfterAmount = Math.min(
+								Vec.Dist(nextOffsetP, offsetP) / 2,
+								clampedRoundness
+							)
 							const nudgeAfter = Vec.Mul(tangentAfter, nudgeAfterAmount).add(offsetP)
 
 							parts.push(

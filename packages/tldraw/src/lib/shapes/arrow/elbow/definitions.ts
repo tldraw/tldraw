@@ -20,6 +20,7 @@ export interface ElbowArrowRoute {
 	aEdgePicking: ElbowArrowSideReason
 	/** @internal */
 	bEdgePicking: ElbowArrowSideReason
+	skipPointsWhenDrawing: Set<Vec>
 }
 
 export const ElbowArrowSides = ['right', 'bottom', 'left', 'top'] as const

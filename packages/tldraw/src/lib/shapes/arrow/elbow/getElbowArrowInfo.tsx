@@ -269,9 +269,10 @@ export function getRouteHandlePath(info: ElbowArrowInfo, route: ElbowArrowRoute)
 	return {
 		name: route.name,
 		distance: route.distance + firstSegmentLengthChange + lastSegmentLengthChange,
-		points: newPoints,
+		points: newPoints.filter((p) => !route.skipPointsWhenDrawing.has(p)),
 		aEdgePicking: route.aEdgePicking,
 		bEdgePicking: route.bEdgePicking,
+		skipPointsWhenDrawing: route.skipPointsWhenDrawing,
 	}
 }
 
@@ -689,11 +690,9 @@ function castPathSegmentIntoGeometry(
 		point1.y = nearestIntersection.y
 
 		if (offset < 0) {
-			route.points.splice(
-				segment === 'first' ? 1 : route.points.length - 1,
-				0,
-				Vec.Lrp(point2, point1, 0.5)
-			)
+			const midPoint = Vec.Lrp(point2, point1, 0.5)
+			route.skipPointsWhenDrawing.add(midPoint)
+			route.points.splice(segment === 'first' ? 1 : route.points.length - 1, 0, midPoint)
 		}
 	}
 }
@@ -708,7 +707,7 @@ function fixTinyEndNubs(
 	if (route.points.length >= 3) {
 		const firstSegmentLength = Vec.ManhattanDist(route.points[0], route.points[1])
 		if (firstSegmentLength < aBinding.minEndSegmentLength) {
-			route.points[1] = Vec.Nudge(route.points[0], route.points[2], aBinding.minEndSegmentLength)
+			route.points.splice(1, 1)
 		}
 	}
 
@@ -718,11 +717,7 @@ function fixTinyEndNubs(
 			route.points[route.points.length - 1]
 		)
 		if (lastSegmentLength < bBinding.minEndSegmentLength) {
-			route.points[route.points.length - 2] = Vec.Nudge(
-				route.points[route.points.length - 1],
-				route.points[route.points.length - 3],
-				bBinding.minEndSegmentLength
-			)
+			route.points.splice(route.points.length - 2, 1)
 		}
 	}
 }

@@ -4,9 +4,6 @@ import { TLArrowInfo } from './arrow-types'
 import { getRouteHandlePath } from './elbow/getElbowArrowInfo'
 
 export function getArrowBodyPath(shape: TLArrowShape, info: TLArrowInfo, opts: PathBuilderOpts) {
-	const startHasArrowhead = shape.props.arrowheadStart !== 'none'
-	const endHasArrowhead = shape.props.arrowheadEnd !== 'none'
-
 	switch (info.type) {
 		case 'straight':
 			return new PathBuilder()
@@ -28,12 +25,15 @@ export function getArrowBodyPath(shape: TLArrowShape, info: TLArrowInfo, opts: P
 		case 'elbow': {
 			const path = new PathBuilder()
 			path.moveTo(info.start.point.x, info.start.point.y, {
-				offset: startHasArrowhead ? 0 : undefined,
+				offset: 0,
 			})
 			for (let i = 1; i < info.route.points.length; i++) {
 				const point = info.route.points[i]
+				if (info.route.skipPointsWhenDrawing.has(point)) {
+					continue
+				}
 				path.lineTo(point.x, point.y, {
-					offset: i === info.route.points.length - 1 && endHasArrowhead ? 0 : undefined,
+					offset: i === info.route.points.length - 1 ? 0 : undefined,
 				})
 			}
 			return path.toSvg(opts)

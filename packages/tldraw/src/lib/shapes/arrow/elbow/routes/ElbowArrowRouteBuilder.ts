@@ -51,6 +51,7 @@ export class ElbowArrowRouteBuilder2 {
 			distance: measureRouteManhattanDistance(this.points),
 			aEdgePicking: 'manual',
 			bEdgePicking: 'manual',
+			skipPointsWhenDrawing: new Set(),
 		}
 	}
 }

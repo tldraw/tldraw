@@ -1102,6 +1102,8 @@ export interface ElbowArrowRoute {
     name: string;
     // (undocumented)
     points: Vec[];
+    // (undocumented)
+    skipPointsWhenDrawing: Set<Vec>;
 }
 
 // @public (undocumented)
