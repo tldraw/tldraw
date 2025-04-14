@@ -1,4 +1,3 @@
-import * as PopoverPrimitive from '@radix-ui/react-popover'
 import {
 	activeElementShouldCaptureKeys,
 	preventDefault,
@@ -174,16 +173,14 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 					<IsInOverflowContext.Provider value={true}>
 						<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
 							<TldrawUiPopoverTrigger>
-								<PopoverPrimitive.Anchor>
-									<TldrawUiToolbarButton
-										title={msg('tool-panel.more')}
-										type="tool"
-										className="tlui-toolbar__overflow"
-										data-testid="tools.more-button"
-									>
-										<TldrawUiButtonIcon icon="chevron-up" />
-									</TldrawUiToolbarButton>
-								</PopoverPrimitive.Anchor>
+								<TldrawUiToolbarButton
+									title={msg('tool-panel.more')}
+									type="tool"
+									className="tlui-toolbar__overflow"
+									data-testid="tools.more-button"
+								>
+									<TldrawUiButtonIcon icon="chevron-up" />
+								</TldrawUiToolbarButton>
 							</TldrawUiPopoverTrigger>
 							<TldrawUiPopoverContent side="top" align="center">
 								<TldrawUiToolbar

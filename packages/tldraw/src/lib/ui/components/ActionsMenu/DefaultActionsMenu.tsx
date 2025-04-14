@@ -1,4 +1,3 @@
-import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
 import { ReactNode, memo, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
@@ -48,15 +47,13 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 	return (
 		<TldrawUiPopover id="actions-menu">
 			<TldrawUiPopoverTrigger>
-				<PopoverPrimitive.Anchor>
-					<TldrawUiToolbarButton
-						type="icon"
-						data-testid="actions-menu.button"
-						title={msg('actions-menu.title')}
-					>
-						<TldrawUiButtonIcon icon="dots-vertical" small />
-					</TldrawUiToolbarButton>
-				</PopoverPrimitive.Anchor>
+				<TldrawUiToolbarButton
+					type="icon"
+					data-testid="actions-menu.button"
+					title={msg('actions-menu.title')}
+				>
+					<TldrawUiButtonIcon icon="dots-vertical" small />
+				</TldrawUiToolbarButton>
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent
 				side={breakpoint >= PORTRAIT_BREAKPOINT.TABLET ? 'bottom' : 'top'}
