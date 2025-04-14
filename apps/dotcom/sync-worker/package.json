@@ -12,7 +12,7 @@
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"scripts": {
-		"dev": "./dev.sh",
+		"_dev": "./dev.sh",
 		"test-ci": "lazy inherit",
 		"test": "yarn run -T jest",
 		"clean": "rm -rf .wrangler/state",

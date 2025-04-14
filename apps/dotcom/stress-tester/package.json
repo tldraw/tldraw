@@ -19,10 +19,13 @@
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/worker-shared": "workspace:*",
-		"itty-router": "^5.0.17"
+		"itty-router": "^5.0.17",
+		"kysely": "^0.28.0",
+		"pg": "^8.14.1"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20241022.0",
+		"@types/pg": "^8",
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "~5.4.2",
 		"wrangler": "^3.84.1"

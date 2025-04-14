@@ -84,6 +84,19 @@ export function Component() {
 		})
 	}
 
+	const handleRename = async () => {
+		await fetch(coordinatorUrl + '/update-names', {
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+			},
+			method: 'POST',
+		}).then((res) => {
+			if (res.ok) {
+				window.alert('Renamed users successfully')
+			}
+		})
+	}
+
 	let results: any[] = []
 
 	if (currentTest) {
@@ -105,6 +118,7 @@ export function Component() {
 				<button onClick={handleStart}>Start test</button>
 				<button onClick={handleStop}>Stop test</button>
 				<button onClick={handleReset}>Reset</button>
+				<button onClick={handleRename}>Rename users</button>
 			</div>
 			<pre>{JSON.stringify(results.length > 0 ? results : state, null, 2)}</pre>
 		</div>

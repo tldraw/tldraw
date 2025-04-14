@@ -8,4 +8,5 @@ export interface Environment {
 	ACCESS_TOKEN: string
 	// used to create users on the fly
 	TEST_AUTH_SECRET: string
+	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
 }

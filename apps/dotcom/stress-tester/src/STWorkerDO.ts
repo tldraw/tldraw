@@ -187,6 +187,14 @@ export class STWorkerDO extends DurableObject<Environment> {
 		this.delay = Math.floor(Math.random() * maxDelay)
 	}
 
+	async getState() {
+		if (!this.zero) {
+			assert(this.num_files === 0, 'num_files > 0')
+			await this.startWorking()
+		}
+		return this.zero!.store.getFullData()
+	}
+
 	async work() {
 		this.debug('work', new Date().toISOString())
 		const alarm = await this.state.storage.getAlarm()

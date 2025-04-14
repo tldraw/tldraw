@@ -17,6 +17,7 @@ new_sqlite_classes = ["STWorkerDO", "STCoordinatorDO"]
 [env.dev.vars]
 TEST_AUTH_SECRET = "placeholder_secret"
 ACCESS_TOKEN = "hello"
+BOTCOM_POSTGRES_POOLED_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6432/postgres"
 
 #################### Durable objects ####################
 # durable objects have the same configuration in all environments:

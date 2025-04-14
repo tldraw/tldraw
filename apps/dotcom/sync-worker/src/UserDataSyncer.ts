@@ -109,7 +109,7 @@ function migrateStateSnapshot(snapshot: StateSnapshot): void {
 }
 
 const MUTATION_COMMIT_TIMEOUT = 10_000
-export const LSN_COMMIT_TIMEOUT = 10_000
+export const LSN_COMMIT_TIMEOUT = 120_000
 
 export class UserDataSyncer {
 	state: BootState = {
@@ -191,9 +191,9 @@ export class UserDataSyncer {
 			this.ctx.abort()
 			return
 		}
-		this.log.debug('rebooting', source)
-		this.logEvent({ type: 'reboot', id: this.userId })
 		await this.queue.push(async () => {
+			this.log.debug('rebooting', source)
+			this.logEvent({ type: 'reboot', id: this.userId })
 			if (delay) {
 				await sleep(Math.random() * 5000)
 			}

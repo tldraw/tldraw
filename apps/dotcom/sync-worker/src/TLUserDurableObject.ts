@@ -502,11 +502,21 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	/* ------- RPCs -------  */
 
-	async handleReplicationEvent(event: ZReplicationEvent) {
-		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
+	async handleReplicationEvent(userId: string, event: ZReplicationEvent) {
+		this.logEvent({ type: 'replication_event', id: userId })
 		this.log.debug('replication event', event, !!this.cache)
 		if (!this.cache) {
-			return 'ok'
+			this.cache = new UserDataSyncer(
+				this.ctx,
+				this.env,
+				this.db,
+				userId,
+				(message) => this.broadcast(message),
+				this.logEvent.bind(this),
+				this.log
+			)
+
+			await this.cache.reboot({ delay: false, mode: 'soft', source: 'constructor' })
 		}
 
 		try {

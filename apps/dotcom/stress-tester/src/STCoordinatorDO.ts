@@ -1,7 +1,9 @@
-import { STCoordinatorState, STWorkerEvent } from '@tldraw/dotcom-shared'
-import { assert } from '@tldraw/utils'
+import { DB, STCoordinatorState, STWorkerEvent } from '@tldraw/dotcom-shared'
+import { assert, sleep, uniqueId } from '@tldraw/utils'
 import { DurableObject } from 'cloudflare:workers'
 import { AutoRouter, cors, error } from 'itty-router'
+import { Kysely, PostgresDialect, sql } from 'kysely'
+import * as pg from 'pg'
 import { STWorkerDO } from './STWorkerDO'
 import { Environment } from './types'
 
@@ -19,15 +21,34 @@ const regions: DurableObjectLocationHint[] = [
 
 const { preflight, corsify } = cors({ origin: '*' })
 
+export function createPostgresConnectionPool(env: Environment, name: string, max: number = 1) {
+	const pool = new pg.Pool({
+		connectionString: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+		application_name: name,
+		idleTimeoutMillis: 10_000,
+		max,
+	})
+
+	const dialect = new PostgresDialect({ pool })
+
+	const db = new Kysely<DB>({
+		dialect,
+		log: ['error'],
+	})
+	return db
+}
+
 export class STCoordinatorDO extends DurableObject<Environment> {
 	state: STCoordinatorState = {
 		tests: {},
 	}
 
 	otherStub
+	db
 	constructor(state: DurableObjectState, env: Environment) {
 		super(state, env)
 		this.otherStub = env.ST_COORDINATOR.get(env.ST_COORDINATOR.idFromName('otherone'))
+		this.db = createPostgresConnectionPool(env, 'STCoordinatorDO', 1)
 	}
 	_debug(...args: any[]) {
 		console.log('ST_COORDINATOR', ...args)
@@ -102,6 +123,11 @@ export class STCoordinatorDO extends DurableObject<Environment> {
 			return new Response('Reset', { status: 200 })
 		})
 		.get('/state', () => new Response(JSON.stringify(this.getState()), { status: 200 }))
+		.post('/update-names', async () => {
+			this.debug('updating names')
+			await this.updateNames()
+			return new Response('Updated', { status: 200 })
+		})
 
 	getState(): STCoordinatorState {
 		return this.state
@@ -119,4 +145,33 @@ export class STCoordinatorDO extends DurableObject<Environment> {
 		}
 		this.state.tests[testId].events.push(event)
 	}
+
+	async updateNames() {
+		const suffix = uniqueId()
+		const [testId] = Object.keys(this.state.tests)
+		const numWorkers = this.state.tests[testId].numWorkers
+		for (let i = 0; i < numWorkers; i++) {
+			await sql`update public.user set name = ${'Test User ' + suffix} where id = ${testId + ':' + i}`.execute(
+				this.db
+			)
+		}
+		await sleep(1000)
+		const errors = []
+		for (let i = 0; i < numWorkers; i++) {
+			const worker = this.env.ST_WORKER.get(
+				this.env.ST_WORKER.idFromName(`${testId}:${i}`)
+			) as any as STWorkerDO
+			const data = await worker.getState()
+			if (data?.user.name !== 'Test User ' + suffix) {
+				errors.push('Name not updated', data?.user.name)
+			}
+		}
+		if (errors.length > 0) {
+			throw new Error('Errors updating names: ' + errors.join(', '))
+		}
+	}
 }
+
+// 1. check that users don't do database/replicator requests on reconnect after deploy
+// 2. check that users don't do database/replicator requests on reconnect after replicator restart
+// 3. check that updating user's information directly in db syncs to their DO after a deploy

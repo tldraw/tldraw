@@ -11,7 +11,7 @@
 		"defaults"
 	],
 	"scripts": {
-		"dev": "concurrently 'yarn docker-up' 'yarn migrate --signal-success' 'yarn bundle-schema:watch' 'yarn zero-server'",
+		"dev": "concurrently 'yarn docker-up' 'yarn migrate --signal-success'",
 		"bundle-schema": "esbuild --bundle --platform=node --format=esm --outfile=./.schema.js ../../../packages/dotcom-shared/src/tlaSchema.ts",
 		"bundle-schema:watch": "esbuild --bundle --watch --platform=node --format=esm --outfile=./.schema.js ../../../packages/dotcom-shared/src/tlaSchema.ts",
 		"zero-server": "nodemon --watch ./.schema.js --exec 'zero-cache-dev -p ./.schema.js' --signal SIGINT",

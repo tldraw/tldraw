@@ -791,7 +791,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			await q.push(async () => {
 				const user = getUserDurableObject(this.env, userId)
 
-				await user.handleReplicationEvent({
+				await user.handleReplicationEvent(userId, {
 					...event,
 					sequenceNumber,
 					sequenceId: this.slotName + sequenceIdSuffix,
