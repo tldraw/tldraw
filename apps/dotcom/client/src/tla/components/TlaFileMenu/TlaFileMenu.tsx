@@ -168,7 +168,6 @@ export function FileItems({
 	return (
 		<Fragment>
 			<TldrawUiMenuGroup id="file-actions">
-				<TlImportFileActionGroup label={importFileMsg} />
 				{/* todo: in published rooms, support copying link */}
 				<TldrawUiMenuItem
 					label={copyLinkMsg}
@@ -192,6 +191,7 @@ export function FileItems({
 					readonlyOk
 					onSelect={handlePinUnpinClick}
 				/>
+				<TlImportFileActionGroup label={importFileMsg} />
 				<TldrawUiMenuItem
 					label={downloadFile}
 					id="download-file"
