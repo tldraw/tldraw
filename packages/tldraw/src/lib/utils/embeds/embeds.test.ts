@@ -100,6 +100,14 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		},
 	},
 	{
+		url: 'https://www.youtube.com/watch?v=ZMklf0vUl18&t=62',
+		match: true,
+		output: {
+			type: 'youtube',
+			embedUrl: 'https://www.youtube.com/embed/ZMklf0vUl18?start=62',
+		},
+	},
+	{
 		url: 'https://m.youtube.com/watch?v=ZMklf0vUl18',
 		match: true,
 		output: {
@@ -120,7 +128,7 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		match: true,
 		output: {
 			type: 'youtube',
-			embedUrl: 'https://www.youtube.com/embed/u1016UnJIgA?feature=shared&t=16',
+			embedUrl: 'https://www.youtube.com/embed/u1016UnJIgA?feature=shared&start=16',
 		},
 	},
 	{
@@ -466,7 +474,7 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 		match: true,
 		output: {
 			type: 'youtube',
-			url: 'https://www.youtube.com/watch?start=16&v=u1016UnJIgA',
+			url: 'https://www.youtube.com/watch?v=u1016UnJIgA&t=16',
 		},
 	},
 	{
