@@ -79,11 +79,11 @@ const env = makeEnv([
 	'WORKER_SENTRY_DSN',
 	'BOTCOM_POSTGRES_CONNECTION_STRING',
 	'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
-	'DEPLOY_TO',
+	'DEPLOY_ZERO',
 ])
 
-const deployViaFlyIo = env.DEPLOY_TO === 'flyio'
-const flyioAppName = deployViaFlyIo ? `${previewId}-zero-cache` : undefined
+const deployZero = env.DEPLOY_ZERO as 'flyio' | 'sst' | false
+const flyioAppName = deployZero === 'flyio' ? `${previewId}-zero-cache` : undefined
 
 const clerkJWKSUrl =
 	env.TLDRAW_ENV === 'production'
@@ -149,10 +149,12 @@ async function main() {
 	await discord.step('deploying multiplayer worker to cloudflare', async () => {
 		await deployTlsyncWorker({ dryRun: false })
 	})
-	// We need to deploy zero after `deployTlsyncWorker` because we need to run migrations first
-	await discord.step('deploying zero', async () => {
-		await deployZero()
-	})
+	if (deployZero !== false) {
+		// We need to deploy zero after `deployTlsyncWorker` because we need to run migrations first
+		await discord.step('deploying zero', async () => {
+			await deployZeroBackend()
+		})
+	}
 	await discord.step('deploying image resizer to cloudflare', async () => {
 		await deployImageResizeWorker({ dryRun: false })
 	})
@@ -193,10 +195,12 @@ async function main() {
 function getZeroUrl() {
 	switch (env.TLDRAW_ENV) {
 		case 'preview': {
-			if (deployViaFlyIo) {
+			if (deployZero === 'flyio') {
 				return `https://${flyioAppName}.fly.dev/`
-			} else {
+			} else if (deployZero === 'sst') {
 				return `https://${previewId}.zero.tldraw.com/`
+			} else {
+				return undefined
 			}
 		}
 		case 'staging':
@@ -434,10 +438,10 @@ async function deployZeroViaFlyIo() {
 	await deployPermissionsToFlyIo()
 }
 
-async function deployZero() {
-	if (deployViaFlyIo) {
+async function deployZeroBackend() {
+	if (deployZero === 'flyio') {
 		await deployZeroViaFlyIo()
-	} else {
+	} else if (deployZero === 'sst') {
 		await deployZeroViaSst()
 	}
 }
