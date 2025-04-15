@@ -1,3 +1,34 @@
+# v3.12.0 (Tue Apr 15 2025)
+
+### Release Notes
+
+#### a11y: announce shapes as they're visited ([#5773](https://github.com/tldraw/tldraw/pull/5773))
+
+- a11y: announce shapes as they're visited
+
+#### Add Frame colors ([#5283](https://github.com/tldraw/tldraw/pull/5283))
+
+- Added `FrameShapeUtil.options.showColors` option to display colors for frames.
+
+---
+
+#### 🐛 Bug Fixes
+
+- Add Frame colors [#5283](https://github.com/tldraw/tldraw/pull/5283) ([@steveruizok](https://github.com/steveruizok) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@SomeHats](https://github.com/SomeHats))
+
+#### 🎉 New Features
+
+- a11y: announce shapes as they're visited [#5773](https://github.com/tldraw/tldraw/pull/5773) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 4
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.11.0 (Thu Mar 20 2025)
 
 ### Release Notes
