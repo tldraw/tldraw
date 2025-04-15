@@ -34,13 +34,17 @@ export const Geometry2dFilters: {
 }
 
 /** @public */
-export interface Geometry2dOptions {
-	isFilled: boolean
-	isClosed: boolean
+export interface TransformedGeometry2dOptions {
 	isLabel?: boolean
 	isInternal?: boolean
 	debugColor?: string
 	ignore?: boolean
+}
+
+/** @public */
+export interface Geometry2dOptions extends TransformedGeometry2dOptions {
+	isFilled: boolean
+	isClosed: boolean
 }
 
 /** @public */
@@ -173,8 +177,8 @@ export abstract class Geometry2d {
 		)
 	}
 
-	transform(transform: MatModel): Geometry2d {
-		return new TransformedGeometry2d(this, transform)
+	transform(transform: MatModel, opts?: Partial<Geometry2dOptions>): Geometry2d {
+		return new TransformedGeometry2d(this, transform, opts)
 	}
 
 	private _vertices: Vec[] | undefined
@@ -289,11 +293,19 @@ export class TransformedGeometry2d extends Geometry2d {
 
 	constructor(
 		private readonly geometry: Geometry2d,
-		private readonly matrix: MatModel
+		private readonly matrix: MatModel,
+		opts?: TransformedGeometry2dOptions
 	) {
 		super(geometry)
 		this.inverse = Mat.Inverse(matrix)
 		this.decomposed = Mat.Decompose(matrix)
+
+		if (opts) {
+			if (opts.isLabel != null) this.isLabel = opts.isLabel
+			if (opts.isInternal != null) this.isInternal = opts.isInternal
+			if (opts.debugColor != null) this.debugColor = opts.debugColor
+			if (opts.ignore != null) this.ignore = opts.ignore
+		}
 
 		assert(
 			approximately(this.decomposed.scaleX, this.decomposed.scaleY),
@@ -376,8 +388,13 @@ export class TransformedGeometry2d extends Geometry2d {
 		return this.geometry.intersectPolyline(Mat.applyToPoints(this.inverse, polyline), filters)
 	}
 
-	override transform(transform: MatModel): Geometry2d {
-		return new TransformedGeometry2d(this.geometry, Mat.Multiply(transform, this.matrix))
+	override transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d {
+		return new TransformedGeometry2d(this.geometry, Mat.Multiply(transform, this.matrix), {
+			isLabel: opts?.isLabel ?? this.isLabel,
+			isInternal: opts?.isInternal ?? this.isInternal,
+			debugColor: opts?.debugColor ?? this.debugColor,
+			ignore: opts?.ignore ?? this.ignore,
+		})
 	}
 
 	getSvgPathData(): string {
