@@ -1761,7 +1761,7 @@ export abstract class Geometry2d {
     // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
-    transform(transform: MatModel): Geometry2d;
+    transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d;
     // (undocumented)
     get vertices(): Vec[];
 }
@@ -1783,19 +1783,11 @@ export const Geometry2dFilters: {
 };
 
 // @public (undocumented)
-export interface Geometry2dOptions {
-    // (undocumented)
-    debugColor?: string;
-    // (undocumented)
-    ignore?: boolean;
+export interface Geometry2dOptions extends TransformedGeometry2dOptions {
     // (undocumented)
     isClosed: boolean;
     // (undocumented)
     isFilled: boolean;
-    // (undocumented)
-    isInternal?: boolean;
-    // (undocumented)
-    isLabel?: boolean;
 }
 
 // @public
@@ -4300,7 +4292,7 @@ export { transaction }
 
 // @public (undocumented)
 export class TransformedGeometry2d extends Geometry2d {
-    constructor(geometry: Geometry2d, matrix: MatModel);
+    constructor(geometry: Geometry2d, matrix: MatModel, opts?: TransformedGeometry2dOptions);
     // (undocumented)
     distanceToLineSegment(A: Vec, B: Vec, filters?: Geometry2dFilters): number;
     // (undocumented)
@@ -4324,7 +4316,19 @@ export class TransformedGeometry2d extends Geometry2d {
     // (undocumented)
     nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec;
     // (undocumented)
-    transform(transform: MatModel): Geometry2d;
+    transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d;
+}
+
+// @public (undocumented)
+export interface TransformedGeometry2dOptions {
+    // (undocumented)
+    debugColor?: string;
+    // (undocumented)
+    ignore?: boolean;
+    // (undocumented)
+    isInternal?: boolean;
+    // (undocumented)
+    isLabel?: boolean;
 }
 
 // @public (undocumented)

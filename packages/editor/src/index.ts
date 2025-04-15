@@ -369,6 +369,7 @@ export {
 	Geometry2dFilters,
 	TransformedGeometry2d,
 	type Geometry2dOptions,
+	type TransformedGeometry2dOptions,
 } from './lib/primitives/geometry/Geometry2d'
 export { Group2d } from './lib/primitives/geometry/Group2d'
 export { Point2d } from './lib/primitives/geometry/Point2d'
