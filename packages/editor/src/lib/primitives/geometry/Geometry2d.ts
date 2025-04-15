@@ -177,7 +177,7 @@ export abstract class Geometry2d {
 		)
 	}
 
-	transform(transform: MatModel, opts?: Partial<Geometry2dOptions>): Geometry2d {
+	transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d {
 		return new TransformedGeometry2d(this, transform, opts)
 	}
 

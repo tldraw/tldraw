@@ -1761,7 +1761,7 @@ export abstract class Geometry2d {
     // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
-    transform(transform: MatModel, opts?: Partial<Geometry2dOptions>): Geometry2d;
+    transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d;
     // (undocumented)
     get vertices(): Vec[];
 }
