@@ -26,7 +26,6 @@ import {
 	TLShapeUtilCanvasSvgDef,
 	Vec,
 	WeakCache,
-	approximately,
 	arrowShapeMigrations,
 	arrowShapeProps,
 	clamp,
@@ -61,7 +60,7 @@ import { updateArrowTargetState } from './arrowTargetState'
 import { getArrowheadPathForType } from './arrowheads'
 import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
 import { ElbowArrowAxes } from './elbow/definitions'
-import { getElbowArrowSnapLines } from './elbow/elbowArrowSnapLines'
+import { getElbowArrowSnapLines, perpDistanceToLineAngle } from './elbow/elbowArrowSnapLines'
 import {
 	TLArrowBindings,
 	createOrUpdateArrowBinding,
@@ -108,6 +107,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		elbowArrowAxisSnapDistance: 16,
 
 		labelCenterSnapDistance: 10,
+		elbowMidpointSnapDistance: 10,
 
 		hoverPreciseTimeout: 600,
 		pointingPreciseTimeout: 320,
@@ -303,39 +303,53 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			const handlePagePoint = shapeToPageTransform.applyToPoint(handle)
 			const axis = handleId === ArrowHandles.MiddleX ? ElbowArrowAxes.x : ElbowArrowAxes.y
 
-			const flip = false // info.elbow[axis.gap] < 0
-			const lo = flip ? info.elbow.B.expanded[axis.max] : info.elbow.A.expanded[axis.max]
-			const hi = flip ? info.elbow.A.expanded[axis.min] : info.elbow.B.expanded[axis.min]
-			const mid = lerp(lo, hi, 0.5)
+			const midRange = info.elbow[axis.midRange]
+			if (!midRange) return
 
-			const origin = { x: 0, y: 0 }
-			const midUp = shapeToPageTransform.applyToPoint(axis.v(mid, 0))
-			const midDown = shapeToPageTransform.applyToPoint(axis.v(mid, 1))
-
-			const angle = Vec.Angle(midUp, midDown)
-
-			const handleDistance = Vec.DistanceToLineSegment(
-				handlePagePoint,
-				shapeToPageTransform.applyToPoint(Vec.Add(handle, axis.v(0, 1))),
-				origin,
-				false
+			let angle = Vec.Angle(
+				shapeToPageTransform.applyToPoint(axis.v(0, 0)),
+				shapeToPageTransform.applyToPoint(axis.v(0, 1))
 			)
+			if (angle < 0) angle += Math.PI
+
+			const handlePoint = perpDistanceToLineAngle(handlePagePoint, angle)
+			const loPoint = perpDistanceToLineAngle(
+				shapeToPageTransform.applyToPoint(axis.v(midRange.lo, 0)),
+				angle
+			)
+			const hiPoint = perpDistanceToLineAngle(
+				shapeToPageTransform.applyToPoint(axis.v(midRange.hi, 0)),
+				angle
+			)
+
+			const maxSnapDistance = this.options.elbowArrowAxisSnapDistance * this.editor.getZoomLevel()
+			const midPoint = perpDistanceToLineAngle(
+				shapeToPageTransform.applyToPoint(axis.v(lerp(midRange.lo, midRange.hi, 0.5), 0)),
+				angle
+			)
+
+			let snapPoint = midPoint
+			let snapDistance = Math.abs(midPoint - handlePoint)
+
 			for (const [snapAngle, points] of getElbowArrowSnapLines(this.editor)) {
-				if (approximately(angle, snapAngle)) {
-					console.log(
-						'found snap points',
-						points,
-						Vec.DistanceToLineSegment(midUp, midDown, { x: 0, y: 0 }, false)
-					)
+				if (anglesAreApproximatelyParallel(angle, snapAngle)) {
+					console.log({ loPoint, hiPoint, handlePoint, points })
+					for (const point of points) {
+						const distance = Math.abs(point - handlePoint)
+						if (distance < snapDistance) {
+							snapPoint = point
+							snapDistance = distance
+						}
+					}
 				}
 			}
 
-			const distance =
-				Vec.DistanceToLineSegment(midUp, midDown, handlePagePoint, false) *
-				this.editor.getZoomLevel()
+			if (snapDistance > maxSnapDistance) {
+				snapPoint = handlePoint
+			}
 
-			const newMid = distance < 16 ? 0.5 : clamp(invLerp(lo, hi, handle[axis.self]), 0, 1)
-			console.log({ newMid, lo, hi, handle: handle[axis.self] })
+			const newMid = clamp(invLerp(loPoint, hiPoint, snapPoint), 0, 1)
+			console.log({ newMid, handleDistance: handlePoint, loDistance: loPoint, hiDistance: hiPoint })
 
 			return {
 				id: shape.id,
@@ -344,6 +358,25 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					elbowMid: axis.v(newMid, shape.props.elbowMid[axis.cross]).toJson(),
 				},
 			}
+
+			return
+
+			// return
+
+			// const distance =
+			// 	Vec.DistanceToLineSegment(midUp, midDown, handlePagePoint, false) *
+			// 	this.editor.getZoomLevel()
+
+			// const newMid = distance < 16 ? 0.5 : clamp(invLerp(lo, hi, handle[axis.self]), 0, 1)
+			// console.log({ newMid, lo, hi, handle: handle[axis.self] })
+
+			// return {
+			// 	id: shape.id,
+			// 	type: shape.type,
+			// 	props: {
+			// 		elbowMid: axis.v(newMid, shape.props.elbowMid[axis.cross]).toJson(),
+			// 	},
+			// }
 		}
 
 		// Start or end, pointing the arrow...
@@ -1155,4 +1188,27 @@ function ArrowheadCrossDef() {
 			<line x1="1.5" y1="4.5" x2="4.5" y2="1.5" strokeDasharray="100%" />
 		</marker>
 	)
+}
+
+/**
+ * Take 2 angles and return true if they are approximately parallel. Angle that point in the same
+ * (or opposite) directions are considered parallel. This also handles wrap around - e.g. 0, π, and
+ * 2π are all considered parallel.
+ */
+function anglesAreApproximatelyParallel(a: number, b: number, tolerance = 0.0001) {
+	// Normalize angles to be between 0 and π
+	// First, normalize a
+	let normalizedA = a % (Math.PI * 2)
+	if (normalizedA < 0) normalizedA += Math.PI * 2
+	if (normalizedA >= Math.PI) normalizedA -= Math.PI
+
+	// Then normalize b
+	let normalizedB = b % (Math.PI * 2)
+	if (normalizedB < 0) normalizedB += Math.PI * 2
+	if (normalizedB >= Math.PI) normalizedB -= Math.PI
+
+	// Check if the angles are close to each other
+	const diff = Math.abs(normalizedA - normalizedB)
+
+	return diff < tolerance || Math.abs(diff - Math.PI) < tolerance
 }

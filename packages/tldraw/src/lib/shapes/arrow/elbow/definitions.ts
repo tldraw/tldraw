@@ -79,6 +79,7 @@ export const ElbowArrowAxes = {
 		crossMax: 'maxY',
 		crossMin: 'minY',
 		gap: 'gapX',
+		midRange: 'midXRange',
 	},
 	y: {
 		v: (y: number, x: number) => new Vec(x, y),
@@ -95,6 +96,7 @@ export const ElbowArrowAxes = {
 		crossMax: 'maxX',
 		crossMin: 'minX',
 		gap: 'gapY',
+		midRange: 'midYRange',
 	},
 } as const
 
@@ -251,6 +253,10 @@ export interface ElbowArrowInfo extends ElbowArrowInfoWithoutRoute {
 	 * The route of the arrow.
 	 */
 	route: ElbowArrowRoute | null
+
+	midXRange: { lo: number; hi: number } | null
+	midYRange: { lo: number; hi: number } | null
+
 	/** @internal */
 	steve(): {
 		grid: any

@@ -48,7 +48,11 @@ import {
 	routeArrowWithPartialEdgePicking,
 } from './routes/routeArrowWithAutoEdgePicking'
 
-export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings: TLArrowBindings) {
+export function getElbowArrowInfo(
+	editor: Editor,
+	arrow: TLArrowShape,
+	bindings: TLArrowBindings
+): ElbowArrowInfo {
 	const shapeOptions = editor.getShapeUtil<ArrowShapeUtil>(arrow.type).options
 	const options: ElbowArrowOptions = {
 		elbowMidpoint: elbowArrowDebug.get().customMidpoint ? arrow.props.elbowMid : { x: 0.5, y: 0.5 },
@@ -63,38 +67,10 @@ export function getElbowArrowInfo(editor: Editor, arrow: TLArrowShape, bindings:
 
 	const swapOrder = !!(!startBinding.side && endBinding.side)
 
-	const { aBinding, bBinding } = swapOrder
+	let { aBinding, bBinding } = swapOrder
 		? { aBinding: endBinding, bBinding: startBinding }
 		: { aBinding: startBinding, bBinding: endBinding }
 
-	const { info, route } = routeArrow(aBinding, bBinding, options)
-
-	if (route) {
-		castPathSegmentIntoGeometry('first', info.A, info.B, route, options)
-		castPathSegmentIntoGeometry('last', info.B, info.A, route, options)
-		fixTinyEndNubs(route, aBinding, bBinding)
-
-		if (swapOrder) route.points.reverse()
-	}
-
-	const steve = () => {
-		const grid = getArrowNavigationGrid(aBinding.bounds, bBinding.bounds, options)
-		const path = getArrowPath(
-			grid,
-			getSideToUse(aBinding, bBinding, info.A.edges) ?? undefined,
-			getSideToUse(bBinding, aBinding, info.B.edges) ?? undefined
-		)
-		return { grid, path: path.error ? null : path.path }
-	}
-
-	return { ...info, swapOrder, steve, route }
-}
-
-function routeArrow(
-	aBinding: ElbowArrowBinding,
-	bBinding: ElbowArrowBinding,
-	options: ElbowArrowOptions
-) {
 	let edgesA = {
 		top: getUsableEdge(aBinding, bBinding, 'top', options),
 		right: getUsableEdge(aBinding, bBinding, 'right', options),
@@ -177,27 +153,40 @@ function routeArrow(
 		gapY = -gapY
 	}
 
-	let mx: number | null = null
+	let mxRange: null | { a: number; b: number } = null
 	if (gapX > 0 && (aBinding.isPoint || bBinding.isPoint)) {
-		mx = lerp(aBinding.bounds.maxX, bBinding.bounds.minX, options.elbowMidpoint.x)
+		mxRange = { a: aBinding.bounds.maxX, b: bBinding.bounds.minX }
+		// mx = lerp(aBinding.bounds.maxX, bBinding.bounds.minX, options.elbowMidpoint.x)
 	} else if (gapX < 0 && (aBinding.isPoint || bBinding.isPoint)) {
-		mx = lerp(aBinding.bounds.minX, bBinding.bounds.maxX, options.elbowMidpoint.x)
+		mxRange = { a: aBinding.bounds.minX, b: bBinding.bounds.maxX }
+		// mx = lerp(aBinding.bounds.minX, bBinding.bounds.maxX, options.elbowMidpoint.x)
 	} else if (gapX > options.minElbowLegLength * 2) {
-		mx = lerp(expandedA.maxX, expandedB.minX, options.elbowMidpoint.x)
+		mxRange = { a: expandedA.maxX, b: expandedB.minX }
+		// mx = lerp(expandedA.maxX, expandedB.minX, options.elbowMidpoint.x)
 	} else if (gapX < -options.minElbowLegLength * 2) {
-		mx = lerp(expandedA.minX, expandedB.maxX, 1 - options.elbowMidpoint.x)
+		mxRange = { a: expandedA.minX, b: expandedB.maxX }
+		// mx = lerp(expandedA.minX, expandedB.maxX, 1 - options.elbowMidpoint.x)
 	}
 
-	let my: number | null = null
+	let myRange: null | { a: number; b: number } = null
 	if (gapY > 0 && (aBinding.isPoint || bBinding.isPoint)) {
-		my = lerp(aBinding.bounds.maxY, bBinding.bounds.minY, options.elbowMidpoint.y)
+		myRange = { a: aBinding.bounds.maxY, b: bBinding.bounds.minY }
+		// my = lerp(aBinding.bounds.maxY, bBinding.bounds.minY, options.elbowMidpoint.y)
 	} else if (gapY < 0 && (aBinding.isPoint || bBinding.isPoint)) {
-		my = lerp(aBinding.bounds.minY, bBinding.bounds.maxY, options.elbowMidpoint.y)
+		myRange = { a: aBinding.bounds.minY, b: bBinding.bounds.maxY }
+		// my = lerp(aBinding.bounds.minY, bBinding.bounds.maxY, options.elbowMidpoint.y)
 	} else if (gapY > options.minElbowLegLength * 2) {
-		my = lerp(expandedA.maxY, expandedB.minY, options.elbowMidpoint.y)
+		myRange = { a: expandedA.maxY, b: expandedB.minY }
+		// my = lerp(expandedA.maxY, expandedB.minY, options.elbowMidpoint.y)
 	} else if (gapY < -options.minElbowLegLength * 2) {
-		my = lerp(expandedA.minY, expandedB.maxY, 1 - options.elbowMidpoint.y)
+		myRange = { a: expandedA.minY, b: expandedB.maxY }
+		// my = lerp(expandedA.minY, expandedB.maxY, 1 - options.elbowMidpoint.y)
 	}
+
+	const midpointX = swapOrder ? 1 - options.elbowMidpoint.x : options.elbowMidpoint.x
+	const midpointY = swapOrder ? 1 - options.elbowMidpoint.y : options.elbowMidpoint.y
+	const mx = mxRange ? lerp(mxRange.a, mxRange.b, midpointX) : null
+	const my = myRange ? lerp(myRange.a, myRange.b, midpointY) : null
 
 	const info: ElbowArrowInfoWithoutRoute = {
 		options,
@@ -243,7 +232,40 @@ function routeArrow(
 		route = routeArrowWithAutoEdgePicking(workingInfo)
 	}
 
-	return { info, route }
+	if (route) {
+		castPathSegmentIntoGeometry('first', info.A, info.B, route, options)
+		castPathSegmentIntoGeometry('last', info.B, info.A, route, options)
+		fixTinyEndNubs(route, aBinding, bBinding)
+
+		if (swapOrder) route.points.reverse()
+	}
+
+	const steve = () => {
+		const grid = getArrowNavigationGrid(aBinding.bounds, bBinding.bounds, options)
+		const path = getArrowPath(
+			grid,
+			getSideToUse(aBinding, bBinding, info.A.edges) ?? undefined,
+			getSideToUse(bBinding, aBinding, info.B.edges) ?? undefined
+		)
+		return { grid, path: path.error ? null : path.path }
+	}
+
+	return {
+		...info,
+		swapOrder,
+		steve,
+		route,
+		midXRange: mxRange
+			? swapOrder
+				? { lo: mxRange.b, hi: mxRange.a }
+				: { lo: mxRange.a, hi: mxRange.b }
+			: null,
+		midYRange: myRange
+			? swapOrder
+				? { lo: myRange.b, hi: myRange.a }
+				: { lo: myRange.a, hi: myRange.b }
+			: null,
+	}
 }
 
 export function getRouteHandlePath(info: ElbowArrowInfo, route: ElbowArrowRoute): ElbowArrowRoute {
