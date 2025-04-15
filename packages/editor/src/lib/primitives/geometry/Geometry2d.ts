@@ -77,9 +77,9 @@ export abstract class Geometry2d {
 
 	abstract getVertices(filters: Geometry2dFilters): Vec[]
 
-	abstract nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec
+	abstract nearestPoint(point: Vec, _filters?: Geometry2dFilters): Vec
 
-	hitTestPoint(point: Vec, margin = 0, hitInside = false, filters?: Geometry2dFilters) {
+	hitTestPoint(point: Vec, margin = 0, hitInside = false, _filters?: Geometry2dFilters) {
 		// First check whether the point is inside
 		if (this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)) {
 			return true
@@ -120,7 +120,7 @@ export abstract class Geometry2d {
 		return this.distanceToLineSegment(A, B, filters) <= distance
 	}
 
-	intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): VecLike[] {
+	intersectLineSegment(A: VecLike, B: VecLike, _filters?: Geometry2dFilters): VecLike[] {
 		const intersections = this.isClosed
 			? intersectLineSegmentPolygon(A, B, this.vertices)
 			: intersectLineSegmentPolyline(A, B, this.vertices)
@@ -128,7 +128,7 @@ export abstract class Geometry2d {
 		return intersections ?? []
 	}
 
-	intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): VecLike[] {
+	intersectCircle(center: VecLike, radius: number, _filters?: Geometry2dFilters): VecLike[] {
 		const intersections = this.isClosed
 			? intersectCirclePolygon(center, radius, this.vertices)
 			: intersectCirclePolyline(center, radius, this.vertices)
@@ -136,11 +136,11 @@ export abstract class Geometry2d {
 		return intersections ?? []
 	}
 
-	intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[] {
+	intersectPolygon(polygon: VecLike[], _filters?: Geometry2dFilters): VecLike[] {
 		return intersectPolys(polygon, this.vertices, true, this.isClosed)
 	}
 
-	intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[] {
+	intersectPolyline(polyline: VecLike[], _filters?: Geometry2dFilters): VecLike[] {
 		return intersectPolys(polyline, this.vertices, false, this.isClosed)
 	}
 
