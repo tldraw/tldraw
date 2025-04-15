@@ -11,7 +11,14 @@ import {
 } from '../intersect'
 import { approximately, pointInPolygon } from '../utils'
 
-/** @public */
+/**
+ * Filter geometry within a group.
+ *
+ * Filters are ignored when called directly on primitive geometries, but can be used to narrow down
+ * the results of an operation on `Group2d` geometries.
+ *
+ * @public
+ */
 export interface Geometry2dFilters {
 	readonly includeLabels?: boolean
 	readonly includeInternal?: boolean
@@ -70,10 +77,9 @@ export abstract class Geometry2d {
 
 	abstract getVertices(filters: Geometry2dFilters): Vec[]
 
-	abstract nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec
+	abstract nearestPoint(point: Vec, _filters?: Geometry2dFilters): Vec
 
-	hitTestPoint(point: Vec, margin = 0, hitInside = false, filters?: Geometry2dFilters) {
-		if (this.isExcludedByFilter(filters)) return false
+	hitTestPoint(point: Vec, margin = 0, hitInside = false, _filters?: Geometry2dFilters) {
 		// First check whether the point is inside
 		if (this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)) {
 			return true
@@ -114,9 +120,7 @@ export abstract class Geometry2d {
 		return this.distanceToLineSegment(A, B, filters) <= distance
 	}
 
-	intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): VecLike[] {
-		if (this.isExcludedByFilter(filters)) return []
-
+	intersectLineSegment(A: VecLike, B: VecLike, _filters?: Geometry2dFilters): VecLike[] {
 		const intersections = this.isClosed
 			? intersectLineSegmentPolygon(A, B, this.vertices)
 			: intersectLineSegmentPolyline(A, B, this.vertices)
@@ -124,8 +128,7 @@ export abstract class Geometry2d {
 		return intersections ?? []
 	}
 
-	intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): VecLike[] {
-		if (this.isExcludedByFilter(filters)) return []
+	intersectCircle(center: VecLike, radius: number, _filters?: Geometry2dFilters): VecLike[] {
 		const intersections = this.isClosed
 			? intersectCirclePolygon(center, radius, this.vertices)
 			: intersectCirclePolyline(center, radius, this.vertices)
@@ -133,14 +136,11 @@ export abstract class Geometry2d {
 		return intersections ?? []
 	}
 
-	intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[] {
-		if (this.isExcludedByFilter(filters)) return []
-
+	intersectPolygon(polygon: VecLike[], _filters?: Geometry2dFilters): VecLike[] {
 		return intersectPolys(polygon, this.vertices, true, this.isClosed)
 	}
 
-	intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[] {
-		if (this.isExcludedByFilter(filters)) return []
+	intersectPolyline(polyline: VecLike[], _filters?: Geometry2dFilters): VecLike[] {
 		return intersectPolys(polyline, this.vertices, false, this.isClosed)
 	}
 
