@@ -1766,7 +1766,7 @@ export abstract class Geometry2d {
     get vertices(): Vec[];
 }
 
-// @public (undocumented)
+// @public
 export interface Geometry2dFilters {
     // (undocumented)
     readonly includeInternal?: boolean;

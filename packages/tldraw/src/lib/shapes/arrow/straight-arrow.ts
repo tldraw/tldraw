@@ -53,6 +53,8 @@ export function getStraightArrowInfo(
 
 	const arrowPageTransform = editor.getShapePageTransform(shape)!
 
+	console.group('updateArrowheadPointWithBoundShape')
+	console.log('a')
 	// Update the position of the arrowhead's end point
 	updateArrowheadPointWithBoundShape(
 		b, // <-- will be mutated
@@ -61,6 +63,7 @@ export function getStraightArrowInfo(
 		endShapeInfo
 	)
 
+	console.log('b')
 	// Then update the position of the arrowhead's end point
 	updateArrowheadPointWithBoundShape(
 		a, // <-- will be mutated
@@ -68,6 +71,7 @@ export function getStraightArrowInfo(
 		arrowPageTransform,
 		startShapeInfo
 	)
+	console.groupEnd()
 
 	let offsetA = 0
 	let offsetB = 0
@@ -237,6 +241,7 @@ function updateArrowheadPointWithBoundShape(
 			includeInternal: false,
 		})
 	)
+	console.log({ intersection })
 
 	let targetInt: VecLike | undefined
 
