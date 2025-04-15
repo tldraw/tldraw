@@ -149,12 +149,6 @@ async function main() {
 	await discord.step('deploying multiplayer worker to cloudflare', async () => {
 		await deployTlsyncWorker({ dryRun: false })
 	})
-	if (deployZero !== false) {
-		// We need to deploy zero after `deployTlsyncWorker` because we need to run migrations first
-		await discord.step('deploying zero', async () => {
-			await deployZeroBackend()
-		})
-	}
 	await discord.step('deploying image resizer to cloudflare', async () => {
 		await deployImageResizeWorker({ dryRun: false })
 	})
@@ -267,6 +261,10 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 		},
 	})
+	// Deploy zero after the migrations but before the sync worker
+	if (!dryRun && deployZero !== false) {
+		await deployZeroBackend()
+	}
 	await wranglerDeploy({
 		location: worker,
 		dryRun,
