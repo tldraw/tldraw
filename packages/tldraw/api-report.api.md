@@ -2044,6 +2044,8 @@ export interface RichTextLabelProps {
     // (undocumented)
     fontSize: number;
     // (undocumented)
+    hasCustomTabBehavior?: boolean;
+    // (undocumented)
     isSelected: boolean;
     // (undocumented)
     labelColor: string;
@@ -2190,6 +2192,8 @@ export interface TextAreaProps {
     handleInputPointerDown(e: React_3.PointerEvent<HTMLElement>): void;
     // (undocumented)
     handleKeyDown(e: KeyboardEvent): void;
+    // (undocumented)
+    hasCustomTabBehavior?: boolean;
     // (undocumented)
     isEditing: boolean;
     // (undocumented)
