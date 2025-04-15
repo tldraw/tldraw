@@ -1,6 +1,6 @@
 import { BlogAuthors } from '@/components/blog/blog-authors'
-import { Navigation } from '@/components/common/navigation'
 import { BackToTopButton } from '@/components/common/back-to-top-button'
+import { Navigation } from '@/components/common/navigation'
 import { ShareButton } from '@/components/common/share-button'
 import { HeadingsMenu } from '@/components/navigation/headings-menu'
 import { Article } from '@/types/content-types'
