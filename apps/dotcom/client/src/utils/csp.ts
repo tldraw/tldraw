@@ -18,6 +18,8 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://clerk.tldraw.com',
 		'https://clerk.staging.tldraw.com',
 		// zero
+		'https://*.zero.tldraw.com',
+		'https://zero.tldraw.com',
 		'http://localhost:4848',
 	],
 	'font-src': [`'self'`, `https://fonts.googleapis.com`, `https://fonts.gstatic.com`, 'data:'],

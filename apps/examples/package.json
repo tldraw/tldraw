@@ -47,6 +47,7 @@
 		"@vercel/analytics": "^1.4.1",
 		"ag-grid-community": "^32.3.3",
 		"ag-grid-react": "^32.3.3",
+		"axe-core": "^4.10.3",
 		"classnames": "^2.5.1",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",

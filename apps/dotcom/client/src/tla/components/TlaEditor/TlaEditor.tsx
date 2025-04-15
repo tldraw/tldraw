@@ -84,7 +84,10 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	// i.e. where it appears that they are not present. so the user knows which ones failed.
 	// There's probably a better way of doing this but I couldn't think of one.
 	const hideAllShapes = useAtom('hideAllShapes', false)
-	const isShapeHidden = useCallback(() => hideAllShapes.get(), [hideAllShapes])
+	const getShapeVisibility = useCallback(
+		() => (hideAllShapes.get() ? 'hidden' : 'inherit'),
+		[hideAllShapes]
+	)
 	const remountImageShapes = useCallback(() => {
 		hideAllShapes.set(true)
 		requestAnimationFrame(() => {
@@ -221,7 +224,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				options={{ actionShortcutsLocation: 'toolbar' }}
 				deepLinks={deepLinks || undefined}
 				overrides={overrides}
-				isShapeHidden={isShapeHidden}
+				getShapeVisibility={getShapeVisibility}
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />

@@ -41,15 +41,16 @@ export function DefaultToolbarContent() {
 /** @public */
 export function useIsToolSelected(tool: TLUiToolItem) {
 	const editor = useEditor()
-	const geo = tool.meta?.geo
+	const geo = tool?.meta?.geo
 	return useValue(
 		'is tool selected',
 		() => {
+			if (!tool) return false
 			const activeToolId = editor.getCurrentToolId()
 			const geoState = editor.getSharedStyles().getAsKnownValue(GeoShapeGeoStyle)
 			return geo ? activeToolId === 'geo' && geoState === geo : activeToolId === tool.id
 		},
-		[editor, tool.id, geo]
+		[editor, tool?.id, geo]
 	)
 }
 

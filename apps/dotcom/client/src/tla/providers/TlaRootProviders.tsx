@@ -6,10 +6,12 @@ import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
 	ContainerProvider,
+	DefaultA11yAnnouncer,
 	DefaultDialogs,
 	DefaultToasts,
 	EditorContext,
 	TLUiEventHandler,
+	TldrawUiA11yProvider,
 	TldrawUiContextProvider,
 	fetch,
 	useToasts,
@@ -113,16 +115,19 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 
 	return (
 		<EditorContext.Provider value={currentEditor}>
-			<TldrawUiContextProvider
-				assetUrls={assetUrls}
-				components={components}
-				onUiEvent={handleAppLevelUiEvent}
-			>
-				<TooltipProvider>{children}</TooltipProvider>
-				<DefaultDialogs />
-				<DefaultToasts />
-				<PutToastsInApp />
-			</TldrawUiContextProvider>
+			<TldrawUiA11yProvider>
+				<TldrawUiContextProvider
+					assetUrls={assetUrls}
+					components={components}
+					onUiEvent={handleAppLevelUiEvent}
+				>
+					<TooltipProvider>{children}</TooltipProvider>
+					<DefaultDialogs />
+					<DefaultToasts />
+					<DefaultA11yAnnouncer />
+					<PutToastsInApp />
+				</TldrawUiContextProvider>
+			</TldrawUiA11yProvider>
 		</EditorContext.Provider>
 	)
 }

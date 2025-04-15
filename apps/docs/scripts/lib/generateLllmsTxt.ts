@@ -85,7 +85,7 @@ async function getMarkdownForExamples(db: DbType) {
 	return result
 }
 
-const ALLOWED_FILE_TYPES = ['tsx', 'ts', 'js', 'jsx', 'json', 'md', 'css', 'html']
+const ALLOWED_FILE_TYPES = ['tsx', 'ts', 'js', 'jsx', 'md', 'css', 'html']
 function getMarkdownForFile(fileName: string, fileContent: string) {
 	const type = fileName.split('.').pop()
 

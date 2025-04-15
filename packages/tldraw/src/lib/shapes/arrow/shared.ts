@@ -1,6 +1,6 @@
 import {
 	Editor,
-	Group2d,
+	Geometry2d,
 	Mat,
 	TLArrowBinding,
 	TLArrowBindingProps,
@@ -25,7 +25,7 @@ export interface BoundShapeInfo<T extends TLShape = TLShape> {
 	isExact: boolean
 	isClosed: boolean
 	transform: Mat
-	outline: Vec[]
+	geometry: Geometry2d
 }
 
 export function getBoundShapeInfoForTerminal(
@@ -46,19 +46,13 @@ export function getBoundShapeInfoForTerminal(
 		terminalName === 'start' ? { context: '@tldraw/arrow-start' } : undefined
 	)
 
-	// This is hacky: we're only looking at the first child in the group. Really the arrow should
-	// consider all items in the group which are marked as snappable as separate polygons with which
-	// to intersect, in the case of a group that has multiple children which do not overlap; or else
-	// flatten the geometry into a set of polygons and intersect with that.
-	const outline = geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
-
 	return {
 		shape: boundShape,
 		transform,
 		isClosed: geometry.isClosed,
 		isExact: binding.props.isExact,
 		didIntersect: false,
-		outline,
+		geometry,
 	}
 }
 

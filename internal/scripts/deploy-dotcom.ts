@@ -2,6 +2,7 @@ import { GetObjectCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/clien
 import { Upload } from '@aws-sdk/lib-storage'
 import assert from 'assert'
 import { execSync } from 'child_process'
+import * as fs from 'fs'
 import { existsSync, readdirSync, writeFileSync } from 'fs'
 import path from 'path'
 import { PassThrough } from 'stream'
@@ -32,6 +33,15 @@ const imageResize = path.relative(
 	path.resolve(REPO_ROOT, './apps/dotcom/image-resize-worker')
 )
 const dotcom = path.relative(process.cwd(), path.resolve(REPO_ROOT, './apps/dotcom/client'))
+const zeroCacheFolder = path.relative(
+	process.cwd(),
+	path.resolve(REPO_ROOT, './apps/dotcom/zero-cache')
+)
+
+const zeroCachePackageJsonPath = path.join(zeroCacheFolder, 'package.json')
+const zeroVersion = JSON.parse(fs.readFileSync(zeroCachePackageJsonPath).toString()).dependencies[
+	'@rocicorp/zero'
+]
 
 const { previewId, sha } = getDeployInfo()
 
@@ -67,11 +77,18 @@ const env = makeEnv([
 	'VERCEL_TOKEN',
 	'VITE_CLERK_PUBLISHABLE_KEY',
 	'WORKER_SENTRY_DSN',
-	previewId ? 'NEON_PREVIEW_DB_CONNECTION_STRING' : 'BOTCOM_POSTGRES_CONNECTION_STRING',
-	previewId
-		? 'NEON_PREVIEW_DB_POOLED_CONNECTION_STRING'
-		: 'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
+	'BOTCOM_POSTGRES_CONNECTION_STRING',
+	'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
+	'DEPLOY_TO',
 ])
+
+const deployViaFlyIo = env.DEPLOY_TO === 'flyio'
+const flyioAppName = deployViaFlyIo ? `${previewId}-zero-cache` : undefined
+
+const clerkJWKSUrl =
+	env.TLDRAW_ENV === 'production'
+		? 'https://clerk.tldraw.com/.well-known/jwks.json'
+		: 'https://clerk.staging.tldraw.com/.well-known/jwks.json'
 
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
@@ -86,6 +103,8 @@ if (previewId) {
 	env.MULTIPLAYER_SERVER = `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
 	env.IMAGE_WORKER = `https://${previewId}-images.tldraw.xyz`
 }
+
+const zeroPushUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/push`
 
 async function main() {
 	assert(
@@ -112,36 +131,34 @@ async function main() {
 		await coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
 	})
 
-	// eslint-disable-next-line no-constant-condition
-	if (false) {
-		await discord.step('cloudflare deploy dry run', async () => {
-			await deployAssetUploadWorker({ dryRun: true })
-			await deployHealthWorker({ dryRun: true })
-			await deployTlsyncWorker({ dryRun: true })
-			await deployImageResizeWorker({ dryRun: true })
-		})
-	}
+	await discord.step('cloudflare deploy dry run', async () => {
+		await deployAssetUploadWorker({ dryRun: true })
+		await deployHealthWorker({ dryRun: true })
+		await deployTlsyncWorker({ dryRun: true })
+		await deployImageResizeWorker({ dryRun: true })
+	})
 
 	// --- point of no return! do the deploy for real --- //
 
 	await discord.message(`--- **pre-flight complete, starting real dotcom deploy** ---`)
 
 	// 2. deploy the cloudflare workers:
-	// eslint-disable-next-line no-constant-condition
-	if (false) {
-		await discord.step('deploying asset uploader to cloudflare', async () => {
-			await deployAssetUploadWorker({ dryRun: false })
-		})
-		await discord.step('deploying multiplayer worker to cloudflare', async () => {
-			await deployTlsyncWorker({ dryRun: false })
-		})
-		await discord.step('deploying image resizer to cloudflare', async () => {
-			await deployImageResizeWorker({ dryRun: false })
-		})
-		await discord.step('deploying health worker to cloudflare', async () => {
-			await deployHealthWorker({ dryRun: false })
-		})
-	}
+	await discord.step('deploying asset uploader to cloudflare', async () => {
+		await deployAssetUploadWorker({ dryRun: false })
+	})
+	await discord.step('deploying multiplayer worker to cloudflare', async () => {
+		await deployTlsyncWorker({ dryRun: false })
+	})
+	// We need to deploy zero after `deployTlsyncWorker` because we need to run migrations first
+	await discord.step('deploying zero', async () => {
+		await deployZero()
+	})
+	await discord.step('deploying image resizer to cloudflare', async () => {
+		await deployImageResizeWorker({ dryRun: false })
+	})
+	await discord.step('deploying health worker to cloudflare', async () => {
+		await deployHealthWorker({ dryRun: false })
+	})
 
 	// 3. deploy the pre-build dotcom app:
 	const { deploymentUrl, inspectUrl } = await discord.step(
@@ -173,7 +190,28 @@ async function main() {
 	await discord.message(`**Deploy complete!**`)
 }
 
+function getZeroUrl() {
+	switch (env.TLDRAW_ENV) {
+		case 'preview': {
+			if (deployViaFlyIo) {
+				return `https://${flyioAppName}.fly.dev/`
+			} else {
+				return `https://${previewId}.zero.tldraw.com/`
+			}
+		}
+		case 'staging':
+			return 'https://staging.zero.tldraw.com/'
+		case 'production':
+			return 'https://production.zero.tldraw.com/'
+	}
+	return undefined
+}
+
 async function prepareDotcomApp() {
+	const zeroUrl = getZeroUrl()
+	if (!zeroUrl) {
+		throw new Error('No zero URL found')
+	}
 	// pre-build the app:
 	await exec('yarn', ['build-app'], {
 		env: {
@@ -181,6 +219,7 @@ async function prepareDotcomApp() {
 			ASSET_UPLOAD: env.ASSET_UPLOAD,
 			IMAGE_WORKER: env.IMAGE_WORKER,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
+			ZERO_SERVER: zeroUrl,
 			NEXT_PUBLIC_GC_API_KEY: env.GC_MAPS_API_KEY,
 			SENTRY_AUTH_TOKEN: env.SENTRY_AUTH_TOKEN,
 			SENTRY_ORG: 'tldraw',
@@ -223,13 +262,9 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 		await setWranglerPreviewConfig(worker, { name: workerId })
 		didUpdateTlsyncWorker = true
 	}
-	const BOTCOM_POSTGRES_CONNECTION_STRING =
-		env.NEON_PREVIEW_DB_CONNECTION_STRING || env.BOTCOM_POSTGRES_CONNECTION_STRING
-	const BOTCOM_POSTGRES_POOLED_CONNECTION_STRING =
-		env.NEON_PREVIEW_DB_POOLED_CONNECTION_STRING || env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING
 	await exec('yarn', ['workspace', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null], {
 		env: {
-			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 		},
 	})
 	await wranglerDeploy({
@@ -245,8 +280,8 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			WORKER_NAME: workerId,
 			CLERK_SECRET_KEY: env.CLERK_SECRET_KEY,
 			CLERK_PUBLISHABLE_KEY: env.VITE_CLERK_PUBLISHABLE_KEY,
-			BOTCOM_POSTGRES_CONNECTION_STRING,
-			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+			BOTCOM_POSTGRES_CONNECTION_STRING: env.BOTCOM_POSTGRES_CONNECTION_STRING,
+			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
 			DISCORD_FEEDBACK_WEBHOOK_URL: env.DISCORD_FEEDBACK_WEBHOOK_URL,
 			HEALTH_CHECK_BEARER_TOKEN: env.HEALTH_CHECK_BEARER_TOKEN,
@@ -333,6 +368,78 @@ async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 			},
 		}
 	)
+}
+
+async function deployZeroViaSst() {
+	const stage = previewId ? previewId : env.TLDRAW_ENV
+	await exec('yarn', [
+		'sst',
+		'secret',
+		'set',
+		'PostgresConnectionString',
+		env.BOTCOM_POSTGRES_CONNECTION_STRING,
+		'--stage',
+		stage,
+	])
+	await exec('yarn', ['sst', 'secret', 'set', 'ZeroAuthSecret', clerkJWKSUrl, '--stage', stage])
+	await exec('yarn', ['sst', 'secret', 'set', 'ZeroPushUrl', zeroPushUrl, '--stage', stage])
+	await exec('yarn', ['sst', 'unlock', '--stage', stage])
+	await exec('yarn', ['bundle-schema'], { pwd: zeroCacheFolder })
+	await exec('yarn', ['sst', 'deploy', '--stage', stage, '--verbose'])
+}
+
+function updateFlyioToml(appName: string): void {
+	const tomlTemplate = path.join(zeroCacheFolder, 'flyio.template.toml')
+	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio.toml')
+
+	const fileContent = fs.readFileSync(tomlTemplate, 'utf-8')
+
+	const updatedContent = fileContent
+		.replace('__APP_NAME', appName)
+		.replace('__ZERO_VERSION', zeroVersion)
+		.replaceAll('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
+		.replaceAll('__ZERO_PUSH_URL', zeroPushUrl)
+
+	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
+}
+
+async function deployPermissionsToFlyIo() {
+	const schemaPath = path.join(REPO_ROOT, 'packages', 'dotcom-shared', 'src', 'tlaSchema.ts')
+	const permissionsFile = 'permissions.sql'
+	await exec('npx', [
+		'zero-deploy-permissions',
+		'--schema-path',
+		schemaPath,
+		'--output-file',
+		permissionsFile,
+	])
+	const result = await exec('psql', [env.BOTCOM_POSTGRES_CONNECTION_STRING, '-f', permissionsFile])
+	if (result.toLowerCase().includes('error')) {
+		throw new Error('Error deploying permissions to fly.io')
+	}
+}
+
+async function deployZeroViaFlyIo() {
+	if (!flyioAppName) {
+		throw new Error('Fly.io app name is not defined')
+	}
+	updateFlyioToml(flyioAppName)
+	const apps = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
+	if (apps.indexOf(flyioAppName) === -1) {
+		await exec('flyctl', ['app', 'create', flyioAppName, '-o', 'tldraw-gb-ltd'], {
+			pwd: zeroCacheFolder,
+		})
+	}
+	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio.toml'], { pwd: zeroCacheFolder })
+	await deployPermissionsToFlyIo()
+}
+
+async function deployZero() {
+	if (deployViaFlyIo) {
+		await deployZeroViaFlyIo()
+	} else {
+		await deployZeroViaSst()
+	}
 }
 
 async function deploySpa(): Promise<{ deploymentUrl: string; inspectUrl: string }> {

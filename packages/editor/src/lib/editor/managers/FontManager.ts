@@ -94,7 +94,7 @@ export class FontManager {
 				const shapeUtil = this.editor.getShapeUtil(shape)
 				return shapeUtil.getFontFaces(shape)
 			},
-			{ areResultsEqual: areArraysShallowEqual }
+			{ areResultsEqual: areArraysShallowEqual, areRecordsEqual: (a, b) => a.props === b.props }
 		)
 
 		this.shapeFontLoadStateCache = editor.store.createCache<(FontState | null)[], TLShape>(

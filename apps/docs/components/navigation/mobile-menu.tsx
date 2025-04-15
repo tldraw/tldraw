@@ -30,7 +30,7 @@ export function MobileMenu({
 				<XMarkIcon className="h-6 hidden group-data-[open]:block" />
 			</PopoverButton>
 			<CloseOnNavigation />
-			<PopoverPanel className="fixed left-0 top-14 bg-white dark:bg-zinc-950 w-screen h-screen px-5 py-8 z-20">
+			<PopoverPanel className="fixed left-0 top-14 bg-white dark:bg-zinc-950 w-screen h-screen px-5 py-8 z-30">
 				<ul className="flex flex-col items-end gap-4">
 					{main.map((item, index) => (
 						<li key={index}>

@@ -174,6 +174,8 @@ function getArticleData({
 		group = null,
 		priority = -1,
 		hero = null,
+		thumbnail = null,
+		socialImage = null,
 		author = 'api',
 		status = ArticleStatus.Draft,
 		title = 'Untitled article',
@@ -203,6 +205,8 @@ function getArticleData({
 		title,
 		description,
 		hero,
+		thumbnail,
+		socialImage,
 		date: date ? new Date(date).toISOString() : null,
 		keywords,
 		sourceUrl: isGenerated // if it's a generated API doc, then we don't have a link

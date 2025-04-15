@@ -2,6 +2,7 @@ import {
 	Editor,
 	Group2d,
 	StateNode,
+	TLAdjacentDirection,
 	TLArrowShape,
 	TLClickEventInfo,
 	TLGroupShape,
@@ -428,6 +429,12 @@ export class Idle extends StateNode {
 			case 'ArrowRight':
 			case 'ArrowUp':
 			case 'ArrowDown': {
+				if (info.accelKey) {
+					this.editor.selectAdjacentShape(
+						info.code.replace('Arrow', '').toLowerCase() as TLAdjacentDirection
+					)
+					return
+				}
 				this.nudgeSelectedShapes(false)
 				return
 			}
@@ -468,7 +475,20 @@ export class Idle extends StateNode {
 			case 'ArrowRight':
 			case 'ArrowUp':
 			case 'ArrowDown': {
+				if (info.accelKey) {
+					this.editor.selectAdjacentShape(
+						info.code.replace('Arrow', '').toLowerCase() as TLAdjacentDirection
+					)
+					return
+				}
 				this.nudgeSelectedShapes(true)
+				break
+			}
+			case 'Tab': {
+				const selectedShapes = this.editor.getSelectedShapes()
+				if (selectedShapes.length) {
+					this.editor.selectAdjacentShape(info.shiftKey ? 'prev' : 'next')
+				}
 				break
 			}
 		}
@@ -507,6 +527,13 @@ export class Idle extends StateNode {
 				// If the only selected shape is croppable, then begin cropping it
 				if (getShouldEnterCropMode(this.editor)) {
 					this.parent.transition('crop', info)
+				}
+				break
+			}
+			case 'Tab': {
+				const selectedShapes = this.editor.getSelectedShapes()
+				if (selectedShapes.length) {
+					this.editor.selectAdjacentShape(info.shiftKey ? 'prev' : 'next')
 				}
 				break
 			}

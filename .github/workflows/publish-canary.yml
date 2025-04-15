@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   deploy:
     name: 'Publish Canary Packages'

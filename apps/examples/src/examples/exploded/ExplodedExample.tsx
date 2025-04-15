@@ -13,6 +13,7 @@ import {
 	TldrawUi,
 	defaultAddFontsFromNode,
 	defaultBindingUtils,
+	defaultEditorAssetUrls,
 	defaultShapeTools,
 	defaultShapeUtils,
 	defaultTools,
@@ -57,6 +58,7 @@ export default function ExplodedExample() {
 				components={defaultComponents}
 				persistenceKey="exploded-example"
 				textOptions={defaultTextOptions}
+				assetUrls={defaultEditorAssetUrls}
 			>
 				<TldrawUi>
 					<InsideEditorAndUiContext />

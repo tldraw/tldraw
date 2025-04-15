@@ -109,8 +109,8 @@ function ExportCanvasButton() {
 						format: 'png',
 						...opts,
 						// If we have numbers for all of the box values, we can use them as bounds
-						bounds: Object.values(box).every((b) => Number.isNaN(b))
-							? new Box(box.x, box.y, box.y, box.x)
+						bounds: Object.values(box).every((b) => !Number.isNaN(b))
+							? new Box(box.x, box.y, box.w, box.h)
 							: undefined,
 					})
 

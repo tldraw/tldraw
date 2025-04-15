@@ -31,7 +31,7 @@ export const notVisibleShapes = (editor: Editor) => {
 		})
 		return notVisibleShapes
 	}
-	return computed<Set<TLShapeId>>('getCulledShapes', (prevValue) => {
+	return computed<Set<TLShapeId>>('notVisibleShapes', (prevValue) => {
 		if (isUninitialized(prevValue)) {
 			return fromScratch(editor)
 		}

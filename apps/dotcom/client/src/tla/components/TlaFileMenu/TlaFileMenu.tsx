@@ -121,14 +121,14 @@ export function FileItems({
 		const file = app.getFile(fileId)
 		if (!file) return
 		trackEvent('duplicate-file', { source })
-		const res = app.createFile({
+		const res = await app.createFile({
 			id: newFileId,
 			name: getDuplicateName(file, app),
 			createSource: `${FILE_PREFIX}/${fileId}`,
 		})
 		// copy the state too
 		const prevState = app.getFileState(fileId)
-		app.getOrCreateFileState(newFileId)
+		app.createFileStateIfNotExists(newFileId)
 		app.updateFileState(newFileId, {
 			lastSessionState: prevState?.lastSessionState,
 		})

@@ -100,6 +100,14 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		},
 	},
 	{
+		url: 'https://www.youtube.com/watch?v=ZMklf0vUl18&t=62',
+		match: true,
+		output: {
+			type: 'youtube',
+			embedUrl: 'https://www.youtube.com/embed/ZMklf0vUl18?start=62',
+		},
+	},
+	{
 		url: 'https://m.youtube.com/watch?v=ZMklf0vUl18',
 		match: true,
 		output: {
@@ -113,6 +121,14 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		output: {
 			type: 'youtube',
 			embedUrl: 'https://www.youtube.com/embed/ZMklf0vUl18',
+		},
+	},
+	{
+		url: 'https://youtu.be/u1016UnJIgA?feature=shared&t=16',
+		match: true,
+		output: {
+			type: 'youtube',
+			embedUrl: 'https://www.youtube.com/embed/u1016UnJIgA?feature=shared&start=16',
 		},
 	},
 	{
@@ -443,6 +459,22 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 		output: {
 			type: 'youtube',
 			url: 'https://www.youtube.com/watch?v=ZMklf0vUl18',
+		},
+	},
+	{
+		embedUrl: 'https://www.youtube.com/embed/q8KyQovatd0?loop=1&playlist=q8KyQovatd0',
+		match: true,
+		output: {
+			type: 'youtube',
+			url: 'https://www.youtube.com/watch?loop=1&playlist=q8KyQovatd0&v=q8KyQovatd0',
+		},
+	},
+	{
+		embedUrl: 'https://www.youtube.com/embed/u1016UnJIgA?start=16',
+		match: true,
+		output: {
+			type: 'youtube',
+			url: 'https://www.youtube.com/watch?v=u1016UnJIgA&t=16',
 		},
 	},
 	{

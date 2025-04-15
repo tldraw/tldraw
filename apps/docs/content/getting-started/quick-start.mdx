@@ -105,7 +105,7 @@ One of the best parts of tldraw is its [editor](/docs/editor)'s runtime JavaScri
 For simplicity's sake, let's roll back our persistence and sync code. We can then use the `Tldraw` component's `onMount` callback to get access to the [Editor](?) instance. We'll use the editor to create a new shape on the canvas, select it, then slowly zoom to it.
 
 ```tsx
-import { Tldraw } from 'tldraw'
+import { Tldraw, toRichText } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 export default function App() {
@@ -115,7 +115,7 @@ export default function App() {
 			x: 200,
 			y: 200,
 			props: {
-				text: 'Hello world!',
+				richText: toRichText('Hello world!'),
 			},
 		})
 

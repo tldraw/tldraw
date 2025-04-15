@@ -1,3 +1,4 @@
+import { isComputed } from './Computed'
 import { attach, detach, singleton } from './helpers'
 import type { Child, Signal } from './types'
 
@@ -49,6 +50,14 @@ export function unsafe__withoutCapture<T>(fn: () => T): T {
 
 export function startCapturingParents(child: Child) {
 	inst.stack = new CaptureStackFrame(inst.stack, child)
+	if (child.__debug_ancestor_epochs__) {
+		const previousAncestorEpochs = child.__debug_ancestor_epochs__
+		child.__debug_ancestor_epochs__ = null
+		for (const p of child.parents) {
+			p.__unsafe__getWithoutCapture(true)
+		}
+		logChangedAncestors(child, previousAncestorEpochs)
+	}
 	child.parentSet.clear()
 }
 
@@ -75,6 +84,10 @@ export function stopCapturingParents() {
 				detach(maybeRemovedParent, frame.child)
 			}
 		}
+	}
+
+	if (frame.child.__debug_ancestor_epochs__) {
+		captureAncestorEpochs(frame.child, frame.child.__debug_ancestor_epochs__)
 	}
 }
 
@@ -138,30 +151,71 @@ export function whyAmIRunning() {
 	if (!child) {
 		throw new Error('whyAmIRunning() called outside of a reactive context')
 	}
+	child.__debug_ancestor_epochs__ = new Map()
+}
 
-	const changedParents = []
+function captureAncestorEpochs(child: Child, ancestorEpochs: Map<Signal<any>, number>) {
 	for (let i = 0; i < child.parents.length; i++) {
 		const parent = child.parents[i]
+		const epoch = child.parentEpochs[i]
+		ancestorEpochs.set(parent, epoch)
+		if (isComputed(parent)) {
+			captureAncestorEpochs(parent as any, ancestorEpochs)
+		}
+	}
+	return ancestorEpochs
+}
 
-		if (parent.lastChangedEpoch > child.parentEpochs[i]) {
-			changedParents.push(parent)
+type ChangeTree = { [signalName: string]: ChangeTree } | null
+function collectChangedAncestors(
+	child: Child,
+	ancestorEpochs: Map<Signal<any>, number>
+): NonNullable<ChangeTree> {
+	const changeTree: ChangeTree = {}
+	for (let i = 0; i < child.parents.length; i++) {
+		const parent = child.parents[i]
+		if (!ancestorEpochs.has(parent)) {
+			continue
+		}
+		const prevEpoch = ancestorEpochs.get(parent)
+		const currentEpoch = parent.lastChangedEpoch
+		if (currentEpoch !== prevEpoch) {
+			if (isComputed(parent)) {
+				changeTree[parent.name] = collectChangedAncestors(parent as any, ancestorEpochs)
+			} else {
+				changeTree[parent.name] = null
+			}
+		}
+	}
+	return changeTree
+}
+
+function logChangedAncestors(child: Child, ancestorEpochs: Map<Signal<any>, number>) {
+	const changeTree = collectChangedAncestors(child, ancestorEpochs)
+	if (Object.keys(changeTree).length === 0) {
+		// eslint-disable-next-line no-console
+		console.log(`Effect(${child.name}) was executed manually.`)
+		return
+	}
+
+	let str = isComputed(child)
+		? `Computed(${child.name}) is recomputing because:`
+		: `Effect(${child.name}) is executing because:`
+
+	function logParent(tree: NonNullable<ChangeTree>, indent: number) {
+		const indentStr = '\n' + ' '.repeat(indent) + '↳ '
+		for (const [name, val] of Object.entries(tree)) {
+			if (val) {
+				str += `${indentStr}Computed(${name}) changed`
+				logParent(val, indent + 2)
+			} else {
+				str += `${indentStr}Atom(${name}) changed`
+			}
 		}
 	}
 
-	if (changedParents.length === 0) {
-		// eslint-disable-next-line no-console
-		console.log((child as any).name, 'is running but none of the parents changed')
-	} else {
-		// eslint-disable-next-line no-console
-		console.log((child as any).name, 'is running because:')
-		for (const changedParent of changedParents) {
-			// eslint-disable-next-line no-console
-			console.log(
-				'\t',
-				(changedParent as any).name,
-				'changed =>',
-				changedParent.__unsafe__getWithoutCapture(true)
-			)
-		}
-	}
+	logParent(changeTree, 1)
+
+	// eslint-disable-next-line no-console
+	console.log(str)
 }

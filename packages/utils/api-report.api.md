@@ -271,6 +271,11 @@ export function measureDuration(_target: any, propertyKey: string, descriptor: P
 
 // @public
 export class MediaHelpers {
+    static getImageAndDimensions(src: string): Promise<{
+        h: number;
+        image: HTMLImageElement;
+        w: number;
+    }>;
     static getImageSize(blob: Blob): Promise<{
         h: number;
         w: number;
@@ -291,7 +296,6 @@ export class MediaHelpers {
     static isStaticImageType(mimeType: null | string): boolean;
     // (undocumented)
     static isVectorImageType(mimeType: null | string): boolean;
-    static loadImage(src: string): Promise<HTMLImageElement>;
     static loadVideo(src: string): Promise<HTMLVideoElement>;
     // (undocumented)
     static usingObjectURL<T>(blob: Blob, fn: (url: string) => Promise<T>): Promise<T>;

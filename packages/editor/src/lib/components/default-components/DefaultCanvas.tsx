@@ -361,7 +361,12 @@ function HandleWrapper({
 	if (!Handle) return null
 
 	return (
-		<g aria-label="handle" transform={`translate(${handle.x}, ${handle.y})`} {...events}>
+		<g
+			role="button"
+			aria-label="handle"
+			transform={`translate(${handle.x}, ${handle.y})`}
+			{...events}
+		>
 			<Handle shapeId={shapeId} handle={handle} zoom={zoom} isCoarse={isCoarse} />
 		</g>
 	)

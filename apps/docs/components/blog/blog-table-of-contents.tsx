@@ -14,10 +14,10 @@ export async function BlogTableOfContents({ article }: { article: Article }) {
 		<Aside className="hidden xl:flex pl-12">
 			<BlogAuthors article={article} />
 			<HeadingsMenu headings={headings} />
+			<ShareButton
+				url={`https://tldraw.dev${article.path}/?utm_source=blog&utm_medium=referral&utm_campaign=share`}
+			/>
 			<ExtraSideBarButtons>
-				<ShareButton
-					url={`https://tldraw.dev${article.path}/?utm_source=blog&utm_medium=referral&utm_campaign=share`}
-				/>
 				<BackToTopButton />
 			</ExtraSideBarButtons>
 		</Aside>
