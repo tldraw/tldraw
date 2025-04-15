@@ -1729,17 +1729,17 @@ export abstract class Geometry2d {
     // (undocumented)
     hitTestLineSegment(A: Vec, B: Vec, distance?: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
-    hitTestPoint(point: Vec, margin?: number, hitInside?: boolean, filters?: Geometry2dFilters): boolean;
+    hitTestPoint(point: Vec, margin?: number, hitInside?: boolean, _filters?: Geometry2dFilters): boolean;
     // (undocumented)
     ignore?: boolean;
     // (undocumented)
-    intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): VecLike[];
+    intersectCircle(center: VecLike, radius: number, _filters?: Geometry2dFilters): VecLike[];
     // (undocumented)
-    intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): VecLike[];
+    intersectLineSegment(A: VecLike, B: VecLike, _filters?: Geometry2dFilters): VecLike[];
     // (undocumented)
-    intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[];
+    intersectPolygon(polygon: VecLike[], _filters?: Geometry2dFilters): VecLike[];
     // (undocumented)
-    intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[];
+    intersectPolyline(polyline: VecLike[], _filters?: Geometry2dFilters): VecLike[];
     // (undocumented)
     isClosed: boolean;
     // (undocumented)
@@ -1755,7 +1755,7 @@ export abstract class Geometry2d {
     // (undocumented)
     get length(): number;
     // (undocumented)
-    abstract nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec;
+    abstract nearestPoint(point: Vec, _filters?: Geometry2dFilters): Vec;
     // @deprecated (undocumented)
     nearestPointOnLineSegment(A: Vec, B: Vec): Vec;
     // (undocumented)
@@ -1766,7 +1766,7 @@ export abstract class Geometry2d {
     get vertices(): Vec[];
 }
 
-// @public (undocumented)
+// @public
 export interface Geometry2dFilters {
     // (undocumented)
     readonly includeInternal?: boolean;
