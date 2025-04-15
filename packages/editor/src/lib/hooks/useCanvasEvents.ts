@@ -53,7 +53,10 @@ export function useCanvasEvents() {
 
 				// For tools that benefit from a higher fidelity of events,
 				// we dispatch the coalesced events.
-				const events = currentTool.useCoalescedEvents ? e.nativeEvent.getCoalescedEvents() : [e]
+				let events: PointerEvent[] | React.PointerEvent<Element>[] = [e]
+				if (currentTool.useCoalescedEvents && e.nativeEvent.getCoalescedEvents) {
+					events = e.nativeEvent.getCoalescedEvents()
+				}
 				for (const singleEvent of events) {
 					editor.dispatch({
 						type: 'pointer',
