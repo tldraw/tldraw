@@ -14,7 +14,8 @@ import { approximately, pointInPolygon } from '../utils'
 /**
  * Filter geometry within a group.
  *
- * Filters are ignored when called directly on primitive geometries, but can be used to narrow down the results of an operation on `Group2d` geometries.
+ * Filters are ignored when called directly on primitive geometries, but can be used to narrow down
+ * the results of an operation on `Group2d` geometries.
  *
  * @public
  */
