@@ -80,8 +80,16 @@ const labelSizeCache = createComputedCache(
 			let shouldSquish = false
 
 			// If the text is wider than the body, we need to squish it
+			const info = getArrowInfo(editor, shape)!
+			const labelToArrowPadding = getLabelToArrowPadding(shape)
+			const margin =
+				info.type === 'elbow'
+					? Math.max(info.elbow.A.arrowheadOffset + labelToArrowPadding, 32) +
+						Math.max(info.elbow.B.arrowheadOffset + labelToArrowPadding, 32)
+					: 64
+
 			if (bodyBounds.width > bodyBounds.height) {
-				width = Math.max(Math.min(w, 64), Math.min(bodyBounds.width - 64, w))
+				width = Math.max(Math.min(w, margin), Math.min(bodyBounds.width - margin, w))
 				shouldSquish = true
 			} else if (width > 16 * fontSize) {
 				width = 16 * fontSize
