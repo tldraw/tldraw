@@ -58,7 +58,6 @@ export function getElbowArrowInfo(
 		elbowMidpoint: elbowArrowDebug.get().customMidpoint ? arrow.props.elbowMidPoint : 0.5,
 		expandElbowLegLength: shapeOptions.expandElbowLegLength[arrow.props.size],
 		minElbowLegLength: shapeOptions.minElbowLegLength[arrow.props.size],
-		minArrowDistanceFromCorner: shapeOptions.minArrowDistanceFromCorner,
 		shortestArrowMeasure: elbowArrowDebug.get().shortest,
 	}
 
@@ -496,13 +495,7 @@ export function getUsableEdge(
 	const aValue = a.bounds[props.main]
 	const aExpanded = a.isPoint ? null : aValue + props.expand * options.expandElbowLegLength
 
-	const originalACrossRange = expandRange(
-		createRange(a.bounds[props.crossMin], a.bounds[props.crossMax]),
-		Math.abs(a.bounds[props.crossMin] - a.bounds[props.crossMax]) <
-			options.minArrowDistanceFromCorner * 2
-			? 0
-			: -options.minArrowDistanceFromCorner
-	)
+	const originalACrossRange = createRange(a.bounds[props.crossMin], a.bounds[props.crossMax])
 	let aCrossRange = originalACrossRange
 
 	// this edge is too small to be useful:

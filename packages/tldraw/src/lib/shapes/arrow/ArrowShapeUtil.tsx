@@ -97,7 +97,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			l: 40,
 			xl: 62,
 		},
-		minArrowDistanceFromCorner: 10,
 		minHandleDistance: 16,
 
 		bendyArrowCenterSnapDistance: 16,

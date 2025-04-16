@@ -36,7 +36,6 @@ export const ElbowArrowSides = ['right', 'bottom', 'left', 'top'] as const
 export interface ElbowArrowOptions {
 	expandElbowLegLength: number
 	minElbowLegLength: number
-	minArrowDistanceFromCorner: number
 	shortestArrowMeasure: 'distance' | 'count'
 	elbowMidpoint: number
 }

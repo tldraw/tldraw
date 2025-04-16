@@ -6,7 +6,6 @@ import { TLArrowBindings } from './shared'
 export interface ArrowShapeOptions {
 	readonly expandElbowLegLength: Record<TLDefaultSizeStyle, number>
 	readonly minElbowLegLength: Record<TLDefaultSizeStyle, number>
-	readonly minArrowDistanceFromCorner: number
 	readonly minHandleDistance: number
 
 	readonly bendyArrowCenterSnapDistance: number

@@ -228,8 +228,6 @@ export interface ArrowShapeOptions {
     // (undocumented)
     readonly labelCenterSnapDistance: number;
     // (undocumented)
-    readonly minArrowDistanceFromCorner: number;
-    // (undocumented)
     readonly minElbowLegLength: Record<TLDefaultSizeStyle, number>;
     // (undocumented)
     readonly minHandleDistance: number;
@@ -1106,8 +1104,6 @@ export interface ElbowArrowOptions {
     elbowMidpoint: number;
     // (undocumented)
     expandElbowLegLength: number;
-    // (undocumented)
-    minArrowDistanceFromCorner: number;
     // (undocumented)
     minElbowLegLength: number;
     // (undocumented)
