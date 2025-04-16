@@ -293,7 +293,9 @@ export function routeRightToRight(info: ElbowArrowWorkingInfo): ElbowArrowRoute 
 	if (!aEdge || !bEdge) return null
 
 	if (
-		(aEdge.crossTarget > info.B.expanded.bottom || aEdge.crossTarget < info.B.expanded.top) &&
+		(info.gapX < 0 ||
+			aEdge.crossTarget > info.B.expanded.bottom ||
+			aEdge.crossTarget < info.B.expanded.top) &&
 		(bEdge.value > info.A.original.left ||
 			bEdge.crossTarget > info.A.expanded.bottom ||
 			bEdge.crossTarget < info.A.expanded.top)
