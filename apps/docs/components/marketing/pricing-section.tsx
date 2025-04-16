@@ -35,10 +35,8 @@ export function PricingSection() {
 				</p>
 				<p>
 					All customers receive a{' '}
-					<BlueA href="https://tldraw.notion.site/License-keys-in-tldraw-e5e8566857f64a709ef23ab30336e66c">
-						license key
-					</BlueA>{' '}
-					that will hide the &quot;made with tldraw&quot; watermark on your domains. See our{' '}
+					<BlueA href="/community/license#Domain-verification">license key</BlueA> that will hide
+					the &quot;made with tldraw&quot; watermark on your domains. See our{' '}
 					<BlueA href="#faq">FAQ</BlueA> for more information.
 				</p>
 				{/* <h3 className="font-bold">Startup</h3>
