@@ -21,7 +21,9 @@ function MaskWindow() {
 				elm.style.clipPath = ''
 				return
 			}
-
+			const { x: parentX, y: parentY } = editor
+				.getContainer()
+				.getBoundingClientRect();
 			// Expand the box and get the corners
 			const { corners } = box.clone().expandBy(20)
 
@@ -29,7 +31,7 @@ function MaskWindow() {
 			const [tl, tr, br, bl] = corners.map((p) => p.rotWith(box.point, rotation))
 
 			// Since there's no reliable "reverse clip path", we wind around the corners in order to turn our clip into a mask
-			elm.style.clipPath = `polygon(0% 0%, ${tl.x}px 0%, ${tl.x}px ${tl.y}px, ${bl.x}px ${bl.y}px, ${br.x}px ${br.y}px, ${tr.x}px ${tr.y}px, ${tl.x}px ${tl.y}px, ${tl.x}px 0%, 100% 0%, 100% 100%, 0% 100%)`
+			      elm.style.clipPath = `polygon(0% 0%, ${tl.x - parentX}px 0%, ${tl.x - parentX}px ${tl.y - parentY}px, ${bl.x - parentX}px ${bl.y - parentY}px, ${br.x - parentX}px ${br.y - parentY}px, ${tr.x - parentX}px ${tr.y - parentY}px, ${tl.x - parentX}px ${tl.y - parentY}px, ${tl.x - parentX}px 0%, 100% 0%, 100% 100%, 0% 100%)`;
 		},
 		[editor]
 	)
