@@ -3,6 +3,7 @@ import {
 	ElbowArrowSide,
 	ElbowArrowSnap,
 	Geometry2d,
+	TLShapeId,
 	Vec,
 	VecLike,
 	VecModel,
@@ -263,6 +264,10 @@ export interface ElbowArrowInfo extends ElbowArrowInfoWithoutRoute {
 }
 
 export interface ElbowArrowBinding {
+	/**
+	 * The id of the shape we're binding to, if any.
+	 */
+	targetShapeId: TLShapeId | null
 	/**
 	 * The side of the box that the arrow should enter from.
 	 */

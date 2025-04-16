@@ -153,33 +153,34 @@ export function getElbowArrowInfo(
 	}
 
 	let mxRange: null | { a: number; b: number } = null
-	if (gapX > 0 && (aBinding.isPoint || bBinding.isPoint)) {
-		mxRange = { a: aBinding.bounds.maxX, b: bBinding.bounds.minX }
-		// mx = lerp(aBinding.bounds.maxX, bBinding.bounds.minX, options.elbowMidpoint.x)
-	} else if (gapX < 0 && (aBinding.isPoint || bBinding.isPoint)) {
-		mxRange = { a: aBinding.bounds.minX, b: bBinding.bounds.maxX }
-		// mx = lerp(aBinding.bounds.minX, bBinding.bounds.maxX, options.elbowMidpoint.x)
-	} else if (gapX > options.minElbowLegLength * 2) {
-		mxRange = { a: expandedA.maxX, b: expandedB.minX }
-		// mx = lerp(expandedA.maxX, expandedB.minX, options.elbowMidpoint.x)
-	} else if (gapX < -options.minElbowLegLength * 2) {
-		mxRange = { a: expandedA.minX, b: expandedB.maxX }
-		// mx = lerp(expandedA.minX, expandedB.maxX, 1 - options.elbowMidpoint.x)
+	const aMinLength = aBinding.minEndSegmentLength * 3
+	const bMinLength = bBinding.minEndSegmentLength * 3
+	const minLegDistanceNeeded =
+		(aBinding.isPoint ? aMinLength : options.minElbowLegLength) +
+		(bBinding.isPoint ? bMinLength : options.minElbowLegLength)
+	if (gapX > minLegDistanceNeeded) {
+		mxRange = {
+			a: aBinding.isPoint ? aBinding.bounds.maxX + aMinLength : expandedA.maxX,
+			b: bBinding.isPoint ? bBinding.bounds.minX - bMinLength : expandedB.minX,
+		}
+	} else if (gapX < -minLegDistanceNeeded) {
+		mxRange = {
+			a: aBinding.isPoint ? aBinding.bounds.minX - aMinLength : expandedA.minX,
+			b: bBinding.isPoint ? bBinding.bounds.maxX + bMinLength : expandedB.maxX,
+		}
 	}
 
 	let myRange: null | { a: number; b: number } = null
-	if (gapY > 0 && (aBinding.isPoint || bBinding.isPoint)) {
-		myRange = { a: aBinding.bounds.maxY, b: bBinding.bounds.minY }
-		// my = lerp(aBinding.bounds.maxY, bBinding.bounds.minY, options.elbowMidpoint.y)
-	} else if (gapY < 0 && (aBinding.isPoint || bBinding.isPoint)) {
-		myRange = { a: aBinding.bounds.minY, b: bBinding.bounds.maxY }
-		// my = lerp(aBinding.bounds.minY, bBinding.bounds.maxY, options.elbowMidpoint.y)
-	} else if (gapY > options.minElbowLegLength * 2) {
-		myRange = { a: expandedA.maxY, b: expandedB.minY }
-		// my = lerp(expandedA.maxY, expandedB.minY, options.elbowMidpoint.y)
-	} else if (gapY < -options.minElbowLegLength * 2) {
-		myRange = { a: expandedA.minY, b: expandedB.maxY }
-		// my = lerp(expandedA.minY, expandedB.maxY, 1 - options.elbowMidpoint.y)
+	if (gapY > minLegDistanceNeeded) {
+		myRange = {
+			a: aBinding.isPoint ? aBinding.bounds.maxY + aMinLength : expandedA.maxY,
+			b: bBinding.isPoint ? bBinding.bounds.minY - bMinLength : expandedB.minY,
+		}
+	} else if (gapY < -minLegDistanceNeeded) {
+		myRange = {
+			a: aBinding.isPoint ? aBinding.bounds.minY - aMinLength : expandedA.minY,
+			b: bBinding.isPoint ? bBinding.bounds.maxY + bMinLength : expandedB.maxY,
+		}
 	}
 
 	const midpoint = swapOrder ? 1 - options.elbowMidpoint : options.elbowMidpoint
@@ -358,6 +359,7 @@ function getElbowArrowBindingInfo(
 			}
 
 			return {
+				targetShapeId: binding.toId,
 				isPoint: false,
 				isExact: binding.props.isExact,
 				bounds: geometry.bounds,
@@ -372,6 +374,7 @@ function getElbowArrowBindingInfo(
 	}
 
 	return {
+		targetShapeId: null,
 		bounds: Box.FromCenter(point, { x: 0, y: 0 }),
 		geometry: null,
 		isExact: false,
@@ -485,12 +488,21 @@ const sideProps = {
 } as const
 
 export function getUsableEdge(
-	a: { bounds: Box; target: Vec; isPoint: boolean },
-	b: { bounds: Box; target: Vec; isPoint: boolean },
+	a: ElbowArrowBinding,
+	b: ElbowArrowBinding,
 	side: 'top' | 'right' | 'bottom' | 'left',
 	options: ElbowArrowOptions
 ): ElbowArrowEdge | null {
 	const props = sideProps[side]
+
+	// if a shape is bound to itself, by default we'd end up routing the arrow _within_ the shape -
+	// as if it were a point-to-point arrow. if one of the bindings is specifically to the edge
+	// though, we route it externally instead.
+	const isSelfBoundAndShouldRouteExternal =
+		a.targetShapeId === b.targetShapeId &&
+		a.targetShapeId !== null &&
+		(a.snap === 'edge' || a.snap === 'point') &&
+		(b.snap === 'edge' || b.snap === 'point')
 
 	const aValue = a.bounds[props.main]
 	const aExpanded = a.isPoint ? null : aValue + props.expand * options.expandElbowLegLength
@@ -516,7 +528,12 @@ export function getUsableEdge(
 	assert(bRange && bCrossRange)
 
 	let isPartial = false
-	if (isWithinRange(aValue, bRange) && !a.isPoint && !b.isPoint) {
+	if (
+		isWithinRange(aValue, bRange) &&
+		!a.isPoint &&
+		!b.isPoint &&
+		!isSelfBoundAndShouldRouteExternal
+	) {
 		const subtracted = subtractRange(aCrossRange, bCrossRange)
 		switch (subtracted.length) {
 			case 0:
@@ -559,8 +576,6 @@ export function getUsableEdge(
 		value: aValue,
 		expanded: aExpanded,
 		cross: aCrossRange,
-		// crossTarget: clampToRange(a.bounds[props.crossMid], aCrossRange),
-		// crossTarget: lerp(aCrossRange.min, aCrossRange.max, 0.5),
 		crossTarget,
 		isPartial,
 	}
@@ -625,6 +640,7 @@ function convertBindingToPoint(binding: ElbowArrowBinding): ElbowArrowBinding {
 	}
 
 	return {
+		targetShapeId: binding.targetShapeId,
 		side,
 		bounds: new Box(binding.target.x, binding.target.y, 0, 0),
 		geometry: binding.geometry,
@@ -648,8 +664,6 @@ function castPathSegmentIntoGeometry(
 	route: ElbowArrowRoute,
 	options: ElbowArrowOptions
 ) {
-	if (target.arrowheadOffset === 0) return
-
 	const point1 = segment === 'first' ? route.points[0] : route.points[route.points.length - 1]
 	const point2 = segment === 'first' ? route.points[1] : route.points[route.points.length - 2]
 
