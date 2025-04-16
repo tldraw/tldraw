@@ -55,7 +55,7 @@ export function getElbowArrowInfo(
 ): ElbowArrowInfo {
 	const shapeOptions = editor.getShapeUtil<ArrowShapeUtil>(arrow.type).options
 	const options: ElbowArrowOptions = {
-		elbowMidpoint: elbowArrowDebug.get().customMidpoint ? arrow.props.elbowMid : { x: 0.5, y: 0.5 },
+		elbowMidpoint: elbowArrowDebug.get().customMidpoint ? arrow.props.elbowMidPoint : 0.5,
 		expandElbowLegLength: shapeOptions.expandElbowLegLength[arrow.props.size],
 		minElbowLegLength: shapeOptions.minElbowLegLength[arrow.props.size],
 		minArrowDistanceFromCorner: shapeOptions.minArrowDistanceFromCorner,
@@ -183,10 +183,9 @@ export function getElbowArrowInfo(
 		// my = lerp(expandedA.minY, expandedB.maxY, 1 - options.elbowMidpoint.y)
 	}
 
-	const midpointX = swapOrder ? 1 - options.elbowMidpoint.x : options.elbowMidpoint.x
-	const midpointY = swapOrder ? 1 - options.elbowMidpoint.y : options.elbowMidpoint.y
-	const mx = mxRange ? lerp(mxRange.a, mxRange.b, midpointX) : null
-	const my = myRange ? lerp(myRange.a, myRange.b, midpointY) : null
+	const midpoint = swapOrder ? 1 - options.elbowMidpoint : options.elbowMidpoint
+	const mx = mxRange ? lerp(mxRange.a, mxRange.b, midpoint) : null
+	const my = myRange ? lerp(myRange.a, myRange.b, midpoint) : null
 
 	const info: ElbowArrowInfoWithoutRoute = {
 		options,
@@ -728,19 +727,28 @@ function fixTinyEndNubs(
 	if (!route) return
 
 	if (route.points.length >= 3) {
-		const firstSegmentLength = Vec.ManhattanDist(route.points[0], route.points[1])
+		const a = route.points[0]
+		const b = route.points[1]
+		const firstSegmentLength = Vec.ManhattanDist(a, b)
 		if (firstSegmentLength < aBinding.minEndSegmentLength) {
 			route.points.splice(1, 1)
+			if (route.points.length >= 3) {
+				const matchAxis = approximately(a.x, b.x) ? 'y' : 'x'
+				route.points[1][matchAxis] = a[matchAxis]
+			}
 		}
 	}
 
 	if (route.points.length >= 3) {
-		const lastSegmentLength = Vec.ManhattanDist(
-			route.points[route.points.length - 2],
-			route.points[route.points.length - 1]
-		)
+		const a = route.points[route.points.length - 1]
+		const b = route.points[route.points.length - 2]
+		const lastSegmentLength = Vec.ManhattanDist(a, b)
 		if (lastSegmentLength < bBinding.minEndSegmentLength) {
 			route.points.splice(route.points.length - 2, 1)
+			if (route.points.length >= 3) {
+				const matchAxis = approximately(a.x, b.x) ? 'y' : 'x'
+				route.points[route.points.length - 2][matchAxis] = a[matchAxis]
+			}
 		}
 	}
 }

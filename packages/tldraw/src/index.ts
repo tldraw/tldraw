@@ -81,6 +81,7 @@ export {
 	type ElbowArrowEdge,
 	type ElbowArrowInfo,
 	type ElbowArrowInfoWithoutRoute,
+	type ElbowArrowMidpointHandle,
 	type ElbowArrowOptions,
 	type ElbowArrowRange,
 	type ElbowArrowRoute,

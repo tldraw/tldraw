@@ -7,6 +7,7 @@ import {
 	Geometry2d,
 	Group2d,
 	IndexKey,
+	PI2,
 	Polyline2d,
 	Rectangle2d,
 	SVGContainer,
@@ -31,6 +32,7 @@ import {
 	clamp,
 	debugFlags,
 	elbowArrowDebug,
+	exhaustiveSwitchError,
 	getDefaultColorTheme,
 	invLerp,
 	lerp,
@@ -73,8 +75,6 @@ import {
 enum ArrowHandles {
 	Start = 'start',
 	Middle = 'middle',
-	MiddleX = 'middleX',
-	MiddleY = 'middleY',
 	End = 'end',
 }
 
@@ -156,7 +156,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override getDefaultProps(): TLArrowShape['props'] {
 		return {
 			kind: 'bendy',
-			elbowMid: { x: 0.5, y: 0.5 },
+			elbowMidPoint: 0.5,
 			dash: 'draw',
 			size: 'm',
 			fill: 'none',
@@ -252,13 +252,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			info.route.midpointHandle &&
 			elbowArrowDebug.get().customMidpoint
 		) {
-			const axis = ElbowArrowAxes[info.route.midpointHandle.axis]
-
 			handles.push({
-				id: axis.self === 'x' ? ArrowHandles.MiddleX : ArrowHandles.MiddleY,
+				id: ArrowHandles.Middle,
 				type: 'vertex',
 				index: 'a2' as IndexKey,
-				...axis.v(info.route.midpointHandle.self, info.route.midpointHandle.cross).toJson(),
+				x: info.route.midpointHandle.point.x,
+				y: info.route.midpointHandle.point.y,
 			})
 		}
 
@@ -269,117 +268,148 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return shape.props.text
 	}
 
-	override onHandleDrag(
+	override onHandleDrag(shape: TLArrowShape, info: TLHandleDragInfo<TLArrowShape>) {
+		const handleId = info.handle.id as ArrowHandles
+		switch (handleId) {
+			case ArrowHandles.Middle:
+				switch (shape.props.kind) {
+					case 'bendy':
+						return this.onBendyMidpointHandleDrag(shape, info)
+					case 'elbow':
+						return this.onElbowMidpointHandleDrag(shape, info)
+					default:
+						exhaustiveSwitchError(shape.props.kind)
+				}
+			case ArrowHandles.Start:
+			case ArrowHandles.End:
+				return this.onTerminalHandleDrag(shape, info, handleId)
+			default:
+				exhaustiveSwitchError(handleId)
+		}
+	}
+
+	private onBendyMidpointHandleDrag(
 		shape: TLArrowShape,
-		{ handle, isPrecise, isCreatingShape }: TLHandleDragInfo<TLArrowShape>
+		{ handle }: TLHandleDragInfo<TLArrowShape>
 	) {
-		const handleId = handle.id as ArrowHandles
 		const bindings = getArrowBindings(this.editor, shape)
 
-		if (handleId === ArrowHandles.Middle) {
-			// Bending the arrow...
-			const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape, bindings)
+		// Bending the arrow...
+		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape, bindings)
 
-			const delta = Vec.Sub(end, start)
-			const v = Vec.Per(delta)
+		const delta = Vec.Sub(end, start)
+		const v = Vec.Per(delta)
 
-			const med = Vec.Med(end, start)
-			const A = Vec.Sub(med, v)
-			const B = Vec.Add(med, v)
+		const med = Vec.Med(end, start)
+		const A = Vec.Sub(med, v)
+		const B = Vec.Add(med, v)
 
-			const point = Vec.NearestPointOnLineSegment(A, B, handle, false)
-			let bend = Vec.Dist(point, med)
-			if (Vec.Clockwise(point, end, med)) bend *= -1
-			return { id: shape.id, type: shape.type, props: { bend } }
-		}
+		const point = Vec.NearestPointOnLineSegment(A, B, handle, false)
+		let bend = Vec.Dist(point, med)
+		if (Vec.Clockwise(point, end, med)) bend *= -1
+		return { id: shape.id, type: shape.type, props: { bend } }
+	}
 
-		if (handleId === ArrowHandles.MiddleX || handleId === ArrowHandles.MiddleY) {
-			const info = getArrowInfo(this.editor, shape)
-			if (info?.type !== 'elbow') return
+	private onElbowMidpointHandleDrag(
+		shape: TLArrowShape,
+		{ handle }: TLHandleDragInfo<TLArrowShape>
+	) {
+		const info = getArrowInfo(this.editor, shape)
+		if (info?.type !== 'elbow') return
 
-			console.log(getElbowArrowSnapLines(this.editor))
+		const shapeToPageTransform = this.editor.getShapePageTransform(shape.id)!
+		const handlePagePoint = shapeToPageTransform.applyToPoint(handle)
+		const axisName = info.route.midpointHandle?.axis
+		if (!axisName) return
+		const axis = ElbowArrowAxes[axisName]
 
-			const shapeToPageTransform = this.editor.getShapePageTransform(shape.id)!
-			const handlePagePoint = shapeToPageTransform.applyToPoint(handle)
-			const axis = handleId === ArrowHandles.MiddleX ? ElbowArrowAxes.x : ElbowArrowAxes.y
+		const midRange = info.elbow[axis.midRange]
+		if (!midRange) return
 
-			const midRange = info.elbow[axis.midRange]
-			if (!midRange) return
+		// We're snapping against a list of parallel lines. The way we do this is to calculate the
+		// angle of the line we're snapping to...
+		let angle = Vec.Angle(
+			shapeToPageTransform.applyToPoint(axis.v(0, 0)),
+			shapeToPageTransform.applyToPoint(axis.v(0, 1))
+		)
+		if (angle < 0) angle += Math.PI
 
-			let angle = Vec.Angle(
-				shapeToPageTransform.applyToPoint(axis.v(0, 0)),
-				shapeToPageTransform.applyToPoint(axis.v(0, 1))
-			)
-			if (angle < 0) angle += Math.PI
+		// ...then calculate the perpendicular distance from the origin to the (infinite) line in
+		// question. This returns a signed distance - lines "behind" the origin are negative.
+		const handlePoint = perpDistanceToLineAngle(handlePagePoint, angle)
 
-			const handlePoint = perpDistanceToLineAngle(handlePagePoint, angle)
-			const loPoint = perpDistanceToLineAngle(
-				shapeToPageTransform.applyToPoint(axis.v(midRange.lo, 0)),
-				angle
-			)
-			const hiPoint = perpDistanceToLineAngle(
-				shapeToPageTransform.applyToPoint(axis.v(midRange.hi, 0)),
-				angle
-			)
+		// As we're only ever moving along one dimension, we can use this perpendicular distance for
+		// all of our snapping calculations.
+		const loPoint = perpDistanceToLineAngle(
+			shapeToPageTransform.applyToPoint(axis.v(midRange.lo, 0)),
+			angle
+		)
+		const hiPoint = perpDistanceToLineAngle(
+			shapeToPageTransform.applyToPoint(axis.v(midRange.hi, 0)),
+			angle
+		)
 
-			const maxSnapDistance = this.options.elbowArrowAxisSnapDistance * this.editor.getZoomLevel()
-			const midPoint = perpDistanceToLineAngle(
-				shapeToPageTransform.applyToPoint(axis.v(lerp(midRange.lo, midRange.hi, 0.5), 0)),
-				angle
-			)
+		// we want to snap to certain points. the maximum distance at which a snap will occur is
+		// relative to the zoom level:
+		const maxSnapDistance = this.options.elbowMidpointSnapDistance / this.editor.getZoomLevel()
 
-			let snapPoint = midPoint
-			let snapDistance = Math.abs(midPoint - handlePoint)
+		// we snap to the midpoint of the range by default
+		const midPoint = perpDistanceToLineAngle(
+			shapeToPageTransform.applyToPoint(axis.v(lerp(midRange.lo, midRange.hi, 0.5), 0)),
+			angle
+		)
 
-			for (const [snapAngle, points] of getElbowArrowSnapLines(this.editor)) {
-				if (anglesAreApproximatelyParallel(angle, snapAngle)) {
-					console.log({ loPoint, hiPoint, handlePoint, points })
-					for (const point of points) {
-						const distance = Math.abs(point - handlePoint)
-						if (distance < snapDistance) {
-							snapPoint = point
-							snapDistance = distance
-						}
+		let snapPoint = midPoint
+		let snapDistance = Math.abs(midPoint - handlePoint)
+
+		// then we check all the other arrows that are on-screen.
+		for (const [snapAngle, snapLines] of getElbowArrowSnapLines(this.editor)) {
+			const { isParallel, isFlippedParallel } = anglesAreApproximatelyParallel(angle, snapAngle)
+			if (isParallel || isFlippedParallel) {
+				for (const snapLine of snapLines) {
+					const doesShareStartIntersection =
+						snapLine.startBoundShapeId &&
+						(snapLine.startBoundShapeId === info.bindings.start?.toId ||
+							snapLine.startBoundShapeId === info.bindings.end?.toId)
+
+					const doesShareEndIntersection =
+						snapLine.endBoundShapeId &&
+						(snapLine.endBoundShapeId === info.bindings.start?.toId ||
+							snapLine.endBoundShapeId === info.bindings.end?.toId)
+
+					if (!doesShareStartIntersection && !doesShareEndIntersection) continue
+
+					const point = isFlippedParallel ? -snapLine.perpDistance : snapLine.perpDistance
+					const distance = Math.abs(point - handlePoint)
+					if (distance < snapDistance) {
+						snapPoint = point
+						snapDistance = distance
 					}
 				}
 			}
-
-			if (snapDistance > maxSnapDistance) {
-				snapPoint = handlePoint
-			}
-
-			const newMid = clamp(invLerp(loPoint, hiPoint, snapPoint), 0, 1)
-			console.log({ newMid, handleDistance: handlePoint, loDistance: loPoint, hiDistance: hiPoint })
-
-			return {
-				id: shape.id,
-				type: shape.type,
-				props: {
-					elbowMid: axis.v(newMid, shape.props.elbowMid[axis.cross]).toJson(),
-				},
-			}
-
-			return
-
-			// return
-
-			// const distance =
-			// 	Vec.DistanceToLineSegment(midUp, midDown, handlePagePoint, false) *
-			// 	this.editor.getZoomLevel()
-
-			// const newMid = distance < 16 ? 0.5 : clamp(invLerp(lo, hi, handle[axis.self]), 0, 1)
-			// console.log({ newMid, lo, hi, handle: handle[axis.self] })
-
-			// return {
-			// 	id: shape.id,
-			// 	type: shape.type,
-			// 	props: {
-			// 		elbowMid: axis.v(newMid, shape.props.elbowMid[axis.cross]).toJson(),
-			// 	},
-			// }
 		}
 
-		// Start or end, pointing the arrow...
+		if (snapDistance > maxSnapDistance) {
+			snapPoint = handlePoint
+		}
+
+		const newMid = clamp(invLerp(loPoint, hiPoint, snapPoint), 0, 1)
+
+		return {
+			id: shape.id,
+			type: shape.type,
+			props: {
+				elbowMidPoint: newMid,
+			},
+		}
+	}
+
+	private onTerminalHandleDrag(
+		shape: TLArrowShape,
+		{ handle, isPrecise, isCreatingShape }: TLHandleDragInfo<TLArrowShape>,
+		handleId: ArrowHandles.Start | ArrowHandles.End
+	) {
+		const bindings = getArrowBindings(this.editor, shape)
 
 		const update: TLShapePartial<TLArrowShape> = { id: shape.id, type: 'arrow', props: {} }
 
@@ -1196,19 +1226,23 @@ function ArrowheadCrossDef() {
  * 2π are all considered parallel.
  */
 function anglesAreApproximatelyParallel(a: number, b: number, tolerance = 0.0001) {
-	// Normalize angles to be between 0 and π
-	// First, normalize a
-	let normalizedA = a % (Math.PI * 2)
-	if (normalizedA < 0) normalizedA += Math.PI * 2
-	if (normalizedA >= Math.PI) normalizedA -= Math.PI
+	// // Normalize angles to be between 0 and π
+	// // First, normalize a
+	// let normalizedA = a % (Math.PI * 2)
+	// if (normalizedA < 0) normalizedA += Math.PI * 2
+	// if (normalizedA >= Math.PI) normalizedA -= Math.PI
 
-	// Then normalize b
-	let normalizedB = b % (Math.PI * 2)
-	if (normalizedB < 0) normalizedB += Math.PI * 2
-	if (normalizedB >= Math.PI) normalizedB -= Math.PI
+	// // Then normalize b
+	// let normalizedB = b % (Math.PI * 2)
+	// if (normalizedB < 0) normalizedB += Math.PI * 2
+	// if (normalizedB >= Math.PI) normalizedB -= Math.PI
 
 	// Check if the angles are close to each other
-	const diff = Math.abs(normalizedA - normalizedB)
+	const diff = Math.abs(a - b)
 
-	return diff < tolerance || Math.abs(diff - Math.PI) < tolerance
+	const isParallel = diff < tolerance
+	const isFlippedParallel = Math.abs(diff - Math.PI) < tolerance
+	const is360Parallel = Math.abs(diff - PI2) < tolerance
+
+	return { isParallel: isParallel || is360Parallel, isFlippedParallel }
 }

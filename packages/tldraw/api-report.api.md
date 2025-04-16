@@ -220,6 +220,8 @@ export interface ArrowShapeOptions {
     // (undocumented)
     readonly elbowArrowPointSnapDistance: number;
     // (undocumented)
+    readonly elbowMidpointSnapDistance: number;
+    // (undocumented)
     readonly expandElbowLegLength: Record<TLDefaultSizeStyle, number>;
     // (undocumented)
     readonly hoverPreciseTimeout: number;
@@ -290,12 +292,24 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     onEditEnd(shape: TLArrowShape): void;
     // (undocumented)
-    onHandleDrag(shape: TLArrowShape, { handle, isPrecise, isCreatingShape }: TLHandleDragInfo<TLArrowShape>): ({
+    onHandleDrag(shape: TLArrowShape, info: TLHandleDragInfo<TLArrowShape>): ({
         id: TLShapeId;
         meta?: Partial<JsonObject> | undefined;
         props?: Partial<TLArrowShapeProps> | undefined;
         type: "arrow";
-    } & Partial<Omit<TLArrowShape, "id" | "meta" | "props" | "type">>) | undefined;
+    } & Partial<Omit<TLArrowShape, "id" | "meta" | "props" | "type">>) | {
+        id: TLShapeId;
+        props: {
+            bend: number;
+        };
+        type: "arrow";
+    } | {
+        id: TLShapeId;
+        props: {
+            elbowMidPoint: number;
+        };
+        type: "arrow";
+    } | undefined;
     // (undocumented)
     onResize(shape: TLArrowShape, info: TLResizeInfo<TLArrowShape>): {
         props: {
@@ -1044,6 +1058,16 @@ export interface ElbowArrowEdge {
 
 // @public (undocumented)
 export interface ElbowArrowInfo extends ElbowArrowInfoWithoutRoute {
+    // (undocumented)
+    midXRange: {
+        hi: number;
+        lo: number;
+    } | null;
+    // (undocumented)
+    midYRange: {
+        hi: number;
+        lo: number;
+    } | null;
     route: ElbowArrowRoute | null;
     // @internal (undocumented)
     steve(): {
@@ -1069,9 +1093,17 @@ export interface ElbowArrowInfoWithoutRoute {
 }
 
 // @public (undocumented)
+export interface ElbowArrowMidpointHandle {
+    // (undocumented)
+    axis: 'x' | 'y';
+    // (undocumented)
+    point: VecLike;
+}
+
+// @public (undocumented)
 export interface ElbowArrowOptions {
     // (undocumented)
-    elbowMidpoint: VecLike;
+    elbowMidpoint: number;
     // (undocumented)
     expandElbowLegLength: number;
     // (undocumented)
@@ -1098,6 +1130,8 @@ export interface ElbowArrowRoute {
     bEdgePicking: ElbowArrowSideReason;
     // (undocumented)
     distance: number;
+    // (undocumented)
+    midpointHandle: ElbowArrowMidpointHandle | null;
     // (undocumented)
     name: string;
     // (undocumented)

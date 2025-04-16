@@ -147,7 +147,13 @@ export function routeArrowWithAutoEdgePicking(info: ElbowArrowWorkingInfo): Elbo
 		const bTop = info.B.edges.top
 		const bBottom = info.B.edges.bottom
 
-		if (
+		if (info.A.isPoint && info.B.isPoint) {
+			if (info.gapY > 0) {
+				idealRoute = tryRouteArrow(info, 'bottom', 'top')
+			} else {
+				idealRoute = tryRouteArrow(info, 'top', 'bottom')
+			}
+		} else if (
 			aRight &&
 			bTop &&
 			(aRight.expanded ?? aRight.value) <= bTop.crossTarget &&
@@ -180,43 +186,6 @@ export function routeArrowWithAutoEdgePicking(info: ElbowArrowWorkingInfo): Elbo
 		} else if (info.gapY < 0) {
 			idealRoute = tryRouteArrow(info, 'top', 'bottom')
 		}
-
-		// if (
-		// 	info.A.edges.right &&
-		// 	info.B.edges.top &&
-		// 	info.A.edges.right.expanded !== null &&
-		// 	info.A.edges.right.expanded <= info.B.edges.top.crossTarget
-		// ) {
-		// 	const route = tryRouteArrow(info, 'right', 'top')
-		// 	if (route) {
-		// 		route.aEdgePicking = 'auto'
-		// 		route.bEdgePicking = 'auto'
-		// 		return route
-		// 	}
-		// }
-		// if (info.midY !== null) {
-		// 	const route = tryRouteArrow(info, 'bottom', 'top')
-		// 	if (route) {
-		// 		route.aEdgePicking = 'auto'
-		// 		route.bEdgePicking = 'auto'
-		// 		return route
-		// 	}
-		// }
-		// return pickBest(info, [
-		// 	[
-		// 		['bottom', 'left', 'auto', 'auto'],
-		// 		['bottom', 'right', 'auto', 'auto'],
-		// 		['bottom', 'bottom', 'auto', 'auto'],
-		// 	],
-		// 	[
-		// 		['left', 'top', 'auto', 'auto'],
-		// 		['right', 'top', 'auto', 'auto'],
-		// 	],
-		// 	[
-		// 		['right', 'right', 'auto', 'auto'],
-		// 		['left', 'left', 'auto', 'auto'],
-		// 	],
-		// ])
 	}
 
 	if (idealRoute) {

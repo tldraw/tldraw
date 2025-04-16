@@ -1,16 +1,22 @@
 import {
 	computed,
+	Computed,
 	Editor,
 	TLArrowShape,
+	TLShapeId,
 	Vec,
 	VecLike,
 	WeakCache,
-	whyAmIRunning,
 } from '@tldraw/editor'
-import { Computed } from '@tldraw/state'
+import { getArrowBindings } from '../shared'
 
-const snapLinesStore = new WeakCache<Editor, Computed<Map<number, Set<number>>>>()
-const origin = { x: 0, y: 0 }
+interface ElbowArrowSnapLine {
+	startBoundShapeId: TLShapeId | undefined
+	endBoundShapeId: TLShapeId | undefined
+	perpDistance: number
+}
+
+const snapLinesStore = new WeakCache<Editor, Computed<Map<number, Set<ElbowArrowSnapLine>>>>()
 
 export function getElbowArrowSnapLines(editor: Editor) {
 	return snapLinesStore
@@ -31,13 +37,10 @@ export function getElbowArrowSnapLines(editor: Editor) {
 			})
 
 			return computed('elbow arrow snap lines', () => {
-				console.log('compute elbow arrow snap lines', unselectedArrowShapeIds.get())
-				whyAmIRunning()
-
 				// the result is a map from angle (0-π), to a set of single-axis co-ordinates. For
 				// example, if a line from (0, 1) to (1, 1) is found (ie a horizontal line at y-coord 1),
 				// we'll add an entry to the map with the key 0 (horizontal), and the set containing 1.
-				const result = new Map()
+				const result = new Map<number, Set<ElbowArrowSnapLine>>()
 
 				const currentPageShapeIds = editor.getCurrentPageShapeIds()
 				const viewportBounds = editor.getViewportPageBounds()
@@ -50,6 +53,8 @@ export function getElbowArrowSnapLines(editor: Editor) {
 
 					const shapeBounds = editor.getShapePageBounds(id)
 					if (!shapeBounds || !viewportBounds.includes(shapeBounds)) continue
+
+					const bindings = getArrowBindings(editor, shape)
 
 					const geometry = editor.getShapePageGeometry(id)
 					const vertices = geometry.getVertices({ includeInternal: false, includeLabels: false })
@@ -70,8 +75,13 @@ export function getElbowArrowSnapLines(editor: Editor) {
 							result.set(angle, set)
 						}
 
-						const distance = perpDistanceToLineAngle(prev, angle)
-						set.add(distance)
+						const perpDistance = perpDistanceToLineAngle(prev, angle)
+
+						set.add({
+							perpDistance,
+							startBoundShapeId: bindings.start?.toId,
+							endBoundShapeId: bindings.end?.toId,
+						})
 					}
 				}
 

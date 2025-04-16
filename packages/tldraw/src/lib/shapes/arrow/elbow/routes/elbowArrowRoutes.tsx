@@ -29,7 +29,7 @@ export function routeRightToLeft(info: ElbowArrowWorkingInfo): ElbowArrowRoute |
 		info.apply(ElbowArrowTransform.FlipY)
 	}
 
-	if (info.gapX > 0 && info.midX) {
+	if (info.gapX > 0 && info.midX !== null) {
 		// Arrow 1:
 		return new ElbowArrowRouteBuilder(info, 'to left 1')
 			.add(aEdge.value, aEdge.crossTarget)
@@ -40,9 +40,9 @@ export function routeRightToLeft(info: ElbowArrowWorkingInfo): ElbowArrowRoute |
 			.build()
 	}
 
-	if (!aEdge.expanded || !bEdge.expanded) return null
+	if (aEdge.expanded === null || bEdge.expanded === null) return null
 
-	if (info.midY) {
+	if (info.midY !== null) {
 		// Arrow 2:
 		return new ElbowArrowRouteBuilder(info, 'to left 2')
 			.add(aEdge.value, aEdge.crossTarget)
@@ -166,7 +166,7 @@ export function routeRightToTop(info: ElbowArrowWorkingInfo): ElbowArrowRoute | 
 			.build()
 	}
 
-	if (info.gapX > 0 && info.midX && bEdge.expanded) {
+	if (info.gapX > 0 && info.midX !== null && bEdge.expanded !== null) {
 		// Arrow 2:
 		return new ElbowArrowRouteBuilder(info, 'to top 2')
 			.add(aEdge.value, aEdge.crossTarget)
@@ -178,7 +178,12 @@ export function routeRightToTop(info: ElbowArrowWorkingInfo): ElbowArrowRoute | 
 			.build()
 	}
 
-	if (info.gapY > 0 && aEdge.expanded && bEdge.crossTarget < aEdge.expanded && info.midY) {
+	if (
+		info.gapY > 0 &&
+		aEdge.expanded !== null &&
+		bEdge.crossTarget < aEdge.expanded &&
+		info.midY !== null
+	) {
 		// Arrow 3:
 		return new ElbowArrowRouteBuilder(info, 'to top 3')
 			.add(aEdge.value, aEdge.crossTarget)
@@ -302,9 +307,9 @@ export function routeRightToRight(info: ElbowArrowWorkingInfo): ElbowArrowRoute 
 			.build()
 	}
 
-	if (!info.midX) return null
+	if (info.midX === null) return null
 
-	if (bEdge.expanded && info.gapX > 0) {
+	if (bEdge.expanded !== null && info.gapX > 0) {
 		const viaBottomLength =
 			Math.abs(bEdge.crossTarget - info.B.expanded.bottom) +
 			Math.abs(aEdge.crossTarget - info.B.expanded.bottom)
@@ -325,7 +330,7 @@ export function routeRightToRight(info: ElbowArrowWorkingInfo): ElbowArrowRoute 
 			.build()
 	}
 
-	if (aEdge.expanded && info.gapX < 0) {
+	if (aEdge.expanded !== null && info.gapX < 0) {
 		const viaBottomLength =
 			Math.abs(bEdge.crossTarget - info.A.expanded.bottom) +
 			Math.abs(aEdge.crossTarget - info.A.expanded.bottom)

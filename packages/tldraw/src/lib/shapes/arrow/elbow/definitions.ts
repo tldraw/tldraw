@@ -27,8 +27,7 @@ export interface ElbowArrowRoute {
 /** @public */
 export interface ElbowArrowMidpointHandle {
 	axis: 'x' | 'y'
-	self: number
-	cross: number
+	point: VecLike
 }
 
 export const ElbowArrowSides = ['right', 'bottom', 'left', 'top'] as const
@@ -39,7 +38,7 @@ export interface ElbowArrowOptions {
 	minElbowLegLength: number
 	minArrowDistanceFromCorner: number
 	shortestArrowMeasure: 'distance' | 'count'
-	elbowMidpoint: VecLike
+	elbowMidpoint: number
 }
 
 export const ElbowArrowSideDeltas = {

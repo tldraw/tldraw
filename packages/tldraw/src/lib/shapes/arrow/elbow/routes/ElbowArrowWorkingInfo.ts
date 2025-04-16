@@ -159,6 +159,7 @@ export interface ElbowArrowWorkingBox {
 	original: Box
 	expanded: Box
 	edges: ElbowArrowBoxEdges
+	isPoint: boolean
 }
 
 export class ElbowArrowWorkingInfo {

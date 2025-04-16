@@ -70,7 +70,7 @@ export interface TLArrowShapeProps {
 	text: string
 	labelPosition: number
 	scale: number
-	elbowMid: VecModel
+	elbowMidPoint: number
 }
 
 /** @public */
@@ -93,7 +93,7 @@ export const arrowShapeProps: RecordProps<TLArrowShape> = {
 	text: T.string,
 	labelPosition: T.number,
 	scale: T.nonZeroNumber,
-	elbowMid: vecModelValidator,
+	elbowMidPoint: T.number,
 }
 
 /** @public */
@@ -247,11 +247,11 @@ export const arrowShapeMigrations = createMigrationSequence({
 			id: arrowShapeVersions.AddElbow,
 			up: (props) => {
 				props.kind = 'bendy'
-				props.elbowMid = { x: 0.5, y: 0.5 }
+				props.elbowMidPoint = 0.5
 			},
 			down: (props) => {
 				delete props.kind
-				delete props.elbowMid
+				delete props.elbowMidPoint
 			},
 		}),
 	],
