@@ -2579,7 +2579,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private getViewportPageBoundsForFollowing(): null | Box {
 		const followingUserId = this.getInstanceState().followingUserId
 		if (!followingUserId) return null
-		const leaderPresence = this.getCollaborators().find((c) => c.userId === followingUserId)
+		const collaborators = this.getCollaborators()
+		let leaderPresence = this.getCollaborators().find((c) => c.userId === followingUserId)
+		while (leaderPresence && leaderPresence.followingUserId) {
+			leaderPresence = collaborators.find((c) => c.userId === leaderPresence?.followingUserId)
+		}
 		if (!leaderPresence) return null
 
 		if (!leaderPresence.camera || !leaderPresence.screenBounds) return null
