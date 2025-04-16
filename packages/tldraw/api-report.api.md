@@ -222,6 +222,8 @@ export interface ArrowShapeOptions {
     // (undocumented)
     readonly elbowMidpointSnapDistance: number;
     // (undocumented)
+    readonly elbowMinSegmentLengthToShowMidpointHandle: number;
+    // (undocumented)
     readonly expandElbowLegLength: Record<TLDefaultSizeStyle, number>;
     // (undocumented)
     readonly hoverPreciseTimeout: number;
@@ -1096,6 +1098,10 @@ export interface ElbowArrowMidpointHandle {
     axis: 'x' | 'y';
     // (undocumented)
     point: VecLike;
+    // (undocumented)
+    segmentEnd: VecLike;
+    // (undocumented)
+    segmentStart: VecLike;
 }
 
 // @public (undocumented)

@@ -28,6 +28,8 @@ export interface ElbowArrowRoute {
 /** @public */
 export interface ElbowArrowMidpointHandle {
 	axis: 'x' | 'y'
+	segmentStart: VecLike
+	segmentEnd: VecLike
 	point: VecLike
 }
 

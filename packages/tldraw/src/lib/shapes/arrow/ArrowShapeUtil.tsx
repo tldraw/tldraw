@@ -106,7 +106,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		elbowArrowAxisSnapDistance: 16,
 
 		labelCenterSnapDistance: 10,
+
 		elbowMidpointSnapDistance: 10,
+		elbowMinSegmentLengthToShowMidpointHandle: 20,
 
 		hoverPreciseTimeout: 600,
 		pointingPreciseTimeout: 320,
@@ -251,13 +253,21 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			info.route.midpointHandle &&
 			elbowArrowDebug.get().customMidpoint
 		) {
-			handles.push({
-				id: ArrowHandles.Middle,
-				type: 'vertex',
-				index: 'a2' as IndexKey,
-				x: info.route.midpointHandle.point.x,
-				y: info.route.midpointHandle.point.y,
-			})
+			const shapePageTransform = this.editor.getShapePageTransform(shape.id)!
+
+			const segmentStart = shapePageTransform.applyToPoint(info.route.midpointHandle.segmentStart)
+			const segmentEnd = shapePageTransform.applyToPoint(info.route.midpointHandle.segmentEnd)
+			const segmentLength = Vec.Dist(segmentStart, segmentEnd) * this.editor.getZoomLevel()
+
+			if (segmentLength > this.options.elbowMinSegmentLengthToShowMidpointHandle) {
+				handles.push({
+					id: ArrowHandles.Middle,
+					type: 'vertex',
+					index: 'a2' as IndexKey,
+					x: info.route.midpointHandle.point.x,
+					y: info.route.midpointHandle.point.y,
+				})
+			}
 		}
 
 		return handles
