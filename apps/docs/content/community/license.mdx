@@ -6,14 +6,97 @@ date: 9/13/2023
 order: 2
 ---
 
-tldraw's source code and distributed packages (the tldraw SDK) are provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
+tldraw's source code and distributed packages (the tldraw SDK) are provided under the [tldraw license](/legal/tldraw-license).
 
 You can use the tldraw SDK in commercial or non-commercial projects so long as you preserve the "Made with tldraw" watermark. If you purchase a [business license](https://tldraw.dev#pricing), we will provide you with a license key that removes the watermark.
 
-For more information, visit [tldraw.dev](https://tldraw.dev#pricing).
+For more information, visit the [pricing page](https://tldraw.dev#pricing).
+
+<TwoImages
+	left={{
+		src: '/images/with-watermark.png',
+		title: 'With a valid license key, the watermark is removed.',
+		alt: 'tldraw with watermark',
+	}}
+	right={{
+		src: '/images/without-watermark.png',
+		title: 'When a valid license key is provided, the canvas does not display the watermark.',
+		alt: 'tldraw without watermark',
+	}}
+/>
+
+## How to use your license key
+
+To use your license key, provide it to the `Tldraw` component’s `licenseKey` prop.
+
+```tsx
+import { Tldraw } from 'tldraw'
+
+function MyApp() {
+	return <Tldraw licenseKey="abc123" />
+}
+```
+
+<Callout>The [TldrawEditor](?) component also has a `licenseKey` prop.</Callout>
+
+If the license key is valid and the license is active, then the canvas should no longer display the watermark. If you still see a watermark, check the JavaScript console for information about any problems and how to fix them.
+
+## How the license key works
+
+Your license key encodes information about your business license, its dates of validity, and valid domains where the license key may be used. The SDK checks license keys on the client to determine their validity.
+
+### Active licenses
+
+Your license key encodes the **type of license** that you have (annual or perpetual) and the **expiration date** for that license.
+
+To be valid, a license key must be associated with an active license. An **annual** **license** is valid if the current date is earlier than the license’s expiration date. A **perpetual license** is valid if the client’s SDK version’s release date is earlier than the license’s expiration date.
+
+### Domain verification
+
+Your license key also encodes a list of **approved domains** where the keys should be valid.
+
+In production, a license key is only valid when used on an approved domain. If your key is used on an unapproved domain, then the client will consider the key invalid.
 
 ## Trademarks
 
 While the copyright to our software is licensed under the tldraw license, our trademarks appearing in or on the software are the exclusive property of tldraw. Our default license does not include a license to use our trademarks.
 
 Please see our [trademark policy](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) for more information.
+
+## FAQ
+
+### What happens if my license key is missing / invalid?
+
+If you don’t provide a license key, or your license key is invalid, then the canvas will display the “Made with tldraw” watermark. If you provide an invalid license key in development, we will log notes about the problem in the JavaScript console.
+
+### Does tldraw make any network calls to validate my license?
+
+No. The license key check runs on the client and does not rely on any network calls. The watermark image is loaded from cdn.tldraw.com, however this is only loaded if a license key is missing or invalid.
+
+### Can I still use tldraw while offline?
+
+Yes. The license key check runs on the client and does not rely on any network calls, so you can use the tldraw SDK for offline apps.
+
+### Can I expose my license key in production?
+
+Yes. The license key check runs on the client so keys must be exposed in your application client. In production, the [domain verification](#Domain-verification) phase of our license key check should ensure that your license key is valid only on your approved domains.
+
+### Should I use my license key in development and testing?
+
+Yes. We suggest using your license key in development and testing so that the experience matches your production environment. When creating your license key, be sure to provide us with all deployment and preview domains where the license key should be valid.
+
+### Will my license key work inside of an iframe / web view?
+
+Yes, you can still put tldraw in an iframe or web view for your product. The domain verification is done at the iframe level (the iframe’s `src`) not the domain of the parent window.
+
+### How can I update my license key?
+
+If you need to change your license key, for example by adding or removing valid domain names, please reach out to your account manager.
+
+### What happens when my key expires?
+
+Before the end of your license period, our sales and support team will reach out to you to arrange a renewal for your license.
+
+If you choose to renew your license, we will create a new license key for you as part of the renewal process. Because the license keys are enforced in the client, you will need to update your application to use the new license key.
+
+If you choose not to renew your license, then your license will expire and your license key will become invalid. For an annual license, your license will expire on date of its expiration. For a perpetual license, your license remain valid for any version of the SDK released before the expiration date, but be invalid for any version released after the expiration of your license.
