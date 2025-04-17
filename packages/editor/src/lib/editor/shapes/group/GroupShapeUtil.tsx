@@ -39,7 +39,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 				const shape = this.editor.getShape(childId)!
 				return this.editor
 					.getShapeGeometry(childId)
-					.transform(this.editor.getShapeLocalTransform(shape)!)
+					.transform(this.editor.getShapeLocalTransform(shape)!, { isLabel: false })
 			}),
 		})
 	}

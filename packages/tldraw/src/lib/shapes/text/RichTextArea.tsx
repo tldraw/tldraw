@@ -29,6 +29,7 @@ export interface TextAreaProps {
 	handleChange(changeInfo: { plaintext?: string; richText?: TLRichText }): void
 	handleInputPointerDown(e: React.PointerEvent<HTMLElement>): void
 	handleDoubleClick(e: any): any
+	hasCustomTabBehavior?: boolean
 }
 
 /**
@@ -54,6 +55,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		handleBlur,
 		handleKeyDown,
 		handleDoubleClick,
+		hasCustomTabBehavior,
 	},
 	ref
 ) {
@@ -161,7 +163,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			},
 			editorProps: {
 				handleKeyDown: (view: EditorView, event: KeyboardEvent) => {
-					if (event.key === 'Tab') {
+					if (!hasCustomTabBehavior && event.key === 'Tab') {
 						handleTab(editor, view, event)
 					}
 
@@ -209,6 +211,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		onKeyDown,
 		editor,
 		shapeId,
+		hasCustomTabBehavior,
 	])
 
 	if (!isEditing || !tipTapConfig) {

@@ -1,6 +1,6 @@
 import { BlogAuthors } from '@/components/blog/blog-authors'
-import { Aside } from '@/components/common/aside'
 import { BackToTopButton } from '@/components/common/back-to-top-button'
+import { Navigation } from '@/components/common/navigation'
 import { ShareButton } from '@/components/common/share-button'
 import { HeadingsMenu } from '@/components/navigation/headings-menu'
 import { Article } from '@/types/content-types'
@@ -11,7 +11,7 @@ export async function BlogTableOfContents({ article }: { article: Article }) {
 	const headings = await db.getArticleHeadings(article.id)
 
 	return (
-		<Aside className="hidden xl:flex pl-12">
+		<Navigation className="hidden xl:flex pl-12">
 			<BlogAuthors article={article} />
 			<HeadingsMenu headings={headings} />
 			<ShareButton
@@ -20,6 +20,6 @@ export async function BlogTableOfContents({ article }: { article: Article }) {
 			<ExtraSideBarButtons>
 				<BackToTopButton />
 			</ExtraSideBarButtons>
-		</Aside>
+		</Navigation>
 	)
 }

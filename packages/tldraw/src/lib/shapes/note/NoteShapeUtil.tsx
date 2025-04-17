@@ -310,6 +310,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							labelColor={labelColor === 'black' ? theme[color].note.text : theme[labelColor].fill}
 							wrap
 							padding={LABEL_PADDING * scale}
+							hasCustomTabBehavior
 							onKeyDown={handleKeyDown}
 						/>
 					)}

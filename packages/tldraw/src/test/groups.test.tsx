@@ -14,9 +14,11 @@ import {
 	createShapeId,
 	mockUniqueId,
 	sortByIndex,
+	toRichText,
 } from '@tldraw/editor'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
+import { TL } from './test-jsx'
 
 let nextNanoId = 0
 mockUniqueId(() => `${nextNanoId++}`)
@@ -662,6 +664,22 @@ describe('the bounds of a group', () => {
 			y: -10,
 			w: 70,
 			h: 20,
+		})
+	})
+
+	it('accounts for label-only geometry', () => {
+		const { groupId } = editor.createShapesFromJsx([
+			<TL.group ref="groupId">
+				<TL.text ref="textId" x={10} y={10} richText={toRichText('Hello')} />
+				<TL.geo ref="geoId" w={100} h={100} x={0} y={100} />
+			</TL.group>,
+		])
+
+		expect(editor.getShapePageBounds(groupId)!).toCloselyMatchObject({
+			x: 0,
+			y: 10,
+			w: 100,
+			h: 190,
 		})
 	})
 })
