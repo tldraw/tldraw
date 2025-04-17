@@ -47,7 +47,10 @@ export const DefaultToolbar = memo(function DefaultToolbar({ children }: Default
 					{!isReadonlyMode && (
 						<div className="tlui-toolbar__extras">
 							{showQuickActions && (
-								<div className="tlui-toolbar__extras__controls tlui-buttons__horizontal">
+								<div
+									className="tlui-toolbar__extras__controls tlui-buttons__horizontal"
+									role="toolbar"
+								>
 									{QuickActions && <QuickActions />}
 									{ActionsMenu && <ActionsMenu />}
 								</div>

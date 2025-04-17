@@ -41,7 +41,7 @@ import {
 import { DefaultToolbar } from '../components/Toolbar/DefaultToolbar'
 import { DefaultTopPanel } from '../components/TopPanel/DefaultTopPanel'
 import { DefaultZoomMenu, TLUiZoomMenuProps } from '../components/ZoomMenu/DefaultZoomMenu'
-import { useShowCollaborationUi } from '../hooks/useIsMultiplayer'
+import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 
 /** @public */
 export interface TLUiComponents {

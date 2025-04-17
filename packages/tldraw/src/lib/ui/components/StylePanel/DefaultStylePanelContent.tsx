@@ -66,7 +66,7 @@ export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps)
 			<CommonStylePickerSet theme={theme} styles={styles} />
 			{!hideText && <TextStylePickerSet theme={theme} styles={styles} />}
 			{!(hideGeo && hideArrowHeads && hideSpline && hideArrowKind) && (
-				<div className="tlui-style-panel__section" aria-label="style panel styles">
+				<div className="tlui-style-panel__section">
 					<GeoStylePickerSet styles={styles} />
 					<ArrowStylePickerSet styles={styles} />
 					<ArrowheadStylePickerSet styles={styles} />
@@ -127,12 +127,7 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 
 	return (
 		<>
-			<div
-				tabIndex={-1}
-				className="tlui-style-panel__section__common"
-				aria-label="style panel styles"
-				data-testid="style.panel"
-			>
+			<div tabIndex={-1} className="tlui-style-panel__section__common" data-testid="style.panel">
 				{color === undefined ? null : (
 					<TldrawUiButtonPicker
 						title={msg('style-panel.color')}
@@ -148,7 +143,7 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 				<OpacitySlider />
 			</div>
 			{showPickers && (
-				<div className="tlui-style-panel__section" aria-label="style panel styles">
+				<div className="tlui-style-panel__section">
 					{fill === undefined ? null : (
 						<TldrawUiButtonPicker
 							title={msg('style-panel.fill')}
@@ -214,7 +209,7 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 	}
 
 	return (
-		<div className="tlui-style-panel__section" aria-label="style panel text">
+		<div className="tlui-style-panel__section">
 			{font === undefined ? null : (
 				<TldrawUiButtonPicker
 					title={msg('style-panel.font')}

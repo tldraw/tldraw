@@ -87,6 +87,7 @@ import {
 	last,
 	lerp,
 	maxBy,
+	minBy,
 	sortById,
 	sortByIndex,
 	structuredClone,
@@ -176,7 +177,7 @@ import {
 	TLImageExportOptions,
 	TLSvgExportOptions,
 } from './types/misc-types'
-import { TLResizeHandle } from './types/selection-types'
+import { TLAdjacentDirection, TLResizeHandle } from './types/selection-types'
 
 /** @public */
 export type TLResizeShapeOptions = Partial<{
@@ -1813,6 +1814,195 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	selectAdjacentShape(direction: TLAdjacentDirection) {
+		const readingOrderShapes = this.getCurrentPageShapesInReadingOrder()
+		const selectedShapeIds = this.getSelectedShapeIds()
+		const currentShapeId: TLShapeId | undefined =
+			selectedShapeIds.length === 1
+				? selectedShapeIds[0]
+				: readingOrderShapes.find((shape) => selectedShapeIds.includes(shape.id))?.id
+
+		let adjacentShapeId: TLShapeId
+		if (direction === 'next' || direction === 'prev') {
+			const shapeIds = readingOrderShapes.map((shape) => shape.id)
+
+			const currentIndex = currentShapeId ? shapeIds.indexOf(currentShapeId) : -1
+			const adjacentIndex =
+				(currentIndex + (direction === 'next' ? 1 : -1) + shapeIds.length) % shapeIds.length
+			adjacentShapeId = shapeIds[adjacentIndex]
+		} else {
+			if (!currentShapeId) return
+			adjacentShapeId = this.getNearestAdjacentShape(currentShapeId, direction)
+		}
+
+		const shape = this.getShape(adjacentShapeId)
+		if (!shape) return
+
+		this.setSelectedShapes([shape.id])
+		this.zoomToSelectionIfOffscreen(256, {
+			animation: {
+				duration: this.options.animationMediumMs,
+			},
+			inset: 0,
+		})
+	}
+
+	/**
+	 * Generates a reading order for shapes based on rows grouping.
+	 * Tries to keep a natural reading order (left-to-right, top-to-bottom).
+	 *
+	 * @public
+	 */
+	@computed getCurrentPageShapesInReadingOrder(): TLShape[] {
+		const SHALLOW_ANGLE = 20
+		const ROW_THRESHOLD = 100
+
+		const shapes = this.getCurrentPageShapes()
+		const tabbableShapes = shapes.filter((shape) => this.getShapeUtil(shape).canTabTo(shape))
+
+		if (tabbableShapes.length <= 1) return tabbableShapes
+
+		const shapesWithCenters = tabbableShapes.map((shape) => ({
+			shape,
+			center: this.getShapePageBounds(shape)!.center,
+		}))
+		shapesWithCenters.sort((a, b) => a.center.y - b.center.y)
+
+		const rows: Array<typeof shapesWithCenters> = []
+
+		// First, group shapes into rows based on y-coordinates.
+		for (const shapeWithCenter of shapesWithCenters) {
+			let rowIndex = -1
+			for (let i = rows.length - 1; i >= 0; i--) {
+				const row = rows[i]
+				const lastShapeInRow = row[row.length - 1]
+
+				// If the shape is close enough vertically to the last shape in this row.
+				if (Math.abs(shapeWithCenter.center.y - lastShapeInRow.center.y) < ROW_THRESHOLD) {
+					rowIndex = i
+					break
+				}
+			}
+
+			// If no suitable row found, create a new row.
+			if (rowIndex === -1) {
+				rows.push([shapeWithCenter])
+			} else {
+				rows[rowIndex].push(shapeWithCenter)
+			}
+		}
+
+		// Then, sort each row by x-coordinate (left-to-right).
+		for (const row of rows) {
+			row.sort((a, b) => a.center.x - b.center.x)
+		}
+
+		// Finally, apply angle/distance weight adjustments within rows for closely positioned shapes.
+		for (const row of rows) {
+			if (row.length <= 2) continue
+
+			for (let i = 0; i < row.length - 2; i++) {
+				const currentShape = row[i]
+				const nextShape = row[i + 1]
+				const nextNextShape = row[i + 2]
+
+				// Only consider adjustment if the next two shapes are relatively close to each other.
+				const dist1 = Vec.Dist2(currentShape.center, nextShape.center)
+				const dist2 = Vec.Dist2(currentShape.center, nextNextShape.center)
+
+				// Check if the 2nd shape is actually closer to the current shape.
+				if (dist2 < dist1 * 0.9) {
+					// Check if it's a shallow enough angle.
+					const angle = Math.abs(
+						Vec.Angle(currentShape.center, nextNextShape.center) * (180 / Math.PI)
+					)
+					if (angle <= SHALLOW_ANGLE) {
+						// Swap swap.
+						;[row[i + 1], row[i + 2]] = [row[i + 2], row[i + 1]]
+					}
+				}
+			}
+		}
+
+		return rows.flat().map((item) => item.shape)
+	}
+
+	/**
+	 * Find the nearest adjacent shape in a specific direction.
+	 *
+	 * @public
+	 */
+	getNearestAdjacentShape(
+		currentShapeId: TLShapeId,
+		direction: 'left' | 'right' | 'up' | 'down'
+	): TLShapeId {
+		const directionToAngle = { right: 0, left: 180, down: 90, up: 270 }
+		const currentShape = this.getShape(currentShapeId)
+		if (!currentShape) return currentShapeId
+
+		const shapes = this.getCurrentPageShapes()
+		const tabbableShapes = shapes.filter(
+			(shape) => this.getShapeUtil(shape).canTabTo(shape) && shape.id !== currentShapeId
+		)
+		if (!tabbableShapes.length) return currentShapeId
+
+		const currentCenter = this.getShapePageBounds(currentShape)!.center
+		const shapesWithCenters = tabbableShapes.map((shape) => ({
+			shape,
+			center: this.getShapePageBounds(shape)!.center,
+		}))
+
+		// Filter shapes that are in the same direction.
+		const shapesInDirection = shapesWithCenters.filter(({ center }) => {
+			const isRight = center.x > currentCenter.x
+			const isDown = center.y > currentCenter.y
+			const xDist = center.x - currentCenter.x
+			const yDist = center.y - currentCenter.y
+			const isInXDirection = Math.abs(yDist) < Math.abs(xDist) * 2
+			const isInYDirection = Math.abs(xDist) < Math.abs(yDist) * 2
+			if (direction === 'left' || direction === 'right') {
+				return isInXDirection && (direction === 'right' ? isRight : !isRight)
+			}
+			if (direction === 'up' || direction === 'down') {
+				return isInYDirection && (direction === 'down' ? isDown : !isDown)
+			}
+		})
+
+		if (shapesInDirection.length === 0) return currentShapeId
+
+		// Ok, now score that subset of shapes.
+		const lowestScoringShape = minBy(shapesInDirection, ({ center }) => {
+			// Distance is the primary weighting factor.
+			const distance = Vec.Dist2(currentCenter, center)
+
+			// Distance along the primary axis.
+			const dirProp = ['left', 'right'].includes(direction) ? 'x' : 'y'
+			const directionalDistance = Math.abs(center[dirProp] - currentCenter[dirProp])
+
+			// Distance off the perpendicular to the primary axis.
+			const offProp = ['left', 'right'].includes(direction) ? 'y' : 'x'
+			const offAxisDeviation = Math.abs(center[offProp] - currentCenter[offProp])
+
+			// Angle in degrees
+			const angle = Math.abs(Vec.Angle(currentCenter, center) * (180 / Math.PI))
+			const angleDeviation = Math.abs(angle - directionToAngle[direction])
+
+			// Calculate final score (lower is better).
+			// Weight factors to prioritize:
+			// 1. Shapes directly in line with the current shape
+			// 2. Shapes closer to the current shape
+			// 3. Shapes with less angular deviation from the primary direction
+			return (
+				distance * 1.0 + // Base distance
+				offAxisDeviation * 2.0 + // Heavy penalty for off-axis deviation
+				(distance - directionalDistance) * 1.5 + // Penalty for diagonal distance
+				angleDeviation * 0.5
+			) // Slight penalty for angular deviation
+		})
+
+		return lowestScoringShape!.shape.id
+	}
+
 	/**
 	 * Clear the selection.
 	 *
@@ -3052,6 +3242,34 @@ export class Editor extends EventEmitter<TLEventMap> {
 			})
 		}
 		return this
+	}
+
+	/**
+	 * Zoom the camera to the current selection if offscreen.
+	 *
+	 * @public
+	 */
+	zoomToSelectionIfOffscreen(
+		padding = 16,
+		opts?: { targetZoom?: number; inset?: number } & TLCameraMoveOptions
+	) {
+		const selectionPageBounds = this.getSelectionPageBounds()
+		const viewportPageBounds = this.getViewportPageBounds()
+		if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
+			const eb = selectionPageBounds
+				.clone()
+				// Expand the bounds by the padding
+				.expandBy(padding / this.getZoomLevel())
+				// then expand the bounds to include the viewport bounds
+				.expand(viewportPageBounds)
+
+			// then use the difference between the centers to calculate the offset
+			const nextBounds = viewportPageBounds.clone().translate({
+				x: (eb.center.x - viewportPageBounds.center.x) * 2,
+				y: (eb.center.y - viewportPageBounds.center.y) * 2,
+			})
+			this.zoomToBounds(nextBounds, opts)
+		}
 	}
 
 	/**

@@ -1,4 +1,4 @@
-import { useShowCollaborationUi } from '../../hooks/useIsMultiplayer'
+import { useShowCollaborationUi } from '../../hooks/useCollaborationStatus'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
@@ -70,6 +70,51 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="align-left" />
 				<TldrawUiMenuActionItem actionId="align-center-horizontal" />
 				<TldrawUiMenuActionItem actionId="align-right" />
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup label="shortcuts-dialog.a11y" id="a11y">
+				<TldrawUiMenuItem
+					id="a11y-select-next-shape"
+					label="a11y.select-shape"
+					kbd="[[Tab]]"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="a11y-select-next-shape-direction"
+					label="a11y.select-shape-direction"
+					kbd="cmd+↑→↓←"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="a11y-pan-camera"
+					label="a11y.pan-camera"
+					kbd="[[Space]]+↑→↓←"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="a11y-move-shape"
+					label="a11y.move-shape"
+					kbd="↑→↓←"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="a11y-move-shape-faster"
+					label="a11y.move-shape-faster"
+					kbd="shift+↑→↓←"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuActionItem actionId="enlarge-shapes" />
+				<TldrawUiMenuActionItem actionId="shrink-shapes" />
+				<TldrawUiMenuActionItem actionId="a11y-repeat-shape-announce" />
 			</TldrawUiMenuGroup>
 			{showCollaborationUi && (
 				<TldrawUiMenuGroup label="shortcuts-dialog.collaboration" id="collaboration">

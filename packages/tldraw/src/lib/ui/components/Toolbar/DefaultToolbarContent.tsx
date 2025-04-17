@@ -49,13 +49,14 @@ export function DefaultToolbarContent() {
 }
 
 /** @public */
-export function useIsToolSelected(tool: TLUiToolItem) {
+export function useIsToolSelected(tool: TLUiToolItem | undefined) {
 	const editor = useEditor()
-	const geo = tool.meta?.geo
-	const arrowKind = tool.meta?.arrowKind
+	const geo = tool?.meta?.geo
+	const arrowKind = tool?.meta?.arrowKind
 	return useValue(
 		'is tool selected',
 		() => {
+			if (!tool) return false
 			const activeToolId = editor.getCurrentToolId()
 			if (activeToolId === 'arrow') {
 				return arrowKind === editor.getSharedStyles().getAsKnownValue(ArrowShapeKindStyle)
@@ -65,7 +66,7 @@ export function useIsToolSelected(tool: TLUiToolItem) {
 				return activeToolId === tool.id
 			}
 		},
-		[editor, tool.id, geo, arrowKind]
+		[editor, tool?.id, geo]
 	)
 }
 

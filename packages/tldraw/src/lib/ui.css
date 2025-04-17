@@ -587,6 +587,16 @@
 	color: var(--color-warn);
 }
 
+.tlui-a11y-audit {
+	border-collapse: collapse;
+}
+
+.tlui-a11y-audit th,
+.tlui-a11y-audit td {
+	padding: 8px;
+	border: 1px solid var(--color-low-border);
+}
+
 /* -------------------- Menu Zone ------------------- */
 
 .tlui-menu-zone {
@@ -1885,4 +1895,18 @@
 
 .tlui-rich-text__toolbar .tlui-input__wrapper {
 	height: 40px;
+}
+
+/* ------------------- Accessibilty ------------------- */
+
+.tl-skip-to-main-content {
+	position: fixed;
+	top: 48px;
+	left: -9999px;
+	padding: 8px 16px;
+	z-index: var(--layer-toasts);
+}
+
+.tl-skip-to-main-content:focus {
+	left: 8px;
 }

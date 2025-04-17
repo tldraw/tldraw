@@ -1,5 +1,5 @@
 import * as Popover from '@radix-ui/react-popover'
-import { preventDefault, useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
+import { useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -10,12 +10,11 @@ import { UserPresenceEditor } from './UserPresenceEditor'
 
 /** @public */
 export interface PeopleMenuProps {
-	displayUserWhenAlone: boolean
 	children?: ReactNode
 }
 
 /** @public @react */
-export function PeopleMenu({ displayUserWhenAlone, children }: PeopleMenuProps) {
+export function PeopleMenu({ children }: PeopleMenuProps) {
 	const msg = useTranslation()
 
 	const container = useContainer()
@@ -27,6 +26,8 @@ export function PeopleMenu({ displayUserWhenAlone, children }: PeopleMenuProps) 
 
 	const [isOpen, onOpenChange] = useMenuIsOpen('people menu')
 
+	if (!userIds.length) return null
+
 	return (
 		<Popover.Root onOpenChange={onOpenChange} open={isOpen}>
 			<Popover.Trigger dir="ltr" asChild>
@@ -36,7 +37,7 @@ export function PeopleMenu({ displayUserWhenAlone, children }: PeopleMenuProps) 
 						{userIds.slice(-5).map((userId) => (
 							<PeopleMenuAvatar key={userId} userId={userId} />
 						))}
-						{(displayUserWhenAlone || userIds.length > 0) && (
+						{userIds.length > 0 && (
 							<div
 								className="tlui-people-menu__avatar"
 								style={{
@@ -56,7 +57,6 @@ export function PeopleMenu({ displayUserWhenAlone, children }: PeopleMenuProps) 
 					side="bottom"
 					sideOffset={2}
 					collisionPadding={4}
-					onEscapeKeyDown={preventDefault}
 				>
 					<div className="tlui-people-menu__wrapper">
 						<div className="tlui-people-menu__section">
