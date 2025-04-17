@@ -51,9 +51,9 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	override getAriaDescriptor(shape: TLBookmarkShape) {
 		const asset = (
 			shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
-		) as TLBookmarkAsset
+		) as TLBookmarkAsset | null
 
-		if (!asset.props.title) return undefined
+		if (!asset?.props.title) return undefined
 
 		return (
 			convertCommonTitleHTMLEntities(asset.props.title) +
