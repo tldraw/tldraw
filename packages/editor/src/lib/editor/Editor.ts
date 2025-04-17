@@ -42,6 +42,7 @@ import {
 	TLImageAsset,
 	TLInstance,
 	TLInstancePageState,
+	TLInstancePresence,
 	TLNoteShape,
 	TLPOINTER_ID,
 	TLPage,
@@ -2575,18 +2576,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return baseCamera
 	}
 
+	private _getFollowingPresence(targetUserId: string | null) {
+		const visited = [this.user.getId()]
+		const collaborators = this.getCollaborators()
+		let leaderPresence = null as null | TLInstancePresence
+		while (targetUserId && !visited.includes(targetUserId)) {
+			leaderPresence = collaborators.find((c) => c.userId === targetUserId) ?? null
+			targetUserId = leaderPresence?.followingUserId ?? null
+			if (leaderPresence) {
+				visited.push(leaderPresence.userId)
+			}
+		}
+		return leaderPresence
+	}
+
 	@computed
 	private getViewportPageBoundsForFollowing(): null | Box {
-		const followingUserId = this.getInstanceState().followingUserId
-		if (!followingUserId) return null
-		const collaborators = this.getCollaborators()
-		let leaderPresence = this.getCollaborators().find((c) => c.userId === followingUserId)
-		while (leaderPresence && leaderPresence.followingUserId) {
-			leaderPresence = collaborators.find((c) => c.userId === leaderPresence?.followingUserId)
-		}
-		if (!leaderPresence) return null
+		const leaderPresence = this._getFollowingPresence(this.getInstanceState().followingUserId)
 
-		if (!leaderPresence.camera || !leaderPresence.screenBounds) return null
+		if (!leaderPresence?.camera || !leaderPresence?.screenBounds) return null
 
 		// Fit their viewport inside of our screen bounds
 		// 1. calculate their viewport in page space
@@ -3785,15 +3793,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// if we were already following someone, stop following them
 		this.stopFollowingUser()
 
-		const leaderPresences = this._getCollaboratorsQuery()
-			.get()
-			.filter((p) => p.userId === userId)
-
-		if (!leaderPresences.length) {
-			console.warn('User not found')
-			return this
-		}
-
 		const thisUserId = this.user.getId()
 
 		if (!thisUserId) {
@@ -3801,13 +3800,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// allow to continue since it's probably fine most of the time.
 		}
 
-		// If the leader is following us, then we can't follow them
-		if (leaderPresences.some((p) => p.followingUserId === thisUserId)) {
+		const leaderPresence = this._getFollowingPresence(userId)
+
+		if (!leaderPresence) {
 			return this
 		}
 
 		const latestLeaderPresence = computed('latestLeaderPresence', () => {
-			return this.getCollaborators().find((p) => p.userId === userId)
+			return this._getFollowingPresence(userId)
 		})
 
 		transact(() => {
