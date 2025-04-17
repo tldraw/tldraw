@@ -1,5 +1,5 @@
-import { Vec } from '../Vec'
 import { linesIntersect } from '../intersect'
+import { Vec } from '../Vec'
 import { Geometry2d } from './Geometry2d'
 
 /** @public */

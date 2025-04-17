@@ -20,7 +20,7 @@ export class AtomMap<K, V> implements Map<K, V> {
     [Symbol.iterator](): Generator<[K, V], undefined, unknown>;
     // (undocumented)
     [Symbol.toStringTag]: string;
-    constructor(name: string, entries?: Iterable<[K, V]>);
+    constructor(name: string, entries?: Iterable<readonly [K, V]>);
     // (undocumented)
     __unsafe__getWithoutCapture(key: K): undefined | V;
     // (undocumented)

@@ -11,7 +11,7 @@ export class AtomMap<K, V> implements Map<K, V> {
 
 	constructor(
 		private readonly name: string,
-		entries?: Iterable<[K, V]>
+		entries?: Iterable<readonly [K, V]>
 	) {
 		let atoms = emptyMap<K, Atom<V>>()
 		if (entries) {

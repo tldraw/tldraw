@@ -65,7 +65,30 @@ export { registerDefaultSideEffects } from './lib/defaultSideEffects'
 export { defaultTools } from './lib/defaultTools'
 export { ArrowShapeTool } from './lib/shapes/arrow/ArrowShapeTool'
 export { ArrowShapeUtil } from './lib/shapes/arrow/ArrowShapeUtil'
-export { type TLArcInfo, type TLArrowInfo, type TLArrowPoint } from './lib/shapes/arrow/arrow-types'
+export {
+	type ArrowShapeOptions,
+	type TLArcArrowInfo,
+	type TLArcInfo,
+	type TLArrowInfo,
+	type TLArrowPoint,
+	type TLElbowArrowInfo,
+	type TLStraightArrowInfo,
+} from './lib/shapes/arrow/arrow-types'
+export {
+	type ElbowArrowBox,
+	type ElbowArrowBoxEdges,
+	type ElbowArrowBoxes,
+	type ElbowArrowEdge,
+	type ElbowArrowInfo,
+	type ElbowArrowInfoWithoutRoute,
+	type ElbowArrowMidpointHandle,
+	type ElbowArrowOptions,
+	type ElbowArrowRange,
+	type ElbowArrowRoute,
+	type ElbowArrowScale,
+	type ElbowArrowSideReason,
+	type ElbowArrowTargetBox,
+} from './lib/shapes/arrow/elbow/definitions'
 export {
 	getArrowBindings,
 	getArrowTerminalsInArrowSpace,
@@ -259,6 +282,7 @@ export {
 } from './lib/ui/components/Toolbar/DefaultToolbar'
 export {
 	ArrowDownToolbarItem,
+	ArrowElbowToolbarItem,
 	ArrowLeftToolbarItem,
 	ArrowRightToolbarItem,
 	ArrowToolbarItem,
@@ -278,6 +302,7 @@ export {
 	LaserToolbarItem,
 	LineToolbarItem,
 	NoteToolbarItem,
+	OctagonToolbarItem,
 	OvalToolbarItem,
 	RectangleToolbarItem,
 	RhombusToolbarItem,

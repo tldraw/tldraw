@@ -13,6 +13,7 @@ exports[`putExcalidrawContent test fixtures bound-arrows.json 1`] = `
         "x": 0.5,
         "y": 0.5,
       },
+      "side": null,
       "terminal": "start",
     },
     "toId": "shape:11",
@@ -30,6 +31,7 @@ exports[`putExcalidrawContent test fixtures bound-arrows.json 1`] = `
         "x": 0.5,
         "y": 0.5,
       },
+      "side": null,
       "terminal": "end",
     },
     "toId": "shape:12",
@@ -143,6 +145,7 @@ exports[`putExcalidrawContent test fixtures bound-arrows.json 1`] = `
       },
       "fill": "none",
       "font": "draw",
+      "kind": "bendy",
       "labelColor": "black",
       "labelPosition": 0.5,
       "scale": 1,
@@ -158,6 +161,25 @@ exports[`putExcalidrawContent test fixtures bound-arrows.json 1`] = `
     "typeName": "shape",
     "x": 496.384765625,
     "y": 347.4204623362487,
+  },
+}
+`;
+
+exports[`putExcalidrawContent test fixtures bound-elbow-arrows.json 1`] = `
+{
+  "document:document": {
+    "gridSize": 10,
+    "id": "document:document",
+    "meta": {},
+    "name": "",
+    "typeName": "document",
+  },
+  "page:page": {
+    "id": "page:page",
+    "index": "a1",
+    "meta": {},
+    "name": "Page 1",
+    "typeName": "page",
   },
 }
 `;

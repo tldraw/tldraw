@@ -1,4 +1,4 @@
-import { assert } from '@tldraw/utils'
+import { assert, invLerp } from '@tldraw/utils'
 import { Box } from '../Box'
 import { Mat, MatModel } from '../Mat'
 import { Vec, VecLike } from '../Vec'
@@ -81,7 +81,7 @@ export abstract class Geometry2d {
 
 	abstract getVertices(filters: Geometry2dFilters): Vec[]
 
-	abstract nearestPoint(point: Vec, _filters?: Geometry2dFilters): Vec
+	abstract nearestPoint(point: VecLike, _filters?: Geometry2dFilters): Vec
 
 	hitTestPoint(point: Vec, margin = 0, hitInside = false, _filters?: Geometry2dFilters) {
 		// First check whether the point is inside
@@ -92,17 +92,17 @@ export abstract class Geometry2d {
 		return Vec.Dist2(point, this.nearestPoint(point)) <= margin * margin
 	}
 
-	distanceToPoint(point: Vec, hitInside = false, filters?: Geometry2dFilters) {
+	distanceToPoint(point: VecLike, hitInside = false, filters?: Geometry2dFilters) {
 		return (
-			point.dist(this.nearestPoint(point, filters)) *
+			Vec.Dist(point, this.nearestPoint(point, filters)) *
 			(this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)
 				? -1
 				: 1)
 		)
 	}
 
-	distanceToLineSegment(A: Vec, B: Vec, filters?: Geometry2dFilters) {
-		if (A.equals(B)) return this.distanceToPoint(A, false, filters)
+	distanceToLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
+		if (Vec.Equals(A, B)) return this.distanceToPoint(A, false, filters)
 		const { vertices } = this
 		let nearest: Vec | undefined
 		let dist = Infinity
@@ -120,7 +120,7 @@ export abstract class Geometry2d {
 		return this.isClosed && this.isFilled && pointInPolygon(nearest, this.vertices) ? -dist : dist
 	}
 
-	hitTestLineSegment(A: Vec, B: Vec, distance = 0, filters?: Geometry2dFilters): boolean {
+	hitTestLineSegment(A: VecLike, B: VecLike, distance = 0, filters?: Geometry2dFilters): boolean {
 		return this.distanceToLineSegment(A, B, filters) <= distance
 	}
 
@@ -146,6 +146,74 @@ export abstract class Geometry2d {
 
 	intersectPolyline(polyline: VecLike[], _filters?: Geometry2dFilters): VecLike[] {
 		return intersectPolys(polyline, this.vertices, false, this.isClosed)
+	}
+
+	/**
+	 * Find a point along the edge of the geometry that is a fraction `t` along the entire way round.
+	 */
+	interpolateAlongEdge(t: number, _filters?: Geometry2dFilters): Vec {
+		const { vertices } = this
+
+		if (t <= 0) return vertices[0]
+
+		const distanceToTravel = t * this.length
+		let distanceTraveled = 0
+
+		for (let i = 0; i < (this.isClosed ? vertices.length : vertices.length - 1); i++) {
+			const curr = vertices[i]
+			const next = vertices[(i + 1) % vertices.length]
+			const dist = Vec.Dist(curr, next)
+			const newDistanceTraveled = distanceTraveled + dist
+			if (newDistanceTraveled >= distanceToTravel) {
+				const p = Vec.Lrp(
+					curr,
+					next,
+					invLerp(distanceTraveled, newDistanceTraveled, distanceToTravel)
+				)
+				return p
+			}
+			distanceTraveled = newDistanceTraveled
+		}
+
+		return this.isClosed ? vertices[0] : vertices[vertices.length - 1]
+	}
+
+	/**
+	 * Take `point`, find the closest point to it on the edge of the geometry, and return how far
+	 * along the edge it is as a fraction of the total length.
+	 */
+	uninterpolateAlongEdge(point: VecLike, _filters?: Geometry2dFilters): number {
+		const { vertices, length } = this
+		let closestSegment = null
+		let closestDistance = Infinity
+		let distanceTraveled = 0
+
+		for (let i = 0; i < (this.isClosed ? vertices.length : vertices.length - 1); i++) {
+			const curr = vertices[i]
+			const next = vertices[(i + 1) % vertices.length]
+
+			const nearestPoint = Vec.NearestPointOnLineSegment(curr, next, point, true)
+			const distance = Vec.Dist(nearestPoint, point)
+
+			if (distance < closestDistance) {
+				closestDistance = distance
+				closestSegment = {
+					start: curr,
+					end: next,
+					nearestPoint,
+					distanceToStart: distanceTraveled,
+				}
+			}
+
+			distanceTraveled += Vec.Dist(curr, next)
+		}
+
+		assert(closestSegment)
+
+		const distanceAlongRoute =
+			closestSegment.distanceToStart + Vec.Dist(closestSegment.start, closestSegment.nearestPoint)
+
+		return distanceAlongRoute / length
 	}
 
 	/** @deprecated Iterate the vertices instead. */
@@ -261,21 +329,21 @@ export abstract class Geometry2d {
 	// eslint-disable-next-line no-restricted-syntax
 	get length() {
 		if (this._length) return this._length
-		this._length = this.getLength()
+		this._length = this.getLength(Geometry2dFilters.EXCLUDE_LABELS)
 		return this._length
 	}
 
-	getLength() {
+	getLength(_filters?: Geometry2dFilters) {
 		const { vertices } = this
 		let n1: Vec,
 			p1 = vertices[0],
 			length = 0
-		for (let i = 1; i < vertices.length; i++) {
-			n1 = vertices[i]
-			length += Vec.Dist2(p1, n1)
+		for (let i = 1; i < (this.isClosed ? vertices.length : vertices.length - 1); i++) {
+			n1 = vertices[i % vertices.length]
+			length += Vec.Dist(p1, n1)
 			p1 = n1
 		}
-		return Math.sqrt(length)
+		return length
 	}
 
 	abstract getSvgPathData(first: boolean): string
@@ -365,27 +433,39 @@ export class TransformedGeometry2d extends Geometry2d {
 	}
 
 	override intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
-		return this.geometry.intersectLineSegment(
-			Mat.applyToPoint(this.inverse, A),
-			Mat.applyToPoint(this.inverse, B),
-			filters
+		return Mat.applyToPoints(
+			this.matrix,
+			this.geometry.intersectLineSegment(
+				Mat.applyToPoint(this.inverse, A),
+				Mat.applyToPoint(this.inverse, B),
+				filters
+			)
 		)
 	}
 
 	override intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters) {
-		return this.geometry.intersectCircle(
-			Mat.applyToPoint(this.inverse, center),
-			radius / this.decomposed.scaleX,
-			filters
+		return Mat.applyToPoints(
+			this.matrix,
+			this.geometry.intersectCircle(
+				Mat.applyToPoint(this.inverse, center),
+				radius / this.decomposed.scaleX,
+				filters
+			)
 		)
 	}
 
 	override intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[] {
-		return this.geometry.intersectPolygon(Mat.applyToPoints(this.inverse, polygon), filters)
+		return Mat.applyToPoints(
+			this.matrix,
+			this.geometry.intersectPolygon(Mat.applyToPoints(this.inverse, polygon), filters)
+		)
 	}
 
 	override intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[] {
-		return this.geometry.intersectPolyline(Mat.applyToPoints(this.inverse, polyline), filters)
+		return Mat.applyToPoints(
+			this.matrix,
+			this.geometry.intersectPolyline(Mat.applyToPoints(this.inverse, polyline), filters)
+		)
 	}
 
 	override transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d {
