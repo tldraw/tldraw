@@ -34,9 +34,8 @@ export function PricingSection() {
 					custom pricing, support, and contract terms.
 				</p>
 				<p>
-					All customers receive a{' '}
-					<BlueA href="/community/license#Domain-verification">license key</BlueA> that will hide
-					the &quot;made with tldraw&quot; watermark on your domains. See our{' '}
+					All customers receive a <BlueA href="/community/license">license key</BlueA> that will
+					hide the &quot;made with tldraw&quot; watermark on your domains. See our{' '}
 					<BlueA href="#faq">FAQ</BlueA> for more information.
 				</p>
 				{/* <h3 className="font-bold">Startup</h3>
