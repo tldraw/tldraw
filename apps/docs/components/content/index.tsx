@@ -11,6 +11,7 @@ import { ParametersTableName } from '@/components/content/parameters-table-name'
 import { ParametersTableRow } from '@/components/content/parameters-table-row'
 import { Pre } from '@/components/content/pre'
 import { ApiMemberTitle } from '@/components/content/title-with-source-link'
+import { TwoImages } from '@/components/content/two-images'
 import { Video } from '@/components/content/video'
 import { YouTube } from '@/components/content/youtube'
 import { cn } from '@/utils/cn'
@@ -58,6 +59,7 @@ export function Content({ mdx, type }: { mdx: string; type?: string }) {
 					blockquote: Blockquote,
 					Video,
 					YouTube,
+					TwoImages,
 				}}
 				options={{
 					mdxOptions: {
