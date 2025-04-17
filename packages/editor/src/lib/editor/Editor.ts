@@ -1705,8 +1705,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 */
 	@computed getSelectedShapes(): TLShape[] {
-		const { selectedShapeIds } = this.getCurrentPageState()
-		return compact(selectedShapeIds.map((id) => this.store.get(id)))
+		return compact(this.getSelectedShapeIds().map((id) => this.store.get(id)))
 	}
 
 	/**
