@@ -80,6 +80,10 @@ export interface TldrawOptions {
 	 * nonce to use in the editor's styles.
 	 */
 	readonly nonce: string | undefined
+	/**
+	 * Branding name of the app, currently only used for adding aria-label for the application.
+	 */
+	readonly branding?: string
 }
 
 /** @public */

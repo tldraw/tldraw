@@ -5,11 +5,13 @@ import {
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { RefObject } from 'react'
+import { TldrawUiToolbar } from './TldrawUiToolbar'
 
 /** @public */
 export interface TLUiContextualToolbarProps {
 	children?: React.ReactNode
 	className?: string
+	label: string
 }
 
 /**
@@ -21,7 +23,7 @@ export interface TLUiContextualToolbarProps {
 export const TldrawUiContextualToolbar = React.forwardRef<
 	HTMLDivElement,
 	TLUiContextualToolbarProps
->(function TldrawUiContextualToolbar({ children, className }, toolbarRef) {
+>(function TldrawUiContextualToolbar({ children, className, label }, toolbarRef) {
 	usePassThroughWheelEvents(toolbarRef as RefObject<HTMLDivElement>)
 	usePassThroughMouseOverEvents(toolbarRef as RefObject<HTMLDivElement>)
 
@@ -32,9 +34,9 @@ export const TldrawUiContextualToolbar = React.forwardRef<
 			className={classNames('tlui-contextual-toolbar', className)}
 			onPointerDown={stopEventPropagation}
 		>
-			<div className="tlui-menu tlui-buttons__horizontal" role="toolbar">
+			<TldrawUiToolbar className="tlui-menu tlui-buttons__horizontal" label={label}>
 				{children}
-			</div>
+			</TldrawUiToolbar>
 		</div>
 	)
 })

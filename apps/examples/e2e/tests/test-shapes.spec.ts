@@ -86,7 +86,7 @@ test.describe('Shape Tools', () => {
 			await page.getByTestId(`tools.${tool}`).click()
 
 			// Button should be selected
-			await expect(page.getByTestId(`tools.${tool}`)).toHaveAttribute('aria-checked', 'true')
+			await expect(page.getByTestId(`tools.${tool}`)).toHaveAttribute('aria-pressed', 'true')
 		}
 	})
 
@@ -106,7 +106,7 @@ test.describe('Shape Tools', () => {
 			await page.getByTestId(`tools.${tool}`).click()
 
 			// Button should be selected
-			await expect(page.getByTestId(`tools.${tool}`)).toHaveAttribute('aria-checked', 'true')
+			await expect(page.getByTestId(`tools.${tool}`)).toHaveAttribute('aria-pressed', 'true')
 
 			// Click on the page
 			await page.mouse.click(200, 200)
@@ -142,7 +142,7 @@ test.describe('Shape Tools', () => {
 			await page.getByTestId(`tools.${tool}`).click()
 
 			// Button should be selected
-			await expect(page.getByTestId(`tools.${tool}`)).toHaveAttribute('aria-checked', 'true')
+			await expect(page.getByTestId(`tools.${tool}`)).toHaveAttribute('aria-pressed', 'true')
 
 			// Click and drag
 			await page.mouse.move(200, 200)

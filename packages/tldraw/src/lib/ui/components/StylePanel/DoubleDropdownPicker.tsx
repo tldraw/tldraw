@@ -3,13 +3,13 @@ import * as React from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import {
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
 } from '../primitives/TldrawUiPopover'
+import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 
 interface DoubleDropdownPickerProps<T extends string> {
@@ -68,10 +68,10 @@ function DoubleDropdownPickerInner<T extends string>({
 			<div title={msg(label)} className="tlui-style-panel__double-select-picker-label">
 				{msg(label)}
 			</div>
-			<div className="tlui-buttons__horizontal">
+			<TldrawUiToolbar label={msg(label)} className="tlui-buttons__horizontal">
 				<TldrawUiPopover id={idA} open={isOpenA} onOpenChange={setIsOpenA}>
 					<TldrawUiPopoverTrigger>
-						<TldrawUiButton
+						<TldrawUiToolbarButton
 							type="icon"
 							data-testid={`style.${uiTypeA}`}
 							title={
@@ -83,14 +83,14 @@ function DoubleDropdownPickerInner<T extends string>({
 							}
 						>
 							<TldrawUiButtonIcon icon={iconA} small invertIcon />
-						</TldrawUiButton>
+						</TldrawUiToolbarButton>
 					</TldrawUiPopoverTrigger>
 					<TldrawUiPopoverContent side="left" align="center" sideOffset={80} alignOffset={0}>
-						<div className="tlui-buttons__grid">
-							{itemsA.map((item, i) => {
-								return (
-									<TldrawUiMenuContextProvider key={i} type="icons" sourceId="style-panel">
-										<TldrawUiButton
+						<TldrawUiToolbar label={msg(labelA)} className="tlui-buttons__grid">
+							<TldrawUiMenuContextProvider type="icons" sourceId="style-panel">
+								{itemsA.map((item) => {
+									return (
+										<TldrawUiToolbarButton
 											data-testid={`style.${uiTypeA}.${item.value}`}
 											type="icon"
 											key={item.value}
@@ -102,16 +102,16 @@ function DoubleDropdownPickerInner<T extends string>({
 											title={`${msg(labelA)} — ${msg(`${uiTypeA}-style.${item.value}`)}`}
 										>
 											<TldrawUiButtonIcon icon={item.icon} invertIcon />
-										</TldrawUiButton>
-									</TldrawUiMenuContextProvider>
-								)
-							})}
-						</div>
+										</TldrawUiToolbarButton>
+									)
+								})}
+							</TldrawUiMenuContextProvider>
+						</TldrawUiToolbar>
 					</TldrawUiPopoverContent>
 				</TldrawUiPopover>
 				<TldrawUiPopover id={idB} open={isOpenB} onOpenChange={setIsOpenB}>
 					<TldrawUiPopoverTrigger>
-						<TldrawUiButton
+						<TldrawUiToolbarButton
 							type="icon"
 							data-testid={`style.${uiTypeB}`}
 							title={
@@ -123,14 +123,15 @@ function DoubleDropdownPickerInner<T extends string>({
 							}
 						>
 							<TldrawUiButtonIcon icon={iconB} small />
-						</TldrawUiButton>
+						</TldrawUiToolbarButton>
 					</TldrawUiPopoverTrigger>
 					<TldrawUiPopoverContent side="left" align="center" sideOffset={116} alignOffset={0}>
-						<div className="tlui-buttons__grid">
-							{itemsB.map((item) => {
-								return (
-									<TldrawUiMenuContextProvider key={item.value} type="icons" sourceId="style-panel">
-										<TldrawUiButton
+						<TldrawUiToolbar label={msg(labelB)} className="tlui-buttons__grid">
+							<TldrawUiMenuContextProvider type="icons" sourceId="style-panel">
+								{itemsB.map((item) => {
+									return (
+										<TldrawUiToolbarButton
+											key={item.value}
 											type="icon"
 											title={`${msg(labelB)} — ${msg(`${uiTypeB}-style.${item.value}` as TLUiTranslationKey)}`}
 											data-testid={`style.${uiTypeB}.${item.value}`}
@@ -141,14 +142,14 @@ function DoubleDropdownPickerInner<T extends string>({
 											}}
 										>
 											<TldrawUiButtonIcon icon={item.icon} />
-										</TldrawUiButton>
-									</TldrawUiMenuContextProvider>
-								)
-							})}
-						</div>
+										</TldrawUiToolbarButton>
+									)
+								})}
+							</TldrawUiMenuContextProvider>
+						</TldrawUiToolbar>
 					</TldrawUiPopoverContent>
 				</TldrawUiPopover>
-			</div>
+			</TldrawUiToolbar>
 		</div>
 	)
 }

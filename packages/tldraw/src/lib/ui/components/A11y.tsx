@@ -57,6 +57,7 @@ export function SkipToMainContent() {
 /** @public @react */
 export const DefaultA11yAnnouncer = memo(function TldrawUiA11yAnnouncer() {
 	const a11y = useA11y()
+	const translation = useTranslation()
 	const msg = useValue('a11y-msg', () => a11y.currentMsg.get(), [])
 	useA11yDebug(msg.msg)
 
@@ -65,6 +66,7 @@ export const DefaultA11yAnnouncer = memo(function TldrawUiA11yAnnouncer() {
 	return (
 		msg.msg && (
 			<div
+				aria-label={translation('a11y.status')}
 				aria-live={msg.priority || 'assertive'}
 				role="status"
 				aria-hidden="false"
