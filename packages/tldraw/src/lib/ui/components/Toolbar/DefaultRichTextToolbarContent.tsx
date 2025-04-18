@@ -1,4 +1,4 @@
-import { preventDefault, TiptapEditor } from '@tldraw/editor'
+import { isAccelKey, preventDefault, TiptapEditor } from '@tldraw/editor'
 import { useEffect, useMemo, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -36,6 +36,20 @@ export function DefaultRichTextToolbarContent({
 		},
 		[textEditor]
 	)
+
+	useEffect(() => {
+		function handleKeyDown(event: KeyboardEvent) {
+			if (onEditLinkStart && isAccelKey(event) && event.shiftKey && event.key === 'k') {
+				event.preventDefault()
+				onEditLinkStart()
+			}
+		}
+
+		document.addEventListener('keydown', handleKeyDown)
+		return () => {
+			document.removeEventListener('keydown', handleKeyDown)
+		}
+	}, [onEditLinkStart])
 
 	// todo: we could make this a prop
 	const actions = useMemo(() => {
