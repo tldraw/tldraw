@@ -143,6 +143,7 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 			if (typeof index === 'number') {
 				preventDefault(event)
 				rButtons.current[index]?.click()
+				editor.focus()
 			}
 		}
 
