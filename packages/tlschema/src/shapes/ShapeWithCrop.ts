@@ -9,7 +9,4 @@ export interface TLShapeCrop {
 }
 
 /** @public */
-export type ShapeWithCrop = TLBaseShape<
-	string,
-	{ w: number; h: number; crop: TLShapeCrop | null; zoom: number }
->
+export type ShapeWithCrop = TLBaseShape<string, { w: number; h: number; crop: TLShapeCrop | null }>

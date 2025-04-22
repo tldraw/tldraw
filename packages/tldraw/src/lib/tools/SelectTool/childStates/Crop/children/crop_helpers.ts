@@ -31,12 +31,10 @@ export function getTranslateCroppedImageChange(editor: Editor, shape: ShapeWithC
 	const yCropSize = oldCrop.bottomRight.y - oldCrop.topLeft.y
 	const newCrop = structuredClone(oldCrop)
 
-	const min = 0.5 * (shape.props.zoom - 1)
-	const max = min * -1
-	const xMinWithCrop = min + (1 - xCropSize)
-	const yMinWithCrop = min + (1 - yCropSize)
-	newCrop.topLeft.x = Math.min(xMinWithCrop, Math.max(max, newCrop.topLeft.x - delta.x / w))
-	newCrop.topLeft.y = Math.min(yMinWithCrop, Math.max(max, newCrop.topLeft.y - delta.y / h))
+	const xMinWithCrop = 1 - xCropSize
+	const yMinWithCrop = 1 - yCropSize
+	newCrop.topLeft.x = Math.min(xMinWithCrop, Math.max(0, newCrop.topLeft.x - delta.x / w))
+	newCrop.topLeft.y = Math.min(yMinWithCrop, Math.max(0, newCrop.topLeft.y - delta.y / h))
 
 	newCrop.bottomRight.x = newCrop.topLeft.x + xCropSize
 	newCrop.bottomRight.y = newCrop.topLeft.y + yCropSize

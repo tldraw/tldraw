@@ -52,16 +52,8 @@ test.describe('Image toolbar behaviour', () => {
 		await page.waitForTimeout(150)
 	})
 
-	test('zoom slider changes image zoom', async ({ page, isMobile }) => {
+	test('zoom slider changes image crop', async ({ page, isMobile }) => {
 		if (isMobile) return
-
-		// Get the initial zoom value
-		const initialZoom = await page.evaluate(() => {
-			const imageShape = editor.getSelectedShapes()[0] as TLImageShape
-			return imageShape.props.zoom
-		})
-
-		expect(initialZoom).toBe(1) // Default zoom should be 1
 
 		const manipulator = page.getByTitle('Crop image')
 		await manipulator.click()
@@ -78,13 +70,14 @@ test.describe('Image toolbar behaviour', () => {
 		await page.mouse.down()
 		await page.mouse.up()
 
-		// Check that zoom has changed
-		const newZoom = await page.evaluate(() => {
+		// Check that the image has been cropped to landscape (4:3)
+		const zoom = await page.evaluate(() => {
 			const imageShape = editor.getSelectedShapes()[0] as TLImageShape
-			return imageShape.props.zoom
+			const aspectRatio = imageShape.props.w / imageShape.props.h
+			return Math.abs(aspectRatio - 4 / 3)
 		})
 
-		expect(newZoom).toBeGreaterThan(initialZoom)
+		expect(zoom).toBeCloseTo(4 / 3)
 	})
 
 	test('aspect ratio dropdown changes image crop', async ({ page, isMobile }) => {

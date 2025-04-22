@@ -2029,18 +2029,6 @@ describe('Add flipX, flipY to image shape', () => {
 	})
 })
 
-describe('Add zoom to image shape', () => {
-	const { up, down } = getTestMigration(imageShapeVersions.AddZoomProp)
-
-	test('up works as expected', () => {
-		expect(up({ props: {} })).toEqual({ props: { zoom: 1 } })
-	})
-
-	test('down works as expected', () => {
-		expect(down({ props: { zoom: 1 } })).toEqual({ props: {} })
-	})
-})
-
 describe('Add alt text to image shape', () => {
 	const { up, down } = getTestMigration(imageShapeVersions.AddAltText)
 

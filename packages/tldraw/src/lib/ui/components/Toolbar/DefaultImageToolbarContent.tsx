@@ -77,25 +77,34 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 				const newCrop = structuredClone(oldCrop)
 				const xCropSize = oldCrop.bottomRight.x - oldCrop.topLeft.x
 				const yCropSize = oldCrop.bottomRight.y - oldCrop.topLeft.y
-				const min = 0.5 * (imageShape.props.zoom - 1)
-				const max = min * -1
-				const xMinWithCrop = min + (1 - xCropSize)
-				const yMinWithCrop = min + (1 - yCropSize)
-				const topLeftXCrop = Math.min(xMinWithCrop, Math.max(max, oldCrop.topLeft.x))
-				const topLeftYCrop = Math.min(yMinWithCrop, Math.max(max, oldCrop.topLeft.y))
+
+				// Calculate the center point of the current crop
+				const centerX = oldCrop.topLeft.x + xCropSize / 2
+				const centerY = oldCrop.topLeft.y + yCropSize / 2
+
+				// Calculate new crop size based on zoom
+				const newXCropSize = Math.max(0.1, 1 - zoom)
+				const newYCropSize = Math.max(0.1, 1 - zoom)
+
+				// Calculate new top-left position, keeping the center point fixed
+				const newTopLeftX = centerX - newXCropSize / 2
+				const newTopLeftY = centerY - newYCropSize / 2
+
+				// Ensure the crop stays within bounds [0,1]
+				const topLeftXCrop = Math.max(0, Math.min(1 - newXCropSize, newTopLeftX))
+				const topLeftYCrop = Math.max(0, Math.min(1 - newYCropSize, newTopLeftY))
 
 				newCrop.topLeft = {
 					x: topLeftXCrop,
 					y: topLeftYCrop,
 				}
 				newCrop.bottomRight = {
-					x: topLeftXCrop + xCropSize,
-					y: topLeftYCrop + yCropSize,
+					x: topLeftXCrop + newXCropSize,
+					y: topLeftYCrop + newYCropSize,
 				}
 				editor.updateShape({
 					id: imageShape.id,
 					props: {
-						zoom,
 						crop: newCrop,
 					},
 				} as TLShapePartial)
@@ -103,7 +112,6 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 				editor.updateShape({
 					id: imageShape.id,
 					props: {
-						zoom,
 						crop: {
 							topLeft: {
 								x: 0,
@@ -174,15 +182,18 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const shapeAspectRatio = imageShape.props.w / imageShape.props.h
 	const isOriginalCrop = !crop || isEqual(crop, defaultCrop)
 
+	const zoom = crop
+		? Math.max(1 - (crop.bottomRight.x - crop.topLeft.x), 1 - (crop.bottomRight.y - crop.topLeft.y))
+		: 0
 	const croppingTools = (
 		<>
 			<TldrawUiSlider
-				value={imageShape.props.zoom * 100}
+				value={zoom * 100}
 				label="tool.image-zoom"
 				onValueChange={handleZoomChange}
 				onHistoryMark={onHistoryMark}
-				min={100}
-				steps={300}
+				// This is 90 instead of 100 because our smallest crop is .1
+				steps={90}
 				data-testid="tool.image-zoom"
 				title={msg('tool.image-zoom')}
 			/>

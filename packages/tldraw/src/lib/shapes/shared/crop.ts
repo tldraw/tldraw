@@ -62,8 +62,8 @@ export function getCropBox<T extends ShapeWithCrop>(
 	const pointDelta = new Vec(0, 0)
 
 	let hasCropChanged = false
-	const topLeftLimit = -0.5 * (shape.props.zoom - 1)
-	const bottomRightLimit = 0.5 * (shape.props.zoom + 1)
+	const topLeftLimit = 0
+	const bottomRightLimit = 1
 
 	// Set y dimension
 	switch (handle) {
@@ -157,7 +157,6 @@ export function getCropBox<T extends ShapeWithCrop>(
 			w: (newCrop.bottomRight.x - newCrop.topLeft.x) * w,
 			h: (newCrop.bottomRight.y - newCrop.topLeft.y) * h,
 			crop: newCrop,
-			zoom: shape.props.zoom,
 		},
 	}
 }

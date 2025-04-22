@@ -391,9 +391,6 @@ const snapshots: Snapshots = {
 			flipY: <TL.image w={100} h={200} assetId={manAsset} flipY />,
 			flipXY: <TL.image w={100} h={200} assetId={manAsset} flipX flipY />,
 			rotated: <TL.image w={100} h={200} assetId={manAsset} rotation={degreesToRadians(45)} />,
-			zoom: (
-				<TL.image w={100} h={200} assetId={manAsset} zoom={1.5} rotation={degreesToRadians(45)} />
-			),
 		},
 		Cropped: {
 			'no asset': <TL.image w={100} h={100} crop={manCrop} />,
@@ -410,16 +407,6 @@ const snapshots: Snapshots = {
 					h={100}
 					assetId={manAsset}
 					rotation={degreesToRadians(45)}
-					crop={manCrop}
-				/>
-			),
-			zoom: (
-				<TL.image
-					w={100}
-					h={100}
-					assetId={manAsset}
-					rotation={degreesToRadians(45)}
-					zoom={1.5}
 					crop={manCrop}
 				/>
 			),

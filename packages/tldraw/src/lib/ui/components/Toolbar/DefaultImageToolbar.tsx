@@ -1,5 +1,5 @@
 import { Box, TLImageShape, track, useEditor, useValue } from '@tldraw/editor'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { AltTextEditor } from './AltTextEditor'
 import { DefaultImageToolbarContent } from './DefaultImageToolbarContent'
@@ -37,6 +37,11 @@ function ContextualToolbarInner({
 	imageShape: TLImageShape
 }) {
 	const editor = useEditor()
+	const isCropping = useValue(
+		'is cropping mode',
+		() => editor.getPath().startsWith('select.crop.'),
+		[editor]
+	)
 	const [isEditingAltText, setIsEditingAltText] = useState(false)
 	const [isManipulating, setIsManipulating] = useState(false)
 	const [forceRerender, setForceReRender] = useState(0)
@@ -63,6 +68,14 @@ function ContextualToolbarInner({
 		if (!fullBounds) return undefined
 		return new Box(fullBounds.x, fullBounds.y, fullBounds.width, 0)
 	}
+	useEffect(() => {
+		if (isCropping && !isManipulating) {
+			handleManipulatingStart()
+		}
+		if (!isCropping && isManipulating) {
+			handleManipulatingEnd()
+		}
+	}, [isCropping, editor, isManipulating, handleManipulatingStart, handleManipulatingEnd])
 
 	return (
 		<TldrawUiContextualToolbar
