@@ -53,7 +53,7 @@ function ContextualToolbarInner({
 		setIsManipulating(false)
 		editor.setCurrentTool('select.idle')
 		setForceReRender((n) => n + 1)
-	}, [])
+	}, [editor])
 	const onEditAltTextComplete = useCallback(() => {
 		setIsEditingAltText(false)
 		setForceReRender((n) => n + 1)
