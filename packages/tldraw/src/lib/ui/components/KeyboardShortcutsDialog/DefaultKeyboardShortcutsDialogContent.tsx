@@ -71,6 +71,80 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="align-center-horizontal" />
 				<TldrawUiMenuActionItem actionId="align-right" />
 			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup label="shortcuts-dialog.text-formatting" id="text">
+				<TldrawUiMenuItem
+					id="text-bold"
+					label="tool.rich-text-bold"
+					kbd="cmd+b"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="text-italic"
+					label="tool.rich-text-italic"
+					kbd="cmd+i"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="text-code"
+					label="tool.rich-text-code"
+					kbd="cmd+e"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="text-highlight"
+					label="tool.rich-text-highlight"
+					kbd="cmd+shift+h"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="text-strikethrough"
+					label="tool.rich-text-strikethrough"
+					kbd="cmd+shift+s"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="text-link"
+					label="tool.rich-text-link"
+					kbd="cmd+shift+k"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="text-header"
+					label="tool.rich-text-header"
+					kbd="cmd+shift+[[1-6]]"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="text-orderedList"
+					label="tool.rich-text-orderedList"
+					kbd="cmd+shift+7"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="text-bulletedlist"
+					label="tool.rich-text-bulletList"
+					kbd="cmd+shift+8"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.a11y" id="a11y">
 				<TldrawUiMenuItem
 					id="a11y-select-next-shape"

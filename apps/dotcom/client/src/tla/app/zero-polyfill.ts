@@ -26,7 +26,6 @@ export class Zero {
 	private timeout: NodeJS.Timeout | undefined = undefined
 	private currentMutationId = uniqueId()
 	private clientTooOld = false
-	private instantiationTime = Date.now()
 	private didReceiveFirstMessage = false
 
 	constructor(
@@ -52,11 +51,6 @@ export class Zero {
 		this.socket.onReceiveMessage((_msg) => {
 			if (!this.didReceiveFirstMessage) {
 				this.didReceiveFirstMessage = true
-				const timeSinceInstantiation = Date.now() - this.instantiationTime
-				this.opts.trackEvent('first-connect-duration', {
-					duration: timeSinceInstantiation,
-					source: 'app',
-				})
 			}
 			if (this.clientTooOld) {
 				// ignore incoming messages if the client is not supported

@@ -1710,6 +1710,12 @@ it from receiving any pointer events or affecting the cursor. */
 	background-color: var(--color-primary);
 	color: var(--color-selected-contrast);
 }
+.tl-container__focused:not(.tl-container__no-focus-ring)
+	.tlui-button.tl-error-boundary__refresh:focus-visible {
+	border-radius: 8px;
+	outline-offset: 0;
+}
+
 /* --------------------- Coarse --------------------- */
 
 .tl-hidden {
