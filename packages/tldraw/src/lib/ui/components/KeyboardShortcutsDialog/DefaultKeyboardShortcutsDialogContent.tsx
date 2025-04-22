@@ -89,7 +89,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 					}}
 				/>
 				<TldrawUiMenuItem
-					id="text-italic"
+					id="text-code"
 					label="tool.rich-text-code"
 					kbd="cmd+e"
 					onSelect={() => {
