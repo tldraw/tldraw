@@ -51,6 +51,7 @@ function ContextualToolbarInner({
 	}, [editor])
 	const handleManipulatingEnd = useCallback(() => {
 		setIsManipulating(false)
+		editor.setCurrentTool('select.idle')
 		setForceReRender((n) => n + 1)
 	}, [])
 	const onEditAltTextComplete = useCallback(() => {
