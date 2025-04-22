@@ -8,7 +8,7 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import isEqual from 'lodash.isequal'
-import { useCallback, useLayoutEffect } from 'react'
+import { useCallback } from 'react'
 import { getUncroppedSize } from '../../../shapes/shared/crop'
 import { useUiEvents } from '../../context/events'
 import { useInsertMedia } from '../../hooks/useInsertMedia'
@@ -46,7 +46,6 @@ const ASPECT_RATIO_TO_VALUE: Record<ASPECT_RATIO_OPTION, number> = {
 export interface DefaultImageToolbarContentProps {
 	imageShape: TLImageShape
 	isManipulating: boolean
-	onToolbarSetChange(): void
 	onEditAltTextStart(): void
 	onManipulatingStart(): void
 	onManipulatingEnd(): void
@@ -56,7 +55,6 @@ export interface DefaultImageToolbarContentProps {
 export const DefaultImageToolbarContent = track(function DefaultImageToolbarContent({
 	imageShape,
 	isManipulating,
-	onToolbarSetChange,
 	onEditAltTextStart,
 	onManipulatingStart,
 	onManipulatingEnd,
@@ -65,10 +63,6 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 	const source = 'image-menu'
-
-	useLayoutEffect(() => {
-		onToolbarSetChange()
-	}, [onToolbarSetChange])
 
 	const insertMedia = useInsertMedia({ shapeIdToReplace: imageShape?.id })
 

@@ -1,4 +1,4 @@
-import { Box, TLImageShape, track, useAtom, useEditor, useValue } from '@tldraw/editor'
+import { Box, TLImageShape, track, useEditor, useValue } from '@tldraw/editor'
 import { useCallback, useState } from 'react'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { AltTextEditor } from './AltTextEditor'
@@ -39,18 +39,23 @@ function ContextualToolbarInner({
 	const editor = useEditor()
 	const [isEditingAltText, setIsEditingAltText] = useState(false)
 	const [isManipulating, setIsManipulating] = useState(false)
-	const forcePositionUpdateAtom = useAtom('force toolbar position update', 0)
-	const handleEditAltTextStart = useCallback(() => setIsEditingAltText(true), [])
-	const handleManipulatingStart = useCallback(() => setIsManipulating(true), [])
-	const handleManipulatingEnd = useCallback(() => setIsManipulating(false), [])
-	const handleToolbarSetChange = useCallback(
-		() => forcePositionUpdateAtom.update((n) => n + 1),
-		[forcePositionUpdateAtom]
-	)
+	const [forceRerender, setForceReRender] = useState(0)
+	const handleEditAltTextStart = useCallback(() => {
+		setIsEditingAltText(true)
+		setForceReRender((n) => n + 1)
+	}, [])
+	const handleManipulatingStart = useCallback(() => {
+		setIsManipulating(true)
+		setForceReRender((n) => n + 1)
+	}, [])
+	const handleManipulatingEnd = useCallback(() => {
+		setIsManipulating(false)
+		setForceReRender((n) => n + 1)
+	}, [])
 	const onEditAltTextComplete = useCallback(() => {
 		setIsEditingAltText(false)
-		handleToolbarSetChange()
-	}, [handleToolbarSetChange])
+		setForceReRender((n) => n + 1)
+	}, [])
 	const getSelectionBounds = () => {
 		const fullBounds = editor.getSelectionRotatedScreenBounds()
 		if (!fullBounds) return undefined
@@ -61,10 +66,9 @@ function ContextualToolbarInner({
 		<TldrawUiContextualToolbar
 			// TODO: this is a little hack to force the toolbar to re-render when
 			// we go into crop mode.
-			key={isManipulating ? 'manipulating' : 'not-manipulating'}
+			key={forceRerender}
 			className="tlui-image__toolbar"
 			getSelectionBounds={getSelectionBounds}
-			forcePositionUpdateAtom={forcePositionUpdateAtom}
 		>
 			{children ? (
 				children
@@ -81,7 +85,6 @@ function ContextualToolbarInner({
 					onEditAltTextStart={handleEditAltTextStart}
 					onManipulatingStart={handleManipulatingStart}
 					onManipulatingEnd={handleManipulatingEnd}
-					onToolbarSetChange={handleToolbarSetChange}
 				/>
 			)}
 		</TldrawUiContextualToolbar>

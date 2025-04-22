@@ -817,8 +817,6 @@ export interface DefaultImageToolbarContentProps {
     onManipulatingEnd(): void;
     // (undocumented)
     onManipulatingStart(): void;
-    // (undocumented)
-    onToolbarSetChange(): void;
 }
 
 // @public (undocumented)
