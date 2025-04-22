@@ -59,8 +59,6 @@ function ContextualToolbarInner({
 
 	return (
 		<TldrawUiContextualToolbar
-			// TODO: fix this, I can't get the render timing right at the moment
-			key={forcePositionUpdateAtom.get()}
 			className="tlui-image__toolbar"
 			getSelectionBounds={getSelectionBounds}
 			forcePositionUpdateAtom={forcePositionUpdateAtom}
