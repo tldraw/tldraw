@@ -46,8 +46,9 @@ function ContextualToolbarInner({
 	}, [])
 	const handleManipulatingStart = useCallback(() => {
 		setIsManipulating(true)
+		editor.setCurrentTool('select.crop.idle')
 		setForceReRender((n) => n + 1)
-	}, [])
+	}, [editor])
 	const handleManipulatingEnd = useCallback(() => {
 		setIsManipulating(false)
 		setForceReRender((n) => n + 1)
