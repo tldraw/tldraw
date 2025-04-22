@@ -18,6 +18,13 @@ export interface TLUiToolItem<
 	shortcutsLabel?: TranslationKey
 	icon: IconType
 	onSelect(source: TLUiEventSource): void
+	/**
+	 * The keyboard shortcut for this tool. This is a string that can be a single key,
+	 * or a combination of keys.
+	 * For example, `cmd+z` or `cmd+shift+z` or `cmd+u,ctrl+u`, or just `v` or `a`.
+	 * We have backwards compatibility with the old system, where we used to use
+	 * symbols to denote cmd/alt/shift, using `!` for shift, `$` for cmd, and `?` for alt.
+	 */
 	kbd?: string
 	readonlyOk?: boolean
 	meta?: {
@@ -178,7 +185,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				id: 'asset',
 				label: 'tool.media',
 				icon: 'tool-media',
-				kbd: '$u',
+				kbd: 'cmd+u,ctrl+u',
 				onSelect(source) {
 					helpers.insertMedia()
 					onToolSelect(source, this, 'media')
@@ -219,7 +226,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				label: 'tool.highlight',
 				icon: 'tool-highlight',
 				// TODO: pick a better shortcut
-				kbd: '!d',
+				kbd: 'shift+d',
 				onSelect(source) {
 					editor.setCurrentTool('highlight')
 					onToolSelect(source, this)

@@ -128,12 +128,15 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 		editor.registerExternalAssetHandler('url', onCreateAssetFromUrl)
 	}, [])
 
+	const licenseKey =
+		'tldraw-tldraw-2026-04-22/WyJyWWVGS2JHZSIsWyJ0bGRyYXctb3JnLnRsZHJhdy12c2NvZGUiXSw5LCIyMDI2LTA0LTIyIl0.2FrnO8fHmSUJI+vU2t2YFDdUL5mx+Lyk9NqaCVeZJG1FasJ6tfIv08m9tctEGzQG9BVVHT8g8/Wv/JJT5ueLAA'
 	return (
 		<Tldraw
 			assetUrls={assetUrls}
 			persistenceKey={uri}
 			onMount={handleMount}
 			components={components}
+			licenseKey={licenseKey}
 		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
 

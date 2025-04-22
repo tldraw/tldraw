@@ -53,7 +53,7 @@ html {
 
 /* We don't show any descriptions or lables */
 .hs-field-desc {
-	display: none !important;
+	display: block !important;
 }
 
 /* Make text areas span both columns */

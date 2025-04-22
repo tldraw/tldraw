@@ -10,6 +10,7 @@ import { ParametersTableDescription } from '@/components/content/parameters-tabl
 import { ParametersTableName } from '@/components/content/parameters-table-name'
 import { ParametersTableRow } from '@/components/content/parameters-table-row'
 import { Pre } from '@/components/content/pre'
+import { SideBySideImages } from '@/components/content/side-by-side-images'
 import { ApiMemberTitle } from '@/components/content/title-with-source-link'
 import { Video } from '@/components/content/video'
 import { YouTube } from '@/components/content/youtube'
@@ -58,6 +59,7 @@ export function Content({ mdx, type }: { mdx: string; type?: string }) {
 					blockquote: Blockquote,
 					Video,
 					YouTube,
+					TwoImages: SideBySideImages,
 				}}
 				options={{
 					mdxOptions: {

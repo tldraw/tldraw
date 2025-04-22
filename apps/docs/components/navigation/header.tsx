@@ -25,7 +25,6 @@ const mainLinks = [
 				'/docs',
 				'/community',
 				'/reference',
-				'/examples',
 				'/search',
 			].some((e) => pathname.startsWith(e)) && !pathname.startsWith('/search/blog'),
 	},

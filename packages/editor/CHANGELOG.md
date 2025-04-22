@@ -1,3 +1,137 @@
+# v3.12.0 (Tue Apr 15 2025)
+
+### Release Notes
+
+#### events: explore using getCoalescedEvents, take 2 ([#5898](https://github.com/tldraw/tldraw/pull/5898))
+
+- Improve draw fluidity on slower CPUs by using getCoalescedEvents.
+
+#### Revert "events: explore using getCoalescedEvents (#5554)" ([#5895](https://github.com/tldraw/tldraw/pull/5895))
+
+- Revert coalesced events for now until we investigate further.
+
+#### events: fix wrong contentEditable check ([#5888](https://github.com/tldraw/tldraw/pull/5888))
+
+- Fix regression of iPad Pencil drawing in certain cases.
+
+#### a11y: add keyboard shortcut items; fix up focus ring in dotcom menus ([#5852](https://github.com/tldraw/tldraw/pull/5852))
+
+- Add accessibility section to keyboard shortcuts dialog.
+
+#### a11y: fix up watermark regression ([#5848](https://github.com/tldraw/tldraw/pull/5848))
+
+- Fix mobile watermark.
+
+#### a11y: add axe to be able to do audits ([#5840](https://github.com/tldraw/tldraw/pull/5840))
+
+- a11y: add axe to be able to do audits
+
+#### a11y: announce shapes as they're visited ([#5773](https://github.com/tldraw/tldraw/pull/5773))
+
+- a11y: announce shapes as they're visited
+
+#### a11y: navigable shapes ([#5761](https://github.com/tldraw/tldraw/pull/5761))
+
+- a11y: navigable shapes using Tab and Cmd/Ctrl+Arrow
+
+#### Geometry2d Improvements ([#5754](https://github.com/tldraw/tldraw/pull/5754))
+
+- It's now easier to work with `Geometry2d` objects, with methods for intersections, transforming geometries, and filtering.
+
+#### Fix unexpected artefacts showing up in exports when the page includes tailwind ([#5792](https://github.com/tldraw/tldraw/pull/5792))
+
+- Prevent unexpected visual issues in exports from pages that include tailwindcss
+
+#### isShapeHidden => getShapeVisibility, to allow children of hidden shapes to be visible ([#5762](https://github.com/tldraw/tldraw/pull/5762))
+
+- Allow the children of a hidden shape to show themselves by returning a 'force_show' override from the `isShapeHidden` predicate.
+
+#### fix zoom speed for pinch gestures ([#5771](https://github.com/tldraw/tldraw/pull/5771))
+
+- Setting `zoomSpeed` in camera options no longer breaks zooming on safari trackpads and multitouch pinch to zoom.
+
+#### a11y: add a live region to announce selected tools ([#5634](https://github.com/tldraw/tldraw/pull/5634))
+
+- Adds better voiceover support when selecting an action (a11y)
+
+#### events: explore using getCoalescedEvents ([#5554](https://github.com/tldraw/tldraw/pull/5554))
+
+- Improve draw fluidity on slower CPUs by using getCoalescedEvents.
+
+#### fix translation perf regression from rich text font detection ([#5743](https://github.com/tldraw/tldraw/pull/5743))
+
+- Fix a performance regression when dragging many shapes at the same time.
+
+#### Cache the fonts extracted from rich text. ([#5735](https://github.com/tldraw/tldraw/pull/5735))
+
+- Improved performance while editing many geo shapes or text shapes.
+
+#### When editing a text shape, don't mount the text editor for non-editing empty shapes unless they're hovered ([#5734](https://github.com/tldraw/tldraw/pull/5734))
+
+- Fixed a bug causing a performance delay when editing text.
+
+#### Add Frame colors ([#5283](https://github.com/tldraw/tldraw/pull/5283))
+
+- Added `FrameShapeUtil.options.showColors` option to display colors for frames.
+
+#### Fix Group2d `getSvgPathData()` missing move markers ([#5580](https://github.com/tldraw/tldraw/pull/5580))
+
+- Fixed a bug with `Group2D.getSvgPathData()` so that children in the resulting SVG have their starting points defined correctly.
+
+---
+
+#### 🐛 Bug Fix
+
+- trying out zero custom mutators [#5814](https://github.com/tldraw/tldraw/pull/5814) ([@ds300](https://github.com/ds300) [@MitjaBezensek](https://github.com/MitjaBezensek))
+- a11y: fix focus ring on share menu/embed dialog; also slider/watermark [#5837](https://github.com/tldraw/tldraw/pull/5837) ([@mimecuvalo](https://github.com/mimecuvalo))
+- isShapeHidden => getShapeVisibility, to allow children of hidden shapes to be visible [#5762](https://github.com/tldraw/tldraw/pull/5762) ([@ds300](https://github.com/ds300))
+- Disable currently broken docs links [#5778](https://github.com/tldraw/tldraw/pull/5778) ([@TodePond](https://github.com/TodePond))
+- Better whyAmIRunning [#5746](https://github.com/tldraw/tldraw/pull/5746) ([@ds300](https://github.com/ds300))
+
+#### 🐛 Bug Fixes
+
+- Fix bad arrow bindings to text shapes (#5902) [#5904](https://github.com/tldraw/tldraw/pull/5904) ([@SomeHats](https://github.com/SomeHats))
+- Revert "events: explore using getCoalescedEvents (#5554)" [#5895](https://github.com/tldraw/tldraw/pull/5895) ([@mimecuvalo](https://github.com/mimecuvalo))
+- events: fix wrong contentEditable check [#5888](https://github.com/tldraw/tldraw/pull/5888) ([@mimecuvalo](https://github.com/mimecuvalo))
+- a11y: fix up watermark regression [#5848](https://github.com/tldraw/tldraw/pull/5848) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix unexpected artefacts showing up in exports when the page includes tailwind [#5792](https://github.com/tldraw/tldraw/pull/5792) ([@SomeHats](https://github.com/SomeHats))
+- fix zoom speed for pinch gestures [#5771](https://github.com/tldraw/tldraw/pull/5771) ([@SomeHats](https://github.com/SomeHats))
+- fix translation perf regression from rich text font detection [#5743](https://github.com/tldraw/tldraw/pull/5743) ([@SomeHats](https://github.com/SomeHats))
+- When editing a text shape, don't mount the text editor for non-editing empty shapes unless they're hovered [#5734](https://github.com/tldraw/tldraw/pull/5734) ([@steveruizok](https://github.com/steveruizok) [@mimecuvalo](https://github.com/mimecuvalo))
+- Add Frame colors [#5283](https://github.com/tldraw/tldraw/pull/5283) ([@steveruizok](https://github.com/steveruizok) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@SomeHats](https://github.com/SomeHats))
+- Fix Group2d `getSvgPathData()` missing move markers [#5580](https://github.com/tldraw/tldraw/pull/5580) ([@lorenzolewis](https://github.com/lorenzolewis))
+
+#### 💄 Product Improvements
+
+- events: explore using getCoalescedEvents, take 2 [#5898](https://github.com/tldraw/tldraw/pull/5898) ([@mimecuvalo](https://github.com/mimecuvalo))
+- a11y: add keyboard shortcut items; fix up focus ring in dotcom menus [#5852](https://github.com/tldraw/tldraw/pull/5852) ([@mimecuvalo](https://github.com/mimecuvalo))
+- a11y: add a live region to announce selected tools [#5634](https://github.com/tldraw/tldraw/pull/5634) ([@mimecuvalo](https://github.com/mimecuvalo))
+- events: explore using getCoalescedEvents [#5554](https://github.com/tldraw/tldraw/pull/5554) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Cache the fonts extracted from rich text. [#5735](https://github.com/tldraw/tldraw/pull/5735) ([@steveruizok](https://github.com/steveruizok) [@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🎉 New Features
+
+- a11y: add axe to be able to do audits [#5840](https://github.com/tldraw/tldraw/pull/5840) ([@mimecuvalo](https://github.com/mimecuvalo))
+- a11y: announce shapes as they're visited [#5773](https://github.com/tldraw/tldraw/pull/5773) ([@mimecuvalo](https://github.com/mimecuvalo))
+- a11y: navigable shapes [#5761](https://github.com/tldraw/tldraw/pull/5761) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🛠️ API Changes
+
+- Geometry2d Improvements [#5754](https://github.com/tldraw/tldraw/pull/5754) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 8
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lorenzo Lewis ([@lorenzolewis](https://github.com/lorenzolewis))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.11.0 (Thu Mar 20 2025)
 
 ### Release Notes

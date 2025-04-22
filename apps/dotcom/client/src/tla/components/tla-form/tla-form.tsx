@@ -45,7 +45,7 @@ export const TlaFormInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTM
 export const TlaFormCheckbox = forwardRef<HTMLInputElement, HTMLProps<HTMLInputElement>>(
 	function TlaFormCheckbox({ children, ...props }, ref) {
 		return (
-			<div className={styles.checkbox}>
+			<div className={classNames('tla-form-checkbox', styles.checkbox)}>
 				<input
 					{...props}
 					ref={ref}

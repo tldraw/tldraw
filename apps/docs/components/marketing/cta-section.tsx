@@ -31,7 +31,7 @@ export function CTASection() {
                 </div>
             </div> */}
 			<div className="flex flex-col items-center justify-center gap-4 -mt-4">
-				<div className="flex flex-row items-center justify-center gap-4">
+				<div className="flex flex-row flex-wrap items-center justify-center gap-4">
 					<Button
 						id="hero-quick-start"
 						href="/quick-start"
@@ -45,14 +45,7 @@ export function CTASection() {
 					/>
 				</div>
 			</div>
+			<div className="h-12" />
 		</Section>
 	)
 }
-
-// const avatars = [
-// 	'https://i.pravatar.cc/300?img=1',
-// 	'https://i.pravatar.cc/300?img=2',
-// 	'https://i.pravatar.cc/300?img=3',
-// 	'https://i.pravatar.cc/300?img=4',
-// 	'https://i.pravatar.cc/300?img=5',
-// ]

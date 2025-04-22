@@ -3,12 +3,13 @@ import { Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
 	CreateFilesResponseBody,
+	createMutators,
 	CreateSnapshotRequestBody,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
 	TlaFile,
-	TlaFilePartial,
 	TlaFileState,
+	TlaMutators,
 	TlaSchema,
 	TlaUser,
 	UserPreferencesKeys,
@@ -78,10 +79,9 @@ export class TldrawApp {
 
 	readonly id = appId++
 
-	readonly z: ZeroPolyfill | Zero<TlaSchema>
+	readonly z: ZeroPolyfill | Zero<TlaSchema, TlaMutators>
 
 	private readonly user$: Signal<TlaUser | undefined>
-	private readonly files$: Signal<TlaFile[]>
 	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
 
 	private readonly abortController = new AbortController()
@@ -126,11 +126,12 @@ export class TldrawApp {
 	) {
 		const sessionId = uniqueId()
 		this.z = useProperZero
-			? new Zero({
+			? new Zero<TlaSchema, TlaMutators>({
 					auth: getToken,
 					userID: userId,
 					schema: zeroSchema,
 					server: ZERO_SERVER,
+					mutators: createMutators(userId),
 					onUpdateNeeded(reason) {
 						console.error('update needed', reason)
 						onClientTooOld()
@@ -138,7 +139,7 @@ export class TldrawApp {
 					kvStore: window.navigator.webdriver ? 'mem' : 'idb',
 				})
 			: new ZeroPolyfill({
-					// userID: userId,
+					userId,
 					// auth: encodedJWT,
 					getUri: async () => {
 						const params = new URLSearchParams({
@@ -157,23 +158,23 @@ export class TldrawApp {
 					trackEvent,
 				})
 
-		this.user$ = this.signalizeQuery(
-			'user signal',
-			this.z.query.user.where('id', this.userId).one()
-		)
-		this.files$ = this.signalizeQuery(
-			'files signal',
-			this.z.query.file.where('isDeleted', '=', false)
-		)
-		this.fileStates$ = this.signalizeQuery(
-			'file states signal',
-			this.z.query.file_state.where('userId', this.userId).related('file', (q: any) => q.one())
-		)
+		this.user$ = this.signalizeQuery('user signal', this.userQuery())
+		this.fileStates$ = this.signalizeQuery('file states signal', this.fileStateQuery())
+	}
+
+	private userQuery() {
+		return this.z.query.user.where('id', '=', this.userId).one()
+	}
+
+	private fileStateQuery() {
+		return this.z.query.file_state
+			.where('userId', '=', this.userId)
+			.related('file', (q: any) => q.one())
 	}
 
 	async preload(initialUserData: TlaUser) {
 		let didCreate = false
-		await this.z.query.user.where('id', this.userId).preload().complete
+		await this.userQuery().preload().complete
 		await this.changesFlushed
 		if (!this.user$.get()) {
 			didCreate = true
@@ -187,8 +188,7 @@ export class TldrawApp {
 		if (!this.user$.get()) {
 			throw Error('could not create user')
 		}
-		await this.z.query.file_state.where('userId', this.userId).preload().complete
-		await this.z.query.file.where('ownerId', this.userId).preload().complete
+		await this.fileStateQuery().preload().complete
 		return didCreate
 	}
 
@@ -279,17 +279,20 @@ export class TldrawApp {
 				Object.entries(others).filter(([_, value]) => value !== null)
 			) as Partial<TLUserPreferences>
 
-			this.z.mutateBatch((tx) => {
-				tx.user.update({
-					id: user.id,
-					...(nonNull as any),
-				})
+			this.z.mutate.user.update({
+				id: user.id,
+				...(nonNull as any),
 			})
 		},
 	})
 
 	getUserOwnFiles() {
-		return this.files$.get()
+		const fileStates = this.getUserFileStates()
+		const files: TlaFile[] = []
+		fileStates.forEach((f) => {
+			if (f.file) files.push(f.file)
+		})
+		return files
 	}
 
 	getUserFileStates() {
@@ -369,15 +372,19 @@ export class TldrawApp {
 		return numberOfFiles < this.config.maxNumberOfFiles
 	}
 
-	createFile(
+	private showMaxFilesToast() {
+		this.toasts?.addToast({
+			title: this.getIntl().formatMessage(this.messages.max_files_title),
+			description: this.getIntl().formatMessage(this.messages.max_files_reached),
+			keepOpen: true,
+		})
+	}
+
+	async createFile(
 		fileOrId?: string | Partial<TlaFile>
-	): Result<{ file: TlaFile }, 'max number of files reached'> {
+	): Promise<Result<{ file: TlaFile }, 'max number of files reached'>> {
 		if (!this.canCreateNewFile()) {
-			this.toasts?.addToast({
-				title: this.getIntl().formatMessage(this.messages.max_files_title),
-				description: this.getIntl().formatMessage(this.messages.max_files_reached),
-				keepOpen: true,
-			})
+			this.showMaxFilesToast()
 			return Result.err('max number of files reached')
 		}
 
@@ -406,19 +413,23 @@ export class TldrawApp {
 				Object.assign(file, { name: this.getFallbackFileName(file.createdAt) })
 			}
 		}
-		this.z.mutateBatch((tx) => {
-			tx.file.upsert(file)
-			tx.file_state.upsert({
-				isFileOwner: true,
-				fileId: file.id,
-				userId: this.userId,
-				firstVisitAt: null,
-				isPinned: false,
-				lastEditAt: null,
-				lastSessionState: null,
-				lastVisitAt: null,
-			})
-		})
+		const fileState = {
+			isFileOwner: true,
+			fileId: file.id,
+			userId: this.userId,
+			firstVisitAt: null,
+			isPinned: false,
+			lastEditAt: null,
+			lastSessionState: null,
+			lastVisitAt: null,
+		}
+		await this.z.mutate.file.insertWithFileState({ file, fileState })
+		// todo: add server error handling for real Zero
+		// .server.catch((res: { error: string; details: string }) => {
+		// 	if (res.details === ZErrorCode.max_files_reached) {
+		// 		this.showMaxFilesToast()
+		// 	}
+		// })
 
 		return Result.ok({ file })
 	}
@@ -457,8 +468,8 @@ export class TldrawApp {
 		return
 	}
 
-	slurpFile() {
-		return this.createFile({
+	async slurpFile() {
+		return await this.createFile({
 			createSource: `${LOCAL_FILE_PREFIX}/${getScratchPersistenceKey()}`,
 		})
 	}
@@ -474,7 +485,7 @@ export class TldrawApp {
 
 		if (file.ownerId !== this.userId) throw Error('user cannot edit that file')
 
-		this.updateFile({
+		this.z.mutate.file.update({
 			id: fileId,
 			shared: !file.shared,
 		})
@@ -495,8 +506,8 @@ export class TldrawApp {
 		const name = this.getFileName(file)
 
 		// Optimistic update
-		this.updateFile({
-			...this.getFilePk(fileId),
+		this.z.mutate.file.update({
+			id: fileId,
 			name,
 			published: true,
 			lastPublished: Date.now(),
@@ -517,14 +528,6 @@ export class TldrawApp {
 		return assertExists(this.getFile(fileId), 'no file with id ' + fileId)
 	}
 
-	updateFile(partial: TlaFilePartial) {
-		this.requireFile(partial.id)
-		this.z.mutate.file.update({
-			...this.getFilePk(partial.id),
-			...partial,
-		})
-	}
-
 	/**
 	 * Unpublish a file.
 	 *
@@ -538,7 +541,7 @@ export class TldrawApp {
 		if (!file.published) return Result.ok('success')
 
 		// Optimistic update
-		this.updateFile({
+		this.z.mutate.file.update({
 			id: fileId,
 			published: false,
 		})
@@ -553,14 +556,10 @@ export class TldrawApp {
 	 */
 	async deleteOrForgetFile(fileId: string) {
 		const file = this.getFile(fileId)
+		if (!file) return
 
 		// Optimistic update, remove file and file states
-		return this.z.mutateBatch((tx) => {
-			tx.file_state.delete({ fileId, userId: this.userId })
-			if (file?.ownerId === this.userId) {
-				tx.file.update({ ...this.getFilePk(fileId), isDeleted: true })
-			}
-		})
+		await this.z.mutate.file.deleteOrForget(file)
 	}
 
 	/**
@@ -588,10 +587,10 @@ export class TldrawApp {
 		}
 
 		if (sharedLinkType === 'no-access') {
-			this.updateFile({ id: fileId, shared: false })
+			this.z.mutate.file.update({ id: fileId, shared: false })
 			return
 		}
-		this.updateFile({ id: fileId, shared: true, sharedLinkType })
+		this.z.mutate.file.update({ id: fileId, shared: true, sharedLinkType })
 	}
 
 	updateUser(partial: Partial<TlaUser>) {
@@ -626,7 +625,7 @@ export class TldrawApp {
 				// overwritten by postgres
 				isFileOwner: this.isFileOwner(fileId),
 			}
-			this.z.mutate.file_state.upsert(fs)
+			this.z.mutate.file_state.insert(fs)
 		}
 	}
 
@@ -638,6 +637,10 @@ export class TldrawApp {
 		const fileState = this.getFileState(fileId)
 		if (!fileState) return
 		this.z.mutate.file_state.update({ ...partial, fileId, userId: fileState.userId })
+	}
+
+	updateFile(fileId: string, partial: Partial<TlaFile>) {
+		this.z.mutate.file.update({ id: fileId, ...partial })
 	}
 
 	async onFileEnter(fileId: string) {
