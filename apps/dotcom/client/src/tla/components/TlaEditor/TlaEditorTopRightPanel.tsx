@@ -116,11 +116,11 @@ function LegacyImportButton() {
 	const name = useGetFileName()
 	const roomInfo = useRoomInfo()
 
-	const handleClick = useCallback(() => {
+	const handleClick = useCallback(async () => {
 		if (!app || !editor || !roomInfo) return
 
 		const { prefix, id } = roomInfo
-		const res = app.createFile({ name, createSource: `${prefix}/${id}` })
+		const res = await app.createFile({ name, createSource: `${prefix}/${id}` })
 		if (res.ok) {
 			const { file } = res.value
 			navigate(routes.tlaFile(file.id))

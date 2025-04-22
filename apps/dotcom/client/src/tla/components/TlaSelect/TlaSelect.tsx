@@ -61,13 +61,13 @@ export function TlaSelect<T extends string>({
 					aria-label={label}
 					data-testid={dataTestId}
 				>
-					<span className={styles.label}>{label}</span>
+					<Select.Value className={styles.label} placeholder={label} />
 					<Select.Icon>
 						<TlaIcon icon="chevron-down" className={styles.chevron} />
 					</Select.Icon>
 				</Select.Trigger>
 				<Select.Content className={styles.content}>
-					<div>
+					<Select.Viewport>
 						{options.map((option) => (
 							<Select.Item key={option.value} className={styles.option} value={option.value}>
 								<Select.ItemText>{option.label}</Select.ItemText>
@@ -76,7 +76,7 @@ export function TlaSelect<T extends string>({
 								</Select.ItemIndicator>
 							</Select.Item>
 						))}
-					</div>
+					</Select.Viewport>
 				</Select.Content>
 			</Select.Root>
 		</div>

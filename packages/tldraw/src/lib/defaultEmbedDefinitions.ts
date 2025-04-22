@@ -244,7 +244,14 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			const hostname = urlObj.hostname.replace(/^www./, '')
 			if (hostname === 'youtu.be') {
 				const videoId = urlObj.pathname.split('/').filter(Boolean)[0]
-				return `https://www.youtube.com/embed/${videoId}${urlObj.search}`
+				const searchParams = new URLSearchParams(urlObj.search)
+				const timeStart = searchParams.get('t')
+				if (timeStart) {
+					searchParams.set('start', timeStart)
+					searchParams.delete('t')
+				}
+				const search = searchParams.toString() ? '?' + searchParams.toString() : ''
+				return `https://www.youtube.com/embed/${videoId}${search}`
 			} else if (
 				(hostname === 'youtube.com' || hostname === 'm.youtube.com') &&
 				urlObj.pathname.match(/^\/watch/)
@@ -252,6 +259,11 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 				const videoId = urlObj.searchParams.get('v')
 				const searchParams = new URLSearchParams(urlObj.search)
 				searchParams.delete('v')
+				const timeStart = searchParams.get('t')
+				if (timeStart) {
+					searchParams.set('start', timeStart)
+					searchParams.delete('t')
+				}
 				const search = searchParams.toString() ? '?' + searchParams.toString() : ''
 				return `https://www.youtube.com/embed/${videoId}${search}`
 			}
@@ -267,6 +279,11 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 				if (matches) {
 					const params = new URLSearchParams(urlObj.search)
 					params.set('v', matches?.[1] ?? '')
+					const timeStart = params.get('start')
+					if (timeStart) {
+						params.set('t', timeStart)
+						params.delete('start')
+					}
 					return `https://www.youtube.com/watch?${params.toString()}`
 				}
 			}

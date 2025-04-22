@@ -12,8 +12,9 @@
 	--tla-radius-1: 2px;
 	--tla-radius-2: 4px;
 	/* Fonts */
-	--tla-font-ui: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-		Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+	--tla-font-ui:
+		'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+		Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
 }
@@ -56,11 +57,14 @@
 	/* --tla-shadow-primary-highlight: inset 0px 4px 2px -4px hsl(214, 94%, 94%),
 		inset 4px 4px 4px -6px hsl(214, 94%, 100%); */
 	--tla-shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
-	--tla-shadow-2: 0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
+	--tla-shadow-2:
+		0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
 		0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--tla-color-contrast);
-	--tla-shadow-3: 0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%),
+	--tla-shadow-3:
+		0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%),
 		inset 0px 0px 0px 1px var(--tla-color-contrast);
-	--tla-shadow-4: 0px 0px 3px hsl(0, 0%, 0%, 19%), 0px 5px 4px hsl(0, 0%, 0%, 16%),
+	--tla-shadow-4:
+		0px 0px 3px hsl(0, 0%, 0%, 19%), 0px 5px 4px hsl(0, 0%, 0%, 16%),
 		0px 2px 16px hsl(0, 0%, 0%, 6%), inset 0px 0px 0px 1px var(--tla-color-contrast);
 }
 
@@ -90,11 +94,14 @@
 	/* Shadows */
 	/* --tla-shadow-primary-highlight: inset 0px 1px 1px -1px hsl(214, 94%, 72%),
 		inset 4px 4px 4px -6px hsl(214, 94%, 80%); */
-	--tla-shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 16.1%), 0px 1px 3px hsl(0, 0%, 0%, 22%),
+	--tla-shadow-1:
+		0px 1px 2px hsl(0, 0%, 0%, 16.1%), 0px 1px 3px hsl(0, 0%, 0%, 22%),
 		inset 0px 0px 0px 1px var(--tla-color-panel);
-	--tla-shadow-2: 0px 1px 3px hsla(0, 44%, 27%, 0.666), 0px 2px 6px hsl(0, 0%, 0%, 33%),
+	--tla-shadow-2:
+		0px 1px 3px hsla(0, 44%, 27%, 0.666), 0px 2px 6px hsl(0, 0%, 0%, 33%),
 		inset 0px 0px 0px 1px var(--tla-color-panel);
-	--tla-shadow-3: 0px 1px 3px hsl(0, 0%, 0%, 50%), 0px 2px 12px hsl(0, 0%, 0%, 50%),
+	--tla-shadow-3:
+		0px 1px 3px hsl(0, 0%, 0%, 50%), 0px 2px 12px hsl(0, 0%, 0%, 50%),
 		inset 0px 0px 0px 1px var(--tla-color-panel);
 }
 
@@ -265,7 +272,7 @@
 
 /** Buttons/A tags */
 .tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
-	:is(nav, .tlui-popover__content, .tlui-dialog__overlay)
+	:is(nav, .tlui-menu, .tlui-popover__content, .tlui-dialog__overlay)
 	button:not(.tla-button-text):focus-visible,
 .tl-container__focused:not(.tl-container__no-focus-ring) button:not(.tlui-button):focus-visible,
 .tl-container__focused:not(.tl-container__no-focus-ring) .tlui-layout__top a:focus-visible {
@@ -325,7 +332,7 @@
  * This is for the buttons in the Share dialog.
  */
 .tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
-	nav
+	:is(nav, #tla-tabpanel-export)
 	.tla-button:not(.tlui-button):focus-visible {
 	border-radius: var(--tla-radius-2);
 	outline-offset: 1px;

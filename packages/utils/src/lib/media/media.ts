@@ -135,8 +135,6 @@ export class MediaHelpers {
 					// Sigh, Firefox doesn't have naturalWidth or naturalHeight for SVGs. :-/
 					// We have to attach to dom and use clientWidth/clientHeight.
 					document.body.appendChild(img)
-					// Sigh, Firefox doesn't have naturalWidth or naturalHeight for SVGs. :-/
-					// We have to attach to dom and use clientWidth/clientHeight.
 					dimensions = {
 						w: img.clientWidth,
 						h: img.clientHeight,

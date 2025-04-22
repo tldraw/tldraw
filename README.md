@@ -39,7 +39,7 @@ To run the local development server, first clone this repo.
 Enable [corepack](https://nodejs.org/api/corepack.html) to make sure you have the right version of `yarn`:
 
 ```bash
-corepack enable
+npm i -g corepack
 ```
 
 Install dependencies:

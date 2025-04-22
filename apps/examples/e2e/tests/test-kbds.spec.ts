@@ -416,12 +416,12 @@ test.describe('Actions on shapes', () => {
 
 		await page.keyboard.press('Control+Shift+Alt+=')
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'embiggen-shapes',
+			name: 'enlarge-shapes',
 		})
 
 		await page.keyboard.press('Control+Shift+Alt+-')
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'emsmallen-shapes',
+			name: 'shrink-shapes',
 		})
 
 		// await page.keyboard.press('Control+i')

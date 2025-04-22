@@ -41,6 +41,7 @@ export interface RichTextLabelProps {
 	textWidth?: number
 	textHeight?: number
 	padding?: number
+	hasCustomTabBehavior?: boolean
 }
 
 /**
@@ -68,6 +69,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	style,
 	textWidth,
 	textHeight,
+	hasCustomTabBehavior,
 }: RichTextLabelProps) {
 	const editor = useEditor()
 	const isDragging = React.useRef(false)
@@ -171,6 +173,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 						isEditing={isEditing}
 						shapeId={shapeId}
 						{...editableTextRest}
+						hasCustomTabBehavior={hasCustomTabBehavior}
 						handleKeyDown={handleKeyDownCustom ?? editableTextRest.handleKeyDown}
 					/>
 				)}

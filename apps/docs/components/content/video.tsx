@@ -21,7 +21,7 @@ export function Video({
 				href={href ?? src}
 				target="_blank"
 				rel="noreferrer"
-				className="block bg-zinc-100 dark:bg-zinc-800 py-1 sm:rounded-2xl -mx-5 sm:mx-0 sm:px-1"
+				className="block bg-zinc-100 dark:bg-zinc-800 py-1 sm:rounded-2xl sm:px-1"
 			>
 				<video
 					className="w-full sm:rounded-xl !my-0 shadow"

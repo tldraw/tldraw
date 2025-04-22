@@ -53,7 +53,11 @@ export function useCanvasEvents() {
 
 				// For tools that benefit from a higher fidelity of events,
 				// we dispatch the coalesced events.
-				const events = currentTool.useCoalescedEvents ? e.nativeEvent.getCoalescedEvents() : [e]
+				// N.B. Sometimes getCoalescedEvents isn't present on iOS, ugh.
+				const events =
+					currentTool.useCoalescedEvents && e.nativeEvent.getCoalescedEvents
+						? e.nativeEvent.getCoalescedEvents()
+						: [e]
 				for (const singleEvent of events) {
 					editor.dispatch({
 						type: 'pointer',
@@ -107,7 +111,7 @@ export function useCanvasEvents() {
 				if (
 					e.target.tagName !== 'A' &&
 					e.target.tagName !== 'TEXTAREA' &&
-					e.target.isContentEditable &&
+					!e.target.isContentEditable &&
 					// When in EditingShape state, we are actually clicking on a 'DIV'
 					// not A/TEXTAREA/contenteditable element yet. So, to preserve cursor position
 					// for edit mode on mobile we need to not preventDefault.
