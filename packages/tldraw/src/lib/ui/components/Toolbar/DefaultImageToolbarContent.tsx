@@ -288,6 +288,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			{isManipulating && croppingTools}
 			<TldrawUiButton
 				type="normal"
+				isActive={!!imageShape.props.altText}
 				onClick={() => {
 					trackEvent('alt-text-start', { source })
 					onEditAltTextStart()
