@@ -57,7 +57,7 @@ function ContextualToolbarInner({
 		setForceReRender((n) => n + 1)
 	}, [])
 	const getSelectionBounds = () => {
-		const fullBounds = editor.getSelectionRotatedScreenBounds()
+		const fullBounds = editor.getSelectionScreenBounds()
 		if (!fullBounds) return undefined
 		return new Box(fullBounds.x, fullBounds.y, fullBounds.width, 0)
 	}

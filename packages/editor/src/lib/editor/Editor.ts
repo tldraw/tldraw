@@ -2069,6 +2069,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * The bounds of the selection bounding box in the current page space.
+	 *
+	 * @readonly
+	 * @public
+	 */
+	@computed getSelectionScreenBounds(): Box | undefined {
+		const bounds = this.getSelectionPageBounds()
+		if (!bounds) return undefined
+		const { x, y } = this.pageToScreen(bounds.point)
+		const zoom = this.getZoomLevel()
+		return new Box(x, y, bounds.width * zoom, bounds.height * zoom)
+	}
+
+	/**
 	 * @internal
 	 */
 	getShapesSharedRotation(shapeIds: TLShapeId[]) {
