@@ -290,6 +290,7 @@ input,
 .tl-shapes {
 	position: relative;
 	z-index: var(--layer-canvas-shapes);
+	will-change: transform;
 }
 
 .tl-overlays {
