@@ -82,7 +82,6 @@ export class TldrawApp {
 	readonly z: ZeroPolyfill | Zero<TlaSchema, TlaMutators>
 
 	private readonly user$: Signal<TlaUser | undefined>
-	private readonly files$: Signal<TlaFile[]>
 	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
 
 	private readonly abortController = new AbortController()
@@ -159,23 +158,23 @@ export class TldrawApp {
 					trackEvent,
 				})
 
-		this.user$ = this.signalizeQuery(
-			'user signal',
-			this.z.query.user.where('id', '=', this.userId).one()
-		)
-		this.files$ = this.signalizeQuery(
-			'files signal',
-			this.z.query.file.where('isDeleted', '=', false)
-		)
-		this.fileStates$ = this.signalizeQuery(
-			'file states signal',
-			this.z.query.file_state.where('userId', '=', this.userId).related('file', (q: any) => q.one())
-		)
+		this.user$ = this.signalizeQuery('user signal', this.userQuery())
+		this.fileStates$ = this.signalizeQuery('file states signal', this.fileStateQuery())
+	}
+
+	private userQuery() {
+		return this.z.query.user.where('id', '=', this.userId).one()
+	}
+
+	private fileStateQuery() {
+		return this.z.query.file_state
+			.where('userId', '=', this.userId)
+			.related('file', (q: any) => q.one())
 	}
 
 	async preload(initialUserData: TlaUser) {
 		let didCreate = false
-		await this.z.query.user.where('id', '=', this.userId).preload().complete
+		await this.userQuery().preload().complete
 		await this.changesFlushed
 		if (!this.user$.get()) {
 			didCreate = true
@@ -189,8 +188,7 @@ export class TldrawApp {
 		if (!this.user$.get()) {
 			throw Error('could not create user')
 		}
-		await this.z.query.file_state.where('userId', '=', this.userId).preload().complete
-		await this.z.query.file.where('ownerId', '=', this.userId).preload().complete
+		await this.fileStateQuery().preload().complete
 		return didCreate
 	}
 
@@ -289,7 +287,12 @@ export class TldrawApp {
 	})
 
 	getUserOwnFiles() {
-		return this.files$.get()
+		const fileStates = this.getUserFileStates()
+		const files: TlaFile[] = []
+		fileStates.forEach((f) => {
+			if (f.file) files.push(f.file)
+		})
+		return files
 	}
 
 	getUserFileStates() {
@@ -556,7 +559,7 @@ export class TldrawApp {
 		if (!file) return
 
 		// Optimistic update, remove file and file states
-		this.z.mutate.file.deleteOrForget(file)
+		await this.z.mutate.file.deleteOrForget(file)
 	}
 
 	/**

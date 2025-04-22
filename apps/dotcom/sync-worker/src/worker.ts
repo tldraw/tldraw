@@ -143,11 +143,7 @@ const router = createRouter<Environment>()
 				connectionProvider(makePostgresConnector(env)),
 				'debug'
 			)
-			const result = await processor.process(
-				createMutators(auth.userId),
-				req.query,
-				await req.json()
-			)
+			const result = await processor.process(createMutators(auth.userId), req)
 			return json(result)
 		} catch (e) {
 			console.error('Error processing push', e)
