@@ -1,3 +1,24 @@
+# v3.12.1 (Tue Apr 22 2025)
+
+### Release Notes
+
+#### Fix group bounds containing text shapes (#5909) ([#5911](https://github.com/tldraw/tldraw/pull/5911))
+
+- Fix an issue in 3.12 that caused text shapes not to be included in group shape geometries
+
+---
+
+#### 🐛 Bug Fix
+
+- `@tldraw/editor`, `tldraw`
+  - Fix group bounds containing text shapes (#5909) [#5911](https://github.com/tldraw/tldraw/pull/5911) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+---
+
 # v3.12.0 (Tue Apr 15 2025)
 
 ### Release Notes
