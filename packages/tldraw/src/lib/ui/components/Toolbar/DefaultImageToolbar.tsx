@@ -59,6 +59,9 @@ function ContextualToolbarInner({
 
 	return (
 		<TldrawUiContextualToolbar
+			// TODO: this is a little hack to force the toolbar to re-render when
+			// we go into crop mode.
+			key={isManipulating ? 'manipulating' : 'not-manipulating'}
 			className="tlui-image__toolbar"
 			getSelectionBounds={getSelectionBounds}
 			forcePositionUpdateAtom={forcePositionUpdateAtom}
