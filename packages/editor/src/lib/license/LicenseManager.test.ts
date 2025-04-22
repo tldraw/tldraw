@@ -317,6 +317,46 @@ describe('LicenseManager', () => {
 		expect(result.isDomainValid).toBe(false)
 	})
 
+	it('Succeeds if it is a vscode extension', async () => {
+		// @ts-ignore
+		delete window.location
+		// @ts-ignore
+		window.location = new URL(
+			'vscode-webview:vscode-webview://1ipd8pun8ud7nd7hv9d112g7evi7m10vak9vviuvia66ou6aibp3/index.html?id=6ec2dc7a-afe9-45d9-bd71-1749f9568d28&origin=955b256f-37e1-4a72-a2f4-ad633e88239c&swVersion=4&extensionId=tldraw-org.tldraw-vscode&platform=electron&vscode-resource-base-authority=vscode-resource.vscode-cdn.net&parentOrigin=vscode-file%3A%2F%2Fvscode-app'
+		)
+
+		const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
+		permissiveHostsInfo[PROPERTIES.HOSTS] = ['tldraw-org.tldraw-vscode']
+		const permissiveLicenseKey = await generateLicenseKey(
+			JSON.stringify(permissiveHostsInfo),
+			keyPair
+		)
+		const result = (await licenseManager.getLicenseFromKey(
+			permissiveLicenseKey
+		)) as ValidLicenseKeyResult
+		expect(result.isDomainValid).toBe(true)
+	})
+
+	it('Fails if it is a vscode extension with the wrong id', async () => {
+		// @ts-ignore
+		delete window.location
+		// @ts-ignore
+		window.location = new URL(
+			'vscode-webview:vscode-webview://1ipd8pun8ud7nd7hv9d112g7evi7m10vak9vviuvia66ou6aibp3/index.html?id=6ec2dc7a-afe9-45d9-bd71-1749f9568d28&origin=955b256f-37e1-4a72-a2f4-ad633e88239c&swVersion=4&extensionId=tldraw-org.tldraw-vscode&platform=electron&vscode-resource-base-authority=vscode-resource.vscode-cdn.net&parentOrigin=vscode-file%3A%2F%2Fvscode-app'
+		)
+
+		const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
+		permissiveHostsInfo[PROPERTIES.HOSTS] = ['blah-org.blah-vscode']
+		const permissiveLicenseKey = await generateLicenseKey(
+			JSON.stringify(permissiveHostsInfo),
+			keyPair
+		)
+		const result = (await licenseManager.getLicenseFromKey(
+			permissiveLicenseKey
+		)) as ValidLicenseKeyResult
+		expect(result.isDomainValid).toBe(false)
+	})
+
 	it('Checks for internal license', async () => {
 		const internalLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
 		internalLicenseInfo[PROPERTIES.FLAGS] = FLAGS.INTERNAL_LICENSE
