@@ -16,7 +16,9 @@
 /* need to target the parent div, ugh, can't target via a className */
 div:has(> .content) {
 	position: absolute !important;
+	top: 12px;
 	right: 0;
+	left: auto !important;
 	z-index: 2 !important;
 }
 
@@ -32,6 +34,12 @@ div:has(> .content) {
 	padding: 8px 8px 8px 12px;
 	gap: 4px;
 	cursor: pointer;
+}
+
+:global(.tl-container__focused:not(.tl-container__no-focus-ring)) .option:focus-visible {
+	border-radius: 10px;
+	outline: 2px solid var(--color-focus);
+	outline-offset: -5px;
 }
 
 @media (hover: hover) {
