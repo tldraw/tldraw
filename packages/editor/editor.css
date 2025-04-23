@@ -1,5 +1,11 @@
 /* @tldraw/editor */
 
+.tl-safari-wrapper {
+	transform: translateZ(0);
+	height: 100%;
+	width: 100%;
+}
+
 .tl-container {
 	width: 100%;
 	height: 100%;
@@ -290,7 +296,7 @@ input,
 .tl-shapes {
 	position: relative;
 	z-index: var(--layer-canvas-shapes);
-	will-change: transform;
+	/* will-change: transform; */
 }
 
 .tl-overlays {

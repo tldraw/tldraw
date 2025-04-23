@@ -25,6 +25,7 @@ import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
+import { tlenv } from './globals/environment'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -277,43 +278,52 @@ export const TldrawEditor = memo(function TldrawEditor({
 	}
 
 	return (
-		<div
-			ref={setContainer}
-			data-tldraw={version}
-			draggable={false}
-			className={classNames(`${TL_CONTAINER_CLASS} tl-theme__light`, className)}
-			onPointerDown={stopEventPropagation}
-			tabIndex={-1}
-			role="application"
-		>
-			<OptionalErrorBoundary
-				fallback={ErrorFallback}
-				onError={(error) => annotateError(error, { tags: { origin: 'react.tldraw-before-app' } })}
+		<SafariWrapper>
+			<div
+				ref={setContainer}
+				data-tldraw={version}
+				draggable={false}
+				className={classNames(`${TL_CONTAINER_CLASS} tl-theme__light`, className)}
+				onPointerDown={stopEventPropagation}
+				tabIndex={-1}
+				role="application"
 			>
-				{container && (
-					<LicenseProvider licenseKey={rest.licenseKey}>
-						<ContainerProvider container={container}>
-							<EditorComponentsProvider overrides={components}>
-								{store ? (
-									store instanceof Store ? (
-										// Store is ready to go, whether externally synced or not
-										<TldrawEditorWithReadyStore {...withDefaults} store={store} user={user} />
+				<OptionalErrorBoundary
+					fallback={ErrorFallback}
+					onError={(error) => annotateError(error, { tags: { origin: 'react.tldraw-before-app' } })}
+				>
+					{container && (
+						<LicenseProvider licenseKey={rest.licenseKey}>
+							<ContainerProvider container={container}>
+								<EditorComponentsProvider overrides={components}>
+									{store ? (
+										store instanceof Store ? (
+											// Store is ready to go, whether externally synced or not
+											<TldrawEditorWithReadyStore {...withDefaults} store={store} user={user} />
+										) : (
+											// Store is a synced store, so handle syncing stages internally
+											<TldrawEditorWithLoadingStore {...withDefaults} store={store} user={user} />
+										)
 									) : (
-										// Store is a synced store, so handle syncing stages internally
-										<TldrawEditorWithLoadingStore {...withDefaults} store={store} user={user} />
-									)
-								) : (
-									// We have no store (it's undefined) so create one and possibly sync it
-									<TldrawEditorWithOwnStore {...withDefaults} store={store} user={user} />
-								)}
-							</EditorComponentsProvider>
-						</ContainerProvider>
-					</LicenseProvider>
-				)}
-			</OptionalErrorBoundary>
-		</div>
+										// We have no store (it's undefined) so create one and possibly sync it
+										<TldrawEditorWithOwnStore {...withDefaults} store={store} user={user} />
+									)}
+								</EditorComponentsProvider>
+							</ContainerProvider>
+						</LicenseProvider>
+					)}
+				</OptionalErrorBoundary>
+			</div>
+		</SafariWrapper>
 	)
 })
+
+function SafariWrapper({ children }: { children: ReactNode }) {
+	if (tlenv.isSafari) {
+		return <div className="tl-safari-wrapper">{children}</div>
+	}
+	return children
+}
 
 function TldrawEditorWithOwnStore(
 	props: Required<
