@@ -178,7 +178,7 @@ My browser: ${navigator.userAgent}`
 						</p>
 						{process.env.NODE_ENV !== 'production' && (
 							<p>
-								If you're developing with the SDK and need help, join us on{' '}
+								If you&apos;re developing with the SDK and need help, join us on{' '}
 								<a href="https://discord.tldraw.com/?utm_source=sdk&utm_medium=organic&utm_campaign=error-screen">
 									Discord
 								</a>
