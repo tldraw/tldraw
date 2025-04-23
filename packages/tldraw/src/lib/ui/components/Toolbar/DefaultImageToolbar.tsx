@@ -89,6 +89,7 @@ function ContextualToolbarInner({
 		function updateToolbarPositionAndDisplay() {
 			// capture / force this to update when the camera moves
 			editor.getCamera()
+			editor.getOnlySelectedShape()
 			setCachedManipulatingScreenBounds(undefined)
 		},
 		[editor]
