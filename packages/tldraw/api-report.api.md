@@ -295,6 +295,15 @@ export function ArrowToolbarItem(): JSX_2.Element;
 export function ArrowUpToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
+export type ASPECT_RATIO_OPTION = 'circle' | 'landscape' | 'original' | 'portrait' | 'square' | 'wide';
+
+// @public (undocumented)
+export const ASPECT_RATIO_OPTIONS: ASPECT_RATIO_OPTION[];
+
+// @public (undocumented)
+export const ASPECT_RATIO_TO_VALUE: Record<ASPECT_RATIO_OPTION, number>;
+
+// @public (undocumented)
 export function AssetToolbarItem(): JSX_2.Element;
 
 // @internal (undocumented)
@@ -1431,16 +1440,7 @@ export function getCropBox<T extends ShapeWithCrop>(shape: T, info: TLCropInfo<T
 } | undefined;
 
 // @public (undocumented)
-export function getDefaultCrop(): {
-    bottomRight: {
-        x: number;
-        y: number;
-    };
-    topLeft: {
-        x: number;
-        y: number;
-    };
-};
+export function getDefaultCrop(): TLShapeCrop;
 
 // @public
 export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string): TLEmbedResult;

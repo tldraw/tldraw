@@ -1,4 +1,4 @@
-import { Box, TLImageShape, track, useEditor, useValue } from '@tldraw/editor'
+import { Box, TLImageShape, track, useEditor, useQuickReactor, useValue } from '@tldraw/editor'
 import { useCallback, useEffect, useState } from 'react'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { AltTextEditor } from './AltTextEditor'
@@ -37,13 +37,14 @@ function ContextualToolbarInner({
 	imageShape: TLImageShape
 }) {
 	const editor = useEditor()
-	const isCropping = useValue(
-		'is cropping mode',
-		() => editor.getPath().startsWith('select.crop.'),
-		[editor]
-	)
+	const editorPath = useValue('editor path', () => editor.getPath(), [editor])
+	const isInCropTool = editorPath.startsWith('select.crop.')
+	const isCropping = editorPath === 'select.crop.cropping'
 	const [isEditingAltText, setIsEditingAltText] = useState(false)
 	const [isManipulating, setIsManipulating] = useState(false)
+	const [cachedManipulatingScreenBounds, setCachedManipulatingScreenBounds] = useState<
+		Box | undefined
+	>(undefined)
 	const [forceRerender, setForceReRender] = useState(0)
 	const handleEditAltTextStart = useCallback(() => {
 		setIsEditingAltText(true)
@@ -63,19 +64,46 @@ function ContextualToolbarInner({
 		setIsEditingAltText(false)
 		setForceReRender((n) => n + 1)
 	}, [])
-	const getSelectionBounds = () => {
+
+	const getSelectionBounds = useCallback(() => {
 		const fullBounds = editor.getSelectionScreenBounds()
 		if (!fullBounds) return undefined
-		return new Box(fullBounds.x, fullBounds.y, fullBounds.width, 0)
-	}
+		const bounds = new Box(fullBounds.x, fullBounds.y, fullBounds.width, 0)
+
+		// We cache the bounds because when manipulating it's annoying that the
+		// toolbar moves around, esp. when rotating.
+		if (isManipulating) {
+			if (!cachedManipulatingScreenBounds) {
+				setCachedManipulatingScreenBounds(bounds)
+			} else {
+				return cachedManipulatingScreenBounds
+			}
+		} else {
+			setCachedManipulatingScreenBounds(undefined)
+		}
+		return bounds
+	}, [editor, isManipulating, cachedManipulatingScreenBounds])
+
+	useQuickReactor(
+		'camera position',
+		function updateToolbarPositionAndDisplay() {
+			// capture / force this to update when the camera moves
+			editor.getCamera()
+			setCachedManipulatingScreenBounds(undefined)
+		},
+		[editor]
+	)
+
 	useEffect(() => {
-		if (isCropping && !isManipulating) {
+		if (isInCropTool && !isManipulating) {
 			handleManipulatingStart()
 		}
-		if (!isCropping && isManipulating) {
+		if (!isInCropTool && isManipulating) {
 			handleManipulatingEnd()
 		}
-	}, [isCropping, editor, isManipulating, handleManipulatingStart, handleManipulatingEnd])
+	}, [isInCropTool, editor, isManipulating, handleManipulatingStart, handleManipulatingEnd])
+
+	if (isCropping) return null
 
 	return (
 		<TldrawUiContextualToolbar

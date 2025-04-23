@@ -1,7 +1,6 @@
 import {
 	approximately,
 	HALF_PI,
-	structuredClone,
 	TLImageShape,
 	TLShapePartial,
 	track,
@@ -9,7 +8,14 @@ import {
 } from '@tldraw/editor'
 import isEqual from 'lodash.isequal'
 import { useCallback } from 'react'
-import { getUncroppedSize } from '../../../shapes/shared/crop'
+import {
+	ASPECT_RATIO_OPTION,
+	ASPECT_RATIO_OPTIONS,
+	ASPECT_RATIO_TO_VALUE,
+	getCroppedImageDataForAspectRatio,
+	getCroppedImageDataWhenZooming,
+	getDefaultCrop,
+} from '../../../shapes/shared/crop'
 import { useUiEvents } from '../../context/events'
 import { useInsertMedia } from '../../hooks/useInsertMedia'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -23,24 +29,6 @@ import {
 	TldrawUiDropdownMenuTrigger,
 } from '../primitives/TldrawUiDropdownMenu'
 import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
-
-type ASPECT_RATIO_OPTION = 'original' | 'square' | 'circle' | 'landscape' | 'portrait' | 'wide'
-const ASPECT_RATIO_OPTIONS: ASPECT_RATIO_OPTION[] = [
-	'original',
-	'square',
-	'circle',
-	'landscape',
-	'portrait',
-	'wide',
-]
-const ASPECT_RATIO_TO_VALUE: Record<ASPECT_RATIO_OPTION, number> = {
-	original: 0,
-	square: 1,
-	circle: 1,
-	landscape: 4 / 3,
-	portrait: 3 / 4,
-	wide: 16 / 9,
-}
 
 /** @public */
 export interface DefaultImageToolbarContentProps {
@@ -72,115 +60,47 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 		(value: number) => {
 			editor.setCurrentTool('select.crop.idle')
 			const zoom = value / 100
-			const oldCrop = imageShape.props.crop
-			if (oldCrop) {
-				const newCrop = structuredClone(oldCrop)
-				const xCropSize = oldCrop.bottomRight.x - oldCrop.topLeft.x
-				const yCropSize = oldCrop.bottomRight.y - oldCrop.topLeft.y
+			const change = getCroppedImageDataWhenZooming(zoom, imageShape)
 
-				// Calculate the center point of the current crop
-				const centerX = oldCrop.topLeft.x + xCropSize / 2
-				const centerY = oldCrop.topLeft.y + yCropSize / 2
+			editor.updateShape({
+				id: imageShape.id,
+				type: imageShape.type,
+				x: change.x,
+				y: change.y,
+				props: {
+					w: change.w,
+					h: change.h,
+					crop: change.crop,
+				},
+			} as TLShapePartial)
 
-				// Calculate new crop size based on zoom
-				const newXCropSize = Math.max(0.1, 1 - zoom)
-				const newYCropSize = Math.max(0.1, 1 - zoom)
-
-				// Calculate new top-left position, keeping the center point fixed
-				const newTopLeftX = centerX - newXCropSize / 2
-				const newTopLeftY = centerY - newYCropSize / 2
-
-				// Ensure the crop stays within bounds [0,1]
-				const topLeftXCrop = Math.max(0, Math.min(1 - newXCropSize, newTopLeftX))
-				const topLeftYCrop = Math.max(0, Math.min(1 - newYCropSize, newTopLeftY))
-
-				newCrop.topLeft = {
-					x: topLeftXCrop,
-					y: topLeftYCrop,
-				}
-				newCrop.bottomRight = {
-					x: topLeftXCrop + newXCropSize,
-					y: topLeftYCrop + newYCropSize,
-				}
-				editor.updateShape({
-					id: imageShape.id,
-					props: {
-						crop: newCrop,
-					},
-				} as TLShapePartial)
-			} else {
-				editor.updateShape({
-					id: imageShape.id,
-					props: {
-						crop: {
-							topLeft: {
-								x: 0,
-								y: 0,
-							},
-							bottomRight: {
-								x: 1,
-								y: 1,
-							},
-						},
-					},
-				} as TLShapePartial)
-			}
 			trackEvent('set-style', { source: 'image-menu', id: 'zoom', value })
 		},
 		[editor, trackEvent, imageShape]
 	)
 
-	const defaultCrop = {
-		topLeft: { x: 0, y: 0 },
-		bottomRight: { x: 1, y: 1 },
-	}
 	const handleAspectRatioChange = (aspectRatio: ASPECT_RATIO_OPTION) => {
 		editor.setCurrentTool('select.crop.idle')
-
-		const { w, h } = getUncroppedSize(imageShape.props, imageShape.props.crop ?? defaultCrop)
-		const imageRatio = w / h
-		const isNewRatioSmaller = ASPECT_RATIO_TO_VALUE[aspectRatio] < imageRatio
-		const ratio = ASPECT_RATIO_TO_VALUE[aspectRatio]
-		const inverseRatio = 1 / ASPECT_RATIO_TO_VALUE[aspectRatio]
-		const originalRatio = w / h
-		const ratioDiff = isNewRatioSmaller
-			? (inverseRatio - 1 / originalRatio) / (inverseRatio * 2)
-			: (ratio - originalRatio) / (ratio * 2)
-
-		const crop = {
-			topLeft: { x: isNewRatioSmaller ? ratioDiff : 0, y: isNewRatioSmaller ? 0 : ratioDiff },
-			bottomRight: {
-				x: isNewRatioSmaller ? 1 - ratioDiff : 1,
-				y: isNewRatioSmaller ? 1 : 1 - ratioDiff,
-			},
-			isCircle: aspectRatio === 'circle',
-		}
+		const change = getCroppedImageDataForAspectRatio(aspectRatio, imageShape)
+		if (!change) return
 
 		editor.markHistoryStoppingPoint('aspect ratio')
-		if (aspectRatio === 'original') {
-			editor.updateShape({
-				id: imageShape.id,
-				props: {
-					crop: defaultCrop,
-					w,
-					h,
-				},
-			} as TLShapePartial)
-		} else {
-			editor.updateShape({
-				id: imageShape.id,
-				props: {
-					crop,
-					w: (crop.bottomRight.x - crop.topLeft.x) * w,
-					h: (crop.bottomRight.y - crop.topLeft.y) * h,
-				},
-			} as TLShapePartial)
-		}
+		editor.updateShape({
+			id: imageShape.id,
+			type: imageShape.type,
+			x: change.x,
+			y: change.y,
+			props: {
+				crop: change.crop,
+				w: change.w,
+				h: change.h,
+			},
+		} as TLShapePartial)
 	}
 
 	const crop = imageShape.props.crop
 	const shapeAspectRatio = imageShape.props.w / imageShape.props.h
-	const isOriginalCrop = !crop || isEqual(crop, defaultCrop)
+	const isOriginalCrop = !crop || isEqual(crop, getDefaultCrop())
 
 	const zoom = crop
 		? Math.max(1 - (crop.bottomRight.x - crop.topLeft.x), 1 - (crop.bottomRight.y - crop.topLeft.y))
@@ -192,8 +112,8 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 				label="tool.image-zoom"
 				onValueChange={handleZoomChange}
 				onHistoryMark={onHistoryMark}
-				// This is 90 instead of 100 because our smallest crop is .1
-				steps={90}
+				// This is 66 instead of 100 because our smallest crop 33% image size.
+				steps={66}
 				data-testid="tool.image-zoom"
 				title={msg('tool.image-zoom')}
 			/>

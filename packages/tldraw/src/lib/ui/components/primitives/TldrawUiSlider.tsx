@@ -39,11 +39,6 @@ export const TldrawUiSlider = memo(function Slider({
 		onHistoryMark('click slider')
 	}, [onHistoryMark])
 
-	const handlePointerUp = useCallback(() => {
-		if (!value) return
-		onValueChange(value)
-	}, [value, onValueChange])
-
 	// N.B. Annoying. For a11y purposes, we need Tab to work.
 	// For some reason, Radix has some custom behavior here
 	// that interferes with tabbing past the slider and then
@@ -66,7 +61,6 @@ export const TldrawUiSlider = memo(function Slider({
 				value={value ? [value] : undefined}
 				onPointerDown={handlePointerDown}
 				onValueChange={handleValueChange}
-				onPointerUp={handlePointerUp}
 				onKeyDownCapture={handleKeyEvent}
 				onKeyUpCapture={handleKeyEvent}
 				title={title + ' — ' + msg(label as TLUiTranslationKey)}

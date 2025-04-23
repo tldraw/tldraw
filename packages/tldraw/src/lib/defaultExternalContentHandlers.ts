@@ -436,7 +436,6 @@ export async function defaultHandleExternalFileContent(
 				props: {
 					assetId: asset.id,
 					crop: { topLeft: { x: 0, y: 0 }, bottomRight: { x: 1, y: 1 } },
-					zoom: 1,
 					w: (asset as TLImageAsset).props.w,
 					h: (asset as TLImageAsset).props.h,
 				},

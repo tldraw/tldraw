@@ -105,7 +105,7 @@ export const TldrawUiContextualToolbar = ({
 				setHasValidToolbarPosition(true)
 			}
 		},
-		[editor, forcePositionUpdateAtom]
+		[editor, forcePositionUpdateAtom, getSelectionBounds]
 	)
 
 	const cameraState = useValue('camera state', () => editor.getCameraState(), [editor])
