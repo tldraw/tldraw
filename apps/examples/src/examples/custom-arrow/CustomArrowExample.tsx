@@ -38,7 +38,7 @@ class WireShapeUtil extends ShapeUtil<WireShape> {
 
 	override getDefaultProps() {
 		return {
-			end: { x: 100, y: 50 },
+			end: { x: 0, y: 0 },
 		}
 	}
 
@@ -49,9 +49,6 @@ class WireShapeUtil extends ShapeUtil<WireShape> {
 	override canEdit() {
 		return false
 	}
-	// override canResize() {
-	// 	return false
-	// }
 	override canSnap() {
 		return false
 	}
@@ -130,6 +127,20 @@ class WireShapeUtil extends ShapeUtil<WireShape> {
 	}
 
 	override component(shape: WireShape) {
+		const midPoint = {
+			x: shape.props.end.x / 2,
+			y: shape.props.end.y / 2,
+		}
+
+		const rotation = Math.atan2(shape.props.end.y, shape.props.end.x) * (180 / Math.PI)
+		const trianglePoints = [
+			[midPoint.x + 5, midPoint.y],
+			[midPoint.x - 5, midPoint.y - 5],
+			[midPoint.x - 5, midPoint.y + 5],
+		]
+			.map((point) => point.join(','))
+			.join(' ')
+
 		return (
 			<SVGContainer>
 				<line
@@ -139,7 +150,12 @@ class WireShapeUtil extends ShapeUtil<WireShape> {
 					y2={shape.props.end.y}
 					stroke="red"
 					strokeWidth={2}
-				></line>
+				/>
+				<polygon
+					points={trianglePoints}
+					fill="red"
+					transform={`rotate(${rotation}, ${midPoint.x}, ${midPoint.y})`}
+				/>
 			</SVGContainer>
 		)
 	}
@@ -150,7 +166,6 @@ class WireShapeUtil extends ShapeUtil<WireShape> {
 
 	override onResize(shape: WireShape, info: TLResizeInfo<WireShape>) {
 		const { scaleX, scaleY } = info
-
 		return {
 			props: {
 				end: {
