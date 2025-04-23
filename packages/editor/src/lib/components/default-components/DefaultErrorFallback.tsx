@@ -157,8 +157,10 @@ My browser: ${navigator.userAgent}`
 						<h2>Are you sure?</h2>
 						<p>Resetting your data will delete your drawing and cannot be undone.</p>
 						<div className="tl-error-boundary__content__actions">
-							<button onClick={() => setShouldShowResetConfirmation(false)}>Cancel</button>
-							<button className="tl-error-boundary__reset" onClick={resetLocalState}>
+							<button className="tlui-button" onClick={() => setShouldShowResetConfirmation(false)}>
+								Cancel
+							</button>
+							<button className="tlui-button tl-error-boundary__reset" onClick={resetLocalState}>
 								Reset data
 							</button>
 						</div>
@@ -187,22 +189,24 @@ My browser: ${navigator.userAgent}`
 									<pre>
 										<code>{errorStack ?? errorMessage}</code>
 									</pre>
-									<button onClick={copyError}>{didCopy ? 'Copied!' : 'Copy'}</button>
+									<button className="tlui-button" onClick={copyError}>
+										{didCopy ? 'Copied!' : 'Copy'}
+									</button>
 								</div>
 							</>
 						)}
 						<div className="tl-error-boundary__content__actions">
-							<button onClick={() => setShouldShowError(!shouldShowError)}>
+							<button className="tlui-button" onClick={() => setShouldShowError(!shouldShowError)}>
 								{shouldShowError ? 'Hide details' : 'Show details'}
 							</button>
 							<div className="tl-error-boundary__content__actions__group">
 								<button
-									className="tl-error-boundary__reset"
+									className="tlui-button tl-error-boundary__reset"
 									onClick={() => setShouldShowResetConfirmation(true)}
 								>
 									Reset data
 								</button>
-								<button className="tl-error-boundary__refresh" onClick={refresh}>
+								<button className="tlui-button tl-error-boundary__refresh" onClick={refresh}>
 									Refresh Page
 								</button>
 							</div>
