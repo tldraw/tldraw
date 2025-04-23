@@ -168,16 +168,23 @@ My browser: ${navigator.userAgent}`
 				) : (
 					<>
 						<h2>Something went wrong</h2>
-						<p>Please refresh the page to continue.</p>
+						<p>Please try refreshing your browser to continue.</p>
 						<p>
-							If you keep seeing this screen, you can create a{' '}
-							<a href={url.toString()}>GitHub issue</a> or ask for help on{' '}
-							<a href="https://discord.tldraw.com/?utm_source=sdk&utm_medium=organic&utm_campaign=error-screen">
-								Discord
-							</a>
-							. If you are still stuck, you can reset the tldraw data on your machine. This may
-							erase the project you were working on, so try to get help first.
+							If the issue continues after refreshing, you may need to reset the tldraw data stored
+							on your device.
 						</p>
+						<p>
+							<strong>Note:</strong> Resetting will erase your current project and any unsaved work.
+						</p>
+						{process.env.NODE_ENV !== 'production' && (
+							<p>
+								If you're developing with the SDK and need help, join us on{' '}
+								<a href="https://discord.tldraw.com/?utm_source=sdk&utm_medium=organic&utm_campaign=error-screen">
+									Discord
+								</a>
+								.
+							</p>
+						)}
 						{shouldShowError && (
 							<>
 								Message:
