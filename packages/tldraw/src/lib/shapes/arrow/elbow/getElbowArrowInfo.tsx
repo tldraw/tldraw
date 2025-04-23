@@ -3,10 +3,7 @@ import {
 	assert,
 	Box,
 	Editor,
-	elbowArrowDebug,
-	ElbowArrowSide,
 	exhaustiveSwitchError,
-	invLerp,
 	lerp,
 	Mat,
 	TLArrowBinding,
@@ -28,19 +25,11 @@ import {
 	ElbowArrowInfoWithoutRoute,
 	ElbowArrowOptions,
 	ElbowArrowRoute,
+	ElbowArrowSide,
 	ElbowArrowSideWithAxis,
 	ElbowArrowTargetBox,
 } from './definitions'
-import { getArrowNavigationGrid } from './getArrowNavigationGrid'
-import { getArrowPath } from './getArrowPath'
-import {
-	clampToRange,
-	createRange,
-	expandRange,
-	isWithinRange,
-	rangeSize,
-	subtractRange,
-} from './range'
+import { createRange, expandRange, isWithinRange, rangeSize, subtractRange } from './range'
 import { tryRouteArrow } from './routes/elbowArrowRoutes'
 import { ElbowArrowWorkingInfo } from './routes/ElbowArrowWorkingInfo'
 import {
@@ -55,10 +44,9 @@ export function getElbowArrowInfo(
 ): ElbowArrowInfo {
 	const shapeOptions = editor.getShapeUtil<ArrowShapeUtil>(arrow.type).options
 	const options: ElbowArrowOptions = {
-		elbowMidpoint: elbowArrowDebug.get().customMidpoint ? arrow.props.elbowMidPoint : 0.5,
+		elbowMidpoint: arrow.props.elbowMidPoint,
 		expandElbowLegLength: shapeOptions.expandElbowLegLength[arrow.props.size],
 		minElbowLegLength: shapeOptions.minElbowLegLength[arrow.props.size],
-		shortestArrowMeasure: elbowArrowDebug.get().shortest,
 	}
 
 	const startBinding = getElbowArrowBindingInfo(editor, arrow, bindings.start, arrow.props.start)
@@ -239,20 +227,9 @@ export function getElbowArrowInfo(
 		if (swapOrder) route.points.reverse()
 	}
 
-	const steve = () => {
-		const grid = getArrowNavigationGrid(aBinding.bounds, bBinding.bounds, options)
-		const path = getArrowPath(
-			grid,
-			getSideToUse(aBinding, bBinding, info.A.edges) ?? undefined,
-			getSideToUse(bBinding, aBinding, info.B.edges) ?? undefined
-		)
-		return { grid, path: path.error ? null : path.path }
-	}
-
 	return {
 		...info,
 		swapOrder,
-		steve,
 		route,
 		midXRange: mxRange
 			? swapOrder
@@ -334,9 +311,8 @@ function getElbowArrowBindingInfo(
 					arrowStrokeSize + targetStrokeSize + BOUND_ARROW_OFFSET * arrow.props.scale
 			}
 
-			const impreciseEdgePickingMode = elbowArrowDebug.get().impreciseEdgePicking
 			let side: ElbowArrowSideWithAxis | null = null
-			let targetPoint = geometry.target
+			const targetPoint = geometry.target
 			if (binding.props.isPrecise) {
 				side = getEdgeFromNormalizedAnchor(
 					Vec.RotWith(
@@ -345,17 +321,6 @@ function getElbowArrowBindingInfo(
 						geometry.shapeToArrowTransform.rotation()
 					)
 				)
-				if (
-					elbowArrowDebug.get().hintBinding === 'center' &&
-					(binding.props.snap === 'point' || binding.props.snap === 'axis')
-				) {
-					targetPoint = geometry.center
-				}
-				if (elbowArrowDebug.get().preciseEdgePicking.snapAxis && binding.props.snap === 'axis') {
-					side = side === 'left' || side === 'right' ? 'x' : 'y'
-				}
-			} else if (impreciseEdgePickingMode === 'velocity') {
-				side = binding.props.entrySide
 			}
 
 			return {
@@ -383,7 +348,7 @@ function getElbowArrowBindingInfo(
 		arrowheadOffset: 0,
 		minEndSegmentLength,
 		side: null,
-		snap: null,
+		snap: 'none',
 	}
 }
 
@@ -501,8 +466,8 @@ export function getUsableEdge(
 	const isSelfBoundAndShouldRouteExternal =
 		a.targetShapeId === b.targetShapeId &&
 		a.targetShapeId !== null &&
-		(a.snap === 'edge' || a.snap === 'point') &&
-		(b.snap === 'edge' || b.snap === 'point')
+		(a.snap === 'edge' || a.snap === 'edge-point') &&
+		(b.snap === 'edge' || b.snap === 'edge-point')
 
 	const aValue = a.bounds[props.main]
 	const aExpanded = a.isPoint ? null : aValue + props.expand * options.expandElbowLegLength
@@ -552,25 +517,10 @@ export function getUsableEdge(
 		}
 	}
 
-	let crossTarget
-	switch (elbowArrowDebug.get().targetStyle) {
-		case 'push':
-			crossTarget = clampToRange(a.target[props.crossAxis], aCrossRange)
-			break
-		case 'center':
-			crossTarget = lerp(
-				aCrossRange.min,
-				aCrossRange.max,
-				invLerp(originalACrossRange.min, originalACrossRange.max, a.target[props.crossAxis])
-			)
-			break
-		case 'remove':
-			if (!isWithinRange(a.target[props.crossAxis], aCrossRange)) {
-				return null
-			}
-			crossTarget = a.target[props.crossAxis]
-			break
+	if (!isWithinRange(a.target[props.crossAxis], aCrossRange)) {
+		return null
 	}
+	const crossTarget = a.target[props.crossAxis]
 
 	return {
 		value: aValue,
@@ -629,7 +579,7 @@ function convertBindingToPoint(binding: ElbowArrowBinding): ElbowArrowBinding {
 
 	let side: ElbowArrowSideWithAxis | null = null
 	let arrowheadOffset = 0
-	if (binding.snap === 'axis' || binding.snap === 'edge' || binding.snap === 'point') {
+	if (binding.snap === 'edge' || binding.snap === 'edge-point') {
 		arrowheadOffset = binding.arrowheadOffset
 		if (binding.side === 'x' || binding.side === 'left' || binding.side === 'right') {
 			side = 'x'

@@ -38,7 +38,6 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 			isPrecise: false,
 			isExact: false,
 			normalizedAnchor: { x: 0.5, y: 0.5 },
-			entrySide: null,
 		}
 	}
 

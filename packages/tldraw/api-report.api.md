@@ -1076,11 +1076,6 @@ export interface ElbowArrowInfo extends ElbowArrowInfoWithoutRoute {
         lo: number;
     } | null;
     route: ElbowArrowRoute | null;
-    // @internal (undocumented)
-    steve(): {
-        grid: any;
-        path: null | Vec[];
-    };
     swapOrder: boolean;
 }
 
@@ -1119,8 +1114,6 @@ export interface ElbowArrowOptions {
     expandElbowLegLength: number;
     // (undocumented)
     minElbowLegLength: number;
-    // (undocumented)
-    shortestArrowMeasure: 'count' | 'distance';
 }
 
 // @public (undocumented)
@@ -1150,12 +1143,7 @@ export interface ElbowArrowRoute {
 }
 
 // @public (undocumented)
-export interface ElbowArrowScale {
-    // (undocumented)
-    x: -1 | 1;
-    // (undocumented)
-    y: -1 | 1;
-}
+export type ElbowArrowSide = 'bottom' | 'left' | 'right' | 'top';
 
 // @internal (undocumented)
 export type ElbowArrowSideReason = 'auto' | 'fallback' | 'manual';

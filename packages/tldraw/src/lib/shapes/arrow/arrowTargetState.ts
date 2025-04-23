@@ -5,13 +5,9 @@ import {
 	Box,
 	clamp,
 	Editor,
-	elbowArrowDebug,
-	ElbowArrowSide,
 	ElbowArrowSnap,
-	exhaustiveSwitchError,
 	invLerp,
 	mapObjectMapValues,
-	Mat,
 	objectMapEntries,
 	objectMapKeys,
 	TLArrowBinding,
@@ -23,7 +19,12 @@ import {
 	WeakCache,
 } from '@tldraw/editor'
 import { ArrowShapeUtil } from './ArrowShapeUtil'
-import { ElbowArrowAxes, ElbowArrowSideAxes, ElbowArrowSideDeltas } from './elbow/definitions'
+import {
+	ElbowArrowAxes,
+	ElbowArrowSide,
+	ElbowArrowSideAxes,
+	ElbowArrowSideDeltas,
+} from './elbow/definitions'
 
 export interface UpdateArrowTargetStateOpts {
 	editor: Editor
@@ -53,7 +54,7 @@ export interface ArrowTargetState {
 
 	centerInPageSpace: VecLike
 	anchorInPageSpace: VecLike
-	snap: ElbowArrowSnap | null
+	snap: ElbowArrowSnap
 	normalizedAnchor: VecLike
 }
 
@@ -88,7 +89,6 @@ export function updateArrowTargetState({
 		return null
 	}
 
-	const opts = elbowArrowDebug.get()
 	const util = editor.getShapeUtil<ArrowShapeUtil>('arrow')
 	const arrowKind = arrow ? arrow.props.kind : editor.getStyleForNextShape(ArrowShapeKindStyle)
 
@@ -118,9 +118,7 @@ export function updateArrowTargetState({
 	const targetGeometryInTargetSpace = editor.getShapeGeometry(target)
 	const targetBoundsInTargetSpace = Box.ZeroFix(targetGeometryInTargetSpace.bounds)
 	const targetCenterInTargetSpace = targetGeometryInTargetSpace.center
-	const arrowTransform = arrow ? editor.getShapePageTransform(arrow.id) : Mat.Identity()
 	const targetTransform = editor.getShapePageTransform(target)
-	const targetToArrowTransform = arrowTransform.clone().invert().multiply(targetTransform)
 	const pointInTargetSpace = editor.getPointInShapeSpace(target, pointInPageSpace)
 
 	const castDistance = Math.max(
@@ -128,28 +126,10 @@ export function updateArrowTargetState({
 		targetGeometryInTargetSpace.bounds.height
 	)
 
-	let hintTransformRelativeToTarget
-	const hintRotationMode = elbowArrowDebug.get().hintRotation
-	switch (hintRotationMode) {
-		case 'arrow':
-			hintTransformRelativeToTarget = -targetToArrowTransform.rotation()
-			break
-		case 'target':
-			hintTransformRelativeToTarget = 0
-			break
-		case 'page':
-			hintTransformRelativeToTarget = -targetTransform.rotation()
-			break
-		default:
-			exhaustiveSwitchError(hintRotationMode)
-	}
-
 	const handlesInPageSpace = mapObjectMapValues(ElbowArrowSideDeltas, (side, delta) => {
 		const axis = ElbowArrowAxes[ElbowArrowSideAxes[side]]
 
-		const farPoint = Vec.Mul(delta, castDistance)
-			.rot(hintTransformRelativeToTarget)
-			.add(targetCenterInTargetSpace)
+		const farPoint = Vec.Mul(delta, castDistance).add(targetCenterInTargetSpace)
 
 		let isEnabled = true
 		let handlePointInTargetSpace: VecLike = axis.v(
@@ -209,20 +189,16 @@ export function updateArrowTargetState({
 	}
 
 	const shouldSnapCenter = !isExact && precise
-	const shouldSnapEdges =
-		!isExact && precise && arrowKind === 'elbow' && opts.preciseEdgePicking.snapEdges
-	const shouldSnapPoints =
-		!isExact && precise && arrowKind === 'elbow' && opts.preciseEdgePicking.snapPoints
-	const shouldSnapInside =
-		arrowKind === 'bendy' ? precise : precise && opts.preciseEdgePicking.snapNone
-	const shouldSnapAxis =
-		!isExact && precise && arrowKind === 'elbow' && opts.preciseEdgePicking.snapAxis
+	const shouldSnapEdges = !isExact && precise && arrowKind === 'elbow'
+	const shouldSnapEdgePoints = !isExact && precise && arrowKind === 'elbow'
+	const shouldSnapNone = precise
+	const shouldSnapCenterAxis = !isExact && precise && arrowKind === 'elbow'
 
 	// we run through all the snapping options from least to most specific:
-	let snap: ElbowArrowSnap | null = null
+	let snap: ElbowArrowSnap = 'none'
 	let anchorInPageSpace: VecLike = pointInPageSpace
 
-	if (!shouldSnapInside) {
+	if (!shouldSnapNone) {
 		snap = 'center'
 		anchorInPageSpace = targetCenterInPageSpace
 	}
@@ -254,7 +230,7 @@ export function updateArrowTargetState({
 		}
 	}
 
-	if (shouldSnapAxis) {
+	if (shouldSnapCenterAxis) {
 		const snapDistance = calculateSnapDistance(
 			editor,
 			targetBoundsInTargetSpace,
@@ -295,12 +271,12 @@ export function updateArrowTargetState({
 						pointInPageSpace
 					)
 
-			snap = opts.axisBinding === 'closest-point' ? 'point' : 'axis'
+			snap = 'edge-point'
 			anchorInPageSpace = snappedPointInPageSpace
 		}
 	}
 
-	if (shouldSnapPoints) {
+	if (shouldSnapEdgePoints) {
 		const snapDistance = calculateSnapDistance(
 			editor,
 			targetBoundsInTargetSpace,
@@ -320,7 +296,7 @@ export function updateArrowTargetState({
 		}
 
 		if (closestSide) {
-			snap = 'point'
+			snap = 'edge-point'
 			anchorInPageSpace = handlesInPageSpace[closestSide].point
 		}
 	}

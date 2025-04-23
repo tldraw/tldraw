@@ -37,122 +37,122 @@ export const ElbowArrowTransform = {
 	Rotate270: { x: 1, y: -1, transpose: true } as const,
 	FlipX: { x: -1, y: 1, transpose: false } as const,
 	FlipY: { x: 1, y: -1, transpose: false } as const,
+}
 
-	invert(transform: ElbowArrowTransform): ElbowArrowTransform {
-		if (transform.transpose) {
-			return {
-				x: transform.y,
-				y: transform.x,
-				transpose: true,
-			}
+function invertElbowArrowTransform(transform: ElbowArrowTransform): ElbowArrowTransform {
+	if (transform.transpose) {
+		return {
+			x: transform.y,
+			y: transform.x,
+			transpose: true,
 		}
+	}
 
-		return transform
-	},
+	return transform
+}
 
-	transform(a: ElbowArrowTransform, b: ElbowArrowTransform) {
-		// apply b to a:
-		const next = { ...a }
+export function transformElbowArrowTransform(a: ElbowArrowTransform, b: ElbowArrowTransform) {
+	// apply b to a:
+	const next = { ...a }
 
-		if (b.transpose) {
-			const temp = next.x
-			next.x = next.y
-			next.y = temp
-			next.transpose = !next.transpose
-		}
+	if (b.transpose) {
+		const temp = next.x
+		next.x = next.y
+		next.y = temp
+		next.transpose = !next.transpose
+	}
 
-		if (b.x === -1) {
-			next.x = -next.x as 1 | -1
-		}
-		if (b.y === -1) {
-			next.y = -next.y as 1 | -1
-		}
+	if (b.x === -1) {
+		next.x = -next.x as 1 | -1
+	}
+	if (b.y === -1) {
+		next.y = -next.y as 1 | -1
+	}
 
-		return next
-	},
+	return next
+}
 
-	vecInPlace(transform: ElbowArrowTransform, point: Vec) {
-		point.x = transform.x * point.x
-		point.y = transform.y * point.y
+function transformVecInPlace(transform: ElbowArrowTransform, point: Vec) {
+	point.x = transform.x * point.x
+	point.y = transform.y * point.y
 
-		if (transform.transpose) {
-			const temp = point.x
-			point.x = point.y
-			point.y = temp
-		}
-	},
+	if (transform.transpose) {
+		const temp = point.x
+		point.x = point.y
+		point.y = temp
+	}
+}
 
-	boxInPlace(transform: ElbowArrowTransform, box: Box) {
-		if (transform.x === -1) {
-			box.x = -(box.x + box.width)
-		}
-		if (transform.y === -1) {
-			box.y = -(box.y + box.height)
-		}
-		if (transform.transpose) {
-			let temp = box.x
-			box.x = box.y
-			box.y = temp
-			temp = box.width
-			box.width = box.height
-			box.height = temp
-		}
-	},
+function transformBoxInPlace(transform: ElbowArrowTransform, box: Box) {
+	if (transform.x === -1) {
+		box.x = -(box.x + box.width)
+	}
+	if (transform.y === -1) {
+		box.y = -(box.y + box.height)
+	}
+	if (transform.transpose) {
+		let temp = box.x
+		box.x = box.y
+		box.y = temp
+		temp = box.width
+		box.width = box.height
+		box.height = temp
+	}
+}
 
-	edgesInPlace(transform: ElbowArrowTransform, edges: ElbowArrowBoxEdges) {
-		let temp = null
-		if (transform.x === -1) {
-			temp = edges.left
-			edges.left = edges.right
-			edges.right = temp
-			flipEdgeCrossInPlace(edges.top)
-			flipEdgeCrossInPlace(edges.bottom)
-			flipEdgeValueInPlace(edges.left)
-			flipEdgeValueInPlace(edges.right)
-		}
-		if (transform.y === -1) {
-			temp = edges.top
-			edges.top = edges.bottom
-			edges.bottom = temp
-			flipEdgeCrossInPlace(edges.left)
-			flipEdgeCrossInPlace(edges.right)
-			flipEdgeValueInPlace(edges.top)
-			flipEdgeValueInPlace(edges.bottom)
-		}
-		if (transform.transpose) {
-			temp = edges.left
-			edges.left = edges.top
-			edges.top = temp
-			temp = edges.right
-			edges.right = edges.bottom
-			edges.bottom = temp
-		}
-	},
+function transformEdgesInPlace(transform: ElbowArrowTransform, edges: ElbowArrowBoxEdges) {
+	let temp = null
+	if (transform.x === -1) {
+		temp = edges.left
+		edges.left = edges.right
+		edges.right = temp
+		flipEdgeCrossInPlace(edges.top)
+		flipEdgeCrossInPlace(edges.bottom)
+		flipEdgeValueInPlace(edges.left)
+		flipEdgeValueInPlace(edges.right)
+	}
+	if (transform.y === -1) {
+		temp = edges.top
+		edges.top = edges.bottom
+		edges.bottom = temp
+		flipEdgeCrossInPlace(edges.left)
+		flipEdgeCrossInPlace(edges.right)
+		flipEdgeValueInPlace(edges.top)
+		flipEdgeValueInPlace(edges.bottom)
+	}
+	if (transform.transpose) {
+		temp = edges.left
+		edges.left = edges.top
+		edges.top = temp
+		temp = edges.right
+		edges.right = edges.bottom
+		edges.bottom = temp
+	}
+}
 
-	dbg(transform: ElbowArrowTransform) {
-		switch (
-			`${transform.transpose ? 't' : ''}${transform.x === -1 ? 'x' : ''}${transform.y === -1 ? 'y' : ''}`
-		) {
-			case '':
-				return 'Identity'
-			case 't':
-				return 'Transpose'
-			case 'x':
-				return 'FlipX'
-			case 'y':
-				return 'FlipY'
-			case 'tx':
-				return 'Rotate90'
-			case 'ty':
-				return 'Rotate270'
-			case 'xy':
-				return 'Rotate180'
-			case 'txy':
-				return 'spooky (transpose + flip both)'
-			default:
-				throw new Error('Unknown transform')
-		}
-	},
+export function debugElbowArrowTransform(transform: ElbowArrowTransform) {
+	switch (
+		`${transform.transpose ? 't' : ''}${transform.x === -1 ? 'x' : ''}${transform.y === -1 ? 'y' : ''}`
+	) {
+		case '':
+			return 'Identity'
+		case 't':
+			return 'Transpose'
+		case 'x':
+			return 'FlipX'
+		case 'y':
+			return 'FlipY'
+		case 'tx':
+			return 'Rotate90'
+		case 'ty':
+			return 'Rotate270'
+		case 'xy':
+			return 'Rotate180'
+		case 'txy':
+			return 'spooky (transpose + flip both)'
+		default:
+			throw new Error('Unknown transform')
+	}
 }
 
 export interface ElbowArrowWorkingBox {
@@ -190,19 +190,19 @@ export class ElbowArrowWorkingInfo {
 	inverse: ElbowArrowTransform = ElbowArrowTransform.Identity
 
 	apply(transform: ElbowArrowTransform) {
-		this.transform = ElbowArrowTransform.transform(transform, this.transform)
-		this.inverse = ElbowArrowTransform.invert(this.transform)
+		this.transform = transformElbowArrowTransform(transform, this.transform)
+		this.inverse = invertElbowArrowTransform(this.transform)
 
-		ElbowArrowTransform.boxInPlace(transform, this.A.original)
-		ElbowArrowTransform.boxInPlace(transform, this.B.original)
-		ElbowArrowTransform.boxInPlace(transform, this.common.original)
+		transformBoxInPlace(transform, this.A.original)
+		transformBoxInPlace(transform, this.B.original)
+		transformBoxInPlace(transform, this.common.original)
 
-		ElbowArrowTransform.boxInPlace(transform, this.A.expanded)
-		ElbowArrowTransform.boxInPlace(transform, this.B.expanded)
-		ElbowArrowTransform.boxInPlace(transform, this.common.expanded)
+		transformBoxInPlace(transform, this.A.expanded)
+		transformBoxInPlace(transform, this.B.expanded)
+		transformBoxInPlace(transform, this.common.expanded)
 
-		ElbowArrowTransform.edgesInPlace(transform, this.A.edges)
-		ElbowArrowTransform.edgesInPlace(transform, this.B.edges)
+		transformEdgesInPlace(transform, this.A.edges)
+		transformEdgesInPlace(transform, this.B.edges)
 
 		if (transform.x === -1) {
 			this.gapX = -this.gapX
@@ -229,7 +229,7 @@ export class ElbowArrowWorkingInfo {
 
 	vec(x: number, y: number) {
 		const point = new Vec(x, y)
-		ElbowArrowTransform.vecInPlace(this.inverse, point)
+		transformVecInPlace(this.inverse, point)
 		return point
 	}
 }

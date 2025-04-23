@@ -1,5 +1,4 @@
 import { Atom, atom, react } from '@tldraw/state'
-import { ElbowArrowSide } from '@tldraw/tlschema'
 import { deleteFromSessionStorage, getFromSessionStorage, setInSessionStorage } from '@tldraw/utils'
 
 // --- 1. DEFINE ---
@@ -21,47 +20,6 @@ export const pointerCaptureTrackingObject = createDebugValue(
 		shouldStoreForSession: false,
 	}
 )
-
-/** @internal */
-export const elbowArrowDebug = createDebugValue<{
-	visualDebugging: boolean
-	targetStyle: 'push' | 'center' | 'remove'
-	impreciseEdgePicking: 'velocity' | 'auto'
-	preciseEdgePicking: {
-		snapEdges: boolean
-		snapPoints: boolean
-		snapNone: boolean
-		snapAxis: boolean
-	}
-	startSide: ElbowArrowSide | null
-	endSide: ElbowArrowSide | null
-	shortest: 'distance' | 'count'
-	hintRotation: 'target' | 'arrow' | 'page'
-	hintBinding: 'edge' | 'center'
-	axisBinding: 'axis' | 'closest-point'
-	customMidpoint: boolean
-}>('elbowArrowDebug', {
-	defaults: {
-		all: {
-			visualDebugging: false,
-			targetStyle: 'remove',
-			impreciseEdgePicking: 'auto',
-			preciseEdgePicking: {
-				snapEdges: true,
-				snapPoints: true,
-				snapNone: true,
-				snapAxis: true,
-			},
-			startSide: null,
-			endSide: null,
-			shortest: 'distance',
-			hintRotation: 'target',
-			hintBinding: 'edge',
-			axisBinding: 'closest-point',
-			customMidpoint: true,
-		},
-	},
-})
 
 /** @internal */
 export const debugFlags = {
@@ -96,6 +54,7 @@ export const debugFlags = {
 	hideShapes: createDebugValue('hideShapes', { defaults: { all: false } }),
 	editOnType: createDebugValue('editOnType', { defaults: { all: false } }),
 	a11y: createDebugValue('a11y', { defaults: { all: false } }),
+	debugElbowArrows: createDebugValue('debugElbowArrows', { defaults: { all: false } }),
 } as const
 
 declare global {

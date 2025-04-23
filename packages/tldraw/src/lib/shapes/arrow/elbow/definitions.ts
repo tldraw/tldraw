@@ -1,13 +1,7 @@
-import {
-	Box,
-	ElbowArrowSide,
-	ElbowArrowSnap,
-	Geometry2d,
-	TLShapeId,
-	Vec,
-	VecLike,
-	VecModel,
-} from '@tldraw/editor'
+import { Box, ElbowArrowSnap, Geometry2d, TLShapeId, Vec, VecLike, VecModel } from '@tldraw/editor'
+
+/** @public */
+export type ElbowArrowSide = 'top' | 'right' | 'bottom' | 'left'
 
 /** @internal */
 export type ElbowArrowSideReason = 'manual' | 'auto' | 'fallback'
@@ -39,7 +33,6 @@ export const ElbowArrowSides = ['right', 'bottom', 'left', 'top'] as const
 export interface ElbowArrowOptions {
 	expandElbowLegLength: number
 	minElbowLegLength: number
-	shortestArrowMeasure: 'distance' | 'count'
 	elbowMidpoint: number
 }
 
@@ -49,13 +42,6 @@ export const ElbowArrowSideDeltas = {
 	bottom: { x: 0, y: 1 },
 	left: { x: -1, y: 0 },
 } as const satisfies Record<ElbowArrowSide, VecModel>
-
-export const ElbowArrowSideOpposites = {
-	left: 'right',
-	right: 'left',
-	top: 'bottom',
-	bottom: 'top',
-} as const satisfies Record<ElbowArrowSide, ElbowArrowSide>
 
 export const ElbowArrowSideAxes = {
 	left: 'x',
@@ -69,16 +55,7 @@ export const ElbowArrowAxes = {
 		v: (x: number, y: number) => new Vec(x, y),
 		loEdge: 'left',
 		hiEdge: 'right',
-		mid: 'midX',
-		crossLoEdge: 'top',
-		crossHiEdge: 'bottom',
 		crossMid: 'midY',
-		max: 'maxX',
-		min: 'minX',
-		self: 'x',
-		cross: 'y',
-		crossMax: 'maxY',
-		crossMin: 'minY',
 		gap: 'gapX',
 		midRange: 'midXRange',
 	},
@@ -86,16 +63,7 @@ export const ElbowArrowAxes = {
 		v: (y: number, x: number) => new Vec(x, y),
 		loEdge: 'top',
 		hiEdge: 'bottom',
-		mid: 'midY',
-		crossLoEdge: 'left',
-		crossHiEdge: 'right',
 		crossMid: 'midX',
-		max: 'maxY',
-		min: 'minY',
-		self: 'y',
-		cross: 'x',
-		crossMax: 'maxX',
-		crossMin: 'minX',
 		gap: 'gapY',
 		midRange: 'midYRange',
 	},
@@ -104,12 +72,6 @@ export const ElbowArrowAxes = {
 export type ElbowArrowAxis = (typeof ElbowArrowAxes)[keyof typeof ElbowArrowAxes]
 
 export type ElbowArrowSideWithAxis = ElbowArrowSide | 'x' | 'y'
-
-/** @public */
-export interface ElbowArrowScale {
-	x: 1 | -1
-	y: 1 | -1
-}
 
 /** @public */
 export interface ElbowArrowBoxes {
@@ -257,12 +219,6 @@ export interface ElbowArrowInfo extends ElbowArrowInfoWithoutRoute {
 
 	midXRange: { lo: number; hi: number } | null
 	midYRange: { lo: number; hi: number } | null
-
-	/** @internal */
-	steve(): {
-		grid: any
-		path: Vec[] | null
-	}
 }
 
 export interface ElbowArrowBinding {
@@ -306,5 +262,5 @@ export interface ElbowArrowBinding {
 	/**
 	 * How did this binding get snapped to the target shape?
 	 */
-	snap: ElbowArrowSnap | null
+	snap: ElbowArrowSnap
 }

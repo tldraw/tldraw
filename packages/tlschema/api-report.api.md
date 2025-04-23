@@ -32,7 +32,7 @@ export const arrowBindingProps: RecordProps<TLArrowBinding>;
 
 // @public (undocumented)
 export const arrowBindingVersions: {
-    AddSide: `com.tldraw.binding.arrow/${number}`;
+    AddSnap: `com.tldraw.binding.arrow/${number}`;
 };
 
 // @public (undocumented)
@@ -278,13 +278,7 @@ export const drawShapeMigrations: TLPropsMigrations;
 export const drawShapeProps: RecordProps<TLDrawShape>;
 
 // @public (undocumented)
-export const ElbowArrowSide: T.Validator<"bottom" | "left" | "right" | "top">;
-
-// @public (undocumented)
-export type ElbowArrowSide = T.TypeOf<typeof ElbowArrowSide>;
-
-// @public (undocumented)
-export const ElbowArrowSnap: T.Validator<"axis" | "center" | "edge" | "point">;
+export const ElbowArrowSnap: T.Validator<"center" | "edge-point" | "edge" | "none">;
 
 // @public (undocumented)
 export type ElbowArrowSnap = T.TypeOf<typeof ElbowArrowSnap>;
@@ -689,14 +683,12 @@ export type TLArrowBinding = TLBaseBinding<'arrow', TLArrowBindingProps>;
 
 // @public (undocumented)
 export interface TLArrowBindingProps {
-    // (undocumented)
-    entrySide: ElbowArrowSide | null;
     isExact: boolean;
     isPrecise: boolean;
     // (undocumented)
     normalizedAnchor: VecModel;
     // (undocumented)
-    snap: ElbowArrowSnap | null;
+    snap: ElbowArrowSnap;
     // (undocumented)
     terminal: 'end' | 'start';
 }

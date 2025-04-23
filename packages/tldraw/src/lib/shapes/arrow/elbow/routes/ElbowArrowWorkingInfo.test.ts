@@ -1,7 +1,11 @@
-import { ElbowArrowTransform } from './ElbowArrowWorkingInfo'
+import {
+	debugElbowArrowTransform,
+	ElbowArrowTransform,
+	transformElbowArrowTransform,
+} from './ElbowArrowWorkingInfo'
 
 describe('ElbowArrowTransform', () => {
-	describe('dbg', () => {
+	describe('debugElbowArrowTransform', () => {
 		it.each([
 			['Identity'],
 			['Rotate90'],
@@ -10,11 +14,11 @@ describe('ElbowArrowTransform', () => {
 			['FlipX'],
 			['FlipY'],
 		] as const)('%s', (a) => {
-			expect(ElbowArrowTransform.dbg(ElbowArrowTransform[a])).toEqual(a)
+			expect(debugElbowArrowTransform(ElbowArrowTransform[a])).toEqual(a)
 		})
 	})
 
-	describe('Transform', () => {
+	describe('transformElbowArrowTransform', () => {
 		it.each([
 			['Identity', 'Identity', 'Identity'],
 
@@ -31,10 +35,10 @@ describe('ElbowArrowTransform', () => {
 			['Identity', 'FlipY', 'FlipY'],
 		] as const)(`%s + %s = %s`, (a, b, expected) => {
 			expect(
-				ElbowArrowTransform.dbg(
-					ElbowArrowTransform.transform(ElbowArrowTransform[a], ElbowArrowTransform[b])
+				debugElbowArrowTransform(
+					transformElbowArrowTransform(ElbowArrowTransform[a], ElbowArrowTransform[b])
 				)
-			).toEqual(ElbowArrowTransform.dbg(ElbowArrowTransform[expected]))
+			).toEqual(debugElbowArrowTransform(ElbowArrowTransform[expected]))
 		})
 	})
 })

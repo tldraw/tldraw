@@ -2172,15 +2172,15 @@ describe('Add elbow kind to arrow shape', () => {
 })
 
 describe('Add side to arrow binding', () => {
-	const { up, down } = getTestMigration(arrowBindingVersions.AddSide)
+	const { up, down } = getTestMigration(arrowBindingVersions.AddSnap)
 
 	test('up works as expected', () => {
-		expect(up({ props: {} })).toEqual({ props: { side: null } })
+		expect(up({ props: {} })).toEqual({ props: { snap: 'none' } })
 	})
 
 	test('down works as expected', () => {
-		expect(down({ props: { side: null } })).toEqual({ props: {} })
-		expect(down({ props: { side: 'top' } })).toEqual({ props: {} })
+		expect(down({ props: { snap: 'none' } })).toEqual({ props: {} })
+		expect(down({ props: { snap: 'edge' } })).toEqual({ props: {} })
 	})
 })
 

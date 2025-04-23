@@ -4,16 +4,13 @@ import {
 	TLShapePartial,
 	createShapeId,
 	debugFlags,
-	elbowArrowDebug,
 	featureFlags,
 	hardResetEditor,
 	track,
 	uniqueId,
 	useEditor,
-	useValue,
 } from '@tldraw/editor'
 import React from 'react'
-import { createDebugElbowArrowScene } from '../../../shapes/arrow/elbow/createDebugElbowArrowScene'
 import { useDialogs } from '../../context/dialogs'
 import { useToasts } from '../../context/toasts'
 import { untranslated } from '../../hooks/useTranslation/useTranslation'
@@ -162,7 +159,6 @@ export function DefaultDebugMenuContent() {
 					return null
 				})()}
 				<TldrawUiMenuItem id="throw-error" onSelect={() => setError(true)} label={'Throw error'} />
-				<DebugElbowArrowMenu />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="flags">
 				<DebugFlags />
@@ -195,199 +191,6 @@ export function FeatureFlags() {
 				{items.map((flag) => (
 					<DebugFlagToggle key={flag.name} flag={flag} />
 				))}
-			</TldrawUiMenuGroup>
-		</TldrawUiMenuSubmenu>
-	)
-}
-
-export function DebugElbowArrowMenu() {
-	const {
-		visualDebugging,
-		startSide,
-		endSide,
-		targetStyle,
-		impreciseEdgePicking,
-		preciseEdgePicking,
-		shortest,
-		hintRotation,
-		hintBinding,
-		axisBinding,
-		customMidpoint,
-	} = useValue(elbowArrowDebug)
-	const editor = useEditor()
-
-	return (
-		<TldrawUiMenuSubmenu id="debug elbow arrows" label="Elbow arrows">
-			<TldrawUiMenuGroup id="visual">
-				<TldrawUiMenuCheckboxItem
-					id="visual"
-					label="Visual debugging"
-					checked={visualDebugging}
-					onSelect={() => {
-						elbowArrowDebug.update((p) => ({ ...p, visualDebugging: !visualDebugging }))
-					}}
-				/>
-				<DropdownSelect
-					id="target"
-					label="Target"
-					items={['push', 'center', 'remove']}
-					value={targetStyle}
-					onChange={(value) => {
-						elbowArrowDebug.update((p) => ({ ...p, targetStyle: value }))
-					}}
-				/>
-
-				<DropdownSelect
-					id="imprecise-edge-picking"
-					label={`Imprecise edge picking`}
-					items={['auto', 'velocity']}
-					value={impreciseEdgePicking}
-					onChange={(value) => {
-						elbowArrowDebug.update((p) => ({ ...p, impreciseEdgePicking: value }))
-					}}
-				/>
-
-				<TldrawUiMenuSubmenu id="precise-edge-picking" label={`Precise edge picking`}>
-					<TldrawUiMenuCheckboxItem
-						id="snap-edges"
-						label="Snap edges"
-						checked={preciseEdgePicking.snapEdges}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({
-								...p,
-								preciseEdgePicking: {
-									...p.preciseEdgePicking,
-									snapEdges: !p.preciseEdgePicking.snapEdges,
-								},
-							}))
-						}}
-					/>
-					<TldrawUiMenuCheckboxItem
-						id="snap-points"
-						label="Snap points"
-						checked={preciseEdgePicking.snapPoints}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({
-								...p,
-								preciseEdgePicking: {
-									...p.preciseEdgePicking,
-									snapPoints: !p.preciseEdgePicking.snapPoints,
-								},
-							}))
-						}}
-					/>
-					<TldrawUiMenuCheckboxItem
-						id="snap-none"
-						label="Snap none"
-						checked={preciseEdgePicking.snapNone}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({
-								...p,
-								preciseEdgePicking: {
-									...p.preciseEdgePicking,
-									snapNone: !p.preciseEdgePicking.snapNone,
-								},
-							}))
-						}}
-					/>
-					<TldrawUiMenuCheckboxItem
-						id="snap-axis"
-						label="Snap axis"
-						checked={preciseEdgePicking.snapAxis}
-						onSelect={() => {
-							elbowArrowDebug.update((p) => ({
-								...p,
-								preciseEdgePicking: {
-									...p.preciseEdgePicking,
-									snapAxis: !p.preciseEdgePicking.snapAxis,
-								},
-							}))
-						}}
-					/>
-				</TldrawUiMenuSubmenu>
-
-				<DropdownSelect
-					id="shortest"
-					label={`Shortest arrow`}
-					items={['distance', 'count']}
-					value={shortest}
-					onChange={(value) => {
-						elbowArrowDebug.update((p) => ({ ...p, shortest: value }))
-					}}
-				/>
-
-				<DropdownSelect
-					id="hint-rotation"
-					label={`Hint rotation`}
-					items={['target', 'arrow', 'page']}
-					value={hintRotation}
-					onChange={(value) => {
-						elbowArrowDebug.update((p) => ({ ...p, hintRotation: value }))
-					}}
-				/>
-
-				<DropdownSelect
-					id="hint-binding"
-					label={`Hint binding`}
-					items={['edge', 'center']}
-					value={hintBinding}
-					onChange={(value) => {
-						elbowArrowDebug.update((p) => ({ ...p, hintBinding: value }))
-					}}
-				/>
-
-				<DropdownSelect
-					id="axis-binding"
-					label={`Axis binding`}
-					items={['closest-point', 'axis']}
-					value={axisBinding}
-					onChange={(value) => {
-						elbowArrowDebug.update((p) => ({ ...p, axisBinding: value }))
-					}}
-				/>
-
-				<TldrawUiMenuCheckboxItem
-					id="custom-midpoint"
-					label="Custom midpoint"
-					checked={customMidpoint}
-					onSelect={() => {
-						elbowArrowDebug.update((p) => ({ ...p, customMidpoint: !customMidpoint }))
-					}}
-				/>
-			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="samples">
-				<TldrawUiMenuItem
-					id="create-elbow-arrows"
-					onSelect={() => createDebugElbowArrowScene(editor)}
-					label={'Create samples'}
-				/>
-				<DropdownSelect
-					id="start-side"
-					label={`Start`}
-					items={[{ value: null, label: 'Auto' }, 'left', 'right', 'top', 'bottom']}
-					value={startSide}
-					onChange={(value) => {
-						elbowArrowDebug.update((p) => ({ ...p, startSide: value }))
-					}}
-				/>
-				<DropdownSelect
-					id="b-side"
-					label={`End`}
-					items={[{ value: null, label: 'Auto' }, 'left', 'right', 'top', 'bottom']}
-					value={endSide}
-					onChange={(value) => {
-						elbowArrowDebug.update((p) => ({ ...p, endSide: value }))
-					}}
-				/>
-			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="reset">
-				<TldrawUiMenuItem
-					id="reset-elbow-arrows"
-					onSelect={() => {
-						elbowArrowDebug.reset()
-					}}
-					label={'Reset'}
-				/>
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)

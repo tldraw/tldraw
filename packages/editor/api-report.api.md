@@ -13,7 +13,6 @@ import { Computed } from '@tldraw/state';
 import { Dispatch } from 'react';
 import { Editor as Editor_2 } from '@tiptap/core';
 import { EditorProviderProps } from '@tiptap/react';
-import { ElbowArrowSide } from '@tldraw/tlschema';
 import EventEmitter from 'eventemitter3';
 import { ExoticComponent } from 'react';
 import { HistoryEntry } from '@tldraw/store';
@@ -618,6 +617,7 @@ export interface DebugFlagDefaults<T> {
 export const debugFlags: {
     readonly a11y: DebugFlag<boolean>;
     readonly debugCursors: DebugFlag<boolean>;
+    readonly debugElbowArrows: DebugFlag<boolean>;
     readonly debugGeometry: DebugFlag<boolean>;
     readonly debugSvg: DebugFlag<boolean>;
     readonly editOnType: DebugFlag<boolean>;
@@ -1590,26 +1590,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 // @public (undocumented)
 export const EditorContext: React_2.Context<Editor | null>;
-
-// @internal (undocumented)
-export const elbowArrowDebug: DebugFlag<{
-    axisBinding: 'axis' | 'closest-point';
-    customMidpoint: boolean;
-    endSide: ElbowArrowSide | null;
-    hintBinding: 'center' | 'edge';
-    hintRotation: 'arrow' | 'page' | 'target';
-    impreciseEdgePicking: 'auto' | 'velocity';
-    preciseEdgePicking: {
-        snapAxis: boolean;
-        snapEdges: boolean;
-        snapNone: boolean;
-        snapPoints: boolean;
-    };
-    shortest: 'count' | 'distance';
-    startSide: ElbowArrowSide | null;
-    targetStyle: 'center' | 'push' | 'remove';
-    visualDebugging: boolean;
-}>;
 
 // @public (undocumented)
 export class Ellipse2d extends Geometry2d {

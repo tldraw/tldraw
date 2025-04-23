@@ -32,8 +32,6 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 
 	const label = info.route?.name ?? ''
 
-	const steve = SHOW_STEVE ? info.steve() : null
-
 	return (
 		<>
 			{/* <DebugBox box={transformBox(info.expanded.A, info.scale)} stroke="orange" /> */}
@@ -68,10 +66,6 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 			<DebugEdge edge={info.B.edges.left} axis="y" stroke="lightskyblue" />
 
 			{info.route && <DebugRoute route={info.route.points} strokeWidth={10} />}
-			{steve?.path && (
-				<DebugRoute route={steve.path} stroke="white" strokeDasharray="0,9" strokeWidth={5} />
-			)}
-			{steve?.path && <DebugRoute route={steve.path} stroke="deeppink" strokeDasharray="0,9" />}
 
 			<text
 				x={fullBox.minX + 5}

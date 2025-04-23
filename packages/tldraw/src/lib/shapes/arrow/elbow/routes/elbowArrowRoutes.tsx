@@ -1,5 +1,4 @@
-import { ElbowArrowSide } from '@tldraw/editor'
-import { ElbowArrowRoute } from '../definitions'
+import { ElbowArrowRoute, ElbowArrowSide } from '../definitions'
 import { ElbowArrowRouteBuilder } from './ElbowArrowRouteBuilder'
 import { ElbowArrowTransform, ElbowArrowWorkingInfo } from './ElbowArrowWorkingInfo'
 

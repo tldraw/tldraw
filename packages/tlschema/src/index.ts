@@ -13,7 +13,6 @@ export { type TLBookmarkAsset } from './assets/TLBookmarkAsset'
 export { type TLImageAsset } from './assets/TLImageAsset'
 export { type TLVideoAsset } from './assets/TLVideoAsset'
 export {
-	ElbowArrowSide,
 	ElbowArrowSnap,
 	arrowBindingMigrations,
 	arrowBindingProps,

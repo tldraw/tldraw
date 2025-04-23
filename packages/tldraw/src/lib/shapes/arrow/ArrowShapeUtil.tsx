@@ -31,7 +31,6 @@ import {
 	arrowShapeProps,
 	clamp,
 	debugFlags,
-	elbowArrowDebug,
 	exhaustiveSwitchError,
 	getDefaultColorTheme,
 	invLerp,
@@ -251,12 +250,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			})
 		}
 
-		if (
-			shape.props.kind === 'elbow' &&
-			info.type === 'elbow' &&
-			info.route.midpointHandle &&
-			elbowArrowDebug.get().customMidpoint
-		) {
+		if (shape.props.kind === 'elbow' && info.type === 'elbow' && info.route.midpointHandle) {
 			const shapePageTransform = this.editor.getShapePageTransform(shape.id)!
 
 			const segmentStart = shapePageTransform.applyToPoint(info.route.midpointHandle.segmentStart)
@@ -444,35 +438,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		})
 
 		if (!targetInfo) {
-			if (
-				// if we're creating a shape for the first time...
-				isCreatingShape &&
-				// ...and it's an elbow arrow...
-				shape.props.kind === 'elbow' &&
-				// ...by dragging the end handle...
-				handleId === 'end' &&
-				// ...and we just exited the starting target shape...
-				currentBinding &&
-				currentBinding.toId === otherBinding?.toId
-			) {
-				// ...then we want to set the "entry side" (in this case actually the exit side) of
-				// the start binding:
-				const velocity = this.editor.inputs.pointerVelocity
-				const side =
-					Math.abs(velocity.x) > Math.abs(velocity.y)
-						? velocity.x > 0
-							? 'right'
-							: 'left'
-						: velocity.y > 0
-							? 'bottom'
-							: 'top'
-
-				createOrUpdateArrowBinding(this.editor, shape, otherBinding.toId, {
-					...otherBinding.props,
-					entrySide: side,
-				})
-			}
-
 			// todo: maybe double check that this isn't equal to the other handle too?
 			removeArrowBinding(this.editor, shape, handleId)
 			const newPoint = maybeSnapToGrid(new Vec(handle.x, handle.y), this.editor)
@@ -484,46 +449,15 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 
 		// we've got a target! the handle is being dragged over a shape, bind to it
-
 		const bindingProps: TLArrowBindingProps = {
 			terminal: handleId,
 			normalizedAnchor: targetInfo.normalizedAnchor,
 			isPrecise: targetInfo.isPrecise,
 			isExact: this.editor.inputs.altKey,
-			entrySide: currentBinding?.props.entrySide ?? null,
 			snap: targetInfo.snap,
 		}
 
-		if (
-			// if we're binding to a new target...
-			currentBinding?.toId !== targetInfo.target.id &&
-			/// ...and this isn't the start handle of a newly created shape...
-			!(isCreatingShape && handleId === 'start')
-		) {
-			// ...then we just "entered" the target shape.
-
-			if (shape.props.kind === 'elbow') {
-				// for elbow arrows, we want to pick a side based on the velocity of the pointer.
-				const velocity = this.editor.inputs.pointerVelocity
-				const side =
-					Math.abs(velocity.x) > Math.abs(velocity.y)
-						? velocity.x > 0
-							? 'left'
-							: 'right'
-						: velocity.y > 0
-							? 'top'
-							: 'bottom'
-
-				bindingProps.entrySide = side
-			} else {
-				// for straight arrows, we have no side to pick.
-				bindingProps.entrySide = null
-			}
-		}
-
 		createOrUpdateArrowBinding(this.editor, shape, targetInfo.target.id, bindingProps)
-
-		// this.editor.setHintingShapes([target.id])
 
 		const newBindings = getArrowBindings(this.editor, shape)
 		if (newBindings.start && newBindings.end && newBindings.start.toId === newBindings.end.toId) {
@@ -818,7 +752,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						shape={shape}
 						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape?.id === shape.id}
 					/>
-					{shape.props.kind === 'elbow' && elbowArrowDebug.get().visualDebugging && (
+					{shape.props.kind === 'elbow' && debugFlags.debugElbowArrows.get() && (
 						<ElbowArrowDebug arrow={shape} />
 					)}
 				</SVGContainer>

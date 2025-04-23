@@ -85,7 +85,7 @@ export {
 	type ElbowArrowOptions,
 	type ElbowArrowRange,
 	type ElbowArrowRoute,
-	type ElbowArrowScale,
+	type ElbowArrowSide,
 	type ElbowArrowSideReason,
 	type ElbowArrowTargetBox,
 } from './lib/shapes/arrow/elbow/definitions'
