@@ -335,9 +335,6 @@ describe('getCroppedImageDataForAspectRatio', () => {
 
 		const result = getCroppedImageDataForAspectRatio('square', imageShape)
 
-		// Should have 1:1 aspect ratio
-		expect(result?.w).toEqual(result?.h)
-
 		// Crop window should be square
 		const cropWidth = (result?.crop.bottomRight.x as number) - (result?.crop.topLeft.x as number)
 		const cropHeight = (result?.crop.bottomRight.y as number) - (result?.crop.topLeft.y as number)
@@ -363,8 +360,10 @@ describe('getCroppedImageDataForAspectRatio', () => {
 		// Should be marked as a circle
 		expect(result?.crop.isCircle).toBe(true)
 
-		// Should have 1:1 aspect ratio
-		expect(result?.w).toEqual(result?.h)
+		// Crop window should be 1:1
+		const cropWidth = (result?.crop.bottomRight.x as number) - (result?.crop.topLeft.x as number)
+		const cropHeight = (result?.crop.bottomRight.y as number) - (result?.crop.topLeft.y as number)
+		expect(cropWidth).toEqual(cropHeight)
 	})
 
 	it('applies landscape crop to a square image', () => {

@@ -105,6 +105,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const zoom = crop
 		? Math.max(1 - (crop.bottomRight.x - crop.topLeft.x), 1 - (crop.bottomRight.y - crop.topLeft.y))
 		: 0
+	console.log(zoom)
 	const croppingTools = (
 		<>
 			<TldrawUiSlider
@@ -113,7 +114,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 				onValueChange={handleZoomChange}
 				onHistoryMark={onHistoryMark}
 				// This is 66 instead of 100 because our smallest crop 33% image size.
-				steps={66}
+				steps={100}
 				data-testid="tool.image-zoom"
 				title={msg('tool.image-zoom')}
 			/>
