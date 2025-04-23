@@ -232,11 +232,38 @@ describe('getCroppedImageDataWhenZooming', () => {
 		// At max zoom, the crop window should be smaller
 		const cropWidth = result.crop.bottomRight.x - result.crop.topLeft.x
 		const cropHeight = result.crop.bottomRight.y - result.crop.topLeft.y
-		expect(cropWidth).toBeCloseTo(0.25, 2)
-		expect(cropHeight).toBeCloseTo(0.25, 2)
+		expect(cropWidth).toBeCloseTo(0.33, 2)
+		expect(cropHeight).toBeCloseTo(0.33, 2)
 
-		expect(result.w).toBe(75)
-		expect(result.h).toBe(75)
+		expect(result.w).toBeCloseTo(99.99, 1)
+		expect(result.h).toBeCloseTo(99.99, 1)
+	})
+
+	it('applies custom maxZoom scaling', () => {
+		const imageShape: TLImageShape = {
+			...shape,
+			props: {
+				...shape.props,
+				w: 100,
+				h: 100,
+				crop: {
+					topLeft: { x: 0, y: 0 },
+					bottomRight: { x: 1, y: 1 },
+				},
+			},
+		}
+
+		// Apply zoom with a custom maxZoom of 2x
+		const result = getCroppedImageDataWhenZooming(0.75, imageShape, 0.8)
+
+		// Verify that the crop dimensions respect the custom maxZoom
+		const cropWidth = result.crop.bottomRight.x - result.crop.topLeft.x
+		const cropHeight = result.crop.bottomRight.y - result.crop.topLeft.y
+		expect(cropWidth).toBe(0.25)
+		expect(cropHeight).toBe(0.25)
+
+		expect(result.w).toBeCloseTo(74.99, 1)
+		expect(result.h).toBeCloseTo(74.99, 1)
 	})
 
 	it('preserves circular crops', () => {

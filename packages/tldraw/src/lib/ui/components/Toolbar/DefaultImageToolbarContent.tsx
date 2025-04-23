@@ -7,7 +7,7 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import isEqual from 'lodash.isequal'
-import { useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
 	ASPECT_RATIO_OPTION,
 	ASPECT_RATIO_OPTIONS,
@@ -15,6 +15,7 @@ import {
 	getCroppedImageDataForAspectRatio,
 	getCroppedImageDataWhenZooming,
 	getDefaultCrop,
+	MAX_ZOOM,
 } from '../../../shapes/shared/crop'
 import { useUiEvents } from '../../context/events'
 import { useInsertMedia } from '../../hooks/useInsertMedia'
@@ -51,6 +52,19 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 	const source = 'image-menu'
+	const [maxZoom, setMaxZoom] = useState<number | undefined>(undefined)
+
+	const crop = imageShape.props.crop
+	const zoom = crop
+		? Math.min(1 - (crop.bottomRight.x - crop.topLeft.x), 1 - (crop.bottomRight.y - crop.topLeft.y))
+		: 0
+	useEffect(() => {
+		if (isManipulating && maxZoom === undefined) {
+			setMaxZoom(Math.max(zoom, 1 - 1 / MAX_ZOOM))
+		} else if (!isManipulating) {
+			setMaxZoom(undefined)
+		}
+	}, [isManipulating, zoom, maxZoom])
 
 	const insertMedia = useInsertMedia({ shapeIdToReplace: imageShape?.id })
 
@@ -60,7 +74,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 		(value: number) => {
 			editor.setCurrentTool('select.crop.idle')
 			const zoom = value / 100
-			const change = getCroppedImageDataWhenZooming(zoom, imageShape)
+			const change = getCroppedImageDataWhenZooming(zoom, imageShape, maxZoom)
 
 			editor.updateShape({
 				id: imageShape.id,
@@ -76,7 +90,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 
 			trackEvent('set-style', { source: 'image-menu', id: 'zoom', value })
 		},
-		[editor, trackEvent, imageShape]
+		[editor, trackEvent, imageShape, maxZoom]
 	)
 
 	const handleAspectRatioChange = (aspectRatio: ASPECT_RATIO_OPTION) => {
@@ -98,21 +112,18 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 		} as TLShapePartial)
 	}
 
-	const crop = imageShape.props.crop
 	const shapeAspectRatio = imageShape.props.w / imageShape.props.h
 	const isOriginalCrop = !crop || isEqual(crop, getDefaultCrop())
+	const displayValue = crop && maxZoom ? (100 / maxZoom) * zoom : 0
 
-	const zoom = crop
-		? Math.max(1 - (crop.bottomRight.x - crop.topLeft.x), 1 - (crop.bottomRight.y - crop.topLeft.y))
-		: 0
 	const croppingTools = (
 		<>
 			<TldrawUiSlider
-				value={zoom * 100}
+				value={displayValue}
 				label="tool.image-zoom"
 				onValueChange={handleZoomChange}
 				onHistoryMark={onHistoryMark}
-				// This is 66 instead of 100 because our smallest crop 33% image size.
+				min={0}
 				steps={100}
 				data-testid="tool.image-zoom"
 				title={msg('tool.image-zoom')}

@@ -285,16 +285,24 @@ function calculateCropChange(
 	}
 }
 
+/** @internal */
+export const MAX_ZOOM = 3
+
 /**
  * Calculate new crop dimensions and position when zooming
  */
-export function getCroppedImageDataWhenZooming(zoom: number, imageShape: TLImageShape): CropChange {
+export function getCroppedImageDataWhenZooming(
+	zoom: number,
+	imageShape: TLImageShape,
+	maxZoom?: number
+): CropChange {
 	const oldCrop = imageShape.props.crop || getDefaultCrop()
 	const { width: oldWidth, height: oldHeight } = getCropDimensions(oldCrop)
 	const aspectRatio = oldWidth / oldHeight
 
 	// Calculate new crop size with zoom scale
-	const zoomScale = 1 + zoom * 3
+	const derivedMaxZoom = maxZoom ? 1 / (1 - maxZoom) : MAX_ZOOM
+	const zoomScale = 1 + zoom * (derivedMaxZoom - 1)
 	let newWidth, newHeight
 
 	if (aspectRatio > 1) {
@@ -309,7 +317,7 @@ export function getCroppedImageDataWhenZooming(zoom: number, imageShape: TLImage
 	const result = calculateCropChange(imageShape, newWidth, newHeight, true, oldCrop.isCircle)
 
 	// Apply zoom factor to display dimensions
-	const scaleFactor = Math.min(3, oldWidth / newWidth)
+	const scaleFactor = Math.min(MAX_ZOOM, oldWidth / newWidth)
 	result.w *= scaleFactor
 	result.h *= scaleFactor
 
