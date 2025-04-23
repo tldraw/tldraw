@@ -105,7 +105,6 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const zoom = crop
 		? Math.max(1 - (crop.bottomRight.x - crop.topLeft.x), 1 - (crop.bottomRight.y - crop.topLeft.y))
 		: 0
-	console.log(zoom)
 	const croppingTools = (
 		<>
 			<TldrawUiSlider
