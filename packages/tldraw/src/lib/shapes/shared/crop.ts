@@ -336,7 +336,7 @@ export function getCroppedImageDataWhenZooming(
 export function getCroppedImageDataForAspectRatio(
 	aspectRatioOption: ASPECT_RATIO_OPTION,
 	imageShape: TLImageShape
-): CropChange | null {
+): CropChange {
 	// If original aspect ratio is requested, use default crop
 	if (aspectRatioOption === 'original') {
 		const { w, h } = getUncroppedSize(imageShape.props, imageShape.props.crop ?? getDefaultCrop())
@@ -352,29 +352,90 @@ export function getCroppedImageDataForAspectRatio(
 		}
 	}
 
-	const targetRatio = ASPECT_RATIO_TO_VALUE[aspectRatioOption] || 1
+	// Get target ratio and uncropped image properties
+	const targetRatio = ASPECT_RATIO_TO_VALUE[aspectRatioOption] // Assume valid option
 	const isCircle = aspectRatioOption === 'circle'
+	// Use default crop to get uncropped size relative to the *original* image bounds
+	const { w: uncroppedW, h: uncroppedH } = getUncroppedSize(
+		imageShape.props,
+		imageShape.props.crop || getDefaultCrop() // Use the ACTUAL current crop to correctly infer uncropped size
+	)
+	// Calculate the original image aspect ratio
+	const imageAspectRatio = uncroppedW / uncroppedH
+
+	// Get the current crop and its relative dimensions
 	const currentCrop = imageShape.props.crop || getDefaultCrop()
-	const { width: currentWidth } = getCropDimensions(currentCrop)
+	const { width: cropW, height: cropH } = getCropDimensions(currentCrop)
+	const currentCropCenter = getCropCenter(currentCrop)
 
-	let newWidth = currentWidth
-	let newHeight: number
+	// Calculate the relative width and height of the crop rectangle (0-1 scale)
+	// that maximizes the area while fitting the original image and matching the target aspect ratio.
+	let newRelativeWidth: number
+	let newRelativeHeight: number
 
-	if (targetRatio === 1) {
-		// For circle and square, make a perfect square
-		const sideLength = Math.min(1, Math.max(currentWidth, currentWidth))
-		newWidth = sideLength
-		newHeight = sideLength
+	if (imageAspectRatio === 0 || !Number.isFinite(imageAspectRatio) || targetRatio === 0) {
+		// Avoid division by zero or NaN issues if image dimensions are invalid or target ratio is 0
+		newRelativeWidth = 1
+		newRelativeHeight = 1
+	} else if (targetRatio / imageAspectRatio > 1) {
+		// Target aspect ratio is "wider" relative to the image aspect ratio.
+		// Width will be clipped to 1.0, calculate height accordingly.
+		newRelativeWidth = 1
+		newRelativeHeight = imageAspectRatio / targetRatio
 	} else {
-		// For other ratios
-		newHeight = newWidth / targetRatio
-
-		// If height exceeds bounds, adjust accordingly
-		if (newHeight > 1) {
-			newHeight = 1
-			newWidth = newHeight * targetRatio
-		}
+		// Target aspect ratio is "narrower" or equal relative to the image aspect ratio.
+		// Height will be clipped to 1.0, calculate width accordingly.
+		newRelativeHeight = 1
+		newRelativeWidth = targetRatio / imageAspectRatio
 	}
 
-	return calculateCropChange(imageShape, newWidth, newHeight, true, isCircle)
+	// Ensure dimensions are within [0, 1] bounds (should be handled by logic above, but clamps anyway)
+	newRelativeWidth = Math.max(0, Math.min(1, newRelativeWidth))
+	newRelativeHeight = Math.max(0, Math.min(1, newRelativeHeight))
+
+	// Create the new crop object, centered around the CURRENT crop's center
+	const newCrop = createCropAroundCenter(
+		currentCropCenter.x,
+		currentCropCenter.y,
+		newRelativeWidth,
+		newRelativeHeight,
+		isCircle
+	)
+
+	// Get the actual relative dimensions from the new crop (after potential clamping)
+	const finalRelativeWidth = newCrop.bottomRight.x - newCrop.topLeft.x
+	const finalRelativeHeight = newCrop.bottomRight.y - newCrop.topLeft.y
+
+	// Calculate the base dimensions (as if applying the new crop to the uncropped image at scale 1)
+	const baseW = finalRelativeWidth * uncroppedW
+	const baseH = finalRelativeHeight * uncroppedH
+
+	// Determine the current effective scale of the shape
+	// This preserves the visual size when the crop changes
+	let currentScale = 1.0
+	if (cropW > 0) {
+		currentScale = imageShape.props.w / (cropW * uncroppedW)
+	} else if (cropH > 0) {
+		// Fallback to height if width relative dimension is zero
+		currentScale = imageShape.props.h / (cropH * uncroppedH)
+	}
+
+	// Apply the current scale to the base dimensions to get the final dimensions
+	const newW = baseW * currentScale
+	const newH = baseH * currentScale
+
+	// Calculate the new top-left position (x, y) for the shape
+	// to keep the visual center of the cropped area fixed on the page.
+	const currentCenterXPage = imageShape.x + imageShape.props.w / 2
+	const currentCenterYPage = imageShape.y + imageShape.props.h / 2
+	const newX = currentCenterXPage - newW / 2
+	const newY = currentCenterYPage - newH / 2
+
+	return {
+		crop: newCrop,
+		w: newW,
+		h: newH,
+		x: newX,
+		y: newY,
+	}
 }

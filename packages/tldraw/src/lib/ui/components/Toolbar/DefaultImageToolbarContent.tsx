@@ -96,7 +96,6 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const handleAspectRatioChange = (aspectRatio: ASPECT_RATIO_OPTION) => {
 		editor.setCurrentTool('select.crop.idle')
 		const change = getCroppedImageDataForAspectRatio(aspectRatio, imageShape)
-		if (!change) return
 
 		editor.markHistoryStoppingPoint('aspect ratio')
 		editor.updateShape({

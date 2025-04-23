@@ -64,20 +64,21 @@ test.describe('Image toolbar behaviour', () => {
 
 		// Move to a higher zoom
 		await page.mouse.move(
-			await slider.boundingBox().then((box) => box!.x + 150),
-			await slider.boundingBox().then((box) => box!.y)
+			await slider.boundingBox().then((box) => box!.x + 100),
+			await slider.boundingBox().then((box) => box!.y + 20)
 		)
 		await page.mouse.down()
 		await page.mouse.up()
 
-		// Check that the image has been cropped to landscape (4:3)
-		const zoom = await page.evaluate(() => {
+		const crop = await page.evaluate(() => {
 			const imageShape = editor.getSelectedShapes()[0] as TLImageShape
-			const aspectRatio = imageShape.props.w / imageShape.props.h
-			return Math.abs(aspectRatio - 4 / 3)
+			return imageShape.props.crop
 		})
 
-		expect(zoom).toBeCloseTo(4 / 3)
+		expect(crop!.bottomRight.x).toBeCloseTo(0.6677, 3)
+		expect(crop!.bottomRight.y).toBeCloseTo(0.6677, 3)
+		expect(crop!.topLeft.y).toBeCloseTo(0.3322, 3)
+		expect(crop!.topLeft.y).toBeCloseTo(0.3322, 3)
 	})
 
 	test('aspect ratio dropdown changes image crop', async ({ page, isMobile }) => {
@@ -100,9 +101,6 @@ test.describe('Image toolbar behaviour', () => {
 		})
 
 		expect(isSquare).toBe(true)
-
-		// Open aspect ratio dropdown
-		await page.getByTitle('Aspect Ratio').click()
 
 		// Try another aspect ratio - landscape
 		await page.getByText('Landscape').click()

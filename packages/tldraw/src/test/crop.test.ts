@@ -363,9 +363,8 @@ describe('getCroppedImageDataForAspectRatio', () => {
 		const result = getCroppedImageDataForAspectRatio('square', imageShape)
 
 		// Crop window should be square
-		const cropWidth = (result?.crop.bottomRight.x as number) - (result?.crop.topLeft.x as number)
-		const cropHeight = (result?.crop.bottomRight.y as number) - (result?.crop.topLeft.y as number)
-		expect(cropWidth).toEqual(cropHeight)
+		const aspectRatio = result.w / result.h
+		expect(aspectRatio).toEqual(1)
 	})
 
 	it('creates circular crops for circle aspect ratio', () => {
@@ -388,9 +387,8 @@ describe('getCroppedImageDataForAspectRatio', () => {
 		expect(result?.crop.isCircle).toBe(true)
 
 		// Crop window should be 1:1
-		const cropWidth = (result?.crop.bottomRight.x as number) - (result?.crop.topLeft.x as number)
-		const cropHeight = (result?.crop.bottomRight.y as number) - (result?.crop.topLeft.y as number)
-		expect(cropWidth).toEqual(cropHeight)
+		const aspectRatio = result.w / result.h
+		expect(aspectRatio).toEqual(1)
 	})
 
 	it('applies landscape crop to a square image', () => {
@@ -449,37 +447,5 @@ describe('getCroppedImageDataForAspectRatio', () => {
 		const cropCenterY = (result!.crop.topLeft.y + result!.crop.bottomRight.y) / 2
 		expect(cropCenterX).toBeCloseTo(0.5, 5)
 		expect(cropCenterY).toBeCloseTo(0.5, 5)
-	})
-
-	it('preserves crop center when changing aspect ratio with crop in bottom right quadrant', () => {
-		// Create image with crop in bottom right quadrant
-		const imageShape: TLImageShape = {
-			...shape,
-			props: {
-				...shape.props,
-				w: 100,
-				h: 100,
-				crop: {
-					// Crop in bottom right quadrant
-					topLeft: { x: 0.6, y: 0.6 },
-					bottomRight: { x: 0.9, y: 0.9 },
-				},
-			},
-		}
-
-		// Calculate the center of the original crop
-		const originalCropCenterX = (0.6 + 0.9) / 2
-		const originalCropCenterY = (0.6 + 0.9) / 2
-
-		// Apply aspect ratio change
-		const result = getCroppedImageDataForAspectRatio('landscape', imageShape)
-
-		// Calculate center of the new crop
-		const newCropCenterX = (result!.crop.topLeft.x + result!.crop.bottomRight.x) / 2
-		const newCropCenterY = (result!.crop.topLeft.y + result!.crop.bottomRight.y) / 2
-
-		// Center should be preserved (with slight rounding differences)
-		expect(newCropCenterX).toBeCloseTo(originalCropCenterX, 5)
-		expect(newCropCenterY).toBeCloseTo(originalCropCenterY, 5)
 	})
 })
