@@ -168,7 +168,7 @@ My browser: ${navigator.userAgent}`
 				) : (
 					<>
 						<h2>Something went wrong</h2>
-						<p>Please try refreshing your browser to continue.</p>
+						<p>Please refresh your browser.</p>
 						<p>
 							If the issue continues after refreshing, you may need to reset the tldraw data stored
 							on your device.
