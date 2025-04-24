@@ -3,6 +3,7 @@ import {
 	StateNode,
 	TLPointerEventInfo,
 	TLRotationSnapshot,
+	VecModel,
 	applyRotationToSnapshotShapes,
 	degreesToRadians,
 	getRotationSnapshot,
@@ -22,6 +23,7 @@ export class Rotating extends StateNode {
 	info = {} as Extract<TLPointerEventInfo, { target: 'selection' }> & { onInteractionEnd?: string }
 
 	markId = ''
+	rotationCenter: VecModel = { x: 0, y: 0 }
 
 	override onEnter(info: TLPointerEventInfo & { target: 'selection'; onInteractionEnd?: string }) {
 		// Store the event information
@@ -29,6 +31,10 @@ export class Rotating extends StateNode {
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 
 		this.markId = this.editor.markHistoryStoppingPoint('rotate start')
+
+		const selectionBounds = this.editor.getSelectionRotatedPageBounds()
+		if (!selectionBounds) return this.parent.transition('idle', this.info)
+		this.rotationCenter = selectionBounds.center
 
 		const snapshot = getRotationSnapshot({
 			editor: this.editor,
@@ -136,21 +142,13 @@ export class Rotating extends StateNode {
 	}
 
 	_getRotationFromPointerPosition({ snapToNearestDegree }: { snapToNearestDegree: boolean }) {
-		const selectionRotation = this.editor.getSelectionRotation()
-		const selectionBounds = this.editor.getSelectionRotatedPageBounds()
 		const {
 			inputs: { shiftKey, currentPagePoint },
 		} = this.editor
-		const { initialCursorAngle, initialShapesRotation } = this.snapshot
-
-		if (!selectionBounds) return initialShapesRotation
-
-		const selectionPageCenter = selectionBounds.center
-			.clone()
-			.rotWith(selectionBounds.point, selectionRotation)
+		const { initialCursorAngle, initialShapesRotation, initialPageCenter } = this.snapshot
 
 		// The delta is the difference between the current angle and the initial angle
-		const preSnapRotationDelta = selectionPageCenter.angle(currentPagePoint) - initialCursorAngle
+		const preSnapRotationDelta = initialPageCenter.angle(currentPagePoint) - initialCursorAngle
 		let newSelectionRotation = initialShapesRotation + preSnapRotationDelta
 
 		if (shiftKey) {
