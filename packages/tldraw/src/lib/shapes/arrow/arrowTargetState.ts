@@ -132,7 +132,7 @@ export function updateArrowTargetState({
 
 		const farPoint = Vec.Mul(delta, castDistance).add(targetCenterInTargetSpace)
 
-		let isEnabled = true
+		let isEnabled = false
 		let handlePointInTargetSpace: VecLike = axis.v(
 			targetBoundsInTargetSpace[side],
 			targetBoundsInTargetSpace[axis.crossMid]
