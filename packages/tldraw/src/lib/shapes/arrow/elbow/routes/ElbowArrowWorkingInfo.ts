@@ -1,4 +1,4 @@
-import { Box, Vec } from '@tldraw/editor'
+import { Box, Vec, VecLike } from '@tldraw/editor'
 import {
 	ElbowArrowBoxEdges,
 	ElbowArrowEdge,
@@ -72,14 +72,22 @@ export function transformElbowArrowTransform(a: ElbowArrowTransform, b: ElbowArr
 	return next
 }
 
-function transformVecInPlace(transform: ElbowArrowTransform, point: Vec) {
+function swap<const A extends string, const B extends string>(
+	object: { [key in A | B]: any },
+	a: A,
+	b: B
+) {
+	const temp = object[a]
+	object[a] = object[b]
+	object[b] = temp
+}
+
+function transformVecInPlace(transform: ElbowArrowTransform, point: VecLike) {
 	point.x = transform.x * point.x
 	point.y = transform.y * point.y
 
 	if (transform.transpose) {
-		const temp = point.x
-		point.x = point.y
-		point.y = temp
+		swap(point, 'x', 'y')
 	}
 }
 
@@ -91,42 +99,30 @@ function transformBoxInPlace(transform: ElbowArrowTransform, box: Box) {
 		box.y = -(box.y + box.height)
 	}
 	if (transform.transpose) {
-		let temp = box.x
-		box.x = box.y
-		box.y = temp
-		temp = box.width
-		box.width = box.height
-		box.height = temp
+		swap(box, 'x', 'y')
+		swap(box, 'width', 'height')
 	}
 }
 
 function transformEdgesInPlace(transform: ElbowArrowTransform, edges: ElbowArrowBoxEdges) {
 	let temp = null
 	if (transform.x === -1) {
-		temp = edges.left
-		edges.left = edges.right
-		edges.right = temp
+		swap(edges, 'left', 'right')
 		flipEdgeCrossInPlace(edges.top)
 		flipEdgeCrossInPlace(edges.bottom)
 		flipEdgeValueInPlace(edges.left)
 		flipEdgeValueInPlace(edges.right)
 	}
 	if (transform.y === -1) {
-		temp = edges.top
-		edges.top = edges.bottom
-		edges.bottom = temp
+		swap(edges, 'top', 'bottom')
 		flipEdgeCrossInPlace(edges.left)
 		flipEdgeCrossInPlace(edges.right)
 		flipEdgeValueInPlace(edges.top)
 		flipEdgeValueInPlace(edges.bottom)
 	}
 	if (transform.transpose) {
-		temp = edges.left
-		edges.left = edges.top
-		edges.top = temp
-		temp = edges.right
-		edges.right = edges.bottom
-		edges.bottom = temp
+		swap(edges, 'left', 'top')
+		swap(edges, 'right', 'bottom')
 	}
 }
 
@@ -174,6 +170,7 @@ export class ElbowArrowWorkingInfo {
 	gapY: number
 	midX: number | null
 	midY: number | null
+	bias: Vec
 
 	constructor(info: ElbowArrowInfoWithoutRoute) {
 		this.options = info.options
@@ -184,6 +181,8 @@ export class ElbowArrowWorkingInfo {
 		this.midY = info.midY
 		this.gapX = info.gapX
 		this.gapY = info.gapY
+		// prefer down/right when routing arrows
+		this.bias = new Vec(1, 1)
 	}
 
 	transform: ElbowArrowTransform = ElbowArrowTransform.Identity
@@ -203,6 +202,8 @@ export class ElbowArrowWorkingInfo {
 
 		transformEdgesInPlace(transform, this.A.edges)
 		transformEdgesInPlace(transform, this.B.edges)
+
+		transformVecInPlace(transform, this.bias)
 
 		if (transform.x === -1) {
 			this.gapX = -this.gapX

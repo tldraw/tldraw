@@ -167,15 +167,15 @@ export function routeArrowWithPartialEdgePicking(
 			return pickShortest(info, 'corners', [
 				['left', 'right', 'manual', 'auto'],
 				['left', 'bottom', 'manual', 'auto'],
-				['left', 'top', 'manual', 'auto'],
 				['left', 'left', 'manual', 'auto'],
+				['left', 'top', 'manual', 'auto'],
 			])
 		case 'right':
 			return pickShortest(info, 'corners', [
 				['right', 'left', 'manual', 'auto'],
-				['right', 'top', 'manual', 'auto'],
 				['right', 'bottom', 'manual', 'auto'],
 				['right', 'right', 'manual', 'auto'],
+				['right', 'top', 'manual', 'auto'],
 			])
 	}
 }

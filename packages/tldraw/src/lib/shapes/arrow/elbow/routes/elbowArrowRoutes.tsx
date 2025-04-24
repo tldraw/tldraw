@@ -68,8 +68,9 @@ export function routeRightToLeft(info: ElbowArrowWorkingInfo): ElbowArrowRoute |
 		Math.abs(aEdge.expanded - info.common.expanded.left) +
 		Math.abs(info.common.expanded.top - bEdge.crossTarget) +
 		Math.abs(info.common.expanded.left - bEdge.value) +
-		// 6 points in this arrow, plus 1 bias against it so we prefer arrow 3
-		7
+		// 6 points in this arrow, plus bias towards down/right:
+		6 +
+		info.bias.y
 
 	const arrow5Distance =
 		info.gapX < 0 && info.midX !== null
