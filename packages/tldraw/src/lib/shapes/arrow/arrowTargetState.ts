@@ -6,6 +6,7 @@ import {
 	clamp,
 	Editor,
 	ElbowArrowSnap,
+	Geometry2dFilters,
 	invLerp,
 	mapObjectMapValues,
 	objectMapEntries,
@@ -138,10 +139,12 @@ export function updateArrowTargetState({
 		)
 		let furthestDistance = 0
 
-		for (const intersection of targetGeometryInTargetSpace.intersectLineSegment(
+		const intersections = targetGeometryInTargetSpace.intersectLineSegment(
 			targetCenterInTargetSpace,
-			farPoint
-		)) {
+			farPoint,
+			Geometry2dFilters.EXCLUDE_NON_STANDARD
+		)
+		for (const intersection of intersections) {
 			const distance = Vec.Dist2(intersection, targetCenterInTargetSpace)
 			if (distance > furthestDistance) {
 				furthestDistance = distance
