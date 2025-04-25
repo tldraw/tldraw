@@ -762,7 +762,7 @@ export function defaultHandleExternalExcalidrawContent(editor: Editor, { point, 
 export function defaultHandleExternalFileAsset(editor: Editor, { file, assetId }: TLFileExternalAsset, options: TLDefaultExternalContentHandlerOpts): Promise<TLAsset>;
 
 // @public (undocumented)
-export function defaultHandleExternalFileContent(editor: Editor, { point, files, }: {
+export function defaultHandleExternalFileContent(editor: Editor, { point, files }: {
     files: File[];
     point?: VecLike;
 }, options: TLDefaultExternalContentHandlerOpts): Promise<void>;
