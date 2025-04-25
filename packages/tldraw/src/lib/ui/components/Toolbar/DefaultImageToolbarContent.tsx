@@ -1,6 +1,7 @@
 import {
 	approximately,
 	HALF_PI,
+	modulate,
 	TLImageShape,
 	TLShapePartial,
 	track,
@@ -76,10 +77,28 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 
 	const onHistoryMark = useCallback((id: string) => editor.markHistoryStoppingPoint(id), [editor])
 
+	// Apply an easing function to smooth out the zoom curve,
+	// otherwise the zoom slider has a cubic drag feel to it which feels off.
+	const easeZoom = useCallback((value: number, maxValue: number): number => {
+		// Use a square root easing for a more natural zoom feel
+		return Math.sqrt(value / maxValue) * maxValue
+	}, [])
+
+	const displayValue =
+		crop && maxZoom
+			? modulate(easeZoom(zoom, maxZoom), [0, maxZoom], [0, 100], true /* clamp */)
+			: 0
+
 	const handleZoomChange = useCallback(
 		(value: number) => {
 			editor.setCurrentTool('select.crop.idle')
-			const zoom = value / 100
+			// Convert the eased slider value back to the actual zoom value
+			const sliderPercent = value / 100
+
+			// Apply inverse easing to get zoom in range [0, 1]
+			// No need to multiply by maxZoom since getCroppedImageDataWhenZooming handles that
+			const zoom = sliderPercent * sliderPercent
+
 			const change = getCroppedImageDataWhenZooming(zoom, imageShape, maxZoom)
 
 			editor.updateShape({
@@ -119,7 +138,6 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 
 	const shapeAspectRatio = imageShape.props.w / imageShape.props.h
 	const isOriginalCrop = !crop || isEqual(crop, getDefaultCrop())
-	const displayValue = crop && maxZoom ? (100 / maxZoom) * zoom : 0
 
 	const croppingTools = (
 		<>

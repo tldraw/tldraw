@@ -33,8 +33,8 @@ export function getTranslateCroppedImageChange(editor: Editor, shape: ShapeWithC
 
 	const xMinWithCrop = 1 - xCropSize
 	const yMinWithCrop = 1 - yCropSize
-	newCrop.topLeft.x = clamp(xMinWithCrop, newCrop.topLeft.x - delta.x / w)
-	newCrop.topLeft.y = clamp(yMinWithCrop, newCrop.topLeft.y - delta.y / h)
+	newCrop.topLeft.x = clamp(newCrop.topLeft.x - delta.x / w, 0, xMinWithCrop)
+	newCrop.topLeft.y = clamp(newCrop.topLeft.y - delta.y / h, 0, yMinWithCrop)
 
 	newCrop.bottomRight.x = newCrop.topLeft.x + xCropSize
 	newCrop.bottomRight.y = newCrop.topLeft.y + yCropSize
