@@ -19,7 +19,7 @@ export function rpc<T extends keyof VscodeMessagePairs>(
 	id: T,
 	data: VscodeMessagePairs[T]['request']['data'],
 	opts: SimpleRpcOpts = { timeout: 5 * 1000 }
-): Promise<VscodeMessagePairs[typeof id]['response']['data']> {
+) {
 	const { timeout } = opts
 	type RequestType = VscodeMessagePairs[T]['request']
 	type ResponseType = VscodeMessagePairs[T]['response']
