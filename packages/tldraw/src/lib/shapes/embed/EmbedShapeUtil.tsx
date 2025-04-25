@@ -271,6 +271,7 @@ function Gist({
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			scrolling="no"
 			referrerPolicy="no-referrer-when-downgrade"
+			tabIndex={isInteractive ? 0 : -1}
 			style={{
 				...style,
 				pointerEvents: isInteractive ? 'all' : 'none',
