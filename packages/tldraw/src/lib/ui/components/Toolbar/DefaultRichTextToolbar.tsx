@@ -1,7 +1,7 @@
 import { getMarkRange, Range, EditorEvents as TextEditorEvents } from '@tiptap/core'
 import { MarkType } from '@tiptap/pm/model'
 import { Box, debounce, TiptapEditor, track, useEditor, useValue } from '@tldraw/editor'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { rectToBox, TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { DefaultRichTextToolbarContent } from './DefaultRichTextToolbarContent'
 import { LinkEditor } from './LinkEditor'
@@ -37,9 +37,14 @@ function ContextualToolbarInner({
 }) {
 	const { isEditingLink, onEditLinkStart, onEditLinkComplete } = useEditingLinkBehavior(textEditor)
 	const [currentSelection, setCurrentSelection] = useState<Range | null>(null)
+	const previousSelectionBounds = useRef<Box | undefined>()
 	const isMousingDown = useIsMousingDownOnTextEditor(textEditor)
 
 	const getSelectionBounds = useCallback(() => {
+		if (isEditingLink) {
+			// If we're editing a link we don't have selection bounds temporarily.
+			return previousSelectionBounds.current
+		}
 		// Get the text selection rects as a box. This will be undefined if there are no selections.
 		const selection = window.getSelection()
 
@@ -54,8 +59,10 @@ function ContextualToolbarInner({
 			rangeBoxes.push(rectToBox(range.getBoundingClientRect()))
 		}
 
-		return Box.Common(rangeBoxes)
-	}, [currentSelection])
+		const bounds = Box.Common(rangeBoxes)
+		previousSelectionBounds.current = bounds
+		return bounds
+	}, [currentSelection, isEditingLink])
 
 	useEffect(() => {
 		const handleSelectionUpdate = ({ editor: textEditor }: TextEditorEvents['selectionUpdate']) =>
