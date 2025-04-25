@@ -68,6 +68,8 @@ function ContextualToolbarInner({
 		const handleSelectionUpdate = ({ editor: textEditor }: TextEditorEvents['selectionUpdate']) =>
 			setCurrentSelection(textEditor.state.selection)
 		textEditor.on('selectionUpdate', handleSelectionUpdate)
+		// Need to kick off the selection update manually to get the initial selection, esp. if select-all.
+		handleSelectionUpdate({ editor: textEditor } as TextEditorEvents['selectionUpdate'])
 		return () => {
 			textEditor.off('selectionUpdate', handleSelectionUpdate)
 		}
