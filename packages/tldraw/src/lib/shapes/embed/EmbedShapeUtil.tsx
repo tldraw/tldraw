@@ -195,6 +195,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						// eslint-disable-next-line @typescript-eslint/no-deprecated
 						frameBorder="0"
 						referrerPolicy="no-referrer-when-downgrade"
+						tabIndex={isEditing ? 0 : -1}
 						style={{
 							border: 0,
 							pointerEvents: isInteractive ? 'auto' : 'none',

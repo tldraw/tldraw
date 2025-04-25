@@ -11,6 +11,7 @@ export function useDocumentEvents() {
 	const editor = useEditor()
 	const container = useContainer()
 
+	const isEditing = useValue('isEditing', () => editor.getEditingShapeId(), [editor])
 	const isAppFocused = useValue('isFocused', () => editor.getIsFocused(), [editor])
 
 	// Prevent the browser's default drag and drop behavior on our container (UI, etc)
@@ -125,7 +126,11 @@ export function useDocumentEvents() {
 					if (areShortcutsDisabled(editor)) {
 						return
 					}
-					if (hasSelectedShapes) {
+					// isEditing here sounds like it's about text editing
+					// but more specifically, this is so you can tab into an
+					// embed that's being 'edited'. In our world,
+					// editing an embed, means it's interactive.
+					if (hasSelectedShapes && !isEditing) {
 						// This is used in tandem with shape navigation.
 						preventDefault(e)
 					}
@@ -289,7 +294,7 @@ export function useDocumentEvents() {
 			container.removeEventListener('keydown', handleKeyDown)
 			container.removeEventListener('keyup', handleKeyUp)
 		}
-	}, [editor, container, isAppFocused])
+	}, [editor, container, isAppFocused, isEditing])
 }
 
 function areShortcutsDisabled(editor: Editor) {
