@@ -109,12 +109,10 @@ export type AssetUrls = {
 		github: string
 		group: string
 		heading: string
-		height: string
 		highlight: string
 		'horizontal-align-end': string
 		'horizontal-align-middle': string
 		'horizontal-align-start': string
-		image: string
 		'info-circle': string
 		italic: string
 		leading: string
@@ -175,7 +173,6 @@ export type AssetUrls = {
 		'vertical-align-middle': string
 		'vertical-align-start': string
 		'warning-triangle': string
-		width: string
 		'zoom-in': string
 		'zoom-out': string
 	}

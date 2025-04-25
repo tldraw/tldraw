@@ -1,4 +1,4 @@
-import { Editor, ShapeWithCrop, TLShapePartial, Vec, structuredClone } from '@tldraw/editor'
+import { Editor, ShapeWithCrop, TLShapePartial, Vec, clamp, structuredClone } from '@tldraw/editor'
 import { getUncroppedSize } from '../../../../../shapes/shared/crop'
 
 export function getTranslateCroppedImageChange(editor: Editor, shape: ShapeWithCrop, delta: Vec) {
@@ -33,8 +33,8 @@ export function getTranslateCroppedImageChange(editor: Editor, shape: ShapeWithC
 
 	const xMinWithCrop = 1 - xCropSize
 	const yMinWithCrop = 1 - yCropSize
-	newCrop.topLeft.x = Math.min(xMinWithCrop, Math.max(0, newCrop.topLeft.x - delta.x / w))
-	newCrop.topLeft.y = Math.min(yMinWithCrop, Math.max(0, newCrop.topLeft.y - delta.y / h))
+	newCrop.topLeft.x = clamp(xMinWithCrop, newCrop.topLeft.x - delta.x / w)
+	newCrop.topLeft.y = clamp(yMinWithCrop, newCrop.topLeft.y - delta.y / h)
 
 	newCrop.bottomRight.x = newCrop.topLeft.x + xCropSize
 	newCrop.bottomRight.y = newCrop.topLeft.y + yCropSize

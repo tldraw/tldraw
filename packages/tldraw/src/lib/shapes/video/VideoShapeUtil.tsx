@@ -112,6 +112,18 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 		setIsLoaded(true)
 	}, [])
 
+	// If the current time changes and we're not editing the video, update the video time
+	useEffect(() => {
+		const video = rVideo.current
+		if (!video) return
+
+		if (isEditing) {
+			if (document.activeElement !== video) {
+				video.focus()
+			}
+		}
+	}, [isEditing, isLoaded])
+
 	useEffect(() => {
 		if (prefersReducedMotion) {
 			const video = rVideo.current

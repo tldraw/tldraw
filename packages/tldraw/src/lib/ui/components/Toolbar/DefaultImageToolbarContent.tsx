@@ -58,6 +58,12 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const zoom = crop
 		? Math.min(1 - (crop.bottomRight.x - crop.topLeft.x), 1 - (crop.bottomRight.y - crop.topLeft.y))
 		: 0
+
+	// So, we set a maxZoom here in case there's been a manual crop applied.
+	// Typically, you can zoom 3x into the image size (MAX_ZOOM's value).
+	// If you go deeper than that zoom level, we need to set that as the new 100%
+	// value on the zoom slider (otherwise you could zoom into infinity).
+	// This balances usage of the zoom slider with manual cropping.
 	useEffect(() => {
 		if (isManipulating && maxZoom === undefined) {
 			setMaxZoom(Math.max(zoom, 1 - 1 / MAX_ZOOM))
@@ -134,50 +140,35 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="top" align="center">
-					{ASPECT_RATIO_OPTIONS.map((aspectRatio) => (
-						<TldrawUiDropdownMenuCheckboxItem
-							key={aspectRatio}
-							onSelect={() => handleAspectRatioChange(aspectRatio as ASPECT_RATIO_OPTION)}
-							checked={
-								aspectRatio === 'circle' && crop
-									? crop.isCircle
-									: aspectRatio === 'original'
-										? isOriginalCrop
-										: aspectRatio === 'square'
-											? !crop?.isCircle &&
-												approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.1)
-											: !isOriginalCrop &&
-												approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.01)
-							}
-							title={msg(`tool.aspect-ratio.${aspectRatio}`)}
-						>
-							<TldrawUiButtonLabel>{msg(`tool.aspect-ratio.${aspectRatio}`)}</TldrawUiButtonLabel>
-						</TldrawUiDropdownMenuCheckboxItem>
-					))}
+					{ASPECT_RATIO_OPTIONS.map((aspectRatio) => {
+						let checked = false
+						if (aspectRatio === 'circle' && crop) {
+							checked = !!crop.isCircle
+						} else if (aspectRatio === 'original') {
+							checked = isOriginalCrop
+						} else if (aspectRatio === 'square') {
+							checked =
+								!crop?.isCircle &&
+								approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.1)
+						} else {
+							checked =
+								!isOriginalCrop &&
+								approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.01)
+						}
+
+						return (
+							<TldrawUiDropdownMenuCheckboxItem
+								key={aspectRatio}
+								onSelect={() => handleAspectRatioChange(aspectRatio as ASPECT_RATIO_OPTION)}
+								checked={checked}
+								title={msg(`tool.aspect-ratio.${aspectRatio}`)}
+							>
+								<TldrawUiButtonLabel>{msg(`tool.aspect-ratio.${aspectRatio}`)}</TldrawUiButtonLabel>
+							</TldrawUiDropdownMenuCheckboxItem>
+						)
+					})}
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiDropdownMenuRoot>
-			{/* <TldrawUiButton
-				type="icon"
-				title={msg('tool.flip-horz')}
-				onClick={() => {
-					trackEvent('flip-shapes', { operation: 'horizontal', source })
-					editor.markHistoryStoppingPoint('flip horizontal')
-					editor.flipShapes([imageShape.id], 'horizontal')
-				}}
-			>
-				<TldrawUiButtonIcon small icon="width" />
-			</TldrawUiButton>
-			<TldrawUiButton
-				type="icon"
-				title={msg('tool.flip-vert')}
-				onClick={() => {
-					trackEvent('flip-shapes', { operation: 'vertical', source })
-					editor.markHistoryStoppingPoint('flip vertical')
-					editor.flipShapes([imageShape.id], 'vertical')
-				}}
-			>
-				<TldrawUiButtonIcon small icon="height" />
-			</TldrawUiButton> */}
 			<TldrawUiButton
 				type="icon"
 				title={msg('tool.rotate-cw')}
@@ -212,7 +203,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 						insertMedia()
 					}}
 				>
-					<TldrawUiButtonIcon small icon="image" />
+					<TldrawUiButtonIcon small icon="tool-media" />
 				</TldrawUiButton>
 			)}
 			{!isManipulating && (

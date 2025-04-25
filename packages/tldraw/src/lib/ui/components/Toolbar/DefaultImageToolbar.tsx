@@ -41,7 +41,6 @@ function ContextualToolbarInner({
 	const isInCropTool = editorPath.startsWith('select.crop.')
 	const isCropping = editorPath === 'select.crop.cropping'
 	const [isEditingAltText, setIsEditingAltText] = useState(false)
-	const [isManipulating, setIsManipulating] = useState(false)
 	const [cachedManipulatingScreenBounds, setCachedManipulatingScreenBounds] = useState<
 		Box | undefined
 	>(undefined)
@@ -51,12 +50,10 @@ function ContextualToolbarInner({
 		setForceReRender((n) => n + 1)
 	}, [])
 	const handleManipulatingStart = useCallback(() => {
-		setIsManipulating(true)
 		editor.setCurrentTool('select.crop.idle')
 		setForceReRender((n) => n + 1)
 	}, [editor])
 	const handleManipulatingEnd = useCallback(() => {
-		setIsManipulating(false)
 		editor.setCurrentTool('select.idle')
 		setForceReRender((n) => n + 1)
 	}, [editor])
@@ -72,7 +69,7 @@ function ContextualToolbarInner({
 
 		// We cache the bounds because when manipulating it's annoying that the
 		// toolbar moves around, esp. when rotating.
-		if (isManipulating) {
+		if (isInCropTool) {
 			if (!cachedManipulatingScreenBounds) {
 				setCachedManipulatingScreenBounds(bounds)
 			} else {
@@ -82,7 +79,7 @@ function ContextualToolbarInner({
 			setCachedManipulatingScreenBounds(undefined)
 		}
 		return bounds
-	}, [editor, isManipulating, cachedManipulatingScreenBounds])
+	}, [editor, isInCropTool, cachedManipulatingScreenBounds])
 
 	useQuickReactor(
 		'camera position',
@@ -96,13 +93,13 @@ function ContextualToolbarInner({
 	)
 
 	useEffect(() => {
-		if (isInCropTool && !isManipulating) {
+		if (isInCropTool && !isInCropTool) {
 			handleManipulatingStart()
 		}
-		if (!isInCropTool && isManipulating) {
+		if (!isInCropTool && isInCropTool) {
 			handleManipulatingEnd()
 		}
-	}, [isInCropTool, editor, isManipulating, handleManipulatingStart, handleManipulatingEnd])
+	}, [isInCropTool, editor, isInCropTool, handleManipulatingStart, handleManipulatingEnd])
 
 	if (isCropping) return null
 
@@ -125,7 +122,7 @@ function ContextualToolbarInner({
 			) : (
 				<DefaultImageToolbarContent
 					imageShape={imageShape}
-					isManipulating={isManipulating}
+					isManipulating={isInCropTool}
 					onEditAltTextStart={handleEditAltTextStart}
 					onManipulatingStart={handleManipulatingStart}
 					onManipulatingEnd={handleManipulatingEnd}
