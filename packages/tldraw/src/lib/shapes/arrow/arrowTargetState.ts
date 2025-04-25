@@ -149,7 +149,7 @@ export function updateArrowTargetState({
 			if (distance > furthestDistance) {
 				furthestDistance = distance
 				handlePointInTargetSpace = intersection
-				isEnabled = true
+				isEnabled = targetGeometryInTargetSpace.isClosed
 			}
 		}
 
@@ -191,11 +191,13 @@ export function updateArrowTargetState({
 		}
 	}
 
-	const shouldSnapCenter = !isExact && precise
+	const shouldSnapCenter = !isExact && precise && targetGeometryInTargetSpace.isClosed
 	const shouldSnapEdges = !isExact && precise && arrowKind === 'elbow'
-	const shouldSnapEdgePoints = !isExact && precise && arrowKind === 'elbow'
+	const shouldSnapEdgePoints =
+		!isExact && precise && arrowKind === 'elbow' && targetGeometryInTargetSpace.isClosed
 	const shouldSnapNone = precise
-	const shouldSnapCenterAxis = !isExact && precise && arrowKind === 'elbow'
+	const shouldSnapCenterAxis =
+		!isExact && precise && arrowKind === 'elbow' && targetGeometryInTargetSpace.isClosed
 
 	// we run through all the snapping options from least to most specific:
 	let snap: ElbowArrowSnap = 'none'
