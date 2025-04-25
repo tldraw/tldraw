@@ -23,6 +23,7 @@
 	"devDependencies": {
 		"@types/bun": "^1.1.6",
 		"@types/express": "^4.17.21",
+		"@types/ws": "^8.18.1",
 		"concurrently": "^9.0.1",
 		"lazyrepo": "0.0.0-alpha.27",
 		"tsx": "^4.19.2",
