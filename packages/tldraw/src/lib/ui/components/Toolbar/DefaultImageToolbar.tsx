@@ -99,7 +99,7 @@ function ContextualToolbarInner({
 		if (!isInCropTool && isInCropTool) {
 			handleManipulatingEnd()
 		}
-	}, [isInCropTool, editor, isInCropTool, handleManipulatingStart, handleManipulatingEnd])
+	}, [isInCropTool, editor, handleManipulatingStart, handleManipulatingEnd])
 
 	if (isCropping) return null
 
