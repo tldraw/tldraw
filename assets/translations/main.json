@@ -244,8 +244,10 @@
 	"tool.rich-text-link-remove": "Remove link",
 	"tool.rich-text-header": "Header",
 	"tool.rich-text-bulletList": "Bulleted list",
+	"tool.rich-text-toolbar-title": "Text formatting",
 	"tool.rich-text-orderedList": "Ordered list",
 	"tool.bookmark": "Bookmark",
+	"a11y.status": "Status",
 	"a11y.skip-to-main-content": "Move focus to canvas",
 	"a11y.shape-index": "{num} of {total}",
 	"a11y.shape-image": "Image",
@@ -366,7 +368,9 @@
 	"style-panel.opacity": "Opacity",
 	"style-panel.size": "Size",
 	"style-panel.spline": "Spline",
+	"tool-panel.title": "Tools",
 	"tool-panel.more": "More",
+	"navigation-zone.title": "Navigation",
 	"navigation-zone.toggle-minimap": "Toggle minimap",
 	"navigation-zone.zoom": "Zoom",
 	"focus-mode.toggle-focus-mode": "Toggle focus mode",
@@ -403,5 +407,6 @@
 	"vscode.file-open.backup-saved": "Backup saved",
 	"vscode.file-open.backup-failed": "Backup failed: this is not a .tldr file.",
 	"vscode.file-open.dont-show-again": "Don’t ask again",
-	"cursor-chat.type-to-chat": "Type to chat…"
+	"cursor-chat.type-to-chat": "Type to chat…",
+	"app.loading": "Loading tldraw…"
 }

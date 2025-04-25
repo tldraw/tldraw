@@ -16,6 +16,7 @@ import {
 	Vec,
 } from '@tldraw/editor'
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { DefaultRichTextToolbarContent } from './DefaultRichTextToolbarContent'
 import { LinkEditor } from './LinkEditor'
@@ -60,6 +61,7 @@ function ContextualToolbarInner({
 	textEditor: TiptapEditor
 }) {
 	const editor = useEditor()
+	const msg = useTranslation()
 
 	const rToolbar = useRef<HTMLDivElement>(null)
 
@@ -210,6 +212,7 @@ function ContextualToolbarInner({
 			className="tlui-rich-text__toolbar"
 			data-interactive={false}
 			data-visible={false}
+			label={msg('tool.rich-text-toolbar-title')}
 		>
 			{children ? (
 				children
