@@ -1511,37 +1511,18 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
-				id: 'open-context-menu',
-				label: 'a11y.open-context-menu',
+				id: 'adjust-shape-styles',
+				label: 'a11y.adjust-shape-styles',
 				kbd: 'cmd+Enter,ctrl+Enter',
 				readonlyOk: true,
-				onSelect: async () => {
+				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
 
-					// For multiple shapes or a single shape, get the selection bounds
-					const selectionBounds = editor.getSelectionPageBounds()
-					if (!selectionBounds) return
-
-					// Calculate the center point of the selection
-					const centerX = selectionBounds.x + selectionBounds.width / 2
-					const centerY = selectionBounds.y + selectionBounds.height / 2
-
-					// Convert page coordinates to screen coordinates
-					const screenPoint = editor.pageToScreen(new Vec(centerX, centerY))
-
-					editor
+					const firstButton = editor
 						.getContainer()
-						.querySelector('.tl-canvas')
-						?.dispatchEvent(
-							new MouseEvent('pointerdown', {
-								clientX: screenPoint.x,
-								clientY: screenPoint.y,
-								bubbles: true,
-								cancelable: true,
-								button: 2, // Right mouse button
-								buttons: 2,
-							})
-						)
+						.querySelector('.tlui-style-panel button') as HTMLElement | null
+					firstButton?.focus()
+					trackEvent('adjust-shape-styles', { source })
 				},
 			},
 			{

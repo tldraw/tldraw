@@ -115,7 +115,7 @@ export interface TLUiEventMap {
 	'flatten-to-image': null
 	'a11y-repeat-shape-announce': null
 	'open-url': { url: string }
-	'open-context-menu': null
+	'adjust-shape-styles': null
 	'copy-link': null
 	'rich-text': {
 		operation:

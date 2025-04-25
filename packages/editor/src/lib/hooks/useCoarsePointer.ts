@@ -16,7 +16,7 @@ export function useCoarsePointer() {
 		const handlePointerDown = (e: PointerEvent) => {
 			// when the user interacts with a mouse, we assume they have a fine pointer.
 			// otherwise, we assume they have a coarse pointer.
-			const isCoarseEvent = !!e.pointerType && e.pointerType !== 'mouse'
+			const isCoarseEvent = e.pointerType !== 'mouse'
 			if (isCoarse === isCoarseEvent) return
 			isCoarse = isCoarseEvent
 			editor.updateInstanceState({ isCoarsePointer: isCoarseEvent })

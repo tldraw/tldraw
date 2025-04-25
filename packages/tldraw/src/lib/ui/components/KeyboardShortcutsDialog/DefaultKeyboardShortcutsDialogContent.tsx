@@ -171,8 +171,8 @@ export function DefaultKeyboardShortcutsDialogContent() {
 					}}
 				/>
 				<TldrawUiMenuItem
-					id="open-context-menu"
-					label="a11y.open-context-menu"
+					id="adjust-shape-styles"
+					label="a11y.adjust-shape-styles"
 					kbd="$+[[Enter]]"
 					onSelect={() => {
 						/* do nothing */

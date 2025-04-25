@@ -1,7 +1,6 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
 import { preventDefault, useContainer, useEditor, useEditorComponents } from '@tldraw/editor'
-import { ReactNode, memo, useCallback, useEffect, useRef } from 'react'
-import { useUiEvents } from '../../context/events'
+import { ReactNode, memo, useCallback } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
@@ -19,38 +18,12 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	disabled = false,
 }: TLUiContextMenuProps) {
 	const editor = useEditor()
-	const trackEvent = useUiEvents()
-	const isOpenRef = useRef(false)
 	const msg = useTranslation()
 
 	const { Canvas } = useEditorComponents()
 
-	useEffect(() => {
-		// When hitting `Escape` while the context menu is open, we want to prevent
-		// the default behavior of losing focus on the shape. Otherwise,
-		// it's pretty annoying from an accessibility perspective.
-		const preventEscapeFromLosingShapeFocus = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') {
-				e.stopPropagation()
-			}
-		}
-
-		// N.B. We need the `capture: true` to make sure the useDocumentEvents doesn't run first
-		// which does `editor.cancel()`
-		document.body.addEventListener('keydown', preventEscapeFromLosingShapeFocus, {
-			capture: true,
-		})
-		return () => {
-			document.body.removeEventListener('keydown', preventEscapeFromLosingShapeFocus, {
-				capture: true,
-			})
-		}
-	}, [])
-
 	const cb = useCallback(
 		(isOpen: boolean) => {
-			isOpenRef.current = isOpen
-
 			if (!isOpen) {
 				const onlySelectedShape = editor.getOnlySelectedShape()
 
@@ -83,11 +56,9 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 						}
 					}
 				}
-
-				trackEvent('open-context-menu', { source: 'unknown' })
 			}
 		},
-		[editor, trackEvent]
+		[editor]
 	)
 
 	const container = useContainer()
