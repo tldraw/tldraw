@@ -122,7 +122,6 @@ const components: TLComponents = {
 		</DefaultMainMenu>
 	),
 }
-
 function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerProps) {
 	const assetUrls = useMemo(() => getAssetUrlsByImport({ baseUrl: assetSrc }), [assetSrc])
 
