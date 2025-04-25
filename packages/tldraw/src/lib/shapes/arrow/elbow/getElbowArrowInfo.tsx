@@ -280,7 +280,12 @@ export function getEdgeFromNormalizedAnchor(normalizedAnchor: VecLike) {
 		return null
 	}
 
-	if (Math.abs(normalizedAnchor.x - 0.5) > Math.abs(normalizedAnchor.y - 0.5)) {
+	if (
+		Math.abs(normalizedAnchor.x - 0.5) >
+		// slightly bias towards x arrows to prevent flickering when the anchor is right on the line
+		// between the two directions
+		Math.abs(normalizedAnchor.y - 0.5) - 0.0001
+	) {
 		return normalizedAnchor.x < 0.5 ? 'left' : 'right'
 	}
 
