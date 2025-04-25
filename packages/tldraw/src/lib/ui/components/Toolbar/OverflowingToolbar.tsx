@@ -13,13 +13,13 @@ import { useBreakpoint } from '../../context/breakpoints'
 import { areShortcutsDisabled } from '../../hooks/useKeyboardShortcuts'
 import { TLUiToolItem } from '../../hooks/useTools'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import {
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
 } from '../primitives/TldrawUiPopover'
+import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 
 export const IsInOverflowContext = createContext(false)
@@ -89,7 +89,7 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 
 		// But if there's a new active item...
 		const activeElementIdx = Array.from(mainToolsRef.current.children).findIndex(
-			(el) => el.getAttribute('aria-checked') === 'true'
+			(el) => el.getAttribute('aria-pressed') === 'true'
 		)
 		if (activeElementIdx === -1) return
 
@@ -124,7 +124,7 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 		mutationObserver.observe(mainToolsRef.current, {
 			childList: true,
 			subtree: true,
-			attributeFilter: ['data-value', 'aria-checked'],
+			attributeFilter: ['data-value', 'aria-pressed'],
 		})
 
 		return () => {
@@ -136,7 +136,8 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 		if (!editor.options.enableToolbarKeyboardShortcuts) return
 
 		function handleKeyDown(event: KeyboardEvent) {
-			if (areShortcutsDisabled(editor) || activeElementShouldCaptureKeys()) return
+			if (areShortcutsDisabled(editor) || activeElementShouldCaptureKeys(true /* allow buttons */))
+				return
 			// no accelerator keys
 			if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return
 			const index = NUMBERED_SHORTCUT_KEYS[event.key]
@@ -156,11 +157,11 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 	return (
 		<>
 			<style nonce={editor.options.nonce}>{css}</style>
-			<div
+			<TldrawUiToolbar
 				className={classNames('tlui-toolbar__tools', {
 					'tlui-toolbar__tools__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
 				})}
-				role="toolbar"
+				label={msg('tool-panel.title')}
 			>
 				<div id={`${id}_main`} ref={mainToolsRef} className="tlui-toolbar__tools__list">
 					<TldrawUiMenuContextProvider type="toolbar" sourceId="toolbar">
@@ -172,19 +173,20 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 					<IsInOverflowContext.Provider value={true}>
 						<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
 							<TldrawUiPopoverTrigger>
-								<TldrawUiButton
+								<TldrawUiToolbarButton
 									title={msg('tool-panel.more')}
 									type="tool"
 									className="tlui-toolbar__overflow"
 									data-testid="tools.more-button"
 								>
 									<TldrawUiButtonIcon icon="chevron-up" />
-								</TldrawUiButton>
+								</TldrawUiToolbarButton>
 							</TldrawUiPopoverTrigger>
 							<TldrawUiPopoverContent side="top" align="center">
-								<div
+								<TldrawUiToolbar
 									className="tlui-buttons__grid"
 									data-testid="tools.more-content"
+									label={msg('tool-panel.more')}
 									id={`${id}_more`}
 									onClick={() => {
 										tlmenus.deleteOpenMenu(popoverId, editor.contextId)
@@ -194,12 +196,12 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 									<TldrawUiMenuContextProvider type="toolbar-overflow" sourceId="toolbar">
 										{children}
 									</TldrawUiMenuContextProvider>
-								</div>
+								</TldrawUiToolbar>
 							</TldrawUiPopoverContent>
 						</TldrawUiPopover>
 					</IsInOverflowContext.Provider>
 				)}
-			</div>
+			</TldrawUiToolbar>
 		</>
 	)
 }

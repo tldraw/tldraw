@@ -1,5 +1,6 @@
 import { Box, TLImageShape, track, useEditor, useValue } from '@tldraw/editor'
 import { useCallback, useState } from 'react'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { AltTextEditor } from './AltTextEditor'
 import { DefaultImageToolbarContent } from './DefaultImageToolbarContent'
@@ -37,6 +38,7 @@ function ContextualToolbarInner({
 	imageShape: TLImageShape
 }) {
 	const editor = useEditor()
+	const msg = useTranslation()
 	const editorPath = useValue('editor path', () => editor.getPath(), [editor])
 	const isInCropTool = editorPath.startsWith('select.crop.')
 	const isCropping = editorPath === 'select.crop.cropping'
@@ -61,6 +63,7 @@ function ContextualToolbarInner({
 		<TldrawUiContextualToolbar
 			className="tlui-image__toolbar"
 			getSelectionBounds={getSelectionBounds}
+			label={msg('tool.image-toolbar-title')}
 		>
 			{children ? (
 				children

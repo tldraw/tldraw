@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { rectToBox, TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { DefaultRichTextToolbarContent } from './DefaultRichTextToolbarContent'
 import { LinkEditor } from './LinkEditor'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 
 /** @public */
 export interface TLUiRichTextToolbarProps {
@@ -39,6 +40,7 @@ function ContextualToolbarInner({
 	const [currentSelection, setCurrentSelection] = useState<Range | null>(null)
 	const previousSelectionBounds = useRef<Box | undefined>()
 	const isMousingDown = useIsMousingDownOnTextEditor(textEditor)
+	const msg = useTranslation()
 
 	const getSelectionBounds = useCallback(() => {
 		if (isEditingLink) {
@@ -81,6 +83,7 @@ function ContextualToolbarInner({
 			getSelectionBounds={getSelectionBounds}
 			isMousingDown={isMousingDown}
 			changeOnlyWhenYChanges={true}
+			label={msg('tool.rich-text-toolbar-title')}
 		>
 			{children ? (
 				children

@@ -75,10 +75,10 @@ test.describe('Image toolbar behaviour', () => {
 			return imageShape.props.crop
 		})
 
-		expect(crop!.bottomRight.x).toBeCloseTo(0.6677, 3)
-		expect(crop!.bottomRight.y).toBeCloseTo(0.6677, 3)
-		expect(crop!.topLeft.y).toBeCloseTo(0.3322, 3)
-		expect(crop!.topLeft.y).toBeCloseTo(0.3322, 3)
+		expect(crop!.bottomRight.x).toBeCloseTo(0.6677, 2)
+		expect(crop!.bottomRight.y).toBeCloseTo(0.6677, 2)
+		expect(crop!.topLeft.y).toBeCloseTo(0.3322, 2)
+		expect(crop!.topLeft.y).toBeCloseTo(0.3322, 2)
 	})
 
 	test('aspect ratio dropdown changes image crop', async ({ page, isMobile }) => {

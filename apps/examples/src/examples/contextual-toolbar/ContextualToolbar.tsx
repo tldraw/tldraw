@@ -42,7 +42,7 @@ const ContextualToolbarComponent = track(() => {
 	}
 
 	return (
-		<TldrawUiContextualToolbar getSelectionBounds={getSelectionBounds}>
+		<TldrawUiContextualToolbar getSelectionBounds={getSelectionBounds} label="Sizes">
 			{SIZES.map(({ value, icon }) => {
 				return (
 					<TldrawUiButton

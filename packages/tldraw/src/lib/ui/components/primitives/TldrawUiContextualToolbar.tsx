@@ -15,6 +15,7 @@ import {
 import classNames from 'classnames'
 import React, { RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
+import { TldrawUiToolbar } from './TldrawUiToolbar'
 
 const MOVE_TIMEOUT = 150
 const HIDE_VISIBILITY_TIMEOUT = 16
@@ -32,6 +33,7 @@ export interface TLUiContextualToolbarProps {
 	isMousingDown?: boolean
 	getSelectionBounds(): Box | undefined
 	changeOnlyWhenYChanges?: boolean
+	label: string
 }
 
 /**
@@ -46,6 +48,7 @@ export const TldrawUiContextualToolbar = ({
 	isMousingDown,
 	getSelectionBounds,
 	changeOnlyWhenYChanges = false,
+	label,
 }: TLUiContextualToolbarProps) => {
 	const editor = useEditor()
 	const toolbarRef = useRef<HTMLDivElement>(null)
@@ -169,9 +172,9 @@ export const TldrawUiContextualToolbar = ({
 			className={classNames('tlui-contextual-toolbar', className)}
 			onPointerDown={stopEventPropagation}
 		>
-			<div className="tlui-menu tlui-buttons__horizontal" role="toolbar">
+			<TldrawUiToolbar className="tlui-menu tlui-buttons__horizontal" label={label}>
 				{children}
-			</div>
+			</TldrawUiToolbar>
 		</div>
 	)
 }
