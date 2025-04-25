@@ -18,6 +18,7 @@ import {
 	imageShapeMigrations,
 	imageShapeProps,
 	lerp,
+	modulate,
 	resizeBox,
 	structuredClone,
 	toDomPrecision,
@@ -313,7 +314,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 						src={loadedSrc}
 						referrerPolicy="strict-origin-when-cross-origin"
 						draggable={false}
-						alt={shape.props.altText}
+						alt=""
 					/>
 				</div>
 			)}
@@ -342,7 +343,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 							src={loadedSrc}
 							referrerPolicy="strict-origin-when-cross-origin"
 							draggable={false}
-							alt={shape.props.altText}
+							alt=""
 						/>
 					)}
 					{nextSrc && (
@@ -414,14 +415,14 @@ function getFlipStyle(shape: TLImageShape, size?: { width: number; height: numbe
 		// We have to do all this extra math because of the whole transform origin around 0,0
 		// instead of center in SVG-land, ugh.
 		const { w, h } = getUncroppedSize(shape.props, crop)
-		const xCropSize = crop.bottomRight.x - crop.topLeft.x
-		const yCropSize = crop.bottomRight.y - crop.topLeft.y
-		const xMinWithCrop = 1 - xCropSize
-		const yMinWithCrop = 1 - yCropSize
-		const xPositionScaled = 1 - (crop.topLeft.x - xMinWithCrop) / -xMinWithCrop
-		const yPositionScaled = 1 - (crop.topLeft.y - yMinWithCrop) / -yMinWithCrop
-		cropOffsetX = xPositionScaled * (w - shape.props.w)
-		cropOffsetY = yPositionScaled * (h - shape.props.h)
+
+		// Find the resulting w/h of the crop in normalized (0-1) coordinates
+		const cropWidth = crop.bottomRight.x - crop.topLeft.x
+		const cropHeight = crop.bottomRight.y - crop.topLeft.y
+
+		// Map from the normalized crop coordinate space to shape pixel space
+		cropOffsetX = modulate(crop.topLeft.x, [0, 1 - cropWidth], [0, w - shape.props.w])
+		cropOffsetY = modulate(crop.topLeft.y, [0, 1 - cropHeight], [0, h - shape.props.h])
 	}
 
 	const scale = `scale(${flipX ? -1 : 1}, ${flipY ? -1 : 1})`
