@@ -759,14 +759,13 @@ export function defaultHandleExternalExcalidrawContent(editor: Editor, { point, 
 }): Promise<void>;
 
 // @public (undocumented)
-export function defaultHandleExternalFileAsset(editor: Editor, { file, assetId }: TLFileExternalAsset, { acceptedImageMimeTypes, acceptedVideoMimeTypes, maxAssetSize, maxImageDimension, toasts, msg, }: TLDefaultExternalContentHandlerOpts): Promise<TLAsset>;
+export function defaultHandleExternalFileAsset(editor: Editor, { file, assetId }: TLFileExternalAsset, options: TLDefaultExternalContentHandlerOpts): Promise<TLAsset>;
 
 // @public (undocumented)
-export function defaultHandleExternalFileContent(editor: Editor, { point, files, shapeIdToReplace, }: {
+export function defaultHandleExternalFileContent(editor: Editor, { point, files, }: {
     files: File[];
     point?: VecLike;
-    shapeIdToReplace?: TLShapeId;
-}, { maxAssetSize, maxImageDimension, acceptedImageMimeTypes, acceptedVideoMimeTypes, toasts, msg, }: TLDefaultExternalContentHandlerOpts): Promise<void>;
+}, options: TLDefaultExternalContentHandlerOpts): Promise<void>;
 
 // @public (undocumented)
 export function defaultHandleExternalSvgTextContent(editor: Editor, { point, text }: {

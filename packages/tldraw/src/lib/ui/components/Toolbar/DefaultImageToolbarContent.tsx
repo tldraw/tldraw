@@ -1,5 +1,8 @@
 import {
 	approximately,
+	AssetRecordType,
+	Editor,
+	getHashForBuffer,
 	HALF_PI,
 	modulate,
 	TLImageShape,
@@ -9,6 +12,7 @@ import {
 } from '@tldraw/editor'
 import isEqual from 'lodash.isequal'
 import { useCallback, useEffect, useState } from 'react'
+import { getMediaAssetInfoPartial } from '../../../defaultExternalContentHandlers'
 import {
 	ASPECT_RATIO_OPTION,
 	ASPECT_RATIO_OPTIONS,
@@ -73,7 +77,11 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 		}
 	}, [isManipulating, zoom, maxZoom])
 
-	const insertMedia = useInsertMedia({ shapeIdToReplace: imageShape?.id })
+	const replaceCallback = useCallback(
+		(editor: Editor, files: File[]) => replaceImage(editor, files, imageShape),
+		[imageShape]
+	)
+	const insertMedia = useInsertMedia({ callbackFn: replaceCallback, allowMultiple: false })
 
 	const onHistoryMark = useCallback((id: string) => editor.markHistoryStoppingPoint(id), [editor])
 
@@ -243,3 +251,39 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 		</>
 	)
 })
+
+const replaceImage = async (editor: Editor, files: File[], shape: TLImageShape) => {
+	const file = files[0]
+	const hash = getHashForBuffer(await file.arrayBuffer())
+	const assetId = AssetRecordType.createId(hash)
+	editor.createTemporaryAssetPreview(assetId, file)
+	const assetInfoPartial = await getMediaAssetInfoPartial(
+		file,
+		assetId,
+		true /* isImage */,
+		false /* isVideo */
+	)
+	editor.createAssets([assetInfoPartial])
+
+	// And update the shape
+	editor.updateShapes<TLImageShape>([
+		{
+			id: shape.id,
+			type: shape.type,
+			props: {
+				assetId: assetId,
+				crop: { topLeft: { x: 0, y: 0 }, bottomRight: { x: 1, y: 1 } },
+				w: assetInfoPartial.props.w,
+				h: assetInfoPartial.props.h,
+			},
+		},
+	])
+
+	const asset = await editor.getAssetForExternalContent({ type: 'file', file, assetId })
+
+	if (!asset) {
+		return
+	}
+
+	editor.updateAssets([{ ...asset, id: assetId }])
+}

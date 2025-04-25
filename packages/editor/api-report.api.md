@@ -3618,10 +3618,6 @@ export interface TLFilesExternalContent extends TLBaseExternalContent {
     // (undocumented)
     files: File[];
     // (undocumented)
-    ignoreParent: boolean;
-    // (undocumented)
-    shapeIdToReplace?: TLShapeId;
-    // (undocumented)
     type: 'files';
 }
 
