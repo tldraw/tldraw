@@ -71,6 +71,31 @@ export class WebViewMessageHandler {
 				vscode.commands.executeCommand('workbench.action.reloadWindow')
 				break
 			}
+			case 'vscode:get-file/request': {
+				try {
+					const url = e.data.url
+					const fileUri = vscode.Uri.parse(url)
+					const fileData = await vscode.workspace.fs.readFile(fileUri)
+					const mimeType = getMimeTypeFromPath(fileUri.path)
+
+					this.webviewPanel.webview.postMessage({
+						type: 'vscode:get-file/response',
+						uuid: e.uuid + '_response',
+						data: {
+							fileName: fileUri.path.split('/').pop(),
+							file: Array.from(fileData),
+							mimeType,
+						},
+					})
+				} catch (error: any) {
+					this.webviewPanel.webview.postMessage({
+						type: 'vscode:get-file/error',
+						data: {
+							error: error.toString(),
+						},
+					})
+				}
+			}
 			case 'vscode:bookmark/request': {
 				const url = e.data.url
 				await unfurl(url)
@@ -193,4 +218,23 @@ export class WebViewMessageHandler {
 			}
 		}
 	}
+}
+
+function getMimeTypeFromPath(filePath: string): string {
+	const extension = filePath.split('.').pop()?.toLowerCase()
+	if (!extension) throw new Error('No extension found in file path')
+
+	const mimeTypes: Record<string, string> = {
+		jpg: 'image/jpeg',
+		jpeg: 'image/jpeg',
+		png: 'image/png',
+		webp: 'image/webp',
+		gif: 'image/gif',
+		apng: 'image/apng',
+		avif: 'image/avif',
+		svg: 'image/svg+xml',
+	}
+	const mimeType = mimeTypes[extension]
+	if (mimeType) return mimeType
+	throw new Error(`Unsupported file type: ${extension}`)
 }
