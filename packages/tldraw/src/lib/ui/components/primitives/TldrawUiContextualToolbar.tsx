@@ -1,6 +1,5 @@
 import {
 	assert,
-	Atom,
 	Box,
 	clamp,
 	Editor,
@@ -32,7 +31,6 @@ export interface TLUiContextualToolbarProps {
 	className?: string
 	isMousingDown?: boolean
 	getSelectionBounds(): Box | undefined
-	forcePositionUpdateAtom?: Atom<number, unknown>
 	changeOnlyWhenYChanges?: boolean
 }
 
@@ -47,7 +45,6 @@ export const TldrawUiContextualToolbar = ({
 	className,
 	isMousingDown,
 	getSelectionBounds,
-	forcePositionUpdateAtom,
 	changeOnlyWhenYChanges = false,
 }: TLUiContextualToolbarProps) => {
 	const editor = useEditor()
@@ -84,7 +81,7 @@ export const TldrawUiContextualToolbar = ({
 
 			// capture / force this to update when...
 			editor.getCamera() // the camera moves
-			forcePositionUpdateAtom?.get() // the selection changes
+			contentSizeUpdateCounter.get() // the toolbar size changes
 			// undefined here means that we can't show the toolbar due to an incompatible position
 			const position = getToolbarScreenPosition(editor, toolbarElm, getSelectionBounds)
 
@@ -108,11 +105,9 @@ export const TldrawUiContextualToolbar = ({
 					const elm = toolbarRef.current
 					elm.style.setProperty('transform', `translate(${position.x}px, ${position.y}px)`)
 				} else {
-					// if we're moving because the size of the toolbar content has changed, flush
-					// the move immediately instead of waiting for the timeout:
 					const moveImmediately = lastContentSizeUpdateCounter !== nextContentSizeUpdateCounter
 					// Schedule a move to its next location
-					move(position.x, position.y, true /* moveImmediately */)
+					move(position.x, position.y, moveImmediately)
 				}
 
 				// Finally, if the toolbar was previously hidden, show it again
@@ -124,7 +119,7 @@ export const TldrawUiContextualToolbar = ({
 
 			lastContentSizeUpdateCounter = nextContentSizeUpdateCounter
 		})
-	}, [editor, forcePositionUpdateAtom, getSelectionBounds, contentSizeUpdateCounter, move])
+	}, [editor, getSelectionBounds, contentSizeUpdateCounter, move])
 
 	const cameraState = useValue('camera state', () => editor.getCameraState(), [editor])
 

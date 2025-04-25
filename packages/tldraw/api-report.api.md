@@ -2548,7 +2548,7 @@ export function TldrawUiComponentsProvider({ overrides, children, }: TLUiCompone
 export const TldrawUiContextProvider: NamedExoticComponent<TLUiContextProviderProps>;
 
 // @public
-export const TldrawUiContextualToolbar: ({ children, className, isMousingDown, getSelectionBounds, forcePositionUpdateAtom, changeOnlyWhenYChanges, }: TLUiContextualToolbarProps) => JSX_2.Element;
+export const TldrawUiContextualToolbar: ({ children, className, isMousingDown, getSelectionBounds, changeOnlyWhenYChanges, }: TLUiContextualToolbarProps) => JSX_2.Element;
 
 // @public (undocumented)
 export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBodyProps): JSX_2.Element;
@@ -2924,8 +2924,6 @@ export interface TLUiContextualToolbarProps {
     children?: React_3.ReactNode;
     // (undocumented)
     className?: string;
-    // (undocumented)
-    forcePositionUpdateAtom?: Atom<number, unknown>;
     // (undocumented)
     getSelectionBounds(): Box | undefined;
     // (undocumented)
