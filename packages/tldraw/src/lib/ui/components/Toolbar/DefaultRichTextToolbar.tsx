@@ -1,17 +1,7 @@
-import { getMarkRange, Range } from '@tiptap/core'
+import { getMarkRange, Range, EditorEvents as TextEditorEvents } from '@tiptap/core'
 import { MarkType } from '@tiptap/pm/model'
-import {
-	Box,
-	debounce,
-	TiptapEditor,
-	tltime,
-	track,
-	useAtom,
-	useEditor,
-	useReactor,
-	useValue,
-} from '@tldraw/editor'
-import React, { useCallback, useEffect, useState } from 'react'
+import { Box, debounce, TiptapEditor, track, useEditor, useValue } from '@tldraw/editor'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { rectToBox, TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { DefaultRichTextToolbarContent } from './DefaultRichTextToolbarContent'
 import { LinkEditor } from './LinkEditor'
@@ -45,60 +35,49 @@ function ContextualToolbarInner({
 	children?: React.ReactNode
 	textEditor: TiptapEditor
 }) {
-	const editor = useEditor()
 	const { isEditingLink, onEditLinkStart, onEditLinkComplete } = useEditingLinkBehavior(textEditor)
+	const [currentSelection, setCurrentSelection] = useState<Range | null>(null)
+	const previousSelectionBounds = useRef<Box | undefined>()
 	const isMousingDown = useIsMousingDownOnTextEditor(textEditor)
 
-	// We use an atom to force the toolbar position to update
-	// This gets triggered when:
-	// - the selection changes
-	// - the shape changes
-	const forcePositionUpdateAtom = useAtom('force toolbar position update', 0)
+	const getSelectionBounds = useCallback(() => {
+		if (isEditingLink) {
+			// If we're editing a link we don't have selection bounds temporarily.
+			return previousSelectionBounds.current
+		}
+		// Get the text selection rects as a box. This will be undefined if there are no selections.
+		const selection = window.getSelection()
 
-	useEffect(
-		function forceUpdateWhenSelectionUpdates() {
-			function handleSelectionUpdate() {
-				forcePositionUpdateAtom.update((t) => t + 1)
-			}
-			// Run me once after a raf to force the toolbar position to update immediately.
-			// This is needed in order to capture a "select all" moment, e.g. when
-			// double clicking a geo shape to edit its text. We need the raf to let the selection occur.
-			tltime.requestAnimationFrame('first forced update', handleSelectionUpdate)
-			textEditor.on('selectionUpdate', handleSelectionUpdate)
-			return () => {
-				textEditor.off('selectionUpdate', handleSelectionUpdate)
-			}
-		},
-		[textEditor, forcePositionUpdateAtom]
-	)
+		// If there are no selections, don't return a box
+		if (!currentSelection || !selection || selection.rangeCount === 0 || selection.isCollapsed)
+			return
 
-	useReactor(
-		'shape change',
-		function forceUpdateOnNextFrameWhenShapeChanges() {
-			// Ok, this is crazy bullshit but here's what's happening:
-			// 1. the editing shape updates
-			// 2. the shape's position changes (maybe) based on its new size
-			// 3. we force an update
-			// 4. we update the toolbar position
-			// It's IMPORTANT that this is a normal "useReactor" and not a "useQuickReactor",
-			// so that the force update happens on the NEXT FRAME after the change. It takes a
-			// frame between 2 and 3 for the shape to update its position. If we don't wait, then
-			// we race the shape's position update and the measurement of the selection screen rects.
-			// If you really want to test this, try changing this to a "useQuickReactor", select a
-			// shape's text, and then use the style panel to change the shape's size.
+		// Get a common box from all of the ranges' screen rects
+		const rangeBoxes: Box[] = []
+		for (let i = 0; i < selection.rangeCount; i++) {
+			const range = selection.getRangeAt(i)
+			rangeBoxes.push(rectToBox(range.getBoundingClientRect()))
+		}
 
-			editor.getEditingShape() // capture the editing shape
-			forcePositionUpdateAtom.update((t) => t + 1)
-		},
-		[editor]
-	)
+		const bounds = Box.Common(rangeBoxes)
+		previousSelectionBounds.current = bounds
+		return bounds
+	}, [currentSelection, isEditingLink])
+
+	useEffect(() => {
+		const handleSelectionUpdate = ({ editor: textEditor }: TextEditorEvents['selectionUpdate']) =>
+			setCurrentSelection(textEditor.state.selection)
+		textEditor.on('selectionUpdate', handleSelectionUpdate)
+		return () => {
+			textEditor.off('selectionUpdate', handleSelectionUpdate)
+		}
+	}, [textEditor])
 
 	return (
 		<TldrawUiContextualToolbar
 			className="tlui-rich-text__toolbar"
 			getSelectionBounds={getSelectionBounds}
 			isMousingDown={isMousingDown}
-			forcePositionUpdateAtom={forcePositionUpdateAtom}
 			changeOnlyWhenYChanges={true}
 		>
 			{children ? (
@@ -114,23 +93,6 @@ function ContextualToolbarInner({
 			)}
 		</TldrawUiContextualToolbar>
 	)
-}
-
-function getSelectionBounds() {
-	// Get the text selection rects as a box. This will be undefined if there are no selections.
-	const selection = window.getSelection()
-
-	// If there are no selections, don't return a box
-	if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return
-
-	// Get a common box from all of the ranges' screen rects
-	const rangeBoxes: Box[] = []
-	for (let i = 0; i < selection.rangeCount; i++) {
-		const range = selection.getRangeAt(i)
-		rangeBoxes.push(rectToBox(range.getBoundingClientRect()))
-	}
-
-	return Box.Common(rangeBoxes)
 }
 
 function useEditingLinkBehavior(textEditor?: TiptapEditor) {
