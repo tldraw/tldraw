@@ -22,7 +22,7 @@ import { FileOpen } from './FileOpen'
 import { FullPageMessage } from './FullPageMessage'
 import { Links } from './Links'
 import { onCreateAssetFromUrl } from './utils/bookmarks'
-import { rpc } from './utils/rpc'
+import { registerExternalUrlContentHandler } from './utils/externalUrlContentHandler'
 import { vscode } from './utils/vscode'
 
 setRuntimeOverrides({
@@ -128,27 +128,7 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 
 	const handleMount = useCallback((editor: Editor) => {
 		editor.registerExternalAssetHandler('url', onCreateAssetFromUrl)
-		const currentFilesContentHandler = editor.externalContentHandlers['files']
-		const currentUrlContentHandler = editor.externalContentHandlers['url']
-		editor.registerExternalContentHandler('url', async (info) => {
-			// This happens when you shift drag a file from the file explorer to the editor
-			if (info.url.startsWith('file://')) {
-				// We cannot fetch the file directly since we are sandboxed, we have to ask the extension manager to get it for us
-				const data = await rpc('vscode:get-file', { url: info.url })
-
-				const uint8Array = new Uint8Array(data.file)
-				const blob = new Blob([uint8Array], { type: data.mimeType })
-				const file = new File([blob], data.fileName, { type: data.mimeType })
-				currentFilesContentHandler?.({
-					type: 'files',
-					files: [file],
-					ignoreParent: false,
-				})
-			} else {
-				// default logic if it's a regular url
-				currentUrlContentHandler?.(info)
-			}
-		})
+		registerExternalUrlContentHandler(editor)
 	}, [])
 
 	const licenseKey =
