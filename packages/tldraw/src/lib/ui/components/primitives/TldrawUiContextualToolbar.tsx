@@ -1,18 +1,21 @@
 import {
+	assert,
 	Atom,
 	Box,
 	clamp,
 	Editor,
+	react,
 	stopEventPropagation,
+	useAtom,
 	useEditor,
 	usePassThroughMouseOverEvents,
 	usePassThroughWheelEvents,
-	useQuickReactor,
 	useValue,
 	Vec,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 
 const MOVE_TIMEOUT = 150
 const HIDE_VISIBILITY_TIMEOUT = 16
@@ -60,16 +63,28 @@ export const TldrawUiContextualToolbar = ({
 	const rCouldShowToolbar = useRef(false)
 	const [hasValidToolbarPosition, setHasValidToolbarPosition] = useState(false)
 
-	useQuickReactor(
-		'toolbar position',
-		function updateToolbarPositionAndDisplay() {
+	const contentSizeUpdateCounter = useAtom('content size update counter', 0)
+
+	useEffect(() => {
+		assert(toolbarRef.current)
+		const observer = new ResizeObserver(() => {
+			contentSizeUpdateCounter.update((n) => n + 1)
+		})
+		observer.observe(toolbarRef.current)
+		return () => observer.disconnect()
+	}, [contentSizeUpdateCounter])
+
+	useEffect(() => {
+		let lastContentSizeUpdateCounter = contentSizeUpdateCounter.get()
+		return react('toolbar position', function updateToolbarPositionAndDisplay() {
 			const toolbarElm = toolbarRef.current
 			if (!toolbarElm) return
+
+			const nextContentSizeUpdateCounter = contentSizeUpdateCounter.get()
 
 			// capture / force this to update when...
 			editor.getCamera() // the camera moves
 			forcePositionUpdateAtom?.get() // the selection changes
-
 			// undefined here means that we can't show the toolbar due to an incompatible position
 			const position = getToolbarScreenPosition(editor, toolbarElm, getSelectionBounds)
 
@@ -82,31 +97,34 @@ export const TldrawUiContextualToolbar = ({
 					rCouldShowToolbar.current = false
 					setHasValidToolbarPosition(false)
 				}
-				return
-			}
-
-			// If the camera state is moving, we want to immediately update the position
-			// todo: consider hiding the toolbar while the camera is moving
-			const cameraState = editor.getCameraState()
-			if (cameraState === 'moving') {
-				// ...if we wanted this to avoid prematurely updating any positions, we'd need
-				// to have the last updated position in page space, so that we could convert
-				// it to screen space and update it here
-				const elm = toolbarRef.current
-				elm.style.setProperty('transform', `translate(${position.x}px, ${position.y}px)`)
 			} else {
-				// Schedule a move to its next location
-				move(position.x, position.y)
+				// If the camera state is moving, we want to immediately update the position
+				// todo: consider hiding the toolbar while the camera is moving
+				const cameraState = editor.getCameraState()
+				if (cameraState === 'moving') {
+					// ...if we wanted this to avoid prematurely updating any positions, we'd need
+					// to have the last updated position in page space, so that we could convert
+					// it to screen space and update it here
+					const elm = toolbarRef.current
+					elm.style.setProperty('transform', `translate(${position.x}px, ${position.y}px)`)
+				} else {
+					// if we're moving because the size of the toolbar content has changed, flush
+					// the move immediately instead of waiting for the timeout:
+					const moveImmediately = lastContentSizeUpdateCounter !== nextContentSizeUpdateCounter
+					// Schedule a move to its next location
+					move(position.x, position.y, moveImmediately)
+				}
+
+				// Finally, if the toolbar was previously hidden, show it again
+				if (!rCouldShowToolbar.current) {
+					rCouldShowToolbar.current = true
+					setHasValidToolbarPosition(true)
+				}
 			}
 
-			// Finally, if the toolbar was previously hidden, show it again
-			if (!rCouldShowToolbar.current) {
-				rCouldShowToolbar.current = true
-				setHasValidToolbarPosition(true)
-			}
-		},
-		[editor, forcePositionUpdateAtom, getSelectionBounds]
-	)
+			lastContentSizeUpdateCounter = nextContentSizeUpdateCounter
+		})
+	}, [editor, forcePositionUpdateAtom, getSelectionBounds, contentSizeUpdateCounter, move])
 
 	const cameraState = useValue('camera state', () => editor.getCameraState(), [editor])
 
@@ -267,7 +285,7 @@ export function useToolbarVisibilityStateMachine(changeOnlyWhenYChanges: boolean
 	 * If the state is 'shown', it will start a new timeout that will update the toolbar's position after it completes.
 	 */
 	const move = useCallback(
-		(x: number, y: number) => {
+		(x: number, y: number, immediate = false) => {
 			// Update the next proposed position
 			rNextPosition.current.x = x
 			rNextPosition.current.y = y
@@ -279,16 +297,27 @@ export function useToolbarVisibilityStateMachine(changeOnlyWhenYChanges: boolean
 			// When the timeout ends, if we're in the 'shown' state and the position has changed sufficiently
 			// from the last visible position, update the position.
 			clearTimeout(rStablePositionTimeout.current)
-			rStablePositionTimeout.current = editor.timers.setTimeout(() => {
+
+			const flushMove = () => {
 				if (
 					rState.current.name === 'shown' &&
 					sufficientlyDistant(rNextPosition.current, rCurrPosition.current, changeOnlyWhenYChanges)
 				) {
 					const { x, y } = rNextPosition.current
 					rCurrPosition.current = new Vec(x, y)
-					setPosition({ x, y })
+					if (immediate) {
+						flushSync(() => setPosition({ x, y }))
+					} else {
+						setPosition({ x, y })
+					}
 				}
-			}, MOVE_TIMEOUT)
+			}
+
+			if (immediate) {
+				flushMove()
+			} else {
+				rStablePositionTimeout.current = editor.timers.setTimeout(flushMove, MOVE_TIMEOUT)
+			}
 		},
 		[editor, changeOnlyWhenYChanges]
 	)

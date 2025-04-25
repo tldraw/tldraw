@@ -1,5 +1,5 @@
-import { Box, TLImageShape, track, useEditor, useQuickReactor, useValue } from '@tldraw/editor'
-import { useCallback, useEffect, useState } from 'react'
+import { Box, TLImageShape, track, useEditor, useValue } from '@tldraw/editor'
+import { useCallback, useState } from 'react'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { AltTextEditor } from './AltTextEditor'
 import { DefaultImageToolbarContent } from './DefaultImageToolbarContent'
@@ -41,75 +41,41 @@ function ContextualToolbarInner({
 	const isInCropTool = editorPath.startsWith('select.crop.')
 	const isCropping = editorPath === 'select.crop.cropping'
 	const [isEditingAltText, setIsEditingAltText] = useState(false)
-	const [isManipulating, setIsManipulating] = useState(false)
-	const [cachedManipulatingScreenBounds, setCachedManipulatingScreenBounds] = useState<
-		Box | undefined
-	>(undefined)
-	const [forceRerender, setForceReRender] = useState(0)
+
 	const handleEditAltTextStart = useCallback(() => {
 		setIsEditingAltText(true)
-		setForceReRender((n) => n + 1)
 	}, [])
 	const handleManipulatingStart = useCallback(() => {
-		setIsManipulating(true)
 		editor.setCurrentTool('select.crop.idle')
-		setForceReRender((n) => n + 1)
 	}, [editor])
 	const handleManipulatingEnd = useCallback(() => {
-		setIsManipulating(false)
 		editor.setCurrentTool('select.idle')
-		setForceReRender((n) => n + 1)
 	}, [editor])
 	const onEditAltTextComplete = useCallback(() => {
 		setIsEditingAltText(false)
-		setForceReRender((n) => n + 1)
 	}, [])
 
 	const getSelectionBounds = useCallback(() => {
 		const fullBounds = editor.getSelectionScreenBounds()
 		if (!fullBounds) return undefined
-		const bounds = new Box(fullBounds.x, fullBounds.y, fullBounds.width, 0)
+		return new Box(fullBounds.x, fullBounds.y, fullBounds.width, 0)
+	}, [editor])
 
-		// We cache the bounds because when manipulating it's annoying that the
-		// toolbar moves around, esp. when rotating.
-		if (isManipulating) {
-			if (!cachedManipulatingScreenBounds) {
-				setCachedManipulatingScreenBounds(bounds)
-			} else {
-				return cachedManipulatingScreenBounds
-			}
-		} else {
-			setCachedManipulatingScreenBounds(undefined)
-		}
-		return bounds
-	}, [editor, isManipulating, cachedManipulatingScreenBounds])
+	// useQuickReactor(
+	// 	'camera position',
+	// 	function updateToolbarPositionAndDisplay() {
+	// 		// capture / force this to update when the camera moves
+	// 		editor.getCamera()
+	// 	},
+	// 	[editor]
+	// )
 
-	useQuickReactor(
-		'camera position',
-		function updateToolbarPositionAndDisplay() {
-			// capture / force this to update when the camera moves
-			editor.getCamera()
-			setCachedManipulatingScreenBounds(undefined)
-		},
-		[editor]
-	)
-
-	useEffect(() => {
-		if (isInCropTool && !isManipulating) {
-			handleManipulatingStart()
-		}
-		if (!isInCropTool && isManipulating) {
-			handleManipulatingEnd()
-		}
-	}, [isInCropTool, editor, isManipulating, handleManipulatingStart, handleManipulatingEnd])
+	performance.mark('render DefaultImageToolbar')
 
 	if (isCropping) return null
 
 	return (
 		<TldrawUiContextualToolbar
-			// TODO: this is a little hack to force the toolbar to re-render when
-			// we go into crop mode.
-			key={forceRerender}
 			className="tlui-image__toolbar"
 			getSelectionBounds={getSelectionBounds}
 		>
@@ -124,7 +90,7 @@ function ContextualToolbarInner({
 			) : (
 				<DefaultImageToolbarContent
 					imageShape={imageShape}
-					isManipulating={isManipulating}
+					isManipulating={isInCropTool}
 					onEditAltTextStart={handleEditAltTextStart}
 					onManipulatingStart={handleManipulatingStart}
 					onManipulatingEnd={handleManipulatingEnd}
