@@ -112,7 +112,7 @@ export const TldrawUiContextualToolbar = ({
 					// the move immediately instead of waiting for the timeout:
 					const moveImmediately = lastContentSizeUpdateCounter !== nextContentSizeUpdateCounter
 					// Schedule a move to its next location
-					move(position.x, position.y, moveImmediately)
+					move(position.x, position.y, true /* moveImmediately */)
 				}
 
 				// Finally, if the toolbar was previously hidden, show it again
