@@ -61,17 +61,6 @@ function ContextualToolbarInner({
 		return new Box(fullBounds.x, fullBounds.y, fullBounds.width, 0)
 	}, [editor])
 
-	// useQuickReactor(
-	// 	'camera position',
-	// 	function updateToolbarPositionAndDisplay() {
-	// 		// capture / force this to update when the camera moves
-	// 		editor.getCamera()
-	// 	},
-	// 	[editor]
-	// )
-
-	performance.mark('render DefaultImageToolbar')
-
 	if (isCropping) return null
 
 	return (
