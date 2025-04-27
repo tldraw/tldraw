@@ -4,15 +4,17 @@ import { track } from '@vercel/analytics'
 import clsx from 'clsx'
 import Link from 'next/link'
 
-export function PricingButton({
-	tier,
-}: {
-	tier: {
-		id: string
-		type: 'secondary' | 'primary'
-		href: string
+export function PricingButton(
+	{
+		tier,
+	}: {
+		tier: {
+			id: string
+			type: 'secondary' | 'primary'
+			href: string
+		}
 	}
-}) {
+) {
 	return (
 		<Link
 			href={tier.href}

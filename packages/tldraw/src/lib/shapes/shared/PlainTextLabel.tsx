@@ -42,25 +42,27 @@ export interface PlainTextLabelProps {
  *
  * @public @react
  */
-export const PlainTextLabel = React.memo(function PlainTextLabel({
-	shapeId,
-	type,
-	text: plaintext,
-	labelColor,
-	font,
-	fontSize,
-	lineHeight,
-	align,
-	verticalAlign,
-	wrap,
-	isSelected,
-	padding = 0,
-	onKeyDown: handleKeyDownCustom,
-	classNamePrefix,
-	style,
-	textWidth,
-	textHeight,
-}: PlainTextLabelProps) {
+export const PlainTextLabel = React.memo(function PlainTextLabel(
+	{
+		shapeId,
+		type,
+		text: plaintext,
+		labelColor,
+		font,
+		fontSize,
+		lineHeight,
+		align,
+		verticalAlign,
+		wrap,
+		isSelected,
+		padding = 0,
+		onKeyDown: handleKeyDownCustom,
+		classNamePrefix,
+		style,
+		textWidth,
+		textHeight,
+	}: PlainTextLabelProps
+) {
 	const { rInput, isEmpty, isEditing, isReadyForEditing, ...editableTextRest } =
 		useEditablePlainText(shapeId, type, plaintext)
 

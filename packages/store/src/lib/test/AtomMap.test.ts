@@ -502,7 +502,7 @@ describe('AtomMap', () => {
 				['a', 1],
 				['b', 2],
 			])
-			const results: Array<[string, number]> = []
+			const results: Array = []
 			map.forEach((value, key) => {
 				results.push([key, value])
 			})
@@ -518,7 +518,7 @@ describe('AtomMap', () => {
 				['b', 2],
 			])
 			map.delete('a')
-			const results: Array<[string, number]> = []
+			const results: Array = []
 			map.forEach((value, key) => {
 				results.push([key, value])
 			})
@@ -528,7 +528,7 @@ describe('AtomMap', () => {
 		it('should react to changes', () => {
 			const map = new AtomMap('test', [['a', 1]])
 			const reactor = testReactor('test', () => {
-				const current: Array<[string, number]> = []
+				const current: Array = []
 				map.forEach((value, key) => {
 					current.push([key, value])
 				})

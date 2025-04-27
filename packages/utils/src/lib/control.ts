@@ -11,14 +11,14 @@ export interface ErrorResult<E> {
 	readonly error: E
 }
 /** @public */
-export type Result<T, E> = OkResult<T> | ErrorResult<E>
+export type Result<T, E> = OkResult | ErrorResult
 
 /** @public */
 export const Result = {
-	ok<T>(value: T): OkResult<T> {
+	ok<T>(value: T): OkResult {
 		return { ok: true, value }
 	},
-	err<E>(error: E): ErrorResult<E> {
+	err<E>(error: E): ErrorResult {
 		return { ok: false, error }
 	},
 }
@@ -40,16 +40,16 @@ export const assert: (value: unknown, message?: string) => asserts value = omitF
 )
 
 /** @internal */
-export const assertExists = omitFromStackTrace(<T>(value: T, message?: string): NonNullable<T> => {
+export const assertExists = omitFromStackTrace(<T>(value: T, message?: string): NonNullable => {
 	// note that value == null is equivalent to value === null || value === undefined
 	if (value == null) {
 		throw new Error(message ?? 'value must be defined')
 	}
-	return value as NonNullable<T>
+	return value as NonNullable
 })
 
 /** @internal */
-export function promiseWithResolve<T>(): Promise<T> & {
+export function promiseWithResolve<T>(): Promise & {
 	resolve(value: T): void
 	reject(reason?: any): void
 } {
@@ -66,7 +66,7 @@ export function promiseWithResolve<T>(): Promise<T> & {
 }
 
 /** @internal */
-export function sleep(ms: number): Promise<void> {
+export function sleep(ms: number): Promise {
 	// eslint-disable-next-line no-restricted-globals
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }

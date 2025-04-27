@@ -11,8 +11,8 @@ import { TLResizeInfo } from '../ShapeUtil'
  *
  * @public */
 export function resizeScaled(
-	shape: TLBaseShape<any, { scale: number }>,
-	{ initialBounds, scaleX, scaleY, newPoint, handle }: TLResizeInfo<any>
+	shape: TLBaseShape,
+	{ initialBounds, scaleX, scaleY, newPoint, handle }: TLResizeInfo
 ) {
 	let scaleDelta: number
 	switch (handle) {

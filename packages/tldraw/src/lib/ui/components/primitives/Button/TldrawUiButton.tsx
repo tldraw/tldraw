@@ -2,7 +2,7 @@ import classnames from 'classnames'
 import * as React from 'react'
 
 /** @public */
-export interface TLUiButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
+export interface TLUiButtonProps extends React.HTMLAttributes {
 	disabled?: boolean
 	isActive?: boolean
 	type: 'normal' | 'primary' | 'danger' | 'low' | 'icon' | 'tool' | 'menu' | 'help'

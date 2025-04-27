@@ -29,7 +29,7 @@ export function createPostgresConnectionPool(env: Environment, name: string, max
 	return db
 }
 
-export function makePostgresConnector(env: Environment): PostgresSQL<any> {
+export function makePostgresConnector(env: Environment): PostgresSQL {
 	const pool = new pg.Pool({
 		connectionString: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 		application_name: 'zero-pg',
@@ -38,16 +38,16 @@ export function makePostgresConnector(env: Environment): PostgresSQL<any> {
 	})
 
 	return {
-		async unsafe(sqlString: string, params: unknown[]): Promise<any[]> {
+		async unsafe(sqlString: string, params: unknown[]): Promise {
 			const res = await pool.query(sqlString, params)
 			return res.rows
 		},
-		async begin(fn: (tx: PostgresTransaction) => Promise<any>): Promise<any> {
+		async begin(fn: (tx: PostgresTransaction) => Promise): Promise {
 			const client = await pool.connect()
 			try {
 				await client.query('BEGIN')
 				const res = await fn({
-					async unsafe(sqlString: string, params: unknown[]): Promise<any[]> {
+					async unsafe(sqlString: string, params: unknown[]): Promise {
 						const res = await client.query(sqlString, params)
 						return res.rows
 					},

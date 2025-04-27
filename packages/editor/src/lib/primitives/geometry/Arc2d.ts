@@ -18,7 +18,7 @@ export class Arc2d extends Geometry2d {
 	angleEnd: number
 
 	constructor(
-		config: Omit<Geometry2dOptions, 'isFilled' | 'isClosed'> & {
+		config: Omit & {
 			center: Vec
 			start: Vec
 			end: Vec
@@ -91,7 +91,9 @@ export class Arc2d extends Geometry2d {
 
 	getSvgPathData(first = true) {
 		const { start, end, radius, largeArcFlag, sweepFlag } = this
-		return `${first ? `M${start.toFixed()}` : ``} A${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${end.toFixed()}`
+		return `${
+			first ? `M${start.toFixed()}` : ``
+		} A${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${end.toFixed()}`
 	}
 
 	override getLength() {

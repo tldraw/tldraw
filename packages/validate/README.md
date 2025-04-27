@@ -7,7 +7,7 @@ These are especially useful when used in conjunction with our shapes to validate
 For example, for [TLImageShape](https://github.com/tldraw/tldraw/blob/main/packages/tlschema/src/shapes/TLImageShape.ts) we have the following to help make sure the properties on a shape are consistent:
 
 ```tsx
-export const imageShapeProps: RecordProps<TLImageShape> = {
+export const imageShapeProps: RecordProps = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	playing: T.boolean,

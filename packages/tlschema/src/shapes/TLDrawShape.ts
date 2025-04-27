@@ -15,7 +15,7 @@ export interface TLDrawShapeSegment {
 }
 
 /** @public */
-export const DrawShapeSegment: T.ObjectValidator<TLDrawShapeSegment> = T.object({
+export const DrawShapeSegment: T.ObjectValidator = T.object({
 	type: T.literalEnum('free', 'straight'),
 	points: T.arrayOf(vecModelValidator),
 })
@@ -34,10 +34,10 @@ export interface TLDrawShapeProps {
 }
 
 /** @public */
-export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
+export type TLDrawShape = TLBaseShape
 
 /** @public */
-export const drawShapeProps: RecordProps<TLDrawShape> = {
+export const drawShapeProps: RecordProps = {
 	color: DefaultColorStyle,
 	fill: DefaultFillStyle,
 	dash: DefaultDashStyle,

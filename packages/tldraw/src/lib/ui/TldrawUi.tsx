@@ -50,13 +50,9 @@ export interface TldrawUiProps extends TLUiContextProviderProps {
  * @public
  * @react
  */
-export const TldrawUi = React.memo(function TldrawUi({
-	renderDebugMenuItems,
-	children,
-	hideUi,
-	components,
-	...rest
-}: TldrawUiProps) {
+export const TldrawUi = React.memo(function TldrawUi(
+	{ renderDebugMenuItems, children, hideUi, components, ...rest }: TldrawUiProps
+) {
 	return (
 		<TldrawUiContextProvider {...rest} components={components}>
 			<TldrawUiInner hideUi={hideUi} renderDebugMenuItems={renderDebugMenuItems}>
@@ -73,11 +69,9 @@ interface TldrawUiContentProps {
 	renderDebugMenuItems?(): React.ReactNode
 }
 
-const TldrawUiInner = React.memo(function TldrawUiInner({
-	children,
-	hideUi,
-	...rest
-}: TldrawUiContentProps & { children: ReactNode }) {
+const TldrawUiInner = React.memo(function TldrawUiInner(
+	{ children, hideUi, ...rest }: TldrawUiContentProps & { children: ReactNode }
+) {
 	// The hideUi prop should prevent the UI from mounting.
 	// If we ever need want the UI to mount and preserve state, then
 	// we should change this behavior and hide the UI via CSS instead.

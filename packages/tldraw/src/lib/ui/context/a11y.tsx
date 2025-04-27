@@ -13,7 +13,7 @@ export interface TLUiA11y {
 /** @public */
 export interface TLUiA11yContextType {
 	announce(msg: TLUiA11y): void
-	currentMsg: Atom<TLUiA11y>
+	currentMsg: Atom
 }
 
 /** @internal */

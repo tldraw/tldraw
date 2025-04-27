@@ -8,10 +8,7 @@ const rootUrl = 'http://localhost:3000/'
 export class HomePage {
 	public readonly signInButton: Locator
 	public readonly tldrawEditor: Locator
-	constructor(
-		private readonly page: Page,
-		private readonly editor: Editor
-	) {
+	constructor(private readonly page: Page, private readonly editor: Editor) {
 		this.signInButton = this.page.getByText('Sign in')
 		this.tldrawEditor = this.page.getByTestId('tla-editor')
 	}

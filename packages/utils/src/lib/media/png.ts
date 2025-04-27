@@ -10,7 +10,7 @@ interface CRCCalculator<T = BufferInput | Uint8Array> {
 	(value: T, previous?: number): number
 }
 
-let TABLE: Array<number> | Int32Array = [
+let TABLE: Array | Int32Array = [
 	0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3,
 	0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988, 0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91,
 	0x1db71064, 0x6ab020f2, 0xf3b97148, 0x84be41de, 0x1adad47d, 0x6ddde4eb, 0xf4d4b551, 0x83d385c7,
@@ -49,7 +49,7 @@ if (typeof Int32Array !== 'undefined') {
 	TABLE = new Int32Array(TABLE)
 }
 
-const crc: CRCCalculator<Uint8Array> = (current, previous) => {
+const crc: CRCCalculator = (current, previous) => {
 	let crc = previous === 0 ? 0 : ~~previous! ^ -1
 
 	for (let index = 0; index < current.length; index++) {
@@ -90,7 +90,7 @@ export class PngHelpers {
 	}
 
 	static readChunks(view: DataView, offset = 0) {
-		const chunks: Record<string, { dataOffset: number; size: number; start: number }> = {}
+		const chunks: Record = {}
 		if (!PngHelpers.isPng(view, offset)) {
 			throw new Error('Not a PNG')
 		}

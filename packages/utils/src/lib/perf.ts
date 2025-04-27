@@ -57,7 +57,9 @@ export function measureAverageDuration(
 			averages.set(descriptor.value, { total, count })
 			// eslint-disable-next-line no-console
 			console.debug(
-				`%cPerf%c ${propertyKey} took ${(end - start).toFixed(2)}ms | average ${(total / count).toFixed(2)}ms`,
+				`%cPerf%c ${propertyKey} took ${(end - start).toFixed(2)}ms | average ${(
+					total / count
+				).toFixed(2)}ms`,
 				`color: white; background: ${PERFORMANCE_PREFIX_COLOR};padding: 2px;border-radius: 3px;`,
 				'font-weight: normal'
 			)

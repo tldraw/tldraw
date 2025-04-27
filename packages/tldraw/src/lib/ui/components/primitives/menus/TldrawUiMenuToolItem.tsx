@@ -4,7 +4,7 @@ import { TldrawUiMenuItem, TLUiMenuItemProps } from './TldrawUiMenuItem'
 /** @public */
 export type TLUiMenuToolItemProps = {
 	toolId?: string
-} & Pick<TLUiMenuItemProps, 'isSelected' | 'disabled'>
+} & Pick
 
 /** @public @react */
 export function TldrawUiMenuToolItem({ toolId = '', ...rest }: TLUiMenuToolItemProps) {

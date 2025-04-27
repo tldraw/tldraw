@@ -1,7 +1,7 @@
 import { TLBindingUtilConstructor } from '../editor/bindings/BindingUtil'
 
 /** @public */
-export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor<any>
+export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor
 
 export function checkBindings(customBindings: readonly TLAnyBindingUtilConstructor[]) {
 	const bindings = [] as TLAnyBindingUtilConstructor[]

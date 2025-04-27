@@ -4,7 +4,7 @@ import { TldrawUiMenuItem, type TLUiMenuItemProps } from './TldrawUiMenuItem'
 /** @public */
 export type TLUiMenuActionItemProps = {
 	actionId?: string
-} & Partial<Pick<TLUiMenuItemProps, 'disabled' | 'isSelected' | 'noClose' | 'onSelect'>>
+} & Partial
 
 /** @public @react */
 export function TldrawUiMenuActionItem({ actionId = '', ...rest }: TLUiMenuActionItemProps) {

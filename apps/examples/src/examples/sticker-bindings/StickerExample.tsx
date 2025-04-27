@@ -26,13 +26,13 @@ import {
 import 'tldraw/tldraw.css'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-type StickerShape = TLBaseShape<'sticker', {}>
+type StickerShape = TLBaseShape
 
 const offsetX = -16
 const offsetY = -26
-class StickerShapeUtil extends ShapeUtil<StickerShape> {
+class StickerShapeUtil extends ShapeUtil {
 	static override type = 'sticker' as const
-	static override props: RecordProps<StickerShape> = {}
+	static override props: RecordProps = {}
 
 	override getDefaultProps() {
 		return {}
@@ -124,13 +124,8 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 	}
 }
 
-type StickerBinding = TLBaseBinding<
-	'sticker',
-	{
-		anchor: VecModel
-	}
->
-class StickerBindingUtil extends BindingUtil<StickerBinding> {
+type StickerBinding = TLBaseBinding
+class StickerBindingUtil extends BindingUtil {
 	static override type = 'sticker' as const
 
 	override getDefaultProps() {
@@ -140,10 +135,7 @@ class StickerBindingUtil extends BindingUtil<StickerBinding> {
 	}
 
 	// when the shape we're stuck to changes, update the sticker's position
-	override onAfterChangeToShape({
-		binding,
-		shapeAfter,
-	}: BindingOnShapeChangeOptions<StickerBinding>): void {
+	override onAfterChangeToShape({ binding, shapeAfter }: BindingOnShapeChangeOptions): void {
 		const sticker = this.editor.getShape<StickerShape>(binding.fromId)!
 
 		const shapeBounds = this.editor.getShapeGeometry(shapeAfter)!.bounds
@@ -167,7 +159,7 @@ class StickerBindingUtil extends BindingUtil<StickerBinding> {
 	}
 
 	// when the thing we're stuck to is deleted, delete the sticker too
-	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<StickerBinding>): void {
+	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions): void {
 		this.editor.deleteShape(binding.fromId)
 	}
 }

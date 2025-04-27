@@ -33,7 +33,7 @@ export function doesClipboardSupportType(mimeType: string): boolean {
 	)
 }
 
-export function clipboardWrite(types: Record<string, Promise<Blob>>): Promise<void> {
+export function clipboardWrite(types: Record): Promise {
 	// Note:  it's important that this function itself isn't async and doesn't really use promises -
 	// we need to create the relevant `ClipboardItem`s and call navigator.clipboard.write
 	// synchronously to make sure safari knows that the user _wants_ to copy See

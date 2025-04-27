@@ -16,7 +16,7 @@ export const RTL_LANGUAGES = new Set(['ar', 'fa', 'he', 'ur', 'ku'])
 export interface TLUiTranslation {
 	readonly locale: string
 	readonly label: string
-	readonly messages: Record<TLUiTranslationKey, string>
+	readonly messages: Record
 	readonly dir: 'rtl' | 'ltr'
 }
 
@@ -31,7 +31,7 @@ const EN_TRANSLATION: TLUiTranslation = {
 export async function fetchTranslation(
 	locale: TLUiTranslation['locale'],
 	assetUrls: TLUiAssetUrls
-): Promise<TLUiTranslation> {
+): Promise {
 	const mainRes = await fetch(assetUrls.translations.en)
 
 	if (!mainRes.ok) {

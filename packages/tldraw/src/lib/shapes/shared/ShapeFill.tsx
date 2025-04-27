@@ -17,13 +17,9 @@ interface ShapeFillProps {
 	scale: number
 }
 
-export const ShapeFill = React.memo(function ShapeFill({
-	theme,
-	d,
-	color,
-	fill,
-	scale,
-}: ShapeFillProps) {
+export const ShapeFill = React.memo(function ShapeFill(
+	{ theme, d, color, fill, scale }: ShapeFillProps
+) {
 	switch (fill) {
 		case 'none': {
 			return null
@@ -59,8 +55,8 @@ export function PatternFill({ d, color, theme }: ShapeFillProps) {
 					svgExport
 						? `url(#${getHashPatternZoomName(1, theme.id)})`
 						: teenyTiny
-							? theme[color].semi
-							: `url(#${getHashPatternZoomName(zoomLevel, theme.id)})`
+						? theme[color].semi
+						: `url(#${getHashPatternZoomName(zoomLevel, theme.id)})`
 				}
 				d={d}
 			/>

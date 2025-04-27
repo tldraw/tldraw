@@ -16,7 +16,7 @@ import { nicelog } from './lib/nicelog'
 // We'll need to copy the assets into these folders
 const PUBLIC_FOLDER_PATHS = [join(REPO_ROOT, 'packages', 'assets')]
 
-const FONT_MAPPING: Record<string, string> = {
+const FONT_MAPPING: Record = {
 	'IBMPlexMono-Medium': 'tldraw_mono',
 	'IBMPlexMono-MediumItalic': 'tldraw_mono_italic',
 	'IBMPlexMono-Bold': 'tldraw_mono_bold',
@@ -38,10 +38,7 @@ const FONT_MAPPING: Record<string, string> = {
 const ASSETS_FOLDER_PATH = join(REPO_ROOT, 'assets')
 const DOTCOM_FOLDER_PATH = join(REPO_ROOT, 'apps', 'dotcom')
 
-const collectedAssetUrls: Record<
-	'fonts' | 'icons' | 'translations' | 'embedIcons',
-	Record<string, { file: string; hash?: string }>
-> = {
+const collectedAssetUrls: Record = {
 	fonts: {},
 	icons: {},
 	translations: {},
@@ -438,7 +435,7 @@ async function writeUrlBasedAssetDeclarationFile() {
 async function writeImportBasedAssetDeclarationFile(
 	importSuffix: string,
 	fileName: string
-): Promise<void> {
+): Promise {
 	const codeFile = new CodeFile(`
 		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 		/// <reference path="./modules.d.ts" />
@@ -475,7 +472,7 @@ async function writeImportBasedAssetDeclarationFile(
 	)
 }
 
-async function writeSelfHostedAssetDeclarationFile(): Promise<void> {
+async function writeSelfHostedAssetDeclarationFile(): Promise {
 	const codeFilePath = join(REPO_ROOT, 'packages', 'assets', 'selfHosted.js')
 	const codeFile = new CodeFile(`
 		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
@@ -667,10 +664,7 @@ class CodeFile extends Code {
 }
 
 class CodeFunction extends Code {
-	constructor(
-		private file: CodeFile,
-		private header: string
-	) {
+	constructor(private file: CodeFile, private header: string) {
 		super()
 	}
 

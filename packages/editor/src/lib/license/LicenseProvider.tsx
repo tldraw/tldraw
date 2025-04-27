@@ -8,13 +8,9 @@ export const LicenseContext = createContext({} as LicenseManager)
 export const useLicenseContext = () => useContext(LicenseContext)
 
 /** @internal */
-export function LicenseProvider({
-	licenseKey,
-	children,
-}: {
-	licenseKey?: string
-	children: ReactNode
-}) {
+export function LicenseProvider(
+	{ licenseKey, children }: { licenseKey?: string; children: ReactNode }
+) {
 	const [licenseManager] = useState(() => new LicenseManager(licenseKey))
 	return <LicenseContext.Provider value={licenseManager}>{children}</LicenseContext.Provider>
 }

@@ -2,19 +2,11 @@ import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, TLBaseShape } from 'tl
 
 // There's a guide at the bottom of this file!
 
-type IMyInteractiveShape = TLBaseShape<
-	'my-interactive-shape',
-	{
-		w: number
-		h: number
-		checked: boolean
-		text: string
-	}
->
+type IMyInteractiveShape = TLBaseShape
 
-export class myInteractiveShape extends BaseBoxShapeUtil<IMyInteractiveShape> {
+export class myInteractiveShape extends BaseBoxShapeUtil {
 	static override type = 'my-interactive-shape' as const
-	static override props: RecordProps<IMyInteractiveShape> = {
+	static override props: RecordProps = {
 		w: T.number,
 		h: T.number,
 		checked: T.boolean,

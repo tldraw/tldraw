@@ -26,12 +26,9 @@ export class TldrawDurableObject {
 	private roomId: string | null = null
 	// when we load the room from the R2 bucket, we keep it here. it's a promise so we only ever
 	// load it once.
-	private roomPromise: Promise<TLSocketRoom<TLRecord, void>> | null = null
+	private roomPromise: Promise | null = null
 
-	constructor(
-		private readonly ctx: DurableObjectState,
-		env: Environment
-	) {
+	constructor(private readonly ctx: DurableObjectState, env: Environment) {
 		this.r2 = env.TLDRAW_BUCKET
 
 		ctx.blockConcurrencyWhile(async () => {
@@ -57,12 +54,12 @@ export class TldrawDurableObject {
 		})
 
 	// `fetch` is the entry point for all requests to the Durable Object
-	fetch(request: Request): Response | Promise<Response> {
+	fetch(request: Request): Response | Promise {
 		return this.router.fetch(request)
 	}
 
 	// what happens when someone tries to connect to this room?
-	async handleConnect(request: IRequest): Promise<Response> {
+	async handleConnect(request: IRequest): Promise {
 		// extract query params from request
 		const sessionId = request.query.sessionId as string
 		if (!sessionId) return error(400, 'Missing sessionId')

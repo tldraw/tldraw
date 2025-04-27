@@ -1,30 +1,32 @@
 import { BisectButton } from './BisectButton'
 
-export function PrItem({
-	done,
-	bisectStarted,
-	bothMarked,
-	index,
-	badPrIndex,
-	currentIndex,
-	goodPrIndex,
-	setBadPrIndex,
-	setGoodPrIndex,
-	showAll,
-	prNumber,
-}: {
-	done: boolean
-	bisectStarted: boolean
-	bothMarked: boolean
-	index: number
-	badPrIndex: number | null
-	currentIndex: number | null
-	goodPrIndex: number | null
-	setBadPrIndex(index: number): void
-	setGoodPrIndex(index: number): void
-	showAll: boolean
-	prNumber: number
-}) {
+export function PrItem(
+	{
+		done,
+		bisectStarted,
+		bothMarked,
+		index,
+		badPrIndex,
+		currentIndex,
+		goodPrIndex,
+		setBadPrIndex,
+		setGoodPrIndex,
+		showAll,
+		prNumber,
+	}: {
+		done: boolean
+		bisectStarted: boolean
+		bothMarked: boolean
+		index: number
+		badPrIndex: number | null
+		currentIndex: number | null
+		goodPrIndex: number | null
+		setBadPrIndex(index: number): void
+		setGoodPrIndex(index: number): void
+		showAll: boolean
+		prNumber: number
+	}
+) {
 	const isCurrent = index === currentIndex
 	const isGood = index === goodPrIndex
 	const isBad = index === badPrIndex

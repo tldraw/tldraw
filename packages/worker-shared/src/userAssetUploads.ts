@@ -2,17 +2,19 @@ import { R2Bucket } from '@cloudflare/workers-types'
 import { IRequest } from 'itty-router'
 import { notFound } from './errors'
 
-export async function handleUserAssetUpload({
-	body,
-	headers,
-	bucket,
-	objectName,
-}: {
-	objectName: string
-	bucket: R2Bucket
-	body: ReadableStream | null
-	headers: Headers
-}): Promise<Response> {
+export async function handleUserAssetUpload(
+	{
+		body,
+		headers,
+		bucket,
+		objectName,
+	}: {
+		objectName: string
+		bucket: R2Bucket
+		body: ReadableStream | null
+		headers: Headers
+	}
+): Promise {
 	if (await bucket.head(objectName)) {
 		return Response.json({ error: 'Asset already exists' }, { status: 409 })
 	}
@@ -24,17 +26,19 @@ export async function handleUserAssetUpload({
 	return Response.json({ object: objectName }, { headers: { etag: object.httpEtag } })
 }
 
-export async function handleUserAssetGet({
-	request,
-	bucket,
-	objectName,
-	context,
-}: {
-	request: IRequest
-	bucket: R2Bucket
-	objectName: string
-	context: ExecutionContext
-}): Promise<Response> {
+export async function handleUserAssetGet(
+	{
+		request,
+		bucket,
+		objectName,
+		context,
+	}: {
+		request: IRequest
+		bucket: R2Bucket
+		objectName: string
+		context: ExecutionContext
+	}
+): Promise {
 	// this cache automatically handles range responses etc.
 	const cacheKey = new Request(request.url, { headers: request.headers })
 	const cachedResponse = await caches.default.match(cacheKey)

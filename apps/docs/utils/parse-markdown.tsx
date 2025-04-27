@@ -64,7 +64,7 @@ export function parseMarkdown(
 } {
 	// the headings found so far. we start with a dummy heading at the beginning to hold the initial
 	// content text, but we'll remove it at the end.
-	const headings: Omit<ParsedHeading, 'slug'>[] = [
+	const headings: Omit[] = [
 		{
 			level: 0,
 			title: '',

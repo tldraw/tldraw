@@ -8,7 +8,7 @@
  *
  * @internal
  */
-export function omitFromStackTrace<Args extends Array<unknown>, Return>(
+export function omitFromStackTrace<Args extends Array, Return>(
 	fn: (...args: Args) => Return
 ): (...args: Args) => Return {
 	const wrappedFn = (...args: Args) => {

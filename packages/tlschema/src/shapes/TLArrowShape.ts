@@ -42,7 +42,7 @@ export const ArrowShapeArrowheadEndStyle = StyleProp.defineEnum('tldraw:arrowhea
 })
 
 /** @public */
-export type TLArrowShapeArrowheadStyle = T.TypeOf<typeof ArrowShapeArrowheadStartStyle>
+export type TLArrowShapeArrowheadStyle = T.TypeOf
 
 /** @public */
 export interface TLArrowShapeProps {
@@ -63,10 +63,10 @@ export interface TLArrowShapeProps {
 }
 
 /** @public */
-export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>
+export type TLArrowShape = TLBaseShape
 
 /** @public */
-export const arrowShapeProps: RecordProps<TLArrowShape> = {
+export const arrowShapeProps: RecordProps = {
 	labelColor: DefaultLabelColorStyle,
 	color: DefaultColorStyle,
 	fill: DefaultFillStyle,
@@ -164,7 +164,7 @@ export const arrowShapeMigrations = createMigrationSequence({
 					// new type:
 					| { type?: undefined; x: number; y: number }
 
-				type OldArrow = TLBaseShape<'arrow', { start: OldArrowTerminal; end: OldArrowTerminal }>
+				type OldArrow = TLBaseShape
 
 				const arrows = Object.values(oldStore).filter(
 					(r: any): r is OldArrow => r.typeName === 'shape' && r.type === 'arrow'

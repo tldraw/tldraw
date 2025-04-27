@@ -11,7 +11,7 @@ export class ArraySet<T> {
 
 	private array: (T | undefined)[] | null = Array(ARRAY_SIZE_THRESHOLD)
 
-	private set: Set<T> | null = null
+	private set: Set | null = null
 
 	/**
 	 * Get whether this ArraySet has any elements.

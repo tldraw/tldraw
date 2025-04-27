@@ -16,10 +16,9 @@ export interface DefaultRichTextToolbarContentProps {
  *
  * @public @react
  */
-export function DefaultRichTextToolbarContent({
-	textEditor,
-	onEditLinkStart,
-}: DefaultRichTextToolbarContentProps) {
+export function DefaultRichTextToolbarContent(
+	{ textEditor, onEditLinkStart }: DefaultRichTextToolbarContentProps
+) {
 	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 	const source = 'rich-text-menu'
@@ -87,7 +86,7 @@ export function DefaultRichTextToolbarContent({
 						onSelect() {
 							onEditLinkStart()
 						},
-					}
+				  }
 				: undefined, // ? is this really optional?
 			{
 				name: 'bulletList',

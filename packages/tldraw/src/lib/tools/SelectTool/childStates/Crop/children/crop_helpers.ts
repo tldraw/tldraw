@@ -37,7 +37,7 @@ export function getTranslateCroppedImageChange(editor: Editor, shape: ShapeWithC
 	newCrop.bottomRight.x = newCrop.topLeft.x + xCrop
 	newCrop.bottomRight.y = newCrop.topLeft.y + yCrop
 
-	const partial: TLShapePartial<typeof shape> = {
+	const partial: TLShapePartial = {
 		id: shape.id,
 		type: shape.type,
 		props: {

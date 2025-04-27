@@ -12,6 +12,6 @@ declare namespace React {
 }
 
 declare module '*.svg' {
-	const content: React.FunctionComponent<React.SVGAttributes<SVGElement>>
+	const content: React.FunctionComponent
 	export default content
 }

@@ -5,7 +5,7 @@ import { assertNever } from '../helpers'
 import { advanceGlobalEpoch, getGlobalEpoch, transact, transaction } from '../transactions'
 import { RESET_VALUE, Signal } from '../types'
 
-function getLastCheckedEpoch(derivation: Computed<any>): number {
+function getLastCheckedEpoch(derivation: Computed): number {
 	return (derivation as any).lastCheckedEpoch
 }
 
@@ -337,9 +337,9 @@ type Difference =
 	| { type: 'REMOVE'; path: string[]; oldValue: any }
 
 function getIncrementalRecordMapper<In, Out>(
-	obj: Signal<Record<string, In>, Difference[]>,
+	obj: Signal,
 	mapper: (t: In, k: string) => Out
-): Computed<Record<string, Out>> {
+): Computed {
 	function computeFromScratch() {
 		const input = obj.get()
 		return Object.fromEntries(Object.entries(input).map(([k, v]) => [k, mapper(v, k)]))
@@ -358,7 +358,7 @@ function getIncrementalRecordMapper<In, Out>(
 
 		const newUpstream = obj.get()
 
-		const result = { ...previousValue } as Record<string, Out>
+		const result = { ...previousValue } as Record
 
 		const changedKeys = new Set<string>()
 		for (const change of diff.flat()) {
@@ -392,7 +392,7 @@ function getIncrementalRecordMapper<In, Out>(
 
 describe('incremental derivations', () => {
 	it('should be possible', () => {
-		type NumberMap = Record<string, number>
+		type NumberMap = Record
 
 		const nodes = atom<NumberMap, Difference[]>(
 			'',

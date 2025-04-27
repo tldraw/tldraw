@@ -4,7 +4,7 @@ import { createRecordType } from '../RecordType'
 import { Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
 
-interface Author extends BaseRecord<'author', RecordId<Author>> {
+interface Author extends BaseRecord {
 	name: string
 	age: number
 }
@@ -22,9 +22,9 @@ const Author = createRecordType<Author>('author', {
 	scope: 'document',
 }).withDefaultProperties(() => ({ age: 23 }))
 
-interface Book extends BaseRecord<'book', RecordId<Book>> {
+interface Book extends BaseRecord {
 	title: string
-	authorId: RecordId<Author>
+	authorId: RecordId
 }
 const Book = createRecordType<Book>('book', {
 	validator: {
@@ -56,7 +56,7 @@ const books = {
 	farenheit: Book.create({ title: 'Farenheit 451', authorId: authors.bradbury.id }),
 }
 
-let store: Store<Author | Book>
+let store: Store
 
 beforeEach(() => {
 	store = new Store({

@@ -20,10 +20,10 @@ export class RandomSource {
 
 	randomAction<Result>(
 		// eslint-disable-next-line @typescript-eslint/method-signature-style
-		choices: Array<(() => Result) | { weight: number; do: () => any }>,
+		choices: Array,
 		randomWeights?: boolean
 	): Result {
-		type Choice = (typeof choices)[number]
+		type Choice = typeof choices[number]
 		const getWeightFromChoice = (choice: Choice) =>
 			'weight' in choice ? choice.weight : randomWeights ? this.randomInt(0, 10) : 1
 		const weights = choices.map(getWeightFromChoice)

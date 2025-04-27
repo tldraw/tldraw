@@ -9,13 +9,15 @@ export const messages = defineMessages({
 	share: { defaultMessage: 'Share' },
 })
 
-export function TlaSignedOutShareButton({
-	fileId,
-	context,
-}: {
-	fileId?: string
-	context: 'file' | 'published-file' | 'scratch' | 'legacy'
-}) {
+export function TlaSignedOutShareButton(
+	{
+		fileId,
+		context,
+	}: {
+		fileId?: string
+		context: 'file' | 'published-file' | 'scratch' | 'legacy'
+	}
+) {
 	const trackEvent = useTldrawAppUiEvents()
 	const shareLbl = useMsg(messages.share)
 

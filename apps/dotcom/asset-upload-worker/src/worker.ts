@@ -14,7 +14,7 @@ import { Environment } from './types'
 
 const { preflight, corsify } = cors({ origin: '*' })
 
-export default class Worker extends WorkerEntrypoint<Environment> {
+export default class Worker extends WorkerEntrypoint {
 	readonly router = createRouter<Environment>()
 		.all('*', preflight)
 		.get('/uploads/:objectName', async (request) => {

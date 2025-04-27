@@ -24,11 +24,7 @@ export interface ExportAsOptions extends TLImageExportOptions {
  *
  * @public
  */
-export async function exportAs(
-	editor: Editor,
-	ids: TLShapeId[],
-	opts: ExportAsOptions
-): Promise<void>
+export async function exportAs(editor: Editor, ids: TLShapeId[], opts: ExportAsOptions): Promise
 /**
  * @deprecated The format & name parameters are now part of the opts object.
  * @public
@@ -39,20 +35,20 @@ export async function exportAs(
 	format?: TLExportType,
 	name?: string,
 	opts?: TLImageExportOptions
-): Promise<void>
+): Promise
 export async function exportAs(
 	...args:
 		| [
 				editor: Editor,
 				ids: TLShapeId[],
-				opts: TLImageExportOptions & { format: TLExportType; name?: string },
+				opts: TLImageExportOptions & { format: TLExportType; name?: string }
 		  ]
 		| [
 				editor: Editor,
 				ids: TLShapeId[],
 				format?: TLExportType,
 				name?: string,
-				opts?: TLImageExportOptions,
+				opts?: TLImageExportOptions
 		  ]
 ) {
 	const [editor, ids, opts] =

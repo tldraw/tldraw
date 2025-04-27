@@ -19,9 +19,9 @@ const houseShapeProps = {
 	h: T.number,
 }
 
-type HouseShapeProps = RecordPropsType<typeof houseShapeProps>
-type HouseShape = TLBaseShape<'house', HouseShapeProps>
-class HouseShapeUtil extends ShapeUtil<HouseShape> {
+type HouseShapeProps = RecordPropsType
+type HouseShape = TLBaseShape
+class HouseShapeUtil extends ShapeUtil {
 	static override type = 'house' as const
 	static override props = houseShapeProps
 
@@ -71,7 +71,7 @@ class HouseShapeUtil extends ShapeUtil<HouseShape> {
 		const doorPathData = 'M' + doorVertices[0] + 'L' + doorVertices.slice(1) + 'Z'
 		return <path d={housePathData + doorPathData} />
 	}
-	override onResize(shape: HouseShape, info: TLResizeInfo<HouseShape>) {
+	override onResize(shape: HouseShape, info: TLResizeInfo) {
 		const resized = resizeBox(shape, info)
 		const next = structuredClone(info.initialShape)
 		next.x = resized.x

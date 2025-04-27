@@ -11,19 +11,12 @@ import {
 // There's a guide at the bottom of this file!
 
 // [1]
-type IPlayingCard = TLBaseShape<
-	'PlayingCard',
-	{
-		w: number
-		h: number
-		suit: string
-	}
->
+type IPlayingCard = TLBaseShape
 
-export class PlayingCardUtil extends BaseBoxShapeUtil<IPlayingCard> {
+export class PlayingCardUtil extends BaseBoxShapeUtil {
 	// [2]
 	static override type = 'PlayingCard' as const
-	static override props: RecordProps<IPlayingCard> = {
+	static override props: RecordProps = {
 		w: T.number,
 		h: T.number,
 		suit: T.string,

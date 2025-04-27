@@ -3,7 +3,7 @@ import { VecLike } from '../primitives/Vec'
 
 /** @public */
 export function useTransform(
-	ref: React.RefObject<HTMLElement | SVGElement>,
+	ref: React.RefObject,
 	x?: number,
 	y?: number,
 	scale?: number,

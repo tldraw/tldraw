@@ -14,7 +14,7 @@ import { idValidator } from '../misc/id-validator'
  *
  * @public
  */
-export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
+export interface TLCamera extends BaseRecord {
 	x: number
 	y: number
 	z: number
@@ -25,10 +25,10 @@ export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
  * The id of a camera record.
  *
  * @public */
-export type TLCameraId = RecordId<TLCamera>
+export type TLCameraId = RecordId
 
 /** @public */
-export const cameraValidator: T.Validator<TLCamera> = T.model(
+export const cameraValidator: T.Validator = T.model(
 	'camera',
 	T.object({
 		typeName: T.literal('camera'),
@@ -36,7 +36,7 @@ export const cameraValidator: T.Validator<TLCamera> = T.model(
 		x: T.number,
 		y: T.number,
 		z: T.number,
-		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
+		meta: T.jsonValue as T.ObjectValidator,
 	})
 )
 
@@ -64,7 +64,7 @@ export const CameraRecordType = createRecordType<TLCamera>('camera', {
 	validator: cameraValidator,
 	scope: 'session',
 }).withDefaultProperties(
-	(): Omit<TLCamera, 'id' | 'typeName'> => ({
+	(): Omit => ({
 		x: 0,
 		y: 0,
 		z: 1,

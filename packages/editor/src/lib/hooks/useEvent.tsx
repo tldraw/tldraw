@@ -24,7 +24,7 @@ import { useCallback, useDebugValue, useLayoutEffect, useRef } from 'react'
  *
  * @internal
  */
-export function useEvent<Args extends Array<unknown>, Result>(
+export function useEvent<Args extends Array, Result>(
 	handler: (...args: Args) => Result
 ): (...args: Args) => Result {
 	const handlerRef = useRef<(...args: Args) => Result>()
@@ -49,7 +49,7 @@ export function useEvent<Args extends Array<unknown>, Result>(
  * will invalidate any reactive contexts that call it.
  * @internal
  */
-export function useReactiveEvent<Args extends Array<unknown>, Result>(
+export function useReactiveEvent<Args extends Array, Result>(
 	handler: (...args: Args) => Result
 ): (...args: Args) => Result {
 	const handlerAtom = useAtom<(...args: Args) => Result>('useReactiveEvent', () => handler)

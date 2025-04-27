@@ -43,14 +43,7 @@ export interface TLDefaultColorThemeColor {
 }
 
 /** @public */
-export type TLDefaultColorTheme = Expand<
-	{
-		id: 'light' | 'dark'
-		text: string
-		background: string
-		solid: string
-	} & Record<(typeof defaultColorNames)[number], TLDefaultColorThemeColor>
->
+export type TLDefaultColorTheme = Expand
 
 /** @public */
 export const DefaultColorThemePalette: {
@@ -636,4 +629,4 @@ export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelColor', 
 })
 
 /** @public */
-export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>
+export type TLDefaultColorStyle = T.TypeOf

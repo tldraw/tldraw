@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import * as React from 'react'
 
 /** @public */
-export type HTMLContainerProps = React.HTMLAttributes<HTMLDivElement>
+export type HTMLContainerProps = React.HTMLAttributes
 
 /** @public @react */
 export function HTMLContainer({ children, className = '', ...rest }: HTMLContainerProps) {

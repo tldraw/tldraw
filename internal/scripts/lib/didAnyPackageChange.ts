@@ -7,7 +7,7 @@ import tmp from 'tmp'
 import { exec } from './exec'
 import { PackageDetails, getAllPackageDetails } from './publishing'
 
-async function getPackageFirstDiff(pkg: PackageDetails): Promise<Diff | null> {
+async function getPackageFirstDiff(pkg: PackageDetails): Promise {
 	assert(process.env.TLDRAW_BEMO_URL, 'TLDRAW_BEMO_URL env var must be set')
 	const dir = tmp.dirSync({ unsafeCleanup: true })
 	const dirPath = dir.name
@@ -48,11 +48,7 @@ type Diff =
 			diff: string
 	  }
 
-function getManifestFirstDiff(
-	packageName: string,
-	a: Record<string, Buffer>,
-	b: Record<string, Buffer>
-): Diff | null {
+function getManifestFirstDiff(packageName: string, a: Record, b: Record): Diff | null {
 	const aKeys = Object.keys(a)
 	const bKeys = Object.keys(b)
 	for (const key of aKeys) {
@@ -77,7 +73,7 @@ function getManifestFirstDiff(
 }
 
 function getTarballManifestSync(tarballPath: string) {
-	const manifest: Record<string, Buffer> = {}
+	const manifest: Record = {}
 	tar.list({
 		file: tarballPath,
 		onentry: (entry) => {
@@ -126,7 +122,7 @@ export function formatDiff(diff: Diff) {
 	return message
 }
 
-export async function getAnyPackageDiff(): Promise<Diff | null> {
+export async function getAnyPackageDiff(): Promise {
 	const details = await getAllPackageDetails()
 	for (const pkg of Object.values(details)) {
 		const diff = await getPackageFirstDiff(pkg)

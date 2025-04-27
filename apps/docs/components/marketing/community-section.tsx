@@ -141,17 +141,9 @@ const socialLinks = [
 	},
 ]
 
-function SocialLink({
-	caption,
-	icon,
-	stat,
-	href,
-}: {
-	caption: string
-	icon: IconName
-	href: string
-	stat: string
-}) {
+function SocialLink(
+	{ caption, icon, stat, href }: { caption: string; icon: IconName; href: string; stat: string }
+) {
 	return (
 		<Link href={href} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-2">
 			<span className="sr-only">{caption}</span>

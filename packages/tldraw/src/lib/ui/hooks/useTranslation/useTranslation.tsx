@@ -17,7 +17,7 @@ export interface TLUiTranslationProviderProps {
 	 * <TranslationProvider overrides={{ en: { 'style-panel.styles': 'Properties' } }} />
 	 * ```
 	 */
-	overrides?: Record<string, Record<string, string>>
+	overrides?: Record
 }
 
 /** @public */
@@ -39,11 +39,9 @@ export function useCurrentTranslation() {
  *
  * @internal
  */
-export function TldrawUiTranslationProvider({
-	overrides,
-	locale,
-	children,
-}: TLUiTranslationProviderProps) {
+export function TldrawUiTranslationProvider(
+	{ overrides, locale, children }: TLUiTranslationProviderProps
+) {
 	const getAssetUrl = useAssetUrls()
 
 	const [currentTranslation, setCurrentTranslation] = React.useState<TLUiTranslation>(() => {
@@ -111,7 +109,7 @@ export function TldrawUiTranslationProvider({
 export function useTranslation() {
 	const translation = useCurrentTranslation()
 	return React.useCallback(
-		function msg(id?: Exclude<string, TLUiTranslationKey> | string) {
+		function msg(id?: Exclude | string) {
 			return translation.messages[id as TLUiTranslationKey] ?? id
 		},
 		[translation]

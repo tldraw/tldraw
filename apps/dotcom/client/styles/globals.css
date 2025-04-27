@@ -6,17 +6,8 @@
 }
 
 :root {
-	font-family:
-		Inter,
-		-apple-system,
-		'system-ui',
-		'Segoe UI',
-		'Noto Sans',
-		Helvetica,
-		Arial,
-		sans-serif,
-		'Apple Color Emoji',
-		'Segoe UI Emoji';
+	font-family: Inter, -apple-system, 'system-ui', 'Segoe UI', 'Noto Sans', Helvetica, Arial,
+		sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
 
 	font-weight: 500;
 	color: var(--text-color-0);

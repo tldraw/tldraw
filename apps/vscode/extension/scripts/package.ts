@@ -19,7 +19,9 @@ async function main() {
 	const preRelease = process.argv.includes('--pre-release')
 	try {
 		exec(
-			`cp -r ../editor/dist editor; vsce package${preRelease ? ' --pre-release' : ''}; mv ${pkg.name}-${pkg.version}.vsix ${'./temp'}`,
+			`cp -r ../editor/dist editor; vsce package${preRelease ? ' --pre-release' : ''}; mv ${
+				pkg.name
+			}-${pkg.version}.vsix ${'./temp'}`,
 			(error, stdout, stderr) => {
 				if (error) {
 					throw new Error(error.message)

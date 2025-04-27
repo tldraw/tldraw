@@ -5,15 +5,9 @@ import { useApp } from '../../../hooks/useAppState'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import styles from '../sidebar.module.css'
 
-export function TlaSidebarRenameInline({
-	fileId,
-	onClose,
-	source,
-}: {
-	fileId: string
-	onClose(): void
-	source: TLAppUiEventSource
-}) {
+export function TlaSidebarRenameInline(
+	{ fileId, onClose, source }: { fileId: string; onClose(): void; source: TLAppUiEventSource }
+) {
 	const app = useApp()
 	const ref = useRef<HTMLInputElement>(null)
 	const wasSaved = useRef(false)

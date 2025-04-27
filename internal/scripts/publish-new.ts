@@ -39,7 +39,7 @@ function getReleaseType(): ReleaseType {
 	throw new Error('Invalid bump argument ' + JSON.stringify(arg))
 }
 
-async function getNextVersion(releaseType: ReleaseType): Promise<string> {
+async function getNextVersion(releaseType: ReleaseType): Promise {
 	if (releaseType.bump === 'override') {
 		return releaseType.version.format()
 	}
@@ -57,7 +57,7 @@ async function getNextVersion(releaseType: ReleaseType): Promise<string> {
 	const nextVersion = prereleaseTag
 		? `${latestVersion.major}.${latestVersion.minor}.${latestVersion.patch}-${prereleaseTag}.${
 				Number(prereleaseNumber) + 1
-			}`
+		  }`
 		: latestVersion.inc(releaseType.bump).format()
 
 	return nextVersion

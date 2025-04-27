@@ -2,15 +2,17 @@ import { ReactNode, useCallback, useState } from 'react'
 import { TlaButton } from '../TlaButton/TlaButton'
 
 // A button that copies something to the clipboard
-export function TlaShareMenuCopyButton({
-	children,
-	type = 'primary',
-	onClick,
-}: {
-	children: ReactNode
-	onClick(): void | Promise<void>
-	type?: 'primary' | 'secondary' | 'warning'
-}) {
+export function TlaShareMenuCopyButton(
+	{
+		children,
+		type = 'primary',
+		onClick,
+	}: {
+		children: ReactNode
+		onClick(): void | Promise
+		type?: 'primary' | 'secondary' | 'warning'
+	}
+) {
 	const [copied, setCopied] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 

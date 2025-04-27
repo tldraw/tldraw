@@ -7,10 +7,10 @@ import { ShapeUtil, TLResizeInfo } from './ShapeUtil'
 import { resizeBox } from './shared/resizeBox'
 
 /** @public */
-export type TLBaseBoxShape = TLBaseShape<string, { w: number; h: number }>
+export type TLBaseBoxShape = TLBaseShape
 
 /** @public */
-export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends ShapeUtil<Shape> {
+export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends ShapeUtil {
 	getGeometry(shape: Shape): Geometry2d {
 		return new Rectangle2d({
 			width: shape.props.w,
@@ -19,7 +19,7 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 		})
 	}
 
-	override onResize(shape: any, info: TLResizeInfo<any>) {
+	override onResize(shape: any, info: TLResizeInfo) {
 		return resizeBox(shape, info)
 	}
 

@@ -117,7 +117,7 @@ export class LicenseManager {
 		)
 	}
 
-	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {
+	private async extractLicenseKey(licenseKey: string): Promise {
 		const [data, signature] = licenseKey.split('.')
 		const [prefix, encodedData] = data.split('/')
 
@@ -168,7 +168,7 @@ export class LicenseManager {
 		}
 	}
 
-	async getLicenseFromKey(licenseKey?: string): Promise<LicenseFromKeyResult> {
+	async getLicenseFromKey(licenseKey?: string): Promise {
 		if (!licenseKey) {
 			if (!this.isDevelopment) {
 				this.outputNoLicenseKeyProvided()

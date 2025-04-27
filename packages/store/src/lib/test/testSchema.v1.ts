@@ -11,7 +11,7 @@ const UserVersion = createMigrationIds('com.tldraw.user', {
 } as const)
 
 /** A user of tldraw */
-interface User extends BaseRecord<'user', RecordId<User>> {
+interface User extends BaseRecord {
 	name: string
 	locale: string
 	phoneNumber: string | null
@@ -79,9 +79,9 @@ const OvalVersion = createMigrationIds('com.tldraw.shape.oval', {
 	AddBorderStyle: 1,
 } as const)
 
-type ShapeId = RecordId<Shape<object>>
+type ShapeId = RecordId
 
-interface Shape<Props> extends BaseRecord<'shape', ShapeId> {
+interface Shape<Props> extends BaseRecord {
 	type: string
 	x: number
 	y: number
@@ -137,7 +137,7 @@ const rectangleMigrations = createMigrationSequence({
 		{
 			id: RectangleVersion.AddOpacity,
 			scope: 'record',
-			filter: (r) => r.typeName === 'shape' && (r as Shape<RectangleProps>).type === 'rectangle',
+			filter: (r) => r.typeName === 'shape' && (r as Shape).type === 'rectangle',
 			up: (record: any) => {
 				record.props.opacity = 1
 			},
@@ -155,7 +155,7 @@ const ovalMigrations = createMigrationSequence({
 		{
 			id: OvalVersion.AddBorderStyle,
 			scope: 'record',
-			filter: (r) => r.typeName === 'shape' && (r as Shape<OvalProps>).type === 'oval',
+			filter: (r) => r.typeName === 'shape' && (r as Shape).type === 'oval',
 			up: (record: any) => {
 				record.props.borderStyle = 'solid'
 			},
@@ -166,7 +166,7 @@ const ovalMigrations = createMigrationSequence({
 	],
 })
 
-const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
+const Shape = createRecordType<Shape>('shape', {
 	validator: {
 		validate: (record) => {
 			assert(record && typeof record === 'object')
@@ -175,7 +175,7 @@ const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
 			assert('x' in record && typeof record.x === 'number')
 			assert('y' in record && typeof record.y === 'number')
 			assert('rotation' in record && typeof record.rotation === 'number')
-			return record as Shape<RectangleProps | OvalProps>
+			return record as Shape
 		},
 	},
 	scope: 'document',
@@ -197,10 +197,10 @@ const snapshotMigrations = createMigrationSequence({
 		{
 			id: StoreVersions.RemoveOrg,
 			scope: 'store',
-			up: (store: SerializedStore<any>) => {
+			up: (store: SerializedStore) => {
 				return Object.fromEntries(Object.entries(store).filter(([_, r]) => r.typeName !== 'org'))
 			},
-			down: (store: SerializedStore<any>) => {
+			down: (store: SerializedStore) => {
 				// noop
 				return store
 			},
@@ -208,7 +208,7 @@ const snapshotMigrations = createMigrationSequence({
 	],
 })
 
-export const testSchemaV1 = StoreSchema.create<User | Shape<any>>(
+export const testSchemaV1 = StoreSchema.create<User | Shape>(
 	{
 		user: User,
 		shape: Shape,

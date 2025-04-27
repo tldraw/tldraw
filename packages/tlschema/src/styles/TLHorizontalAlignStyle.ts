@@ -8,4 +8,4 @@ export const DefaultHorizontalAlignStyle = StyleProp.defineEnum('tldraw:horizont
 })
 
 /** @public */
-export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAlignStyle>
+export type TLDefaultHorizontalAlignStyle = T.TypeOf

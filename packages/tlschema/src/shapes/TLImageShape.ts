@@ -8,7 +8,7 @@ import { TLShapeCrop } from './ShapeWithCrop'
 import { TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export const ImageShapeCrop: T.ObjectValidator<TLShapeCrop> = T.object({
+export const ImageShapeCrop: T.ObjectValidator = T.object({
 	topLeft: vecModelValidator,
 	bottomRight: vecModelValidator,
 })
@@ -27,10 +27,10 @@ export interface TLImageShapeProps {
 }
 
 /** @public */
-export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>
+export type TLImageShape = TLBaseShape
 
 /** @public */
-export const imageShapeProps: RecordProps<TLImageShape> = {
+export const imageShapeProps: RecordProps = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	playing: T.boolean,

@@ -115,8 +115,7 @@ mark {
 	--rl: -1;
 	--b: 4px;
 	background: none;
-	text-shadow:
-		calc(var(--r) * 1) 0px var(--b) rgba(255, 208, 0, 0.03),
+	text-shadow: calc(var(--r) * 1) 0px var(--b) rgba(255, 208, 0, 0.03),
 		calc(var(--r) * 0.75) 0px var(--b) rgba(255, 140, 0, 0.04),
 		calc(var(--r) * 0.5) 0px var(--b) rgba(255, 187, 0, 0.09),
 		calc(var(--r) * 0.25) 0px var(--b) rgba(255, 187, 0, 0.12),

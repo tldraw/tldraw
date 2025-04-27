@@ -9,13 +9,13 @@ export type IdOf<R extends UnknownRecord> = R['id']
  *
  * @public
  */
-export interface BaseRecord<TypeName extends string, Id extends RecordId<UnknownRecord>> {
+export interface BaseRecord<TypeName extends string, Id extends RecordId> {
 	readonly id: Id
 	readonly typeName: TypeName
 }
 
 /** @public */
-export type UnknownRecord = BaseRecord<string, RecordId<UnknownRecord>>
+export type UnknownRecord = BaseRecord
 
 export function isRecord(record: unknown): record is UnknownRecord {
 	return typeof record === 'object' && record !== null && 'id' in record && 'typeName' in record

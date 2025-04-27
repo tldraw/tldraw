@@ -9,20 +9,20 @@ import {
 } from 'react'
 import styles from './form.module.css'
 
-export function TlaForm(props: FormHTMLAttributes<HTMLFormElement>) {
+export function TlaForm(props: FormHTMLAttributes) {
 	return <form {...props} className={classNames(styles.form, props.className)} />
 }
 
-export function TlaFormGroup(props: HTMLAttributes<HTMLDivElement>) {
+export function TlaFormGroup(props: HTMLAttributes) {
 	return <div {...props} className={classNames(styles.group, props.className)} />
 }
 
-export function TlaFormItem(props: HTMLAttributes<HTMLDivElement>) {
+export function TlaFormItem(props: HTMLAttributes) {
 	return <div {...props} className={classNames(styles.item, props.className)} />
 }
 
 // A label mostly for an input
-export function TlaFormLabel({ children, ...props }: LabelHTMLAttributes<HTMLLabelElement>) {
+export function TlaFormLabel({ children, ...props }: LabelHTMLAttributes) {
 	return (
 		<label {...props} className={classNames(styles.label, 'tla-text_ui__medium', props.className)}>
 			<span>{children}</span>
@@ -30,37 +30,39 @@ export function TlaFormLabel({ children, ...props }: LabelHTMLAttributes<HTMLLab
 	)
 }
 
-export const TlaFormInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
-	function TlaFormInput(props, ref) {
-		return (
+export const TlaFormInput = forwardRef<HTMLInputElement, InputHTMLAttributes>(function TlaFormInput(
+	props,
+	ref
+) {
+	return (
+		<input
+			{...props}
+			ref={ref}
+			className={classNames(styles.input, 'tla-text_ui__regular', props.className)}
+		/>
+	)
+})
+
+export const TlaFormCheckbox = forwardRef<HTMLInputElement, HTMLProps>(function TlaFormCheckbox(
+	{ children, ...props },
+	ref
+) {
+	return (
+		<div className={classNames('tla-form-checkbox', styles.checkbox)}>
 			<input
 				{...props}
 				ref={ref}
-				className={classNames(styles.input, 'tla-text_ui__regular', props.className)}
+				type="checkbox"
+				className={classNames(styles.input, props.className)}
 			/>
-		)
-	}
-)
+			<label htmlFor={props.name} className={styles.label}>
+				{children}
+			</label>
+		</div>
+	)
+})
 
-export const TlaFormCheckbox = forwardRef<HTMLInputElement, HTMLProps<HTMLInputElement>>(
-	function TlaFormCheckbox({ children, ...props }, ref) {
-		return (
-			<div className={classNames('tla-form-checkbox', styles.checkbox)}>
-				<input
-					{...props}
-					ref={ref}
-					type="checkbox"
-					className={classNames(styles.input, props.className)}
-				/>
-				<label htmlFor={props.name} className={styles.label}>
-					{children}
-				</label>
-			</div>
-		)
-	}
-)
-
-export function TlaFormDivider({ children, ...props }: HTMLAttributes<HTMLDivElement>) {
+export function TlaFormDivider({ children, ...props }: HTMLAttributes) {
 	return (
 		<div {...props} className={classNames(styles.divider, props.className)}>
 			{children && <span>{children}</span>}

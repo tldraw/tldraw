@@ -13,7 +13,7 @@ function dropWhile(array: number[], predicate: (n: number) => boolean) {
 	return array.slice(i)
 }
 
-export class TLStatsDurableObject extends DurableObject<Environment> {
+export class TLStatsDurableObject extends DurableObject {
 	// User DO related stats
 	private userDoAborts: number[] = []
 

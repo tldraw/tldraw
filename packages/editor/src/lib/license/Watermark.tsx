@@ -10,8 +10,12 @@ import { LicenseManager } from './LicenseManager'
 import { useLicenseContext } from './LicenseProvider'
 import { useLicenseManagerState } from './useLicenseManagerState'
 
-const WATERMARK_DESKTOP_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkDesktopSvg)}`
-const WATERMARK_MOBILE_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkMobileSvg)}`
+const WATERMARK_DESKTOP_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(
+	watermarkDesktopSvg
+)}`
+const WATERMARK_MOBILE_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(
+	watermarkMobileSvg
+)}`
 
 /** @internal */
 export const Watermark = memo(function Watermark() {

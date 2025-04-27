@@ -7,21 +7,10 @@ import { TLBaseAsset, createAssetValidator } from './TLBaseAsset'
  * An asset for images such as PNGs and JPEGs, used by the TLImageShape.
  *
  * @public */
-export type TLImageAsset = TLBaseAsset<
-	'image',
-	{
-		w: number
-		h: number
-		name: string
-		isAnimated: boolean
-		mimeType: string | null
-		src: string | null
-		fileSize?: number
-	}
->
+export type TLImageAsset = TLBaseAsset
 
 /** @public */
-export const imageAssetValidator: T.Validator<TLImageAsset> = createAssetValidator(
+export const imageAssetValidator: T.Validator = createAssetValidator(
 	'image',
 	T.object({
 		w: T.number,

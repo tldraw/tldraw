@@ -11,19 +11,11 @@ const queryValidator = T.object({
 	url: T.httpUrl,
 })
 
-type UploadImage = (
-	headers: Headers,
-	body: ReadableStream<any> | null,
-	objectName: string
-) => Promise<string>
+type UploadImage = (headers: Headers, body: ReadableStream | null, objectName: string) => Promise
 
-export async function handleExtractBookmarkMetadataRequest({
-	request,
-	uploadImage,
-}: {
-	request: IRequest
-	uploadImage?: UploadImage
-}) {
+export async function handleExtractBookmarkMetadataRequest(
+	{ request, uploadImage }: { request: IRequest; uploadImage?: UploadImage }
+) {
 	assert(request.method === (uploadImage ? 'POST' : 'GET'))
 	const url = parseRequestQuery(request, queryValidator).url
 
@@ -52,13 +44,13 @@ export async function handleExtractBookmarkMetadataRequest({
 	return Response.json(metadata)
 }
 
-async function trySaveImage<const K extends string>(
+async function trySaveImage<K extends string>(
 	key: K,
 	metadata: { [_ in K]?: string },
 	id: string,
 	size: number,
 	uploadImage: UploadImage
-): Promise<void> {
+): Promise {
 	const initialUrl = metadata[key]
 	if (!initialUrl) return
 

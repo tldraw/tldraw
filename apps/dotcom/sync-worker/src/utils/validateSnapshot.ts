@@ -4,13 +4,11 @@ import { Result, objectMapEntries } from '@tldraw/utils'
 
 interface SnapshotRequestBody {
 	schema: SerializedSchema
-	snapshot: SerializedStore<TLRecord>
+	snapshot: SerializedStore
 }
 
 const schema = createTLSchema()
-export function validateSnapshot(
-	body: SnapshotRequestBody
-): Result<SerializedStore<TLRecord>, string> {
+export function validateSnapshot(body: SnapshotRequestBody): Result {
 	// Migrate the snapshot using the provided schema
 	const migrationResult = schema.migrateStoreSnapshot({ store: body.snapshot, schema: body.schema })
 

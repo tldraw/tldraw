@@ -3,7 +3,7 @@
 import { cn } from '@/utils/cn'
 import { DetailedHTMLProps, HTMLAttributes } from 'react'
 
-export function Pre(props: DetailedHTMLProps<HTMLAttributes<HTMLPreElement>, HTMLPreElement>) {
+export function Pre(props: DetailedHTMLProps) {
 	// const container = useRef<HTMLPreElement>(null)
 	// const [copied, setCopied] = useState<boolean>(false)
 	// const copy = () => {

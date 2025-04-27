@@ -33,7 +33,7 @@ import { Dispatch, SetStateAction, useCallback, useRef, useState } from 'react'
  *
  * @internal
  */
-export function useRefState<T>(initialValue: T): [T, Dispatch<SetStateAction<T>>] {
+export function useRefState<T>(initialValue: T): [T, Dispatch] {
 	const ref = useRef(initialValue)
 	const [state, setState] = useState(initialValue)
 
@@ -41,7 +41,7 @@ export function useRefState<T>(initialValue: T): [T, Dispatch<SetStateAction<T>>
 		setState(ref.current)
 	}
 
-	const update: Dispatch<SetStateAction<T>> = useCallback((value) => {
+	const update: Dispatch = useCallback((value) => {
 		if (typeof value === 'function') {
 			ref.current = (value as any)(ref.current)
 		} else {

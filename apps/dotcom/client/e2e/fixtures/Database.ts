@@ -39,10 +39,7 @@ const defaultUser = {
 }
 
 export class Database {
-	constructor(
-		readonly page: Page,
-		private parallelIndex: number
-	) {}
+	constructor(readonly page: Page, private parallelIndex: number) {}
 
 	async reset() {
 		await this.cleanUpUser(true)
@@ -51,9 +48,7 @@ export class Database {
 
 	async getUserId(isOther: boolean = false) {
 		const email = isOther ? OTHER_USERS[this.parallelIndex] : USERS[this.parallelIndex]
-		const dbUser = await sql<{
-			id: string
-		}>`SELECT id FROM public.user WHERE email = ${email ?? ''}`.execute(db)
+		const dbUser = await sql`SELECT id FROM public.user WHERE email = ${email ?? ''}`.execute(db)
 		if (!dbUser.rows[0]) return
 		return dbUser.rows[0].id
 	}

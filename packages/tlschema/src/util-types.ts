@@ -1,2 +1,2 @@
 /** @public */
-export type SetValue<T extends Set<any>> = T extends Set<infer U> ? U : never
+export type SetValue<T extends Set> = T extends Set ? U : never

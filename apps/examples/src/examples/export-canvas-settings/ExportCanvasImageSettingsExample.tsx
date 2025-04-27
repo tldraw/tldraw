@@ -126,19 +126,21 @@ function ExportCanvasButton() {
 	)
 }
 
-const Control = ({
-	name,
-	type,
-	value,
-	checked,
-	onChange,
-}: {
-	name: string
-	type?: React.HTMLInputTypeAttribute
-	value?: string | number | readonly string[]
-	checked?: boolean
-	onChange?: React.ChangeEventHandler<HTMLInputElement>
-}) => {
+const Control = (
+	{
+		name,
+		type,
+		value,
+		checked,
+		onChange,
+	}: {
+		name: string
+		type?: React.HTMLInputTypeAttribute
+		value?: string | number | readonly string[]
+		checked?: boolean
+		onChange?: React.ChangeEventHandler
+	}
+) => {
 	return (
 		<>
 			<label htmlFor={`opt-${name}`} style={{ flexGrow: 2 }}>

@@ -32,11 +32,11 @@ async function fetchAndSave(
 		let finalJson = json
 		if (sortJson) {
 			// Sort of annoying, the property order is not guaranteed, so we need to alphabetize the keys.
-			const sortedJson: { [key: string]: Record<string, string> } = {}
+			const sortedJson: { [key: string]: Record } = {}
 			// We have to go into the subobject to sort the keys.
 			for (const key of Object.keys(json)) {
 				const subJson = json[key]
-				const sortedSubJson: Record<string, string> = {}
+				const sortedSubJson: Record = {}
 				for (const subKey of Object.keys(subJson).sort()) {
 					sortedSubJson[subKey] = subJson[subKey]
 				}

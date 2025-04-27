@@ -33,7 +33,7 @@ import { getDrawLinePathData } from './line-helpers'
 const handlesCache = new WeakCache<TLLineShape['props'], TLHandle[]>()
 
 /** @public */
-export class LineShapeUtil extends ShapeUtil<TLLineShape> {
+export class LineShapeUtil extends ShapeUtil {
 	static override type = 'line' as const
 	static override props = lineShapeProps
 	static override migrations = lineShapeMigrations
@@ -106,7 +106,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 	//   Events
 
-	override onResize(shape: TLLineShape, info: TLResizeInfo<TLLineShape>) {
+	override onResize(shape: TLLineShape, info: TLResizeInfo) {
 		const { scaleX, scaleY } = info
 
 		return {
@@ -148,7 +148,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		return
 	}
 
-	override onHandleDrag(shape: TLLineShape, { handle }: TLHandleDragInfo<TLLineShape>) {
+	override onHandleDrag(shape: TLLineShape, { handle }: TLHandleDragInfo) {
 		// we should only ever be dragging vertex handles
 		if (handle.type !== 'vertex') return
 		const newPoint = maybeSnapToGrid(new Vec(handle.x, handle.y), this.editor)
@@ -312,15 +312,17 @@ export function getGeometryForLineShape(shape: TLLineShape): CubicSpline2d | Pol
 	}
 }
 
-function LineShapeSvg({
-	shape,
-	shouldScale = false,
-	forceSolid = false,
-}: {
-	shape: TLLineShape
-	shouldScale?: boolean
-	forceSolid?: boolean
-}) {
+function LineShapeSvg(
+	{
+		shape,
+		shouldScale = false,
+		forceSolid = false,
+	}: {
+		shape: TLLineShape
+		shouldScale?: boolean
+		forceSolid?: boolean
+	}
+) {
 	const theme = useDefaultColorTheme()
 
 	const spline = getGeometryForLineShape(shape)
@@ -359,7 +361,7 @@ function LineShapeSvg({
 									style: dash,
 									start: i > 0 ? 'outset' : 'none',
 									end: i < spline.segments.length - 1 ? 'outset' : 'none',
-								})
+							  })
 
 						return (
 							<path

@@ -5,7 +5,7 @@ import { ReactElement } from 'react'
 import { Route, RouteObject, createRoutesFromElements } from 'react-router-dom'
 import { router } from './routes'
 
-const toMatchAny: MatcherFunction<[regexes: unknown]> = function (actual, regexes) {
+const toMatchAny: MatcherFunction = function (actual, regexes) {
 	if (
 		typeof actual !== 'string' ||
 		!Array.isArray(regexes) ||
@@ -18,13 +18,17 @@ const toMatchAny: MatcherFunction<[regexes: unknown]> = function (actual, regexe
 	if (pass) {
 		return {
 			message: () =>
-				`expected ${this.utils.printReceived(actual)} not to match any of the regexes ${this.utils.printExpected(regexes)}`,
+				`expected ${this.utils.printReceived(
+					actual
+				)} not to match any of the regexes ${this.utils.printExpected(regexes)}`,
 			pass: true,
 		}
 	} else {
 		return {
 			message: () =>
-				`expected ${this.utils.printReceived(actual)} to match at least one of the regexes ${this.utils.printExpected(regexes)}`,
+				`expected ${this.utils.printReceived(
+					actual
+				)} to match at least one of the regexes ${this.utils.printExpected(regexes)}`,
 			pass: false,
 		}
 	}

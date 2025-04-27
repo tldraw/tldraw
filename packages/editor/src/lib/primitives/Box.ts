@@ -145,7 +145,7 @@ export class Box {
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
-	get sides(): Array<[Vec, Vec]> {
+	get sides(): Array {
 		const { corners } = this
 		return [
 			[corners[0], corners[1]],

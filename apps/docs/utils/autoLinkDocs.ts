@@ -3,7 +3,7 @@ import { Article } from '@/types/content-types'
 import { Database } from 'sqlite'
 import sqlite3 from 'sqlite3'
 
-export async function autoLinkDocs(db: Database<sqlite3.Database, sqlite3.Statement>) {
+export async function autoLinkDocs(db: Database) {
 	// replace [TLEditor](?) with [TLEditor](/reference/editor/TLEditor)?
 	// not sure how we would get there but finding an article with the same title
 	const articles = await db.all(
@@ -15,10 +15,7 @@ export async function autoLinkDocs(db: Database<sqlite3.Database, sqlite3.Statem
 
 const regex = /\[`?([^\[\]]*?)`?\]\(\?\)/g
 
-export async function autoLinkDocsForArticle(
-	db: Database<sqlite3.Database, sqlite3.Statement>,
-	{ id, content, path }: Pick<Article, 'id' | 'content' | 'path'>
-) {
+export async function autoLinkDocsForArticle(db: Database, { id, content, path }: Pick) {
 	if (!content) return
 
 	let didChange = false

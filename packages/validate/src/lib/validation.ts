@@ -32,7 +32,7 @@ export interface Validatable<T> {
 	validateUsingKnownGoodVersion?(knownGoodValue: T, newValue: unknown): T
 }
 
-function formatPath(path: ReadonlyArray<number | string>): string | null {
+function formatPath(path: ReadonlyArray): string | null {
 	if (!path.length) {
 		return null
 	}
@@ -65,10 +65,7 @@ function formatPath(path: ReadonlyArray<number | string>): string | null {
 export class ValidationError extends Error {
 	override name = 'ValidationError'
 
-	constructor(
-		public readonly rawMessage: string,
-		public readonly path: ReadonlyArray<number | string> = []
-	) {
+	constructor(public readonly rawMessage: string, public readonly path: ReadonlyArray = []) {
 		const formattedPath = formatPath(path)
 		const indentedMessage = rawMessage
 			.split('\n')
@@ -111,13 +108,13 @@ function typeToString(value: unknown): string {
 }
 
 /** @public */
-export type TypeOf<V extends Validatable<any>> = V extends Validatable<infer T> ? T : never
+export type TypeOf<V extends Validatable> = V extends Validatable ? T : never
 
 /** @public */
-export class Validator<T> implements Validatable<T> {
+export class Validator<T> implements Validatable {
 	constructor(
-		readonly validationFn: ValidatorFn<T>,
-		readonly validateUsingKnownGoodVersionFn?: ValidatorUsingKnownGoodVersionFn<T>
+		readonly validationFn: ValidatorFn,
+		readonly validateUsingKnownGoodVersionFn?: ValidatorUsingKnownGoodVersionFn
 	) {}
 
 	/**
@@ -158,7 +155,7 @@ export class Validator<T> implements Validatable<T> {
 	 * Returns a new validator that also accepts null or undefined. The resulting value will always be
 	 * null.
 	 */
-	nullable(): Validator<T | null> {
+	nullable(): Validator {
 		return nullable(this)
 	}
 
@@ -166,7 +163,7 @@ export class Validator<T> implements Validatable<T> {
 	 * Returns a new validator that also accepts null or undefined. The resulting value will always be
 	 * null.
 	 */
-	optional(): Validator<T | undefined> {
+	optional(): Validator {
 		return optional(this)
 	}
 
@@ -174,7 +171,7 @@ export class Validator<T> implements Validatable<T> {
 	 * Refine this validation to a new type. The passed-in validation function should throw an error
 	 * if the value can't be converted to the new type, or return the new type otherwise.
 	 */
-	refine<U>(otherValidationFn: (value: T) => U): Validator<U> {
+	refine<U>(otherValidationFn: (value: T) => U): Validator {
 		return new Validator(
 			(value) => {
 				return otherValidationFn(this.validate(value))
@@ -203,9 +200,9 @@ export class Validator<T> implements Validatable<T> {
 	 * })
 	 * ```
 	 */
-	check(name: string, checkFn: (value: T) => void): Validator<T>
-	check(checkFn: (value: T) => void): Validator<T>
-	check(nameOrCheckFn: string | ((value: T) => void), checkFn?: (value: T) => void): Validator<T> {
+	check(name: string, checkFn: (value: T) => void): Validator
+	check(checkFn: (value: T) => void): Validator
+	check(nameOrCheckFn: string | ((value: T) => void), checkFn?: (value: T) => void): Validator {
 		if (typeof nameOrCheckFn === 'string') {
 			return this.refine((value) => {
 				prefixError(`(check ${nameOrCheckFn})`, () => checkFn!(value))
@@ -221,8 +218,8 @@ export class Validator<T> implements Validatable<T> {
 }
 
 /** @public */
-export class ArrayOfValidator<T> extends Validator<T[]> {
-	constructor(readonly itemValidator: Validatable<T>) {
+export class ArrayOfValidator<T> extends Validator {
+	constructor(readonly itemValidator: Validatable) {
 		super(
 			(value) => {
 				const arr = array.validate(value)
@@ -277,10 +274,10 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 }
 
 /** @public */
-export class ObjectValidator<Shape extends object> extends Validator<Shape> {
+export class ObjectValidator<Shape extends object> extends Validator {
 	constructor(
 		public readonly config: {
-			readonly [K in keyof Shape]: Validatable<Shape[K]>
+			readonly [K in keyof Shape]: Validatable
 		},
 		private readonly shouldAllowUnknownProperties = false
 	) {
@@ -292,7 +289,7 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 
 				for (const [key, validator] of Object.entries(config)) {
 					prefixError(key, () => {
-						;(validator as Validatable<unknown>).validate(getOwnProperty(object, key))
+						;(validator as Validatable).validate(getOwnProperty(object, key))
 					})
 				}
 
@@ -321,7 +318,7 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 						continue
 					}
 					const checked = prefixError(key, () => {
-						const validatable = validator as Validatable<unknown>
+						const validatable = validator as Validatable
 						if (validatable.validateUsingKnownGoodVersion) {
 							return validatable.validateUsingKnownGoodVersion(prev, next)
 						} else {
@@ -371,28 +368,28 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 	 * })
 	 * ```
 	 */
-	extend<Extension extends Record<string, unknown>>(extension: {
-		readonly [K in keyof Extension]: Validatable<Extension[K]>
-	}): ObjectValidator<Shape & Extension> {
-		return new ObjectValidator({ ...this.config, ...extension }) as any as ObjectValidator<
-			Shape & Extension
-		>
+	extend<Extension extends Record>(
+		extension: {
+			readonly [K in keyof Extension]: Validatable
+		}
+	): ObjectValidator {
+		return new ObjectValidator({ ...this.config, ...extension }) as any as ObjectValidator
 	}
 }
 
 // pass this into itself e.g. Config extends UnionObjectSchemaConfig<Key, Config>
 /** @public */
 export type UnionValidatorConfig<Key extends string, Config> = {
-	readonly [Variant in keyof Config]: Validatable<any> & {
+	readonly [Variant in keyof Config]: Validatable & {
 		validate(input: any): { readonly [K in Key]: Variant }
 	}
 }
 /** @public */
 export class UnionValidator<
 	Key extends string,
-	Config extends UnionValidatorConfig<Key, Config>,
-	UnknownValue = never,
-> extends Validator<TypeOf<Config[keyof Config]> | UnknownValue> {
+	Config extends UnionValidatorConfig,
+	UnknownValue = never
+> extends Validator {
 	constructor(
 		private readonly key: Key,
 		private readonly config: Config,
@@ -442,7 +439,7 @@ export class UnionValidator<
 	}
 
 	private getMatchingSchemaAndVariant(object: object): {
-		matchingSchema: Validatable<any> | undefined
+		matchingSchema: Validatable | undefined
 		variant: string
 	} {
 		const variant = getOwnProperty(object, this.key)! as string & keyof Config
@@ -460,16 +457,16 @@ export class UnionValidator<
 
 	validateUnknownVariants<Unknown>(
 		unknownValueValidation: (value: object, variant: string) => Unknown
-	): UnionValidator<Key, Config, Unknown> {
+	): UnionValidator {
 		return new UnionValidator(this.key, this.config, unknownValueValidation, this.useNumberKeys)
 	}
 }
 
 /** @public */
-export class DictValidator<Key extends string, Value> extends Validator<Record<Key, Value>> {
+export class DictValidator<Key extends string, Value> extends Validator {
 	constructor(
-		public readonly keyValidator: Validatable<Key>,
-		public readonly valueValidator: Validatable<Value>
+		public readonly keyValidator: Validatable,
+		public readonly valueValidator: Validatable
 	) {
 		super(
 			(object) => {
@@ -484,7 +481,7 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 					})
 				}
 
-				return object as Record<Key, Value>
+				return object as Record
 			},
 			(knownGoodValue, newValue) => {
 				if (typeof newValue !== 'object' || newValue === null) {
@@ -527,13 +524,13 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 					}
 				}
 
-				return isDifferent ? (newValue as Record<Key, Value>) : knownGoodValue
+				return isDifferent ? (newValue as Record) : knownGoodValue
 			}
 		)
 	}
 }
 
-function typeofValidator<T>(type: string): Validator<T> {
+function typeofValidator<T>(type: string): Validator {
 	return new Validator((value) => {
 		if (typeof value !== type) {
 			throw new ValidationError(`Expected ${type}, got ${typeToString(value)}`)
@@ -641,7 +638,7 @@ export const bigint = typeofValidator<bigint>('bigint')
  *
  * @public
  */
-export function literal<T extends string | number | boolean>(expectedValue: T): Validator<T> {
+export function literal<T extends string | number | boolean>(expectedValue: T): Validator {
 	return new Validator((actualValue) => {
 		if (actualValue !== expectedValue) {
 			throw new ValidationError(`Expected ${expectedValue}, got ${JSON.stringify(actualValue)}`)
@@ -667,16 +664,16 @@ export const array = new Validator<unknown[]>((value) => {
  *
  * @public
  */
-export function arrayOf<T>(itemValidator: Validatable<T>): ArrayOfValidator<T> {
+export function arrayOf<T>(itemValidator: Validatable): ArrayOfValidator {
 	return new ArrayOfValidator(itemValidator)
 }
 
 /** @public */
-export const unknownObject = new Validator<Record<string, unknown>>((value) => {
+export const unknownObject = new Validator<Record>((value) => {
 	if (typeof value !== 'object' || value === null) {
 		throw new ValidationError(`Expected object, got ${typeToString(value)}`)
 	}
-	return value as Record<string, unknown>
+	return value as Record
 })
 
 /**
@@ -684,13 +681,15 @@ export const unknownObject = new Validator<Record<string, unknown>>((value) => {
  *
  * @public
  */
-export function object<Shape extends object>(config: {
-	readonly [K in keyof Shape]: Validatable<Shape[K]>
-}): ObjectValidator<MakeUndefinedOptional<Shape>> {
+export function object<Shape extends object>(
+	config: {
+		readonly [K in keyof Shape]: Validatable
+	}
+): ObjectValidator {
 	return new ObjectValidator(config) as any
 }
 
-function isPlainObject(value: unknown): value is Record<string, unknown> {
+function isPlainObject(value: unknown): value is Record {
 	return (
 		typeof value === 'object' &&
 		value !== null &&
@@ -726,7 +725,7 @@ function isValidJson(value: any): value is JsonValue {
  *
  * @public
  */
-export const jsonValue: Validator<JsonValue> = new Validator<JsonValue>(
+export const jsonValue: Validator = new Validator<JsonValue>(
 	(value): JsonValue => {
 		if (isValidJson(value)) {
 			return value as JsonValue
@@ -790,7 +789,7 @@ export const jsonValue: Validator<JsonValue> = new Validator<JsonValue>(
  *
  * @public
  */
-export function jsonDict(): DictValidator<string, JsonValue> {
+export function jsonDict(): DictValidator {
 	return dict(string, jsonValue)
 }
 
@@ -800,9 +799,9 @@ export function jsonDict(): DictValidator<string, JsonValue> {
  * @public
  */
 export function dict<Key extends string, Value>(
-	keyValidator: Validatable<Key>,
-	valueValidator: Validatable<Value>
-): DictValidator<Key, Value> {
+	keyValidator: Validatable,
+	valueValidator: Validatable
+): DictValidator {
 	return new DictValidator(keyValidator, valueValidator)
 }
 
@@ -820,10 +819,10 @@ export function dict<Key extends string, Value>(
  *
  * @public
  */
-export function union<Key extends string, Config extends UnionValidatorConfig<Key, Config>>(
+export function union<Key extends string, Config extends UnionValidatorConfig>(
 	key: Key,
 	config: Config
-): UnionValidator<Key, Config> {
+): UnionValidator {
 	return new UnionValidator(
 		key,
 		config,
@@ -842,10 +841,10 @@ export function union<Key extends string, Config extends UnionValidatorConfig<Ke
 /**
  * @internal
  */
-export function numberUnion<Key extends string, Config extends UnionValidatorConfig<Key, Config>>(
+export function numberUnion<Key extends string, Config extends UnionValidatorConfig>(
 	key: Key,
 	config: Config
-): UnionValidator<Key, Config> {
+): UnionValidator {
 	return new UnionValidator(
 		key,
 		config,
@@ -869,8 +868,8 @@ export function numberUnion<Key extends string, Config extends UnionValidatorCon
  */
 export function model<T extends { readonly id: string }>(
 	name: string,
-	validator: Validatable<T>
-): Validator<T> {
+	validator: Validatable
+): Validator {
 	return new Validator(
 		(value) => {
 			return prefixError(name, () => validator.validate(value))
@@ -888,7 +887,7 @@ export function model<T extends { readonly id: string }>(
 }
 
 /** @public */
-export function setEnum<T>(values: ReadonlySet<T>): Validator<T> {
+export function setEnum<T>(values: ReadonlySet): Validator {
 	return new Validator((value) => {
 		if (!values.has(value as T)) {
 			const valuesString = Array.from(values, (value) => JSON.stringify(value)).join(' or ')
@@ -899,7 +898,7 @@ export function setEnum<T>(values: ReadonlySet<T>): Validator<T> {
 }
 
 /** @public */
-export function optional<T>(validator: Validatable<T>): Validator<T | undefined> {
+export function optional<T>(validator: Validatable): Validator {
 	return new Validator(
 		(value) => {
 			if (value === undefined) return undefined
@@ -917,7 +916,7 @@ export function optional<T>(validator: Validatable<T>): Validator<T | undefined>
 }
 
 /** @public */
-export function nullable<T>(validator: Validatable<T>): Validator<T | null> {
+export function nullable<T>(validator: Validatable): Validator {
 	return new Validator(
 		(value) => {
 			if (value === null) return null
@@ -934,9 +933,7 @@ export function nullable<T>(validator: Validatable<T>): Validator<T | null> {
 }
 
 /** @public */
-export function literalEnum<const Values extends readonly unknown[]>(
-	...values: Values
-): Validator<Values[number]> {
+export function literalEnum<Values extends readonly unknown[]>(...values: Values): Validator {
 	return setEnum(new Set(values))
 }
 
@@ -1026,7 +1023,7 @@ export const indexKey = string.refine<IndexKey>((key) => {
  *
  * @public
  */
-export function or<T1, T2>(v1: Validatable<T1>, v2: Validatable<T2>): Validator<T1 | T2> {
+export function or<T1, T2>(v1: Validatable, v2: Validatable): Validator {
 	return new Validator((value) => {
 		try {
 			return v1.validate(value)

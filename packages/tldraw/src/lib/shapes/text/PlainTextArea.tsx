@@ -20,7 +20,7 @@ export const PlainTextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps
 	},
 	ref
 ) {
-	const onChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+	const onChange = (e: React.ChangeEvent) => {
 		handleChange({ plaintext: e.target.value })
 	}
 

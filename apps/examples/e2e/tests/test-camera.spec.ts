@@ -15,15 +15,17 @@ const dispatchTouch = async (
 	await client.send('Input.dispatchTouchEvent', { type, touchPoints })
 }
 
-const multiTouchGesture = async ({
-	start,
-	end,
-	steps,
-}: {
-	start: { x: number; y: number }[]
-	end: { x: number; y: number }[]
-	steps: number
-}) => {
+const multiTouchGesture = async (
+	{
+		start,
+		end,
+		steps,
+	}: {
+		start: { x: number; y: number }[]
+		end: { x: number; y: number }[]
+		steps: number
+	}
+) => {
 	const finger1 = { x: start[0].x, y: start[0].y }
 	const finger2 = { x: start[1].x, y: start[1].x }
 	const finalTouch = [finger1, finger2]
@@ -54,17 +56,19 @@ const multiTouchGesture = async ({
 	await sleep(10)
 }
 
-const scrollZoom = async ({
-	page,
-	currentZoomLevel,
-	zoomDirection,
-	steps,
-}: {
-	page: Page
-	currentZoomLevel: number
-	zoomDirection: 'in' | 'out'
-	steps: number
-}) => {
+const scrollZoom = async (
+	{
+		page,
+		currentZoomLevel,
+		zoomDirection,
+		steps,
+	}: {
+		page: Page
+		currentZoomLevel: number
+		zoomDirection: 'in' | 'out'
+		steps: number
+	}
+) => {
 	page.keyboard.down('Control')
 	// zooming with the scroll wheel is capped within the editor to make sure it's consistent between browsers,
 	//scrolling further than 15px per event doesn't have any effect

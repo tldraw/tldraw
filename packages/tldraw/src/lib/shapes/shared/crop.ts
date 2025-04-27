@@ -42,7 +42,7 @@ export function getUncroppedSize(
 /** @public */
 export function getCropBox<T extends ShapeWithCrop>(
 	shape: T,
-	info: TLCropInfo<T>,
+	info: TLCropInfo,
 	opts = {} as CropBoxOptions
 ):
 	| {

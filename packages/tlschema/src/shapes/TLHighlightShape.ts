@@ -17,10 +17,10 @@ export interface TLHighlightShapeProps {
 }
 
 /** @public */
-export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>
+export type TLHighlightShape = TLBaseShape
 
 /** @public */
-export const highlightShapeProps: RecordProps<TLHighlightShape> = {
+export const highlightShapeProps: RecordProps = {
 	color: DefaultColorStyle,
 	size: DefaultSizeStyle,
 	segments: T.arrayOf(DrawShapeSegment),

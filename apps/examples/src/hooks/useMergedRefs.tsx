@@ -1,6 +1,6 @@
 import { ForwardedRef, useCallback } from 'react'
 
-export function useMergedRefs<T>(...refs: ForwardedRef<T>[]) {
+export function useMergedRefs<T>(...refs: ForwardedRef[]) {
 	return useCallback(
 		(node: T) => {
 			for (const ref of refs) {

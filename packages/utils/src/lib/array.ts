@@ -26,7 +26,7 @@ export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[]
 }
 
 /** @internal */
-export function compact<T>(arr: T[]): NonNullable<T>[] {
+export function compact<T>(arr: T[]): NonNullable[] {
 	return arr.filter((i) => i !== undefined && i !== null) as any
 }
 
@@ -99,10 +99,11 @@ export function areArraysShallowEqual<T>(arr1: readonly T[], arr2: readonly T[])
 }
 
 /** @internal */
-export function mergeArraysAndReplaceDefaults<
-	const Key extends string,
-	T extends { [K in Key]: string },
->(key: Key, customEntries: readonly T[], defaults: readonly T[]) {
+export function mergeArraysAndReplaceDefaults<Key extends string, T extends { [K in Key]: string }>(
+	key: Key,
+	customEntries: readonly T[],
+	defaults: readonly T[]
+) {
 	const overrideTypes = new Set(customEntries.map((entry) => entry[key]))
 
 	const result = []

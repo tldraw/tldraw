@@ -3,9 +3,11 @@ import { AlarmScheduler } from './AlarmScheduler'
 
 jest.useFakeTimers()
 
-function makeMockAlarmScheduler<Key extends string>(alarms: {
-	[K in Key]: jest.Mock<Promise<void>, []>
-}) {
+function makeMockAlarmScheduler<Key extends string>(
+	alarms: {
+		[K in Key]: jest.Mock
+	}
+) {
 	const data = new Map<string, number>()
 	let scheduledAlarm: number | null = null
 
@@ -23,7 +25,7 @@ function makeMockAlarmScheduler<Key extends string>(alarms: {
 			}
 			return count
 		},
-		put: async (entries: Record<string, number>) => {
+		put: async (entries: Record) => {
 			for (const [key, value] of Object.entries(entries)) {
 				data.set(key, value)
 			}

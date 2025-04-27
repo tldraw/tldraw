@@ -43,10 +43,7 @@ export function preventDefault(event: React.BaseSyntheticEvent | Event) {
 }
 
 /** @public */
-export function setPointerCapture(
-	element: Element,
-	event: React.PointerEvent<Element> | PointerEvent
-) {
+export function setPointerCapture(element: Element, event: React.PointerEvent | PointerEvent) {
 	element.setPointerCapture(event.pointerId)
 	if (debugFlags.logPointerCaptures.get()) {
 		const trackingObj = pointerCaptureTrackingObject.get()
@@ -56,10 +53,7 @@ export function setPointerCapture(
 }
 
 /** @public */
-export function releasePointerCapture(
-	element: Element,
-	event: React.PointerEvent<Element> | PointerEvent
-) {
+export function releasePointerCapture(element: Element, event: React.PointerEvent | PointerEvent) {
 	if (!element.hasPointerCapture(event.pointerId)) {
 		return
 	}

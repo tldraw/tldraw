@@ -14,8 +14,8 @@ import { assert } from './control'
 export function bind<T extends (...args: any[]) => any>(
 	target: object,
 	propertyKey: string,
-	descriptor: TypedPropertyDescriptor<T>
-): TypedPropertyDescriptor<T>
+	descriptor: TypedPropertyDescriptor
+): TypedPropertyDescriptor
 
 /**
  * `@bind` is a decorator that binds the method to the instance of the class (TC39 decorators).
@@ -24,7 +24,7 @@ export function bind<T extends (...args: any[]) => any>(
  */
 export function bind<This extends object, T extends (...args: any[]) => any>(
 	originalMethod: T,
-	context: ClassMethodDecoratorContext<This, T>
+	context: ClassMethodDecoratorContext
 ): void
 
 /** @public */

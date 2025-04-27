@@ -1,5 +1,5 @@
-import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { useContainer } from '@tldraw/editor'
+import { Popover as PopoverPrimitive } from 'radix-ui'
 import React from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 
@@ -50,14 +50,16 @@ export interface TLUiPopoverContentProps {
 }
 
 /** @public @react */
-export function TldrawUiPopoverContent({
-	side,
-	children,
-	align = 'center',
-	sideOffset = 8,
-	alignOffset = 0,
-	disableEscapeKeyDown = false,
-}: TLUiPopoverContentProps) {
+export function TldrawUiPopoverContent(
+	{
+		side,
+		children,
+		align = 'center',
+		sideOffset = 8,
+		alignOffset = 0,
+		disableEscapeKeyDown = false,
+	}: TLUiPopoverContentProps
+) {
 	const container = useContainer()
 	return (
 		<PopoverPrimitive.Portal container={container}>

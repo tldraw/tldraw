@@ -1,7 +1,7 @@
 import { ZReplicationChange } from './UserDataSyncer'
 
 export class UserChangeCollator {
-	readonly changes: Map<string, ZReplicationChange[]> = new Map()
+	readonly changes: Map = new Map()
 	constructor() {}
 
 	addChange(userId: string, change: ZReplicationChange) {

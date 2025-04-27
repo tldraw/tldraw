@@ -5,6 +5,6 @@ import { Signal } from './types'
 /**
  * @public
  */
-export function isSignal(value: any): value is Signal<any> {
+export function isSignal(value: any): value is Signal {
 	return value instanceof _Atom || value instanceof _Computed
 }

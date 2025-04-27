@@ -38,13 +38,13 @@ function redactRecordForErrorReporting(record: any) {
 }
 
 /** @public */
-export type TLStoreSchema = StoreSchema<TLRecord, TLStoreProps>
+export type TLStoreSchema = StoreSchema
 
 /** @public */
-export type TLSerializedStore = SerializedStore<TLRecord>
+export type TLSerializedStore = SerializedStore
 
 /** @public */
-export type TLStoreSnapshot = StoreSnapshot<TLRecord>
+export type TLStoreSnapshot = StoreSnapshot
 
 /** @public */
 export interface TLAssetContext {
@@ -97,11 +97,7 @@ export interface TLAssetStore {
 	 * @param file - The `File` to be uploaded
 	 * @returns A promise that resolves to the URL of the uploaded asset
 	 */
-	upload(
-		asset: TLAsset,
-		file: File,
-		abortSignal?: AbortSignal
-	): Promise<{ src: string; meta?: JsonObject }>
+	upload(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise
 	/**
 	 * Resolve an asset to a URL. This is used when rendering the asset in the editor. By default,
 	 * this will just use `asset.props.src`, the URL returned by `upload()`. This can be used to
@@ -112,40 +108,37 @@ export interface TLAssetStore {
 	 * @param ctx - information about the current environment and where the asset is being used
 	 * @returns The URL of the resolved asset, or `null` if the asset is not available
 	 */
-	resolve?(asset: TLAsset, ctx: TLAssetContext): Promise<string | null> | string | null
+	resolve?(asset: TLAsset, ctx: TLAssetContext): Promise | string | null
 	/**
 	 * Remove an asset from storage. This is called when the asset is no longer needed, e.g. when
 	 * the user deletes it from the editor.
 	 * @param asset - the asset being removed
 	 * @returns A promise that resolves when the asset has been removed
 	 */
-	remove?(assetIds: TLAssetId[]): Promise<void>
+	remove?(assetIds: TLAssetId[]): Promise
 }
 
 /** @public */
 export interface TLStoreProps {
 	defaultName: string
-	assets: Required<TLAssetStore>
+	assets: Required
 	/**
 	 * Called an {@link @tldraw/editor#Editor} connected to this store is mounted.
 	 */
 	onMount(editor: unknown): void | (() => void)
 	collaboration?: {
-		status: Signal<'online' | 'offline'> | null
-		mode?: Signal<'readonly' | 'readwrite'> | null
+		status: Signal | null
+		mode?: Signal | null
 	}
 }
 
 /** @public */
-export type TLStore = Store<TLRecord, TLStoreProps>
+export type TLStore = Store
 
 /** @public */
-export function onValidationFailure({
-	error,
-	phase,
-	record,
-	recordBefore,
-}: StoreValidationFailure<TLRecord>): TLRecord {
+export function onValidationFailure(
+	{ error, phase, record, recordBefore }: StoreValidationFailure
+): TLRecord {
 	const isExistingValidationIssue =
 		// if we're initializing the store for the first time, we should
 		// allow invalid records so people can load old buggy data:
@@ -180,7 +173,7 @@ function getDefaultPages() {
 }
 
 /** @internal */
-export function createIntegrityChecker(store: Store<TLRecord, TLStoreProps>): () => void {
+export function createIntegrityChecker(store: Store): () => void {
 	const $pageIds = store.query.ids('page')
 	const $pageStates = store.query.records('instance_page_state')
 

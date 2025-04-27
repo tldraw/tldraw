@@ -113,17 +113,19 @@ export function TlaFileError({ error }: { error: unknown }) {
 	}
 }
 
-function TlaFileErrorContent({
-	header,
-	para1,
-	para2,
-	cta,
-}: {
-	header: ReactElement
-	para1: ReactElement
-	para2?: ReactElement
-	cta?: ReactElement
-}) {
+function TlaFileErrorContent(
+	{
+		header,
+		para1,
+		para2,
+		cta,
+	}: {
+		header: ReactElement
+		para1: ReactElement
+		para2?: ReactElement
+		cta?: ReactElement
+	}
+) {
 	return (
 		<div className={styles.container}>
 			{sadFaceIcon}

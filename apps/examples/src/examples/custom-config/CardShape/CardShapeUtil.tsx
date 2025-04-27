@@ -13,7 +13,7 @@ import { ICardShape } from './card-shape-types'
 
 // There's a guide at the bottom of this file!
 
-export class CardShapeUtil extends ShapeUtil<ICardShape> {
+export class CardShapeUtil extends ShapeUtil {
 	static override type = 'card' as const
 	// [1]
 	static override props = cardShapeProps
@@ -87,7 +87,7 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 	}
 
 	// [8]
-	override onResize(shape: ICardShape, info: TLResizeInfo<ICardShape>) {
+	override onResize(shape: ICardShape, info: TLResizeInfo) {
 		return resizeBox(shape, info)
 	}
 }

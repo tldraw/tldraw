@@ -33,7 +33,7 @@ export const TL_CURSOR_TYPES = new Set([
  * A type for the cursor types used by tldraw's default shapes.
  *
  *  @public */
-export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>
+export type TLCursorType = SetValue
 
 /** @public */
 export const cursorTypeValidator = T.setEnum(TL_CURSOR_TYPES)
@@ -48,7 +48,7 @@ export interface TLCursor {
 }
 
 /** @public */
-export const cursorValidator: T.ObjectValidator<TLCursor> = T.object<TLCursor>({
+export const cursorValidator: T.ObjectValidator = T.object<TLCursor>({
 	type: cursorTypeValidator,
 	rotation: T.number,
 })

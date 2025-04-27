@@ -106,7 +106,7 @@ function createFuzzShape(viewport: Box) {
 
 it('correctly calculates the culled shapes when adding and deleting shapes', () => {
 	const viewport = editor.getViewportPageBounds()
-	const shapes: Array<TLShapeId | undefined> = []
+	const shapes: Array = []
 	for (let i = 0; i < numberOfShapes; i++) {
 		const { isCulled, id } = createFuzzShape(viewport)
 		shapes.push(id)

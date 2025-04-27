@@ -6,21 +6,21 @@ interface AlarmOpts {
 
 export class AlarmScheduler<Key extends string> {
 	storage: () => {
-		getAlarm(): Promise<number | null>
+		getAlarm(): Promise
 		setAlarm(scheduledTime: number | Date): void
-		get(key: string): Promise<number | undefined>
-		list(options: { prefix: string }): Promise<Map<string, number>>
-		delete(keys: string[]): Promise<number>
-		put(entries: Record<string, number>): Promise<void>
+		get(key: string): Promise
+		list(options: { prefix: string }): Promise
+		delete(keys: string[]): Promise
+		put(entries: Record): Promise
 	}
-	alarms: { [K in Key]: () => Promise<void> }
+	alarms: { [K in Key]: () => Promise }
 
-	constructor(opts: Pick<AlarmScheduler<Key>, 'storage' | 'alarms'>) {
+	constructor(opts: Pick) {
 		this.storage = opts.storage
 		this.alarms = opts.alarms
 	}
 
-	_alarmsScheduledDuringCurrentOnAlarmCall: Set<Key> | null = null
+	_alarmsScheduledDuringCurrentOnAlarmCall: Set | null = null
 	async onAlarm() {
 		if (this._alarmsScheduledDuringCurrentOnAlarmCall !== null) {
 			// i _think_ DOs alarms are one-at-a-time, but throwing here will cause a retry
@@ -105,11 +105,11 @@ export class AlarmScheduler<Key extends string> {
 		await this.scheduleAlarmAt(key, Date.now() + delayMs, opts)
 	}
 
-	async getAlarm(key: Key): Promise<number | null> {
+	async getAlarm(key: Key): Promise {
 		return (await this.storage().get(`alarm-${key}`)) ?? null
 	}
 
-	async deleteAlarm(key: Key): Promise<void> {
+	async deleteAlarm(key: Key): Promise {
 		await this.storage().delete([`alarm-${key}`])
 	}
 }

@@ -38,7 +38,7 @@ export class EdgeScrollManager {
 									this._edgeScrollDuration /
 										(editor.options.edgeScrollDelay + editor.options.edgeScrollEaseDuration)
 								)
-							)
+						  )
 						: 1
 				this.moveCameraWhenCloseToEdge({
 					x: edgeScrollProximityFactor.x * eased,

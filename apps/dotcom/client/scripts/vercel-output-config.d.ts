@@ -17,20 +17,20 @@ type Route = Source | Handler
 type Source = {
 	src: string
 	dest?: string
-	headers?: Record<string, string>
+	headers?: Record
 	methods?: string[]
 	continue?: boolean
 	caseSensitive?: boolean
 	check?: boolean
 	status?: number
-	has?: Array<HostHasField | HeaderHasField | CookieHasField | QueryHasField>
-	missing?: Array<HostHasField | HeaderHasField | CookieHasField | QueryHasField>
+	has?: Array
+	missing?: Array
 	locale?: Locale
 	middlewarePath?: string
 }
 
 type Locale = {
-	redirect?: Record<string, string>
+	redirect?: Record
 	cookie?: string
 }
 
@@ -77,21 +77,21 @@ type WildCard = {
 	value: string
 }
 
-type WildcardConfig = Array<WildCard>
+type WildcardConfig = Array
 
 type Override = {
 	path?: string
 	contentType?: string
 }
 
-type OverrideConfig = Record<string, Override>
+type OverrideConfig = Record
 
 type ServerlessFunctionConfig = {
 	handler: string
 	runtime: string
 	memory?: number
 	maxDuration?: number
-	environment?: Record<string, string>[]
+	environment?: Record[]
 	allowQuery?: string[]
 	regions?: string[]
 }

@@ -71,17 +71,19 @@ export function TlaManageCookiesDialog() {
 	)
 }
 
-function CookieDialogToggle({
-	title,
-	description,
-	checked,
-	onChange,
-}: {
-	title: ReactNode
-	description: ReactNode
-	checked: boolean
-	onChange?(checked: boolean): void
-}) {
+function CookieDialogToggle(
+	{
+		title,
+		description,
+		checked,
+		onChange,
+	}: {
+		title: ReactNode
+		description: ReactNode
+		checked: boolean
+		onChange?(checked: boolean): void
+	}
+) {
 	const essentialMessage = useMsg(messages.essential)
 	return (
 		<label className={styles.cookieControl} title={onChange ? undefined : essentialMessage}>

@@ -2,7 +2,7 @@ import { TLShapeUtilConstructor } from '../editor/shapes/ShapeUtil'
 import { GroupShapeUtil } from '../editor/shapes/group/GroupShapeUtil'
 
 /** @public */
-export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>
+export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor
 
 /** @public */
 export const coreShapes = [

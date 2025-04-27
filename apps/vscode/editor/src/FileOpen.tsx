@@ -2,13 +2,9 @@ import React from 'react'
 import { parseAndLoadDocument, useDefaultHelpers, useEditor } from 'tldraw'
 import { vscode } from './utils/vscode'
 
-export function FileOpen({
-	fileContents,
-	forceDarkMode,
-}: {
-	fileContents: string
-	forceDarkMode: boolean
-}) {
+export function FileOpen(
+	{ fileContents, forceDarkMode }: { fileContents: string; forceDarkMode: boolean }
+) {
 	const editor = useEditor()
 	const { msg, addToast, clearToasts } = useDefaultHelpers()
 	const [isFileLoaded, setIsFileLoaded] = React.useState(false)

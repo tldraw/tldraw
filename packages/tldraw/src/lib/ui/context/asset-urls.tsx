@@ -8,13 +8,9 @@ type UiAssetUrlsContextType = TLUiAssetUrls | null
 const AssetUrlsContext = createContext<UiAssetUrlsContextType>(null)
 
 /** @internal */
-export function AssetUrlsProvider({
-	assetUrls,
-	children,
-}: {
-	assetUrls: TLUiAssetUrls
-	children: React.ReactNode
-}) {
+export function AssetUrlsProvider(
+	{ assetUrls, children }: { assetUrls: TLUiAssetUrls; children: React.ReactNode }
+) {
 	useEffect(() => {
 		for (const src of Object.values(assetUrls.icons)) {
 			if (!src) continue

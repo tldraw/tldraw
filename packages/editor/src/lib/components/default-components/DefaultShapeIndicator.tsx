@@ -9,7 +9,7 @@ import { useEditorComponents } from '../../hooks/useEditorComponents'
 import { OptionalErrorBoundary } from '../ErrorBoundary'
 
 // need an extra layer of indirection here to allow hooks to be used inside the indicator render
-const EvenInnererIndicator = memo(({ shape, util }: { shape: TLShape; util: ShapeUtil<any> }) => {
+const EvenInnererIndicator = memo(({ shape, util }: { shape: TLShape; util: ShapeUtil }) => {
 	return useStateTracking('Indicator: ' + shape.type, () =>
 		// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
 		// calling the render method with stale data.
@@ -47,13 +47,9 @@ export interface TLShapeIndicatorProps {
 }
 
 /** @public @react */
-export const DefaultShapeIndicator = memo(function DefaultShapeIndicator({
-	shapeId,
-	className,
-	color,
-	hidden,
-	opacity,
-}: TLShapeIndicatorProps) {
+export const DefaultShapeIndicator = memo(function DefaultShapeIndicator(
+	{ shapeId, className, color, hidden, opacity }: TLShapeIndicatorProps
+) {
 	const editor = useEditor()
 
 	const rIndicator = useRef<SVGSVGElement>(null)

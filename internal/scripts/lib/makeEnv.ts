@@ -1,7 +1,5 @@
-export function makeEnv<const Keys extends readonly string[]>(
-	keys: Keys
-): Record<Keys[number], string> {
-	const env = {} as Record<string, string>
+export function makeEnv<Keys extends readonly string[]>(keys: Keys): Record {
+	const env = {} as Record
 	const missingVars = []
 	for (const key of keys) {
 		const value = process.env[key]
@@ -14,5 +12,5 @@ export function makeEnv<const Keys extends readonly string[]>(
 	if (missingVars.length > 0) {
 		throw new Error(`Missing environment variables: ${missingVars.join(', ')}`)
 	}
-	return env as Record<Keys[number], string>
+	return env as Record
 }

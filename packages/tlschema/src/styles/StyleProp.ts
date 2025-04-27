@@ -21,7 +21,7 @@ import { T } from '@tldraw/validate'
  *
  * @public
  */
-export class StyleProp<Type> implements T.Validatable<Type> {
+export class StyleProp<Type> implements T.Validatable {
 	/**
 	 * Define a new {@link StyleProp}.
 	 *
@@ -44,10 +44,7 @@ export class StyleProp<Type> implements T.Validatable<Type> {
 	 * ```
 	 * @public
 	 */
-	static define<Type>(
-		uniqueId: string,
-		options: { defaultValue: Type; type?: T.Validatable<Type> }
-	) {
+	static define<Type>(uniqueId: string, options: { defaultValue: Type; type?: T.Validatable }) {
 		const { defaultValue, type = T.any } = options
 		return new StyleProp<Type>(uniqueId, defaultValue, type)
 	}
@@ -72,7 +69,7 @@ export class StyleProp<Type> implements T.Validatable<Type> {
 	 * })
 	 * ```
 	 */
-	static defineEnum<const Values extends readonly unknown[]>(
+	static defineEnum<Values extends readonly unknown[]>(
 		uniqueId: string,
 		options: { defaultValue: Values[number]; values: Values }
 	) {
@@ -84,7 +81,7 @@ export class StyleProp<Type> implements T.Validatable<Type> {
 	protected constructor(
 		readonly id: string,
 		public defaultValue: Type,
-		readonly type: T.Validatable<Type>
+		readonly type: T.Validatable
 	) {}
 
 	setDefaultValue(value: Type) {
@@ -109,13 +106,9 @@ export class StyleProp<Type> implements T.Validatable<Type> {
  *
  * @public
  */
-export class EnumStyleProp<T> extends StyleProp<T> {
+export class EnumStyleProp<T> extends StyleProp {
 	/** @internal */
-	constructor(
-		id: string,
-		defaultValue: T,
-		readonly values: readonly T[]
-	) {
+	constructor(id: string, defaultValue: T, readonly values: readonly T[]) {
 		super(id, defaultValue, T.literalEnum(...values))
 	}
 }
@@ -123,4 +116,4 @@ export class EnumStyleProp<T> extends StyleProp<T> {
 /**
  * @public
  */
-export type StylePropValue<T extends StyleProp<any>> = T extends StyleProp<infer U> ? U : never
+export type StylePropValue<T extends StyleProp> = T extends StyleProp ? U : never

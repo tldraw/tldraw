@@ -3,13 +3,9 @@
 import { cn } from '@/utils/cn'
 import { motion, useScroll, useTransform } from 'framer-motion'
 
-export function Navigation({
-	className,
-	children,
-}: {
-	className?: string
-	children: React.ReactNode
-}) {
+export function Navigation(
+	{ className, children }: { className?: string; children: React.ReactNode }
+) {
 	const { scrollY } = useScroll()
 	const offset = useTransform(scrollY, [0, 80], [80, 0])
 

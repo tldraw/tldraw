@@ -1,4 +1,4 @@
-const memo = {} as Record<string, Float32Array>
+const memo = {} as Record
 
 export function getRgba(colorString: string) {
 	if (memo[colorString]) {

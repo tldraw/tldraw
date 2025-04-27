@@ -8,4 +8,4 @@ export interface TLShapeCrop {
 }
 
 /** @public */
-export type ShapeWithCrop = TLBaseShape<string, { w: number; h: number; crop: TLShapeCrop | null }>
+export type ShapeWithCrop = TLBaseShape

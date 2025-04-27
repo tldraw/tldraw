@@ -35,10 +35,8 @@ export interface TLUiMenuContextProviderProps {
 }
 
 /** @public @react */
-export function TldrawUiMenuContextProvider({
-	type,
-	sourceId,
-	children,
-}: TLUiMenuContextProviderProps) {
+export function TldrawUiMenuContextProvider(
+	{ type, sourceId, children }: TLUiMenuContextProviderProps
+) {
 	return <menuContext.Provider value={{ type, sourceId }}>{children}</menuContext.Provider>
 }

@@ -8,4 +8,4 @@ export const DefaultFillStyle = StyleProp.defineEnum('tldraw:fill', {
 })
 
 /** @public */
-export type TLDefaultFillStyle = T.TypeOf<typeof DefaultFillStyle>
+export type TLDefaultFillStyle = T.TypeOf

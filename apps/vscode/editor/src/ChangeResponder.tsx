@@ -17,7 +17,7 @@ export function ChangeResponder() {
 
 	React.useEffect(() => {
 		// When a message is received from the VS Code extension, handle it
-		function handleMessage({ data: message }: MessageEvent<VscodeMessage>) {
+		function handleMessage({ data: message }: MessageEvent) {
 			switch (message.type) {
 				// case 'vscode:undo': {
 				// 	editor.undo()

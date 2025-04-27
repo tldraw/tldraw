@@ -3,7 +3,7 @@
  *
  * @internal
  */
-export async function fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+export async function fetch(input: RequestInfo | URL, init?: RequestInit): Promise {
 	// eslint-disable-next-line no-restricted-properties
 	return window.fetch(input, {
 		// We want to make sure that the referrer is not sent to other domains.

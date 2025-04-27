@@ -14,20 +14,14 @@ import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 
-type ICustomShape = TLBaseShape<
-	'my-custom-shape',
-	{
-		w: number
-		h: number
-	}
->
+type ICustomShape = TLBaseShape
 
 const LIGHT_FILL = '#ff8888'
 const DARK_FILL = '#ffcccc'
 
-export class MyShapeUtil extends ShapeUtil<ICustomShape> {
+export class MyShapeUtil extends ShapeUtil {
 	static override type = 'my-custom-shape' as const
-	static override props: RecordProps<ICustomShape> = {
+	static override props: RecordProps = {
 		w: T.number,
 		h: T.number,
 	}
@@ -67,10 +61,7 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 	}
 
 	// [1]
-	override toSvg(
-		shape: ICustomShape,
-		ctx: SvgExportContext
-	): ReactElement | null | Promise<ReactElement | null> {
+	override toSvg(shape: ICustomShape, ctx: SvgExportContext): ReactElement | null | Promise {
 		// ctx.addExportDef(getFontDef(shape))
 		const isDarkmode = ctx.isDarkMode
 		const fill = isDarkmode ? DARK_FILL : LIGHT_FILL

@@ -13,12 +13,12 @@ import 'tldraw/tldraw.css'
 // There's a guide at the bottom of this file!
 
 // [1]
-type MyGridShape = TLBaseShape<'my-grid-shape', Record<string, never>>
-type MyCounterShape = TLBaseShape<'my-counter-shape', Record<string, never>>
+type MyGridShape = TLBaseShape
+type MyCounterShape = TLBaseShape
 
 // [2]
 const SLOT_SIZE = 100
-class MyCounterShapeUtil extends ShapeUtil<MyCounterShape> {
+class MyCounterShapeUtil extends ShapeUtil {
 	static override type = 'my-counter-shape' as const
 
 	override canResize() {
@@ -54,7 +54,7 @@ class MyCounterShapeUtil extends ShapeUtil<MyCounterShape> {
 }
 
 // [3]
-class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
+class MyGridShapeUtil extends ShapeUtil {
 	static override type = 'my-grid-shape' as const
 
 	getDefaultProps(): MyGridShape['props'] {

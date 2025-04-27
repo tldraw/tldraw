@@ -15,7 +15,7 @@ import { TLPageId } from './TLPage'
 import { TLShapeId } from './TLShape'
 
 /** @public */
-export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
+export interface TLInstancePresence extends BaseRecord {
 	userId: string
 	userName: string
 	lastActivityTimestamp: number | null
@@ -38,10 +38,10 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 }
 
 /** @public */
-export type TLInstancePresenceID = RecordId<TLInstancePresence>
+export type TLInstancePresenceID = RecordId
 
 /** @public */
-export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.model(
+export const instancePresenceValidator: T.Validator = T.model(
 	'instance_presence',
 	T.object({
 		typeName: T.literal('instance_presence'),
@@ -68,7 +68,7 @@ export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.mode
 		brush: boxModelValidator.nullable(),
 		scribbles: T.arrayOf(scribbleValidator),
 		chatMessage: T.string,
-		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
+		meta: T.jsonValue as T.ObjectValidator,
 	})
 )
 

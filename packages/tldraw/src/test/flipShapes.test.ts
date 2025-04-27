@@ -357,7 +357,7 @@ describe('flipping rotated shapes', () => {
 	}
 	beforeEach(() => {
 		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
-		const props: Partial<TLArrowShapeProps> = {
+		const props: Partial = {
 			start: {
 				x: 0,
 				y: 0,

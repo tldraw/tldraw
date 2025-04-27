@@ -122,7 +122,7 @@ class Dragging extends StateNode {
 	// [b]
 	override onEnter(info: { shape: TLShapePartial }) {
 		const { currentPagePoint } = this.editor.inputs
-		const newShape: TLShapePartial<TLTextShape> = {
+		const newShape: TLShapePartial = {
 			id: createShapeId(),
 			type: 'text',
 			x: currentPagePoint.x + OFFSET,

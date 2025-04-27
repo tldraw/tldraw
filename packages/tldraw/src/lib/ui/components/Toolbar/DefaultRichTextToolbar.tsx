@@ -41,9 +41,9 @@ export interface TLUiRichTextToolbarProps {
  *
  * @public @react
  */
-export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
-	children,
-}: TLUiRichTextToolbarProps) {
+export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar(
+	{ children }: TLUiRichTextToolbarProps
+) {
 	const editor = useEditor()
 
 	const textEditor = useValue('textEditor', () => editor.getRichTextEditor(), [editor])
@@ -53,13 +53,9 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	return <ContextualToolbarInner textEditor={textEditor}>{children}</ContextualToolbarInner>
 })
 
-function ContextualToolbarInner({
-	textEditor,
-	children,
-}: {
-	children?: React.ReactNode
-	textEditor: TiptapEditor
-}) {
+function ContextualToolbarInner(
+	{ textEditor, children }: { children?: React.ReactNode; textEditor: TiptapEditor }
+) {
 	const editor = useEditor()
 	const msg = useTranslation()
 

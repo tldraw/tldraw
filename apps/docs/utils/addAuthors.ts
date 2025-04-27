@@ -3,10 +3,7 @@ import { Database } from 'sqlite'
 import sqlite3 from 'sqlite3'
 
 // Adding content
-export async function addAuthors(
-	db: Database<sqlite3.Database, sqlite3.Statement>,
-	authors: Authors
-) {
+export async function addAuthors(db: Database, authors: Authors) {
 	const authorInsert = await db.prepare(
 		`REPLACE INTO authors (id, name, email, twitter, image) VALUES (?, ?, ?, ?, ?)`
 	)

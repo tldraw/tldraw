@@ -6,7 +6,7 @@ import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 export class CubicSpline2d extends Geometry2d {
 	points: Vec[]
 
-	constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & { points: Vec[] }) {
+	constructor(config: Omit & { points: Vec[] }) {
 		super({ ...config, isClosed: false, isFilled: false })
 		const { points } = config
 

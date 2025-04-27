@@ -1,8 +1,8 @@
 import { BaseBoxShapeUtil, TLBaseShape } from 'tldraw'
 
-export type ErrorShape = TLBaseShape<'error', { w: number; h: number; message: string }>
+export type ErrorShape = TLBaseShape
 
-export class ErrorShapeUtil extends BaseBoxShapeUtil<ErrorShape> {
+export class ErrorShapeUtil extends BaseBoxShapeUtil {
 	static override type = 'error' as const
 
 	getDefaultProps() {

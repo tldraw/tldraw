@@ -14,10 +14,10 @@ export interface TLBookmarkShapeProps {
 }
 
 /** @public */
-export type TLBookmarkShape = TLBaseShape<'bookmark', TLBookmarkShapeProps>
+export type TLBookmarkShape = TLBaseShape
 
 /** @public */
-export const bookmarkShapeProps: RecordProps<TLBookmarkShape> = {
+export const bookmarkShapeProps: RecordProps = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	assetId: assetIdValidator.nullable(),

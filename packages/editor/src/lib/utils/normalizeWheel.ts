@@ -7,7 +7,7 @@ const IS_DARWIN = /Mac|iPod|iPhone|iPad/.test(
 
 // Adapted from https://stackoverflow.com/a/13650579
 /** @internal */
-export function normalizeWheel(event: WheelEvent | React.WheelEvent<HTMLElement>) {
+export function normalizeWheel(event: WheelEvent | React.WheelEvent) {
 	let { deltaY, deltaX } = event
 	let deltaZ = 0
 

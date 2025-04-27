@@ -83,7 +83,7 @@ function checkLibraryVersions(info: TldrawLibraryVersionInfo) {
 	const latestVersion = sorted[sorted.length - 1].version
 
 	const matchingVersions = new Set<string>()
-	const nonMatchingVersions = new Map<string, Set<string>>()
+	const nonMatchingVersions = new Map<string, Set>()
 	for (const lib of sorted) {
 		if (nonMatchingVersions.has(lib.name)) {
 			matchingVersions.delete(lib.name)
@@ -101,9 +101,15 @@ function checkLibraryVersions(info: TldrawLibraryVersionInfo) {
 
 	if (nonMatchingVersions.size > 0) {
 		const message = [
-			`${format('[tldraw]', ['bold', 'bgRed', 'textWhite'])} ${format('You have multiple versions of tldraw libraries installed. This can lead to bugs and unexpected behavior.', ['textRed', 'bold'])}`,
+			`${format('[tldraw]', ['bold', 'bgRed', 'textWhite'])} ${format(
+				'You have multiple versions of tldraw libraries installed. This can lead to bugs and unexpected behavior.',
+				['textRed', 'bold']
+			)}`,
 			'',
-			`The latest version you have installed is ${format(`v${latestVersion}`, ['bold', 'textBlue'])}. The following libraries are on the latest version:`,
+			`The latest version you have installed is ${format(`v${latestVersion}`, [
+				'bold',
+				'textBlue',
+			])}. The following libraries are on the latest version:`,
 			...Array.from(matchingVersions, (name) => `  • ✅ ${format(name, ['bold'])}`),
 			'',
 			`The following libraries are not on the latest version, or have multiple versions installed:`,
@@ -136,7 +142,10 @@ function checkLibraryVersions(info: TldrawLibraryVersionInfo) {
 
 	if (duplicates.size > 0) {
 		const message = [
-			`${format('[tldraw]', ['bold', 'bgRed', 'textWhite'])} ${format('You have multiple instances of some tldraw libraries active. This can lead to bugs and unexpected behavior. ', ['textRed', 'bold'])}`,
+			`${format('[tldraw]', ['bold', 'bgRed', 'textWhite'])} ${format(
+				'You have multiple instances of some tldraw libraries active. This can lead to bugs and unexpected behavior. ',
+				['textRed', 'bold']
+			)}`,
 			'',
 			'This usually means that your bundler is misconfigured, and is importing the same library multiple times - usually once as an ES Module, and once as a CommonJS module.',
 			'',
@@ -184,7 +193,7 @@ function format(value: string, formatters: (keyof typeof formats)[] = []) {
 	return `\x1B[${formatters.map((f) => formats[f]).join(';')}m${value}\x1B[m`
 }
 
-function entry<K, V>(map: Map<K, V>, key: K, defaultValue: V): V {
+function entry<K, V>(map: Map, key: K, defaultValue: V): V {
 	if (map.has(key)) {
 		return map.get(key)!
 	}

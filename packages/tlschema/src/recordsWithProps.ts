@@ -13,14 +13,11 @@ import { SchemaPropsInfo } from './createTLSchema'
 
 /** @public */
 export type RecordProps<R extends UnknownRecord & { props: object }> = {
-	[K in keyof R['props']]: T.Validatable<R['props'][K]>
+	[K in keyof R['props']]: T.Validatable
 }
 
 /** @public */
-export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> =
-	MakeUndefinedOptional<{
-		[K in keyof Config]: T.TypeOf<Config[K]>
-	}>
+export type RecordPropsType<Config extends Record> = MakeUndefinedOptional
 
 /**
  * @public
@@ -46,12 +43,12 @@ export interface TLPropsMigration {
  * @public
  */
 export interface TLPropsMigrations {
-	readonly sequence: Array<StandaloneDependsOn | TLPropsMigration>
+	readonly sequence: Array
 }
 
 export function processPropsMigrations<R extends UnknownRecord & { type: string; props: object }>(
 	typeName: R['typeName'],
-	records: Record<string, SchemaPropsInfo>
+	records: Record
 ) {
 	const result: MigrationSequence[] = []
 
@@ -141,7 +138,7 @@ export function createPropsMigration<R extends UnknownRecord & { type: string; p
 						if (result) {
 							record.props = result
 						}
-					}
+				  }
 				: undefined,
 	}
 }

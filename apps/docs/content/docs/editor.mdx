@@ -481,11 +481,10 @@ First, you need to create a type that describes what the binding object will loo
 ```ts
 import { TLBaseBinding } from 'tldraw'
 
-type StickerBinding = TLBaseBinding<'sticker', { x: number; y: number }>
+type StickerBinding = TLBaseBinding
 ```
 
-With [TLBaseBinding](?) we define the binding's type (`sticker`) and `props` property (`{x: number,
-y: number}`). The type can be any string, and the props must be a plain JSON object (ie not a class
+With [TLBaseBinding](?) we define the binding's type (`sticker`) and `props` property (`{x: number, y: number}`). The type can be any string, and the props must be a plain JSON object (ie not a class
 instance).
 
 The [TLBaseBinding](?) helper adds the other base properties like `id`, `toId`, and `fromId`.
@@ -500,7 +499,7 @@ updated, or deleted.
 ```ts
 import { BindingUtil } from 'tldraw'
 
-class StickerBindingUtil extends BindingUtil<StickerBinding> {
+class StickerBindingUtil extends BindingUtil {
 	static override type = 'sticker' as const
 
 	override getDefaultProps() {

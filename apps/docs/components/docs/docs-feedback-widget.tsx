@@ -61,7 +61,7 @@ export function DocsFeedbackWidget({ className }: { className?: string }) {
 		})
 	}, [])
 
-	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
+	const handleSubmit = useCallback<FormEventHandler>(
 		async (e) => {
 			e.preventDefault()
 			if (state === 'loading') return

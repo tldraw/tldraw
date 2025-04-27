@@ -10,7 +10,7 @@ export class Group2d extends Geometry2d {
 	ignoredChildren: Geometry2d[] = []
 
 	constructor(
-		config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
+		config: Omit & {
 			children: Geometry2d[]
 		}
 	) {

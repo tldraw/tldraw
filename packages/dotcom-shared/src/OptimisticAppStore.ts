@@ -16,12 +16,7 @@ export class OptimisticAppStore {
 		isEqual: isEqual,
 	})
 
-	private _optimisticStore = atom<
-		Array<{
-			updates: ZRowUpdate[]
-			mutationId: string
-		}>
-	>('optimistic store', [])
+	private _optimisticStore = atom<Array>('optimistic store', [])
 
 	epoch = 0
 	constructor() {
@@ -32,10 +27,7 @@ export class OptimisticAppStore {
 		})
 	}
 
-	initialize(
-		data: ZStoreData,
-		optimisticUpdates?: Array<{ updates: ZRowUpdate[]; mutationId: string }>
-	) {
+	initialize(data: ZStoreData, optimisticUpdates?: Array) {
 		transact(() => {
 			this._gold_store.set(data)
 			if (optimisticUpdates) {

@@ -45,18 +45,18 @@ export interface Signal<Value, Diff = unknown> {
 	 */
 	__unsafe__getWithoutCapture(ignoreErrors?: boolean): Value
 	/** @internal */
-	children: ArraySet<Child>
+	children: ArraySet
 }
 
 /** @internal */
 export interface Child {
 	lastTraversedEpoch: number
-	readonly parentSet: ArraySet<Signal<any, any>>
-	readonly parents: Signal<any, any>[]
+	readonly parentSet: ArraySet
+	readonly parents: Signal[]
 	readonly parentEpochs: number[]
 	readonly name: string
 	isActivelyListening: boolean
-	__debug_ancestor_epochs__: Map<Signal<any, any>, number> | null
+	__debug_ancestor_epochs__: Map | null
 }
 
 /**

@@ -19,14 +19,9 @@ export interface TLCollaboratorHintProps {
 }
 
 /** @public @react */
-export function DefaultCollaboratorHint({
-	className,
-	zoom,
-	point,
-	color,
-	viewport,
-	opacity = 1,
-}: TLCollaboratorHintProps) {
+export function DefaultCollaboratorHint(
+	{ className, zoom, point, color, viewport, opacity = 1 }: TLCollaboratorHintProps
+) {
 	const rSvg = useRef<SVGSVGElement>(null)
 
 	useTransform(

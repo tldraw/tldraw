@@ -222,7 +222,7 @@ export class Drawing extends StateNode {
 					this.currentLineLength = this.getLineLength(segments)
 				}
 
-				const shapePartial: TLShapePartial<DrawableShape> = {
+				const shapePartial: TLShapePartial = {
 					id: shape.id,
 					type: this.shapeType,
 					props: {
@@ -231,7 +231,7 @@ export class Drawing extends StateNode {
 				}
 
 				if (this.canClose()) {
-					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
+					;(shapePartial as TLShapePartial).props!.isClosed = this.getIsClosed(
 						segments,
 						shape.props.size,
 						shape.props.scale
@@ -352,7 +352,7 @@ export class Drawing extends StateNode {
 						}
 					}
 
-					const shapePartial: TLShapePartial<DrawableShape> = {
+					const shapePartial: TLShapePartial = {
 						id,
 						type: this.shapeType,
 						props: {
@@ -361,7 +361,7 @@ export class Drawing extends StateNode {
 					}
 
 					if (this.canClose()) {
-						;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
+						;(shapePartial as TLShapePartial).props!.isClosed = this.getIsClosed(
 							segments,
 							size,
 							scale
@@ -421,7 +421,7 @@ export class Drawing extends StateNode {
 						this.currentLineLength = this.getLineLength(finalSegments)
 					}
 
-					const shapePartial: TLShapePartial<DrawableShape> = {
+					const shapePartial: TLShapePartial = {
 						id,
 						type: this.shapeType,
 						props: {
@@ -430,7 +430,7 @@ export class Drawing extends StateNode {
 					}
 
 					if (this.canClose()) {
-						;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
+						;(shapePartial as TLShapePartial).props!.isClosed = this.getIsClosed(
 							finalSegments,
 							size,
 							scale
@@ -563,7 +563,7 @@ export class Drawing extends StateNode {
 					points: [newSegment.points[0], newPoint],
 				}
 
-				const shapePartial: TLShapePartial<DrawableShape> = {
+				const shapePartial: TLShapePartial = {
 					id,
 					type: this.shapeType,
 					props: {
@@ -572,7 +572,7 @@ export class Drawing extends StateNode {
 				}
 
 				if (this.canClose()) {
-					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
+					;(shapePartial as TLShapePartial).props!.isClosed = this.getIsClosed(
 						segments,
 						size,
 						scale
@@ -611,7 +611,7 @@ export class Drawing extends StateNode {
 					this.currentLineLength = this.getLineLength(newSegments)
 				}
 
-				const shapePartial: TLShapePartial<DrawableShape> = {
+				const shapePartial: TLShapePartial = {
 					id,
 					type: this.shapeType,
 					props: {
@@ -620,7 +620,7 @@ export class Drawing extends StateNode {
 				}
 
 				if (this.canClose()) {
-					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
+					;(shapePartial as TLShapePartial).props!.isClosed = this.getIsClosed(
 						newSegments,
 						size,
 						scale

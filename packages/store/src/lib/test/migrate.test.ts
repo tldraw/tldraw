@@ -58,7 +58,7 @@ test('unknown types fail', () => {
 })
 
 test('migrating a whole store snapshot works', () => {
-	const serializedStore: SerializedStore<any> = {
+	const serializedStore: SerializedStore = {
 		'user-1': {
 			id: 'user-1',
 			typeName: 'user',

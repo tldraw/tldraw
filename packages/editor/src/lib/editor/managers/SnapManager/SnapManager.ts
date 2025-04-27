@@ -17,10 +17,7 @@ export interface GapsSnapIndicator {
 	id: string
 	type: 'gaps'
 	direction: 'horizontal' | 'vertical'
-	gaps: Array<{
-		startEdge: [VecLike, VecLike]
-		endEdge: [VecLike, VecLike]
-	}>
+	gaps: Array
 }
 
 /** @public */
@@ -62,12 +59,12 @@ export class SnapManager {
 	}
 
 	// TODO: make this an incremental derivation
-	@computed getSnappableShapes(): Set<TLShapeId> {
+	@computed getSnappableShapes(): Set {
 		const { editor } = this
 		const renderingBounds = editor.getViewportPageBounds()
 		const selectedShapeIds = editor.getSelectedShapeIds()
 
-		const snappableShapes: Set<TLShapeId> = new Set()
+		const snappableShapes: Set = new Set()
 
 		const collectSnappableShapesFromParent = (parentId: TLParentId) => {
 			if (isShapeId(parentId)) {

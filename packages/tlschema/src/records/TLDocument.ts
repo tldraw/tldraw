@@ -14,21 +14,21 @@ import { T } from '@tldraw/validate'
  *
  * @public
  */
-export interface TLDocument extends BaseRecord<'document', RecordId<TLDocument>> {
+export interface TLDocument extends BaseRecord {
 	gridSize: number
 	name: string
 	meta: JsonObject
 }
 
 /** @public */
-export const documentValidator: T.Validator<TLDocument> = T.model(
+export const documentValidator: T.Validator = T.model(
 	'document',
 	T.object({
 		typeName: T.literal('document'),
-		id: T.literal('document:document' as RecordId<TLDocument>),
+		id: T.literal('document:document' as RecordId),
 		gridSize: T.number,
 		name: T.string,
-		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
+		meta: T.jsonValue as T.ObjectValidator,
 	})
 )
 
@@ -72,7 +72,7 @@ export const DocumentRecordType = createRecordType<TLDocument>('document', {
 	validator: documentValidator,
 	scope: 'document',
 }).withDefaultProperties(
-	(): Omit<TLDocument, 'id' | 'typeName'> => ({
+	(): Omit => ({
 		gridSize: 10,
 		name: '',
 		meta: {},
@@ -81,4 +81,4 @@ export const DocumentRecordType = createRecordType<TLDocument>('document', {
 
 // all document records have the same ID: 'document:document'
 /** @public */
-export const TLDOCUMENT_ID: RecordId<TLDocument> = DocumentRecordType.createId('document')
+export const TLDOCUMENT_ID: RecordId = DocumentRecordType.createId('document')

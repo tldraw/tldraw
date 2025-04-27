@@ -5,15 +5,17 @@ import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
 import { Bars3Icon } from '@heroicons/react/16/solid'
 import { XMarkIcon } from '@heroicons/react/20/solid'
 
-export async function DocsMobileSidebar({
-	sectionId,
-	categoryId,
-	articleId,
-}: {
-	sectionId?: string
-	categoryId?: string
-	articleId?: string
-}) {
+export async function DocsMobileSidebar(
+	{
+		sectionId,
+		categoryId,
+		articleId,
+	}: {
+		sectionId?: string
+		categoryId?: string
+		articleId?: string
+	}
+) {
 	const sidebar = await db.getSidebarContentList({ sectionId, categoryId, articleId })
 	const skipFirstLevel = ['reference', 'examples'].includes(sectionId ?? '')
 	// @ts-ignore

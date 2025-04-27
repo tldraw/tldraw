@@ -1,10 +1,5 @@
-import {
-	ContextMenuPortal,
-	ContextMenuSub,
-	ContextMenuSubContent,
-	ContextMenuSubTrigger,
-} from '@radix-ui/react-context-menu'
 import { useContainer } from '@tldraw/editor'
+import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { ReactNode } from 'react'
 import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
@@ -19,6 +14,9 @@ import {
 } from '../TldrawUiDropdownMenu'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
+const { ContextMenuPortal, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger } =
+	_ContextMenu
+
 /** @public */
 export interface TLUiMenuSubmenuProps<Translation extends string = string> {
 	id: string
@@ -29,20 +27,16 @@ export interface TLUiMenuSubmenuProps<Translation extends string = string> {
 }
 
 /** @public @react */
-export function TldrawUiMenuSubmenu<Translation extends string = string>({
-	id,
-	disabled = false,
-	label,
-	size = 'small',
-	children,
-}: TLUiMenuSubmenuProps<Translation>) {
+export function TldrawUiMenuSubmenu<Translation extends string = string>(
+	{ id, disabled = false, label, size = 'small', children }: TLUiMenuSubmenuProps
+) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const container = useContainer()
 	const msg = useTranslation()
 	const labelToUse = label
 		? typeof label === 'string'
 			? label
-			: (label[menuType] ?? label['default'])
+			: label[menuType] ?? label['default']
 		: undefined
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 

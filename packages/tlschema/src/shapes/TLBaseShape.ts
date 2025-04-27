@@ -6,8 +6,7 @@ import { idValidator } from '../misc/id-validator'
 import { TLParentId, TLShapeId } from '../records/TLShape'
 
 /** @public */
-export interface TLBaseShape<Type extends string, Props extends object>
-	extends BaseRecord<'shape', TLShapeId> {
+export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord {
 	type: Type
 	x: number
 	y: number
@@ -35,13 +34,13 @@ export const shapeIdValidator = idValidator<TLShapeId>('shape')
 export function createShapeValidator<
 	Type extends string,
 	Props extends JsonObject,
-	Meta extends JsonObject,
+	Meta extends JsonObject
 >(
 	type: Type,
-	props?: { [K in keyof Props]: T.Validatable<Props[K]> },
-	meta?: { [K in keyof Meta]: T.Validatable<Meta[K]> }
+	props?: { [K in keyof Props]: T.Validatable },
+	meta?: { [K in keyof Meta]: T.Validatable }
 ) {
-	return T.object<TLBaseShape<Type, Props>>({
+	return T.object<TLBaseShape>({
 		id: shapeIdValidator,
 		typeName: T.literal('shape'),
 		x: T.number,

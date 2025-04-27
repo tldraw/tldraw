@@ -5,15 +5,17 @@ import { PageTitle } from '@/components/common/page-title'
 import { Article } from '@/types/content-types'
 import { SearchButton } from '../search/SearchButton'
 
-export function BlogCategoryPage({
-	title,
-	description,
-	articles,
-}: {
-	title: string
-	description: string | null
-	articles: Article[]
-}) {
+export function BlogCategoryPage(
+	{
+		title,
+		description,
+		articles,
+	}: {
+		title: string
+		description: string | null
+		articles: Article[]
+	}
+) {
 	return (
 		<div className="w-full max-w-screen-xl mx-auto md:px-5 md:flex md:pt-8 isolate">
 			<BlogSidebar>{/* <NewsletterSignup size="small" /> */}</BlogSidebar>

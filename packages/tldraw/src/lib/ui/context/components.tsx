@@ -45,20 +45,20 @@ import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 
 /** @public */
 export interface TLUiComponents {
-	ContextMenu?: ComponentType<TLUiContextMenuProps> | null
-	ActionsMenu?: ComponentType<TLUiActionsMenuProps> | null
-	HelpMenu?: ComponentType<TLUiHelpMenuProps> | null
-	ZoomMenu?: ComponentType<TLUiZoomMenuProps> | null
-	MainMenu?: ComponentType<TLUiMainMenuProps> | null
+	ContextMenu?: ComponentType | null
+	ActionsMenu?: ComponentType | null
+	HelpMenu?: ComponentType | null
+	ZoomMenu?: ComponentType | null
+	MainMenu?: ComponentType | null
 	Minimap?: ComponentType | null
-	StylePanel?: ComponentType<TLUiStylePanelProps> | null
+	StylePanel?: ComponentType | null
 	PageMenu?: ComponentType | null
 	NavigationPanel?: ComponentType | null
 	Toolbar?: ComponentType | null
-	RichTextToolbar?: ComponentType<TLUiRichTextToolbarProps> | null
-	KeyboardShortcutsDialog?: ComponentType<TLUiKeyboardShortcutsDialogProps> | null
-	QuickActions?: ComponentType<TLUiQuickActionsProps> | null
-	HelperButtons?: ComponentType<TLUiHelperButtonsProps> | null
+	RichTextToolbar?: ComponentType | null
+	KeyboardShortcutsDialog?: ComponentType | null
+	QuickActions?: ComponentType | null
+	HelperButtons?: ComponentType | null
 	DebugPanel?: ComponentType | null
 	DebugMenu?: ComponentType | null
 	MenuPanel?: ComponentType | null
@@ -79,10 +79,9 @@ export interface TLUiComponentsProviderProps {
 }
 
 /** @public @react */
-export function TldrawUiComponentsProvider({
-	overrides = {},
-	children,
-}: TLUiComponentsProviderProps) {
+export function TldrawUiComponentsProvider(
+	{ overrides = {}, children }: TLUiComponentsProviderProps
+) {
 	const _overrides = useShallowObjectIdentity(overrides)
 	const showCollaborationUi = useShowCollaborationUi()
 

@@ -1,31 +1,27 @@
 import { SearchEntry } from '@/utils/algolia'
 import { Combobox, ComboboxItem, ComboboxProvider, VisuallyHidden } from '@ariakit/react'
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
-import * as Dialog from '@radix-ui/react-dialog'
 import { Hit } from 'instantsearch.js'
 import { SendEventForHits } from 'instantsearch.js/es/lib/utils'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { Dialog } from 'radix-ui'
 import { Fragment, startTransition, useState } from 'react'
 import { Highlight } from 'react-instantsearch'
 import { twJoin } from 'tailwind-merge'
 import { ContentHighlight } from './ContentHighlight'
 
 interface AutocompleteProps {
-	items: Hit<SearchEntry>[]
+	items: Hit[]
 	onChange(value: string): void
 	onInputChange(value: string): void
 	onClose(): void
 	sendEvent: SendEventForHits
 }
 
-export default function SearchDialog({
-	items,
-	onInputChange,
-	onChange,
-	onClose,
-	sendEvent,
-}: AutocompleteProps) {
+export default function SearchDialog(
+	{ items, onInputChange, onChange, onClose, sendEvent }: AutocompleteProps
+) {
 	const [open, setOpen] = useState(true)
 	const [value, setValue] = useState('')
 
@@ -37,7 +33,7 @@ export default function SearchDialog({
 	}
 
 	return (
-		<ComboboxProvider<string>
+		<ComboboxProvider
 			defaultSelectedValue=""
 			open={open}
 			setOpen={setOpen}
@@ -78,7 +74,7 @@ export default function SearchDialog({
 function SearchInput({ value }: { value: string }) {
 	const router = useRouter()
 	const pathName = usePathname()
-	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key !== 'Enter') return
 		const searchPath = pathName.startsWith('/blog') ? '/search/blog' : '/search'
 		router.push(`${searchPath}?query=${encodeURIComponent(value.trim())}`)
@@ -98,7 +94,7 @@ function SearchInput({ value }: { value: string }) {
 	)
 }
 
-function Results({ items, sendEvent }: { items: Hit<SearchEntry>[]; sendEvent: SendEventForHits }) {
+function Results({ items, sendEvent }: { items: Hit[]; sendEvent: SendEventForHits }) {
 	let section = ''
 	const renderedItems = items.map((hit) => {
 		const showChapter = hit.section !== section
@@ -168,13 +164,9 @@ function Results({ items, sendEvent }: { items: Hit<SearchEntry>[]; sendEvent: S
 	)
 }
 
-function SearchDialogWrapper({
-	children,
-	onOpenChange,
-}: {
-	children: React.ReactNode
-	onOpenChange(open: boolean): void
-}) {
+function SearchDialogWrapper(
+	{ children, onOpenChange }: { children: React.ReactNode; onOpenChange(open: boolean): void }
+) {
 	return (
 		<Dialog.Root open onOpenChange={onOpenChange}>
 			<Dialog.Portal>

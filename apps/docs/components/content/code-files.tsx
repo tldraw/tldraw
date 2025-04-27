@@ -15,16 +15,18 @@ const shiki = createHighlighterCoreSync({
 	engine: createJavaScriptRegexEngine(),
 })
 
-export function CodeFiles({
-	files,
-	hideTabs,
-	className,
-}: {
-	files: { name: string; content: any }[]
-	hideCopyButton?: boolean
-	hideTabs?: boolean
-	className?: string
-}) {
+export function CodeFiles(
+	{
+		files,
+		hideTabs,
+		className,
+	}: {
+		files: { name: string; content: any }[]
+		hideCopyButton?: boolean
+		hideTabs?: boolean
+		className?: string
+	}
+) {
 	return (
 		<TabGroup
 			className={cn(

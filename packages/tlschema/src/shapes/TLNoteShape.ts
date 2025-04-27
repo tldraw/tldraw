@@ -35,10 +35,10 @@ export interface TLNoteShapeProps {
 }
 
 /** @public */
-export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>
+export type TLNoteShape = TLBaseShape
 
 /** @public */
-export const noteShapeProps: RecordProps<TLNoteShape> = {
+export const noteShapeProps: RecordProps = {
 	color: DefaultColorStyle,
 	labelColor: DefaultLabelColorStyle,
 	size: DefaultSizeStyle,

@@ -7,8 +7,7 @@ import { TLShapeId } from '../records/TLShape'
 import { shapeIdValidator } from '../shapes/TLBaseShape'
 
 /** @public */
-export interface TLBaseBinding<Type extends string, Props extends object>
-	extends BaseRecord<'binding', TLBindingId> {
+export interface TLBaseBinding<Type extends string, Props extends object> extends BaseRecord {
 	type: Type
 	fromId: TLShapeId
 	toId: TLShapeId
@@ -23,13 +22,13 @@ export const bindingIdValidator = idValidator<TLBindingId>('binding')
 export function createBindingValidator<
 	Type extends string,
 	Props extends JsonObject,
-	Meta extends JsonObject,
+	Meta extends JsonObject
 >(
 	type: Type,
-	props?: { [K in keyof Props]: T.Validatable<Props[K]> },
-	meta?: { [K in keyof Meta]: T.Validatable<Meta[K]> }
+	props?: { [K in keyof Props]: T.Validatable },
+	meta?: { [K in keyof Meta]: T.Validatable }
 ) {
-	return T.object<TLBaseBinding<Type, Props>>({
+	return T.object<TLBaseBinding>({
 		id: bindingIdValidator,
 		typeName: T.literal('binding'),
 		type: T.literal(type),

@@ -4,7 +4,7 @@ import { generateSection } from './generateSection'
 
 const { log: nicelog } = console
 
-export async function generateApiContent(): Promise<GeneratedContent> {
+export async function generateApiContent(): Promise {
 	const articles: Articles = {}
 	const CONTENT_DIRECTORY = path.join(process.cwd(), 'content')
 	const sections = require(path.join(CONTENT_DIRECTORY, 'sections.json')) as InputSection[]

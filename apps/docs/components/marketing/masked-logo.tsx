@@ -8,15 +8,9 @@ function getMaskStyle(url: string): string {
 	return `url(${url}) center 100% / 100% no-repeat`
 }
 
-export function MaskedLogo({
-	src,
-	small,
-	hover,
-}: {
-	src: string
-	small?: boolean
-	hover?: boolean
-}) {
+export function MaskedLogo(
+	{ src, small, hover }: { src: string; small?: boolean; hover?: boolean }
+) {
 	const ref = useRef<HTMLAnchorElement>(null)
 
 	useLayoutEffect(() => {

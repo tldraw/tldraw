@@ -2,10 +2,7 @@ import glob from 'glob'
 import path from 'path'
 import { REPO_ROOT, readJsonIfExists } from './file'
 
-export type PackageJson = { name: string; private?: boolean; workspaces?: string[] } & Record<
-	string,
-	any
->
+export type PackageJson = { name: string; private?: boolean; workspaces?: string[] } & Record
 export interface Package {
 	packageJson: PackageJson
 	relativePath: string
@@ -13,7 +10,7 @@ export interface Package {
 	name: string
 }
 
-async function readPackage(packageJsonFile: string): Promise<Package> {
+async function readPackage(packageJsonFile: string): Promise {
 	const packageJsonPath = path.resolve(packageJsonFile)
 	const packageJson = await readJsonIfExists(packageJsonFile)
 	if (!packageJson) {
@@ -30,7 +27,7 @@ async function readPackage(packageJsonFile: string): Promise<Package> {
 	}
 }
 
-async function getChildWorkspaces(parent: Package): Promise<Package[]> {
+async function getChildWorkspaces(parent: Package): Promise {
 	if (!parent.packageJson.workspaces) return []
 
 	const foundPackages = []

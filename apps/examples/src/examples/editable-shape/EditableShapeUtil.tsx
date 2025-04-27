@@ -11,18 +11,11 @@ import {
 
 const ANIMAL_EMOJIS = ['🐶', '🐱', '🐨', '🐮', '🐴']
 
-type IMyEditableShape = TLBaseShape<
-	'my-editable-shape',
-	{
-		w: number
-		h: number
-		animal: number
-	}
->
+type IMyEditableShape = TLBaseShape
 
-export class EditableShapeUtil extends BaseBoxShapeUtil<IMyEditableShape> {
+export class EditableShapeUtil extends BaseBoxShapeUtil {
 	static override type = 'my-editable-shape' as const
-	static override props: RecordProps<IMyEditableShape> = {
+	static override props: RecordProps = {
 		w: T.number,
 		h: T.number,
 		animal: T.number,

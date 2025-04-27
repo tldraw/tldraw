@@ -5,10 +5,7 @@ import { Environment } from '../types'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 
 // Get a snapshot of the room at a given point in time
-export async function getRoomHistorySnapshot(
-	request: IRequest,
-	env: Environment
-): Promise<Response> {
+export async function getRoomHistorySnapshot(request: IRequest, env: Environment): Promise {
 	const roomId = request.params.roomId
 
 	if (!roomId) return notFound()

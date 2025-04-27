@@ -5,13 +5,9 @@ import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 import { messages } from './sidebar-shared'
 
-export function TlaSidebarFileLinkMenu({
-	fileId,
-	onRenameAction,
-}: {
-	fileId: string
-	onRenameAction(): void
-}) {
+export function TlaSidebarFileLinkMenu(
+	{ fileId, onRenameAction }: { fileId: string; onRenameAction(): void }
+) {
 	const fileMenuLbl = useMsg(messages.fileMenu)
 
 	return (

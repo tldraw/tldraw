@@ -4,11 +4,7 @@ import { db } from '@/utils/ContentDatabase'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
-export async function generateMetadata({
-	params,
-}: {
-	params: { slug: string }
-}): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise {
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
 	const content = await db.getPageContent(`/blog/${path.join('/')}`)
 	if (!content) notFound()

@@ -7,7 +7,7 @@ import { ShapeUtil } from '../ShapeUtil'
 import { DashedOutlineBox } from './DashedOutlineBox'
 
 /** @public */
-export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
+export class GroupShapeUtil extends ShapeUtil {
 	static override type = 'group' as const
 	static override props = groupShapeProps
 	static override migrations = groupShapeMigrations

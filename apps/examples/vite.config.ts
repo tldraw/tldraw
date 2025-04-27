@@ -41,10 +41,10 @@ const TLDRAW_BEMO_URL_STRING =
 	env === 'production'
 		? 'https://demo.tldraw.xyz'
 		: env === 'canary'
-			? 'https://canary-demo.tldraw.xyz'
-			: PR_NUMBER
-				? `https://pr-${PR_NUMBER}-demo.tldraw.xyz`
-				: undefined
+		? 'https://canary-demo.tldraw.xyz'
+		: PR_NUMBER
+		? `https://pr-${PR_NUMBER}-demo.tldraw.xyz`
+		: undefined
 
 export default defineConfig(({ mode }) => ({
 	plugins: [react({ tsDecorators: true }), exampleReadmePlugin()],

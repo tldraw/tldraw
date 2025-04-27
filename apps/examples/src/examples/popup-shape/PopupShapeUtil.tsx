@@ -9,18 +9,11 @@ import {
 	stopEventPropagation,
 } from 'tldraw'
 
-type IMyPopupShape = TLBaseShape<
-	'my-popup-shape',
-	{
-		w: number
-		h: number
-		animal: number
-	}
->
+type IMyPopupShape = TLBaseShape
 
-export class PopupShapeUtil extends BaseBoxShapeUtil<IMyPopupShape> {
+export class PopupShapeUtil extends BaseBoxShapeUtil {
 	static override type = 'my-popup-shape' as const
-	static override props: RecordProps<IMyPopupShape> = {
+	static override props: RecordProps = {
 		w: T.number,
 		h: T.number,
 		animal: T.number,

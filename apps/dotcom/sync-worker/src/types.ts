@@ -9,20 +9,22 @@ import type { TLUserDurableObject } from './TLUserDurableObject'
 
 // This type isn't available in @cloudflare/workers-types yet
 export interface Analytics {
-	writeDataPoint(data: {
-		blobs?: string[]
-		doubles?: number[]
-		indexes?: [string] // only one here
-	}): void
+	writeDataPoint(
+		data: {
+			blobs?: string[]
+			doubles?: number[]
+			indexes?: [string] // only one here
+		}
+	): void
 }
 
 export interface Environment {
 	// bindings
-	TLDR_DOC: DurableObjectNamespace<TLDrawDurableObject>
-	TL_PG_REPLICATOR: DurableObjectNamespace<TLPostgresReplicator>
-	TL_USER: DurableObjectNamespace<TLUserDurableObject>
-	TL_LOGGER: DurableObjectNamespace<TLLoggerDurableObject>
-	TL_STATS: DurableObjectNamespace<TLStatsDurableObject>
+	TLDR_DOC: DurableObjectNamespace
+	TL_PG_REPLICATOR: DurableObjectNamespace
+	TL_USER: DurableObjectNamespace
+	TL_LOGGER: DurableObjectNamespace
+	TL_STATS: DurableObjectNamespace
 
 	BOTCOM_POSTGRES_CONNECTION_STRING: string
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string

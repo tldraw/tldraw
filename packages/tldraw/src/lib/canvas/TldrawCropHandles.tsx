@@ -8,12 +8,9 @@ export interface TldrawCropHandlesProps {
 	hideAlternateHandles: boolean
 }
 
-export function TldrawCropHandles({
-	size,
-	width,
-	height,
-	hideAlternateHandles,
-}: TldrawCropHandlesProps) {
+export function TldrawCropHandles(
+	{ size, width, height, hideAlternateHandles }: TldrawCropHandlesProps
+) {
 	const cropStrokeWidth = toDomPrecision(size / 3)
 	const offset = cropStrokeWidth / 2
 

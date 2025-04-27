@@ -6,7 +6,7 @@ import { TLUserPreferences, getUserPreferences, setUserPreferences } from './TLU
 
 /** @public */
 export interface TLUser {
-	readonly userPreferences: Signal<TLUserPreferences>
+	readonly userPreferences: Signal
 	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	readonly setUserPreferences: (userPreferences: TLUserPreferences) => void
 }
@@ -18,7 +18,7 @@ const defaultLocalStorageUserPrefs = computed('defaultLocalStorageUserPrefs', ()
 /** @public */
 export function createTLUser(
 	opts = {} as {
-		userPreferences?: Signal<TLUserPreferences>
+		userPreferences?: Signal
 		// eslint-disable-next-line @typescript-eslint/method-signature-style
 		setUserPreferences?: (userPreferences: TLUserPreferences) => void
 	}
@@ -32,13 +32,15 @@ export function createTLUser(
 /**
  * @public
  */
-export function useTldrawUser(opts: {
-	userPreferences?: Signal<TLUserPreferences> | TLUserPreferences
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
-	setUserPreferences?: (userPreferences: TLUserPreferences) => void
-}): TLUser {
+export function useTldrawUser(
+	opts: {
+		userPreferences?: Signal | TLUserPreferences
+		// eslint-disable-next-line @typescript-eslint/method-signature-style
+		setUserPreferences?: (userPreferences: TLUserPreferences) => void
+	}
+): TLUser {
 	const prefs = useShallowObjectIdentity(opts.userPreferences ?? defaultLocalStorageUserPrefs)
-	const userAtom = useAtom<TLUserPreferences | Signal<TLUserPreferences>>('userAtom', prefs)
+	const userAtom = useAtom<TLUserPreferences | Signal>('userAtom', prefs)
 	useEffect(() => {
 		userAtom.set(prefs)
 	}, [prefs, userAtom])

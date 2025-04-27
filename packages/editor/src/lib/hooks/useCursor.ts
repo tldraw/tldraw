@@ -47,7 +47,7 @@ const STATIC_CURSORS = [
 
 type CursorFunction = (rotation: number, flip: boolean, color: string) => string
 
-const CURSORS: Record<TLCursorType, CursorFunction> = {
+const CURSORS: Record = {
 	none: () => 'none',
 	'ew-resize': (r, f, c) => getCursorCss(EDGE_SVG, r, 0, f, c),
 	'ns-resize': (r, f, c) => getCursorCss(EDGE_SVG, r, 90, f, c),

@@ -3,9 +3,9 @@ import { createRecordType } from '../RecordType'
 import { SerializedStore, Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
 
-interface Book extends BaseRecord<'book', RecordId<Book>> {
+interface Book extends BaseRecord {
 	title: string
-	author: IdOf<Author>
+	author: IdOf
 	numPages: number
 }
 
@@ -24,7 +24,7 @@ const Book = createRecordType<Book>('book', {
 	scope: 'document',
 })
 
-interface Author extends BaseRecord<'author', RecordId<Author>> {
+interface Author extends BaseRecord {
 	name: string
 	isPseudonym: boolean
 }
@@ -51,7 +51,7 @@ const schema = StoreSchema.create<Book | Author>({
 })
 
 describe('Store with validation', () => {
-	let store: Store<Book | Author>
+	let store: Store
 
 	beforeEach(() => {
 		store = new Store({ schema, props: {} })
@@ -81,7 +81,7 @@ describe('Store with validation', () => {
 })
 
 describe('Validating initial data', () => {
-	let snapshot: SerializedStore<Book | Author>
+	let snapshot: SerializedStore
 
 	beforeEach(() => {
 		const authorId = Author.createId('tolkein')

@@ -11,18 +11,11 @@ import {
 } from '../..'
 import { Editor } from './Editor'
 
-type ICustomShape = TLBaseShape<
-	'my-custom-shape',
-	{
-		w: number
-		h: number
-		text: string | undefined
-	}
->
+type ICustomShape = TLBaseShape
 
-class CustomShape extends ShapeUtil<ICustomShape> {
+class CustomShape extends ShapeUtil {
 	static override type = 'my-custom-shape' as const
-	static override props: RecordProps<ICustomShape> = {
+	static override props: RecordProps = {
 		w: T.number,
 		h: T.number,
 		text: T.string.optional(),

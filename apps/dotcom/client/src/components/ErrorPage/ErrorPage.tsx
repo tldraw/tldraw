@@ -37,15 +37,17 @@ export const sadFaceIcon = (
 	</svg>
 )
 
-export function ErrorPage({
-	messages,
-	icon = sadFaceIcon,
-	cta = <GoBackLink />,
-}: {
-	icon?: ReactNode
-	messages: { header: string; para1: string; para2?: string }
-	cta?: ReactNode
-}) {
+export function ErrorPage(
+	{
+		messages,
+		icon = sadFaceIcon,
+		cta = <GoBackLink />,
+	}: {
+		icon?: ReactNode
+		messages: { header: string; para1: string; para2?: string }
+		cta?: ReactNode
+	}
+) {
 	return (
 		// This sits outside the regular providers, it needs to be able to have the intl object in the app context.
 		<IntlProvider defaultLocale="en" locale="en" messages={{}}>

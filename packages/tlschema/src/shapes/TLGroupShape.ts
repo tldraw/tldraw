@@ -7,10 +7,10 @@ import { TLBaseShape } from './TLBaseShape'
 export interface TLGroupShapeProps {}
 
 /** @public */
-export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>
+export type TLGroupShape = TLBaseShape
 
 /** @public */
-export const groupShapeProps: RecordProps<TLGroupShape> = {}
+export const groupShapeProps: RecordProps = {}
 
 /** @public */
 export const groupShapeMigrations = createShapePropsMigrationSequence({ sequence: [] })

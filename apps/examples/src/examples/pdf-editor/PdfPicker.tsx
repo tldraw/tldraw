@@ -20,7 +20,7 @@ const pageSpacing = 32
 export function PdfPicker({ onOpenPdf }: { onOpenPdf(pdf: Pdf): void }) {
 	const [isLoading, setIsLoading] = useState(false)
 
-	async function loadPdf(name: string, source: ArrayBuffer): Promise<Pdf> {
+	async function loadPdf(name: string, source: ArrayBuffer): Promise {
 		const PdfJS = await import('pdfjs-dist')
 		PdfJS.GlobalWorkerOptions.workerSrc = new URL(
 			'pdfjs-dist/build/pdf.worker.min.mjs',

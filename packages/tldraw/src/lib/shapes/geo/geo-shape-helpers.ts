@@ -314,7 +314,7 @@ function getPillPoints(width: number, height: number, numPoints: number) {
 						center: new Vec(radius, radius),
 						startAngle: PI / 2,
 					},
-				]
+			  ]
 			: [
 					{
 						type: 'straight',
@@ -336,7 +336,7 @@ function getPillPoints(width: number, height: number, numPoints: number) {
 						center: new Vec(radius, radius),
 						startAngle: PI,
 					},
-				]
+			  ]
 
 	let sectionOffset = 0
 
@@ -362,7 +362,7 @@ function getPillPoints(width: number, height: number, numPoints: number) {
 	return points
 }
 
-const SIZES: Record<TLDefaultSizeStyle, number> = {
+const SIZES: Record = {
 	s: 50,
 	m: 70,
 	l: 100,
@@ -525,14 +525,16 @@ export function getCloudPath(
 		}
 		// use the large arc if the center of the circle is to the left of the line between the two points
 		const arc = Vec.Clockwise(leftPoint, rightPoint, center) ? '0' : '1'
-		path += ` A${toDomPrecision(radius)},${toDomPrecision(radius)} 0 ${arc},1 ${rightPoint.toFixed()}`
+		path += ` A${toDomPrecision(radius)},${toDomPrecision(
+			radius
+		)} 0 ${arc},1 ${rightPoint.toFixed()}`
 	}
 
 	path += ' Z'
 	return path
 }
 
-const DRAW_OFFSETS: Record<TLDefaultSizeStyle, number> = {
+const DRAW_OFFSETS: Record = {
 	s: 0.5,
 	m: 0.7,
 	l: 0.9,
@@ -569,7 +571,9 @@ export function inkyCloudSvgPath(
 			continue
 		}
 		const arc = Vec.Clockwise(leftPoint, rightPoint, center) ? '0' : '1'
-		pathA += ` A${toDomPrecision(radius)},${toDomPrecision(radius)} 0 ${arc},1 ${rightPoint.toFixed()}`
+		pathA += ` A${toDomPrecision(radius)},${toDomPrecision(
+			radius
+		)} 0 ${arc},1 ${rightPoint.toFixed()}`
 		const rightMutPoint = mutPoint(rightPoint)
 		const mutArcPoint = mutPoint(arcPoint)
 		const mutCenter = centerOfCircleFromThreePoints(leftMutPoint, rightMutPoint, mutArcPoint)

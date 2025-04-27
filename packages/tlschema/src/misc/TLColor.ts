@@ -19,7 +19,7 @@ export const TL_CANVAS_UI_COLOR_TYPES = new Set([
  * A type for the colors used by tldraw's default shapes.
  *
  *  @public */
-export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>
+export type TLCanvasUiColor = SetValue
 
 /**
  * A validator for the colors used by tldraw's default shapes.

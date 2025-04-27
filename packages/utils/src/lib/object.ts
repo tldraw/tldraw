@@ -4,10 +4,7 @@ export function hasOwnProperty(obj: object, key: string): boolean {
 }
 
 /** @internal */
-export function getOwnProperty<K extends string, V>(
-	obj: Partial<Record<K, V>>,
-	key: K
-): V | undefined
+export function getOwnProperty<K extends string, V>(obj: Partial, key: K): V | undefined
 /** @internal */
 export function getOwnProperty<O extends object>(obj: O, key: string): O[keyof O] | undefined
 /** @internal */
@@ -26,9 +23,11 @@ export function getOwnProperty(obj: object, key: string): unknown {
  *
  * @internal
  */
-export function objectMapKeys<Key extends string>(object: {
-	readonly [K in Key]: unknown
-}): Array<Key> {
+export function objectMapKeys<Key extends string>(
+	object: {
+		readonly [K in Key]: unknown
+	}
+): Array {
 	return Object.keys(object) as Key[]
 }
 
@@ -38,9 +37,11 @@ export function objectMapKeys<Key extends string>(object: {
  *
  * @internal
  */
-export function objectMapValues<Key extends string, Value>(object: {
-	[K in Key]: Value
-}): Array<Value> {
+export function objectMapValues<Key extends string, Value>(
+	object: {
+		[K in Key]: Value
+	}
+): Array {
 	return Object.values(object) as Value[]
 }
 
@@ -50,9 +51,11 @@ export function objectMapValues<Key extends string, Value>(object: {
  *
  * @internal
  */
-export function objectMapEntries<Key extends string, Value>(object: {
-	[K in Key]: Value
-}): Array<[Key, Value]> {
+export function objectMapEntries<Key extends string, Value>(
+	object: {
+		[K in Key]: Value
+	}
+): Array {
 	return Object.entries(object) as [Key, Value][]
 }
 
@@ -63,7 +66,7 @@ export function objectMapEntries<Key extends string, Value>(object: {
  * @internal
  */
 export function objectMapFromEntries<Key extends string, Value>(
-	entries: ReadonlyArray<readonly [Key, Value]>
+	entries: ReadonlyArray
 ): { [K in Key]: Value } {
 	return Object.fromEntries(entries) as { [K in Key]: Value }
 }
@@ -121,10 +124,10 @@ export function areObjectsShallowEqual<T extends object>(obj1: T, obj2: T): bool
 
 /** @internal */
 export function groupBy<K extends string, V>(
-	array: ReadonlyArray<V>,
+	array: ReadonlyArray,
 	keySelector: (value: V) => K
-): Record<K, V[]> {
-	const result: Record<K, V[]> = {} as any
+): Record {
+	const result: Record = {} as any
 	for (const value of array) {
 		const key = keySelector(value)
 		if (!result[key]) result[key] = []

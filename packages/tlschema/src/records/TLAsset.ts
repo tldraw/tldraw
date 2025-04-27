@@ -15,7 +15,7 @@ import { TLShape } from './TLShape'
 export type TLAsset = TLImageAsset | TLVideoAsset | TLBookmarkAsset
 
 /** @public */
-export const assetValidator: T.Validator<TLAsset> = T.model(
+export const assetValidator: T.Validator = T.model(
 	'asset',
 	T.union('type', {
 		image: imageAssetValidator,
@@ -48,9 +48,9 @@ export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T
 	? {
 			id: TLAssetId
 			type: T['type']
-			props?: Partial<T['props']>
-			meta?: Partial<T['meta']>
-		} & Partial<Omit<T, 'type' | 'id' | 'props' | 'meta'>>
+			props?: Partial
+			meta?: Partial
+	  } & Partial
 	: never
 
 /** @public */
@@ -62,7 +62,7 @@ export const AssetRecordType = createRecordType<TLAsset>('asset', {
 }))
 
 /** @public */
-export type TLAssetId = RecordId<TLBaseAsset<any, any>>
+export type TLAssetId = RecordId
 
 /** @public */
-export type TLAssetShape = Extract<TLShape, { props: { assetId: TLAssetId } }>
+export type TLAssetShape = Extract

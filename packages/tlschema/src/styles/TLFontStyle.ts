@@ -8,7 +8,7 @@ export const DefaultFontStyle = StyleProp.defineEnum('tldraw:font', {
 })
 
 /** @public */
-export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>
+export type TLDefaultFontStyle = T.TypeOf
 
 /** @public */
 export const DefaultFontFamilies = {

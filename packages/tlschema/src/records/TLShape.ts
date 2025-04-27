@@ -50,7 +50,7 @@ export type TLDefaultShape =
  * unknown—either one of the editor's default shapes or else a custom shape.
  *
  * @public */
-export type TLUnknownShape = TLBaseShape<string, object>
+export type TLUnknownShape = TLBaseShape
 
 /**
  * The set of all shapes that are available in the editor, including unknown shapes.
@@ -64,13 +64,13 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
 	? {
 			id: TLShapeId
 			type: T['type']
-			props?: Partial<T['props']>
-			meta?: Partial<T['meta']>
-		} & Partial<Omit<T, 'type' | 'id' | 'props' | 'meta'>>
+			props?: Partial
+			meta?: Partial
+	  } & Partial
 	: never
 
 /** @public */
-export type TLShapeId = RecordId<TLUnknownShape>
+export type TLShapeId = RecordId
 
 /** @public */
 export type TLParentId = TLPageId | TLShapeId
@@ -110,12 +110,12 @@ export const rootShapeMigrations = createRecordMigrationSequence({
 					opacity < 0.175
 						? '0.1'
 						: opacity < 0.375
-							? '0.25'
-							: opacity < 0.625
-								? '0.5'
-								: opacity < 0.875
-									? '0.75'
-									: '1'
+						? '0.25'
+						: opacity < 0.625
+						? '0.5'
+						: opacity < 0.875
+						? '0.75'
+						: '1'
 			},
 		},
 		{
@@ -156,8 +156,8 @@ export function createShapeId(id?: string): TLShapeId {
 }
 
 /** @internal */
-export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>) {
-	const propKeysByStyle = new Map<StyleProp<unknown>, string>()
+export function getShapePropKeysByStyle(props: Record) {
+	const propKeysByStyle = new Map<StyleProp, string>()
 	for (const [key, prop] of Object.entries(props)) {
 		if (prop instanceof StyleProp) {
 			if (propKeysByStyle.has(prop)) {
@@ -183,15 +183,15 @@ export function createShapePropsMigrationSequence(
 /**
  * @public
  */
-export function createShapePropsMigrationIds<
-	const S extends string,
-	const T extends Record<string, number>,
->(shapeType: S, ids: T): { [k in keyof T]: `com.tldraw.shape.${S}/${T[k]}` } {
+export function createShapePropsMigrationIds<S extends string, T extends Record>(
+	shapeType: S,
+	ids: T
+): { [k in keyof T]: `com.tldraw.shape.${S}/${T[k]}` } {
 	return mapObjectMapValues(ids, (_k, v) => `com.tldraw.shape.${shapeType}/${v}`) as any
 }
 
 /** @internal */
-export function createShapeRecordType(shapes: Record<string, SchemaPropsInfo>) {
+export function createShapeRecordType(shapes: Record) {
 	return createRecordType<TLShape>('shape', {
 		scope: 'document',
 		validator: T.model(

@@ -1,10 +1,10 @@
 import { EMPTY_ARRAY } from '@tldraw/state'
 
-export type Stack<T> = StackItem<T> | EmptyStackItem<T>
+export type Stack<T> = StackItem | EmptyStackItem
 
-export function stack<T>(items?: Array<T>): Stack<T> {
+export function stack<T>(items?: Array): Stack {
 	if (items) {
-		let result = EMPTY_STACK_ITEM as Stack<T>
+		let result = EMPTY_STACK_ITEM as Stack
 		while (items.length) {
 			result = result.push(items.pop()!)
 		}
@@ -13,12 +13,12 @@ export function stack<T>(items?: Array<T>): Stack<T> {
 	return EMPTY_STACK_ITEM as any
 }
 
-class EmptyStackItem<T> implements Iterable<T> {
+class EmptyStackItem<T> implements Iterable {
 	readonly length = 0
 	readonly head = null
-	readonly tail: Stack<T> = this
+	readonly tail: Stack = this
 
-	push(head: T): Stack<T> {
+	push(head: T): Stack {
 		return new StackItem<T>(head, this)
 	}
 
@@ -37,16 +37,13 @@ class EmptyStackItem<T> implements Iterable<T> {
 
 const EMPTY_STACK_ITEM = new EmptyStackItem()
 
-class StackItem<T> implements Iterable<T> {
+class StackItem<T> implements Iterable {
 	length: number
-	constructor(
-		public readonly head: T,
-		public readonly tail: Stack<T>
-	) {
+	constructor(public readonly head: T, public readonly tail: Stack) {
 		this.length = tail.length + 1
 	}
 
-	push(head: T): Stack<T> {
+	push(head: T): Stack {
 		return new StackItem(head, this)
 	}
 
@@ -55,7 +52,7 @@ class StackItem<T> implements Iterable<T> {
 	}
 
 	[Symbol.iterator]() {
-		let stack = this as Stack<T>
+		let stack = this as Stack
 		return {
 			next() {
 				if (stack.length) {

@@ -1,7 +1,7 @@
 import { ShapeWithCrop, StateNode, TLKeyboardEventInfo, TLPointerEventInfo } from '@tldraw/editor'
 import { getTranslateCroppedImageChange } from './crop_helpers'
 
-type Snapshot = ReturnType<TranslatingCrop['createSnapshot']>
+type Snapshot = ReturnType
 
 export class TranslatingCrop extends StateNode {
 	static override id = 'translating_crop'

@@ -14,7 +14,7 @@ import { idValidator } from '../misc/id-validator'
  *
  * @public
  */
-export interface TLPointer extends BaseRecord<'pointer', TLPointerId> {
+export interface TLPointer extends BaseRecord {
 	x: number
 	y: number
 	lastActivityTimestamp: number
@@ -22,10 +22,10 @@ export interface TLPointer extends BaseRecord<'pointer', TLPointerId> {
 }
 
 /** @public */
-export type TLPointerId = RecordId<TLPointer>
+export type TLPointerId = RecordId
 
 /** @public */
-export const pointerValidator: T.Validator<TLPointer> = T.model(
+export const pointerValidator: T.Validator = T.model(
 	'pointer',
 	T.object({
 		typeName: T.literal('pointer'),
@@ -33,7 +33,7 @@ export const pointerValidator: T.Validator<TLPointer> = T.model(
 		x: T.number,
 		y: T.number,
 		lastActivityTimestamp: T.number,
-		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
+		meta: T.jsonValue as T.ObjectValidator,
 	})
 )
 
@@ -61,7 +61,7 @@ export const PointerRecordType = createRecordType<TLPointer>('pointer', {
 	validator: pointerValidator,
 	scope: 'session',
 }).withDefaultProperties(
-	(): Omit<TLPointer, 'id' | 'typeName'> => ({
+	(): Omit => ({
 		x: 0,
 		y: 0,
 		lastActivityTimestamp: 0,

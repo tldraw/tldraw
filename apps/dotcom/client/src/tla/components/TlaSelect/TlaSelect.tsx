@@ -1,23 +1,25 @@
-import * as Select from '@radix-ui/react-select'
+import { Select } from 'radix-ui'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './select.module.css'
 
-export function TlaSelect<T extends string>({
-	label,
-	value,
-	disabled,
-	onChange,
-	options,
-	'data-testid': dataTestId,
-}: {
-	label: string
-	value: T
-	disabled?: boolean
-	onChange(value: T): void
-	options: { value: T; label: ReactNode }[]
-	'data-testid'?: string
-}) {
+export function TlaSelect<T extends string>(
+	{
+		label,
+		value,
+		disabled,
+		onChange,
+		options,
+		'data-testid': dataTestId,
+	}: {
+		label: string
+		value: T
+		disabled?: boolean
+		onChange(value: T): void
+		options: { value: T; label: ReactNode }[]
+		'data-testid'?: string
+	}
+) {
 	const [isOpen, setIsOpen] = useState(false)
 	const handleChange = useCallback(
 		(value: string) => {

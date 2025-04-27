@@ -17,7 +17,7 @@ class SimpleRpcError extends Error {
 
 export function rpc(
 	id: keyof VscodeMessagePairs,
-	data: Omit<VscodeMessagePairs[typeof id]['request'], 'uuid'>['data'],
+	data: Omit['data'],
 	opts: SimpleRpcOpts = { timeout: 5 * 1000 }
 ) {
 	const { timeout } = opts
@@ -35,7 +35,7 @@ export function rpc(
 		}
 		vscode.postMessage(inMessage)
 
-		const handler = ({ data: response }: MessageEvent<ResponseType | ErrorType>) => {
+		const handler = ({ data: response }: MessageEvent) => {
 			// Only handle messages that are meant to be a direct response to the message we sent
 			if (response.uuid !== uuid + '_response') {
 				return

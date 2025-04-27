@@ -51,10 +51,10 @@ export const speechBubbleShapeProps = {
 	tail: vecModelValidator,
 }
 
-export type SpeechBubbleShapeProps = RecordPropsType<typeof speechBubbleShapeProps>
-export type SpeechBubbleShape = TLBaseShape<'speech-bubble', SpeechBubbleShapeProps>
+export type SpeechBubbleShapeProps = RecordPropsType
+export type SpeechBubbleShape = TLBaseShape
 
-export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
+export class SpeechBubbleUtil extends ShapeUtil {
 	static override type = 'speech-bubble' as const
 
 	// [2]
@@ -118,7 +118,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		]
 	}
 
-	override onHandleDrag(shape: SpeechBubbleShape, { handle }: TLHandleDragInfo<SpeechBubbleShape>) {
+	override onHandleDrag(shape: SpeechBubbleShape, { handle }: TLHandleDragInfo) {
 		return {
 			...shape,
 			props: {
@@ -216,7 +216,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		return <path d={pathData} />
 	}
 
-	override onResize(shape: SpeechBubbleShape, info: TLResizeInfo<SpeechBubbleShape>) {
+	override onResize(shape: SpeechBubbleShape, info: TLResizeInfo) {
 		const resized = resizeBox(shape, info)
 		const next = structuredClone(info.initialShape)
 		next.x = resized.x

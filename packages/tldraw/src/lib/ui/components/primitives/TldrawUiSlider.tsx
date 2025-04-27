@@ -1,7 +1,9 @@
-import { Range, Root, Thumb, Track } from '@radix-ui/react-slider'
+import { Slider } from 'radix-ui'
 import { memo, useCallback } from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+
+const { Range, Root, Thumb, Track } = Slider
 
 /** @public */
 export interface TLUiSliderProps {
@@ -15,15 +17,17 @@ export interface TLUiSliderProps {
 }
 
 /** @public @react */
-export const TldrawUiSlider = memo(function Slider({
-	onHistoryMark,
-	title,
-	steps,
-	value,
-	label,
-	onValueChange,
-	['data-testid']: testId,
-}: TLUiSliderProps) {
+export const TldrawUiSlider = memo(function Slider(
+	{
+		onHistoryMark,
+		title,
+		steps,
+		value,
+		label,
+		onValueChange,
+		['data-testid']: testId,
+	}: TLUiSliderProps
+) {
 	const msg = useTranslation()
 
 	const handleValueChange = useCallback(

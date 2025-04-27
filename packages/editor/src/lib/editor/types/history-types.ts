@@ -9,11 +9,11 @@ export interface TLHistoryMark {
 /** @public */
 export interface TLHistoryDiff<R extends UnknownRecord> {
 	type: 'diff'
-	diff: RecordsDiff<R>
+	diff: RecordsDiff
 }
 
 /** @public */
-export type TLHistoryEntry<R extends UnknownRecord> = TLHistoryMark | TLHistoryDiff<R>
+export type TLHistoryEntry<R extends UnknownRecord> = TLHistoryMark | TLHistoryDiff
 
 /** @public */
 export interface TLHistoryBatchOptions {

@@ -11,7 +11,7 @@ export const TL_HANDLE_TYPES = new Set(['vertex', 'virtual', 'create', 'clone'] 
  * A type for the handle types used by tldraw's default shapes.
  *
  * @public */
-export type TLHandleType = SetValue<typeof TL_HANDLE_TYPES>
+export type TLHandleType = SetValue
 
 /**
  * A base interface for a shape's handles.

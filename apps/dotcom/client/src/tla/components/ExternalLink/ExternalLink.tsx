@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './ExternalLink.module.css'
 
-export function ExternalLink(props: ComponentProps<typeof Link>) {
+export function ExternalLink(props: ComponentProps) {
 	return (
 		<Link {...props} target="_blank" rel="noopener noreferrer">
 			{props.children}

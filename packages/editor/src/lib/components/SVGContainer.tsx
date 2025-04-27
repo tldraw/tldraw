@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import * as React from 'react'
 
 /** @public */
-export type SVGContainerProps = React.ComponentProps<'svg'>
+export type SVGContainerProps = React.ComponentProps
 
 /** @public @react */
 export function SVGContainer({ children, className = '', ...rest }: SVGContainerProps) {

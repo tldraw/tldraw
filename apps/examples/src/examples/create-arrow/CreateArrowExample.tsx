@@ -44,8 +44,8 @@ function createArrowBetweenShapes(
 	endShapeId: TLShapeId,
 	options = {} as {
 		parentId?: TLShapeId
-		start?: Partial<Omit<TLArrowBinding['props'], 'terminal'>>
-		end?: Partial<Omit<TLArrowBinding['props'], 'terminal'>>
+		start?: Partial
+		end?: Partial
 	}
 ) {
 	const { start = {}, end = {}, parentId } = options

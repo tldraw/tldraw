@@ -20,7 +20,7 @@ const section: InputSection = {
 	sidebar_behavior: 'show-links',
 }
 
-export async function generateExamplesContent(): Promise<GeneratedContent> {
+export async function generateExamplesContent(): Promise {
 	const articles: Articles = {}
 
 	try {

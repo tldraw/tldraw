@@ -12,7 +12,7 @@ global.requestAnimationFrame = (cb: () => any) => {
 
 interface Book {
 	typeName: 'book'
-	id: RecordId<Book>
+	id: RecordId
 	title: string
 }
 const Book = createRecordType<Book>('book', {
@@ -48,7 +48,7 @@ const schemaWithoutValidator = StoreSchema.create<Book | Presence>({
 	presence: presenceType,
 })
 
-const disposables: Array<() => void> = []
+const disposables: Array = []
 afterEach(() => {
 	for (const dispose of disposables) {
 		dispose()
@@ -69,7 +69,7 @@ async function makeTestInstance() {
 		}
 	}
 	let onSyncError = jest.fn()
-	const client = await new Promise<TLSyncClient<Book | Presence>>((resolve, reject) => {
+	const client = await new Promise<TLSyncClient>((resolve, reject) => {
 		onSyncError = jest.fn(reject)
 		const client = new TLSyncClient({
 			store: new Store<Book | Presence, unknown>({ schema: schemaWithoutValidator, props: {} }),

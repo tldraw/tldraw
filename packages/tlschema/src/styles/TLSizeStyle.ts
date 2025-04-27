@@ -8,4 +8,4 @@ export const DefaultSizeStyle = StyleProp.defineEnum('tldraw:size', {
 })
 
 /** @public */
-export type TLDefaultSizeStyle = T.TypeOf<typeof DefaultSizeStyle>
+export type TLDefaultSizeStyle = T.TypeOf

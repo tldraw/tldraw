@@ -72,7 +72,7 @@ export function useDefaultHelpers() {
 }
 
 /** @public */
-export type TLUiOverrideHelpers = ReturnType<typeof useDefaultHelpers>
+export type TLUiOverrideHelpers = ReturnType
 
 /** @public */
 export interface TLUiOverrides {
@@ -140,7 +140,7 @@ function useShallowArrayEquality<T extends unknown[]>(array: T): T {
 /** @internal */
 export function useMergedTranslationOverrides(
 	overrides?: TLUiOverrides[] | TLUiOverrides
-): NonNullable<TLUiTranslationProviderProps['overrides']> {
+): NonNullable {
 	const overridesArray = useShallowArrayEquality(
 		overrides == null ? [] : Array.isArray(overrides) ? overrides : [overrides]
 	)
