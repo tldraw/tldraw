@@ -1,7 +1,7 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import classNames from 'classnames'
-import { Tooltip } from 'radix-ui'
+import { Tooltip as _Tooltip } from 'radix-ui'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
@@ -121,7 +121,7 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					components={components}
 					onUiEvent={handleAppLevelUiEvent}
 				>
-					<Tooltip.Provider>{children}</Tooltip.Provider>
+					<_Tooltip.Provider>{children}</_Tooltip.Provider>
 					<DefaultDialogs />
 					<DefaultToasts />
 					<DefaultA11yAnnouncer />

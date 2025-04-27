@@ -1,7 +1,7 @@
-import { Select } from 'radix-ui'
+import { Select as _Select } from 'radix-ui'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
-import styles from './select.module.css'
+import styles from './_select.module.css'
 
 export function TlaSelect<T extends string>({
 	label,
@@ -49,36 +49,36 @@ export function TlaSelect<T extends string>({
 
 	return (
 		<div className={styles.wrapper}>
-			<Select.Root
+			<_Select.Root
 				open={isOpen}
 				value={value}
 				onOpenChange={handleOpenChange}
 				onValueChange={handleChange}
 			>
-				<Select.Trigger
+				<_Select.Trigger
 					className={styles.trigger}
 					disabled={disabled}
 					aria-label={label}
 					data-testid={dataTestId}
 				>
-					<Select.Value className={styles.label} placeholder={label} />
-					<Select.Icon>
+					<_Select.Value className={styles.label} placeholder={label} />
+					<_Select.Icon>
 						<TlaIcon icon="chevron-down" className={styles.chevron} />
-					</Select.Icon>
-				</Select.Trigger>
-				<Select.Content className={styles.content}>
-					<Select.Viewport>
+					</_Select.Icon>
+				</_Select.Trigger>
+				<_Select.Content className={styles.content}>
+					<_Select.Viewport>
 						{options.map((option) => (
-							<Select.Item key={option.value} className={styles.option} value={option.value}>
-								<Select.ItemText>{option.label}</Select.ItemText>
-								<Select.ItemIndicator>
+							<_Select.Item key={option.value} className={styles.option} value={option.value}>
+								<_Select.ItemText>{option.label}</_Select.ItemText>
+								<_Select.ItemIndicator>
 									<TlaIcon icon="check" />
-								</Select.ItemIndicator>
-							</Select.Item>
+								</_Select.ItemIndicator>
+							</_Select.Item>
 						))}
-					</Select.Viewport>
-				</Select.Content>
-			</Select.Root>
+					</_Select.Viewport>
+				</_Select.Content>
+			</_Select.Root>
 		</div>
 	)
 }
