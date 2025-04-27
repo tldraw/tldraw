@@ -37,9 +37,7 @@ export function createDeepLinkString(deepLink: TLDeepLink): string {
 		}
 		case 'viewport': {
 			const { bounds, pageId } = deepLink
-			let res = `v${Math.round(bounds.x)}.${Math.round(bounds.y)}.${Math.round(
-				bounds.w
-			)}.${Math.round(bounds.h)}`
+			let res = `v${Math.round(bounds.x)}.${Math.round(bounds.y)}.${Math.round(bounds.w)}.${Math.round(bounds.h)}`
 			if (pageId) {
 				res += '.' + encodeId(PageRecordType.parseId(pageId))
 			}

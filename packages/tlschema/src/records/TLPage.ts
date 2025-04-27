@@ -14,27 +14,27 @@ import { idValidator } from '../misc/id-validator'
  *
  * @public
  */
-export interface TLPage extends BaseRecord {
+export interface TLPage extends BaseRecord<'page', TLPageId> {
 	name: string
 	index: IndexKey
 	meta: JsonObject
 }
 
 /** @public */
-export type TLPageId = RecordId
+export type TLPageId = RecordId<TLPage>
 
 /** @public */
 export const pageIdValidator = idValidator<TLPageId>('page')
 
 /** @public */
-export const pageValidator: T.Validator = T.model(
+export const pageValidator: T.Validator<TLPage> = T.model(
 	'page',
 	T.object({
 		typeName: T.literal('page'),
 		id: pageIdValidator,
 		name: T.string,
 		index: T.indexKey,
-		meta: T.jsonValue as T.ObjectValidator,
+		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 	})
 )
 

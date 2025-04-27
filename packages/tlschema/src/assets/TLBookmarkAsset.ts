@@ -7,10 +7,19 @@ import { TLBaseAsset, createAssetValidator } from './TLBaseAsset'
  * An asset used for URL bookmarks, used by the TLBookmarkShape.
  *
  *  @public */
-export type TLBookmarkAsset = TLBaseAsset
+export type TLBookmarkAsset = TLBaseAsset<
+	'bookmark',
+	{
+		title: string
+		description: string
+		image: string
+		favicon: string
+		src: string | null
+	}
+>
 
 /** @public */
-export const bookmarkAssetValidator: T.Validator = createAssetValidator(
+export const bookmarkAssetValidator: T.Validator<TLBookmarkAsset> = createAssetValidator(
 	'bookmark',
 	T.object({
 		title: T.string,

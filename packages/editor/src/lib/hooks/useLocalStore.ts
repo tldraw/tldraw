@@ -33,7 +33,7 @@ export function useLocalStore(
 
 		setState({ status: 'loading' })
 
-		const objectURLCache = new WeakCache<TLAsset, Promise>()
+		const objectURLCache = new WeakCache<TLAsset, Promise<string | null>>()
 		const assets: TLAssetStore = {
 			upload: async (asset, file) => {
 				await client.db.storeAsset(asset.id, file)

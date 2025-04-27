@@ -2,9 +2,13 @@ import { db } from '@/utils/ContentDatabase'
 import { CodeFiles } from '../content/code-files'
 import { ExamplePlaceholder } from './example-placeholder'
 
-export async function Example(
-	{ path, showPlaceholder }: { path: string; showPlaceholder?: boolean }
-) {
+export async function Example({
+	path,
+	showPlaceholder,
+}: {
+	path: string
+	showPlaceholder?: boolean
+}) {
 	const content = await db.getPageContent(path)
 	if (!content || content.type !== 'article') return null
 	const server = 'https://examples.tldraw.com'

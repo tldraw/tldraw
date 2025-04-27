@@ -4,7 +4,7 @@ import { LANGUAGES } from './languages'
 export { LANGUAGES }
 
 /** @public */
-export type TLLanguage = typeof LANGUAGES[number]
+export type TLLanguage = (typeof LANGUAGES)[number]
 // {
 // 	readonly locale: string
 // 	readonly label: string
@@ -12,7 +12,7 @@ export type TLLanguage = typeof LANGUAGES[number]
 
 /** @public */
 export function getDefaultTranslationLocale(): TLLanguage['locale'] {
-	const locales = typeof window !== 'undefined' ? window.navigator.languages ?? ['en'] : ['en']
+	const locales = typeof window !== 'undefined' ? (window.navigator.languages ?? ['en']) : ['en']
 	return _getDefaultTranslationLocale(locales)
 }
 

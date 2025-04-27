@@ -71,7 +71,7 @@ export async function getAllShapeTypes(page: PlaywrightTestArgs['page']) {
 		.then((handles) => Promise.all(handles.map((h) => h.getAttribute('data-shape-type'))))
 }
 
-export async function withMenu<T>(page: Page, path: string, cb: (item: Locator) => Promise) {
+export async function withMenu<T>(page: Page, path: string, cb: (item: Locator) => Promise<T>) {
 	const parts = path.split('.')
 	const lastPartIdx = parts.length - 1
 	for (let i = 0; i < lastPartIdx; i++) {
@@ -94,7 +94,7 @@ export async function clickMenu(page: Page, path: string) {
 }
 
 // We need a way to wait for the editor to finish a tick
-export function sleepFrames(frames = 2): Promise {
+export function sleepFrames(frames = 2): Promise<void> {
 	// eslint-disable-next-line local/no-at-internal
 	return sleep(frames * (1000 / 60))
 }

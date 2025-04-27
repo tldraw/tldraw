@@ -31,19 +31,19 @@ import {
 import 'tldraw/tldraw.css'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-type PinShape = TLBaseShape
+type PinShape = TLBaseShape<'pin', {}>
 
 const offsetX = -16
 const offsetY = -26
-class PinShapeUtil extends ShapeUtil {
+class PinShapeUtil extends ShapeUtil<PinShape> {
 	static override type = 'pin' as const
-	static override props: RecordProps = {}
+	static override props: RecordProps<PinShape> = {}
 
 	override getDefaultProps() {
 		return {}
 	}
 
-	override canBind({ toShapeType, bindingType }: TLShapeUtilCanBindOpts) {
+	override canBind({ toShapeType, bindingType }: TLShapeUtilCanBindOpts<PinShape>) {
 		if (bindingType === 'pin') {
 			// pins cannot bind to other pins!
 			return toShapeType !== 'pin'
@@ -133,8 +133,13 @@ class PinShapeUtil extends ShapeUtil {
 	}
 }
 
-type PinBinding = TLBaseBinding
-class PinBindingUtil extends BindingUtil {
+type PinBinding = TLBaseBinding<
+	'pin',
+	{
+		anchor: VecModel
+	}
+>
+class PinBindingUtil extends BindingUtil<PinBinding> {
 	static override type = 'pin' as const
 
 	override getDefaultProps() {
@@ -152,7 +157,7 @@ class PinBindingUtil extends BindingUtil {
 		const toCheck = [...this.changedToShapes]
 
 		const initialPositions = new Map<TLShapeId, VecModel>()
-		const targetDeltas = new Map<TLShapeId, Map>()
+		const targetDeltas = new Map<TLShapeId, Map<TLShapeId, VecModel>>()
 
 		const addTargetDelta = (fromId: TLShapeId, toId: TLShapeId, delta: VecModel) => {
 			if (!targetDeltas.has(fromId)) targetDeltas.set(fromId, new Map())
@@ -257,12 +262,12 @@ class PinBindingUtil extends BindingUtil {
 	}
 
 	// when the shape we're stuck to changes, update the pin's position
-	override onAfterChangeToShape({ binding }: BindingOnShapeChangeOptions): void {
+	override onAfterChangeToShape({ binding }: BindingOnShapeChangeOptions<PinBinding>): void {
 		this.changedToShapes.add(binding.toId)
 	}
 
 	// when the thing we're stuck to is deleted, delete the pin too
-	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions): void {
+	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<PinBinding>): void {
 		this.editor.deleteShape(binding.fromId)
 	}
 }

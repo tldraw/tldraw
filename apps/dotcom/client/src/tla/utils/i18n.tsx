@@ -20,7 +20,10 @@ import { ComponentPropsWithoutRef } from 'react'
 // eslint-disable-next-line
 export * from 'react-intl'
 
-export function useMsg(message: MessageDescriptor, values?: Record) {
+export function useMsg(
+	message: MessageDescriptor,
+	values?: Record<string, PrimitiveType | FormatXMLElementFn<string, string>>
+) {
 	const intl = useIntl()
 	return intl.formatMessage(message, values)
 }
@@ -40,7 +43,7 @@ function generateId({ id, description, defaultMessage }: MessageDescriptor) {
 	)
 }
 
-export function F(props: ComponentPropsWithoutRef) {
+export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
 	const intl = useIntl()
 	const id = generateId(props)
 	let internalMessage = (props.defaultMessage || '') as string
@@ -64,8 +67,8 @@ export function F(props: ComponentPropsWithoutRef) {
 
 // We programmatically define ID's for messages to make things easier for devs.
 export function defineMessages<T extends string, D extends MessageDescriptor>(
-	msgs: Record
-): Record {
+	msgs: Record<T, D>
+): Record<T, D> {
 	for (const key in msgs) {
 		if (!msgs[key].id) {
 			msgs[key].id = generateId(msgs[key])

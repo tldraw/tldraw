@@ -2,7 +2,7 @@ import { sleep } from './control'
 
 /** @internal */
 export class ExecutionQueue {
-	private queue: (() => Promise)[] = []
+	private queue: (() => Promise<any>)[] = []
 	private running = false
 
 	constructor(private readonly timeout?: number) {}
@@ -29,8 +29,8 @@ export class ExecutionQueue {
 		}
 	}
 
-	async push<T>(task: () => T): Promise {
-		return new Promise<Awaited>((resolve, reject) => {
+	async push<T>(task: () => T): Promise<Awaited<T>> {
+		return new Promise<Awaited<T>>((resolve, reject) => {
 			this.queue.push(() => Promise.resolve(task()).then(resolve).catch(reject))
 			this.run()
 		})

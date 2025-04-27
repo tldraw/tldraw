@@ -2,10 +2,10 @@ import { BaseRecord, RecordId, Store, StoreSchema, createRecordType } from '@tld
 import { TLHistoryBatchOptions } from '../types/history-types'
 import { HistoryManager } from './HistoryManager'
 
-interface TestRecord extends BaseRecord {
+interface TestRecord extends BaseRecord<'test', TestRecordId> {
 	value: number | string
 }
-type TestRecordId = RecordId
+type TestRecordId = RecordId<TestRecord>
 const testSchema = StoreSchema.create<TestRecord, null>({
 	test: createRecordType<TestRecord>('test', { scope: 'document' }),
 })
@@ -270,7 +270,7 @@ describe(HistoryManager, () => {
 })
 
 describe('history options', () => {
-	let manager: HistoryManager
+	let manager: HistoryManager<TestRecord>
 
 	let getState: () => { a: number; b: number }
 	let setA: (n: number, historyOptions?: TLHistoryBatchOptions) => any

@@ -30,9 +30,15 @@ export function TlaMenuControl({ children, title }: { children: ReactNode; title
 }
 
 // An info button for a single control
-export function TlaMenuControlInfoTooltip(
-	{ href, children, onClick }: { href?: string; onClick?(): void; children: ReactNode }
-) {
+export function TlaMenuControlInfoTooltip({
+	href,
+	children,
+	onClick,
+}: {
+	href?: string
+	onClick?(): void
+	children: ReactNode
+}) {
 	return (
 		<div className={styles.info}>
 			<TlaTooltipRoot>

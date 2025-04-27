@@ -69,18 +69,16 @@ export function TlaExportTab() {
 	)
 }
 
-function ExportPaddingToggle(
-	{
-		value,
-		onChange,
-	}: {
+function ExportPaddingToggle({
+	value,
+	onChange,
+}: {
+	value: TldrawAppSessionState['exportSettings']['exportPadding']
+	onChange(
+		key: 'exportPadding',
 		value: TldrawAppSessionState['exportSettings']['exportPadding']
-		onChange(
-			key: 'exportPadding',
-			value: TldrawAppSessionState['exportSettings']['exportPadding']
-		): void
-	}
-) {
+	): void
+}) {
 	const trackEvent = useTldrawAppUiEvents()
 
 	const handleChange = useCallback(() => {
@@ -99,18 +97,16 @@ function ExportPaddingToggle(
 	)
 }
 
-function ExportBackgroundToggle(
-	{
-		value,
-		onChange,
-	}: {
+function ExportBackgroundToggle({
+	value,
+	onChange,
+}: {
+	value: TldrawAppSessionState['exportSettings']['exportBackground']
+	onChange(
+		key: 'exportBackground',
 		value: TldrawAppSessionState['exportSettings']['exportBackground']
-		onChange(
-			key: 'exportBackground',
-			value: TldrawAppSessionState['exportSettings']['exportBackground']
-		): void
-	}
-) {
+	): void
+}) {
 	const trackEvent = useTldrawAppUiEvents()
 
 	const handleChange = useCallback(() => {
@@ -129,18 +125,16 @@ function ExportBackgroundToggle(
 	)
 }
 
-function ExportFormatSelect(
-	{
-		value,
-		onChange,
-	}: {
+function ExportFormatSelect({
+	value,
+	onChange,
+}: {
+	value: TldrawAppSessionState['exportSettings']['exportFormat']
+	onChange(
+		key: 'exportFormat',
 		value: TldrawAppSessionState['exportSettings']['exportFormat']
-		onChange(
-			key: 'exportFormat',
-			value: TldrawAppSessionState['exportSettings']['exportFormat']
-		): void
-	}
-) {
+	): void
+}) {
 	const trackEvent = useTldrawAppUiEvents()
 
 	const handleChange = useCallback(
@@ -175,18 +169,13 @@ const messages = defineMessages({
 	dark: { defaultMessage: 'Dark' },
 })
 
-function ExportThemeSelect(
-	{
-		value,
-		onChange,
-	}: {
-		value: TldrawAppSessionState['exportSettings']['exportTheme']
-		onChange(
-			key: 'exportTheme',
-			value: TldrawAppSessionState['exportSettings']['exportTheme']
-		): void
-	}
-) {
+function ExportThemeSelect({
+	value,
+	onChange,
+}: {
+	value: TldrawAppSessionState['exportSettings']['exportTheme']
+	onChange(key: 'exportTheme', value: TldrawAppSessionState['exportSettings']['exportTheme']): void
+}) {
 	const label = useMsg(messages[value as 'auto' | 'light' | 'dark'])
 	const trackEvent = useTldrawAppUiEvents()
 	const handleChange = useCallback(

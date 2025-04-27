@@ -15,7 +15,7 @@ export type SharedStyle<T> =
 	| { readonly type: 'mixed' }
 	| { readonly type: 'shared'; readonly value: T }
 
-function sharedStyleEquals<T>(a: SharedStyle, b: SharedStyle | undefined) {
+function sharedStyleEquals<T>(a: SharedStyle<T>, b: SharedStyle<T> | undefined) {
 	if (!b) return false
 	switch (a.type) {
 		case 'mixed':
@@ -35,17 +35,17 @@ function sharedStyleEquals<T>(a: SharedStyle, b: SharedStyle | undefined) {
  */
 export class ReadonlySharedStyleMap {
 	/** @internal */
-	protected map: Map
+	protected map: Map<StyleProp<any>, SharedStyle<unknown>>
 
-	constructor(entries?: Iterable) {
+	constructor(entries?: Iterable<[StyleProp<unknown>, SharedStyle<unknown>]>) {
 		this.map = new Map(entries)
 	}
 
-	get<T>(prop: StyleProp): SharedStyle | undefined {
-		return this.map.get(prop) as SharedStyle | undefined
+	get<T>(prop: StyleProp<T>): SharedStyle<T> | undefined {
+		return this.map.get(prop) as SharedStyle<T> | undefined
 	}
 
-	getAsKnownValue<T>(prop: StyleProp): T | undefined {
+	getAsKnownValue<T>(prop: StyleProp<T>): T | undefined {
 		const value = this.get(prop)
 		if (!value) return undefined
 		if (value.type === 'mixed') return undefined
@@ -92,11 +92,11 @@ export class ReadonlySharedStyleMap {
 
 /** @internal */
 export class SharedStyleMap extends ReadonlySharedStyleMap {
-	set<T>(prop: StyleProp, value: SharedStyle) {
+	set<T>(prop: StyleProp<T>, value: SharedStyle<T>) {
 		this.map.set(prop, value)
 	}
 
-	applyValue<T>(prop: StyleProp, value: T) {
+	applyValue<T>(prop: StyleProp<T>, value: T) {
 		const existingValue = this.get(prop)
 
 		// if we don't have a value yet, set it

@@ -11,7 +11,7 @@ export class Ellipse2d extends Geometry2d {
 	h: number
 
 	constructor(
-		public config: Omit & {
+		public config: Omit<Geometry2dOptions, 'isClosed'> & {
 			width: number
 			height: number
 		}
@@ -113,8 +113,6 @@ export class Ellipse2d extends Geometry2d {
 		const cy = h / 2
 		const rx = Math.max(0, cx)
 		const ry = Math.max(0, cy)
-		return `${first ? `M${cx - rx},${cy}` : ``} a${rx},${ry},0,1,1,${rx * 2},0a${rx},${ry},0,1,1,-${
-			rx * 2
-		},0`
+		return `${first ? `M${cx - rx},${cy}` : ``} a${rx},${ry},0,1,1,${rx * 2},0a${rx},${ry},0,1,1,-${rx * 2},0`
 	}
 }

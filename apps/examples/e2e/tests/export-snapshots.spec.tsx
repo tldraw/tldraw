@@ -742,17 +742,15 @@ test.describe('Export snapshots', () => {
 				)
 
 				await page.evaluate(
-					(
-						{
-							colorScheme,
-							name,
-							snapshot,
-						}: {
-							colorScheme: 'light' | 'dark'
-							name: string
-							snapshot: SnapshotWithoutJsx
-						}
-					) => {
+					({
+						colorScheme,
+						name,
+						snapshot,
+					}: {
+						colorScheme: 'light' | 'dark'
+						name: string
+						snapshot: SnapshotWithoutJsx
+					}) => {
 						editor.user.updateUserPreferences({ colorScheme })
 						editor
 							.updateInstanceState({ exportBackground: true })

@@ -11,7 +11,7 @@ export const ROOM_CONTEXT = {
 	HISTORY: 'history',
 	LOCAL: 'local',
 } as const
-type $ROOM_CONTEXT = typeof ROOM_CONTEXT[keyof typeof ROOM_CONTEXT]
+type $ROOM_CONTEXT = (typeof ROOM_CONTEXT)[keyof typeof ROOM_CONTEXT]
 
 const EMBEDDED_STATE = {
 	IFRAME_OK: 'iframe-ok',
@@ -34,9 +34,15 @@ function getEmbeddedState(context: $ROOM_CONTEXT) {
 		: EMBEDDED_STATE.IFRAME_NOT_ALLOWED
 }
 
-export function IFrameProtector(
-	{ slug, context, children }: { slug: string; context: $ROOM_CONTEXT; children: ReactNode }
-) {
+export function IFrameProtector({
+	slug,
+	context,
+	children,
+}: {
+	slug: string
+	context: $ROOM_CONTEXT
+	children: ReactNode
+}) {
 	const embeddedState = getEmbeddedState(context)
 
 	const url = useUrl()

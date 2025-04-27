@@ -9,13 +9,13 @@
 First create types for your records.
 
 ```ts
-interface Book extends BaseRecord {
+interface Book extends BaseRecord<'book'> {
 	title: string
-	author: ID
+	author: ID<Author>
 	numPages: number
 }
 
-interface Author extends BaseRecord {
+interface Author extends BaseRecord<'author'> {
 	name: string
 	isPseudonym: boolean
 }
@@ -314,7 +314,7 @@ assertIdType(id, recordType)
 A type used to represent a record's id.
 
 ```ts
-const id: ID = Author.createCustomId('tolkein')
+const id: ID<Author> = Author.createCustomId('tolkein')
 ```
 
 ### `BaseRecord`

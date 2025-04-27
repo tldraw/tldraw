@@ -57,7 +57,7 @@ export async function downsizeImage(
 	width: number,
 	height: number,
 	opts = {} as { type?: string; quality?: number }
-): Promise {
+): Promise<Blob> {
 	const { w, h, image } = await MediaHelpers.usingObjectURL(
 		blob,
 		MediaHelpers.getImageAndDimensions

@@ -16,9 +16,13 @@ import { AnnotatorImage } from './types'
 // - prevent changing pages (create page, change page, move shapes to new page)
 // - prevent locked shape context menu
 // - inertial scrolling for constrained camera
-export function ImageAnnotationEditor(
-	{ image, onDone }: { image: AnnotatorImage; onDone(result: Blob): void }
-) {
+export function ImageAnnotationEditor({
+	image,
+	onDone,
+}: {
+	image: AnnotatorImage
+	onDone(result: Blob): void
+}) {
 	const [imageShapeId, setImageShapeId] = useState<TLShapeId | null>(null)
 	const [editor, setEditor] = useState(null as Editor | null)
 
@@ -164,9 +168,11 @@ export function ImageAnnotationEditor(
  * the canvas to make it clear what will/won't be included. Check `image-annotator.css` for more on
  * how this works.
  */
-const ImageBoundsOverlay = track(function ImageBoundsOverlay(
-	{ imageShapeId }: { imageShapeId: TLShapeId }
-) {
+const ImageBoundsOverlay = track(function ImageBoundsOverlay({
+	imageShapeId,
+}: {
+	imageShapeId: TLShapeId
+}) {
 	const editor = useEditor()
 	const image = editor.getShape(imageShapeId) as TLImageShape
 	if (!image) return null
@@ -199,9 +205,13 @@ const ImageBoundsOverlay = track(function ImageBoundsOverlay(
 	)
 })
 
-function DoneButton(
-	{ imageShapeId, onClick }: { imageShapeId: TLShapeId; onClick(result: Blob): void }
-) {
+function DoneButton({
+	imageShapeId,
+	onClick,
+}: {
+	imageShapeId: TLShapeId
+	onClick(result: Blob): void
+}) {
 	const editor = useEditor()
 	return (
 		<button

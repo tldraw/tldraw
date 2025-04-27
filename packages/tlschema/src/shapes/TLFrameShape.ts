@@ -13,10 +13,10 @@ export interface TLFrameShapeProps {
 }
 
 /** @public */
-export type TLFrameShape = TLBaseShape
+export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>
 
 /** @public */
-export const frameShapeProps: RecordProps = {
+export const frameShapeProps: RecordProps<TLFrameShape> = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	name: T.string,

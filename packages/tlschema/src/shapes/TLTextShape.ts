@@ -21,10 +21,10 @@ export interface TLTextShapeProps {
 }
 
 /** @public */
-export type TLTextShape = TLBaseShape
+export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>
 
 /** @public */
-export const textShapeProps: RecordProps = {
+export const textShapeProps: RecordProps<TLTextShape> = {
 	color: DefaultColorStyle,
 	size: DefaultSizeStyle,
 	font: DefaultFontStyle,

@@ -77,9 +77,9 @@ async function waitForPostgres() {
 
 async function migrate(summary: string[], dryRun: boolean) {
 	await db.transaction().execute(async (tx) => {
-		const appliedMigrations = await sql`SELECT filename FROM migrations.applied_migrations`.execute(
-			tx
-		)
+		const appliedMigrations = await sql<{
+			filename: string
+		}>`SELECT filename FROM migrations.applied_migrations`.execute(tx)
 		const migrations = readdirSync(`./migrations`).sort()
 		if (migrations.length === 0) {
 			throw new Error('No migrations found')

@@ -23,7 +23,7 @@ export class Discord {
 	totalSteps: number
 	currentStep = 0
 
-	private async send(method: string, url: string, body: unknown): Promise {
+	private async send(method: string, url: string, body: unknown): Promise<any> {
 		const response = await fetch(`${this.webhookUrl}${url}`, {
 			method,
 			headers: { 'Content-Type': 'application/json' },
@@ -55,7 +55,7 @@ export class Discord {
 		}
 	}
 
-	async step<T>(content: string, cb: () => Promise): Promise {
+	async step<T>(content: string, cb: () => Promise<T>): Promise<T> {
 		this.currentStep++
 		const message = await this.message(`[${this.currentStep}/${this.totalSteps}] ${content}...`)
 		try {

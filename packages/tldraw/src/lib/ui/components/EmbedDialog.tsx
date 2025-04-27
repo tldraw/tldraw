@@ -149,8 +149,8 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 							const url = isDefaultEmbedDefinitionType(def.type)
 								? assetUrls.embedIcons[def.type]
 								: isCustomEmbedDefinition(def)
-								? def.icon
-								: undefined
+									? def.icon
+									: undefined
 							return (
 								<TldrawUiButton type="menu" key={def.type} onClick={() => setEmbedDefinition(def)}>
 									<TldrawUiButtonLabel>{untranslated(def.title)}</TldrawUiButtonLabel>

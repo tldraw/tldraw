@@ -56,9 +56,13 @@ const solidRealPressureSettings = (strokeWidth: number): StrokeOptions => {
 	}
 }
 
-export function getHighlightFreehandSettings(
-	{ strokeWidth, showAsComplete }: { strokeWidth: number; showAsComplete: boolean }
-): StrokeOptions {
+export function getHighlightFreehandSettings({
+	strokeWidth,
+	showAsComplete,
+}: {
+	strokeWidth: number
+	showAsComplete: boolean
+}): StrokeOptions {
 	return {
 		size: 1 + strokeWidth,
 		thinning: 0,

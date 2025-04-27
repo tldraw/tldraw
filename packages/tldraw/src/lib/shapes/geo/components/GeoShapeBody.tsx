@@ -21,17 +21,15 @@ import {
 } from '../geo-shape-helpers'
 import { getLines } from '../getLines'
 
-export function GeoShapeBody(
-	{
-		shape,
-		shouldScale,
-		forceSolid,
-	}: {
-		shape: TLGeoShape
-		shouldScale: boolean
-		forceSolid: boolean
-	}
-) {
+export function GeoShapeBody({
+	shape,
+	shouldScale,
+	forceSolid,
+}: {
+	shape: TLGeoShape
+	shouldScale: boolean
+	forceSolid: boolean
+}) {
 	const scaleToUse = shouldScale ? shape.props.scale : 1
 	const editor = useEditor()
 	const theme = useDefaultColorTheme()
@@ -74,10 +72,10 @@ export function GeoShapeBody(
 							{arcs.map(({ leftPoint, rightPoint, center, radius }, i) => {
 								const arcLength = center
 									? radius *
-									  canonicalizeRotation(
+										canonicalizeRotation(
 											canonicalizeRotation(Vec.Angle(center, rightPoint)) -
 												canonicalizeRotation(Vec.Angle(center, leftPoint))
-									  )
+										)
 									: Vec.Dist(leftPoint, rightPoint)
 
 								const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
@@ -112,9 +110,9 @@ export function GeoShapeBody(
 		case 'ellipse': {
 			const geometry = shouldScale
 				? // cached
-				  editor.getShapeGeometry(shape)
+					editor.getShapeGeometry(shape)
 				: // not cached
-				  editor.getShapeUtil(shape).getGeometry(shape)
+					editor.getShapeUtil(shape).getGeometry(shape)
 			const d = geometry.getSvgPathData(true)
 
 			if (dash === 'dashed' || dash === 'dotted') {
@@ -146,9 +144,9 @@ export function GeoShapeBody(
 			} else {
 				const geometry = shouldScale
 					? // cached
-					  editor.getShapeGeometry(shape)
+						editor.getShapeGeometry(shape)
 					: // not cached
-					  editor.getShapeUtil(shape).getGeometry(shape)
+						editor.getShapeUtil(shape).getGeometry(shape)
 				const d = geometry.getSvgPathData(true)
 				return (
 					<>
@@ -161,9 +159,9 @@ export function GeoShapeBody(
 		case 'oval': {
 			const geometry = shouldScale
 				? // cached
-				  editor.getShapeGeometry(shape)
+					editor.getShapeGeometry(shape)
 				: // not cached
-				  editor.getShapeUtil(shape).getGeometry(shape)
+					editor.getShapeUtil(shape).getGeometry(shape)
 			const d = geometry.getSvgPathData(true)
 			if (dash === 'dashed' || dash === 'dotted') {
 				const perimeter = geometry.getLength()
@@ -251,9 +249,9 @@ export function GeoShapeBody(
 		default: {
 			const geometry = shouldScale
 				? // cached
-				  editor.getShapeGeometry(shape)
+					editor.getShapeGeometry(shape)
 				: // not cached
-				  editor.getShapeUtil(shape).getGeometry(shape)
+					editor.getShapeUtil(shape).getGeometry(shape)
 
 			const outline =
 				geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices

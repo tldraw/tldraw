@@ -21,9 +21,13 @@ export function useMaybeEditor(): Editor | null {
 	return React.useContext(EditorContext)
 }
 
-export function EditorProvider(
-	{ editor, children }: { editor: Editor; children: React.ReactNode }
-) {
+export function EditorProvider({
+	editor,
+	children,
+}: {
+	editor: Editor
+	children: React.ReactNode
+}) {
 	return (
 		<EditorContext.Provider value={editor}>
 			<IdProvider>{children}</IdProvider>

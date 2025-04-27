@@ -1,5 +1,5 @@
+import * as _Dropdown from '@radix-ui/react-dropdown-menu'
 import { useContainer, useEditor, useValue } from '@tldraw/editor'
-import { DropdownMenu as _Dropdown } from 'radix-ui'
 import { ReactNode, memo, useCallback } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'

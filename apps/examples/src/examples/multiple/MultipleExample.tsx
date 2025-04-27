@@ -35,10 +35,10 @@ export default function MultipleExample() {
 		focusedEditor === (window as any).EDITOR_A
 			? 'A'
 			: focusedEditor === (window as any).EDITOR_B
-			? 'B'
-			: focusedEditor === (window as any).EDITOR_C
-			? 'C'
-			: 'none'
+				? 'B'
+				: focusedEditor === (window as any).EDITOR_C
+					? 'C'
+					: 'none'
 
 	return (
 		<div

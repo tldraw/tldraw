@@ -21,9 +21,12 @@ export interface PageItemSubmenuProps {
 	onRename?(): void
 }
 /** @public */
-export const PageItemSubmenu = track(function PageItemSubmenu(
-	{ index, listSize, item, onRename }: PageItemSubmenuProps
-) {
+export const PageItemSubmenu = track(function PageItemSubmenu({
+	index,
+	listSize,
+	item,
+	onRename,
+}: PageItemSubmenuProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const pages = editor.getPages()

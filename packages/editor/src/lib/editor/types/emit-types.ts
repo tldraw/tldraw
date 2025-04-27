@@ -7,7 +7,7 @@ export interface TLEventMap {
 	// Lifecycle / Internal
 	mount: []
 	'max-shapes': [{ name: string; pageId: TLPageId; count: number }]
-	change: [HistoryEntry]
+	change: [HistoryEntry<TLRecord>]
 	update: []
 	crash: [{ error: unknown }]
 	'stop-camera-animation': []

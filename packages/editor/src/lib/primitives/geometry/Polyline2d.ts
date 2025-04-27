@@ -6,7 +6,7 @@ import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 export class Polyline2d extends Geometry2d {
 	points: Vec[]
 
-	constructor(config: Omit & { points: Vec[] }) {
+	constructor(config: Omit<Geometry2dOptions, 'isFilled' | 'isClosed'> & { points: Vec[] }) {
 		super({ isClosed: false, isFilled: false, ...config })
 		const { points } = config
 		this.points = points

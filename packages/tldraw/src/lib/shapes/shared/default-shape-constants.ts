@@ -10,7 +10,7 @@ export const TEXT_PROPS = {
 }
 
 /** @public */
-export const STROKE_SIZES: Record = {
+export const STROKE_SIZES: Record<TLDefaultSizeStyle, number> = {
 	s: 2,
 	m: 3.5,
 	l: 5,
@@ -18,7 +18,7 @@ export const STROKE_SIZES: Record = {
 }
 
 /** @public */
-export const FONT_SIZES: Record = {
+export const FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	s: 18,
 	m: 24,
 	l: 36,
@@ -26,7 +26,7 @@ export const FONT_SIZES: Record = {
 }
 
 /** @public */
-export const LABEL_FONT_SIZES: Record = {
+export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	s: 18,
 	m: 22,
 	l: 26,
@@ -34,7 +34,7 @@ export const LABEL_FONT_SIZES: Record = {
 }
 
 /** @public */
-export const ARROW_LABEL_FONT_SIZES: Record = {
+export const ARROW_LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	s: 18,
 	m: 20,
 	l: 24,
@@ -42,7 +42,7 @@ export const ARROW_LABEL_FONT_SIZES: Record = {
 }
 
 /** @public */
-export const FONT_FAMILIES: Record = {
+export const FONT_FAMILIES: Record<TLDefaultFontStyle, string> = {
 	draw: 'var(--tl-font-draw)',
 	sans: 'var(--tl-font-sans)',
 	serif: 'var(--tl-font-serif)',

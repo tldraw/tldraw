@@ -7,14 +7,14 @@ export type QueryValueMatcher<T> = { eq: T } | { neq: T } | { gt: number }
 
 /** @public */
 export type QueryExpression<R extends object> = {
-	[k in keyof R & string]?: QueryValueMatcher
+	[k in keyof R & string]?: QueryValueMatcher<R[k]>
 	// todo: handle nesting
 	// | (R[k] extends object ? { match: QueryExpression<R[k]> } : never)
 }
 
-export function objectMatchesQuery<T extends object>(query: QueryExpression, object: T) {
+export function objectMatchesQuery<T extends object>(query: QueryExpression<T>, object: T) {
 	for (const [key, _matcher] of Object.entries(query)) {
-		const matcher = _matcher as QueryValueMatcher
+		const matcher = _matcher as QueryValueMatcher<T>
 		const value = object[key as keyof T]
 		// if you add matching logic here, make sure you also update executeQuery,
 		// where initial data is pulled out of the indexes, since that requires different
@@ -27,10 +27,10 @@ export function objectMatchesQuery<T extends object>(query: QueryExpression, obj
 }
 
 export function executeQuery<R extends UnknownRecord, TypeName extends R['typeName']>(
-	store: StoreQueries,
+	store: StoreQueries<R>,
 	typeName: TypeName,
-	query: QueryExpression
-): Set {
+	query: QueryExpression<Extract<R, { typeName: TypeName }>>
+): Set<IdOf<Extract<R, { typeName: TypeName }>>> {
 	const matchIds = Object.fromEntries(Object.keys(query).map((key) => [key, new Set()]))
 
 	for (const [k, matcher] of Object.entries(query)) {
@@ -63,5 +63,5 @@ export function executeQuery<R extends UnknownRecord, TypeName extends R['typeNa
 		}
 	}
 
-	return intersectSets(Object.values(matchIds)) as Set
+	return intersectSets(Object.values(matchIds)) as Set<IdOf<Extract<R, { typeName: TypeName }>>>
 }

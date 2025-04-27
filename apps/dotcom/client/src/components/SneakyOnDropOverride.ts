@@ -9,9 +9,11 @@ import {
 } from 'tldraw'
 import { shouldOverrideDocument } from '../utils/shouldOverrideDocument'
 
-export const SneakyOnDropOverride = memo(function SneakyOnDropOverride(
-	{ isMultiplayer }: { isMultiplayer: boolean }
-) {
+export const SneakyOnDropOverride = memo(function SneakyOnDropOverride({
+	isMultiplayer,
+}: {
+	isMultiplayer: boolean
+}) {
 	const editor = useEditor()
 	const toasts = useToasts()
 	const dialogs = useDialogs()

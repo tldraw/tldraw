@@ -10,11 +10,11 @@ import { bind, sleep } from '@tldraw/utils'
  */
 export class ExportDelay {
 	private isResolved = false
-	private readonly promisesToWaitFor: Promise[] = []
+	private readonly promisesToWaitFor: Promise<void>[] = []
 
 	constructor(private readonly maxDelayTimeMs: number) {}
 
-	@bind waitUntil(promise: Promise): void {
+	@bind waitUntil(promise: Promise<void>): void {
 		if (this.isResolved) {
 			throw new Error(
 				'Cannot `waitUntil` - the export has already been resolved. Make sure to call `waitUntil` as soon as possible during an export - ie within the first react effect after rendering.'

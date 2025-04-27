@@ -4,7 +4,7 @@ import { T } from '@tldraw/validate'
 export const richTextValidator = T.object({ type: T.string, content: T.arrayOf(T.unknown) })
 
 /** @public */
-export type TLRichText = T.TypeOf
+export type TLRichText = T.TypeOf<typeof richTextValidator>
 
 /** @public */
 export function toRichText(text: string): TLRichText {

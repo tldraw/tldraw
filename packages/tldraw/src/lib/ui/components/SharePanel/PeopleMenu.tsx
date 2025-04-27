@@ -1,5 +1,5 @@
+import * as Popover from '@radix-ui/react-popover'
 import { useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
-import { Popover } from 'radix-ui'
 import { ReactNode } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'

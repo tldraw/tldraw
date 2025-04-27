@@ -1,6 +1,6 @@
 import { ARRAY_SIZE_THRESHOLD, ArraySet } from '../ArraySet'
 
-const get = <T>(set: ArraySet) => {
+const get = <T>(set: ArraySet<T>) => {
 	const s = new Set<T>()
 
 	set.visit((i) => s.add(i))

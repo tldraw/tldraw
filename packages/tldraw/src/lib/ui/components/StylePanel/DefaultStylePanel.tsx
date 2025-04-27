@@ -11,9 +11,10 @@ export interface TLUiStylePanelProps {
 }
 
 /** @public @react */
-export const DefaultStylePanel = memo(function DefaultStylePanel(
-	{ isMobile, children }: TLUiStylePanelProps
-) {
+export const DefaultStylePanel = memo(function DefaultStylePanel({
+	isMobile,
+	children,
+}: TLUiStylePanelProps) {
 	const editor = useEditor()
 
 	const ref = useRef<HTMLDivElement>(null)

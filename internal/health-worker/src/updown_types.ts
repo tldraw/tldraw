@@ -55,7 +55,7 @@ export interface FinishedDowntime extends BaseDowntime {
 	duration: number
 }
 
-export type CustomHeaders = Record
+export type CustomHeaders = Record<string, string>
 
 export interface SslCert {
 	subject: string
@@ -138,7 +138,7 @@ export interface EventPerformanceDrop {
 	description: string
 	check: SucceedingCheck | FailingCheck
 	apdex_dropped: string
-	last_metrics: Record
+	last_metrics: Record<string, { apdex: number }>
 }
 
 export type Event =

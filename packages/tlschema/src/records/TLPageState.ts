@@ -19,8 +19,9 @@ import { TLShapeId } from './TLShape'
  *
  * @public
  */
-export interface TLInstancePageState extends BaseRecord {
-	pageId: RecordId
+export interface TLInstancePageState
+	extends BaseRecord<'instance_page_state', TLInstancePageStateId> {
+	pageId: RecordId<TLPage>
 	selectedShapeIds: TLShapeId[]
 	hintingShapeIds: TLShapeId[]
 	erasingShapeIds: TLShapeId[]
@@ -32,7 +33,7 @@ export interface TLInstancePageState extends BaseRecord {
 }
 
 /** @public */
-export const instancePageStateValidator: T.Validator = T.model(
+export const instancePageStateValidator: T.Validator<TLInstancePageState> = T.model(
 	'instance_page_state',
 	T.object({
 		typeName: T.literal('instance_page_state'),
@@ -45,7 +46,7 @@ export const instancePageStateValidator: T.Validator = T.model(
 		editingShapeId: shapeIdValidator.nullable(),
 		croppingShapeId: shapeIdValidator.nullable(),
 		focusedGroupId: shapeIdValidator.nullable(),
-		meta: T.jsonValue as T.ObjectValidator,
+		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 	})
 )
 
@@ -151,7 +152,7 @@ export const InstancePageStateRecordType = createRecordType<TLInstancePageState>
 		},
 	}
 ).withDefaultProperties(
-	(): Omit => ({
+	(): Omit<TLInstancePageState, 'id' | 'typeName' | 'pageId'> => ({
 		editingShapeId: null,
 		croppingShapeId: null,
 		selectedShapeIds: [],
@@ -164,4 +165,4 @@ export const InstancePageStateRecordType = createRecordType<TLInstancePageState>
 )
 
 /** @public */
-export type TLInstancePageStateId = RecordId
+export type TLInstancePageStateId = RecordId<TLInstancePageState>

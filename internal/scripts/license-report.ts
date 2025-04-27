@@ -22,9 +22,7 @@ async function main() {
 		try {
 			console.log('running license-report in', location)
 			const report = await execPromise(
-				`yarn license-report --package=${location}/package.json --department.value=tldraw  --relatedTo.label=Package --relatedTo.value=${location} --output=html --only=${
-					devOnly ? 'dev' : prodOnly ? 'prod' : 'dev,prod,peer,opt'
-				}`
+				`yarn license-report --package=${location}/package.json --department.value=tldraw  --relatedTo.label=Package --relatedTo.value=${location} --output=html --only=${devOnly ? 'dev' : prodOnly ? 'prod' : 'dev,prod,peer,opt'}`
 			)
 			// Extract the <table> contents from the report
 			const table = report.match(/<tbody>.*<\/tbody>/gs)
@@ -55,8 +53,8 @@ ${htmlTables.reduce((acc, { content }) => {
 		prodOnly
 			? 'license-report-prod.html'
 			: devOnly
-			? 'license-report-dev.html'
-			: 'license-report.html',
+				? 'license-report-dev.html'
+				: 'license-report.html',
 		html
 	)
 }

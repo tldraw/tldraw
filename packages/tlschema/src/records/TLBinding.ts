@@ -23,7 +23,7 @@ export type TLDefaultBinding = TLArrowBinding
  * unknown—either one of the editor's default bindings or else a custom binding.
  *
  * @public */
-export type TLUnknownBinding = TLBaseBinding
+export type TLUnknownBinding = TLBaseBinding<string, object>
 
 /**
  * The set of all bindings that are available in the editor, including unknown bindings.
@@ -33,17 +33,33 @@ export type TLUnknownBinding = TLBaseBinding
 export type TLBinding = TLDefaultBinding | TLUnknownBinding
 
 /** @public */
-export type TLBindingUpdate<T extends TLBinding = TLBinding> = Expand
+export type TLBindingUpdate<T extends TLBinding = TLBinding> = Expand<{
+	id: TLBindingId
+	type: T['type']
+	typeName?: T['typeName']
+	fromId?: T['fromId']
+	toId?: T['toId']
+	props?: Partial<T['props']>
+	meta?: Partial<T['meta']>
+}>
 
 /** @public */
-export type TLBindingCreate<T extends TLBinding = TLBinding> = Expand
+export type TLBindingCreate<T extends TLBinding = TLBinding> = Expand<{
+	id?: TLBindingId
+	type: T['type']
+	typeName?: T['typeName']
+	fromId: T['fromId']
+	toId: T['toId']
+	props?: Partial<T['props']>
+	meta?: Partial<T['meta']>
+}>
 
 /**
  * An ID for a {@link TLBinding}.
  *
  * @public
  */
-export type TLBindingId = RecordId
+export type TLBindingId = RecordId<TLUnknownBinding>
 
 /** @public */
 export const rootBindingVersions = createMigrationIds('com.tldraw.binding', {} as const)
@@ -84,7 +100,7 @@ export function createBindingPropsMigrationSequence(
 /**
  * @public
  */
-export function createBindingPropsMigrationIds<S extends string, T extends Record>(
+export function createBindingPropsMigrationIds<S extends string, T extends Record<string, number>>(
 	bindingType: S,
 	ids: T
 ): { [k in keyof T]: `com.tldraw.binding.${S}/${T[k]}` } {
@@ -92,7 +108,7 @@ export function createBindingPropsMigrationIds<S extends string, T extends Recor
 }
 
 /** @internal */
-export function createBindingRecordType(bindings: Record) {
+export function createBindingRecordType(bindings: Record<string, SchemaPropsInfo>) {
 	return createRecordType<TLBinding>('binding', {
 		scope: 'document',
 		validator: T.model(

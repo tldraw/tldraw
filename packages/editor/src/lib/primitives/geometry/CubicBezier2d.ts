@@ -10,7 +10,7 @@ export class CubicBezier2d extends Polyline2d {
 	d: Vec
 
 	constructor(
-		config: Omit & {
+		config: Omit<Geometry2dOptions, 'isFilled' | 'isClosed'> & {
 			start: Vec
 			cp1: Vec
 			cp2: Vec

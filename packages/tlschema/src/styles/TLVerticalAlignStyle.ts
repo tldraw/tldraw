@@ -8,4 +8,4 @@ export const DefaultVerticalAlignStyle = StyleProp.defineEnum('tldraw:verticalAl
 })
 
 /** @public */
-export type TLDefaultVerticalAlignStyle = T.TypeOf
+export type TLDefaultVerticalAlignStyle = T.TypeOf<typeof DefaultVerticalAlignStyle>

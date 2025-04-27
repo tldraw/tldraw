@@ -23,8 +23,8 @@ export class MinimapManager {
 	close() {
 		return this.disposables.forEach((d) => d())
 	}
-	gl: ReturnType
-	shapeGeometryCache: ComputedCache
+	gl: ReturnType<typeof setupWebGl>
+	shapeGeometryCache: ComputedCache<Float32Array | null, TLShape>
 	constructor(
 		public editor: Editor,
 		public readonly elem: HTMLCanvasElement,
@@ -53,7 +53,7 @@ export class MinimapManager {
 		}
 	}
 
-	private colors: ReturnType
+	private colors: ReturnType<MinimapManager['_getColors']>
 	// this should be called after dark/light mode changes have propagated to the dom
 	updateColors() {
 		this.colors = this._getColors()

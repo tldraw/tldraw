@@ -5,7 +5,7 @@ import { CollectionDiff } from './Store'
  *
  * @param sets - The sets to combine.
  */
-export function intersectSets<T>(sets: Set[]) {
+export function intersectSets<T>(sets: Set<T>[]) {
 	if (sets.length === 0) return new Set<T>()
 	const first = sets[0]
 	const rest = sets.slice(1)
@@ -26,8 +26,8 @@ export function intersectSets<T>(sets: Set[]) {
  * @param prev - The previous set
  * @param next - The next set
  */
-export function diffSets<T>(prev: Set, next: Set): CollectionDiff | undefined {
-	const result: CollectionDiff = {}
+export function diffSets<T>(prev: Set<T>, next: Set<T>): CollectionDiff<T> | undefined {
+	const result: CollectionDiff<T> = {}
 
 	for (const val of next) {
 		if (!prev.has(val)) {

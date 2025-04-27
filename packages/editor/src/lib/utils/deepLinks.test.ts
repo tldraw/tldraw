@@ -2,7 +2,11 @@ import { PageRecordType, createShapeId } from '@tldraw/tlschema'
 import { Box } from '../primitives/Box'
 import { TLDeepLink, createDeepLinkString, parseDeepLinkString } from './deepLinks'
 
-const testCases: Array = [
+const testCases: Array<{
+	deepLink: TLDeepLink
+	expected: string
+	name: string
+}> = [
 	{
 		name: 'no shapes',
 		deepLink: {

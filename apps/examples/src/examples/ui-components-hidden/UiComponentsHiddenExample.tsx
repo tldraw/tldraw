@@ -2,7 +2,7 @@ import { TLUiComponents, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // The type here is include only to ensure this example contains all possible ui components,
-const components: Required = {
+const components: Required<TLUiComponents> = {
 	ContextMenu: null,
 	ActionsMenu: null,
 	HelpMenu: null,

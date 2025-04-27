@@ -13,9 +13,7 @@ export async function requestLicense(prevState: any, formData: FormData) {
 		{ id: 'entry.1736066258', value: formData.get('usage') },
 		{ id: 'entry.286280557', value: formData.get('type') },
 	]
-	const submitUrl = `${formUrl}/formResponse?${fields
-		.map(({ id, value }) => (value !== '' ? `${id}=${String(value).replaceAll('@', '%40')}&` : ''))
-		.join('')}`
+	const submitUrl = `${formUrl}/formResponse?${fields.map(({ id, value }) => (value !== '' ? `${id}=${String(value).replaceAll('@', '%40')}&` : '')).join('')}`
 	const response = await fetch(submitUrl, { method: 'GET' })
 	if (response.status === 200) return { success: true }
 	return { error: 'Something went wrong...', success: false }

@@ -18,9 +18,7 @@ module.exports = class AutoPlugin {
 					commit.pullRequest.body.replaceAll('\r\n', '\n')
 				)
 				return releaseNote
-					? `- ${releaseNote[1].trim()} [#${
-							commit.pullRequest.number
-					  }](https://github.com/tldraw/tldraw/pull/${commit.pullRequest.number})`
+					? `- ${releaseNote[1].trim()} [#${commit.pullRequest.number}](https://github.com/tldraw/tldraw/pull/${commit.pullRequest.number})`
 					: line
 			})
 		)

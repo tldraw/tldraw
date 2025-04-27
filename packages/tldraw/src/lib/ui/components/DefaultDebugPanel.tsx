@@ -51,13 +51,13 @@ const CurrentState = track(function CurrentState() {
 		shape && path.includes('select.')
 			? ` / ${shape.type || ''}${
 					'geo' in shape.props ? ' / ' + shape.props.geo : ''
-			  } / [${Vec.ToInt(editor.getPointInShapeSpace(shape, editor.inputs.currentPagePoint))}]`
+				} / [${Vec.ToInt(editor.getPointInShapeSpace(shape, editor.inputs.currentPagePoint))}]`
 			: ''
 	const ruler =
 		path.startsWith('select.') && !path.includes('.idle')
 			? ` / [${Vec.ToInt(editor.inputs.originPagePoint)}] → [${Vec.ToInt(
 					editor.inputs.currentPagePoint
-			  )}] = ${Vec.Dist(editor.inputs.originPagePoint, editor.inputs.currentPagePoint).toFixed(0)}`
+				)}] = ${Vec.Dist(editor.inputs.originPagePoint, editor.inputs.currentPagePoint).toFixed(0)}`
 			: ''
 
 	return <div className="tlui-debug-panel__current-state">{`${path}${shapeInfo}${ruler}`}</div>

@@ -1,6 +1,6 @@
 import { StateNode, TLCursorType, TLPointerEventInfo, TLSelectionHandle } from '@tldraw/editor'
 
-export const CursorTypeMap: Record = {
+export const CursorTypeMap: Record<TLSelectionHandle, TLCursorType> = {
 	bottom: 'ns-resize',
 	top: 'ns-resize',
 	left: 'ew-resize',
@@ -16,7 +16,7 @@ export const CursorTypeMap: Record = {
 	mobile_rotate: 'grabbing',
 }
 
-type PointingResizeHandleInfo = Extract & {
+type PointingResizeHandleInfo = Extract<TLPointerEventInfo, { target: 'selection' }> & {
 	onInteractionEnd?: string
 }
 

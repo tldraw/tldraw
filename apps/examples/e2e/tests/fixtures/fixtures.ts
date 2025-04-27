@@ -20,12 +20,14 @@ interface Fixtures {
 	mainMenu: MainMenu
 	pageMenu: PageMenu
 	navigationPanel: NavigationPanel
-	api: ReturnType
+	api: ReturnType<typeof makeApiFixture>
 	isMac: boolean
 }
 
 export type ApiFixture = {
-	[K in keyof EndToEndApi]: (...args: Parameters) => Promise
+	[K in keyof EndToEndApi]: (
+		...args: Parameters<EndToEndApi[K]>
+	) => Promise<ReturnType<EndToEndApi[K]>>
 }
 
 function makeApiFixture(keys: { [K in keyof EndToEndApi]: true }, page: Page): ApiFixture {

@@ -16,7 +16,7 @@ export class Stadium2d extends Geometry2d {
 	d: Edge2d
 
 	constructor(
-		public config: Omit & {
+		public config: Omit<Geometry2dOptions, 'isClosed'> & {
 			width: number
 			height: number
 		}

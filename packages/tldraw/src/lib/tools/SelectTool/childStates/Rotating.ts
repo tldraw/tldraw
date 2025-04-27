@@ -19,7 +19,7 @@ export class Rotating extends StateNode {
 
 	snapshot = {} as TLRotationSnapshot
 
-	info = {} as Extract & { onInteractionEnd?: string }
+	info = {} as Extract<TLPointerEventInfo, { target: 'selection' }> & { onInteractionEnd?: string }
 
 	markId = ''
 

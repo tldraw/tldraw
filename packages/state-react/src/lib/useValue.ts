@@ -3,7 +3,7 @@ import { Signal, computed, react } from '@tldraw/state'
 import { useMemo, useRef, useSyncExternalStore } from 'react'
 
 /** @public */
-export function useValue<Value>(value: Signal): Value
+export function useValue<Value>(value: Signal<Value>): Value
 
 /**
  * Extracts the value from a signal and subscribes to it.

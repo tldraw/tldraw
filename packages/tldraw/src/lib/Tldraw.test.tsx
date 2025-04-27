@@ -32,7 +32,7 @@ describe('<Tldraw />', () => {
 	})
 
 	it('Doesnt cause re-render loops when shape utils change', async () => {
-		class FakeShapeUtil1 extends BaseBoxShapeUtil {
+		class FakeShapeUtil1 extends BaseBoxShapeUtil<any> {
 			static override type = 'fake' as const
 			override getDefaultProps() {
 				throw new Error('Method not implemented.')
@@ -44,7 +44,7 @@ describe('<Tldraw />', () => {
 				throw new Error('Method not implemented.')
 			}
 		}
-		class FakeShapeUtil2 extends BaseBoxShapeUtil {
+		class FakeShapeUtil2 extends BaseBoxShapeUtil<any> {
 			static override type = 'fake' as const
 			override getDefaultProps() {
 				throw new Error('Method not implemented.')

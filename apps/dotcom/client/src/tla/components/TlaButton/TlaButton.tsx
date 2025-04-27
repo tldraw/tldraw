@@ -5,7 +5,7 @@ import styles from './button.module.css'
 
 export const TlaButton = forwardRef<
 	HTMLButtonElement,
-	ButtonHTMLAttributes & {
+	ButtonHTMLAttributes<HTMLButtonElement> & {
 		isLoading?: boolean
 		icon?: string
 		iconRight?: string

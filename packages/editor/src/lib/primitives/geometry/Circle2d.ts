@@ -13,7 +13,7 @@ export class Circle2d extends Geometry2d {
 	y: number
 
 	constructor(
-		public config: Omit & {
+		public config: Omit<Geometry2dOptions, 'isClosed'> & {
 			x?: number
 			y?: number
 			radius: number
@@ -56,8 +56,6 @@ export class Circle2d extends Geometry2d {
 
 	getSvgPathData(): string {
 		const { _center, radius } = this
-		return `M${_center.x + radius},${_center.y} a${radius},${radius} 0 1,0 ${
-			radius * 2
-		},0a${radius},${radius} 0 1,0 -${radius * 2},0`
+		return `M${_center.x + radius},${_center.y} a${radius},${radius} 0 1,0 ${radius * 2},0a${radius},${radius} 0 1,0 -${radius * 2},0`
 	}
 }

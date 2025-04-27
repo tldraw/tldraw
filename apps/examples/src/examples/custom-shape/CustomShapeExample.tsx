@@ -15,13 +15,20 @@ import 'tldraw/tldraw.css'
 // There's a guide at the bottom of this file!
 
 // [1]
-type ICustomShape = TLBaseShape
+type ICustomShape = TLBaseShape<
+	'my-custom-shape',
+	{
+		w: number
+		h: number
+		text: string
+	}
+>
 
 // [2]
-export class MyShapeUtil extends ShapeUtil {
+export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 	// [a]
 	static override type = 'my-custom-shape' as const
-	static override props: RecordProps = {
+	static override props: RecordProps<ICustomShape> = {
 		w: T.number,
 		h: T.number,
 		text: T.string,
@@ -57,7 +64,7 @@ export class MyShapeUtil extends ShapeUtil {
 	}
 
 	// [e]
-	override onResize(shape: any, info: TLResizeInfo) {
+	override onResize(shape: any, info: TLResizeInfo<any>) {
 		return resizeBox(shape, info)
 	}
 

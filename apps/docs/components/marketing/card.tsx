@@ -1,16 +1,14 @@
 import { cn } from '@/utils/cn'
 
-export function Card(
-	{
-		children,
-		className,
-		darker,
-	}: {
-		children: React.ReactNode
-		className?: string
-		darker?: boolean
-	}
-) {
+export function Card({
+	children,
+	className,
+	darker,
+}: {
+	children: React.ReactNode
+	className?: string
+	darker?: boolean
+}) {
 	return (
 		<div
 			className={cn(

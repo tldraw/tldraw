@@ -221,23 +221,21 @@ export function CaseStudiesSection() {
 	)
 }
 
-function CaseStudyJustLogoSmallCard(
-	{
-		children,
-		id,
-		src,
-		href,
-		logo,
-		caseStudy,
-	}: {
-		children: ReactNode
-		id: string
-		src: string
-		href: string
-		logo: string
-		caseStudy: boolean
-	}
-) {
+function CaseStudyJustLogoSmallCard({
+	children,
+	id,
+	src,
+	href,
+	logo,
+	caseStudy,
+}: {
+	children: ReactNode
+	id: string
+	src: string
+	href: string
+	logo: string
+	caseStudy: boolean
+}) {
 	return (
 		<div className="group/link" id={id}>
 			<CaseStudyCardContainer>
@@ -279,9 +277,15 @@ function CaseStudyImage({ src }: { src: string }) {
 	)
 }
 
-function CaseStudyCopy(
-	{ children, caseStudy, href }: { children: ReactNode; caseStudy: boolean; href: string }
-) {
+function CaseStudyCopy({
+	children,
+	caseStudy,
+	href,
+}: {
+	children: ReactNode
+	caseStudy: boolean
+	href: string
+}) {
 	return (
 		<p className="pt-5 px-0">
 			{children}

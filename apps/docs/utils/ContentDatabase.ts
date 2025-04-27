@@ -15,7 +15,7 @@ import {
 } from '../types/content-types'
 
 export class ContentDatabase {
-	private dbPromise: Promise | null = null
+	private dbPromise: Promise<Database<sqlite3.Database, sqlite3.Statement>> | null = null
 
 	async getDb() {
 		if (!this.dbPromise) {
@@ -25,13 +25,20 @@ export class ContentDatabase {
 		return this.dbPromise
 	}
 
-	async getAllPaths(): Promise {
+	async getAllPaths(): Promise<string[]> {
 		const db = await this.getDb()
 		const articles = await db.all(`SELECT path FROM articles`)
 		return articles.map((article) => article.path)
 	}
 
-	async getPageContent(path: string): Promise {
+	async getPageContent(
+		path: string
+	): Promise<
+		| { type: 'section'; section: Section }
+		| { type: 'category'; category: Category }
+		| { type: 'article'; article: Article }
+		| undefined
+	> {
 		const db = await this.getDb()
 		const section = await db.get(`SELECT * FROM sections WHERE sections.path = ?`, path)
 		if (section) return { type: 'section', section } as const
@@ -52,14 +59,14 @@ export class ContentDatabase {
 		return section
 	}
 
-	async getCategory(categoryId: string, opts = {} as { optional?: boolean }): Promise {
+	async getCategory(categoryId: string, opts = {} as { optional?: boolean }): Promise<Category> {
 		const db = await this.getDb()
 		const category = await db.get('SELECT * FROM categories WHERE id = ?', categoryId)
 		if (!opts.optional) assert(category, `Could not find a category with categoryId ${categoryId}`)
 		return category
 	}
 
-	async getArticleHeadings(articleId: string): Promise {
+	async getArticleHeadings(articleId: string): Promise<ArticleHeading[]> {
 		const db = await this.getDb()
 
 		const headings = await db.all<ArticleHeading[]>(
@@ -91,7 +98,7 @@ export class ContentDatabase {
 		return articles
 	}
 
-	async getArticleLinks(article: Article): Promise {
+	async getArticleLinks(article: Article): Promise<ArticleLinks> {
 		const db = await this.getDb()
 
 		// and the article with the same section but next sectionIndex
@@ -174,25 +181,23 @@ export class ContentDatabase {
 	private _sidebarReferenceContentLinks: SidebarContentLink[] | undefined
 	private _sidebarExamplesContentLinks: SidebarContentLink[] | undefined
 
-	async getSidebarContentList(
-		{
-			sectionId,
-			categoryId,
-			articleId,
-		}: {
-			sectionId?: string
-			categoryId?: string
-			articleId?: string
-		}
-	): Promise {
+	async getSidebarContentList({
+		sectionId,
+		categoryId,
+		articleId,
+	}: {
+		sectionId?: string
+		categoryId?: string
+		articleId?: string
+	}): Promise<SidebarContentList> {
 		let links: SidebarContentLink[]
 
 		const cachedLinks =
 			sectionId === 'examples'
 				? this._sidebarExamplesContentLinks
 				: sectionId === 'reference'
-				? this._sidebarReferenceContentLinks
-				: this._sidebarContentLinks
+					? this._sidebarReferenceContentLinks
+					: this._sidebarContentLinks
 		if (cachedLinks && process.env.NODE_ENV !== 'development') {
 			// Use the previously cached sidebar links
 			links = cachedLinks

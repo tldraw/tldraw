@@ -11,7 +11,7 @@ export class Rectangle2d extends Polygon2d {
 	h: number
 
 	constructor(
-		config: Omit & {
+		config: Omit<Geometry2dOptions, 'isClosed'> & {
 			x?: number
 			y?: number
 			width: number

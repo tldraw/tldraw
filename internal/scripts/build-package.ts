@@ -78,22 +78,20 @@ async function buildPackage({ sourcePackageDir }: { sourcePackageDir: string }) 
 }
 
 /** This uses esbuild to build the esm version of the package */
-async function buildLibrary(
-	{
-		sourceFiles,
-		sourcePackageDir,
-		info,
-	}: {
-		sourceFiles: string[]
-		sourcePackageDir: string
-		info: LibraryInfo
-	}
-) {
+async function buildLibrary({
+	sourceFiles,
+	sourcePackageDir,
+	info,
+}: {
+	sourceFiles: string[]
+	sourcePackageDir: string
+	info: LibraryInfo
+}) {
 	const dirName = `dist-${info.moduleSystem}`
 	const outdir = path.join(sourcePackageDir, dirName)
 	rimraf.sync(outdir)
 
-	const define: Record = {}
+	const define: Record<string, string> = {}
 	if (process.env.TLDRAW_BEMO_URL) {
 		define['process.env.TLDRAW_BEMO_URL'] = JSON.stringify(process.env.TLDRAW_BEMO_URL)
 	}

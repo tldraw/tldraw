@@ -12,7 +12,7 @@ export interface Example {
 	componentFile: string
 	keywords: string[]
 	multiplayer: boolean
-	loadComponent(): Promise
+	loadComponent(): Promise<ComponentType<{ roomId?: string }>>
 }
 
 type Category =

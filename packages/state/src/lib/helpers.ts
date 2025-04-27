@@ -36,7 +36,7 @@ export function haveParentsChanged(child: Child): boolean {
  * @param parent The parent to detach from.
  * @param child The child to detach.
  */
-export function detach(parent: Signal, child: Child) {
+export function detach(parent: Signal<any>, child: Child) {
 	// If the child is not attached to the parent, do nothing.
 	if (!parent.children.remove(child)) {
 		return
@@ -56,7 +56,7 @@ export function detach(parent: Signal, child: Child) {
  * @param parent The parent to attach to.
  * @param child The child to attach.
  */
-export function attach(parent: Signal, child: Child) {
+export function attach(parent: Signal<any>, child: Child) {
 	// If the child is already attached to the parent, do nothing.
 	if (!parent.children.add(child)) {
 		return
@@ -100,7 +100,7 @@ export const EMPTY_ARRAY: [] = singleton('empty_array', () => Object.freeze([]) 
  * Does this signal have any active reactors attached to it? When it changes, will it cause anything to run?
  * @public
  */
-export function hasReactors(signal: Signal) {
+export function hasReactors(signal: Signal<any>) {
 	for (const child of signal.children) {
 		if (child.isActivelyListening) {
 			return true

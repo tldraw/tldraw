@@ -13,15 +13,16 @@ export interface TLShapeIndicatorsProps {
 }
 
 /** @public @react */
-export const DefaultShapeIndicators = memo(function DefaultShapeIndicators(
-	{ hideAll, showAll }: TLShapeIndicatorsProps
-) {
+export const DefaultShapeIndicators = memo(function DefaultShapeIndicators({
+	hideAll,
+	showAll,
+}: TLShapeIndicatorsProps) {
 	const editor = useEditor()
 
 	if (hideAll && showAll)
 		throw Error('You cannot set both hideAll and showAll props to true, cmon now')
 
-	const rPreviousSelectedShapeIds = useRef<Set>(new Set())
+	const rPreviousSelectedShapeIds = useRef<Set<TLShapeId>>(new Set())
 
 	const idsToDisplay = useValue(
 		'should display selected ids',

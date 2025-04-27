@@ -2,7 +2,7 @@ import { ClerkClient, createClerkClient } from '@clerk/backend'
 import { IRequest, StatusError } from 'itty-router'
 import { Environment } from '../../types'
 
-export async function requireAuth(request: IRequest, env: Environment): Promise {
+export async function requireAuth(request: IRequest, env: Environment): Promise<SignedInAuth> {
 	const auth = await getAuth(request, env)
 	if (!auth) {
 		throw new StatusError(401, 'Unauthorized')
@@ -18,7 +18,7 @@ export function getClerkClient(env: Environment) {
 	})
 }
 
-export async function getAuth(request: IRequest, env: Environment): Promise {
+export async function getAuth(request: IRequest, env: Environment): Promise<SignedInAuth | null> {
 	const clerk = getClerkClient(env)
 
 	const state = await clerk.authenticateRequest(request)
@@ -45,4 +45,6 @@ export async function getAuth(request: IRequest, env: Environment): Promise {
 	return res.toAuth()
 }
 
-export type SignedInAuth = ReturnType
+export type SignedInAuth = ReturnType<
+	Extract<Awaited<ReturnType<ClerkClient['authenticateRequest']>>, { isSignedIn: true }>['toAuth']
+>

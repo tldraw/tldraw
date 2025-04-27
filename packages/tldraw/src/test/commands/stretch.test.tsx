@@ -3,7 +3,7 @@ import { TestEditor } from '../TestEditor'
 import { TL } from '../test-jsx'
 
 let editor: TestEditor
-let ids: Record
+let ids: Record<string, TLShapeId>
 
 jest.useFakeTimers()
 

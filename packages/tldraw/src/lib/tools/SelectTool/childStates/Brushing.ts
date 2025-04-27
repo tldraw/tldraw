@@ -186,7 +186,7 @@ export class Brushing extends StateNode {
 		shape: TLShape,
 		currentPagePoint: Vec,
 		currentPageId: TLPageId,
-		results: Set,
+		results: Set<TLShapeId>,
 		corners: Vec[]
 	) {
 		if (shape.parentId === currentPageId) {

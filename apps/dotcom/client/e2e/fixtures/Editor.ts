@@ -9,7 +9,10 @@ export class Editor {
 	private readonly shapes: Locator
 	private readonly pageMenu: Locator
 
-	constructor(public readonly page: Page, private readonly sidebar: Sidebar) {
+	constructor(
+		public readonly page: Page,
+		private readonly sidebar: Sidebar
+	) {
 		this.sidebarToggle = this.page.getByTestId('tla-sidebar-toggle')
 		this.fileName = this.page.getByTestId('tla-file-name')
 		this.shapes = this.page.locator('.tl-shape')

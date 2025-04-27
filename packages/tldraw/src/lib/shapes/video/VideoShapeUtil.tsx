@@ -20,10 +20,10 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
-const videoSvgExportCache = new WeakCache<TLAsset, Promise>()
+const videoSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 
 /** @public */
-export class VideoShapeUtil extends BaseBoxShapeUtil {
+export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	static override type = 'video' as const
 	static override props = videoShapeProps
 	static override migrations = videoShapeMigrations
@@ -104,7 +104,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 		return () => document.removeEventListener('fullscreenchange', fullscreenChange)
 	})
 
-	const handleLoadedData = useCallback<ReactEventHandler>((e) => {
+	const handleLoadedData = useCallback<ReactEventHandler<HTMLVideoElement>>((e) => {
 		const video = e.currentTarget
 		if (!video) return
 
@@ -156,8 +156,8 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 										isEditing
 											? { pointerEvents: 'all' }
 											: !isLoaded
-											? { display: 'none' }
-											: undefined
+												? { display: 'none' }
+												: undefined
 									}
 									className={classNames('tl-video', `tl-video-shape-${shape.id.split(':')[1]}`, {
 										'tl-video-is-fullscreen': isFullscreen,

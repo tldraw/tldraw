@@ -11,7 +11,7 @@ export class HistoryBuffer<Diff> {
 	private index = 0
 
 	// use a wrap around buffer to store the last N values
-	buffer: Array
+	buffer: Array<RangeTuple<Diff> | undefined>
 
 	constructor(private readonly capacity: number) {
 		this.buffer = new Array(capacity)

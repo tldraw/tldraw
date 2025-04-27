@@ -81,7 +81,7 @@ export class TLDrawDocument implements vscode.CustomDocument {
 		this._onDidDispose.fire()
 	}
 
-	private static async readFile(uri: vscode.Uri): Promise {
+	private static async readFile(uri: vscode.Uri): Promise<TldrawFile> {
 		nicelog('readFile')
 
 		if (uri.scheme === 'untitled') {
@@ -100,13 +100,13 @@ export class TLDrawDocument implements vscode.CustomDocument {
 	}
 
 	/** Called by VS Code when the user saves the document. */
-	async save(cancellation: vscode.CancellationToken): Promise {
+	async save(cancellation: vscode.CancellationToken): Promise<void> {
 		nicelog('save')
 		await this.saveAs(this.uri, cancellation)
 	}
 
 	/** Called by VS Code when the user saves the document to a new location. */
-	async saveAs(targetResource: vscode.Uri, cancellation: vscode.CancellationToken): Promise {
+	async saveAs(targetResource: vscode.Uri, cancellation: vscode.CancellationToken): Promise<void> {
 		nicelog('saveAs')
 		if (cancellation.isCancellationRequested) {
 			return
@@ -120,7 +120,7 @@ export class TLDrawDocument implements vscode.CustomDocument {
 	}
 
 	/** Called by VS Code when the user calls `revert` on a document. */
-	async revert(_cancellation: vscode.CancellationToken): Promise {
+	async revert(_cancellation: vscode.CancellationToken): Promise<void> {
 		nicelog('revert')
 
 		const diskContent = await TLDrawDocument.readFile(this.uri)
@@ -136,7 +136,10 @@ export class TLDrawDocument implements vscode.CustomDocument {
 	 *
 	 * These backups are used to implement hot exit.
 	 */
-	async backup(destination: vscode.Uri, cancellation: vscode.CancellationToken): Promise {
+	async backup(
+		destination: vscode.Uri,
+		cancellation: vscode.CancellationToken
+	): Promise<vscode.CustomDocumentBackup> {
 		nicelog('backup')
 		this.lastBackupDestination = destination
 

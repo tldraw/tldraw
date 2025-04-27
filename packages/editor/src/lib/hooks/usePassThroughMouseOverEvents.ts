@@ -3,7 +3,7 @@ import { preventDefault } from '../utils/dom'
 import { useContainer } from './useContainer'
 
 /** @public */
-export function usePassThroughMouseOverEvents(ref: RefObject) {
+export function usePassThroughMouseOverEvents(ref: RefObject<HTMLElement>) {
 	if (!ref) throw Error('usePassThroughWheelEvents must be passed a ref')
 	const container = useContainer()
 

@@ -17,7 +17,9 @@ import initialSnapshot from './snapshot.json'
 
 export default function TldrawImageExample() {
 	const [editor, setEditor] = useState<Editor>()
-	const [snapshot, setSnapshot] = useState<StoreSnapshot>(initialSnapshot as TLStoreSnapshot)
+	const [snapshot, setSnapshot] = useState<StoreSnapshot<TLRecord>>(
+		initialSnapshot as TLStoreSnapshot
+	)
 	const [currentPageId, setCurrentPageId] = useState<TLPageId | undefined>()
 	const [showBackground, setShowBackground] = useState(true)
 	const [isDarkMode, setIsDarkMode] = useState(false)

@@ -22,7 +22,7 @@ export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandlePro
 		const fr = 3 / zoom
 		const path = `M0,${-fr} A${fr},${fr} 0 0,1 0,${fr}`
 
-		const index = SIDES.indexOf(handle.id as typeof SIDES[number])
+		const index = SIDES.indexOf(handle.id as (typeof SIDES)[number])
 		return (
 			<g className={classNames(`tl-handle tl-handle__${handle.type}`, className)}>
 				<circle className="tl-handle__bg" r={br} />

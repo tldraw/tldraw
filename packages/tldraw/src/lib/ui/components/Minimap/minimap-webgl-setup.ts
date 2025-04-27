@@ -132,7 +132,7 @@ export function setupWebGl(canvas: HTMLCanvasElement | null) {
 	}
 }
 
-export type BufferStuff = ReturnType
+export type BufferStuff = ReturnType<typeof allocateBuffer>
 
 function allocateBuffer(context: WebGL2RenderingContext, size: number) {
 	const buffer = context.createBuffer()

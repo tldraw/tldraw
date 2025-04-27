@@ -19,9 +19,9 @@ export type TLUiKeyboardShortcutsDialogProps = TLUiDialogProps & {
 }
 
 /** @public @react */
-export const DefaultKeyboardShortcutsDialog = memo(function DefaultKeyboardShortcutsDialog(
-	{ children }: TLUiKeyboardShortcutsDialogProps
-) {
+export const DefaultKeyboardShortcutsDialog = memo(function DefaultKeyboardShortcutsDialog({
+	children,
+}: TLUiKeyboardShortcutsDialogProps) {
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 

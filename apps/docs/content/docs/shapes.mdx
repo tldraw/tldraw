@@ -98,7 +98,7 @@ In tldraw's data model, each shape is represented by a JSON object. Let's first 
 ```ts
 import { TLBaseShape } from 'tldraw'
 
-type CardShape = TLBaseShape
+type CardShape = TLBaseShape<'card', { w: number; h: number }>
 ```
 
 With the [TLBaseShape](?) helper, we define the shape's `type` property (`card`) and the shape's `props` property (`{ w: number, h: number }`). The type can be any string but the props must be a regular [JSON-serializable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#description) JavaScript object.
@@ -114,7 +114,7 @@ Let's create a [ShapeUtil](?) class for the shape.
 ```tsx
 import { HTMLContainer, ShapeUtil } from 'tldraw'
 
-class CardShapeUtil extends ShapeUtil {
+class CardShapeUtil extends ShapeUtil<CardShape> {
 	static override type = 'card' as const
 
 	getDefaultProps(): CardShape['props'] {

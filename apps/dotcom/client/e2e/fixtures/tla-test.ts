@@ -19,7 +19,7 @@ interface TlaFixtures {
 	database: Database
 	deleteFileDialog: DeleteFileDialog
 	setupAndCleanup: void
-	retry(fn: () => Promise): Promise
+	retry(fn: () => Promise<void>): Promise<void>
 }
 
 interface TlaWorkerFixtures {
@@ -118,7 +118,7 @@ export function step(target: Function, context: any) {
 
 export function repeatTest(
 	name: string,
-	fn: (...args: any) => Promise,
+	fn: (...args: any) => Promise<void>,
 	{ times = 5, only = false } = {}
 ) {
 	const getName = (i: number) => `${name} (${i + 1} of ${times})`
@@ -133,7 +133,7 @@ export function repeatTest(
 	return
 }
 
-repeatTest.only = (name: string, fn: (...args: any) => Promise, { times = 5 } = {}) =>
+repeatTest.only = (name: string, fn: (...args: any) => Promise<void>, { times = 5 } = {}) =>
 	repeatTest(name, fn, { times, only: true })
 
 const PROPAGATE_CHANGES_TIMEOUT = 100
@@ -149,7 +149,7 @@ const PROPAGATE_CHANGES_TIMEOUT = 100
  * 3. Reloads the page.
  * 4. Executes the provided expectations again and ensures they pass.
  */
-export async function expectBeforeAndAfterReload(fn: () => Promise, page: Page) {
+export async function expectBeforeAndAfterReload(fn: () => Promise<void>, page: Page) {
 	await fn()
 	await sleep(PROPAGATE_CHANGES_TIMEOUT)
 	await page.reload()

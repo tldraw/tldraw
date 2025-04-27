@@ -15,7 +15,14 @@ import snapshot from './snapshot.json'
 
 // There's a guide at the bottom of this file!
 
-export type IMyShape = TLBaseShape
+export type IMyShape = TLBaseShape<
+	'myshape',
+	{
+		w: number
+		h: number
+		color: string
+	}
+>
 
 // [1]
 const versions = createShapePropsMigrationIds(
@@ -42,7 +49,7 @@ export const cardShapeMigrations = createShapePropsMigrationSequence({
 	],
 })
 
-export class MigratedShapeUtil extends BaseBoxShapeUtil {
+export class MigratedShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 	static override type = 'myshape' as const
 
 	static override props = {
@@ -78,7 +85,7 @@ export class MigratedShapeUtil extends BaseBoxShapeUtil {
 		return <rect width={shape.props.w} height={shape.props.h} />
 	}
 
-	override onResize(shape: IMyShape, info: TLResizeInfo) {
+	override onResize(shape: IMyShape, info: TLResizeInfo<IMyShape>) {
 		return resizeBox(shape, info)
 	}
 }

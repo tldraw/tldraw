@@ -3,7 +3,7 @@ import { TestEditor } from '../../../test/TestEditor'
 import { TL } from '../../../test/test-jsx'
 
 let editor: TestEditor
-let ids: Record
+let ids: Record<string, TLShapeId>
 
 beforeEach(() => {
 	editor = new TestEditor()

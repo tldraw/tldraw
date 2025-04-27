@@ -1,22 +1,20 @@
 import Link from 'next/link'
 
-export function Video(
-	{
-		src,
-		href,
-		thumbnail,
-		caption,
-		lazy = false,
-		autoplay = false,
-	}: {
-		src: string
-		thumbnail?: string
-		caption?: string
-		autoplay?: boolean
-		href?: string
-		lazy?: boolean
-	}
-) {
+export function Video({
+	src,
+	href,
+	thumbnail,
+	caption,
+	lazy = false,
+	autoplay = false,
+}: {
+	src: string
+	thumbnail?: string
+	caption?: string
+	autoplay?: boolean
+	href?: string
+	lazy?: boolean
+}) {
 	return (
 		<span className="block">
 			<Link

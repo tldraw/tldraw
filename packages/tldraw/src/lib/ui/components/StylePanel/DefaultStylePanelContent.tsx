@@ -36,7 +36,7 @@ import { DropdownPicker } from './DropdownPicker'
 
 /** @public */
 export interface TLUiStylePanelContentProps {
-	styles: ReturnType
+	styles: ReturnType<typeof useRelevantStyles>
 }
 
 /** @public @react */
@@ -79,7 +79,7 @@ function useStyleChangeCallback() {
 
 	return React.useMemo(
 		() =>
-			function handleStyleChange<T>(style: StyleProp, value: T) {
+			function handleStyleChange<T>(style: StyleProp<T>, value: T) {
 				editor.run(() => {
 					if (editor.isIn('select')) {
 						editor.setStyleForSelectedShapes(style, value)
@@ -358,7 +358,7 @@ export function ArrowheadStylePickerSet({ styles }: StylePickerSetProps) {
 	}
 
 	return (
-		<DoubleDropdownPicker
+		<DoubleDropdownPicker<TLArrowShapeArrowheadStyle>
 			label={'style-panel.arrowheads'}
 			uiTypeA="arrowheadStart"
 			styleA={ArrowShapeArrowheadStartStyle}
@@ -411,7 +411,7 @@ export function OpacitySlider() {
 					minBy(tldrawSupportedOpacities, (supportedOpacity) =>
 						Math.abs(supportedOpacity - opacity.value)
 					)!
-			  )
+				)
 
 	return (
 		<TldrawUiSlider

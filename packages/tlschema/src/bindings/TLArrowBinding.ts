@@ -21,7 +21,7 @@ export interface TLArrowBindingProps {
 }
 
 /** @public */
-export const arrowBindingProps: RecordProps = {
+export const arrowBindingProps: RecordProps<TLArrowBinding> = {
 	terminal: T.literalEnum('start', 'end'),
 	normalizedAnchor: vecModelValidator,
 	isExact: T.boolean,
@@ -29,7 +29,7 @@ export const arrowBindingProps: RecordProps = {
 }
 
 /** @public */
-export type TLArrowBinding = TLBaseBinding
+export type TLArrowBinding = TLBaseBinding<'arrow', TLArrowBindingProps>
 
 export const arrowBindingVersions = {} as const
 

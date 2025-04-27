@@ -20,20 +20,20 @@ import { CollectionDiff } from './Store'
 /** @public */
 export type RSIndexDiff<
 	R extends UnknownRecord,
-	Property extends string & keyof R = string & keyof R
-> = Map
+	Property extends string & keyof R = string & keyof R,
+> = Map<R[Property], CollectionDiff<IdOf<R>>>
 
 /** @public */
 export type RSIndexMap<
 	R extends UnknownRecord,
-	Property extends string & keyof R = string & keyof R
-> = Map
+	Property extends string & keyof R = string & keyof R,
+> = Map<R[Property], Set<IdOf<R>>>
 
 /** @public */
 export type RSIndex<
 	R extends UnknownRecord,
-	Property extends string & keyof R = string & keyof R
-> = Computed
+	Property extends string & keyof R = string & keyof R,
+> = Computed<RSIndexMap<R, Property>, RSIndexDiff<R, Property>>
 
 /**
  * A class that provides a 'namespace' for the various kinds of indexes one may wish to derive from
@@ -41,21 +41,24 @@ export type RSIndex<
  * @public
  */
 export class StoreQueries<R extends UnknownRecord> {
-	constructor(private readonly recordMap: AtomMap, private readonly history: Atom) {}
+	constructor(
+		private readonly recordMap: AtomMap<IdOf<R>, R>,
+		private readonly history: Atom<number, RecordsDiff<R>>
+	) {}
 
 	/**
 	 * A cache of derivations (indexes).
 	 *
 	 * @internal
 	 */
-	private indexCache = new Map<string, RSIndex>()
+	private indexCache = new Map<string, RSIndex<R>>()
 
 	/**
 	 * A cache of derivations (filtered histories).
 	 *
 	 * @internal
 	 */
-	private historyCache = new Map<string, Computed>()
+	private historyCache = new Map<string, Computed<number, RecordsDiff<R>>>()
 
 	/**
 	 * Create a derivation that contains the history for a given type
@@ -64,14 +67,16 @@ export class StoreQueries<R extends UnknownRecord> {
 	 * @returns A derivation that returns the ids of all records of the given type.
 	 * @public
 	 */
-	public filterHistory<TypeName extends R['typeName']>(typeName: TypeName): Computed {
-		type S = Extract
+	public filterHistory<TypeName extends R['typeName']>(
+		typeName: TypeName
+	): Computed<number, RecordsDiff<Extract<R, { typeName: TypeName }>>> {
+		type S = Extract<R, { typeName: TypeName }>
 
 		if (this.historyCache.has(typeName)) {
 			return this.historyCache.get(typeName) as any
 		}
 
-		const filtered = computed<number, RecordsDiff>(
+		const filtered = computed<number, RecordsDiff<S>>(
 			'filterHistory:' + typeName,
 			(lastValue, lastComputedEpoch) => {
 				if (isUninitialized(lastValue)) {
@@ -81,7 +86,7 @@ export class StoreQueries<R extends UnknownRecord> {
 				const diff = this.history.getDiffSince(lastComputedEpoch)
 				if (diff === RESET_VALUE) return this.history.get()
 
-				const res = { added: {}, removed: {}, updated: {} } as RecordsDiff
+				const res = { added: {}, removed: {}, updated: {} } as RecordsDiff<S>
 				let numAdded = 0
 				let numRemoved = 0
 				let numUpdated = 0
@@ -89,16 +94,16 @@ export class StoreQueries<R extends UnknownRecord> {
 				for (const changes of diff) {
 					for (const added of objectMapValues(changes.added)) {
 						if (added.typeName === typeName) {
-							if (res.removed[added.id as IdOf]) {
-								const original = res.removed[added.id as IdOf]
-								delete res.removed[added.id as IdOf]
+							if (res.removed[added.id as IdOf<S>]) {
+								const original = res.removed[added.id as IdOf<S>]
+								delete res.removed[added.id as IdOf<S>]
 								numRemoved--
 								if (original !== added) {
-									res.updated[added.id as IdOf] = [original, added as S]
+									res.updated[added.id as IdOf<S>] = [original, added as S]
 									numUpdated++
 								}
 							} else {
-								res.added[added.id as IdOf] = added as S
+								res.added[added.id as IdOf<S>] = added as S
 								numAdded++
 							}
 						}
@@ -106,12 +111,12 @@ export class StoreQueries<R extends UnknownRecord> {
 
 					for (const [from, to] of objectMapValues(changes.updated)) {
 						if (to.typeName === typeName) {
-							if (res.added[to.id as IdOf]) {
-								res.added[to.id as IdOf] = to as S
-							} else if (res.updated[to.id as IdOf]) {
-								res.updated[to.id as IdOf] = [res.updated[to.id as IdOf][0], to as S]
+							if (res.added[to.id as IdOf<S>]) {
+								res.added[to.id as IdOf<S>] = to as S
+							} else if (res.updated[to.id as IdOf<S>]) {
+								res.updated[to.id as IdOf<S>] = [res.updated[to.id as IdOf<S>][0], to as S]
 							} else {
-								res.updated[to.id as IdOf] = [from as S, to as S]
+								res.updated[to.id as IdOf<S>] = [from as S, to as S]
 								numUpdated++
 							}
 						}
@@ -119,18 +124,18 @@ export class StoreQueries<R extends UnknownRecord> {
 
 					for (const removed of objectMapValues(changes.removed)) {
 						if (removed.typeName === typeName) {
-							if (res.added[removed.id as IdOf]) {
+							if (res.added[removed.id as IdOf<S>]) {
 								// was added during this diff sequence, so just undo the add
-								delete res.added[removed.id as IdOf]
+								delete res.added[removed.id as IdOf<S>]
 								numAdded--
-							} else if (res.updated[removed.id as IdOf]) {
+							} else if (res.updated[removed.id as IdOf<S>]) {
 								// remove oldest version
-								res.removed[removed.id as IdOf] = res.updated[removed.id as IdOf][0]
-								delete res.updated[removed.id as IdOf]
+								res.removed[removed.id as IdOf<S>] = res.updated[removed.id as IdOf<S>][0]
+								delete res.updated[removed.id as IdOf<S>]
 								numUpdated--
 								numRemoved++
 							} else {
-								res.removed[removed.id as IdOf] = removed as S
+								res.removed[removed.id as IdOf<S>] = removed as S
 								numRemoved++
 							}
 						}
@@ -158,10 +163,10 @@ export class StoreQueries<R extends UnknownRecord> {
 	 * @param property - The name of the property.
 	 * @public
 	 */
-	public index<TypeName extends R['typeName'], Property extends string & keyof Extract>(
-		typeName: TypeName,
-		property: Property
-	): RSIndex {
+	public index<
+		TypeName extends R['typeName'],
+		Property extends string & keyof Extract<R, { typeName: TypeName }>,
+	>(typeName: TypeName, property: Property): RSIndex<Extract<R, { typeName: TypeName }>, Property> {
 		const cacheKey = typeName + ':' + property
 
 		if (this.indexCache.has(cacheKey)) {
@@ -182,11 +187,11 @@ export class StoreQueries<R extends UnknownRecord> {
 	 * @param property - The name of the property?.
 	 * @internal
 	 */
-	__uncached_createIndex<TypeName extends R['typeName'], Property extends string & keyof Extract>(
-		typeName: TypeName,
-		property: Property
-	): RSIndex {
-		type S = Extract
+	__uncached_createIndex<
+		TypeName extends R['typeName'],
+		Property extends string & keyof Extract<R, { typeName: TypeName }>,
+	>(typeName: TypeName, property: Property): RSIndex<Extract<R, { typeName: TypeName }>, Property> {
+		type S = Extract<R, { typeName: TypeName }>
 
 		const typeHistory = this.filterHistory(typeName)
 
@@ -194,7 +199,7 @@ export class StoreQueries<R extends UnknownRecord> {
 			// deref typeHistory early so that the first time the incremental version runs
 			// it gets a diff to work with instead of having to bail to this from-scratch version
 			typeHistory.get()
-			const res = new Map<S[Property], Set>()
+			const res = new Map<S[Property], Set<IdOf<S>>>()
 			for (const record of this.recordMap.values()) {
 				if (record.typeName === typeName) {
 					const value = (record as S)[property]
@@ -208,7 +213,7 @@ export class StoreQueries<R extends UnknownRecord> {
 			return res
 		}
 
-		return computed<RSIndexMap, RSIndexDiff>(
+		return computed<RSIndexMap<S, Property>, RSIndexDiff<S, Property>>(
 			'index:' + typeName + ':' + property,
 			(prevValue, lastComputedEpoch) => {
 				if (isUninitialized(prevValue)) return fromScratch()
@@ -218,19 +223,21 @@ export class StoreQueries<R extends UnknownRecord> {
 					return fromScratch()
 				}
 
-				const setConstructors = new Map<any, IncrementalSetConstructor>()
+				const setConstructors = new Map<any, IncrementalSetConstructor<IdOf<S>>>()
 
-				const add = (value: S[Property], id: IdOf) => {
+				const add = (value: S[Property], id: IdOf<S>) => {
 					let setConstructor = setConstructors.get(value)
 					if (!setConstructor)
-						setConstructor = new IncrementalSetConstructor<IdOf>(prevValue.get(value) ?? new Set())
+						setConstructor = new IncrementalSetConstructor<IdOf<S>>(
+							prevValue.get(value) ?? new Set()
+						)
 					setConstructor.add(id)
 					setConstructors.set(value, setConstructor)
 				}
 
-				const remove = (value: S[Property], id: IdOf) => {
+				const remove = (value: S[Property], id: IdOf<S>) => {
 					let set = setConstructors.get(value)
-					if (!set) set = new IncrementalSetConstructor<IdOf>(prevValue.get(value) ?? new Set())
+					if (!set) set = new IncrementalSetConstructor<IdOf<S>>(prevValue.get(value) ?? new Set())
 					set.remove(id)
 					setConstructors.set(value, set)
 				}
@@ -260,8 +267,8 @@ export class StoreQueries<R extends UnknownRecord> {
 					}
 				}
 
-				let nextValue: undefined | RSIndexMap = undefined
-				let nextDiff: undefined | RSIndexDiff = undefined
+				let nextValue: undefined | RSIndexMap<S, Property> = undefined
+				let nextDiff: undefined | RSIndexDiff<S, Property> = undefined
 
 				for (const [value, setConstructor] of setConstructors) {
 					const result = setConstructor.get()
@@ -297,10 +304,10 @@ export class StoreQueries<R extends UnknownRecord> {
 	 */
 	record<TypeName extends R['typeName']>(
 		typeName: TypeName,
-		queryCreator: () => QueryExpression = () => ({}),
+		queryCreator: () => QueryExpression<Extract<R, { typeName: TypeName }>> = () => ({}),
 		name = 'record:' + typeName + (queryCreator ? ':' + queryCreator.toString() : '')
-	): Computed {
-		type S = Extract
+	): Computed<Extract<R, { typeName: TypeName }> | undefined> {
+		type S = Extract<R, { typeName: TypeName }>
 		const ids = this.ids(typeName, queryCreator, name)
 
 		return computed<S | undefined>(name, () => {
@@ -320,10 +327,10 @@ export class StoreQueries<R extends UnknownRecord> {
 	 */
 	records<TypeName extends R['typeName']>(
 		typeName: TypeName,
-		queryCreator: () => QueryExpression = () => ({}),
+		queryCreator: () => QueryExpression<Extract<R, { typeName: TypeName }>> = () => ({}),
 		name = 'records:' + typeName + (queryCreator ? ':' + queryCreator.toString() : '')
-	): Computed {
-		type S = Extract
+	): Computed<Array<Extract<R, { typeName: TypeName }>>> {
+		type S = Extract<R, { typeName: TypeName }>
 		const ids = this.ids(typeName, queryCreator, 'ids:' + name)
 
 		return computed<S[]>(
@@ -346,19 +353,22 @@ export class StoreQueries<R extends UnknownRecord> {
 	 */
 	ids<TypeName extends R['typeName']>(
 		typeName: TypeName,
-		queryCreator: () => QueryExpression = () => ({}),
+		queryCreator: () => QueryExpression<Extract<R, { typeName: TypeName }>> = () => ({}),
 		name = 'ids:' + typeName + (queryCreator ? ':' + queryCreator.toString() : '')
-	): Computed {
-		type S = Extract
+	): Computed<
+		Set<IdOf<Extract<R, { typeName: TypeName }>>>,
+		CollectionDiff<IdOf<Extract<R, { typeName: TypeName }>>>
+	> {
+		type S = Extract<R, { typeName: TypeName }>
 
 		const typeHistory = this.filterHistory(typeName)
 
 		const fromScratch = () => {
 			// deref type history early to allow first incremental update to use diffs
 			typeHistory.get()
-			const query: QueryExpression = queryCreator()
+			const query: QueryExpression<S> = queryCreator()
 			if (Object.keys(query).length === 0) {
-				const ids = new Set<IdOf>()
+				const ids = new Set<IdOf<S>>()
 				for (const record of this.recordMap.values()) {
 					if (record.typeName === typeName) ids.add(record.id)
 				}
@@ -368,7 +378,7 @@ export class StoreQueries<R extends UnknownRecord> {
 			return executeQuery(this, typeName, query)
 		}
 
-		const fromScratchWithDiff = (prevValue: Set) => {
+		const fromScratchWithDiff = (prevValue: Set<IdOf<S>>) => {
 			const nextValue = fromScratch()
 			const diff = diffSets(prevValue, nextValue)
 			if (diff) {
@@ -400,9 +410,9 @@ export class StoreQueries<R extends UnknownRecord> {
 					return fromScratchWithDiff(prevValue)
 				}
 
-				const setConstructor = new IncrementalSetConstructor<IdOf>(
+				const setConstructor = new IncrementalSetConstructor<IdOf<S>>(
 					prevValue
-				) as IncrementalSetConstructor
+				) as IncrementalSetConstructor<IdOf<S>>
 
 				for (const changes of history) {
 					for (const added of objectMapValues(changes.added)) {
@@ -437,11 +447,14 @@ export class StoreQueries<R extends UnknownRecord> {
 		)
 	}
 
-	exec<TypeName extends R['typeName']>(typeName: TypeName, query: QueryExpression): Array {
+	exec<TypeName extends R['typeName']>(
+		typeName: TypeName,
+		query: QueryExpression<Extract<R, { typeName: TypeName }>>
+	): Array<Extract<R, { typeName: TypeName }>> {
 		const ids = executeQuery(this, typeName, query)
 		if (ids.size === 0) {
 			return EMPTY_ARRAY
 		}
-		return Array.from(ids, (id) => this.recordMap.get(id) as Extract)
+		return Array.from(ids, (id) => this.recordMap.get(id) as Extract<R, { typeName: TypeName }>)
 	}
 }

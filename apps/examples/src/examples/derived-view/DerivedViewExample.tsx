@@ -40,7 +40,7 @@ export const deriveNumberOfDrawShapesInDocument = (editor: Editor) => {
 		return new Set([...shapesIndex.get()].filter((id) => editor.getShape(id)!.type === 'draw'))
 	}
 
-	return computed<Set>('_shapeIdsInCurrentPage', (prevValue, lastComputedEpoch) => {
+	return computed<Set<TLShapeId>>('_shapeIdsInCurrentPage', (prevValue, lastComputedEpoch) => {
 		// On first load, return the initial value
 		if (isUninitialized(prevValue)) {
 			return fromScratch()
@@ -55,7 +55,7 @@ export const deriveNumberOfDrawShapesInDocument = (editor: Editor) => {
 		}
 
 		// This will be the new set that includes the changes, if we find any
-		let nextValue: Set | undefined
+		let nextValue: Set<TLShapeId> | undefined
 
 		for (const changes of diff) {
 			// Check all of the added records for new draw shapes

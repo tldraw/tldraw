@@ -3,7 +3,7 @@ import { RecordsDiff } from '@tldraw/store'
 import { isShape, TLParentId, TLRecord, TLShape, TLShapeId, TLStore } from '@tldraw/tlschema'
 import { compact, sortByIndex } from '@tldraw/utils'
 
-type Parents2Children = Record
+type Parents2Children = Record<TLParentId, TLShapeId[]>
 
 export const parentsToChildren = (store: TLStore) => {
 	const shapeIdsQuery = store.query.ids<'shape'>('shape')
@@ -44,7 +44,7 @@ export const parentsToChildren = (store: TLStore) => {
 
 			if (diff.length === 0) return lastValue
 
-			let newValue: Record | null = null
+			let newValue: Record<TLParentId, TLShapeId[]> | null = null
 
 			const ensureNewArray = (parentId: TLParentId) => {
 				if (!newValue) {
@@ -59,7 +59,7 @@ export const parentsToChildren = (store: TLStore) => {
 
 			const toSort = new Set<TLShapeId[]>()
 
-			let changes: RecordsDiff
+			let changes: RecordsDiff<TLRecord>
 
 			for (let i = 0, n = diff.length; i < n; i++) {
 				changes = diff[i]

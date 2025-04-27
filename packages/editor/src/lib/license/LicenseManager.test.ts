@@ -462,7 +462,7 @@ export function ab2str(buf: ArrayBuffer) {
 	return String.fromCharCode.apply(null, new Uint8Array(buf) as unknown as number[])
 }
 
-function getDefaultLicenseResult(overrides: Partial): ValidLicenseKeyResult {
+function getDefaultLicenseResult(overrides: Partial<ValidLicenseKeyResult>): ValidLicenseKeyResult {
 	return {
 		isAnnualLicense: true,
 		isAnnualLicenseExpired: false,

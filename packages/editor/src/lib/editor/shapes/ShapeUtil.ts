@@ -22,10 +22,13 @@ import { SvgExportContext } from '../types/SvgExportContext'
 import { TLResizeHandle } from '../types/selection-types'
 
 /** @public */
-export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends ShapeUtil = ShapeUtil> {
+export interface TLShapeUtilConstructor<
+	T extends TLUnknownShape,
+	U extends ShapeUtil<T> = ShapeUtil<T>,
+> {
 	new (editor: Editor): U
 	type: T['type']
-	props?: RecordProps
+	props?: RecordProps<T>
 	migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
 }
 
@@ -74,9 +77,9 @@ export interface TLShapeUtilCanvasSvgDef {
 /** @public */
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	/** Configure this shape utils {@link ShapeUtil.options | `options`}. */
-	static configure<T extends TLShapeUtilConstructor>(
+	static configure<T extends TLShapeUtilConstructor<any, any>>(
 		this: T,
-		options: T extends new (...args: any[]) => { options: infer Options } ? Partial : never
+		options: T extends new (...args: any[]) => { options: infer Options } ? Partial<Options> : never
 	): T {
 		// @ts-expect-error -- typescript has no idea what's going on here but it's fine
 		return class extends this {
@@ -121,7 +124,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * }
 	 * ```
 	 */
-	static props?: RecordProps
+	static props?: RecordProps<TLUnknownShape>
 
 	/**
 	 * Migrations allow you to make changes to a shape's props over time. Read the
@@ -393,7 +396,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toSvg?(shape: Shape, ctx: SvgExportContext): ReactElement | null | Promise
+	toSvg?(shape: Shape, ctx: SvgExportContext): ReactElement | null | Promise<ReactElement | null>
 
 	/**
 	 * Get the shape's background layer as an SVG object.
@@ -403,7 +406,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): ReactElement | null | Promise
+	toBackgroundSvg?(
+		shape: Shape,
+		ctx: SvgExportContext
+	): ReactElement | null | Promise<ReactElement | null>
 
 	/** @internal */
 	expandSelectionOutlinePx(shape: Shape): number | Box {
@@ -495,7 +501,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onCrop?(shape: Shape, info: TLCropInfo): Omit | undefined | void
+	onCrop?(
+		shape: Shape,
+		info: TLCropInfo<Shape>
+	): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void
 
 	/**
 	 * A callback called when some other shapes are dragged over this one.
@@ -539,7 +548,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onResizeStart?(shape: Shape): TLShapePartial | void
+	onResizeStart?(shape: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape changes from a resize.
@@ -549,7 +558,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onResize?(shape: Shape, info: TLResizeInfo): Omit | undefined | void
+	onResize?(
+		shape: Shape,
+		info: TLResizeInfo<Shape>
+	): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void
 
 	/**
 	 * A callback called when a shape finishes resizing.
@@ -559,7 +571,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onResizeEnd?(initial: Shape, current: Shape): TLShapePartial | void
+	onResizeEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape starts being translated.
@@ -568,7 +580,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onTranslateStart?(shape: Shape): TLShapePartial | void
+	onTranslateStart?(shape: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape changes from a translation.
@@ -578,7 +590,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onTranslate?(initial: Shape, current: Shape): TLShapePartial | void
+	onTranslate?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape finishes translating.
@@ -588,7 +600,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onTranslateEnd?(initial: Shape, current: Shape): TLShapePartial | void
+	onTranslateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape's handle changes.
@@ -598,7 +610,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onHandleDrag?(shape: Shape, info: TLHandleDragInfo): TLShapePartial | void
+	onHandleDrag?(shape: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape starts being rotated.
@@ -607,7 +619,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onRotateStart?(shape: Shape): TLShapePartial | void
+	onRotateStart?(shape: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape changes from a rotation.
@@ -617,7 +629,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onRotate?(initial: Shape, current: Shape): TLShapePartial | void
+	onRotate?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape finishes rotating.
@@ -627,14 +639,14 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onRotateEnd?(initial: Shape, current: Shape): TLShapePartial | void
+	onRotateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * Not currently used.
 	 *
 	 * @internal
 	 */
-	onBindingChange?(shape: Shape): TLShapePartial | void
+	onBindingChange?(shape: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape's children change.
@@ -653,7 +665,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onDoubleClickHandle?(shape: Shape, handle: TLHandle): TLShapePartial | void
+	onDoubleClickHandle?(shape: Shape, handle: TLHandle): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape's edge is double clicked.
@@ -662,7 +674,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onDoubleClickEdge?(shape: Shape): TLShapePartial | void
+	onDoubleClickEdge?(shape: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape is double clicked.
@@ -671,7 +683,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onDoubleClick?(shape: Shape): TLShapePartial | void
+	onDoubleClick?(shape: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape is clicked.
@@ -680,7 +692,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onClick?(shape: Shape): TLShapePartial | void
+	onClick?(shape: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape finishes being editing.

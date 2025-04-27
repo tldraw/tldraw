@@ -2,7 +2,7 @@ import { DurableObject } from 'cloudflare:workers'
 import { IRequest } from 'itty-router'
 import { Environment, isDebugLogging } from './types'
 
-export class TLLoggerDurableObject extends DurableObject {
+export class TLLoggerDurableObject extends DurableObject<Environment> {
 	private readonly isDebugEnv
 	private readonly db
 	constructor(ctx: DurableObjectState, env: Environment) {

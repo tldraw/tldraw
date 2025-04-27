@@ -5,7 +5,7 @@ import { idValidator } from '../misc/id-validator'
 import { TLAssetId } from '../records/TLAsset'
 
 /** @public */
-export interface TLBaseAsset<Type extends string, Props> extends BaseRecord {
+export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
 	type: Type
 	props: Props
 	meta: JsonObject
@@ -26,7 +26,7 @@ export const assetIdValidator = idValidator<TLAssetId>('asset')
  * @public */
 export function createAssetValidator<Type extends string, Props extends JsonObject>(
 	type: Type,
-	props: T.Validator
+	props: T.Validator<Props>
 ) {
 	return T.object<{
 		id: TLAssetId
@@ -39,6 +39,6 @@ export function createAssetValidator<Type extends string, Props extends JsonObje
 		typeName: T.literal('asset'),
 		type: T.literal(type),
 		props,
-		meta: T.jsonValue as T.ObjectValidator,
+		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 	})
 }

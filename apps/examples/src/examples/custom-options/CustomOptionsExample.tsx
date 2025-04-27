@@ -1,7 +1,7 @@
 import { Tldraw, TldrawOptions } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-const options: Partial = {
+const options: Partial<TldrawOptions> = {
 	maxPages: 3,
 	animationMediumMs: 5000,
 }

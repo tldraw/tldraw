@@ -12,16 +12,14 @@ export interface CenteredTopPanelContainerProps {
 }
 
 /** @public @react */
-export function CenteredTopPanelContainer(
-	{
-		maxWidth = 420,
-		ignoreRightWidth = 0,
-		stylePanelWidth = 148,
-		marginBetweenZones = 12,
-		squeezeAmount = 52,
-		children,
-	}: CenteredTopPanelContainerProps
-) {
+export function CenteredTopPanelContainer({
+	maxWidth = 420,
+	ignoreRightWidth = 0,
+	stylePanelWidth = 148,
+	marginBetweenZones = 12,
+	squeezeAmount = 52,
+	children,
+}: CenteredTopPanelContainerProps) {
 	const ref = useRef<HTMLDivElement>(null)
 	const breakpoint = useBreakpoint()
 

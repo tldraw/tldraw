@@ -9,7 +9,7 @@ import { getUserIdFromRequest } from '../../utils/tla/permissions'
 import { validateSnapshot } from '../../utils/validateSnapshot'
 
 // Create new files based on snapshots. This is used when dropping .tldr files onto the app.
-export async function createFiles(request: IRequest, env: Environment): Promise {
+export async function createFiles(request: IRequest, env: Environment): Promise<Response> {
 	// The data sent from the client will include the data for the new room
 
 	const userId = await getUserIdFromRequest(request, env)

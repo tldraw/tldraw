@@ -11,21 +11,21 @@
  * @see source - https://gist.github.com/ca0v/73a31f57b397606c9813472f7493a940
  */
 export function debounce<T extends unknown[], U>(
-	callback: (...args: T) => PromiseLike | U,
+	callback: (...args: T) => PromiseLike<U> | U,
 	wait: number
 ) {
 	let state:
 		| undefined
 		| {
 				// eslint-disable-next-line no-restricted-globals
-				timeout: ReturnType
-				promise: Promise
-				resolve(value: U | PromiseLike): void
+				timeout: ReturnType<typeof setTimeout>
+				promise: Promise<U>
+				resolve(value: U | PromiseLike<U>): void
 				reject(value: any): void
 				latestArgs: T
 		  } = undefined
 
-	const fn = (...args: T): Promise => {
+	const fn = (...args: T): Promise<U> => {
 		if (!state) {
 			state = {} as any
 			state!.promise = new Promise((resolve, reject) => {

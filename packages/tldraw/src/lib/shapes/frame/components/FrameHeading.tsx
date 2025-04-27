@@ -3,29 +3,27 @@ import { memo, useEffect, useRef } from 'react'
 import { getFrameHeadingSide, getFrameHeadingTranslation } from '../frameHelpers'
 import { FrameLabelInput } from './FrameLabelInput'
 
-export const FrameHeading = memo(function FrameHeading(
-	{
-		id,
-		name,
-		width,
-		height,
-		fill,
-		stroke,
-		color,
-		offsetX,
-		showColors,
-	}: {
-		id: TLShapeId
-		name: string
-		width: number
-		height: number
-		fill: string
-		stroke: string
-		color: string
-		offsetX: number
-		showColors: boolean
-	}
-) {
+export const FrameHeading = memo(function FrameHeading({
+	id,
+	name,
+	width,
+	height,
+	fill,
+	stroke,
+	color,
+	offsetX,
+	showColors,
+}: {
+	id: TLShapeId
+	name: string
+	width: number
+	height: number
+	fill: string
+	stroke: string
+	color: string
+	offsetX: number
+	showColors: boolean
+}) {
 	const editor = useEditor()
 	const { side, translation } = useValue(
 		'shape rotation',

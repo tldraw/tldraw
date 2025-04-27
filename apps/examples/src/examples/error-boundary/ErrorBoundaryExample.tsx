@@ -17,7 +17,7 @@ export default function ErrorBoundaryExample() {
 					ShapeErrorFallback: ({ error }) => <div>Shape error! {String(error)}</div>, // use a custom error fallback for shapes
 				}}
 				onMount={(editor) => {
-					const errorShapePartial: TLShapePartial = {
+					const errorShapePartial: TLShapePartial<ErrorShape> = {
 						type: 'error',
 						id: createShapeId(),
 						x: 0,

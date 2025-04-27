@@ -17,9 +17,13 @@ const messages = defineMessages({
 	signOut: { defaultMessage: 'Sign out' },
 })
 
-export function TlaAccountMenu(
-	{ children, source }: { children: ReactNode; source: TLAppUiEventSource }
-) {
+export function TlaAccountMenu({
+	children,
+	source,
+}: {
+	children: ReactNode
+	source: TLAppUiEventSource
+}) {
 	return (
 		<TldrawUiDropdownMenuRoot id={`account-menu-${source}`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">

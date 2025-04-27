@@ -8,21 +8,19 @@ function getMaskStyle(icon: string): string {
 	return `url(${mergedSpriteUrl}#icon-${icon}) center 100% / 100% no-repeat`
 }
 
-export function TlaIcon(
-	{
-		icon,
-		className = '',
-		invertIcon,
-		inline,
-		ariaLabel,
-	}: {
-		icon: string
-		className?: string
-		invertIcon?: boolean
-		inline?: boolean
-		ariaLabel?: string
-	}
-) {
+export function TlaIcon({
+	icon,
+	className = '',
+	invertIcon,
+	inline,
+	ariaLabel,
+}: {
+	icon: string
+	className?: string
+	invertIcon?: boolean
+	inline?: boolean
+	ariaLabel?: string
+}) {
 	const ref = useRef<HTMLDivElement>(null)
 
 	useLayoutEffect(() => {
@@ -58,6 +56,6 @@ export function TlaIcon(
 	)
 }
 
-export function TlaIconWrapper(props: HtmlHTMLAttributes) {
+export function TlaIconWrapper(props: HtmlHTMLAttributes<HTMLDivElement>) {
 	return <span {...props} className={classNames(styles.iconWrapper, props.className)} />
 }

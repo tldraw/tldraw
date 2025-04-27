@@ -11,31 +11,29 @@ import { TEXT_PROPS } from './default-shape-constants'
 import { getLegacyOffsetX } from './legacyProps'
 import { useDefaultColorTheme } from './useDefaultColorTheme'
 
-export function SvgTextLabel(
-	{
-		fontSize,
-		font,
-		align,
-		verticalAlign,
-		text,
-		labelColor,
-		bounds,
-		padding = 16,
-		stroke = true,
-	}: {
-		fontSize: number
-		font: TLDefaultFontStyle
-		// fill?: TLDefaultFillStyle
-		align: TLDefaultHorizontalAlignStyle
-		verticalAlign: TLDefaultVerticalAlignStyle
-		wrap?: boolean
-		text: string
-		labelColor: string
-		bounds: Box
-		padding?: number
-		stroke?: boolean
-	}
-) {
+export function SvgTextLabel({
+	fontSize,
+	font,
+	align,
+	verticalAlign,
+	text,
+	labelColor,
+	bounds,
+	padding = 16,
+	stroke = true,
+}: {
+	fontSize: number
+	font: TLDefaultFontStyle
+	// fill?: TLDefaultFillStyle
+	align: TLDefaultHorizontalAlignStyle
+	verticalAlign: TLDefaultVerticalAlignStyle
+	wrap?: boolean
+	text: string
+	labelColor: string
+	bounds: Box
+	padding?: number
+	stroke?: boolean
+}) {
 	const editor = useEditor()
 	const theme = useDefaultColorTheme()
 

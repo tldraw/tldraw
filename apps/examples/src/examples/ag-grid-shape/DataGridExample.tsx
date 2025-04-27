@@ -6,8 +6,11 @@ import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-quartz.css'
 import 'tldraw/tldraw.css'
 
-type AgGridShape = TLBaseShape
-class AgGridShapeUtil extends BaseBoxShapeUtil {
+type AgGridShape = TLBaseShape<
+	'ag-grid',
+	{ w: number; h: number; rowData: any[]; columnDefs: any[] }
+>
+class AgGridShapeUtil extends BaseBoxShapeUtil<AgGridShape> {
 	static override type = 'ag-grid'
 
 	override canScroll(): boolean {

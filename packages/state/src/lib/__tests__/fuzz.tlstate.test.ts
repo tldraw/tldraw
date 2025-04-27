@@ -37,7 +37,9 @@ class RandomSource {
 		return this.nextFloat() < probability
 	}
 
-	executeOne<Result>(_choices: Record): Result {
+	executeOne<Result>(
+		_choices: Record<string, (() => Result) | { weight?: number; do(): Result }>
+	): Result {
 		const choices = Object.values(_choices).map((choice) => {
 			if (typeof choice === 'function') {
 				return { weight: 1, do: choice }
@@ -61,7 +63,7 @@ class RandomSource {
 }
 
 const LETTERS = ['a', 'b', 'c', 'd', 'e', 'f'] as const
-type Letter = typeof LETTERS[number]
+type Letter = (typeof LETTERS)[number]
 
 const unpack = (value: unknown): Letter => {
 	if (isComputed(value) || isAtom(value)) {
@@ -71,13 +73,13 @@ const unpack = (value: unknown): Letter => {
 }
 
 interface FuzzSystemState {
-	atoms: Record
-	atomsInAtoms: Record
+	atoms: Record<string, Atom<Letter>>
+	atomsInAtoms: Record<string, Atom<Atom<Letter>>>
 	// eslint-disable-next-line @typescript-eslint/method-signature-style
-	derivations: Record
-	derivationsInDerivations: Record
-	atomsInDerivations: Record
-	reactors: Record
+	derivations: Record<string, { derivation: Computed<Letter>; sneakyGet: () => Letter }>
+	derivationsInDerivations: Record<string, Computed<Computed<Letter>>>
+	atomsInDerivations: Record<string, Computed<Atom<Letter>>>
+	reactors: Record<string, { reactor: Reactor; result: string | null; dependencies: Signal<any>[] }>
 }
 
 type Op =
@@ -126,7 +128,7 @@ class Test {
 	}
 
 	getResultComparisons() {
-		const result: { expected: Record; actual: Record } = {
+		const result: { expected: Record<string, string>; actual: Record<string, string | null> } = {
 			expected: {},
 			actual: {},
 		}
@@ -202,7 +204,7 @@ class Test {
 
 		times(this.source.nextIntInRange(1, MAX_REACTORS), () => {
 			const reactorId = this.source.nextId()
-			const dependencies: Signal[] = []
+			const dependencies: Signal<any>[] = []
 
 			times(this.source.nextIntInRange(1, MAX_DEPENDENCIES_PER_ATOM), () => {
 				this.source.executeOne({

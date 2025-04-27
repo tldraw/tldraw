@@ -233,7 +233,7 @@ describe('distributeShapes command', () => {
 })
 
 describe('when shapes are overlapping', () => {
-	let ids: Record = {}
+	let ids: Record<string, TLShapeId> = {}
 
 	//     AAAA      DDDDDDDD
 	//        BB

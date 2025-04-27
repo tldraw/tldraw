@@ -8,9 +8,17 @@ function getMaskStyle(url: string): string {
 	return `url(${url}) center 100% / 100% no-repeat`
 }
 
-export function MaskedLogoLink(
-	{ src, url, alt, small }: { src: string; url: string; alt: string; small?: boolean }
-) {
+export function MaskedLogoLink({
+	src,
+	url,
+	alt,
+	small,
+}: {
+	src: string
+	url: string
+	alt: string
+	small?: boolean
+}) {
 	const ref = useRef<HTMLAnchorElement>(null)
 
 	useLayoutEffect(() => {

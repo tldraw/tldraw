@@ -7,7 +7,7 @@ class CustomTool extends StateNode {
 }
 
 export class TestEditor extends Editor {
-	constructor(options: Partial = {}) {
+	constructor(options: Partial<Omit<TLEditorOptions, 'store'>> = {}) {
 		const elm = document.createElement('div')
 		elm.tabIndex = 0
 

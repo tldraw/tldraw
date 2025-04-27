@@ -28,7 +28,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 	const sectionUncategorizedArticles: Article[] = []
 
 	// A temporary table of articles mapped to categories
-	const sectionCategoryArticles: Record = Object.fromEntries(
+	const sectionCategoryArticles: Record<string, Article[]> = Object.fromEntries(
 		section.categories.map((category) => [category.id, []])
 	)
 
@@ -153,25 +153,23 @@ const sortArticles = (articleA: Article, articleB: Article) => {
 		: categoryIndexA - categoryIndexB
 }
 
-function getArticleData(
-	{
-		articleId,
-		sectionId,
-		parsed,
-		isGenerated,
-		extension,
-		componentCode,
-		componentCodeFiles,
-	}: {
-		articleId: Article['id']
-		sectionId: Section['id']
-		parsed: matter.GrayMatterFile
-		isGenerated: boolean
-		extension: string
-		componentCode: string | null
-		componentCodeFiles: { [key: string]: string }
-	}
-): Article {
+function getArticleData({
+	articleId,
+	sectionId,
+	parsed,
+	isGenerated,
+	extension,
+	componentCode,
+	componentCodeFiles,
+}: {
+	articleId: Article['id']
+	sectionId: Section['id']
+	parsed: matter.GrayMatterFile<string>
+	isGenerated: boolean
+	extension: string
+	componentCode: string | null
+	componentCodeFiles: { [key: string]: string }
+}): Article {
 	const {
 		group = null,
 		priority = -1,
@@ -220,8 +218,8 @@ function getArticleData(
 			sectionId === 'getting-started'
 				? `/${articleId}`
 				: categoryId === sectionId + '_ucg'
-				? `/${sectionId}/${articleId}` // index page
-				: `/${sectionId}/${categoryId}/${articleId}`,
+					? `/${sectionId}/${articleId}` // index page
+					: `/${sectionId}/${categoryId}/${articleId}`,
 		componentCode,
 		componentCodeFiles: componentCode ? JSON.stringify(componentCodeFiles) : null,
 	}
@@ -235,9 +233,15 @@ function getArticleData(
 	return article
 }
 
-function getComponentCode(
-	{ dir, filename, parsed }: { dir: string; filename: string; parsed: matter.GrayMatterFile }
-) {
+function getComponentCode({
+	dir,
+	filename,
+	parsed,
+}: {
+	dir: string
+	filename: string
+	parsed: matter.GrayMatterFile<string>
+}) {
 	return parsed.data.component
 		? fs
 				.readFileSync(
@@ -251,9 +255,15 @@ function getComponentCode(
 		: null
 }
 
-function getComponentCodeFiles(
-	{ dir, filename, parsed }: { dir: string; filename: string; parsed: matter.GrayMatterFile }
-) {
+function getComponentCodeFiles({
+	dir,
+	filename,
+	parsed,
+}: {
+	dir: string
+	filename: string
+	parsed: matter.GrayMatterFile<string>
+}) {
 	const componentCodeFiles: { [key: string]: string } = {}
 
 	if (parsed.data.component) {
@@ -279,17 +289,15 @@ function getComponentCodeFiles(
 	return componentCodeFiles
 }
 
-function getCategory(
-	{
-		inputCategory,
-		sectionId,
-		index,
-	}: {
-		index: number
-		sectionId: Section['id']
-		inputCategory: InputCategory
-	}
-): Category {
+function getCategory({
+	inputCategory,
+	sectionId,
+	index,
+}: {
+	index: number
+	sectionId: Section['id']
+	inputCategory: InputCategory
+}): Category {
 	return {
 		...inputCategory,
 		type: 'category',

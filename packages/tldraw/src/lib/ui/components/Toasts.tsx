@@ -1,5 +1,5 @@
+import * as T from '@radix-ui/react-toast'
 import { useValue } from '@tldraw/editor'
-import { Toast as T } from 'radix-ui'
 import { memo } from 'react'
 import { AlertSeverity, TLUiToast, useToasts } from '../context/toasts'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'

@@ -1,7 +1,7 @@
 import { ComponentType } from 'react'
 
 /** @public */
-export type TLShapeIndicatorErrorFallbackComponent = ComponentType
+export type TLShapeIndicatorErrorFallbackComponent = ComponentType<{ error: unknown }>
 
 /** @internal */
 export const DefaultShapeIndicatorErrorFallback: TLShapeIndicatorErrorFallbackComponent = () => {

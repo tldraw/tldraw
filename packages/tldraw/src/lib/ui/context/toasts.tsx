@@ -1,5 +1,5 @@
+import { ToastProvider } from '@radix-ui/react-toast'
 import { Atom, Editor, uniqueId, useAtom } from '@tldraw/editor'
-import { Toast as _Toast } from 'radix-ui'
 import { ReactNode, createContext, useContext, useMemo } from 'react'
 import { TLUiIconType } from '../icon-types'
 
@@ -27,10 +27,10 @@ export interface TLUiToastAction {
 
 /** @public */
 export interface TLUiToastsContextType {
-	addToast(toast: Omit & { id?: string }): string
+	addToast(toast: Omit<TLUiToast, 'id'> & { id?: string }): string
 	removeToast(id: TLUiToast['id']): string
 	clearToasts(): void
-	toasts: Atom
+	toasts: Atom<TLUiToast[]>
 }
 
 /** @internal */
@@ -50,7 +50,7 @@ export function TldrawUiToastsProvider({ children }: TLUiToastsProviderProps) {
 	const current = useMemo(() => {
 		return {
 			toasts,
-			addToast(toast: Omit & { id?: string }) {
+			addToast(toast: Omit<TLUiToast, 'id'> & { id?: string }) {
 				const id = toast.id ?? uniqueId()
 				toasts.update((d) => [...d.filter((m) => m.id !== toast.id), { ...toast, id }])
 				return id
@@ -71,9 +71,9 @@ export function TldrawUiToastsProvider({ children }: TLUiToastsProviderProps) {
 	}
 
 	return (
-		<_Toast.Provider>
+		<ToastProvider>
 			<ToastsContext.Provider value={current}>{children}</ToastsContext.Provider>
-		</_Toast.Provider>
+		</ToastProvider>
 	)
 }
 

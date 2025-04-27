@@ -3,9 +3,9 @@ import { Box } from '../../primitives/Box'
 import { VecLike } from '../../primitives/Vec'
 
 /** @public */
-export type RequiredKeys<T, K extends keyof T> = Required & Omit
+export type RequiredKeys<T, K extends keyof T> = Required<Pick<T, K>> & Omit<T, K>
 /** @public */
-export type OptionalKeys<T, K extends keyof T> = Omit & Partial
+export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
 /** @public */
 export type TLExportType = 'svg' | 'png' | 'jpeg' | 'webp'
@@ -55,7 +55,7 @@ export interface TLSvgExportOptions {
 	 * {@link https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/preserveAspectRatio | `preserveAspectRatio` }
 	 * attribute of the SVG element.
 	 */
-	preserveAspectRatio?: React.SVGAttributes['preserveAspectRatio']
+	preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
 }
 
 /** @public */

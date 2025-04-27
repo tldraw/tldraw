@@ -4,7 +4,7 @@ const isTest = () =>
 	// @ts-expect-error
 	!globalThis.__FORCE_RAF_IN_TESTS__
 
-const fpsQueue: Array = []
+const fpsQueue: Array<() => void> = []
 const targetFps = 60
 const targetTimePerFrame = Math.ceil(1000 / targetFps)
 let frame: number | undefined

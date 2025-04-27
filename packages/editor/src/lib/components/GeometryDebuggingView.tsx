@@ -18,17 +18,15 @@ function useTick(isEnabled = true) {
 	}, [editor, isEnabled])
 }
 
-export const GeometryDebuggingView = track(function GeometryDebuggingView(
-	{
-		showStroke = true,
-		showVertices = true,
-		showClosestPointOnOutline = true,
-	}: {
-		showStroke?: boolean
-		showVertices?: boolean
-		showClosestPointOnOutline?: boolean
-	}
-) {
+export const GeometryDebuggingView = track(function GeometryDebuggingView({
+	showStroke = true,
+	showVertices = true,
+	showClosestPointOnOutline = true,
+}: {
+	showStroke?: boolean
+	showVertices?: boolean
+	showClosestPointOnOutline?: boolean
+}) {
 	const editor = useEditor()
 
 	useTick(showClosestPointOnOutline)

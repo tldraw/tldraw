@@ -40,8 +40,8 @@ export const DefaultToolbar = memo(function DefaultToolbar({ children }: Default
 		editor.options.actionShortcutsLocation === 'menu'
 			? false
 			: editor.options.actionShortcutsLocation === 'toolbar'
-			? true
-			: breakpoint < PORTRAIT_BREAKPOINT.TABLET
+				? true
+				: breakpoint < PORTRAIT_BREAKPOINT.TABLET
 
 	return (
 		<div ref={ref} className="tlui-toolbar">

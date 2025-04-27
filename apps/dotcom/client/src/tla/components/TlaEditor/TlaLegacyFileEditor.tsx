@@ -33,9 +33,13 @@ export const components: TLComponents = {
 	TopPanel: TlaEditorTopPanel,
 }
 
-export function TlaLegacyFileEditor(
-	{ roomOpenMode, fileSlug }: { roomOpenMode: RoomOpenMode; fileSlug: string }
-) {
+export function TlaLegacyFileEditor({
+	roomOpenMode,
+	fileSlug,
+}: {
+	roomOpenMode: RoomOpenMode
+	fileSlug: string
+}) {
 	return (
 		<>
 			<SneakySetDocumentTitle />
@@ -46,9 +50,13 @@ export function TlaLegacyFileEditor(
 	)
 }
 
-function TlaEditorInner(
-	{ fileSlug, roomOpenMode }: { roomOpenMode: RoomOpenMode; fileSlug: string }
-) {
+function TlaEditorInner({
+	fileSlug,
+	roomOpenMode,
+}: {
+	roomOpenMode: RoomOpenMode
+	fileSlug: string
+}) {
 	const app = useMaybeApp()
 
 	const setIsReady = useSetIsReady()

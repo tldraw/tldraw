@@ -51,7 +51,7 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 				)
 				editor.createShapes(
 					pdf.pages.map(
-						(page): TLShapePartial => ({
+						(page): TLShapePartial<TLImageShape> => ({
 							id: page.shapeId,
 							type: 'image',
 							x: page.bounds.x,

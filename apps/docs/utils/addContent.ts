@@ -4,7 +4,10 @@ import { Database } from 'sqlite'
 import sqlite3 from 'sqlite3'
 import { parseMarkdown } from './parse-markdown'
 
-export async function addContentToDb(db: Database, content: GeneratedContent) {
+export async function addContentToDb(
+	db: Database<sqlite3.Database, sqlite3.Statement>,
+	content: GeneratedContent
+) {
 	const sectionInsert = await db.prepare(
 		`INSERT INTO sections (id, idx, title, description, path, sidebar_behavior) VALUES (?, ?, ?, ?, ?, ?)`
 	)

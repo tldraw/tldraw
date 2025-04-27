@@ -19,7 +19,7 @@ import './style.css'
 // There's a guide at the bottom of this file!
 
 // [1]
-const PrivateModeContext = React.createContext<null | Atom>(null)
+const PrivateModeContext = React.createContext<null | Atom<boolean>>(null)
 
 const components: TLComponents = {
 	// [2]

@@ -14,11 +14,17 @@ import {
 } from 'tldraw'
 import { moveToSlide, useSlides } from './useSlides'
 
-export type SlideShape = TLBaseShape
+export type SlideShape = TLBaseShape<
+	'slide',
+	{
+		w: number
+		h: number
+	}
+>
 
-export class SlideShapeUtil extends ShapeUtil {
+export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 	static override type = 'slide' as const
-	static override props: RecordProps = {
+	static override props: RecordProps<SlideShape> = {
 		w: T.number,
 		h: T.number,
 	}
@@ -49,7 +55,7 @@ export class SlideShapeUtil extends ShapeUtil {
 		return initial
 	}
 
-	override onResize(shape: SlideShape, info: TLResizeInfo) {
+	override onResize(shape: SlideShape, info: TLResizeInfo<SlideShape>) {
 		return resizeBox(shape, info)
 	}
 

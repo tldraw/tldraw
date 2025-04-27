@@ -4,7 +4,7 @@ import { createRecordType } from '../RecordType'
 import { StoreSchema } from '../StoreSchema'
 
 /** A user of tldraw */
-interface User extends BaseRecord {
+interface User extends BaseRecord<'user', RecordId<User>> {
 	name: string
 }
 
@@ -20,7 +20,7 @@ const User = createRecordType<User>('user', {
 	scope: 'document',
 })
 
-interface Shape<Props> extends BaseRecord {
+interface Shape<Props> extends BaseRecord<'shape', RecordId<Shape<object>>> {
 	type: string
 	x: number
 	y: number
@@ -38,7 +38,7 @@ interface OvalProps {
 	borderStyle: 'solid' | 'dashed'
 }
 
-const Shape = createRecordType<Shape>('shape', {
+const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
 	validator: {
 		validate: (record) => {
 			assert(
@@ -53,14 +53,14 @@ const Shape = createRecordType<Shape>('shape', {
 					'props' in record &&
 					typeof record.props === 'object'
 			)
-			return record as Shape
+			return record as Shape<RectangleProps | OvalProps>
 		},
 	},
 	scope: 'document',
 })
 
 // this interface only exists to be removed
-interface Org extends BaseRecord {
+interface Org extends BaseRecord<'org', RecordId<Org>> {
 	name: string
 }
 

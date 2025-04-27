@@ -15,7 +15,7 @@ export const LineShapeSplineStyle = StyleProp.defineEnum('tldraw:spline', {
 })
 
 /** @public */
-export type TLLineShapeSplineStyle = T.TypeOf
+export type TLLineShapeSplineStyle = T.TypeOf<typeof LineShapeSplineStyle>
 
 /** @public */
 export interface TLLineShapePoint {
@@ -25,7 +25,7 @@ export interface TLLineShapePoint {
 	y: number
 }
 
-const lineShapePointValidator: T.ObjectValidator = T.object({
+const lineShapePointValidator: T.ObjectValidator<TLLineShapePoint> = T.object({
 	id: T.string,
 	index: T.indexKey,
 	x: T.number,
@@ -38,15 +38,15 @@ export interface TLLineShapeProps {
 	dash: TLDefaultDashStyle
 	size: TLDefaultSizeStyle
 	spline: TLLineShapeSplineStyle
-	points: Record
+	points: Record<string, TLLineShapePoint>
 	scale: number
 }
 
 /** @public */
-export type TLLineShape = TLBaseShape
+export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>
 
 /** @public */
-export const lineShapeProps: RecordProps = {
+export const lineShapeProps: RecordProps<TLLineShape> = {
 	color: DefaultColorStyle,
 	dash: DefaultDashStyle,
 	size: DefaultSizeStyle,

@@ -8,4 +8,4 @@ export const DefaultDashStyle = StyleProp.defineEnum('tldraw:dash', {
 })
 
 /** @public */
-export type TLDefaultDashStyle = T.TypeOf
+export type TLDefaultDashStyle = T.TypeOf<typeof DefaultDashStyle>

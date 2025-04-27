@@ -2,7 +2,7 @@ import React from 'react'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 
 /** @internal */
-export function Spinner(props: React.SVGProps) {
+export function Spinner(props: React.SVGProps<SVGSVGElement>) {
 	const msg = useTranslation()
 
 	return (

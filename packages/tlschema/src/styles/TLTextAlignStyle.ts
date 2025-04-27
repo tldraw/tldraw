@@ -8,4 +8,4 @@ export const DefaultTextAlignStyle = StyleProp.defineEnum('tldraw:textAlign', {
 })
 
 /** @public */
-export type TLDefaultTextAlignStyle = T.TypeOf
+export type TLDefaultTextAlignStyle = T.TypeOf<typeof DefaultTextAlignStyle>

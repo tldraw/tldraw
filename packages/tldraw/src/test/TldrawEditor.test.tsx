@@ -411,9 +411,15 @@ describe('<TldrawEditor />', () => {
 })
 
 describe('Custom shapes', () => {
-	type CardShape = TLBaseShape
+	type CardShape = TLBaseShape<
+		'card',
+		{
+			w: number
+			h: number
+		}
+	>
 
-	class CardUtil extends BaseBoxShapeUtil {
+	class CardUtil extends BaseBoxShapeUtil<CardShape> {
 		static override type = 'card' as const
 
 		override isAspectRatioLocked(_shape: CardShape) {

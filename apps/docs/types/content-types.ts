@@ -151,7 +151,10 @@ export interface ArticleHeading {
 
 /* ------------------ Article Links ----------------- */
 
-export type ArticleLink = Pick
+export type ArticleLink = Pick<
+	Article,
+	'id' | 'title' | 'description' | 'categoryId' | 'sectionId' | 'path'
+>
 
 export interface ArticleLinks {
 	prev: ArticleLink | null
@@ -198,7 +201,7 @@ export interface SidebarContentList {
 /* ---------- Finished / generated content ---------- */
 
 /** A table keyed by slug of articles. */
-export type Articles = Record
+export type Articles = Record<string, Article>
 
 export interface GeneratedContent {
 	sections: Section[]

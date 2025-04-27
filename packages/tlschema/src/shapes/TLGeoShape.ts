@@ -50,7 +50,7 @@ export const GeoShapeGeoStyle = StyleProp.defineEnum('tldraw:geo', {
 })
 
 /** @public */
-export type TLGeoShapeGeoStyle = T.TypeOf
+export type TLGeoShapeGeoStyle = T.TypeOf<typeof GeoShapeGeoStyle>
 
 /** @public */
 export interface TLGeoShapeProps {
@@ -72,10 +72,10 @@ export interface TLGeoShapeProps {
 }
 
 /** @public */
-export type TLGeoShape = TLBaseShape
+export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>
 
 /** @public */
-export const geoShapeProps: RecordProps = {
+export const geoShapeProps: RecordProps<TLGeoShape> = {
 	geo: GeoShapeGeoStyle,
 	labelColor: DefaultLabelColorStyle,
 	color: DefaultColorStyle,

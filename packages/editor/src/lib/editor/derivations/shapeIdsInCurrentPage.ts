@@ -43,7 +43,7 @@ export const deriveShapeIdsInCurrentPage = (store: TLStore, getCurrentPageId: ()
 			[...shapesIndex.get()].filter((id) => isShapeInPage(store, currentPageId, store.get(id)!))
 		)
 	}
-	return computed<Set>('_shapeIdsInCurrentPage', (prevValue, lastComputedEpoch) => {
+	return computed<Set<TLShapeId>>('_shapeIdsInCurrentPage', (prevValue, lastComputedEpoch) => {
 		if (isUninitialized(prevValue)) {
 			return fromScratch()
 		}
@@ -60,7 +60,9 @@ export const deriveShapeIdsInCurrentPage = (store: TLStore, getCurrentPageId: ()
 			return fromScratch()
 		}
 
-		const builder = new IncrementalSetConstructor<TLShapeId>(prevValue) as IncrementalSetConstructor
+		const builder = new IncrementalSetConstructor<TLShapeId>(
+			prevValue
+		) as IncrementalSetConstructor<TLShapeId>
 
 		for (const changes of diff) {
 			for (const record of Object.values(changes.added)) {

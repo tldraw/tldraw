@@ -14,7 +14,7 @@ let editor: TestEditor
 
 function asPlainObject(styles: ReadonlySharedStyleMap | null) {
 	if (!styles) return null
-	const object: Record = {}
+	const object: Record<string, SharedStyle<unknown>> = {}
 	for (const [key, value] of styles) {
 		object[key.id] = value
 	}

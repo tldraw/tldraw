@@ -1,5 +1,5 @@
+import * as Popover from '@radix-ui/react-popover'
 import { USER_COLORS, track, useContainer, useEditor } from '@tldraw/editor'
-import { Popover } from 'radix-ui'
 import React, { useCallback, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -40,7 +40,7 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 			window.removeEventListener('pointerup', handlePointerUp)
 		}
 
-		const handleButtonClick = (e: React.PointerEvent) => {
+		const handleButtonClick = (e: React.PointerEvent<HTMLButtonElement>) => {
 			const { id } = e.currentTarget.dataset
 			if (!id) return
 			if (value === id) return
@@ -48,7 +48,7 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 			onValueChange(id)
 		}
 
-		const handleButtonPointerDown = (e: React.PointerEvent) => {
+		const handleButtonPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
 			const { id } = e.currentTarget.dataset
 			if (!id) return
 
@@ -58,7 +58,7 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 			window.addEventListener('pointerup', handlePointerUp) // see TLD-658
 		}
 
-		const handleButtonPointerEnter = (e: React.PointerEvent) => {
+		const handleButtonPointerEnter = (e: React.PointerEvent<HTMLButtonElement>) => {
 			if (!rPointing.current) return
 
 			const { id } = e.currentTarget.dataset
@@ -66,7 +66,7 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 			onValueChange(id)
 		}
 
-		const handleButtonPointerUp = (e: React.PointerEvent) => {
+		const handleButtonPointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
 			const { id } = e.currentTarget.dataset
 			if (!id) return
 			onValueChange(id)

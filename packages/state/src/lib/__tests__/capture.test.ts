@@ -11,7 +11,7 @@ import {
 import { advanceGlobalEpoch, getGlobalEpoch } from '../transactions'
 import { Child } from '../types'
 
-const emptyChild = (props: Partial = {}) =>
+const emptyChild = (props: Partial<Child> = {}) =>
 	({
 		parentEpochs: [],
 		parents: [],
@@ -19,7 +19,7 @@ const emptyChild = (props: Partial = {}) =>
 		isActivelyListening: false,
 		lastTraversedEpoch: 0,
 		...props,
-	} as Child)
+	}) as Child
 
 describe('capturing parents', () => {
 	it('can be started and stopped', () => {

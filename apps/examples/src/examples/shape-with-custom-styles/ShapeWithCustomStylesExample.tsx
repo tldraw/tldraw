@@ -19,11 +19,18 @@ const myRatingStyle = StyleProp.defineEnum('example:rating', {
 })
 
 // [2]
-type MyRatingStyle = T.TypeOf
+type MyRatingStyle = T.TypeOf<typeof myRatingStyle>
 
-type IMyShape = TLBaseShape
+type IMyShape = TLBaseShape<
+	'myshape',
+	{
+		w: number
+		h: number
+		rating: MyRatingStyle
+	}
+>
 
-class MyShapeUtil extends BaseBoxShapeUtil {
+class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 	static override type = 'myshape' as const
 
 	// [3]

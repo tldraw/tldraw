@@ -9,20 +9,18 @@ import { usePathname } from 'next/navigation'
 import { ThemeSwitch } from '../common/theme-switch'
 import { CloseOnNavigation } from './close-on-navigation'
 
-export function MobileMenu(
-	{
-		main,
-		social,
-	}: {
-		main: {
-			caption: string
-			href?: string
-			children?: { caption: string; href: string }[]
-			active(pathname: string): boolean
-		}[]
-		social: { caption: string; icon: IconName; href: string }[]
-	}
-) {
+export function MobileMenu({
+	main,
+	social,
+}: {
+	main: {
+		caption: string
+		href?: string
+		children?: { caption: string; href: string }[]
+		active(pathname: string): boolean
+	}[]
+	social: { caption: string; icon: IconName; href: string }[]
+}) {
 	const pathname = usePathname()
 
 	return (

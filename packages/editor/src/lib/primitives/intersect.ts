@@ -244,7 +244,7 @@ export function intersectPolygonPolygon(
 	polygonB: VecLike[]
 ): VecLike[] | null {
 	// Create an empty polygon as result
-	const result: Map = new Map()
+	const result: Map<string, VecLike> = new Map()
 	let a: VecLike, b: VecLike, c: VecLike, d: VecLike
 
 	// Add all corners of PolygonA that is inside PolygonB to result
@@ -310,7 +310,7 @@ export function intersectPolys(
 	isAClosed: boolean,
 	isBClosed: boolean
 ): VecLike[] {
-	const result: Map = new Map()
+	const result: Map<string, VecLike> = new Map()
 
 	// Add all intersection points to result
 	for (let i = 0, n = isAClosed ? polyA.length : polyA.length - 1; i < n; i++) {

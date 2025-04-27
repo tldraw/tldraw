@@ -11,7 +11,7 @@ import { useTranslation } from './useTranslation/useTranslation'
 /** @public */
 export interface TLUiToolItem<
 	TranslationKey extends string = string,
-	IconType extends string = string
+	IconType extends string = string,
 > {
 	id: string
 	label: TranslationKey
@@ -33,7 +33,7 @@ export interface TLUiToolItem<
 }
 
 /** @public */
-export type TLUiToolsContextType = Record
+export type TLUiToolsContextType = Record<string, TLUiToolItem>
 
 /** @internal */
 export const ToolsContext = React.createContext<null | TLUiToolsContextType>(null)
@@ -58,7 +58,11 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 	const helpers = useDefaultHelpers()
 
 	const onToolSelect = React.useCallback(
-		(source: TLUiEventSource, tool: TLUiToolItem, id?: string) => {
+		(
+			source: TLUiEventSource,
+			tool: TLUiToolItem<TLUiTranslationKey, TLUiIconType>,
+			id?: string
+		) => {
 			a11y.announce({ msg: msg(tool.label) })
 			trackEvent('select-tool', { source, id: id ?? tool.id })
 		},
@@ -67,7 +71,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 
 	const tools = React.useMemo<TLUiToolsContextType>(() => {
 		if (!editor) return {}
-		const toolsArray: TLUiToolItem[] = [
+		const toolsArray: TLUiToolItem<TLUiTranslationKey, TLUiIconType>[] = [
 			{
 				id: 'select',
 				label: 'tool.select',

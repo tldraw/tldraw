@@ -3,17 +3,15 @@
 import { cn } from '@/utils/cn'
 import { motion } from 'framer-motion'
 
-export function ArrowDown(
-	{
-		className,
-		animationDelay = 0,
-		animationDuration = 0.15,
-	}: {
-		className?: string
-		animationDelay?: number
-		animationDuration?: number
-	}
-) {
+export function ArrowDown({
+	className,
+	animationDelay = 0,
+	animationDuration = 0.15,
+}: {
+	className?: string
+	animationDelay?: number
+	animationDuration?: number
+}) {
 	return (
 		<svg
 			viewBox="0 0 24 60"

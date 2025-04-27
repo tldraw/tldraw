@@ -196,7 +196,7 @@ function usePattern() {
 		}
 
 		const promise = Promise.all(
-			getPatternLodsToGenerate(maxZoom).flatMap<Promise>((zoom) => [
+			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
 				generateImage(dpr, zoom, false).then((blob) => ({
 					zoom,
 					theme: 'light',

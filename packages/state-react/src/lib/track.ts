@@ -43,7 +43,9 @@ export const ReactForwardRefSymbol = Symbol.for('react.forward_ref')
  * @param baseComponent - The base component to track.
  * @public
  */
-export function track<T extends FunctionComponent>(baseComponent: T): React.NamedExoticComponent {
+export function track<T extends FunctionComponent<any>>(
+	baseComponent: T
+): React.NamedExoticComponent<React.ComponentProps<T>> {
 	let compare = null
 	const $$typeof = baseComponent['$$typeof' as keyof typeof baseComponent]
 	if ($$typeof === ReactMemoSymbol) {

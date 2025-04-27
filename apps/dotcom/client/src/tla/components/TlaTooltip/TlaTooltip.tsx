@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-syntax */
+import * as Tooltip from '@radix-ui/react-tooltip'
 import classNames from 'classnames'
-import { Tooltip } from 'radix-ui'
 import React from 'react'
 import { useContainer } from 'tldraw'
 import style from './tooltip.module.css'

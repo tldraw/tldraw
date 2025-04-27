@@ -17,10 +17,10 @@ export interface TLVideoShapeProps {
 }
 
 /** @public */
-export type TLVideoShape = TLBaseShape
+export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>
 
 /** @public */
-export const videoShapeProps: RecordProps = {
+export const videoShapeProps: RecordProps<TLVideoShape> = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	time: T.number,

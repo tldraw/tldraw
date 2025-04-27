@@ -24,7 +24,7 @@ export const TLIncompatibilityReason = {
  * @deprecated replaced by websocket .close status/reason
  */
 export type TLIncompatibilityReason =
-	typeof TLIncompatibilityReason[keyof typeof TLIncompatibilityReason]
+	(typeof TLIncompatibilityReason)[keyof typeof TLIncompatibilityReason]
 
 /** @internal */
 export type TLSocketServerSentEvent<R extends UnknownRecord> =
@@ -34,7 +34,7 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			connectRequestId: string
 			protocolVersion: number
 			schema: SerializedSchema
-			diff: NetworkDiff
+			diff: NetworkDiff<R>
 			serverClock: number
 			isReadonly: boolean
 	  }
@@ -46,28 +46,28 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 	| {
 			type: 'pong'
 	  }
-	| { type: 'data'; data: TLSocketServerSentDataEvent[] }
-	| TLSocketServerSentDataEvent
+	| { type: 'data'; data: TLSocketServerSentDataEvent<R>[] }
+	| TLSocketServerSentDataEvent<R>
 
 /** @internal */
 export type TLSocketServerSentDataEvent<R extends UnknownRecord> =
 	| {
 			type: 'patch'
-			diff: NetworkDiff
+			diff: NetworkDiff<R>
 			serverClock: number
 	  }
 	| {
 			type: 'push_result'
 			clientClock: number
 			serverClock: number
-			action: 'discard' | 'commit' | { rebaseWithDiff: NetworkDiff }
+			action: 'discard' | 'commit' | { rebaseWithDiff: NetworkDiff<R> }
 	  }
 
 /** @internal */
 export interface TLPushRequest<R extends UnknownRecord> {
 	type: 'push'
 	clientClock: number
-	diff?: NetworkDiff
+	diff?: NetworkDiff<R>
 	presence?: [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R]
 }
 
@@ -87,6 +87,6 @@ export interface TLPingRequest {
 
 /** @internal */
 export type TLSocketClientSentEvent<R extends UnknownRecord> =
-	| TLPushRequest
+	| TLPushRequest<R>
 	| TLConnectRequest
 	| TLPingRequest

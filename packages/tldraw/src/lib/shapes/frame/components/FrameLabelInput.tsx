@@ -9,7 +9,7 @@ export const FrameLabelInput = forwardRef<
 	const editor = useEditor()
 
 	const handleKeyDown = useCallback(
-		(e: React.KeyboardEvent) => {
+		(e: React.KeyboardEvent<HTMLInputElement>) => {
 			if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
 				// need to prevent the enter keydown making it's way up to the Idle state
 				// and sending us back into edit mode
@@ -22,7 +22,7 @@ export const FrameLabelInput = forwardRef<
 	)
 
 	const handleBlur = useCallback(
-		(e: React.FocusEvent) => {
+		(e: React.FocusEvent<HTMLInputElement>) => {
 			const shape = editor.getShape<TLFrameShape>(id)
 			if (!shape) return
 
@@ -42,7 +42,7 @@ export const FrameLabelInput = forwardRef<
 	)
 
 	const handleChange = useCallback(
-		(e: React.ChangeEvent) => {
+		(e: React.ChangeEvent<HTMLInputElement>) => {
 			const shape = editor.getShape<TLFrameShape>(id)
 			if (!shape) return
 

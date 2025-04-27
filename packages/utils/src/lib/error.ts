@@ -1,7 +1,7 @@
 /** @public */
 export interface ErrorAnnotations {
-	tags: Record
-	extras: Record
+	tags: Record<string, number | string | boolean | bigint | symbol | null | undefined>
+	extras: Record<string, unknown>
 }
 
 const annotationsByError = new WeakMap<object, ErrorAnnotations>()
@@ -12,7 +12,7 @@ const annotationsByError = new WeakMap<object, ErrorAnnotations>()
  *
  * @internal
  */
-export function annotateError(error: unknown, annotations: Partial) {
+export function annotateError(error: unknown, annotations: Partial<ErrorAnnotations>) {
 	if (typeof error !== 'object' || error === null) return
 
 	let currentAnnotations = annotationsByError.get(error)

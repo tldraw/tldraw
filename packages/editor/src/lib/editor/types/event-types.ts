@@ -186,7 +186,10 @@ export interface TLEventHandlers {
 }
 
 /** @public */
-export const EVENT_NAME_MAP: Record = {
+export const EVENT_NAME_MAP: Record<
+	Exclude<TLEventName, TLPinchEventName>,
+	keyof TLEventHandlers
+> = {
 	wheel: 'onWheel',
 	pointer_down: 'onPointerDown',
 	pointer_move: 'onPointerMove',

@@ -1,5 +1,5 @@
+import * as _Dropdown from '@radix-ui/react-dropdown-menu'
 import { useContainer } from '@tldraw/editor'
-import { DropdownMenu as _Dropdown } from 'radix-ui'
 import { ReactNode, memo } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'

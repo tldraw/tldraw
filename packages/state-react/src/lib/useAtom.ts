@@ -24,8 +24,8 @@ import { useState } from 'react'
 export function useAtom<Value, Diff = unknown>(
 	name: string,
 	valueOrInitialiser: Value | (() => Value),
-	options?: AtomOptions
-): Atom {
+	options?: AtomOptions<Value, Diff>
+): Atom<Value, Diff> {
 	return useState(() => {
 		const initialValue =
 			typeof valueOrInitialiser === 'function' ? (valueOrInitialiser as any)() : valueOrInitialiser

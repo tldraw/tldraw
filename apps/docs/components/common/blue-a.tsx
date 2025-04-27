@@ -1,6 +1,12 @@
-export function BlueA(
-	{ href, newTab = false, children }: { href: string; newTab?: boolean; children: React.ReactNode }
-) {
+export function BlueA({
+	href,
+	newTab = false,
+	children,
+}: {
+	href: string
+	newTab?: boolean
+	children: React.ReactNode
+}) {
 	return (
 		<a
 			href={href}

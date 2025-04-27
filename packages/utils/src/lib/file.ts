@@ -45,7 +45,7 @@ export class FileHelpers {
 	 *
 	 * @param file - The file as a blob.
 	 */
-	static async blobToDataUrl(file: Blob): Promise {
+	static async blobToDataUrl(file: Blob): Promise<string> {
 		return await new Promise((resolve, reject) => {
 			if (file) {
 				const reader = new FileReader()
@@ -68,7 +68,7 @@ export class FileHelpers {
 	 *
 	 * @param file - The file as a blob.
 	 */
-	static async blobToText(file: Blob): Promise {
+	static async blobToText(file: Blob): Promise<string> {
 		return await new Promise((resolve, reject) => {
 			if (file) {
 				const reader = new FileReader()

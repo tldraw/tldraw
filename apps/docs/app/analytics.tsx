@@ -1,10 +1,11 @@
 'use client'
 
 import { XMarkIcon } from '@heroicons/react/24/solid'
-import { Analytics as VercelAnalytics, track } from '@vercel/analytics/react'
+import * as Dialog from '@radix-ui/react-dialog'
+import * as Switch from '@radix-ui/react-switch'
+import { track, Analytics as VercelAnalytics } from '@vercel/analytics/react'
 import Cookies from 'js-cookie'
 import Script from 'next/script'
-import { Dialog, Switch } from 'radix-ui'
 import { useEffect, useState } from 'react'
 
 type CookieConsent = 'unknown' | 'opted-in' | 'opted-out'
@@ -44,9 +45,13 @@ function HubspotAnalytics() {
 	)
 }
 
-function CookieConsent(
-	{ hasConsent, onChange }: { hasConsent: CookieConsent; onChange(consent: boolean): void }
-) {
+function CookieConsent({
+	hasConsent,
+	onChange,
+}: {
+	hasConsent: CookieConsent
+	onChange(consent: boolean): void
+}) {
 	const [showPrivacySettings, setShowPrivacySettings] = useState(false)
 	const handleAccept = () => onChange(true)
 	const handleReject = () => onChange(false)

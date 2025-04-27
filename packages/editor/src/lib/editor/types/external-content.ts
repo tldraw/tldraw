@@ -92,7 +92,7 @@ export type TLExternalContent<EmbedDefinition> =
 	| TLFilesExternalContent
 	| TLUrlExternalContent
 	| TLSvgTextExternalContent
-	| TLEmbedExternalContent
+	| TLEmbedExternalContent<EmbedDefinition>
 	| TLTldrawExternalContent
 	| TLExcalidrawExternalContent
 

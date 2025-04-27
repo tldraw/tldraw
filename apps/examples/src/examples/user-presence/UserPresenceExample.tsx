@@ -62,8 +62,11 @@ export default function UserPresenceExample() {
 									t < 1
 										? ''
 										: t > 2
-										? CURSOR_CHAT_MESSAGE
-										: CURSOR_CHAT_MESSAGE.slice(0, Math.ceil((t - 1) * CURSOR_CHAT_MESSAGE.length))
+											? CURSOR_CHAT_MESSAGE
+											: CURSOR_CHAT_MESSAGE.slice(
+													0,
+													Math.ceil((t - 1) * CURSOR_CHAT_MESSAGE.length)
+												)
 							}
 
 							editor.store.mergeRemoteChanges(() => {

@@ -66,7 +66,7 @@ export function getNoteAdjacentPositions(
 	growY: number,
 	extraHeight: number,
 	scale: number
-): Record {
+): Record<IndexKey, Vec> {
 	return Object.fromEntries(
 		getBaseAdjacentNotePositions(editor, scale).map(([id, v], i) => {
 			const point = v.clone()

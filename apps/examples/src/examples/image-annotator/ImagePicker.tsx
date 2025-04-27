@@ -4,13 +4,11 @@ import anakin from './assets/anakin.jpeg'
 import distractedBf from './assets/distracted-bf.jpeg'
 import expandingBrain from './assets/expanding-brain.png'
 
-export function ImagePicker(
-	{
-		onChooseImage,
-	}: {
-		onChooseImage(image: { src: string; width: number; height: number; type: string }): void
-	}
-) {
+export function ImagePicker({
+	onChooseImage,
+}: {
+	onChooseImage(image: { src: string; width: number; height: number; type: string }): void
+}) {
 	const [isLoading, setIsLoading] = useState(false)
 	function onClickChooseImage() {
 		const input = window.document.createElement('input')

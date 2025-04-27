@@ -11,17 +11,15 @@ import { useEffect, useState } from 'react'
 import { twJoin } from 'tailwind-merge'
 import { Search } from '.'
 
-export function SearchButton(
-	{
-		type,
-		layout,
-		className,
-	}: {
-		type: 'docs' | 'blog'
-		layout: 'mobile' | 'desktop' | 'keyboard-shortcut-only'
-		className?: string
-	}
-) {
+export function SearchButton({
+	type,
+	layout,
+	className,
+}: {
+	type: 'docs' | 'blog'
+	layout: 'mobile' | 'desktop' | 'keyboard-shortcut-only'
+	className?: string
+}) {
 	const [open, setOpen] = useState(false)
 	const pathname = usePathname()
 

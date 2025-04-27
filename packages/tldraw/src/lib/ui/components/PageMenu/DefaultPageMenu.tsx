@@ -124,7 +124,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	}, [ITEM_HEIGHT, currentPageId, isOpen, editor])
 
 	const handlePointerDown = useCallback(
-		(e: React.PointerEvent) => {
+		(e: React.PointerEvent<HTMLButtonElement>) => {
 			const { clientY, currentTarget } = e
 			const {
 				dataset: { id, index },
@@ -148,7 +148,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	)
 
 	const handlePointerMove = useCallback(
-		(e: React.PointerEvent) => {
+		(e: React.PointerEvent<HTMLButtonElement>) => {
 			const mut = rMutables.current
 			if (mut.status === 'pointing') {
 				const { clientY } = e
@@ -214,7 +214,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	)
 
 	const handlePointerUp = useCallback(
-		(e: React.PointerEvent) => {
+		(e: React.PointerEvent<HTMLButtonElement>) => {
 			const mut = rMutables.current
 
 			if (mut.status === 'dragging') {
@@ -229,7 +229,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	)
 
 	const handleKeyDown = useCallback(
-		(e: React.KeyboardEvent) => {
+		(e: React.KeyboardEvent<HTMLButtonElement>) => {
 			const mut = rMutables.current
 			// bail on escape
 			if (e.key === 'Escape') {

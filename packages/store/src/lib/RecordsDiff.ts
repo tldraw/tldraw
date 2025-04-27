@@ -7,19 +7,19 @@ import { IdOf, UnknownRecord } from './BaseRecord'
  * @public
  */
 export interface RecordsDiff<R extends UnknownRecord> {
-	added: Record
-	updated: Record
-	removed: Record
+	added: Record<IdOf<R>, R>
+	updated: Record<IdOf<R>, [from: R, to: R]>
+	removed: Record<IdOf<R>, R>
 }
 
 /** @internal */
-export function createEmptyRecordsDiff<R extends UnknownRecord>(): RecordsDiff {
-	return { added: {}, updated: {}, removed: {} } as RecordsDiff
+export function createEmptyRecordsDiff<R extends UnknownRecord>(): RecordsDiff<R> {
+	return { added: {}, updated: {}, removed: {} } as RecordsDiff<R>
 }
 
 /** @public */
-export function reverseRecordsDiff(diff: RecordsDiff) {
-	const result: RecordsDiff = { added: diff.removed, removed: diff.added, updated: {} }
+export function reverseRecordsDiff(diff: RecordsDiff<any>) {
+	const result: RecordsDiff<any> = { added: diff.removed, removed: diff.added, updated: {} }
 	for (const [from, to] of Object.values(diff.updated)) {
 		result.updated[from.id] = [to, from]
 	}
@@ -30,7 +30,7 @@ export function reverseRecordsDiff(diff: RecordsDiff) {
  * Is a records diff empty?
  * @internal
  */
-export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff) {
+export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff<T>) {
 	return (
 		Object.keys(diff.added).length === 0 &&
 		Object.keys(diff.updated).length === 0 &&
@@ -45,8 +45,10 @@ export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff) {
  * @returns A single diff that represents the squashed diffs.
  * @public
  */
-export function squashRecordDiffs<T extends UnknownRecord>(diffs: RecordsDiff[]): RecordsDiff {
-	const result = { added: {}, removed: {}, updated: {} } as RecordsDiff
+export function squashRecordDiffs<T extends UnknownRecord>(
+	diffs: RecordsDiff<T>[]
+): RecordsDiff<T> {
+	const result = { added: {}, removed: {}, updated: {} } as RecordsDiff<T>
 
 	squashRecordDiffsMutable(result, diffs)
 	return result
@@ -57,8 +59,8 @@ export function squashRecordDiffs<T extends UnknownRecord>(diffs: RecordsDiff[])
  * @internal
  */
 export function squashRecordDiffsMutable<T extends UnknownRecord>(
-	target: RecordsDiff,
-	diffs: RecordsDiff[]
+	target: RecordsDiff<T>,
+	diffs: RecordsDiff<T>[]
 ): void {
 	for (const diff of diffs) {
 		for (const [id, value] of objectMapEntries(diff.added)) {

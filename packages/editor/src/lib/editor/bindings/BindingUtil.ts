@@ -4,12 +4,12 @@ import { Editor } from '../Editor'
 /** @public */
 export interface TLBindingUtilConstructor<
 	T extends TLUnknownBinding,
-	U extends BindingUtil = BindingUtil
+	U extends BindingUtil<T> = BindingUtil<T>,
 > {
 	new (editor: Editor): U
 	type: T['type']
 	/** Validations for this binding's props. */
-	props?: RecordProps
+	props?: RecordProps<T>
 	/** Migrations for this binding's props. */
 	migrations?: TLPropsMigrations
 }
@@ -118,7 +118,7 @@ export interface BindingOnShapeDeleteOptions<Binding extends TLUnknownBinding> {
 /** @public */
 export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBinding> {
 	constructor(public editor: Editor) {}
-	static props?: RecordProps
+	static props?: RecordProps<TLUnknownBinding>
 	static migrations?: TLPropsMigrations
 
 	/**
@@ -133,7 +133,7 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 	 *
 	 * @public
 	 */
-	abstract getDefaultProps(): Partial
+	abstract getDefaultProps(): Partial<Binding['props']>
 
 	/**
 	 * Called whenever a store operation involving this binding type has completed. This is useful
@@ -167,14 +167,14 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 	 *
 	 * @public
 	 */
-	onBeforeCreate?(options: BindingOnCreateOptions): Binding | void
+	onBeforeCreate?(options: BindingOnCreateOptions<Binding>): Binding | void
 
 	/**
 	 * Called after a binding has been created. See {@link BindingOnCreateOptions} for details.
 	 *
 	 * @public
 	 */
-	onAfterCreate?(options: BindingOnCreateOptions): void
+	onAfterCreate?(options: BindingOnCreateOptions<Binding>): void
 
 	/**
 	 * Called when a binding is about to be changed. See {@link BindingOnChangeOptions} for details.
@@ -188,7 +188,7 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 	 *
 	 * @public
 	 */
-	onBeforeChange?(options: BindingOnChangeOptions): Binding | void
+	onBeforeChange?(options: BindingOnChangeOptions<Binding>): Binding | void
 
 	/**
 	 * Called after a binding has been changed. See {@link BindingOnChangeOptions} for details.
@@ -199,21 +199,21 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 	 *
 	 * @public
 	 */
-	onAfterChange?(options: BindingOnChangeOptions): void
+	onAfterChange?(options: BindingOnChangeOptions<Binding>): void
 
 	/**
 	 * Called when a binding is about to be deleted. See {@link BindingOnDeleteOptions} for details.
 	 *
 	 * @public
 	 */
-	onBeforeDelete?(options: BindingOnDeleteOptions): void
+	onBeforeDelete?(options: BindingOnDeleteOptions<Binding>): void
 
 	/**
 	 * Called after a binding has been deleted. See {@link BindingOnDeleteOptions} for details.
 	 *
 	 * @public
 	 */
-	onAfterDelete?(options: BindingOnDeleteOptions): void
+	onAfterDelete?(options: BindingOnDeleteOptions<Binding>): void
 
 	/**
 	 * Called after the shape referenced in a binding's `fromId` is changed. Use this to propagate
@@ -222,7 +222,7 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 	 *
 	 * @public
 	 */
-	onAfterChangeFromShape?(options: BindingOnShapeChangeOptions): void
+	onAfterChangeFromShape?(options: BindingOnShapeChangeOptions<Binding>): void
 
 	/**
 	 * Called after the shape referenced in a binding's `toId` is changed. Use this to propagate any
@@ -231,7 +231,7 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 	 *
 	 * @public
 	 */
-	onAfterChangeToShape?(options: BindingOnShapeChangeOptions): void
+	onAfterChangeToShape?(options: BindingOnShapeChangeOptions<Binding>): void
 
 	/**
 	 * Called before the shape referenced in a binding's `fromId` is about to be deleted. Use this
@@ -240,7 +240,7 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 	 *
 	 * @public
 	 */
-	onBeforeDeleteFromShape?(options: BindingOnShapeDeleteOptions): void
+	onBeforeDeleteFromShape?(options: BindingOnShapeDeleteOptions<Binding>): void
 	/**
 	 * Called before the shape referenced in a binding's `toId` is about to be deleted. Use this
 	 * with care - you may want to use {@link BindingUtil.onBeforeIsolateFromShape} instead. See
@@ -248,19 +248,19 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 	 *
 	 * @public
 	 */
-	onBeforeDeleteToShape?(options: BindingOnShapeDeleteOptions): void
+	onBeforeDeleteToShape?(options: BindingOnShapeDeleteOptions<Binding>): void
 
 	/**
 	 * Called before the shape referenced in a binding's `fromId` is about to be isolated from the
 	 * shape referenced in `toId`. See {@link BindingOnShapeIsolateOptions} for discussion on what
 	 * isolation means, and when/how to use this callback.
 	 */
-	onBeforeIsolateFromShape?(options: BindingOnShapeIsolateOptions): void
+	onBeforeIsolateFromShape?(options: BindingOnShapeIsolateOptions<Binding>): void
 
 	/**
 	 * Called before the shape referenced in a binding's `toId` is about to be isolated from the
 	 * shape referenced in `fromId`. See {@link BindingOnShapeIsolateOptions} for discussion on what
 	 * isolation means, and when/how to use this callback.
 	 */
-	onBeforeIsolateToShape?(options: BindingOnShapeIsolateOptions): void
+	onBeforeIsolateToShape?(options: BindingOnShapeIsolateOptions<Binding>): void
 }

@@ -52,25 +52,25 @@ import { useShallowObjectIdentity } from './useIdentity'
 export interface TLEditorComponents {
 	Background?: ComponentType | null
 	SvgDefs?: ComponentType | null
-	Brush?: ComponentType | null
-	ZoomBrush?: ComponentType | null
+	Brush?: ComponentType<TLBrushProps> | null
+	ZoomBrush?: ComponentType<TLBrushProps> | null
 	ShapeIndicators?: ComponentType | null
-	ShapeIndicator?: ComponentType | null
-	Cursor?: ComponentType | null
-	Canvas?: ComponentType | null
-	CollaboratorBrush?: ComponentType | null
-	CollaboratorCursor?: ComponentType | null
-	CollaboratorHint?: ComponentType | null
-	CollaboratorShapeIndicator?: ComponentType | null
-	Grid?: ComponentType | null
-	Scribble?: ComponentType | null
-	CollaboratorScribble?: ComponentType | null
-	SnapIndicator?: ComponentType | null
-	Handles?: ComponentType | null
-	Handle?: ComponentType | null
+	ShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null
+	Cursor?: ComponentType<TLCursorProps> | null
+	Canvas?: ComponentType<TLCanvasComponentProps> | null
+	CollaboratorBrush?: ComponentType<TLBrushProps> | null
+	CollaboratorCursor?: ComponentType<TLCursorProps> | null
+	CollaboratorHint?: ComponentType<TLCollaboratorHintProps> | null
+	CollaboratorShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null
+	Grid?: ComponentType<TLGridProps> | null
+	Scribble?: ComponentType<TLScribbleProps> | null
+	CollaboratorScribble?: ComponentType<TLScribbleProps> | null
+	SnapIndicator?: ComponentType<TLSnapIndicatorProps> | null
+	Handles?: ComponentType<TLHandlesProps> | null
+	Handle?: ComponentType<TLHandleProps> | null
 	Spinner?: ComponentType | null
-	SelectionForeground?: ComponentType | null
-	SelectionBackground?: ComponentType | null
+	SelectionForeground?: ComponentType<TLSelectionForegroundProps> | null
+	SelectionBackground?: ComponentType<TLSelectionBackgroundProps> | null
 	OnTheCanvas?: ComponentType | null
 	InFrontOfTheCanvas?: ComponentType | null
 	LoadingScreen?: ComponentType | null
@@ -81,19 +81,20 @@ export interface TLEditorComponents {
 	ShapeIndicatorErrorFallback?: TLShapeIndicatorErrorFallbackComponent
 }
 
-const EditorComponentsContext = createContext<null | Required>(null)
+const EditorComponentsContext = createContext<null | Required<TLEditorComponents>>(null)
 
 interface ComponentsContextProviderProps {
 	overrides?: TLEditorComponents
 	children: ReactNode
 }
 
-export function EditorComponentsProvider(
-	{ overrides = {}, children }: ComponentsContextProviderProps
-) {
+export function EditorComponentsProvider({
+	overrides = {},
+	children,
+}: ComponentsContextProviderProps) {
 	const _overrides = useShallowObjectIdentity(overrides)
 	const value = useMemo(
-		(): Required => ({
+		(): Required<TLEditorComponents> => ({
 			Background: DefaultBackground,
 			SvgDefs: DefaultSvgDefs,
 			Brush: DefaultBrush,

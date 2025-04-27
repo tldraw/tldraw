@@ -12,9 +12,11 @@ import { parseMarkdown } from '@/utils/parse-markdown'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
-export async function generateMetadata(
-	{ params }: { params: { slug: string | string[] } }
-): Promise {
+export async function generateMetadata({
+	params,
+}: {
+	params: { slug: string | string[] }
+}): Promise<Metadata> {
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
 	const content = await db.getPageContent(`/${path.join('/')}`)
 	if (!content || content.type !== 'article') notFound()

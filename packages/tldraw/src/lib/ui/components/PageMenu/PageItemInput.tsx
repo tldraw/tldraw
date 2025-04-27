@@ -13,9 +13,13 @@ export interface PageItemInputProps {
 }
 
 /** @public @react */
-export const PageItemInput = function PageItemInput(
-	{ name, id, isCurrentPage, onCancel, onComplete }: PageItemInputProps
-) {
+export const PageItemInput = function PageItemInput({
+	name,
+	id,
+	isCurrentPage,
+	onCancel,
+	onComplete,
+}: PageItemInputProps) {
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
 

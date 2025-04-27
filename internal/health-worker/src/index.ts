@@ -8,7 +8,7 @@ interface Env {
 	HEALTH_WORKER_UPDOWN_WEBHOOK_PATH: string | undefined
 }
 
-async function sendDiscordWebhook(url: string, discord: DiscordPayload): Promise {
+async function sendDiscordWebhook(url: string, discord: DiscordPayload): Promise<Response> {
 	return fetch(url, {
 		method: 'POST',
 		headers: {
@@ -18,8 +18,8 @@ async function sendDiscordWebhook(url: string, discord: DiscordPayload): Promise
 	})
 }
 
-async function handleUpdown(request: Request, discordUrl: string): Promise {
-	const updownEvents = (await request.json()) as Array
+async function handleUpdown(request: Request, discordUrl: string): Promise<Response> {
+	const updownEvents = (await request.json()) as Array<UpdownEvent>
 
 	let status = 200
 	for (const e of updownEvents) {
@@ -39,8 +39,8 @@ async function handleUpdown(request: Request, discordUrl: string): Promise {
 	return new Response(null, { status })
 }
 
-const handler: ExportedHandler = {
-	async fetch(request: Request, env: Env): Promise {
+const handler: ExportedHandler<Env> = {
+	async fetch(request: Request, env: Env): Promise<Response> {
 		const discordUrl = env.DISCORD_HEALTH_WEBHOOK_URL
 		if (!discordUrl) {
 			console.error('missing DISCORD_HEALTH_WEBHOOK_URL')

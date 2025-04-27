@@ -5,9 +5,15 @@ import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import { TlaSpacer } from '../../TlaSpacer/TlaSpacer'
 import styles from '../sidebar.module.css'
 
-export function TlaSidebarFileSection(
-	{ title, iconLeft, children }: { title: ReactElement; iconLeft?: string; children: ReactNode }
-) {
+export function TlaSidebarFileSection({
+	title,
+	iconLeft,
+	children,
+}: {
+	title: ReactElement
+	iconLeft?: string
+	children: ReactNode
+}) {
 	const id = useUniqueSafeId()
 	return (
 		<div className={styles.section} role="list" aria-labelledby={id}>

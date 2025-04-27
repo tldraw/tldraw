@@ -23,9 +23,11 @@ interface TlaTabsContext {
 
 const tabsContext = createContext({} as TlaTabsContext)
 
-export function TlaTabsRoot(
-	{ activeTab, onTabChange, children }: TlaTabsContext & { children: ReactNode }
-) {
+export function TlaTabsRoot({
+	activeTab,
+	onTabChange,
+	children,
+}: TlaTabsContext & { children: ReactNode }) {
 	return <tabsContext.Provider value={{ activeTab, onTabChange }}>{children}</tabsContext.Provider>
 }
 
@@ -38,17 +40,15 @@ export function TlaTabsTabs({ children }: { children: ReactNode }) {
 	)
 }
 
-export function TlaTabsTab(
-	{
-		id,
-		disabled = false,
-		...props
-	}: {
-		id: string
-		disabled?: boolean
-		children: ReactNode
-	} & HTMLAttributes
-) {
+export function TlaTabsTab({
+	id,
+	disabled = false,
+	...props
+}: {
+	id: string
+	disabled?: boolean
+	children: ReactNode
+} & HTMLAttributes<HTMLButtonElement>) {
 	const { activeTab, onTabChange } = useContext(tabsContext)
 
 	const handleClick = useCallback(() => {
@@ -69,7 +69,7 @@ export function TlaTabsTab(
 	)
 }
 
-export function TlaTabsPage({ id, ...props }: { id: string } & HTMLAttributes) {
+export function TlaTabsPage({ id, ...props }: { id: string } & HTMLAttributes<HTMLDivElement>) {
 	const { activeTab } = useContext(tabsContext)
 	if (activeTab !== id) return null
 	return <div id={`tla-tabpanel-${id}`} role="tabpanel" {...props} />

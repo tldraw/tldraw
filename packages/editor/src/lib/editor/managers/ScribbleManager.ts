@@ -20,7 +20,7 @@ export class ScribbleManager {
 
 	constructor(private editor: Editor) {}
 
-	addScribble(scribble: Partial, id = uniqueId()) {
+	addScribble(scribble: Partial<TLScribble>, id = uniqueId()) {
 		const item: ScribbleItem = {
 			id,
 			scribble: {

@@ -3,10 +3,10 @@ import { BaseBoxShapeUtil, HTMLContainer, TLBaseShape } from 'tldraw'
 // There's a guide at the bottom of this page!
 
 // [1]
-export type MiniBoxShape = TLBaseShape
+export type MiniBoxShape = TLBaseShape<'box', { w: number; h: number; color: string }>
 
 // [2]
-export class MiniBoxShapeUtil extends BaseBoxShapeUtil {
+export class MiniBoxShapeUtil extends BaseBoxShapeUtil<MiniBoxShape> {
 	//[a]
 	static override type = 'box'
 	//[b]

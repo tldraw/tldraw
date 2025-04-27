@@ -1,8 +1,12 @@
 import { cn } from '@/utils/cn'
 
-export function SectionProse(
-	{ children, className }: { children: React.ReactNode; className?: string }
-) {
+export function SectionProse({
+	children,
+	className,
+}: {
+	children: React.ReactNode
+	className?: string
+}) {
 	return (
 		<div
 			className={cn(

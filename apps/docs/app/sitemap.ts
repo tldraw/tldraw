@@ -1,7 +1,7 @@
 import { db } from '@/utils/ContentDatabase'
 import { MetadataRoute } from 'next'
 
-export default async function sitemap(): Promise {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	const paths = await db.getAllPaths()
 	return [
 		{

@@ -148,7 +148,7 @@ let _objHashUID = 0
 const STRING_HASH_CACHE_MIN_STRLEN = 16
 const STRING_HASH_CACHE_MAX_SIZE = 255
 let STRING_HASH_CACHE_SIZE = 0
-let stringHashCache: Record = {}
+let stringHashCache: Record<string, number> = {}
 
 // Constants describing the size of trie nodes.
 const SHIFT = 5 // Resulted in best performance after ______?
@@ -175,10 +175,10 @@ function SetRef(ref?: Ref): void {
 }
 
 // http://jsperf.com/copy-array-inline
-function arrCopy<I>(arr: Array, offset?: number): Array {
+function arrCopy<I>(arr: Array<I>, offset?: number): Array<I> {
 	offset = offset || 0
 	const len = Math.max(0, arr.length - offset)
-	const newArr: Array = new Array(len)
+	const newArr: Array<I> = new Array(len)
 	for (let ii = 0; ii < len; ii++) {
 		// We may want to guard for undefined values with `if (arr[ii + offset] !== undefined`, but ths should not happen by design
 		newArr[ii] = arr[ii + offset]
@@ -193,7 +193,7 @@ class OwnerID {}
 export class ImmutableMap<K, V> {
 	// @pragma Construction
 	// @ts-ignore
-	_root: MapNode
+	_root: MapNode<K, V>
 	// @ts-ignore
 	size: number
 	// @ts-ignore
@@ -203,17 +203,17 @@ export class ImmutableMap<K, V> {
 	// @ts-ignore
 	__altered: boolean
 
-	constructor(value?: Iterable | null | undefined) {
+	constructor(value?: Iterable<[K, V]> | null | undefined) {
 		// @ts-ignore
 		return value === undefined || value === null
 			? emptyMap()
 			: value instanceof ImmutableMap
-			? value
-			: emptyMap().withMutations((map) => {
-					for (const [k, v] of value) {
-						map.set(k, v)
-					}
-			  })
+				? value
+				: emptyMap().withMutations((map) => {
+						for (const [k, v] of value) {
+							map.set(k, v)
+						}
+					})
 	}
 
 	get(k: K): V | undefined
@@ -229,7 +229,7 @@ export class ImmutableMap<K, V> {
 		return updateMap(this, k, NOT_SET as any)
 	}
 
-	deleteAll(keys: Iterable) {
+	deleteAll(keys: Iterable<K>) {
 		return this.withMutations((map) => {
 			for (const key of keys) {
 				map.delete(key)
@@ -266,34 +266,37 @@ export class ImmutableMap<K, V> {
 		return this.__ownerID ? this : this.__ensureOwner(new OwnerID())
 	}
 
-	[Symbol.iterator](): Iterator {
+	[Symbol.iterator](): Iterator<[K, V]> {
 		return this.entries()[Symbol.iterator]()
 	}
 
-	entries(): Iterable {
+	entries(): Iterable<[K, V]> {
 		return new MapIterator(this, ITERATE_ENTRIES, false)
 	}
 
-	keys(): Iterable {
+	keys(): Iterable<K> {
 		return new MapIterator(this, ITERATE_KEYS, false)
 	}
 
-	values(): Iterable {
+	values(): Iterable<V> {
 		return new MapIterator(this, ITERATE_VALUES, false)
 	}
 }
 
 type MapNode<K, V> =
-	| ArrayMapNode
-	| BitmapIndexedNode
-	| HashArrayMapNode
-	| HashCollisionNode
-	| ValueNode
+	| ArrayMapNode<K, V>
+	| BitmapIndexedNode<K, V>
+	| HashArrayMapNode<K, V>
+	| HashCollisionNode<K, V>
+	| ValueNode<K, V>
 
 // #pragma Trie Nodes
 
 class ArrayMapNode<K, V> {
-	constructor(public ownerID: OwnerID, public entries: Array) {}
+	constructor(
+		public ownerID: OwnerID,
+		public entries: Array<[K, V]>
+	) {}
 
 	get(_shift: unknown, _keyHash: unknown, key: K, notSetValue?: V) {
 		const entries = this.entries
@@ -313,7 +316,7 @@ class ArrayMapNode<K, V> {
 		value: V,
 		didChangeSize?: Ref,
 		didAlter?: Ref
-	): MapNode | undefined {
+	): MapNode<K, V> | undefined {
 		const removed = value === NOT_SET
 
 		const entries = this.entries
@@ -366,7 +369,11 @@ class ArrayMapNode<K, V> {
 }
 
 class BitmapIndexedNode<K, V> {
-	constructor(public ownerID: OwnerID, public bitmap: number, public nodes: Array) {}
+	constructor(
+		public ownerID: OwnerID,
+		public bitmap: number,
+		public nodes: Array<MapNode<K, V>>
+	) {}
 
 	get(shift: number, keyHash: number, key: K, notSetValue?: V): V | undefined {
 		if (keyHash === undefined) {
@@ -387,7 +394,7 @@ class BitmapIndexedNode<K, V> {
 		value: V,
 		didChangeSize?: Ref,
 		didAlter?: Ref
-	): MapNode | undefined {
+	): MapNode<K, V> | undefined {
 		if (keyHash === undefined) {
 			keyHash = hash(key)
 		}
@@ -449,7 +456,11 @@ class BitmapIndexedNode<K, V> {
 }
 
 class HashArrayMapNode<K, V> {
-	constructor(public ownerID: OwnerID, public count: number, public nodes: Array) {}
+	constructor(
+		public ownerID: OwnerID,
+		public count: number,
+		public nodes: Array<MapNode<K, V>>
+	) {}
 
 	get(shift: number, keyHash: number, key: K, notSetValue?: V): V | undefined {
 		if (keyHash === undefined) {
@@ -519,7 +530,11 @@ class HashArrayMapNode<K, V> {
 }
 
 class HashCollisionNode<K, V> {
-	constructor(public ownerID: OwnerID, public keyHash: number, public entries: Array) {}
+	constructor(
+		public ownerID: OwnerID,
+		public keyHash: number,
+		public entries: Array<[K, V]>
+	) {}
 
 	get(shift: number, keyHash: number, key: K, notSetValue?: V) {
 		const entries = this.entries
@@ -539,7 +554,7 @@ class HashCollisionNode<K, V> {
 		value: V,
 		didChangeSize?: Ref,
 		didAlter?: Ref
-	): MapNode {
+	): MapNode<K, V> {
 		if (keyHash === undefined) {
 			keyHash = hash(key)
 		}
@@ -601,7 +616,11 @@ class HashCollisionNode<K, V> {
 }
 
 class ValueNode<K, V> {
-	constructor(public ownerID: OwnerID, public keyHash: number | undefined, public entry: [K, V]) {}
+	constructor(
+		public ownerID: OwnerID,
+		public keyHash: number | undefined,
+		public entry: [K, V]
+	) {}
 
 	get(shift: number, keyHash: number, key: K, notSetValue?: V) {
 		return is(key, this.entry[0]) ? this.entry[1] : notSetValue
@@ -644,14 +663,18 @@ class ValueNode<K, V> {
 
 // #pragma Iterators
 
-class MapIterator<K, V> implements Iterator, Iterable {
+class MapIterator<K, V> implements Iterator<any>, Iterable<any> {
 	_stack
 
-	constructor(map: ImmutableMap, public _type: IterationType, public _reverse: boolean) {
+	constructor(
+		map: ImmutableMap<K, V>,
+		public _type: IterationType,
+		public _reverse: boolean
+	) {
 		this._stack = map._root && mapIteratorFrame<K, V>(map._root)
 	}
 
-	[Symbol.iterator](): Iterator {
+	[Symbol.iterator](): Iterator<any> {
 		return this
 	}
 
@@ -695,14 +718,14 @@ function mapIteratorValue<K, V>(type: IterationType, entry: [K, V]) {
 }
 
 interface IStack {
-	node: MapNode
+	node: MapNode<unknown, unknown>
 	index: number
 	__prev?: IStack
 }
 
 function mapIteratorFrame<K, V>(
-	node: MapNode,
-	prev?: { node: MapNode; index: number; __prev?: IStack }
+	node: MapNode<K, V>,
+	prev?: { node: MapNode<K, V>; index: number; __prev?: IStack }
 ): IStack {
 	return {
 		node: node,
@@ -717,7 +740,12 @@ const ITERATE_ENTRIES = 2
 
 type IterationType = typeof ITERATE_KEYS | typeof ITERATE_VALUES | typeof ITERATE_ENTRIES
 
-function iteratorValue<K, V>(type: IterationType, k: K, v: V, iteratorResult?: IteratorResult) {
+function iteratorValue<K, V>(
+	type: IterationType,
+	k: K,
+	v: V,
+	iteratorResult?: IteratorResult<any>
+) {
 	const value = type === ITERATE_KEYS ? k : type === ITERATE_VALUES ? v : [k, v]
 	// eslint-disable-next-line @typescript-eslint/no-unused-expressions -- TODO enable eslint here
 	iteratorResult
@@ -725,7 +753,7 @@ function iteratorValue<K, V>(type: IterationType, k: K, v: V, iteratorResult?: I
 		: (iteratorResult = {
 				value: value,
 				done: false,
-		  })
+			})
 	return iteratorResult
 }
 
@@ -733,7 +761,7 @@ export function iteratorDone() {
 	return { value: undefined, done: true }
 }
 
-function makeMap<K, V>(size: number, root?: MapNode, ownerID?: OwnerID, hash?: number) {
+function makeMap<K, V>(size: number, root?: MapNode<K, V>, ownerID?: OwnerID, hash?: number) {
 	const map = Object.create(ImmutableMap.prototype)
 	map.size = size
 	map._root = root
@@ -743,12 +771,12 @@ function makeMap<K, V>(size: number, root?: MapNode, ownerID?: OwnerID, hash?: n
 	return map
 }
 
-let EMPTY_MAP: ImmutableMap
-export function emptyMap<K, V>(): ImmutableMap {
+let EMPTY_MAP: ImmutableMap<unknown, unknown>
+export function emptyMap<K, V>(): ImmutableMap<K, V> {
 	return (EMPTY_MAP as any) || (EMPTY_MAP = makeMap(0))
 }
 
-function updateMap<K, V>(map: ImmutableMap, k: K, v: V) {
+function updateMap<K, V>(map: ImmutableMap<K, V>, k: K, v: V) {
 	let newRoot
 	let newSize
 	if (!map._root) {
@@ -777,7 +805,7 @@ function updateMap<K, V>(map: ImmutableMap, k: K, v: V) {
 }
 
 function updateNode<K, V>(
-	node: MapNode | undefined,
+	node: MapNode<K, V> | undefined,
 	ownerID: OwnerID,
 	shift: number,
 	keyHash: number | undefined,
@@ -785,7 +813,7 @@ function updateNode<K, V>(
 	value: V,
 	didChangeSize?: Ref,
 	didAlter?: Ref
-): MapNode | undefined {
+): MapNode<K, V> | undefined {
 	if (!node) {
 		if (value === NOT_SET) {
 			return node
@@ -797,7 +825,7 @@ function updateNode<K, V>(
 	return node.update(ownerID, shift, keyHash!, key, value, didChangeSize, didAlter) as any
 }
 
-function isLeafNode(node: MapNode) {
+function isLeafNode(node: MapNode<unknown, unknown>) {
 	return node.constructor === ValueNode || node.constructor === HashCollisionNode
 }
 
@@ -807,7 +835,7 @@ function mergeIntoNode<K, V>(
 	shift: number,
 	keyHash: number,
 	entry: [K, V]
-): MapNode {
+): MapNode<K, V> {
 	if (node.keyHash === keyHash) {
 		return new HashCollisionNode(ownerID, keyHash, [node.entry, entry])
 	}
@@ -820,7 +848,7 @@ function mergeIntoNode<K, V>(
 		idx1 === idx2
 			? [mergeIntoNode(node, ownerID, shift + SHIFT, keyHash, entry)]
 			: ((newNode = new ValueNode(ownerID, keyHash, entry)),
-			  idx1 < idx2 ? [node, newNode] : [newNode, node])
+				idx1 < idx2 ? [node, newNode] : [newNode, node])
 
 	return new BitmapIndexedNode(ownerID, (1 << idx1) | (1 << idx2), nodes)
 }
@@ -829,7 +857,7 @@ function createNodes<K, V>(ownerID: OwnerID, entries: [K, V][], key: K, value: V
 	if (!ownerID) {
 		ownerID = new OwnerID()
 	}
-	let node: MapNode = new ValueNode(ownerID, hash(key), [key, value])
+	let node: MapNode<K, V> = new ValueNode(ownerID, hash(key), [key, value])
 	for (let ii = 0; ii < entries.length; ii++) {
 		const entry = entries[ii]
 		node = node.update(ownerID, 0, undefined as any as number, entry[0], entry[1]) as any
@@ -837,7 +865,12 @@ function createNodes<K, V>(ownerID: OwnerID, entries: [K, V][], key: K, value: V
 	return node
 }
 
-function packNodes<K, V>(ownerID: OwnerID, nodes: MapNode[], count: number, excluding: number) {
+function packNodes<K, V>(
+	ownerID: OwnerID,
+	nodes: MapNode<K, V>[],
+	count: number,
+	excluding: number
+) {
 	let bitmap = 0
 	let packedII = 0
 	const packedNodes = new Array(count)
@@ -853,11 +886,11 @@ function packNodes<K, V>(ownerID: OwnerID, nodes: MapNode[], count: number, excl
 
 function expandNodes<K, V>(
 	ownerID: OwnerID,
-	nodes: MapNode[],
+	nodes: MapNode<K, V>[],
 	bitmap: number,
 	including: number,
-	node: MapNode
-): MapNode {
+	node: MapNode<K, V>
+): MapNode<K, V> {
 	let count = 0
 	const expandedNodes = new Array(SIZE)
 	for (let ii = 0; bitmap !== 0; ii++, bitmap >>>= 1) {

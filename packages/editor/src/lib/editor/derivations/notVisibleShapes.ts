@@ -20,7 +20,7 @@ function isShapeNotVisible(editor: Editor, id: TLShapeId, viewportPageBounds: Bo
  * @returns Incremental derivation of non visible shapes.
  */
 export const notVisibleShapes = (editor: Editor) => {
-	function fromScratch(editor: Editor): Set {
+	function fromScratch(editor: Editor): Set<TLShapeId> {
 		const shapes = editor.getCurrentPageShapeIds()
 		const viewportPageBounds = editor.getViewportPageBounds()
 		const notVisibleShapes = new Set<TLShapeId>()
@@ -31,7 +31,7 @@ export const notVisibleShapes = (editor: Editor) => {
 		})
 		return notVisibleShapes
 	}
-	return computed<Set>('notVisibleShapes', (prevValue) => {
+	return computed<Set<TLShapeId>>('notVisibleShapes', (prevValue) => {
 		if (isUninitialized(prevValue)) {
 			return fromScratch(editor)
 		}

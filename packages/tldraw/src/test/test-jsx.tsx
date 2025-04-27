@@ -28,20 +28,22 @@ interface CommonShapeProps {
 	opacity?: number
 }
 
-type ShapeByType<Type extends TLDefaultShape['type']> = Extract
+type ShapeByType<Type extends TLDefaultShape['type']> = Extract<TLDefaultShape, { type: Type }>
 type FormatShapeProps<Props extends object> = {
 	[K in keyof Props]?: Props[K] extends TLAssetId
 		? TLAssetId | React.JSX.Element
 		: Props[K] extends TLAssetId | null
-		? TLAssetId | React.JSX.Element | null
-		: Props[K]
+			? TLAssetId | React.JSX.Element | null
+			: Props[K]
 }
 type PropsForShape<Type extends string> = Type extends TLDefaultShape['type']
-	? CommonShapeProps & FormatShapeProps
-	: CommonShapeProps & Record
+	? CommonShapeProps & FormatShapeProps<ShapeByType<Type>['props']>
+	: CommonShapeProps & Record<string, unknown>
 
-type AssetByType<Type extends TLAsset['type']> = Extract
-type PropsForAsset<Type extends string> = Type extends TLAsset['type'] ? Partial : Record
+type AssetByType<Type extends TLAsset['type']> = Extract<TLAsset, { type: Type }>
+type PropsForAsset<Type extends string> = Type extends TLAsset['type']
+	? Partial<AssetByType<Type>['props']>
+	: Record<string, unknown>
 
 const createElement = (type: typeof shapeTypeSymbol | typeof assetTypeSymbol, tag: string) => {
 	const component = () => {
@@ -57,7 +59,10 @@ const tlAsset = new Proxy(
 			return createElement(assetTypeSymbol, key as string)
 		},
 	}
-) as { [K in TLAsset['type']]: (props: PropsForAsset) => null } & Record
+) as { [K in TLAsset['type']]: (props: PropsForAsset<K>) => null } & Record<
+	string,
+	(props: PropsForAsset<string>) => null
+>
 
 /**
  * TL - jsx helpers for creating tldraw shapes in test cases
@@ -73,15 +78,18 @@ export const TL = new Proxy(
 		},
 	}
 ) as { asset: typeof tlAsset } & {
-	[K in TLDefaultShape['type']]: (props: PropsForShape) => null
-} & Record
+	[K in TLDefaultShape['type']]: (props: PropsForShape<K>) => null
+} & Record<string, (props: PropsForShape<string>) => null>
 
-export function shapesFromJsx(shapes: React.JSX.Element | Array) {
-	const ids = {} as Record
-	const currentPageShapes: Array = []
-	const assets: Array = []
+export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Element>) {
+	const ids = {} as Record<string, TLShapeId>
+	const currentPageShapes: Array<TLShapePartial> = []
+	const assets: Array<TLAsset> = []
 
-	function addChildren(children: React.JSX.Element | Array, parentId?: TLShapeId) {
+	function addChildren(
+		children: React.JSX.Element | Array<React.JSX.Element>,
+		parentId?: TLShapeId
+	) {
 		let nextIndex = ZERO_INDEX_KEY
 
 		for (const el of Array.isArray(children) ? children : [children]) {
@@ -160,7 +168,7 @@ export function shapesFromJsx(shapes: React.JSX.Element | Array) {
 					shapePartial[key] = value as any
 					continue
 				}
-				;(shapePartial.props as Record)[key] = value
+				;(shapePartial.props as Record<string, unknown>)[key] = value
 			}
 
 			currentPageShapes.push(shapePartial)

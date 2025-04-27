@@ -5,7 +5,7 @@ import { Environment } from '../types'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 
 // Returns the history of a room as a list of objects with timestamps
-export async function getRoomHistory(request: IRequest, env: Environment): Promise {
+export async function getRoomHistory(request: IRequest, env: Environment): Promise<Response> {
 	const roomId = request.params.roomId
 
 	if (!roomId) return notFound()

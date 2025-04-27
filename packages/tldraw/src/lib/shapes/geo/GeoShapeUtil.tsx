@@ -66,7 +66,7 @@ import { getLines } from './getLines'
 const MIN_SIZE_WITH_LABEL = 17 * 3
 
 /** @public */
-export class GeoShapeUtil extends BaseBoxShapeUtil {
+export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	static override type = 'geo' as const
 	static override props = geoShapeProps
 	static override migrations = geoShapeMigrations
@@ -360,14 +360,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil {
 						shape.props.align === 'start'
 							? 0
 							: shape.props.align === 'end'
-							? (unscaledW - unscaledLabelWidth) * shape.props.scale
-							: ((unscaledW - unscaledLabelWidth) / 2) * shape.props.scale,
+								? (unscaledW - unscaledLabelWidth) * shape.props.scale
+								: ((unscaledW - unscaledLabelWidth) / 2) * shape.props.scale,
 					y:
 						shape.props.verticalAlign === 'start'
 							? 0
 							: shape.props.verticalAlign === 'end'
-							? (unscaledH - unscaledLabelHeight) * shape.props.scale
-							: ((unscaledH - unscaledLabelHeight) / 2) * shape.props.scale,
+								? (unscaledH - unscaledLabelHeight) * shape.props.scale
+								: ((unscaledH - unscaledLabelHeight) / 2) * shape.props.scale,
 					width: unscaledLabelWidth * shape.props.scale,
 					height: unscaledLabelHeight * shape.props.scale,
 					isFilled: true,
@@ -578,7 +578,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil {
 
 	override onResize(
 		shape: TLGeoShape,
-		{ handle, newPoint, scaleX, scaleY, initialShape }: TLResizeInfo
+		{ handle, newPoint, scaleX, scaleY, initialShape }: TLResizeInfo<TLGeoShape>
 	) {
 		const unscaledInitialW = initialShape.props.w / initialShape.props.scale
 		const unscaledInitialH = initialShape.props.h / initialShape.props.scale

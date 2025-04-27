@@ -6,14 +6,15 @@ import { nicelog } from './utils'
 // @ts-ignore
 import type { VscodeMessage } from '../../messages'
 
-export class TldrawEditorProvider implements vscode.CustomEditorProvider {
+export class TldrawEditorProvider implements vscode.CustomEditorProvider<TLDrawDocument> {
 	private static newTDFileId = 1
 	private disposables: vscode.Disposable[] = []
 	private static readonly viewType = 'tldraw.tldr'
 	private webviewPanels: vscode.WebviewPanel[] = []
 
-	private readonly _onDidChangeCustomDocument =
-		new vscode.EventEmitter<vscode.CustomDocumentEditEvent>()
+	private readonly _onDidChangeCustomDocument = new vscode.EventEmitter<
+		vscode.CustomDocumentEditEvent<TLDrawDocument>
+	>()
 	public readonly onDidChangeCustomDocument = this._onDidChangeCustomDocument.event
 
 	constructor(private readonly context: vscode.ExtensionContext) {}
@@ -61,7 +62,7 @@ export class TldrawEditorProvider implements vscode.CustomEditorProvider {
 		uri: vscode.Uri,
 		openContext: { backupId?: string },
 		_token: vscode.CancellationToken
-	): Promise {
+	): Promise<TLDrawDocument> {
 		nicelog('openCustomDocument')
 
 		const document: TLDrawDocument = await TLDrawDocument.create(uri, openContext.backupId)
@@ -112,7 +113,7 @@ export class TldrawEditorProvider implements vscode.CustomEditorProvider {
 		document: TLDrawDocument,
 		webviewPanel: vscode.WebviewPanel,
 		_token: vscode.CancellationToken
-	): Promise {
+	): Promise<void> {
 		nicelog('resolveCustomEditor')
 		this.webviewPanels.push(webviewPanel)
 		webviewPanel.onDidDispose(() => {
@@ -124,7 +125,7 @@ export class TldrawEditorProvider implements vscode.CustomEditorProvider {
 	public saveCustomDocument(
 		document: TLDrawDocument,
 		cancellation: vscode.CancellationToken
-	): Thenable {
+	): Thenable<void> {
 		return document.save(cancellation)
 	}
 
@@ -132,14 +133,14 @@ export class TldrawEditorProvider implements vscode.CustomEditorProvider {
 		document: TLDrawDocument,
 		destination: vscode.Uri,
 		cancellation: vscode.CancellationToken
-	): Thenable {
+	): Thenable<void> {
 		return document.saveAs(destination, cancellation)
 	}
 
 	public revertCustomDocument(
 		document: TLDrawDocument,
 		cancellation: vscode.CancellationToken
-	): Thenable {
+	): Thenable<void> {
 		return document.revert(cancellation)
 	}
 
@@ -147,7 +148,7 @@ export class TldrawEditorProvider implements vscode.CustomEditorProvider {
 		document: TLDrawDocument,
 		context: vscode.CustomDocumentBackupContext,
 		cancellation: vscode.CancellationToken
-	): Thenable {
+	): Thenable<vscode.CustomDocumentBackup> {
 		return document.backup(context.destination, cancellation)
 	}
 }

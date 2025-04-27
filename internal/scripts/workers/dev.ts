@@ -18,9 +18,12 @@ const lockfileName = __dirname
 class MiniflareMonitor {
 	private process: ChildProcessWithoutNullStreams | null = null
 
-	constructor(private command: string, private args: string[] = []) {}
+	constructor(
+		private command: string,
+		private args: string[] = []
+	) {}
 
-	public async start(): Promise {
+	public async start(): Promise<void> {
 		await this.stop() // Ensure any existing process is stopped
 		await this.lock()
 		await console.log(`Starting wrangler...`)
@@ -57,13 +60,13 @@ class MiniflareMonitor {
 		}
 	}
 
-	private async restart(): Promise {
+	private async restart(): Promise<void> {
 		console.log('Restarting wrangler...')
 		await this.stop()
 		setTimeout(() => this.start(), 3000) // Restart after a short delay
 	}
 
-	private async stop(): Promise {
+	private async stop(): Promise<void> {
 		if (this.isLocked()) await this.release()
 		if (this.process) {
 			this.process.kill()
@@ -71,7 +74,7 @@ class MiniflareMonitor {
 		}
 	}
 
-	private _lockPromise?: Promise
+	private _lockPromise?: Promise<() => Promise<void>>
 	private isLocked() {
 		return !!this._lockPromise
 	}

@@ -1,5 +1,5 @@
+import { ContextMenuItem } from '@radix-ui/react-context-menu'
 import { exhaustiveSwitchError, preventDefault } from '@tldraw/editor'
-import { ContextMenu } from 'radix-ui'
 import { useState } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
@@ -16,12 +16,10 @@ import { TldrawUiKbd } from '../TldrawUiKbd'
 import { TldrawUiToolbarButton } from '../TldrawUiToolbar'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
-const { ContextMenuItem } = ContextMenu
-
 /** @public */
 export interface TLUiMenuItemProps<
 	TranslationKey extends string = string,
-	IconType extends string = string
+	IconType extends string = string,
 > {
 	id: string
 	/**
@@ -43,7 +41,7 @@ export interface TLUiMenuItemProps<
 	/**
 	 * The function to call when the item is clicked.
 	 */
-	onSelect(source: TLUiEventSource): Promise | void
+	onSelect(source: TLUiEventSource): Promise<void> | void
 	/**
 	 * Whether this item should be disabled.
 	 */
@@ -65,21 +63,19 @@ export interface TLUiMenuItemProps<
 /** @public @react */
 export function TldrawUiMenuItem<
 	TranslationKey extends string = string,
-	IconType extends string = string
->(
-	{
-		disabled = false,
-		spinner = false,
-		readonlyOk = false,
-		id,
-		kbd,
-		label,
-		icon,
-		onSelect,
-		noClose,
-		isSelected,
-	}: TLUiMenuItemProps
-) {
+	IconType extends string = string,
+>({
+	disabled = false,
+	spinner = false,
+	readonlyOk = false,
+	id,
+	kbd,
+	label,
+	icon,
+	onSelect,
+	noClose,
+	isSelected,
+}: TLUiMenuItemProps<TranslationKey, IconType>) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 
 	const msg = useTranslation()

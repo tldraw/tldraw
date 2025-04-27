@@ -19,7 +19,7 @@ async function saveSnapshot(roomId: string, snapshot: RoomSnapshot) {
 
 // We'll keep an in-memory map of rooms and their data
 interface RoomState {
-	room: TLSocketRoom
+	room: TLSocketRoom<any, void>
 	id: string
 	needsPersist: boolean
 }

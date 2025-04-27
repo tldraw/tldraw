@@ -5,7 +5,7 @@ interface ExecOpts {
 	pwd?: string
 	processStdoutLine?(line: string): void
 	processStderrLine?(line: string): void
-	env?: Partial
+	env?: Partial<NodeJS.ProcessEnv>
 }
 
 export function prefixOutput(prefix: string) {
@@ -24,7 +24,7 @@ export async function exec(
 		processStderrLine = (line) => process.stderr.write(`${line}\n`),
 		env,
 	}: ExecOpts = {}
-): Promise {
+): Promise<string> {
 	nicelog(`> $ ${command} ${args.join(' ')} (in ${pwd}))`)
 	return new Promise((resolve, reject) => {
 		const data: string[] = []

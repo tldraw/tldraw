@@ -5,7 +5,9 @@ import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 export class Point2d extends Geometry2d {
 	point: Vec
 
-	constructor(config: Omit & { margin: number; point: Vec }) {
+	constructor(
+		config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & { margin: number; point: Vec }
+	) {
 		super({ ...config, isClosed: true, isFilled: true })
 		const { point } = config
 

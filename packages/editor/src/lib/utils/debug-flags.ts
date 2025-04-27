@@ -8,7 +8,7 @@ import { deleteFromSessionStorage, getFromSessionStorage, setInSessionStorage } 
 // development. Use `createFeatureFlag` to create a boolean flag which will be
 // `true` by default in development and staging, and `false` in production.
 /** @internal */
-export const featureFlags: Record = {}
+export const featureFlags: Record<string, DebugFlag<boolean>> = {}
 
 /** @internal */
 export const pointerCaptureTrackingObject = createDebugValue(
@@ -96,7 +96,7 @@ function createDebugValue<T>(
 	{
 		defaults,
 		shouldStoreForSession = true,
-	}: { defaults: DebugFlagDefaults; shouldStoreForSession?: boolean }
+	}: { defaults: DebugFlagDefaults<T>; shouldStoreForSession?: boolean }
 ) {
 	return createDebugValueBase({
 		name,
@@ -119,7 +119,7 @@ function createDebugValue<T>(
 // 	})
 // }
 
-function createDebugValueBase<T>(def: DebugFlagDef): DebugFlag {
+function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 	const defaultValue = getDefaultValue(def)
 	const storedValue = def.shouldStoreForSession
 		? (getStoredInitialValue(def.name) as T | null)
@@ -171,7 +171,7 @@ function readEnv(fn: () => string | undefined) {
 	}
 }
 
-function getDefaultValue<T>(def: DebugFlagDef): T {
+function getDefaultValue<T>(def: DebugFlagDef<T>): T {
 	const env =
 		readEnv(() => process.env.TLDRAW_ENV) ??
 		readEnv(() => process.env.VERCEL_PUBLIC_TLDRAW_ENV) ??
@@ -201,9 +201,9 @@ export interface DebugFlagDefaults<T> {
 /** @internal */
 export interface DebugFlagDef<T> {
 	name: string
-	defaults: DebugFlagDefaults
+	defaults: DebugFlagDefaults<T>
 	shouldStoreForSession: boolean
 }
 
 /** @internal */
-export type DebugFlag<T> = DebugFlagDef & Atom
+export type DebugFlag<T> = DebugFlagDef<T> & Atom<T>

@@ -11,17 +11,15 @@ import { routes } from '../../../routeDefs'
 import { F } from '../../utils/i18n'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 
-export function SlurpFailure(
-	{
-		slurpPersistenceKey,
-		onTryAgain,
-		onClose,
-	}: {
-		slurpPersistenceKey: string
-		onTryAgain(): void
-		onClose(): void
-	}
-) {
+export function SlurpFailure({
+	slurpPersistenceKey,
+	onTryAgain,
+	onClose,
+}: {
+	slurpPersistenceKey: string
+	onTryAgain(): void
+	onClose(): void
+}) {
 	return (
 		<>
 			<TldrawUiDialogHeader>

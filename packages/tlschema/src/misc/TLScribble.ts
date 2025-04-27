@@ -19,14 +19,14 @@ export interface TLScribble {
 	size: number
 	color: TLCanvasUiColor
 	opacity: number
-	state: SetValue
+	state: SetValue<typeof TL_SCRIBBLE_STATES>
 	delay: number
 	shrink: number
 	taper: boolean
 }
 
 /** @public */
-export const scribbleValidator: T.ObjectValidator = T.object({
+export const scribbleValidator: T.ObjectValidator<TLScribble> = T.object({
 	id: T.string,
 	points: T.arrayOf(vecModelValidator),
 	size: T.positiveNumber,

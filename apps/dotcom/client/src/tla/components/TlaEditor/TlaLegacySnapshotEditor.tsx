@@ -27,21 +27,19 @@ export const components: TLComponents = {
 	TopPanel: TlaEditorTopPanel,
 }
 
-export function TlaLegacySnapshotEditor(
-	{
-		fileSlug,
-		snapshot,
-		timeStamp,
-		context,
-		token,
-	}: {
-		fileSlug: string
-		snapshot: TLStoreSnapshot
-		context: 'legacy-snapshot' | 'legacy-history-snapshot'
-		timeStamp?: string
-		token?: string
-	}
-) {
+export function TlaLegacySnapshotEditor({
+	fileSlug,
+	snapshot,
+	timeStamp,
+	context,
+	token,
+}: {
+	fileSlug: string
+	snapshot: TLStoreSnapshot
+	context: 'legacy-snapshot' | 'legacy-history-snapshot'
+	timeStamp?: string
+	token?: string
+}) {
 	return (
 		<>
 			<SneakySetDocumentTitle />
@@ -58,21 +56,19 @@ export function TlaLegacySnapshotEditor(
 	)
 }
 
-function TlaEditorInner(
-	{
-		fileSlug,
-		snapshot,
-		timeStamp,
-		token,
-		context,
-	}: {
-		fileSlug: string
-		snapshot: TLStoreSnapshot
-		context: 'legacy-snapshot' | 'legacy-history-snapshot'
-		timeStamp?: string
-		token?: string
-	}
-) {
+function TlaEditorInner({
+	fileSlug,
+	snapshot,
+	timeStamp,
+	token,
+	context,
+}: {
+	fileSlug: string
+	snapshot: TLStoreSnapshot
+	context: 'legacy-snapshot' | 'legacy-history-snapshot'
+	timeStamp?: string
+	token?: string
+}) {
 	const app = useMaybeApp()
 
 	const setIsReady = useSetIsReady()
@@ -107,7 +103,7 @@ function TlaEditorInner(
 				...(token
 					? {
 							Authorization: 'Bearer ' + token,
-					  }
+						}
 					: {}),
 			},
 			body: JSON.stringify({ timeStamp }),

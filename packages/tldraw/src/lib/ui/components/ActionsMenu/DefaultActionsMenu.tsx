@@ -20,9 +20,9 @@ export interface TLUiActionsMenuProps {
 }
 
 /** @public @react */
-export const DefaultActionsMenu = memo(function DefaultActionsMenu(
-	{ children }: TLUiActionsMenuProps
-) {
+export const DefaultActionsMenu = memo(function DefaultActionsMenu({
+	children,
+}: TLUiActionsMenuProps) {
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 	const isReadonlyMode = useReadonly()

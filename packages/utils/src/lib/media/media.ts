@@ -48,7 +48,7 @@ export class MediaHelpers {
 	 * Load a video from a url.
 	 * @public
 	 */
-	static loadVideo(src: string): Promise {
+	static loadVideo(src: string): Promise<HTMLVideoElement> {
 		return new Promise((resolve, reject) => {
 			const video = document.createElement('video')
 			video.onloadeddata = () => resolve(video)
@@ -61,7 +61,7 @@ export class MediaHelpers {
 		})
 	}
 
-	static async getVideoFrameAsDataUrl(video: HTMLVideoElement, time = 0): Promise {
+	static async getVideoFrameAsDataUrl(video: HTMLVideoElement, time = 0): Promise<string> {
 		const promise = promiseWithResolve<string>()
 		let didSetTime = false
 
@@ -119,7 +119,9 @@ export class MediaHelpers {
 	 * Load an image from a url.
 	 * @public
 	 */
-	static getImageAndDimensions(src: string): Promise {
+	static getImageAndDimensions(
+		src: string
+	): Promise<{ w: number; h: number; image: HTMLImageElement }> {
 		return new Promise((resolve, reject) => {
 			const img = Image()
 			img.onload = () => {
@@ -161,7 +163,7 @@ export class MediaHelpers {
 	 * @param blob - A SharedBlob containing the video
 	 * @public
 	 */
-	static async getVideoSize(blob: Blob): Promise {
+	static async getVideoSize(blob: Blob): Promise<{ w: number; h: number }> {
 		return MediaHelpers.usingObjectURL(blob, async (url) => {
 			const video = await MediaHelpers.loadVideo(url)
 			return { w: video.videoWidth, h: video.videoHeight }
@@ -174,7 +176,7 @@ export class MediaHelpers {
 	 * @param blob - A Blob containing the image.
 	 * @public
 	 */
-	static async getImageSize(blob: Blob): Promise {
+	static async getImageSize(blob: Blob): Promise<{ w: number; h: number }> {
 		const { w, h } = await MediaHelpers.usingObjectURL(blob, MediaHelpers.getImageAndDimensions)
 
 		try {
@@ -206,7 +208,7 @@ export class MediaHelpers {
 		return { w, h }
 	}
 
-	static async isAnimated(file: Blob): Promise {
+	static async isAnimated(file: Blob): Promise<boolean> {
 		if (file.type === 'image/gif') {
 			return isGifAnimated(await file.arrayBuffer())
 		}
@@ -242,7 +244,7 @@ export class MediaHelpers {
 		return DEFAULT_SUPPORTED_IMAGE_TYPES.includes(mimeType)
 	}
 
-	static async usingObjectURL<T>(blob: Blob, fn: (url: string) => Promise): Promise {
+	static async usingObjectURL<T>(blob: Blob, fn: (url: string) => Promise<T>): Promise<T> {
 		const url = URL.createObjectURL(blob)
 		try {
 			return await fn(url)
