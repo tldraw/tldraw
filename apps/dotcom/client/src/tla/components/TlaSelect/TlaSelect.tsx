@@ -1,4 +1,4 @@
-import * as Select from '@radix-ui/react-select'
+import { Select } from 'radix-ui'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './select.module.css'

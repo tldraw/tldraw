@@ -1,6 +1,6 @@
-import * as _ContextMenu from '@radix-ui/react-context-menu'
 import { TlaFile } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
+import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { KeyboardEvent, MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
