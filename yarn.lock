@@ -9145,7 +9145,7 @@ __metadata:
     license-report: "npm:^6.7.1"
     lint-staged: "npm:^15.4.3"
     mime: "npm:^4.0.6"
-    prettier: "npm:^3.5.3"
+    prettier: "npm:^3.4.2"
     prettier-plugin-organize-imports: "npm:^3.2.4"
     purgecss: "npm:^5.0.0"
     rimraf: "npm:^4.4.1"
