@@ -16534,7 +16534,6 @@ __metadata:
   resolution: "examples.tldraw.com@workspace:apps/examples"
   dependencies:
     "@playwright/test": "npm:^1.50.0"
-    "@radix-ui/react-alert-dialog": "npm:^1.1.5"
     "@tiptap/core": "npm:^2.9.1"
     "@tiptap/extension-font-family": "npm:^2.9.1"
     "@tiptap/extension-text-style": "npm:^2.9.1"
@@ -16557,6 +16556,7 @@ __metadata:
     lodash: "npm:^4.17.21"
     pdf-lib: "npm:^1.17.1"
     pdfjs-dist: "npm:^4.10.38"
+    radix-ui: "npm:^1.3.4"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     react-helmet-async: "npm:^1.3.0"
