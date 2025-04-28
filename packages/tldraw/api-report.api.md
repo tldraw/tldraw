@@ -1215,6 +1215,11 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
+    onDoubleClickCorner(shape: TLFrameShape): {
+        id: TLShapeId;
+        type: "frame";
+    };
+    // (undocumented)
     onDoubleClickEdge(shape: TLFrameShape, info: TLDoubleClickEdgeInfo<TLFrameShape>): {
         id: TLShapeId;
         type: "frame";

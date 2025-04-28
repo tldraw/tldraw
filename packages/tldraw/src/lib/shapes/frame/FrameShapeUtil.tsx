@@ -6,6 +6,7 @@ import {
 	Rectangle2d,
 	SVGContainer,
 	SvgExportContext,
+	TLDoubleClickEdgeInfo,
 	TLFrameShape,
 	TLFrameShapeProps,
 	TLGroupShape,
@@ -23,10 +24,9 @@ import {
 	resizeBox,
 	toDomPrecision,
 	useValue,
-	TLDoubleClickEdgeInfo,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { getFrameChildrenBounds } from '../../utils/frames/frames'
+import { fitFrameToContent, getFrameChildrenBounds } from '../../utils/frames/frames'
 import {
 	TLCreateTextJsxFromSpansOpts,
 	createTextJsxFromSpans,
@@ -401,6 +401,14 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			this.editor.updateShapes(changes)
 		})
 
+		return {
+			id: shape.id,
+			type: shape.type,
+		}
+	}
+
+	override onDoubleClickCorner(shape: TLFrameShape) {
+		fitFrameToContent(this.editor, shape.id, { padding: 10 })
 		return {
 			id: shape.id,
 			type: shape.type,

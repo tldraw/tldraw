@@ -674,7 +674,22 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onDoubleClickEdge?(shape: Shape, info?: TLDoubleClickEdgeInfo<Shape>): TLShapePartial<Shape> | void
+	onDoubleClickEdge?(
+		shape: Shape,
+		info?: TLDoubleClickEdgeInfo<Shape>
+	): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape's corner is double clicked.
+	 *
+	 * @param shape - The shape.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onDoubleClickCorner?(
+		shape: Shape,
+		info?: TLDoubleClickEdgeInfo<Shape>
+	): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape is double clicked.
