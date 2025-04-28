@@ -1,7 +1,7 @@
 import { Select as _Select } from 'radix-ui'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
-import styles from './_select.module.css'
+import styles from './select.module.css'
 
 export function TlaSelect<T extends string>({
 	label,
