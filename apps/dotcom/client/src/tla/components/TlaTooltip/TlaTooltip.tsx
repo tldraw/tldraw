@@ -3,7 +3,7 @@ import classNames from 'classnames'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import React from 'react'
 import { useContainer } from 'tldraw'
-import style from './_tooltip.module.css'
+import style from './tooltip.module.css'
 
 export const TlaTooltipRoot: typeof _Tooltip.Root = (props) => (
 	<_Tooltip.Root delayDuration={150} {...props} />
