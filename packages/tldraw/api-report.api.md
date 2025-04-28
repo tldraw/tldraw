@@ -77,6 +77,7 @@ import { TLDefaultFontStyle } from '@tldraw/editor';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/editor';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
 import { TLDefaultVerticalAlignStyle } from '@tldraw/editor';
+import { TLDoubleClickEdgeInfo } from '@tldraw/editor/src/lib/editor/shapes/ShapeUtil';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
@@ -1213,6 +1214,11 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     indicator(shape: TLFrameShape): JSX_2.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
+    // (undocumented)
+    onDoubleClickEdge(shape: TLFrameShape, info: TLDoubleClickEdgeInfo<TLFrameShape>): {
+        id: TLShapeId;
+        type: "frame";
+    } | undefined;
     // (undocumented)
     onDragShapesOut(_shape: TLFrameShape, shapes: TLShape[]): void;
     // (undocumented)

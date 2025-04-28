@@ -208,6 +208,7 @@ export {
 	type TLShapeUtilCanBindOpts,
 	type TLShapeUtilCanvasSvgDef,
 	type TLShapeUtilConstructor,
+	type TLDoubleClickEdgeInfo
 } from './lib/editor/shapes/ShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
 export { getPerfectDashProps } from './lib/editor/shapes/shared/getPerfectDashProps'

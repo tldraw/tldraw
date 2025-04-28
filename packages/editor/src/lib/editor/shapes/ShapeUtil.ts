@@ -11,7 +11,7 @@ import {
 	TLUnknownShape,
 } from '@tldraw/tlschema'
 import { ReactElement } from 'react'
-import { Box, SelectionHandle } from '../../primitives/Box'
+import { Box, SelectionEdge, SelectionHandle } from '../../primitives/Box'
 import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
@@ -674,7 +674,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onDoubleClickEdge?(shape: Shape): TLShapePartial<Shape> | void
+	onDoubleClickEdge?(shape: Shape, info?: TLDoubleClickEdgeInfo<Shape>): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape is double clicked.
@@ -759,4 +759,9 @@ export interface TLHandleDragInfo<T extends TLShape> {
 	handle: TLHandle
 	isPrecise: boolean
 	initial?: T | undefined
+}
+
+/** @public */
+export interface TLDoubleClickEdgeInfo<T extends TLShape> {
+	edge: SelectionEdge
 }

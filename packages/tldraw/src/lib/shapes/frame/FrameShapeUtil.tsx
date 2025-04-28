@@ -11,8 +11,11 @@ import {
 	TLGroupShape,
 	TLResizeInfo,
 	TLShape,
+	TLShapePartial,
 	TLShapeUtilConstructor,
+	Vec,
 	clamp,
+	compact,
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
@@ -21,7 +24,9 @@ import {
 	toDomPrecision,
 	useValue,
 } from '@tldraw/editor'
+import { TLDoubleClickEdgeInfo } from '@tldraw/editor/src/lib/editor/shapes/ShapeUtil'
 import classNames from 'classnames'
+import { getFrameChildrenBounds } from '../../utils/frames/frames'
 import {
 	TLCreateTextJsxFromSpansOpts,
 	createTextJsxFromSpans,
@@ -357,6 +362,48 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			...(t > 0.5 ? endShape.props : startShape.props),
 			w: lerp(startShape.props.w, endShape.props.w, t),
 			h: lerp(startShape.props.h, endShape.props.h, t),
+		}
+	}
+
+	override onDoubleClickEdge(shape: TLFrameShape, info: TLDoubleClickEdgeInfo<TLFrameShape>) {
+		const childIds = this.editor.getSortedChildIdsForParent(shape.id)
+		const children = compact(childIds.map((id) => this.editor.getShape(id)))
+		if (!children.length) return
+
+		const { dx, dy, w, h } = getFrameChildrenBounds(children, this.editor, { padding: 10 })
+		const diff = new Vec(dx, dy).rot(shape.rotation)
+
+		this.editor.run(() => {
+			const isHorizontalEdge = info.edge === 'left' || info.edge === 'right'
+			const isVerticalEdge = info.edge === 'top' || info.edge === 'bottom'
+
+			const changes: TLShapePartial[] = childIds.map((childId) => {
+				const childShape = this.editor.getShape(childId)!
+				return {
+					id: childShape.id,
+					type: childShape.type,
+					x: isHorizontalEdge ? childShape.x + dx : childShape.x,
+					y: isVerticalEdge ? childShape.y + dy : childShape.y,
+				}
+			})
+
+			changes.push({
+				id: shape.id,
+				type: shape.type,
+				x: isHorizontalEdge ? shape.x - diff.x : shape.x,
+				y: isVerticalEdge ? shape.y - diff.y : shape.y,
+				props: {
+					w: isHorizontalEdge ? w : shape.props.w,
+					h: isVerticalEdge ? h : shape.props.h,
+				},
+			})
+
+			this.editor.updateShapes(changes)
+		})
+
+		return {
+			id: shape.id,
+			type: shape.type,
 		}
 	}
 }
