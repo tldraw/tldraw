@@ -23,8 +23,8 @@ import {
 	resizeBox,
 	toDomPrecision,
 	useValue,
+	TLDoubleClickEdgeInfo,
 } from '@tldraw/editor'
-import { TLDoubleClickEdgeInfo } from '@tldraw/editor/src/lib/editor/shapes/ShapeUtil'
 import classNames from 'classnames'
 import { getFrameChildrenBounds } from '../../utils/frames/frames'
 import {
