@@ -34,6 +34,7 @@ Accessibility is something we’ve been researching internally for a while now, 
 ### API additions
 
 - Frames can now have color. Set the `showColors` option on the `FrameShapeUtil` class to display colorful borders and labels for frames. ([#5283](https://github.com/tldraw/tldraw/pull/5283))
+
   ```tsx
   import { FrameShapeUtil, Tldraw } from 'tldraw'
   import 'tldraw/tldraw.css'
@@ -48,6 +49,7 @@ Accessibility is something we’ve been researching internally for a while now, 
   	)
   }
   ```
+
 - There’s a new `getShapeVisibility` prop to replace `isShapeHidden`, which is now deprecated. `getShapeVisibility` allows a child of a hidden parent to override its parent and become visible. See the [Layer Panel Example](https://tldraw.dev/examples/ui/layer-panel). ([#5762](https://github.com/tldraw/tldraw/pull/5762))
 - The `Geometry2d` class has a couple of new helper methods for calculating intersection points (`intersectLineSegment` and `intersectCircle`), a new helper method for applying a transformation matrix (`transform`), and new filtering options to allow excluding certain parts of geometry from calculations. ([#5754](https://github.com/tldraw/tldraw/pull/5754))
 - We now individually export two of our default Tiptap extensions (for rich text) ([#5874](https://github.com/tldraw/tldraw/pull/5874))
