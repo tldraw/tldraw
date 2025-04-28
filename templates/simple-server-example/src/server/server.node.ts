@@ -1,6 +1,7 @@
 import cors from '@fastify/cors'
 import websocketPlugin from '@fastify/websocket'
 import fastify from 'fastify'
+import type { RawData } from 'ws'
 import { loadAsset, storeAsset } from './assets'
 import { makeOrLoadRoom } from './rooms'
 import { unfurl } from './unfurl'
@@ -22,10 +23,30 @@ app.register(async (app) => {
 		// you need to extract it and pass it to the room.
 		const sessionId = (req.query as any)?.['sessionId'] as string
 
+		// At least one message handler needs to
+		// be attached before doing any kind of async work
+		// https://github.com/fastify/fastify-websocket?tab=readme-ov-file#attaching-event-handlers
+		// We collect messages that came in before the room was loaded, and re-emit them
+		// after the room is loaded.
+		const caughtMessages: RawData[] = []
+
+		const collectMessagesListener = (message: RawData) => {
+			caughtMessages.push(message)
+		}
+
+		socket.on('message', collectMessagesListener)
+
 		// Here we make or get an existing instance of TLSocketRoom for the given roomId
 		const room = await makeOrLoadRoom(roomId)
 		// and finally connect the socket to the room
 		room.handleSocketConnect({ sessionId, socket })
+
+		socket.off('message', collectMessagesListener)
+
+		// Finally, we replay any caught messages so the room can process them
+		for (const message of caughtMessages) {
+			socket.emit('message', message)
+		}
 	})
 
 	// To enable blob storage for assets, we add a simple endpoint supporting PUT and GET requests
