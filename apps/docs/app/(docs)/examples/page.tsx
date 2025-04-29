@@ -42,6 +42,18 @@ export default async function Page({ params: _params }: { params: { slug: string
 		'SELECT * FROM articles WHERE sectionId = "examples"'
 	)) as Article[]
 
+	const examplesByCategory: Record<string, Article[]> = {}
+	for (const example of examples) {
+		if (!examplesByCategory[example.categoryId]) {
+			examplesByCategory[example.categoryId] = []
+		}
+		examplesByCategory[example.categoryId].push(example)
+	}
+	const exampleCategories = Object.keys(examplesByCategory).map((categoryId) => ({
+		id: categoryId,
+		examples: examplesByCategory[categoryId],
+	}))
+
 	return (
 		<div className="w-full max-w-screen-xl mx-auto md:px-5 md:flex md:pt-8 isolate">
 			<DocsSidebar
@@ -63,8 +75,15 @@ export default async function Page({ params: _params }: { params: { slug: string
 						<PageTitle>Examples</PageTitle>
 					</div>
 				</section>
+				{exampleCategories.map((category) => (
+					<ExampleCategory
+						key={category.id}
+						categoryId={category.id}
+						examples={category.examples}
+					/>
+				))}
 				<div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-					{examples.map((example) => (
+					{/* {examples.map((example) => (
 						<div key={example.id} className="mb-8 h-full">
 							<a
 								href={`/examples/${example.id}`}
@@ -76,7 +95,7 @@ export default async function Page({ params: _params }: { params: { slug: string
 								</p>
 							</a>
 						</div>
-					))}
+					))} */}
 				</div>
 
 				{/* <div className="mx-auto w-full max-w-sm">
@@ -84,5 +103,38 @@ export default async function Page({ params: _params }: { params: { slug: string
 				</div> */}
 			</main>
 		</div>
+	)
+}
+
+export const EXAMPLES_CATEGORY_NAMES: Record<string, string> = {
+	basic: 'Getting started',
+	ui: 'UI & theming',
+	'shapes/tools': 'Shapes & tools',
+	'data/assets': 'Data & assets',
+	'editor-api': 'Editor API',
+	collaboration: 'Collaboration',
+	'use-cases': 'Use cases',
+}
+
+function ExampleCategory({ categoryId, examples }: { categoryId: string; examples: Article[] }) {
+	return (
+		<section className="mb-12">
+			<h2 className="mb-4 text-2xl font-semibold">{EXAMPLES_CATEGORY_NAMES[categoryId]}</h2>
+			<div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+				{examples.map((example) => (
+					<div key={example.id} className="mb-8 h-full">
+						<a
+							href={`/examples/${categoryId}/${example.id}`}
+							className="flex flex-col h-full p-4 bg-white border border-zinc-200 rounded-lg shadow-sm hover:shadow-md dark:bg-zinc-950 dark:border-zinc-800"
+						>
+							<h2 className="text-lg font-semibold">{example.title}</h2>
+							<p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 flex-grow">
+								{example.description}
+							</p>
+						</a>
+					</div>
+				))}
+			</div>
+		</section>
 	)
 }
