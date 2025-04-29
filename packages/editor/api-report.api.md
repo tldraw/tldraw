@@ -3366,6 +3366,8 @@ export interface TLEditorComponents {
     // (undocumented)
     OnTheCanvas?: ComponentType | null;
     // (undocumented)
+    Overlays?: ComponentType | null;
+    // (undocumented)
     Scribble?: ComponentType<TLScribbleProps> | null;
     // (undocumented)
     SelectionBackground?: ComponentType<TLSelectionBackgroundProps> | null;

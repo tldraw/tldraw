@@ -44,6 +44,7 @@
 	/* User handles need to be above selection edges / corners, matters for sticky note clone handles */
 	--layer-overlays-user-handles: 105;
 	--layer-overlays-user-indicator-hint: 110;
+	--layer-overlays-custom: 115;
 	--layer-overlays-collaborator-cursor-hint: 120;
 	--layer-overlays-collaborator-cursor: 130;
 
@@ -470,6 +471,10 @@ input,
 .tl-user-indicator__hint {
 	z-index: var(--layer-overlays-user-indicator-hint);
 	stroke-width: calc(2.5px * var(--tl-scale));
+}
+
+.tl-custom-overlays {
+	z-index: var(--layer-overlays-custom);
 }
 
 /* behind collaborator cursor */
