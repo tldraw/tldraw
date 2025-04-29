@@ -121,7 +121,7 @@ function ExampleCategory({ categoryId, examples }: { categoryId: string; example
 	return (
 		<section className="mb-12">
 			<h2 className="mb-4 text-2xl font-semibold">{EXAMPLES_CATEGORY_NAMES[categoryId]}</h2>
-			<div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+			<div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
 				{examples.map((example) => {
 					return (
 						<div key={example.id} className="mb-8 h-full">
