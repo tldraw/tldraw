@@ -3914,9 +3914,9 @@ export interface TLRotationSnapshot {
     // (undocumented)
     initialCursorAngle: number;
     // (undocumented)
-    initialShapesRotation: number;
+    initialPageCenter: Vec;
     // (undocumented)
-    pageCenter: Vec;
+    initialShapesRotation: number;
     // (undocumented)
     shapeSnapshots: {
         initialPagePoint: Vec;
