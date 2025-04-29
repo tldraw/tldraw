@@ -1,5 +1,5 @@
 ---
-title: Tldraw image component
+title: Image component
 component: ./TldrawImageExample.tsx
 category: ui
 priority: 3

@@ -1,5 +1,5 @@
 ---
-title: Deep Links
+title: Deep links
 component: ./DeepLinksExample.tsx
 category: basic
 priority: 4

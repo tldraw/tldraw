@@ -1,5 +1,5 @@
 ---
-title: Shape with geometry
+title: Shape geometry
 component: ./ShapeWithGeometry.tsx
 category: shapes/tools
 priority: 3

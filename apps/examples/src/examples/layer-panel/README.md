@@ -1,5 +1,5 @@
 ---
-title: Layer Panel
+title: Layer panel
 component: ./LayerPanelExample.tsx
 category: ui
 priority: 3

@@ -1,5 +1,5 @@
 ---
-title: Local Storage
+title: Local storage
 component: ./LocalStorageExample.tsx
 category: data/assets
 priority: 1

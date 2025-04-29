@@ -1,5 +1,5 @@
 ---
-title: Snow Storm
+title: Snowstorm
 component: ./SnowStormExample.tsx
 category: use-cases
 keywords: [snowstorm, front]

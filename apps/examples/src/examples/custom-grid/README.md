@@ -1,5 +1,5 @@
 ---
-title: Custom Grid Example
+title: Custom grid
 component: ./CustomGridExample.tsx
 category: ui
 priority: 12
