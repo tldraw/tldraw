@@ -1,12 +1,12 @@
 ---
 title: Tldraw component
 component: ./BasicExample.tsx
-category: basic
+category: getting-started
 priority: 1
 keywords: [basic, intro, simple, quick, start, hello world, installation]
 ---
 
-How to use the `Tldraw` component in your app.
+The simplest way to use the `Tldraw` component.
 
 ---
 

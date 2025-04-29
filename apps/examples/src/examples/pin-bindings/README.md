@@ -1,7 +1,7 @@
 ---
 title: Pin (bindings)
 component: ./PinExample.tsx
-category: shapes/tools
+category: bindings
 keywords: []
 ---
 

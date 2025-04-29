@@ -1,7 +1,7 @@
 ---
 title: Remove tool from UI
 component: ./RemoveToolExample.tsx
-category: basic
+category: ui
 keywords: [remove, tool]
 ---
 

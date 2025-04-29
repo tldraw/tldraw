@@ -23,6 +23,8 @@ type Category =
 	| 'data/assets'
 	| 'shapes/tools'
 	| 'use-cases'
+	| 'bindings'
+	| 'getting-started'
 
 const getExamplesForCategory = (category: Category) =>
 	(Object.values(import.meta.glob('./examples/*/README.md', { eager: true })) as Example[])
@@ -33,11 +35,13 @@ const getExamplesForCategory = (category: Category) =>
 		})
 
 const categories = [
-	['basic', 'Getting started'],
-	['collaboration', 'Sync'],
+	['getting-started', 'Getting started'],
+	['basic', 'Configuring tldraw'],
 	['ui', 'UI & theming'],
-	['shapes/tools', 'Shapes & tools'],
 	['editor-api', 'Editor API'],
+	['shapes/tools', 'Shapes & tools'],
+	['bindings', 'Bindings'],
+	['collaboration', 'Sync'],
 	['data/assets', 'Data & assets'],
 	['use-cases', 'Use cases'],
 ]

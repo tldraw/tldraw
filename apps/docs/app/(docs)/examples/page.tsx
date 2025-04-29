@@ -108,11 +108,13 @@ export default async function Page({ params: _params }: { params: { slug: string
 }
 
 export const EXAMPLES_CATEGORY_NAMES: Record<string, string> = {
-	basic: 'Getting started',
+	'getting-started': 'Getting started',
+	basic: 'Configuration',
 	ui: 'UI & theming',
-	'shapes/tools': 'Shapes & tools',
-	'data/assets': 'Data & assets',
 	'editor-api': 'Editor API',
+	'shapes/tools': 'Shapes & tools',
+	bindings: 'Bindings',
+	'data/assets': 'Data & assets',
 	collaboration: 'Collaboration',
 	'use-cases': 'Use cases',
 }

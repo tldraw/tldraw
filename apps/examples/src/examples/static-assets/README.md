@@ -1,7 +1,7 @@
 ---
 title: Static assets
 component: ./StaticAssetsExample.tsx
-category: basic
+category: data/assets
 keywords: [icons, fonts, pre-load]
 ---
 
