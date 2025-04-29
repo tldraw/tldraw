@@ -2,10 +2,10 @@ import { getMarkRange, Range, EditorEvents as TextEditorEvents } from '@tiptap/c
 import { MarkType } from '@tiptap/pm/model'
 import { Box, debounce, TiptapEditor, track, useEditor, useValue } from '@tldraw/editor'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { rectToBox, TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { DefaultRichTextToolbarContent } from './DefaultRichTextToolbarContent'
 import { LinkEditor } from './LinkEditor'
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 
 /** @public */
 export interface TLUiRichTextToolbarProps {
