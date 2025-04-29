@@ -214,12 +214,7 @@ function getArticleData({
 			: `${sectionId}/${articleId}${extension}`,
 		content,
 		apiTags,
-		path:
-			sectionId === 'getting-started'
-				? `/${articleId}`
-				: categoryId === sectionId + '_ucg'
-					? `/${sectionId}/${articleId}` // index page
-					: `/${sectionId}/${categoryId}/${articleId}`,
+		path: getArticlePath({ sectionId, categoryId, articleId }),
 		componentCode,
 		componentCodeFiles: componentCode ? JSON.stringify(componentCodeFiles) : null,
 	}
@@ -231,6 +226,27 @@ function getArticleData({
 	}
 
 	return article
+}
+
+function getArticlePath({
+	sectionId,
+	categoryId,
+	articleId,
+}: {
+	sectionId: Section['id']
+	categoryId: Category['id']
+	articleId: Article['id']
+}): string {
+	if (sectionId === 'examples') {
+		return `/${sectionId}/${articleId}`
+	}
+	if (sectionId === 'getting-started') {
+		return `/${articleId}`
+	}
+	if (categoryId === sectionId + '_ucg') {
+		return `/${sectionId}/${articleId}` // index page
+	}
+	return `/${sectionId}/${categoryId}/${articleId}`
 }
 
 function getComponentCode({

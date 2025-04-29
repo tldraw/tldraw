@@ -126,7 +126,7 @@ function ExampleCategory({ categoryId, examples }: { categoryId: string; example
 					return (
 						<div key={example.id} className="mb-8 h-full">
 							<a
-								href={`/examples/${categoryId}/${example.id}`}
+								href={`/examples/${example.id}`}
 								className="flex flex-col h-full p-4 bg-white border border-zinc-200 rounded-lg shadow-sm hover:shadow-md dark:bg-zinc-950 dark:border-zinc-800"
 							>
 								<h2 className="text-lg font-semibold">{example.title}</h2>

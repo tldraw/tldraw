@@ -43,11 +43,11 @@ export class ContentDatabase {
 		const section = await db.get(`SELECT * FROM sections WHERE sections.path = ?`, path)
 		if (section) return { type: 'section', section } as const
 
-		const category = await db.get(`SELECT * FROM categories WHERE categories.path = ?`, path)
-		if (category) return { type: 'category', category } as const
-
 		const article = await db.get(`SELECT * FROM articles WHERE articles.path = ?`, path)
 		if (article) return { type: 'article', article } as const
+
+		const category = await db.get(`SELECT * FROM categories WHERE categories.path = ?`, path)
+		if (category) return { type: 'category', category } as const
 
 		return undefined
 	}
@@ -241,10 +241,6 @@ export class ContentDatabase {
 					})
 					continue
 				}
-
-				// If the article is in the getting-started section
-				// ... we place it at the top level of the sidebar
-				// ... so let's simplify its URL to reflect that
 
 				const categoriesForSection = await db.all<Category[]>(
 					`SELECT * FROM categories WHERE categories.sectionId = ? ORDER BY sectionIndex ASC`,
