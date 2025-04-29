@@ -134,7 +134,7 @@ describe('When in the idle state', () => {
 		editor.pointerMove(100, 100)
 		editor.pointerUp(100, 100)
 
-		editor.keyUp('Enter')
+		editor.keyPress('Enter')
 		editor.expectToBeIn('select.editing_shape')
 	})
 
