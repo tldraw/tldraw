@@ -49,8 +49,19 @@ export function getElbowArrowInfo(
 		minElbowLegLength: shapeOptions.minElbowLegLength[arrow.props.size],
 	}
 
-	const startBinding = getElbowArrowBindingInfo(editor, arrow, bindings.start, arrow.props.start)
-	const endBinding = getElbowArrowBindingInfo(editor, arrow, bindings.end, arrow.props.end)
+	let startBinding = getElbowArrowBindingInfo(editor, arrow, bindings.start, arrow.props.start)
+	let endBinding = getElbowArrowBindingInfo(editor, arrow, bindings.end, arrow.props.end)
+	// if we're binding to open geometry (e.g. lines, draw shapes, etc) we convert the binding to a
+	// point and ignore the picked side, because those things don't really make sense for non-closed
+	// shapes anyway.
+	if (!startBinding.geometry?.isClosed) {
+		startBinding = convertBindingToPoint(startBinding)
+		startBinding.side = null
+	}
+	if (!endBinding.geometry?.isClosed) {
+		endBinding = convertBindingToPoint(endBinding)
+		endBinding.side = null
+	}
 
 	const swapOrder = !!(!startBinding.side && endBinding.side)
 
