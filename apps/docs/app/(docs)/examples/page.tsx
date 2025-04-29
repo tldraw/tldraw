@@ -1,3 +1,11 @@
+import { PageTitle } from '@/components/common/page-title'
+import { Content } from '@/components/content'
+import { DocsMobileSidebar } from '@/components/docs/docs-mobile-sidebar'
+import { DocsSidebar } from '@/components/docs/docs-sidebar'
+import { SearchButton } from '@/components/search/SearchButton'
+import { connect } from '@/scripts/lib/connect'
+import { Article } from '@/types/content-types'
+
 // export async function generateMetadata({
 // 	params,
 // }: {
@@ -16,13 +24,6 @@
 // 	}
 // 	return metadata
 // }
-
-import { PageTitle } from '@/components/common/page-title'
-import { DocsMobileSidebar } from '@/components/docs/docs-mobile-sidebar'
-import { DocsSidebar } from '@/components/docs/docs-sidebar'
-import { SearchButton } from '@/components/search/SearchButton'
-import { connect } from '@/scripts/lib/connect'
-import { Article } from '@/types/content-types'
 
 // const nonDocsPaths = ['/blog/', '/legal/']
 // export async function generateStaticParams() {
@@ -121,19 +122,21 @@ function ExampleCategory({ categoryId, examples }: { categoryId: string; example
 		<section className="mb-12">
 			<h2 className="mb-4 text-2xl font-semibold">{EXAMPLES_CATEGORY_NAMES[categoryId]}</h2>
 			<div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-				{examples.map((example) => (
-					<div key={example.id} className="mb-8 h-full">
-						<a
-							href={`/examples/${categoryId}/${example.id}`}
-							className="flex flex-col h-full p-4 bg-white border border-zinc-200 rounded-lg shadow-sm hover:shadow-md dark:bg-zinc-950 dark:border-zinc-800"
-						>
-							<h2 className="text-lg font-semibold">{example.title}</h2>
-							<p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 flex-grow">
-								{example.description}
-							</p>
-						</a>
-					</div>
-				))}
+				{examples.map((example) => {
+					return (
+						<div key={example.id} className="mb-8 h-full">
+							<a
+								href={`/examples/${categoryId}/${example.id}`}
+								className="flex flex-col h-full p-4 bg-white border border-zinc-200 rounded-lg shadow-sm hover:shadow-md dark:bg-zinc-950 dark:border-zinc-800"
+							>
+								<h2 className="text-lg font-semibold">{example.title}</h2>
+								<div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 flex-grow">
+									<Content mdx={example.description ?? ''} />
+								</div>
+							</a>
+						</div>
+					)
+				})}
 			</div>
 		</section>
 	)

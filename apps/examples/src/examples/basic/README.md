@@ -6,6 +6,8 @@ priority: 1
 keywords: [basic, intro, simple, quick, start, hello world, installation]
 ---
 
+How to use the `Tldraw` component in your app.
+
 ---
 
 The `Tldraw` component provides the tldraw editor as a regular React component. You can put this component anywhere in your React project. In this example, we make the component take up the height and width of the container.
