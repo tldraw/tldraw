@@ -13,7 +13,8 @@ import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors, json } from 'itty-router'
 import {
 	PushProcessor,
-	connectionProvider,
+	ZQLDatabaseProvider,
+	ZQLPostgresJSAdapter,
 } from '../../../../node_modules/@rocicorp/zero/out/zero/src/pg'
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
@@ -139,8 +140,7 @@ const router = createRouter<Environment>()
 		const auth = await requireAuth(req, env)
 		try {
 			const processor = new PushProcessor(
-				schema,
-				connectionProvider(makePostgresConnector(env)),
+				new ZQLDatabaseProvider(new ZQLPostgresJSAdapter(makePostgresConnector(env)), schema),
 				'debug'
 			)
 			const result = await processor.process(createMutators(auth.userId), req)

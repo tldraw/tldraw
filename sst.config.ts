@@ -69,7 +69,6 @@ export default $config({
 			ZERO_UPSTREAM_MAX_CONNS: '10',
 			ZERO_APP_PUBLICATIONS: 'zero_data',
 			ZERO_PUSH_URL: zeroPushUrl.value,
-			ZERO_RUN_LAZILY: previewId ? 'true' : 'false',
 		}
 
 		// Replication Manager Service
