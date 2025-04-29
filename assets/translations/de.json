@@ -340,6 +340,7 @@
 	"toast.error.export-fail.desc": "Bild kann nicht exportiert werden",
 	"toast.error.export-fail.title": "Exportieren fehlgeschlagen",
 	"tool-panel.more": "Mehr",
+	"tool-panel.title": "Tools",
 	"tool.arrow": "Pfeil",
 	"tool.arrow-down": "Pfeil nach unten",
 	"tool.arrow-left": "Pfeil nach links",

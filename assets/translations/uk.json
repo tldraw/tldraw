@@ -340,6 +340,7 @@
 	"toast.error.export-fail.desc": "Не вдалося експортувати зображення",
 	"toast.error.export-fail.title": "Помилка експорту",
 	"tool-panel.more": "Детальніше",
+	"tool-panel.title": "Інструменти",
 	"tool.arrow": "Стрілка",
 	"tool.arrow-down": "Стрілка вниз",
 	"tool.arrow-left": "Стрілка вліво",
