@@ -1825,8 +1825,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	selectAdjacentShape(direction: TLAdjacentDirection) {
-		const readingOrderShapes = this.getCurrentPageShapesInReadingOrder()
 		const selectedShapeIds = this.getSelectedShapeIds()
+		const firstParentId = this.getShape(selectedShapeIds[0])?.parentId
+		const isSelectedWithinContainer =
+			firstParentId &&
+			selectedShapeIds.every((shapeId) => this.getShape(shapeId)?.parentId === firstParentId) &&
+			!isPageId(firstParentId)
+		const readingOrderShapes = isSelectedWithinContainer
+			? this._getShapesInReadingOrder(
+					this.getCurrentPageShapes().filter((shape) => shape.parentId === firstParentId)
+				)
+			: this.getCurrentPageShapesInReadingOrder()
 		const currentShapeId: TLShapeId | undefined =
 			selectedShapeIds.length === 1
 				? selectedShapeIds[0]
@@ -1858,10 +1867,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCurrentPageShapesInReadingOrder(): TLShape[] {
+		const shapes = this.getCurrentPageShapes().filter((shape) => isPageId(shape.parentId))
+		return this._getShapesInReadingOrder(shapes)
+	}
+
+	private _getShapesInReadingOrder(shapes: TLShape[]): TLShape[] {
 		const SHALLOW_ANGLE = 20
 		const ROW_THRESHOLD = 100
 
-		const shapes = this.getCurrentPageShapes()
 		const tabbableShapes = shapes.filter((shape) => this.getShapeUtil(shape).canTabTo(shape))
 
 		if (tabbableShapes.length <= 1) return tabbableShapes
@@ -2016,11 +2029,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	selectFirstChildShape() {
-		const selectedShape = this.getOnlySelectedShape()
-		if (!selectedShape) return
-		const childrenIds = this.getSortedChildIdsForParent(selectedShape.id)
-		if (childrenIds.length === 0) return
-		this._selectShapesAndZoom([childrenIds[0]])
+		const selectedShapes = this.getSelectedShapes()
+		if (!selectedShapes.length) return
+		const selectedShape = selectedShapes[0]
+		const children = this.getSortedChildIdsForParent(selectedShape.id)
+			.map((id) => this.getShape(id))
+			.filter((i) => i) as TLShape[]
+		const sortedChildren = this._getShapesInReadingOrder(children)
+		if (sortedChildren.length === 0) return
+		this._selectShapesAndZoom([sortedChildren[0].id])
 	}
 
 	private _selectShapesAndZoom(ids: TLShapeId[]) {
