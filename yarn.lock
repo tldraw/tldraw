@@ -6767,9 +6767,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocicorp/zero@npm:0.19.2025042600":
-  version: 0.19.2025042600
-  resolution: "@rocicorp/zero@npm:0.19.2025042600"
+"@rocicorp/zero@npm:0.19.2025042700":
+  version: 0.19.2025042700
+  resolution: "@rocicorp/zero@npm:0.19.2025042700"
   dependencies:
     "@badrap/valita": "npm:0.3.11"
     "@databases/escape-identifier": "npm:^1.0.3"
@@ -6822,7 +6822,7 @@ __metadata:
     zero-cache: out/zero/src/cli.js
     zero-cache-dev: out/zero/src/zero-cache-dev.js
     zero-deploy-permissions: out/zero/src/deploy-permissions.js
-  checksum: 10/0e1e30088e637177b55a20a1b0b00b1f3a2476ba57d4a0322f610f54b3363baa06fec754c58641931db0c5839ab2c2eb90953c368e38e59b09b099a3045d40c0
+  checksum: 10/5b92b3f108e9eb8b766c821bcf9079fea29b1d99338e4d2a917b0b9f9d252a32507b41f660cd12c9cbc7d7fb0ce46f613d3a383088bcf97fb21ef6264c313358
   languageName: node
   linkType: hard
 
@@ -8854,7 +8854,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/dotcom-shared@workspace:packages/dotcom-shared"
   dependencies:
-    "@rocicorp/zero": "npm:0.19.2025042600"
+    "@rocicorp/zero": "npm:0.19.2025042700"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
@@ -8877,7 +8877,7 @@ __metadata:
   dependencies:
     "@clerk/backend": "npm:^1.23.7"
     "@cloudflare/workers-types": "npm:^4.20250224.0"
-    "@rocicorp/zero": "npm:0.19.2025042600"
+    "@rocicorp/zero": "npm:0.19.2025042700"
     "@supabase/auth-helpers-remix": "npm:^0.2.6"
     "@supabase/supabase-js": "npm:^2.48.1"
     "@tldraw/dotcom-shared": "workspace:*"
@@ -9236,7 +9236,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/zero-cache@workspace:apps/dotcom/zero-cache"
   dependencies:
-    "@rocicorp/zero": "npm:0.19.2025042600"
+    "@rocicorp/zero": "npm:0.19.2025042700"
     concurrently: "npm:^9.1.2"
     dotenv: "npm:^16.4.7"
     esbuild: "npm:^0.24.2"
@@ -13933,7 +13933,7 @@ __metadata:
     "@radix-ui/react-popover": "npm:^1.1.5"
     "@radix-ui/react-select": "npm:^2.1.5"
     "@radix-ui/react-tooltip": "npm:^1.1.7"
-    "@rocicorp/zero": "npm:0.19.2025042600"
+    "@rocicorp/zero": "npm:0.19.2025042700"
     "@sentry/cli": "npm:^2.41.1"
     "@sentry/integrations": "npm:^7.120.3"
     "@sentry/react": "npm:^7.120.3"
