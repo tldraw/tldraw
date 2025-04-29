@@ -86,11 +86,11 @@ const nextConfig = {
 				permanent: true,
 			},
 			// redirects at the top level
-			{
-				source: '/examples',
-				destination: '/examples/basic/basic',
-				permanent: true,
-			},
+			// {
+			// 	source: '/examples',
+			// 	destination: '/examples/basic/basic',
+			// 	permanent: true,
+			// },
 			{
 				source: '/reference',
 				destination: '/reference/editor/Editor',
