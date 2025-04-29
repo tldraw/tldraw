@@ -560,4 +560,74 @@ test.describe('Shape Navigation', () => {
 			y: 200,
 		})
 	})
+
+	test('Container navigation (entering and exiting containers)', async ({ isMobile }) => {
+		if (isMobile) return // can't test this on mobile
+
+		// Create a frame
+		await page.keyboard.press('f')
+		await page.mouse.down()
+		await page.mouse.move(300, 300)
+		await page.mouse.up()
+
+		// Create a shape inside the frame
+		await page.keyboard.press('r')
+		await page.mouse.click(200, 200)
+		await page.keyboard.press('v')
+
+		// Navigate up to the parent (frame) with Control+Shift+Up
+		await page.keyboard.press('Control+Shift+ArrowUp')
+		expect(
+			await page.evaluate(() => {
+				const shape = editor.getOnlySelectedShape()
+				return shape && shape.type === 'frame'
+			})
+		).toBe(true)
+
+		// Navigate down to the first child with Control+Shift+Down
+		await page.keyboard.press('Control+Shift+ArrowDown')
+		expect(
+			await page.evaluate(() => {
+				const shape = editor.getOnlySelectedShape()
+				return shape && shape.type === 'geo'
+			})
+		).toBe(true)
+
+		// Now test with a group
+		// Create multiple shapes to group
+		await page.keyboard.press('v')
+		await page.keyboard.press('r')
+		await page.mouse.click(450, 200)
+		await page.keyboard.press('r')
+		await page.mouse.click(475, 200)
+
+		// Select both shapes
+		await page.keyboard.press('v')
+		await page.mouse.click(310, 50)
+		await page.mouse.down()
+		await page.mouse.move(310, 50)
+		await page.mouse.move(700, 500)
+		await page.mouse.up()
+
+		// Group them
+		await page.keyboard.press('Control+g')
+
+		// Navigate up to the group with Control+Shift+Up
+		await page.keyboard.press('Control+Shift+ArrowUp')
+		expect(
+			await page.evaluate(() => {
+				const shape = editor.getOnlySelectedShape()
+				return shape && shape.type === 'group'
+			})
+		).toBe(true)
+
+		// Navigate down to a child in the group
+		await page.keyboard.press('Control+Shift+ArrowDown')
+		expect(
+			await page.evaluate(() => {
+				const shape = editor.getOnlySelectedShape()
+				return shape && shape.type === 'geo'
+			})
+		).toBe(true)
+	})
 })

@@ -312,6 +312,109 @@ describe('Shape navigation', () => {
 		})
 	})
 
+	describe('container navigation', () => {
+		it('correctly navigates to parent with selectParentShape', () => {
+			// Create a frame
+			editor.createShapes([
+				{
+					id: ids.frame1,
+					type: 'frame',
+					x: 0,
+					y: 0,
+					props: {
+						w: 100,
+						h: 100,
+					},
+				},
+				{
+					id: ids.box1,
+					type: 'geo',
+					x: 25,
+					y: 25,
+					parentId: ids.frame1,
+					props: {
+						w: 50,
+						h: 50,
+					},
+				},
+			])
+
+			// Select the child shape
+			editor.select(ids.box1)
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+			// Navigate to parent
+			editor.selectParentShape()
+			expect(editor.getSelectedShapeIds()).toEqual([ids.frame1])
+
+			// When a shape doesn't have a parent (direct child of page), it should do nothing
+			editor.select(ids.frame1)
+			editor.selectParentShape()
+			expect(editor.getSelectedShapeIds()).toEqual([ids.frame1])
+
+			// When no shape is selected, it should do nothing
+			editor.selectNone()
+			editor.selectParentShape()
+			expect(editor.getSelectedShapeIds()).toEqual([])
+		})
+
+		it('correctly navigates to first child with selectFirstChildShape', () => {
+			// Create a frame with multiple children
+			editor.createShapes([
+				{
+					id: ids.frame1,
+					type: 'frame',
+					x: 0,
+					y: 0,
+					props: {
+						w: 100,
+						h: 100,
+					},
+				},
+				{
+					id: ids.box1,
+					type: 'geo',
+					x: 10,
+					y: 10,
+					parentId: ids.frame1,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+				{
+					id: ids.box2,
+					type: 'geo',
+					x: 50,
+					y: 50,
+					parentId: ids.frame1,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+			])
+
+			// Select the parent
+			editor.select(ids.frame1)
+			expect(editor.getSelectedShapeIds()).toEqual([ids.frame1])
+
+			// Navigate to first child
+			editor.selectFirstChildShape()
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+			// When a shape doesn't have children, it should do nothing
+			editor.select(ids.box1)
+			editor.selectFirstChildShape()
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+			// When no shape is selected, it should do nothing
+			editor.selectNone()
+			editor.selectFirstChildShape()
+			expect(editor.getSelectedShapeIds()).toEqual([])
+		})
+	})
+
 	// 7. Additional edge cases and regression tests
 	describe('edge cases and regressions', () => {
 		it('cycles through all shapes when repeatedly tabbing', () => {

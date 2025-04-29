@@ -430,9 +430,17 @@ export class Idle extends StateNode {
 			case 'ArrowUp':
 			case 'ArrowDown': {
 				if (info.accelKey) {
-					this.editor.selectAdjacentShape(
-						info.code.replace('Arrow', '').toLowerCase() as TLAdjacentDirection
-					)
+					if (info.shiftKey) {
+						if (info.code === 'ArrowDown') {
+							this.editor.selectFirstChildShape()
+						} else if (info.code === 'ArrowUp') {
+							this.editor.selectParentShape()
+						}
+					} else {
+						this.editor.selectAdjacentShape(
+							info.code.replace('Arrow', '').toLowerCase() as TLAdjacentDirection
+						)
+					}
 					return
 				}
 				this.nudgeSelectedShapes(false)

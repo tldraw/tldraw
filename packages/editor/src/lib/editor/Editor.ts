@@ -1814,6 +1814,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	/**
+	 * Select the next shape in the reading order or in cardinal order.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.selectAdjacentShape('next')
+	 * ```
+	 *
+	 * @public
+	 */
 	selectAdjacentShape(direction: TLAdjacentDirection) {
 		const readingOrderShapes = this.getCurrentPageShapesInReadingOrder()
 		const selectedShapeIds = this.getSelectedShapeIds()
@@ -1838,13 +1848,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const shape = this.getShape(adjacentShapeId)
 		if (!shape) return
 
-		this.setSelectedShapes([shape.id])
-		this.zoomToSelectionIfOffscreen(256, {
-			animation: {
-				duration: this.options.animationMediumMs,
-			},
-			inset: 0,
-		})
+		this._selectShapesAndZoom([shape.id])
 	}
 
 	/**
@@ -2001,6 +2005,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		return lowestScoringShape!.shape.id
+	}
+
+	selectParentShape() {
+		const selectedShape = this.getOnlySelectedShape()
+		if (!selectedShape) return
+		const parentShape = this.getShape(selectedShape.parentId)
+		if (!parentShape) return
+		this._selectShapesAndZoom([parentShape.id])
+	}
+
+	selectFirstChildShape() {
+		const selectedShape = this.getOnlySelectedShape()
+		if (!selectedShape) return
+		const childrenIds = this.getSortedChildIdsForParent(selectedShape.id)
+		if (childrenIds.length === 0) return
+		this._selectShapesAndZoom([childrenIds[0]])
+	}
+
+	private _selectShapesAndZoom(ids: TLShapeId[]) {
+		this.setSelectedShapes(ids)
+		this.zoomToSelectionIfOffscreen(256, {
+			animation: {
+				duration: this.options.animationMediumMs,
+			},
+			inset: 0,
+		})
 	}
 
 	/**

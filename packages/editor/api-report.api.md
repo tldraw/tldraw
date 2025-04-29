@@ -1481,10 +1481,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     screenToPage(point: VecLike): Vec;
     readonly scribbles: ScribbleManager;
     select(...shapes: TLShape[] | TLShapeId[]): this;
-    // (undocumented)
     selectAdjacentShape(direction: TLAdjacentDirection): void;
     selectAll(): this;
+    // (undocumented)
+    selectFirstChildShape(): void;
     selectNone(): this;
+    // (undocumented)
+    selectParentShape(): void;
     sendBackward(shapes: TLShape[] | TLShapeId[], opts?: {
         considerAllShapes?: boolean;
     }): this;
