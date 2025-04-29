@@ -340,6 +340,7 @@
 	"toast.error.export-fail.desc": "การส่งออกรูปภาพไม่สำเร็จ",
 	"toast.error.export-fail.title": "การส่งออกล้มเหลว",
 	"tool-panel.more": "เพิ่มเติม",
+	"tool-panel.title": "เครื่องมือ",
 	"tool.arrow": "ลูกศร",
 	"tool.arrow-down": "ลูกศรลง",
 	"tool.arrow-left": "ลูกศรซ้าย",

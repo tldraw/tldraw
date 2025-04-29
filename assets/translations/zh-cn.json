@@ -340,6 +340,7 @@
 	"toast.error.export-fail.desc": "无法导出图像",
 	"toast.error.export-fail.title": "导出失败",
 	"tool-panel.more": "更多",
+	"tool-panel.title": "工具",
 	"tool.arrow": "箭头",
 	"tool.arrow-down": "向下箭头",
 	"tool.arrow-left": "向左箭头",

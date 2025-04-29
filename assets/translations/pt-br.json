@@ -340,6 +340,7 @@
 	"toast.error.export-fail.desc": "Falha ao exportar a imagem",
 	"toast.error.export-fail.title": "Falha na exportação",
 	"tool-panel.more": "Mais",
+	"tool-panel.title": "Ferramentas",
 	"tool.arrow": "Seta",
 	"tool.arrow-down": "Seta para baixo",
 	"tool.arrow-left": "Seta para a esquerda",

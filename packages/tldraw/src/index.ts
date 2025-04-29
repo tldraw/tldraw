@@ -438,6 +438,16 @@ export {
 } from './lib/ui/components/primitives/TldrawUiPopover'
 export { TldrawUiSlider, type TLUiSliderProps } from './lib/ui/components/primitives/TldrawUiSlider'
 export {
+	TldrawUiToolbar,
+	TldrawUiToolbarButton,
+	TldrawUiToolbarToggleGroup,
+	TldrawUiToolbarToggleItem,
+	type TLUiToolbarButtonProps,
+	type TLUiToolbarProps,
+	type TLUiToolbarToggleGroupProps,
+	type TLUiToolbarToggleItemProps,
+} from './lib/ui/components/primitives/TldrawUiToolbar'
+export {
 	TldrawUiMenuCheckboxItem,
 	type TLUiMenuCheckboxItemProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuCheckboxItem'

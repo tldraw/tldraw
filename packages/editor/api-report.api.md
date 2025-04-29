@@ -87,7 +87,7 @@ import { UnknownRecord } from '@tldraw/store';
 import { VecModel } from '@tldraw/tlschema';
 
 // @internal (undocumented)
-export function activeElementShouldCaptureKeys(): boolean;
+export function activeElementShouldCaptureKeys(allowButtons?: boolean): boolean;
 
 // @public
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
@@ -3246,6 +3246,7 @@ export interface TldrawOptions {
     readonly adjacentShapeMargin: number;
     // (undocumented)
     readonly animationMediumMs: number;
+    readonly branding?: string;
     // (undocumented)
     readonly cameraMovingTimeoutMs: number;
     // (undocumented)
