@@ -108,7 +108,7 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 								data-id={item}
 								data-testid={item}
 								aria-label={item}
-								data-state={value === item ? 'hinted' : undefined}
+								isActive={value === item}
 								title={item}
 								className={'tlui-button-grid__button'}
 								style={{ color: item }}
