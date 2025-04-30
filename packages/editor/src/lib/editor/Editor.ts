@@ -1826,7 +1826,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	selectAdjacentShape(direction: TLAdjacentDirection) {
 		const selectedShapeIds = this.getSelectedShapeIds()
-		const firstParentId = this.getShape(selectedShapeIds[0])?.parentId
+		const firstParentId = selectedShapeIds[0] ? this.getShape(selectedShapeIds[0])?.parentId : null
 		const isSelectedWithinContainer =
 			firstParentId &&
 			selectedShapeIds.every((shapeId) => this.getShape(shapeId)?.parentId === firstParentId) &&

@@ -413,6 +413,292 @@ describe('Shape navigation', () => {
 			editor.selectFirstChildShape()
 			expect(editor.getSelectedShapeIds()).toEqual([])
 		})
+
+		it('respects container boundaries when navigating with Tab', () => {
+			// Create a frame with shapes inside and shapes outside
+			editor.createShapes([
+				{
+					id: ids.frame1,
+					type: 'frame',
+					x: 0,
+					y: 0,
+					props: {
+						w: 200,
+						h: 200,
+					},
+				},
+				// Shapes inside frame
+				{
+					id: ids.box1,
+					type: 'geo',
+					x: 10,
+					y: 10,
+					parentId: ids.frame1,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+				{
+					id: ids.box2,
+					type: 'geo',
+					x: 50,
+					y: 10,
+					parentId: ids.frame1,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+				{
+					id: ids.box3,
+					type: 'geo',
+					x: 90,
+					y: 10,
+					parentId: ids.frame1,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+				// Shapes outside frame
+				{
+					id: ids.box4,
+					type: 'geo',
+					x: 300,
+					y: 10,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+				{
+					id: ids.box5,
+					type: 'geo',
+					x: 350,
+					y: 10,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+			])
+
+			// Select a shape inside the frame
+			editor.select(ids.box1)
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+			// Navigate to next shape - should stay within the frame
+			editor.selectAdjacentShape('next')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+
+			// Continue navigating - should select the next shape in the frame
+			editor.selectAdjacentShape('next')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
+
+			// One more time - should cycle back to the first shape in the frame
+			// rather than going to shapes outside the frame
+			editor.selectAdjacentShape('next')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+			// Now select a shape outside the frame
+			editor.select(ids.box4)
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box4])
+
+			// Navigate to next shape - should move to next shape outside frame
+			editor.selectAdjacentShape('next')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box5])
+
+			// Navigate to next shape - should be the frame
+			editor.selectAdjacentShape('next')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.frame1])
+
+			// One more time - should cycle to first shape outside frame
+			// without entering the frame
+			editor.selectAdjacentShape('next')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box4])
+		})
+
+		it('maintains scope with nested containers', () => {
+			// Create nested frames with shapes
+			editor.createShapes([
+				// Outer frame
+				{
+					id: ids.frame1,
+					type: 'frame',
+					x: 0,
+					y: 0,
+					props: {
+						w: 300,
+						h: 300,
+					},
+				},
+				// Direct children of outer frame
+				{
+					id: ids.box1,
+					type: 'geo',
+					x: 10,
+					y: 10,
+					parentId: ids.frame1,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+				// Inner frame (inside outer frame)
+				{
+					id: ids.group1, // Using group1 ID for inner frame
+					type: 'frame',
+					x: 50,
+					y: 50,
+					parentId: ids.frame1,
+					props: {
+						w: 150,
+						h: 150,
+					},
+				},
+				// Shapes inside the inner frame
+				{
+					id: ids.box2,
+					type: 'geo',
+					x: 60,
+					y: 60,
+					parentId: ids.group1,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+				{
+					id: ids.box3,
+					type: 'geo',
+					x: 100,
+					y: 60,
+					parentId: ids.group1,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+				// Another direct child of outer frame
+				{
+					id: ids.box4,
+					type: 'geo',
+					x: 250,
+					y: 10,
+					parentId: ids.frame1,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+			])
+
+			// Select a shape inside the inner frame
+			editor.select(ids.box2)
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+
+			// Navigate to next shape - should stay within inner frame
+			editor.selectAdjacentShape('next')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
+
+			// Navigate again - should cycle back to first shape in inner frame
+			// rather than moving to shapes in the outer frame
+			editor.selectAdjacentShape('next')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+
+			// Now select a shape directly in the outer frame
+			editor.select(ids.box1)
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+			// Navigate next - should go to the inner frame (treated as a shape)
+			// or to box4, but not inside the inner frame
+			editor.selectAdjacentShape('next')
+
+			// Should not select any shape from inside the inner frame
+			expect(editor.getSelectedShapeIds()).not.toContain(ids.box2)
+			expect(editor.getSelectedShapeIds()).not.toContain(ids.box3)
+		})
+
+		it('works with groups similar to frames', () => {
+			// Create shapes and a group
+			editor.createShapes([
+				// Shapes outside group
+				{
+					id: ids.box1,
+					type: 'geo',
+					x: 10,
+					y: 10,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+				{
+					id: ids.box4,
+					type: 'geo',
+					x: 300,
+					y: 10,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+			])
+
+			// Create shapes that will be grouped
+			editor.createShapes([
+				{
+					id: ids.box2,
+					type: 'geo',
+					x: 100,
+					y: 10,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+				{
+					id: ids.box3,
+					type: 'geo',
+					x: 150,
+					y: 10,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+			])
+
+			// Group the shapes
+			editor.groupShapes([ids.box2, ids.box3], { groupId: ids.group1 })
+
+			// Focus into the group
+			editor.select(ids.group1)
+			editor.setFocusedGroup(ids.group1)
+
+			// Select first shape in group
+			editor.select(ids.box2)
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+
+			// Navigate to next shape - should stay within group
+			editor.selectAdjacentShape('next')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
+
+			// Navigate again - should cycle back to first shape in group
+			editor.selectAdjacentShape('next')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+
+			// Exit the group focus
+			editor.popFocusedGroupId()
+
+			// Select a shape outside the group
+			editor.select(ids.box1)
+
+			// Navigate to next shape - should go to the group but not inside it
+			editor.selectAdjacentShape('next')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
+		})
 	})
 
 	// 7. Additional edge cases and regression tests
