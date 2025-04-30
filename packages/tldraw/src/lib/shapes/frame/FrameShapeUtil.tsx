@@ -6,11 +6,12 @@ import {
 	Rectangle2d,
 	SVGContainer,
 	SvgExportContext,
-	TLDoubleClickEdgeInfo,
+	TLClickEventInfo,
 	TLFrameShape,
 	TLFrameShapeProps,
 	TLGroupShape,
 	TLResizeInfo,
+	TLSelectionHandle,
 	TLShape,
 	TLShapePartial,
 	TLShapeUtilConstructor,
@@ -365,8 +366,15 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		}
 	}
 
-	override onDoubleClickEdge(shape: TLFrameShape, info: TLDoubleClickEdgeInfo<TLFrameShape>) {
+	override onDoubleClickEdge(
+		shape: TLFrameShape,
+		info: TLClickEventInfo & { handle?: TLSelectionHandle }
+	) {
 		const { handle } = info
+
+		// If handle is missing, we can't determine which edge was clicked
+		if (!handle) return
+
 		const isHorizontalEdge = handle === 'left' || handle === 'right'
 		const isVerticalEdge = handle === 'top' || handle === 'bottom'
 
