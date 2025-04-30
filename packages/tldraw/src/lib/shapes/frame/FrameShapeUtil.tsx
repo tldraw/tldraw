@@ -15,7 +15,6 @@ import {
 	TLShape,
 	TLShapePartial,
 	TLShapeUtilConstructor,
-	Vec,
 	clamp,
 	compact,
 	frameShapeMigrations,
@@ -383,7 +382,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		if (!children.length) return
 
 		const { dx, dy, w, h } = getFrameChildrenBounds(children, this.editor, { padding: 10 })
-		const diff = new Vec(dx, dy).rot(shape.rotation)
 
 		this.editor.run(() => {
 			const changes: TLShapePartial[] = childIds.map((childId) => {
