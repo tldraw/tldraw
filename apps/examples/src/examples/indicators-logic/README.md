@@ -1,5 +1,5 @@
 ---
-title: Indicators logic
+title: Show and hide indicators
 component: ./IndicatorsLogicExample.tsx
 category: editor-api
 keywords: [indicators]

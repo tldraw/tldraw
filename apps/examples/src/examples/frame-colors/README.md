@@ -7,8 +7,8 @@ keywords:
   - color
 ---
 
-Create a frame (keyboard shortcut **F**) and see how it looks with the `showFrameColors` option enabled.
+Create a frame (keyboard shortcut **F**) and see how it looks with the `showColors` option enabled.
 
 ---
 
-Use the `editor.showFrameColors" editor option to display colored fills and headings on frame shapes.
+Use the `showColors` option to display colored fills and headings on frame shapes.

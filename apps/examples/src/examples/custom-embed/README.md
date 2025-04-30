@@ -1,7 +1,7 @@
 ---
 title: Custom embed
 component: ./CustomEmbedExample.tsx
-category: shapes/tools
+category: basic
 priority: 1
 keywords: [embed, custom]
 ---
