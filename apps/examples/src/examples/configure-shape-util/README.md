@@ -1,7 +1,7 @@
 ---
 title: Configuring built-in shapes
 component: ./ConfigureShapeUtilExample.tsx
-category: basic
+category: configuration
 priority: 1
 keywords: [config, configure, shape, util, frame]
 ---

@@ -1,7 +1,7 @@
 ---
 title: Custom paste
 component: ./CustomPasteExample.tsx
-category: basic
+category: configuration
 priority: 5
 ---
 

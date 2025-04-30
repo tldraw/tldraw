@@ -1,7 +1,7 @@
 ---
 title: Persistence key
 component: ./PersistenceKeyExample.tsx
-category: basic
+category: configuration
 priority: 2
 keywords: [local storage]
 ---

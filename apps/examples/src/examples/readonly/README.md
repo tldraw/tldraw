@@ -1,7 +1,7 @@
 ---
 title: Read-only
 component: ./ReadOnlyExample
-category: basic
+category: configuration
 priority: 3
 keywords: [read, only mode]
 ---

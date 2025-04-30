@@ -1,7 +1,7 @@
 ---
 title: Scrolling container
 component: ./ScrollExample.tsx
-category: basic
+category: configuration
 priority: 6
 keywords: [focus, mouse wheel]
 ---

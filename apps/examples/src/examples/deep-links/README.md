@@ -1,7 +1,7 @@
 ---
 title: Deep links
 component: ./DeepLinksExample.tsx
-category: basic
+category: configuration
 priority: 4
 keywords: [basic, intro, simple, quick, start]
 ---

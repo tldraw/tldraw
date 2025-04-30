@@ -1,7 +1,7 @@
 ---
 title: Inset editor
 component: ./InsetExample.tsx
-category: basic
+category: configuration
 priority: 5
 keywords: [inline]
 ---

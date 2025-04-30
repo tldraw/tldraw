@@ -9,7 +9,7 @@ const section: InputSection = {
 	description: 'Code recipes for bending tldraw to your will.',
 	categories: [
 		{ id: 'getting-started', title: 'Getting started', description: '', groups: [], hero: null },
-		{ id: 'basic', title: 'Configuration', description: '', groups: [], hero: null },
+		{ id: 'configuration', title: 'Configuration', description: '', groups: [], hero: null },
 		{ id: 'ui', title: 'UI & theming', description: '', groups: [], hero: null },
 		{ id: 'editor-api', title: 'Editor API', description: '', groups: [], hero: null },
 		{ id: 'shapes/tools', title: 'Shapes & tools', description: '', groups: [], hero: null },

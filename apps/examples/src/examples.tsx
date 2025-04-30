@@ -16,7 +16,7 @@ export interface Example {
 }
 
 type Category =
-	| 'basic'
+	| 'configuration'
 	| 'editor-api'
 	| 'ui'
 	| 'collaboration'
@@ -36,7 +36,7 @@ const getExamplesForCategory = (category: Category) =>
 
 const categories = [
 	['getting-started', 'Getting started'],
-	['basic', 'Configuring tldraw'],
+	['configuration', 'Configuring tldraw'],
 	['ui', 'UI & theming'],
 	['editor-api', 'Editor API'],
 	['shapes/tools', 'Shapes & tools'],

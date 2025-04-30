@@ -1,5 +1,5 @@
 ---
-title: Prevent shape change
+title: Prevent shape changes
 component: ./PreventShapeChangeExample.tsx
 category: editor-api
 keywords: [side, effect, move, prevent]

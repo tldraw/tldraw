@@ -1,7 +1,7 @@
 ---
 title: Custom embed
 component: ./CustomEmbedExample.tsx
-category: basic
+category: configuration
 priority: 1
 keywords: [embed, custom]
 ---

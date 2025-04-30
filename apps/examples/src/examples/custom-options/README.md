@@ -1,7 +1,7 @@
 ---
 title: Custom options
 component: ./CustomOptionsExample.tsx
-category: basic
+category: configuration
 priority: 5
 ---
 
