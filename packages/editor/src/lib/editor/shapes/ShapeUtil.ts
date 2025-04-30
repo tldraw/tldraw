@@ -11,7 +11,7 @@ import {
 	TLUnknownShape,
 } from '@tldraw/tlschema'
 import { ReactElement } from 'react'
-import { Box, SelectionEdge, SelectionHandle } from '../../primitives/Box'
+import { Box, SelectionHandle } from '../../primitives/Box'
 import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
@@ -19,6 +19,7 @@ import { TLFontFace } from '../managers/FontManager'
 import { BoundsSnapGeometry } from '../managers/SnapManager/BoundsSnaps'
 import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
 import { SvgExportContext } from '../types/SvgExportContext'
+import { TLClickEventInfo } from '../types/event-types'
 import { TLResizeHandle } from '../types/selection-types'
 
 /** @public */
@@ -671,25 +672,21 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * A callback called when a shape's edge is double clicked.
 	 *
 	 * @param shape - The shape.
+	 * @param info - Info about the edge.
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onDoubleClickEdge?(
-		shape: Shape,
-		info?: TLDoubleClickEdgeInfo<Shape>
-	): TLShapePartial<Shape> | void
+	onDoubleClickEdge?(shape: Shape, info: TLClickEventInfo): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape's corner is double clicked.
 	 *
 	 * @param shape - The shape.
+	 * @param info - Info about the corner.
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onDoubleClickCorner?(
-		shape: Shape,
-		info?: TLDoubleClickEdgeInfo<Shape>
-	): TLShapePartial<Shape> | void
+	onDoubleClickCorner?(shape: Shape, info: TLClickEventInfo): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape is double clicked.
@@ -774,9 +771,4 @@ export interface TLHandleDragInfo<T extends TLShape> {
 	handle: TLHandle
 	isPrecise: boolean
 	initial?: T | undefined
-}
-
-/** @public */
-export interface TLDoubleClickEdgeInfo<T extends TLShape> {
-	edge: SelectionEdge
 }

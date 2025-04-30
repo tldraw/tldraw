@@ -366,6 +366,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override onDoubleClickEdge(shape: TLFrameShape, info: TLDoubleClickEdgeInfo<TLFrameShape>) {
+		const { handle } = info
+		const isHorizontalEdge = handle === 'left' || handle === 'right'
+		const isVerticalEdge = handle === 'top' || handle === 'bottom'
+
 		const childIds = this.editor.getSortedChildIdsForParent(shape.id)
 		const children = compact(childIds.map((id) => this.editor.getShape(id)))
 		if (!children.length) return
@@ -374,9 +378,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const diff = new Vec(dx, dy).rot(shape.rotation)
 
 		this.editor.run(() => {
-			const isHorizontalEdge = info.edge === 'left' || info.edge === 'right'
-			const isVerticalEdge = info.edge === 'top' || info.edge === 'bottom'
-
 			const changes: TLShapePartial[] = childIds.map((childId) => {
 				const childShape = this.editor.getShape(childId)!
 				return {
@@ -387,23 +388,16 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				}
 			})
 
-			changes.push({
-				id: shape.id,
-				type: shape.type,
-				x: isHorizontalEdge ? shape.x - diff.x : shape.x,
-				y: isVerticalEdge ? shape.y - diff.y : shape.y,
-				props: {
-					w: isHorizontalEdge ? w : shape.props.w,
-					h: isVerticalEdge ? h : shape.props.h,
-				},
-			})
-
 			this.editor.updateShapes(changes)
 		})
 
 		return {
 			id: shape.id,
 			type: shape.type,
+			props: {
+				w: isHorizontalEdge ? w : shape.props.w,
+				h: isVerticalEdge ? h : shape.props.h,
+			},
 		}
 	}
 

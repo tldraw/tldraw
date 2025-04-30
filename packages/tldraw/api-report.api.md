@@ -77,7 +77,6 @@ import { TLDefaultFontStyle } from '@tldraw/editor';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/editor';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
 import { TLDefaultVerticalAlignStyle } from '@tldraw/editor';
-import { TLDoubleClickEdgeInfo } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
@@ -119,6 +118,7 @@ import { TLSchema } from '@tldraw/editor';
 import { TLScribbleProps } from '@tldraw/editor';
 import { TLSelectionBackgroundProps } from '@tldraw/editor';
 import { TLSelectionForegroundProps } from '@tldraw/editor';
+import { TLSelectionHandle } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';
 import { TLShapeCrop } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
@@ -1220,8 +1220,14 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
         type: "frame";
     };
     // (undocumented)
-    onDoubleClickEdge(shape: TLFrameShape, info: TLDoubleClickEdgeInfo<TLFrameShape>): {
+    onDoubleClickEdge(shape: TLFrameShape, info: TLClickEventInfo & {
+        handle?: TLSelectionHandle;
+    }): {
         id: TLShapeId;
+        props: {
+            h: number;
+            w: number;
+        };
         type: "frame";
     } | undefined;
     // (undocumented)

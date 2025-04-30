@@ -261,7 +261,7 @@ export class Idle extends StateNode {
 						info.handle === 'top' ||
 						info.handle === 'bottom'
 					) {
-						const change = util.onDoubleClickEdge?.(onlySelectedShape, { edge: info.handle })
+						const change = util.onDoubleClickEdge?.(onlySelectedShape, info)
 						if (change) {
 							this.editor.markHistoryStoppingPoint('double click edge')
 							this.editor.updateShapes([change])
@@ -276,7 +276,7 @@ export class Idle extends StateNode {
 						info.handle === 'bottom_right' ||
 						info.handle === 'bottom_left'
 					) {
-						const change = util.onDoubleClickCorner?.(onlySelectedShape)
+						const change = util.onDoubleClickCorner?.(onlySelectedShape, info)
 						if (change) {
 							this.editor.markHistoryStoppingPoint('double click corner')
 							this.editor.updateShapes([change])

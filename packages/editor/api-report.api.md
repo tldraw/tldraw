@@ -2648,8 +2648,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onClick?(shape: Shape): TLShapePartial<Shape> | void;
     onCrop?(shape: Shape, info: TLCropInfo<Shape>): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void;
     onDoubleClick?(shape: Shape): TLShapePartial<Shape> | void;
-    onDoubleClickCorner?(shape: Shape, info?: TLDoubleClickEdgeInfo<Shape>): TLShapePartial<Shape> | void;
-    onDoubleClickEdge?(shape: Shape, info?: TLDoubleClickEdgeInfo<Shape>): TLShapePartial<Shape> | void;
+    onDoubleClickCorner?(shape: Shape, info: TLClickEventInfo): TLShapePartial<Shape> | void;
+    onDoubleClickEdge?(shape: Shape, info: TLClickEventInfo): TLShapePartial<Shape> | void;
     onDoubleClickHandle?(shape: Shape, handle: TLHandle): TLShapePartial<Shape> | void;
     onDragShapesOut?(shape: Shape, shapes: TLShape[]): void;
     onDragShapesOver?(shape: Shape, shapes: TLShape[]): void;
@@ -3195,12 +3195,6 @@ export interface TLDeepLinkOptions {
     getUrl?(editor: Editor): string | URL;
     onChange?(url: URL, editor: Editor): void;
     param?: string;
-}
-
-// @public (undocumented)
-export interface TLDoubleClickEdgeInfo<T extends TLShape> {
-    // (undocumented)
-    edge: SelectionEdge;
 }
 
 // @public (undocumented)

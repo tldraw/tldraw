@@ -200,7 +200,6 @@ export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseB
 export {
 	ShapeUtil,
 	type TLCropInfo,
-	type TLDoubleClickEdgeInfo,
 	type TLGeometryOpts,
 	type TLHandleDragInfo,
 	type TLResizeInfo,
