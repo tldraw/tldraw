@@ -264,7 +264,7 @@ export class Idle extends StateNode {
 						info.handle === 'top' ||
 						info.handle === 'bottom'
 					) {
-						const change = util.onDoubleClickEdge?.(onlySelectedShape)
+						const change = util.onDoubleClickEdge?.(onlySelectedShape, info)
 						if (change) {
 							this.editor.markHistoryStoppingPoint('double click edge')
 							this.editor.updateShapes([change])
@@ -273,6 +273,20 @@ export class Idle extends StateNode {
 						}
 					}
 
+					if (
+						info.handle === 'top_left' ||
+						info.handle === 'top_right' ||
+						info.handle === 'bottom_right' ||
+						info.handle === 'bottom_left'
+					) {
+						const change = util.onDoubleClickCorner?.(onlySelectedShape, info)
+						if (change) {
+							this.editor.markHistoryStoppingPoint('double click corner')
+							this.editor.updateShapes([change])
+							kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
+							return
+						}
+					}
 					// For corners OR edges but NOT rotation corners
 					if (
 						util.canCrop(onlySelectedShape) &&
