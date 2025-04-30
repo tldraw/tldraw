@@ -57,7 +57,7 @@ const multiplayerAssets: TLAssetStore = {
 			throw new Error(`Failed to upload asset: ${response.statusText}`)
 		}
 
-		return url
+		return { src: url }
 	},
 	// to retrieve an asset, we can just use the same URL. you could customize this to add extra
 	// auth, or to serve optimized versions / sizes of the asset.
