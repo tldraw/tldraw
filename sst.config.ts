@@ -2,6 +2,7 @@
 /// <reference path="./.sst/platform/config.d.ts" />
 import { readFileSync } from 'fs'
 
+const isProduction = process.env.TLDRAW_ENV === 'production'
 const githubPrNumber = process.env.GITHUB_REF?.match(/refs\/pull\/(\d+)\/merge/)?.[1]
 
 let previewId = null as null | string
@@ -12,7 +13,7 @@ if (process.env.TLDRAW_ENV === 'preview' && githubPrNumber) {
 let domain = undefined as undefined | string
 if (process.env.TLDRAW_ENV === 'preview' && previewId) {
 	domain = `${previewId}.zero.tldraw.com`
-} else if (process.env.TLDRAW_ENV === 'production') {
+} else if (isProduction) {
 	domain = 'production.zero.tldraw.com'
 } else if (process.env.TLDRAW_ENV === 'staging') {
 	domain = 'staging.zero.tldraw.com'
@@ -117,7 +118,7 @@ export default $config({
 
 		// View Syncer Service
 		const viewSyncer = cluster.addService(`view-syncer`, {
-			cpu: '1 vCPU',
+			cpu: isProduction ? '2 vCPU' : '1 vCPU',
 			memory: '2 GB',
 			architecture: 'arm64',
 			image: commonEnv.ZERO_IMAGE_URL,
