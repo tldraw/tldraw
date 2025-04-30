@@ -2,7 +2,7 @@
 title: Manually update user presence
 component: ./UserPresenceExample.tsx
 category: editor-api
-keywords: [Instance presence record, cursor]
+keywords: [cursor]
 ---
 
 Manually show other users editing the same document.

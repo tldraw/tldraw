@@ -1,7 +1,7 @@
 ---
 title: Camera options
 component: ./CameraOptionsExample.tsx
-category: editor-api
+category: configuration
 priority: 3
 keywords: [api, fixed, constraints, camera bounds, pan speed, zoom speed]
 ---

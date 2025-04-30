@@ -1,5 +1,5 @@
 ---
-title: Using tldraw styles
+title: Using tldraw styles with custom shapes
 component: ./ShapeWithTldrawStylesExample.tsx
 category: shapes/tools
 priority: 1

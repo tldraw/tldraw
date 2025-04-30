@@ -2,7 +2,7 @@
 title: Tldraw component
 component: ./BasicExample.tsx
 category: getting-started
-priority: 1
+priority: 0
 keywords: [basic, intro, simple, quick, start, hello world, installation]
 ---
 
