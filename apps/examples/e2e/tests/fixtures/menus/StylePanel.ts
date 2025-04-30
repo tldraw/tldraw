@@ -71,7 +71,7 @@ export class StylePanel {
 		return await style.evaluate(getStyle, property)
 	}
 
-	async isHinted(style: Locator) {
+	async isActive(style: Locator) {
 		const backgroundColor = await this.getAfterElementStyle(style, 'background-color')
 		return expect(backgroundColor).toBe('rgba(0, 0, 0, 0.055)')
 	}
