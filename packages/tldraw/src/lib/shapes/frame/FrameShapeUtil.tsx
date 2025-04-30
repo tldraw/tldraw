@@ -11,7 +11,6 @@ import {
 	TLFrameShapeProps,
 	TLGroupShape,
 	TLResizeInfo,
-	TLSelectionHandle,
 	TLShape,
 	TLShapePartial,
 	TLShapeUtilConstructor,
@@ -365,10 +364,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		}
 	}
 
-	override onDoubleClickEdge(
-		shape: TLFrameShape,
-		info: TLClickEventInfo & { handle?: TLSelectionHandle }
-	) {
+	override onDoubleClickEdge(shape: TLFrameShape, info: TLClickEventInfo) {
+		if (info.target !== 'selection') return
 		const { handle } = info
 
 		// If handle is missing, we can't determine which edge was clicked

@@ -118,7 +118,6 @@ import { TLSchema } from '@tldraw/editor';
 import { TLScribbleProps } from '@tldraw/editor';
 import { TLSelectionBackgroundProps } from '@tldraw/editor';
 import { TLSelectionForegroundProps } from '@tldraw/editor';
-import { TLSelectionHandle } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';
 import { TLShapeCrop } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
@@ -1220,9 +1219,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
         type: "frame";
     };
     // (undocumented)
-    onDoubleClickEdge(shape: TLFrameShape, info: TLClickEventInfo & {
-        handle?: TLSelectionHandle;
-    }): {
+    onDoubleClickEdge(shape: TLFrameShape, info: TLClickEventInfo): {
         id: TLShapeId;
         props: {
             h: number;
