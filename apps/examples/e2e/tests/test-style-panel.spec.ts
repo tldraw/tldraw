@@ -17,16 +17,16 @@ test.describe('Style selection behaviour', () => {
 		await stylePanel.isActive(black)
 		await stylePanel.isActive(none)
 		// these are not hinted by default
-		await stylePanel.isNotHinted(pattern)
-		await stylePanel.isNotHinted(blue)
+		await stylePanel.isInactive(pattern)
+		await stylePanel.isInactive(blue)
 
 		await blue.click()
 		await stylePanel.isActive(blue)
-		await stylePanel.isNotHinted(black)
+		await stylePanel.isInactive(black)
 
 		await pattern.click()
 		await stylePanel.isActive(pattern)
-		await stylePanel.isNotHinted(none)
+		await stylePanel.isInactive(none)
 		// this should not change the hint state of color buttons
 		await stylePanel.isActive(blue)
 	})

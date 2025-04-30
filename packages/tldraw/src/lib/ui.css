@@ -101,7 +101,7 @@
 	opacity: 1;
 }
 
-.tlui-button[data-isactive='true']:not(:disabled, :focus-visible, :hover)::after,
+.tlui-button[data-isactive='true']::after,
 .tlui-button[data-isactive='true']:not(:disabled, :focus-visible):active:after {
 	background: var(--color-hint);
 	opacity: 1;
