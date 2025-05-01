@@ -62,7 +62,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 	const { onDrop, onDragOver, onDragEnter, onDragLeave, isDraggingOver } = useTldrFileDrop()
 
 	return (
-		<div ref={sidebarRef}>
+		<nav ref={sidebarRef}>
 			<button
 				className={styles.sidebarOverlayMobile}
 				data-visiblemobile={isSidebarOpenMobile}
@@ -95,6 +95,6 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					<TlaSidebarUserLink />
 				</div>
 			</div>
-		</div>
+		</nav>
 	)
 })
