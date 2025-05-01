@@ -797,6 +797,16 @@ const snapshots: Snapshots = {
 					</TL.arrow>
 				</>
 			),
+			'ENG-3336': (
+				<>
+					<TL.text richText={toRichText('one')} ref="a" />
+					<TL.text richText={toRichText('two')} y={50} ref="b" />
+					<TL.arrow kind="bendy" arrowheadStart="arrow" arrowheadEnd="arrow" bend={10}>
+						<TL.binding.arrow to="a" terminal="start" />
+						<TL.binding.arrow to="b" terminal="end" />
+					</TL.arrow>
+				</>
+			),
 		},
 	},
 }

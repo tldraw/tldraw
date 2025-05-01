@@ -6,6 +6,7 @@ import {
 	DefaultContextMenuContent,
 	TldrawEditor,
 	TldrawHandles,
+	TldrawOverlays,
 	TldrawScribble,
 	TldrawSelectionBackground,
 	TldrawSelectionForeground,
@@ -24,7 +25,6 @@ import {
 	useToasts,
 	useTranslation,
 } from 'tldraw'
-import { TldrawInFrontOfTheCanvas } from 'tldraw/src/lib/canvas/TldrawInFrontOfTheCanvas'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -37,7 +37,7 @@ const defaultComponents = {
 	SelectionForeground: TldrawSelectionForeground,
 	SelectionBackground: TldrawSelectionBackground,
 	Handles: TldrawHandles,
-	Overlays: TldrawInFrontOfTheCanvas,
+	Overlays: TldrawOverlays,
 }
 
 const allDefaultTools = [...defaultTools, ...defaultShapeTools]

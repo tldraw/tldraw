@@ -1,54 +1,19 @@
-import {
-	Editor,
-	modulate,
-	toDomPrecision,
-	track,
-	useEditor,
-	useEditorComponents,
-	useQuickReactor,
-	useValue,
-} from '@tldraw/editor'
-import { Fragment, useState } from 'react'
+import { Editor, track, useEditor, useEditorComponents, useValue } from '@tldraw/editor'
 import { getArrowTargetState } from '../shapes/arrow/arrowTargetState'
 import { DraggingHandle } from '../tools/SelectTool/childStates/DraggingHandle'
 import { PointingHandle } from '../tools/SelectTool/childStates/PointingHandle'
 
-export const TldrawInFrontOfTheCanvas = track(function TldrawOverlays() {
+/** @public @react */
+export const TldrawOverlays = track(function TldrawOverlays() {
 	const editor = useEditor()
-	const [htmlLayer, setHtmlLayer] = useState<HTMLDivElement | null>(null)
-
-	useQuickReactor(
-		'position html layer',
-		() => {
-			if (!htmlLayer) return
-
-			const { x, y, z } = editor.getCamera()
-
-			// Because the html container has a width/height of 1px, we
-			// need to create a small offset when zoomed to ensure that
-			// the html container and svg container are lined up exactly.
-			const offset =
-				z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
-
-			const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
-				x + offset
-			)}px,${toDomPrecision(y + offset)}px)`
-
-			htmlLayer.style.setProperty('transform', transform)
-		},
-		[editor, htmlLayer]
-	)
 
 	if (!shouldShowArrowHints(editor)) return null
 
-	return (
-		<div ref={setHtmlLayer} className="tl-html-layer tl-overlays">
-			<TldrawArrowHints />
-		</div>
-	)
+	return <TldrawArrowHints />
 })
 
-export const TldrawArrowHints = track(function TldrawArrowHints() {
+/** @public @react */
+export function TldrawArrowHints() {
 	const editor = useEditor()
 	const { ShapeIndicator } = useEditorComponents()
 
@@ -66,7 +31,7 @@ export const TldrawArrowHints = track(function TldrawArrowHints() {
 			{showOutline && ShapeIndicator && <ShapeIndicator shapeId={targetInfo.target.id} />}
 
 			{showEdgeHints && (
-				<svg className="tl-user-arrow-hints tl-overlays__item">
+				<svg className="tl-overlays__item">
 					<circle
 						cx={anchorInPageSpace.x}
 						cy={anchorInPageSpace.y}
@@ -76,16 +41,19 @@ export const TldrawArrowHints = track(function TldrawArrowHints() {
 					{Object.entries(handlesInPageSpace).map(([side, handle]) => {
 						if (!handle.isEnabled) return null
 						return (
-							<Fragment key={side}>
-								<circle cx={handle.point.x} cy={handle.point.y} className="tl-arrow-hint-handle" />
-							</Fragment>
+							<circle
+								key={side}
+								cx={handle.point.x}
+								cy={handle.point.y}
+								className="tl-arrow-hint-handle"
+							/>
 						)
 					})}
 				</svg>
 			)}
 		</>
 	)
-})
+}
 
 function shouldShowArrowHints(editor: Editor) {
 	if (editor.isInAny('arrow.idle', 'arrow.pointing')) return true

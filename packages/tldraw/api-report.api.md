@@ -2630,6 +2630,9 @@ export function Tldraw(props: TldrawProps): JSX_2.Element;
 export const TLDRAW_FILE_EXTENSION: ".tldr";
 
 // @public (undocumented)
+export function TldrawArrowHints(): JSX_2.Element | null;
+
+// @public (undocumented)
 export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
     // (undocumented)
     assetUrls?: TLUiAssetUrlOverrides;
@@ -2684,6 +2687,9 @@ export interface TldrawImageProps extends TLImageExportOptions {
     snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot;
     textOptions?: TLTextOptions;
 }
+
+// @public (undocumented)
+export const TldrawOverlays: NamedExoticComponent<unknown>;
 
 // @public (undocumented)
 export type TldrawProps = TldrawBaseProps & TldrawEditorStoreProps;
