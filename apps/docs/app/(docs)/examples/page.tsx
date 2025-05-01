@@ -49,6 +49,12 @@ export default async function Page({ params: _params }: { params: { slug: string
 			examplesByCategory[example.categoryId] = []
 		}
 		examplesByCategory[example.categoryId].push(example)
+
+		// Hardcode the getting started category
+		// Put the sync demo in the getting started category as well as the collaboration category
+		if (example.id === 'sync-demo') {
+			examplesByCategory['getting-started'].push(example)
+		}
 	}
 	const exampleCategories = Object.keys(examplesByCategory).map((categoryId) => ({
 		id: categoryId,
@@ -83,46 +89,61 @@ export default async function Page({ params: _params }: { params: { slug: string
 						examples={category.examples}
 					/>
 				))}
-				<div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-					{/* {examples.map((example) => (
-						<div key={example.id} className="mb-8 h-full">
-							<a
-								href={`/examples/${example.id}`}
-								className="flex flex-col h-full p-4 bg-white border border-zinc-200 rounded-lg shadow-sm hover:shadow-md dark:bg-zinc-950 dark:border-zinc-800"
-							>
-								<h2 className="text-lg font-semibold">{example.title}</h2>
-								<p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 flex-grow">
-									{example.description}
-								</p>
-							</a>
-						</div>
-					))} */}
-				</div>
-
-				{/* <div className="mx-auto w-full max-w-sm">
-					<DocsFeedbackWidget className="mb-12" />
-				</div> */}
 			</main>
 		</div>
 	)
 }
 
-export const EXAMPLES_CATEGORY_NAMES: Record<string, string> = {
-	'getting-started': 'Getting started',
-	configuration: 'Configuration',
-	ui: 'UI & theming',
-	'editor-api': 'Editor API',
-	'shapes/tools': 'Shapes & tools',
-	bindings: 'Bindings',
-	'data/assets': 'Data & assets',
-	collaboration: 'Collaboration',
-	'use-cases': 'Use cases',
+const EXAMPLES_CATEGORIES: Record<string, ExampleCategory> = {
+	'getting-started': {
+		title: 'Getting started',
+		subtitle: 'How to get tldraw running in your app.',
+	},
+	configuration: {
+		title: 'Configuration',
+		subtitle: 'Modify tldraw by configuring its options.',
+	},
+	ui: {
+		title: 'UI & theming',
+		subtitle: "Customize tldraw's user interface and appearance.",
+	},
+	'editor-api': {
+		title: 'Editor API',
+		subtitle: "Control tldraw's editor programmatically.",
+	},
+	'shapes/tools': {
+		title: 'Custom shapes & tools',
+		subtitle: 'Create your own shapes and tools for the canvas.',
+	},
+	bindings: {
+		title: 'Bindings',
+		subtitle: 'Use the bindings API to connect shapes to each other.',
+	},
+	'data/assets': {
+		title: 'Data & assets',
+		subtitle: 'Manage your data and assets.',
+	},
+	collaboration: {
+		title: 'Collaboration',
+		subtitle: 'Use multiplayer sync.',
+	},
+	'use-cases': {
+		title: 'Use cases',
+		subtitle: 'Common patterns and use cases.',
+	},
+}
+
+interface ExampleCategory {
+	title: string
+	subtitle: string
 }
 
 function ExampleCategory({ categoryId, examples }: { categoryId: string; examples: Article[] }) {
+	const exampleCategory = EXAMPLES_CATEGORIES[categoryId]
 	return (
 		<section className="mb-12">
-			<h2 className="mb-4 text-2xl font-semibold">{EXAMPLES_CATEGORY_NAMES[categoryId]}</h2>
+			<h2 className="mb-4 text-2xl font-semibold">{exampleCategory.title}</h2>
+			<p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">{exampleCategory.subtitle}</p>
 			<div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
 				{examples.map((example) => {
 					return (
@@ -135,6 +156,7 @@ function ExampleCategory({ categoryId, examples }: { categoryId: string; example
 								<div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 flex-grow">
 									<Content mdx={example.description ?? ''} />
 								</div>
+								<p>Priority: {example.priority}</p>
 							</a>
 						</div>
 					)

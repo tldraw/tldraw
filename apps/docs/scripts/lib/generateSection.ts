@@ -88,7 +88,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 		}
 	}
 
-	// Crate the categories
+	// Create the categories
 	const categories: Category[] = [
 		{
 			id: section.id + '_ucg',
@@ -190,6 +190,10 @@ function getArticleData({
 
 	const { content } = parsed
 
+	// if (sectionId === 'examples') {
+	// 	console.log('order', order, 'priority', priority)
+	// }
+
 	const article: Article = {
 		id: articleId,
 		type: 'article',
@@ -197,6 +201,7 @@ function getArticleData({
 		groupIndex: -1,
 		groupId: group,
 		categoryIndex: order ?? priority,
+		priority,
 		sectionId: sectionId,
 		author: [author],
 		authorId: author,
