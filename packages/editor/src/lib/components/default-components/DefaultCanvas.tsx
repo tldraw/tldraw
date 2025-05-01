@@ -168,6 +168,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 						<SnapIndicatorWrapper />
 						<SelectionForegroundWrapper />
 						<HandlesWrapper />
+						<OverlaysWrapper />
 						<LiveCollaborators />
 					</div>
 				</div>
@@ -369,6 +370,16 @@ function HandleWrapper({
 		>
 			<Handle shapeId={shapeId} handle={handle} zoom={zoom} isCoarse={isCoarse} />
 		</g>
+	)
+}
+
+function OverlaysWrapper() {
+	const { Overlays } = useEditorComponents()
+	if (!Overlays) return null
+	return (
+		<div className="tl-custom-overlays tl-overlays__item">
+			<Overlays />
+		</div>
 	)
 }
 

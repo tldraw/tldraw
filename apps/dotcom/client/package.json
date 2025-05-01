@@ -27,7 +27,7 @@
 	},
 	"dependencies": {
 		"@clerk/clerk-react": "^5.22.8",
-		"@rocicorp/zero": "0.19.2025042502",
+		"@rocicorp/zero": "0.19.2025042700",
 		"@sentry/integrations": "^7.120.3",
 		"@sentry/react": "^7.120.3",
 		"@tldraw/assets": "workspace:*",

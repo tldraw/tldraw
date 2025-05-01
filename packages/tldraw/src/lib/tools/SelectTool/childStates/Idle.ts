@@ -37,9 +37,12 @@ const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 export class Idle extends StateNode {
 	static override id = 'idle'
 
+	selectedShapesOnKeyDown: TLShape[] = []
+
 	override onEnter() {
 		this.parent.setCurrentToolIdMask(undefined)
 		updateHoveredShapeId(this.editor)
+		this.selectedShapesOnKeyDown = []
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
@@ -261,7 +264,7 @@ export class Idle extends StateNode {
 						info.handle === 'top' ||
 						info.handle === 'bottom'
 					) {
-						const change = util.onDoubleClickEdge?.(onlySelectedShape)
+						const change = util.onDoubleClickEdge?.(onlySelectedShape, info)
 						if (change) {
 							this.editor.markHistoryStoppingPoint('double click edge')
 							this.editor.updateShapes([change])
@@ -270,6 +273,20 @@ export class Idle extends StateNode {
 						}
 					}
 
+					if (
+						info.handle === 'top_left' ||
+						info.handle === 'top_right' ||
+						info.handle === 'bottom_right' ||
+						info.handle === 'bottom_left'
+					) {
+						const change = util.onDoubleClickCorner?.(onlySelectedShape, info)
+						if (change) {
+							this.editor.markHistoryStoppingPoint('double click corner')
+							this.editor.updateShapes([change])
+							kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
+							return
+						}
+					}
 					// For corners OR edges but NOT rotation corners
 					if (
 						util.canCrop(onlySelectedShape) &&
@@ -424,6 +441,8 @@ export class Idle extends StateNode {
 	}
 
 	override onKeyDown(info: TLKeyboardEventInfo) {
+		this.selectedShapesOnKeyDown = this.editor.getSelectedShapes()
+
 		switch (info.code) {
 			case 'ArrowLeft':
 			case 'ArrowRight':
@@ -497,6 +516,10 @@ export class Idle extends StateNode {
 	override onKeyUp(info: TLKeyboardEventInfo) {
 		switch (info.code) {
 			case 'Enter': {
+				// Because Enter onKeyDown can happen outside the canvas (but then focus the canvas potentially),
+				// we need to check if the canvas was initially selecting something before continuing.
+				if (!this.selectedShapesOnKeyDown.length) return
+
 				const selectedShapes = this.editor.getSelectedShapes()
 
 				// On enter, if every selected shape is a group, then select all of the children of the groups

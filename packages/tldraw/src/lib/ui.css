@@ -666,6 +666,7 @@
 }
 
 .tlui-style-panel__section__common:not(:only-child) {
+	margin-bottom: 7px;
 	border-bottom: 1px solid var(--color-divider);
 }
 

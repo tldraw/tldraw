@@ -340,6 +340,7 @@
 	"toast.error.export-fail.desc": "Görsel dışa aktarılamadı",
 	"toast.error.export-fail.title": "Dışa aktarma başarısız",
 	"tool-panel.more": "Daha Fazla",
+	"tool-panel.title": "Araçlar",
 	"tool.arrow": "Ok",
 	"tool.arrow-down": "Aşağı ok",
 	"tool.arrow-left": "Sol ok",
