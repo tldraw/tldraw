@@ -6,6 +6,7 @@ import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { Mat } from '../primitives/Mat'
+import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { setStyleProperty } from '../utils/dom'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
@@ -190,10 +191,7 @@ export const InnerShape = memo(
 			[util, shape.id]
 		)
 	},
-	(prev, next) =>
-		prev.shape.props === next.shape.props &&
-		prev.shape.meta === next.shape.meta &&
-		prev.util === next.util
+	(prev, next) => areShapesContentEqual(prev.shape, next.shape) && prev.util === next.util
 )
 
 export const InnerShapeBackground = memo(
