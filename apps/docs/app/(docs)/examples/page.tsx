@@ -52,9 +52,9 @@ export default async function Page({ params: _params }: { params: { slug: string
 
 		// Hardcode the getting started category
 		// Put the sync demo in the getting started category as well as the collaboration category
-		if (example.id === 'sync-demo') {
-			examplesByCategory['getting-started'].push(example)
-		}
+		// if (example.id === 'sync-demo') {
+		// 	examplesByCategory['getting-started'].push(example)
+		// }
 	}
 	const exampleCategories = Object.keys(examplesByCategory).map((categoryId) => ({
 		id: categoryId,
@@ -103,17 +103,25 @@ const EXAMPLES_CATEGORIES: Record<string, ExampleCategory> = {
 		title: 'Configuration',
 		subtitle: 'Modify tldraw by configuring its options.',
 	},
-	ui: {
-		title: 'UI & theming',
-		subtitle: "Customize tldraw's user interface and appearance.",
-	},
 	'editor-api': {
 		title: 'Editor API',
 		subtitle: "Control tldraw's editor programmatically.",
 	},
+	ui: {
+		title: 'UI & theming',
+		subtitle: "Customize tldraw's user interface and appearance.",
+	},
+	'canvas-layout': {
+		title: 'Page layout',
+		subtitle: "By default, tldraw's canvas is fullscreen, but you can change that.",
+	},
 	'shapes/tools': {
 		title: 'Custom shapes & tools',
 		subtitle: 'Create your own shapes and tools for the canvas.',
+	},
+	events: {
+		title: 'Events & effects',
+		subtitle: 'Handle events and changes on the canvas.',
 	},
 	bindings: {
 		title: 'Bindings',
@@ -130,6 +138,10 @@ const EXAMPLES_CATEGORIES: Record<string, ExampleCategory> = {
 	'use-cases': {
 		title: 'Use cases',
 		subtitle: 'Common patterns and use cases.',
+	},
+	advanced: {
+		title: 'Advanced',
+		subtitle: 'Advanced techniques.',
 	},
 }
 
@@ -156,7 +168,7 @@ function ExampleCategory({ categoryId, examples }: { categoryId: string; example
 								<div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 flex-grow">
 									<Content mdx={example.description ?? ''} />
 								</div>
-								<p>Priority: {example.priority}</p>
+								{/* <p>Priority: {example.priority}</p> */}
 							</a>
 						</div>
 					)

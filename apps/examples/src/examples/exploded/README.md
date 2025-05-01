@@ -1,7 +1,7 @@
 ---
 title: Sublibraries
 component: ./ExplodedExample.tsx
-category: editor-api
+category: advanced
 priority: 3
 keywords: [ui, components, utils]
 ---

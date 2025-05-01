@@ -2,9 +2,11 @@
 title: Persistence key
 component: ./PersistenceKeyExample.tsx
 category: configuration
-priority: 2
+priority: 1
 keywords: [local storage]
 ---
+
+Persist the editor's content between sessions by using a persistence key.
 
 ---
 

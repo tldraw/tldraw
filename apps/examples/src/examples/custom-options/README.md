@@ -1,11 +1,11 @@
 ---
-title: Custom options
+title: Editor options
 component: ./CustomOptionsExample.tsx
 category: configuration
 priority: 0
 ---
 
-Override tldraw's default options like max number of pages and camera animation speed.
+Override default editor options like max number of pages and animation speed.
 
 ---
 

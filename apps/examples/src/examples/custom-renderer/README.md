@@ -1,7 +1,7 @@
 ---
 title: Custom renderer
 component: ./CustomRendererExample.tsx
-category: ui
+category: advanced
 keywords: [html, canvas, background, context]
 ---
 

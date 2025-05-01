@@ -2,10 +2,10 @@
 title: Custom paste
 component: ./CustomPasteExample.tsx
 category: configuration
-priority: 5
+priority: 3
 ---
 
-Use the tldraw external content handler to tweak how pasting works.
+Tweak how pasting works by registering an external content handler.
 
 ---
 

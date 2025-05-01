@@ -1,7 +1,7 @@
 ---
 title: State and store
 component: ./StateStoreExample.tsx
-category: configuration
+category: events
 priority: 3
 keywords: [signia, state, store, side, effects, subscribe, track]
 ---

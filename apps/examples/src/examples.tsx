@@ -25,6 +25,10 @@ type Category =
 	| 'use-cases'
 	| 'bindings'
 	| 'getting-started'
+	| 'canvas-layout'
+	| 'advanced'
+	| 'events'
+	| 'sync'
 
 const getExamplesForCategory = (category: Category) =>
 	(Object.values(import.meta.glob('./examples/*/README.md', { eager: true })) as Example[])
@@ -36,14 +40,18 @@ const getExamplesForCategory = (category: Category) =>
 
 const categories = [
 	['getting-started', 'Getting started'],
-	['configuration', 'Configuring tldraw'],
+	['configuration', 'Configuration'],
 	['ui', 'UI & theming'],
 	['editor-api', 'Editor API'],
+	['events', 'Events & effects'],
+	['sync', 'Sync'],
 	['shapes/tools', 'Shapes & tools'],
 	['bindings', 'Bindings'],
 	['collaboration', 'Sync'],
 	['data/assets', 'Data & assets'],
 	['use-cases', 'Use cases'],
+	['canvas-layout', 'Canvas layout'],
+	['advanced', 'Advanced'],
 ]
 
 export const examples = categories.map(([category, title]) => ({

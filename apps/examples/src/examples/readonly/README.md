@@ -6,7 +6,7 @@ priority: 1
 keywords: [read, only mode]
 ---
 
-Use the editor in readonly mode.
+Use the editor in read-only mode.
 
 ---
 

@@ -1,12 +1,12 @@
 ---
-title: Configuring built-in shapes
+title: Shape options
 component: ./ConfigureShapeUtilExample.tsx
 category: configuration
-priority: 1
+priority: 0
 keywords: [config, configure, shape, util, frame]
 ---
 
-Change the behavior of built-in shapes by configuring their options.
+Change the behavior of built-in shapes by setting their options.
 
 ---
 

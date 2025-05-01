@@ -1,5 +1,5 @@
 ---
-title: Hello world example
+title: Tldraw component
 component: ./BasicExample.tsx
 category: getting-started
 priority: 0

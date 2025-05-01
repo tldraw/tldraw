@@ -1,7 +1,7 @@
 ---
 title: Minimal
 component: ./OnlyEditorExample.tsx
-category: configuration
+category: advanced
 priority: 3
 keywords: [select, tool, editor, bare, bones]
 ---
