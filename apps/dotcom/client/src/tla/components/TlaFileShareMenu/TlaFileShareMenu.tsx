@@ -79,7 +79,12 @@ export function TlaFileShareMenu({
 		<div onPointerDown={preventDefault}>
 			<TldrawUiPopover id={`share-${fileId}-${source}`}>
 				<TldrawUiPopoverTrigger>{children}</TldrawUiPopoverTrigger>
-				<TldrawUiPopoverContent side="bottom" alignOffset={-2} sideOffset={4}>
+				<TldrawUiPopoverContent
+					side="bottom"
+					alignOffset={-2}
+					sideOffset={4}
+					autoFocusFirstButton={false}
+				>
 					<TlaTabsRoot activeTab={tabToShowAsActive} onTabChange={handleTabChange}>
 						<TlaTabsTabs>
 							{/* Disable share when on a scratchpad file */}

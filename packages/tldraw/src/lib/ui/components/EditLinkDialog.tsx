@@ -151,6 +151,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 						className="tlui-edit-link-dialog__input"
 						label="edit-link-dialog.url"
 						autoFocus
+						placeholder="https://example.com"
 						value={urlInputState.actual}
 						onValueChange={handleChange}
 						onComplete={handleComplete}
