@@ -338,7 +338,7 @@ describe('When pressing enter on a selected shape', () => {
 			.selectNone()
 			.createShapes([{ id, type: 'geo' }])
 			.select(id)
-			.keyUp('Enter')
+			.keyPress('Enter')
 			.expectToBeIn('select.editing_shape')
 	})
 })
@@ -577,7 +577,7 @@ describe('When in readonly mode', () => {
 		editor.setSelectedShapes([ids.embed1])
 		expect(editor.getSelectedShapeIds().length).toBe(1)
 
-		editor.keyUp('Enter')
+		editor.keyPress('Enter')
 		expect(editor.getEditingShapeId()).toBe(ids.embed1)
 	})
 })

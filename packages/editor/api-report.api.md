@@ -2639,7 +2639,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onClick?(shape: Shape): TLShapePartial<Shape> | void;
     onCrop?(shape: Shape, info: TLCropInfo<Shape>): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void;
     onDoubleClick?(shape: Shape): TLShapePartial<Shape> | void;
-    onDoubleClickEdge?(shape: Shape): TLShapePartial<Shape> | void;
+    onDoubleClickCorner?(shape: Shape, info: TLClickEventInfo): TLShapePartial<Shape> | void;
+    onDoubleClickEdge?(shape: Shape, info: TLClickEventInfo): TLShapePartial<Shape> | void;
     onDoubleClickHandle?(shape: Shape, handle: TLHandle): TLShapePartial<Shape> | void;
     onDragShapesOut?(shape: Shape, shapes: TLShape[]): void;
     onDragShapesOver?(shape: Shape, shapes: TLShape[]): void;
@@ -3354,6 +3355,8 @@ export interface TLEditorComponents {
     LoadingScreen?: ComponentType | null;
     // (undocumented)
     OnTheCanvas?: ComponentType | null;
+    // (undocumented)
+    Overlays?: ComponentType | null;
     // (undocumented)
     Scribble?: ComponentType<TLScribbleProps> | null;
     // (undocumented)

@@ -44,7 +44,7 @@
 	/* User handles need to be above selection edges / corners, matters for sticky note clone handles */
 	--layer-overlays-user-handles: 105;
 	--layer-overlays-user-indicator-hint: 110;
-	--layer-overlays-user-arrow-hints: 115;
+	--layer-overlays-custom: 115;
 	--layer-overlays-collaborator-cursor-hint: 120;
 	--layer-overlays-collaborator-cursor: 130;
 
@@ -473,8 +473,8 @@ input,
 	stroke-width: calc(2.5px * var(--tl-scale));
 }
 
-.tl-user-arrow-hints {
-	z-index: var(--layer-overlays-user-arrow-hints);
+.tl-custom-overlays {
+	z-index: var(--layer-overlays-custom);
 }
 
 /* behind collaborator cursor */

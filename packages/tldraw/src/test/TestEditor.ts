@@ -525,6 +525,12 @@ export class TestEditor extends Editor {
 		return this
 	}
 
+	keyPress(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
+		this.keyDown(key, options)
+		this.keyUp(key, options)
+		return this
+	}
+
 	keyDown(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
 		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) }).forceTick()
 		return this
