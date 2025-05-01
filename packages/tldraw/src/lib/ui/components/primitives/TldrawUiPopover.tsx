@@ -47,6 +47,7 @@ export interface TLUiPopoverContentProps {
 	alignOffset?: number
 	sideOffset?: number
 	disableEscapeKeyDown?: boolean
+	autoFocusFirstButton?: boolean
 }
 
 /** @public @react */
@@ -57,8 +58,17 @@ export function TldrawUiPopoverContent({
 	sideOffset = 8,
 	alignOffset = 0,
 	disableEscapeKeyDown = false,
+	autoFocusFirstButton = true,
 }: TLUiPopoverContentProps) {
 	const container = useContainer()
+	const ref = React.useRef<HTMLDivElement>(null)
+
+	const handleOpenAutoFocus = React.useCallback(() => {
+		if (!autoFocusFirstButton) return
+		const firstButton = ref.current?.querySelector('button:not([disabled])') as HTMLElement | null
+		if (firstButton) firstButton.focus()
+	}, [autoFocusFirstButton])
+
 	return (
 		<PopoverPrimitive.Portal container={container}>
 			<PopoverPrimitive.Content
@@ -68,6 +78,8 @@ export function TldrawUiPopoverContent({
 				align={align}
 				alignOffset={alignOffset}
 				dir="ltr"
+				ref={ref}
+				onOpenAutoFocus={handleOpenAutoFocus}
 				onEscapeKeyDown={(e) => disableEscapeKeyDown && e.preventDefault()}
 			>
 				{children}
