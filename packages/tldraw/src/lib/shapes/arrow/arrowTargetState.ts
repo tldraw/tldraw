@@ -195,7 +195,7 @@ export function updateArrowTargetState({
 	const shouldSnapEdges = !isExact && precise && arrowKind === 'elbow'
 	const shouldSnapEdgePoints =
 		!isExact && precise && arrowKind === 'elbow' && targetGeometryInTargetSpace.isClosed
-	const shouldSnapNone = precise
+	const shouldSnapNone = precise && targetGeometryInTargetSpace.isClosed
 	const shouldSnapCenterAxis =
 		!isExact && precise && arrowKind === 'elbow' && targetGeometryInTargetSpace.isClosed
 
@@ -209,11 +209,13 @@ export function updateArrowTargetState({
 	}
 
 	if (shouldSnapEdges) {
-		const snapDistance = calculateSnapDistance(
-			editor,
-			targetBoundsInTargetSpace,
-			util.options.elbowArrowEdgeSnapDistance
-		)
+		const snapDistance = shouldSnapNone
+			? calculateSnapDistance(
+					editor,
+					targetBoundsInTargetSpace,
+					util.options.elbowArrowEdgeSnapDistance
+				)
+			: Infinity
 
 		const nearestPointOnEdgeInTargetSpace = targetGeometryInTargetSpace.nearestPoint(
 			pointInTargetSpace,

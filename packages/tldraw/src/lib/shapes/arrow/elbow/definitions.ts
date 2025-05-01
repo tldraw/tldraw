@@ -58,6 +58,9 @@ export const ElbowArrowAxes = {
 		crossMid: 'midY',
 		gap: 'gapX',
 		midRange: 'midXRange',
+		self: 'x',
+		cross: 'y',
+		size: 'width',
 	},
 	y: {
 		v: (y: number, x: number) => new Vec(x, y),
@@ -66,6 +69,9 @@ export const ElbowArrowAxes = {
 		crossMid: 'midX',
 		gap: 'gapY',
 		midRange: 'midYRange',
+		self: 'y',
+		cross: 'x',
+		size: 'height',
 	},
 } as const
 

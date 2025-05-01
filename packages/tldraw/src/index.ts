@@ -91,6 +91,7 @@ export {
 } from './lib/shapes/arrow/elbow/definitions'
 export {
 	getArrowBindings,
+	getArrowInfo,
 	getArrowTerminalsInArrowSpace,
 	type TLArrowBindings,
 } from './lib/shapes/arrow/shared'

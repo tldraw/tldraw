@@ -2,10 +2,13 @@ import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useEffect, useLayoutEffect } from 'react'
 import {
 	BaseBoxShapeUtil,
+	TLArrowShape,
 	TLBaseShape,
+	TLGeoShape,
 	Tldraw,
 	createShapeId,
 	exportAs,
+	getArrowInfo,
 	toRichText,
 	useActions,
 	useEditor,
@@ -125,6 +128,53 @@ function SneakyExportButton() {
 				exportAs(editor, editor.selectAll().getSelectedShapeIds(), { format, name: 'test' }),
 			createShapeId: () => createShapeId(),
 			toRichText: (text: string) => toRichText(text),
+			markAllArrowBindings: () => {
+				const markRadius = 3
+				for (const shape of editor.getCurrentPageShapes()) {
+					if (!editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) continue
+
+					const info = getArrowInfo(editor, shape)
+					if (!info) continue
+
+					const transform = editor.getShapePageTransform(shape.id)
+
+					if (info.bindings.start) {
+						const pagePoint = transform.applyToPoint(info.start.handle)
+						editor.createShape<TLGeoShape>({
+							type: 'geo',
+							x: pagePoint.x - markRadius,
+							y: pagePoint.y - markRadius,
+							props: {
+								geo: 'ellipse',
+								w: markRadius * 2,
+								h: markRadius * 2,
+								color: 'light-blue',
+								fill: 'none',
+								dash: 'solid',
+								size: 's',
+							},
+						})
+					}
+
+					if (info.bindings.end) {
+						const pagePoint = transform.applyToPoint(info.end.handle)
+						editor.createShape<TLGeoShape>({
+							type: 'geo',
+							x: pagePoint.x - markRadius,
+							y: pagePoint.y - markRadius,
+							props: {
+								geo: 'ellipse',
+								w: markRadius * 2,
+								h: markRadius * 2,
+								color: 'light-blue',
+								fill: 'none',
+								dash: 'solid',
+								size: 's',
+							},
+						})
+					}
+				}
+			},
 		}
 		;(window as any).tldrawApi = api
 	}, [actions, editor])

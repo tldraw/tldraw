@@ -352,6 +352,7 @@ export function SplineStylePickerSet({ styles }: StylePickerSetProps) {
 }
 /** @public @react */
 export function ArrowStylePickerSet({ styles }: StylePickerSetProps) {
+	const msg = useTranslation()
 	const handleValueChange = useStyleChangeCallback()
 
 	const arrowKind = styles.get(ArrowShapeKindStyle)
@@ -360,17 +361,19 @@ export function ArrowStylePickerSet({ styles }: StylePickerSetProps) {
 	}
 
 	return (
-		<DropdownPicker
-			id="arrow-kind"
-			type="menu"
-			label={'style-panel.arrow-kind'}
-			uiType="arrow-kind"
-			stylePanelType="arrow-kind"
-			style={ArrowShapeKindStyle}
-			items={STYLES.arrowKind}
-			value={arrowKind}
-			onValueChange={handleValueChange}
-		/>
+		<TldrawUiToolbar label={msg('style-panel.arrow-style')}>
+			<DropdownPicker
+				id="arrow-kind"
+				type="menu"
+				label={'style-panel.arrow-kind'}
+				uiType="arrow-kind"
+				stylePanelType="arrow-kind"
+				style={ArrowShapeKindStyle}
+				items={STYLES.arrowKind}
+				value={arrowKind}
+				onValueChange={handleValueChange}
+			/>
+		</TldrawUiToolbar>
 	)
 }
 /** @public @react */

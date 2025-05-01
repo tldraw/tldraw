@@ -4,6 +4,7 @@ import {
 	Box,
 	Editor,
 	exhaustiveSwitchError,
+	Geometry2dFilters,
 	lerp,
 	Mat,
 	TLArrowBinding,
@@ -17,6 +18,7 @@ import {
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { BOUND_ARROW_OFFSET, STROKE_SIZES, TLArrowBindings } from '../shared'
 import {
+	ElbowArrowAxes,
 	ElbowArrowBinding,
 	ElbowArrowBox,
 	ElbowArrowBoxEdges,
@@ -54,14 +56,32 @@ export function getElbowArrowInfo(
 	// if we're binding to open geometry (e.g. lines, draw shapes, etc) we convert the binding to a
 	// point and ignore the picked side, because those things don't really make sense for non-closed
 	// shapes anyway.
-	if (!startBinding.geometry?.isClosed) {
-		startBinding = convertBindingToPoint(startBinding)
-		startBinding.side = null
-	}
-	if (!endBinding.geometry?.isClosed) {
-		endBinding = convertBindingToPoint(endBinding)
-		endBinding.side = null
-	}
+	adjustBindingForUnclosedPathIfNeeded(startBinding)
+	adjustBindingForUnclosedPathIfNeeded(endBinding)
+	// if (
+	// 	startBinding.geometry &&
+	// 	!startBinding.geometry.isClosed &&
+	// 	startBinding.snap === 'edge' &&
+	// 	startBinding.geometry.intersectLineSegment(
+	// 		Vec.Nudge(startBinding.target, endBinding.target, 10),
+	// 		endBinding.target
+	// 	).length === 0
+	// ) {
+	// 	startBinding = convertBindingToPoint(startBinding)
+	// 	startBinding.side = null
+	// }
+	// if (
+	// 	endBinding.geometry &&
+	// 	!endBinding.geometry.isClosed &&
+	// 	endBinding.snap === 'edge' &&
+	// 	endBinding.geometry.intersectLineSegment(
+	// 		Vec.Nudge(endBinding.target, startBinding.target, 10),
+	// 		startBinding.target
+	// 	).length === 0
+	// ) {
+	// 	endBinding = convertBindingToPoint(endBinding)
+	// 	endBinding.side = null
+	// }
 
 	const swapOrder = !!(!startBinding.side && endBinding.side)
 
@@ -97,11 +117,11 @@ export function getElbowArrowInfo(
 			aBinding = convertBindingToPoint(aBinding)
 		}
 
-		if (bBinding.bounds.containsPoint(aBinding.target, options.expandElbowLegLength + 1)) {
+		if (bBinding.bounds.containsPoint(aBinding.target)) {
 			bBinding = convertBindingToPoint(bBinding)
 		}
 
-		if (aBinding.bounds.containsPoint(bBinding.target, options.expandElbowLegLength + 1)) {
+		if (aBinding.bounds.containsPoint(bBinding.target)) {
 			aBinding = convertBindingToPoint(aBinding)
 		}
 	}
@@ -271,9 +291,7 @@ export function getRouteHandlePath(info: ElbowArrowInfo, route: ElbowArrowRoute)
 	const firstSegmentLengthChange = firstSegmentLength - newFirstSegmentLength
 	const lastSegmentLengthChange = lastSegmentLength - newLastSegmentLength
 
-	const newPoints = route.points.slice()
-	newPoints[0] = startTarget
-	newPoints[newPoints.length - 1] = endTarget
+	const newPoints = [startTarget, ...route.points, endTarget]
 
 	return {
 		name: route.name,
@@ -630,45 +648,47 @@ function castPathSegmentIntoGeometry(
 	route: ElbowArrowRoute,
 	options: ElbowArrowOptions
 ) {
+	if (!target.geometry) return
+
 	const point1 = segment === 'first' ? route.points[0] : route.points[route.points.length - 1]
 	const point2 = segment === 'first' ? route.points[1] : route.points[route.points.length - 2]
 
 	const farPoint = Vec.Nudge(
 		point1,
 		point2,
-		-Math.max(target.original.width, target.original.height)
+		-Math.max(target.geometry.bounds.width, target.geometry.bounds.height)
 	)
 
 	const initialDistance = Vec.ManhattanDist(point1, point2)
 
-	let nearestIntersection: VecLike | null = null
-	let nearestDistance = Infinity
+	let nearestIntersectionToPoint2: VecLike | null = null
+	let nearestDistanceToPoint2 = Infinity
 
 	if (target.isExact) {
-		nearestIntersection = target.target
+		nearestIntersectionToPoint2 = target.target
 	} else if (target.geometry) {
 		for (const intersection of target.geometry.intersectLineSegment(point2, farPoint, {
 			includeLabels: false,
 			includeInternal: false,
 		})) {
-			const distance = Vec.ManhattanDist(point1, intersection)
-			if (distance < nearestDistance) {
-				nearestDistance = distance
-				nearestIntersection = intersection
+			const point2Distance = Vec.ManhattanDist(point2, intersection)
+			if (point2Distance < nearestDistanceToPoint2) {
+				nearestDistanceToPoint2 = point2Distance
+				nearestIntersectionToPoint2 = intersection
 			}
 		}
 	}
 
-	if (nearestIntersection) {
+	if (nearestIntersectionToPoint2) {
 		let offset = target.arrowheadOffset
 
-		const currentFinalSegmentLength = Vec.ManhattanDist(point2, nearestIntersection)
+		const currentFinalSegmentLength = Vec.ManhattanDist(point2, nearestIntersectionToPoint2)
 		if (currentFinalSegmentLength < options.minElbowLegLength) {
 			const targetLength = options.minElbowLegLength - target.arrowheadOffset
 			offset = currentFinalSegmentLength - targetLength
 		}
 		if (offset < target.minEndSegmentLength) {
-			if (target.geometry?.bounds.containsPoint(other.target)) {
+			if (target.geometry.bounds.containsPoint(other.target)) {
 				offset = Math.max(0, offset)
 			} else {
 				offset = -target.arrowheadOffset
@@ -676,13 +696,15 @@ function castPathSegmentIntoGeometry(
 		}
 
 		if (!target.isExact && offset !== 0) {
-			nearestIntersection = Vec.Nudge(nearestIntersection, point2, offset)
+			nearestIntersectionToPoint2 = Vec.Nudge(nearestIntersectionToPoint2, point2, offset)
 		}
 
-		const newDistance = Vec.ManhattanDist(point2, nearestIntersection)
-		route.distance += newDistance - initialDistance
-		point1.x = nearestIntersection.x
-		point1.y = nearestIntersection.y
+		if (offset !== 0) {
+			const newDistance = Vec.ManhattanDist(point2, nearestIntersectionToPoint2)
+			route.distance += newDistance - initialDistance
+			point1.x = nearestIntersectionToPoint2.x
+			point1.y = nearestIntersectionToPoint2.y
+		}
 
 		if (offset < 0) {
 			const midPoint = Vec.Lrp(point2, point1, 0.5)
@@ -724,4 +746,76 @@ function fixTinyEndNubs(
 			}
 		}
 	}
+}
+
+function adjustBindingForUnclosedPathIfNeeded(binding: ElbowArrowBinding) {
+	if (!binding.geometry || binding.geometry.isClosed) return binding
+
+	const normalizedPointAlongPath = binding.geometry.uninterpolateAlongEdge(
+		binding.target,
+		Geometry2dFilters.EXCLUDE_NON_STANDARD
+	)
+
+	const next = binding.geometry.interpolateAlongEdge(
+		normalizedPointAlongPath + 1 / binding.geometry.length
+	)
+
+	const normal = next.sub(binding.target).per().uni()
+	const axis = Math.abs(normal.x) > Math.abs(normal.y) ? ElbowArrowAxes.x : ElbowArrowAxes.y
+
+	const min = axis.v(
+		binding.target[axis.self] - binding.bounds[axis.size] * 2,
+		binding.target[axis.cross]
+	)
+	const max = axis.v(
+		binding.target[axis.self] + binding.bounds[axis.size] * 2,
+		binding.target[axis.cross]
+	)
+
+	let furthestIntersectionTowardsMin: VecLike | null = null
+	let furthestIntersectionTowardsMinDistance = 0
+	let furthestIntersectionTowardsMax: VecLike | null = null
+	let furthestIntersectionTowardsMaxDistance = 0
+	let side: ElbowArrowSideWithAxis = axis.self
+
+	for (const intersection of binding.geometry.intersectLineSegment(
+		min,
+		max,
+		Geometry2dFilters.EXCLUDE_NON_STANDARD
+	)) {
+		if (Math.abs(intersection[axis.self] - binding.target[axis.self]) < 1) {
+			continue
+		}
+		if (intersection[axis.self] < binding.target[axis.self]) {
+			if (
+				Vec.ManhattanDist(intersection, binding.target) > furthestIntersectionTowardsMinDistance
+			) {
+				furthestIntersectionTowardsMinDistance = Vec.ManhattanDist(intersection, binding.target)
+				furthestIntersectionTowardsMin = intersection
+			}
+		} else {
+			if (
+				Vec.ManhattanDist(intersection, binding.target) > furthestIntersectionTowardsMaxDistance
+			) {
+				furthestIntersectionTowardsMaxDistance = Vec.ManhattanDist(intersection, binding.target)
+				furthestIntersectionTowardsMax = intersection
+			}
+		}
+	}
+
+	if (furthestIntersectionTowardsMin && furthestIntersectionTowardsMax) {
+		if (furthestIntersectionTowardsMinDistance > furthestIntersectionTowardsMaxDistance) {
+			side = axis.hiEdge
+		} else {
+			side = axis.loEdge
+		}
+	} else if (furthestIntersectionTowardsMin && !furthestIntersectionTowardsMax) {
+		side = axis.hiEdge
+	} else if (!furthestIntersectionTowardsMin && furthestIntersectionTowardsMax) {
+		side = axis.loEdge
+	}
+
+	console.log('pick side', side)
+
+	binding.side = side
 }

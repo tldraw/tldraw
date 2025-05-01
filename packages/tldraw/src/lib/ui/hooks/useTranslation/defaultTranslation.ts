@@ -377,6 +377,7 @@ export const DEFAULT_TRANSLATION = {
 	'style-panel.opacity': 'Opacity',
 	'style-panel.size': 'Size',
 	'style-panel.spline': 'Spline',
+	'style-panel.arrow-style': 'Arrow style',
 	'tool-panel.title': 'Tools',
 	'tool-panel.more': 'More',
 	'navigation-zone.title': 'Navigation',

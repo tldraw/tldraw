@@ -295,7 +295,7 @@ it('preserves common bounds when distributing shapes with a lot of overlap', () 
 
 	const prevBounds = editor.getSelectionPageBounds()!
 
-	editor.distributeShapes(Object.values(ids), 'horizontal')
+	editor.distributeShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD, ids.boxE], 'horizontal')
 
 	// If we didn't clamp this, then the right side of boxD would be to the right of boxE's right side
 	expect(editor.getShapePageBounds(ids.boxD)!.maxX).toEqual(
