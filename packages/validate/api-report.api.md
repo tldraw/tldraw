@@ -181,7 +181,7 @@ declare namespace T {
 export { T }
 
 // @public (undocumented)
-type TypeOf<V extends Validatable<any>> = V extends Validatable<infer T> ? T : never;
+export type TypeOf<V extends Validatable<any>> = V extends Validatable<infer T> ? T : never;
 
 // @public
 function union<Key extends string, Config extends UnionValidatorConfig<Key, Config>>(key: Key, config: Config): UnionValidator<Key, Config>;
@@ -209,7 +209,7 @@ const unknown: Validator<unknown>;
 const unknownObject: Validator<Record<string, unknown>>;
 
 // @public (undocumented)
-interface Validatable<T> {
+export interface Validatable<T> {
     // (undocumented)
     validate(value: unknown): T;
     validateUsingKnownGoodVersion?(knownGoodValue: T, newValue: unknown): T;
@@ -246,10 +246,10 @@ export class Validator<T> implements Validatable<T> {
 }
 
 // @public (undocumented)
-type ValidatorFn<T> = (value: unknown) => T;
+export type ValidatorFn<T> = (value: unknown) => T;
 
 // @public (undocumented)
-type ValidatorUsingKnownGoodVersionFn<In, Out = In> = (knownGoodValue: In, value: unknown) => Out;
+export type ValidatorUsingKnownGoodVersionFn<In, Out = In> = (knownGoodValue: In, value: unknown) => Out;
 
 // (No @packageDocumentation comment for this package)
 
