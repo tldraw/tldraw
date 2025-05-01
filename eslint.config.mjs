@@ -63,6 +63,7 @@ export default [
 			'**/patchedJestJsDom.js',
 			'**/.clasp.json',
 			'**/*.mjs',
+			'**/.*.js',
 			'packages/assets/*',
 		],
 	},
