@@ -18,8 +18,8 @@
 	overflow: hidden;
 	border-radius: 4px;
 	padding: 8px;
-	border: 1px solid var(--tla-color-border);
-	background-color: var(--tla-color-panel);
+	border: 1px solid var(--color-border);
+	background-color: var(--color-panel);
 }
 
 .qrCodeInner {
@@ -38,32 +38,32 @@
 .exportPreview {
 	position: relative;
 	width: 216px;
-	height: 100%;
-	aspect-ratio: 1;
+	max-height: 216px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	overflow: hidden;
-	border-radius: 4px;
 	border: 1px solid var(--tla-color-border);
-	background-color: var(--tla-color-panel);
+	/* https://css-tricks.com/background-patterns-simplified-by-conic-gradients/#checkerboard */
+	background: repeating-conic-gradient(#d8d8d8 0 25%, #fff 0 50%) 50% / 20px 20px;
+}
+
+.exportPreview[data-theme='dark'] {
+	/* https://css-tricks.com/background-patterns-simplified-by-conic-gradients/#checkerboard */
+	background: repeating-conic-gradient(#000000 0 25%, #535353 0 50%) 50% / 20px 20px;
 }
 
 .exportPreviewInner {
-	width: auto;
-	height: auto;
 	max-height: 100%;
 	max-width: 100%;
 	pointer-events: all;
-	outline: 1px solid var(--tla-color-border);
 	box-sizing: content-box;
 }
 
 .exportPreviewSize {
 	position: absolute;
-	bottom: 0px;
 	right: 0px;
-	background-color: var(--tla-color-panel);
+	bottom: 0px;
+	background-color: var(--color-panel);
 	padding: 1px 4px;
 	text-align: right;
 	border-top-left-radius: 4px;
