@@ -172,7 +172,7 @@ export function updateArrowTargetState({
 
 	let precise = isPrecise || isExact
 
-	if (!precise && !isInitialStartCreation) {
+	if (!precise) {
 		// If we're switching to a new bound shape, then precise only if moving slowly
 		if (!currentBinding || (currentBinding && target.id !== currentBinding.toId)) {
 			precise = editor.inputs.pointerVelocity.len() < 0.5
