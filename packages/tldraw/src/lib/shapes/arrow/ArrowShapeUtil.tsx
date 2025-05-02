@@ -183,6 +183,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return [
 			{
 				id: ARROW_HANDLES.START,
+				label: this.editor.i18n().translate('arrow.start'),
 				type: 'vertex',
 				index: 'a0',
 				x: info.start.handle.x,
@@ -190,6 +191,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			},
 			{
 				id: ARROW_HANDLES.MIDDLE,
+				label: this.editor.i18n().translate('arrow.bend'),
 				type: 'virtual',
 				index: 'a2',
 				x: info.middle.x,
@@ -197,6 +199,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			},
 			{
 				id: ARROW_HANDLES.END,
+				label: this.editor.i18n().translate('arrow.end'),
 				type: 'vertex',
 				index: 'a3',
 				x: info.end.handle.x,

@@ -21,8 +21,7 @@ export type TLHandleType = SetValue<typeof TL_HANDLE_TYPES>
 export interface TLHandle {
 	/** A unique identifier for the handle. */
 	id: string
-	// TODO(mime): this needs to be required.
-	label?: string
+	label: string
 	type: TLHandleType
 	canSnap?: boolean
 	index: IndexKey

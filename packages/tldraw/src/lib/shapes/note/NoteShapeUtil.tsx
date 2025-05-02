@@ -73,6 +73,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	static override props = noteShapeProps
 	static override migrations = noteShapeMigrations
 
+	override getShapeName() {
+		// First example of us using getShapeName.
+		return this.editor.i18n().translate('tool.note')
+	}
+
 	override options: NoteShapeOptions = {
 		resizeMode: 'none',
 	}
@@ -164,11 +169,13 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const nh = getNoteHeight(shape)
 		const nw = NOTE_SIZE * scale
 		const offset = (CLONE_HANDLE_MARGIN / zoom) * scale
+		const label = this.editor.i18n().translate('note.clone')
 
 		if (zoom * scale < 0.5) {
 			return [
 				{
 					id: 'bottom',
+					label,
 					index: 'a3' as IndexKey,
 					type: 'clone',
 					x: nw / 2,
@@ -180,6 +187,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return [
 			{
 				id: 'top',
+				label,
 				index: 'a1' as IndexKey,
 				type: 'clone',
 				x: nw / 2,
@@ -187,6 +195,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			},
 			{
 				id: 'right',
+				label,
 				index: 'a2' as IndexKey,
 				type: 'clone',
 				x: nw + offset,
@@ -194,6 +203,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			},
 			{
 				id: 'bottom',
+				label,
 				index: 'a3' as IndexKey,
 				type: 'clone',
 				x: nw / 2,
@@ -201,6 +211,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			},
 			{
 				id: 'left',
+				label,
 				index: 'a4' as IndexKey,
 				type: 'clone',
 				x: -offset,

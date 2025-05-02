@@ -101,6 +101,7 @@ import {
 	getSnapshot,
 	loadSnapshot,
 } from '../config/TLEditorSnapshot'
+import { TLI18nAdapter, defaultI18n } from '../config/TLI18n'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { TLAnyBindingUtilConstructor, checkBindings } from '../config/defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defaultShapes'
@@ -270,6 +271,8 @@ export interface TLEditorOptions {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+
+	i18n?: TLI18nAdapter
 }
 
 /**
@@ -310,6 +313,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		isShapeHidden,
 		getShapeVisibility,
 		fontAssetUrls,
+		i18n = defaultI18n,
 	}: TLEditorOptions) {
 		super()
 		assert(
@@ -325,6 +329,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.options = { ...defaultTldrawOptions, ...options }
 
 		this.store = store
+		this.i18n = i18n
 		this.disposables.add(this.store.dispose.bind(this.store))
 		this.history = new HistoryManager<TLRecord>({
 			store,
@@ -838,6 +843,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly store: TLStore
+
+	/**
+	 * The editor's translation manager.
+	 *
+	 * @public
+	 */
+	readonly i18n: TLI18nAdapter
 
 	/**
 	 * The root state of the statechart.

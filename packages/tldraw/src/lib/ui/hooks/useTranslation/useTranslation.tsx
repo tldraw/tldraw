@@ -34,6 +34,17 @@ export function useCurrentTranslation() {
 	return translations
 }
 
+let loadedTranslation: TLUiTranslation | null = null
+/**
+ * While we transition away from the old i18n system, this helps us use the old system
+ * in the meantime.
+ *
+ * @internal
+ */
+export function getLoadedTranslation() {
+	return loadedTranslation
+}
+
 /**
  * Provides a translation context to the editor.
  *
@@ -72,12 +83,15 @@ export function TldrawUiTranslationProvider({
 
 			if (translation && !isCancelled) {
 				if (overrides && overrides[locale]) {
-					setCurrentTranslation({
+					const newTranslation = {
 						...translation,
 						messages: { ...translation.messages, ...overrides[locale] },
-					})
+					}
+					setCurrentTranslation(newTranslation)
+					loadedTranslation = newTranslation
 				} else {
 					setCurrentTranslation(translation)
+					loadedTranslation = translation
 				}
 			}
 		}

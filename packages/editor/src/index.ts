@@ -125,6 +125,7 @@ export {
 	type TLEditorSnapshot,
 	type TLLoadSnapshotOptions,
 } from './lib/config/TLEditorSnapshot'
+export { defaultI18n, type TLI18n, type TLI18nAdapter } from './lib/config/TLI18n'
 export {
 	TAB_ID,
 	createSessionStateSnapshotSignal,

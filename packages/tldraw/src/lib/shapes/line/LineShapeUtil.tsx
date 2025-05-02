@@ -82,6 +82,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 			const results: TLHandle[] = points.map((point) => ({
 				...point,
 				id: point.index,
+				label: this.editor.i18n().translate(`line.point`),
 				type: 'vertex',
 				canSnap: true,
 			}))
@@ -92,6 +93,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				const point = segment.midPoint()
 				results.push({
 					id: index,
+					label: this.editor.i18n().translate('line.create'),
 					type: 'create',
 					index,
 					x: point.x,
