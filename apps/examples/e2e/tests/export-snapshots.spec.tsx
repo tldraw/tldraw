@@ -708,7 +708,7 @@ const snapshots: Snapshots = {
 					</TL.arrow>
 				</>
 			),
-			'self-bound,\nsame edge': (
+			'Box,\nsame edge': (
 				<>
 					<TL.geo w={100} h={100} ref="a" />
 					<TL.arrow kind="elbow">
@@ -724,6 +724,48 @@ const snapshots: Snapshots = {
 							terminal="end"
 							isPrecise={true}
 							normalizedAnchor={{ x: 0.8, y: 1 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
+			'Triangle,\nopposites': (
+				<>
+					<TL.geo w={100} h={100} geo="triangle" ref="a" />
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow
+							to="a"
+							terminal="start"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.75, y: 0.5 }}
+							snap="edge"
+						/>
+						<TL.binding.arrow
+							to="a"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.25, y: 0.5 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
+			Outside: (
+				<>
+					<TL.geo w={100} h={100} geo="triangle" ref="a" />
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow
+							to="a"
+							terminal="start"
+							isPrecise={true}
+							normalizedAnchor={{ x: 1, y: 0.5 }}
+							snap="edge"
+						/>
+						<TL.binding.arrow
+							to="a"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0, y: 0.5 }}
 							snap="edge"
 						/>
 					</TL.arrow>
@@ -804,6 +846,28 @@ const snapshots: Snapshots = {
 					<TL.arrow kind="bendy" arrowheadStart="arrow" arrowheadEnd="arrow" bend={10}>
 						<TL.binding.arrow to="a" terminal="start" />
 						<TL.binding.arrow to="b" terminal="end" />
+					</TL.arrow>
+				</>
+			),
+			'ENG-3342': (
+				<>
+					<TL.geo w={50} h={50} ref="a" />
+					<TL.geo w={50} h={50} x={40} y={-10} ref="b" />
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow
+							to="a"
+							terminal="start"
+							isPrecise={true}
+							normalizedAnchor={{ x: 1, y: 0.5 }}
+							snap="edge"
+						/>
+						<TL.binding.arrow
+							to="b"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.5, y: 0 }}
+							snap="edge"
+						/>
 					</TL.arrow>
 				</>
 			),

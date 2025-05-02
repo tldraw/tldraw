@@ -94,7 +94,6 @@ export function getStraightArrowInfo(
 		if (endShapeInfo.didIntersect && !startShapeInfo.didIntersect) {
 			// ...and if only the end shape intersected, then make it
 			// a short arrow ending at the end shape intersection.
-
 			if (startShapeInfo.isClosed) {
 				a.setTo(b.clone().add(uAB.clone().mul(MIN_ARROW_LENGTH * shape.props.scale)))
 			}
@@ -248,7 +247,11 @@ function updateArrowheadPointWithBoundShape(
 
 	if (targetInt === undefined) {
 		// No intersection? The arrowhead point will be at the arrow terminal.
-		return
+		// if we _almost_ hit the target, just put the arrowhead at the target.
+		targetInt = targetShapeInfo.geometry.nearestPoint(targetTo)
+		if (!Vec.DistMin(targetInt, targetTo, 1)) {
+			return
+		}
 	}
 
 	const pageInt = Mat.applyToPoint(targetShapeInfo.transform, targetInt)

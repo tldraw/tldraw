@@ -150,9 +150,17 @@ export function getCurvedArrowInfo(
 								: 1
 			)
 
-			point = intersections[0] ?? (isClosed ? undefined : startInStartShapeLocalSpace)
-		} else {
-			point = isClosed ? undefined : startInStartShapeLocalSpace
+			point = intersections[0]
+		}
+		if (!point) {
+			if (isClosed) {
+				const nearestPoint = startShapeInfo.geometry.nearestPoint(startInStartShapeLocalSpace)
+				if (Vec.DistMin(nearestPoint, startInStartShapeLocalSpace, 1)) {
+					point = nearestPoint
+				}
+			} else {
+				point = startInStartShapeLocalSpace
+			}
 		}
 
 		if (point) {
@@ -195,7 +203,7 @@ export function getCurvedArrowInfo(
 			})
 		)
 
-		if (intersections) {
+		if (intersections.length) {
 			const angleToStart = centerInEndShapeLocalSpace.angle(startInEndShapeLocalSpace)
 			const angleToEnd = centerInEndShapeLocalSpace.angle(endInEndShapeLocalSpace)
 			const dAB = distFn(angleToStart, angleToEnd)
@@ -221,13 +229,17 @@ export function getCurvedArrowInfo(
 								: 1
 			)
 
-			if (intersections[0]) {
-				point = intersections[0]
+			point = intersections[0]
+		}
+		if (!point) {
+			if (isClosed) {
+				const nearestPoint = endShapeInfo.geometry.nearestPoint(endInEndShapeLocalSpace)
+				if (Vec.DistMin(nearestPoint, endInEndShapeLocalSpace, 1)) {
+					point = nearestPoint
+				}
 			} else {
-				point = isClosed ? undefined : endInEndShapeLocalSpace
+				point = endInEndShapeLocalSpace
 			}
-		} else {
-			point = isClosed ? undefined : endInEndShapeLocalSpace
 		}
 
 		if (point) {
