@@ -80,7 +80,7 @@ export function routeArrowWithAutoEdgePicking(info: ElbowArrowWorkingInfo): Elbo
 		bNonPartialSides.map((bSide) => [aSide, bSide, 'auto', 'auto'] as const)
 	)
 
-	return pickShortest(info, 'distance', nonPartialRouteCandidates)
+	return pickBest(info, nonPartialRouteCandidates)
 }
 
 export function routeArrowWithPartialEdgePicking(
@@ -150,28 +150,28 @@ export function routeArrowWithPartialEdgePicking(
 
 	switch (aSide) {
 		case 'top':
-			return pickShortest(info, 'corners', [
+			return pickBest(info, [
 				['top', 'bottom', 'manual', 'auto'],
 				['top', 'right', 'manual', 'auto'],
 				['top', 'left', 'manual', 'auto'],
 				['top', 'top', 'manual', 'auto'],
 			])
 		case 'bottom':
-			return pickShortest(info, 'corners', [
+			return pickBest(info, [
 				['bottom', 'top', 'manual', 'auto'],
 				['bottom', 'right', 'manual', 'auto'],
 				['bottom', 'left', 'manual', 'auto'],
 				['bottom', 'bottom', 'manual', 'auto'],
 			])
 		case 'left':
-			return pickShortest(info, 'corners', [
+			return pickBest(info, [
 				['left', 'right', 'manual', 'auto'],
 				['left', 'bottom', 'manual', 'auto'],
 				['left', 'left', 'manual', 'auto'],
 				['left', 'top', 'manual', 'auto'],
 			])
 		case 'right':
-			return pickShortest(info, 'corners', [
+			return pickBest(info, [
 				['right', 'left', 'manual', 'auto'],
 				['right', 'bottom', 'manual', 'auto'],
 				['right', 'right', 'manual', 'auto'],
@@ -180,25 +180,31 @@ export function routeArrowWithPartialEdgePicking(
 	}
 }
 
-function pickShortest(
+function pickBest(
 	info: ElbowArrowWorkingInfo,
-	measure: 'distance' | 'corners',
 	edges: ReadonlyArray<
 		readonly [ElbowArrowSide, ElbowArrowSide, ElbowArrowSideReason, ElbowArrowSideReason]
 	>
 ) {
 	let bestRoute: ElbowArrowRoute | null = null
-	let bestLength = Infinity
-	let bias = 0
+	let bestCornerCount = Infinity
+	let bestDistance = Infinity
+	let distanceBias = 0
 	for (const [aSide, bSide, aEdgePicking, bEdgePicking] of edges) {
-		bias += measure === 'distance' ? 1 : 0.1
+		distanceBias += 1
 		const route = tryRouteArrow(info, aSide, bSide)
 		if (route) {
 			route.aEdgePicking = aEdgePicking
 			route.bEdgePicking = bEdgePicking
-			const length = measure === 'distance' ? route.distance : route.points.length
-			if (length + bias < bestLength) {
-				bestLength = length
+			if (route.points.length < bestCornerCount) {
+				bestCornerCount = route.points.length
+				bestDistance = route.distance
+				bestRoute = route
+			} else if (
+				route.points.length === bestCornerCount &&
+				route.distance + distanceBias < bestDistance
+			) {
+				bestDistance = route.distance
 				bestRoute = route
 			}
 		}
