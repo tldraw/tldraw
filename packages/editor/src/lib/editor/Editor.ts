@@ -7602,8 +7602,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const shapeScale = new Vec(scale.x, scale.y)
 
-		// // make sure we are constraining aspect ratio, and using the smallest scale axis to avoid shapes getting bigger
-		// // than the selection bounding box
+		// make sure we are constraining aspect ratio, and using the smallest scale axis to avoid
+		// shapes getting bigger than the selection bounding box
 		if (Math.abs(scale.x) > Math.abs(scale.y)) {
 			shapeScale.x = Math.sign(scale.x) * Math.abs(scale.y)
 		} else {
@@ -7614,6 +7614,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.resizeShape(id, shapeScale, {
 			initialShape: options.initialShape,
 			initialBounds: options.initialBounds,
+			initialPageTransform: options.initialPageTransform,
+			scaleOrigin: options.scaleOrigin,
 			isAspectRatioLocked: options.isAspectRatioLocked,
 		})
 
@@ -7622,37 +7624,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (Math.sign(scale.x) * Math.sign(scale.y) < 0) {
 			let { rotation } = Mat.Decompose(options.initialPageTransform)
 			rotation -= 2 * rotation
-			this.updateShapes([{ id, type, rotation }])
+			// rotation = -rotation
+			this.rotateShapesBy([id], rotation - this.getShape(id)!.rotation, {
+				center: options.scaleOrigin,
+			})
 		}
-
-		// Next we need to translate the shape so that it's center point ends up in the right place.
-		// To do that we first need to calculate the center point of the shape in the current page space before the scale was applied.
-		const preScaleShapePageCenter = Mat.applyToPoint(
-			options.initialPageTransform,
-			options.initialBounds.center
-		)
-
-		// And now we scale the center point by the original scale factor
-		const postScaleShapePageCenter = this._scalePagePoint(
-			preScaleShapePageCenter,
-			options.scaleOrigin,
-			scale,
-			options.scaleAxisRotation
-		)
-
-		// now calculate how far away the shape is from where it needs to be
-		const pageBounds = this.getShapePageBounds(id)!
-		const pageTransform = this.getShapePageTransform(id)!
-		const currentPageCenter = pageBounds.center
-		const shapePageTransformOrigin = pageTransform.point()
-		if (!currentPageCenter || !shapePageTransformOrigin) return this
-		const pageDelta = Vec.Sub(postScaleShapePageCenter, currentPageCenter)
-
-		// and finally figure out what the shape's new position should be
-		const postScaleShapePagePoint = Vec.Add(shapePageTransformOrigin, pageDelta)
-		const { x, y } = this.getPointInParentSpace(id, postScaleShapePagePoint)
-
-		this.updateShapes([{ id, type, x, y }])
 
 		return this
 	}
