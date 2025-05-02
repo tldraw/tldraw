@@ -38,6 +38,7 @@
 	font-size: 12px;
 	gap: 0px;
 	color: var(--color-text-1);
+	z-index: 0;
 }
 
 .tlui-button:disabled {
@@ -106,6 +107,10 @@
 }
 
 @media (hover: hover) {
+	.tlui-button:not(:disabled):hover {
+		z-index: 1;
+	}
+
 	.tlui-button:not(:disabled):hover::after {
 		opacity: 1;
 	}
