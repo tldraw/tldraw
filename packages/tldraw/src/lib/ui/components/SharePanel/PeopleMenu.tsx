@@ -1,5 +1,5 @@
-import * as Popover from '@radix-ui/react-popover'
 import { useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
+import { Popover as _Popover } from 'radix-ui'
 import { ReactNode } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -29,8 +29,8 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 	if (!userIds.length) return null
 
 	return (
-		<Popover.Root onOpenChange={onOpenChange} open={isOpen}>
-			<Popover.Trigger dir="ltr" asChild>
+		<_Popover.Root onOpenChange={onOpenChange} open={isOpen}>
+			<_Popover.Trigger dir="ltr" asChild>
 				<button className="tlui-people-menu__avatars-button" title={msg('people-menu.title')}>
 					{userIds.length > 5 && <PeopleMenuMore count={userIds.length - 5} />}
 					<div className="tlui-people-menu__avatars">
@@ -49,9 +49,9 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 						)}
 					</div>
 				</button>
-			</Popover.Trigger>
-			<Popover.Portal container={container}>
-				<Popover.Content
+			</_Popover.Trigger>
+			<_Popover.Portal container={container}>
+				<_Popover.Content
 					dir="ltr"
 					className="tlui-menu"
 					side="bottom"
@@ -71,8 +71,8 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 						)}
 						{children}
 					</div>
-				</Popover.Content>
-			</Popover.Portal>
-		</Popover.Root>
+				</_Popover.Content>
+			</_Popover.Portal>
+		</_Popover.Root>
 	)
 }
