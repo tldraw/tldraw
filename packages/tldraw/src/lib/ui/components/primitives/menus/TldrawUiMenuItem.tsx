@@ -1,5 +1,5 @@
-import { ContextMenuItem } from '@radix-ui/react-context-menu'
 import { exhaustiveSwitchError, preventDefault } from '@tldraw/editor'
+import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { useState } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
@@ -122,7 +122,7 @@ export function TldrawUiMenuItem<
 			if (disabled) return null
 
 			return (
-				<ContextMenuItem
+				<_ContextMenu.Item
 					dir="ltr"
 					title={titleStr}
 					draggable={false}
@@ -142,7 +142,7 @@ export function TldrawUiMenuItem<
 					</span>
 					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 					{spinner && <Spinner />}
-				</ContextMenuItem>
+				</_ContextMenu.Item>
 			)
 		}
 		case 'panel': {
@@ -224,6 +224,7 @@ export function TldrawUiMenuItem<
 				<TldrawUiToolbarButton
 					aria-label={labelStr}
 					aria-pressed={isSelected ? 'true' : 'false'}
+					isActive={isSelected}
 					className="tlui-button-grid__button"
 					data-testid={`tools.more.${id}`}
 					data-value={id}

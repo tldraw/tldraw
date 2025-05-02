@@ -69,7 +69,7 @@ function DropdownPickerInner<T extends string>({
 					<TldrawUiButtonIcon icon={(icon as TLUiIconType) ?? 'mixed'} />
 				</TldrawUiToolbarButton>
 			</TldrawUiPopoverTrigger>
-			<TldrawUiPopoverContent side="left" align="center" alignOffset={0}>
+			<TldrawUiPopoverContent side="left" align="center">
 				<TldrawUiToolbar
 					label={labelStr}
 					className={classNames('tlui-buttons__grid', `tlui-buttons__${stylePanelType}`)}
@@ -86,6 +86,7 @@ function DropdownPickerInner<T extends string>({
 										' — ' +
 										msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)
 									}
+									isActive={icon === item.icon}
 									onClick={() => {
 										editor.markHistoryStoppingPoint('select style dropdown item')
 										onValueChange(style, item.value)
