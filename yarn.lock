@@ -8897,6 +8897,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tldraw/ai@workspace:packages/ai":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/ai@workspace:packages/ai"
+  dependencies:
+    "@tldraw/utils": "workspace:*"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    raf: "npm:^3.4.1"
+    tldraw: "workspace:*"
+  peerDependencies:
+    react: ^18.2.0 || ^19.0.0
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/assets@workspace:*, @tldraw/assets@workspace:packages/assets":
   version: 0.0.0-use.local
   resolution: "@tldraw/assets@workspace:packages/assets"
