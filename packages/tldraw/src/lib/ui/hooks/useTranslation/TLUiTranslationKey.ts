@@ -295,7 +295,6 @@ export type TLUiTranslationKey =
 	| 'page-menu.submenu.move-down'
 	| 'page-menu.submenu.move-up'
 	| 'page-menu.submenu.delete'
-	| 'page-menu.check'
 	| 'share-menu.title'
 	| 'share-menu.save-note'
 	| 'share-menu.fork-note'

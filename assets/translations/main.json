@@ -291,7 +291,6 @@
 	"page-menu.submenu.move-down": "Move down",
 	"page-menu.submenu.move-up": "Move up",
 	"page-menu.submenu.delete": "Delete",
-	"page-menu.check": "Check",
 	"share-menu.title": "Share",
 	"share-menu.save-note": "Download this project to your computer as a .tldr file.",
 	"share-menu.fork-note": "Create a new shared project based on this snapshot.",
