@@ -94,8 +94,8 @@
 	opacity: 1;
 }
 
-.tlui-button[data-state='hinted']::after,
-.tlui-button[data-state='hinted']:not(:disabled, :focus-visible):active:after {
+.tlui-button[data-isactive='true']::after,
+.tlui-button[data-isactive='true']:not(:disabled, :focus-visible):active:after {
 	background: var(--color-hint);
 	opacity: 1;
 }
