@@ -121,6 +121,7 @@ jobs:
 
     steps:
       - name: Check out code
+        uses: actions/checkout@v3
 
       - name: Substitute the latest published version of tldraw
         run: |
