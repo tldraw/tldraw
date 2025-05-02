@@ -314,7 +314,7 @@ export function updateArrowTargetState({
 			targetBoundsInTargetSpace,
 			arrowKind === 'elbow'
 				? util.options.elbowArrowCenterSnapDistance
-				: util.options.bendyArrowCenterSnapDistance
+				: util.options.arcArrowCenterSnapDistance
 		)
 
 		if (Vec.Dist(pointInTargetSpace, targetBoundsInTargetSpace.center) < snapDistance) {

@@ -205,7 +205,7 @@ export type TLUiTranslationKey =
 	| 'arrowheadEnd-style.triangle'
 	| 'spline-style.line'
 	| 'spline-style.cubic'
-	| 'arrow-kind-style.bendy'
+	| 'arrow-kind-style.arc'
 	| 'arrow-kind-style.elbow'
 	| 'tool.select'
 	| 'tool.hand'

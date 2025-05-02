@@ -42,7 +42,7 @@ export const ArrowShapeArrowheadEndStyle: EnumStyleProp<"arrow" | "bar" | "diamo
 export const ArrowShapeArrowheadStartStyle: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
 
 // @public (undocumented)
-export const ArrowShapeKindStyle: EnumStyleProp<"bendy" | "elbow">;
+export const ArrowShapeKindStyle: EnumStyleProp<"arc" | "elbow">;
 
 // @public (undocumented)
 export const arrowShapeMigrations: MigrationSequence;

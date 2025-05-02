@@ -145,7 +145,7 @@ exports[`putExcalidrawContent test fixtures bound-arrows.json 1`] = `
       },
       "fill": "none",
       "font": "draw",
-      "kind": "bendy",
+      "kind": "arc",
       "labelColor": "black",
       "labelPosition": 0.5,
       "scale": 1,

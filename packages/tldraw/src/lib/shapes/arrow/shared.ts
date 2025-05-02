@@ -18,7 +18,7 @@ import { getStraightArrowInfo } from './straight-arrow'
 const MIN_ARROW_BEND = 8
 
 export function getIsArrowStraight(shape: TLArrowShape) {
-	if (shape.props.kind !== 'bendy') return false
+	if (shape.props.kind !== 'arc') return false
 	return Math.abs(shape.props.bend) < MIN_ARROW_BEND * shape.props.scale // snap to +-8px
 }
 

@@ -83,7 +83,7 @@ export const STYLES = {
 		{ value: 'heart', icon: 'geo-heart' },
 	],
 	arrowKind: [
-		{ value: 'bendy', icon: 'arrow-bendy' },
+		{ value: 'arc', icon: 'arrow-arc' },
 		{ value: 'elbow', icon: 'arrow-elbow' },
 	],
 	arrowheadStart: [

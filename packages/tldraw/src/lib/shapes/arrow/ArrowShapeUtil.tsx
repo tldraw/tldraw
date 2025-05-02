@@ -98,7 +98,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		},
 		minHandleDistance: 16,
 
-		bendyArrowCenterSnapDistance: 16,
+		arcArrowCenterSnapDistance: 16,
 		elbowArrowCenterSnapDistance: 24,
 		elbowArrowEdgeSnapDistance: 20,
 		elbowArrowPointSnapDistance: 24,
@@ -159,7 +159,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override getDefaultProps(): TLArrowShape['props'] {
 		return {
-			kind: 'bendy',
+			kind: 'arc',
 			elbowMidPoint: 0.5,
 			dash: 'draw',
 			size: 'm',
@@ -240,7 +240,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			},
 		]
 
-		if (shape.props.kind === 'bendy' && (info.type === 'straight' || info.type === 'arc')) {
+		if (shape.props.kind === 'arc' && (info.type === 'straight' || info.type === 'arc')) {
 			handles.push({
 				id: ArrowHandles.Middle,
 				type: 'virtual',
@@ -280,8 +280,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		switch (handleId) {
 			case ArrowHandles.Middle:
 				switch (shape.props.kind) {
-					case 'bendy':
-						return this.onBendyMidpointHandleDrag(shape, info)
+					case 'arc':
+						return this.onArcMidpointHandleDrag(shape, info)
 					case 'elbow':
 						return this.onElbowMidpointHandleDrag(shape, info)
 					default:
@@ -295,10 +295,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
-	private onBendyMidpointHandleDrag(
-		shape: TLArrowShape,
-		{ handle }: TLHandleDragInfo<TLArrowShape>
-	) {
+	private onArcMidpointHandleDrag(shape: TLArrowShape, { handle }: TLHandleDragInfo<TLArrowShape>) {
 		const bindings = getArrowBindings(this.editor, shape)
 
 		// Bending the arrow...

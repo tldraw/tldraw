@@ -16,10 +16,10 @@ import { DefaultFontStyle, TLDefaultFontStyle } from '../styles/TLFontStyle'
 import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
 import { TLBaseShape } from './TLBaseShape'
 
-const arrowKinds = ['bendy', 'elbow'] as const
+const arrowKinds = ['arc', 'elbow'] as const
 /** @public */
 export const ArrowShapeKindStyle = StyleProp.defineEnum('tldraw:arrowKind', {
-	defaultValue: 'bendy',
+	defaultValue: 'arc',
 	values: arrowKinds,
 })
 
@@ -246,7 +246,7 @@ export const arrowShapeMigrations = createMigrationSequence({
 		propsMigration({
 			id: arrowShapeVersions.AddElbow,
 			up: (props) => {
-				props.kind = 'bendy'
+				props.kind = 'arc'
 				props.elbowMidPoint = 0.5
 			},
 			down: (props) => {

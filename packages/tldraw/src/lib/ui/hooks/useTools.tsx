@@ -147,13 +147,13 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				icon: 'tool-arrow',
 				kbd: 'a',
 				meta: {
-					arrowKind: 'bendy',
+					arrowKind: 'arc',
 				},
 				onSelect(source) {
 					editor.run(() => {
-						editor.setStyleForNextShapes(ArrowShapeKindStyle, 'bendy')
+						editor.setStyleForNextShapes(ArrowShapeKindStyle, 'arc')
 						editor.setCurrentTool('arrow')
-						onToolSelect(source, this, 'arrow-bendy')
+						onToolSelect(source, this, 'arrow-arc')
 					})
 				},
 			},

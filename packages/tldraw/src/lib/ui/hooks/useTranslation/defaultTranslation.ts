@@ -206,7 +206,7 @@ export const DEFAULT_TRANSLATION = {
 	'arrowheadEnd-style.triangle': 'Triangle',
 	'spline-style.line': 'Line',
 	'spline-style.cubic': 'Cubic',
-	'arrow-kind-style.bendy': 'Arc',
+	'arrow-kind-style.arc': 'Arc',
 	'arrow-kind-style.elbow': 'Elbow',
 	'tool.select': 'Select',
 	'tool.hand': 'Hand',
