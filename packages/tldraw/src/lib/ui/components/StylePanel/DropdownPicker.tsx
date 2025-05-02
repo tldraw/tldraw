@@ -59,7 +59,12 @@ function DropdownPickerInner<T extends string>({
 	return (
 		<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
 			<TldrawUiPopoverTrigger>
-				<TldrawUiToolbarButton type={type} data-testid={`style.${uiType}`} title={titleStr}>
+				<TldrawUiToolbarButton
+					type={type}
+					data-testid={`style.${uiType}`}
+					data-direction="left"
+					title={titleStr}
+				>
 					{labelStr && <TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>}
 					<TldrawUiButtonIcon icon={(icon as TLUiIconType) ?? 'mixed'} />
 				</TldrawUiToolbarButton>
