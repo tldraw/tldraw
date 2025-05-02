@@ -364,7 +364,8 @@ function HandleWrapper({
 	return (
 		<g
 			role="button"
-			aria-label="handle"
+			// TODO(mime): handle.label needs to be required in the future.
+			aria-label={handle.label || 'handle'}
 			transform={`translate(${handle.x}, ${handle.y})`}
 			{...events}
 		>

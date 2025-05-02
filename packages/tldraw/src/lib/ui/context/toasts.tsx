@@ -10,6 +10,7 @@ export type AlertSeverity = 'success' | 'info' | 'warning' | 'error'
 export interface TLUiToast {
 	id: string
 	icon?: TLUiIconType
+	iconLabel?: string
 	severity?: AlertSeverity
 	title?: string
 	description?: string

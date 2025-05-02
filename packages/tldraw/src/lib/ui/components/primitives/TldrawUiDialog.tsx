@@ -1,6 +1,7 @@
 import * as _Dialog from '@radix-ui/react-dialog'
 import classNames from 'classnames'
 import { CSSProperties, ReactNode } from 'react'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './Button/TldrawUiButtonIcon'
 
@@ -37,12 +38,14 @@ export function TldrawUiDialogTitle({ className, children, style }: TLUiDialogTi
 
 /** @public @react */
 export function TldrawUiDialogCloseButton() {
+	const msg = useTranslation()
+
 	return (
 		<div className="tlui-dialog__header__close">
 			<_Dialog.DialogClose data-testid="dialog.close" dir="ltr" asChild>
 				<TldrawUiButton
 					type="icon"
-					aria-label="Close"
+					aria-label={msg('ui.close')}
 					onTouchEnd={(e) => (e.target as HTMLButtonElement).click()}
 				>
 					<TldrawUiButtonIcon small icon="cross-2" />
