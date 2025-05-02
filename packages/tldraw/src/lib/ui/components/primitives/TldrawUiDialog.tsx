@@ -1,5 +1,5 @@
-import * as _Dialog from '@radix-ui/react-dialog'
 import classNames from 'classnames'
+import { Dialog as _Dialog } from 'radix-ui'
 import { CSSProperties, ReactNode } from 'react'
 import { TldrawUiButton } from './Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './Button/TldrawUiButtonIcon'
