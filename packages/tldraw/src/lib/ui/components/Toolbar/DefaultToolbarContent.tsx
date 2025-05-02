@@ -23,10 +23,10 @@ export function DefaultToolbarContent() {
 			<HexagonToolbarItem />
 			<OvalToolbarItem />
 			<RhombusToolbarItem />
-			<TrapezoidToolbarItem />
+			<StarToolbarItem />
 
-			<PentagonToolbarItem />
-			<OctagonToolbarItem />
+			<CloudToolbarItem />
+			<HeartToolbarItem />
 			<XBoxToolbarItem />
 			<CheckBoxToolbarItem />
 
@@ -35,15 +35,10 @@ export function DefaultToolbarContent() {
 			<ArrowDownToolbarItem />
 			<ArrowRightToolbarItem />
 
-			<StarToolbarItem />
-			<CloudToolbarItem />
-			<HeartToolbarItem />
-			<FrameToolbarItem />
-
-			<ArrowElbowToolbarItem />
 			<LineToolbarItem />
 			<HighlightToolbarItem />
 			<LaserToolbarItem />
+			<FrameToolbarItem />
 		</>
 	)
 }
