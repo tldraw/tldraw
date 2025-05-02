@@ -18,7 +18,10 @@ const EvenInnererIndicator = memo(
 		)
 	},
 	(prevProps, nextProps) => {
-		return prevProps.shape.props === nextProps.shape.props && prevProps.shape.meta === nextProps.shape.meta
+		return (
+			prevProps.shape.props === nextProps.shape.props &&
+			prevProps.shape.meta === nextProps.shape.meta
+		)
 	}
 )
 
