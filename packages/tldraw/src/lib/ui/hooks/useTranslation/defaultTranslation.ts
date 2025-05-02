@@ -217,7 +217,6 @@ export const DEFAULT_TRANSLATION = {
 	'tool.arrow-right': 'Arrow right',
 	'tool.arrow-up': 'Arrow up',
 	'tool.arrow': 'Arrow',
-	'tool.arrow-elbow': 'Elbow arrow',
 	'tool.cloud': 'Cloud',
 	'tool.diamond': 'Diamond',
 	'tool.ellipse': 'Ellipse',

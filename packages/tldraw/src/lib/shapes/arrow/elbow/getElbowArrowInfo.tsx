@@ -46,42 +46,15 @@ export function getElbowArrowInfo(
 ): ElbowArrowInfo {
 	const shapeOptions = editor.getShapeUtil<ArrowShapeUtil>(arrow.type).options
 	const options: ElbowArrowOptions = {
-		elbowMidpoint: arrow.props.elbowMidPoint,
-		expandElbowLegLength: shapeOptions.expandElbowLegLength[arrow.props.size],
-		minElbowLegLength: shapeOptions.minElbowLegLength[arrow.props.size],
+		elbowMidpoint: arrow.props.elbowMidPoint * arrow.props.scale,
+		expandElbowLegLength: shapeOptions.expandElbowLegLength[arrow.props.size] * arrow.props.scale,
+		minElbowLegLength: shapeOptions.minElbowLegLength[arrow.props.size] * arrow.props.scale,
 	}
 
-	let startBinding = getElbowArrowBindingInfo(editor, arrow, bindings.start, arrow.props.start)
-	let endBinding = getElbowArrowBindingInfo(editor, arrow, bindings.end, arrow.props.end)
-	// if we're binding to open geometry (e.g. lines, draw shapes, etc) we convert the binding to a
-	// point and ignore the picked side, because those things don't really make sense for non-closed
-	// shapes anyway.
+	const startBinding = getElbowArrowBindingInfo(editor, arrow, bindings.start, arrow.props.start)
+	const endBinding = getElbowArrowBindingInfo(editor, arrow, bindings.end, arrow.props.end)
 	adjustBindingForUnclosedPathIfNeeded(startBinding)
 	adjustBindingForUnclosedPathIfNeeded(endBinding)
-	// if (
-	// 	startBinding.geometry &&
-	// 	!startBinding.geometry.isClosed &&
-	// 	startBinding.snap === 'edge' &&
-	// 	startBinding.geometry.intersectLineSegment(
-	// 		Vec.Nudge(startBinding.target, endBinding.target, 10),
-	// 		endBinding.target
-	// 	).length === 0
-	// ) {
-	// 	startBinding = convertBindingToPoint(startBinding)
-	// 	startBinding.side = null
-	// }
-	// if (
-	// 	endBinding.geometry &&
-	// 	!endBinding.geometry.isClosed &&
-	// 	endBinding.snap === 'edge' &&
-	// 	endBinding.geometry.intersectLineSegment(
-	// 		Vec.Nudge(endBinding.target, startBinding.target, 10),
-	// 		startBinding.target
-	// 	).length === 0
-	// ) {
-	// 	endBinding = convertBindingToPoint(endBinding)
-	// 	endBinding.side = null
-	// }
 
 	const swapOrder = !!(!startBinding.side && endBinding.side)
 
