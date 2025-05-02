@@ -7,13 +7,31 @@ const altKey = tlenv.isDarwin ? '⌥' : 'Alt'
 export function kbd(str: string) {
 	if (str === ',') return [',']
 
-	return str
-		.split(',')[0]
-		.split('')
-		.map((sub) => {
-			const subStr = sub.replace(/\$/g, cmdKey).replace(/\?/g, altKey).replace(/!/g, '⇧')
-			return subStr[0].toUpperCase() + subStr.slice(1)
-		})
+	return (
+		str
+			.split(',')[0]
+			// If the string contains [[Tab]], we don't split these up
+			// as they're meant to be atomic.
+			.split(/(\[\[[^\]]+\]\])/g)
+			.map((s) =>
+				s.startsWith('[[')
+					? s.replace(/[[\]]/g, '')
+					: s
+							.replace(/cmd\+/g, cmdKey)
+							.replace(/ctrl\+/g, cmdKey)
+							.replace(/alt\+/g, altKey)
+							.replace(/shift\+/g, '⇧')
+							// Backwards compatibility with the old system.
+							.replace(/\$/g, cmdKey)
+							.replace(/\?/g, altKey)
+							.replace(/!/g, '⇧')
+							.split('')
+			)
+			.flat()
+			.map((sub) => {
+				return sub[0].toUpperCase() + sub.slice(1)
+			})
+	)
 }
 
 /** @public */

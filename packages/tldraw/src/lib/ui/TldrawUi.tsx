@@ -168,6 +168,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 			data-iseditinganything={hideToolbarWhileEditing}
 			data-breakpoint={breakpoint}
 		>
+			<SkipToMainContent />
 			{isFocusMode ? (
 				<div className="tlui-layout__top">
 					<TldrawUiButton
@@ -210,7 +211,6 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 			{Dialogs && <Dialogs />}
 			<FollowingIndicator />
 			{CursorChatBubble && <CursorChatBubble />}
-			<SkipToMainContent />
 		</div>
 	)
 })

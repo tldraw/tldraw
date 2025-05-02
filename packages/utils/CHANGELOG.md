@@ -1,3 +1,23 @@
+# v3.12.0 (Tue Apr 15 2025)
+
+### Release Notes
+
+#### images: fix not being able to insert SVGs into Firefox ([#5789](https://github.com/tldraw/tldraw/pull/5789))
+
+- Fix not being able to insert SVGs into Firefox
+
+---
+
+#### 🐛 Bug Fixes
+
+- images: fix not being able to insert SVGs into Firefox [#5789](https://github.com/tldraw/tldraw/pull/5789) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 1
+
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
 # v3.10.0 (Tue Mar 11 2025)
 
 ### Release Notes

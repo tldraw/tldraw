@@ -5,13 +5,21 @@ import {
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
+	createMutators,
+	schema,
 } from '@tldraw/dotcom-shared'
 import { createRouter, handleApiRequest, handleUserAssetGet, notFound } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { cors } from 'itty-router'
+import { cors, json } from 'itty-router'
+import {
+	PushProcessor,
+	ZQLDatabaseProvider,
+	ZQLPostgresJSAdapter,
+} from '../../../../node_modules/@rocicorp/zero/out/zero/src/pg'
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
+import { makePostgresConnector } from './postgres'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { getReadonlySlug } from './routes/getReadonlySlug'
@@ -27,7 +35,7 @@ import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment, isDebugLogging } from './types'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
-import { getAuthFromSearchParams } from './utils/tla/getAuth'
+import { getAuth, requireAuth } from './utils/tla/getAuth'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
@@ -60,7 +68,7 @@ const router = createRouter<Environment>()
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.get('/app/:userId/connect', async (req, env) => {
 		// forward req to the user durable object
-		const auth = await getAuthFromSearchParams(req, env)
+		const auth = await getAuth(req, env)
 		if (!auth) {
 			// eslint-disable-next-line no-console
 			console.log('auth not found')
@@ -128,6 +136,20 @@ const router = createRouter<Environment>()
 	})
 	.all('/health-check/*', healthCheckRoutes.fetch)
 	.all('/app/admin/*', adminRoutes.fetch)
+	.post('/app/zero/push', async (req, env) => {
+		const auth = await requireAuth(req, env)
+		try {
+			const processor = new PushProcessor(
+				new ZQLDatabaseProvider(new ZQLPostgresJSAdapter(makePostgresConnector(env)), schema),
+				'debug'
+			)
+			const result = await processor.process(createMutators(auth.userId), req)
+			return json(result)
+		} catch (e) {
+			console.error('Error processing push', e)
+			return new Response('Error', { status: 500 })
+		}
+	})
 	.all('*', notFound)
 
 export default class Worker extends WorkerEntrypoint<Environment> {

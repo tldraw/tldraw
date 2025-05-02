@@ -182,7 +182,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				// only actually update the name if name is a value, otherwise keep the previous name
 				if (name) {
 					// don't allow guests to update the file name
-					app.updateFile({ id: fileId, name })
+					app.updateFile(fileId, { name })
 					editor.updateDocumentSettings({ name })
 				}
 			}
@@ -194,7 +194,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		if (getIsCoarsePointer()) {
 			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
 			if (newName) {
-				app.updateFile({ id: fileId, name: newName })
+				app.updateFile(fileId, { name: newName })
 			}
 		} else {
 			setIsRenaming(true)

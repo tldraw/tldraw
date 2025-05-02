@@ -1,9 +1,8 @@
 import { ReactNode, useCallback } from 'react'
 import {
-	TldrawUiDropdownMenuContent,
-	TldrawUiDropdownMenuRoot,
-	TldrawUiDropdownMenuTrigger,
-	TldrawUiMenuContextProvider,
+	TldrawUiPopover,
+	TldrawUiPopoverContent,
+	TldrawUiPopoverTrigger,
 	preventDefault,
 	useValue,
 } from 'tldraw'
@@ -79,15 +78,10 @@ export function TlaFileShareMenu({
 
 	return (
 		<div onPointerDown={preventDefault}>
-			<TldrawUiDropdownMenuRoot id={`share-${fileId}-${source}`}>
-				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
-					<TldrawUiDropdownMenuTrigger>{children}</TldrawUiDropdownMenuTrigger>
-					<TldrawUiDropdownMenuContent
-						className={styles.shareMenu}
-						side="bottom"
-						alignOffset={-2}
-						sideOffset={4}
-					>
+			<TldrawUiPopover id={`share-${fileId}-${source}`}>
+				<TldrawUiPopoverTrigger>{children}</TldrawUiPopoverTrigger>
+				<TldrawUiPopoverContent side="bottom" alignOffset={-2} sideOffset={4}>
+					<div className={styles.shareMenu}>
 						<TlaTabsRoot activeTab={tabToShowAsActive} onTabChange={handleTabChange}>
 							<TlaTabsTabs>
 								{/* Disable share when on a scratchpad file */}
@@ -133,9 +127,9 @@ export function TlaFileShareMenu({
 								</TlaTabsPage>
 							)}
 						</TlaTabsRoot>
-					</TldrawUiDropdownMenuContent>
-				</TldrawUiMenuContextProvider>
-			</TldrawUiDropdownMenuRoot>
+					</div>
+				</TldrawUiPopoverContent>
+			</TldrawUiPopover>
 		</div>
 	)
 }

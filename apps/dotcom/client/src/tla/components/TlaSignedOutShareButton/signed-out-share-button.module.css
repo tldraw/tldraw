@@ -21,7 +21,6 @@
 	position: absolute;
 	inset: 2px 2px;
 	border-radius: 6px;
-	background-color: var(--color-background);
 	z-index: 0;
 	pointer-events: none;
 }

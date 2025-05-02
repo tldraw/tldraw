@@ -390,8 +390,8 @@
 	border: none;
 	position: absolute;
 	top: 0px;
-	left: 0px;
-	width: 100%;
+	left: 3px;
+	width: calc(100% - 6px);
 	height: 100%;
 	cursor: pointer;
 	z-index: 2;
@@ -424,9 +424,12 @@
 		For guest files we show a guest icon at the end of the filename
 		but we don't want it to jump out of the way when the user hovers
 	*/
-
 	.link[data-is-own-file='false'] .linkMenu {
 		visibility: hidden;
+		display: flex;
+	}
+	:global(.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))) .linkMenu {
+		visibility: visible;
 		display: flex;
 	}
 

@@ -56,6 +56,11 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return shape.props.url
 	}
 
+	override getAriaDescriptor(shape: TLEmbedShape) {
+		const embedInfo = this.getEmbedDefinition(shape.props.url)
+		return embedInfo?.definition.title
+	}
+
 	override hideSelectionBoundsFg(shape: TLEmbedShape) {
 		return !this.canResize(shape)
 	}
@@ -190,6 +195,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						// eslint-disable-next-line @typescript-eslint/no-deprecated
 						frameBorder="0"
 						referrerPolicy="no-referrer-when-downgrade"
+						tabIndex={isEditing ? 0 : -1}
 						style={{
 							border: 0,
 							pointerEvents: isInteractive ? 'auto' : 'none',
@@ -265,6 +271,7 @@ function Gist({
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			scrolling="no"
 			referrerPolicy="no-referrer-when-downgrade"
+			tabIndex={isInteractive ? 0 : -1}
 			style={{
 				...style,
 				pointerEvents: isInteractive ? 'all' : 'none',

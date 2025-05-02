@@ -11,7 +11,14 @@ import {
 } from '../intersect'
 import { approximately, pointInPolygon } from '../utils'
 
-/** @public */
+/**
+ * Filter geometry within a group.
+ *
+ * Filters are ignored when called directly on primitive geometries, but can be used to narrow down
+ * the results of an operation on `Group2d` geometries.
+ *
+ * @public
+ */
 export interface Geometry2dFilters {
 	readonly includeLabels?: boolean
 	readonly includeInternal?: boolean
@@ -34,13 +41,17 @@ export const Geometry2dFilters: {
 }
 
 /** @public */
-export interface Geometry2dOptions {
-	isFilled: boolean
-	isClosed: boolean
+export interface TransformedGeometry2dOptions {
 	isLabel?: boolean
 	isInternal?: boolean
 	debugColor?: string
 	ignore?: boolean
+}
+
+/** @public */
+export interface Geometry2dOptions extends TransformedGeometry2dOptions {
+	isFilled: boolean
+	isClosed: boolean
 }
 
 /** @public */
@@ -70,10 +81,9 @@ export abstract class Geometry2d {
 
 	abstract getVertices(filters: Geometry2dFilters): Vec[]
 
-	abstract nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec
+	abstract nearestPoint(point: Vec, _filters?: Geometry2dFilters): Vec
 
-	hitTestPoint(point: Vec, margin = 0, hitInside = false, filters?: Geometry2dFilters) {
-		if (this.isExcludedByFilter(filters)) return false
+	hitTestPoint(point: Vec, margin = 0, hitInside = false, _filters?: Geometry2dFilters) {
 		// First check whether the point is inside
 		if (this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)) {
 			return true
@@ -114,9 +124,7 @@ export abstract class Geometry2d {
 		return this.distanceToLineSegment(A, B, filters) <= distance
 	}
 
-	intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): VecLike[] {
-		if (this.isExcludedByFilter(filters)) return []
-
+	intersectLineSegment(A: VecLike, B: VecLike, _filters?: Geometry2dFilters): VecLike[] {
 		const intersections = this.isClosed
 			? intersectLineSegmentPolygon(A, B, this.vertices)
 			: intersectLineSegmentPolyline(A, B, this.vertices)
@@ -124,8 +132,7 @@ export abstract class Geometry2d {
 		return intersections ?? []
 	}
 
-	intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): VecLike[] {
-		if (this.isExcludedByFilter(filters)) return []
+	intersectCircle(center: VecLike, radius: number, _filters?: Geometry2dFilters): VecLike[] {
 		const intersections = this.isClosed
 			? intersectCirclePolygon(center, radius, this.vertices)
 			: intersectCirclePolyline(center, radius, this.vertices)
@@ -133,14 +140,11 @@ export abstract class Geometry2d {
 		return intersections ?? []
 	}
 
-	intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters): VecLike[] {
-		if (this.isExcludedByFilter(filters)) return []
-
+	intersectPolygon(polygon: VecLike[], _filters?: Geometry2dFilters): VecLike[] {
 		return intersectPolys(polygon, this.vertices, true, this.isClosed)
 	}
 
-	intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[] {
-		if (this.isExcludedByFilter(filters)) return []
+	intersectPolyline(polyline: VecLike[], _filters?: Geometry2dFilters): VecLike[] {
 		return intersectPolys(polyline, this.vertices, false, this.isClosed)
 	}
 
@@ -173,8 +177,8 @@ export abstract class Geometry2d {
 		)
 	}
 
-	transform(transform: MatModel): Geometry2d {
-		return new TransformedGeometry2d(this, transform)
+	transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d {
+		return new TransformedGeometry2d(this, transform, opts)
 	}
 
 	private _vertices: Vec[] | undefined
@@ -289,11 +293,19 @@ export class TransformedGeometry2d extends Geometry2d {
 
 	constructor(
 		private readonly geometry: Geometry2d,
-		private readonly matrix: MatModel
+		private readonly matrix: MatModel,
+		opts?: TransformedGeometry2dOptions
 	) {
 		super(geometry)
 		this.inverse = Mat.Inverse(matrix)
 		this.decomposed = Mat.Decompose(matrix)
+
+		if (opts) {
+			if (opts.isLabel != null) this.isLabel = opts.isLabel
+			if (opts.isInternal != null) this.isInternal = opts.isInternal
+			if (opts.debugColor != null) this.debugColor = opts.debugColor
+			if (opts.ignore != null) this.ignore = opts.ignore
+		}
 
 		assert(
 			approximately(this.decomposed.scaleX, this.decomposed.scaleY),
@@ -376,8 +388,13 @@ export class TransformedGeometry2d extends Geometry2d {
 		return this.geometry.intersectPolyline(Mat.applyToPoints(this.inverse, polyline), filters)
 	}
 
-	override transform(transform: MatModel): Geometry2d {
-		return new TransformedGeometry2d(this.geometry, Mat.Multiply(transform, this.matrix))
+	override transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d {
+		return new TransformedGeometry2d(this.geometry, Mat.Multiply(transform, this.matrix), {
+			isLabel: opts?.isLabel ?? this.isLabel,
+			isInternal: opts?.isInternal ?? this.isInternal,
+			debugColor: opts?.debugColor ?? this.debugColor,
+			ignore: opts?.ignore ?? this.ignore,
+		})
 	}
 
 	getSvgPathData(): string {

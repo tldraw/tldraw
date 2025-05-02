@@ -284,6 +284,8 @@ export const TldrawEditor = memo(function TldrawEditor({
 			className={classNames(`${TL_CONTAINER_CLASS} tl-theme__light`, className)}
 			onPointerDown={stopEventPropagation}
 			tabIndex={-1}
+			role="application"
+			aria-label={_options?.branding ?? 'tldraw'}
 		>
 			<OptionalErrorBoundary
 				fallback={ErrorFallback}
@@ -668,7 +670,11 @@ export interface LoadingScreenProps {
 
 /** @public @react */
 export function LoadingScreen({ children }: LoadingScreenProps) {
-	return <div className="tl-loading">{children}</div>
+	return (
+		<div className="tl-loading" aria-busy="true" tabIndex={0}>
+			{children}
+		</div>
+	)
 }
 
 /** @public @react */

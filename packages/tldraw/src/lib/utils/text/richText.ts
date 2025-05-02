@@ -20,9 +20,10 @@ import {
 	WeakCache,
 } from '@tldraw/editor'
 import { DefaultFontFaces } from '../../shapes/shared/defaultFonts'
-import TextDirection from './textDirection'
+import { TextDirection } from './textDirection'
 
-const KeyboardShiftEnterTweakExtension = Extension.create({
+/** @public */
+export const KeyboardShiftEnterTweakExtension = Extension.create({
 	name: 'keyboardShiftEnterHandler',
 	addKeyboardShortcuts() {
 		return {
