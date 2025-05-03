@@ -59,7 +59,9 @@ export class TldrawAiDurableObject extends DurableObject<Environment> {
 			})
 		} catch (error: any) {
 			console.error('AI response error:', error)
-			return new Response(error)
+			return new Response('An internal server error occurred.', {
+				status: 500,
+			})
 		}
 	}
 
