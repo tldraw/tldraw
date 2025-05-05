@@ -242,7 +242,7 @@ export class MediaHelpers {
 		return DEFAULT_SUPPORTED_VECTOR_IMAGE_TYPES.includes((mimeType as any) || '')
 	}
 
-	static isImageType(mimeType: string | null): boolean {
+	static isImageType(mimeType: string): boolean {
 		return DEFAULT_SUPPORTED_IMAGE_TYPES.includes((mimeType as any) || '')
 	}
 

@@ -291,7 +291,7 @@ export class MediaHelpers {
     // (undocumented)
     static isAnimatedImageType(mimeType: null | string): boolean;
     // (undocumented)
-    static isImageType(mimeType: null | string): boolean;
+    static isImageType(mimeType: string): boolean;
     // (undocumented)
     static isStaticImageType(mimeType: null | string): boolean;
     // (undocumented)
