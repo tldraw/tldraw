@@ -14,6 +14,7 @@ import {
 	Vec,
 	pointInPolygon,
 	polygonsIntersect,
+	react,
 } from '@tldraw/editor'
 
 export class Brushing extends StateNode {
@@ -25,13 +26,30 @@ export class Brushing extends StateNode {
 	excludedShapeIds = new Set<TLShapeId>()
 	isWrapMode = false
 
+	viewportDidChange = false
+	cleanupViewportChangeReactor() {
+		void null
+	} // cleanup function for the viewport reactor
+
 	// The shape that the brush started on
 	initialStartShape: TLShape | null = null
 
 	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
-		const { altKey, currentPagePoint } = this.editor.inputs
+		const { editor } = this
+		const { altKey, currentPagePoint } = editor.inputs
 
-		this.isWrapMode = this.editor.user.getIsWrapMode()
+		this.isWrapMode = editor.user.getIsWrapMode()
+
+		this.viewportDidChange = false
+
+		let isInitialCheck = true
+
+		this.cleanupViewportChangeReactor = react('viewport change while brushing', () => {
+			editor.getViewportPageBounds() // capture the viewport change
+			if (!isInitialCheck && !this.viewportDidChange) {
+				this.viewportDidChange = true
+			}
+		})
 
 		if (altKey) {
 			this.parent.transition('scribble_brushing', info)
@@ -39,25 +57,28 @@ export class Brushing extends StateNode {
 		}
 
 		this.excludedShapeIds = new Set(
-			this.editor
+			editor
 				.getCurrentPageShapes()
 				.filter(
 					(shape) =>
-						this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
-						this.editor.isShapeOrAncestorLocked(shape)
+						editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
+						editor.isShapeOrAncestorLocked(shape)
 				)
 				.map((shape) => shape.id)
 		)
 
 		this.info = info
-		this.initialSelectedShapeIds = this.editor.getSelectedShapeIds().slice()
-		this.initialStartShape = this.editor.getShapesAtPoint(currentPagePoint)[0]
+		this.initialSelectedShapeIds = editor.getSelectedShapeIds().slice()
+		this.initialStartShape = editor.getShapesAtPoint(currentPagePoint)[0]
 		this.hitTestShapes()
+		isInitialCheck = false
 	}
 
 	override onExit() {
 		this.initialSelectedShapeIds = []
 		this.editor.updateInstanceState({ brush: null })
+
+		this.cleanupViewportChangeReactor()
 	}
 
 	override onTick({ elapsed }: TLTickEventInfo) {
@@ -124,11 +145,29 @@ export class Brushing extends StateNode {
 			pageTransform: Mat | undefined,
 			localCorners: Vec[]
 
-		const currentPageShapes = editor.getCurrentPageRenderingShapesSorted()
+		// Some notes on optimization. We could easily cache all of the shape positions at
+		// the start of the interaction and then do very fast checks against them, but that
+		// would mean changes introduced by other collaborators wouldn't be reflected—a user
+		// could select a shape by selecting where it _used_ to be.
+
+		// We still want to avoid hit tests as much as possible, however, so we test only the
+		// shapes that are on screen UNLESS: the user has scrolled their viewpor; or the user
+		// is dragging outside of the screen (e.g. in a window). In those cases, we need to
+		// test all shapes.
+
+		// On a page with ~5000 shapes, on-screen hit tests are about 2x faster than
+		// testing all shapes.
+
+		const brushBoxIsInsideViewport = editor.getViewportPageBounds().contains(brush)
+		const shapesToHitTest =
+			brushBoxIsInsideViewport && !this.viewportDidChange
+				? editor.getCurrentPageRenderingShapesSorted()
+				: editor.getCurrentPageShapesSorted()
+
 		const currentPageId = editor.getCurrentPageId()
 
-		testAllShapes: for (let i = 0, n = currentPageShapes.length; i < n; i++) {
-			shape = currentPageShapes[i]
+		testAllShapes: for (let i = 0, n = shapesToHitTest.length; i < n; i++) {
+			shape = shapesToHitTest[i]
 			if (excludedShapeIds.has(shape.id) || results.has(shape.id)) continue testAllShapes
 
 			pageBounds = editor.getShapePageBounds(shape)
