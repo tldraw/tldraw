@@ -26,6 +26,9 @@
   "0b9a4cde72": {
     "translation": "File menu"
   },
+  "0d1f2bb523": {
+    "translation": "Send feedback"
+  },
   "110a4b01be": {
     "translation": "Publish"
   },
@@ -203,6 +206,9 @@
   "7fcdcc6455": {
     "translation": "Forget file"
   },
+  "801ab24683": {
+    "translation": "Download"
+  },
   "81d389ac80": {
     "translation": "Export the content as a .tldr file: Select 'Download file' in the top left menu."
   },
@@ -338,9 +344,6 @@
   },
   "d4bbf74f3e": {
     "translation": "Toggle sidebar"
-  },
-  "d5ef96e383": {
-    "translation": "Download file"
   },
   "d721757161": {
     "translation": "Theme"
