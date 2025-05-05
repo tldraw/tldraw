@@ -55,6 +55,9 @@ export const DEFAULT_SUPPORTED_IMAGE_TYPES: readonly ("image/apng" | "image/avif
 // @public (undocumented)
 export const DEFAULT_SUPPORTED_MEDIA_TYPE_LIST: string;
 
+// @public (undocumented)
+export const DEFAULT_SUPPORTED_MEDIA_TYPES: readonly ("image/apng" | "image/avif" | "image/gif" | "image/jpeg" | "image/png" | "image/svg+xml" | "image/webp" | "video/mp4" | "video/quicktime" | "video/webm")[];
+
 // @internal
 export function deleteFromLocalStorage(key: string): void;
 

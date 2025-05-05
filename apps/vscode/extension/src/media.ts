@@ -1,4 +1,4 @@
-import { DEFAULT_SUPPORTED_MEDIA_TYPES } from '@tldraw/utils/src/lib/media/media'
+import { DEFAULT_SUPPORTED_MEDIA_TYPES } from 'tldraw'
 
 const EXTENSION_TO_DEFAULT_MIME_TYPE = {
 	// Vector image extensions
