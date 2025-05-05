@@ -2229,16 +2229,16 @@ describe('brushing offscreen shapes', () => {
 			.createShapes([
 				{ id: ids.box1, type: 'geo', x: 100, y: 100 },
 				{ id: ids.box2, type: 'geo', x: 300, y: 300 },
-				{ id: ids.box3, type: 'geo', x: 2000, y: 300 },
+				{ id: ids.box3, type: 'geo', x: 2000, y: 2000 }, // outside of viewport but will be in the viewport after scrolling
+				{ id: ids.box4, type: 'geo', x: 100, y: 2000 }, // outside of both viewports but will be in the selection box
+				{ id: ids.box5, type: 'geo', x: 100, y: 2500 }, // outside of both viewports but and will not be in the selection box
 			])
 			.pointerMove(50, 50)
 			.pointerDown()
-			.wheel(-100, 0)
-			.wheel(-2000, 0)
-			// should hit box1 and box2, too
-			.pointerMove(2100, 400)
+			.wheel(-100, -100)
+			.wheel(-2000, -2000)
 
-		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2, ids.box3])
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2, ids.box3, ids.box4])
 	})
 
 	it('selects shapes that were created / updated by a third party', () => {
