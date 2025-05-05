@@ -1,4 +1,12 @@
-import { Box, TLFrameShape, TLGeoShape, createShapeId, tlenv, toRichText } from '@tldraw/editor'
+import {
+	Box,
+	IndexKey,
+	TLFrameShape,
+	TLGeoShape,
+	createShapeId,
+	tlenv,
+	toRichText,
+} from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -2194,5 +2202,61 @@ describe('long press', () => {
 		jest.advanceTimersByTime(1000)
 		// without the fix added in this PR, it would have been 1, 2
 		expect(editor.inputs.currentScreenPoint).toMatchObject({ x: 101, y: 102 })
+	})
+})
+
+describe('brushing offscreen shapes', () => {
+	it('preserves offscreen shapes in selection', () => {
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 100, y: 100 },
+			{ id: ids.box2, type: 'geo', x: 300, y: 300 },
+			{ id: ids.box3, type: 'geo', x: 2000, y: 2000 },
+		])
+		editor.pointerMove(50, 50).pointerDown()
+
+		for (let i = 0; i < 200; i++) {
+			editor.wheel(-20, -20)
+		}
+
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2, ids.box3])
+	})
+
+	it('selects shapes that are offscreen if the viewport has moved', () => {
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.createShapes([
+				{ id: ids.box1, type: 'geo', x: 100, y: 100 },
+				{ id: ids.box2, type: 'geo', x: 300, y: 300 },
+				{ id: ids.box3, type: 'geo', x: 2000, y: 300 },
+			])
+			.pointerMove(50, 50)
+			.pointerDown()
+			.wheel(-100, 0)
+			.wheel(-2000, 0)
+			// should hit box1 and box2, too
+			.pointerMove(2100, 400)
+
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2, ids.box3])
+	})
+
+	it('selects shapes that were created / updated by a third party', () => {
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.createShapes([
+				{ id: ids.box1, type: 'geo', x: 100, y: 100 },
+				{ id: ids.box2, type: 'geo', x: 300, y: 300 },
+			])
+
+		editor.store.mergeRemoteChanges(() => {
+			const shape = editor.getShape(ids.box1)!
+			editor.store.put([{ ...shape, id: ids.box3, x: 2000, y: 300, index: 'a3' as IndexKey }])
+		})
+
+		editor.pointerMove(50, 50).pointerDown().pointerMove(2100, 400)
+
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2, ids.box3])
 	})
 })
