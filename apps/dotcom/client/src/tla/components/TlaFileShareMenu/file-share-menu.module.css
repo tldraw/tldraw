@@ -52,9 +52,10 @@
 .exportPreviewInner {
 	width: auto;
 	height: auto;
-	max-height: 216px;
+	max-height: 100%;
+	max-width: 100%;
 	pointer-events: all;
-	border: 1px solid var(--tla-color-border);
+	outline: 1px solid var(--tla-color-border);
 	box-sizing: content-box;
 }
 

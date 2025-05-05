@@ -691,7 +691,7 @@ export class TldrawApp {
 			exportFormat: 'png',
 			exportTheme: 'light',
 			exportBackground: false,
-			exportPadding: false,
+			exportPadding: true,
 			createdAt: Date.now(),
 			updatedAt: Date.now(),
 			flags: '',
