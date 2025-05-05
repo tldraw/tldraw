@@ -24,7 +24,10 @@ export function TlaSidebarUserLink() {
 			<TlaAvatar img={user.avatar} />
 			<div className={classNames(styles.userName, 'notranslate')}>{user.name}</div>
 			<TlaAppMenu>
-				<div className={classNames(styles.accountMenuTrigger, styles.hoverable)}>
+				<div
+					data-testid="tla-sidebar-app-menu"
+					className={classNames(styles.accountMenuTrigger, styles.hoverable)}
+				>
 					<TlaIcon icon="question" />
 				</div>
 			</TlaAppMenu>

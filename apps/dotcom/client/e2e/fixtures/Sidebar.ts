@@ -59,7 +59,7 @@ export class Sidebar {
 
 	async openAccountMenu() {
 		await this.sidebarBottom.hover()
-		await this.page.getByTestId('tla-sidebar-user-link').click()
+		await this.page.getByTestId('tla-sidebar-account-menu').click()
 	}
 
 	@step
