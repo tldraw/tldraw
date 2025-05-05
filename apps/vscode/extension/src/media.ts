@@ -1,6 +1,6 @@
 import { DEFAULT_SUPPORTED_MEDIA_TYPES } from '@tldraw/utils/src/lib/media/media'
 
-const DEFAULT_EXTENSION_TO_MIME_TYPE = {
+const EXTENSION_TO_DEFAULT_MIME_TYPE = {
 	// Vector image extensions
 	svg: 'image/svg+xml',
 
@@ -22,12 +22,12 @@ const DEFAULT_EXTENSION_TO_MIME_TYPE = {
 } as const
 
 type DefaultSupportedMimeType = (typeof DEFAULT_SUPPORTED_MEDIA_TYPES)[number]
-type DefaultSupportedExtensions = keyof typeof DEFAULT_EXTENSION_TO_MIME_TYPE
+type DefaultSupportedExtensions = keyof typeof EXTENSION_TO_DEFAULT_MIME_TYPE
 
 // We use these types to enforce that we don't have any extra mime types in the EXTENSION_TO_MIME_TYPE map
 // and that we don't miss any mime types in the DEFAULT_SUPPORTED_MEDIA_TYPES array
 type ExtensionMapMimeTypes =
-	(typeof DEFAULT_EXTENSION_TO_MIME_TYPE)[keyof typeof DEFAULT_EXTENSION_TO_MIME_TYPE]
+	(typeof EXTENSION_TO_DEFAULT_MIME_TYPE)[keyof typeof EXTENSION_TO_DEFAULT_MIME_TYPE]
 type _CheckMimeTypesCovered = DefaultSupportedMimeType extends ExtensionMapMimeTypes ? true : never
 type _CheckNoExtraMimeTypes = ExtensionMapMimeTypes extends DefaultSupportedMimeType ? true : never
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -36,7 +36,7 @@ const mimeTypesCovered: _CheckMimeTypesCovered = true
 const noExtraMimeTypes: _CheckNoExtraMimeTypes = true
 
 function isSupportedExtension(extension: string): extension is DefaultSupportedExtensions {
-	return extension in DEFAULT_EXTENSION_TO_MIME_TYPE
+	return extension in EXTENSION_TO_DEFAULT_MIME_TYPE
 }
 
 export function getMimeTypeFromPath(filePath: string): string {
@@ -44,7 +44,7 @@ export function getMimeTypeFromPath(filePath: string): string {
 	if (!extension) throw new Error('No extension found in file path')
 
 	if (isSupportedExtension(extension)) {
-		return DEFAULT_EXTENSION_TO_MIME_TYPE[extension]
+		return EXTENSION_TO_DEFAULT_MIME_TYPE[extension]
 	}
 	throw new Error(`Unsupported file type: ${extension}`)
 }
