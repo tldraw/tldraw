@@ -4981,7 +4981,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/api-logs@npm:0.200.0":
+"@opentelemetry/api-logs@npm:0.200.0, @opentelemetry/api-logs@npm:^0.200.0":
   version: 0.200.0
   resolution: "@opentelemetry/api-logs@npm:0.200.0"
   dependencies:
@@ -5033,7 +5033,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/exporter-logs-otlp-http@npm:0.200.0":
+"@opentelemetry/exporter-logs-otlp-http@npm:0.200.0, @opentelemetry/exporter-logs-otlp-http@npm:^0.200.0":
   version: 0.200.0
   resolution: "@opentelemetry/exporter-logs-otlp-http@npm:0.200.0"
   dependencies:
@@ -5268,7 +5268,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/resources@npm:2.0.0":
+"@opentelemetry/resources@npm:2.0.0, @opentelemetry/resources@npm:^2.0.0":
   version: 2.0.0
   resolution: "@opentelemetry/resources@npm:2.0.0"
   dependencies:
@@ -5280,7 +5280,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/sdk-logs@npm:0.200.0":
+"@opentelemetry/sdk-logs@npm:0.200.0, @opentelemetry/sdk-logs@npm:^0.200.0":
   version: 0.200.0
   resolution: "@opentelemetry/sdk-logs@npm:0.200.0"
   dependencies:
@@ -5293,7 +5293,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/sdk-metrics@npm:2.0.0":
+"@opentelemetry/sdk-metrics@npm:2.0.0, @opentelemetry/sdk-metrics@npm:^2.0.0":
   version: 2.0.0
   resolution: "@opentelemetry/sdk-metrics@npm:2.0.0"
   dependencies:
@@ -6927,9 +6927,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocicorp/zero@npm:0.19.2025042700":
-  version: 0.19.2025042700
-  resolution: "@rocicorp/zero@npm:0.19.2025042700"
+"@rocicorp/zero@npm:0.19.2025050203":
+  version: 0.19.2025050203
+  resolution: "@rocicorp/zero@npm:0.19.2025050203"
   dependencies:
     "@badrap/valita": "npm:0.3.11"
     "@databases/escape-identifier": "npm:^1.0.3"
@@ -6940,8 +6940,13 @@ __metadata:
     "@fastify/websocket": "npm:^11.0.0"
     "@google-cloud/precise-date": "npm:^4.0.0"
     "@opentelemetry/api": "npm:^1.9.0"
+    "@opentelemetry/api-logs": "npm:^0.200.0"
+    "@opentelemetry/exporter-logs-otlp-http": "npm:^0.200.0"
     "@opentelemetry/exporter-metrics-otlp-http": "npm:^0.200.0"
     "@opentelemetry/exporter-trace-otlp-http": "npm:^0.200.0"
+    "@opentelemetry/resources": "npm:^2.0.0"
+    "@opentelemetry/sdk-logs": "npm:^0.200.0"
+    "@opentelemetry/sdk-metrics": "npm:^2.0.0"
     "@opentelemetry/sdk-node": "npm:^0.200.0"
     "@opentelemetry/sdk-trace-node": "npm:^2.0.0"
     "@postgresql-typed/oids": "npm:^0.2.0"
@@ -6949,6 +6954,8 @@ __metadata:
     "@rocicorp/logger": "npm:^5.4.0"
     "@rocicorp/resolver": "npm:^1.0.2"
     "@rocicorp/zero-sqlite3": "npm:^1.0.4"
+    "@types/basic-auth": "npm:^1.1.8"
+    basic-auth: "npm:^2.0.1"
     chalk: "npm:^5.3.0"
     chalk-template: "npm:^1.1.0"
     chokidar: "npm:^4.0.1"
@@ -6976,13 +6983,12 @@ __metadata:
   bin:
     analyze-query: out/zero/src/analyze-query.js
     ast-to-zql: out/zero/src/ast-to-zql.js
-    cache-stats: out/zero/src/cache-stats.js
     transform-query: out/zero/src/transform-query.js
     zero-build-schema: out/zero/src/build-schema.js
     zero-cache: out/zero/src/cli.js
     zero-cache-dev: out/zero/src/zero-cache-dev.js
     zero-deploy-permissions: out/zero/src/deploy-permissions.js
-  checksum: 10/5b92b3f108e9eb8b766c821bcf9079fea29b1d99338e4d2a917b0b9f9d252a32507b41f660cd12c9cbc7d7fb0ce46f613d3a383088bcf97fb21ef6264c313358
+  checksum: 10/3b582105ce6886b49fce2d4ec66b0a7ae84599753bc2435289da459a4eb1cb4b166d14c17fbbf00a1af7d0ec0e9f5ad0cfd34c9ec5bde2b6fcac53966233f42e
   languageName: node
   linkType: hard
 
@@ -9012,7 +9018,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/dotcom-shared@workspace:packages/dotcom-shared"
   dependencies:
-    "@rocicorp/zero": "npm:0.19.2025042700"
+    "@rocicorp/zero": "npm:0.19.2025050203"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
@@ -9035,7 +9041,7 @@ __metadata:
   dependencies:
     "@clerk/backend": "npm:^1.23.7"
     "@cloudflare/workers-types": "npm:^4.20250224.0"
-    "@rocicorp/zero": "npm:0.19.2025042700"
+    "@rocicorp/zero": "npm:0.19.2025050203"
     "@supabase/auth-helpers-remix": "npm:^0.2.6"
     "@supabase/supabase-js": "npm:^2.48.1"
     "@tldraw/dotcom-shared": "workspace:*"
@@ -9394,7 +9400,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/zero-cache@workspace:apps/dotcom/zero-cache"
   dependencies:
-    "@rocicorp/zero": "npm:0.19.2025042700"
+    "@rocicorp/zero": "npm:0.19.2025050203"
     concurrently: "npm:^9.1.2"
     dotenv: "npm:^16.4.7"
     esbuild: "npm:^0.24.2"
@@ -9542,6 +9548,15 @@ __metadata:
   dependencies:
     "@babel/types": "npm:^7.20.7"
   checksum: 10/f0352d537448e1e37f27e6bb8c962d7893720a92fde9d8601a68a93dbc14e15c088b4c0c8f71021d0966d09fba802ef3de11fdb6766c33993f8cf24f1277c6a9
+  languageName: node
+  linkType: hard
+
+"@types/basic-auth@npm:^1.1.8":
+  version: 1.1.8
+  resolution: "@types/basic-auth@npm:1.1.8"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10/b3798fe62d9c800e5a8905630be671d150edf32792a50b1543d932dea57b0f53ad9ef4a476be1d6f74dfb48de34d7892c246feee61d2c4dd7ad218b03f1d6f60
   languageName: node
   linkType: hard
 
@@ -12009,6 +12024,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"basic-auth@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "basic-auth@npm:2.0.1"
+  dependencies:
+    safe-buffer: "npm:5.1.2"
+  checksum: 10/3419b805d5dfc518f3a05dcf42aa53aa9ce820e50b6df5097f9e186322e1bc733c36722b624802cd37e791035aa73b828ed814d8362333d42d7f5cd04d7a5e48
+  languageName: node
+  linkType: hard
+
 "before-after-hook@npm:^2.2.0":
   version: 2.2.3
   resolution: "before-after-hook@npm:2.2.3"
@@ -14087,7 +14111,7 @@ __metadata:
     "@formatjs/cli": "npm:^6.5.1"
     "@jest/globals": "npm:30.0.0-alpha.2"
     "@playwright/test": "npm:^1.50.0"
-    "@rocicorp/zero": "npm:0.19.2025042700"
+    "@rocicorp/zero": "npm:0.19.2025050203"
     "@sentry/cli": "npm:^2.41.1"
     "@sentry/integrations": "npm:^7.120.3"
     "@sentry/react": "npm:^7.120.3"
@@ -25736,17 +25760,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"safe-buffer@npm:5.1.2, safe-buffer@npm:~5.1.0, safe-buffer@npm:~5.1.1":
+  version: 5.1.2
+  resolution: "safe-buffer@npm:5.1.2"
+  checksum: 10/7eb5b48f2ed9a594a4795677d5a150faa7eb54483b2318b568dc0c4fc94092a6cce5be02c7288a0500a156282f5276d5688bce7259299568d1053b2150ef374a
+  languageName: node
+  linkType: hard
+
 "safe-buffer@npm:5.2.1, safe-buffer@npm:^5.0.1, safe-buffer@npm:^5.1.0, safe-buffer@npm:^5.1.2, safe-buffer@npm:^5.2.1, safe-buffer@npm:~5.2.0":
   version: 5.2.1
   resolution: "safe-buffer@npm:5.2.1"
   checksum: 10/32872cd0ff68a3ddade7a7617b8f4c2ae8764d8b7d884c651b74457967a9e0e886267d3ecc781220629c44a865167b61c375d2da6c720c840ecd73f45d5d9451
-  languageName: node
-  linkType: hard
-
-"safe-buffer@npm:~5.1.0, safe-buffer@npm:~5.1.1":
-  version: 5.1.2
-  resolution: "safe-buffer@npm:5.1.2"
-  checksum: 10/7eb5b48f2ed9a594a4795677d5a150faa7eb54483b2318b568dc0c4fc94092a6cce5be02c7288a0500a156282f5276d5688bce7259299568d1053b2150ef374a
   languageName: node
   linkType: hard
 
