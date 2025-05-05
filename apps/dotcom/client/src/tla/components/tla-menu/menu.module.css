@@ -12,7 +12,6 @@
 .controlGroup {
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
 }
 
 .controlGroup + .controlGroup {
@@ -23,7 +22,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	height: 32px;
+	height: 36px;
 	gap: 8px;
 }
 
@@ -41,7 +40,6 @@
 @media (hover: hover) {
 	.info:hover {
 		color: var(--color-text-1);
-		cursor: pointer;
 	}
 }
 
