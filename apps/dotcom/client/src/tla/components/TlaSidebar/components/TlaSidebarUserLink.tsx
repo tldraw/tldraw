@@ -4,6 +4,7 @@ import { useApp } from '../../../hooks/useAppState'
 import { useMsg } from '../../../utils/i18n'
 import { TlaAccountMenu } from '../../TlaAccountMenu/TlaAccountMenu'
 import { TlaAvatar } from '../../TlaAvatar/TlaAvatar'
+import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 import { messages } from './sidebar-shared'
 
@@ -15,15 +16,18 @@ export function TlaSidebarUserLink() {
 	if (!user) return null
 
 	return (
-		<TlaAccountMenu source="sidebar">
-			<button
-				className={classNames(styles.user, 'tla-text_ui__regular')}
-				title={accountMenuLbl}
-				data-testid="tla-sidebar-user-link"
-			>
-				<TlaAvatar img={user.avatar} />
-				<div className={classNames(styles.userName, 'notranslate')}>{user.name}</div>
-			</button>
-		</TlaAccountMenu>
+		<div
+			className={classNames(styles.user, 'tla-text_ui__regular')}
+			title={accountMenuLbl}
+			data-testid="tla-sidebar-user-link"
+		>
+			<TlaAvatar img={user.avatar} />
+			<div className={classNames(styles.userName, 'notranslate')}>{user.name}</div>
+			<TlaAccountMenu source="sidebar">
+				<div className={classNames(styles.accountMenuTrigger, styles.hoverable)}>
+					<TlaIcon icon="question" />
+				</div>
+			</TlaAccountMenu>
+		</div>
 	)
 }

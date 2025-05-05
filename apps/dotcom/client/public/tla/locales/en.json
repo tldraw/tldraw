@@ -44,6 +44,9 @@
   "1dd1c5fb7f": {
     "translation": "Today"
   },
+  "250ddea65c": {
+    "translation": "About tldraw"
+  },
   "26e5b44256": {
     "translation": "Give us feedback"
   },
@@ -188,6 +191,9 @@
   "797799f35e": {
     "translation": "Submit an issue on GitHub"
   },
+  "7b1329f5ca": {
+    "translation": "User manual"
+  },
   "7cb5f8b4a5": {
     "translation": "Forget"
   },
@@ -211,9 +217,6 @@
   },
   "8eb2c00e96": {
     "translation": "Shared with you"
-  },
-  "8f7f4c1ce7": {
-    "translation": "About"
   },
   "8ff3d0a705": {
     "translation": "Rate limited"
@@ -353,6 +356,9 @@
   },
   "dfdb78a4e4": {
     "translation": "App debug flags"
+  },
+  "e2ae80a510": {
+    "translation": "Legal summary"
   },
   "e371526ad0": {
     "translation": "This cookie is required for tldraw to work, and cannot be disabled."

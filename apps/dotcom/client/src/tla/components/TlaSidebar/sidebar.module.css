@@ -274,20 +274,9 @@
 }
 
 .user {
-	padding: 0px 8px;
+	padding: 0px 0px 0px 8px;
 	gap: 8px;
 	text-align: left;
-	cursor: pointer;
-}
-.user:hover::after {
-	content: ' ';
-	position: absolute;
-	top: 2px;
-	bottom: 2px;
-	left: 0;
-	right: 0;
-	background: var(--tla-color-hover-1);
-	border-radius: 6px;
 }
 
 .userName {
@@ -296,6 +285,24 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	color: var(--tla-color-text-1);
+}
+
+.accountMenuTrigger {
+	height: 28px;
+	width: 28px;
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	cursor: pointer;
+	border-radius: 100%;
+	border: 1px solid var(--tla-color-border);
+}
+
+.accountMenuTrigger::after {
+	border-radius: 100%;
+	inset: 0px;
 }
 
 .main-link {
@@ -434,7 +441,7 @@
 	}
 
 	.workspace .linkMenu[data-state='open'],
-	.user .linkMenu[data-state='open'],
+	.user .accountMenuTrigger[data-state='open'],
 	.link .linkMenu[data-state='open'],
 	.workspace:hover .linkMenu,
 	.user:hover .linkMenu,
@@ -443,7 +450,7 @@
 		display: flex;
 	}
 
-	.user .linkMenu[data-state='open']::after {
+	.user .accountMenuTrigger[data-state='open']::after {
 		visibility: visible;
 		background-color: var(--tla-color-hover-2);
 	}

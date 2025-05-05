@@ -181,6 +181,10 @@
 	border-radius: var(--radius-2);
 }
 
+.tlui-button__menu > .tlui-icon + .tlui-button__label {
+	margin-left: 0px;
+}
+
 .tlui-button__menu:nth-child(1) {
 	margin-top: 0px;
 }

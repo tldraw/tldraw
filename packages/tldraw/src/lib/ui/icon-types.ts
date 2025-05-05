@@ -20,6 +20,7 @@ export type TLUiIconType =
 	| 'arrowhead-triangle'
 	| 'blob'
 	| 'bold'
+	| 'bookmark'
 	| 'bring-forward'
 	| 'bring-to-front'
 	| 'broken'
@@ -36,6 +37,7 @@ export type TLUiIconType =
 	| 'clipboard-copy'
 	| 'code'
 	| 'color'
+	| 'comment'
 	| 'cross-2'
 	| 'cross-circle'
 	| 'dash-dashed'
@@ -102,7 +104,6 @@ export type TLUiIconType =
 	| 'mixed'
 	| 'pack'
 	| 'plus'
-	| 'question-mark-circle'
 	| 'question-mark'
 	| 'redo'
 	| 'reset-zoom'
@@ -173,6 +174,7 @@ export const iconTypes = [
 	'arrowhead-triangle',
 	'blob',
 	'bold',
+	'bookmark',
 	'bring-forward',
 	'bring-to-front',
 	'broken',
@@ -189,6 +191,7 @@ export const iconTypes = [
 	'clipboard-copy',
 	'code',
 	'color',
+	'comment',
 	'cross-2',
 	'cross-circle',
 	'dash-dashed',
@@ -255,7 +258,6 @@ export const iconTypes = [
 	'mixed',
 	'pack',
 	'plus',
-	'question-mark-circle',
 	'question-mark',
 	'redo',
 	'reset-zoom',

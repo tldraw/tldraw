@@ -40,6 +40,7 @@ export type AssetUrls = {
 		'arrowhead-triangle': string
 		blob: string
 		bold: string
+		bookmark: string
 		'bring-forward': string
 		'bring-to-front': string
 		broken: string
@@ -56,6 +57,7 @@ export type AssetUrls = {
 		'clipboard-copy': string
 		code: string
 		color: string
+		comment: string
 		'cross-2': string
 		'cross-circle': string
 		'dash-dashed': string
@@ -122,7 +124,6 @@ export type AssetUrls = {
 		mixed: string
 		pack: string
 		plus: string
-		'question-mark-circle': string
 		'question-mark': string
 		redo: string
 		'reset-zoom': string

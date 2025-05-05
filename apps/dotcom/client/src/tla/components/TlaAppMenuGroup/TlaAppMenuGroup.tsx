@@ -4,7 +4,6 @@ import {
 	LanguageMenu,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	TldrawUiMenuSubmenu,
 	useDialogs,
 	useMaybeEditor,
 } from 'tldraw'
@@ -16,22 +15,35 @@ import { TlaManageCookiesDialog } from '../dialogs/TlaManageCookiesDialog'
 
 const messages = defineMessages({
 	help: { defaultMessage: 'Help' },
+	getHelp: { defaultMessage: 'User manual' },
+	legalSummary: { defaultMessage: 'Legal summary' },
 	terms: { defaultMessage: 'Terms of service' },
 	privacy: { defaultMessage: 'Privacy policy' },
 	cookiePolicy: { defaultMessage: 'Cookie policy' },
 	manageCookies: { defaultMessage: 'Manage cookies' },
-	about: { defaultMessage: 'About' },
+	about: { defaultMessage: 'About tldraw' },
 	submitFeedback: { defaultMessage: 'Give us feedback' },
 })
 
 export function TlaAppMenuGroup() {
+	const isSignedIn = useAuth().isSignedIn
+
 	return (
-		<TldrawUiMenuGroup id="things-to-do">
-			<HelpSubMenu />
-			<ColorThemeSubmenu />
-			<LanguageMenu />
-			<TlaDebugMenuGroup />
-		</TldrawUiMenuGroup>
+		<>
+			<TldrawUiMenuGroup id="signed-in-help">
+				<UserManualMenuItem />
+				<GiveUsFeedbackMenuItem />
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="links">
+				<LegalSummaryMenuItem />
+				{isSignedIn && <CookieConsentMenuItem />}
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="settings">
+				<ColorThemeSubmenu />
+				<LanguageMenu />
+				<TlaDebugMenuGroup />
+			</TldrawUiMenuGroup>
+		</>
 	)
 }
 
@@ -56,13 +68,28 @@ function CookieConsentMenuItem() {
 	)
 }
 
+function UserManualMenuItem() {
+	const openAndTrack = useOpenUrlAndTrack('main-menu')
+	return (
+		<TldrawUiMenuItem
+			id="give-us-feedback"
+			label={useMsg(messages.getHelp)}
+			iconLeft="bookmark"
+			readonlyOk
+			onSelect={() => {
+				openAndTrack('https://tldraw.notion.site/support')
+			}}
+		/>
+	)
+}
+
 function GiveUsFeedbackMenuItem() {
 	const { addDialog } = useDialogs()
 	return (
 		<TldrawUiMenuItem
 			id="give-us-feedback"
 			label={useMsg(messages.submitFeedback)}
-			icon="external-link"
+			iconLeft="comment"
 			readonlyOk
 			onSelect={() => {
 				addDialog({ component: SubmitFeedbackDialog })
@@ -71,59 +98,34 @@ function GiveUsFeedbackMenuItem() {
 	)
 }
 
-export function HelpSubMenu() {
-	const isSignedIn = useAuth().isSignedIn
+// function AboutTldrawMenuItem() {
+// 	const openAndTrack = useOpenUrlAndTrack('main-menu')
+// 	return (
+// 		<TldrawUiMenuItem
+// 			id="about"
+// 			label={useMsg(messages.about)}
+// 			icon="external-link"
+// 			readonlyOk
+// 			onSelect={() => {
+// 				openAndTrack(
+// 					'https://tldraw.dev/?utm_source=dotcom&utm_medium=organic&utm_campaign=learn-more'
+// 				)
+// 			}}
+// 		/>
+// 	)
+// }
 
+function LegalSummaryMenuItem() {
 	const openAndTrack = useOpenUrlAndTrack('main-menu')
-	const msg = useMsg(messages.help)
 	return (
-		<TldrawUiMenuSubmenu id="help" label={msg}>
-			<TldrawUiMenuGroup id="signed-in-help">
-				{isSignedIn && <CookieConsentMenuItem />}
-				<GiveUsFeedbackMenuItem />
-			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="links">
-				<TldrawUiMenuItem
-					id="tos"
-					label={useMsg(messages.terms)}
-					icon="external-link"
-					readonlyOk
-					onSelect={() => {
-						openAndTrack('https://tldraw.notion.site/terms-of-service')
-					}}
-				/>
-				<TldrawUiMenuItem
-					id="privacy"
-					label={useMsg(messages.privacy)}
-					icon="external-link"
-					readonlyOk
-					onSelect={() => {
-						openAndTrack('https://tldraw.notion.site/privacy-policy')
-					}}
-				/>
-				<TldrawUiMenuItem
-					id="cookie-policy"
-					label={useMsg(messages.cookiePolicy)}
-					icon="external-link"
-					readonlyOk
-					onSelect={() => {
-						openAndTrack('https://tldraw.notion.site/cookie-policy')
-					}}
-				/>
-			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="tldraw">
-				<TldrawUiMenuItem
-					id="about"
-					label={useMsg(messages.about)}
-					icon="external-link"
-					readonlyOk
-					onSelect={() => {
-						openAndTrack(
-							'https://tldraw.dev/?utm_source=dotcom&utm_medium=organic&utm_campaign=learn-more'
-						)
-					}}
-				/>
-			</TldrawUiMenuGroup>
-		</TldrawUiMenuSubmenu>
+		<TldrawUiMenuItem
+			id="tos"
+			label={useMsg(messages.legalSummary)}
+			icon="external-link"
+			readonlyOk
+			onSelect={() => {
+				openAndTrack('https://tldraw.notion.site/legal')
+			}}
+		/>
 	)
 }
