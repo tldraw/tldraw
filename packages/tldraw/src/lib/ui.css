@@ -806,7 +806,7 @@
 	z-index: var(--layer-header-footer);
 	padding-left: var(--space-4);
 	color: var(--color-text);
-	height: 44px;
+	height: 40px;
 }
 
 .tlui-dialog__header__title {
@@ -844,7 +844,7 @@
 
 .tlui-dialog__footer {
 	position: relative;
-	min-height: 16px;
+	min-height: 12px;
 	z-index: var(--layer-header-footer);
 }
 

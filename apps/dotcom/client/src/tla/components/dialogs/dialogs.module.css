@@ -47,3 +47,13 @@
 	flex-direction: column;
 	gap: var(--space-4);
 }
+
+.feedbackDialogTextArea {
+	border: 1px solid var(--tla-color-border);
+	border-radius: var(--radius-2);
+	min-height: 100px;
+	padding: 6px 8px;
+	resize: vertical;
+	width: 100%;
+	background-color: var(--color-muted-2);
+}

@@ -2,6 +2,7 @@ import { ReactNode } from 'react'
 import {
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 	useValue,
@@ -67,6 +68,7 @@ export function TlaManageCookiesDialog() {
 					/>
 				</div>
 			</TldrawUiDialogBody>
+			<TldrawUiDialogFooter />
 		</>
 	)
 }

@@ -101,7 +101,6 @@ function CookieConsentMenuItem() {
 		<TldrawUiMenuItem
 			id="cookie-consent"
 			label={useMsg(messages.manageCookies)}
-			icon="external-link"
 			readonlyOk
 			onSelect={() => {
 				addDialog({ component: () => <TlaManageCookiesDialog /> })
@@ -140,30 +139,12 @@ export function GiveUsFeedbackMenuItem() {
 	)
 }
 
-// function AboutTldrawMenuItem() {
-// 	const openAndTrack = useOpenUrlAndTrack('main-menu')
-// 	return (
-// 		<TldrawUiMenuItem
-// 			id="about"
-// 			label={useMsg(messages.about)}
-// 			icon="external-link"
-// 			readonlyOk
-// 			onSelect={() => {
-// 				openAndTrack(
-// 					'https://tldraw.dev/?utm_source=dotcom&utm_medium=organic&utm_campaign=learn-more'
-// 				)
-// 			}}
-// 		/>
-// 	)
-// }
-
 export function LegalSummaryMenuItem() {
 	const openAndTrack = useOpenUrlAndTrack('main-menu')
 	return (
 		<TldrawUiMenuItem
 			id="tos"
 			label={useMsg(messages.legalSummary)}
-			icon="external-link"
 			readonlyOk
 			onSelect={() => {
 				openAndTrack('https://tldraw.notion.site/legal')
