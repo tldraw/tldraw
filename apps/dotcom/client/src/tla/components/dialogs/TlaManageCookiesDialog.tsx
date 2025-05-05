@@ -1,3 +1,4 @@
+import { Tooltip as _Tooltip } from 'radix-ui'
 import { ReactNode } from 'react'
 import {
 	TldrawUiDialogBody,
@@ -8,68 +9,74 @@ import {
 	useValue,
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
-import { F, defineMessages, useMsg } from '../../utils/i18n'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { F } from '../../utils/i18n'
 import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
-import { TlaMenuControlLabel } from '../tla-menu/tla-menu'
+import {
+	TlaMenuControl,
+	TlaMenuControlGroup,
+	TlaMenuControlInfoTooltip,
+	TlaMenuControlLabel,
+} from '../tla-menu/tla-menu'
 import styles from './dialogs.module.css'
 
-const messages = defineMessages({
-	essential: {
-		defaultMessage: 'This cookie is required for tldraw to work, and cannot be disabled.',
-	},
-})
+const COOKIE_POLICY_URL = 'https://tldraw.notion.site/cookie-policy'
 
 export function TlaManageCookiesDialog() {
 	const app = useApp()
 	const user = useValue('user', () => app.getUser(), [app])
 
 	return (
-		<>
-			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>
-					<F defaultMessage="Manage cookies" />
-				</TldrawUiDialogTitle>
-				<TldrawUiDialogCloseButton />
-			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
-				<F
-					defaultMessage="We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw. Read our <a>cookie policy</a> to learn more."
-					values={{
-						a: (chunks) => (
-							<a href="https://tldraw.notion.site/cookie-policy" target="_blank" rel="noreferrer">
-								{chunks}
-							</a>
-						),
-					}}
-				/>
-				<div className={styles.cookieControls}>
-					<CookieDialogToggle
-						title={<F defaultMessage="Your session" />}
-						description={
-							<F
-								defaultMessage="Essential — Required to save your files & settings, and sync them across your devices."
-								values={{ b: (chunks) => <strong>{chunks}</strong> }}
-							/>
-						}
-						checked={true}
-					/>
-					<CookieDialogToggle
-						title={<F defaultMessage="Analytics" />}
-						description={
-							<F
-								defaultMessage="Optional — Help us understand how people use tldraw, and how we can make it better."
-								values={{ b: (chunks) => <strong>{chunks}</strong> }}
-							/>
-						}
-						checked={!!app.getUser().allowAnalyticsCookie}
-						onChange={() => {
-							app.updateUser({ id: user.id, allowAnalyticsCookie: !user.allowAnalyticsCookie })
-						}}
-					/>
-				</div>
-			</TldrawUiDialogBody>
-			<TldrawUiDialogFooter />
-		</>
+		<_Tooltip.Provider>
+			<div className={styles.dialogContainer}>
+				<TldrawUiDialogHeader>
+					<TldrawUiDialogTitle>
+						<F defaultMessage="Manage cookies" />
+					</TldrawUiDialogTitle>
+					<TldrawUiDialogCloseButton />
+				</TldrawUiDialogHeader>
+				<TldrawUiDialogBody className={styles.dialogBody}>
+					<p>
+						<F
+							defaultMessage="We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw. Read our <a>cookie policy</a> to learn more."
+							values={{
+								a: (chunks) => (
+									<a href={COOKIE_POLICY_URL} target="_blank" rel="noreferrer">
+										{chunks}
+									</a>
+								),
+							}}
+						/>
+					</p>
+					<TlaMenuControlGroup>
+						<CookieDialogToggle
+							title={<F defaultMessage="Essential cookies" />}
+							description={
+								<F
+									defaultMessage="We use these cookies to save your files and settings."
+									values={{ b: (chunks) => <strong>{chunks}</strong> }}
+								/>
+							}
+							checked={true}
+						/>
+						<CookieDialogToggle
+							title={<F defaultMessage="Analytics" />}
+							description={
+								<F
+									defaultMessage="We use analytics cookies to make tldraw better."
+									values={{ b: (chunks) => <strong>{chunks}</strong> }}
+								/>
+							}
+							checked={!!app.getUser().allowAnalyticsCookie}
+							onChange={() => {
+								app.updateUser({ id: user.id, allowAnalyticsCookie: !user.allowAnalyticsCookie })
+							}}
+						/>
+					</TlaMenuControlGroup>
+				</TldrawUiDialogBody>
+				<TldrawUiDialogFooter />
+			</div>
+		</_Tooltip.Provider>
 	)
 }
 
@@ -84,14 +91,19 @@ function CookieDialogToggle({
 	checked: boolean
 	onChange?(checked: boolean): void
 }) {
-	const essentialMessage = useMsg(messages.essential)
+	const trackEvent = useTldrawAppUiEvents()
+
 	return (
-		<label className={styles.cookieControl} title={onChange ? undefined : essentialMessage}>
-			<TlaMenuControlLabel>
-				<div className={styles.cookieControlTitle}>{title}</div>
-				<div className={styles.cookieControlDescription}>{description}</div>
-			</TlaMenuControlLabel>
+		<TlaMenuControl>
+			<TlaMenuControlLabel>{title}</TlaMenuControlLabel>
+			<TlaMenuControlInfoTooltip
+				onClick={() =>
+					trackEvent('open-url', { url: COOKIE_POLICY_URL, source: 'cookie-settings' })
+				}
+			>
+				{description}
+			</TlaMenuControlInfoTooltip>
 			<TlaSwitch checked={checked} onChange={onChange} disabled={!onChange} />
-		</label>
+		</TlaMenuControl>
 	)
 }

@@ -37,12 +37,13 @@
 	color: var(--tla-color-text-2);
 }
 
-.feedbackDialog {
+.dialogContainer {
+	width: 350px;
 	min-width: 350px;
 	max-width: 100%;
 }
 
-.feedbackDialogBody {
+.dialogBody {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-4);

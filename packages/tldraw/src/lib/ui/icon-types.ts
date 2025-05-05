@@ -89,6 +89,7 @@ export type TLUiIconType =
 	| 'github'
 	| 'group'
 	| 'heading'
+	| 'help-circle'
 	| 'highlight'
 	| 'horizontal-align-end'
 	| 'horizontal-align-middle'
@@ -104,6 +105,7 @@ export type TLUiIconType =
 	| 'mixed'
 	| 'pack'
 	| 'plus'
+	| 'question-mark-circle'
 	| 'question-mark'
 	| 'redo'
 	| 'reset-zoom'
@@ -243,6 +245,7 @@ export const iconTypes = [
 	'github',
 	'group',
 	'heading',
+	'help-circle',
 	'highlight',
 	'horizontal-align-end',
 	'horizontal-align-middle',
@@ -258,6 +261,7 @@ export const iconTypes = [
 	'mixed',
 	'pack',
 	'plus',
+	'question-mark-circle',
 	'question-mark',
 	'redo',
 	'reset-zoom',

@@ -37,14 +37,14 @@ export function SubmitFeedbackDialog() {
 
 function SignedOutSubmitFeedbackDialog() {
 	return (
-		<div className={styles.feedbackDialog}>
+		<div className={styles.dialogContainer}>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
 					<F defaultMessage="Send feedback" />
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody className={styles.feedbackDialogBody}>
+			<TldrawUiDialogBody className={styles.dialogBody}>
 				<p>
 					<F defaultMessage="Have a bug, issue, or idea for tldraw? Let us know!" />
 				</p>

@@ -109,6 +109,7 @@ export type AssetUrls = {
 		github: string
 		group: string
 		heading: string
+		'help-circle': string
 		highlight: string
 		'horizontal-align-end': string
 		'horizontal-align-middle': string
@@ -124,6 +125,7 @@ export type AssetUrls = {
 		mixed: string
 		pack: string
 		plus: string
+		'question-mark-circle': string
 		'question-mark': string
 		redo: string
 		'reset-zoom': string
