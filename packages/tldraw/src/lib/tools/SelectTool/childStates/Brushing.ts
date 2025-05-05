@@ -14,8 +14,8 @@ import {
 	Vec,
 	pointInPolygon,
 	polygonsIntersect,
+	react,
 } from '@tldraw/editor'
-import { react } from '@tldraw/state'
 
 export class Brushing extends StateNode {
 	static override id = 'brushing'
