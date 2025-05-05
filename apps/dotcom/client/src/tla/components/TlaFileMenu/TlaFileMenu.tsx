@@ -182,18 +182,16 @@ export function FileItems({
 					onSelect={handleDuplicateClick}
 				/>
 				<TldrawUiMenuItem
-					label={isPinned ? unpinMsg : pinMsg}
-					id="pin-unpin"
-					readonlyOk
-					onSelect={handlePinUnpinClick}
-				/>
-			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="file-actions-2">
-				<TldrawUiMenuItem
 					label={downloadFile}
 					id="download-file"
 					readonlyOk
 					onSelect={handleDownloadClick}
+				/>
+				<TldrawUiMenuItem
+					label={isPinned ? unpinMsg : pinMsg}
+					id="pin-unpin"
+					readonlyOk
+					onSelect={handlePinUnpinClick}
 				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">

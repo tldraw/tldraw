@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import { useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { useMsg } from '../../../utils/i18n'
-import { TlaAccountMenu } from '../../TlaAccountMenu/TlaAccountMenu'
+import { TlaAppMenu } from '../../TlaAppMenu/TlaAppMenu'
 import { TlaAvatar } from '../../TlaAvatar/TlaAvatar'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
@@ -23,11 +23,11 @@ export function TlaSidebarUserLink() {
 		>
 			<TlaAvatar img={user.avatar} />
 			<div className={classNames(styles.userName, 'notranslate')}>{user.name}</div>
-			<TlaAccountMenu source="sidebar">
+			<TlaAppMenu>
 				<div className={classNames(styles.accountMenuTrigger, styles.hoverable)}>
 					<TlaIcon icon="question" />
 				</div>
-			</TlaAccountMenu>
+			</TlaAppMenu>
 		</div>
 	)
 }
