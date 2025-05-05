@@ -6,6 +6,7 @@ import { loadFile } from './file'
 import { UnknownRecord } from 'tldraw'
 // @ts-ignore
 import type { VscodeMessage } from '../../messages'
+import { getMimeTypeFromPath } from './media'
 import { unfurl } from './unfurl'
 import { nicelog } from './utils'
 
@@ -218,23 +219,4 @@ export class WebViewMessageHandler {
 			}
 		}
 	}
-}
-
-function getMimeTypeFromPath(filePath: string): string {
-	const extension = filePath.split('.').pop()?.toLowerCase()
-	if (!extension) throw new Error('No extension found in file path')
-
-	const mimeTypes: Record<string, string> = {
-		jpg: 'image/jpeg',
-		jpeg: 'image/jpeg',
-		png: 'image/png',
-		webp: 'image/webp',
-		gif: 'image/gif',
-		apng: 'image/apng',
-		avif: 'image/avif',
-		svg: 'image/svg+xml',
-	}
-	const mimeType = mimeTypes[extension]
-	if (mimeType) return mimeType
-	throw new Error(`Unsupported file type: ${extension}`)
 }
