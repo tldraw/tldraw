@@ -12,6 +12,7 @@
 .controlGroup {
 	display: flex;
 	flex-direction: column;
+	gap: 4px;
 }
 
 .controlGroup + .controlGroup {
@@ -22,7 +23,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	height: 36px;
+	height: 32px;
 	gap: 8px;
 }
 
