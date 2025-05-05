@@ -2960,7 +2960,7 @@ export interface TLUiDialogBodyProps {
 // @public (undocumented)
 export interface TLUiDialogFooterProps {
     // (undocumented)
-    children: ReactNode;
+    children?: ReactNode;
     // (undocumented)
     className?: string;
 }

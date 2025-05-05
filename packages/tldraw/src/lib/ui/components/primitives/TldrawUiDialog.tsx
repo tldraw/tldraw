@@ -71,7 +71,7 @@ export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBod
 /** @public */
 export interface TLUiDialogFooterProps {
 	className?: string
-	children: ReactNode
+	children?: ReactNode
 }
 
 /** @public @react */

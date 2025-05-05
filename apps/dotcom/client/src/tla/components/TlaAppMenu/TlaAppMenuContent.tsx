@@ -110,7 +110,7 @@ function CookieConsentMenuItem() {
 	)
 }
 
-function UserManualMenuItem() {
+export function UserManualMenuItem() {
 	const openAndTrack = useOpenUrlAndTrack('main-menu')
 	return (
 		<TldrawUiMenuItem
@@ -125,7 +125,7 @@ function UserManualMenuItem() {
 	)
 }
 
-function GiveUsFeedbackMenuItem() {
+export function GiveUsFeedbackMenuItem() {
 	const { addDialog } = useDialogs()
 	return (
 		<TldrawUiMenuItem
@@ -157,7 +157,7 @@ function GiveUsFeedbackMenuItem() {
 // 	)
 // }
 
-function LegalSummaryMenuItem() {
+export function LegalSummaryMenuItem() {
 	const openAndTrack = useOpenUrlAndTrack('main-menu')
 	return (
 		<TldrawUiMenuItem

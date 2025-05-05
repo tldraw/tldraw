@@ -844,6 +844,7 @@
 
 .tlui-dialog__footer {
 	position: relative;
+	min-height: 16px;
 	z-index: var(--layer-header-footer);
 }
 

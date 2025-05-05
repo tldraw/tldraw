@@ -6,6 +6,7 @@ import {
 	TldrawUiButton,
 	TldrawUiButtonLabel,
 	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
 	TldrawUiDialogFooter,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
@@ -18,6 +19,7 @@ import {
 import { F, defineMessages, useIntl } from '../../utils/i18n'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import { TlaFormCheckbox } from '../tla-form/tla-form'
+import styles from './dialogs.module.css'
 
 const messages = defineMessages({
 	submitted: { defaultMessage: 'Feedback submitted' },
@@ -26,27 +28,26 @@ const messages = defineMessages({
 
 const descriptionKey = 'tldraw-feedback-description'
 
-export function SubmitFeedbackDialog({ onClose }: { onClose(): void }) {
+export function SubmitFeedbackDialog() {
 	const isSignedIn = useAuth().isSignedIn
 	if (isSignedIn) {
-		return <SignedInSubmitFeedbackDialog onClose={onClose} />
+		return <SignedInSubmitFeedbackDialog />
 	}
-	return <SignedOutSubmitFeedbackDialog onClose={onClose} />
+	return <SignedOutSubmitFeedbackDialog />
 }
 
-function SignedOutSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
+function SignedOutSubmitFeedbackDialog() {
 	return (
-		<div>
+		<div className={styles.feedbackDialog}>
 			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle style={{ fontWeight: 700 }}>
-					<F defaultMessage="Give us feedback" />
+				<TldrawUiDialogTitle>
+					<F defaultMessage="Send feedback" />
 				</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody
-				style={{ maxWidth: 350, display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 0 }}
-			>
+			<TldrawUiDialogBody className={styles.feedbackDialogBody}>
 				<p>
-					<F defaultMessage="See something wrong? Got an idea to improve tldraw? We’d love to hear it!" />
+					<F defaultMessage="Have a bug, issue, or idea for tldraw? Let us know!" />
 				</p>
 				<ul style={{ gap: 4 }}>
 					<li>
@@ -61,18 +62,12 @@ function SignedOutSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 					</li>
 				</ul>
 			</TldrawUiDialogBody>
-			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
-				<TldrawUiButton type="normal" onClick={onClose}>
-					<TldrawUiButtonLabel>
-						<F defaultMessage="Close" />
-					</TldrawUiButtonLabel>
-				</TldrawUiButton>
-			</TldrawUiDialogFooter>
+			<TldrawUiDialogFooter />
 		</div>
 	)
 }
 
-function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
+function SignedInSubmitFeedbackDialog() {
 	const input = useRef<HTMLTextAreaElement>(null)
 	const checkBox = useRef<HTMLInputElement>(null)
 	const toasts = useToasts()
@@ -100,13 +95,12 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 				})
 			})
 		deleteFromLocalStorage(descriptionKey)
-		onClose()
 		toasts.addToast({
 			severity: 'success',
 			title: intl.formatMessage(messages.submitted),
 			description: intl.formatMessage(messages.thanks),
 		})
-	}, [intl, onClose, toasts])
+	}, [intl, toasts])
 	return (
 		<div>
 			<TldrawUiDialogHeader>
@@ -169,7 +163,7 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 						</TlaFormCheckbox>
 					</div>
 					<div style={{ display: 'flex', flex: 1, justifyContent: 'flex-end' }}>
-						<TldrawUiButton type="normal" onClick={onClose}>
+						<TldrawUiButton type="normal">
 							<TldrawUiButtonLabel>
 								<F defaultMessage="Cancel" />
 							</TldrawUiButtonLabel>

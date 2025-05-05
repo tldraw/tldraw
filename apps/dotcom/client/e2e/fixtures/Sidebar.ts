@@ -57,14 +57,14 @@ export class Sidebar {
 		return (await this.page.$$(this.fileLink)).length
 	}
 
-	async openAccountMenu() {
+	async openAppMenu() {
 		await this.sidebarBottom.hover()
-		await this.page.getByTestId('tla-sidebar-account-menu').click()
+		await this.page.getByTestId('tla-sidebar-app-menu').click()
 	}
 
 	@step
 	async setDarkMode() {
-		await this.openAccountMenu()
+		await this.openAppMenu()
 		await this.themeButton.hover()
 		await this.darkModeButton.click()
 		await this.mutationResolution()
@@ -74,7 +74,7 @@ export class Sidebar {
 	async openLanguageMenu(languageButtonText: string) {
 		// need the editor to be mounted for the menu to be available
 		await expect(this.page.getByTestId('canvas')).toBeVisible()
-		await this.openAccountMenu()
+		await this.openAppMenu()
 		await this.page.getByText(languageButtonText).hover()
 	}
 
@@ -99,7 +99,7 @@ export class Sidebar {
 
 	@step
 	async signOut() {
-		await this.openAccountMenu()
+		await this.openAppMenu()
 		await this.signOutButton.click()
 	}
 
