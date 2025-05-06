@@ -1716,7 +1716,7 @@ export abstract class Geometry2d {
     // (undocumented)
     hitTestLineSegment(A: VecLike, B: VecLike, distance?: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
-    hitTestPoint(point: Vec, margin?: number, hitInside?: boolean, _filters?: Geometry2dFilters): boolean;
+    hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean, _filters?: Geometry2dFilters): boolean;
     // (undocumented)
     ignore?: boolean;
     interpolateAlongEdge(t: number, _filters?: Geometry2dFilters): Vec;

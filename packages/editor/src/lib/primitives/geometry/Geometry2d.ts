@@ -83,7 +83,7 @@ export abstract class Geometry2d {
 
 	abstract nearestPoint(point: VecLike, _filters?: Geometry2dFilters): Vec
 
-	hitTestPoint(point: Vec, margin = 0, hitInside = false, _filters?: Geometry2dFilters) {
+	hitTestPoint(point: VecLike, margin = 0, hitInside = false, _filters?: Geometry2dFilters) {
 		// First check whether the point is inside
 		if (this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)) {
 			return true

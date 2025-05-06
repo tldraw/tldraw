@@ -626,24 +626,39 @@ function castPathSegmentIntoGeometry(
 	const point1 = segment === 'first' ? route.points[0] : route.points[route.points.length - 1]
 	const point2 = segment === 'first' ? route.points[1] : route.points[route.points.length - 2]
 
-	const farPoint = Vec.Nudge(
-		point1,
-		point2,
-		-Math.max(target.geometry.bounds.width, target.geometry.bounds.height)
-	)
+	// const farPoint = Vec.Nudge(
+	// 	point1,
+	// 	point2,
+	// 	-Math.max(target.geometry.bounds.width, target.geometry.bounds.height)
+	// )
+	const farPoint = target.target
 
 	const initialDistance = Vec.ManhattanDist(point1, point2)
 
 	let nearestIntersectionToPoint2: VecLike | null = null
 	let nearestDistanceToPoint2 = Infinity
 
-	if (target.isExact) {
+	if (
+		target.isExact
+		// || target.geometry.hitTestPoint(point1, 0, true, Geometry2dFilters.EXCLUDE_NON_STANDARD)
+	) {
 		nearestIntersectionToPoint2 = target.target
 	} else if (target.geometry) {
-		for (const intersection of target.geometry.intersectLineSegment(point2, farPoint, {
+		const intersections = target.geometry.intersectLineSegment(point2, farPoint, {
 			includeLabels: false,
 			includeInternal: false,
-		})) {
+		})
+		if (
+			target.geometry.hitTestPoint(
+				farPoint,
+				Math.max(1, target.arrowheadOffset),
+				true,
+				Geometry2dFilters.EXCLUDE_NON_STANDARD
+			)
+		) {
+			intersections.push(farPoint)
+		}
+		for (const intersection of intersections) {
 			const point2Distance = Vec.ManhattanDist(point2, intersection)
 			if (point2Distance < nearestDistanceToPoint2) {
 				nearestDistanceToPoint2 = point2Distance
@@ -668,18 +683,31 @@ function castPathSegmentIntoGeometry(
 			}
 		}
 
+		let nudgedPoint = nearestIntersectionToPoint2
+		let shouldAddExtraPointForNudge = false
 		if (!target.isExact && offset !== 0) {
-			nearestIntersectionToPoint2 = Vec.Nudge(nearestIntersectionToPoint2, point2, offset)
+			const nudged = Vec.Nudge(nearestIntersectionToPoint2, point2, offset)
+			nudgedPoint = nudged
+			if (
+				offset < 0 &&
+				!target.geometry.hitTestPoint(nudged, 0, true, Geometry2dFilters.EXCLUDE_NON_STANDARD)
+			) {
+				// point has been nudged _out_ of the shape so lets not actually apply the nudge
+				nudgedPoint = nearestIntersectionToPoint2
+			} else {
+				if (offset < 0) {
+					shouldAddExtraPointForNudge = true
+				}
+				nudgedPoint = nudged
+			}
 		}
 
-		if (offset !== 0) {
-			const newDistance = Vec.ManhattanDist(point2, nearestIntersectionToPoint2)
-			route.distance += newDistance - initialDistance
-			point1.x = nearestIntersectionToPoint2.x
-			point1.y = nearestIntersectionToPoint2.y
-		}
+		const newDistance = Vec.ManhattanDist(point2, nudgedPoint)
+		route.distance += newDistance - initialDistance
+		point1.x = nudgedPoint.x
+		point1.y = nudgedPoint.y
 
-		if (offset < 0) {
+		if (shouldAddExtraPointForNudge) {
 			const midPoint = Vec.Lrp(point2, point1, 0.5)
 			route.skipPointsWhenDrawing.add(midPoint)
 			route.points.splice(segment === 'first' ? 1 : route.points.length - 1, 0, midPoint)
