@@ -7,6 +7,7 @@ import { TLUiIconType, iconTypes } from './icon-types'
 export interface TLUiAssetUrls extends TLEditorAssetUrls {
 	icons: Record<TLUiIconType | Exclude<string, TLUiIconType>, string>
 	translations: Record<(typeof LANGUAGES)[number]['locale'], string>
+	i18n: Record<(typeof LANGUAGES)[number]['locale'], string>
 	embedIcons: Partial<Record<(typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'], string>>
 }
 
@@ -23,6 +24,9 @@ export let defaultUiAssetUrls: TLUiAssetUrls = {
 			lang.locale,
 			`${getDefaultCdnBaseUrl()}/translations/${lang.locale}.json`,
 		])
+	) as Record<(typeof LANGUAGES)[number]['locale'], string>,
+	i18n: Object.fromEntries(
+		LANGUAGES.map((lang) => [lang.locale, `${getDefaultCdnBaseUrl()}/i18n/${lang.locale}.json`])
 	) as Record<(typeof LANGUAGES)[number]['locale'], string>,
 	embedIcons: Object.fromEntries(
 		DEFAULT_EMBED_DEFINITIONS.map((def) => [
@@ -51,5 +55,6 @@ export function useDefaultUiAssetUrlsWithOverrides(
 			{ ...defaultUiAssetUrls.translations },
 			{ ...overrides?.translations }
 		),
+		i18n: Object.assign({ ...defaultUiAssetUrls.i18n }, { ...overrides?.i18n }),
 	}
 }

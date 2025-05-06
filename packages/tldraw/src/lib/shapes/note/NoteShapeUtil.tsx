@@ -44,6 +44,7 @@ import {
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
 
 import isEqual from 'lodash.isequal'
+import { defineMessages } from '../../ui/context/i18n'
 import {
 	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
@@ -67,6 +68,10 @@ export interface NoteShapeOptions {
 	resizeMode: 'none' | 'scale'
 }
 
+const messages = defineMessages({
+	shapeName: { defaultMessage: 'Note' },
+})
+
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	static override type = 'note' as const
@@ -74,8 +79,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	static override migrations = noteShapeMigrations
 
 	override getShapeName() {
-		// First example of us using getShapeName.
-		return this.editor.i18n().translate('tool.note')
+		// First example of us using getShapeName and ICU format.
+		return this.editor.i18n().translate(messages.shapeName)
 	}
 
 	override options: NoteShapeOptions = {

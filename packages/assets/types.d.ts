@@ -229,6 +229,10 @@ export type AssetUrls = {
 		'zh-cn': string
 		'zh-tw': string
 	}
+	i18n: {
+		en: string
+		fr: string
+	}
 	embedIcons: {
 		codepen: string
 		codesandbox: string

@@ -99,6 +99,7 @@
 		"auto": "^11.3.0",
 		"eslint": "^9.19.0",
 		"eslint-config-prettier": "^9.1.0",
+		"eslint-plugin-formatjs": "^5.2.13",
 		"eslint-plugin-import": "^2.31.0",
 		"eslint-plugin-no-only-tests": "^3.3.0",
 		"eslint-plugin-react": "^7.37.4",

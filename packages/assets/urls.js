@@ -291,6 +291,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'zh-cn': formatAssetUrl(new URL('./translations/zh-cn.json', import.meta.url).href, opts),
 			'zh-tw': formatAssetUrl(new URL('./translations/zh-tw.json', import.meta.url).href, opts),
 		},
+		i18n: {
+			en: formatAssetUrl(new URL('./i18n-compiled/en.json', import.meta.url).href, opts),
+			fr: formatAssetUrl(new URL('./i18n-compiled/fr.json', import.meta.url).href, opts),
+		},
 		embedIcons: {
 			codepen: formatAssetUrl(new URL('./embed-icons/codepen.png', import.meta.url).href, opts),
 			codesandbox: formatAssetUrl(
