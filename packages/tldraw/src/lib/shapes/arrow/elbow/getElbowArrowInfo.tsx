@@ -32,10 +32,10 @@ import {
 	ElbowArrowTargetBox,
 } from './definitions'
 import { createRange, expandRange, isWithinRange, rangeSize, subtractRange } from './range'
-import { tryRouteArrow } from './routes/elbowArrowRoutes'
 import { ElbowArrowWorkingInfo } from './routes/ElbowArrowWorkingInfo'
 import {
 	routeArrowWithAutoEdgePicking,
+	routeArrowWithManualEdgePicking,
 	routeArrowWithPartialEdgePicking,
 } from './routes/routeArrowWithAutoEdgePicking'
 
@@ -83,6 +83,7 @@ export function getElbowArrowInfo(
 	if (!aIsUsable || !bIsUsable) {
 		needsNewEdges = true
 		if (!aIsUsable) {
+			console.log('CONVERTING B TO POINT')
 			bBinding = convertBindingToPoint(bBinding)
 		}
 
@@ -216,10 +217,11 @@ export function getElbowArrowInfo(
 
 	let route
 	if (aSide && bSide) {
-		route = tryRouteArrow(workingInfo, aSide, bSide)
+		route = routeArrowWithManualEdgePicking(workingInfo, aSide, bSide)
 	} else if (aSide && !bSide) {
 		route = routeArrowWithPartialEdgePicking(workingInfo, aSide)
-	} else {
+	}
+	if (!route) {
 		route = routeArrowWithAutoEdgePicking(workingInfo)
 	}
 

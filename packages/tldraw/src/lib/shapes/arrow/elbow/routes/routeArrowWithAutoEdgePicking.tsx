@@ -2,6 +2,7 @@ import { exhaustiveSwitchError } from '@tldraw/editor'
 import {
 	ElbowArrowRoute,
 	ElbowArrowSide,
+	ElbowArrowSideOpposites,
 	ElbowArrowSideReason,
 	ElbowArrowSides,
 } from '../definitions'
@@ -186,6 +187,28 @@ export function routeArrowWithPartialEdgePicking(
 	}
 }
 
+export function routeArrowWithManualEdgePicking(
+	info: ElbowArrowWorkingInfo,
+	aSide: ElbowArrowSide,
+	bSide: ElbowArrowSide
+) {
+	const route = tryRouteArrow(info, aSide, bSide)
+	if (route) return route
+
+	if (info.A.isPoint && info.B.isPoint) {
+		return pickBest(info, [
+			[ElbowArrowSideOpposites[aSide], ElbowArrowSideOpposites[bSide], 'manual', 'manual'],
+			[aSide, ElbowArrowSideOpposites[bSide], 'manual', 'auto'],
+			[ElbowArrowSideOpposites[aSide], bSide, 'auto', 'manual'],
+		])
+	} else if (info.A.isPoint) {
+		return tryRouteArrow(info, ElbowArrowSideOpposites[aSide], bSide)
+	} else if (info.B.isPoint) {
+		return tryRouteArrow(info, aSide, ElbowArrowSideOpposites[bSide])
+	}
+
+	return null
+}
 function pickBest(
 	info: ElbowArrowWorkingInfo,
 	edges: ReadonlyArray<

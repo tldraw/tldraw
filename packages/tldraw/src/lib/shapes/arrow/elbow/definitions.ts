@@ -4,7 +4,7 @@ import { Box, ElbowArrowSnap, Geometry2d, TLShapeId, Vec, VecLike, VecModel } fr
 export type ElbowArrowSide = 'top' | 'right' | 'bottom' | 'left'
 
 /** @internal */
-export type ElbowArrowSideReason = 'manual' | 'auto' | 'fallback'
+export type ElbowArrowSideReason = 'manual' | 'auto'
 
 /** @public */
 export interface ElbowArrowRoute {
@@ -49,6 +49,13 @@ export const ElbowArrowSideAxes = {
 	top: 'y',
 	bottom: 'y',
 } as const satisfies Record<ElbowArrowSide, 'x' | 'y'>
+
+export const ElbowArrowSideOpposites = {
+	top: 'bottom',
+	right: 'left',
+	bottom: 'top',
+	left: 'right',
+} as const satisfies Record<ElbowArrowSide, ElbowArrowSide>
 
 export const ElbowArrowAxes = {
 	x: {

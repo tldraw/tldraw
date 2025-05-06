@@ -105,7 +105,8 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 				strokeWidth={2}
 				paintOrder="stroke"
 			>
-				A{info.route && ` - ${info.route.aEdgePicking}`}
+				A{info.route && `, ${info.route.aEdgePicking}`}
+				{info.A.isPoint && `, point`}
 			</text>
 			<text
 				x={info.B.expanded.x}
@@ -116,7 +117,8 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 				strokeWidth={2}
 				paintOrder="stroke"
 			>
-				B{info.route && ` - ${info.route.bEdgePicking}`}
+				B{info.route && `, ${info.route.bEdgePicking}`}
+				{info.B.isPoint && `, point`}
 			</text>
 		</>
 	)
