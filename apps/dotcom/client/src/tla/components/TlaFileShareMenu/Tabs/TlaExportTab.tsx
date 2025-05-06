@@ -352,17 +352,8 @@ function ExportPreviewImage() {
 	)
 
 	return (
-		<div
-			ref={containerRef}
-			className={styles.exportPreview}
-			style={{
-				// if the background is being exported, override the transparency checkerboard to
-				// make opening the menu less jarring.
-				background: preferences.exportBackground ? 'var(--color-background)' : undefined,
-			}}
-			data-theme={preferences.theme}
-		>
-			<img ref={imageRef} className={styles.exportPreviewInner} />
+		<div ref={containerRef} className={styles.exportPreview}>
+			<img ref={imageRef} className={styles.exportPreviewInner} data-theme={preferences.theme} />
 			<div
 				ref={rImagePreviewSize}
 				className={classNames(styles.exportPreviewSize, 'tla-text_ui__small')}

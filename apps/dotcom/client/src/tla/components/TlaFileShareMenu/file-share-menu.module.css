@@ -42,28 +42,30 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border: 1px solid var(--tla-color-border);
 	/* https://css-tricks.com/background-patterns-simplified-by-conic-gradients/#checkerboard */
-	background: repeating-conic-gradient(#d8d8d8 0 25%, #fff 0 50%) 50% / 20px 20px;
-}
-
-.exportPreview[data-theme='dark'] {
-	/* https://css-tricks.com/background-patterns-simplified-by-conic-gradients/#checkerboard */
-	background: repeating-conic-gradient(#000000 0 25%, #535353 0 50%) 50% / 20px 20px;
+	padding: 6px;
+	background: var(--color-low);
 }
 
 .exportPreviewInner {
+	background: repeating-conic-gradient(#d8d8d8 0 25%, #fff 0 50%) 50% / 20px 20px;
 	max-height: 100%;
 	max-width: 100%;
 	pointer-events: all;
+	border: 1px solid var(--tla-color-border);
 	box-sizing: content-box;
+}
+
+.exportPreviewInner[data-theme='dark'] {
+	/* https://css-tricks.com/background-patterns-simplified-by-conic-gradients/#checkerboard */
+	background: repeating-conic-gradient(#000000 0 25%, #535353 0 50%) 50% / 20px 20px;
 }
 
 .exportPreviewSize {
 	position: absolute;
 	right: 0px;
 	bottom: 0px;
-	background-color: var(--color-panel);
+	background-color: var(--color-low);
 	padding: 1px 4px;
 	text-align: right;
 	border-top-left-radius: 4px;
