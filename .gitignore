@@ -58,6 +58,8 @@ packages/namespaced-tldraw/tldraw.css
 packages/assets/embed-icons
 packages/assets/fonts
 packages/assets/icons
+packages/assets/i18n
+packages/assets/i18n-compiled
 packages/assets/translations
 packages/assets/watermarks
 apps/examples/www/embed-icons

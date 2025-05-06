@@ -8975,6 +8975,7 @@ __metadata:
     esbuild: "npm:^0.24.2"
     eslint: "npm:^9.19.0"
     eslint-config-prettier: "npm:^9.1.0"
+    eslint-plugin-formatjs: "npm:^5.2.13"
     eslint-plugin-import: "npm:^2.31.0"
     eslint-plugin-no-only-tests: "npm:^3.3.0"
     eslint-plugin-react: "npm:^7.37.4"
@@ -13955,7 +13956,6 @@ __metadata:
     classnames: "npm:^2.5.1"
     dotenv: "npm:^16.4.7"
     eslint: "npm:^9.19.0"
-    eslint-plugin-formatjs: "npm:^5.2.13"
     fast-glob: "npm:^3.3.3"
     idb: "npm:^7.1.1"
     identity-obj-proxy: "npm:^3.0.0"
@@ -27351,6 +27351,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw@workspace:packages/tldraw"
   dependencies:
+    "@formatjs/cli": "npm:^6.5.1"
+    "@formatjs/intl": "npm:2.10.15"
     "@peculiar/webcrypto": "npm:^1.5.0"
     "@radix-ui/react-alert-dialog": "npm:^1.1.5"
     "@radix-ui/react-context-menu": "npm:^2.2.5"
@@ -27383,6 +27385,7 @@ __metadata:
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash.isequal: "npm:^4.5.0"
     lz-string: "npm:^1.5.0"
+    md5: "npm:^2.3.0"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     resize-observer-polyfill: "npm:^1.5.1"

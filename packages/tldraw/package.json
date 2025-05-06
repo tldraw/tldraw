@@ -36,6 +36,9 @@
 		"prebuild": "node ./scripts/copy-css-files.mjs",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
+		"build-i18n": "yarn i18n:extract && yarn i18n:compile",
+		"i18n:extract": "formatjs extract 'src/lib/**/*.ts*' --out-file ../../assets/i18n/en.json --additional-component-names F --id-interpolation-pattern '[md5:contenthash:hex:10]' --format lokalise",
+		"i18n:compile": "formatjs compile-folder ../../assets/i18n ../../assets/i18n-compiled --format lokalise",
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
@@ -45,6 +48,7 @@
 		"tldraw.css"
 	],
 	"dependencies": {
+		"@formatjs/intl": "2.10.15",
 		"@radix-ui/react-alert-dialog": "^1.1.5",
 		"@radix-ui/react-context-menu": "^2.2.5",
 		"@radix-ui/react-dialog": "^1.1.5",
@@ -66,13 +70,15 @@
 		"hotkeys-js": "^3.13.9",
 		"idb": "^7.1.1",
 		"lodash.isequal": "^4.5.0",
-		"lz-string": "^1.5.0"
+		"lz-string": "^1.5.0",
+		"md5": "^2.3.0"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.0.0",
 		"react-dom": "^18.2.0 || ^19.0.0"
 	},
 	"devDependencies": {
+		"@formatjs/cli": "^6.5.1",
 		"@peculiar/webcrypto": "^1.5.0",
 		"@testing-library/jest-dom": "^5.17.0",
 		"@testing-library/react": "^15.0.7",

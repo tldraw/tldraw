@@ -2791,6 +2791,8 @@ export interface TLUiAssetUrls extends TLEditorAssetUrls {
     // (undocumented)
     embedIcons: Partial<Record<(typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'], string>>;
     // (undocumented)
+    i18n: Record<(typeof LANGUAGES)[number]['locale'], string>;
+    // (undocumented)
     icons: Record<Exclude<string, TLUiIconType> | TLUiIconType, string>;
     // (undocumented)
     translations: Record<(typeof LANGUAGES)[number]['locale'], string>;

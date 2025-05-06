@@ -3736,7 +3736,7 @@ export interface TLI18n {
     // (undocumented)
     locale: string;
     // (undocumented)
-    translate(key: string, ...args: any[]): string;
+    translate(...args: any[]): string;
 }
 
 // @public (undocumented)

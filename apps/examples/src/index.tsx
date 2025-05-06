@@ -21,6 +21,7 @@ import EndToEnd from './misc/end-to-end'
 const assetUrls = getAssetUrlsByMetaUrl()
 // eslint-disable-next-line local/no-at-internal
 setDefaultEditorAssetUrls(assetUrls)
+// @ts-ignore TODO
 // eslint-disable-next-line local/no-at-internal
 setDefaultUiAssetUrls(assetUrls)
 const gettingStartedExamples = examples.find((e) => e.id === 'Getting started')

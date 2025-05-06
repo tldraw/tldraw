@@ -39,12 +39,13 @@ const ASSETS_FOLDER_PATH = join(REPO_ROOT, 'assets')
 const DOTCOM_FOLDER_PATH = join(REPO_ROOT, 'apps', 'dotcom')
 
 const collectedAssetUrls: Record<
-	'fonts' | 'icons' | 'translations' | 'embedIcons',
+	'fonts' | 'icons' | 'translations' | 'i18n' | 'embedIcons',
 	Record<string, { file: string; hash?: string }>
 > = {
 	fonts: {},
 	icons: {},
 	translations: {},
+	i18n: {},
 	embedIcons: {},
 }
 
@@ -355,6 +356,38 @@ async function copyTranslations() {
 	for (const item of itemsToCopy) {
 		const name = item.replace(extension, '')
 		collectedAssetUrls.translations[name] = { file: `${folderName}/${item}` }
+	}
+}
+
+// 4.5 I18n
+async function copyI18n() {
+	const folderName = 'i18n-compiled'
+	const extension = '.json'
+
+	const sourceFolderPath = join(ASSETS_FOLDER_PATH, folderName)
+	const itemsToCopy = readdirSync(sourceFolderPath).filter((item) => item.endsWith(extension))
+
+	for (const publicFolderPath of PUBLIC_FOLDER_PATHS) {
+		const destinationFolderPath = join(publicFolderPath, folderName)
+
+		// Delete the folder if it exists
+		if (existsSync(destinationFolderPath)) {
+			rmSync(destinationFolderPath, { recursive: true })
+		}
+
+		// Make the new folder
+		mkdirSync(destinationFolderPath)
+
+		// Copy all items into the new folder
+		for (const item of itemsToCopy) {
+			await writeFile(join(destinationFolderPath, item), readFileSync(join(sourceFolderPath, item)))
+		}
+	}
+
+	// add to the asset declaration file
+	for (const item of itemsToCopy) {
+		const name = item.replace(extension, '')
+		collectedAssetUrls.i18n[name] = { file: `${folderName}/${item}` }
 	}
 }
 
@@ -720,6 +753,8 @@ async function main() {
 	await copyFonts()
 	nicelog('Copying translations...')
 	await copyTranslations()
+	nicelog('Copying i18n...')
+	await copyI18n()
 	nicelog('Copying watermarks...')
 	await copyWatermarks()
 	nicelog('Writing asset declaration file...')

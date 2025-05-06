@@ -243,6 +243,10 @@ export function getAssetUrls(opts) {
 			'zh-cn': formatAssetUrl('./translations/zh-cn.json', opts),
 			'zh-tw': formatAssetUrl('./translations/zh-tw.json', opts),
 		},
+		i18n: {
+			en: formatAssetUrl('./i18n-compiled/en.json', opts),
+			fr: formatAssetUrl('./i18n-compiled/fr.json', opts),
+		},
 		embedIcons: {
 			codepen: formatAssetUrl('./embed-icons/codepen.png', opts),
 			codesandbox: formatAssetUrl('./embed-icons/codesandbox.png', opts),
