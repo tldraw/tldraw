@@ -38,7 +38,6 @@
 .exportPreview {
 	position: relative;
 	width: 216px;
-	max-height: 216px;
 	min-height: 64px;
 	display: flex;
 	align-items: center;
@@ -50,8 +49,9 @@
 
 .exportPreviewInner {
 	background: repeating-conic-gradient(#d8d8d8 0 25%, #fff 0 50%) 50% / 20px 20px;
-	max-height: 100%;
+	max-height: 208px;
 	max-width: 100%;
+	object-fit: contain;
 	pointer-events: all;
 	border: 1px solid var(--tla-color-border);
 	box-sizing: content-box;

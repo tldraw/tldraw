@@ -274,18 +274,18 @@ function getExportingShapes(editor: Editor) {
 	return []
 }
 
-function getAspectRatio(editor: Editor, app: TldrawApp | null) {
-	if (!editor) return 1
+function getImageSize(editor: Editor, app: TldrawApp | null) {
+	if (!editor) return new Box(0, 0, 1, 1)
 	const shapes = getExportingShapes(editor)
 	const bounds = shapes.length
 		? Box.Common(shapes.map((s) => editor.getShapePageBounds(s)!))
-		: editor.getViewportPageBounds()
+		: editor.getViewportPageBounds().clone()
 	const preferences = getExportPreferences(app)
 	if (preferences.exportPadding) {
 		bounds.width += editor.options.defaultSvgPadding * 2
 		bounds.height += editor.options.defaultSvgPadding * 2
 	}
-	return bounds.width / bounds.height
+	return bounds
 }
 
 function ExportPreviewImage() {
@@ -297,15 +297,21 @@ function ExportPreviewImage() {
 
 	const preferences = useExportPreferences()
 
-	// set the aspect ratio manually on initial render
+	// set the image size manually on initial render
 	// whereafter we set it in the reactor
 	useLayoutEffect(() => {
 		const editor = globalEditor.get()
 		if (!editor) return
-		const aspectRatio = getAspectRatio(editor, app)
-		const elm = containerRef.current
+		const { width, height } = getImageSize(editor, app)
+		const elm = imageRef.current
 		if (!elm) return
-		elm.style.aspectRatio = `${aspectRatio}`
+		// create a new blank image element with the width/height
+		// and set opacity to 0 so that it doesn't show the checkered background for a frame
+		elm.setAttribute(
+			'src',
+			`data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"/>`
+		)
+		elm.style.opacity = '0'
 	}, [app])
 
 	useReactor(
@@ -339,9 +345,9 @@ function ExportPreviewImage() {
 				if (!elm) return
 				// We want to use an image element here so that a user can right click and copy / save / drag the qr code
 				elm.setAttribute('src', src)
+				elm.style.opacity = '1'
 				const sizeElm = rImagePreviewSize.current
 				if (sizeElm) sizeElm.textContent = `${width.toFixed()}×${height.toFixed()}`
-				containerRef.current!.style.aspectRatio = `${width / height}`
 			})
 
 			return () => {
