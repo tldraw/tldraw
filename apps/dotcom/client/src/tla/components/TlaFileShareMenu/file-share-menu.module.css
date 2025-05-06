@@ -68,7 +68,6 @@
 	background-color: var(--color-low);
 	padding: 1px 4px;
 	text-align: right;
-	border-top-left-radius: 4px;
 }
 
 /* Help state toggle */
