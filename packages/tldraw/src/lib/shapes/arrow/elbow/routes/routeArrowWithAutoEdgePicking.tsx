@@ -10,7 +10,13 @@ import { tryRouteArrow } from './elbowArrowRoutes'
 
 export function routeArrowWithAutoEdgePicking(info: ElbowArrowWorkingInfo): ElbowArrowRoute | null {
 	let idealRoute = null
-	if (Math.abs(info.gapX) > Math.abs(info.gapY) && info.midX !== null) {
+	if (
+		// +1 to bias us towards the x-axis. without this, we get flicker as we move an arrow locket
+		// to 45 deg (as gapx/gapy are almost equal and the result depends on floating point
+		// precision)
+		Math.abs(info.gapX) + 1 > Math.abs(info.gapY) &&
+		info.midX !== null
+	) {
 		if (info.gapX > 0) {
 			idealRoute = tryRouteArrow(info, 'right', 'left')
 		} else {
