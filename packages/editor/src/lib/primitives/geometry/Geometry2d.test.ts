@@ -5,14 +5,14 @@ import { Rectangle2d } from './Rectangle2d'
 
 describe('TransformedGeometry2d', () => {
 	const rect = new Rectangle2d({ width: 100, height: 50, isFilled: true }).transform(
-		Mat.Translate(50, 100).scale(1.5, 2)
+		Mat.Translate(50, 100).scale(2, 2)
 	)
 
 	test('getVertices', () => {
 		expect(rect.getVertices(Geometry2dFilters.INCLUDE_ALL)).toMatchObject([
 			{ x: 50, y: 100, z: 1 },
-			{ x: 200, y: 100, z: 1 },
-			{ x: 200, y: 200, z: 1 },
+			{ x: 250, y: 100, z: 1 },
+			{ x: 250, y: 200, z: 1 },
 			{ x: 50, y: 200, z: 1 },
 		])
 	})

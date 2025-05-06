@@ -2162,12 +2162,16 @@ describe('Add elbow kind to arrow shape', () => {
 	const { up, down } = getTestMigration(arrowShapeVersions.AddElbow)
 
 	test('up works as expected', () => {
-		expect(up({ props: {} })).toEqual({ props: { kind: 'arc' } })
+		expect(up({ props: {} })).toEqual({ props: { kind: 'arc', elbowMidPoint: 0.5 } })
 	})
 
 	test('down works as expected', () => {
-		expect(down({ props: { kind: 'arc' } })).toEqual({ props: {} })
-		expect(down({ props: { kind: 'elbow' } })).toEqual({ props: {} })
+		expect(down({ props: { kind: 'arc', elbowMidPoint: 0.5, wow: true } })).toEqual({
+			props: { wow: true },
+		})
+		expect(down({ props: { kind: 'elbow', elbowMidPoint: 0.5, wow: true } })).toEqual({
+			props: { wow: true },
+		})
 	})
 })
 
