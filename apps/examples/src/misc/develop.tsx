@@ -112,11 +112,6 @@ export default function Develop() {
 						'shape',
 						afterChangeHandler
 					)
-					editor.on('before-event', (e) => {
-						if (e.name === 'key_down' && e.key === '§') {
-							debugger
-						}
-					})
 					return () => {
 						dispose()
 					}

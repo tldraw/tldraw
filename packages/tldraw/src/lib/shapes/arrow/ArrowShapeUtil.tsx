@@ -410,7 +410,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	private onTerminalHandleDrag(
 		shape: TLArrowShape,
-		{ handle, isPrecise, isCreatingShape }: TLHandleDragInfo<TLArrowShape>,
+		{ handle, isPrecise }: TLHandleDragInfo<TLArrowShape>,
 		handleId: ArrowHandles.Start | ArrowHandles.End
 	) {
 		const bindings = getArrowBindings(this.editor, shape)

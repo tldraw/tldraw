@@ -1,5 +1,4 @@
-/* eslint-disable react/no-string-refs */
-/* eslint-disable local/no-at-internal, local/no-internal-imports */
+/* eslint-disable local/no-at-internal, local/no-internal-imports, react/no-string-refs */
 import { Page, expect } from '@playwright/test'
 import assert from 'assert'
 import { rename, writeFile } from 'fs/promises'

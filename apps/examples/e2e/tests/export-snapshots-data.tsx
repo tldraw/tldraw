@@ -1,4 +1,4 @@
-/* eslint-disable react/no-string-refs */
+/* eslint-disable react/no-string-refs, local/no-internal-imports */
 import { degreesToRadians, TLShapeCrop, toRichText } from 'tldraw'
 import { TL } from 'tldraw/src/test/test-jsx'
 
