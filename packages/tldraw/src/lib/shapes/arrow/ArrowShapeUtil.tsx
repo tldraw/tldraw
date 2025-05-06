@@ -430,8 +430,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			isExact: this.editor.inputs.altKey,
 			currentBinding,
 			otherBinding,
-			terminal: handleId,
-			isCreatingShape,
 		})
 
 		if (!targetInfo) {

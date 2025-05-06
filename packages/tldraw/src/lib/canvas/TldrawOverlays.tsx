@@ -1,16 +1,46 @@
-import { Editor, track, useEditor, useEditorComponents, useValue } from '@tldraw/editor'
+import { useEditor, useEditorComponents, useValue } from '@tldraw/editor'
 import { getArrowTargetState } from '../shapes/arrow/arrowTargetState'
 import { DraggingHandle } from '../tools/SelectTool/childStates/DraggingHandle'
 import { PointingHandle } from '../tools/SelectTool/childStates/PointingHandle'
 
 /** @public @react */
-export const TldrawOverlays = track(function TldrawOverlays() {
+export function TldrawOverlays() {
 	const editor = useEditor()
 
-	if (!shouldShowArrowHints(editor)) return null
+	const shouldShowArrowHints = useValue(
+		'should show arrow hints',
+		() => {
+			if (editor.isInAny('arrow.idle', 'arrow.pointing')) return true
+
+			if (editor.isIn('select.pointing_handle')) {
+				const node: PointingHandle = editor.getStateDescendant('select.pointing_handle')!
+				if (
+					node.info.shape.type === 'arrow' &&
+					(node.info.handle.id === 'start' || node.info.handle.id === 'end')
+				) {
+					return true
+				}
+			}
+
+			if (editor.isIn('select.dragging_handle')) {
+				const node: DraggingHandle = editor.getStateDescendant('select.dragging_handle')!
+				if (
+					node.info.shape.type === 'arrow' &&
+					(node.info.handle.id === 'start' || node.info.handle.id === 'end')
+				) {
+					return true
+				}
+			}
+
+			return false
+		},
+		[editor]
+	)
+
+	if (!shouldShowArrowHints) return null
 
 	return <TldrawArrowHints />
-})
+}
 
 /** @public @react */
 export function TldrawArrowHints() {
@@ -53,30 +83,4 @@ export function TldrawArrowHints() {
 			)}
 		</>
 	)
-}
-
-function shouldShowArrowHints(editor: Editor) {
-	if (editor.isInAny('arrow.idle', 'arrow.pointing')) return true
-
-	if (editor.isIn('select.pointing_handle')) {
-		const node: PointingHandle = editor.getStateDescendant('select.pointing_handle')!
-		if (
-			node.info.shape.type === 'arrow' &&
-			(node.info.handle.id === 'start' || node.info.handle.id === 'end')
-		) {
-			return true
-		}
-	}
-
-	if (editor.isIn('select.dragging_handle')) {
-		const node: DraggingHandle = editor.getStateDescendant('select.dragging_handle')!
-		if (
-			node.info.shape.type === 'arrow' &&
-			(node.info.handle.id === 'start' || node.info.handle.id === 'end')
-		) {
-			return true
-		}
-	}
-
-	return false
 }

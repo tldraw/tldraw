@@ -2689,7 +2689,7 @@ export interface TldrawImageProps extends TLImageExportOptions {
 }
 
 // @public (undocumented)
-export const TldrawOverlays: NamedExoticComponent<unknown>;
+export function TldrawOverlays(): JSX_2.Element | null;
 
 // @public (undocumented)
 export type TldrawProps = TldrawBaseProps & TldrawEditorStoreProps;

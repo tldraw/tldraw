@@ -35,8 +35,6 @@ export interface UpdateArrowTargetStateOpts {
 	isExact: boolean
 	currentBinding: TLArrowBinding | undefined
 	otherBinding: TLArrowBinding | undefined
-	terminal: 'start' | 'end'
-	isCreatingShape: boolean
 }
 
 export interface ArrowTargetState {
@@ -81,8 +79,6 @@ export function updateArrowTargetState({
 	isExact,
 	currentBinding,
 	otherBinding,
-	terminal,
-	isCreatingShape,
 }: UpdateArrowTargetStateOpts): ArrowTargetState | null {
 	// no target picking when ctrl is held:
 	if (editor.inputs.ctrlKey) {
@@ -92,8 +88,6 @@ export function updateArrowTargetState({
 
 	const util = editor.getShapeUtil<ArrowShapeUtil>('arrow')
 	const arrowKind = arrow ? arrow.props.kind : editor.getStyleForNextShape(ArrowShapeKindStyle)
-
-	const isInitialStartCreation = isCreatingShape && terminal === 'start'
 
 	const target = editor.getShapeAtPoint(pointInPageSpace, {
 		hitInside: true,

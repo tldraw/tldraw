@@ -27,8 +27,6 @@ export class Pointing extends StateNode {
 			isExact: this.editor.inputs.altKey,
 			currentBinding: undefined,
 			otherBinding: undefined,
-			terminal: 'start',
-			isCreatingShape: true,
 		})
 
 		if (!targetState) {

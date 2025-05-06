@@ -44,8 +44,6 @@ export class PointingHandle extends StateNode {
 					isExact: info.altKey,
 					currentBinding: currentBinding,
 					otherBinding: otherBinding,
-					terminal: currentBinding.props.terminal,
-					isCreatingShape: false,
 				})
 			}
 		}

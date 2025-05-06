@@ -56,9 +56,7 @@ export function transformElbowArrowTransform(a: ElbowArrowTransform, b: ElbowArr
 	const next = { ...a }
 
 	if (b.transpose) {
-		const temp = next.x
-		next.x = next.y
-		next.y = temp
+		swap(next, 'x', 'y')
 		next.transpose = !next.transpose
 	}
 
@@ -105,7 +103,6 @@ function transformBoxInPlace(transform: ElbowArrowTransform, box: Box) {
 }
 
 function transformEdgesInPlace(transform: ElbowArrowTransform, edges: ElbowArrowBoxEdges) {
-	let temp = null
 	if (transform.x === -1) {
 		swap(edges, 'left', 'right')
 		flipEdgeCrossInPlace(edges.top)
