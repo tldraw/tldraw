@@ -1,8 +1,8 @@
 ---
 title: Canvas events
 component: ./CanvasEventsExample.tsx
-category: editor-api
-priority: 2
+category: events
+priority: 1
 keywords: [cursor, pointer, mouse, click, keyboard, handler, input]
 ---
 

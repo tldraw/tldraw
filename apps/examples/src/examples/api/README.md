@@ -2,7 +2,7 @@
 title: Controlling the editor
 component: ./APIExample.tsx
 category: editor-api
-priority: 1
+priority: 0
 keywords: [api, create shape, update shape, mount, context]
 ---
 

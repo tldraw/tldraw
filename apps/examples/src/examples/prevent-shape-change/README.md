@@ -1,9 +1,12 @@
 ---
 title: Prevent shape changes
 component: ./PreventShapeChangeExample.tsx
-category: editor-api
+category: events
+priority: 2
 keywords: [side, effect, move, prevent]
 ---
+
+Prevent changes to a shape's properties.
 
 ---
 

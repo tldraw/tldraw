@@ -1,7 +1,8 @@
 ---
 title: Derived view
 component: ./DerivedViewExample.tsx
-category: editor-api
+category: events
+priority: 6
 keywords: [basic, intro, simple, quick, start]
 ---
 

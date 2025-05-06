@@ -5,7 +5,7 @@ category: configuration
 priority: 3
 ---
 
-Tweak how pasting works by registering an external content handler.
+Change how pasting works by registering an external content handler.
 
 ---
 

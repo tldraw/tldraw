@@ -101,6 +101,12 @@ const nextConfig = {
 				destination: '/quick-start',
 				permanent: true,
 			},
+			// Renamed examples
+			{
+				source: '/examples/basic/state-store',
+				destination: '/examples/signals',
+				permanent: true,
+			},
 		]
 	},
 }

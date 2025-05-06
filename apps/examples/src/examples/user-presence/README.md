@@ -1,7 +1,7 @@
 ---
 title: Manually update user presence
 component: ./UserPresenceExample.tsx
-category: editor-api
+category: collaboration
 keywords: [cursor]
 ---
 

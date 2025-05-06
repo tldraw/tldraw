@@ -6,7 +6,7 @@ priority: 4
 keywords: [basic, intro, simple, quick, start]
 ---
 
-Allow linking to specific parts of a tldraw document
+Allow linking to specific parts of a tldraw canvas.
 
 ---
 

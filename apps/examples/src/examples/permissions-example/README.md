@@ -1,7 +1,8 @@
 ---
 title: Permissions
 component: ./PermissionsExample.tsx
-category: editor-api
+category: events
+priority: 3
 keywords:
   - permissions
   - effect

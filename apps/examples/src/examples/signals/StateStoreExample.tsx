@@ -1,6 +1,8 @@
 import { TLComponents, Tldraw, track, useEditor, useReactor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+// There's a guide at the bottom of this file!
+
 // [1]
 const InfoPanel = track(() => {
 	const editor = useEditor()

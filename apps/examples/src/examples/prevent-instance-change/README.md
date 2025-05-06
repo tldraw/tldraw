@@ -1,7 +1,8 @@
 ---
 title: Prevent instance change
 component: ./PreventInstanceChangeExample.tsx
-category: editor-api
+category: events
+priority: 2
 keywords: [side, effect, instance, grid, mode, prevent]
 ---
 

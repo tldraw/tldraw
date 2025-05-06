@@ -41,8 +41,8 @@ const getExamplesForCategory = (category: Category) =>
 const categories = [
 	['getting-started', 'Getting started'],
 	['configuration', 'Configuration'],
-	['ui', 'UI & theming'],
 	['editor-api', 'Editor API'],
+	['ui', 'UI & theming'],
 	['events', 'Events & effects'],
 	['sync', 'Sync'],
 	['shapes/tools', 'Shapes & tools'],

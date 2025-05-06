@@ -6,7 +6,7 @@ priority: 2
 keywords: [embed, custom]
 ---
 
-Create custom embeds
+Allow custom embeds.
 
 ---
 

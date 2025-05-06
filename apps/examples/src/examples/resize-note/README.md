@@ -1,8 +1,9 @@
 ---
 title: Note resizing
 component: ./ResizeNoteExample.tsx
-category: shapes/tools
+category: configuration
 keywords: [note, resize, sticky]
+priority: 5
 ---
 
 Make the note shape resizable.

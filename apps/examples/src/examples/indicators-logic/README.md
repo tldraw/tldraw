@@ -1,10 +1,11 @@
 ---
-title: Show and hide indicators
+title: Custom indicators
 component: ./IndicatorsLogicExample.tsx
-category: editor-api
+category: ui
+priority: 3
 keywords: [indicators]
 ---
 
----
+Change when indicators are shown and how they appear.
 
-If for some reason you wanted to show indicators yourself, here's an example of that.
+---
