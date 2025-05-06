@@ -90,11 +90,11 @@ export function getElbowArrowInfo(
 			aBinding = convertBindingToPoint(aBinding)
 		}
 
-		if (bBinding.bounds.containsPoint(aBinding.target)) {
+		if (bBinding.bounds.containsPoint(aBinding.target, options.expandElbowLegLength)) {
 			bBinding = convertBindingToPoint(bBinding)
 		}
 
-		if (aBinding.bounds.containsPoint(bBinding.target)) {
+		if (aBinding.bounds.containsPoint(bBinding.target, options.expandElbowLegLength)) {
 			aBinding = convertBindingToPoint(aBinding)
 		}
 	}

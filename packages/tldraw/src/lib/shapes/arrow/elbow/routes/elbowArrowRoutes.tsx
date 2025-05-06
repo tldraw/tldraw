@@ -155,8 +155,9 @@ export function routeRightToTop(info: ElbowArrowWorkingInfo): ElbowArrowRoute | 
 	if (!aEdge || !bEdge) return null
 
 	if (
-		aEdge.crossTarget < (bEdge.expanded ?? bEdge.value) &&
-		bEdge.crossTarget > (aEdge.expanded ?? aEdge.value)
+		(aEdge.crossTarget < (bEdge.expanded ?? bEdge.value) &&
+			bEdge.crossTarget > (aEdge.expanded ?? aEdge.value)) ||
+		(info.A.isPoint && info.B.expanded.containsPoint(info.A.original.center))
 	) {
 		// Arrow 1:
 		return new ElbowArrowRouteBuilder(info, 'to top 1')
