@@ -747,11 +747,14 @@ function adjustBindingForUnclosedPathIfNeeded(binding: ElbowArrowBinding) {
 		Geometry2dFilters.EXCLUDE_NON_STANDARD
 	)
 
+	const prev = binding.geometry.interpolateAlongEdge(
+		normalizedPointAlongPath - 0.01 / binding.geometry.length
+	)
 	const next = binding.geometry.interpolateAlongEdge(
-		normalizedPointAlongPath + 1 / binding.geometry.length
+		normalizedPointAlongPath + 0.01 / binding.geometry.length
 	)
 
-	const normal = next.sub(binding.target).per().uni()
+	const normal = next.sub(prev).per().uni()
 	const axis = Math.abs(normal.x) > Math.abs(normal.y) ? ElbowArrowAxes.x : ElbowArrowAxes.y
 
 	const min = axis.v(
