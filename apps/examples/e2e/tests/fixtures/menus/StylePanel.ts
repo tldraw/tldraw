@@ -71,12 +71,12 @@ export class StylePanel {
 		return await style.evaluate(getStyle, property)
 	}
 
-	async isHinted(style: Locator) {
+	async isActive(style: Locator) {
 		const backgroundColor = await this.getAfterElementStyle(style, 'background-color')
 		return expect(backgroundColor).toBe('rgba(0, 0, 0, 0.055)')
 	}
 
-	async isNotHinted(style: Locator) {
+	async isInactive(style: Locator) {
 		const backgroundColor = await this.getAfterElementStyle(style, 'background-color')
 		// The color is different on mobile
 		return expect(['rgba(0, 0, 0, 0.043)', 'rgba(0, 0, 0, 0)']).toContain(backgroundColor)

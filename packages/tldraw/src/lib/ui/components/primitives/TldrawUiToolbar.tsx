@@ -1,5 +1,5 @@
-import * as Toolbar from '@radix-ui/react-toolbar'
 import classnames from 'classnames'
+import { Toolbar as _Toolbar } from 'radix-ui'
 import React from 'react'
 
 /** @public */
@@ -14,14 +14,14 @@ export interface TLUiToolbarProps extends React.HTMLAttributes<HTMLDivElement> {
 export const TldrawUiToolbar = React.forwardRef<HTMLDivElement, TLUiToolbarProps>(
 	({ children, className, label, ...props }: TLUiToolbarProps, ref) => {
 		return (
-			<Toolbar.Root
+			<_Toolbar.Root
 				ref={ref}
 				{...props}
 				className={classnames('tlui-toolbar-container', className)}
 				aria-label={label}
 			>
 				{children}
-			</Toolbar.Root>
+			</_Toolbar.Root>
 		)
 	}
 )
@@ -40,7 +40,7 @@ export interface TLUiToolbarButtonProps extends React.HTMLAttributes<HTMLButtonE
 export const TldrawUiToolbarButton = React.forwardRef<HTMLButtonElement, TLUiToolbarButtonProps>(
 	({ asChild, children, type, isActive, ...props }: TLUiToolbarButtonProps, ref) => {
 		return (
-			<Toolbar.Button
+			<_Toolbar.Button
 				ref={ref}
 				asChild={asChild}
 				draggable={false}
@@ -49,7 +49,7 @@ export const TldrawUiToolbarButton = React.forwardRef<HTMLButtonElement, TLUiToo
 				className={classnames('tlui-button', `tlui-button__${type}`, props.className)}
 			>
 				{children}
-			</Toolbar.Button>
+			</_Toolbar.Button>
 		)
 	}
 )
@@ -72,13 +72,13 @@ export const TldrawUiToolbarToggleGroup = ({
 	...props
 }: TLUiToolbarToggleGroupProps) => {
 	return (
-		<Toolbar.ToggleGroup
+		<_Toolbar.ToggleGroup
 			type={type}
 			{...props}
 			className={classnames('tlui-toolbar-toggle-group', className)}
 		>
 			{children}
-		</Toolbar.ToggleGroup>
+		</_Toolbar.ToggleGroup>
 	)
 }
 
@@ -99,7 +99,7 @@ export const TldrawUiToolbarToggleItem = ({
 	...props
 }: TLUiToolbarToggleItemProps) => {
 	return (
-		<Toolbar.ToggleItem
+		<_Toolbar.ToggleItem
 			{...props}
 			className={classnames(
 				'tlui-button',
@@ -110,6 +110,6 @@ export const TldrawUiToolbarToggleItem = ({
 			value={value}
 		>
 			{children}
-		</Toolbar.ToggleItem>
+		</_Toolbar.ToggleItem>
 	)
 }

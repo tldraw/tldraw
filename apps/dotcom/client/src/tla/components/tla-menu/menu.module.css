@@ -41,7 +41,6 @@
 @media (hover: hover) {
 	.info:hover {
 		color: var(--color-text-1);
-		cursor: pointer;
 	}
 }
 

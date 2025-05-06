@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import {
 	Box,
 	Editor,
@@ -37,7 +37,7 @@ import styles from '../file-share-menu.module.css'
 export function TlaExportTab() {
 	const app = useMaybeApp()
 
-	const preferences = useValue('preferences', () => getExportPreferences(app), [app])
+	const preferences = useExportPreferences()
 
 	const onChange = useCallback(
 		<T extends keyof TldrawAppSessionState['exportSettings']>(
@@ -63,8 +63,8 @@ export function TlaExportTab() {
 				<ExportThemeSelect onChange={onChange} value={exportTheme} />
 				<ExportFormatSelect onChange={onChange} value={exportFormat} />
 			</TlaMenuControlGroup>
-			<ExportPreviewImage />
 			<ExportImageButton />
+			<ExportPreviewImage />
 		</TlaMenuSection>
 	)
 }
@@ -262,11 +262,57 @@ function ExportImageButton() {
 	)
 }
 
+function getExportingShapes(editor: Editor) {
+	const selectedShapes = editor.getSelectedShapes()
+	if (selectedShapes.length > 0) {
+		return selectedShapes
+	}
+	const pageShapes = editor.getSortedChildIdsForParent(editor.getCurrentPageId())
+	if (pageShapes.length > 0) {
+		return compact(pageShapes.map((s) => editor.getShape(s)))
+	}
+	return []
+}
+
+function getImageSize(editor: Editor, app: TldrawApp | null) {
+	if (!editor) return new Box(0, 0, 1, 1)
+	const shapes = getExportingShapes(editor)
+	const bounds = shapes.length
+		? Box.Common(shapes.map((s) => editor.getShapePageBounds(s)!))
+		: editor.getViewportPageBounds().clone()
+	const preferences = getExportPreferences(app)
+	if (preferences.exportPadding) {
+		bounds.width += editor.options.defaultSvgPadding * 2
+		bounds.height += editor.options.defaultSvgPadding * 2
+	}
+	return bounds
+}
+
 function ExportPreviewImage() {
 	const app = useMaybeApp()
-	const ref = useRef<HTMLImageElement>(null)
+	const imageRef = useRef<HTMLImageElement>(null)
+	const containerRef = useRef<HTMLDivElement>(null)
 
 	const rImagePreviewSize = useRef<HTMLDivElement>(null)
+
+	const preferences = useExportPreferences()
+
+	// set the image size manually on initial render
+	// whereafter we set it in the reactor
+	useLayoutEffect(() => {
+		const editor = globalEditor.get()
+		if (!editor) return
+		const { width, height } = getImageSize(editor, app)
+		const elm = imageRef.current
+		if (!elm) return
+		// create a new blank image element with the width/height
+		// and set opacity to 0 so that it doesn't show the checkered background for a frame
+		elm.setAttribute(
+			'src',
+			`data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"/>`
+		)
+		elm.style.opacity = '0'
+	}, [app])
 
 	useReactor(
 		'update preview',
@@ -279,17 +325,10 @@ function ExportPreviewImage() {
 			const preferences = getExportPreferences(app)
 
 			// We need shapes here so that the reactor updates when selected shapes change
-			let shapes = editor.getSelectedShapes()
-			if (shapes.length === 0) {
-				shapes = compact(
-					editor
-						.getSortedChildIdsForParent(editor.getCurrentPageId())
-						.map((s) => editor.getShape(s))
-				)
-			}
+			const shapes = getExportingShapes(editor)
 
 			if (shapes.length === 0) {
-				const elm = ref.current
+				const elm = imageRef.current
 				if (!elm) return
 				elm.setAttribute('src', '')
 				const sizeElm = rImagePreviewSize.current
@@ -302,10 +341,11 @@ function ExportPreviewImage() {
 
 			fn(editor, shapes, preferences, ({ src, width, height }) => {
 				if (cancelled) return
-				const elm = ref.current
+				const elm = imageRef.current
 				if (!elm) return
 				// We want to use an image element here so that a user can right click and copy / save / drag the qr code
 				elm.setAttribute('src', src)
+				elm.style.opacity = '1'
 				const sizeElm = rImagePreviewSize.current
 				if (sizeElm) sizeElm.textContent = `${width.toFixed()}×${height.toFixed()}`
 			})
@@ -318,8 +358,8 @@ function ExportPreviewImage() {
 	)
 
 	return (
-		<div className={styles.exportPreview}>
-			<img ref={ref} className={styles.exportPreviewInner} />
+		<div ref={containerRef} className={styles.exportPreview}>
+			<img ref={imageRef} className={styles.exportPreviewInner} data-theme={preferences.theme} />
 			<div
 				ref={rImagePreviewSize}
 				className={classNames(styles.exportPreviewSize, 'tla-text_ui__small')}
@@ -358,6 +398,11 @@ async function getEditorImage(
 
 const getEditorImageSlowly = debounce(getEditorImage, 60)
 
+function useExportPreferences() {
+	const app = useMaybeApp()
+	return useValue('export-preferences', () => getExportPreferences(app), [app])
+}
+
 function getExportPreferences(app: TldrawApp | null) {
 	const sessionState = getLocalSessionState()
 
@@ -378,5 +423,6 @@ function getExportPreferences(app: TldrawApp | null) {
 		exportBackground,
 		exportTheme,
 		exportFormat,
+		theme: exportTheme === 'auto' ? sessionState.theme : exportTheme,
 	}
 }
