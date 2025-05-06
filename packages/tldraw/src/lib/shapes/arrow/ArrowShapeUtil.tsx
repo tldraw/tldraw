@@ -90,12 +90,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			l: 44,
 			xl: 66,
 		},
-		minExpandElbowLegLength: {
-			s: 2.8,
-			m: 3.6,
-			l: 4.4,
-			xl: 6.6,
-		},
 		minElbowLegLength: {
 			s: 26,
 			m: 32,

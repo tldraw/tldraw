@@ -5,7 +5,6 @@ import { TLArrowBindings } from './shared'
 /** @public */
 export interface ArrowShapeOptions {
 	readonly expandElbowLegLength: Record<TLDefaultSizeStyle, number>
-	readonly minExpandElbowLegLength: Record<TLDefaultSizeStyle, number>
 	readonly minElbowLegLength: Record<TLDefaultSizeStyle, number>
 	readonly minHandleDistance: number
 

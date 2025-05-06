@@ -430,23 +430,6 @@ export class Box {
 		)
 	}
 
-	/**
-	 * Returns the distance from the box to the point. Negative if the point is inside the box.
-	 */
-	static DistanceToPoint(A: Box, B: VecLike): number {
-		// If point is inside box, return negative distance to nearest edge
-		if (Box.ContainsPoint(A, B)) {
-			const dx = Math.min(B.x - A.minX, A.maxX - B.x)
-			const dy = Math.min(B.y - A.minY, A.maxY - B.y)
-			return -Math.min(dx, dy)
-		}
-
-		// Point is outside box, find distance to nearest edge or corner
-		const dx = Math.max(A.minX - B.x, B.x - A.maxX, 0)
-		const dy = Math.max(A.minY - B.y, B.y - A.maxY, 0)
-		return Math.sqrt(dx * dx + dy * dy)
-	}
-
 	static Common(boxes: Box[]) {
 		let minX = Infinity
 		let minY = Infinity
