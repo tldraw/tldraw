@@ -48,7 +48,9 @@ export function getElbowArrowInfo(
 	const options: ElbowArrowOptions = {
 		elbowMidpoint: arrow.props.elbowMidPoint,
 		expandElbowLegLength: shapeOptions.expandElbowLegLength[arrow.props.size] * arrow.props.scale,
-		minElbowLegLength: shapeOptions.minElbowLegLength[arrow.props.size] * arrow.props.scale,
+		minExpandElbowLegLength:
+			shapeOptions.minExpandElbowLegLength[arrow.props.size] * arrow.props.scale,
+		minElbowLegLength: shapeOptions.minExpandElbowLegLength[arrow.props.size] * arrow.props.scale,
 	}
 
 	const startBinding = getElbowArrowBindingInfo(editor, arrow, bindings.start, arrow.props.start)
@@ -62,18 +64,35 @@ export function getElbowArrowInfo(
 		? { aBinding: endBinding, bBinding: startBinding }
 		: { aBinding: startBinding, bBinding: endBinding }
 
+	let aExpandBy = options.expandElbowLegLength
+	let bExpandBy = options.expandElbowLegLength
+	const bDistanceToATarget = Box.DistanceToPoint(bBinding.bounds, aBinding.target)
+	console.log('bDistanceToATarget', bDistanceToATarget)
+	if (bDistanceToATarget < options.minExpandElbowLegLength) {
+		bBinding = convertBindingToPoint(bBinding)
+	} else if (bDistanceToATarget < options.expandElbowLegLength) {
+		bExpandBy = bDistanceToATarget
+	}
+
+	const aDistanceToBTarget = Box.DistanceToPoint(aBinding.bounds, bBinding.target)
+	if (aDistanceToBTarget < options.minExpandElbowLegLength) {
+		aBinding = convertBindingToPoint(aBinding)
+	} else if (aDistanceToBTarget < options.expandElbowLegLength) {
+		aExpandBy = aDistanceToBTarget
+	}
+
 	let edgesA = {
-		top: getUsableEdge(aBinding, bBinding, 'top', options),
-		right: getUsableEdge(aBinding, bBinding, 'right', options),
-		bottom: getUsableEdge(aBinding, bBinding, 'bottom', options),
-		left: getUsableEdge(aBinding, bBinding, 'left', options),
+		top: getUsableEdge(aBinding, bBinding, 'top', aExpandBy, bExpandBy),
+		right: getUsableEdge(aBinding, bBinding, 'right', aExpandBy, bExpandBy),
+		bottom: getUsableEdge(aBinding, bBinding, 'bottom', aExpandBy, bExpandBy),
+		left: getUsableEdge(aBinding, bBinding, 'left', aExpandBy, bExpandBy),
 	}
 
 	let edgesB = {
-		top: getUsableEdge(bBinding, aBinding, 'top', options),
-		right: getUsableEdge(bBinding, aBinding, 'right', options),
-		bottom: getUsableEdge(bBinding, aBinding, 'bottom', options),
-		left: getUsableEdge(bBinding, aBinding, 'left', options),
+		top: getUsableEdge(bBinding, aBinding, 'top', bExpandBy, aExpandBy),
+		right: getUsableEdge(bBinding, aBinding, 'right', bExpandBy, aExpandBy),
+		bottom: getUsableEdge(bBinding, aBinding, 'bottom', bExpandBy, aExpandBy),
+		left: getUsableEdge(bBinding, aBinding, 'left', bExpandBy, aExpandBy),
 	}
 
 	const aIsUsable = hasUsableEdge(edgesA, aBinding.side)
@@ -83,45 +102,32 @@ export function getElbowArrowInfo(
 	if (!aIsUsable || !bIsUsable) {
 		needsNewEdges = true
 		if (!aIsUsable) {
-			console.log('CONVERTING B TO POINT')
 			bBinding = convertBindingToPoint(bBinding)
 		}
 
 		if (!bIsUsable) {
 			aBinding = convertBindingToPoint(aBinding)
 		}
-
-		if (bBinding.bounds.containsPoint(aBinding.target, options.expandElbowLegLength)) {
-			bBinding = convertBindingToPoint(bBinding)
-		}
-
-		if (aBinding.bounds.containsPoint(bBinding.target, options.expandElbowLegLength)) {
-			aBinding = convertBindingToPoint(aBinding)
-		}
 	}
 
 	if (needsNewEdges) {
 		edgesA = {
-			top: getUsableEdge(aBinding, bBinding, 'top', options),
-			right: getUsableEdge(aBinding, bBinding, 'right', options),
-			bottom: getUsableEdge(aBinding, bBinding, 'bottom', options),
-			left: getUsableEdge(aBinding, bBinding, 'left', options),
+			top: getUsableEdge(aBinding, bBinding, 'top', aExpandBy, bExpandBy),
+			right: getUsableEdge(aBinding, bBinding, 'right', aExpandBy, bExpandBy),
+			bottom: getUsableEdge(aBinding, bBinding, 'bottom', aExpandBy, bExpandBy),
+			left: getUsableEdge(aBinding, bBinding, 'left', aExpandBy, bExpandBy),
 		}
 
 		edgesB = {
-			top: getUsableEdge(bBinding, aBinding, 'top', options),
-			right: getUsableEdge(bBinding, aBinding, 'right', options),
-			bottom: getUsableEdge(bBinding, aBinding, 'bottom', options),
-			left: getUsableEdge(bBinding, aBinding, 'left', options),
+			top: getUsableEdge(bBinding, aBinding, 'top', bExpandBy, aExpandBy),
+			right: getUsableEdge(bBinding, aBinding, 'right', bExpandBy, aExpandBy),
+			bottom: getUsableEdge(bBinding, aBinding, 'bottom', bExpandBy, aExpandBy),
+			left: getUsableEdge(bBinding, aBinding, 'left', bExpandBy, aExpandBy),
 		}
 	}
 
-	const expandedA = aBinding.isPoint
-		? aBinding.bounds
-		: aBinding.bounds.clone().expandBy(options.expandElbowLegLength)
-	const expandedB = bBinding.isPoint
-		? bBinding.bounds
-		: bBinding.bounds.clone().expandBy(options.expandElbowLegLength)
+	const expandedA = aBinding.isPoint ? aBinding.bounds : aBinding.bounds.clone().expandBy(aExpandBy)
+	const expandedB = bBinding.isPoint ? bBinding.bounds : bBinding.bounds.clone().expandBy(bExpandBy)
 
 	const common: ElbowArrowBox = {
 		original: Box.Common([aBinding.bounds, bBinding.bounds]),
@@ -465,7 +471,9 @@ export function getUsableEdge(
 	a: ElbowArrowBinding,
 	b: ElbowArrowBinding,
 	side: 'top' | 'right' | 'bottom' | 'left',
-	options: ElbowArrowOptions
+	expandA: number,
+	expandB: number
+	// options: ElbowArrowOptions
 ): ElbowArrowEdge | null {
 	const props = sideProps[side]
 
@@ -479,7 +487,7 @@ export function getUsableEdge(
 		(b.snap === 'edge' || b.snap === 'edge-point')
 
 	const aValue = a.bounds[props.main]
-	const aExpanded = a.isPoint ? null : aValue + props.expand * options.expandElbowLegLength
+	const aExpanded = a.isPoint ? null : aValue + props.expand * expandA
 
 	const originalACrossRange = createRange(a.bounds[props.crossMin], a.bounds[props.crossMax])
 	let aCrossRange = originalACrossRange
@@ -492,12 +500,12 @@ export function getUsableEdge(
 	assert(originalACrossRange)
 	const bRange = createRange(b.bounds[props.main], b.bounds[props.opposite])
 	if (!b.isPoint) {
-		bRange[props.bRangeExpand] -= options.minElbowLegLength * 2 * props.expand
+		bRange[props.bRangeExpand] -= expandB * 2 * props.expand
 	}
 
 	const bCrossRange = expandRange(
 		createRange(b.bounds[props.crossMin], b.bounds[props.crossMax]),
-		options.expandElbowLegLength
+		expandB
 	)
 	assert(bRange && bCrossRange)
 
