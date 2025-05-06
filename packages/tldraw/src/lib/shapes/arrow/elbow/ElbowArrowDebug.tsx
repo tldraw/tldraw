@@ -4,8 +4,6 @@ import { getArrowBindings } from '../shared'
 import { ElbowArrowEdge } from './definitions'
 import { getElbowArrowInfo } from './getElbowArrowInfo'
 
-const SHOW_STEVE = true
-
 export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 	const editor = useEditor()
 	const info = useValue(
@@ -32,6 +30,8 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 
 	const label = info.route?.name ?? ''
 
+	const midPoint = info.route?.midpointHandle
+
 	return (
 		<>
 			{/* <DebugBox box={transformBox(info.expanded.A, info.scale)} stroke="orange" /> */}
@@ -48,6 +48,24 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 					a={{ x: fullBox.minX, y: info.midY }}
 					b={{ x: fullBox.maxX, y: info.midY }}
 					stroke="blue"
+				/>
+			)}
+
+			{midPoint?.axis === 'x' && info.midXRange && (
+				<DebugLine
+					a={{ x: info.midXRange.lo, y: midPoint.point.y }}
+					b={{ x: info.midXRange.hi, y: midPoint.point.y }}
+					stroke="red"
+					strokeDasharray={'0 2'}
+				/>
+			)}
+
+			{midPoint?.axis === 'y' && info.midYRange && (
+				<DebugLine
+					a={{ x: midPoint.point.x, y: info.midYRange.lo }}
+					b={{ x: midPoint.point.x, y: info.midYRange.hi }}
+					stroke="blue"
+					strokeDasharray={'0 2'}
 				/>
 			)}
 

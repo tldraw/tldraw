@@ -46,7 +46,7 @@ export function getElbowArrowInfo(
 ): ElbowArrowInfo {
 	const shapeOptions = editor.getShapeUtil<ArrowShapeUtil>(arrow.type).options
 	const options: ElbowArrowOptions = {
-		elbowMidpoint: arrow.props.elbowMidPoint * arrow.props.scale,
+		elbowMidpoint: arrow.props.elbowMidPoint,
 		expandElbowLegLength: shapeOptions.expandElbowLegLength[arrow.props.size] * arrow.props.scale,
 		minElbowLegLength: shapeOptions.minElbowLegLength[arrow.props.size] * arrow.props.scale,
 	}
@@ -626,37 +626,27 @@ function castPathSegmentIntoGeometry(
 	const point1 = segment === 'first' ? route.points[0] : route.points[route.points.length - 1]
 	const point2 = segment === 'first' ? route.points[1] : route.points[route.points.length - 2]
 
-	// const farPoint = Vec.Nudge(
-	// 	point1,
-	// 	point2,
-	// 	-Math.max(target.geometry.bounds.width, target.geometry.bounds.height)
-	// )
-	const farPoint = target.target
-
 	const initialDistance = Vec.ManhattanDist(point1, point2)
 
 	let nearestIntersectionToPoint2: VecLike | null = null
 	let nearestDistanceToPoint2 = Infinity
 
-	if (
-		target.isExact
-		// || target.geometry.hitTestPoint(point1, 0, true, Geometry2dFilters.EXCLUDE_NON_STANDARD)
-	) {
+	if (target.isExact) {
 		nearestIntersectionToPoint2 = target.target
 	} else if (target.geometry) {
-		const intersections = target.geometry.intersectLineSegment(point2, farPoint, {
+		const intersections = target.geometry.intersectLineSegment(point2, target.target, {
 			includeLabels: false,
 			includeInternal: false,
 		})
 		if (
 			target.geometry.hitTestPoint(
-				farPoint,
+				target.target,
 				Math.max(1, target.arrowheadOffset),
 				true,
 				Geometry2dFilters.EXCLUDE_NON_STANDARD
 			)
 		) {
-			intersections.push(farPoint)
+			intersections.push(target.target)
 		}
 		for (const intersection of intersections) {
 			const point2Distance = Vec.ManhattanDist(point2, intersection)
@@ -815,8 +805,6 @@ function adjustBindingForUnclosedPathIfNeeded(binding: ElbowArrowBinding) {
 	} else if (!furthestIntersectionTowardsMin && furthestIntersectionTowardsMax) {
 		side = axis.loEdge
 	}
-
-	console.log('pick side', side)
 
 	binding.side = side
 }
