@@ -678,6 +678,9 @@ export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandlePro
 export const DefaultHandles: ({ children }: TLHandlesProps) => JSX_2.Element;
 
 // @public (undocumented)
+export const defaultI18n: () => TLI18n;
+
+// @public (undocumented)
 export function DefaultScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps): JSX_2.Element | null;
 
 // @public (undocumented)
@@ -841,7 +844,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, textOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, getShapeVisibility, fontAssetUrls, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, textOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, getShapeVisibility, fontAssetUrls, i18n, }: TLEditorOptions);
     // @deprecated (undocumented)
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
@@ -1378,6 +1381,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     hasShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): boolean;
     protected readonly history: HistoryManager<TLRecord>;
+    readonly i18n: TLI18nAdapter;
     // (undocumented)
     readonly id: string;
     inputs: {
@@ -2632,6 +2636,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     getHandleSnapGeometry(_shape: Shape): HandleSnapGeometry;
     getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props'];
     // (undocumented)
+    getShapeName(_shape: Shape): string | undefined;
+    // (undocumented)
     getText(_shape: Shape): string | undefined;
     hideResizeHandles(_shape: Shape): boolean;
     hideRotateHandle(_shape: Shape): boolean;
@@ -3215,6 +3221,7 @@ export interface TldrawEditorBaseProps {
     components?: TLEditorComponents;
     deepLinks?: TLDeepLinkOptions | true;
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
+    i18n?: TLI18nAdapter;
     inferDarkMode?: boolean;
     initialState?: string;
     // @deprecated
@@ -3403,6 +3410,8 @@ export interface TLEditorOptions {
     };
     getContainer(): HTMLElement;
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
+    // (undocumented)
+    i18n?: TLI18nAdapter;
     inferDarkMode?: boolean;
     initialState?: string;
     // @deprecated
@@ -3719,6 +3728,19 @@ export interface TLHistoryMark {
     // (undocumented)
     type: 'stop';
 }
+
+// @public (undocumented)
+export interface TLI18n {
+    // (undocumented)
+    dir: 'ltr' | 'rtl';
+    // (undocumented)
+    locale: string;
+    // (undocumented)
+    translate(key: string, ...args: any[]): string;
+}
+
+// @public (undocumented)
+export type TLI18nAdapter = () => TLI18n;
 
 // @public (undocumented)
 export interface TLImageExportOptions extends TLSvgExportOptions {

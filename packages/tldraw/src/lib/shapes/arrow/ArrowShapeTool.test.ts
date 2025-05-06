@@ -412,7 +412,14 @@ describe('reparenting issue', () => {
 		editor.select(arrowId)
 		editor.pointerDown(100, 100, {
 			target: 'handle',
-			handle: { id: 'end', type: 'vertex', index: 'a0' as IndexKey, x: 100, y: 100 },
+			handle: {
+				id: 'end',
+				label: 'handle',
+				type: 'vertex',
+				index: 'a0' as IndexKey,
+				x: 100,
+				y: 100,
+			},
 			shape: editor.getShape(arrowId)!,
 		})
 		editor.expectToBeIn('select.pointing_handle')
@@ -480,7 +487,14 @@ describe('reparenting issue', () => {
 			.select(arrow1Id)
 			.pointerDown(100, 100, {
 				target: 'handle',
-				handle: { id: 'end', type: 'vertex', index: 'a0' as IndexKey, x: 100, y: 100 },
+				handle: {
+					id: 'end',
+					label: 'handle',
+					type: 'vertex',
+					index: 'a0' as IndexKey,
+					x: 100,
+					y: 100,
+				},
 				shape: editor.getShape(arrow1Id)!,
 			})
 			.pointerMove(120, 120)
@@ -489,7 +503,14 @@ describe('reparenting issue', () => {
 			.select(arrow2Id)
 			.pointerDown(100, 100, {
 				target: 'handle',
-				handle: { id: 'end', type: 'vertex', index: 'a0' as IndexKey, x: 100, y: 100 },
+				handle: {
+					id: 'end',
+					label: 'handle',
+					type: 'vertex',
+					index: 'a0' as IndexKey,
+					x: 100,
+					y: 100,
+				},
 				shape: editor.getShape(arrow2Id)!,
 			})
 			.pointerMove(150, 150)

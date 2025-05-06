@@ -18,7 +18,6 @@ export {
 	TldrawUiMenuToolItem,
 	type TLUiMenuToolItemProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuToolItem'
-export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'
@@ -493,6 +492,7 @@ export {
 	type TLUiEventMap,
 	type TLUiEventSource,
 } from './lib/ui/context/events'
+export { TldrawI18n } from './lib/ui/context/i18n'
 export {
 	TldrawUiToastsProvider,
 	useToasts,
@@ -524,6 +524,7 @@ export {
 export { type TLUiTranslationKey } from './lib/ui/hooks/useTranslation/TLUiTranslationKey'
 export { type TLUiTranslation } from './lib/ui/hooks/useTranslation/translations'
 export {
+	TldrawUiTranslationProvider,
 	useCurrentTranslation,
 	useTranslation,
 	type TLUiTranslationContextType,

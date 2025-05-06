@@ -37,6 +37,7 @@ import { TLUiAssetUrlOverrides } from './ui/assetUrls'
 import { LoadingScreen } from './ui/components/LoadingScreen'
 import { Spinner } from './ui/components/Spinner'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
+import { TldrawI18n } from './ui/context/i18n'
 import { useToasts } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
@@ -94,6 +95,7 @@ export function Tldraw(props: TldrawProps) {
 		tools = [],
 		embeds,
 		textOptions,
+		i18n,
 		...rest
 	} = props
 
@@ -171,6 +173,7 @@ export function Tldraw(props: TldrawProps) {
 			tools={toolsWithDefaults}
 			textOptions={textOptionsWithDefaults}
 			assetUrls={assets}
+			i18n={i18n ?? TldrawI18n}
 		>
 			<TldrawUi {...rest} components={componentsWithDefault} mediaMimeTypes={mediaMimeTypes}>
 				<InsideOfEditorAndUiContext

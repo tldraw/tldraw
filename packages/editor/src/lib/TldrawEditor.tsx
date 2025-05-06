@@ -18,6 +18,7 @@ import { version } from '../version'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
+import { TLI18nAdapter } from './config/TLI18n'
 import { TLStoreBaseOptions } from './config/createTLStore'
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
@@ -223,6 +224,11 @@ export interface TldrawEditorBaseProps {
 	 * The URLs for the fonts to use in the editor.
 	 */
 	assetUrls?: { fonts?: { [key: string]: string | undefined } }
+
+	/**
+	 * The i18n system to use in the editor.
+	 */
+	i18n?: TLI18nAdapter
 }
 
 /**
@@ -415,6 +421,7 @@ function TldrawEditorWithReadyStore({
 	isShapeHidden,
 	getShapeVisibility,
 	assetUrls,
+	i18n,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -475,6 +482,7 @@ function TldrawEditorWithReadyStore({
 				isShapeHidden,
 				getShapeVisibility,
 				fontAssetUrls: assetUrls?.fonts,
+				i18n,
 			})
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
@@ -512,6 +520,7 @@ function TldrawEditorWithReadyStore({
 			getShapeVisibility,
 			textOptions,
 			assetUrls,
+			i18n,
 		]
 	)
 

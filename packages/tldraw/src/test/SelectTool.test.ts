@@ -214,7 +214,7 @@ describe('PointingHandle', () => {
 		editor.pointerDown(150, 150, {
 			target: 'handle',
 			shape,
-			handle: { id: 'start', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
+			handle: { id: 'start', label: 'handle', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
 		})
 		editor.expectToBeIn('select.pointing_handle')
 
@@ -227,7 +227,7 @@ describe('PointingHandle', () => {
 		editor.pointerDown(150, 150, {
 			target: 'handle',
 			shape,
-			handle: { id: 'start', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
+			handle: { id: 'start', label: 'handle', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
 		})
 		editor.expectToBeIn('select.pointing_handle')
 		editor.cancel()
@@ -242,7 +242,7 @@ describe('DraggingHandle', () => {
 		editor.pointerDown(150, 150, {
 			target: 'handle',
 			shape,
-			handle: { id: 'start', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
+			handle: { id: 'start', label: 'handle', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
 		})
 		editor.pointerMove(100, 100)
 		editor.expectToBeIn('select.dragging_handle')
@@ -258,7 +258,7 @@ describe('DraggingHandle', () => {
 		editor.pointerDown(150, 150, {
 			target: 'handle',
 			shape,
-			handle: { id: 'start', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
+			handle: { id: 'start', label: 'handle', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
 		})
 		editor.pointerMove(100, 100)
 		editor.expectToBeIn('select.dragging_handle')
