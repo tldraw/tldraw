@@ -296,6 +296,13 @@ export function getCurvedArrowInfo(
 		} else {
 			// noop
 		}
+
+		// if we're using negative offsets, we need to make sure that the body arc doesn't end up
+		// larger than the handle arc or things will get weird:
+		const minOffsetA = 0.1 - distFn(handle_aCA, aCA) * handleArc.radius
+		const minOffsetB = 0.1 - distFn(aCB, handle_aCB) * handleArc.radius
+		offsetA = Math.max(offsetA, minOffsetA)
+		offsetB = Math.max(offsetB, minOffsetB)
 	}
 
 	if (offsetA !== 0) {
