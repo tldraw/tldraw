@@ -294,7 +294,7 @@ export function routeRightToRight(info: ElbowArrowWorkingInfo): ElbowArrowRoute 
 	if (!aEdge || !bEdge) return null
 
 	if (
-		(info.gapX < 0 ||
+		(info.gapX <= 0 ||
 			aEdge.crossTarget > info.B.expanded.bottom ||
 			aEdge.crossTarget < info.B.expanded.top) &&
 		(bEdge.value > info.A.original.left ||
@@ -312,7 +312,7 @@ export function routeRightToRight(info: ElbowArrowWorkingInfo): ElbowArrowRoute 
 
 	if (info.midX === null) return null
 
-	if (bEdge.expanded !== null && info.gapX > 0) {
+	if (bEdge.expanded !== null && info.gapX >= 0) {
 		const viaBottomLength =
 			Math.abs(bEdge.crossTarget - info.B.expanded.bottom) +
 			Math.abs(aEdge.crossTarget - info.B.expanded.bottom)
@@ -333,7 +333,7 @@ export function routeRightToRight(info: ElbowArrowWorkingInfo): ElbowArrowRoute 
 			.build()
 	}
 
-	if (aEdge.expanded !== null && info.gapX < 0) {
+	if (aEdge.expanded !== null && info.gapX <= 0) {
 		const viaBottomLength =
 			Math.abs(bEdge.crossTarget - info.A.expanded.bottom) +
 			Math.abs(aEdge.crossTarget - info.A.expanded.bottom)

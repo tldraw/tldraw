@@ -773,7 +773,7 @@ const snapshots: Snapshots = {
 			),
 		},
 		Regressions: {
-			'ENG-3332': (
+			'ENG-3332 ✅': (
 				<>
 					<TL.geo w={100} h={100} ref="a" />
 					<TL.geo w={30} h={30} x={60} y={10} ref="b" />
@@ -795,7 +795,7 @@ const snapshots: Snapshots = {
 					</TL.arrow>
 				</>
 			),
-			'ENG-3333': (
+			'ENG-3333 🚫': (
 				<>
 					<TL.geo w={50} h={50} ref="box" />
 					<TL.text richText={toRichText('text')} x={70} y={30} ref="text" />
@@ -817,7 +817,7 @@ const snapshots: Snapshots = {
 					</TL.arrow>
 				</>
 			),
-			'ENG-3335': (
+			'ENG-3335 🚫': (
 				<>
 					<TL.geo w={100} h={100} ref="a" />
 					<TL.geo w={30} h={30} x={-30} y={70} ref="b" />
@@ -839,7 +839,9 @@ const snapshots: Snapshots = {
 					</TL.arrow>
 				</>
 			),
-			'ENG-3336': (
+			'ENG-3336 ✅': (
+				// this one isn't actually an elbow arrow issue but was introduced by elbow arrows
+				// work so is still included here.
 				<>
 					<TL.text richText={toRichText('one')} ref="a" />
 					<TL.text richText={toRichText('two')} y={50} ref="b" />
@@ -849,7 +851,7 @@ const snapshots: Snapshots = {
 					</TL.arrow>
 				</>
 			),
-			'ENG-3342': (
+			'ENG-3342 ✅': (
 				<>
 					<TL.geo w={50} h={50} ref="a" />
 					<TL.geo w={50} h={50} x={40} y={-10} ref="b" />

@@ -9,7 +9,10 @@ import {
 import { ElbowArrowWorkingInfo } from './ElbowArrowWorkingInfo'
 import { tryRouteArrow } from './elbowArrowRoutes'
 
-export function routeArrowWithAutoEdgePicking(info: ElbowArrowWorkingInfo): ElbowArrowRoute | null {
+export function routeArrowWithAutoEdgePicking(
+	info: ElbowArrowWorkingInfo,
+	reason: ElbowArrowSideReason
+): ElbowArrowRoute | null {
 	let idealRoute = null
 	if (
 		// +1 to bias us towards the x-axis. without this, we get flicker as we move an arrow locket
@@ -71,8 +74,8 @@ export function routeArrowWithAutoEdgePicking(info: ElbowArrowWorkingInfo): Elbo
 	}
 
 	if (idealRoute) {
-		idealRoute.aEdgePicking = 'auto'
-		idealRoute.bEdgePicking = 'auto'
+		idealRoute.aEdgePicking = reason
+		idealRoute.bEdgePicking = reason
 		return idealRoute
 	}
 
@@ -84,7 +87,7 @@ export function routeArrowWithAutoEdgePicking(info: ElbowArrowWorkingInfo): Elbo
 	)
 
 	const nonPartialRouteCandidates = aNonPartialSides.flatMap((aSide) =>
-		bNonPartialSides.map((bSide) => [aSide, bSide, 'auto', 'auto'] as const)
+		bNonPartialSides.map((bSide) => [aSide, bSide, reason, reason] as const)
 	)
 
 	return pickBest(info, nonPartialRouteCandidates)

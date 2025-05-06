@@ -221,12 +221,12 @@ export function getElbowArrowInfo(
 		route = routeArrowWithPartialEdgePicking(workingInfo, aSide)
 	}
 	if (!route) {
-		route = routeArrowWithAutoEdgePicking(workingInfo)
+		route = routeArrowWithAutoEdgePicking(workingInfo, aSide || bSide ? 'fallback' : 'auto')
 	}
 
 	if (route) {
-		castPathSegmentIntoGeometry('first', info.A, info.B, route, options)
-		castPathSegmentIntoGeometry('last', info.B, info.A, route, options)
+		castPathSegmentIntoGeometry('first', info.A, info.B, route)
+		castPathSegmentIntoGeometry('last', info.B, info.A, route)
 		fixTinyEndNubs(route, aBinding, bBinding)
 
 		if (swapOrder) route.points.reverse()
@@ -619,14 +619,9 @@ function castPathSegmentIntoGeometry(
 	segment: 'first' | 'last',
 	target: ElbowArrowTargetBox,
 	other: ElbowArrowTargetBox,
-	route: ElbowArrowRoute,
-	options: ElbowArrowOptions
+	route: ElbowArrowRoute
 ) {
 	if (!target.geometry) return
-	if (target.arrowheadOffset === 0) {
-		// TODO: REMOVE
-		return
-	}
 
 	const point1 = segment === 'first' ? route.points[0] : route.points[route.points.length - 1]
 	const point2 = segment === 'first' ? route.points[1] : route.points[route.points.length - 2]

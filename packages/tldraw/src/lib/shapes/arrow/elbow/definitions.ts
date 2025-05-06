@@ -4,7 +4,7 @@ import { Box, ElbowArrowSnap, Geometry2d, TLShapeId, Vec, VecLike, VecModel } fr
 export type ElbowArrowSide = 'top' | 'right' | 'bottom' | 'left'
 
 /** @internal */
-export type ElbowArrowSideReason = 'manual' | 'auto'
+export type ElbowArrowSideReason = 'manual' | 'auto' | 'fallback'
 
 /** @public */
 export interface ElbowArrowRoute {

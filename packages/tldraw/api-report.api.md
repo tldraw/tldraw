@@ -1146,7 +1146,7 @@ export interface ElbowArrowRoute {
 export type ElbowArrowSide = 'bottom' | 'left' | 'right' | 'top';
 
 // @internal (undocumented)
-export type ElbowArrowSideReason = 'auto' | 'manual';
+export type ElbowArrowSideReason = 'auto' | 'fallback' | 'manual';
 
 // @public (undocumented)
 export interface ElbowArrowTargetBox extends ElbowArrowBox {
