@@ -91,10 +91,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			xl: 66,
 		},
 		minElbowLegLength: {
-			s: 26,
-			m: 32,
-			l: 40,
-			xl: 62,
+			s: STROKE_SIZES.s * 3,
+			m: STROKE_SIZES.m * 3,
+			l: STROKE_SIZES.l * 3,
+			xl: STROKE_SIZES.xl * 3,
 		},
 		minHandleDistance: 16,
 

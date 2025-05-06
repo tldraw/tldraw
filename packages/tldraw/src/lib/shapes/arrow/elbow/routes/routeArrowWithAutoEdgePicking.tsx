@@ -63,9 +63,9 @@ export function routeArrowWithAutoEdgePicking(info: ElbowArrowWorkingInfo): Elbo
 			aLeft.crossTarget >= (bBottom.expanded ?? bBottom.value)
 		) {
 			idealRoute = tryRouteArrow(info, 'left', 'bottom')
-		} else if (info.gapY > 0) {
+		} else if (info.gapY > 0 && info.midY !== null) {
 			idealRoute = tryRouteArrow(info, 'bottom', 'top')
-		} else if (info.gapY < 0) {
+		} else if (info.gapY < 0 && info.midY !== null) {
 			idealRoute = tryRouteArrow(info, 'top', 'bottom')
 		}
 	}

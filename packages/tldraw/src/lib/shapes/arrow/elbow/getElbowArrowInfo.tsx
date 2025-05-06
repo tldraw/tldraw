@@ -83,7 +83,6 @@ export function getElbowArrowInfo(
 	if (!aIsUsable || !bIsUsable) {
 		needsNewEdges = true
 		if (!aIsUsable) {
-			console.log('CONVERTING B TO POINT')
 			bBinding = convertBindingToPoint(bBinding)
 		}
 
@@ -624,6 +623,10 @@ function castPathSegmentIntoGeometry(
 	options: ElbowArrowOptions
 ) {
 	if (!target.geometry) return
+	if (target.arrowheadOffset === 0) {
+		// TODO: REMOVE
+		return
+	}
 
 	const point1 = segment === 'first' ? route.points[0] : route.points[route.points.length - 1]
 	const point2 = segment === 'first' ? route.points[1] : route.points[route.points.length - 2]
@@ -663,8 +666,9 @@ function castPathSegmentIntoGeometry(
 		let offset = target.arrowheadOffset
 
 		const currentFinalSegmentLength = Vec.ManhattanDist(point2, nearestIntersectionToPoint2)
-		if (currentFinalSegmentLength < options.minElbowLegLength) {
-			const targetLength = options.minElbowLegLength - target.arrowheadOffset
+		const minLength = target.arrowheadOffset * 2
+		if (currentFinalSegmentLength < minLength) {
+			const targetLength = minLength - target.arrowheadOffset
 			offset = currentFinalSegmentLength - targetLength
 		}
 		if (offset < target.minEndSegmentLength) {
@@ -713,6 +717,10 @@ function fixTinyEndNubs(
 	bBinding: ElbowArrowBinding
 ) {
 	if (!route) return
+
+	// if the route has a mid-point handle, don't fix the tiny end nubs because it can mess up the
+	// midpoint handle stuff
+	if (route.midpointHandle) return
 
 	if (route.points.length >= 3) {
 		const a = route.points[0]

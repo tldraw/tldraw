@@ -71,8 +71,18 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 
 			<DebugBox box={info.A.original} stroke="orange" />
 			<DebugBox box={info.A.expanded} stroke="orange" strokeWidth={0.5} />
+			<DebugBox
+				box={info.A.original.clone().expandBy(info.options.minElbowLegLength)}
+				stroke="orange"
+				strokeWidth={0.5}
+			/>
 			<DebugBox box={info.B.original} stroke="lightskyblue" />
 			<DebugBox box={info.B.expanded} stroke="lightskyblue" strokeWidth={0.5} />
+			<DebugBox
+				box={info.B.original.clone().expandBy(info.options.minElbowLegLength)}
+				stroke="lightskyblue"
+				strokeWidth={0.5}
+			/>
 
 			<DebugEdge edge={info.A.edges.top} axis="x" stroke="orange" />
 			<DebugEdge edge={info.B.edges.top} axis="x" stroke="lightskyblue" />
