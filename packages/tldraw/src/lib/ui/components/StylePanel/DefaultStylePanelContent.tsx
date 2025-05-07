@@ -361,7 +361,7 @@ export function ArrowStylePickerSet({ styles }: StylePickerSetProps) {
 	}
 
 	return (
-		<TldrawUiToolbar label={msg('style-panel.arrow-style')}>
+		<TldrawUiToolbar label={msg('style-panel.arrow-kind')}>
 			<DropdownPicker
 				id="arrow-kind"
 				type="menu"

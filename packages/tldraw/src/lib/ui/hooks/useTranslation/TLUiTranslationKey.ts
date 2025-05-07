@@ -375,7 +375,6 @@ export type TLUiTranslationKey =
 	| 'style-panel.opacity'
 	| 'style-panel.size'
 	| 'style-panel.spline'
-	| 'style-panel.arrow-style'
 	| 'tool-panel.title'
 	| 'tool-panel.more'
 	| 'navigation-zone.title'

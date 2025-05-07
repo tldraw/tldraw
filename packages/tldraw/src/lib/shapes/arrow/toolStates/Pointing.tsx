@@ -8,7 +8,6 @@ export class Pointing extends StateNode {
 	options = this.editor.getShapeUtil<ArrowShapeUtil>('arrow').options
 
 	shape?: TLArrowShape
-	shapeUtilData: any = {}
 
 	isPrecise = false
 	isPreciseTimerId: number | null = null
@@ -50,7 +49,6 @@ export class Pointing extends StateNode {
 
 			if (!this.shape) throw Error(`expected shape`)
 
-			// const initialEndHandle = this.editor.getShapeHandles(this.shape)!.find((h) => h.id === 'end')!
 			this.updateArrowShapeEndHandle()
 
 			this.editor.setCurrentTool('select.dragging_handle', {
@@ -59,7 +57,6 @@ export class Pointing extends StateNode {
 				isCreating: true,
 				creatingMarkId: this.markId || undefined,
 				onInteractionEnd: 'arrow',
-				shapeUtilData: this.shapeUtilData,
 			})
 		}
 	}
@@ -85,7 +82,6 @@ export class Pointing extends StateNode {
 			// the arrow might not have been created yet!
 			this.editor.bailToMark(this.markId)
 		}
-		// this.editor.setHintingShapes([])
 		this.parent.transition('idle')
 	}
 
@@ -118,9 +114,7 @@ export class Pointing extends StateNode {
 		const change = util.onHandleDrag?.(shape, {
 			handle: { ...startHandle, x: 0, y: 0 },
 			isPrecise: true,
-			isCreatingShape: true,
 			initial: initial,
-			data: this.shapeUtilData,
 		})
 
 		if (change) {
@@ -147,9 +141,7 @@ export class Pointing extends StateNode {
 			const change = util.onHandleDrag?.(shape, {
 				handle: { ...startHandle, x: 0, y: 0 },
 				isPrecise: this.isPrecise,
-				isCreatingShape: true,
 				initial: initial,
-				data: this.shapeUtilData,
 			})
 
 			if (change) {
@@ -166,9 +158,7 @@ export class Pointing extends StateNode {
 			const change = util.onHandleDrag?.(this.editor.getShape(shape)!, {
 				handle: { ...endHandle, x: point.x, y: point.y },
 				isPrecise: false,
-				isCreatingShape: true,
 				initial: initial,
-				data: this.shapeUtilData,
 			})
 
 			if (change) {

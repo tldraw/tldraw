@@ -3659,13 +3659,9 @@ export interface TLGridProps {
 // @public (undocumented)
 export interface TLHandleDragInfo<T extends TLShape> {
     // (undocumented)
-    data: any;
-    // (undocumented)
     handle: TLHandle;
     // (undocumented)
     initial?: T | undefined;
-    // (undocumented)
-    isCreatingShape: boolean;
     // (undocumented)
     isPrecise: boolean;
 }

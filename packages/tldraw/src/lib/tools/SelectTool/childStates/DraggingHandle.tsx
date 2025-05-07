@@ -37,7 +37,6 @@ export class DraggingHandle extends StateNode {
 	initialPageRotation: any
 
 	info = {} as DraggingHandleInfo
-	shapeUtilData: object = {}
 
 	isPrecise = false
 	isPreciseId = null as TLShapeId | null
@@ -46,7 +45,6 @@ export class DraggingHandle extends StateNode {
 	override onEnter(info: DraggingHandleInfo) {
 		const { shape, isCreating, creatingMarkId, handle } = info
 		this.info = info
-		this.shapeUtilData = info.shapeUtilData ?? {}
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.shapeId = shape.id
 		this.markId = ''
@@ -128,16 +126,12 @@ export class DraggingHandle extends StateNode {
 			this.isPrecise = false
 
 			if (initialBinding) {
-				// this.editor.setHintingShapes([initialBinding.toId])
-
 				this.isPrecise = initialBinding.props.isPrecise
 				if (this.isPrecise) {
 					this.isPreciseId = initialBinding.toId
 				} else {
 					this.resetExactTimeout()
 				}
-			} else {
-				// this.editor.setHintingShapes([])
 			}
 		}
 		// -->
@@ -201,7 +195,6 @@ export class DraggingHandle extends StateNode {
 
 	override onExit() {
 		this.parent.setCurrentToolIdMask(undefined)
-		// this.editor.setHintingShapes([])
 		clearArrowTargetState(this.editor)
 		this.editor.snaps.clearIndicators()
 
@@ -292,9 +285,7 @@ export class DraggingHandle extends StateNode {
 		const changes = util.onHandleDrag?.(shape, {
 			handle: nextHandle,
 			isPrecise: this.isPrecise || altKey,
-			isCreatingShape: this.info.isCreating ?? false,
 			initial: initial,
-			data: this.shapeUtilData,
 		})
 
 		const next: TLShapePartial<any> = { id: shape.id, type: shape.type, ...changes }
@@ -308,7 +299,6 @@ export class DraggingHandle extends StateNode {
 
 			if (bindingAfter) {
 				if (initialBinding?.toId !== bindingAfter.toId) {
-					// editor.setHintingShapes([bindingAfter.toId])
 					this.pointingId = bindingAfter.toId
 					this.isPrecise = pointerVelocity.len() < 0.5 || altKey
 					this.isPreciseId = this.isPrecise ? bindingAfter.toId : null
@@ -316,7 +306,6 @@ export class DraggingHandle extends StateNode {
 				}
 			} else {
 				if (initialBinding) {
-					// editor.setHintingShapes([])
 					this.pointingId = null
 					this.isPrecise = false
 					this.isPreciseId = null
