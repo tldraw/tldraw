@@ -31,6 +31,7 @@ it('requires a move to begin drawing', () => {
 	editor.pointerMove(0, 0)
 	editor.pointerDown()
 	editor.pointerMove(2, 0)
+
 	expect(editor.inputs.isDragging).toBe(false)
 })
 
@@ -96,14 +97,14 @@ describe('Making an arrow on the page', () => {
 				type: 'vertex',
 			},
 			{
-				x: 50,
-				y: 0,
-				type: 'virtual',
-			},
-			{
 				x: 100,
 				y: 0,
 				type: 'vertex',
+			},
+			{
+				x: 50,
+				y: 0,
+				type: 'virtual',
 			},
 		])
 	})
@@ -333,8 +334,8 @@ describe('When starting an arrow inside of multiple shapes', () => {
 				props: {
 					normalizedAnchor: {
 						// bound to the center, imprecise!
-						x: 0.2,
-						y: 0.2,
+						x: 0.5,
+						y: 0.5,
 					},
 					isPrecise: false,
 				},
@@ -505,8 +506,8 @@ describe('When starting an arrow inside of multiple shapes', () => {
 				toId: ids.box1,
 				props: {
 					normalizedAnchor: {
-						x: 0.25,
-						y: 0.25,
+						x: 0.5,
+						y: 0.5,
 					},
 					isPrecise: false,
 				},

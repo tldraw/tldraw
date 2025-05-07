@@ -600,6 +600,31 @@ input,
 	}
 }
 
+/* --------------------- Arrow Hints -------------------- */
+
+.tl-arrow-hint-handle {
+	fill: var(--color-selected-contrast);
+	stroke: var(--color-selection-stroke);
+	stroke-width: calc(1.5px * var(--tl-scale));
+	r: calc(4px * var(--tl-scale));
+}
+
+.tl-arrow-hint-snap {
+	stroke: transparent;
+	fill: var(--color-selection-fill);
+	r: calc(12px * var(--tl-scale));
+}
+
+.tl-arrow-hint-snap__none,
+.tl-arrow-hint-snap__center,
+.tl-arrow-hint-snap__axis {
+	display: none;
+}
+
+.tl-arrow-hint-snap__edge {
+	r: calc(8px * var(--tl-scale));
+}
+
 /* ------------------ Bounds Detail ----------------- */
 
 .tl-image,

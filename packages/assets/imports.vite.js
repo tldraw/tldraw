@@ -126,6 +126,8 @@ export function getAssetUrlsByImport(opts) {
 			'align-left': iconsIcon0MergedSvg2 + '#align-left',
 			'align-right': iconsIcon0MergedSvg2 + '#align-right',
 			'align-top': iconsIcon0MergedSvg2 + '#align-top',
+			'arrow-arc': iconsIcon0MergedSvg2 + '#arrow-arc',
+			'arrow-elbow': iconsIcon0MergedSvg2 + '#arrow-elbow',
 			'arrow-left': iconsIcon0MergedSvg2 + '#arrow-left',
 			'arrowhead-arrow': iconsIcon0MergedSvg2 + '#arrowhead-arrow',
 			'arrowhead-bar': iconsIcon0MergedSvg2 + '#arrowhead-bar',
