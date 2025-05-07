@@ -96,7 +96,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			l: STROKE_SIZES.l * 3,
 			xl: STROKE_SIZES.xl * 3,
 		},
-		minHandleDistance: 16,
+		minElbowHandleDistance: 16,
 
 		arcArrowCenterSnapDistance: 16,
 		elbowArrowCenterSnapDistance: 24,

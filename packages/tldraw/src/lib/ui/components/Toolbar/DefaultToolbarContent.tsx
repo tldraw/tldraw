@@ -103,11 +103,6 @@ export function ArrowToolbarItem() {
 }
 
 /** @public @react */
-export function ArrowElbowToolbarItem() {
-	return <ToolbarItem tool="arrow-elbow" />
-}
-
-/** @public @react */
 export function TextToolbarItem() {
 	return <ToolbarItem tool="text" />
 }

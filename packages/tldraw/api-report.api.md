@@ -197,9 +197,6 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 export function ArrowDownToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function ArrowElbowToolbarItem(): JSX_2.Element;
-
-// @public (undocumented)
 export function ArrowheadStylePickerSet({ styles }: StylePickerSetProps): JSX_2.Element | null;
 
 // @public (undocumented)
@@ -208,33 +205,20 @@ export function ArrowLeftToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export function ArrowRightToolbarItem(): JSX_2.Element;
 
-// @public (undocumented)
+// @public
 export interface ArrowShapeOptions {
-    // (undocumented)
     readonly arcArrowCenterSnapDistance: number;
-    // (undocumented)
     readonly elbowArrowAxisSnapDistance: number;
-    // (undocumented)
     readonly elbowArrowCenterSnapDistance: number;
-    // (undocumented)
     readonly elbowArrowEdgeSnapDistance: number;
-    // (undocumented)
     readonly elbowArrowPointSnapDistance: number;
-    // (undocumented)
     readonly elbowMidpointSnapDistance: number;
-    // (undocumented)
     readonly elbowMinSegmentLengthToShowMidpointHandle: number;
-    // (undocumented)
     readonly expandElbowLegLength: Record<TLDefaultSizeStyle, number>;
-    // (undocumented)
     readonly hoverPreciseTimeout: number;
-    // (undocumented)
     readonly labelCenterSnapDistance: number;
-    // (undocumented)
+    readonly minElbowHandleDistance: number;
     readonly minElbowLegLength: Record<TLDefaultSizeStyle, number>;
-    // (undocumented)
-    readonly minHandleDistance: number;
-    // (undocumented)
     readonly pointingPreciseTimeout: number;
 }
 

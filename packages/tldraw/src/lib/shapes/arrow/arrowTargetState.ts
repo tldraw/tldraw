@@ -153,7 +153,7 @@ export function updateArrowTargetState({
 	})
 
 	const zoomLevel = editor.getZoomLevel()
-	const minDistScaled2 = (util.options.minHandleDistance / zoomLevel) ** 2
+	const minDistScaled2 = (util.options.minElbowHandleDistance / zoomLevel) ** 2
 
 	const targetCenterInPageSpace = targetTransform.applyToPoint(targetCenterInTargetSpace)
 	for (const side of objectMapKeys(handlesInPageSpace)) {
