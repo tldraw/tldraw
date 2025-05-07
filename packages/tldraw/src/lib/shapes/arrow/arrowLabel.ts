@@ -146,7 +146,7 @@ function getArrowLabelRange(editor: Editor, shape: TLArrowShape, info: TLArrowIn
 
 	const labelSize = getArrowLabelSize(editor, shape)
 	const labelToArrowPadding = getLabelToArrowPadding(shape)
-	const paddingT = labelToArrowPadding / bodyGeom.length
+	const paddingRelative = labelToArrowPadding / bodyGeom.length
 
 	// we can calculate the range by sticking the center of the label at the very start/end of the
 	// arrow, and seeing where the label intersects with the arrow. Then, if we move the label's
@@ -162,8 +162,8 @@ function getArrowLabelRange(editor: Editor, shape: TLArrowShape, info: TLArrowIn
 		endBox = Box.FromCenter(info.end.point, labelSize).expandBy(labelToArrowPadding)
 	} else {
 		// for other arrows, we move along the arrow by the padding amount to find the start/end points
-		const startPoint = bodyGeom.interpolateAlongEdge(paddingT)
-		const endPoint = bodyGeom.interpolateAlongEdge(1 - paddingT)
+		const startPoint = bodyGeom.interpolateAlongEdge(paddingRelative)
+		const endPoint = bodyGeom.interpolateAlongEdge(1 - paddingRelative)
 		dbgPoints.push(startPoint, endPoint)
 		startBox = Box.FromCenter(startPoint, labelSize)
 		endBox = Box.FromCenter(endPoint, labelSize)
@@ -174,12 +174,12 @@ function getArrowLabelRange(editor: Editor, shape: TLArrowShape, info: TLArrowIn
 	const startConstrained = furthest(info.start.point, startIntersections)
 	const endConstrained = furthest(info.end.point, endIntersections)
 
-	let startT = startConstrained ? bodyGeom.uninterpolateAlongEdge(startConstrained) : 0.5
-	let endT = endConstrained ? bodyGeom.uninterpolateAlongEdge(endConstrained) : 0.5
+	let startRelative = startConstrained ? bodyGeom.uninterpolateAlongEdge(startConstrained) : 0.5
+	let endRelative = endConstrained ? bodyGeom.uninterpolateAlongEdge(endConstrained) : 0.5
 
-	if (startT > endT) {
-		startT = 0.5
-		endT = 0.5
+	if (startRelative > endRelative) {
+		startRelative = 0.5
+		endRelative = 0.5
 	}
 
 	for (const pt of [...startIntersections, ...endIntersections, ...dbgPoints]) {
@@ -209,7 +209,7 @@ function getArrowLabelRange(editor: Editor, shape: TLArrowShape, info: TLArrowIn
 		})
 	)
 
-	return { start: startT, end: endT, dbg }
+	return { start: startRelative, end: endRelative, dbg }
 }
 
 interface ArrowheadInfo {
@@ -232,7 +232,7 @@ export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
 	const range = getArrowLabelRange(editor, shape, info)
 	if (range.dbg) debugGeom.push(...range.dbg)
 
-	const clampedPosition = getClampedPosition(editor, shape, range, arrowheadInfo)
+	const clampedPosition = getClampedPosition(shape, range, arrowheadInfo)
 	const bodyGeom = arrowBodyGeometryCache.get(editor, shape.id)!
 	const labelCenter = bodyGeom.interpolateAlongEdge(clampedPosition)
 	const labelSize = getArrowLabelSize(editor, shape)
@@ -241,24 +241,16 @@ export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
 }
 
 function getClampedPosition(
-	editor: Editor,
 	shape: TLArrowShape,
 	range: { start: number; end: number },
 	arrowheadInfo: ArrowheadInfo
 ) {
 	const { hasEndArrowhead, hasEndBinding, hasStartBinding, hasStartArrowhead } = arrowheadInfo
-	// TODO #elbow-arrow: restore snapping
 	const clampedPosition = clamp(
 		shape.props.labelPosition,
 		hasStartArrowhead || hasStartBinding ? range.start : 0,
 		hasEndArrowhead || hasEndBinding ? range.end : 1
 	)
-	// const snapDistance = Math.min(0.02, (500 / arrowLength) * 0.02)
-
-	// clampedPosition =
-	// 	clampedPosition >= 0.5 - snapDistance && clampedPosition <= 0.5 + snapDistance
-	// 		? 0.5
-	// 		: clampedPosition
 
 	return clampedPosition
 }
