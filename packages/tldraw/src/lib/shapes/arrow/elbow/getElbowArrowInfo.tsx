@@ -181,6 +181,7 @@ export function getElbowArrowInfo(
 
 	const info: ElbowArrowInfoWithoutRoute = {
 		options,
+		swapOrder,
 		A: {
 			isPoint: aBinding.isPoint,
 			target: aBinding.target,
@@ -234,7 +235,6 @@ export function getElbowArrowInfo(
 
 	return {
 		...info,
-		swapOrder,
 		route,
 		midXRange: mxRange
 			? swapOrder

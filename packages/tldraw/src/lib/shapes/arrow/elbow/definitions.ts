@@ -1,41 +1,92 @@
 import { Box, ElbowArrowSnap, Geometry2d, TLShapeId, Vec, VecLike, VecModel } from '@tldraw/editor'
 
-/** @public */
+/**
+ * The side of a box that an elbow arrow could enter/exit from.
+ * @public
+ */
 export type ElbowArrowSide = 'top' | 'right' | 'bottom' | 'left'
 
-/** @internal */
+/**
+ * The reason a particular side of a shape was chosen for an elbow arrow to enter / exit. Used only
+ * for debugging information.
+ *
+ * - `manual`: The side was chosen because the user indicated this was the desired side
+ * - `auto`: The side was chosen automatically based on heuristics for nice-looking arrows
+ * - `fallback`: We couldn't draw a route to the edge the user indicated, so fell back to our
+ *   heuristics
+ *
+ * @internal
+ */
 export type ElbowArrowSideReason = 'manual' | 'auto' | 'fallback'
 
-/** @public */
+/**
+ * A route for an elbow arrow.
+ *
+ * @public
+ */
 export interface ElbowArrowRoute {
+	/**
+	 * The name of the route - this is used only for debugging.
+	 * @internal
+	 */
 	name: string
+	/** The vertices of the route. Draw a line through them to see the route. */
 	points: Vec[]
+	/** The total distance of the route, in arrow-space pixels. */
 	distance: number
-	/** @internal */
+	/**
+	 * Why did we pick edge A?
+	 * @internal
+	 */
 	aEdgePicking: ElbowArrowSideReason
-	/** @internal */
+	/**
+	 * Why did we pick edge B?
+	 * @internal
+	 */
 	bEdgePicking: ElbowArrowSideReason
+	/**
+	 * Some points on the line are there for more informative than display reasons - e.g. where the
+	 * midpoint handle is. If we draw these in our "draw" style, the line will look weird. We still
+	 * need them for some of the calculations we do, but we want to skip them specifically when
+	 * rendering the arrow.
+	 */
 	skipPointsWhenDrawing: Set<Vec>
+	/**
+	 * The midpoint handle of the route, if any.
+	 */
 	midpointHandle: ElbowArrowMidpointHandle | null
 }
 
-/** @public */
+/**
+ * Part of an {@link ElbowArrowRoute} that describes a handle for dragging the midpoint line, a line
+ * roughly halfway between the two shapes.
+ * @public
+ */
 export interface ElbowArrowMidpointHandle {
 	axis: 'x' | 'y'
+	/** The start point of the segment in the route that the handle is on. */
 	segmentStart: VecLike
+	/** The end point of the segment in the route that the handle is on. */
 	segmentEnd: VecLike
+	/** The position of the handle, in arrow-space. */
 	point: VecLike
 }
 
 export const ElbowArrowSides = ['right', 'bottom', 'left', 'top'] as const
 
-/** @public */
+/**
+ * Extracted from {@link ArrowShapeOptions}. Options for one specific arrow.
+ * @public
+ */
 export interface ElbowArrowOptions {
 	expandElbowLegLength: number
 	minElbowLegLength: number
 	elbowMidpoint: number
 }
 
+/**
+ * Vectors that point out of each side of a box.
+ */
 export const ElbowArrowSideDeltas = {
 	top: { x: 0, y: -1 },
 	right: { x: 1, y: 0 },
@@ -43,6 +94,9 @@ export const ElbowArrowSideDeltas = {
 	left: { x: -1, y: 0 },
 } as const satisfies Record<ElbowArrowSide, VecModel>
 
+/**
+ * The axis along when each side of a box lies.
+ */
 export const ElbowArrowSideAxes = {
 	left: 'x',
 	right: 'x',
@@ -50,6 +104,9 @@ export const ElbowArrowSideAxes = {
 	bottom: 'y',
 } as const satisfies Record<ElbowArrowSide, 'x' | 'y'>
 
+/**
+ * The opposite of each side of a box.
+ */
 export const ElbowArrowSideOpposites = {
 	top: 'bottom',
 	right: 'left',
@@ -183,6 +240,9 @@ export interface ElbowArrowTargetBox extends ElbowArrowBox {
 	 * The geometry of the bound shape, in arrow space.
 	 */
 	geometry: Geometry2d | null
+	/**
+	 * Are we treating this target as a single point in space rather than a bounding box?
+	 */
 	isPoint: boolean
 }
 
@@ -193,8 +253,25 @@ export interface ElbowArrowInfoWithoutRoute {
 	 */
 	options: ElbowArrowOptions
 
+	/**
+	 * If false, A is the start shape and B is the end shape. If true, A is the end shape and B is
+	 * the start shape.
+	 */
+	swapOrder: boolean
+
+	/**
+	 * One of the two shapes we're drawing an arrow between. Could be either the start or end
+	 * depending on `swapOrder`.
+	 */
 	A: ElbowArrowTargetBox
+	/**
+	 * The other shape we're drawing an arrow between. Could be either the start or end
+	 * depending on `swapOrder`.
+	 */
 	B: ElbowArrowTargetBox
+	/**
+	 * The common bounding box of A and B.
+	 */
 	common: ElbowArrowBox
 
 	/**
@@ -219,12 +296,6 @@ export interface ElbowArrowInfoWithoutRoute {
 
 /** @public */
 export interface ElbowArrowInfo extends ElbowArrowInfoWithoutRoute {
-	/**
-	 * If false, A is the start shape and B is the end shape. If true, A is the end shape and B is
-	 * the start shape.
-	 */
-	swapOrder: boolean
-
 	/**
 	 * The route of the arrow.
 	 */

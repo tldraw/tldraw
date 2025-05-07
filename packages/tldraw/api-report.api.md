@@ -1076,37 +1076,31 @@ export interface ElbowArrowInfo extends ElbowArrowInfoWithoutRoute {
         lo: number;
     } | null;
     route: ElbowArrowRoute | null;
-    swapOrder: boolean;
 }
 
 // @public (undocumented)
 export interface ElbowArrowInfoWithoutRoute {
-    // (undocumented)
     A: ElbowArrowTargetBox;
-    // (undocumented)
     B: ElbowArrowTargetBox;
-    // (undocumented)
     common: ElbowArrowBox;
     gapX: number;
     gapY: number;
     midX: null | number;
     midY: null | number;
     options: ElbowArrowOptions;
+    swapOrder: boolean;
 }
 
-// @public (undocumented)
+// @public
 export interface ElbowArrowMidpointHandle {
     // (undocumented)
     axis: 'x' | 'y';
-    // (undocumented)
     point: VecLike;
-    // (undocumented)
     segmentEnd: VecLike;
-    // (undocumented)
     segmentStart: VecLike;
 }
 
-// @public (undocumented)
+// @public
 export interface ElbowArrowOptions {
     // (undocumented)
     elbowMidpoint: number;
@@ -1124,28 +1118,24 @@ export interface ElbowArrowRange {
     min: number;
 }
 
-// @public (undocumented)
+// @public
 export interface ElbowArrowRoute {
-    // @internal (undocumented)
+    // @internal
     aEdgePicking: ElbowArrowSideReason;
-    // @internal (undocumented)
+    // @internal
     bEdgePicking: ElbowArrowSideReason;
-    // (undocumented)
     distance: number;
-    // (undocumented)
     midpointHandle: ElbowArrowMidpointHandle | null;
-    // (undocumented)
+    // @internal
     name: string;
-    // (undocumented)
     points: Vec[];
-    // (undocumented)
     skipPointsWhenDrawing: Set<Vec>;
 }
 
-// @public (undocumented)
+// @public
 export type ElbowArrowSide = 'bottom' | 'left' | 'right' | 'top';
 
-// @internal (undocumented)
+// @internal
 export type ElbowArrowSideReason = 'auto' | 'fallback' | 'manual';
 
 // @public (undocumented)
@@ -1154,7 +1144,6 @@ export interface ElbowArrowTargetBox extends ElbowArrowBox {
     edges: ElbowArrowBoxEdges;
     geometry: Geometry2d | null;
     isExact: boolean;
-    // (undocumented)
     isPoint: boolean;
     minEndSegmentLength: number;
     target: Vec;

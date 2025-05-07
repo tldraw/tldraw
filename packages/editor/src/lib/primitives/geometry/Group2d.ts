@@ -170,8 +170,12 @@ export class Group2d extends Geometry2d {
 
 		assert(closestChild)
 
-		const childT = closestChild.child.uninterpolateAlongEdge(point, filters)
-		const childTLength = lerp(closestChild.startLength, closestChild.endLength, childT)
+		const normalizedDistanceInChild = closestChild.child.uninterpolateAlongEdge(point, filters)
+		const childTLength = lerp(
+			closestChild.startLength,
+			closestChild.endLength,
+			normalizedDistanceInChild
+		)
 		return childTLength / totalLength
 	}
 
