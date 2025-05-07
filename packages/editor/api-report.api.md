@@ -2935,6 +2935,7 @@ export class TextManager {
         fontWeight: string;
         lineHeight: number;
         minWidth?: null | number;
+        otherStyles?: Record<string, string>;
         padding: string;
     }): BoxModel & {
         scrollWidth: number;
@@ -3777,6 +3778,8 @@ export interface TLMeasureTextSpanOpts {
     height: number;
     // (undocumented)
     lineHeight: number;
+    // (undocumented)
+    otherStyles?: Record<string, string>;
     // (undocumented)
     overflow: 'truncate-clip' | 'truncate-ellipsis' | 'wrap';
     // (undocumented)

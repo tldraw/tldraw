@@ -969,6 +969,8 @@ input,
 
 .tl-rich-text p {
 	margin: 0;
+	/* Depending on the extensions, <p> tags can be empty, without a <br />. */
+	min-height: 1lh;
 }
 
 .tl-rich-text ul,
@@ -976,6 +978,8 @@ input,
 	text-align: left;
 	margin: 0;
 	padding-left: 3.25ch;
+	/* Some resets, like Tailwind, nix the list styling. */
+	list-style: revert;
 }
 
 .tl-rich-text ol:has(> li:nth-child(10)) {
