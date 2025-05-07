@@ -1,4 +1,4 @@
-import { Vec } from '../Vec'
+import { Vec, VecLike } from '../Vec'
 import { Geometry2dFilters, Geometry2dOptions } from './Geometry2d'
 import { Polyline2d } from './Polyline2d'
 
@@ -52,7 +52,7 @@ export class CubicBezier2d extends Polyline2d {
 		return CubicBezier2d.GetAtT(this, 0.5)
 	}
 
-	nearestPoint(A: Vec): Vec {
+	nearestPoint(A: VecLike): Vec {
 		let nearest: Vec | undefined
 		let dist = Infinity
 		let d: number

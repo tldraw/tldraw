@@ -1,5 +1,5 @@
 import { Box } from '../Box'
-import { Vec } from '../Vec'
+import { Vec, VecLike } from '../Vec'
 import { PI } from '../utils'
 import { Arc2d } from './Arc2d'
 import { Edge2d } from './Edge2d'
@@ -65,7 +65,7 @@ export class Stadium2d extends Geometry2d {
 		}
 	}
 
-	nearestPoint(A: Vec): Vec {
+	nearestPoint(A: VecLike): Vec {
 		let nearest: Vec | undefined
 		let dist = Infinity
 		let _d: number
@@ -84,7 +84,7 @@ export class Stadium2d extends Geometry2d {
 		return nearest
 	}
 
-	hitTestLineSegment(A: Vec, B: Vec): boolean {
+	hitTestLineSegment(A: VecLike, B: VecLike): boolean {
 		const { a, b, c, d } = this
 		return [a, b, c, d].some((edge) => edge.hitTestLineSegment(A, B))
 	}

@@ -35,7 +35,7 @@ export class Group2d extends Geometry2d {
 			.flatMap((c) => c.getVertices(filters))
 	}
 
-	override nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec {
+	override nearestPoint(point: VecLike, filters?: Geometry2dFilters): Vec {
 		let dist = Infinity
 		let nearest: Vec | undefined
 
@@ -73,7 +73,7 @@ export class Group2d extends Geometry2d {
 	}
 
 	override hitTestPoint(
-		point: Vec,
+		point: VecLike,
 		margin: number,
 		hitInside: boolean,
 		filters = Geometry2dFilters.EXCLUDE_LABELS
