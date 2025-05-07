@@ -1,15 +1,13 @@
 import {
-	Arc2d,
-	Geometry2d,
 	Group2d,
 	StateNode,
 	TLArrowShape,
 	TLPointerEventInfo,
 	TLShapeId,
 	Vec,
-	getPointInArcT,
 } from '@tldraw/editor'
-import { getArrowInfo } from '../../../shapes/arrow/shared'
+import { ArrowShapeUtil } from '../../../shapes/arrow/ArrowShapeUtil'
+import { arrowBodyGeometryCache } from '../../../shapes/arrow/arrowLabel'
 
 export class PointingArrowLabel extends StateNode {
 	static override id = 'pointing_arrow_label'
@@ -89,30 +87,32 @@ export class PointingArrowLabel extends StateNode {
 		const shape = this.editor.getShape<TLArrowShape>(this.shapeId)
 		if (!shape) return
 
-		const info = getArrowInfo(this.editor, shape)!
+		const options = this.editor.getShapeUtil<ArrowShapeUtil>('arrow').options
+		const geometry = arrowBodyGeometryCache.get(this.editor, shape.id)!
+		const transform = this.editor.getShapePageTransform(shape.id)
 
-		const groupGeometry = this.editor.getShapeGeometry<Group2d>(shape)
-		const bodyGeometry = groupGeometry.children[0] as Geometry2d
-		const pointInShapeSpace = this.editor.getPointInShapeSpace(
-			shape,
-			this.editor.inputs.currentPagePoint
-		)
-		const nearestPoint = bodyGeometry.nearestPoint(
-			Vec.Add(pointInShapeSpace, this._labelDragOffset)
-		)
+		const pointInShapeSpace = this.editor
+			.getPointInShapeSpace(shape, this.editor.inputs.currentPagePoint)
+			.add(this._labelDragOffset)
 
-		let nextLabelPosition
-		if (info.isStraight) {
-			// straight arrows
-			const lineLength = Vec.Dist(info.start.point, info.end.point)
-			const segmentLength = Vec.Dist(info.end.point, nearestPoint)
-			nextLabelPosition = 1 - segmentLength / lineLength
-		} else {
-			const { _center, measure, angleEnd, angleStart } = groupGeometry.children[0] as Arc2d
-			nextLabelPosition = getPointInArcT(measure, angleStart, angleEnd, _center.angle(nearestPoint))
-		}
+		let nextLabelPosition = arrowBodyGeometryCache
+			.get(this.editor, shape.id)!
+			.uninterpolateAlongEdge(pointInShapeSpace)
 
 		if (isNaN(nextLabelPosition)) {
+			nextLabelPosition = 0.5
+		}
+
+		const nextLabelPoint = transform.applyToPoint(geometry.interpolateAlongEdge(nextLabelPosition))
+		const labelCenterPoint = transform.applyToPoint(geometry.interpolateAlongEdge(0.5))
+
+		if (
+			Vec.DistMin(
+				nextLabelPoint,
+				labelCenterPoint,
+				options.labelCenterSnapDistance / this.editor.getZoomLevel()
+			)
+		) {
 			nextLabelPosition = 0.5
 		}
 

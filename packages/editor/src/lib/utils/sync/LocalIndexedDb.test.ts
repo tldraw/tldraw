@@ -3,7 +3,7 @@ import { openDB } from 'idb'
 import { hardReset } from './hardReset'
 import { getAllIndexDbNames, LocalIndexedDb } from './LocalIndexedDb'
 
-const schema = createTLSchema({ shapes: {} })
+const schema = createTLSchema({ shapes: {}, bindings: {} })
 describe('LocalIndexedDb', () => {
 	beforeEach(() => {
 		jest.useRealTimers()
