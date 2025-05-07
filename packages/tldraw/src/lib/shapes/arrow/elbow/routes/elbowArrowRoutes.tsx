@@ -359,68 +359,35 @@ export function routeRightToRight(info: ElbowArrowWorkingInfo): ElbowArrowRoute 
 
 const routes = {
 	top: {
-		top: (info) => {
-			info.apply(ElbowArrowTransform.Rotate270)
-			return routeRightToRight(info)
-		},
-		left: (info) => {
-			info.apply(ElbowArrowTransform.Rotate270)
-			return routeRightToTop(info)
-		},
-		bottom: (info) => {
-			info.apply(ElbowArrowTransform.Rotate270)
-			return routeRightToLeft(info)
-		},
-		right: (info) => {
-			info.apply(ElbowArrowTransform.Rotate270)
-			return routeRightToBottom(info)
-		},
+		top: [ElbowArrowTransform.Rotate270, routeRightToRight],
+		left: [ElbowArrowTransform.Rotate270, routeRightToTop],
+		bottom: [ElbowArrowTransform.Rotate270, routeRightToLeft],
+		right: [ElbowArrowTransform.Rotate270, routeRightToBottom],
 	},
 	right: {
-		top: routeRightToTop,
-		right: routeRightToRight,
-		bottom: routeRightToBottom,
-		left: routeRightToLeft,
+		top: [ElbowArrowTransform.Identity, routeRightToTop],
+		right: [ElbowArrowTransform.Identity, routeRightToRight],
+		bottom: [ElbowArrowTransform.Identity, routeRightToBottom],
+		left: [ElbowArrowTransform.Identity, routeRightToLeft],
 	},
 	bottom: {
-		top: (info) => {
-			info.apply(ElbowArrowTransform.Rotate90)
-			return routeRightToLeft(info)
-		},
-		left: (info) => {
-			info.apply(ElbowArrowTransform.Rotate90)
-			return routeRightToBottom(info)
-		},
-		bottom: (info) => {
-			info.apply(ElbowArrowTransform.Rotate90)
-			return routeRightToRight(info)
-		},
-		right: (info) => {
-			info.apply(ElbowArrowTransform.Rotate90)
-			return routeRightToTop(info)
-		},
+		top: [ElbowArrowTransform.Rotate90, routeRightToLeft],
+		left: [ElbowArrowTransform.Rotate90, routeRightToBottom],
+		bottom: [ElbowArrowTransform.Rotate90, routeRightToRight],
+		right: [ElbowArrowTransform.Rotate90, routeRightToTop],
 	},
 	left: {
-		top: (info) => {
-			info.apply(ElbowArrowTransform.Rotate180)
-			return routeRightToBottom(info)
-		},
-		right: (info) => {
-			info.apply(ElbowArrowTransform.Rotate180)
-			return routeRightToLeft(info)
-		},
-		bottom: (info) => {
-			info.apply(ElbowArrowTransform.Rotate180)
-			return routeRightToTop(info)
-		},
-		left: (info) => {
-			info.apply(ElbowArrowTransform.Rotate180)
-			return routeRightToRight(info)
-		},
+		top: [ElbowArrowTransform.Rotate180, routeRightToBottom],
+		left: [ElbowArrowTransform.Rotate180, routeRightToLeft],
+		bottom: [ElbowArrowTransform.Rotate180, routeRightToTop],
+		right: [ElbowArrowTransform.Rotate180, routeRightToRight],
 	},
 } satisfies Record<
 	ElbowArrowSide,
-	Record<ElbowArrowSide, (info: ElbowArrowWorkingInfo) => ElbowArrowRoute | null>
+	Record<
+		ElbowArrowSide,
+		[ElbowArrowTransform, (info: ElbowArrowWorkingInfo) => ElbowArrowRoute | null]
+	>
 >
 
 export function tryRouteArrow(
@@ -428,7 +395,9 @@ export function tryRouteArrow(
 	aEdge: ElbowArrowSide,
 	bEdge: ElbowArrowSide
 ): ElbowArrowRoute | null {
-	const route = routes[aEdge][bEdge](info)
+	const [transform, routeFn] = routes[aEdge][bEdge]
+	info.apply(transform)
+	const route = routeFn(info)
 	info.reset()
 	return route
 }
