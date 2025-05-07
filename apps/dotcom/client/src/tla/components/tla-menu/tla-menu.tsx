@@ -23,9 +23,9 @@ export function TlaMenuControlGroup({ children }: { children: ReactNode }) {
 // A row for a single control, usually label + input
 export function TlaMenuControl({ children, title }: { children: ReactNode; title?: string }) {
 	return (
-		<label className={styles.control} title={title}>
+		<div className={classNames('tla-control', styles.control)} title={title}>
 			{children}
-		</label>
+		</div>
 	)
 }
 
@@ -71,7 +71,7 @@ export function TlaMenuControlInfoTooltip({
 
 // A label for a control
 export function TlaMenuControlLabel({ children }: { children: ReactNode }) {
-	return <div className={classNames(styles.label, 'tla-text_ui__medium')}>{children}</div>
+	return <label className={classNames(styles.label, 'tla-text_ui__medium')}>{children}</label>
 }
 
 // A detail

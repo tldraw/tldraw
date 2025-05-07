@@ -129,6 +129,7 @@ import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
 import { PI, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
+import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { dataUrlToFile } from '../utils/assets'
 import { debugFlags } from '../utils/debug-flags'
 import {
@@ -4574,7 +4575,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					this.fonts.trackFontsForShape(shape)
 					return this.getShapeUtil(shape).getGeometry(shape, opts)
 				},
-				{ areRecordsEqual: (a, b) => a.props === b.props }
+				{ areRecordsEqual: areShapesContentEqual }
 			)
 		}
 		return this._shapeGeometryCaches[context].get(
@@ -4622,9 +4623,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	@computed private _getShapeHandlesCache(): ComputedCache<TLHandle[] | undefined, TLShape> {
-		return this.store.createComputedCache('handles', (shape) => {
-			return this.getShapeUtil(shape).getHandles?.(shape)
-		})
+		return this.store.createComputedCache(
+			'handles',
+			(shape) => {
+				return this.getShapeUtil(shape).getHandles?.(shape)
+			},
+			{
+				areRecordsEqual: areShapesContentEqual,
+			}
+		)
 	}
 
 	/**
@@ -5845,9 +5852,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed
 	private _getBindingsIndexCache() {
 		const index = bindingsIndex(this)
-		return this.store.createComputedCache<TLBinding[], TLShape>('bindingsIndex', (shape) => {
-			return index.get().get(shape.id)
-		})
+		return this.store.createComputedCache<TLBinding[], TLShape>(
+			'bindingsIndex',
+			(shape) => {
+				return index.get().get(shape.id)
+			},
+			// we can ignore the shape equality check here because the index is
+			// computed incrementally based on what bindings are in the store
+			{ areRecordsEqual: () => true }
+		)
 	}
 
 	/**
@@ -10214,7 +10227,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					// If the camera behavior is "zoom" and the ctrl key is pressed, then pan;
 					// If the camera behavior is "pan" and the ctrl key is not pressed, then zoom
-					if (inputs.ctrlKey) behavior = wheelBehavior === 'pan' ? 'zoom' : 'pan'
+					if (info.ctrlKey) behavior = wheelBehavior === 'pan' ? 'zoom' : 'pan'
 
 					switch (behavior) {
 						case 'zoom': {
