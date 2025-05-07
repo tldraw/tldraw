@@ -5,6 +5,7 @@ import { TLBaseShape } from './TLBaseShape'
 export interface TLShapeCrop {
 	topLeft: VecModel
 	bottomRight: VecModel
+	isCircle?: boolean
 }
 
 /** @public */

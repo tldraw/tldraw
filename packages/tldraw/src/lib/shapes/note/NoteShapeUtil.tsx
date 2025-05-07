@@ -7,7 +7,6 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
-	TLFontFace,
 	TLHandle,
 	TLNoteShape,
 	TLNoteShapeProps,
@@ -228,7 +227,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return renderPlaintextFromRichText(this.editor, shape.props.richText)
 	}
 
-	override getFontFaces(shape: TLNoteShape): TLFontFace[] {
+	override getFontFaces(shape: TLNoteShape) {
 		return getFontsFromRichText(this.editor, shape.props.richText, {
 			family: `tldraw_${shape.props.font}`,
 			weight: 'normal',

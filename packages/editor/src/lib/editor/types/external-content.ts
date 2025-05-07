@@ -52,7 +52,6 @@ export interface TLTextExternalContent extends TLBaseExternalContent {
 export interface TLFilesExternalContent extends TLBaseExternalContent {
 	type: 'files'
 	files: File[]
-	ignoreParent: boolean
 }
 
 /** @public */

@@ -13,7 +13,6 @@ import {
 	TLArrowBinding,
 	TLArrowShape,
 	TLArrowShapeProps,
-	TLFontFace,
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
@@ -116,7 +115,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return true
 	}
 
-	override getFontFaces(shape: TLArrowShape): TLFontFace[] {
+	override getFontFaces(shape: TLArrowShape) {
 		if (!shape.props.text) return EMPTY_ARRAY
 		return [DefaultFontFaces[`tldraw_${shape.props.font}`].normal.normal]
 	}
