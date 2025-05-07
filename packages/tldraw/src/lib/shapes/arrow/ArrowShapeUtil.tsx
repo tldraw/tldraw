@@ -1168,18 +1168,6 @@ function ArrowheadCrossDef() {
  * 2π are all considered parallel.
  */
 function anglesAreApproximatelyParallel(a: number, b: number, tolerance = 0.0001) {
-	// // Normalize angles to be between 0 and π
-	// // First, normalize a
-	// let normalizedA = a % (Math.PI * 2)
-	// if (normalizedA < 0) normalizedA += Math.PI * 2
-	// if (normalizedA >= Math.PI) normalizedA -= Math.PI
-
-	// // Then normalize b
-	// let normalizedB = b % (Math.PI * 2)
-	// if (normalizedB < 0) normalizedB += Math.PI * 2
-	// if (normalizedB >= Math.PI) normalizedB -= Math.PI
-
-	// Check if the angles are close to each other
 	const diff = Math.abs(a - b)
 
 	const isParallel = diff < tolerance
