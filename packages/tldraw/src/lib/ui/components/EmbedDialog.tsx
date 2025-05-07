@@ -97,7 +97,11 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 										className="tlui-embed-dialog__instruction__link"
 									>
 										Learn more.
-										<TldrawUiIcon icon="external-link" small />
+										<TldrawUiIcon
+											label={msg('edit-link-dialog.external-link')}
+											icon="external-link"
+											small
+										/>
 									</a>
 								)}
 							</div>

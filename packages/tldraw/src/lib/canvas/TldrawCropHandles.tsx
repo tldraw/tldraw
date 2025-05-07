@@ -1,5 +1,6 @@
 import { toDomPrecision } from '@tldraw/editor'
 import classNames from 'classnames'
+import { useTranslation } from '../ui/hooks/useTranslation/useTranslation'
 
 export interface TldrawCropHandlesProps {
 	size: number
@@ -16,6 +17,7 @@ export function TldrawCropHandles({
 }: TldrawCropHandlesProps) {
 	const cropStrokeWidth = toDomPrecision(size / 3)
 	const offset = cropStrokeWidth / 2
+	const msg = useTranslation()
 
 	return (
 		<svg className="tl-overlays__item">
@@ -29,7 +31,7 @@ export function TldrawCropHandles({
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.top_left"
 				role="button"
-				aria-label="top_left handle"
+				aria-label={msg('handle.crop.top-left')}
 			/>
 			{/* Top */}
 			<line
@@ -43,7 +45,7 @@ export function TldrawCropHandles({
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.top"
 				role="button"
-				aria-label="top handle"
+				aria-label={msg('handle.crop.top')}
 			/>
 			{/* Top right */}
 			<polyline
@@ -57,7 +59,7 @@ export function TldrawCropHandles({
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.top_right"
 				role="button"
-				aria-label="top_right handle"
+				aria-label={msg('handle.crop.top-right')}
 			/>
 			{/* Right */}
 			<line
@@ -71,7 +73,7 @@ export function TldrawCropHandles({
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.right"
 				role="button"
-				aria-label="right handle"
+				aria-label={msg('handle.crop.right')}
 			/>
 			{/* Bottom right */}
 			<polyline
@@ -83,7 +85,7 @@ export function TldrawCropHandles({
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.bottom_right"
 				role="button"
-				aria-label="bottom_right handle"
+				aria-label={msg('handle.crop.bottom-right')}
 			/>
 			{/* Bottom */}
 			<line
@@ -97,7 +99,7 @@ export function TldrawCropHandles({
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.bottom"
 				role="button"
-				aria-label="bottom handle"
+				aria-label={msg('handle.crop.bottom')}
 			/>
 			{/* Bottom left */}
 			<polyline
@@ -111,7 +113,7 @@ export function TldrawCropHandles({
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.bottom_left"
 				role="button"
-				aria-label="bottom_left handle"
+				aria-label={msg('handle.crop.bottom-left')}
 			/>
 			{/* Left */}
 			<line
@@ -125,7 +127,7 @@ export function TldrawCropHandles({
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.left"
 				role="button"
-				aria-label="left handle"
+				aria-label={msg('handle.crop.left')}
 			/>
 		</svg>
 	)

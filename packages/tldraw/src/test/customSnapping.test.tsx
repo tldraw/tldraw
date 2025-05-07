@@ -216,6 +216,7 @@ describe('custom handle snapping', () => {
 			return [
 				{
 					id: 'handle',
+					label: 'handle',
 					type: 'vertex',
 					x: shape.props.ownHandle.x,
 					y: shape.props.ownHandle.y,

@@ -1,6 +1,7 @@
 import classNames from 'classnames'
 import { ReactNode } from 'react'
 import { TldrawUiButton, TldrawUiIcon } from 'tldraw'
+import { defineMessages, useMsg } from '../../utils/i18n'
 import {
 	TlaTooltipArrow,
 	TlaTooltipContent,
@@ -9,6 +10,10 @@ import {
 	TlaTooltipTrigger,
 } from '../TlaTooltip/TlaTooltip'
 import styles from './menu.module.css'
+
+const messages = defineMessages({
+	help: { defaultMessage: 'Help' },
+})
 
 // Used to section areas of the menu, ie links vs snapshots
 export function TlaMenuSection({ children }: { children: ReactNode }) {
@@ -39,6 +44,8 @@ export function TlaMenuControlInfoTooltip({
 	onClick?(): void
 	children: ReactNode
 }) {
+	const helpMsg = useMsg(messages.help)
+
 	return (
 		<div className={styles.info}>
 			<TlaTooltipRoot>
@@ -50,11 +57,11 @@ export function TlaMenuControlInfoTooltip({
 							target="_blank nofollow noreferrer"
 							className={classNames('tlui-button tlui-button__icon', styles.info)}
 						>
-							<TldrawUiIcon icon="help-circle" small />
+							<TldrawUiIcon label={helpMsg} icon="help-circle" small />
 						</a>
 					) : (
 						<TldrawUiButton type="icon" className={styles.info}>
-							<TldrawUiIcon icon="help-circle" small />
+							<TldrawUiIcon label={helpMsg} icon="help-circle" small />
 						</TldrawUiButton>
 					)}
 				</TlaTooltipTrigger>

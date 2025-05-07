@@ -73,7 +73,7 @@ const ContextToolbarComponent = track(() => {
 							}}
 							onClick={() => editor.setStyleForSelectedShapes(DefaultSizeStyle, value)}
 						>
-							<TldrawUiIcon icon={icon} />
+							<TldrawUiIcon label="size" icon={icon} />
 						</div>
 					)
 				})}

@@ -1071,6 +1071,8 @@ export interface TLHandle {
     // (undocumented)
     index: IndexKey;
     // (undocumented)
+    label?: string;
+    // (undocumented)
     type: TLHandleType;
     // (undocumented)
     x: number;
