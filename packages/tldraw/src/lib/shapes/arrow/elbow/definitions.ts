@@ -305,7 +305,7 @@ export interface ElbowArrowInfo extends ElbowArrowInfoWithoutRoute {
 	midYRange: { lo: number; hi: number } | null
 }
 
-export interface ElbowArrowBinding {
+export interface ElbowArrowTerminal {
 	/**
 	 * The id of the shape we're binding to, if any.
 	 */

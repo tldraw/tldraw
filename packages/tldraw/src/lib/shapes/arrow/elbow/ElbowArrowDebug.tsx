@@ -34,8 +34,6 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 
 	return (
 		<>
-			{/* <DebugBox box={transformBox(info.expanded.A, info.scale)} stroke="orange" /> */}
-			{/* <DebugBox box={transformBox(info.expanded.B, info.scale)} stroke="lightskyblue" /> */}
 			{info.midX !== null && (
 				<DebugLine
 					a={{ x: info.midX, y: fullBox.minY }}

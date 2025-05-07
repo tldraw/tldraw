@@ -61,41 +61,6 @@ function getArrowPoints(
 			exhaustiveSwitchError(info, 'type')
 	}
 
-	// const PT = side === 'end' ? info.end.point : info.start.point
-	// const PB =
-	// 	info.type === 'elbow'
-	// 		? side === 'end'
-	// 			? info.route.path[info.route.path.length - 2]
-	// 			: info.route.path[1]
-	// 		: side === 'end'
-	// 			? info.start.point
-	// 			: info.end.point
-
-	// const compareLength =
-	// 	info.type === 'straight'
-	// 		? Vec.Dist(PB, PT)
-	// 		: info.type === 'arc'
-	// 			? Math.abs(info.bodyArc.length)
-	// 			: Vec.Dist(PB, PT) * 2 // todo: arc length for curved arrows
-
-	// const length = clamp(compareLength / 5, strokeWidth, strokeWidth * 3)
-
-	// let P0: VecLike
-
-	// if (info.type === 'straight' || info.type === 'elbow') {
-	// 	P0 = Vec.Nudge(PT, PB, length)
-	// } else {
-	// 	const ints = intersectCircleCircle(PT, length, info.handleArc.center, info.handleArc.radius)
-	// 	P0 =
-	// 		side === 'end'
-	// 			? info.handleArc.sweepFlag
-	// 				? ints[0]
-	// 				: ints[1]
-	// 			: info.handleArc.sweepFlag
-	// 				? ints[1]
-	// 				: ints[0]
-	// }
-
 	if (Vec.IsNaN(int)) {
 		int = point
 	}
