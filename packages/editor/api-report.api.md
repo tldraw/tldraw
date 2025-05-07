@@ -706,6 +706,7 @@ export const defaultTldrawOptions: {
     readonly actionShortcutsLocation: "swap";
     readonly adjacentShapeMargin: 10;
     readonly animationMediumMs: 320;
+    readonly autoplayVideos: true;
     readonly cameraMovingTimeoutMs: 64;
     readonly cameraSlideFriction: 0.09;
     readonly coarseDragDistanceSquared: 36;
@@ -3258,6 +3259,7 @@ export interface TldrawOptions {
     readonly adjacentShapeMargin: number;
     // (undocumented)
     readonly animationMediumMs: number;
+    readonly autoplayVideos: boolean;
     readonly branding?: string;
     // (undocumented)
     readonly cameraMovingTimeoutMs: number;

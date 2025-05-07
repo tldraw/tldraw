@@ -41,7 +41,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			h: 100,
 			assetId: null,
 			time: 0,
-			playing: true,
+			playing: this.editor.options.autoplayVideos,
 			url: '',
 			altText: '',
 		}
@@ -166,7 +166,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 									height="100%"
 									draggable={false}
 									playsInline
-									autoPlay
+									autoPlay={editor.options.autoplayVideos}
 									muted
 									loop
 									disableRemotePlayback

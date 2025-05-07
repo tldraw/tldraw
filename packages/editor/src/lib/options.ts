@@ -84,6 +84,10 @@ export interface TldrawOptions {
 	 * Branding name of the app, currently only used for adding aria-label for the application.
 	 */
 	readonly branding?: string
+	/**
+	 * Set the autoplay attribute of video shapes
+	 */
+	readonly autoplayVideos: boolean
 }
 
 /** @public */
@@ -131,4 +135,5 @@ export const defaultTldrawOptions = {
 	enableToolbarKeyboardShortcuts: true,
 	maxFontsToLoadBeforeRender: Infinity,
 	nonce: undefined,
+	autoplayVideos: true,
 } as const satisfies TldrawOptions
