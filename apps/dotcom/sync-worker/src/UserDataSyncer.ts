@@ -16,11 +16,14 @@ import { Kysely, sql } from 'kysely'
 import throttle from 'lodash.throttle'
 import { Logger } from './Logger'
 import {
+	userKeys,
 	fileKeys,
 	fileStateKeys,
+	groupKeys,
+	userGroupKeys,
+	userPresenceKeys,
 	getFetchUserDataSql,
 	parseResultRow,
-	userKeys,
 } from './getFetchEverythingSql'
 import { Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
@@ -245,6 +248,9 @@ export class UserDataSyncer {
 			user: null as any,
 			files: [],
 			fileStates: [],
+			groups: [],
+			userGroups: [],
+			userPresences: [],
 			lsn: '0/0',
 			mutationNumber: 0,
 		}
@@ -273,6 +279,15 @@ export class UserDataSyncer {
 							case 'file_state':
 								initialData.fileStates.push(parseResultRow(fileStateKeys, row))
 								break
+							case 'group':
+								initialData.groups.push(parseResultRow(groupKeys, row))
+								break;
+							case 'user_group':
+								initialData.userGroups.push(parseResultRow(userGroupKeys, row))
+								break;
+							case 'user_presence':
+								initialData.userPresences.push(parseResultRow(userPresenceKeys, row))
+								break;
 							case 'lsn':
 								assert(typeof row.lsn === 'string', 'lsn should be a string')
 								initialData.lsn = row.lsn
@@ -345,12 +360,13 @@ export class UserDataSyncer {
 
 		const initialData = this.store.getCommittedData()!
 
-		const guestFileIds = initialData.files.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
+		const fileTopics = initialData.files.map((f) => 'file:' + f.id)
+		const groupTopics = initialData.groups.map((g) => 'group:' + g.id)
 
 		const res = await getReplicator(this.env).registerUser({
 			userId: this.userId,
 			lsn: initialData.lsn,
-			guestFileIds,
+			topicIds: ['user:' + this.userId, ...fileTopics, ...groupTopics],
 			bootId: this.state.bootId,
 		})
 

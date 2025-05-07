@@ -1,14 +1,4 @@
-import {
-	DB,
-	TlaFile,
-	TlaFileState,
-	TlaGroup,
-	TlaRow,
-	TlaUser,
-	TlaUserGroup,
-	TlaUserPresence,
-	ZTable,
-} from '@tldraw/dotcom-shared'
+import { DB, TlaFile, TlaFileState, TlaRow, TlaUser, ZTable } from '@tldraw/dotcom-shared'
 import {
 	ExecutionQueue,
 	assert,
@@ -44,15 +34,7 @@ import {
 	getUserDurableObject,
 } from './utils/durableObjects'
 
-const relevantTables = stringEnum(
-	'user',
-	'file',
-	'file_state',
-	'user_mutation_number',
-	'group',
-	'user_group',
-	'user_presence'
-)
+const relevantTables = stringEnum('user', 'file', 'file_state', 'user_mutation_number')
 
 interface ReplicationEvent {
 	command: 'insert' | 'update' | 'delete'
@@ -61,7 +43,8 @@ interface ReplicationEvent {
 
 interface Change {
 	event: ReplicationEvent
-	topicId: string
+	userId: string
+	fileId: string | null
 	row: TlaRow
 	previous?: TlaRow
 }
@@ -75,91 +58,35 @@ const migrations: Migration[] = [
 	{
 		id: '000_seed',
 		code: `
-			CREATE TABLE IF NOT EXISTS active_user (
-				id TEXT PRIMARY KEY
+			CREATE TABLE active_user (
+				id TEXT PRIMARY KEY,
+				sequenceNumber INTEGER NOT NULL DEFAULT 0,
+				sequenceIdSuffix TEXT NOT NULL DEFAULT '',
+				lastUpdatedAt INTEGER NOT NULL DEFAULT 0
 			);
-			CREATE TABLE IF NOT EXISTS user_file_subscriptions (
+			CREATE TABLE user_topic_subscriptions (
 				userId TEXT,
-				fileId TEXT,
-				PRIMARY KEY (userId, fileId),
+				topicId TEXT,
+				PRIMARY KEY (userId, topicId),
 				FOREIGN KEY (userId) REFERENCES active_user(id) ON DELETE CASCADE
 			);
 			CREATE TABLE migrations (
 				id TEXT PRIMARY KEY,
 				code TEXT NOT NULL
 			);
-		`,
-	},
-	{
-		id: '001_add_sequence_number',
-		code: `
-			ALTER TABLE active_user ADD COLUMN sequenceNumber INTEGER NOT NULL DEFAULT 0;
-			ALTER TABLE active_user ADD COLUMN sequenceIdSuffix TEXT NOT NULL DEFAULT '';
-		`,
-	},
-	{
-		id: '002_add_last_updated_at',
-		code: `
-			ALTER TABLE active_user ADD COLUMN lastUpdatedAt INTEGER NOT NULL DEFAULT 0;
-		`,
-	},
-	{
-		id: '003_add_lsn_tracking',
-		code: `
-			CREATE TABLE IF NOT EXISTS meta (
+			CREATE TABLE meta (
 				lsn TEXT PRIMARY KEY,
 				slotName TEXT NOT NULL
 			);
-			-- The slot name references the replication slot in postgres.
-			-- If something ever gets messed up beyond mortal comprehension and we need to force all
-			-- clients to reboot, we can just change the slot name by altering the slotNamePrefix in the constructor.
 			INSERT INTO meta (lsn, slotName) VALUES ('0/0', 'init');
-		`,
-	},
-	{
-		id: '004_keep_event_log',
-		code: `
-		  CREATE TABLE history (
-				lsn TEXT NOT NULL,
-				userId TEXT NOT NULL,
-				fileId TEXT,
-				json TEXT NOT NULL
-			);
-			CREATE INDEX history_lsn_userId ON history (lsn, userId);
-			CREATE INDEX history_lsn_fileId ON history (lsn, fileId);
-			PRAGMA optimize;
-		`,
-	},
-	{
-		id: '005_add_history_timestamp',
-		code: `
-			ALTER TABLE history ADD COLUMN timestamp INTEGER NOT NULL DEFAULT 0;
-		`,
-	},
-	{
-		id: '006_topics',
-		code: `
-		  DROP TABLE history;
 			CREATE TABLE history (
 				lsn TEXT NOT NULL,
 				topicId TEXT NOT NULL,
-				json TEXT NOT NULL
+				json TEXT NOT NULL,
+				timestamp INTEGER NOT NULL DEFAULT 
 			);
 			CREATE INDEX history_lsn_topicId ON history (lsn, topicId);
-
-			CREATE TABLE user_topic (
-				userId TEXT NOT NULL,
-				topicId TEXT NOT NULL,
-				PRIMARY KEY (userId, topicId),
-				FOREIGN KEY (userId) REFERENCES active_user(id) ON DELETE CASCADE
-			);
-
-			-- for ever active user add a 'user:<userId>' topic
-			INSERT INTO user_topic (userId, topicId) SELECT id, 'user:' || id FROM active_user;
-			-- for user user file subscriptions add a 'file:<fileId>' topic
-			INSERT INTO user_topic (userId, topicId) SELECT userId, 'file:' || fileId FROM user_file_subscriptions;
-
-			DROP TABLE user_file_subscriptions;
+			PRAGMA optimize;
 		`,
 	},
 ]
@@ -194,7 +121,7 @@ type BootState =
 			type: 'connected'
 	  }
 
-export class TLPostgresReplicator extends DurableObject<Environment> {
+export class TLPostgresReplicator2 extends DurableObject<Environment> {
 	private sqlite: SqlStorage
 	private state: BootState
 	private measure: Analytics | undefined
@@ -508,9 +435,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 					this.handleEvent(collator, change, false)
 					this.sqlite.exec(
-						'INSERT INTO history (lsn, topicId, json, timestamp) VALUES (?, ?, ?, ?)',
+						'INSERT INTO history (lsn, userId, fileId, json, timestamp) VALUES (?, ?, ?, ?, ?)',
 						lsn,
-						change.topicId,
+						change.userId,
+						change.fileId,
 						JSON.stringify(change),
 						Date.now()
 					)
@@ -600,28 +528,23 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				row[col] = change.columnvalues[i]
 			})
 		}
-		let topicId = null as string | null
+
+		let userId = null as string | null
+		let fileId = null as string | null
 		switch (table) {
 			case 'user':
-				topicId = 'user:' + (row as TlaUser).id
+				userId = (row as TlaUser).id
 				break
 			case 'file':
-				topicId = 'file:' + (row as TlaFile).id
+				userId = (row as TlaFile).ownerId
+				fileId = (row as TlaFile).id
 				break
 			case 'file_state':
-				topicId = 'user:' + (row as TlaFileState).userId
+				userId = (row as TlaFileState).userId
+				fileId = (row as TlaFileState).fileId
 				break
 			case 'user_mutation_number':
-				topicId = 'user:' + (row as TlaFileState).userId
-				break
-			case 'group':
-				topicId = 'group:' + (row as TlaGroup).id
-				break
-			case 'user_group':
-				topicId = 'user:' + (row as TlaUserGroup).userId
-				break
-			case 'user_presence':
-				topicId = 'file:' + (row as TlaUserPresence).fileId
+				userId = (row as { userId: string }).userId
 				break
 			default: {
 				// assert never
@@ -629,7 +552,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			}
 		}
 
-		if (!topicId) return null
+		if (!userId) return null
 
 		return {
 			row,
@@ -638,7 +561,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				command: change.kind,
 				table,
 			},
-			topicId,
+			userId,
+			fileId,
 		}
 	}
 
@@ -686,16 +610,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				case 'user':
 					this.handleUserEvent(collator, change.row, { command, table })
 					break
-				case 'group':
-					this.handleGroupEvent(change, collator, { command, table })
-					break
-				case 'user_group':
-					this.handleUserGroupEvent(change, collator, { command, table })
-					break
-				case 'user_presence':
-					this.handleUserPresenceEvent(change, collator, { command, table })
-					break
-
 				default: {
 					const _x: never = table
 					this.captureException(new Error(`Unhandled table: ${table}`), { change })
@@ -704,74 +618,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			}
 		} catch (e) {
 			this.captureException(e)
-		}
-	}
-
-	private handleUserPresenceEvent(
-		change: Change,
-		collator: UserChangeCollator,
-		event: ReplicationEvent
-	) {
-		assert('userId' in change.row, 'userId is required')
-		assert('fileId' in change.row, 'fileId is required')
-		const impactedUserIds = this.sqlite.exec<{ userId: string }>(
-			'SELECT userId FROM user_topic WHERE topicId = ?',
-			'file:' + change.row.fileId
-		)
-		for (const { userId } of impactedUserIds) {
-			collator.addChange(userId, {
-				type: 'row_update',
-				row: change.row,
-				table: event.table as ZTable,
-				event: event.command,
-				userId,
-			})
-		}
-	}
-
-	private handleUserGroupEvent(
-		change: Change,
-		collator: UserChangeCollator,
-		event: ReplicationEvent
-	) {
-		assert('userId' in change.row, 'userId is required')
-		assert('groupId' in change.row, 'groupId is required')
-		collator.addChange(change.row.userId, {
-			type: 'row_update',
-			row: change.row,
-			table: event.table as ZTable,
-			event: event.command,
-			userId: change.row.userId,
-		})
-		if (change.event.command === 'insert') {
-			this.sqlite.exec(
-				`INSERT INTO user_topic (userId, topicId) VALUES (?, ?) ON CONFLICT (userId, topicId) DO NOTHING`,
-				change.row.userId,
-				'group:' + change.row.groupId
-			)
-		} else if (change.event.command === 'delete') {
-			this.sqlite.exec(
-				`DELETE FROM user_topic WHERE userId = ? AND topicId = ?`,
-				change.row.userId,
-				'group:' + change.row.groupId
-			)
-		}
-	}
-
-	private handleGroupEvent(change: Change, collator: UserChangeCollator, event: ReplicationEvent) {
-		assert('id' in change.row, 'id is required')
-		const impactedUserIds = this.sqlite.exec<{ userId: string }>(
-			'SELECT userId FROM user_topic WHERE topicId = ?',
-			'group:' + change.row.id
-		)
-		for (const { userId } of impactedUserIds) {
-			collator.addChange(userId, {
-				type: 'row_update',
-				row: change.row,
-				table: event.table as ZTable,
-				event: event.command,
-				userId,
-			})
 		}
 	}
 
@@ -799,16 +645,16 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		if (event.command === 'insert') {
 			if (!row.isFileOwner) {
 				this.sqlite.exec(
-					`INSERT INTO user_topic (userId, topicId) VALUES (?, ?) ON CONFLICT (userId, topicId) DO NOTHING`,
+					`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
 					row.userId,
-					'file:' + row.fileId
+					row.fileId
 				)
 			}
 		} else if (event.command === 'delete') {
 			this.sqlite.exec(
-				`DELETE FROM user_topic WHERE userId = ? AND topicId = ?`,
+				`DELETE FROM user_file_subscriptions WHERE userId = ? AND fileId = ?`,
 				row.userId,
-				'file:' + row.fileId
+				row.fileId
 			)
 		}
 		collator.addChange(row.userId, {
@@ -831,14 +677,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		const impactedUserIds = [
 			row.ownerId,
 			...this.sqlite
-				.exec('SELECT userId FROM user_topic WHERE topicId = ?', 'file:' + row.id)
+				.exec('SELECT userId FROM user_file_subscriptions WHERE fileId = ?', row.id)
 				.toArray()
 				.map((x) => x.userId as string),
 		]
 		// if the file state was deleted before the file, we might not have any impacted users
 		if (event.command === 'delete') {
 			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordDidDelete(row)
-			this.sqlite.exec(`DELETE FROM user_topic WHERE topicId = ?`, 'file:' + row.id)
+			this.sqlite.exec(`DELETE FROM user_file_subscriptions WHERE fileId = ?`, row.id)
 		} else if (event.command === 'update') {
 			assert('ownerId' in row, 'ownerId is required when updating file')
 			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordDidUpdate(row)
@@ -877,6 +723,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			event: event.command,
 			userId: row.id,
 		})
+		return [row.id]
 	}
 
 	private userIsActive(userId: string) {
@@ -940,7 +787,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private getResumeType(
 		lsn: string,
 		userId: string,
-		_topicIds: string[]
+		guestFileIds: string[]
 	): { type: 'done'; messages?: ZReplicationEventWithoutSequenceInfo[] } | { type: 'reboot' } {
 		const currentLsn = assertExists(this.getCurrentLsn())
 
@@ -959,25 +806,26 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			// not enough history, we can't resume
 			return { type: 'reboot' }
 		}
-		const topicIds = new Set(_topicIds)
 
-		const history = []
-		for (const row of this.sqlite.exec<{ json: string; lsn: string; topicId: string }>(
-			`
-			SELECT lsn, json, topicId
+		const history = this.sqlite
+			.exec<{ json: string; lsn: string }>(
+				`
+			SELECT lsn, json
 			FROM history
-			WHERE lsn > ?
+			WHERE
+			  lsn > ?
+				AND (
+				  userId = ? 
+					OR fileId IN (${guestFileIds.map((_, i) => '$' + (i + 1)).join(', ')})
+				)
 			ORDER BY rowid ASC
 		`,
-			lsn
-		)) {
-			if (topicIds.has(row.topicId)) {
-				history.push({
-					change: JSON.parse(row.json) as Change,
-					lsn: row.lsn,
-				})
-			}
-		}
+				lsn,
+				userId,
+				...guestFileIds
+			)
+			.toArray()
+			.map(({ json, lsn }) => ({ change: JSON.parse(json) as Change, lsn }))
 
 		if (history.length === 0) {
 			this.log.debug('getResumeType: no history to replay, all good', lsn)
@@ -1003,12 +851,12 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	async registerUser({
 		userId,
 		lsn,
-		topicIds,
+		guestFileIds,
 		bootId,
 	}: {
 		userId: string
 		lsn: string
-		topicIds: string[]
+		guestFileIds: string[]
 		bootId: string
 	}): Promise<{ type: 'done'; sequenceId: string; sequenceNumber: number } | { type: 'reboot' }> {
 		try {
@@ -1017,7 +865,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				await sleep(100)
 			}
 
-			this.log.debug('registering user', userId, lsn, bootId, topicIds)
+			this.log.debug('registering user', userId, lsn, bootId, guestFileIds)
 			this.logEvent({ type: 'register_user' })
 
 			// clear user and subscriptions
@@ -1029,21 +877,20 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				Date.now()
 			)
 
-			this.sqlite.exec(`DELETE FROM user_topic WHERE userId = ?`, userId)
-
-			for (const topicId of topicIds) {
+			this.sqlite.exec(`DELETE FROM user_file_subscriptions WHERE userId = ?`, userId)
+			for (const fileId of guestFileIds) {
 				this.sqlite.exec(
-					`INSERT INTO user_topic (userId, topicId) VALUES (?, ?) ON CONFLICT (userId, topicId) DO NOTHING`,
+					`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
 					userId,
-					topicId
+					fileId
 				)
 			}
-			this.log.debug('inserted file subscriptions', topicIds.length)
+			this.log.debug('inserted file subscriptions', guestFileIds.length)
 
 			this.reportActiveUsers()
 			this.log.debug('inserted active user')
 
-			const resume = this.getResumeType(lsn, userId, topicIds)
+			const resume = this.getResumeType(lsn, userId, guestFileIds)
 			if (resume.type === 'reboot') {
 				return { type: 'reboot' }
 			}

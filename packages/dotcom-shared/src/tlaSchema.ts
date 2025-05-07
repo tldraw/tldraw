@@ -76,6 +76,33 @@ export const file = table('file')
 	})
 	.primaryKey('id', 'ownerId', 'publishedSlug')
 
+export const group = table('group')
+	.columns({
+		id: string(),
+		name: string(),
+		createdAt: number(),
+		updatedAt: number(),
+	})
+	.primaryKey('id')
+
+export const user_group = table('user_group')
+	.columns({
+		userId: string(),
+		groupId: string(),
+		createdAt: number(),
+		updatedAt: number(),
+		role: string(),
+	})
+	.primaryKey('userId', 'groupId')
+
+export const user_presence = table('user_presence')
+	.columns({
+		userId: string(),
+		fileId: string(),
+		lastActivityAt: number(),
+	})
+	.primaryKey('userId', 'fileId')
+
 const fileRelationships = relationships(file, ({ one, many }) => ({
 	owner: one({
 		sourceField: ['ownerId'],
@@ -150,7 +177,7 @@ export interface DB {
 }
 
 export const schema = createSchema({
-	tables: [user, file, file_state],
+	tables: [user, file, file_state, group, user_group, user_presence],
 	relationships: [fileRelationships, fileStateRelationships],
 })
 
@@ -158,6 +185,9 @@ export type TlaSchema = typeof schema
 export type TlaUser = Row<typeof schema.tables.user>
 export type TlaFile = Row<typeof schema.tables.file>
 export type TlaFileState = Row<typeof schema.tables.file_state>
+export type TlaUserGroup = Row<typeof schema.tables.user_group>
+export type TlaGroup = Row<typeof schema.tables.group>
+export type TlaUserPresence = Row<typeof schema.tables.user_presence>
 
 interface AuthData {
 	sub: string | null
