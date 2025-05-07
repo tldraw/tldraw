@@ -1042,7 +1042,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     canEdit(): boolean;
     // (undocumented)
-    canEditInReadOnly(): boolean;
+    canEditInReadonly(): boolean;
     // (undocumented)
     canResize(shape: TLEmbedShape): boolean;
     // (undocumented)
