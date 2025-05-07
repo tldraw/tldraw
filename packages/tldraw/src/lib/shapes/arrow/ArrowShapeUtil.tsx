@@ -234,7 +234,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			{
 				id: ArrowHandles.End,
 				type: 'vertex',
-				index: 'a5' as IndexKey,
+				index: 'a3' as IndexKey,
 				x: info.end.handle.x,
 				y: info.end.handle.y,
 			},
@@ -244,7 +244,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			handles.push({
 				id: ArrowHandles.Middle,
 				type: 'virtual',
-				index: 'a3' as IndexKey,
+				index: 'a2' as IndexKey,
 				x: info.middle.x,
 				y: info.middle.y,
 			})
