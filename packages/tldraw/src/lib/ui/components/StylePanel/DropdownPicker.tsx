@@ -2,7 +2,6 @@ import { SharedStyle, StyleProp, tlmenus, useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { StyleValuesForUi } from '../../../styles'
-import { useBreakpoint } from '../../context/breakpoints'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
@@ -42,7 +41,6 @@ function DropdownPickerInner<T extends string>({
 	const msg = useTranslation()
 	const editor = useEditor()
 	const [isOpen, setIsOpen] = React.useState(false)
-	const breakpoint = useBreakpoint()
 
 	const icon = React.useMemo(
 		() => items.find((item) => value.type === 'shared' && item.value === value.value)?.icon,
