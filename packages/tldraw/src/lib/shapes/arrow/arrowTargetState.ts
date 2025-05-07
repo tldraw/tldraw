@@ -34,6 +34,7 @@ export interface UpdateArrowTargetStateOpts {
 	isPrecise: boolean
 	isExact: boolean
 	currentBinding: TLArrowBinding | undefined
+	/** The binding from the opposite end of the arrow, if one exists. */
 	otherBinding: TLArrowBinding | undefined
 }
 
@@ -158,8 +159,7 @@ export function updateArrowTargetState({
 	const targetCenterInPageSpace = targetTransform.applyToPoint(targetCenterInTargetSpace)
 	for (const side of objectMapKeys(handlesInPageSpace)) {
 		const handle = handlesInPageSpace[side]
-		const dist2 = Vec.Dist2(handle.point, targetCenterInPageSpace)
-		if (dist2 < minDistScaled2) {
+		if (Vec.DistMin(handle.point, targetCenterInPageSpace, minDistScaled2)) {
 			handle.isEnabled = false
 		}
 	}
@@ -353,7 +353,7 @@ export function updateArrowTargetState({
 const targetFilterFallback = { type: 'arrow' }
 
 /**
- * Funky math but we want the snap distance to be 4 at the minimum and either 16 or 16% of the
+ * Funky math but we want the snap distance to be 4 at the minimum and either 16 or 15% of the
  * smaller dimension of the target shape, whichever is smaller
  */
 function calculateSnapDistance(
