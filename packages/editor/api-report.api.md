@@ -1739,13 +1739,13 @@ export abstract class Geometry2d {
     // (undocumented)
     isLabel: boolean;
     // (undocumented)
-    isPointInBounds(point: Vec, margin?: number): boolean;
+    isPointInBounds(point: VecLike, margin?: number): boolean;
     // (undocumented)
     get length(): number;
     // (undocumented)
     abstract nearestPoint(point: VecLike, _filters?: Geometry2dFilters): Vec;
     // @deprecated (undocumented)
-    nearestPointOnLineSegment(A: Vec, B: Vec): Vec;
+    nearestPointOnLineSegment(A: VecLike, B: VecLike): Vec;
     // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
@@ -4284,17 +4284,17 @@ export function toPrecision(n: number, precision?: number): number;
 export class TransformedGeometry2d extends Geometry2d {
     constructor(geometry: Geometry2d, matrix: MatModel, opts?: TransformedGeometry2dOptions);
     // (undocumented)
-    distanceToLineSegment(A: Vec, B: Vec, filters?: Geometry2dFilters): number;
+    distanceToLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): number;
     // (undocumented)
-    distanceToPoint(point: Vec, hitInside?: boolean, filters?: Geometry2dFilters): number;
+    distanceToPoint(point: VecLike, hitInside?: boolean, filters?: Geometry2dFilters): number;
     // (undocumented)
     getSvgPathData(): string;
     // (undocumented)
     getVertices(filters: Geometry2dFilters): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec, B: Vec, distance?: number, filters?: Geometry2dFilters): boolean;
+    hitTestLineSegment(A: VecLike, B: VecLike, distance?: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
-    hitTestPoint(point: Vec, margin?: number, hitInside?: boolean, filters?: Geometry2dFilters): boolean;
+    hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): Vec[];
     // (undocumented)
@@ -4304,7 +4304,7 @@ export class TransformedGeometry2d extends Geometry2d {
     // (undocumented)
     intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[];
     // (undocumented)
-    nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec;
+    nearestPoint(point: VecLike, filters?: Geometry2dFilters): Vec;
     // (undocumented)
     transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d;
 }

@@ -217,7 +217,7 @@ export abstract class Geometry2d {
 	}
 
 	/** @deprecated Iterate the vertices instead. */
-	nearestPointOnLineSegment(A: Vec, B: Vec): Vec {
+	nearestPointOnLineSegment(A: VecLike, B: VecLike): Vec {
 		const { vertices } = this
 		let nearest: Vec | undefined
 		let dist = Infinity
@@ -235,7 +235,7 @@ export abstract class Geometry2d {
 		return nearest
 	}
 
-	isPointInBounds(point: Vec, margin = 0) {
+	isPointInBounds(point: VecLike, margin = 0) {
 		const { bounds } = this
 		return !(
 			point.x < bounds.minX - margin ||
@@ -385,7 +385,7 @@ export class TransformedGeometry2d extends Geometry2d {
 		return this.geometry.getVertices(filters).map((v) => Mat.applyToPoint(this.matrix, v))
 	}
 
-	nearestPoint(point: Vec, filters?: Geometry2dFilters): Vec {
+	nearestPoint(point: VecLike, filters?: Geometry2dFilters): Vec {
 		return Mat.applyToPoint(
 			this.matrix,
 			this.geometry.nearestPoint(Mat.applyToPoint(this.inverse, point), filters)
@@ -393,7 +393,7 @@ export class TransformedGeometry2d extends Geometry2d {
 	}
 
 	override hitTestPoint(
-		point: Vec,
+		point: VecLike,
 		margin = 0,
 		hitInside?: boolean,
 		filters?: Geometry2dFilters
@@ -406,14 +406,14 @@ export class TransformedGeometry2d extends Geometry2d {
 		)
 	}
 
-	override distanceToPoint(point: Vec, hitInside = false, filters?: Geometry2dFilters) {
+	override distanceToPoint(point: VecLike, hitInside = false, filters?: Geometry2dFilters) {
 		return (
 			this.geometry.distanceToPoint(Mat.applyToPoint(this.inverse, point), hitInside, filters) *
 			this.decomposed.scaleX
 		)
 	}
 
-	override distanceToLineSegment(A: Vec, B: Vec, filters?: Geometry2dFilters) {
+	override distanceToLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
 		return (
 			this.geometry.distanceToLineSegment(
 				Mat.applyToPoint(this.inverse, A),
@@ -423,7 +423,12 @@ export class TransformedGeometry2d extends Geometry2d {
 		)
 	}
 
-	override hitTestLineSegment(A: Vec, B: Vec, distance = 0, filters?: Geometry2dFilters): boolean {
+	override hitTestLineSegment(
+		A: VecLike,
+		B: VecLike,
+		distance = 0,
+		filters?: Geometry2dFilters
+	): boolean {
 		return this.geometry.hitTestLineSegment(
 			Mat.applyToPoint(this.inverse, A),
 			Mat.applyToPoint(this.inverse, B),
