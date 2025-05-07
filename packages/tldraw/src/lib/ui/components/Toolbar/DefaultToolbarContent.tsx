@@ -1,4 +1,4 @@
-import { ArrowShapeKindStyle, GeoShapeGeoStyle, useEditor, useValue } from '@tldraw/editor'
+import { GeoShapeGeoStyle, useEditor, useValue } from '@tldraw/editor'
 import { TLUiToolItem, useTools } from '../../hooks/useTools'
 import { TldrawUiMenuToolItem } from '../primitives/menus/TldrawUiMenuToolItem'
 
@@ -47,15 +47,12 @@ export function DefaultToolbarContent() {
 export function useIsToolSelected(tool: TLUiToolItem | undefined) {
 	const editor = useEditor()
 	const geo = tool?.meta?.geo
-	const arrowKind = tool?.meta?.arrowKind
 	return useValue(
 		'is tool selected',
 		() => {
 			if (!tool) return false
 			const activeToolId = editor.getCurrentToolId()
-			if (activeToolId === 'arrow') {
-				return arrowKind === editor.getSharedStyles().getAsKnownValue(ArrowShapeKindStyle)
-			} else if (activeToolId === 'geo') {
+			if (activeToolId === 'geo') {
 				return geo === editor.getSharedStyles().getAsKnownValue(GeoShapeGeoStyle)
 			} else {
 				return activeToolId === tool.id
@@ -150,11 +147,6 @@ export function RhombusToolbarItem() {
 /** @public @react */
 export function PentagonToolbarItem() {
 	return <ToolbarItem tool="pentagon" />
-}
-
-/** @public @react */
-export function OctagonToolbarItem() {
-	return <ToolbarItem tool="octagon" />
 }
 
 /** @public @react */

@@ -303,7 +303,6 @@ export {
 	LaserToolbarItem,
 	LineToolbarItem,
 	NoteToolbarItem,
-	OctagonToolbarItem,
 	OvalToolbarItem,
 	RectangleToolbarItem,
 	RhombusToolbarItem,

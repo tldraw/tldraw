@@ -21,7 +21,6 @@ export type DraggingHandleInfo = TLPointerEventInfo & {
 	onInteractionEnd?: string
 	isCreating?: boolean
 	creatingMarkId?: string
-	shapeUtilData?: object
 }
 
 export class DraggingHandle extends StateNode {

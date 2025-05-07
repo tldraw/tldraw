@@ -419,8 +419,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const currentBinding = bindings[handleId]
 
-		const otherHandleId = handleId === ArrowHandles.Start ? ArrowHandles.End : ArrowHandles.Start
-		const otherBinding = bindings[otherHandleId]
+		const oppositeHandleId = handleId === ArrowHandles.Start ? ArrowHandles.End : ArrowHandles.Start
+		const oppositeBinding = bindings[oppositeHandleId]
 
 		const targetInfo = updateArrowTargetState({
 			editor: this.editor,
@@ -429,7 +429,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			isPrecise: isPrecise,
 			isExact: this.editor.inputs.altKey,
 			currentBinding,
-			otherBinding,
+			oppositeBinding,
 		})
 
 		if (!targetInfo) {

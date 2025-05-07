@@ -2002,9 +2002,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 export function NoteToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function OctagonToolbarItem(): JSX_2.Element;
-
-// @public (undocumented)
 export function OfflineIndicator(): JSX_2.Element;
 
 // @public (undocumented)

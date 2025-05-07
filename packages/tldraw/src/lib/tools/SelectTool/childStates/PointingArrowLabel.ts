@@ -106,11 +106,12 @@ export class PointingArrowLabel extends StateNode {
 		const nextLabelPoint = transform.applyToPoint(geometry.interpolateAlongEdge(nextLabelPosition))
 		const labelCenterPoint = transform.applyToPoint(geometry.interpolateAlongEdge(0.5))
 
-		const distanceToLabelCenter = Vec.Dist2(nextLabelPoint, labelCenterPoint)
-
 		if (
-			distanceToLabelCenter <
-			(options.labelCenterSnapDistance / this.editor.getZoomLevel()) ** 2
+			Vec.DistMin(
+				nextLabelPoint,
+				labelCenterPoint,
+				options.labelCenterSnapDistance / this.editor.getZoomLevel()
+			)
 		) {
 			nextLabelPosition = 0.5
 		}

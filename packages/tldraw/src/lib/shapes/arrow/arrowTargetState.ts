@@ -35,7 +35,7 @@ export interface UpdateArrowTargetStateOpts {
 	isExact: boolean
 	currentBinding: TLArrowBinding | undefined
 	/** The binding from the opposite end of the arrow, if one exists. */
-	otherBinding: TLArrowBinding | undefined
+	oppositeBinding: TLArrowBinding | undefined
 }
 
 export interface ArrowTargetState {
@@ -79,7 +79,7 @@ export function updateArrowTargetState({
 	isPrecise,
 	isExact,
 	currentBinding,
-	otherBinding,
+	oppositeBinding,
 }: UpdateArrowTargetStateOpts): ArrowTargetState | null {
 	// no target picking when ctrl is held:
 	if (editor.inputs.ctrlKey) {
@@ -180,7 +180,7 @@ export function updateArrowTargetState({
 
 		// Double check that we're not going to be doing an imprecise snap on
 		// the same shape twice, as this would result in a zero length line
-		if (otherBinding && target.id === otherBinding.toId && otherBinding.props.isPrecise) {
+		if (oppositeBinding && target.id === oppositeBinding.toId && oppositeBinding.props.isPrecise) {
 			precise = true
 		}
 	}

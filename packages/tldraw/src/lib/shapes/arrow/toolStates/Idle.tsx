@@ -68,7 +68,7 @@ export class Idle extends StateNode {
 			isPrecise: this.isPrecise,
 			isExact: this.editor.inputs.altKey,
 			currentBinding: undefined,
-			otherBinding: undefined,
+			oppositeBinding: undefined,
 		})
 
 		if (targetState && targetState.target.id !== this.preciseTargetId) {

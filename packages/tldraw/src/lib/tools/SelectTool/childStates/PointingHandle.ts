@@ -32,7 +32,7 @@ export class PointingHandle extends StateNode {
 		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
 			const initialBindings = getArrowBindings(this.editor, shape)
 			const currentBinding = initialBindings[info.handle.id as 'start' | 'end']
-			const otherBinding = initialBindings[info.handle.id === 'start' ? 'end' : 'start']
+			const oppositeBinding = initialBindings[info.handle.id === 'start' ? 'end' : 'start']
 			const arrowTransform = this.editor.getShapePageTransform(shape.id)!
 
 			if (currentBinding) {
@@ -43,7 +43,7 @@ export class PointingHandle extends StateNode {
 					isPrecise: currentBinding.props.isPrecise,
 					isExact: info.altKey,
 					currentBinding: currentBinding,
-					otherBinding: otherBinding,
+					oppositeBinding: oppositeBinding,
 				})
 			}
 		}

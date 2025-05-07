@@ -147,10 +147,8 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				icon: 'tool-arrow',
 				kbd: 'a',
 				onSelect(source) {
-					editor.run(() => {
-						editor.setCurrentTool('arrow')
-						onToolSelect(source, this)
-					})
+					editor.setCurrentTool('arrow')
+					onToolSelect(source, this)
 				},
 			},
 			{

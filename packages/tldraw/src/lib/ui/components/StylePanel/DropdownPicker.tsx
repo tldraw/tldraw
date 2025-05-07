@@ -2,7 +2,6 @@ import { SharedStyle, StyleProp, tlmenus, useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { StyleValuesForUi } from '../../../styles'
-import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -95,9 +94,6 @@ function DropdownPickerInner<T extends string>({
 										onValueChange(style, item.value)
 										tlmenus.deleteOpenMenu(popoverId, editor.contextId)
 										setIsOpen(false)
-										if (breakpoint >= PORTRAIT_BREAKPOINT.TABLET_SM) {
-											editor.getContainer().focus()
-										}
 									}}
 								>
 									<TldrawUiButtonIcon icon={item.icon} />
