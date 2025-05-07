@@ -13,15 +13,12 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 - Minor version bumps are released on a regular cadence - approximately monthly. **They may contain breaking changes**. We aim to make breaking changes as minimally disruptive as possible, but tldraw is actively evolving as we add new features. We recommend updating tldraw at a similar pace to our release cadence, and be sure to check the release notes.
 - Patch version bumps are for bugfixes and hotfixes that can't wait for the next cadence release.
 
-
-
-
-
 {/* START AUTO-GENERATED CHANGELOG */}
 
 ## Current release: [v3.12.0](/releases/v3.12.0)
 
 ### Release Notes
+
 v3.12.0 of the tldraw SDK includes several bug fixes and API improvements. The main feature development focus was on accessibility, building on initial work in v3.11.0 which added a focus ring.
 
 ### Accessibility features
@@ -37,34 +34,34 @@ Accessibility is something we’ve been researching internally for a while now, 
 ### API additions
 
 - Frames can now have color. Set the `showColors` option on the `FrameShapeUtil` class to display colorful borders and labels for frames. ([#5283](https://github.com/tldraw/tldraw/pull/5283))
-    
-    ```tsx
-    import { FrameShapeUtil, Tldraw } from 'tldraw'
-    import 'tldraw/tldraw.css'
-    
-    const shapeUtils = [FrameShapeUtil.configure({ showColors: true })]
-    
-    export default function App() {
-    	return (
-    		`<div className="tldraw__editor">`
-    			<Tldraw shapeUtils={shapeUtils}>`</Tldraw>`
-    		`</div>`
-    	)
-    }
-    ```
-    
-- There’s a new `getShapeVisibility` prop to replace `isShapeHidden`, which is now deprecated. `getShapeVisibility` allows a child of a hidden parent to override its parent and become visible. See the [Layer Panel Example](https://tldraw.dev/examples/ui/layer-panel).  ([#5762](https://github.com/tldraw/tldraw/pull/5762))
+
+  ```tsx
+  import { FrameShapeUtil, Tldraw } from 'tldraw'
+  import 'tldraw/tldraw.css'
+
+  const shapeUtils = [FrameShapeUtil.configure({ showColors: true })]
+
+  export default function App() {
+  	return (
+  		`<div className="tldraw__editor">`
+  			<Tldraw shapeUtils={shapeUtils}>`</Tldraw>`
+  		`</div>`
+  	)
+  }
+  ```
+
+- There’s a new `getShapeVisibility` prop to replace `isShapeHidden`, which is now deprecated. `getShapeVisibility` allows a child of a hidden parent to override its parent and become visible. See the [Layer Panel Example](https://tldraw.dev/examples/ui/layer-panel). ([#5762](https://github.com/tldraw/tldraw/pull/5762))
 - The `Geometry2d` class has a couple of new helper methods for calculating intersection points (`intersectLineSegment` and `intersectCircle`), a new helper method for applying a transformation matrix (`transform`), and new filtering options to allow excluding certain parts of geometry from calculations. ([#5754](https://github.com/tldraw/tldraw/pull/5754))
 - We now individually export two of our default Tiptap extensions (for rich text) ([#5874](https://github.com/tldraw/tldraw/pull/5874))
-    - `KeyboardShiftEnterTweakExtension` which inserts a normal line break when pressing shift+enter (tldraw doesn’t support soft breaks).
-    - `TextDirection` which ensures the text directionality is saved and reinstated correctly.
+  - `KeyboardShiftEnterTweakExtension` which inserts a normal line break when pressing shift+enter (tldraw doesn’t support soft breaks).
+  - `TextDirection` which ensures the text directionality is saved and reinstated correctly.
 
 ### Other improvements
 
 - The syntax for defining keyboard shortcuts is now more intuitive ([#5605](https://github.com/tldraw/tldraw/pull/5605))
-    - e.g. `'?!l’` becomes `'alt+shift+l'` and `'$s'` becomes `'ctrl+s,cmd+s'`
-    - See https://tldraw.dev/reference/tldraw/TLUiToolItem#kbd
-    - The old syntax is still supported for now, but may be deprecated in the future.
+  - e.g. `'?!l’` becomes `'alt+shift+l'` and `'$s'` becomes `'ctrl+s,cmd+s'`
+  - See https://tldraw.dev/reference/tldraw/TLUiToolItem#kbd
+  - The old syntax is still supported for now, but may be deprecated in the future.
 - `Store.mergeRemoteChanges` is now atomic, and side effects are triggered in the correct scopes. ([#5801](https://github.com/tldraw/tldraw/pull/5801))
 - Drawing is now smoother on slower CPUs by using [getCoalescedEvents](https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/getCoalescedEvents). ([#5898](https://github.com/tldraw/tldraw/pull/5898))
 - We now allow overriding the asset urls for the icons used by the Embed shape to be null/empty in cases where the Embed shape is not needed. This prevents tldraw downloading a handful of icon assets that would never be used. ([#5736](https://github.com/tldraw/tldraw/pull/5736))
@@ -101,7 +98,7 @@ No breaking changes!
 - Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
 - Trivikram Kamat ([@trivikr](https://github.com/trivikr))
 - Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
-						
+
 ## Previous releases
 
 - [v3.11.0](/releases/v3.11.0)
@@ -139,7 +136,3 @@ No breaking changes!
 - [v2.0.0](/releases/v2.0.0)
 
 {/* END AUTO-GENERATED CHANGELOG */}
-
-
-
-
