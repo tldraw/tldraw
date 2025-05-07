@@ -128,7 +128,7 @@ export class HandleSnaps {
 	}): Vec | null {
 		const snapThreshold = this.manager.getSnapThreshold()
 
-		// We snap to three different parts of the shape's handle snap geometry:
+		// We snap to two different parts of the shape's handle snap geometry:
 		// 1. The `points`. These are handles or other key points that we want to snap to with a
 		//    higher priority than the normal outline snapping.
 		// 2. The `outline`. This describes the outline of the shape, and we just snap to the

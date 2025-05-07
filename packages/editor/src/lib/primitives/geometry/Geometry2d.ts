@@ -334,14 +334,17 @@ export abstract class Geometry2d {
 	}
 
 	getLength(_filters?: Geometry2dFilters) {
-		const { vertices } = this
-		let n1: Vec,
-			p1 = vertices[0],
-			length = 0
-		for (let i = 1; i < (this.isClosed ? vertices.length : vertices.length - 1); i++) {
-			n1 = vertices[i % vertices.length]
-			length += Vec.Dist(p1, n1)
-			p1 = n1
+		const vertices = this.getVertices(_filters ?? Geometry2dFilters.EXCLUDE_LABELS)
+		if (vertices.length === 0) return 0
+		let prev = vertices[0]
+		let length = 0
+		for (let i = 1; i < vertices.length; i++) {
+			const next = vertices[i]
+			length += Vec.Dist(prev, next)
+			prev = next
+		}
+		if (this.isClosed) {
+			length += Vec.Dist(vertices[vertices.length - 1], vertices[0])
 		}
 		return length
 	}
