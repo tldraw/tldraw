@@ -996,8 +996,6 @@ const ArrowSvg = track(function ArrowSvg({
 	const editor = useEditor()
 	const theme = useDefaultColorTheme()
 	const info = getArrowInfo(editor, shape)
-	const bounds = Box.ZeroFix(editor.getShapeGeometry(shape).bounds)
-	const bindings = getArrowBindings(editor, shape)
 	const isForceSolid = useValue(
 		'force solid',
 		() => {
@@ -1005,10 +1003,13 @@ const ArrowSvg = track(function ArrowSvg({
 		},
 		[editor]
 	)
-
 	const clipPathId = useSharedSafeId(shape.id + '_clip')
 	const arrowheadDotId = useSharedSafeId('arrowhead-dot')
 	const arrowheadCrossId = useSharedSafeId('arrowhead-cross')
+	const geometry = editor.getShapeGeometry(shape)
+	if (!geometry) return null
+	const bounds = Box.ZeroFix(geometry.bounds)
+	const bindings = getArrowBindings(editor, shape)
 
 	if (!info?.isValid) return null
 
