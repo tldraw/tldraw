@@ -47,12 +47,6 @@ export class EditingShape extends StateNode {
 
 		updateHoveredShapeId.cancel()
 
-		const shape = this.editor.getShape(editingShapeId)!
-		const util = this.editor.getShapeUtil(shape)
-
-		// Check for changes on editing end
-		util.onEditEnd?.(shape)
-
 		if (this.info.isCreatingTextWhileToolLocked) {
 			this.parent.setCurrentToolIdMask(undefined)
 			this.editor.setCurrentTool('text', {})

@@ -44,9 +44,13 @@ export function getBoundShapeInfoForTerminal(
 	const boundShape = editor.getShape(binding.toId)!
 	if (!boundShape) return
 	const transform = editor.getShapePageTransform(boundShape)!
+	const hasArrowhead =
+		terminalName === 'start'
+			? arrow.props.arrowheadStart !== 'none'
+			: arrow.props.arrowheadEnd !== 'none'
 	const geometry = editor.getShapeGeometry(
 		boundShape,
-		terminalName === 'start' ? { context: '@tldraw/arrow-start' } : undefined
+		hasArrowhead ? undefined : { context: '@tldraw/arrow-without-arrowhead' }
 	)
 
 	return {
