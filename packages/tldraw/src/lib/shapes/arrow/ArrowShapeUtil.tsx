@@ -1173,6 +1173,7 @@ function ArrowClipPath({
 			.close()
 
 		if (hasText) {
+			// We create this one in the counter-clockwise direction, which cuts out the label box
 			path
 				.moveTo(labelBounds.left, labelBounds.top + radius)
 				.lineTo(labelBounds.left, labelBounds.bottom - radius)
