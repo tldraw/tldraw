@@ -28,10 +28,13 @@ import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
-import { GiveUsFeedbackMenuItem, UserManualMenuItem } from '../TlaAppMenu/TlaAppMenuContent'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
+import {
+	GiveUsFeedbackMenuItem,
+	UserManualMenuItem,
+} from '../TlaSidebar/components/TlaSidebarUserLink'
 import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
 

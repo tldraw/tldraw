@@ -252,7 +252,6 @@
 	z-index: 1;
 }
 
-.user,
 .workspace {
 	background: none;
 	border: none;
@@ -274,9 +273,32 @@
 }
 
 .user {
+	display: flex;
+	align-items: center;
+}
+
+.userButton {
+	background: none;
+	border: none;
+	position: relative;
+	height: 40px;
+	flex-grow: 2;
+	display: flex;
+	align-items: center;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	padding-right: 6px;
+	padding-left: 2px;
+	background-color: var(--tla-color-sidebar);
 	padding: 0px 0px 0px 8px;
 	gap: 8px;
 	text-align: left;
+	cursor: pointer;
+}
+
+.userButton::after {
+	inset: 2px 8px 2px 0px;
 }
 
 .userName {
@@ -450,7 +472,8 @@
 		display: flex;
 	}
 
-	.user .accountMenuTrigger[data-state='open']::after {
+	.user .accountMenuTrigger[data-state='open']::after,
+	.userButton[data-state='open']::after {
 		visibility: visible;
 		background-color: var(--tla-color-hover-2);
 	}
