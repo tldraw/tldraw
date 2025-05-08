@@ -759,10 +759,6 @@ function fixTinyEndNubs(
 ) {
 	if (!route) return
 
-	// if the route has a mid-point handle, don't fix the tiny end nubs because it can mess up the
-	// midpoint handle stuff
-	if (route.midpointHandle) return
-
 	if (route.points.length >= 3) {
 		const a = route.points[0]
 		const b = route.points[1]

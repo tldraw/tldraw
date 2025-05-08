@@ -44,6 +44,7 @@ export function routeArrowWithAutoEdgePicking(
 			(aRight.expanded ?? aRight.value) <= bTop.crossTarget &&
 			aRight.crossTarget <= (bTop.expanded ?? bTop.value)
 		) {
+			console.log('right top')
 			idealRoute = tryRouteArrow(info, 'right', 'top')
 		} else if (
 			aRight &&
@@ -79,15 +80,11 @@ export function routeArrowWithAutoEdgePicking(
 		return idealRoute
 	}
 
-	const aNonPartialSides = ElbowArrowSides.filter(
-		(side) => info.A.edges[side] && !info.A.edges[side]!.isPartial
-	)
-	const bNonPartialSides = ElbowArrowSides.filter(
-		(side) => info.B.edges[side] && !info.B.edges[side]!.isPartial
-	)
+	const aAvailableSide = ElbowArrowSides.filter((side) => info.A.edges[side])
+	const bAvailableSides = ElbowArrowSides.filter((side) => info.B.edges[side])
 
-	const nonPartialRouteCandidates = aNonPartialSides.flatMap((aSide) =>
-		bNonPartialSides.map((bSide) => [aSide, bSide, reason, reason] as const)
+	const nonPartialRouteCandidates = aAvailableSide.flatMap((aSide) =>
+		bAvailableSides.map((bSide) => [aSide, bSide, reason, reason] as const)
 	)
 
 	return pickBest(info, nonPartialRouteCandidates)
