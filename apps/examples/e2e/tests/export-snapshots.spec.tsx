@@ -898,6 +898,27 @@ const snapshots: Snapshots = {
 					</TL.arrow>
 				</>
 			),
+			'ENG-3375 ✅': (
+				<>
+					{heyDrawShape}
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow
+							to="hey"
+							terminal="start"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.09381928931000422, y: 0.21685530426808908 }}
+							snap="edge"
+						/>
+						<TL.binding.arrow
+							to="hey"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.38733552172499264, y: 0.5318288846695827 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
 		},
 	},
 }
