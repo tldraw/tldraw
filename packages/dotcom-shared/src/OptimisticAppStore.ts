@@ -6,8 +6,13 @@ import {
 	TlaFilePartial,
 	TlaFileState,
 	TlaFileStatePartial,
+	TlaGroup,
 	TlaUser,
+	TlaUserGroup,
+	TlaUserGroupPartial,
 	TlaUserPartial,
+	TlaUserPresence,
+	TlaUserPresencePartial,
 } from './tlaSchema'
 import { ZRowUpdate, ZStoreData } from './types'
 
@@ -107,58 +112,140 @@ export class OptimisticAppStore {
 		})
 	}
 
-	applyUpdate(prev: ZStoreData, update: ZRowUpdate) {
+	applyUpdate(prev: ZStoreData, update: ZRowUpdate): ZStoreData {
 		const { row, table, event } = update
-		if (table === 'user') {
-			if (event === 'update') {
-				const { id: _id, ...rest } = row as TlaUserPartial
-				return { ...prev, user: { ...prev.user, ...rest } }
-			} else {
-				return { ...prev, user: row as TlaUser }
+		switch (table) {
+			case 'user': {
+				if (event === 'update') {
+					const { id: _id, ...rest } = row as TlaUserPartial
+					return { ...prev, user: { ...prev.user, ...rest } }
+				} else {
+					return { ...prev, user: row as TlaUser }
+				}
 			}
-		}
-		if (table === 'file') {
-			if (event === 'delete') {
-				return {
-					...prev,
-					files: prev.files.filter((f) => f.id !== (row as TlaFile).id),
+			case 'file': {
+				if (event === 'delete') {
+					return {
+						...prev,
+						files: prev.files.filter((f) => f.id !== (row as TlaFile).id),
+					}
+				} else if (event === 'update') {
+					const { id, ...rest } = row as TlaFilePartial
+					return {
+						...prev,
+						files: prev.files.map((f) => (f.id === id ? ({ ...f, ...rest } as TlaFile) : f)),
+					}
+				} else {
+					assert(event === 'insert', 'invalid event')
+					return {
+						...prev,
+						files: [...prev.files, row as TlaFile],
+					}
 				}
-			} else if (event === 'update') {
-				const { id, ...rest } = row as TlaFilePartial
-				return {
-					...prev,
-					files: prev.files.map((f) => (f.id === id ? ({ ...f, ...rest } as TlaFile) : f)),
+			}
+			case 'file_state': {
+				const { fileId, userId, ...rest } = row as TlaFileStatePartial
+				if (event === 'delete') {
+					return {
+						...prev,
+						fileStates: prev.fileStates.filter(
+							(f) => !(f.fileId === fileId && f.userId === userId)
+						),
+					}
+				} else if (event === 'update') {
+					return {
+						...prev,
+						fileStates: prev.fileStates.map((f) => {
+							if (f.fileId === fileId && f.userId === userId) {
+								return { ...f, ...rest }
+							}
+							return f
+						}),
+					}
+				} else {
+					assert(event === 'insert', 'invalid event')
+					return {
+						...prev,
+						fileStates: [...prev.fileStates, row as TlaFileState],
+					}
 				}
-			} else {
+			}
+			case 'group': {
+				if (event === 'delete') {
+					return {
+						...prev,
+						groups: prev.groups.filter((g) => g.id !== (row as TlaGroup).id),
+					}
+				} else if (event === 'update') {
+					const { id, ...rest } = row as TlaGroup
+					return {
+						...prev,
+						groups: prev.groups.map((g) => (g.id === id ? ({ ...g, ...rest } as TlaGroup) : g)),
+					}
+				}
 				assert(event === 'insert', 'invalid event')
 				return {
 					...prev,
-					files: [...prev.files, row as TlaFile],
+					groups: [...prev.groups, row as TlaGroup],
 				}
 			}
-		}
-		assert(table === 'file_state')
-		const { fileId, userId, ...rest } = row as TlaFileStatePartial
-		if (event === 'delete') {
-			return {
-				...prev,
-				fileStates: prev.fileStates.filter((f) => !(f.fileId === fileId && f.userId === userId)),
-			}
-		} else if (event === 'update') {
-			return {
-				...prev,
-				fileStates: prev.fileStates.map((f) => {
-					if (f.fileId === fileId && f.userId === userId) {
-						return { ...f, ...rest }
+			case 'user_group': {
+				if (event === 'delete') {
+					const { userId, groupId } = row as TlaUserGroupPartial
+					return {
+						...prev,
+						userGroups: prev.userGroups.filter(
+							(g) => !(g.userId === userId && g.groupId === groupId)
+						),
 					}
-					return f
-				}),
+				} else if (event === 'update') {
+					const { userId, groupId, ...rest } = row as TlaUserGroupPartial
+					return {
+						...prev,
+						userGroups: prev.userGroups.map((g) => {
+							if (g.userId === userId && g.groupId === groupId) {
+								return { ...g, ...rest }
+							}
+							return g
+						}),
+					}
+				}
+				assert(event === 'insert', 'invalid event')
+				return {
+					...prev,
+					userGroups: [...prev.userGroups, row as TlaUserGroup],
+				}
 			}
-		} else {
-			assert(event === 'insert', 'invalid event')
-			return {
-				...prev,
-				fileStates: [...prev.fileStates, row as TlaFileState],
+			case 'user_presence': {
+				if (event === 'delete') {
+					const { userId, fileId } = row as TlaUserPresencePartial
+					return {
+						...prev,
+						userPresences: prev.userPresences.filter(
+							(g) => !(g.userId === userId && g.fileId === fileId)
+						),
+					}
+				} else if (event === 'update') {
+					const { userId, fileId, ...rest } = row as TlaUserPresencePartial
+					return {
+						...prev,
+						userPresences: prev.userPresences.map((g) => {
+							if (g.userId === userId && g.fileId === fileId) {
+								return { ...g, ...rest }
+							}
+							return g
+						}),
+					}
+				}
+				assert(event === 'insert', 'invalid event')
+				return {
+					...prev,
+					userPresences: [...prev.userPresences, row as TlaUserPresence],
+				}
+			}
+			default: {
+				const _table: never = table
+				assert(false, 'invalid table ' + _table)
 			}
 		}
 	}

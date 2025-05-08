@@ -141,6 +141,18 @@ export type TlaUserPartial = Partial<TlaUser> & {
 	id: TlaUser['id']
 }
 
+export type TlaGroupPartial = Partial<TlaGroup> & {
+	id: TlaGroup['id']
+}
+export type TlaUserGroupPartial = Partial<TlaUserGroup> & {
+	userId: TlaUserGroup['userId']
+	groupId: TlaUserGroup['groupId']
+}
+export type TlaUserPresencePartial = Partial<TlaUserPresence> & {
+	userId: TlaUserPresence['userId']
+	fileId: TlaUserPresence['fileId']
+}
+
 export type TlaRow = TlaFile | TlaFileState | TlaUser
 export interface TlaUserMutationNumber {
 	userId: string

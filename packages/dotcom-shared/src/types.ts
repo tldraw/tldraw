@@ -6,10 +6,13 @@ import {
 	TlaFileState,
 	TlaFileStatePartial,
 	TlaGroup,
+	TlaGroupPartial,
 	TlaUser,
 	TlaUserGroup,
+	TlaUserGroupPartial,
 	TlaUserPartial,
 	TlaUserPresence,
+	TlaUserPresencePartial,
 } from './tlaSchema'
 
 export interface Snapshot {
@@ -91,13 +94,13 @@ export interface ZStoreData {
 export type ZRowUpdate = ZRowInsert | ZRowDeleteOrUpdate
 
 export interface ZRowInsert {
-	row: TlaFile | TlaFileState | TlaUser
+	row: TlaFile | TlaFileState | TlaUser | TlaGroup | TlaUserGroup | TlaUserPresence
 	table: ZTable
 	event: 'insert'
 }
 
 export interface ZRowDeleteOrUpdate {
-	row: TlaFilePartial | TlaFileStatePartial | TlaUserPartial
+	row: TlaFilePartial | TlaFileStatePartial | TlaUserPartial | TlaGroupPartial | TlaUserGroupPartial | TlaUserPresencePartial
 	table: ZTable
 	event: 'update' | 'delete'
 }

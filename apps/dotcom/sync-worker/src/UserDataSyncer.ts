@@ -405,7 +405,7 @@ export class UserDataSyncer {
 	private handleRowUpdateEvent(event: ZRowUpdateEvent) {
 		try {
 			assert(this.state.type === 'connected', 'state should be connected in handleEvent')
-			if (event.table !== 'user' && event.table !== 'file' && event.table !== 'file_state') {
+			if (event.table !== 'user' && event.table !== 'file' && event.table !== 'file_state' && event.table !== 'group' && event.table !== 'user_group' && event.table !== 'user_presence') {
 				throw new Error(`Unhandled table: ${event.table}`)
 			}
 			this.store.updateCommittedData(event)

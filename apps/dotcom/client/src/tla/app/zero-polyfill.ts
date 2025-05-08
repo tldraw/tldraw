@@ -212,6 +212,24 @@ export class Zero {
 				computed('user', () => this.store.getFullData()?.user)
 			),
 		},
+		group: {
+			...this.makeQuery(
+				'group',
+				computed('groups', () => this.store.getFullData()?.groups)
+			),
+		},
+		user_group: {
+			...this.makeQuery(
+				'user_group',
+				computed('userGroups', () => this.store.getFullData()?.userGroups)
+			),
+		},
+		user_presence: {
+			...this.makeQuery(
+				'user_presence',
+				computed('userPresences', () => this.store.getFullData()?.userPresences)
+			),
+		},
 	}
 	readonly ____mutators = {
 		file: {
