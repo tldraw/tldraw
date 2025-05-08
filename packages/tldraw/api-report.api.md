@@ -279,6 +279,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     onEditEnd(shape: TLArrowShape): void;
     // (undocumented)
+    onEditStart(shape: TLArrowShape): void;
+    // (undocumented)
     onHandleDrag(shape: TLArrowShape, info: TLHandleDragInfo<TLArrowShape>): ({
         id: TLShapeId;
         meta?: Partial<JsonObject> | undefined;

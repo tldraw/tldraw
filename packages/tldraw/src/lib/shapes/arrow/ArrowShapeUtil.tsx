@@ -56,7 +56,11 @@ import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyle
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getArrowBodyPath, getArrowHandlePath } from './ArrowPath'
 import { ArrowShapeOptions } from './arrow-types'
-import { getArrowLabelFontSize, getArrowLabelPosition } from './arrowLabel'
+import {
+	getArrowLabelDefaultPosition,
+	getArrowLabelFontSize,
+	getArrowLabelPosition,
+} from './arrowLabel'
 import { updateArrowTargetState } from './arrowTargetState'
 import { getArrowheadPathForType } from './arrowheads'
 import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
@@ -895,6 +899,18 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				)}
 			</g>
 		)
+	}
+
+	override onEditStart(shape: TLArrowShape) {
+		if (shape.props.text.trim() === '') {
+			// editing text for the first time, so set the position to the default:
+			const labelPosition = getArrowLabelDefaultPosition(this.editor, shape)
+			this.editor.updateShape<TLArrowShape>({
+				id: shape.id,
+				type: shape.type,
+				props: { labelPosition },
+			})
+		}
 	}
 
 	override onEditEnd(shape: TLArrowShape) {
