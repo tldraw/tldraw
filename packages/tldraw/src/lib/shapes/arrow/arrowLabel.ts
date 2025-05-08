@@ -60,8 +60,8 @@ const labelSizeCache = createComputedCache(
 		let height = 0
 
 		const bodyGeom = arrowBodyGeometryCache.get(editor, shape.id)!
-		// We use 'e' as a default label to measure against as a minimum width.
-		const text = shape.props.text || 'e'
+		// We use 'i' as a default label to measure against as a minimum width.
+		const text = shape.props.text || 'i'
 
 		const bodyBounds = bodyGeom.bounds
 
