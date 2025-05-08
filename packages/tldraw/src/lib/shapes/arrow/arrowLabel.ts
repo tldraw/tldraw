@@ -60,56 +60,53 @@ const labelSizeCache = createComputedCache(
 		let height = 0
 
 		const bodyGeom = arrowBodyGeometryCache.get(editor, shape.id)!
+		// We use 'i' as a default label to measure against as a minimum width.
+		const text = shape.props.text || 'i'
 
-		if (shape.props.text.trim()) {
-			const bodyBounds = bodyGeom.bounds
+		const bodyBounds = bodyGeom.bounds
 
-			const fontSize = getArrowLabelFontSize(shape)
+		const fontSize = getArrowLabelFontSize(shape)
 
-			// First we measure the text with no constraints
-			const { w, h } = editor.textMeasure.measureText(shape.props.text, {
+		// First we measure the text with no constraints
+		const { w, h } = editor.textMeasure.measureText(text, {
+			...TEXT_PROPS,
+			fontFamily: FONT_FAMILIES[shape.props.font],
+			fontSize,
+			maxWidth: null,
+		})
+
+		width = w
+		height = h
+
+		let shouldSquish = false
+
+		// If the text is wider than the body, we need to squish it
+		const info = getArrowInfo(editor, shape)!
+		const labelToArrowPadding = getLabelToArrowPadding(shape)
+		const margin =
+			info.type === 'elbow'
+				? Math.max(info.elbow.A.arrowheadOffset + labelToArrowPadding, 32) +
+					Math.max(info.elbow.B.arrowheadOffset + labelToArrowPadding, 32)
+				: 64
+
+		if (bodyBounds.width > bodyBounds.height) {
+			width = Math.max(Math.min(w, margin), Math.min(bodyBounds.width - margin, w))
+			shouldSquish = true
+		} else if (width > 16 * fontSize) {
+			width = 16 * fontSize
+			shouldSquish = true
+		}
+
+		if (shouldSquish) {
+			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(text, {
 				...TEXT_PROPS,
 				fontFamily: FONT_FAMILIES[shape.props.font],
 				fontSize,
-				maxWidth: null,
+				maxWidth: width,
 			})
 
-			width = w
-			height = h
-
-			let shouldSquish = false
-
-			// If the text is wider than the body, we need to squish it
-			const info = getArrowInfo(editor, shape)!
-			const labelToArrowPadding = getLabelToArrowPadding(shape)
-			const margin =
-				info.type === 'elbow'
-					? Math.max(info.elbow.A.arrowheadOffset + labelToArrowPadding, 32) +
-						Math.max(info.elbow.B.arrowheadOffset + labelToArrowPadding, 32)
-					: 64
-
-			if (bodyBounds.width > bodyBounds.height) {
-				width = Math.max(Math.min(w, margin), Math.min(bodyBounds.width - margin, w))
-				shouldSquish = true
-			} else if (width > 16 * fontSize) {
-				width = 16 * fontSize
-				shouldSquish = true
-			}
-
-			if (shouldSquish) {
-				const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
-					shape.props.text,
-					{
-						...TEXT_PROPS,
-						fontFamily: FONT_FAMILIES[shape.props.font],
-						fontSize,
-						maxWidth: width,
-					}
-				)
-
-				width = squishedWidth
-				height = squishedHeight
-			}
+			width = squishedWidth
+			height = squishedHeight
 		}
 
 		return new Vec(width, height).addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
@@ -118,9 +115,6 @@ const labelSizeCache = createComputedCache(
 )
 
 function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
-	if (shape.props.text.trim() === '') {
-		return new Vec(0, 0).addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
-	}
 	return labelSizeCache.get(editor, shape.id) ?? new Vec(0, 0)
 }
 

@@ -184,6 +184,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	getGeometry(shape: TLArrowShape) {
+		const isEditing = this.editor.getEditingShapeId() === shape.id
 		const info = getArrowInfo(this.editor, shape)!
 
 		const debugGeom: Geometry2d[] = []
@@ -205,7 +206,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					: new Polyline2d({ points: info.route.points })
 
 		let labelGeom
-		if (shape.props.text.trim()) {
+		if (isEditing || shape.props.text.trim()) {
 			const labelPosition = getArrowLabelPosition(this.editor, shape)
 			if (debugFlags.debugGeometry.get()) {
 				debugGeom.push(...labelPosition.debugGeom)
@@ -809,7 +810,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
 		const bounds = geometry.bounds
 
-		const labelGeometry = shape.props.text.trim() ? (geometry.children[1] as Rectangle2d) : null
+		const labelGeometry =
+			isEditing || shape.props.text.trim() ? (geometry.children[1] as Rectangle2d) : null
 
 		if (Vec.Equals(start, end)) return null
 
@@ -1024,6 +1026,7 @@ const ArrowSvg = track(function ArrowSvg({
 	const clipPathId = useSharedSafeId(shape.id + '_clip')
 	const arrowheadDotId = useSharedSafeId('arrowhead-dot')
 	const arrowheadCrossId = useSharedSafeId('arrowhead-cross')
+	const isEditing = useIsEditing(shape.id)
 	const geometry = editor.getShapeGeometry(shape)
 	if (!geometry) return null
 	const bounds = Box.ZeroFix(geometry.bounds)
@@ -1078,7 +1081,7 @@ const ArrowSvg = track(function ArrowSvg({
 				<clipPath id={clipPathId}>
 					<ArrowClipPath
 						radius={3.5 * shape.props.scale}
-						hasText={shape.props.text.trim().length > 0}
+						hasText={isEditing || shape.props.text.trim().length > 0}
 						bounds={bounds}
 						labelBounds={labelPosition.box}
 						as={clipStartArrowhead && as ? as : ''}
@@ -1170,6 +1173,7 @@ function ArrowClipPath({
 			.close()
 
 		if (hasText) {
+			// We create this one in the counter-clockwise direction, which cuts out the label box
 			path
 				.moveTo(labelBounds.left, labelBounds.top + radius)
 				.lineTo(labelBounds.left, labelBounds.bottom - radius)

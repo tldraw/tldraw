@@ -1382,10 +1382,6 @@ input,
 	opacity: 0;
 }
 
-.tl-arrow-label[data-isediting='true'] > .tl-arrow-label__inner {
-	background-color: var(--color-background);
-}
-
 .tl-arrow-label__inner {
 	border-radius: var(--radius-1);
 	box-sizing: content-box;
