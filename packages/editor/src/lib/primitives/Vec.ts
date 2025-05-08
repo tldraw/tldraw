@@ -319,6 +319,11 @@ export class Vec {
 		return ((A.y - B.y) ** 2 + (A.x - B.x) ** 2) ** 0.5
 	}
 
+	// Get the Manhattan distance between two points.
+	static ManhattanDist(A: VecLike, B: VecLike): number {
+		return Math.abs(A.x - B.x) + Math.abs(A.y - B.y)
+	}
+
 	// Get whether a distance between two points is less than a number. This is faster to calulate than using `Vec.Dist(a, b) < n`.
 	static DistMin(A: VecLike, B: VecLike, n: number): boolean {
 		return (A.x - B.x) * (A.x - B.x) + (A.y - B.y) * (A.y - B.y) < n ** 2
@@ -465,8 +470,26 @@ export class Vec {
 		return isNaN(A.x) || isNaN(A.y)
 	}
 
+	/**
+	 * Get the angle from position A to position B.
+	 */
 	static Angle(A: VecLike, B: VecLike): number {
 		return Math.atan2(B.y - A.y, B.x - A.x)
+	}
+
+	/**
+	 * Get the angle between vector A and vector B. This will return the smallest angle between the
+	 * two vectors, between -π and π. The sign indicates direction of angle.
+	 */
+	static AngleBetween(A: VecLike, B: VecLike): number {
+		const p = A.x * B.x + A.y * B.y
+		const n = Math.sqrt(
+			(Math.pow(A.x, 2) + Math.pow(A.y, 2)) * (Math.pow(B.x, 2) + Math.pow(B.y, 2))
+		)
+		const sign = A.x * B.y - A.y * B.x < 0 ? -1 : 1
+		const angle = sign * Math.acos(p / n)
+
+		return angle
 	}
 
 	/**

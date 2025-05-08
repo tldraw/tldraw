@@ -1,7 +1,7 @@
 import {
 	PostgresJSClient,
 	PostgresJSTransaction,
-} from '@rocicorp/zero/out/zero-pg/src/zql-postgresjs-provider'
+} from '@rocicorp/zero/out/zero-pg/src/postgresjs-connection'
 import { DB } from '@tldraw/dotcom-shared'
 import { Kysely, PostgresDialect } from 'kysely'
 import * as pg from 'pg'

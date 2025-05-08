@@ -8,7 +8,7 @@ beforeEach(() => {
 		shapeUtils: [],
 		bindingUtils: [],
 		tools: [],
-		store: createTLStore({ shapeUtils: [] }),
+		store: createTLStore({ shapeUtils: [], bindingUtils: [] }),
 		getContainer: () => document.body,
 	})
 })

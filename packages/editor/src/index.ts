@@ -4,37 +4,11 @@ import 'core-js/stable/array/flat-map.js'
 import 'core-js/stable/array/flat.js'
 import 'core-js/stable/string/at.js'
 import 'core-js/stable/string/replace-all.js'
-export {
-	EMPTY_ARRAY,
-	EffectScheduler,
-	atom,
-	computed,
-	react,
-	transact,
-	transaction,
-	whyAmIRunning,
-	type Atom,
-	type Signal,
-} from '@tldraw/state'
-export {
-	track,
-	useAtom,
-	useComputed,
-	useQuickReactor,
-	useReactor,
-	useStateTracking,
-	useValue,
-} from '@tldraw/state-react'
-export { resizeScaled } from './lib/editor/shapes/shared/resizeScaled'
-export {
-	getFontsFromRichText,
-	type RichTextFontVisitor,
-	type RichTextFontVisitorState,
-	type TLTextOptions,
-	type TiptapEditor,
-	type TiptapNode,
-} from './lib/utils/richText'
-export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalIndexedDb'
+
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/state'
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/state-react'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star
@@ -43,6 +17,7 @@ export * from '@tldraw/tlschema'
 export * from '@tldraw/utils'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/validate'
+
 export {
 	ErrorScreen,
 	LoadingScreen,
@@ -212,6 +187,7 @@ export {
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
 export { getPerfectDashProps } from './lib/editor/shapes/shared/getPerfectDashProps'
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
+export { resizeScaled } from './lib/editor/shapes/shared/resizeScaled'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { maybeSnapToGrid } from './lib/editor/tools/BaseBoxShapeTool/children/Pointing'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
@@ -460,11 +436,20 @@ export { isAccelKey } from './lib/utils/keyboard'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
 export { refreshPage } from './lib/utils/refreshPage'
 export {
+	getFontsFromRichText,
+	type RichTextFontVisitor,
+	type RichTextFontVisitorState,
+	type TLTextOptions,
+	type TiptapEditor,
+	type TiptapNode,
+} from './lib/utils/richText'
+export {
 	applyRotationToSnapshotShapes,
 	getRotationSnapshot,
 	type TLRotationSnapshot,
 } from './lib/utils/rotation'
 export { runtime, setRuntimeOverrides } from './lib/utils/runtime'
+export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalIndexedDb'
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { hardReset } from './lib/utils/sync/hardReset'
 export { uniq } from './lib/utils/uniq'

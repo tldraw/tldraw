@@ -10343,12 +10343,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (this.inputs.isPanning && this.inputs.isPointing) {
 							// Handle spacebar / middle mouse button panning
 							const { currentScreenPoint, previousScreenPoint } = this.inputs
-							const { panSpeed } = cameraOptions
 							const offset = Vec.Sub(currentScreenPoint, previousScreenPoint)
-							this.setCamera(
-								new Vec(cx + (offset.x * panSpeed) / cz, cy + (offset.y * panSpeed) / cz, cz),
-								{ immediate: true }
-							)
+							this.setCamera(new Vec(cx + offset.x / cz, cy + offset.y / cz, cz), {
+								immediate: true,
+							})
 							this.maybeTrackPerformance('Panning')
 							return
 						}

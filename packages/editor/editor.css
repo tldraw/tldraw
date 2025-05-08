@@ -600,6 +600,31 @@ input,
 	}
 }
 
+/* --------------------- Arrow Hints -------------------- */
+
+.tl-arrow-hint-handle {
+	fill: var(--color-selected-contrast);
+	stroke: var(--color-selection-stroke);
+	stroke-width: calc(1.5px * var(--tl-scale));
+	r: calc(4px * var(--tl-scale));
+}
+
+.tl-arrow-hint-snap {
+	stroke: transparent;
+	fill: var(--color-selection-fill);
+	r: calc(12px * var(--tl-scale));
+}
+
+.tl-arrow-hint-snap__none,
+.tl-arrow-hint-snap__center,
+.tl-arrow-hint-snap__axis {
+	display: none;
+}
+
+.tl-arrow-hint-snap__edge {
+	r: calc(8px * var(--tl-scale));
+}
+
 /* ------------------ Bounds Detail ----------------- */
 
 .tl-image,
@@ -969,6 +994,8 @@ input,
 
 .tl-rich-text p {
 	margin: 0;
+	/* Depending on the extensions, <p> tags can be empty, without a <br />. */
+	min-height: 1lh;
 }
 
 .tl-rich-text ul,
@@ -976,6 +1003,8 @@ input,
 	text-align: left;
 	margin: 0;
 	padding-left: 3.25ch;
+	/* Some resets, like Tailwind, nix the list styling. */
+	list-style: revert;
 }
 
 .tl-rich-text ol:has(> li:nth-child(10)) {
