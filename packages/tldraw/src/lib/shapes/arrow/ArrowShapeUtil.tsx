@@ -199,24 +199,21 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						})
 					: new Polyline2d({ points: info.route.points })
 
-		let labelGeom
-		if (shape.props.text.trim()) {
-			const labelPosition = getArrowLabelPosition(this.editor, shape)
-			if (debugFlags.debugGeometry.get()) {
-				debugGeom.push(...labelPosition.debugGeom)
-			}
-			labelGeom = new Rectangle2d({
-				x: labelPosition.box.x,
-				y: labelPosition.box.y,
-				width: labelPosition.box.w,
-				height: labelPosition.box.h,
-				isFilled: true,
-				isLabel: true,
-			})
+		const labelPosition = getArrowLabelPosition(this.editor, shape)
+		if (debugFlags.debugGeometry.get()) {
+			debugGeom.push(...labelPosition.debugGeom)
 		}
+		const labelGeom = new Rectangle2d({
+			x: labelPosition.box.x,
+			y: labelPosition.box.y,
+			width: labelPosition.box.w,
+			height: labelPosition.box.h,
+			isFilled: true,
+			isLabel: true,
+		})
 
 		return new Group2d({
-			children: [...(labelGeom ? [bodyGeom, labelGeom] : [bodyGeom]), ...debugGeom],
+			children: [bodyGeom, labelGeom, ...debugGeom],
 		})
 	}
 
@@ -788,7 +785,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
 		const bounds = geometry.bounds
 
-		const labelGeometry = shape.props.text.trim() ? (geometry.children[1] as Rectangle2d) : null
+		const labelGeometry = geometry.children[1] as Rectangle2d
 
 		if (Vec.Equals(start, end)) return null
 
@@ -797,12 +794,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
 
-		const includeClipPath =
-			(as && info.start.arrowhead !== 'arrow') ||
-			(ae && info.end.arrowhead !== 'arrow') ||
-			!!labelGeometry
-
-		if (isEditing && labelGeometry) {
+		if (isEditing) {
 			return (
 				<rect
 					x={toDomPrecision(labelGeometry.x)}
@@ -821,33 +813,29 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		return (
 			<g>
-				{includeClipPath && (
-					<defs>
-						<ArrowClipPath
-							hasText={shape.props.text.trim().length > 0}
-							bounds={bounds}
-							labelBounds={labelGeometry ? labelGeometry.getBounds() : new Box(0, 0, 0, 0)}
-							as={clipStartArrowhead && as ? as : ''}
-							ae={clipEndArrowhead && ae ? ae : ''}
-						/>
-					</defs>
-				)}
+				<defs>
+					<ArrowClipPath
+						hasText={shape.props.text.trim().length > 0}
+						bounds={bounds}
+						labelBounds={labelGeometry.getBounds()}
+						as={clipStartArrowhead && as ? as : ''}
+						ae={clipEndArrowhead && ae ? ae : ''}
+					/>
+				</defs>
 				<g
 					style={{
-						clipPath: includeClipPath ? `url(#${clipPathId})` : undefined,
-						WebkitClipPath: includeClipPath ? `url(#${clipPathId})` : undefined,
+						clipPath: `url(#${clipPathId})`,
+						WebkitClipPath: `url(#${clipPathId})`,
 					}}
 				>
 					{/* This rect needs to be here if we're creating a mask due to an svg quirk on Chrome */}
-					{includeClipPath && (
-						<rect
-							x={bounds.minX - 100}
-							y={bounds.minY - 100}
-							width={bounds.width + 200}
-							height={bounds.height + 200}
-							opacity={0}
-						/>
-					)}
+					<rect
+						x={bounds.minX - 100}
+						y={bounds.minY - 100}
+						width={bounds.width + 200}
+						height={bounds.height + 200}
+						opacity={0}
+					/>
 
 					{getArrowBodyPath(
 						shape,
@@ -867,7 +855,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				</g>
 				{as && <path d={as} />}
 				{ae && <path d={ae} />}
-				{labelGeometry && (
+				{shape.props.text.trim().length && (
 					<rect
 						x={toDomPrecision(labelGeometry.x)}
 						y={toDomPrecision(labelGeometry.y)}
