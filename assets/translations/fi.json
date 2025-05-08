@@ -340,6 +340,7 @@
 	"toast.error.export-fail.desc": "Kuvan vienti epäonnistui",
 	"toast.error.export-fail.title": "Vienti epäonnistui",
 	"tool-panel.more": "Lisää",
+	"tool-panel.title": "Työkalut",
 	"tool.arrow": "Nuoli",
 	"tool.arrow-down": "Alanuoli",
 	"tool.arrow-left": "Vasen nuoli",

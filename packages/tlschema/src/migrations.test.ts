@@ -3,6 +3,7 @@ import { getTestMigration, testSchema } from './__tests__/migrationTestUtils'
 import { bookmarkAssetVersions } from './assets/TLBookmarkAsset'
 import { imageAssetVersions } from './assets/TLImageAsset'
 import { videoAssetVersions } from './assets/TLVideoAsset'
+import { arrowBindingVersions } from './bindings/TLArrowBinding'
 import { toRichText } from './misc/TLRichText'
 import { assetVersions } from './records/TLAsset'
 import { cameraVersions } from './records/TLCamera'
@@ -2154,6 +2155,36 @@ describe('Adding color to frame shapes', () => {
 
 	test('down works as expected', () => {
 		expect(down({ props: { color: 'black' } })).toEqual({ props: {} })
+	})
+})
+
+describe('Add elbow kind to arrow shape', () => {
+	const { up, down } = getTestMigration(arrowShapeVersions.AddElbow)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { kind: 'arc', elbowMidPoint: 0.5 } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { kind: 'arc', elbowMidPoint: 0.5, wow: true } })).toEqual({
+			props: { wow: true },
+		})
+		expect(down({ props: { kind: 'elbow', elbowMidPoint: 0.5, wow: true } })).toEqual({
+			props: { wow: true },
+		})
+	})
+})
+
+describe('Add side to arrow binding', () => {
+	const { up, down } = getTestMigration(arrowBindingVersions.AddSnap)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { snap: 'none' } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { snap: 'none' } })).toEqual({ props: {} })
+		expect(down({ props: { snap: 'edge' } })).toEqual({ props: {} })
 	})
 })
 

@@ -1,5 +1,5 @@
-import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { useContainer } from '@tldraw/editor'
+import { Popover as _Popover } from 'radix-ui'
 import React from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 
@@ -16,12 +16,9 @@ export function TldrawUiPopover({ id, children, onOpenChange, open }: TLUiPopove
 	const [isOpen, handleOpenChange] = useMenuIsOpen(id, onOpenChange)
 
 	return (
-		<PopoverPrimitive.Root
-			onOpenChange={handleOpenChange}
-			open={open || isOpen /* allow debugging */}
-		>
+		<_Popover.Root onOpenChange={handleOpenChange} open={open || isOpen /* allow debugging */}>
 			<div className="tlui-popover">{children}</div>
-		</PopoverPrimitive.Root>
+		</_Popover.Root>
 	)
 }
 
@@ -33,9 +30,9 @@ export interface TLUiPopoverTriggerProps {
 /** @public @react */
 export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps) {
 	return (
-		<PopoverPrimitive.Trigger asChild dir="ltr">
+		<_Popover.Trigger asChild dir="ltr">
 			{children}
-		</PopoverPrimitive.Trigger>
+		</_Popover.Trigger>
 	)
 }
 
@@ -60,8 +57,8 @@ export function TldrawUiPopoverContent({
 }: TLUiPopoverContentProps) {
 	const container = useContainer()
 	return (
-		<PopoverPrimitive.Portal container={container}>
-			<PopoverPrimitive.Content
+		<_Popover.Portal container={container}>
+			<_Popover.Content
 				className="tlui-popover__content"
 				side={side}
 				sideOffset={sideOffset}
@@ -72,7 +69,7 @@ export function TldrawUiPopoverContent({
 			>
 				{children}
 				{/* <StyledArrow /> */}
-			</PopoverPrimitive.Content>
-		</PopoverPrimitive.Portal>
+			</_Popover.Content>
+		</_Popover.Portal>
 	)
 }

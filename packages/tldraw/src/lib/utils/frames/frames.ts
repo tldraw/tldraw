@@ -1,4 +1,13 @@
-import { Box, Editor, TLFrameShape, TLShapeId, TLShapePartial, Vec, compact } from '@tldraw/editor'
+import {
+	Box,
+	Editor,
+	TLFrameShape,
+	TLShape,
+	TLShapeId,
+	TLShapePartial,
+	Vec,
+	compact,
+} from '@tldraw/editor'
 
 /**
  * Remove a frame.
@@ -33,6 +42,29 @@ export function removeFrame(editor: Editor, ids: TLShapeId[]) {
 /** @internal */
 export const DEFAULT_FRAME_PADDING = 50
 
+export function getFrameChildrenBounds(
+	children: (TLShape | undefined)[],
+	editor: Editor,
+	opts: { padding: number } = { padding: DEFAULT_FRAME_PADDING }
+) {
+	const bounds = Box.FromPoints(
+		children.flatMap((shape) => {
+			if (!shape) return []
+			const geometry = editor.getShapeGeometry(shape.id)
+			const transform = editor.getShapeLocalTransform(shape)
+			return transform?.applyToPoints(geometry.vertices) ?? []
+		})
+	)
+
+	const padding = opts.padding ?? DEFAULT_FRAME_PADDING
+	const w = bounds.w + 2 * padding
+	const h = bounds.h + 2 * padding
+	const dx = padding - bounds.minX
+	const dy = padding - bounds.minY
+
+	return { w, h, dx, dy }
+}
+
 /**
  * Fit a frame to its content.
  *
@@ -50,18 +82,8 @@ export function fitFrameToContent(editor: Editor, id: TLShapeId, opts = {} as { 
 	const children = compact(childIds.map((id) => editor.getShape(id)))
 	if (!children.length) return
 
-	const bounds = Box.FromPoints(
-		children.flatMap((shape) => {
-			const geometry = editor.getShapeGeometry(shape.id)
-			return editor.getShapeLocalTransform(shape)!.applyToPoints(geometry.vertices)
-		})
-	)
+	const { w, h, dx, dy } = getFrameChildrenBounds(children, editor, opts)
 
-	const { padding = DEFAULT_FRAME_PADDING } = opts
-	const w = bounds.w + 2 * padding
-	const h = bounds.h + 2 * padding
-	const dx = padding - bounds.minX
-	const dy = padding - bounds.minY
 	// The shapes already perfectly fit the frame.
 	if (dx === 0 && dy === 0 && frame.props.w === w && frame.props.h === h) return
 

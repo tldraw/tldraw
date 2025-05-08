@@ -51,29 +51,30 @@ import { useShallowObjectIdentity } from './useIdentity'
 /** @public */
 export interface TLEditorComponents {
 	Background?: ComponentType | null
-	SvgDefs?: ComponentType | null
 	Brush?: ComponentType<TLBrushProps> | null
-	ZoomBrush?: ComponentType<TLBrushProps> | null
-	ShapeIndicators?: ComponentType | null
-	ShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null
-	Cursor?: ComponentType<TLCursorProps> | null
 	Canvas?: ComponentType<TLCanvasComponentProps> | null
 	CollaboratorBrush?: ComponentType<TLBrushProps> | null
 	CollaboratorCursor?: ComponentType<TLCursorProps> | null
 	CollaboratorHint?: ComponentType<TLCollaboratorHintProps> | null
-	CollaboratorShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null
-	Grid?: ComponentType<TLGridProps> | null
-	Scribble?: ComponentType<TLScribbleProps> | null
 	CollaboratorScribble?: ComponentType<TLScribbleProps> | null
-	SnapIndicator?: ComponentType<TLSnapIndicatorProps> | null
-	Handles?: ComponentType<TLHandlesProps> | null
+	CollaboratorShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null
+	Cursor?: ComponentType<TLCursorProps> | null
+	Grid?: ComponentType<TLGridProps> | null
 	Handle?: ComponentType<TLHandleProps> | null
-	Spinner?: ComponentType | null
-	SelectionForeground?: ComponentType<TLSelectionForegroundProps> | null
-	SelectionBackground?: ComponentType<TLSelectionBackgroundProps> | null
-	OnTheCanvas?: ComponentType | null
+	Handles?: ComponentType<TLHandlesProps> | null
 	InFrontOfTheCanvas?: ComponentType | null
 	LoadingScreen?: ComponentType | null
+	OnTheCanvas?: ComponentType | null
+	Overlays?: ComponentType | null
+	Scribble?: ComponentType<TLScribbleProps> | null
+	SelectionBackground?: ComponentType<TLSelectionBackgroundProps> | null
+	SelectionForeground?: ComponentType<TLSelectionForegroundProps> | null
+	ShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null
+	ShapeIndicators?: ComponentType | null
+	SnapIndicator?: ComponentType<TLSnapIndicatorProps> | null
+	Spinner?: ComponentType | null
+	SvgDefs?: ComponentType | null
+	ZoomBrush?: ComponentType<TLBrushProps> | null
 
 	// These will always have defaults
 	ErrorFallback?: TLErrorFallbackComponent
@@ -96,32 +97,35 @@ export function EditorComponentsProvider({
 	const value = useMemo(
 		(): Required<TLEditorComponents> => ({
 			Background: DefaultBackground,
-			SvgDefs: DefaultSvgDefs,
 			Brush: DefaultBrush,
-			ZoomBrush: DefaultBrush,
+			Canvas: DefaultCanvas,
 			CollaboratorBrush: DefaultBrush,
-			Cursor: DefaultCursor,
 			CollaboratorCursor: DefaultCursor,
 			CollaboratorHint: DefaultCollaboratorHint,
-			CollaboratorShapeIndicator: DefaultShapeIndicator,
-			Grid: DefaultGrid,
-			Scribble: DefaultScribble,
-			SnapIndicator: DefaultSnapIndicator,
-			Handles: DefaultHandles,
-			Handle: DefaultHandle,
 			CollaboratorScribble: DefaultScribble,
+			CollaboratorShapeIndicator: DefaultShapeIndicator,
+			Cursor: DefaultCursor,
+			Grid: DefaultGrid,
+			Handle: DefaultHandle,
+			Handles: DefaultHandles,
+			InFrontOfTheCanvas: null,
+			LoadingScreen: DefaultLoadingScreen,
+			OnTheCanvas: null,
+			Overlays: null,
+			Scribble: DefaultScribble,
+			SelectionBackground: DefaultSelectionBackground,
+			SelectionForeground: DefaultSelectionForeground,
+			ShapeIndicator: DefaultShapeIndicator,
+			ShapeIndicators: DefaultShapeIndicators,
+			SnapIndicator: DefaultSnapIndicator,
+			Spinner: DefaultSpinner,
+			SvgDefs: DefaultSvgDefs,
+			ZoomBrush: DefaultBrush,
+
 			ErrorFallback: DefaultErrorFallback,
 			ShapeErrorFallback: DefaultShapeErrorFallback,
 			ShapeIndicatorErrorFallback: DefaultShapeIndicatorErrorFallback,
-			Spinner: DefaultSpinner,
-			SelectionBackground: DefaultSelectionBackground,
-			SelectionForeground: DefaultSelectionForeground,
-			ShapeIndicators: DefaultShapeIndicators,
-			ShapeIndicator: DefaultShapeIndicator,
-			OnTheCanvas: null,
-			InFrontOfTheCanvas: null,
-			Canvas: DefaultCanvas,
-			LoadingScreen: DefaultLoadingScreen,
+
 			..._overrides,
 		}),
 		[_overrides]

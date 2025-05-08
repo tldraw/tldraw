@@ -1,7 +1,7 @@
-import type {
-	PostgresSQL,
-	PostgresTransaction,
-} from '@rocicorp/zero/out/zero-pg/src/postgres-connection'
+import {
+	PostgresJSClient,
+	PostgresJSTransaction,
+} from '@rocicorp/zero/out/zero-pg/src/postgresjs-connection'
 import { DB } from '@tldraw/dotcom-shared'
 import { Kysely, PostgresDialect } from 'kysely'
 import * as pg from 'pg'
@@ -29,7 +29,7 @@ export function createPostgresConnectionPool(env: Environment, name: string, max
 	return db
 }
 
-export function makePostgresConnector(env: Environment): PostgresSQL<any> {
+export function makePostgresConnector(env: Environment): PostgresJSClient<any> {
 	const pool = new pg.Pool({
 		connectionString: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 		application_name: 'zero-pg',
@@ -42,7 +42,7 @@ export function makePostgresConnector(env: Environment): PostgresSQL<any> {
 			const res = await pool.query(sqlString, params)
 			return res.rows
 		},
-		async begin(fn: (tx: PostgresTransaction) => Promise<any>): Promise<any> {
+		async begin(fn: (tx: PostgresJSTransaction) => Promise<any>): Promise<any> {
 			const client = await pool.connect()
 			try {
 				await client.query('BEGIN')

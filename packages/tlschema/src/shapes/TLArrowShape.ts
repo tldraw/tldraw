@@ -1,6 +1,5 @@
 import { createMigrationSequence } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLArrowBinding } from '../bindings/TLArrowBinding'
 import { VecModel, vecModelValidator } from '../misc/geometry-types'
 import { createBindingId } from '../records/TLBinding'
 import { TLShapeId, createShapePropsMigrationIds } from '../records/TLShape'
@@ -16,6 +15,16 @@ import { DefaultFillStyle, TLDefaultFillStyle } from '../styles/TLFillStyle'
 import { DefaultFontStyle, TLDefaultFontStyle } from '../styles/TLFontStyle'
 import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
 import { TLBaseShape } from './TLBaseShape'
+
+const arrowKinds = ['arc', 'elbow'] as const
+/** @public */
+export const ArrowShapeKindStyle = StyleProp.defineEnum('tldraw:arrowKind', {
+	defaultValue: 'arc',
+	values: arrowKinds,
+})
+
+/** @public */
+export type TLArrowShapeKind = T.TypeOf<typeof ArrowShapeKindStyle>
 
 const arrowheadTypes = [
 	'arrow',
@@ -46,6 +55,7 @@ export type TLArrowShapeArrowheadStyle = T.TypeOf<typeof ArrowShapeArrowheadStar
 
 /** @public */
 export interface TLArrowShapeProps {
+	kind: TLArrowShapeKind
 	labelColor: TLDefaultColorStyle
 	color: TLDefaultColorStyle
 	fill: TLDefaultFillStyle
@@ -60,6 +70,7 @@ export interface TLArrowShapeProps {
 	text: string
 	labelPosition: number
 	scale: number
+	elbowMidPoint: number
 }
 
 /** @public */
@@ -67,6 +78,7 @@ export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>
 
 /** @public */
 export const arrowShapeProps: RecordProps<TLArrowShape> = {
+	kind: ArrowShapeKindStyle,
 	labelColor: DefaultLabelColorStyle,
 	color: DefaultColorStyle,
 	fill: DefaultFillStyle,
@@ -81,14 +93,17 @@ export const arrowShapeProps: RecordProps<TLArrowShape> = {
 	text: T.string,
 	labelPosition: T.number,
 	scale: T.nonZeroNumber,
+	elbowMidPoint: T.number,
 }
 
+/** @public */
 export const arrowShapeVersions = createShapePropsMigrationIds('arrow', {
 	AddLabelColor: 1,
 	AddIsPrecise: 2,
 	AddLabelPosition: 3,
 	ExtractBindings: 4,
 	AddScale: 5,
+	AddElbow: 6,
 })
 
 function propsMigration(migration: TLPropsMigration) {
@@ -174,7 +189,7 @@ export const arrowShapeMigrations = createMigrationSequence({
 					const { start, end } = arrow.props
 					if (start.type === 'binding') {
 						const id = createBindingId()
-						const binding: TLArrowBinding = {
+						const binding = {
 							typeName: 'binding',
 							id,
 							type: 'arrow',
@@ -196,7 +211,7 @@ export const arrowShapeMigrations = createMigrationSequence({
 					}
 					if (end.type === 'binding') {
 						const id = createBindingId()
-						const binding: TLArrowBinding = {
+						const binding = {
 							typeName: 'binding',
 							id,
 							type: 'arrow',
@@ -226,6 +241,17 @@ export const arrowShapeMigrations = createMigrationSequence({
 			},
 			down: (props) => {
 				delete props.scale
+			},
+		}),
+		propsMigration({
+			id: arrowShapeVersions.AddElbow,
+			up: (props) => {
+				props.kind = 'arc'
+				props.elbowMidPoint = 0.5
+			},
+			down: (props) => {
+				delete props.kind
+				delete props.elbowMidPoint
 			},
 		}),
 	],

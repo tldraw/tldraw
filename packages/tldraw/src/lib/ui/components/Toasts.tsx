@@ -1,5 +1,5 @@
-import * as T from '@radix-ui/react-toast'
 import { useValue } from '@tldraw/editor'
+import { Toast as _Toast } from 'radix-ui'
 import { memo } from 'react'
 import { AlertSeverity, TLUiToast, useToasts } from '../context/toasts'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -33,7 +33,7 @@ function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 	const icon = toast.icon || (toast.severity && SEVERITY_TO_ICON[toast.severity])
 
 	return (
-		<T.Root
+		<_Toast.Root
 			onOpenChange={onOpenChange}
 			className="tlui-toast__container"
 			duration={toast.keepOpen ? Infinity : DEFAULT_TOAST_DURATION}
@@ -51,21 +51,23 @@ function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 				data-actions={!!toast.actions}
 			>
 				<div className="tlui-toast__content">
-					{toast.title && <T.Title className="tlui-toast__title">{toast.title}</T.Title>}
+					{toast.title && <_Toast.Title className="tlui-toast__title">{toast.title}</_Toast.Title>}
 					{toast.description && (
-						<T.Description className="tlui-toast__description">{toast.description}</T.Description>
+						<_Toast.Description className="tlui-toast__description">
+							{toast.description}
+						</_Toast.Description>
 					)}
 				</div>
 				{toast.actions && (
 					<div className="tlui-toast__actions">
 						{toast.actions.map((action, i) => (
-							<T.Action key={i} altText={action.label} asChild onClick={action.onClick}>
+							<_Toast.Action key={i} altText={action.label} asChild onClick={action.onClick}>
 								<TldrawUiButton type={action.type}>
 									<TldrawUiButtonLabel>{action.label}</TldrawUiButtonLabel>
 								</TldrawUiButton>
-							</T.Action>
+							</_Toast.Action>
 						))}
-						<T.Close asChild>
+						<_Toast.Close asChild>
 							<TldrawUiButton
 								type="normal"
 								className="tlui-toast__close"
@@ -73,18 +75,18 @@ function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 							>
 								<TldrawUiButtonLabel>{toast.closeLabel ?? msg('toast.close')}</TldrawUiButtonLabel>
 							</TldrawUiButton>
-						</T.Close>
+						</_Toast.Close>
 					</div>
 				)}
 			</div>
 			{!hasActions && (
-				<T.Close asChild>
+				<_Toast.Close asChild>
 					<TldrawUiButton type="normal" className="tlui-toast__close">
 						<TldrawUiButtonLabel>{toast.closeLabel ?? msg('toast.close')}</TldrawUiButtonLabel>
 					</TldrawUiButton>
-				</T.Close>
+				</_Toast.Close>
 			)}
-		</T.Root>
+		</_Toast.Root>
 	)
 }
 
@@ -97,7 +99,7 @@ export const DefaultToasts = memo(function TldrawUiToasts() {
 			{toastsArray.map((toast) => (
 				<TldrawUiToast key={toast.id} toast={toast} />
 			))}
-			<T.ToastViewport className="tlui-toast__viewport" />
+			<_Toast.ToastViewport className="tlui-toast__viewport" />
 		</>
 	)
 })

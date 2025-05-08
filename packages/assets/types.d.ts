@@ -29,6 +29,8 @@ export type AssetUrls = {
 		'align-left': string
 		'align-right': string
 		'align-top': string
+		'arrow-arc': string
+		'arrow-elbow': string
 		'arrow-left': string
 		'arrowhead-arrow': string
 		'arrowhead-bar': string

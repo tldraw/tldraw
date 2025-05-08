@@ -340,6 +340,7 @@
 	"toast.error.export-fail.desc": "画像のエクスポートに失敗しました",
 	"toast.error.export-fail.title": "エクスポートに失敗しました",
 	"tool-panel.more": "もっと",
+	"tool-panel.title": "ツール",
 	"tool.arrow": "矢印",
 	"tool.arrow-down": "下矢印",
 	"tool.arrow-left": "左矢印",

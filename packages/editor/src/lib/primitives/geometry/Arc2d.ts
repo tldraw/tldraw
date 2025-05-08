@@ -1,4 +1,4 @@
-import { Vec } from '../Vec'
+import { Vec, VecLike } from '../Vec'
 import { intersectLineSegmentCircle } from '../intersect'
 import { getArcMeasure, getPointInArcT, getPointOnCircle } from '../utils'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
@@ -44,14 +44,14 @@ export class Arc2d extends Geometry2d {
 		this._center = center
 	}
 
-	nearestPoint(point: Vec): Vec {
+	nearestPoint(point: VecLike): Vec {
 		const { _center, measure, radius, angleEnd, angleStart, start: A, end: B } = this
 		const t = getPointInArcT(measure, angleStart, angleEnd, _center.angle(point))
 		if (t <= 0) return A
 		if (t >= 1) return B
 
 		// Get the point (P) on the arc, then pick the nearest of A, B, and P
-		const P = _center.clone().add(point.clone().sub(_center).uni().mul(radius))
+		const P = Vec.Sub(point, _center).uni().mul(radius).add(_center)
 
 		let nearest: Vec | undefined
 		let dist = Infinity
@@ -67,7 +67,7 @@ export class Arc2d extends Geometry2d {
 		return nearest
 	}
 
-	hitTestLineSegment(A: Vec, B: Vec): boolean {
+	hitTestLineSegment(A: VecLike, B: VecLike): boolean {
 		const { _center, radius, measure, angleStart, angleEnd } = this
 		const intersection = intersectLineSegmentCircle(A, B, _center, radius)
 		if (intersection === null) return false
@@ -95,6 +95,6 @@ export class Arc2d extends Geometry2d {
 	}
 
 	override getLength() {
-		return this.measure * this.radius
+		return Math.abs(this.measure * this.radius)
 	}
 }

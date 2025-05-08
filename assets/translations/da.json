@@ -340,6 +340,7 @@
 	"toast.error.export-fail.desc": "Billedet kunne ikke eksporteres",
 	"toast.error.export-fail.title": "Mislykket eksport",
 	"tool-panel.more": "Mere",
+	"tool-panel.title": "Værktøjer",
 	"tool.arrow": "Pil",
 	"tool.arrow-down": "Pil ned",
 	"tool.arrow-left": "Pil venstre",

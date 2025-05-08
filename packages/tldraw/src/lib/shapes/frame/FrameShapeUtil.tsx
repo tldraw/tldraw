@@ -6,13 +6,16 @@ import {
 	Rectangle2d,
 	SVGContainer,
 	SvgExportContext,
+	TLClickEventInfo,
 	TLFrameShape,
 	TLFrameShapeProps,
 	TLGroupShape,
 	TLResizeInfo,
 	TLShape,
+	TLShapePartial,
 	TLShapeUtilConstructor,
 	clamp,
+	compact,
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
@@ -22,6 +25,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
+import { fitFrameToContent, getFrameChildrenBounds } from '../../utils/frames/frames'
 import {
 	TLCreateTextJsxFromSpansOpts,
 	createTextJsxFromSpans,
@@ -357,6 +361,54 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			...(t > 0.5 ? endShape.props : startShape.props),
 			w: lerp(startShape.props.w, endShape.props.w, t),
 			h: lerp(startShape.props.h, endShape.props.h, t),
+		}
+	}
+
+	override onDoubleClickEdge(shape: TLFrameShape, info: TLClickEventInfo) {
+		if (info.target !== 'selection') return
+		const { handle } = info
+
+		// If handle is missing, we can't determine which edge was clicked
+		if (!handle) return
+
+		const isHorizontalEdge = handle === 'left' || handle === 'right'
+		const isVerticalEdge = handle === 'top' || handle === 'bottom'
+
+		const childIds = this.editor.getSortedChildIdsForParent(shape.id)
+		const children = compact(childIds.map((id) => this.editor.getShape(id)))
+		if (!children.length) return
+
+		const { dx, dy, w, h } = getFrameChildrenBounds(children, this.editor, { padding: 10 })
+
+		this.editor.run(() => {
+			const changes: TLShapePartial[] = childIds.map((childId) => {
+				const childShape = this.editor.getShape(childId)!
+				return {
+					id: childShape.id,
+					type: childShape.type,
+					x: isHorizontalEdge ? childShape.x + dx : childShape.x,
+					y: isVerticalEdge ? childShape.y + dy : childShape.y,
+				}
+			})
+
+			this.editor.updateShapes(changes)
+		})
+
+		return {
+			id: shape.id,
+			type: shape.type,
+			props: {
+				w: isHorizontalEdge ? w : shape.props.w,
+				h: isVerticalEdge ? h : shape.props.h,
+			},
+		}
+	}
+
+	override onDoubleClickCorner(shape: TLFrameShape) {
+		fitFrameToContent(this.editor, shape.id, { padding: 10 })
+		return {
+			id: shape.id,
+			type: shape.type,
 		}
 	}
 }
