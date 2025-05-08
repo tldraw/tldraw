@@ -154,12 +154,12 @@ export function updateArrowTargetState({
 	})
 
 	const zoomLevel = editor.getZoomLevel()
-	const minDistScaled2 = (util.options.minElbowHandleDistance / zoomLevel) ** 2
+	const minDistScaled = util.options.minElbowHandleDistance / zoomLevel
 
 	const targetCenterInPageSpace = targetTransform.applyToPoint(targetCenterInTargetSpace)
 	for (const side of objectMapKeys(handlesInPageSpace)) {
 		const handle = handlesInPageSpace[side]
-		if (Vec.DistMin(handle.point, targetCenterInPageSpace, minDistScaled2)) {
+		if (Vec.DistMin(handle.point, targetCenterInPageSpace, minDistScaled)) {
 			handle.isEnabled = false
 		}
 	}
@@ -265,16 +265,10 @@ export function updateArrowTargetState({
 
 			const side = loDist2 < hiDist2 ? axis.loEdge : axis.hiEdge
 
-			const snappedPointInPageSpace = handlesInPageSpace[side].isEnabled
-				? handlesInPageSpace[side].point
-				: Vec.NearestPointOnLineSegment(
-						handlesInPageSpace[axis.loEdge].far,
-						handlesInPageSpace[axis.hiEdge].far,
-						pointInPageSpace
-					)
-
-			snap = 'edge-point'
-			anchorInPageSpace = snappedPointInPageSpace
+			if (handlesInPageSpace[side].isEnabled) {
+				snap = 'edge-point'
+				anchorInPageSpace = handlesInPageSpace[side].point
+			}
 		}
 	}
 
