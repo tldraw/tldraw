@@ -1,14 +1,14 @@
 CREATE TABLE "group" (
   "id" TEXT PRIMARY KEY,
   "name" TEXT NOT NULL,
-  "createdAt" TIMESTAMP DEFAULT NOW(),
-  "updatedAt" TIMESTAMP DEFAULT NOW()
+  "createdAt" BIGINT NOT NULL,
+  "updatedAt" BIGINT NOT NULL 
 );
 CREATE TABLE "user_group" (
   "userId" TEXT NOT NULL,
   "groupId" TEXT NOT NULL,
-  "createdAt" TIMESTAMP DEFAULT NOW(),
-  "updatedAt" TIMESTAMP DEFAULT NOW(),
+  "createdAt" BIGINT NOT NULL,
+  "updatedAt" BIGINT NOT NULL,
   "role" TEXT NOT NULL,
   PRIMARY KEY ("userId", "groupId"),
   FOREIGN KEY ("userId") REFERENCES public."user" ("id") ON DELETE CASCADE,
@@ -17,7 +17,7 @@ CREATE TABLE "user_group" (
 CREATE TABLE "user_presence" (
   "userId" TEXT NOT NULL,
   "fileId" TEXT NOT NULL,
-  "lastActivityAt" TIMESTAMP DEFAULT NOW(),
+  "lastActivityAt" BIGINT NOT NULL,
   "name" TEXT,
   "avatar" TEXT,
   PRIMARY KEY ("userId", "fileId"),

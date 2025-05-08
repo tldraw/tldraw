@@ -59,7 +59,6 @@ const groupNulls = nulls(groupKeys)
 const userGroupNulls = nulls(userGroupKeys)
 const userPresenceNulls = nulls(userPresenceKeys)
 
-
 const userColumns = userKeys.map((c) => `${c.reference} as "${c.alias}"`)
 const fileColumns = fileKeys.map((c) => `${c.reference} as "${c.alias}"`)
 const fileStateColumns = fileStateKeys.map((c) => `${c.reference} as "${c.alias}"`)
@@ -75,15 +74,15 @@ SELECT 'file' AS "table", null::bigint as "mutationNumber", null::text as "lsn",
 UNION
 SELECT 'file_state' AS "table", null::bigint as "mutationNumber", null::text as "lsn", ${sql.raw(userNulls + ',' + fileNulls + ',' + fileStateColumns + ',' + groupNulls + ',' + userGroupNulls + ',' + userPresenceNulls)} FROM public.file_state WHERE "userId" = '${sql.raw(userId)}'
 UNION
-SELECT 'group' AS "table", null::bigint as "mutationNumber", null::text as "lsn", ${sql.raw(userNulls + ',' + fileNulls + ',' + fileStateNulls+ ',' + groupColumns +  ',' + userGroupNulls + ',' + userPresenceNulls)} FROM public.group WHERE EXISTS(SELECT 1 FROM public.user_group WHERE "userId" = '${sql.raw(userId)}' AND public.user_group."groupId" = public.group.id)
+SELECT 'group' AS "table", null::bigint as "mutationNumber", null::text as "lsn", ${sql.raw(userNulls + ',' + fileNulls + ',' + fileStateNulls + ',' + groupColumns + ',' + userGroupNulls + ',' + userPresenceNulls)} FROM public.group WHERE EXISTS(SELECT 1 FROM public.user_group WHERE "userId" = '${sql.raw(userId)}' AND public.user_group."groupId" = public.group.id)
 UNION
 SELECT 'user_group' AS "table", null::bigint as "mutationNumber", null::text as "lsn", ${sql.raw(userNulls + ',' + fileNulls + ',' + fileStateNulls + ',' + groupNulls + ',' + userGroupColumns + ',' + userPresenceNulls)} FROM public.user_group WHERE "userId" = '${sql.raw(userId)}'
 UNION
 SELECT 'user_presence' AS "table", null::bigint as "mutationNumber", null::text as "lsn", ${sql.raw(userNulls + ',' + fileNulls + ',' + fileStateNulls + ',' + groupNulls + ',' + userGroupNulls + ',' + userPresenceColumns)} FROM public.user_presence WHERE "userId" = '${sql.raw(userId)}'
 UNION
-SELECT 'lsn' as "table", null::bigint as "mutationNumber", pg_current_wal_lsn()::text as "lsn", ${sql.raw(userNulls + ',' + fileNulls + ',' + fileStateNulls)}
+SELECT 'lsn' as "table", null::bigint as "mutationNumber", pg_current_wal_lsn()::text as "lsn", ${sql.raw(userNulls + ',' + fileNulls + ',' + fileStateNulls + ',' + groupNulls + ',' + userGroupNulls + ',' + userPresenceNulls)}
 UNION
-SELECT 'user_mutation_number' as "table", "mutationNumber"::bigint as "mutationNumber", null::text as "lsn", ${sql.raw(userNulls + ',' + fileNulls + ',' + fileStateNulls)} FROM public.user_mutation_number;
+SELECT 'user_mutation_number' as "table", "mutationNumber"::bigint as "mutationNumber", null::text as "lsn", ${sql.raw(userNulls + ',' + fileNulls + ',' + fileStateNulls + ',' + groupNulls + ',' + userGroupNulls + ',' + userPresenceNulls)} FROM public.user_mutation_number;
 `
 }
 

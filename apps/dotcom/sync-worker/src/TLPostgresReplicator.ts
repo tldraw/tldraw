@@ -143,7 +143,8 @@ const migrations: Migration[] = [
 			CREATE TABLE history (
 				lsn TEXT NOT NULL,
 				topicId TEXT NOT NULL,
-				json TEXT NOT NULL
+				json TEXT NOT NULL,
+				timestamp INTEGER NOT NULL DEFAULT 0
 			);
 			CREATE INDEX history_lsn_topicId ON history (lsn, topicId);
 
