@@ -14,7 +14,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { useRef } from 'react'
+import { PointerEventHandler, useRef, useState } from 'react'
 import { useReadonly } from '../ui/hooks/useReadonly'
 import { TldrawCropHandles } from './TldrawCropHandles'
 
@@ -243,126 +243,110 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 					isHidden={hideMobileRotateHandle}
 				/>
 				{/* Targets */}
-				<rect
+				<ResizeHandle
 					className={classNames('tl-transparent', {
 						'tl-hidden': hideVerticalEdgeTargets,
 					})}
-					data-testid="selection.resize.top"
-					role="button"
-					aria-label="top target"
-					pointerEvents="all"
+					dataTestId="selection.resize.top"
+					position="top"
 					x={0}
 					y={toDomPrecision(0 - (isSmallY ? targetSizeY * 2 : targetSizeY))}
 					width={toDomPrecision(width)}
 					height={toDomPrecision(Math.max(1, targetSizeY * 2))}
-					style={isDefaultCursor ? { cursor: getCursor('ns-resize', rotation) } : undefined}
-					{...topEvents}
+					cursor={isDefaultCursor ? getCursor('ns-resize', rotation) : undefined}
+					events={topEvents}
 				/>
-				<rect
+				<ResizeHandle
 					className={classNames('tl-transparent', {
 						'tl-hidden': hideHorizontalEdgeTargets,
 					})}
-					data-testid="selection.resize.right"
-					role="button"
-					aria-label="right target"
-					pointerEvents="all"
+					dataTestId="selection.resize.right"
+					position="right"
 					x={toDomPrecision(width - (isSmallX ? 0 : targetSizeX))}
 					y={0}
 					height={toDomPrecision(height)}
 					width={toDomPrecision(Math.max(1, targetSizeX * 2))}
-					style={isDefaultCursor ? { cursor: getCursor('ew-resize', rotation) } : undefined}
-					{...rightEvents}
+					cursor={isDefaultCursor ? getCursor('ew-resize', rotation) : undefined}
+					events={rightEvents}
 				/>
-				<rect
+				<ResizeHandle
 					className={classNames('tl-transparent', {
 						'tl-hidden': hideVerticalEdgeTargets,
 					})}
-					data-testid="selection.resize.bottom"
-					role="button"
-					aria-label="bottom target"
-					pointerEvents="all"
+					dataTestId="selection.resize.bottom"
+					position="bottom"
 					x={0}
 					y={toDomPrecision(height - (isSmallY ? 0 : targetSizeY))}
 					width={toDomPrecision(width)}
 					height={toDomPrecision(Math.max(1, targetSizeY * 2))}
-					style={isDefaultCursor ? { cursor: getCursor('ns-resize', rotation) } : undefined}
-					{...bottomEvents}
+					cursor={isDefaultCursor ? getCursor('ns-resize', rotation) : undefined}
+					events={bottomEvents}
 				/>
-				<rect
+				<ResizeHandle
 					className={classNames('tl-transparent', {
 						'tl-hidden': hideHorizontalEdgeTargets,
 					})}
-					data-testid="selection.resize.left"
-					role="button"
-					aria-label="left target"
-					pointerEvents="all"
+					dataTestId="selection.resize.left"
+					position="left"
 					x={toDomPrecision(0 - (isSmallX ? targetSizeX * 2 : targetSizeX))}
 					y={0}
 					height={toDomPrecision(height)}
 					width={toDomPrecision(Math.max(1, targetSizeX * 2))}
-					style={isDefaultCursor ? { cursor: getCursor('ew-resize', rotation) } : undefined}
-					{...leftEvents}
+					cursor={isDefaultCursor ? getCursor('ew-resize', rotation) : undefined}
+					events={leftEvents}
 				/>
 				{/* Corner Targets */}
-				<rect
+				<ResizeHandle
 					className={classNames('tl-transparent', {
 						'tl-hidden': hideTopLeftCorner,
 					})}
-					data-testid="selection.target.top-left"
-					role="button"
-					aria-label="top-left target"
-					pointerEvents="all"
+					dataTestId="selection.target.top-left"
+					position="top-left"
 					x={toDomPrecision(0 - (isSmallX ? targetSizeX * 2 : targetSizeX * 1.5))}
 					y={toDomPrecision(0 - (isSmallY ? targetSizeY * 2 : targetSizeY * 1.5))}
 					width={toDomPrecision(targetSizeX * 3)}
 					height={toDomPrecision(targetSizeY * 3)}
-					style={isDefaultCursor ? { cursor: getCursor('nwse-resize', rotation) } : undefined}
-					{...topLeftEvents}
+					cursor={isDefaultCursor ? getCursor('nwse-resize', rotation) : undefined}
+					events={topLeftEvents}
 				/>
-				<rect
+				<ResizeHandle
 					className={classNames('tl-transparent', {
 						'tl-hidden': hideTopRightCorner,
 					})}
-					data-testid="selection.target.top-right"
-					role="button"
-					aria-label="top-right target"
-					pointerEvents="all"
+					dataTestId="selection.target.top-right"
+					position="top-right"
 					x={toDomPrecision(width - (isSmallX ? 0 : targetSizeX * 1.5))}
 					y={toDomPrecision(0 - (isSmallY ? targetSizeY * 2 : targetSizeY * 1.5))}
 					width={toDomPrecision(targetSizeX * 3)}
 					height={toDomPrecision(targetSizeY * 3)}
-					style={isDefaultCursor ? { cursor: getCursor('nesw-resize', rotation) } : undefined}
-					{...topRightEvents}
+					cursor={isDefaultCursor ? getCursor('nesw-resize', rotation) : undefined}
+					events={topRightEvents}
 				/>
-				<rect
+				<ResizeHandle
 					className={classNames('tl-transparent', {
 						'tl-hidden': hideBottomRightCorner,
 					})}
-					data-testid="selection.target.bottom-right"
-					role="button"
-					aria-label="bottom-right target"
-					pointerEvents="all"
+					dataTestId="selection.target.bottom-right"
+					position="bottom-right"
 					x={toDomPrecision(width - (isSmallX ? targetSizeX : targetSizeX * 1.5))}
 					y={toDomPrecision(height - (isSmallY ? targetSizeY : targetSizeY * 1.5))}
 					width={toDomPrecision(targetSizeX * 3)}
 					height={toDomPrecision(targetSizeY * 3)}
-					style={isDefaultCursor ? { cursor: getCursor('nwse-resize', rotation) } : undefined}
-					{...bottomRightEvents}
+					cursor={isDefaultCursor ? getCursor('nwse-resize', rotation) : undefined}
+					events={bottomRightEvents}
 				/>
-				<rect
+				<ResizeHandle
 					className={classNames('tl-transparent', {
 						'tl-hidden': hideBottomLeftCorner,
 					})}
-					data-testid="selection.target.bottom-left"
-					role="button"
-					aria-label="bottom-left target"
-					pointerEvents="all"
+					dataTestId="selection.target.bottom-left"
+					position="bottom-left"
 					x={toDomPrecision(0 - (isSmallX ? targetSizeX * 3 : targetSizeX * 1.5))}
 					y={toDomPrecision(height - (isSmallY ? 0 : targetSizeY * 1.5))}
 					width={toDomPrecision(targetSizeX * 3)}
 					height={toDomPrecision(targetSizeY * 3)}
-					style={isDefaultCursor ? { cursor: getCursor('nesw-resize', rotation) } : undefined}
-					{...bottomLeftEvents}
+					cursor={isDefaultCursor ? getCursor('nesw-resize', rotation) : undefined}
+					events={bottomLeftEvents}
 				/>
 				{/* Resize Handles */}
 				{showResizeHandles && (
@@ -459,6 +443,51 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 	)
 })
 
+export const ResizeHandle = function ResizeHandle({
+	className,
+	dataTestId,
+	position,
+	x,
+	y,
+	width,
+	height,
+	cursor,
+	events,
+}: {
+	className: string
+	dataTestId: string
+	position: string
+	x: number
+	y: number
+	width: number
+	height: number
+	cursor?: string
+	events: {
+		onPointerUp: PointerEventHandler<Element>
+		onPointerMove(e: React.PointerEvent<Element>): void
+		onPointerDown: PointerEventHandler<Element>
+	}
+}) {
+	const [mouseOver, setMouseOver] = useState(false)
+	return (
+		<rect
+			className={className}
+			data-testid={dataTestId}
+			role="button"
+			aria-label={`${position} target`}
+			pointerEvents="all"
+			x={x}
+			y={y}
+			width={width}
+			height={height}
+			onMouseEnter={() => setMouseOver(true)}
+			onMouseLeave={() => setMouseOver(false)}
+			cursor={mouseOver ? cursor : undefined}
+			{...events}
+		/>
+	)
+}
+
 export const RotateCornerHandle = function RotateCornerHandle({
 	cx,
 	cy,
@@ -477,6 +506,8 @@ export const RotateCornerHandle = function RotateCornerHandle({
 	'data-testid'?: string
 }) {
 	const events = useSelectionEvents(corner)
+	const [mouseOver, setMouseOver] = useState(false)
+
 	return (
 		<rect
 			className={classNames('tl-transparent', 'tl-rotate-corner', { 'tl-hidden': isHidden })}
@@ -488,7 +519,9 @@ export const RotateCornerHandle = function RotateCornerHandle({
 			y={toDomPrecision(cy - targetSize * 3)}
 			width={toDomPrecision(Math.max(1, targetSize * 3))}
 			height={toDomPrecision(Math.max(1, targetSize * 3))}
-			cursor={cursor}
+			onMouseEnter={() => setMouseOver(true)}
+			onMouseLeave={() => setMouseOver(false)}
+			cursor={mouseOver ? cursor : undefined}
 			{...events}
 		/>
 	)
