@@ -2276,13 +2276,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setEditingShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		this.setRichTextEditor(null)
-		if (id !== this.getEditingShapeId()) {
+		const prevEditingShapeId = this.getEditingShapeId()
+		if (id !== prevEditingShapeId) {
 			if (id) {
 				const shape = this.getShape(id)
 				if (shape && this.getShapeUtil(shape).canEdit(shape)) {
 					this.run(
 						() => {
 							this._updateCurrentPageState({ editingShapeId: id })
+							this.getShapeUtil(shape).onEditStart?.(shape)
 						},
 						{ history: 'ignore' }
 					)
@@ -2295,6 +2297,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				() => {
 					this._updateCurrentPageState({ editingShapeId: null })
 					this._currentRichTextEditor.set(null)
+					if (prevEditingShapeId) {
+						const prevEditingShape = this.getShape(prevEditingShapeId)
+						if (prevEditingShape) {
+							this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
+						}
+					}
 				},
 				{ history: 'ignore' }
 			)
@@ -10343,12 +10351,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (this.inputs.isPanning && this.inputs.isPointing) {
 							// Handle spacebar / middle mouse button panning
 							const { currentScreenPoint, previousScreenPoint } = this.inputs
-							const { panSpeed } = cameraOptions
 							const offset = Vec.Sub(currentScreenPoint, previousScreenPoint)
-							this.setCamera(
-								new Vec(cx + (offset.x * panSpeed) / cz, cy + (offset.y * panSpeed) / cz, cz),
-								{ immediate: true }
-							)
+							this.setCamera(new Vec(cx + offset.x / cz, cy + offset.y / cz, cz), {
+								immediate: true,
+							})
 							this.maybeTrackPerformance('Panning')
 							return
 						}

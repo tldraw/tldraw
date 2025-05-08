@@ -378,9 +378,9 @@ const routes = {
 	},
 	left: {
 		top: [ElbowArrowTransform.Rotate180, routeRightToBottom],
-		left: [ElbowArrowTransform.Rotate180, routeRightToLeft],
+		left: [ElbowArrowTransform.Rotate180, routeRightToRight],
 		bottom: [ElbowArrowTransform.Rotate180, routeRightToTop],
-		right: [ElbowArrowTransform.Rotate180, routeRightToRight],
+		right: [ElbowArrowTransform.Rotate180, routeRightToLeft],
 	},
 } satisfies Record<
 	ElbowArrowSide,

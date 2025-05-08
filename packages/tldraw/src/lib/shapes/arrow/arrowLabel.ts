@@ -267,3 +267,22 @@ function furthest(from: VecLike, candidates: VecLike[]): VecLike | null {
 export function getArrowLabelFontSize(shape: TLArrowShape) {
 	return ARROW_LABEL_FONT_SIZES[shape.props.size] * shape.props.scale
 }
+
+export function getArrowLabelDefaultPosition(editor: Editor, shape: TLArrowShape) {
+	const info = getArrowInfo(editor, shape)!
+	switch (info.type) {
+		case 'straight':
+		case 'arc':
+			return 0.5
+		case 'elbow': {
+			const midpointHandle = info.route.midpointHandle
+			const bodyGeom = arrowBodyGeometryCache.get(editor, shape.id)
+			if (midpointHandle && bodyGeom) {
+				return bodyGeom.uninterpolateAlongEdge(midpointHandle.point)
+			}
+			return 0.5
+		}
+		default:
+			exhaustiveSwitchError(info, 'type')
+	}
+}

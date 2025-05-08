@@ -45,8 +45,9 @@ import {
 	useSharedSafeId,
 	useValue,
 } from '@tldraw/editor'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
+import { PathBuilder } from '../shared/PathBuilder'
 import { PlainTextLabel } from '../shared/PlainTextLabel'
 import { ShapeFill } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
@@ -56,7 +57,11 @@ import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyle
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getArrowBodyPath, getArrowHandlePath } from './ArrowPath'
 import { ArrowShapeOptions } from './arrow-types'
-import { getArrowLabelFontSize, getArrowLabelPosition } from './arrowLabel'
+import {
+	getArrowLabelDefaultPosition,
+	getArrowLabelFontSize,
+	getArrowLabelPosition,
+} from './arrowLabel'
 import { updateArrowTargetState } from './arrowTargetState'
 import { getArrowheadPathForType } from './arrowheads'
 import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
@@ -476,6 +481,22 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override onTranslateStart(shape: TLArrowShape) {
 		const bindings = getArrowBindings(this.editor, shape)
 
+		if (shape.props.kind === 'elbow') {
+			// for arrow shapes, we can't maintain the bindings well just yet so we remove them entirely:
+			const info = getArrowInfo(this.editor, shape)
+			if (!info) return
+			const update: TLShapePartial<TLArrowShape> = { id: shape.id, type: 'arrow', props: {} }
+			if (bindings.start) {
+				update.props!.start = { x: info.start.point.x, y: info.start.point.y }
+				removeArrowBinding(this.editor, shape, 'start')
+			}
+			if (bindings.end) {
+				update.props!.end = { x: info.end.point.x, y: info.end.point.y }
+				removeArrowBinding(this.editor, shape, 'end')
+			}
+			return update
+		}
+
 		const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(this.editor, shape, bindings)
 		const shapePageTransform = this.editor.getShapePageTransform(shape.id)!
 
@@ -826,6 +847,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				{includeClipPath && (
 					<defs>
 						<ArrowClipPath
+							radius={3.5 * shape.props.scale}
 							hasText={shape.props.text.trim().length > 0}
 							bounds={bounds}
 							labelBounds={labelGeometry ? labelGeometry.getBounds() : new Box(0, 0, 0, 0)}
@@ -881,6 +903,18 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				)}
 			</g>
 		)
+	}
+
+	override onEditStart(shape: TLArrowShape) {
+		if (shape.props.text.trim() === '') {
+			// editing text for the first time, so set the position to the default:
+			const labelPosition = getArrowLabelDefaultPosition(this.editor, shape)
+			this.editor.updateShape<TLArrowShape>({
+				id: shape.id,
+				type: shape.type,
+				props: { labelPosition },
+			})
+		}
 	}
 
 	override onEditEnd(shape: TLArrowShape) {
@@ -982,8 +1016,6 @@ const ArrowSvg = track(function ArrowSvg({
 	const editor = useEditor()
 	const theme = useDefaultColorTheme()
 	const info = getArrowInfo(editor, shape)
-	const bounds = Box.ZeroFix(editor.getShapeGeometry(shape).bounds)
-	const bindings = getArrowBindings(editor, shape)
 	const isForceSolid = useValue(
 		'force solid',
 		() => {
@@ -991,11 +1023,14 @@ const ArrowSvg = track(function ArrowSvg({
 		},
 		[editor]
 	)
-
 	const clipPathId = useSharedSafeId(shape.id + '_clip')
 	const arrowheadDotId = useSharedSafeId('arrowhead-dot')
 	const arrowheadCrossId = useSharedSafeId('arrowhead-cross')
 	const isEditing = useIsEditing(shape.id)
+	const geometry = editor.getShapeGeometry(shape)
+	if (!geometry) return null
+	const bounds = Box.ZeroFix(geometry.bounds)
+	const bindings = getArrowBindings(editor, shape)
 
 	if (!info?.isValid) return null
 
@@ -1045,6 +1080,7 @@ const ArrowSvg = track(function ArrowSvg({
 			<defs>
 				<clipPath id={clipPathId}>
 					<ArrowClipPath
+						radius={3.5 * shape.props.scale}
 						hasText={isEditing || shape.props.text.trim().length > 0}
 						bounds={bounds}
 						labelBounds={labelPosition.box}
@@ -1108,27 +1144,64 @@ const ArrowSvg = track(function ArrowSvg({
 })
 
 function ArrowClipPath({
+	radius,
 	hasText,
 	bounds,
 	labelBounds,
 	as,
 	ae,
 }: {
+	radius: number
 	hasText: boolean
 	bounds: Box
 	labelBounds: Box
 	as: string
 	ae: string
 }) {
-	// The direction in which we create the different path parts is important, as it determines what gets clipped.
-	// See the description on the directions in the non-zero fill rule example:
-	// https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/fill-rule#nonzero
-	// We create this one in the clockwise direction
-	const boundingBoxPath = `M${toDomPrecision(bounds.minX - 100)},${toDomPrecision(bounds.minY - 100)} h${bounds.width + 200} v${bounds.height + 200} h-${bounds.width + 200} Z`
-	// We create this one in the counter-clockwise direction, which cuts out the label box
-	const labelBoxPath = `M${toDomPrecision(labelBounds.minX)},${toDomPrecision(labelBounds.minY)} v${labelBounds.height} h${labelBounds.width} v-${labelBounds.height} Z`
+	const path = useMemo(() => {
+		// The direction in which we create the different path parts is important, as it determines what gets clipped.
+		// See the description on the directions in the non-zero fill rule example:
+		// https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/fill-rule#nonzero
+		const path = new PathBuilder()
+
+		// We create this one in the clockwise direction
+		path
+			.moveTo(bounds.left - 100, bounds.top - 100)
+			.lineTo(bounds.right + 100, bounds.top - 100)
+			.lineTo(bounds.right + 100, bounds.bottom + 100)
+			.lineTo(bounds.left - 100, bounds.bottom + 100)
+			.close()
+
+		if (hasText) {
+			path
+				.moveTo(labelBounds.left, labelBounds.top + radius)
+				.lineTo(labelBounds.left, labelBounds.bottom - radius)
+				.arcTo(radius, false, false, labelBounds.left + radius, labelBounds.bottom)
+				.lineTo(labelBounds.right - radius, labelBounds.bottom)
+				.arcTo(radius, false, false, labelBounds.right, labelBounds.bottom - radius)
+				.lineTo(labelBounds.right, labelBounds.top + radius)
+				.arcTo(radius, false, false, labelBounds.right - radius, labelBounds.top)
+				.lineTo(labelBounds.left + radius, labelBounds.top)
+				.arcTo(radius, false, false, labelBounds.left, labelBounds.top + radius)
+				.close()
+		}
+
+		return path.toD()
+	}, [
+		radius,
+		hasText,
+		bounds.bottom,
+		bounds.left,
+		bounds.right,
+		bounds.top,
+		labelBounds.bottom,
+		labelBounds.left,
+		labelBounds.right,
+		labelBounds.top,
+	])
+
 	// We also append the arrowhead paths to the clip path, so that we also clip the arrowheads
-	return <path d={`${boundingBoxPath}${hasText ? labelBoxPath : ''}${as}${ae}`} />
+	return <path d={`${path}${as}${ae}`} />
 }
 
 const shapeAtTranslationStart = new WeakMap<
