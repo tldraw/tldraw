@@ -44,7 +44,6 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		height: 500,
 		doesResize: true,
 		toEmbedUrl: (url) => {
-			console.log('hello')
 			if (
 				!!url.match(
 					// eslint-disable-next-line no-useless-escape
