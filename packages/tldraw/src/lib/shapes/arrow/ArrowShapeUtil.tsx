@@ -206,7 +206,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			if (debugFlags.debugGeometry.get()) {
 				debugGeom.push(...labelPosition.debugGeom)
 			}
-			new Rectangle2d({
+			labelGeom = new Rectangle2d({
 				x: labelPosition.box.x,
 				y: labelPosition.box.y,
 				width: labelPosition.box.w,
