@@ -352,7 +352,7 @@ function getElbowArrowTerminalInfo(
 
 	if (binding) {
 		const target = editor.getShape(binding.toId)
-		const geometry = getBindingGeometryInArrowSpace(editor, arrow.id, binding.toId, binding.props)
+		const geometry = getBindingGeometryInArrowSpace(editor, arrow, binding.toId, binding.props)
 		if (geometry && target) {
 			let arrowheadOffset = 0
 			const arrowheadProp = binding.props.terminal === 'start' ? 'arrowheadStart' : 'arrowheadEnd'
@@ -406,18 +406,27 @@ function getElbowArrowTerminalInfo(
 	}
 }
 
-export function getBindingGeometryInArrowSpace(
+function getBindingGeometryInArrowSpace(
 	editor: Editor,
-	arrowId: TLShapeId,
+	arrow: TLArrowShape,
 	targetId: TLShapeId,
 	bindingProps: TLArrowBindingProps
 ) {
-	const targetGeometryInTargetSpace = editor.getShapeGeometry(targetId)
+	const hasArrowhead =
+		bindingProps.terminal === 'start'
+			? arrow.props.arrowheadStart !== 'none'
+			: arrow.props.arrowheadEnd !== 'none'
+
+	const targetGeometryInTargetSpace = editor.getShapeGeometry(
+		targetId,
+		hasArrowhead ? undefined : { context: '@tldraw/arrow-without-arrowhead' }
+	)
+
 	if (!targetGeometryInTargetSpace) {
 		return null
 	}
 
-	const arrowTransform = editor.getShapePageTransform(arrowId)
+	const arrowTransform = editor.getShapePageTransform(arrow.id)
 	const shapeTransform = editor.getShapePageTransform(targetId)
 	const shapeToArrowTransform = arrowTransform.clone().invert().multiply(shapeTransform)
 

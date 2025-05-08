@@ -890,6 +890,14 @@ const snapshots: Snapshots = {
 					</TL.arrow>
 				</>
 			),
+			'ENG-3371 ✅': (
+				<>
+					<TL.text ref="text" richText={toRichText('hi')} />
+					<TL.arrow kind="elbow" end={{ x: 70, y: 30 }}>
+						<TL.binding.arrow to="text" terminal="start" />
+					</TL.arrow>
+				</>
+			),
 		},
 	},
 }
