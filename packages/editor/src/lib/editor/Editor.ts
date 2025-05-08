@@ -326,7 +326,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.options = { ...defaultTldrawOptions, ...options }
 
 		this.store = store
-		this.disposables.add(this.store.dispose.bind(this.store))
 		this.history = new HistoryManager<TLRecord>({
 			store,
 			annotateError: (error) => {
@@ -956,6 +955,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	dispose() {
 		this.disposables.forEach((dispose) => dispose())
 		this.disposables.clear()
+		this.store.dispose()
 		this.isDisposed = true
 	}
 
