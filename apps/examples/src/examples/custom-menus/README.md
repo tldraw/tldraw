@@ -2,7 +2,7 @@
 title: Changing default menus
 component: ./CustomMenusExample.tsx
 category: ui
-priority: 1
+priority: 0.5
 keywords: [menu, panel, actions, style, toolbar, main, page, zoom, navigation, quick]
 ---
 

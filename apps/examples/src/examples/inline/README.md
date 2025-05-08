@@ -1,8 +1,8 @@
 ---
 title: Inline layout
 component: ./InlineExample.tsx
-category: ui
-priority: 3
+category: layout
+priority: 20
 keywords: [focus, auto, focus, multiple, editors]
 ---
 

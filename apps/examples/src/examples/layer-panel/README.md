@@ -2,7 +2,7 @@
 title: Layer panel
 component: ./LayerPanelExample.tsx
 category: ui
-priority: 3
+priority: 4
 keywords: []
 ---
 

@@ -25,7 +25,7 @@ type Category =
 	| 'use-cases'
 	| 'bindings'
 	| 'getting-started'
-	| 'canvas-layout'
+	| 'layout'
 	| 'advanced'
 	| 'events'
 	| 'sync'
@@ -50,7 +50,7 @@ const categories = [
 	['collaboration', 'Sync'],
 	['data/assets', 'Data & assets'],
 	['use-cases', 'Use cases'],
-	['canvas-layout', 'Canvas layout'],
+	['layout', 'Canvas layout'],
 	['advanced', 'Advanced'],
 ]
 

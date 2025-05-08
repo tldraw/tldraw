@@ -1,7 +1,7 @@
 ---
 title: Multiplayer collaboration
 component: ./SyncDemoExample.tsx
-category: collaboration
+category: getting-started
 priority: 1
 keywords: [basic, intro, simple, quick, start, multiplayer, sync, collaboration]
 multiplayer: true

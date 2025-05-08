@@ -1,13 +1,13 @@
 ---
-title: Action overrides
+title: Custom actions
 component: ./ActionOverridesExample.tsx
 category: ui
-priority: 2
+priority: 3
 keywords: [keyboard, shortcut, copy, paste, group, align]
 ---
 
-Override tldraw's actions.
+Customize and override tldraw's actions.
 
 ---
 
-This example shows how you can override tldraw's actions object to change the keyboard shortcuts. In this case we're changing the delete action's shortcut to 'Shift + X'. To customize the actions menu please see the custom actions menu example. For more information on keyboard shortcuts see the keyboard shortcuts example.
+This example shows how you can override tldraw's actions object to change the keyboard shortcuts. In this case we're changing the delete action's shortcut to 'Shift + X'. For more information on keyboard shortcuts see the keyboard shortcuts example.

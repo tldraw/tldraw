@@ -2,7 +2,7 @@
 title: Toasts and dialogs
 component: ./ToastsDialogsExample.tsx
 category: ui
-priority: 3
+priority: 1
 keywords: [ui, components, dialogs, toasts]
 ---
 

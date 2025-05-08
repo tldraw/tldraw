@@ -2,7 +2,7 @@
 title: Changing default style
 component: ./ChangingDefaultStyleExample.tsx
 category: ui
-priority: 1
+priority: 0.5
 keywords: [size, styles, default]
 ---
 

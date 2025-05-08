@@ -111,7 +111,7 @@ const EXAMPLES_CATEGORIES: Record<string, ExampleCategory> = {
 		title: 'UI & theming',
 		subtitle: "Customize tldraw's user interface and appearance.",
 	},
-	'canvas-layout': {
+	layout: {
 		title: 'Page layout',
 		subtitle: "By default, tldraw's canvas is fullscreen, but you can change that.",
 	},

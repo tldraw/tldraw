@@ -1,7 +1,7 @@
 ---
 title: Multiple editors
 component: ./MultipleExample.tsx
-category: canvas-layout
+category: layout
 priority: 8
 keywords: [multiple, focus]
 ---

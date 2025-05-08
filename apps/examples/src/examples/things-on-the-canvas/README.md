@@ -2,11 +2,11 @@
 title: Things on the canvas
 component: ./OnTheCanvasExample.tsx
 category: ui
-priority: 2
+priority: 3
 keywords: [in front of the canvas, scale, zoom, ui]
 ---
 
-Add custom components to the editor
+Add custom components to the canvas.
 
 ---
 

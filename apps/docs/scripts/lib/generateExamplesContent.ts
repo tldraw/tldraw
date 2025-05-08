@@ -13,7 +13,7 @@ const section: InputSection = {
 		{ id: 'editor-api', title: 'Editor API', description: '', groups: [], hero: null },
 		{ id: 'events', title: 'Events & effects', description: '', groups: [], hero: null },
 		{ id: 'ui', title: 'UI & theming', description: '', groups: [], hero: null },
-		{ id: 'canvas-layout', title: 'Canvas layout', description: '', groups: [], hero: null },
+		{ id: 'layout', title: 'Canvas layout', description: '', groups: [], hero: null },
 		{ id: 'shapes/tools', title: 'Shapes & tools', description: '', groups: [], hero: null },
 		{ id: 'bindings', title: 'Bindings', description: '', groups: [], hero: null },
 		{ id: 'collaboration', title: 'Collaboration', description: '', groups: [], hero: null },

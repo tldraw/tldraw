@@ -2,8 +2,11 @@
 title: Selection UI
 component: ./SelectionUiExample.tsx
 category: ui
+priority: 2
 keywords: [duplication controls, handles]
 ---
+
+Add extra UI elements around the user's selection.
 
 ---
 

@@ -1,8 +1,8 @@
 ---
-title: Add a tool to the Toolbar
+title: Add a tool to the toolbar
 component: ./ToolInToolbarExample.tsx
 category: ui
-priority: 2
+priority: 0
 keyword: [override, custom, icon]
 ---
 
