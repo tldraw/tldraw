@@ -44,7 +44,6 @@ export function routeArrowWithAutoEdgePicking(
 			(aRight.expanded ?? aRight.value) <= bTop.crossTarget &&
 			aRight.crossTarget <= (bTop.expanded ?? bTop.value)
 		) {
-			console.log('right top')
 			idealRoute = tryRouteArrow(info, 'right', 'top')
 		} else if (
 			aRight &&
