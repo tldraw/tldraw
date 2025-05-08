@@ -54,7 +54,6 @@ name = "dev-tldraw-multiplayer"
 BOTCOM_POSTGRES_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6543/postgres"
 BOTCOM_POSTGRES_POOLED_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6432/postgres"
 TLDRAW_ENV = "development"
-SENTRY_DSN = "https://example.com"
 MULTIPLAYER_SERVER = "http://localhost:3000"
 
 # we don't have a hard-coded name for preview. we instead have to generate it at build time and append it to this file.
