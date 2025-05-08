@@ -29,7 +29,7 @@ export async function upload(request: IRequest, env: Environment): Promise<Respo
 		objectName: request.params.objectName,
 	})
 	if (res.status === 200) {
-		await db.insertInto('asset').values({ objectName, fileId }).execute()
+		await env.QUEUE.send({ type: 'asset-upload', objectName, fileId })
 	}
 	return res
 }

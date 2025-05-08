@@ -54,6 +54,7 @@ name = "dev-tldraw-multiplayer"
 BOTCOM_POSTGRES_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6543/postgres"
 BOTCOM_POSTGRES_POOLED_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6432/postgres"
 TLDRAW_ENV = "development"
+SENTRY_DSN = "https://example.com"
 MULTIPLAYER_SERVER = "http://localhost:3000"
 
 # we don't have a hard-coded name for preview. we instead have to generate it at build time and append it to this file.
@@ -342,3 +343,32 @@ name = "RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1004"
 simple = { limit = 300, period = 60 }
+
+#################### Queues ####################
+[[env.dev.queues.producers]]
+queue = "queue-dev"
+binding = "QUEUE"
+
+[[env.dev.queues.consumers]]
+queue = "queue-dev"
+
+[[env.preview.queues.producers]]
+queue = "queue-preview"
+binding = "QUEUE"
+
+[[env.preview.queues.consumers]]
+queue = "queue-preview"
+
+[[env.staging.queues.producers]]
+queue = "queue-staging"
+binding = "QUEUE"
+
+[[env.staging.queues.consumers]]
+queue = "queue-staging"
+
+[[env.production.queues.producers]]
+queue = "queue"
+binding = "QUEUE"
+
+[[env.production.queues.consumers]]
+queue = "queue"
