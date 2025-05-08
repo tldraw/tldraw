@@ -50,7 +50,7 @@ export function getBoundShapeInfoForTerminal(
 			: arrow.props.arrowheadEnd !== 'none'
 	const geometry = editor.getShapeGeometry(
 		boundShape,
-		hasArrowhead ? { context: '@tldraw/arrow-without-arrowhead' } : undefined
+		hasArrowhead ? undefined : { context: '@tldraw/arrow-without-arrowhead' }
 	)
 
 	return {

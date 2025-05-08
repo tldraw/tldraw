@@ -475,6 +475,22 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override onTranslateStart(shape: TLArrowShape) {
 		const bindings = getArrowBindings(this.editor, shape)
 
+		if (shape.props.kind === 'elbow') {
+			// for arrow shapes, we can't maintain the bindings well just yet so we remove them entirely:
+			const info = getArrowInfo(this.editor, shape)
+			if (!info) return
+			const update: TLShapePartial<TLArrowShape> = { id: shape.id, type: 'arrow', props: {} }
+			if (bindings.start) {
+				update.props!.start = { x: info.start.point.x, y: info.start.point.y }
+				removeArrowBinding(this.editor, shape, 'start')
+			}
+			if (bindings.end) {
+				update.props!.end = { x: info.end.point.x, y: info.end.point.y }
+				removeArrowBinding(this.editor, shape, 'end')
+			}
+			return update
+		}
+
 		const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(this.editor, shape, bindings)
 		const shapePageTransform = this.editor.getShapePageTransform(shape.id)!
 
