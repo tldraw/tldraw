@@ -2284,6 +2284,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 					this.run(
 						() => {
 							this._updateCurrentPageState({ editingShapeId: id })
+							if (prevEditingShapeId) {
+								const prevEditingShape = this.getShape(prevEditingShapeId)
+								if (prevEditingShape) {
+									this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
+								}
+							}
 							this.getShapeUtil(shape).onEditStart?.(shape)
 						},
 						{ history: 'ignore' }
