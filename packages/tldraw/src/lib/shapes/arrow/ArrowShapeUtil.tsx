@@ -995,6 +995,7 @@ const ArrowSvg = track(function ArrowSvg({
 	const clipPathId = useSharedSafeId(shape.id + '_clip')
 	const arrowheadDotId = useSharedSafeId('arrowhead-dot')
 	const arrowheadCrossId = useSharedSafeId('arrowhead-cross')
+	const isEditing = useIsEditing(shape.id)
 
 	if (!info?.isValid) return null
 
@@ -1044,7 +1045,7 @@ const ArrowSvg = track(function ArrowSvg({
 			<defs>
 				<clipPath id={clipPathId}>
 					<ArrowClipPath
-						hasText={shape.props.text.trim().length > 0}
+						hasText={isEditing || shape.props.text.trim().length > 0}
 						bounds={bounds}
 						labelBounds={labelPosition.box}
 						as={clipStartArrowhead && as ? as : ''}
