@@ -122,6 +122,7 @@ export type AssetUrls = {
 		link: string
 		list: string
 		lock: string
+		manual: string
 		menu: string
 		minus: string
 		mixed: string

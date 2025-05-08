@@ -102,6 +102,7 @@ export type TLUiIconType =
 	| 'link'
 	| 'list'
 	| 'lock'
+	| 'manual'
 	| 'menu'
 	| 'minus'
 	| 'mixed'
@@ -260,6 +261,7 @@ export const iconTypes = [
 	'link',
 	'list',
 	'lock',
+	'manual',
 	'menu',
 	'minus',
 	'mixed',

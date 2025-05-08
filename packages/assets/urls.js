@@ -181,6 +181,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			link: iconsIcon0MergedSvg + '#link',
 			list: iconsIcon0MergedSvg + '#list',
 			lock: iconsIcon0MergedSvg + '#lock',
+			manual: iconsIcon0MergedSvg + '#manual',
 			menu: iconsIcon0MergedSvg + '#menu',
 			minus: iconsIcon0MergedSvg + '#minus',
 			mixed: iconsIcon0MergedSvg + '#mixed',

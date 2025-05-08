@@ -219,6 +219,7 @@ export function getAssetUrlsByImport(opts) {
 			link: iconsIcon0MergedSvg2 + '#link',
 			list: iconsIcon0MergedSvg2 + '#list',
 			lock: iconsIcon0MergedSvg2 + '#lock',
+			manual: iconsIcon0MergedSvg2 + '#manual',
 			menu: iconsIcon0MergedSvg2 + '#menu',
 			minus: iconsIcon0MergedSvg2 + '#minus',
 			mixed: iconsIcon0MergedSvg2 + '#mixed',
