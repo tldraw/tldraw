@@ -200,12 +200,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						})
 					: new Polyline2d({ points: info.route.points })
 
-		const labelPosition = getArrowLabelPosition(this.editor, shape)
-		if (debugFlags.debugGeometry.get()) {
-			debugGeom.push(...labelPosition.debugGeom)
-		}
 		let labelGeom
 		if (isEditing || shape.props.text.trim()) {
+			const labelPosition = getArrowLabelPosition(this.editor, shape)
+			if (debugFlags.debugGeometry.get()) {
+				debugGeom.push(...labelPosition.debugGeom)
+			}
 			new Rectangle2d({
 				x: labelPosition.box.x,
 				y: labelPosition.box.y,
