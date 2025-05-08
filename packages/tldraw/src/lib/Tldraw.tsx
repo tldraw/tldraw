@@ -16,6 +16,7 @@ import {
 } from '@tldraw/editor'
 import { useMemo } from 'react'
 import { TldrawHandles } from './canvas/TldrawHandles'
+import { TldrawOverlays } from './canvas/TldrawOverlays'
 import { TldrawScribble } from './canvas/TldrawScribble'
 import { TldrawSelectionBackground } from './canvas/TldrawSelectionBackground'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
@@ -34,6 +35,8 @@ import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { allDefaultFontFaces } from './shapes/shared/defaultFonts'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { TLUiAssetUrlOverrides } from './ui/assetUrls'
+import { LoadingScreen } from './ui/components/LoadingScreen'
+import { Spinner } from './ui/components/Spinner'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
 import { useToasts } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
@@ -96,6 +99,7 @@ export function Tldraw(props: TldrawProps) {
 	} = props
 
 	const _components = useShallowObjectIdentity(components)
+
 	const componentsWithDefault = useMemo(
 		() => ({
 			Scribble: TldrawScribble,
@@ -104,6 +108,9 @@ export function Tldraw(props: TldrawProps) {
 			SelectionForeground: TldrawSelectionForeground,
 			SelectionBackground: TldrawSelectionBackground,
 			Handles: TldrawHandles,
+			Overlays: TldrawOverlays,
+			Spinner,
+			LoadingScreen,
 			..._components,
 		}),
 		[_components]

@@ -79,11 +79,11 @@ const env = makeEnv([
 	'WORKER_SENTRY_DSN',
 	'BOTCOM_POSTGRES_CONNECTION_STRING',
 	'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
-	'DEPLOY_TO',
+	'DEPLOY_ZERO',
 ])
 
-const deployViaFlyIo = env.DEPLOY_TO === 'flyio'
-const flyioAppName = deployViaFlyIo ? `${previewId}-zero-cache` : undefined
+const deployZero = env.DEPLOY_ZERO === 'false' ? false : (env.DEPLOY_ZERO as 'flyio' | 'sst')
+const flyioAppName = deployZero === 'flyio' ? `${previewId}-zero-cache` : undefined
 
 const clerkJWKSUrl =
 	env.TLDRAW_ENV === 'production'
@@ -149,10 +149,6 @@ async function main() {
 	await discord.step('deploying multiplayer worker to cloudflare', async () => {
 		await deployTlsyncWorker({ dryRun: false })
 	})
-	// We need to deploy zero after `deployTlsyncWorker` because we need to run migrations first
-	await discord.step('deploying zero', async () => {
-		await deployZero()
-	})
 	await discord.step('deploying image resizer to cloudflare', async () => {
 		await deployImageResizeWorker({ dryRun: false })
 	})
@@ -193,10 +189,12 @@ async function main() {
 function getZeroUrl() {
 	switch (env.TLDRAW_ENV) {
 		case 'preview': {
-			if (deployViaFlyIo) {
+			if (deployZero === 'flyio') {
 				return `https://${flyioAppName}.fly.dev/`
-			} else {
+			} else if (deployZero === 'sst') {
 				return `https://${previewId}.zero.tldraw.com/`
+			} else {
+				return 'https://zero-backend-not-deployed.tldraw.com'
 			}
 		}
 		case 'staging':
@@ -204,14 +202,10 @@ function getZeroUrl() {
 		case 'production':
 			return 'https://production.zero.tldraw.com/'
 	}
-	return undefined
+	return 'https://zero-backend-not-deployed.tldraw.com'
 }
 
 async function prepareDotcomApp() {
-	const zeroUrl = getZeroUrl()
-	if (!zeroUrl) {
-		throw new Error('No zero URL found')
-	}
 	// pre-build the app:
 	await exec('yarn', ['build-app'], {
 		env: {
@@ -219,7 +213,7 @@ async function prepareDotcomApp() {
 			ASSET_UPLOAD: env.ASSET_UPLOAD,
 			IMAGE_WORKER: env.IMAGE_WORKER,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
-			ZERO_SERVER: zeroUrl,
+			ZERO_SERVER: getZeroUrl(),
 			NEXT_PUBLIC_GC_API_KEY: env.GC_MAPS_API_KEY,
 			SENTRY_AUTH_TOKEN: env.SENTRY_AUTH_TOKEN,
 			SENTRY_ORG: 'tldraw',
@@ -267,6 +261,10 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 		},
 	})
+	// Deploy zero after the migrations but before the sync worker
+	if (!dryRun && deployZero !== false) {
+		await deployZeroBackend()
+	}
 	await wranglerDeploy({
 		location: worker,
 		dryRun,
@@ -434,10 +432,10 @@ async function deployZeroViaFlyIo() {
 	await deployPermissionsToFlyIo()
 }
 
-async function deployZero() {
-	if (deployViaFlyIo) {
+async function deployZeroBackend() {
+	if (deployZero === 'flyio') {
 		await deployZeroViaFlyIo()
-	} else {
+	} else if (deployZero === 'sst') {
 		await deployZeroViaSst()
 	}
 }

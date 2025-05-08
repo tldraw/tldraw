@@ -1,6 +1,7 @@
 import {
 	ArrowShapeArrowheadEndStyle,
 	ArrowShapeArrowheadStartStyle,
+	ArrowShapeKindStyle,
 	DefaultColorStyle,
 	DefaultDashStyle,
 	DefaultFillStyle,
@@ -27,10 +28,10 @@ import { kickoutOccludedShapes } from '../../../tools/SelectTool/selectHelpers'
 import { useUiEvents } from '../../context/events'
 import { useRelevantStyles } from '../../hooks/useRelevantStyles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiButtonPicker } from '../primitives/TldrawUiButtonPicker'
 import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
+import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 import { DoubleDropdownPicker } from './DoubleDropdownPicker'
 import { DropdownPicker } from './DropdownPicker'
 
@@ -48,12 +49,14 @@ export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps)
 	const geo = styles.get(GeoShapeGeoStyle)
 	const arrowheadEnd = styles.get(ArrowShapeArrowheadEndStyle)
 	const arrowheadStart = styles.get(ArrowShapeArrowheadStartStyle)
+	const arrowKind = styles.get(ArrowShapeKindStyle)
 	const spline = styles.get(LineShapeSplineStyle)
 	const font = styles.get(DefaultFontStyle)
 
 	const hideGeo = geo === undefined
 	const hideArrowHeads = arrowheadEnd === undefined && arrowheadStart === undefined
 	const hideSpline = spline === undefined
+	const hideArrowKind = arrowKind === undefined
 	const hideText = font === undefined
 
 	const theme = getDefaultColorTheme({ isDarkMode: isDarkMode })
@@ -62,9 +65,10 @@ export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps)
 		<>
 			<CommonStylePickerSet theme={theme} styles={styles} />
 			{!hideText && <TextStylePickerSet theme={theme} styles={styles} />}
-			{!(hideGeo && hideArrowHeads && hideSpline) && (
+			{!(hideGeo && hideArrowHeads && hideSpline && hideArrowKind) && (
 				<div className="tlui-style-panel__section">
 					<GeoStylePickerSet styles={styles} />
+					<ArrowStylePickerSet styles={styles} />
 					<ArrowheadStylePickerSet styles={styles} />
 					<SplineStylePickerSet styles={styles} />
 				</div>
@@ -123,64 +127,72 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 
 	return (
 		<>
-			<div tabIndex={-1} className="tlui-style-panel__section__common" data-testid="style.panel">
+			<div className="tlui-style-panel__section__common" data-testid="style.panel">
 				{color === undefined ? null : (
-					<TldrawUiButtonPicker
-						title={msg('style-panel.color')}
-						uiType="color"
-						style={DefaultColorStyle}
-						items={STYLES.color}
-						value={color}
-						onValueChange={handleValueChange}
-						theme={theme}
-						onHistoryMark={onHistoryMark}
-					/>
+					<TldrawUiToolbar label={msg('style-panel.color')}>
+						<TldrawUiButtonPicker
+							title={msg('style-panel.color')}
+							uiType="color"
+							style={DefaultColorStyle}
+							items={STYLES.color}
+							value={color}
+							onValueChange={handleValueChange}
+							theme={theme}
+							onHistoryMark={onHistoryMark}
+						/>
+					</TldrawUiToolbar>
 				)}
 				<OpacitySlider />
 			</div>
 			{showPickers && (
 				<div className="tlui-style-panel__section">
 					{fill === undefined ? null : (
-						<TldrawUiButtonPicker
-							title={msg('style-panel.fill')}
-							uiType="fill"
-							style={DefaultFillStyle}
-							items={STYLES.fill}
-							value={fill}
-							onValueChange={handleValueChange}
-							theme={theme}
-							onHistoryMark={onHistoryMark}
-						/>
+						<TldrawUiToolbar label={msg('style-panel.fill')}>
+							<TldrawUiButtonPicker
+								title={msg('style-panel.fill')}
+								uiType="fill"
+								style={DefaultFillStyle}
+								items={STYLES.fill}
+								value={fill}
+								onValueChange={handleValueChange}
+								theme={theme}
+								onHistoryMark={onHistoryMark}
+							/>
+						</TldrawUiToolbar>
 					)}
 					{dash === undefined ? null : (
-						<TldrawUiButtonPicker
-							title={msg('style-panel.dash')}
-							uiType="dash"
-							style={DefaultDashStyle}
-							items={STYLES.dash}
-							value={dash}
-							onValueChange={handleValueChange}
-							theme={theme}
-							onHistoryMark={onHistoryMark}
-						/>
+						<TldrawUiToolbar label={msg('style-panel.dash')}>
+							<TldrawUiButtonPicker
+								title={msg('style-panel.dash')}
+								uiType="dash"
+								style={DefaultDashStyle}
+								items={STYLES.dash}
+								value={dash}
+								onValueChange={handleValueChange}
+								theme={theme}
+								onHistoryMark={onHistoryMark}
+							/>
+						</TldrawUiToolbar>
 					)}
 					{size === undefined ? null : (
-						<TldrawUiButtonPicker
-							title={msg('style-panel.size')}
-							uiType="size"
-							style={DefaultSizeStyle}
-							items={STYLES.size}
-							value={size}
-							onValueChange={(style, value) => {
-								handleValueChange(style, value)
-								const selectedShapeIds = editor.getSelectedShapeIds()
-								if (selectedShapeIds.length > 0) {
-									kickoutOccludedShapes(editor, selectedShapeIds)
-								}
-							}}
-							theme={theme}
-							onHistoryMark={onHistoryMark}
-						/>
+						<TldrawUiToolbar label={msg('style-panel.size')}>
+							<TldrawUiButtonPicker
+								title={msg('style-panel.size')}
+								uiType="size"
+								style={DefaultSizeStyle}
+								items={STYLES.size}
+								value={size}
+								onValueChange={(style, value) => {
+									handleValueChange(style, value)
+									const selectedShapeIds = editor.getSelectedShapeIds()
+									if (selectedShapeIds.length > 0) {
+										kickoutOccludedShapes(editor, selectedShapeIds)
+									}
+								}}
+								theme={theme}
+								onHistoryMark={onHistoryMark}
+							/>
+						</TldrawUiToolbar>
 					)}
 				</div>
 			)}
@@ -207,20 +219,22 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 	return (
 		<div className="tlui-style-panel__section">
 			{font === undefined ? null : (
-				<TldrawUiButtonPicker
-					title={msg('style-panel.font')}
-					uiType="font"
-					style={DefaultFontStyle}
-					items={STYLES.font}
-					value={font}
-					onValueChange={handleValueChange}
-					theme={theme}
-					onHistoryMark={onHistoryMark}
-				/>
+				<TldrawUiToolbar label={msg('style-panel.font')}>
+					<TldrawUiButtonPicker
+						title={msg('style-panel.font')}
+						uiType="font"
+						style={DefaultFontStyle}
+						items={STYLES.font}
+						value={font}
+						onValueChange={handleValueChange}
+						theme={theme}
+						onHistoryMark={onHistoryMark}
+					/>
+				</TldrawUiToolbar>
 			)}
 
 			{textAlign === undefined ? null : (
-				<div className="tlui-style-panel__row">
+				<TldrawUiToolbar label={msg('style-panel.align')} className="tlui-style-panel__row">
 					<TldrawUiButtonPicker
 						title={msg('style-panel.align')}
 						uiType="align"
@@ -232,20 +246,20 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 						onHistoryMark={onHistoryMark}
 					/>
 					<div className="tlui-style-panel__row__extra-button">
-						<TldrawUiButton
+						<TldrawUiToolbarButton
 							type="icon"
 							title={msg('style-panel.vertical-align')}
 							data-testid="vertical-align"
 							disabled
 						>
 							<TldrawUiButtonIcon icon="vertical-align-middle" />
-						</TldrawUiButton>
+						</TldrawUiToolbarButton>
 					</div>
-				</div>
+				</TldrawUiToolbar>
 			)}
 
 			{labelAlign === undefined ? null : (
-				<div className="tlui-style-panel__row">
+				<TldrawUiToolbar label={msg('style-panel.label-align')} className="tlui-style-panel__row">
 					<TldrawUiButtonPicker
 						title={msg('style-panel.label-align')}
 						uiType="align"
@@ -258,14 +272,14 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 					/>
 					<div className="tlui-style-panel__row__extra-button">
 						{verticalLabelAlign === undefined ? (
-							<TldrawUiButton
+							<TldrawUiToolbarButton
 								type="icon"
 								title={msg('style-panel.vertical-align')}
 								data-testid="vertical-align"
 								disabled
 							>
 								<TldrawUiButtonIcon icon="vertical-align-middle" />
-							</TldrawUiButton>
+							</TldrawUiToolbarButton>
 						) : (
 							<DropdownPicker
 								type="icon"
@@ -279,13 +293,14 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 							/>
 						)}
 					</div>
-				</div>
+				</TldrawUiToolbar>
 			)}
 		</div>
 	)
 }
 /** @public @react */
 export function GeoStylePickerSet({ styles }: StylePickerSetProps) {
+	const msg = useTranslation()
 	const handleValueChange = useStyleChangeCallback()
 
 	const geo = styles.get(GeoShapeGeoStyle)
@@ -294,21 +309,24 @@ export function GeoStylePickerSet({ styles }: StylePickerSetProps) {
 	}
 
 	return (
-		<DropdownPicker
-			id="geo"
-			type="menu"
-			label={'style-panel.geo'}
-			uiType="geo"
-			stylePanelType="geo"
-			style={GeoShapeGeoStyle}
-			items={STYLES.geo}
-			value={geo}
-			onValueChange={handleValueChange}
-		/>
+		<TldrawUiToolbar label={msg('style-panel.geo')}>
+			<DropdownPicker
+				id="geo"
+				type="menu"
+				label={'style-panel.geo'}
+				uiType="geo"
+				stylePanelType="geo"
+				style={GeoShapeGeoStyle}
+				items={STYLES.geo}
+				value={geo}
+				onValueChange={handleValueChange}
+			/>
+		</TldrawUiToolbar>
 	)
 }
 /** @public @react */
 export function SplineStylePickerSet({ styles }: StylePickerSetProps) {
+	const msg = useTranslation()
 	const handleValueChange = useStyleChangeCallback()
 
 	const spline = styles.get(LineShapeSplineStyle)
@@ -317,20 +335,47 @@ export function SplineStylePickerSet({ styles }: StylePickerSetProps) {
 	}
 
 	return (
-		<DropdownPicker
-			id="spline"
-			type="menu"
-			label={'style-panel.spline'}
-			uiType="spline"
-			stylePanelType="spline"
-			style={LineShapeSplineStyle}
-			items={STYLES.spline}
-			value={spline}
-			onValueChange={handleValueChange}
-		/>
+		<TldrawUiToolbar label={msg('style-panel.spline')}>
+			<DropdownPicker
+				id="spline"
+				type="menu"
+				label={'style-panel.spline'}
+				uiType="spline"
+				stylePanelType="spline"
+				style={LineShapeSplineStyle}
+				items={STYLES.spline}
+				value={spline}
+				onValueChange={handleValueChange}
+			/>
+		</TldrawUiToolbar>
 	)
 }
+/** @public @react */
+export function ArrowStylePickerSet({ styles }: StylePickerSetProps) {
+	const msg = useTranslation()
+	const handleValueChange = useStyleChangeCallback()
 
+	const arrowKind = styles.get(ArrowShapeKindStyle)
+	if (arrowKind === undefined) {
+		return null
+	}
+
+	return (
+		<TldrawUiToolbar label={msg('style-panel.arrow-kind')}>
+			<DropdownPicker
+				id="arrow-kind"
+				type="menu"
+				label={'style-panel.arrow-kind'}
+				uiType="arrow-kind"
+				stylePanelType="arrow-kind"
+				style={ArrowShapeKindStyle}
+				items={STYLES.arrowKind}
+				value={arrowKind}
+				onValueChange={handleValueChange}
+			/>
+		</TldrawUiToolbar>
+	)
+}
 /** @public @react */
 export function ArrowheadStylePickerSet({ styles }: StylePickerSetProps) {
 	const handleValueChange = useStyleChangeCallback()

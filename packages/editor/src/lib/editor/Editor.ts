@@ -42,6 +42,7 @@ import {
 	TLImageAsset,
 	TLInstance,
 	TLInstancePageState,
+	TLInstancePresence,
 	TLNoteShape,
 	TLPOINTER_ID,
 	TLPage,
@@ -128,6 +129,7 @@ import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
 import { PI, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
+import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { dataUrlToFile } from '../utils/assets'
 import { debugFlags } from '../utils/debug-flags'
 import {
@@ -1704,8 +1706,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 */
 	@computed getSelectedShapes(): TLShape[] {
-		const { selectedShapeIds } = this.getCurrentPageState()
-		return compact(selectedShapeIds.map((id) => this.store.get(id)))
+		return compact(this.getSelectedShapeIds().map((id) => this.store.get(id)))
 	}
 
 	/**
@@ -2275,13 +2276,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setEditingShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		this.setRichTextEditor(null)
-		if (id !== this.getEditingShapeId()) {
+		const prevEditingShapeId = this.getEditingShapeId()
+		if (id !== prevEditingShapeId) {
 			if (id) {
 				const shape = this.getShape(id)
 				if (shape && this.getShapeUtil(shape).canEdit(shape)) {
 					this.run(
 						() => {
 							this._updateCurrentPageState({ editingShapeId: id })
+							if (prevEditingShapeId) {
+								const prevEditingShape = this.getShape(prevEditingShapeId)
+								if (prevEditingShape) {
+									this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
+								}
+							}
+							this.getShapeUtil(shape).onEditStart?.(shape)
 						},
 						{ history: 'ignore' }
 					)
@@ -2294,6 +2303,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				() => {
 					this._updateCurrentPageState({ editingShapeId: null })
 					this._currentRichTextEditor.set(null)
+					if (prevEditingShapeId) {
+						const prevEditingShape = this.getShape(prevEditingShapeId)
+						if (prevEditingShape) {
+							this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
+						}
+					}
 				},
 				{ history: 'ignore' }
 			)
@@ -2575,14 +2590,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return baseCamera
 	}
 
+	private _getFollowingPresence(targetUserId: string | null) {
+		const visited = [this.user.getId()]
+		const collaborators = this.getCollaborators()
+		let leaderPresence = null as null | TLInstancePresence
+		while (targetUserId && !visited.includes(targetUserId)) {
+			leaderPresence = collaborators.find((c) => c.userId === targetUserId) ?? null
+			targetUserId = leaderPresence?.followingUserId ?? null
+			if (leaderPresence) {
+				visited.push(leaderPresence.userId)
+			}
+		}
+		return leaderPresence
+	}
+
 	@computed
 	private getViewportPageBoundsForFollowing(): null | Box {
-		const followingUserId = this.getInstanceState().followingUserId
-		if (!followingUserId) return null
-		const leaderPresence = this.getCollaborators().find((c) => c.userId === followingUserId)
-		if (!leaderPresence) return null
+		const leaderPresence = this._getFollowingPresence(this.getInstanceState().followingUserId)
 
-		if (!leaderPresence.camera || !leaderPresence.screenBounds) return null
+		if (!leaderPresence?.camera || !leaderPresence?.screenBounds) return null
 
 		// Fit their viewport inside of our screen bounds
 		// 1. calculate their viewport in page space
@@ -3781,15 +3807,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// if we were already following someone, stop following them
 		this.stopFollowingUser()
 
-		const leaderPresences = this._getCollaboratorsQuery()
-			.get()
-			.filter((p) => p.userId === userId)
-
-		if (!leaderPresences.length) {
-			console.warn('User not found')
-			return this
-		}
-
 		const thisUserId = this.user.getId()
 
 		if (!thisUserId) {
@@ -3797,13 +3814,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// allow to continue since it's probably fine most of the time.
 		}
 
-		// If the leader is following us, then we can't follow them
-		if (leaderPresences.some((p) => p.followingUserId === thisUserId)) {
+		const leaderPresence = this._getFollowingPresence(userId)
+
+		if (!leaderPresence) {
 			return this
 		}
 
 		const latestLeaderPresence = computed('latestLeaderPresence', () => {
-			return this.getCollaborators().find((p) => p.userId === userId)
+			return this._getFollowingPresence(userId)
 		})
 
 		transact(() => {
@@ -4571,7 +4589,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					this.fonts.trackFontsForShape(shape)
 					return this.getShapeUtil(shape).getGeometry(shape, opts)
 				},
-				{ areRecordsEqual: (a, b) => a.props === b.props }
+				{ areRecordsEqual: areShapesContentEqual }
 			)
 		}
 		return this._shapeGeometryCaches[context].get(
@@ -4619,9 +4637,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	@computed private _getShapeHandlesCache(): ComputedCache<TLHandle[] | undefined, TLShape> {
-		return this.store.createComputedCache('handles', (shape) => {
-			return this.getShapeUtil(shape).getHandles?.(shape)
-		})
+		return this.store.createComputedCache(
+			'handles',
+			(shape) => {
+				return this.getShapeUtil(shape).getHandles?.(shape)
+			},
+			{
+				areRecordsEqual: areShapesContentEqual,
+			}
+		)
 	}
 
 	/**
@@ -5842,9 +5866,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed
 	private _getBindingsIndexCache() {
 		const index = bindingsIndex(this)
-		return this.store.createComputedCache<TLBinding[], TLShape>('bindingsIndex', (shape) => {
-			return index.get().get(shape.id)
-		})
+		return this.store.createComputedCache<TLBinding[], TLShape>(
+			'bindingsIndex',
+			(shape) => {
+				return index.get().get(shape.id)
+			},
+			// we can ignore the shape equality check here because the index is
+			// computed incrementally based on what bindings are in the store
+			{ areRecordsEqual: () => true }
+		)
 	}
 
 	/**
@@ -10211,7 +10241,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					// If the camera behavior is "zoom" and the ctrl key is pressed, then pan;
 					// If the camera behavior is "pan" and the ctrl key is not pressed, then zoom
-					if (inputs.ctrlKey) behavior = wheelBehavior === 'pan' ? 'zoom' : 'pan'
+					if (info.ctrlKey) behavior = wheelBehavior === 'pan' ? 'zoom' : 'pan'
 
 					switch (behavior) {
 						case 'zoom': {
@@ -10327,12 +10357,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (this.inputs.isPanning && this.inputs.isPointing) {
 							// Handle spacebar / middle mouse button panning
 							const { currentScreenPoint, previousScreenPoint } = this.inputs
-							const { panSpeed } = cameraOptions
 							const offset = Vec.Sub(currentScreenPoint, previousScreenPoint)
-							this.setCamera(
-								new Vec(cx + (offset.x * panSpeed) / cz, cy + (offset.y * panSpeed) / cz, cz),
-								{ immediate: true }
-							)
+							this.setCamera(new Vec(cx + offset.x / cz, cy + offset.y / cz, cz), {
+								immediate: true,
+							})
 							this.maybeTrackPerformance('Panning')
 							return
 						}

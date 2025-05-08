@@ -192,6 +192,7 @@ button.nameWidthSetter {
 	align-items: center;
 	justify-content: center;
 	pointer-events: all;
+	padding-top: 4px;
 	padding-right: 6px;
 }
 

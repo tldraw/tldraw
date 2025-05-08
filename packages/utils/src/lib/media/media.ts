@@ -7,18 +7,18 @@ import { PngHelpers } from './png'
 import { isWebpAnimated } from './webp'
 
 /** @public */
-export const DEFAULT_SUPPORTED_VECTOR_IMAGE_TYPES = Object.freeze(['image/svg+xml'])
+export const DEFAULT_SUPPORTED_VECTOR_IMAGE_TYPES = Object.freeze(['image/svg+xml' as const])
 /** @public */
 export const DEFAULT_SUPPORTED_STATIC_IMAGE_TYPES = Object.freeze([
-	'image/jpeg',
-	'image/png',
-	'image/webp',
+	'image/jpeg' as const,
+	'image/png' as const,
+	'image/webp' as const,
 ])
 /** @public */
 export const DEFAULT_SUPPORTED_ANIMATED_IMAGE_TYPES = Object.freeze([
-	'image/gif',
-	'image/apng',
-	'image/avif',
+	'image/gif' as const,
+	'image/apng' as const,
+	'image/avif' as const,
 ])
 /** @public */
 export const DEFAULT_SUPPORTED_IMAGE_TYPES = Object.freeze([
@@ -28,15 +28,17 @@ export const DEFAULT_SUPPORTED_IMAGE_TYPES = Object.freeze([
 ])
 /** @public */
 export const DEFAULT_SUPPORT_VIDEO_TYPES = Object.freeze([
-	'video/mp4',
-	'video/webm',
-	'video/quicktime',
+	'video/mp4' as const,
+	'video/webm' as const,
+	'video/quicktime' as const,
 ])
 /** @public */
-export const DEFAULT_SUPPORTED_MEDIA_TYPE_LIST = [
+export const DEFAULT_SUPPORTED_MEDIA_TYPES = Object.freeze([
 	...DEFAULT_SUPPORTED_IMAGE_TYPES,
 	...DEFAULT_SUPPORT_VIDEO_TYPES,
-].join(',')
+])
+/** @public */
+export const DEFAULT_SUPPORTED_MEDIA_TYPE_LIST = DEFAULT_SUPPORTED_MEDIA_TYPES.join(',')
 
 /**
  * Helpers for media
@@ -135,8 +137,6 @@ export class MediaHelpers {
 					// Sigh, Firefox doesn't have naturalWidth or naturalHeight for SVGs. :-/
 					// We have to attach to dom and use clientWidth/clientHeight.
 					document.body.appendChild(img)
-					// Sigh, Firefox doesn't have naturalWidth or naturalHeight for SVGs. :-/
-					// We have to attach to dom and use clientWidth/clientHeight.
 					dimensions = {
 						w: img.clientWidth,
 						h: img.clientHeight,
@@ -231,19 +231,19 @@ export class MediaHelpers {
 	}
 
 	static isAnimatedImageType(mimeType: string | null): boolean {
-		return DEFAULT_SUPPORTED_ANIMATED_IMAGE_TYPES.includes(mimeType || '')
+		return DEFAULT_SUPPORTED_ANIMATED_IMAGE_TYPES.includes((mimeType as any) || '')
 	}
 
 	static isStaticImageType(mimeType: string | null): boolean {
-		return DEFAULT_SUPPORTED_STATIC_IMAGE_TYPES.includes(mimeType || '')
+		return DEFAULT_SUPPORTED_STATIC_IMAGE_TYPES.includes((mimeType as any) || '')
 	}
 
 	static isVectorImageType(mimeType: string | null): boolean {
-		return DEFAULT_SUPPORTED_VECTOR_IMAGE_TYPES.includes(mimeType || '')
+		return DEFAULT_SUPPORTED_VECTOR_IMAGE_TYPES.includes((mimeType as any) || '')
 	}
 
 	static isImageType(mimeType: string): boolean {
-		return DEFAULT_SUPPORTED_IMAGE_TYPES.includes(mimeType)
+		return DEFAULT_SUPPORTED_IMAGE_TYPES.includes((mimeType as any) || '')
 	}
 
 	static async usingObjectURL<T>(blob: Blob, fn: (url: string) => Promise<T>): Promise<T> {

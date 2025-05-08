@@ -36,23 +36,32 @@ jobs:
       #     webhook: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
       #     content: 'Preparing ${{ env.TLDRAW_ENV }} dotcom deploy: ${{ github.event.head_commit.message }} by ${{ github.event.head_commit.author.name }}'
 
-      - name: Determine deploy target
-        id: deploy_target
-        run: |
-          if [[ "${GITHUB_REF}" == "refs/heads/production" || "${GITHUB_REF}" == "refs/heads/main" ]]; then
-            echo "DEPLOY_TO=sst" >> $GITHUB_ENV
-          elif echo "${{ toJSON(github.event.pull_request.labels.*.name) }}" | grep -q "preview-sst-zero-deploy-please"; then
-            echo "DEPLOY_TO=sst" >> $GITHUB_ENV
-          else
-            echo "DEPLOY_TO=flyio" >> $GITHUB_ENV
-          fi
-
       - name: Check out code
         uses: actions/checkout@v3
         with:
           submodules: true
+          fetch-depth: 0
 
       - uses: ./.github/actions/setup
+
+      - name: Determine zero deploy target
+        id: deploy_target
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ "${GITHUB_REF}" == "refs/heads/production" || "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            echo "DEPLOY_ZERO=sst" >> $GITHUB_ENV
+          elif echo "${{ toJSON(github.event.pull_request.labels.*.name) }}" | grep -q "preview-sst-zero-deploy-please"; then
+            echo "DEPLOY_ZERO=sst" >> $GITHUB_ENV
+          elif echo "${{ toJSON(github.event.pull_request.labels.*.name) }}" | grep -q "preview-flyio-zero-deploy-please"; then
+            echo "DEPLOY_ZERO=flyio" >> $GITHUB_ENV
+          elif git fetch origin "${GITHUB_BASE_REF}" && git diff --name-only origin/"${GITHUB_BASE_REF}"...HEAD | grep -q '^apps/dotcom/'; then
+            # gh pr edit ${{ github.event.pull_request.number }} --add-label "preview-flyio-zero-deploy-please"
+            # echo "DEPLOY_ZERO=flyio" >> $GITHUB_ENV
+            echo "DEPLOY_ZERO=false" >> $GITHUB_ENV
+          else
+            echo "DEPLOY_ZERO=false" >> $GITHUB_ENV
+          fi
 
       - name: Delete Neon Branch
         uses: neondatabase/delete-branch-action@v3.1.3
@@ -82,18 +91,18 @@ jobs:
         run: yarn build-types
 
       - name: Configure AWS credentials using OIDC
-        if: env.DEPLOY_TO == 'sst'
+        if: env.DEPLOY_ZERO == 'sst'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_NUMBER }}:role/huppy-bot
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Fly cli
-        if: env.DEPLOY_TO == 'flyio'
+        if: env.DEPLOY_ZERO == 'flyio'
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Install PostgreSQL client
-        if: env.DEPLOY_TO == 'flyio'
+        if: env.DEPLOY_ZERO == 'flyio'
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client

@@ -78,10 +78,14 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const context = opts?.context ?? 'none'
 		return new Rectangle2d({
 			x:
-				(context === '@tldraw/arrow-start' ? -this.options.extraArrowHorizontalPadding : 0) * scale,
+				(context === '@tldraw/arrow-without-arrowhead'
+					? -this.options.extraArrowHorizontalPadding
+					: 0) * scale,
 			width:
 				(width +
-					(context === '@tldraw/arrow-start' ? this.options.extraArrowHorizontalPadding * 2 : 0)) *
+					(context === '@tldraw/arrow-without-arrowhead'
+						? this.options.extraArrowHorizontalPadding * 2
+						: 0)) *
 				scale,
 			height: height * scale,
 			isFilled: true,

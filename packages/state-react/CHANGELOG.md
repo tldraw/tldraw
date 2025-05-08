@@ -1,3 +1,24 @@
+# v3.12.0 (Tue Apr 15 2025)
+
+### Release Notes
+
+#### Add & fix missing state docs ([#5696](https://github.com/tldraw/tldraw/pull/5696))
+
+- Docs: Added more docs to the `@tldraw/state` and `@tldraw/state-react` API reference,
+
+---
+
+#### 🐛 Bug Fix
+
+- Disable currently broken docs links [#5778](https://github.com/tldraw/tldraw/pull/5778) ([@TodePond](https://github.com/TodePond))
+- Add & fix missing state docs [#5696](https://github.com/tldraw/tldraw/pull/5696) ([@TodePond](https://github.com/TodePond))
+
+#### Authors: 1
+
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+
+---
+
 # v3.11.0 (Thu Mar 20 2025)
 
 #### 🐛 Bug Fix

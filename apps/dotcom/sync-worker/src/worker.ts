@@ -8,13 +8,19 @@ import {
 	createMutators,
 	schema,
 } from '@tldraw/dotcom-shared'
-import { createRouter, handleApiRequest, handleUserAssetGet, notFound } from '@tldraw/worker-shared'
+import {
+	createRouter,
+	createSentry,
+	handleApiRequest,
+	handleUserAssetGet,
+	notFound,
+} from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors, json } from 'itty-router'
 import {
+	PostgresJSConnection,
 	PushProcessor,
-	ZQLDatabaseProvider,
-	ZQLPostgresJSAdapter,
+	ZQLDatabase,
 } from '../../../../node_modules/@rocicorp/zero/out/zero/src/pg'
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
@@ -138,17 +144,12 @@ const router = createRouter<Environment>()
 	.all('/app/admin/*', adminRoutes.fetch)
 	.post('/app/zero/push', async (req, env) => {
 		const auth = await requireAuth(req, env)
-		try {
-			const processor = new PushProcessor(
-				new ZQLDatabaseProvider(new ZQLPostgresJSAdapter(makePostgresConnector(env)), schema),
-				'debug'
-			)
-			const result = await processor.process(createMutators(auth.userId), req, await req.json())
-			return json(result)
-		} catch (e) {
-			console.error('Error processing push', e)
-			return new Response('Error', { status: 500 })
-		}
+		const processor = new PushProcessor(
+			new ZQLDatabase(new PostgresJSConnection(makePostgresConnector(env)), schema),
+			'debug'
+		)
+		const result = await processor.process(createMutators(auth.userId), req)
+		return json(result)
 	})
 	.all('*', notFound)
 
@@ -183,6 +184,15 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				}
 				return newResponse
 			},
+		}).catch((err) => {
+			const sentry = createSentry(this.ctx, this.env, request)
+			if (sentry) {
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				sentry.captureException(err)
+			} else {
+				console.error(err)
+			}
+			throw err
 		})
 	}
 }

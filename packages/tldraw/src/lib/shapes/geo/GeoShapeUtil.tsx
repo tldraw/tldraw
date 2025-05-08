@@ -348,7 +348,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		// not sure if bug
 
 		const lines = getLines(shape.props, STROKE_SIZES[shape.props.size] * shape.props.scale)
-		const edges = lines ? lines.map((line) => new Polyline2d({ points: line })) : []
+		const edges = lines
+			? lines.map((line) => new Polyline2d({ points: line, isInternal: true }))
+			: []
 
 		// todo: use centroid for label position
 
@@ -475,62 +477,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	indicator(shape: TLGeoShape) {
-		const { id, props } = shape
-		const { w, size } = props
-		const h = props.h + props.growY
-
-		const strokeWidth = STROKE_SIZES[size]
-
 		const geometry = this.editor.getShapeGeometry(shape)
 
-		switch (props.geo) {
-			case 'ellipse': {
-				if (props.dash === 'draw') {
-					return <path d={getEllipseDrawIndicatorPath(id, w, h, strokeWidth)} />
-				}
+		const isZoomedOut = useValue('isZoomedOut', () => this.editor.getZoomLevel() < 0.25, [
+			this.editor,
+		])
 
-				return <path d={geometry.getSvgPathData(true)} />
-			}
-			case 'heart': {
-				return <path d={getHeartPath(w, h)} />
-			}
-			case 'oval': {
-				return <path d={geometry.getSvgPathData(true)} />
-			}
-			case 'cloud': {
-				return <path d={getCloudPath(w, h, id, size, shape.props.scale)} />
-			}
-
-			default: {
-				const geometry = this.editor.getShapeGeometry(shape)
-				const outline =
-					geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
-				let path: string
-
-				if (props.dash === 'draw') {
-					const polygonPoints = getRoundedPolygonPoints(
-						id,
-						outline,
-						0,
-						strokeWidth * 2 * shape.props.scale,
-						1
-					)
-					path = getRoundedInkyPolygonPath(polygonPoints)
-				} else {
-					path = 'M' + outline[0] + 'L' + outline.slice(1) + 'Z'
-				}
-
-				const lines = getLines(shape.props, strokeWidth)
-
-				if (lines) {
-					for (const [A, B] of lines) {
-						path += `M${A.x},${A.y}L${B.x},${B.y}`
-					}
-				}
-
-				return <path d={path} />
-			}
-		}
+		const path = getIndicatorPath(shape, geometry, isZoomedOut)
+		return <path d={path} />
 	}
 
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
@@ -874,5 +828,55 @@ function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 	return {
 		w: textSize.w + LABEL_PADDING * 2,
 		h: textSize.h + LABEL_PADDING * 2,
+	}
+}
+
+function getIndicatorPath(shape: TLGeoShape, geometry: Geometry2d, isZoomedOut: boolean) {
+	const { id } = shape
+	const { w, size, geo, dash, scale, growY } = shape.props
+	const strokeWidth = STROKE_SIZES[size]
+
+	const h = shape.props.h + growY
+
+	switch (geo) {
+		case 'ellipse': {
+			if (dash === 'draw') {
+				return getEllipseDrawIndicatorPath(id, w, h, strokeWidth)
+			}
+
+			return geometry.getSvgPathData(true)
+		}
+		case 'heart': {
+			return getHeartPath(w, h)
+		}
+		case 'oval': {
+			return geometry.getSvgPathData(true)
+		}
+		case 'cloud': {
+			return getCloudPath(w, h, id, size, shape.props.scale)
+		}
+
+		default: {
+			const outline =
+				geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
+			let path: string
+
+			if (dash === 'draw' && !isZoomedOut) {
+				const polygonPoints = getRoundedPolygonPoints(id, outline, 0, strokeWidth * 2 * scale, 1)
+				path = getRoundedInkyPolygonPath(polygonPoints)
+			} else {
+				path = 'M' + outline[0] + 'L' + outline.slice(1) + 'Z'
+			}
+
+			const lines = getLines(shape.props, strokeWidth)
+
+			if (lines) {
+				for (const [A, B] of lines) {
+					path += `M${A.x},${A.y}L${B.x},${B.y}`
+				}
+			}
+
+			return path
+		}
 	}
 }

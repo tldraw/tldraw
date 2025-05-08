@@ -340,6 +340,7 @@
 	"toast.error.export-fail.desc": "No s'ha pogut exportar la imatge",
 	"toast.error.export-fail.title": "No s'ha pogut exportar",
 	"tool-panel.more": "Més",
+	"tool-panel.title": "Eines",
 	"tool.arrow": "Fletxa",
 	"tool.arrow-down": "Fletxa cap avall",
 	"tool.arrow-left": "Fletxa cap a l'esquerra",

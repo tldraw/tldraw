@@ -525,6 +525,12 @@ export class TestEditor extends Editor {
 		return this
 	}
 
+	keyPress(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
+		this.keyDown(key, options)
+		this.keyUp(key, options)
+		return this
+	}
+
 	keyDown(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
 		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) }).forceTick()
 		return this
@@ -741,12 +747,11 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	createShapesFromJsx(
-		shapesJsx: React.JSX.Element | React.JSX.Element[]
-	): Record<string, TLShapeId> {
-		const { shapes, assets, ids } = shapesFromJsx(shapesJsx)
+	createShapesFromJsx(shapesJsx: React.JSX.Element | React.JSX.Element[]) {
+		const { shapes, assets, ids, bindings } = shapesFromJsx(shapesJsx)
 		this.createAssets(assets)
 		this.createShapes(shapes)
+		this.createBindings(bindings)
 		return ids
 	}
 

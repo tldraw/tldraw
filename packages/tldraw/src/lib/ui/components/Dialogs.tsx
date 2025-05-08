@@ -1,5 +1,5 @@
-import * as _Dialog from '@radix-ui/react-dialog'
 import { useContainer, useValue } from '@tldraw/editor'
+import { Dialog as _Dialog } from 'radix-ui'
 import { memo, useCallback, useRef } from 'react'
 import { TLUiDialog, useDialogs } from '../context/dialogs'
 

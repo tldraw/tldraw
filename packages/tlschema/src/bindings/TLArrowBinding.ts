@@ -1,9 +1,17 @@
 import { T } from '@tldraw/validate'
 import { VecModel, vecModelValidator } from '../misc/geometry-types'
-import { createBindingPropsMigrationSequence } from '../records/TLBinding'
+import {
+	createBindingPropsMigrationIds,
+	createBindingPropsMigrationSequence,
+} from '../records/TLBinding'
 import { RecordProps } from '../recordsWithProps'
 import { arrowShapeVersions } from '../shapes/TLArrowShape'
 import { TLBaseBinding } from './TLBaseBinding'
+
+/** @public */
+export const ElbowArrowSnap = T.literalEnum('center', 'edge-point', 'edge', 'none')
+/** @public */
+export type ElbowArrowSnap = T.TypeOf<typeof ElbowArrowSnap>
 
 /** @public */
 export interface TLArrowBindingProps {
@@ -18,6 +26,7 @@ export interface TLArrowBindingProps {
 	 * precise is whether to bind to the normalizedAnchor, or to the middle of the shape
 	 */
 	isPrecise: boolean
+	snap: ElbowArrowSnap
 }
 
 /** @public */
@@ -26,14 +35,29 @@ export const arrowBindingProps: RecordProps<TLArrowBinding> = {
 	normalizedAnchor: vecModelValidator,
 	isExact: T.boolean,
 	isPrecise: T.boolean,
+	snap: ElbowArrowSnap,
 }
 
 /** @public */
 export type TLArrowBinding = TLBaseBinding<'arrow', TLArrowBindingProps>
 
-export const arrowBindingVersions = {} as const
+/** @public */
+export const arrowBindingVersions = createBindingPropsMigrationIds('arrow', {
+	AddSnap: 1,
+})
 
 /** @public */
 export const arrowBindingMigrations = createBindingPropsMigrationSequence({
-	sequence: [{ dependsOn: [arrowShapeVersions.ExtractBindings] }],
+	sequence: [
+		{ dependsOn: [arrowShapeVersions.ExtractBindings] },
+		{
+			id: arrowBindingVersions.AddSnap,
+			up: (props) => {
+				props.snap = 'none'
+			},
+			down: (props) => {
+				delete props.snap
+			},
+		},
+	],
 })

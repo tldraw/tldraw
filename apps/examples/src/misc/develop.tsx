@@ -98,6 +98,7 @@ function afterChangeHandler(prev: any, next: any) {
 export default function Develop() {
 	const performanceOverrides = usePerformance()
 	const debuggingOverrides = useDebugging()
+
 	return (
 		<div className="tldraw__editor">
 			<Tldraw

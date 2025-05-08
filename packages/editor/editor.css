@@ -44,6 +44,7 @@
 	/* User handles need to be above selection edges / corners, matters for sticky note clone handles */
 	--layer-overlays-user-handles: 105;
 	--layer-overlays-user-indicator-hint: 110;
+	--layer-overlays-custom: 115;
 	--layer-overlays-collaborator-cursor-hint: 120;
 	--layer-overlays-collaborator-cursor: 130;
 
@@ -472,6 +473,10 @@ input,
 	stroke-width: calc(2.5px * var(--tl-scale));
 }
 
+.tl-custom-overlays {
+	z-index: var(--layer-overlays-custom);
+}
+
 /* behind collaborator cursor */
 .tl-collaborator__cursor-hint {
 	z-index: var(--layer-overlays-collaborator-cursor-hint);
@@ -593,6 +598,31 @@ input,
 	.tl-handle__create {
 		opacity: 1;
 	}
+}
+
+/* --------------------- Arrow Hints -------------------- */
+
+.tl-arrow-hint-handle {
+	fill: var(--color-selected-contrast);
+	stroke: var(--color-selection-stroke);
+	stroke-width: calc(1.5px * var(--tl-scale));
+	r: calc(4px * var(--tl-scale));
+}
+
+.tl-arrow-hint-snap {
+	stroke: transparent;
+	fill: var(--color-selection-fill);
+	r: calc(12px * var(--tl-scale));
+}
+
+.tl-arrow-hint-snap__none,
+.tl-arrow-hint-snap__center,
+.tl-arrow-hint-snap__axis {
+	display: none;
+}
+
+.tl-arrow-hint-snap__edge {
+	r: calc(8px * var(--tl-scale));
 }
 
 /* ------------------ Bounds Detail ----------------- */
@@ -964,6 +994,8 @@ input,
 
 .tl-rich-text p {
 	margin: 0;
+	/* Depending on the extensions, <p> tags can be empty, without a <br />. */
+	min-height: 1lh;
 }
 
 .tl-rich-text ul,
@@ -971,6 +1003,8 @@ input,
 	text-align: left;
 	margin: 0;
 	padding-left: 3.25ch;
+	/* Some resets, like Tailwind, nix the list styling. */
+	list-style: revert;
 }
 
 .tl-rich-text ol:has(> li:nth-child(10)) {
@@ -1348,10 +1382,6 @@ input,
 	opacity: 0;
 }
 
-.tl-arrow-label[data-isediting='true'] > .tl-arrow-label__inner {
-	background-color: var(--color-background);
-}
-
 .tl-arrow-label__inner {
 	border-radius: var(--radius-1);
 	box-sizing: content-box;
@@ -1710,6 +1740,12 @@ it from receiving any pointer events or affecting the cursor. */
 	background-color: var(--color-primary);
 	color: var(--color-selected-contrast);
 }
+.tl-container__focused:not(.tl-container__no-focus-ring)
+	.tlui-button.tl-error-boundary__refresh:focus-visible {
+	border-radius: 8px;
+	outline-offset: 0;
+}
+
 /* --------------------- Coarse --------------------- */
 
 .tl-hidden {
