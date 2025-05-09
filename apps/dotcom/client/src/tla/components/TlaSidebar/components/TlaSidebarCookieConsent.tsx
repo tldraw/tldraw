@@ -24,7 +24,7 @@ export const TlaSidebarCookieConsent = memo(function TlaSidebarCookieConsent() {
 		addDialog({ component: () => <TlaManageCookiesDialog /> })
 	}, [addDialog])
 
-	// if (user.allowAnalyticsCookie !== null) return null
+	if (user.allowAnalyticsCookie !== null) return null
 
 	return (
 		<div className={styles.sidebarCookieConsent}>
@@ -32,14 +32,13 @@ export const TlaSidebarCookieConsent = memo(function TlaSidebarCookieConsent() {
 				<F defaultMessage="This site uses cookies to make the app work and to collect analytics." />
 			</p>
 			<div className={styles.sidebarCookieButtonsRow}>
+				<button
+					className={classNames('tla-button-text', styles.sidebarCookieButton, styles.hoverable)}
+					onClick={handleCustomize}
+				>
+					<F defaultMessage="Settings" />
+				</button>
 				<div className={styles.sidebarCookieButtons}>
-					<button
-						className={classNames('tla-button-text', styles.sidebarCookieButton, styles.hoverable)}
-						onClick={handleCustomize}
-					>
-						<F defaultMessage="Settings" />
-					</button>
-					<div className={styles.sidebarCookieSpacer} />
 					<button
 						className={classNames('tla-button-text', styles.sidebarCookieButton, styles.hoverable)}
 						onClick={handleReject}

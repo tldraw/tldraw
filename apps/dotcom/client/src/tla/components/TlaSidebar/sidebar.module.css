@@ -317,15 +317,17 @@
 	color: var(--tla-color-primary);
 }
 
-.sidebarCookieButtons {
+.sidebarCookieButtonsRow {
 	display: flex;
-	justify-content: space-between;
 	gap: 4px;
+	justify-content: space-between;
 	flex-wrap: wrap;
 }
 
-.sidebarCookieSpacer {
-	flex-grow: 2;
+.sidebarCookieButtons {
+	display: flex;
+	gap: 4px;
+	flex-wrap: wrap;
 }
 
 .sidebarCookieButton {
