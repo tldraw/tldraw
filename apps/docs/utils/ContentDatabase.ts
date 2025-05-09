@@ -90,7 +90,7 @@ export class ContentDatabase {
 	async getCategoryArticles(sectionId: string, categoryId: string) {
 		const db = await this.getDb()
 		const articles = await db.all<Article[]>(
-			'SELECT id, title, description, sectionId, categoryId, authorId, hero, thumbnail, socialImage, date, path FROM articles WHERE sectionId = ? AND categoryId = ?',
+			'SELECT id, title, description, sectionId, categoryId, authorId, priority, hero, thumbnail, socialImage, date, path FROM articles WHERE sectionId = ? AND categoryId = ?',
 			sectionId,
 			categoryId
 		)
@@ -241,10 +241,6 @@ export class ContentDatabase {
 					})
 					continue
 				}
-
-				// If the article is in the getting-started section
-				// ... we place it at the top level of the sidebar
-				// ... so let's simplify its URL to reflect that
 
 				const categoriesForSection = await db.all<Category[]>(
 					`SELECT * FROM categories WHERE categories.sectionId = ? ORDER BY sectionIndex ASC`,

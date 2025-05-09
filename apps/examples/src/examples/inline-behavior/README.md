@@ -1,8 +1,8 @@
 ---
 title: Inline behavior
 component: ./InlineBehavior.tsx
-category: ui
-priority: 3
+category: layout
+priority: 20
 keywords: [focus, blur, multiple]
 ---
 

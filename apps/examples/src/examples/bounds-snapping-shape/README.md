@@ -1,5 +1,5 @@
 ---
-title: Bounds Snapping Shape
+title: Custom snapping
 component: ./BoundsSnappingShape.tsx
 category: shapes/tools
 priority: 3

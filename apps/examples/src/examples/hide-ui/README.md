@@ -1,7 +1,8 @@
 ---
-title: Hide UI
+title: Hide entire UI
 component: ./HideUiExample.tsx
 category: ui
+priority: 1
 keywords: []
 ---
 

@@ -1,8 +1,8 @@
 ---
 title: Store events
 component: ./StoreEventsExample.tsx
-category: editor-api
-priority: 2
+category: events
+priority: 1
 keywords: [listen, changes]
 ---
 

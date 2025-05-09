@@ -1,8 +1,8 @@
 ---
-title: External UI (Context)
+title: External UI (using context)
 component: ./ExternalUiContextExample.tsx
-category: ui
-priority: 2
+category: layout
+priority: 20
 keywords: [outside, editor, context]
 ---
 

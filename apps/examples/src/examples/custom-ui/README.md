@@ -1,5 +1,5 @@
 ---
-title: Custom UI
+title: Replace entire UI
 component: ./CustomUiExample.tsx
 category: ui
 priority: 1

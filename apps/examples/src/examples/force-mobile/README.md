@@ -1,7 +1,7 @@
 ---
-title: Force mobile
+title: Force mobile layout
 component: ./ForceBreakpointExample
-category: basic
+category: ui
 priority: 4
 keywords: [force, mobile, breakpoint]
 ---

@@ -116,7 +116,7 @@ so that we don't accidentally select shapes when interacting with the component.
 This is our inFrontOfTheCanvas component. We want to render this next to a selected shape,
 so we need to make sure it's reactive to changes in the editor. We use the track function
 to make sure the component is re-rendered whenever the selection changes. Check out the
-Signia docs for more info: https://signia.tldraw.dev/docs/API/signia_react/functions/track
+signals example for more info: https://tldraw.dev/examples/signals
 
 Using the editor instance we can get the bounds of the selection box and convert them to
 screen coordinates. We then render the component at those coordinates.

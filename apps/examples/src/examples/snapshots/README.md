@@ -2,7 +2,7 @@
 title: Snapshots
 component: ./SnapshotExample.tsx
 category: editor-api
-priority: 2
+priority: 0
 keywords: []
 ---
 

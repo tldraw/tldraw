@@ -1,7 +1,7 @@
 ---
 title: After delete shape
 component: ./AfterDeleteShapeExample.tsx
-category: editor-api
+category: events
 priority: 5
 keywords: [handler, register, side effects, records]
 ---

@@ -1,5 +1,5 @@
 ---
-title: Slideshow with Camera
+title: Slideshow with camera
 component: ./SlideShowExample.tsx
 category: use-cases
 keywords:

@@ -1,5 +1,5 @@
 ---
-title: Canvas components
+title: Custom canvas components
 component: ./CustomComponentsExample.tsx
 category: ui
 priority: 2

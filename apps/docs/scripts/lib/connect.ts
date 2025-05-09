@@ -58,6 +58,7 @@ export async function connect(opts: { reset?: boolean; mode: 'readonly' | 'readw
 			id TEXT PRIMARY KEY,
 			groupIndex INTEGER NOT NULL,
 			categoryIndex INTEGER NOT NULL,
+			priority INTEGER,
 			sectionIndex INTEGER NOT NULL,
 			groupId TEXT,
 			categoryId TEXT NOT NULL,

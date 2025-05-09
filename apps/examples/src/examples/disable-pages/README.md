@@ -1,7 +1,7 @@
 ---
 title: Disable Pages
 component: ./DisablePagesExample.tsx
-category: basic
+category: configuration
 priority: 10
 keywords: [basic, intro, simple, quick, start, page]
 ---

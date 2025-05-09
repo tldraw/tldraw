@@ -1,8 +1,8 @@
 ---
-title: External UI
+title: External UI (using state)
 component: ./ExternalUiExample.tsx
-category: ui
-priority: 2
+category: layout
+priority: 20
 keywords: [outside, editor]
 ---
 

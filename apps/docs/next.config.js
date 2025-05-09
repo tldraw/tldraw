@@ -85,10 +85,10 @@ const nextConfig = {
 				destination: '/reference/:slug*',
 				permanent: true,
 			},
-			// redirects at the top level
 			{
-				source: '/examples',
-				destination: '/examples/basic/basic',
+				// For reverse compatibility with old examples links
+				source: '/examples/:categoryId/:articleId',
+				destination: '/examples/:articleId',
 				permanent: true,
 			},
 			{
@@ -99,6 +99,12 @@ const nextConfig = {
 			{
 				source: '/docs',
 				destination: '/quick-start',
+				permanent: true,
+			},
+			// Renamed examples
+			{
+				source: '/examples/basic/state-store',
+				destination: '/examples/signals',
 				permanent: true,
 			},
 		]

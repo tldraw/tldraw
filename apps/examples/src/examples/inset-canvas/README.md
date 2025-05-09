@@ -1,7 +1,8 @@
 ---
 title: Inset canvas
 component: ./InsetCanvasExample.tsx
-category: ui
+category: layout
+priority: 20
 keywords: []
 ---
 
