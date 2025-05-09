@@ -24,7 +24,7 @@ export const TlaSidebarCookieConsent = memo(function TlaSidebarCookieConsent() {
 		addDialog({ component: () => <TlaManageCookiesDialog /> })
 	}, [addDialog])
 
-	if (user.allowAnalyticsCookie !== null) return null
+	// if (user.allowAnalyticsCookie !== null) return null
 
 	return (
 		<div className={styles.cookieConsent}>

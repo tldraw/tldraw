@@ -10,10 +10,10 @@ import {
 	useIsSidebarOpen,
 	useIsSidebarOpenMobile,
 } from '../../utils/local-session-state'
+import { TlaSidebarBottomRow } from './components/TlaSidebarBottomRow'
 import { TlaSidebarCookieConsent } from './components/TlaSidebarCookieConsent'
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
-import { TlaSidebarUserLink } from './components/TlaSidebarUserLink'
 import { TlaSidebarWorkspaceLink } from './components/TlaSidebarWorkspaceLink'
 import styles from './sidebar.module.css'
 
@@ -83,16 +83,16 @@ export const TlaSidebar = memo(function TlaSidebar() {
 						<F defaultMessage="Upload .tldr files" />
 					</div>
 				)}
-				<div className={styles.top}>
+				<div className={styles.sidebarTopRow}>
 					<TlaSidebarWorkspaceLink />
 					<TlaSidebarCreateFileButton />
 				</div>
 				<div className={styles.content}>
 					<TlaSidebarRecentFiles />
 				</div>
-				<div className={styles.bottom} data-testid="tla-sidebar-bottom">
+				<div className={styles.sidebarBottomArea} data-testid="tla-sidebar-bottom-row">
 					<TlaSidebarCookieConsent />
-					<TlaSidebarUserLink />
+					<TlaSidebarBottomRow />
 				</div>
 			</div>
 		</nav>

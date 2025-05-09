@@ -78,17 +78,6 @@
 	}
 }
 
-.top,
-.bottom {
-	display: flex;
-	flex-direction: row;
-	flex: 0 0 auto;
-}
-
-.bottom {
-	margin-top: 12px;
-}
-
 .content {
 	display: flex;
 	flex-direction: column;
@@ -143,7 +132,19 @@
 	}
 }
 
-.toggle {
+.label {
+	flex: 1 1 auto;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	padding: 0 0px;
+	position: relative;
+	z-index: 1;
+}
+
+/* ----------------- Sidebar toggle ----------------- */
+
+.sidebarToggle {
 	position: relative;
 	background: none;
 	border: none;
@@ -160,12 +161,12 @@
 }
 
 @media (hover: hover) {
-	.toggle:hover {
+	.sidebarToggle:hover {
 		z-index: 100;
 	}
 }
 
-.toggle::after {
+.sidebarToggle::after {
 	display: block;
 	content: '';
 	position: absolute;
@@ -181,30 +182,71 @@
 }
 
 @media (hover: hover) {
-	.toggle:hover::after {
+	.sidebarToggle:hover::after {
 		visibility: visible;
 	}
 }
 
-.toggle[data-mobile='true'] {
+.sidebarToggle[data-mobile='true'] {
 	display: flex;
 }
 
-.toggle[data-mobile='false'] {
+.sidebarToggle[data-mobile='false'] {
 	display: none;
 }
 
 @media (min-width: 768px) {
-	.toggle[data-mobile='true'] {
+	.sidebarToggle[data-mobile='true'] {
 		display: none;
 	}
 
-	.toggle[data-mobile='false'] {
+	.sidebarToggle[data-mobile='false'] {
 		display: flex;
 	}
 }
 
-.create {
+/* --------------------- Top area -------------------- */
+
+.sidebarTopRow {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	flex: 0 0 auto;
+}
+
+/* Workspace link (sort of) */
+
+.sidebarWorkspaceButton {
+	background: none;
+	border: none;
+	position: relative;
+	height: 40px;
+	flex-grow: 2;
+	display: flex;
+	align-items: center;
+	padding-right: 6px;
+	padding-left: 2px;
+	background-color: var(--tla-color-sidebar);
+	overflow: hidden;
+	padding-bottom: 1px;
+}
+
+.sidebarWorkspaceButtonLabel {
+	/* for alignment with other buttons */
+	display: block;
+	flex-grow: 2;
+	flex: 1 1 auto;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	padding: 0 0px;
+	position: relative;
+	z-index: 1;
+}
+
+/* Create file button */
+
+.sidebarCreateFileButton {
 	background: none;
 	border: none;
 	cursor: pointer;
@@ -217,11 +259,12 @@
 	align-items: center;
 	justify-content: center;
 	color: var(--tla-color-text-1);
+	flex-shrink: 0;
 	padding: 0px;
 	z-index: 10;
 }
 
-.create::after {
+.sidebarCreateFileButton::after {
 	display: block;
 	content: '';
 	position: absolute;
@@ -237,47 +280,32 @@
 }
 
 @media (hover: hover) {
-	.sidebar:hover .create:hover::after {
+	.sidebar:hover .sidebarCreateFileButton:hover::after {
 		visibility: visible;
 	}
 }
 
-.label {
-	flex: 1 1 auto;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	padding: 0 0px;
-	position: relative;
-	z-index: 1;
-}
+/* ------------------- Bottom area ------------------ */
 
-.workspace {
-	background: none;
-	border: none;
-	position: relative;
-	height: 40px;
-	flex-grow: 2;
+.sidebarBottomArea {
 	display: flex;
-	align-items: center;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	padding-right: 6px;
-	padding-left: 2px;
-	background-color: var(--tla-color-sidebar);
+	flex-direction: column;
+	flex: 0 0 auto;
+	margin-top: 12px;
 }
 
-.workspace {
-	padding-bottom: 1px;
-}
+/* ------------------- Bottom row ------------------- */
 
-.user {
+.sidebarBottomRow {
 	display: flex;
+	flex-direction: row;
 	align-items: center;
+	flex: 0 0 auto;
 }
 
-.userButton {
+/* User settings menu */
+
+.userSettingsTrigger {
 	background: none;
 	border: none;
 	position: relative;
@@ -297,19 +325,40 @@
 	cursor: pointer;
 }
 
-.userButton::after {
+.userSettingsTrigger::after {
 	inset: 2px 8px 2px 0px;
 }
 
-.userName {
+.userSettingsName {
 	flex: 1 1 auto;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	color: var(--tla-color-text-1);
 }
 
-.accountMenuTrigger {
+.userSettingsIcon {
+	margin-right: 16px;
+	color: var(--tla-color-text-3);
+}
+
+@media (hover: hover) {
+	.userSettingsIcon {
+		visibility: hidden;
+	}
+
+	.userSettingsTrigger:hover .userSettingsIcon {
+		visibility: visible;
+		color: var(--tla-color-text-1);
+	}
+}
+
+.userSettingsTrigger[data-state='open'] .userSettingsIcon {
+	visibility: visible;
+}
+
+/* Help menu */
+
+.helpMenuTrigger {
 	height: 28px;
 	width: 28px;
 	display: flex;
@@ -320,12 +369,19 @@
 	cursor: pointer;
 	border-radius: 100%;
 	border: 1px solid var(--tla-color-border);
+	color: var(--tla-color-text-3);
 }
 
-.accountMenuTrigger::after {
+.helpMenuTrigger::after {
 	border-radius: 100%;
 	inset: 0px;
 }
+
+.helpMenuTrigger[data-state='open']::after {
+	visibility: visible;
+}
+
+/* ---------------------- Links --------------------- */
 
 .main-link {
 	position: relative;
@@ -463,19 +519,11 @@
 	}
 
 	.workspace .linkMenu[data-state='open'],
-	.user .accountMenuTrigger[data-state='open'],
 	.link .linkMenu[data-state='open'],
 	.workspace:hover .linkMenu,
-	.user:hover .linkMenu,
 	.link:hover .linkMenu {
 		visibility: visible;
 		display: flex;
-	}
-
-	.user .accountMenuTrigger[data-state='open']::after,
-	.userButton[data-state='open']::after {
-		visibility: visible;
-		background-color: var(--tla-color-hover-2);
 	}
 
 	.linkMenu:hover {
@@ -561,10 +609,4 @@
 .acceptButton {
 	color: var(--tla-color-primary);
 	font-weight: 700;
-}
-
-.bottom {
-	display: flex;
-	flex-direction: column;
-	flex: 0 0 auto;
 }

@@ -1,17 +1,13 @@
 import { useAuth } from '@clerk/clerk-react'
 import { fileOpen } from 'browser-fs-access'
-import classNames from 'classnames'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	ColorSchemeMenu,
-	LanguageMenu,
 	TLDRAW_FILE_EXTENSION,
-	TldrawUiDropdownMenuContent,
-	TldrawUiDropdownMenuRoot,
-	TldrawUiDropdownMenuTrigger,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
 	TldrawUiMenuCheckboxItem,
-	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
@@ -19,18 +15,16 @@ import {
 	useMaybeEditor,
 	useValue,
 } from 'tldraw'
-import { useOpenUrlAndTrack } from '../../../../hooks/useOpenUrlAndTrack'
-import { routes } from '../../../../routeDefs'
-import { useApp, useMaybeApp } from '../../../hooks/useAppState'
-import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
-import { getCurrentEditor } from '../../../utils/getCurrentEditor'
-import { defineMessages, useMsg } from '../../../utils/i18n'
-import { clearLocalSessionState } from '../../../utils/local-session-state'
-import { TlaAvatar } from '../../TlaAvatar/TlaAvatar'
-import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import { SubmitFeedbackDialog } from '../../dialogs/SubmitFeedbackDialog'
-import { TlaManageCookiesDialog } from '../../dialogs/TlaManageCookiesDialog'
-import styles from '../sidebar.module.css'
+import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
+import { routes } from '../../../routeDefs'
+import { useMaybeApp } from '../../hooks/useAppState'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { getCurrentEditor } from '../../utils/getCurrentEditor'
+import { defineMessages, useMsg } from '../../utils/i18n'
+import { clearLocalSessionState } from '../../utils/local-session-state'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
+import { TlaManageCookiesDialog } from '../dialogs/TlaManageCookiesDialog'
 
 const messages = defineMessages({
 	help: { defaultMessage: 'Help' },
@@ -54,82 +48,7 @@ const messages = defineMessages({
 	langHighlightMissing: { defaultMessage: 'i18n: Highlight Missing' },
 })
 
-export function TlaSidebarUserLink() {
-	const app = useApp()
-	const isSignedIn = useAuth().isSignedIn
-
-	const accountMenuLbl = useMsg(messages.accountMenu)
-
-	const user = useValue('auth', () => app.getUser(), [app])
-	if (!user) return null
-
-	return (
-		<div className={classNames(styles.user)}>
-			<TldrawUiDropdownMenuRoot id={`user-menu-sidebar`}>
-				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
-					<TldrawUiDropdownMenuTrigger>
-						<button
-							className={classNames(styles.userButton, styles.hoverable)}
-							title={accountMenuLbl}
-							data-testid="tla-sidebar-user-link"
-						>
-							<TlaAvatar img={user.avatar} />
-							<div className={classNames(styles.userName, 'notranslate')}>{user.name}</div>
-						</button>
-					</TldrawUiDropdownMenuTrigger>
-					<TldrawUiDropdownMenuContent
-						className="tla-account-menu"
-						side="bottom"
-						align="end"
-						alignOffset={0}
-						sideOffset={4}
-					>
-						<TldrawUiMenuGroup id="files">
-							<ImportFileActionItem />
-						</TldrawUiMenuGroup>
-						<TldrawUiMenuGroup id="preferences">
-							<ColorThemeSubmenu />
-							<LanguageMenu />
-						</TldrawUiMenuGroup>
-						<TldrawUiMenuGroup id="settings-and-rare-actions">
-							<DebugMenuGroup />
-						</TldrawUiMenuGroup>
-						<TldrawUiMenuGroup id="signout">
-							<SignOutMenuItem />
-						</TldrawUiMenuGroup>
-					</TldrawUiDropdownMenuContent>
-				</TldrawUiMenuContextProvider>
-			</TldrawUiDropdownMenuRoot>
-			<TldrawUiDropdownMenuRoot id={`account-menu-sidebar`}>
-				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
-					<TldrawUiDropdownMenuTrigger>
-						<div
-							data-testid="tla-sidebar-app-menu"
-							className={classNames(styles.accountMenuTrigger, styles.hoverable)}
-						>
-							<TlaIcon icon="question" />
-						</div>
-					</TldrawUiDropdownMenuTrigger>
-					<TldrawUiDropdownMenuContent
-						className="tla-account-menu"
-						side="bottom"
-						align="end"
-						alignOffset={0}
-						sideOffset={4}
-					>
-						<TlaSignedInHelpMenuItems />
-						<TldrawUiMenuGroup id="links">
-							<LegalSummaryMenuItem />
-							{isSignedIn && <CookieConsentMenuItem />}
-						</TldrawUiMenuGroup>
-					</TldrawUiDropdownMenuContent>
-				</TldrawUiMenuContextProvider>
-			</TldrawUiDropdownMenuRoot>
-		</div>
-	)
-}
-
-function SignOutMenuItem() {
+export function SignOutMenuItem() {
 	const auth = useAuth()
 
 	const trackEvent = useTldrawAppUiEvents()
@@ -144,18 +63,21 @@ function SignOutMenuItem() {
 	if (!auth.isSignedIn) return
 	return (
 		<TldrawUiMenuGroup id="account-actions">
-			<TldrawUiMenuItem id="sign-out" label={label} readonlyOk onSelect={handleSignout} />
+			<TldrawUiButton id="sign-out" type="menu" onSelect={handleSignout}>
+				<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
+				<TlaIcon icon="sign-in" />
+			</TldrawUiButton>
 		</TldrawUiMenuGroup>
 	)
 }
 
-function ColorThemeSubmenu() {
+export function ColorThemeSubmenu() {
 	const editor = useMaybeEditor()
 	if (!editor) return null
 	return <ColorSchemeMenu />
 }
 
-function CookieConsentMenuItem() {
+export function CookieConsentMenuItem() {
 	const { addDialog } = useDialogs()
 	return (
 		<TldrawUiMenuItem
@@ -213,7 +135,7 @@ export function LegalSummaryMenuItem() {
 	)
 }
 
-function ImportFileActionItem() {
+export function ImportFileActionItem() {
 	const trackEvent = useTldrawAppUiEvents()
 	const app = useMaybeApp()
 
@@ -253,7 +175,7 @@ function ImportFileActionItem() {
 	)
 }
 
-function DebugMenuGroup() {
+export function DebugMenuGroup() {
 	const maybeEditor = useMaybeEditor()
 	const isDebugMode = useValue('debug', () => maybeEditor?.getInstanceState().isDebugMode, [
 		maybeEditor,
@@ -263,7 +185,7 @@ function DebugMenuGroup() {
 	return <DebugSubmenu />
 }
 
-function DebugSubmenu() {
+export function DebugSubmenu() {
 	const editor = useMaybeEditor()
 	const appFlagsLbl = useMsg(messages.appDebugFlags)
 
@@ -307,14 +229,5 @@ function DebugSubmenu() {
 				))}
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
-	)
-}
-
-export function TlaSignedInHelpMenuItems() {
-	return (
-		<TldrawUiMenuGroup id="signed-in-help">
-			<UserManualMenuItem />
-			<GiveUsFeedbackMenuItem />
-		</TldrawUiMenuGroup>
 	)
 }
