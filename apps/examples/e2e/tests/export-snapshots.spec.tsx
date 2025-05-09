@@ -771,7 +771,7 @@ const snapshots: Snapshots = {
 				</>
 			),
 		},
-		Regressions: {
+		'Regressions 1': {
 			'ENG-3332 ✅': (
 				<>
 					<TL.geo w={100} h={100} ref="a" />
@@ -867,6 +867,53 @@ const snapshots: Snapshots = {
 							terminal="end"
 							isPrecise={true}
 							normalizedAnchor={{ x: 0.5, y: 0 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
+		},
+		'Regressions 2': {
+			'ENG-3366 ✅': (
+				<>
+					<TL.geo w={30} h={30} ref="a" />
+					<TL.geo w={30} h={30} x={80} y={10} ref="b" />
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow to="a" terminal="start" />
+						<TL.binding.arrow
+							to="b"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0, y: 0.5 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
+			'ENG-3371 ✅': (
+				<>
+					<TL.text ref="text" richText={toRichText('hi')} />
+					<TL.arrow kind="elbow" end={{ x: 70, y: 30 }}>
+						<TL.binding.arrow to="text" terminal="start" />
+					</TL.arrow>
+				</>
+			),
+			'ENG-3375 ✅': (
+				<>
+					{heyDrawShape}
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow
+							to="hey"
+							terminal="start"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.09381928931000422, y: 0.21685530426808908 }}
+							snap="edge"
+						/>
+						<TL.binding.arrow
+							to="hey"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.38733552172499264, y: 0.5318288846695827 }}
 							snap="edge"
 						/>
 					</TL.arrow>

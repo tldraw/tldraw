@@ -53,11 +53,11 @@ export function getElbowArrowInfo(
 
 	// Before we can do anything else, we need to find the start and end terminals of the arrow.
 	// These contain the binding info, geometry, bounds, etc.
-	const startTerminal = getElbowArrowTerminalInfo(editor, arrow, bindings.start, arrow.props.start)
-	const endTerminal = getElbowArrowTerminalInfo(editor, arrow, bindings.end, arrow.props.end)
+	let startTerminal = getElbowArrowTerminalInfo(editor, arrow, bindings.start, arrow.props.start)
+	let endTerminal = getElbowArrowTerminalInfo(editor, arrow, bindings.end, arrow.props.end)
 	// unclosed paths are weird - we handle them outside of the initial terminal info.
-	adjustTerminalForUnclosedPathIfNeeded(startTerminal)
-	adjustTerminalForUnclosedPathIfNeeded(endTerminal)
+	startTerminal = adjustTerminalForUnclosedPathIfNeeded(startTerminal, endTerminal, options)
+	endTerminal = adjustTerminalForUnclosedPathIfNeeded(endTerminal, startTerminal, options)
 
 	// Ther terminal might include a "side" if the user has explicitly indicated what side the arrow
 	// should come from. There are two terminals, and two cases for each terminal (explicit side or
@@ -352,7 +352,7 @@ function getElbowArrowTerminalInfo(
 
 	if (binding) {
 		const target = editor.getShape(binding.toId)
-		const geometry = getBindingGeometryInArrowSpace(editor, arrow.id, binding.toId, binding.props)
+		const geometry = getBindingGeometryInArrowSpace(editor, arrow, binding.toId, binding.props)
 		if (geometry && target) {
 			let arrowheadOffset = 0
 			const arrowheadProp = binding.props.terminal === 'start' ? 'arrowheadStart' : 'arrowheadEnd'
@@ -406,18 +406,27 @@ function getElbowArrowTerminalInfo(
 	}
 }
 
-export function getBindingGeometryInArrowSpace(
+function getBindingGeometryInArrowSpace(
 	editor: Editor,
-	arrowId: TLShapeId,
+	arrow: TLArrowShape,
 	targetId: TLShapeId,
 	bindingProps: TLArrowBindingProps
 ) {
-	const targetGeometryInTargetSpace = editor.getShapeGeometry(targetId)
+	const hasArrowhead =
+		bindingProps.terminal === 'start'
+			? arrow.props.arrowheadStart !== 'none'
+			: arrow.props.arrowheadEnd !== 'none'
+
+	const targetGeometryInTargetSpace = editor.getShapeGeometry(
+		targetId,
+		hasArrowhead ? undefined : { context: '@tldraw/arrow-without-arrowhead' }
+	)
+
 	if (!targetGeometryInTargetSpace) {
 		return null
 	}
 
-	const arrowTransform = editor.getShapePageTransform(arrowId)
+	const arrowTransform = editor.getShapePageTransform(arrow.id)
 	const shapeTransform = editor.getShapePageTransform(targetId)
 	const shapeToArrowTransform = arrowTransform.clone().invert().multiply(shapeTransform)
 
@@ -672,7 +681,9 @@ function castPathSegmentIntoGeometry(
 	const point1 = segment === 'first' ? route.points[0] : route.points[route.points.length - 1]
 	const point2 = segment === 'first' ? route.points[1] : route.points[route.points.length - 2]
 
-	const initialDistance = Vec.ManhattanDist(point1, point2)
+	const pointToFindClosestIntersectionTo = target.geometry.isClosed ? point2 : target.target
+
+	const initialDistance = Vec.ManhattanDist(point1, pointToFindClosestIntersectionTo)
 
 	let nearestIntersectionToPoint2: VecLike | null = null
 	let nearestDistanceToPoint2 = Infinity
@@ -695,7 +706,7 @@ function castPathSegmentIntoGeometry(
 			intersections.push(target.target)
 		}
 		for (const intersection of intersections) {
-			const point2Distance = Vec.ManhattanDist(point2, intersection)
+			const point2Distance = Vec.ManhattanDist(pointToFindClosestIntersectionTo, intersection)
 			if (point2Distance < nearestDistanceToPoint2) {
 				nearestDistanceToPoint2 = point2Distance
 				nearestIntersectionToPoint2 = intersection
@@ -759,10 +770,6 @@ function fixTinyEndNubs(
 ) {
 	if (!route) return
 
-	// if the route has a mid-point handle, don't fix the tiny end nubs because it can mess up the
-	// midpoint handle stuff
-	if (route.midpointHandle) return
-
 	if (route.points.length >= 3) {
 		const a = route.points[0]
 		const b = route.points[1]
@@ -790,9 +797,12 @@ function fixTinyEndNubs(
 	}
 }
 
-function adjustTerminalForUnclosedPathIfNeeded(terminal: ElbowArrowTerminal) {
+function adjustTerminalForUnclosedPathIfNeeded(
+	terminal: ElbowArrowTerminal,
+	otherTerminal: ElbowArrowTerminal,
+	options: ElbowArrowOptions
+): ElbowArrowTerminal {
 	if (!terminal.geometry || terminal.geometry.isClosed) return terminal
-
 	const normalizedPointAlongPath = terminal.geometry.uninterpolateAlongEdge(
 		terminal.target,
 		Geometry2dFilters.EXCLUDE_NON_STANDARD
@@ -807,6 +817,11 @@ function adjustTerminalForUnclosedPathIfNeeded(terminal: ElbowArrowTerminal) {
 
 	const normal = next.sub(prev).per().uni()
 	const axis = Math.abs(normal.x) > Math.abs(normal.y) ? ElbowArrowAxes.x : ElbowArrowAxes.y
+
+	if (terminal.geometry.bounds.containsPoint(otherTerminal.target, options.expandElbowLegLength)) {
+		terminal.side = axis.self
+		return convertTerminalToPoint(terminal)
+	}
 
 	const min = axis.v(
 		terminal.target[axis.self] - terminal.bounds[axis.size] * 2,
@@ -861,4 +876,5 @@ function adjustTerminalForUnclosedPathIfNeeded(terminal: ElbowArrowTerminal) {
 	}
 
 	terminal.side = side
+	return terminal
 }

@@ -279,6 +279,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     onEditEnd(shape: TLArrowShape): void;
     // (undocumented)
+    onEditStart(shape: TLArrowShape): void;
+    // (undocumented)
     onHandleDrag(shape: TLArrowShape, info: TLHandleDragInfo<TLArrowShape>): ({
         id: TLShapeId;
         meta?: Partial<JsonObject> | undefined;
@@ -308,7 +310,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     onTranslate(initialShape: TLArrowShape, shape: TLArrowShape): void;
     // (undocumented)
-    onTranslateStart(shape: TLArrowShape): void;
+    onTranslateStart(shape: TLArrowShape): ({
+        id: TLShapeId;
+        meta?: Partial<JsonObject> | undefined;
+        props?: Partial<TLArrowShapeProps> | undefined;
+        type: "arrow";
+    } & Partial<Omit<TLArrowShape, "id" | "meta" | "props" | "type">>) | undefined;
     // (undocumented)
     options: ArrowShapeOptions;
     // (undocumented)

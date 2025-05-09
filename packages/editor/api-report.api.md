@@ -2646,6 +2646,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onDragShapesOver?(shape: Shape, shapes: TLShape[]): void;
     onDropShapesOver?(shape: Shape, shapes: TLShape[]): void;
     onEditEnd?(shape: Shape): void;
+    onEditStart?(shape: Shape): void;
     onHandleDrag?(shape: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void;
     onResize?(shape: Shape, info: TLResizeInfo<Shape>): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void;
     onResizeEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;

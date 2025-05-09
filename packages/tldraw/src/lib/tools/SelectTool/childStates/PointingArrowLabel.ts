@@ -7,7 +7,10 @@ import {
 	Vec,
 } from '@tldraw/editor'
 import { ArrowShapeUtil } from '../../../shapes/arrow/ArrowShapeUtil'
-import { arrowBodyGeometryCache } from '../../../shapes/arrow/arrowLabel'
+import {
+	arrowBodyGeometryCache,
+	getArrowLabelDefaultPosition,
+} from '../../../shapes/arrow/arrowLabel'
 
 export class PointingArrowLabel extends StateNode {
 	static override id = 'pointing_arrow_label'
@@ -95,25 +98,29 @@ export class PointingArrowLabel extends StateNode {
 			.getPointInShapeSpace(shape, this.editor.inputs.currentPagePoint)
 			.add(this._labelDragOffset)
 
+		const defaultLabelPosition = getArrowLabelDefaultPosition(this.editor, shape)
+
 		let nextLabelPosition = arrowBodyGeometryCache
 			.get(this.editor, shape.id)!
 			.uninterpolateAlongEdge(pointInShapeSpace)
 
 		if (isNaN(nextLabelPosition)) {
-			nextLabelPosition = 0.5
+			nextLabelPosition = defaultLabelPosition
 		}
 
 		const nextLabelPoint = transform.applyToPoint(geometry.interpolateAlongEdge(nextLabelPosition))
-		const labelCenterPoint = transform.applyToPoint(geometry.interpolateAlongEdge(0.5))
+		const labelDefaultPoint = transform.applyToPoint(
+			geometry.interpolateAlongEdge(defaultLabelPosition)
+		)
 
 		if (
 			Vec.DistMin(
 				nextLabelPoint,
-				labelCenterPoint,
+				labelDefaultPoint,
 				options.labelCenterSnapDistance / this.editor.getZoomLevel()
 			)
 		) {
-			nextLabelPosition = 0.5
+			nextLabelPosition = defaultLabelPosition
 		}
 
 		this.didDrag = true
