@@ -350,6 +350,7 @@ binding = "QUEUE"
 
 [[env.dev.queues.consumers]]
 queue = "tldraw-multiplayer-queue-dev"
+max_retries = 10
 
 [[env.preview.queues.producers]]
 queue = "tldraw-multiplayer-queue-preview"
@@ -357,6 +358,7 @@ binding = "QUEUE"
 
 [[env.preview.queues.consumers]]
 queue = "tldraw-multiplayer-queue-preview"
+max_retries = 10
 
 [[env.staging.queues.producers]]
 queue = "tldraw-multiplayer-queue-staging"
@@ -364,6 +366,7 @@ binding = "QUEUE"
 
 [[env.staging.queues.consumers]]
 queue = "tldraw-multiplayer-queue-staging"
+max_retries = 10
 
 [[env.production.queues.producers]]
 queue = "tldraw-multiplayer-queue"
@@ -371,3 +374,5 @@ binding = "QUEUE"
 
 [[env.production.queues.consumers]]
 queue = "tldraw-multiplayer-queue"
+max_retries = 10
+dead_letter_queue = 'tldraw-multiplayer-dlq'
