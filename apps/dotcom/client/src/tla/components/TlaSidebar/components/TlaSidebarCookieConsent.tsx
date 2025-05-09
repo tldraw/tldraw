@@ -27,7 +27,7 @@ export const TlaSidebarCookieConsent = memo(function TlaSidebarCookieConsent() {
 	if (user.allowAnalyticsCookie !== null) return null
 
 	return (
-		<div className={styles.sidebarCookieConsent}>
+		<div className={styles.sidebarCookieConsent} data-testid="tla-sidebar-cookie-consent">
 			<p className={styles.sidebarCookieText}>
 				<F defaultMessage="This site uses cookies to make the app work and to collect analytics." />
 			</p>

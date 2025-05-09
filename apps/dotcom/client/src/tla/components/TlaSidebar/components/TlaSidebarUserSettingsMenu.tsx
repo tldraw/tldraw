@@ -14,31 +14,17 @@ import { TlaAvatar } from '../../TlaAvatar/TlaAvatar'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
 	ColorThemeSubmenu,
-	CookieConsentMenuItem,
 	DebugMenuGroup,
-	GiveUsFeedbackMenuItem,
 	ImportFileActionItem,
-	LegalSummaryMenuItem,
 	SignOutMenuItem,
-	UserManualMenuItem,
 } from '../../menu-items/menu-items'
 import styles from '../sidebar.module.css'
 
 const messages = defineMessages({
-	help: { defaultMessage: 'Help' },
 	userMenu: { defaultMessage: 'User settings' },
 })
 
-export function TlaSidebarBottomRow() {
-	return (
-		<div className={classNames(styles.sidebarBottomRow)}>
-			<UserSettingsMenu />
-			<HelpMenu />
-		</div>
-	)
-}
-
-function UserSettingsMenu() {
+export function TlaUserSettingsMenu() {
 	const app = useApp()
 	const userMenuLbl = useMsg(messages.userMenu)
 	const user = useValue('auth', () => app.getUser(), [app])
@@ -71,33 +57,6 @@ function UserSettingsMenu() {
 					<DebugMenuGroup />
 					<TldrawUiMenuGroup id="signout">
 						<SignOutMenuItem />
-					</TldrawUiMenuGroup>
-				</TldrawUiDropdownMenuContent>
-			</TldrawUiMenuContextProvider>
-		</TldrawUiDropdownMenuRoot>
-	)
-}
-
-function HelpMenu() {
-	return (
-		<TldrawUiDropdownMenuRoot id={`help-menu-sidebar`}>
-			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
-				<TldrawUiDropdownMenuTrigger>
-					<div
-						data-testid="tla-sidebar-help-menu"
-						className={classNames(styles.helpMenuTrigger, styles.hoverable)}
-					>
-						<TlaIcon icon="question" />
-					</div>
-				</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0} sideOffset={4}>
-					<TldrawUiMenuGroup id="support">
-						<UserManualMenuItem />
-						<GiveUsFeedbackMenuItem />
-					</TldrawUiMenuGroup>
-					<TldrawUiMenuGroup id="legal">
-						<LegalSummaryMenuItem />
-						<CookieConsentMenuItem />
 					</TldrawUiMenuGroup>
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>

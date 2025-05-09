@@ -10,10 +10,11 @@ import {
 	useIsSidebarOpen,
 	useIsSidebarOpenMobile,
 } from '../../utils/local-session-state'
-import { TlaSidebarBottomRow } from './components/TlaSidebarBottomRow'
 import { TlaSidebarCookieConsent } from './components/TlaSidebarCookieConsent'
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
+import { TlaSidebarHelpMenu } from './components/TlaSidebarHelpMenu'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
+import { TlaUserSettingsMenu } from './components/TlaSidebarUserSettingsMenu'
 import { TlaSidebarWorkspaceLink } from './components/TlaSidebarWorkspaceLink'
 import styles from './sidebar.module.css'
 
@@ -90,9 +91,12 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				<div className={styles.content}>
 					<TlaSidebarRecentFiles />
 				</div>
-				<div className={styles.sidebarBottomArea} data-testid="tla-sidebar-bottom-row">
+				<div className={styles.sidebarBottomArea}>
 					<TlaSidebarCookieConsent />
-					<TlaSidebarBottomRow />
+					<div className={styles.sidebarBottomRow}>
+						<TlaUserSettingsMenu />
+						<TlaSidebarHelpMenu />
+					</div>
 				</div>
 			</div>
 		</nav>
