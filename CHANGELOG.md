@@ -1,3 +1,19 @@
+# v3.12.2 (Fri May 09 2025)
+
+#### 🐛 Bug Fix
+
+- Move license key docs to docs site (#5919) [#5943](https://github.com/tldraw/tldraw/pull/5943) ([@TodePond](https://github.com/TodePond))
+- `@tldraw/editor`
+  - [sdk hotfix] restore dpr constrained shape dimensions [#6034](https://github.com/tldraw/tldraw/pull/6034) ([@SomeHats](https://github.com/SomeHats) [@ds300](https://github.com/ds300))
+
+#### Authors: 3
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+
+---
+
 # v3.12.1 (Tue Apr 22 2025)
 
 ### Release Notes
