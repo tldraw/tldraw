@@ -169,6 +169,12 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 
 					onKeyDown(event)
 				},
+				transformPastedHTML: (html: string) => {
+					const isTldrawShapeData = html.includes('<div data-tldraw')
+					if (isTldrawShapeData) return ''
+
+					return html
+				},
 				handleDoubleClick: (view, pos, event) => onDoubleClick(event),
 				...editorProps,
 			},
