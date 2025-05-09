@@ -66,9 +66,9 @@ You can use the tldraw SDK in commercial or non-commercial projects so long as y
 
 Copyright (c) 2024-present tldraw Inc. The tldraw name and logo are trademarks of tldraw. Please see our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) for info on acceptable usage.
 
-## Distributions
+## Distribution
 
-You can find tldraw on npm [here](https://www.npmjs.com/package/@tldraw/tldraw?activeTab=versions).
+You can find tldraw on npm [here](https://www.npmjs.com/package/@tldraw/tldraw?activeTab=versions). For information about how we version tldraw and what we're working on, see [here](https://tldraw.dev/releases-versioning).
 
 ## Contribution
 
