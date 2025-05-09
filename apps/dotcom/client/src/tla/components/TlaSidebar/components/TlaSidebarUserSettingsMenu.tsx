@@ -40,7 +40,11 @@ export function TlaUserSettingsMenu() {
 						data-testid="tla-sidebar-user-settings-trigger"
 					>
 						<TlaAvatar img={user.avatar} />
-						<div className={classNames(styles.userSettingsName, 'notranslate')}>{user.name}</div>
+						<div
+							className={classNames(styles.userSettingsName, 'tla-text_ui__regular', 'notranslate')}
+						>
+							{user.name}
+						</div>
 						<div className={styles.userSettingsIcon}>
 							<TlaIcon icon="dots-vertical-strong" />
 						</div>
