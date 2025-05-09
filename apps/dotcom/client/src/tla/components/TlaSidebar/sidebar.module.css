@@ -294,6 +294,65 @@
 	margin-top: 12px;
 }
 
+/* --------------------- Cookie --------------------- */
+
+.sidebarCookieConsent {
+	background: var(--tla-color-sidebar);
+	border-radius: 8px;
+	padding: 6px;
+	max-width: 240px;
+	box-shadow: var(--tla-shadow-3);
+	margin-bottom: 12px;
+}
+
+.sidebarCookieText {
+	padding: 8px;
+	padding-bottom: 12px;
+	font-size: 12px;
+	color: var(--tla-color-text-2);
+	line-height: 1.4;
+}
+
+.sidebarCookieText a {
+	color: var(--tla-color-primary);
+}
+
+.sidebarCookieButtons {
+	display: flex;
+	justify-content: space-between;
+	gap: 4px;
+	flex-wrap: wrap;
+}
+
+.sidebarCookieSpacer {
+	flex-grow: 2;
+}
+
+.sidebarCookieButton {
+	background: none;
+	position: relative;
+	border: none;
+	padding: 4px 8px;
+	color: var(--tla-color-text-3);
+	font-size: 12px;
+	cursor: pointer;
+	text-decoration: none;
+	white-space: nowrap;
+	border-radius: 4px;
+	flex-shrink: 0;
+}
+
+.sidebarCookieAcceptButton {
+	color: var(--tla-color-sidebar);
+	background-color: var(--tla-color-cta);
+}
+
+@media (hover: hover) {
+	.sidebarCookieAcceptButton:hover {
+		color: var(--tla-color-sidebar);
+	}
+}
+
 /* ------------------- Bottom row ------------------- */
 
 .sidebarBottomRow {
@@ -318,7 +377,6 @@
 	text-overflow: ellipsis;
 	padding-right: 6px;
 	padding-left: 2px;
-	background-color: var(--tla-color-sidebar);
 	padding: 0px 0px 0px 8px;
 	gap: 8px;
 	text-align: left;
@@ -560,53 +618,4 @@
 	pointer-events: all;
 	cursor: pointer;
 	color: var(--tla-color-text-1);
-}
-
-.cookieConsent {
-	background: var(--tla-color-sidebar);
-	padding: 12px;
-	border-radius: 4px;
-	border: 1px solid var(--color-low);
-	margin-bottom: 8px;
-}
-
-.cookieText {
-	font-size: 12px;
-	color: var(--tla-color-text-2);
-	margin-bottom: 8px;
-	line-height: 1.4;
-}
-
-.cookieText a {
-	color: var(--tla-color-primary);
-}
-
-.cookieButtons {
-	display: flex;
-	gap: 8px;
-	justify-content: space-between;
-}
-
-.cookieActions {
-	display: flex;
-	gap: 8px;
-}
-
-.cookieButton {
-	background: none;
-	border: none;
-	padding: 0;
-	color: var(--tla-color-text-2);
-	font-size: 12px;
-	cursor: pointer;
-	text-decoration: none;
-}
-
-.cookieButton:hover {
-	color: var(--tla-color-text-1);
-}
-
-.acceptButton {
-	color: var(--tla-color-primary);
-	font-weight: 700;
 }

@@ -6,7 +6,7 @@ export function TlaSidebarWorkspaceLink() {
 	const brandName = 'tldraw'
 
 	return (
-		<div className={styles.sidebarWorkspaceButton} data-testid="tla-sidebar-logo-icon">
+		<div className={styles.sidebarWorkspaceButton} data-testid="tla-sidebar-workspace-link">
 			<TlaIconWrapper data-size="m">
 				<TlaIcon className="tla-tldraw-sidebar-icon" icon="tldraw" ariaLabel="tldraw" />
 			</TlaIconWrapper>

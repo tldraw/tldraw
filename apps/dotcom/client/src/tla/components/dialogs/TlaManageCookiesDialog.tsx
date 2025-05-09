@@ -3,7 +3,6 @@ import { ReactNode } from 'react'
 import {
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
-	TldrawUiDialogFooter,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 	useValue,
@@ -38,7 +37,7 @@ export function TlaManageCookiesDialog() {
 				<TldrawUiDialogBody className={styles.dialogBody}>
 					<p>
 						<F
-							defaultMessage="We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw. Read our <a>cookie policy</a> to learn more."
+							defaultMessage="We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw."
 							values={{
 								a: (chunks) => (
 									<a href={COOKIE_POLICY_URL} target="_blank" rel="noreferrer">
@@ -73,8 +72,19 @@ export function TlaManageCookiesDialog() {
 							}}
 						/>
 					</TlaMenuControlGroup>
+					<p>
+						<F
+							defaultMessage="Read our <a>cookie policy</a> to learn more."
+							values={{
+								a: (chunks) => (
+									<a href={COOKIE_POLICY_URL} target="_blank" rel="noreferrer">
+										{chunks}
+									</a>
+								),
+							}}
+						/>
+					</p>
 				</TldrawUiDialogBody>
-				<TldrawUiDialogFooter />
 			</div>
 		</_Tooltip.Provider>
 	)
