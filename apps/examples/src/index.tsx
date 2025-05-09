@@ -15,6 +15,7 @@ import { ExampleWrapper } from './ExampleWrapper'
 import { examples } from './examples'
 import Develop from './misc/develop'
 import EndToEnd from './misc/end-to-end'
+import PathBuilderPage from './misc/path-builder'
 
 // we use secret internal `setDefaultAssetUrls` functions to set these at the
 // top-level so assets don't need to be passed down in every single example.
@@ -53,6 +54,10 @@ const router = createBrowserRouter([
 	{
 		path: 'end-to-end',
 		lazy: async () => ({ element: <EndToEnd /> }),
+	},
+	{
+		path: 'path-builder',
+		lazy: async () => ({ element: <PathBuilderPage /> }),
 	},
 	...examples.flatMap((exampleArray) =>
 		exampleArray.value.flatMap((example) => [

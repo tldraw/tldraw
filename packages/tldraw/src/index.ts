@@ -1,6 +1,14 @@
 /// <reference types="react" />
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
+export {
+	PathBuilder,
+	type BasePathBuilderOpts,
+	type DashedPathBuilderOpts,
+	type DrawPathBuilderOpts,
+	type PathBuilderOpts,
+	type SolidPathBuilderOpts,
+} from './lib/shapes/shared/PathBuilder'
 export { usePrefersReducedMotion } from './lib/shapes/shared/usePrefersReducedMotion'
 export { DefaultA11yAnnouncer, useSelectedShapesAnnouncer } from './lib/ui/components/A11y'
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'

@@ -5,15 +5,13 @@ import {
 	Geometry2dOptions,
 	getPerfectDashProps,
 	Group2d,
-	invLerp,
-	lerp,
+	modulate,
 	Polygon2d,
 	Polyline2d,
 	rng,
 	toDomPrecision,
 	Vec,
 	VecLike,
-	VecModel,
 } from '@tldraw/editor'
 import { SVGProps } from 'react'
 
@@ -21,16 +19,19 @@ function getVerticesCountForLength(length: number, spacing = 20) {
 	return Math.max(8, Math.ceil(length / spacing))
 }
 
+/** @internal */
 export interface BasePathBuilderOpts {
 	strokeWidth: number
 	forceSolid?: boolean
 	props?: SVGProps<SVGPathElement & SVGGElement>
 }
 
+/** @internal */
 export interface SolidPathBuilderOpts extends BasePathBuilderOpts {
 	style: 'solid'
 }
 
+/** @internal */
 export interface DashedPathBuilderOpts extends BasePathBuilderOpts {
 	style: 'dashed' | 'dotted'
 	snap?: number
@@ -39,6 +40,7 @@ export interface DashedPathBuilderOpts extends BasePathBuilderOpts {
 	lengthRatio?: number
 }
 
+/** @internal */
 export interface DrawPathBuilderOpts extends BasePathBuilderOpts {
 	style: 'draw'
 	randomSeed: string
@@ -47,49 +49,63 @@ export interface DrawPathBuilderOpts extends BasePathBuilderOpts {
 	passes?: number
 }
 
+/** @internal */
 export type PathBuilderOpts = SolidPathBuilderOpts | DashedPathBuilderOpts | DrawPathBuilderOpts
 
-interface SegmentOpts {
+/** @internal */
+interface CommandOpts {
 	offset?: number
 	roundness?: number
 }
 
-interface LineOpts extends SegmentOpts {
+/** @internal */
+interface LineOpts extends CommandOpts {
 	geometry?: Omit<Geometry2dOptions, 'isClosed'> | false
 }
 
-interface MoveToPathBuilderSegment {
+/** @internal */
+interface MoveToPathBuilderCommand {
 	type: 'moveTo'
 	x: number
 	y: number
 	opts?: LineOpts
 }
 
-interface LineToPathBuilderSegment {
+/** @internal */
+interface LineToPathBuilderCommand {
 	type: 'lineTo'
 	x: number
 	y: number
-	opts?: SegmentOpts
+	opts?: CommandOpts
 }
 
-interface ArcToPathBuilderSegment {
+/** @internal */
+interface ArcToPathBuilderCommand {
 	type: 'arcTo'
 	radius: number
 	largeArcFlag: boolean
 	sweepFlag: boolean
 	x: number
 	y: number
-	opts?: SegmentOpts
+	opts?: CommandOpts
 }
 
-type PathBuilderSegment = LineToPathBuilderSegment | ArcToPathBuilderSegment
-
-interface PathBuilderLine {
-	initial: MoveToPathBuilderSegment
-	segments: PathBuilderSegment[]
-	closed: boolean
+/** @internal */
+interface ClosePathBuilderCommand {
+	type: 'close'
+	isFilled: boolean
+	x: number
+	y: number
 }
 
+/** @internal */
+type PathBuilderCommand =
+	| MoveToPathBuilderCommand
+	| LineToPathBuilderCommand
+	| ArcToPathBuilderCommand
+	| ClosePathBuilderCommand
+
+/** @internal */
 export class PathBuilder {
 	static throughPoints(points: VecLike[], opts?: LineOpts) {
 		const path = new PathBuilder()
@@ -102,26 +118,23 @@ export class PathBuilder {
 
 	constructor() {}
 
-	private lines: PathBuilderLine[] = []
+	private commands: PathBuilderCommand[] = []
 
-	private currentLine() {
-		const lastLine = this.lines[this.lines.length - 1]
-		assert(lastLine, 'Start an SVGPathBuilder with `.moveTo()`')
-		assert(!lastLine.closed, 'Cannot work on a closed line')
-		return lastLine
+	private lastMoveTo: MoveToPathBuilderCommand | null = null
+	private assertHasMoveTo() {
+		assert(this.lastMoveTo, 'Start an SVGPathBuilder with `.moveTo()`')
+		return this.lastMoveTo
 	}
 
 	moveTo(x: number, y: number, opts?: LineOpts) {
-		this.lines.push({
-			initial: { type: 'moveTo', x, y, opts },
-			segments: [],
-			closed: false,
-		})
+		this.lastMoveTo = { type: 'moveTo', x, y, opts }
+		this.commands.push(this.lastMoveTo)
 		return this
 	}
 
-	lineTo(x: number, y: number, opts?: SegmentOpts) {
-		this.currentLine().segments.push({ type: 'lineTo', x, y, opts })
+	lineTo(x: number, y: number, opts?: CommandOpts) {
+		this.assertHasMoveTo()
+		this.commands.push({ type: 'lineTo', x, y, opts })
 		return this
 	}
 
@@ -131,9 +144,10 @@ export class PathBuilder {
 		sweepFlag: boolean,
 		x: number,
 		y: number,
-		opts?: SegmentOpts
+		opts?: CommandOpts
 	) {
-		this.currentLine().segments.push({
+		this.assertHasMoveTo()
+		this.commands.push({
 			type: 'arcTo',
 			radius,
 			largeArcFlag,
@@ -144,38 +158,45 @@ export class PathBuilder {
 		})
 		return this
 	}
-	close() {
-		this.currentLine().closed = true
+	close(opts?: { isFilled?: boolean }) {
+		const lastMoveTo = this.assertHasMoveTo()
+		this.commands.push({
+			type: 'close',
+			isFilled: opts?.isFilled ?? false,
+			x: lastMoveTo.x,
+			y: lastMoveTo.y,
+		})
+		this.lastMoveTo = null
 		return this
 	}
 
-	toD(opts: { closedOnly?: boolean } = {}) {
-		const closedOnly = opts.closedOnly ?? false
+	toD() {
 		const parts = []
-		for (const { initial, segments, closed } of this.lines) {
-			if (closedOnly && !closed) continue
-			parts.push('M', toDomPrecision(initial.x), toDomPrecision(initial.y))
-			for (const segment of segments) {
-				switch (segment.type) {
-					case 'lineTo':
-						parts.push('L', toDomPrecision(segment.x), toDomPrecision(segment.y))
-						break
-					case 'arcTo':
-						parts.push(
-							'A',
-							segment.radius,
-							segment.radius,
-							0,
-							segment.largeArcFlag ? '1' : '0',
-							segment.sweepFlag ? '1' : '0',
-							toDomPrecision(segment.x),
-							toDomPrecision(segment.y)
-						)
-						break
-				}
-			}
-			if (closed) {
-				parts.push('Z')
+		for (const command of this.commands) {
+			switch (command.type) {
+				case 'moveTo':
+					parts.push('M', toDomPrecision(command.x), toDomPrecision(command.y))
+					break
+				case 'lineTo':
+					parts.push('L', toDomPrecision(command.x), toDomPrecision(command.y))
+					break
+				case 'arcTo':
+					parts.push(
+						'A',
+						command.radius,
+						command.radius,
+						0,
+						command.largeArcFlag ? '1' : '0',
+						command.sweepFlag ? '1' : '0',
+						toDomPrecision(command.x),
+						toDomPrecision(command.y)
+					)
+					break
+				case 'close':
+					parts.push('Z')
+					break
+				default:
+					exhaustiveSwitchError(command, 'type')
 			}
 		}
 		return parts.join(' ')
@@ -191,8 +212,12 @@ export class PathBuilder {
 			case 'dashed':
 			case 'dotted':
 				return this.toDashedSvg(opts)
-			case 'draw':
-				return this.toDrawSvg(opts)
+			case 'draw': {
+				console.group('draw')
+				const d = this.toDrawSvg(opts)
+				console.groupEnd()
+				return d
+			}
 			default:
 				exhaustiveSwitchError(opts, 'style')
 		}
@@ -200,41 +225,62 @@ export class PathBuilder {
 
 	toGeometry() {
 		const geometries = []
-		for (const { initial, segments, closed } of this.lines) {
-			if (initial.opts?.geometry === false) continue
-			const vertices = [new Vec(initial.x, initial.y)]
-			for (const segment of segments) {
-				switch (segment.type) {
-					case 'lineTo': {
-						vertices.push(new Vec(segment.x, segment.y))
-						break
-					}
-					case 'arcTo': {
-						const info = getArcSegmentInfo(vertices[vertices.length - 1], segment)
-						if (info === null) break
-						if (info === 'straight-line') {
-							vertices.push(new Vec(segment.x, segment.y))
-							break
-						}
 
-						const verticesCount = getVerticesCountForLength(info.length)
-						for (let i = 0; i < verticesCount + 1; i++) {
-							const t = (i / verticesCount) * info.sweepAngle
-							const point = Vec.Rot(info.startVector, t).mul(info.radius).add(info.center)
-							vertices.push(point)
+		let current: null | { points: Vec[]; opts?: LineOpts } = null
+		for (const command of this.commands) {
+			switch (command.type) {
+				case 'moveTo':
+					if (current) {
+						if (current.opts?.geometry !== false) {
+							geometries.push(new Polyline2d({ points: current.points, ...current.opts?.geometry }))
 						}
+					}
+					current = { points: [new Vec(command.x, command.y)], opts: command.opts }
+					break
+				case 'lineTo':
+					assert(current, 'No current points')
+					current.points.push(new Vec(command.x, command.y))
+					break
+				case 'arcTo': {
+					assert(current, 'No current points')
+					const info = getArcCommandInfo(current.points[current.points.length - 1], command)
+					if (info === null) break
+					if (info === 'straight-line') {
+						current.points.push(new Vec(command.x, command.y))
 						break
 					}
-					default:
-						exhaustiveSwitchError(segment, 'type')
+
+					const verticesCount = getVerticesCountForLength(info.length)
+					for (let i = 0; i < verticesCount + 1; i++) {
+						const t = (i / verticesCount) * info.sweepAngle
+						const point = Vec.Rot(info.startVector, t).mul(info.radius).add(info.center)
+						current.points.push(point)
+					}
+					break
 				}
+				case 'close': {
+					assert(current, 'No current points')
+					if (current.opts?.geometry !== false) {
+						geometries.push(
+							new Polygon2d({
+								points: current.points,
+								isFilled: command.isFilled,
+								...current.opts?.geometry,
+							})
+						)
+					}
+					current = null
+					break
+				}
+				default:
+					exhaustiveSwitchError(command, 'type')
 			}
+		}
 
-			const geometry = closed
-				? new Polygon2d({ points: vertices, isFilled: false, ...initial.opts?.geometry })
-				: new Polyline2d({ points: vertices, ...initial.opts?.geometry })
-
-			geometries.push(geometry)
+		if (current) {
+			if (current.opts?.geometry !== false) {
+				geometries.push(new Polyline2d({ points: current.points, ...current.opts?.geometry }))
+			}
 		}
 
 		if (geometries.length === 0) return null
@@ -260,96 +306,73 @@ export class PathBuilder {
 		} = opts
 
 		const parts = []
-		for (const { initial, segments, closed } of this.lines) {
-			let lastPoint: VecLike = initial
 
-			for (let i = 0; i < segments.length; i++) {
-				const segment = segments[i]
-				const isFirst = i === 0
-				const isLast = i === segments.length - 1 && !closed
+		for (let i = 1; i < this.commands.length; i++) {
+			const command = this.commands[i]
+			const lastCommand = this.commands[i - 1]
+			if (command.type === 'moveTo') continue
 
-				const segmentLength = this.segmentLength(lastPoint, segment)
-				const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-					segmentLength,
-					strokeWidth,
-					{
-						style,
-						snap,
-						lengthRatio,
-						start: isFirst ? (closed ? 'none' : start) : 'outset',
-						end: isLast ? (closed ? 'none' : end) : 'outset',
-					}
-				)
-
-				switch (segment.type) {
-					case 'lineTo':
-						parts.push(
-							<line
-								key={i}
-								x1={toDomPrecision(lastPoint.x)}
-								y1={toDomPrecision(lastPoint.y)}
-								x2={toDomPrecision(segment.x)}
-								y2={toDomPrecision(segment.y)}
-								strokeDasharray={strokeDasharray}
-								strokeDashoffset={strokeDashoffset}
-								markerStart={isFirst ? markerStart : undefined}
-								markerEnd={isLast ? markerEnd : undefined}
-							/>
-						)
-						break
-					case 'arcTo':
-						parts.push(
-							<path
-								key={i}
-								d={[
-									'M',
-									toDomPrecision(lastPoint.x),
-									toDomPrecision(lastPoint.y),
-									'A',
-									segment.radius,
-									segment.radius,
-									0,
-									segment.largeArcFlag ? '1' : '0',
-									segment.sweepFlag ? '1' : '0',
-									toDomPrecision(segment.x),
-									toDomPrecision(segment.y),
-								].join(' ')}
-								strokeDasharray={strokeDasharray}
-								strokeDashoffset={strokeDashoffset}
-								markerStart={isFirst ? markerStart : undefined}
-								markerEnd={isLast ? markerEnd : undefined}
-							/>
-						)
-						break
-					default:
-						exhaustiveSwitchError(segment, 'type')
-				}
-
-				lastPoint = segment
-			}
-
-			if (closed && lastPoint !== initial) {
-				const dist = Vec.Dist(lastPoint, initial)
-				const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(dist, strokeWidth, {
+			const segmentLength = this.calculateSegmentLength(lastCommand, command)
+			const isFirst = lastCommand.type === 'moveTo'
+			const isLast =
+				command.type === 'close' ||
+				i === this.commands.length - 1 ||
+				this.commands[i + 1]?.type === 'moveTo'
+			const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+				segmentLength,
+				strokeWidth,
+				{
 					style,
 					snap,
 					lengthRatio,
-					start: 'outset',
-					end: 'none',
-				})
+					start: isFirst ? (closed ? 'none' : start) : 'outset',
+					end: isLast ? (closed ? 'none' : end) : 'outset',
+				}
+			)
 
-				parts.push(
-					<line
-						key="last"
-						x1={toDomPrecision(lastPoint.x)}
-						y1={toDomPrecision(lastPoint.y)}
-						x2={toDomPrecision(initial.x)}
-						y2={toDomPrecision(initial.y)}
-						strokeDasharray={strokeDasharray}
-						strokeDashoffset={strokeDashoffset}
-						markerEnd={markerEnd}
-					/>
-				)
+			switch (command.type) {
+				case 'lineTo':
+				case 'close':
+					parts.push(
+						<line
+							key={i}
+							x1={toDomPrecision(lastCommand.x)}
+							y1={toDomPrecision(lastCommand.y)}
+							x2={toDomPrecision(command.x)}
+							y2={toDomPrecision(command.y)}
+							strokeDasharray={strokeDasharray}
+							strokeDashoffset={strokeDashoffset}
+							markerStart={isFirst ? markerStart : undefined}
+							markerEnd={isLast ? markerEnd : undefined}
+						/>
+					)
+					break
+				case 'arcTo':
+					parts.push(
+						<path
+							key={i}
+							d={[
+								'M',
+								toDomPrecision(lastCommand.x),
+								toDomPrecision(lastCommand.y),
+								'A',
+								command.radius,
+								command.radius,
+								0,
+								command.largeArcFlag ? '1' : '0',
+								command.sweepFlag ? '1' : '0',
+								toDomPrecision(command.x),
+								toDomPrecision(command.y),
+							].join(' ')}
+							strokeDasharray={strokeDasharray}
+							strokeDashoffset={strokeDashoffset}
+							markerStart={isFirst ? markerStart : undefined}
+							markerEnd={isLast ? markerEnd : undefined}
+						/>
+					)
+					break
+				default:
+					exhaustiveSwitchError(command, 'type')
 			}
 		}
 
@@ -372,14 +395,50 @@ export class PathBuilder {
 
 		const parts = []
 
-		const tangents = this.lines.map(({ initial, segments, closed }) => {
+		const commandInfo: Array<undefined | { tangentStart: Vec; tangentEnd: Vec; length: number }> =
+			[]
+		for (let i = 1; i < this.commands.length; i++) {
+			const previous = this.commands[i - 1]
+			const current = this.commands[i]
+			if (current.type === 'moveTo') {
+				continue
+			}
+
+			let tangentStart, tangentEnd
+			switch (current.type) {
+				case 'lineTo':
+				case 'close':
+					tangentStart = tangentEnd = Vec.Sub(previous, current).norm()
+					break
+				case 'arcTo': {
+					const info = getArcCommandInfo(previous, current)
+					if (info === null || info === 'straight-line') {
+						tangentStart = tangentEnd = Vec.Sub(current, previous).norm().per()
+						break
+					}
+
+					tangentStart = Vec.Per(info.startVector).mul(Math.sign(info.sweepAngle))
+					tangentEnd = Vec.Per(info.endVector).mul(Math.sign(info.sweepAngle))
+					break
+				}
+				default:
+					exhaustiveSwitchError(current, 'type')
+			}
+
+			commandInfo[i] = {
+				tangentStart,
+				tangentEnd,
+				length: this.calculateSegmentLength(previous, current),
+			}
+		}
+		const tangents = this.commands.map(({ initial, segments, closed }) => {
 			const tangents = []
 			const segmentCount = closed ? segments.length + 1 : segments.length
 
 			for (let i = 0; i < segmentCount; i++) {
-				let previous: PathBuilderSegment | MoveToPathBuilderSegment = segments[i - 1]
-				let current: PathBuilderSegment | MoveToPathBuilderSegment = segments[i]
-				let next: PathBuilderSegment | MoveToPathBuilderSegment = segments[i + 1]
+				let previous: PathBuilderCommand | MoveToPathBuilderCommand = segments[i - 1]
+				let current: PathBuilderCommand | MoveToPathBuilderCommand = segments[i]
+				let next: PathBuilderCommand | MoveToPathBuilderCommand = segments[i + 1]
 
 				if (!previous) previous = initial
 				if (!current) {
@@ -398,7 +457,7 @@ export class PathBuilder {
 						break
 					}
 					case 'arcTo': {
-						const info = getArcSegmentInfo(previous, current)
+						const info = getArcCommandInfo(previous, current)
 						if (info === null || info === 'straight-line') {
 							tangentBefore = Vec.Sub(current, previous).norm().per()
 							break
@@ -418,7 +477,7 @@ export class PathBuilder {
 						break
 					}
 					case 'arcTo': {
-						const info = getArcSegmentInfo(current, next)
+						const info = getArcCommandInfo(current, next)
 						if (info === null || info === 'straight-line') {
 							tangentAfter = Vec.Sub(next, current).norm().per()
 							break
@@ -438,31 +497,39 @@ export class PathBuilder {
 		})
 
 		for (let pass = 0; pass < passes; pass++) {
-			for (let lineIdx = 0; lineIdx < this.lines.length; lineIdx++) {
-				const { initial, segments, closed } = this.lines[lineIdx]
+			for (let lineIdx = 0; lineIdx < this.commands.length; lineIdx++) {
+				const { initial, segments, closed } = this.commands[lineIdx]
 				const random = rng(randomSeed + pass + lineIdx)
-				const initialOffset = initial.opts?.offset ?? defaultOffset
-				const initialPOffset = {
-					x: initial.x + random() * initialOffset,
-					y: initial.y + random() * initialOffset,
-				}
 
-				const offsetPoints: VecModel[] = []
-				let lastDistance = Vec.Dist(initialPOffset, segments[0])
+				const initialIX = random()
+				const initialIY = random()
 
-				for (let i = 0; i < segments.length; i++) {
-					const segment = segments[i]
+				const offsetPoints: { x: number; y: number; clampedRoundness: number }[] = []
+				let lastDistance = Vec.Dist(initial, segments[0])
+
+				for (let i = 0; i < (closed ? segments.length + 1 : segments.length); i++) {
+					const segment = i === segments.length ? initial : segments[i]
+
+					const roundness = segment.opts?.roundness ?? defaultRoundness
+					const { tangentBefore, tangentAfter } = tangents[lineIdx][i]
 					const nextSegment =
 						i === segments.length - 1 ? (closed ? segments[0] : null) : segments[i + 1]
 					const nextDistance = nextSegment ? Vec.Dist(segment, nextSegment) : Infinity
 
-					const shortestDistance =
-						Math.min(lastDistance, nextDistance) - (segment.opts?.roundness ?? defaultRoundness)
+					const clampedRoundness = modulate(
+						Math.abs(Vec.AngleBetween(tangentBefore, tangentAfter)),
+						[Math.PI / 2, Math.PI],
+						[roundness, 0],
+						true
+					)
+
+					const shortestDistance = Math.min(lastDistance, nextDistance) - clampedRoundness * 2
 
 					const offset = clamp(segment.opts?.offset ?? defaultOffset, 0, shortestDistance / 10)
 					const offsetPoint = {
 						x: segment.x + random() * offset,
 						y: segment.y + random() * offset,
+						clampedRoundness,
 					}
 
 					offsetPoints.push(offsetPoint)
@@ -471,11 +538,11 @@ export class PathBuilder {
 
 				if (closed) {
 					const roundness = initial.opts?.roundness ?? defaultRoundness
-					offsetPoints.push(initialPOffset)
 
-					const next = offsetPoints[0]
-					const nudgeAmount = Math.min(Vec.Dist(initialPOffset, next) / 2, roundness)
-					const nudged = Vec.Nudge(initialPOffset, next, nudgeAmount)
+					const last = offsetPoints[offsetPoints.length - 1]
+					const first = offsetPoints[0]
+					const nudgeAmount = Math.min(Vec.Dist(last, first) / 2, roundness)
+					const nudged = Vec.Nudge(last, first, nudgeAmount)
 					parts.push('M', toDomPrecision(nudged.x), toDomPrecision(nudged.y))
 				} else {
 					parts.push('M', toDomPrecision(initialPOffset.x), toDomPrecision(initialPOffset.y))
@@ -502,30 +569,20 @@ export class PathBuilder {
 								break
 							}
 
-							const clampedRoundness = lerp(
-								roundness,
-								0,
-								clamp(
-									invLerp(
-										Math.PI / 2,
-										Math.PI,
-										Math.abs(Vec.AngleBetween(tangentBefore, tangentAfter))
-									),
-									0,
-									1
-								)
+							const clampedRoundness = modulate(
+								Math.abs(Vec.AngleBetween(tangentBefore, tangentAfter)),
+								[Math.PI / 2, Math.PI],
+								[roundness, 0],
+								true
 							)
 
-							const nudgeBeforeAmount = Math.min(
-								Vec.Dist(previousOffsetP, offsetP) / 2,
-								clampedRoundness
-							)
+							const prevDistance = Vec.Dist(previousOffsetP, offsetP)
+							const nextDistance = Vec.Dist(nextOffsetP, offsetP)
+
+							const nudgeBeforeAmount = Math.min(prevDistance / 2, clampedRoundness)
 							const nudgeBefore = Vec.Mul(tangentBefore, nudgeBeforeAmount).add(offsetP)
 
-							const nudgeAfterAmount = Math.min(
-								Vec.Dist(nextOffsetP, offsetP) / 2,
-								clampedRoundness
-							)
+							const nudgeAfterAmount = Math.min(nextDistance / 2, clampedRoundness)
 							const nudgeAfter = Vec.Mul(tangentAfter, nudgeAfterAmount).add(offsetP)
 
 							parts.push(
@@ -566,19 +623,73 @@ export class PathBuilder {
 		return <path strokeWidth={strokeWidth} d={parts.join(' ')} {...props} />
 	}
 
-	private segmentLength(lastPoint: VecLike, segment: PathBuilderSegment) {
-		switch (segment.type) {
+	private calculateSegmentLength(
+		lastPoint: VecLike,
+		command: Exclude<PathBuilderCommand, { type: 'moveTo' }>
+	) {
+		switch (command.type) {
 			case 'lineTo':
-				return Vec.Dist(lastPoint, segment)
+			case 'close':
+				return Vec.Dist(lastPoint, command)
 			case 'arcTo': {
-				const info = getArcSegmentInfo(lastPoint, segment)
+				const info = getArcCommandInfo(lastPoint, command)
 				if (info === null) return 0
-				if (info === 'straight-line') return Vec.Dist(lastPoint, segment)
+				if (info === 'straight-line') return Vec.Dist(lastPoint, command)
 				return info.length
 			}
 			default:
-				exhaustiveSwitchError(segment, 'type')
+				exhaustiveSwitchError(command, 'type')
 		}
+	}
+
+	/** @internal */
+	getCommands(): readonly PathBuilderCommand[] {
+		return this.commands
+	}
+
+	/** @internal */
+	getCommandInfo() {
+		const commandInfo: Array<
+			| undefined
+			| { tangentStart: Vec; tangentEnd: Vec; length: number; command: PathBuilderCommand }
+		> = []
+		for (let i = 1; i < this.commands.length; i++) {
+			const previous = this.commands[i - 1]
+			const current = this.commands[i]
+			if (current.type === 'moveTo') {
+				continue
+			}
+
+			let tangentStart, tangentEnd
+			switch (current.type) {
+				case 'lineTo':
+				case 'close':
+					tangentStart = tangentEnd = Vec.Sub(previous, current).norm()
+					break
+				case 'arcTo': {
+					const info = getArcCommandInfo(previous, current)
+					if (info === null || info === 'straight-line') {
+						tangentStart = tangentEnd = Vec.Sub(current, previous).norm().per()
+						break
+					}
+
+					tangentStart = Vec.Per(info.startVector).mul(Math.sign(info.sweepAngle))
+					tangentEnd = Vec.Per(info.endVector).mul(Math.sign(info.sweepAngle))
+					break
+				}
+				default:
+					exhaustiveSwitchError(current, 'type')
+			}
+
+			commandInfo[i] = {
+				tangentStart,
+				tangentEnd,
+				length: this.calculateSegmentLength(previous, current),
+				command: current,
+			}
+		}
+
+		return commandInfo
 	}
 }
 
@@ -587,9 +698,9 @@ export class PathBuilder {
  * MIT License: https://github.com/rveciana/svg-path-properties/blob/master/LICENSE
  * https://github.com/rveciana/svg-path-properties/blob/74d850d14998274f6eae279424bdc2194f156490/src/arc.ts#L121
  */
-function getArcSegmentInfo(
+function getArcCommandInfo(
 	lastPoint: VecLike,
-	{ radius, largeArcFlag, sweepFlag, x, y }: ArcToPathBuilderSegment
+	{ radius, largeArcFlag, sweepFlag, x, y }: ArcToPathBuilderCommand
 ) {
 	// In accordance to: http://www.w3.org/TR/SVG/implnote.html#ArcOutOfRangeParameters
 	radius = Math.abs(radius)
