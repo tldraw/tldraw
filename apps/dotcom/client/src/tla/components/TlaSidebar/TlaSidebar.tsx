@@ -88,7 +88,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					<TlaSidebarWorkspaceLink />
 					<TlaSidebarCreateFileButton />
 				</div>
-				<div className={styles.content}>
+				<div className={styles.sidebarContent}>
 					<TlaSidebarRecentFiles />
 				</div>
 				<div className={styles.sidebarBottomArea}>

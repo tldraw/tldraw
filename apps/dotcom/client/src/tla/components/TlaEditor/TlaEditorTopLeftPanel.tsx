@@ -31,7 +31,11 @@ import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
-import { GiveUsFeedbackMenuItem, UserManualMenuItem } from '../menu-items/menu-items'
+import {
+	GiveUsFeedbackMenuItem,
+	LegalSummaryMenuItem,
+	UserManualMenuItem,
+} from '../menu-items/menu-items'
 import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
 
@@ -131,6 +135,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 						<TldrawUiMenuGroup id="misc">
 							<UserManualMenuItem />
 							<GiveUsFeedbackMenuItem />
+							<LegalSummaryMenuItem />
 						</TldrawUiMenuGroup>
 						{!app && (
 							<TldrawUiMenuGroup id="signin">

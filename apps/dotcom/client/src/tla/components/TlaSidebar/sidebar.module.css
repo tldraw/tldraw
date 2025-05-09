@@ -78,7 +78,7 @@
 	}
 }
 
-.content {
+.sidebarContent {
 	display: flex;
 	flex-direction: column;
 	flex: 1 1 auto;
@@ -89,9 +89,11 @@
 	scrollbar-width: none; /* Firefox */
 }
 
-.content::-webkit-scrollbar {
+.sidebarContent::-webkit-scrollbar {
 	display: none;
 }
+
+/* -------------------- Hoverable ------------------- */
 
 .hoverable::after {
 	display: block;
@@ -130,16 +132,6 @@
 	.hoverable:hover {
 		color: var(--tla-color-text-1);
 	}
-}
-
-.label {
-	flex: 1 1 auto;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	padding: 0 0px;
-	position: relative;
-	z-index: 1;
 }
 
 /* ----------------- Sidebar toggle ----------------- */
@@ -441,20 +433,7 @@
 	visibility: visible;
 }
 
-/* ---------------------- Links --------------------- */
-
-.main-link {
-	position: relative;
-	width: 100%;
-	height: 40px;
-	padding-right: 4px;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	overflow: hidden;
-	color: var(--tla-color-text-2);
-	flex: 0 0 auto;
-}
+/* ---------------- File link section --------------- */
 
 .section {
 	background: var(--tla-color-sidebar);
@@ -474,7 +453,9 @@
 	color: var(--tla-color-text-3);
 }
 
-.link {
+/* ------------------- File links ------------------- */
+
+.sidebarFileLink {
 	background-color: var(--tla-color-sidebar);
 	position: relative;
 	width: 100%;
@@ -485,7 +466,7 @@
 	padding: 0px 8px 0px 8px;
 }
 
-.linkContent {
+.sidebarFileLinkContent {
 	flex: 1 1 auto;
 	overflow: hidden;
 	display: flex;
@@ -498,24 +479,31 @@
 	z-index: 2;
 }
 
-.linkContent > .label {
+.sidebarFileLinkLabel {
+	flex: 1 1 auto;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	padding: 0 0px;
+	position: relative;
+	z-index: 1;
 	padding: 0px;
 	flex: 0 1 auto;
 }
 
-.renameWrapper {
+.sidebarFileLinkRenameInputWrapper {
 	background-color: var(--tla-color-sidebar);
 	outline: 1px solid var(--color-primary);
 	outline-offset: -2px;
 	border-radius: 6px;
 }
 
-.renameWrapper > div {
+.sidebarFileLinkRenameInputWrapper > div {
 	height: 36px;
 	padding: 0px 8px 0px 8px;
 }
 
-.rename {
+.sidebarFileLinkRenameInput {
 	height: 36px;
 	flex: 1 1 auto;
 	white-space: nowrap;
@@ -525,11 +513,7 @@
 	z-index: 1;
 }
 
-.collaborator {
-	flex: 0 0 auto;
-}
-
-.linkButton {
+.sidebarFileLinkButton {
 	padding: 0px;
 	background: none;
 	border: none;
@@ -543,7 +527,7 @@
 	pointer-events: all;
 }
 
-.linkMenu {
+.sidebarFileLinkMenu {
 	padding: 0px;
 	background: none;
 	border: none;
@@ -562,48 +546,42 @@
 }
 
 @media (hover: hover) {
-	.linkMenu {
+	.sidebarFileLinkMenu {
 		display: none;
 	}
 	/*
 		For guest files we show a guest icon at the end of the filename
 		but we don't want it to jump out of the way when the user hovers
 	*/
-	.link[data-is-own-file='false'] .linkMenu {
+	.sidebarFileLink[data-is-own-file='false'] .sidebarFileLinkMenu {
 		visibility: hidden;
 		display: flex;
 	}
-	:global(.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))) .linkMenu {
+	:global(.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))) .sidebarFileLinkMenu {
 		visibility: visible;
 		display: flex;
 	}
 
-	.workspace .linkMenu[data-state='open'],
-	.link .linkMenu[data-state='open'],
-	.workspace:hover .linkMenu,
-	.link:hover .linkMenu {
+	.sidebarFileLink .sidebarFileLinkMenu[data-state='open'],
+	.sidebarFileLink:hover .sidebarFileLinkMenu {
 		visibility: visible;
 		display: flex;
 	}
 
-	.linkMenu:hover {
+	.sidebarFileLinkMenu:hover {
 		color: var(--tla-color-text-1);
 	}
 }
 
-.userButton {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
+/* Guest badge */
 
-.guestBadge {
+.sidebarFileLinkGuestBadge {
 	display: inline-flex;
 	pointer-events: none;
 	flex: 0 0 auto;
 }
 
-.guestBadgeTrigger {
+.sidebarFileLinkGuestBadgeTrigger {
 	margin-left: 4px;
 	border-radius: 50%;
 	overflow: hidden;

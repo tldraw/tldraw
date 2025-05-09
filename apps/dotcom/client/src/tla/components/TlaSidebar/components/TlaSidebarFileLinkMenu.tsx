@@ -19,7 +19,7 @@ export function TlaSidebarFileLinkMenu({
 			source="sidebar"
 			onRenameAction={onRenameAction}
 			trigger={
-				<button className={styles.linkMenu} title={fileMenuLbl}>
+				<button className={styles.sidebarFileLinkMenu} title={fileMenuLbl}>
 					<TlaIcon icon="dots-vertical-strong" />
 				</button>
 			}
