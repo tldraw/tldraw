@@ -26,13 +26,13 @@ export function TlaSidebarHelpMenu() {
 		<TldrawUiDropdownMenuRoot id={`help-menu-sidebar`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>
-					<div
+					<button
 						title={msg}
 						data-testid="tla-sidebar-help-menu-trigger"
 						className={classNames(styles.helpMenuTrigger, styles.hoverable)}
 					>
 						<TlaIcon icon="question" />
-					</div>
+					</button>
 				</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0} sideOffset={4}>
 					<TldrawUiMenuGroup id="support">

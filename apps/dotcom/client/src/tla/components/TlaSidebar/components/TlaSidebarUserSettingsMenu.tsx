@@ -10,7 +10,6 @@ import {
 } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { defineMessages, useMsg } from '../../../utils/i18n'
-import { TlaAvatar } from '../../TlaAvatar/TlaAvatar'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
 	ColorThemeSubmenu,
@@ -39,7 +38,6 @@ export function TlaUserSettingsMenu() {
 						title={userMenuLbl}
 						data-testid="tla-sidebar-user-settings-trigger"
 					>
-						<TlaAvatar img={user.avatar} />
 						<div
 							className={classNames(styles.userSettingsName, 'tla-text_ui__regular', 'notranslate')}
 						>

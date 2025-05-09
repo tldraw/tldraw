@@ -422,6 +422,7 @@
 	border-radius: 100%;
 	border: 1px solid var(--tla-color-border);
 	color: var(--tla-color-text-3);
+	background: none;
 }
 
 .helpMenuTrigger::after {
