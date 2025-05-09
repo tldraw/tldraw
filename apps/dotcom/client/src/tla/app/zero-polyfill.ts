@@ -9,6 +9,7 @@ import {
 	TlaMutators,
 	TlaSchema,
 	TlaUser,
+	TlaUserGroup,
 	TlaUserPartial,
 	ZClientSentMessage,
 	ZErrorCode,
@@ -151,15 +152,26 @@ export class Zero {
 						return _data
 					},
 					addListener: (listener: (data: T) => void) => {
-						unsub = react('file listener', () => {
+						unsub = react('table_listener:' + table, () => {
 							_data = data$.get()
 							if (!_data) return
 							if (table === 'file_state') {
 								const files = this.store.getFullData()?.files
+								const presences = this.store.getFullData()?.userPresences
 								if (!files) return
 								_data = (_data as TlaFileState[]).map((d) => ({
 									...d,
-									file: files.find((f) => f.id === d.fileId),
+									file: {
+										...files.find((f) => f.id === d.fileId),
+										presences: presences?.filter((p) => p.fileId === d.fileId),
+									},
+								}))
+							} else if (table === 'user_group') {
+								const groups = this.store.getFullData()?.groups
+								if (!groups) return
+								_data = (_data as TlaUserGroup[]).map((d) => ({
+									...d,
+									group: groups.find((g) => g.id === d.groupId),
 								}))
 							}
 							return listener(_data)

@@ -49,8 +49,8 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION set_presence_details() RETURNS TRIGGER AS $$
 BEGIN
   UPDATE "user_presence"
-  SET NEW."name" = u."name",
-      NEW."avatar" = u."avatar"
+  SET "name" = u."name",
+      "avatar" = u."avatar"
   FROM public."user" u
   WHERE u."id" = NEW."userId";
   RETURN NEW;

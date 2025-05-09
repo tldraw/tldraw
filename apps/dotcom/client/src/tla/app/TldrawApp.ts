@@ -12,6 +12,7 @@ import {
 	TlaMutators,
 	TlaSchema,
 	TlaUser,
+	TlaUserGroup,
 	UserPreferencesKeys,
 	Z_PROTOCOL_VERSION,
 	schema as zeroSchema,
@@ -83,6 +84,7 @@ export class TldrawApp {
 
 	private readonly user$: Signal<TlaUser | undefined>
 	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
+	private readonly group$: Signal<TlaUserGroup | undefined>
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -160,6 +162,7 @@ export class TldrawApp {
 
 		this.user$ = this.signalizeQuery('user signal', this.userQuery())
 		this.fileStates$ = this.signalizeQuery('file states signal', this.fileStateQuery())
+		this.group$ = this.signalizeQuery('group signal', this.groupQuery())
 	}
 
 	private userQuery() {
@@ -169,7 +172,13 @@ export class TldrawApp {
 	private fileStateQuery() {
 		return this.z.query.file_state
 			.where('userId', '=', this.userId)
-			.related('file', (q: any) => q.one())
+			.related('file', (q: any) => q.one().related('presences'))
+	}
+
+	private groupQuery() {
+		return this.z.query.user_group
+			.where('userId', '=', this.userId)
+			.related('group', (q: any) => q.one())
 	}
 
 	async preload(initialUserData: TlaUser) {
