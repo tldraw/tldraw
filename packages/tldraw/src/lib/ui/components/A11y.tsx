@@ -1,13 +1,14 @@
 import {
 	debugFlags,
 	Editor,
-	react,
 	stopEventPropagation,
 	TLGeoShape,
 	TLShapeId,
+	unsafe__withoutCapture,
 	useContainer,
 	useEditor,
 	useMaybeEditor,
+	useReactor,
 	useValue,
 } from '@tldraw/editor'
 import { memo, MouseEvent, useCallback, useEffect, useRef } from 'react'
@@ -139,39 +140,32 @@ export const useSelectedShapesAnnouncer = () => {
 	const a11y = useA11y()
 	const msg = useTranslation()
 
-	useEffect(() => {
-		if (!editor) return
+	const rPrevSelectedShapeIds = useRef<string[]>([])
 
-		let prevSelectedShapeIds = editor.getSelectedShapeIds()
+	useReactor(
+		'announce selection',
+		() => {
+			if (!editor) return
 
-		const announceSelectedShapes = (selectedShapeIds: TLShapeId[]) => {
-			const a11yLive = generateShapeAnnouncementMessage({
-				editor,
-				selectedShapeIds,
-				msg,
-			})
-
-			if (a11yLive) {
-				a11y.announce({ msg: a11yLive })
-			}
-		}
-
-		// We only want to announce when:
-		// 1. the user returns to the select tool; and
-		// 2. the selected shapes have changed
-		const stopListening = react('useSelectedShapesAnnouncer', () => {
 			const isInSelecting = editor.isIn('select.idle')
 			const selectedShapeIds = editor.getSelectedShapeIds()
-			if (isInSelecting && selectedShapeIds !== prevSelectedShapeIds) {
-				prevSelectedShapeIds = selectedShapeIds
-				announceSelectedShapes(selectedShapeIds)
-			}
-		})
+			if (isInSelecting && selectedShapeIds !== rPrevSelectedShapeIds.current) {
+				rPrevSelectedShapeIds.current = selectedShapeIds
+				unsafe__withoutCapture(() => {
+					const a11yLive = generateShapeAnnouncementMessage({
+						editor,
+						selectedShapeIds,
+						msg,
+					})
 
-		return () => {
-			stopListening()
-		}
-	}, [editor, a11y, msg])
+					if (a11yLive) {
+						a11y.announce({ msg: a11yLive })
+					}
+				})
+			}
+		},
+		[editor, a11y, msg]
+	)
 }
 
 const useA11yDebug = (msg: string | undefined) => {
