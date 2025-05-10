@@ -2738,7 +2738,7 @@ export function TldrawUiDropdownMenuCheckboxItem({ children, onSelect, ...rest }
 export function TldrawUiDropdownMenuContent({ className, side, align, sideOffset, alignOffset, children, }: TLUiDropdownMenuContentProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiDropdownMenuGroup({ children }: TLUiDropdownMenuGroupProps): JSX_2.Element;
+export function TldrawUiDropdownMenuGroup({ className, children }: TLUiDropdownMenuGroupProps): JSX_2.Element;
 
 // @public (undocumented)
 export function TldrawUiDropdownMenuIndicator(): JSX_2.Element;
@@ -2783,7 +2783,7 @@ export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string,
 export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiMenuContextProviderProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiMenuGroup({ id, label, children }: TLUiMenuGroupProps): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
+export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGroupProps): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
 
 // @public (undocumented)
 export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, iconLeft, onSelect, noClose, isSelected, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
@@ -3255,6 +3255,8 @@ export interface TLUiDropdownMenuContentProps {
 export interface TLUiDropdownMenuGroupProps {
     // (undocumented)
     children: ReactNode;
+    // (undocumented)
+    className?: string;
 }
 
 // @public (undocumented)
@@ -3680,6 +3682,8 @@ export type TLUiMenuContextType = 'context-menu' | 'helper-buttons' | 'icons' | 
 export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
     // (undocumented)
     children?: ReactNode;
+    // (undocumented)
+    className?: string;
     // (undocumented)
     id: string;
     label?: {

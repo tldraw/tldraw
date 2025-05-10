@@ -982,7 +982,6 @@
 	z-index: var(--layer-menus);
 	height: fit-content;
 	width: fit-content;
-	max-height: 80vh;
 	border-radius: var(--radius-3);
 	pointer-events: all;
 	touch-action: auto;
@@ -1045,6 +1044,31 @@
 
 .tlui-menu[data-size='tiny'] > .tlui-menu__group {
 	min-width: 0px;
+}
+
+/* ------------------ Language menu ----------------- */
+
+.tlui-language-menu {
+	max-height: 500px;
+}
+
+.tlui-language-menu::after {
+	content: '';
+	display: block;
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+	height: 24px;
+	background: linear-gradient(
+		to bottom,
+		var(--color-panel-transparent) 0%,
+		var(--color-panel) 90%,
+		var(--color-panel) 100%
+	);
+	border-bottom-left-radius: var(--radius-3);
+	border-bottom-right-radius: var(--radius-3);
+	pointer-events: none;
 }
 
 /* ------------------ Actions Menu ------------------ */

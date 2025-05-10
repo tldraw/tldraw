@@ -180,12 +180,13 @@ export function TldrawUiDropdownMenuSubContent({
 /** @public */
 export interface TLUiDropdownMenuGroupProps {
 	children: ReactNode
+	className?: string
 }
 
 /** @public @react */
-export function TldrawUiDropdownMenuGroup({ children }: TLUiDropdownMenuGroupProps) {
+export function TldrawUiDropdownMenuGroup({ className, children }: TLUiDropdownMenuGroupProps) {
 	return (
-		<div dir="ltr" className="tlui-menu__group">
+		<div dir="ltr" className={classNames('tlui-menu__group', className)}>
 			{children}
 		</div>
 	)
