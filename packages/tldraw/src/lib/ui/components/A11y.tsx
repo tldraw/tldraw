@@ -1,13 +1,14 @@
 import {
 	debugFlags,
 	Editor,
-	react,
 	stopEventPropagation,
 	TLGeoShape,
 	TLShapeId,
+	unsafe__withoutCapture,
 	useContainer,
 	useEditor,
 	useMaybeEditor,
+	useReactor,
 	useValue,
 } from '@tldraw/editor'
 import { memo, MouseEvent, useCallback, useEffect, useRef } from 'react'
@@ -139,30 +140,32 @@ export const useSelectedShapesAnnouncer = () => {
 	const a11y = useA11y()
 	const msg = useTranslation()
 
-	useEffect(() => {
-		if (!editor) return
+	const rPrevSelectedShapeIds = useRef<string[]>([])
 
-		const announceSelectedShapes = (selectedShapeIds: TLShapeId[]) => {
-			const a11yLive = generateShapeAnnouncementMessage({
-				editor,
-				selectedShapeIds,
-				msg,
-			})
+	useReactor(
+		'announce selection',
+		() => {
+			if (!editor) return
 
-			if (a11yLive) {
-				a11y.announce({ msg: a11yLive })
+			const isInSelecting = editor.isIn('select.idle')
+			const selectedShapeIds = editor.getSelectedShapeIds()
+			if (isInSelecting && selectedShapeIds !== rPrevSelectedShapeIds.current) {
+				rPrevSelectedShapeIds.current = selectedShapeIds
+				unsafe__withoutCapture(() => {
+					const a11yLive = generateShapeAnnouncementMessage({
+						editor,
+						selectedShapeIds,
+						msg,
+					})
+
+					if (a11yLive) {
+						a11y.announce({ msg: a11yLive })
+					}
+				})
 			}
-		}
-
-		const stopListening = react('useSelectedShapesAnnouncer', () => {
-			const selectedShapes = editor.getSelectedShapeIds()
-			announceSelectedShapes(selectedShapes)
-		})
-
-		return () => {
-			stopListening()
-		}
-	}, [editor, a11y, msg])
+		},
+		[editor, a11y, msg]
+	)
 }
 
 const useA11yDebug = (msg: string | undefined) => {
