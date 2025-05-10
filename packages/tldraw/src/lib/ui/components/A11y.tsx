@@ -142,6 +142,8 @@ export const useSelectedShapesAnnouncer = () => {
 	useEffect(() => {
 		if (!editor) return
 
+		let prevSelectedShapeIds = editor.getSelectedShapeIds()
+
 		const announceSelectedShapes = (selectedShapeIds: TLShapeId[]) => {
 			const a11yLive = generateShapeAnnouncementMessage({
 				editor,
@@ -155,8 +157,12 @@ export const useSelectedShapesAnnouncer = () => {
 		}
 
 		const stopListening = react('useSelectedShapesAnnouncer', () => {
-			const selectedShapes = editor.getSelectedShapeIds()
-			announceSelectedShapes(selectedShapes)
+			const isInSelecting = editor.isIn('select.idle')
+			const selectedShapeIds = editor.getSelectedShapeIds()
+			if (isInSelecting && selectedShapeIds !== prevSelectedShapeIds) {
+				prevSelectedShapeIds = selectedShapeIds
+				announceSelectedShapes(selectedShapeIds)
+			}
 		})
 
 		return () => {
