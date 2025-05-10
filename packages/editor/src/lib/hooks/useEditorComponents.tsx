@@ -19,10 +19,7 @@ import { DefaultHandle, TLHandleProps } from '../components/default-components/D
 import { DefaultHandles, TLHandlesProps } from '../components/default-components/DefaultHandles'
 import { DefaultLoadingScreen } from '../components/default-components/DefaultLoadingScreen'
 import { DefaultScribble, TLScribbleProps } from '../components/default-components/DefaultScribble'
-import {
-	DefaultSelectionBackground,
-	TLSelectionBackgroundProps,
-} from '../components/default-components/DefaultSelectionBackground'
+import { TLSelectionBackgroundProps } from '../components/default-components/DefaultSelectionBackground'
 import {
 	DefaultSelectionForeground,
 	TLSelectionForegroundProps,
@@ -113,7 +110,7 @@ export function EditorComponentsProvider({
 			OnTheCanvas: null,
 			Overlays: null,
 			Scribble: DefaultScribble,
-			SelectionBackground: DefaultSelectionBackground,
+			SelectionBackground: null,
 			SelectionForeground: DefaultSelectionForeground,
 			ShapeIndicator: DefaultShapeIndicator,
 			ShapeIndicators: DefaultShapeIndicators,
