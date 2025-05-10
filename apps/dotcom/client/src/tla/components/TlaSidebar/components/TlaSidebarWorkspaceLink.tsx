@@ -7,8 +7,8 @@ export function TlaSidebarWorkspaceLink() {
 
 	return (
 		<div className={styles.sidebarWorkspaceButton} data-testid="tla-sidebar-workspace-link">
-			<TlaIconWrapper data-size="m">
-				<TlaIcon data-testid="tla-sidebar-logo-icon" icon="tldraw" ariaLabel="tldraw" />
+			<TlaIconWrapper data-size="m" data-testid="tla-sidebar-logo-icon">
+				<TlaIcon icon="tldraw" ariaLabel="tldraw" />
 			</TlaIconWrapper>
 			<span
 				className={classNames(
