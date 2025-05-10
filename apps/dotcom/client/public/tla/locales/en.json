@@ -68,6 +68,9 @@
   "3c5e891bff": {
     "translation": "Pinned"
   },
+  "3d0238bf16": {
+    "translation": "Accept all"
+  },
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
   },
@@ -77,17 +80,14 @@
   "46137245cd": {
     "translation": "Thanks for helping us improve tldraw!"
   },
-  "4778b9f3f2": {
-    "translation": "Privacy settings"
-  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Are you sure you want to forget this file?"
   },
-  "4c06678729": {
-    "translation": "We use first-party cookies to improve our services. <a>Learn more</a>"
+  "4d0d3ddec9": {
+    "translation": "This site uses cookies to make the app work and to collect analytics."
   },
   "4d1c8263ba": {
     "translation": "Reload"
@@ -306,9 +306,6 @@
   "c303bd1095": {
     "translation": "Unable to publish the file."
   },
-  "c4408d3350": {
-    "translation": "Accept"
-  },
   "c4b39a1cc3": {
     "translation": "Essential cookies"
   },
@@ -360,9 +357,6 @@
   "e78e14c5f1": {
     "translation": "Pin"
   },
-  "e8d1090cb9": {
-    "translation": "We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw. Read our <a>cookie policy</a> to learn more."
-  },
   "ea4788705e": {
     "translation": "Cancel"
   },
@@ -381,6 +375,12 @@
   "ed75712b0e": {
     "translation": "Duplicate"
   },
+  "ede55d955f": {
+    "translation": "Read our <a>cookie policy</a> to learn more."
+  },
+  "f09b16bc5f": {
+    "translation": "We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw."
+  },
   "f0e8bff6f9": {
     "translation": "User settings"
   },
@@ -392,6 +392,9 @@
   },
   "f43fb62093": {
     "translation": "Back to tldraw."
+  },
+  "f4f70727dc": {
+    "translation": "Settings"
   },
   "fb15c53f22": {
     "translation": "Viewer"

@@ -8,7 +8,8 @@ export class Sidebar {
 	public readonly sidebar: Locator
 	public readonly sidebarLogo: Locator
 	public readonly createFileButton: Locator
-	public readonly sidebarBottom: Locator
+	public readonly userSettingsMenu: Locator
+	public readonly helpMenu: Locator
 	public readonly preferencesButton: Locator
 	public readonly themeButton: Locator
 	public readonly darkModeButton: Locator
@@ -18,7 +19,8 @@ export class Sidebar {
 		this.sidebar = this.page.getByTestId('tla-sidebar')
 		this.sidebarLogo = this.page.getByTestId('tla-sidebar-logo-icon')
 		this.createFileButton = this.page.getByTestId('tla-create-file')
-		this.sidebarBottom = this.page.getByTestId('tla-sidebar-bottom')
+		this.userSettingsMenu = this.page.getByTestId('tla-sidebar-user-settings-trigger')
+		this.helpMenu = this.page.getByTestId('tla-sidebar-help-menu-trigger')
 		this.preferencesButton = this.page.getByText('Preferences')
 		this.themeButton = this.page.getByText('Theme')
 		this.darkModeButton = this.page.getByText('Dark')
@@ -57,14 +59,14 @@ export class Sidebar {
 		return (await this.page.$$(this.fileLink)).length
 	}
 
-	async openAppMenu() {
-		await this.sidebarBottom.hover()
-		await this.page.getByTestId('tla-sidebar-app-menu').click()
+	async openUserSettingsMenu() {
+		await this.userSettingsMenu.hover()
+		await this.userSettingsMenu.click()
 	}
 
 	@step
 	async setDarkMode() {
-		await this.openAppMenu()
+		await this.openUserSettingsMenu()
 		await this.themeButton.hover()
 		await this.darkModeButton.click()
 		await this.mutationResolution()
@@ -74,7 +76,7 @@ export class Sidebar {
 	async openLanguageMenu(languageButtonText: string) {
 		// need the editor to be mounted for the menu to be available
 		await expect(this.page.getByTestId('canvas')).toBeVisible()
-		await this.openAppMenu()
+		await this.openUserSettingsMenu()
 		await this.page.getByText(languageButtonText).hover()
 	}
 
@@ -99,7 +101,7 @@ export class Sidebar {
 
 	@step
 	async signOut() {
-		await this.openAppMenu()
+		await this.openUserSettingsMenu()
 		await this.signOutButton.click()
 	}
 
