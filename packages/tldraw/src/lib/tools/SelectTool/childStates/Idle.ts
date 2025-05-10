@@ -635,7 +635,7 @@ export class Idle extends StateNode {
 
 		const util = this.editor.getShapeUtil(shape)
 		if (this.editor.getIsReadonly()) {
-			if (!util.canEditInReadOnly(shape)) {
+			if (!util.canEditInReadonly(shape)) {
 				return
 			}
 		}
@@ -686,7 +686,7 @@ export class Idle extends StateNode {
 	private canInteractWithShapeInReadOnly(shape: TLShape) {
 		if (!this.editor.getIsReadonly()) return true
 		const util = this.editor.getShapeUtil(shape)
-		if (util.canEditInReadOnly(shape)) return true
+		if (util.canEditInReadonly(shape)) return true
 		return false
 	}
 }
