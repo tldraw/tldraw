@@ -76,6 +76,33 @@ export const file = table('file')
 	})
 	.primaryKey('id', 'ownerId', 'publishedSlug')
 
+export const group = table('group')
+	.columns({
+		id: string(),
+		name: string(),
+		createdAt: number(),
+		updatedAt: number(),
+	})
+	.primaryKey('id')
+
+export const user_group = table('user_group')
+	.columns({
+		userId: string(),
+		groupId: string(),
+		createdAt: number(),
+		updatedAt: number(),
+		role: string(),
+	})
+	.primaryKey('userId', 'groupId')
+
+export const user_presence = table('user_presence')
+	.columns({
+		userId: string(),
+		fileId: string(),
+		lastActivityAt: number(),
+	})
+	.primaryKey('userId', 'fileId')
+
 const fileRelationships = relationships(file, ({ one, many }) => ({
 	owner: one({
 		sourceField: ['ownerId'],
@@ -87,6 +114,11 @@ const fileRelationships = relationships(file, ({ one, many }) => ({
 		destField: ['fileId'],
 		destSchema: file_state,
 	}),
+	presences: many({
+		sourceField: ['id'],
+		destField: ['fileId'],
+		destSchema: user_presence,
+	}),
 }))
 
 const fileStateRelationships = relationships(file_state, ({ one }) => ({
@@ -94,6 +126,35 @@ const fileStateRelationships = relationships(file_state, ({ one }) => ({
 		sourceField: ['fileId'],
 		destField: ['id'],
 		destSchema: file,
+	}),
+	user: one({
+		sourceField: ['userId'],
+		destField: ['id'],
+		destSchema: user,
+	}),
+}))
+
+const groupRelationships = relationships(group, ({ many }) => ({
+	members: many({
+		sourceField: ['id'],
+		destField: ['groupId'],
+		destSchema: user_group,
+	}),
+}))
+
+const presenceRelationships = relationships(user_presence, ({ many }) => ({
+	states: many({
+		sourceField: ['fileId'],
+		destField: ['fileId'],
+		destSchema: file_state,
+	}),
+}))
+
+const userGroupRelationships = relationships(user_group, ({ one }) => ({
+	group: one({
+		sourceField: ['groupId'],
+		destField: ['id'],
+		destSchema: group,
 	}),
 	user: one({
 		sourceField: ['userId'],
@@ -112,6 +173,18 @@ export type TlaFileStatePartial = Partial<TlaFileState> & {
 }
 export type TlaUserPartial = Partial<TlaUser> & {
 	id: TlaUser['id']
+}
+
+export type TlaGroupPartial = Partial<TlaGroup> & {
+	id: TlaGroup['id']
+}
+export type TlaUserGroupPartial = Partial<TlaUserGroup> & {
+	userId: TlaUserGroup['userId']
+	groupId: TlaUserGroup['groupId']
+}
+export type TlaUserPresencePartial = Partial<TlaUserPresence> & {
+	userId: TlaUserPresence['userId']
+	fileId: TlaUserPresence['fileId']
 }
 
 export type TlaRow = TlaFile | TlaFileState | TlaUser
@@ -150,14 +223,23 @@ export interface DB {
 }
 
 export const schema = createSchema({
-	tables: [user, file, file_state],
-	relationships: [fileRelationships, fileStateRelationships],
+	tables: [user, file, file_state, group, user_group, user_presence],
+	relationships: [
+		fileRelationships,
+		fileStateRelationships,
+		userGroupRelationships,
+		groupRelationships,
+		presenceRelationships,
+	],
 })
 
 export type TlaSchema = typeof schema
 export type TlaUser = Row<typeof schema.tables.user>
 export type TlaFile = Row<typeof schema.tables.file>
 export type TlaFileState = Row<typeof schema.tables.file_state>
+export type TlaUserGroup = Row<typeof schema.tables.user_group>
+export type TlaGroup = Row<typeof schema.tables.group>
+export type TlaUserPresence = Row<typeof schema.tables.user_presence>
 
 interface AuthData {
 	sub: string | null
@@ -169,7 +251,7 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 
 	const allowIfIsUserIdMatches = (
 		authData: AuthData,
-		{ cmp }: ExpressionBuilder<TlaSchema, 'file_state'>
+		{ cmp }: ExpressionBuilder<TlaSchema, 'file_state' | 'user_group'>
 	) => cmp('userId', '=', authData.sub!)
 
 	const userCanAccessFile = (
@@ -183,6 +265,16 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 				exists('states', (q) => q.where('userId', '=', authData.sub!))
 			)
 		)
+
+	const userCanAccessGroup = (
+		authData: AuthData,
+		{ exists }: ExpressionBuilder<TlaSchema, 'group'>
+	) => exists('members', (q) => q.where('userId', '=', authData.sub!))
+
+	const userCanAccessPresence = (
+		authData: AuthData,
+		{ exists }: ExpressionBuilder<TlaSchema, 'user_presence'>
+	) => exists('states', (q) => q.where('userId', '=', authData.sub!))
 
 	return {
 		user: {
@@ -198,6 +290,21 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 		file_state: {
 			row: {
 				select: [allowIfIsUserIdMatches],
+			},
+		},
+		group: {
+			row: {
+				select: [userCanAccessGroup],
+			},
+		},
+		user_group: {
+			row: {
+				select: [allowIfIsUserIdMatches],
+			},
+		},
+		user_presence: {
+			row: {
+				select: [userCanAccessPresence],
 			},
 		},
 	} satisfies PermissionsConfig<AuthData, TlaSchema>
