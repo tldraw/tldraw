@@ -8,7 +8,6 @@ import {
 	TldrawHandles,
 	TldrawOverlays,
 	TldrawScribble,
-	TldrawSelectionBackground,
 	TldrawSelectionForeground,
 	TldrawShapeIndicators,
 	TldrawUi,
@@ -35,7 +34,6 @@ const defaultComponents = {
 	ShapeIndicators: TldrawShapeIndicators,
 	CollaboratorScribble: TldrawScribble,
 	SelectionForeground: TldrawSelectionForeground,
-	SelectionBackground: TldrawSelectionBackground,
 	Handles: TldrawHandles,
 	Overlays: TldrawOverlays,
 }

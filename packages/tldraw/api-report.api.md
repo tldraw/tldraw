@@ -116,7 +116,6 @@ import { TLResizeInfo } from '@tldraw/editor';
 import { TLRichText } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
 import { TLScribbleProps } from '@tldraw/editor';
-import { TLSelectionBackgroundProps } from '@tldraw/editor';
 import { TLSelectionForegroundProps } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';
 import { TLShapeCrop } from '@tldraw/editor';
@@ -2673,9 +2672,6 @@ export type TldrawProps = TldrawBaseProps & TldrawEditorStoreProps;
 
 // @public (undocumented)
 export function TldrawScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps): JSX_2.Element | null;
-
-// @public (undocumented)
-export const TldrawSelectionBackground: ({ bounds, rotation }: TLSelectionBackgroundProps) => JSX_2.Element | null;
 
 // @public (undocumented)
 export const TldrawSelectionForeground: NamedExoticComponent<TLSelectionForegroundProps>;
