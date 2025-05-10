@@ -28,8 +28,11 @@ export class HomePage {
 		await this.signInButton.click()
 		await this.page.getByLabel('Email address').fill(email)
 		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
-		await this.page.waitForTimeout(1000)
+		await this.page.waitForTimeout(5000)
 		await this.page.getByLabel('Enter verification code. Digit').fill('424242')
+		await this.page.getByLabel('First name').fill('Steve')
+		await this.page.getByLabel('Last name').fill('Ruiz')
+		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
 		await expect(async () => {
 			await expect(this.page.getByTestId('tla-sidebar-toggle')).toBeVisible()
 		}).toPass()
