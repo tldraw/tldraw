@@ -10,7 +10,6 @@ export class Sidebar {
 	public readonly createFileButton: Locator
 	public readonly userSettingsMenu: Locator
 	public readonly helpMenu: Locator
-	public readonly preferencesButton: Locator
 	public readonly themeButton: Locator
 	public readonly darkModeButton: Locator
 	public readonly signOutButton: Locator
@@ -21,7 +20,6 @@ export class Sidebar {
 		this.createFileButton = this.page.getByTestId('tla-create-file')
 		this.userSettingsMenu = this.page.getByTestId('tla-sidebar-user-settings-trigger')
 		this.helpMenu = this.page.getByTestId('tla-sidebar-help-menu-trigger')
-		this.preferencesButton = this.page.getByText('Preferences')
 		this.themeButton = this.page.getByText('Theme')
 		this.darkModeButton = this.page.getByText('Dark')
 		this.signOutButton = this.page.getByText('Sign out')
