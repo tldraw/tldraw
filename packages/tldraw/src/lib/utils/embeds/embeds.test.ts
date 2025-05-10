@@ -147,6 +147,26 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		},
 	},
 	{
+		url: 'https://www.figma.com/design/c1U7U2I1XfUITXwpr8X0GI/tldraw-dotcom-2025?node-id=556-72935&t=5pTQLNmuvTf3OMXd-4',
+		match: true,
+		output: {
+			type: 'figma',
+			embedUrl:
+				'https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/design/c1U7U2I1XfUITXwpr8X0GI/tldraw-dotcom-2025?node-id=556-72935&t=5pTQLNmuvTf3OMXd-4',
+		},
+	},
+
+	{
+		url: 'https://www.figma.com/proto/c1U7U2I1XfUITXwpr8X0GI/tldraw-dotcom-2025?page-id=0%3A1&node-id=556-72935&t=5pTQLNmuvTf3OMXd-0&scaling=min-zoom&content-scaling=fixed',
+		match: true,
+		output: {
+			type: 'figma',
+			embedUrl:
+				'https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/proto/c1U7U2I1XfUITXwpr8X0GI/tldraw-dotcom-2025?page-id=0%3A1&node-id=556-72935&t=5pTQLNmuvTf3OMXd-0&scaling=min-zoom&content-scaling=fixed',
+		},
+	},
+
+	{
 		url: 'https://www.figma.com/foobar',
 		match: false,
 	},

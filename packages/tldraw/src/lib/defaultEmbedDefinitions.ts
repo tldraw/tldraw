@@ -47,7 +47,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			if (
 				!!url.match(
 					// eslint-disable-next-line no-useless-escape
-					/https:\/\/([\w\.-]+\.)?figma.com\/(file|proto)\/([0-9a-zA-Z]{22,128})(?:\/.*)?$/
+					/https:\/\/([\w\.-]+\.)?figma.com\/(file|proto|design)\/([0-9a-zA-Z]{22,128})(?:\/.*)?$/
 				) &&
 				!url.includes('figma.com/embed')
 			) {
