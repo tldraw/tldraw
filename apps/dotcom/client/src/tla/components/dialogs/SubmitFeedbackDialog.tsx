@@ -110,11 +110,8 @@ function SignedInSubmitFeedbackDialog() {
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className={styles.dialogBody}>
 				<p>
-					<F defaultMessage="Have a bug, issue, or idea for tldraw? Let us know!" />
-				</p>
-				<p>
 					<F
-						defaultMessage="Fill out this form, <discord>chat with us on Discord</discord>, or <github>submit an issue on GitHub</github>."
+						defaultMessage="Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>."
 						values={{
 							discord: (chunks) => {
 								return (

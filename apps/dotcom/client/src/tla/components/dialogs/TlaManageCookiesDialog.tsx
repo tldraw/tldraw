@@ -53,7 +53,7 @@ export function TlaManageCookiesDialog() {
 							<TlaMenuControlInfoTooltip>
 								<F defaultMessage="We use these cookies to save your files and settings." />
 							</TlaMenuControlInfoTooltip>
-							<TlaSwitch checked={true} />
+							<TlaSwitch checked={true} disabled />
 						</TlaMenuControl>
 						<TlaMenuControl>
 							<TlaMenuControlLabel>
