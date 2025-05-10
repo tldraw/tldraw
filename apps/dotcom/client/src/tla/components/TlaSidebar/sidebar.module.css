@@ -404,6 +404,10 @@
 	}
 }
 
+.userSettingsTrigger[data-state='open']::after {
+	visibility: visible;
+}
+
 .userSettingsTrigger[data-state='open'] .userSettingsIcon {
 	visibility: visible;
 }

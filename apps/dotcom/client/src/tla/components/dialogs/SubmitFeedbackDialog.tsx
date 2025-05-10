@@ -106,6 +106,7 @@ function SignedInSubmitFeedbackDialog() {
 				<TldrawUiDialogTitle>
 					<F defaultMessage="Send feedback" />
 				</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className={styles.dialogBody}>
 				<p>
