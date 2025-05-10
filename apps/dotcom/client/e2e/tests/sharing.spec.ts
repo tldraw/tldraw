@@ -429,7 +429,7 @@ test.describe('logged out user on published file', () => {
 
 		// download the file
 		await newEditor.openPageMenu()
-		const downloadButton = newEditor.page.getByText('Download file')
+		const downloadButton = newEditor.page.getByText('Download')
 		await expect(downloadButton).toBeVisible()
 
 		// check that the file downloaded

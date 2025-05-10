@@ -28,10 +28,14 @@ import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
-import { HelpSubMenu } from '../TlaAppMenuGroup/TlaAppMenuGroup'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
+import {
+	GiveUsFeedbackMenuItem,
+	LegalSummaryMenuItem,
+	UserManualMenuItem,
+} from '../menu-items/menu-items'
 import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
 
@@ -124,14 +128,14 @@ export function TlaEditorTopLeftPanelAnonymous() {
 							<ViewSubmenu />
 							<ExportFileContentSubMenu />
 							<ExtrasGroup />
-						</TldrawUiMenuGroup>
-						<TldrawUiMenuGroup id="download">
 							<TldrawUiMenuActionItem actionId={'save-file-copy'} />
 							{canCopyToApp && <TldrawUiMenuActionItem actionId={'copy-to-my-files'} />}
 						</TldrawUiMenuGroup>
-						<TldrawUiMenuGroup id="preferences">
-							<HelpSubMenu />
-							<PreferencesGroup />
+						<PreferencesGroup />
+						<TldrawUiMenuGroup id="misc">
+							<UserManualMenuItem />
+							<GiveUsFeedbackMenuItem />
+							<LegalSummaryMenuItem />
 						</TldrawUiMenuGroup>
 						{!app && (
 							<TldrawUiMenuGroup id="signin">
@@ -231,6 +235,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 					<ViewSubmenu />
 					<ExportFileContentSubMenu />
 					<ExtrasGroup />
+					<TldrawUiMenuActionItem actionId={'save-file-copy'} />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="preferences">
 					<PreferencesGroup />

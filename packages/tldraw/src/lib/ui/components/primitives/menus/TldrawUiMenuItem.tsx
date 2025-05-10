@@ -23,9 +23,13 @@ export interface TLUiMenuItemProps<
 > {
 	id: string
 	/**
-	 * The icon to display on the item.
+	 * The icon to display on the item. Icons are only shown in certain menu types.
 	 */
 	icon?: IconType
+	/**
+	 * An icon to display to the left of the menu item.
+	 */
+	iconLeft?: IconType
 	/**
 	 * The keyboard shortcut to display on the item.
 	 */
@@ -72,6 +76,7 @@ export function TldrawUiMenuItem<
 	kbd,
 	label,
 	icon,
+	iconLeft,
 	onSelect,
 	noClose,
 	isSelected,
@@ -111,6 +116,7 @@ export function TldrawUiMenuItem<
 							}
 						}}
 					>
+						{iconLeft && <TldrawUiButtonIcon icon={iconLeft} small />}
 						<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
 						{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 					</TldrawUiButton>
@@ -140,6 +146,7 @@ export function TldrawUiMenuItem<
 					<span className="tlui-button__label" draggable={false}>
 						{labelStr}
 					</span>
+					{iconLeft && <TldrawUiButtonIcon icon={iconLeft} small />}
 					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 					{spinner && <Spinner />}
 				</_ContextMenu.Item>

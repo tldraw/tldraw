@@ -42,6 +42,7 @@ export type AssetUrls = {
 		'arrowhead-triangle': string
 		blob: string
 		bold: string
+		bookmark: string
 		'bring-forward': string
 		'bring-to-front': string
 		broken: string
@@ -58,6 +59,7 @@ export type AssetUrls = {
 		'clipboard-copy': string
 		code: string
 		color: string
+		comment: string
 		'cross-2': string
 		'cross-circle': string
 		'dash-dashed': string
@@ -109,6 +111,7 @@ export type AssetUrls = {
 		github: string
 		group: string
 		heading: string
+		'help-circle': string
 		highlight: string
 		'horizontal-align-end': string
 		'horizontal-align-middle': string
@@ -119,6 +122,7 @@ export type AssetUrls = {
 		link: string
 		list: string
 		lock: string
+		manual: string
 		menu: string
 		minus: string
 		mixed: string

@@ -22,6 +22,7 @@ export type TLUiIconType =
 	| 'arrowhead-triangle'
 	| 'blob'
 	| 'bold'
+	| 'bookmark'
 	| 'bring-forward'
 	| 'bring-to-front'
 	| 'broken'
@@ -38,6 +39,7 @@ export type TLUiIconType =
 	| 'clipboard-copy'
 	| 'code'
 	| 'color'
+	| 'comment'
 	| 'cross-2'
 	| 'cross-circle'
 	| 'dash-dashed'
@@ -89,6 +91,7 @@ export type TLUiIconType =
 	| 'github'
 	| 'group'
 	| 'heading'
+	| 'help-circle'
 	| 'highlight'
 	| 'horizontal-align-end'
 	| 'horizontal-align-middle'
@@ -99,6 +102,7 @@ export type TLUiIconType =
 	| 'link'
 	| 'list'
 	| 'lock'
+	| 'manual'
 	| 'menu'
 	| 'minus'
 	| 'mixed'
@@ -177,6 +181,7 @@ export const iconTypes = [
 	'arrowhead-triangle',
 	'blob',
 	'bold',
+	'bookmark',
 	'bring-forward',
 	'bring-to-front',
 	'broken',
@@ -193,6 +198,7 @@ export const iconTypes = [
 	'clipboard-copy',
 	'code',
 	'color',
+	'comment',
 	'cross-2',
 	'cross-circle',
 	'dash-dashed',
@@ -244,6 +250,7 @@ export const iconTypes = [
 	'github',
 	'group',
 	'heading',
+	'help-circle',
 	'highlight',
 	'horizontal-align-end',
 	'horizontal-align-middle',
@@ -254,6 +261,7 @@ export const iconTypes = [
 	'link',
 	'list',
 	'lock',
+	'manual',
 	'menu',
 	'minus',
 	'mixed',
