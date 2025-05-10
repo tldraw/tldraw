@@ -156,6 +156,9 @@ export const useSelectedShapesAnnouncer = () => {
 			}
 		}
 
+		// We only want to announce when:
+		// 1. the user returns to the select tool; and
+		// 2. the selected shapes have changed
 		const stopListening = react('useSelectedShapesAnnouncer', () => {
 			const isInSelecting = editor.isIn('select.idle')
 			const selectedShapeIds = editor.getSelectedShapeIds()
