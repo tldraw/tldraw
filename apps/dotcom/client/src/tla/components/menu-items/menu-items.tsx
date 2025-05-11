@@ -5,8 +5,6 @@ import { useNavigate } from 'react-router-dom'
 import {
 	ColorSchemeMenu,
 	TLDRAW_FILE_EXTENSION,
-	TldrawUiButton,
-	TldrawUiButtonLabel,
 	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
@@ -22,7 +20,6 @@ import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { clearLocalSessionState } from '../../utils/local-session-state'
-import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
 import { TlaManageCookiesDialog } from '../dialogs/TlaManageCookiesDialog'
 
@@ -63,10 +60,12 @@ export function SignOutMenuItem() {
 	if (!auth.isSignedIn) return
 	return (
 		<TldrawUiMenuGroup id="account-actions">
-			<TldrawUiButton id="sign-out" type="menu" onSelect={handleSignout}>
-				<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
-				<TlaIcon icon="sign-in" />
-			</TldrawUiButton>
+			<TldrawUiMenuItem
+				id="sign-out"
+				data-testid="tla-user-sign-out"
+				onSelect={handleSignout}
+				label={label}
+			/>
 		</TldrawUiMenuGroup>
 	)
 }
