@@ -19,6 +19,7 @@ export type TLAppUiEventSource =
 	| 'legacy-import-button'
 	| 'new-page'
 	| 'app'
+	| 'cookie-settings'
 
 /** @public */
 export interface TLAppUiEventMap {
