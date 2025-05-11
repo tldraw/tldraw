@@ -97,6 +97,7 @@ export async function flattenShapesToImages(
 		// get an image for the shapes
 		const svgResult = await editor.getSvgString(group.shapes, {
 			padding,
+			background: false,
 		})
 		if (!svgResult?.svg) continue
 
