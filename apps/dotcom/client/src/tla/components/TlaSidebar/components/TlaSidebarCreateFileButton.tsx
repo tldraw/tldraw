@@ -43,7 +43,7 @@ export function TlaSidebarCreateFileButton() {
 
 	return (
 		<button
-			className={styles.create}
+			className={styles.sidebarCreateFileButton}
 			onClick={handleSidebarCreate}
 			data-testid="tla-create-file"
 			title={createTitle}

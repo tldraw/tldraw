@@ -1,5 +1,5 @@
-import * as _ContextMenu from '@radix-ui/react-context-menu'
 import { preventDefault, useContainer, useEditor, useEditorComponents } from '@tldraw/editor'
+import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { ReactNode, memo, useCallback } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'

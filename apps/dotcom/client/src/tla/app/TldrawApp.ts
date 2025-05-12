@@ -691,7 +691,7 @@ export class TldrawApp {
 			exportFormat: 'png',
 			exportTheme: 'light',
 			exportBackground: false,
-			exportPadding: false,
+			exportPadding: true,
 			createdAt: Date.now(),
 			updatedAt: Date.now(),
 			flags: '',
@@ -744,7 +744,7 @@ export class TldrawApp {
 		let didFinishUploading = false
 
 		// give it a second before we show the toast, in case the upload is fast
-		setTimeout(() => {
+		const uploadingToastTimeout = setTimeout(() => {
 			if (didFinishUploading || this.abortController.signal.aborted) return
 			// if it's close to the end, don't show the progress toast
 			if (getApproxPercentage() > 50) return
@@ -780,6 +780,7 @@ export class TldrawApp {
 				updateProgress()
 			}).catch((e) => Result.err(e))
 			if (!res.ok) {
+				clearTimeout(uploadingToastTimeout)
 				if (uploadingToastId) this.toasts?.removeToast(uploadingToastId)
 				this.toasts?.addToast({
 					severity: 'error',

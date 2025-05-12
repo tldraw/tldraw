@@ -1,7 +1,9 @@
 import {
 	AssetRecordType,
 	BaseBoxShapeUtil,
+	Geometry2d,
 	PageRecordType,
+	Rectangle2d,
 	TLGeoShapeProps,
 	TLShape,
 	TldrawEditorProps,
@@ -860,5 +862,40 @@ describe('instance.isReadonly', () => {
 		expect(editor.getIsReadonly()).toBe(false)
 		mode.set('readonly')
 		expect(editor.getIsReadonly()).toBe(true)
+	})
+})
+
+describe('the geometry cache', () => {
+	class CustomShapeUtil extends BaseBoxShapeUtil<any> {
+		static override type = 'custom'
+
+		getDefaultProps() {
+			return {
+				w: 100,
+				h: 100,
+			}
+		}
+		override getGeometry(shape: any): Geometry2d {
+			return new Rectangle2d({
+				width: shape.meta.double ? shape.props.w * 2 : shape.props.w,
+				height: shape.meta.double ? shape.props.h * 2 : shape.props.h,
+				isFilled: true,
+			})
+		}
+		component() {
+			throw new Error('Method not implemented.')
+		}
+		indicator() {
+			throw new Error('Method not implemented.')
+		}
+	}
+	it('should be busted when meta changes', () => {
+		editor = new TestEditor({
+			shapeUtils: [CustomShapeUtil],
+		})
+		const { A } = editor.createShapesFromJsx([<TL.custom ref="A" x={0} y={0} w={100} h={100} />])
+		expect(editor.getShapePageBounds(A)!.width).toBe(100)
+		editor.updateShape({ id: A, type: 'custom', meta: { double: true } })
+		expect(editor.getShapePageBounds(A)!.width).toBe(200)
 	})
 })

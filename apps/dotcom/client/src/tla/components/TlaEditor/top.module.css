@@ -139,6 +139,10 @@ button.nameWidthSetter {
 	}
 }
 
+.nameInput {
+	visibility: visible;
+}
+
 /* .inputWrapper:focus-within::after {
 	background-color: var(--color-muted-2);
 } */
@@ -192,6 +196,7 @@ button.nameWidthSetter {
 	align-items: center;
 	justify-content: center;
 	pointer-events: all;
+	padding-top: 4px;
 	padding-right: 6px;
 }
 

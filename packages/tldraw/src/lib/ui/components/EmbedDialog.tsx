@@ -20,7 +20,6 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 } from './primitives/TldrawUiDialog'
-import { TldrawUiIcon } from './primitives/TldrawUiIcon'
 import { TldrawUiInput } from './primitives/TldrawUiInput'
 
 export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogProps) {
@@ -90,19 +89,17 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 							<div className="tlui-embed-dialog__instruction">
 								<span>{msg('embed-dialog.instruction')}</span>{' '}
 								{embedDefinition.instructionLink && (
-									<a
-										target="_blank"
-										rel="noopener noreferrer"
-										href={embedDefinition.instructionLink}
-										className="tlui-embed-dialog__instruction__link"
-									>
-										Learn more.
-										<TldrawUiIcon
-											label={msg('edit-link-dialog.external-link')}
-											icon="external-link"
-											small
-										/>
-									</a>
+									<>
+										<a
+											target="_blank"
+											rel="noopener noreferrer"
+											href={embedDefinition.instructionLink}
+											className="tlui-embed-dialog__instruction__link"
+										>
+											Learn more
+										</a>
+										.
+									</>
 								)}
 							</div>
 						) : (

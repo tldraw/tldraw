@@ -1,5 +1,5 @@
-import * as _Dialog from '@radix-ui/react-dialog'
 import classNames from 'classnames'
+import { Dialog as _Dialog } from 'radix-ui'
 import { CSSProperties, ReactNode } from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './Button/TldrawUiButton'
@@ -74,7 +74,7 @@ export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBod
 /** @public */
 export interface TLUiDialogFooterProps {
 	className?: string
-	children: ReactNode
+	children?: ReactNode
 }
 
 /** @public @react */

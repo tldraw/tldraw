@@ -58,12 +58,22 @@ export class Box {
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
+	get left() {
+		return this.x
+	}
+
+	// eslint-disable-next-line no-restricted-syntax
 	get midX() {
 		return this.x + this.w / 2
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
 	get maxX() {
+		return this.x + this.w
+	}
+
+	// eslint-disable-next-line no-restricted-syntax
+	get right() {
 		return this.x + this.w
 	}
 
@@ -78,12 +88,22 @@ export class Box {
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
+	get top() {
+		return this.y
+	}
+
+	// eslint-disable-next-line no-restricted-syntax
 	get midY() {
 		return this.y + this.h / 2
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
 	get maxY() {
+		return this.y + this.h
+	}
+
+	// eslint-disable-next-line no-restricted-syntax
+	get bottom() {
 		return this.y + this.h
 	}
 

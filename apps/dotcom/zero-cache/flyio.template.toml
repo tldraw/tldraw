@@ -34,4 +34,4 @@ ZERO_CHANGE_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
 ZERO_AUTH_JWKS_URL = "https://clerk.staging.tldraw.com/.well-known/jwks.json"
 LOG_LEVEL = "debug"
 ZERO_PUSH_URL = "__ZERO_PUSH_URL"
-ZERO_RUN_LAZILY = 'true'
+ZERO_LAZY_STARTUP = 'true'

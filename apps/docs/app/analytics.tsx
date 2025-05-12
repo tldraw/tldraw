@@ -1,11 +1,10 @@
 'use client'
 
 import { XMarkIcon } from '@heroicons/react/24/solid'
-import * as Dialog from '@radix-ui/react-dialog'
-import * as Switch from '@radix-ui/react-switch'
 import { track, Analytics as VercelAnalytics } from '@vercel/analytics/react'
 import Cookies from 'js-cookie'
 import Script from 'next/script'
+import { Dialog as _Dialog, Switch as _Switch } from 'radix-ui'
 import { useEffect, useState } from 'react'
 
 type CookieConsent = 'unknown' | 'opted-in' | 'opted-out'
@@ -109,18 +108,18 @@ function PrivacySettings({ hasConsent, onHide }: { hasConsent: CookieConsent; on
 	}
 
 	return (
-		<Dialog.Root open>
-			<Dialog.Portal>
-				<Dialog.Overlay className="fixed inset-0 z-[100] bg-white/90 dark:bg-zinc-950/90" />
+		<_Dialog.Root open>
+			<_Dialog.Portal>
+				<_Dialog.Overlay className="fixed inset-0 z-[100] bg-white/90 dark:bg-zinc-950/90" />
 				<div className="fixed inset-0 z-[150] flex flex-col items-center justify-center h-screen">
-					<Dialog.Content
+					<_Dialog.Content
 						onInteractOutside={onHide}
 						onPointerDownOutside={onHide}
 						className="relative shadow rounded p-8 bg-white dark:bg-zinc-950 text-md max-w-lg"
 						onEscapeKeyDown={onHide}
 					>
-						<Dialog.Title className="mb-2 font-bold">Privacy settings</Dialog.Title>
-						<Dialog.Description className="text-base">
+						<_Dialog.Title className="mb-2 font-bold">Privacy settings</_Dialog.Title>
+						<_Dialog.Description className="text-base">
 							This website uses cookies to collect analytics from visitors. Read our{' '}
 							<a
 								href="https://tldraw.notion.site/devcookiepolicy"
@@ -131,15 +130,15 @@ function PrivacySettings({ hasConsent, onHide }: { hasConsent: CookieConsent; on
 								cookie policy
 							</a>{' '}
 							to learn more.
-						</Dialog.Description>
-						<Dialog.DialogClose
+						</_Dialog.Description>
+						<_Dialog.DialogClose
 							className="absolute top-2 right-2 p-1 rounded-full bg-white dark:bg-zinc-950 dark:text-zinc-300"
 							asChild
 						>
 							<button aria-label="Close" onClick={onHide}>
 								<XMarkIcon className="h-6" />
 							</button>
-						</Dialog.DialogClose>
+						</_Dialog.DialogClose>
 
 						<div className="flex mt-6 items-center">
 							<label className="text-base select-none pr-4" htmlFor="privacy-analytics">
@@ -149,20 +148,20 @@ function PrivacySettings({ hasConsent, onHide }: { hasConsent: CookieConsent; on
 								better.
 							</label>
 							<div>
-								<Switch.Root
+								<_Switch.Root
 									className="relative w-[3rem] h-7 bg-black/90 dark:bg-white/20 rounded-full data-[state=checked]:bg-blue-500 dark:data-[state=checked]:bg-blue-500"
 									id="privacy-analytics"
 									checked={isChecked}
 									onCheckedChange={onChange}
 								>
-									<Switch.Thumb className="block w-5 h-5 bg-white rounded-full transition-transform duration-100 transform translate-x-1 data-[state=checked]:translate-x-6" />
-								</Switch.Root>
+									<_Switch.Thumb className="block w-5 h-5 bg-white rounded-full transition-transform duration-100 transform translate-x-1 data-[state=checked]:translate-x-6" />
+								</_Switch.Root>
 							</div>
 						</div>
-					</Dialog.Content>
+					</_Dialog.Content>
 				</div>
-			</Dialog.Portal>
-		</Dialog.Root>
+			</_Dialog.Portal>
+		</_Dialog.Root>
 	)
 }
 
