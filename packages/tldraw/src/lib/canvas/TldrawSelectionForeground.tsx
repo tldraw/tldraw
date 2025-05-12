@@ -14,7 +14,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { PointerEventHandler, useRef, useState } from 'react'
+import { PointerEventHandler, useRef } from 'react'
 import { useReadonly } from '../ui/hooks/useReadonly'
 import { TldrawCropHandles } from './TldrawCropHandles'
 
@@ -244,9 +244,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 				/>
 				{/* Targets */}
 				<ResizeHandle
-					className={classNames('tl-transparent', {
-						'tl-hidden': hideVerticalEdgeTargets,
-					})}
+					hide={hideVerticalEdgeTargets}
 					dataTestId="selection.resize.top"
 					position="top"
 					x={0}
@@ -257,9 +255,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 					events={topEvents}
 				/>
 				<ResizeHandle
-					className={classNames('tl-transparent', {
-						'tl-hidden': hideHorizontalEdgeTargets,
-					})}
+					hide={hideHorizontalEdgeTargets}
 					dataTestId="selection.resize.right"
 					position="right"
 					x={toDomPrecision(width - (isSmallX ? 0 : targetSizeX))}
@@ -270,9 +266,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 					events={rightEvents}
 				/>
 				<ResizeHandle
-					className={classNames('tl-transparent', {
-						'tl-hidden': hideVerticalEdgeTargets,
-					})}
+					hide={hideVerticalEdgeTargets}
 					dataTestId="selection.resize.bottom"
 					position="bottom"
 					x={0}
@@ -283,9 +277,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 					events={bottomEvents}
 				/>
 				<ResizeHandle
-					className={classNames('tl-transparent', {
-						'tl-hidden': hideHorizontalEdgeTargets,
-					})}
+					hide={hideHorizontalEdgeTargets}
 					dataTestId="selection.resize.left"
 					position="left"
 					x={toDomPrecision(0 - (isSmallX ? targetSizeX * 2 : targetSizeX))}
@@ -297,9 +289,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 				/>
 				{/* Corner Targets */}
 				<ResizeHandle
-					className={classNames('tl-transparent', {
-						'tl-hidden': hideTopLeftCorner,
-					})}
+					hide={hideTopLeftCorner}
 					dataTestId="selection.target.top-left"
 					position="top-left"
 					x={toDomPrecision(0 - (isSmallX ? targetSizeX * 2 : targetSizeX * 1.5))}
@@ -310,9 +300,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 					events={topLeftEvents}
 				/>
 				<ResizeHandle
-					className={classNames('tl-transparent', {
-						'tl-hidden': hideTopRightCorner,
-					})}
+					hide={hideTopRightCorner}
 					dataTestId="selection.target.top-right"
 					position="top-right"
 					x={toDomPrecision(width - (isSmallX ? 0 : targetSizeX * 1.5))}
@@ -323,9 +311,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 					events={topRightEvents}
 				/>
 				<ResizeHandle
-					className={classNames('tl-transparent', {
-						'tl-hidden': hideBottomRightCorner,
-					})}
+					hide={hideBottomRightCorner}
 					dataTestId="selection.target.bottom-right"
 					position="bottom-right"
 					x={toDomPrecision(width - (isSmallX ? targetSizeX : targetSizeX * 1.5))}
@@ -336,9 +322,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 					events={bottomRightEvents}
 				/>
 				<ResizeHandle
-					className={classNames('tl-transparent', {
-						'tl-hidden': hideBottomLeftCorner,
-					})}
+					hide={hideBottomLeftCorner}
 					dataTestId="selection.target.bottom-left"
 					position="bottom-left"
 					x={toDomPrecision(0 - (isSmallX ? targetSizeX * 3 : targetSizeX * 1.5))}
@@ -444,7 +428,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 })
 
 export const ResizeHandle = function ResizeHandle({
-	className,
+	hide,
 	dataTestId,
 	position,
 	x,
@@ -454,7 +438,7 @@ export const ResizeHandle = function ResizeHandle({
 	cursor,
 	events,
 }: {
-	className: string
+	hide: boolean
 	dataTestId: string
 	position: string
 	x: number
@@ -468,10 +452,11 @@ export const ResizeHandle = function ResizeHandle({
 		onPointerDown: PointerEventHandler<Element>
 	}
 }) {
-	const [mouseOver, setMouseOver] = useState(false)
 	return (
 		<rect
-			className={className}
+			className={classNames('tl-resize-handle', 'tl-transparent', {
+				'tl-hidden': hide,
+			})}
 			data-testid={dataTestId}
 			role="button"
 			aria-label={`${position} target`}
@@ -480,9 +465,7 @@ export const ResizeHandle = function ResizeHandle({
 			y={y}
 			width={width}
 			height={height}
-			onMouseEnter={() => setMouseOver(true)}
-			onMouseLeave={() => setMouseOver(false)}
-			cursor={mouseOver ? cursor : undefined}
+			cursor={cursor}
 			{...events}
 		/>
 	)
@@ -506,7 +489,6 @@ export const RotateCornerHandle = function RotateCornerHandle({
 	'data-testid'?: string
 }) {
 	const events = useSelectionEvents(corner)
-	const [mouseOver, setMouseOver] = useState(false)
 
 	return (
 		<rect
@@ -519,9 +501,7 @@ export const RotateCornerHandle = function RotateCornerHandle({
 			y={toDomPrecision(cy - targetSize * 3)}
 			width={toDomPrecision(Math.max(1, targetSize * 3))}
 			height={toDomPrecision(Math.max(1, targetSize * 3))}
-			onMouseEnter={() => setMouseOver(true)}
-			onMouseLeave={() => setMouseOver(false)}
-			cursor={mouseOver ? cursor : undefined}
+			cursor={cursor}
 			{...events}
 		/>
 	)
