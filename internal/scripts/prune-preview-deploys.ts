@@ -93,6 +93,7 @@ async function deletePreviewWorkerDeployment(id: string) {
 		},
 	})
 	if (!res.ok) {
+		// This might happen for old PRs that didn't have queues yet
 		console.log('Failed to delete queue ' + JSON.stringify(await queueRes.json()))
 	}
 }

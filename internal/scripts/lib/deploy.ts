@@ -175,7 +175,8 @@ export async function setWranglerPreviewConfig(
 		name,
 		customDomain,
 		serviceBinding,
-	}: { name: string; customDomain?: string; serviceBinding?: ServiceBinding }
+	}: { name: string; customDomain?: string; serviceBinding?: ServiceBinding },
+	queueName?: string
 ) {
 	const additionalProperties = `name = "${name}"
 ${customDomain ? `routes = [ { pattern = "${customDomain}", custom_domain = true} ]` : ''}
@@ -195,9 +196,8 @@ ${serviceBinding ? `services = [ {binding = "${serviceBinding.binding}", service
 		data += envPreviewSection
 	}
 
-	const queueName = `tldraw-multiplayer-queue-${name}`
-
-	const envQueuesSection = `\n[[env.preview.queues.producers]]
+	if (queueName) {
+		const envPreviewQueuesSection = `\n[[env.preview.queues.producers]]
 queue = "${queueName}"
 binding = "QUEUE"
 
@@ -205,7 +205,8 @@ binding = "QUEUE"
 queue = "${queueName}"
 max_retries =10
 `
-	data += envQueuesSection
+		data += envPreviewQueuesSection
+	}
 
 	writeFileSync(path, data)
 }
