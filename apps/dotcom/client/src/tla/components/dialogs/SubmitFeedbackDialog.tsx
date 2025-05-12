@@ -68,16 +68,14 @@ function SignedOutSubmitFeedbackDialog() {
 
 function SignedInSubmitFeedbackDialog() {
 	const input = useRef<HTMLTextAreaElement>(null)
-	const checkBox = useRef<HTMLInputElement>(null)
 	const toasts = useToasts()
 	const intl = useIntl()
 	const onSubmit = useCallback(async () => {
 		if (!input.current?.value?.trim()) return
-		if (!checkBox.current) return
 		fetch('/api/app/submit-feedback', {
 			method: 'POST',
 			body: JSON.stringify({
-				allowContact: checkBox.current.checked,
+				allowContact: true,
 				description: input.current.value.trim(),
 			} satisfies SubmitFeedbackRequestBody),
 		})
