@@ -602,6 +602,11 @@ input,
 	}
 }
 
+.tl-rotate-corner:not(:hover),
+.tl-resize-handle:not(:hover) {
+	cursor: none;
+}
+
 /* --------------------- Arrow Hints -------------------- */
 
 .tl-arrow-hint-handle {

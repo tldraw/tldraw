@@ -12,12 +12,14 @@ import {
 	useIsDarkMode,
 } from '@tldraw/editor'
 import * as React from 'react'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { MinimapManager } from './MinimapManager'
 
 /** @public @react */
 export function DefaultMinimap() {
 	const editor = useEditor()
 	const container = useContainer()
+	const msg = useTranslation()
 
 	const rCanvas = React.useRef<HTMLCanvasElement>(null!)
 	const rPointing = React.useRef(false)
@@ -201,7 +203,7 @@ export function DefaultMinimap() {
 		<div className="tlui-minimap">
 			<canvas
 				role="img"
-				aria-label="minimap"
+				aria-label={msg('navigation-zone.minimap')}
 				ref={rCanvas}
 				className="tlui-minimap__canvas"
 				onDoubleClick={onDoubleClick}

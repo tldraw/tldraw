@@ -12,6 +12,7 @@ export interface TLUiInputProps {
 	label?: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
 	icon?: TLUiIconType | Exclude<string, TLUiIconType>
 	iconLeft?: TLUiIconType | Exclude<string, TLUiIconType>
+	iconLabel?: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
 	autoFocus?: boolean
 	autoSelect?: boolean
 	children?: React.ReactNode
@@ -44,6 +45,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			label,
 			icon,
 			iconLeft,
+			iconLabel,
 			autoSelect = false,
 			autoFocus = false,
 			defaultValue,
@@ -175,7 +177,14 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			<div draggable={false} className="tlui-input__wrapper">
 				{children}
 				{label && <label>{msg(label)}</label>}
-				{iconLeft && <TldrawUiIcon icon={iconLeft} className="tlui-icon-left" small />}
+				{iconLeft && (
+					<TldrawUiIcon
+						label={iconLabel ? msg(iconLabel) : ''}
+						icon={iconLeft}
+						className="tlui-icon-left"
+						small
+					/>
+				)}
 				<input
 					ref={rInputRef}
 					className={classNames('tlui-input', className)}
@@ -192,7 +201,9 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 					value={value}
 					data-testid={dataTestId}
 				/>
-				{icon && <TldrawUiIcon icon={icon} small={!!label} />}
+				{icon && (
+					<TldrawUiIcon label={iconLabel ? msg(iconLabel) : ''} icon={icon} small={!!label} />
+				)}
 			</div>
 		)
 	}
