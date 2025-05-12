@@ -262,6 +262,7 @@ export const DEFAULT_TRANSLATION = {
 	'a11y.multiple-shapes': '{num} shapes selected',
 	'a11y.select-shape': 'Select next shape',
 	'a11y.select-shape-direction': 'Select shape in direction',
+	'a11y.enter-leave-container': 'Enter/leave container',
 	'a11y.repeat-shape': 'Repeat shape',
 	'a11y.move-shape': 'Move shape',
 	'a11y.move-shape-faster': 'Move shape faster',

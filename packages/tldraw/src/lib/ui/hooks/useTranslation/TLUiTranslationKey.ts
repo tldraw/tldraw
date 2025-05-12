@@ -261,6 +261,7 @@ export type TLUiTranslationKey =
 	| 'a11y.multiple-shapes'
 	| 'a11y.select-shape'
 	| 'a11y.select-shape-direction'
+	| 'a11y.enter-leave-container'
 	| 'a11y.repeat-shape'
 	| 'a11y.move-shape'
 	| 'a11y.move-shape-faster'
