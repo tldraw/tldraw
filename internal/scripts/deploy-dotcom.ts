@@ -255,7 +255,9 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 	if (previewId && !didUpdateTlsyncWorker) {
 		await setWranglerPreviewConfig(worker, { name: workerId })
 		didUpdateTlsyncWorker = true
-		await exec('yarn', ['wrangler', 'queues', 'create', `tldraw-multiplayer-queue-${previewId}`])
+		await exec('yarn', ['wrangler', 'queues', 'create', `tldraw-multiplayer-queue-${previewId}`], {
+			pwd: worker,
+		})
 	}
 	await exec('yarn', ['workspace', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null], {
 		env: {
