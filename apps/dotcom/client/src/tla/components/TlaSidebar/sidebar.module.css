@@ -372,7 +372,7 @@
 	padding-right: 6px;
 	padding-left: 2px;
 	padding: 0px 0px 0px 8px;
-	gap: 8px;
+	gap: 0px;
 	text-align: left;
 	cursor: pointer;
 }
@@ -415,27 +415,36 @@
 /* Help menu */
 
 .helpMenuTrigger {
-	height: 28px;
-	width: 28px;
+	height: 36px;
+	width: 36px;
 	display: flex;
 	flex-shrink: 0;
 	align-items: center;
 	justify-content: center;
 	position: relative;
 	cursor: pointer;
-	border-radius: 100%;
-	border: 1px solid var(--tla-color-border);
+	border: none;
 	color: var(--tla-color-text-3);
 	background: none;
+	margin-right: -2px;
 }
 
 .helpMenuTrigger::after {
 	border-radius: 100%;
-	inset: 0px;
+	inset: 4px;
+	visibility: visible;
+	border: 1px solid var(--tla-color-border);
+	background-color: transparent;
+}
+
+@media (hover: hover) {
+	.helpMenuTrigger:hover::after {
+		background-color: var(--tla-color-hover-1);
+	}
 }
 
 .helpMenuTrigger[data-state='open']::after {
-	visibility: visible;
+	background-color: var(--tla-color-hover-1);
 }
 
 /* ---------------- File link section --------------- */
