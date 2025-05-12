@@ -257,12 +257,8 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 		await setWranglerPreviewConfig(worker, { name: workerId }, queueName)
 		didUpdateTlsyncWorker = true
 		try {
-			console.log('before')
-			const res = await exec('yarn', ['wrangler', 'queues', 'info', queueName], { pwd: worker })
-			console.log('💡[536]: deploy-dotcom.ts:261: res=', res)
-			console.log('after')
+			await exec('yarn', ['wrangler', 'queues', 'info', queueName], { pwd: worker })
 		} catch (_e) {
-			console.log('inside catch')
 			await exec('yarn', ['wrangler', 'queues', 'create', queueName], { pwd: worker })
 		}
 	}
