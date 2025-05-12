@@ -79,7 +79,10 @@ const config = {
 			runsAfter: { 'build-types': {} },
 			cache: {
 				inputs: {
-					exclude: ['*.tsbuildinfo'],
+					exclude: [
+						'*.tsbuildinfo',
+						`<rootDir>/templates/*/package.json`,
+					],
 				},
 			},
 		},
