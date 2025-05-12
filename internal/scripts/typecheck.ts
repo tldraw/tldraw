@@ -12,7 +12,6 @@ async function main() {
 	for (const templatePath of glob.sync(path.join(REPO_ROOT, 'templates/*'))) {
 		allWorkspacePaths.push(templatePath)
 	}
-	console.log(allWorkspacePaths)
 	const tsconfigFiles = []
 	for (const workspacePath of allWorkspacePaths) {
 		const tsconfigFile = path.join(workspacePath, 'tsconfig.json')
