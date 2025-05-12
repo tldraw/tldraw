@@ -349,6 +349,7 @@
 	"toast.error.export-fail.desc": "이미지를 내보내지 못했습니다.",
 	"toast.error.export-fail.title": "내보내기 실패",
 	"tool-panel.more": "자세히",
+	"tool-panel.title": "도구",
 	"tool.arrow": "화살표",
 	"tool.arrow-down": "아래쪽 화살표",
 	"tool.arrow-left": "왼쪽 화살표",

@@ -22,6 +22,7 @@ import { FileOpen } from './FileOpen'
 import { FullPageMessage } from './FullPageMessage'
 import { Links } from './Links'
 import { onCreateAssetFromUrl } from './utils/bookmarks'
+import { registerExternalUrlContentHandler } from './utils/externalUrlContentHandler'
 import { vscode } from './utils/vscode'
 
 setRuntimeOverrides({
@@ -126,6 +127,7 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 
 	const handleMount = useCallback((editor: Editor) => {
 		editor.registerExternalAssetHandler('url', onCreateAssetFromUrl)
+		registerExternalUrlContentHandler(editor)
 	}, [])
 
 	const licenseKey =

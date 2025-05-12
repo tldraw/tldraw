@@ -59,7 +59,7 @@ export function getCurvedArrowInfo(
 	if (Vec.Equals(a, b)) {
 		return {
 			bindings,
-			isStraight: true,
+			type: 'straight',
 			start: {
 				handle: a,
 				point: a,
@@ -150,9 +150,17 @@ export function getCurvedArrowInfo(
 								: 1
 			)
 
-			point = intersections[0] ?? (isClosed ? undefined : startInStartShapeLocalSpace)
-		} else {
-			point = isClosed ? undefined : startInStartShapeLocalSpace
+			point = intersections[0]
+		}
+		if (!point) {
+			if (isClosed) {
+				const nearestPoint = startShapeInfo.geometry.nearestPoint(startInStartShapeLocalSpace)
+				if (Vec.DistMin(nearestPoint, startInStartShapeLocalSpace, 1)) {
+					point = nearestPoint
+				}
+			} else {
+				point = startInStartShapeLocalSpace
+			}
 		}
 
 		if (point) {
@@ -195,7 +203,7 @@ export function getCurvedArrowInfo(
 			})
 		)
 
-		if (intersections) {
+		if (intersections.length) {
 			const angleToStart = centerInEndShapeLocalSpace.angle(startInEndShapeLocalSpace)
 			const angleToEnd = centerInEndShapeLocalSpace.angle(endInEndShapeLocalSpace)
 			const dAB = distFn(angleToStart, angleToEnd)
@@ -221,13 +229,17 @@ export function getCurvedArrowInfo(
 								: 1
 			)
 
-			if (intersections[0]) {
-				point = intersections[0]
+			point = intersections[0]
+		}
+		if (!point) {
+			if (isClosed) {
+				const nearestPoint = endShapeInfo.geometry.nearestPoint(endInEndShapeLocalSpace)
+				if (Vec.DistMin(nearestPoint, endInEndShapeLocalSpace, 1)) {
+					point = nearestPoint
+				}
 			} else {
-				point = isClosed ? undefined : endInEndShapeLocalSpace
+				point = endInEndShapeLocalSpace
 			}
-		} else {
-			point = isClosed ? undefined : endInEndShapeLocalSpace
 		}
 
 		if (point) {
@@ -284,6 +296,13 @@ export function getCurvedArrowInfo(
 		} else {
 			// noop
 		}
+
+		// if we're using negative offsets, we need to make sure that the body arc doesn't end up
+		// larger than the handle arc or things will get weird:
+		const minOffsetA = 0.1 - distFn(handle_aCA, aCA) * handleArc.radius
+		const minOffsetB = 0.1 - distFn(aCB, handle_aCB) * handleArc.radius
+		offsetA = Math.max(offsetA, minOffsetA)
+		offsetB = Math.max(offsetB, minOffsetB)
 	}
 
 	if (offsetA !== 0) {
@@ -363,7 +382,7 @@ export function getCurvedArrowInfo(
 
 	return {
 		bindings,
-		isStraight: false,
+		type: 'arc',
 		start: {
 			point: a,
 			handle: terminalsInArrowSpace.start,

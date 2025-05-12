@@ -340,6 +340,7 @@
 	"toast.error.export-fail.desc": "No se pudo exportar la imagen",
 	"toast.error.export-fail.title": "Exportación fallida",
 	"tool-panel.more": "Más",
+	"tool-panel.title": "Herramientas",
 	"tool.arrow": "Flecha",
 	"tool.arrow-down": "Flecha abajo",
 	"tool.arrow-left": "Flecha izquierda",

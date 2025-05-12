@@ -124,7 +124,7 @@ export class Idle extends StateNode {
 		if (!util) return
 
 		if (info.target === 'selection') {
-			util.onDoubleClickEdge?.(shape)
+			util.onDoubleClickEdge?.(shape, info)
 			return
 		}
 

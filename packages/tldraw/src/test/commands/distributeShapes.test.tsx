@@ -251,7 +251,7 @@ describe('when shapes are overlapping', () => {
 	})
 
 	it('distributes horizontally', () => {
-		editor.selectAll().distributeShapes(Object.values(ids), 'horizontal')
+		editor.selectAll().distributeShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD], 'horizontal')
 		// total range is 150 (boxA.maxX = 200, boxD.minX = 350)
 		// spaced used by inner shapes is 100 (50 + 50)
 		// gap should be ((150 - 100) / 3) = 16.666666666666668
@@ -265,7 +265,7 @@ describe('when shapes are overlapping', () => {
 	})
 
 	it('aligns horizontally', () => {
-		editor.selectAll().distributeShapes(Object.values(ids), 'vertical')
+		editor.selectAll().distributeShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD], 'vertical')
 		// total range is 150 (boxA.maxX = 200, boxD.minX = 350)
 		// spaced used by inner shapes is 100 (50 + 50)
 		// gap should be ((150 - 100) / 3) = 16.666666666666668
@@ -295,7 +295,7 @@ it('preserves common bounds when distributing shapes with a lot of overlap', () 
 
 	const prevBounds = editor.getSelectionPageBounds()!
 
-	editor.distributeShapes(Object.values(ids), 'horizontal')
+	editor.distributeShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD, ids.boxE], 'horizontal')
 
 	// If we didn't clamp this, then the right side of boxD would be to the right of boxE's right side
 	expect(editor.getShapePageBounds(ids.boxD)!.maxX).toEqual(
@@ -314,7 +314,7 @@ it('preserves common bounds when distributing shapes with a lot of overlap', () 
 	// const xsBefore = objectMapFromEntries(
 	// 	Object.entries(ids).map(([id, shapeId]) => [id, editor.getShapePageBounds(shapeId)!.x])
 	// )
-	// editor.distributeShapes(Object.values(ids), 'horizontal')
+	// editor.distributeShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD], 'horizontal')
 	// expect(editor.getSelectionPageBounds()!).toCloselyMatchObject(prevBounds)
 
 	// const xsAfter = objectMapFromEntries(

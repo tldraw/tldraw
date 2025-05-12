@@ -62,7 +62,7 @@ export function processPropsMigrations<R extends UnknownRecord & { type: string;
 			result.push(
 				createMigrationSequence({
 					sequenceId,
-					retroactive: false,
+					retroactive: true,
 					sequence: [],
 				})
 			)
@@ -76,7 +76,7 @@ export function processPropsMigrations<R extends UnknownRecord & { type: string;
 			result.push(
 				createMigrationSequence({
 					sequenceId,
-					retroactive: false,
+					retroactive: true,
 					sequence: migrations.sequence.map((m) =>
 						'id' in m ? createPropsMigration(typeName, subType, m) : m
 					),
@@ -87,7 +87,7 @@ export function processPropsMigrations<R extends UnknownRecord & { type: string;
 			result.push(
 				createMigrationSequence({
 					sequenceId,
-					retroactive: false,
+					retroactive: true,
 					sequence: Object.keys(migrations.migrators)
 						.map((k) => Number(k))
 						.sort((a: number, b: number) => a - b)

@@ -1,5 +1,6 @@
 import { IndexKey, TLArrowShape, TLShapeId, Vec, createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
+import { getArrowTargetState } from './arrowTargetState'
 import { getArrowBindings } from './shared'
 
 let editor: TestEditor
@@ -135,7 +136,7 @@ describe('When pointing a start shape', () => {
 		editor.setCurrentTool('arrow').pointerDown(375, 375)
 
 		// Set hinting ids when moving away
-		expect(editor.getHintingShapeIds().length).toBe(1)
+		expect(getArrowTargetState(editor)).not.toBeNull()
 
 		// Fake some velocity
 		editor.inputs.pointerVelocity = new Vec(1, 1)
@@ -143,7 +144,7 @@ describe('When pointing a start shape', () => {
 		editor.pointerMove(375, 500)
 
 		// Clear hinting ids when moving away
-		expect(editor.getHintingShapeIds().length).toBe(0)
+		expect(getArrowTargetState(editor)).toBeNull()
 
 		const arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 		editor.expectShapeToMatch(arrow, {
@@ -189,7 +190,7 @@ describe('When pointing an end shape', () => {
 		editor.pointerMove(375, 375)
 
 		// Set hinting id when pointing the shape
-		expect(editor.getHintingShapeIds().length).toBe(1)
+		expect(getArrowTargetState(editor)).not.toBeNull()
 
 		const arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 		editor.expectShapeToMatch(arrow, {
@@ -215,7 +216,7 @@ describe('When pointing an end shape', () => {
 
 		// Clear hinting ids on pointer up
 		editor.pointerUp()
-		expect(editor.getHintingShapeIds().length).toBe(0)
+		expect(getArrowTargetState(editor)).toBeNull()
 	})
 
 	it('unbinds and rebinds', () => {
@@ -227,7 +228,7 @@ describe('When pointing an end shape', () => {
 
 		let arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 
-		expect(editor.getHintingShapeIds().length).toBe(1)
+		expect(getArrowTargetState(editor)).not.toBeNull()
 
 		expect(bindings(arrow.id)).toMatchObject({
 			start: undefined,
@@ -258,7 +259,7 @@ describe('When pointing an end shape', () => {
 		})
 
 		editor.pointerMove(375, 0)
-		expect(editor.getHintingShapeIds().length).toBe(0)
+		expect(getArrowTargetState(editor)).toBeNull()
 		arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 
 		editor.expectShapeToMatch(arrow, {
@@ -279,7 +280,7 @@ describe('When pointing an end shape', () => {
 		// Build up some velocity
 		editor.inputs.pointerVelocity = new Vec(1, 1)
 		editor.pointerMove(325, 325)
-		expect(editor.getHintingShapeIds().length).toBe(1)
+		expect(getArrowTargetState(editor)).not.toBeNull()
 
 		arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 
@@ -298,7 +299,7 @@ describe('When pointing an end shape', () => {
 				toId: ids.box2,
 				props: {
 					isExact: false,
-					normalizedAnchor: { x: 0.25, y: 0.25 }, // center!
+					normalizedAnchor: { x: 0.5, y: 0.5 }, // center!
 					isPrecise: false,
 				},
 			},
@@ -322,7 +323,7 @@ describe('When pointing an end shape', () => {
 		})
 
 		editor.pointerUp()
-		expect(editor.getHintingShapeIds().length).toBe(0)
+		expect(getArrowTargetState(editor)).toBeNull()
 	})
 
 	it('begins imprecise when moving quickly', () => {
@@ -332,7 +333,7 @@ describe('When pointing an end shape', () => {
 
 		const arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 
-		expect(editor.getHintingShapeIds().length).toBe(1)
+		expect(getArrowTargetState(editor)).not.toBeNull()
 
 		expect(bindings(arrow.id)).toMatchObject({
 			start: undefined,
@@ -340,7 +341,7 @@ describe('When pointing an end shape', () => {
 				toId: ids.box3,
 				props: {
 					isExact: false,
-					normalizedAnchor: { x: 0.4, y: 0.4 },
+					normalizedAnchor: { x: 0.5, y: 0.5 },
 					isPrecise: false,
 				},
 			},
@@ -357,14 +358,14 @@ describe('When pointing an end shape', () => {
 			end: undefined,
 		})
 
-		expect(editor.getHintingShapeIds().length).toBe(0)
+		expect(getArrowTargetState(editor)).toBeNull()
 
 		editor.inputs.pointerVelocity = new Vec(0.001, 0.001)
 		editor.pointerMove(375, 375)
 
 		arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 
-		expect(editor.getHintingShapeIds().length).toBe(1)
+		expect(getArrowTargetState(editor)).not.toBeNull()
 
 		editor.expectShapeToMatch(arrow, {
 			id: arrow.id,
