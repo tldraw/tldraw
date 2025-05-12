@@ -46,7 +46,12 @@ export const TlaSidebarCookieConsent = memo(function TlaSidebarCookieConsent() {
 						<F defaultMessage="Opt out" />
 					</button>
 					<button
-						className={`${classNames('tla-button-text', styles.sidebarCookieButton, styles.sidebarCookieAcceptButton, styles.hoverable)} ${styles.acceptButton}`}
+						className={classNames(
+							'tla-button-text',
+							styles.sidebarCookieButton,
+							styles.sidebarCookieAcceptButton,
+							styles.hoverable
+						)}
 						onClick={handleAccept}
 					>
 						<F defaultMessage="Accept all" />
