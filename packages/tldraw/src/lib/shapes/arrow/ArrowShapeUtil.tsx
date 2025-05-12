@@ -481,19 +481,18 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override onTranslateStart(shape: TLArrowShape) {
 		const bindings = getArrowBindings(this.editor, shape)
 
-		if (shape.props.kind === 'elbow') {
-			// for arrow shapes, we can't maintain the bindings well just yet so we remove them entirely:
-			// lol no we can't do that
+		// ...if the user is dragging ONLY this arrow, for elbow shapes, we can't maintain the bindings well just yet so we remove them entirely
+		if (shape.props.kind === 'elbow' && this.editor.getOnlySelectedShapeId() === shape.id) {
 			const info = getArrowInfo(this.editor, shape)
 			if (!info) return
 			const update: TLShapePartial<TLArrowShape> = { id: shape.id, type: 'arrow', props: {} }
 			if (bindings.start) {
 				update.props!.start = { x: info.start.point.x, y: info.start.point.y }
-				// removeArrowBinding(this.editor, shape, 'start')
+				removeArrowBinding(this.editor, shape, 'start')
 			}
 			if (bindings.end) {
 				update.props!.end = { x: info.end.point.x, y: info.end.point.y }
-				// removeArrowBinding(this.editor, shape, 'end')
+				removeArrowBinding(this.editor, shape, 'end')
 			}
 			return update
 		}
