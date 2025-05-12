@@ -9,7 +9,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
-import { defineMessages, useMsg } from '../../../utils/i18n'
+import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
 	ColorThemeSubmenu,
@@ -41,7 +41,7 @@ export function TlaUserSettingsMenu() {
 						<div
 							className={classNames(styles.userSettingsName, 'tla-text_ui__regular', 'notranslate')}
 						>
-							{user.name}
+							{user.name ?? <F defaultMessage="Account" />}
 						</div>
 						<div className={styles.userSettingsIcon}>
 							<TlaIcon icon="dots-vertical-strong" />

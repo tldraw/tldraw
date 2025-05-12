@@ -283,7 +283,7 @@
 	display: flex;
 	flex-direction: column;
 	flex: 0 0 auto;
-	margin-top: 12px;
+	margin-top: 0px;
 }
 
 /* --------------------- Cookie --------------------- */
@@ -372,7 +372,7 @@
 	padding-right: 6px;
 	padding-left: 2px;
 	padding: 0px 0px 0px 8px;
-	gap: 8px;
+	gap: 0px;
 	text-align: left;
 	cursor: pointer;
 }
@@ -394,6 +394,14 @@
 }
 
 @media (hover: hover) {
+	.userSettingsTrigger {
+		color: var(--tla-color-text-3);
+	}
+
+	.userSettingsTrigger:hover {
+		color: var(--tla-color-text-1);
+	}
+
 	.userSettingsIcon {
 		visibility: hidden;
 	}
@@ -415,27 +423,36 @@
 /* Help menu */
 
 .helpMenuTrigger {
-	height: 28px;
-	width: 28px;
+	height: 36px;
+	width: 36px;
 	display: flex;
 	flex-shrink: 0;
 	align-items: center;
 	justify-content: center;
 	position: relative;
 	cursor: pointer;
-	border-radius: 100%;
-	border: 1px solid var(--tla-color-border);
+	border: none;
 	color: var(--tla-color-text-3);
 	background: none;
+	margin-right: -2px;
 }
 
 .helpMenuTrigger::after {
 	border-radius: 100%;
-	inset: 0px;
+	inset: 4px;
+	visibility: visible;
+	border: 1px solid var(--tla-color-border);
+	background-color: transparent;
+}
+
+@media (hover: hover) {
+	.helpMenuTrigger:hover::after {
+		background-color: var(--tla-color-hover-1);
+	}
 }
 
 .helpMenuTrigger[data-state='open']::after {
-	visibility: visible;
+	background-color: var(--tla-color-hover-1);
 }
 
 /* ---------------- File link section --------------- */
@@ -496,28 +513,6 @@
 	flex: 0 1 auto;
 }
 
-.sidebarFileLinkRenameInputWrapper {
-	background-color: var(--tla-color-sidebar);
-	outline: 1px solid var(--color-primary);
-	outline-offset: -2px;
-	border-radius: 6px;
-}
-
-.sidebarFileLinkRenameInputWrapper > div {
-	height: 36px;
-	padding: 0px 8px 0px 8px;
-}
-
-.sidebarFileLinkRenameInput {
-	height: 36px;
-	flex: 1 1 auto;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	position: relative;
-	z-index: 1;
-}
-
 .sidebarFileLinkButton {
 	padding: 0px;
 	background: none;
@@ -531,6 +526,8 @@
 	z-index: 2;
 	pointer-events: all;
 }
+
+/* Menu / context menu */
 
 .sidebarFileLinkMenu {
 	padding: 0px;
@@ -576,6 +573,30 @@
 	.sidebarFileLinkMenu:hover {
 		color: var(--tla-color-text-1);
 	}
+}
+
+/* Renaming */
+
+.sidebarFileLinkRenameInputWrapper {
+	background-color: var(--tla-color-sidebar);
+	outline: 1px solid var(--color-primary);
+	outline-offset: -2px;
+	border-radius: 6px;
+}
+
+.sidebarFileLinkRenameInputWrapper > div {
+	height: 36px;
+	padding: 0px 8px 0px 8px;
+}
+
+.sidebarFileLinkRenameInput {
+	height: 36px;
+	flex: 1 1 auto;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	position: relative;
+	z-index: 1;
 }
 
 /* Guest badge */

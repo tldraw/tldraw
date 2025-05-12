@@ -49,6 +49,10 @@
 	max-width: 500px;
 }
 
+.feedbackDialog {
+	visibility: visible;
+}
+
 .feedbackDialogTextArea {
 	border: 1px solid var(--tla-color-border);
 	border-radius: var(--radius-2);
