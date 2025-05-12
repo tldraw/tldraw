@@ -58,7 +58,6 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 		>
 			<button
 				draggable={false}
-				className="no-focus-ring"
 				role="button"
 				onPointerDown={(e) => {
 					stopEventPropagation(e)
