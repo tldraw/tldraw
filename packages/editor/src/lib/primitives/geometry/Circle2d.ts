@@ -1,5 +1,5 @@
 import { Box } from '../Box'
-import { Vec } from '../Vec'
+import { Vec, VecLike } from '../Vec'
 import { intersectLineSegmentCircle } from '../intersect'
 import { PI2, getPointOnCircle } from '../utils'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
@@ -43,13 +43,13 @@ export class Circle2d extends Geometry2d {
 		return vertices
 	}
 
-	nearestPoint(point: Vec): Vec {
+	nearestPoint(point: VecLike): Vec {
 		const { _center, radius } = this
 		if (_center.equals(point)) return Vec.AddXY(_center, radius, 0)
-		return _center.clone().add(point.clone().sub(_center).uni().mul(radius))
+		return Vec.Sub(point, _center).uni().mul(radius).add(_center)
 	}
 
-	hitTestLineSegment(A: Vec, B: Vec, distance = 0): boolean {
+	hitTestLineSegment(A: VecLike, B: VecLike, distance = 0): boolean {
 		const { _center, radius } = this
 		return intersectLineSegmentCircle(A, B, _center, radius + distance) !== null
 	}

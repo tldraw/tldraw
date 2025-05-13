@@ -1514,7 +1514,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'adjust-shape-styles',
 				label: 'a11y.adjust-shape-styles',
 				kbd: 'cmd+Enter,ctrl+Enter',
-				readonlyOk: true,
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
 

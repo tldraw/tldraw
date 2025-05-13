@@ -9,7 +9,7 @@ export function OfflineIndicator() {
 	return (
 		<div className={classNames('tlui-offline-indicator')}>
 			{msg('status.offline')}
-			<TldrawUiIcon aria-label="offline" icon="status-offline" small />
+			<TldrawUiIcon label={msg('status.offline')} icon="status-offline" small />
 		</div>
 	)
 }

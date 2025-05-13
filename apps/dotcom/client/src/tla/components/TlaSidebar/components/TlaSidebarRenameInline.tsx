@@ -36,11 +36,11 @@ export function TlaSidebarRenameInline({
 	}, [app, fileId, onClose, trackEvent, source])
 
 	return (
-		<div className={styles.renameWrapper}>
+		<div className={styles.sidebarFileLinkRenameInputWrapper}>
 			<TldrawUiInput
 				ref={ref}
 				data-testid="tla-sidebar-rename-input"
-				className={classNames(styles.rename, 'tla-text_ui__regular')}
+				className={classNames(styles.sidebarFileLinkRenameInput, 'tla-text_ui__regular')}
 				defaultValue={app.getFileName(fileId)}
 				onComplete={handleSave}
 				onCancel={onClose}

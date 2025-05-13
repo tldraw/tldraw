@@ -1,6 +1,5 @@
-import * as _ContextMenu from '@radix-ui/react-context-menu'
-import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { preventDefault } from '@tldraw/editor'
+import { ContextMenu as _ContextMenu, DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
 import { useReadonly } from '../../../hooks/useReadonly'
@@ -67,6 +66,7 @@ export function TldrawUiMenuCheckboxItem<
 				>
 					<TldrawUiIcon
 						small
+						label={msg(checked ? 'ui.checked' : 'ui.unchecked')}
 						icon={toggle ? (checked ? 'toggle-on' : 'toggle-off') : checked ? 'check' : 'none'}
 					/>
 					{labelStr && (
@@ -94,6 +94,7 @@ export function TldrawUiMenuCheckboxItem<
 				>
 					<TldrawUiIcon
 						small
+						label={msg(checked ? 'ui.checked' : 'ui.unchecked')}
 						icon={toggle ? (checked ? 'toggle-on' : 'toggle-off') : checked ? 'check' : 'none'}
 					/>
 					{labelStr && (

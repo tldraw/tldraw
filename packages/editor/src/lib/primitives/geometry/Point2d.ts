@@ -1,4 +1,4 @@
-import { Vec } from '../Vec'
+import { Vec, VecLike } from '../Vec'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
@@ -22,7 +22,7 @@ export class Point2d extends Geometry2d {
 		return this.point
 	}
 
-	hitTestLineSegment(A: Vec, B: Vec, margin: number): boolean {
+	hitTestLineSegment(A: VecLike, B: VecLike, margin: number): boolean {
 		return Vec.DistanceToLineSegment(A, B, this.point) < margin
 	}
 

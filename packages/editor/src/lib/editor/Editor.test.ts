@@ -52,7 +52,7 @@ beforeEach(() => {
 		shapeUtils: [CustomShape],
 		bindingUtils: [],
 		tools: [],
-		store: createTLStore({ shapeUtils: [CustomShape] }),
+		store: createTLStore({ shapeUtils: [CustomShape], bindingUtils: [] }),
 		getContainer: () => document.body,
 	})
 	editor.setCameraOptions({ isLocked: true })

@@ -1,11 +1,11 @@
 import { SearchEntry } from '@/utils/algolia'
 import { Combobox, ComboboxItem, ComboboxProvider, VisuallyHidden } from '@ariakit/react'
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
-import * as Dialog from '@radix-ui/react-dialog'
 import { Hit } from 'instantsearch.js'
 import { SendEventForHits } from 'instantsearch.js/es/lib/utils'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { Dialog as _Dialog } from 'radix-ui'
 import { Fragment, startTransition, useState } from 'react'
 import { Highlight } from 'react-instantsearch'
 import { twJoin } from 'tailwind-merge'
@@ -176,17 +176,17 @@ function SearchDialogWrapper({
 	onOpenChange(open: boolean): void
 }) {
 	return (
-		<Dialog.Root open onOpenChange={onOpenChange}>
-			<Dialog.Portal>
-				<Dialog.Overlay />
-				<Dialog.Content className="fixed inset-0 z-50" style={{ pointerEvents: 'none' }}>
+		<_Dialog.Root open onOpenChange={onOpenChange}>
+			<_Dialog.Portal>
+				<_Dialog.Overlay />
+				<_Dialog.Content className="fixed inset-0 z-50" style={{ pointerEvents: 'none' }}>
 					<VisuallyHidden>
-						<Dialog.Title>Search</Dialog.Title>
-						<Dialog.Description>Search dialog</Dialog.Description>
+						<_Dialog.Title>Search</_Dialog.Title>
+						<_Dialog.Description>Search dialog</_Dialog.Description>
 					</VisuallyHidden>
 					{children}
-				</Dialog.Content>
-			</Dialog.Portal>
-		</Dialog.Root>
+				</_Dialog.Content>
+			</_Dialog.Portal>
+		</_Dialog.Root>
 	)
 }

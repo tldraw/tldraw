@@ -129,6 +129,7 @@ import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
 import { PI, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
+import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { dataUrlToFile } from '../utils/assets'
 import { debugFlags } from '../utils/debug-flags'
 import {
@@ -325,7 +326,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.options = { ...defaultTldrawOptions, ...options }
 
 		this.store = store
-		this.disposables.add(this.store.dispose.bind(this.store))
 		this.history = new HistoryManager<TLRecord>({
 			store,
 			annotateError: (error) => {
@@ -955,6 +955,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	dispose() {
 		this.disposables.forEach((dispose) => dispose())
 		this.disposables.clear()
+		this.store.dispose()
 		this.isDisposed = true
 	}
 
@@ -1814,9 +1815,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	/**
+	 * Select the next shape in the reading order or in cardinal order.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.selectAdjacentShape('next')
+	 * ```
+	 *
+	 * @public
+	 */
 	selectAdjacentShape(direction: TLAdjacentDirection) {
-		const readingOrderShapes = this.getCurrentPageShapesInReadingOrder()
 		const selectedShapeIds = this.getSelectedShapeIds()
+		const firstParentId = selectedShapeIds[0] ? this.getShape(selectedShapeIds[0])?.parentId : null
+		const isSelectedWithinContainer =
+			firstParentId &&
+			selectedShapeIds.every((shapeId) => this.getShape(shapeId)?.parentId === firstParentId) &&
+			!isPageId(firstParentId)
+		const readingOrderShapes = isSelectedWithinContainer
+			? this._getShapesInReadingOrder(
+					this.getCurrentPageShapes().filter((shape) => shape.parentId === firstParentId)
+				)
+			: this.getCurrentPageShapesInReadingOrder()
 		const currentShapeId: TLShapeId | undefined =
 			selectedShapeIds.length === 1
 				? selectedShapeIds[0]
@@ -1838,13 +1858,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const shape = this.getShape(adjacentShapeId)
 		if (!shape) return
 
-		this.setSelectedShapes([shape.id])
-		this.zoomToSelectionIfOffscreen(256, {
-			animation: {
-				duration: this.options.animationMediumMs,
-			},
-			inset: 0,
-		})
+		this._selectShapesAndZoom([shape.id])
 	}
 
 	/**
@@ -1854,10 +1868,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCurrentPageShapesInReadingOrder(): TLShape[] {
+		const shapes = this.getCurrentPageShapes().filter((shape) => isPageId(shape.parentId))
+		return this._getShapesInReadingOrder(shapes)
+	}
+
+	private _getShapesInReadingOrder(shapes: TLShape[]): TLShape[] {
 		const SHALLOW_ANGLE = 20
 		const ROW_THRESHOLD = 100
 
-		const shapes = this.getCurrentPageShapes()
 		const tabbableShapes = shapes.filter((shape) => this.getShapeUtil(shape).canTabTo(shape))
 
 		if (tabbableShapes.length <= 1) return tabbableShapes
@@ -2001,6 +2019,36 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		return lowestScoringShape!.shape.id
+	}
+
+	selectParentShape() {
+		const selectedShape = this.getOnlySelectedShape()
+		if (!selectedShape) return
+		const parentShape = this.getShape(selectedShape.parentId)
+		if (!parentShape) return
+		this._selectShapesAndZoom([parentShape.id])
+	}
+
+	selectFirstChildShape() {
+		const selectedShapes = this.getSelectedShapes()
+		if (!selectedShapes.length) return
+		const selectedShape = selectedShapes[0]
+		const children = this.getSortedChildIdsForParent(selectedShape.id)
+			.map((id) => this.getShape(id))
+			.filter((i) => i) as TLShape[]
+		const sortedChildren = this._getShapesInReadingOrder(children)
+		if (sortedChildren.length === 0) return
+		this._selectShapesAndZoom([sortedChildren[0].id])
+	}
+
+	private _selectShapesAndZoom(ids: TLShapeId[]) {
+		this.setSelectedShapes(ids)
+		this.zoomToSelectionIfOffscreen(256, {
+			animation: {
+				duration: this.options.animationMediumMs,
+			},
+			inset: 0,
+		})
 	}
 
 	/**
@@ -2275,13 +2323,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setEditingShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		this.setRichTextEditor(null)
-		if (id !== this.getEditingShapeId()) {
+		const prevEditingShapeId = this.getEditingShapeId()
+		if (id !== prevEditingShapeId) {
 			if (id) {
 				const shape = this.getShape(id)
 				if (shape && this.getShapeUtil(shape).canEdit(shape)) {
 					this.run(
 						() => {
 							this._updateCurrentPageState({ editingShapeId: id })
+							if (prevEditingShapeId) {
+								const prevEditingShape = this.getShape(prevEditingShapeId)
+								if (prevEditingShape) {
+									this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
+								}
+							}
+							this.getShapeUtil(shape).onEditStart?.(shape)
 						},
 						{ history: 'ignore' }
 					)
@@ -2294,6 +2350,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				() => {
 					this._updateCurrentPageState({ editingShapeId: null })
 					this._currentRichTextEditor.set(null)
+					if (prevEditingShapeId) {
+						const prevEditingShape = this.getShape(prevEditingShapeId)
+						if (prevEditingShape) {
+							this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
+						}
+					}
 				},
 				{ history: 'ignore' }
 			)
@@ -4574,7 +4636,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					this.fonts.trackFontsForShape(shape)
 					return this.getShapeUtil(shape).getGeometry(shape, opts)
 				},
-				{ areRecordsEqual: (a, b) => a.props === b.props }
+				{ areRecordsEqual: areShapesContentEqual }
 			)
 		}
 		return this._shapeGeometryCaches[context].get(
@@ -4622,9 +4684,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	@computed private _getShapeHandlesCache(): ComputedCache<TLHandle[] | undefined, TLShape> {
-		return this.store.createComputedCache('handles', (shape) => {
-			return this.getShapeUtil(shape).getHandles?.(shape)
-		})
+		return this.store.createComputedCache(
+			'handles',
+			(shape) => {
+				return this.getShapeUtil(shape).getHandles?.(shape)
+			},
+			{
+				areRecordsEqual: areShapesContentEqual,
+			}
+		)
 	}
 
 	/**
@@ -5845,9 +5913,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed
 	private _getBindingsIndexCache() {
 		const index = bindingsIndex(this)
-		return this.store.createComputedCache<TLBinding[], TLShape>('bindingsIndex', (shape) => {
-			return index.get().get(shape.id)
-		})
+		return this.store.createComputedCache<TLBinding[], TLShape>(
+			'bindingsIndex',
+			(shape) => {
+				return index.get().get(shape.id)
+			},
+			// we can ignore the shape equality check here because the index is
+			// computed incrementally based on what bindings are in the store
+			{ areRecordsEqual: () => true }
+		)
 	}
 
 	/**
@@ -10214,7 +10288,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					// If the camera behavior is "zoom" and the ctrl key is pressed, then pan;
 					// If the camera behavior is "pan" and the ctrl key is not pressed, then zoom
-					if (inputs.ctrlKey) behavior = wheelBehavior === 'pan' ? 'zoom' : 'pan'
+					if (info.ctrlKey) behavior = wheelBehavior === 'pan' ? 'zoom' : 'pan'
 
 					switch (behavior) {
 						case 'zoom': {
@@ -10330,12 +10404,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (this.inputs.isPanning && this.inputs.isPointing) {
 							// Handle spacebar / middle mouse button panning
 							const { currentScreenPoint, previousScreenPoint } = this.inputs
-							const { panSpeed } = cameraOptions
 							const offset = Vec.Sub(currentScreenPoint, previousScreenPoint)
-							this.setCamera(
-								new Vec(cx + (offset.x * panSpeed) / cz, cy + (offset.y * panSpeed) / cz, cz),
-								{ immediate: true }
-							)
+							this.setCamera(new Vec(cx + offset.x / cz, cy + offset.y / cz, cz), {
+								immediate: true,
+							})
 							this.maybeTrackPerformance('Panning')
 							return
 						}

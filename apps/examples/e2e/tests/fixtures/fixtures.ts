@@ -91,6 +91,7 @@ const test = base.extend<Fixtures>({
 				exportAsFormat: true,
 				createShapeId: true,
 				toRichText: true,
+				markAllArrowBindings: true,
 			},
 			page
 		)

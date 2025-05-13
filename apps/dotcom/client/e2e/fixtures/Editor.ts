@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
+import { sleep } from 'tldraw'
 import { Sidebar } from './Sidebar'
 import { step } from './tla-test'
 
@@ -21,13 +22,14 @@ export class Editor {
 
 	async toggleSidebar() {
 		await this.sidebarToggle.click()
+		await sleep(500)
 	}
 
 	@step
 	async ensureSidebarOpen() {
 		const visible = await this.sidebar.isVisible()
 		if (!visible) {
-			await this.sidebarToggle.click()
+			await this.toggleSidebar()
 		}
 		await this.sidebar.expectIsVisible()
 	}
@@ -36,7 +38,7 @@ export class Editor {
 	async ensureSidebarClosed() {
 		const visible = await this.sidebar.isVisible()
 		if (visible) {
-			await this.sidebarToggle.click()
+			await this.toggleSidebar()
 		}
 		await this.sidebar.expectIsNotVisible()
 	}
@@ -81,6 +83,6 @@ export class Editor {
 	async createTextShape(text: string) {
 		await this.page.locator('.tl-background').click({ clickCount: 2 })
 		await this.page.locator('div[contenteditable="true"]').fill(text)
-		await this.page.pause()
+		// await this.page.pause()
 	}
 }

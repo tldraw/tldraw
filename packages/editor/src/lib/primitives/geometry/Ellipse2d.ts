@@ -1,5 +1,5 @@
 import { Box } from '../Box'
-import { Vec } from '../Vec'
+import { Vec, VecLike } from '../Vec'
 import { PI, PI2, perimeterOfEllipse } from '../utils'
 import { Edge2d } from './Edge2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
@@ -73,7 +73,7 @@ export class Ellipse2d extends Geometry2d {
 		return vertices
 	}
 
-	nearestPoint(A: Vec): Vec {
+	nearestPoint(A: VecLike): Vec {
 		let nearest: Vec | undefined
 		let dist = Infinity
 		let d: number
@@ -90,7 +90,7 @@ export class Ellipse2d extends Geometry2d {
 		return nearest
 	}
 
-	hitTestLineSegment(A: Vec, B: Vec): boolean {
+	hitTestLineSegment(A: VecLike, B: VecLike): boolean {
 		return this.edges.some((edge) => edge.hitTestLineSegment(A, B))
 	}
 

@@ -1,8 +1,9 @@
-import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { preventDefault, useContainer } from '@tldraw/editor'
 import classNames from 'classnames'
+import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { ReactNode } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from './Button/TldrawUiButtonLabel'
@@ -180,12 +181,13 @@ export function TldrawUiDropdownMenuSubContent({
 /** @public */
 export interface TLUiDropdownMenuGroupProps {
 	children: ReactNode
+	className?: string
 }
 
 /** @public @react */
-export function TldrawUiDropdownMenuGroup({ children }: TLUiDropdownMenuGroupProps) {
+export function TldrawUiDropdownMenuGroup({ className, children }: TLUiDropdownMenuGroupProps) {
 	return (
-		<div dir="ltr" className="tlui-menu__group">
+		<div dir="ltr" className={classNames('tlui-menu__group', className)}>
 			{children}
 		</div>
 	)
@@ -193,9 +195,11 @@ export function TldrawUiDropdownMenuGroup({ children }: TLUiDropdownMenuGroupPro
 
 /** @public @react */
 export function TldrawUiDropdownMenuIndicator() {
+	const msg = useTranslation()
+
 	return (
 		<_DropdownMenu.ItemIndicator dir="ltr" asChild>
-			<TldrawUiIcon icon="check" />
+			<TldrawUiIcon label={msg('ui.checked')} icon="check" />
 		</_DropdownMenu.ItemIndicator>
 	)
 }
@@ -230,6 +234,8 @@ export function TldrawUiDropdownMenuCheckboxItem({
 	onSelect,
 	...rest
 }: TLUiDropdownMenuCheckboxItemProps) {
+	const msg = useTranslation()
+
 	return (
 		<_DropdownMenu.CheckboxItem
 			dir="ltr"
@@ -242,7 +248,7 @@ export function TldrawUiDropdownMenuCheckboxItem({
 		>
 			<div className="tlui-button__checkbox__indicator">
 				<_DropdownMenu.ItemIndicator dir="ltr">
-					<TldrawUiIcon icon="check" small />
+					<TldrawUiIcon label={msg('ui.checked')} icon="check" small />
 				</_DropdownMenu.ItemIndicator>
 			</div>
 			{children}
