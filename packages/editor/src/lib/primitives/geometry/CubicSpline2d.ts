@@ -1,4 +1,4 @@
-import { Vec } from '../Vec'
+import { Vec, VecLike } from '../Vec'
 import { CubicBezier2d } from './CubicBezier2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
@@ -58,7 +58,7 @@ export class CubicSpline2d extends Geometry2d {
 		return vertices
 	}
 
-	nearestPoint(A: Vec): Vec {
+	nearestPoint(A: VecLike): Vec {
 		let nearest: Vec | undefined
 		let dist = Infinity
 		let d: number
@@ -75,7 +75,7 @@ export class CubicSpline2d extends Geometry2d {
 		return nearest
 	}
 
-	hitTestLineSegment(A: Vec, B: Vec): boolean {
+	hitTestLineSegment(A: VecLike, B: VecLike): boolean {
 		return this.segments.some((segment) => segment.hitTestLineSegment(A, B))
 	}
 

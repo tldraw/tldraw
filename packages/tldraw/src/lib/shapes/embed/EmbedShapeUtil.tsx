@@ -70,7 +70,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	override canResize(shape: TLEmbedShape) {
 		return !!this.getEmbedDefinition(shape.props.url)?.definition?.doesResize
 	}
-	override canEditInReadOnly() {
+	override canEditInReadonly() {
 		return true
 	}
 
@@ -195,6 +195,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						// eslint-disable-next-line @typescript-eslint/no-deprecated
 						frameBorder="0"
 						referrerPolicy="no-referrer-when-downgrade"
+						tabIndex={isEditing ? 0 : -1}
 						style={{
 							border: 0,
 							pointerEvents: isInteractive ? 'auto' : 'none',
@@ -270,6 +271,7 @@ function Gist({
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			scrolling="no"
 			referrerPolicy="no-referrer-when-downgrade"
+			tabIndex={isInteractive ? 0 : -1}
 			style={{
 				...style,
 				pointerEvents: isInteractive ? 'all' : 'none',

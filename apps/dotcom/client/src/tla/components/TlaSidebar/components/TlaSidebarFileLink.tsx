@@ -1,6 +1,6 @@
-import * as _ContextMenu from '@radix-ui/react-context-menu'
 import { TlaFile } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
+import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { KeyboardEvent, MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
@@ -164,7 +164,7 @@ export function TlaSidebarFileLinkInner({
 
 	return (
 		<div
-			className={classNames(styles.link, styles.hoverable)}
+			className={classNames(styles.sidebarFileLink, styles.hoverable)}
 			data-active={isActive}
 			data-element="file-link"
 			data-testid={testId}
@@ -190,11 +190,11 @@ export function TlaSidebarFileLinkInner({
 					trackEvent('click-file-link', { source: 'sidebar' })
 				}}
 				to={href}
-				className={styles.linkButton}
+				className={styles.sidebarFileLinkButton}
 			/>
-			<div className={styles.linkContent}>
+			<div className={styles.sidebarFileLinkContent}>
 				<div
-					className={classNames(styles.label, 'tla-text_ui__regular', 'notranslate')}
+					className={classNames(styles.sidebarFileLinkLabel, 'tla-text_ui__regular', 'notranslate')}
 					data-testid={`${testId}-name`}
 				>
 					{fileName}
@@ -225,13 +225,13 @@ function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
 	)
 
 	return (
-		<div className={styles.guestBadge} data-testid={testId}>
+		<div className={styles.sidebarFileLinkGuestBadge} data-testid={testId}>
 			<TlaTooltipRoot disableHoverableContent>
 				<TlaTooltipTrigger
 					dir="ltr"
 					// this is needed to prevent the tooltip from closing when clicking the badge
 					onClick={handleToolTipClick}
-					className={styles.guestBadgeTrigger}
+					className={styles.sidebarFileLinkGuestBadgeTrigger}
 				>
 					<TlaIcon icon="group" className="tlui-guest-icon" />
 				</TlaTooltipTrigger>

@@ -1,6 +1,6 @@
-import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { preventDefault, useContainer } from '@tldraw/editor'
 import classNames from 'classnames'
+import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { ReactNode } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { TldrawUiButton } from './Button/TldrawUiButton'
@@ -180,12 +180,13 @@ export function TldrawUiDropdownMenuSubContent({
 /** @public */
 export interface TLUiDropdownMenuGroupProps {
 	children: ReactNode
+	className?: string
 }
 
 /** @public @react */
-export function TldrawUiDropdownMenuGroup({ children }: TLUiDropdownMenuGroupProps) {
+export function TldrawUiDropdownMenuGroup({ className, children }: TLUiDropdownMenuGroupProps) {
 	return (
-		<div dir="ltr" className="tlui-menu__group">
+		<div dir="ltr" className={classNames('tlui-menu__group', className)}>
 			{children}
 		</div>
 	)

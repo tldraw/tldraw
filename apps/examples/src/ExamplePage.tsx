@@ -1,4 +1,4 @@
-import * as Dialog from '@radix-ui/react-alert-dialog'
+import { AlertDialog as _AlertDialog } from 'radix-ui'
 import { Dispatch, createContext, useContext, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Example, examples } from './examples'
@@ -205,12 +205,12 @@ function Dialogs() {
 	}
 
 	return (
-		<Dialog.Root defaultOpen onOpenChange={handleOpenChange} open={!!example}>
-			<Dialog.Overlay
+		<_AlertDialog.Root defaultOpen onOpenChange={handleOpenChange} open={!!example}>
+			<_AlertDialog.Overlay
 				className="example__dialog__overlay"
 				onPointerDown={() => setExampleDialog(null)}
 			/>
-			<Dialog.Content className="example__dialog__content">
+			<_AlertDialog.Content className="example__dialog__content">
 				<h1>{example.title}</h1>
 				<Markdown sanitizedHtml={example.description} className="example__dialog__markdown" />
 				<Markdown sanitizedHtml={example.details} className="example__dialog__markdown" />
@@ -218,10 +218,10 @@ function Dialogs() {
 					<a href={example.codeUrl}>
 						View Source <ExternalLinkIcon />
 					</a>
-					<Dialog.Cancel className="example__dialog__close">Close</Dialog.Cancel>
+					<_AlertDialog.Cancel className="example__dialog__close">Close</_AlertDialog.Cancel>
 				</div>
-			</Dialog.Content>
-		</Dialog.Root>
+			</_AlertDialog.Content>
+		</_AlertDialog.Root>
 	)
 }
 

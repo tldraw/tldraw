@@ -10,12 +10,15 @@ import {
 	Vec,
 } from '@tldraw/editor'
 import { createComputedCache } from '@tldraw/store'
+import { TLArrowInfo } from './arrow-types'
 import { getCurvedArrowInfo } from './curved-arrow'
+import { getElbowArrowInfo } from './elbow/getElbowArrowInfo'
 import { getStraightArrowInfo } from './straight-arrow'
 
 const MIN_ARROW_BEND = 8
 
 export function getIsArrowStraight(shape: TLArrowShape) {
+	if (shape.props.kind !== 'arc') return false
 	return Math.abs(shape.props.bend) < MIN_ARROW_BEND * shape.props.scale // snap to +-8px
 }
 
@@ -41,9 +44,13 @@ export function getBoundShapeInfoForTerminal(
 	const boundShape = editor.getShape(binding.toId)!
 	if (!boundShape) return
 	const transform = editor.getShapePageTransform(boundShape)!
+	const hasArrowhead =
+		terminalName === 'start'
+			? arrow.props.arrowheadStart !== 'none'
+			: arrow.props.arrowheadEnd !== 'none'
 	const geometry = editor.getShapeGeometry(
 		boundShape,
-		terminalName === 'start' ? { context: '@tldraw/arrow-start' } : undefined
+		hasArrowhead ? undefined : { context: '@tldraw/arrow-without-arrowhead' }
 	)
 
 	return {
@@ -56,7 +63,7 @@ export function getBoundShapeInfoForTerminal(
 	}
 }
 
-function getArrowTerminalInArrowSpace(
+export function getArrowTerminalInArrowSpace(
 	editor: Editor,
 	arrowPageTransform: Mat,
 	binding: TLArrowBinding,
@@ -103,12 +110,40 @@ export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBi
 	}
 }
 
-const arrowInfoCache = createComputedCache('arrow info', (editor: Editor, shape: TLArrowShape) => {
-	const bindings = getArrowBindings(editor, shape)
-	return getIsArrowStraight(shape)
-		? getStraightArrowInfo(editor, shape, bindings)
-		: getCurvedArrowInfo(editor, shape, bindings)
-})
+const arrowInfoCache = createComputedCache(
+	'arrow info',
+	(editor: Editor, shape: TLArrowShape): TLArrowInfo => {
+		const bindings = getArrowBindings(editor, shape)
+		if (shape.props.kind === 'elbow') {
+			const elbowInfo = getElbowArrowInfo(editor, shape, bindings)
+			if (!elbowInfo?.route) return getStraightArrowInfo(editor, shape, bindings)
+
+			const start = elbowInfo.swapOrder ? elbowInfo.B : elbowInfo.A
+			const end = elbowInfo.swapOrder ? elbowInfo.A : elbowInfo.B
+
+			return {
+				type: 'elbow',
+				bindings,
+				start: {
+					handle: start.target,
+					point: elbowInfo.route.points[0],
+					arrowhead: shape.props.arrowheadStart,
+				},
+				end: {
+					handle: end.target,
+					point: elbowInfo.route.points[elbowInfo.route.points.length - 1],
+					arrowhead: shape.props.arrowheadEnd,
+				},
+				elbow: elbowInfo,
+				route: elbowInfo.route,
+				isValid: true,
+			}
+		}
+		return getIsArrowStraight(shape)
+			? getStraightArrowInfo(editor, shape, bindings)
+			: getCurvedArrowInfo(editor, shape, bindings)
+	}
+)
 
 /** @public */
 export function getArrowInfo(editor: Editor, shape: TLArrowShape | TLShapeId) {

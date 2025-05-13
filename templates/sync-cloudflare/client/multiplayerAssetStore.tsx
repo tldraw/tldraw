@@ -22,7 +22,7 @@ export const multiplayerAssetStore: TLAssetStore = {
 		}
 
 		// ...and return the URL to be stored with the asset record.
-		return url
+		return { src: url }
 	},
 
 	// to retrieve an asset, we can just use the same URL. you could customize this to add extra

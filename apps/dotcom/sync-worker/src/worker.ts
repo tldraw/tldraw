@@ -8,17 +8,24 @@ import {
 	createMutators,
 	schema,
 } from '@tldraw/dotcom-shared'
-import { createRouter, handleApiRequest, handleUserAssetGet, notFound } from '@tldraw/worker-shared'
+import {
+	createRouter,
+	createSentry,
+	handleApiRequest,
+	handleUserAssetGet,
+	notFound,
+} from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors, json } from 'itty-router'
 import {
+	PostgresJSConnection,
 	PushProcessor,
-	connectionProvider,
+	ZQLDatabase,
 } from '../../../../node_modules/@rocicorp/zero/out/zero/src/pg'
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
-import { makePostgresConnector } from './postgres'
+import { createPostgresConnectionPool, makePostgresConnector } from './postgres'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { getReadonlySlug } from './routes/getReadonlySlug'
@@ -32,7 +39,7 @@ import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
-import { Environment, isDebugLogging } from './types'
+import { Environment, QueueMessage, isDebugLogging } from './types'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
@@ -44,6 +51,8 @@ export { TLUserDurableObject } from './TLUserDurableObject'
 const { preflight, corsify } = cors({
 	origin: isAllowedOrigin,
 })
+
+const QUEUE_BASE_DELAY = 2
 
 const router = createRouter<Environment>()
 	.all('*', preflight)
@@ -137,18 +146,12 @@ const router = createRouter<Environment>()
 	.all('/app/admin/*', adminRoutes.fetch)
 	.post('/app/zero/push', async (req, env) => {
 		const auth = await requireAuth(req, env)
-		try {
-			const processor = new PushProcessor(
-				schema,
-				connectionProvider(makePostgresConnector(env)),
-				'debug'
-			)
-			const result = await processor.process(createMutators(auth.userId), req)
-			return json(result)
-		} catch (e) {
-			console.error('Error processing push', e)
-			return new Response('Error', { status: 500 })
-		}
+		const processor = new PushProcessor(
+			new ZQLDatabase(new PostgresJSConnection(makePostgresConnector(env)), schema),
+			'debug'
+		)
+		const result = await processor.process(createMutators(auth.userId), req)
+		return json(result)
 	})
 	.all('*', notFound)
 
@@ -183,7 +186,31 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				}
 				return newResponse
 			},
+		}).catch((err) => {
+			const sentry = createSentry(this.ctx, this.env, request)
+			if (sentry) {
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				sentry.captureException(err)
+			} else {
+				console.error(err)
+			}
+			throw err
 		})
+	}
+
+	override async queue(batch: MessageBatch<QueueMessage>): Promise<void> {
+		const db = createPostgresConnectionPool(this.env, 'sync-worker-queue')
+		for (const message of batch.messages) {
+			const { objectName, fileId } = message.body
+			try {
+				await db.insertInto('asset').values({ objectName, fileId }).executeTakeFirstOrThrow()
+				message.ack()
+			} catch (_e) {
+				message.retry({
+					delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
+				})
+			}
+		}
 	}
 }
 

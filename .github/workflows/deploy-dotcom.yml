@@ -56,8 +56,9 @@ jobs:
           elif echo "${{ toJSON(github.event.pull_request.labels.*.name) }}" | grep -q "preview-flyio-zero-deploy-please"; then
             echo "DEPLOY_ZERO=flyio" >> $GITHUB_ENV
           elif git fetch origin "${GITHUB_BASE_REF}" && git diff --name-only origin/"${GITHUB_BASE_REF}"...HEAD | grep -q '^apps/dotcom/'; then
-            gh pr edit ${{ github.event.pull_request.number }} --add-label "preview-flyio-zero-deploy-please"
-            echo "DEPLOY_ZERO=flyio" >> $GITHUB_ENV
+            # gh pr edit ${{ github.event.pull_request.number }} --add-label "preview-flyio-zero-deploy-please"
+            # echo "DEPLOY_ZERO=flyio" >> $GITHUB_ENV
+            echo "DEPLOY_ZERO=false" >> $GITHUB_ENV
           else
             echo "DEPLOY_ZERO=false" >> $GITHUB_ENV
           fi

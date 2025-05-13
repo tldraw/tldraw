@@ -1,4 +1,4 @@
-import { Range, Root, Thumb, Track } from '@radix-ui/react-slider'
+import { Slider as _Slider } from 'radix-ui'
 import { memo, useCallback } from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -54,7 +54,7 @@ export const TldrawUiSlider = memo(function Slider({
 
 	return (
 		<div className="tlui-slider__container">
-			<Root
+			<_Slider.Root
 				data-testid={testId}
 				className="tlui-slider"
 				dir="ltr"
@@ -69,13 +69,17 @@ export const TldrawUiSlider = memo(function Slider({
 				onKeyUpCapture={handleKeyEvent}
 				title={title + ' — ' + msg(label as TLUiTranslationKey)}
 			>
-				<Track className="tlui-slider__track" dir="ltr">
-					{value !== null && <Range className="tlui-slider__range" dir="ltr" />}
-				</Track>
+				<_Slider.Track className="tlui-slider__track" dir="ltr">
+					{value !== null && <_Slider.Range className="tlui-slider__range" dir="ltr" />}
+				</_Slider.Track>
 				{value !== null && (
-					<Thumb aria-label={msg('style-panel.opacity')} className="tlui-slider__thumb" dir="ltr" />
+					<_Slider.Thumb
+						aria-label={msg('style-panel.opacity')}
+						className="tlui-slider__thumb"
+						dir="ltr"
+					/>
 				)}
-			</Root>
+			</_Slider.Root>
 		</div>
 	)
 })
