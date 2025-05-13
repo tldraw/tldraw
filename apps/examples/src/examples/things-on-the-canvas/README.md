@@ -2,7 +2,7 @@
 title: Things on the canvas
 component: ./OnTheCanvasExample.tsx
 category: ui
-priority: 3
+priority: 1
 keywords: [in front of the canvas, scale, zoom, ui]
 ---
 

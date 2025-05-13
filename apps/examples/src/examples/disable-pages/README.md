@@ -1,5 +1,5 @@
 ---
-title: Disable Pages
+title: Disable pages
 component: ./DisablePagesExample.tsx
 category: configuration
 priority: 10

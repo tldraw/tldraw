@@ -92,6 +92,12 @@ const nextConfig = {
 				permanent: true,
 			},
 			{
+				// For reverse compatibility with renamed examples
+				source: '/examples/basic/state-store',
+				destination: '/examples/signals',
+				permanent: true,
+			},
+			{
 				source: '/reference',
 				destination: '/reference/editor/Editor',
 				permanent: true,
@@ -99,12 +105,6 @@ const nextConfig = {
 			{
 				source: '/docs',
 				destination: '/quick-start',
-				permanent: true,
-			},
-			// Renamed examples
-			{
-				source: '/examples/basic/state-store',
-				destination: '/examples/signals',
 				permanent: true,
 			},
 		]
