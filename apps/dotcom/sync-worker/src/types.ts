@@ -161,4 +161,5 @@ export interface QueueMessage {
 	type: 'asset-upload'
 	objectName: string
 	fileId: string
+	userId: string | null
 }
