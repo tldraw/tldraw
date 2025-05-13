@@ -97,8 +97,11 @@ export const user_group = table('user_group')
 
 export const user_presence = table('user_presence')
 	.columns({
-		userId: string(),
+		sessionId: string(),
 		fileId: string(),
+		userId: string(),
+		name: string().optional(),
+		color: string().optional(),
 		lastActivityAt: number(),
 	})
 	.primaryKey('userId', 'fileId')
@@ -220,6 +223,9 @@ export interface DB {
 	user: TlaUser
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
+	group: TlaGroup
+	user_group: TlaUserGroup
+	user_presence: TlaUserPresence
 }
 
 export const schema = createSchema({
