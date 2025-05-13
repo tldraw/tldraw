@@ -1,5 +1,5 @@
 ---
-title: Changing default style
+title: Change default styles
 component: ./ChangingDefaultStyleExample.tsx
 category: ui
 priority: 0.5

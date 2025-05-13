@@ -1,5 +1,5 @@
 ---
-title: Text search
+title: Search text on the canvas
 component: ./TextSearchExample.tsx
 category: editor-api
 priority: 1

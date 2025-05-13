@@ -1,5 +1,5 @@
 ---
-title: Changing default colors
+title: Change default colors
 component: ./ChangingDefaultColorsExample.tsx
 category: ui
 priority: 0.5

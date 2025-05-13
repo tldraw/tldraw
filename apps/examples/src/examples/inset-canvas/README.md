@@ -2,7 +2,7 @@
 title: Inset canvas
 component: ./InsetCanvasExample.tsx
 category: layout
-priority: 20
+priority: 1
 keywords: []
 ---
 

@@ -1,5 +1,5 @@
 ---
-title: Changing default menus
+title: Change default menus
 component: ./CustomMenusExample.tsx
 category: ui
 priority: 0.5

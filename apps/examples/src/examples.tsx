@@ -50,7 +50,7 @@ const categories = [
 	['collaboration', 'Sync'],
 	['data/assets', 'Data & assets'],
 	['use-cases', 'Use cases'],
-	['layout', 'Canvas layout'],
+	['layout', 'Page layout'],
 	['advanced', 'Advanced'],
 ]
 

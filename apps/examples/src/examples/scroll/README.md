@@ -1,5 +1,5 @@
 ---
-title: Scrolling container
+title: Scrollable container
 component: ./ScrollExample.tsx
 category: layout
 priority: 6
