@@ -33,6 +33,11 @@
 	color: var(--color-text-3);
 }
 
+.info a {
+	color: var(--color-text-3);
+	text-decoration: none;
+}
+
 .info::after {
 	inset: 6px;
 	border-radius: 100%;

@@ -83,6 +83,19 @@ async function deletePreviewWorkerDeployment(id: string) {
 	if (!res.ok) {
 		throw new Error('Failed to delete worker ' + JSON.stringify(await res.json()))
 	}
+
+	const queueUrl = `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/queues/tldraw-multiplayer-queue-${id}`
+	const queueRes = await fetch(queueUrl, {
+		method: 'DELETE',
+		headers: {
+			Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
+			'Content-Type': 'application/json',
+		},
+	})
+	if (!queueRes.ok) {
+		// This might happen for old PRs that didn't have queues yet
+		console.log('Failed to delete queue ' + JSON.stringify(await queueRes.json()))
+	}
 }
 
 const neonHeaders = {

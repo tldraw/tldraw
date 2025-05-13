@@ -7,6 +7,9 @@
 	color: var(--color-text-shadow);
 	animation-name: fade-in;
 	animation-duration: 0.1s;
+	max-width: 400px;
+	width: fit-content;
+	text-align: center;
 	z-index: 500;
 }
 
