@@ -1281,6 +1281,10 @@ input,
 	display: none;
 }
 
+.tl-hyperlink-pointer-event__none {
+	pointer-events: none;
+}
+
 /* ---------------- Geo shape ---------------- */
 
 .tl-text-label {
