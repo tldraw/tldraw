@@ -179,6 +179,14 @@ export function DefaultKeyboardShortcutsDialogContent() {
 					}}
 				/>
 				<TldrawUiMenuItem
+					id="adjust-shape-styles"
+					label="a11y.adjust-shape-styles"
+					kbd="$+[[Enter]]"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
 					id="a11y-move-shape"
 					label="a11y.move-shape"
 					kbd="↑→↓←"
