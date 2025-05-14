@@ -152,6 +152,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 						label="edit-link-dialog.url"
 						autoFocus
 						autoSelect
+						placeholder="https://example.com"
 						value={urlInputState.actual}
 						onValueChange={handleChange}
 						onComplete={handleComplete}
