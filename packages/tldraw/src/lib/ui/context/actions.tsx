@@ -1511,6 +1511,20 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'adjust-shape-styles',
+				label: 'a11y.adjust-shape-styles',
+				kbd: 'cmd+Enter,ctrl+Enter',
+				onSelect: async (source) => {
+					if (!canApplySelectionAction()) return
+
+					const firstButton = editor
+						.getContainer()
+						.querySelector('.tlui-style-panel button') as HTMLElement | null
+					firstButton?.focus()
+					trackEvent('adjust-shape-styles', { source })
+				},
+			},
+			{
 				id: 'enlarge-shapes',
 				label: 'a11y.enlarge-shape',
 				kbd: 'cmd+alt+shift+=,ctrl+alt+shift+=',
