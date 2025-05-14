@@ -1,5 +1,5 @@
 import { Slider as _Slider } from 'radix-ui'
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useEffect, useState } from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 
@@ -25,6 +25,14 @@ export const TldrawUiSlider = memo(function Slider({
 	['data-testid']: testId,
 }: TLUiSliderProps) {
 	const msg = useTranslation()
+
+	// XXX: Radix starts out our slider with a tabIndex of 0
+	// This causes some tab focusing issues, most prevelant in MobileStylePanel,
+	// where it grabs the focus. This works around it.
+	const [tabIndex, setTabIndex] = useState(-1)
+	useEffect(() => {
+		setTabIndex(0)
+	}, [])
 
 	const handleValueChange = useCallback(
 		(value: number[]) => {
@@ -77,6 +85,7 @@ export const TldrawUiSlider = memo(function Slider({
 						aria-label={msg('style-panel.opacity')}
 						className="tlui-slider__thumb"
 						dir="ltr"
+						tabIndex={tabIndex}
 					/>
 				)}
 			</_Slider.Root>
