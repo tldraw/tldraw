@@ -1,10 +1,8 @@
 import {
 	BindingOnShapeChangeOptions,
-	BindingOnShapeDeleteOptions,
 	BindingUtil,
 	DefaultToolbar,
 	DefaultToolbarContent,
-	Mat,
 	Polyline2d,
 	SVGContainer,
 	ShapeUtil,
@@ -15,6 +13,7 @@ import {
 	TLHandleDragInfo,
 	TLPointerEventInfo,
 	TLResizeInfo,
+	TLShapePartial,
 	TLUiComponents,
 	TLUiOverrides,
 	Tldraw,
@@ -44,9 +43,8 @@ class WireShapeUtil extends ShapeUtil<WireShape> {
 		}
 	}
 
-	override canBind() {
-		// custom arrows can bind to anything
-		return true
+	override canBind({ toShapeType }: { toShapeType: string }) {
+		return toShapeType !== 'wire'
 	}
 	override canEdit() {
 		return false
@@ -96,22 +94,26 @@ class WireShapeUtil extends ShapeUtil<WireShape> {
 		const { handle } = info
 		const { currentPagePoint } = this.editor.inputs
 
-		const pointInShapeSpace = this.editor.getPointInShapeSpace(wire, currentPagePoint)
 		const target = this.editor.getShapeAtPoint(currentPagePoint, {
 			hitInside: true,
-			filter: (shape) => shape.id !== wire.id,
-			// &&
-			// this.editor.canBindShapes({ fromShape: wire, toShape: shape, binding: 'wire' }),
+			filter: (shape) =>
+				shape.id !== wire.id &&
+				this.editor.canBindShapes({ fromShape: wire, toShape: shape, binding: 'wire' }),
 		})
 
-		if (target) {
+		const oppositeBinding = this.editor
+			.getBindingsFromShape<WireBinding>(wire.id, 'wire')
+			.find((b) => b.props.type !== handle.id)
+
+		if (target && target.id !== oppositeBinding?.toId) {
 			const existingBinding = this.editor
-				.getBindingsFromShape(wire.id, 'wire')
-				.find((b) => b.toId === target.id)
+				.getBindingsFromShape<WireBinding>(wire.id, 'wire')
+				.find((b) => b.props.type === handle.id)
 
 			if (existingBinding) {
 				this.editor.updateBinding({
 					...existingBinding,
+					toId: target.id,
 					props: {
 						type: handle.id,
 					},
@@ -138,34 +140,30 @@ class WireShapeUtil extends ShapeUtil<WireShape> {
 			this.editor.setHintingShapes([])
 		}
 
+		const update: TLShapePartial<WireShape> = {
+			id: wire.id,
+			type: 'wire',
+			props: {},
+		}
+
+		const pointInShapeSpace = this.editor.getPointInShapeSpace(wire, currentPagePoint)
 		if (handle.id === 'start') {
 			const pointInParentSpace = this.editor.getPointInParentSpace(wire, currentPagePoint)
-			const pageTransform = this.editor.getShapePageTransform(wire)!
-			const endInPageSpace = Mat.applyToPoint(
-				pageTransform,
-				new Vec(wire.props.end.x, wire.props.end.y)
-			)
-			this.editor.updateShape({
-				...wire,
-				x: pointInParentSpace.x,
-				y: pointInParentSpace.y,
-			})
-			const updatedShape = this.editor.getShape(wire.id)!
-			const endPointInShapeSpace = this.editor.getPointInShapeSpace(updatedShape, endInPageSpace)
-			this.editor.updateShape({
-				...updatedShape,
-				props: {
-					end: { x: endPointInShapeSpace.x, y: endPointInShapeSpace.y },
+			update.x = pointInParentSpace.x
+			update.y = pointInParentSpace.y
+			update.props = {
+				end: {
+					x: wire.props.end.x - pointInShapeSpace.x,
+					y: wire.props.end.y - pointInShapeSpace.y,
 				},
-			})
-		} else if (handle.id === 'end') {
-			this.editor.updateShape({
-				...wire,
-				props: {
-					end: { x: pointInShapeSpace.x, y: pointInShapeSpace.y },
-				},
-			})
+			}
+			return update
 		}
+
+		update.props = {
+			end: { x: pointInShapeSpace.x, y: pointInShapeSpace.y },
+		}
+		return update
 	}
 
 	override component(shape: WireShape) {
@@ -176,9 +174,9 @@ class WireShapeUtil extends ShapeUtil<WireShape> {
 
 		const rotation = Math.atan2(shape.props.end.y, shape.props.end.x) * (180 / Math.PI)
 		const trianglePoints = [
-			[midPoint.x + 5, midPoint.y],
-			[midPoint.x - 5, midPoint.y - 5],
-			[midPoint.x - 5, midPoint.y + 5],
+			[midPoint.x + 10, midPoint.y],
+			[midPoint.x - 10, midPoint.y - 10],
+			[midPoint.x - 10, midPoint.y + 10],
 		]
 			.map((point) => point.join(','))
 			.join(' ')
@@ -191,7 +189,7 @@ class WireShapeUtil extends ShapeUtil<WireShape> {
 					x2={shape.props.end.x}
 					y2={shape.props.end.y}
 					stroke="red"
-					strokeWidth={2}
+					strokeWidth={4}
 				/>
 				<polygon
 					points={trianglePoints}
@@ -223,7 +221,6 @@ type WireBinding = TLBaseBinding<
 	'wire',
 	{
 		type: 'start' | 'end'
-		anchor: VecModel
 	}
 >
 
@@ -233,13 +230,15 @@ class WireBindingUtil extends BindingUtil<WireBinding> {
 	override getDefaultProps(): WireBinding['props'] {
 		return {
 			type: 'start',
-			anchor: { x: 0.5, y: 0.5 },
 		}
 	}
 
-	// when one of the things we're connected to is deleted, delete the wire too
-	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<WireBinding>): void {
-		this.editor.deleteShape(binding.fromId)
+	override onAfterChangeToShape({ binding }: BindingOnShapeChangeOptions<WireBinding>) {
+		return this.updateBinding(binding)
+	}
+
+	override onAfterChangeFromShape({ binding }: BindingOnShapeChangeOptions<WireBinding>) {
+		return this.updateBinding(binding)
 	}
 
 	updateBinding(binding: WireBinding) {
@@ -247,26 +246,32 @@ class WireBindingUtil extends BindingUtil<WireBinding> {
 		const target = this.editor.getShape(binding.toId)!
 
 		const shapeBounds = this.editor.getShapeGeometry(target)!.bounds
-		const shapeAnchor = {
-			x: lerp(shapeBounds.minX, shapeBounds.maxX, binding.props.anchor.x),
-			y: lerp(shapeBounds.minY, shapeBounds.maxY, binding.props.anchor.y),
+		const pointInTargetSpace = {
+			x: lerp(shapeBounds.minX, shapeBounds.maxX, 0.5),
+			y: lerp(shapeBounds.minY, shapeBounds.maxY, 0.5),
 		}
-		const pageAnchor = this.editor.getShapePageTransform(target).applyToPoint(shapeAnchor)
 
-		const stickerParentAnchor = this.editor
-			.getShapeParentTransform(wire)
-			.invert()
-			.applyToPoint(pageAnchor)
+		const pointInPageSpace = this.editor
+			.getShapePageTransform(target)
+			.applyToPoint(pointInTargetSpace)
 
 		if (binding.props.type === 'start') {
+			const pointInParentSpace = this.editor.getPointInParentSpace(wire, pointInPageSpace)
+			const pointInWireSpace = this.editor.getPointInShapeSpace(wire, pointInPageSpace)
 			this.editor.updateShape({
 				id: wire.id,
 				type: 'wire',
-				x: stickerParentAnchor.x,
-				y: stickerParentAnchor.y,
+				x: pointInParentSpace.x,
+				y: pointInParentSpace.y,
+				props: {
+					end: {
+						x: wire.props.end.x - pointInWireSpace.x,
+						y: wire.props.end.y - pointInWireSpace.y,
+					},
+				},
 			})
 		} else {
-			const endInShapeSpace = this.editor.getPointInShapeSpace(wire, stickerParentAnchor)
+			const endInShapeSpace = this.editor.getPointInShapeSpace(wire, pointInPageSpace)
 			this.editor.updateShape({
 				id: wire.id,
 				type: 'wire',
@@ -278,10 +283,6 @@ class WireBindingUtil extends BindingUtil<WireBinding> {
 				},
 			})
 		}
-	}
-
-	override onAfterChangeToShape({ binding }: BindingOnShapeChangeOptions<WireBinding>): void {
-		return this.updateBinding(binding)
 	}
 }
 
@@ -319,7 +320,7 @@ const overrides: TLUiOverrides = {
 	tools(editor, schema) {
 		schema['wire'] = {
 			id: 'wire',
-			label: 'Sticker',
+			label: 'Wire',
 			icon: 'arrowhead-triangle',
 			kbd: 'w',
 			onSelect: () => {
@@ -333,10 +334,10 @@ const overrides: TLUiOverrides = {
 const components: TLUiComponents = {
 	Toolbar: (...props) => {
 		const wire = useTools()['wire']
-		const isStickerSelected = useIsToolSelected(wire)
+		const isWireSelected = useIsToolSelected(wire)
 		return (
 			<DefaultToolbar {...props}>
-				<TldrawUiMenuItem {...wire} isSelected={isStickerSelected} />
+				<TldrawUiMenuItem {...wire} isSelected={isWireSelected} />
 				<DefaultToolbarContent />
 			</DefaultToolbar>
 		)
