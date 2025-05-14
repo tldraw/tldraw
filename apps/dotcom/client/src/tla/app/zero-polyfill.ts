@@ -1,22 +1,31 @@
 import { MakeCustomMutatorInterfaces } from '@rocicorp/zero/out/zero-client/src/client/custom'
+import { SchemaCRUD, TableCRUD } from '@rocicorp/zero/out/zql/src/mutate/custom'
 import {
-	createMutators,
 	OptimisticAppStore,
-	TlaFile,
-	TlaFilePartial,
 	TlaFileState,
-	TlaFileStatePartial,
 	TlaMutators,
 	TlaSchema,
-	TlaUser,
-	TlaUserPartial,
 	ZClientSentMessage,
 	ZErrorCode,
 	ZRowUpdate,
 	ZServerSentMessage,
+	createMutators,
+	schema,
 } from '@tldraw/dotcom-shared'
 import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { assert, computed, objectMapKeys, react, Signal, sleep, transact, uniqueId } from 'tldraw'
+import {
+	Signal,
+	assert,
+	assertExists,
+	computed,
+	objectMapEntries,
+	objectMapFromEntries,
+	objectMapKeys,
+	react,
+	sleep,
+	transact,
+	uniqueId,
+} from 'tldraw'
 import { TLAppUiContextType } from '../utils/app-ui-events'
 
 export class Zero {
@@ -48,7 +57,7 @@ export class Zero {
 				// todo: handle other well known errors if we add any
 			}
 		})
-		this.socket.onReceiveMessage((_msg) => {
+		this.socket.onReceiveMessage((_msgs) => {
 			if (!this.didReceiveFirstMessage) {
 				this.didReceiveFirstMessage = true
 			}
@@ -56,27 +65,30 @@ export class Zero {
 				// ignore incoming messages if the client is not supported
 				return
 			}
-			const msg = _msg as any as ZServerSentMessage
-			switch (msg.type) {
-				case 'initial_data':
-					this.store.initialize(msg.initialData)
-					break
-				case 'update':
-					this.store.updateCommittedData(msg.update)
-					break
-				case 'commit':
-					{
-						const mutationIds = msg.mutationIds
-						this.store.commitMutations(mutationIds)
+			transact(() => {
+				for (const msg of _msgs as any as ZServerSentMessage) {
+					switch (msg.type) {
+						case 'initial_data':
+							this.store.initialize(msg.initialData)
+							break
+						case 'update':
+							this.store.updateCommittedData(msg.update)
+							break
+						case 'commit':
+							{
+								const mutationIds = msg.mutationIds
+								this.store.commitMutations(mutationIds)
+							}
+							break
+						case 'reject': {
+							const mutationId = msg.mutationId
+							this.store.rejectMutation(mutationId)
+							this.opts.onMutationRejected(msg.errorCode)
+							break
+						}
 					}
-					break
-				case 'reject': {
-					const mutationId = msg.mutationId
-					this.store.rejectMutation(mutationId)
-					this.opts.onMutationRejected(msg.errorCode)
-					break
 				}
-			}
+			})
 		})
 		const mutatorWrapper = (mutatorFn: any) => {
 			return (params: any) => {
@@ -155,7 +167,7 @@ export class Zero {
 							_data = data$.get()
 							if (!_data) return
 							if (table === 'file_state') {
-								const files = this.store.getFullData()?.files
+								const files = this.store.getFullData()?.file
 								if (!files) return
 								_data = (_data as TlaFileState[]).map((d) => ({
 									...d,
@@ -200,84 +212,17 @@ export class Zero {
 	query = {
 		file: this.makeQuery(
 			'file',
-			computed('files', () => this.store.getFullData()?.files.filter((f) => !f.isDeleted))
+			computed('files', () => this.store.getFullData()?.file.filter((f) => !f.isDeleted))
 		),
 		file_state: this.makeQuery(
 			'file_state',
-			computed('fileStates', () => this.store.getFullData()?.fileStates)
+			computed('fileStates', () => this.store.getFullData()?.file_state)
 		),
 		user: {
 			...this.makeQuery(
 				'user',
 				computed('user', () => this.store.getFullData()?.user)
 			),
-		},
-	}
-	readonly ____mutators = {
-		file: {
-			insert: (data: TlaFile) => {
-				const store = this.store.getFullData()
-				if (!store) throw new Error('store not initialized')
-				if (store?.files.find((f) => f.id === data.id)) {
-					throw new Error('file already exists')
-				}
-				this.makeOptimistic([{ table: 'file', event: 'insert', row: data }])
-			},
-			upsert: (data: TlaFile) => {
-				const store = this.store.getFullData()
-				if (!store) throw new Error('store not initialized')
-				this.makeOptimistic([{ table: 'file', event: 'insert', row: data }])
-			},
-			update: (data: TlaFilePartial) => {
-				const existing = this.store.getFullData()?.files.find((f) => f.id === data.id)
-				if (!existing) throw new Error('file not found')
-				this.makeOptimistic([{ table: 'file', event: 'update', row: data }])
-			},
-			delete: (data: { id: TlaFile['id'] }) => {
-				this.makeOptimistic([{ table: 'file', event: 'delete', row: data }])
-			},
-		},
-		file_state: {
-			insert: (data: TlaFileState) => {
-				const store = this.store.getFullData()
-				if (!store) throw new Error('store not initialized')
-				if (store?.fileStates.find((f) => f.fileId === data.fileId && f.userId === data.userId)) {
-					throw new Error('file state already exists')
-				}
-				this.makeOptimistic([{ table: 'file_state', event: 'insert', row: data }])
-			},
-			upsert: (data: TlaFileState) => {
-				const store = this.store.getFullData()
-				if (!store) throw new Error('store not initialized')
-				this.makeOptimistic([{ table: 'file_state', event: 'insert', row: data }])
-			},
-			update: (data: TlaFileStatePartial) => {
-				const existing = this.store
-					.getFullData()
-					?.fileStates.find((f) => f.fileId === data.fileId && f.userId === data.userId)
-				if (!existing) throw new Error('file state not found')
-				this.makeOptimistic([{ table: 'file_state', event: 'update', row: data }])
-			},
-			delete: (data: { fileId: TlaFileState['fileId']; userId: TlaFileState['userId'] }) => {
-				this.makeOptimistic([{ table: 'file_state', event: 'delete', row: data as any }])
-			},
-		},
-		user: {
-			insert: (data: TlaUser) => {
-				if (this.store.getFullData()?.user) {
-					throw new Error('user already exists')
-				}
-				this.makeOptimistic([{ table: 'user', event: 'insert', row: data as any }])
-			},
-			upsert: (data: TlaUser) => {
-				this.makeOptimistic([{ table: 'user', event: 'insert', row: data as any }])
-			},
-			update: (data: TlaUserPartial) => {
-				this.makeOptimistic([{ table: 'user', event: 'update', row: data as any }])
-			},
-			delete: () => {
-				throw new Error('no')
-			},
 		},
 	}
 
@@ -295,9 +240,43 @@ export class Zero {
 		this.timeout = undefined
 	}
 
-	makeOptimistic(updates: ZRowUpdate[]) {
+	private makeCrud(): SchemaCRUD<TlaSchema> {
+		const getAllData = () => assertExists(this.store.getFullData(), 'store not initialized')
+		return objectMapFromEntries(
+			objectMapEntries(schema.tables).map(([tableName, table]) => {
+				const getExisting = (data: any) =>
+					getAllData()[tableName].find((row: any) =>
+						table.primaryKey.every((key) => row[key] === data[key])
+					)
+				return [
+					tableName,
+					{
+						insert: async (data: any) => {
+							assert(!getExisting(data), 'row already exists')
+							this.doOptimisticUpdate([{ event: 'insert', table: tableName, row: data }])
+						},
+						upsert: async (data: any) => {
+							this.doOptimisticUpdate([
+								{ event: getExisting(data) ? 'update' : 'insert', table: tableName, row: data },
+							])
+						},
+						delete: async (data: any) => {
+							this.doOptimisticUpdate([{ event: 'delete', table: tableName, row: data }])
+						},
+						update: async (data: any) => {
+							assert(getExisting(data), 'row not found')
+							this.doOptimisticUpdate([{ event: 'update', table: tableName, row: data }])
+						},
+					} satisfies TableCRUD<TlaSchema['tables'][keyof TlaSchema['tables']]>,
+				]
+			})
+		)
+	}
+
+	readonly ____mutators = this.makeCrud()
+
+	doOptimisticUpdate(updates: ZRowUpdate[]) {
 		if (this.clientTooOld) {
-			// ignore incoming messages if the client is not supported
 			this.opts.onMutationRejected('client_too_old')
 			return
 		}

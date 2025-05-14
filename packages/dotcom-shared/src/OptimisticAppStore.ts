@@ -1,14 +1,7 @@
 import { atom, computed, react, transact } from '@tldraw/state'
-import { assert } from '@tldraw/utils'
+import { assert, assertExists } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
-import {
-	TlaFile,
-	TlaFilePartial,
-	TlaFileState,
-	TlaFileStatePartial,
-	TlaUser,
-	TlaUserPartial,
-} from './tlaSchema'
+import { schema } from './tlaSchema'
 import { ZRowUpdate, ZStoreData } from './types'
 
 export class OptimisticAppStore {
@@ -107,59 +100,33 @@ export class OptimisticAppStore {
 		})
 	}
 
-	applyUpdate(prev: ZStoreData, update: ZRowUpdate) {
+	applyUpdate(prev: ZStoreData, update: ZRowUpdate): ZStoreData {
 		const { row, table, event } = update
-		if (table === 'user') {
-			if (event === 'update') {
-				const { id: _id, ...rest } = row as TlaUserPartial
-				return { ...prev, user: { ...prev.user, ...rest } }
-			} else {
-				return { ...prev, user: row as TlaUser }
-			}
-		}
-		if (table === 'file') {
-			if (event === 'delete') {
+		const tableSchema = assertExists(schema.tables[table], 'table not found')
+		const rows = prev[table]
+		const matchExisting = (existing: any) =>
+			tableSchema.primaryKey.every((key) => existing[key] === (row as any)[key])
+
+		switch (event) {
+			case 'insert':
+				assert(!rows.some(matchExisting), 'row already exists')
+				return { ...prev, [table]: [...rows, row] }
+			case 'update':
+				assert(rows.some(matchExisting), 'row not found')
 				return {
 					...prev,
-					files: prev.files.filter((f) => f.id !== (row as TlaFile).id),
+					[table]: rows.map((existing) => {
+						if (matchExisting(existing)) {
+							return { ...existing, ...row }
+						}
+						return existing
+					}),
 				}
-			} else if (event === 'update') {
-				const { id, ...rest } = row as TlaFilePartial
+			case 'delete':
 				return {
 					...prev,
-					files: prev.files.map((f) => (f.id === id ? ({ ...f, ...rest } as TlaFile) : f)),
+					[table]: rows.filter((existing) => !matchExisting(existing)),
 				}
-			} else {
-				assert(event === 'insert', 'invalid event')
-				return {
-					...prev,
-					files: [...prev.files, row as TlaFile],
-				}
-			}
-		}
-		assert(table === 'file_state')
-		const { fileId, userId, ...rest } = row as TlaFileStatePartial
-		if (event === 'delete') {
-			return {
-				...prev,
-				fileStates: prev.fileStates.filter((f) => !(f.fileId === fileId && f.userId === userId)),
-			}
-		} else if (event === 'update') {
-			return {
-				...prev,
-				fileStates: prev.fileStates.map((f) => {
-					if (f.fileId === fileId && f.userId === userId) {
-						return { ...f, ...rest }
-					}
-					return f
-				}),
-			}
-		} else {
-			assert(event === 'insert', 'invalid event')
-			return {
-				...prev,
-				fileStates: [...prev.fileStates, row as TlaFileState],
-			}
 		}
 	}
 }
