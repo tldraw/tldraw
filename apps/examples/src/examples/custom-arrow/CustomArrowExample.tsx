@@ -114,18 +114,14 @@ class WireShapeUtil extends ShapeUtil<WireShape> {
 				this.editor.updateBinding({
 					...existingBinding,
 					toId: target.id,
-					props: {
-						type: handle.id,
-					},
+					props: { type: handle.id },
 				})
 			} else {
 				this.editor.createBinding({
 					type: 'wire',
 					fromId: wire.id,
 					toId: target.id,
-					props: {
-						type: handle.id,
-					},
+					props: { type: handle.id },
 				})
 			}
 			this.editor.setHintingShapes([target.id])
@@ -303,6 +299,23 @@ class WireTool extends StateNode {
 			x: currentPagePoint.x,
 			y: currentPagePoint.y,
 		})
+
+		const target = this.editor.getShapeAtPoint(currentPagePoint, {
+			hitInside: true,
+			filter: (shape) =>
+				shape.id !== wireId &&
+				this.editor.canBindShapes({ fromShape: 'wire', toShape: shape, binding: 'wire' }),
+		})
+
+		if (target) {
+			this.editor.createBinding({
+				type: 'wire',
+				fromId: wireId,
+				toId: target.id,
+				props: { type: 'start' },
+			})
+		}
+
 		this.editor.setSelectedShapes([wireId])
 		const handle = this.editor.getShapeHandles(wireId)?.find((h) => h.id === 'end')
 		if (!handle) return
