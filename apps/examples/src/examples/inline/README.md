@@ -1,10 +1,12 @@
 ---
-title: Inline layout
+title: Inset editor size
 component: ./InlineExample.tsx
 category: layout
-priority: 1
+priority: 0
 keywords: [focus, auto, focus, multiple, editors]
 ---
+
+Use the `Tldraw` component with a set height and width.
 
 ---
 

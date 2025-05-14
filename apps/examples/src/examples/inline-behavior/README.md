@@ -1,16 +1,16 @@
 ---
-title: Inline behavior
+title: Inset editor common practices
 component: ./InlineBehavior.tsx
 category: layout
 priority: 20
 keywords: [focus, blur, multiple]
 ---
 
-tldraw can be used as an inline block within a larger document editor.
+Common practices for using the `Tldraw` component as a block within a larger page.
 
 ---
 
-This example demonstrates some common best practices for using tldraw as an inline block within a larger editor. It includes:
+This example demonstrates some common best practices for using tldraw as a block within a larger page. It includes:
 
 - Making sure that only one editor has focus at a time.
 - Always defaulting to the hand tool when you click into an editor.

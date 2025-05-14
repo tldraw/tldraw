@@ -1,5 +1,5 @@
 ---
-title: Blocking events
+title: Block events
 component: ./EventBlockerExample.tsx
 category: events
 priority: 2

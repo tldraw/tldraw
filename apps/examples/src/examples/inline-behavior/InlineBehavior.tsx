@@ -26,9 +26,9 @@ export default function InlineBehaviorExample() {
 		<focusedEditorContext.Provider value={{ focusedEditor, setFocusedEditor }}>
 			<div
 				style={{
-					margin: 20,
 					display: 'flex',
 					flexDirection: 'column',
+					padding: 20,
 					gap: 20,
 				}}
 				// [3]

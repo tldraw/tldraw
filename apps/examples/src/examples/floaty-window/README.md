@@ -6,7 +6,7 @@ category: ui
 priority: 30
 ---
 
-Create an [illusion](https://x.com/steveruizok/status/1727436505440981099) of a floating window.
+Create an illusion of a floating window.
 
 ---
 
