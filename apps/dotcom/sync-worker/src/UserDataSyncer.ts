@@ -5,7 +5,7 @@ import {
 	TlaRow,
 	ZEvent,
 	ZRowUpdate,
-	ZServerSentMessage,
+	ZServerSentPacket,
 	ZStoreData,
 	ZTable,
 } from '@tldraw/dotcom-shared'
@@ -123,7 +123,7 @@ export class UserDataSyncer {
 		private env: Environment,
 		private db: Kysely<DB>,
 		private userId: string,
-		private broadcast: (message: ZServerSentMessage) => void,
+		private broadcast: (message: ZServerSentPacket) => void,
 		private logEvent: (event: TLUserDurableObjectEvent) => void,
 		private log: Logger
 	) {
@@ -242,9 +242,9 @@ export class UserDataSyncer {
 		// if the bootId changes during the boot process, we should stop silently
 		const userSql = getFetchUserDataSql(this.userId)
 		const initialData: ZStoreData & { mutationNumber?: number } = {
-			user: null as any,
-			files: [],
-			fileStates: [],
+			user: [],
+			file: [],
+			file_state: [],
 			lsn: '0/0',
 			mutationNumber: 0,
 		}
@@ -254,9 +254,9 @@ export class UserDataSyncer {
 			async () => {
 				// sync initial data
 				if (signal.aborted) return
-				initialData.user = null as any
-				initialData.files = []
-				initialData.fileStates = []
+				initialData.user = []
+				initialData.file = []
+				initialData.file_state = []
 
 				await this.db.transaction().execute(async (tx) => {
 					const result = await userSql.execute(tx)
@@ -268,10 +268,10 @@ export class UserDataSyncer {
 								initialData.user = parseResultRow(userKeys, row)
 								break
 							case 'file':
-								initialData.files.push(parseResultRow(fileKeys, row))
+								initialData.file.push(parseResultRow(fileKeys, row))
 								break
 							case 'file_state':
-								initialData.fileStates.push(parseResultRow(fileStateKeys, row))
+								initialData.file_state.push(parseResultRow(fileStateKeys, row))
 								break
 							case 'lsn':
 								assert(typeof row.lsn === 'string', 'lsn should be a string')
@@ -345,7 +345,7 @@ export class UserDataSyncer {
 
 		const initialData = this.store.getCommittedData()!
 
-		const guestFileIds = initialData.files.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
+		const guestFileIds = initialData.file.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
 
 		const res = await getReplicator(this.env).registerUser({
 			userId: this.userId,
@@ -485,17 +485,17 @@ export class UserDataSyncer {
 
 		// make sure we have all the files we need
 		const data = this.store.getFullData()
-		for (const fileState of data?.fileStates ?? []) {
-			if (!data?.files.some((f) => f.id === fileState.fileId)) {
+		for (const fileState of data?.file_state ?? []) {
+			if (!data?.file.some((f) => f.id === fileState.fileId)) {
 				this.log.debug('missing file', fileState.fileId)
 				this.addGuestFile(fileState.fileId)
 			}
 		}
 
-		for (const file of data?.files ?? []) {
+		for (const file of data?.file ?? []) {
 			// and make sure we don't have any files we don't need
 			// this happens when a shared file is made private
-			if (file.ownerId !== this.userId && !data?.fileStates.some((fs) => fs.fileId === file.id)) {
+			if (file.ownerId !== this.userId && !data?.file_state.some((fs) => fs.fileId === file.id)) {
 				this.log.debug('extra file', file.id)
 				const update: ZRowUpdate = {
 					event: 'delete',

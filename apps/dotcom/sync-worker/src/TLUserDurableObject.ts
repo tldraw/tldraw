@@ -2,16 +2,17 @@ import {
 	DB,
 	isColumnMutable,
 	MAX_NUMBER_OF_FILES,
+	maybeDowngradeZStoreData,
+	MIN_Z_PROTOCOL_VERSION,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
 	TlaFileStatePartial,
 	TlaUser,
-	Z_PROTOCOL_VERSION,
 	ZClientSentMessage,
 	ZErrorCode,
 	ZRowUpdate,
-	ZServerSentMessage,
+	ZServerSentPacket,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { assert, ExecutionQueue, sleep } from '@tldraw/utils'
@@ -140,28 +141,64 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	private readonly sockets = new Set<WebSocket>()
+	private readonly sessions = new WeakMap<
+		WebSocket,
+		{ protocolVersion: number; sessionId: string }
+	>()
 
-	maybeReportColdStartTime(type: ZServerSentMessage['type']) {
+	maybeReportColdStartTime(type: ZServerSentPacket['type']) {
 		if (type !== 'initial_data' || !this.coldStartStartTime) return
 		const time = Date.now() - this.coldStartStartTime
 		this.coldStartStartTime = null
 		this.logEvent({ type: 'cold_start_time', id: this.userId!, duration: time })
 	}
 
-	broadcast(message: ZServerSentMessage) {
+	private outgoingBuffer = null as ZServerSentPacket[] | null
+	private flushBuffer() {
+		const buffer = this.outgoingBuffer
+		this.outgoingBuffer = null
+		if (!buffer) return
+
+		for (const socket of this.sockets) {
+			if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
+				this.sockets.delete(socket)
+				continue
+			}
+			if (socket.readyState !== WebSocket.OPEN) {
+				continue
+			}
+			// maybe downgrade the data for the client
+			const protocolVersion = this.sessions.get(socket)?.protocolVersion
+			if (!protocolVersion) {
+				this.captureException(new Error('No protocol version set'))
+				continue
+			}
+			if (protocolVersion === 1) {
+				for (let msg of buffer) {
+					if (msg.type === 'initial_data') {
+						msg = {
+							type: 'initial_data',
+							initialData: maybeDowngradeZStoreData(msg.initialData, protocolVersion) as any,
+						}
+					}
+					socket.send(JSON.stringify(msg))
+				}
+			}
+
+			socket.send(JSON.stringify(buffer))
+		}
+	}
+
+	broadcast(message: ZServerSentPacket) {
 		this.logEvent({ type: 'broadcast_message', id: this.userId! })
 		this.maybeReportColdStartTime(message.type)
-		const msg = JSON.stringify(message)
-		for (const socket of this.sockets) {
-			if (socket.readyState === WebSocket.OPEN) {
-				socket.send(msg)
-			} else if (
-				socket.readyState === WebSocket.CLOSED ||
-				socket.readyState === WebSocket.CLOSING
-			) {
-				this.sockets.delete(socket)
-			}
+		if (!this.outgoingBuffer) {
+			this.outgoingBuffer = []
+			setTimeout(() => {
+				this.flushBuffer()
+			})
 		}
+		this.outgoingBuffer.push(message)
 	}
 	private readonly messageQueue = new ExecutionQueue()
 
@@ -184,7 +221,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		serverWebSocket.accept()
 
-		if (Number(protocolVersion) !== Z_PROTOCOL_VERSION || this.__test__isForceDowngraded) {
+		if (protocolVersion < MIN_Z_PROTOCOL_VERSION || this.__test__isForceDowngraded) {
 			serverWebSocket.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
@@ -201,16 +238,27 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		})
 
 		this.sockets.add(serverWebSocket)
+		this.sessions.set(serverWebSocket, {
+			protocolVersion,
+			sessionId,
+		})
 		this.maybeStartInterval()
 
 		const initialData = this.cache.store.getCommittedData()
 		if (initialData) {
 			this.log.debug('sending initial data on connect', this.userId)
 			serverWebSocket.send(
-				JSON.stringify({
-					type: 'initial_data',
-					initialData,
-				} satisfies ZServerSentMessage)
+				protocolVersion === 1
+					? JSON.stringify({
+							type: 'initial_data',
+							initialData: maybeDowngradeZStoreData(initialData, protocolVersion),
+						})
+					: JSON.stringify([
+							{
+								type: 'initial_data',
+								initialData,
+							} satisfies ZServerSentPacket,
+						])
 			)
 		} else {
 			this.log.debug('no initial data to send, waiting for boot to finish', this.userId)
@@ -260,13 +308,15 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.logEvent({ type: 'reject_mutation', id: this.userId! })
 		this.cache.store.rejectMutation(mutationId)
 		this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== mutationId)
-		socket?.send(
-			JSON.stringify({
-				type: 'reject',
-				mutationId,
-				errorCode,
-			} satisfies ZServerSentMessage)
-		)
+		const protocolVersion = this.sessions.get(socket)?.protocolVersion
+		assert(protocolVersion, 'No protocol version set')
+		const msg: ZServerSentPacket = {
+			type: 'reject',
+			mutationId,
+			errorCode,
+		}
+
+		socket?.send(JSON.stringify(protocolVersion === 1 ? msg : [msg]))
 	}
 
 	private async assertValidMutation(update: ZRowUpdate, tx: Transaction<DB>) {
@@ -291,7 +341,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 			case 'file': {
 				const nextFile = update.row as TlaFilePartial
-				const prevFile = s.files.find((f) => f.id === nextFile.id)
+				const prevFile = s.file.find((f) => f.id === nextFile.id)
 				if (!prevFile) {
 					const isOwner = nextFile.ownerId === this.userId
 					if (isOwner) return
@@ -322,7 +372,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 			case 'file_state': {
 				const nextFileState = update.row as TlaFileStatePartial
-				let file = s.files.find((f) => f.id === nextFileState.fileId)
+				let file = s.file.find((f) => f.id === nextFileState.fileId)
 				if (!file) {
 					// The user might not have access to this file yet, because they just followed a link
 					// let's allow them to create a file state for it if it exists and is shared.
@@ -390,7 +440,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								const count =
 									this.cache.store
 										.getFullData()
-										?.files.filter((f) => f.ownerId === this.userId && !f.isDeleted).length ?? 0
+										?.file.filter((f) => f.ownerId === this.userId && !f.isDeleted).length ?? 0
 								if (count >= MAX_NUMBER_OF_FILES) {
 									throw new ZMutationError(
 										ZErrorCode.max_files_reached,
