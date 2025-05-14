@@ -9,6 +9,7 @@ import {
 	TLTextOptions,
 	useShallowArrayIdentity,
 	useTLStore,
+	mergeArraysAndReplaceDefaults,
 } from '@tldraw/editor'
 import { memo, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { defaultBindingUtils } from './defaultBindingUtils'
