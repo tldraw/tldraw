@@ -247,6 +247,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		isConnected: boolean
 		isReadonly: boolean
 		meta: SessionMeta
+		presenceId: string | null
 	}> {
 		return [...this.room.sessions.values()].map((session) => {
 			return {
@@ -254,6 +255,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				isConnected: session.state === RoomSessionState.Connected,
 				isReadonly: session.isReadonly,
 				meta: session.meta,
+				presenceId: session.presenceId,
 			}
 		})
 	}
