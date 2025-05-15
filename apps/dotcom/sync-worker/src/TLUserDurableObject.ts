@@ -1,4 +1,5 @@
-import type { SchemaCRUD, TableCRUD } from '@rocicorp/zero/out/zql/src/mutate/custom'
+import { CustomMutatorImpl } from '@rocicorp/zero'
+import type { SchemaCRUD, SchemaQuery, TableCRUD } from '@rocicorp/zero/out/zql/src/mutate/custom'
 import {
 	DB,
 	MAX_NUMBER_OF_FILES,
@@ -13,17 +14,12 @@ import {
 	ZErrorCode,
 	ZRowUpdate,
 	ZServerSentPacket,
+	createMutators,
 	maybeDowngradeZStoreData,
 	schema,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import {
-	ExecutionQueue,
-	assert,
-	objectMapEntries,
-	objectMapFromEntries,
-	sleep,
-} from '@tldraw/utils'
+import { ExecutionQueue, assert, mapObjectMapValues, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -31,7 +27,7 @@ import { Kysely, PostgresDialect, Transaction, sql } from 'kysely'
 import { Pool, PoolClient } from 'pg'
 import { Logger } from './Logger'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
-import { placeholders } from './postgres'
+import { Query, placeholders } from './postgres'
 import { Analytics, Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { getRoomDurableObject } from './utils/durableObjects'
@@ -166,64 +162,66 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	>()
 
 	private makeCrud(client: PoolClient): SchemaCRUD<TlaSchema> {
-		return objectMapFromEntries(
-			objectMapEntries(schema.tables).map(([tableName, table]) => {
-				return [
-					tableName,
-					{
-						insert: async (data: any) => {
-							const ks = Object.keys(data)
-							const p = placeholders()
-							// todo: validate keys exist in schema and primary key is set and maybe data types
-							await client.query(
-								`insert into public."${tableName}" (${Object.keys(data)
-									.map((k) => JSON.stringify(k))
-									.join(',')}) values (${ks.map(() => p()).join(',')})`,
-								ks.map((k) => data[k])
-							)
-						},
-						upsert: async (data: any) => {
-							const ks = Object.keys(data)
-							// todo: validate keys exist in schema and primary key is set and maybe data types
-							const p = placeholders()
-							await client.query(
-								`insert into public."${tableName}" (${Object.keys(data)
-									.map((k) => JSON.stringify(k))
-									.join(',')}) values (${ks.map(() => p()).join(',')})
+		return mapObjectMapValues(schema.tables, (tableName, table) => {
+			return {
+				insert: async (data: any) => {
+					const ks = Object.keys(data)
+					const p = placeholders()
+					// todo: validate keys exist in schema and primary key is set and maybe data types
+					await client.query(
+						`insert into public."${tableName}" (${Object.keys(data)
+							.map((k) => JSON.stringify(k))
+							.join(',')}) values (${ks.map(() => p()).join(',')})`,
+						ks.map((k) => data[k])
+					)
+				},
+				upsert: async (data: any) => {
+					const ks = Object.keys(data)
+					// todo: validate keys exist in schema and primary key is set and maybe data types
+					const p = placeholders()
+					await client.query(
+						`insert into public."${tableName}" (${Object.keys(data)
+							.map((k) => JSON.stringify(k))
+							.join(',')}) values (${ks.map(() => p()).join(',')})
 									on conflict (${table.primaryKey.map((k) => JSON.stringify(k)).join(',')}) do update set ${ks
 										.map((k) => `${JSON.stringify(k)} = excluded.${JSON.stringify(k)}`)
 										.join(',')}`,
-								ks.map((k) => data[k])
-							)
-						},
-						delete: async (data: any) => {
-							// todo: validate pk is set
-							const p = placeholders()
-							await client.query(
-								`delete from public."${tableName}" where ${table.primaryKey.map((k) => `${JSON.stringify(k)} = ${p()}`).join(' and ')}`,
-								table.primaryKey.map((k) => data[k])
-							)
-						},
-						update: async (data: any) => {
-							// todo: validate pk is set and other keys exist in schema
-							const p = placeholders()
-							const ks = Object.keys(data)
-							const q = `update public."${tableName}" set ${ks
-								.map((k) => `${JSON.stringify(k)} = ${p()}`)
-								.join(',')} where ${table.primaryKey
-								.map((k) => `${JSON.stringify(k)} = ${p()}`)
-								.join(' and ')}`
-							const ps = [...ks.map((k) => data[k]), ...table.primaryKey.map((k) => data[k])]
-							const res = await client.query(q, ps)
-							if (res.rowCount !== 1) {
-								throw new Error(
-									`update failed, expected 1 row to be updated, got ${res.rowCount} for query ${q} with params ${JSON.stringify(ps)}`
-								)
-							}
-						},
-					} satisfies TableCRUD<TlaSchema['tables'][keyof TlaSchema['tables']]>,
-				]
-			})
+						ks.map((k) => data[k])
+					)
+				},
+				delete: async (data: any) => {
+					// todo: validate pk is set
+					const p = placeholders()
+					await client.query(
+						`delete from public."${tableName}" where ${table.primaryKey.map((k) => `${JSON.stringify(k)} = ${p()}`).join(' and ')}`,
+						table.primaryKey.map((k) => data[k])
+					)
+				},
+				update: async (data: any) => {
+					// todo: validate pk is set and other keys exist in schema
+					const p = placeholders()
+					const ks = Object.keys(data)
+					const q = `update public."${tableName}" set ${ks
+						.map((k) => `${JSON.stringify(k)} = ${p()}`)
+						.join(',')} where ${table.primaryKey
+						.map((k) => `${JSON.stringify(k)} = ${p()}`)
+						.join(' and ')}`
+					const ps = [...ks.map((k) => data[k]), ...table.primaryKey.map((k) => data[k])]
+					const res = await client.query(q, ps)
+					if (res.rowCount !== 1) {
+						throw new Error(
+							`update failed, expected 1 row to be updated, got ${res.rowCount} for query ${q} with params ${JSON.stringify(ps)}`
+						)
+					}
+				},
+			} satisfies TableCRUD<TlaSchema['tables'][keyof TlaSchema['tables']]>
+		})
+	}
+
+	private makeQuery(client: PoolClient): SchemaQuery<TlaSchema> {
+		return mapObjectMapValues(
+			schema.tables,
+			(tableName) => new Query(client, true, tableName) as any
 		)
 	}
 
@@ -355,6 +353,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		const msg = JSON.parse(message) as any as ZClientSentMessage
 		switch (msg.type) {
 			case 'mutate':
+			case 'mutator':
 				if (rateLimited) {
 					this.logEvent({ type: 'rate_limited', id: this.userId! })
 					await this.rejectMutation(socket, msg.mutationId, ZErrorCode.rate_limit_exceeded)
@@ -503,22 +502,50 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			await client.query('BEGIN')
 
 			const mutate = this.makeCrud(client)
-			for (const update of msg.updates) {
-				await this.assertValidMutation(update, client)
-				await mutate[update.table][update.event](update.row as any)
-				if (update.table === 'file_state' && update.event === 'insert') {
-					const res = await client.query('select * from public.file where id = $1', [
-						(update.row as TlaFileState).fileId,
-					])
-					assert(res.rowCount === 1, 'File not found')
-					newGuestFiles.push(res.rows[0])
-				} else if (update.table === 'file' && update.event === 'insert') {
-					const res = await client.query('select * from public.file where id = $1', [
-						(update.row as TlaFile).id,
-					])
-					assert(res.rowCount === 1, 'File not found')
-					insertedFiles.push(res.rows[0])
+			if (msg.type === 'mutate') {
+				// legacy
+				for (const update of msg.updates) {
+					await this.assertValidMutation(update, client)
+					await mutate[update.table][update.event](update.row as any)
+					if (update.table === 'file_state' && update.event === 'insert') {
+						const res = await client.query('select * from public.file where id = $1', [
+							(update.row as TlaFileState).fileId,
+						])
+						assert(res.rowCount === 1, 'File not found')
+						newGuestFiles.push(res.rows[0])
+					} else if (update.table === 'file' && update.event === 'insert') {
+						const res = await client.query('select * from public.file where id = $1', [
+							(update.row as TlaFile).id,
+						])
+						assert(res.rowCount === 1, 'File not found')
+						insertedFiles.push(res.rows[0])
+					}
 				}
+			} else {
+				// new
+				const mutators = createMutators(this.userId!)
+				const path = msg.mutation[0].split('.')
+				assert(path.length <= 2, 'Invalid mutation path')
+				const mutator: CustomMutatorImpl<TlaSchema> =
+					path.length === 1 ? (mutators as any)[path[0]] : (mutators as any)[path[0]][path[1]]
+				assert(mutator, 'Invalid mutator path')
+				await mutator(
+					{
+						clientID: '',
+						dbTransaction: {
+							wrappedTransaction: null as any,
+							async query(sqlString: string, params: unknown[]): Promise<any[]> {
+								return client.query(sqlString, params).then((res) => res.rows)
+							},
+						},
+						mutate,
+						location: 'server',
+						reason: 'authoritative',
+						mutationID: 0,
+						query: this.makeQuery(client),
+					},
+					msg.mutation[1]
+				)
 			}
 
 			// await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE')

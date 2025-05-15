@@ -1,5 +1,6 @@
 import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
+import { MutatorTuple } from './mutators'
 import {
 	TlaFile,
 	TlaFilePartial,
@@ -160,11 +161,17 @@ export type ZServerSentPacket =
 
 export type ZServerSentMessage = ZServerSentPacket[]
 
-export interface ZClientSentMessage {
-	type: 'mutate'
-	mutationId: string
-	updates: ZRowUpdate[]
-}
+export type ZClientSentMessage =
+	| {
+			type: 'mutate'
+			mutationId: string
+			updates: ZRowUpdate[]
+	  }
+	| {
+			type: 'mutator'
+			mutationId: string
+			mutation: MutatorTuple
+	  }
 
 export const UserPreferencesKeys = [
 	'locale',
