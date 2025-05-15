@@ -481,6 +481,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					"Cannot update file state of file we don't own and is not shared"
 				)
 			}
+			default:
+				// this legacy mutation validation only applies to user, file, and file_state tables
+				throw new ZMutationError(
+					ZErrorCode.bad_request,
+					`Invalid table ${update.table} for mutation ${update.event}`
+				)
 		}
 	}
 
