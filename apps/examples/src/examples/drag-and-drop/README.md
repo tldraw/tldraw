@@ -1,8 +1,8 @@
 ---
-title: Drag and drop
+title: Drag and drop custom shape
 component: ./DragAndDropExample.tsx
 category: shapes/tools
-priority: 1
+priority: 2
 keywords: [reparent, shapes, grid, counter]
 ---
 

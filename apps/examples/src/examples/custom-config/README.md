@@ -3,7 +3,7 @@ title: Custom shape and tool
 component: ./CustomConfigExample.tsx
 category: shapes/tools
 keywords: [toolbar, migrations, icon, util, ui overrides, card shape]
-priority: 3
+priority: 1
 ---
 
 Create custom shapes and tools.

@@ -3,6 +3,7 @@ title: Manually update user presence
 component: ./UserPresenceExample.tsx
 category: collaboration
 keywords: [cursor]
+priority: 5
 ---
 
 Manually show other users editing the same document.

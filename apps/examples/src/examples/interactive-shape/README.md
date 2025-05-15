@@ -1,8 +1,8 @@
 ---
-title: Clickable shape
+title: Clickable custom shape
 component: ./InteractiveShapeExample.tsx
 category: shapes/tools
-priority: 1
+priority: 2
 keywords: [interaction, pointer events, stop propagation, click, input]
 ---
 

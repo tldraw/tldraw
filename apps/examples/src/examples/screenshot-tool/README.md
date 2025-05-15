@@ -2,7 +2,7 @@
 title: Custom tool (screenshot)
 component: ./ScreenshotToolExample.tsx
 category: shapes/tools
-priority: 2
+priority: 0
 keywords: [state chart, state machine, child states]
 ---
 
