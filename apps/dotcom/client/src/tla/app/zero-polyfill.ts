@@ -1,5 +1,5 @@
-import { MakeCustomMutatorInterfaces } from '@rocicorp/zero/out/zero-client/src/client/custom'
-import { SchemaCRUD, TableCRUD } from '@rocicorp/zero/out/zql/src/mutate/custom'
+import type { MakeCustomMutatorInterfaces } from '@rocicorp/zero/out/zero-client/src/client/custom'
+import type { SchemaCRUD, TableCRUD } from '@rocicorp/zero/out/zql/src/mutate/custom'
 import {
 	OptimisticAppStore,
 	TlaFileState,
