@@ -123,10 +123,10 @@ const EXAMPLES_CATEGORIES: Record<string, ExampleCategory> = {
 		title: 'Events & effects',
 		subtitle: 'Handle events and changes on the canvas.',
 	},
-	bindings: {
-		title: 'Bindings',
-		subtitle: 'Use the bindings API to connect shapes to each other.',
-	},
+	// bindings: {
+	// 	title: 'Bindings',
+	// 	subtitle: 'Use the bindings API to connect shapes to each other.',
+	// },
 	'data/assets': {
 		title: 'Data & assets',
 		subtitle: 'Manage your data and assets.',

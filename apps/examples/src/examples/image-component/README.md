@@ -1,5 +1,5 @@
 ---
-title: Image component
+title: Snapshot image component
 component: ./TldrawImageExample.tsx
 category: layout
 priority: 20

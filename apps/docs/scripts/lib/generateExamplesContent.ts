@@ -11,7 +11,6 @@ export const EXAMPLES_CATEGORIES = [
 	{ id: 'ui', title: 'UI & theming', description: '', groups: [], hero: null },
 	{ id: 'layout', title: 'Page layout', description: '', groups: [], hero: null },
 	{ id: 'shapes/tools', title: 'Shapes & tools', description: '', groups: [], hero: null },
-	{ id: 'bindings', title: 'Bindings', description: '', groups: [], hero: null },
 	{ id: 'collaboration', title: 'Collaboration', description: '', groups: [], hero: null },
 	{ id: 'data/assets', title: 'Data & assets', description: '', groups: [], hero: null },
 	{ id: 'use-cases', title: 'Use cases', description: '', groups: [], hero: null },

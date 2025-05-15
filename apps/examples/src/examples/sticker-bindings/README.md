@@ -1,7 +1,7 @@
 ---
 title: Sticker (bindings)
 component: ./StickerExample.tsx
-category: bindings
+category: shapes/tools
 keywords: [attach]
 ---
 
