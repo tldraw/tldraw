@@ -7,7 +7,6 @@ import {
 	TlaSchema,
 	ZClientSentMessage,
 	ZErrorCode,
-	ZRowUpdate,
 	ZServerSentMessage,
 	createMutators,
 	schema,
@@ -31,7 +30,7 @@ import { TLAppUiContextType } from '../utils/app-ui-events'
 export class Zero {
 	private socket: ClientWebSocketAdapter
 	private store = new OptimisticAppStore()
-	private pendingUpdates: ZRowUpdate[] = []
+	private pendingUpdates: ZClientSentMessage[] = []
 	private timeout: NodeJS.Timeout | undefined = undefined
 	private currentMutationId = uniqueId()
 	private clientTooOld = false
@@ -90,24 +89,38 @@ export class Zero {
 				}
 			})
 		})
-		const mutatorWrapper = (mutatorFn: any) => {
+		const mutatorWrapper = (key: string, mutatorFn: any) => {
 			return (params: any) => {
+				if (this.clientTooOld) {
+					this.opts.onMutationRejected('client_too_old')
+					return
+				}
 				transact(() =>
 					mutatorFn({ mutate: this.____mutators, query: this.query, location: 'client' }, params)
 				)
+				this.pendingUpdates.push({
+					type: 'mutator',
+					mutationId: this.currentMutationId,
+					mutation: [key as any, params],
+				})
+				if (!this.timeout) {
+					this.timeout = setTimeout(() => {
+						this.sendPendingUpdates()
+					}, 50)
+				}
 			}
 		}
 		const mutators = createMutators(opts.userId) as any
 		const tempMutate = (this.mutate = {} as any)
 		for (const m of objectMapKeys(mutators)) {
 			if (typeof mutators[m] === 'function') {
-				tempMutate[m] = mutatorWrapper(mutators[m])
+				tempMutate[m] = mutatorWrapper(m, mutators[m])
 			} else if (typeof mutators[m] === 'object') {
 				for (const k of objectMapKeys(mutators[m])) {
 					if (!tempMutate[m]) {
 						tempMutate[m] = {}
 					}
-					tempMutate[m][k] = mutatorWrapper(mutators[m][k])
+					tempMutate[m][k] = mutatorWrapper(`${m}.${k}`, mutators[m][k])
 				}
 			}
 		}
@@ -229,13 +242,13 @@ export class Zero {
 	private sendPendingUpdates() {
 		if (this.socket.isDisposed) return
 
-		this.socket.sendMessage({
-			type: 'mutate',
-			mutationId: this.currentMutationId,
-			updates: this.pendingUpdates,
-		} satisfies ZClientSentMessage as any)
-
+		const updates = this.pendingUpdates
 		this.pendingUpdates = []
+		for (const update of updates) {
+			assert(update.type === 'mutator', 'do not do legacy updates')
+			this.socket.sendMessage(update as any)
+		}
+
 		this.currentMutationId = uniqueId()
 		this.timeout = undefined
 	}
@@ -253,19 +266,29 @@ export class Zero {
 					{
 						insert: async (data: any) => {
 							assert(!getExisting(data), 'row already exists')
-							this.doOptimisticUpdate([{ event: 'insert', table: tableName, row: data }])
+							this.store.updateOptimisticData(
+								[{ event: 'insert', table: tableName, row: data }],
+								this.currentMutationId
+							)
 						},
 						upsert: async (data: any) => {
-							this.doOptimisticUpdate([
-								{ event: getExisting(data) ? 'update' : 'insert', table: tableName, row: data },
-							])
+							this.store.updateOptimisticData(
+								[{ event: getExisting(data) ? 'update' : 'insert', table: tableName, row: data }],
+								this.currentMutationId
+							)
 						},
 						delete: async (data: any) => {
-							this.doOptimisticUpdate([{ event: 'delete', table: tableName, row: data }])
+							this.store.updateOptimisticData(
+								[{ event: 'delete', table: tableName, row: data }],
+								this.currentMutationId
+							)
 						},
 						update: async (data: any) => {
 							assert(getExisting(data), 'row not found')
-							this.doOptimisticUpdate([{ event: 'update', table: tableName, row: data }])
+							this.store.updateOptimisticData(
+								[{ event: 'update', table: tableName, row: data }],
+								this.currentMutationId
+							)
 						},
 					} satisfies TableCRUD<TlaSchema['tables'][keyof TlaSchema['tables']]>,
 				]
@@ -274,19 +297,4 @@ export class Zero {
 	}
 
 	readonly ____mutators = this.makeCrud()
-
-	doOptimisticUpdate(updates: ZRowUpdate[]) {
-		if (this.clientTooOld) {
-			this.opts.onMutationRejected('client_too_old')
-			return
-		}
-		this.store.updateOptimisticData(updates, this.currentMutationId)
-
-		this.pendingUpdates.push(...updates)
-		if (!this.timeout) {
-			this.timeout = setTimeout(() => {
-				this.sendPendingUpdates()
-			}, 50)
-		}
-	}
 }
