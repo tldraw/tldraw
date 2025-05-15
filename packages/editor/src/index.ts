@@ -294,7 +294,6 @@ export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/u
 export { useIsCropping } from './lib/hooks/useIsCropping'
 export { useIsDarkMode } from './lib/hooks/useIsDarkMode'
 export { useIsEditing } from './lib/hooks/useIsEditing'
-export { useKeyPressed } from './lib/hooks/useKeyPressed'
 export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePassThroughMouseOverEvents } from './lib/hooks/usePassThroughMouseOverEvents'
 export { usePassThroughWheelEvents } from './lib/hooks/usePassThroughWheelEvents'

@@ -4365,9 +4365,6 @@ export function useIsDarkMode(): boolean;
 // @public (undocumented)
 export function useIsEditing(shapeId: TLShapeId): boolean;
 
-// @public (undocumented)
-export function useKeyPressed(targetKey: string): boolean;
-
 // @internal (undocumented)
 export function useLocalStore(options: {
     persistenceKey?: string;

@@ -1,4 +1,4 @@
-import { stopEventPropagation, useEditor, useKeyPressed, useValue } from '@tldraw/editor'
+import { stopEventPropagation, useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 
 const LINK_ICON =
@@ -12,13 +12,12 @@ export function HyperlinkButton({ url }: { url: string }) {
 		() => editor.getCurrentToolId() === 'select',
 		[editor]
 	)
-	const shiftPressed = useKeyPressed('Shift')
 
 	return (
 		<a
 			className={classNames('tl-hyperlink-button', {
 				'tl-hyperlink-button__hidden': hideButton,
-				'tl-hyperlink-pointer-event__none': selectToolActive && shiftPressed,
+				'tl-hyperlink-pointer-event__none': selectToolActive && editor.inputs.shiftKey,
 			})}
 			href={url}
 			target="_blank"
@@ -27,6 +26,12 @@ export function HyperlinkButton({ url }: { url: string }) {
 			onPointerUp={stopEventPropagation}
 			title={url}
 			draggable={false}
+			onClick={(e) => {
+				if (selectToolActive && editor.inputs.shiftKey) {
+					e.preventDefault()
+					e.stopPropagation()
+				}
+			}}
 		>
 			<div
 				className="tl-hyperlink__icon"
