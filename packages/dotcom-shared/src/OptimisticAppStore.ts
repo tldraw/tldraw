@@ -104,6 +104,7 @@ export class OptimisticAppStore {
 		const { row, table, event } = update
 		const tableSchema = assertExists(schema.tables[table], 'table not found')
 		const rows = prev[table]
+		assert(rows, 'table not found in store ' + table)
 		const matchExisting = (existing: any) =>
 			tableSchema.primaryKey.every((key) => existing[key] === (row as any)[key])
 

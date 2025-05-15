@@ -63,3 +63,8 @@ export function makePostgresConnector(env: Environment): PostgresJSClient<any> {
 		},
 	}
 }
+
+export function placeholders() {
+	let i = 1
+	return () => `$${i++}`
+}

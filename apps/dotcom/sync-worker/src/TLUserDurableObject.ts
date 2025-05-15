@@ -1,29 +1,38 @@
+import type { SchemaCRUD, TableCRUD } from '@rocicorp/zero/out/zql/src/mutate/custom'
 import {
 	DB,
-	isColumnMutable,
 	MAX_NUMBER_OF_FILES,
-	maybeDowngradeZStoreData,
 	MIN_Z_PROTOCOL_VERSION,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
 	TlaFileStatePartial,
+	TlaSchema,
 	TlaUser,
 	ZClientSentMessage,
 	ZErrorCode,
 	ZRowUpdate,
 	ZServerSentPacket,
+	maybeDowngradeZStoreData,
+	schema,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { assert, ExecutionQueue, sleep } from '@tldraw/utils'
+import {
+	ExecutionQueue,
+	assert,
+	objectMapEntries,
+	objectMapFromEntries,
+	sleep,
+} from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
-import { Kysely, sql, Transaction } from 'kysely'
+import { Kysely, PostgresDialect, Transaction, sql } from 'kysely'
+import { Pool, PoolClient } from 'pg'
 import { Logger } from './Logger'
-import { createPostgresConnectionPool } from './postgres'
-import { Analytics, Environment, getUserDoSnapshotKey, TLUserDurableObjectEvent } from './types'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
+import { placeholders } from './postgres'
+import { Analytics, Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
@@ -55,7 +64,17 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		this.sentry = createSentry(ctx, env)
 
-		this.db = createPostgresConnectionPool(env, 'TLUserDurableObject')
+		this.pool = new Pool({
+			connectionString: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+			application_name: 'user-do',
+			idleTimeoutMillis: 3_000,
+			max: 1,
+		})
+
+		this.db = new Kysely<DB>({
+			dialect: new PostgresDialect({ pool: this.pool }),
+			log: ['error'],
+		})
 		this.measure = env.MEASURE
 
 		// debug logging in preview envs by default
@@ -145,6 +164,68 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		WebSocket,
 		{ protocolVersion: number; sessionId: string }
 	>()
+
+	private makeCrud(client: PoolClient): SchemaCRUD<TlaSchema> {
+		return objectMapFromEntries(
+			objectMapEntries(schema.tables).map(([tableName, table]) => {
+				return [
+					tableName,
+					{
+						insert: async (data: any) => {
+							const ks = Object.keys(data)
+							const p = placeholders()
+							// todo: validate keys exist in schema and primary key is set and maybe data types
+							await client.query(
+								`insert into public."${tableName}" (${Object.keys(data)
+									.map((k) => JSON.stringify(k))
+									.join(',')}) values (${ks.map(() => p()).join(',')})`,
+								ks.map((k) => data[k])
+							)
+						},
+						upsert: async (data: any) => {
+							const ks = Object.keys(data)
+							// todo: validate keys exist in schema and primary key is set and maybe data types
+							const p = placeholders()
+							await client.query(
+								`insert into public."${tableName}" (${Object.keys(data)
+									.map((k) => JSON.stringify(k))
+									.join(',')}) values (${ks.map(() => p()).join(',')})
+									on conflict (${table.primaryKey.map((k) => JSON.stringify(k)).join(',')}) do update set ${ks
+										.map((k) => `${JSON.stringify(k)} = excluded.${JSON.stringify(k)}`)
+										.join(',')}`,
+								ks.map((k) => data[k])
+							)
+						},
+						delete: async (data: any) => {
+							// todo: validate pk is set
+							const p = placeholders()
+							await client.query(
+								`delete from public."${tableName}" where ${table.primaryKey.map((k) => `${JSON.stringify(k)} = ${p()}`).join(' and ')}`,
+								table.primaryKey.map((k) => data[k])
+							)
+						},
+						update: async (data: any) => {
+							// todo: validate pk is set and other keys exist in schema
+							const p = placeholders()
+							const ks = Object.keys(data)
+							const q = `update public."${tableName}" set ${ks
+								.map((k) => `${JSON.stringify(k)} = ${p()}`)
+								.join(',')} where ${table.primaryKey
+								.map((k) => `${JSON.stringify(k)} = ${p()}`)
+								.join(' and ')}`
+							const ps = [...ks.map((k) => data[k]), ...table.primaryKey.map((k) => data[k])]
+							const res = await client.query(q, ps)
+							if (res.rowCount !== 1) {
+								throw new Error(
+									`update failed, expected 1 row to be updated, got ${res.rowCount} for query ${q} with params ${JSON.stringify(ps)}`
+								)
+							}
+						},
+					} satisfies TableCRUD<TlaSchema['tables'][keyof TlaSchema['tables']]>,
+				]
+			})
+		)
+	}
 
 	maybeReportColdStartTime(type: ZServerSentPacket['type']) {
 		if (type !== 'initial_data' || !this.coldStartStartTime) return
@@ -319,15 +400,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		socket?.send(JSON.stringify(protocolVersion === 1 ? msg : [msg]))
 	}
 
-	private async assertValidMutation(update: ZRowUpdate, tx: Transaction<DB>) {
-		// s is the entire set of data that the user has access to
-		// and is up to date with all committed mutations so far.
-		// we commit each mutation one at a time before handling the next.
-		const s = this.cache!.store.getFullData()
-		if (!s) {
-			// This should never happen
-			throw new ZMutationError(ZErrorCode.unknown_error, 'Store data not fetched')
-		}
+	private async assertValidMutation(update: ZRowUpdate, client: PoolClient) {
 		switch (update.table) {
 			case 'user': {
 				const isUpdatingSelf = (update.row as TlaUser).id === this.userId
@@ -340,9 +413,23 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				return
 			}
 			case 'file': {
+				if (update.event === 'insert') {
+					const res = await client.query<{ count: number }>(
+						`select count(*) from public.file where "ownerId" = $1 and "isDeleted" = false`,
+						[this.userId]
+					)
+					if (res.rows[0].count >= MAX_NUMBER_OF_FILES) {
+						throw new ZMutationError(
+							ZErrorCode.max_files_reached,
+							`Cannot create more than ${MAX_NUMBER_OF_FILES} files`
+						)
+					}
+				}
 				const nextFile = update.row as TlaFilePartial
-				const prevFile = s.file.find((f) => f.id === nextFile.id)
-				if (!prevFile) {
+				const res = await client.query<TlaFile>('select * from public.file where id = $1', [
+					nextFile.id,
+				])
+				if (!res.rowCount) {
 					const isOwner = nextFile.ownerId === this.userId
 					if (isOwner) return
 					throw new ZMutationError(
@@ -350,6 +437,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						`Cannot create a file for another user. fileId: ${nextFile.id} file owner: ${nextFile.ownerId} current user: ${this.userId}`
 					)
 				}
+				const prevFile = res.rows[0]
 				if (prevFile.isDeleted)
 					throw new ZMutationError(ZErrorCode.forbidden, 'Cannot update a deleted file')
 				// Owners are allowed to make changes
@@ -372,17 +460,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 			case 'file_state': {
 				const nextFileState = update.row as TlaFileStatePartial
-				let file = s.file.find((f) => f.id === nextFileState.fileId)
-				if (!file) {
-					// The user might not have access to this file yet, because they just followed a link
-					// let's allow them to create a file state for it if it exists and is shared.
-					file = await tx
-						.selectFrom('file')
-						.selectAll()
-						.where('id', '=', nextFileState.fileId)
-						.executeTakeFirst()
-				}
-				if (!file) {
+				const res = await client.query<TlaFile>(`select * from public.file where id = $1`, [
+					nextFileState.fileId,
+				])
+				if (!res.rowCount) {
 					throw new ZMutationError(ZErrorCode.bad_request, `File not found ${nextFileState.fileId}`)
 				}
 				if (nextFileState.userId !== this.userId) {
@@ -391,6 +472,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						`Cannot update file state for another user ${nextFileState.userId}`
 					)
 				}
+				const file = res.rows[0]
 				if (file.ownerId === this.userId) return
 				if (file.shared) return
 
@@ -402,106 +484,45 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
+	private pool: Pool
+
 	private async _doMutate(msg: ZClientSentMessage) {
 		this.assertCache()
-		const { insertedFiles, newGuestFiles } = await this.db.transaction().execute(async (tx) => {
-			const insertedFiles: TlaFile[] = []
+		const client = await this.pool.connect()
+
+		try {
 			const newGuestFiles: TlaFile[] = []
+			const insertedFiles: TlaFile[] = []
+
+			await client.query('BEGIN')
+
+			const mutate = this.makeCrud(client)
 			for (const update of msg.updates) {
-				await this.assertValidMutation(update, tx)
-				switch (update.event) {
-					case 'insert': {
-						if (update.table === 'file_state') {
-							const { fileId, userId, ...rest } = update.row as any
-							await tx
-								.insertInto(update.table)
-								.values(update.row as TlaFileState)
-								.onConflict((oc) => {
-									if (Object.keys(rest).length === 0) {
-										return oc.columns(['fileId', 'userId']).doNothing()
-									} else {
-										return oc.columns(['fileId', 'userId']).doUpdateSet(rest)
-									}
-								})
-								.execute()
-							const guestFile = await tx
-								.selectFrom('file')
-								.where('id', '=', fileId)
-								.where('ownerId', '!=', userId)
-								.selectAll()
-								.executeTakeFirst()
-							if (guestFile) {
-								newGuestFiles.push(guestFile as any as TlaFile)
-							}
-							break
-						} else {
-							const { id: _id, ...rest } = update.row as any
-							if (update.table === 'file') {
-								const count =
-									this.cache.store
-										.getFullData()
-										?.file.filter((f) => f.ownerId === this.userId && !f.isDeleted).length ?? 0
-								if (count >= MAX_NUMBER_OF_FILES) {
-									throw new ZMutationError(
-										ZErrorCode.max_files_reached,
-										`Cannot create more than ${MAX_NUMBER_OF_FILES} files.`
-									)
-								}
-							}
-							const result = await tx
-								.insertInto(update.table)
-								.values(update.row as any)
-								.onConflict((oc) => oc.column('id').doUpdateSet(rest))
-								.returningAll()
-								.execute()
-							if (update.table === 'file' && result.length > 0) {
-								insertedFiles.push(result[0] as any as TlaFile)
-							}
-							break
-						}
-					}
-					case 'update': {
-						const mutableColumns = Object.keys(update.row).filter((k) =>
-							isColumnMutable(update.table, k)
-						)
-						if (mutableColumns.length === 0) continue
-						const updates = Object.fromEntries(
-							mutableColumns.map((k) => [k, (update.row as any)[k]])
-						)
-						if (update.table === 'file_state') {
-							const { fileId, userId } = update.row as any
-							await tx
-								.updateTable('file_state')
-								.set(updates)
-								.where('fileId', '=', fileId)
-								.where('userId', '=', userId)
-								.execute()
-						} else {
-							const { id } = update.row as any
-							await tx.updateTable(update.table).set(updates).where('id', '=', id).execute()
-						}
-						break
-					}
-					case 'delete':
-						if (update.table === 'file_state') {
-							const { fileId, userId } = update.row as any
-							await tx
-								.deleteFrom('file_state')
-								.where('fileId', '=', fileId)
-								.where('userId', '=', userId)
-								.execute()
-						} else {
-							const { id } = update.row as any
-							await tx.deleteFrom(update.table).where('id', '=', id).execute()
-						}
-						break
+				await this.assertValidMutation(update, client)
+				await mutate[update.table][update.event](update.row as any)
+				if (update.table === 'file_state' && update.event === 'insert') {
+					const res = await client.query('select * from public.file where id = $1', [
+						(update.row as TlaFileState).fileId,
+					])
+					assert(res.rowCount === 1, 'File not found')
+					newGuestFiles.push(res.rows[0])
+				} else if (update.table === 'file' && update.event === 'insert') {
+					const res = await client.query('select * from public.file where id = $1', [
+						(update.row as TlaFile).id,
+					])
+					assert(res.rowCount === 1, 'File not found')
+					insertedFiles.push(res.rows[0])
 				}
-				this.cache.store.updateOptimisticData([update], msg.mutationId)
 			}
-			const result = await this.bumpMutationNumber(tx)
+
+			// await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE')
+			const res = await client.query<{ mutationNumber: number }>(
+				`insert into user_mutation_number ("userId", "mutationNumber") values ($1, 1) on conflict ("userId") do update set "mutationNumber" = user_mutation_number."mutationNumber" + 1 returning "mutationNumber"`,
+				[this.userId]
+			)
 
 			const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
-			const mutationNumber = result.mutationNumber
+			const mutationNumber = res.rows[0].mutationNumber
 			assert(
 				mutationNumber > currentMutationNumber,
 				`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
@@ -512,14 +533,20 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				mutationId: msg.mutationId,
 				timestamp: Date.now(),
 			})
-			return { insertedFiles, newGuestFiles }
-		})
 
-		for (const file of insertedFiles) {
-			getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
-		}
-		for (const file of newGuestFiles) {
-			this.cache.addGuestFile(file)
+			await client.query('COMMIT')
+
+			for (const file of insertedFiles) {
+				getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
+			}
+			for (const guestFile of newGuestFiles) {
+				this.cache?.addGuestFile(guestFile)
+			}
+		} catch (e) {
+			await client.query('ROLLBACK')
+			throw e
+		} finally {
+			client.release()
 		}
 	}
 
