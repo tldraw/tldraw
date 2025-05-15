@@ -3,24 +3,26 @@ import { generateSection } from './generateSection'
 
 const { log: nicelog } = console
 
+export const EXAMPLES_CATEGORIES = [
+	{ id: 'getting-started', title: 'Getting started', description: '', groups: [], hero: null },
+	{ id: 'configuration', title: 'Configuration', description: '', groups: [], hero: null },
+	{ id: 'editor-api', title: 'Editor API', description: '', groups: [], hero: null },
+	{ id: 'events', title: 'Events & effects', description: '', groups: [], hero: null },
+	{ id: 'ui', title: 'UI & theming', description: '', groups: [], hero: null },
+	{ id: 'layout', title: 'Page layout', description: '', groups: [], hero: null },
+	{ id: 'shapes/tools', title: 'Shapes & tools', description: '', groups: [], hero: null },
+	{ id: 'bindings', title: 'Bindings', description: '', groups: [], hero: null },
+	{ id: 'collaboration', title: 'Collaboration', description: '', groups: [], hero: null },
+	{ id: 'data/assets', title: 'Data & assets', description: '', groups: [], hero: null },
+	{ id: 'use-cases', title: 'Use cases', description: '', groups: [], hero: null },
+	{ id: 'advanced', title: 'Advanced', description: '', groups: [], hero: null },
+]
+
 const section: InputSection = {
 	id: 'examples',
 	title: 'Examples',
 	description: 'Code recipes for bending tldraw to your will.',
-	categories: [
-		{ id: 'getting-started', title: 'Getting started', description: '', groups: [], hero: null },
-		{ id: 'configuration', title: 'Configuration', description: '', groups: [], hero: null },
-		{ id: 'editor-api', title: 'Editor API', description: '', groups: [], hero: null },
-		{ id: 'events', title: 'Events & effects', description: '', groups: [], hero: null },
-		{ id: 'ui', title: 'UI & theming', description: '', groups: [], hero: null },
-		{ id: 'layout', title: 'Page layout', description: '', groups: [], hero: null },
-		{ id: 'shapes/tools', title: 'Shapes & tools', description: '', groups: [], hero: null },
-		{ id: 'bindings', title: 'Bindings', description: '', groups: [], hero: null },
-		{ id: 'collaboration', title: 'Collaboration', description: '', groups: [], hero: null },
-		{ id: 'data/assets', title: 'Data & assets', description: '', groups: [], hero: null },
-		{ id: 'use-cases', title: 'Use cases', description: '', groups: [], hero: null },
-		{ id: 'advanced', title: 'Advanced', description: '', groups: [], hero: null },
-	],
+	categories: EXAMPLES_CATEGORIES,
 	hero: null,
 	sidebar_behavior: 'show-links',
 }

@@ -1,8 +1,8 @@
 ---
-title: Inset editor common practices
+title: Inset editor (common practices)
 component: ./InlineBehavior.tsx
 category: layout
-priority: 20
+priority: 0.5
 keywords: [focus, blur, multiple]
 ---
 
