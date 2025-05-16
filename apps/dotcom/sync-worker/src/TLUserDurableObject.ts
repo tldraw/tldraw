@@ -1,18 +1,13 @@
 import { CustomMutatorImpl } from '@rocicorp/zero'
-import type { SchemaCRUD, SchemaQuery, TableCRUD } from '@rocicorp/zero/out/zql/src/mutate/custom'
+import type { SchemaCRUD, SchemaQuery } from '@rocicorp/zero/out/zql/src/mutate/custom'
 import {
 	DB,
-	MAX_NUMBER_OF_FILES,
 	MIN_Z_PROTOCOL_VERSION,
 	TlaFile,
-	TlaFilePartial,
 	TlaFileState,
-	TlaFileStatePartial,
 	TlaSchema,
-	TlaUser,
 	ZClientSentMessage,
 	ZErrorCode,
-	ZRowUpdate,
 	ZServerSentPacket,
 	createMutators,
 	downgradeZStoreData,
@@ -27,12 +22,15 @@ import { Kysely, PostgresDialect, Transaction, sql } from 'kysely'
 import { Pool, PoolClient } from 'pg'
 import { Logger } from './Logger'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
-import { Query, parseRow } from './postgres'
 import { Analytics, Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
+import { ServerCRUD } from './zero/ServerCrud'
+import { ServerQuery } from './zero/ServerQuery'
+import { ZMutationError } from './zero/ZMutationError'
+import { legacy_assertValidMutation } from './zero/legacy_assertValidMutation'
 
 export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: Kysely<DB>
@@ -158,66 +156,13 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly sockets = new Map<WebSocket, { protocolVersion: number; sessionId: string }>()
 
 	private makeCrud(client: PoolClient, signal: AbortSignal): SchemaCRUD<TlaSchema> {
-		return mapObjectMapValues(schema.tables, (tableName, table) => {
-			return {
-				insert: async (data: any) => {
-					assert(!signal.aborted, 'missing await in mutator')
-					const row = parseRow(data, table)
-					await client.query(
-						`insert into public."${tableName}" (${row.allKeys()}) values (${row.allValues()})`,
-						row.paramValues
-					)
-				},
-				upsert: async (data: any) => {
-					assert(!signal.aborted, 'missing await in mutator')
-					const row = parseRow(data, table)
-					await client.query(
-						`insert into public."${tableName}" (${row.allKeys()}) values (${row.allValues()})
-									on conflict (${row.primaryKeys()}) do update set ${row
-										.nonPrimaryKeysArray()
-										.map((k) => `"${k}" = excluded."${k}"`)
-										.join(',')}`,
-						row.paramValues
-					)
-				},
-				delete: async (data: any) => {
-					assert(!signal.aborted, 'missing await in mutator')
-					const row = parseRow(data, table)
-					await client.query(
-						`delete from public."${tableName}" where ${row.primaryKeyWhereClause()}`,
-						row.paramValues
-					)
-				},
-				update: async (data: any) => {
-					assert(!signal.aborted, 'missing await in mutator')
-					const row = parseRow(data, table)
-					const res = await client.query(
-						`update public.${tableName} set ${row
-							.nonPrimaryKeysArray()
-							.map((k) => `${JSON.stringify(k)} = ${row.rowValue(k)}`)
-							.join(', ')} where ${row.primaryKeyWhereClause()}`,
-						row.paramValues
-					)
-					if (res.rowCount !== 1) {
-						// might have been a noop
-						const row = parseRow(data, table)
-						const res = await client.query(
-							`select count(*) from public.${tableName} where ${row.primaryKeyWhereClause()}`,
-							row.paramValues
-						)
-						if (res.rows[0].count === 0) {
-							throw new ZMutationError(ZErrorCode.bad_request, `update failed, no matching rows`)
-						}
-					}
-				},
-			} satisfies TableCRUD<TlaSchema['tables'][keyof TlaSchema['tables']]>
-		})
+		return mapObjectMapValues(schema.tables, (_, table) => new ServerCRUD(client, table, signal))
 	}
 
-	private makeQuery(client: PoolClient): SchemaQuery<TlaSchema> {
+	private makeQuery(client: PoolClient, signal: AbortSignal): SchemaQuery<TlaSchema> {
 		return mapObjectMapValues(
 			schema.tables,
-			(tableName) => new Query(client, true, tableName) as any
+			(tableName) => new ServerQuery(signal, client, true, tableName) as any
 		)
 	}
 
@@ -393,96 +338,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		socket?.send(JSON.stringify(socketMeta.protocolVersion === 1 ? msg : [msg]))
 	}
 
-	private async assertValidMutation(update: ZRowUpdate, client: PoolClient) {
-		switch (update.table) {
-			case 'user': {
-				const isUpdatingSelf = (update.row as TlaUser).id === this.userId
-				if (!isUpdatingSelf)
-					throw new ZMutationError(
-						ZErrorCode.forbidden,
-						'Cannot update user record that is not our own: ' + (update.row as TlaUser).id
-					)
-				// todo: prevent user from updating their email?
-				return
-			}
-			case 'file': {
-				if (update.event === 'insert') {
-					const res = await client.query<{ count: number }>(
-						`select count(*) from public.file where "ownerId" = $1 and "isDeleted" = false`,
-						[this.userId]
-					)
-					if (res.rows[0].count >= MAX_NUMBER_OF_FILES) {
-						throw new ZMutationError(
-							ZErrorCode.max_files_reached,
-							`Cannot create more than ${MAX_NUMBER_OF_FILES} files`
-						)
-					}
-				}
-				const nextFile = update.row as TlaFilePartial
-				const res = await client.query<TlaFile>('select * from public.file where id = $1', [
-					nextFile.id,
-				])
-				if (!res.rowCount) {
-					const isOwner = nextFile.ownerId === this.userId
-					if (isOwner) return
-					throw new ZMutationError(
-						ZErrorCode.forbidden,
-						`Cannot create a file for another user. fileId: ${nextFile.id} file owner: ${nextFile.ownerId} current user: ${this.userId}`
-					)
-				}
-				const prevFile = res.rows[0]
-				if (prevFile.isDeleted)
-					throw new ZMutationError(ZErrorCode.forbidden, 'Cannot update a deleted file')
-				// Owners are allowed to make changes
-				if (prevFile.ownerId === this.userId) return
-
-				// We can make changes to updatedAt field in a shared, editable file
-				if (prevFile.shared && prevFile.sharedLinkType === 'edit') {
-					const { id: _id, ...rest } = nextFile
-					if (Object.keys(rest).length === 1 && rest.updatedAt !== undefined) return
-					throw new ZMutationError(
-						ZErrorCode.forbidden,
-						'Cannot update fields other than updatedAt on a shared file'
-					)
-				}
-				throw new ZMutationError(
-					ZErrorCode.forbidden,
-					'Cannot update file that is not our own and not shared in edit mode' +
-						` user id ${this.userId} ownerId ${prevFile.ownerId}`
-				)
-			}
-			case 'file_state': {
-				const nextFileState = update.row as TlaFileStatePartial
-				const res = await client.query<TlaFile>(`select * from public.file where id = $1`, [
-					nextFileState.fileId,
-				])
-				if (!res.rowCount) {
-					throw new ZMutationError(ZErrorCode.bad_request, `File not found ${nextFileState.fileId}`)
-				}
-				if (nextFileState.userId !== this.userId) {
-					throw new ZMutationError(
-						ZErrorCode.forbidden,
-						`Cannot update file state for another user ${nextFileState.userId}`
-					)
-				}
-				const file = res.rows[0]
-				if (file.ownerId === this.userId) return
-				if (file.shared) return
-
-				throw new ZMutationError(
-					ZErrorCode.forbidden,
-					"Cannot update file state of file we don't own and is not shared"
-				)
-			}
-			default:
-				// this legacy mutation validation only applies to user, file, and file_state tables
-				throw new ZMutationError(
-					ZErrorCode.bad_request,
-					`Invalid table ${update.table} for mutation ${update.event}`
-				)
-		}
-	}
-
 	private pool: Pool
 
 	private async _doMutate(msg: ZClientSentMessage) {
@@ -501,7 +356,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				if (msg.type === 'mutate') {
 					// legacy
 					for (const update of msg.updates) {
-						await this.assertValidMutation(update, client)
+						await legacy_assertValidMutation(this.userId!, client, update)
 						await mutate[update.table][update.event](update.row as any)
 						if (update.table === 'file_state' && update.event === 'insert') {
 							const res = await client.query('select * from public.file where id = $1', [
@@ -538,7 +393,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							location: 'server',
 							reason: 'authoritative',
 							mutationID: 0,
-							query: this.makeQuery(client),
+							query: this.makeQuery(client, controller.signal),
 						},
 						msg.mutation[1]
 					)
@@ -694,15 +549,5 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			await sleep(100)
 		}
 		return cache.store.getCommittedData()
-	}
-}
-
-class ZMutationError extends Error {
-	constructor(
-		public errorCode: ZErrorCode,
-		message: string,
-		public cause?: unknown
-	) {
-		super(message)
 	}
 }
