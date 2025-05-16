@@ -1,12 +1,12 @@
 ---
-title: External UI
+title: External UI (using state)
 component: ./ExternalUiExample.tsx
-category: ui
-priority: 2
+category: layout
+priority: 20
 keywords: [outside, editor]
 ---
 
-This example shows how to control the tldraw editor from an external UI, outside of the `Tldraw` component.
+This example shows how to control the tldraw editor from an external UI, using state.
 
 ---
 

@@ -1,7 +1,8 @@
 ---
 title: UI events
 component: ./UiEventsExample.tsx
-category: editor-api
+category: events
+priority: 1
 keywords: [ui, events, api, x-ray]
 ---
 

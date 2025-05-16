@@ -2,7 +2,7 @@
 title: Rich text with font options
 component: ./RichTextFontExtension.tsx
 category: shapes/tools
-priority: 1
+priority: 20
 keywords: [text, tip, tap, extension, toolbar, font]
 ---
 

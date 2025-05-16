@@ -1,8 +1,8 @@
 ---
-title: Tldraw image component
+title: Snapshot image component
 component: ./TldrawImageExample.tsx
-category: ui
-priority: 3
+category: layout
+priority: 20
 keywords: [snapshot, export]
 ---
 

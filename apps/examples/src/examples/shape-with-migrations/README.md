@@ -1,5 +1,5 @@
 ---
-title: Shape with migrations
+title: Shape migrations
 component: ./ShapeWithMigrationsExample.tsx
 category: shapes/tools
 priority: 3

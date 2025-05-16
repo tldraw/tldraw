@@ -1,8 +1,8 @@
 ---
-title: Custom UI
+title: Replace the entire UI
 component: ./CustomUiExample.tsx
 category: ui
-priority: 1
+priority: 1.5
 keywords: [hide, ui, event listener]
 ---
 

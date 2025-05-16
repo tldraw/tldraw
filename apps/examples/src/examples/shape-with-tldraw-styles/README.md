@@ -1,8 +1,8 @@
 ---
-title: Using tldraw styles
+title: Custom shape with tldraw styles
 component: ./ShapeWithTldrawStylesExample.tsx
 category: shapes/tools
-priority: 1
+priority: 1.5
 keywords: [default styles, style panel]
 ---
 

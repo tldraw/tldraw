@@ -1,8 +1,8 @@
 ---
-title: Using custom styles
+title: Custom shape with custom styles
 component: ./ShapeWithCustomStylesExample.tsx
 category: shapes/tools
-priority: 2
+priority: 1.5
 keywords: [style panel, rating]
 ---
 

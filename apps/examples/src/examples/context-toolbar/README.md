@@ -6,7 +6,7 @@ priority: 2
 keywords: [in front of the canvas, contextual]
 ---
 
-Show a contextual toolbar above the shapes when they are selected.
+Show a contextual toolbar above shapes when they are selected.
 
 ---
 

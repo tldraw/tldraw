@@ -2,6 +2,7 @@
 title: Create an arrow
 component: ./CreateArrowExample.tsx
 category: editor-api
+priority: 1
 keywords: [arrow, between]
 ---
 

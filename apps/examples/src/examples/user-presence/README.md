@@ -1,12 +1,13 @@
 ---
-title: User presence
+title: Manually update user presence
 component: ./UserPresenceExample.tsx
-category: editor-api
-keywords: [Instance presence record, cursor]
+category: collaboration
+keywords: [cursor]
+priority: 5
 ---
 
-Show other users editing the same document.
+Manually show other users editing the same document.
 
 ---
 
-Here, we add fake InstancePresence records to the store to simulate other users. If you have your own presence system, you could add real records to the store in the same way.
+Here, we add fake `InstancePresence` records to the store to simulate other users. If you have your own presence system, you could add real records to the store in the same way.

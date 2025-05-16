@@ -1,8 +1,8 @@
 ---
 title: Shape meta (on change)
 component: ./OnChangeShapeMetaExample.tsx
-category: data/assets
-priority: 3
+category: events
+priority: 7
 keywords: [side, effects, register, change, initial]
 ---
 

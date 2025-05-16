@@ -1,7 +1,13 @@
-import { FrameShapeUtil, Tldraw } from 'tldraw'
+import { FrameShapeUtil, NoteShapeUtil, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-const shapeUtils = [FrameShapeUtil.configure({ showColors: true })]
+const shapeUtils = [
+	// Enable colors for frame shapes
+	FrameShapeUtil.configure({ showColors: true }),
+
+	// Enable resizing for note shapes
+	NoteShapeUtil.configure({ resizeMode: 'scale' }),
+]
 
 export default function ConfigureShapeUtilExample() {
 	return (

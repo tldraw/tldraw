@@ -1,10 +1,12 @@
 ---
-title: Custom Grid Example
+title: Custom grid
 component: ./CustomGridExample.tsx
 category: ui
-priority: 12
+priority: 2
 keywords: [grid, background, ui, layout]
 ---
+
+Draw a custom grid on the canvas.
 
 ---
 

@@ -1,8 +1,8 @@
 ---
-title: Changing default colors
+title: Change default colors
 component: ./ChangingDefaultColorsExample.tsx
 category: ui
-priority: 1
+priority: 0.5
 keywords: [colours, styles, palette, style panel]
 ---
 

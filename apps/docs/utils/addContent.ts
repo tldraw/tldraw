@@ -25,6 +25,7 @@ export async function addContentToDb(
       id,
       groupIndex,
       categoryIndex,
+	  priority,
       sectionIndex,
       groupId,
       categoryId,
@@ -44,7 +45,7 @@ export async function addContentToDb(
 	  apiTags,
       content,
 			path
-    ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	)
 
 	for (let i = 0; i < content.sections.length; i++) {
@@ -88,6 +89,7 @@ export async function addContentToDb(
 				article.id,
 				article.groupIndex,
 				article.categoryIndex,
+				article.priority,
 				article.sectionIndex,
 				article.groupId,
 				article.categoryId,
