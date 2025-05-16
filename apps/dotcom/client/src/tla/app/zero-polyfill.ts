@@ -95,9 +95,14 @@ export class Zero {
 					this.opts.onMutationRejected('client_too_old')
 					return
 				}
-				const signal = new AbortController().signal
-				const mutate = this.makeCrud(signal)
-				await mutatorFn({ mutate, query: this.query, location: 'client' }, params)
+				const controller = new AbortController()
+				const mutate = this.makeCrud(controller.signal)
+				try {
+					await mutatorFn({ mutate, query: this.query, location: 'client' }, params)
+				} finally {
+					controller.abort()
+				}
+
 				this.pendingUpdates.push({
 					type: 'mutator',
 					mutationId: this.currentMutationId,
