@@ -1,3 +1,4 @@
+import { SchemaValue } from '@rocicorp/zero'
 import {
 	PostgresJSClient,
 	PostgresJSTransaction,
@@ -65,9 +66,69 @@ export function makePostgresConnector(env: Environment): PostgresJSClient<any> {
 	}
 }
 
-export function placeholders() {
-	let i = 1
-	return () => `$${i++}`
+export function params() {
+	const values = [] as any[]
+	return Object.assign(
+		(value: any) => {
+			values.push(value)
+			return `$${values.length}`
+		},
+		{
+			values,
+		}
+	)
+}
+
+export function parseRow(row: any, table: TlaSchema['tables'][keyof TlaSchema['tables']]) {
+	const entries = Object.entries(row)
+	for (const [key, value] of entries) {
+		const column = table.columns[key as keyof typeof table.columns] as SchemaValue
+		if (!column) {
+			throw new Error(`Unknown column ${key} in table ${table.name}`)
+		}
+		if (value == null && column.optional) {
+			continue
+		}
+		switch (column.type) {
+			case 'string':
+				assert(typeof value === 'string', `Invalid type for column ${key} in table ${table.name}`)
+				break
+			case 'number':
+				assert(typeof value === 'number', `Invalid type for column ${key} in table ${table.name}`)
+				break
+			case 'boolean':
+				assert(typeof value === 'boolean', `Invalid type for column ${key} in table ${table.name}`)
+				break
+			case 'json':
+				throw new Error('json not supported in our custom thingy yet')
+			default:
+				throw new Error(`Unknown type ${column.type} for column ${key} in table ${table.name}`)
+		}
+	}
+	for (const key of table.primaryKey) {
+		if (!(key in row)) {
+			throw new Error(`Missing primary key ${key} in table ${table.name}`)
+		}
+	}
+	const param = params()
+	const str = JSON.stringify
+	return {
+		row,
+		primaryKeys: () => table.primaryKey.map((key) => str(key)).join(', '),
+		primaryKeyWhereClause: () =>
+			table.primaryKey.map((key) => `${str(key)} = ${param(row[key])}`).join(' AND '),
+		allValues: () => entries.map(([_key, value]) => param(value)),
+		allKeys: () => entries.map(([key]) => str(key)).join(', '),
+		nonPrimaryKeysArray: () =>
+			entries.map(([key]) => key).filter((key) => !table.primaryKey.includes(key)),
+		rowValue: (key: string) => {
+			if (!(key in row)) {
+				throw new Error(`Missing value for column ${key} in table ${table.name}`)
+			}
+			return param(row[key] ?? null)
+		},
+		paramValues: param.values,
+	}
 }
 
 export class Query<Row extends TlaRow, isOne extends boolean = false> {

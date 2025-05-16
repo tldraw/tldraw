@@ -27,7 +27,7 @@ import { Kysely, PostgresDialect, Transaction, sql } from 'kysely'
 import { Pool, PoolClient } from 'pg'
 import { Logger } from './Logger'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
-import { Query, placeholders } from './postgres'
+import { Query, parseRow } from './postgres'
 import { Analytics, Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { getRoomDurableObject } from './utils/durableObjects'
@@ -161,53 +161,49 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		return mapObjectMapValues(schema.tables, (tableName, table) => {
 			return {
 				insert: async (data: any) => {
-					const ks = Object.keys(data)
-					const p = placeholders()
-					// todo: validate keys exist in schema and primary key is set and maybe data types
+					const row = parseRow(data, table)
 					await client.query(
-						`insert into public."${tableName}" (${Object.keys(data)
-							.map((k) => JSON.stringify(k))
-							.join(',')}) values (${ks.map(() => p()).join(',')})`,
-						ks.map((k) => data[k])
+						`insert into public."${tableName}" (${row.allKeys()}) values (${row.allValues()})`,
+						row.paramValues
 					)
 				},
 				upsert: async (data: any) => {
-					const ks = Object.keys(data)
-					// todo: validate keys exist in schema and primary key is set and maybe data types
-					const p = placeholders()
+					const row = parseRow(data, table)
 					await client.query(
-						`insert into public."${tableName}" (${Object.keys(data)
-							.map((k) => JSON.stringify(k))
-							.join(',')}) values (${ks.map(() => p()).join(',')})
-									on conflict (${table.primaryKey.map((k) => JSON.stringify(k)).join(',')}) do update set ${ks
-										.map((k) => `${JSON.stringify(k)} = excluded.${JSON.stringify(k)}`)
+						`insert into public."${tableName}" (${row.allKeys()}) values (${row.allValues()})
+									on conflict (${row.primaryKeys()}) do update set ${row
+										.nonPrimaryKeysArray()
+										.map((k) => `"${k}" = excluded."${k}"`)
 										.join(',')}`,
-						ks.map((k) => data[k])
+						row.paramValues
 					)
 				},
 				delete: async (data: any) => {
-					// todo: validate pk is set
-					const p = placeholders()
+					const row = parseRow(data, table)
 					await client.query(
-						`delete from public."${tableName}" where ${table.primaryKey.map((k) => `${JSON.stringify(k)} = ${p()}`).join(' and ')}`,
-						table.primaryKey.map((k) => data[k])
+						`delete from public."${tableName}" where ${row.primaryKeyWhereClause()}`,
+						row.paramValues
 					)
 				},
 				update: async (data: any) => {
-					// todo: validate pk is set and other keys exist in schema
-					const p = placeholders()
-					const ks = Object.keys(data)
-					const q = `update public."${tableName}" set ${ks
-						.map((k) => `${JSON.stringify(k)} = ${p()}`)
-						.join(',')} where ${table.primaryKey
-						.map((k) => `${JSON.stringify(k)} = ${p()}`)
-						.join(' and ')}`
-					const ps = [...ks.map((k) => data[k]), ...table.primaryKey.map((k) => data[k])]
-					const res = await client.query(q, ps)
+					const row = parseRow(data, table)
+					const res = await client.query(
+						`update public.${tableName} set ${row
+							.nonPrimaryKeysArray()
+							.map((k) => `${JSON.stringify(k)} = ${row.rowValue(k)}`)
+							.join(', ')} where ${row.primaryKeyWhereClause()}`,
+						row.paramValues
+					)
 					if (res.rowCount !== 1) {
-						throw new Error(
-							`update failed, expected 1 row to be updated, got ${res.rowCount} for query ${q} with params ${JSON.stringify(ps)}`
+						// might have been a noop
+						const row = parseRow(data, table)
+						const res = await client.query(
+							`select count(*) from public.${tableName} where ${row.primaryKeyWhereClause()}`,
+							row.paramValues
 						)
+						if (res.rows[0].count === 0) {
+							throw new ZMutationError(ZErrorCode.bad_request, `update failed, no matching rows`)
+						}
 					}
 				},
 			} satisfies TableCRUD<TlaSchema['tables'][keyof TlaSchema['tables']]>
