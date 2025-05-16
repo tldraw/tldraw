@@ -1,3 +1,4 @@
+import { assert } from '@tldraw/utils'
 import { _Atom } from './Atom'
 import { EffectScheduler } from './EffectScheduler'
 import { GLOBAL_START_EPOCH } from './constants'
@@ -299,4 +300,18 @@ export function transact<T>(fn: () => T): T {
 		return fn()
 	}
 	return transaction(fn)
+}
+
+/**
+ * @internal
+ */
+export function pauseReactions() {
+	assert(!inst.currentTransaction, 'Cannot pause reactions inside a transaction')
+	const txn = (inst.currentTransaction = new Transaction(null))
+
+	return () => {
+		assert(txn === inst.currentTransaction, 'Cannot resume reactions while in a transaction')
+		inst.currentTransaction = null
+		txn.commit()
+	}
 }

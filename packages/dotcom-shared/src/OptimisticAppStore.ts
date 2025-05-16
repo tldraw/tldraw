@@ -5,9 +5,7 @@ import { schema } from './tlaSchema'
 import { ZRowUpdate, ZStoreData } from './types'
 
 export class OptimisticAppStore {
-	private _gold_store = atom('zero store', null as null | ZStoreData, {
-		isEqual: isEqual,
-	})
+	private _gold_store = atom('zero store', null as null | ZStoreData, { isEqual })
 
 	private _optimisticStore = atom<
 		Array<{
@@ -37,18 +35,22 @@ export class OptimisticAppStore {
 		})
 	}
 
-	private store = computed('store', () => {
-		const gold = this._gold_store.get()
-		if (!gold) return null
-		let data = gold
-		const optimistic = this._optimisticStore.get()
-		for (const changes of optimistic) {
-			for (const update of changes.updates) {
-				data = this.applyUpdate(data, update)
+	private store = computed(
+		'store',
+		() => {
+			const gold = this._gold_store.get()
+			if (!gold) return null
+			let data = gold
+			const optimistic = this._optimisticStore.get()
+			for (const changes of optimistic) {
+				for (const update of changes.updates) {
+					data = this.applyUpdate(data, update)
+				}
 			}
-		}
-		return data
-	})
+			return data
+		},
+		{ isEqual }
+	)
 
 	getCommittedData() {
 		return this._gold_store.get()
