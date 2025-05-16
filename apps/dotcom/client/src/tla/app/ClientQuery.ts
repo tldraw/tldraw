@@ -7,22 +7,15 @@ export class ClientQuery<Row extends TlaRow, isOne extends boolean = false> {
 		private readonly store: OptimisticAppStore,
 		private readonly isOne: isOne,
 		private readonly table: keyof TlaSchema['tables'],
-		private readonly wheres: ReadonlyArray<[string, any]> = [],
-		private readonly params: readonly unknown[] = [],
-		private readonly p = 1
+		private readonly wheres: ReadonlyArray<[string, any]> = []
 	) {}
 
 	where<K extends keyof Row>(key: K, op: '=', value: Row[K]) {
 		assert(op === '=', 'Only = operator is supported at the moment')
-		return new ClientQuery<Row, isOne>(
-			this.signal,
-			this.store,
-			this.isOne,
-			this.table,
-			[...this.wheres, [key as string, value]],
-			[...this.params, value],
-			this.p + 1
-		)
+		return new ClientQuery<Row, isOne>(this.signal, this.store, this.isOne, this.table, [
+			...this.wheres,
+			[key as string, value],
+		])
 	}
 
 	related(_cb: any) {
@@ -85,15 +78,7 @@ export class ClientQuery<Row extends TlaRow, isOne extends boolean = false> {
 	}
 
 	one() {
-		return new ClientQuery<Row, true>(
-			this.signal,
-			this.store,
-			true,
-			this.table,
-			this.wheres,
-			this.params,
-			this.p
-		)
+		return new ClientQuery<Row, true>(this.signal, this.store, true, this.table, this.wheres)
 	}
 
 	materialize() {
