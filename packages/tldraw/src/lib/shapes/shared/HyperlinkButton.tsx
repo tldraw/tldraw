@@ -7,10 +7,17 @@ const LINK_ICON =
 export function HyperlinkButton({ url }: { url: string }) {
 	const editor = useEditor()
 	const hideButton = useValue('zoomLevel', () => editor.getZoomLevel() < 0.32, [editor])
+	const selectToolActive = useValue(
+		'isSelectToolActive',
+		() => editor.getCurrentToolId() === 'select',
+		[editor]
+	)
+
 	return (
 		<a
 			className={classNames('tl-hyperlink-button', {
 				'tl-hyperlink-button__hidden': hideButton,
+				'tl-hyperlink-pointer-event__none': selectToolActive && editor.inputs.shiftKey,
 			})}
 			href={url}
 			target="_blank"
@@ -19,6 +26,12 @@ export function HyperlinkButton({ url }: { url: string }) {
 			onPointerUp={stopEventPropagation}
 			title={url}
 			draggable={false}
+			onClick={(e) => {
+				if (selectToolActive && editor.inputs.shiftKey) {
+					e.preventDefault()
+					e.stopPropagation()
+				}
+			}}
 		>
 			<div
 				className="tl-hyperlink__icon"
