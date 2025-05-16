@@ -23,10 +23,22 @@ import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 const videoSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 
 /** @public */
+export interface VideoShapeOptions {
+	/**
+	 * Should videos on the canvas autoplay by default?
+	 */
+	defaultAutoplay: boolean
+}
+
+/** @public */
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	static override type = 'video' as const
 	static override props = videoShapeProps
 	static override migrations = videoShapeMigrations
+
+	override options: VideoShapeOptions = {
+		defaultAutoplay: true,
+	}
 
 	override canEdit() {
 		return true
@@ -41,7 +53,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			h: 100,
 			assetId: null,
 			time: 0,
-			playing: true,
+			playing: this.options.defaultAutoplay,
 			url: '',
 			altText: '',
 		}
@@ -166,7 +178,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 									height="100%"
 									draggable={false}
 									playsInline
-									autoPlay
+									autoPlay={shape.props.playing}
 									muted
 									loop
 									disableRemotePlayback
