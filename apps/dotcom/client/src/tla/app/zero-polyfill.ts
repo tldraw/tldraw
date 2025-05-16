@@ -1,40 +1,31 @@
+import { MakeEntityQueriesFromSchema } from '@rocicorp/zero'
 import type { MakeCustomMutatorInterfaces } from '@rocicorp/zero/out/zero-client/src/client/custom'
-import type { SchemaCRUD, TableCRUD } from '@rocicorp/zero/out/zql/src/mutate/custom'
+import type { SchemaCRUD } from '@rocicorp/zero/out/zql/src/mutate/custom'
 import {
 	OptimisticAppStore,
-	TlaFileState,
 	TlaMutators,
 	TlaSchema,
 	ZClientSentMessage,
 	ZErrorCode,
-	ZRowUpdate,
 	ZServerSentMessage,
 	createMutators,
 	schema,
 } from '@tldraw/dotcom-shared'
 import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import {
-	Signal,
-	assert,
-	assertExists,
-	computed,
-	mapObjectMapValues,
-	objectMapKeys,
-	react,
-	sleep,
-	transact,
-	uniqueId,
-} from 'tldraw'
+import { assert, mapObjectMapValues, objectMapKeys, sleep, transact, uniqueId } from 'tldraw'
 import { TLAppUiContextType } from '../utils/app-ui-events'
+import { ClientCRUD } from './ClientCRUD'
+import { ClientQuery } from './ClientQuery'
 
 export class Zero {
 	private socket: ClientWebSocketAdapter
 	private store = new OptimisticAppStore()
 	private pendingUpdates: ZClientSentMessage[] = []
 	private timeout: NodeJS.Timeout | undefined = undefined
-	private currentMutationId = uniqueId()
 	private clientTooOld = false
 	private didReceiveFirstMessage = false
+
+	query: MakeEntityQueriesFromSchema<TlaSchema>
 
 	constructor(
 		private opts: {
@@ -45,6 +36,7 @@ export class Zero {
 			trackEvent: TLAppUiContextType
 		}
 	) {
+		this.query = this.makeQuery(new AbortController().signal) as any
 		this.socket = new ClientWebSocketAdapter(opts.getUri)
 		this.socket.onStatusChange((e) => {
 			if (e.status === 'error') {
@@ -96,19 +88,19 @@ export class Zero {
 					return
 				}
 				const controller = new AbortController()
-				const mutate = this.makeCrud(controller.signal)
+				const mutationId = uniqueId()
+				const mutate = this.makeCrud(controller.signal, mutationId)
+				const query = this.makeQuery(controller.signal)
 				try {
-					await mutatorFn({ mutate, query: this.query, location: 'client' }, params)
+					await mutatorFn({ mutate, query, location: 'client' }, params)
 				} finally {
 					controller.abort()
 				}
-
 				this.pendingUpdates.push({
 					type: 'mutator',
-					mutationId: this.currentMutationId,
+					mutationId,
 					mutation: [key as any, params],
 				})
-				this.currentMutationId = uniqueId()
 				if (!this.timeout) {
 					this.timeout = setTimeout(() => {
 						this.sendPendingUpdates()
@@ -149,102 +141,6 @@ export class Zero {
 		this.socket.close()
 	}
 
-	// eslint-disable-next-line local/prefer-class-methods
-	private preload = () => {
-		if (this.store.getFullData()) {
-			return { complete: Promise.resolve(null) }
-		}
-		return {
-			complete: new Promise((resolve) => {
-				const unsub = react('wait for initial data', () => {
-					const store = this.store.getFullData()
-					if (store) {
-						unsub()
-						return resolve(null)
-					}
-					// TODO: handle error
-				})
-			}),
-		}
-	}
-
-	private makeQuery<T>(table: string, data$: Signal<T>) {
-		const stuff = {
-			preload: this.preload,
-			related(_x: any, _y: any) {
-				return this
-			},
-			materialize: () => {
-				let _data = data$.get() as any
-				let unsub = () => {}
-				return {
-					get data() {
-						return _data
-					},
-					addListener: (listener: (data: T) => void) => {
-						unsub = react('file listener', () => {
-							_data = data$.get()
-							if (!_data) return
-							if (table === 'file_state') {
-								const files = this.store.getFullData()?.file
-								if (!files) return
-								_data = (_data as TlaFileState[]).map((d) => ({
-									...d,
-									file: files.find((f) => f.id === d.fileId),
-								}))
-							}
-							return listener(_data)
-						})
-					},
-					destroy() {
-						unsub()
-						unsub = () => {}
-					},
-				}
-			},
-		}
-		return {
-			...stuff,
-			where: (column: string, op: string, value: any) => {
-				assert(op === '=', 'Only = operator is supported')
-				return {
-					...stuff,
-					one() {
-						return {
-							...this,
-							run: () => {
-								return (data$.get() as any[]).find((d) => d[column] === value)
-							},
-						}
-					},
-					run: () => {
-						return (data$.get() as any[]).filter((d) => d[column] === value)
-					},
-					toString() {
-						return column
-					},
-				}
-			},
-		}
-	}
-
-	query = {
-		file: this.makeQuery(
-			'file',
-			computed('files', () => this.store.getFullData()?.file.filter((f) => !f.isDeleted))
-		),
-		file_state: this.makeQuery(
-			'file_state',
-			computed('fileStates', () => this.store.getFullData()?.file_state)
-		),
-		user: {
-			...this.makeQuery(
-				'user',
-				computed('user', () => this.store.getFullData()?.user)
-			),
-		},
-	}
-
 	private sendPendingUpdates() {
 		if (this.socket.isDisposed) return
 
@@ -258,35 +154,17 @@ export class Zero {
 		this.timeout = undefined
 	}
 
-	private makeCrud(signal: AbortSignal): SchemaCRUD<TlaSchema> {
-		const getAllData = () => assertExists(this.store.getFullData(), 'store not initialized')
-		return mapObjectMapValues(schema.tables, (tableName, table) => {
-			const getExisting = (data: any) =>
-				getAllData()[tableName].find((row: any) =>
-					table.primaryKey.every((key) => row[key] === data[key])
-				)
-			const apply = (update: ZRowUpdate) =>
-				this.store.updateOptimisticData([update], this.currentMutationId)
-			return {
-				insert: async (data: any) => {
-					assert(!signal.aborted, 'missing await in mutator')
-					assert(!getExisting(data), 'row already exists')
-					apply({ event: 'insert', table: tableName, row: data })
-				},
-				upsert: async (data: any) => {
-					assert(!signal.aborted, 'missing await in mutator')
-					apply({ event: getExisting(data) ? 'update' : 'insert', table: tableName, row: data })
-				},
-				delete: async (data: any) => {
-					assert(!signal.aborted, 'missing await in mutator')
-					apply({ event: 'delete', table: tableName, row: data })
-				},
-				update: async (data: any) => {
-					assert(!signal.aborted, 'missing await in mutator')
-					assert(getExisting(data), 'row not found')
-					apply({ event: 'update', table: tableName, row: data })
-				},
-			} satisfies TableCRUD<TlaSchema['tables'][keyof TlaSchema['tables']]>
-		})
+	private makeCrud(signal: AbortSignal, mutationId: string): SchemaCRUD<TlaSchema> {
+		return mapObjectMapValues(
+			schema.tables,
+			(_, table) => new ClientCRUD(signal, this.store, table, mutationId)
+		)
+	}
+
+	private makeQuery(signal: AbortSignal) {
+		return mapObjectMapValues(
+			schema.tables,
+			(_, table) => new ClientQuery(signal, this.store, false, table.name)
+		)
 	}
 }
