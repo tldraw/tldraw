@@ -125,19 +125,13 @@ export type ZErrorCode = keyof typeof ZErrorCode
 export const Z_PROTOCOL_VERSION = 2
 export const MIN_Z_PROTOCOL_VERSION = 1
 
-export function maybeDowngradeZStoreData(
-	data: ZStoreData,
-	clientProtocolVersion: number
-): ZStoreData | ZStoreDataV1 {
-	if (clientProtocolVersion < 2) {
-		return {
-			files: data.file,
-			fileStates: data.file_state,
-			user: data.user[0] ?? null,
-			lsn: data.lsn,
-		}
+export function downgradeZStoreData(data: ZStoreData): ZStoreDataV1 {
+	return {
+		files: data.file,
+		fileStates: data.file_state,
+		user: data.user[0] ?? null,
+		lsn: data.lsn,
 	}
-	return data
 }
 
 export type ZServerSentPacket =

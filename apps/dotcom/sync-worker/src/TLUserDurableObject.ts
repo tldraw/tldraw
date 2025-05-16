@@ -15,11 +15,11 @@ import {
 	ZRowUpdate,
 	ZServerSentPacket,
 	createMutators,
-	maybeDowngradeZStoreData,
+	downgradeZStoreData,
 	schema,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { ExecutionQueue, assert, mapObjectMapValues, sleep } from '@tldraw/utils'
+import { ExecutionQueue, assert, assertExists, mapObjectMapValues, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -141,7 +141,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				this.cache?.onInterval()
 
 				// clean up closed sockets if there are any
-				for (const socket of this.sockets) {
+				for (const socket of this.sockets.keys()) {
 					if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
 						this.sockets.delete(socket)
 					}
@@ -155,11 +155,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	private readonly sockets = new Set<WebSocket>()
-	private readonly sessions = new WeakMap<
-		WebSocket,
-		{ protocolVersion: number; sessionId: string }
-	>()
+	private readonly sockets = new Map<WebSocket, { protocolVersion: number; sessionId: string }>()
 
 	private makeCrud(client: PoolClient): SchemaCRUD<TlaSchema> {
 		return mapObjectMapValues(schema.tables, (tableName, table) => {
@@ -238,7 +234,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.outgoingBuffer = null
 		if (!buffer) return
 
-		for (const socket of this.sockets) {
+		for (const [socket, socketMeta] of this.sockets.entries()) {
 			if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
 				this.sockets.delete(socket)
 				continue
@@ -247,17 +243,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				continue
 			}
 			// maybe downgrade the data for the client
-			const protocolVersion = this.sessions.get(socket)?.protocolVersion
-			if (!protocolVersion) {
-				this.captureException(new Error('No protocol version set'))
-				continue
-			}
-			if (protocolVersion === 1) {
+			if (socketMeta.protocolVersion === 1) {
 				for (let msg of buffer) {
 					if (msg.type === 'initial_data') {
 						msg = {
 							type: 'initial_data',
-							initialData: maybeDowngradeZStoreData(msg.initialData, protocolVersion) as any,
+							initialData: downgradeZStoreData(msg.initialData) as any,
 						}
 					}
 					socket.send(JSON.stringify(msg))
@@ -306,7 +297,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 
 		serverWebSocket.addEventListener('message', (e) =>
-			this.messageQueue.push(() => this.handleSocketMessage(serverWebSocket, e.data.toString()))
+			this.messageQueue.push(() =>
+				this.handleSocketMessage(serverWebSocket, e.data.toString()).catch((e) =>
+					this.captureException(e, { source: 'serverWebSocket "message" event' })
+				)
+			)
 		)
 		serverWebSocket.addEventListener('close', () => {
 			this.sockets.delete(serverWebSocket)
@@ -316,8 +311,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			this.sockets.delete(serverWebSocket)
 		})
 
-		this.sockets.add(serverWebSocket)
-		this.sessions.set(serverWebSocket, {
+		this.sockets.set(serverWebSocket, {
 			protocolVersion,
 			sessionId,
 		})
@@ -330,7 +324,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				protocolVersion === 1
 					? JSON.stringify({
 							type: 'initial_data',
-							initialData: maybeDowngradeZStoreData(initialData, protocolVersion),
+							initialData: downgradeZStoreData(initialData),
 						})
 					: JSON.stringify([
 							{
@@ -385,18 +379,18 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private async rejectMutation(socket: WebSocket, mutationId: string, errorCode: ZErrorCode) {
 		this.assertCache()
+		const socketMeta = assertExists(this.sockets.get(socket), 'Socket not found')
 		this.logEvent({ type: 'reject_mutation', id: this.userId! })
 		this.cache.store.rejectMutation(mutationId)
 		this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== mutationId)
-		const protocolVersion = this.sessions.get(socket)?.protocolVersion
-		assert(protocolVersion, 'No protocol version set')
+
 		const msg: ZServerSentPacket = {
 			type: 'reject',
 			mutationId,
 			errorCode,
 		}
 
-		socket?.send(JSON.stringify(protocolVersion === 1 ? msg : [msg]))
+		socket?.send(JSON.stringify(socketMeta.protocolVersion === 1 ? msg : [msg]))
 	}
 
 	private async assertValidMutation(update: ZRowUpdate, client: PoolClient) {
@@ -666,9 +660,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			return
 		}
 		this.__test__isForceDowngraded = isDowngraded
-		this.sockets.forEach((socket) => {
+		for (const socket of this.sockets.keys()) {
 			socket.close()
-		})
+		}
 	}
 
 	async admin_forceHardReboot(userId: string) {
