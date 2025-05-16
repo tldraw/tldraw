@@ -32,7 +32,6 @@ export class ServerQuery<Row extends TlaRow, isOne extends boolean = false> {
 		const sql = `SELECT * FROM "${this.table}" ${whereClause}`
 		const res = await this.client.query(sql, [...this.params])
 		if (this.isOne) {
-			assert(res.rows.length === 1, 'Expected exactly one row')
 			return res.rows[0] as any
 		}
 		return res.rows as any

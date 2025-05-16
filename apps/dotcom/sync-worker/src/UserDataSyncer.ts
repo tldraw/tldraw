@@ -7,6 +7,7 @@ import {
 	ZRowUpdate,
 	ZServerSentPacket,
 	ZStoreData,
+	ZStoreDataV1,
 	ZTable,
 } from '@tldraw/dotcom-shared'
 import { react, transact } from '@tldraw/state'
@@ -82,7 +83,7 @@ type BootState =
 			lastSequenceNumber: number
 	  }
 
-const stateVersion = 0
+const stateVersion = 1
 interface StateSnapshot {
 	version: number
 	initialData: ZStoreData
@@ -90,6 +91,19 @@ interface StateSnapshot {
 		updates: ZRowUpdate[]
 		mutationId: string
 	}>
+}
+
+function migrateStateSnapshot(snapshot: any) {
+	if (snapshot.version === 0) {
+		snapshot.version = 1
+		const data = snapshot.initialData as ZStoreDataV1
+		snapshot.initialData = {
+			lsn: data.lsn,
+			user: [data.user],
+			file: data.files,
+			file_state: data.fileStates,
+		} satisfies ZStoreData
+	}
 }
 
 const MUTATION_COMMIT_TIMEOUT = 10_000
@@ -227,8 +241,9 @@ export class UserDataSyncer {
 		}
 		const data = (await res.json()) as StateSnapshot
 		if (signal.aborted) return null
+		migrateStateSnapshot(data)
 		if (data.version !== stateVersion) {
-			this.log.debug('snapshot version mismatch')
+			this.log.debug('snapshot version mismatch', data.version, stateVersion)
 			return null
 		}
 		this.log.debug('loaded snapshot from R2')
