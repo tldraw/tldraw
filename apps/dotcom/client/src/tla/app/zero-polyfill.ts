@@ -7,6 +7,7 @@ import {
 	TlaSchema,
 	ZClientSentMessage,
 	ZErrorCode,
+	ZRowUpdate,
 	ZServerSentMessage,
 	createMutators,
 	schema,
@@ -17,8 +18,7 @@ import {
 	assert,
 	assertExists,
 	computed,
-	objectMapEntries,
-	objectMapFromEntries,
+	mapObjectMapValues,
 	objectMapKeys,
 	react,
 	sleep,
@@ -103,6 +103,7 @@ export class Zero {
 					mutationId: this.currentMutationId,
 					mutation: [key as any, params],
 				})
+				this.currentMutationId = uniqueId()
 				if (!this.timeout) {
 					this.timeout = setTimeout(() => {
 						this.sendPendingUpdates()
@@ -249,51 +250,35 @@ export class Zero {
 			this.socket.sendMessage(update as any)
 		}
 
-		this.currentMutationId = uniqueId()
 		this.timeout = undefined
 	}
 
 	private makeCrud(): SchemaCRUD<TlaSchema> {
 		const getAllData = () => assertExists(this.store.getFullData(), 'store not initialized')
-		return objectMapFromEntries(
-			objectMapEntries(schema.tables).map(([tableName, table]) => {
-				const getExisting = (data: any) =>
-					getAllData()[tableName].find((row: any) =>
-						table.primaryKey.every((key) => row[key] === data[key])
-					)
-				return [
-					tableName,
-					{
-						insert: async (data: any) => {
-							assert(!getExisting(data), 'row already exists')
-							this.store.updateOptimisticData(
-								[{ event: 'insert', table: tableName, row: data }],
-								this.currentMutationId
-							)
-						},
-						upsert: async (data: any) => {
-							this.store.updateOptimisticData(
-								[{ event: getExisting(data) ? 'update' : 'insert', table: tableName, row: data }],
-								this.currentMutationId
-							)
-						},
-						delete: async (data: any) => {
-							this.store.updateOptimisticData(
-								[{ event: 'delete', table: tableName, row: data }],
-								this.currentMutationId
-							)
-						},
-						update: async (data: any) => {
-							assert(getExisting(data), 'row not found')
-							this.store.updateOptimisticData(
-								[{ event: 'update', table: tableName, row: data }],
-								this.currentMutationId
-							)
-						},
-					} satisfies TableCRUD<TlaSchema['tables'][keyof TlaSchema['tables']]>,
-				]
-			})
-		)
+		return mapObjectMapValues(schema.tables, (tableName, table) => {
+			const getExisting = (data: any) =>
+				getAllData()[tableName].find((row: any) =>
+					table.primaryKey.every((key) => row[key] === data[key])
+				)
+			const apply = (update: ZRowUpdate) =>
+				this.store.updateOptimisticData([update], this.currentMutationId)
+			return {
+				insert: async (data: any) => {
+					assert(!getExisting(data), 'row already exists')
+					apply({ event: 'insert', table: tableName, row: data })
+				},
+				upsert: async (data: any) => {
+					apply({ event: getExisting(data) ? 'update' : 'insert', table: tableName, row: data })
+				},
+				delete: async (data: any) => {
+					apply({ event: 'delete', table: tableName, row: data })
+				},
+				update: async (data: any) => {
+					assert(getExisting(data), 'row not found')
+					apply({ event: 'update', table: tableName, row: data })
+				},
+			} satisfies TableCRUD<TlaSchema['tables'][keyof TlaSchema['tables']]>
+		})
 	}
 
 	readonly ____mutators = this.makeCrud()
