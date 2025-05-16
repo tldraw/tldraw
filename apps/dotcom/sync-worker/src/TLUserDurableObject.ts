@@ -157,10 +157,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private readonly sockets = new Map<WebSocket, { protocolVersion: number; sessionId: string }>()
 
-	private makeCrud(client: PoolClient): SchemaCRUD<TlaSchema> {
+	private makeCrud(client: PoolClient, signal: AbortSignal): SchemaCRUD<TlaSchema> {
 		return mapObjectMapValues(schema.tables, (tableName, table) => {
 			return {
 				insert: async (data: any) => {
+					assert(!signal.aborted, 'missing await in mutator')
 					const row = parseRow(data, table)
 					await client.query(
 						`insert into public."${tableName}" (${row.allKeys()}) values (${row.allValues()})`,
@@ -168,6 +169,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					)
 				},
 				upsert: async (data: any) => {
+					assert(!signal.aborted, 'missing await in mutator')
 					const row = parseRow(data, table)
 					await client.query(
 						`insert into public."${tableName}" (${row.allKeys()}) values (${row.allValues()})
@@ -179,6 +181,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					)
 				},
 				delete: async (data: any) => {
+					assert(!signal.aborted, 'missing await in mutator')
 					const row = parseRow(data, table)
 					await client.query(
 						`delete from public."${tableName}" where ${row.primaryKeyWhereClause()}`,
@@ -186,6 +189,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					)
 				},
 				update: async (data: any) => {
+					assert(!signal.aborted, 'missing await in mutator')
 					const row = parseRow(data, table)
 					const res = await client.query(
 						`update public.${tableName} set ${row
@@ -491,51 +495,56 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 			await client.query('BEGIN')
 
-			const mutate = this.makeCrud(client)
-			if (msg.type === 'mutate') {
-				// legacy
-				for (const update of msg.updates) {
-					await this.assertValidMutation(update, client)
-					await mutate[update.table][update.event](update.row as any)
-					if (update.table === 'file_state' && update.event === 'insert') {
-						const res = await client.query('select * from public.file where id = $1', [
-							(update.row as TlaFileState).fileId,
-						])
-						assert(res.rowCount === 1, 'File not found')
-						newGuestFiles.push(res.rows[0])
-					} else if (update.table === 'file' && update.event === 'insert') {
-						const res = await client.query('select * from public.file where id = $1', [
-							(update.row as TlaFile).id,
-						])
-						assert(res.rowCount === 1, 'File not found')
-						insertedFiles.push(res.rows[0])
+			const controller = new AbortController()
+			const mutate = this.makeCrud(client, controller.signal)
+			try {
+				if (msg.type === 'mutate') {
+					// legacy
+					for (const update of msg.updates) {
+						await this.assertValidMutation(update, client)
+						await mutate[update.table][update.event](update.row as any)
+						if (update.table === 'file_state' && update.event === 'insert') {
+							const res = await client.query('select * from public.file where id = $1', [
+								(update.row as TlaFileState).fileId,
+							])
+							assert(res.rowCount === 1, 'File not found')
+							newGuestFiles.push(res.rows[0])
+						} else if (update.table === 'file' && update.event === 'insert') {
+							const res = await client.query('select * from public.file where id = $1', [
+								(update.row as TlaFile).id,
+							])
+							assert(res.rowCount === 1, 'File not found')
+							insertedFiles.push(res.rows[0])
+						}
 					}
-				}
-			} else {
-				// new
-				const mutators = createMutators(this.userId!)
-				const path = msg.mutation[0].split('.')
-				assert(path.length <= 2, 'Invalid mutation path')
-				const mutator: CustomMutatorImpl<TlaSchema> =
-					path.length === 1 ? (mutators as any)[path[0]] : (mutators as any)[path[0]][path[1]]
-				assert(mutator, 'Invalid mutator path')
-				await mutator(
-					{
-						clientID: '',
-						dbTransaction: {
-							wrappedTransaction: null as any,
-							async query(sqlString: string, params: unknown[]): Promise<any[]> {
-								return client.query(sqlString, params).then((res) => res.rows)
+				} else {
+					// new
+					const mutators = createMutators(this.userId!)
+					const path = msg.mutation[0].split('.')
+					assert(path.length <= 2, 'Invalid mutation path')
+					const mutator: CustomMutatorImpl<TlaSchema> =
+						path.length === 1 ? (mutators as any)[path[0]] : (mutators as any)[path[0]][path[1]]
+					assert(mutator, 'Invalid mutator path')
+					await mutator(
+						{
+							clientID: '',
+							dbTransaction: {
+								wrappedTransaction: null as any,
+								async query(sqlString: string, params: unknown[]): Promise<any[]> {
+									return client.query(sqlString, params).then((res) => res.rows)
+								},
 							},
+							mutate,
+							location: 'server',
+							reason: 'authoritative',
+							mutationID: 0,
+							query: this.makeQuery(client),
 						},
-						mutate,
-						location: 'server',
-						reason: 'authoritative',
-						mutationID: 0,
-						query: this.makeQuery(client),
-					},
-					msg.mutation[1]
-				)
+						msg.mutation[1]
+					)
+				}
+			} finally {
+				controller.abort()
 			}
 
 			// await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE')
