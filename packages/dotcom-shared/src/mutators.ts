@@ -1,4 +1,5 @@
-import type { CustomMutatorDefs, Transaction } from '@rocicorp/zero'
+import type { CustomMutatorDefs } from '@rocicorp/zero'
+import type { Transaction } from '@rocicorp/zero/out/zql/src/mutate/custom'
 import { assert } from '@tldraw/utils'
 import { MAX_NUMBER_OF_FILES } from './constants'
 import {
@@ -10,7 +11,6 @@ import {
 	TlaUser,
 	TlaUserPartial,
 	immutableColumns,
-	schema,
 } from './tlaSchema'
 import { ZErrorCode } from './types'
 
@@ -121,5 +121,5 @@ export function createMutators(userId: string) {
 				await tx.mutate.file_state.delete({ fileId: fileState.fileId, userId: fileState.userId })
 			},
 		},
-	} as const satisfies CustomMutatorDefs<typeof schema>
+	} as const satisfies CustomMutatorDefs<TlaSchema>
 }

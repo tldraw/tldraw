@@ -140,6 +140,9 @@ export function isSignal(value: any): value is Signal<any>;
 // @public
 export function isUninitialized(value: any): value is UNINITIALIZED;
 
+// @internal (undocumented)
+export function pauseReactions(): () => void;
+
 // @public
 export function react(name: string, fn: (lastReactedEpoch: number) => any, options?: EffectSchedulerOptions): () => void;
 
