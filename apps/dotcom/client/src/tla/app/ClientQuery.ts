@@ -1,6 +1,5 @@
 import { OptimisticAppStore, TlaFileState, TlaRow, TlaSchema } from '@tldraw/dotcom-shared'
-import { assert } from 'console'
-import { computed, react, sleep } from 'tldraw'
+import { assert, computed, react, sleep } from 'tldraw'
 
 export class ClientQuery<Row extends TlaRow, isOne extends boolean = false> {
 	constructor(
@@ -35,7 +34,7 @@ export class ClientQuery<Row extends TlaRow, isOne extends boolean = false> {
 		const data = this.store.getFullData()
 		if (!data) {
 			assert(tolerateUnsetData, 'Data is not set yet')
-			return []
+			return this.isOne ? null : []
 		}
 		let rows = data[this.table].filter((row: any) =>
 			this.wheres.every(([key, value]) => row[key] === value)
@@ -49,7 +48,6 @@ export class ClientQuery<Row extends TlaRow, isOne extends boolean = false> {
 		}
 
 		if (this.isOne) {
-			assert(rows.length === 1, 'Expected exactly one row')
 			return rows[0] as any
 		}
 
@@ -61,10 +59,11 @@ export class ClientQuery<Row extends TlaRow, isOne extends boolean = false> {
 		return this._runSync()
 	}
 
-	async preload(): Promise<void> {
+	preload(): { complete: Promise<void> } {
 		assert(!this.signal.aborted, 'missing await in mutator')
+
 		if (this.store.getFullData()) {
-			return
+			return { complete: Promise.resolve() }
 		}
 
 		const load = new Promise<void>((resolve) => {
@@ -80,7 +79,9 @@ export class ClientQuery<Row extends TlaRow, isOne extends boolean = false> {
 			throw new Error('Timed out waiting for data')
 		})
 
-		await Promise.race([load, timeout])
+		return {
+			complete: Promise.race([load, timeout]),
+		}
 	}
 
 	one() {
