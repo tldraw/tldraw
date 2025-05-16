@@ -14,6 +14,7 @@ export class ServerQuery<Row extends TlaRow, isOne extends boolean = false> {
 	) {}
 
 	where<K extends keyof Row>(key: K, op: '=', value: Row[K]) {
+		assert(op === '=', 'Only = operator is supported')
 		return new ServerQuery<Row, isOne>(
 			this.signal,
 			this.client,
