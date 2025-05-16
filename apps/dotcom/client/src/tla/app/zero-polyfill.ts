@@ -12,7 +12,16 @@ import {
 	schema,
 } from '@tldraw/dotcom-shared'
 import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { assert, mapObjectMapValues, objectMapKeys, sleep, transact, uniqueId } from 'tldraw'
+import {
+	ExecutionQueue,
+	assert,
+	mapObjectMapValues,
+	objectMapKeys,
+	pauseReactions,
+	sleep,
+	transact,
+	uniqueId,
+} from 'tldraw'
 import { TLAppUiContextType } from '../utils/app-ui-events'
 import { ClientCRUD } from './ClientCRUD'
 import { ClientQuery } from './ClientQuery'
@@ -81,31 +90,36 @@ export class Zero {
 				}
 			})
 		})
+		const mutationQueue = new ExecutionQueue()
 		const mutatorWrapper = (key: string, mutatorFn: any) => {
 			return async (params: any) => {
-				if (this.clientTooOld) {
-					this.opts.onMutationRejected('client_too_old')
-					return
-				}
-				const controller = new AbortController()
-				const mutationId = uniqueId()
-				const mutate = this.makeCrud(controller.signal, mutationId)
-				const query = this.makeQuery(controller.signal)
-				try {
-					await mutatorFn({ mutate, query, location: 'client' }, params)
-				} finally {
-					controller.abort()
-				}
-				this.pendingUpdates.push({
-					type: 'mutator',
-					mutationId,
-					mutation: [key as any, params],
+				await mutationQueue.push(async () => {
+					if (this.clientTooOld) {
+						this.opts.onMutationRejected('client_too_old')
+						return
+					}
+					const controller = new AbortController()
+					const mutationId = uniqueId()
+					const mutate = this.makeCrud(controller.signal, mutationId)
+					const query = this.makeQuery(controller.signal)
+					const unpause = pauseReactions()
+					try {
+						await mutatorFn({ mutate, query, location: 'client' }, params)
+					} finally {
+						unpause()
+						controller.abort()
+					}
+					this.pendingUpdates.push({
+						type: 'mutator',
+						mutationId,
+						mutation: [key as any, params],
+					})
+					if (!this.timeout) {
+						this.timeout = setTimeout(() => {
+							this.sendPendingUpdates()
+						}, 50)
+					}
 				})
-				if (!this.timeout) {
-					this.timeout = setTimeout(() => {
-						this.sendPendingUpdates()
-					}, 50)
-				}
 			}
 		}
 		const mutators = createMutators(opts.userId) as any

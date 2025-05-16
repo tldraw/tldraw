@@ -17,7 +17,7 @@ export type { EffectSchedulerOptions, Reactor } from './lib/EffectScheduler'
 export { unsafe__withoutCapture, whyAmIRunning } from './lib/capture'
 export { EMPTY_ARRAY } from './lib/helpers'
 export { isSignal } from './lib/isSignal'
-export { transact, transaction } from './lib/transactions'
+export { pauseReactions, transact, transaction } from './lib/transactions'
 export { RESET_VALUE } from './lib/types'
 export type { Child, ComputeDiff, Signal } from './lib/types'
 
