@@ -1,6 +1,5 @@
 import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
-import { MutatorTuple } from './mutators'
 import {
 	TlaFile,
 	TlaFilePartial,
@@ -164,7 +163,7 @@ export type ZClientSentMessage =
 	| {
 			type: 'mutator'
 			mutationId: string
-			mutation: MutatorTuple
+			mutation: [string, object]
 	  }
 
 export const UserPreferencesKeys = [

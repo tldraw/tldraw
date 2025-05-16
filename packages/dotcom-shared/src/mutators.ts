@@ -1,6 +1,6 @@
 import type { CustomMutatorDefs } from '@rocicorp/zero'
 import type { Transaction } from '@rocicorp/zero/out/zql/src/mutate/custom'
-import { Expand, assert } from '@tldraw/utils'
+import { assert } from '@tldraw/utils'
 import { MAX_NUMBER_OF_FILES } from './constants'
 import {
 	TlaFile,
@@ -123,15 +123,3 @@ export function createMutators(userId: string) {
 		},
 	} as const satisfies CustomMutatorDefs<TlaSchema>
 }
-
-type _MutatorTuples<T extends object, path extends string = ''> = {
-	[K in keyof T]: K extends string
-		? T[K] extends (...args: any) => any
-			? [`${path}${K}`, Parameters<T[K]>[1]]
-			: T[K] extends object
-				? _MutatorTuples<T[K], `${path}${K}.`>
-				: never
-		: never
-}[keyof T]
-
-export type MutatorTuple = Expand<_MutatorTuples<TlaMutators>>
