@@ -90,14 +90,14 @@ export class Zero {
 			})
 		})
 		const mutatorWrapper = (key: string, mutatorFn: any) => {
-			return (params: any) => {
+			return async (params: any) => {
 				if (this.clientTooOld) {
 					this.opts.onMutationRejected('client_too_old')
 					return
 				}
-				transact(() =>
-					mutatorFn({ mutate: this.____mutators, query: this.query, location: 'client' }, params)
-				)
+				const signal = new AbortController().signal
+				const mutate = this.makeCrud(signal)
+				await mutatorFn({ mutate, query: this.query, location: 'client' }, params)
 				this.pendingUpdates.push({
 					type: 'mutator',
 					mutationId: this.currentMutationId,
@@ -253,7 +253,7 @@ export class Zero {
 		this.timeout = undefined
 	}
 
-	private makeCrud(): SchemaCRUD<TlaSchema> {
+	private makeCrud(signal: AbortSignal): SchemaCRUD<TlaSchema> {
 		const getAllData = () => assertExists(this.store.getFullData(), 'store not initialized')
 		return mapObjectMapValues(schema.tables, (tableName, table) => {
 			const getExisting = (data: any) =>
@@ -264,22 +264,24 @@ export class Zero {
 				this.store.updateOptimisticData([update], this.currentMutationId)
 			return {
 				insert: async (data: any) => {
+					assert(!signal.aborted, 'missing await in mutator')
 					assert(!getExisting(data), 'row already exists')
 					apply({ event: 'insert', table: tableName, row: data })
 				},
 				upsert: async (data: any) => {
+					assert(!signal.aborted, 'missing await in mutator')
 					apply({ event: getExisting(data) ? 'update' : 'insert', table: tableName, row: data })
 				},
 				delete: async (data: any) => {
+					assert(!signal.aborted, 'missing await in mutator')
 					apply({ event: 'delete', table: tableName, row: data })
 				},
 				update: async (data: any) => {
+					assert(!signal.aborted, 'missing await in mutator')
 					assert(getExisting(data), 'row not found')
 					apply({ event: 'update', table: tableName, row: data })
 				},
 			} satisfies TableCRUD<TlaSchema['tables'][keyof TlaSchema['tables']]>
 		})
 	}
-
-	readonly ____mutators = this.makeCrud()
 }
