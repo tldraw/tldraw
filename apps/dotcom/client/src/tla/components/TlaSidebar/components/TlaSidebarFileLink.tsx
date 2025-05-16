@@ -47,7 +47,7 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 	const { fileId } = item
 	const isOwnFile = useIsFileOwner(fileId)
 	const isActive = fileSlug === fileId
-	const fileName = app.getFileName(fileId)
+	const fileName = useValue('file name', () => app.getFileName(fileId), [fileId, app])
 	const isMobile = getIsCoarsePointer()
 	useEffect(() => {
 		if (isActive) {
