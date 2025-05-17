@@ -39,16 +39,17 @@ function ContextualToolbarInner({
 }) {
 	const editor = useEditor()
 	const msg = useTranslation()
-	const editorPath = useValue('editor path', () => editor.getPath(), [editor])
-	const isInCropTool = editorPath.startsWith('select.crop.')
-	const isCropping = editorPath === 'select.crop.cropping'
+
+	const isInCropTool = useValue('editor path', () => editor.isIn('select.crop.'), [editor])
+	const isCropping = useValue('editor path', () => editor.isIn('select.crop.cropping'), [editor])
+	const handleManipulatingEnd = useCallback(() => editor.setCurrentTool('select.idle'), [editor])
+
 	const [isEditingAltText, setIsEditingAltText] = useState(false)
 	const handleEditAltTextStart = useCallback(() => setIsEditingAltText(true), [])
 	const handleManipulatingStart = useCallback(
 		() => editor.setCurrentTool('select.crop.idle'),
 		[editor]
 	)
-	const handleManipulatingEnd = useCallback(() => editor.setCurrentTool('select.idle'), [editor])
 	const onEditAltTextComplete = useCallback(() => setIsEditingAltText(false), [])
 
 	const getSelectionBounds = useCallback(() => {
