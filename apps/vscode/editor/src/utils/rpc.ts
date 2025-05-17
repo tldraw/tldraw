@@ -1,5 +1,5 @@
 import { uniqueId } from 'tldraw'
-import type { VscodeMessagePairs } from '../../../messages'
+import type { VscodeMessage, VscodeMessagePairs } from '../../../messages'
 import { vscode } from './vscode'
 
 interface SimpleRpcOpts {
@@ -15,20 +15,20 @@ class SimpleRpcError extends Error {
 	}
 }
 
-export function rpc(
-	id: keyof VscodeMessagePairs,
-	data: Omit<VscodeMessagePairs[typeof id]['request'], 'uuid'>['data'],
+export function rpc<T extends keyof VscodeMessagePairs>(
+	id: T,
+	data: VscodeMessagePairs[T]['request']['data'],
 	opts: SimpleRpcOpts = { timeout: 5 * 1000 }
 ) {
 	const { timeout } = opts
-	type RequestType = VscodeMessagePairs[typeof id]['request']
-	type ResponseType = VscodeMessagePairs[typeof id]['response']
-	type ErrorType = VscodeMessagePairs[typeof id]['error']
+	type RequestType = VscodeMessagePairs[T]['request']
+	type ResponseType = VscodeMessagePairs[T]['response']
+	type ErrorType = VscodeMessagePairs[T]['error']
 
 	const type = (id + '/request') as RequestType['type']
 	const uuid = uniqueId()
 	return new Promise<ResponseType['data']>((resolve, reject) => {
-		const inMessage = {
+		const inMessage: VscodeMessage = {
 			uuid,
 			type,
 			data,

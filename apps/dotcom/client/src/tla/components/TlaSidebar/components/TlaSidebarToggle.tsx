@@ -21,7 +21,7 @@ export function TlaSidebarToggle() {
 
 	return (
 		<button
-			className={styles.toggle}
+			className={styles.sidebarToggle}
 			data-mobile={false}
 			data-testid="tla-sidebar-toggle"
 			title={toggleLbl}

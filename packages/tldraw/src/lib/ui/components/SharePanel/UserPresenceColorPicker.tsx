@@ -1,5 +1,5 @@
-import * as Popover from '@radix-ui/react-popover'
 import { USER_COLORS, track, useContainer, useEditor } from '@tldraw/editor'
+import { Popover as _Popover } from 'radix-ui'
 import React, { useCallback, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -81,8 +81,8 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 	}, [value, onValueChange])
 
 	return (
-		<Popover.Root onOpenChange={handleOpenChange} open={isOpen}>
-			<Popover.Trigger dir="ltr" asChild>
+		<_Popover.Root onOpenChange={handleOpenChange} open={isOpen}>
+			<_Popover.Trigger dir="ltr" asChild>
 				<TldrawUiButton
 					type="icon"
 					className="tlui-people-menu__user__color"
@@ -91,9 +91,9 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 				>
 					<TldrawUiButtonIcon icon="color" />
 				</TldrawUiButton>
-			</Popover.Trigger>
-			<Popover.Portal container={container}>
-				<Popover.Content
+			</_Popover.Trigger>
+			<_Popover.Portal container={container}>
+				<_Popover.Content
 					dir="ltr"
 					className="tlui-menu tlui-people-menu__user__color-picker"
 					align="start"
@@ -108,7 +108,7 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 								data-id={item}
 								data-testid={item}
 								aria-label={item}
-								data-state={value === item ? 'hinted' : undefined}
+								isActive={value === item}
 								title={item}
 								className={'tlui-button-grid__button'}
 								style={{ color: item }}
@@ -121,8 +121,8 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 							</TldrawUiButton>
 						))}
 					</div>
-				</Popover.Content>
-			</Popover.Portal>
-		</Popover.Root>
+				</_Popover.Content>
+			</_Popover.Portal>
+		</_Popover.Root>
 	)
 })

@@ -24,6 +24,7 @@ import {
 	fetch,
 	getHashForBuffer,
 	getHashForString,
+	maybeSnapToGrid,
 	toRichText,
 } from '@tldraw/editor'
 import { EmbedDefinition } from './defaultEmbedDefinitions'
@@ -254,11 +255,15 @@ export function defaultHandleExternalEmbedContent<T>(
 
 	const id = createShapeId()
 
+	const newPoint = maybeSnapToGrid(
+		new Vec(position.x - (width || 450) / 2, position.y - (height || 450) / 2),
+		editor
+	)
 	const shapePartial: TLShapePartial = {
 		id,
 		type: 'embed',
-		x: position.x - (width || 450) / 2,
-		y: position.y - (height || 450) / 2,
+		x: newPoint.x,
+		y: newPoint.y,
 		props: {
 			w: width,
 			h: height,
@@ -421,12 +426,13 @@ export async function defaultHandleExternalTextContent(
 		p.y = editor.getViewportPageBounds().minY + 40 + h / 2
 	}
 
+	const newPoint = maybeSnapToGrid(new Vec(p.x - w / 2, p.y - h / 2), editor)
 	editor.createShapes<TLTextShape>([
 		{
 			id: createShapeId(),
 			type: 'text',
-			x: p.x - w / 2,
-			y: p.y - h / 2,
+			x: newPoint.x,
+			y: newPoint.y,
 			props: {
 				richText: richTextToPaste,
 				// if the text has more than one line, align it to the left

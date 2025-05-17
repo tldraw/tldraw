@@ -9,7 +9,7 @@
 	transform: translate(0px, 0px);
 	flex-direction: column;
 	flex: 0 0 auto;
-	padding: 3px 12px 4px 12px;
+	padding: 3px 12px 0px 12px;
 	background: var(--tla-color-sidebar);
 	border-right: 1px solid transparent;
 	transition: transform 0.16s ease-in-out;
@@ -78,18 +78,7 @@
 	}
 }
 
-.top,
-.bottom {
-	display: flex;
-	flex-direction: row;
-	flex: 0 0 auto;
-}
-
-.bottom {
-	margin-top: 12px;
-}
-
-.content {
+.sidebarContent {
 	display: flex;
 	flex-direction: column;
 	flex: 1 1 auto;
@@ -100,9 +89,11 @@
 	scrollbar-width: none; /* Firefox */
 }
 
-.content::-webkit-scrollbar {
+.sidebarContent::-webkit-scrollbar {
 	display: none;
 }
+
+/* -------------------- Hoverable ------------------- */
 
 .hoverable::after {
 	display: block;
@@ -143,7 +134,9 @@
 	}
 }
 
-.toggle {
+/* ----------------- Sidebar toggle ----------------- */
+
+.sidebarToggle {
 	position: relative;
 	background: none;
 	border: none;
@@ -160,12 +153,12 @@
 }
 
 @media (hover: hover) {
-	.toggle:hover {
+	.sidebarToggle:hover {
 		z-index: 100;
 	}
 }
 
-.toggle::after {
+.sidebarToggle::after {
 	display: block;
 	content: '';
 	position: absolute;
@@ -181,30 +174,71 @@
 }
 
 @media (hover: hover) {
-	.toggle:hover::after {
+	.sidebarToggle:hover::after {
 		visibility: visible;
 	}
 }
 
-.toggle[data-mobile='true'] {
+.sidebarToggle[data-mobile='true'] {
 	display: flex;
 }
 
-.toggle[data-mobile='false'] {
+.sidebarToggle[data-mobile='false'] {
 	display: none;
 }
 
 @media (min-width: 768px) {
-	.toggle[data-mobile='true'] {
+	.sidebarToggle[data-mobile='true'] {
 		display: none;
 	}
 
-	.toggle[data-mobile='false'] {
+	.sidebarToggle[data-mobile='false'] {
 		display: flex;
 	}
 }
 
-.create {
+/* --------------------- Top area -------------------- */
+
+.sidebarTopRow {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	flex: 0 0 auto;
+}
+
+/* Workspace link (sort of) */
+
+.sidebarWorkspaceButton {
+	background: none;
+	border: none;
+	position: relative;
+	height: 40px;
+	flex-grow: 2;
+	display: flex;
+	align-items: center;
+	padding-right: 6px;
+	padding-left: 2px;
+	background-color: var(--tla-color-sidebar);
+	overflow: hidden;
+	padding-bottom: 1px;
+}
+
+.sidebarWorkspaceButtonLabel {
+	/* for alignment with other buttons */
+	display: block;
+	flex-grow: 2;
+	flex: 1 1 auto;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	padding: 0 0px;
+	position: relative;
+	z-index: 1;
+}
+
+/* Create file button */
+
+.sidebarCreateFileButton {
 	background: none;
 	border: none;
 	cursor: pointer;
@@ -217,11 +251,12 @@
 	align-items: center;
 	justify-content: center;
 	color: var(--tla-color-text-1);
+	flex-shrink: 0;
 	padding: 0px;
 	z-index: 10;
 }
 
-.create::after {
+.sidebarCreateFileButton::after {
 	display: block;
 	content: '';
 	position: absolute;
@@ -237,23 +272,93 @@
 }
 
 @media (hover: hover) {
-	.sidebar:hover .create:hover::after {
+	.sidebar:hover .sidebarCreateFileButton:hover::after {
 		visibility: visible;
 	}
 }
 
-.label {
-	flex: 1 1 auto;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	padding: 0 0px;
-	position: relative;
-	z-index: 1;
+/* ------------------- Bottom area ------------------ */
+
+.sidebarBottomArea {
+	display: flex;
+	flex-direction: column;
+	flex: 0 0 auto;
+	margin-top: 0px;
 }
 
-.user,
-.workspace {
+/* --------------------- Cookie --------------------- */
+
+.sidebarCookieConsent {
+	background: var(--tla-color-sidebar);
+	border-radius: 8px;
+	padding: 6px;
+	max-width: 240px;
+	box-shadow: var(--tla-shadow-3);
+	margin-bottom: 12px;
+}
+
+.sidebarCookieText {
+	padding: 8px;
+	padding-bottom: 12px;
+	font-size: 12px;
+	color: var(--tla-color-text-2);
+	line-height: 1.4;
+}
+
+.sidebarCookieText a {
+	color: var(--tla-color-primary);
+}
+
+.sidebarCookieButtonsRow {
+	display: flex;
+	gap: 4px;
+	justify-content: space-between;
+	flex-wrap: wrap;
+}
+
+.sidebarCookieButtons {
+	display: flex;
+	gap: 4px;
+	flex-wrap: wrap;
+}
+
+.sidebarCookieButton {
+	background: none;
+	position: relative;
+	border: none;
+	padding: 4px 8px;
+	color: var(--tla-color-text-3);
+	font-size: 12px;
+	cursor: pointer;
+	text-decoration: none;
+	white-space: nowrap;
+	border-radius: 4px;
+	flex-shrink: 0;
+}
+
+.sidebarCookieAcceptButton {
+	color: var(--tla-color-sidebar);
+	background-color: var(--tla-color-cta);
+}
+
+@media (hover: hover) {
+	.sidebarCookieAcceptButton:hover {
+		color: var(--tla-color-sidebar);
+	}
+}
+
+/* ------------------- Bottom row ------------------- */
+
+.sidebarBottomRow {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	flex: 0 0 auto;
+}
+
+/* User settings menu */
+
+.userSettingsTrigger {
 	background: none;
 	border: none;
 	position: relative;
@@ -266,50 +371,91 @@
 	text-overflow: ellipsis;
 	padding-right: 6px;
 	padding-left: 2px;
-	background-color: var(--tla-color-sidebar);
-}
-
-.workspace {
-	padding-bottom: 1px;
-}
-
-.user {
-	padding: 0px 8px;
-	gap: 8px;
+	padding: 0px 0px 0px 8px;
+	gap: 0px;
 	text-align: left;
 	cursor: pointer;
 }
-.user:hover::after {
-	content: ' ';
-	position: absolute;
-	top: 2px;
-	bottom: 2px;
-	left: 0;
-	right: 0;
-	background: var(--tla-color-hover-1);
-	border-radius: 6px;
+
+.userSettingsTrigger::after {
+	inset: 2px 8px 2px 0px;
 }
 
-.userName {
+.userSettingsName {
 	flex: 1 1 auto;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	color: var(--tla-color-text-1);
 }
 
-.main-link {
-	position: relative;
-	width: 100%;
-	height: 40px;
-	padding-right: 4px;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	overflow: hidden;
-	color: var(--tla-color-text-2);
-	flex: 0 0 auto;
+.userSettingsIcon {
+	margin-right: 16px;
+	color: var(--tla-color-text-3);
 }
+
+@media (hover: hover) {
+	.userSettingsTrigger {
+		color: var(--tla-color-text-3);
+	}
+
+	.userSettingsTrigger:hover {
+		color: var(--tla-color-text-1);
+	}
+
+	.userSettingsIcon {
+		visibility: hidden;
+	}
+
+	.userSettingsTrigger:hover .userSettingsIcon {
+		visibility: visible;
+		color: var(--tla-color-text-1);
+	}
+}
+
+.userSettingsTrigger[data-state='open']::after {
+	visibility: visible;
+}
+
+.userSettingsTrigger[data-state='open'] .userSettingsIcon {
+	visibility: visible;
+}
+
+/* Help menu */
+
+.helpMenuTrigger {
+	height: 36px;
+	width: 36px;
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	cursor: pointer;
+	border: none;
+	color: var(--tla-color-text-3);
+	background: none;
+	margin-right: -2px;
+}
+
+.helpMenuTrigger::after {
+	border-radius: 100%;
+	inset: 4px;
+	visibility: visible;
+	border: 1px solid var(--tla-color-border);
+	background-color: transparent;
+}
+
+@media (hover: hover) {
+	.helpMenuTrigger:hover::after {
+		background-color: var(--tla-color-hover-1);
+	}
+}
+
+.helpMenuTrigger[data-state='open']::after {
+	background-color: var(--tla-color-hover-1);
+}
+
+/* ---------------- File link section --------------- */
 
 .section {
 	background: var(--tla-color-sidebar);
@@ -329,7 +475,9 @@
 	color: var(--tla-color-text-3);
 }
 
-.link {
+/* ------------------- File links ------------------- */
+
+.sidebarFileLink {
 	background-color: var(--tla-color-sidebar);
 	position: relative;
 	width: 100%;
@@ -340,7 +488,7 @@
 	padding: 0px 8px 0px 8px;
 }
 
-.linkContent {
+.sidebarFileLinkContent {
 	flex: 1 1 auto;
 	overflow: hidden;
 	display: flex;
@@ -353,38 +501,19 @@
 	z-index: 2;
 }
 
-.linkContent > .label {
-	padding: 0px;
-	flex: 0 1 auto;
-}
-
-.renameWrapper {
-	background-color: var(--tla-color-sidebar);
-	outline: 1px solid var(--color-primary);
-	outline-offset: -2px;
-	border-radius: 6px;
-}
-
-.renameWrapper > div {
-	height: 36px;
-	padding: 0px 8px 0px 8px;
-}
-
-.rename {
-	height: 36px;
+.sidebarFileLinkLabel {
 	flex: 1 1 auto;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	padding: 0 0px;
 	position: relative;
 	z-index: 1;
+	padding: 0px;
+	flex: 0 1 auto;
 }
 
-.collaborator {
-	flex: 0 0 auto;
-}
-
-.linkButton {
+.sidebarFileLinkButton {
 	padding: 0px;
 	background: none;
 	border: none;
@@ -398,7 +527,9 @@
 	pointer-events: all;
 }
 
-.linkMenu {
+/* Menu / context menu */
+
+.sidebarFileLinkMenu {
 	padding: 0px;
 	background: none;
 	border: none;
@@ -417,55 +548,66 @@
 }
 
 @media (hover: hover) {
-	.linkMenu {
+	.sidebarFileLinkMenu {
 		display: none;
-	}
-	:global(.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))) .linkMenu {
-		display: flex;
 	}
 	/*
 		For guest files we show a guest icon at the end of the filename
 		but we don't want it to jump out of the way when the user hovers
 	*/
-
-	.link[data-is-own-file='false'] .linkMenu {
+	.sidebarFileLink[data-is-own-file='false'] .sidebarFileLinkMenu {
 		visibility: hidden;
 		display: flex;
 	}
-
-	.workspace .linkMenu[data-state='open'],
-	.user .linkMenu[data-state='open'],
-	.link .linkMenu[data-state='open'],
-	.workspace:hover .linkMenu,
-	.user:hover .linkMenu,
-	.link:hover .linkMenu {
+	:global(.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))) .sidebarFileLinkMenu {
 		visibility: visible;
 		display: flex;
 	}
 
-	.user .linkMenu[data-state='open']::after {
+	.sidebarFileLink .sidebarFileLinkMenu[data-state='open'],
+	.sidebarFileLink:hover .sidebarFileLinkMenu {
 		visibility: visible;
-		background-color: var(--tla-color-hover-2);
+		display: flex;
 	}
 
-	.linkMenu:hover {
+	.sidebarFileLinkMenu:hover {
 		color: var(--tla-color-text-1);
 	}
 }
 
-.userButton {
-	display: flex;
-	align-items: center;
-	justify-content: center;
+/* Renaming */
+
+.sidebarFileLinkRenameInputWrapper {
+	background-color: var(--tla-color-sidebar);
+	outline: 1px solid var(--color-primary);
+	outline-offset: -2px;
+	border-radius: 6px;
 }
 
-.guestBadge {
+.sidebarFileLinkRenameInputWrapper > div {
+	height: 36px;
+	padding: 0px 8px 0px 8px;
+}
+
+.sidebarFileLinkRenameInput {
+	height: 36px;
+	flex: 1 1 auto;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	position: relative;
+	z-index: 1;
+}
+
+/* Guest badge */
+
+.sidebarFileLinkGuestBadge {
 	display: inline-flex;
 	pointer-events: none;
 	flex: 0 0 auto;
 }
 
-.guestBadgeTrigger {
+.sidebarFileLinkGuestBadgeTrigger {
 	margin-left: 4px;
 	border-radius: 50%;
 	overflow: hidden;
@@ -482,59 +624,4 @@
 	pointer-events: all;
 	cursor: pointer;
 	color: var(--tla-color-text-1);
-}
-
-.cookieConsent {
-	background: var(--tla-color-sidebar);
-	padding: 12px;
-	border-radius: 4px;
-	border: 1px solid var(--color-low);
-	margin-bottom: 8px;
-}
-
-.cookieText {
-	font-size: 12px;
-	color: var(--tla-color-text-2);
-	margin-bottom: 8px;
-	line-height: 1.4;
-}
-
-.cookieText a {
-	color: var(--tla-color-primary);
-}
-
-.cookieButtons {
-	display: flex;
-	gap: 8px;
-	justify-content: space-between;
-}
-
-.cookieActions {
-	display: flex;
-	gap: 8px;
-}
-
-.cookieButton {
-	background: none;
-	border: none;
-	padding: 0;
-	color: var(--tla-color-text-2);
-	font-size: 12px;
-	cursor: pointer;
-	text-decoration: none;
-}
-
-.cookieButton:hover {
-	color: var(--tla-color-text-1);
-}
-
-.acceptButton {
-	color: var(--tla-color-primary);
-	font-weight: 700;
-}
-
-.bottom {
-	display: flex;
-	flex-direction: column;
-	flex: 0 0 auto;
 }

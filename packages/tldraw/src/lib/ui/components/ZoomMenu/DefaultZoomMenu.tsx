@@ -1,5 +1,5 @@
-import * as _Dropdown from '@radix-ui/react-dropdown-menu'
 import { useContainer, useEditor, useValue } from '@tldraw/editor'
+import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { ReactNode, memo, useCallback } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
@@ -25,10 +25,10 @@ export const DefaultZoomMenu = memo(function DefaultZoomMenu({ children }: TLUiZ
 	const content = children ?? <DefaultZoomMenuContent />
 
 	return (
-		<_Dropdown.Root dir="ltr" open={isOpen} onOpenChange={onOpenChange} modal={false}>
+		<_DropdownMenu.Root dir="ltr" open={isOpen} onOpenChange={onOpenChange} modal={false}>
 			<ZoomTriggerButton />
-			<_Dropdown.Portal container={container}>
-				<_Dropdown.Content
+			<_DropdownMenu.Portal container={container}>
+				<_DropdownMenu.Content
 					className="tlui-menu"
 					side="top"
 					align="start"
@@ -39,9 +39,9 @@ export const DefaultZoomMenu = memo(function DefaultZoomMenu({ children }: TLUiZ
 					<TldrawUiMenuContextProvider type="menu" sourceId="zoom-menu">
 						{content}
 					</TldrawUiMenuContextProvider>
-				</_Dropdown.Content>
-			</_Dropdown.Portal>
-		</_Dropdown.Root>
+				</_DropdownMenu.Content>
+			</_DropdownMenu.Portal>
+		</_DropdownMenu.Root>
 	)
 })
 
@@ -65,18 +65,14 @@ const ZoomTriggerButton = () => {
 			aria-label={`${msg('navigation-zone.zoom')} — ${value}`}
 			title={`${msg('navigation-zone.zoom')} — ${value}`}
 			data-testid="minimap.zoom-menu-button"
-			className={
-				breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
-					? 'tlui-zoom-menu__button'
-					: 'tlui-zoom-menu__button__pct'
-			}
+			className="tlui-zoom-menu__button"
 			onDoubleClick={handleDoubleClick}
 		>
-			<_Dropdown.Trigger dir="ltr">
+			<_DropdownMenu.Trigger dir="ltr">
 				{breakpoint < PORTRAIT_BREAKPOINT.MOBILE ? null : (
 					<span style={{ flexGrow: 0, textAlign: 'center' }}>{value}</span>
 				)}
-			</_Dropdown.Trigger>
+			</_DropdownMenu.Trigger>
 		</TldrawUiToolbarButton>
 	)
 }

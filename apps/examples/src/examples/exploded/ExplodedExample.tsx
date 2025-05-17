@@ -6,8 +6,8 @@ import {
 	DefaultContextMenuContent,
 	TldrawEditor,
 	TldrawHandles,
+	TldrawOverlays,
 	TldrawScribble,
-	TldrawSelectionBackground,
 	TldrawSelectionForeground,
 	TldrawShapeIndicators,
 	TldrawUi,
@@ -34,8 +34,8 @@ const defaultComponents = {
 	ShapeIndicators: TldrawShapeIndicators,
 	CollaboratorScribble: TldrawScribble,
 	SelectionForeground: TldrawSelectionForeground,
-	SelectionBackground: TldrawSelectionBackground,
 	Handles: TldrawHandles,
+	Overlays: TldrawOverlays,
 }
 
 const allDefaultTools = [...defaultTools, ...defaultShapeTools]

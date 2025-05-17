@@ -18,7 +18,6 @@
 .cookieControls {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-4);
 	margin-top: var(--space-4);
 }
 
@@ -35,4 +34,31 @@
 
 .cookieControlDescription {
 	color: var(--tla-color-text-2);
+}
+
+.dialogContainer {
+	width: 350px;
+	min-width: 350px;
+	max-width: 100%;
+}
+
+.dialogBody {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	max-width: 500px;
+}
+
+.feedbackDialog {
+	visibility: visible;
+}
+
+.feedbackDialogTextArea {
+	border: 1px solid var(--tla-color-border);
+	border-radius: var(--radius-2);
+	min-height: 100px;
+	padding: 6px 8px;
+	resize: vertical;
+	width: 100%;
+	max-height: 400px;
 }
