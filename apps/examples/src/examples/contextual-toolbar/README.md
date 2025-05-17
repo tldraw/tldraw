@@ -1,6 +1,6 @@
 ---
 title: Contextual toolbar
-component: ./ContextualToolbar.tsx
+component: ./ContextualToolbarExample.tsx
 category: ui
 priority: 2
 keywords: [in front of the canvas, contextual]
