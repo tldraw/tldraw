@@ -500,6 +500,7 @@ export {
 	type TLUiComponentsProviderProps,
 } from './lib/ui/context/components'
 export {
+	TldrawUiDialogs,
 	TldrawUiDialogsProvider,
 	useDialogs,
 	type TLUiDialog,
@@ -518,6 +519,7 @@ export {
 	type TLUiEventSource,
 } from './lib/ui/context/events'
 export {
+	TldrawUiToasts,
 	TldrawUiToastsProvider,
 	useToasts,
 	type AlertSeverity,

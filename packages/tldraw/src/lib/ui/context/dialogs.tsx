@@ -1,5 +1,6 @@
 import { Atom, Editor, tlmenus, uniqueId, useAtom } from '@tldraw/editor'
-import { ComponentType, ReactNode, createContext, useContext, useMemo } from 'react'
+import { ComponentType, ReactNode, createContext, memo, useContext, useMemo } from 'react'
+import { useTldrawUiComponents } from './components'
 import { useUiEvents } from './events'
 
 /** @public */
@@ -91,3 +92,13 @@ export function useDialogs() {
 
 	return ctx
 }
+
+/** @public @react */
+export const TldrawUiDialogs = memo(function TldrawUiDialogs() {
+	const { Dialogs } = useTldrawUiComponents()
+	if (!Dialogs) {
+		return null
+	}
+
+	return <Dialogs />
+})

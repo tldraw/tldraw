@@ -92,7 +92,7 @@ function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 }
 
 /** @public @react */
-export const DefaultToasts = memo(function TldrawUiToasts() {
+export const DefaultToasts = memo(function DefaultToasts() {
 	const { toasts } = useToasts()
 	const toastsArray = useValue('toasts', () => toasts.get(), [])
 	return (

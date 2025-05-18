@@ -1,7 +1,8 @@
 import { Atom, Editor, uniqueId, useAtom } from '@tldraw/editor'
 import { Toast as _Toast } from 'radix-ui'
-import { ReactNode, createContext, useContext, useMemo } from 'react'
+import { ReactNode, createContext, memo, useContext, useMemo } from 'react'
 import { TLUiIconType } from '../icon-types'
+import { useTldrawUiComponents } from './components'
 
 /** @public */
 export type AlertSeverity = 'success' | 'info' | 'warning' | 'error'
@@ -88,3 +89,13 @@ export function useToasts() {
 
 	return ctx
 }
+
+/** @public @react */
+export const TldrawUiToasts = memo(function TldrawUiToasts() {
+	const { Toasts } = useTldrawUiComponents()
+	if (!Toasts) {
+		return null
+	}
+
+	return <Toasts />
+})

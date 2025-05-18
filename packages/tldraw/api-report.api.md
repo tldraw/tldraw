@@ -2722,6 +2722,9 @@ export function TldrawUiDialogFooter({ className, children }: TLUiDialogFooterPr
 export function TldrawUiDialogHeader({ className, children }: TLUiDialogHeaderProps): JSX_2.Element;
 
 // @public (undocumented)
+export const TldrawUiDialogs: NamedExoticComponent<object>;
+
+// @public (undocumented)
 export function TldrawUiDialogsProvider({ context, children }: TLUiDialogsProviderProps): JSX_2.Element;
 
 // @public (undocumented)
@@ -2810,6 +2813,9 @@ export interface TldrawUiProps extends TLUiContextProviderProps {
 
 // @public (undocumented)
 export const TldrawUiSlider: NamedExoticComponent<TLUiSliderProps>;
+
+// @public (undocumented)
+export const TldrawUiToasts: NamedExoticComponent<object>;
 
 // @public (undocumented)
 export function TldrawUiToastsProvider({ children }: TLUiToastsProviderProps): JSX_2.Element;
