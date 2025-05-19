@@ -139,6 +139,7 @@ export function isColumnMutable(tableName: keyof typeof immutableColumns, column
 export interface TlaAsset {
 	objectName: string
 	fileId: string
+	userId: string | null
 }
 
 export interface DB {

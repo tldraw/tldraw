@@ -1,7 +1,6 @@
 /* ---------------------- Menu ---------------------- */
 
 import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
-import { fileOpen } from 'browser-fs-access'
 import { Fragment, ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -21,20 +20,19 @@ import {
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { TldrawApp } from '../../app/TldrawApp'
-import { useApp, useMaybeApp } from '../../hooks/useAppState'
+import { useApp } from '../../hooks/useAppState'
+import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../hooks/useIsFilePinned'
 import { useFileSidebarFocusContext } from '../../providers/FileInputFocusProvider'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
-import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { editorMessages } from '../TlaEditor/editor-messages'
 import { download } from '../TlaEditor/useFileEditorOverrides'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 
 const messages = defineMessages({
-	importFile: { defaultMessage: 'Import file…' },
 	copied: { defaultMessage: 'Copied link' },
 	copyLink: { defaultMessage: 'Copy link' },
 	delete: { defaultMessage: 'Delete' },
@@ -102,6 +100,7 @@ export function FileItems({
 	const copiedMsg = useMsg(messages.copied)
 	const isOwner = useIsFileOwner(fileId)
 	const isPinned = useIsFilePinned(fileId)
+	const isActive = useCurrentFileId() === fileId
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = routes.tlaFile(fileId, { asUrl: true })
@@ -156,7 +155,6 @@ export function FileItems({
 		await download(editor, defaultName + TLDRAW_FILE_EXTENSION)
 	}, [app, editor, fileId, source, trackEvent, untitledProject])
 
-	const importFileMsg = useMsg(messages.importFile)
 	const copyLinkMsg = useMsg(messages.copyLink)
 	const renameMsg = useMsg(messages.rename)
 	const duplicateMsg = useMsg(messages.duplicate)
@@ -176,29 +174,31 @@ export function FileItems({
 					onSelect={handleCopyLinkClick}
 				/>
 				{isOwner && (
-					<TldrawUiMenuItem label={renameMsg} id="copy-link" readonlyOk onSelect={onRenameAction} />
+					<TldrawUiMenuItem label={renameMsg} id="rename" readonlyOk onSelect={onRenameAction} />
 				)}
 				{/* todo: in published rooms, support duplication / forking */}
 				<TldrawUiMenuItem
 					label={duplicateMsg}
-					id="copy-link"
+					id="duplicate"
 					readonlyOk
 					onSelect={handleDuplicateClick}
 				/>
+				{!source.startsWith('sidebar') ||
+					(isActive && (
+						// TODO: make a /download/:fileId endpoint so we can download any file
+						// from the sidebar, not just the active one
+						<TldrawUiMenuItem
+							label={downloadFile}
+							id="download-file"
+							readonlyOk
+							onSelect={handleDownloadClick}
+						/>
+					))}
 				<TldrawUiMenuItem
 					label={isPinned ? unpinMsg : pinMsg}
 					id="pin-unpin"
 					readonlyOk
 					onSelect={handlePinUnpinClick}
-				/>
-			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="file-actions-2">
-				<TlImportFileActionGroup label={importFileMsg} />
-				<TldrawUiMenuItem
-					label={downloadFile}
-					id="download-file"
-					readonlyOk
-					onSelect={handleDownloadClick}
 				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">
@@ -231,44 +231,4 @@ export function FileItemsWrapper({
 	}
 
 	return children
-}
-
-function TlImportFileActionGroup({ label }: { label: string }) {
-	const trackEvent = useTldrawAppUiEvents()
-	const app = useMaybeApp()
-
-	const navigate = useNavigate()
-
-	return (
-		<TldrawUiMenuGroup id="app-actions">
-			<TldrawUiMenuItem
-				id="about"
-				label={label}
-				icon="import"
-				readonlyOk
-				onSelect={async () => {
-					const editor = getCurrentEditor()
-					if (!editor) return
-					if (!app) return
-
-					trackEvent('import-tldr-file', { source: 'account-menu' })
-
-					try {
-						const tldrawFiles = await fileOpen({
-							extensions: [TLDRAW_FILE_EXTENSION],
-							multiple: true,
-							description: 'tldraw project',
-						})
-
-						app.uploadTldrFiles(tldrawFiles, (file) => {
-							navigate(routes.tlaFile(file.id), { state: { mode: 'create' } })
-						})
-					} catch {
-						// user cancelled
-						return
-					}
-				}}
-			/>
-		</TldrawUiMenuGroup>
-	)
 }

@@ -5,4 +5,5 @@ export interface EndToEndApi {
 	exportAsFormat(format: TLExportType): void
 	createShapeId(): TLShapeId
 	toRichText(text: string): TLRichText
+	markAllArrowBindings(): void
 }

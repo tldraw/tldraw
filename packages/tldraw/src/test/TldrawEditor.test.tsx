@@ -74,7 +74,7 @@ describe('<TldrawEditor />', () => {
 	})
 
 	it('Renders with an external store', async () => {
-		const store = createTLStore({ shapeUtils: [] })
+		const store = createTLStore({ shapeUtils: [], bindingUtils: [] })
 		await renderTldrawComponent(
 			<TldrawEditor
 				store={store}
@@ -128,7 +128,7 @@ describe('<TldrawEditor />', () => {
 	})
 
 	it('Accepts fresh versions of store and calls `onMount` for each one', async () => {
-		const initialStore = createTLStore({ shapeUtils: [] })
+		const initialStore = createTLStore({ shapeUtils: [], bindingUtils: [] })
 		const onMount = jest.fn()
 		const rendered = await renderTldrawComponent(
 			<TldrawEditor
@@ -154,7 +154,7 @@ describe('<TldrawEditor />', () => {
 		// not called again:
 		expect(onMount).toHaveBeenCalledTimes(1)
 		// re-render with a new store:
-		const newStore = createTLStore({ shapeUtils: [] })
+		const newStore = createTLStore({ shapeUtils: [], bindingUtils: [] })
 		rendered.rerender(
 			<TldrawEditor tools={defaultTools} initialState="select" store={newStore} onMount={onMount} />
 		)
