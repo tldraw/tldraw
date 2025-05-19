@@ -10,7 +10,7 @@ export default defineConfig({
 		lib: {
 			entry: 'src/index.ts',
 			name: 'TLAnalytics',
-			fileName: (format) => `tl-analytics.js`,
+			fileName: () => `tl-analytics.js`,
 			formats: ['umd'],
 		},
 		rollupOptions: {

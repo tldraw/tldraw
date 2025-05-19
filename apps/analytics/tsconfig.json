@@ -5,6 +5,6 @@
 		"noEmit": true,
 		"emitDeclarationOnly": false
 	},
-	"include": ["src", "src/analytics.tsx"],
+	"include": ["src", "src/analytics.tsx", "./vite.config.ts"],
 	"references": []
 }

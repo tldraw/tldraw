@@ -21,7 +21,7 @@ root.render(React.createElement(Analytics))
 declare global {
 	interface Window {
 		tlanalytics: {
-			openPrivacySettings: () => void
+			openPrivacySettings(): void
 		}
 	}
 }
