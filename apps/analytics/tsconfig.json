@@ -2,7 +2,8 @@
 	"extends": "../../internal/config/tsconfig.base.json",
 	"compilerOptions": {
 		"moduleResolution": "bundler",
-		"noEmit": true
+		"noEmit": true,
+		"emitDeclarationOnly": false,
 	},
 	"include": ["src", "src/analytics.tsx"],
 	"references": []
