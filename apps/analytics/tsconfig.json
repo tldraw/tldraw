@@ -3,7 +3,7 @@
 	"compilerOptions": {
 		"moduleResolution": "bundler",
 		"noEmit": true,
-		"emitDeclarationOnly": false,
+		"emitDeclarationOnly": false
 	},
 	"include": ["src", "src/analytics.tsx"],
 	"references": []

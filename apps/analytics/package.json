@@ -6,7 +6,8 @@
 	"main": "dist/index.js",
 	"scripts": {
 		"build": "tsc && vite build",
-		"dev": "vite"
+		"dev": "vite",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
 		"js-cookie": "^3.0.5",
