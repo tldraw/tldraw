@@ -134,7 +134,31 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 				video.focus()
 			}
 		}
-	}, [isEditing, isLoaded])
+	}, [isEditing])
+
+	// Control the video playing using the shape's playing prop
+	const rDidPlay = useRef(false)
+	const handlePlay = useCallback(() => (rDidPlay.current = true), [])
+	useEffect(() => {
+		const video = rVideo.current
+		if (!video) return
+
+		// No sense in controlling a video that didn't autoplay
+		if (!rDidPlay.current) return
+
+		if (shape.props.playing) {
+			video.play().catch(() => {})
+		} else {
+			video.pause()
+		}
+	}, [shape.props.playing])
+
+	// Control the video time using the shape's time prop
+	useEffect(() => {
+		const video = rVideo.current
+		if (!video) return
+		video.currentTime = shape.props.time
+	}, [shape.props.time])
 
 	return (
 		<>
@@ -177,6 +201,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 									disablePictureInPicture
 									controls={isEditing && showControls}
 									onLoadedData={handleLoadedData}
+									onPlay={handlePlay}
 									hidden={!isLoaded}
 								>
 									<source src={url} />
