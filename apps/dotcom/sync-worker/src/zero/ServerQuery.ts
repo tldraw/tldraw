@@ -27,7 +27,7 @@ export class ServerQuery<Row extends TlaRow, isOne extends boolean = false> {
 	}
 
 	async run(): Promise<isOne extends true ? Row : Row[]> {
-		assert(!this.signal.aborted, 'missing await in mutator')
+		assert(!this.signal.aborted, 'Query usage outside of mutator scope')
 		const whereClause = this.wheres.length > 0 ? `WHERE ${this.wheres.join(' AND ')}` : ''
 		const sql = `SELECT * FROM "${this.table}" ${whereClause}`
 		const res = await this.client.query(sql, [...this.params])

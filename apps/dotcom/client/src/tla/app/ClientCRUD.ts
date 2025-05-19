@@ -17,12 +17,12 @@ export class ClientCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema
 		this.store.updateOptimisticData([update], this.mutationId)
 	}
 	async insert(data: any) {
-		assert(!this.signal.aborted, 'missing await in mutator')
+		assert(!this.signal.aborted, 'CRUD usage outside of mutator scope')
 		assert(!this.getExisting(data), 'row already exists')
 		this.apply({ event: 'insert', table: this.table.name, row: data })
 	}
 	async upsert(data: any) {
-		assert(!this.signal.aborted, 'missing await in mutator')
+		assert(!this.signal.aborted, 'CRUD usage outside of mutator scope')
 		this.apply({
 			event: this.getExisting(data) ? 'update' : 'insert',
 			table: this.table.name,
@@ -30,11 +30,11 @@ export class ClientCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema
 		})
 	}
 	async delete(data: any) {
-		assert(!this.signal.aborted, 'missing await in mutator')
+		assert(!this.signal.aborted, 'CRUD usage outside of mutator scope')
 		this.apply({ event: 'delete', table: this.table.name, row: data })
 	}
 	async update(data: any) {
-		assert(!this.signal.aborted, 'missing await in mutator')
+		assert(!this.signal.aborted, 'CRUD usage outside of mutator scope')
 		assert(this.getExisting(data), 'row not found')
 		this.apply({ event: 'update', table: this.table.name, row: data })
 	}

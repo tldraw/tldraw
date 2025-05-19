@@ -48,12 +48,12 @@ export class ClientQuery<Row extends TlaRow, isOne extends boolean = false> {
 	}
 
 	async run(): Promise<isOne extends true ? Row : Row[]> {
-		assert(!this.signal.aborted, 'missing await in mutator')
+		assert(!this.signal.aborted, 'Query usage outside of mutator scope')
 		return this._runSync()
 	}
 
 	preload(): { complete: Promise<void> } {
-		assert(!this.signal.aborted, 'missing await in mutator')
+		assert(!this.signal.aborted, 'Query usage outside of mutator scope')
 
 		if (this.store.getFullData()) {
 			return { complete: Promise.resolve() }

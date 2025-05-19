@@ -13,7 +13,7 @@ export class ServerCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema
 		private readonly signal: AbortSignal
 	) {}
 	async insert(data: any) {
-		assert(!this.signal.aborted, 'missing await in mutator')
+		assert(!this.signal.aborted, 'CRUD usage outside of mutator scope')
 		const row = validateAndAugmentRow(data, this.table)
 		await this.client.query(
 			`insert into public.${quote(this.table.name)} (${row.allKeys()}) values (${row.allValues()})`,
@@ -21,7 +21,7 @@ export class ServerCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema
 		)
 	}
 	async upsert(data: any) {
-		assert(!this.signal.aborted, 'missing await in mutator')
+		assert(!this.signal.aborted, 'CRUD usage outside of mutator scope')
 		const row = validateAndAugmentRow(data, this.table)
 		await this.client.query(
 			`insert into public.${quote(this.table.name)} (${row.allKeys()}) values (${row.allValues()})
@@ -33,7 +33,7 @@ export class ServerCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema
 		)
 	}
 	async delete(data: any) {
-		assert(!this.signal.aborted, 'missing await in mutator')
+		assert(!this.signal.aborted, 'CRUD usage outside of mutator scope')
 		const row = validateAndAugmentRow(data, this.table)
 		await this.client.query(
 			`delete from public.${quote(this.table.name)} where ${row.primaryKeyWhereClause()}`,
@@ -41,7 +41,7 @@ export class ServerCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema
 		)
 	}
 	async update(data: any) {
-		assert(!this.signal.aborted, 'missing await in mutator')
+		assert(!this.signal.aborted, 'CRUD usage outside of mutator scope')
 		const row = validateAndAugmentRow(data, this.table)
 		const res = await this.client.query(
 			`update public.${quote(this.table.name)} set ${row
