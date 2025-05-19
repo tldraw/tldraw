@@ -75,7 +75,10 @@ export class ServerCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema
 
 	private async _doesExist(row: any) {
 		const rows = await this._exec(
-			this._wherePrimaryKey(db.selectFrom(this.table.name).select('id'), row)
+			this._wherePrimaryKey(
+				db.selectFrom(this.table.name).select((eb) => eb.lit(1).as('blah')),
+				row
+			)
 		)
 		return !!rows.rowCount
 	}
