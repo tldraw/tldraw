@@ -449,9 +449,17 @@ export class Idle extends StateNode {
 			case 'ArrowUp':
 			case 'ArrowDown': {
 				if (info.accelKey) {
-					this.editor.selectAdjacentShape(
-						info.code.replace('Arrow', '').toLowerCase() as TLAdjacentDirection
-					)
+					if (info.shiftKey) {
+						if (info.code === 'ArrowDown') {
+							this.editor.selectFirstChildShape()
+						} else if (info.code === 'ArrowUp') {
+							this.editor.selectParentShape()
+						}
+					} else {
+						this.editor.selectAdjacentShape(
+							info.code.replace('Arrow', '').toLowerCase() as TLAdjacentDirection
+						)
+					}
 					return
 				}
 				this.nudgeSelectedShapes(false)
@@ -635,7 +643,7 @@ export class Idle extends StateNode {
 
 		const util = this.editor.getShapeUtil(shape)
 		if (this.editor.getIsReadonly()) {
-			if (!util.canEditInReadOnly(shape)) {
+			if (!util.canEditInReadonly(shape)) {
 				return
 			}
 		}
@@ -686,7 +694,7 @@ export class Idle extends StateNode {
 	private canInteractWithShapeInReadOnly(shape: TLShape) {
 		if (!this.editor.getIsReadonly()) return true
 		const util = this.editor.getShapeUtil(shape)
-		if (util.canEditInReadOnly(shape)) return true
+		if (util.canEditInReadonly(shape)) return true
 		return false
 	}
 }

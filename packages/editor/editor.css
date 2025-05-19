@@ -157,6 +157,7 @@
 	--color-panel-contrast: hsl(0, 0%, 100%);
 	--color-panel-overlay: hsl(0, 0%, 100%, 82%);
 	--color-panel: hsl(0, 0%, 99%);
+	--color-panel-transparent: hsla(0, 0%, 99%, 0%);
 	--color-focus: hsl(219, 65%, 50%);
 	--color-selected: hsl(214, 84%, 56%);
 	--color-selected-contrast: hsl(0, 0%, 100%);
@@ -208,6 +209,7 @@
 	--color-panel-contrast: hsl(245, 12%, 23%);
 	--color-panel: hsl(235, 6.8%, 13.5%);
 	--color-panel-overlay: hsl(210, 10%, 24%, 82%);
+	--color-panel-transparent: hsla(235, 6.8%, 13.5%, 0%);
 	--color-focus: hsl(217, 76%, 80%);
 	--color-selected: hsl(217, 89%, 61%);
 	--color-selected-contrast: hsl(0, 0%, 100%);
@@ -598,6 +600,11 @@ input,
 	.tl-handle__create {
 		opacity: 1;
 	}
+}
+
+.tl-rotate-corner:not(:hover),
+.tl-resize-handle:not(:hover) {
+	cursor: none;
 }
 
 /* --------------------- Arrow Hints -------------------- */
@@ -1380,10 +1387,6 @@ input,
 
 .tl-arrow-label[data-isediting='true'] p {
 	opacity: 0;
-}
-
-.tl-arrow-label[data-isediting='true'] > .tl-arrow-label__inner {
-	background-color: var(--color-background);
 }
 
 .tl-arrow-label__inner {

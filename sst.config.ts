@@ -119,7 +119,7 @@ export default $config({
 		// View Syncer Service
 		const viewSyncer = cluster.addService(`view-syncer`, {
 			cpu: isProduction ? '2 vCPU' : '1 vCPU',
-			memory: '2 GB',
+			memory: isProduction ? '4 GB' : '2 GB',
 			architecture: 'arm64',
 			image: commonEnv.ZERO_IMAGE_URL,
 			link: [replicationBucket],

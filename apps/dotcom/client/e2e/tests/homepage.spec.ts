@@ -3,11 +3,16 @@ import { sleep } from 'tldraw'
 import { areUrlsEqual, getRandomName } from '../fixtures/helpers'
 import { expect, expectBeforeAndAfterReload, test } from '../fixtures/tla-test'
 
+test.beforeEach(async ({ editor }) => {
+	await editor.isLoaded()
+})
+
 test('can toggle sidebar', async ({ editor, sidebar }) => {
-	await editor.ensureSidebarClosed()
-	await expect(sidebar.sidebarLogo).not.toBeInViewport()
+	await editor.ensureSidebarOpen()
 	await editor.toggleSidebar()
-	await expect(sidebar.sidebarLogo).toBeInViewport()
+	await sidebar.expectIsNotVisible()
+	await editor.toggleSidebar()
+	await sidebar.expectIsVisible()
 })
 
 test('can create new file', async ({ editor, sidebar, page }) => {

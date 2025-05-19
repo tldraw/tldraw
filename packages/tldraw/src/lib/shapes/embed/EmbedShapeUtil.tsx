@@ -70,7 +70,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	override canResize(shape: TLEmbedShape) {
 		return !!this.getEmbedDefinition(shape.props.url)?.definition?.doesResize
 	}
-	override canEditInReadOnly() {
+	override canEditInReadonly() {
 		return true
 	}
 
