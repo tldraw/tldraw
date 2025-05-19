@@ -1,0 +1,9 @@
+{
+	"extends": "../../internal/config/tsconfig.base.json",
+	"compilerOptions": {
+		"moduleResolution": "bundler",
+		"noEmit": true
+	},
+	"include": ["src", "src/analytics.tsx"],
+	"references": []
+}

@@ -12,6 +12,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		`https://*.tldraw.workers.dev`,
 		`https://*.ingest.sentry.io`,
 		`https://*.ingest.us.sentry.io`,
+		'https://*.analytics.google.com',
 		// for thumbnail server
 		'http://localhost:5002',
 		'https://*.clerk.accounts.dev',
@@ -34,6 +35,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://clerk.staging.tldraw.com',
 		// embeds that have scripts
 		'https://gist.github.com',
+		'https://www.googletagmanager.com',
 	],
 	'worker-src': [`'self'`, `blob:`],
 	'style-src': [`'self'`, `'unsafe-inline'`, `https://fonts.googleapis.com`],

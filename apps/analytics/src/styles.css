@@ -1,0 +1,217 @@
+:root {
+  --tl-analytics-bg: white;
+  --tl-analytics-text: #111827;
+  --tl-analytics-text-secondary: #374151;
+  --tl-analytics-border: #e5e7eb;
+  --tl-analytics-link: #3b82f6;
+  --tl-analytics-link-hover: #2563eb;
+  --tl-analytics-overlay: rgba(255, 255, 255, 0.9);
+  --tl-analytics-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] {
+  --tl-analytics-bg: #18181b;
+  --tl-analytics-text: #f4f4f5;
+  --tl-analytics-text-secondary: #a1a1aa;
+  --tl-analytics-border: #27272a;
+  --tl-analytics-link: #60a5fa;
+  --tl-analytics-link-hover: #93c5fd;
+  --tl-analytics-overlay: rgba(0, 0, 0, 0.9);
+  --tl-analytics-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+.tl-analytics-banner {
+  position: fixed;
+  bottom: 8px;
+  left: 8px;
+  z-index: 1000;
+  max-width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: var(--tl-analytics-shadow);
+  border: 1px solid var(--tl-analytics-border);
+  background-color: var(--tl-analytics-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .tl-analytics-banner {
+    flex-direction: row;
+    align-items: center;
+    gap: 32px;
+  }
+}
+
+.tl-analytics-banner p {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--tl-analytics-text);
+  margin: 0;
+}
+
+.tl-analytics-banner a {
+  color: var(--tl-analytics-link);
+  text-decoration: none;
+}
+
+.tl-analytics-banner a:hover {
+  color: var(--tl-analytics-link-hover);
+}
+
+.tl-analytics-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .tl-analytics-buttons {
+    width: auto;
+  }
+}
+
+.tl-analytics-button {
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 9999px;
+}
+
+.tl-analytics-button-primary {
+  background-color: var(--tl-analytics-link);
+  color: white;
+  font-weight: bold;
+}
+
+.tl-analytics-button-primary:hover {
+  background-color: var(--tl-analytics-link-hover);
+}
+
+.tl-analytics-button-secondary {
+  background: none;
+  color: var(--tl-analytics-text);
+}
+
+.tl-analytics-button-secondary:hover {
+  color: var(--tl-analytics-text-secondary);
+}
+
+.tl-analytics-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background-color: var(--tl-analytics-overlay);
+}
+
+.tl-analytics-dialog-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.tl-analytics-dialog-content {
+  position: relative;
+  max-width: 32rem;
+  padding: 2rem;
+  background-color: var(--tl-analytics-bg);
+  border-radius: 0.375rem;
+  box-shadow: var(--tl-analytics-shadow);
+  font-size: 1rem;
+  text-align: left;
+}
+
+.tl-analytics-dialog-title {
+  font-weight: 700;
+  color: var(--tl-analytics-text);
+  margin: 0 0 1rem 0;
+}
+
+.tl-analytics-dialog-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--tl-analytics-text-secondary);
+}
+
+.tl-analytics-dialog-close:hover {
+  color: var(--tl-analytics-text);
+}
+
+.tl-analytics-dialog-body {
+  margin-top: 1.5rem;
+}
+
+.tl-analytics-dialog-body p {
+  margin: 0 0 1rem 0;
+  color: var(--tl-analytics-text-secondary);
+}
+
+.tl-analytics-dialog-body a {
+  color: var(--tl-analytics-link);
+  text-decoration: none;
+}
+
+.tl-analytics-dialog-body a:hover {
+  color: var(--tl-analytics-link-hover);
+}
+
+.tl-analytics-checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.tl-analytics-checkbox {
+  width: 3rem;
+  height: 1.75rem;
+  background-color: var(--tl-analytics-text-secondary);
+  border-radius: 9999px;
+  position: relative;
+  cursor: pointer;
+}
+
+.tl-analytics-checkbox[data-state="checked"] {
+  background-color: var(--tl-analytics-link);
+}
+
+.tl-analytics-checkbox > span {
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
+  background-color: var(--tl-analytics-bg);
+  border-radius: 9999px;
+  transition: transform 100ms;
+  transform: translateX(0.25rem);
+}
+
+.tl-analytics-checkbox[data-state="checked"] > span {
+  transform: translateX(1.5rem);
+}
+
+.tl-analytics-checkbox-label {
+  margin-top: 1.5rem;
+  margin-bottom: .5rem;
+  color: var(--tl-analytics-text-secondary);
+}
+
+.tl-analytics-dialog-footer {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+} 
