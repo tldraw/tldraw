@@ -4,7 +4,6 @@ import {
 	DB,
 	MIN_Z_PROTOCOL_VERSION,
 	TlaFile,
-	TlaFileState,
 	TlaSchema,
 	ZClientSentMessage,
 	ZErrorCode,
@@ -27,7 +26,7 @@ import { EventData, writeDataPoint } from './utils/analytics'
 import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
-import { ServerCRUD } from './zero/ServerCrud'
+import { PerfHackHooks, ServerCRUD } from './zero/ServerCrud'
 import { ServerQuery } from './zero/ServerQuery'
 import { ZMutationError } from './zero/ZMutationError'
 import { legacy_assertValidMutation } from './zero/legacy_assertValidMutation'
@@ -155,8 +154,15 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private readonly sockets = new Map<WebSocket, { protocolVersion: number; sessionId: string }>()
 
-	private makeCrud(client: PoolClient, signal: AbortSignal): SchemaCRUD<TlaSchema> {
-		return mapObjectMapValues(schema.tables, (_, table) => new ServerCRUD(client, table, signal))
+	private makeCrud(
+		client: PoolClient,
+		signal: AbortSignal,
+		perfHackHooks: PerfHackHooks
+	): SchemaCRUD<TlaSchema> {
+		return mapObjectMapValues(
+			schema.tables,
+			(_, table) => new ServerCRUD(client, table, signal, perfHackHooks)
+		)
 	}
 
 	private makeQuery(client: PoolClient, signal: AbortSignal): SchemaQuery<TlaSchema> {
@@ -345,37 +351,23 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		const client = await this.pool.connect()
 
 		try {
-			const newGuestFiles: TlaFile[] = []
-			const insertedFiles: TlaFile[] = []
+			const newFiles = [] as TlaFile[]
 
 			await client.query('BEGIN')
 
 			const controller = new AbortController()
-			const mutate = this.makeCrud(client, controller.signal)
+			const mutate = this.makeCrud(client, controller.signal, { newFiles })
 			try {
 				if (msg.type === 'mutate') {
 					// legacy
 					for (const update of msg.updates) {
 						await legacy_assertValidMutation(this.userId!, client, update)
 						await mutate[update.table][update.event](update.row as any)
-						if (update.table === 'file_state' && update.event === 'insert') {
-							const res = await client.query('select * from public.file where id = $1', [
-								(update.row as TlaFileState).fileId,
-							])
-							assert(res.rowCount === 1, 'File not found')
-							newGuestFiles.push(res.rows[0])
-						} else if (update.table === 'file' && update.event === 'insert') {
-							const res = await client.query('select * from public.file where id = $1', [
-								(update.row as TlaFile).id,
-							])
-							assert(res.rowCount === 1, 'File not found')
-							insertedFiles.push(res.rows[0])
-						}
 					}
 				} else {
 					// new
 					const mutators = createMutators(this.userId!)
-					const path = msg.mutation[0].split('.')
+					const path = msg.name.split('.')
 					assert(path.length <= 2, 'Invalid mutation path')
 					const mutator: CustomMutatorImpl<TlaSchema> =
 						path.length === 1 ? (mutators as any)[path[0]] : (mutators as any)[path[0]][path[1]]
@@ -395,7 +387,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							mutationID: 0,
 							query: this.makeQuery(client, controller.signal),
 						},
-						msg.mutation[1]
+						msg.props
 					)
 				}
 			} finally {
@@ -423,11 +415,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 			await client.query('COMMIT')
 
-			for (const file of insertedFiles) {
-				getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
-			}
-			for (const guestFile of newGuestFiles) {
-				this.cache?.addGuestFile(guestFile)
+			for (const file of newFiles) {
+				if (file.ownerId !== this.userId) {
+					this.cache?.addGuestFile(file)
+				} else {
+					getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
+				}
 			}
 		} catch (e) {
 			await client.query('ROLLBACK')

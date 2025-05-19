@@ -91,8 +91,8 @@ export class Zero {
 			})
 		})
 		const mutationQueue = new ExecutionQueue()
-		const mutatorWrapper = (key: string, mutatorFn: any) => {
-			return async (params: any) => {
+		const mutatorWrapper = (name: string, mutatorFn: any) => {
+			return async (props: any) => {
 				await mutationQueue.push(async () => {
 					if (this.clientTooOld) {
 						this.opts.onMutationRejected('client_too_old')
@@ -104,7 +104,7 @@ export class Zero {
 					const query = this.makeQuery(controller.signal)
 					const unpause = pauseReactions()
 					try {
-						await mutatorFn({ mutate, query, location: 'client' }, params)
+						await mutatorFn({ mutate, query, location: 'client' }, props)
 					} finally {
 						unpause()
 						controller.abort()
@@ -112,7 +112,8 @@ export class Zero {
 					this.pendingUpdates.push({
 						type: 'mutator',
 						mutationId,
-						mutation: [key as any, params],
+						name,
+						props,
 					})
 					if (!this.timeout) {
 						this.timeout = setTimeout(() => {

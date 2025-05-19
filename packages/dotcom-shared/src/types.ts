@@ -163,7 +163,8 @@ export type ZClientSentMessage =
 	| {
 			type: 'mutator'
 			mutationId: string
-			mutation: [string, object]
+			name: string
+			props: object
 	  }
 
 export const UserPreferencesKeys = [
