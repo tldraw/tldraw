@@ -4688,7 +4688,7 @@ export function useUiEvents(): TLUiEventContextType;
 
 // @public (undocumented)
 export interface VideoShapeOptions {
-    defaultAutoplay: boolean;
+    autoplay: boolean;
 }
 
 // @public (undocumented)
