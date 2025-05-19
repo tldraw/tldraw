@@ -1,8 +1,16 @@
 import { SchemaValue } from '@rocicorp/zero'
 import { TableCRUD } from '@rocicorp/zero/out/zql/src/mutate/custom'
-import { TlaFile, TlaSchema, ZErrorCode } from '@tldraw/dotcom-shared'
-import { assert } from '@tldraw/utils'
-import { PoolClient } from 'pg'
+import { DB, TlaFile, TlaSchema, ZErrorCode } from '@tldraw/dotcom-shared'
+import { assert, omit } from '@tldraw/utils'
+import {
+	CompiledQuery,
+	DummyDriver,
+	Kysely,
+	PostgresAdapter,
+	PostgresIntrospector,
+	PostgresQueryCompiler,
+} from 'kysely'
+import { PoolClient, QueryResult, QueryResultRow } from 'pg'
 import { ZMutationError } from './ZMutationError'
 const quote = (s: string) => JSON.stringify(s)
 
@@ -17,6 +25,16 @@ const quote = (s: string) => JSON.stringify(s)
 export interface PerfHackHooks {
 	newFiles: TlaFile[]
 }
+
+// this is a kind of 'headless' kysely client that we use to compile queries
+const db = new Kysely<DB>({
+	dialect: {
+		createAdapter: () => new PostgresAdapter(),
+		createDriver: () => new DummyDriver(),
+		createIntrospector: (db) => new PostgresIntrospector(db),
+		createQueryCompiler: () => new PostgresQueryCompiler(),
+	},
+})
 
 export class ServerCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema['tables']]> {
 	constructor(
@@ -40,73 +58,83 @@ export class ServerCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema
 			this.perfHackHooks.newFiles.push(data as TlaFile)
 		}
 	}
+
+	private async _exec<T extends QueryResultRow>(query: {
+		compile(): CompiledQuery<T>
+	}): Promise<QueryResult<T>> {
+		const { sql, parameters } = query.compile()
+		return await this.client.query<T>(sql, parameters as any)
+	}
+
+	private _wherePrimaryKey(qb: any, row: any) {
+		for (const key of this.table.primaryKey) {
+			qb = qb.where(key, '=', row[key])
+		}
+		return qb
+	}
+
+	private async _doesExist(row: any) {
+		const rows = await this._exec(
+			this._wherePrimaryKey(db.selectFrom(this.table.name).select('id'), row)
+		)
+		return !!rows.rowCount
+	}
+
 	async insert(data: any) {
 		assert(!this.signal.aborted, 'CRUD usage outside of mutator scope')
-		const row = validateAndAugmentRow(data, this.table)
-		await this.client.query(
-			`insert into public.${quote(this.table.name)} (${row.allKeys()}) values (${row.allValues()})`,
-			row.paramValues
-		)
+		assertRowIsValid(data, this.table)
+		await this._exec(db.insertInto(this.table.name).values(data))
 		await this._onNewRow(data)
 	}
+
 	async upsert(data: any) {
 		assert(!this.signal.aborted, 'CRUD usage outside of mutator scope')
-		const row = validateAndAugmentRow(data, this.table)
+		assertRowIsValid(data, this.table)
 
 		// we only need this for the perf hack
-		const didExist = !!(
-			await this.client.query(
-				`select 1 from public.${quote(this.table.name)} where ${row.primaryKeyWhereClause()}`,
-				row.paramValues
-			)
-		).rowCount
+		const didExist = await this._doesExist(data)
 
-		await this.client.query(
-			`insert into public.${quote(this.table.name)} (${row.allKeys()}) values (${row.allValues()})
-									on conflict (${row.primaryKeys()}) do update set ${row
-										.nonPrimaryKeysArray()
-										.map((k) => `${quote(k)} = excluded.${quote(k)}`)
-										.join(',')}`,
-			row.paramValues
+		await this._exec(
+			db
+				.insertInto(this.table.name)
+				.values(data)
+				.onConflict((oc) => {
+					return oc.columns(this.table.primaryKey).doUpdateSet(omit(data, this.table.primaryKey))
+				})
 		)
 
 		if (didExist) {
 			await this._onNewRow(data)
 		}
 	}
+
 	async delete(data: any) {
 		assert(!this.signal.aborted, 'CRUD usage outside of mutator scope')
-		const row = validateAndAugmentRow(data, this.table)
-		await this.client.query(
-			`delete from public.${quote(this.table.name)} where ${row.primaryKeyWhereClause()}`,
-			row.paramValues
-		)
+		assertRowIsValid(data, this.table)
+		await this._exec(this._wherePrimaryKey(db.deleteFrom(this.table.name), data))
 	}
+
 	async update(data: any) {
 		assert(!this.signal.aborted, 'CRUD usage outside of mutator scope')
-		const row = validateAndAugmentRow(data, this.table)
-		const res = await this.client.query(
-			`update public.${quote(this.table.name)} set ${row
-				.nonPrimaryKeysArray()
-				.map((k) => `${quote(k)} = ${row.rowValue(k)}`)
-				.join(', ')} where ${row.primaryKeyWhereClause()}`,
-			row.paramValues
+		assertRowIsValid(data, this.table)
+
+		const res = await this._exec(
+			this._wherePrimaryKey(
+				db.updateTable(this.table.name).set(omit(data, this.table.primaryKey)),
+				data
+			)
 		)
 		if (res.rowCount !== 1) {
 			// might have been a noop
-			const row = validateAndAugmentRow(data, this.table)
-			const res = await this.client.query(
-				`select count(*) from public.${quote(this.table.name)} where ${row.primaryKeyWhereClause()}`,
-				row.paramValues
-			)
-			if (res.rows[0].count === 0) {
+			const doesExist = await this._doesExist(data)
+			if (!doesExist) {
 				throw new ZMutationError(ZErrorCode.bad_request, `update failed, no matching rows`)
 			}
 		}
 	}
 }
 
-function validateAndAugmentRow(row: any, table: TlaSchema['tables'][keyof TlaSchema['tables']]) {
+function assertRowIsValid(row: any, table: TlaSchema['tables'][keyof TlaSchema['tables']]): void {
 	const entries = Object.entries(row)
 	for (const [key, value] of entries) {
 		const column = table.columns[key as keyof typeof table.columns] as SchemaValue
@@ -132,32 +160,10 @@ function validateAndAugmentRow(row: any, table: TlaSchema['tables'][keyof TlaSch
 				throw new Error(`Unknown type ${column.type} for column ${key} in table ${table.name}`)
 		}
 	}
+
 	for (const key of table.primaryKey) {
 		if (!(key in row)) {
 			throw new Error(`Missing primary key ${key} in table ${table.name}`)
 		}
-	}
-	const str = quote
-	const paramValues = [] as any[]
-	const param = (value: any) => {
-		paramValues.push(value)
-		return `$${paramValues.length}`
-	}
-	return {
-		row,
-		primaryKeys: () => table.primaryKey.map((key) => str(key)).join(', '),
-		primaryKeyWhereClause: () =>
-			table.primaryKey.map((key) => `${str(key)} = ${param(row[key])}`).join(' AND '),
-		allValues: () => entries.map(([_key, value]) => param(value)),
-		allKeys: () => entries.map(([key]) => str(key)).join(', '),
-		nonPrimaryKeysArray: () =>
-			entries.map(([key]) => key).filter((key) => !table.primaryKey.includes(key)),
-		rowValue: (key: string) => {
-			if (!(key in row)) {
-				throw new Error(`Missing value for column ${key} in table ${table.name}`)
-			}
-			return param(row[key] ?? null)
-		},
-		paramValues,
 	}
 }

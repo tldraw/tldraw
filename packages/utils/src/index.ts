@@ -56,6 +56,7 @@ export {
 	objectMapFromEntries,
 	objectMapKeys,
 	objectMapValues,
+	omit,
 } from './lib/object'
 export { measureAverageDuration, measureCbDuration, measureDuration } from './lib/perf'
 export {

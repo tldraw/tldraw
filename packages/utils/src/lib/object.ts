@@ -132,3 +132,15 @@ export function groupBy<K extends string, V>(
 	}
 	return result
 }
+
+/** @internal */
+export function omit(
+	obj: Record<string, unknown>,
+	keys: ReadonlyArray<string>
+): Record<string, unknown> {
+	const result = { ...obj }
+	for (const key of keys) {
+		delete result[key]
+	}
+	return result
+}
