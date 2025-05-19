@@ -1,5 +1,5 @@
 ---
-title: Tool with child states
+title: Custom tool with child states
 component: ./ToolWithChildStatesExample.tsx
 category: shapes/tools
 priority: 2

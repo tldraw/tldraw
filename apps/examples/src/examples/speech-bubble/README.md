@@ -6,4 +6,8 @@ priority: 2
 keywords: [handles, handle, geometry, interaction, text label]
 ---
 
-A speech bubble custom shape with custom handles.
+A speech bubble shape with custom handles.
+
+---
+
+This example shows how to create a custom shape with custom handles.

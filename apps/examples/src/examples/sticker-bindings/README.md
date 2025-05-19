@@ -1,5 +1,5 @@
 ---
-title: Sticker (bindings)
+title: Attach shapes together (bindings)
 component: ./StickerExample.tsx
 category: shapes/tools
 keywords: [attach]

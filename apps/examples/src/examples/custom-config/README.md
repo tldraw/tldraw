@@ -6,7 +6,7 @@ keywords: [toolbar, migrations, icon, util, ui overrides, card shape]
 priority: 1
 ---
 
-Create custom shapes and tools.
+A custom shape and tool.
 
 ---
 

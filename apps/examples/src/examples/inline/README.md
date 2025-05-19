@@ -1,5 +1,5 @@
 ---
-title: Inset editor (fixed size)
+title: Inset editor (fixed sizes)
 component: ./InlineExample.tsx
 category: layout
 priority: 0

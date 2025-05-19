@@ -1,5 +1,5 @@
 ---
-title: Custom tool
+title: Custom tool (sticker)
 component: ./CustomToolExample.tsx
 category: shapes/tools
 priority: 0

@@ -6,7 +6,7 @@ priority: 1.5
 keywords: [style panel, rating]
 ---
 
-Using the custom styles API with your custom shapes.
+Use the custom styles API with your custom shapes.
 
 ---
 

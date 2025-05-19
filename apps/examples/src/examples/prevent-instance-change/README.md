@@ -1,5 +1,5 @@
 ---
-title: Prevent instance change
+title: Prevent instance changes
 component: ./PreventInstanceChangeExample.tsx
 category: events
 priority: 2

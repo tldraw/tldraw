@@ -6,7 +6,7 @@ priority: 1.5
 keywords: [default styles, style panel]
 ---
 
-Using the tldraw style panel with your custom shapes
+Use the tldraw style panel with your custom shapes
 
 ---
 
