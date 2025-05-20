@@ -302,6 +302,7 @@ export type TLSocketClientSentEvent<R extends UnknownRecord> = TLConnectRequest 
 // @public (undocumented)
 export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta = void> {
     constructor(opts: {
+        onPresenceChange?(): void;
         clientTimeout?: number;
         initialSnapshot?: RoomSnapshot | TLStoreSnapshot;
         log?: TLSyncLog;
@@ -317,7 +318,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
             sessionId: string;
             stringified: string;
         }) => void;
-        onDataChange?: () => void;
+        onDataChange?(): void;
         onSessionRemoved?: (room: TLSocketRoom<R, SessionMeta>, args: {
             meta: SessionMeta;
             numSessionsRemaining: number;
@@ -332,6 +333,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     getCurrentSerializedSnapshot(): string;
     getCurrentSnapshot(): RoomSnapshot;
     getNumActiveSessions(): number;
+    // @internal (undocumented)
+    getPresenceRecords(): Record<string, UnknownRecord>;
     getRecord(id: string): R;
     getSessions(): Array<{
         isConnected: boolean;
@@ -356,6 +359,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     readonly log?: TLSyncLog;
     // (undocumented)
     readonly opts: {
+        onPresenceChange?(): void;
         clientTimeout?: number;
         initialSnapshot?: RoomSnapshot | TLStoreSnapshot;
         log?: TLSyncLog;
@@ -371,7 +375,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
             sessionId: string;
             stringified: string;
         }) => void;
-        onDataChange?: () => void;
+        onDataChange?(): void;
         onSessionRemoved?: (room: TLSocketRoom<R, SessionMeta>, args: {
             meta: SessionMeta;
             numSessionsRemaining: number;
@@ -495,6 +499,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     constructor(opts: {
         log?: TLSyncLog;
         onDataChange?(): void;
+        onPresenceChange?(): void;
         schema: StoreSchema<R, any>;
         snapshot?: RoomSnapshot;
     });
