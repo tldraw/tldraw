@@ -17,4 +17,4 @@ Stop events from reaching the canvas.
 
 ---
 
-If you don't want the user's interactions from reaching the canvas, you can call `stopPropagation` on the user's pointer events.
+If you don't want the user's interactions to reach the canvas, you can call `stopPropagation` on the user's pointer events.

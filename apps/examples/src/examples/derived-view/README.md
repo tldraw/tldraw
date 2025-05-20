@@ -10,4 +10,4 @@ Derive data from the editor's document in an efficient way.
 
 ---
 
-Use incremental derivations to get a specific view of data.
+You can use incremental derivations to get a specific view of data.

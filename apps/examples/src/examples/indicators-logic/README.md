@@ -9,3 +9,5 @@ keywords: [indicators]
 Change when indicators are shown and how they appear.
 
 ---
+
+This example shows how you can change when indicators are shown and how they appear.

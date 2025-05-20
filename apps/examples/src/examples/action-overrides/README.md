@@ -10,4 +10,4 @@ Customize and override tldraw's actions.
 
 ---
 
-This example shows how you can override tldraw's actions object to change the keyboard shortcuts. In this case we're changing the delete action's shortcut to 'Shift + X'. For more information on keyboard shortcuts see the keyboard shortcuts example.
+This example shows how you can override tldraw's actions object to change keyboard shortcuts and add your own custom actions. In this case we've changed the delete action's shortcut to 'Shift + X', and we've added a new action that shows a toast when you press the 'S' key. For more information on keyboard shortcuts see the [keyboard shortcuts example](https://tldraw.dev/examples/keyboard-shortcuts).

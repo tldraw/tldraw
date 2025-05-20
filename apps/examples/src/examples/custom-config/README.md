@@ -10,4 +10,6 @@ A custom shape and tool.
 
 ---
 
-The card shape (select ⚫️ in the toolbar) is a custom shape - but also just a normal react component.
+This example shows how to define a custom shape, as well as a custom tool that can be used to create that shape.
+
+In this case, the card tool (select ⚫️ in the toolbar) can be used to create a card shape.

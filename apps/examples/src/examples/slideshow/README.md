@@ -23,4 +23,4 @@ A simple slideshow app with a fixed camera.
 
 ---
 
-This example shows one way of making a simple slideshow tool with a fixed camera, using camera options.
+This example shows one way of making a simple slideshow app with a fixed camera, using camera options.

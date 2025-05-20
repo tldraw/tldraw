@@ -67,7 +67,7 @@ export default function StateStoreExample() {
 
 /* 
 
-Tldraw uses signals to manage its state and store. You can subscribe to values in the store 
+tldraw uses signals to manage its state and store. You can subscribe to values in the store 
 and run side effects when they change.
 
 [1]
@@ -80,8 +80,6 @@ and run side effects when they change.
 	side effect will run whenever the shapes on the page change. We pass the editor as a 
 	dependency to the useReactor hook so it will always have the latest editor instance. 
 	useQuickReactor runs immediately, whereas useReactor runs on the next animation frame.
-
-	Check out the Fog of War example to see useReactor in action.
 
 [2]
 	We can also use the useValue hook to subscribe to a value in the store. You can pass it a 

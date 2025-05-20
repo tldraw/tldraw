@@ -23,4 +23,4 @@ A simple slideshow app with a moving camera.
 
 ---
 
-This example shows one way of making a simple slideshow tool with a moving camera.
+This example shows one way of making a simple slideshow app with a moving camera.

@@ -297,6 +297,12 @@ function getComponentCodeFiles({
 			.filter(
 				(file) =>
 					!file.isDirectory() &&
+					(file.name.endsWith('.tsx') ||
+						file.name.endsWith('.ts') ||
+						file.name.endsWith('.js') ||
+						file.name.endsWith('.jsx') ||
+						file.name.endsWith('.css') ||
+						file.name.endsWith('.svg')) &&
 					file.name !== 'README.md' &&
 					file.name.replace('.tsx', '') !==
 						parsed.data.component.replace('./', '').replace('.tsx', '')

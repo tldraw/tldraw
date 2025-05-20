@@ -10,4 +10,4 @@ Listen to events from tldraw's canvas.
 
 ---
 
-These are the input events that the editor interprets. Try moving your cursor, dragging, using modifier keys, etc.
+This example listens to events from tldraw's canvas and shows them on the right-hand-side. Try moving your cursor, dragging, using modifier keys, etc.

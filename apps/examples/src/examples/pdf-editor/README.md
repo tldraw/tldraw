@@ -8,3 +8,7 @@ keywords:
 ---
 
 A very basic PDF editor built with tldraw.
+
+---
+
+This example shows how you might want to configure `cameraOptions` to make a PDF editor.
