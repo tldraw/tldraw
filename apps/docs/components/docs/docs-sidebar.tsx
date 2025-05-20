@@ -17,6 +17,14 @@ export async function DocsSidebar({
 	// @ts-ignore
 	const elements = skipFirstLevel ? sidebar.links[0].children : sidebar.links
 
+	// Manually copy the sync demo example to the getting started category
+	if (sectionId === 'examples') {
+		const gettingStartedCategory = elements.find((v: any) => v?.url === '/examples/getting-started')
+		const collaborationCategory = elements.find((v: any) => v?.url === '/examples/collaboration')
+		const syncDemoExample = collaborationCategory?.children[0]
+		gettingStartedCategory?.children.push(syncDemoExample)
+	}
+
 	return (
 		<Navigation className="hidden md:flex">
 			<DocsCategoryMenu />
