@@ -5,9 +5,10 @@
 	"private": true,
 	"main": "dist/index.js",
 	"scripts": {
-		"build": "tsc && vite build",
+		"build": "tsc && vite build --outDir public",
 		"dev": "vite",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"vercel-build": "yarn build"
 	},
 	"dependencies": {
 		"js-cookie": "^3.0.5",

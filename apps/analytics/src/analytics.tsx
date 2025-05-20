@@ -50,13 +50,16 @@ export default function Analytics() {
 
 	useEffect(() => {
 		if (hasConsent === 'opted-in') {
-			posthog.init('phc_RLoWBaPE8gImzlitkR9PzonvNQpOKGkUOQCKpEWSwhp', {
-				api_host: 'https://eu.i.posthog.com',
+			posthog.init('phc_i8oKgMzgV38sn3GfjswW9mevQ3gFlo7bJXekZFeDN6', {
+				api_host: 'https://analytics.tldraw.com/ingest',
+				ui_host: 'https://eu.i.posthog.com',
 				person_profiles: 'always',
 			})
 
-			ReactGA.initialize('G-MMLR1S43QZ')
-			ReactGA.send('pageview')
+			if (window.TL_GA4_MEASUREMENT_ID) {
+				ReactGA.initialize(window.TL_GA4_MEASUREMENT_ID)
+				ReactGA.send('pageview')
+			}
 		} else {
 			posthog.reset()
 			posthog.opt_out_capturing()

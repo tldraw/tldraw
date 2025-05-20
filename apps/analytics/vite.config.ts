@@ -7,6 +7,7 @@ export default defineConfig({
 		'process.env.NODE_ENV': JSON.stringify('production'),
 	},
 	build: {
+		outDir: 'public',
 		lib: {
 			entry: 'src/index.ts',
 			name: 'TLAnalytics',

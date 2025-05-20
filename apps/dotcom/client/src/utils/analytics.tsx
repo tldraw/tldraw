@@ -42,7 +42,8 @@ function configurePosthog(options: AnalyticsOptions) {
 	const sessionID = hashParams.get('session_id')
 	const distinctID = hashParams.get('distinct_id')
 	const config: Partial<PostHogConfig> = {
-		api_host: '/api/ph',
+		api_host: 'https://analytics.tldraw.com/ingest',
+		ui_host: 'https://eu.i.posthog.com',
 		capture_pageview: false,
 		persistence: options.optedIn ? 'localStorage+cookie' : 'memory',
 		before_send: (payload) => {

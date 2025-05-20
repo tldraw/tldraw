@@ -22,6 +22,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://*.zero.tldraw.com',
 		'https://zero.tldraw.com',
 		'http://localhost:4848',
+		'https://analytics.tldraw.com',
 	],
 	'font-src': [`'self'`, `https://fonts.googleapis.com`, `https://fonts.gstatic.com`, 'data:'],
 	'frame-src': [`https:`],
@@ -36,6 +37,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		// embeds that have scripts
 		'https://gist.github.com',
 		'https://www.googletagmanager.com',
+		'https://analytics.tldraw.com',
 	],
 	'worker-src': [`'self'`, `blob:`],
 	'style-src': [`'self'`, `'unsafe-inline'`, `https://fonts.googleapis.com`],

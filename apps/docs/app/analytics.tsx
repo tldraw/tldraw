@@ -1,8 +1,13 @@
 'use client'
 
 import Script from 'next/script'
+import { useEffect } from 'react'
 
 export default function Analytics() {
+	useEffect(() => {
+		window.TL_GA4_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID
+	}, [])
+
 	return (
 		<Script
 			id="tldraw-analytics"
@@ -20,6 +25,7 @@ declare global {
 		tlanalytics: {
 			openPrivacySettings(): void
 		}
+		TL_GA4_MEASUREMENT_ID: string | undefined
 	}
 }
 
