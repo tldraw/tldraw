@@ -1,20 +1,15 @@
 {
 	"version": 2,
 	"public": true,
-	"builds": [
-		{
-			"src": "package.json",
-			"use": "@vercel/static-build",
-			"config": { "distDir": "public" }
-		}
-	],
+	"installCommand": "yarn workspaces focus @tldraw/analytics @tldraw/monorepo config",
+	"buildCommand": "yarn build",
+	"outputDirectory": "public",
 	"headers": [
 		{
 			"source": "/(.*)",
 			"headers": [
 				{ "key": "Access-Control-Allow-Origin", "value": "*" },
-				{ "key": "Access-Control-Allow-Methods", "value": "GET" },
-				{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+				{ "key": "Access-Control-Allow-Methods", "value": "GET" }
 			]
 		}
 	],
@@ -29,8 +24,7 @@
 		},
 		{
 			"source": "/(.*)",
-			"destination": "/$1",
-			"headers": { "cache-control": "public, max-age=0, must-revalidate" }
+			"destination": "/$1"
 		}
 	]
 }

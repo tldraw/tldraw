@@ -1,5 +1,5 @@
 {
-	"name": "tl-analytics",
+	"name": "@tldraw/analytics",
 	"version": "0.1.0",
 	"license": "",
 	"private": true,
@@ -7,8 +7,7 @@
 	"scripts": {
 		"build": "tsc && vite build --outDir public",
 		"dev": "vite",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
-		"vercel-build": "yarn build"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
 		"js-cookie": "^3.0.5",
