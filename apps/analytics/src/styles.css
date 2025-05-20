@@ -20,6 +20,10 @@
 	--tl-analytics-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
 }
 
+.tl-analytics-root {
+	font-weight: 400;
+}
+
 .tl-analytics-banner {
 	position: fixed;
 	bottom: 8px;
