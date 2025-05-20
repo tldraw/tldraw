@@ -7,6 +7,8 @@ keywords: [basic, intro, simple, quick, start, multiplayer, sync, collaboration,
 multiplayer: true
 ---
 
+Customize the presence data synced between different tldraw instances.
+
 ---
 
 This example shows how to customize the presence data synced between different tldraw instances.

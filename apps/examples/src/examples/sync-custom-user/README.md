@@ -7,6 +7,8 @@ keywords: [basic, intro, simple, quick, start, multiplayer, sync, collaboration,
 multiplayer: true
 ---
 
+Integrate your own user data into tldraw sync.
+
 ---
 
 This example shows how to integrate your own user data into tldraw sync.

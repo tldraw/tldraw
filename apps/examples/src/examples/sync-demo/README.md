@@ -7,7 +7,7 @@ keywords: [basic, intro, simple, quick, start, multiplayer, sync, collaboration]
 multiplayer: true
 ---
 
-Use tldraw sync to enable multiplayer collaboration.
+Use tldraw sync for multiplayer collaboration.
 
 ---
 

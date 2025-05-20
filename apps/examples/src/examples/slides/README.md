@@ -1,5 +1,5 @@
 ---
-title: Slideshow
+title: Slideshow (moving camera)
 component: ./SlidesExample.tsx
 category: use-cases
 priority: 0
@@ -19,7 +19,7 @@ keywords:
   ]
 ---
 
-A slideshow tool with a moving camera.
+A simple slideshow app with a moving camera.
 
 ---
 

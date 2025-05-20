@@ -7,6 +7,8 @@ keywords: [basic, intro, simple, quick, start, multiplayer, sync, collaboration,
 multiplayer: true
 ---
 
+Use a custom shape in combination with tldraw sync.
+
 ---
 
 This example shows a custom shape in combination with tldraw sync.

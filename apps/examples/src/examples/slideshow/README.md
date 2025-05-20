@@ -19,7 +19,7 @@ keywords:
 priority: 0
 ---
 
-A slideshow tool with a fixed camera.
+A simple slideshow app with a fixed camera.
 
 ---
 
