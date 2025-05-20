@@ -8,13 +8,6 @@
 			"config": { "distDir": "public" }
 		}
 	],
-	"routes": [
-		{
-			"src": "/(.*)",
-			"headers": { "cache-control": "public, max-age=0, must-revalidate" },
-			"dest": "/$1"
-		}
-	],
 	"headers": [
 		{
 			"source": "/(.*)",
@@ -33,6 +26,11 @@
 		{
 			"source": "/ingest/:path*",
 			"destination": "https://eu.i.posthog.com/:path*"
+		},
+		{
+			"source": "/(.*)",
+			"destination": "/$1",
+			"headers": { "cache-control": "public, max-age=0, must-revalidate" }
 		}
 	]
 }
