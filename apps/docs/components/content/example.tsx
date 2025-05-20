@@ -3,8 +3,7 @@ import { Article } from '@/types/content-types'
 import { CodeFiles } from './code-files'
 
 export function Example({ article }: { article: Article }) {
-	const server = 'http://localhost:5420'
-	// const server = 'https://examples.tldraw.com'
+	const server = 'https://examples.tldraw.com'
 	const additionalFiles = JSON.parse(article.componentCodeFiles ?? '')
 	const files = [
 		{ name: 'App.tsx', content: article.componentCode },

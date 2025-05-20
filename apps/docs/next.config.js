@@ -104,6 +104,11 @@ const nextConfig = {
 				permanent: true,
 			},
 			{
+				source: '/examples',
+				destination: '/examples/basic',
+				permanent: true,
+			},
+			{
 				source: '/reference',
 				destination: '/reference/editor/Editor',
 				permanent: true,
