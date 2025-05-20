@@ -28,8 +28,7 @@
 		"strictFunctionTypes": true,
 		"strictNullChecks": true,
 		"useDefineForClassFields": true,
-		"noImplicitOverride": true,
-		"types": ["node", "@types/jest"]
+		"noImplicitOverride": true
 	},
 	"include": ["src", "src/analytics.tsx", "./vite.config.ts"],
 	"exclude": ["node_modules"]
