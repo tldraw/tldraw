@@ -8977,6 +8977,7 @@ __metadata:
     openai: "npm:^4.80.1"
     patch-package: "npm:^8.0.0"
     postcss: "npm:^8.5.1"
+    posthog-js: "npm:^1.210.2"
     postinstall-postinstall: "npm:^2.1.0"
     prettier: "npm:^3.4.2"
     prettier-plugin-organize-imports: "npm:^3.2.4"
@@ -14135,6 +14136,7 @@ __metadata:
     radix-ui: "npm:^1.3.4"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
+    react-ga4: "npm:^2.1.0"
     react-helmet-async: "npm:^1.3.0"
     react-intl: "npm:^6.8.9"
     react-router-dom: "npm:^6.28.2"
@@ -24637,6 +24639,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-ga4@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "react-ga4@npm:2.1.0"
+  checksum: 10/e47edd040b7a272d35df732e08c4a8b6b14add659db04fb81a3a2cbde59bf34dc6eae9e0b8b4abd8937d11c837954773a6ba86feb2c605e5eb916f4c99e420c7
+  languageName: node
+  linkType: hard
+
 "react-helmet-async@npm:^1.3.0":
   version: 1.3.0
   resolution: "react-helmet-async@npm:1.3.0"
@@ -27471,6 +27480,25 @@ __metadata:
   checksum: 10/9bd1c6ab68704dd10b8896fd66e28f3b4b4017a32b8802a9d57a565dee1704df45c249d8363bcaca235dbc0d9a7a90d6f1326f1e6b999f7809b36599a3f92eb3
   languageName: node
   linkType: hard
+
+"tl-analytics@workspace:apps/analytics":
+  version: 0.0.0-use.local
+  resolution: "tl-analytics@workspace:apps/analytics"
+  dependencies:
+    "@types/js-cookie": "npm:^3.0.6"
+    "@types/react": "npm:^18.3.18"
+    "@types/react-dom": "npm:^18.3.5"
+    "@vitejs/plugin-react": "npm:^4.3.4"
+    js-cookie: "npm:^3.0.5"
+    posthog-js: "npm:^1.210.2"
+    radix-ui: "npm:^1.3.4"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
+    react-ga4: "npm:^2.1.0"
+    typescript: "npm:~5.4.5"
+    vite: "npm:^5.4.14"
+  languageName: unknown
+  linkType: soft
 
 "tldraw-vscode@workspace:apps/vscode/extension":
   version: 0.0.0-use.local

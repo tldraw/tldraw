@@ -1,0 +1,38 @@
+{
+	"version": 2,
+	"public": true,
+	"builds": [
+		{
+			"src": "package.json",
+			"use": "@vercel/static-build",
+			"config": { "distDir": "public" }
+		}
+	],
+	"routes": [
+		{
+			"src": "/(.*)",
+			"headers": { "cache-control": "public, max-age=0, must-revalidate" },
+			"dest": "/$1"
+		}
+	],
+	"headers": [
+		{
+			"source": "/(.*)",
+			"headers": [
+				{ "key": "Access-Control-Allow-Origin", "value": "*" },
+				{ "key": "Access-Control-Allow-Methods", "value": "GET" },
+				{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+			]
+		}
+	],
+	"rewrites": [
+		{
+			"source": "/ingest/static/:path*",
+			"destination": "https://eu-assets.i.posthog.com/static/:path*"
+		},
+		{
+			"source": "/ingest/:path*",
+			"destination": "https://eu.i.posthog.com/:path*"
+		}
+	]
+}

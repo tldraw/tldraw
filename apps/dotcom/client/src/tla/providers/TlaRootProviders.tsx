@@ -17,8 +17,8 @@ import {
 	useToasts,
 	useValue,
 } from 'tldraw'
+import { SignedInAnalytics, SignedOutAnalytics } from '../../utils/analytics'
 import { globalEditor } from '../../utils/globalEditor'
-import { SignedInPosthog, SignedOutPosthog } from '../../utils/posthog'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
@@ -180,7 +180,7 @@ function SignedInProvider({
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
 		return (
 			<ThemeContainer onThemeChange={onThemeChange}>
-				<SignedOutPosthog />
+				<SignedOutAnalytics />
 				{children}
 			</ThemeContainer>
 		)
@@ -191,7 +191,7 @@ function SignedInProvider({
 			<AppStateProvider>
 				<UserProvider>
 					<ThemeContainer onThemeChange={onThemeChange}>
-						<SignedInPosthog />
+						<SignedInAnalytics />
 						{children}
 					</ThemeContainer>
 				</UserProvider>
