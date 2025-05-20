@@ -1,5 +1,5 @@
 {
-	"name": "@tldraw/config",
+	"name": "config",
 	"version": "0.0.0",
 	"main": "index.js",
 	"license": "SEE LICENSE IN LICENSE.md",
