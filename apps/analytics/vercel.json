@@ -1,16 +1,6 @@
 {
 	"version": 2,
 	"public": true,
-	"builds": [
-		{
-			"src": "package.json",
-			"use": "@vercel/static-build",
-			"config": {
-				"distDir": "public",
-				"install": ["npm i -g corepack", "yarn"]
-			}
-		}
-	],
 	"headers": [
 		{
 			"source": "/(.*)",
