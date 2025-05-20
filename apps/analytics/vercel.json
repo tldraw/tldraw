@@ -5,7 +5,10 @@
 		{
 			"src": "package.json",
 			"use": "@vercel/static-build",
-			"config": { "distDir": "public" }
+			"config": {
+				"distDir": "public",
+				"install": ["yarn install --cwd . --production=false"]
+			}
 		}
 	],
 	"headers": [
@@ -19,9 +22,7 @@
 		},
 		{
 			"source": "/(.*)",
-			"headers": [
-				{ "key": "cache-control", "value": "public, max-age=0, must-revalidate" }
-			]
+			"headers": [{ "key": "cache-control", "value": "public, max-age=0, must-revalidate" }]
 		}
 	],
 	"rewrites": [
