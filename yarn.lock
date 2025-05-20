@@ -8895,6 +8895,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tldraw/analytics@workspace:apps/analytics":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/analytics@workspace:apps/analytics"
+  dependencies:
+    "@types/js-cookie": "npm:^3.0.6"
+    "@types/react": "npm:^18.3.18"
+    "@types/react-dom": "npm:^18.3.5"
+    "@vitejs/plugin-react": "npm:^4.3.4"
+    js-cookie: "npm:^3.0.5"
+    posthog-js: "npm:^1.210.2"
+    radix-ui: "npm:^1.3.4"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
+    react-ga4: "npm:^2.1.0"
+    typescript: "npm:~5.4.5"
+    vite: "npm:^5.4.14"
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/assets@workspace:*, @tldraw/assets@workspace:packages/assets":
   version: 0.0.0-use.local
   resolution: "@tldraw/assets@workspace:packages/assets"
@@ -8977,6 +8996,7 @@ __metadata:
     openai: "npm:^4.80.1"
     patch-package: "npm:^8.0.0"
     postcss: "npm:^8.5.1"
+    posthog-js: "npm:^1.210.2"
     postinstall-postinstall: "npm:^2.1.0"
     prettier: "npm:^3.4.2"
     prettier-plugin-organize-imports: "npm:^3.2.4"
@@ -14135,6 +14155,7 @@ __metadata:
     radix-ui: "npm:^1.3.4"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
+    react-ga4: "npm:^2.1.0"
     react-helmet-async: "npm:^1.3.0"
     react-intl: "npm:^6.8.9"
     react-router-dom: "npm:^6.28.2"
@@ -21978,10 +21999,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"napi-build-utils@npm:^1.0.1":
-  version: 1.0.2
-  resolution: "napi-build-utils@npm:1.0.2"
-  checksum: 10/276feb8e30189fe18718e85b6f82e4f952822baa2e7696f771cc42571a235b789dc5907a14d9ffb6838c3e4ff4c25717c2575e5ce1cf6e02e496e204c11e57f6
+"napi-build-utils@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "napi-build-utils@npm:2.0.0"
+  checksum: 10/69adcdb828481737f1ec64440286013f6479d5b264e24d5439ba795f65293d0bb6d962035de07c65fae525ed7d2fcd0baab6891d8e3734ea792fec43918acf83
   languageName: node
   linkType: hard
 
@@ -23870,15 +23891,15 @@ __metadata:
   linkType: hard
 
 "prebuild-install@npm:^7.0.1, prebuild-install@npm:^7.1.1":
-  version: 7.1.1
-  resolution: "prebuild-install@npm:7.1.1"
+  version: 7.1.3
+  resolution: "prebuild-install@npm:7.1.3"
   dependencies:
     detect-libc: "npm:^2.0.0"
     expand-template: "npm:^2.0.3"
     github-from-package: "npm:0.0.0"
     minimist: "npm:^1.2.3"
     mkdirp-classic: "npm:^0.5.3"
-    napi-build-utils: "npm:^1.0.1"
+    napi-build-utils: "npm:^2.0.0"
     node-abi: "npm:^3.3.0"
     pump: "npm:^3.0.0"
     rc: "npm:^1.2.7"
@@ -23887,7 +23908,7 @@ __metadata:
     tunnel-agent: "npm:^0.6.0"
   bin:
     prebuild-install: bin.js
-  checksum: 10/6c70a2f82fbda8903497c560a761b000d861a3e772322c8bed012be0f0a084b5aaca4438a3fad1bd3a24210765f4fae06ddd89ea04dc4c034dde693cc0d9d5f4
+  checksum: 10/1b7e4c00d2750b532a4fc2a83ffb0c5fefa1b6f2ad071896ead15eeadc3255f5babd816949991af083cf7429e375ae8c7d1c51f73658559da36f948a020a3a11
   languageName: node
   linkType: hard
 
@@ -24634,6 +24655,13 @@ __metadata:
   version: 3.2.2
   resolution: "react-fast-compare@npm:3.2.2"
   checksum: 10/a6826180ba75cefba1c8d3ac539735f9b627ca05d3d307fe155487f5d0228d376dac6c9708d04a283a7b9f9aee599b637446635b79c8c8753d0b4eece56c125c
+  languageName: node
+  linkType: hard
+
+"react-ga4@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "react-ga4@npm:2.1.0"
+  checksum: 10/e47edd040b7a272d35df732e08c4a8b6b14add659db04fb81a3a2cbde59bf34dc6eae9e0b8b4abd8937d11c837954773a6ba86feb2c605e5eb916f4c99e420c7
   languageName: node
   linkType: hard
 
