@@ -8949,17 +8949,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/config@workspace:internal/config":
-  version: 0.0.0-use.local
-  resolution: "@tldraw/config@workspace:internal/config"
-  dependencies:
-    eslint: "npm:^9.19.0"
-    eslint-config-prettier: "npm:^9.1.0"
-    eslint-plugin-react: "npm:^7.37.4"
-    lazyrepo: "npm:0.0.0-alpha.27"
-  languageName: unknown
-  linkType: soft
-
 "@tldraw/docs@workspace:apps/docs":
   version: 0.0.0-use.local
   resolution: "@tldraw/docs@workspace:apps/docs"
@@ -13266,6 +13255,17 @@ __metadata:
   checksum: 10/52f20653db53e25950e84026d153177af976d6d0e139b95fc5983c684221cc20ef5548ad5dc8885f146fff2c87bc7f7beb18f5fa54eee3bb62b5e795234d6cbc
   languageName: node
   linkType: hard
+
+"config@workspace:internal/config":
+  version: 0.0.0-use.local
+  resolution: "config@workspace:internal/config"
+  dependencies:
+    eslint: "npm:^9.19.0"
+    eslint-config-prettier: "npm:^9.1.0"
+    eslint-plugin-react: "npm:^7.37.4"
+    lazyrepo: "npm:0.0.0-alpha.27"
+  languageName: unknown
+  linkType: soft
 
 "console-control-strings@npm:^1.0.0, console-control-strings@npm:^1.1.0":
   version: 1.1.0
