@@ -6,7 +6,7 @@ priority: 0
 keywords: []
 ---
 
-Load a snapshot of the editor's contents.
+Sand and load a snapshot of the editor's contents.
 
 ---
 

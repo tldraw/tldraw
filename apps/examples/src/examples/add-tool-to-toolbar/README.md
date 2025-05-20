@@ -6,7 +6,7 @@ priority: 0
 keyword: [override, custom, icon]
 ---
 
-Add your custom tool to the toolbar
+Add your custom tool to the toolbar.
 
 ---
 
