@@ -1,5 +1,5 @@
 ---
-title: …with a custom shape
+title: Multiplayer sync with a custom shape
 component: ./SyncDemoShapeExample.tsx
 category: collaboration
 priority: 3

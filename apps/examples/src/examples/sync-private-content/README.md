@@ -1,5 +1,5 @@
 ---
-title: ... with private content
+title: Multiplayer sync with private content
 component: ./SyncPrivateContentExample.tsx
 category: collaboration
 priority: 4

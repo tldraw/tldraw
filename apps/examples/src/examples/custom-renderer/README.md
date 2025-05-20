@@ -1,8 +1,9 @@
 ---
 title: Custom renderer
 component: ./CustomRendererExample.tsx
-category: advanced
+category: ui
 keywords: [html, canvas, background, context]
+priority: 100
 ---
 
 You can _sort of_ use a custom renderer with tldraw.

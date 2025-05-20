@@ -1,5 +1,5 @@
 ---
-title: …with custom presence
+title: Multiplayer sync with custom presence
 component: ./SyncCustomPresence.tsx
 category: collaboration
 priority: 3

@@ -1,5 +1,5 @@
 ---
-title: …with custom user data
+title: Multiplayer sync with custom user data
 component: ./SyncCustomUser.tsx
 category: collaboration
 priority: 3
