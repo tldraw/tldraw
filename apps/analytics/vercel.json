@@ -16,6 +16,12 @@
 				{ "key": "Access-Control-Allow-Methods", "value": "GET" },
 				{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
 			]
+		},
+		{
+			"source": "/(.*)",
+			"headers": [
+				{ "key": "cache-control", "value": "public, max-age=0, must-revalidate" }
+			]
 		}
 	],
 	"rewrites": [
@@ -29,8 +35,7 @@
 		},
 		{
 			"source": "/(.*)",
-			"destination": "/$1",
-			"headers": { "cache-control": "public, max-age=0, must-revalidate" }
+			"destination": "/$1"
 		}
 	]
 }
