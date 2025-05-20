@@ -11,6 +11,7 @@ This release focuses on enhancing user experience through UI improvements, optim
 ## Changes
 
 ### tldraw SDK
+
 - **Fix Group Bounds for Text Shapes**. Corrected group bounds calculation for text shapes. [#5909](https://github.com/tldraw/tldraw/pull/5909)
 - **Fixed tab behavior conflict in stickies with rich text**. Introduced `hasCustomTabBehavior` flag.
 - **Bump `@rocicorp/zero` version to 0.19.2025041601**. Addressed token refresh issue and improved database connection strategy. [d403fcffd1eb23cf2d21ece3d367faa7d18083e3](https://github.com/rocicorp/mono/pull/5915)
@@ -84,7 +85,7 @@ const editor = useEditor()
 - **Improved Clean Script for E2E Test Authentication**. Enhanced `yarn clean` command for E2E tests.
 - **Editor Disposal Order Fix**. Modified disposal process to ensure `store` is disposed after all other disposables.
 - **Build-Package Script Fix**. Resolved failure in executing `build-package` script. [#6035](https://github.com/undefined/pull/6035)
-- **Props Migrators Bugfix**. Corrected loading issue with `.tldr` files. 
+- **Props Migrators Bugfix**. Corrected loading issue with `.tldr` files.
 - **Accessibility Improvement**: Reduced screenreader announcements during shape interactions. [#6041](https://github.com/tldraw/tldraw/pull/6041)
 - **Remove Unused Selection Background Component**. Eliminated the selection background component. [e0e586ba45af8f6b962ab400bb419b71f9f813c0](https://github.com/tldraw/tldraw/commit/e0e586ba45af8f6b962ab400bb419b71f9f813c0)
 - **Embed Shape Definition Enhancement for Figma**. Added support for embedding Figma design URLs in shapes. [e13f266](https://github.com/tldraw/tldraw/commit/e13f266b087df6b12725131cdb8c3707230cad53)
@@ -97,12 +98,13 @@ const editor = useEditor()
 - **Cursor Logic Enhancement**. Optimized cursor logic for improved performance. [6307ec7](https://github.com/tldraw/tldraw/commit/6307ec7baefb8aedc370d99df69f1f64be8a5af3)
 - **Accessibility Improvement**: Implemented keyboard shortcuts for navigating into and out of container shapes.
 - **Accessibility Improvements for Icons and Handles**. Enhanced internationalization and accessibility for icons and handles.
-- **Fixed Elbow Arrow Binding Issue**: Corrected elbow arrow bindings during translation. 
+- **Fixed Elbow Arrow Binding Issue**: Corrected elbow arrow bindings during translation.
 - **User Association with File Uploads**. Associated uploaded files with uploader's user ID.
 - **Accessibility Improvement**: Introduced Cmd+Enter shortcut to focus the styling menu. [#5827](https://github.com/tldraw/tldraw/pull/5827)
 - **Edit Link Menu Enhancement**. Improved Edit Link menu by auto-selecting link text. [#6072](https://github.com/undefined/pull/6072)
 
 ### tldraw.com
+
 - **Improved UI Layout**: Relocated the Import File button for enhanced accessibility.
 - **Optimize File Permission Queries**. Optimized file permission logic. [bec6f90](https://github.com/grgbkr/tldraw/commit/bec6f90d283a46eb767708f5828c746f35ad885b)
 - **Removed `first-connect-duration` event tracking**. Eliminated unnecessary event tracking. [d84fd6da5b87f67659cb3f2bd5e5b33595197b66](https://github.com/undefined/pull/5939)
@@ -113,7 +115,7 @@ const editor = useEditor()
 - **Export Menu Clickable Area Bug Fix**. Corrected clickable area issue in the export menu. [172c566](https://github.com/commit/172c5663eaa22530baf9ab9e4144b671c2963635)
 - **Export Menu Improvements**. Enhanced the export menu with visual and usability improvements.
 - **Revert Export Menu Improvements**. Reverted changes to the export menu. [#6037](https://github.com/tldraw/tldraw/pull/6037)
-- **Upload Progress Bar Visibility Improvement**. Fixed visibility issue of the upload progress bar. 
+- **Upload Progress Bar Visibility Improvement**. Fixed visibility issue of the upload progress bar.
 - **Sidebar UI Enhancements**. Implemented UI fixes for the sidebar.
 - **Asset Upload Verification and Queue Implementation**. Verified file existence before uploading and introduced a queue system.
 - **Feedback Dialog Fix**. Resolved feedback dialog submission issue.
@@ -122,12 +124,14 @@ const editor = useEditor()
 - **Internationalization String Updates**. Updated i18n strings for improved clarity.
 
 ### tldraw.dev
+
 - **Semantic HTML Update for Documentation Site**. Changed `aside` to `nav` for better semantic accuracy.
 - **Brand Name Update**. Updated brand name to "Craft" in documentation.
 - **License Key Documentation Moved to Docs Site**. Transferred license key documentation to the official site.
 - **Documentation Update**: Removed section on rich text exports.
 
 ### Other Changes
+
 - **Optimized Deployment Strategy for Zero Backends**. Improved deployment strategy for zero backends.
 - **Internationalization String Updates**. Updated i18n strings for enhanced clarity.
 - **Simple Server Node Example Connection Fix**. Fixed message loss during initial connection. [PR #5949](https://github.com/tldraw/tldraw/pull/5946)
