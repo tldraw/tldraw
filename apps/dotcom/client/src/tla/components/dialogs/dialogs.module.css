@@ -51,7 +51,7 @@
 	border: 1px solid var(--color-muted-2);
 	border-radius: var(--radius-2);
 	background-color: var(--color-muted-0);
-	color: var(--color-text-1);
+	color: var(--color-text-0);
 }
 
 .input::placeholder,
@@ -66,7 +66,7 @@
 
 .feedbackDialogTextArea {
 	min-height: 100px;
-	padding: 6px 8px;
+	padding: var(--space-3) var(--space-4);
 	resize: vertical;
 	width: 100%;
 	max-height: 400px;
