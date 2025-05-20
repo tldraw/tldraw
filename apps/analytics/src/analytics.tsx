@@ -99,6 +99,22 @@ export default function Analytics() {
 	)
 }
 
+export function page() {
+	posthog.capture('$pageview')
+	ReactGA.send('pageview')
+}
+
+export function identify(userId: string, properties?: { [key: string]: any }) {
+	posthog.identify(userId, properties)
+	ReactGA.set({ userId })
+	ReactGA.set(properties)
+}
+
+export function track(name: string, data?: { [key: string]: any }) {
+	posthog.capture(name, data)
+	ReactGA.event(name, data)
+}
+
 export function PrivacySettings() {
 	const hasConsent: CookieConsent =
 		Cookies.get('allowTracking') === 'true' ? 'opted-in' : 'opted-out'

@@ -1,6 +1,6 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-import Analytics, { PrivacySettings } from './analytics'
+import Analytics, { identify, page, PrivacySettings, track } from './analytics'
 import styles from './styles.css?inline'
 
 // Inject styles
@@ -22,6 +22,9 @@ declare global {
 	interface Window {
 		tlanalytics: {
 			openPrivacySettings(): void
+			page(): void
+			identify(userId: string, properties?: { [key: string]: any }): void
+			track(name: string, data?: { [key: string]: any }): void
 		}
 		TL_GA4_MEASUREMENT_ID: string | undefined
 	}
@@ -39,4 +42,7 @@ window.tlanalytics = {
 	openPrivacySettings: () => {
 		privacyRoot.render(React.createElement(PrivacySettings))
 	},
+	page,
+	identify,
+	track,
 }
