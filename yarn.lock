@@ -9186,6 +9186,7 @@ __metadata:
     kleur: "npm:^4.1.5"
     lazyrepo: "npm:0.0.0-alpha.27"
     minimist: "npm:^1.2.8"
+    openai: "npm:^4.28.0"
     prettier: "npm:^3.4.2"
     proper-lockfile: "npm:^4.1.2"
     recast: "npm:^0.22.0"
@@ -22696,6 +22697,31 @@ __metadata:
     axios: "npm:^0.26.0"
     form-data: "npm:^4.0.0"
   checksum: 10/613fb92552b68dbe915b98eb7d3c0a60a9cc6b6d109ff7ad8d05cca149b8511f2a2cd57fd990bea84bd5bc324e23a5401f635ad7b66976cb0bc6edcc32425ba9
+  languageName: node
+  linkType: hard
+
+"openai@npm:^4.28.0":
+  version: 4.100.0
+  resolution: "openai@npm:4.100.0"
+  dependencies:
+    "@types/node": "npm:^18.11.18"
+    "@types/node-fetch": "npm:^2.6.4"
+    abort-controller: "npm:^3.0.0"
+    agentkeepalive: "npm:^4.2.1"
+    form-data-encoder: "npm:1.7.2"
+    formdata-node: "npm:^4.3.2"
+    node-fetch: "npm:^2.6.7"
+  peerDependencies:
+    ws: ^8.18.0
+    zod: ^3.23.8
+  peerDependenciesMeta:
+    ws:
+      optional: true
+    zod:
+      optional: true
+  bin:
+    openai: bin/cli
+  checksum: 10/bd5eb38725607f2074c35ed72db6af34128197ff03dbf8d685d836670595f3fbe480ca03e9e2c2fe062f3491be9044915cb4ab9a1018cee5f37bce200f038dd6
   languageName: node
   linkType: hard
 

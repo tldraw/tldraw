@@ -51,7 +51,8 @@
 		"typescript": "~5.4.5"
 	},
 	"scripts": {
-		"lint": "yarn run -T tsx lint.ts"
+		"lint": "yarn run -T tsx lint.ts",
+		"release-notes": "yarn run -T tsx release-notes-ai.ts"
 	},
 	"dependencies": {
 		"@lokalise/node-api": "^12.8.0",
@@ -63,6 +64,7 @@
 		"ignore": "^5.3.2",
 		"jszip": "^3.10.1",
 		"minimist": "^1.2.8",
+		"openai": "^4.28.0",
 		"proper-lockfile": "^4.1.2",
 		"tar": "^7.4.3",
 		"tmp": "^0.2.3",

@@ -158,7 +158,7 @@
 	--color-panel-overlay: hsl(0, 0%, 100%, 82%);
 	--color-panel: hsl(0, 0%, 99%);
 	--color-panel-transparent: hsla(0, 0%, 99%, 0%);
-	--color-focus: hsl(219, 65%, 50%);
+	--color-focus: rgb(45, 103, 210);
 	--color-selected: hsl(214, 84%, 56%);
 	--color-selected-contrast: hsl(0, 0%, 100%);
 	--color-selection-fill: hsl(210, 100%, 56%, 24%);
