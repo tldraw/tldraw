@@ -1,6 +1,9 @@
 {
 	"version": 2,
 	"public": true,
+	"installCommand": "yarn workspaces focus @tldraw/analytics @tldraw/monorepo @tldraw/config",
+	"buildCommand": "yarn build",
+	"outputDirectory": "public",
 	"headers": [
 		{
 			"source": "/(.*)",
