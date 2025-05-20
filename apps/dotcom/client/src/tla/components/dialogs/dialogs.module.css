@@ -7,14 +7,6 @@
 	width: fit-content;
 }
 
-.input {
-	background-color: var(--color-muted-2);
-	flex-grow: 2;
-	border-radius: var(--radius-2);
-	padding: 0px var(--space-4);
-	border: 1px solid var(--tla-color-border);
-}
-
 .cookieControls {
 	display: flex;
 	flex-direction: column;
@@ -53,9 +45,26 @@
 	visibility: visible;
 }
 
-.feedbackDialogTextArea {
-	border: 1px solid var(--tla-color-border);
+.feedbackDialogTextArea,
+.input {
+	border: none;
+	border: 1px solid var(--color-muted-2);
 	border-radius: var(--radius-2);
+	background-color: var(--color-muted-0);
+	color: var(--color-text-1);
+}
+
+.input::placeholder,
+.feedbackDialogTextArea::placeholder {
+	color: var(--color-text-3);
+}
+
+.input {
+	flex-grow: 2;
+	padding: 0px var(--space-4);
+}
+
+.feedbackDialogTextArea {
 	min-height: 100px;
 	padding: 6px 8px;
 	resize: vertical;
