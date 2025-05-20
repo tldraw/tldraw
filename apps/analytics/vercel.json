@@ -7,7 +7,7 @@
 			"use": "@vercel/static-build",
 			"config": {
 				"distDir": "public",
-				"install": ["yarn install --cwd . --production=false"]
+				"install": ["npm i -g corepack", "yarn"]
 			}
 		}
 	],

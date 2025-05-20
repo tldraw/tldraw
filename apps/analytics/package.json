@@ -7,7 +7,7 @@
 	"scripts": {
 		"build": "tsc && vite build --outDir public",
 		"dev": "vite",
-		"lint": "echo 'Lint step skipped'",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"vercel-build": "yarn build"
 	},
 	"dependencies": {
