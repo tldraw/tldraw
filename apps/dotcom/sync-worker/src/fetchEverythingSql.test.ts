@@ -23,11 +23,13 @@ interface TableStuff {
 	withAlias?: string
 }
 function makeColumnStuff(table: (typeof schema.tables)[keyof typeof schema.tables]) {
-	return Object.entries(table.columns).map(([name, { type }]) => ({
-		name,
-		type: assertExists(ourTypeToPostgresType[type], `unknown type ${type}`),
-		expression: `"${name}"`,
-	}))
+	return Object.entries(table.columns)
+		.map(([name, { type }]) => ({
+			name,
+			type: assertExists(ourTypeToPostgresType[type], `unknown type ${type}`),
+			expression: `"${name}"`,
+		}))
+		.sort((a, b) => a.name.localeCompare(b.name))
 }
 
 const tables: TableStuff[] = [

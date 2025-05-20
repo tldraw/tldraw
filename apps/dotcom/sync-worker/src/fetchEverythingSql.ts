@@ -3,74 +3,74 @@
 
 export const fetchEverythingSql = `
 WITH "user_file_states" AS (SELECT * FROM public."file_state" WHERE "userId" = $1)
-SELECT 'user' as "table", "id"::text as "0", "name"::text as "1", "email"::text as "2", "avatar"::text as "3", "color"::text as "4", "exportFormat"::text as "5", "exportTheme"::text as "6", "flags"::text as "7", "locale"::text as "8", "colorScheme"::text as "9", "exportBackground"::boolean as "10", "exportPadding"::boolean as "11", "isSnapMode"::boolean as "12", "isWrapMode"::boolean as "13", "isDynamicSizeMode"::boolean as "14", "isPasteAtCursorMode"::boolean as "15", "allowAnalyticsCookie"::boolean as "16", "createdAt"::bigint as "17", "updatedAt"::bigint as "18", "animationSpeed"::bigint as "19", "edgeScrollSpeed"::bigint as "20"FROM public."user" WHERE "id" = $1
+SELECT 'user' as "table", "allowAnalyticsCookie"::boolean as "0", "exportBackground"::boolean as "1", "exportPadding"::boolean as "2", "isDynamicSizeMode"::boolean as "3", "isPasteAtCursorMode"::boolean as "4", "isSnapMode"::boolean as "5", "isWrapMode"::boolean as "6", "animationSpeed"::bigint as "7", "createdAt"::bigint as "8", "edgeScrollSpeed"::bigint as "9", "updatedAt"::bigint as "10", "avatar"::text as "11", "color"::text as "12", "colorScheme"::text as "13", "email"::text as "14", "exportFormat"::text as "15", "exportTheme"::text as "16", "flags"::text as "17", "id"::text as "18", "locale"::text as "19", "name"::text as "20"FROM public."user" WHERE "id" = $1
 UNION
-SELECT 'file_state' as "table", "userId"::text as "0", "fileId"::text as "1", "lastSessionState"::text as "2", null::text as "3", null::text as "4", null::text as "5", null::text as "6", null::text as "7", null::text as "8", null::text as "9", "isFileOwner"::boolean as "10", "isPinned"::boolean as "11", null::boolean as "12", null::boolean as "13", null::boolean as "14", null::boolean as "15", null::boolean as "16", "firstVisitAt"::bigint as "17", "lastEditAt"::bigint as "18", "lastVisitAt"::bigint as "19", null::bigint as "20"FROM user_file_states
+SELECT 'file_state' as "table", "isFileOwner"::boolean as "0", "isPinned"::boolean as "1", null::boolean as "2", null::boolean as "3", null::boolean as "4", null::boolean as "5", null::boolean as "6", "firstVisitAt"::bigint as "7", "lastEditAt"::bigint as "8", "lastVisitAt"::bigint as "9", null::bigint as "10", "fileId"::text as "11", "lastSessionState"::text as "12", "userId"::text as "13", null::text as "14", null::text as "15", null::text as "16", null::text as "17", null::text as "18", null::text as "19", null::text as "20"FROM user_file_states
 UNION
-SELECT 'file' as "table", "id"::text as "0", "name"::text as "1", "ownerId"::text as "2", "ownerName"::text as "3", "ownerAvatar"::text as "4", "thumbnail"::text as "5", "sharedLinkType"::text as "6", "publishedSlug"::text as "7", "createSource"::text as "8", null::text as "9", "shared"::boolean as "10", "published"::boolean as "11", "isEmpty"::boolean as "12", "isDeleted"::boolean as "13", null::boolean as "14", null::boolean as "15", null::boolean as "16", "lastPublished"::bigint as "17", "createdAt"::bigint as "18", "updatedAt"::bigint as "19", null::bigint as "20"FROM public."file" WHERE "ownerId" = $1 OR "shared" = true AND EXISTS(SELECT 1 FROM user_file_states WHERE "fileId" = file.id)
+SELECT 'file' as "table", "isDeleted"::boolean as "0", "isEmpty"::boolean as "1", "published"::boolean as "2", "shared"::boolean as "3", null::boolean as "4", null::boolean as "5", null::boolean as "6", "createdAt"::bigint as "7", "lastPublished"::bigint as "8", "updatedAt"::bigint as "9", null::bigint as "10", "createSource"::text as "11", "id"::text as "12", "name"::text as "13", "ownerAvatar"::text as "14", "ownerId"::text as "15", "ownerName"::text as "16", "publishedSlug"::text as "17", "sharedLinkType"::text as "18", "thumbnail"::text as "19", null::text as "20"FROM public."file" WHERE "ownerId" = $1 OR "shared" = true AND EXISTS(SELECT 1 FROM user_file_states WHERE "fileId" = file.id)
 UNION
-SELECT 'user_mutation_number' as "table", null::text as "0", null::text as "1", null::text as "2", null::text as "3", null::text as "4", null::text as "5", null::text as "6", null::text as "7", null::text as "8", null::text as "9", null::boolean as "10", null::boolean as "11", null::boolean as "12", null::boolean as "13", null::boolean as "14", null::boolean as "15", null::boolean as "16", "mutationNumber"::bigint as "17", null::bigint as "18", null::bigint as "19", null::bigint as "20"FROM public."user_mutation_number" WHERE "userId" = $1
+SELECT 'user_mutation_number' as "table", null::boolean as "0", null::boolean as "1", null::boolean as "2", null::boolean as "3", null::boolean as "4", null::boolean as "5", null::boolean as "6", "mutationNumber"::bigint as "7", null::bigint as "8", null::bigint as "9", null::bigint as "10", null::text as "11", null::text as "12", null::text as "13", null::text as "14", null::text as "15", null::text as "16", null::text as "17", null::text as "18", null::text as "19", null::text as "20"FROM public."user_mutation_number" WHERE "userId" = $1
 UNION
-SELECT 'lsn' as "table", pg_current_wal_lsn()::text as "0", null::text as "1", null::text as "2", null::text as "3", null::text as "4", null::text as "5", null::text as "6", null::text as "7", null::text as "8", null::text as "9", null::boolean as "10", null::boolean as "11", null::boolean as "12", null::boolean as "13", null::boolean as "14", null::boolean as "15", null::boolean as "16", null::bigint as "17", null::bigint as "18", null::bigint as "19", null::bigint as "20"
+SELECT 'lsn' as "table", null::boolean as "0", null::boolean as "1", null::boolean as "2", null::boolean as "3", null::boolean as "4", null::boolean as "5", null::boolean as "6", null::bigint as "7", null::bigint as "8", null::bigint as "9", null::bigint as "10", pg_current_wal_lsn()::text as "11", null::text as "12", null::text as "13", null::text as "14", null::text as "15", null::text as "16", null::text as "17", null::text as "18", null::text as "19", null::text as "20"
 `
 
 export const columnNamesByAlias = {
 	user: {
-		'0': 'id',
-		'1': 'name',
-		'2': 'email',
-		'3': 'avatar',
-		'4': 'color',
-		'5': 'exportFormat',
-		'6': 'exportTheme',
-		'7': 'flags',
-		'8': 'locale',
-		'9': 'colorScheme',
-		'10': 'exportBackground',
-		'11': 'exportPadding',
-		'12': 'isSnapMode',
-		'13': 'isWrapMode',
-		'14': 'isDynamicSizeMode',
-		'15': 'isPasteAtCursorMode',
-		'16': 'allowAnalyticsCookie',
-		'17': 'createdAt',
-		'18': 'updatedAt',
-		'19': 'animationSpeed',
-		'20': 'edgeScrollSpeed',
+		'0': 'allowAnalyticsCookie',
+		'1': 'exportBackground',
+		'2': 'exportPadding',
+		'3': 'isDynamicSizeMode',
+		'4': 'isPasteAtCursorMode',
+		'5': 'isSnapMode',
+		'6': 'isWrapMode',
+		'7': 'animationSpeed',
+		'8': 'createdAt',
+		'9': 'edgeScrollSpeed',
+		'10': 'updatedAt',
+		'11': 'avatar',
+		'12': 'color',
+		'13': 'colorScheme',
+		'14': 'email',
+		'15': 'exportFormat',
+		'16': 'exportTheme',
+		'17': 'flags',
+		'18': 'id',
+		'19': 'locale',
+		'20': 'name',
 	},
 	file_state: {
-		'0': 'userId',
-		'1': 'fileId',
-		'2': 'lastSessionState',
-		'10': 'isFileOwner',
-		'11': 'isPinned',
-		'17': 'firstVisitAt',
-		'18': 'lastEditAt',
-		'19': 'lastVisitAt',
+		'0': 'isFileOwner',
+		'1': 'isPinned',
+		'7': 'firstVisitAt',
+		'8': 'lastEditAt',
+		'9': 'lastVisitAt',
+		'11': 'fileId',
+		'12': 'lastSessionState',
+		'13': 'userId',
 	},
 	file: {
-		'0': 'id',
-		'1': 'name',
-		'2': 'ownerId',
-		'3': 'ownerName',
-		'4': 'ownerAvatar',
-		'5': 'thumbnail',
-		'6': 'sharedLinkType',
-		'7': 'publishedSlug',
-		'8': 'createSource',
-		'10': 'shared',
-		'11': 'published',
-		'12': 'isEmpty',
-		'13': 'isDeleted',
-		'17': 'lastPublished',
-		'18': 'createdAt',
-		'19': 'updatedAt',
+		'0': 'isDeleted',
+		'1': 'isEmpty',
+		'2': 'published',
+		'3': 'shared',
+		'7': 'createdAt',
+		'8': 'lastPublished',
+		'9': 'updatedAt',
+		'11': 'createSource',
+		'12': 'id',
+		'13': 'name',
+		'14': 'ownerAvatar',
+		'15': 'ownerId',
+		'16': 'ownerName',
+		'17': 'publishedSlug',
+		'18': 'sharedLinkType',
+		'19': 'thumbnail',
 	},
 	user_mutation_number: {
-		'17': 'mutationNumber',
+		'7': 'mutationNumber',
 	},
 	lsn: {
-		'0': 'lsn',
+		'11': 'lsn',
 	},
 }
 
