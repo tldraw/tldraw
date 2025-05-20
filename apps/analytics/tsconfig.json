@@ -1,10 +1,36 @@
 {
-	"extends": "../../internal/config/tsconfig.base.json",
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"display": "Default",
 	"compilerOptions": {
-		"moduleResolution": "bundler",
+		"composite": true,
+		"declaration": true,
+		"declarationMap": true,
 		"noEmit": true,
-		"emitDeclarationOnly": false
+		"emitDeclarationOnly": false,
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"importHelpers": true,
+		"resolveJsonModule": true,
+		"incremental": true,
+		"jsx": "react-jsx",
+		"lib": ["dom", "DOM.Iterable", "esnext"],
+		"module": "esnext",
+		"target": "esnext",
+		"moduleResolution": "bundler",
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitAny": true,
+		"noImplicitReturns": true,
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
+		"skipLibCheck": true,
+		"strict": true,
+		"strictFunctionTypes": true,
+		"strictNullChecks": true,
+		"useDefineForClassFields": true,
+		"noImplicitOverride": true,
+		"types": ["node", "@types/jest"]
 	},
 	"include": ["src", "src/analytics.tsx", "./vite.config.ts"],
-	"references": []
+	"exclude": ["node_modules"]
 }
