@@ -787,7 +787,7 @@
 	display: grid;
 	place-items: center;
 	overflow-y: auto;
-	padding: 0px 8px;
+	padding: 0px var(--space-3);
 }
 
 .tlui-dialog__content {
