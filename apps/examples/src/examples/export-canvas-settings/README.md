@@ -1,12 +1,12 @@
 ---
-title: Export canvas settings
+title: Export canvas as image (with settings)
 component: ./ExportCanvasImageSettingsExample.tsx
 category: data/assets
 priority: 2
 keywords: [basic, assets, svg, png, blob, image, settings]
 ---
 
-Export the entire canvas as an image file
+Export the entire canvas as an image file.
 
 ---
 

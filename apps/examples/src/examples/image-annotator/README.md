@@ -6,4 +6,4 @@ priority: 1
 keywords: [annotation, camera options, constraints, zoom, pan, camera bounds, pan speed, zoom speed]
 ---
 
-An image annotator built with tldraw
+An image annotator built with tldraw.

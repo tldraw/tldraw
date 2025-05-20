@@ -2,7 +2,7 @@
 title: Slideshow
 component: ./SlidesExample.tsx
 category: use-cases
-priority: 1
+priority: 0
 keywords:
   [
     annotation,
@@ -19,8 +19,8 @@ keywords:
   ]
 ---
 
-Slideshow example.
+A slideshow tool with a moving camera.
 
 ---
 
-Make slides for a presentation.
+This example shows one way of making a simple slideshow tool with a moving camera.

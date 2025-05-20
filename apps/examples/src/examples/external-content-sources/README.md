@@ -2,11 +2,11 @@
 title: External content sources
 component: ./ExternalContentSourcesExample.tsx
 category: data/assets
-priority: 2
+priority: 3
 keywords: [copy, paste, html]
 ---
 
-Control what happens when the user pastes content into the editor.
+Handle different types of content when pasting into tldraw.
 
 ---
 

@@ -6,7 +6,7 @@ priority: 2
 keywords: [basic, assets, svg, png, blob]
 ---
 
-Export the entire canvas as an image file
+Export the entire canvas as an image file.
 
 ---
 

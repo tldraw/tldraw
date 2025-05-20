@@ -1,7 +1,7 @@
 ---
-title: Custom paste
+title: Custom paste behavior
 component: ./CustomPasteExample.tsx
-category: configuration
+category: data/assets
 priority: 3
 ---
 

@@ -7,4 +7,4 @@ keywords:
   [annotation, camera options, constraints, zoom, pan, camera bounds, pan speed, zoom speed, scroll]
 ---
 
-A very basic PDF editor built with tldraw
+A very basic PDF editor built with tldraw.
