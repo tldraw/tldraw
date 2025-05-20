@@ -110,6 +110,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 		DebugPanel,
 		CursorChatBubble,
 		RichTextToolbar,
+		ImageToolbar,
 		Toasts,
 		Dialogs,
 		A11y,
@@ -207,6 +208,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 				</>
 			)}
 			{RichTextToolbar && <RichTextToolbar />}
+			{ImageToolbar && <ImageToolbar />}
 			{Toasts && <Toasts />}
 			{Dialogs && <Dialogs />}
 			<FollowingIndicator />

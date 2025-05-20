@@ -11,6 +11,7 @@ import { TLBaseShape } from './TLBaseShape'
 export const ImageShapeCrop: T.ObjectValidator<TLShapeCrop> = T.object({
 	topLeft: vecModelValidator,
 	bottomRight: vecModelValidator,
+	isCircle: T.boolean.optional(),
 })
 
 /** @public */

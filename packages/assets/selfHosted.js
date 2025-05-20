@@ -74,6 +74,8 @@ export function getAssetUrls(opts) {
 			code: iconsIcon0MergedSvg + '#code',
 			color: iconsIcon0MergedSvg + '#color',
 			comment: iconsIcon0MergedSvg + '#comment',
+			corners: iconsIcon0MergedSvg + '#corners',
+			crop: iconsIcon0MergedSvg + '#crop',
 			'cross-2': iconsIcon0MergedSvg + '#cross-2',
 			'cross-circle': iconsIcon0MergedSvg + '#cross-circle',
 			'dash-dashed': iconsIcon0MergedSvg + '#dash-dashed',
