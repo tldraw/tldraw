@@ -299,6 +299,7 @@ export { usePassThroughMouseOverEvents } from './lib/hooks/usePassThroughMouseOv
 export { usePassThroughWheelEvents } from './lib/hooks/usePassThroughWheelEvents'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
+export { useReactiveKeyPressed } from './lib/hooks/useReactiveKeyPressed'
 export { useRefState } from './lib/hooks/useRefState'
 export {
 	sanitizeId,
