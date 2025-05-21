@@ -280,7 +280,7 @@ export class UserDataSyncer {
 						assert(this.state.type === 'connecting', 'state should be connecting in boot')
 						switch (row.table) {
 							case 'user':
-								initialData.user = parseResultRow(userKeys, row)
+								initialData.user.push(parseResultRow(userKeys, row))
 								break
 							case 'file':
 								initialData.file.push(parseResultRow(fileKeys, row))
