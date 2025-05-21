@@ -17,7 +17,6 @@ import {
 	assert,
 	mapObjectMapValues,
 	objectMapKeys,
-	pauseReactions,
 	sleep,
 	transact,
 	uniqueId,
@@ -102,11 +101,9 @@ export class Zero {
 					const mutationId = uniqueId()
 					const mutate = this.makeCrud(controller.signal, mutationId)
 					const query = this.makeQuery(controller.signal)
-					const unpause = pauseReactions()
 					try {
 						await mutatorFn({ mutate, query, location: 'client' }, props)
 					} finally {
-						unpause()
 						controller.abort()
 					}
 					this.pendingUpdates.push({
