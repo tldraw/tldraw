@@ -23,10 +23,16 @@ export async function legacy_assertValidMutation(
 					ZErrorCode.forbidden,
 					'Cannot update user record that is not our own: ' + (update.row as TlaUser).id
 				)
+			if (update.event === 'delete') {
+				throw new ZMutationError(ZErrorCode.forbidden, 'Cannot delete user record')
+			}
 			// todo: prevent user from updating their email?
 			return
 		}
 		case 'file': {
+			if (update.event === 'delete') {
+				throw new ZMutationError(ZErrorCode.forbidden, 'Cannot delete file record')
+			}
 			if (update.event === 'insert') {
 				const res = await client.query<{ count: number }>(
 					`select count(*) from public.file where "ownerId" = $1 and "isDeleted" = false`,
