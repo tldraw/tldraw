@@ -88,7 +88,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 		}
 	}
 
-	// Crate the categories
+	// Create the categories
 	const categories: Category[] = [
 		{
 			id: section.id + '_ucg',
@@ -197,6 +197,7 @@ function getArticleData({
 		groupIndex: -1,
 		groupId: group,
 		categoryIndex: order ?? priority,
+		priority,
 		sectionId: sectionId,
 		author: [author],
 		authorId: author,
@@ -214,12 +215,7 @@ function getArticleData({
 			: `${sectionId}/${articleId}${extension}`,
 		content,
 		apiTags,
-		path:
-			sectionId === 'getting-started'
-				? `/${articleId}`
-				: categoryId === sectionId + '_ucg'
-					? `/${sectionId}/${articleId}` // index page
-					: `/${sectionId}/${categoryId}/${articleId}`,
+		path: getArticlePath({ sectionId, categoryId, articleId }),
 		componentCode,
 		componentCodeFiles: componentCode ? JSON.stringify(componentCodeFiles) : null,
 	}
@@ -231,6 +227,27 @@ function getArticleData({
 	}
 
 	return article
+}
+
+function getArticlePath({
+	sectionId,
+	categoryId,
+	articleId,
+}: {
+	sectionId: Section['id']
+	categoryId: Category['id']
+	articleId: Article['id']
+}): string {
+	if (sectionId === 'examples') {
+		return `/${sectionId}/${articleId}`
+	}
+	if (sectionId === 'getting-started') {
+		return `/${articleId}`
+	}
+	if (categoryId === sectionId + '_ucg') {
+		return `/${sectionId}/${articleId}` // index page
+	}
+	return `/${sectionId}/${categoryId}/${articleId}`
 }
 
 function getComponentCode({
@@ -276,6 +293,12 @@ function getComponentCodeFiles({
 			.filter(
 				(file) =>
 					!file.isDirectory() &&
+					(file.name.endsWith('.tsx') ||
+						file.name.endsWith('.ts') ||
+						file.name.endsWith('.js') ||
+						file.name.endsWith('.jsx') ||
+						file.name.endsWith('.css') ||
+						file.name.endsWith('.svg')) &&
 					file.name !== 'README.md' &&
 					file.name.replace('.tsx', '') !==
 						parsed.data.component.replace('./', '').replace('.tsx', '')
