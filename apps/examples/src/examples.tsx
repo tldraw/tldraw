@@ -16,12 +16,15 @@ export interface Example {
 }
 
 type Category =
-	| 'basic'
+	| 'getting-started'
+	| 'configuration'
 	| 'editor-api'
 	| 'ui'
+	| 'layout'
+	| 'events'
+	| 'shapes/tools'
 	| 'collaboration'
 	| 'data/assets'
-	| 'shapes/tools'
 	| 'use-cases'
 
 const getExamplesForCategory = (category: Category) =>
@@ -33,11 +36,14 @@ const getExamplesForCategory = (category: Category) =>
 		})
 
 const categories = [
-	['basic', 'Getting started'],
-	['collaboration', 'Sync'],
-	['ui', 'UI & theming'],
-	['shapes/tools', 'Shapes & tools'],
+	['getting-started', 'Getting started'],
+	['configuration', 'Configuration'],
 	['editor-api', 'Editor API'],
+	['ui', 'UI & theming'],
+	['layout', 'Page layout'],
+	['events', 'Events & effects'],
+	['shapes/tools', 'Shapes & tools'],
+	['collaboration', 'Collaboration'],
 	['data/assets', 'Data & assets'],
 	['use-cases', 'Use cases'],
 ]

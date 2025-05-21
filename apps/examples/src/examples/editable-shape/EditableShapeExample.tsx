@@ -22,7 +22,7 @@ export default function EditableShapeExample() {
 /*
 Introduction:
 
-In Tldraw shapes can exist in an editing state. When shapes are in the editing state
+In tldraw, shapes can exist in an editing state. When shapes are in the editing state
 they are focused and can't be dragged, resized or rotated. Shapes enter this state 
 when they are double-clicked. In our default shapes we mostly use this for editing text. 
 In this example we'll create a shape that renders an emoji and allows the user to change 
