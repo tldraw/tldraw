@@ -22,7 +22,7 @@ const menus = [
 		items: [
 			{ caption: 'Learn', href: '/quick-start' },
 			{ caption: 'Reference', href: '/reference/editor/Editor' },
-			{ caption: 'Examples', href: '/examples/basic/basic' },
+			{ caption: 'Examples', href: '/examples' },
 		],
 	},
 	{

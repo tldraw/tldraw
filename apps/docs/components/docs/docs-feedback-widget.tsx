@@ -22,6 +22,11 @@ async function submitFeedback(
 	track('Feedback', feedback)
 	return
 }
+async function submitThumbsFeedback(_sessionId: string, _pathname: string, _feedback: 1 | -1 | 0) {
+	const feedback: { value: number; message?: string } = { value: _feedback }
+	track('Helpful', feedback)
+	return
+}
 
 export function DocsFeedbackWidget({ className }: { className?: string }) {
 	const pathname = usePathname()
@@ -39,27 +44,23 @@ export function DocsFeedbackWidget({ className }: { className?: string }) {
 
 	const handleThumbsDown = useCallback(async () => {
 		setState((s) => {
-			if (s === 'loading') {
-				return s
-			} else if (s === 'thumbs-down') {
-				return 'idle'
-			} else {
-				return 'thumbs-down'
+			const next = s === 'thumbs-down' ? 'idle' : 'thumbs-down'
+			if (s === 'thumbs-down') {
+				submitThumbsFeedback(sessionId, pathname, -1)
 			}
+			return next
 		})
-	}, [])
+	}, [pathname, sessionId])
 
 	const handleThumbsUp = useCallback(() => {
 		setState((s) => {
-			if (s === 'loading') {
-				return s
-			} else if (s === 'thumbs-up') {
-				return 'idle'
-			} else {
-				return 'thumbs-up'
+			const next = s === 'thumbs-up' ? 'idle' : 'thumbs-up'
+			if (s === 'thumbs-up') {
+				submitThumbsFeedback(sessionId, pathname, 1)
 			}
+			return next
 		})
-	}, [])
+	}, [pathname, sessionId])
 
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
 		async (e) => {
