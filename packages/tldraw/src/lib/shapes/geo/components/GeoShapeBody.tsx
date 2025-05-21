@@ -22,8 +22,8 @@ export function GeoShapeBody({
 	const path = getGeoShapePath(shape)
 	const fillPath =
 		dash === 'draw' && !forceSolid
-			? path.toDrawD({ strokeWidth, randomSeed: shape.id, passes: 0, offset: 0 })
-			: path.toD()
+			? path.toDrawD({ strokeWidth, randomSeed: shape.id, passes: 1, offset: 0, onlyFilled: true })
+			: path.toD({ onlyFilled: true })
 
 	return (
 		<>

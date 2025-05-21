@@ -24,6 +24,7 @@ import { SVGProps } from 'react'
 export interface BasePathBuilderOpts {
 	strokeWidth: number
 	forceSolid?: boolean
+	onlyFilled?: boolean
 	props?: SVGProps<SVGPathElement & SVGGElement>
 }
 
@@ -48,6 +49,7 @@ export interface DrawPathBuilderDOpts {
 	offset?: number
 	roundness?: number
 	passes?: number
+	onlyFilled?: boolean
 }
 
 /** @public */
@@ -109,6 +111,13 @@ export type PathBuilderCommand =
 	| MoveToPathBuilderCommand
 	| LineToPathBuilderCommand
 	| CubicBezierToPathBuilderCommand
+
+/** @public */
+export interface PathBuilderToDOpts {
+	startIdx?: number
+	endIdx?: number
+	onlyFilled?: boolean
+}
 
 /** @public */
 export class PathBuilder {
@@ -385,15 +394,27 @@ export class PathBuilder {
 		return this
 	}
 
-	toD(startIdx = 0, endIdx = this.commands.length) {
+	toD(opts: PathBuilderToDOpts = {}) {
+		const { startIdx = 0, endIdx = this.commands.length, onlyFilled = false } = opts
 		const parts = []
+
+		let isSkippingCurrentLine = false
 		for (let i = startIdx; i < endIdx; i++) {
 			const command = this.commands[i]
 			switch (command.type) {
-				case 'move':
-					parts.push('M', toDomPrecision(command.x), toDomPrecision(command.y))
+				case 'move': {
+					const isFilled =
+						command.opts?.geometry === false ? false : (command.opts?.geometry?.isFilled ?? false)
+					if (onlyFilled && !isFilled) {
+						isSkippingCurrentLine = true
+					} else {
+						isSkippingCurrentLine = false
+						parts.push('M', toDomPrecision(command.x), toDomPrecision(command.y))
+					}
 					break
+				}
 				case 'line':
+					if (isSkippingCurrentLine) break
 					if (command.isClose) {
 						parts.push('Z')
 					} else {
@@ -401,6 +422,7 @@ export class PathBuilder {
 					}
 					break
 				case 'cubic':
+					if (isSkippingCurrentLine) break
 					parts.push(
 						'C',
 						toDomPrecision(command.cp1.x),
@@ -486,7 +508,9 @@ export class PathBuilder {
 	private toSolidSvg(opts: PathBuilderOpts) {
 		const { strokeWidth, props } = opts
 
-		return <path strokeWidth={strokeWidth} d={this.toD()} {...props} />
+		return (
+			<path strokeWidth={strokeWidth} d={this.toD({ onlyFilled: opts.onlyFilled })} {...props} />
+		)
 	}
 
 	private toDashedSvg(opts: DashedPathBuilderOpts) {
@@ -503,14 +527,23 @@ export class PathBuilder {
 		const parts = []
 
 		let isCurrentPathClosed = false
-
+		let isSkippingCurrentLine = false
 		for (let i = 1; i < this.commands.length; i++) {
 			const command = this.commands[i]
 			const lastCommand = this.commands[i - 1]
 			if (command.type === 'move') {
 				isCurrentPathClosed = command.closeIdx !== null
+				const isFilled =
+					command.opts?.geometry === false ? false : (command.opts?.geometry?.isFilled ?? false)
+				if (opts.onlyFilled && !isFilled) {
+					isSkippingCurrentLine = true
+				} else {
+					isSkippingCurrentLine = false
+				}
 				continue
 			}
+
+			if (isSkippingCurrentLine) continue
 
 			const segmentLength = this.calculateSegmentLength(lastCommand, command)
 			const isFirst = lastCommand.type === 'move'
@@ -590,6 +623,7 @@ export class PathBuilder {
 			offset: defaultOffset = strokeWidth / 3,
 			roundness: defaultRoundness = strokeWidth * 2,
 			passes = 2,
+			onlyFilled = false,
 		} = opts
 
 		const parts = []
@@ -685,6 +719,7 @@ export class PathBuilder {
 			const random = rng(randomSeed + pass)
 
 			let lastMoveToOffset = { x: 0, y: 0 }
+			let isSkippingCurrentLine = false
 			for (const {
 				command,
 				offsetAmount,
@@ -699,7 +734,16 @@ export class PathBuilder {
 
 				if (command.type === 'move') {
 					lastMoveToOffset = offset
+					const isFilled =
+						command.opts?.geometry === false ? false : (command.opts?.geometry?.isFilled ?? false)
+					if (onlyFilled && !isFilled) {
+						isSkippingCurrentLine = true
+					} else {
+						isSkippingCurrentLine = false
+					}
 				}
+
+				if (isSkippingCurrentLine) continue
 
 				const offsetPoint = Vec.Add(command, offset)
 
@@ -949,7 +993,7 @@ export class PathBuilderGeometry2d extends Geometry2d {
 		return super.hitTestLineSegment(A, B, distance, filters)
 	}
 	override getSvgPathData(): string {
-		return this.path.toD(this.startIdx, this.endIdx)
+		return this.path.toD({ startIdx: this.startIdx, endIdx: this.endIdx })
 	}
 }
 

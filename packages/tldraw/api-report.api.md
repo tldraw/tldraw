@@ -348,6 +348,8 @@ export interface BasePathBuilderOpts {
     // (undocumented)
     forceSolid?: boolean;
     // (undocumented)
+    onlyFilled?: boolean;
+    // (undocumented)
     props?: SVGProps<SVGPathElement & SVGGElement>;
     // (undocumented)
     strokeWidth: number;
@@ -980,6 +982,8 @@ export function downsizeImage(blob: Blob, width: number, height: number, opts?: 
 export interface DrawPathBuilderDOpts {
     // (undocumented)
     offset?: number;
+    // (undocumented)
+    onlyFilled?: boolean;
     // (undocumented)
     passes?: number;
     // (undocumented)
@@ -2181,7 +2185,7 @@ export class PathBuilder {
     // (undocumented)
     moveTo(x: number, y: number, opts?: PathBuilderLineOpts): this;
     // (undocumented)
-    toD(startIdx?: number, endIdx?: number): string;
+    toD(opts?: PathBuilderToDOpts): string;
     // (undocumented)
     toDrawD(opts: DrawPathBuilderDOpts): string;
     // (undocumented)
@@ -2248,6 +2252,16 @@ export interface PathBuilderLineOpts extends PathBuilderCommandOpts {
 
 // @public (undocumented)
 export type PathBuilderOpts = DashedPathBuilderOpts | DrawPathBuilderOpts | SolidPathBuilderOpts;
+
+// @public (undocumented)
+export interface PathBuilderToDOpts {
+    // (undocumented)
+    endIdx?: number;
+    // (undocumented)
+    onlyFilled?: boolean;
+    // (undocumented)
+    startIdx?: number;
+}
 
 // @public (undocumented)
 export function PeopleMenu({ children }: PeopleMenuProps): JSX_2.Element | null;

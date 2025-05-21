@@ -17,6 +17,7 @@ export {
 	type PathBuilderCommandOpts,
 	type PathBuilderLineOpts,
 	type PathBuilderOpts,
+	type PathBuilderToDOpts,
 	type SolidPathBuilderOpts,
 } from './lib/shapes/shared/PathBuilder'
 export { usePrefersReducedMotion } from './lib/shapes/shared/usePrefersReducedMotion'
