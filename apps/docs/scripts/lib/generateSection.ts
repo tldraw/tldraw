@@ -190,10 +190,6 @@ function getArticleData({
 
 	const { content } = parsed
 
-	// if (sectionId === 'examples') {
-	// 	console.log('order', order, 'priority', priority)
-	// }
-
 	const article: Article = {
 		id: articleId,
 		type: 'article',
