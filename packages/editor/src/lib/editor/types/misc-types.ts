@@ -56,6 +56,12 @@ export interface TLSvgExportOptions {
 	 * attribute of the SVG element.
 	 */
 	preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
+
+	/**
+	 * An optional wrapper component to use when rendering the SVG.
+	 * This is useful if you have mandatory Providers in your components.
+	 */
+	wrapper?: React.ComponentType<{ children: React.ReactNode }>
 }
 
 /** @public */

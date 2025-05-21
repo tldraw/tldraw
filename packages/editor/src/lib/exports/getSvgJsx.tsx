@@ -98,7 +98,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 	const initialEffectPromise = promiseWithResolve<void>()
 	exportDelay.waitUntil(initialEffectPromise)
 
-	const svg = (
+	let svg = (
 		<SvgExport
 			editor={editor}
 			preserveAspectRatio={preserveAspectRatio}
@@ -115,6 +115,10 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 			{}
 		</SvgExport>
 	)
+
+	if (opts.wrapper) {
+		svg = <opts.wrapper>{svg}</opts.wrapper>
+	}
 
 	return { jsx: svg, width: w, height: h, exportDelay }
 }

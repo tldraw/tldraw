@@ -4139,6 +4139,9 @@ export interface TLSvgExportOptions {
     pixelRatio?: number;
     preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
     scale?: number;
+    wrapper?: React.ComponentType<{
+        children: React.ReactNode;
+    }>;
 }
 
 // @public @deprecated (undocumented)
