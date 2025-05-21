@@ -204,6 +204,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					}
 					socket.send(JSON.stringify(msg))
 				}
+				return
 			}
 
 			socket.send(JSON.stringify(buffer))

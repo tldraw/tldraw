@@ -1,5 +1,5 @@
 import { atom, computed, react, transact } from '@tldraw/state'
-import { assert, assertExists } from '@tldraw/utils'
+import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
 import { schema } from './tlaSchema'
 import { ZRowUpdate, ZStoreData } from './types'
@@ -130,6 +130,8 @@ export class OptimisticAppStore {
 					...prev,
 					[table]: rows.filter((existing) => !matchExisting(existing)),
 				}
+			default:
+				exhaustiveSwitchError(event)
 		}
 	}
 }
