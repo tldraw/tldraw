@@ -116,15 +116,18 @@ const withClause = withSelects.length ? `WITH ${withSelects.join(', ')}` : ''
 const mainSelect = `${mainSelects.join('\nUNION\n')}`
 const fetchEverythingSql = `${withClause}\n${mainSelect}`.trim()
 
-function escapeBackticks(str: string) {
-	return str.replace(/`/g, '\\`')
+function escapeForTemplateLiteral(str: string) {
+	return str
+		.replace(/\\/g, '\\\\') // escape backslashes
+		.replace(/`/g, '\\`') // escape backticks
+		.replace(/\$\{/g, '\\${') // escape ${ to avoid interpolation
 }
 
 const tsFile = `// This file is auto-generated. Do not edit it directly.
 // Instead, edit the fetchEverythingSql.test.ts file and run yarn test -u
 
 export const fetchEverythingSql = \`
-${escapeBackticks(fetchEverythingSql)}
+${escapeForTemplateLiteral(fetchEverythingSql)}
 \`
 
 export const columnNamesByAlias = ${JSON.stringify(columnNamesByAlias, null, 2)}
