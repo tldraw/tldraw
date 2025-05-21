@@ -10284,36 +10284,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 					const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
 					const { x: dx, y: dy, z: dz = 0 } = info.delta
 
-					if (this.inputs.keys.has('KeyV')) {
-						const selectedShapeIds = this.getSelectedShapeIds()
-						if (selectedShapeIds.length > 0) {
-							const instanceState = this.getInstanceState()
-							if (!instanceState.isChangingStyle) {
-								this.updateInstanceState({ isChangingStyle: true })
-							}
-							clearTimeout(this._isChangingStyleTimeout)
-							this._isChangingStyleTimeout = this.timers.setTimeout(() => {
-								this._updateInstanceState({ isChangingStyle: false }, { history: 'ignore' })
-							}, 1000)
-							this.updateShapes(
-								compact(
-									selectedShapeIds.map((id) => {
-										const shape = this.getShape(id)
-										if (!shape) return
-										if (hasOwnProperty(shape.props, 'scale')) {
-											const scale = (shape.props as any)['scale'] as number
-											const change = info.delta.y / 100
-											const next = scale + change
-
-											return { ...shape, props: { scale: Math.max(0.01, next) } }
-										}
-									})
-								)
-							)
-							return
-						}
-					}
-
 					let behavior = wheelBehavior
 
 					// If the camera behavior is "zoom" and the ctrl key is pressed, then pan;
