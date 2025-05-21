@@ -16,7 +16,8 @@
 		"noEmit": true,
 		"isolatedModules": true,
 		"experimentalDecorators": true,
-		"jsx": "preserve"
+		"jsx": "preserve",
+		"strictNullChecks": true
 	},
 	"include": [
 		"next-env.d.ts",
