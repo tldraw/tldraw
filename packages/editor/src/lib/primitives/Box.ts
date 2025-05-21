@@ -418,7 +418,7 @@ export class Box {
 	}
 
 	static Includes(A: Box, B: Box) {
-		return Box.Collides(A, B)
+		return Box.Collides(A, B) || Box.Contains(A, B)
 	}
 
 	static ContainsPoint(A: Box, B: VecLike, margin = 0) {
