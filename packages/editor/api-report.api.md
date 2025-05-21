@@ -1472,10 +1472,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     screenToPage(point: VecLike): Vec;
     readonly scribbles: ScribbleManager;
     select(...shapes: TLShape[] | TLShapeId[]): this;
-    // (undocumented)
     selectAdjacentShape(direction: TLAdjacentDirection): void;
     selectAll(): this;
+    // (undocumented)
+    selectFirstChildShape(): void;
     selectNone(): this;
+    // (undocumented)
+    selectParentShape(): void;
     sendBackward(shapes: TLShape[] | TLShapeId[], opts?: {
         considerAllShapes?: boolean;
     }): this;
@@ -1911,8 +1914,6 @@ export class Group2d extends Geometry2d {
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind(): boolean;
-    // (undocumented)
-    canTabTo(): boolean;
     // (undocumented)
     component(shape: TLGroupShape): JSX_2.Element | null;
     // (undocumented)

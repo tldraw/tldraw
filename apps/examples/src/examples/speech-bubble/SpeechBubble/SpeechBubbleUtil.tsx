@@ -109,6 +109,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			{
 				id: 'tail',
 				type: 'vertex',
+				label: 'Move tail',
 				index: ZERO_INDEX_KEY,
 				// props.tail coordinates are normalized
 				// but here we need them in shape space

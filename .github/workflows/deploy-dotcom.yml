@@ -144,5 +144,6 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
+          VITE_GA4_MEASUREMENT_ID: ${{ secrets.VITE_GA4_MEASUREMENT_ID }}
           WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

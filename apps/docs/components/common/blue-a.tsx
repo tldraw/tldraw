@@ -1,3 +1,5 @@
+import { TldrawLink } from './tldraw-link'
+
 export function BlueA({
 	href,
 	newTab = false,
@@ -8,13 +10,13 @@ export function BlueA({
 	children: React.ReactNode
 }) {
 	return (
-		<a
+		<TldrawLink
 			href={href}
 			target={newTab ? '_blank' : undefined}
 			rel={newTab ? 'noreferrer' : undefined}
 			className="text-blue-500 hover:text-blue-600"
 		>
 			{children}
-		</a>
+		</TldrawLink>
 	)
 }

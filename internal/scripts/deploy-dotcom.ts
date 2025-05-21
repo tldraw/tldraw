@@ -252,9 +252,19 @@ async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
 let didUpdateTlsyncWorker = false
 async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-multiplayer`
-	if (previewId && !didUpdateTlsyncWorker) {
-		await setWranglerPreviewConfig(worker, { name: workerId })
-		didUpdateTlsyncWorker = true
+	if (previewId) {
+		const queueName = `tldraw-multiplayer-queue-${previewId}`
+		if (!didUpdateTlsyncWorker) {
+			await setWranglerPreviewConfig(worker, { name: workerId }, queueName)
+			didUpdateTlsyncWorker = true
+		}
+		if (!dryRun) {
+			try {
+				await exec('yarn', ['wrangler', 'queues', 'info', queueName], { pwd: worker })
+			} catch (_e) {
+				await exec('yarn', ['wrangler', 'queues', 'create', queueName], { pwd: worker })
+			}
+		}
 	}
 	await exec('yarn', ['workspace', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null], {
 		env: {

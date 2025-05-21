@@ -352,14 +352,6 @@ binding = "QUEUE"
 queue = "tldraw-multiplayer-queue-dev"
 max_retries = 10
 
-[[env.preview.queues.producers]]
-queue = "tldraw-multiplayer-queue-preview"
-binding = "QUEUE"
-
-[[env.preview.queues.consumers]]
-queue = "tldraw-multiplayer-queue-preview"
-max_retries = 10
-
 [[env.staging.queues.producers]]
 queue = "tldraw-multiplayer-queue-staging"
 binding = "QUEUE"
