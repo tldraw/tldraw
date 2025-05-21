@@ -14,6 +14,7 @@ import {
 	ROOM_PREFIX,
 	SNAPSHOT_PREFIX,
 	TlaFile,
+	TlaUserPresence,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import {
@@ -24,11 +25,18 @@ import {
 	TLSyncRoom,
 	type PersistedRoomSnapshotForSupabase,
 } from '@tldraw/sync-core'
-import { TLDOCUMENT_ID, TLDocument, TLRecord, createTLSchema } from '@tldraw/tlschema'
+import {
+	TLDOCUMENT_ID,
+	TLDocument,
+	TLInstancePresence,
+	TLRecord,
+	createTLSchema,
+} from '@tldraw/tlschema'
 import {
 	ExecutionQueue,
 	assert,
 	assertExists,
+	compact,
 	exhaustiveSwitchError,
 	retry,
 	uniqueId,
@@ -98,8 +106,12 @@ export class TLDrawDurableObject extends DurableObject {
 									localClientId: args.meta.storeId,
 								})
 
-								if (args.numSessionsRemaining > 0) return
-								if (!this._room) return
+								if (args.numSessionsRemaining > 0 || !this._room) {
+									setTimeout(() => {
+										this.updatePresence()
+									}, 1000)
+									return
+								}
 								this.logEvent({
 									type: 'client',
 									roomId: slug,
@@ -429,6 +441,7 @@ export class TLDrawDurableObject extends DurableObject {
 				isReadonly:
 					openMode === ROOM_OPEN_MODE.READ_ONLY || openMode === ROOM_OPEN_MODE.READ_ONLY_LEGACY,
 			})
+			this.updatePresence()
 			if (isNewSession) {
 				this.logEvent({
 					type: 'client',
@@ -657,6 +670,66 @@ export class TLDrawDurableObject extends DurableObject {
 			.execute()
 	}
 
+	private async updatePresence() {
+		if (!this.documentInfo?.isApp) return
+		if (!this._room) {
+			await this.db
+				.deleteFrom('user_presence')
+				.where('fileId', '=', this.documentInfo.slug)
+				.execute()
+		} else {
+			const room = await this.getRoom()
+			const presences = compact(
+				room.getSessions().map((s) => {
+					if (!s.presenceId) return null
+					const presence = room.getRecord(s.presenceId) as TLInstancePresence | null
+					if (!presence?.lastActivityTimestamp) return null
+					return {
+						sessionId: s.sessionId,
+						fileId: this.documentInfo.slug,
+						userId: presence.userId,
+						color: presence.color,
+						lastActivityAt: presence.lastActivityTimestamp,
+						name: presence.userName,
+					} satisfies TlaUserPresence
+				})
+			)
+			await this.db.transaction().execute(async (tx) => {
+				const dbPresences = await tx
+					.selectFrom('user_presence')
+					.where('fileId', '=', this.documentInfo.slug)
+					.selectAll()
+					.execute()
+
+				for (const presence of dbPresences) {
+					const existingPresence = presences.find((p) => p?.sessionId === presence.sessionId)
+					if (!existingPresence) {
+						await tx
+							.deleteFrom('user_presence')
+							.where('sessionId', '=', presence.sessionId)
+							.execute()
+					}
+				}
+
+				for (const presence of presences) {
+					await tx
+						.insertInto('user_presence')
+						.values(presence)
+						.onConflict((oc) => {
+							return oc.column('sessionId').doUpdateSet({
+								fileId: presence.fileId,
+								userId: presence.userId,
+								color: presence.color,
+								lastActivityAt: presence.lastActivityAt,
+								name: presence.name,
+							})
+						})
+						.execute()
+				}
+			})
+		}
+	}
+
 	// Save the room to r2
 	async persistToDatabase() {
 		try {
@@ -691,6 +764,9 @@ export class TLDrawDurableObject extends DurableObject {
 						.where('id', '=', this.documentInfo.slug)
 						.execute()
 						.catch((e) => this.reportError(e))
+						.then(() => {
+							this.updatePresence()
+						})
 				}
 			})
 		} catch (e) {
