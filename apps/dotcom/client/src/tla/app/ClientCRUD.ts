@@ -9,22 +9,22 @@ export class ClientCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema
 		private table: TlaSchema['tables'][keyof TlaSchema['tables']],
 		private mutationId: string
 	) {}
-	private getExisting(data: any) {
+	private hasExisting(data: any) {
 		const rows = assertExists(this.store.getFullData()?.[this.table.name], 'no data')
-		return rows.find((row: any) => this.table.primaryKey.every((key) => row[key] === data[key]))
+		return rows.some((row: any) => this.table.primaryKey.every((key) => row[key] === data[key]))
 	}
 	private apply(update: ZRowUpdate) {
 		this.store.updateOptimisticData([update], this.mutationId)
 	}
 	async insert(data: any) {
 		assert(!this.signal.aborted, 'CRUD usage outside of mutator scope')
-		assert(!this.getExisting(data), 'row already exists')
+		assert(!this.hasExisting(data), 'row already exists')
 		this.apply({ event: 'insert', table: this.table.name, row: data })
 	}
 	async upsert(data: any) {
 		assert(!this.signal.aborted, 'CRUD usage outside of mutator scope')
 		this.apply({
-			event: this.getExisting(data) ? 'update' : 'insert',
+			event: this.hasExisting(data) ? 'update' : 'insert',
 			table: this.table.name,
 			row: data,
 		})
@@ -35,7 +35,7 @@ export class ClientCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema
 	}
 	async update(data: any) {
 		assert(!this.signal.aborted, 'CRUD usage outside of mutator scope')
-		assert(this.getExisting(data), 'row not found')
+		assert(this.hasExisting(data), 'row not found')
 		this.apply({ event: 'update', table: this.table.name, row: data })
 	}
 }

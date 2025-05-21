@@ -1,5 +1,5 @@
 import { OptimisticAppStore, TlaFileState, TlaRow, TlaSchema } from '@tldraw/dotcom-shared'
-import { assert, computed, react, sleep } from 'tldraw'
+import { assert, compact, computed, react, sleep } from 'tldraw'
 
 export class ClientQuery<Row extends TlaRow, isOne extends boolean = false> {
 	constructor(
@@ -34,10 +34,16 @@ export class ClientQuery<Row extends TlaRow, isOne extends boolean = false> {
 		) as any[]
 
 		if (this.table === 'file_state') {
-			rows = rows.map((row: TlaFileState) => ({
-				...row,
-				file: data.file.find((f) => f.id === row.fileId),
-			}))
+			rows = compact(
+				rows.map((row: TlaFileState) => {
+					const file = data.file.find((f) => f.id === row.fileId)
+					if (!file) return null
+					return {
+						...row,
+						file,
+					}
+				})
+			)
 		}
 
 		if (this.isOne) {
@@ -61,6 +67,10 @@ export class ClientQuery<Row extends TlaRow, isOne extends boolean = false> {
 
 		const load = new Promise<void>((resolve) => {
 			const interval = setInterval(() => {
+				if (this.signal.aborted) {
+					clearInterval(interval)
+					return
+				}
 				if (this.store.getFullData()) {
 					clearInterval(interval)
 					resolve()
@@ -89,7 +99,7 @@ export class ClientQuery<Row extends TlaRow, isOne extends boolean = false> {
 				return data$.__unsafe__getWithoutCapture()
 			},
 			addListener: (listener: (data: isOne extends true ? Row : Row[]) => void) => {
-				unlisten = react('file listener', () => {
+				unlisten = react(`${this.table} listener`, () => {
 					const data = data$.get()
 					if (!data) return
 					return listener(data)
