@@ -20,19 +20,19 @@ import {
 } from '@tldraw/editor'
 import { SVGProps } from 'react'
 
-/** @internal */
+/** @public */
 export interface BasePathBuilderOpts {
 	strokeWidth: number
 	forceSolid?: boolean
 	props?: SVGProps<SVGPathElement & SVGGElement>
 }
 
-/** @internal */
+/** @public */
 export interface SolidPathBuilderOpts extends BasePathBuilderOpts {
 	style: 'solid'
 }
 
-/** @internal */
+/** @public */
 export interface DashedPathBuilderOpts extends BasePathBuilderOpts {
 	style: 'dashed' | 'dotted'
 	snap?: number
@@ -41,7 +41,7 @@ export interface DashedPathBuilderOpts extends BasePathBuilderOpts {
 	lengthRatio?: number
 }
 
-/** @internal */
+/** @public */
 export interface DrawPathBuilderDOpts {
 	strokeWidth: number
 	randomSeed: string
@@ -50,30 +50,30 @@ export interface DrawPathBuilderDOpts {
 	passes?: number
 }
 
-/** @internal */
+/** @public */
 export interface DrawPathBuilderOpts extends BasePathBuilderOpts, DrawPathBuilderDOpts {
 	style: 'draw'
 }
 
-/** @internal */
+/** @public */
 export type PathBuilderOpts = SolidPathBuilderOpts | DashedPathBuilderOpts | DrawPathBuilderOpts
 
-/** @internal */
-interface CommandOpts {
+/** @public */
+export interface PathBuilderCommandOpts {
 	offset?: number
 	roundness?: number
 }
 
 /** @internal */
-interface PathBuilderCommandInfo {
+export interface PathBuilderCommandInfo {
 	tangentStart: VecModel
 	tangentEnd: VecModel
 	length: number
 }
 
 /** @internal */
-interface PathBuilderCommandBase {
-	opts?: CommandOpts
+export interface PathBuilderCommandBase {
+	opts?: PathBuilderCommandOpts
 	x: number
 	y: number
 	isClose: boolean
@@ -81,38 +81,41 @@ interface PathBuilderCommandBase {
 }
 
 /** @internal */
-interface LineOpts extends CommandOpts {
+export interface PathBuilderLineOpts extends PathBuilderCommandOpts {
 	geometry?: Omit<Geometry2dOptions, 'isClosed'> | false
 }
 
 /** @internal */
-interface MoveToPathBuilderCommand extends PathBuilderCommandBase {
+export interface MoveToPathBuilderCommand extends PathBuilderCommandBase {
 	type: 'move'
 	closeIdx: number | null
-	opts?: LineOpts
+	opts?: PathBuilderLineOpts
 }
 
 /** @internal */
-interface LineToPathBuilderCommand extends PathBuilderCommandBase {
+export interface LineToPathBuilderCommand extends PathBuilderCommandBase {
 	type: 'line'
 }
 
 /** @internal */
-interface CubicBezierToPathBuilderCommand extends PathBuilderCommandBase {
+export interface CubicBezierToPathBuilderCommand extends PathBuilderCommandBase {
 	type: 'cubic'
 	cp1: VecModel
 	cp2: VecModel
 }
 
 /** @internal */
-type PathBuilderCommand =
+export type PathBuilderCommand =
 	| MoveToPathBuilderCommand
 	| LineToPathBuilderCommand
 	| CubicBezierToPathBuilderCommand
 
-/** @internal */
+/** @public */
 export class PathBuilder {
-	static lineThroughPoints(points: VecLike[], opts?: LineOpts & { endOffsets?: number }) {
+	static lineThroughPoints(
+		points: VecLike[],
+		opts?: PathBuilderLineOpts & { endOffsets?: number }
+	) {
 		const path = new PathBuilder()
 		path.moveTo(points[0].x, points[0].y, { ...opts, offset: opts?.endOffsets ?? opts?.offset })
 		for (let i = 1; i < points.length; i++) {
@@ -122,7 +125,10 @@ export class PathBuilder {
 		return path
 	}
 
-	static cubicSplineThroughPoints(points: VecLike[], opts?: LineOpts & { endOffsets?: number }) {
+	static cubicSplineThroughPoints(
+		points: VecLike[],
+		opts?: PathBuilderLineOpts & { endOffsets?: number }
+	) {
 		const path = new PathBuilder()
 		const len = points.length
 		const last = len - 2
@@ -172,13 +178,13 @@ export class PathBuilder {
 		return this.lastMoveTo
 	}
 
-	moveTo(x: number, y: number, opts?: LineOpts) {
+	moveTo(x: number, y: number, opts?: PathBuilderLineOpts) {
 		this.lastMoveTo = { type: 'move', x, y, closeIdx: null, isClose: false, opts }
 		this.commands.push(this.lastMoveTo)
 		return this
 	}
 
-	lineTo(x: number, y: number, opts?: CommandOpts) {
+	lineTo(x: number, y: number, opts?: PathBuilderCommandOpts) {
 		this.assertHasMoveTo()
 		this.commands.push({ type: 'line', x, y, isClose: false, opts })
 		return this
@@ -190,7 +196,7 @@ export class PathBuilder {
 		sweepFlag: boolean,
 		x2: number,
 		y2: number,
-		opts?: CommandOpts
+		opts?: PathBuilderCommandOpts
 	) {
 		return this.arcTo(radius, radius, largeArcFlag, sweepFlag, 0, x2, y2, opts)
 	}
@@ -203,7 +209,7 @@ export class PathBuilder {
 		xAxisRotationRadians: number,
 		x2: number,
 		y2: number,
-		opts?: CommandOpts
+		opts?: PathBuilderCommandOpts
 	) {
 		// As arc flags make them very sensitive to offsets when we render them in draw mode, we
 		// approximate arcs by converting them to up to 4 (1 per 90° segment) cubic bezier curves.
@@ -344,7 +350,7 @@ export class PathBuilder {
 		cp1Y: number,
 		cp2X: number,
 		cp2Y: number,
-		opts?: CommandOpts
+		opts?: PathBuilderCommandOpts
 	) {
 		this.assertHasMoveTo()
 		this.commands.push({
@@ -438,7 +444,7 @@ export class PathBuilder {
 			startIdx: number
 			moveCommand: MoveToPathBuilderCommand
 			isClosed: boolean
-			opts?: LineOpts
+			opts?: PathBuilderLineOpts
 		} = null
 		for (let i = 0; i < this.commands.length; i++) {
 			const command = this.commands[i]
@@ -849,7 +855,7 @@ const commandsSupportingRoundness = {
 	cubic: false,
 } as const satisfies Record<PathBuilderCommand['type'], boolean>
 
-/** @internal */
+/** @public */
 export class PathBuilderGeometry2d extends Geometry2d {
 	constructor(
 		private readonly path: PathBuilder,

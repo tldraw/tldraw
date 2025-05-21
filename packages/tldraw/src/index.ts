@@ -3,9 +3,19 @@
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
 export {
 	PathBuilder,
+	PathBuilderGeometry2d,
 	type BasePathBuilderOpts,
+	type CubicBezierToPathBuilderCommand,
 	type DashedPathBuilderOpts,
+	type DrawPathBuilderDOpts,
 	type DrawPathBuilderOpts,
+	type LineToPathBuilderCommand,
+	type MoveToPathBuilderCommand,
+	type PathBuilderCommand,
+	type PathBuilderCommandBase,
+	type PathBuilderCommandInfo,
+	type PathBuilderCommandOpts,
+	type PathBuilderLineOpts,
 	type PathBuilderOpts,
 	type SolidPathBuilderOpts,
 } from './lib/shapes/shared/PathBuilder'
