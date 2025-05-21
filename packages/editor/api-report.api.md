@@ -809,8 +809,6 @@ export class Edge2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: VecLike, B: VecLike, distance?: number): boolean;
-    // (undocumented)
     midPoint(): Vec;
     // (undocumented)
     nearestPoint(point: VecLike): Vec;

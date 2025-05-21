@@ -18,11 +18,12 @@ import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
 import { ComponentType } from 'react';
 import { CSSProperties } from 'react';
-import { CubicSpline2d } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
 import { Extension } from '@tiptap/core';
 import { Extensions } from '@tiptap/core';
 import { Geometry2d } from '@tldraw/editor';
+import { Geometry2dFilters } from '@tldraw/editor';
+import { Geometry2dOptions } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
 import { IndexKey } from '@tldraw/editor';
@@ -54,6 +55,7 @@ import { SharedStyle } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
 import { StyleProp } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
+import { SVGProps } from 'react';
 import { TiptapEditor } from '@tldraw/editor';
 import { TLAnyBindingUtilConstructor } from '@tldraw/editor';
 import { TLAnyShapeUtilConstructor } from '@tldraw/editor';
@@ -342,6 +344,16 @@ export function AssetUrlsProvider({ assetUrls, children, }: {
 }): JSX_2.Element;
 
 // @public (undocumented)
+export interface BasePathBuilderOpts {
+    // (undocumented)
+    forceSolid?: boolean;
+    // (undocumented)
+    props?: SVGProps<SVGPathElement & SVGGElement>;
+    // (undocumented)
+    strokeWidth: number;
+}
+
+// @public (undocumented)
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     canResize(): boolean;
@@ -511,6 +523,16 @@ export interface CropBoxOptions {
     minWidth?: number;
 }
 
+// @internal (undocumented)
+export interface CubicBezierToPathBuilderCommand extends PathBuilderCommandBase {
+    // (undocumented)
+    cp1: VecModel;
+    // (undocumented)
+    cp2: VecModel;
+    // (undocumented)
+    type: 'cubic';
+}
+
 // @public (undocumented)
 export function CursorChatItem(): JSX_2.Element | null;
 
@@ -522,6 +544,20 @@ export interface CustomEmbedDefinition extends EmbedDefinition {
 
 // @public (undocumented)
 export function CutMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export interface DashedPathBuilderOpts extends BasePathBuilderOpts {
+    // (undocumented)
+    end?: 'none' | 'outset' | 'skip';
+    // (undocumented)
+    lengthRatio?: number;
+    // (undocumented)
+    snap?: number;
+    // (undocumented)
+    start?: 'none' | 'outset' | 'skip';
+    // (undocumented)
+    style: 'dashed' | 'dotted';
+}
 
 // @public (undocumented)
 export function DebugFlags(): JSX_2.Element | null;
@@ -939,6 +975,26 @@ export function downsizeImage(blob: Blob, width: number, height: number, opts?: 
     quality?: number | undefined;
     type?: string | undefined;
 }): Promise<Blob>;
+
+// @public (undocumented)
+export interface DrawPathBuilderDOpts {
+    // (undocumented)
+    offset?: number;
+    // (undocumented)
+    passes?: number;
+    // (undocumented)
+    randomSeed: string;
+    // (undocumented)
+    roundness?: number;
+    // (undocumented)
+    strokeWidth: number;
+}
+
+// @public (undocumented)
+export interface DrawPathBuilderOpts extends BasePathBuilderOpts, DrawPathBuilderDOpts {
+    // (undocumented)
+    style: 'draw';
+}
 
 // @public (undocumented)
 export interface DrawShapeOptions {
@@ -1799,7 +1855,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     getDefaultProps(): TLLineShape['props'];
     // (undocumented)
-    getGeometry(shape: TLLineShape): CubicSpline2d | Polyline2d;
+    getGeometry(shape: TLLineShape): PathBuilderGeometry2d;
     // (undocumented)
     getHandles(shape: TLLineShape): TLHandle[];
     // (undocumented)
@@ -1873,6 +1929,12 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 // @public (undocumented)
 export function LineToolbarItem(): JSX_2.Element;
 
+// @internal (undocumented)
+export interface LineToPathBuilderCommand extends PathBuilderCommandBase {
+    // (undocumented)
+    type: 'line';
+}
+
 // @public (undocumented)
 export function MiscMenuGroup(): JSX_2.Element;
 
@@ -1881,6 +1943,16 @@ export function MobileStylePanel(): JSX_2.Element | null;
 
 // @public (undocumented)
 export function MoveToPageMenu(): JSX_2.Element | null;
+
+// @internal (undocumented)
+export interface MoveToPathBuilderCommand extends PathBuilderCommandBase {
+    // (undocumented)
+    closeIdx: null | number;
+    // (undocumented)
+    opts?: PathBuilderLineOpts;
+    // (undocumented)
+    type: 'move';
+}
 
 // @public (undocumented)
 export interface NoteShapeOptions {
@@ -2072,6 +2144,110 @@ export function parseTldrawJsonFile({ json, schema, }: {
 
 // @public (undocumented)
 export function PasteMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export class PathBuilder {
+    constructor();
+    // (undocumented)
+    arcTo(rx: number, ry: number, largeArcFlag: boolean, sweepFlag: boolean, xAxisRotationRadians: number, x2: number, y2: number, opts?: PathBuilderCommandOpts): this;
+    // (undocumented)
+    circularArcTo(radius: number, largeArcFlag: boolean, sweepFlag: boolean, x2: number, y2: number, opts?: PathBuilderCommandOpts): this;
+    // (undocumented)
+    close(): this;
+    // @internal (undocumented)
+    commands: PathBuilderCommand[];
+    // (undocumented)
+    cubicBezierTo(x: number, y: number, cp1X: number, cp1Y: number, cp2X: number, cp2Y: number, opts?: PathBuilderCommandOpts): this;
+    // Warning: (ae-incompatible-release-tags) The symbol "cubicSplineThroughPoints" is marked as @public, but its signature references "PathBuilderLineOpts" which is marked as @internal
+    //
+    // (undocumented)
+    static cubicSplineThroughPoints(points: VecLike[], opts?: PathBuilderLineOpts & {
+        endOffsets?: number;
+    }): PathBuilder;
+    // @internal (undocumented)
+    getCommandInfo(): (PathBuilderCommandInfo | undefined)[];
+    // @internal (undocumented)
+    getCommands(): readonly PathBuilderCommand[];
+    // Warning: (ae-incompatible-release-tags) The symbol "lineThroughPoints" is marked as @public, but its signature references "PathBuilderLineOpts" which is marked as @internal
+    //
+    // (undocumented)
+    static lineThroughPoints(points: VecLike[], opts?: PathBuilderLineOpts & {
+        endOffsets?: number;
+    }): PathBuilder;
+    // (undocumented)
+    lineTo(x: number, y: number, opts?: PathBuilderCommandOpts): this;
+    // Warning: (ae-incompatible-release-tags) The symbol "moveTo" is marked as @public, but its signature references "PathBuilderLineOpts" which is marked as @internal
+    //
+    // (undocumented)
+    moveTo(x: number, y: number, opts?: PathBuilderLineOpts): this;
+    // (undocumented)
+    toD(startIdx?: number, endIdx?: number): string;
+    // (undocumented)
+    toDrawD(opts: DrawPathBuilderDOpts): string;
+    // (undocumented)
+    toGeometry(): Group2d | PathBuilderGeometry2d;
+    // (undocumented)
+    toSvg(opts: PathBuilderOpts): JSX_2.Element;
+}
+
+// @internal (undocumented)
+export type PathBuilderCommand = CubicBezierToPathBuilderCommand | LineToPathBuilderCommand | MoveToPathBuilderCommand;
+
+// @internal (undocumented)
+export interface PathBuilderCommandBase {
+    // (undocumented)
+    _info?: PathBuilderCommandInfo;
+    // (undocumented)
+    isClose: boolean;
+    // (undocumented)
+    opts?: PathBuilderCommandOpts;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @internal (undocumented)
+export interface PathBuilderCommandInfo {
+    // (undocumented)
+    length: number;
+    // (undocumented)
+    tangentEnd: VecModel;
+    // (undocumented)
+    tangentStart: VecModel;
+}
+
+// @public (undocumented)
+export interface PathBuilderCommandOpts {
+    // (undocumented)
+    offset?: number;
+    // (undocumented)
+    roundness?: number;
+}
+
+// @public (undocumented)
+export class PathBuilderGeometry2d extends Geometry2d {
+    constructor(path: PathBuilder, startIdx: number, endIdx: number, options: Geometry2dOptions);
+    // (undocumented)
+    getSegments(): Geometry2d[];
+    // (undocumented)
+    getSvgPathData(): string;
+    // (undocumented)
+    getVertices(filters: Geometry2dFilters): Vec[];
+    // (undocumented)
+    hitTestLineSegment(A: VecLike, B: VecLike, distance?: number, filters?: Geometry2dFilters): boolean;
+    // (undocumented)
+    nearestPoint(point: VecLike, _filters?: Geometry2dFilters): Vec;
+}
+
+// @internal (undocumented)
+export interface PathBuilderLineOpts extends PathBuilderCommandOpts {
+    // (undocumented)
+    geometry?: false | Omit<Geometry2dOptions, 'isClosed'>;
+}
+
+// @public (undocumented)
+export type PathBuilderOpts = DashedPathBuilderOpts | DrawPathBuilderOpts | SolidPathBuilderOpts;
 
 // @public (undocumented)
 export function PeopleMenu({ children }: PeopleMenuProps): JSX_2.Element | null;
@@ -2313,6 +2489,12 @@ export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 
 // @internal (undocumented)
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
+
+// @public (undocumented)
+export interface SolidPathBuilderOpts extends BasePathBuilderOpts {
+    // (undocumented)
+    style: 'solid';
+}
 
 // @internal (undocumented)
 export function Spinner(props: React_3.SVGProps<SVGSVGElement>): JSX_2.Element;

@@ -441,7 +441,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "geo",
     "typeName": "shape",
     "x": 16.354966542628517,
-    "y": -0.2929971610777784,
+    "y": 0,
   },
   "shape:11": {
     "id": "shape:11",
@@ -493,7 +493,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 34.35135494627548,
-    "y": 75.8714784633795,
+    "y": 76.16447562445728,
   },
   "shape:12": {
     "id": "shape:12",
@@ -545,7 +545,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 16.836596012063637,
-    "y": 166.9695843833946,
+    "y": 167.26258154447237,
   },
   "shape:13": {
     "id": "shape:13",
@@ -591,7 +591,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 96.93457894290896,
-    "y": 167.61036824684118,
+    "y": 167.90336540791895,
   },
   "shape:14": {
     "id": "shape:14",
@@ -655,7 +655,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 32.642597977083824,
-    "y": 76.29866770567753,
+    "y": 76.59166486675531,
   },
   "shape:15": {
     "id": "shape:15",
@@ -701,7 +701,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 13.953068626553431,
-    "y": 122.11471394212106,
+    "y": 122.40771110319884,
   },
   "shape:16": {
     "id": "shape:16",
@@ -741,7 +741,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 110.60463469644037,
-    "y": 65.29854471650845,
+    "y": 65.59154187758622,
   },
   "shape:17": {
     "id": "shape:17",
@@ -775,7 +775,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 113.5949593925252,
-    "y": 137.92071590714147,
+    "y": 138.21371306821925,
   },
   "shape:18": {
     "id": "shape:18",
@@ -809,7 +809,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 186.96471175717943,
-    "y": 101.07564375895265,
+    "y": 101.36864092003043,
   },
   "shape:19": {
     "id": "shape:19",
@@ -846,7 +846,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "geo",
     "typeName": "shape",
     "x": 129.93494791041803,
-    "y": 58.036327597445165,
+    "y": 58.329324758522944,
   },
   "shape:20": {
     "id": "shape:20",
@@ -898,7 +898,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 128.65338018352395,
-    "y": 64.44416623191285,
+    "y": 64.73716339299062,
   },
   "shape:21": {
     "id": "shape:21",
@@ -944,7 +944,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 86.14805057488866,
-    "y": 83.24049289301786,
+    "y": 83.53349005409564,
   },
   "shape:22": {
     "id": "shape:22",
@@ -996,7 +996,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 54.03295639352882,
-    "y": 55.97803217619014,
+    "y": 56.27102933726792,
   },
   "shape:23": {
     "id": "shape:23",
@@ -1036,7 +1036,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "draw",
     "typeName": "shape",
     "x": 52.02692266197482,
-    "y": 45.86959922154085,
+    "y": 46.16259638261863,
   },
   "shape:24": {
     "id": "shape:24",
@@ -1076,7 +1076,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "draw",
     "typeName": "shape",
     "x": 78.65118398409231,
-    "y": 41.3958503928244,
+    "y": 41.68884755390218,
   },
   "shape:25": {
     "id": "shape:25",
@@ -1110,7 +1110,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 39.883171982572094,
-    "y": 176.1728073987864,
+    "y": 176.46580455986418,
   },
   "shape:26": {
     "id": "shape:26",
@@ -1150,7 +1150,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 75.80724126246832,
-    "y": 177.2115989441994,
+    "y": 177.5045961052772,
   },
   "shape:27": {
     "id": "shape:27",
@@ -1196,7 +1196,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 37.34235608370864,
-    "y": 213.82900092001375,
+    "y": 214.12199808109153,
   },
   "shape:28": {
     "id": "shape:28",
@@ -1248,7 +1248,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 73.78340613938462,
-    "y": 215.04172938863792,
+    "y": 215.3347265497157,
   },
   "shape:29": {
     "id": "shape:29",
@@ -1300,7 +1300,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 303.5237174377894,
-    "y": 77.37414207065933,
+    "y": 77.66713923173711,
   },
   "shape:30": {
     "id": "shape:30",
@@ -1352,7 +1352,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 321.4126626602406,
-    "y": 171.17704248377856,
+    "y": 171.47003964485634,
   },
   "shape:31": {
     "id": "shape:31",
@@ -1398,7 +1398,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 240.77742880243295,
-    "y": 171.81782634722515,
+    "y": 172.11082350830293,
   },
   "shape:32": {
     "id": "shape:32",
@@ -1432,7 +1432,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 298.23026501301365,
-    "y": 179.4786673348018,
+    "y": 179.77166449587958,
   },
   "shape:33": {
     "id": "shape:33",
@@ -1472,7 +1472,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 262.6752860428437,
-    "y": 179.31532799439117,
+    "y": 179.60832515546895,
   },
   "shape:34": {
     "id": "shape:34",
@@ -1518,7 +1518,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 300.2777882573114,
-    "y": 217.61245684358698,
+    "y": 217.90545400466476,
   },
   "shape:35": {
     "id": "shape:35",
@@ -1570,7 +1570,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 264.20529297726443,
-    "y": 218.05293379303282,
+    "y": 218.3459309541106,
   },
   "shape:36": {
     "id": "shape:36",
@@ -1607,7 +1607,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "geo",
     "typeName": "shape",
     "x": 240.64516318993037,
-    "y": 2.745336788820282,
+    "y": 3.0383339498980604,
   },
   "shape:37": {
     "id": "shape:37",
@@ -1659,7 +1659,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 284.4680954394512,
-    "y": 58.003588142788544,
+    "y": 58.29658530386632,
   },
   "shape:38": {
     "id": "shape:38",
@@ -1699,7 +1699,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "draw",
     "typeName": "shape",
     "x": 286.4850257957596,
-    "y": 50.17390565056314,
+    "y": 50.46690281164092,
   },
   "shape:39": {
     "id": "shape:39",
@@ -1739,7 +1739,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "draw",
     "typeName": "shape",
     "x": 261.71080446543874,
-    "y": 42.15543388029903,
+    "y": 42.44843104137681,
   },
   "shape:40": {
     "id": "shape:40",
@@ -1797,7 +1797,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 294.7648277640651,
-    "y": 89.6695261634278,
+    "y": 89.96252332450558,
   },
   "shape:41": {
     "id": "shape:41",
@@ -1843,7 +1843,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 253.04134763952607,
-    "y": 84.34908238915853,
+    "y": 84.6420795502363,
   },
   "shape:42": {
     "id": "shape:42",
@@ -1880,7 +1880,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "geo",
     "typeName": "shape",
     "x": 217.47838135887787,
-    "y": 107.59102098202322,
+    "y": 107.884018143101,
   },
   "shape:43": {
     "id": "shape:43",
@@ -1920,7 +1920,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "line",
     "typeName": "shape",
     "x": 221.5413287284482,
-    "y": 106.76849833351537,
+    "y": 107.06149549459315,
   },
   "shape:78": {
     "id": "shape:78",
@@ -1934,7 +1934,7 @@ exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
     "type": "group",
     "typeName": "shape",
     "x": 377.74947728710913,
-    "y": 250.07731452552025,
+    "y": 249.93081594498142,
   },
 }
 `;
