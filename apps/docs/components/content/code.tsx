@@ -11,7 +11,7 @@ import React, {
 	useContext,
 	useMemo,
 } from 'react'
-import { A } from './a'
+import { TldrawLink } from '../common/tldraw-link'
 
 const CodeLinksContext = createContext<Record<string, string>>({})
 
@@ -34,12 +34,12 @@ const blurredLineClassName = '[&_*]:!opacity-60 [&_*]:!text-white'
 
 function CodeLink({ children, href }: { children: ReactNode; href: string }) {
 	return (
-		<A
+		<TldrawLink
 			href={href}
 			className="group-[.not-prose]:underline group-[.not-prose]:hover:no-underline decoration-[#667e8b]"
 		>
 			{children}
-		</A>
+		</TldrawLink>
 	)
 }
 

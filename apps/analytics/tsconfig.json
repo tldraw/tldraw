@@ -1,0 +1,10 @@
+{
+	"extends": "../../internal/config/tsconfig.base.json",
+	"compilerOptions": {
+		"moduleResolution": "bundler",
+		"noEmit": true,
+		"emitDeclarationOnly": false
+	},
+	"include": ["src", "src/analytics.tsx", "./vite.config.ts"],
+	"references": []
+}
