@@ -144,7 +144,7 @@ export function parseResultRow(row: any): { table: keyof typeof columnNamesByAli
 	}
 }
 `
-test('fetchEverythingSql', async () => {
+test('fetchEverythingSql snapshot (RUN `yarn test -u` IF THIS FAILS)', async () => {
 	const tmpFile = './src/.fetchEverythingSql.tmp.ts'
 	writeFileSync(tmpFile, tsFile, 'utf-8')
 	execSync('yarn run -T prettier --write ' + tmpFile, {
