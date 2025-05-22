@@ -23,6 +23,10 @@ export interface TLPresenceUserInfo {
 	 * The user's color. If not given, a random color will be assigned.
 	 */
 	color?: string | null
+	/**
+	 * The user's avatar.
+	 */
+	avatar?: string | null
 }
 
 /**
@@ -86,5 +90,6 @@ export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo)
 		screenBounds: instance.screenBounds,
 		chatMessage: instance.chatMessage,
 		meta: {},
+		avatar: user.avatar,
 	} satisfies TLPresenceStateInfo
 }

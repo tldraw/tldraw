@@ -322,6 +322,7 @@ export function getDefaultTranslationLocale(): TLLanguage['locale'];
 
 // @public (undocumented)
 export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo): {
+    avatar: null | string | undefined;
     brush: BoxModel | null;
     camera: {
         x: number;
@@ -1269,6 +1270,8 @@ export type TLInstancePageStateId = RecordId<TLInstancePageState>;
 // @public (undocumented)
 export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
     // (undocumented)
+    avatar?: null | string;
+    // (undocumented)
     brush: BoxModel | null;
     // (undocumented)
     camera: {
@@ -1418,6 +1421,7 @@ export type TLPresenceStateInfo = Parameters<(typeof InstancePresenceRecordType)
 
 // @public
 export interface TLPresenceUserInfo {
+    avatar?: null | string;
     color?: null | string;
     id: string;
     name?: null | string;

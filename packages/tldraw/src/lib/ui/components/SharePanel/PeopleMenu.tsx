@@ -23,6 +23,7 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 	const userIds = usePeerIds()
 	const userColor = useValue('user', () => editor.user.getColor(), [editor])
 	const userName = useValue('user', () => editor.user.getName(), [editor])
+	const userAvatar = useValue('user', () => editor.user.getAvatar(), [editor])
 
 	const [isOpen, onOpenChange] = useMenuIsOpen('people menu')
 
@@ -41,7 +42,9 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 							<div
 								className="tlui-people-menu__avatar"
 								style={{
-									backgroundColor: userColor,
+									background: !!userAvatar
+										? `url(${userAvatar}) center/cover no-repeat`
+										: userColor,
 								}}
 							>
 								{userName?.[0] ?? ''}

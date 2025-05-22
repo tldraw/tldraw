@@ -35,6 +35,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 	} | null
 	chatMessage: string
 	meta: JsonObject
+	avatar?: string | null
 }
 
 /** @public */
@@ -69,6 +70,7 @@ export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.mode
 		scribbles: T.arrayOf(scribbleValidator),
 		chatMessage: T.string,
 		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
+		avatar: T.string.nullable().optional(),
 	})
 )
 
@@ -160,4 +162,5 @@ export const InstancePresenceRecordType = createRecordType<TLInstancePresence>(
 	scribbles: [],
 	chatMessage: '',
 	meta: {},
+	avatar: null,
 }))

@@ -15,6 +15,7 @@ export interface TLUserPreferences {
 	name?: string | null
 	color?: string | null
 	// N.B. These are duplicated in TLdrawAppUser.
+	avatar?: string | null
 	locale?: string | null
 	animationSpeed?: number | null
 	edgeScrollSpeed?: number | null
@@ -42,6 +43,7 @@ export const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUser
 	name: T.string.nullable().optional(),
 	color: T.string.nullable().optional(),
 	// N.B. These are duplicated in TLdrawAppUser.
+	avatar: T.string.nullable().optional(),
 	locale: T.string.nullable().optional(),
 	animationSpeed: T.number.nullable().optional(),
 	edgeScrollSpeed: T.number.nullable().optional(),

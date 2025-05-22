@@ -4241,6 +4241,8 @@ export interface TLUserPreferences {
     // (undocumented)
     animationSpeed?: null | number;
     // (undocumented)
+    avatar?: null | string;
+    // (undocumented)
     color?: null | string;
     // (undocumented)
     colorScheme?: 'dark' | 'light' | 'system';
@@ -4408,6 +4410,8 @@ export class UserPreferencesManager {
     dispose(): void;
     // (undocumented)
     getAnimationSpeed(): number;
+    // (undocumented)
+    getAvatar(): string;
     // (undocumented)
     getColor(): string;
     getEdgeScrollSpeed(): number;
