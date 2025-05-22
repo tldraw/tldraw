@@ -95,13 +95,13 @@ for (const table of tables) {
 	columnNamesByAlias[table.alias] = nameByAlias
 	const columnSelectString = columnConfig
 		.map((c) => `${c.expression ?? 'null'}::${c.type} as "${c.alias}"`)
-		.join(', ')
-	let selectString = `SELECT '${table.alias}' as "table", ${columnSelectString}`
+		.join(',\n  ')
+	let selectString = `SELECT\n  '${table.alias}' as "table",\n  ${columnSelectString}`
 	if (table.withAlias ?? table.tableName) {
-		selectString += `FROM ${table.withAlias ?? `public."${table.tableName}"`}`
+		selectString += `\nFROM ${table.withAlias ?? `public."${table.tableName}"`}`
 	}
 	if (table.where && !table.withAlias) {
-		selectString += ` WHERE ${table.where}`
+		selectString += `\nWHERE ${table.where}`
 	}
 	mainSelects.push(selectString)
 	if (!table.withAlias) continue
@@ -112,7 +112,7 @@ for (const table of tables) {
 	withSelects.push(`"${table.withAlias}" AS (${withSelect})`)
 }
 
-const withClause = withSelects.length ? `WITH ${withSelects.join(', ')}` : ''
+const withClause = withSelects.length ? `WITH\n  ${withSelects.join(',\n  ')}` : ''
 const mainSelect = `${mainSelects.join('\nUNION\n')}`
 const fetchEverythingSql = `${withClause}\n${mainSelect}`.trim()
 

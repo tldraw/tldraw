@@ -2,16 +2,134 @@
 // Instead, edit the fetchEverythingSql.test.ts file and run yarn test -u
 
 export const fetchEverythingSql = `
-WITH "user_file_states" AS (SELECT * FROM public."file_state" WHERE "userId" = $1)
-SELECT 'user' as "table", "allowAnalyticsCookie"::boolean as "0", "exportBackground"::boolean as "1", "exportPadding"::boolean as "2", "isDynamicSizeMode"::boolean as "3", "isPasteAtCursorMode"::boolean as "4", "isSnapMode"::boolean as "5", "isWrapMode"::boolean as "6", "animationSpeed"::bigint as "7", "createdAt"::bigint as "8", "edgeScrollSpeed"::bigint as "9", "updatedAt"::bigint as "10", "avatar"::text as "11", "color"::text as "12", "colorScheme"::text as "13", "email"::text as "14", "exportFormat"::text as "15", "exportTheme"::text as "16", "flags"::text as "17", "id"::text as "18", "locale"::text as "19", "name"::text as "20"FROM public."user" WHERE "id" = $1
+WITH
+  "user_file_states" AS (SELECT * FROM public."file_state" WHERE "userId" = $1)
+SELECT
+  'user' as "table",
+  "allowAnalyticsCookie"::boolean as "0",
+  "exportBackground"::boolean as "1",
+  "exportPadding"::boolean as "2",
+  "isDynamicSizeMode"::boolean as "3",
+  "isPasteAtCursorMode"::boolean as "4",
+  "isSnapMode"::boolean as "5",
+  "isWrapMode"::boolean as "6",
+  "animationSpeed"::bigint as "7",
+  "createdAt"::bigint as "8",
+  "edgeScrollSpeed"::bigint as "9",
+  "updatedAt"::bigint as "10",
+  "avatar"::text as "11",
+  "color"::text as "12",
+  "colorScheme"::text as "13",
+  "email"::text as "14",
+  "exportFormat"::text as "15",
+  "exportTheme"::text as "16",
+  "flags"::text as "17",
+  "id"::text as "18",
+  "locale"::text as "19",
+  "name"::text as "20"
+FROM public."user"
+WHERE "id" = $1
 UNION
-SELECT 'file_state' as "table", "isFileOwner"::boolean as "0", "isPinned"::boolean as "1", null::boolean as "2", null::boolean as "3", null::boolean as "4", null::boolean as "5", null::boolean as "6", "firstVisitAt"::bigint as "7", "lastEditAt"::bigint as "8", "lastVisitAt"::bigint as "9", null::bigint as "10", "fileId"::text as "11", "lastSessionState"::text as "12", "userId"::text as "13", null::text as "14", null::text as "15", null::text as "16", null::text as "17", null::text as "18", null::text as "19", null::text as "20"FROM user_file_states
+SELECT
+  'file_state' as "table",
+  "isFileOwner"::boolean as "0",
+  "isPinned"::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  "firstVisitAt"::bigint as "7",
+  "lastEditAt"::bigint as "8",
+  "lastVisitAt"::bigint as "9",
+  null::bigint as "10",
+  "fileId"::text as "11",
+  "lastSessionState"::text as "12",
+  "userId"::text as "13",
+  null::text as "14",
+  null::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20"
+FROM user_file_states
 UNION
-SELECT 'file' as "table", "isDeleted"::boolean as "0", "isEmpty"::boolean as "1", "published"::boolean as "2", "shared"::boolean as "3", null::boolean as "4", null::boolean as "5", null::boolean as "6", "createdAt"::bigint as "7", "lastPublished"::bigint as "8", "updatedAt"::bigint as "9", null::bigint as "10", "createSource"::text as "11", "id"::text as "12", "name"::text as "13", "ownerAvatar"::text as "14", "ownerId"::text as "15", "ownerName"::text as "16", "publishedSlug"::text as "17", "sharedLinkType"::text as "18", "thumbnail"::text as "19", null::text as "20"FROM public."file" WHERE "ownerId" = $1 OR "shared" = true AND EXISTS(SELECT 1 FROM user_file_states WHERE "fileId" = file.id)
+SELECT
+  'file' as "table",
+  "isDeleted"::boolean as "0",
+  "isEmpty"::boolean as "1",
+  "published"::boolean as "2",
+  "shared"::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  "createdAt"::bigint as "7",
+  "lastPublished"::bigint as "8",
+  "updatedAt"::bigint as "9",
+  null::bigint as "10",
+  "createSource"::text as "11",
+  "id"::text as "12",
+  "name"::text as "13",
+  "ownerAvatar"::text as "14",
+  "ownerId"::text as "15",
+  "ownerName"::text as "16",
+  "publishedSlug"::text as "17",
+  "sharedLinkType"::text as "18",
+  "thumbnail"::text as "19",
+  null::text as "20"
+FROM public."file"
+WHERE "ownerId" = $1 OR "shared" = true AND EXISTS(SELECT 1 FROM user_file_states WHERE "fileId" = file.id)
 UNION
-SELECT 'user_mutation_number' as "table", null::boolean as "0", null::boolean as "1", null::boolean as "2", null::boolean as "3", null::boolean as "4", null::boolean as "5", null::boolean as "6", "mutationNumber"::bigint as "7", null::bigint as "8", null::bigint as "9", null::bigint as "10", null::text as "11", null::text as "12", null::text as "13", null::text as "14", null::text as "15", null::text as "16", null::text as "17", null::text as "18", null::text as "19", null::text as "20"FROM public."user_mutation_number" WHERE "userId" = $1
+SELECT
+  'user_mutation_number' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  "mutationNumber"::bigint as "7",
+  null::bigint as "8",
+  null::bigint as "9",
+  null::bigint as "10",
+  null::text as "11",
+  null::text as "12",
+  null::text as "13",
+  null::text as "14",
+  null::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20"
+FROM public."user_mutation_number"
+WHERE "userId" = $1
 UNION
-SELECT 'lsn' as "table", null::boolean as "0", null::boolean as "1", null::boolean as "2", null::boolean as "3", null::boolean as "4", null::boolean as "5", null::boolean as "6", null::bigint as "7", null::bigint as "8", null::bigint as "9", null::bigint as "10", pg_current_wal_lsn()::text as "11", null::text as "12", null::text as "13", null::text as "14", null::text as "15", null::text as "16", null::text as "17", null::text as "18", null::text as "19", null::text as "20"
+SELECT
+  'lsn' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  null::bigint as "7",
+  null::bigint as "8",
+  null::bigint as "9",
+  null::bigint as "10",
+  pg_current_wal_lsn()::text as "11",
+  null::text as "12",
+  null::text as "13",
+  null::text as "14",
+  null::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20"
 `
 
 export const columnNamesByAlias = {
@@ -72,16 +190,4 @@ export const columnNamesByAlias = {
 	lsn: {
 		'11': 'lsn',
 	},
-}
-
-export function parseResultRow(row: any): { table: keyof typeof columnNamesByAlias; row: any } {
-	const result = {} as any
-	const columnNameByAlias = columnNamesByAlias[row.table as keyof typeof columnNamesByAlias]
-	for (const [alias, columnName] of Object.entries(columnNameByAlias)) {
-		result[columnName] = row[alias]
-	}
-	return {
-		table: row.table,
-		row: result,
-	}
 }
