@@ -131,18 +131,6 @@ ${escapeForTemplateLiteral(fetchEverythingSql)}
 \`
 
 export const columnNamesByAlias = ${JSON.stringify(columnNamesByAlias, null, 2)}
-
-export function parseResultRow(row: any): { table: keyof typeof columnNamesByAlias; row: any } {
-	const result = {} as any
-	const columnNameByAlias = columnNamesByAlias[row.table  as keyof typeof columnNamesByAlias]
-	for (const [alias, columnName] of Object.entries(columnNameByAlias)) {
-		result[columnName] = row[alias]
-	}
-	return {
-		table: row.table,
-		row: result,
-	}
-}
 `
 test('fetchEverythingSql snapshot (RUN `yarn test -u` IF THIS FAILS)', async () => {
 	const tmpFile = './src/.fetchEverythingSql.tmp.ts'
@@ -158,10 +146,10 @@ test('fetchEverythingSql snapshot (RUN `yarn test -u` IF THIS FAILS)', async () 
 
 	const isUpdating = expect.getState().snapshotState._updateSnapshot === 'all'
 	if (isUpdating) {
-		writeFileSync('./src/fetchEverythingSql.ts', formattedCode, 'utf-8')
+		writeFileSync('./src/fetchEverythingSql.snap.ts', formattedCode, 'utf-8')
 		return
 	}
 
-	const fileContents = readFileSync('./src/fetchEverythingSql.ts', 'utf-8').toString()
+	const fileContents = readFileSync('./src/fetchEverythingSql.snap.ts', 'utf-8').toString()
 	expect(formattedCode).toEqual(fileContents)
 })
