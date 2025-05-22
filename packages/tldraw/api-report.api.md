@@ -2222,9 +2222,8 @@ export interface PathBuilderCommandInfo {
 
 // @public (undocumented)
 export interface PathBuilderCommandOpts {
-    // (undocumented)
+    mergeWithPrevious?: boolean;
     offset?: number;
-    // (undocumented)
     roundness?: number;
 }
 

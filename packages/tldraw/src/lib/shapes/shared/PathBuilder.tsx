@@ -18,7 +18,7 @@ import {
 	VecLike,
 	VecModel,
 } from '@tldraw/editor'
-import { SVGProps } from 'react'
+import { ReactNode, SVGProps } from 'react'
 
 /** @public */
 export interface BasePathBuilderOpts {
@@ -62,8 +62,22 @@ export type PathBuilderOpts = SolidPathBuilderOpts | DashedPathBuilderOpts | Dra
 
 /** @public */
 export interface PathBuilderCommandOpts {
+	/**
+	 * When converting to a draw-style line, how much offset from the original point should be
+	 * applied?
+	 */
 	offset?: number
+	/**
+	 * When converting to a draw-style line, how much roundness should be applied to the end of this
+	 * line?
+	 */
 	roundness?: number
+	/**
+	 * When converting to a dash- or dot-style line, should the current segment be merged with the
+	 * previous segment when calculating the dash pattern? This is false by default, meaning each
+	 * command will start/end on a dash/dot boundary.
+	 */
+	mergeWithPrevious?: boolean
 }
 
 /** @internal */
@@ -222,7 +236,7 @@ export class PathBuilder {
 	) {
 		// As arc flags make them very sensitive to offsets when we render them in draw mode, we
 		// approximate arcs by converting them to up to 4 (1 per 90° segment) cubic bezier curves.
-		// This is alogirthm is a Claude special:
+		// This algorithm is a Claude special:
 		// https://claude.ai/public/artifacts/5ea0bf18-4afb-4b3d-948d-31b8a77ef1e2
 
 		this.assertHasMoveTo()
@@ -346,7 +360,8 @@ export class PathBuilder {
 			const cp2x = end.x - handleScale * d2.x
 			const cp2y = end.y - handleScale * d2.y
 
-			this.cubicBezierTo(end.x, end.y, cp1x, cp1y, cp2x, cp2y, opts)
+			const bezierOpts = i === 0 ? opts : { ...opts, mergeWithPrevious: true }
+			this.cubicBezierTo(end.x, end.y, cp1x, cp1y, cp2x, cp2y, bezierOpts)
 		}
 
 		return this
@@ -399,6 +414,17 @@ export class PathBuilder {
 		const parts = []
 
 		let isSkippingCurrentLine = false
+
+		let didAddMove = false
+		let didAddNaturalMove = false
+
+		const addMoveIfNeeded = (i: number) => {
+			if (didAddMove || i === 0) return
+			didAddMove = true
+			const command = this.commands[i - 1]
+			parts.push('M', toDomPrecision(command.x), toDomPrecision(command.y))
+		}
+
 		for (let i = startIdx; i < endIdx; i++) {
 			const command = this.commands[i]
 			switch (command.type) {
@@ -409,13 +435,16 @@ export class PathBuilder {
 						isSkippingCurrentLine = true
 					} else {
 						isSkippingCurrentLine = false
+						didAddMove = true
+						didAddNaturalMove = true
 						parts.push('M', toDomPrecision(command.x), toDomPrecision(command.y))
 					}
 					break
 				}
 				case 'line':
 					if (isSkippingCurrentLine) break
-					if (command.isClose) {
+					addMoveIfNeeded(i)
+					if (command.isClose && didAddNaturalMove) {
 						parts.push('Z')
 					} else {
 						parts.push('L', toDomPrecision(command.x), toDomPrecision(command.y))
@@ -423,6 +452,7 @@ export class PathBuilder {
 					break
 				case 'cubic':
 					if (isSkippingCurrentLine) break
+					addMoveIfNeeded(i)
 					parts.push(
 						'C',
 						toDomPrecision(command.cp1.x),
@@ -524,10 +554,47 @@ export class PathBuilder {
 			props: { markerStart, markerEnd, ...props } = {},
 		} = opts
 
-		const parts = []
+		const parts: ReactNode[] = []
 
 		let isCurrentPathClosed = false
 		let isSkippingCurrentLine = false
+
+		let currentRun: {
+			startIdx: number
+			endIdx: number
+			isFirst: boolean
+			isLast: boolean
+			length: number
+		} | null = null
+
+		const addCurrentRun = () => {
+			if (!currentRun) return
+			const { startIdx, endIdx, isFirst, isLast, length } = currentRun
+			currentRun = null
+
+			if (startIdx === endIdx && this.commands[startIdx].type === 'move') return
+
+			const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(length, strokeWidth, {
+				style,
+				snap,
+				lengthRatio,
+				start: isFirst ? (isCurrentPathClosed ? 'none' : start) : 'outset',
+				end: isLast ? (isCurrentPathClosed ? 'none' : end) : 'outset',
+			})
+
+			const d = this.toD({ startIdx, endIdx: endIdx + 1 })
+			parts.push(
+				<path
+					key={parts.length}
+					d={d}
+					strokeDasharray={strokeDasharray}
+					strokeDashoffset={strokeDashoffset}
+					markerStart={isFirst ? markerStart : undefined}
+					markerEnd={isLast ? markerEnd : undefined}
+				/>
+			)
+		}
+
 		for (let i = 1; i < this.commands.length; i++) {
 			const command = this.commands[i]
 			const lastCommand = this.commands[i - 1]
@@ -549,61 +616,24 @@ export class PathBuilder {
 			const isFirst = lastCommand.type === 'move'
 			const isLast =
 				command.isClose || i === this.commands.length - 1 || this.commands[i + 1]?.type === 'move'
-			const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-				segmentLength,
-				strokeWidth,
-				{
-					style,
-					snap,
-					lengthRatio,
-					start: isFirst ? (isCurrentPathClosed ? 'none' : start) : 'outset',
-					end: isLast ? (isCurrentPathClosed ? 'none' : end) : 'outset',
-				}
-			)
 
-			switch (command.type) {
-				case 'line':
-					parts.push(
-						<line
-							key={i}
-							x1={toDomPrecision(lastCommand.x)}
-							y1={toDomPrecision(lastCommand.y)}
-							x2={toDomPrecision(command.x)}
-							y2={toDomPrecision(command.y)}
-							strokeDasharray={strokeDasharray}
-							strokeDashoffset={strokeDashoffset}
-							markerStart={isFirst ? markerStart : undefined}
-							markerEnd={isLast ? markerEnd : undefined}
-						/>
-					)
-					break
-				case 'cubic':
-					parts.push(
-						<path
-							key={i}
-							d={[
-								'M',
-								toDomPrecision(lastCommand.x),
-								toDomPrecision(lastCommand.y),
-								'C',
-								toDomPrecision(command.cp1.x),
-								toDomPrecision(command.cp1.y),
-								toDomPrecision(command.cp2.x),
-								toDomPrecision(command.cp2.y),
-								toDomPrecision(command.x),
-								toDomPrecision(command.y),
-							].join(' ')}
-							strokeDasharray={strokeDasharray}
-							strokeDashoffset={strokeDashoffset}
-							markerStart={isFirst ? markerStart : undefined}
-							markerEnd={isLast ? markerEnd : undefined}
-						/>
-					)
-					break
-				default:
-					exhaustiveSwitchError(command, 'type')
+			if (currentRun && command.opts?.mergeWithPrevious) {
+				currentRun.length += segmentLength
+				currentRun.endIdx = i
+				currentRun.isLast = isLast
+			} else {
+				addCurrentRun()
+				currentRun = {
+					startIdx: i,
+					endIdx: i,
+					isFirst,
+					isLast,
+					length: segmentLength,
+				}
 			}
 		}
+
+		addCurrentRun()
 
 		return (
 			<g strokeWidth={strokeWidth} {...props}>
