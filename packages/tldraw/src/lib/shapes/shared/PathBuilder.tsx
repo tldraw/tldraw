@@ -12,6 +12,7 @@ import {
 	getPerfectDashProps,
 	Group2d,
 	modulate,
+	PerfectDashTerminal,
 	rng,
 	toDomPrecision,
 	Vec,
@@ -37,8 +38,8 @@ export interface SolidPathBuilderOpts extends BasePathBuilderOpts {
 export interface DashedPathBuilderOpts extends BasePathBuilderOpts {
 	style: 'dashed' | 'dotted'
 	snap?: number
-	end?: 'skip' | 'outset' | 'none'
-	start?: 'skip' | 'outset' | 'none'
+	end?: PerfectDashTerminal
+	start?: PerfectDashTerminal
 	lengthRatio?: number
 }
 
@@ -99,6 +100,8 @@ export interface PathBuilderCommandBase {
 /** @internal */
 export interface PathBuilderLineOpts extends PathBuilderCommandOpts {
 	geometry?: Omit<Geometry2dOptions, 'isClosed'> | false
+	dashStart?: PerfectDashTerminal
+	dashEnd?: PerfectDashTerminal
 }
 
 /** @internal */
@@ -548,8 +551,6 @@ export class PathBuilder {
 			style,
 			strokeWidth,
 			snap,
-			end,
-			start,
 			lengthRatio,
 			props: { markerStart, markerEnd, ...props } = {},
 		} = opts
@@ -558,6 +559,7 @@ export class PathBuilder {
 
 		let isCurrentPathClosed = false
 		let isSkippingCurrentLine = false
+		let currentLineOpts: PathBuilderLineOpts | undefined = undefined
 
 		let currentRun: {
 			startIdx: number
@@ -565,21 +567,24 @@ export class PathBuilder {
 			isFirst: boolean
 			isLast: boolean
 			length: number
+			lineOpts: PathBuilderLineOpts | undefined
 		} | null = null
 
 		const addCurrentRun = () => {
 			if (!currentRun) return
-			const { startIdx, endIdx, isFirst, isLast, length } = currentRun
+			const { startIdx, endIdx, isFirst, isLast, length, lineOpts } = currentRun
 			currentRun = null
 
 			if (startIdx === endIdx && this.commands[startIdx].type === 'move') return
 
+			const start = lineOpts?.dashStart ?? opts.start
+			const end = lineOpts?.dashEnd ?? opts.end
 			const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(length, strokeWidth, {
 				style,
 				snap,
 				lengthRatio,
-				start: isFirst ? (isCurrentPathClosed ? 'none' : start) : 'outset',
-				end: isLast ? (isCurrentPathClosed ? 'none' : end) : 'outset',
+				start: isFirst ? (start ?? (isCurrentPathClosed ? 'outset' : 'none')) : 'outset',
+				end: isLast ? (end ?? (isCurrentPathClosed ? 'outset' : 'none')) : 'outset',
 			})
 
 			const d = this.toD({ startIdx, endIdx: endIdx + 1 })
@@ -606,6 +611,7 @@ export class PathBuilder {
 					isSkippingCurrentLine = true
 				} else {
 					isSkippingCurrentLine = false
+					currentLineOpts = command.opts
 				}
 				continue
 			}
@@ -629,6 +635,7 @@ export class PathBuilder {
 					isFirst,
 					isLast,
 					length: segmentLength,
+					lineOpts: currentLineOpts,
 				}
 			}
 		}

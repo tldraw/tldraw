@@ -210,12 +210,32 @@ function getXBoxPath(
 		.lineTo(0, h)
 		.close()
 
-	if (dash === 'dashed') {
-		path.moveTo(0, 0, { geometry: { isInternal: true, isFilled: false } }).lineTo(cx, cy)
-		path.moveTo(w, h, { geometry: { isInternal: true, isFilled: false } }).lineTo(cx, cy)
-		path.moveTo(0, h, { geometry: { isInternal: true, isFilled: false } }).lineTo(cx, cy)
-		path.moveTo(w, 0, { geometry: { isInternal: true, isFilled: false } }).lineTo(cx, cy)
+	if (dash === 'dashed' || dash === 'dotted') {
 		return path
+			.moveTo(0, 0, {
+				geometry: { isInternal: true, isFilled: false },
+				dashStart: 'skip',
+				dashEnd: 'outset',
+			})
+			.lineTo(cx, cy)
+			.moveTo(w, h, {
+				geometry: { isInternal: true, isFilled: false },
+				dashStart: 'skip',
+				dashEnd: 'outset',
+			})
+			.lineTo(cx, cy)
+			.moveTo(0, h, {
+				geometry: { isInternal: true, isFilled: false },
+				dashStart: 'skip',
+				dashEnd: 'outset',
+			})
+			.lineTo(cx, cy)
+			.moveTo(w, 0, {
+				geometry: { isInternal: true, isFilled: false },
+				dashStart: 'skip',
+				dashEnd: 'outset',
+			})
+			.lineTo(cx, cy)
 	}
 
 	const inset = dash === 'draw' ? 0.62 : 0

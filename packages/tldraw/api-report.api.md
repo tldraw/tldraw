@@ -34,6 +34,7 @@ import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
 import { Node as Node_2 } from '@tiptap/pm/model';
+import { PerfectDashTerminal } from '@tldraw/editor';
 import { PointerEvent as PointerEvent_2 } from 'react';
 import { Polygon2d } from '@tldraw/editor';
 import { Polyline2d } from '@tldraw/editor';
@@ -549,13 +550,13 @@ export function CutMenuItem(): JSX_2.Element;
 // @public (undocumented)
 export interface DashedPathBuilderOpts extends BasePathBuilderOpts {
     // (undocumented)
-    end?: 'none' | 'outset' | 'skip';
+    end?: PerfectDashTerminal;
     // (undocumented)
     lengthRatio?: number;
     // (undocumented)
     snap?: number;
     // (undocumented)
-    start?: 'none' | 'outset' | 'skip';
+    start?: PerfectDashTerminal;
     // (undocumented)
     style: 'dashed' | 'dotted';
 }
@@ -2244,6 +2245,10 @@ export class PathBuilderGeometry2d extends Geometry2d {
 
 // @internal (undocumented)
 export interface PathBuilderLineOpts extends PathBuilderCommandOpts {
+    // (undocumented)
+    dashEnd?: PerfectDashTerminal;
+    // (undocumented)
+    dashStart?: PerfectDashTerminal;
     // (undocumented)
     geometry?: false | Omit<Geometry2dOptions, 'isClosed'>;
 }
