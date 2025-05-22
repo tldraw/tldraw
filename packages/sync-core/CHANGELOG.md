@@ -1,3 +1,29 @@
+# v3.13.0 (Thu May 22 2025)
+
+### Release Notes
+
+#### Elbow arrows ([#5572](https://github.com/tldraw/tldraw/pull/5572))
+
+- The arrow shape now supports elbow arrows. Instead of a single straight line or arc, these arrows get from A to B in a series straight lines joined at right angles. Access the new arrow type by selecting the arrow tool, and choosing the new option under the "Line" style.
+
+---
+
+#### 🐛 Bug Fixes
+
+- [tlsync] Add internal hooks to expose presence changes [#6096](https://github.com/tldraw/tldraw/pull/6096) ([@ds300](https://github.com/ds300))
+
+#### 🎉 New Features
+
+- Elbow arrows [#5572](https://github.com/tldraw/tldraw/pull/5572) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+
+#### Authors: 3
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v3.11.0 (Thu Mar 20 2025)
 
 #### 🐛 Bug Fix

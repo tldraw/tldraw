@@ -1,3 +1,38 @@
+# v3.13.0 (Thu May 22 2025)
+
+### Release Notes
+
+#### a11y: address icons and handles ([#6001](https://github.com/tldraw/tldraw/pull/6001))
+
+- a11y: add labels to icons and handles
+
+#### Elbow arrows ([#5572](https://github.com/tldraw/tldraw/pull/5572))
+
+- The arrow shape now supports elbow arrows. Instead of a single straight line or arc, these arrows get from A to B in a series straight lines joined at right angles. Access the new arrow type by selecting the arrow tool, and choosing the new option under the "Line" style.
+
+---
+
+#### 🐛 Bug Fixes
+
+- Set retroactive to true for props migrators [#6036](https://github.com/tldraw/tldraw/pull/6036) ([@ds300](https://github.com/ds300))
+
+#### 💄 Product Improvements
+
+- a11y: address icons and handles [#6001](https://github.com/tldraw/tldraw/pull/6001) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🎉 New Features
+
+- Elbow arrows [#5572](https://github.com/tldraw/tldraw/pull/5572) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+
+#### Authors: 4
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
 # v3.12.0 (Tue Apr 15 2025)
 
 ### Release Notes
