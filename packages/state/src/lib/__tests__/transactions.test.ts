@@ -1,4 +1,4 @@
-import { sleep } from '@tldraw/utils'
+import { promiseWithResolve, sleep } from '@tldraw/utils'
 import { atom } from '../Atom'
 import { computed } from '../Computed'
 import { react } from '../EffectScheduler'
@@ -486,19 +486,30 @@ describe('asyncTransaction', () => {
 		expect(a.get()).toBe(2)
 	})
 
-	it('throws an error if a nested transaction ends after the outer transaction', async () => {
+	it('allows overlapping transactions', async () => {
 		const a = atom('', 0)
 
 		let txp = null
 
 		const p = asyncTransaction(async () => {
 			a.set(1)
+			const x = promiseWithResolve()
 			txp = asyncTransaction(async () => {
+				a.set(2)
+				x.resolve(null)
 				await sleep(10)
+				a.set(3)
+				return 'inner'
 			})
+			await x
+			// inner transactions leak, this can't be avoided without AsyncContext
+			// but at least we can group effects.
+			expect(a.get()).toBe(2)
+			return 'outer'
 		})
 
-		expect(p).rejects.toMatchInlineSnapshot(`[Error: Async transaction boundaries overlap]`)
-		expect(txp).rejects.toMatchInlineSnapshot(`[Error: Async transaction boundaries overlap]`)
+		await expect(p).resolves.toBe('outer')
+		await expect(txp).resolves.toBe('inner')
+		expect(a.get()).toBe(3)
 	})
 })

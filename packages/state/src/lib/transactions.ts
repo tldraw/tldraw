@@ -1,15 +1,23 @@
 import { sleep } from '@tldraw/utils'
+import assert from 'assert'
 import { _Atom } from './Atom'
 import { EffectScheduler } from './EffectScheduler'
 import { GLOBAL_START_EPOCH } from './constants'
 import { singleton } from './helpers'
 import { Child, Signal } from './types'
 
+type TransactionState = 'sync' | 'async_running' | 'async_done'
+
 class Transaction {
+	state: TransactionState
+	child: Transaction | null = null
 	constructor(
 		public readonly parent: Transaction | null,
-		public readonly isSync: boolean
-	) {}
+		isSync: boolean
+	) {
+		this.state = isSync ? 'sync' : 'async_running'
+	}
+
 	initialAtomValues = new Map<_Atom, any>()
 
 	/**
@@ -28,6 +36,12 @@ class Transaction {
 	 * @public
 	 */
 	commit() {
+		if (this.child) {
+			// wait for the child transaction to finish
+			assert(this.state === 'async_running', 'parent transaction must be async')
+			this.state = 'async_done'
+			return
+		}
 		if (inst.globalIsReacting) {
 			// if we're committing during a reaction we actually need to
 			// use the 'cleanup' reactors set to ensure we re-run effects if necessary
@@ -44,6 +58,10 @@ class Transaction {
 					this.parent!.initialAtomValues.set(atom, value)
 				}
 			})
+			if (this.parent?.state === 'async_done') {
+				this.parent.child = null
+				this.parent.commit()
+			}
 		}
 	}
 
@@ -316,7 +334,7 @@ export async function asyncTransaction<T>(fn: (rollback: () => void) => Promise<
 	// Can't kick off async transactions during a sync transaction because
 	// the async transaction won't finish until after the sync transaction
 	// is done.
-	if (inst.currentTransaction?.isSync) {
+	if (inst.currentTransaction?.state === 'sync') {
 		throw new Error('Async transactions cannot be called during a sync transaction')
 	}
 
@@ -328,6 +346,9 @@ export async function asyncTransaction<T>(fn: (rollback: () => void) => Promise<
 	}
 
 	const txn = new Transaction(inst.currentTransaction, false)
+	if (inst.currentTransaction) {
+		inst.currentTransaction.child = txn
+	}
 
 	// Set the current transaction to the transaction
 	inst.currentTransaction = txn
@@ -345,10 +366,6 @@ export async function asyncTransaction<T>(fn: (rollback: () => void) => Promise<
 			throw e
 		}
 
-		if (inst.currentTransaction !== txn) {
-			throw new Error('Async transaction boundaries overlap')
-		}
-
 		if (rollback) {
 			// If the rollback was triggered, abort the transaction.
 			txn.abort()
@@ -358,6 +375,11 @@ export async function asyncTransaction<T>(fn: (rollback: () => void) => Promise<
 
 		return result
 	} finally {
-		inst.currentTransaction = txn.parent
+		if (inst.currentTransaction === txn) {
+			inst.currentTransaction = txn.parent
+			while (inst.currentTransaction?.state === 'async_done') {
+				inst.currentTransaction = inst.currentTransaction.parent
+			}
+		}
 	}
 }
