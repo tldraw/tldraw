@@ -277,7 +277,6 @@
 .tl-container__focused:not(.tl-container__no-focus-ring) button:not(.tlui-button):focus-visible,
 .tl-container__focused:not(.tl-container__no-focus-ring) .tlui-layout__top a:focus-visible {
 	outline: 2px solid var(--color-focus);
-	outline-offset: -5px;
 }
 
 /** Switches */
@@ -286,7 +285,6 @@
 	.tla-switch:has(input:focus-visible)
 	> div {
 	outline: 2px solid var(--color-focus);
-	outline-offset: 1px;
 }
 
 /** Checkbox */
@@ -295,7 +293,6 @@
 	.tla-form-checkbox:has(input:focus-visible)
 	> label {
 	outline: 2px solid var(--color-focus);
-	outline-offset: 1px;
 }
 
 /** Comboboxes/select dropdowns */
@@ -329,5 +326,4 @@
 .tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
 	:is(nav, #tla-tabpanel-export)
 	.tla-button:not(.tlui-button):focus-visible {
-	outline-offset: 1px;
 }

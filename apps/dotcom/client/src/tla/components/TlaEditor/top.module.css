@@ -1,6 +1,6 @@
 /* ------------------- Menu Panel ------------------- */
 
-.topPanelLeft {
+.topLeftPanel {
 	flex: 0 0 auto;
 	border-top: 4px solid var(--color-background);
 	height: 44px;
@@ -18,7 +18,7 @@
 	color: var(--color-text-1);
 }
 
-.topPanelLeftButtons {
+.topLeftPanelButtons {
 	position: relative;
 	flex-shrink: 0;
 	z-index: 1;
@@ -30,31 +30,31 @@
 }
 
 @media (min-width: 768px) {
-	.topPanelLeft {
+	.topLeftPanel {
 		width: auto;
 	}
-	.topPanelLeftButtons {
+	.topLeftPanelButtons {
 		width: auto;
 	}
 }
 
-.topPanelLeft > button:nth-last-of-type(1) {
+.topLeftPanel > button:nth-last-of-type(1) {
 	position: relative;
 	flex-shrink: 0;
 	z-index: 2;
 }
 
-.topPanelSeparator {
+.topLeftPanelSeparator {
 	color: var(--color-text-3);
 	pointer-events: none;
 	padding: 0px 4px;
 }
 
-.topPanelSeparator:nth-last-of-type(1) {
+.topLeftPanelSeparator:nth-last-of-type(1) {
 	margin-right: -4px;
 }
 
-.inputWrapper {
+.topLeftInputWrapper {
 	position: relative;
 	display: flex;
 	align-items: center;
@@ -67,12 +67,12 @@
 	flex-shrink: 2;
 }
 
-.inputWrapper > * {
+.topLeftInputWrapper > * {
 	width: 100%;
 	overflow: hidden;
 }
 
-.nameWidthSetter {
+.topLeftInputNameWidthSetter {
 	position: relative;
 	z-index: 1;
 	width: fit-content;
@@ -87,7 +87,12 @@
 	font-weight: 800;
 }
 
-button.nameWidthSetter {
+.topLeftInputNameWidthSetter:focus-visible {
+	outline-offset: -4px;
+	border-radius: 8px;
+}
+
+button.topLeftInputNameWidthSetter {
 	background: none;
 	border: none;
 	padding: none;
@@ -99,14 +104,14 @@ button.nameWidthSetter {
 	color: var(--color-text-1);
 }
 
-.inputWrapper > div:nth-of-type(1) {
+.topLeftInputWrapper > div:nth-of-type(1) {
 	position: absolute;
 	z-index: 2;
 	width: 100%;
 	height: 100%;
 }
 
-.inputWrapper input {
+.topLeftInputWrapper input {
 	position: relative;
 	padding: 0px 12px 1px 12px;
 	height: 100%;
@@ -114,13 +119,13 @@ button.nameWidthSetter {
 	color: var(--color-text-1);
 }
 
-.inputWrapper input:focus-visible {
+.topLeftInputWrapper input:focus-visible {
 	outline: 1px solid var(--color-primary);
 	border-radius: 10px;
 	outline-offset: -5px;
 }
 
-.inputWrapperEditable::after {
+.topLeftInputWrapperEditable::after {
 	display: block;
 	content: '';
 	position: absolute;
@@ -129,23 +134,23 @@ button.nameWidthSetter {
 	border-radius: var(--radius-2);
 }
 
-.inputWrapperEditable button {
+.topLeftInputWrapperEditable button {
 	cursor: pointer;
 }
 
 @media (hover: hover) {
-	.inputWrapperEditable:hover:not(:focus-within)::after {
+	.topLeftInputWrapperEditable:hover:not(:focus-within)::after {
 		background-color: var(--color-muted-2);
 	}
 }
 
-/* .inputWrapper:focus-within::after {
+/* .topLeftInputWrapper:focus-within::after {
 	background-color: var(--color-muted-2);
 } */
 
-/* -------------------- Link Menu ------------------- */
+/* -------------------- Main Menu ------------------- */
 
-.linkMenu {
+.topLeftMainMenuTrigger {
 	background: none;
 	border: none;
 	position: relative;
@@ -163,7 +168,13 @@ button.nameWidthSetter {
 	margin-left: -4px;
 }
 
-.linkMenu::after {
+.topLeftMainMenuTrigger:focus-visible {
+	outline: 2px solid var(--color-focus);
+	outline-offset: -5px;
+	border-radius: 10px;
+}
+
+.topLeftMainMenuTrigger::after {
 	content: '';
 	position: absolute;
 	inset: 4px;
@@ -171,16 +182,16 @@ button.nameWidthSetter {
 }
 
 @media (hover: hover) {
-	.linkMenu:hover {
+	.topLeftMainMenuTrigger:hover {
 		color: var(--color-text-1);
 	}
 
-	.linkMenu:hover::after {
+	.topLeftMainMenuTrigger:hover::after {
 		background-color: var(--color-muted-2);
 	}
 }
 
-.linkMenu[data-state='open']::after {
+.topLeftMainMenuTrigger[data-state='open']::after {
 	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 }
 

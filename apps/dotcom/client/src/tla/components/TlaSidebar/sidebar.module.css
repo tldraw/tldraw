@@ -271,6 +271,11 @@
 	background-color: var(--tla-color-hover-1);
 }
 
+.sidebarCreateFileButton:focus-visible {
+	border-radius: 8px;
+	outline-offset: -4px;
+}
+
 @media (hover: hover) {
 	.sidebar:hover .sidebarCreateFileButton:hover::after {
 		visibility: visible;
@@ -358,7 +363,7 @@
 
 /* User settings menu */
 
-.userSettingsTrigger {
+.sidebarUserSettingsTrigger {
 	background: none;
 	border: none;
 	position: relative;
@@ -377,44 +382,49 @@
 	cursor: pointer;
 }
 
-.userSettingsTrigger::after {
+.sidebarUserSettingsTrigger:focus-visible {
+	border-radius: 10px;
+	outline-offset: -5px;
+}
+
+.sidebarUserSettingsTrigger::after {
 	inset: 2px 8px 2px 0px;
 }
 
-.userSettingsName {
+.sidebarUserSettingsName {
 	flex: 1 1 auto;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
-.userSettingsIcon {
+.sidebarUserSettingsIcon {
 	margin-right: 16px;
 	color: var(--tla-color-text-3);
 }
 
 @media (hover: hover) {
-	.userSettingsIcon {
+	.sidebarUserSettingsIcon {
 		visibility: hidden;
 	}
 
-	.userSettingsTrigger:hover .userSettingsIcon {
+	.sidebarUserSettingsTrigger:hover .sidebarUserSettingsIcon {
 		visibility: visible;
 		color: var(--tla-color-text-1);
 	}
 }
 
-.userSettingsTrigger[data-state='open']::after {
+.sidebarUserSettingsTrigger[data-state='open']::after {
 	visibility: visible;
 }
 
-.userSettingsTrigger[data-state='open'] .userSettingsIcon {
+.sidebarUserSettingsTrigger[data-state='open'] .sidebarUserSettingsIcon {
 	visibility: visible;
 }
 
 /* Help menu */
 
-.helpMenuTrigger {
+.sidebarHelpMenuTrigger {
 	height: 28px;
 	width: 28px;
 	display: flex;
@@ -429,13 +439,17 @@
 	background: none;
 }
 
-.helpMenuTrigger::after {
+.sidebarHelpMenuTrigger::after {
 	border-radius: 100%;
 	inset: 0px;
 }
 
-.helpMenuTrigger[data-state='open']::after {
+.sidebarHelpMenuTrigger[data-state='open']::after {
 	visibility: visible;
+}
+
+.sidebarHelpMenuTrigger:focus-visible {
+	outline-offset: 2px;
 }
 
 /* ---------------- File link section --------------- */
@@ -460,7 +474,7 @@
 
 /* ------------------- File links ------------------- */
 
-.sidebarFileLink {
+.sidebarFileListItem {
 	background-color: var(--tla-color-sidebar);
 	position: relative;
 	width: 100%;
@@ -471,7 +485,7 @@
 	padding: 0px 8px 0px 8px;
 }
 
-.sidebarFileLinkContent {
+.sidebarFileListItemContent {
 	flex: 1 1 auto;
 	overflow: hidden;
 	display: flex;
@@ -484,7 +498,7 @@
 	z-index: 2;
 }
 
-.sidebarFileLinkLabel {
+.sidebarFileListItemLabel {
 	flex: 1 1 auto;
 	white-space: nowrap;
 	overflow: hidden;
@@ -496,19 +510,19 @@
 	flex: 0 1 auto;
 }
 
-.sidebarFileLinkRenameInputWrapper {
+.sidebarFileListItemRenameInputWrapper {
 	background-color: var(--tla-color-sidebar);
 	outline: 1px solid var(--color-primary);
 	outline-offset: -2px;
 	border-radius: 6px;
 }
 
-.sidebarFileLinkRenameInputWrapper > div {
+.sidebarFileListItemRenameInputWrapper > div {
 	height: 36px;
 	padding: 0px 8px 0px 8px;
 }
 
-.sidebarFileLinkRenameInput {
+.sidebarFileListItemRenameInput {
 	height: 36px;
 	flex: 1 1 auto;
 	white-space: nowrap;
@@ -518,7 +532,7 @@
 	z-index: 1;
 }
 
-.sidebarFileLinkButton {
+.sidebarFileListItemButton {
 	padding: 0px;
 	background: none;
 	border: none;
@@ -532,7 +546,12 @@
 	pointer-events: all;
 }
 
-.sidebarFileLinkMenu {
+.sidebarFileListItemButton:focus-visible {
+	border-radius: 4px;
+	outline-offset: 0px;
+}
+
+.sidebarFileListItemMenuTrigger {
 	padding: 0px;
 	background: none;
 	border: none;
@@ -550,43 +569,49 @@
 	cursor: pointer;
 }
 
+.sidebarFileListItemMenuTrigger:focus-visible {
+	border-radius: 8px;
+	outline-offset: -4px;
+}
+
 @media (hover: hover) {
-	.sidebarFileLinkMenu {
+	.sidebarFileListItemMenuTrigger {
 		display: none;
 	}
 	/*
 		For guest files we show a guest icon at the end of the filename
 		but we don't want it to jump out of the way when the user hovers
 	*/
-	.sidebarFileLink[data-is-own-file='false'] .sidebarFileLinkMenu {
+	.sidebarFileListItem[data-is-own-file='false'] .sidebarFileListItemMenuTrigger {
 		visibility: hidden;
 		display: flex;
 	}
-	:global(.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))) .sidebarFileLinkMenu {
+	:global(.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring)))
+		.sidebarFileListItemMenuTrigger {
 		visibility: visible;
 		display: flex;
 	}
 
-	.sidebarFileLink .sidebarFileLinkMenu[data-state='open'],
-	.sidebarFileLink:hover .sidebarFileLinkMenu {
+	.sidebarFileListItem .sidebarFileListItemMenuTrigger[data-state='open'],
+	.sidebarFileListItem:hover .sidebarFileListItemMenuTrigger {
 		visibility: visible;
 		display: flex;
 	}
 
-	.sidebarFileLinkMenu:hover {
+	.sidebarFileListItemMenuTrigger:hover {
 		color: var(--tla-color-text-1);
 	}
 }
 
 /* Guest badge */
 
-.sidebarFileLinkGuestBadge {
+.sidebarFileListItemGuestBadge {
 	display: inline-flex;
 	pointer-events: none;
 	flex: 0 0 auto;
 }
 
-.sidebarFileLinkGuestBadgeTrigger {
+.sidebarFileListItemGuestBadgeTrigger {
 	margin-left: 4px;
 	border-radius: 50%;
 	overflow: hidden;

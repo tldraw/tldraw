@@ -53,8 +53,8 @@ export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 	usePassThroughWheelEvents(ref)
 
 	return (
-		<div ref={ref} className={classNames(styles.topPanelLeft)}>
-			<div className={classNames(styles.topPanelLeftButtons)}>
+		<div ref={ref} className={classNames(styles.topLeftPanel)}>
+			<div className={classNames(styles.topLeftPanelButtons)}>
 				{isAnonUser ? <TlaEditorTopLeftPanelAnonymous /> : <TlaEditorTopLeftPanelSignedIn />}
 			</div>
 		</div>
@@ -96,14 +96,14 @@ export function TlaEditorTopLeftPanelAnonymous() {
 			{anonFileName && (
 				<>
 					<span
-						className={styles.topPanelSeparator}
+						className={styles.topLeftPanelSeparator}
 						// undo nth-last-of-type rule in top.module.css
 						style={{ marginRight: 0 }}
 					>
 						{separator}
 					</span>
-					<div className={classNames(styles.inputWrapper)}>
-						<button className={styles.nameWidthSetter} data-testid="tla-file-name">
+					<div className={classNames(styles.topLeftInputWrapper)}>
+						<button className={styles.topLeftInputNameWidthSetter} data-testid="tla-file-name">
 							{anonFileName.replace(/ /g, '\u00a0')}
 						</button>
 					</div>
@@ -111,14 +111,18 @@ export function TlaEditorTopLeftPanelAnonymous() {
 			)}
 			{hasPages && (
 				<>
-					<span className={styles.topPanelSeparator}>{separator}</span>
+					<span className={styles.topLeftPanelSeparator}>{separator}</span>
 					<DefaultPageMenu />
 				</>
 			)}
 			<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 					<TldrawUiDropdownMenuTrigger>
-						<button className={styles.linkMenu} title={pageMenuLbl} data-testid="tla-page-menu">
+						<button
+							className={styles.topLeftMainMenuTrigger}
+							title={pageMenuLbl}
+							data-testid="tla-page-menu"
+						>
 							<TlaIcon icon="dots-vertical-strong" />
 						</button>
 					</TldrawUiDropdownMenuTrigger>
@@ -218,14 +222,18 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				onChange={isOwner ? handleFileNameChange : undefined}
 				onEnd={handleRenameEnd}
 			/>
-			<span className={styles.topPanelSeparator}>{separator}</span>
+			<span className={styles.topLeftPanelSeparator}>{separator}</span>
 			<DefaultPageMenu />
 			<TlaFileMenu
 				fileId={fileId}
 				source="file-header"
 				onRenameAction={handleRenameAction}
 				trigger={
-					<button className={styles.linkMenu} title={pageMenuLbl} data-testid="tla-page-menu">
+					<button
+						className={styles.topLeftMainMenuTrigger}
+						title={pageMenuLbl}
+						data-testid="tla-page-menu"
+					>
 						<TlaIcon icon="dots-vertical-strong" />
 					</button>
 				}
@@ -298,7 +306,12 @@ function TlaFileNameEditor({
 	}, [isRenaming, isEditing])
 
 	return (
-		<div className={classNames(styles.inputWrapper, onChange && styles.inputWrapperEditable)}>
+		<div
+			className={classNames(
+				styles.topLeftInputWrapper,
+				onChange && styles.topLeftInputWrapperEditable
+			)}
+		>
 			{isEditing ? (
 				<TlaFileNameEditorInput
 					fileName={fileName}
@@ -307,7 +320,7 @@ function TlaFileNameEditor({
 				/>
 			) : (
 				<button
-					className={styles.nameWidthSetter}
+					className={styles.topLeftInputNameWidthSetter}
 					onClick={onChange ? handleEditingStart : undefined}
 					data-testid="tla-file-name"
 				>
@@ -363,7 +376,9 @@ function TlaFileNameEditorInput({
 				autoSelect
 				autoFocus
 			/>
-			<div className={styles.nameWidthSetter}>{temporaryFileName.replace(/ /g, '\u00a0')}</div>
+			<div className={styles.topLeftInputNameWidthSetter}>
+				{temporaryFileName.replace(/ /g, '\u00a0')}
+			</div>
 		</>
 	)
 }
