@@ -132,7 +132,7 @@ ${escapeForTemplateLiteral(fetchEverythingSql)}
 
 export const columnNamesByAlias = ${JSON.stringify(columnNamesByAlias, null, 2)}
 
-export function parseResultRow(row: any) {
+export function parseResultRow(row: any): { table: keyof typeof columnNamesByAlias; row: any } {
 	const result = {} as any
 	const columnNameByAlias = columnNamesByAlias[row.table  as keyof typeof columnNamesByAlias]
 	for (const [alias, columnName] of Object.entries(columnNameByAlias)) {
