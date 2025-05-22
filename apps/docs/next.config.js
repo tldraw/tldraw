@@ -98,6 +98,11 @@ const nextConfig = {
 				permanent: true,
 			},
 			{
+				source: '/examples/state-store',
+				destination: '/examples/signals',
+				permanent: true,
+			},
+			{
 				// For backwards compatibility with renamed examples
 				source: '/examples/basic/peristence-key',
 				destination: '/examples/persistence-key',
