@@ -152,12 +152,6 @@
 	padding: 0px;
 }
 
-@media (hover: hover) {
-	.sidebarToggle:hover {
-		z-index: 100;
-	}
-}
-
 .sidebarToggle::after {
 	display: block;
 	content: '';
@@ -173,7 +167,17 @@
 	background-color: var(--tla-color-hover-1);
 }
 
+.sidebarToggle:focus-visible {
+	border-radius: 8px;
+	outline-offset: -4px;
+	outline: 2px solid var(--color-focus);
+}
+
 @media (hover: hover) {
+	.sidebarToggle:hover {
+		z-index: 100;
+	}
+
 	.sidebarToggle:hover::after {
 		visibility: visible;
 	}
