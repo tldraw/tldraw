@@ -1,7 +1,8 @@
+import { sleep } from '@tldraw/utils'
 import { atom } from '../Atom'
 import { computed } from '../Computed'
 import { react } from '../EffectScheduler'
-import { transact, transaction } from '../transactions'
+import { asyncTransaction, transact, transaction } from '../transactions'
 
 describe('transactions', () => {
 	it('should be abortable', () => {
@@ -400,4 +401,104 @@ it('should defer all side effects until the end of the outer transaction', () =>
 
 	expect(a.__unsafe__getWithoutCapture()).toBe(3)
 	expect(cChanged).toHaveBeenCalledTimes(2)
+})
+
+describe('asyncTransaction', () => {
+	it('works if kicked off during a reaction', async () => {
+		const a = atom('', 0)
+		const b = atom('', 0)
+
+		let txp: any = null
+
+		react('', () => {
+			a.get()
+			txp = asyncTransaction(async () => {
+				await sleep(1)
+				b.set(a.get() + 1)
+			})
+		})
+
+		await txp
+
+		expect(a.get()).toBe(0)
+		expect(b.get()).toBe(1)
+
+		a.set(1)
+
+		await txp
+
+		expect(a.get()).toBe(1)
+		expect(b.get()).toBe(2)
+	})
+
+	it('throws an error if kicked off during a sync transaction', async () => {
+		const a = atom('', 0)
+		let txp: any = null
+		transact(() => {
+			txp = asyncTransaction(async () => {
+				expect(a.get()).toBe(1)
+				a.set(2)
+			})
+			a.set(1)
+		})
+
+		expect(txp).rejects.toMatchInlineSnapshot(
+			`[Error: Async transactions cannot be called during a sync transaction]`
+		)
+	})
+
+	it('can have nested sync transactions', async () => {
+		const a = atom('', 0)
+
+		await asyncTransaction(async () => {
+			a.set(1)
+			transaction(() => {
+				a.set(2)
+			})
+			expect(a.get()).toBe(2)
+		})
+		expect(a.get()).toBe(2)
+	})
+
+	it('can have nested async transactions', async () => {
+		const a = atom('', 0)
+
+		await asyncTransaction(async () => {
+			a.set(1)
+			await asyncTransaction(async () => {
+				a.set(2)
+			})
+			expect(a.get()).toBe(2)
+		})
+		expect(a.get()).toBe(2)
+	})
+
+	it('allows transact to be called inside asyncTransaction', async () => {
+		const a = atom('', 0)
+
+		await asyncTransaction(async () => {
+			a.set(1)
+			transact(() => {
+				a.set(2)
+			})
+			expect(a.get()).toBe(2)
+		})
+		expect(a.get()).toBe(2)
+	})
+
+	it('throws an error if a nested transaction ends after the outer transaction', async () => {
+		const a = atom('', 0)
+
+		let txp = null
+
+		const p = asyncTransaction(async () => {
+			a.set(1)
+			txp = asyncTransaction(async () => {
+				await sleep(10)
+			})
+		})
+
+		expect(p).rejects.toMatchInlineSnapshot(`[Error: Async transaction boundaries overlap]`)
+		expect(txp).rejects.toMatchInlineSnapshot(`[Error: Async transaction boundaries overlap]`)
+	})
 })

@@ -20,6 +20,9 @@ export class ArraySet<T> {
     visit(visitor: (item: T) => void): void;
 }
 
+// @internal (undocumented)
+export function asyncTransaction<T>(fn: (rollback: () => void) => Promise<T>): Promise<T>;
+
 // @public
 export interface Atom<Value, Diff = unknown> extends Signal<Value, Diff> {
     set(value: Value, diff?: Diff): Value;

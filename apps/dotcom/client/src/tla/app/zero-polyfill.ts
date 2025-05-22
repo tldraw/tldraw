@@ -15,6 +15,7 @@ import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/syn
 import {
 	ExecutionQueue,
 	assert,
+	asyncTransaction,
 	mapObjectMapValues,
 	objectMapKeys,
 	sleep,
@@ -102,7 +103,7 @@ export class Zero {
 					const mutate = this.makeCrud(controller.signal, mutationId)
 					const query = this.makeQuery(controller.signal)
 					try {
-						await mutatorFn({ mutate, query, location: 'client' }, props)
+						await asyncTransaction(() => mutatorFn({ mutate, query, location: 'client' }, props))
 					} finally {
 						controller.abort()
 					}
