@@ -86,6 +86,12 @@ const nextConfig = {
 				permanent: true,
 			},
 			{
+				// For backwards compatibility with renamed examples
+				source: '/examples/basic/state-store',
+				destination: '/examples/signals',
+				permanent: true,
+			},
+			{
 				// For backwards compatibility with old examples links
 				source: '/examples/:categoryId/:articleId',
 				destination: '/examples/:articleId',
@@ -93,11 +99,6 @@ const nextConfig = {
 			},
 			{
 				// For backwards compatibility with renamed examples
-				source: '/examples/basic/state-store',
-				destination: '/examples/signals',
-				permanent: true,
-			},
-			{
 				source: '/examples/state-store',
 				destination: '/examples/signals',
 				permanent: true,
