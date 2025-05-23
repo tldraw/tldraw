@@ -21,13 +21,17 @@ export async function DocsSidebar({
 	if (sectionId === 'examples') {
 		const gettingStartedCategory = elements.find((v: any) => v?.url === '/examples/getting-started')
 		const collaborationCategory = elements.find((v: any) => v?.url === '/examples/collaboration')
-		const editorApiCategory = elements?.find((v: any) => v?.url === '/examples/editor-api')
-		const syncDemoExample = collaborationCategory?.children.find(
+		const editorApiCategory = elements.find((v: any) => v?.url === '/examples/editor-api')
+		const syncDemoExample = collaborationCategory.children.find(
 			(v: any) => v?.articleId === 'sync-demo'
 		)
-		const editorApiExample = editorApiCategory?.children.find((v: any) => v?.articleId === 'api')
-		gettingStartedCategory?.children.push(syncDemoExample)
-		gettingStartedCategory?.children.push(editorApiExample)
+		const editorApiExample = editorApiCategory.children.find((v: any) => v?.articleId === 'api')
+		if (!gettingStartedCategory.children.includes(syncDemoExample)) {
+			gettingStartedCategory.children.push(syncDemoExample)
+		}
+		if (!gettingStartedCategory.children.includes(editorApiExample)) {
+			gettingStartedCategory.children.push(editorApiExample)
+		}
 	}
 
 	return (

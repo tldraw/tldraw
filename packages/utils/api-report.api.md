@@ -349,6 +349,9 @@ export interface OkResult<T> {
     readonly value: T;
 }
 
+// @internal (undocumented)
+export function omit(obj: Record<string, unknown>, keys: ReadonlyArray<string>): Record<string, unknown>;
+
 // @internal
 export function omitFromStackTrace<Args extends Array<unknown>, Return>(fn: (...args: Args) => Return): (...args: Args) => Return;
 
