@@ -87,7 +87,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 
 	return (
 		<>
-			<Link to="/" className={styles.brand}>
+			<Link to="/" className={styles.topLeftOfflineLogo}>
 				<TlaIconWrapper data-size="m">
 					<TlaIcon className="tla-tldraw-sidebar-icon" icon="tldraw" />
 				</TlaIconWrapper>

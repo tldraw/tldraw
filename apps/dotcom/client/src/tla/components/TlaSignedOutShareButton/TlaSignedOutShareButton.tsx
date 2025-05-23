@@ -24,7 +24,7 @@ export function TlaSignedOutShareButton({
 			<button
 				data-testid="tla-share-button"
 				aria-label={shareLbl}
-				className={classNames(styles.signedOutShareButton)}
+				className={classNames(styles.anonShareButton)}
 				onClick={() => trackEvent('open-share-menu', { source: 'anon-top-bar' })}
 			>
 				<TlaIcon icon="share" />

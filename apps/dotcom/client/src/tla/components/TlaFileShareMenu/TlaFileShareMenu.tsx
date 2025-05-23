@@ -11,7 +11,12 @@ import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { F } from '../../utils/i18n'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
-import { TlaTabsPage, TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
+import {
+	TlaMenuTabsPage,
+	TlaMenuTabsRoot,
+	TlaMenuTabsTab,
+	TlaMenuTabsTabs,
+} from '../tla-menu/tla-menu'
 import { TlaAnonCopyLinkTab } from './Tabs/TlaAnonCopyLinkTab'
 import { TlaExportTab } from './Tabs/TlaExportTab'
 import { TlaInviteTab } from './Tabs/TlaInviteTab'
@@ -82,51 +87,51 @@ export function TlaFileShareMenu({
 				<TldrawUiPopoverTrigger>{children}</TldrawUiPopoverTrigger>
 				<TldrawUiPopoverContent side="bottom" align="end" alignOffset={-2} sideOffset={4}>
 					<div className={styles.shareMenu}>
-						<TlaTabsRoot activeTab={tabToShowAsActive} onTabChange={handleTabChange}>
-							<TlaTabsTabs>
+						<TlaMenuTabsRoot activeTab={tabToShowAsActive} onTabChange={handleTabChange}>
+							<TlaMenuTabsTabs>
 								{/* Disable share when on a scratchpad file */}
 								{okTabs.share && (
-									<TlaTabsTab id="share" data-testid="tla-share-tab-button-share">
+									<TlaMenuTabsTab id="share" data-testid="tla-share-tab-button-share">
 										<F defaultMessage="Invite" />
-									</TlaTabsTab>
+									</TlaMenuTabsTab>
 								)}
 								{okTabs['anon-share'] && (
-									<TlaTabsTab id="anon-share" data-testid="tla-share-tab-button-anon-share">
+									<TlaMenuTabsTab id="anon-share" data-testid="tla-share-tab-button-anon-share">
 										<F defaultMessage="Share" />
-									</TlaTabsTab>
+									</TlaMenuTabsTab>
 								)}
 								{/* Always show export */}
-								<TlaTabsTab id="export" data-testid="tla-share-tab-button-export">
+								<TlaMenuTabsTab id="export" data-testid="tla-share-tab-button-export">
 									<F defaultMessage="Export" />
-								</TlaTabsTab>
+								</TlaMenuTabsTab>
 								{/* Show publish tab when there's a file and either the context is a published file or the user owns the file */}
 								{okTabs.publish && (
-									<TlaTabsTab id="publish" data-testid="tla-share-tab-button-publish">
+									<TlaMenuTabsTab id="publish" data-testid="tla-share-tab-button-publish">
 										<F defaultMessage="Publish" />
-									</TlaTabsTab>
+									</TlaMenuTabsTab>
 								)}
-							</TlaTabsTabs>
+							</TlaMenuTabsTabs>
 							{okTabs.share && fileId && (
 								// We have a file and we're authenticated
-								<TlaTabsPage id="share" data-testid="tla-share-tab-page-share">
+								<TlaMenuTabsPage id="share" data-testid="tla-share-tab-page-share">
 									<TlaInviteTab fileId={fileId} />
-								</TlaTabsPage>
+								</TlaMenuTabsPage>
 							)}
 							{okTabs['anon-share'] && (
-								<TlaTabsPage id="anon-share" data-testid="tla-share-tab-page-anon-share">
+								<TlaMenuTabsPage id="anon-share" data-testid="tla-share-tab-page-anon-share">
 									<TlaAnonCopyLinkTab />
-								</TlaTabsPage>
+								</TlaMenuTabsPage>
 							)}
-							<TlaTabsPage id="export" data-testid="tla-share-tab-page-export">
+							<TlaMenuTabsPage id="export" data-testid="tla-share-tab-page-export">
 								<TlaExportTab />
-							</TlaTabsPage>
+							</TlaMenuTabsPage>
 							{/* Only show the publish tab if the file is owned by the user */}
 							{okTabs.publish && file && (
-								<TlaTabsPage id="publish" data-testid="tla-share-tab-page-publish">
+								<TlaMenuTabsPage id="publish" data-testid="tla-share-tab-page-publish">
 									<TlaPublishTab file={file} />
-								</TlaTabsPage>
+								</TlaMenuTabsPage>
 							)}
-						</TlaTabsRoot>
+						</TlaMenuTabsRoot>
 					</div>
 				</TldrawUiPopoverContent>
 			</TldrawUiPopover>

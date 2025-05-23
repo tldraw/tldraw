@@ -1,4 +1,4 @@
-.signedOutShareButton {
+.anonShareButton {
 	margin-top: 1px;
 	flex: 0 0 auto;
 	position: relative;
@@ -15,7 +15,7 @@
 	color: var(--color-text-1);
 }
 
-.signedOutShareButton::before {
+.anonShareButton::before {
 	display: block;
 	content: '';
 	position: absolute;
@@ -26,7 +26,7 @@
 }
 
 @media (hover: hover) {
-	.signedOutShareButton::after {
+	.anonShareButton::after {
 		display: block;
 		content: '';
 		position: absolute;
@@ -41,7 +41,7 @@
 		visibility: hidden;
 	}
 
-	.signedOutShareButton:hover::after {
+	.anonShareButton:hover::after {
 		visibility: visible;
 	}
 }

@@ -458,11 +458,12 @@
 
 /* ---------------- File link section --------------- */
 
-.section {
+.sidebarFileSection {
 	background: var(--tla-color-sidebar);
+	padding-top: 8px;
 }
 
-.sectionTitle {
+.sidebarFileSectionTitle {
 	position: relative;
 	width: 100%;
 	height: 36px;

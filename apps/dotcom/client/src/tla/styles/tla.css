@@ -318,12 +318,3 @@
 	.tla-primary-button:not(.tlui-button):focus-visible {
 	outline-offset: 0;
 }
-
-/**
- * omg there's two types of primary buttons
- * This is for the buttons in the Share dialog.
- */
-.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
-	:is(nav, #tla-tabpanel-export)
-	.tla-button:not(.tlui-button):focus-visible {
-}
