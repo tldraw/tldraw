@@ -98,6 +98,12 @@ const nextConfig = {
 				permanent: true,
 			},
 			{
+				// For backwards compatibility with old examples links
+				source: '/examples/:categoryId/:categoryId2/:articleId',
+				destination: '/examples/:articleId',
+				permanent: true,
+			},
+			{
 				// For backwards compatibility with renamed examples
 				source: '/examples/state-store',
 				destination: '/examples/signals',
