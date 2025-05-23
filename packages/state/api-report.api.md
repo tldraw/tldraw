@@ -90,6 +90,9 @@ export interface ComputedOptions<Value, Diff> {
     isEqual?(a: any, b: any): boolean;
 }
 
+// @internal (undocumented)
+export function deferAsyncEffects<T>(fn: () => Promise<T>): Promise<T | undefined>;
+
 // @public
 export const EffectScheduler: new <Result>(name: string, runEffect: (lastReactedEpoch: number) => Result, options?: EffectSchedulerOptions) => EffectScheduler<Result>;
 
