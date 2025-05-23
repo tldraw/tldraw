@@ -240,3 +240,58 @@ button.topLeftInputNameWidthSetter {
 		padding-right: 4px;
 	}
 }
+
+/* ------------- Signed out share button ------------ */
+
+.topRightAnonShareButton {
+	margin-top: 1px;
+	flex: 0 0 auto;
+	position: relative;
+	height: 40px;
+	width: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: none;
+	border: none;
+	position: relative;
+	cursor: pointer;
+	z-index: 1;
+	color: var(--color-text-1);
+}
+
+.topRightAnonShareButton::before {
+	display: block;
+	content: '';
+	position: absolute;
+	inset: 2px 2px;
+	border-radius: 6px;
+	z-index: 0;
+	pointer-events: none;
+}
+
+.topRightAnonShareButton::after {
+	display: block;
+	content: '';
+	position: absolute;
+	top: 4px;
+	left: 4px;
+	right: 4px;
+	bottom: 4px;
+	border-radius: 6px;
+	background-color: var(--tla-color-hover-1);
+	z-index: 0;
+	pointer-events: none;
+	visibility: hidden;
+}
+
+.topRightAnonShareButton[data-state='open']::after {
+	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+	visibility: visible;
+}
+
+@media (hover: hover) {
+	.topRightAnonShareButton:hover::after {
+		visibility: visible;
+	}
+}
