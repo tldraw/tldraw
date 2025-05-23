@@ -568,11 +568,12 @@ export class PathBuilder {
 			isLast: boolean
 			length: number
 			lineOpts: PathBuilderLineOpts | undefined
+			pathIsClosed: boolean
 		} | null = null
 
 		const addCurrentRun = () => {
 			if (!currentRun) return
-			const { startIdx, endIdx, isFirst, isLast, length, lineOpts } = currentRun
+			const { startIdx, endIdx, isFirst, isLast, length, lineOpts, pathIsClosed } = currentRun
 			currentRun = null
 
 			if (startIdx === endIdx && this.commands[startIdx].type === 'move') return
@@ -583,8 +584,8 @@ export class PathBuilder {
 				style,
 				snap,
 				lengthRatio,
-				start: isFirst ? (start ?? (isCurrentPathClosed ? 'outset' : 'none')) : 'outset',
-				end: isLast ? (end ?? (isCurrentPathClosed ? 'outset' : 'none')) : 'outset',
+				start: isFirst ? (start ?? (pathIsClosed ? 'outset' : 'none')) : 'outset',
+				end: isLast ? (end ?? (pathIsClosed ? 'outset' : 'none')) : 'outset',
 			})
 
 			const d = this.toD({ startIdx, endIdx: endIdx + 1 })
@@ -600,7 +601,7 @@ export class PathBuilder {
 			)
 		}
 
-		for (let i = 1; i < this.commands.length; i++) {
+		for (let i = 0; i < this.commands.length; i++) {
 			const command = this.commands[i]
 			const lastCommand = this.commands[i - 1]
 			if (command.type === 'move') {
@@ -636,6 +637,7 @@ export class PathBuilder {
 					isLast,
 					length: segmentLength,
 					lineOpts: currentLineOpts,
+					pathIsClosed: isCurrentPathClosed,
 				}
 			}
 		}
