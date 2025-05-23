@@ -169,12 +169,12 @@ div:has(> .menuSelectContent) {
 }
 
 .menuSelectTrigger:focus-visible {
-	height: 100%;
-	outline: 2px solid var(--color-focus);
+	outline-offset: 2px;
 	border-radius: 2px;
 }
 
 /* --------------------- Switch --------------------- */
+
 .menuSwitchContainer {
 	position: relative;
 	height: 100%;
@@ -206,7 +206,9 @@ div:has(> .menuSelectContent) {
 	position: relative;
 	border-radius: 99px;
 	background-color: var(--tla-color-text-3);
-	transition: all 0.12s;
+	transition:
+		background-color 0.12s,
+		left 0.12s;
 }
 
 .menuSwitch::after {
@@ -221,7 +223,9 @@ div:has(> .menuSelectContent) {
 	width: calc(var(--switch-h) - 4px);
 	background-color: var(--tla-color-panel);
 	pointer-events: none;
-	transition: all 0.12s;
+	transition:
+		background-color 0.12s,
+		left 0.12s;
 }
 
 .menuSwitch[data-checked='true'] {
@@ -235,6 +239,11 @@ div:has(> .menuSelectContent) {
 
 .menuSwitchDisabled .menuSwitch {
 	opacity: 0.35;
+}
+
+.menuSwitchContainer:has(input:focus-visible) > div {
+	outline-offset: 2px;
+	outline: 2px solid var(--color-focus);
 }
 
 /* ---------------------- Tabs ---------------------- */
@@ -289,8 +298,14 @@ div:has(> .menuSelectContent) {
 	visibility: visible;
 }
 
+.menuTabsTab:focus-visible {
+	outline: 2px solid var(--tla-color-focus);
+	outline-offset: -5px;
+	border-radius: 10px;
+}
+
 @media (hover: hover) {
-	.tab:not(:disabled):hover {
+	.menuTabsTab:not(:disabled):hover {
 		color: var(--tla-color-text-1);
 	}
 }

@@ -279,27 +279,12 @@
 	outline: 2px solid var(--color-focus);
 }
 
-/** Switches */
-.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
-	:is(nav, .tlui-popover__content, .tlui-dialog__overlay)
-	.tla-switch:has(input:focus-visible)
-	> div {
-	outline: 2px solid var(--color-focus);
-}
-
 /** Checkbox */
 .tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
 	:is(nav, .tlui-popover__content, .tlui-dialog__overlay)
 	.tla-form-checkbox:has(input:focus-visible)
 	> label {
 	outline: 2px solid var(--color-focus);
-}
-
-/** Comboboxes/select dropdowns */
-.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
-	:is(nav, .tlui-popover__content, .tlui-dialog__overlay)
-	button[role='combobox']:not(.tlui-button):focus-visible {
-	outline-offset: 0;
 }
 
 /** Text buttons, specifically from the cookie consent */
