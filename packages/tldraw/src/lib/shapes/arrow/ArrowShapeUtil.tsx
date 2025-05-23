@@ -481,8 +481,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override onTranslateStart(shape: TLArrowShape) {
 		const bindings = getArrowBindings(this.editor, shape)
 
-		if (shape.props.kind === 'elbow') {
-			// for arrow shapes, we can't maintain the bindings well just yet so we remove them entirely:
+		// ...if the user is dragging ONLY this arrow, for elbow shapes, we can't maintain the bindings well just yet so we remove them entirely
+		if (shape.props.kind === 'elbow' && this.editor.getOnlySelectedShapeId() === shape.id) {
 			const info = getArrowInfo(this.editor, shape)
 			if (!info) return
 			const update: TLShapePartial<TLArrowShape> = { id: shape.id, type: 'arrow', props: {} }
@@ -1177,13 +1177,13 @@ function ArrowClipPath({
 			path
 				.moveTo(labelBounds.left, labelBounds.top + radius)
 				.lineTo(labelBounds.left, labelBounds.bottom - radius)
-				.arcTo(radius, false, false, labelBounds.left + radius, labelBounds.bottom)
+				.circularArcTo(radius, false, false, labelBounds.left + radius, labelBounds.bottom)
 				.lineTo(labelBounds.right - radius, labelBounds.bottom)
-				.arcTo(radius, false, false, labelBounds.right, labelBounds.bottom - radius)
+				.circularArcTo(radius, false, false, labelBounds.right, labelBounds.bottom - radius)
 				.lineTo(labelBounds.right, labelBounds.top + radius)
-				.arcTo(radius, false, false, labelBounds.right - radius, labelBounds.top)
+				.circularArcTo(radius, false, false, labelBounds.right - radius, labelBounds.top)
 				.lineTo(labelBounds.left + radius, labelBounds.top)
-				.arcTo(radius, false, false, labelBounds.left, labelBounds.top + radius)
+				.circularArcTo(radius, false, false, labelBounds.left, labelBounds.top + radius)
 				.close()
 		}
 

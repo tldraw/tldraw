@@ -11,6 +11,7 @@ import {
 	useState,
 } from 'react'
 import { TldrawUiButton, TldrawUiIcon } from 'tldraw'
+import { defineMessages, useMsg } from '../../utils/i18n'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import {
 	TlaTooltipArrow,
@@ -20,6 +21,10 @@ import {
 	TlaTooltipTrigger,
 } from '../TlaTooltip/TlaTooltip'
 import styles from './menu.module.css'
+
+const messages = defineMessages({
+	help: { defaultMessage: 'Help' },
+})
 
 // Used to section areas of the menu, ie links vs snapshots
 export function TlaMenuSection({ children }: { children: ReactNode }) {
@@ -50,34 +55,34 @@ export function TlaMenuControlInfoTooltip({
 	onClick?(): void
 	children: ReactNode
 }) {
+	const helpMsg = useMsg(messages.help)
+
 	return (
 		<div className={styles.menuInfoTriggerContainer}>
-			<div className={styles.menuInfoTrigger}>
-				<TlaTooltipRoot>
-					<TlaTooltipTrigger dir="ltr" asChild>
-						{href ? (
-							<a
-								onClick={onClick}
-								href={href}
-								target="_blank nofollow noreferrer"
-								className={classNames(styles.menuInfoTrigger)}
-							>
-								<TldrawUiIcon icon="help-circle" small />
-							</a>
-						) : (
-							<TldrawUiButton type="icon" className={styles.menuInfoTrigger}>
-								<TldrawUiIcon icon="help-circle" small />
-							</TldrawUiButton>
-						)}
-					</TlaTooltipTrigger>
-					<TlaTooltipPortal>
-						<TlaTooltipContent>
-							{children}
-							<TlaTooltipArrow />
-						</TlaTooltipContent>
-					</TlaTooltipPortal>
-				</TlaTooltipRoot>
-			</div>
+			<TlaTooltipRoot>
+				<TlaTooltipTrigger dir="ltr" asChild>
+					{href ? (
+						<a
+							onClick={onClick}
+							href={href}
+							target="_blank nofollow noreferrer"
+							className={classNames('tlui-button tlui-button__icon', styles.menuInfoTrigger)}
+						>
+							<TldrawUiIcon label={helpMsg} icon="help-circle" small />
+						</a>
+					) : (
+						<TldrawUiButton type="icon" className={styles.menuInfoTrigger}>
+							<TldrawUiIcon label={helpMsg} icon="help-circle" small />
+						</TldrawUiButton>
+					)}
+				</TlaTooltipTrigger>
+				<TlaTooltipPortal>
+					<TlaTooltipContent>
+						{children}
+						<TlaTooltipArrow />
+					</TlaTooltipContent>
+				</TlaTooltipPortal>
+			</TlaTooltipRoot>
 		</div>
 	)
 }

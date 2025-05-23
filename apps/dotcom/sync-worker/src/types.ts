@@ -1,5 +1,6 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
+import { Queue } from '@cloudflare/workers-types'
 import type { RoomSnapshot } from '@tldraw/sync-core'
 import type { TLDrawDurableObject } from './TLDrawDurableObject'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -63,6 +64,8 @@ export interface Environment {
 	HEALTH_CHECK_BEARER_TOKEN: string | undefined
 
 	RATE_LIMITER: RateLimit
+
+	QUEUE: Queue<QueueMessage>
 }
 
 export function isDebugLogging(env: Environment) {
@@ -153,3 +156,10 @@ export type TLUserDurableObjectEvent =
 	  }
 	| { type: 'reboot_duration'; id: string; duration: number }
 	| { type: 'cold_start_time'; id: string; duration: number }
+
+export interface QueueMessage {
+	type: 'asset-upload'
+	objectName: string
+	fileId: string
+	userId: string | null
+}

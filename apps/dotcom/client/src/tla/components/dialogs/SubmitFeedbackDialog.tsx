@@ -1,7 +1,7 @@
 import { useAuth } from '@clerk/clerk-react'
 import { addBreadcrumb, withScope } from '@sentry/react'
 import { SubmitFeedbackRequestBody } from '@tldraw/dotcom-shared'
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import {
 	TldrawUiButton,
 	TldrawUiButtonLabel,
@@ -27,10 +27,10 @@ const messages = defineMessages({
 
 const descriptionKey = 'tldraw-feedback-description'
 
-export function SubmitFeedbackDialog() {
+export function SubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 	const isSignedIn = useAuth().isSignedIn
 	if (isSignedIn) {
-		return <SignedInSubmitFeedbackDialog />
+		return <SignedInSubmitFeedbackDialog onClose={onClose} />
 	}
 	return <SignedOutSubmitFeedbackDialog />
 }
@@ -66,19 +66,17 @@ function SignedOutSubmitFeedbackDialog() {
 	)
 }
 
-function SignedInSubmitFeedbackDialog() {
-	const input = useRef<HTMLTextAreaElement>(null)
-	const checkBox = useRef<HTMLInputElement>(null)
+function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
+	const rInput = useRef<HTMLTextAreaElement>(null)
 	const toasts = useToasts()
 	const intl = useIntl()
 	const onSubmit = useCallback(async () => {
-		if (!input.current?.value?.trim()) return
-		if (!checkBox.current) return
+		if (!rInput.current?.value?.trim()) return
 		fetch('/api/app/submit-feedback', {
 			method: 'POST',
 			body: JSON.stringify({
-				allowContact: checkBox.current.checked,
-				description: input.current.value.trim(),
+				allowContact: true,
+				description: rInput.current.value.trim(),
 			} satisfies SubmitFeedbackRequestBody),
 		})
 			.then((r) => {
@@ -90,16 +88,27 @@ function SignedInSubmitFeedbackDialog() {
 				addBreadcrumb({ message: 'Failed to submit feedback' })
 				withScope((scope) => {
 					console.error(e)
-					scope.setExtra('description', input.current?.value?.trim())
+					scope.setExtra('description', rInput.current?.value?.trim())
 				})
 			})
 		deleteFromLocalStorage(descriptionKey)
+		onClose()
 		toasts.addToast({
 			severity: 'success',
 			title: intl.formatMessage(messages.submitted),
 			description: intl.formatMessage(messages.thanks),
 		})
-	}, [intl, toasts])
+	}, [intl, onClose, toasts])
+
+	// Focus the input when the dialog opens, select all text
+	useEffect(() => {
+		const input = rInput.current
+		if (input) {
+			input.focus()
+			input.select()
+		}
+	}, [])
+
 	return (
 		<>
 			<TldrawUiDialogHeader>
@@ -135,7 +144,7 @@ function SignedInSubmitFeedbackDialog() {
 						setInLocalStorage(descriptionKey, e.currentTarget.value)
 					}}
 					className={styles.feedbackDialogTextArea}
-					ref={input}
+					ref={rInput}
 				/>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">

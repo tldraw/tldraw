@@ -4,8 +4,9 @@ import { useAssetUrls } from '../../context/asset-urls'
 import { TLUiIconType } from '../../icon-types'
 
 /** @public */
-export interface TLUiIconProps extends React.HTMLProps<HTMLDivElement> {
+export interface TLUiIconProps extends React.HTMLAttributes<HTMLDivElement> {
 	icon: TLUiIconType | Exclude<string, TLUiIconType>
+	label: string
 	small?: boolean
 	color?: string
 	children?: undefined
@@ -15,6 +16,7 @@ export interface TLUiIconProps extends React.HTMLProps<HTMLDivElement> {
 
 /** @public @react */
 export const TldrawUiIcon = memo(function TldrawUiIcon({
+	label,
 	small,
 	invertIcon,
 	icon,
@@ -56,6 +58,8 @@ export const TldrawUiIcon = memo(function TldrawUiIcon({
 		<div
 			{...props}
 			ref={ref}
+			aria-label={label}
+			role="img"
 			className={classNames('tlui-icon', { 'tlui-icon__small': small }, className)}
 			style={{
 				color,

@@ -560,4 +560,230 @@ test.describe('Shape Navigation', () => {
 			y: 200,
 		})
 	})
+
+	test('Container navigation (entering and exiting containers)', async ({ isMobile }) => {
+		if (isMobile) return // can't test this on mobile
+
+		// Create a frame
+		await page.keyboard.press('f')
+		await page.mouse.down()
+		await page.mouse.move(300, 300)
+		await page.mouse.up()
+
+		// Create a shape inside the frame
+		await page.keyboard.press('r')
+		await page.mouse.click(200, 200)
+		await page.keyboard.press('v')
+
+		// Navigate up to the parent (frame) with Control+Shift+Up
+		await page.keyboard.press('Control+Shift+ArrowUp')
+		expect(
+			await page.evaluate(() => {
+				const shape = editor.getOnlySelectedShape()
+				return shape && shape.type === 'frame'
+			})
+		).toBe(true)
+
+		// Navigate down to the first child with Control+Shift+Down
+		await page.keyboard.press('Control+Shift+ArrowDown')
+		expect(
+			await page.evaluate(() => {
+				const shape = editor.getOnlySelectedShape()
+				return shape && shape.type === 'geo'
+			})
+		).toBe(true)
+
+		// Now test with a group
+		// Create multiple shapes to group
+		await page.keyboard.press('v')
+		await page.keyboard.press('r')
+		await page.mouse.click(450, 200)
+		await page.keyboard.press('r')
+		await page.mouse.click(475, 200)
+
+		// Select both shapes
+		await page.keyboard.press('v')
+		await page.mouse.click(310, 50)
+		await page.mouse.down()
+		await page.mouse.move(310, 50)
+		await page.mouse.move(700, 500)
+		await page.mouse.up()
+
+		// Group them
+		await page.keyboard.press('Control+g')
+
+		// Navigate up to the group with Control+Shift+Up
+		await page.keyboard.press('Control+Shift+ArrowUp')
+		expect(
+			await page.evaluate(() => {
+				const shape = editor.getOnlySelectedShape()
+				return shape && shape.type === 'group'
+			})
+		).toBe(true)
+
+		// Navigate down to a child in the group
+		await page.keyboard.press('Control+Shift+ArrowDown')
+		expect(
+			await page.evaluate(() => {
+				const shape = editor.getOnlySelectedShape()
+				return shape && shape.type === 'geo'
+			})
+		).toBe(true)
+	})
+
+	test('Tab navigation respects container boundaries', async ({ isMobile }) => {
+		if (isMobile) return // can't test this on mobile
+
+		// Clear the canvas and reset the view
+		await page.keyboard.press('Control+a')
+		await page.keyboard.press('Backspace')
+		await page.keyboard.press('v')
+
+		// Create a frame
+		await page.keyboard.press('f')
+		await page.mouse.move(100, 100)
+		await page.mouse.down()
+		await page.mouse.move(300, 300)
+		await page.mouse.up()
+
+		// Create shapes inside the frame
+		await page.keyboard.press('r')
+		await page.mouse.click(150, 150) // Shape inside frame
+		await page.keyboard.press('r')
+		await page.mouse.click(250, 150) // Another shape inside frame
+
+		// Create shapes outside the frame
+		await page.keyboard.press('r')
+		await page.mouse.click(400, 150) // Shape outside frame
+		await page.keyboard.press('r')
+		await page.mouse.click(400, 250) // Another shape outside frame
+		await page.keyboard.press('v')
+
+		// Test 1: Tab from outside shape should only navigate between outside shapes
+		await page.mouse.click(400, 150) // Select first outside shape
+
+		// Tab to next outside shape
+		await page.keyboard.press('Tab')
+		expect(
+			await page.evaluate(() => {
+				const shape = editor.getOnlySelectedShape()!
+				return { x: Math.round(shape.x), y: Math.round(shape.y) }
+			})
+		).toMatchObject({
+			x: 100,
+			y: 100,
+		})
+
+		// Tab again should wrap around to first outside shape
+		await page.keyboard.press('Tab')
+		expect(
+			await page.evaluate(() => {
+				const shape = editor.getOnlySelectedShape()!
+				return { x: Math.round(shape.x), y: Math.round(shape.y) }
+			})
+		).toMatchObject({
+			x: 300,
+			y: 50,
+		})
+
+		// Test 2: Tab from inside shape should only navigate between shapes in the same container
+		await page.mouse.click(150, 150) // Select first inside shape
+
+		// Tab to next shape inside frame
+		await page.keyboard.press('Tab')
+		expect(
+			await page.evaluate(() => {
+				const shape = editor.getOnlySelectedShape()!
+				return { x: Math.round(shape.x), y: Math.round(shape.y) }
+			})
+		).toMatchObject({
+			x: -50,
+			y: -50,
+		})
+
+		// Tab again should wrap around to first shape inside frame
+		await page.keyboard.press('Tab')
+		expect(
+			await page.evaluate(() => {
+				const shape = editor.getOnlySelectedShape()!
+				return { x: Math.round(shape.x), y: Math.round(shape.y) }
+			})
+		).toMatchObject({
+			x: 50,
+			y: -50,
+		})
+	})
+
+	test('Tab navigation with nested containers', async ({ isMobile }) => {
+		if (isMobile) return // can't test this on mobile
+
+		// Clear the canvas and reset the view
+		await page.keyboard.press('Control+a')
+		await page.keyboard.press('Backspace')
+		await page.keyboard.press('v')
+
+		// Create an outer frame
+		await page.keyboard.press('f')
+		await page.mouse.move(100, 100)
+		await page.mouse.down()
+		await page.mouse.move(500, 400)
+		await page.mouse.up()
+
+		// Create an inner frame inside the outer frame
+		await page.keyboard.press('f')
+		await page.mouse.move(150, 150)
+		await page.mouse.down()
+		await page.mouse.move(300, 300)
+		await page.mouse.up()
+
+		// Create shapes directly inside outer frame
+		await page.keyboard.press('r')
+		await page.mouse.click(400, 200) // Shape in outer frame
+		await page.keyboard.press('r')
+		await page.mouse.click(400, 300) // Another shape in outer frame
+
+		// Create shapes inside inner frame
+		await page.keyboard.press('r')
+		await page.mouse.click(200, 200) // Shape in inner frame
+		await page.keyboard.press('r')
+		await page.mouse.click(250, 200) // Another shape in inner frame
+		await page.keyboard.press('v')
+
+		// Test: Tab from inner frame shape should only navigate within inner frame
+		await page.mouse.click(200, 200) // Select first shape in inner frame
+
+		// Tab to next shape in inner frame
+		await page.keyboard.press('Tab')
+		expect(
+			await page.evaluate(() => {
+				const shape = editor.getOnlySelectedShape()!
+				const parent = editor.getShape(shape.parentId)
+				return {
+					shapeX: Math.round(shape.x),
+					shapeY: Math.round(shape.y),
+					isInInnerFrame:
+						parent && parent.type === 'frame' && parent.parentId !== editor.getCurrentPageId(),
+				}
+			})
+		).toMatchObject({
+			shapeX: 0,
+			shapeY: -50,
+			isInInnerFrame: true,
+		})
+
+		// Tab should never select shapes from outer frame
+		await page.keyboard.press('Tab')
+		expect(
+			await page.evaluate(() => {
+				const shape = editor.getOnlySelectedShape()!
+				const parent = editor.getShape(shape.parentId)
+				return {
+					isInInnerFrame:
+						parent && parent.type === 'frame' && parent.parentId !== editor.getCurrentPageId(),
+				}
+			})
+		).toMatchObject({
+			isInInnerFrame: true,
+		})
+	})
 })

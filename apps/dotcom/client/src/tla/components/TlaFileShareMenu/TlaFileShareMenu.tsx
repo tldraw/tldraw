@@ -85,7 +85,14 @@ export function TlaFileShareMenu({
 		<div onPointerDown={preventDefault}>
 			<TldrawUiPopover id={`share-${fileId}-${source}`}>
 				<TldrawUiPopoverTrigger>{children}</TldrawUiPopoverTrigger>
-				<TldrawUiPopoverContent side="bottom" align="end" alignOffset={-2} sideOffset={4}>
+
+				<TldrawUiPopoverContent
+					side="bottom"
+					align="end"
+					alignOffset={-2}
+					sideOffset={4}
+					autoFocusFirstButton={false}
+				>
 					<div className={styles.fileShareMenu}>
 						<TlaMenuTabsRoot activeTab={tabToShowAsActive} onTabChange={handleTabChange}>
 							<TlaMenuTabsTabs>

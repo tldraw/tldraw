@@ -809,8 +809,6 @@ export class Edge2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: VecLike, B: VecLike, distance?: number): boolean;
-    // (undocumented)
     midPoint(): Vec;
     // (undocumented)
     nearestPoint(point: VecLike): Vec;
@@ -1472,10 +1470,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     screenToPage(point: VecLike): Vec;
     readonly scribbles: ScribbleManager;
     select(...shapes: TLShape[] | TLShapeId[]): this;
-    // (undocumented)
     selectAdjacentShape(direction: TLAdjacentDirection): void;
     selectAll(): this;
+    // (undocumented)
+    selectFirstChildShape(): void;
     selectNone(): this;
+    // (undocumented)
+    selectParentShape(): void;
     sendBackward(shapes: TLShape[] | TLShapeId[], opts?: {
         considerAllShapes?: boolean;
     }): this;
@@ -1800,11 +1801,11 @@ export function getIncrementedName(name: string, others: string[]): string;
 // @public (undocumented)
 export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: {
     closed?: boolean;
-    end?: 'none' | 'outset' | 'skip';
+    end?: PerfectDashTerminal;
     forceSolid?: boolean;
     lengthRatio?: number;
     snap?: number;
-    start?: 'none' | 'outset' | 'skip';
+    start?: PerfectDashTerminal;
     style?: TLDefaultDashStyle;
 }): {
     strokeDasharray: string;
@@ -1911,8 +1912,6 @@ export class Group2d extends Geometry2d {
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind(): boolean;
-    // (undocumented)
-    canTabTo(): boolean;
     // (undocumented)
     component(shape: TLGroupShape): JSX_2.Element | null;
     // (undocumented)
@@ -2319,6 +2318,9 @@ export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>
 // @public
 export function parseDeepLinkString(deepLinkString: string): TLDeepLink;
 
+// @public (undocumented)
+export type PerfectDashTerminal = 'none' | 'outset' | 'skip';
+
 // @public
 export function perimeterOfEllipse(rx: number, ry: number): number;
 
@@ -2598,7 +2600,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canCrop(_shape: Shape): boolean;
     canDropShapes(_shape: Shape, _shapes: TLShape[]): boolean;
     canEdit(_shape: Shape): boolean;
-    canEditInReadOnly(_shape: Shape): boolean;
+    canEditInReadonly(_shape: Shape): boolean;
     canReceiveNewChildrenOfType(_shape: Shape, _type: TLShape['type']): boolean;
     canResize(_shape: Shape): boolean;
     canScroll(_shape: Shape): boolean;

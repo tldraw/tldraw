@@ -31,6 +31,7 @@ function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 	const hasActions = toast.actions && toast.actions.length > 0
 
 	const icon = toast.icon || (toast.severity && SEVERITY_TO_ICON[toast.severity])
+	const iconLabel = toast.iconLabel || (toast.severity ? msg(`toast.${toast.severity}`) : '')
 
 	return (
 		<_Toast.Root
@@ -41,7 +42,7 @@ function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 		>
 			{icon && (
 				<div className="tlui-toast__icon">
-					<TldrawUiIcon icon={icon} />
+					<TldrawUiIcon label={iconLabel} icon={icon} />
 				</div>
 			)}
 			<div
