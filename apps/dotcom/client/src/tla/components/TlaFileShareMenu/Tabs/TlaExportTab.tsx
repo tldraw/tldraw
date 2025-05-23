@@ -318,11 +318,11 @@ function ExportPreviewImage() {
 	)
 
 	return (
-		<div className={styles.exportPreview}>
-			<img ref={ref} className={styles.exportPreviewInner} />
+		<div className={styles.fileShareMenuExportPreview}>
+			<img ref={ref} className={styles.fileShareMenuExportPreviewInner} />
 			<div
 				ref={rImagePreviewSize}
-				className={classNames(styles.exportPreviewSize, 'tla-text_ui__small')}
+				className={classNames(styles.fileShareMenuExportPreviewSize, 'tla-text_ui__small')}
 			/>
 		</div>
 	)

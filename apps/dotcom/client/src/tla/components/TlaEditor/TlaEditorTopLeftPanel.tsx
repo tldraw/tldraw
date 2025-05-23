@@ -368,7 +368,6 @@ function TlaFileNameEditorInput({
 	return (
 		<>
 			<TldrawUiInput
-				className={styles.nameInput}
 				value={temporaryFileName}
 				onValueChange={handleValueChange}
 				onCancel={handleCancel}
