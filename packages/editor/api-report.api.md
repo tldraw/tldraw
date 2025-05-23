@@ -809,8 +809,6 @@ export class Edge2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: VecLike, B: VecLike, distance?: number): boolean;
-    // (undocumented)
     midPoint(): Vec;
     // (undocumented)
     nearestPoint(point: VecLike): Vec;
@@ -1803,11 +1801,11 @@ export function getIncrementedName(name: string, others: string[]): string;
 // @public (undocumented)
 export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: {
     closed?: boolean;
-    end?: 'none' | 'outset' | 'skip';
+    end?: PerfectDashTerminal;
     forceSolid?: boolean;
     lengthRatio?: number;
     snap?: number;
-    start?: 'none' | 'outset' | 'skip';
+    start?: PerfectDashTerminal;
     style?: TLDefaultDashStyle;
 }): {
     strokeDasharray: string;
@@ -2319,6 +2317,9 @@ export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>
 
 // @public
 export function parseDeepLinkString(deepLinkString: string): TLDeepLink;
+
+// @public (undocumented)
+export type PerfectDashTerminal = 'none' | 'outset' | 'skip';
 
 // @public
 export function perimeterOfEllipse(rx: number, ry: number): number;

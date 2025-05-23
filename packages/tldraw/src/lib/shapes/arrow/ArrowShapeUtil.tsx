@@ -1177,13 +1177,13 @@ function ArrowClipPath({
 			path
 				.moveTo(labelBounds.left, labelBounds.top + radius)
 				.lineTo(labelBounds.left, labelBounds.bottom - radius)
-				.arcTo(radius, false, false, labelBounds.left + radius, labelBounds.bottom)
+				.circularArcTo(radius, false, false, labelBounds.left + radius, labelBounds.bottom)
 				.lineTo(labelBounds.right - radius, labelBounds.bottom)
-				.arcTo(radius, false, false, labelBounds.right, labelBounds.bottom - radius)
+				.circularArcTo(radius, false, false, labelBounds.right, labelBounds.bottom - radius)
 				.lineTo(labelBounds.right, labelBounds.top + radius)
-				.arcTo(radius, false, false, labelBounds.right - radius, labelBounds.top)
+				.circularArcTo(radius, false, false, labelBounds.right - radius, labelBounds.top)
 				.lineTo(labelBounds.left + radius, labelBounds.top)
-				.arcTo(radius, false, false, labelBounds.left, labelBounds.top + radius)
+				.circularArcTo(radius, false, false, labelBounds.left, labelBounds.top + radius)
 				.close()
 		}
 
