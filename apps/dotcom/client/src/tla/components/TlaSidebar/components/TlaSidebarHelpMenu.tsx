@@ -34,7 +34,7 @@ export function TlaSidebarHelpMenu() {
 						<TlaIcon icon="question" />
 					</button>
 				</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0} sideOffset={4}>
+				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0} sideOffset={10}>
 					<TldrawUiMenuGroup id="support">
 						<UserManualMenuItem />
 						<GiveUsFeedbackMenuItem />
