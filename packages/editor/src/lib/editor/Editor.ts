@@ -5207,13 +5207,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// Check labels first
 			if (
-				this.isShapeOfType<TLFrameShape>(shape, 'frame') ||
-				(this.isShapeOfType<TLArrowShape>(shape, 'arrow') && shape.props.text.trim()) ||
-				((this.isShapeOfType<TLNoteShape>(shape, 'note') ||
-					(this.isShapeOfType<TLGeoShape>(shape, 'geo') && shape.props.fill === 'none')) &&
-					this.getShapeUtil(shape).getText(shape)?.trim())
+				isGroup &&
+				(this.isShapeOfType<TLFrameShape>(shape, 'frame') ||
+					(this.isShapeOfType<TLArrowShape>(shape, 'arrow') && shape.props.text.trim()) ||
+					((this.isShapeOfType<TLNoteShape>(shape, 'note') ||
+						(this.isShapeOfType<TLGeoShape>(shape, 'geo') && shape.props.fill === 'none')) &&
+						this.getShapeUtil(shape).getText(shape)?.trim()))
 			) {
-				for (const childGeometry of (geometry as Group2d).children) {
+				for (const childGeometry of geometry.children) {
 					if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
 						return shape
 					}
