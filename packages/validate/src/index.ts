@@ -7,7 +7,11 @@ export {
 	ObjectValidator,
 	UnionValidator,
 	Validator,
+	type TypeOf,
 	type UnionValidatorConfig,
+	type Validatable,
+	type ValidatorFn,
+	type ValidatorUsingKnownGoodVersionFn,
 } from './lib/validation'
 export { T }
 
