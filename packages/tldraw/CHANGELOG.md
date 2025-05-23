@@ -1,3 +1,23 @@
+# v3.13.1 (Fri May 23 2025)
+
+### Release Notes
+
+#### always show elbow arrow outline ([#6124](https://github.com/tldraw/tldraw/pull/6124))
+
+- When creating elbow arrows, make sure we show the indicator for the target shape on hover.
+
+---
+
+#### 🐛 Bug Fixes
+
+- always show elbow arrow outline [#6124](https://github.com/tldraw/tldraw/pull/6124) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+---
+
 # v3.13.0 (Thu May 22 2025)
 
 ### Release Notes

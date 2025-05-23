@@ -1,3 +1,31 @@
+# v3.13.1 (Fri May 23 2025)
+
+### Release Notes
+
+#### always show elbow arrow outline ([#6124](https://github.com/tldraw/tldraw/pull/6124))
+
+- When creating elbow arrows, make sure we show the indicator for the target shape on hover.
+
+---
+
+#### 🐛 Bug Fix
+
+- Change a slideshow example title to have slightly clearer wording [#6119](https://github.com/tldraw/tldraw/pull/6119) ([@TodePond](https://github.com/TodePond))
+- Fix redirect for `shapes/tools` examples category [#6122](https://github.com/tldraw/tldraw/pull/6122) ([@TodePond](https://github.com/TodePond))
+- Fix two issues with examples refresh [#6118](https://github.com/tldraw/tldraw/pull/6118) ([@TodePond](https://github.com/TodePond))
+
+#### 🐛 Bug Fixes
+
+- `tldraw`
+  - always show elbow arrow outline [#6124](https://github.com/tldraw/tldraw/pull/6124) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+
+---
+
 # v3.13.0 (Thu May 22 2025)
 
 ### Release Notes
