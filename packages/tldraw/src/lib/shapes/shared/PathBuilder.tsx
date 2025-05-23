@@ -97,7 +97,7 @@ export interface PathBuilderCommandBase {
 	_info?: PathBuilderCommandInfo
 }
 
-/** @internal */
+/** @public */
 export interface PathBuilderLineOpts extends PathBuilderCommandOpts {
 	geometry?: Omit<Geometry2dOptions, 'isClosed'> | false
 	dashStart?: PerfectDashTerminal

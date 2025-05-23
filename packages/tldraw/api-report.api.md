@@ -2162,8 +2162,6 @@ export class PathBuilder {
     commands: PathBuilderCommand[];
     // (undocumented)
     cubicBezierTo(x: number, y: number, cp1X: number, cp1Y: number, cp2X: number, cp2Y: number, opts?: PathBuilderCommandOpts): this;
-    // Warning: (ae-incompatible-release-tags) The symbol "cubicSplineThroughPoints" is marked as @public, but its signature references "PathBuilderLineOpts" which is marked as @internal
-    //
     // (undocumented)
     static cubicSplineThroughPoints(points: VecLike[], opts?: PathBuilderLineOpts & {
         endOffsets?: number;
@@ -2172,16 +2170,12 @@ export class PathBuilder {
     getCommandInfo(): (PathBuilderCommandInfo | undefined)[];
     // @internal (undocumented)
     getCommands(): readonly PathBuilderCommand[];
-    // Warning: (ae-incompatible-release-tags) The symbol "lineThroughPoints" is marked as @public, but its signature references "PathBuilderLineOpts" which is marked as @internal
-    //
     // (undocumented)
     static lineThroughPoints(points: VecLike[], opts?: PathBuilderLineOpts & {
         endOffsets?: number;
     }): PathBuilder;
     // (undocumented)
     lineTo(x: number, y: number, opts?: PathBuilderCommandOpts): this;
-    // Warning: (ae-incompatible-release-tags) The symbol "moveTo" is marked as @public, but its signature references "PathBuilderLineOpts" which is marked as @internal
-    //
     // (undocumented)
     moveTo(x: number, y: number, opts?: PathBuilderLineOpts): this;
     // (undocumented)
@@ -2243,7 +2237,7 @@ export class PathBuilderGeometry2d extends Geometry2d {
     nearestPoint(point: VecLike, _filters?: Geometry2dFilters): Vec;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface PathBuilderLineOpts extends PathBuilderCommandOpts {
     // (undocumented)
     dashEnd?: PerfectDashTerminal;
