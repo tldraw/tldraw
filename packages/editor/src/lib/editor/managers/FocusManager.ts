@@ -58,6 +58,7 @@ export class FocusManager {
 
 	private handleKeyDown(keyEvent: KeyboardEvent) {
 		const container = this.editor.getContainer()
+		if (document.activeElement === container) return
 		if (['Tab', 'ArrowUp', 'ArrowDown'].includes(keyEvent.key)) {
 			container.classList.remove('tl-container__no-focus-ring')
 		}
