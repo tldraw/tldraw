@@ -35,8 +35,8 @@ export function QrCode({ url }: { url: string }) {
 	// todo: click qr code to... copy? big modal?
 
 	return (
-		<div className={styles.qrCode}>
-			<img ref={ref} className={styles.qrCodeInner} data-theme={theme} />
+		<div className={styles.fileShareMenuQrCode}>
+			<img ref={ref} className={styles.fileShareMenuQrCodeInner} data-theme={theme} />
 		</div>
 	)
 }

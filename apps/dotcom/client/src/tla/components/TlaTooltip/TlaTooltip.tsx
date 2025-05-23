@@ -6,7 +6,7 @@ import { useContainer } from 'tldraw'
 import style from './tooltip.module.css'
 
 export const TlaTooltipRoot: typeof _Tooltip.Root = (props) => (
-	<_Tooltip.Root delayDuration={150} {...props} />
+	<_Tooltip.Root delayDuration={150} disableHoverableContent {...props} />
 )
 
 export const TlaTooltipTrigger = _Tooltip.Trigger
@@ -26,7 +26,7 @@ export const TlaTooltipContent: typeof _Tooltip.Content = React.forwardRef((prop
 		sideOffset={4}
 		dir="ltr"
 		{...props}
-		className={classNames('tlui-menu', style.tooltip)}
+		className={style.tooltip}
 		ref={ref}
 	/>
 ))

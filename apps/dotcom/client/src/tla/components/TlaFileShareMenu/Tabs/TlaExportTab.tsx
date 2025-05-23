@@ -24,13 +24,13 @@ import {
 	updateLocalSessionState,
 } from '../../../utils/local-session-state'
 import { TlaButton } from '../../TlaButton/TlaButton'
-import { TlaSelect } from '../../TlaSelect/TlaSelect'
-import { TlaSwitch } from '../../TlaSwitch/TlaSwitch'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
 	TlaMenuControlLabel,
 	TlaMenuSection,
+	TlaMenuSelect,
+	TlaMenuSwitch,
 } from '../../tla-menu/tla-menu'
 import styles from '../file-share-menu.module.css'
 
@@ -92,7 +92,7 @@ function ExportPaddingToggle({
 			<TlaMenuControlLabel>
 				<F defaultMessage="Padding" />
 			</TlaMenuControlLabel>
-			<TlaSwitch checked={value} onChange={handleChange} />
+			<TlaMenuSwitch checked={value} onChange={handleChange} />
 		</TlaMenuControl>
 	)
 }
@@ -120,7 +120,7 @@ function ExportBackgroundToggle({
 			<TlaMenuControlLabel>
 				<F defaultMessage="Background" />
 			</TlaMenuControlLabel>
-			<TlaSwitch checked={value} onChange={handleChange} />
+			<TlaMenuSwitch checked={value} onChange={handleChange} />
 		</TlaMenuControl>
 	)
 }
@@ -150,7 +150,7 @@ function ExportFormatSelect({
 			<TlaMenuControlLabel>
 				<F defaultMessage="Export as" />
 			</TlaMenuControlLabel>
-			<TlaSelect
+			<TlaMenuSelect
 				value={value}
 				label={value === 'svg' ? 'SVG' : 'PNG'}
 				onChange={handleChange}
@@ -191,7 +191,7 @@ function ExportThemeSelect({
 			<TlaMenuControlLabel>
 				<F defaultMessage="Theme" />
 			</TlaMenuControlLabel>
-			<TlaSelect
+			<TlaMenuSelect
 				value={value}
 				label={label}
 				onChange={handleChange}
@@ -318,11 +318,11 @@ function ExportPreviewImage() {
 	)
 
 	return (
-		<div className={styles.exportPreview}>
-			<img ref={ref} className={styles.exportPreviewInner} />
+		<div className={styles.fileShareMenuExportPreview}>
+			<img ref={ref} className={styles.fileShareMenuExportPreviewInner} />
 			<div
 				ref={rImagePreviewSize}
-				className={classNames(styles.exportPreviewSize, 'tla-text_ui__small')}
+				className={classNames(styles.fileShareMenuExportPreviewSize, 'tla-text_ui__small')}
 			/>
 		</div>
 	)

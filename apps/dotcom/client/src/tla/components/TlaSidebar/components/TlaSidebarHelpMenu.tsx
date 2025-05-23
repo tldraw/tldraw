@@ -29,12 +29,12 @@ export function TlaSidebarHelpMenu() {
 					<button
 						title={msg}
 						data-testid="tla-sidebar-help-menu-trigger"
-						className={classNames(styles.helpMenuTrigger, styles.hoverable)}
+						className={classNames(styles.sidebarHelpMenuTrigger, styles.hoverable)}
 					>
 						<TlaIcon icon="question" />
 					</button>
 				</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0} sideOffset={4}>
+				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0} sideOffset={10}>
 					<TldrawUiMenuGroup id="support">
 						<UserManualMenuItem />
 						<GiveUsFeedbackMenuItem />

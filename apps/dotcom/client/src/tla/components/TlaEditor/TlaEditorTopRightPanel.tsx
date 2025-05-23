@@ -14,10 +14,10 @@ import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { F } from '../../utils/i18n'
+import { F, defineMessages, useMsg } from '../../utils/i18n'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
-import { TlaSignedOutShareButton } from '../TlaSignedOutShareButton/TlaSignedOutShareButton'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './top.module.css'
 
 export function TlaEditorTopRightPanel({
@@ -36,7 +36,7 @@ export function TlaEditorTopRightPanel({
 		return (
 			<div ref={ref} className={classNames(styles.topRightPanel)}>
 				<PeopleMenu />
-				<TlaSignedOutShareButton fileId={fileId} context={context} />
+				<SignedOutShareButton fileId={fileId} context={context} />
 				<SignInButton
 					mode="modal"
 					forceRedirectUrl={location.pathname + location.search}
@@ -132,5 +132,33 @@ function LegacyImportButton() {
 		<TlaCtaButton data-testid="tla-import-button" onClick={handleClick}>
 			<F defaultMessage="Copy to my files" />
 		</TlaCtaButton>
+	)
+}
+
+export const signedOutShareMessages = defineMessages({
+	share: { defaultMessage: 'Share' },
+})
+
+export function SignedOutShareButton({
+	fileId,
+	context,
+}: {
+	fileId?: string
+	context: 'file' | 'published-file' | 'scratch' | 'legacy'
+}) {
+	const trackEvent = useTldrawAppUiEvents()
+	const shareLbl = useMsg(signedOutShareMessages.share)
+
+	return (
+		<TlaFileShareMenu fileId={fileId} context={context} source="anon">
+			<button
+				data-testid="tla-share-button"
+				aria-label={shareLbl}
+				className={classNames(styles.topRightAnonShareButton)}
+				onClick={() => trackEvent('open-share-menu', { source: 'anon-top-bar' })}
+			>
+				<TlaIcon icon="share" />
+			</button>
+		</TlaFileShareMenu>
 	)
 }

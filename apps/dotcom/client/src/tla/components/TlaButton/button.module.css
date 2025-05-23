@@ -132,3 +132,9 @@
 		background-color: var(--color-muted-2);
 	}
 }
+
+.button:focus-visible {
+	outline: 2px solid var(--tla-color-focus);
+	outline-offset: 2px;
+	border-radius: var(--tla-radius-2);
+}

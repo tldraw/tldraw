@@ -11,6 +11,7 @@
 	width: fit-content;
 	text-align: center;
 	z-index: 500;
+	pointer-events: none;
 }
 
 .tooltipArrow {

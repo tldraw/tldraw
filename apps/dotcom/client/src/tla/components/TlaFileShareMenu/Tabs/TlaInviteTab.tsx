@@ -9,14 +9,14 @@ import { useTldrawUser } from '../../../hooks/useUser'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
-import { TlaSelect } from '../../TlaSelect/TlaSelect'
-import { TlaSwitch } from '../../TlaSwitch/TlaSwitch'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
 	TlaMenuControlInfoTooltip,
 	TlaMenuControlLabel,
 	TlaMenuSection,
+	TlaMenuSelect,
+	TlaMenuSwitch,
 } from '../../tla-menu/tla-menu'
 import { QrCode } from '../QrCode'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
@@ -81,7 +81,7 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: stri
 			>
 				<F defaultMessage="Learn more about sharing." />
 			</TlaMenuControlInfoTooltip>
-			<TlaSwitch
+			<TlaMenuSwitch
 				data-testid="shared-link-shared-switch"
 				checked={!!isShared}
 				onChange={handleToggleShared}
@@ -121,7 +121,7 @@ function TlaSelectSharedLinkType({ isShared, fileId }: { isShared: boolean; file
 			<TlaMenuControlLabel>
 				<F defaultMessage="Anyone with the link" />
 			</TlaMenuControlLabel>
-			<TlaSelect
+			<TlaMenuSelect
 				data-testid="shared-link-type-select"
 				label={label}
 				value={!isShared ? 'no-access' : sharedLinkType!}

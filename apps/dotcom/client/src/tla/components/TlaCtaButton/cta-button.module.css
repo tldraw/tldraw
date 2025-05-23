@@ -16,6 +16,11 @@
 	cursor: pointer;
 }
 
+.ctaButton:focus-visible {
+	outline-offset: 2px;
+	border-radius: 6px;
+}
+
 .ctaButton > span {
 	position: relative;
 	color: #ffffff;

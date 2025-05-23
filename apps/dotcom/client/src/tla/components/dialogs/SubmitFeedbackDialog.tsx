@@ -110,7 +110,7 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 	}, [])
 
 	return (
-		<div className={styles.feedbackDialog}>
+		<>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
 					<F defaultMessage="Send feedback" />
@@ -159,6 +159,6 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 					</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			</TldrawUiDialogFooter>
-		</div>
+		</>
 	)
 }

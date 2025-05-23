@@ -8,12 +8,12 @@ import {
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { F } from '../../utils/i18n'
-import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
 	TlaMenuControlInfoTooltip,
 	TlaMenuControlLabel,
+	TlaMenuSwitch,
 } from '../tla-menu/tla-menu'
 import styles from './dialogs.module.css'
 
@@ -53,7 +53,7 @@ export function TlaManageCookiesDialog() {
 							<TlaMenuControlInfoTooltip>
 								<F defaultMessage="We use these cookies to save your files and settings." />
 							</TlaMenuControlInfoTooltip>
-							<TlaSwitch checked={true} disabled />
+							<TlaMenuSwitch checked={true} disabled />
 						</TlaMenuControl>
 						<TlaMenuControl>
 							<TlaMenuControlLabel>
@@ -62,7 +62,7 @@ export function TlaManageCookiesDialog() {
 							<TlaMenuControlInfoTooltip>
 								<F defaultMessage="We use analytics cookies to make tldraw better." />
 							</TlaMenuControlInfoTooltip>
-							<TlaSwitch
+							<TlaMenuSwitch
 								checked={!!app.getUser().allowAnalyticsCookie}
 								onChange={() => {
 									app.updateUser({ id: user.id, allowAnalyticsCookie: !user.allowAnalyticsCookie })
