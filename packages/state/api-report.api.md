@@ -20,9 +20,6 @@ export class ArraySet<T> {
     visit(visitor: (item: T) => void): void;
 }
 
-// @internal (undocumented)
-export function asyncTransaction<T>(fn: (rollback: () => void) => Promise<T>): Promise<T>;
-
 // @public
 export interface Atom<Value, Diff = unknown> extends Signal<Value, Diff> {
     set(value: Value, diff?: Diff): Value;
@@ -92,6 +89,9 @@ export interface ComputedOptions<Value, Diff> {
     historyLength?: number;
     isEqual?(a: any, b: any): boolean;
 }
+
+// @internal (undocumented)
+export function deferAsyncEffects<T>(fn: () => Promise<T>): Promise<T | undefined>;
 
 // @public
 export const EffectScheduler: new <Result>(name: string, runEffect: (lastReactedEpoch: number) => Result, options?: EffectSchedulerOptions) => EffectScheduler<Result>;

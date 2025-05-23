@@ -1,22 +1,16 @@
 import { sleep } from '@tldraw/utils'
-import assert from 'assert'
 import { _Atom } from './Atom'
 import { EffectScheduler } from './EffectScheduler'
 import { GLOBAL_START_EPOCH } from './constants'
 import { singleton } from './helpers'
 import { Child, Signal } from './types'
 
-type TransactionState = 'sync' | 'async_running' | 'async_done'
-
 class Transaction {
-	state: TransactionState
-	child: Transaction | null = null
+	asyncProcessCount = 0
 	constructor(
 		public readonly parent: Transaction | null,
-		isSync: boolean
-	) {
-		this.state = isSync ? 'sync' : 'async_running'
-	}
+		public readonly isSync: boolean
+	) {}
 
 	initialAtomValues = new Map<_Atom, any>()
 
@@ -36,12 +30,6 @@ class Transaction {
 	 * @public
 	 */
 	commit() {
-		if (this.child) {
-			// wait for the child transaction to finish
-			assert(this.state === 'async_running', 'parent transaction must be async')
-			this.state = 'async_done'
-			return
-		}
 		if (inst.globalIsReacting) {
 			// if we're committing during a reaction we actually need to
 			// use the 'cleanup' reactors set to ensure we re-run effects if necessary
@@ -58,10 +46,6 @@ class Transaction {
 					this.parent!.initialAtomValues.set(atom, value)
 				}
 			})
-			if (this.parent?.state === 'async_done') {
-				this.parent.child = null
-				this.parent.commit()
-			}
 		}
 	}
 
@@ -330,12 +314,12 @@ export function transact<T>(fn: () => T): T {
 /**
  * @internal
  */
-export async function asyncTransaction<T>(fn: (rollback: () => void) => Promise<T>) {
+export async function deferAsyncEffects<T>(fn: () => Promise<T>) {
 	// Can't kick off async transactions during a sync transaction because
 	// the async transaction won't finish until after the sync transaction
 	// is done.
-	if (inst.currentTransaction?.state === 'sync') {
-		throw new Error('Async transactions cannot be called during a sync transaction')
+	if (inst.currentTransaction?.isSync) {
+		throw new Error('deferAsyncEffects cannot be called during a sync transaction')
 	}
 
 	// Can't kick off async transactions during a reaction phase at the moment,
@@ -345,41 +329,42 @@ export async function asyncTransaction<T>(fn: (rollback: () => void) => Promise<
 		await sleep(0)
 	}
 
-	const txn = new Transaction(inst.currentTransaction, false)
-	if (inst.currentTransaction) {
-		inst.currentTransaction.child = txn
+	const txn = inst.currentTransaction ?? new Transaction(null, false)
+
+	// don't think this can happen, but just in case
+	if (txn.isSync) throw new Error('deferAsyncEffects cannot be called during a sync transaction')
+
+	inst.currentTransaction = txn
+	txn.asyncProcessCount++
+
+	let result = undefined as T | undefined
+
+	let error = undefined as any
+	try {
+		// Run the function.
+		result = await fn()
+	} catch (e) {
+		// Abort the transaction if the function throws.
+		error = e ?? null
 	}
 
-	// Set the current transaction to the transaction
-	inst.currentTransaction = txn
-
-	try {
-		let result = undefined as T | undefined
-		let rollback = false
-
-		try {
-			// Run the function.
-			result = await fn(() => (rollback = true))
-		} catch (e) {
-			// Abort the transaction if the function throws.
-			txn.abort()
-			throw e
-		}
-
-		if (rollback) {
+	if (--txn.asyncProcessCount > 0) {
+		if (typeof error !== 'undefined') {
 			// If the rollback was triggered, abort the transaction.
-			txn.abort()
+			throw error
 		} else {
-			txn.commit()
+			return result
 		}
+	}
 
+	inst.currentTransaction = null
+
+	if (typeof error !== 'undefined') {
+		// If the rollback was triggered, abort the transaction.
+		txn.abort()
+		throw error
+	} else {
+		txn.commit()
 		return result
-	} finally {
-		if (inst.currentTransaction === txn) {
-			inst.currentTransaction = txn.parent
-			while (inst.currentTransaction?.state === 'async_done') {
-				inst.currentTransaction = inst.currentTransaction.parent
-			}
-		}
 	}
 }
