@@ -44,30 +44,19 @@ describe('PathBuilder', () => {
 			<g
 			  strokeWidth={1}
 			>
-			  <line
-			    strokeDasharray="2.04887651767585 2.10913759172514"
-			    strokeDashoffset="1"
-			    x1={0}
-			    x2={100}
-			    y1={0}
-			    y2={100}
+			  <path
+			    d="M 0 0 L 100 100"
+			    strokeDasharray="2.034590803390136 2.0944317093721985"
+			    strokeDashoffset="0"
 			  />
-			  <line
+			  <path
+			    d="M 100 100 L 100 0"
 			    strokeDasharray="2.04 2.125"
 			    strokeDashoffset="1"
-			    x1={100}
-			    x2={100}
-			    y1={100}
-			    y2={0}
 			  />
 			  <path
-			    d="M 100 0 C 72.3858 -27.6142 27.6142 -27.6142 0 0"
-			    strokeDasharray="2.0194230261740254 2.094216471587878"
-			    strokeDashoffset="1"
-			  />
-			  <path
-			    d="M 0 0 C -27.6142 27.6142 -27.6142 72.3858 0 100"
-			    strokeDasharray="2.0194230261740245 2.094216471587877"
+			    d="M 100 0 C 72.3858 -27.6142 27.6142 -27.6142 0 0 C -27.6142 27.6142 -27.6142 72.3858 0 100"
+			    strokeDasharray="2.028867081195371 2.0664386938101"
 			    strokeDashoffset="1"
 			  />
 			</g>
@@ -84,39 +73,25 @@ describe('PathBuilder', () => {
 			<g
 			  strokeWidth={1}
 			>
-			  <line
+			  <path
+			    d="M 0 0 L 100 100"
 			    strokeDasharray="2.04887651767585 2.10913759172514"
 			    strokeDashoffset="1"
-			    x1={0}
-			    x2={100}
-			    y1={0}
-			    y2={100}
 			  />
-			  <line
+			  <path
+			    d="M 100 100 L 100 0"
 			    strokeDasharray="2.04 2.125"
 			    strokeDashoffset="1"
-			    x1={100}
-			    x2={100}
-			    y1={100}
-			    y2={0}
 			  />
 			  <path
-			    d="M 100 0 C 72.3858 -27.6142 27.6142 -27.6142 0 0"
-			    strokeDasharray="2.0194230261740254 2.094216471587878"
+			    d="M 100 0 C 72.3858 -27.6142 27.6142 -27.6142 0 0 C -27.6142 27.6142 -27.6142 72.3858 0 100"
+			    strokeDasharray="2.001565883316882 2.03795799028628"
 			    strokeDashoffset="1"
 			  />
 			  <path
-			    d="M 0 0 C -27.6142 27.6142 -27.6142 72.3858 0 100"
-			    strokeDasharray="2.0194230261740245 2.094216471587877"
-			    strokeDashoffset="1"
-			  />
-			  <line
+			    d="M 0 100 L 0 0"
 			    strokeDasharray="2.0399999999999996 2.1249999999999996"
 			    strokeDashoffset="1"
-			    x1={-0}
-			    x2={0}
-			    y1={100}
-			    y2={0}
 			  />
 			</g>
 		`)
