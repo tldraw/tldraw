@@ -505,8 +505,8 @@ export async function defaultHandleExternalTextContent(
 		align = isRtl ? 'end' : 'start'
 	} else {
 		// autosize is fine
-		w = rawSize.w
-		h = rawSize.h
+		w = Math.max(rawSize.w, 10)
+		h = Math.max(rawSize.h, 10)
 		autoSize = true
 	}
 
