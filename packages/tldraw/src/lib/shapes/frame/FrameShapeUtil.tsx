@@ -352,6 +352,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	override onResize(shape: any, info: TLResizeInfo<any>) {
 		return resizeBox(shape, info)
 	}
+
 	override getInterpolatedProps(
 		startShape: TLFrameShape,
 		endShape: TLFrameShape,

@@ -7,6 +7,7 @@ import {
 	SelectionEdge,
 	StateNode,
 	TLFrameShape,
+	TLGroupShape,
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
@@ -353,7 +354,10 @@ export class Resizing extends StateNode {
 			})
 		}
 
-		if (this.editor.inputs.ctrlKey) {
+		// If there's only one shape snapshot and it's a frame and the user is holding ctrl,
+		// then we preserve the position of the frame's children, almost like the user is cropping
+		// the frame rather than resizing it.
+		if (this.editor.inputs.ctrlKey && shapeSnapshots.size === 1 && frames.length === 1) {
 			this.didHoldCommand = true
 
 			for (const { id, children } of frames) {
@@ -362,7 +366,6 @@ export class Resizing extends StateNode {
 				const current = this.editor.getShape(id)!
 				if (!(initial && current)) continue
 
-				// If the user is holding ctrl, then preseve the position of the frame's children
 				const dx = current.x - initial.x
 				const dy = current.y - initial.y
 
@@ -442,13 +445,14 @@ export class Resizing extends StateNode {
 	}
 
 	_createSnapshot() {
-		const selectedShapeIds = this.editor.getSelectedShapeIds()
-		const selectionRotation = this.editor.getSelectionRotation()
+		const { editor } = this
+		const selectedShapeIds = editor.getSelectedShapeIds()
+		const selectionRotation = editor.getSelectionRotation()
 		const {
 			inputs: { originPagePoint },
-		} = this.editor
+		} = editor
 
-		const selectionBounds = this.editor.getSelectionRotatedPageBounds()!
+		const selectionBounds = editor.getSelectionRotatedPageBounds()!
 
 		if (!selectionBounds) throw Error('Resizing but nothing is selected')
 
@@ -464,33 +468,37 @@ export class Resizing extends StateNode {
 
 		const frames: { id: TLShapeId; children: TLShape[] }[] = []
 
+		const oneSelected = selectedShapeIds.length === 1
+
 		selectedShapeIds.forEach((id) => {
-			const shape = this.editor.getShape(id)
-			if (shape) {
-				if (shape.type === 'frame') {
-					frames.push({
-						id,
-						children: compact(
-							this.editor.getSortedChildIdsForParent(shape).map((id) => this.editor.getShape(id))
-						),
-					})
-				}
-				shapeSnapshots.set(shape.id, this._createShapeSnapshot(shape))
-				if (
-					this.editor.isShapeOfType<TLFrameShape>(shape, 'frame') &&
-					selectedShapeIds.length === 1
-				)
-					return
-				this.editor.visitDescendants(shape.id, (descendantId) => {
-					const descendent = this.editor.getShape(descendantId)
-					if (descendent) {
-						shapeSnapshots.set(descendent.id, this._createShapeSnapshot(descendent))
-						if (this.editor.isShapeOfType<TLFrameShape>(descendent, 'frame')) {
-							return false
-						}
-					}
+			const shape = editor.getShape(id)
+			if (!shape) return
+
+			// Add the shape to the snapshots
+			shapeSnapshots.set(shape.id, this._createShapeSnapshot(shape))
+
+			if (editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
+				// Add frames to the list of frames
+				frames.push({
+					id,
+					children: compact(
+						editor.getSortedChildIdsForParent(shape).map((id) => editor.getShape(id))
+					),
 				})
+				if (oneSelected) return
 			}
+
+			// Visit all descendants of the shape and add them to the snapshots
+			editor.visitDescendants(shape.id, (descendantId) => {
+				const descendent = editor.getShape(descendantId)
+				if (!descendent) return false
+
+				// For group shapes, we can skip adding them to the snapshots but continue collecting descendants
+				if (editor.isShapeOfType<TLGroupShape>(descendantId, 'group')) return
+
+				// Otherwise, add the descendent to the snapshots and continue recursively visiting its children
+				shapeSnapshots.set(descendent.id, this._createShapeSnapshot(descendent))
+			})
 		})
 
 		const canShapesDeform = ![...shapeSnapshots.values()].some(
