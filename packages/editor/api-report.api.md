@@ -1573,7 +1573,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         src: string;
     }>;
     readonly user: UserPreferencesManager;
-    visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
+    visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId, parentShape: TLShape | undefined) => false | void): this;
     zoomIn(point?: Vec, opts?: TLCameraMoveOptions): this;
     zoomOut(point?: Vec, opts?: TLCameraMoveOptions): this;
     zoomToBounds(bounds: BoxLike, opts?: {
