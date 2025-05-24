@@ -11,6 +11,7 @@ export interface TLVideoShapeProps {
 	h: number
 	time: number
 	playing: boolean
+	autoplay: boolean
 	url: string
 	assetId: TLAssetId | null
 	altText: string
@@ -25,6 +26,7 @@ export const videoShapeProps: RecordProps<TLVideoShape> = {
 	h: T.nonZeroNumber,
 	time: T.number,
 	playing: T.boolean,
+	autoplay: T.boolean,
 	url: T.linkUrl,
 	assetId: assetIdValidator.nullable(),
 	altText: T.string,
@@ -34,6 +36,7 @@ const Versions = createShapePropsMigrationIds('video', {
 	AddUrlProp: 1,
 	MakeUrlsValid: 2,
 	AddAltText: 3,
+	AddAutoplay: 4,
 })
 
 export { Versions as videoShapeVersions }
@@ -66,6 +69,15 @@ export const videoShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				delete props.altText
+			},
+		},
+		{
+			id: Versions.AddAutoplay,
+			up: (props) => {
+				props.autoplay = true
+			},
+			down: (props) => {
+				delete props.autoplay
 			},
 		},
 	],
