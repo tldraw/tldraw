@@ -255,6 +255,7 @@ export const DEFAULT_TRANSLATION = {
 	'tool.aspect-ratio.wide': 'Wide (16:9)',
 	'tool.image-toolbar-title': 'Image tools',
 	'tool.image-crop': 'Crop image',
+	'tool.image-download': 'Download original image',
 	'tool.image-alt-text': 'Alt',
 	'tool.image-alt-text-desc': 'Describe the image…',
 	'tool.image-alt-text-confirm': 'Confirm',
