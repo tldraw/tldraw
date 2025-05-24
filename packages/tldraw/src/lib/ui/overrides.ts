@@ -1,5 +1,14 @@
-import { Editor, objectMapEntries } from '@tldraw/editor'
-import { useMemo } from 'react'
+import {
+	AssetRecordType,
+	DEFAULT_SUPPORTED_MEDIA_TYPES,
+	Editor,
+	TLImageShape,
+	getHashForBuffer,
+	objectMapEntries,
+	useMaybeEditor,
+} from '@tldraw/editor'
+import { useCallback, useMemo } from 'react'
+import { getMediaAssetInfoPartial } from '../defaultExternalContentHandlers'
 import { PORTRAIT_BREAKPOINT } from './constants'
 import { ActionsProviderProps, TLUiActionsContextType } from './context/actions'
 import { useBreakpoint } from './context/breakpoints'
@@ -9,18 +18,85 @@ import { useMenuClipboardEvents } from './hooks/useClipboardEvents'
 import { useCopyAs } from './hooks/useCopyAs'
 import { useExportAs } from './hooks/useExportAs'
 import { useGetEmbedDefinition } from './hooks/useGetEmbedDefinition'
-import { useInsertMedia } from './hooks/useInsertMedia'
+import { getLocalFiles } from './hooks/useInsertMedia'
 import { usePrint } from './hooks/usePrint'
 import { TLUiToolsContextType, TLUiToolsProviderProps } from './hooks/useTools'
 import { TLUiTranslationProviderProps, useTranslation } from './hooks/useTranslation/useTranslation'
 
 /** @public */
 export function useDefaultHelpers() {
+	const editor = useMaybeEditor()
 	const { addToast, removeToast, clearToasts } = useToasts()
 	const { addDialog, clearDialogs, removeDialog } = useDialogs()
 
 	const msg = useTranslation()
-	const insertMedia = useInsertMedia()
+
+	const insertMedia = useCallback(async () => {
+		if (!editor) return
+		const files = await getLocalFiles({
+			allowMultiple: true,
+			mimeTypes: DEFAULT_SUPPORTED_MEDIA_TYPES,
+		})
+		if (!files.length) return
+		editor.markHistoryStoppingPoint('insert media')
+		editor.putExternalContent({
+			type: 'files',
+			files,
+			point: editor.getViewportPageBounds().center,
+		})
+	}, [editor])
+
+	const replaceImage = useCallback(async () => {
+		if (!editor) return
+		const files = await getLocalFiles({
+			allowMultiple: false,
+			mimeTypes: DEFAULT_SUPPORTED_MEDIA_TYPES,
+		})
+		if (!files.length) return
+		const shape = editor.getOnlySelectedShape()
+		if (!shape || shape.type !== 'image') return
+
+		editor.markHistoryStoppingPoint('replace media')
+
+		const file = files[0]
+		const hash = getHashForBuffer(await file.arrayBuffer())
+		const assetId = AssetRecordType.createId(hash)
+		editor.createTemporaryAssetPreview(assetId, file)
+		const assetInfoPartial = await getMediaAssetInfoPartial(
+			file,
+			assetId,
+			true /* isImage */,
+			false /* isVideo */
+		)
+		editor.createAssets([assetInfoPartial])
+
+		// And update the shape
+		editor.updateShapes<TLImageShape>([
+			{
+				id: shape.id,
+				type: shape.type,
+				props: {
+					assetId: assetId,
+					crop: { topLeft: { x: 0, y: 0 }, bottomRight: { x: 1, y: 1 } },
+					w: assetInfoPartial.props.w,
+					h: assetInfoPartial.props.h,
+				},
+			},
+		])
+
+		const asset = await editor.getAssetForExternalContent({ type: 'file', file, assetId })
+
+		if (!asset) {
+			return
+		}
+
+		editor.updateAssets([{ ...asset, id: assetId }])
+	}, [editor])
+
+	const downloadMedia = useCallback(async () => {
+		// todo
+	}, [])
+
 	const printSelectionOrPages = usePrint()
 	const { cut, copy, paste } = useMenuClipboardEvents()
 	const copyAs = useCopyAs()
@@ -42,6 +118,8 @@ export function useDefaultHelpers() {
 			msg,
 			isMobile,
 			insertMedia,
+			downloadMedia,
+			replaceImage,
 			printSelectionOrPages,
 			cut,
 			copy,
@@ -60,6 +138,8 @@ export function useDefaultHelpers() {
 			msg,
 			isMobile,
 			insertMedia,
+			replaceImage,
+			downloadMedia,
 			printSelectionOrPages,
 			cut,
 			copy,

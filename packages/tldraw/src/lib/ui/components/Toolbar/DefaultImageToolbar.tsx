@@ -15,42 +15,38 @@ export const DefaultImageToolbar = track(function DefaultImageToolbar({
 	children,
 }: TLUiImageToolbarProps) {
 	const editor = useEditor()
-	const imageShape = useValue(
+	const imageShapeId = useValue(
 		'imageShape',
-		() => (editor.getOnlySelectedShape()?.type === 'image' ? editor.getOnlySelectedShape() : null),
+		() => {
+			const onlySelectedShape = editor.getOnlySelectedShape()
+			if (!onlySelectedShape || onlySelectedShape.type !== 'image') return null
+			return onlySelectedShape.id
+		},
 		[editor]
 	)
-	const showToolbar = editor.isInAny('select.idle', 'select.pointing_shape', 'select.crop')
-	if (!imageShape || !showToolbar) return null
 
-	return (
-		<ContextualToolbarInner imageShape={imageShape as TLImageShape}>
-			{children}
-		</ContextualToolbarInner>
-	)
+	const showToolbar = editor.isInAny('select.idle', 'select.pointing_shape', 'select.crop')
+	if (!imageShapeId || !showToolbar) return null
+
+	return <ContextualToolbarInner imageShapeId={imageShapeId}>{children}</ContextualToolbarInner>
 })
 
 function ContextualToolbarInner({
 	children,
-	imageShape,
+	imageShapeId,
 }: {
 	children?: React.ReactNode
-	imageShape: TLImageShape
+	imageShapeId: TLImageShape['id']
 }) {
 	const editor = useEditor()
 	const msg = useTranslation()
 
-	const isInCropTool = useValue('editor path', () => editor.isIn('select.crop.'), [editor])
+	const isEditingImage = useValue('editor path', () => editor.isIn('select.crop.idle'), [editor])
 	const isCropping = useValue('editor path', () => editor.isIn('select.crop.cropping'), [editor])
-	const handleManipulatingEnd = useCallback(() => editor.setCurrentTool('select.idle'), [editor])
 
 	const [isEditingAltText, setIsEditingAltText] = useState(false)
 	const handleEditAltTextStart = useCallback(() => setIsEditingAltText(true), [])
-	const handleManipulatingStart = useCallback(
-		() => editor.setCurrentTool('select.crop.idle'),
-		[editor]
-	)
-	const onEditAltTextComplete = useCallback(() => setIsEditingAltText(false), [])
+	const onEditAltTextClose = useCallback(() => setIsEditingAltText(false), [])
 
 	const getSelectionBounds = useCallback(() => {
 		const fullBounds = editor.getSelectionScreenBounds()
@@ -58,7 +54,7 @@ function ContextualToolbarInner({
 		return new Box(fullBounds.x, fullBounds.y, fullBounds.width, 0)
 	}, [editor])
 
-	if (isCropping) return null
+	if (!isEditingImage || isCropping) return null
 
 	return (
 		<TldrawUiContextualToolbar
@@ -69,18 +65,11 @@ function ContextualToolbarInner({
 			{children ? (
 				children
 			) : isEditingAltText ? (
-				<AltTextEditor
-					imageShape={imageShape}
-					value={imageShape.props.altText}
-					onComplete={onEditAltTextComplete}
-				/>
+				<AltTextEditor shapeId={imageShapeId} onClose={onEditAltTextClose} />
 			) : (
 				<DefaultImageToolbarContent
-					imageShape={imageShape}
-					isManipulating={isInCropTool}
+					imageShapeId={imageShapeId}
 					onEditAltTextStart={handleEditAltTextStart}
-					onManipulatingStart={handleManipulatingStart}
-					onManipulatingEnd={handleManipulatingEnd}
 				/>
 			)}
 		</TldrawUiContextualToolbar>

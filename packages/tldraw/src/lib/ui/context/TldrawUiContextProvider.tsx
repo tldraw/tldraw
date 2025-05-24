@@ -1,7 +1,6 @@
 import { RecursivePartial, defaultUserPreferences, track, useMaybeEditor } from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { TLUiAssetUrls, useDefaultUiAssetUrlsWithOverrides } from '../assetUrls'
-import { MimeTypeContext } from '../hooks/useInsertMedia'
 import { ToolsProvider } from '../hooks/useTools'
 import { TldrawUiTranslationProvider } from '../hooks/useTranslation/useTranslation'
 import { TLUiOverrides, useMergedOverrides, useMergedTranslationOverrides } from '../overrides'
@@ -45,11 +44,6 @@ export interface TLUiContextProviderProps {
 	 * The component's children.
 	 */
 	children?: ReactNode
-
-	/**
-	 * Supported mime types for media files.
-	 */
-	mediaMimeTypes?: string[]
 }
 
 /** @public @react */
@@ -59,7 +53,6 @@ export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 	assetUrls,
 	onUiEvent,
 	forceMobile,
-	mediaMimeTypes,
 	children,
 }: TLUiContextProviderProps) {
 	// To allow mounting the sidebar without an editor running, we use a 'maybe' editor here
@@ -67,28 +60,26 @@ export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 	// but we are overriding the providers to allow them to be used without an editor.
 	const editor = useMaybeEditor()
 	return (
-		<MimeTypeContext.Provider value={mediaMimeTypes}>
-			<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(assetUrls)}>
-				<TldrawUiTranslationProvider
-					overrides={useMergedTranslationOverrides(overrides)}
-					locale={editor?.user.getLocale() ?? defaultUserPreferences.locale}
-				>
-					<TldrawUiEventsProvider onEvent={onUiEvent}>
-						<TldrawUiToastsProvider>
-							<TldrawUiDialogsProvider context={'tla'}>
-								<TldrawUiA11yProvider>
-									<BreakPointProvider forceMobile={forceMobile}>
-										<TldrawUiComponentsProvider overrides={components}>
-											<InternalProviders overrides={overrides}>{children}</InternalProviders>
-										</TldrawUiComponentsProvider>
-									</BreakPointProvider>
-								</TldrawUiA11yProvider>
-							</TldrawUiDialogsProvider>
-						</TldrawUiToastsProvider>
-					</TldrawUiEventsProvider>
-				</TldrawUiTranslationProvider>
-			</AssetUrlsProvider>
-		</MimeTypeContext.Provider>
+		<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(assetUrls)}>
+			<TldrawUiTranslationProvider
+				overrides={useMergedTranslationOverrides(overrides)}
+				locale={editor?.user.getLocale() ?? defaultUserPreferences.locale}
+			>
+				<TldrawUiEventsProvider onEvent={onUiEvent}>
+					<TldrawUiToastsProvider>
+						<TldrawUiDialogsProvider context={'tla'}>
+							<TldrawUiA11yProvider>
+								<BreakPointProvider forceMobile={forceMobile}>
+									<TldrawUiComponentsProvider overrides={components}>
+										<InternalProviders overrides={overrides}>{children}</InternalProviders>
+									</TldrawUiComponentsProvider>
+								</BreakPointProvider>
+							</TldrawUiA11yProvider>
+						</TldrawUiDialogsProvider>
+					</TldrawUiToastsProvider>
+				</TldrawUiEventsProvider>
+			</TldrawUiTranslationProvider>
+		</AssetUrlsProvider>
 	)
 })
 

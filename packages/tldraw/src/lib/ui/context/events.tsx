@@ -122,6 +122,8 @@ export interface TLUiEventMap {
 	'open-url': { url: string }
 	'adjust-shape-styles': null
 	'copy-link': null
+	'image-download': null
+	'image-replace': null
 	'rich-text': {
 		operation:
 			| 'bold'

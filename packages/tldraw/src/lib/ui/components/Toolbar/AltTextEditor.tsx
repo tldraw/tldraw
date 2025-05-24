@@ -1,4 +1,4 @@
-import { preventDefault, TLImageShape, useEditor } from '@tldraw/editor'
+import { preventDefault, TLShape, useEditor } from '@tldraw/editor'
 import { useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -8,35 +8,40 @@ import { TldrawUiInput } from '../primitives/TldrawUiInput'
 
 /** @public */
 export interface AltTextEditorProps {
-	imageShape: TLImageShape
-	value: string
-	onComplete(): void
+	shapeId: TLShape['id']
+	onClose(): void
 }
 
 /** @public @react */
-export function AltTextEditor({ imageShape, value: initialValue, onComplete }: AltTextEditorProps) {
+export function AltTextEditor({ shapeId, onClose }: AltTextEditorProps) {
 	const editor = useEditor()
-	const [altText, setAltText] = useState(initialValue)
+
+	const [altText, setAltText] = useState(() => {
+		const shape = editor.getShape<TLShape>(shapeId)
+		if (!shape) return ''
+		if (!('altText' in shape.props)) throw Error('Shape does not have altText property')
+		return shape.props.altText || ''
+	})
+
 	const msg = useTranslation()
 	const ref = useRef<HTMLInputElement>(null)
 	const trackEvent = useUiEvents()
 
 	const handleValueChange = (value: string) => setAltText(value)
 
-	const handleComplete = () => {
+	const handleCompleteOrCancel = () => {
 		trackEvent('set-alt-text', { source: 'image-menu' })
+		const shape = editor.getShape<TLShape & { props: { altText: string } }>(shapeId)
+		if (!shape) return
 		editor.updateShapes([
 			{
-				id: imageShape.id,
-				type: imageShape.type,
+				id: shape.id,
+				type: shape.type,
 				props: { altText },
 			},
 		])
-		onComplete()
+		onClose()
 	}
-
-	const handleConfirm = () => handleComplete()
-	const handleAltTextCancel = () => onComplete()
 
 	useEffect(() => {
 		if (!altText) {
@@ -53,14 +58,14 @@ export function AltTextEditor({ imageShape, value: initialValue, onComplete }: A
 				value={altText}
 				placeholder={msg('tool.image-alt-text-desc')}
 				onValueChange={handleValueChange}
-				onComplete={handleComplete}
-				onCancel={handleAltTextCancel}
+				onComplete={handleCompleteOrCancel}
+				onCancel={onClose}
 			/>
 			<TldrawUiButton
 				title={msg('tool.image-alt-text-confirm')}
 				type="icon"
 				onPointerDown={preventDefault}
-				onClick={handleConfirm}
+				onClick={handleCompleteOrCancel}
 			>
 				<TldrawUiButtonIcon small icon="check" />
 			</TldrawUiButton>

@@ -1565,6 +1565,26 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					}
 				},
 			},
+			{
+				id: 'image-download',
+				label: 'action.image-download',
+				icon: 'send-to-back',
+				readonlyOk: false,
+				onSelect: async (source) => {
+					trackEvent('image-download', { source })
+					helpers.downloadMedia()
+				},
+			},
+			{
+				id: 'image-replace',
+				label: 'action.image-replace',
+				icon: 'image',
+				readonlyOk: false,
+				onSelect: async (source) => {
+					trackEvent('image-replace', { source })
+					helpers.replaceImage()
+				},
+			},
 		]
 
 		if (showCollaborationUi) {
