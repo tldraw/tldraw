@@ -408,6 +408,7 @@ export {
 	SharedStyleMap,
 	type SharedStyle,
 } from './lib/utils/SharedStylesMap'
+export { areShapesContentEqual } from './lib/utils/areShapesContentEqual'
 export { dataUrlToFile, getDefaultCdnBaseUrl } from './lib/utils/assets'
 export { clampToBrowserMaxCanvasSize, type CanvasMaxSize } from './lib/utils/browserCanvasMaxSize'
 export {

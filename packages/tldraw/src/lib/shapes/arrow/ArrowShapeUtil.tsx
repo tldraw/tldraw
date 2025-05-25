@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Arc2d,
 	Box,
@@ -27,6 +28,7 @@ import {
 	TLShapeUtilCanvasSvgDef,
 	Vec,
 	WeakCache,
+	areShapesContentEqual,
 	arrowShapeMigrations,
 	arrowShapeProps,
 	clamp,
@@ -42,10 +44,11 @@ import {
 	track,
 	useEditor,
 	useIsEditing,
+	useQuickReactor,
 	useSharedSafeId,
 	useValue,
 } from '@tldraw/editor'
-import React, { useMemo } from 'react'
+import React, { memo, useMemo, useRef, useState } from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 import { PathBuilder } from '../shared/PathBuilder'
 import { PlainTextLabel } from '../shared/PlainTextLabel'
@@ -742,57 +745,41 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	component(shape: TLArrowShape) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const theme = useDefaultColorTheme()
-		const onlySelectedShape = this.editor.getOnlySelectedShape()
-		const shouldDisplayHandles =
-			this.editor.isInAny(
-				'select.idle',
-				'select.pointing_handle',
-				'select.dragging_handle',
-				'select.translating',
-				'arrow.dragging'
-			) && !this.editor.getIsReadonly()
+		const { editor } = this
 
-		const info = getArrowInfo(this.editor, shape)
-		if (!info?.isValid) return null
+		const shouldDisplayHandles = useValue(
+			'showing handles',
+			() =>
+				editor.getOnlySelectedShape()?.id === shape.id &&
+				editor.isInAny(
+					'select.idle',
+					'select.pointing_handle',
+					'select.dragging_handle',
+					'select.translating',
+					'arrow.dragging'
+				) &&
+				!editor.getIsReadonly(),
+			[editor]
+		)
 
-		const labelPosition = getArrowLabelPosition(this.editor, shape)
-		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const isEditing = this.editor.getEditingShapeId() === shape.id
-		const showArrowLabel = isEditing || shape.props.text
+		const showArrowLabel = useValue(
+			'show arrow label',
+			() => shape.props.text || editor.getEditingShapeId() === shape.id,
+			[shape.id]
+		)
+
+		const isValid = useValue('is valid', () => getArrowInfo(editor, shape), [editor])
+		if (!isValid) return null
 
 		return (
 			<>
 				<SVGContainer style={{ minWidth: 50, minHeight: 50 }}>
-					<ArrowSvg
-						shape={shape}
-						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape?.id === shape.id}
-					/>
+					<ArrowSvg shape={shape} shouldDisplayHandles={shouldDisplayHandles} />
 					{shape.props.kind === 'elbow' && debugFlags.debugElbowArrows.get() && (
 						<ElbowArrowDebug arrow={shape} />
 					)}
 				</SVGContainer>
-				{showArrowLabel && (
-					<PlainTextLabel
-						shapeId={shape.id}
-						classNamePrefix="tl-arrow"
-						type="arrow"
-						font={shape.props.font}
-						fontSize={getArrowLabelFontSize(shape)}
-						lineHeight={TEXT_PROPS.lineHeight}
-						align="middle"
-						verticalAlign="middle"
-						text={shape.props.text}
-						labelColor={theme[shape.props.labelColor].solid}
-						textWidth={labelPosition.box.w - ARROW_LABEL_PADDING * 2 * shape.props.scale}
-						isSelected={isSelected}
-						padding={0}
-						style={{
-							transform: `translate(${labelPosition.box.center.x}px, ${labelPosition.box.center.y}px)`,
-						}}
-					/>
-				)}
+				{showArrowLabel && <ArrowLabel shape={shape} />}
 			</>
 		)
 	}
@@ -1253,3 +1240,63 @@ function anglesAreApproximatelyParallel(a: number, b: number, tolerance = 0.0001
 
 	return { isParallel: isParallel || is360Parallel, isFlippedParallel }
 }
+
+// Unlike the shape itself, `getArrowLabelPosition` will fire whenever the shape changes, even if the only thing that changes about the shape
+// is its x and y position. For this reason, we use a quick reactor to avoid unnecessary re-renders. This is generally a weakness of helpers that
+// receive the "whole shape" as an argument, because the "whole shape" will be captured and cause unnecessary re-renders; however the alternative,
+// which is to extract out the specific parts of the shape that we need, is more of a hassle. We could consider adding a comparison function to
+// `useValue` so as to better control when that hook fires.
+function useCarefulLabelPosition(shape: TLArrowShape) {
+	const editor = useEditor()
+	const [position, setPosition] = useState(() => getArrowLabelPosition(editor, shape))
+	const rPrev = useRef(position)
+
+	useQuickReactor(
+		'label position',
+		() => {
+			const newPosition = getArrowLabelPosition(editor, shape)
+			if (!Vec.Equals(rPrev.current.box.center, newPosition.box.center)) {
+				setPosition(newPosition)
+				rPrev.current = newPosition
+			}
+		},
+		[editor, shape]
+	)
+
+	return position
+}
+
+const ArrowLabel = memo(
+	function ArrowLabel({ shape }: { shape: TLArrowShape }) {
+		const editor = useEditor()
+		const theme = useDefaultColorTheme()
+		const isSelected = useValue(
+			'is selected',
+			() => editor.getSelectedShapeIds().includes(shape.id),
+			[shape.id]
+		)
+		const labelPosition = useCarefulLabelPosition(shape)
+
+		return (
+			<PlainTextLabel
+				shapeId={shape.id}
+				classNamePrefix="tl-arrow"
+				type="arrow"
+				font={shape.props.font}
+				fontSize={getArrowLabelFontSize(shape)}
+				lineHeight={TEXT_PROPS.lineHeight}
+				align="middle"
+				verticalAlign="middle"
+				text={shape.props.text}
+				labelColor={theme[shape.props.labelColor].solid}
+				textWidth={labelPosition.box.w - ARROW_LABEL_PADDING * 2 * shape.props.scale}
+				isSelected={isSelected}
+				padding={0}
+				style={{
+					transform: `translate(${labelPosition.box.center.x}px, ${labelPosition.box.center.y}px)`,
+				}}
+			/>
+		)
+	},
+	(prev, next) => areShapesContentEqual(prev.shape, next.shape)
+)

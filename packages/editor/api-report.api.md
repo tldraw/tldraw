@@ -146,6 +146,9 @@ export class Arc2d extends Geometry2d {
 // @public
 export function areAnglesCompatible(a: number, b: number): boolean;
 
+// @public
+export const areShapesContentEqual: (a: TLShape, b: TLShape) => boolean;
+
 // @public (undocumented)
 export function average(A: VecLike, B: VecLike): string;
 
