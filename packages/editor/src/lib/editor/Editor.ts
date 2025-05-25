@@ -4631,12 +4631,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const context = opts?.context ?? 'none'
 		if (!this._shapeGeometryCaches[context]) {
 			this._shapeGeometryCaches[context] = this.store.createComputedCache(
-				'bounds',
+				'shape geometry',
 				(shape) => {
+					console.log('getting shape geometry')
 					this.fonts.trackFontsForShape(shape)
 					return this.getShapeUtil(shape).getGeometry(shape, opts)
 				},
-				{ areRecordsEqual: areShapesContentEqual }
+				{
+					areRecordsEqual: (a, b) => {
+						return areShapesContentEqual(a, b)
+					},
+				}
 			)
 		}
 		return this._shapeGeometryCaches[context].get(
@@ -4665,7 +4670,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const context = opts?.context ?? 'none'
 		if (!this._shapePageGeometryCaches[context]) {
 			this._shapePageGeometryCaches[context] = this.store.createComputedCache(
-				'bounds',
+				'shape page geometry',
 				(shape) => {
 					const geometry = this.getShapeGeometry(shape.id, opts)
 					const pageTransform = this.getShapePageTransform(shape.id)
