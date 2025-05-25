@@ -222,10 +222,16 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 
 		try {
 			startCapturingParents(this)
+			if (this.name === 'arrow body geometry') {
+				console.log('deriving arrow body geometry for', this.state, this.lastCheckedEpoch)
+			}
 			const result = this.derive(this.state, this.lastCheckedEpoch)
 			const newState = result instanceof WithDiff ? result.value : result
 			const isUninitialized = this.state === UNINITIALIZED
 			if (isUninitialized || !this.isEqual(newState, this.state)) {
+				if (this.name === 'arrow body geometry') {
+					console.log('doing work...')
+				}
 				if (this.historyBuffer && !isUninitialized) {
 					const diff = result instanceof WithDiff ? result.diff : undefined
 					this.historyBuffer.pushEntry(

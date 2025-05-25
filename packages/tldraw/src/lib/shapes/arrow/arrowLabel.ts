@@ -59,6 +59,10 @@ const labelSizeCache = createComputedCache(
 		let width = 0
 		let height = 0
 
+		if (!shape.props.text) {
+			return new Vec(0, 0)
+		}
+
 		const bodyGeom = arrowBodyGeometryCache.get(editor, shape.id)!
 		// We use 'i' as a default label to measure against as a minimum width.
 		const text = shape.props.text || 'i'
