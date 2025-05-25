@@ -51,6 +51,7 @@ import {
 	TLUserPreferences,
 	transact,
 } from 'tldraw'
+import { trackEvent } from '../../utils/analytics'
 import { MULTIPLAYER_SERVER, ZERO_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
@@ -374,6 +375,7 @@ export class TldrawApp {
 	}
 
 	private showMaxFilesToast() {
+		trackEvent('max-files-reached')
 		this.toasts?.addToast({
 			title: this.getIntl().formatMessage(this.messages.max_files_title),
 			description: this.getIntl().formatMessage(this.messages.max_files_reached),
@@ -425,11 +427,11 @@ export class TldrawApp {
 			lastVisitAt: null,
 		}
 		this.z.mutate.file.insertWithFileState({ file, fileState })
+
 		// todo: add server error handling for real Zero
 		// .server.catch((res: { error: string; details: string }) => {
-		// 	if (res.details === ZErrorCode.max_files_reached) {
-		// 		this.showMaxFilesToast()
-		// 	}
+		// 	console.log('toooo many')
+		// 	trackEvent('max-files-reached')
 		// })
 
 		return Result.ok({ file })
