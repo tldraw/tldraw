@@ -811,6 +811,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		)
 
 		if (skipState) return null
+
 		return <ArrowIndicator shape={shape} />
 	}
 
