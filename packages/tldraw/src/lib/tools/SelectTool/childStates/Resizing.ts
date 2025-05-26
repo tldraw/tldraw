@@ -468,37 +468,71 @@ export class Resizing extends StateNode {
 
 		const frames: { id: TLShapeId; children: TLShape[] }[] = []
 
-		const oneSelected = selectedShapeIds.length === 1
+		const onlyOneSelected = selectedShapeIds.length === 1
 
-		selectedShapeIds.forEach((id) => {
-			const shape = editor.getShape(id)
-			if (!shape) return
+		const populateResizingShapes = (
+			shapeId: TLShapeId,
+			parentShape?: TLShape
+		): false | undefined => {
+			const shape = editor.getShape(shapeId)
+			if (!shape) return false
 
-			// Add the shape to the snapshots
-			shapeSnapshots.set(shape.id, this._createShapeSnapshot(shape))
+			const util = editor.getShapeUtil(shape)
 
-			if (editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
-				// Add frames to the list of frames
-				frames.push({
-					id,
-					children: compact(
-						editor.getSortedChildIdsForParent(shape).map((id) => editor.getShape(id))
-					),
-				})
-				if (oneSelected) return
+			let keepDescending = true
+			let resizeShape = util.canResize(shape)
+
+			if (resizeShape) {
+				// For group shapes, we can skip adding them to the snapshots but continue collecting descendants
+				if (editor.isShapeOfType<TLGroupShape>(shapeId, 'group')) {
+					keepDescending = true
+					resizeShape = false
+				} else {
+					if (editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
+						frames.push({
+							id: shape.id,
+							children: compact(
+								editor.getSortedChildIdsForParent(shape).map((id) => editor.getShape(id))
+							),
+						})
+						keepDescending = !onlyOneSelected
+						resizeShape = true
+					} else {
+						// If the shape is not a frame, but the PARENT is a frame, skip it
+						if (parentShape && editor.isShapeOfType<TLFrameShape>(parentShape, 'frame')) {
+							keepDescending = true
+							resizeShape = false
+						}
+					}
+				}
+
+				if (resizeShape) {
+					// Add it to the resizing shapes snapshots
+					const pageTransform = this.editor.getShapePageTransform(shape)
+					if (pageTransform) {
+						shapeSnapshots.set(shape.id, {
+							shape,
+							bounds: this.editor.getShapeGeometry(shape).bounds,
+							pageTransform,
+							pageRotation: Mat.Decompose(pageTransform!).rotation,
+							isAspectRatioLocked: util.isAspectRatioLocked(shape),
+						})
+					} else {
+						// throw an error, probably
+					}
+				}
 			}
 
-			// Visit all descendants of the shape and add them to the snapshots
-			editor.visitDescendants(shape.id, (descendantId) => {
-				const descendent = editor.getShape(descendantId)
-				if (!descendent) return false
+			if (!keepDescending || !util.canResizeChildren(shape)) {
+				// This will stop the traversal of descendants
+				return false
+			}
+		}
 
-				// For group shapes, we can skip adding them to the snapshots but continue collecting descendants
-				if (editor.isShapeOfType<TLGroupShape>(descendantId, 'group')) return
-
-				// Otherwise, add the descendent to the snapshots and continue recursively visiting its children
-				shapeSnapshots.set(descendent.id, this._createShapeSnapshot(descendent))
-			})
+		selectedShapeIds.forEach((shapeId) => {
+			const keepDescending = populateResizingShapes(shapeId, editor.getShapeParent(shapeId))
+			if (keepDescending === false) return
+			editor.visitDescendants(shapeId, populateResizingShapes)
 		})
 
 		const canShapesDeform = ![...shapeSnapshots.values()].some(

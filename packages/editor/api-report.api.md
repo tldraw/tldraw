@@ -1573,7 +1573,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         src: string;
     }>;
     readonly user: UserPreferencesManager;
-    visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId, parentShape: TLShape | undefined) => false | void): this;
+    visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId, parentShape?: TLShape) => false | void): this;
     zoomIn(point?: Vec, opts?: TLCameraMoveOptions): this;
     zoomOut(point?: Vec, opts?: TLCameraMoveOptions): this;
     zoomToBounds(bounds: BoxLike, opts?: {
@@ -2603,6 +2603,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canEditInReadonly(_shape: Shape): boolean;
     canReceiveNewChildrenOfType(_shape: Shape, _type: TLShape['type']): boolean;
     canResize(_shape: Shape): boolean;
+    canResizeChildren(_shape: Shape): boolean;
     canScroll(_shape: Shape): boolean;
     canSnap(_shape: Shape): boolean;
     canTabTo(_shape: Shape): boolean;

@@ -5794,7 +5794,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	visitDescendants(
 		parent: TLParentId | TLPage | TLShape,
-		visitor: (id: TLShapeId, parentShape: TLShape | undefined) => void | false
+		visitor: (id: TLShapeId, parentShape?: TLShape) => void | false
 	): this {
 		const parentId = typeof parent === 'string' ? parent : parent.id
 		const children = this.getSortedChildIdsForParent(parentId)
