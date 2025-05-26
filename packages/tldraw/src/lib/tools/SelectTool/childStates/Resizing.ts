@@ -7,7 +7,6 @@ import {
 	SelectionEdge,
 	StateNode,
 	TLFrameShape,
-	TLGroupShape,
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
@@ -18,6 +17,7 @@ import {
 	VecLike,
 	areAnglesCompatible,
 	compact,
+	isAccelKey,
 } from '@tldraw/editor'
 import { kickoutOccludedShapes } from '../selectHelpers'
 
@@ -239,7 +239,7 @@ export class Resizing extends StateNode {
 		//                            │
 		//                   cursorHandleOffset.x
 
-		const { ctrlKey } = this.editor.inputs
+		const isHoldingAccel = isAccelKey(this.editor.inputs)
 
 		const currentPagePoint = this.editor.inputs.currentPagePoint
 			.clone()
@@ -248,7 +248,7 @@ export class Resizing extends StateNode {
 
 		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
 
-		if (this.editor.getInstanceState().isGridMode && !ctrlKey) {
+		if (this.editor.getInstanceState().isGridMode && !isHoldingAccel) {
 			const { gridSize } = this.editor.getDocumentSettings()
 			currentPagePoint.snapToGrid(gridSize)
 		}
@@ -258,7 +258,7 @@ export class Resizing extends StateNode {
 
 		this.editor.snaps.clearIndicators()
 
-		const shouldSnap = this.editor.user.getIsSnapMode() ? !ctrlKey : ctrlKey
+		const shouldSnap = this.editor.user.getIsSnapMode() ? !isHoldingAccel : isHoldingAccel
 
 		if (shouldSnap && selectionRotation % HALF_PI === 0) {
 			const { nudge } = this.editor.snaps.shapeBounds.snapResizeShapes({
@@ -357,7 +357,7 @@ export class Resizing extends StateNode {
 		// If there's only one shape snapshot and it's a frame and the user is holding ctrl,
 		// then we preserve the position of the frame's children, almost like the user is cropping
 		// the frame rather than resizing it.
-		if (this.editor.inputs.ctrlKey && shapeSnapshots.size === 1 && frames.length === 1) {
+		if (isHoldingAccel) {
 			this.didHoldCommand = true
 
 			for (const { id, children } of frames) {
@@ -383,6 +383,7 @@ export class Resizing extends StateNode {
 				}
 			}
 		} else if (this.didHoldCommand) {
+			// If we're no longer holding the command key...
 			this.didHoldCommand = false
 
 			for (const { children } of frames) {
@@ -468,69 +469,45 @@ export class Resizing extends StateNode {
 
 		const frames: { id: TLShapeId; children: TLShape[] }[] = []
 
-		const onlyOneSelected = selectedShapeIds.length === 1
-
-		const populateResizingShapes = (
-			shapeId: TLShapeId,
-			parentShape?: TLShape
-		): false | undefined => {
+		const populateResizingShapes = (shapeId: TLShapeId): false | undefined => {
 			const shape = editor.getShape(shapeId)
 			if (!shape) return false
 
+			if (editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
+				frames.push({
+					id: shape.id,
+					children: compact(
+						editor.getSortedChildIdsForParent(shape).map((id) => editor.getShape(id))
+					),
+				})
+			}
+
 			const util = editor.getShapeUtil(shape)
 
-			let keepDescending = true
-			let resizeShape = util.canResize(shape)
-
-			if (resizeShape) {
-				// For group shapes, we can skip adding them to the snapshots but continue collecting descendants
-				if (editor.isShapeOfType<TLGroupShape>(shapeId, 'group')) {
-					keepDescending = true
-					resizeShape = false
+			if (util.canResize(shape)) {
+				// Add it to the resizing shapes snapshots
+				const pageTransform = this.editor.getShapePageTransform(shape)
+				if (pageTransform) {
+					shapeSnapshots.set(shape.id, {
+						shape,
+						bounds: this.editor.getShapeGeometry(shape).bounds,
+						pageTransform,
+						pageRotation: Mat.Decompose(pageTransform!).rotation,
+						isAspectRatioLocked: util.isAspectRatioLocked(shape),
+					})
 				} else {
-					if (editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
-						frames.push({
-							id: shape.id,
-							children: compact(
-								editor.getSortedChildIdsForParent(shape).map((id) => editor.getShape(id))
-							),
-						})
-						keepDescending = !onlyOneSelected
-						resizeShape = true
-					} else {
-						// If the shape is not a frame, but the PARENT is a frame, skip it
-						if (parentShape && editor.isShapeOfType<TLFrameShape>(parentShape, 'frame')) {
-							keepDescending = true
-							resizeShape = false
-						}
-					}
-				}
-
-				if (resizeShape) {
-					// Add it to the resizing shapes snapshots
-					const pageTransform = this.editor.getShapePageTransform(shape)
-					if (pageTransform) {
-						shapeSnapshots.set(shape.id, {
-							shape,
-							bounds: this.editor.getShapeGeometry(shape).bounds,
-							pageTransform,
-							pageRotation: Mat.Decompose(pageTransform!).rotation,
-							isAspectRatioLocked: util.isAspectRatioLocked(shape),
-						})
-					} else {
-						// throw an error, probably
-					}
+					// throw an error, probably
 				}
 			}
 
-			if (!keepDescending || !util.canResizeChildren(shape)) {
+			if (!util.canResizeChildren(shape)) {
 				// This will stop the traversal of descendants
 				return false
 			}
 		}
 
 		selectedShapeIds.forEach((shapeId) => {
-			const keepDescending = populateResizingShapes(shapeId, editor.getShapeParent(shapeId))
+			const keepDescending = populateResizingShapes(shapeId)
 			if (keepDescending === false) return
 			editor.visitDescendants(shapeId, populateResizingShapes)
 		})

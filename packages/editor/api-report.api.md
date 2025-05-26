@@ -1573,7 +1573,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         src: string;
     }>;
     readonly user: UserPreferencesManager;
-    visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId, parentShape?: TLShape) => false | void): this;
+    visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
     zoomIn(point?: Vec, opts?: TLCameraMoveOptions): this;
     zoomOut(point?: Vec, opts?: TLCameraMoveOptions): this;
     zoomToBounds(bounds: BoxLike, opts?: {
@@ -1912,6 +1912,10 @@ export class Group2d extends Geometry2d {
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind(): boolean;
+    // (undocumented)
+    canResize(): boolean;
+    // (undocumented)
+    canResizeChildren(): boolean;
     // (undocumented)
     component(shape: TLGroupShape): JSX_2.Element | null;
     // (undocumented)
