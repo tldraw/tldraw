@@ -587,15 +587,15 @@ export class Box {
 		return Box.Equals(this, other)
 	}
 
+	static Equals(a: Box | BoxModel, b: Box | BoxModel) {
+		return b.x === a.x && b.y === a.y && b.w === a.w && b.h === a.h
+	}
+
 	prettyMuchEquals(other: Box | BoxModel) {
 		return this.clone().toFixed().equals(Box.From(other).toFixed())
 	}
 
 	static PrettyMuchEquals(a: Box | BoxModel, b: Box | BoxModel) {
-		return b.x === a.x && b.y === a.y && b.w === a.w && b.h === a.h
-	}
-
-	static Equals(a: Box | BoxModel, b: Box | BoxModel) {
 		return b.x === a.x && b.y === a.y && b.w === a.w && b.h === a.h
 	}
 

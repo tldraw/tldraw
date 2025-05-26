@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Arc2d,
 	Box,
@@ -800,111 +801,17 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	indicator(shape: TLArrowShape) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const isEditing = useIsEditing(shape.id)
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const clipPathId = useSharedSafeId(shape.id + '_clip')
-
-		const info = getArrowInfo(this.editor, shape)
-		if (!info) return null
-
-		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape, info?.bindings)
-		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
-		const bounds = geometry.bounds
-
-		const labelGeometry =
-			isEditing || shape.props.text.trim() ? (geometry.children[1] as Rectangle2d) : null
-
-		if (Vec.Equals(start, end)) return null
-
-		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
-
-		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
-		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
-
-		const includeClipPath =
-			(as && info.start.arrowhead !== 'arrow') ||
-			(ae && info.end.arrowhead !== 'arrow') ||
-			!!labelGeometry
-
-		if (isEditing && labelGeometry) {
-			return (
-				<rect
-					x={toDomPrecision(labelGeometry.x)}
-					y={toDomPrecision(labelGeometry.y)}
-					width={labelGeometry.w}
-					height={labelGeometry.h}
-					rx={3.5 * shape.props.scale}
-					ry={3.5 * shape.props.scale}
-				/>
-			)
-		}
-		const clipStartArrowhead = !(
-			info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow'
+		const { editor } = this
+		const skipState = useValue(
+			'skip',
+			() => {
+				return editor.isInAny('select.translating', 'select.dragging_handle')
+			},
+			[editor]
 		)
-		const clipEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
 
-		return (
-			<g>
-				{includeClipPath && (
-					<defs>
-						<ArrowClipPath
-							radius={3.5 * shape.props.scale}
-							hasText={shape.props.text.trim().length > 0}
-							bounds={bounds}
-							labelBounds={labelGeometry ? labelGeometry.getBounds() : new Box(0, 0, 0, 0)}
-							as={clipStartArrowhead && as ? as : ''}
-							ae={clipEndArrowhead && ae ? ae : ''}
-						/>
-					</defs>
-				)}
-				<g
-					style={{
-						clipPath: includeClipPath ? `url(#${clipPathId})` : undefined,
-						WebkitClipPath: includeClipPath ? `url(#${clipPathId})` : undefined,
-					}}
-				>
-					{/* This rect needs to be here if we're creating a mask due to an svg quirk on Chrome */}
-					{includeClipPath && (
-						<rect
-							x={bounds.minX - 100}
-							y={bounds.minY - 100}
-							width={bounds.width + 200}
-							height={bounds.height + 200}
-							opacity={0}
-						/>
-					)}
-
-					{getArrowBodyPath(
-						shape,
-						info,
-						shape.props.dash === 'draw'
-							? {
-									style: 'draw',
-									randomSeed: shape.id,
-									strokeWidth: 1,
-									passes: 1,
-									offset: 0,
-									roundness: strokeWidth * 2,
-									props: { strokeWidth: undefined },
-								}
-							: { style: 'solid', strokeWidth: 1, props: { strokeWidth: undefined } }
-					)}
-				</g>
-				{as && <path d={as} />}
-				{ae && <path d={ae} />}
-				{labelGeometry && (
-					<rect
-						x={toDomPrecision(labelGeometry.x)}
-						y={toDomPrecision(labelGeometry.y)}
-						width={labelGeometry.w}
-						height={labelGeometry.h}
-						rx={3.5}
-						ry={3.5}
-					/>
-				)}
-			</g>
-		)
+		if (skipState) return null
+		return <ArrowIndicator shape={shape} />
 	}
 
 	override onEditStart(shape: TLArrowShape) {
@@ -1286,3 +1193,108 @@ const labelGeometryCache = createComputedCache(
 		areRecordsEqual: areShapesContentEqual,
 	}
 )
+
+function ArrowIndicator({ shape }: { shape: TLArrowShape }) {
+	const editor = useEditor()
+	const isEditing = useIsEditing(shape.id)
+	const clipPathId = useSharedSafeId(shape.id + '_clip')
+
+	const info = useValue('arrow info', () => getArrowInfo(editor, shape), [editor, shape.props])
+	if (!info) return null
+
+	const { start, end } = getArrowTerminalsInArrowSpace(editor, shape, info?.bindings)
+	const geometry = useValue('geometry', () => editor.getShapeGeometry<Group2d>(shape), [editor])
+	const bounds = geometry.bounds
+
+	const labelGeometry =
+		isEditing || shape.props.text.trim() ? (geometry.children[1] as Rectangle2d) : null
+
+	if (Vec.Equals(start, end)) return null
+
+	const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+
+	const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
+	const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
+
+	const includeClipPath =
+		(as && info.start.arrowhead !== 'arrow') ||
+		(ae && info.end.arrowhead !== 'arrow') ||
+		!!labelGeometry
+
+	if (isEditing && labelGeometry) {
+		return (
+			<rect
+				x={toDomPrecision(labelGeometry.x)}
+				y={toDomPrecision(labelGeometry.y)}
+				width={labelGeometry.w}
+				height={labelGeometry.h}
+				rx={3.5 * shape.props.scale}
+				ry={3.5 * shape.props.scale}
+			/>
+		)
+	}
+	const clipStartArrowhead = !(info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow')
+	const clipEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
+
+	return (
+		<g>
+			{includeClipPath && (
+				<defs>
+					<ArrowClipPath
+						radius={3.5 * shape.props.scale}
+						hasText={shape.props.text.trim().length > 0}
+						bounds={bounds}
+						labelBounds={labelGeometry ? labelGeometry.getBounds() : new Box(0, 0, 0, 0)}
+						as={clipStartArrowhead && as ? as : ''}
+						ae={clipEndArrowhead && ae ? ae : ''}
+					/>
+				</defs>
+			)}
+			<g
+				style={{
+					clipPath: includeClipPath ? `url(#${clipPathId})` : undefined,
+					WebkitClipPath: includeClipPath ? `url(#${clipPathId})` : undefined,
+				}}
+			>
+				{/* This rect needs to be here if we're creating a mask due to an svg quirk on Chrome */}
+				{includeClipPath && (
+					<rect
+						x={bounds.minX - 100}
+						y={bounds.minY - 100}
+						width={bounds.width + 200}
+						height={bounds.height + 200}
+						opacity={0}
+					/>
+				)}
+
+				{getArrowBodyPath(
+					shape,
+					info,
+					shape.props.dash === 'draw'
+						? {
+								style: 'draw',
+								randomSeed: shape.id,
+								strokeWidth: 1,
+								passes: 1,
+								offset: 0,
+								roundness: strokeWidth * 2,
+								props: { strokeWidth: undefined },
+							}
+						: { style: 'solid', strokeWidth: 1, props: { strokeWidth: undefined } }
+				)}
+			</g>
+			{as && <path d={as} />}
+			{ae && <path d={ae} />}
+			{labelGeometry && (
+				<rect
+					x={toDomPrecision(labelGeometry.x)}
+					y={toDomPrecision(labelGeometry.y)}
+					width={labelGeometry.w}
+					height={labelGeometry.h}
+					rx={3.5}
+					ry={3.5}
+				/>
+			)}
+		</g>
+	)
+}
