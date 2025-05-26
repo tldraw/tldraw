@@ -27,9 +27,11 @@ import {
 	TLShapeUtilCanvasSvgDef,
 	Vec,
 	WeakCache,
+	areShapesContentEqual,
 	arrowShapeMigrations,
 	arrowShapeProps,
 	clamp,
+	createComputedCache,
 	debugFlags,
 	exhaustiveSwitchError,
 	getDefaultColorTheme,
@@ -58,6 +60,7 @@ import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getArrowBodyPath, getArrowHandlePath } from './ArrowPath'
 import { ArrowShapeOptions } from './arrow-types'
 import {
+	arrowBodyGeometryCache,
 	getArrowLabelDefaultPosition,
 	getArrowLabelFontSize,
 	getArrowLabelPosition,
@@ -207,18 +210,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		let labelGeom
 		if (isEditing || shape.props.text.trim()) {
-			const labelPosition = getArrowLabelPosition(this.editor, shape)
-			if (debugFlags.debugGeometry.get()) {
-				debugGeom.push(...labelPosition.debugGeom)
-			}
-			labelGeom = new Rectangle2d({
-				x: labelPosition.box.x,
-				y: labelPosition.box.y,
-				width: labelPosition.box.w,
-				height: labelPosition.box.h,
-				isFilled: true,
-				isLabel: true,
-			})
+			const { labelGeom: _labelGeom, debugGeom: _debugGeom } = labelGeometryCache.get(
+				this.editor,
+				shape.id
+			)!
+			labelGeom = _labelGeom
+			debugGeom.push(..._debugGeom)
 		}
 
 		return new Group2d({
@@ -757,7 +754,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const info = getArrowInfo(this.editor, shape)
 		if (!info?.isValid) return null
 
-		const labelPosition = getArrowLabelPosition(this.editor, shape)
+		const labelPosition = getArrowLabelPosition(
+			this.editor,
+			shape,
+			info,
+			this.editor.getShapeGeometry(shape)
+		)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const isEditing = this.editor.getEditingShapeId() === shape.id
 		const showArrowLabel = isEditing || shape.props.text
@@ -952,7 +954,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					verticalAlign="middle"
 					text={shape.props.text}
 					labelColor={theme[shape.props.labelColor].solid}
-					bounds={getArrowLabelPosition(this.editor, shape)
+					bounds={getArrowLabelPosition(
+						this.editor,
+						shape,
+						getArrowInfo(this.editor, shape),
+						this.editor.getShapeGeometry(shape)
+					)
 						.box.clone()
 						.expandBy(-ARROW_LABEL_PADDING * shape.props.scale)}
 					padding={0}
@@ -1069,7 +1076,7 @@ const ArrowSvg = track(function ArrowSvg({
 		})
 	}
 
-	const labelPosition = getArrowLabelPosition(editor, shape)
+	const labelPosition = getArrowLabelPosition(editor, shape, info, geometry)
 
 	const clipStartArrowhead = !(info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow')
 	const clipEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
@@ -1253,3 +1260,29 @@ function anglesAreApproximatelyParallel(a: number, b: number, tolerance = 0.0001
 
 	return { isParallel: isParallel || is360Parallel, isFlippedParallel }
 }
+
+const labelGeometryCache = createComputedCache(
+	'label geometry',
+	(editor: Editor, shape: TLArrowShape) => {
+		const debugGeom: Geometry2d[] = []
+		const info = getArrowInfo(editor, shape)
+		const geometry = arrowBodyGeometryCache.get(editor, shape.id)!
+		const labelPosition = getArrowLabelPosition(editor, shape, info, geometry)
+		if (debugFlags.debugGeometry.get()) {
+			debugGeom.push(...labelPosition.debugGeom)
+		}
+		const labelGeom = new Rectangle2d({
+			x: labelPosition.box.x,
+			y: labelPosition.box.y,
+			width: labelPosition.box.w,
+			height: labelPosition.box.h,
+			isFilled: true,
+			isLabel: true,
+		})
+
+		return { labelGeom, debugGeom }
+	},
+	{
+		areRecordsEqual: areShapesContentEqual,
+	}
+)

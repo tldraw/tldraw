@@ -147,6 +147,9 @@ export class Arc2d extends Geometry2d {
 export function areAnglesCompatible(a: number, b: number): boolean;
 
 // @public (undocumented)
+export const areShapesContentEqual: (a: TLShape, b: TLShape) => boolean;
+
+// @public (undocumented)
 export function average(A: VecLike, B: VecLike): string;
 
 // @public (undocumented)
@@ -357,6 +360,10 @@ export class Box {
     // (undocumented)
     get point(): Vec;
     set point(val: Vec);
+    // (undocumented)
+    static PrettyMuchEquals(a: Box | BoxModel, b: Box | BoxModel): boolean;
+    // (undocumented)
+    prettyMuchEquals(other: Box | BoxModel): boolean;
     // (undocumented)
     static Resize(box: Box, handle: SelectionCorner | SelectionEdge | string, dx: number, dy: number, isAspectRatioLocked?: boolean): {
         box: Box;
