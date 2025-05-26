@@ -182,9 +182,9 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
     // (undocumented)
     onAfterChange({ bindingAfter }: BindingOnChangeOptions<TLArrowBinding>): void;
     // (undocumented)
-    onAfterChangeFromShape({ shapeAfter, }: BindingOnShapeChangeOptions<TLArrowBinding>): void;
+    onAfterChangeFromShape({ shapeBefore, shapeAfter, }: BindingOnShapeChangeOptions<TLArrowBinding>): void;
     // (undocumented)
-    onAfterChangeToShape({ binding }: BindingOnShapeChangeOptions<TLArrowBinding>): void;
+    onAfterChangeToShape({ binding, shapeBefore, shapeAfter, }: BindingOnShapeChangeOptions<TLArrowBinding>): void;
     // (undocumented)
     onAfterCreate({ binding }: BindingOnCreateOptions<TLArrowBinding>): void;
     // (undocumented)
