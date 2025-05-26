@@ -1,4 +1,5 @@
 import {
+	Box,
 	HALF_PI,
 	Mat,
 	PI,
@@ -445,7 +446,7 @@ export class Resizing extends StateNode {
 		this.editor.snaps.clearIndicators()
 	}
 
-	_createSnapshot() {
+	private _createSnapshot() {
 		const { editor } = this
 		const selectedShapeIds = editor.getSelectedShapeIds()
 		const selectionRotation = editor.getSelectionRotation()
@@ -453,8 +454,7 @@ export class Resizing extends StateNode {
 			inputs: { originPagePoint },
 		} = editor
 
-		const selectionBounds = editor.getSelectionRotatedPageBounds()!
-
+		const selectionBounds = editor.getSelectionRotatedPageBounds()
 		if (!selectionBounds) throw Error('Resizing but nothing is selected')
 
 		const dragHandlePoint = Vec.RotWith(
@@ -465,7 +465,16 @@ export class Resizing extends StateNode {
 
 		const cursorHandleOffset = Vec.Sub(originPagePoint, dragHandlePoint)
 
-		const shapeSnapshots = new Map<TLShapeId, ShapeSnapshot>()
+		const shapeSnapshots = new Map<
+			TLShapeId,
+			{
+				shape: TLShape
+				bounds: Box
+				pageTransform: Mat
+				pageRotation: number
+				isAspectRatioLocked: boolean
+			}
+		>()
 
 		const frames: { id: TLShapeId; children: TLShape[] }[] = []
 
@@ -473,6 +482,26 @@ export class Resizing extends StateNode {
 			const shape = editor.getShape(shapeId)
 			if (!shape) return false
 
+			const util = editor.getShapeUtil(shape)
+
+			// If the shape can resize, add it to the resizing shapes snapshots
+			if (util.canResize(shape)) {
+				const pageTransform = editor.getShapePageTransform(shape)!
+				shapeSnapshots.set(shape.id, {
+					shape,
+					bounds: editor.getShapeGeometry(shape).bounds,
+					pageTransform,
+					pageRotation: Mat.Decompose(pageTransform).rotation,
+					isAspectRatioLocked: util.isAspectRatioLocked(shape),
+				})
+			}
+
+			// Special case:
+			// For frames, we don't want to resize children but we DO want to get a snapshot of their children so that we can restore their
+			// positions with the accel key behavior. We could break this further into APIs, for example by collecting snapshots of all
+			// descendants (easy) but also flagging with behavior like "resize" or "keep absolute position" or "reposition only with accel key",
+			// though I'm not sure where that would be defined; perhaps better handled with onResizeStart / onResize callbacks on the util, and
+			// pass `accelKeyIsPressed` as well as `accelKeyWasPressed`?
 			if (editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
 				frames.push({
 					id: shape.id,
@@ -482,28 +511,8 @@ export class Resizing extends StateNode {
 				})
 			}
 
-			const util = editor.getShapeUtil(shape)
-
-			if (util.canResize(shape)) {
-				// Add it to the resizing shapes snapshots
-				const pageTransform = this.editor.getShapePageTransform(shape)
-				if (pageTransform) {
-					shapeSnapshots.set(shape.id, {
-						shape,
-						bounds: this.editor.getShapeGeometry(shape).bounds,
-						pageTransform,
-						pageRotation: Mat.Decompose(pageTransform!).rotation,
-						isAspectRatioLocked: util.isAspectRatioLocked(shape),
-					})
-				} else {
-					// throw an error, probably
-				}
-			}
-
-			if (!util.canResizeChildren(shape)) {
-				// This will stop the traversal of descendants
-				return false
-			}
+			// This will stop the traversal of descendants
+			if (!util.canResizeChildren(shape)) return false
 		}
 
 		selectedShapeIds.forEach((shapeId) => {
@@ -528,23 +537,9 @@ export class Resizing extends StateNode {
 			frames,
 		}
 	}
-
-	_createShapeSnapshot(shape: TLShape) {
-		const pageTransform = this.editor.getShapePageTransform(shape)!
-		const util = this.editor.getShapeUtil(shape)
-
-		return {
-			shape,
-			bounds: this.editor.getShapeGeometry(shape).bounds,
-			pageTransform,
-			pageRotation: Mat.Decompose(pageTransform!).rotation,
-			isAspectRatioLocked: util.isAspectRatioLocked(shape),
-		}
-	}
 }
 
 type Snapshot = ReturnType<Resizing['_createSnapshot']>
-type ShapeSnapshot = ReturnType<Resizing['_createShapeSnapshot']>
 
 const ORDERED_SELECTION_HANDLES: (SelectionEdge | SelectionCorner)[] = [
 	'top',
