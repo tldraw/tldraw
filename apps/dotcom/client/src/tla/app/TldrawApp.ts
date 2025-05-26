@@ -427,11 +427,11 @@ export class TldrawApp {
 			lastVisitAt: null,
 		}
 		this.z.mutate.file.insertWithFileState({ file, fileState })
-
 		// todo: add server error handling for real Zero
 		// .server.catch((res: { error: string; details: string }) => {
-		// 	console.log('toooo many')
-		// 	trackEvent('max-files-reached')
+		// 	if (res.details === ZErrorCode.max_files_reached) {
+		// 		this.showMaxFilesToast()
+		// 	}
 		// })
 
 		return Result.ok({ file })
