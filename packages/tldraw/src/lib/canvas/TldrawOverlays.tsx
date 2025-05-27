@@ -54,11 +54,10 @@ export function TldrawArrowHints() {
 	const { handlesInPageSpace, snap, anchorInPageSpace, arrowKind, isExact, isPrecise } = targetInfo
 
 	const showEdgeHints = !isExact && arrowKind === 'elbow'
-	const showOutline = !showEdgeHints || snap === 'edge' || snap === 'center' || snap === null
 
 	return (
 		<>
-			{showOutline && ShapeIndicator && <ShapeIndicator shapeId={targetInfo.target.id} />}
+			{ShapeIndicator && <ShapeIndicator shapeId={targetInfo.target.id} />}
 
 			{showEdgeHints && (
 				<svg className="tl-overlays__item">
