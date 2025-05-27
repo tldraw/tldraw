@@ -1,73 +1,324 @@
-.section {
+.menuSection {
 	display: flex;
 	padding: 12px;
 	flex-direction: column;
 	gap: 12px;
 }
 
-.section:nth-of-type(n + 2) {
+.menuSection:nth-of-type(n + 2) {
 	border-top: 1px solid var(--tla-color-border);
 }
 
-.controlGroup {
+.menuControlGroup {
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
 }
 
-.controlGroup + .controlGroup {
+.menuControlGroup + .menuControlGroup {
 	margin-top: 12px;
 }
 
-.control {
+.menuControlRow {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	height: 32px;
-	gap: 8px;
 }
 
-.info {
+.menuInfoTriggerContainer {
 	flex-grow: 2;
-	width: 32px;
-	color: var(--color-text-3);
 }
 
-.info a {
+.menuInfoTrigger {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	height: 40px;
+	width: 40px;
+	color: var(--color-text-3);
+	cursor: pointer;
+}
+
+.menuInfoTrigger a {
 	color: var(--color-text-3);
 	text-decoration: none;
 }
 
-.info::after {
+.menuInfoTrigger::after {
+	display: block;
+	content: '';
+	position: absolute;
+	border-radius: var(--radius-2);
+	background: var(--color-muted-2);
 	inset: 6px;
+	border-radius: 100%;
+	opacity: 0;
+	z-index: 0;
+}
+
+.menuInfoTrigger:focus-visible {
+	outline: 2px solid var(--color-focus);
+	outline-offset: -10px;
 	border-radius: 100%;
 }
 
 @media (hover: hover) {
-	.info:hover {
+	.menuInfoTrigger:not(:disabled):hover {
+		z-index: 1;
 		color: var(--color-text-1);
+	}
+
+	.menuInfoTrigger:not(:disabled):hover::after {
+		opacity: 1;
 	}
 }
 
-.label {
+.menuLabel {
 	color: var(--color-text-1);
 }
 
-.popover {
+.menuPopover {
 	padding: 40px 12px 12px 12px;
 	min-width: 160px;
 }
 
-.label + .info {
+.menuLabel + .menuInfoTrigger {
 	margin-left: -12px;
 }
 
-.popoverClose {
+.menuPopoverClose {
 	position: absolute;
 	top: 0px;
 	right: 0px;
 }
 
-.detailCentered {
+.menuDetailCentered {
 	text-align: center;
+}
+
+/* --------------------- Select --------------------- */
+
+.menuSelectWrapper {
+	position: relative;
+}
+
+.menuSelectTrigger {
+	all: unset;
+	position: relative;
+	display: flex;
+	align-items: center;
+	height: 100%;
+	gap: 4px;
+	justify-content: flex-end;
+	cursor: pointer;
+	padding-left: 2px;
+}
+
+/* need to targe	t the parent div, ugh, can't target via a className */
+div:has(> .menuSelectContent) {
+	position: absolute !important;
+	top: 12px;
+	right: 0;
+	left: auto !important;
+	z-index: 2 !important;
+}
+
+.menuSelectContent {
+	border-radius: var(--radius-3);
+	background-color: var(--color-panel);
+	box-shadow: var(--shadow-3);
+}
+
+.menuSelectOption {
+	display: flex;
+	align-items: center;
+	padding: 8px 8px 8px 12px;
+	gap: 4px;
+	cursor: pointer;
+}
+
+:global(.tl-container__focused:not(.tl-container__no-focus-ring)) .menuSelectOption:focus-visible {
+	border-radius: 10px;
+	outline: 2px solid var(--color-focus);
+	outline-offset: -5px;
+}
+
+@media (hover: hover) {
+	.menuSelectTrigger[data-disabled='false']:hover > .menuSelectLabel::after {
+		visibility: visible;
+	}
+}
+
+.menuSelectSelect:disabled {
+	cursor: default;
+}
+
+.menuSelectTrigger[data-disabled] .menuSelectLabel {
+	color: var(--tla-color-text-3);
+}
+
+.menuSelectTrigger[data-disabled] .menuSelectChevron {
+	display: none;
+}
+
+[data-radix-focus-guard] {
+	inset: 0;
+}
+
+.menuSelectTrigger:focus-visible {
+	outline-offset: 2px;
+	border-radius: 2px;
+}
+
+/* --------------------- Switch --------------------- */
+
+.menuSwitchContainer {
+	position: relative;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.menuSwitchContainer input[type='checkbox'] {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	opacity: 0;
+	cursor: pointer;
+	pointer-events: all;
+}
+.menuSwitchContainer.disabled input[type='checkbox'] {
+	pointer-events: none;
+	cursor: default;
+}
+
+.menuSwitch {
+	--switch-h: 20px;
+	--switch-w: calc(var(--switch-h) * 1.618);
+	height: var(--switch-h);
+	width: var(--switch-w);
+	position: relative;
+	border-radius: 99px;
+	background-color: var(--tla-color-text-3);
+	transition:
+		background-color 0.12s,
+		left 0.12s;
+}
+
+.menuSwitch::after {
+	display: block;
+	content: '';
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	right: initial;
+	border-radius: 100%;
+	height: calc(var(--switch-h) - 4px);
+	width: calc(var(--switch-h) - 4px);
+	background-color: var(--tla-color-panel);
+	pointer-events: none;
+	transition:
+		background-color 0.12s,
+		left 0.12s;
+}
+
+.menuSwitch[data-checked='true'] {
+	background-color: var(--tla-color-primary);
+}
+
+.menuSwitch[data-checked='true']::after {
+	background-color: var(--tla-color-contrast);
+	left: calc(var(--switch-w) - (var(--switch-h) - 4px) - 2px);
+}
+
+.menuSwitchDisabled .menuSwitch {
+	opacity: 0.35;
+}
+
+.menuSwitchContainer:has(input:focus-visible) > div {
+	outline-offset: 2px;
+	outline: 2px solid var(--color-focus);
+}
+
+/* ---------------------- Tabs ---------------------- */
+
+.menuTabsTabs {
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	position: relative;
+	overflow-x: auto;
+	--tab-padding: 12px;
+	--line-height: 2px;
+}
+
+.menuTabsTab {
+	background: none;
+	border: none;
+	position: relative;
+	cursor: pointer;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	padding: var(--tab-padding);
+	color: var(--tla-color-text-3);
+}
+
+.menuTabsTab::after {
+	content: '';
+	display: block;
+	position: absolute;
+	bottom: 0px;
+	left: var(--tab-padding);
+	right: var(--tab-padding);
+	height: var(--line-height);
+	z-index: 3;
+	background-color: var(--tla-color-text-1);
+	visibility: hidden;
+}
+
+.menuTabsTab:disabled {
+	cursor: default;
+}
+
+.menuTabsTab[data-active='true'] {
+	color: var(--tla-color-text-1);
+	/* active tab in front of peers */
+	z-index: 2;
+}
+
+.menuTabsTab[data-active='true']::after {
+	visibility: visible;
+}
+
+.menuTabsTab:focus-visible {
+	outline: 2px solid var(--tla-color-focus);
+	outline-offset: -5px;
+	border-radius: 10px;
+}
+
+@media (hover: hover) {
+	.menuTabsTab:not(:disabled):hover {
+		color: var(--tla-color-text-1);
+	}
+}
+
+.menuTabsTab:nth-of-type(n + 2) {
+	margin-left: calc(var(--tab-padding) * -0.5);
+}
+
+.menuTabsLine {
+	position: absolute;
+	bottom: 0px;
+	left: var(--tab-padding);
+	right: var(--tab-padding);
+	height: var(--line-height);
+	background-color: var(--tla-color-hover-1);
 }

@@ -1,4 +1,4 @@
-.layout {
+.anonLayout {
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -6,94 +6,10 @@
 	height: 100%;
 }
 
-.header {
-	height: 64px;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 0px 12px;
-}
-
-.spacer {
-	flex-grow: 1;
-}
-
-.signInButtons {
-	display: flex;
-}
-
-.editorWrapper {
+.anonEditorWrapper {
 	position: relative;
 	width: 100%;
 	height: 100%;
 	flex-grow: 2;
 	overflow: hidden;
-}
-
-.footer {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	text-align: center;
-	padding: 0px 36px;
-}
-
-.footer > p > a {
-	color: var(--tla-color-primary);
-}
-
-.linkMenu {
-	background: none;
-	border: none;
-	position: relative;
-	outline: none;
-	margin-right: -12px;
-	width: 36px;
-	height: 36px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: var(--tla-color-text-3);
-	flex: 0 0 auto;
-	z-index: 3;
-	padding-right: 0px;
-	cursor: pointer;
-}
-
-.footerDesktop {
-	height: 64px;
-	display: flex;
-}
-
-.footerMobile {
-	height: 40px;
-	display: none;
-}
-
-@media (max-width: 768px) {
-	.header {
-		height: 48px;
-		padding-right: 8px;
-	}
-
-	.layout {
-		padding: 0px;
-	}
-
-	.editorWrapper {
-		border-top-left-radius: 0px;
-		border-top-right-radius: 0px;
-		border-bottom-left-radius: 0px;
-		border-bottom-right-radius: 0px;
-		border-left: none;
-		border-right: none;
-	}
-
-	.footerDesktop {
-		display: none;
-	}
-
-	.footerMobile {
-		display: none;
-	}
 }
