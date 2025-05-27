@@ -23,6 +23,7 @@ export type TiptapNode = Node
 export interface TLTextOptions {
 	tipTapConfig?: EditorProviderProps
 	addFontsFromNode?: RichTextFontVisitor
+	alwaysRenderTipTap?: boolean
 }
 
 /** @public */

@@ -8,6 +8,9 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
 	const commonUseEditableTextHandlers = useEditableTextCommon(shapeId)
 	const isEditing = commonUseEditableTextHandlers.isEditing
 	const editor = useEditor()
+	const shouldRenderTipTap =
+		commonUseEditableTextHandlers.isReadyForEditing ||
+		(editor.getTextOptions().alwaysRenderTipTap ?? false)
 	const rInput = useRef<HTMLDivElement>(null)
 	const isEmpty = richText && isEmptyRichText(richText)
 
@@ -61,6 +64,7 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
 		handleKeyDown,
 		handleChange,
 		isEmpty,
+		shouldRenderTipTap,
 		...commonUseEditableTextHandlers,
 	}
 }

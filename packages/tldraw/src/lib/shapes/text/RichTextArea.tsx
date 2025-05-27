@@ -2,6 +2,7 @@ import { EditorView } from '@tiptap/pm/view'
 import {
 	EditorEvents,
 	JSONContent,
+	ReactRenderer,
 	Editor as TextEditor,
 	type Editor as TTEditor,
 } from '@tiptap/react'
@@ -15,7 +16,8 @@ import {
 	useEvent,
 	useUniqueSafeId,
 } from '@tldraw/editor'
-import React, { useLayoutEffect, useRef } from 'react'
+import React, { ReactPortal, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { createPortal } from 'react-dom'
 
 /** @public */
 export interface TextAreaProps {
@@ -61,11 +63,15 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 ) {
 	const editor = useEditor()
 	const tipTapId = useUniqueSafeId('tip-tap-editor')
-	const tipTapConfig = editor.getTextOptions().tipTapConfig
+	const textOptions = editor.getTextOptions()
+	const tipTapConfig = textOptions.tipTapConfig
+	const shouldRenderTipTap = isEditing || (textOptions.alwaysRenderTipTap ?? false)
 
 	const rInitialRichText = useRef(richText)
 	const rTextEditor = useRef<TTEditor | null>(null)
+	// const [textEditor, setTextEditor] = useState<TTEditor | null>(null)
 	const rTextEditorEl = useRef<HTMLDivElement>(null)
+	const [contentComponent] = useState(() => createTipTapContentComponent())
 
 	useLayoutEffect(() => {
 		if (!rTextEditor.current) {
@@ -107,13 +113,15 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		}
 	}, [editor, isEditing])
 
+	const getIsEditing = useEvent(() => isEditing)
+
 	const onChange = useEvent(handleChange)
 	const onKeyDown = useEvent(handleKeyDown)
 	const onFocus = useEvent(handleFocus)
 	const onBlur = useEvent(handleBlur)
 	const onDoubleClick = useEvent(handleDoubleClick)
 	useLayoutEffect(() => {
-		if (!isEditing || !tipTapConfig || !rTextEditorEl.current) return
+		if (!shouldRenderTipTap || !tipTapConfig || !rTextEditorEl.current) return
 
 		const { editorProps, ...restOfTipTapConfig } = tipTapConfig
 
@@ -124,7 +132,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		const textEditorInstance = new TextEditor({
 			element: rTextEditorEl.current,
 			autofocus: true,
-			editable: isEditing,
+			editable: getIsEditing(),
 			onUpdate: (props: EditorEvents['update']) => {
 				const content: TLRichText = props.editor.state.doc.toJSON()
 				rInitialRichText.current = content
@@ -132,6 +140,10 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			},
 			onFocus,
 			onBlur,
+			onBeforeCreate: ({ editor: tipTapEditor }) => {
+				// contentComponent is a secret tiptap internal
+				;(tipTapEditor as any).contentComponent = contentComponent
+			},
 			// onCreate is called after a `setTimeout(0)`
 			onCreate: (props) => {
 				// If we're not still editing the original shape, then don't do anything.
@@ -195,14 +207,16 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		}, 100)
 
 		rTextEditor.current = textEditorInstance
+		// setTextEditor(textEditorInstance)
 
 		return () => {
 			rTextEditor.current = null
+			// setTextEditor(null)
 			clearTimeout(timeout)
 			textEditorInstance.destroy()
 		}
 	}, [
-		isEditing,
+		shouldRenderTipTap,
 		tipTapConfig,
 		onFocus,
 		onBlur,
@@ -212,9 +226,19 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		editor,
 		shapeId,
 		hasCustomTabBehavior,
+		getIsEditing,
+		contentComponent,
 	])
 
-	if (!isEditing || !tipTapConfig) {
+	useLayoutEffect(() => {
+		if (!rTextEditor.current) return
+
+		rTextEditor.current.setOptions({
+			editable: isEditing,
+		})
+	}, [isEditing])
+
+	if (!shouldRenderTipTap || !tipTapConfig) {
 		return null
 	}
 
@@ -237,8 +261,11 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			// starting a drag over the textarea will restart a selection drag instead of a shape drag.
 			// This prevents that default behavior in FF.
 			onDragStart={preventDefault}
+			style={{ pointerEvents: isEditing ? 'auto' : 'none' }}
 		>
 			<div className="tl-rich-text" ref={rTextEditorEl} />
+			{/* <EditorContent editor={textEditor} className="tl-rich-text" /> */}
+			<TipTapPortals contentComponent={contentComponent} />
 		</div>
 	)
 })
@@ -303,4 +330,68 @@ function handleTab(editor: Editor, view: EditorView, event: KeyboardEvent) {
 	if (tr.docChanged) {
 		dispatch(tr)
 	}
+}
+
+interface TipTapContentComponent {
+	setRenderer(id: string, renderer: ReactRenderer): void
+	removeRenderer(id: string): void
+	subscribe(callback: () => void): () => void
+	getSnapshot(): Record<string, ReactPortal>
+	getServerSnapshot(): Record<string, ReactPortal>
+}
+
+function createTipTapContentComponent(): TipTapContentComponent {
+	const subscribers = new Set<() => void>()
+	let renderers: Record<string, React.ReactPortal> = {}
+
+	return {
+		/**
+		 * Subscribe to the editor instance's changes.
+		 */
+		subscribe(callback: () => void) {
+			subscribers.add(callback)
+			return () => {
+				subscribers.delete(callback)
+			}
+		},
+		getSnapshot() {
+			return renderers
+		},
+		getServerSnapshot() {
+			return renderers
+		},
+		/**
+		 * Adds a new NodeView Renderer to the editor.
+		 */
+		setRenderer(id: string, renderer: ReactRenderer) {
+			renderers = {
+				...renderers,
+				[id]: createPortal(renderer.reactElement, renderer.element, id),
+			}
+
+			subscribers.forEach((subscriber) => subscriber())
+		},
+		/**
+		 * Removes a NodeView Renderer from the editor.
+		 */
+		removeRenderer(id: string) {
+			const nextRenderers = { ...renderers }
+
+			delete nextRenderers[id]
+			renderers = nextRenderers
+			subscribers.forEach((subscriber) => subscriber())
+		},
+	}
+}
+
+function TipTapPortals({ contentComponent }: { contentComponent: TipTapContentComponent }) {
+	// For performance reasons, we render the node view portals on state changes only
+	const renderers = useSyncExternalStore(
+		contentComponent.subscribe,
+		contentComponent.getSnapshot,
+		contentComponent.getServerSnapshot
+	)
+
+	// This allows us to directly render the portals without any additional wrapper
+	return <>{Object.values(renderers)}</>
 }

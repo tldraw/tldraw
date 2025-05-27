@@ -73,7 +73,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 }: RichTextLabelProps) {
 	const editor = useEditor()
 	const isDragging = React.useRef(false)
-	const { rInput, isEmpty, isEditing, isReadyForEditing, ...editableTextRest } =
+	const { rInput, isEmpty, isEditing, isReadyForEditing, shouldRenderTipTap, ...editableTextRest } =
 		useEditableRichText(shapeId, type, richText)
 
 	const html = useMemo(() => {
@@ -131,7 +131,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 			data-font={font}
 			data-align={align}
 			data-hastext={!isEmpty}
-			data-isediting={isEditing}
+			data-isediting={isEditing || shouldRenderTipTap}
 			data-textwrap={!!wrap}
 			data-isselected={isSelected}
 			style={{
@@ -165,7 +165,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 						/>
 					)}
 				</div>
-				{(isReadyForEditing || isSelected) && (
+				{(shouldRenderTipTap || isSelected) && (
 					<RichTextArea
 						// Fudge the ref type because we're using forwardRef and it's not typed correctly.
 						ref={rInput as any}

@@ -38,6 +38,7 @@
 		"@tiptap/extension-font-family": "^2.9.1",
 		"@tiptap/extension-text-style": "^2.9.1",
 		"@tiptap/pm": "^2.9.1",
+		"@tiptap/react": "^2.9.1",
 		"@tiptap/starter-kit": "^2.9.1",
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/dotcom-shared": "workspace:*",
