@@ -9,13 +9,21 @@ import { useEditorComponents } from '../../hooks/useEditorComponents'
 import { OptionalErrorBoundary } from '../ErrorBoundary'
 
 // need an extra layer of indirection here to allow hooks to be used inside the indicator render
-const EvenInnererIndicator = memo(({ shape, util }: { shape: TLShape; util: ShapeUtil<any> }) => {
-	return useStateTracking('Indicator: ' + shape.type, () =>
-		// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
-		// calling the render method with stale data.
-		util.indicator(util.editor.store.unsafeGetWithoutCapture(shape.id) as TLShape)
-	)
-})
+const EvenInnererIndicator = memo(
+	({ shape, util }: { shape: TLShape; util: ShapeUtil<any> }) => {
+		return useStateTracking('Indicator: ' + shape.type, () =>
+			// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
+			// calling the render method with stale data.
+			util.indicator(util.editor.store.unsafeGetWithoutCapture(shape.id) as TLShape)
+		)
+	},
+	(prevProps, nextProps) => {
+		return (
+			prevProps.shape.props === nextProps.shape.props &&
+			prevProps.shape.meta === nextProps.shape.meta
+		)
+	}
+)
 
 const InnerIndicator = memo(({ editor, id }: { editor: Editor; id: TLShapeId }) => {
 	const shape = useValue('shape for indicator', () => editor.store.get(id), [editor, id])
@@ -61,13 +69,14 @@ export const DefaultShapeIndicator = memo(function DefaultShapeIndicator({
 	useQuickReactor(
 		'indicator transform',
 		() => {
+			if (hidden) return
 			const elm = rIndicator.current
 			if (!elm) return
 			const pageTransform = editor.getShapePageTransform(shapeId)
 			if (!pageTransform) return
 			elm.style.setProperty('transform', pageTransform.toCssString())
 		},
-		[editor, shapeId]
+		[editor, shapeId, hidden]
 	)
 
 	useLayoutEffect(() => {

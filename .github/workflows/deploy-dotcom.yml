@@ -56,8 +56,9 @@ jobs:
           elif echo "${{ toJSON(github.event.pull_request.labels.*.name) }}" | grep -q "preview-flyio-zero-deploy-please"; then
             echo "DEPLOY_ZERO=flyio" >> $GITHUB_ENV
           elif git fetch origin "${GITHUB_BASE_REF}" && git diff --name-only origin/"${GITHUB_BASE_REF}"...HEAD | grep -q '^apps/dotcom/'; then
-            gh pr edit ${{ github.event.pull_request.number }} --add-label "preview-flyio-zero-deploy-please"
-            echo "DEPLOY_ZERO=flyio" >> $GITHUB_ENV
+            # gh pr edit ${{ github.event.pull_request.number }} --add-label "preview-flyio-zero-deploy-please"
+            # echo "DEPLOY_ZERO=flyio" >> $GITHUB_ENV
+            echo "DEPLOY_ZERO=false" >> $GITHUB_ENV
           else
             echo "DEPLOY_ZERO=false" >> $GITHUB_ENV
           fi
@@ -143,5 +144,6 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
+          VITE_GA4_MEASUREMENT_ID: ${{ secrets.VITE_GA4_MEASUREMENT_ID }}
           WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

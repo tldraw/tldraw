@@ -11,6 +11,7 @@ import {
 	sortByIndex,
 	structuredClone,
 } from '@tldraw/editor'
+import { clearArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import { kickoutOccludedShapes } from '../selectHelpers'
 
@@ -124,16 +125,12 @@ export class DraggingHandle extends StateNode {
 			this.isPrecise = false
 
 			if (initialBinding) {
-				this.editor.setHintingShapes([initialBinding.toId])
-
 				this.isPrecise = initialBinding.props.isPrecise
 				if (this.isPrecise) {
 					this.isPreciseId = initialBinding.toId
 				} else {
 					this.resetExactTimeout()
 				}
-			} else {
-				this.editor.setHintingShapes([])
 			}
 		}
 		// -->
@@ -197,7 +194,7 @@ export class DraggingHandle extends StateNode {
 
 	override onExit() {
 		this.parent.setCurrentToolIdMask(undefined)
-		this.editor.setHintingShapes([])
+		clearArrowTargetState(this.editor)
 		this.editor.snaps.clearIndicators()
 
 		this.editor.setCursor({ type: 'default', rotation: 0 })
@@ -236,7 +233,6 @@ export class DraggingHandle extends StateNode {
 	private update() {
 		const { editor, shapeId, initialPagePoint } = this
 		const { initialHandle, initialPageRotation, initialAdjacentHandle } = this
-		const hintingShapeIds = this.editor.getHintingShapeIds()
 		const isSnapMode = this.editor.user.getIsSnapMode()
 		const {
 			snaps,
@@ -248,6 +244,10 @@ export class DraggingHandle extends StateNode {
 		const shape = editor.getShape(shapeId)
 		if (!shape) return
 		const util = editor.getShapeUtil(shape)
+
+		const initialBinding = editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
+			? getArrowBindings(editor, shape)[initialHandle.id as 'start' | 'end']
+			: undefined
 
 		let point = currentPagePoint
 			.clone()
@@ -297,16 +297,14 @@ export class DraggingHandle extends StateNode {
 			const bindingAfter = getArrowBindings(editor, shape)[initialHandle.id as 'start' | 'end']
 
 			if (bindingAfter) {
-				if (hintingShapeIds[0] !== bindingAfter.toId) {
-					editor.setHintingShapes([bindingAfter.toId])
+				if (initialBinding?.toId !== bindingAfter.toId) {
 					this.pointingId = bindingAfter.toId
 					this.isPrecise = pointerVelocity.len() < 0.5 || altKey
 					this.isPreciseId = this.isPrecise ? bindingAfter.toId : null
 					this.resetExactTimeout()
 				}
 			} else {
-				if (hintingShapeIds.length > 0) {
-					editor.setHintingShapes([])
+				if (initialBinding) {
 					this.pointingId = null
 					this.isPrecise = false
 					this.isPreciseId = null

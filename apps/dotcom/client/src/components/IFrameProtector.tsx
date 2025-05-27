@@ -1,7 +1,7 @@
 import { ReactNode, useEffect } from 'react'
 import { useUrl } from '../hooks/useUrl'
+import { trackEvent } from '../utils/analytics'
 import { getParentOrigin, isInIframe } from '../utils/iFrame'
-import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
 
 export const ROOM_CONTEXT = {
 	PUBLIC_MULTIPLAYER: 'public-multiplayer',
@@ -49,7 +49,7 @@ export function IFrameProtector({
 
 	useEffect(() => {
 		if (embeddedState === EMBEDDED_STATE.IFRAME_NOT_ALLOWED) {
-			trackAnalyticsEvent('connect_to_room_in_iframe', {
+			trackEvent('connect_to_room_in_iframe', {
 				slug,
 				context,
 				origin: getParentOrigin(),

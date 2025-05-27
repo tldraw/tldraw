@@ -157,6 +157,7 @@
 	--color-panel-contrast: hsl(0, 0%, 100%);
 	--color-panel-overlay: hsl(0, 0%, 100%, 82%);
 	--color-panel: hsl(0, 0%, 99%);
+	--color-panel-transparent: hsla(0, 0%, 99%, 0%);
 	--color-focus: hsl(219, 65%, 50%);
 	--color-selected: hsl(214, 84%, 56%);
 	--color-selected-contrast: hsl(0, 0%, 100%);
@@ -208,6 +209,7 @@
 	--color-panel-contrast: hsl(245, 12%, 23%);
 	--color-panel: hsl(235, 6.8%, 13.5%);
 	--color-panel-overlay: hsl(210, 10%, 24%, 82%);
+	--color-panel-transparent: hsla(235, 6.8%, 13.5%, 0%);
 	--color-focus: hsl(217, 76%, 80%);
 	--color-selected: hsl(217, 89%, 61%);
 	--color-selected-contrast: hsl(0, 0%, 100%);
@@ -600,6 +602,36 @@ input,
 	}
 }
 
+.tl-rotate-corner:not(:hover),
+.tl-resize-handle:not(:hover) {
+	cursor: none;
+}
+
+/* --------------------- Arrow Hints -------------------- */
+
+.tl-arrow-hint-handle {
+	fill: var(--color-selected-contrast);
+	stroke: var(--color-selection-stroke);
+	stroke-width: calc(1.5px * var(--tl-scale));
+	r: calc(4px * var(--tl-scale));
+}
+
+.tl-arrow-hint-snap {
+	stroke: transparent;
+	fill: var(--color-selection-fill);
+	r: calc(12px * var(--tl-scale));
+}
+
+.tl-arrow-hint-snap__none,
+.tl-arrow-hint-snap__center,
+.tl-arrow-hint-snap__axis {
+	display: none;
+}
+
+.tl-arrow-hint-snap__edge {
+	r: calc(8px * var(--tl-scale));
+}
+
 /* ------------------ Bounds Detail ----------------- */
 
 .tl-image,
@@ -969,6 +1001,8 @@ input,
 
 .tl-rich-text p {
 	margin: 0;
+	/* Depending on the extensions, <p> tags can be empty, without a <br />. */
+	min-height: 1lh;
 }
 
 .tl-rich-text ul,
@@ -976,6 +1010,8 @@ input,
 	text-align: left;
 	margin: 0;
 	padding-left: 3.25ch;
+	/* Some resets, like Tailwind, nix the list styling. */
+	list-style: revert;
 }
 
 .tl-rich-text ol:has(> li:nth-child(10)) {
@@ -1351,10 +1387,6 @@ input,
 
 .tl-arrow-label[data-isediting='true'] p {
 	opacity: 0;
-}
-
-.tl-arrow-label[data-isediting='true'] > .tl-arrow-label__inner {
-	background-color: var(--color-background);
 }
 
 .tl-arrow-label__inner {

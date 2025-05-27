@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { TldrawLink } from '../common/tldraw-link'
 
 export function Video({
 	src,
@@ -17,7 +17,7 @@ export function Video({
 }) {
 	return (
 		<span className="block">
-			<Link
+			<TldrawLink
 				href={href ?? src}
 				target="_blank"
 				rel="noreferrer"
@@ -33,7 +33,7 @@ export function Video({
 					muted={autoplay}
 					loop={autoplay}
 				/>
-			</Link>
+			</TldrawLink>
 			{caption && <span className="block text-xs text-zinc-500 mt-3 text-center">{caption}</span>}
 		</span>
 	)

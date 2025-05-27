@@ -241,11 +241,20 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
+	 * When the shape is resized, whether the shape's children should also be resized.
+	 *
+	 * @public
+	 */
+	canResizeChildren(_shape: Shape): boolean {
+		return true
+	}
+
+	/**
 	 * Whether the shape can be edited in read-only mode.
 	 *
 	 * @public
 	 */
-	canEditInReadOnly(_shape: Shape): boolean {
+	canEditInReadonly(_shape: Shape): boolean {
 		return false
 	}
 
@@ -707,7 +716,15 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	onClick?(shape: Shape): TLShapePartial<Shape> | void
 
 	/**
-	 * A callback called when a shape finishes being editing.
+	 * A callback called when a shape starts being edited.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	onEditStart?(shape: Shape): void
+
+	/**
+	 * A callback called when a shape finishes being edited.
 	 *
 	 * @param shape - The shape.
 	 * @public

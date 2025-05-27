@@ -22,6 +22,7 @@ import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
 import { debugFlags } from '../../utils/debug-flags'
 import { setStyleProperty } from '../../utils/dom'
+import { nearestMultiple } from '../../utils/nearestMultiple'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { MenuClickCapture } from '../MenuClickCapture'
@@ -36,7 +37,7 @@ export interface TLCanvasComponentProps {
 export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const editor = useEditor()
 
-	const { Background, SvgDefs, ShapeIndicators } = useEditorComponents()
+	const { SelectionBackground, Background, SvgDefs, ShapeIndicators } = useEditorComponents()
 
 	const rCanvas = useRef<HTMLDivElement>(null)
 	const rHtmlLayer = useRef<HTMLDivElement>(null)
@@ -154,7 +155,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				<GridWrapper />
 				<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
 					<OnTheCanvasWrapper />
-					<SelectionBackgroundWrapper />
+					{SelectionBackground && <SelectionBackgroundWrapper />}
 					{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
 				</div>
 				<div className="tl-overlays">
@@ -364,7 +365,8 @@ function HandleWrapper({
 	return (
 		<g
 			role="button"
-			aria-label="handle"
+			// TODO(mime): handle.label needs to be required in the future.
+			aria-label={handle.label || 'handle'}
 			transform={`translate(${handle.x}, ${handle.y})`}
 			{...events}
 		>
@@ -388,9 +390,18 @@ function ShapesWithSVGs() {
 
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
+	const dprMultiple = useValue(
+		'dpr multiple',
+		() =>
+			// dprMultiple is the smallest number we can multiply dpr by to get an integer
+			// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
+			nearestMultiple(Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100),
+		[editor]
+	)
+
 	return renderingShapes.map((result) => (
 		<Fragment key={result.id + '_fragment'}>
-			<Shape {...result} />
+			<Shape {...result} dprMultiple={dprMultiple} />
 			<DebugSvgCopy id={result.id} mode="iframe" />
 		</Fragment>
 	))
@@ -425,10 +436,19 @@ function ShapesToDisplay() {
 
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
+	const dprMultiple = useValue(
+		'dpr multiple',
+		() =>
+			// dprMultiple is the smallest number we can multiply dpr by to get an integer
+			// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
+			nearestMultiple(Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100),
+		[editor]
+	)
+
 	return (
 		<>
 			{renderingShapes.map((result) => (
-				<Shape key={result.id + '_shape'} {...result} />
+				<Shape key={result.id + '_shape'} {...result} dprMultiple={dprMultiple} />
 			))}
 			{tlenv.isSafari && <ReflowIfNeeded />}
 		</>
@@ -556,9 +576,13 @@ function DebugSvgCopy({ id, mode }: { id: TLShapeId; mode: 'img' | 'iframe' }) {
 
 function SelectionForegroundWrapper() {
 	const editor = useEditor()
-	const selectionRotation = useValue('selection rotation', () => editor.getSelectionRotation(), [
-		editor,
-	])
+	const selectionRotation = useValue(
+		'selection rotation',
+		function getSelectionRotation() {
+			return editor.getSelectionRotation()
+		},
+		[editor]
+	)
 	const selectionBounds = useValue(
 		'selection bounds',
 		() => editor.getSelectionRotatedPageBounds(),

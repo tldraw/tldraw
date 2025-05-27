@@ -69,6 +69,26 @@ async function listPreviewWorkerDeployments() {
 }
 
 async function deletePreviewWorkerDeployment(id: string) {
+	const prNumber = Number(id.match(CLOUDFLARE_WORKER_REGEX)?.[1])
+	const queueId = `tldraw-multiplayer-queue-pr-${prNumber}`
+	console.log('PR number', prNumber)
+	console.log('Queue id', queueId)
+
+	// Delete queue consumer
+	const queueConsumerDeleteUrl = `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/queues/${queueId}/consumers/${id}`
+	const queueConsumerDeleteReq = await fetch(queueConsumerDeleteUrl, {
+		method: 'DELETE',
+		headers: {
+			Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
+			'Content-Type': 'application/json',
+		},
+	})
+	if (!queueConsumerDeleteReq.ok) {
+		throw new Error(
+			'Failed to delete queue consumer ' + JSON.stringify(await queueConsumerDeleteReq.json())
+		)
+	}
+
 	const url = `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${id}`
 	nicelog('DELETE', url)
 	const res = await fetch(url, {
@@ -82,6 +102,19 @@ async function deletePreviewWorkerDeployment(id: string) {
 
 	if (!res.ok) {
 		throw new Error('Failed to delete worker ' + JSON.stringify(await res.json()))
+	}
+
+	const queueUrl = `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/queues/${queueId}`
+	const queueRes = await fetch(queueUrl, {
+		method: 'DELETE',
+		headers: {
+			Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
+			'Content-Type': 'application/json',
+		},
+	})
+	if (!queueRes.ok) {
+		// This might happen for old PRs that didn't have queues yet
+		console.log('Failed to delete queue ' + JSON.stringify(await queueRes.json()))
 	}
 }
 
