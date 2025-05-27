@@ -60,12 +60,27 @@ export default function Analytics() {
 				ReactGA.initialize(window.TL_GA4_MEASUREMENT_ID)
 				ReactGA.send('pageview')
 			}
+
+			// Add Hubspot analytics
+			const hubspotScriptTag = document.createElement('script')
+			hubspotScriptTag.src = `https://js-eu1.hs-scripts.com/145620695.js`
+			hubspotScriptTag.defer = true
+			document.head.appendChild(hubspotScriptTag)
+
+			// Add Reo analytics
+			const reoId = '47839e47a5ed202'
+			const reoScriptTag = document.createElement('script')
+			reoScriptTag.src = `https://static.reo.dev/${reoId}/reo.js`
+			reoScriptTag.defer = true
+			reoScriptTag.onload = () => window.Reo.init({ clientID: reoId })
+			document.head.appendChild(reoScriptTag)
 		} else {
 			posthog.reset()
 			posthog.opt_out_capturing()
 			ReactGA.reset()
 			ReactGA.set({ anonymize_ip: true })
 			ReactGA.send('pageview')
+			window.Reo?.reset?.()
 		}
 	}, [hasConsent])
 
@@ -108,6 +123,7 @@ export function identify(userId: string, properties?: { [key: string]: any }) {
 	posthog.identify(userId, properties)
 	ReactGA.set({ userId })
 	ReactGA.set(properties)
+	window.Reo?.identify?.({ ...properties, userId, username: userId })
 }
 
 export function track(name: string, data?: { [key: string]: any }) {
