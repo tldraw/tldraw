@@ -15,7 +15,6 @@ import {
 	TLShapePartial,
 	Vec,
 	approximately,
-	areShapesContentEqual,
 	arrowBindingMigrations,
 	arrowBindingProps,
 	assert,
@@ -59,20 +58,13 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 
 	// when the arrow itself changes
 	override onAfterChangeFromShape({
-		shapeBefore,
 		shapeAfter,
 	}: BindingOnShapeChangeOptions<TLArrowBinding>): void {
-		if (areShapesContentEqual(shapeBefore, shapeAfter)) return
 		arrowDidUpdate(this.editor, shapeAfter as TLArrowShape)
 	}
 
 	// when the shape an arrow is bound to changes
-	override onAfterChangeToShape({
-		binding,
-		shapeBefore,
-		shapeAfter,
-	}: BindingOnShapeChangeOptions<TLArrowBinding>): void {
-		if (areShapesContentEqual(shapeBefore, shapeAfter)) return
+	override onAfterChangeToShape({ binding }: BindingOnShapeChangeOptions<TLArrowBinding>): void {
 		reparentArrow(this.editor, binding.fromId)
 	}
 
