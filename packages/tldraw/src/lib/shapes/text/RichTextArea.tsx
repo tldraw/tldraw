@@ -29,6 +29,7 @@ export interface TextAreaProps {
 	handleChange(changeInfo: { plaintext?: string; richText?: TLRichText }): void
 	handleInputPointerDown(e: React.PointerEvent<HTMLElement>): void
 	handleDoubleClick(e: any): any
+	handlePaste(e: ClipboardEvent | React.ClipboardEvent<HTMLTextAreaElement>): void
 	hasCustomTabBehavior?: boolean
 }
 
@@ -56,6 +57,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		handleKeyDown,
 		handleDoubleClick,
 		hasCustomTabBehavior,
+		handlePaste,
 	},
 	ref
 ) {
@@ -112,6 +114,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 	const onFocus = useEvent(handleFocus)
 	const onBlur = useEvent(handleBlur)
 	const onDoubleClick = useEvent(handleDoubleClick)
+	const onPaste = useEvent(handlePaste)
 	useLayoutEffect(() => {
 		if (!isEditing || !tipTapConfig || !rTextEditorEl.current) return
 
@@ -169,7 +172,11 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 
 					onKeyDown(event)
 				},
-				handleDoubleClick: (view, pos, event) => onDoubleClick(event),
+				handlePaste: (view: EditorView, event: ClipboardEvent) => {
+					onPaste(event)
+					if (event.defaultPrevented) return true
+				},
+				handleDoubleClick: (_view, _pos, event) => onDoubleClick(event),
 				...editorProps,
 			},
 			coreExtensionOptions: {
@@ -208,6 +215,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		onBlur,
 		onDoubleClick,
 		onChange,
+		onPaste,
 		onKeyDown,
 		editor,
 		shapeId,

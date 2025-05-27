@@ -2565,6 +2565,8 @@ export interface TextAreaProps {
     // (undocumented)
     handleKeyDown(e: KeyboardEvent): void;
     // (undocumented)
+    handlePaste(e: ClipboardEvent | React_3.ClipboardEvent<HTMLTextAreaElement>): void;
+    // (undocumented)
     hasCustomTabBehavior?: boolean;
     // (undocumented)
     isEditing: boolean;
@@ -4791,6 +4793,7 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
     handleFocus: () => void;
     handleInputPointerDown: (e: React_3.PointerEvent<Element>) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
+    handlePaste: (e: ClipboardEvent | React_3.ClipboardEvent<HTMLTextAreaElement>) => void;
     isEditing: boolean;
     isEmpty: boolean;
     isReadyForEditing: boolean;
@@ -4807,6 +4810,7 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
     handleFocus: () => void;
     handleInputPointerDown: (e: PointerEvent_2<Element>) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
+    handlePaste: (e: ClipboardEvent | React.ClipboardEvent<HTMLTextAreaElement>) => void;
     isEditing: boolean;
     isEmpty: boolean | undefined;
     isReadyForEditing: boolean;
