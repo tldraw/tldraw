@@ -63,8 +63,7 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
 				// find html in the clipboard and look for the tldraw data
 				const html = e.clipboardData.getData('text/html')
 				if (html) {
-					const isTldrawShapeData = html.includes('<div data-tldraw')
-					if (isTldrawShapeData) {
+					if (html.includes('<div data-tldraw')) {
 						preventDefault(e)
 					}
 				}

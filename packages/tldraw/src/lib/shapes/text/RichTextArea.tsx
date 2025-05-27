@@ -31,7 +31,6 @@ export interface TextAreaProps {
 	handleDoubleClick(e: any): any
 	handlePaste(e: ClipboardEvent | React.ClipboardEvent<HTMLTextAreaElement>): void
 	hasCustomTabBehavior?: boolean
-	// This method is only used in the plain text area, because the rich text area doesn't support custom pasting logic this way. We should consider separating rich text and plain text props.
 }
 
 /**
