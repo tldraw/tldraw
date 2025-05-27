@@ -85,27 +85,10 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
 		[editor, shapeId, type]
 	)
 
-	const handlePaste = useCallback(
-		(e: ClipboardEvent | React.ClipboardEvent<HTMLTextAreaElement>) => {
-			if (editor.getEditingShapeId() !== shapeId) return
-			if (e.clipboardData) {
-				// find html in the clipboard and look for the tldraw data
-				const html = e.clipboardData.getData('text/html')
-				if (html) {
-					if (html.includes('<div data-tldraw')) {
-						preventDefault(e)
-					}
-				}
-			}
-		},
-		[editor, shapeId]
-	)
-
 	return {
 		rInput,
 		handleKeyDown,
 		handleChange,
-		handlePaste,
 		isEmpty,
 		...commonUseEditableTextHandlers,
 	}
@@ -158,11 +141,28 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 		[editor, shapeId]
 	)
 
+	const handlePaste = useCallback(
+		(e: ClipboardEvent | React.ClipboardEvent<HTMLTextAreaElement>) => {
+			if (editor.getEditingShapeId() !== shapeId) return
+			if (e.clipboardData) {
+				// find html in the clipboard and look for the tldraw data
+				const html = e.clipboardData.getData('text/html')
+				if (html) {
+					if (html.includes('<div data-tldraw')) {
+						preventDefault(e)
+					}
+				}
+			}
+		},
+		[editor, shapeId]
+	)
+
 	return {
 		handleFocus: noop,
 		handleBlur: noop,
 		handleInputPointerDown,
 		handleDoubleClick: stopEventPropagation,
+		handlePaste,
 		isEditing,
 		isReadyForEditing,
 	}
