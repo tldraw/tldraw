@@ -241,6 +241,15 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
+	 * When the shape is resized, whether the shape's children should also be resized.
+	 *
+	 * @public
+	 */
+	canResizeChildren(_shape: Shape): boolean {
+		return true
+	}
+
+	/**
 	 * Whether the shape can be edited in read-only mode.
 	 *
 	 * @public

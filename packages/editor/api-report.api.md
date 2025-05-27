@@ -1913,6 +1913,10 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind(): boolean;
     // (undocumented)
+    canResize(): boolean;
+    // (undocumented)
+    canResizeChildren(): boolean;
+    // (undocumented)
     component(shape: TLGroupShape): JSX_2.Element | null;
     // (undocumented)
     getDefaultProps(): TLGroupShape['props'];
@@ -2603,6 +2607,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canEditInReadonly(_shape: Shape): boolean;
     canReceiveNewChildrenOfType(_shape: Shape, _type: TLShape['type']): boolean;
     canResize(_shape: Shape): boolean;
+    canResizeChildren(_shape: Shape): boolean;
     canScroll(_shape: Shape): boolean;
     canSnap(_shape: Shape): boolean;
     canTabTo(_shape: Shape): boolean;
