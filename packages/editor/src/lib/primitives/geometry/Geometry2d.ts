@@ -8,6 +8,7 @@ import {
 	intersectLineSegmentPolygon,
 	intersectLineSegmentPolyline,
 	intersectPolys,
+	linesIntersect,
 } from '../intersect'
 import { approximately, pointInPolygon } from '../utils'
 
@@ -107,8 +108,13 @@ export abstract class Geometry2d {
 		let nearest: Vec | undefined
 		let dist = Infinity
 		let d: number, p: Vec, q: Vec
+		const nextLimit = this.isClosed ? vertices.length : vertices.length - 1
 		for (let i = 0; i < vertices.length; i++) {
 			p = vertices[i]
+			if (i < nextLimit) {
+				const next = vertices[(i + 1) % vertices.length]
+				if (linesIntersect(A, B, p, next)) return 0
+			}
 			q = Vec.NearestPointOnLineSegment(A, B, p, true)
 			d = Vec.Dist2(p, q)
 			if (d < dist) {

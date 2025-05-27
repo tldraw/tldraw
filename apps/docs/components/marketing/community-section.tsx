@@ -137,7 +137,7 @@ const socialLinks = [
 		caption: 'GitHub',
 		icon: 'github' as IconName,
 		href: 'https://github.com/tldraw/tldraw',
-		stat: '39K+',
+		stat: '40K+',
 	},
 ]
 

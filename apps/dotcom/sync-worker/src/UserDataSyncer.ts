@@ -13,16 +13,11 @@ import {
 import { react, transact } from '@tldraw/state'
 import { ExecutionQueue, assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
-import { Kysely, sql } from 'kysely'
+import { CompiledQuery, Kysely, sql } from 'kysely'
 import throttle from 'lodash.throttle'
 import { Logger } from './Logger'
-import {
-	fileKeys,
-	fileStateKeys,
-	getFetchUserDataSql,
-	parseResultRow,
-	userKeys,
-} from './getFetchEverythingSql'
+import { fetchEverythingSql } from './fetchEverythingSql.snap'
+import { parseResultRow } from './parseResultRow'
 import { Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
@@ -255,7 +250,6 @@ export class UserDataSyncer {
 		this.logEvent({ type: hard ? 'full_data_fetch_hard' : 'full_data_fetch', id: this.userId })
 		this.log.debug('fetching fresh initial data from postgres')
 		// if the bootId changes during the boot process, we should stop silently
-		const userSql = getFetchUserDataSql(this.userId)
 		const initialData: ZStoreData & { mutationNumber?: number } = {
 			user: [],
 			file: [],
@@ -274,20 +268,12 @@ export class UserDataSyncer {
 				initialData.file_state = []
 
 				await this.db.transaction().execute(async (tx) => {
-					const result = await userSql.execute(tx)
+					const result = await tx.executeQuery(CompiledQuery.raw(fetchEverythingSql, [this.userId]))
+					assert(this.state.type === 'connecting', 'state should be connecting in boot')
 					if (signal.aborted) return
-					result.rows.forEach((row: any) => {
-						assert(this.state.type === 'connecting', 'state should be connecting in boot')
-						switch (row.table) {
-							case 'user':
-								initialData.user.push(parseResultRow(userKeys, row))
-								break
-							case 'file':
-								initialData.file.push(parseResultRow(fileKeys, row))
-								break
-							case 'file_state':
-								initialData.file_state.push(parseResultRow(fileStateKeys, row))
-								break
+					for (const _row of result.rows) {
+						const { table, row } = parseResultRow(_row)
+						switch (table) {
 							case 'lsn':
 								assert(typeof row.lsn === 'string', 'lsn should be a string')
 								initialData.lsn = row.lsn
@@ -301,8 +287,10 @@ export class UserDataSyncer {
 									initialData.mutationNumber = row.mutationNumber
 								}
 								break
+							default:
+								initialData[table].push(row)
 						}
-					})
+					}
 				})
 			},
 			() => {

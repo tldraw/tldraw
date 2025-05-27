@@ -1,3 +1,403 @@
+# v3.13.0 (Thu May 22 2025)
+
+### Release Notes
+
+#### Examples cleanup ([#5977](https://github.com/tldraw/tldraw/pull/5977))
+
+- [Docs]: Restructured example categories.
+- [Docs]: Updated all examples to contain up-to-date info.
+- [Docs]: Updated copy for various examples for clarity.
+
+#### scale scrubbing ([#6057](https://github.com/tldraw/tldraw/pull/6057))
+
+- Fixed a bug with…
+
+#### feat: Merge util and binding within TldrawImage ([#6071](https://github.com/tldraw/tldraw/pull/6071))
+
+- Merge shape utils and bindings within TldrawImage
+
+#### ENG-3385 / Auto select text when Edit link menu opens ([#6072](https://github.com/tldraw/tldraw/pull/6072))
+
+- Improved the Edit Link menu: link text is now auto-selected for faster editing.
+
+#### a11y: add way to focus styling menu via kbd ([#5827](https://github.com/tldraw/tldraw/pull/5827))
+
+- a11y: add way to focus the styling menu via kbd
+
+#### Fix dragging arrows breaking bindings ([#6050](https://github.com/tldraw/tldraw/pull/6050))
+
+- Fixed a bug causing elbow arrows to unbind when translated
+
+#### a11y: address icons and handles ([#6001](https://github.com/tldraw/tldraw/pull/6001))
+
+- a11y: add labels to icons and handles
+
+#### a11y: be able to navigate in/out of container shapes ([#5973](https://github.com/tldraw/tldraw/pull/5973))
+
+- a11y: Adds Cmd+Shift+Up/Down for container navigation.
+
+#### refactor: rename canEditOnly to canEditonly ([#6019](https://github.com/tldraw/tldraw/pull/6019))
+
+close #5899 
+- Rename `CanEditOnly` to `CanEditonly` to standardize.
+  - method in `packages/editor/src/lib/editor/shapes/ShapeUtil.ts` 
+  - method in `packages/tldraw/src/lib/shapes/embed/EmbedShapeUtil.tsx`
+  - used in `packages/tldraw/src/lib/tools/SelectTool/childStates/EditingShape.ts`
+  - used in `packages/tldraw/src/lib/tools/SelectTool/childStates/Idle.ts`
+  - used in `packages/tldraw/src/lib/tools/SelectTool/childStates/PointingShape.ts`
+
+#### Snap pasted text and embed content to the grid ([#6020](https://github.com/tldraw/tldraw/pull/6020))
+
+- When pasting text or embeddable links, snap the created shape to the grid if the grid is enabled.
+
+#### Fix super tight zoom button ([#6044](https://github.com/tldraw/tldraw/pull/6044))
+
+- Slightly add padding to zoom menu
+
+#### Redesign account / help menu ([#6008](https://github.com/tldraw/tldraw/pull/6008))
+
+- Design improvements on the app sidebar
+
+#### Make flattened shapes image use a transparent background ([#6043](https://github.com/tldraw/tldraw/pull/6043))
+
+- Fixed a bug causing flattened shapes to have opaque background colors.
+
+#### Embed shape: add figma selection definition ([#6025](https://github.com/tldraw/tldraw/pull/6025))
+
+- Fixed a bug with…
+
+#### Remove the selection background ([#6042](https://github.com/tldraw/tldraw/pull/6042))
+
+- Removes default selection background component
+
+#### Prevent announcements during interactions ([#6041](https://github.com/tldraw/tldraw/pull/6041))
+
+- Fixed a bug causing too many screenreader announcements
+
+#### fix: no tasks found matching build-package ([#6035](https://github.com/tldraw/tldraw/pull/6035))
+
+close #6018 
+Fixed a bug that caused the `build-package` script to not work.
+- change `build-package` : `lazy run build --filter 'packages/*'`
+
+#### Fix disposing order ([#6030](https://github.com/tldraw/tldraw/pull/6030))
+
+- Fix an issue that could occur when disposable logic that relied on the store being available was run after the store has already been disposed.
+
+#### arrows: create min-width for label indicator ([#6029](https://github.com/tldraw/tldraw/pull/6029))
+
+- arrows: create min-width for label indicator
+
+#### Improve performance of a programatically rotating shape when it is selected ([#6023](https://github.com/tldraw/tldraw/pull/6023))
+
+- Improve the performance of shape rotation. This slowdown could be seen when the shape was rotated programmatically and you selected it. Or in a multiplayer scenario if you selected a shape that somebody else was rotating.
+
+#### Fix inconsistent panning. ([#6024](https://github.com/tldraw/tldraw/pull/6024))
+
+- Don't take pan speed into account for hand tool panning so that it's consistent with middle mouse button / spacebar panning.
+
+#### Elbow arrows ([#5572](https://github.com/tldraw/tldraw/pull/5572))
+
+- The arrow shape now supports elbow arrows. Instead of a single straight line or arc, these arrows get from A to B in a series straight lines joined at right angles. Access the new arrow type by selecting the arrow tool, and choosing the new option under the "Line" style.
+
+#### rich text: fix up styling of empty lines and lists ([#6013](https://github.com/tldraw/tldraw/pull/6013))
+
+- rich text: fix styling of empty lines in some cases and lists in some cases
+
+#### text: be able to add other styling to measure by if applicable ([#6014](https://github.com/tldraw/tldraw/pull/6014))
+
+- text: be able to add other styling to measure by if applicable
+
+#### Fix simple server example ([#5979](https://github.com/tldraw/tldraw/pull/5979))
+
+- [Docs]: Fixed image uploads in our simple server template.
+
+#### laser: let hitting escape go back to Select tool ([#6015](https://github.com/tldraw/tldraw/pull/6015))
+
+- laser: let hitting escape go back to Select tool
+
+#### Select offscreen shapes ([#6004](https://github.com/tldraw/tldraw/pull/6004))
+
+- Fixed a bug with off-screen shapes not being selected.
+
+#### Fix clickable area on form rows ([#6007](https://github.com/tldraw/tldraw/pull/6007))
+
+- Fixed a bug with the clickable area of items in the export menu
+
+#### Fix export images bug ([#6006](https://github.com/tldraw/tldraw/pull/6006))
+
+- Fixed a bug with the export menu image preview
+
+#### Fix spacing and baseline on top right area ([#5985](https://github.com/tldraw/tldraw/pull/5985))
+
+- Tiny adjustment of top right buttons
+
+#### Better computed cache memoization ([#5988](https://github.com/tldraw/tldraw/pull/5988))
+
+- Allow changes to shape.meta to bust the shape geometry cache.
+
+#### Indicators perf ([#5821](https://github.com/tldraw/tldraw/pull/5821))
+
+- Improved performance when dragging many shapes at once
+
+#### Migrate radix dependencies to radix-ui package ([#5964](https://github.com/tldraw/tldraw/pull/5964))
+
+- Bump radix dependencies.
+
+#### Fix hover buttons ([#5969](https://github.com/tldraw/tldraw/pull/5969))
+
+- Fixed a bug with hovering buttons on the UI.
+
+#### Export custom bg color for single frame exports ([#5993](https://github.com/tldraw/tldraw/pull/5993))
+
+- When exporting an individual frame as an image, if the frame has a custom color set, use that color for the background.
+
+#### Fix active states for buttons in toolbars ([#5981](https://github.com/tldraw/tldraw/pull/5981))
+
+- Fixed a bug in the UI where active items in dropdowns weren't displayed as active
+
+#### Fix gradients / hovers for open submenus ([#5974](https://github.com/tldraw/tldraw/pull/5974))
+
+- Standardizes hovers in the UI for submenus items.
+
+#### Fix control button wheel bug ([#5983](https://github.com/tldraw/tldraw/pull/5983))
+
+- Fixed a bug causing the control key to be seen as pressed even after releasing when wheeling
+
+#### Restore DPR constrained width/height on shapes. ([#5975](https://github.com/tldraw/tldraw/pull/5975))
+
+- Prevent arrows and lines from jittering in some browsers as their width/height changes
+
+#### ENG 3023 Add double-click to fit frame to content on edges and corners ([#5967](https://github.com/tldraw/tldraw/pull/5967))
+
+- Frames can now be resized to fit their contents by double-clicking their edges.
+
+#### a11y: dont go into edit mode when moving to canvas content ([#5957](https://github.com/tldraw/tldraw/pull/5957))
+
+- a11y: don't go into edit mode when holding Enter for a long time.
+
+#### Add overlays component ([#5952](https://github.com/tldraw/tldraw/pull/5952))
+
+- A new `Overlays` component lets you add overlays on top of the canvas that still follow the camera.
+
+#### Fix flickering when rotating arrow ([#5951](https://github.com/tldraw/tldraw/pull/5951))
+
+- Prevent bound arrows from flickering when you rotate them
+
+#### a11y: better embed interaction ([#5958](https://github.com/tldraw/tldraw/pull/5958))
+
+- a11y: make sure we can tab into embeds.
+
+#### a11y: make toolbars more compliant with keyboard navigation ([#5872](https://github.com/tldraw/tldraw/pull/5872))
+
+- a11y: make toolbars more compliant with keyboard navigation
+
+#### templates: Fix simple server node example dropping messages on initial connection ([#5949](https://github.com/tldraw/tldraw/pull/5949))
+
+- Fix node server failing to connect on first try
+
+#### INT-1266 Remove GitHub CTA from SDK error dialogs ([#5947](https://github.com/tldraw/tldraw/pull/5947))
+
+- Removed GitHub and Discord support prompts from SDK error dialogs
+
+#### license: allow ability to do VS code extensions ([#5940](https://github.com/tldraw/tldraw/pull/5940))
+
+- License: add ability to use VS code with our licensing scheme.
+
+#### a11y: fix up select dropdown in share; also error dialog ([#5941](https://github.com/tldraw/tldraw/pull/5941))
+
+- a11y: fix some more components: Select and error dialog
+
+#### a11y: add rich text shortcuts to dialog; add shortcut for links ([#5912](https://github.com/tldraw/tldraw/pull/5912))
+
+- a11y: list out rich text shortcuts; add link shortcut
+
+#### Fix getSelectedShapes caching ([#5928](https://github.com/tldraw/tldraw/pull/5928))
+
+- Small perf fix to make sure `editor.getSelectedShapes` doesn't cause signals to fire too often.
+
+#### Fix user following chains + add loop support ([#5924](https://github.com/tldraw/tldraw/pull/5924))
+
+- Fixed viewport following for situations when there is a chain of at least three users following one another sequentially.
+
+#### [INT-1278] Move Import file under File menu ([#5839](https://github.com/tldraw/tldraw/pull/5839))
+
+- Updated the location of the Import File button to make it easier to find and use. Functionality remains the same.
+
+#### stickies: make sure our custom tab behavior takes over the rich text behavior ([#5908](https://github.com/tldraw/tldraw/pull/5908))
+
+- Added `hasCustomTabBehavior` prop to `RichTextLabel` so developers can also opt out of this behavior where necessary
+
+---
+
+#### 🐛 Bug Fix
+
+- Fix docs sidebar duplication bug [#6114](https://github.com/tldraw/tldraw/pull/6114) ([@TodePond](https://github.com/TodePond))
+- Add DeepWiki badge [#6111](https://github.com/tldraw/tldraw/pull/6111) ([@TodePond](https://github.com/TodePond))
+- Examples cleanup: Sidebar followup [#6110](https://github.com/tldraw/tldraw/pull/6110) ([@TodePond](https://github.com/TodePond))
+- Followups to examples cleanup [#6109](https://github.com/tldraw/tldraw/pull/6109) ([@TodePond](https://github.com/TodePond))
+- Examples cleanup [#5977](https://github.com/tldraw/tldraw/pull/5977) ([@TodePond](https://github.com/TodePond) [@steveruizok](https://github.com/steveruizok))
+- analytics: once more, with feeling [#6107](https://github.com/tldraw/tldraw/pull/6107) ([@mimecuvalo](https://github.com/mimecuvalo))
+- analytics: ugh posthogs/vercels docs are wrong omg [#6105](https://github.com/tldraw/tldraw/pull/6105) ([@mimecuvalo](https://github.com/mimecuvalo))
+- analytics: update style and add POST to cors [#6104](https://github.com/tldraw/tldraw/pull/6104) ([@mimecuvalo](https://github.com/mimecuvalo))
+- analytics: expose page/identify/track for computer.tldraw.com [#6102](https://github.com/tldraw/tldraw/pull/6102) ([@mimecuvalo](https://github.com/mimecuvalo))
+- analytics: tweak vercel.json routing, take 2 [#6098](https://github.com/tldraw/tldraw/pull/6098) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats))
+- analytics: tweak vercel.json routing [#6097](https://github.com/tldraw/tldraw/pull/6097) ([@mimecuvalo](https://github.com/mimecuvalo))
+- analytics: lay foundation to unify across tldraw properties [#6089](https://github.com/tldraw/tldraw/pull/6089) ([@mimecuvalo](https://github.com/mimecuvalo))
+- [automated] update i18n strings [#6093](https://github.com/tldraw/tldraw/pull/6093) ([@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@mimecuvalo](https://github.com/mimecuvalo) [@github-actions[bot]](https://github.com/github-actions[bot]))
+- Upgrade transitive dependency prebuild-install [#6092](https://github.com/tldraw/tldraw/pull/6092) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+- i18n: we dont need fetch-depth 0 [#6094](https://github.com/tldraw/tldraw/pull/6094) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Remove download option from non-active files. [#6065](https://github.com/tldraw/tldraw/pull/6065) ([@ds300](https://github.com/ds300))
+- [automated] update i18n strings [#6047](https://github.com/tldraw/tldraw/pull/6047) ([@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@mimecuvalo](https://github.com/mimecuvalo) [@github-actions[bot]](https://github.com/github-actions[bot]))
+- fix feedback dialog [#6049](https://github.com/tldraw/tldraw/pull/6049) ([@ds300](https://github.com/ds300))
+- Docs: Remove section on rich text exports [#6021](https://github.com/tldraw/tldraw/pull/6021) ([@TodePond](https://github.com/TodePond))
+- Revert "Export menu improvements" [#6037](https://github.com/tldraw/tldraw/pull/6037) ([@ds300](https://github.com/ds300))
+- Fix simple server example [#5979](https://github.com/tldraw/tldraw/pull/5979) ([@TodePond](https://github.com/TodePond))
+- Export menu improvements [#6000](https://github.com/tldraw/tldraw/pull/6000) ([@ds300](https://github.com/ds300))
+- Better error reporting for sync worker [#5996](https://github.com/tldraw/tldraw/pull/5996) ([@ds300](https://github.com/ds300))
+- disable auto flyio deploy since it's broken [#5997](https://github.com/tldraw/tldraw/pull/5997) ([@ds300](https://github.com/ds300))
+- Fix mask window example [#5998](https://github.com/tldraw/tldraw/pull/5998) ([@steveruizok](https://github.com/steveruizok))
+- a11y: fix some dotcom issues [#5992](https://github.com/tldraw/tldraw/pull/5992) ([@mimecuvalo](https://github.com/mimecuvalo))
+- don't lint .schema.js [#5989](https://github.com/tldraw/tldraw/pull/5989) ([@ds300](https://github.com/ds300))
+- [automated] update i18n strings [#5968](https://github.com/tldraw/tldraw/pull/5968) ([@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@mimecuvalo](https://github.com/mimecuvalo) [@github-actions[bot]](https://github.com/github-actions[bot]))
+- templates: Fix simple server node example dropping messages on initial connection [#5949](https://github.com/tldraw/tldraw/pull/5949) ([@OriginalEXE](https://github.com/OriginalEXE))
+- [automated] update i18n strings [#5936](https://github.com/tldraw/tldraw/pull/5936) ([@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@mimecuvalo](https://github.com/mimecuvalo) [@github-actions[bot]](https://github.com/github-actions[bot]))
+- Move license key docs to docs site [#5919](https://github.com/tldraw/tldraw/pull/5919) ([@TodePond](https://github.com/TodePond))
+- Update series A copy [#5887](https://github.com/tldraw/tldraw/pull/5887) ([@TodePond](https://github.com/TodePond))
+- docs: should be a nav, not aside [#5913](https://github.com/tldraw/tldraw/pull/5913) ([@mimecuvalo](https://github.com/mimecuvalo))
+- `@tldraw/dotcom-shared`, `@tldraw/utils`
+  - Consolidate mutation logic [#6075](https://github.com/tldraw/tldraw/pull/6075) ([@ds300](https://github.com/ds300))
+- `@tldraw/editor`
+  - Revert "scale scrubbing" [#6108](https://github.com/tldraw/tldraw/pull/6108) ([@SomeHats](https://github.com/SomeHats))
+  - scale scrubbing [#6057](https://github.com/tldraw/tldraw/pull/6057) ([@steveruizok](https://github.com/steveruizok))
+  - Fix user following chains + add loop support [#5924](https://github.com/tldraw/tldraw/pull/5924) ([@ds300](https://github.com/ds300))
+- `@tldraw/worker-shared`
+  - Bump wrangler versions [#6055](https://github.com/tldraw/tldraw/pull/6055) ([@steveruizok](https://github.com/steveruizok) [@ds300](https://github.com/ds300))
+
+#### 🐛 Bug Fixes
+
+- Fix feedback dialog [#6052](https://github.com/tldraw/tldraw/pull/6052) ([@steveruizok](https://github.com/steveruizok))
+- Fix queue previews [#6056](https://github.com/tldraw/tldraw/pull/6056) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Sidebar UI fixes [#6046](https://github.com/tldraw/tldraw/pull/6046) ([@steveruizok](https://github.com/steveruizok))
+- fix: no tasks found matching build-package [#6035](https://github.com/tldraw/tldraw/pull/6035) ([@nayounsang](https://github.com/nayounsang))
+- Bump memory. [#6033](https://github.com/tldraw/tldraw/pull/6033) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix clickable area on form rows [#6007](https://github.com/tldraw/tldraw/pull/6007) ([@steveruizok](https://github.com/steveruizok))
+- Fix export images bug [#6006](https://github.com/tldraw/tldraw/pull/6006) ([@steveruizok](https://github.com/steveruizok))
+- `tldraw`
+  - Improve feedback textarea [#6103](https://github.com/tldraw/tldraw/pull/6103) ([@steveruizok](https://github.com/steveruizok))
+  - feat: Merge util and binding within TldrawImage [#6071](https://github.com/tldraw/tldraw/pull/6071) ([@judicaelandria](https://github.com/judicaelandria))
+  - Fix dragging arrows breaking bindings [#6050](https://github.com/tldraw/tldraw/pull/6050) ([@steveruizok](https://github.com/steveruizok) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+  - Snap pasted text and embed content to the grid [#6020](https://github.com/tldraw/tldraw/pull/6020) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+  - Fix super tight zoom button [#6044](https://github.com/tldraw/tldraw/pull/6044) ([@steveruizok](https://github.com/steveruizok))
+  - laser: let hitting escape go back to Select tool [#6015](https://github.com/tldraw/tldraw/pull/6015) ([@mimecuvalo](https://github.com/mimecuvalo))
+  - Select offscreen shapes [#6004](https://github.com/tldraw/tldraw/pull/6004) ([@steveruizok](https://github.com/steveruizok))
+  - Fix hover buttons [#5969](https://github.com/tldraw/tldraw/pull/5969) ([@steveruizok](https://github.com/steveruizok))
+  - Fix active states for buttons in toolbars [#5981](https://github.com/tldraw/tldraw/pull/5981) ([@steveruizok](https://github.com/steveruizok))
+  - Fix gradients / hovers for open submenus [#5974](https://github.com/tldraw/tldraw/pull/5974) ([@steveruizok](https://github.com/steveruizok))
+  - Restore deleted margin in style panel [#5982](https://github.com/tldraw/tldraw/pull/5982) ([@steveruizok](https://github.com/steveruizok))
+  - a11y: dont go into edit mode when moving to canvas content [#5957](https://github.com/tldraw/tldraw/pull/5957) ([@mimecuvalo](https://github.com/mimecuvalo))
+- `@tldraw/sync-core`
+  - [tlsync] Add internal hooks to expose presence changes [#6096](https://github.com/tldraw/tldraw/pull/6096) ([@ds300](https://github.com/ds300))
+- `@tldraw/store`, `tldraw`
+  - don't call createId if id is overridden [#6048](https://github.com/tldraw/tldraw/pull/6048) ([@ds300](https://github.com/ds300))
+- `@tldraw/tlschema`
+  - Set retroactive to true for props migrators [#6036](https://github.com/tldraw/tldraw/pull/6036) ([@ds300](https://github.com/ds300))
+- `@tldraw/editor`
+  - Fix disposing order [#6030](https://github.com/tldraw/tldraw/pull/6030) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+  - always call on edit end [#6032](https://github.com/tldraw/tldraw/pull/6032) ([@SomeHats](https://github.com/SomeHats))
+  - rich text: fix up styling of empty lines and lists [#6013](https://github.com/tldraw/tldraw/pull/6013) ([@mimecuvalo](https://github.com/mimecuvalo))
+  - Export custom bg color for single frame exports [#5993](https://github.com/tldraw/tldraw/pull/5993) ([@ds300](https://github.com/ds300))
+  - Fix control button wheel bug [#5983](https://github.com/tldraw/tldraw/pull/5983) ([@steveruizok](https://github.com/steveruizok))
+  - Restore DPR constrained width/height on shapes. [#5975](https://github.com/tldraw/tldraw/pull/5975) ([@SomeHats](https://github.com/SomeHats))
+  - Fix getSelectedShapes caching [#5928](https://github.com/tldraw/tldraw/pull/5928) ([@ds300](https://github.com/ds300))
+- `@tldraw/editor`, `tldraw`
+  - Elbow arrow fixes [#6028](https://github.com/tldraw/tldraw/pull/6028) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+  - Fix inconsistent panning. [#6024](https://github.com/tldraw/tldraw/pull/6024) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+  - Better computed cache memoization [#5988](https://github.com/tldraw/tldraw/pull/5988) ([@ds300](https://github.com/ds300))
+  - Fix flickering when rotating arrow [#5951](https://github.com/tldraw/tldraw/pull/5951) ([@SomeHats](https://github.com/SomeHats))
+  - Fix group bounds containing text shapes (#5909) [#5910](https://github.com/tldraw/tldraw/pull/5910) ([@SomeHats](https://github.com/SomeHats))
+- `@tldraw/utils`
+  - [VSCode] Allow users to drag files from the sidebar. [#5956](https://github.com/tldraw/tldraw/pull/5956) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- `@tldraw/dotcom-shared`
+  - Bump again. [#5972](https://github.com/tldraw/tldraw/pull/5972) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- `tldraw`, `@tldraw/utils`
+  - stickies: make sure our custom tab behavior takes over the rich text behavior [#5908](https://github.com/tldraw/tldraw/pull/5908) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 💄 Product Improvements
+
+- Only create a queue if not a dry run. [#6064](https://github.com/tldraw/tldraw/pull/6064) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Make sure the file exists before uploading it to the bucket. [#6027](https://github.com/tldraw/tldraw/pull/6027) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Don't show the uploading progress bar if the upload failed already [#6038](https://github.com/tldraw/tldraw/pull/6038) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Improve the clean script 🧹 [#6026](https://github.com/tldraw/tldraw/pull/6026) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix spacing and baseline on top right area [#5985](https://github.com/tldraw/tldraw/pull/5985) ([@steveruizok](https://github.com/steveruizok))
+- Increase view syncer cpu. [#5980](https://github.com/tldraw/tldraw/pull/5980) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Stop sending `first-connect-duration` event [#5939](https://github.com/tldraw/tldraw/pull/5939) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Optimize query. [#5923](https://github.com/tldraw/tldraw/pull/5923) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Deploy zero on demand. [#5885](https://github.com/tldraw/tldraw/pull/5885) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- [INT-1278] Move Import file under File menu [#5839](https://github.com/tldraw/tldraw/pull/5839) ([@budatl](https://github.com/budatl))
+- `tldraw`
+  - ENG-3385 / Auto select text when Edit link menu opens [#6072](https://github.com/tldraw/tldraw/pull/6072) ([@budatl](https://github.com/budatl))
+  - a11y: add way to focus styling menu via kbd [#5827](https://github.com/tldraw/tldraw/pull/5827) ([@mimecuvalo](https://github.com/mimecuvalo))
+  - Make flattened shapes image use a transparent background [#6043](https://github.com/tldraw/tldraw/pull/6043) ([@steveruizok](https://github.com/steveruizok))
+  - Embed shape: add figma selection definition [#6025](https://github.com/tldraw/tldraw/pull/6025) ([@steveruizok](https://github.com/steveruizok))
+  - Prevent announcements during interactions [#6041](https://github.com/tldraw/tldraw/pull/6041) ([@steveruizok](https://github.com/steveruizok))
+  - Improve performance of a programatically rotating shape when it is selected [#6023](https://github.com/tldraw/tldraw/pull/6023) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+  - Migrate radix dependencies to radix-ui package [#5964](https://github.com/tldraw/tldraw/pull/5964) ([@steveruizok](https://github.com/steveruizok))
+  - a11y: add rich text shortcuts to dialog; add shortcut for links [#5912](https://github.com/tldraw/tldraw/pull/5912) ([@mimecuvalo](https://github.com/mimecuvalo))
+- `@tldraw/dotcom-shared`
+  - Associate users with file uploads. [#6066](https://github.com/tldraw/tldraw/pull/6066) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+  - Bump zero to the release v19 [#6005](https://github.com/tldraw/tldraw/pull/6005) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+  - Bump zero [#5953](https://github.com/tldraw/tldraw/pull/5953) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+  - Bump zero version. [#5915](https://github.com/tldraw/tldraw/pull/5915) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- `@tldraw/editor`, `tldraw`, `@tldraw/tlschema`
+  - a11y: address icons and handles [#6001](https://github.com/tldraw/tldraw/pull/6001) ([@mimecuvalo](https://github.com/mimecuvalo))
+- `@tldraw/editor`, `tldraw`
+  - a11y: be able to navigate in/out of container shapes [#5973](https://github.com/tldraw/tldraw/pull/5973) ([@mimecuvalo](https://github.com/mimecuvalo))
+  - Simplify the cursor logic [#6053](https://github.com/tldraw/tldraw/pull/6053) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+  - refactor: rename canEditOnly to canEditonly [#6019](https://github.com/tldraw/tldraw/pull/6019) ([@nayounsang](https://github.com/nayounsang))
+  - Remove the selection background [#6042](https://github.com/tldraw/tldraw/pull/6042) ([@steveruizok](https://github.com/steveruizok))
+  - arrows: create min-width for label indicator [#6029](https://github.com/tldraw/tldraw/pull/6029) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats))
+  - Indicators perf [#5821](https://github.com/tldraw/tldraw/pull/5821) ([@steveruizok](https://github.com/steveruizok))
+  - a11y: better embed interaction [#5958](https://github.com/tldraw/tldraw/pull/5958) ([@mimecuvalo](https://github.com/mimecuvalo))
+  - a11y: make toolbars more compliant with keyboard navigation [#5872](https://github.com/tldraw/tldraw/pull/5872) ([@mimecuvalo](https://github.com/mimecuvalo))
+- `@tldraw/assets`, `@tldraw/editor`, `tldraw`
+  - Redesign account / help menu [#6008](https://github.com/tldraw/tldraw/pull/6008) ([@steveruizok](https://github.com/steveruizok))
+- `@tldraw/editor`
+  - text: be able to add other styling to measure by if applicable [#6014](https://github.com/tldraw/tldraw/pull/6014) ([@mimecuvalo](https://github.com/mimecuvalo))
+  - INT-1266 Remove GitHub CTA from SDK error dialogs [#5947](https://github.com/tldraw/tldraw/pull/5947) ([@budatl](https://github.com/budatl))
+  - a11y: fix up select dropdown in share; also error dialog [#5941](https://github.com/tldraw/tldraw/pull/5941) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🎉 New Features
+
+- `@tldraw/assets`, `@tldraw/editor`, `@tldraw/store`, `@tldraw/sync-core`, `tldraw`, `@tldraw/tlschema`
+  - Elbow arrows [#5572](https://github.com/tldraw/tldraw/pull/5572) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- `@tldraw/editor`, `tldraw`
+  - ENG 3023 Add double-click to fit frame to content on edges and corners [#5967](https://github.com/tldraw/tldraw/pull/5967) ([@budatl](https://github.com/budatl) [@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🛠️ API Changes
+
+- `@tldraw/editor`
+  - Add overlays component [#5952](https://github.com/tldraw/tldraw/pull/5952) ([@SomeHats](https://github.com/SomeHats))
+  - license: allow ability to do VS code extensions [#5940](https://github.com/tldraw/tldraw/pull/5940) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 13
+
+- [@budatl](https://github.com/budatl)
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Ante Sepic ([@OriginalEXE](https://github.com/OriginalEXE))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Judicael ([@judicaelandria](https://github.com/judicaelandria))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+- Younsang Na ([@nayounsang](https://github.com/nayounsang))
+
+---
+
 # v3.12.0 (Tue Apr 15 2025)
 
 ### Release Notes
