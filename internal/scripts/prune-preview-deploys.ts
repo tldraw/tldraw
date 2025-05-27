@@ -84,7 +84,9 @@ async function deletePreviewWorkerDeployment(id: string) {
 		throw new Error('Failed to delete worker ' + JSON.stringify(await res.json()))
 	}
 
-	const queueUrl = `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/queues/tldraw-multiplayer-queue-${id}`
+	const prNumber = Number(id.match(CLOUDFLARE_WORKER_REGEX)?.[1])
+	console.log('PR number', prNumber)
+	const queueUrl = `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/queues/tldraw-multiplayer-queue-pr-${prNumber}`
 	const queueRes = await fetch(queueUrl, {
 		method: 'DELETE',
 		headers: {
