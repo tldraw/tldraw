@@ -54,6 +54,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="zoom-to-100" />
 				<TldrawUiMenuActionItem actionId="zoom-to-fit" />
 				<TldrawUiMenuActionItem actionId="zoom-to-selection" />
+				<TldrawUiMenuActionItem actionId="zoom-hold-and-drag" />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.transform" id="transform">
 				<TldrawUiMenuActionItem actionId="bring-to-front" />

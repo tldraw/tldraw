@@ -47,6 +47,10 @@ export class ZoomTool extends StateNode {
 		this.complete()
 	}
 
+	override onComplete(): void {
+		this.complete()
+	}
+
 	private complete() {
 		// Go back to the previous tool. If we are already in select we want to transition to idle
 		if (this.info.onInteractionEnd && this.info.onInteractionEnd !== 'select') {

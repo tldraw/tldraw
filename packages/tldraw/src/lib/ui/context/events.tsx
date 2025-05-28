@@ -78,6 +78,7 @@ export interface TLUiEventMap {
 	'reset-zoom': null
 	'zoom-into-view': null
 	'zoom-to-content': null
+	'zoom-hold-and-drag': null
 	'open-menu': { id: string }
 	'close-menu': { id: string }
 	'create-new-project': null

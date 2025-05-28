@@ -1058,6 +1058,18 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'zoom-hold-and-drag',
+				label: 'action.zoom-hold-and-drag',
+				kbd: 'Z',
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('zoom-hold-and-drag', { source })
+					editor.zoomIn(undefined, {
+						animation: { duration: editor.options.animationMediumMs },
+					})
+				},
+			},
+			{
 				id: 'zoom-in-on-cursor',
 				label: 'action.zoom-in',
 				kbd: 'shift+cmd+=,shift+ctrl+=,shift+=',
