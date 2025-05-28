@@ -9,7 +9,9 @@ export function PeopleMenuAvatar({ userId }: { userId: string }) {
 			className="tlui-people-menu__avatar"
 			key={userId}
 			style={{
-				backgroundColor: presence.color,
+				background: !!presence.avatar
+					? `url(${presence.avatar}) center/cover no-repeat`
+					: presence.color,
 			}}
 		>
 			{presence.userName?.[0] ?? ''}
