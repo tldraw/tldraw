@@ -65,6 +65,8 @@ const oldArrow: TLBaseShape<'arrow', Omit<TLArrowShapeProps, 'labelColor'>> = {
 	y: 0,
 	opacity: 1,
 	props: {
+		kind: 'arc',
+		elbowMidPoint: 0.5,
 		dash: 'draw',
 		size: 'm',
 		fill: 'none',
@@ -146,7 +148,7 @@ describe('TLSyncRoom', () => {
 	})
 
 	it('filters out instance state records', () => {
-		const schema = createTLSchema({ shapes: {} })
+		const schema = createTLSchema({ shapes: {}, bindings: {} })
 		const room = new TLSyncRoom({
 			schema,
 			snapshot: makeSnapshot([

@@ -12,13 +12,18 @@ export const cspDirectives: { [key: string]: string[] } = {
 		`https://*.tldraw.workers.dev`,
 		`https://*.ingest.sentry.io`,
 		`https://*.ingest.us.sentry.io`,
+		'https://*.analytics.google.com',
 		// for thumbnail server
 		'http://localhost:5002',
 		'https://*.clerk.accounts.dev',
 		'https://clerk.tldraw.com',
 		'https://clerk.staging.tldraw.com',
 		// zero
+		'https://*.zero.tldraw.com',
+		'https://zero.tldraw.com',
 		'http://localhost:4848',
+		'https://analytics.tldraw.com',
+		'https://stats.g.doubleclick.net',
 	],
 	'font-src': [`'self'`, `https://fonts.googleapis.com`, `https://fonts.gstatic.com`, 'data:'],
 	'frame-src': [`https:`],
@@ -32,6 +37,8 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://clerk.staging.tldraw.com',
 		// embeds that have scripts
 		'https://gist.github.com',
+		'https://www.googletagmanager.com',
+		'https://analytics.tldraw.com',
 	],
 	'worker-src': [`'self'`, `blob:`],
 	'style-src': [`'self'`, `'unsafe-inline'`, `https://fonts.googleapis.com`],

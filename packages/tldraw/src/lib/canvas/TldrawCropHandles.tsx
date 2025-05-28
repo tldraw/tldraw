@@ -1,5 +1,6 @@
 import { toDomPrecision } from '@tldraw/editor'
 import classNames from 'classnames'
+import { useTranslation } from '../ui/hooks/useTranslation/useTranslation'
 
 export interface TldrawCropHandlesProps {
 	size: number
@@ -16,6 +17,7 @@ export function TldrawCropHandles({
 }: TldrawCropHandlesProps) {
 	const cropStrokeWidth = toDomPrecision(size / 3)
 	const offset = cropStrokeWidth / 2
+	const msg = useTranslation()
 
 	return (
 		<svg className="tl-overlays__item">
@@ -28,7 +30,8 @@ export function TldrawCropHandles({
 						${toDomPrecision(size)},${toDomPrecision(0 - offset)}`}
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.top_left"
-				aria-label="top_left handle"
+				role="button"
+				aria-label={msg('handle.crop.top-left')}
 			/>
 			{/* Top */}
 			<line
@@ -41,7 +44,8 @@ export function TldrawCropHandles({
 				y2={toDomPrecision(0 - offset)}
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.top"
-				aria-label="top handle"
+				role="button"
+				aria-label={msg('handle.crop.top')}
 			/>
 			{/* Top right */}
 			<polyline
@@ -54,7 +58,8 @@ export function TldrawCropHandles({
 						${toDomPrecision(width + offset)},${toDomPrecision(size)}`}
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.top_right"
-				aria-label="top_right handle"
+				role="button"
+				aria-label={msg('handle.crop.top-right')}
 			/>
 			{/* Right */}
 			<line
@@ -67,7 +72,8 @@ export function TldrawCropHandles({
 				y2={toDomPrecision(height / 2 + size)}
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.right"
-				aria-label="right handle"
+				role="button"
+				aria-label={msg('handle.crop.right')}
 			/>
 			{/* Bottom right */}
 			<polyline
@@ -78,7 +84,8 @@ export function TldrawCropHandles({
 						${toDomPrecision(width - size)},${toDomPrecision(height + offset)}`}
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.bottom_right"
-				aria-label="bottom_right handle"
+				role="button"
+				aria-label={msg('handle.crop.bottom-right')}
 			/>
 			{/* Bottom */}
 			<line
@@ -91,7 +98,8 @@ export function TldrawCropHandles({
 				y2={toDomPrecision(height + offset)}
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.bottom"
-				aria-label="bottom handle"
+				role="button"
+				aria-label={msg('handle.crop.bottom')}
 			/>
 			{/* Bottom left */}
 			<polyline
@@ -104,7 +112,8 @@ export function TldrawCropHandles({
 						${toDomPrecision(0 - offset)},${toDomPrecision(height - size)}`}
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.bottom_left"
-				aria-label="bottom_left handle"
+				role="button"
+				aria-label={msg('handle.crop.bottom-left')}
 			/>
 			{/* Left */}
 			<line
@@ -117,7 +126,8 @@ export function TldrawCropHandles({
 				y2={toDomPrecision(height / 2 + size)}
 				strokeWidth={cropStrokeWidth}
 				data-testid="selection.crop.left"
-				aria-label="left handle"
+				role="button"
+				aria-label={msg('handle.crop.left')}
 			/>
 		</svg>
 	)

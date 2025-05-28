@@ -91,14 +91,14 @@ export const setStyleProperty = (
 	elm.style.setProperty(property, value as string)
 }
 
-const INPUTS = ['input', 'select', 'button', 'textarea']
-
 /** @internal */
-export function activeElementShouldCaptureKeys() {
+export function activeElementShouldCaptureKeys(allowButtons = false) {
 	const { activeElement } = document
+	const elements = allowButtons ? ['input', 'textarea'] : ['input', 'select', 'button', 'textarea']
 	return !!(
 		activeElement &&
 		((activeElement as HTMLElement).isContentEditable ||
-			INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1)
+			elements.indexOf(activeElement.tagName.toLowerCase()) > -1 ||
+			activeElement.classList.contains('tlui-slider__thumb'))
 	)
 }

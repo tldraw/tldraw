@@ -4,37 +4,11 @@ import 'core-js/stable/array/flat-map.js'
 import 'core-js/stable/array/flat.js'
 import 'core-js/stable/string/at.js'
 import 'core-js/stable/string/replace-all.js'
-export {
-	EMPTY_ARRAY,
-	EffectScheduler,
-	atom,
-	computed,
-	react,
-	transact,
-	transaction,
-	whyAmIRunning,
-	type Atom,
-	type Signal,
-} from '@tldraw/state'
-export {
-	track,
-	useAtom,
-	useComputed,
-	useQuickReactor,
-	useReactor,
-	useStateTracking,
-	useValue,
-} from '@tldraw/state-react'
-export { resizeScaled } from './lib/editor/shapes/shared/resizeScaled'
-export {
-	getFontsFromRichText,
-	type RichTextFontVisitor,
-	type RichTextFontVisitorState,
-	type TLTextOptions,
-	type TiptapEditor,
-	type TiptapNode,
-} from './lib/utils/richText'
-export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalIndexedDb'
+
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/state'
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/state-react'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star
@@ -43,6 +17,7 @@ export * from '@tldraw/tlschema'
 export * from '@tldraw/utils'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/validate'
+
 export {
 	ErrorScreen,
 	LoadingScreen,
@@ -210,8 +185,12 @@ export {
 	type TLShapeUtilConstructor,
 } from './lib/editor/shapes/ShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
-export { getPerfectDashProps } from './lib/editor/shapes/shared/getPerfectDashProps'
+export {
+	getPerfectDashProps,
+	type PerfectDashTerminal,
+} from './lib/editor/shapes/shared/getPerfectDashProps'
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
+export { resizeScaled } from './lib/editor/shapes/shared/resizeScaled'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { maybeSnapToGrid } from './lib/editor/tools/BaseBoxShapeTool/children/Pointing'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
@@ -293,7 +272,11 @@ export {
 	type TLSvgExportOptions,
 	type TLSvgOptions,
 } from './lib/editor/types/misc-types'
-export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
+export {
+	type TLAdjacentDirection,
+	type TLResizeHandle,
+	type TLSelectionHandle,
+} from './lib/editor/types/selection-types'
 export { getSvgAsImage } from './lib/exports/getSvgAsImage'
 export { tlenv } from './lib/globals/environment'
 export { tlmenus } from './lib/globals/menus'
@@ -360,7 +343,13 @@ export { CubicBezier2d } from './lib/primitives/geometry/CubicBezier2d'
 export { CubicSpline2d } from './lib/primitives/geometry/CubicSpline2d'
 export { Edge2d } from './lib/primitives/geometry/Edge2d'
 export { Ellipse2d } from './lib/primitives/geometry/Ellipse2d'
-export { Geometry2d, type Geometry2dOptions } from './lib/primitives/geometry/Geometry2d'
+export {
+	Geometry2d,
+	Geometry2dFilters,
+	TransformedGeometry2d,
+	type Geometry2dOptions,
+	type TransformedGeometry2dOptions,
+} from './lib/primitives/geometry/Geometry2d'
 export { Group2d } from './lib/primitives/geometry/Group2d'
 export { Point2d } from './lib/primitives/geometry/Point2d'
 export { Polygon2d } from './lib/primitives/geometry/Polygon2d'
@@ -450,11 +439,20 @@ export { isAccelKey } from './lib/utils/keyboard'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
 export { refreshPage } from './lib/utils/refreshPage'
 export {
+	getFontsFromRichText,
+	type RichTextFontVisitor,
+	type RichTextFontVisitorState,
+	type TLTextOptions,
+	type TiptapEditor,
+	type TiptapNode,
+} from './lib/utils/richText'
+export {
 	applyRotationToSnapshotShapes,
 	getRotationSnapshot,
 	type TLRotationSnapshot,
 } from './lib/utils/rotation'
 export { runtime, setRuntimeOverrides } from './lib/utils/runtime'
+export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalIndexedDb'
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { hardReset } from './lib/utils/sync/hardReset'
 export { uniq } from './lib/utils/uniq'

@@ -87,6 +87,43 @@ export function Component() {
 			)}
 			<h2>User data</h2>
 			{data && <pre style={{ userSelect: 'text' }}>{JSON.stringify(data, null, 2)}</pre>}
+			<HardDeleteFile />
+			<button
+				onClick={() =>
+					fetch(`/api/app/admin/create_legacy_file`, { method: 'POST' })
+						.then((res) => res.json())
+						.then(({ slug }) => window.open(`/r/${slug}`, '_blank')?.focus())
+				}
+			>
+				create legacy file
+			</button>
 		</div>
+	)
+}
+
+function HardDeleteFile() {
+	const inputRef = useRef<HTMLInputElement>(null)
+	const [error, setError] = useState(null as string | null)
+	const onDelete = useCallback(async () => {
+		setError(null)
+		const res = await fetch(`/api/app/admin/hard_delete_file/${inputRef.current?.value}`, {
+			method: 'POST',
+		})
+		if (!res.ok) {
+			setError(res.statusText + ': ' + (await res.text()))
+			return
+		} else {
+			alert('File deleted! 🧹')
+		}
+	}, [])
+	return (
+		<>
+			<h2>Hard delete file</h2>
+			{error && <div style={{ color: 'red' }}>{error}</div>}
+			<div>
+				<input type="text" placeholder="file id" ref={inputRef} />
+				<button onClick={onDelete}>delete (cannot be undone)</button>
+			</div>
+		</>
 	)
 }

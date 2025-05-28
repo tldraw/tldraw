@@ -37,6 +37,7 @@ export { getFirstFromIterable } from './lib/iterable'
 export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json-value'
 export {
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
+	DEFAULT_SUPPORTED_MEDIA_TYPES,
 	DEFAULT_SUPPORTED_MEDIA_TYPE_LIST,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	MediaHelpers,
@@ -55,6 +56,7 @@ export {
 	objectMapFromEntries,
 	objectMapKeys,
 	objectMapValues,
+	omit,
 } from './lib/object'
 export { measureAverageDuration, measureCbDuration, measureDuration } from './lib/perf'
 export {

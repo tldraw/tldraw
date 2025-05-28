@@ -1,7 +1,27 @@
 /// <reference types="react" />
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
+export {
+	PathBuilder,
+	PathBuilderGeometry2d,
+	type BasePathBuilderOpts,
+	type CubicBezierToPathBuilderCommand,
+	type DashedPathBuilderOpts,
+	type DrawPathBuilderDOpts,
+	type DrawPathBuilderOpts,
+	type LineToPathBuilderCommand,
+	type MoveToPathBuilderCommand,
+	type PathBuilderCommand,
+	type PathBuilderCommandBase,
+	type PathBuilderCommandInfo,
+	type PathBuilderCommandOpts,
+	type PathBuilderLineOpts,
+	type PathBuilderOpts,
+	type PathBuilderToDOpts,
+	type SolidPathBuilderOpts,
+} from './lib/shapes/shared/PathBuilder'
 export { usePrefersReducedMotion } from './lib/shapes/shared/usePrefersReducedMotion'
+export { DefaultA11yAnnouncer, useSelectedShapesAnnouncer } from './lib/ui/components/A11y'
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
 export { DefaultDialogs } from './lib/ui/components/Dialogs'
 export { DefaultToasts } from './lib/ui/components/Toasts'
@@ -17,8 +37,6 @@ export {
 	TldrawUiMenuToolItem,
 	type TLUiMenuToolItemProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuToolItem'
-export { TldrawUiDialogsProvider, type TLUiDialogsProviderProps } from './lib/ui/context/dialogs'
-export { TldrawUiToastsProvider, type TLUiToastsProviderProps } from './lib/ui/context/toasts'
 export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
@@ -26,8 +44,8 @@ export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } fro
 export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
 export { TldrawHandles } from './lib/canvas/TldrawHandles'
+export { TldrawArrowHints, TldrawOverlays } from './lib/canvas/TldrawOverlays'
 export { TldrawScribble } from './lib/canvas/TldrawScribble'
-export { TldrawSelectionBackground } from './lib/canvas/TldrawSelectionBackground'
 export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForeground'
 export { TldrawShapeIndicators } from './lib/canvas/TldrawShapeIndicators'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
@@ -66,9 +84,33 @@ export { registerDefaultSideEffects } from './lib/defaultSideEffects'
 export { defaultTools } from './lib/defaultTools'
 export { ArrowShapeTool } from './lib/shapes/arrow/ArrowShapeTool'
 export { ArrowShapeUtil } from './lib/shapes/arrow/ArrowShapeUtil'
-export { type TLArcInfo, type TLArrowInfo, type TLArrowPoint } from './lib/shapes/arrow/arrow-types'
+export {
+	type ArrowShapeOptions,
+	type TLArcArrowInfo,
+	type TLArcInfo,
+	type TLArrowInfo,
+	type TLArrowPoint,
+	type TLElbowArrowInfo,
+	type TLStraightArrowInfo,
+} from './lib/shapes/arrow/arrow-types'
+export {
+	type ElbowArrowBox,
+	type ElbowArrowBoxEdges,
+	type ElbowArrowBoxes,
+	type ElbowArrowEdge,
+	type ElbowArrowInfo,
+	type ElbowArrowInfoWithoutRoute,
+	type ElbowArrowMidpointHandle,
+	type ElbowArrowOptions,
+	type ElbowArrowRange,
+	type ElbowArrowRoute,
+	type ElbowArrowSide,
+	type ElbowArrowSideReason,
+	type ElbowArrowTargetBox,
+} from './lib/shapes/arrow/elbow/definitions'
 export {
 	getArrowBindings,
+	getArrowInfo,
 	getArrowTerminalsInArrowSpace,
 	type TLArrowBindings,
 } from './lib/shapes/arrow/shared'
@@ -77,7 +119,7 @@ export { DrawShapeTool } from './lib/shapes/draw/DrawShapeTool'
 export { DrawShapeUtil, type DrawShapeOptions } from './lib/shapes/draw/DrawShapeUtil'
 export { EmbedShapeUtil } from './lib/shapes/embed/EmbedShapeUtil'
 export { FrameShapeTool } from './lib/shapes/frame/FrameShapeTool'
-export { FrameShapeUtil } from './lib/shapes/frame/FrameShapeUtil'
+export { FrameShapeUtil, type FrameShapeOptions } from './lib/shapes/frame/FrameShapeUtil'
 export { GeoShapeTool } from './lib/shapes/geo/GeoShapeTool'
 export { GeoShapeUtil } from './lib/shapes/geo/GeoShapeUtil'
 export { HighlightShapeTool } from './lib/shapes/highlight/HighlightShapeTool'
@@ -414,6 +456,16 @@ export {
 } from './lib/ui/components/primitives/TldrawUiPopover'
 export { TldrawUiSlider, type TLUiSliderProps } from './lib/ui/components/primitives/TldrawUiSlider'
 export {
+	TldrawUiToolbar,
+	TldrawUiToolbarButton,
+	TldrawUiToolbarToggleGroup,
+	TldrawUiToolbarToggleItem,
+	type TLUiToolbarButtonProps,
+	type TLUiToolbarProps,
+	type TLUiToolbarToggleGroupProps,
+	type TLUiToolbarToggleItemProps,
+} from './lib/ui/components/primitives/TldrawUiToolbar'
+export {
 	TldrawUiMenuCheckboxItem,
 	type TLUiMenuCheckboxItemProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuCheckboxItem'
@@ -440,6 +492,14 @@ export {
 	type TLUiContextProviderProps,
 } from './lib/ui/context/TldrawUiContextProvider'
 export {
+	TldrawUiA11yProvider,
+	useA11y,
+	type A11yPriority,
+	type A11yProviderProps,
+	type TLUiA11y,
+	type TLUiA11yContextType,
+} from './lib/ui/context/a11y'
+export {
 	unwrapLabel,
 	useActions,
 	type ActionsProviderProps,
@@ -459,10 +519,12 @@ export {
 	type TLUiComponentsProviderProps,
 } from './lib/ui/context/components'
 export {
+	TldrawUiDialogsProvider,
 	useDialogs,
 	type TLUiDialog,
 	type TLUiDialogProps,
 	type TLUiDialogsContextType,
+	type TLUiDialogsProviderProps,
 } from './lib/ui/context/dialogs'
 export {
 	TldrawUiEventsProvider,
@@ -475,17 +537,22 @@ export {
 	type TLUiEventSource,
 } from './lib/ui/context/events'
 export {
+	TldrawUiToastsProvider,
 	useToasts,
 	type AlertSeverity,
 	type TLUiToast,
 	type TLUiToastAction,
 	type TLUiToastsContextType,
+	type TLUiToastsProviderProps,
 } from './lib/ui/context/toasts'
 export { useCanRedo, useCanUndo } from './lib/ui/hooks/menu-hooks'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
+export {
+	useCollaborationStatus,
+	useShowCollaborationUi,
+} from './lib/ui/hooks/useCollaborationStatus'
 export { useCopyAs } from './lib/ui/hooks/useCopyAs'
 export { useExportAs } from './lib/ui/hooks/useExportAs'
-export { useCollaborationStatus, useShowCollaborationUi } from './lib/ui/hooks/useIsMultiplayer'
 export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
 export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
@@ -521,6 +588,7 @@ export {
 	type TLEditorAssetUrls,
 } from './lib/utils/static-assets/assetUrls'
 export {
+	KeyboardShiftEnterTweakExtension,
 	defaultAddFontsFromNode,
 	renderHtmlFromRichText,
 	renderHtmlFromRichTextForMeasurement,
@@ -529,6 +597,7 @@ export {
 	tipTapDefaultExtensions,
 } from './lib/utils/text/richText'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
+export { TextDirection } from './lib/utils/text/textDirection'
 export {
 	TLV1AlignStyle,
 	TLV1AssetType,

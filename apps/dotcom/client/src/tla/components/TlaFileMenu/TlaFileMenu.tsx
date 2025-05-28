@@ -21,6 +21,7 @@ import {
 import { routes } from '../../../routeDefs'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
+import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../hooks/useIsFilePinned'
 import { useFileSidebarFocusContext } from '../../providers/FileInputFocusProvider'
@@ -99,6 +100,7 @@ export function FileItems({
 	const copiedMsg = useMsg(messages.copied)
 	const isOwner = useIsFileOwner(fileId)
 	const isPinned = useIsFilePinned(fileId)
+	const isActive = useCurrentFileId() === fileId
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = routes.tlaFile(fileId, { asUrl: true })
@@ -121,14 +123,14 @@ export function FileItems({
 		const file = app.getFile(fileId)
 		if (!file) return
 		trackEvent('duplicate-file', { source })
-		const res = app.createFile({
+		const res = await app.createFile({
 			id: newFileId,
 			name: getDuplicateName(file, app),
 			createSource: `${FILE_PREFIX}/${fileId}`,
 		})
 		// copy the state too
 		const prevState = app.getFileState(fileId)
-		app.getOrCreateFileState(newFileId)
+		app.createFileStateIfNotExists(newFileId)
 		app.updateFileState(newFileId, {
 			lastSessionState: prevState?.lastSessionState,
 		})
@@ -172,26 +174,31 @@ export function FileItems({
 					onSelect={handleCopyLinkClick}
 				/>
 				{isOwner && (
-					<TldrawUiMenuItem label={renameMsg} id="copy-link" readonlyOk onSelect={onRenameAction} />
+					<TldrawUiMenuItem label={renameMsg} id="rename" readonlyOk onSelect={onRenameAction} />
 				)}
 				{/* todo: in published rooms, support duplication / forking */}
 				<TldrawUiMenuItem
 					label={duplicateMsg}
-					id="copy-link"
+					id="duplicate"
 					readonlyOk
 					onSelect={handleDuplicateClick}
 				/>
+				{!source.startsWith('sidebar') ||
+					(isActive && (
+						// TODO: make a /download/:fileId endpoint so we can download any file
+						// from the sidebar, not just the active one
+						<TldrawUiMenuItem
+							label={downloadFile}
+							id="download-file"
+							readonlyOk
+							onSelect={handleDownloadClick}
+						/>
+					))}
 				<TldrawUiMenuItem
 					label={isPinned ? unpinMsg : pinMsg}
 					id="pin-unpin"
 					readonlyOk
 					onSelect={handlePinUnpinClick}
-				/>
-				<TldrawUiMenuItem
-					label={downloadFile}
-					id="download-file"
-					readonlyOk
-					onSelect={handleDownloadClick}
 				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">

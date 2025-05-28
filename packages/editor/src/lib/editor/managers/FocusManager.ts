@@ -58,7 +58,9 @@ export class FocusManager {
 
 	private handleKeyDown(keyEvent: KeyboardEvent) {
 		const container = this.editor.getContainer()
-		if (keyEvent.key === 'Tab') {
+		if (this.editor.isIn('select.editing_shape')) return
+		if (document.activeElement === container && this.editor.getSelectedShapeIds().length > 0) return
+		if (['Tab', 'ArrowUp', 'ArrowDown'].includes(keyEvent.key)) {
 			container.classList.remove('tl-container__no-focus-ring')
 		}
 	}

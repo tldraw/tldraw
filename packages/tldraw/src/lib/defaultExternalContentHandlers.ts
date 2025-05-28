@@ -24,6 +24,7 @@ import {
 	fetch,
 	getHashForBuffer,
 	getHashForString,
+	maybeSnapToGrid,
 	toRichText,
 } from '@tldraw/editor'
 import { EmbedDefinition } from './defaultEmbedDefinitions'
@@ -289,11 +290,15 @@ export function defaultHandleExternalEmbedContent<T>(
 
 	const id = createShapeId()
 
+	const newPoint = maybeSnapToGrid(
+		new Vec(position.x - (width || 450) / 2, position.y - (height || 450) / 2),
+		editor
+	)
 	const shapePartial: TLShapePartial = {
 		id,
 		type: 'embed',
-		x: position.x - (width || 450) / 2,
-		y: position.y - (height || 450) / 2,
+		x: newPoint.x,
+		y: newPoint.y,
 		props: {
 			w: width,
 			h: height,
@@ -500,8 +505,8 @@ export async function defaultHandleExternalTextContent(
 		align = isRtl ? 'end' : 'start'
 	} else {
 		// autosize is fine
-		w = rawSize.w
-		h = rawSize.h
+		w = Math.max(rawSize.w, 10)
+		h = Math.max(rawSize.h, 10)
 		autoSize = true
 	}
 
@@ -509,12 +514,13 @@ export async function defaultHandleExternalTextContent(
 		p.y = editor.getViewportPageBounds().minY + 40 + h / 2
 	}
 
+	const newPoint = maybeSnapToGrid(new Vec(p.x - w / 2, p.y - h / 2), editor)
 	editor.createShapes<TLTextShape>([
 		{
 			id: createShapeId(),
 			type: 'text',
-			x: p.x - w / 2,
-			y: p.y - h / 2,
+			x: newPoint.x,
+			y: newPoint.y,
 			props: {
 				richText: richTextToPaste,
 				// if the text has more than one line, align it to the left
@@ -739,15 +745,17 @@ export async function createShapesForAssets(
 	editor.run(() => {
 		// Create any assets
 		const assetsToCreate = assets.filter((asset) => !editor.getAsset(asset.id))
-		if (assetsToCreate.length) {
-			editor.createAssets(assetsToCreate)
-		}
 
-		// Create the shapes
-		editor.createShapes(partials).select(...partials.map((p) => p.id))
+		editor.store.atomic(() => {
+			if (assetsToCreate.length) {
+				editor.createAssets(assetsToCreate)
+			}
+			// Create the shapes
+			editor.createShapes(partials).select(...partials.map((p) => p.id))
 
-		// Re-position shapes so that the center of the group is at the provided point
-		centerSelectionAroundPoint(editor, position)
+			// Re-position shapes so that the center of the group is at the provided point
+			centerSelectionAroundPoint(editor, position)
+		})
 	})
 
 	return partials.map((p) => p.id)

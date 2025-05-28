@@ -1,6 +1,6 @@
-import * as _ContextMenu from '@radix-ui/react-context-menu'
 import { TlaFile } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
+import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { KeyboardEvent, MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
@@ -47,7 +47,7 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 	const { fileId } = item
 	const isOwnFile = useIsFileOwner(fileId)
 	const isActive = fileSlug === fileId
-	const fileName = app.getFileName(fileId)
+	const fileName = useValue('file name', () => app.getFileName(fileId), [fileId, app])
 	const isMobile = getIsCoarsePointer()
 	useEffect(() => {
 		if (isActive) {
@@ -60,7 +60,7 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 		if (isMobile) {
 			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
 			if (newName) {
-				app.updateFile({ id: fileId, name: newName })
+				app.updateFile(fileId, { name: newName })
 			}
 		} else {
 			setIsRenaming(true)
@@ -164,7 +164,7 @@ export function TlaSidebarFileLinkInner({
 
 	return (
 		<div
-			className={classNames(styles.link, styles.hoverable)}
+			className={classNames(styles.sidebarFileListItem, styles.hoverable)}
 			data-active={isActive}
 			data-element="file-link"
 			data-testid={testId}
@@ -172,10 +172,12 @@ export function TlaSidebarFileLinkInner({
 			onDoubleClick={isOwnFile ? handleRenameAction : undefined}
 			// We use this id to scroll the active file link into view when creating or deleting files.
 			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
+			role="listitem"
 		>
 			<Link
 				ref={linkRef}
 				onKeyDown={handleKeyDown}
+				aria-label={fileName}
 				onClick={(event) => {
 					// Don't navigate if we are already on the file page
 					// unless the user is holding ctrl or cmd to open in a new tab
@@ -188,11 +190,15 @@ export function TlaSidebarFileLinkInner({
 					trackEvent('click-file-link', { source: 'sidebar' })
 				}}
 				to={href}
-				className={styles.linkButton}
+				className={styles.sidebarFileListItemButton}
 			/>
-			<div className={styles.linkContent}>
+			<div className={styles.sidebarFileListItemContent}>
 				<div
-					className={classNames(styles.label, 'tla-text_ui__regular', 'notranslate')}
+					className={classNames(
+						styles.sidebarFileListItemLabel,
+						'tla-text_ui__regular',
+						'notranslate'
+					)}
 					data-testid={`${testId}-name`}
 				>
 					{fileName}
@@ -223,13 +229,13 @@ function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
 	)
 
 	return (
-		<div className={styles.guestBadge} data-testid={testId}>
+		<div className={styles.sidebarFileListItemGuestBadge} data-testid={testId}>
 			<TlaTooltipRoot disableHoverableContent>
 				<TlaTooltipTrigger
 					dir="ltr"
 					// this is needed to prevent the tooltip from closing when clicking the badge
 					onClick={handleToolTipClick}
-					className={styles.guestBadgeTrigger}
+					className={styles.sidebarFileListItemGuestBadgeTrigger}
 				>
 					<TlaIcon icon="group" className="tlui-guest-icon" />
 				</TlaTooltipTrigger>

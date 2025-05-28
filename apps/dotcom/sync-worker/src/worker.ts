@@ -5,13 +5,27 @@ import {
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
+	createMutators,
+	schema,
 } from '@tldraw/dotcom-shared'
-import { createRouter, handleApiRequest, handleUserAssetGet, notFound } from '@tldraw/worker-shared'
+import {
+	createRouter,
+	createSentry,
+	handleApiRequest,
+	handleUserAssetGet,
+	notFound,
+} from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { cors } from 'itty-router'
+import { cors, json } from 'itty-router'
+import {
+	PostgresJSConnection,
+	PushProcessor,
+	ZQLDatabase,
+} from '../../../../node_modules/@rocicorp/zero/out/zero/src/pg'
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
+import { createPostgresConnectionPool, makePostgresConnector } from './postgres'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { getReadonlySlug } from './routes/getReadonlySlug'
@@ -25,9 +39,9 @@ import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
-import { Environment, isDebugLogging } from './types'
-import { getLogger, getUserDurableObject } from './utils/durableObjects'
-import { getAuthFromSearchParams } from './utils/tla/getAuth'
+import { Environment, QueueMessage, isDebugLogging } from './types'
+import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
+import { getAuth, requireAuth } from './utils/tla/getAuth'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
@@ -37,6 +51,8 @@ export { TLUserDurableObject } from './TLUserDurableObject'
 const { preflight, corsify } = cors({
 	origin: isAllowedOrigin,
 })
+
+const QUEUE_BASE_DELAY = 2
 
 const router = createRouter<Environment>()
 	.all('*', preflight)
@@ -60,7 +76,7 @@ const router = createRouter<Environment>()
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.get('/app/:userId/connect', async (req, env) => {
 		// forward req to the user durable object
-		const auth = await getAuthFromSearchParams(req, env)
+		const auth = await getAuth(req, env)
 		if (!auth) {
 			// eslint-disable-next-line no-console
 			console.log('auth not found')
@@ -75,6 +91,10 @@ const router = createRouter<Environment>()
 		return stub.fetch(req)
 	})
 	.post('/app/tldr', createFiles)
+	.get('/app/replicator-status', async (_, env) => {
+		await getReplicator(env).ping()
+		return new Response('ok')
+	})
 	.get('/app/file/:roomId', (req, env) => {
 		if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
 			return forwardRoomRequest(req, env)
@@ -124,6 +144,15 @@ const router = createRouter<Environment>()
 	})
 	.all('/health-check/*', healthCheckRoutes.fetch)
 	.all('/app/admin/*', adminRoutes.fetch)
+	.post('/app/zero/push', async (req, env) => {
+		const auth = await requireAuth(req, env)
+		const processor = new PushProcessor(
+			new ZQLDatabase(new PostgresJSConnection(makePostgresConnector(env)), schema),
+			'debug'
+		)
+		const result = await processor.process(createMutators(auth.userId), req)
+		return json(result)
+	})
 	.all('*', notFound)
 
 export default class Worker extends WorkerEntrypoint<Environment> {
@@ -157,7 +186,34 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				}
 				return newResponse
 			},
+		}).catch((err) => {
+			const sentry = createSentry(this.ctx, this.env, request)
+			if (sentry) {
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				sentry.captureException(err)
+			} else {
+				console.error(err)
+			}
+			throw err
 		})
+	}
+
+	override async queue(batch: MessageBatch<QueueMessage>): Promise<void> {
+		const db = createPostgresConnectionPool(this.env, 'sync-worker-queue')
+		for (const message of batch.messages) {
+			const { objectName, fileId, userId } = message.body
+			try {
+				await db
+					.insertInto('asset')
+					.values({ objectName, fileId, userId })
+					.executeTakeFirstOrThrow()
+				message.ack()
+			} catch (_e) {
+				message.retry({
+					delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
+				})
+			}
+		}
 	}
 }
 

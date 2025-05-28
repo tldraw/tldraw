@@ -390,6 +390,10 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 												id={page.id}
 												name={page.name}
 												isCurrentPage={page.id === currentPage.id}
+												onComplete={() => {
+													setIsEditing(false)
+													editor.menus.clearOpenMenus()
+												}}
 												onCancel={() => {
 													setIsEditing(false)
 													editor.menus.clearOpenMenus()

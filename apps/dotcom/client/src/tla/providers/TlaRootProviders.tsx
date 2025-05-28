@@ -1,22 +1,24 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
-import { Provider as TooltipProvider } from '@radix-ui/react-tooltip'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import classNames from 'classnames'
+import { Tooltip as _Tooltip } from 'radix-ui'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
 	ContainerProvider,
+	DefaultA11yAnnouncer,
 	DefaultDialogs,
 	DefaultToasts,
 	EditorContext,
 	TLUiEventHandler,
+	TldrawUiA11yProvider,
 	TldrawUiContextProvider,
 	fetch,
 	useToasts,
 	useValue,
 } from 'tldraw'
+import { SignedInAnalytics, SignedOutAnalytics } from '../../utils/analytics'
 import { globalEditor } from '../../utils/globalEditor'
-import { SignedInPosthog, SignedOutPosthog } from '../../utils/posthog'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
@@ -113,16 +115,19 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 
 	return (
 		<EditorContext.Provider value={currentEditor}>
-			<TldrawUiContextProvider
-				assetUrls={assetUrls}
-				components={components}
-				onUiEvent={handleAppLevelUiEvent}
-			>
-				<TooltipProvider>{children}</TooltipProvider>
-				<DefaultDialogs />
-				<DefaultToasts />
-				<PutToastsInApp />
-			</TldrawUiContextProvider>
+			<TldrawUiA11yProvider>
+				<TldrawUiContextProvider
+					assetUrls={assetUrls}
+					components={components}
+					onUiEvent={handleAppLevelUiEvent}
+				>
+					<_Tooltip.Provider>{children}</_Tooltip.Provider>
+					<DefaultDialogs />
+					<DefaultToasts />
+					<DefaultA11yAnnouncer />
+					<PutToastsInApp />
+				</TldrawUiContextProvider>
+			</TldrawUiA11yProvider>
 		</EditorContext.Provider>
 	)
 }
@@ -175,7 +180,7 @@ function SignedInProvider({
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
 		return (
 			<ThemeContainer onThemeChange={onThemeChange}>
-				<SignedOutPosthog />
+				<SignedOutAnalytics />
 				{children}
 			</ThemeContainer>
 		)
@@ -186,7 +191,7 @@ function SignedInProvider({
 			<AppStateProvider>
 				<UserProvider>
 					<ThemeContainer onThemeChange={onThemeChange}>
-						<SignedInPosthog />
+						<SignedInAnalytics />
 						{children}
 					</ThemeContainer>
 				</UserProvider>

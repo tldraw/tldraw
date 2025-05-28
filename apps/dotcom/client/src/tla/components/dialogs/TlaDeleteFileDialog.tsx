@@ -31,7 +31,7 @@ export function TlaDeleteFileDialog({ fileId, onClose }: { fileId: string; onClo
 		await app.deleteOrForgetFile(fileId)
 		const recentFiles = app.getUserRecentFiles()
 		if (recentFiles.length === 0) {
-			const result = app.createFile()
+			const result = await app.createFile()
 			if (result.ok) {
 				navigate(routes.tlaFile(result.value.file.id))
 			}

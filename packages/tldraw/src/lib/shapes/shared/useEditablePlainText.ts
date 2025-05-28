@@ -1,8 +1,10 @@
 import {
+	Editor,
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
 	noop,
+	preventDefault,
 	stopEventPropagation,
 	tlenv,
 	useEditor,
@@ -83,22 +85,53 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
 		[editor, shapeId, type]
 	)
 
+	const handlePaste = useCallback(
+		(e: ClipboardEvent | React.ClipboardEvent<HTMLTextAreaElement>) => {
+			if (editor.getEditingShapeId() !== shapeId) return
+			if (e.clipboardData) {
+				// find html in the clipboard and look for the tldraw data
+				const html = e.clipboardData.getData('text/html')
+				if (html) {
+					if (html.includes('<div data-tldraw')) {
+						preventDefault(e)
+					}
+				}
+			}
+		},
+		[editor, shapeId]
+	)
+
 	return {
 		rInput,
 		handleKeyDown,
 		handleChange,
+		handlePaste,
 		isEmpty,
 		...commonUseEditableTextHandlers,
 	}
 }
 
 /** @internal */
+export function useIsReadyForEditing(editor: Editor, shapeId: TLShapeId) {
+	return useValue(
+		'isReadyForEditing',
+		() => {
+			const editingShapeId = editor.getEditingShapeId()
+			return (
+				// something's being editing... and either it's this shape OR this shape is hovered
+				editingShapeId !== null &&
+				(editingShapeId === shapeId || editor.getHoveredShapeId() === shapeId)
+			)
+		},
+		[editor, shapeId]
+	)
+}
+
+/** @internal */
 export function useEditableTextCommon(shapeId: TLShapeId) {
 	const editor = useEditor()
 	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === shapeId, [editor])
-	const isEditingAnything = useValue('isEditingAnything', () => !!editor.getEditingShapeId(), [
-		editor,
-	])
+	const isReadyForEditing = useIsReadyForEditing(editor, shapeId)
 
 	const handleInputPointerDown = useCallback(
 		(e: React.PointerEvent) => {
@@ -131,7 +164,7 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 		handleInputPointerDown,
 		handleDoubleClick: stopEventPropagation,
 		isEditing,
-		isEditingAnything,
+		isReadyForEditing,
 	}
 }
 

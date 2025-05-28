@@ -1,12 +1,12 @@
 ---
-title: Keyboard shortcuts
+title: Custom keyboard shortcuts
 component: ./KeyboardShortcutsExample.tsx
 category: ui
-priority: 2
+priority: 3
 keywords: [dialog, overrides, actions, tools]
 ---
 
-How to replace tldraw's default keyboard shortcuts with your own.
+Replace tldraw's default keyboard shortcuts with your own.
 
 ---
 

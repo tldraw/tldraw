@@ -157,8 +157,10 @@ My browser: ${navigator.userAgent}`
 						<h2>Are you sure?</h2>
 						<p>Resetting your data will delete your drawing and cannot be undone.</p>
 						<div className="tl-error-boundary__content__actions">
-							<button onClick={() => setShouldShowResetConfirmation(false)}>Cancel</button>
-							<button className="tl-error-boundary__reset" onClick={resetLocalState}>
+							<button className="tlui-button" onClick={() => setShouldShowResetConfirmation(false)}>
+								Cancel
+							</button>
+							<button className="tlui-button tl-error-boundary__reset" onClick={resetLocalState}>
 								Reset data
 							</button>
 						</div>
@@ -166,16 +168,23 @@ My browser: ${navigator.userAgent}`
 				) : (
 					<>
 						<h2>Something went wrong</h2>
-						<p>Please refresh the page to continue.</p>
+						<p>Please refresh your browser.</p>
 						<p>
-							If you keep seeing this screen, you can create a{' '}
-							<a href={url.toString()}>GitHub issue</a> or ask for help on{' '}
-							<a href="https://discord.tldraw.com/?utm_source=sdk&utm_medium=organic&utm_campaign=error-screen">
-								Discord
-							</a>
-							. If you are still stuck, you can reset the tldraw data on your machine. This may
-							erase the project you were working on, so try to get help first.
+							If the issue continues after refreshing, you may need to reset the tldraw data stored
+							on your device.
 						</p>
+						<p>
+							<strong>Note:</strong> Resetting will erase your current project and any unsaved work.
+						</p>
+						{process.env.NODE_ENV !== 'production' && (
+							<p>
+								If you&apos;re developing with the SDK and need help, join us on{' '}
+								<a href="https://discord.tldraw.com/?utm_source=sdk&utm_medium=organic&utm_campaign=error-screen">
+									Discord
+								</a>
+								.
+							</p>
+						)}
 						{shouldShowError && (
 							<>
 								Message:
@@ -187,22 +196,24 @@ My browser: ${navigator.userAgent}`
 									<pre>
 										<code>{errorStack ?? errorMessage}</code>
 									</pre>
-									<button onClick={copyError}>{didCopy ? 'Copied!' : 'Copy'}</button>
+									<button className="tlui-button" onClick={copyError}>
+										{didCopy ? 'Copied!' : 'Copy'}
+									</button>
 								</div>
 							</>
 						)}
 						<div className="tl-error-boundary__content__actions">
-							<button onClick={() => setShouldShowError(!shouldShowError)}>
+							<button className="tlui-button" onClick={() => setShouldShowError(!shouldShowError)}>
 								{shouldShowError ? 'Hide details' : 'Show details'}
 							</button>
 							<div className="tl-error-boundary__content__actions__group">
 								<button
-									className="tl-error-boundary__reset"
+									className="tlui-button tl-error-boundary__reset"
 									onClick={() => setShouldShowResetConfirmation(true)}
 								>
 									Reset data
 								</button>
-								<button className="tl-error-boundary__refresh" onClick={refresh}>
+								<button className="tlui-button tl-error-boundary__refresh" onClick={refresh}>
 									Refresh Page
 								</button>
 							</div>

@@ -52,7 +52,6 @@ video,
 canvas,
 svg {
 	display: block;
-	max-width: 100%;
 }
 /*
   6. Remove built-in form typography styles
@@ -62,18 +61,6 @@ button,
 textarea,
 select {
 	font: inherit;
-}
-/*
-  7. Avoid text overflows
-*/
-p,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-	overflow-wrap: break-word;
 }
 
 html {
@@ -242,7 +229,7 @@ a {
 /* ------------------ Da Share Zone ----------------- */
 
 .tlui-style-panel__wrapper {
-	margin-top: 2px;
+	margin-top: 4px;
 }
 
 .tlui-share-zone__connection-status {

@@ -20,7 +20,7 @@ export class AtomMap<K, V> implements Map<K, V> {
     [Symbol.iterator](): Generator<[K, V], undefined, unknown>;
     // (undocumented)
     [Symbol.toStringTag]: string;
-    constructor(name: string, entries?: Iterable<[K, V]>);
+    constructor(name: string, entries?: Iterable<readonly [K, V]>);
     // (undocumented)
     __unsafe__getWithoutCapture(key: K): undefined | V;
     // (undocumented)
@@ -394,7 +394,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
         runCallbacks?: boolean;
     }): void;
     // @internal (undocumented)
-    atomic<T>(fn: () => T, runCallbacks?: boolean): T;
+    atomic<T>(fn: () => T, runCallbacks?: boolean, isMergingRemoteChanges?: boolean): T;
     clear(): void;
     createCache<Result, Record extends R = R>(create: (id: IdOf<Record>, recordSignal: Signal<R>) => Signal<Result>): {
         get: (id: IdOf<Record>) => Result | undefined;

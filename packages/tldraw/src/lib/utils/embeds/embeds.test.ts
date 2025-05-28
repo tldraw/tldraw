@@ -100,6 +100,14 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		},
 	},
 	{
+		url: 'https://www.youtube.com/watch?v=ZMklf0vUl18&t=62',
+		match: true,
+		output: {
+			type: 'youtube',
+			embedUrl: 'https://www.youtube.com/embed/ZMklf0vUl18?start=62',
+		},
+	},
+	{
 		url: 'https://m.youtube.com/watch?v=ZMklf0vUl18',
 		match: true,
 		output: {
@@ -113,6 +121,14 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		output: {
 			type: 'youtube',
 			embedUrl: 'https://www.youtube.com/embed/ZMklf0vUl18',
+		},
+	},
+	{
+		url: 'https://youtu.be/u1016UnJIgA?feature=shared&t=16',
+		match: true,
+		output: {
+			type: 'youtube',
+			embedUrl: 'https://www.youtube.com/embed/u1016UnJIgA?feature=shared&start=16',
 		},
 	},
 	{
@@ -130,6 +146,26 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 				'https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/file/Xj2Uly2KctVDGdXszHWRcF/Untitled?node-id=0%3A1&t=9O1ocaU18YZ0DoVF-1',
 		},
 	},
+	{
+		url: 'https://www.figma.com/design/c1U7U2I1XfUITXwpr8X0GI/tldraw-dotcom-2025?node-id=556-72935&t=5pTQLNmuvTf3OMXd-4',
+		match: true,
+		output: {
+			type: 'figma',
+			embedUrl:
+				'https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/design/c1U7U2I1XfUITXwpr8X0GI/tldraw-dotcom-2025?node-id=556-72935&t=5pTQLNmuvTf3OMXd-4',
+		},
+	},
+
+	{
+		url: 'https://www.figma.com/proto/c1U7U2I1XfUITXwpr8X0GI/tldraw-dotcom-2025?page-id=0%3A1&node-id=556-72935&t=5pTQLNmuvTf3OMXd-0&scaling=min-zoom&content-scaling=fixed',
+		match: true,
+		output: {
+			type: 'figma',
+			embedUrl:
+				'https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/proto/c1U7U2I1XfUITXwpr8X0GI/tldraw-dotcom-2025?page-id=0%3A1&node-id=556-72935&t=5pTQLNmuvTf3OMXd-0&scaling=min-zoom&content-scaling=fixed',
+		},
+	},
+
 	{
 		url: 'https://www.figma.com/foobar',
 		match: false,
@@ -443,6 +479,22 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 		output: {
 			type: 'youtube',
 			url: 'https://www.youtube.com/watch?v=ZMklf0vUl18',
+		},
+	},
+	{
+		embedUrl: 'https://www.youtube.com/embed/q8KyQovatd0?loop=1&playlist=q8KyQovatd0',
+		match: true,
+		output: {
+			type: 'youtube',
+			url: 'https://www.youtube.com/watch?loop=1&playlist=q8KyQovatd0&v=q8KyQovatd0',
+		},
+	},
+	{
+		embedUrl: 'https://www.youtube.com/embed/u1016UnJIgA?start=16',
+		match: true,
+		output: {
+			type: 'youtube',
+			url: 'https://www.youtube.com/watch?v=u1016UnJIgA&t=16',
 		},
 	},
 	{

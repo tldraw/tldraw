@@ -47,7 +47,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			if (
 				!!url.match(
 					// eslint-disable-next-line no-useless-escape
-					/https:\/\/([\w\.-]+\.)?figma.com\/(file|proto)\/([0-9a-zA-Z]{22,128})(?:\/.*)?$/
+					/https:\/\/([\w\.-]+\.)?figma.com\/(file|proto|design)\/([0-9a-zA-Z]{22,128})(?:\/.*)?$/
 				) &&
 				!url.includes('figma.com/embed')
 			) {
@@ -244,13 +244,28 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			const hostname = urlObj.hostname.replace(/^www./, '')
 			if (hostname === 'youtu.be') {
 				const videoId = urlObj.pathname.split('/').filter(Boolean)[0]
-				return `https://www.youtube.com/embed/${videoId}`
+				const searchParams = new URLSearchParams(urlObj.search)
+				const timeStart = searchParams.get('t')
+				if (timeStart) {
+					searchParams.set('start', timeStart)
+					searchParams.delete('t')
+				}
+				const search = searchParams.toString() ? '?' + searchParams.toString() : ''
+				return `https://www.youtube.com/embed/${videoId}${search}`
 			} else if (
 				(hostname === 'youtube.com' || hostname === 'm.youtube.com') &&
 				urlObj.pathname.match(/^\/watch/)
 			) {
 				const videoId = urlObj.searchParams.get('v')
-				return `https://www.youtube.com/embed/${videoId}`
+				const searchParams = new URLSearchParams(urlObj.search)
+				searchParams.delete('v')
+				const timeStart = searchParams.get('t')
+				if (timeStart) {
+					searchParams.set('start', timeStart)
+					searchParams.delete('t')
+				}
+				const search = searchParams.toString() ? '?' + searchParams.toString() : ''
+				return `https://www.youtube.com/embed/${videoId}${search}`
 			}
 			return
 		},
@@ -262,7 +277,14 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			if (hostname === 'youtube.com') {
 				const matches = urlObj.pathname.match(/^\/embed\/([^/]+)\/?/)
 				if (matches) {
-					return `https://www.youtube.com/watch?v=${matches[1]}`
+					const params = new URLSearchParams(urlObj.search)
+					params.set('v', matches?.[1] ?? '')
+					const timeStart = params.get('start')
+					if (timeStart) {
+						params.set('t', timeStart)
+						params.delete('start')
+					}
+					return `https://www.youtube.com/watch?${params.toString()}`
 				}
 			}
 			return

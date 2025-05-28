@@ -1,4 +1,4 @@
-import { ContextMenuGroup } from '@radix-ui/react-context-menu'
+import classNames from 'classnames'
 import { ReactNode } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
@@ -13,11 +13,12 @@ export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
 	 * The label to display on the item. If it's a string, it will be translated. If it's an object, the keys will be used as the language keys and the values will be translated.
 	 */
 	label?: TranslationKey | { [key: string]: TranslationKey }
+	className?: string
 	children?: ReactNode
 }
 
 /** @public @react */
-export function TldrawUiMenuGroup({ id, label, children }: TLUiMenuGroupProps) {
+export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGroupProps) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const msg = useTranslation()
 	const labelToUse = unwrapLabel(label, menuType)
@@ -26,27 +27,30 @@ export function TldrawUiMenuGroup({ id, label, children }: TLUiMenuGroupProps) {
 	switch (menuType) {
 		case 'panel': {
 			return (
-				<div className="tlui-menu__group" data-testid={`${sourceId}-group.${id}`}>
+				<div
+					className={classNames('tlui-menu__group', className)}
+					data-testid={`${sourceId}-group.${id}`}
+				>
 					{children}
 				</div>
 			)
 		}
 		case 'menu': {
 			return (
-				<TldrawUiDropdownMenuGroup data-testid={`${sourceId}-group.${id}`}>
+				<TldrawUiDropdownMenuGroup className={className} data-testid={`${sourceId}-group.${id}`}>
 					{children}
 				</TldrawUiDropdownMenuGroup>
 			)
 		}
 		case 'context-menu': {
 			return (
-				<ContextMenuGroup
+				<div
 					dir="ltr"
-					className="tlui-menu__group"
+					className={classNames('tlui-menu__group', className)}
 					data-testid={`${sourceId}-group.${id}`}
 				>
 					{children}
-				</ContextMenuGroup>
+				</div>
 			)
 		}
 		case 'keyboard-shortcuts': {

@@ -15,38 +15,42 @@ export function Component() {
 	const navigate = useNavigate()
 
 	useEffect(() => {
-		if (!app) return
+		const handleFileOperations = async () => {
+			if (!app) return
 
-		if (getShouldSlurpFile()) {
-			const res = app.slurpFile()
-			if (res.ok) {
-				clearShouldSlurpFile()
-				navigate(routes.tlaFile(res.value.file.id), {
-					replace: true,
-				})
-			} else {
-				// if the user has too many files we end up here.
-				// don't slurp the file and when they log out they'll
-				// be able to see the same content that was there before
+			if (getShouldSlurpFile()) {
+				const res = await app.slurpFile()
+				if (res.ok) {
+					clearShouldSlurpFile()
+					navigate(routes.tlaFile(res.value.file.id), {
+						replace: true,
+					})
+				} else {
+					// if the user has too many files we end up here.
+					// don't slurp the file and when they log out they'll
+					// be able to see the same content that was there before
+				}
+				return
 			}
-			return
+
+			const recentFiles = app.getUserRecentFiles()
+			if (recentFiles.length === 0) {
+				const result = await app.createFile()
+				assert(result.ok, 'Failed to create file')
+				// result is only false if the user reached their file limit so
+				// we don't need to handle that case here since they have no files
+				if (result.ok) {
+					navigate(routes.tlaFile(result.value.file.id), {
+						replace: true,
+					})
+				}
+				return
+			}
+
+			navigate(routes.tlaFile(recentFiles[0].fileId), { replace: true })
 		}
 
-		const recentFiles = app.getUserRecentFiles()
-		if (recentFiles.length === 0) {
-			const result = app.createFile()
-			assert(result.ok, 'Failed to create file')
-			// result is only false if the user reached their file limit so
-			// we don't need to handle that case here since they have no files
-			if (result.ok) {
-				navigate(routes.tlaFile(result.value.file.id), {
-					replace: true,
-				})
-			}
-			return
-		}
-
-		navigate(routes.tlaFile(recentFiles[0].fileId), { replace: true })
+		handleFileOperations()
 	}, [app, navigate])
 
 	if (!app) return <LocalTldraw />

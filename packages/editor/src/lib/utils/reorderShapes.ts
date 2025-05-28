@@ -154,24 +154,17 @@ function reorderToFront(moving: Set<TLShape>, children: TLShape[], changes: TLSh
 	}
 }
 
-function getVerticesInPageSpace(editor: Editor, shape: TLShape) {
-	const geo = editor.getShapeGeometry(shape)
-	const pageTransform = editor.getShapePageTransform(shape)
-	if (!geo || !pageTransform) return null
-	return pageTransform.applyToPoints(geo.vertices)
-}
-
 function getOverlapChecker(editor: Editor, moving: Set<TLShape>) {
 	const movingVertices = Array.from(moving)
 		.map((shape) => {
-			const vertices = getVerticesInPageSpace(editor, shape)
+			const vertices = editor.getShapePageGeometry(shape).vertices
 			if (!vertices) return null
 			return { shape, vertices }
 		})
 		.filter(Boolean) as { shape: TLShape; vertices: Vec[] }[]
 
 	const isOverlapping = (child: TLShape) => {
-		const vertices = getVerticesInPageSpace(editor, child)
+		const vertices = editor.getShapePageGeometry(child).vertices
 		if (!vertices) return false
 		return movingVertices.some((other) => {
 			return polygonsIntersect(other.vertices, vertices)

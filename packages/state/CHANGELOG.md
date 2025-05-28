@@ -1,3 +1,48 @@
+# v3.12.0 (Tue Apr 15 2025)
+
+### Release Notes
+
+#### Add & fix missing state docs ([#5696](https://github.com/tldraw/tldraw/pull/5696))
+
+- Docs: Added more docs to the `@tldraw/state` and `@tldraw/state-react` API reference,
+
+---
+
+#### 🐛 Bug Fix
+
+- Disable currently broken docs links [#5778](https://github.com/tldraw/tldraw/pull/5778) ([@TodePond](https://github.com/TodePond))
+- Better whyAmIRunning [#5746](https://github.com/tldraw/tldraw/pull/5746) ([@ds300](https://github.com/ds300))
+- Add & fix missing state docs [#5696](https://github.com/tldraw/tldraw/pull/5696) ([@TodePond](https://github.com/TodePond))
+
+#### Authors: 2
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+
+---
+
+# v3.11.0 (Thu Mar 20 2025)
+
+### Release Notes
+
+#### [Friendly Spellcheck]: Fix comments of types.ts file in @tldraw/state ([#5683](https://github.com/tldraw/tldraw/pull/5683))
+
+- Fixed typos found in the `Signal` interface's comments
+
+---
+
+#### 🐛 Bug Fix
+
+- [Friendly Spellcheck]: Fix comments of types.ts file in @tldraw/state [#5683](https://github.com/tldraw/tldraw/pull/5683) ([@Jastor11](https://github.com/Jastor11))
+- Fix API links for state packages [#5606](https://github.com/tldraw/tldraw/pull/5606) ([@TodePond](https://github.com/TodePond))
+
+#### Authors: 2
+
+- Jeff Astor ([@Jastor11](https://github.com/Jastor11))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+
+---
+
 # v3.10.0 (Tue Mar 11 2025)
 
 ### Release Notes

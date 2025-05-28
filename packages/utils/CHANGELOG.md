@@ -1,3 +1,50 @@
+# v3.13.0 (Thu May 22 2025)
+
+### Release Notes
+
+#### stickies: make sure our custom tab behavior takes over the rich text behavior ([#5908](https://github.com/tldraw/tldraw/pull/5908))
+
+- Added `hasCustomTabBehavior` prop to `RichTextLabel` so developers can also opt out of this behavior where necessary
+
+---
+
+#### 🐛 Bug Fix
+
+- Consolidate mutation logic [#6075](https://github.com/tldraw/tldraw/pull/6075) ([@ds300](https://github.com/ds300))
+
+#### 🐛 Bug Fixes
+
+- [VSCode] Allow users to drag files from the sidebar. [#5956](https://github.com/tldraw/tldraw/pull/5956) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- stickies: make sure our custom tab behavior takes over the rich text behavior [#5908](https://github.com/tldraw/tldraw/pull/5908) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 3
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+---
+
+# v3.12.0 (Tue Apr 15 2025)
+
+### Release Notes
+
+#### images: fix not being able to insert SVGs into Firefox ([#5789](https://github.com/tldraw/tldraw/pull/5789))
+
+- Fix not being able to insert SVGs into Firefox
+
+---
+
+#### 🐛 Bug Fixes
+
+- images: fix not being able to insert SVGs into Firefox [#5789](https://github.com/tldraw/tldraw/pull/5789) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 1
+
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
 # v3.10.0 (Tue Mar 11 2025)
 
 ### Release Notes

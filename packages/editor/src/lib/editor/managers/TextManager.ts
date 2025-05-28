@@ -32,6 +32,7 @@ export interface TLMeasureTextSpanOpts {
 	fontStyle: string
 	lineHeight: number
 	textAlign: TLDefaultHorizontalAlignStyle
+	otherStyles?: Record<string, string>
 }
 
 const spaceCharacterRegex = /\s/
@@ -86,6 +87,7 @@ export class TextManager {
 			 */
 			maxWidth: null | number
 			minWidth?: null | number
+			otherStyles?: Record<string, string>
 			padding: string
 			disableOverflowWrapBreaking?: boolean
 		}
@@ -112,6 +114,11 @@ export class TextManager {
 			'overflow-wrap',
 			opts.disableOverflowWrapBreaking ? 'normal' : 'break-word'
 		)
+		if (opts.otherStyles) {
+			for (const [key, value] of Object.entries(opts.otherStyles)) {
+				wrapperElm.style.setProperty(key, value)
+			}
+		}
 
 		const scrollWidth = wrapperElm.scrollWidth
 		const rect = wrapperElm.getBoundingClientRect()
@@ -256,6 +263,11 @@ export class TextManager {
 		elm.style.setProperty('line-height', `${opts.lineHeight * opts.fontSize}px`)
 		elm.style.setProperty('text-align', textAlignmentsForLtr[opts.textAlign])
 		elm.style.setProperty('font-style', opts.fontStyle)
+		if (opts.otherStyles) {
+			for (const [key, value] of Object.entries(opts.otherStyles)) {
+				elm.style.setProperty(key, value)
+			}
+		}
 
 		const shouldTruncateToFirstLine =
 			opts.overflow === 'truncate-ellipsis' || opts.overflow === 'truncate-clip'

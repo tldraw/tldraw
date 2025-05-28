@@ -258,8 +258,22 @@ async function updateAlgoliaIndex() {
 				{ autoGenerateObjectIDIfNotExist: true }
 			)
 			await index.setSettings({
-				searchableAttributes: ['titleHeadingFirst', 'title', 'description', 'keywords', 'content'],
-				camelCaseAttributes: ['titleHeadingFirst', 'title', 'description', 'keywords', 'content'],
+				searchableAttributes: [
+					'section',
+					'titleHeadingFirst',
+					'title',
+					'description',
+					'keywords',
+					'content',
+				],
+				camelCaseAttributes: [
+					'section',
+					'titleHeadingFirst',
+					'title',
+					'description',
+					'keywords',
+					'content',
+				],
 				// these are only applied _after_ keyword search is complete. if two entries have
 				// the same keyword search score, this will be used to tiebreak them.
 				customRanking: [
@@ -273,8 +287,9 @@ async function updateAlgoliaIndex() {
 					'asc(articleIndex)',
 					'asc(headingIndex)',
 				],
-				distinct: 4,
+				distinct: 3,
 				attributeForDistinct: 'section',
+				advancedSyntax: true,
 			})
 
 			const resultsToShowForEmptySearch = entries

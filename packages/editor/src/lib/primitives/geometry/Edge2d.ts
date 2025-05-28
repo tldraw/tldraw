@@ -1,5 +1,4 @@
-import { Vec } from '../Vec'
-import { linesIntersect } from '../intersect'
+import { Vec, VecLike } from '../Vec'
 import { Geometry2d } from './Geometry2d'
 
 /** @public */
@@ -34,7 +33,7 @@ export class Edge2d extends Geometry2d {
 		return [this.start, this.end]
 	}
 
-	override nearestPoint(point: Vec): Vec {
+	override nearestPoint(point: VecLike): Vec {
 		const { start, end, d, u, ul: l } = this
 		if (d.len() === 0) return start // start and end are the same
 		if (l === 0) return start // no length in the unit vector
@@ -46,12 +45,6 @@ export class Edge2d extends Geometry2d {
 		if (cy < Math.min(start.y, end.y)) return start.y < end.y ? start : end
 		if (cy > Math.max(start.y, end.y)) return start.y > end.y ? start : end
 		return new Vec(cx, cy)
-	}
-
-	override hitTestLineSegment(A: Vec, B: Vec, distance = 0): boolean {
-		return (
-			linesIntersect(A, B, this.start, this.end) || this.distanceToLineSegment(A, B) <= distance
-		)
 	}
 
 	getSvgPathData(first = true) {

@@ -1,3 +1,4 @@
+import { useValue } from '@tldraw/state-react'
 import React, { useMemo } from 'react'
 import { RIGHT_MOUSE_BUTTON } from '../constants'
 import {
@@ -11,6 +12,7 @@ import { useEditor } from './useEditor'
 
 export function useCanvasEvents() {
 	const editor = useEditor()
+	const currentTool = useValue('current tool', () => editor.getCurrentTool(), [editor])
 
 	const events = useMemo(
 		function canvasEvents() {
@@ -49,12 +51,21 @@ export function useCanvasEvents() {
 				lastX = e.clientX
 				lastY = e.clientY
 
-				editor.dispatch({
-					type: 'pointer',
-					target: 'canvas',
-					name: 'pointer_move',
-					...getPointerInfo(e),
-				})
+				// For tools that benefit from a higher fidelity of events,
+				// we dispatch the coalesced events.
+				// N.B. Sometimes getCoalescedEvents isn't present on iOS, ugh.
+				const events =
+					currentTool.useCoalescedEvents && e.nativeEvent.getCoalescedEvents
+						? e.nativeEvent.getCoalescedEvents()
+						: [e]
+				for (const singleEvent of events) {
+					editor.dispatch({
+						type: 'pointer',
+						target: 'canvas',
+						name: 'pointer_move',
+						...getPointerInfo(singleEvent),
+					})
+				}
 			}
 
 			function onPointerUp(e: React.PointerEvent) {
@@ -100,7 +111,7 @@ export function useCanvasEvents() {
 				if (
 					e.target.tagName !== 'A' &&
 					e.target.tagName !== 'TEXTAREA' &&
-					e.target.isContentEditable &&
+					!e.target.isContentEditable &&
 					// When in EditingShape state, we are actually clicking on a 'DIV'
 					// not A/TEXTAREA/contenteditable element yet. So, to preserve cursor position
 					// for edit mode on mobile we need to not preventDefault.
@@ -159,7 +170,7 @@ export function useCanvasEvents() {
 				onClick,
 			}
 		},
-		[editor]
+		[editor, currentTool]
 	)
 
 	return events
