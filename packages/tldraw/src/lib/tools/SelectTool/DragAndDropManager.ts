@@ -1,5 +1,5 @@
 import { Editor, TLShape, TLShapeId, Vec, bind, compact } from '@tldraw/editor'
-import { getOccludedChildren } from './selectHelpers'
+import { getOverlappingShapes } from './selectHelpers'
 
 const INITIAL_POINTER_LAG_DURATION = 20
 const FAST_POINTER_LAG_DURATION = 100
@@ -99,14 +99,16 @@ export class DragAndDropManager {
 
 		// Only hint an ancestor if some shapes will drop into it on pointer up
 		const hintingShapes = []
-		for (const [ancestorId, shapeIds] of shapesGroupedByAncestor) {
-			const ancestor = this.editor.getShape(ancestorId)
-			if (!ancestor) continue
+		for (const [ancestorId, originalChildIds] of shapesGroupedByAncestor) {
+			const parent = this.editor.getShape(ancestorId)
+			if (!parent) continue
 			// If all of the ancestor's children would be occluded, then don't hint it
 			// 1. get the number of fully occluded children
 			// 2. if that number is less than the number of moving shapes, hint the ancestor
-			if (getOccludedChildren(this.editor, ancestor).length < shapeIds.length) {
-				hintingShapes.push(ancestor.id)
+			const childIds = this.editor.getSortedChildIdsForParent(parent)
+			if (!childIds.length) continue
+			if (getOverlappingShapes(this.editor, parent, childIds).length < originalChildIds.length) {
+				hintingShapes.push(parent.id)
 			}
 		}
 

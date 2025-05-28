@@ -1667,8 +1667,11 @@ export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl
 // @public (undocumented)
 export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean, maxImageDimension?: number): Promise<TLImageAsset | TLVideoAsset>;
 
-// @public (undocumented)
-export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];
+// @public
+export function getOccludedChildren(editor: Editor, shape: TLShape, otherShapes: TLShapeId[]): TLShapeId[];
+
+// @public
+export function getOccludedChildren(editor: Editor, shape: TLShape, otherShapes: TLShape[]): TLShape[];
 
 // @public
 export function getUncroppedSize(shapeSize: {
