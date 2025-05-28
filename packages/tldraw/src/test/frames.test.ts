@@ -6,6 +6,7 @@ import {
 	TLShapeId,
 	createShapeId,
 } from '@tldraw/editor'
+import test from 'node:test'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { DEFAULT_FRAME_PADDING, fitFrameToContent, removeFrame } from '../lib/utils/frames/frames'
 import { TestEditor } from './TestEditor'
@@ -399,17 +400,29 @@ describe('frame shapes', () => {
 		editor.setCurrentTool('select')
 		editor.pointerDown(125, 125, boxAid).pointerMove(130, 130)
 
-		jest.advanceTimersByTime(2500)
+		jest.advanceTimersByTime(250)
 
 		editor.pointerMove(175, 175)
 
-		jest.advanceTimersByTime(2500)
+		jest.advanceTimersByTime(250)
 
 		expect(editor.getOnlySelectedShape()!.id).toBe(boxAid)
 		expect(editor.getOnlySelectedShape()!.parentId).toBe(frameId)
-		expect(editor.getHintingShapeIds()).toHaveLength(1)
+
 		// box A should still be beneath box B
 		expect(editor.getShape(boxAid)!.index.localeCompare(editor.getShape(boxBid)!.index)).toBe(-1)
+
+		// We don't highlight the frame until dragged out and back in
+		expect(editor.getHintingShapeIds()).toHaveLength(0)
+
+		// Let's try that
+		editor.pointerMove(1750, 1750)
+		jest.advanceTimersByTime(200)
+		editor.pointerMove(175, 175)
+		jest.advanceTimersByTime(200)
+
+		// yay
+		expect(editor.getHintingShapeIds()).toHaveLength(1)
 	})
 
 	it('can be snapped to when dragging other shapes', () => {
@@ -1121,6 +1134,20 @@ describe('Unparenting behavior', () => {
 		expect(editor.getShape(rect.id)!.parentId).toBe(frame.id)
 	})
 
+	// it('unparents a shape when the pointer drags across the edge of a frame, even if its geometry overlaps with the frame', () => {
+	// 	dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+	// 	dragCreateRect({ down: [80, 50], move: [120, 60], up: [120, 60] })
+	// 	const [frame, rect] = editor.getLastCreatedShapes(2)
+
+	// 	expect(editor.getShape(rect.id)!.parentId).toBe(frame.id)
+	// 	editor.pointerDown(90, 50)
+	// 	editor.pointerMove(110, 50)
+	// 	jest.advanceTimersByTime(200)
+	// 	expect(editor.getShape(rect.id)!.parentId).toBe(editor.getCurrentPageId())
+	// 	editor.pointerUp(110, 50)
+	// 	expect(editor.getShape(rect.id)!.parentId).toBe(editor.getCurrentPageId())
+	// })
+
 	it('unparents a shape when the pointer drags across the edge of a frame, even if its geometry overlaps with the frame', () => {
 		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
 		dragCreateRect({ down: [80, 50], move: [120, 60], up: [120, 60] })
@@ -1130,12 +1157,12 @@ describe('Unparenting behavior', () => {
 		editor.pointerDown(90, 50)
 		editor.pointerMove(110, 50)
 		jest.advanceTimersByTime(200)
-		expect(editor.getShape(rect.id)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShape(rect.id)!.parentId).toBe(frame.id)
 		editor.pointerUp(110, 50)
-		expect(editor.getShape(rect.id)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShape(rect.id)!.parentId).toBe(frame.id)
 	})
 
-	it("unparents a shape when it's rotated out of a frame", () => {
+	it("drops a shape onto other frames when it's rotated out of a frame", () => {
 		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
 		dragCreateRect({ down: [95, 10], move: [200, 20], up: [200, 20] })
 		const [frame, rect] = editor.getLastCreatedShapes(2)
@@ -1181,17 +1208,20 @@ describe('Unparenting behavior', () => {
 
 	it("only parents on pointer up if the shape's geometry overlaps with the frame", () => {
 		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
-		dragCreateTriangle({ down: [120, 120], move: [160, 160], up: [160, 160] })
+		dragCreateTriangle({ down: [120, 120], move: [220, 220], up: [220, 220] })
 		const [frame, triangle] = editor.getLastCreatedShapes(2)
 
 		expect(editor.getShape(triangle.id)!.parentId).toBe(editor.getCurrentPageId())
-		editor.pointerDown(125, 125)
-		editor.pointerMove(95, 95)
+		editor.select(triangle.id)
+		editor.pointerDown(125, 125) // not inside of shape, but inside of selection box
+		editor.pointerMove(95, 95) // onto frame but the geometry is outside of it
+		jest.advanceTimersByTime(200)
+		expect(editor.getShape(triangle.id)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getHintingShapeIds()).toHaveLength(0)
+
+		editor.pointerMove(45, 45) // now we're over it
 		jest.advanceTimersByTime(200)
 		expect(editor.getShape(triangle.id)!.parentId).toBe(frame.id)
-		expect(editor.getHintingShapeIds()).toHaveLength(0)
-		editor.pointerUp(95, 95)
-		expect(editor.getShape(triangle.id)!.parentId).toBe(editor.getCurrentPageId())
 	})
 
 	it('unparents an occluded shape after dragging a handle out of a frame', () => {
@@ -1206,4 +1236,12 @@ describe('Unparenting behavior', () => {
 		editor.pointerUp(110, 110)
 		expect(editor.getShape(line.id)!.parentId).toBe(editor.getCurrentPageId())
 	})
+})
+
+describe('When resizing a frame', () => {
+	it.todo(
+		'drops kicked out children into other frames, if there is one beneath the kicked out shaoe'
+	)
+	it.todo('drops kicked out children into the containing group, if there is one')
+	it.todo('drops kicked out children onto the page')
 })

@@ -1296,12 +1296,14 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T;
     getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined;
     getShapeLocalTransform(shape: TLShape | TLShapeId): Mat;
+    // @deprecated (undocumented)
     getShapeMask(shape: TLShape | TLShapeId): undefined | VecLike[];
     getShapeMaskedPageBounds(shape: TLShape | TLShapeId): Box | undefined;
     // @internal
     getShapeNearestSibling(siblingShape: TLShape, targetShape: TLShape | undefined): TLShape | undefined;
     getShapePageBounds(shape: TLShape | TLShapeId): Box | undefined;
     getShapePageGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T;
+    getShapePageMask(shape: TLShape | TLShapeId): undefined | VecLike[];
     getShapePageTransform(shape: TLShape | TLShapeId): Mat;
     getShapeParent(shape?: TLShape | TLShapeId): TLShape | undefined;
     getShapeParentTransform(shape: TLShape | TLShapeId): Mat;
@@ -1731,6 +1733,8 @@ export abstract class Geometry2d {
     intersectPolyline(polyline: VecLike[], _filters?: Geometry2dFilters): VecLike[];
     // (undocumented)
     isClosed: boolean;
+    // (undocumented)
+    isEmptyLabel: boolean;
     // (undocumented)
     isExcludedByFilter(filters?: Geometry2dFilters): boolean;
     // (undocumented)
@@ -4323,6 +4327,8 @@ export interface TransformedGeometry2dOptions {
     debugColor?: string;
     // (undocumented)
     ignore?: boolean;
+    // (undocumented)
+    isEmptyLabel?: boolean;
     // (undocumented)
     isInternal?: boolean;
     // (undocumented)

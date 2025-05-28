@@ -88,6 +88,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 
 	override onChildrenChange(group: TLGroupShape) {
 		const children = this.editor.getSortedChildIdsForParent(group.id)
+
 		if (children.length === 0) {
 			if (this.editor.getCurrentPageState().focusedGroupId === group.id) {
 				this.editor.popFocusedGroupId()

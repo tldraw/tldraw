@@ -12,6 +12,7 @@ import {
 	TLGroupShape,
 	TLResizeInfo,
 	TLShape,
+	TLShapeId,
 	TLShapePartial,
 	TLShapeUtilConstructor,
 	clamp,
@@ -19,12 +20,14 @@ import {
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
+	intersectPolygonPolygon,
 	lerp,
 	resizeBox,
 	toDomPrecision,
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
+import { doesGeometryOverlapPolygon } from '../../tools/SelectTool/selectHelpers'
 import { fitFrameToContent, getFrameChildrenBounds } from '../../utils/frames/frames'
 import {
 	TLCreateTextJsxFromSpansOpts,
@@ -343,18 +346,84 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		}
 	}
 
-	override onDragShapesOut(_shape: TLFrameShape, shapes: TLShape[]): void {
-		const parent = this.editor.getShape(_shape.parentId)
-		const isInGroup = parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')
+	override onDragShapesOut(frameShape: TLFrameShape, shapes: TLShape[]): void {
+		const { editor } = this
 
-		// If frame is in a group, keep the shape
-		// moved out in that group
+		// If the frame is in a group, then we'll operate within the group;
+		// if dropping onto the "page", drop onto the group
+		// if dropping onto other frames, only drop in if those frames are also in the group
+		const containingGroupId = this.editor.findShapeAncestor(frameShape, (s) =>
+			this.editor.isShapeOfType<TLGroupShape>(s, 'group')
+		)?.id
 
-		if (isInGroup) {
-			this.editor.reparentShapes(shapes, parent.id)
-		} else {
-			this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
+		const otherFrames = this.editor.getCurrentPageShapesSorted().filter(
+			(s) =>
+				this.editor.isShapeOfType<TLFrameShape>(s, 'frame') &&
+				// don't drop children back into this frame
+				s.id !== frameShape.id &&
+				// If the frame is in a group, don't reparent to shapes outside of the group
+				editor.findShapeAncestor(s, (a) => a.id === containingGroupId)
+		)
+
+		const reparentingFrameToShapes = new Map<TLShapeId, TLShape[]>()
+		const remainingShapesToReparent = new Set(shapes)
+
+		for (let i = otherFrames.length - 1; i >= 0; i--) {
+			const frame = otherFrames[i]
+
+			// Frame geometry in page space
+			const frameGeometry = editor.getShapeGeometry(frame)
+			const framePageTransform = editor.getShapePageTransform(frame)
+
+			const framePageMaskVertices = editor.getShapePageMask(frame)
+			const framePageCorners = framePageTransform.applyToPoints(frameGeometry.vertices)
+			const framePagePolygon = framePageMaskVertices
+				? intersectPolygonPolygon(framePageMaskVertices, framePageCorners)
+				: framePageCorners
+
+			if (!framePagePolygon) continue
+
+			// collect children to reparent to this frame
+			const childrenToReparentToFrame = []
+
+			// For each of the remaining dropping shapes...
+			for (const shape of remainingShapesToReparent) {
+				// Don't reparent a frame to itself
+				if (frame.id === shape.id) continue
+
+				const framePolygonInShapeSpace = editor
+					.getShapePageTransform(shape)
+					.clone()
+					.invert()
+					.applyToPoints(framePagePolygon)
+
+				const geometry = editor.getShapeGeometry(shape)
+
+				if (doesGeometryOverlapPolygon(geometry, framePolygonInShapeSpace)) {
+					// If the shape overlaps the frame, reparent it to that frame
+					childrenToReparentToFrame.push(shape)
+					remainingShapesToReparent.delete(shape)
+					continue
+				}
+			}
+
+			reparentingFrameToShapes.set(frame.id, childrenToReparentToFrame)
 		}
+
+		editor.run(() => {
+			reparentingFrameToShapes.forEach((childrenToReparent, frameId) => {
+				if (childrenToReparent.length === 0) return
+				editor.reparentShapes(childrenToReparent, frameId)
+			})
+
+			// Reparent the rest to the page (or containing group)
+			if (remainingShapesToReparent.size > 0) {
+				editor.reparentShapes(
+					[...remainingShapesToReparent],
+					containingGroupId ?? editor.getCurrentPageId()
+				)
+			}
+		})
 	}
 
 	override onResize(shape: any, info: TLResizeInfo<any>) {

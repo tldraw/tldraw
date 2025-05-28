@@ -1,9 +1,13 @@
 import {
 	EMPTY_ARRAY,
 	Editor,
+	Geometry2d,
+	Group2d,
 	TLShape,
 	TLShapeId,
+	Vec,
 	compact,
+	intersectPolygonPolygon,
 	pointInPolygon,
 	polygonIntersectsPolyline,
 	polygonsIntersect,
@@ -35,8 +39,11 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 	for (const parent of parentsToCheck) {
 		const childIds = editor.getSortedChildIdsForParent(parent)
 		const overlappingChildren = getOverlappingShapes(editor, parent, childIds)
-		if (overlappingChildren.length) {
-			parentsWithKickedOutChildren.set(parent, overlappingChildren)
+		if (overlappingChildren.length < childIds.length) {
+			parentsWithKickedOutChildren.set(
+				parent,
+				childIds.filter((id) => !overlappingChildren.includes(id))
+			)
 		}
 	}
 
@@ -94,62 +101,142 @@ export function getOverlappingShapes<T extends TLShape[] | TLShapeId[]>(
 	const parentPageTransform = editor.getShapePageTransform(shape)
 	const parentPageCorners = parentPageTransform.applyToPoints(parentGeometry.vertices)
 
-	const shapesInsideOfParent = []
+	const parentPageMaskVertices = editor.getShapePageMask(shape)
+	const parentPagePolygon = parentPageMaskVertices
+		? intersectPolygonPolygon(parentPageMaskVertices, parentPageCorners)
+		: parentPageCorners
 
-	for (const childId of otherShapes) {
+	if (!parentPagePolygon) return EMPTY_ARRAY
+
+	return otherShapes.filter((childId) => {
 		const shapePageBounds = editor.getShapePageBounds(childId)
-		if (!shapePageBounds) continue
+		if (!shapePageBounds || !parentPageBounds.includes(shapePageBounds)) return false
 
-		// If the shape's bounds are entirely outside of the parent's bounds, it's outside
-		if (!parentPageBounds.includes(shapePageBounds)) {
-			shapesInsideOfParent.push(typeof childId === 'string' ? childId : childId.id)
-			continue
-		}
+		const parentPolygonInShapeShape = editor
+			.getShapePageTransform(childId)
+			.clone()
+			.invert()
+			.applyToPoints(parentPagePolygon)
 
-		// There might be a lot of children; we don't want to do this for all of them,
-		// but we also don't want to do it at all if we don't have to. ??= to the rescue!
+		const geometry = editor.getShapeGeometry(childId)
 
-		// Put the parent's corners into shape space.
-		// todo: really this should be the entire vertices of the parent shape, but we only do this check for Frames (rectangles); it might actually be easier to use the geometry intersection anyway (bounds, center, and polygon or polyline)
+		return doesGeometryOverlapPolygon(geometry, parentPolygonInShapeShape)
+	})
+}
+
+/**
+ * Get the shapes that overlap with a given shape.
+ *
+ * @param editor - The editor instance.
+ * @param shape - The shapes or shape IDs to check against.
+ * @param otherShapes - The shapes or shape IDs to check for overlap.
+ * @returns An array of shapes or shape IDs that overlap with the given shape.
+ *
+ * @public
+ */
+export function getHasOverlappingShapes(
+	editor: Editor,
+	shape: TLShape,
+	otherShapes: TLShapeId[]
+): boolean
+/**
+ * Get the shapes that overlap with a given shape.
+ *
+ * @param editor - The editor instance.
+ * @param shape - The shapes or shape IDs to check against.
+ * @param otherShapes - The shapes or shape IDs to check for overlap.
+ * @returns An array of shapes or shape IDs that overlap with the given shape.
+ *
+ * @public
+ */
+export function getHasOverlappingShapes(
+	editor: Editor,
+	shape: TLShape,
+	otherShapes: TLShape[]
+): boolean
+export function getHasOverlappingShapes<T extends TLShape[] | TLShapeId[]>(
+	editor: Editor,
+	shape: T[number],
+	otherShapes: T
+) {
+	if (otherShapes.length === 0) {
+		return false
+	}
+
+	const parentPageBounds = editor.getShapePageBounds(shape)
+	if (!parentPageBounds) return false
+
+	const parentGeometry = editor.getShapeGeometry(shape)
+	const parentPageTransform = editor.getShapePageTransform(shape)
+	const parentPageCorners = parentPageTransform.applyToPoints(parentGeometry.vertices)
+
+	return otherShapes.some((childId) => {
+		const shapePageBounds = editor.getShapePageBounds(childId)
+		if (!shapePageBounds || !parentPageBounds.includes(shapePageBounds)) return false
+
 		const parentCornersInShapeSpace = editor
 			.getShapePageTransform(childId)
 			.clone()
 			.invert()
 			.applyToPoints(parentPageCorners)
 
-		const { vertices, center, isClosed } = editor.getShapeGeometry(childId)
+		const geometry = editor.getShapeGeometry(childId)
+		return doesGeometryOverlapPolygon(geometry, parentCornersInShapeSpace)
+	})
+}
 
-		// We'll do things in order of cheapest to most expensive checks
-
-		// If the shape is closed and its center is inside the parent, it' inside
-		if (isClosed && pointInPolygon(center, parentCornersInShapeSpace)) {
-			continue
-		}
-
-		// If any of the shape's vertices are inside the occluder, it's inside
-		if (vertices.some((v) => pointInPolygon(v, parentCornersInShapeSpace))) {
-			continue
-		}
-
-		// If any the shape's vertices intersect the edge of the occluder, it's inside.
-		// for example when a rotated rectangle is moved over the corner of a parent rectangle
-		if (isClosed) {
-			// If the child shape is closed, intersect as a polygon
-			if (polygonsIntersect(parentCornersInShapeSpace, vertices)) {
-				continue
-			}
-		} else {
-			// if the child shape is not closed, intersect as a polyline
-			if (polygonIntersectsPolyline(parentCornersInShapeSpace, vertices)) {
-				continue
-			}
-		}
-
-		// If we haven't established that the shape is inside the parent, it must be outside
-		shapesInsideOfParent.push(childId)
+/**
+ * @public
+ */
+export function doesGeometryOverlapPolygon(
+	geometry: Geometry2d,
+	parentCornersInShapeSpace: Vec[]
+): boolean {
+	// If the child is a group, check if any of its children overlap the box
+	if (geometry instanceof Group2d) {
+		return geometry.children.some((childGeometry) =>
+			doesGeometryOverlapPolygon(childGeometry, parentCornersInShapeSpace)
+		)
 	}
 
-	return shapesInsideOfParent
+	// Otherwise, check if the geometry overlaps the box
+	return doesGeometryOverlapPolygonInner(geometry, parentCornersInShapeSpace)
+}
+
+function doesGeometryOverlapPolygonInner(geometry: Geometry2d, polygon: Vec[]) {
+	const { vertices, center, isFilled, isEmptyLabel, isClosed } = geometry
+
+	// We'll do things in order of cheapest to most expensive checks
+
+	// Skip empty labels
+	if (isEmptyLabel) return false
+
+	// If the shape is filled and closed and its center is inside the parent, it's inside
+	if (isFilled && isClosed && pointInPolygon(center, polygon)) {
+		return true
+	}
+
+	// If any of the shape's vertices are inside the occluder, it's inside
+	if (vertices.some((v) => pointInPolygon(v, polygon))) {
+		return true
+	}
+
+	// If any the shape's vertices intersect the edge of the occluder, it's inside.
+	// for example when a rotated rectangle is moved over the corner of a parent rectangle
+	if (isClosed) {
+		// If the child shape is closed, intersect as a polygon
+		if (polygonsIntersect(polygon, vertices)) {
+			return true
+		}
+	} else {
+		// if the child shape is not closed, intersect as a polyline
+		if (polygonIntersectsPolyline(polygon, vertices)) {
+			return true
+		}
+	}
+
+	// If none of the above checks passed, the shape is outside the parent
+	return false
 }
 
 /** @internal */
