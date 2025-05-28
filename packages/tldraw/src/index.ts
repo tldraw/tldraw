@@ -385,6 +385,7 @@ export {
 	ToggleWrapModeItem,
 	UngroupMenuItem,
 	UnlockAllMenuItem,
+	ZoomHoldAndDrag,
 	ZoomTo100MenuItem,
 	ZoomToFitMenuItem,
 	ZoomToSelectionMenuItem,

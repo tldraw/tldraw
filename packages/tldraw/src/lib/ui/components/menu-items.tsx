@@ -209,6 +209,23 @@ export function ZoomToSelectionMenuItem() {
 	)
 }
 
+/** @public @react */
+export function ZoomHoldAndDrag() {
+	const editor = useEditor()
+	const hasSelected = useValue('has shapes', () => editor.getSelectedShapeIds().length > 0, [
+		editor,
+	])
+
+	return (
+		<TldrawUiMenuActionItem
+			actionId="zoom-hold-and-drag"
+			disabled={!hasSelected}
+			data-testid="minimap.zoom-menu.zoom-hold-and-drag"
+			noClose
+		/>
+	)
+}
+
 /* -------------------- Clipboard ------------------- */
 
 /** @public @react */

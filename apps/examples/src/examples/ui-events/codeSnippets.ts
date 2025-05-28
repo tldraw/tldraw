@@ -50,6 +50,7 @@ const ZOOM_EVENT = {
 	'reset-zoom': 'resetZoom',
 	'zoom-to-fit': 'zoomToFit',
 	'zoom-to-selection': 'zoomToSelection',
+	'zoom-hold-and-drag': 'zoomHoldAndDrag',
 }
 
 export function getCodeSnippet(name: string, data: any) {

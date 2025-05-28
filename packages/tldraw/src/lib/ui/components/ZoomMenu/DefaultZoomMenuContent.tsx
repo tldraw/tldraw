@@ -1,4 +1,9 @@
-import { ZoomTo100MenuItem, ZoomToFitMenuItem, ZoomToSelectionMenuItem } from '../menu-items'
+import {
+	ZoomHoldAndDrag,
+	ZoomTo100MenuItem,
+	ZoomToFitMenuItem,
+	ZoomToSelectionMenuItem,
+} from '../menu-items'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 
 /** @public @react */
@@ -10,6 +15,7 @@ export function DefaultZoomMenuContent() {
 			<ZoomTo100MenuItem />
 			<ZoomToFitMenuItem />
 			<ZoomToSelectionMenuItem />
+			<ZoomHoldAndDrag />
 		</>
 	)
 }

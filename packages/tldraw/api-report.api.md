@@ -4922,6 +4922,9 @@ export function ViewSubmenu(): JSX_2.Element;
 export function XBoxToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
+export function ZoomHoldAndDrag(): JSX_2.Element;
+
+// @public (undocumented)
 export function ZoomOrRotateMenuItem(): JSX_2.Element;
 
 // @public (undocumented)

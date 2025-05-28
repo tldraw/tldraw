@@ -28,6 +28,7 @@ import {
 	ToggleWrapModeItem,
 	UngroupMenuItem,
 	UnlockAllMenuItem,
+	ZoomHoldAndDrag,
 	ZoomTo100MenuItem,
 	ZoomToFitMenuItem,
 	ZoomToSelectionMenuItem,
@@ -131,6 +132,7 @@ export function ViewSubmenu() {
 				<ZoomTo100MenuItem />
 				<ZoomToFitMenuItem />
 				<ZoomToSelectionMenuItem />
+				<ZoomHoldAndDrag />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)

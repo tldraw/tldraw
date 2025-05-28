@@ -143,6 +143,14 @@ test.describe('Keyboard Shortcuts', () => {
 		})
 	})
 
+	test('Zoom hold and drag', async () => {
+		await page.keyboard.down('z')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'zoom-hold-and-drag',
+			data: { source: 'kbd' },
+		})
+	})
+
 	test('Zoom to 100', async () => {
 		await page.keyboard.press('Shift+0')
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
