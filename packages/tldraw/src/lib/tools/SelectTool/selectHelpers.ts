@@ -70,6 +70,7 @@ export function getOccludedChildren(editor: Editor, parent: TLShape) {
 		}
 
 		if (!parentPageBounds.includes(shapePageBounds)) {
+			console.log('bye')
 			// Not in shape's bounds, shape is occluded
 			results.push(childId)
 			continue
@@ -89,7 +90,11 @@ export function getOccludedChildren(editor: Editor, parent: TLShape) {
 			.applyToPoints(parentPageCorners)
 
 		// If any of the shape's vertices are inside the occluder, it's not occluded
-		const { vertices, isClosed } = editor.getShapeGeometry(childId)
+		const { vertices, center, isClosed } = editor.getShapeGeometry(childId)
+
+		if (isClosed && pointInPolygon(center, parentCornersInShapeSpace)) {
+			continue
+		}
 
 		if (vertices.some((v) => pointInPolygon(v, parentCornersInShapeSpace))) {
 			// not occluded, vertices are in the occluder's corners
@@ -107,6 +112,7 @@ export function getOccludedChildren(editor: Editor, parent: TLShape) {
 			continue
 		}
 
+		console.log('bye')
 		// Passed all checks, shape is occluded
 		results.push(childId)
 	}
