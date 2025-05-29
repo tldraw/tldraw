@@ -119,6 +119,38 @@ const migrations: Migration[] = [
 			ALTER TABLE history ADD COLUMN timestamp INTEGER NOT NULL DEFAULT 0;
 		`,
 	},
+	{
+		id: '006_topics',
+		code: `
+			-- switching away from individual userId and fileId columns to a single topics column,
+			-- with topics separated and wrapped by pipe characters
+			-- e.g. |user:1234|file:5678|
+			ALTER TABLE history ADD COLUMN topics TEXT NOT NULL DEFAULT '|';
+			UPDATE history SET topics = topics || 'user:' || userId || '|' WHERE userId IS NOT NULL;
+			UPDATE history SET topics = topics || 'file:' || fileId || '|' WHERE fileId IS NOT NULL;
+			CREATE INDEX history_lsn_topics ON history (lsn, topics);
+			CREATE INDEX history_topics ON history (topics);
+			DROP INDEX history_lsn_userId;
+			DROP INDEX history_lsn_fileId;
+			ALTER TABLE history DROP COLUMN userId;
+			ALTER TABLE history DROP COLUMN fileId;
+
+			-- replacing the user_file_subscriptions table with a single user_topic table
+			CREATE TABLE user_topic (
+				userId TEXT NOT NULL,
+				topic TEXT NOT NULL,
+				PRIMARY KEY (userId, topic)
+			);
+
+			INSERT INTO user_topic (userId, topic) 
+			SELECT userId, 'file:' || fileId FROM user_file_subscriptions;
+
+			INSERT INTO user_topic (userId, topic)
+			SELECT id, 'user:' || id FROM active_user;
+
+			DROP TABLE user_file_subscriptions;
+		`,
+	},
 ]
 
 const ONE_MINUTE = 60 * 1000
@@ -464,11 +496,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 					}
 
 					this.handleEvent(collator, change, false)
+					const topics = ['user:' + change.userId]
+					if (change.fileId) {
+						topics.push('file:' + change.fileId)
+					}
 					this.sqlite.exec(
-						'INSERT INTO history (lsn, userId, fileId, json, timestamp) VALUES (?, ?, ?, ?, ?)',
+						'INSERT INTO history (lsn, topics, json, timestamp) VALUES (?, ?, ?, ?)',
 						lsn,
-						change.userId,
-						change.fileId,
+						`|${topics.join('|')}|`,
 						JSON.stringify(change),
 						Date.now()
 					)
@@ -675,16 +710,16 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		if (event.command === 'insert') {
 			if (!row.isFileOwner) {
 				this.sqlite.exec(
-					`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
+					`INSERT INTO user_topic (userId, topic) VALUES (?, ?) ON CONFLICT (userId, topic) DO NOTHING`,
 					row.userId,
-					row.fileId
+					'file:' + row.fileId
 				)
 			}
 		} else if (event.command === 'delete') {
 			this.sqlite.exec(
-				`DELETE FROM user_file_subscriptions WHERE userId = ? AND fileId = ?`,
+				`DELETE FROM user_topic WHERE userId = ? AND topic = ?`,
 				row.userId,
-				row.fileId
+				'file:' + row.fileId
 			)
 		}
 		collator.addChange(row.userId, {
@@ -707,14 +742,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		const impactedUserIds = [
 			row.ownerId,
 			...this.sqlite
-				.exec('SELECT userId FROM user_file_subscriptions WHERE fileId = ?', row.id)
+				.exec<{ userId: string }>('SELECT userId FROM user_topic WHERE topic = ?', 'file:' + row.id)
 				.toArray()
 				.map((x) => x.userId as string),
 		]
 		// if the file state was deleted before the file, we might not have any impacted users
 		if (event.command === 'delete') {
 			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordDidDelete(row)
-			this.sqlite.exec(`DELETE FROM user_file_subscriptions WHERE fileId = ?`, row.id)
+			this.sqlite.exec(`DELETE FROM user_topic WHERE topic = ?`, 'file:' + row.id)
 		} else if (event.command === 'update') {
 			assert('ownerId' in row, 'ownerId is required when updating file')
 			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordDidUpdate(row)
@@ -817,7 +852,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private getResumeType(
 		lsn: string,
 		userId: string,
-		guestFileIds: string[]
+		topics: string[]
 	): { type: 'done'; messages?: ZReplicationEventWithoutSequenceInfo[] } | { type: 'reboot' } {
 		const currentLsn = assertExists(this.getCurrentLsn())
 
@@ -836,7 +871,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			// not enough history, we can't resume
 			return { type: 'reboot' }
 		}
-
 		const history = this.sqlite
 			.exec<{ json: string; lsn: string }>(
 				`
@@ -845,14 +879,11 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			WHERE
 			  lsn > ?
 				AND (
-				  userId = ? 
-					OR fileId IN (${guestFileIds.map((_, i) => '$' + (i + 1)).join(', ')})
+					${topics.map((id) => `topics LIKE '%|${id}|%'`).join(' OR ')}
 				)
 			ORDER BY rowid ASC
 		`,
-				lsn,
-				userId,
-				...guestFileIds
+				lsn // Only pass lsn as parameter, remove ...topics since they're interpolated in the query
 			)
 			.toArray()
 			.map(({ json, lsn }) => ({ change: JSON.parse(json) as Change, lsn }))
@@ -889,13 +920,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		guestFileIds: string[]
 		bootId: string
 	}): Promise<{ type: 'done'; sequenceId: string; sequenceNumber: number } | { type: 'reboot' }> {
+		const topics = ['user:' + userId, ...guestFileIds.map((fileId) => 'file:' + fileId)]
 		try {
 			while (!this.getCurrentLsn()) {
 				// this should only happen once per slot name change, which should never happen!
 				await sleep(100)
 			}
 
-			this.log.debug('registering user', userId, lsn, bootId, guestFileIds)
+			this.log.debug('registering user', userId, lsn, bootId, topics)
 			this.logEvent({ type: 'register_user' })
 
 			// clear user and subscriptions
@@ -907,20 +939,22 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				Date.now()
 			)
 
-			this.sqlite.exec(`DELETE FROM user_file_subscriptions WHERE userId = ?`, userId)
-			for (const fileId of guestFileIds) {
+			this.sqlite.exec(`DELETE FROM user_topic WHERE userId = ?`, userId)
+
+			for (const topic of topics) {
 				this.sqlite.exec(
-					`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
+					`INSERT INTO user_topic (userId, topic) VALUES (?, ?) ON CONFLICT (userId, topic) DO NOTHING`,
 					userId,
-					fileId
+					topic
 				)
 			}
-			this.log.debug('inserted file subscriptions', guestFileIds.length)
+
+			this.log.debug('inserted file subscriptions', topics.length)
 
 			this.reportActiveUsers()
 			this.log.debug('inserted active user')
 
-			const resume = this.getResumeType(lsn, userId, guestFileIds)
+			const resume = this.getResumeType(lsn, userId, topics)
 			if (resume.type === 'reboot') {
 				return { type: 'reboot' }
 			}
