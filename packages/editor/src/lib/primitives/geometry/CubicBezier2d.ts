@@ -48,8 +48,13 @@ export class CubicBezier2d extends Polyline2d {
 		return vertices
 	}
 
-	midPoint() {
+	// eslint-disable-next-line no-restricted-syntax
+	get midPoint() {
 		return CubicBezier2d.GetAtT(this, 0.5)
+	}
+
+	getMidPoint() {
+		return this.midPoint
 	}
 
 	nearestPoint(A: VecLike): Vec {

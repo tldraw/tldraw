@@ -63,7 +63,16 @@ export class Ellipse2d extends Geometry2d {
 		const vertices = Array(len)
 
 		for (let i = 0; i < len; i++) {
-			vertices[i] = new Vec(cx + cx * cos, cy + cy * sin)
+			// Calculate vertex position
+			const x = cx + cx * cos
+			const y = cy + cy * sin
+
+			// Clamp to bounds to prevent floating-point precision errors
+			const clampedX = Math.max(0, Math.min(w, x))
+			const clampedY = Math.max(0, Math.min(h, y))
+
+			vertices[i] = new Vec(clampedX, clampedY)
+
 			ts = b * cos + a * sin
 			tc = a * cos - b * sin
 			sin = ts

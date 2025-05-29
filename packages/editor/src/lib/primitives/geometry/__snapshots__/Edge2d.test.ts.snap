@@ -1,0 +1,291 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Edge2d snapshots should match SVG path data snapshots: edge-svg-path-first 1`] = `"M10, 20 L50, 40"`;
+
+exports[`Edge2d snapshots should match SVG path data snapshots: edge-svg-path-not-first 1`] = `" L50, 40"`;
+
+exports[`Edge2d snapshots should match diagonal edge snapshots: diagonal-edge 1`] = `
+{
+  "bounds": Box {
+    "h": 40,
+    "w": 30,
+    "x": 0,
+    "y": 0,
+  },
+  "delta": Vec {
+    "x": -30,
+    "y": -40,
+    "z": 1,
+  },
+  "length": 50,
+  "midPoint": Vec {
+    "x": 15,
+    "y": 20,
+    "z": 1,
+  },
+  "svgPath": "M15, 20 L30, 40",
+  "unitLength": 1,
+  "unitVector": Vec {
+    "x": -0.6,
+    "y": -0.8,
+    "z": 1,
+  },
+  "vertices": [
+    Vec {
+      "x": 15,
+      "y": 20,
+      "z": 1,
+    },
+    Vec {
+      "x": 30,
+      "y": 40,
+      "z": 1,
+    },
+  ],
+}
+`;
+
+exports[`Edge2d snapshots should match edge properties snapshots: edge-properties 1`] = `
+{
+  "longEdge": {
+    "bounds": Box {
+      "h": 75,
+      "w": 100,
+      "x": 0,
+      "y": 0,
+    },
+    "delta": Vec {
+      "x": -100,
+      "y": -75,
+      "z": 1,
+    },
+    "length": 125,
+    "unitLength": 1,
+    "unitVector": Vec {
+      "x": -0.8,
+      "y": -0.6,
+      "z": 1,
+    },
+  },
+  "shortEdge": {
+    "bounds": Box {
+      "h": 4,
+      "w": 2,
+      "x": 5,
+      "y": 8,
+    },
+    "delta": Vec {
+      "x": -2,
+      "y": -4,
+      "z": 1,
+    },
+    "length": 4.47213595499958,
+    "unitLength": 0.9999999999999999,
+    "unitVector": Vec {
+      "x": -0.4472135954999579,
+      "y": -0.8944271909999159,
+      "z": 1,
+    },
+  },
+}
+`;
+
+exports[`Edge2d snapshots should match horizontal edge snapshots: horizontal-edge 1`] = `
+{
+  "bounds": Box {
+    "h": 0,
+    "w": 100,
+    "x": 0,
+    "y": 15,
+  },
+  "length": 100,
+  "midPoint": Vec {
+    "x": 50,
+    "y": 15,
+    "z": 1,
+  },
+  "svgPath": "M50, 15 L100, 15",
+  "vertices": [
+    Vec {
+      "x": 50,
+      "y": 15,
+      "z": 1,
+    },
+    Vec {
+      "x": 100,
+      "y": 15,
+      "z": 1,
+    },
+  ],
+}
+`;
+
+exports[`Edge2d snapshots should match nearest point calculations snapshots: nearest-points 1`] = `
+{
+  "afterEnd": Vec {
+    "x": 20,
+    "y": 20,
+    "z": 1,
+  },
+  "beforeStart": Vec {
+    "x": 0,
+    "y": 0,
+    "z": 1,
+  },
+  "onEdge": Vec {
+    "x": 12.5,
+    "y": 12.5,
+    "z": 1,
+  },
+  "perpendicular": Vec {
+    "x": 5,
+    "y": 5,
+    "z": 1,
+  },
+}
+`;
+
+exports[`Edge2d snapshots should match transformed edge snapshots: transformed-edges 1`] = `
+{
+  "rotatedBounds": Box {
+    "h": 21.213203435596427,
+    "w": 7.071067811865476,
+    "x": 8.881784197001252e-16,
+    "y": 14.142135623730951,
+  },
+  "rotatedVertices": [
+    Vec {
+      "x": 8.881784197001252e-16,
+      "y": 14.142135623730951,
+      "z": 1,
+    },
+    Vec {
+      "x": 7.071067811865477,
+      "y": 35.35533905932738,
+      "z": 1,
+    },
+  ],
+  "scaledBounds": Box {
+    "h": 20,
+    "w": 40,
+    "x": 20,
+    "y": 20,
+  },
+  "scaledVertices": [
+    Vec {
+      "x": 20,
+      "y": 20,
+      "z": 1,
+    },
+    Vec {
+      "x": 60,
+      "y": 40,
+      "z": 1,
+    },
+  ],
+  "translatedBounds": Box {
+    "h": 10,
+    "w": 20,
+    "x": 60,
+    "y": 40,
+  },
+  "translatedVertices": [
+    Vec {
+      "x": 60,
+      "y": 40,
+      "z": 1,
+    },
+    Vec {
+      "x": 80,
+      "y": 50,
+      "z": 1,
+    },
+  ],
+}
+`;
+
+exports[`Edge2d snapshots should match vertical edge snapshots: vertical-edge 1`] = `
+{
+  "bounds": Box {
+    "h": 80,
+    "w": 0,
+    "x": 25,
+    "y": 0,
+  },
+  "length": 80,
+  "midPoint": Vec {
+    "x": 25,
+    "y": 40,
+    "z": 1,
+  },
+  "svgPath": "M25, 40 L25, 80",
+  "vertices": [
+    Vec {
+      "x": 25,
+      "y": 40,
+      "z": 1,
+    },
+    Vec {
+      "x": 25,
+      "y": 80,
+      "z": 1,
+    },
+  ],
+}
+`;
+
+exports[`Edge2d snapshots should match vertices snapshots: edge-vertices 1`] = `
+[
+  Vec {
+    "x": 10,
+    "y": 20,
+    "z": 1,
+  },
+  Vec {
+    "x": 50,
+    "y": 40,
+    "z": 1,
+  },
+]
+`;
+
+exports[`Edge2d snapshots should match zero-length edge snapshots: zero-length-edge 1`] = `
+{
+  "bounds": Box {
+    "h": 0,
+    "w": 0,
+    "x": 15,
+    "y": 25,
+  },
+  "delta": Vec {
+    "x": 0,
+    "y": 0,
+    "z": 1,
+  },
+  "length": 0,
+  "midPoint": Vec {
+    "x": 15,
+    "y": 25,
+    "z": 1,
+  },
+  "svgPath": "M15, 25 L15, 25",
+  "unitLength": 0,
+  "unitVector": Vec {
+    "x": 0,
+    "y": 0,
+    "z": 1,
+  },
+  "vertices": [
+    Vec {
+      "x": 15,
+      "y": 25,
+      "z": 1,
+    },
+    Vec {
+      "x": 15,
+      "y": 25,
+      "z": 1,
+    },
+  ],
+}
+`;

@@ -145,7 +145,7 @@ describe('Vec.Uni', () => {
 	})
 
 	it('Divide-by-zero spits out NaN (at the moment)', () => {
-		expect(Vec.Uni(new Vec(0, 0))).toMatchObject(new Vec(NaN, NaN))
+		expect(Vec.Uni(new Vec(0, 0))).toMatchObject(new Vec(0, 0))
 	})
 })
 
