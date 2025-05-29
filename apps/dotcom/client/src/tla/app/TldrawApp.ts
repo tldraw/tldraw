@@ -295,8 +295,9 @@ export class TldrawApp {
 		return files
 	}
 
+	@computed({ isEqual })
 	getUserFileStates() {
-		return this.fileStates$.get()
+		return this.fileStates$.get().filter((f) => !f.file.isDeleted)
 	}
 
 	lastRecentFileOrdering = null as null | Array<{
