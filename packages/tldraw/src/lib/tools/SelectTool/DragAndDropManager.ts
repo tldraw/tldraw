@@ -106,90 +106,50 @@ export class DragAndDropManager {
 	private handleDrag(point: Vec, movingShapes: TLShape[], cb?: () => void) {
 		const { editor } = this
 
-		// the old previous one
-		const prevDroppingShape = this.prevDroppingShape && this.editor.getShape(this.prevDroppingShape)
-
 		// get fresh moving shapes
 		movingShapes = compact(movingShapes.map((s) => editor.getShape(s)))
 
-		// Get the next dropping shape under the pointer, if any
-		const nextDroppingShape = this.findDroppingShape(
-			this.editor.getDroppingOverShape(point, movingShapes),
-			movingShapes
+		// find all the possible parent frames on the page where the moving shapes will fall into
+		const { reparenting, remainingShapesToReparent } = getDroppedShapesToNewParents(
+			editor,
+			movingShapes,
+			(s) => s.type !== 'frame'
 		)
 
-		// is the next dropping shape id is present and its the same as last time, we can skip work?
-		if (nextDroppingShape?.id && nextDroppingShape.id === prevDroppingShape?.id) {
-			return
-		}
-
-		// The next dropping id is either not present or is different than last time
-		// Either way, if we have a previous dropping shape, drop those shapes out
-		if (prevDroppingShape) {
-			this.editor.getShapeUtil(prevDroppingShape).onDragShapesOut?.(prevDroppingShape, movingShapes)
-		}
-
-		// If we have a next dropping shape, call the onDragShapesOver method
-		// and set the prevDroppingShape to the next one
-		if (nextDroppingShape) {
-			const droppingGroupId = this.editor.findShapeAncestor(
-				nextDroppingShape,
-				(s) => s.type === 'group'
-			)?.id
-			const okShapesToMove = movingShapes.filter(
-				(s) => this.initialGroupId.get(s.id) === droppingGroupId
-			)
-
-			if (okShapesToMove.length > 0) {
-				this.editor
-					.getShapeUtil(nextDroppingShape)
-					.onDragShapesOver?.(nextDroppingShape, okShapesToMove)
-				this.prevDroppingShape = nextDroppingShape
-			}
-		} else {
-			// Otherwise, we have no next dropping shape under the cursor, so go find
-			// all the frames on the page where the moving shapes will fall into
-			const { reparenting, remainingShapesToReparent } = getDroppedShapesToNewParents(
-				editor,
-				movingShapes,
-				(s) => s.type !== 'frame'
-				// (s, p) => s.parentId === p.id
-			)
-
-			editor.run(() => {
-				reparenting.forEach((childrenToReparent, frameId) => {
-					if (childrenToReparent.length === 0) return
-					editor.reparentShapes(childrenToReparent, frameId)
-				})
-
-				// Reparent the rest to the page (or containing group)
-				if (remainingShapesToReparent.size > 0) {
-					remainingShapesToReparent.forEach((shape) => {
-						// sometimes a group can disappear while dragging;
-						// annoyingly, this can happen if a frame and a shape are grouped and you move the shape into the frame; the group will be lost forever
-						let initialGroupParent = this.initialGroupId.get(shape.id) as TLShapeId | undefined
-						if (initialGroupParent && !this.editor.getShape(initialGroupParent)) {
-							const next = this.editor.findShapeAncestor(shape, (s) => s.type === 'group')?.id
-							if (next) {
-								initialGroupParent = next
-								this.initialGroupId.set(shape.id, next)
-							} else {
-								initialGroupParent = undefined
-								this.initialGroupId.delete(shape.id)
-							}
-						}
-
-						if (initialGroupParent) {
-							editor.reparentShapes([shape], initialGroupParent)
-						} else {
-							editor.reparentShapes([shape], editor.getCurrentPageId())
-						}
-					})
-				}
+		editor.run(() => {
+			reparenting.forEach((childrenToReparent, frameId) => {
+				if (childrenToReparent.length === 0) return
+				editor.reparentShapes(childrenToReparent, frameId)
 			})
 
-			this.prevDroppingShape = undefined
-		}
+			// Reparent the rest to the page (or containing group)
+			if (remainingShapesToReparent.size > 0) {
+				remainingShapesToReparent.forEach((shape) => {
+					// sometimes a group can disappear while dragging;
+					// annoyingly, this can happen if a frame and a shape are grouped and you move the shape into the frame; the group will be lost forever
+					let initialGroupParent = this.initialGroupId.get(shape.id) as TLShapeId | undefined
+					if (initialGroupParent && !this.editor.getShape(initialGroupParent)) {
+						const next = this.editor.findShapeAncestor(shape, (s) => s.type === 'group')?.id
+						if (next) {
+							initialGroupParent = next
+							this.initialGroupId.set(shape.id, next)
+						} else {
+							initialGroupParent = undefined
+							this.initialGroupId.delete(shape.id)
+						}
+					}
+
+					if (initialGroupParent) {
+						editor.reparentShapes([shape], initialGroupParent)
+					} else {
+						editor.reparentShapes([shape], editor.getCurrentPageId())
+					}
+				})
+			}
+		})
+
+		this.prevDroppingShape = undefined
+		// }
 
 		const hintingShapeIds = new Set<TLShapeId>()
 
@@ -203,7 +163,7 @@ export class DragAndDropManager {
 				this.initialParentids.delete(shape.id)
 			}
 
-			// If the new parent id is a shape and if it is different from the initial parent id, the hint it
+			// If the new parent id is a shape and if it is DIFFERENT from the initial parent id, the hint it
 			if (isShapeId(parentId) && parentId !== initialParentId) {
 				hintingShapeIds.add(parentId)
 			}
