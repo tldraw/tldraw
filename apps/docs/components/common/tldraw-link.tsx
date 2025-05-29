@@ -10,6 +10,8 @@ export function TldrawLink(props: React.ComponentProps<'a'>) {
 	const [distinctId, setDistinctId] = useState(windowObject?.posthog?.get_distinct_id())
 
 	useEffect(() => {
+		// Note this href check is intentionally loose, just to avoid
+		// doing this setInterval for every link. We do the real check below.
 		if (sessionId || !href?.includes('tldraw.com')) return
 
 		// XXX: have to wait a bit for posthog to be ready.
