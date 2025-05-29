@@ -11,7 +11,7 @@
 	},
 	"dependencies": {
 		"js-cookie": "^3.0.5",
-		"posthog-js": "^1.210.2",
+		"posthog-js": "^1.248.1",
 		"radix-ui": "^1.3.4",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
