@@ -40,6 +40,19 @@ export class Rectangle2d extends Polygon2d {
 
 	getSvgPathData(): string {
 		const { x, y, w, h } = this
-		return `M${x},${y} h${w} v${h} h-${w}z`
+		this.zeroFix()
+		return `M${x},${y} h${w} v${h} h${-w}z`
 	}
+
+	private zeroFix() {
+		this.x = zeroFix(this.x)
+		this.y = zeroFix(this.y)
+		this.w = zeroFix(this.w)
+		this.h = zeroFix(this.h)
+	}
+}
+
+function zeroFix(value: number) {
+	if (Object.is(value, -0)) return 0
+	return value
 }

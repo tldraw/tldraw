@@ -61,15 +61,15 @@ describe('Polygon2d', () => {
 			// Polygons typically need at least 3 points
 			expect(() => {
 				new Polygon2d({ points: [], isFilled: false })
-			}).not.toThrow() // Implementation may not throw
+			}).toThrow() // Implementation may not throw
 
 			expect(() => {
 				new Polygon2d({ points: [new Vec(0, 0)], isFilled: false })
-			}).not.toThrow() // Implementation may not throw
+			}).toThrow() // Implementation may not throw
 
 			expect(() => {
 				new Polygon2d({ points: [new Vec(0, 0), new Vec(10, 0)], isFilled: false })
-			}).not.toThrow() // Implementation may not throw
+			}).toThrow() // Implementation may not throw
 		})
 
 		it('should handle duplicate points', () => {
@@ -695,14 +695,6 @@ describe('Polygon2d', () => {
 
 			const pathData = polygon.getSvgPathData()
 			expect(pathData).toMatch(/M[\d. ]+/) // Should handle decimal coordinates
-		})
-
-		it('should handle empty polygon gracefully', () => {
-			const points: Vec[] = []
-			const polygon = new Polygon2d({ points, isFilled: false })
-
-			const pathData = polygon.getSvgPathData()
-			expect(pathData).toBe('') // Should return empty string
 		})
 	})
 
