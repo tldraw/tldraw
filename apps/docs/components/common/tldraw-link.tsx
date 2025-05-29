@@ -1,23 +1,28 @@
 'use client'
 
 import Link from 'next/link'
-import { usePostHog } from 'posthog-js/react'
 import { useEffect, useState } from 'react'
 
 export function TldrawLink(props: React.ComponentProps<'a'>) {
 	const { href, children } = props
-	const posthog = usePostHog()
-	const [sessionId, setSessionId] = useState(posthog.get_session_id())
-	const [distinctId, setDistinctId] = useState(posthog.get_distinct_id())
+	const [sessionId, setSessionId] = useState(window.posthog?.get_session_id())
+	const [distinctId, setDistinctId] = useState(window.posthog?.get_distinct_id())
 
 	useEffect(() => {
-		// XXX: have to wait a tick for posthog to be ready.
+		if (sessionId) return
+
+		// XXX: have to wait a bit for posthog to be ready.
 		// there's unfortunately no event callback for this.
-		setTimeout(() => {
-			setSessionId(posthog.get_session_id())
-			setDistinctId(posthog.get_distinct_id())
-		}, 0)
-	}, [posthog])
+		const timeout = setInterval(() => {
+			setSessionId(window.posthog?.get_session_id())
+			setDistinctId(window.posthog?.get_distinct_id())
+			clearTimeout(timeout)
+		}, 1000)
+
+		return () => {
+			clearTimeout(timeout)
+		}
+	}, [sessionId])
 
 	const isLocalUrl = href?.startsWith('/') || href?.startsWith('#')
 	let maybeParsedUrl

@@ -6,6 +6,16 @@ import ReactGA from 'react-ga4'
 import './styles.css'
 
 type CookieConsent = 'unknown' | 'opted-in' | 'opted-out'
+let isConfigured = false
+let storedUserId: string = ''
+let storedProperties: { [key: string]: any } | undefined = undefined
+let storedHasConsent: CookieConsent = 'unknown'
+window.posthog = posthog
+
+window.dataLayer = window.dataLayer || []
+function gtag(...rest: any[]) {
+	window.dataLayer.push(rest)
+}
 
 // Add theme detection
 function getTheme() {
@@ -49,37 +59,95 @@ export default function Analytics() {
 	}, [])
 
 	useEffect(() => {
-		if (hasConsent === 'opted-in') {
+		if (!isConfigured) {
 			posthog.init('phc_i8oKgMzgV38sn3GfjswW9mevQ3gFlo7bJXekZFeDN6', {
 				api_host: 'https://analytics.tldraw.com/ingest',
 				ui_host: 'https://eu.i.posthog.com',
-				person_profiles: 'always',
+				persistence: 'memory',
+				capture_pageview: 'history_change',
 			})
 
 			if (window.TL_GA4_MEASUREMENT_ID) {
-				ReactGA.initialize(window.TL_GA4_MEASUREMENT_ID)
+				gtag('consent', 'default', {
+					ad_storage: 'denied',
+					ad_user_data: 'denied',
+					ad_personalization: 'denied',
+					analytics_storage: 'denied',
+					// Wait for our cookie to load.
+					wait_for_update: 500,
+				})
+
+				gtag('js', new Date())
+				gtag('config', window.TL_GA4_MEASUREMENT_ID)
+
+				// Add GTM
+				if (!document.getElementById('gtm-script-loader')) {
+					const gtmScriptTag = document.createElement('script')
+					gtmScriptTag.id = 'gtm-script-loader'
+					gtmScriptTag.src = `https://www.googletagmanager.com/gtag/js?id=${window.TL_GA4_MEASUREMENT_ID}`
+					gtmScriptTag.defer = true
+					document.head.appendChild(gtmScriptTag)
+				}
+
+				ReactGA.initialize(window.TL_GA4_MEASUREMENT_ID, {
+					gaOptions: {
+						anonymize_ip: true,
+					},
+				})
 				ReactGA.send('pageview')
 			}
 
+			isConfigured = true
+		}
+
+		storedHasConsent = hasConsent
+		if (hasConsent === 'opted-in') {
+			posthog.set_config({ persistence: 'localStorage+cookie' })
+			posthog.opt_in_capturing()
+			ReactGA.set({ anonymize_ip: false })
+
+			gtag('consent', 'update', {
+				ad_user_data: 'granted',
+				ad_personalization: 'granted',
+				ad_storage: 'granted',
+				analytics_storage: 'granted',
+			})
+
+			if (storedUserId && storedProperties) {
+				identify(storedUserId, storedProperties)
+			}
+
 			// Add Hubspot analytics
-			const hubspotScriptTag = document.createElement('script')
-			hubspotScriptTag.src = `https://js-eu1.hs-scripts.com/145620695.js`
-			hubspotScriptTag.defer = true
-			document.head.appendChild(hubspotScriptTag)
+			if (!document.getElementById('hs-script-loader')) {
+				const hubspotScriptTag = document.createElement('script')
+				hubspotScriptTag.id = 'hs-script-loader'
+				hubspotScriptTag.src = `https://js-eu1.hs-scripts.com/145620695.js`
+				hubspotScriptTag.defer = true
+				document.head.appendChild(hubspotScriptTag)
+			}
 
 			// Add Reo analytics
-			const reoId = '47839e47a5ed202'
-			const reoScriptTag = document.createElement('script')
-			reoScriptTag.src = `https://static.reo.dev/${reoId}/reo.js`
-			reoScriptTag.defer = true
-			reoScriptTag.onload = () => window.Reo.init({ clientID: reoId })
-			document.head.appendChild(reoScriptTag)
+			if (!document.getElementById('reo-script-loader')) {
+				const reoId = '47839e47a5ed202'
+				const reoScriptTag = document.createElement('script')
+				reoScriptTag.id = 'reo-script-loader'
+				reoScriptTag.src = `https://static.reo.dev/${reoId}/reo.js`
+				reoScriptTag.defer = true
+				reoScriptTag.onload = () => window.Reo.init({ clientID: reoId })
+				document.head.appendChild(reoScriptTag)
+			}
 		} else {
 			posthog.reset()
+			posthog.set_config({ persistence: 'memory' })
 			posthog.opt_out_capturing()
 			ReactGA.reset()
 			ReactGA.set({ anonymize_ip: true })
-			ReactGA.send('pageview')
+			gtag('consent', 'update', {
+				ad_user_data: 'denied',
+				ad_personalization: 'denied',
+				ad_storage: 'denied',
+				analytics_storage: 'denied',
+			})
 			window.Reo?.reset?.()
 		}
 	}, [hasConsent])
@@ -120,6 +188,11 @@ export function page() {
 }
 
 export function identify(userId: string, properties?: { [key: string]: any }) {
+	storedUserId = userId
+	storedProperties = properties
+
+	if (storedHasConsent !== 'opted-in') return
+
 	posthog.identify(userId, properties)
 	ReactGA.set({ userId })
 	ReactGA.set(properties)

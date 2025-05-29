@@ -26,6 +26,7 @@ declare global {
 			openPrivacySettings(): void
 		}
 		TL_GA4_MEASUREMENT_ID: string | undefined
+		posthog: any
 	}
 }
 
