@@ -77,21 +77,65 @@ function configurePosthog(options: AnalyticsOptions) {
 	eventBufferPosthog?.forEach((event) => posthog.capture(event.name, event.data))
 	eventBufferPosthog = null
 }
+declare global {
+	interface Window {
+		dataLayer: any[]
+	}
+}
 
+window.dataLayer = window.dataLayer || []
+function gtag(...rest: any[]) {
+	window.dataLayer.push(rest)
+}
 let currentOptionsGA4: AnalyticsOptions | null = null
 let eventBufferGA4: null | Array<{ name: string; data: Properties | null | undefined }> = []
 function configureGA4(options: AnalyticsOptions) {
 	if (!shouldUseGA4) return
 
 	if (!currentOptionsGA4) {
+		gtag('consent', 'default', {
+			ad_storage: 'denied',
+			ad_user_data: 'denied',
+			ad_personalization: 'denied',
+			analytics_storage: 'denied',
+			// Wait for our cookie to load.
+			wait_for_update: 500,
+		})
+
+		gtag('js', new Date())
+		gtag('config', GA4_MEASUREMENT_ID)
+
+		// Add GTM
+		if (!document.getElementById('gtm-script-loader')) {
+			const gtmScriptTag = document.createElement('script')
+			gtmScriptTag.id = 'gtm-script-loader'
+			gtmScriptTag.src = `https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`
+			gtmScriptTag.defer = true
+			document.head.appendChild(gtmScriptTag)
+		}
+
 		ReactGA.initialize(GA4_MEASUREMENT_ID)
 		ReactGA.send('pageview')
 	}
 
 	if (options.optedIn) {
-		ReactGA.set({ userId: options.user.id })
+		ReactGA.set({ userId: options.user.id, anonymize_ip: false })
+		gtag('consent', 'update', {
+			ad_user_data: 'granted',
+			ad_personalization: 'granted',
+			ad_storage: 'granted',
+			analytics_storage: 'granted',
+		})
 	} else if (currentOptionsGA4?.optedIn) {
+		ReactGA.set({ anonymize_ip: true })
 		ReactGA.reset()
+
+		gtag('consent', 'update', {
+			ad_user_data: 'denied',
+			ad_personalization: 'denied',
+			ad_storage: 'denied',
+			analytics_storage: 'denied',
+		})
 	}
 
 	currentOptionsGA4 = options
