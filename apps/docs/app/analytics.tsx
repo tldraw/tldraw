@@ -1,5 +1,6 @@
 'use client'
 
+import { Analytics as VercelAnalytics } from '@vercel/analytics/react'
 import Script from 'next/script'
 import { useEffect } from 'react'
 
@@ -9,14 +10,17 @@ export default function Analytics() {
 	}, [])
 
 	return (
-		<Script
-			id="tldraw-analytics"
-			type="text/javascript"
-			strategy="afterInteractive"
-			async
-			defer
-			src="https://analytics.tldraw.com/tl-analytics.js"
-		/>
+		<>
+			<VercelAnalytics />
+			<Script
+				id="tldraw-analytics"
+				type="text/javascript"
+				strategy="afterInteractive"
+				async
+				defer
+				src="https://analytics.tldraw.com/tl-analytics.js"
+			/>
+		</>
 	)
 }
 
