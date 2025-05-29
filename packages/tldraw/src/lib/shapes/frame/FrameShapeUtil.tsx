@@ -12,7 +12,6 @@ import {
 	TLGroupShape,
 	TLResizeInfo,
 	TLShape,
-	TLShapeId,
 	TLShapePartial,
 	TLShapeUtilConstructor,
 	clamp,
@@ -20,14 +19,13 @@ import {
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
-	intersectPolygonPolygon,
 	lerp,
 	resizeBox,
 	toDomPrecision,
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { doesGeometryOverlapPolygon } from '../../tools/SelectTool/selectHelpers'
+import { getDroppedShapesToNewParents } from '../../tools/SelectTool/selectHelpers'
 import { fitFrameToContent, getFrameChildrenBounds } from '../../utils/frames/frames'
 import {
 	TLCreateTextJsxFromSpansOpts,
@@ -346,7 +344,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		}
 	}
 
-	override onDragShapesOut(frameShape: TLFrameShape, shapes: TLShape[]): void {
+	override onDragShapesOut(frameShape: TLFrameShape, movingShapes: TLShape[]): void {
 		const { editor } = this
 
 		// If the frame is in a group, then we'll operate within the group;
@@ -356,72 +354,29 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			this.editor.isShapeOfType<TLGroupShape>(s, 'group')
 		)?.id
 
-		const otherFrames = this.editor.getCurrentPageShapesSorted().filter(
-			(s) =>
-				this.editor.isShapeOfType<TLFrameShape>(s, 'frame') &&
-				// don't drop children back into this frame
-				s.id !== frameShape.id &&
-				// If the frame is in a group, don't reparent to shapes outside of the group
-				editor.findShapeAncestor(s, (a) => a.id === containingGroupId)
+		// Otherwise, we have no next dropping shape under the cursor, so go find
+		// all the frames on the page where the moving shapes will fall into
+		const { reparenting, remainingShapesToReparent } = getDroppedShapesToNewParents(
+			editor,
+			movingShapes,
+			(_, parent) => parent.id !== frameShape.id
 		)
 
-		const reparentingFrameToShapes = new Map<TLShapeId, TLShape[]>()
-		const remainingShapesToReparent = new Set(shapes)
-
-		for (let i = otherFrames.length - 1; i >= 0; i--) {
-			const frame = otherFrames[i]
-
-			// Frame geometry in page space
-			const frameGeometry = editor.getShapeGeometry(frame)
-			const framePageTransform = editor.getShapePageTransform(frame)
-
-			const framePageMaskVertices = editor.getShapePageMask(frame)
-			const framePageCorners = framePageTransform.applyToPoints(frameGeometry.vertices)
-			const framePagePolygon = framePageMaskVertices
-				? intersectPolygonPolygon(framePageMaskVertices, framePageCorners)
-				: framePageCorners
-
-			if (!framePagePolygon) continue
-
-			// collect children to reparent to this frame
-			const childrenToReparentToFrame = []
-
-			// For each of the remaining dropping shapes...
-			for (const shape of remainingShapesToReparent) {
-				// Don't reparent a frame to itself
-				if (frame.id === shape.id) continue
-
-				const framePolygonInShapeSpace = editor
-					.getShapePageTransform(shape)
-					.clone()
-					.invert()
-					.applyToPoints(framePagePolygon)
-
-				const geometry = editor.getShapeGeometry(shape)
-
-				if (doesGeometryOverlapPolygon(geometry, framePolygonInShapeSpace)) {
-					// If the shape overlaps the frame, reparent it to that frame
-					childrenToReparentToFrame.push(shape)
-					remainingShapesToReparent.delete(shape)
-					continue
-				}
-			}
-
-			reparentingFrameToShapes.set(frame.id, childrenToReparentToFrame)
-		}
-
 		editor.run(() => {
-			reparentingFrameToShapes.forEach((childrenToReparent, frameId) => {
+			reparenting.forEach((childrenToReparent, frameId) => {
 				if (childrenToReparent.length === 0) return
 				editor.reparentShapes(childrenToReparent, frameId)
 			})
 
 			// Reparent the rest to the page (or containing group)
 			if (remainingShapesToReparent.size > 0) {
-				editor.reparentShapes(
-					[...remainingShapesToReparent],
-					containingGroupId ?? editor.getCurrentPageId()
-				)
+				remainingShapesToReparent.forEach((shape) => {
+					if (containingGroupId) {
+						editor.reparentShapes([shape], containingGroupId)
+					} else {
+						editor.reparentShapes([shape], editor.getCurrentPageId())
+					}
+				})
 			}
 		})
 	}

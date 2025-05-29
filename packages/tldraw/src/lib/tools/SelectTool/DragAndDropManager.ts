@@ -1,16 +1,14 @@
 import {
 	Editor,
-	TLFrameShape,
 	TLParentId,
 	TLShape,
 	TLShapeId,
 	Vec,
 	bind,
 	compact,
-	intersectPolygonPolygon,
 	isShapeId,
 } from '@tldraw/editor'
-import { doesGeometryOverlapPolygon, getHasOverlappingShapes } from './selectHelpers'
+import { getDroppedShapesToNewParents, getHasOverlappingShapes } from './selectHelpers'
 
 const SLOW_POINTER_LAG_DURATION = 320
 const FAST_POINTER_LAG_DURATION = 60
@@ -151,63 +149,12 @@ export class DragAndDropManager {
 		} else {
 			// Otherwise, we have no next dropping shape under the cursor, so go find
 			// all the frames on the page where the moving shapes will fall into
-			const { editor } = this
-
-			const remainingShapesToReparent = new Set(movingShapes)
-
-			const potentialParentFrames = this.editor
-				.getCurrentPageShapesSorted()
-				.filter(
-					(s) =>
-						this.editor.isShapeOfType<TLFrameShape>(s, 'frame') && !remainingShapesToReparent.has(s)
-				)
-
-			const reparenting = new Map<TLShapeId, TLShape[]>()
-
-			for (let i = potentialParentFrames.length - 1; i >= 0; i--) {
-				const frame = potentialParentFrames[i]
-
-				// Frame geometry in page space
-				const frameGeometry = editor.getShapeGeometry(frame)
-				const framePageTransform = editor.getShapePageTransform(frame)
-
-				const framePageMaskVertices = editor.getShapePageMask(frame)
-				const framePageCorners = framePageTransform.applyToPoints(frameGeometry.vertices)
-				const framePagePolygon = framePageMaskVertices
-					? intersectPolygonPolygon(framePageMaskVertices, framePageCorners)
-					: framePageCorners
-
-				if (!framePagePolygon) continue
-
-				const frameGroupId = this.editor.findShapeAncestor(frame, (s) => s.type === 'group')?.id
-
-				const childrenToReparent = []
-
-				// For each of the dropping shapes...
-				for (const shape of remainingShapesToReparent) {
-					// Don't reparent a frame to itself
-					if (frame.id === shape.id) continue
-
-					// If the two shapes are part of different groups, skip
-					if (this.initialGroupId.get(shape.id) !== frameGroupId) continue
-
-					const parentPolygonInShapeSpace = editor
-						.getShapePageTransform(shape)
-						.clone()
-						.invert()
-						.applyToPoints(framePagePolygon)
-
-					const geometry = editor.getShapeGeometry(shape)
-					if (doesGeometryOverlapPolygon(geometry, parentPolygonInShapeSpace)) {
-						// If the shape overlaps the frame, reparent it to that frame
-						childrenToReparent.push(shape)
-						remainingShapesToReparent.delete(shape)
-						continue
-					}
-				}
-
-				reparenting.set(frame.id, childrenToReparent)
-			}
+			const { reparenting, remainingShapesToReparent } = getDroppedShapesToNewParents(
+				editor,
+				movingShapes,
+				(s) => s.type !== 'frame'
+				// (s, p) => s.parentId === p.id
+			)
 
 			editor.run(() => {
 				reparenting.forEach((childrenToReparent, frameId) => {
