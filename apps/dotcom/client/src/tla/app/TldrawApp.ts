@@ -28,6 +28,7 @@ import {
 	throttle,
 	uniqueId,
 } from '@tldraw/utils'
+import isEqual from 'lodash.isequal'
 import pick from 'lodash.pick'
 import {
 	assertExists,
@@ -295,8 +296,9 @@ export class TldrawApp {
 		return files
 	}
 
+	@computed({ isEqual })
 	getUserFileStates() {
-		return this.fileStates$.get()
+		return this.fileStates$.get().filter((f) => f.file && !f.file.isDeleted)
 	}
 
 	lastRecentFileOrdering = null as null | Array<{
