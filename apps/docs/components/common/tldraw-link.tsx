@@ -10,7 +10,7 @@ export function TldrawLink(props: React.ComponentProps<'a'>) {
 	const [distinctId, setDistinctId] = useState(windowObject?.posthog?.get_distinct_id())
 
 	useEffect(() => {
-		if (sessionId) return
+		if (sessionId || !href?.includes('tldraw.com')) return
 
 		// XXX: have to wait a bit for posthog to be ready.
 		// there's unfortunately no event callback for this.
@@ -23,7 +23,7 @@ export function TldrawLink(props: React.ComponentProps<'a'>) {
 		return () => {
 			clearTimeout(timeout)
 		}
-	}, [sessionId, windowObject])
+	}, [sessionId, windowObject, href])
 
 	const isLocalUrl = href?.startsWith('/') || href?.startsWith('#')
 	let maybeParsedUrl
