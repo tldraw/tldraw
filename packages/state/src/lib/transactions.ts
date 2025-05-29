@@ -1,4 +1,3 @@
-import { sleep } from '@tldraw/utils'
 import { _Atom } from './Atom'
 import { EffectScheduler } from './EffectScheduler'
 import { GLOBAL_START_EPOCH } from './constants'
@@ -326,7 +325,7 @@ export async function deferAsyncEffects<T>(fn: () => Promise<T>) {
 	// because the transaction stack is cleared after the reaction phase.
 	// So wait until the path ahead is clear
 	while (inst.globalIsReacting) {
-		await sleep(0)
+		await new Promise((r) => queueMicrotask(() => r(null)))
 	}
 
 	const txn = inst.currentTransaction ?? new Transaction(null, false)
