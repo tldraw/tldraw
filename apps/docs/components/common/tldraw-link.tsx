@@ -5,8 +5,9 @@ import { useEffect, useState } from 'react'
 
 export function TldrawLink(props: React.ComponentProps<'a'>) {
 	const { href, children } = props
-	const [sessionId, setSessionId] = useState(window.posthog?.get_session_id())
-	const [distinctId, setDistinctId] = useState(window.posthog?.get_distinct_id())
+	const windowObject = typeof window !== 'undefined' ? window : null
+	const [sessionId, setSessionId] = useState(windowObject?.posthog?.get_session_id())
+	const [distinctId, setDistinctId] = useState(windowObject?.posthog?.get_distinct_id())
 
 	useEffect(() => {
 		if (sessionId) return
@@ -14,15 +15,15 @@ export function TldrawLink(props: React.ComponentProps<'a'>) {
 		// XXX: have to wait a bit for posthog to be ready.
 		// there's unfortunately no event callback for this.
 		const timeout = setInterval(() => {
-			setSessionId(window.posthog?.get_session_id())
-			setDistinctId(window.posthog?.get_distinct_id())
+			setSessionId(windowObject?.posthog?.get_session_id())
+			setDistinctId(windowObject?.posthog?.get_distinct_id())
 			clearTimeout(timeout)
 		}, 1000)
 
 		return () => {
 			clearTimeout(timeout)
 		}
-	}, [sessionId])
+	}, [sessionId, windowObject])
 
 	const isLocalUrl = href?.startsWith('/') || href?.startsWith('#')
 	let maybeParsedUrl
