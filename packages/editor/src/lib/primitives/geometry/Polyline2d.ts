@@ -9,6 +9,11 @@ export class Polyline2d extends Geometry2d {
 	constructor(config: Omit<Geometry2dOptions, 'isFilled' | 'isClosed'> & { points: Vec[] }) {
 		super({ isClosed: false, isFilled: false, ...config })
 		const { points } = config
+
+		if (points.length < 2) {
+			throw new Error('Polyline2d: points must be an array of at least 2 points')
+		}
+
 		this.points = points
 	}
 
@@ -43,6 +48,22 @@ export class Polyline2d extends Geometry2d {
 
 	nearestPoint(A: VecLike): Vec {
 		const { segments } = this
+
+		// Handle empty polylines
+		if (this.points.length === 0) {
+			throw new Error('nearestPoint: cannot find nearest point on empty polyline')
+		}
+
+		// Handle single point polylines
+		if (this.points.length === 1) {
+			return this.points[0]
+		}
+
+		// Handle polylines with no segments (shouldn't happen with valid data, but be safe)
+		if (segments.length === 0) {
+			return this.points[0]
+		}
+
 		let nearest = this.points[0]
 		let dist = Infinity
 		let p: Vec // current point on segment

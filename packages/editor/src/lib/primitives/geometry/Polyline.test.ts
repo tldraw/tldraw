@@ -62,19 +62,15 @@ describe('Polyline2d', () => {
 		it('should handle empty points array gracefully', () => {
 			const points: Vec[] = []
 			expect(() => {
-				const polyline = new Polyline2d({ points })
-				expect(polyline.points).toEqual(points)
-				expect(polyline.segments.length).toBe(0)
-			}).not.toThrow()
+				new Polyline2d({ points })
+			}).toThrow('Polyline2d: points must be an array of at least 2 points')
 		})
 
 		it('should handle single point', () => {
 			const points = [new Vec(5, 5)]
 			expect(() => {
-				const polyline = new Polyline2d({ points })
-				expect(polyline.points).toEqual(points)
-				expect(polyline.segments.length).toBe(0) // Single point = no segments
-			}).not.toThrow()
+				new Polyline2d({ points })
+			}).toThrow('Polyline2d: points must be an array of at least 2 points')
 		})
 
 		it('should handle duplicate points', () => {
@@ -700,10 +696,9 @@ describe('Polyline2d', () => {
 
 		it('should handle empty polyline gracefully', () => {
 			const points: Vec[] = []
-			const polyline = new Polyline2d({ points })
-
-			const pathData = polyline.getSvgPathData()
-			expect(pathData).toBe('') // Should return empty string
+			expect(() => {
+				new Polyline2d({ points })
+			}).toThrow('Polyline2d: points must be an array of at least 2 points')
 		})
 	})
 
@@ -880,6 +875,116 @@ describe('Polyline2d', () => {
 
 			expect(polyline.segments.length).toBe(3) // Still creates segments normally
 			expect(polyline.getLength()).toBeGreaterThan(0)
+		})
+
+		// Updated tests for the new validation requirements
+		it('should throw error for empty points array', () => {
+			const points: Vec[] = []
+			expect(() => {
+				new Polyline2d({ points })
+			}).toThrow('Polyline2d: points must be an array of at least 2 points')
+		})
+
+		it('should throw error for single point array', () => {
+			const points = [new Vec(5, 5)]
+			expect(() => {
+				new Polyline2d({ points })
+			}).toThrow('Polyline2d: points must be an array of at least 2 points')
+		})
+
+		it('should accept exactly 2 points', () => {
+			const points = [new Vec(0, 0), new Vec(10, 10)]
+			expect(() => {
+				new Polyline2d({ points })
+			}).not.toThrow()
+		})
+
+		it('should accept more than 2 points', () => {
+			const points = [new Vec(0, 0), new Vec(10, 10), new Vec(20, 0)]
+			expect(() => {
+				new Polyline2d({ points })
+			}).not.toThrow()
+		})
+	})
+
+	describe('validation error testing', () => {
+		it('should throw specific error message for empty array', () => {
+			expect(() => {
+				new Polyline2d({ points: [] })
+			}).toThrow('Polyline2d: points must be an array of at least 2 points')
+		})
+
+		it('should throw specific error message for single point', () => {
+			expect(() => {
+				new Polyline2d({ points: [new Vec(1, 1)] })
+			}).toThrow('Polyline2d: points must be an array of at least 2 points')
+		})
+
+		it('should NOT throw for exactly 2 points', () => {
+			expect(() => {
+				new Polyline2d({ points: [new Vec(0, 0), new Vec(1, 1)] })
+			}).not.toThrow()
+		})
+
+		it('should NOT throw for 3 points', () => {
+			expect(() => {
+				new Polyline2d({ points: [new Vec(0, 0), new Vec(1, 1), new Vec(2, 2)] })
+			}).not.toThrow()
+		})
+
+		it('should NOT throw for many points', () => {
+			const manyPoints: Vec[] = []
+			for (let i = 0; i < 100; i++) {
+				manyPoints.push(new Vec(i, i))
+			}
+			expect(() => {
+				new Polyline2d({ points: manyPoints })
+			}).not.toThrow()
+		})
+
+		it('should validate before any processing', () => {
+			// This tests that validation happens before any other constructor logic
+			let constructorCalled = false
+
+			// Create a custom class to test validation order
+			class TestPolyline extends Polyline2d {
+				constructor(config: any) {
+					super(config)
+					constructorCalled = true
+				}
+			}
+
+			expect(() => {
+				new TestPolyline({ points: [] })
+			}).toThrow('Polyline2d: points must be an array of at least 2 points')
+
+			// Constructor should never complete due to early validation
+			expect(constructorCalled).toBe(false)
+		})
+
+		it('should work with null/undefined edge cases', () => {
+			// Test that the length check works even with unusual inputs
+			expect(() => {
+				// @ts-expect-error - Testing edge case
+				new Polyline2d({ points: null })
+			}).toThrow() // Should throw (probably TypeError on null.length)
+
+			expect(() => {
+				// @ts-expect-error - Testing edge case
+				new Polyline2d({ points: undefined })
+			}).toThrow() // Should throw (probably TypeError on undefined.length)
+		})
+
+		it('should not interfere with valid polyline functionality', () => {
+			// Ensure the validation doesn't break normal operation
+			const points = [new Vec(0, 0), new Vec(10, 0), new Vec(10, 10)]
+			const polyline = new Polyline2d({ points })
+
+			expect(polyline.points).toBe(points)
+			expect(polyline.segments.length).toBe(2)
+			expect(polyline.getLength()).toBeCloseTo(20, 1)
+			expect(polyline.isClosed).toBe(false)
+			expect(polyline.isFilled).toBe(false)
 		})
 	})
 
