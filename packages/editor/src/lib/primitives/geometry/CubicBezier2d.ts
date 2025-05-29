@@ -94,7 +94,7 @@ export class CubicBezier2d extends Polyline2d {
 		)
 	}
 
-	override getLength(filters?: Geometry2dFilters, precision = 32) {
+	override getLength(_filters?: Geometry2dFilters, precision = 32) {
 		let n1: Vec,
 			p1 = this.a,
 			length = 0

@@ -545,7 +545,7 @@ export class CubicBezier2d extends Polyline2d {
     // (undocumented)
     static GetAtT(segment: CubicBezier2d, t: number): Vec;
     // (undocumented)
-    getLength(filters?: Geometry2dFilters, precision?: number): number;
+    getLength(_filters?: Geometry2dFilters, precision?: number): number;
     // (undocumented)
     getMidPoint(): Vec;
     // (undocumented)

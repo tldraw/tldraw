@@ -1,0 +1,480 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CubicSpline2d snapshots should match snapshot for complete spline analysis 1`] = `
+{
+  "construction": {
+    "isClosed": false,
+    "isFilled": false,
+    "pointCount": 4,
+    "segmentCount": 3,
+  },
+  "geometry": {
+    "area": 0,
+    "bounds": Box {
+      "h": 20,
+      "w": 60,
+      "x": 0,
+      "y": 10,
+    },
+    "length": 87.66528525806365,
+    "vertices": {
+      "count": 34,
+      "first": Vec {
+        "x": 0,
+        "y": 10,
+        "z": 1,
+      },
+      "last": Vec {
+        "x": 60,
+        "y": 30,
+        "z": 1,
+      },
+    },
+  },
+  "segments": [
+    {
+      "index": 0,
+      "length": 29.086058040588476,
+      "points": {
+        "cp1": Vec {
+          "x": 0,
+          "y": 10,
+          "z": 1,
+        },
+        "cp2": Vec {
+          "x": 11.666666666666666,
+          "y": 30,
+          "z": 1,
+        },
+        "end": Vec {
+          "x": 20,
+          "y": 30,
+          "z": 1,
+        },
+        "start": Vec {
+          "x": 0,
+          "y": 10,
+          "z": 1,
+        },
+      },
+    },
+    {
+      "index": 1,
+      "length": 29.49316917688669,
+      "points": {
+        "cp1": Vec {
+          "x": 28.333333333333336,
+          "y": 30,
+          "z": 1,
+        },
+        "cp2": Vec {
+          "x": 31.666666666666664,
+          "y": 10,
+          "z": 1,
+        },
+        "end": Vec {
+          "x": 40,
+          "y": 10,
+          "z": 1,
+        },
+        "start": Vec {
+          "x": 20,
+          "y": 30,
+          "z": 1,
+        },
+      },
+    },
+    {
+      "index": 2,
+      "length": 29.086058040588483,
+      "points": {
+        "cp1": Vec {
+          "x": 48.333333333333336,
+          "y": 10,
+          "z": 1,
+        },
+        "cp2": Vec {
+          "x": 60,
+          "y": 30,
+          "z": 1,
+        },
+        "end": Vec {
+          "x": 60,
+          "y": 30,
+          "z": 1,
+        },
+        "start": Vec {
+          "x": 40,
+          "y": 10,
+          "z": 1,
+        },
+      },
+    },
+  ],
+  "svgOutput": "M 0, 10  C0, 10 11.67, 30 20, 30 C28.33, 30 31.67, 10 40, 10 C48.33, 10 60, 30 60, 30",
+}
+`;
+
+exports[`CubicSpline2d snapshots should match snapshot for complex multi-point spline SVG path 1`] = `"M 0, 0  C0, 0 5.83, 8.96 10, 10 C14.17, 11.04 15.83, 3.96 20, 5 C24.17, 6.04 25.83, 16.04 30, 15 C34.17, 13.96 40, 0 40, 0"`;
+
+exports[`CubicSpline2d snapshots should match snapshot for curved spline 1`] = `
+{
+  "length": 46.09454428181128,
+  "segmentCount": 4,
+  "svgPath": "M 0, 0  C0, 0 2.92, 10 5, 10 C7.08, 10 7.92, 0 10, 0 C12.08, 0 12.92, 10 15, 10 C17.08, 10 20, 0 20, 0",
+}
+`;
+
+exports[`CubicSpline2d snapshots should match snapshot for decimal coordinate spline 1`] = `
+{
+  "length": 21.634135542291556,
+  "segmentCount": 3,
+  "svgPath": "M 1.5, 2.7  C1.5, 2.7 3.59, 8.41 5.3, 8.1 C7.01, 7.79 8.14, 1.55 9.7, 1.2 C11.26, 0.85 12.8, 6.4 12.8, 6.4",
+}
+`;
+
+exports[`CubicSpline2d snapshots should match snapshot for large coordinate spline 1`] = `
+{
+  "bounds": Box {
+    "h": 100,
+    "w": 200,
+    "x": 1000,
+    "y": 2000,
+  },
+  "properties": {
+    "area": 0,
+    "isClosed": false,
+    "isFilled": false,
+    "length": 290.8605804058848,
+  },
+  "svgPath": "M 1000, 2000  C1000, 2000 1058.33, 2100 1100, 2100 C1141.67, 2100 1200, 2000 1200, 2000",
+}
+`;
+
+exports[`CubicSpline2d snapshots should match snapshot for minimal 2-point spline 1`] = `
+{
+  "length": 14.142135623730955,
+  "segments": [
+    {
+      "cp1": Vec {
+        "x": 0,
+        "y": 0,
+        "z": 1,
+      },
+      "cp2": Vec {
+        "x": 10,
+        "y": 10,
+        "z": 1,
+      },
+      "end": Vec {
+        "x": 10,
+        "y": 10,
+        "z": 1,
+      },
+      "start": Vec {
+        "x": 0,
+        "y": 0,
+        "z": 1,
+      },
+    },
+  ],
+  "svgPath": "M 0, 0  C0, 0 10, 10 10, 10",
+  "vertexCount": 12,
+}
+`;
+
+exports[`CubicSpline2d snapshots should match snapshot for simple 3-point spline SVG path 1`] = `"M 0, 0  C0, 0 5.83, 5 10, 5 C14.17, 5 20, 0 20, 0"`;
+
+exports[`CubicSpline2d snapshots should match snapshot for sine wave spline 1`] = `
+{
+  "bounds": Box {
+    "h": 17.598144480602134,
+    "w": 20,
+    "x": 0,
+    "y": -7.5680249530792825,
+  },
+  "length": 35.084559571976015,
+  "svgPath": "M 0, 0  C0, 0 2.92, 6.52 5, 8.41 C7.08, 10.31 7.92, 10.55 10, 9.09 C12.08, 7.63 12.92, 4.88 15, 1.41 C17.08, -2.06 20, -7.57 20, -7.57",
+  "vertexCount": 45,
+}
+`;
+
+exports[`CubicSpline2d snapshots should match snapshot for spline properties 1`] = `
+{
+  "area": 0,
+  "bounds": Box {
+    "h": 10,
+    "w": 20,
+    "x": 5,
+    "y": 10,
+  },
+  "isClosed": false,
+  "isFilled": false,
+  "length": 29.08605804058848,
+  "segmentCount": 2,
+  "vertexCount": 23,
+}
+`;
+
+exports[`CubicSpline2d snapshots should match snapshot for spline segments 1`] = `
+[
+  {
+    "cp1": Vec {
+      "x": 0,
+      "y": 0,
+      "z": 1,
+    },
+    "cp2": Vec {
+      "x": 5.833333333333333,
+      "y": 5,
+      "z": 1,
+    },
+    "end": Vec {
+      "x": 10,
+      "y": 5,
+      "z": 1,
+    },
+    "start": Vec {
+      "x": 0,
+      "y": 0,
+      "z": 1,
+    },
+  },
+  {
+    "cp1": Vec {
+      "x": 14.166666666666668,
+      "y": 5,
+      "z": 1,
+    },
+    "cp2": Vec {
+      "x": 20,
+      "y": 0,
+      "z": 1,
+    },
+    "end": Vec {
+      "x": 20,
+      "y": 0,
+      "z": 1,
+    },
+    "start": Vec {
+      "x": 10,
+      "y": 5,
+      "z": 1,
+    },
+  },
+]
+`;
+
+exports[`CubicSpline2d snapshots should match snapshot for spline vertices 1`] = `
+[
+  Vec {
+    "x": 0,
+    "y": 0,
+    "z": 1,
+  },
+  Vec {
+    "x": 0.16750000000000004,
+    "y": 0.14000000000000004,
+    "z": 1,
+  },
+  Vec {
+    "x": 0.6400000000000001,
+    "y": 0.5200000000000001,
+    "z": 1,
+  },
+  Vec {
+    "x": 1.3724999999999998,
+    "y": 1.0799999999999998,
+    "z": 1,
+  },
+  Vec {
+    "x": 2.3200000000000003,
+    "y": 1.7600000000000002,
+    "z": 1,
+  },
+  Vec {
+    "x": 3.4375,
+    "y": 2.5,
+    "z": 1,
+  },
+  Vec {
+    "x": 4.68,
+    "y": 3.24,
+    "z": 1,
+  },
+  Vec {
+    "x": 6.0024999999999995,
+    "y": 3.92,
+    "z": 1,
+  },
+  Vec {
+    "x": 7.360000000000001,
+    "y": 4.48,
+    "z": 1,
+  },
+  Vec {
+    "x": 8.707500000000001,
+    "y": 4.86,
+    "z": 1,
+  },
+  Vec {
+    "x": 10,
+    "y": 5,
+    "z": 1,
+  },
+  Vec {
+    "x": 10,
+    "y": 5,
+    "z": 1,
+  },
+  Vec {
+    "x": 11.292500000000002,
+    "y": 4.86,
+    "z": 1,
+  },
+  Vec {
+    "x": 12.640000000000002,
+    "y": 4.480000000000001,
+    "z": 1,
+  },
+  Vec {
+    "x": 13.997499999999999,
+    "y": 3.919999999999999,
+    "z": 1,
+  },
+  Vec {
+    "x": 15.320000000000004,
+    "y": 3.24,
+    "z": 1,
+  },
+  Vec {
+    "x": 16.5625,
+    "y": 2.5,
+    "z": 1,
+  },
+  Vec {
+    "x": 17.68,
+    "y": 1.7600000000000002,
+    "z": 1,
+  },
+  Vec {
+    "x": 18.6275,
+    "y": 1.0800000000000003,
+    "z": 1,
+  },
+  Vec {
+    "x": 19.36,
+    "y": 0.5199999999999998,
+    "z": 1,
+  },
+  Vec {
+    "x": 19.832500000000003,
+    "y": 0.13999999999999993,
+    "z": 1,
+  },
+  Vec {
+    "x": 20,
+    "y": 0,
+    "z": 1,
+  },
+  Vec {
+    "x": 20,
+    "y": 0,
+    "z": 1,
+  },
+]
+`;
+
+exports[`CubicSpline2d snapshots should match snapshot for spline with duplicate points 1`] = `
+{
+  "length": 16.261933233382408,
+  "segmentCount": 3,
+  "svgPath": "M 0, 0  C0, 0 3.96, 3.96 5, 5 C6.04, 6.04 3.96, 6.04 5, 5 C6.04, 3.96 10, 0 10, 0",
+}
+`;
+
+exports[`CubicSpline2d snapshots should match snapshot for spline with sharp turns 1`] = `
+{
+  "bounds": Box {
+    "h": 12.48125,
+    "w": 12.48125,
+    "x": -0.9187499999999998,
+    "y": -0.9187500000000001,
+  },
+  "length": 42.0036784469099,
+  "svgPath": "M 0, 0  C0, 0 7.92, -2.08 10, 0 C12.08, 2.08 12.08, 7.92 10, 10 C7.92, 12.08 2.08, 12.08 0, 10 C-2.08, 7.92 0, 0 0, 0",
+}
+`;
+
+exports[`CubicSpline2d snapshots should match snapshot for straight line spline 1`] = `
+{
+  "length": 20,
+  "svgPath": "M 0, 5  C0, 5 5.83, 5 10, 5 C14.17, 5 20, 5 20, 5",
+  "vertexCount": 23,
+}
+`;
+
+exports[`CubicSpline2d snapshots should match snapshot for zigzag spline 1`] = `
+{
+  "segments": [
+    {
+      "end": Vec {
+        "x": 10,
+        "y": 20,
+        "z": 1,
+      },
+      "index": 0,
+      "length": 22.90358337190948,
+      "start": Vec {
+        "x": 0,
+        "y": 0,
+        "z": 1,
+      },
+    },
+    {
+      "end": Vec {
+        "x": 20,
+        "y": 0,
+        "z": 1,
+      },
+      "index": 1,
+      "length": 23.190960909901793,
+      "start": Vec {
+        "x": 10,
+        "y": 20,
+        "z": 1,
+      },
+    },
+    {
+      "end": Vec {
+        "x": 30,
+        "y": 20,
+        "z": 1,
+      },
+      "index": 2,
+      "length": 23.190960909901793,
+      "start": Vec {
+        "x": 20,
+        "y": 0,
+        "z": 1,
+      },
+    },
+    {
+      "end": Vec {
+        "x": 40,
+        "y": 0,
+        "z": 1,
+      },
+      "index": 3,
+      "length": 22.903583371909484,
+      "start": Vec {
+        "x": 30,
+        "y": 20,
+        "z": 1,
+      },
+    },
+  ],
+  "svgPath": "M 0, 0  C0, 0 5.83, 20 10, 20 C14.17, 20 15.83, 0 20, 0 C24.17, 0 25.83, 20 30, 20 C34.17, 20 40, 0 40, 0",
+  "totalLength": 92.18908856362256,
+}
+`;

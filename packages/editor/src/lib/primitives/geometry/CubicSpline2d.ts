@@ -10,6 +10,10 @@ export class CubicSpline2d extends Geometry2d {
 		super({ ...config, isClosed: false, isFilled: false })
 		const { points } = config
 
+		if (points.length < 2) {
+			throw new Error('CubicSpline2d requires at least 2 points')
+		}
+
 		this.points = points
 	}
 

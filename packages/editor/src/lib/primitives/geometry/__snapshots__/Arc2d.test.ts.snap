@@ -1,0 +1,199 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Arc2d snapshots should match snapshot for arc properties 1`] = `
+{
+  "angleEnd": 1.5707963267948966,
+  "angleStart": 0,
+  "largeArcFlag": 0,
+  "length": 15.707963267948966,
+  "measure": 1.5707963267948966,
+  "radius": 10,
+  "sweepFlag": 1,
+}
+`;
+
+exports[`Arc2d snapshots should match snapshot for complex arc configuration 1`] = `
+{
+  "area": 0,
+  "bounds": Box {
+    "h": 85.24828522125756,
+    "w": 99.57224306869051,
+    "x": 50.42775693130948,
+    "y": 150.10705383806982,
+  },
+  "properties": {
+    "isClosed": false,
+    "isFilled": false,
+    "length": 196.34954084936206,
+    "measure": -3.9269908169872414,
+    "radius": 50,
+  },
+  "svgPath": "M150, 200 A50 50 0 1 0 75, 225",
+  "svgPathWithoutMove": " A50 50 0 1 0 75, 225",
+  "vertexCount": 13,
+}
+`;
+
+exports[`Arc2d snapshots should match snapshot for counter-clockwise arc SVG path 1`] = `"M10, 0 A10 10 0 1 0 0, 10"`;
+
+exports[`Arc2d snapshots should match snapshot for large arc SVG path 1`] = `"M10, 0 A10 10 0 1 1 0, 10"`;
+
+exports[`Arc2d snapshots should match snapshot for large radius arc 1`] = `
+{
+  "length": 1570.7963267948965,
+  "svgPath": "M1000, 0 A1000 1000 0 0 1 0, 1000",
+  "vertexCount": 81,
+}
+`;
+
+exports[`Arc2d snapshots should match snapshot for quarter circle arc SVG path 1`] = `"M10, 0 A10 10 0 0 1 0, 10"`;
+
+exports[`Arc2d snapshots should match snapshot for quarter circle vertices 1`] = `
+[
+  Vec {
+    "x": 10,
+    "y": 0,
+    "z": 1,
+  },
+  Vec {
+    "x": 9.914448613738104,
+    "y": 1.3052619222005157,
+    "z": 1,
+  },
+  Vec {
+    "x": 9.659258262890683,
+    "y": 2.5881904510252074,
+    "z": 1,
+  },
+  Vec {
+    "x": 9.238795325112868,
+    "y": 3.826834323650898,
+    "z": 1,
+  },
+  Vec {
+    "x": 8.660254037844387,
+    "y": 4.999999999999999,
+    "z": 1,
+  },
+  Vec {
+    "x": 7.933533402912351,
+    "y": 6.087614290087206,
+    "z": 1,
+  },
+  Vec {
+    "x": 7.0710678118654755,
+    "y": 7.071067811865475,
+    "z": 1,
+  },
+  Vec {
+    "x": 6.087614290087206,
+    "y": 7.933533402912351,
+    "z": 1,
+  },
+  Vec {
+    "x": 5.000000000000001,
+    "y": 8.660254037844386,
+    "z": 1,
+  },
+  Vec {
+    "x": 3.8268343236508984,
+    "y": 9.238795325112868,
+    "z": 1,
+  },
+  Vec {
+    "x": 2.5881904510252074,
+    "y": 9.659258262890683,
+    "z": 1,
+  },
+  Vec {
+    "x": 1.305261922200517,
+    "y": 9.914448613738104,
+    "z": 1,
+  },
+  Vec {
+    "x": 6.123233995736766e-16,
+    "y": 10,
+    "z": 1,
+  },
+]
+`;
+
+exports[`Arc2d snapshots should match snapshot for semicircle arc SVG path 1`] = `"M15, 5 A10 10 0 0 1 -5, 5"`;
+
+exports[`Arc2d snapshots should match snapshot for small radius arc vertices 1`] = `
+[
+  Vec {
+    "x": 1,
+    "y": 0,
+    "z": 1,
+  },
+  Vec {
+    "x": 0.9914448613738104,
+    "y": 0.13052619222005157,
+    "z": 1,
+  },
+  Vec {
+    "x": 0.9659258262890683,
+    "y": 0.25881904510252074,
+    "z": 1,
+  },
+  Vec {
+    "x": 0.9238795325112867,
+    "y": 0.3826834323650898,
+    "z": 1,
+  },
+  Vec {
+    "x": 0.8660254037844387,
+    "y": 0.49999999999999994,
+    "z": 1,
+  },
+  Vec {
+    "x": 0.7933533402912352,
+    "y": 0.6087614290087207,
+    "z": 1,
+  },
+  Vec {
+    "x": 0.7071067811865476,
+    "y": 0.7071067811865475,
+    "z": 1,
+  },
+  Vec {
+    "x": 0.6087614290087207,
+    "y": 0.7933533402912352,
+    "z": 1,
+  },
+  Vec {
+    "x": 0.5000000000000001,
+    "y": 0.8660254037844386,
+    "z": 1,
+  },
+  Vec {
+    "x": 0.38268343236508984,
+    "y": 0.9238795325112867,
+    "z": 1,
+  },
+  Vec {
+    "x": 0.25881904510252074,
+    "y": 0.9659258262890683,
+    "z": 1,
+  },
+  Vec {
+    "x": 0.1305261922200517,
+    "y": 0.9914448613738104,
+    "z": 1,
+  },
+  Vec {
+    "x": 6.123233995736766e-17,
+    "y": 1,
+    "z": 1,
+  },
+]
+`;
+
+exports[`Arc2d snapshots should match snapshot for very small arc 1`] = `
+{
+  "length": 0.014048262839039767,
+  "svgPath": "M0.1, 0 A0.1 0.1 0 0 1 0.1, 0.01",
+  "vertexCount": 13,
+}
+`;
