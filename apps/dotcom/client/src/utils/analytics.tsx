@@ -106,6 +106,7 @@ function configureGA4(options: AnalyticsOptions) {
 			analytics_storage: 'granted',
 		})
 	} else if (currentOptionsGA4?.optedIn) {
+		ReactGA.set({ anonymize_ip: true })
 		ReactGA.reset()
 
 		ReactGA.gtag('consent', 'update', {
