@@ -29,7 +29,6 @@ declare global {
 		TL_GA4_MEASUREMENT_ID: string | undefined
 		Reo: any
 		posthog: any
-		dataLayer: any[]
 	}
 }
 

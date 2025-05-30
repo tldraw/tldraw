@@ -12,11 +12,6 @@ let storedProperties: { [key: string]: any } | undefined = undefined
 let storedHasConsent: CookieConsent = 'unknown'
 window.posthog = posthog
 
-window.dataLayer = window.dataLayer || []
-function gtag(...rest: any[]) {
-	window.dataLayer.push(rest)
-}
-
 // Add theme detection
 function getTheme() {
 	const html = document.documentElement
@@ -68,7 +63,7 @@ export default function Analytics() {
 			})
 
 			if (window.TL_GA4_MEASUREMENT_ID) {
-				gtag('consent', 'default', {
+				ReactGA.gtag('consent', 'default', {
 					ad_storage: 'denied',
 					ad_user_data: 'denied',
 					ad_personalization: 'denied',
@@ -76,19 +71,6 @@ export default function Analytics() {
 					// Wait for our cookie to load.
 					wait_for_update: 500,
 				})
-
-				gtag('js', new Date())
-				gtag('config', window.TL_GA4_MEASUREMENT_ID)
-
-				// Add GTM
-				if (!document.getElementById('gtm-script-loader')) {
-					const gtmScriptTag = document.createElement('script')
-					gtmScriptTag.id = 'gtm-script-loader'
-					gtmScriptTag.src = `https://www.googletagmanager.com/gtag/js?id=${window.TL_GA4_MEASUREMENT_ID}`
-					gtmScriptTag.defer = true
-					document.head.appendChild(gtmScriptTag)
-				}
-
 				ReactGA.initialize(window.TL_GA4_MEASUREMENT_ID, {
 					gaOptions: {
 						anonymize_ip: true,
@@ -106,7 +88,7 @@ export default function Analytics() {
 			posthog.opt_in_capturing()
 			ReactGA.set({ anonymize_ip: false })
 
-			gtag('consent', 'update', {
+			ReactGA.gtag('consent', 'update', {
 				ad_user_data: 'granted',
 				ad_personalization: 'granted',
 				ad_storage: 'granted',
@@ -142,7 +124,7 @@ export default function Analytics() {
 			posthog.opt_out_capturing()
 			ReactGA.reset()
 			ReactGA.set({ anonymize_ip: true })
-			gtag('consent', 'update', {
+			ReactGA.gtag('consent', 'update', {
 				ad_user_data: 'denied',
 				ad_personalization: 'denied',
 				ad_storage: 'denied',
