@@ -1,6 +1,6 @@
 import { VecModel } from '@tldraw/tlschema'
 import { EASINGS } from './easings'
-import { toFixed } from './utils'
+import { clamp, toFixed } from './utils'
 
 /** @public */
 export type VecLike = Vec | VecModel
@@ -487,7 +487,7 @@ export class Vec {
 			(Math.pow(A.x, 2) + Math.pow(A.y, 2)) * (Math.pow(B.x, 2) + Math.pow(B.y, 2))
 		)
 		const sign = A.x * B.y - A.y * B.x < 0 ? -1 : 1
-		const angle = sign * Math.acos(p / n)
+		const angle = sign * Math.acos(clamp(p / n, -1, 1))
 
 		return angle
 	}

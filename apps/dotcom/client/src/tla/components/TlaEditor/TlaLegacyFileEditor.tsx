@@ -5,13 +5,12 @@ import { Editor, TLComponents, Tldraw } from 'tldraw'
 import { StoreErrorScreen } from '../../../components/StoreErrorScreen'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
+import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
-import { trackAnalyticsEvent } from '../../../utils/trackAnalyticsEvent'
-import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
@@ -31,6 +30,8 @@ export const components: TLComponents = {
 	MenuPanel: TlaEditorMenuPanel,
 	SharePanel: TlaEditorLegacySharePanel,
 	TopPanel: TlaEditorTopPanel,
+	Dialogs: null,
+	Toasts: null,
 }
 
 export function TlaLegacyFileEditor({
@@ -71,7 +72,7 @@ function TlaEditorInner({
 		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${fileSlug}`,
 		roomId: fileSlug,
 		assets,
-		trackAnalyticsEvent,
+		trackAnalyticsEvent: trackEvent,
 	})
 
 	const fileSystemUiOverrides = useFileEditorOverrides({})

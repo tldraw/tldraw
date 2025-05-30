@@ -185,7 +185,10 @@ export {
 	type TLShapeUtilConstructor,
 } from './lib/editor/shapes/ShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
-export { getPerfectDashProps } from './lib/editor/shapes/shared/getPerfectDashProps'
+export {
+	getPerfectDashProps,
+	type PerfectDashTerminal,
+} from './lib/editor/shapes/shared/getPerfectDashProps'
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
 export { resizeScaled } from './lib/editor/shapes/shared/resizeScaled'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'

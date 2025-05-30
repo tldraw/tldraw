@@ -13,7 +13,7 @@ export function getArrowBodyPath(shape: TLArrowShape, info: TLArrowInfo, opts: P
 		case 'arc':
 			return new PathBuilder()
 				.moveTo(info.start.point.x, info.start.point.y, { offset: 0, roundness: 0 })
-				.arcTo(
+				.circularArcTo(
 					info.bodyArc.radius,
 					!!info.bodyArc.largeArcFlag,
 					!!info.bodyArc.sweepFlag,
@@ -53,7 +53,7 @@ export function getArrowHandlePath(info: TLArrowInfo, opts: PathBuilderOpts) {
 		case 'arc':
 			return new PathBuilder()
 				.moveTo(info.start.handle.x, info.start.handle.y)
-				.arcTo(
+				.circularArcTo(
 					info.handleArc.radius,
 					!!info.handleArc.largeArcFlag,
 					!!info.handleArc.sweepFlag,
@@ -63,7 +63,7 @@ export function getArrowHandlePath(info: TLArrowInfo, opts: PathBuilderOpts) {
 				.toSvg(opts)
 		case 'elbow': {
 			const handleRoute = getRouteHandlePath(info.elbow, info.route)
-			return PathBuilder.throughPoints(handleRoute.points).toSvg(opts)
+			return PathBuilder.lineThroughPoints(handleRoute.points).toSvg(opts)
 		}
 		default:
 			exhaustiveSwitchError(info, 'type')

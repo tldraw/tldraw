@@ -9,7 +9,7 @@ import {
 	serializeTldrawJsonBlob,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
-import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
+import { useHandleUiEvents } from '../../../utils/analytics'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useIntl, useMsg } from '../../utils/i18n'
 import { editorMessages as messages } from './editor-messages'

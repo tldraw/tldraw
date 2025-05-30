@@ -8,14 +8,14 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+// There's a guide at the bottom of this file!
+
 const SIZES = [
 	{ value: 's', icon: 'size-small' },
 	{ value: 'm', icon: 'size-medium' },
 	{ value: 'l', icon: 'size-large' },
 	{ value: 'xl', icon: 'size-extra-large' },
 ] as const
-
-// There's a guide at the bottom of this file!
 
 // [1]
 const ContextToolbarComponent = track(() => {

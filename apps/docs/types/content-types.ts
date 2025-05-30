@@ -94,6 +94,8 @@ export interface Article extends ContentPage {
 	categoryId: string
 	/** The index of this article inside of the article's category. */
 	categoryIndex: number
+	/** The chosen priority of this article (optional). */
+	priority: number | null
 	/** The id of the section to which this article belongs. */
 	sectionId: string
 	/** The index of this article inside of the article's section. */

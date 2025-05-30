@@ -809,8 +809,6 @@ export class Edge2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: VecLike, B: VecLike, distance?: number): boolean;
-    // (undocumented)
     midPoint(): Vec;
     // (undocumented)
     nearestPoint(point: VecLike): Vec;
@@ -1803,11 +1801,11 @@ export function getIncrementedName(name: string, others: string[]): string;
 // @public (undocumented)
 export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: {
     closed?: boolean;
-    end?: 'none' | 'outset' | 'skip';
+    end?: PerfectDashTerminal;
     forceSolid?: boolean;
     lengthRatio?: number;
     snap?: number;
-    start?: 'none' | 'outset' | 'skip';
+    start?: PerfectDashTerminal;
     style?: TLDefaultDashStyle;
 }): {
     strokeDasharray: string;
@@ -1914,6 +1912,10 @@ export class Group2d extends Geometry2d {
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind(): boolean;
+    // (undocumented)
+    canResize(): boolean;
+    // (undocumented)
+    canResizeChildren(): boolean;
     // (undocumented)
     component(shape: TLGroupShape): JSX_2.Element | null;
     // (undocumented)
@@ -2320,6 +2322,9 @@ export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>
 // @public
 export function parseDeepLinkString(deepLinkString: string): TLDeepLink;
 
+// @public (undocumented)
+export type PerfectDashTerminal = 'none' | 'outset' | 'skip';
+
 // @public
 export function perimeterOfEllipse(rx: number, ry: number): number;
 
@@ -2602,6 +2607,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canEditInReadonly(_shape: Shape): boolean;
     canReceiveNewChildrenOfType(_shape: Shape, _type: TLShape['type']): boolean;
     canResize(_shape: Shape): boolean;
+    canResizeChildren(_shape: Shape): boolean;
     canScroll(_shape: Shape): boolean;
     canSnap(_shape: Shape): boolean;
     canTabTo(_shape: Shape): boolean;
