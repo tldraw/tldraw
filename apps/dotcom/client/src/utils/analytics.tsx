@@ -84,14 +84,37 @@ function configureGA4(options: AnalyticsOptions) {
 	if (!shouldUseGA4) return
 
 	if (!currentOptionsGA4) {
+		ReactGA.gtag('consent', 'default', {
+			ad_storage: 'denied',
+			ad_user_data: 'denied',
+			ad_personalization: 'denied',
+			analytics_storage: 'denied',
+			// Wait for our cookie to load.
+			wait_for_update: 500,
+		})
+
 		ReactGA.initialize(GA4_MEASUREMENT_ID)
 		ReactGA.send('pageview')
 	}
 
 	if (options.optedIn) {
-		ReactGA.set({ userId: options.user.id })
+		ReactGA.set({ userId: options.user.id, anonymize_ip: false })
+		ReactGA.gtag('consent', 'update', {
+			ad_user_data: 'granted',
+			ad_personalization: 'granted',
+			ad_storage: 'granted',
+			analytics_storage: 'granted',
+		})
 	} else if (currentOptionsGA4?.optedIn) {
+		ReactGA.set({ anonymize_ip: true })
 		ReactGA.reset()
+
+		ReactGA.gtag('consent', 'update', {
+			ad_user_data: 'denied',
+			ad_personalization: 'denied',
+			ad_storage: 'denied',
+			analytics_storage: 'denied',
+		})
 	}
 
 	currentOptionsGA4 = options
