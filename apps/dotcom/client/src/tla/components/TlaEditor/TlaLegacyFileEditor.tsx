@@ -30,6 +30,7 @@ export const components: TLComponents = {
 	MenuPanel: TlaEditorMenuPanel,
 	SharePanel: TlaEditorLegacySharePanel,
 	TopPanel: TlaEditorTopPanel,
+	Dialogs: null,
 }
 
 export function TlaLegacyFileEditor({
