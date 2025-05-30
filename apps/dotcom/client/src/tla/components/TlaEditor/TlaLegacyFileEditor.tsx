@@ -31,6 +31,7 @@ export const components: TLComponents = {
 	SharePanel: TlaEditorLegacySharePanel,
 	TopPanel: TlaEditorTopPanel,
 	Dialogs: null,
+	Toasts: null,
 }
 
 export function TlaLegacyFileEditor({
