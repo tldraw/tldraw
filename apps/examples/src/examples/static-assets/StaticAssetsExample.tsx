@@ -1,20 +1,24 @@
 import { Tldraw } from 'tldraw'
+import { useMemo } from 'react'
 import 'tldraw/tldraw.css'
 
 export default function StaticAssetsExample() {
+	const assetUrls = useMemo(() => ({
+        	fonts: {
+			// [1]
+			tldraw_draw: '/ComicMono.woff',
+		},
+		icons: {
+			'tool-arrow': '/custom-arrow-icon.svg',
+		},
+    	}), [])
+	
+	
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				persistenceKey="static-assets"
-				assetUrls={{
-					fonts: {
-						// [1]
-						tldraw_draw: '/ComicMono.woff',
-					},
-					icons: {
-						'tool-arrow': '/custom-arrow-icon.svg',
-					},
-				}}
+				assetUrls={assetUrls}
 			/>
 		</div>
 	)
