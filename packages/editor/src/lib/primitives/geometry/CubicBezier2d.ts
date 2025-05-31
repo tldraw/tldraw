@@ -48,10 +48,6 @@ export class CubicBezier2d extends Polyline2d {
 		return vertices
 	}
 
-	midPoint() {
-		return CubicBezier2d.GetAtT(this, 0.5)
-	}
-
 	nearestPoint(A: VecLike): Vec {
 		let nearest: Vec | undefined
 		let dist = Infinity
