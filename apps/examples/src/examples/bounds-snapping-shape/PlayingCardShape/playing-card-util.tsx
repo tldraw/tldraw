@@ -1,4 +1,4 @@
-import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, TLBaseShape, Vec } from 'tldraw'
+import { BaseBoxShapeUtil, HTMLContainer, RecordProps, Rectangle2d, T, TLBaseShape } from 'tldraw'
 
 // There's a guide at the bottom of this file!
 
@@ -38,8 +38,12 @@ export class PlayingCardUtil extends BaseBoxShapeUtil<IPlayingCard> {
 	}
 
 	// [5]
-	override getBoundsSnapPoints(shape: IPlayingCard) {
-		return [new Vec(0, 0), new Vec(shape.props.h / 4.5, shape.props.h / 4.5)]
+	override getBoundsSnapGeometry(shape: IPlayingCard) {
+		return new Rectangle2d({
+			width: shape.props.h / 4.5,
+			height: shape.props.h / 4.5,
+			isFilled: true,
+		})
 	}
 
 	// [7]

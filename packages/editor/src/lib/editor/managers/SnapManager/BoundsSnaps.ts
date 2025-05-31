@@ -1,5 +1,5 @@
 import { computed } from '@tldraw/state'
-import { TLShape, TLShapeId, VecModel } from '@tldraw/tlschema'
+import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import { assertExists, dedupe, uniqueId } from '@tldraw/utils'
 import {
 	Box,
@@ -20,20 +20,6 @@ import {
 	SnapIndicator,
 	SnapManager,
 } from './SnapManager'
-
-/**
- * When moving or resizing shapes, the bounds of the shape can snap to key geometry on other nearby
- * shapes. Customize how a shape snaps to others with {@link ShapeUtil.getBoundsSnapGeometry}.
- *
- * @public
- */
-export interface BoundsSnapGeometry {
-	/**
-	 * Points that this shape will snap to. By default, this will be the corners and center of the
-	 * shapes bounding box. To disable snapping to a specific point, use an empty array.
-	 */
-	points?: VecModel[]
-}
 
 /** @public */
 export interface BoundsSnapPoint {
@@ -207,10 +193,11 @@ export class BoundsSnaps {
 		return editor.store.createComputedCache<BoundsSnapPoint[], TLShape>('snapPoints', (shape) => {
 			const pageTransform = editor.getShapePageTransform(shape.id)
 			if (!pageTransform) return undefined
-			const boundsSnapPoints = editor.getShapeUtil(shape).getBoundsSnapPoints(shape)
-			const snapPoints = boundsSnapPoints ?? editor.getShapeGeometry(shape).bounds.cornersAndCenter
+			const boundsSnapGeometry = editor.getShapeUtil(shape).getBoundsSnapGeometry(shape)
+			const snapPoints =
+				boundsSnapGeometry?.vertices ?? editor.getShapeGeometry(shape).bounds.cornersAndCenter
 
-			if (!pageTransform || !snapPoints) return undefined
+			if (!snapPoints) return undefined
 			return snapPoints.map((point, i) => {
 				const { x, y } = Mat.applyToPoint(pageTransform, point)
 				return { x, y, id: `${shape.id}:${i}` }
