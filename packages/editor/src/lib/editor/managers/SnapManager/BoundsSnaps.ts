@@ -194,8 +194,10 @@ export class BoundsSnaps {
 			const pageTransform = editor.getShapePageTransform(shape.id)
 			if (!pageTransform) return undefined
 			const boundsSnapGeometry = editor.getShapeUtil(shape).getBoundsSnapGeometry(shape)
-			const snapPoints =
-				boundsSnapGeometry?.vertices ?? editor.getShapeGeometry(shape).bounds.cornersAndCenter
+			if (boundsSnapGeometry === null) return undefined
+			const snapPoints = boundsSnapGeometry
+				? boundsSnapGeometry.vertices
+				: editor.getShapeGeometry(shape).bounds.cornersAndCenter
 
 			if (!snapPoints) return undefined
 			return snapPoints.map((point, i) => {

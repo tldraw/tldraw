@@ -439,8 +439,9 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 
 	/**
 	 * Get the geometry to use when snapping to this this shape in translate/resize operations.
+	 * Null will prevent this shape from being snapped to.
 	 */
-	getBoundsSnapGeometry(_shape: Shape): Geometry2d | undefined {
+	getBoundsSnapGeometry(_shape: Shape): Geometry2d | undefined | null {
 		return undefined
 	}
 

@@ -1,6 +1,8 @@
 import {
 	BaseBoxShapeUtil,
+	Edge2d,
 	IndexKey,
+	Point2d,
 	Polygon2d,
 	Polyline2d,
 	TLAnyShapeUtilConstructor,
@@ -10,7 +12,6 @@ import {
 	TLLineShape,
 	TLShapeId,
 	Vec,
-	VecLike,
 	VecModel,
 	ZERO_INDEX_KEY,
 } from '@tldraw/editor'
@@ -18,7 +19,10 @@ import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
 describe('custom shape bounds snapping - translate', () => {
-	type TestShape = TLBaseShape<'test', { w: number; h: number; boundsSnapPoints: VecLike[] | null }>
+	type TestShape = TLBaseShape<
+		'test',
+		{ w: number; h: number; boundsSnapPoints: VecModel[] | null }
+	>
 	class TestShapeUtil extends BaseBoxShapeUtil<TestShape> {
 		static override type = 'test'
 		override getDefaultProps() {
@@ -31,9 +35,26 @@ describe('custom shape bounds snapping - translate', () => {
 			throw new Error('Method not implemented.')
 		}
 		override getBoundsSnapGeometry(shape: TestShape) {
-			return shape.props.boundsSnapPoints?.length
-				? new Polygon2d({ points: shape.props.boundsSnapPoints.map(Vec.From), isFilled: true })
-				: undefined
+			const { boundsSnapPoints } = shape.props
+			if (boundsSnapPoints) {
+				if (boundsSnapPoints.length === 0) {
+					return null
+				} else if (boundsSnapPoints.length === 1) {
+					return new Point2d({ point: Vec.From(boundsSnapPoints[0]), margin: 0 })
+				} else if (boundsSnapPoints.length === 2) {
+					return new Edge2d({
+						start: Vec.From(boundsSnapPoints[0]),
+						end: Vec.From(boundsSnapPoints[1]),
+					})
+				} else {
+					return new Polygon2d({
+						points: boundsSnapPoints.map(Vec.From),
+						isFilled: true,
+					})
+				}
+			} else {
+				return undefined
+			}
 		}
 	}
 	const shapeUtils = [TestShapeUtil] as TLAnyShapeUtilConstructor[]
