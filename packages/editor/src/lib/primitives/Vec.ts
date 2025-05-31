@@ -189,7 +189,10 @@ export class Vec {
 	}
 
 	uni() {
-		return Vec.Uni(this)
+		const l = this.len()
+		this.x = l === 0 ? 0 : this.x / l
+		this.y = l === 0 ? 0 : this.y / l
+		return this
 	}
 
 	tan(V: VecLike): Vec {
@@ -236,11 +239,9 @@ export class Vec {
 		return Vec.EqualsXY(this, x, y)
 	}
 
+	/** @deprecated use `uni` instead */
 	norm() {
-		const l = this.len()
-		this.x = l === 0 ? 0 : this.x / l
-		this.y = l === 0 ? 0 : this.y / l
-		return this
+		return this.uni()
 	}
 
 	toFixed() {
@@ -375,7 +376,8 @@ export class Vec {
 	 * Get the unit vector of A.
 	 */
 	static Uni(A: VecLike) {
-		return Vec.Div(A, Vec.Len(A))
+		const l = Vec.Len(A)
+		return new Vec(l === 0 ? 0 : A.x / l, l === 0 ? 0 : A.y / l)
 	}
 
 	static Tan(A: VecLike, B: VecLike): Vec {
