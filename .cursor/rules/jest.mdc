@@ -1,0 +1,145 @@
+---
+description: Writing jest unit tests in test.ts files.
+globs: 
+alwaysApply: false
+---
+---
+description: This rule provides guidelines for writing clean, maintainable, and effective tests using Jest. It covers code organization, performance, common pitfalls, and best practices for testing JavaScript and TypeScript projects.
+globs: *.js,*.jsx,*.ts,*.tsx,*.mjs,*.cjs,*.mts,*.cts
+---
+- **Organize tests by feature or module:**
+  - Group tests into files or directories that correspond to the features or modules they are testing. This makes it easier to locate and maintain tests.
+  - Create a `__tests__` directory alongside your source code files. This is a common convention that Jest recognizes.
+
+- **Use descriptive test names:**
+  - Write test names that clearly describe what the test is verifying. This makes it easier to understand the purpose of each test and to diagnose failures.
+  - Use the `describe` and `it` blocks to structure your tests and provide context.
+  - Example: `describe('User authentication', () => { it('should log in a user with valid credentials', () => { /* ... */ }); });`
+
+- **Keep tests isolated and independent:**
+  - Each test should be independent of other tests. Avoid sharing state or dependencies between tests.
+  - Use `beforeEach` and `afterEach` hooks to set up and tear down the environment for each test.
+
+- **Avoid testing implementation details:**
+  - Focus on testing the public API of your code, rather than the internal implementation details.
+  - This makes your tests more resilient to changes in the implementation.
+  - Test the "what", not the "how".
+
+- **Use setup and teardown methods:**
+  - Use `beforeAll`, `afterAll`, `beforeEach`, and `afterEach` hooks to set up and tear down the environment for your tests.
+  - `beforeAll` and `afterAll` run once before and after all tests in a `describe` block.
+  - `beforeEach` and `afterEach` run before and after each test in a `describe` block.
+
+- **Mock external dependencies:**
+  - Use mocking to isolate your code from external dependencies, such as network requests or database connections.
+  - Jest provides built-in mocking capabilities with `jest.mock` and `jest.spyOn`.
+  - Consider using a library like `axios-mock-adapter` for mocking HTTP requests.
+
+- **Write tests that are easy to read and maintain:**
+  - Keep your tests concise and focused.
+  - Use clear and consistent formatting.
+  - Add comments to explain complex logic.
+  - Refactor your tests regularly to keep them up to date.
+
+- **Aim for high test coverage, but prioritize meaningful tests over quantity:**
+  - Aim for high test coverage to ensure that your code is well-tested.
+  - However, prioritize writing meaningful tests that verify the core functionality of your code.
+  - Don't just aim for 100% coverage without considering the value of each test.
+
+- **Use Jest's built-in matchers effectively:**
+  - Jest provides a rich set of matchers for asserting different conditions.
+  - Use matchers like `toBe`, `toEqual`, `toBeGreaterThan`, `toContain`, `toHaveBeenCalled`, etc.
+  - Explore the Jest documentation for the full list of matchers.
+
+- **Handle asynchronous code correctly:**
+  - Use `async/await` or Promises to handle asynchronous code in your tests.
+  - Use the `resolves` and `rejects` matchers to assert that a Promise resolves or rejects.
+  - Example: `expect(myAsyncFunction()).resolves.toBe(expectedValue);`
+
+- **Test error handling:**
+  - Write tests to verify that your code handles errors correctly.
+  - Use the `toThrow` matcher to assert that a function throws an error.
+  - Example: `expect(() => myDangerousFunction()).toThrow(Error);`
+
+- **Use snapshots sparingly:**
+  - Snapshots can be useful for verifying the output of a component or function.
+  - However, they can also be brittle and difficult to maintain if used excessively.
+  - Use snapshots strategically and review them carefully when they change.
+
+- **Configure Jest correctly:**
+  - Configure Jest using the `jest.config.js` or `jest.config.ts` file.
+  - Configure settings such as test environment, module file extensions, and coverage thresholds.
+  - Consider using presets like `ts-jest` or `babel-jest` for TypeScript or Babel support.
+
+- **Leverage code coverage reports:**
+  - Use Jest's code coverage reports to identify areas of your code that are not well-tested.
+  - Aim to increase coverage in critical areas of your codebase.
+  - Use the `--coverage` flag to generate coverage reports.
+
+- **Keep test data separate from test logic:**
+  - Externalize test data to improve readability and maintainability.
+  - Use fixtures or factories to generate test data.
+  - Avoid hardcoding data directly in your tests.
+
+- **Consider using test-driven development (TDD):**
+  - Write tests before you write code to drive the development process.
+  - This can help you write more testable and well-designed code.
+
+- **Run tests frequently:**
+  - Run your tests frequently to catch errors early.
+  - Use Jest's watch mode to automatically run tests when files change.
+  - Integrate tests into your CI/CD pipeline.
+
+- **Document your tests:**
+  - Add comments to explain the purpose of each test and the expected behavior.
+  - This will make it easier for others to understand and maintain your tests.
+
+- **Code Organization and Structure:**
+  - **Directory structure best practices:** Organize test files alongside the component/module they test (e.g., `src/components/MyComponent/MyComponent.test.js`)
+  - **File naming conventions:** Use `.test.js` or `.spec.js` suffixes for test files (e.g., `MyComponent.test.js`, `MyModule.spec.ts`).
+  - **Module organization:** Keep test files close to the modules they are testing. Use a consistent naming convention for test files.
+  - **Component architecture:** Test components in isolation, mocking dependencies where necessary.
+  - **Code splitting strategies:** Ensure tests cover all code paths in dynamically imported modules.
+
+- **Common Patterns and Anti-patterns:**
+  - **Design patterns specific to Jest:** Use Page Object Model (POM) for UI tests, Factory pattern for test data generation.
+  - **Recommended approaches for common tasks:** Use `jest.mock` for mocking modules, `jest.spyOn` for spying on methods, and `fakeTimers` for controlling time-dependent behavior.
+  - **Anti-patterns and code smells to avoid:** Avoid testing implementation details, relying on global state, and creating brittle snapshots.
+  - **State management best practices:** Mock external state dependencies and verify state changes using `expect` assertions.
+  - **Error handling patterns:** Test for specific error messages and ensure error boundaries are properly tested.
+
+- **Performance Considerations:**
+  - **Optimization techniques:** Use `jest.clearAllMocks` and `jest.resetAllMocks` in `beforeEach` blocks to prevent state leakage and improve test performance.
+  - **Memory management:** Avoid creating large data structures in tests that are not necessary. Manually trigger garbage collection in tests where large objects are created and released.
+  - **Rendering optimization:** Mock expensive rendering logic to speed up tests that involve React components.
+  - **Bundle size optimization:** Not applicable, as Jest primarily tests individual modules or components.
+  - **Lazy loading strategies:** Ensure tests cover all code paths in dynamically imported modules.
+
+- **Security Best Practices:**
+  - **Common vulnerabilities and how to prevent them:** Avoid using sensitive data in test snapshots. Sanitize test data to prevent potential injection attacks.
+  - **Input validation:** Test input validation logic and ensure that invalid inputs are handled correctly.
+  - **Authentication and authorization patterns:** Mock authentication and authorization logic to test different user roles and permissions.
+  - **Data protection strategies:** Not directly applicable, as Jest primarily focuses on functional testing.
+  - **Secure API communication:** Mock API calls and verify that data is transmitted securely.
+
+- **Testing Approaches:**
+  - **Unit testing strategies:** Test individual functions, classes, or components in isolation.
+  - **Integration testing:** Test interactions between different modules or components.
+  - **End-to-end testing:** Use tools like Cypress or Playwright for end-to-end tests.
+  - **Test organization:** Group tests into logical suites based on functionality or module.
+  - **Mocking and stubbing:** Use `jest.mock` and `jest.spyOn` to create mocks and stubs for dependencies.
+
+- **Common Pitfalls and Gotchas:**
+  - **Frequent mistakes developers make:** Forgetting to mock dependencies, testing implementation details, and creating brittle snapshots.
+  - **Edge cases to be aware of:** Testing asynchronous code correctly, handling errors, and testing different input types.
+  - **Version-specific issues:** Be aware of breaking changes in Jest updates and update your tests accordingly.
+  - **Compatibility concerns:** Ensure tests are compatible with different browsers or environments.
+  - **Debugging strategies:** Use `console.log` statements, debuggers, or Jest's interactive mode to debug tests.
+
+- **Order of Operation:**
+  - When writing as an agent:
+    - first write all individual tests as `it.todo` with the description of the test's subject, such as `it.todo('Produces correct bounds when rotated')`.
+    - next, procede through each `describe` block, replacing each `it.todo` with a full test
+    - if you encountering an error in your test, learn whether the error due to a problem with your test or a problem with the code you're testing. If the test is correct but the test is still failing, there is probably an error in the tested code. Mark the failing test using `it.failing` and continue with the next test.
+    - Before continuing with a new `describe` block, each test in the block should either pass or else you should mark the test using `it.failing`. 
+    
