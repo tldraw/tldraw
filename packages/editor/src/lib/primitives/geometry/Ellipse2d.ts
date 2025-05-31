@@ -7,8 +7,9 @@ import { getVerticesCountForLength } from './geometry-constants'
 
 /** @public */
 export class Ellipse2d extends Geometry2d {
-	w: number
-	h: number
+	private _w: number
+	private _h: number
+	private _edges?: Edge2d[]
 
 	constructor(
 		public config: Omit<Geometry2dOptions, 'isClosed'> & {
@@ -18,11 +19,9 @@ export class Ellipse2d extends Geometry2d {
 	) {
 		super({ ...config, isClosed: true })
 		const { width, height } = config
-		this.w = width
-		this.h = height
+		this._w = width
+		this._h = height
 	}
-
-	_edges?: Edge2d[]
 
 	// eslint-disable-next-line no-restricted-syntax
 	get edges() {
@@ -41,8 +40,8 @@ export class Ellipse2d extends Geometry2d {
 
 	getVertices() {
 		// Perimeter of the ellipse
-		const w = Math.max(1, this.w)
-		const h = Math.max(1, this.h)
+		const w = Math.max(1, this._w)
+		const h = Math.max(1, this._h)
 		const cx = w / 2
 		const cy = h / 2
 		const q = Math.pow(cx - cy, 2) / Math.pow(cx + cy, 2)
@@ -95,11 +94,11 @@ export class Ellipse2d extends Geometry2d {
 	}
 
 	getBounds() {
-		return new Box(0, 0, this.w, this.h)
+		return new Box(0, 0, this._w, this._h)
 	}
 
 	getLength(): number {
-		const { w, h } = this
+		const { _w: w, _h: h } = this
 		const cx = w / 2
 		const cy = h / 2
 		const rx = Math.max(0, cx)
@@ -108,7 +107,7 @@ export class Ellipse2d extends Geometry2d {
 	}
 
 	getSvgPathData(first = false) {
-		const { w, h } = this
+		const { _w: w, _h: h } = this
 		const cx = w / 2
 		const cy = h / 2
 		const rx = Math.max(0, cx)

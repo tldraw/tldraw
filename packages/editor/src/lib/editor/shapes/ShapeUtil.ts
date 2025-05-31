@@ -12,7 +12,7 @@ import {
 } from '@tldraw/tlschema'
 import { ReactElement } from 'react'
 import { Box, SelectionHandle } from '../../primitives/Box'
-import { Vec } from '../../primitives/Vec'
+import { Vec, VecLike } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
 import { TLFontFace } from '../managers/FontManager'
@@ -442,8 +442,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * Get the geometry to use when snapping to this this shape in translate/resize operations. See
 	 * {@link BoundsSnapGeometry} for details.
 	 */
-	getBoundsSnapGeometry(_shape: Shape): BoundsSnapGeometry {
-		return {}
+	getBoundsSnapPoints(_shape: Shape): VecLike[] | undefined {
+		return undefined
 	}
 
 	/**

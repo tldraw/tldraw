@@ -9,6 +9,7 @@ import {
 	TLLineShape,
 	TLShapeId,
 	Vec,
+	VecLike,
 	VecModel,
 	ZERO_INDEX_KEY,
 } from '@tldraw/editor'
@@ -16,10 +17,7 @@ import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
 describe('custom shape bounds snapping - translate', () => {
-	type TestShape = TLBaseShape<
-		'test',
-		{ w: number; h: number; boundsSnapPoints: VecModel[] | null }
-	>
+	type TestShape = TLBaseShape<'test', { w: number; h: number; boundsSnapPoints: VecLike[] | null }>
 	class TestShapeUtil extends BaseBoxShapeUtil<TestShape> {
 		static override type = 'test'
 		override getDefaultProps() {
@@ -31,10 +29,8 @@ describe('custom shape bounds snapping - translate', () => {
 		override indicator() {
 			throw new Error('Method not implemented.')
 		}
-		override getBoundsSnapGeometry(shape: TestShape) {
-			return {
-				points: shape.props.boundsSnapPoints ?? undefined,
-			}
+		override getBoundsSnapPoints(shape: TestShape) {
+			return shape.props.boundsSnapPoints ?? undefined
 		}
 	}
 	const shapeUtils = [TestShapeUtil] as TLAnyShapeUtilConstructor[]

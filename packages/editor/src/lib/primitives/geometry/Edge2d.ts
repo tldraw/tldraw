@@ -3,42 +3,42 @@ import { Geometry2d } from './Geometry2d'
 
 /** @public */
 export class Edge2d extends Geometry2d {
-	start: Vec
-	end: Vec
-	d: Vec
-	u: Vec
-	ul: number
+	private _start: Vec
+	private _end: Vec
+	private _d: Vec
+	private _u: Vec
+	private _ul: number
 
 	constructor(config: { start: Vec; end: Vec }) {
 		super({ ...config, isClosed: false, isFilled: false })
 		const { start, end } = config
 
-		this.start = start
-		this.end = end
+		this._start = start
+		this._end = end
 
-		this.d = start.clone().sub(end) // the delta from start to end
-		this.u = this.d.clone().uni() // the unit vector of the edge
-		this.ul = this.u.len() // the length of the unit vector
+		this._d = start.clone().sub(end) // the delta from start to end
+		this._u = this._d.clone().uni() // the unit vector of the edge
+		this._ul = this._u.len() // the length of the unit vector
 	}
 
 	override getLength() {
-		return this.d.len()
+		return this._d.len()
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
 	get midPoint(): Vec {
-		return this.start.clone().lrp(this.end, 0.5)
+		return this._start.clone().lrp(this._end, 0.5)
 	}
 
 	getMidPoint() {
 		return this.midPoint
 	}
 	override getVertices(): Vec[] {
-		return [this.start, this.end]
+		return [this._start, this._end]
 	}
 
 	override nearestPoint(point: VecLike): Vec {
-		const { start, end, d, u, ul: l } = this
+		const { _start: start, _end: end, _d: d, _u: u, _ul: l } = this
 		if (d.len() === 0) return start // start and end are the same
 		if (l === 0) return start // no length in the unit vector
 		const k = Vec.Sub(point, start).dpr(u) / l
@@ -52,7 +52,7 @@ export class Edge2d extends Geometry2d {
 	}
 
 	getSvgPathData(first = true) {
-		const { start, end } = this
+		const { _start: start, _end: end } = this
 		return `${first ? `M${start.toFixed()}` : ``} L${end.toFixed()}`
 	}
 }
