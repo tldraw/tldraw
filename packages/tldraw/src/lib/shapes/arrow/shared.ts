@@ -116,7 +116,9 @@ const arrowInfoCache = createComputedCache(
 		const bindings = getArrowBindings(editor, shape)
 		if (shape.props.kind === 'elbow') {
 			const elbowInfo = getElbowArrowInfo(editor, shape, bindings)
-			if (!elbowInfo?.route) return getStraightArrowInfo(editor, shape, bindings)
+			if (!elbowInfo?.route) {
+				return getStraightArrowInfo(editor, shape, bindings)
+			}
 
 			const start = elbowInfo.swapOrder ? elbowInfo.B : elbowInfo.A
 			const end = elbowInfo.swapOrder ? elbowInfo.A : elbowInfo.B
@@ -139,16 +141,19 @@ const arrowInfoCache = createComputedCache(
 				isValid: true,
 			}
 		}
-		return getIsArrowStraight(shape)
-			? getStraightArrowInfo(editor, shape, bindings)
-			: getCurvedArrowInfo(editor, shape, bindings)
+
+		if (getIsArrowStraight(shape)) {
+			return getStraightArrowInfo(editor, shape, bindings)
+		}
+
+		return getCurvedArrowInfo(editor, shape, bindings)
 	}
 )
 
 /** @public */
-export function getArrowInfo(editor: Editor, shape: TLArrowShape | TLShapeId) {
+export function getArrowInfo(editor: Editor, shape: TLArrowShape | TLShapeId): TLArrowInfo {
 	const id = typeof shape === 'string' ? shape : shape.id
-	return arrowInfoCache.get(editor, id)
+	return arrowInfoCache.get(editor, id) as TLArrowInfo
 }
 
 /** @public */
