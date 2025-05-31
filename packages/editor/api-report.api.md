@@ -2329,9 +2329,7 @@ export class Polyline2d extends Geometry2d {
     // (undocumented)
     nearestPoint(A: VecLike): Vec;
     // (undocumented)
-    get segments(): Edge2d[];
-    // (undocumented)
-    _segments?: Edge2d[];
+    protected get segments(): Edge2d[];
 }
 
 // @public (undocumented)

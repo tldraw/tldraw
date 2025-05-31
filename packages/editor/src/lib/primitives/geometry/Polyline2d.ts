@@ -5,6 +5,7 @@ import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 /** @public */
 export class Polyline2d extends Geometry2d {
 	private _points: Vec[]
+	private _segments?: Edge2d[]
 
 	constructor(config: Omit<Geometry2dOptions, 'isFilled' | 'isClosed'> & { points: Vec[] }) {
 		super({ isClosed: false, isFilled: false, ...config })
@@ -16,10 +17,8 @@ export class Polyline2d extends Geometry2d {
 		}
 	}
 
-	_segments?: Edge2d[]
-
 	// eslint-disable-next-line no-restricted-syntax
-	get segments() {
+	protected get segments() {
 		if (!this._segments) {
 			this._segments = []
 			const { vertices } = this
