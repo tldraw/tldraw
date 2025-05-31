@@ -825,13 +825,15 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			(ae && info.end.arrowhead !== 'arrow') ||
 			!!labelGeometry
 
+		const labelBounds = labelGeometry ? labelGeometry.getBounds() : new Box(0, 0, 0, 0)
+
 		if (isEditing && labelGeometry) {
 			return (
 				<rect
-					x={toDomPrecision(labelGeometry.x)}
-					y={toDomPrecision(labelGeometry.y)}
-					width={labelGeometry.w}
-					height={labelGeometry.h}
+					x={toDomPrecision(labelBounds.x)}
+					y={toDomPrecision(labelBounds.y)}
+					width={labelBounds.w}
+					height={labelBounds.h}
 					rx={3.5 * shape.props.scale}
 					ry={3.5 * shape.props.scale}
 				/>
@@ -850,7 +852,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							radius={3.5 * shape.props.scale}
 							hasText={shape.props.text.trim().length > 0}
 							bounds={bounds}
-							labelBounds={labelGeometry ? labelGeometry.getBounds() : new Box(0, 0, 0, 0)}
+							labelBounds={labelBounds}
 							as={clipStartArrowhead && as ? as : ''}
 							ae={clipEndArrowhead && ae ? ae : ''}
 						/>
@@ -893,10 +895,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				{ae && <path d={ae} />}
 				{labelGeometry && (
 					<rect
-						x={toDomPrecision(labelGeometry.x)}
-						y={toDomPrecision(labelGeometry.y)}
-						width={labelGeometry.w}
-						height={labelGeometry.h}
+						x={toDomPrecision(labelBounds.x)}
+						y={toDomPrecision(labelBounds.y)}
+						width={labelBounds.w}
+						height={labelBounds.h}
 						rx={3.5}
 						ry={3.5}
 					/>
