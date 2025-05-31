@@ -10,6 +10,10 @@ export class Polyline2d extends Geometry2d {
 		super({ isClosed: false, isFilled: false, ...config })
 		const { points } = config
 		this.points = points
+
+		if (points.length < 2) {
+			throw new Error('Polyline2d: points must be an array of at least 2 points')
+		}
 	}
 
 	_segments?: Edge2d[]

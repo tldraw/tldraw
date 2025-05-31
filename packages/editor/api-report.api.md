@@ -805,11 +805,13 @@ export class Edge2d extends Geometry2d {
     // (undocumented)
     getLength(): number;
     // (undocumented)
+    getMidPoint(): Vec;
+    // (undocumented)
     getSvgPathData(first?: boolean): string;
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    midPoint(): Vec;
+    get midPoint(): Vec;
     // (undocumented)
     nearestPoint(point: VecLike): Vec;
     // (undocumented)

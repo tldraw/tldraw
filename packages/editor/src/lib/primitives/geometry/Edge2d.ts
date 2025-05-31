@@ -25,10 +25,14 @@ export class Edge2d extends Geometry2d {
 		return this.d.len()
 	}
 
-	midPoint(): Vec {
-		return this.start.lrp(this.end, 0.5)
+	// eslint-disable-next-line no-restricted-syntax
+	get midPoint(): Vec {
+		return this.start.clone().lrp(this.end, 0.5)
 	}
 
+	getMidPoint() {
+		return this.midPoint
+	}
 	override getVertices(): Vec[] {
 		return [this.start, this.end]
 	}

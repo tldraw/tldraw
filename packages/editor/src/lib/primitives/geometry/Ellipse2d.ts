@@ -1,6 +1,6 @@
 import { Box } from '../Box'
 import { Vec, VecLike } from '../Vec'
-import { PI, PI2, perimeterOfEllipse } from '../utils'
+import { PI, PI2, clamp, perimeterOfEllipse } from '../utils'
 import { Edge2d } from './Edge2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 import { getVerticesCountForLength } from './geometry-constants'
@@ -63,7 +63,7 @@ export class Ellipse2d extends Geometry2d {
 		const vertices = Array(len)
 
 		for (let i = 0; i < len; i++) {
-			vertices[i] = new Vec(cx + cx * cos, cy + cy * sin)
+			vertices[i] = new Vec(clamp(cx + cx * cos, 0, w), clamp(cy + cy * sin, 0, h))
 			ts = b * cos + a * sin
 			tc = a * cos - b * sin
 			sin = ts
