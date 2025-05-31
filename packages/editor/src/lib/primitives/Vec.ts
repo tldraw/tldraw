@@ -190,13 +190,14 @@ export class Vec {
 
 	uni() {
 		const l = this.len()
-		this.x = l === 0 ? 0 : this.x / l
-		this.y = l === 0 ? 0 : this.y / l
+		if (l === 0) return this
+		this.x /= l
+		this.y /= l
 		return this
 	}
 
 	tan(V: VecLike): Vec {
-		return Vec.Tan(this, V)
+		return this.sub(V).uni()
 	}
 
 	dist(V: VecLike): number {
@@ -245,7 +246,9 @@ export class Vec {
 	}
 
 	toFixed() {
-		return Vec.ToFixed(this)
+		this.x = toFixed(this.x)
+		this.y = toFixed(this.y)
+		return this
 	}
 
 	toString() {
