@@ -31,7 +31,7 @@ describe('custom shape bounds snapping - translate', () => {
 			throw new Error('Method not implemented.')
 		}
 		override getBoundsSnapGeometry(shape: TestShape) {
-			return shape.props.boundsSnapPoints
+			return shape.props.boundsSnapPoints?.length
 				? new Polygon2d({ points: shape.props.boundsSnapPoints.map(Vec.From), isFilled: true })
 				: undefined
 		}
