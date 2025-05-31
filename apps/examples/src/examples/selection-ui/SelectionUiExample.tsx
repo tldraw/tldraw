@@ -121,7 +121,7 @@ function DuplicateInDirectionButton({
 				// Get the direction and distance to the intersection
 				const delta = Vec.Sub(int[0], center)
 				const dist = delta.len()
-				const dir = delta.norm()
+				const dir = delta.uni()
 
 				// Get the offset for the duplicated shapes
 				const offset = dir.mul(dist * 2)
