@@ -218,6 +218,11 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
     static type: string;
 }
 
+// @public
+export interface BoundsSnapGeometry {
+    points?: VecModel[];
+}
+
 // @public (undocumented)
 export interface BoundsSnapPoint {
     // (undocumented)
@@ -2544,7 +2549,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     expandSelectionOutlinePx(shape: Shape): Box | number;
     // (undocumented)
     getAriaDescriptor(_shape: Shape): string | undefined;
-    getBoundsSnapGeometry(_shape: Shape): Geometry2d | null | undefined;
+    getBoundsSnapGeometry(_shape: Shape): BoundsSnapGeometry;
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     abstract getDefaultProps(): Shape['props'];
     getFontFaces(shape: Shape): TLFontFace[];

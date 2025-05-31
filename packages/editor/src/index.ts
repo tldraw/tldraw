@@ -156,7 +156,11 @@ export {
 } from './lib/editor/managers/FontManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager'
 export { ScribbleManager, type ScribbleItem } from './lib/editor/managers/ScribbleManager'
-export { BoundsSnaps, type BoundsSnapPoint } from './lib/editor/managers/SnapManager/BoundsSnaps'
+export {
+	BoundsSnaps,
+	type BoundsSnapGeometry,
+	type BoundsSnapPoint,
+} from './lib/editor/managers/SnapManager/BoundsSnaps'
 export { HandleSnaps, type HandleSnapGeometry } from './lib/editor/managers/SnapManager/HandleSnaps'
 export {
 	SnapManager,

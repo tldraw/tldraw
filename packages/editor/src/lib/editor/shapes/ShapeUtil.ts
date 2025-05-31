@@ -16,6 +16,7 @@ import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
 import { TLFontFace } from '../managers/FontManager'
+import { BoundsSnapGeometry } from '../managers/SnapManager/BoundsSnaps'
 import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
 import { SvgExportContext } from '../types/SvgExportContext'
 import { TLClickEventInfo } from '../types/event-types'
@@ -438,11 +439,11 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
-	 * Get the geometry to use when snapping to this this shape in translate/resize operations.
-	 * Null will prevent this shape from being snapped to.
+	 * Get the geometry to use when snapping to this this shape in translate/resize operations. See
+	 * {@link BoundsSnapGeometry} for details.
 	 */
-	getBoundsSnapGeometry(_shape: Shape): Geometry2d | undefined | null {
-		return undefined
+	getBoundsSnapGeometry(_shape: Shape): BoundsSnapGeometry {
+		return {}
 	}
 
 	/**

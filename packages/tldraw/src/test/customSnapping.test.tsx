@@ -1,9 +1,6 @@
 import {
 	BaseBoxShapeUtil,
-	Edge2d,
 	IndexKey,
-	Point2d,
-	Polygon2d,
 	Polyline2d,
 	TLAnyShapeUtilConstructor,
 	TLBaseShape,
@@ -35,25 +32,8 @@ describe('custom shape bounds snapping - translate', () => {
 			throw new Error('Method not implemented.')
 		}
 		override getBoundsSnapGeometry(shape: TestShape) {
-			const { boundsSnapPoints } = shape.props
-			if (boundsSnapPoints) {
-				if (boundsSnapPoints.length === 0) {
-					return null
-				} else if (boundsSnapPoints.length === 1) {
-					return new Point2d({ point: Vec.From(boundsSnapPoints[0]), margin: 0 })
-				} else if (boundsSnapPoints.length === 2) {
-					return new Edge2d({
-						start: Vec.From(boundsSnapPoints[0]),
-						end: Vec.From(boundsSnapPoints[1]),
-					})
-				} else {
-					return new Polygon2d({
-						points: boundsSnapPoints.map(Vec.From),
-						isFilled: true,
-					})
-				}
-			} else {
-				return undefined
+			return {
+				points: shape.props.boundsSnapPoints ?? undefined,
 			}
 		}
 	}
