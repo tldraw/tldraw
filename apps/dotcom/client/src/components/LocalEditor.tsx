@@ -1,6 +1,7 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { ReactNode } from 'react'
 import { Editor, TLComponents, Tldraw, TldrawOptions, useEvent } from 'tldraw'
+import { SneakyHandToolEmptyPage } from '../tla/components/TlaEditor/sneaky/SneakyHandToolEmptyPage'
 import { useFileEditorOverrides } from '../tla/components/TlaEditor/useFileEditorOverrides'
 import { useHandleUiEvents } from '../utils/analytics'
 import { assetUrls } from '../utils/assetUrls'
@@ -47,6 +48,7 @@ export function LocalEditor({
 				options={options}
 			>
 				<SneakyOnDropOverride isMultiplayer={false} />
+				<SneakyHandToolEmptyPage />
 				<ThemeUpdater />
 				{children}
 			</Tldraw>
