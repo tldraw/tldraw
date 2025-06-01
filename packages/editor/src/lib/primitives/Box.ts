@@ -134,32 +134,32 @@ export class Box {
 
 	// eslint-disable-next-line no-restricted-syntax
 	get center() {
-		return new Vec(this.midX, this.midY)
+		return new Vec(this.x + this.w / 2, this.y + this.h / 2)
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
 	set center(v: Vec) {
-		this.minX = v.x - this.width / 2
-		this.minY = v.y - this.height / 2
+		this.y = v.x - this.w / 2
+		this.y = v.y - this.h / 2
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
 	get corners() {
 		return [
-			new Vec(this.minX, this.minY),
-			new Vec(this.maxX, this.minY),
-			new Vec(this.maxX, this.maxY),
-			new Vec(this.minX, this.maxY),
+			new Vec(this.x, this.y),
+			new Vec(this.x + this.w, this.y + this.h),
+			new Vec(this.x + this.w, this.y + this.h),
+			new Vec(this.x, this.y + this.h),
 		]
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
 	get cornersAndCenter() {
 		return [
-			new Vec(this.minX, this.minY),
-			new Vec(this.maxX, this.minY),
-			new Vec(this.maxX, this.maxY),
-			new Vec(this.minX, this.maxY),
+			new Vec(this.x, this.y),
+			new Vec(this.x + this.w, this.y + this.h),
+			new Vec(this.x + this.w, this.y + this.h),
+			new Vec(this.x, this.y + this.h),
 			this.center,
 		]
 	}
@@ -205,10 +205,10 @@ export class Box {
 	}
 
 	expand(A: Box) {
-		const minX = Math.min(this.minX, A.minX)
-		const minY = Math.min(this.minY, A.minY)
-		const maxX = Math.max(this.maxX, A.maxX)
-		const maxY = Math.max(this.maxY, A.maxY)
+		const minX = Math.min(this.x, A.x)
+		const minY = Math.min(this.y, A.y)
+		const maxX = Math.max(this.x + this.w, A.x + A.w)
+		const maxY = Math.max(this.y + this.h, A.y + A.h)
 
 		this.x = minX
 		this.y = minY
@@ -245,10 +245,10 @@ export class Box {
 	}
 
 	snapToGrid(size: number) {
-		const minX = Math.round(this.minX / size) * size
-		const minY = Math.round(this.minY / size) * size
-		const maxX = Math.round(this.maxX / size) * size
-		const maxY = Math.round(this.maxY / size) * size
+		const minX = Math.round(this.x / size) * size
+		const minY = Math.round(this.y / size) * size
+		const maxX = Math.round((this.x + this.w) / size) * size
+		const maxY = Math.round((this.y + this.h) / size) * size
 		this.minX = minX
 		this.minY = minY
 		this.width = Math.max(1, maxX - minX)
@@ -293,7 +293,7 @@ export class Box {
 	}
 
 	toJson(): BoxModel {
-		return { x: this.minX, y: this.minY, w: this.w, h: this.h }
+		return { x: this.x, y: this.y, w: this.w, h: this.h }
 	}
 
 	resize(handle: SelectionCorner | SelectionEdge | string, dx: number, dy: number) {
@@ -357,10 +357,10 @@ export class Box {
 	}
 
 	union(box: BoxModel) {
-		const minX = Math.min(this.minX, box.x)
-		const minY = Math.min(this.minY, box.y)
-		const maxX = Math.max(this.maxX, box.w + box.x)
-		const maxY = Math.max(this.maxY, box.h + box.y)
+		const minX = Math.min(this.x, box.x)
+		const minY = Math.min(this.y, box.y)
+		const maxX = Math.max(this.x + this.w, box.w + box.x)
+		const maxY = Math.max(this.y + this.h, box.h + box.y)
 
 		this.x = minX
 		this.y = minY

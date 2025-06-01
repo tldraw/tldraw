@@ -25,6 +25,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
+import { getDroppedShapesToNewParents } from '../../tools/SelectTool/selectHelpers'
 import { fitFrameToContent, getFrameChildrenBounds } from '../../utils/frames/frames'
 import {
 	TLCreateTextJsxFromSpansOpts,
@@ -343,18 +344,41 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		}
 	}
 
-	override onDragShapesOut(_shape: TLFrameShape, shapes: TLShape[]): void {
-		const parent = this.editor.getShape(_shape.parentId)
-		const isInGroup = parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')
+	override onDragShapesOut(frameShape: TLFrameShape, movingShapes: TLShape[]): void {
+		const { editor } = this
 
-		// If frame is in a group, keep the shape
-		// moved out in that group
+		// If the frame is in a group, then we'll operate within the group;
+		// if dropping onto the "page", drop onto the group
+		// if dropping onto other frames, only drop in if those frames are also in the group
+		const containingGroupId = this.editor.findShapeAncestor(frameShape, (s) =>
+			this.editor.isShapeOfType<TLGroupShape>(s, 'group')
+		)?.id
 
-		if (isInGroup) {
-			this.editor.reparentShapes(shapes, parent.id)
-		} else {
-			this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
-		}
+		// Otherwise, we have no next dropping shape under the cursor, so go find
+		// all the frames on the page where the moving shapes will fall into
+		const { reparenting, remainingShapesToReparent } = getDroppedShapesToNewParents(
+			editor,
+			movingShapes,
+			(_, parent) => parent.id !== frameShape.id
+		)
+
+		editor.run(() => {
+			reparenting.forEach((childrenToReparent, frameId) => {
+				if (childrenToReparent.length === 0) return
+				editor.reparentShapes(childrenToReparent, frameId)
+			})
+
+			// Reparent the rest to the page (or containing group)
+			if (remainingShapesToReparent.size > 0) {
+				remainingShapesToReparent.forEach((shape) => {
+					if (containingGroupId) {
+						editor.reparentShapes([shape], containingGroupId)
+					} else {
+						editor.reparentShapes([shape], editor.getCurrentPageId())
+					}
+				})
+			}
+		})
 	}
 
 	override onResize(shape: any, info: TLResizeInfo<any>) {
