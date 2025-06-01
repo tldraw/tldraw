@@ -1006,6 +1006,22 @@ it('Allows dragging groups into frames', () => {
 	expect(editor.getShape(group)!.parentId).toBe(frame.id)
 })
 
+it('Drags into a frame', () => {
+	editor.createShape({ type: 'frame', x: 100, y: 100, props: { w: 200, h: 200 } })
+	editor.createShape({ type: 'geo', x: 500, y: 500, props: { w: 100, h: 100 } })
+	const [frame, box1] = editor.getLastCreatedShapes(3)
+
+	editor.select(box1)
+	editor.pointerDown(550, 550)
+	editor.pointerMove(250, 250)
+
+	jest.advanceTimersByTime(200)
+
+	expect(editor.getShape(box1)!.parentId).toBe(frame.id)
+})
+
+it.todo('Skips dragging into a frame if accel key is held, maybe')
+
 it('Allows dragging grouped shapes into frames if every shape in the group is in the frame', () => {
 	editor.createShape({ type: 'frame', x: 100, y: 100, props: { w: 500, h: 500 } })
 	editor.createShape({ type: 'geo', x: 1000, y: 1000, props: { w: 100, h: 100 } })

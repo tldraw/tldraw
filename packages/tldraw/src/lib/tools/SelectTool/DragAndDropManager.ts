@@ -162,7 +162,6 @@ export class DragAndDropManager {
 		})
 
 		this.prevDroppingShape = undefined
-		// }
 
 		const hintingShapeIds = new Set<TLShapeId>()
 
