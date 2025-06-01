@@ -19,6 +19,7 @@ import {
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
+	getIndexAbove,
 	getIndexBetween,
 	lerp,
 	resizeBox,
@@ -385,7 +386,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 					const frameIndex = parentChildIds.indexOf(frameShape.id)
 					const indexAbove = parentChildIds[frameIndex + 1]
 					const shapeAbove = indexAbove && editor.getShape(parentChildIds[frameIndex + 1])
-					const insertIndex = getIndexBetween(frameShape.index, shapeAbove?.index)
+					const insertIndex = shapeAbove
+						? getIndexBetween(frameShape.index, shapeAbove.index)
+						: getIndexAbove(frameShape.index)
 
 					if (containingGroupId) {
 						editor.reparentShapes([shape], containingGroupId, insertIndex)

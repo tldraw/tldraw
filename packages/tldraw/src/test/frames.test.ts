@@ -1464,7 +1464,7 @@ describe('When resizing a frame', () => {
 		expect(editor.getShape(innerRectId)?.parentId).toBe(groupId)
 	})
 
-	it.only('drops kicked out children onto the page', () => {
+	it('drops kicked out children onto the page', () => {
 		// Create a frame
 		const frameId = dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
 
@@ -1481,4 +1481,8 @@ describe('When resizing a frame', () => {
 		// The rectangle should be dropped onto the page since there's no other frame beneath it
 		expect(editor.getShape(rectId)?.parentId).toBe(editor.getCurrentPageId())
 	})
+})
+
+it('avoids index bug', () => {
+	const frameId = dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
 })
