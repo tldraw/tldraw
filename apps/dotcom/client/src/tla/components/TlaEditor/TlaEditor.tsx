@@ -26,6 +26,7 @@ import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useTldrawUser } from '../../hooks/useUser'
+import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { maybeSlurp } from '../../utils/slurping'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
@@ -222,6 +223,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				onUiEvent={handleUiEvent}
 				components={components}
 				options={{ actionShortcutsLocation: 'toolbar' }}
+				initialState={getIsCoarsePointer() ? 'hand' : 'select'}
 				deepLinks={deepLinks || undefined}
 				overrides={overrides}
 				getShapeVisibility={getShapeVisibility}
