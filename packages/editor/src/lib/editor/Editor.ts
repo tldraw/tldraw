@@ -2176,6 +2176,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				.flatMap((id) => {
 					const pageTransform = this.getShapePageTransform(id)
 					if (!pageTransform) return []
+					// unlike in getShapePageBounds, the "rotated" page bounds are done using corners, not vertices
 					return pageTransform.applyToPoints(this.getShapeGeometry(id).bounds.corners)
 				})
 				.map((p) => p.rot(-selectionRotation))
