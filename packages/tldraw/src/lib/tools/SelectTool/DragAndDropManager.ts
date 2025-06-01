@@ -1,6 +1,5 @@
 import {
 	Editor,
-	TLFrameShape,
 	TLGroupShape,
 	TLParentId,
 	TLShape,
@@ -10,7 +9,7 @@ import {
 	compact,
 	isShapeId,
 } from '@tldraw/editor'
-import { getDroppedShapesToNewParents, getHasOverlappingShapes } from './selectHelpers'
+import { getDroppedShapesToNewParents } from './selectHelpers'
 
 const SLOW_POINTER_LAG_DURATION = 320
 const FAST_POINTER_LAG_DURATION = 60
@@ -88,23 +87,6 @@ export class DragAndDropManager {
 		}
 	}
 
-	private findDroppingShape(
-		shape: TLShape | undefined,
-		movingShapes: TLShape[]
-	): TLShape | undefined {
-		if (!shape) return
-		if (shape.isLocked) return
-
-		if (getHasOverlappingShapes(this.editor, shape, movingShapes)) {
-			return shape
-		}
-
-		const parent = this.editor.getShapeParent(shape)
-		if (!parent) return
-
-		return this.findDroppingShape(parent, movingShapes)
-	}
-
 	private handleDrag(point: Vec, movingShapes: TLShape[], cb?: () => void) {
 		const { editor } = this
 
@@ -113,7 +95,6 @@ export class DragAndDropManager {
 
 		const shapesToActuallyMove = new Set(movingShapes)
 		const movingGroups = new Set<TLGroupShape>()
-		const shapesToIgnoreForHoveredShape = new Set(movingShapes)
 
 		for (const shape of shapesToActuallyMove) {
 			const parent = editor.getShapeParent(shape)
@@ -132,7 +113,6 @@ export class DragAndDropManager {
 				for (const child of children) {
 					shapesToActuallyMove.delete(child)
 				}
-				shapesToIgnoreForHoveredShape.add(movingGroup)
 				shapesToActuallyMove.add(movingGroup)
 			}
 		}
@@ -140,8 +120,7 @@ export class DragAndDropManager {
 		// find all the possible parent frames on the page where the moving shapes will fall into
 		const { reparenting, remainingShapesToReparent } = getDroppedShapesToNewParents(
 			editor,
-			shapesToActuallyMove,
-			(s) => !editor.isShapeOfType<TLFrameShape>(s, 'frame')
+			shapesToActuallyMove
 		)
 
 		const currentPageId = editor.getCurrentPageId()

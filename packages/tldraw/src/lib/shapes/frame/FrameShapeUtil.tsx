@@ -19,6 +19,7 @@ import {
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
+	getIndexBetween,
 	lerp,
 	resizeBox,
 	toDomPrecision,
@@ -354,12 +355,19 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			this.editor.isShapeOfType<TLGroupShape>(s, 'group')
 		)?.id
 
+		const sortedShapes = editor.getCurrentPageShapesSorted().map((s) => s.id)
+
+		// Don't fall "up" into frames in front of the shape
+		// if (pageShapes.indexOf(shape) < frameSortPosition) continue shapeCheck
+
 		// Otherwise, we have no next dropping shape under the cursor, so go find
 		// all the frames on the page where the moving shapes will fall into
 		const { reparenting, remainingShapesToReparent } = getDroppedShapesToNewParents(
 			editor,
 			movingShapes,
-			(_, parent) => parent.id !== frameShape.id
+			(shape, parent) =>
+				parent.id !== frameShape.id &&
+				sortedShapes.indexOf(parent.id) < sortedShapes.indexOf(shape.id)
 		)
 
 		editor.run(() => {
@@ -371,10 +379,18 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			// Reparent the rest to the page (or containing group)
 			if (remainingShapesToReparent.size > 0) {
 				remainingShapesToReparent.forEach((shape) => {
+					const parentChildIds = editor.getSortedChildIdsForParent(
+						containingGroupId ?? editor.getCurrentPageId()
+					)
+					const frameIndex = parentChildIds.indexOf(frameShape.id)
+					const indexAbove = parentChildIds[frameIndex + 1]
+					const shapeAbove = indexAbove && editor.getShape(parentChildIds[frameIndex + 1])
+					const insertIndex = getIndexBetween(frameShape.index, shapeAbove?.index)
+
 					if (containingGroupId) {
-						editor.reparentShapes([shape], containingGroupId)
+						editor.reparentShapes([shape], containingGroupId, insertIndex)
 					} else {
-						editor.reparentShapes([shape], editor.getCurrentPageId())
+						editor.reparentShapes([shape], editor.getCurrentPageId(), insertIndex)
 					}
 				})
 			}

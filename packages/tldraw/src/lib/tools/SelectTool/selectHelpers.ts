@@ -260,13 +260,12 @@ export function getDroppedShapesToNewParents(
 	shapes: Set<TLShape> | TLShape[],
 	cb?: (shape: TLShape, parent: TLShape) => boolean
 ) {
-	const pageShapes = editor.getCurrentPageShapesSorted()
-
 	const remainingShapesToReparent = new Set(shapes)
 
 	const reparenting = new Map<TLShapeId, TLShape[]>()
 
-	const potentialParentFrames = pageShapes
+	const potentialParentFrames = editor
+		.getCurrentPageShapesSorted()
 		// filter out any shapes that aren't frames or that are included among the provided shapes
 		.filter(
 			(s) => editor.isShapeOfType<TLFrameShape>(s, 'frame') && !remainingShapesToReparent.has(s)
@@ -275,7 +274,7 @@ export function getDroppedShapesToNewParents(
 	// this could be cached and passed in
 	const shapeGroupIds = new Map<TLShapeId, TLShapeId | undefined>()
 
-	for (let i = potentialParentFrames.length - 1; i >= 0; i--) {
+	frameCheck: for (let i = potentialParentFrames.length - 1; i >= 0; i--) {
 		const frame = potentialParentFrames[i]
 		const frameGroupId = editor.findShapeAncestor(frame, (s) =>
 			editor.isShapeOfType<TLGroupShape>(s, 'group')
@@ -291,23 +290,17 @@ export function getDroppedShapesToNewParents(
 			? intersectPolygonPolygon(framePageMaskVertices, framePageCorners)
 			: framePageCorners
 
-		if (!framePagePolygon) continue
+		if (!framePagePolygon) continue frameCheck
 
 		const childrenToReparent = []
 
-		// the parent must be below the child in the page
-		const frameSortPosition = pageShapes.indexOf(frame)
-
 		// For each of the dropping shapes...
-		for (const shape of remainingShapesToReparent) {
+		shapeCheck: for (const shape of remainingShapesToReparent) {
 			// Don't reparent a frame to itself
-			if (frame.id === shape.id) continue
+			if (frame.id === shape.id) continue shapeCheck
 
 			// Use the callback to filter out certain shapes
-			if (cb && !cb(shape, frame)) continue
-
-			// Don't fall "up" into frames in front of the shape
-			if (pageShapes.indexOf(shape) < frameSortPosition) continue
+			if (cb && !cb(shape, frame)) continue shapeCheck
 
 			let shapeGroupId: TLShapeId | undefined
 
@@ -320,12 +313,8 @@ export function getDroppedShapesToNewParents(
 				shapeGroupIds.set(shape.id, shapeGroupId)
 			}
 
-			if (shape.parentId === editor.getCurrentPageId()) {
-				remainingShapesToReparent.delete(shape)
-			}
-
 			// If the shape and the group are part of different groups, skip
-			if (shapeGroupId !== frameGroupId) continue
+			if (shapeGroupId !== frameGroupId) continue shapeCheck
 
 			const parentPolygonInShapeSpace = editor
 				.getShapePageTransform(shape)
@@ -340,7 +329,7 @@ export function getDroppedShapesToNewParents(
 					childrenToReparent.push(shape)
 				}
 				remainingShapesToReparent.delete(shape)
-				continue
+				continue shapeCheck
 			}
 		}
 

@@ -1025,7 +1025,7 @@ it('Allows dragging grouped shapes into frames if every shape in the group is in
 	expect(editor.getShape(group)!.parentId).toBe(frame.id)
 })
 
-it.only('drops into the top-most frame, if there is one', () => {
+it('drops into the top-most frame, if there is one', () => {
 	editor.createShape({
 		type: 'frame',
 		parentId: editor.getCurrentPage().id,
@@ -1123,8 +1123,10 @@ describe('When dragging a shape', () => {
 		editor.pointerMove(30, 50)
 		editor.pointerUp(30, 50)
 		const parent = editor.getShape(rectId)?.parentId
+		jest.advanceTimersByTime(200)
 		expect(parent).toBe(frameId)
 	})
+
 	it('Unparents a shape when dragging it out of a frame', () => {
 		const rectId: TLShapeId = createRect({ pos: [10, 10], size: [20, 20] })
 		editor.pointerDown(15, 15, { target: 'selection' })
@@ -1462,7 +1464,7 @@ describe('When resizing a frame', () => {
 		expect(editor.getShape(innerRectId)?.parentId).toBe(groupId)
 	})
 
-	it('drops kicked out children onto the page', () => {
+	it.only('drops kicked out children onto the page', () => {
 		// Create a frame
 		const frameId = dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
 
