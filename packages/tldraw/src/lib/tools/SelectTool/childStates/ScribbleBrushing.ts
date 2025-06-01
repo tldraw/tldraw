@@ -141,7 +141,7 @@ export class ScribbleBrushing extends StateNode {
 
 			if (geometry.hitTestLineSegment(A, B, minDist)) {
 				const outermostShape = this.editor.getOutermostSelectableShape(shape)
-				const pageMask = this.editor.getShapeMask(outermostShape.id)
+				const pageMask = this.editor.getShapePageMask(outermostShape.id)
 				if (pageMask) {
 					const intersection = intersectLineSegmentPolygon(
 						previousPagePoint,
