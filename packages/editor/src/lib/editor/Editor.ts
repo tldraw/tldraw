@@ -5357,9 +5357,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		point: VecLike,
 		opts = {} as { margin?: number; hitInside?: boolean }
 	): TLShape[] {
-		return this.getCurrentPageShapes().filter(
-			(shape) => !this.isShapeHidden(shape) && this.isPointInShape(shape, point, opts)
-		)
+		return this.getCurrentPageShapesSorted()
+			.filter((shape) => !this.isShapeHidden(shape) && this.isPointInShape(shape, point, opts))
+			.reverse()
 	}
 
 	/**

@@ -257,15 +257,17 @@ export function startEditingShapeWithLabel(editor: Editor, shape: TLShape, selec
 
 export function getDroppedShapesToNewParents(
 	editor: Editor,
-	shapes: TLShape[],
+	shapes: Set<TLShape> | TLShape[],
 	cb?: (shape: TLShape, parent: TLShape) => boolean
 ) {
+	const pageShapes = editor.getCurrentPageShapesSorted()
+
 	const remainingShapesToReparent = new Set(shapes)
 
 	const reparenting = new Map<TLShapeId, TLShape[]>()
 
-	const potentialParentFrames = editor
-		.getCurrentPageShapesSorted()
+	const potentialParentFrames = pageShapes
+		// filter out any shapes that aren't frames or that are included among the provided shapes
 		.filter(
 			(s) => editor.isShapeOfType<TLFrameShape>(s, 'frame') && !remainingShapesToReparent.has(s)
 		)
@@ -293,6 +295,9 @@ export function getDroppedShapesToNewParents(
 
 		const childrenToReparent = []
 
+		// the parent must be below the child in the page
+		const frameSortPosition = pageShapes.indexOf(frame)
+
 		// For each of the dropping shapes...
 		for (const shape of remainingShapesToReparent) {
 			// Don't reparent a frame to itself
@@ -301,12 +306,16 @@ export function getDroppedShapesToNewParents(
 			// Use the callback to filter out certain shapes
 			if (cb && !cb(shape, frame)) continue
 
+			if (pageShapes.indexOf(shape) < frameSortPosition) {
+				continue
+			}
+
 			let shapeGroupId: TLShapeId | undefined
 
 			if (shapeGroupIds.has(shape.id)) {
 				shapeGroupId = shapeGroupIds.get(shape.id)
 			} else {
-				shapeGroupId = editor.findShapeAncestor(frame, (s) =>
+				shapeGroupId = editor.findShapeAncestor(shape, (s) =>
 					editor.isShapeOfType<TLGroupShape>(s, 'group')
 				)?.id
 				shapeGroupIds.set(shape.id, shapeGroupId)
@@ -324,13 +333,17 @@ export function getDroppedShapesToNewParents(
 			const geometry = editor.getShapeGeometry(shape)
 			if (doesGeometryOverlapPolygon(geometry, parentPolygonInShapeSpace)) {
 				// If the shape overlaps the frame, reparent it to that frame
-				childrenToReparent.push(shape)
+				if (shape.parentId !== frame.id) {
+					childrenToReparent.push(shape)
+				}
 				remainingShapesToReparent.delete(shape)
 				continue
 			}
 		}
 
-		reparenting.set(frame.id, childrenToReparent)
+		if (childrenToReparent.length) {
+			reparenting.set(frame.id, childrenToReparent)
+		}
 	}
 
 	return { reparenting, remainingShapesToReparent }

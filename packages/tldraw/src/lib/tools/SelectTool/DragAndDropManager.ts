@@ -1,5 +1,7 @@
 import {
 	Editor,
+	TLFrameShape,
+	TLGroupShape,
 	TLParentId,
 	TLShape,
 	TLShapeId,
@@ -109,11 +111,37 @@ export class DragAndDropManager {
 		// get fresh moving shapes
 		movingShapes = compact(movingShapes.map((s) => editor.getShape(s)))
 
+		const shapesToActuallyMove = new Set(movingShapes)
+		const movingGroups = new Set<TLGroupShape>()
+		const shapesToIgnoreForHoveredShape = new Set(movingShapes)
+
+		for (const shape of shapesToActuallyMove) {
+			const parent = editor.getShapeParent(shape)
+			if (parent && editor.isShapeOfType<TLGroupShape>(parent, 'group')) {
+				if (!movingGroups.has(parent)) {
+					movingGroups.add(parent)
+				}
+			}
+		}
+
+		for (const movingGroup of movingGroups) {
+			const children = compact(
+				editor.getSortedChildIdsForParent(movingGroup).map((id) => editor.getShape(id))
+			)
+			if (children.every((c) => shapesToActuallyMove.has(c))) {
+				for (const child of children) {
+					shapesToActuallyMove.delete(child)
+				}
+				shapesToIgnoreForHoveredShape.add(movingGroup)
+				shapesToActuallyMove.add(movingGroup)
+			}
+		}
+
 		// find all the possible parent frames on the page where the moving shapes will fall into
 		const { reparenting, remainingShapesToReparent } = getDroppedShapesToNewParents(
 			editor,
-			movingShapes,
-			(s) => s.type !== 'frame'
+			shapesToActuallyMove,
+			(s) => !editor.isShapeOfType<TLFrameShape>(s, 'frame')
 		)
 
 		editor.run(() => {
@@ -153,7 +181,7 @@ export class DragAndDropManager {
 
 		const hintingShapeIds = new Set<TLShapeId>()
 
-		for (const shape of movingShapes) {
+		for (const shape of shapesToActuallyMove) {
 			// Fresh parent id
 			const parentId = this.editor.getShape(shape)?.parentId
 			const initialParentId = this.initialParentids.get(shape.id)
