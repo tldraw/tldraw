@@ -4318,6 +4318,11 @@ export const USER_COLORS: readonly ["#FF802B", "#EC5E41", "#F2555A", "#F04F88", 
 // @internal
 export function useReactiveEvent<Args extends Array<unknown>, Result>(handler: (...args: Args) => Result): (...args: Args) => Result;
 
+// @public (undocumented)
+export function useReactiveKeyPressed(keys: string[]): {
+    [key: string]: boolean;
+};
+
 // @internal
 export function useRefState<T>(initialValue: T): [T, Dispatch<SetStateAction<T>>];
 

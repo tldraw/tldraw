@@ -1,4 +1,4 @@
-import { stopEventPropagation, useEditor, useValue } from '@tldraw/editor'
+import { stopEventPropagation, useEditor, useReactiveKeyPressed, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 
 const LINK_ICON =
@@ -7,10 +7,19 @@ const LINK_ICON =
 export function HyperlinkButton({ url }: { url: string }) {
 	const editor = useEditor()
 	const hideButton = useValue('zoomLevel', () => editor.getZoomLevel() < 0.32, [editor])
+	const selectToolActive = useValue(
+		'isSelectToolActive',
+		() => editor.getCurrentToolId() === 'select',
+		[editor]
+	)
+
+	const keyPressed = useReactiveKeyPressed(['Shift'])
+
 	return (
 		<a
 			className={classNames('tl-hyperlink-button', {
 				'tl-hyperlink-button__hidden': hideButton,
+				'tl-hyperlink-pointer-event__none': selectToolActive && keyPressed.Shift,
 			})}
 			href={url}
 			target="_blank"
