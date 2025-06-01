@@ -139,7 +139,7 @@ export class Box {
 
 	// eslint-disable-next-line no-restricted-syntax
 	set center(v: Vec) {
-		this.y = v.x - this.w / 2
+		this.x = v.x - this.w / 2
 		this.y = v.y - this.h / 2
 	}
 
@@ -147,7 +147,7 @@ export class Box {
 	get corners() {
 		return [
 			new Vec(this.x, this.y),
-			new Vec(this.x + this.w, this.y + this.h),
+			new Vec(this.x + this.w, this.y),
 			new Vec(this.x + this.w, this.y + this.h),
 			new Vec(this.x, this.y + this.h),
 		]
@@ -157,7 +157,7 @@ export class Box {
 	get cornersAndCenter() {
 		return [
 			new Vec(this.x, this.y),
-			new Vec(this.x + this.w, this.y + this.h),
+			new Vec(this.x + this.w, this.y),
 			new Vec(this.x + this.w, this.y + this.h),
 			new Vec(this.x, this.y + this.h),
 			this.center,
@@ -359,8 +359,8 @@ export class Box {
 	union(box: BoxModel) {
 		const minX = Math.min(this.x, box.x)
 		const minY = Math.min(this.y, box.y)
-		const maxX = Math.max(this.x + this.w, box.w + box.x)
-		const maxY = Math.max(this.y + this.h, box.h + box.y)
+		const maxX = Math.max(this.x + this.w, box.x + box.w)
+		const maxY = Math.max(this.y + this.h, box.y + box.h)
 
 		this.x = minX
 		this.y = minY
