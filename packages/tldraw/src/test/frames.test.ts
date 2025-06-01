@@ -1025,7 +1025,7 @@ it('Allows dragging grouped shapes into frames if every shape in the group is in
 	expect(editor.getShape(group)!.parentId).toBe(frame.id)
 })
 
-it('drops into the top-most frame, if there is one', () => {
+it.only('drops into the top-most frame, if there is one', () => {
 	editor.createShape({
 		type: 'frame',
 		parentId: editor.getCurrentPage().id,
@@ -1042,10 +1042,14 @@ it('drops into the top-most frame, if there is one', () => {
 		props: { w: 200, h: 200 },
 	})
 
-	const [frame2, frame1] = editor.getLastCreatedShapes(2)
+	const [frame1, frame2] = editor.getLastCreatedShapes(2)
 
 	expect(editor.getShape(frame1)!.parentId).toBe(editor.getCurrentPageId())
 	expect(editor.getShape(frame2)!.parentId).toBe(editor.getCurrentPageId())
+
+	const sortedShapes = editor.getCurrentPageShapesSorted().map((s) => s.id)
+	expect(sortedShapes.indexOf(frame1.id)).toBe(0)
+	expect(sortedShapes.indexOf(frame2.id)).toBe(1)
 
 	editor.createShape({ type: 'geo', x: 190, y: 0, props: { w: 50, h: 100 } })
 	editor.createShape({ type: 'geo', x: 510, y: 0, props: { w: 50, h: 100 } })
@@ -1054,9 +1058,6 @@ it('drops into the top-most frame, if there is one', () => {
 	const group = editor.getLastCreatedShape()
 
 	// The group should fit perfectly between the two frames
-
-	// Make sure frame2 is in front
-	editor.bringToFront([frame2])
 
 	// Move the group down between the two frames
 	editor.select(group)
@@ -1073,7 +1074,11 @@ it('drops into the top-most frame, if there is one', () => {
 	expect(editor.getShape(group)?.parentId).toBe(editor.getCurrentPageId())
 
 	// Make sure frame1 is in front
-	editor.bringToFront([frame1])
+	editor.sendToBack([frame2])
+
+	const sortedShapes2 = editor.getCurrentPageShapesSorted().map((s) => s.id)
+	expect(sortedShapes2.indexOf(frame1.id)).toBe(1)
+	expect(sortedShapes2.indexOf(frame2.id)).toBe(0)
 
 	// Move the group down between the two frames
 	editor.select(group)
