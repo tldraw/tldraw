@@ -4886,7 +4886,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 	}
 
-	/** @deprecated Use {@link Editor.getShapePageMask}  instead. */
+	/** @deprecated Use {@link Editor.getShapePageMask} instead. */
 	getShapeMask(shape: TLShapeId | TLShape): VecLike[] | undefined {
 		return this.getShapePageMask(shape)
 	}
@@ -4896,7 +4896,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * const pageMask = editor.getShapeMask(shape.id)
+	 * const pageMask = editor.getShapePageMask(shape.id)
 	 * ```
 	 *
 	 * @param shape - The shape (or the shape id) of the shape to get the mask for.
