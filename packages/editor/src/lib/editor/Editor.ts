@@ -145,7 +145,7 @@ import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
-import { notVisibleShapes } from './derivations/notVisibleShapes'
+import { getNotVisibleShapesComputed } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { ClickManager } from './managers/ClickManager'
@@ -5080,39 +5080,46 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	isShapeOrAncestorLocked(shape?: TLShape): boolean
-	isShapeOrAncestorLocked(id?: TLShapeId): boolean
-	isShapeOrAncestorLocked(arg?: TLShape | TLShapeId): boolean {
-		const shape = typeof arg === 'string' ? this.getShape(arg) : arg
-		if (shape === undefined) return false
-		if (shape.isLocked) return true
-		return this.isShapeOrAncestorLocked(this.getShapeParent(shape))
+	isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean {
+		const _shape = typeof shape === 'string' ? this.getShape(shape) : shape
+		if (_shape === undefined) return false
+		if (_shape.isLocked) return true
+		return this.isShapeOrAncestorLocked(this.getShapeParent(_shape))
 	}
 
+	private _notVisibleShapes = getNotVisibleShapesComputed(this)
+
+	/**
+	 * Get shapes that are outside of the viewport.
+	 *
+	 * @public
+	 */
 	@computed
-	private _notVisibleShapes() {
-		return notVisibleShapes(this)
+	getNotVisibleShapes() {
+		return this._notVisibleShapes.get()
 	}
 
 	/**
-	 * Get culled shapes.
+	 * Get culled shapes (those that should not render),taking into account which shapes are selected or editing.
 	 *
 	 * @public
 	 */
 	@computed
 	getCulledShapes() {
-		const notVisibleShapes = this._notVisibleShapes().get()
-		const selectedShapeIds = this.getSelectedShapeIds()
-		const editingId = this.getEditingShapeId()
-		const culledShapes = new Set<TLShapeId>(notVisibleShapes)
+		const culledShapes = new Set<TLShapeId>(this.getNotVisibleShapes())
+
 		// we don't cull the shape we are editing
+		const editingId = this.getEditingShapeId()
 		if (editingId) {
 			culledShapes.delete(editingId)
 		}
+
 		// we also don't cull selected shapes
+		const selectedShapeIds = this.getSelectedShapeIds()
 		selectedShapeIds.forEach((id) => {
 			culledShapes.delete(id)
 		})
+
 		return culledShapes
 	}
 
@@ -5548,7 +5555,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!id) return undefined
 		const freshShape = this.getShape(id)
 		if (freshShape === undefined || !isShapeId(freshShape.parentId)) return undefined
-		return this.store.get(freshShape.parentId)
+		return this.getShape(freshShape.parentId)
 	}
 
 	/**
