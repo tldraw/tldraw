@@ -88,7 +88,7 @@
 		],
 		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
 		"transformIgnorePatterns": [
-			"node_modules/(?!(nanoevents)/)"
+			"node_modules/(?!(nanoevents|@tiptap)/)"
 		],
 		"moduleNameMapper": {
 			"\\.(css|less)$": "identity-obj-proxy"

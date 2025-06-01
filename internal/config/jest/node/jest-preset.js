@@ -3,7 +3,7 @@ const svgTransformPath = require.resolve('../../svgTransform.js')
 module.exports = {
 	roots: ['<rootDir>/src'],
 	transform: {
-		'^.+\\.(tsx|jsx|ts|js|mjs)?$': [
+		'^.+\\.(tsx|jsx|ts|js|mjs|cjs)?$': [
 			'@swc/jest',
 			{
 				jsc: {
