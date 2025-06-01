@@ -144,6 +144,8 @@ export class DragAndDropManager {
 			(s) => !editor.isShapeOfType<TLFrameShape>(s, 'frame')
 		)
 
+		const currentPageId = editor.getCurrentPageId()
+
 		editor.run(() => {
 			reparenting.forEach((childrenToReparent, frameId) => {
 				if (childrenToReparent.length === 0) return
@@ -155,22 +157,26 @@ export class DragAndDropManager {
 				remainingShapesToReparent.forEach((shape) => {
 					// sometimes a group can disappear while dragging;
 					// annoyingly, this can happen if a frame and a shape are grouped and you move the shape into the frame; the group will be lost forever
-					let initialGroupParent = this.initialGroupId.get(shape.id) as TLShapeId | undefined
-					if (initialGroupParent && !this.editor.getShape(initialGroupParent)) {
+					let nextGroupId = this.initialGroupId.get(shape.id) as TLShapeId | undefined
+					if (nextGroupId && !this.editor.getShape(nextGroupId)) {
 						const next = this.editor.findShapeAncestor(shape, (s) => s.type === 'group')?.id
 						if (next) {
-							initialGroupParent = next
+							nextGroupId = next
 							this.initialGroupId.set(shape.id, next)
 						} else {
-							initialGroupParent = undefined
+							nextGroupId = undefined
 							this.initialGroupId.delete(shape.id)
 						}
 					}
 
-					if (initialGroupParent) {
-						editor.reparentShapes([shape], initialGroupParent)
+					if (nextGroupId) {
+						if (shape.parentId !== nextGroupId) {
+							editor.reparentShapes([shape], nextGroupId)
+						}
 					} else {
-						editor.reparentShapes([shape], editor.getCurrentPageId())
+						if (shape.parentId !== currentPageId) {
+							editor.reparentShapes([shape], currentPageId)
+						}
 					}
 				})
 			}

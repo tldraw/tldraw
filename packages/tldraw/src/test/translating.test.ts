@@ -2011,7 +2011,7 @@ describe('Note shape grid helper positions / pits', () => {
 		for (const pit of defaultPitLocations) {
 			editor
 				.pointerMove(pit.x - 4, pit.y - 4) // not exactly in the pit...
-				.expectShapeToMatch({ ...shape, x: pit.x - 100, y: pit.y - 100, index: 'a3' as IndexKey }) // but it's in the pit!
+				.expectShapeToMatch({ ...shape, x: pit.x - 100, y: pit.y - 100, index: 'a2' as IndexKey }) // but it's in the pit!
 		}
 	})
 
@@ -2071,9 +2071,9 @@ describe('Note shape grid helper positions / pits', () => {
 		const pit = defaultPitLocations[0] // top
 		editor
 			.pointerMove(pit.x - 4, pit.y - 4) // not exactly in the pit...
-			.expectShapeToMatch({ ...shape, x: pit.x - 104, y: pit.y - 104, index: 'a3' as IndexKey }) // not in the pit — the pit is further up!
+			.expectShapeToMatch({ ...shape, x: pit.x - 104, y: pit.y - 104, index: 'a2' as IndexKey }) // not in the pit — the pit is further up!
 			.pointerMove(pit.x - 4, pit.y - 4 - 100) // account for the translating shape's growY
-			.expectShapeToMatch({ ...shape, x: pit.x - 100, y: pit.y - 200, index: 'a3' as IndexKey }) // and we're in the pit
+			.expectShapeToMatch({ ...shape, x: pit.x - 100, y: pit.y - 200, index: 'a2' as IndexKey }) // and we're in the pit
 	})
 
 	it('Snaps correctly to the bottom when the not-translating shape has growY', () => {
@@ -2089,9 +2089,9 @@ describe('Note shape grid helper positions / pits', () => {
 
 		editor
 			.pointerMove(104, 324) // not exactly in the pit...
-			.expectShapeToMatch({ ...shape, x: 4, y: 224, index: 'a3' as IndexKey }) // not in the pit — the pit is further down!
+			.expectShapeToMatch({ ...shape, x: 4, y: 224, index: 'a2' as IndexKey }) // not in the pit — the pit is further down!
 			.pointerMove(104, 424) // account for the shape's growY
-			.expectShapeToMatch({ ...shape, x: 0, y: 320, index: 'a3' as IndexKey }) // and we're in the pit (420 - 100 = 320)
+			.expectShapeToMatch({ ...shape, x: 0, y: 320, index: 'a2' as IndexKey }) // and we're in the pit (420 - 100 = 320)
 	})
 
 	it('Snaps multiple notes to the pit using the note under the cursor', () => {
@@ -2113,7 +2113,7 @@ describe('Note shape grid helper positions / pits', () => {
 
 		// B snaps the selection to the pit
 		// (index is manually set because the sticky gets brought to front)
-		editor.expectShapeToMatch({ ...shapeB, x: 220, y: 0, index: 'a4' as IndexKey })
+		editor.expectShapeToMatch({ ...shapeB, x: 220, y: 0, index: 'a2' as IndexKey })
 		expect(editor.getSelectionPageBounds()).toMatchObject({ x: 220, y: 0, w: 400, h: 200 })
 
 		editor.cancel()
@@ -2134,7 +2134,7 @@ describe('Note shape grid helper positions / pits', () => {
 		// Even though B is in the same place as it was when it snapped (while dragging over B),
 		// because our cursor is over C it won't fall into the pit—because it's not hovered
 		// (index is manually set because the sticky gets brought to front)
-		editor.expectShapeToMatch({ ...shapeB, x: 216, y: -4, index: 'a4' as IndexKey })
+		editor.expectShapeToMatch({ ...shapeB, x: 216, y: -4, index: 'a2' as IndexKey })
 		expect(editor.getSelectionPageBounds()).toMatchObject({ x: 216, y: -4, w: 400, h: 200 })
 	})
 
@@ -2310,4 +2310,24 @@ describe('cancelling a translate operation', () => {
 		editor.cancel()
 		expect(editor.getShape(shapeId)?.meta).toMatchObject({ a: 'before' })
 	})
+})
+
+it('preserves z-indexes when translating', () => {
+	editor.createShape({ type: 'geo', x: 0, y: 0, props: { w: 200, h: 200 } })
+	editor.createShape({ type: 'geo', x: 100, y: 100, props: { w: 200, h: 200 } })
+	const [box1, box2] = editor.getLastCreatedShapes(2)
+
+	const ordered1 = editor.getCurrentPageShapesSorted().map((s) => s.id)
+	expect(ordered1.indexOf(box1.id)).toBe(0)
+	expect(ordered1.indexOf(box2.id)).toBe(1)
+
+	editor.select(box1)
+	editor.pointerDown(50, 50)
+	editor.pointerMove(60, 60)
+
+	jest.advanceTimersByTime(500)
+
+	const ordered2 = editor.getCurrentPageShapesSorted().map((s) => s.id)
+	expect(ordered2.indexOf(box1.id)).toBe(0)
+	expect(ordered2.indexOf(box2.id)).toBe(1)
 })

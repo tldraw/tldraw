@@ -306,9 +306,8 @@ export function getDroppedShapesToNewParents(
 			// Use the callback to filter out certain shapes
 			if (cb && !cb(shape, frame)) continue
 
-			if (pageShapes.indexOf(shape) < frameSortPosition) {
-				continue
-			}
+			// Don't fall "up" into frames in front of the shape
+			if (pageShapes.indexOf(shape) < frameSortPosition) continue
 
 			let shapeGroupId: TLShapeId | undefined
 
@@ -321,7 +320,11 @@ export function getDroppedShapesToNewParents(
 				shapeGroupIds.set(shape.id, shapeGroupId)
 			}
 
-			// If the two shapes are part of different groups, skip
+			if (shape.parentId === editor.getCurrentPageId()) {
+				remainingShapesToReparent.delete(shape)
+			}
+
+			// If the shape and the group are part of different groups, skip
 			if (shapeGroupId !== frameGroupId) continue
 
 			const parentPolygonInShapeSpace = editor
