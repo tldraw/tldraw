@@ -1483,6 +1483,13 @@ describe('When resizing a frame', () => {
 	})
 })
 
-it('avoids index bug', () => {
-	const frameId = dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+it('avoids crash when dragging into descendant', () => {
+	const frame1id = dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+	const frame2id = dragCreateFrame({ down: [50, 50], move: [150, -50], up: [150, -50] })
+
+	expect(editor.getShape(frame2id)?.parentId).toBe(frame1id)
+
+	editor.select(frame1id)
+	editor.pointerDown(25, 25)
+	editor.pointerMove(30, 30)
 })

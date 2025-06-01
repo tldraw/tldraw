@@ -316,6 +316,9 @@ export function getDroppedShapesToNewParents(
 			// If the shape and the group are part of different groups, skip
 			if (shapeGroupId !== frameGroupId) continue shapeCheck
 
+			// the shape is actually the ancestor of the frame!
+			if (editor.findShapeAncestor(frame, (s) => shape.id === s.id)) continue
+
 			const parentPolygonInShapeSpace = editor
 				.getShapePageTransform(shape)
 				.clone()
