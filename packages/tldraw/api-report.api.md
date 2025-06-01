@@ -2811,11 +2811,8 @@ export function TldrawArrowHints(): JSX_2.Element | null;
 
 // @public (undocumented)
 export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
-    // (undocumented)
     assetUrls?: TLUiAssetUrlOverrides;
-    // (undocumented)
     components?: TLComponents;
-    // (undocumented)
     embeds?: TLEmbedDefinition[];
 }
 
