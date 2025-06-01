@@ -23,6 +23,8 @@ function fromScratch(editor: Editor): Set<TLShapeId> {
  *
  * @param editor - Instance of the tldraw Editor.
  * @returns Incremental derivation of non visible shapes.
+ *
+ * @internal
  */
 export function getNotVisibleShapesComputed(editor: Editor) {
 	return computed<Set<TLShapeId>>('notVisibleShapes', function updateNotVisibleShapes(prevValue) {
