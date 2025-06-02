@@ -124,15 +124,16 @@ export function useSyncDemo(
 	})
 }
 
-function shouldDisableImages(host: string) {
+function shouldDisallowUploads(host: string) {
 	return host.includes('tldraw.com') || host.includes('tldraw.xyz')
 }
 
 function createDemoAssetStore(host: string): TLAssetStore {
 	return {
 		upload: async (_asset, file) => {
-			if (shouldDisableImages(host)) {
+			if (shouldDisallowUploads(host)) {
 				alert('Uploading images is disabled in this demo.')
+				throw new Error('Uploading images is disabled in this demo.')
 			}
 			const id = uniqueId()
 
@@ -148,9 +149,6 @@ function createDemoAssetStore(host: string): TLAssetStore {
 		},
 
 		resolve(asset, context) {
-			if (shouldDisableImages(host)) {
-				return null
-			}
 			if (!asset.props.src) return null
 
 			// We don't deal with videos at the moment.
