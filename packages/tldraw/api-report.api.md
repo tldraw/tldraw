@@ -4887,6 +4887,11 @@ export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | st
 export function useUiEvents(): TLUiEventContextType;
 
 // @public (undocumented)
+export interface VideoShapeOptions {
+    autoplay: boolean;
+}
+
+// @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     canEdit(): boolean;
@@ -4902,6 +4907,8 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     isAspectRatioLocked(): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
+    // (undocumented)
+    options: VideoShapeOptions;
     // (undocumented)
     static props: RecordProps<TLVideoShape>;
     // (undocumented)
