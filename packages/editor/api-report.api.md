@@ -114,14 +114,6 @@ export class Arc2d extends Geometry2d {
         sweepFlag: number;
     });
     // (undocumented)
-    angleEnd: number;
-    // (undocumented)
-    angleStart: number;
-    // (undocumented)
-    _center: Vec;
-    // (undocumented)
-    end: Vec;
-    // (undocumented)
     getLength(): number;
     // (undocumented)
     getSvgPathData(first?: boolean): string;
@@ -130,21 +122,14 @@ export class Arc2d extends Geometry2d {
     // (undocumented)
     hitTestLineSegment(A: VecLike, B: VecLike): boolean;
     // (undocumented)
-    largeArcFlag: number;
-    // (undocumented)
-    measure: number;
-    // (undocumented)
     nearestPoint(point: VecLike): Vec;
-    // (undocumented)
-    radius: number;
-    // (undocumented)
-    start: Vec;
-    // (undocumented)
-    sweepFlag: number;
 }
 
 // @public
 export function areAnglesCompatible(a: number, b: number): boolean;
+
+// @public (undocumented)
+export const areShapesContentEqual: (a: TLShape, b: TLShape) => boolean;
 
 // @public (undocumented)
 export function average(A: VecLike, B: VecLike): string;
@@ -358,6 +343,10 @@ export class Box {
     get point(): Vec;
     set point(val: Vec);
     // (undocumented)
+    static PrettyMuchEquals(a: Box | BoxModel, b: Box | BoxModel): boolean;
+    // (undocumented)
+    prettyMuchEquals(other: Box | BoxModel): boolean;
+    // (undocumented)
     static Resize(box: Box, handle: SelectionCorner | SelectionEdge | string, dx: number, dy: number, isAspectRatioLocked?: boolean): {
         box: Box;
         scaleX: number;
@@ -434,8 +423,6 @@ export class Circle2d extends Geometry2d {
         y?: number;
     });
     // (undocumented)
-    _center: Vec;
-    // (undocumented)
     config: Omit<Geometry2dOptions, 'isClosed'> & {
         isFilled: boolean;
         radius: number;
@@ -452,12 +439,6 @@ export class Circle2d extends Geometry2d {
     hitTestLineSegment(A: VecLike, B: VecLike, distance?: number): boolean;
     // (undocumented)
     nearestPoint(point: VecLike): Vec;
-    // (undocumented)
-    radius: number;
-    // (undocumented)
-    x: number;
-    // (undocumented)
-    y: number;
 }
 
 // @public
@@ -535,23 +516,13 @@ export class CubicBezier2d extends Polyline2d {
         start: Vec;
     });
     // (undocumented)
-    a: Vec;
-    // (undocumented)
-    b: Vec;
-    // (undocumented)
-    c: Vec;
-    // (undocumented)
-    d: Vec;
-    // (undocumented)
     static GetAtT(segment: CubicBezier2d, t: number): Vec;
     // (undocumented)
-    getLength(filters?: Geometry2dFilters, precision?: number): number;
+    getLength(_filters?: Geometry2dFilters, precision?: number): number;
     // (undocumented)
     getSvgPathData(first?: boolean): string;
     // (undocumented)
     getVertices(): Vec[];
-    // (undocumented)
-    midPoint(): Vec;
     // (undocumented)
     nearestPoint(A: VecLike): Vec;
 }
@@ -572,11 +543,7 @@ export class CubicSpline2d extends Geometry2d {
     // (undocumented)
     nearestPoint(A: VecLike): Vec;
     // (undocumented)
-    points: Vec[];
-    // (undocumented)
     get segments(): CubicBezier2d[];
-    // (undocumented)
-    _segments?: CubicBezier2d[];
 }
 
 // @public (undocumented)
@@ -799,25 +766,13 @@ export class Edge2d extends Geometry2d {
         start: Vec;
     });
     // (undocumented)
-    d: Vec;
-    // (undocumented)
-    end: Vec;
-    // (undocumented)
     getLength(): number;
     // (undocumented)
     getSvgPathData(first?: boolean): string;
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    midPoint(): Vec;
-    // (undocumented)
     nearestPoint(point: VecLike): Vec;
-    // (undocumented)
-    start: Vec;
-    // (undocumented)
-    u: Vec;
-    // (undocumented)
-    ul: number;
 }
 
 // @public (undocumented)
@@ -1606,8 +1561,6 @@ export class Ellipse2d extends Geometry2d {
     // (undocumented)
     get edges(): Edge2d[];
     // (undocumented)
-    _edges?: Edge2d[];
-    // (undocumented)
     getBounds(): Box;
     // (undocumented)
     getLength(): number;
@@ -1616,13 +1569,9 @@ export class Ellipse2d extends Geometry2d {
     // (undocumented)
     getVertices(): any[];
     // (undocumented)
-    h: number;
-    // (undocumented)
     hitTestLineSegment(A: VecLike, B: VecLike): boolean;
     // (undocumented)
     nearestPoint(A: VecLike): Vec;
-    // (undocumented)
-    w: number;
 }
 
 // @public (undocumented)
@@ -2348,8 +2297,6 @@ export class Point2d extends Geometry2d {
     hitTestLineSegment(A: VecLike, B: VecLike, margin: number): boolean;
     // (undocumented)
     nearestPoint(): Vec;
-    // (undocumented)
-    point: Vec;
 }
 
 // @public
@@ -2394,11 +2341,7 @@ export class Polyline2d extends Geometry2d {
     // (undocumented)
     nearestPoint(A: VecLike): Vec;
     // (undocumented)
-    points: Vec[];
-    // (undocumented)
-    get segments(): Edge2d[];
-    // (undocumented)
-    _segments?: Edge2d[];
+    protected get segments(): Edge2d[];
 }
 
 // @public (undocumented)
@@ -2448,14 +2391,6 @@ export class Rectangle2d extends Polygon2d {
     getBounds(): Box;
     // (undocumented)
     getSvgPathData(): string;
-    // (undocumented)
-    h: number;
-    // (undocumented)
-    w: number;
-    // (undocumented)
-    x: number;
-    // (undocumented)
-    y: number;
 }
 
 // @public (undocumented)
@@ -2740,18 +2675,10 @@ export class Stadium2d extends Geometry2d {
         width: number;
     });
     // (undocumented)
-    a: Arc2d;
-    // (undocumented)
-    b: Edge2d;
-    // (undocumented)
-    c: Arc2d;
-    // (undocumented)
     config: Omit<Geometry2dOptions, 'isClosed'> & {
         height: number;
         width: number;
     };
-    // (undocumented)
-    d: Edge2d;
     // (undocumented)
     getBounds(): Box;
     // (undocumented)
@@ -2761,13 +2688,9 @@ export class Stadium2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    h: number;
-    // (undocumented)
     hitTestLineSegment(A: VecLike, B: VecLike): boolean;
     // (undocumented)
     nearestPoint(A: VecLike): Vec;
-    // (undocumented)
-    w: number;
 }
 
 // @public (undocumented)
@@ -4638,7 +4561,7 @@ export class Vec {
     static Neg(A: VecLike): Vec;
     // (undocumented)
     neg(): this;
-    // (undocumented)
+    // @deprecated (undocumented)
     norm(): this;
     // (undocumented)
     static Nudge(A: VecLike, B: VecLike, distance: number): Vec;
@@ -4708,7 +4631,7 @@ export class Vec {
     // (undocumented)
     static ToFixed(A: VecLike): Vec;
     // (undocumented)
-    toFixed(): Vec;
+    toFixed(): this;
     // (undocumented)
     static ToInt(A: VecLike): Vec;
     // (undocumented)
@@ -4725,7 +4648,7 @@ export class Vec {
     toString(): string;
     static Uni(A: VecLike): Vec;
     // (undocumented)
-    uni(): Vec;
+    uni(): this;
     // (undocumented)
     x: number;
     // (undocumented)

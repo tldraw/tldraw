@@ -1632,7 +1632,7 @@ export function GeoStylePickerSet({ styles }: StylePickerSetProps): JSX_2.Elemen
 export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBindings;
 
 // @public (undocumented)
-export function getArrowInfo(editor: Editor, shape: TLArrowShape | TLShapeId): TLArcArrowInfo | TLElbowArrowInfo | TLStraightArrowInfo | undefined;
+export function getArrowInfo(editor: Editor, shape: TLArrowShape | TLShapeId): TLArrowInfo;
 
 // @public (undocumented)
 export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape, bindings: TLArrowBindings): {
@@ -2811,11 +2811,8 @@ export function TldrawArrowHints(): JSX_2.Element | null;
 
 // @public (undocumented)
 export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
-    // (undocumented)
     assetUrls?: TLUiAssetUrlOverrides;
-    // (undocumented)
     components?: TLComponents;
-    // (undocumented)
     embeds?: TLEmbedDefinition[];
 }
 

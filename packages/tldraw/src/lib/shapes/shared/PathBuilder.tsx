@@ -909,11 +909,11 @@ export class PathBuilder {
 			let tangentStart, tangentEnd
 			switch (current.type) {
 				case 'line':
-					tangentStart = tangentEnd = Vec.Sub(previous, current).norm()
+					tangentStart = tangentEnd = Vec.Sub(previous, current).uni()
 					break
 				case 'cubic': {
-					tangentStart = Vec.Sub(current.cp1, previous).norm()
-					tangentEnd = Vec.Sub(current.cp2, current).norm()
+					tangentStart = Vec.Sub(current.cp1, previous).uni()
+					tangentEnd = Vec.Sub(current.cp2, current).uni()
 					break
 				}
 				default:
