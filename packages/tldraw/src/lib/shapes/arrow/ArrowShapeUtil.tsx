@@ -1196,14 +1196,15 @@ const labelGeometryCache = createComputedCache(
 
 function ArrowIndicator({ shape }: { shape: TLArrowShape }) {
 	const editor = useEditor()
+
 	const isEditing = useIsEditing(shape.id)
 	const clipPathId = useSharedSafeId(shape.id + '_clip')
 
-	const info = useValue('arrow info', () => getArrowInfo(editor, shape), [editor, shape.props])
+	const info = getArrowInfo(editor, shape)
 	if (!info) return null
 
 	const { start, end } = getArrowTerminalsInArrowSpace(editor, shape, info?.bindings)
-	const geometry = useValue('geometry', () => editor.getShapeGeometry<Group2d>(shape), [editor])
+	const geometry = editor.getShapeGeometry<Group2d>(shape)
 	const bounds = geometry.bounds
 
 	const labelGeometry =
@@ -1221,13 +1222,15 @@ function ArrowIndicator({ shape }: { shape: TLArrowShape }) {
 		(ae && info.end.arrowhead !== 'arrow') ||
 		!!labelGeometry
 
+	const labelBounds = labelGeometry ? labelGeometry.getBounds() : new Box(0, 0, 0, 0)
+
 	if (isEditing && labelGeometry) {
 		return (
 			<rect
-				x={toDomPrecision(labelGeometry.x)}
-				y={toDomPrecision(labelGeometry.y)}
-				width={labelGeometry.w}
-				height={labelGeometry.h}
+				x={toDomPrecision(labelBounds.x)}
+				y={toDomPrecision(labelBounds.y)}
+				width={labelBounds.w}
+				height={labelBounds.h}
 				rx={3.5 * shape.props.scale}
 				ry={3.5 * shape.props.scale}
 			/>
@@ -1244,7 +1247,7 @@ function ArrowIndicator({ shape }: { shape: TLArrowShape }) {
 						radius={3.5 * shape.props.scale}
 						hasText={shape.props.text.trim().length > 0}
 						bounds={bounds}
-						labelBounds={labelGeometry ? labelGeometry.getBounds() : new Box(0, 0, 0, 0)}
+						labelBounds={labelBounds}
 						as={clipStartArrowhead && as ? as : ''}
 						ae={clipEndArrowhead && ae ? ae : ''}
 					/>
@@ -1287,10 +1290,10 @@ function ArrowIndicator({ shape }: { shape: TLArrowShape }) {
 			{ae && <path d={ae} />}
 			{labelGeometry && (
 				<rect
-					x={toDomPrecision(labelGeometry.x)}
-					y={toDomPrecision(labelGeometry.y)}
-					width={labelGeometry.w}
-					height={labelGeometry.h}
+					x={toDomPrecision(labelBounds.x)}
+					y={toDomPrecision(labelBounds.y)}
+					width={labelBounds.w}
+					height={labelBounds.h}
 					rx={3.5}
 					ry={3.5}
 				/>

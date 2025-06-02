@@ -34,6 +34,7 @@ import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
+import { SneakyHandToolEmptyPage } from './sneaky/SneakyHandToolEmptyPage'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
@@ -228,6 +229,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
+				<SneakyHandToolEmptyPage />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} />
 			</Tldraw>

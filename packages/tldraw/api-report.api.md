@@ -16,6 +16,7 @@ import { BindingOnShapeIsolateOptions } from '@tldraw/editor';
 import { BindingUtil } from '@tldraw/editor';
 import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
+import { ClipboardEvent as ClipboardEvent_2 } from 'react';
 import { ComponentType } from 'react';
 import { CSSProperties } from 'react';
 import { Editor } from '@tldraw/editor';
@@ -1412,6 +1413,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     canReceiveNewChildrenOfType(shape: TLShape, _type: TLShape['type']): boolean;
     // (undocumented)
+    canResize(): boolean;
+    // (undocumented)
+    canResizeChildren(): boolean;
+    // (undocumented)
     component(shape: TLFrameShape): JSX_2.Element;
     // (undocumented)
     static configure<T extends TLShapeUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
@@ -2560,6 +2565,8 @@ export interface TextAreaProps {
     handleInputPointerDown(e: React_3.PointerEvent<HTMLElement>): void;
     // (undocumented)
     handleKeyDown(e: KeyboardEvent): void;
+    // (undocumented)
+    handlePaste(e: ClipboardEvent | React_3.ClipboardEvent<HTMLTextAreaElement>): void;
     // (undocumented)
     hasCustomTabBehavior?: boolean;
     // (undocumented)
@@ -4787,6 +4794,7 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
     handleFocus: () => void;
     handleInputPointerDown: (e: React_3.PointerEvent<Element>) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
+    handlePaste: (e: ClipboardEvent | React_3.ClipboardEvent<HTMLTextAreaElement>) => void;
     isEditing: boolean;
     isEmpty: boolean;
     isReadyForEditing: boolean;
@@ -4803,6 +4811,7 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
     handleFocus: () => void;
     handleInputPointerDown: (e: PointerEvent_2<Element>) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
+    handlePaste: (e: ClipboardEvent | ClipboardEvent_2<HTMLTextAreaElement>) => void;
     isEditing: boolean;
     isEmpty: boolean | undefined;
     isReadyForEditing: boolean;
