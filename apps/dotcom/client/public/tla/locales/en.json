@@ -278,6 +278,9 @@
   "a9ded1e5ce": {
     "translation": "Background"
   },
+  "aa0a56a1e2": {
+    "translation": "Editing of old multiplayer rooms is going away on the <important>1st of July 2025</important>. To continue editing this room past this date please sign in and copy it to your files. Viewing the rooms will remain unchanged."
+  },
   "ab0df9ba36": {
     "translation": "File limit reached"
   },
@@ -356,9 +359,6 @@
   },
   "e2ae80a510": {
     "translation": "Legal summary"
-  },
-  "e3a95d3a0a": {
-    "translation": "Editing of old multiplayer rooms is going away on the <cta>1st of July 2025</cta>. To continue editing this room past this date please sign in and copy it to your files. Viewing the rooms will remain unchanged."
   },
   "e404559826": {
     "translation": "Terms of service"

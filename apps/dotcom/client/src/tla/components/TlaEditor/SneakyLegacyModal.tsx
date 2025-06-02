@@ -24,9 +24,9 @@ function LegacyChangesDialog({ onClose }: { onClose(): void }) {
 			<TldrawUiDialogBody>
 				<p>
 					<F
-						defaultMessage="Editing of old multiplayer rooms is going away on the <cta>1st of July 2025</cta>. To continue editing this room past this date please sign in and copy it to your files. Viewing the rooms will remain unchanged."
+						defaultMessage="Editing of old multiplayer rooms is going away on the <important>1st of July 2025</important>. To continue editing this room past this date please sign in and copy it to your files. Viewing the rooms will remain unchanged."
 						values={{
-							cta: (msg) => <strong>{msg}</strong>,
+							important: (msg) => <strong>{msg}</strong>,
 						}}
 					/>
 				</p>
