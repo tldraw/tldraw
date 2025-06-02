@@ -4,18 +4,21 @@ import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class Polyline2d extends Geometry2d {
-	points: Vec[]
+	private _points: Vec[]
+	private _segments?: Edge2d[]
 
 	constructor(config: Omit<Geometry2dOptions, 'isFilled' | 'isClosed'> & { points: Vec[] }) {
 		super({ isClosed: false, isFilled: false, ...config })
 		const { points } = config
-		this.points = points
+		this._points = points
+
+		if (points.length < 2) {
+			throw new Error('Polyline2d: points must be an array of at least 2 points')
+		}
 	}
 
-	_segments?: Edge2d[]
-
 	// eslint-disable-next-line no-restricted-syntax
-	get segments() {
+	protected get segments() {
 		if (!this._segments) {
 			this._segments = []
 			const { vertices } = this
@@ -38,12 +41,12 @@ export class Polyline2d extends Geometry2d {
 	}
 
 	getVertices() {
-		return this.points
+		return this._points
 	}
 
 	nearestPoint(A: VecLike): Vec {
 		const { segments } = this
-		let nearest = this.points[0]
+		let nearest = this._points[0]
 		let dist = Infinity
 		let p: Vec // current point on segment
 		let d: number // distance from A to p
