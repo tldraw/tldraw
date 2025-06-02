@@ -39,7 +39,7 @@ export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId
 				onClick={() => editor.zoomToUser(userId)}
 				onDoubleClick={handleFollowClick}
 			>
-				<TldrawUiIcon icon="color" color={presence.color} />
+				<TldrawUiIcon label={msg('people-menu.avatar-color')} icon="color" color={presence.color} />
 				<div className="tlui-people-menu__name">
 					{presence.userName?.trim() || msg('people-menu.anonymous-user')}
 				</div>

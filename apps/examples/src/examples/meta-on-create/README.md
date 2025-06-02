@@ -1,8 +1,8 @@
 ---
 title: Shape meta (on create)
 component: ./OnCreateShapeMetaExample.tsx
-category: data/assets
-priority: 3
+category: events
+priority: 7
 keywords: [side, effects, initial, meta, register]
 ---
 

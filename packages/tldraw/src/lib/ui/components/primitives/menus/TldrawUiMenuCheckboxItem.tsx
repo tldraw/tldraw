@@ -66,6 +66,7 @@ export function TldrawUiMenuCheckboxItem<
 				>
 					<TldrawUiIcon
 						small
+						label={msg(checked ? 'ui.checked' : 'ui.unchecked')}
 						icon={toggle ? (checked ? 'toggle-on' : 'toggle-off') : checked ? 'check' : 'none'}
 					/>
 					{labelStr && (
@@ -93,6 +94,7 @@ export function TldrawUiMenuCheckboxItem<
 				>
 					<TldrawUiIcon
 						small
+						label={msg(checked ? 'ui.checked' : 'ui.unchecked')}
 						icon={toggle ? (checked ? 'toggle-on' : 'toggle-off') : checked ? 'check' : 'none'}
 					/>
 					{labelStr && (
