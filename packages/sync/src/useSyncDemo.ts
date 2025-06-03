@@ -127,7 +127,7 @@ export function useSyncDemo(
 function shouldDisallowUploads(host: string) {
 	const disallowedHosts = ['tldraw.com', 'tldraw.xyz']
 	return disallowedHosts.some(
-		(allowedHost) => host === allowedHost || host.endsWith(`.${allowedHost}`)
+		(disallowedHost) => host === disallowedHost || host.endsWith(`.${disallowedHost}`)
 	)
 }
 
