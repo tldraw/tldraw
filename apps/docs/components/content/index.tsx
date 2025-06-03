@@ -20,6 +20,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeSlug from 'rehype-slug-custom-id'
 import remarkGfm from 'remark-gfm'
 import { TldrawLink } from '../common/tldraw-link'
+import { Heading1 } from './heading-1'
 
 export function Content({ mdx, type }: { mdx: string; type?: string }) {
 	return (
@@ -58,6 +59,7 @@ export function Content({ mdx, type }: { mdx: string; type?: string }) {
 					ApiMemberTitle,
 					blockquote: Blockquote,
 					Video,
+					h1: Heading1,
 					YouTube,
 					TwoImages: SideBySideImages,
 				}}
