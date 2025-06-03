@@ -160,7 +160,7 @@ export class Box {
 			new Vec(this.x + this.w, this.y),
 			new Vec(this.x + this.w, this.y + this.h),
 			new Vec(this.x, this.y + this.h),
-			this.center,
+			new Vec(this.x + this.w / 2, this.y + this.h / 2),
 		]
 	}
 
