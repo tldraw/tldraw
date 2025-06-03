@@ -7,7 +7,7 @@ export async function DocsFooter({ article }: { article: Article }) {
 	const links = await db.getArticleLinks(article)
 
 	return (
-		<section className="py-10 mt-12 border-t border-zinc-100 dark:border-zinc-800 flex justify-between gap-16">
+		<section className="py-10 mt-12 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap justify-between gap-8">
 			{links.prev ? (
 				<Link
 					href={links.prev.path!}
@@ -27,7 +27,7 @@ export async function DocsFooter({ article }: { article: Article }) {
 			{links.next ? (
 				<Link
 					href={links.next.path!}
-					className="group py-2 px-4 -mr-4 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-900 flex flex-col items-end gap-0.5"
+					className="group py-2 px-4 -mr-4 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-900 flex flex-col items-end gap-0.5 justify-self-end ml-auto"
 				>
 					<div className="flex items-center gap-1 text-xs group-hover:text-black dark:group-hover:text-white">
 						<span>Next</span>
