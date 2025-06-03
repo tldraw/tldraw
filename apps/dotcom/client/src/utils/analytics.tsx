@@ -162,11 +162,18 @@ export function SignedOutAnalytics() {
 	useEffect(() => {
 		configurePosthog({ optedIn: false })
 		configureGA4({ optedIn: false })
+		window.Reo?.reset?.()
 	}, [])
 
 	useTrackPageViews()
 
 	return null
+}
+
+declare global {
+	interface Window {
+		Reo: any
+	}
 }
 
 export function SignedInAnalytics() {
@@ -182,6 +189,29 @@ export function SignedInAnalytics() {
 			optedIn: user.allowAnalyticsCookie === true,
 			user: { id: user.id, name: user.name, email: user.email },
 		})
+
+		// Add Reo analytics
+		const reoIdentify = () =>
+			window.Reo?.identify?.({
+				name: user.name,
+				email: user.email,
+				userId: user.id,
+				username: user.id,
+			})
+		if (!document.getElementById('reo-script-loader')) {
+			const reoId = '47839e47a5ed202'
+			const reoScriptTag = document.createElement('script')
+			reoScriptTag.id = 'reo-script-loader'
+			reoScriptTag.src = `https://static.reo.dev/${reoId}/reo.js`
+			reoScriptTag.defer = true
+			reoScriptTag.onload = () => {
+				window.Reo.init({ clientID: reoId })
+				reoIdentify()
+			}
+			document.head.appendChild(reoScriptTag)
+		} else {
+			reoIdentify()
+		}
 	}, [user.allowAnalyticsCookie, user.email, user.id, user.name])
 
 	useTrackPageViews()
