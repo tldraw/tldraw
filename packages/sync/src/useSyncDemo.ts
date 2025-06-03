@@ -125,7 +125,10 @@ export function useSyncDemo(
 }
 
 function shouldDisallowUploads(host: string) {
-	return host.includes('tldraw.com') || host.includes('tldraw.xyz')
+	const disallowedHosts = ['tldraw.com', 'tldraw.xyz']
+	return disallowedHosts.some(
+		(allowedHost) => host === allowedHost || host.endsWith(`.${allowedHost}`)
+	)
 }
 
 function createDemoAssetStore(host: string): TLAssetStore {
