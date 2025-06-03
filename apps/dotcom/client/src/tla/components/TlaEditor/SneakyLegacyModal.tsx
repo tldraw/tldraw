@@ -17,18 +17,13 @@ function LegacyChangesModal({ onClose }: { onClose(): void }) {
 		<div className={styles.dialog}>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
-					<F defaultMessage="Upcoming changes to old rooms" />
+					<F defaultMessage="This room will soon be read-only" />
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody>
 				<p>
-					<F
-						defaultMessage="Editing of old multiplayer rooms is going away on the <important>1st of July 2025</important>. To continue editing this room past this date please sign in and copy it to your files. Viewing the rooms will remain unchanged."
-						values={{
-							important: (msg) => <strong>{msg}</strong>,
-						}}
-					/>
+					<F defaultMessage="After July 1st, 2025 this anonymous tldraw multiplayer room will become read-only. To continue editing in the future please sign in and copy it to your files." />
 				</p>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className={styles.footer}>

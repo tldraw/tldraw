@@ -188,9 +188,6 @@
   "7b1329f5ca": {
     "translation": "User manual"
   },
-  "7c3b29d8fc": {
-    "translation": "Upcoming changes to old rooms"
-  },
   "7cb5f8b4a5": {
     "translation": "Forget"
   },
@@ -278,9 +275,6 @@
   "a9ded1e5ce": {
     "translation": "Background"
   },
-  "aa0a56a1e2": {
-    "translation": "Editing of old multiplayer rooms is going away on the <important>1st of July 2025</important>. To continue editing this room past this date please sign in and copy it to your files. Viewing the rooms will remain unchanged."
-  },
   "ab0df9ba36": {
     "translation": "File limit reached"
   },
@@ -327,6 +321,9 @@
   "c87aacf567": {
     "translation": "Sign out"
   },
+  "cbef7ba103": {
+    "translation": "This room will soon be read-only"
+  },
   "cceaefbc20": {
     "translation": "Share this file"
   },
@@ -365,6 +362,9 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
+  },
+  "ea2301d01c": {
+    "translation": "After July 1st, 2025 this anonymous tldraw multiplayer room will become read-only. To continue editing in the future please sign in and copy it to your files."
   },
   "ea4788705e": {
     "translation": "Cancel"
