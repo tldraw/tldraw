@@ -3717,10 +3717,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getViewportScreenCenter() {
 		const viewportScreenBounds = this.getViewportScreenBounds()
-		return new Vec(
-			viewportScreenBounds.midX - viewportScreenBounds.minX,
-			viewportScreenBounds.midY - viewportScreenBounds.minY
-		)
+		return new Vec(viewportScreenBounds.w / 2, viewportScreenBounds.h / 2)
 	}
 
 	/**
