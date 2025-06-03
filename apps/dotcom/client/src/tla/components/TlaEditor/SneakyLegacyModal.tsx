@@ -12,7 +12,7 @@ import {
 import { F } from '../../utils/i18n'
 import styles from './sneaky-legacy-modal.module.css'
 
-function LegacyChangesDialog({ onClose }: { onClose(): void }) {
+function LegacyChangesModal({ onClose }: { onClose(): void }) {
 	return (
 		<div className={styles.dialog}>
 			<TldrawUiDialogHeader>
@@ -47,7 +47,7 @@ export function SneakyLegacyModal() {
 
 	useEffect(() => {
 		const id = addDialog({
-			component: ({ onClose }) => <LegacyChangesDialog onClose={onClose} />,
+			component: ({ onClose }) => <LegacyChangesModal onClose={onClose} />,
 			preventBackgroundClose: true,
 		})
 		return () => {
