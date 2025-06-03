@@ -175,6 +175,32 @@ declare global {
 		Reo: any
 	}
 }
+function setupReo(options: AnalyticsOptions) {
+	if (options.optedIn === false) return
+
+	const user = options.user
+	const reoIdentify = () =>
+		window.Reo?.identify?.({
+			name: user.name,
+			email: user.email,
+			userId: user.id,
+			username: user.id,
+		})
+	if (!document.getElementById('reo-script-loader')) {
+		const reoId = '47839e47a5ed202'
+		const reoScriptTag = document.createElement('script')
+		reoScriptTag.id = 'reo-script-loader'
+		reoScriptTag.src = `https://static.reo.dev/${reoId}/reo.js`
+		reoScriptTag.defer = true
+		reoScriptTag.onload = () => {
+			window.Reo.init({ clientID: reoId })
+			reoIdentify()
+		}
+		document.head.appendChild(reoScriptTag)
+	} else {
+		reoIdentify()
+	}
+}
 
 export function SignedInAnalytics() {
 	const app = useApp()
@@ -189,31 +215,10 @@ export function SignedInAnalytics() {
 			optedIn: user.allowAnalyticsCookie === true,
 			user: { id: user.id, name: user.name, email: user.email },
 		})
-
-		if (user.allowAnalyticsCookie === true) {
-			// Add Reo analytics
-			const reoIdentify = () =>
-				window.Reo?.identify?.({
-					name: user.name,
-					email: user.email,
-					userId: user.id,
-					username: user.id,
-				})
-			if (!document.getElementById('reo-script-loader')) {
-				const reoId = '47839e47a5ed202'
-				const reoScriptTag = document.createElement('script')
-				reoScriptTag.id = 'reo-script-loader'
-				reoScriptTag.src = `https://static.reo.dev/${reoId}/reo.js`
-				reoScriptTag.defer = true
-				reoScriptTag.onload = () => {
-					window.Reo.init({ clientID: reoId })
-					reoIdentify()
-				}
-				document.head.appendChild(reoScriptTag)
-			} else {
-				reoIdentify()
-			}
-		}
+		setupReo({
+			optedIn: user.allowAnalyticsCookie === true,
+			user: { id: user.id, name: user.name, email: user.email },
+		})
 	}, [user.allowAnalyticsCookie, user.email, user.id, user.name])
 
 	useTrackPageViews()
