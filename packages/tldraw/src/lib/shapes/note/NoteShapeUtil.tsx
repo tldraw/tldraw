@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Box,
+	EMPTY_ARRAY,
 	Editor,
 	Group2d,
 	IndexKey,
@@ -229,6 +230,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override getFontFaces(shape: TLNoteShape): TLFontFace[] {
+		if (isEmptyRichText(shape.props.richText)) {
+			return EMPTY_ARRAY
+		}
 		return getFontsFromRichText(this.editor, shape.props.richText, {
 			family: `tldraw_${shape.props.font}`,
 			weight: 'normal',
