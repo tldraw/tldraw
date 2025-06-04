@@ -16,8 +16,8 @@ import {
 } from '@tldraw/editor'
 import { useMemo } from 'react'
 import { TldrawHandles } from './canvas/TldrawHandles'
+import { TldrawOverlays } from './canvas/TldrawOverlays'
 import { TldrawScribble } from './canvas/TldrawScribble'
-import { TldrawSelectionBackground } from './canvas/TldrawSelectionBackground'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
 import { TldrawShapeIndicators } from './canvas/TldrawShapeIndicators'
 import { defaultBindingUtils } from './defaultBindingUtils'
@@ -69,8 +69,20 @@ export interface TldrawBaseProps
 	extends TldrawUiProps,
 		TldrawEditorBaseProps,
 		TLExternalContentProps {
+	/** Urls for custom assets.
+	 *
+	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
+	 */
 	assetUrls?: TLUiAssetUrlOverrides
+	/** Overrides for tldraw's components.
+	 *
+	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
+	 */
 	components?: TLComponents
+	/** Custom definitions for tldraw's embeds.
+	 *
+	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
+	 */
 	embeds?: TLEmbedDefinition[]
 }
 
@@ -98,14 +110,15 @@ export function Tldraw(props: TldrawProps) {
 	} = props
 
 	const _components = useShallowObjectIdentity(components)
+
 	const componentsWithDefault = useMemo(
 		() => ({
 			Scribble: TldrawScribble,
 			ShapeIndicators: TldrawShapeIndicators,
 			CollaboratorScribble: TldrawScribble,
 			SelectionForeground: TldrawSelectionForeground,
-			SelectionBackground: TldrawSelectionBackground,
 			Handles: TldrawHandles,
+			Overlays: TldrawOverlays,
 			Spinner,
 			LoadingScreen,
 			..._components,

@@ -747,12 +747,11 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	createShapesFromJsx(
-		shapesJsx: React.JSX.Element | React.JSX.Element[]
-	): Record<string, TLShapeId> {
-		const { shapes, assets, ids } = shapesFromJsx(shapesJsx)
+	createShapesFromJsx(shapesJsx: React.JSX.Element | React.JSX.Element[]) {
+		const { shapes, assets, ids, bindings } = shapesFromJsx(shapesJsx)
 		this.createAssets(assets)
 		this.createShapes(shapes)
+		this.createBindings(bindings)
 		return ids
 	}
 

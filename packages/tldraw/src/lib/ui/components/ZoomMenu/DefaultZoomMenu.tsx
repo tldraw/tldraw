@@ -65,11 +65,7 @@ const ZoomTriggerButton = () => {
 			aria-label={`${msg('navigation-zone.zoom')} — ${value}`}
 			title={`${msg('navigation-zone.zoom')} — ${value}`}
 			data-testid="minimap.zoom-menu-button"
-			className={
-				breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
-					? 'tlui-zoom-menu__button'
-					: 'tlui-zoom-menu__button__pct'
-			}
+			className="tlui-zoom-menu__button"
 			onDoubleClick={handleDoubleClick}
 		>
 			<_DropdownMenu.Trigger dir="ltr">

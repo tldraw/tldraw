@@ -181,6 +181,10 @@
 	border-radius: var(--radius-2);
 }
 
+.tlui-button__menu > .tlui-icon + .tlui-button__label {
+	margin-left: 0px;
+}
+
 .tlui-button__menu:nth-child(1) {
 	margin-top: 0px;
 }
@@ -329,7 +333,7 @@
 
 /* Zoom button */
 
-.tlui-zoom-menu__button__pct {
+.tlui-zoom-menu__button {
 	width: 60px;
 	min-width: 60px;
 	text-align: center;
@@ -777,6 +781,7 @@
 	display: grid;
 	place-items: center;
 	overflow-y: auto;
+	padding: 0px var(--space-3);
 }
 
 .tlui-dialog__content {
@@ -790,7 +795,7 @@
 	font-size: 12px;
 	overflow: hidden;
 	min-width: 300px;
-	max-width: 80%;
+	max-width: 100%;
 	max-height: 80%;
 }
 
@@ -802,7 +807,7 @@
 	z-index: var(--layer-header-footer);
 	padding-left: var(--space-4);
 	color: var(--color-text);
-	height: 44px;
+	height: 40px;
 }
 
 .tlui-dialog__header__title {
@@ -840,6 +845,7 @@
 
 .tlui-dialog__footer {
 	position: relative;
+	min-height: 12px;
 	z-index: var(--layer-header-footer);
 }
 
@@ -977,7 +983,6 @@
 	z-index: var(--layer-menus);
 	height: fit-content;
 	width: fit-content;
-	max-height: 80vh;
 	border-radius: var(--radius-3);
 	pointer-events: all;
 	touch-action: auto;
@@ -1040,6 +1045,31 @@
 
 .tlui-menu[data-size='tiny'] > .tlui-menu__group {
 	min-width: 0px;
+}
+
+/* ------------------ Language menu ----------------- */
+
+.tlui-language-menu {
+	max-height: 500px;
+}
+
+.tlui-language-menu::after {
+	content: '';
+	display: block;
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+	height: 24px;
+	background: linear-gradient(
+		to bottom,
+		var(--color-panel-transparent) 0%,
+		var(--color-panel) 90%,
+		var(--color-panel) 100%
+	);
+	border-bottom-left-radius: var(--radius-3);
+	border-bottom-right-radius: var(--radius-3);
+	pointer-events: none;
 }
 
 /* ------------------ Actions Menu ------------------ */

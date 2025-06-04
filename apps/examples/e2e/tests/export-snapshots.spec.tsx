@@ -1,8 +1,8 @@
-/* eslint-disable local/no-at-internal, local/no-internal-imports */
+/* eslint-disable local/no-at-internal, local/no-internal-imports, react/no-string-refs */
 import { Page, expect } from '@playwright/test'
 import assert from 'assert'
 import { rename, writeFile } from 'fs/promises'
-import { Fragment, ReactElement } from 'react'
+import { ReactElement } from 'react'
 import {
 	DefaultColorStyle,
 	DefaultDashStyle,
@@ -11,7 +11,7 @@ import {
 	Editor,
 	GeoShapeGeoStyle,
 	TLAsset,
-	TLShapeCrop,
+	TLBindingCreate,
 	TLShapePartial,
 	TLTextShape,
 	degreesToRadians,
@@ -22,6 +22,14 @@ import {
 import { TL, shapesFromJsx } from 'tldraw/src/test/test-jsx'
 import { EndToEndApi } from '../../src/misc/EndToEndApi'
 import { setup } from '../shared-e2e'
+import {
+	convexDrawShape,
+	frameContent,
+	heyDrawShape,
+	manAsset,
+	manCrop,
+	richText,
+} from './export-snapshots-data'
 import test, { ApiFixture } from './fixtures/fixtures'
 
 declare const editor: Editor
@@ -32,203 +40,6 @@ mockUniqueId(() => `mock-${nextNanoId++}`)
 
 interface Snapshots {
 	[name: string]: { [row: string]: { [testCase: string]: ReactElement } }
-}
-
-const frameContent = (
-	<Fragment>
-		<TL.geo
-			richText={toRichText('content')}
-			w={100}
-			h={100}
-			x={50}
-			y={50}
-			rotation={degreesToRadians(35)}
-			fill="solid"
-			color="orange"
-		/>
-		<TL.arrow start={{ x: 50, y: 50 }} end={{ x: 50, y: 20 }} />
-	</Fragment>
-)
-const manAsset = (
-	<TL.asset.image
-		w={100}
-		h={200}
-		src="/man.png"
-		name="man"
-		isAnimated={false}
-		mimeType="image/png"
-	/>
-)
-const manCrop: TLShapeCrop = {
-	topLeft: { x: 0.25, y: 0.05 },
-	bottomRight: { x: 0.75, y: 0.3 },
-}
-
-const richText = {
-	type: 'doc',
-	content: [
-		{
-			type: 'heading',
-			attrs: {
-				dir: 'auto',
-				level: 3,
-			},
-			content: [
-				{
-					type: 'text',
-					text: 'Headers for things',
-				},
-			],
-		},
-		{
-			type: 'bulletList',
-			content: [
-				{
-					type: 'listItem',
-					content: [
-						{
-							type: 'paragraph',
-							attrs: {
-								dir: 'auto',
-							},
-							content: [
-								{
-									type: 'text',
-									text: 'testing 123',
-								},
-							],
-						},
-					],
-				},
-				{
-					type: 'listItem',
-					content: [
-						{
-							type: 'paragraph',
-							attrs: {
-								dir: 'auto',
-							},
-							content: [
-								{
-									type: 'text',
-									text: 'lists and ',
-								},
-								{
-									type: 'text',
-									marks: [
-										{
-											type: 'link',
-											attrs: {
-												href: 'https://tldraw.dev',
-												target: '_blank',
-												rel: 'noopener noreferrer nofollow',
-												class: null,
-											},
-										},
-									],
-									text: 'links',
-								},
-							],
-						},
-					],
-				},
-			],
-		},
-		{
-			type: 'paragraph',
-			attrs: {
-				dir: 'auto',
-			},
-			content: [
-				{
-					type: 'text',
-					marks: [
-						{
-							type: 'bold',
-						},
-					],
-					text: 'and',
-				},
-				{
-					type: 'text',
-					text: ' ',
-				},
-				{
-					type: 'text',
-					marks: [
-						{
-							type: 'strike',
-						},
-					],
-					text: 'obvs',
-				},
-				{
-					type: 'text',
-					text: ' ',
-				},
-				{
-					type: 'text',
-					marks: [
-						{
-							type: 'highlight',
-						},
-					],
-					text: 'rich',
-				},
-				{
-					type: 'text',
-					text: ' ',
-				},
-				{
-					type: 'text',
-					marks: [
-						{
-							type: 'code',
-						},
-					],
-					text: 'text',
-				},
-			],
-		},
-		{
-			type: 'paragraph',
-			attrs: {
-				dir: 'auto',
-			},
-			content: [
-				{
-					type: 'text',
-					marks: [
-						{
-							type: 'highlight',
-						},
-					],
-					text: 'highlight ',
-				},
-				{
-					type: 'text',
-					marks: [
-						{
-							type: 'highlight',
-						},
-						{
-							type: 'bold',
-						},
-					],
-					text: 'across',
-				},
-				{
-					type: 'text',
-					marks: [
-						{
-							type: 'highlight',
-						},
-					],
-					text: ' styles',
-				},
-			],
-		},
-	],
 }
 
 const snapshots: Snapshots = {
@@ -719,10 +530,403 @@ const snapshots: Snapshots = {
 			),
 		},
 	},
+	'Weird elbow arrows': {
+		'Small segments, contained': {
+			A: (
+				<>
+					<TL.geo w={150} h={150} ref="a" />
+					<TL.geo w={30} h={30} x={15} y={15} ref="b" />
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow to="a" terminal="start" />
+						<TL.binding.arrow
+							to="b"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 1, y: 0.5 }}
+							snap="edge-point"
+						/>
+					</TL.arrow>
+				</>
+			),
+			B: (
+				<>
+					<TL.geo w={150} h={150} ref="a" />
+					<TL.geo w={30} h={30} x={25} y={15} ref="b" />
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow to="a" terminal="start" />
+						<TL.binding.arrow
+							to="b"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 1, y: 0.5 }}
+							snap="edge-point"
+						/>
+					</TL.arrow>
+				</>
+			),
+			'Exact match': (
+				<>
+					<TL.geo w={150} h={150} ref="a" />
+					<TL.geo w={30} h={30} x={45} y={15} ref="b" />
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow to="a" terminal="start" />
+						<TL.binding.arrow
+							to="b"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 1, y: 0.5 }}
+							snap="edge-point"
+						/>
+					</TL.arrow>
+				</>
+			),
+			C: (
+				<>
+					<TL.geo w={150} h={150} ref="a" />
+					<TL.geo w={30} h={30} x={50} y={15} ref="b" />
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow to="a" terminal="start" />
+						<TL.binding.arrow
+							to="b"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 1, y: 0.5 }}
+							snap="edge-point"
+						/>
+					</TL.arrow>
+				</>
+			),
+			D: (
+				<>
+					<TL.geo w={150} h={150} ref="a" />
+					<TL.geo w={30} h={30} x={70} y={15} ref="b" />
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow to="a" terminal="start" />
+						<TL.binding.arrow
+							to="b"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 1, y: 0.5 }}
+							snap="edge-point"
+						/>
+					</TL.arrow>
+				</>
+			),
+		},
+		'Draw shapes': {
+			'Hey, near': (
+				<>
+					{heyDrawShape}
+					<TL.arrow kind="elbow" x={-50} y={20}>
+						<TL.binding.arrow
+							to="hey"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.09381928931000422, y: 0.21685530426808908 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
+			'Hey, far': (
+				<>
+					{heyDrawShape}
+					<TL.arrow kind="elbow" x={-50} y={20}>
+						<TL.binding.arrow
+							to="hey"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.9994593548811798, y: 0.3061474422212521 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
+			'Hey, within': (
+				<>
+					{heyDrawShape}
+					<TL.arrow kind="elbow" x={-50} y={20}>
+						<TL.binding.arrow
+							to="hey"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.38733552172499264, y: 0.5318288846695827 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
+			'Convex, far': (
+				<>
+					{convexDrawShape}
+					<TL.arrow kind="elbow" x={-50} y={20}>
+						<TL.binding.arrow
+							to="convex"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.9919587061623889, y: 0.4908357026818453 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
+			'Convex, edge': (
+				<>
+					{convexDrawShape}
+					<TL.arrow kind="elbow" x={-50} y={20}>
+						<TL.binding.arrow
+							to="convex"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.319774673658207, y: 0.9983952589963239 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
+		},
+		'Self-bound': {
+			'Draw shape,\nsame-edge': (
+				<>
+					{convexDrawShape}
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow
+							to="convex"
+							terminal="start"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.7187653636319187, y: 0.07579613336130757 }}
+							snap="edge"
+						/>
+						<TL.binding.arrow
+							to="convex"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.04948958738107296, y: 0 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
+			'Box,\nsame edge': (
+				<>
+					<TL.geo w={100} h={100} ref="a" />
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow
+							to="a"
+							terminal="start"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.2, y: 1 }}
+							snap="edge"
+						/>
+						<TL.binding.arrow
+							to="a"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.8, y: 1 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
+			'Triangle,\nopposites': (
+				<>
+					<TL.geo w={100} h={100} geo="triangle" ref="a" />
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow
+							to="a"
+							terminal="start"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.75, y: 0.5 }}
+							snap="edge"
+						/>
+						<TL.binding.arrow
+							to="a"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.25, y: 0.5 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
+			Outside: (
+				<>
+					<TL.geo w={100} h={100} geo="triangle" ref="a" />
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow
+							to="a"
+							terminal="start"
+							isPrecise={true}
+							normalizedAnchor={{ x: 1, y: 0.5 }}
+							snap="edge"
+						/>
+						<TL.binding.arrow
+							to="a"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0, y: 0.5 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
+		},
+		'Regressions 1': {
+			'ENG-3332 ✅': (
+				<>
+					<TL.geo w={100} h={100} ref="a" />
+					<TL.geo w={30} h={30} x={60} y={10} ref="b" />
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow
+							to="a"
+							terminal="start"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.5, y: 0 }}
+							snap="edge"
+						/>
+						<TL.binding.arrow
+							to="b"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0, y: 0.5 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
+			'ENG-3333 🚫': (
+				<>
+					<TL.geo w={50} h={50} ref="box" />
+					<TL.text richText={toRichText('text')} x={70} y={30} ref="text" />
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow
+							to="box"
+							terminal="start"
+							isPrecise={true}
+							normalizedAnchor={{ x: 1, y: 0.5 }}
+							snap="edge"
+						/>
+						<TL.binding.arrow
+							to="text"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 1, y: 0.5 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
+			'ENG-3335 🚫': (
+				<>
+					<TL.geo w={100} h={100} ref="a" />
+					<TL.geo w={30} h={30} x={-30} y={70} ref="b" />
+					<TL.arrow kind="elbow" arrowheadStart="arrow" arrowheadEnd="arrow">
+						<TL.binding.arrow
+							to="a"
+							terminal="start"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0, y: 0.5 }}
+							snap="edge"
+						/>
+						<TL.binding.arrow
+							to="b"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0, y: 0.5 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
+			'ENG-3336 ✅': (
+				// this one isn't actually an elbow arrow issue but was introduced by elbow arrows
+				// work so is still included here.
+				<>
+					<TL.text richText={toRichText('one')} ref="a" />
+					<TL.text richText={toRichText('two')} y={50} ref="b" />
+					<TL.arrow kind="arc" arrowheadStart="arrow" arrowheadEnd="arrow" bend={10}>
+						<TL.binding.arrow to="a" terminal="start" />
+						<TL.binding.arrow to="b" terminal="end" />
+					</TL.arrow>
+				</>
+			),
+			'ENG-3342 ✅': (
+				<>
+					<TL.geo w={50} h={50} ref="a" />
+					<TL.geo w={50} h={50} x={40} y={-10} ref="b" />
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow
+							to="a"
+							terminal="start"
+							isPrecise={true}
+							normalizedAnchor={{ x: 1, y: 0.5 }}
+							snap="edge"
+						/>
+						<TL.binding.arrow
+							to="b"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.5, y: 0 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
+		},
+		'Regressions 2': {
+			'ENG-3366 ✅': (
+				<>
+					<TL.geo w={30} h={30} ref="a" />
+					<TL.geo w={30} h={30} x={80} y={10} ref="b" />
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow to="a" terminal="start" />
+						<TL.binding.arrow
+							to="b"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0, y: 0.5 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
+			'ENG-3371 ✅': (
+				<>
+					<TL.text ref="text" richText={toRichText('hi')} />
+					<TL.arrow kind="elbow" end={{ x: 70, y: 30 }}>
+						<TL.binding.arrow to="text" terminal="start" />
+					</TL.arrow>
+				</>
+			),
+			'ENG-3375 ✅': (
+				<>
+					{heyDrawShape}
+					<TL.arrow kind="elbow">
+						<TL.binding.arrow
+							to="hey"
+							terminal="start"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.09381928931000422, y: 0.21685530426808908 }}
+							snap="edge"
+						/>
+						<TL.binding.arrow
+							to="hey"
+							terminal="end"
+							isPrecise={true}
+							normalizedAnchor={{ x: 0.38733552172499264, y: 0.5318288846695827 }}
+							snap="edge"
+						/>
+					</TL.arrow>
+				</>
+			),
+		},
+	},
 }
 
 interface SnapshotWithoutJsx {
-	[row: string]: { [testCase: string]: { shapes: TLShapePartial[]; assets: TLAsset[] } }
+	[row: string]: {
+		[testCase: string]: { shapes: TLShapePartial[]; assets: TLAsset[]; bindings: TLBindingCreate[] }
+	}
 }
 
 test.describe('Export snapshots', () => {
@@ -734,10 +938,10 @@ test.describe('Export snapshots', () => {
 		for (const colorScheme of ['light', 'dark'] as const) {
 			test(`${name} (${colorScheme})`, async ({ page, api }) => {
 				nextNanoId = 0
-				const snapshot: SnapshotWithoutJsx = mapObjectMapValues(snapshotWithJsx, (key, row) =>
-					mapObjectMapValues(row, (key, testCase) => {
-						const { shapes, assets } = shapesFromJsx(testCase)
-						return { shapes, assets }
+				const snapshot: SnapshotWithoutJsx = mapObjectMapValues(snapshotWithJsx, (i, row) =>
+					mapObjectMapValues(row, (j, testCase) => {
+						const { shapes, assets, bindings } = shapesFromJsx(testCase, `${i}-${j}`)
+						return { shapes, assets, bindings }
 					})
 				)
 
@@ -781,7 +985,9 @@ test.describe('Export snapshots', () => {
 
 							let x = 0
 							let bottom = y
-							for (const [testCaseName, { shapes, assets }] of Object.entries(testCases)) {
+							for (const [testCaseName, { shapes, assets, bindings }] of Object.entries(
+								testCases
+							)) {
 								const testCaseTitleId = tldrawApi.createShapeId()
 								editor.createShape<TLTextShape>({
 									id: testCaseTitleId,
@@ -798,6 +1004,7 @@ test.describe('Export snapshots', () => {
 
 								editor.createAssets(assets)
 								editor.createShapes(shapes)
+								editor.createBindings(bindings)
 								const topLevelShapeIds = shapes
 									.filter((shape) => !shape.parentId)
 									.map((shape) => shape.id)
@@ -816,6 +1023,7 @@ test.describe('Export snapshots', () => {
 							y = bottom + 40
 						}
 
+						tldrawApi.markAllArrowBindings()
 						editor.selectAll()
 					},
 					{ colorScheme, name, snapshot } as any

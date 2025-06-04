@@ -1,4 +1,3 @@
-import { A } from '@/components/content/a'
 import { ApiHeading } from '@/components/content/api-heading'
 import { Blockquote } from '@/components/content/blockquote'
 import { Callout } from '@/components/content/callout'
@@ -20,6 +19,7 @@ import { MDXRemote } from 'next-mdx-remote/rsc'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeSlug from 'rehype-slug-custom-id'
 import remarkGfm from 'remark-gfm'
+import { TldrawLink } from '../common/tldraw-link'
 
 export function Content({ mdx, type }: { mdx: string; type?: string }) {
 	return (
@@ -41,7 +41,7 @@ export function Content({ mdx, type }: { mdx: string; type?: string }) {
 			<MDXRemote
 				source={mdx}
 				components={{
-					a: A,
+					a: TldrawLink,
 					Embed,
 					pre: Pre,
 					code: Code,

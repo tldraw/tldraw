@@ -49,7 +49,7 @@
 		"build-types": "lazy inherit",
 		"build-api": "lazy build-api",
 		"build-i18n": "lazy build-i18n",
-		"build-package": "lazy build-package",
+		"build-package": "lazy run build --filter 'packages/*'",
 		"preview-app": "VITE_PREVIEW=1 yarn dev-app",
 		"lint": "lazy lint",
 		"format": "prettier --write --cache '**/*.{yml,yaml,json,md,mdx,html,css,js,jsx,ts,tsx,cjs,mjs}'",

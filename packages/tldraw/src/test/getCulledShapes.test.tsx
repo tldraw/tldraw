@@ -23,29 +23,29 @@ function createShapes() {
 it('lists shapes in viewport', () => {
 	const ids = createShapes()
 	editor.selectNone()
-	// D is clipped and so should always be culled / outside of viewport
+	// D is outside of the viewport, so it's clipped
 	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.D]))
 
 	// Move the camera 201 pixels to the right and 201 pixels down
 	editor.pan({ x: -201, y: -201 })
 	jest.advanceTimersByTime(500)
 
-	// A is now outside of the viewport
+	// A is now outside of the viewport, like D
 	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A, ids.D]))
 
 	editor.pan({ x: -900, y: -900 })
 	jest.advanceTimersByTime(500)
-	// Now all shapes are outside of the viewport
-	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A, ids.B, ids.C, ids.D]))
+	// Now all shapes are outside of the viewport, except for D (which is clipped)
+	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A, ids.B, ids.C]))
 
 	editor.select(ids.B)
 	// We don't cull selected shapes
-	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A, ids.C, ids.D]))
+	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A, ids.C]))
 
 	editor.selectNone()
 	editor.setEditingShape(ids.C)
 	// or shapes being edited
-	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A, ids.B, ids.D]))
+	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A, ids.B]))
 })
 
 const shapeSize = 100

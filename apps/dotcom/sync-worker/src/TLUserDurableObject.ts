@@ -1,32 +1,35 @@
+import { CustomMutatorImpl } from '@rocicorp/zero'
+import type { SchemaCRUD, SchemaQuery } from '@rocicorp/zero/out/zql/src/mutate/custom'
 import {
 	DB,
-	isColumnMutable,
-	MAX_NUMBER_OF_FILES,
+	MIN_Z_PROTOCOL_VERSION,
 	TlaFile,
-	TlaFilePartial,
-	TlaFileState,
-	TlaFileStatePartial,
-	TlaUser,
-	Z_PROTOCOL_VERSION,
+	TlaSchema,
 	ZClientSentMessage,
 	ZErrorCode,
-	ZRowUpdate,
-	ZServerSentMessage,
+	ZServerSentPacket,
+	createMutators,
+	downgradeZStoreData,
+	schema,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { assert, ExecutionQueue, sleep } from '@tldraw/utils'
+import { ExecutionQueue, assert, assertExists, mapObjectMapValues, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
-import { Kysely, sql, Transaction } from 'kysely'
+import { Kysely, PostgresDialect, Transaction, sql } from 'kysely'
+import { Pool, PoolClient } from 'pg'
 import { Logger } from './Logger'
-import { createPostgresConnectionPool } from './postgres'
-import { Analytics, Environment, getUserDoSnapshotKey, TLUserDurableObjectEvent } from './types'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
+import { Analytics, Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
+import { PerfHackHooks, ServerCRUD } from './zero/ServerCrud'
+import { ServerQuery } from './zero/ServerQuery'
+import { ZMutationError } from './zero/ZMutationError'
+import { legacy_assertValidMutation } from './zero/legacy_assertValidMutation'
 
 export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: Kysely<DB>
@@ -54,7 +57,17 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		this.sentry = createSentry(ctx, env)
 
-		this.db = createPostgresConnectionPool(env, 'TLUserDurableObject')
+		this.pool = new Pool({
+			connectionString: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+			application_name: 'user-do',
+			idleTimeoutMillis: 3_000,
+			max: 1,
+		})
+
+		this.db = new Kysely<DB>({
+			dialect: new PostgresDialect({ pool: this.pool }),
+			log: ['error'],
+		})
 		this.measure = env.MEASURE
 
 		// debug logging in preview envs by default
@@ -125,7 +138,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				this.cache?.onInterval()
 
 				// clean up closed sockets if there are any
-				for (const socket of this.sockets) {
+				for (const socket of this.sockets.keys()) {
 					if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
 						this.sockets.delete(socket)
 					}
@@ -139,29 +152,75 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	private readonly sockets = new Set<WebSocket>()
+	private readonly sockets = new Map<WebSocket, { protocolVersion: number; sessionId: string }>()
 
-	maybeReportColdStartTime(type: ZServerSentMessage['type']) {
+	private makeCrud(
+		client: PoolClient,
+		signal: AbortSignal,
+		perfHackHooks: PerfHackHooks
+	): SchemaCRUD<TlaSchema> {
+		return mapObjectMapValues(
+			schema.tables,
+			(_, table) => new ServerCRUD(client, table, signal, perfHackHooks)
+		)
+	}
+
+	private makeQuery(client: PoolClient, signal: AbortSignal): SchemaQuery<TlaSchema> {
+		return mapObjectMapValues(
+			schema.tables,
+			(tableName) => new ServerQuery(signal, client, true, tableName) as any
+		)
+	}
+
+	maybeReportColdStartTime(type: ZServerSentPacket['type']) {
 		if (type !== 'initial_data' || !this.coldStartStartTime) return
 		const time = Date.now() - this.coldStartStartTime
 		this.coldStartStartTime = null
 		this.logEvent({ type: 'cold_start_time', id: this.userId!, duration: time })
 	}
 
-	broadcast(message: ZServerSentMessage) {
+	private outgoingBuffer = null as ZServerSentPacket[] | null
+	private flushBuffer() {
+		const buffer = this.outgoingBuffer
+		this.outgoingBuffer = null
+		if (!buffer) return
+
+		for (const [socket, socketMeta] of this.sockets.entries()) {
+			if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
+				this.sockets.delete(socket)
+				continue
+			}
+			if (socket.readyState !== WebSocket.OPEN) {
+				continue
+			}
+			// maybe downgrade the data for the client
+			if (socketMeta.protocolVersion === 1) {
+				for (let msg of buffer) {
+					if (msg.type === 'initial_data') {
+						msg = {
+							type: 'initial_data',
+							initialData: downgradeZStoreData(msg.initialData) as any,
+						}
+					}
+					socket.send(JSON.stringify(msg))
+				}
+				return
+			}
+
+			socket.send(JSON.stringify(buffer))
+		}
+	}
+
+	broadcast(message: ZServerSentPacket) {
 		this.logEvent({ type: 'broadcast_message', id: this.userId! })
 		this.maybeReportColdStartTime(message.type)
-		const msg = JSON.stringify(message)
-		for (const socket of this.sockets) {
-			if (socket.readyState === WebSocket.OPEN) {
-				socket.send(msg)
-			} else if (
-				socket.readyState === WebSocket.CLOSED ||
-				socket.readyState === WebSocket.CLOSING
-			) {
-				this.sockets.delete(socket)
-			}
+		if (!this.outgoingBuffer) {
+			this.outgoingBuffer = []
+			setTimeout(() => {
+				this.flushBuffer()
+			})
 		}
+		this.outgoingBuffer.push(message)
 	}
 	private readonly messageQueue = new ExecutionQueue()
 
@@ -184,13 +243,17 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		serverWebSocket.accept()
 
-		if (Number(protocolVersion) !== Z_PROTOCOL_VERSION || this.__test__isForceDowngraded) {
+		if (protocolVersion < MIN_Z_PROTOCOL_VERSION || this.__test__isForceDowngraded) {
 			serverWebSocket.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
 
 		serverWebSocket.addEventListener('message', (e) =>
-			this.messageQueue.push(() => this.handleSocketMessage(serverWebSocket, e.data.toString()))
+			this.messageQueue.push(() =>
+				this.handleSocketMessage(serverWebSocket, e.data.toString()).catch((e) =>
+					this.captureException(e, { source: 'serverWebSocket "message" event' })
+				)
+			)
 		)
 		serverWebSocket.addEventListener('close', () => {
 			this.sockets.delete(serverWebSocket)
@@ -200,17 +263,27 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			this.sockets.delete(serverWebSocket)
 		})
 
-		this.sockets.add(serverWebSocket)
+		this.sockets.set(serverWebSocket, {
+			protocolVersion,
+			sessionId,
+		})
 		this.maybeStartInterval()
 
 		const initialData = this.cache.store.getCommittedData()
 		if (initialData) {
 			this.log.debug('sending initial data on connect', this.userId)
 			serverWebSocket.send(
-				JSON.stringify({
-					type: 'initial_data',
-					initialData,
-				} satisfies ZServerSentMessage)
+				protocolVersion === 1
+					? JSON.stringify({
+							type: 'initial_data',
+							initialData: downgradeZStoreData(initialData),
+						})
+					: JSON.stringify([
+							{
+								type: 'initial_data',
+								initialData,
+							} satisfies ZServerSentPacket,
+						])
 			)
 		} else {
 			this.log.debug('no initial data to send, waiting for boot to finish', this.userId)
@@ -226,6 +299,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		const msg = JSON.parse(message) as any as ZClientSentMessage
 		switch (msg.type) {
 			case 'mutate':
+			case 'mutator':
 				if (rateLimited) {
 					this.logEvent({ type: 'rate_limited', id: this.userId! })
 					await this.rejectMutation(socket, msg.mutationId, ZErrorCode.rate_limit_exceeded)
@@ -257,201 +331,78 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private async rejectMutation(socket: WebSocket, mutationId: string, errorCode: ZErrorCode) {
 		this.assertCache()
+		const socketMeta = assertExists(this.sockets.get(socket), 'Socket not found')
 		this.logEvent({ type: 'reject_mutation', id: this.userId! })
 		this.cache.store.rejectMutation(mutationId)
 		this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== mutationId)
-		socket?.send(
-			JSON.stringify({
-				type: 'reject',
-				mutationId,
-				errorCode,
-			} satisfies ZServerSentMessage)
-		)
+
+		const msg: ZServerSentPacket = {
+			type: 'reject',
+			mutationId,
+			errorCode,
+		}
+
+		socket?.send(JSON.stringify(socketMeta.protocolVersion === 1 ? msg : [msg]))
 	}
 
-	private async assertValidMutation(update: ZRowUpdate, tx: Transaction<DB>) {
-		// s is the entire set of data that the user has access to
-		// and is up to date with all committed mutations so far.
-		// we commit each mutation one at a time before handling the next.
-		const s = this.cache!.store.getFullData()
-		if (!s) {
-			// This should never happen
-			throw new ZMutationError(ZErrorCode.unknown_error, 'Store data not fetched')
-		}
-		switch (update.table) {
-			case 'user': {
-				const isUpdatingSelf = (update.row as TlaUser).id === this.userId
-				if (!isUpdatingSelf)
-					throw new ZMutationError(
-						ZErrorCode.forbidden,
-						'Cannot update user record that is not our own: ' + (update.row as TlaUser).id
-					)
-				// todo: prevent user from updating their email?
-				return
-			}
-			case 'file': {
-				const nextFile = update.row as TlaFilePartial
-				const prevFile = s.files.find((f) => f.id === nextFile.id)
-				if (!prevFile) {
-					const isOwner = nextFile.ownerId === this.userId
-					if (isOwner) return
-					throw new ZMutationError(
-						ZErrorCode.forbidden,
-						`Cannot create a file for another user. fileId: ${nextFile.id} file owner: ${nextFile.ownerId} current user: ${this.userId}`
-					)
-				}
-				if (prevFile.isDeleted)
-					throw new ZMutationError(ZErrorCode.forbidden, 'Cannot update a deleted file')
-				// Owners are allowed to make changes
-				if (prevFile.ownerId === this.userId) return
-
-				// We can make changes to updatedAt field in a shared, editable file
-				if (prevFile.shared && prevFile.sharedLinkType === 'edit') {
-					const { id: _id, ...rest } = nextFile
-					if (Object.keys(rest).length === 1 && rest.updatedAt !== undefined) return
-					throw new ZMutationError(
-						ZErrorCode.forbidden,
-						'Cannot update fields other than updatedAt on a shared file'
-					)
-				}
-				throw new ZMutationError(
-					ZErrorCode.forbidden,
-					'Cannot update file that is not our own and not shared in edit mode' +
-						` user id ${this.userId} ownerId ${prevFile.ownerId}`
-				)
-			}
-			case 'file_state': {
-				const nextFileState = update.row as TlaFileStatePartial
-				let file = s.files.find((f) => f.id === nextFileState.fileId)
-				if (!file) {
-					// The user might not have access to this file yet, because they just followed a link
-					// let's allow them to create a file state for it if it exists and is shared.
-					file = await tx
-						.selectFrom('file')
-						.selectAll()
-						.where('id', '=', nextFileState.fileId)
-						.executeTakeFirst()
-				}
-				if (!file) {
-					throw new ZMutationError(ZErrorCode.bad_request, `File not found ${nextFileState.fileId}`)
-				}
-				if (nextFileState.userId !== this.userId) {
-					throw new ZMutationError(
-						ZErrorCode.forbidden,
-						`Cannot update file state for another user ${nextFileState.userId}`
-					)
-				}
-				if (file.ownerId === this.userId) return
-				if (file.shared) return
-
-				throw new ZMutationError(
-					ZErrorCode.forbidden,
-					"Cannot update file state of file we don't own and is not shared"
-				)
-			}
-		}
-	}
+	private pool: Pool
 
 	private async _doMutate(msg: ZClientSentMessage) {
 		this.assertCache()
-		const { insertedFiles, newGuestFiles } = await this.db.transaction().execute(async (tx) => {
-			const insertedFiles: TlaFile[] = []
-			const newGuestFiles: TlaFile[] = []
-			for (const update of msg.updates) {
-				await this.assertValidMutation(update, tx)
-				switch (update.event) {
-					case 'insert': {
-						if (update.table === 'file_state') {
-							const { fileId, userId, ...rest } = update.row as any
-							await tx
-								.insertInto(update.table)
-								.values(update.row as TlaFileState)
-								.onConflict((oc) => {
-									if (Object.keys(rest).length === 0) {
-										return oc.columns(['fileId', 'userId']).doNothing()
-									} else {
-										return oc.columns(['fileId', 'userId']).doUpdateSet(rest)
-									}
-								})
-								.execute()
-							const guestFile = await tx
-								.selectFrom('file')
-								.where('id', '=', fileId)
-								.where('ownerId', '!=', userId)
-								.selectAll()
-								.executeTakeFirst()
-							if (guestFile) {
-								newGuestFiles.push(guestFile as any as TlaFile)
-							}
-							break
-						} else {
-							const { id: _id, ...rest } = update.row as any
-							if (update.table === 'file') {
-								const count =
-									this.cache.store
-										.getFullData()
-										?.files.filter((f) => f.ownerId === this.userId && !f.isDeleted).length ?? 0
-								if (count >= MAX_NUMBER_OF_FILES) {
-									throw new ZMutationError(
-										ZErrorCode.max_files_reached,
-										`Cannot create more than ${MAX_NUMBER_OF_FILES} files.`
-									)
-								}
-							}
-							const result = await tx
-								.insertInto(update.table)
-								.values(update.row as any)
-								.onConflict((oc) => oc.column('id').doUpdateSet(rest))
-								.returningAll()
-								.execute()
-							if (update.table === 'file' && result.length > 0) {
-								insertedFiles.push(result[0] as any as TlaFile)
-							}
-							break
-						}
+		const client = await this.pool.connect()
+
+		try {
+			const newFiles = [] as TlaFile[]
+
+			await client.query('BEGIN')
+
+			const controller = new AbortController()
+			const mutate = this.makeCrud(client, controller.signal, { newFiles })
+			try {
+				if (msg.type === 'mutate') {
+					// legacy
+					for (const update of msg.updates) {
+						await legacy_assertValidMutation(this.userId!, client, update)
+						await mutate[update.table][update.event](update.row as any)
 					}
-					case 'update': {
-						const mutableColumns = Object.keys(update.row).filter((k) =>
-							isColumnMutable(update.table, k)
-						)
-						if (mutableColumns.length === 0) continue
-						const updates = Object.fromEntries(
-							mutableColumns.map((k) => [k, (update.row as any)[k]])
-						)
-						if (update.table === 'file_state') {
-							const { fileId, userId } = update.row as any
-							await tx
-								.updateTable('file_state')
-								.set(updates)
-								.where('fileId', '=', fileId)
-								.where('userId', '=', userId)
-								.execute()
-						} else {
-							const { id } = update.row as any
-							await tx.updateTable(update.table).set(updates).where('id', '=', id).execute()
-						}
-						break
-					}
-					case 'delete':
-						if (update.table === 'file_state') {
-							const { fileId, userId } = update.row as any
-							await tx
-								.deleteFrom('file_state')
-								.where('fileId', '=', fileId)
-								.where('userId', '=', userId)
-								.execute()
-						} else {
-							const { id } = update.row as any
-							await tx.deleteFrom(update.table).where('id', '=', id).execute()
-						}
-						break
+				} else {
+					// new
+					const mutators = createMutators(this.userId!)
+					const path = msg.name.split('.')
+					assert(path.length <= 2, 'Invalid mutation path')
+					const mutator: CustomMutatorImpl<TlaSchema> =
+						path.length === 1 ? (mutators as any)[path[0]] : (mutators as any)[path[0]][path[1]]
+					assert(mutator, 'Invalid mutator path')
+					await mutator(
+						{
+							clientID: '',
+							dbTransaction: {
+								wrappedTransaction: null as any,
+								async query(sqlString: string, params: unknown[]): Promise<any[]> {
+									return client.query(sqlString, params).then((res) => res.rows)
+								},
+							},
+							mutate,
+							location: 'server',
+							reason: 'authoritative',
+							mutationID: 0,
+							query: this.makeQuery(client, controller.signal),
+						},
+						msg.props
+					)
 				}
-				this.cache.store.updateOptimisticData([update], msg.mutationId)
+			} finally {
+				controller.abort()
 			}
-			const result = await this.bumpMutationNumber(tx)
+
+			// await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE')
+			const res = await client.query<{ mutationNumber: number }>(
+				`insert into user_mutation_number ("userId", "mutationNumber") values ($1, 1) on conflict ("userId") do update set "mutationNumber" = user_mutation_number."mutationNumber" + 1 returning "mutationNumber"`,
+				[this.userId]
+			)
 
 			const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
-			const mutationNumber = result.mutationNumber
+			const mutationNumber = res.rows[0].mutationNumber
 			assert(
 				mutationNumber > currentMutationNumber,
 				`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
@@ -462,14 +413,21 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				mutationId: msg.mutationId,
 				timestamp: Date.now(),
 			})
-			return { insertedFiles, newGuestFiles }
-		})
 
-		for (const file of insertedFiles) {
-			getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
-		}
-		for (const file of newGuestFiles) {
-			this.cache.addGuestFile(file)
+			await client.query('COMMIT')
+
+			for (const file of newFiles) {
+				if (file.ownerId !== this.userId) {
+					this.cache?.addGuestFile(file)
+				} else {
+					getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
+				}
+			}
+		} catch (e) {
+			await client.query('ROLLBACK')
+			throw e
+		} finally {
+			client.release()
 		}
 	}
 
@@ -556,9 +514,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			return
 		}
 		this.__test__isForceDowngraded = isDowngraded
-		this.sockets.forEach((socket) => {
+		for (const socket of this.sockets.keys()) {
 			socket.close()
-		})
+		}
 	}
 
 	async admin_forceHardReboot(userId: string) {
@@ -585,15 +543,5 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			await sleep(100)
 		}
 		return cache.store.getCommittedData()
-	}
-}
-
-class ZMutationError extends Error {
-	constructor(
-		public errorCode: ZErrorCode,
-		message: string,
-		public cause?: unknown
-	) {
-		super(message)
 	}
 }
