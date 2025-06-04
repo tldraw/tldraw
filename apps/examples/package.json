@@ -56,6 +56,7 @@
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"react-helmet-async": "^1.3.0",
+		"react-mathquill": "^1.0.3",
 		"react-router-dom": "^6.28.2",
 		"tldraw": "workspace:*",
 		"vite": "^5.4.14"

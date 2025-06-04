@@ -1,3 +1,6 @@
+/* eslint-disable react-hooks/rules-of-hooks */
+import { useState } from 'react'
+import { EditableMathField, MathField, addStyles } from 'react-mathquill'
 import {
 	Geometry2d,
 	HTMLContainer,
@@ -9,27 +12,30 @@ import {
 	TLResizeInfo,
 	Tldraw,
 	resizeBox,
+	useQuickReactor,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+addStyles()
+
 // [1]
 type MathShape = TLBaseShape<
-	'math-shape',
+	'math',
 	{
 		w: number
 		h: number
-		text: string
+		latex: string
 	}
 >
 
 // [2]
 export class MathShapeUtil extends ShapeUtil<MathShape> {
 	// [a]
-	static override type = 'my-custom-shape' as const
+	static override type = 'math' as const
 	static override props: RecordProps<MathShape> = {
 		w: T.number,
 		h: T.number,
-		text: T.string,
+		latex: T.string,
 	}
 
 	// [b]
@@ -37,13 +43,13 @@ export class MathShapeUtil extends ShapeUtil<MathShape> {
 		return {
 			w: 200,
 			h: 200,
-			text: '',
+			latex: '',
 		}
 	}
 
 	// [c]
 	override canEdit() {
-		return false
+		return true
 	}
 	override canResize() {
 		return true
@@ -68,7 +74,49 @@ export class MathShapeUtil extends ShapeUtil<MathShape> {
 
 	// [f]
 	component(shape: MathShape) {
-		return <HTMLContainer style={{ backgroundColor: '#efefef' }}>{shape.props.text}</HTMLContainer>
+		const [field, setField] = useState<MathField | null>(null)
+		const isEditing = this.editor.getEditingShapeId() === shape.id
+
+		useQuickReactor(
+			'focus on edit',
+			() => {
+				if (!field) return
+				if (isEditing) {
+					field.focus()
+					field.select()
+				}
+			},
+			[field, isEditing]
+		)
+
+		return (
+			<HTMLContainer>
+				<EditableMathField
+					mathquillDidMount={(mathField) => {
+						setField(mathField)
+					}}
+					style={{
+						pointerEvents: isEditing ? 'all' : 'none',
+						width: shape.props.w,
+						height: shape.props.h,
+						overflow: 'hidden',
+					}}
+					latex={shape.props.latex}
+					onPointerDown={(e) => {
+						if (isEditing) e.stopPropagation()
+					}}
+					onChange={(mathField) => {
+						this.editor.updateShape<MathShape>({
+							id: shape.id,
+							type: 'math',
+							props: {
+								latex: mathField.latex(),
+							},
+						})
+					}}
+				/>
+			</HTMLContainer>
+		)
 	}
 
 	// [g]
@@ -78,15 +126,18 @@ export class MathShapeUtil extends ShapeUtil<MathShape> {
 }
 
 // [3]
-const customShape = [MathShapeUtil]
+const mathShape = [MathShapeUtil]
 
 export default function CustomShapeExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				shapeUtils={customShape}
+				persistenceKey="math-shape-example"
+				shapeUtils={mathShape}
 				onMount={(editor) => {
-					editor.createShape({ type: 'math-shape', x: 100, y: 100 })
+					const mathShapes = editor.getCurrentPageShapes().filter((shape) => shape.type === 'math')
+					if (mathShapes.length > 0) return // Don't add a new shape if one already exists
+					editor.createShape({ type: 'math', x: 100, y: 100 })
 				}}
 			/>
 		</div>

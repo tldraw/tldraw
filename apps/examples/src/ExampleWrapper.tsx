@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { uniqueId } from 'tldraw'
 import { Example } from './examples'
+// Fix for some packages (eg: react-mathquill) relying on `window.global`
+window.global = window
 
 export function ExampleWrapper({
 	example,
