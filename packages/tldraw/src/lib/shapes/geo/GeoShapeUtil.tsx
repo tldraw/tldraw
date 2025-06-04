@@ -2,6 +2,7 @@
 import {
 	BaseBoxShapeUtil,
 	Box,
+	EMPTY_ARRAY,
 	Editor,
 	Group2d,
 	HTMLContainer,
@@ -167,6 +168,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override getFontFaces(shape: TLGeoShape): TLFontFace[] {
+		if (isEmptyRichText(shape.props.richText)) {
+			return EMPTY_ARRAY
+		}
 		return getFontsFromRichText(this.editor, shape.props.richText, {
 			family: `tldraw_${shape.props.font}`,
 			weight: 'normal',
