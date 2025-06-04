@@ -59,6 +59,8 @@ export function createMutators(userId: string) {
 			insert: async (tx, file: TlaFile) => {
 				assert(file.ownerId === userId, ZErrorCode.forbidden)
 				await assertNotMaxFiles(tx, userId)
+				assert(file.id.match(/^[a-Za-Z0-9_-]+$/), ZErrorCode.bad_request)
+				assert(file.id.length <= 32, ZErrorCode.bad_request)
 
 				await tx.mutate.file.insert(file)
 			},
