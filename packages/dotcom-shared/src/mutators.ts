@@ -75,6 +75,11 @@ export function createMutators(userId: string) {
 			deleteOrForget: async (tx, file: TlaFile) => {
 				await tx.mutate.file_state.delete({ fileId: file.id, userId })
 				if (file?.ownerId === userId) {
+					if (tx.location === 'server') {
+						await tx.dbTransaction.query(`delete from public.file_state where "fileId" = $1`, [
+							file.id,
+						])
+					}
 					await tx.mutate.file.update({
 						id: file.id,
 						ownerId: file.ownerId,
