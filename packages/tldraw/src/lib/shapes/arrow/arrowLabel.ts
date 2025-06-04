@@ -9,6 +9,7 @@ import {
 	Polygon2d,
 	Polyline2d,
 	TLArrowShape,
+	TLShapeId,
 	Vec,
 	VecLike,
 	clamp,
@@ -29,94 +30,33 @@ import { getArrowInfo } from './shared'
 export const arrowBodyGeometryCache = createComputedCache(
 	'arrow body geometry',
 	(editor: Editor, shape: TLArrowShape) => {
+		let result: Geometry2d
 		const info = getArrowInfo(editor, shape)!
 		switch (info.type) {
 			case 'straight':
-				return new Edge2d({
+				result = new Edge2d({
 					start: Vec.From(info.start.point),
 					end: Vec.From(info.end.point),
 				})
+				break
 			case 'arc':
-				return new Arc2d({
+				result = new Arc2d({
 					center: Vec.Cast(info.handleArc.center),
 					start: Vec.Cast(info.start.point),
 					end: Vec.Cast(info.end.point),
 					sweepFlag: info.bodyArc.sweepFlag,
 					largeArcFlag: info.bodyArc.largeArcFlag,
 				})
+				break
 			case 'elbow':
-				return new Polyline2d({ points: info.route.points })
+				result = new Polyline2d({ points: info.route.points })
+				break
 			default:
 				exhaustiveSwitchError(info, 'type')
 		}
+		return result
 	}
 )
-
-const labelSizeCache = createComputedCache(
-	'arrow label size',
-	(editor: Editor, shape: TLArrowShape) => {
-		editor.fonts.trackFontsForShape(shape)
-		let width = 0
-		let height = 0
-
-		const bodyGeom = arrowBodyGeometryCache.get(editor, shape.id)!
-		// We use 'i' as a default label to measure against as a minimum width.
-		const text = shape.props.text || 'i'
-
-		const bodyBounds = bodyGeom.bounds
-
-		const fontSize = getArrowLabelFontSize(shape)
-
-		// First we measure the text with no constraints
-		const { w, h } = editor.textMeasure.measureText(text, {
-			...TEXT_PROPS,
-			fontFamily: FONT_FAMILIES[shape.props.font],
-			fontSize,
-			maxWidth: null,
-		})
-
-		width = w
-		height = h
-
-		let shouldSquish = false
-
-		// If the text is wider than the body, we need to squish it
-		const info = getArrowInfo(editor, shape)!
-		const labelToArrowPadding = getLabelToArrowPadding(shape)
-		const margin =
-			info.type === 'elbow'
-				? Math.max(info.elbow.A.arrowheadOffset + labelToArrowPadding, 32) +
-					Math.max(info.elbow.B.arrowheadOffset + labelToArrowPadding, 32)
-				: 64
-
-		if (bodyBounds.width > bodyBounds.height) {
-			width = Math.max(Math.min(w, margin), Math.min(bodyBounds.width - margin, w))
-			shouldSquish = true
-		} else if (width > 16 * fontSize) {
-			width = 16 * fontSize
-			shouldSquish = true
-		}
-
-		if (shouldSquish) {
-			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(text, {
-				...TEXT_PROPS,
-				fontFamily: FONT_FAMILIES[shape.props.font],
-				fontSize,
-				maxWidth: width,
-			})
-
-			width = squishedWidth
-			height = squishedHeight
-		}
-
-		return new Vec(width, height).addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
-	},
-	{ areRecordsEqual: (a, b) => a.props === b.props }
-)
-
-function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
-	return labelSizeCache.get(editor, shape.id) ?? new Vec(0, 0)
-}
 
 function getLabelToArrowPadding(shape: TLArrowShape) {
 	const strokeWidth = STROKE_SIZES[shape.props.size]
@@ -129,17 +69,84 @@ function getLabelToArrowPadding(shape: TLArrowShape) {
 	return labelToArrowPadding
 }
 
-/**
- * Return the range of possible label positions for an arrow. The full possible range is 0 to 1, but
- * as the label itself takes up space the usable range is smaller.
- */
-function getArrowLabelRange(editor: Editor, shape: TLArrowShape, info: TLArrowInfo) {
-	const bodyGeom = arrowBodyGeometryCache.get(editor, shape.id)!
+interface ArrowheadInfo {
+	hasStartBinding: boolean
+	hasEndBinding: boolean
+	hasStartArrowhead: boolean
+	hasEndArrowhead: boolean
+}
+
+function _getArrowLabelPosition(
+	editor: Editor,
+	shape: TLArrowShape,
+	info: TLArrowInfo,
+	bodyGeom: Geometry2d
+) {
+	const debugGeom: Geometry2d[] = []
+
+	const arrowheadInfo: ArrowheadInfo = {
+		hasStartBinding: !!info.bindings.start,
+		hasEndBinding: !!info.bindings.end,
+		hasStartArrowhead: info.start.arrowhead !== 'none',
+		hasEndArrowhead: info.end.arrowhead !== 'none',
+	}
+
 	const dbgPoints: VecLike[] = []
 	const dbg: Geometry2d[] = [new Group2d({ children: [bodyGeom], debugColor: 'lime' })]
 
-	const labelSize = getArrowLabelSize(editor, shape)
+	editor.fonts.trackFontsForShape(shape)
+	let width = 0
+	let height = 0
+
+	// We use 'i' as a default label to measure against as a minimum width.
+	const text = shape.props.text || 'i'
+
+	const bodyBounds = bodyGeom.bounds
+
+	const fontSize = getArrowLabelFontSize(shape)
+
+	// First we measure the text with no constraints
+	const { w, h } = editor.textMeasure.measureText(text, {
+		...TEXT_PROPS,
+		fontFamily: FONT_FAMILIES[shape.props.font],
+		fontSize,
+		maxWidth: null,
+	})
+
+	width = w
+	height = h
+
+	let shouldSquish = false
+
+	// If the text is wider than the body, we need to squish it
 	const labelToArrowPadding = getLabelToArrowPadding(shape)
+	const margin =
+		info.type === 'elbow'
+			? Math.max(info.elbow.A.arrowheadOffset + labelToArrowPadding, 32) +
+				Math.max(info.elbow.B.arrowheadOffset + labelToArrowPadding, 32)
+			: 64
+
+	if (bodyBounds.width > bodyBounds.height) {
+		width = Math.max(Math.min(w, margin), Math.min(bodyBounds.width - margin, w))
+		shouldSquish = true
+	} else if (width > 16 * fontSize) {
+		width = 16 * fontSize
+		shouldSquish = true
+	}
+
+	if (shouldSquish) {
+		const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(text, {
+			...TEXT_PROPS,
+			fontFamily: FONT_FAMILIES[shape.props.font],
+			fontSize,
+			maxWidth: width,
+		})
+
+		width = squishedWidth
+		height = squishedHeight
+	}
+
+	const labelSize = new Vec(width, height).addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
 	const paddingRelative = labelToArrowPadding / bodyGeom.length
 
 	// we can calculate the range by sticking the center of the label at the very start/end of the
@@ -203,35 +210,43 @@ function getArrowLabelRange(editor: Editor, shape: TLArrowShape, info: TLArrowIn
 		})
 	)
 
-	return { start: startRelative, end: endRelative, dbg }
-}
+	const range = { start: startRelative, end: endRelative, dbg }
 
-interface ArrowheadInfo {
-	hasStartBinding: boolean
-	hasEndBinding: boolean
-	hasStartArrowhead: boolean
-	hasEndArrowhead: boolean
-}
-export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
-	const debugGeom: Geometry2d[] = []
-	const info = getArrowInfo(editor, shape)!
-
-	const arrowheadInfo: ArrowheadInfo = {
-		hasStartBinding: !!info.bindings.start,
-		hasEndBinding: !!info.bindings.end,
-		hasStartArrowhead: info.start.arrowhead !== 'none',
-		hasEndArrowhead: info.end.arrowhead !== 'none',
-	}
-
-	const range = getArrowLabelRange(editor, shape, info)
 	if (range.dbg) debugGeom.push(...range.dbg)
 
 	const clampedPosition = getClampedPosition(shape, range, arrowheadInfo)
-	const bodyGeom = arrowBodyGeometryCache.get(editor, shape.id)!
 	const labelCenter = bodyGeom.interpolateAlongEdge(clampedPosition)
-	const labelSize = getArrowLabelSize(editor, shape)
 
 	return { box: Box.FromCenter(labelCenter, labelSize), debugGeom }
+}
+
+const arrowLabelPositionCache = {} as {
+	[id: TLShapeId]: {
+		shape: TLArrowShape
+		geom: Geometry2d
+		position: { box: Box; debugGeom: Geometry2d[] }
+	}
+}
+
+export function getArrowLabelPosition(
+	editor: Editor,
+	shape: TLArrowShape,
+	info: TLArrowInfo,
+	bodyGeom: Geometry2d
+) {
+	const prev = arrowLabelPositionCache[shape.id]
+
+	if (
+		prev &&
+		prev.shape.props.text === shape.props.text &&
+		prev.geom.bounds.prettyMuchEquals(bodyGeom.bounds)
+	) {
+		return prev.position
+	}
+
+	const position = _getArrowLabelPosition(editor, shape, info, bodyGeom)
+	arrowLabelPositionCache[shape.id] = { shape, geom: bodyGeom, position }
+	return position
 }
 
 function getClampedPosition(

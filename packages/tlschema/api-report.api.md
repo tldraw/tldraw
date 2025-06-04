@@ -1573,6 +1573,8 @@ export interface TLVideoShapeProps {
     // (undocumented)
     assetId: null | TLAssetId;
     // (undocumented)
+    autoplay: boolean;
+    // (undocumented)
     h: number;
     // (undocumented)
     playing: boolean;

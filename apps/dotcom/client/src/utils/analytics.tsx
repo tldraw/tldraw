@@ -84,14 +84,37 @@ function configureGA4(options: AnalyticsOptions) {
 	if (!shouldUseGA4) return
 
 	if (!currentOptionsGA4) {
+		ReactGA.gtag('consent', 'default', {
+			ad_storage: 'denied',
+			ad_user_data: 'denied',
+			ad_personalization: 'denied',
+			analytics_storage: 'denied',
+			// Wait for our cookie to load.
+			wait_for_update: 500,
+		})
+
 		ReactGA.initialize(GA4_MEASUREMENT_ID)
 		ReactGA.send('pageview')
 	}
 
 	if (options.optedIn) {
-		ReactGA.set({ userId: options.user.id })
+		ReactGA.set({ userId: options.user.id, anonymize_ip: false })
+		ReactGA.gtag('consent', 'update', {
+			ad_user_data: 'granted',
+			ad_personalization: 'granted',
+			ad_storage: 'granted',
+			analytics_storage: 'granted',
+		})
 	} else if (currentOptionsGA4?.optedIn) {
+		ReactGA.set({ anonymize_ip: true })
 		ReactGA.reset()
+
+		ReactGA.gtag('consent', 'update', {
+			ad_user_data: 'denied',
+			ad_personalization: 'denied',
+			ad_storage: 'denied',
+			analytics_storage: 'denied',
+		})
 	}
 
 	currentOptionsGA4 = options
@@ -139,11 +162,44 @@ export function SignedOutAnalytics() {
 	useEffect(() => {
 		configurePosthog({ optedIn: false })
 		configureGA4({ optedIn: false })
+		window.Reo?.reset?.()
 	}, [])
 
 	useTrackPageViews()
 
 	return null
+}
+
+declare global {
+	interface Window {
+		Reo: any
+	}
+}
+function setupReo(options: AnalyticsOptions) {
+	if (options.optedIn === false) return
+
+	const user = options.user
+	const reoIdentify = () =>
+		window.Reo?.identify?.({
+			name: user.name,
+			email: user.email,
+			userId: user.id,
+			username: user.id,
+		})
+	if (!document.getElementById('reo-script-loader')) {
+		const reoId = '47839e47a5ed202'
+		const reoScriptTag = document.createElement('script')
+		reoScriptTag.id = 'reo-script-loader'
+		reoScriptTag.src = `https://static.reo.dev/${reoId}/reo.js`
+		reoScriptTag.defer = true
+		reoScriptTag.onload = () => {
+			window.Reo.init({ clientID: reoId })
+			reoIdentify()
+		}
+		document.head.appendChild(reoScriptTag)
+	} else {
+		reoIdentify()
+	}
 }
 
 export function SignedInAnalytics() {
@@ -156,6 +212,10 @@ export function SignedInAnalytics() {
 			user: { id: user.id, name: user.name, email: user.email },
 		})
 		configureGA4({
+			optedIn: user.allowAnalyticsCookie === true,
+			user: { id: user.id, name: user.name, email: user.email },
+		})
+		setupReo({
 			optedIn: user.allowAnalyticsCookie === true,
 			user: { id: user.id, name: user.name, email: user.email },
 		})

@@ -2188,6 +2188,15 @@ describe('Add side to arrow binding', () => {
 	})
 })
 
+describe('TLVideoAsset AddAutoplay', () => {
+	const { up, down } = getTestMigration(videoShapeVersions.AddAutoplay)
+
+	test('down works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { autoplay: true } })
+		expect(down({ props: { autoplay: true } })).toEqual({ props: {} })
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 // check that all migrator fns were called at least once

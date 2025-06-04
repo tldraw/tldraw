@@ -16,6 +16,7 @@ import { BindingOnShapeIsolateOptions } from '@tldraw/editor';
 import { BindingUtil } from '@tldraw/editor';
 import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
+import { ClipboardEvent as ClipboardEvent_2 } from 'react';
 import { ComponentType } from 'react';
 import { CSSProperties } from 'react';
 import { Editor } from '@tldraw/editor';
@@ -1412,6 +1413,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     canReceiveNewChildrenOfType(shape: TLShape, _type: TLShape['type']): boolean;
     // (undocumented)
+    canResize(): boolean;
+    // (undocumented)
+    canResizeChildren(): boolean;
+    // (undocumented)
     component(shape: TLFrameShape): JSX_2.Element;
     // (undocumented)
     static configure<T extends TLShapeUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
@@ -1627,7 +1632,7 @@ export function GeoStylePickerSet({ styles }: StylePickerSetProps): JSX_2.Elemen
 export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBindings;
 
 // @public (undocumented)
-export function getArrowInfo(editor: Editor, shape: TLArrowShape | TLShapeId): TLArcArrowInfo | TLElbowArrowInfo | TLStraightArrowInfo | undefined;
+export function getArrowInfo(editor: Editor, shape: TLArrowShape | TLShapeId): TLArrowInfo;
 
 // @public (undocumented)
 export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape, bindings: TLArrowBindings): {
@@ -2561,6 +2566,8 @@ export interface TextAreaProps {
     // (undocumented)
     handleKeyDown(e: KeyboardEvent): void;
     // (undocumented)
+    handlePaste(e: ClipboardEvent | React_3.ClipboardEvent<HTMLTextAreaElement>): void;
+    // (undocumented)
     hasCustomTabBehavior?: boolean;
     // (undocumented)
     isEditing: boolean;
@@ -2804,11 +2811,8 @@ export function TldrawArrowHints(): JSX_2.Element | null;
 
 // @public (undocumented)
 export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
-    // (undocumented)
     assetUrls?: TLUiAssetUrlOverrides;
-    // (undocumented)
     components?: TLComponents;
-    // (undocumented)
     embeds?: TLEmbedDefinition[];
 }
 
@@ -4787,6 +4791,7 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
     handleFocus: () => void;
     handleInputPointerDown: (e: React_3.PointerEvent<Element>) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
+    handlePaste: (e: ClipboardEvent | React_3.ClipboardEvent<HTMLTextAreaElement>) => void;
     isEditing: boolean;
     isEmpty: boolean;
     isReadyForEditing: boolean;
@@ -4803,6 +4808,7 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
     handleFocus: () => void;
     handleInputPointerDown: (e: PointerEvent_2<Element>) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
+    handlePaste: (e: ClipboardEvent | ClipboardEvent_2<HTMLTextAreaElement>) => void;
     isEditing: boolean;
     isEmpty: boolean | undefined;
     isReadyForEditing: boolean;
@@ -4881,6 +4887,11 @@ export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | st
 export function useUiEvents(): TLUiEventContextType;
 
 // @public (undocumented)
+export interface VideoShapeOptions {
+    autoplay: boolean;
+}
+
+// @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     canEdit(): boolean;
@@ -4896,6 +4907,8 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     isAspectRatioLocked(): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
+    // (undocumented)
+    options: VideoShapeOptions;
     // (undocumented)
     static props: RecordProps<TLVideoShape>;
     // (undocumented)

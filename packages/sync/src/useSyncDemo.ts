@@ -124,9 +124,20 @@ export function useSyncDemo(
 	})
 }
 
+function shouldDisallowUploads(host: string) {
+	const disallowedHosts = ['tldraw.com', 'tldraw.xyz']
+	return disallowedHosts.some(
+		(disallowedHost) => host === disallowedHost || host.endsWith(`.${disallowedHost}`)
+	)
+}
+
 function createDemoAssetStore(host: string): TLAssetStore {
 	return {
-		upload: async (asset, file) => {
+		upload: async (_asset, file) => {
+			if (shouldDisallowUploads(host)) {
+				alert('Uploading images is disabled in this demo.')
+				throw new Error('Uploading images is disabled in this demo.')
+			}
 			const id = uniqueId()
 
 			const objectName = `${id}-${file.name}`.replace(/\W/g, '-')

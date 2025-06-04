@@ -506,6 +506,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				shape: {
 					afterChange: (shapeBefore, shapeAfter) => {
 						for (const binding of this.getBindingsInvolvingShape(shapeAfter)) {
+							if (areShapesContentEqual(shapeBefore, shapeAfter)) continue
+
 							invalidBindingTypes.add(binding.type)
 							if (binding.fromId === shapeAfter.id) {
 								this.getBindingUtil(binding).onAfterChangeFromShape?.({
@@ -5796,8 +5798,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		parent: TLParentId | TLPage | TLShape,
 		visitor: (id: TLShapeId) => void | false
 	): this {
-		const parentId = typeof parent === 'string' ? parent : parent.id
-		const children = this.getSortedChildIdsForParent(parentId)
+		const children = this.getSortedChildIdsForParent(parent)
 		for (const id of children) {
 			if (visitor(id) === false) continue
 			this.visitDescendants(id, visitor)
