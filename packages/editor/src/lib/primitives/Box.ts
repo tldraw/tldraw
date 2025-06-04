@@ -282,7 +282,7 @@ export class Box {
 			case 'bottom_right':
 				return new Vec(this.x + this.w, this.y + this.h)
 			case 'top':
-				return new Vec(this.x + this.w / 2, this.y + this.h / 2)
+				return new Vec(this.x + this.w / 2, this.y)
 			case 'right':
 				return new Vec(this.x + this.w, this.y + this.h / 2)
 			case 'bottom':
