@@ -160,7 +160,7 @@ export class Box {
 			new Vec(this.x + this.w, this.y),
 			new Vec(this.x + this.w, this.y + this.h),
 			new Vec(this.x, this.y + this.h),
-			this.center,
+			new Vec(this.x + this.w / 2, this.y + this.h / 2),
 		]
 	}
 
@@ -274,21 +274,21 @@ export class Box {
 	getHandlePoint(handle: SelectionCorner | SelectionEdge) {
 		switch (handle) {
 			case 'top_left':
-				return new Vec(this.minX, this.minY)
+				return new Vec(this.x, this.y)
 			case 'top_right':
-				return new Vec(this.maxX, this.minY)
+				return new Vec(this.x + this.w, this.y)
 			case 'bottom_left':
-				return new Vec(this.minX, this.maxY)
+				return new Vec(this.x, this.y + this.h)
 			case 'bottom_right':
-				return new Vec(this.maxX, this.maxY)
+				return new Vec(this.x + this.w, this.y + this.h)
 			case 'top':
-				return new Vec(this.midX, this.minY)
+				return new Vec(this.x + this.w / 2, this.y)
 			case 'right':
-				return new Vec(this.maxX, this.midY)
+				return new Vec(this.x + this.w, this.y + this.h / 2)
 			case 'bottom':
-				return new Vec(this.midX, this.maxY)
+				return new Vec(this.x + this.w / 2, this.y + this.h)
 			case 'left':
-				return new Vec(this.minX, this.midY)
+				return new Vec(this.x, this.y + this.h / 2)
 		}
 	}
 
@@ -588,6 +588,14 @@ export class Box {
 	}
 
 	static Equals(a: Box | BoxModel, b: Box | BoxModel) {
+		return b.x === a.x && b.y === a.y && b.w === a.w && b.h === a.h
+	}
+
+	prettyMuchEquals(other: Box | BoxModel) {
+		return this.clone().toFixed().equals(Box.From(other).toFixed())
+	}
+
+	static PrettyMuchEquals(a: Box | BoxModel, b: Box | BoxModel) {
 		return b.x === a.x && b.y === a.y && b.w === a.w && b.h === a.h
 	}
 
