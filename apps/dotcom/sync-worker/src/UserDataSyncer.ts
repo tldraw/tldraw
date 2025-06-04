@@ -25,7 +25,6 @@ type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
 export interface ZRowUpdateEvent {
 	type: 'row_update'
-	userId: string
 	row: TlaRow
 	table: ZTable
 	event: ZEvent
