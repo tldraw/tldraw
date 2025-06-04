@@ -8,22 +8,11 @@ html {
 }
 
 @layer base {
-	.prose h2,
-	.prose h3,
-	.prose h4,
-	.prose h5,
-	.prose h6 {
-		scroll-margin-top: 20px;
-	}
-
 	.prose h2 a,
 	.prose h3 a,
-	.prose h4 a,
-	.prose h5 a,
-	.prose h6 a {
+	.prose h4 a {
 		@apply font-bold;
 	}
-
 	.prose blockquote p {
 		margin: 0;
 	}
