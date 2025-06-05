@@ -181,10 +181,10 @@ function setupReo(options: AnalyticsOptions) {
 	const user = options.user
 	const reoIdentify = () =>
 		window.Reo?.identify?.({
-			name: user.name,
-			email: user.email,
+			firstname: user.name,
+			username: user.email,
+			type: 'email',
 			userId: user.id,
-			username: user.id,
 		})
 	if (!document.getElementById('reo-script-loader')) {
 		const reoId = '47839e47a5ed202'
