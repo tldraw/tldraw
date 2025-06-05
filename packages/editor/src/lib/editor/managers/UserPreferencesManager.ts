@@ -91,6 +91,10 @@ export class UserPreferencesManager {
 		return this.user.userPreferences.get().color ?? defaultUserPreferences.color
 	}
 
+	@computed getAvatar() {
+		return this.user.userPreferences.get().avatar ?? ''
+	}
+
 	@computed getIsSnapMode() {
 		return this.user.userPreferences.get().isSnapMode ?? defaultUserPreferences.isSnapMode
 	}
