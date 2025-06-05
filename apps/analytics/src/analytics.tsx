@@ -178,7 +178,13 @@ export function identify(userId: string, properties?: { [key: string]: any }) {
 	posthog.identify(userId, properties)
 	ReactGA.set({ userId })
 	ReactGA.set(properties)
-	window.Reo?.identify?.({ ...properties, userId, username: userId })
+	window.Reo?.identify?.({
+		...properties,
+		userId,
+		firstname: properties?.name || '',
+		username: properties?.email || '',
+		type: 'email',
+	})
 }
 
 export function track(name: string, data?: { [key: string]: any }) {
