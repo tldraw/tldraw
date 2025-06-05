@@ -97,8 +97,8 @@ export class MathShapeUtil extends ShapeUtil<MathShape> {
 					}}
 					style={{
 						pointerEvents: isEditing ? 'all' : 'none',
-						width: shape.props.w,
-						height: shape.props.h,
+						width: '100%',
+						height: '100%',
 						overflow: 'hidden',
 					}}
 					latex={shape.props.latex}
