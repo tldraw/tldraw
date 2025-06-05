@@ -79,6 +79,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		// debug logging in preview envs by default
 		this.log = new Logger(env, 'TLUserDurableObject', this.sentry)
+		this.log.debug('TLUserDurableObject constructor', this.ctx.getWebSockets().length)
 	}
 
 	private userId: string | null = null
