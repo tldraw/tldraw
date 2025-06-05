@@ -1,11 +1,11 @@
 import { TlaRow, TlaSchema } from '@tldraw/dotcom-shared'
 import { assert } from '@tldraw/utils'
-import { PoolClient } from 'pg'
+import { PostgresPoolClient } from 'kysely'
 
 export class ServerQuery<Row extends TlaRow, isOne extends boolean = false> {
 	constructor(
 		private readonly signal: AbortSignal,
-		private readonly client: PoolClient,
+		private readonly client: PostgresPoolClient,
 		private readonly isOne: isOne,
 		private readonly table: keyof TlaSchema['tables'],
 		private readonly wheres: readonly string[] = [],

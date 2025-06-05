@@ -16,10 +16,10 @@ import { ExecutionQueue, assert, assertExists, mapObjectMapValues, sleep } from 
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
-import { Kysely, PostgresDialect, Transaction, sql } from 'kysely'
-import { Pool, PoolClient } from 'pg'
+import { Kysely, PostgresDialect, PostgresPoolClient, Transaction, sql } from 'kysely'
 import { Logger } from './Logger'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
+import { TLPostgresPool } from './postgres'
 import { Analytics, Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { getRoomDurableObject } from './utils/durableObjects'
@@ -64,12 +64,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		this.sentry = createSentry(ctx, env)
 
-		this.pool = new Pool({
-			connectionString: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
-			application_name: 'user-do',
-			idleTimeoutMillis: 3_000,
-			max: 1,
-		})
+		this.log = new Logger(env, 'TLUserDurableObject', this.sentry)
+		this.pool = new TLPostgresPool(env, this.log)
 
 		this.db = new Kysely<DB>({
 			dialect: new PostgresDialect({ pool: this.pool }),
@@ -78,7 +74,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.measure = env.MEASURE
 
 		// debug logging in preview envs by default
-		this.log = new Logger(env, 'TLUserDurableObject', this.sentry)
 		this.log.debug('TLUserDurableObject constructor', this.ctx.getWebSockets().length)
 	}
 
@@ -165,7 +160,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	interval: NodeJS.Timeout | null = null
 
 	private makeCrud(
-		client: PoolClient,
+		client: PostgresPoolClient,
 		signal: AbortSignal,
 		perfHackHooks: PerfHackHooks
 	): SchemaCRUD<TlaSchema> {
@@ -175,7 +170,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		)
 	}
 
-	private makeQuery(client: PoolClient, signal: AbortSignal): SchemaQuery<TlaSchema> {
+	private makeQuery(client: PostgresPoolClient, signal: AbortSignal): SchemaQuery<TlaSchema> {
 		return mapObjectMapValues(
 			schema.tables,
 			(tableName) => new ServerQuery(signal, client, true, tableName) as any
@@ -305,6 +300,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	// Hibernation handler for incoming WebSocket messages
 	override async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
+		await this.assertCache()
 		// Handle both string and ArrayBuffer message types
 		const messageString = typeof message === 'string' ? message : new TextDecoder().decode(message)
 
@@ -400,7 +396,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		socket?.send(JSON.stringify(socketMeta.protocolVersion === 1 ? msg : [msg]))
 	}
 
-	private pool: Pool
+	private pool: TLPostgresPool
 
 	private async _doMutate(msg: ZClientSentMessage) {
 		await this.assertCache()
@@ -411,7 +407,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		try {
 			const newFiles = [] as TlaFile[]
 
-			await client.query('BEGIN')
+			await client.query('BEGIN', [])
 
 			const controller = new AbortController()
 			const mutate = this.makeCrud(client, controller.signal, { newFiles })
@@ -471,7 +467,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				timestamp: Date.now(),
 			})
 
-			await client.query('COMMIT')
+			await client.query('COMMIT', [])
 
 			// Check mutation status after 5 seconds
 			setTimeout(() => {
@@ -486,7 +482,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				}
 			}
 		} catch (e) {
-			await client.query('ROLLBACK')
+			await client.query('ROLLBACK', [])
 			throw e
 		} finally {
 			client.release()

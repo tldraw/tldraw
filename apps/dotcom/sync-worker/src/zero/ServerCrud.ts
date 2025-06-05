@@ -8,9 +8,11 @@ import {
 	Kysely,
 	PostgresAdapter,
 	PostgresIntrospector,
+	PostgresPoolClient,
 	PostgresQueryCompiler,
+	PostgresQueryResult,
 } from 'kysely'
-import { PoolClient, QueryResult, QueryResultRow } from 'pg'
+import { QueryResultRow } from 'pg'
 import { ZMutationError } from './ZMutationError'
 const quote = (s: string) => JSON.stringify(s)
 
@@ -38,7 +40,7 @@ const db = new Kysely<DB>({
 
 export class ServerCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema['tables']]> {
 	constructor(
-		private readonly client: PoolClient,
+		private readonly client: PostgresPoolClient,
 		private readonly table: TlaSchema['tables'][keyof TlaSchema['tables']],
 		private readonly signal: AbortSignal,
 		private readonly perfHackHooks?: PerfHackHooks
@@ -61,7 +63,7 @@ export class ServerCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema
 
 	private async _exec<T extends QueryResultRow>(query: {
 		compile(): CompiledQuery<T>
-	}): Promise<QueryResult<T>> {
+	}): Promise<PostgresQueryResult<T>> {
 		const { sql, parameters } = query.compile()
 		return await this.client.query<T>(sql, parameters as any)
 	}
