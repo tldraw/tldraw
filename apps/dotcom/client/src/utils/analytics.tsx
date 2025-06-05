@@ -1,4 +1,3 @@
-import va from '@vercel/analytics'
 import posthog, { PostHogConfig, Properties } from 'posthog-js'
 import 'posthog-js/dist/web-vitals'
 import { useEffect } from 'react'
@@ -149,7 +148,6 @@ function getGA4() {
 }
 
 export function trackEvent(name: string, data?: { [key: string]: any }) {
-	va.track(name, data)
 	getPosthog()?.capture(name, data)
 	getGA4()?.event(name, data)
 }
