@@ -21,7 +21,7 @@ main()
 async function main() {
 	const tsconfig: any = {
 		compilerOptions: {
-			lib: ['es2015', 'dom'],
+			lib: ['esnext', 'dom'],
 			strict: true,
 			rootDir: '.',
 			paths: {},
