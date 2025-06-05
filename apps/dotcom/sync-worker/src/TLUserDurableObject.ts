@@ -44,7 +44,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private measure: Analytics | undefined
 
 	private readonly sentry
-	private captureException(exception: unknown, extras?: Record<string, unknown>) {
+	// eslint-disable-next-line local/prefer-class-methods
+	private captureException = (exception: unknown, extras?: Record<string, unknown>) => {
 		this.sentry?.withScope((scope) => {
 			if (extras) scope.setExtras(extras)
 			this.sentry?.captureException(exception) as any
@@ -162,24 +163,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	interval: NodeJS.Timeout | null = null
 
-	private maybeStartInterval() {
-		if (!this.interval) {
-			this.interval = setInterval(() => {
-				// do cache persist + cleanup
-				this.cache?.onInterval()
-
-				// clean up closed sockets if there are any - use hibernation-compatible method
-				const hibernatedSockets = this.ctx.getWebSockets()
-
-				// Stop the interval if no sockets are connected
-				if (hibernatedSockets.length === 0 && typeof this.interval === 'number') {
-					clearInterval(this.interval)
-					this.interval = null
-				}
-			}, 2000)
-		}
-	}
-
 	private makeCrud(
 		client: PoolClient,
 		signal: AbortSignal,
@@ -293,7 +276,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 		serverWebSocket.serializeAttachment(metadata)
 
-		this.maybeStartInterval()
+		// Start LSN update alarm if this is the first socket
+		await this.maybeStartLsnUpdateAlarm()
 
 		const initialData = this.cache.store.getCommittedData()
 		if (initialData) {
@@ -488,6 +472,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 			await client.query('COMMIT')
 
+			// Check mutation status after 5 seconds
+			setTimeout(() => {
+				this.cache?.checkMutationDidCommit(msg.mutationId).catch(this.captureException)
+			}, 5000)
+
 			for (const file of newFiles) {
 				if (file.ownerId !== this.userId) {
 					this.cache.addGuestFile(file)
@@ -625,5 +614,39 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			return metadata
 		}
 		return null
+	}
+
+	// Durable Object alarm handler for periodic LSN updates
+	override async alarm() {
+		try {
+			const hibernatedSockets = this.ctx.getWebSockets()
+
+			if (hibernatedSockets.length === 0) {
+				this.log.debug('hibernation: stopping LSN update alarm - no active sockets')
+				return
+			}
+
+			await this.ensureCache()
+			if (this.cache) {
+				this.log.debug('hibernation: running scheduled LSN update')
+				this.cache.maybeRequestLsnUpdate()
+			}
+
+			// Schedule next alarm in 10 minutes
+			await this.maybeStartLsnUpdateAlarm()
+		} catch (e) {
+			this.captureException(e, { source: 'alarm handler' })
+		}
+	}
+
+	private async maybeStartLsnUpdateAlarm() {
+		const hibernatedSockets = this.ctx.getWebSockets()
+
+		if (hibernatedSockets.length > 0) {
+			// Schedule alarm for 10 minutes from now
+			const alarmTime = Date.now() + 10 * 60 * 1000 // 10 minutes
+			await this.ctx.storage.setAlarm(alarmTime)
+			this.log.debug('hibernation: scheduled LSN update alarm', { alarmTime: new Date(alarmTime) })
+		}
 	}
 }
