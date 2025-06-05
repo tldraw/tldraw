@@ -94,6 +94,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override getFontFaces(shape: TLTextShape): TLFontFace[] {
+		// no need for an empty rich text check here
 		return getFontsFromRichText(this.editor, shape.props.richText, {
 			family: `tldraw_${shape.props.font}`,
 			weight: 'normal',
