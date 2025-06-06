@@ -65,6 +65,23 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	// The component has an "editing state" that may be toggled to expose additional controls
 	const [isEditing, setIsEditing] = useState(false)
 
+	useEffect(
+		function closePageMenuOnEnterPressAfterPressingEnterToConfirmRename() {
+			function handleKeyDown() {
+				if (isEditing) return
+				if (document.activeElement === document.body) {
+					editor.menus.clearOpenMenus()
+				}
+			}
+
+			document.addEventListener('keydown', handleKeyDown, { passive: true })
+			return () => {
+				document.removeEventListener('keydown', handleKeyDown)
+			}
+		},
+		[editor, isEditing]
+	)
+
 	const toggleEditing = useCallback(() => {
 		if (isReadonlyMode) return
 		setIsEditing((s) => !s)
