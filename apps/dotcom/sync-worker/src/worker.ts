@@ -1,6 +1,7 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 import {
+	FILE_PREFIX,
 	READ_ONLY_LEGACY_PREFIX,
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
@@ -68,12 +69,21 @@ const router = createRouter<Environment>()
 	.get(`/${READ_ONLY_PREFIX}/:roomId`, (req, env) =>
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_ONLY)
 	)
-	.get(`/${ROOM_PREFIX}/:roomId/history`, getRoomHistory)
-	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, getRoomHistorySnapshot)
+	.get(`/${ROOM_PREFIX}/:roomId/history`, (req, env) => getRoomHistory(req, env, false))
+	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, (req, env) =>
+		getRoomHistorySnapshot(req, env, false)
+	)
+
+	.get(`/${FILE_PREFIX}/:roomId/history`, (req, env) => getRoomHistory(req, env, true))
+	.get(`/${FILE_PREFIX}/:roomId/history/:timestamp`, (req, env) =>
+		getRoomHistorySnapshot(req, env, true)
+	)
+
 	.get('/readonly-slug/:roomId', getReadonlySlug)
 	.get('/unfurl', extractBookmarkMetadata)
 	.post('/unfurl', extractBookmarkMetadata)
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
+	.post(`/app/file/:roomId/restore`, forwardRoomRequest)
 	.get('/app/:userId/connect', async (req, env) => {
 		// forward req to the user durable object
 		const auth = await getAuth(req, env)
