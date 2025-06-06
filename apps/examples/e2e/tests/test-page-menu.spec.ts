@@ -220,17 +220,110 @@ test.describe('page menu', () => {
 			await expect(pageItem.getByRole('button').first()).toContainText(originalName || '')
 		})
 
-		test('When you create a new page, the new page is focused', async ({ page, pageMenu }) => {})
+		test('When you create a new page, the new page is focused', async ({ page, pageMenu }) => {
+			const { pagemenuButton, pageItems } = pageMenu
 
-		test('When you open the page menu, the current page is in view', async ({
-			page,
-			pageMenu,
-		}) => {})
+			await test.step('create a new page and verify it becomes active', async () => {
+				await pagemenuButton.click()
+				const initialCount = await pageItems.count()
 
-		test('When you open the page menu, the current page is focused', async ({
-			page,
-			pageMenu,
-		}) => {})
+				// Create a new page
+				await pageMenu.createButton.click()
+				await page.keyboard.press('Enter')
+
+				// Verify page count increased
+				await expect(pageItems).toHaveCount(initialCount + 1)
+
+				// The new page (last one) should be the active/focused page
+				const newPageItem = await pageMenu.getPageItem(initialCount)
+				await expect(
+					newPageItem.locator('.tlui-page-menu__item__button > .tlui-button__icon')
+				).toHaveAttribute('data-checked', 'true')
+
+				// All other pages should not be active
+				for (let i = 0; i < initialCount; i++) {
+					const otherPageItem = await pageMenu.getPageItem(i)
+					await expect(
+						otherPageItem.locator('.tlui-page-menu__item__button > .tlui-button__icon')
+					).toHaveAttribute('data-checked', 'false')
+				}
+			})
+		})
+
+		test('When you open the page menu, the current page is in view', async ({ page, pageMenu }) => {
+			const { pagemenuButton } = pageMenu
+
+			await test.step('create multiple pages', async () => {
+				await pagemenuButton.click()
+				// Create several pages to potentially cause scrolling
+				for (let i = 0; i < 5; i++) {
+					await pageMenu.createButton.click()
+					await page.keyboard.press('Enter')
+				}
+				await page.keyboard.press('Escape')
+			})
+
+			await test.step('navigate to first page and verify it is in view', async () => {
+				await pagemenuButton.click()
+
+				// Click on the first page to make it current
+				const firstPage = await pageMenu.getPageItem(0)
+				await firstPage.locator('button').first().click()
+
+				// Close and reopen menu
+				await page.keyboard.press('Escape')
+				await pagemenuButton.click()
+
+				// Verify the first page (current page) is visible in the page list
+				await expect(firstPage).toBeInViewport()
+
+				// Also verify it's marked as checked/active
+				await expect(
+					firstPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
+				).toHaveAttribute('data-checked', 'true')
+			})
+		})
+
+		test('When you open the page menu, the current page is focused', async ({ page, pageMenu }) => {
+			const { pagemenuButton } = pageMenu
+
+			await test.step('create multiple pages', async () => {
+				await pagemenuButton.click()
+				// Create a few pages
+				await pageMenu.createButton.click()
+				await page.keyboard.press('Enter')
+				await pageMenu.createButton.click()
+				await page.keyboard.press('Enter')
+				await page.keyboard.press('Escape')
+			})
+
+			await test.step('switch to middle page and verify focus', async () => {
+				await pagemenuButton.click()
+
+				// Click on the middle page to make it current
+				const middlePage = await pageMenu.getPageItem(1)
+				await middlePage.locator('button').first().click()
+
+				// Close and reopen menu
+				await page.keyboard.press('Escape')
+				await pagemenuButton.click()
+
+				// Verify the middle page is marked as the current/focused page
+				await expect(
+					middlePage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
+				).toHaveAttribute('data-checked', 'true')
+
+				// Verify other pages are not focused
+				const firstPage = await pageMenu.getPageItem(0)
+				const lastPage = await pageMenu.getPageItem(2)
+				await expect(
+					firstPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
+				).toHaveAttribute('data-checked', 'false')
+				await expect(
+					lastPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
+				).toHaveAttribute('data-checked', 'false')
+			})
+		})
 	})
 
 	test.describe('You can drag and drop pages to reorder them', () => {
