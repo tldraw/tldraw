@@ -57,64 +57,62 @@ beforeEach(() => {
 	editor.selectAll()
 })
 
-describe.skip('SVG, which throws an error', () => {
-	it('gets an SVG', async () => {
-		const svg = await editor.getSvgString(editor.getSelectedShapeIds())
+it('gets an SVG', async () => {
+	const svg = await editor.getSvgString(editor.getSelectedShapeIds())
 
-		expect(svg!.width).toBe(564)
-		expect(svg!.height).toBe(564)
-		expect(svg!.svg).toMatch(/^<svg/)
-	})
+	expect(svg!.width).toBe(564)
+	expect(svg!.height).toBe(564)
+	expect(svg!.svg).toMatch(/^<svg/)
+})
 
-	it('Returns all shapes when no ids are provided', async () => {
-		const svg = parseSvg(await editor.getSvgString([]))
+it('Returns all shapes when no ids are provided', async () => {
+	const svg = parseSvg(await editor.getSvgString([]))
 
-		const elm = document.createElement('wrapper')
-		elm.appendChild(svg)
+	const elm = document.createElement('wrapper')
+	elm.appendChild(svg)
 
-		expect(elm).toMatchSnapshot('All shapes')
-	})
+	expect(elm).toMatchSnapshot('All shapes')
+})
 
-	it('Gets the bounding box at the correct size', async () => {
-		const svg = await editor.getSvgString(editor.getSelectedShapeIds())
-		const parsed = parseSvg(svg!)
-		const bbox = editor.getSelectionRotatedPageBounds()!
-		const expanded = bbox.expandBy(editor.options.defaultSvgPadding) // adds 32px padding
+it('Gets the bounding box at the correct size', async () => {
+	const svg = await editor.getSvgString(editor.getSelectedShapeIds())
+	const parsed = parseSvg(svg!)
+	const bbox = editor.getSelectionRotatedPageBounds()!
+	const expanded = bbox.expandBy(editor.options.defaultSvgPadding) // adds 32px padding
 
-		expect(parsed.getAttribute('width')).toMatch(expanded.width + '')
-		expect(parsed.getAttribute('height')).toMatch(expanded.height + '')
-		expect(svg!.width).toBe(expanded.width)
-		expect(svg!.height).toBe(expanded.height)
-	})
+	expect(parsed.getAttribute('width')).toMatch(expanded.width + '')
+	expect(parsed.getAttribute('height')).toMatch(expanded.height + '')
+	expect(svg!.width).toBe(expanded.width)
+	expect(svg!.height).toBe(expanded.height)
+})
 
-	it('Matches a snapshot', async () => {
-		const svg = parseSvg(await editor.getSvgString(editor.getSelectedShapeIds()))
+it('Matches a snapshot', async () => {
+	const svg = parseSvg(await editor.getSvgString(editor.getSelectedShapeIds()))
 
-		const elm = document.createElement('wrapper')
-		elm.appendChild(svg)
+	const elm = document.createElement('wrapper')
+	elm.appendChild(svg)
 
-		expect(elm).toMatchSnapshot('Basic SVG')
-	})
+	expect(elm).toMatchSnapshot('Basic SVG')
+})
 
-	it('Accepts a scale option', async () => {
-		const svg1 = (await editor.getSvgString(editor.getSelectedShapeIds(), { scale: 1 }))!
+it('Accepts a scale option', async () => {
+	const svg1 = (await editor.getSvgString(editor.getSelectedShapeIds(), { scale: 1 }))!
 
-		expect(svg1.width).toBe(564)
+	expect(svg1.width).toBe(564)
 
-		const svg2 = (await editor.getSvgString(editor.getSelectedShapeIds(), { scale: 2 }))!
+	const svg2 = (await editor.getSvgString(editor.getSelectedShapeIds(), { scale: 2 }))!
 
-		expect(svg2.width).toBe(1128)
-	})
+	expect(svg2.width).toBe(1128)
+})
 
-	it('Accepts a background option', async () => {
-		const svg1 = parseSvg(
-			await editor.getSvgString(editor.getSelectedShapeIds(), { background: true })
-		)
-		expect(svg1.style.backgroundColor).not.toBe('transparent')
+it('Accepts a background option', async () => {
+	const svg1 = parseSvg(
+		await editor.getSvgString(editor.getSelectedShapeIds(), { background: true })
+	)
+	expect(svg1.style.backgroundColor).not.toBe('transparent')
 
-		const svg2 = parseSvg(
-			await editor.getSvgString(editor.getSelectedShapeIds(), { background: false })
-		)
-		expect(svg2.style.backgroundColor).toBe('transparent')
-	})
+	const svg2 = parseSvg(
+		await editor.getSvgString(editor.getSelectedShapeIds(), { background: false })
+	)
+	expect(svg2.style.backgroundColor).toBe('transparent')
 })
