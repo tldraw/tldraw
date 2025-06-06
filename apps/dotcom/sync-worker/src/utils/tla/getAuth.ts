@@ -1,5 +1,6 @@
 import { ClerkClient, createClerkClient } from '@clerk/backend'
 import { IRequest, StatusError } from 'itty-router'
+import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
 
 export async function requireAuth(request: IRequest, env: Environment): Promise<SignedInAuth> {
@@ -48,3 +49,59 @@ export async function getAuth(request: IRequest, env: Environment): Promise<Sign
 export type SignedInAuth = ReturnType<
 	Extract<Awaited<ReturnType<ClerkClient['authenticateRequest']>>, { isSignedIn: true }>['toAuth']
 >
+
+export async function requireWriteAccessToFile(
+	request: IRequest,
+	env: Environment,
+	roomId: string
+) {
+	const auth = await requireAuth(request, env)
+
+	const db = createPostgresConnectionPool(env, 'sync-worker/hasWriteAccessToFile')
+
+	try {
+		const file = await db
+			.selectFrom('file')
+			.select('ownerId')
+			.select('shared')
+			.select('sharedLinkType')
+			.where('id', '=', roomId)
+			.executeTakeFirst()
+
+		if (!file) {
+			throw new StatusError(404, 'File not found')
+		}
+
+		// If the user is the owner of the file, they have write access
+		if (file.ownerId === auth.userId) {
+			return
+		}
+
+		// If the file is not shared, the user does not have write access
+		if (!file.shared) {
+			throw new StatusError(403, 'File is not shared')
+		}
+
+		// If the file is shared but not for editing, deny access
+		if (file.sharedLinkType !== 'edit') {
+			throw new StatusError(403, 'File is shared but not for editing')
+		}
+
+		// Check if user is a collaborator
+		const fileState = await db
+			.selectFrom('file_state')
+			.select('fileId')
+			.where('fileId', '=', roomId)
+			.where('userId', '=', auth.userId)
+			.executeTakeFirst()
+
+		if (fileState) {
+			return
+		}
+
+		throw new StatusError(403, 'User does not have write access to this file')
+	} finally {
+		// Ensure database connection is properly closed
+		await db.destroy()
+	}
+}

@@ -49,7 +49,7 @@ import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
-import { getAuth, requireAuth } from './utils/tla/getAuth'
+import { getAuth, requireWriteAccessToFile } from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 
 const MAX_CONNECTIONS = 50
@@ -293,14 +293,7 @@ export class TLDrawDurableObject extends DurableObject {
 		this._isRestoring = true
 		try {
 			if (this.documentInfo.isApp) {
-				const auth = await requireAuth(req, this.env)
-				const file = await this.getAppFileRecord()
-				if (!file) {
-					return new Response('File not found', { status: 400 })
-				}
-				if (file.ownerId !== auth?.userId) {
-					return new Response('Forbidden', { status: 403 })
-				}
+				await requireWriteAccessToFile(req, this.env, this.documentInfo.slug)
 			}
 			const roomId = this.documentInfo.slug
 			const roomKey = getR2KeyForRoom({ slug: roomId, isApp: this.documentInfo.isApp })
