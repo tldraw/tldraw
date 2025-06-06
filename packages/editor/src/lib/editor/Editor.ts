@@ -4793,7 +4793,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	@computed private _getShapePageBoundsCache(): ComputedCache<Box, TLShape> {
 		return this.store.createComputedCache<Box, TLShape>('pageBoundsCache', (shape) => {
-			return this.getShapePageGeometry(shape).bounds
+			const pageTransform = this.getShapePageTransform(shape)
+			if (!pageTransform) return undefined
+			const geometry = this.getShapeGeometry(shape)
+			return Box.FromPoints(pageTransform.applyToPoints(geometry.vertices))
 		})
 	}
 
@@ -4867,11 +4870,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (frameAncestors.length === 0) return undefined
 
 			const pageMask = frameAncestors
-				.map<Vec[] | undefined>(
-					(s) =>
-						// Apply the frame transform to the frame outline to get the frame outline in the current page space
-						this.getShapePageGeometry(s.id).vertices
-				)
+				.map<Vec[] | undefined>((s) => {
+					// Apply the frame transform to the frame outline to get the frame outline in the current page space
+					const geometry = this.getShapeGeometry(s.id)
+					const pageTransform = this.getShapePageTransform(s.id)
+					return pageTransform.applyToPoints(geometry.vertices)
+				})
 				.reduce((acc, b) => {
 					if (!(b && acc)) return undefined
 					const intersection = intersectPolygonPolygon(acc, b)
