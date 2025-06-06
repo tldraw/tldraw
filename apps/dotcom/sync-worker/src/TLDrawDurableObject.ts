@@ -411,7 +411,7 @@ export class TLDrawDurableObject extends DurableObject {
 			}
 		} else {
 			// Legacy rooms are now read-only
-			// openMode = ROOM_OPEN_MODE.READ_ONLY
+			openMode = ROOM_OPEN_MODE.READ_ONLY
 		}
 
 		try {
