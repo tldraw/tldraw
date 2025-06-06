@@ -1,5 +1,5 @@
 import { captureException } from '@sentry/react'
-import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
+import { FILE_PREFIX } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { useEffect, useMemo } from 'react'
 import { useRouteError } from 'react-router-dom'
@@ -35,18 +35,18 @@ export function ErrorBoundary() {
 }
 
 const { loader, useData } = defineLoader(async (args) => {
-	const roomId = args.params.boardId
+	const fileSlug = args.params.fileSlug
 	const timestamp = args.params.timestamp
 
-	if (!roomId) return null
+	if (!fileSlug) return null
 
-	const result = await fetch(`/api/${ROOM_PREFIX}/${roomId}/history/${timestamp}`, {
+	const result = await fetch(`/api/${FILE_PREFIX}/${fileSlug}/history/${timestamp}`, {
 		headers: {},
 	})
 	if (!result.ok) return null
 	const data = (await result.json()) as RoomSnapshot
 
-	return { data, roomId, timestamp }
+	return { data, fileSlug, timestamp }
 })
 
 export { loader }
@@ -89,10 +89,10 @@ export function Component({ error: _error }: { error?: unknown }) {
 			) : (
 				<TlaAnonLayout>
 					<TlaHistorySnapshotEditor
-						fileSlug={result.roomId}
+						fileSlug={result.fileSlug}
 						snapshot={snapshot}
 						timestamp={ts}
-						isApp={false}
+						isApp
 					/>
 				</TlaAnonLayout>
 			)}
