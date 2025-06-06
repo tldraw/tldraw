@@ -116,11 +116,17 @@
   "5677e381d2": {
     "translation": "We use analytics cookies to make tldraw better."
   },
+  "568f0889f6": {
+    "translation": "Sign in to continue"
+  },
   "56c34c6410": {
     "translation": "Privacy policy"
   },
   "5a95a425f7": {
     "translation": "Share"
+  },
+  "5bcc12ace8": {
+    "translation": "This room is now read-only"
   },
   "5d26ae7550": {
     "translation": "We failed to upload some of the content you created before you signed in."
@@ -212,6 +218,9 @@
   "86c66437fd": {
     "translation": "Rename file"
   },
+  "8b1946f965": {
+    "translation": "To continue editing please copy the room to your files."
+  },
   "8eb2c00e96": {
     "translation": "Shared with you"
   },
@@ -235,6 +244,9 @@
   },
   "9bef626805": {
     "translation": "Delete file"
+  },
+  "9c258b8f88": {
+    "translation": "This anonymous tldraw multiplayer room is now read-only. To continue editing, please sign in and copy it to your files."
   },
   "9ceb927baa": {
     "translation": "Publish this file"
@@ -321,9 +333,6 @@
   "c87aacf567": {
     "translation": "Sign out"
   },
-  "cbef7ba103": {
-    "translation": "This room will soon be read-only"
-  },
   "cceaefbc20": {
     "translation": "Share this file"
   },
@@ -362,9 +371,6 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
-  },
-  "ea2301d01c": {
-    "translation": "After July 1st, 2025 this anonymous tldraw multiplayer room will become read-only. To continue editing in the future please sign in and copy it to your files."
   },
   "ea4788705e": {
     "translation": "Cancel"
