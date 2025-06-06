@@ -11,21 +11,6 @@ import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { toggleSidebar } from '../utils/local-session-state'
 
-/*
-When a signed inuser visits a legacy history snapshot, the room should still work as normal.
-The user should be able to interact with the snapshot in the same way as they used
-to be able to interact with the snapshot prior to botcom. In the application UI,
-the user should see the room as if it were owned by some other user. The share
-menu should be replaced with a "Slurp file" button.
-
-Slurping a file (or whatever) should create a new file in the user's account 
-with all of the data from the legacy shared room. The new copy should have no 
-relationship to the previous room, and the user should be able to edit it just
-like any other file.
-*/
-
-// todo: Update editor layout, include top bar for anon users (branding, sign in, etc)
-
 export function ErrorBoundary() {
 	const error = useRouteError()
 	useEffect(() => {
@@ -79,10 +64,7 @@ export function Component({ error: _error }: { error?: unknown }) {
 		}
 	}, [error, userId])
 
-	// todo: restore ReadyWrapper and update board history snapshot to call ready()
-
 	return (
-		// Override TlaEditor's internal ReadyWrapper. This prevents the anon layout chrome from rendering before the editor is ready.
 		<>
 			{error ? (
 				<TlaFileError error={error} />

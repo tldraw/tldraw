@@ -10,12 +10,6 @@ import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { toggleSidebar } from '../utils/local-session-state'
 
-/*
-History here should work in an identical way to its previous implementation.
-*/
-
-// todo: Add top bar for anon users (branding, sign in, etc)
-
 const { loader, useData } = defineLoader(async (args) => {
 	const fileSlug = args.params.fileSlug
 
@@ -55,8 +49,6 @@ export function Component({ error: _error }: { error?: unknown }) {
 	}, [error, userId])
 
 	return (
-		// Override TlaEditor's internal ReadyWrapper. This prevents the anon layout chrome from rendering
-		// before the editor is ready.
 		<>
 			{error ? (
 				<TlaFileError error={error} />

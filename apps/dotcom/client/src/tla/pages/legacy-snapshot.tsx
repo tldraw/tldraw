@@ -78,8 +78,6 @@ export function Component({ error: _error }: { error?: unknown }) {
 
 	if (!userId) {
 		return (
-			// Override TlaEditor's internal ReadyWrapper. This prevents the anon layout chrome from rendering
-			// before the editor is ready.
 			<ReadyWrapper>
 				{error ? (
 					<TlaFileError error={error} />
