@@ -122,6 +122,9 @@
   "5a95a425f7": {
     "translation": "Share"
   },
+  "5b566175c5": {
+    "translation": "[Debug] File History"
+  },
   "5d26ae7550": {
     "translation": "We failed to upload some of the content you created before you signed in."
   },
@@ -187,6 +190,9 @@
   },
   "7b1329f5ca": {
     "translation": "User manual"
+  },
+  "7be10fc592": {
+    "translation": "Restore version"
   },
   "7cb5f8b4a5": {
     "translation": "Forget"
