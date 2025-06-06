@@ -69,7 +69,7 @@ export function TlaEditorTopRightPanel({
 	)
 }
 
-function useGetFileName() {
+export function useGetFileName() {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const defaultPageName = msg('page-menu.new-page-initial-name')

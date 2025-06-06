@@ -1,4 +1,7 @@
+import { useAuth } from '@clerk/clerk-react'
+import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
 	TldrawUiButton,
 	TldrawUiButtonLabel,
@@ -9,24 +12,58 @@ import {
 	TldrawUiDialogTitle,
 	useDialogs,
 } from 'tldraw'
+import { routes } from '../../../routeDefs'
+import { trackEvent } from '../../../utils/analytics'
+import { useMaybeApp } from '../../hooks/useAppState'
 import { F } from '../../utils/i18n'
+import { useGetFileName } from './TlaEditorTopRightPanel'
 import styles from './sneaky-legacy-modal.module.css'
 
 function LegacyChangesModal({ onClose }: { onClose(): void }) {
+	const { isSignedIn } = useAuth()
+	const app = useMaybeApp()
+	const navigate = useNavigate()
+	const name = useGetFileName()
+
+	const handleCopy = async () => {
+		if (!app) return
+		const res = await app.createFile({
+			name,
+			createSource: window.location.pathname.slice(1),
+		})
+		if (res?.ok) {
+			const { file } = res.value
+			navigate(routes.tlaFile(file.id))
+			trackEvent('create-file', { source: 'legacy-import-button' })
+		}
+		onClose()
+	}
+
 	return (
 		<div className={styles.dialog}>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
-					<F defaultMessage="This room will soon be read-only" />
+					<F defaultMessage="This room is now read-only" />
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody>
 				<p>
-					<F defaultMessage="After July 1st, 2025 this anonymous tldraw multiplayer room will become read-only. To continue editing in the future please sign in and copy it to your files." />
+					{isSignedIn ? (
+						<F defaultMessage="To continue editing please copy the room to your files." />
+					) : (
+						<F defaultMessage="This anonymous tldraw multiplayer room is now read-only. To continue editing, please sign in and copy it to your files." />
+					)}
 				</p>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className={styles.footer}>
+				{isSignedIn && (
+					<TldrawUiButton type="primary" onClick={handleCopy}>
+						<TldrawUiButtonLabel>
+							<F defaultMessage="Copy to my files" />
+						</TldrawUiButtonLabel>
+					</TldrawUiButton>
+				)}
 				<TldrawUiButton type="normal" onClick={onClose} onTouchEnd={onClose}>
 					<TldrawUiButtonLabel>
 						<F defaultMessage="Close" />
@@ -39,15 +76,32 @@ function LegacyChangesModal({ onClose }: { onClose(): void }) {
 
 export function SneakyLegacyModal() {
 	const { addDialog, removeDialog } = useDialogs()
+	const location = useLocation()
+	const { isSignedIn } = useAuth()
+	const [searchParams, setSearchParams] = useSearchParams()
 
 	useEffect(() => {
+		if (!location.pathname.startsWith(`/${ROOM_PREFIX}/`)) {
+			return
+		}
+
+		const hasShownModal = searchParams.get('shownLegacyModal') === 'true'
+		if (hasShownModal) {
+			return
+		}
+
 		const id = addDialog({
 			component: ({ onClose }) => <LegacyChangesModal onClose={onClose} />,
 			preventBackgroundClose: true,
+			onClose: () => {
+				const newParams = new URLSearchParams(window.location.search)
+				newParams.set('shownLegacyModal', 'true')
+				setSearchParams(newParams)
+			},
 		})
 		return () => {
 			removeDialog(id)
 		}
-	}, [addDialog, removeDialog])
+	}, [addDialog, removeDialog, location.pathname, searchParams, isSignedIn, setSearchParams])
 	return null
 }
