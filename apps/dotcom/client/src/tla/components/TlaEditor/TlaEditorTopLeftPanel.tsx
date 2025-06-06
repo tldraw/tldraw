@@ -121,7 +121,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 						<button
 							className={styles.topLeftMainMenuTrigger}
 							title={pageMenuLbl}
-							data-testid="tla-page-menu"
+							data-testid="tla-main-menu"
 						>
 							<TlaIcon icon="dots-vertical-strong" />
 						</button>
@@ -232,7 +232,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 					<button
 						className={styles.topLeftMainMenuTrigger}
 						title={pageMenuLbl}
-						data-testid="tla-page-menu"
+						data-testid="tla-main-menu"
 					>
 						<TlaIcon icon="dots-vertical-strong" />
 					</button>
