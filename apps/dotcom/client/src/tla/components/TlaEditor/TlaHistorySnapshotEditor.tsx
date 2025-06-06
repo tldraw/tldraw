@@ -1,5 +1,6 @@
-import { useCallback } from 'react'
-import { Editor, TLComponents, TLStoreSnapshot, Tldraw } from 'tldraw'
+import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
+import { createContext, useCallback, useContext } from 'react'
+import { Editor, TLComponents, TLStoreSnapshot, Tldraw, fetch } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { useHandleUiEvents } from '../../../utils/analytics'
@@ -7,39 +8,87 @@ import { assetUrls } from '../../../utils/assetUrls'
 import { globalEditor } from '../../../utils/globalEditor'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
+import { F } from '../../utils/i18n'
+import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
-import { TlaEditorLegacySharePanel } from './editor-components/TlaEditorLegacySharePanel'
-import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
-import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLegacySetDocumentTitle } from './sneaky/SneakyLegacytSetDocumentTitle'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
+const TlaHistorySnapshotEditorContext = createContext<{
+	fileSlug: string
+	timestamp: string
+	isApp: boolean
+}>({
+	fileSlug: '',
+	timestamp: '',
+	isApp: false,
+})
+
 /** @internal */
 export const components: TLComponents = {
 	ErrorFallback: TlaEditorErrorFallback,
-	MenuPanel: TlaEditorMenuPanel,
-	SharePanel: TlaEditorLegacySharePanel,
-	TopPanel: TlaEditorTopPanel,
+	SharePanel: () => {
+		const { fileSlug, timestamp, isApp } = useContext(TlaHistorySnapshotEditorContext)
+
+		const restoreVersion = useCallback(async () => {
+			const sure = window.confirm('Are you sure?')
+			if (!sure) return
+
+			const res = await fetch(
+				isApp ? `/api/app/file/${fileSlug}/restore` : `/api/${ROOM_PREFIX}/${fileSlug}/restore`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({ timestamp }),
+				}
+			)
+
+			if (!res.ok) {
+				window.alert('Something went wrong!')
+				return
+			}
+
+			window.alert('done')
+		}, [fileSlug, timestamp, isApp])
+
+		return (
+			<TlaCtaButton
+				style={{
+					pointerEvents: 'all',
+					margin: 6,
+				}}
+				onClick={restoreVersion}
+			>
+				<F defaultMessage="Restore version"></F>
+			</TlaCtaButton>
+		)
+	},
 }
 
-export function TlaLegacySnapshotEditor({
-	snapshot,
+export function TlaHistorySnapshotEditor({
 	fileSlug,
+	snapshot,
+	timestamp,
+	isApp,
 }: {
 	fileSlug: string
 	snapshot: TLStoreSnapshot
+	timestamp: string
+	isApp: boolean
 }) {
 	return (
-		<>
+		<TlaHistorySnapshotEditorContext.Provider value={{ fileSlug, timestamp, isApp }}>
 			<SneakySetDocumentTitle />
 			<ReadyWrapper key={fileSlug}>
 				<TlaEditorInner snapshot={snapshot} />
 			</ReadyWrapper>
-		</>
+		</TlaHistorySnapshotEditorContext.Provider>
 	)
 }
 
