@@ -4643,44 +4643,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)! as T
 	}
 
-	private _shapePageGeometryCaches: Record<string, ComputedCache<Geometry2d, TLShape>> = {}
-
-	/**
-	 * Get the geometry of a shape in page-space.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getShapePageGeometry(myShape)
-	 * editor.getShapePageGeometry(myShapeId)
-	 * editor.getShapePageGeometry(myShapeId, { context: "arrow" })
-	 * ```
-	 *
-	 * @param shape - The shape (or shape id) to get the geometry for.
-	 * @param opts - Additional options about the request for geometry. Passed to {@link ShapeUtil.getGeometry}.
-	 *
-	 * @public
-	 */
-	getShapePageGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T {
-		const context = opts?.context ?? 'none'
-		if (!this._shapePageGeometryCaches[context]) {
-			this._shapePageGeometryCaches[context] = this.store.createComputedCache(
-				'bounds',
-				(shape) => {
-					const geometry = this.getShapeGeometry(shape.id, opts)
-					const pageTransform = this.getShapePageTransform(shape.id)
-					return geometry.transform(pageTransform)
-				},
-				{
-					// we only depend directly on the shape id, and changing geometry/transform will update us anyway
-					areRecordsEqual: () => true,
-				}
-			)
-		}
-		return this._shapePageGeometryCaches[context].get(
-			typeof shape === 'string' ? shape : shape.id
-		)! as T
-	}
-
 	/** @internal */
 	@computed private _getShapeHandlesCache(): ComputedCache<TLHandle[] | undefined, TLShape> {
 		return this.store.createComputedCache(
