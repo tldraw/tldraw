@@ -50,6 +50,7 @@ export const TldrawUiIcon = memo(function TldrawUiIcon({
 					{ 'tlui-icon__small': small },
 					className
 				)}
+				{...props}
 			/>
 		)
 	}
