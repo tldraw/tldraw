@@ -1,10 +1,9 @@
-import { forbidden, notFound } from '@tldraw/worker-shared'
+import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
-import { createPostgresConnectionPool } from '../postgres'
 import { getR2KeyForRoom } from '../r2'
 import { Environment } from '../types'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
-import { requireAuth } from '../utils/tla/getAuth'
+import { requireWriteAccessToFile } from '../utils/tla/getAuth'
 
 // Returns the history of a room as a list of objects with timestamps
 export async function getRoomHistory(
@@ -18,15 +17,7 @@ export async function getRoomHistory(
 	if (isRoomIdTooLong(roomId)) return roomIdIsTooLong()
 
 	if (isApp) {
-		const { userId } = await requireAuth(request, env)
-		const db = createPostgresConnectionPool(env, 'sync-worker/getRoomHistorySnapshot')
-		const file = await db
-			.selectFrom('file')
-			.select('ownerId')
-			.where('id', '=', roomId)
-			.executeTakeFirst()
-		if (!file) return notFound()
-		if (file.ownerId !== userId) return forbidden()
+		await requireWriteAccessToFile(request, env, roomId)
 	}
 
 	const versionCacheBucket = env.ROOMS_HISTORY_EPHEMERAL
