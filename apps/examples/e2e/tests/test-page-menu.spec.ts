@@ -219,6 +219,18 @@ test.describe('page menu', () => {
 			// Should have original name back
 			await expect(pageItem.getByRole('button').first()).toContainText(originalName || '')
 		})
+
+		test('When you create a new page, the new page is focused', async ({ page, pageMenu }) => {})
+
+		test('When you open the page menu, the current page is in view', async ({
+			page,
+			pageMenu,
+		}) => {})
+
+		test('When you open the page menu, the current page is focused', async ({
+			page,
+			pageMenu,
+		}) => {})
 	})
 
 	test.describe('You can drag and drop pages to reorder them', () => {
