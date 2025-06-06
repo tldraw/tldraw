@@ -52,12 +52,13 @@ export const components: TLComponents = {
 	Dialogs: null,
 	Toasts: null,
 	DebugMenu: () => {
+		const app = useMaybeApp()
 		const openAndTrack = useOpenUrlAndTrack('unknown')
 		const editor = useEditor()
 		const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
 		return (
 			<DefaultDebugMenu>
-				{!isReadOnly && (
+				{!isReadOnly && app && (
 					<TldrawUiMenuItem
 						id="user-manual"
 						label="File history"
