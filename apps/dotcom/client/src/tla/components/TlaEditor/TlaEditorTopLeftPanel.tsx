@@ -209,8 +209,6 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		[editor]
 	)
 
-	const isFileOwner = useIsFileOwner(fileId)
-
 	const handleRenameAction = () => {
 		if (getIsCoarsePointer()) {
 			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
@@ -263,7 +261,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				<TldrawUiMenuGroup id="preferences">
 					<PreferencesGroup />
 				</TldrawUiMenuGroup>
-				{isDebugMode && isFileOwner && (
+				{isDebugMode && isOwner && (
 					<TldrawUiMenuGroup id="debug">
 						<TldrawUiMenuItem
 							id="user-manual"
