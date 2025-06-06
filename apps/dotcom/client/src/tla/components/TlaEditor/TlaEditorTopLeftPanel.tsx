@@ -17,13 +17,11 @@ import {
 	TldrawUiMenuActionItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
 	ViewSubmenu,
 	useEditor,
 	usePassThroughWheelEvents,
 	useValue,
 } from 'tldraw'
-import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
@@ -46,7 +44,6 @@ const messages = defineMessages({
 	pageMenu: { defaultMessage: 'Page menu' },
 	brand: { defaultMessage: 'tldraw' },
 	untitledProject: { defaultMessage: 'Untitled file' },
-	history: { defaultMessage: '[Debug] File History' },
 })
 
 // There are some styles in tla.css that adjust the regular tlui top panels
@@ -197,14 +194,6 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		[app, editor, fileId, isOwner]
 	)
 
-	const isDebugMode = useValue(
-		'isDebugMode',
-		() => {
-			return editor.getInstanceState().isDebugMode
-		},
-		[editor]
-	)
-
 	const handleRenameAction = () => {
 		if (getIsCoarsePointer()) {
 			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
@@ -216,8 +205,6 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		}
 	}
 	const handleRenameEnd = () => setIsRenaming(false)
-	const historyLabel = useMsg(messages.history)
-	const openAndTrack = useOpenUrlAndTrack('main-menu')
 
 	const separator = '/'
 	return (
@@ -253,20 +240,6 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				<TldrawUiMenuGroup id="preferences">
 					<PreferencesGroup />
 				</TldrawUiMenuGroup>
-				{isDebugMode && isOwner && (
-					<TldrawUiMenuGroup id="debug">
-						<TldrawUiMenuItem
-							id="user-manual"
-							label={historyLabel}
-							readonlyOk
-							onSelect={() => {
-								const url = new URL(window.location.href)
-								url.pathname += '/history'
-								openAndTrack(url.toString())
-							}}
-						/>
-					</TldrawUiMenuGroup>
-				)}
 			</TlaFileMenu>
 		</>
 	)
