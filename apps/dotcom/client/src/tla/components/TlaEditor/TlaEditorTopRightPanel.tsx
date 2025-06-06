@@ -57,14 +57,16 @@ export function TlaEditorTopRightPanel({
 		<div ref={ref} className={styles.topRightPanel}>
 			<PeopleMenu />
 			{context === 'legacy' && <LegacyImportButton />}
-			<TlaFileShareMenu fileId={fileId!} source="file-header" context={context}>
-				<TlaCtaButton
-					data-testid="tla-share-button"
-					onClick={() => trackEvent('open-share-menu', { source: 'top-bar' })}
-				>
-					<F defaultMessage="Share" />
-				</TlaCtaButton>
-			</TlaFileShareMenu>
+			{context !== 'legacy' && (
+				<TlaFileShareMenu fileId={fileId!} source="file-header" context={context}>
+					<TlaCtaButton
+						data-testid="tla-share-button"
+						onClick={() => trackEvent('open-share-menu', { source: 'top-bar' })}
+					>
+						<F defaultMessage="Share" />
+					</TlaCtaButton>
+				</TlaFileShareMenu>
+			)}
 		</div>
 	)
 }
