@@ -1,7 +1,7 @@
 import { bind, uniqueId } from '@tldraw/utils'
-import { Vec } from '../../primitives/Vec'
-import type { Editor } from '../Editor'
-import { TLClickEventInfo, TLPointerEventInfo } from '../types/event-types'
+import { Vec } from '../../../primitives/Vec'
+import type { Editor } from '../../Editor'
+import { TLClickEventInfo, TLPointerEventInfo } from '../../types/event-types'
 
 /** @public */
 export type TLClickState =

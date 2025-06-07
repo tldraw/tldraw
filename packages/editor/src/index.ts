@@ -148,7 +148,7 @@ export {
 	type BindingOnShapeIsolateOptions,
 	type TLBindingUtilConstructor,
 } from './lib/editor/bindings/BindingUtil'
-export { ClickManager, type TLClickState } from './lib/editor/managers/ClickManager'
+export { ClickManager, type TLClickState } from './lib/editor/managers/ClickManager/ClickManager'
 export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager'
 export {
 	FontManager,
