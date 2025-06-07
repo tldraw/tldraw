@@ -113,9 +113,14 @@ export function getIndices(n: number, start = 'a1' as IndexKey) {
  * @param b - An object with an index property.
  * @public */
 export function sortByIndex<T extends { index: IndexKey }>(a: T, b: T) {
-	if (a.index < b.index) {
+	return sortIndices(a.index, b.index)
+}
+
+/** @internal */
+export function sortIndices(a: IndexKey, b: IndexKey) {
+	if (a < b) {
 		return -1
-	} else if (a.index > b.index) {
+	} else if (a > b) {
 		return 1
 	}
 	return 0
