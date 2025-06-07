@@ -145,7 +145,7 @@ import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
-import { getNotVisibleShapesComputed } from './derivations/notVisibleShapes'
+import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { ClickManager } from './managers/ClickManager/ClickManager'
@@ -2178,7 +2178,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				.flatMap((id) => {
 					const pageTransform = this.getShapePageTransform(id)
 					if (!pageTransform) return []
-					// unlike in getShapePageBounds, the "rotated" page bounds are done using corners, not vertices
 					return pageTransform.applyToPoints(this.getShapeGeometry(id).bounds.corners)
 				})
 				.map((p) => p.rot(-selectionRotation))
@@ -4852,11 +4851,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 	}
 
-	/** @deprecated Use {@link Editor.getShapePageMask} instead. */
-	getShapeMask(shape: TLShapeId | TLShape): VecLike[] | undefined {
-		return this.getShapePageMask(shape)
-	}
-
 	/**
 	 * Get the mask (in the current page space) for a shape.
 	 *
@@ -4871,7 +4865,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getShapePageMask(shape: TLShapeId | TLShape): VecLike[] | undefined {
+	getShapeMask(shape: TLShapeId | TLShape): VecLike[] | undefined {
 		return this._getShapeMaskCache().get(typeof shape === 'string' ? shape : shape.id)
 	}
 
@@ -5048,7 +5042,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.isShapeOrAncestorLocked(this.getShapeParent(_shape))
 	}
 
-	private _notVisibleShapes = getNotVisibleShapesComputed(this)
+	private _notVisibleShapes = notVisibleShapes(this)
 
 	/**
 	 * Get shapes that are outside of the viewport.
@@ -5170,7 +5164,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.isShapeOfType(shape, 'group')
 			)
 				return false
-			const pageMask = this.getShapePageMask(shape)
+			const pageMask = this.getShapeMask(shape)
 			if (pageMask && !pointInPolygon(point, pageMask)) return false
 			if (filter) return filter(shape)
 			return true
@@ -5362,7 +5356,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const id = typeof shape === 'string' ? shape : shape.id
 		// If the shape is masked, and if the point falls outside of that
 		// mask, then it's definitely a miss—we don't need to test further.
-		const pageMask = this.getShapePageMask(id)
+		const pageMask = this.getShapeMask(id)
 		if (pageMask && !pointInPolygon(point, pageMask)) return false
 
 		return this.getShapeGeometry(id).hitTestPoint(

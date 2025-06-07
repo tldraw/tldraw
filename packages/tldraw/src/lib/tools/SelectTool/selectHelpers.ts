@@ -103,7 +103,7 @@ export function getOverlappingShapes<T extends TLShape[] | TLShapeId[]>(
 	const parentPageTransform = editor.getShapePageTransform(shape)
 	const parentPageCorners = parentPageTransform.applyToPoints(parentGeometry.vertices)
 
-	const parentPageMaskVertices = editor.getShapePageMask(shape)
+	const parentPageMaskVertices = editor.getShapeMask(shape)
 	const parentPagePolygon = parentPageMaskVertices
 		? intersectPolygonPolygon(parentPageMaskVertices, parentPageCorners)
 		: parentPageCorners
@@ -284,7 +284,7 @@ export function getDroppedShapesToNewParents(
 		const frameGeometry = editor.getShapeGeometry(frame)
 		const framePageTransform = editor.getShapePageTransform(frame)
 
-		const framePageMaskVertices = editor.getShapePageMask(frame)
+		const framePageMaskVertices = editor.getShapeMask(frame)
 		const framePageCorners = framePageTransform.applyToPoints(frameGeometry.vertices)
 		const framePagePolygon = framePageMaskVertices
 			? intersectPolygonPolygon(framePageMaskVertices, framePageCorners)

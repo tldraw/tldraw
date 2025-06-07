@@ -236,7 +236,7 @@ export class Brushing extends StateNode {
 		// Find the outermost selectable shape, check to see if it has a
 		// page mask; and if so, check to see if the brush intersects it
 		const selectedShape = this.editor.getOutermostSelectableShape(shape)
-		const pageMask = this.editor.getShapePageMask(selectedShape.id)
+		const pageMask = this.editor.getShapeMask(selectedShape.id)
 		if (
 			pageMask &&
 			!polygonsIntersect(pageMask, corners) &&

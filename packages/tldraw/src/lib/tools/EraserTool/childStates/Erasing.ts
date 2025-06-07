@@ -94,7 +94,7 @@ export class Erasing extends StateNode {
 			if (editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue
 
 			// Avoid testing masked shapes, unless the pointer is inside the mask
-			const pageMask = editor.getShapePageMask(shape.id)
+			const pageMask = editor.getShapeMask(shape.id)
 			if (pageMask && !pointInPolygon(currentPagePoint, pageMask)) {
 				continue
 			}

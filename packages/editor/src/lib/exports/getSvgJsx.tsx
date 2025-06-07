@@ -237,7 +237,7 @@ function SvgExport({
 						}
 
 						// Create svg mask if shape has a frame as parent
-						const pageMask = editor.getShapePageMask(shape.id)
+						const pageMask = editor.getShapeMask(shape.id)
 						const shapeMask = pageMask
 							? Mat.From(Mat.Inverse(pageTransform)).applyToPoints(pageMask)
 							: null
