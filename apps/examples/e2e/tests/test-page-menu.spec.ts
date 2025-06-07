@@ -28,7 +28,6 @@ test.describe('page menu', () => {
 			await pageMenu.createButton.click()
 			await expect(pageItems).toHaveCount(initialCount + 1)
 			await page.keyboard.press('Enter')
-			await page.keyboard.press('Escape')
 		})
 
 		await test.step('switch between pages', async () => {
@@ -89,7 +88,6 @@ test.describe('page menu', () => {
 
 		await test.step('confirm page creation with enter', async () => {
 			await page.keyboard.press('Enter')
-			await page.keyboard.press('Escape')
 		})
 	})
 
