@@ -95,7 +95,6 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
-import { EdgeScrollManager, HistoryManager, ScribbleManager } from '../..'
 import {
 	TLEditorSnapshot,
 	TLLoadSnapshotOptions,
@@ -150,8 +149,11 @@ import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { ClickManager } from './managers/ClickManager/ClickManager'
+import { EdgeScrollManager } from './managers/EdgeScrollManager/EdgeScrollManager'
 import { FocusManager } from './managers/FocusManager/FocusManager'
 import { FontManager } from './managers/FontManager/FontManager'
+import { HistoryManager } from './managers/HistoryManager/HistoryManager'
+import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager/TextManager'
 import { TickManager } from './managers/TickManager/TickManager'
