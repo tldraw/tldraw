@@ -24,7 +24,7 @@ import {
 } from '@tldraw/editor'
 import React, { useCallback } from 'react'
 import { STYLES } from '../../../styles'
-import { kickoutOccludedShapes } from '../../../tools/SelectTool/selectHelpers'
+import { maybeReparentShapes } from '../../../tools/SelectTool/selectHelpers'
 import { useUiEvents } from '../../context/events'
 import { useRelevantStyles } from '../../hooks/useRelevantStyles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -186,7 +186,7 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 									handleValueChange(style, value)
 									const selectedShapeIds = editor.getSelectedShapeIds()
 									if (selectedShapeIds.length > 0) {
-										kickoutOccludedShapes(editor, selectedShapeIds)
+										maybeReparentShapes(editor, selectedShapeIds)
 									}
 								}}
 								theme={theme}

@@ -1318,7 +1318,7 @@ describe('Unparenting behavior', () => {
 
 		const [frame, triangle] = editor.getLastCreatedShapes(2)
 
-		// still a child of the frame because we're crating the shape
+		// still a child of the frame because we're creating the shape
 		expect(editor.getShape(triangle.id)!.parentId).toBe(frame.id)
 		editor.pointerUp(185, 185)
 		// But after pointer up, the triangle is reparented because it's not overlapping

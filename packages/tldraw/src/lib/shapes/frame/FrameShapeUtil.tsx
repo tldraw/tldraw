@@ -9,7 +9,6 @@ import {
 	TLClickEventInfo,
 	TLFrameShape,
 	TLFrameShapeProps,
-	TLGroupShape,
 	TLResizeInfo,
 	TLShape,
 	TLShapePartial,
@@ -19,15 +18,12 @@ import {
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
-	getIndexAbove,
-	getIndexBetween,
 	lerp,
 	resizeBox,
 	toDomPrecision,
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { getDroppedShapesToNewParents } from '../../tools/SelectTool/selectHelpers'
 import { fitFrameToContent, getFrameChildrenBounds } from '../../utils/frames/frames'
 import {
 	TLCreateTextJsxFromSpansOpts,
@@ -344,60 +340,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		if (!shapes.every((child) => child.parentId === frame.id)) {
 			this.editor.reparentShapes(shapes, frame.id)
 		}
-	}
-
-	override onDragShapesOut(frameShape: TLFrameShape, movingShapes: TLShape[]): void {
-		const { editor } = this
-
-		// If the frame is in a group, then we'll operate within the group;
-		// if dropping onto the "page", drop onto the group
-		// if dropping onto other frames, only drop in if those frames are also in the group
-		const containingGroupId = this.editor.findShapeAncestor(frameShape, (s) =>
-			this.editor.isShapeOfType<TLGroupShape>(s, 'group')
-		)?.id
-
-		const sortedShapes = editor.getCurrentPageShapesSorted().map((s) => s.id)
-
-		// Don't fall "up" into frames in front of the shape
-		// if (pageShapes.indexOf(shape) < frameSortPosition) continue shapeCheck
-
-		// Otherwise, we have no next dropping shape under the cursor, so go find
-		// all the frames on the page where the moving shapes will fall into
-		const { reparenting, remainingShapesToReparent } = getDroppedShapesToNewParents(
-			editor,
-			movingShapes,
-			(shape, parent) =>
-				parent.id !== frameShape.id &&
-				sortedShapes.indexOf(parent.id) < sortedShapes.indexOf(shape.id)
-		)
-
-		editor.run(() => {
-			reparenting.forEach((childrenToReparent, frameId) => {
-				if (childrenToReparent.length === 0) return
-				editor.reparentShapes(childrenToReparent, frameId)
-			})
-
-			// Reparent the rest to the page (or containing group)
-			if (remainingShapesToReparent.size > 0) {
-				remainingShapesToReparent.forEach((shape) => {
-					const parentChildIds = editor.getSortedChildIdsForParent(
-						containingGroupId ?? editor.getCurrentPageId()
-					)
-					const frameIndex = parentChildIds.indexOf(frameShape.id)
-					const indexAbove = parentChildIds[frameIndex + 1]
-					const shapeAbove = indexAbove && editor.getShape(parentChildIds[frameIndex + 1])
-					const insertIndex = shapeAbove
-						? getIndexBetween(frameShape.index, shapeAbove.index)
-						: getIndexAbove(frameShape.index)
-
-					if (containingGroupId) {
-						editor.reparentShapes([shape], containingGroupId, insertIndex)
-					} else {
-						editor.reparentShapes([shape], editor.getCurrentPageId(), insertIndex)
-					}
-				})
-			}
-		})
 	}
 
 	override onResize(shape: any, info: TLResizeInfo<any>) {

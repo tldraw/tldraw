@@ -20,7 +20,7 @@ import {
 	compact,
 	isAccelKey,
 } from '@tldraw/editor'
-import { kickoutOccludedShapes } from '../selectHelpers'
+import { maybeReparentShapes } from '../selectHelpers'
 
 export type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
@@ -132,7 +132,7 @@ export class Resizing extends StateNode {
 	}
 
 	private complete() {
-		kickoutOccludedShapes(this.editor, this.snapshot.selectedShapeIds)
+		maybeReparentShapes(this.editor, this.snapshot.selectedShapeIds)
 
 		this.handleResizeEnd()
 

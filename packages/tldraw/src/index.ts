@@ -181,7 +181,10 @@ export { EraserTool } from './lib/tools/EraserTool/EraserTool'
 export { HandTool } from './lib/tools/HandTool/HandTool'
 export { LaserTool } from './lib/tools/LaserTool/LaserTool'
 export { SelectTool } from './lib/tools/SelectTool/SelectTool'
-export { getOverlappingShapes, kickoutOccludedShapes } from './lib/tools/SelectTool/selectHelpers'
+export {
+	getOverlappingShapes,
+	maybeReparentShapes as kickoutOccludedShapes,
+} from './lib/tools/SelectTool/selectHelpers'
 export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
 export { TldrawUi, type TldrawUiProps } from './lib/ui/TldrawUi'
 export {

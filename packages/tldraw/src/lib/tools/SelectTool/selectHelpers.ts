@@ -3,12 +3,16 @@ import {
 	Editor,
 	Geometry2d,
 	Group2d,
+	IndexKey,
 	TLFrameShape,
 	TLGroupShape,
+	TLParentId,
 	TLShape,
 	TLShapeId,
 	Vec,
 	compact,
+	getIndexAbove,
+	getIndexBetween,
 	intersectPolygonPolygon,
 	pointInPolygon,
 	polygonIntersectsPolyline,
@@ -16,45 +20,121 @@ import {
 } from '@tldraw/editor'
 
 /** @internal */
-export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
-	// const shapes = shapeIds.map((id) => editor.getShape(id)).filter((s) => s) as TLShape[]
+export function maybeReparentShapes(editor: Editor, shapeIds: TLShapeId[]) {
 	const parentsToCheck = new Set<TLShape>()
+
 	for (const id of shapeIds) {
-		// If the shape exists and the shape has an onDragShapesOut
-		// function, add it to the set
 		const shape = editor.getShape(id)
 		if (!shape) continue
-		if (editor.getShapeUtil(shape).onDragShapesOut) {
-			parentsToCheck.add(shape)
-		}
-		// If the shape's parent is a shape and the shape's parent
-		// has an onDragShapesOut function, add it to the set
+		parentsToCheck.add(shape)
+
 		const parent = editor.getShape(shape.parentId)
 		if (!parent) continue
-		if (editor.getShapeUtil(parent).onDragShapesOut) {
-			parentsToCheck.add(parent)
-		}
+		if (editor.isShapeOfType<TLGroupShape>(parent, 'group')) continue
+		parentsToCheck.add(parent)
 	}
 
-	const parentsWithKickedOutChildren = new Map<TLShape, TLShapeId[]>()
+	// Check all of the parents and gather up parents who have lost children
+	const parentsToLostChildren = new Map<TLShape, TLShapeId[]>()
 
 	for (const parent of parentsToCheck) {
 		const childIds = editor.getSortedChildIdsForParent(parent)
 		const overlappingChildren = getOverlappingShapes(editor, parent, childIds)
 		if (overlappingChildren.length < childIds.length) {
-			parentsWithKickedOutChildren.set(
+			parentsToLostChildren.set(
 				parent,
 				childIds.filter((id) => !overlappingChildren.includes(id))
 			)
 		}
 	}
 
+	// Get all of the shapes on the current page, sorted by their index
+	const sortedShapeIds = editor.getCurrentPageShapesSorted().map((s) => s.id)
+
+	const parentsToNewChildren: Record<
+		TLParentId,
+		{ parentId: TLParentId; shapeIds: TLShapeId[]; index?: IndexKey }
+	> = {}
+
 	// now call onDragShapesOut for each parent
-	for (const [parent, kickedOutChildrenIds] of parentsWithKickedOutChildren) {
-		const shapeUtil = editor.getShapeUtil(parent)
-		const kickedOutChildren = compact(kickedOutChildrenIds.map((id) => editor.getShape(id)))
-		shapeUtil.onDragShapesOut?.(parent, kickedOutChildren)
+	for (const [prevParent, lostChildrenIds] of parentsToLostChildren) {
+		const shapeUtil = editor.getShapeUtil(prevParent)
+		const lostChildren = compact(lostChildrenIds.map((id) => editor.getShape(id)))
+
+		if (shapeUtil.onDragShapesOut) {
+			shapeUtil.onDragShapesOut(prevParent, lostChildren)
+		}
+
+		// Don't fall "up" into frames in front of the shape
+		// if (pageShapes.indexOf(shape) < frameSortPosition) continue shapeCheck
+
+		// Otherwise, we have no next dropping shape under the cursor, so go find
+		// all the frames on the page where the moving shapes will fall into
+		const { reparenting, remainingShapesToReparent } = getDroppedShapesToNewParents(
+			editor,
+			lostChildren,
+			(shape, maybeNewParent) =>
+				maybeNewParent.id !== prevParent.id &&
+				sortedShapeIds.indexOf(maybeNewParent.id) < sortedShapeIds.indexOf(shape.id)
+		)
+
+		reparenting.forEach((childrenToReparent, newParentId) => {
+			if (childrenToReparent.length === 0) return
+			if (!parentsToNewChildren[newParentId]) {
+				parentsToNewChildren[newParentId] = {
+					parentId: newParentId,
+					shapeIds: [],
+				}
+			}
+
+			parentsToNewChildren[newParentId].shapeIds.push(...childrenToReparent.map((s) => s.id))
+		})
+
+		// Reparent the rest to the page (or containing group)
+		if (remainingShapesToReparent.size > 0) {
+			// The remaining shapes are going to be reparented to the old parent's containing group, if there was one, or else to the page
+			const newParentId =
+				editor.findShapeAncestor(prevParent, (s) => editor.isShapeOfType<TLGroupShape>(s, 'group'))
+					?.id ?? editor.getCurrentPageId()
+
+			remainingShapesToReparent.forEach((shape) => {
+				if (!parentsToNewChildren[newParentId]) {
+					let insertIndexKey: IndexKey | undefined
+
+					const oldParentSiblingIds = editor.getSortedChildIdsForParent(newParentId)
+					const oldParentIndex = oldParentSiblingIds.indexOf(prevParent.id)
+					if (oldParentIndex > -1) {
+						// If the old parent is a direct child of the new parent, then we'll add them above the old parent but below the next sibling.
+						const siblingsIndexAbove = oldParentSiblingIds[oldParentIndex + 1]
+						const indexKeyAbove = siblingsIndexAbove
+							? editor.getShape(siblingsIndexAbove)!.index
+							: getIndexAbove(prevParent.index)
+						insertIndexKey = getIndexBetween(prevParent.index, indexKeyAbove)
+					} else {
+						// If the old parent is not a direct child of the new parent, then we'll add them to the "top" of the new parent's children.
+						// This is done automatically if we leave the index undefined, so let's do that.
+					}
+
+					parentsToNewChildren[newParentId] = {
+						parentId: newParentId,
+						shapeIds: [],
+						index: insertIndexKey,
+					}
+				}
+
+				parentsToNewChildren[newParentId].shapeIds.push(shape.id)
+			})
+		}
 	}
+
+	editor.run(() => {
+		Object.values(parentsToNewChildren).forEach(({ parentId, shapeIds, index }) => {
+			if (shapeIds.length === 0) return
+			// Before we reparent, sort the new shape ids by their place in the original absolute order on the page
+			shapeIds.sort((a, b) => (sortedShapeIds.indexOf(a) < sortedShapeIds.indexOf(b) ? -1 : 1))
+			editor.reparentShapes(shapeIds, parentId, index)
+		})
+	})
 }
 
 /**

@@ -13,7 +13,7 @@ import {
 } from '@tldraw/editor'
 import { clearArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
-import { kickoutOccludedShapes } from '../selectHelpers'
+import { maybeReparentShapes } from '../selectHelpers'
 
 export type DraggingHandleInfo = TLPointerEventInfo & {
 	shape: TLArrowShape | TLLineShape
@@ -202,7 +202,7 @@ export class DraggingHandle extends StateNode {
 
 	private complete() {
 		this.editor.snaps.clearIndicators()
-		kickoutOccludedShapes(this.editor, [this.shapeId])
+		maybeReparentShapes(this.editor, [this.shapeId])
 
 		const { onInteractionEnd } = this.info
 		if (this.editor.getInstanceState().isToolLocked && onInteractionEnd) {

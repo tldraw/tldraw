@@ -9,7 +9,7 @@ import {
 	shortAngleDist,
 	snapAngle,
 } from '@tldraw/editor'
-import { kickoutOccludedShapes } from '../selectHelpers'
+import { maybeReparentShapes } from '../selectHelpers'
 import { CursorTypeMap } from './PointingResizeHandle'
 
 const ONE_DEGREE = Math.PI / 180
@@ -124,7 +124,7 @@ export class Rotating extends StateNode {
 			snapshot: this.snapshot,
 			stage: 'end',
 		})
-		kickoutOccludedShapes(
+		maybeReparentShapes(
 			this.editor,
 			this.snapshot.shapeSnapshots.map((s) => s.shape.id)
 		)

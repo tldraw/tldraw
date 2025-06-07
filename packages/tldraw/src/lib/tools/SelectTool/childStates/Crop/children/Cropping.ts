@@ -1,6 +1,6 @@
 import { SelectionHandle, ShapeWithCrop, StateNode, TLPointerEventInfo, Vec } from '@tldraw/editor'
 import { getCropBox, getDefaultCrop } from '../../../../../shapes/shared/crop'
-import { kickoutOccludedShapes } from '../../../selectHelpers'
+import { maybeReparentShapes } from '../../../selectHelpers'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
 type Snapshot = ReturnType<Cropping['createSnapshot']>
@@ -95,7 +95,7 @@ export class Cropping extends StateNode {
 
 	private complete() {
 		this.updateShapes()
-		kickoutOccludedShapes(this.editor, [this.snapshot.shape.id])
+		maybeReparentShapes(this.editor, [this.snapshot.shape.id])
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
