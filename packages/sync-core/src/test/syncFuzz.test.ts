@@ -23,7 +23,7 @@ import { TestSocketPair } from './TestSocketPair'
 
 const schema = createTLSchema()
 
-jest.mock('@tldraw/editor/src/lib/editor/managers/TickManager.ts', () => {
+jest.mock('@tldraw/editor/src/lib/editor/managers/TickManager/TickManager.ts', () => {
 	return {
 		TickManager: class {
 			start() {

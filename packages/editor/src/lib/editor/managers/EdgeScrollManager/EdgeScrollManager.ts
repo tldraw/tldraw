@@ -1,6 +1,6 @@
-import { Vec } from '../../primitives/Vec'
-import { EASINGS } from '../../primitives/easings'
-import { Editor } from '../Editor'
+import { Vec } from '../../../primitives/Vec'
+import { EASINGS } from '../../../primitives/easings'
+import { Editor } from '../../Editor'
 
 /** @public */
 export class EdgeScrollManager {

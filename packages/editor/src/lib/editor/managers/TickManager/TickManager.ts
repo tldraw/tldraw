@@ -1,6 +1,6 @@
 import { throttleToNextFrame as _throttleToNextFrame, bind } from '@tldraw/utils'
-import { Vec } from '../../primitives/Vec'
-import { Editor } from '../Editor'
+import { Vec } from '../../../primitives/Vec'
+import { Editor } from '../../Editor'
 
 const throttleToNextFrame =
 	typeof process !== 'undefined' && process.env.NODE_ENV === 'test'

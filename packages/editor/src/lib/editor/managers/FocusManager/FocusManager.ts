@@ -1,4 +1,4 @@
-import type { Editor } from '../Editor'
+import type { Editor } from '../../Editor'
 
 /**
  * A manager for ensuring correct focus across the editor.
