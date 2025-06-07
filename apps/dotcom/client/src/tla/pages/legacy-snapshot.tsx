@@ -78,18 +78,12 @@ export function Component({ error: _error }: { error?: unknown }) {
 
 	if (!userId) {
 		return (
-			// Override TlaEditor's internal ReadyWrapper. This prevents the anon layout chrome from rendering
-			// before the editor is ready.
 			<ReadyWrapper>
 				{error ? (
 					<TlaFileError error={error} />
 				) : (
 					<TlaAnonLayout>
-						<TlaLegacySnapshotEditor
-							fileSlug={roomId}
-							snapshot={snapshot}
-							context="legacy-snapshot"
-						/>
+						<TlaLegacySnapshotEditor fileSlug={roomId} snapshot={snapshot} />
 					</TlaAnonLayout>
 				)}
 			</ReadyWrapper>
@@ -101,7 +95,7 @@ export function Component({ error: _error }: { error?: unknown }) {
 			{error ? (
 				<TlaFileError error={error} />
 			) : (
-				<TlaLegacySnapshotEditor fileSlug={roomId} snapshot={snapshot} context="legacy-snapshot" />
+				<TlaLegacySnapshotEditor fileSlug={roomId} snapshot={snapshot} />
 			)}
 		</TlaSidebarLayout>
 	)

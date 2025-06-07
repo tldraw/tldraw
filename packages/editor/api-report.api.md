@@ -1258,7 +1258,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     getShapeNearestSibling(siblingShape: TLShape, targetShape: TLShape | undefined): TLShape | undefined;
     getShapePageBounds(shape: TLShape | TLShapeId): Box | undefined;
-    getShapePageGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T;
     getShapePageMask(shape: TLShape | TLShapeId): undefined | VecLike[];
     getShapePageTransform(shape: TLShape | TLShapeId): Mat;
     getShapeParent(shape?: TLShape | TLShapeId): TLShape | undefined;

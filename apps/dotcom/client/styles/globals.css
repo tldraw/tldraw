@@ -178,6 +178,8 @@ a {
 
 .board-history {
 	padding: 64px;
+	height: 100%;
+	overflow: scroll;
 }
 
 .board-history__list {

@@ -21,7 +21,7 @@ import { flushSync } from 'react-dom'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { InnerShape, InnerShapeBackground } from '../components/Shape'
 import { Editor, TLRenderingShape } from '../editor/Editor'
-import { TLFontFace } from '../editor/managers/FontManager'
+import { TLFontFace } from '../editor/managers/FontManager/FontManager'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import {
 	SvgExportContext,

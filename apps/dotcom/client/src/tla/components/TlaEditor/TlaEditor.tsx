@@ -1,11 +1,14 @@
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useMemo } from 'react'
 import {
+	DefaultDebugMenu,
+	DefaultDebugMenuContent,
 	Editor,
 	TLComponents,
 	TLSessionStateSnapshot,
 	TLUiDialogsContextType,
 	Tldraw,
+	TldrawUiMenuItem,
 	createSessionStateSnapshotSignal,
 	parseDeepLinkString,
 	react,
@@ -15,8 +18,10 @@ import {
 	useDialogs,
 	useEditor,
 	useEvent,
+	useValue,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
+import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
@@ -46,6 +51,29 @@ export const components: TLComponents = {
 	SharePanel: TlaEditorSharePanel,
 	Dialogs: null,
 	Toasts: null,
+	DebugMenu: () => {
+		const app = useMaybeApp()
+		const openAndTrack = useOpenUrlAndTrack('unknown')
+		const editor = useEditor()
+		const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
+		return (
+			<DefaultDebugMenu>
+				{!isReadOnly && app && (
+					<TldrawUiMenuItem
+						id="user-manual"
+						label="File history"
+						readonlyOk
+						onSelect={() => {
+							const url = new URL(window.location.href)
+							url.pathname += '/history'
+							openAndTrack(url.toString())
+						}}
+					/>
+				)}
+				<DefaultDebugMenuContent />
+			</DefaultDebugMenu>
+		)
+	},
 }
 
 interface TlaEditorProps {

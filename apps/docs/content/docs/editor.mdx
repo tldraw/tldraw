@@ -88,7 +88,7 @@ editor.getSelectedShapeIds() // [myShapeId, myOtherShapeId]
 
 Each change to the state happens within a transaction. You can batch changes into a single transaction using the [Editor#batch](?) method. It's a good idea to batch wherever possible, as this reduces the overhead for persisting or distributing those changes.
 
-### Listening for changes, and merging changes from other sources
+### Listening for changes and merging changes from other sources
 
 For information about how to synchronize the store with other processes, i.e. how to get data out and put data in, see the [Persistence](/docs/persistence) page.
 
@@ -273,11 +273,11 @@ The [Editor#getInstanceState](?) method returns settings that relate to each ind
 
 The editor's user preferences are shared between all instances. See the the [UserPreferencesManager](?) for more about the user preferences.
 
-# Camera and coordinates
+## Camera and coordinates
 
 The editor offers many methods and properties relating to the part of the infinite canvas that is displayed in the component. This section includes key concepts and methods that you can use to change or control which parts of the canvas are visible.
 
-## Viewport
+### Viewport
 
 The viewport is the rectangular area contained by the editor.
 
@@ -286,7 +286,7 @@ The viewport is the rectangular area contained by the editor.
 | [Editor#getViewportScreenBounds](?) | A [Box](?) that describes the size and position of the component's canvas in actual screen pixels.                 |
 | [Editor#getViewportPageBounds](?)   | A [Box](?) that describes the size and position of the part of the current page that is displayed in the viewport. |
 
-## Screen vs. page coordinates
+### Screen vs. page coordinates
 
 In tldraw, coordinates can either be in page or screen space.
 
@@ -317,23 +317,23 @@ const {
 } = editor.inputs
 ```
 
-## Camera options
+### Camera options
 
 You can use the editor's camera options to configure the behavior of the editor's camera. There are many options available.
 
-### `wheelBehavior`
+#### `wheelBehavior`
 
 When set to `'pan'`, scrolling the mousewheel will pan the camera. When set to `'zoom'`, scrolling the mousewheel will zoom the camera. When set to `none`, it will have no effect.
 
-### `panSpeed`
+#### `panSpeed`
 
 The speed at which the camera pans. A pan can occur when the user holds the spacebar and drags, holds the middle mouse button and drags, drags while using the hand tool, or scrolls the mousewheel. The default value is `1`. A value of `0.5` would be twice as slow as default. A value of `2` would be twice as fast. When set to `0`, the camera will not pan.
 
-### `zoomSpeed`
+#### `zoomSpeed`
 
 The speed at which the camera zooms. A zoom can occur when the user pinches or scrolls the mouse wheel. The default value is `1`. A value of `0.5` would be twice as slow as default. A value of `2` would be twice as fast. When set to `0`, the camera will not zoom.
 
-### `zoomSteps`
+#### `zoomSteps`
 
 The camera's "zoom steps" are an array of discrete zoom levels that the camera will move between when using the "zoom in" or "zoom out" controls.
 
@@ -341,29 +341,29 @@ The first number in the `zoomSteps` array defines the camera's minimum zoom leve
 
 If the `constraints` are provided, then the actual value for the camera's zoom will be be calculated by multiplying the value from the `zoomSteps` array with the value from the `baseZoom`. See the `baseZoom` property for more information.
 
-### `isLocked`
+#### `isLocked`
 
 Whether the camera is locked. When the camera is locked, the camera will not move.
 
-### `constraints`
+#### `constraints`
 
 By default the camera is free to move anywhere on the infinite canvas. However, you may provide the camera with a `constraints` object that constrains the camera based on a relationship between `bounds` (in page space) and the `viewport` (in screen space).
 
-### `constraints.bounds`
+#### `constraints.bounds`
 
 A box model describing the bounds in page space.
 
-### `constraints.padding`
+#### `constraints.padding`
 
 An object with padding to apply to the `x` and `y` dimensions of the viewport. The padding is in screen space.
 
-### `constraints.origin`
+#### `constraints.origin`
 
 An object with an origin for the `x` and `y` dimensions. Depending on the `behavior`, the origin may be used to position the bounds within the viewport.
 
 For example, when the `behavior` is `fixed` and the `origin.x` is `0`, the bounds will be placed with its left side touching the left side of the viewport. When `origin.x` is `1` the bounds will be placed with its right side touching the right side of the viewport. By default the origin for each dimension is .5. This places the bounds in the center of the viewport.
 
-### `constraints.initialZoom`
+#### `constraints.initialZoom`
 
 The `initialZoom` option defines the camera's initial zoom level and what the zoom should be when when the camera is reset. The zoom it produces is based on the value provided:
 
@@ -379,7 +379,7 @@ The `initialZoom` option defines the camera's initial zoom level and what the zo
 | `fit-min-100` | The smaller axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller. |
 | `fit-max-100` | The larger axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.  |
 
-### `constraints.baseZoom`
+#### `constraints.baseZoom`
 
 The `baseZoom` property defines the base property for the camera's zoom steps. It accepts the same values as `initialZoom`.
 
@@ -387,7 +387,7 @@ When `constraints` are provided, then the actual value for the camera's zoom wil
 
 For example, if the `baseZoom` is set to `default`, then a zoom step of 2 will be 200%. However, if the `baseZoom` is set to `fit-x`, then a zoom step value of 2 will be twice the zoom level at which the bounds width exactly fits within the viewport.
 
-### `constraints.behavior`
+#### `constraints.behavior`
 
 The `behavior` property defines which logic should be used when calculating the bounds position.
 
@@ -399,7 +399,7 @@ The `behavior` property defines which logic should be used when calculating the 
 | 'fixed'   | The bounds are placed in the viewport at a fixed location according to the `'origin'`.                                                      |
 | 'contain' | When the zoom is below the "fit zoom" for an axis, the bounds use the `'fixed'` behavior; when above, the bounds use the `inside` behavior. |
 
-## Controlling the camera
+### Controlling the camera
 
 There are several `Editor` methods available for controlling the camera.
 
@@ -416,13 +416,13 @@ There are several `Editor` methods available for controlling the camera.
 | [Editor#centerOnPoint](?)       | Centers the camera on the given point.                                                              |
 | [Editor#stopCameraAnimation](?) | Stops any camera animation.                                                                         |
 
-## Camera state
+### Camera state
 
 The camera may be in two states, `idle` or `moving`.
 
 You can get the current camera state with [Editor#getCameraState](?).
 
-# Bindings
+## Bindings
 
 A binding is a relationship from one [shape](/docs/shapes) to another. They're used to connect
 shapes so they can update together or depend on one and other. For example: tldraw's default arrow
@@ -433,7 +433,7 @@ You can create different types of binding that do all sorts of different things 
 between shapes. For example, you could create a [sticker
 shape](/examples/shapes/tools/sticker-bindings) that sticks to any other shape it's dropped onto.
 
-## The binding object
+### The binding object
 
 Bindings are records (JSON objects) that live in the [store](/docs/editor#store). For example,
 here's a binding record for one end of an arrow shape:
@@ -470,11 +470,11 @@ Bindings also have a `meta` property which can be used by your application to ad
 you haven't built yourself. You can read more about the meta property
 [here](/docs/shapes#Meta-information).
 
-## Custom bindings
+### Custom bindings
 
 To create a binding of your own, you can define a custom binding.
 
-### The binding type
+#### The binding type
 
 First, you need to create a type that describes what the binding object will look like:
 
@@ -490,7 +490,7 @@ instance).
 
 The [TLBaseBinding](?) helper adds the other base properties like `id`, `toId`, and `fromId`.
 
-### The `BindingUtil` class
+#### The `BindingUtil` class
 
 While bindings themselves are plain JSON objects, we use
 [`BindingUtil`](/reference/editor/BindingUtil) classes to define how bindings should work. They tell
@@ -546,7 +546,7 @@ Even within browsers though, `<foreignObject>`s and the method we use to create 
 
 We can only embed external assets such as images and font files if they're either hosted on the same origin as tldraw, or have [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) headers set. If external assets are missing from your export, check your browser's network tab to see if these are being requested and if anything is going wrong with them.
 
-# Common things to do with the editor
+## Common things to do with the editor
 
 ### Create a shape id
 

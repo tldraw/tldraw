@@ -148,15 +148,18 @@ export {
 	type BindingOnShapeIsolateOptions,
 	type TLBindingUtilConstructor,
 } from './lib/editor/bindings/BindingUtil'
-export { ClickManager, type TLClickState } from './lib/editor/managers/ClickManager'
-export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager'
+export { ClickManager, type TLClickState } from './lib/editor/managers/ClickManager/ClickManager'
+export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager/EdgeScrollManager'
 export {
 	FontManager,
 	type TLFontFace,
 	type TLFontFaceSource,
-} from './lib/editor/managers/FontManager'
-export { HistoryManager } from './lib/editor/managers/HistoryManager'
-export { ScribbleManager, type ScribbleItem } from './lib/editor/managers/ScribbleManager'
+} from './lib/editor/managers/FontManager/FontManager'
+export { HistoryManager } from './lib/editor/managers/HistoryManager/HistoryManager'
+export {
+	ScribbleManager,
+	type ScribbleItem,
+} from './lib/editor/managers/ScribbleManager/ScribbleManager'
 export {
 	BoundsSnaps,
 	type BoundsSnapGeometry,
@@ -170,8 +173,11 @@ export {
 	type SnapData,
 	type SnapIndicator,
 } from './lib/editor/managers/SnapManager/SnapManager'
-export { TextManager, type TLMeasureTextSpanOpts } from './lib/editor/managers/TextManager'
-export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesManager'
+export {
+	TextManager,
+	type TLMeasureTextSpanOpts,
+} from './lib/editor/managers/TextManager/TextManager'
+export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesManager/UserPreferencesManager'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
 export {
 	ShapeUtil,

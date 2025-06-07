@@ -71,12 +71,11 @@ export function getElbowArrowSnapLines(editor: Editor) {
 					if (!shapeBounds || !viewportBounds.includes(shapeBounds)) continue
 
 					const bindings = getArrowBindings(editor, shape)
-
 					const pageTransform = editor.getShapePageTransform(id)
 					if (!pageTransform) continue
 
 					const geometry = editor.getShapeGeometry(id)
-					// do these HAVE to be in page space?
+
 					const pageVertices = pageTransform.applyToPoints(geometry.vertices)
 
 					for (let i = 1; i < pageVertices.length; i++) {

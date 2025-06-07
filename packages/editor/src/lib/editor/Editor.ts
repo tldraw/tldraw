@@ -148,16 +148,16 @@ import { bindingsIndex } from './derivations/bindingsIndex'
 import { getNotVisibleShapesComputed } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
-import { ClickManager } from './managers/ClickManager'
-import { EdgeScrollManager } from './managers/EdgeScrollManager'
-import { FocusManager } from './managers/FocusManager'
-import { FontManager } from './managers/FontManager'
-import { HistoryManager } from './managers/HistoryManager'
-import { ScribbleManager } from './managers/ScribbleManager'
+import { ClickManager } from './managers/ClickManager/ClickManager'
+import { EdgeScrollManager } from './managers/EdgeScrollManager/EdgeScrollManager'
+import { FocusManager } from './managers/FocusManager/FocusManager'
+import { FontManager } from './managers/FontManager/FontManager'
+import { HistoryManager } from './managers/HistoryManager/HistoryManager'
+import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
-import { TextManager } from './managers/TextManager'
-import { TickManager } from './managers/TickManager'
-import { UserPreferencesManager } from './managers/UserPreferencesManager'
+import { TextManager } from './managers/TextManager/TextManager'
+import { TickManager } from './managers/TickManager/TickManager'
+import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
 import { ShapeUtil, TLGeometryOpts, TLResizeMode } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
@@ -328,7 +328,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store = store
 		this.history = new HistoryManager<TLRecord>({
 			store,
-			annotateError: (error) => {
+			annotateError: (error: any) => {
 				this.annotateError(error, { origin: 'history.batch', willCrashApp: true })
 				this.crash(error)
 			},
@@ -4640,44 +4640,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		}
 		return this._shapeGeometryCaches[context].get(
-			typeof shape === 'string' ? shape : shape.id
-		)! as T
-	}
-
-	private _shapePageGeometryCaches: Record<string, ComputedCache<Geometry2d, TLShape>> = {}
-
-	/**
-	 * Get the geometry of a shape in page-space.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getShapePageGeometry(myShape)
-	 * editor.getShapePageGeometry(myShapeId)
-	 * editor.getShapePageGeometry(myShapeId, { context: "arrow" })
-	 * ```
-	 *
-	 * @param shape - The shape (or shape id) to get the geometry for.
-	 * @param opts - Additional options about the request for geometry. Passed to {@link ShapeUtil.getGeometry}.
-	 *
-	 * @public
-	 */
-	getShapePageGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T {
-		const context = opts?.context ?? 'none'
-		if (!this._shapePageGeometryCaches[context]) {
-			this._shapePageGeometryCaches[context] = this.store.createComputedCache(
-				'bounds',
-				(shape) => {
-					const geometry = this.getShapeGeometry(shape.id, opts)
-					const pageTransform = this.getShapePageTransform(shape.id)
-					return geometry.transform(pageTransform)
-				},
-				{
-					// we only depend directly on the shape id, and changing geometry/transform will update us anyway
-					areRecordsEqual: () => true,
-				}
-			)
-		}
-		return this._shapePageGeometryCaches[context].get(
 			typeof shape === 'string' ? shape : shape.id
 		)! as T
 	}
