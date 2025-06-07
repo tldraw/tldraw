@@ -1,6 +1,6 @@
 import { Computed, computed, isUninitialized, RESET_VALUE } from '@tldraw/state'
 import { CollectionDiff, RecordsDiff } from '@tldraw/store'
-import { isShape, TLParentId, TLRecord, TLShapeId, TLStore } from '@tldraw/tlschema'
+import { isShape, TLParentId, TLRecord, TLShape, TLShapeId, TLStore } from '@tldraw/tlschema'
 import { compact, sortByIndex } from '@tldraw/utils'
 
 type ParentShapeIdsToChildShapeIds = Record<TLParentId, TLShapeId[]>
@@ -10,14 +10,20 @@ function fromScratch(
 	store: TLStore
 ) {
 	const result: ParentShapeIdsToChildShapeIds = {}
+	const shapeIds = shapeIdsQuery.get()
+	const shapes = Array(shapeIds.size) as TLShape[]
+	shapeIds.forEach((id) => shapes.push(store.get(id)!))
 
-	shapeIdsQuery.get().forEach((id) => {
-		const parentId = store.get(id)!.parentId
-		if (!result[parentId]) result[parentId] = []
-		result[parentId].push(id)
+	// Sort the shapes by index
+	shapes.sort(sortByIndex)
+
+	// Populate the result object with an array for each parent.
+	shapes.forEach((shape) => {
+		if (!result[shape.parentId]) {
+			result[shape.parentId] = []
+		}
+		result[shape.parentId].push(shape.id)
 	})
-
-	Object.values(result).forEach((ids) => ids.sort())
 
 	return result
 }
