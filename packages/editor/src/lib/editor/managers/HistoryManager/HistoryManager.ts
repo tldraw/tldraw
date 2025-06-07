@@ -9,7 +9,7 @@ import {
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
 import { exhaustiveSwitchError, noop } from '@tldraw/utils'
-import { TLHistoryBatchOptions, TLHistoryEntry } from '../types/history-types'
+import { TLHistoryBatchOptions, TLHistoryEntry } from '../../types/history-types'
 
 enum HistoryRecorderState {
 	Recording = 'recording',

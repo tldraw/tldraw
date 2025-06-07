@@ -1,5 +1,5 @@
 import { BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
-import { Editor } from '../Editor'
+import { Editor } from '../../Editor'
 
 const fixNewLines = /\r?\n|\r/g
 

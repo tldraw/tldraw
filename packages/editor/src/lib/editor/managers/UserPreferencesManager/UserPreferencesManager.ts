@@ -1,6 +1,6 @@
 import { atom, computed } from '@tldraw/state'
-import { TLUserPreferences, defaultUserPreferences } from '../../config/TLUserPreferences'
-import { TLUser } from '../../config/createTLUser'
+import { TLUserPreferences, defaultUserPreferences } from '../../../config/TLUserPreferences'
+import { TLUser } from '../../../config/createTLUser'
 
 /** @public */
 export class UserPreferencesManager {

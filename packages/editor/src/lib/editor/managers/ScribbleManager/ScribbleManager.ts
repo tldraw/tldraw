@@ -1,7 +1,7 @@
 import { TLScribble, VecModel } from '@tldraw/tlschema'
 import { uniqueId } from '@tldraw/utils'
-import { Vec } from '../../primitives/Vec'
-import { Editor } from '../Editor'
+import { Vec } from '../../../primitives/Vec'
+import { Editor } from '../../Editor'
 
 /** @public */
 export interface ScribbleItem {

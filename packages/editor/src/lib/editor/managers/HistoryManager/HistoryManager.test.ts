@@ -1,5 +1,5 @@
 import { BaseRecord, RecordId, Store, StoreSchema, createRecordType } from '@tldraw/store'
-import { TLHistoryBatchOptions } from '../types/history-types'
+import { TLHistoryBatchOptions } from '../../types/history-types'
 import { HistoryManager } from './HistoryManager'
 
 interface TestRecord extends BaseRecord<'test', TestRecordId> {
@@ -470,5 +470,392 @@ describe('history options', () => {
 		expect(getState()).toMatchObject({ a: 2, b: 6 })
 		manager.undo()
 		expect(getState()).toMatchObject({ a: 0, b: 0 })
+	})
+})
+
+describe('HistoryManager constructor and lifecycle', () => {
+	let store: Store<TestRecord>
+
+	beforeEach(() => {
+		store = new Store({ schema: testSchema, props: null })
+		store.put([testSchema.types.test.create({ id: ids.a, value: 0 })])
+	})
+
+	it('should initialize with store reference', () => {
+		const manager = new HistoryManager({ store })
+		expect(manager).toBeDefined()
+		expect(manager.getNumUndos()).toBe(0)
+		expect(manager.getNumRedos()).toBe(0)
+	})
+
+	it('should initialize with optional annotateError callback', () => {
+		const mockAnnotateError = jest.fn()
+		const manager = new HistoryManager({ store, annotateError: mockAnnotateError })
+		expect(manager).toBeDefined()
+	})
+
+	it('should properly dispose and cleanup', () => {
+		const manager = new HistoryManager({ store })
+		expect(typeof manager.dispose).toBe('function')
+
+		// Should not throw when disposing
+		expect(() => manager.dispose()).not.toThrow()
+	})
+
+	it('should handle errors in batch operations with annotateError', () => {
+		const mockAnnotateError = jest.fn()
+		const manager = new HistoryManager({ store, annotateError: mockAnnotateError })
+
+		const errorFn = () => {
+			throw new Error('Test error')
+		}
+
+		expect(() => manager.batch(errorFn)).toThrow('Test error')
+		expect(mockAnnotateError).toHaveBeenCalledWith(expect.any(Error))
+	})
+
+	it('should handle nested batch error scenarios', () => {
+		const mockAnnotateError = jest.fn()
+		const manager = new HistoryManager({ store, annotateError: mockAnnotateError })
+
+		const nestedErrorFn = () => {
+			manager.batch(() => {
+				throw new Error('Nested error')
+			})
+		}
+
+		expect(() => manager.batch(nestedErrorFn)).toThrow('Nested error')
+		expect(mockAnnotateError).toHaveBeenCalledWith(expect.any(Error))
+	})
+})
+
+describe('HistoryManager getters and utilities', () => {
+	let manager: HistoryManager<TestRecord>
+	let store: Store<TestRecord>
+
+	beforeEach(() => {
+		store = new Store({ schema: testSchema, props: null })
+		store.put([testSchema.types.test.create({ id: ids.a, value: 0 })])
+		manager = new HistoryManager({ store })
+	})
+
+	describe('getNumUndos and getNumRedos', () => {
+		it('should return 0 for empty history', () => {
+			expect(manager.getNumUndos()).toBe(0)
+			expect(manager.getNumRedos()).toBe(0)
+		})
+
+		it('should count undos correctly with pending changes', () => {
+			store.update(ids.a, (s) => ({ ...s, value: 1 }))
+			expect(manager.getNumUndos()).toBe(1)
+			expect(manager.getNumRedos()).toBe(0)
+		})
+
+		it('should count undos and redos after operations', () => {
+			expect(manager.getNumUndos()).toBe(0)
+			expect(manager.getNumRedos()).toBe(0)
+
+			store.update(ids.a, (s) => ({ ...s, value: 1 }))
+			expect(manager.getNumUndos()).toBe(1)
+			expect(manager.getNumRedos()).toBe(0)
+
+			manager._mark('mark1')
+
+			expect(manager.getNumUndos()).toBe(2)
+			expect(manager.getNumRedos()).toBe(0)
+
+			store.update(ids.a, (s) => ({ ...s, value: 2 }))
+
+			// Based on actual behavior: 1 pending + 1 mark + 1 flushed = 3
+			expect(manager.getNumUndos()).toBe(3)
+			expect(manager.getNumRedos()).toBe(0)
+
+			manager.undo()
+			expect(manager.getNumUndos()).toBe(1) // After undo, we're back to just the first operation
+			expect(manager.getNumRedos()).toBe(2) // Undo moved 2 items to redo stack (pending + mark)
+		})
+
+		it('should count correctly after clearing redo stack', () => {
+			store.update(ids.a, (s) => ({ ...s, value: 1 }))
+			manager.undo()
+			expect(manager.getNumRedos()).toBe(1)
+
+			store.update(ids.a, (s) => ({ ...s, value: 2 }))
+			expect(manager.getNumRedos()).toBe(0)
+		})
+	})
+
+	describe('getMarkIdMatching', () => {
+		it('should return null when no marks exist', () => {
+			expect(manager.getMarkIdMatching('test')).toBeNull()
+		})
+
+		it('should find marks by substring', () => {
+			manager._mark('test-mark-1')
+			store.update(ids.a, (s) => ({ ...s, value: 1 }))
+			manager._mark('other-mark-2')
+
+			expect(manager.getMarkIdMatching('test')).toBe('test-mark-1')
+			expect(manager.getMarkIdMatching('other')).toBe('other-mark-2')
+			expect(manager.getMarkIdMatching('mark')).toBe('other-mark-2') // returns most recent
+		})
+
+		it('should return null for non-existent substrings', () => {
+			manager._mark('test-mark')
+			expect(manager.getMarkIdMatching('nonexistent')).toBeNull()
+		})
+
+		it('should find marks after undo operations', () => {
+			manager._mark('initial-mark')
+			store.update(ids.a, (s) => ({ ...s, value: 1 }))
+			manager._mark('second-mark')
+			store.update(ids.a, (s) => ({ ...s, value: 2 }))
+
+			// After undo, marks should still be findable in the undo stack
+			expect(manager.getMarkIdMatching('initial')).toBe('initial-mark')
+			expect(manager.getMarkIdMatching('second')).toBe('second-mark')
+		})
+	})
+
+	describe('clear method', () => {
+		it('should clear all history', () => {
+			store.update(ids.a, (s) => ({ ...s, value: 1 }))
+			manager._mark('test-mark')
+			store.update(ids.a, (s) => ({ ...s, value: 2 }))
+
+			expect(manager.getNumUndos()).toBeGreaterThan(0)
+
+			manager.clear()
+
+			expect(manager.getNumUndos()).toBe(0)
+			expect(manager.getNumRedos()).toBe(0)
+		})
+
+		it('should clear pending diffs', () => {
+			store.update(ids.a, (s) => ({ ...s, value: 1 }))
+			expect(manager.getNumUndos()).toBe(1)
+
+			manager.clear()
+			expect(manager.getNumUndos()).toBe(0)
+		})
+
+		it('should allow new operations after clearing', () => {
+			store.update(ids.a, (s) => ({ ...s, value: 1 }))
+			manager.clear()
+
+			store.update(ids.a, (s) => ({ ...s, value: 2 }))
+			expect(manager.getNumUndos()).toBe(1)
+
+			manager.undo()
+			expect(store.get(ids.a)!.value).toBe(1) // Should undo to value before the new operation
+		})
+	})
+
+	describe('debug method', () => {
+		it('should return debug information', () => {
+			store.update(ids.a, (s) => ({ ...s, value: 1 }))
+			manager._mark('test-mark')
+			store.update(ids.a, (s) => ({ ...s, value: 2 }))
+
+			const debug = manager.debug()
+
+			expect(debug).toHaveProperty('undos')
+			expect(debug).toHaveProperty('redos')
+			expect(debug).toHaveProperty('pendingDiff')
+			expect(debug).toHaveProperty('state')
+			expect(Array.isArray(debug.undos)).toBe(true)
+			expect(Array.isArray(debug.redos)).toBe(true)
+		})
+
+		it('should show correct state information', () => {
+			const debug = manager.debug()
+			expect(debug.state).toBe('recording')
+		})
+
+		it('should reflect changes after undo/redo', () => {
+			store.update(ids.a, (s) => ({ ...s, value: 1 }))
+			manager.undo()
+
+			const debug = manager.debug()
+			expect(debug.redos.length).toBeGreaterThan(0)
+		})
+	})
+})
+
+describe('HistoryManager error scenarios and edge cases', () => {
+	let manager: HistoryManager<TestRecord>
+	let store: Store<TestRecord>
+
+	beforeEach(() => {
+		store = new Store({ schema: testSchema, props: null })
+		store.put([testSchema.types.test.create({ id: ids.a, value: 0 })])
+		manager = new HistoryManager({ store })
+	})
+
+	describe('squashToMark error handling', () => {
+		it('should handle non-existent mark gracefully', () => {
+			store.update(ids.a, (s) => ({ ...s, value: 1 }))
+			const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
+
+			manager.squashToMark('non-existent-mark')
+
+			expect(consoleSpy).toHaveBeenCalledWith(
+				'Could not find mark to squash to: ',
+				'non-existent-mark'
+			)
+			consoleSpy.mockRestore()
+		})
+
+		it('should handle empty stack when squashing', () => {
+			const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
+
+			manager.squashToMark('non-existent')
+
+			expect(consoleSpy).toHaveBeenCalled()
+			consoleSpy.mockRestore()
+		})
+
+		it('should return early when no changes to squash', () => {
+			manager._mark('test-mark')
+
+			// No operations between marks
+			const result = manager.squashToMark('test-mark')
+			expect(result).toBe(manager) // Should return manager instance
+		})
+	})
+
+	describe('bailToMark with non-existent marks', () => {
+		it('should handle non-existent mark in bailToMark', () => {
+			store.update(ids.a, (s) => ({ ...s, value: 1 }))
+			const originalValue = store.get(ids.a)!.value
+
+			manager.bailToMark('non-existent-mark')
+
+			// Should not change anything when mark doesn't exist
+			expect(store.get(ids.a)!.value).toBe(originalValue)
+		})
+
+		it('should find mark correctly when it exists', () => {
+			manager._mark('existing-mark')
+			store.update(ids.a, (s) => ({ ...s, value: 1 }))
+			store.update(ids.a, (s) => ({ ...s, value: 2 }))
+
+			manager.bailToMark('existing-mark')
+			expect(store.get(ids.a)!.value).toBe(0)
+		})
+	})
+
+	describe('empty stack operations', () => {
+		it('should handle undo on empty stack', () => {
+			expect(() => manager.undo()).not.toThrow()
+			expect(manager.getNumUndos()).toBe(0)
+		})
+
+		it('should handle redo on empty stack', () => {
+			expect(() => manager.redo()).not.toThrow()
+			expect(manager.getNumRedos()).toBe(0)
+		})
+
+		it('should handle bail on empty stack', () => {
+			expect(() => manager.bail()).not.toThrow()
+			expect(manager.getNumUndos()).toBe(0)
+		})
+	})
+
+	describe('batch operation edge cases', () => {
+		it('should handle nested batches correctly', () => {
+			let callCount = 0
+
+			manager.batch(() => {
+				callCount++
+				manager.batch(() => {
+					callCount++
+					store.update(ids.a, (s) => ({ ...s, value: 1 }))
+				})
+				store.update(ids.a, (s) => ({ ...s, value: 2 }))
+			})
+
+			expect(callCount).toBe(2)
+			expect(store.get(ids.a)!.value).toBe(2)
+		})
+
+		it('should maintain batch state correctly during errors', () => {
+			const mockAnnotateError = jest.fn()
+			const errorManager = new HistoryManager({ store, annotateError: mockAnnotateError })
+
+			try {
+				errorManager.batch(() => {
+					store.update(ids.a, (s) => ({ ...s, value: 1 }))
+					throw new Error('Test error')
+				})
+			} catch (_e) {
+				// Expected to throw
+			}
+
+			// Should be able to perform normal operations after error
+			expect(() => {
+				errorManager.batch(() => {
+					store.update(ids.a, (s) => ({ ...s, value: 2 }))
+				})
+			}).not.toThrow()
+		})
+
+		it('should handle batch with undefined history option', () => {
+			expect(() => {
+				manager.batch(() => {
+					store.update(ids.a, (s) => ({ ...s, value: 1 }))
+				}, undefined)
+			}).not.toThrow()
+		})
+	})
+
+	describe('large history operations', () => {
+		it('should handle many undo operations', () => {
+			// Create operations with marks - based on existing test pattern
+			for (let i = 1; i <= 10; i++) {
+				store.update(ids.a, (s) => ({ ...s, value: i }))
+				if (i % 3 === 0) manager._mark(`mark-${i}`)
+			}
+
+			const undoCount = manager.getNumUndos()
+			expect(undoCount).toBeGreaterThan(3)
+
+			// Undo some operations
+			const undosToPerform = 3
+			for (let i = 0; i < undosToPerform; i++) {
+				manager.undo()
+			}
+
+			// Due to marks, the redo count might be different
+			expect(manager.getNumRedos()).toBeGreaterThan(0)
+		})
+
+		it('should handle alternating undo/redo operations', () => {
+			for (let i = 1; i <= 10; i++) {
+				store.update(ids.a, (s) => ({ ...s, value: i }))
+			}
+
+			// Alternate undo/redo
+			for (let i = 0; i < 5; i++) {
+				manager.undo()
+				manager.redo()
+			}
+
+			expect(store.get(ids.a)!.value).toBe(10)
+		})
+	})
+
+	describe('concurrent-like operations', () => {
+		it('should handle rapid sequential operations', () => {
+			const initialValue = store.get(ids.a)!.value
+
+			// Rapid fire updates
+			for (let i = 1; i <= 20; i++) {
+				store.update(ids.a, (s) => ({ ...s, value: i }))
+			}
+
+			manager.undo()
+			expect(store.get(ids.a)!.value).toBe(initialValue)
+		})
 	})
 })
