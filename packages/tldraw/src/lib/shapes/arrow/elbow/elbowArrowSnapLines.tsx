@@ -71,13 +71,16 @@ export function getElbowArrowSnapLines(editor: Editor) {
 					if (!shapeBounds || !viewportBounds.includes(shapeBounds)) continue
 
 					const bindings = getArrowBindings(editor, shape)
+					const pageTransform = editor.getShapePageTransform(id)
+					if (!pageTransform) continue
 
-					const geometry = editor.getShapePageGeometry(id)
-					const vertices = geometry.getVertices({ includeInternal: false, includeLabels: false })
+					const geometry = editor.getShapeGeometry(id)
 
-					for (let i = 1; i < vertices.length; i++) {
-						const prev = vertices[i - 1]
-						const curr = vertices[i]
+					const pageVertices = pageTransform.applyToPoints(geometry.vertices)
+
+					for (let i = 1; i < pageVertices.length; i++) {
+						const prev = pageVertices[i - 1]
+						const curr = pageVertices[i]
 
 						let angle = Vec.Angle(prev, curr)
 
