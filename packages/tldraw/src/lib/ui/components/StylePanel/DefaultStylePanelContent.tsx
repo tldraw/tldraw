@@ -17,7 +17,7 @@ import {
 	TLArrowShapeArrowheadStyle,
 	TLDefaultColorTheme,
 	getDefaultColorTheme,
-	maybeReparentShapes,
+	kickoutOccludedShapes,
 	minBy,
 	useEditor,
 	useIsDarkMode,
@@ -186,7 +186,7 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 									handleValueChange(style, value)
 									const selectedShapeIds = editor.getSelectedShapeIds()
 									if (selectedShapeIds.length > 0) {
-										maybeReparentShapes(editor, selectedShapeIds)
+										kickoutOccludedShapes(editor, selectedShapeIds)
 									}
 								}}
 								theme={theme}

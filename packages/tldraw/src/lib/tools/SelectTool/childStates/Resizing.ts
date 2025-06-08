@@ -19,7 +19,7 @@ import {
 	areAnglesCompatible,
 	compact,
 	isAccelKey,
-	maybeReparentShapes,
+	kickoutOccludedShapes,
 } from '@tldraw/editor'
 
 export type ResizingInfo = TLPointerEventInfo & {
@@ -132,7 +132,7 @@ export class Resizing extends StateNode {
 	}
 
 	private complete() {
-		maybeReparentShapes(this.editor, this.snapshot.selectedShapeIds)
+		kickoutOccludedShapes(this.editor, this.snapshot.selectedShapeIds)
 
 		this.handleResizeEnd()
 

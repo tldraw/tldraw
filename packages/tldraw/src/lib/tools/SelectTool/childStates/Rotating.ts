@@ -6,7 +6,7 @@ import {
 	applyRotationToSnapshotShapes,
 	degreesToRadians,
 	getRotationSnapshot,
-	maybeReparentShapes,
+	kickoutOccludedShapes,
 	shortAngleDist,
 	snapAngle,
 } from '@tldraw/editor'
@@ -124,7 +124,7 @@ export class Rotating extends StateNode {
 			snapshot: this.snapshot,
 			stage: 'end',
 		})
-		maybeReparentShapes(
+		kickoutOccludedShapes(
 			this.editor,
 			this.snapshot.shapeSnapshots.map((s) => s.shape.id)
 		)

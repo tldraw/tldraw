@@ -1,5 +1,5 @@
 import {
-	maybeReparentShapes,
+	kickoutOccludedShapes,
 	SelectionHandle,
 	ShapeWithCrop,
 	StateNode,
@@ -101,7 +101,7 @@ export class Cropping extends StateNode {
 
 	private complete() {
 		this.updateShapes()
-		maybeReparentShapes(this.editor, [this.snapshot.shape.id])
+		kickoutOccludedShapes(this.editor, [this.snapshot.shape.id])
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {

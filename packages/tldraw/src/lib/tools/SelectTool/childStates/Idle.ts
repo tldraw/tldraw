@@ -14,7 +14,7 @@ import {
 	VecLike,
 	createShapeId,
 	debugFlags,
-	maybeReparentShapes,
+	kickoutOccludedShapes,
 	pointInPolygon,
 	toRichText,
 } from '@tldraw/editor'
@@ -269,7 +269,7 @@ export class Idle extends StateNode {
 						if (change) {
 							this.editor.markHistoryStoppingPoint('double click edge')
 							this.editor.updateShapes([change])
-							maybeReparentShapes(this.editor, [onlySelectedShape.id])
+							kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
 							return
 						}
 					}
@@ -284,7 +284,7 @@ export class Idle extends StateNode {
 						if (change) {
 							this.editor.markHistoryStoppingPoint('double click corner')
 							this.editor.updateShapes([change])
-							maybeReparentShapes(this.editor, [onlySelectedShape.id])
+							kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
 							return
 						}
 					}
@@ -689,7 +689,7 @@ export class Idle extends StateNode {
 
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		this.editor.nudgeShapes(selectedShapeIds, delta.mul(step))
-		maybeReparentShapes(this.editor, selectedShapeIds)
+		kickoutOccludedShapes(this.editor, selectedShapeIds)
 	}
 
 	private canInteractWithShapeInReadOnly(shape: TLShape) {

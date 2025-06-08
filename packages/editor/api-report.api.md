@@ -2029,6 +2029,9 @@ export const isAccelKey: <InputType extends {
 // @public
 export const isSafeFloat: (n: number) => boolean;
 
+// @public
+export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]): void;
+
 // @internal (undocumented)
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult;
 
@@ -2249,9 +2252,6 @@ export interface MatModel {
     // (undocumented)
     f: number;
 }
-
-// @public
-export function maybeReparentShapes(editor: Editor, shapeIds: TLShapeId[]): void;
 
 // @public
 export function maybeSnapToGrid(point: Vec, editor: Editor): Vec;

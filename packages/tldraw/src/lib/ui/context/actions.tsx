@@ -17,7 +17,7 @@ import {
 	approximately,
 	compact,
 	createShapeId,
-	maybeReparentShapes,
+	kickoutOccludedShapes,
 	openWindow,
 	useMaybeEditor,
 } from '@tldraw/editor'
@@ -313,7 +313,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 								}
 							})
 						)
-						maybeReparentShapes(
+						kickoutOccludedShapes(
 							editor,
 							shapes.map((shape) => shape.id)
 						)
@@ -585,7 +585,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
 						editor.alignShapes(selectedShapeIds, 'left')
-						maybeReparentShapes(editor, selectedShapeIds)
+						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
 			},
@@ -606,7 +606,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
 						editor.alignShapes(selectedShapeIds, 'center-horizontal')
-						maybeReparentShapes(editor, selectedShapeIds)
+						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
 			},
@@ -624,7 +624,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
 						editor.alignShapes(selectedShapeIds, 'right')
-						maybeReparentShapes(editor, selectedShapeIds)
+						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
 			},
@@ -645,7 +645,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
 						editor.alignShapes(selectedShapeIds, 'center-vertical')
-						maybeReparentShapes(editor, selectedShapeIds)
+						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
 			},
@@ -663,7 +663,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
 						editor.alignShapes(selectedShapeIds, 'top')
-						maybeReparentShapes(editor, selectedShapeIds)
+						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
 			},
@@ -681,7 +681,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
 						editor.alignShapes(selectedShapeIds, 'bottom')
-						maybeReparentShapes(editor, selectedShapeIds)
+						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
 			},
@@ -702,7 +702,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
 						editor.distributeShapes(selectedShapeIds, 'horizontal')
-						maybeReparentShapes(editor, selectedShapeIds)
+						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
 			},
@@ -723,7 +723,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
 						editor.distributeShapes(selectedShapeIds, 'vertical')
-						maybeReparentShapes(editor, selectedShapeIds)
+						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
 			},
@@ -743,7 +743,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
 						editor.stretchShapes(selectedShapeIds, 'horizontal')
-						maybeReparentShapes(editor, selectedShapeIds)
+						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
 			},
@@ -763,7 +763,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
 						editor.stretchShapes(selectedShapeIds, 'vertical')
-						maybeReparentShapes(editor, selectedShapeIds)
+						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
 			},
@@ -783,7 +783,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
 						editor.flipShapes(selectedShapeIds, 'horizontal')
-						maybeReparentShapes(editor, selectedShapeIds)
+						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
 			},
@@ -800,7 +800,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
 						editor.flipShapes(selectedShapeIds, 'vertical')
-						maybeReparentShapes(editor, selectedShapeIds)
+						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
 			},
@@ -817,7 +817,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
 						editor.packShapes(selectedShapeIds, editor.options.adjacentShapeMargin)
-						maybeReparentShapes(editor, selectedShapeIds)
+						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
 			},
@@ -837,7 +837,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
 						editor.stackShapes(selectedShapeIds, 'vertical', editor.options.adjacentShapeMargin)
-						maybeReparentShapes(editor, selectedShapeIds)
+						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
 			},
@@ -857,7 +857,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.run(() => {
 						const selectedShapeIds = editor.getSelectedShapeIds()
 						editor.stackShapes(selectedShapeIds, 'horizontal', editor.options.adjacentShapeMargin)
-						maybeReparentShapes(editor, selectedShapeIds)
+						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
 			},
@@ -1022,7 +1022,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						const dontUseOffset = approximately(offset, 0) || approximately(offset, HALF_PI / 2)
 						const selectedShapeIds = editor.getSelectedShapeIds()
 						editor.rotateShapesBy(selectedShapeIds, HALF_PI / 2 - (dontUseOffset ? 0 : offset))
-						maybeReparentShapes(editor, selectedShapeIds)
+						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
 			},
@@ -1041,7 +1041,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						const offsetCloseToZero = approximately(offset, 0)
 						const selectedShapeIds = editor.getSelectedShapeIds()
 						editor.rotateShapesBy(selectedShapeIds, offsetCloseToZero ? -(HALF_PI / 2) : -offset)
-						maybeReparentShapes(editor, selectedShapeIds)
+						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
 			},

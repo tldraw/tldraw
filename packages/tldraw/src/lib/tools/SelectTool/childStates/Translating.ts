@@ -14,7 +14,7 @@ import {
 	bind,
 	compact,
 	isPageId,
-	maybeReparentShapes,
+	kickoutOccludedShapes,
 } from '@tldraw/editor'
 import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
@@ -185,7 +185,7 @@ export class Translating extends StateNode {
 	protected complete() {
 		this.updateShapes()
 		this.dragAndDropManager.dropShapes(this.snapshot.movingShapes)
-		maybeReparentShapes(
+		kickoutOccludedShapes(
 			this.editor,
 			this.snapshot.movingShapes.map((s) => s.id)
 		)

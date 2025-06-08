@@ -13,14 +13,15 @@ import {
 import { pointInPolygon } from '../primitives/utils'
 
 /**
- * Reparents shapes that have "fallen out" of their parent shapes.
+ * Reparents shapes that are no longer contained within their parent shapes.
+ * todo: rename me to something more descriptive, like `reparentOccludedShapes` or `reparentAutoDroppedShapes`
  *
  * @param editor - The editor instance.
  * @param shapeIds - The IDs of the shapes to reparent.
  *
  * @public
  */
-export function maybeReparentShapes(editor: Editor, shapeIds: TLShapeId[]) {
+export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 	const parentsToCheck = new Set<TLShape>()
 
 	for (const id of shapeIds) {

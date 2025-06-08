@@ -7,7 +7,7 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	Vec,
-	maybeReparentShapes,
+	kickoutOccludedShapes,
 	snapAngle,
 	sortByIndex,
 	structuredClone,
@@ -202,7 +202,7 @@ export class DraggingHandle extends StateNode {
 
 	private complete() {
 		this.editor.snaps.clearIndicators()
-		maybeReparentShapes(this.editor, [this.shapeId])
+		kickoutOccludedShapes(this.editor, [this.shapeId])
 
 		const { onInteractionEnd } = this.info
 		if (this.editor.getInstanceState().isToolLocked && onInteractionEnd) {
