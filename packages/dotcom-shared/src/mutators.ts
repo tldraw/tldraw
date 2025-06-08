@@ -59,6 +59,8 @@ export function createMutators(userId: string) {
 			insert: async (tx, file: TlaFile) => {
 				assert(file.ownerId === userId, ZErrorCode.forbidden)
 				await assertNotMaxFiles(tx, userId)
+				assert(file.id.match(/^[a-zA-Z0-9_-]+$/), ZErrorCode.bad_request)
+				assert(file.id.length <= 32, ZErrorCode.bad_request)
 
 				await tx.mutate.file.insert(file)
 			},
@@ -75,6 +77,11 @@ export function createMutators(userId: string) {
 			deleteOrForget: async (tx, file: TlaFile) => {
 				await tx.mutate.file_state.delete({ fileId: file.id, userId })
 				if (file?.ownerId === userId) {
+					if (tx.location === 'server') {
+						await tx.dbTransaction.query(`delete from public.file_state where "fileId" = $1`, [
+							file.id,
+						])
+					}
 					await tx.mutate.file.update({
 						id: file.id,
 						ownerId: file.ownerId,
