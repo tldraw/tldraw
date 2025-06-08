@@ -194,6 +194,14 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		})
 	}
 
+	override canAcceptChildren(): boolean {
+		return true
+	}
+
+	override canAcceptChild(): boolean {
+		return true
+	}
+
 	override getText(shape: TLFrameShape): string | undefined {
 		return shape.props.name
 	}

@@ -14,6 +14,7 @@ import {
 	TLGeoShape,
 	TLGeoShapeProps,
 	TLResizeInfo,
+	TLShape,
 	TLShapeUtilCanvasSvgDef,
 	Vec,
 	exhaustiveSwitchError,
@@ -128,6 +129,15 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				}),
 			],
 		})
+	}
+
+	override canAcceptChildren() {
+		return true
+	}
+
+	override canAcceptChild(_shape: TLGeoShape, _child: TLShape): boolean {
+		// Geo shapes can only accept other geo shapes as children
+		return _child.type === 'text'
 	}
 
 	override getHandleSnapGeometry(shape: TLGeoShape): HandleSnapGeometry {

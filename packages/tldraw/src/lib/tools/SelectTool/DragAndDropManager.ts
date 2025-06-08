@@ -126,9 +126,9 @@ export class DragAndDropManager {
 		const currentPageId = editor.getCurrentPageId()
 
 		editor.run(() => {
-			reparenting.forEach((childrenToReparent, frameId) => {
+			reparenting.forEach((childrenToReparent, newParentId) => {
 				if (childrenToReparent.length === 0) return
-				editor.reparentShapes(childrenToReparent, frameId)
+				editor.reparentShapes(childrenToReparent, newParentId)
 			})
 
 			// Reparent the rest to the page (or containing group)

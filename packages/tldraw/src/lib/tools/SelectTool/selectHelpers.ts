@@ -4,7 +4,6 @@ import {
 	Geometry2d,
 	Group2d,
 	IndexKey,
-	TLFrameShape,
 	TLGroupShape,
 	TLParentId,
 	TLShape,
@@ -344,71 +343,71 @@ export function getDroppedShapesToNewParents(
 
 	const reparenting = new Map<TLShapeId, TLShape[]>()
 
-	const potentialParentFrames = editor
+	const potentialParentShapes = editor
 		.getCurrentPageShapesSorted()
 		// filter out any shapes that aren't frames or that are included among the provided shapes
-		.filter(
-			(s) => editor.isShapeOfType<TLFrameShape>(s, 'frame') && !remainingShapesToReparent.has(s)
-		)
+		.filter((s) => editor.getShapeUtil(s).canAcceptChildren(s) && !remainingShapesToReparent.has(s))
 
 	// this could be cached and passed in
 	const shapeGroupIds = new Map<TLShapeId, TLShapeId | undefined>()
 
-	frameCheck: for (let i = potentialParentFrames.length - 1; i >= 0; i--) {
-		const frame = potentialParentFrames[i]
-		const frameGroupId = editor.findShapeAncestor(frame, (s) =>
+	parentCheck: for (let i = potentialParentShapes.length - 1; i >= 0; i--) {
+		const parentShape = potentialParentShapes[i]
+		const parentShapeContainingGroupId = editor.findShapeAncestor(parentShape, (s) =>
 			editor.isShapeOfType<TLGroupShape>(s, 'group')
 		)?.id
 
 		// Frame geometry in page space
-		const frameGeometry = editor.getShapeGeometry(frame)
-		const framePageTransform = editor.getShapePageTransform(frame)
+		const parentGeometry = editor.getShapeGeometry(parentShape)
+		const parentPageTransform = editor.getShapePageTransform(parentShape)
 
-		const framePageMaskVertices = editor.getShapeMask(frame)
-		const framePageCorners = framePageTransform.applyToPoints(frameGeometry.vertices)
-		const framePagePolygon = framePageMaskVertices
-			? intersectPolygonPolygon(framePageMaskVertices, framePageCorners)
-			: framePageCorners
+		const parentPageMaskVertices = editor.getShapeMask(parentShape)
+		const parentPageCorners = parentPageTransform.applyToPoints(parentGeometry.vertices)
+		const parentPagePolygon = parentPageMaskVertices
+			? intersectPolygonPolygon(parentPageMaskVertices, parentPageCorners)
+			: parentPageCorners
 
-		if (!framePagePolygon) continue frameCheck
+		if (!parentPagePolygon) continue parentCheck
 
 		const childrenToReparent = []
 
 		// For each of the dropping shapes...
 		shapeCheck: for (const shape of remainingShapesToReparent) {
 			// Don't reparent a frame to itself
-			if (frame.id === shape.id) continue shapeCheck
+			if (parentShape.id === shape.id) continue shapeCheck
 
 			// Use the callback to filter out certain shapes
-			if (cb && !cb(shape, frame)) continue shapeCheck
+			if (cb && !cb(shape, parentShape)) continue shapeCheck
 
-			let shapeGroupId: TLShapeId | undefined
-
-			if (shapeGroupIds.has(shape.id)) {
-				shapeGroupId = shapeGroupIds.get(shape.id)
-			} else {
-				shapeGroupId = editor.findShapeAncestor(shape, (s) =>
-					editor.isShapeOfType<TLGroupShape>(s, 'group')
-				)?.id
-				shapeGroupIds.set(shape.id, shapeGroupId)
+			if (!shapeGroupIds.has(shape.id)) {
+				shapeGroupIds.set(
+					shape.id,
+					editor.findShapeAncestor(shape, (s) => editor.isShapeOfType<TLGroupShape>(s, 'group'))?.id
+				)
 			}
 
-			// If the shape and the group are part of different groups, skip
-			if (shapeGroupId !== frameGroupId) continue shapeCheck
+			const shapeGroupId = shapeGroupIds.get(shape.id)
 
-			// the shape is actually the ancestor of the frame!
-			if (editor.findShapeAncestor(frame, (s) => shape.id === s.id)) continue
+			// Are the shape and the parent part of different groups?
+			if (shapeGroupId !== parentShapeContainingGroupId) continue shapeCheck
 
+			// Is the shape is actually the ancestor of the parent?
+			if (editor.findShapeAncestor(parentShape, (s) => shape.id === s.id)) continue shapeCheck
+
+			// Convert the parent polygon to the shape's space
 			const parentPolygonInShapeSpace = editor
 				.getShapePageTransform(shape)
 				.clone()
 				.invert()
-				.applyToPoints(framePagePolygon)
+				.applyToPoints(parentPagePolygon)
 
-			const geometry = editor.getShapeGeometry(shape)
-			if (doesGeometryOverlapPolygon(geometry, parentPolygonInShapeSpace)) {
-				// If the shape overlaps the frame, reparent it to that frame
-				if (shape.parentId !== frame.id) {
+			// If the shape overlaps the parent polygon, reparent it to that parent
+			if (doesGeometryOverlapPolygon(editor.getShapeGeometry(shape), parentPolygonInShapeSpace)) {
+				// Use the util to check if the shape can be reparented to the parent
+				if (!editor.getShapeUtil(parentShape).canAcceptChild(parentShape, shape))
+					continue shapeCheck
+
+				if (shape.parentId !== parentShape.id) {
 					childrenToReparent.push(shape)
 				}
 				remainingShapesToReparent.delete(shape)
@@ -417,9 +416,14 @@ export function getDroppedShapesToNewParents(
 		}
 
 		if (childrenToReparent.length) {
-			reparenting.set(frame.id, childrenToReparent)
+			reparenting.set(parentShape.id, childrenToReparent)
 		}
 	}
 
-	return { reparenting, remainingShapesToReparent }
+	return {
+		// these are the shapes that will be reparented to new parents
+		reparenting,
+		// these are the shapes that will be reparented to the page or their ancestral group
+		remainingShapesToReparent,
+	}
 }
