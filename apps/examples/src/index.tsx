@@ -1,5 +1,4 @@
 import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
-import { Analytics as VercelAnalytics } from '@vercel/analytics/react'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Helmet, HelmetProvider } from 'react-helmet-async'
@@ -111,7 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
 				<HelmetProvider>
 					<RootMeta />
 					<RouterProvider router={router} />
-					<VercelAnalytics />
 				</HelmetProvider>
 			</ErrorBoundary>
 		</StrictMode>

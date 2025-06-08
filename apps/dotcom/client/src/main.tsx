@@ -1,5 +1,4 @@
 import { ClerkProvider } from '@clerk/clerk-react'
-import { Analytics as VercelAnalytics } from '@vercel/analytics/react'
 import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
@@ -29,7 +28,6 @@ createRoot(document.getElementById('root')!).render(
 		<HelmetProvider>
 			<Head />
 			<RouterProvider router={browserRouter} />
-			<VercelAnalytics debug={false} />
 		</HelmetProvider>
 	</ClerkProvider>
 )

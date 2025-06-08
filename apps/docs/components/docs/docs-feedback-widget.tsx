@@ -1,11 +1,11 @@
 'use client'
 
+import { track } from '@/app/analytics'
 import { cn } from '@/utils/cn'
 import { useLocalStorageState } from '@/utils/storage'
 import { Field, Label, Textarea } from '@headlessui/react'
 import { ArrowLongRightIcon, CheckCircleIcon, HandThumbDownIcon } from '@heroicons/react/20/solid'
 import { HandThumbUpIcon } from '@heroicons/react/24/solid'
-import { track } from '@vercel/analytics'
 import { usePathname } from 'next/navigation'
 import { FormEventHandler, useCallback, useState } from 'react'
 

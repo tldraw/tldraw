@@ -1,6 +1,6 @@
 'use client'
 
-import { track } from '@vercel/analytics'
+import { track } from '@/app/analytics'
 import clsx from 'clsx'
 import Link from 'next/link'
 

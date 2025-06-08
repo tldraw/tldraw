@@ -56,7 +56,6 @@
 		"@shikijs/rehype": "^1.29.1",
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/utils": "workspace:*",
-		"@vercel/analytics": "^1.4.1",
 		"algoliasearch": "^4.24.0",
 		"clsx": "^2.1.1",
 		"date-fns": "^3.6.0",
