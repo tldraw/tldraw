@@ -1382,6 +1382,39 @@ describe('Unparenting behavior', () => {
 		expect(editor.getShape(triangle.id)!.parentId).toBe(frame.id)
 	})
 
+	it('reparents a large shape that covers the entire frame but not its center', () => {
+		// Create a small frame
+		const frameId = dragCreateFrame({ down: [200, 200], move: [300, 300], up: [300, 300] })
+
+		// Create a large rectangle that will completely encompass the frame
+		// but whose center is outside the frame
+		editor.setCurrentTool('geo')
+		editor.setStyleForNextShapes(GeoShapeGeoStyle, 'rectangle')
+		editor.pointerDown(100, 100) // Start well outside the frame
+		editor.pointerMove(400, 400) // End well outside the frame
+		editor.pointerUp(400, 400)
+
+		const largeRect = editor.getLastCreatedShape()
+
+		// Initially, the large rectangle should be on the page
+		expect(largeRect.parentId).toBe(editor.getCurrentPageId())
+
+		// Now drag the large rectangle so it completely covers the small frame
+		// but the center of the large rectangle is outside the frame
+		editor.select(largeRect.id)
+		editor.pointerDown(250, 250) // Center of the large rectangle
+		editor.pointerMove(150, 150) // Move it so frame is inside but center is outside
+		editor.pointerUp(150, 150)
+
+		// Wait for reparenting to happen
+		jest.advanceTimersByTime(200)
+
+		// The large rectangle should now be reparented to the frame
+		// This tests the specific case where all frame corners are inside the shape
+		// but the shape's center is not inside the frame
+		expect(editor.getShape(largeRect.id)!.parentId).toBe(frameId)
+	})
+
 	it('unparents an occluded shape after dragging a handle out of a frame', () => {
 		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
 		dragCreateLine({ down: [90, 90], move: [120, 120], up: [120, 120] })

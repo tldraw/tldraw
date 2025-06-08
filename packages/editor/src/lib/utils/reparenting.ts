@@ -206,19 +206,27 @@ export function doesGeometryOverlapPolygon(
 	// Skip empty labels
 	if (isEmptyLabel) return false
 
-	// If the shape is filled and closed and its center is inside the parent, it's inside
-	if (isFilled && isClosed && pointInPolygon(center, parentCornersInShapeSpace)) {
-		return true
-	}
-
 	// If any of the shape's vertices are inside the occluder, it's inside
 	if (vertices.some((v) => pointInPolygon(v, parentCornersInShapeSpace))) {
 		return true
 	}
 
-	// If any the shape's vertices intersect the edge of the occluder, it's inside.
-	// for example when a rotated rectangle is moved over the corner of a parent rectangle
+	// If the shape is filled and closed and its center is inside the parent, it's inside
 	if (isClosed) {
+		if (isFilled) {
+			// If closed and filled, check if the center is inside the parent
+			if (pointInPolygon(center, parentCornersInShapeSpace)) {
+				return true
+			}
+
+			// ..then, slightly more expensive check, see the shape covers the entire parent but not its center
+			if (parentCornersInShapeSpace.every((v) => pointInPolygon(v, vertices))) {
+				return true
+			}
+		}
+
+		// If any the shape's vertices intersect the edge of the occluder, it's inside.
+		// for example when a rotated rectangle is moved over the corner of a parent rectangle
 		// If the child shape is closed, intersect as a polygon
 		if (polygonsIntersect(parentCornersInShapeSpace, vertices)) {
 			return true
