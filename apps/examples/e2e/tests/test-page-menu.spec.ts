@@ -6,6 +6,13 @@ import test from './fixtures/fixtures'
 test.describe('page menu', () => {
 	test.beforeEach(setup)
 
+	test.afterEach(async ({ page }) => {
+		// press escape a few times
+		await page.keyboard.press('Escape')
+		await page.keyboard.press('Escape')
+		await page.keyboard.press('Escape')
+	})
+
 	test('you can open and close the page menu', async ({ pageMenu }) => {
 		const { pagemenuButton, header } = pageMenu
 		await expect(header).toBeHidden()
@@ -26,9 +33,10 @@ test.describe('page menu', () => {
 		await test.step('create a second page', async () => {
 			const initialCount = await pageItems.count()
 			await pageMenu.createButton.click()
+			await sleep(100)
 			await expect(pageItems).toHaveCount(initialCount + 1)
 			await page.keyboard.press('Enter')
-			await page.keyboard.press('Escape')
+			await page.keyboard.press('Escape') // close the menu
 		})
 
 		await test.step('switch between pages', async () => {
@@ -84,12 +92,12 @@ test.describe('page menu', () => {
 		await test.step('create new page using create button', async () => {
 			const initialCount = await pageItems.count()
 			await createButton.click()
+			await sleep(100)
 			await expect(pageItems).toHaveCount(initialCount + 1)
 		})
 
 		await test.step('confirm page creation with enter', async () => {
 			await page.keyboard.press('Enter')
-			await page.keyboard.press('Escape')
 		})
 	})
 
@@ -229,6 +237,9 @@ test.describe('page menu', () => {
 
 				// Create a new page
 				await pageMenu.createButton.click()
+				await sleep(100)
+
+				// To stop editing
 				await page.keyboard.press('Enter')
 
 				// Verify page count increased
@@ -258,6 +269,7 @@ test.describe('page menu', () => {
 				// Create several pages to potentially cause scrolling
 				for (let i = 0; i < 5; i++) {
 					await pageMenu.createButton.click()
+					await sleep(100)
 					await page.keyboard.press('Enter')
 				}
 				await page.keyboard.press('Escape')
@@ -291,8 +303,10 @@ test.describe('page menu', () => {
 				await pagemenuButton.click()
 				// Create a few pages
 				await pageMenu.createButton.click()
+				await sleep(100)
 				await page.keyboard.press('Enter')
 				await pageMenu.createButton.click()
+				await sleep(100)
 				await page.keyboard.press('Enter')
 				await page.keyboard.press('Escape')
 			})
@@ -336,8 +350,10 @@ test.describe('page menu', () => {
 			await test.step('create multiple pages for reordering', async () => {
 				await pagemenuButton.click()
 				await pageMenu.createButton.click()
+				await sleep(100)
 				await page.keyboard.press('Enter')
 				await pageMenu.createButton.click()
+				await sleep(100)
 				await page.keyboard.press('Enter')
 				await page.keyboard.press('Escape')
 			})
@@ -371,8 +387,9 @@ test.describe('page menu', () => {
 			await test.step('create an extra page so we can delete one', async () => {
 				await pagemenuButton.click()
 				await pageMenu.createButton.click()
-				await page.keyboard.press('Enter')
-				await page.keyboard.press('Escape')
+				await sleep(100)
+				await page.keyboard.press('Enter') // confirm rename
+				await page.keyboard.press('Escape') // close the menu
 			})
 
 			await test.step('open page menu and verify we have multiple pages', async () => {
@@ -430,6 +447,7 @@ test.describe('page menu', () => {
 			await test.step('create an extra page so we can delete one', async () => {
 				await pagemenuButton.click()
 				await pageMenu.createButton.click()
+				await sleep(100)
 				await page.keyboard.press('Enter')
 				await page.keyboard.press('Escape')
 			})
@@ -462,8 +480,10 @@ test.describe('page menu', () => {
 				await pagemenuButton.click()
 				// Create two additional pages (will have default names)
 				await pageMenu.createButton.click()
+				await sleep(100)
 				await page.keyboard.press('Enter')
 				await pageMenu.createButton.click()
+				await sleep(100)
 				await page.keyboard.press('Enter')
 				await page.keyboard.press('Escape')
 			})
@@ -503,8 +523,10 @@ test.describe('page menu', () => {
 				await pagemenuButton.click()
 				// Create two additional pages (will have default names)
 				await pageMenu.createButton.click()
+				await sleep(100)
 				await page.keyboard.press('Enter')
 				await pageMenu.createButton.click()
+				await sleep(100)
 				await page.keyboard.press('Enter')
 				await page.keyboard.press('Escape')
 			})
