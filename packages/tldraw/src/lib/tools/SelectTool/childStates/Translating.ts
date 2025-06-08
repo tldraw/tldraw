@@ -21,7 +21,7 @@ import {
 	getAvailableNoteAdjacentPositions,
 } from '../../../shapes/note/noteHelpers'
 import { DragAndDropManager } from '../DragAndDropManager'
-import { kickoutOccludedShapes } from '../selectHelpers'
+import { maybeReparentShapes } from '../selectHelpers'
 
 export type TranslatingInfo = TLPointerEventInfo & {
 	target: 'shape'
@@ -185,7 +185,7 @@ export class Translating extends StateNode {
 	protected complete() {
 		this.updateShapes()
 		this.dragAndDropManager.dropShapes(this.snapshot.movingShapes)
-		kickoutOccludedShapes(
+		maybeReparentShapes(
 			this.editor,
 			this.snapshot.movingShapes.map((s) => s.id)
 		)

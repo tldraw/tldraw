@@ -21,7 +21,7 @@ import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShap
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
-import { kickoutOccludedShapes, startEditingShapeWithLabel } from '../selectHelpers'
+import { maybeReparentShapes, startEditingShapeWithLabel } from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 	'Delete',
@@ -268,7 +268,7 @@ export class Idle extends StateNode {
 						if (change) {
 							this.editor.markHistoryStoppingPoint('double click edge')
 							this.editor.updateShapes([change])
-							kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
+							maybeReparentShapes(this.editor, [onlySelectedShape.id])
 							return
 						}
 					}
@@ -283,7 +283,7 @@ export class Idle extends StateNode {
 						if (change) {
 							this.editor.markHistoryStoppingPoint('double click corner')
 							this.editor.updateShapes([change])
-							kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
+							maybeReparentShapes(this.editor, [onlySelectedShape.id])
 							return
 						}
 					}
@@ -688,7 +688,7 @@ export class Idle extends StateNode {
 
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		this.editor.nudgeShapes(selectedShapeIds, delta.mul(step))
-		kickoutOccludedShapes(this.editor, selectedShapeIds)
+		maybeReparentShapes(this.editor, selectedShapeIds)
 	}
 
 	private canInteractWithShapeInReadOnly(shape: TLShape) {

@@ -76,24 +76,14 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 		return true
 	}
 
-	// [a]
-	override canDropShapes(_shape: MyGridShape, shapes: TLShape[]) {
-		if (shapes.every((s) => s.type === 'my-counter-shape')) {
-			return true
-		}
-		return false
+	// [4]
+	override canAcceptChildren(): boolean {
+		return true
 	}
 
-	// [b]
-	override onDragShapesOver(shape: MyGridShape, shapes: TLShape[]) {
-		if (!shapes.every((child) => child.parentId === shape.id)) {
-			this.editor.reparentShapes(shapes, shape.id)
-		}
-	}
-
-	// [c]
-	override onDragShapesOut(_shape: MyGridShape, shapes: TLShape[]) {
-		this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
+	// [5]
+	override canAcceptChild(_shape: MyGridShape, child: TLShape): boolean {
+		return child.type === 'my-counter-shape'
 	}
 
 	component() {
@@ -124,6 +114,7 @@ export default function DragAndDropExample() {
 			<Tldraw
 				shapeUtils={[MyGridShapeUtil, MyCounterShapeUtil]}
 				onMount={(editor) => {
+					if (editor.getCurrentPageShapeIds().size > 0) return
 					editor.createShape({ type: 'my-grid-shape', x: 100, y: 100 })
 					editor.createShape({ type: 'my-counter-shape', x: 700, y: 100 })
 					editor.createShape({ type: 'my-counter-shape', x: 750, y: 200 })
@@ -147,13 +138,9 @@ red circle that you drag and drop onto the other shape.
 [3] Make the other shape util. In this example, we'll make a grid that you can
 place the the circle counters onto.
 
-    [a] Use the `canDropShapes` method to specify which shapes can be dropped onto
-    the grid shape.
+[4] We want to allow the grid to accept children, so we override
+`canAcceptChildren` to return true.
 
-    [b] Use the `onDragShapesOver` method to reparent counters to the grid shape
-    when they are dragged on top.
-
-    [c] Use the `onDragShapesOut` method to reparent counters back to the page
-    when they are dragged off.
-
+[5] We want to allow the grid to accept only the counter shape, so we override
+`canAcceptChild` to return true if the child is a counter shape.
 */

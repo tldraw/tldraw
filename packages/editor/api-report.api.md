@@ -1214,6 +1214,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     getMarkIdMatching(idSubstring: string): null | string;
     getNearestAdjacentShape(currentShapeId: TLShapeId, direction: 'down' | 'left' | 'right' | 'up'): TLShapeId;
+    getNotVisibleShapes(): Set<TLShapeId>;
     getOnlySelectedShape(): null | TLShape;
     getOnlySelectedShapeId(): null | TLShapeId;
     // @deprecated (undocumented)
@@ -1360,9 +1361,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
     // (undocumented)
     isShapeOfType<T extends TLUnknownShape>(shapeId: TLUnknownShape['id'], type: T['type']): shapeId is T['id'];
-    isShapeOrAncestorLocked(shape?: TLShape): boolean;
-    // (undocumented)
-    isShapeOrAncestorLocked(id?: TLShapeId): boolean;
+    isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean;
     loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot, opts?: TLLoadSnapshotOptions): this;
     // @deprecated
     mark(markId?: string): this;
@@ -1679,6 +1678,8 @@ export abstract class Geometry2d {
     intersectPolyline(polyline: VecLike[], _filters?: Geometry2dFilters): VecLike[];
     // (undocumented)
     isClosed: boolean;
+    // (undocumented)
+    isEmptyLabel: boolean;
     // (undocumented)
     isExcludedByFilter(filters?: Geometry2dFilters): boolean;
     // (undocumented)
@@ -2533,6 +2534,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     constructor(editor: Editor);
     // @internal
     backgroundComponent?(shape: Shape): any;
+    canAcceptChild(_shape: Shape, _child: TLShape): boolean;
+    canAcceptChildren(_shape: Shape): boolean;
     canBeLaidOut(_shape: Shape, _info: TLShapeUtilCanBeLaidOutOpts): boolean;
     canBind(_opts: TLShapeUtilCanBindOpts): boolean;
     canCrop(_shape: Shape): boolean;
@@ -4245,6 +4248,8 @@ export interface TransformedGeometry2dOptions {
     debugColor?: string;
     // (undocumented)
     ignore?: boolean;
+    // (undocumented)
+    isEmptyLabel?: boolean;
     // (undocumented)
     isInternal?: boolean;
     // (undocumented)

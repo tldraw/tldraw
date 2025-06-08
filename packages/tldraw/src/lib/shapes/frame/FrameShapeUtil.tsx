@@ -9,7 +9,6 @@ import {
 	TLClickEventInfo,
 	TLFrameShape,
 	TLFrameShapeProps,
-	TLGroupShape,
 	TLResizeInfo,
 	TLShape,
 	TLShapePartial,
@@ -195,6 +194,14 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		})
 	}
 
+	override canAcceptChildren(): boolean {
+		return true
+	}
+
+	override canAcceptChild(): boolean {
+		return true
+	}
+
 	override getText(shape: TLFrameShape): string | undefined {
 		return shape.props.name
 	}
@@ -340,20 +347,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	override onDragShapesOver(frame: TLFrameShape, shapes: TLShape[]) {
 		if (!shapes.every((child) => child.parentId === frame.id)) {
 			this.editor.reparentShapes(shapes, frame.id)
-		}
-	}
-
-	override onDragShapesOut(_shape: TLFrameShape, shapes: TLShape[]): void {
-		const parent = this.editor.getShape(_shape.parentId)
-		const isInGroup = parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')
-
-		// If frame is in a group, keep the shape
-		// moved out in that group
-
-		if (isInGroup) {
-			this.editor.reparentShapes(shapes, parent.id)
-		} else {
-			this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
 		}
 	}
 
