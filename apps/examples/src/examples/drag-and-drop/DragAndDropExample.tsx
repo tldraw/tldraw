@@ -77,8 +77,8 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 	}
 
 	// [4]
-	override canDropShapes(): boolean {
-		return true
+	override canDropShapes(shape: MyGridShape): boolean {
+		return !shape.isLocked
 	}
 
 	// [5]
