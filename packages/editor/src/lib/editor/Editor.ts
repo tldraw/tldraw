@@ -5035,33 +5035,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean {
-		const _shape = typeof shape === 'string' ? this.getShape(shape) : shape
-		if (_shape === undefined) return false
-		if (_shape.isLocked) return true
-		return this.isShapeOrAncestorLocked(this.getShapeParent(_shape))
+	isShapeOrAncestorLocked(shape?: TLShape): boolean
+	isShapeOrAncestorLocked(id?: TLShapeId): boolean
+	isShapeOrAncestorLocked(arg?: TLShape | TLShapeId): boolean {
+		const shape = typeof arg === 'string' ? this.getShape(arg) : arg
+		if (shape === undefined) return false
+		if (shape.isLocked) return true
+		return this.isShapeOrAncestorLocked(this.getShapeParent(shape))
 	}
 
-	private _notVisibleShapes = notVisibleShapes(this)
-
-	/**
-	 * Get shapes that are outside of the viewport.
-	 *
-	 * @public
-	 */
 	@computed
-	getNotVisibleShapes() {
-		return this._notVisibleShapes.get()
+	private _notVisibleShapes() {
+		return notVisibleShapes(this)
 	}
 
 	/**
-	 * Get culled shapes (those that should not render),taking into account which shapes are selected or editing.
+	 * Get culled shapes.
 	 *
 	 * @public
 	 */
 	@computed
 	getCulledShapes() {
-		const notVisibleShapes = this.getNotVisibleShapes()
+		const notVisibleShapes = this._notVisibleShapes().get()
 		const selectedShapeIds = this.getSelectedShapeIds()
 		const editingId = this.getEditingShapeId()
 		const culledShapes = new Set<TLShapeId>(notVisibleShapes)
@@ -10042,7 +10037,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (elapsed > 0) {
 				this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
 			}
-
 			this.scribbles.tick(elapsed)
 		})
 	}
