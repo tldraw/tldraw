@@ -5053,10 +5053,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getNotVisibleShapes() {
 		return this._notVisibleShapes.get()
 	}
+
 	private _notVisibleShapes = notVisibleShapes(this)
 
 	/**
-	 * Get culled shapes (those that should not render),taking into account which shapes are selected or editing.
+	 * Get culled shapes (those that should not render), taking into account which shapes are selected or editing.
 	 *
 	 * @public
 	 */
