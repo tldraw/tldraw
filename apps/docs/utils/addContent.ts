@@ -1,4 +1,5 @@
 import { Article, GeneratedContent } from '@/types/content-types'
+import console from 'console'
 import { Database } from 'sqlite'
 import sqlite3 from 'sqlite3'
 import { parseMarkdown } from './parse-markdown'

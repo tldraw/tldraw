@@ -56,14 +56,8 @@ export function maybeReparentShapes(editor: Editor, shapeIds: TLShapeId[]) {
 		{ parentId: TLParentId; shapeIds: TLShapeId[]; index?: IndexKey }
 	> = {}
 
-	// now call onDragShapesOut for each parent
 	for (const [prevParent, lostChildrenIds] of parentsToLostChildren) {
-		const shapeUtil = editor.getShapeUtil(prevParent)
 		const lostChildren = compact(lostChildrenIds.map((id) => editor.getShape(id)))
-
-		if (shapeUtil.onDragShapesOut) {
-			shapeUtil.onDragShapesOut(prevParent, lostChildren)
-		}
 
 		// Don't fall "up" into frames in front of the shape
 		// if (pageShapes.indexOf(shape) < frameSortPosition) continue shapeCheck
@@ -290,7 +284,7 @@ export function getDroppedShapesToNewParents(
 	const potentialParentShapes = editor
 		.getCurrentPageShapesSorted()
 		// filter out any shapes that aren't frames or that are included among the provided shapes
-		.filter((s) => editor.getShapeUtil(s).canAcceptChildren(s) && !remainingShapesToReparent.has(s))
+		.filter((s) => editor.getShapeUtil(s).canDropShapes(s) && !remainingShapesToReparent.has(s))
 
 	parentCheck: for (let i = potentialParentShapes.length - 1; i >= 0; i--) {
 		const parentShape = potentialParentShapes[i]

@@ -185,17 +185,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
-	 * Whether the shape can accept dropped child shapes.
-	 *
-	 * @param shape - The shape.
-	 *
-	 * @public
-	 */
-	canAcceptChildren(_shape: Shape): boolean {
-		return false
-	}
-
-	/**
 	 * Whether the shape can accept a specific dropped child shape. Called only if `canAcceptChildChildren` returns true.
 	 *
 	 * @param shape - The shape.
@@ -400,24 +389,23 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	getHandles?(shape: Shape): TLHandle[]
 
 	/**
-	 * Get whether the shape can receive children of a given type.
+	 * Get whether the shape can receive a dropped shape.
 	 *
 	 * @param shape - The shape.
-	 * @param type - The shape type.
+	 * @param droppedShape - The shape that is being dropped.
 	 * @public
 	 */
-	canReceiveNewChildrenOfType(_shape: Shape, _type: TLShape['type']) {
+	canDropShape(_shape: Shape, _droppedShape: TLShapePartial) {
 		return false
 	}
 
 	/**
-	 * Get whether the shape can receive children of a given type.
+	 * Get whether the shape can receive dropped shapes.
 	 *
-	 * @param shape - The shape type.
-	 * @param shapes - The shapes that are being dropped.
+	 * @param shape - The shape.
 	 * @public
 	 */
-	canDropShapes(_shape: Shape, _shapes: TLShape[]) {
+	canDropShapes(_shape: Shape) {
 		return false
 	}
 

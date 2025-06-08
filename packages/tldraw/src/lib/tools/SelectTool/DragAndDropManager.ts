@@ -33,11 +33,6 @@ export class DragAndDropManager {
 	private onDragStart(movingShapes: TLShape[]) {
 		this.clear()
 
-		this.prevDroppingShape = this.editor.getDroppingOverShape(
-			this.editor.inputs.originPagePoint,
-			movingShapes
-		)
-
 		movingShapes.forEach((s) => {
 			const groupId = this.editor.findShapeAncestor(s, (s) => s.type === 'group')
 			if (groupId) {
@@ -129,7 +124,11 @@ export class DragAndDropManager {
 		editor.run(() => {
 			reparenting.forEach((childrenToReparent, newParentId) => {
 				if (childrenToReparent.length === 0) return
-				editor.reparentShapes(childrenToReparent, newParentId)
+				const parent = editor.getShape(newParentId)
+
+				if (parent) {
+					editor.reparentShapes(childrenToReparent, newParentId)
+				}
 			})
 
 			// Reparent the rest to the page (or containing group)
@@ -162,36 +161,99 @@ export class DragAndDropManager {
 					}
 				})
 			}
+
+			this.prevDroppingShape = undefined
+
+			const hintedShapeIds = new Set<TLShapeId>()
+
+			for (const shape of shapesToActuallyMove) {
+				// Fresh parent id
+				const parentId = this.editor.getShape(shape)?.parentId
+				const initialParentId = this.initialParentids.get(shape.id)
+
+				// If the parent id has changed, then unset the initial parent id
+				if (parentId !== initialParentId) {
+					this.initialParentids.delete(shape.id)
+				}
+
+				// If the new parent id is a shape and if it is DIFFERENT from the initial parent id, the hint it
+				if (isShapeId(parentId) && parentId !== initialParentId) {
+					hintedShapeIds.add(parentId)
+				}
+			}
+
+			this.editor.setHintingShapes([...hintedShapeIds])
+
+			// Get all of the shapes that have been dragged into a new parent
+			const draggedIntoParents = new Map<TLShape, TLShape[]>()
+			const draggedOutOfParents = new Map<TLShape, TLShape[]>()
+
+			for (const shape of shapesToActuallyMove) {
+				const freshShape = editor.getShape(shape.id)
+				if (!freshShape) continue
+				if (freshShape.parentId !== shape.parentId) {
+					// If the shape is being dragged out of a parent shape, then add it to the draggedOutOfParents map
+					const oldParent = editor.getShape(shape.parentId)
+					if (!oldParent) continue
+					if (!draggedOutOfParents.has(oldParent)) {
+						draggedOutOfParents.set(oldParent, [])
+					}
+					draggedOutOfParents.get(oldParent)!.push(freshShape)
+
+					// If the shape is being dragged into a new parent shape, then add it to the draggedIntoParents map
+					const newParent = editor.getShape(freshShape.parentId)
+					if (!newParent) continue
+					if (!draggedIntoParents.has(newParent)) {
+						draggedIntoParents.set(newParent, [])
+					}
+					draggedIntoParents.get(newParent)!.push(freshShape)
+				}
+			}
+
+			draggedOutOfParents.forEach((shapes, parent) => {
+				const util = editor.getShapeUtil(parent)
+				if (util.onDragShapesOut) {
+					util.onDragShapesOut(parent, shapes)
+				}
+			})
+
+			draggedIntoParents.forEach((shapes, parent) => {
+				const util = editor.getShapeUtil(parent)
+				if (util.onDragShapesOver) {
+					util.onDragShapesOver(parent, shapes)
+				}
+			})
+
+			cb?.()
 		})
-
-		this.prevDroppingShape = undefined
-
-		const hintingShapeIds = new Set<TLShapeId>()
-
-		for (const shape of shapesToActuallyMove) {
-			// Fresh parent id
-			const parentId = this.editor.getShape(shape)?.parentId
-			const initialParentId = this.initialParentids.get(shape.id)
-
-			// If the parent id has changed, then unset the initial parent id
-			if (parentId !== initialParentId) {
-				this.initialParentids.delete(shape.id)
-			}
-
-			// If the new parent id is a shape and if it is DIFFERENT from the initial parent id, the hint it
-			if (isShapeId(parentId) && parentId !== initialParentId) {
-				hintingShapeIds.add(parentId)
-			}
-		}
-
-		this.editor.setHintingShapes([...hintingShapeIds])
-
-		cb?.()
 	}
 
 	dropShapes(shapes: TLShape[]) {
 		const { editor } = this
 		this.handleDrag(editor.inputs.currentPagePoint, shapes)
+
+		// Get all of the shapes that have been dropped into a parent
+		const droppedIntoParents = new Map<TLShape, TLShape[]>()
+
+		for (const shape of shapes) {
+			const freshShape = editor.getShape(shape.id)
+			if (!freshShape) continue
+			if (freshShape.parentId !== shape.parentId && isShapeId(shape.parentId)) {
+				const oldParent = editor.getShape(freshShape.parentId)
+				if (!oldParent) continue
+				if (!droppedIntoParents.has(oldParent)) {
+					droppedIntoParents.set(oldParent, [])
+				}
+				droppedIntoParents.get(oldParent)!.push(freshShape)
+			}
+		}
+
+		droppedIntoParents.forEach((shapes, parent) => {
+			const util = editor.getShapeUtil(parent)
+			if (util.onDropShapesOver) {
+				util.onDropShapesOver(parent, shapes)
+			}
+		})
 	}
 
 	clear() {

@@ -194,14 +194,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		})
 	}
 
-	override canAcceptChildren(): boolean {
-		return true
-	}
-
-	override canAcceptChild(): boolean {
-		return true
-	}
-
 	override getText(shape: TLFrameShape): string | undefined {
 		return shape.props.name
 	}
@@ -332,22 +324,16 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		)
 	}
 
-	override canReceiveNewChildrenOfType(shape: TLShape, _type: TLShape['type']) {
-		return !shape.isLocked
-	}
-
 	override providesBackgroundForChildren(): boolean {
 		return true
 	}
 
-	override canDropShapes(shape: TLFrameShape, _shapes: TLShape[]): boolean {
+	override canDropShape(shape: TLShape) {
 		return !shape.isLocked
 	}
 
-	override onDragShapesOver(frame: TLFrameShape, shapes: TLShape[]) {
-		if (!shapes.every((child) => child.parentId === frame.id)) {
-			this.editor.reparentShapes(shapes, frame.id)
-		}
+	override canDropShapes(shape: TLFrameShape): boolean {
+		return !shape.isLocked
 	}
 
 	override onResize(shape: any, info: TLResizeInfo<any>) {

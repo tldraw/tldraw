@@ -1407,15 +1407,11 @@ export class FrameShapeTool extends BaseBoxShapeTool {
 // @public (undocumented)
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
-    canAcceptChild(): boolean;
+    canDropShape(shape: TLShape): boolean;
     // (undocumented)
-    canAcceptChildren(): boolean;
-    // (undocumented)
-    canDropShapes(shape: TLFrameShape, _shapes: TLShape[]): boolean;
+    canDropShapes(shape: TLFrameShape): boolean;
     // (undocumented)
     canEdit(): boolean;
-    // (undocumented)
-    canReceiveNewChildrenOfType(shape: TLShape, _type: TLShape['type']): boolean;
     // (undocumented)
     canResize(): boolean;
     // (undocumented)
@@ -1454,8 +1450,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
         };
         type: "frame";
     } | undefined;
-    // (undocumented)
-    onDragShapesOver(frame: TLFrameShape, shapes: TLShape[]): void;
     // (undocumented)
     onResize(shape: any, info: TLResizeInfo<any>): any;
     // (undocumented)

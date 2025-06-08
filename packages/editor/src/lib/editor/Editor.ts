@@ -4856,7 +4856,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * const pageMask = editor.getShapePageMask(shape.id)
+	 * const pageMask = editor.getShapeMask(shape.id)
 	 * ```
 	 *
 	 * @param shape - The shape (or the shape id) of the shape to get the mask for.
@@ -5798,49 +5798,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			})
 		}
 		return shapeIds
-	}
-
-	/**
-	 * Get the shape that some shapes should be dropped on at a given point.
-	 *
-	 * @param point - The point to find the parent for.
-	 * @param droppingShapes - The shapes that are being dropped.
-	 *
-	 * @returns The shape to drop on.
-	 *
-	 * @public
-	 */
-	getDroppingOverShape(point: VecLike, droppingShapes: TLShape[] = []) {
-		// starting from the top...
-		const currentPageShapesSorted = this.getCurrentPageShapesSorted()
-		for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
-			const shape = currentPageShapesSorted[i]
-
-			if (
-				// ignore hidden shapes
-				this.isShapeHidden(shape) ||
-				// don't allow dropping on selected shapes
-				this.getSelectedShapeIds().includes(shape.id) ||
-				// only allow shapes that can receive children
-				!this.getShapeUtil(shape).canDropShapes(shape, droppingShapes) ||
-				// don't allow dropping a shape on itself or one of it's children
-				droppingShapes.find((s) => s.id === shape.id || this.hasAncestor(shape, s.id))
-			) {
-				continue
-			}
-
-			// Only allow dropping into the masked page bounds of the shape, e.g. when a frame is
-			// partially clipped by its own parent frame
-			const maskedPageBounds = this.getShapeMaskedPageBounds(shape.id)
-
-			if (
-				maskedPageBounds &&
-				maskedPageBounds.containsPoint(point) &&
-				this.getShapeGeometry(shape).hitTestPoint(this.getPointInShapeSpace(shape, point), 0, true)
-			) {
-				return shape
-			}
-		}
 	}
 
 	/**
@@ -7791,9 +7748,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
 						const parent = currentPageShapesSorted[i]
+						const util = this.getShapeUtil(parent)
 						if (
+							util.canDropShapes(parent) &&
+							util.canDropShape(parent, partial as TLShapePartial) &&
 							!this.isShapeHidden(parent) &&
-							this.getShapeUtil(parent).canReceiveNewChildrenOfType(parent, partial.type) &&
 							this.isPointInShape(
 								parent,
 								// If no parent is provided, then we can treat the

@@ -77,13 +77,13 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 	}
 
 	// [4]
-	override canAcceptChildren(): boolean {
+	override canDropShapes(): boolean {
 		return true
 	}
 
 	// [5]
-	override canAcceptChild(_shape: MyGridShape, child: TLShape): boolean {
-		return child.type === 'my-counter-shape'
+	override canDropShape(_shape: MyGridShape, droppedShape: TLShape): boolean {
+		return droppedShape.type === 'my-counter-shape'
 	}
 
 	component() {
@@ -139,8 +139,8 @@ red circle that you drag and drop onto the other shape.
 place the the circle counters onto.
 
 [4] We want to allow the grid to accept children, so we override
-`canAcceptChildren` to return true.
+`canDropShapes` to return true.
 
 [5] We want to allow the grid to accept only the counter shape, so we override
-`canAcceptChild` to return true if the child is a counter shape.
+`canDropShape` to return true if the child is a counter shape.
 */
