@@ -233,7 +233,7 @@ describe('getShapesAtPoint', () => {
 		})
 	})
 
-	it('returns shapes at a point in order of their index', () => {
+	it('returns shapes at a point in reverse z-index order', () => {
 		// Point at (50, 50) should hit shape3's edge (since it's at 50,50 with size 100x100)
 		// This point is exactly at the top-left corner of shape3
 		const shapes = editor.getShapesAtPoint({ x: 50, y: 50 })
@@ -313,12 +313,12 @@ describe('getShapesAtPoint', () => {
 		const shapes = editor.getShapesAtPoint({ x: 100, y: 0 })
 		const shapeIds = shapes.map((s) => s.id)
 
-		// Both shapes should be detected at this overlapping point
-		expect(shapeIds).toEqual([ids.shape1, ids.shape2])
+		// Both shapes should be detected at this overlapping point (reversed order - top-most first)
+		expect(shapeIds).toEqual([ids.shape2, ids.shape1])
 		expect(shapes).toHaveLength(2)
 	})
 
-	it('maintains shape order from getCurrentPageShapesSorted', () => {
+	it('maintains reverse shape order and responds to z-index changes', () => {
 		// Create filled shape that overlaps with shape2
 		editor.createShape({
 			id: ids.shape5,
@@ -333,14 +333,14 @@ describe('getShapesAtPoint', () => {
 		const shapes = editor.getShapesAtPoint({ x: 120, y: 120 }, { hitInside: true })
 		const shapeIds = shapes.map((s) => s.id)
 
-		// All shapes that contain this point should be returned in z-index order
-		expect(shapeIds).toEqual([ids.shape1, ids.shape2, ids.shape3, ids.shape4, ids.shape5])
+		// All shapes that contain this point should be returned in reverse z-index order (top-most first)
+		expect(shapeIds).toEqual([ids.shape5, ids.shape4, ids.shape3, ids.shape2, ids.shape1])
 
-		// After bringing shape2 to front, order should change
+		// After bringing shape2 to front, order should change (shape2 becomes top-most)
 		editor.bringToFront([ids.shape2])
 		const shapes2 = editor.getShapesAtPoint({ x: 120, y: 120 }, { hitInside: true })
 		const shapeIds2 = shapes2.map((s) => s.id)
-		expect(shapeIds2).toEqual([ids.shape1, ids.shape3, ids.shape4, ids.shape5, ids.shape2])
+		expect(shapeIds2).toEqual([ids.shape2, ids.shape5, ids.shape4, ids.shape3, ids.shape1])
 	})
 
 	it('combines hitInside and margin options', () => {
@@ -361,7 +361,7 @@ describe('getShapesAtPoint', () => {
 		isShapeHiddenSpy.mockRestore()
 	})
 
-	it('returns multiple shapes at same point in z-index order', () => {
+	it('returns multiple shapes at same point in reverse z-index order', () => {
 		// Create two shapes at exactly the same position (away from existing shapes)
 		editor.createShape({
 			id: ids.overlap1,
@@ -383,8 +383,8 @@ describe('getShapesAtPoint', () => {
 		const shapes = editor.getShapesAtPoint({ x: 600, y: 600 })
 		const shapeIds = shapes.map((s) => s.id)
 
-		// Should return both shapes in z-index order
-		expect(shapeIds).toEqual([ids.overlap1, ids.overlap2])
+		// Should return both shapes in reverse z-index order (top-most first)
+		expect(shapeIds).toEqual([ids.overlap2, ids.overlap1])
 		expect(shapes).toHaveLength(2)
 	})
 
