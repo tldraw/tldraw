@@ -1612,3 +1612,33 @@ describe('When dragging groups or shapes within a group', () => {
 		expect(editor.getShape(group.id)?.parentId).toBe(frameID)
 	})
 })
+
+it('drops into the top-most frame, if there is one', () => {
+	const frame1Id = dragCreateFrame({ down: [100, 100], move: [300, 300], up: [300, 300] })
+	const frame2Id = dragCreateFrame({ down: [50, 50], move: [250, 250], up: [250, 250] })
+	const frame3Id = dragCreateFrame({ down: [0, 0], move: [200, 200], up: [200, 200] })
+
+	const rect = dragCreateRect({ down: [190, 190], move: [199, 199], up: [199, 199] })
+	expect(editor.getShape(rect)?.parentId).toBe(frame3Id)
+
+	editor.select(frame3Id)
+	editor.pointerDown(200, 150, { target: 'selection', handle: 'right' })
+	editor.pointerMove(100, 150)
+	editor.pointerUp(100, 150)
+
+	expect(editor.getShape(rect)?.parentId).toBe(frame2Id)
+
+	editor.select(frame2Id)
+	editor.pointerDown(250, 300, { target: 'selection', handle: 'right' })
+	editor.pointerMove(100, 300)
+	editor.pointerUp(100, 300)
+
+	expect(editor.getShape(rect)?.parentId).toBe(frame1Id)
+
+	editor.select(frame1Id)
+	editor.pointerDown(300, 350, { target: 'selection', handle: 'right' })
+	editor.pointerMove(100, 350)
+	editor.pointerUp(100, 350)
+
+	expect(editor.getShape(rect)?.parentId).toBe(editor.getCurrentPageId())
+})

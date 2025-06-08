@@ -285,7 +285,7 @@ export function getDroppedShapesToNewParents(
 		// filter out any shapes that aren't frames or that are included among the provided shapes
 		.filter((s) => editor.getShapeUtil(s).canDropShapes(s) && !remainingShapesToReparent.has(s))
 
-	parentCheck: for (let i = 0; i < potentialParentShapes.length; i++) {
+	parentCheck: for (let i = potentialParentShapes.length - 1; i >= 0; i--) {
 		const parentShape = potentialParentShapes[i]
 		const parentShapeContainingGroupId = editor.findShapeAncestor(parentShape, (s) =>
 			editor.isShapeOfType<TLGroupShape>(s, 'group')
