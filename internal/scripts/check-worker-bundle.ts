@@ -45,6 +45,7 @@ const EXTERNAL_DEPS = [
 	'node:path',
 	'node:process',
 	'node:os',
+	'node:timers',
 	'node:util',
 ]
 

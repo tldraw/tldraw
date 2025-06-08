@@ -1,3 +1,4 @@
+// eslint-disable @typescript-eslint/no-deprecated
 import {
 	DB,
 	OptimisticAppStore,
@@ -116,10 +117,8 @@ export class UserDataSyncer {
 
 	sentry
 	private captureException(exception: unknown, extras?: Record<string, unknown>) {
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.withScope((scope) => {
 			if (extras) scope.setExtras(extras)
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			this.sentry?.captureException(exception) as any
 		})
 		if (!this.sentry) {
@@ -528,16 +527,7 @@ export class UserDataSyncer {
 		this.broadcast({ type: 'update', update })
 	}
 
-	async onInterval() {
-		// if any mutations have been not been committed for 5 seconds, let's reboot the cache
-		for (const mutation of this.mutations) {
-			if (Date.now() - mutation.timestamp > MUTATION_COMMIT_TIMEOUT) {
-				this.log.debug("Mutations haven't been committed for 10 seconds, rebooting", mutation)
-				this.reboot({ hard: true, source: 'onInterval' })
-				break
-			}
-		}
-
+	maybeRequestLsnUpdate() {
 		if (this.lastLsnCommit < Date.now() - LSN_COMMIT_TIMEOUT) {
 			this.log.debug('requesting lsn update', this.userId)
 			sql`SELECT pg_logical_emit_message(true, 'requestLsnUpdate', ${this.userId});`
@@ -546,7 +536,16 @@ export class UserDataSyncer {
 					this.log.debug('failed to request lsn update', e)
 					this.captureException(e)
 				})
-			this.lastLsnCommit = Date.now()
+		}
+	}
+
+	async checkMutationDidCommit(mutationId: string) {
+		// if any mutations have been not been committed for 5 seconds, let's reboot the cache
+		const mutation = this.mutations.find((m) => m.mutationId === mutationId)
+		if (!mutation) return
+		if (Date.now() - mutation.timestamp > MUTATION_COMMIT_TIMEOUT) {
+			this.log.debug("Mutations haven't been committed for 10 seconds, rebooting", mutation)
+			this.reboot({ hard: true, source: 'onInterval' })
 		}
 	}
 }
