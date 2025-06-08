@@ -138,7 +138,9 @@ export class DragAndDropManager {
 					// annoyingly, this can happen if a frame and a shape are grouped and you move the shape into the frame; the group will be lost forever
 					let nextGroupId = this.initialGroupId.get(shape.id) as TLShapeId | undefined
 					if (nextGroupId && !this.editor.getShape(nextGroupId)) {
-						const next = this.editor.findShapeAncestor(shape, (s) => s.type === 'group')?.id
+						const next = this.editor.findShapeAncestor(shape, (s) =>
+							editor.isShapeOfType<TLGroupShape>(s, 'group')
+						)?.id
 						if (next) {
 							nextGroupId = next
 							this.initialGroupId.set(shape.id, next)

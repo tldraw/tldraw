@@ -1674,12 +1674,6 @@ export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl
 export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean, maxImageDimension?: number): Promise<TLImageAsset | TLVideoAsset>;
 
 // @public
-export function getOverlappingShapes(editor: Editor, shape: TLShape, otherShapes: TLShapeId[]): TLShapeId[];
-
-// @public
-export function getOverlappingShapes(editor: Editor, shape: TLShape, otherShapes: TLShape[]): TLShape[];
-
-// @public
 export function getUncroppedSize(shapeSize: {
     h: number;
     w: number;
@@ -1826,9 +1820,6 @@ export const KeyboardShiftEnterTweakExtension: Extension<any, any>;
 // @public (undocumented)
 export function KeyboardShortcutsMenuItem(): JSX_2.Element | null;
 
-// @internal (undocumented)
-export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]): void;
-
 // @public (undocumented)
 export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 
@@ -1952,6 +1943,9 @@ export interface LineToPathBuilderCommand extends PathBuilderCommandBase {
     // (undocumented)
     type: 'line';
 }
+
+// @internal (undocumented)
+export function maybeReparentShapes(editor: Editor, shapeIds: TLShapeId[]): void;
 
 // @public (undocumented)
 export function MiscMenuGroup(): JSX_2.Element;
