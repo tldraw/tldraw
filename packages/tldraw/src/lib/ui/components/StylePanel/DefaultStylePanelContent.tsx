@@ -17,6 +17,7 @@ import {
 	TLArrowShapeArrowheadStyle,
 	TLDefaultColorTheme,
 	getDefaultColorTheme,
+	maybeReparentShapes,
 	minBy,
 	useEditor,
 	useIsDarkMode,
@@ -24,7 +25,6 @@ import {
 } from '@tldraw/editor'
 import React, { useCallback } from 'react'
 import { STYLES } from '../../../styles'
-import { maybeReparentShapes } from '../../../tools/SelectTool/selectHelpers'
 import { useUiEvents } from '../../context/events'
 import { useRelevantStyles } from '../../hooks/useRelevantStyles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'

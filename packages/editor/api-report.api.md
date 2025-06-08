@@ -1738,6 +1738,12 @@ export function getCursor(cursor: TLCursorType, rotation?: number, color?: strin
 // @public (undocumented)
 export function getDefaultCdnBaseUrl(): string;
 
+// @public
+export function getDroppedShapesToNewParents(editor: Editor, shapes: Set<TLShape> | TLShape[], cb?: (shape: TLShape, parent: TLShape) => boolean): {
+    remainingShapesToReparent: Set<TLShape>;
+    reparenting: Map<TLShapeId, TLShape[]>;
+};
+
 // @public (undocumented)
 export function getFontsFromRichText(editor: Editor, richText: TLRichText, initialState: RichTextFontVisitorState): TLFontFace[];
 
@@ -2243,6 +2249,9 @@ export interface MatModel {
     // (undocumented)
     f: number;
 }
+
+// @public
+export function maybeReparentShapes(editor: Editor, shapeIds: TLShapeId[]): void;
 
 // @public
 export function maybeSnapToGrid(point: Vec, editor: Editor): Vec;

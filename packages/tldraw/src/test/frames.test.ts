@@ -1451,14 +1451,14 @@ describe('When resizing a frame', () => {
 
 	it('drops kicked out children into the containing group, if there is one', () => {
 		// Create a couple of shapes and group them
-		const rect1Id = createRect({ pos: [10, 10], size: [20, 20] })
+		const rect1ID = createRect({ pos: [10, 10], size: [20, 20] })
 		const rect2Id = createRect({ pos: [200, 10], size: [20, 20] })
-		editor.select(rect1Id, rect2Id)
+		editor.select(rect1ID, rect2Id)
 		editor.groupShapes(editor.getSelectedShapeIds())
 		const groupId = editor.getOnlySelectedShape()!.id
 
 		// Select the first rect, making the editor's "focused group" the group
-		editor.select(rect1Id)
+		editor.select(rect1ID)
 		expect(editor.getFocusedGroupId()).toBe(groupId)
 
 		// Create a frame inside the group
@@ -1507,4 +1507,36 @@ it('avoids crash when dragging into descendant', () => {
 	editor.select(frame1id)
 	editor.pointerDown(25, 25)
 	editor.pointerMove(30, 30)
+})
+
+it('avoids breaking groups when dragging one group member out of the frame', () => {
+	dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+	const frame = editor.getLastCreatedShape()
+
+	const rect1ID = createRect({ pos: [10, 10], size: [20, 20] })
+	const rect2ID = createRect({ pos: [30, 30], size: [20, 20] })
+	editor.select(rect1ID, rect2ID)
+	editor.groupShapes(editor.getSelectedShapeIds())
+
+	const group = editor.getLastCreatedShape()
+
+	expect(editor.getShape(rect1ID)?.parentId).toBe(group.id)
+	expect(editor.getShape(rect2ID)?.parentId).toBe(group.id)
+	expect(group.parentId).toBe(frame.id)
+
+	editor.select(rect1ID)
+	editor.pointerDown(15, 15)
+	editor.pointerMove(100, 100)
+	jest.advanceTimersByTime(200)
+
+	expect(editor.getShape(rect1ID)?.parentId).toBe(group.id)
+	expect(editor.getShape(rect2ID)?.parentId).toBe(group.id)
+	expect(group.parentId).toBe(frame.id)
+
+	editor.pointerUp(100, 100)
+	jest.advanceTimersByTime(200)
+
+	expect(editor.getShape(rect1ID)?.parentId).toBe(group.id)
+	expect(editor.getShape(rect2ID)?.parentId).toBe(group.id)
+	expect(group.parentId).toBe(frame.id)
 })

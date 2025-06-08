@@ -7,9 +7,9 @@ import {
 	Vec,
 	bind,
 	compact,
+	getDroppedShapesToNewParents,
 	isShapeId,
 } from '@tldraw/editor'
-import { getDroppedShapesToNewParents } from './selectHelpers'
 
 const SLOW_POINTER_LAG_DURATION = 320
 const FAST_POINTER_LAG_DURATION = 60
@@ -105,6 +105,7 @@ export class DragAndDropManager {
 			}
 		}
 
+		// If all of a group's children are moving, then move the group instead
 		for (const movingGroup of movingGroups) {
 			const children = compact(
 				editor.getSortedChildIdsForParent(movingGroup).map((id) => editor.getShape(id))
@@ -189,10 +190,8 @@ export class DragAndDropManager {
 	}
 
 	dropShapes(shapes: TLShape[]) {
-		this.handleDrag(this.editor.inputs.currentPagePoint, shapes)
-		const prevDroppingShape = this.prevDroppingShape && this.editor.getShape(this.prevDroppingShape)
-		if (!prevDroppingShape) return
-		this.editor.getShapeUtil(prevDroppingShape).onDropShapesOver?.(prevDroppingShape, shapes)
+		const { editor } = this
+		this.handleDrag(editor.inputs.currentPagePoint, shapes)
 	}
 
 	clear() {

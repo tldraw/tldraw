@@ -10082,6 +10082,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (elapsed > 0) {
 				this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
 			}
+
 			this.scribbles.tick(elapsed)
 		})
 	}

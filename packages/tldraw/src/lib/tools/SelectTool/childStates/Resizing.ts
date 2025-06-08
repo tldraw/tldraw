@@ -19,8 +19,8 @@ import {
 	areAnglesCompatible,
 	compact,
 	isAccelKey,
+	maybeReparentShapes,
 } from '@tldraw/editor'
-import { maybeReparentShapes } from '../selectHelpers'
 
 export type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'

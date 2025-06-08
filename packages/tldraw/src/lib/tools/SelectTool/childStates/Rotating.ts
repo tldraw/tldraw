@@ -6,10 +6,10 @@ import {
 	applyRotationToSnapshotShapes,
 	degreesToRadians,
 	getRotationSnapshot,
+	maybeReparentShapes,
 	shortAngleDist,
 	snapAngle,
 } from '@tldraw/editor'
-import { maybeReparentShapes } from '../selectHelpers'
 import { CursorTypeMap } from './PointingResizeHandle'
 
 const ONE_DEGREE = Math.PI / 180

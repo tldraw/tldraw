@@ -14,6 +14,7 @@ import {
 	bind,
 	compact,
 	isPageId,
+	maybeReparentShapes,
 } from '@tldraw/editor'
 import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
@@ -21,7 +22,6 @@ import {
 	getAvailableNoteAdjacentPositions,
 } from '../../../shapes/note/noteHelpers'
 import { DragAndDropManager } from '../DragAndDropManager'
-import { maybeReparentShapes } from '../selectHelpers'
 
 export type TranslatingInfo = TLPointerEventInfo & {
 	target: 'shape'

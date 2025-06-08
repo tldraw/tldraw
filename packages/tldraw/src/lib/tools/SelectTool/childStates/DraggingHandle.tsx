@@ -7,13 +7,13 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	Vec,
+	maybeReparentShapes,
 	snapAngle,
 	sortByIndex,
 	structuredClone,
 } from '@tldraw/editor'
 import { clearArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
-import { maybeReparentShapes } from '../selectHelpers'
 
 export type DraggingHandleInfo = TLPointerEventInfo & {
 	shape: TLArrowShape | TLLineShape

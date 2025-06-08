@@ -1,6 +1,12 @@
-import { SelectionHandle, ShapeWithCrop, StateNode, TLPointerEventInfo, Vec } from '@tldraw/editor'
+import {
+	maybeReparentShapes,
+	SelectionHandle,
+	ShapeWithCrop,
+	StateNode,
+	TLPointerEventInfo,
+	Vec,
+} from '@tldraw/editor'
 import { getCropBox, getDefaultCrop } from '../../../../../shapes/shared/crop'
-import { maybeReparentShapes } from '../../../selectHelpers'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
 type Snapshot = ReturnType<Cropping['createSnapshot']>

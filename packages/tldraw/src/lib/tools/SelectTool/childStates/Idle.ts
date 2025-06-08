@@ -14,6 +14,7 @@ import {
 	VecLike,
 	createShapeId,
 	debugFlags,
+	maybeReparentShapes,
 	pointInPolygon,
 	toRichText,
 } from '@tldraw/editor'
@@ -21,7 +22,7 @@ import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShap
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
-import { maybeReparentShapes, startEditingShapeWithLabel } from '../selectHelpers'
+import { startEditingShapeWithLabel } from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 	'Delete',
