@@ -5035,10 +5035,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	isShapeOrAncestorLocked(shape?: TLShape): boolean
-	isShapeOrAncestorLocked(id?: TLShapeId): boolean
-	isShapeOrAncestorLocked(arg?: TLShape | TLShapeId): boolean {
-		const _shape = arg && this.getShape(arg)
+	isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean {
+		const _shape = shape && this.getShape(shape)
 		if (_shape === undefined) return false
 		if (_shape.isLocked) return true
 		return this.isShapeOrAncestorLocked(this.getShapeParent(_shape))

@@ -1361,9 +1361,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
     // (undocumented)
     isShapeOfType<T extends TLUnknownShape>(shapeId: TLUnknownShape['id'], type: T['type']): shapeId is T['id'];
-    isShapeOrAncestorLocked(shape?: TLShape): boolean;
-    // (undocumented)
-    isShapeOrAncestorLocked(id?: TLShapeId): boolean;
+    isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean;
     loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot, opts?: TLLoadSnapshotOptions): this;
     // @deprecated
     mark(markId?: string): this;
