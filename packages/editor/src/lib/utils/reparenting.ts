@@ -339,8 +339,7 @@ export function getDroppedShapesToNewParents(
 			// If the shape overlaps the parent polygon, reparent it to that parent
 			if (doesGeometryOverlapPolygon(editor.getShapeGeometry(shape), parentPolygonInShapeSpace)) {
 				// Use the util to check if the shape can be reparented to the parent
-				if (!editor.getShapeUtil(parentShape).canAcceptChild(parentShape, shape))
-					continue shapeCheck
+				if (!editor.getShapeUtil(parentShape).canDropShape(parentShape, shape)) continue shapeCheck
 
 				if (shape.parentId !== parentShape.id) {
 					childrenToReparent.push(shape)

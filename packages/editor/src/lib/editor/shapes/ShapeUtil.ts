@@ -185,18 +185,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
-	 * Whether the shape can accept a specific dropped child shape. Called only if `canAcceptChildChildren` returns true.
-	 *
-	 * @param shape - The shape.
-	 * @param child - The child shape.
-	 *
-	 * @public
-	 */
-	canAcceptChild(_shape: Shape, _child: TLShape): boolean {
-		return false
-	}
-
-	/**
 	 * Whether the shape can be snapped to by another shape.
 	 *
 	 * @param shape - The shape.
