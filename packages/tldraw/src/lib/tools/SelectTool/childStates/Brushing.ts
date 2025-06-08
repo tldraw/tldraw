@@ -31,12 +31,9 @@ export class Brushing extends StateNode {
 		void null
 	} // cleanup function for the viewport reactor
 
-	// The shape that the brush started on
-	initialStartShape: TLShape | null = null
-
 	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
 		const { editor } = this
-		const { altKey, currentPagePoint } = editor.inputs
+		const { altKey } = editor.inputs
 
 		this.isWrapMode = editor.user.getIsWrapMode()
 
@@ -69,7 +66,6 @@ export class Brushing extends StateNode {
 
 		this.info = info
 		this.initialSelectedShapeIds = editor.getSelectedShapeIds().slice()
-		this.initialStartShape = editor.getShapesAtPoint(currentPagePoint)[0]
 		this.hitTestShapes()
 		isInitialCheck = false
 	}
