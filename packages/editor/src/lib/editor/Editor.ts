@@ -5305,11 +5305,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.getShapesAtPoint({ x: 100, y: 100 })
-	 * editor.getShapesAtPoint({ x: 100, y: 100 }, { hitInside: true, exact: true })
+	 * editor.getShapesAtPoint({ x: 100, y: 100 }, { hitInside: true, margin: 8 })
 	 * ```
 	 *
 	 * @param point - The page point to test.
 	 * @param opts - The options for the hit point testing.
+	 *
+	 * @returns An array of shapes at the given point, sorted in reverse order of their absolute z-index (top-most shape first).
 	 *
 	 * @public
 	 */
@@ -5317,9 +5319,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		point: VecLike,
 		opts = {} as { margin?: number; hitInside?: boolean }
 	): TLShape[] {
-		return this.getCurrentPageShapesSorted().filter(
-			(shape) => !this.isShapeHidden(shape) && this.isPointInShape(shape, point, opts)
-		)
+		return this.getCurrentPageShapesSorted()
+			.filter((shape) => !this.isShapeHidden(shape) && this.isPointInShape(shape, point, opts))
+			.reverse()
 	}
 
 	/**
