@@ -1,13 +1,12 @@
 import {
 	Editor,
+	IndexKey,
 	TLGroupShape,
 	TLParentId,
 	TLShape,
 	TLShapeId,
-	Vec,
 	bind,
 	compact,
-	getDroppedShapesToNewParents,
 	isShapeId,
 } from '@tldraw/editor'
 
@@ -20,8 +19,13 @@ export class DragAndDropManager {
 		editor.disposables.add(this.dispose)
 	}
 
-	initialParentids = new Map<TLShapeId, TLParentId>()
+	shapesToActuallyMove: TLShape[] = []
 
+	initialDraggingIntoShape?: TLShape
+	prevDraggingIntoShape?: TLShape
+
+	initialParentids = new Map<TLShapeId, TLParentId>()
+	initialIndices = new Map<TLShapeId, IndexKey>()
 	initialGroupId = new Map<TLShapeId, TLShapeId>()
 
 	prevDroppingShape?: TLShape
@@ -31,62 +35,9 @@ export class DragAndDropManager {
 	first = true
 
 	private onDragStart(movingShapes: TLShape[]) {
-		this.clear()
-
-		movingShapes.forEach((s) => {
-			const groupId = this.editor.findShapeAncestor(s, (s) => s.type === 'group')
-			if (groupId) {
-				this.initialGroupId.set(s.id, groupId.id)
-			}
-		})
-
-		this.initialParentids = new Map(
-			movingShapes.map((s) => {
-				return [s.id, s.parentId] as const
-			})
-		)
-	}
-
-	updateDroppingNode(movingShapes: TLShape[], cb: () => void) {
-		if (this.first) {
-			this.onDragStart(movingShapes)
-			this.first = false
-		}
-
-		if (!this.timerId) {
-			this.startDroppingNodeInterval(movingShapes, cb)
-		}
-	}
-
-	private startDroppingNodeInterval(movingShapes: TLShape[], cb: () => void) {
-		// run once on first frame
-		this.handleDrag(this.editor.inputs.currentPagePoint, movingShapes, cb)
-
-		// then once on an interval, skipping frames if moving quickly
-		let skip2of3FramesWhileMovingFast = 0
-		this.timerId = this.editor.timers.setInterval(
-			() => {
-				skip2of3FramesWhileMovingFast++
-				if (skip2of3FramesWhileMovingFast % 3 && this.editor.inputs.pointerVelocity.len() > 0.5)
-					return
-				this.handleDrag(this.editor.inputs.currentPagePoint, movingShapes, cb)
-			},
-			movingShapes.length > 10 ? SLOW_POINTER_LAG_DURATION : FAST_POINTER_LAG_DURATION
-		)
-	}
-
-	private stopDroppingNodeTimer() {
-		if (this.timerId) {
-			clearInterval(this.timerId)
-			this.timerId = undefined
-		}
-	}
-
-	private handleDrag(point: Vec, movingShapes: TLShape[], cb?: () => void) {
 		const { editor } = this
 
-		// get fresh moving shapes
-		movingShapes = compact(movingShapes.map((s) => editor.getShape(s)))
+		this.clear()
 
 		const shapesToActuallyMove = new Set(movingShapes)
 		const movingGroups = new Set<TLGroupShape>()
@@ -113,82 +64,118 @@ export class DragAndDropManager {
 			}
 		}
 
-		// find all the possible parent frames on the page where the moving shapes will fall into
-		const { reparenting, remainingShapesToReparent } = getDroppedShapesToNewParents(
-			editor,
-			shapesToActuallyMove
+		this.initialParentids.clear()
+		for (const shape of shapesToActuallyMove) {
+			const parent = editor.getShapeParent(shape)
+			if (parent) {
+				this.initialParentids.set(shape.id, parent.id)
+			}
+			this.initialIndices.set(shape.id, shape.index)
+		}
+
+		const allShapes = editor.getCurrentPageShapesSorted()
+		this.shapesToActuallyMove = Array.from(shapesToActuallyMove).sort(
+			(a, b) => allShapes.indexOf(a) - allShapes.indexOf(b)
 		)
+
+		this.initialDraggingIntoShape = this.getDraggingIntoShape(editor)
+		this.prevDraggingIntoShape = this.initialDraggingIntoShape
+	}
+
+	updateDroppingNode(movingShapes: TLShape[], cb: () => void) {
+		if (this.first) {
+			this.onDragStart(movingShapes)
+			this.first = false
+		}
+
+		if (!this.timerId) {
+			this.startDroppingNodeInterval(movingShapes, cb)
+		}
+	}
+
+	private startDroppingNodeInterval(movingShapes: TLShape[], cb: () => void) {
+		// run once on first frame
+		this.handleDrag(cb)
+
+		// then once on an interval, skipping frames if moving quickly
+		let skip2of3FramesWhileMovingFast = 0
+		this.timerId = this.editor.timers.setInterval(
+			() => {
+				skip2of3FramesWhileMovingFast++
+				if (skip2of3FramesWhileMovingFast % 3 && this.editor.inputs.pointerVelocity.len() > 0.5)
+					return
+				this.handleDrag(cb)
+			},
+			movingShapes.length > 10 ? SLOW_POINTER_LAG_DURATION : FAST_POINTER_LAG_DURATION
+		)
+	}
+
+	private stopDroppingNodeTimer() {
+		if (this.timerId) {
+			clearInterval(this.timerId)
+			this.timerId = undefined
+		}
+	}
+
+	private handleDrag(cb?: () => void) {
+		const { editor } = this
 
 		const currentPageId = editor.getCurrentPageId()
 
+		// get fresh moving shapes
+		const draggingShapes = compact(this.shapesToActuallyMove.map((s) => editor.getShape(s)))
+
+		const draggingIntoParent = this.getDraggingIntoShape(editor)
+
+		if (this.prevDraggingIntoShape?.id === draggingIntoParent?.id) return
+
 		editor.run(() => {
-			reparenting.forEach((childrenToReparent, newParentId) => {
-				if (childrenToReparent.length === 0) return
-				const parent = editor.getShape(newParentId)
+			if (draggingIntoParent) {
+				// dropping into the shape
+				if (!draggingShapes.every((s) => s.parentId === draggingIntoParent.id)) {
+					// Check to see whether any of the shapes can have their old index restored
 
-				if (parent) {
-					editor.reparentShapes(childrenToReparent, newParentId)
-				}
-			})
-
-			// Reparent the rest to the page (or containing group)
-			if (remainingShapesToReparent.size > 0) {
-				remainingShapesToReparent.forEach((shape) => {
-					// sometimes a group can disappear while dragging;
-					// annoyingly, this can happen if a frame and a shape are grouped and you move the shape into the frame; the group will be lost forever
-					let nextGroupId = this.initialGroupId.get(shape.id) as TLShapeId | undefined
-					if (nextGroupId && !this.editor.getShape(nextGroupId)) {
-						const next = this.editor.findShapeAncestor(shape, (s) =>
-							editor.isShapeOfType<TLGroupShape>(s, 'group')
-						)?.id
-						if (next) {
-							nextGroupId = next
-							this.initialGroupId.set(shape.id, next)
-						} else {
-							nextGroupId = undefined
-							this.initialGroupId.delete(shape.id)
+					let canRestoreOriginalIndices = false
+					const previousChildren = draggingShapes.filter(
+						(s) => draggingIntoParent.id === this.initialParentids.get(s.id)
+					)
+					if (previousChildren.length > 0) {
+						const currentChildren = compact(
+							editor.getSortedChildIdsForParent(draggingIntoParent).map((id) => editor.getShape(id))
+						)
+						if (previousChildren.every((s) => !currentChildren.find((c) => c.index === s.index))) {
+							canRestoreOriginalIndices = true
 						}
 					}
 
-					if (nextGroupId) {
-						if (shape.parentId !== nextGroupId) {
-							editor.reparentShapes([shape], nextGroupId)
-						}
-					} else {
-						if (shape.parentId !== currentPageId) {
-							editor.reparentShapes([shape], currentPageId)
+					// Reparent the shapes to the new parent
+					editor.reparentShapes(draggingShapes, draggingIntoParent.id)
+
+					// If we can restore the original indices, then do so
+					if (canRestoreOriginalIndices) {
+						for (const shape of previousChildren) {
+							editor.updateShape({
+								id: shape.id,
+								type: shape.type,
+								index: this.initialIndices.get(shape.id),
+							})
 						}
 					}
-				})
-			}
-
-			this.prevDroppingShape = undefined
-
-			const hintedShapeIds = new Set<TLShapeId>()
-
-			for (const shape of shapesToActuallyMove) {
-				// Fresh parent id
-				const parentId = this.editor.getShape(shape)?.parentId
-				const initialParentId = this.initialParentids.get(shape.id)
-
-				// If the parent id has changed, then unset the initial parent id
-				if (parentId !== initialParentId) {
-					this.initialParentids.delete(shape.id)
 				}
-
-				// If the new parent id is a shape and if it is DIFFERENT from the initial parent id, the hint it
-				if (isShapeId(parentId) && parentId !== initialParentId) {
-					hintedShapeIds.add(parentId)
+			} else {
+				if (!draggingShapes.every((s) => s.parentId === currentPageId)) {
+					// dropping onto page
+					editor.reparentShapes(draggingShapes, currentPageId)
 				}
 			}
 
-			this.editor.setHintingShapes([...hintedShapeIds])
+			// The following is reusable for multi-parent-dropping behavior too...
 
 			// Get all of the shapes that have been dragged into a new parent
 			const draggedIntoParents = new Map<TLShape, TLShape[]>()
 			const draggedOutOfParents = new Map<TLShape, TLShape[]>()
 
-			for (const shape of shapesToActuallyMove) {
+			for (const shape of draggingShapes) {
 				const freshShape = editor.getShape(shape.id)
 				if (!freshShape) continue
 				if (freshShape.parentId !== shape.parentId) {
@@ -224,15 +211,24 @@ export class DragAndDropManager {
 				}
 			})
 
+			if (draggingIntoParent) {
+				editor.setHintingShapes([draggingIntoParent.id])
+			} else if (this.prevDraggingIntoShape) {
+				editor.setHintingShapes([])
+			}
+
 			cb?.()
 		})
+
+		this.prevDraggingIntoShape = draggingIntoParent
 	}
 
 	dropShapes(shapes: TLShape[]) {
 		const { editor } = this
-		this.handleDrag(editor.inputs.currentPagePoint, shapes)
+		this.handleDrag()
 
-		// Get all of the shapes that have been dropped into a parent
+		// The following is reusable for multi-parent-dropping behavior too...
+
 		const droppedIntoParents = new Map<TLShape, TLShape[]>()
 
 		for (const shape of shapes) {
@@ -269,5 +265,29 @@ export class DragAndDropManager {
 	@bind
 	dispose() {
 		this.clear()
+	}
+
+	private getDraggingIntoShape(editor: Editor) {
+		// get fresh moving shapes
+		const draggingShapes = compact(this.shapesToActuallyMove.map((s) => editor.getShape(s)))
+
+		// 1. Determine which shapes we're actually moving. If a shape is part of a group
+		// and all of the group's children are moving, then we're moving the group instead
+		// of its children.
+
+		const shapesAtPoint = editor.getShapesAtPoint(editor.inputs.currentPagePoint, {
+			hitInside: true,
+			margin: 0,
+		})
+
+		for (const shape of shapesAtPoint) {
+			const shapeUtil = editor.getShapeUtil(shape)
+			if (draggingShapes.includes(shape)) continue
+			if (!shapeUtil.canDropShapes(shape)) continue
+			if (!draggingShapes.every((s) => shapeUtil.canDropShape(shape, s))) continue
+			return shape
+		}
+
+		return
 	}
 }
