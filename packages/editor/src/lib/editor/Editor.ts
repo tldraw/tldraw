@@ -5061,20 +5061,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed
 	getCulledShapes() {
-		const culledShapes = new Set<TLShapeId>(this.getNotVisibleShapes())
-
-		// we don't cull the shape we are editing
+		const notVisibleShapes = this.getNotVisibleShapes()
+		const selectedShapeIds = this.getSelectedShapeIds()
 		const editingId = this.getEditingShapeId()
+		const culledShapes = new Set<TLShapeId>(notVisibleShapes)
+		// we don't cull the shape we are editing
 		if (editingId) {
 			culledShapes.delete(editingId)
 		}
-
 		// we also don't cull selected shapes
-		const selectedShapeIds = this.getSelectedShapeIds()
 		selectedShapeIds.forEach((id) => {
 			culledShapes.delete(id)
 		})
-
 		return culledShapes
 	}
 
