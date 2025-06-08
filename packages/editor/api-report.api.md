@@ -1214,6 +1214,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     getMarkIdMatching(idSubstring: string): null | string;
     getNearestAdjacentShape(currentShapeId: TLShapeId, direction: 'down' | 'left' | 'right' | 'up'): TLShapeId;
+    getNotVisibleShapes(): Set<TLShapeId>;
     getOnlySelectedShape(): null | TLShape;
     getOnlySelectedShapeId(): null | TLShapeId;
     // @deprecated (undocumented)
