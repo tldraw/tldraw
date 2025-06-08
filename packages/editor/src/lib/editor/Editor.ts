@@ -3006,6 +3006,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return { x, y, z }
 	}
 
+	private cameraVelocity = new Vec()
+
 	/** @internal */
 	private _setCamera(point: VecLike, opts?: TLCameraMoveOptions): this {
 		const currentCamera = this.getCamera()
@@ -9461,6 +9463,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		isSpacebarPanning: false,
 		/** Velocity of mouse pointer, in pixels per millisecond */
 		pointerVelocity: new Vec(),
+		/** Velocity of camera, in pixels per millisecond */
+		cameraVelocity: new Vec(),
 	}
 
 	/**

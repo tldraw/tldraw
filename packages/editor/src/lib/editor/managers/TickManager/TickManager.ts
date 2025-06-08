@@ -41,6 +41,7 @@ export class TickManager {
 		this.now = now
 
 		this.updatePointerVelocity(elapsed)
+		this.updateCameraVelocity(elapsed)
 		this.editor.emit('frame', elapsed)
 		this.editor.emit('tick', elapsed)
 		this.cancelRaf = throttleToNextFrame(this.tick)
@@ -67,7 +68,7 @@ export class TickManager {
 		if (elapsed === 0) return
 
 		const delta = Vec.Sub(currentScreenPoint, prevPoint)
-		this.prevPoint = currentScreenPoint.clone()
+		this.prevPoint.setTo(currentScreenPoint)
 
 		const length = delta.len()
 		const direction = length ? delta.div(length) : new Vec(0, 0)
@@ -80,7 +81,47 @@ export class TickManager {
 		if (Math.abs(next.y) < 0.01) next.y = 0
 
 		if (!pointerVelocity.equals(next)) {
-			this.editor.inputs.pointerVelocity = next
+			pointerVelocity.setTo(next)
+		}
+	}
+
+	private prevCamera = new Vec()
+
+	updateCameraVelocity(elapsed: number) {
+		const {
+			prevCamera,
+			editor: {
+				inputs: { cameraVelocity },
+			},
+		} = this
+
+		if (elapsed === 0) return
+
+		const camera = this.editor.getCamera()
+		if (Vec.Equals(camera, prevCamera)) {
+			if (cameraVelocity.x === 0 && cameraVelocity.y === 0) {
+				return // no change in camera position, so no need to update velocity
+			} else {
+				cameraVelocity.set(0, 0) // reset velocity if camera position hasn't changed
+				return
+			}
+		}
+
+		const delta = Vec.Sub(camera, prevCamera)
+		this.prevCamera.setTo(camera)
+
+		const length = delta.len()
+		const direction = length ? delta.div(length) : new Vec(0, 0)
+
+		const next = cameraVelocity.clone().lrp(direction.mul(length / elapsed), 0.25)
+
+		// if the velocity is very small, just set it to 0
+		if (Math.abs(next.x) < 0.01) next.x = 0
+		if (Math.abs(next.y) < 0.01) next.y = 0
+
+		if (!cameraVelocity.equals(next)) {
+			console.log(next)
+			cameraVelocity.setTo(next)
 		}
 	}
 }

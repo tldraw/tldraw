@@ -93,22 +93,15 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 				return
 			}
 
-			// Awful tht we need to put this logic here, but basically
 			// we don't want to handle the the wheel event (or call prevent
 			// default on the evnet) if the user is wheeling over an a shape
 			// that is scrollable which they're currently editing.
-
-			const editingShapeId = editor.getEditingShapeId()
-			if (editingShapeId) {
-				const shape = editor.getShape(editingShapeId)
-				if (shape) {
-					const util = editor.getShapeUtil(shape)
-					if (util.canScroll(shape)) {
-						const bounds = editor.getShapePageBounds(editingShapeId)
-						if (bounds?.containsPoint(editor.inputs.currentPagePoint)) {
-							return
-						}
-					}
+			if (editor.inputs.cameraVelocity.len2() === 0) {
+				const scrollingShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint, {
+					filter: (shape) => !shape.isLocked && !editor.isShapeHidden(shape),
+				})
+				if (scrollingShape && editor.getShapeUtil(scrollingShape).canScroll(scrollingShape)) {
+					return
 				}
 			}
 

@@ -205,7 +205,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
-	 * Whether the shape can be scrolled while editing.
+	 * Whether the shape can be scrolled.
 	 *
 	 * @public
 	 */
