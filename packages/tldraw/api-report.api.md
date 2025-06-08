@@ -1944,9 +1944,6 @@ export interface LineToPathBuilderCommand extends PathBuilderCommandBase {
     type: 'line';
 }
 
-// @internal (undocumented)
-export function maybeReparentShapes(editor: Editor, shapeIds: TLShapeId[]): void;
-
 // @public (undocumented)
 export function MiscMenuGroup(): JSX_2.Element;
 

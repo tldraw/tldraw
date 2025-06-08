@@ -18,7 +18,14 @@ import {
 	polygonsIntersect,
 } from '@tldraw/editor'
 
-/** @internal */
+/**
+ * Reparents shapes that have "fallen out" of their parent shapes.
+ *
+ * @param editor - The editor instance.
+ * @param shapeIds - The IDs of the shapes to reparent.
+ *
+ * @public
+ */
 export function maybeReparentShapes(editor: Editor, shapeIds: TLShapeId[]) {
 	const parentsToCheck = new Set<TLShape>()
 
