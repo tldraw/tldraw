@@ -31,7 +31,6 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 
 		const parent = editor.getShape(shape.parentId)
 		if (!parent) continue
-		if (editor.isShapeOfType<TLGroupShape>(parent, 'group')) continue
 		parentsToCheck.add(parent)
 	}
 
@@ -81,7 +80,6 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 					shapeIds: [],
 				}
 			}
-
 			parentsToNewChildren[newParentId].shapeIds.push(...childrenToReparent.map((s) => s.id))
 		})
 
@@ -287,16 +285,14 @@ export function getDroppedShapesToNewParents(
 		// filter out any shapes that aren't frames or that are included among the provided shapes
 		.filter((s) => editor.getShapeUtil(s).canDropShapes(s) && !remainingShapesToReparent.has(s))
 
-	parentCheck: for (let i = potentialParentShapes.length - 1; i >= 0; i--) {
+	parentCheck: for (let i = 0; i < potentialParentShapes.length; i++) {
 		const parentShape = potentialParentShapes[i]
 		const parentShapeContainingGroupId = editor.findShapeAncestor(parentShape, (s) =>
 			editor.isShapeOfType<TLGroupShape>(s, 'group')
 		)?.id
 
-		// Frame geometry in page space
 		const parentGeometry = editor.getShapeGeometry(parentShape)
 		const parentPageTransform = editor.getShapePageTransform(parentShape)
-
 		const parentPageMaskVertices = editor.getShapeMask(parentShape)
 		const parentPageCorners = parentPageTransform.applyToPoints(parentGeometry.vertices)
 		const parentPagePolygon = parentPageMaskVertices

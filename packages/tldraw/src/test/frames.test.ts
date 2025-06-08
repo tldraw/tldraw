@@ -3,8 +3,10 @@ import {
 	GeoShapeGeoStyle,
 	TLArrowShape,
 	TLFrameShape,
+	TLGeoShape,
 	TLShapeId,
 	createShapeId,
+	toRichText,
 } from '@tldraw/editor'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { DEFAULT_FRAME_PADDING, fitFrameToContent, removeFrame } from '../lib/utils/frames/frames'
@@ -960,49 +962,6 @@ describe('When dragging a shape inside a group inside a frame', () => {
 
 		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.group1)
 	})
-
-	it('Keeps shapes inside of the group, even if they are outside of the frame (risky but correct)', () => {
-		editor.select(ids.box1, ids.box2)
-
-		expect(editor.getSelectedShapeIds()).toHaveLength(2)
-
-		editor.groupShapes(editor.getSelectedShapeIds(), { groupId: ids.group1 })
-
-		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.group1)
-
-		editor.pointerMove(100, 100).click().click()
-
-		expect(editor.getOnlySelectedShapeId()).toBe(ids.box1)
-		expect(editor.getFocusedGroupId()).toBe(ids.group1)
-
-		editor
-			.pointerMove(150, 150)
-			.pointerDown()
-			.pointerMove(-200, -200)
-			.pointerMove(-200, -200)
-			.pointerUp()
-
-		jest.advanceTimersByTime(300)
-
-		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.group1)
-	})
-})
-
-it('Allows dragging groups into frames', () => {
-	editor.createShape({ type: 'frame', x: 100, y: 100, props: { w: 500, h: 500 } })
-	editor.createShape({ type: 'geo', x: 1000, y: 1000, props: { w: 100, h: 100 } })
-	editor.createShape({ type: 'geo', x: 1200, y: 1300, props: { w: 100, h: 100 } })
-	const [frame, box1, box2] = editor.getLastCreatedShapes(3)
-	editor.groupShapes([box1, box2])
-	const group = editor.getLastCreatedShape()
-	editor.select(group)
-
-	editor.pointerDown(1100, 1100)
-	editor.pointerMove(250, 250)
-
-	jest.advanceTimersByTime(200)
-
-	expect(editor.getShape(group)!.parentId).toBe(frame.id)
 })
 
 it('Drags into a frame', () => {
@@ -1038,72 +997,6 @@ it('Allows dragging grouped shapes into frames if every shape in the group is in
 	expect(editor.getHintingShapeIds()).toMatchObject([frame.id])
 
 	expect(editor.getShape(group)!.parentId).toBe(frame.id)
-})
-
-it('drops into the top-most frame, if there is one', () => {
-	editor.createShape({
-		type: 'frame',
-		parentId: editor.getCurrentPage().id,
-		x: 0,
-		y: 500,
-		props: { w: 200, h: 200 },
-	})
-
-	editor.createShape({
-		type: 'frame',
-		parentId: editor.getCurrentPage().id,
-		x: 500,
-		y: 500,
-		props: { w: 200, h: 200 },
-	})
-
-	const [frame1, frame2] = editor.getLastCreatedShapes(2)
-
-	expect(editor.getShape(frame1)!.parentId).toBe(editor.getCurrentPageId())
-	expect(editor.getShape(frame2)!.parentId).toBe(editor.getCurrentPageId())
-
-	const sortedShapes = editor.getCurrentPageShapesSorted().map((s) => s.id)
-	expect(sortedShapes.indexOf(frame1.id)).toBe(0)
-	expect(sortedShapes.indexOf(frame2.id)).toBe(1)
-
-	editor.createShape({ type: 'geo', x: 190, y: 0, props: { w: 50, h: 100 } })
-	editor.createShape({ type: 'geo', x: 510, y: 0, props: { w: 50, h: 100 } })
-	const [box1, box2] = editor.getLastCreatedShapes(2)
-	editor.groupShapes([box1, box2])
-	const group = editor.getLastCreatedShape()
-
-	// The group should fit perfectly between the two frames
-
-	// Move the group down between the two frames
-	editor.select(group)
-	editor.pointerDown(300, 50)
-	editor.pointerMove(300, 600)
-
-	jest.advanceTimersByTime(200)
-
-	// frame 2 is in front and should accept the children
-	expect(editor.getShape(group)?.parentId).toBe(frame2.id)
-
-	editor.undo()
-
-	expect(editor.getShape(group)?.parentId).toBe(editor.getCurrentPageId())
-
-	// Make sure frame1 is in front
-	editor.sendToBack([frame2])
-
-	const sortedShapes2 = editor.getCurrentPageShapesSorted().map((s) => s.id)
-	expect(sortedShapes2.indexOf(frame1.id)).toBe(1)
-	expect(sortedShapes2.indexOf(frame2.id)).toBe(0)
-
-	// Move the group down between the two frames
-	editor.select(group)
-	editor.pointerDown(300, 50)
-	editor.pointerMove(300, 600)
-
-	jest.advanceTimersByTime(200)
-
-	// frame 1 is in front and should accept the children
-	expect(editor.getShape(group)?.parentId).toBe(frame1.id)
 })
 
 describe('When deleting/removing a frame', () => {
@@ -1270,9 +1163,9 @@ describe('Unparenting behavior', () => {
 		editor.pointerDown(90, 50)
 		editor.pointerMove(110, 50)
 		jest.advanceTimersByTime(200)
-		expect(editor.getShape(rect.id)!.parentId).toBe(frame.id)
+		expect(editor.getShape(rect.id)!.parentId).toBe(editor.getCurrentPageId())
 		editor.pointerUp(110, 50)
-		expect(editor.getShape(rect.id)!.parentId).toBe(frame.id)
+		expect(editor.getShape(rect.id)!.parentId).toBe(editor.getCurrentPageId())
 	})
 
 	it("drops a shape onto other frames when it's rotated out of a frame", () => {
@@ -1382,39 +1275,6 @@ describe('Unparenting behavior', () => {
 		expect(editor.getShape(triangle.id)!.parentId).toBe(frame.id)
 	})
 
-	it('reparents a large shape that covers the entire frame but not its center', () => {
-		// Create a small frame
-		const frameId = dragCreateFrame({ down: [200, 200], move: [300, 300], up: [300, 300] })
-
-		// Create a large rectangle that will completely encompass the frame
-		// but whose center is outside the frame
-		editor.setCurrentTool('geo')
-		editor.setStyleForNextShapes(GeoShapeGeoStyle, 'rectangle')
-		editor.pointerDown(100, 100) // Start well outside the frame
-		editor.pointerMove(400, 400) // End well outside the frame
-		editor.pointerUp(400, 400)
-
-		const largeRect = editor.getLastCreatedShape()
-
-		// Initially, the large rectangle should be on the page
-		expect(largeRect.parentId).toBe(editor.getCurrentPageId())
-
-		// Now drag the large rectangle so it completely covers the small frame
-		// but the center of the large rectangle is outside the frame
-		editor.select(largeRect.id)
-		editor.pointerDown(250, 250) // Center of the large rectangle
-		editor.pointerMove(150, 150) // Move it so frame is inside but center is outside
-		editor.pointerUp(150, 150)
-
-		// Wait for reparenting to happen
-		jest.advanceTimersByTime(200)
-
-		// The large rectangle should now be reparented to the frame
-		// This tests the specific case where all frame corners are inside the shape
-		// but the shape's center is not inside the frame
-		expect(editor.getShape(largeRect.id)!.parentId).toBe(frameId)
-	})
-
 	it('unparents an occluded shape after dragging a handle out of a frame', () => {
 		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
 		dragCreateLine({ down: [90, 90], move: [120, 120], up: [120, 120] })
@@ -1426,6 +1286,57 @@ describe('Unparenting behavior', () => {
 		expect(editor.getShape(line.id)!.parentId).toBe(frame.id)
 		editor.pointerUp(110, 110)
 		expect(editor.getShape(line.id)!.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('when a large shape wraps the whole frame, reparents or not correctly', () => {
+		// Create a small frame
+		const frameId = dragCreateFrame({ down: [200, 200], move: [300, 300], up: [300, 300] })
+
+		// Create a large rectangle that will completely encompass the frame
+		// but whose center is outside the frame
+		editor.setCurrentTool('geo')
+		dragCreateRect({ down: [350, 350], move: [1350, 1350], up: [1350, 1350] })
+		const largeRect = editor.getLastCreatedShape() as TLGeoShape
+
+		// Initially, the large rectangle should be on the page
+		expect(largeRect.parentId).toBe(editor.getCurrentPageId())
+
+		function dragOntoFrame() {
+			// Now drag the large rectangle so it completely covers the small frame
+			// but the center of the large rectangle is outside the frame
+			editor.pointerDown(850, 850) // Start dragging somewhere inside the large rectangle
+			editor.pointerMove(250, 250) // Move it so shape is inside the large rectangle
+
+			expect(editor.getSelectedShapeIds()).toMatchObject([largeRect.id])
+			expect(editor.isIn('select.translating')).toBe(true)
+
+			// Wait for reparenting to happen
+			jest.advanceTimersByTime(250)
+			expect(editor.getShape(largeRect.id)!.parentId).toBe(frameId)
+
+			// The large rectangle should now be reparented to the frame, even though the frame covers it
+			editor.pointerUp(250, 250)
+			jest.advanceTimersByTime(250)
+		}
+
+		// When the shape has no fill and an empty label, it should fall out of the frame
+		dragOntoFrame()
+		expect(editor.getShape(largeRect.id)!.parentId).toBe(editor.getCurrentPageId())
+
+		// When the shape has a fill, it should not fall out of the frame
+		editor.undo()
+		editor.updateShape<TLGeoShape>({ ...largeRect, props: { fill: 'solid' } })
+		dragOntoFrame()
+		expect(editor.getShape(largeRect.id)!.parentId).toBe(frameId)
+
+		// When the shape has a label and that label is on top of the frame, it should not fall out of the frame
+		editor.undo()
+		editor.updateShape<TLGeoShape>({
+			...largeRect,
+			props: { fill: 'none', richText: toRichText('hello') },
+		})
+		dragOntoFrame()
+		expect(editor.getShape(largeRect.id)!.parentId).toBe(frameId)
 	})
 })
 
@@ -1542,34 +1453,162 @@ it('avoids crash when dragging into descendant', () => {
 	editor.pointerMove(30, 30)
 })
 
-it('avoids breaking groups when dragging one group member out of the frame', () => {
-	dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
-	const frame = editor.getLastCreatedShape()
+describe('When dragging groups or shapes within a group', () => {
+	it('Allows dragging groups into frames', () => {
+		editor.createShape({ type: 'frame', x: 100, y: 100, props: { w: 500, h: 500 } })
+		editor.createShape({ type: 'geo', x: 1000, y: 1000, props: { w: 100, h: 100 } })
+		editor.createShape({ type: 'geo', x: 1200, y: 1300, props: { w: 100, h: 100 } })
+		const [frame, box1, box2] = editor.getLastCreatedShapes(3)
+		editor.groupShapes([box1, box2])
+		const group = editor.getLastCreatedShape()
+		editor.select(group)
 
-	const rect1ID = createRect({ pos: [10, 10], size: [20, 20] })
-	const rect2ID = createRect({ pos: [30, 30], size: [20, 20] })
-	editor.select(rect1ID, rect2ID)
-	editor.groupShapes(editor.getSelectedShapeIds())
+		editor.pointerDown(1100, 1100)
+		editor.pointerMove(250, 250)
 
-	const group = editor.getLastCreatedShape()
+		jest.advanceTimersByTime(200)
 
-	expect(editor.getShape(rect1ID)?.parentId).toBe(group.id)
-	expect(editor.getShape(rect2ID)?.parentId).toBe(group.id)
-	expect(group.parentId).toBe(frame.id)
+		expect(editor.getShape(group)!.parentId).toBe(frame.id)
+	})
 
-	editor.select(rect1ID)
-	editor.pointerDown(15, 15)
-	editor.pointerMove(100, 100)
-	jest.advanceTimersByTime(200)
+	it('avoids breaking groups when dragging one group member out of the frame', () => {
+		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+		const frame = editor.getLastCreatedShape()
 
-	expect(editor.getShape(rect1ID)?.parentId).toBe(group.id)
-	expect(editor.getShape(rect2ID)?.parentId).toBe(group.id)
-	expect(group.parentId).toBe(frame.id)
+		const rect1ID = createRect({ pos: [10, 10], size: [20, 20] })
+		const rect2ID = createRect({ pos: [30, 30], size: [20, 20] })
+		editor.select(rect1ID, rect2ID)
+		editor.groupShapes(editor.getSelectedShapeIds())
 
-	editor.pointerUp(100, 100)
-	jest.advanceTimersByTime(200)
+		const group = editor.getLastCreatedShape()
 
-	expect(editor.getShape(rect1ID)?.parentId).toBe(group.id)
-	expect(editor.getShape(rect2ID)?.parentId).toBe(group.id)
-	expect(group.parentId).toBe(frame.id)
+		expect(editor.getShape(rect1ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(rect2ID)?.parentId).toBe(group.id)
+		expect(group.parentId).toBe(frame.id)
+
+		editor.select(rect1ID)
+		editor.pointerDown(15, 15)
+		editor.pointerMove(100, 100)
+		jest.advanceTimersByTime(200)
+
+		expect(editor.getShape(rect1ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(rect2ID)?.parentId).toBe(group.id)
+		expect(group.parentId).toBe(frame.id)
+
+		editor.pointerUp(100, 100)
+		jest.advanceTimersByTime(200)
+
+		expect(editor.getShape(rect1ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(rect2ID)?.parentId).toBe(group.id)
+		expect(group.parentId).toBe(frame.id)
+	})
+
+	it('drops the whole group if its children are all selected', () => {
+		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+		const frame = editor.getLastCreatedShape()
+
+		const rect1ID = createRect({ pos: [10, 10], size: [20, 20] })
+		const rect2ID = createRect({ pos: [30, 30], size: [20, 20] })
+		editor.select(rect1ID, rect2ID)
+		editor.groupShapes(editor.getSelectedShapeIds())
+
+		const group = editor.getLastCreatedShape()
+		expect(editor.getShape(rect1ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(rect2ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(group.id)?.parentId).toBe(frame.id)
+
+		editor.select(rect1ID, rect2ID)
+		editor.pointerDown(15, 15)
+		editor.pointerMove(200, 200)
+
+		jest.advanceTimersByTime(200)
+		expect(editor.getShape(rect1ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(rect2ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(group.id)?.parentId).toBe(editor.getCurrentPageId())
+
+		editor.pointerUp()
+		expect(editor.getShape(rect1ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(rect2ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(group.id)?.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('drops the whole group out if one one child is dragged out', () => {
+		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+		const frame = editor.getLastCreatedShape()
+
+		const rect1ID = createRect({ pos: [10, 10], size: [20, 20] })
+		const rect2ID = createRect({ pos: [30, 30], size: [20, 20] })
+		editor.select(rect1ID, rect2ID)
+		editor.groupShapes(editor.getSelectedShapeIds())
+
+		const group = editor.getLastCreatedShape()
+		expect(editor.getShape(rect1ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(rect2ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(group.id)?.parentId).toBe(frame.id)
+
+		editor.select(rect1ID)
+		editor.pointerDown(15, 15)
+		editor.pointerMove(200, 200)
+
+		jest.advanceTimersByTime(200)
+		expect(editor.getShape(rect1ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(rect2ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(group.id)?.parentId).toBe(editor.getCurrentPageId())
+
+		editor.pointerUp()
+		expect(editor.getShape(rect1ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(rect2ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(group.id)?.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('drops the whole group out if all of its children are outside of the frame', () => {
+		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+
+		const rect1ID = createRect({ pos: [10, 10], size: [20, 20] })
+		const rect2ID = createRect({ pos: [30, 30], size: [20, 20] })
+		editor.select(rect1ID, rect2ID)
+		editor.groupShapes(editor.getSelectedShapeIds())
+
+		const group = editor.getLastCreatedShape()
+		editor.select(rect1ID)
+		editor.pointerDown(15, 15)
+		editor.pointerMove(200, 200)
+		editor.pointerUp()
+
+		editor.select(rect2ID)
+		editor.pointerDown(35, 35)
+		editor.pointerMove(300, 300)
+		editor.pointerUp()
+
+		expect(editor.getShape(rect1ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(rect2ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(group.id)?.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('drags the whole group into a frame when a groups child is dragged inside of the frame', () => {
+		const frameID = dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+		const rect1ID = createRect({ pos: [210, 210], size: [20, 20] })
+		const rect2ID = createRect({ pos: [230, 230], size: [20, 20] })
+		editor.select(rect1ID, rect2ID)
+		editor.groupShapes(editor.getSelectedShapeIds())
+		const group = editor.getLastCreatedShape()
+
+		expect(editor.getShape(rect1ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(rect2ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(group.id)?.parentId).toBe(editor.getCurrentPageId())
+
+		editor.select(rect1ID)
+		editor.pointerDown(215, 215)
+		editor.pointerMove(15, 15)
+
+		jest.advanceTimersByTime(200)
+		expect(editor.getShape(rect1ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(rect2ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(group.id)?.parentId).toBe(frameID)
+
+		editor.pointerUp(15, 15)
+		expect(editor.getShape(rect1ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(rect2ID)?.parentId).toBe(group.id)
+		expect(editor.getShape(group.id)?.parentId).toBe(frameID)
+	})
 })
