@@ -3,7 +3,9 @@
 
 export const fetchEverythingSql = `
 WITH
-  "user_file_states" AS (SELECT * FROM public."file_state" WHERE "userId" = $1)
+  "user_file_states" AS (SELECT * FROM public."file_state" WHERE "userId" = $1),
+  "user_groups" AS (SELECT * FROM public."user_group"),
+  "groups" AS (SELECT * FROM public."group" WHERE EXISTS(SELECT 1 FROM user_groups WHERE "groupId" = public."group".id))
 SELECT
   'user' as "table",
   "allowAnalyticsCookie"::boolean as "0",
@@ -80,6 +82,107 @@ SELECT
   null::text as "20"
 FROM public."file"
 WHERE "ownerId" = $1 OR "shared" = true AND EXISTS(SELECT 1 FROM user_file_states WHERE "fileId" = file.id)
+UNION
+SELECT
+  'user_group' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  "createdAt"::bigint as "7",
+  "updatedAt"::bigint as "8",
+  null::bigint as "9",
+  null::bigint as "10",
+  "groupId"::text as "11",
+  "role"::text as "12",
+  "userId"::text as "13",
+  null::text as "14",
+  null::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20"
+FROM user_groups
+UNION
+SELECT
+  'group' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  "createdAt"::bigint as "7",
+  "updatedAt"::bigint as "8",
+  null::bigint as "9",
+  null::bigint as "10",
+  "id"::text as "11",
+  "inviteSecret"::text as "12",
+  "name"::text as "13",
+  null::text as "14",
+  null::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20"
+FROM groups
+UNION
+SELECT
+  'file_group' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  "createdAt"::bigint as "7",
+  "updatedAt"::bigint as "8",
+  null::bigint as "9",
+  null::bigint as "10",
+  "fileId"::text as "11",
+  "groupId"::text as "12",
+  null::text as "13",
+  null::text as "14",
+  null::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20"
+FROM public."file_group"
+WHERE EXISTS(SELECT 1 FROM groups WHERE "groupId" = public."file_group"."groupId")
+UNION
+SELECT
+  'user_presence' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  "lastActivityAt"::bigint as "7",
+  null::bigint as "8",
+  null::bigint as "9",
+  null::bigint as "10",
+  "color"::text as "11",
+  "fileId"::text as "12",
+  "name"::text as "13",
+  "sessionId"::text as "14",
+  "userId"::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20"
+FROM public."user_presence"
 UNION
 SELECT
   'user_mutation_number' as "table",
@@ -183,6 +286,34 @@ export const columnNamesByAlias = {
 		'17': 'publishedSlug',
 		'18': 'sharedLinkType',
 		'19': 'thumbnail',
+	},
+	user_group: {
+		'7': 'createdAt',
+		'8': 'updatedAt',
+		'11': 'groupId',
+		'12': 'role',
+		'13': 'userId',
+	},
+	group: {
+		'7': 'createdAt',
+		'8': 'updatedAt',
+		'11': 'id',
+		'12': 'inviteSecret',
+		'13': 'name',
+	},
+	file_group: {
+		'7': 'createdAt',
+		'8': 'updatedAt',
+		'11': 'fileId',
+		'12': 'groupId',
+	},
+	user_presence: {
+		'7': 'lastActivityAt',
+		'11': 'color',
+		'12': 'fileId',
+		'13': 'name',
+		'14': 'sessionId',
+		'15': 'userId',
 	},
 	user_mutation_number: {
 		'7': 'mutationNumber',

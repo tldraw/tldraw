@@ -1,9 +1,13 @@
 import {
 	TlaFile,
+	TlaFileGroup,
 	TlaFileState,
+	TlaGroup,
 	TlaRow,
 	TlaUser,
+	TlaUserGroup,
 	TlaUserMutationNumber,
+	TlaUserPresence,
 	ZTable,
 } from '@tldraw/dotcom-shared'
 import { exhaustiveSwitchError } from '@tldraw/utils'
@@ -47,6 +51,14 @@ export function getTopics(row: TlaRow, event: ReplicationEvent): Topic[] {
 		}
 		case 'user_mutation_number':
 			return [`user:${(row as any as TlaUserMutationNumber).userId}`]
+		case 'group':
+			return [`group:${(row as TlaGroup).id}`]
+		case 'user_group':
+			return [`group:${(row as TlaUserGroup).groupId}`, `user:${(row as TlaUserGroup).userId}`]
+		case 'user_presence':
+			return [`file:${(row as TlaUserPresence).fileId}`]
+		case 'file_group':
+			return [`group:${(row as TlaFileGroup).groupId}`, `file:${(row as TlaFileGroup).fileId}`]
 		default: {
 			exhaustiveSwitchError(event.table)
 			return [] // just in case

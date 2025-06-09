@@ -8,6 +8,7 @@ import {
 	ZServerSentPacket,
 	ZStoreData,
 	ZStoreDataV1,
+	ZStoreDataV2,
 	ZTable,
 } from '@tldraw/dotcom-shared'
 import { react, transact } from '@tldraw/state'
@@ -78,7 +79,7 @@ type BootState =
 			lastSequenceNumber: number
 	  }
 
-const stateVersion = 1
+const stateVersion = 2
 interface StateSnapshot {
 	version: number
 	initialData: ZStoreData
@@ -97,6 +98,20 @@ function migrateStateSnapshot(snapshot: any) {
 			user: [data.user],
 			file: data.files,
 			file_state: data.fileStates,
+		} satisfies ZStoreDataV2
+	}
+	if (snapshot.version === 1) {
+		snapshot.version = 2
+		const data = snapshot.initialData as ZStoreDataV2
+		snapshot.initialData = {
+			lsn: data.lsn,
+			user: data.user,
+			file: data.file,
+			file_state: data.file_state,
+			group: [],
+			user_group: [],
+			user_presence: [],
+			file_group: [],
 		} satisfies ZStoreData
 	}
 }
@@ -254,6 +269,10 @@ export class UserDataSyncer {
 			user: [],
 			file: [],
 			file_state: [],
+			group: [],
+			user_group: [],
+			user_presence: [],
+			file_group: [],
 			lsn: '0/0',
 			mutationNumber: 0,
 		}
@@ -392,7 +411,15 @@ export class UserDataSyncer {
 	private handleRowUpdateEvent(event: ZRowUpdateEvent) {
 		try {
 			assert(this.state.type === 'connected', 'state should be connected in handleEvent')
-			if (event.table !== 'user' && event.table !== 'file' && event.table !== 'file_state') {
+			if (
+				event.table !== 'user' &&
+				event.table !== 'file' &&
+				event.table !== 'file_state' &&
+				event.table !== 'group' &&
+				event.table !== 'user_group' &&
+				event.table !== 'user_presence' &&
+				event.table !== 'file_group'
+			) {
 				throw new Error(`Unhandled table: ${event.table}`)
 			}
 			this.store.updateCommittedData(event)

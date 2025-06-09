@@ -76,6 +76,46 @@ export const file = table('file')
 	})
 	.primaryKey('id', 'ownerId', 'publishedSlug')
 
+export const group = table('group')
+	.columns({
+		id: string(),
+		name: string(),
+		inviteSecret: string().optional(),
+		createdAt: number(),
+		updatedAt: number(),
+	})
+	.primaryKey('id')
+
+export const user_group = table('user_group')
+	.columns({
+		userId: string(),
+		groupId: string(),
+		createdAt: number(),
+		updatedAt: number(),
+		role: string(),
+	})
+	.primaryKey('userId', 'groupId')
+
+export const user_presence = table('user_presence')
+	.columns({
+		sessionId: string(),
+		fileId: string(),
+		userId: string(),
+		lastActivityAt: number(),
+		name: string().optional(),
+		color: string().optional(),
+	})
+	.primaryKey('sessionId')
+
+export const file_group = table('file_group')
+	.columns({
+		fileId: string(),
+		groupId: string(),
+		createdAt: number(),
+		updatedAt: number(),
+	})
+	.primaryKey('fileId', 'groupId')
+
 const fileRelationships = relationships(file, ({ one, many }) => ({
 	owner: one({
 		sourceField: ['ownerId'],
@@ -102,6 +142,63 @@ const fileStateRelationships = relationships(file_state, ({ one }) => ({
 	}),
 }))
 
+const groupRelationships = relationships(group, ({ many }) => ({
+	userGroups: many({
+		sourceField: ['id'],
+		destField: ['groupId'],
+		destSchema: user_group,
+	}),
+	fileGroups: many({
+		sourceField: ['id'],
+		destField: ['groupId'],
+		destSchema: file_group,
+	}),
+}))
+
+const userGroupRelationships = relationships(user_group, ({ one }) => ({
+	user: one({
+		sourceField: ['userId'],
+		destField: ['id'],
+		destSchema: user,
+	}),
+	group: one({
+		sourceField: ['groupId'],
+		destField: ['id'],
+		destSchema: group,
+	}),
+}))
+
+const userPresenceRelationships = relationships(user_presence, ({ one, many }) => ({
+	file: one({
+		sourceField: ['fileId'],
+		destField: ['id'],
+		destSchema: file,
+	}),
+	fileStates: many({
+		sourceField: ['fileId'],
+		destField: ['fileId'],
+		destSchema: file_state,
+	}),
+}))
+
+const fileGroupRelationships = relationships(file_group, ({ one, many }) => ({
+	file: one({
+		sourceField: ['fileId'],
+		destField: ['id'],
+		destSchema: file,
+	}),
+	group: one({
+		sourceField: ['groupId'],
+		destField: ['id'],
+		destSchema: group,
+	}),
+	userGroups: many({
+		sourceField: ['groupId'],
+		destField: ['groupId'],
+		destSchema: user_group,
+	}),
+}))
+
 export type TlaFilePartial = Partial<TlaFile> & {
 	id: TlaFile['id']
 }
@@ -114,7 +211,32 @@ export type TlaUserPartial = Partial<TlaUser> & {
 	id: TlaUser['id']
 }
 
-export type TlaRow = TlaFile | TlaFileState | TlaUser
+export type TlaGroupPartial = Partial<TlaGroup> & {
+	id: TlaGroup['id']
+}
+
+export type TlaUserGroupPartial = Partial<TlaUserGroup> & {
+	userId: TlaUserGroup['userId']
+	groupId: TlaUserGroup['groupId']
+}
+
+export type TlaUserPresencePartial = Partial<TlaUserPresence> & {
+	sessionId: TlaUserPresence['sessionId']
+}
+
+export type TlaFileGroupPartial = Partial<TlaFileGroup> & {
+	fileId: TlaFileGroup['fileId']
+	groupId: TlaFileGroup['groupId']
+}
+
+export type TlaRow =
+	| TlaFile
+	| TlaFileState
+	| TlaUser
+	| TlaGroup
+	| TlaUserGroup
+	| TlaUserPresence
+	| TlaFileGroup
 export interface TlaUserMutationNumber {
 	userId: string
 	mutationNumber: number
@@ -130,6 +252,10 @@ export const immutableColumns = {
 		'createdAt',
 	]),
 	file_state: new Set<keyof TlaFileState>(['firstVisitAt', 'isFileOwner']),
+	group: new Set<keyof TlaGroup>(['createdAt', 'updatedAt']),
+	user_group: new Set<keyof TlaUserGroup>(['createdAt', 'updatedAt']),
+	user_presence: new Set<keyof TlaUserPresence>([]),
+	file_group: new Set<keyof TlaFileGroup>(['createdAt', 'updatedAt']),
 } as const
 
 export function isColumnMutable(tableName: keyof typeof immutableColumns, column: string) {
@@ -146,19 +272,34 @@ export interface DB {
 	file: TlaFile
 	file_state: TlaFileState
 	user: TlaUser
+	group: TlaGroup
+	user_group: TlaUserGroup
+	user_presence: TlaUserPresence
+	file_group: TlaFileGroup
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
 }
 
 export const schema = createSchema({
-	tables: [user, file, file_state],
-	relationships: [fileRelationships, fileStateRelationships],
+	tables: [user, file, file_state, group, user_group, user_presence, file_group],
+	relationships: [
+		fileRelationships,
+		fileStateRelationships,
+		groupRelationships,
+		userGroupRelationships,
+		userPresenceRelationships,
+		fileGroupRelationships,
+	],
 })
 
 export type TlaSchema = typeof schema
 export type TlaUser = Row<typeof schema.tables.user>
 export type TlaFile = Row<typeof schema.tables.file>
 export type TlaFileState = Row<typeof schema.tables.file_state>
+export type TlaGroup = Row<typeof schema.tables.group>
+export type TlaUserGroup = Row<typeof schema.tables.user_group>
+export type TlaUserPresence = Row<typeof schema.tables.user_presence>
+export type TlaFileGroup = Row<typeof schema.tables.file_group>
 
 interface AuthData {
 	sub: string | null
@@ -170,7 +311,7 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 
 	const allowIfIsUserIdMatches = (
 		authData: AuthData,
-		{ cmp }: ExpressionBuilder<TlaSchema, 'file_state'>
+		{ cmp }: ExpressionBuilder<TlaSchema, 'file_state' | 'user_group'>
 	) => cmp('userId', '=', authData.sub!)
 
 	const userCanAccessFile = (
@@ -184,6 +325,21 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 				exists('states', (q) => q.where('userId', '=', authData.sub!))
 			)
 		)
+
+	const userCanAccessGroup = (
+		authData: AuthData,
+		{ exists }: ExpressionBuilder<TlaSchema, 'group'>
+	) => exists('userGroups', (q) => q.where('userId', '=', authData.sub!))
+
+	const userCanAccessPresence = (
+		authData: AuthData,
+		{ exists }: ExpressionBuilder<TlaSchema, 'user_presence'>
+	) => exists('fileStates', (q) => q.where('userId', '=', authData.sub!))
+
+	const userCanAccessFileGroup = (
+		authData: AuthData,
+		{ exists }: ExpressionBuilder<TlaSchema, 'file_group'>
+	) => exists('userGroups', (q) => q.where('userId', '=', authData.sub!))
 
 	return {
 		user: {
@@ -199,6 +355,26 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 		file_state: {
 			row: {
 				select: [allowIfIsUserIdMatches],
+			},
+		},
+		group: {
+			row: {
+				select: [userCanAccessGroup],
+			},
+		},
+		user_group: {
+			row: {
+				select: [allowIfIsUserIdMatches],
+			},
+		},
+		user_presence: {
+			row: {
+				select: [userCanAccessPresence],
+			},
+		},
+		file_group: {
+			row: {
+				select: [userCanAccessFileGroup],
 			},
 		},
 	} satisfies PermissionsConfig<AuthData, TlaSchema>

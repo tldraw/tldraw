@@ -1,4 +1,4 @@
-import { TlaFileState, TlaRow } from '@tldraw/dotcom-shared'
+import { TlaFileGroup, TlaFileState, TlaRow, TlaUserGroup } from '@tldraw/dotcom-shared'
 import { ReplicationEvent, Topic } from './replicatorTypes'
 
 /**
@@ -55,6 +55,28 @@ export function getSubscriptionChanges(changes: Array<{ row: TlaRow; event: Repl
 				} else if (change.event.command === 'delete' && !fileState.isFileOwner) {
 					// User loses access to a file (no longer shared with them)
 					removedSubscriptions.push({ fromTopic: userTopic, toTopic: fileTopic })
+				}
+				break
+			}
+			case 'user_group': {
+				const userGroup = change.row as TlaUserGroup
+				const userTopic: Topic = `user:${userGroup.userId}`
+				const groupTopic: Topic = `group:${userGroup.groupId}`
+				if (change.event.command === 'insert') {
+					newSubscriptions.push({ fromTopic: userTopic, toTopic: groupTopic })
+				} else if (change.event.command === 'delete') {
+					removedSubscriptions.push({ fromTopic: userTopic, toTopic: groupTopic })
+				}
+				break
+			}
+			case 'file_group': {
+				const fileGroup = change.row as TlaFileGroup
+				const fileTopic: Topic = `file:${fileGroup.fileId}`
+				const groupTopic: Topic = `group:${fileGroup.groupId}`
+				if (change.event.command === 'insert') {
+					newSubscriptions.push({ fromTopic: groupTopic, toTopic: fileTopic })
+				} else if (change.event.command === 'delete') {
+					removedSubscriptions.push({ fromTopic: groupTopic, toTopic: fileTopic })
 				}
 				break
 			}

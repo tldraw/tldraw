@@ -1,9 +1,18 @@
 import { TlaFile, TlaRow } from '@tldraw/dotcom-shared'
 import { stringEnum } from '@tldraw/utils'
 
-export type Topic = `user:${string}` | `file:${string}`
+export type Topic = `user:${string}` | `file:${string}` | `group:${string}`
 
-export const relevantTables = stringEnum('user', 'file', 'file_state', 'user_mutation_number')
+export const relevantTables = stringEnum(
+	'user',
+	'file',
+	'file_state',
+	'user_mutation_number',
+	'group',
+	'user_group',
+	'user_presence',
+	'file_group'
+)
 
 export interface ReplicationEvent {
 	command: 'insert' | 'update' | 'delete'

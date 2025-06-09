@@ -52,6 +52,31 @@ const tables: TableStuff[] = [
 		columns: makeColumnStuff(schema.tables.file),
 		where: `"ownerId" = $1 OR "shared" = true AND EXISTS(SELECT 1 FROM user_file_states WHERE "fileId" = file.id)`,
 	},
+
+	{
+		tableName: 'user_group',
+		alias: 'user_group',
+		columns: makeColumnStuff(schema.tables.user_group),
+		withAlias: 'user_groups',
+	},
+	{
+		tableName: 'group',
+		alias: 'group',
+		withAlias: 'groups',
+		columns: makeColumnStuff(schema.tables.group),
+		where: `EXISTS(SELECT 1 FROM user_groups WHERE "groupId" = public."group".id)`,
+	},
+	{
+		tableName: 'file_group',
+		alias: 'file_group',
+		where: `EXISTS(SELECT 1 FROM groups WHERE "groupId" = public."file_group"."groupId")`,
+		columns: makeColumnStuff(schema.tables.file_group),
+	},
+	{
+		tableName: 'user_presence',
+		alias: 'user_presence',
+		columns: makeColumnStuff(schema.tables.user_presence),
+	},
 	{
 		tableName: 'user_mutation_number',
 		alias: 'user_mutation_number',
