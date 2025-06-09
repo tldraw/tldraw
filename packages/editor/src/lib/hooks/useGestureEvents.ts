@@ -93,6 +93,9 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 				return
 			}
 
+			const delta = normalizeWheel(event)
+			if (delta.x === 0 && delta.y === 0) return
+
 			// we don't want to handle the the wheel event (or call prevent
 			// default on the evnet) if the user is wheeling over an a shape
 			// that is scrollable which they're currently editing.
@@ -107,9 +110,6 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 
 			preventDefault(event)
 			stopEventPropagation(event)
-			const delta = normalizeWheel(event)
-
-			if (delta.x === 0 && delta.y === 0) return
 
 			const info: TLWheelEventInfo = {
 				type: 'wheel',
