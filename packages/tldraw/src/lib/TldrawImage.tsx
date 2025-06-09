@@ -64,7 +64,7 @@ const defaultTextOptions = {
 }
 
 /**
- * A renderered SVG image of a Tldraw snapshot.
+ * A rendered SVG image of a Tldraw snapshot.
  *
  * @example
  * ```tsx
