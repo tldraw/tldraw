@@ -4,6 +4,7 @@ import {
 	TLFrameShape,
 	TLImageShape,
 	TLPageId,
+	TLVideoShape,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -73,6 +74,29 @@ export function FlattenMenuItem() {
 	if (!shouldDisplay) return null
 
 	return <TldrawUiMenuActionItem actionId="flatten-to-image" />
+}
+
+/** @public @react */
+export function DownloadOriginalMenuItem() {
+	const editor = useEditor()
+	const shouldDisplay = useValue(
+		'should display download original option',
+		() => {
+			const selectedShapes = editor.getSelectedShapes()
+			if (selectedShapes.length === 0) return false
+			return selectedShapes.every((shape) => {
+				return (
+					(editor.isShapeOfType<TLImageShape>(shape, 'image') ||
+						editor.isShapeOfType<TLVideoShape>(shape, 'video')) &&
+					shape.props.assetId !== undefined
+				)
+			})
+		},
+		[editor]
+	)
+	if (!shouldDisplay) return null
+
+	return <TldrawUiMenuActionItem actionId="download-original" />
 }
 
 /** @public @react */
@@ -299,6 +323,7 @@ export function ConversionsMenuGroup() {
 					<ToggleTransparentBgMenuItem />
 				</TldrawUiMenuGroup>
 			</TldrawUiMenuSubmenu>
+			<DownloadOriginalMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }
