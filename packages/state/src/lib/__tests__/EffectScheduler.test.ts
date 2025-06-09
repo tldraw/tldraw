@@ -2,7 +2,7 @@ import { atom } from '../Atom'
 import { EffectScheduler } from '../EffectScheduler'
 
 describe(EffectScheduler, () => {
-	test('when you detatch and reattach, it retains the parents without rerunning', () => {
+	test('when you detach and reattach, it retains the parents without rerunning', () => {
 		const a = atom('a', 1)
 		let numReactions = 0
 		const scheduler = new EffectScheduler('test', () => {
@@ -22,7 +22,7 @@ describe(EffectScheduler, () => {
 		expect(numReactions).toBe(3)
 	})
 
-	test('when you detatch and reattach, it retains the parents while rerunning if the parent has changed', () => {
+	test('when you detach and reattach, it retains the parents while rerunning if the parent has changed', () => {
 		const a = atom('a', 1)
 		let numReactions = 0
 		const scheduler = new EffectScheduler('test', () => {
