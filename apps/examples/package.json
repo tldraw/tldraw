@@ -29,8 +29,10 @@
 		"dev": "vite --host",
 		"build": "vite build",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
-		"e2e": "playwright test -c ./e2e/playwright.config.ts",
-		"e2e-ui": "playwright test --ui -c ./e2e/playwright.config.ts"
+		"preplaywright-e2e": "cp ../../node_modules/@tiptap/core/jsx-runtime/index.cjs ../../node_modules/@tiptap/core/jsx-runtime/index.cjs.bak || true && echo 'module.exports = {};' > ../../node_modules/@tiptap/core/jsx-runtime/index.cjs",
+		"postplaywright-e2e": "mv ../../node_modules/@tiptap/core/jsx-runtime/index.cjs.bak ../../node_modules/@tiptap/core/jsx-runtime/index.cjs || true",
+		"e2e": "yarn preplaywright-e2e && playwright test -c ./e2e/playwright.config.ts; yarn postplaywright-e2e",
+		"e2e-ui": "yarn preplaywright-e2e && playwright test --ui -c ./e2e/playwright.config.ts; yarn postplaywright-e2e"
 	},
 	"dependencies": {
 		"@playwright/test": "^1.50.0",
