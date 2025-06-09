@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "Limita ratei a fost depășită, încercați din nou mai târziu."
   },
+  "08bd40c754": {
+    "translation": "Cont"
+  },
   "0b27918290": {
     "translation": "Fişier"
   },
@@ -185,6 +188,9 @@
   "7b1329f5ca": {
     "translation": "Manual de utilizare"
   },
+  "7be10fc592": {
+    "translation": "Restaurați versiunea"
+  },
   "7cb5f8b4a5": {
     "translation": "Uita"
   },
@@ -318,6 +324,9 @@
   "c87aacf567": {
     "translation": "Sign out"
   },
+  "cbef7ba103": {
+    "translation": "Această cameră va fi în curând doar pentru citire"
+  },
   "cceaefbc20": {
     "translation": "Distribuiți acest fișier"
   },
@@ -356,6 +365,9 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
+  },
+  "ea2301d01c": {
+    "translation": "După 1 iulie 2025, această cameră multiplayer anonimă de pe tldraw va deveni doar pentru citire. Pentru a continua editarea în viitor, vă rugăm să vă conectați și să o copiați în fișierele dvs."
   },
   "ea4788705e": {
     "translation": "Anula"

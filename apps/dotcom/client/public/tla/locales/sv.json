@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "Hastighetsgränsen har överskridits, försök igen senare."
   },
+  "08bd40c754": {
+    "translation": "Konto"
+  },
   "0b27918290": {
     "translation": "Fil"
   },
@@ -185,6 +188,9 @@
   "7b1329f5ca": {
     "translation": "Användarmanual"
   },
+  "7be10fc592": {
+    "translation": "Återställ version"
+  },
   "7cb5f8b4a5": {
     "translation": "Glöm"
   },
@@ -318,6 +324,9 @@
   "c87aacf567": {
     "translation": "Logga ut"
   },
+  "cbef7ba103": {
+    "translation": "Det här rummet kommer snart att vara skrivskyddat"
+  },
   "cceaefbc20": {
     "translation": "Dela den här filen"
   },
@@ -356,6 +365,9 @@
   },
   "e78e14c5f1": {
     "translation": "Nåla fast"
+  },
+  "ea2301d01c": {
+    "translation": "Efter den 1 juli 2025 kommer detta anonyma tldraw-multiplayerrum att bli skrivskyddat. För att fortsätta redigera i framtiden, vänligen logga in och kopiera det till dina filer."
   },
   "ea4788705e": {
     "translation": "Avbryt"

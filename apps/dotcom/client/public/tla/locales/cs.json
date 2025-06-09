@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "Překročen limit sazby, zkuste to znovu později."
   },
+  "08bd40c754": {
+    "translation": "Účet"
+  },
   "0b27918290": {
     "translation": "Soubor"
   },
@@ -185,6 +188,9 @@
   "7b1329f5ca": {
     "translation": "Uživatelská příručka"
   },
+  "7be10fc592": {
+    "translation": "Obnovit verzi"
+  },
   "7cb5f8b4a5": {
     "translation": "Zapomenout"
   },
@@ -318,6 +324,9 @@
   "c87aacf567": {
     "translation": "Odhlaste se"
   },
+  "cbef7ba103": {
+    "translation": "Tato místnost bude brzy pouze pro čtení"
+  },
   "cceaefbc20": {
     "translation": "Sdílet tento soubor"
   },
@@ -356,6 +365,9 @@
   },
   "e78e14c5f1": {
     "translation": "Připnout"
+  },
+  "ea2301d01c": {
+    "translation": "Po 1. červenci 2025 bude tato anonymní multiplayerová místnost tldraw pouze pro čtení. Chcete-li v budoucnu pokračovat v úpravách, přihlaste se a zkopírujte ji do svých souborů."
   },
   "ea4788705e": {
     "translation": "Zrušit"
