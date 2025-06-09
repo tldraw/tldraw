@@ -15,6 +15,7 @@ import {
 	useQuickReactor,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import './MathShapeExample.css'
 
 addStyles()
 
@@ -113,6 +114,9 @@ export class MathShapeUtil extends ShapeUtil<MathShape> {
 							props: {
 								latex: mathField.latex(),
 							},
+						})
+						requestAnimationFrame(() => {
+							// field?.reflow()
 						})
 					}}
 				/>
