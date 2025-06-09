@@ -100,6 +100,7 @@ export class MathShapeUtil extends ShapeUtil<MathShape> {
 						width: '100%',
 						height: '100%',
 						overflow: 'hidden',
+						fontSize: '30px',
 					}}
 					latex={shape.props.latex}
 					onPointerDown={(e) => {
