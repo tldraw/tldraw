@@ -490,8 +490,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			}
 			case 'file_state': {
 				const fileState = row as TlaFileState
-				// File state events notify both the user topic AND the file topic
-				return [`user:${fileState.userId}`, `file:${fileState.fileId}`]
+				return [`user:${fileState.userId}`]
 			}
 			case 'user_mutation_number':
 				return [`user:${(row as any as TlaUserMutationNumber).userId}`]
