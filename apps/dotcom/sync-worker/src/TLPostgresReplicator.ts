@@ -51,6 +51,8 @@ import {
 } from './utils/durableObjects'
 
 const ONE_MINUTE = 60 * 1000
+// IMPORTANT prune interval needs to be at least twice as big as the lsn update request timeout
+// otherwise we might prune users who are still connected.
 const PRUNE_INTERVAL = 10 * ONE_MINUTE
 const MAX_HISTORY_ROWS = 20_000
 
@@ -245,30 +247,32 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private pruneTopicSubscriptions() {
 		// Use a temp table + index for fast lookups during the delete
-		this.sqlite.exec(`
-			-- Create temp table with all reachable topics
-			CREATE TEMP TABLE reachable_topics AS
-			WITH RECURSIVE reachable AS (
-				-- Base case: all active user topics are reachable by definition
-				SELECT ('user:' || id) as topic FROM active_user
-				UNION ALL
-				-- Recursive case: topics reachable from already reachable topics
-				SELECT ts.toTopic as topic
-				FROM topic_subscription ts
-				JOIN reachable r ON ts.fromTopic = r.topic
-			)
-			SELECT DISTINCT topic FROM reachable;
-			
-			-- Add index for fast lookups
-			CREATE INDEX idx_reachable_topics ON reachable_topics(topic);
-			
-			-- Delete subscriptions where fromTopic is not reachable (this catches all orphaned subscriptions)
-			DELETE FROM topic_subscription 
-			WHERE NOT EXISTS (SELECT 1 FROM reachable_topics WHERE topic = topic_subscription.fromTopic);
-			
-			-- Clean up
-			DROP TABLE reachable_topics;
-		`)
+		this.ctx.storage.transactionSync(() => {
+			this.sqlite.exec(`
+				-- Create temp table with all reachable topics
+				CREATE TABLE reachable_topics AS
+				WITH RECURSIVE reachable AS (
+					-- Base case: all active user topics are reachable by definition
+					SELECT ('user:' || id) as topic FROM active_user
+					UNION ALL
+					-- Recursive case: topics reachable from already reachable topics
+					SELECT ts.toTopic as topic
+					FROM topic_subscription ts
+					JOIN reachable r ON ts.fromTopic = r.topic
+				)
+				SELECT DISTINCT topic FROM reachable;
+				
+				-- Add index for fast lookups
+				CREATE INDEX idx_reachable_topics ON reachable_topics(topic);
+				
+				-- Delete subscriptions where fromTopic is not reachable (this catches all orphaned subscriptions)
+				DELETE FROM topic_subscription 
+				WHERE NOT EXISTS (SELECT 1 FROM reachable_topics WHERE topic = topic_subscription.fromTopic);
+				
+				-- Clean up
+				DROP TABLE reachable_topics;
+			`)
+		})
 	}
 
 	private maybeLogRpm() {
@@ -568,10 +572,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	)
 
 	private handleEvent(collator: ChangeCollator, change: ChangeV2) {
-		if (change.event.table === 'user_mutation_number') this.log.debug('what a')
+		this.log.debug('handleEvent', change)
 		// ignore events received after disconnecting, if that can even happen
 		if (this.state.type !== 'connected') return
-		if (change.event.table === 'user_mutation_number') this.log.debug('what b')
 
 		// we update subscriptions during both normal operation and catch up
 		const { command, table } = change.event
@@ -583,10 +586,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		// Check if any of the topics have listeners
 		const hasAnyListener = collator.hasListenerForTopics(change.topics)
 		if (!hasAnyListener) {
-			if (change.event.table === 'user_mutation_number') this.log.debug('what c')
 			return
 		}
-		if (change.event.table === 'user_mutation_number') this.log.debug('what d')
 
 		const replicationChange: ZReplicationChange =
 			table === 'user_mutation_number'

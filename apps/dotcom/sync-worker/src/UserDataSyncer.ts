@@ -18,6 +18,7 @@ import throttle from 'lodash.throttle'
 import { Logger } from './Logger'
 import { fetchEverythingSql } from './fetchEverythingSql.snap'
 import { parseResultRow } from './parseResultRow'
+import { getSubscriptionChanges } from './replicator/ChangeCollator'
 import { Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
@@ -463,6 +464,18 @@ export class UserDataSyncer {
 			return
 		}
 
+		// do a hard reboot if any topic subscriptions changed
+		const topicUpdates = getSubscriptionChanges(
+			event.changes
+				.filter((c): c is ZRowUpdateEvent => c.type === 'row_update')
+				.map((ev) => ({ row: ev.row, event: { command: ev.event, table: ev.table } }))
+		)
+
+		if (topicUpdates.newSubscriptions?.length || topicUpdates.removedSubscriptions?.length) {
+			this.reboot({ hard: true, delay: false, source: 'handleReplicationEvent(hard reboot)' })
+			return
+		}
+
 		transact(() => {
 			let maxMutationNumber = -1
 			for (const ev of event.changes) {
@@ -484,31 +497,6 @@ export class UserDataSyncer {
 			this.lastLsnCommit = Date.now()
 			this.store.commitLsn(event.lsn)
 		})
-
-		// make sure we have all the files we need
-		const data = this.store.getFullData()
-		for (const fileState of data?.file_state ?? []) {
-			if (!data?.file.some((f) => f.id === fileState.fileId)) {
-				this.log.debug('missing file', fileState.fileId)
-				this.addGuestFile(fileState.fileId)
-			}
-		}
-
-		for (const file of data?.file ?? []) {
-			// and make sure we don't have any files we don't need
-			// this happens when a shared file is made private
-			if (file.ownerId !== this.userId && !data?.file_state.some((fs) => fs.fileId === file.id)) {
-				this.log.debug('extra file', file.id)
-				const update: ZRowUpdate = {
-					event: 'delete',
-					row: { id: file.id },
-					table: 'file',
-				}
-				this.store.updateCommittedData(update)
-				this.broadcast({ type: 'update', update: update })
-				continue
-			}
-		}
 	}
 
 	async addGuestFile(fileOrId: string | TlaFile) {

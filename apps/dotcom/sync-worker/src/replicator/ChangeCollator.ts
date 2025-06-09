@@ -1,7 +1,7 @@
-import { TlaFileState } from '@tldraw/dotcom-shared'
+import { TlaFileState, TlaRow } from '@tldraw/dotcom-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { ZReplicationChange } from '../UserDataSyncer'
-import { ChangeV2, Topic } from './replicatorTypes'
+import { ChangeV2, ReplicationEvent, Topic } from './replicatorTypes'
 
 /**
  * Interface for collecting and organizing database changes for delivery to users.
@@ -50,7 +50,7 @@ export function parseSubscriptions(str: string | null): Subscription[] | null {
 	})
 }
 
-export function getSubscriptionChanges(changes: ChangeV2[]): {
+export function getSubscriptionChanges(changes: Array<{ row: TlaRow; event: ReplicationEvent }>): {
 	newSubscriptions: Subscription[] | null
 	removedSubscriptions: Subscription[] | null
 } {
@@ -66,7 +66,7 @@ export function getSubscriptionChanges(changes: ChangeV2[]): {
 
 				if (change.event.command === 'insert' && !fileState.isFileOwner) {
 					newSubscriptions.push({ fromTopic: userTopic, toTopic: fileTopic })
-				} else if (change.event.command === 'delete') {
+				} else if (change.event.command === 'delete' && !fileState.isFileOwner) {
 					removedSubscriptions.push({ fromTopic: userTopic, toTopic: fileTopic })
 				}
 				break
