@@ -6,8 +6,8 @@ priority: 4
 keywords: [theme, dark mode]
 ---
 
-A button that toggles the editor's dark mode.
+Toggle dark mode.
 
 ---
 
-Click the button to update the editor's `colorScheme` preference using `editor.user.updateUserPreferences`.
+This example demonstrates how to change the user's current `colorScheme` preference back-and-forth between dark mode and light mode. Try it out by clicking the button at the top of the page.

@@ -10,7 +10,7 @@ function DarkModeButton() {
 	}
 
 	return (
-		<button onClick={handleClick} style={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}>
+		<button style={{ pointerEvents: 'all' }} onClick={handleClick}>
 			Toggle dark mode
 		</button>
 	)
@@ -19,9 +19,7 @@ function DarkModeButton() {
 export default function DarkModeToggleExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw>
-				<DarkModeButton />
-			</Tldraw>
+			<Tldraw components={{ TopPanel: DarkModeButton }} />
 		</div>
 	)
 }
