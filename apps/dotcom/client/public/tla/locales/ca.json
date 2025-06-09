@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "S'ha superat el límit de tarifa; torna-ho a provar més tard."
   },
+  "08bd40c754": {
+    "translation": "Compte"
+  },
   "0b27918290": {
     "translation": "Fitxer"
   },
@@ -185,6 +188,9 @@
   "7b1329f5ca": {
     "translation": "Manual d'usuari"
   },
+  "7be10fc592": {
+    "translation": "Restaurar versió"
+  },
   "7cb5f8b4a5": {
     "translation": "Oblida't"
   },
@@ -318,6 +324,9 @@
   "c87aacf567": {
     "translation": "Tanca la sessió"
   },
+  "cbef7ba103": {
+    "translation": "Aquesta sala aviat serà de només lectura"
+  },
   "cceaefbc20": {
     "translation": "Comparteix aquest fitxer"
   },
@@ -356,6 +365,9 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
+  },
+  "ea2301d01c": {
+    "translation": "Després de l'1 de juliol de 2025, aquesta sala multijugador anònima de tldraw passarà a ser de només lectura. Per continuar editant-la en el futur, inicia la sessió i copia-la als teus fitxers."
   },
   "ea4788705e": {
     "translation": "Cancel·la"
