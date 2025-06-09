@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "Omejitev stopnje je presežena, poskusite znova pozneje."
   },
+  "08bd40c754": {
+    "translation": "Račun"
+  },
   "0b27918290": {
     "translation": "Datoteka"
   },
@@ -185,6 +188,9 @@
   "7b1329f5ca": {
     "translation": "Uporabniški priročnik"
   },
+  "7be10fc592": {
+    "translation": "Obnovi različico"
+  },
   "7cb5f8b4a5": {
     "translation": "Pozabi"
   },
@@ -318,6 +324,9 @@
   "c87aacf567": {
     "translation": "Odjava"
   },
+  "cbef7ba103": {
+    "translation": "Ta soba bo kmalu samo za branje"
+  },
   "cceaefbc20": {
     "translation": "Delite to datoteko"
   },
@@ -356,6 +365,9 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
+  },
+  "ea2301d01c": {
+    "translation": "Po 1. juliju 2025 bo ta anonimna soba za več igralcev tldraw postala samo za branje. Če želite v prihodnje nadaljevati z urejanjem, se prijavite in jo kopirajte v svoje datoteke."
   },
   "ea4788705e": {
     "translation": "Prekliči"
