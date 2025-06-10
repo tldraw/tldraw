@@ -1597,10 +1597,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						const asset = editor.getAsset(mediaShape.props.assetId!)
 						if (!asset || !asset.props.src) continue
 
-						const link = document.createElement('a')
-
 						const url = await editor.resolveAssetUrl(asset.id, { shouldResolveToOriginal: true })
 						if (!url) return
+
+						const link = document.createElement('a')
 						link.href = url
 
 						if (
