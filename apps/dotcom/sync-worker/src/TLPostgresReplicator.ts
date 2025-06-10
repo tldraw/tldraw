@@ -289,16 +289,22 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	async getDiagnostics() {
 		const earliestHistoryRow = this.sqlite
-			.exec('select * from history order by rowid asc limit 1')
+			.exec<{ timestamp: number }>('select * from history order by rowid asc limit 1')
 			.toArray()[0]
 		const latestHistoryRow = this.sqlite
-			.exec('select * from history order by rowid desc limit 1')
+			.exec<{ timestamp: number }>('select * from history order by rowid desc limit 1')
 			.toArray()[0]
+		const numHistoryRows = this.sqlite.exec('select count(*) from history').one().count as number
+		const numTopicSubscriptions = this.sqlite.exec('select count(*) from topic_subscription').one()
+			.count as number
 		const activeUsers = this.sqlite.exec('select count(*) from active_user').one().count as number
 		const meta = this.sqlite.exec('select * from meta').one()
 		return {
 			earliestHistoryRow,
 			latestHistoryRow,
+			historyDurationMinutes: (latestHistoryRow.timestamp - earliestHistoryRow.timestamp) / 60_000,
+			numHistoryRows,
+			numTopicSubscriptions,
 			activeUsers,
 			meta,
 		}
