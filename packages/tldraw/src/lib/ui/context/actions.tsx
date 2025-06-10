@@ -1586,15 +1586,15 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const selectedShapes = editor.getSelectedShapes()
 					if (selectedShapes.length === 0) return
 
-					const mediaShapes = selectedShapes.filter((s) => supportsDownloadingOriginal(s, editor))
+					const mediaShapes = selectedShapes.filter((s): s is TLImageShape | TLVideoShape =>
+						supportsDownloadingOriginal(s, editor)
+					)
 
 					// We only want to download originals if we only have media shapes selected
 					if (mediaShapes.length !== selectedShapes.length) return
 
 					for (const mediaShape of mediaShapes) {
-						const asset = editor.getAsset(
-							(mediaShape as TLImageShape | TLVideoShape).props.assetId!
-						)
+						const asset = editor.getAsset(mediaShape.props.assetId!)
 						if (!asset || !asset.props.src) continue
 
 						const link = document.createElement('a')
