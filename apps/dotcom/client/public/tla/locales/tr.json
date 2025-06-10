@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "Kullanım sınırı aşıldı, daha sonra tekrar deneyin."
   },
+  "08bd40c754": {
+    "translation": "Hesap"
+  },
   "0b27918290": {
     "translation": "Dosya"
   },
@@ -185,6 +188,9 @@
   "7b1329f5ca": {
     "translation": "Kullanıcı kılavuzu"
   },
+  "7be10fc592": {
+    "translation": "Sürümü geri yükle"
+  },
   "7cb5f8b4a5": {
     "translation": "Unut"
   },
@@ -318,6 +324,9 @@
   "c87aacf567": {
     "translation": "Oturumu kapat"
   },
+  "cbef7ba103": {
+    "translation": "Bu oda yakında salt okunur olacak"
+  },
   "cceaefbc20": {
     "translation": "Bu dosyayı paylaş"
   },
@@ -356,6 +365,9 @@
   },
   "e78e14c5f1": {
     "translation": "Sabitle"
+  },
+  "ea2301d01c": {
+    "translation": "1 Temmuz 2025'ten sonra bu anonim tldraw çok oyunculu odası salt okunur hale gelecektir. Gelecekte düzenlemeye devam etmek için lütfen oturum açın ve dosyalarınıza kopyalayın."
   },
   "ea4788705e": {
     "translation": "İptal"

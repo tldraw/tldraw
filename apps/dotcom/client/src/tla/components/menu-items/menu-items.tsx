@@ -65,6 +65,7 @@ export function SignOutMenuItem() {
 				data-testid="tla-user-sign-out"
 				onSelect={handleSignout}
 				label={label}
+				readonlyOk
 			/>
 		</TldrawUiMenuGroup>
 	)
