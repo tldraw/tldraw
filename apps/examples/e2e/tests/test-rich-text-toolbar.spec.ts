@@ -363,6 +363,9 @@ test.describe('Rich text behaviour', () => {
 		expect(Math.round(toolbarRect!.y)).toBe(
 			Math.round(selectedTextRect!.y - toolbarRect!.height - 8)
 		)
+
+		// historically this has been flaky without the sleep
+		await sleep(2000)
 	})
 
 	test('hides and shows based on selection changes', async ({
@@ -464,6 +467,9 @@ test.describe('Rich text behaviour', () => {
 
 		await expect(richTextToolbar.container).toHaveCSS('opacity', '1')
 		await expect(richTextToolbar.container).toHaveCSS('pointer-events', 'all')
+
+		// historically this has been flaky without the sleep
+		await sleep(2000)
 	})
 
 	test.skip('positions correctly at the edges of the screen', async ({ isMobile }) => {
