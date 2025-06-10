@@ -1601,10 +1601,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 						const url = await editor.resolveAssetUrl(asset.id, { shouldResolveToOriginal: true })
 						if (!url) return
-
 						link.href = url
 
-						if (asset.type === 'video' || asset.type === 'image') {
+						if (
+							(asset.type === 'video' || asset.type === 'image') &&
+							!asset.props.src.startsWith('asset:')
+						) {
 							link.download = asset.props.name
 						} else {
 							link.download = 'download'
