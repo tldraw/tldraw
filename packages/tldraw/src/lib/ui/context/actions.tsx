@@ -1588,7 +1588,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					const mediaShapes = selectedShapes.filter((s) => supportsDownloadingOriginal(s, editor))
 
-					if (mediaShapes.length === 0) return
+					// We only want to download originals if we only have media shapes selected
+					if (mediaShapes.length !== selectedShapes.length) return
 
 					for (const mediaShape of mediaShapes) {
 						const asset = editor.getAsset(
@@ -1609,7 +1610,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						if (asset.type === 'video' || asset.type === 'image') {
 							link.download = asset.props.name
 						} else {
-							link.download = 'tldraw'
+							link.download = 'download'
 						}
 						document.body.appendChild(link)
 						link.click()
