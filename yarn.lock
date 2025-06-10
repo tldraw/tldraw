@@ -8984,7 +8984,6 @@ __metadata:
     "@types/react-dom": "npm:^18.3.5"
     "@types/sqlite3": "npm:^3.1.11"
     "@types/ws": "npm:^8.5.14"
-    "@vercel/analytics": "npm:^1.4.1"
     algoliasearch: "npm:^4.24.0"
     autoprefixer: "npm:^10.4.20"
     clsx: "npm:^2.1.1"
@@ -10551,36 +10550,6 @@ __metadata:
   peerDependencies:
     react: ">= 16.8.0"
   checksum: 10/2c01c1b73bbdeecb9d51370f9117418953accad6789818e1b50f505dcba9e38685612b3fcb25a5dfcbf3a10ae561506378f5ab7586c773c4485ef86107d53898
-  languageName: node
-  linkType: hard
-
-"@vercel/analytics@npm:^1.4.1":
-  version: 1.4.1
-  resolution: "@vercel/analytics@npm:1.4.1"
-  peerDependencies:
-    "@remix-run/react": ^2
-    "@sveltejs/kit": ^1 || ^2
-    next: ">= 13"
-    react: ^18 || ^19 || ^19.0.0-rc
-    svelte: ">= 4"
-    vue: ^3
-    vue-router: ^4
-  peerDependenciesMeta:
-    "@remix-run/react":
-      optional: true
-    "@sveltejs/kit":
-      optional: true
-    next:
-      optional: true
-    react:
-      optional: true
-    svelte:
-      optional: true
-    vue:
-      optional: true
-    vue-router:
-      optional: true
-  checksum: 10/c28e6824cccc9be7917f88d744492e03189d7b9f840430d90c016956c713bb61b94955ec0181a80177ef96c3b239fd8ebb9e9f3eb715b3bdf76b2630cb405dad
   languageName: node
   linkType: hard
 
@@ -14144,7 +14113,6 @@ __metadata:
     "@types/qrcode": "npm:^1.5.5"
     "@types/react": "npm:^18.3.18"
     "@types/regexgen": "npm:^1.3.3"
-    "@vercel/analytics": "npm:^1.4.1"
     "@vitejs/plugin-react-swc": "npm:^3.7.2"
     browser-fs-access: "npm:^0.35.0"
     classnames: "npm:^2.5.1"
@@ -15746,7 +15714,6 @@ __metadata:
     "@tldraw/sync": "workspace:*"
     "@types/lodash": "npm:^4.17.14"
     "@types/react": "npm:^18.3.18"
-    "@vercel/analytics": "npm:^1.4.1"
     "@vitejs/plugin-react-swc": "npm:^3.7.2"
     ag-grid-community: "npm:^32.3.3"
     ag-grid-react: "npm:^32.3.3"

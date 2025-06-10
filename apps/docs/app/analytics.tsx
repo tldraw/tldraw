@@ -1,6 +1,5 @@
 'use client'
 
-import { Analytics as VercelAnalytics } from '@vercel/analytics/react'
 import Script from 'next/script'
 import { useEffect } from 'react'
 
@@ -11,7 +10,6 @@ export default function Analytics() {
 
 	return (
 		<>
-			<VercelAnalytics />
 			<Script
 				id="tldraw-analytics"
 				type="text/javascript"
@@ -28,6 +26,7 @@ declare global {
 	interface Window {
 		tlanalytics: {
 			openPrivacySettings(): void
+			track(name: string, data?: { [key: string]: any }): void
 		}
 		TL_GA4_MEASUREMENT_ID: string | undefined
 		posthog: any
@@ -44,4 +43,8 @@ export function PrivacySettingsLink() {
 			</button>
 		</>
 	)
+}
+
+export function track(name: string, data?: { [key: string]: any }) {
+	window.tlanalytics?.track(name, data)
 }
