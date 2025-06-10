@@ -1599,13 +1599,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 						const link = document.createElement('a')
 
-						if (asset.props.src.startsWith('asset:')) {
-							const src = await editor.resolveAssetUrl(asset.id, { shouldResolveToOriginal: true })
-							if (!src) continue
-							link.href = src
-						} else {
-							link.href = asset.props.src
-						}
+						const url = await editor.resolveAssetUrl(asset.id, { shouldResolveToOriginal: true })
+						if (!url) return
+
+						link.href = url
 
 						if (asset.type === 'video' || asset.type === 'image') {
 							link.download = asset.props.name
