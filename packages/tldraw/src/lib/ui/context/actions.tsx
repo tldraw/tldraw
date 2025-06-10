@@ -67,6 +67,17 @@ export interface ActionsProviderProps {
 	children: React.ReactNode
 }
 
+/** @public */
+export function supportsDownloadingOriginal(
+	shape: TLShape,
+	editor: Editor
+): shape is TLImageShape | TLVideoShape {
+	return (
+		(editor.isShapeOfType(shape, 'image') || editor.isShapeOfType(shape, 'video')) &&
+		!!(shape as any).props.assetId
+	)
+}
+
 function makeActions(actions: TLUiActionItem[]) {
 	return Object.fromEntries(actions.map((action) => [action.id, action])) as TLUiActionsContextType
 }
@@ -1575,16 +1586,14 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const selectedShapes = editor.getSelectedShapes()
 					if (selectedShapes.length === 0) return
 
-					const mediaShapes = selectedShapes.filter(
-						(shape): shape is TLImageShape | TLVideoShape =>
-							(editor.isShapeOfType(shape, 'image') || editor.isShapeOfType(shape, 'video')) &&
-							!!(shape as any).props.assetId
-					)
+					const mediaShapes = selectedShapes.filter((s) => supportsDownloadingOriginal(s, editor))
 
 					if (mediaShapes.length === 0) return
 
-					for (const shape of mediaShapes) {
-						const asset = editor.getAsset(shape.props.assetId!)
+					for (const mediaShape of mediaShapes) {
+						const asset = editor.getAsset(
+							(mediaShape as TLImageShape | TLVideoShape).props.assetId!
+						)
 						if (!asset || !asset.props.src) continue
 
 						const link = document.createElement('a')

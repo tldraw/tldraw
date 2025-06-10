@@ -4,10 +4,10 @@ import {
 	TLFrameShape,
 	TLImageShape,
 	TLPageId,
-	TLVideoShape,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
+import { supportsDownloadingOriginal } from '../context/actions'
 import { useUiEvents } from '../context/events'
 import { useToasts } from '../context/toasts'
 import {
@@ -84,13 +84,7 @@ export function DownloadOriginalMenuItem() {
 		() => {
 			const selectedShapes = editor.getSelectedShapes()
 			if (selectedShapes.length === 0) return false
-			return selectedShapes.every((shape) => {
-				return (
-					(editor.isShapeOfType<TLImageShape>(shape, 'image') ||
-						editor.isShapeOfType<TLVideoShape>(shape, 'video')) &&
-					shape.props.assetId !== undefined
-				)
-			})
+			return selectedShapes.every((shape) => supportsDownloadingOriginal(shape, editor))
 		},
 		[editor]
 	)
