@@ -254,7 +254,7 @@ export class CatchUpChangeCollator extends LiveChangeCollator {
 		super(sqlite)
 		this.userTopic = `user:${this.userId}` satisfies Topic
 		// Put all changes in a single array for this user
-		this.changes.set(this.userTopic, this._changes)
+		this.changes.set(this.userId, this._changes)
 
 		// Build initial subscription snapshot from the database
 		// This captures what the user was subscribed to at the start of catch-up

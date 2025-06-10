@@ -727,9 +727,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		)
 
 		const messages: ZReplicationEventWithoutSequenceInfo[] = []
+		const collator = new CatchUpChangeCollator(this.sqlite, userId)
 		for (const { rowid, lsn, newSubscriptions, removedSubscriptions, topics } of history) {
 			// Create a fresh collator for this LSN with current subscription state
-			const collator = new CatchUpChangeCollator(this.sqlite, userId)
 
 			// Apply subscription operations first to update the user's subscription state
 
@@ -756,9 +756,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				collator.removeSubscriptions(parseSubscriptions(removedSubscriptions))
 			}
 
-			const userChanges = collator.changes.get(userId)
-			if (userChanges?.length) {
-				messages.push({ type: 'changes', changes: userChanges, lsn })
+			if (collator._changes.length) {
+				messages.push({ type: 'changes', changes: collator._changes.slice(), lsn })
+				collator._changes.length = 0
 			}
 		}
 
