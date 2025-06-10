@@ -75,6 +75,7 @@ export function createMutators(userId: string) {
 				await tx.mutate.file_state.delete({ fileId: file.id, userId })
 				if (file?.ownerId === userId) {
 					if (tx.location === 'server') {
+						// todo: use a sql trigger for this like we do for setting shared to false
 						await tx.dbTransaction.query(`delete from public.file_state where "fileId" = $1`, [
 							file.id,
 						])
