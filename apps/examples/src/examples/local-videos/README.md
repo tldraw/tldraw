@@ -1,12 +1,12 @@
 ---
-title: Local video
+title: Create a video shape
 component: ./LocalVideosExample.tsx
-category: data/assets
+category: editor-api
 priority: 2
 keywords: [asset, video]
 ---
 
-How to use a local video with the `VideoShape`.
+Create a video shape using a local asset.
 
 ---
 

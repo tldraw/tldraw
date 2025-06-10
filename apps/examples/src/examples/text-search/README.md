@@ -2,7 +2,7 @@
 title: Search text on the canvas
 component: ./TextSearchExample.tsx
 category: editor-api
-priority: 1
+priority: 2
 keywords: [zoom, pan, camera bounds, search, text]
 ---
 
