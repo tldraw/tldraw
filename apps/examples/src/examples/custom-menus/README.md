@@ -3,20 +3,7 @@ title: Changing menus
 component: ./CustomMenusExample.tsx
 category: ui
 priority: 0.5
-keywords:
-  [
-    menu,
-    context menu,
-    quick actions,
-    toolbar,
-    main menu,
-    page menu,
-    navigation menu,
-    panel,
-    actions,
-    style,
-    zoom,
-  ]
+keywords: [menu, context menu, toolbar, main menu, page menu, panel]
 ---
 
 Customize tldraw's menus, including the toolbar, main menu, context menu, page menu, and more.
