@@ -19,7 +19,7 @@ Copyright (c) 2024-present tldraw Inc. The tldraw name and logo are trademarks o
 
 ## Contribution
 
-Found a bug? Please [submit an issue](https://github.com/tldraw/ai/issues/new).
+Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
 
 ## Community
 
