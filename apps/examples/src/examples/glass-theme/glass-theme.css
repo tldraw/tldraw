@@ -1,0 +1,10 @@
+.glass-theme {
+    background: linear-gradient(135deg, rgba(180,200,255,0.5), rgba(255,255,255,0.5));
+}
+
+.glass-theme [class^='tlui-'] {
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    backdrop-filter: blur(30px) saturate(180%);
+}
