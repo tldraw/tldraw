@@ -1945,6 +1945,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@cortex-js/compute-engine@npm:0.28.0":
+  version: 0.28.0
+  resolution: "@cortex-js/compute-engine@npm:0.28.0"
+  dependencies:
+    complex-esm: "npm:^2.1.1-esm1"
+    decimal.js: "npm:^10.4.3"
+  checksum: 10/c848d6001137d9a5ef9f876db7a0cfb7c9e47b2a14f60bad87bf194e95bd81feac0cb819dbb29b4e73e959daf352bf1c76397fd435e70c432a7e1efb19baba6b
+  languageName: node
+  linkType: hard
+
 "@cspotcode/source-map-support@npm:0.8.1, @cspotcode/source-map-support@npm:^0.8.0":
   version: 0.8.1
   resolution: "@cspotcode/source-map-support@npm:0.8.1"
@@ -13230,6 +13240,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"complex-esm@npm:^2.1.1-esm1":
+  version: 2.1.1-esm1
+  resolution: "complex-esm@npm:2.1.1-esm1"
+  checksum: 10/c1d8af14efd2cbadd9fbee61541a0d201b26cc055d9fd8def1e8fde3c4b76966614af285907565a78cff8943a452dba4f0a6c0321f7103504400ca9b8777f861
+  languageName: node
+  linkType: hard
+
 "concat-map@npm:0.0.1":
   version: 0.0.1
   resolution: "concat-map@npm:0.0.1"
@@ -13704,7 +13721,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"decimal.js@npm:10, decimal.js@npm:^10.4.2":
+"decimal.js@npm:10, decimal.js@npm:^10.4.2, decimal.js@npm:^10.4.3":
   version: 10.5.0
   resolution: "decimal.js@npm:10.5.0"
   checksum: 10/714d49cf2f2207b268221795ede330e51452b7c451a0c02a770837d2d4faed47d603a729c2aa1d952eb6c4102d999e91c9b952c1aa016db3c5cba9fc8bf4cda2
@@ -15742,6 +15759,7 @@ __metadata:
     dotenv: "npm:^16.4.7"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash: "npm:^4.17.21"
+    mathlive: "npm:^0.105.3"
     pdf-lib: "npm:^1.17.1"
     pdfjs-dist: "npm:^4.10.38"
     radix-ui: "npm:^1.3.4"
@@ -20613,6 +20631,15 @@ __metadata:
   version: 1.1.0
   resolution: "math-intrinsics@npm:1.1.0"
   checksum: 10/11df2eda46d092a6035479632e1ec865b8134bdfc4bd9e571a656f4191525404f13a283a515938c3a8de934dbfd9c09674d9da9fa831e6eb7e22b50b197d2edd
+  languageName: node
+  linkType: hard
+
+"mathlive@npm:^0.105.3":
+  version: 0.105.3
+  resolution: "mathlive@npm:0.105.3"
+  dependencies:
+    "@cortex-js/compute-engine": "npm:0.28.0"
+  checksum: 10/6bfbc601e2aa4cc72b8962ace11218820344a196c3db3b5e8bc751f92727138bf90a2817a4c3d62217d80d47b13438b8fb6612bf9e4d87a29af04bce9a594419
   languageName: node
   linkType: hard
 

@@ -50,6 +50,7 @@
 		"classnames": "^2.5.1",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",
+		"mathlive": "^0.105.3",
 		"pdf-lib": "^1.17.1",
 		"pdfjs-dist": "^4.10.38",
 		"radix-ui": "^1.3.4",
