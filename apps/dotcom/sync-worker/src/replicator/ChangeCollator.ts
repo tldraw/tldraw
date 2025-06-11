@@ -1,4 +1,10 @@
-import { TlaFileState, TlaRow } from '@tldraw/dotcom-shared'
+import {
+	TlaFile,
+	TlaFileState,
+	TlaRow,
+	TlaUser,
+	TlaUserMutationNumber,
+} from '@tldraw/dotcom-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { ZReplicationChange } from '../UserDataSyncer'
 import { ChangeV2, ReplicationEvent, Topic } from './replicatorTypes'
@@ -48,6 +54,28 @@ export function parseSubscriptions(str: string | null): Subscription[] | null {
 		const [fromTopic, toTopic] = op.split('\\') as [Topic, Topic]
 		return { fromTopic, toTopic }
 	})
+}
+export function getTopics(row: TlaRow, event: ReplicationEvent): Topic[] {
+	switch (event.table) {
+		case 'user':
+			return [`user:${(row as TlaUser).id}`]
+		case 'file': {
+			const file = row as TlaFile
+			// File events notify both the file topic AND the file owner's user topic
+			return [`file:${file.id}`, `user:${file.ownerId}`]
+		}
+		case 'file_state': {
+			const fileState = row as TlaFileState
+			return [`user:${fileState.userId}`]
+		}
+		case 'user_mutation_number':
+			return [`user:${(row as any as TlaUserMutationNumber).userId}`]
+		default: {
+			// assert never
+			const _x: never = event.table
+			return [] as any
+		}
+	}
 }
 
 export function getSubscriptionChanges(changes: Array<{ row: TlaRow; event: ReplicationEvent }>): {

@@ -1,5 +1,10 @@
 import { Logger } from '../Logger'
-import { buildTopicsString, getSubscriptionChanges, serializeSubscriptions } from './ChangeCollator'
+import {
+	buildTopicsString,
+	getSubscriptionChanges,
+	getTopics,
+	serializeSubscriptions,
+} from './ChangeCollator'
 import { ChangeV1, ChangeV2 } from './replicatorTypes'
 
 type Migration =
@@ -112,11 +117,17 @@ const migrations: Migration[] = [
 			`)
 			// migrate old history to new history
 			let lsn = '0/0'
+			let timestamp = 0
 			let changes: ChangeV2[] = []
 			const stash = () => {
 				// don't write on the first iteration
 				if (changes.length === 0) return
-				const { newSubscriptions, removedSubscriptions } = getSubscriptionChanges(changes)
+				// Map ChangeV2 to the format expected by getSubscriptionChanges
+				const mappedChanges = changes.map((change) => ({
+					row: change.row || change.previous, // For deletes, row is null so use previous
+					event: change.event,
+				}))
+				const { newSubscriptions, removedSubscriptions } = getSubscriptionChanges(mappedChanges)
 				sqlite.exec(
 					'insert into history_new (lsn, changesJson, newSubscriptions, removedSubscriptions, topics, timestamp) values (?, ?, ?, ?, ?, ?)',
 					lsn,
@@ -124,7 +135,7 @@ const migrations: Migration[] = [
 					newSubscriptions && serializeSubscriptions(newSubscriptions),
 					removedSubscriptions && serializeSubscriptions(removedSubscriptions),
 					buildTopicsString(changes),
-					Date.now()
+					timestamp
 				)
 				changes = []
 			}
@@ -144,9 +155,10 @@ const migrations: Migration[] = [
 					event: changeV1.event,
 					row: changeV1.row,
 					previous: changeV1.previous,
-					topics: changeV1.fileId ? [`file:${changeV1.fileId}`] : [`user:${changeV1.userId}`],
+					topics: getTopics(changeV1.row, changeV1.event),
 				}
 				changes.push(changeV2)
+				timestamp = row.timestamp
 			}
 			stash()
 			sqlite.exec('DROP TABLE history')
@@ -171,7 +183,14 @@ function _applyMigration(sqlite: SqlStorage, log: Logger, index: number) {
 	log.debug('ran migration', migrations[index].id)
 }
 
-export async function migrate(sqlite: SqlStorage, log: Logger) {
+/**
+ * Apply database migrations to the given SqlStorage instance.
+ *
+ * @param sqlite - The SqlStorage instance to migrate
+ * @param log - Logger instance for debug output
+ * @param test__upTo - Optional migration ID to stop at (for testing purposes)
+ */
+export async function migrate(sqlite: SqlStorage, log: Logger, test__upTo?: string) {
 	let appliedMigrations: Migration[]
 	try {
 		appliedMigrations = sqlite
@@ -191,7 +210,17 @@ export async function migrate(sqlite: SqlStorage, log: Logger) {
 		}
 	}
 
-	for (let i = appliedMigrations.length; i < migrations.length; i++) {
+	// Determine the target migration index if test__upTo is specified
+	let targetIndex = migrations.length
+	if (test__upTo) {
+		const upToIndex = migrations.findIndex((m) => m.id === test__upTo)
+		if (upToIndex === -1) {
+			throw new Error(`Migration with id '${test__upTo}' not found`)
+		}
+		targetIndex = upToIndex + 1 // +1 because we want to include the target migration
+	}
+
+	for (let i = appliedMigrations.length; i < Math.min(targetIndex, migrations.length); i++) {
 		_applyMigration(sqlite, log, i)
 	}
 }

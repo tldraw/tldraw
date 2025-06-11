@@ -1,12 +1,4 @@
-import {
-	DB,
-	TlaFile,
-	TlaFileState,
-	TlaRow,
-	TlaUser,
-	TlaUserMutationNumber,
-	ZTable,
-} from '@tldraw/dotcom-shared'
+import { DB, TlaFile, TlaRow, TlaUserMutationNumber, ZTable } from '@tldraw/dotcom-shared'
 import {
 	ExecutionQueue,
 	assert,
@@ -32,6 +24,7 @@ import {
 	LiveChangeCollator,
 	buildTopicsString,
 	getSubscriptionChanges,
+	getTopics,
 	parseSubscriptions,
 	serializeSubscriptions,
 } from './replicator/ChangeCollator'
@@ -485,29 +478,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	private getTopics(row: TlaRow, event: ReplicationEvent): Topic[] {
-		switch (event.table) {
-			case 'user':
-				return [`user:${(row as TlaUser).id}`]
-			case 'file': {
-				const file = row as TlaFile
-				// File events notify both the file topic AND the file owner's user topic
-				return [`file:${file.id}`, `user:${file.ownerId}`]
-			}
-			case 'file_state': {
-				const fileState = row as TlaFileState
-				return [`user:${fileState.userId}`]
-			}
-			case 'user_mutation_number':
-				return [`user:${(row as any as TlaUserMutationNumber).userId}`]
-			default: {
-				// assert never
-				const _x: never = event.table
-				return [] as any
-			}
-		}
-	}
-
 	private parseChange(change: Wal2Json.Change): ChangeV2 | null {
 		const table = change.table as ReplicationEvent['table']
 		if (change.kind === 'truncate' || change.kind === 'message' || !(table in relevantTables)) {
@@ -545,7 +515,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			table,
 		}
 
-		const topics = this.getTopics(row, event)
+		const topics = getTopics(row, event)
 		if (topics.length === 0) {
 			this.captureException(new Error('getTopics returned empty array'), { change })
 			return null
