@@ -45,7 +45,10 @@ export class TextManager {
 		this.baseElem = document.createElement('div')
 		this.baseElem.classList.add('tl-text')
 		this.baseElem.classList.add('tl-text-measure')
+		this.baseElem.setAttribute('dir', 'auto')
+		this.baseElem.style.setProperty('unicode-bidi', 'plaintext')
 		this.baseElem.tabIndex = -1
+		this.editor.getContainer().appendChild(this.baseElem)
 	}
 
 	measureText(
@@ -65,6 +68,7 @@ export class TextManager {
 			minWidth?: null | number
 			padding: string
 			disableOverflowWrapBreaking?: boolean
+			measureScrollWidth?: boolean
 		}
 	): BoxModel & { scrollWidth: number } {
 		const div = document.createElement('div')
@@ -90,18 +94,14 @@ export class TextManager {
 			otherStyles?: Record<string, string>
 			padding: string
 			disableOverflowWrapBreaking?: boolean
+			measureScrollWidth?: boolean
 		}
 	): BoxModel & { scrollWidth: number } {
-		// Duplicate our base element; we don't need to clone deep
-		const wrapperElm = this.baseElem.cloneNode() as HTMLDivElement
-		this.editor.getContainer().appendChild(wrapperElm)
+		const wrapperElm = this.baseElem as HTMLDivElement
 		wrapperElm.innerHTML = html
-		this.baseElem.insertAdjacentElement('afterend', wrapperElm)
 
-		wrapperElm.setAttribute('dir', 'auto')
 		// N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers")
 		// is necessary for ensuring correct mixed RTL/LTR behavior when exporting SVGs.
-		wrapperElm.style.setProperty('unicode-bidi', 'plaintext')
 		wrapperElm.style.setProperty('font-family', opts.fontFamily)
 		wrapperElm.style.setProperty('font-style', opts.fontStyle)
 		wrapperElm.style.setProperty('font-weight', opts.fontWeight)
@@ -120,9 +120,8 @@ export class TextManager {
 			}
 		}
 
-		const scrollWidth = wrapperElm.scrollWidth
+		const scrollWidth = opts.measureScrollWidth ? wrapperElm.scrollWidth : 0
 		const rect = wrapperElm.getBoundingClientRect()
-		wrapperElm.remove()
 
 		return {
 			x: 0,
