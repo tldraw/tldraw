@@ -1,7 +1,7 @@
 import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-export default function SingleShapeSelectionExample() {
+export default function PreventMultiShapeSelectionExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
@@ -33,7 +33,7 @@ In this example, we want to prevent the user from selecting multiple shapes at o
 Here we register a handler that will run whenever a change is about to be made to
 an "instance_page_state" type record, which contains the current selection state.
 
-[3]
+[2]
 We check if this is a selection change and if it would result in multiple shapes being selected.
 If both conditions are true, we modify the change to only select the most recently
 selected shape by returning a new record with a single selected shape id.
