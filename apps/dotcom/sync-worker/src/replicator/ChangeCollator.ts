@@ -175,7 +175,7 @@ export class LiveChangeCollator implements ChangeCollator {
 			WITH RECURSIVE subscribers AS (
 				-- Direct subscriptions to any of the target topics
 				SELECT fromTopic FROM topic_subscription WHERE toTopic IN (${placeholders})
-				UNION ALL
+				UNION
 				-- Transitive subscriptions (users -> groups -> topics)
 				SELECT ts.fromTopic 
 				FROM topic_subscription ts
@@ -291,9 +291,9 @@ export class CatchUpChangeCollator extends LiveChangeCollator {
 				`
 			WITH RECURSIVE subscriptions AS (
 				SELECT fromTopic, toTopic FROM topic_subscription WHERE fromTopic = ?
-				UNION ALL
+				UNION
 				-- Transitive subscriptions 
-				SELECT s.fromTopic, ts.toTopic 
+				SELECT ts.fromTopic, ts.toTopic
 				FROM topic_subscription ts
 				JOIN subscriptions s ON ts.fromTopic = s.toTopic
 			)
