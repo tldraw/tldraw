@@ -162,17 +162,7 @@ const arrowInfoCache = createComputedCache<Editor, TLArrowInfo, TLArrowShape>(
 	},
 	{
 		areRecordsEqual: (a, b) => a.props === b.props,
-		areResultsEqual: (a, b) => {
-			const result = isEqualAllowingForFloatingPointErrors(a, b)
-
-			if (!result) {
-				console.log('CHANGED!')
-				console.log(JSON.stringify(a, null, 2))
-				console.log(JSON.stringify(b, null, 2))
-			}
-
-			return result
-		},
+		areResultsEqual: isEqualAllowingForFloatingPointErrors,
 	}
 )
 
