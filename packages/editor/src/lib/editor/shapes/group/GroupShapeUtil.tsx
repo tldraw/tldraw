@@ -21,7 +21,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	}
 
 	canResize() {
-		return false
+		return true
 	}
 
 	canResizeChildren() {
