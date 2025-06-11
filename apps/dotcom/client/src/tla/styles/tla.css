@@ -230,9 +230,10 @@
 
 .tlui-page-menu__trigger {
 	flex-shrink: 0;
+	max-width: fit-content;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 1080px) {
 	.tlui-page-menu__trigger {
 		width: fit-content;
 		max-width: 320px;
