@@ -1,9 +1,9 @@
 ---
-title: Prevent Multi-Shape Selection
+title: Prevent multi-shape selection
 component: ./PreventMultiShapeSelectionExample.tsx
 category: editor-api
 priority: 0
-keywords: [selection, editor-api]
+keywords: [selection, editor, instance, state]
 ---
 
 This example demonstrates how to prevent users from selecting multiple shapes at once in tldraw.
