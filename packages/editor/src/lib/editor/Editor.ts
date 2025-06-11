@@ -506,8 +506,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				shape: {
 					afterChange: (shapeBefore, shapeAfter) => {
 						for (const binding of this.getBindingsInvolvingShape(shapeAfter)) {
-							if (areShapesContentEqual(shapeBefore, shapeAfter)) continue
-
 							invalidBindingTypes.add(binding.type)
 							if (binding.fromId === shapeAfter.id) {
 								this.getBindingUtil(binding).onAfterChangeFromShape?.({
