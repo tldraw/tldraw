@@ -40,7 +40,6 @@
 		"classnames": "^2.5.1",
 		"idb": "^7.1.1",
 		"intl-messageformat": "^10.7.14",
-		"lodash.isequal": "^4.5.0",
 		"lodash.pick": "^4.4.0",
 		"md5": "^2.3.0",
 		"posthog-js": "^1.248.1",

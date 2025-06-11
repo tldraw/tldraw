@@ -506,14 +506,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				shape: {
 					afterChange: (shapeBefore, shapeAfter) => {
 						for (const binding of this.getBindingsInvolvingShape(shapeAfter)) {
-							if (areShapesContentEqual(shapeBefore, shapeAfter)) continue
-
 							invalidBindingTypes.add(binding.type)
 							if (binding.fromId === shapeAfter.id) {
 								this.getBindingUtil(binding).onAfterChangeFromShape?.({
 									binding,
 									shapeBefore,
 									shapeAfter,
+									reason: 'self',
 								})
 							}
 							if (binding.toId === shapeAfter.id) {
@@ -521,6 +520,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 									binding,
 									shapeBefore,
 									shapeAfter,
+									reason: 'self',
 								})
 							}
 						}
@@ -539,6 +539,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 											binding,
 											shapeBefore: descendantShape,
 											shapeAfter: descendantShape,
+											reason: 'ancestry',
 										})
 									}
 									if (binding.toId === descendantShape.id) {
@@ -546,6 +547,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 											binding,
 											shapeBefore: descendantShape,
 											shapeAfter: descendantShape,
+											reason: 'ancestry',
 										})
 									}
 								}

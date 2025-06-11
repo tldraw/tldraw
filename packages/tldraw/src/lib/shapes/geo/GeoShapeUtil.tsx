@@ -21,11 +21,11 @@ import {
 	geoShapeProps,
 	getDefaultColorTheme,
 	getFontsFromRichText,
+	isEqual,
 	lerp,
 	toRichText,
 	useValue,
 } from '@tldraw/editor'
-import isEqual from 'lodash.isequal'
 import {
 	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,

@@ -20,6 +20,7 @@ import {
 	exhaustiveSwitchError,
 	getDefaultColorTheme,
 	getFontsFromRichText,
+	isEqual,
 	lerp,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -31,7 +32,13 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
+import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
 import { useCurrentTranslation } from '../../ui/hooks/useTranslation/useTranslation'
+import {
+	isEmptyRichText,
+	renderHtmlFromRichTextForMeasurement,
+	renderPlaintextFromRichText,
+} from '../../utils/text/richText'
 import { isRightToLeftLanguage } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
@@ -41,15 +48,6 @@ import {
 	LABEL_PADDING,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-
-import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
-
-import isEqual from 'lodash.isequal'
-import {
-	isEmptyRichText,
-	renderHtmlFromRichTextForMeasurement,
-	renderPlaintextFromRichText,
-} from '../../utils/text/richText'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import {

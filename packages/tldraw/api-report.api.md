@@ -185,7 +185,7 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
     // (undocumented)
     onAfterChangeFromShape({ shapeAfter, }: BindingOnShapeChangeOptions<TLArrowBinding>): void;
     // (undocumented)
-    onAfterChangeToShape({ binding }: BindingOnShapeChangeOptions<TLArrowBinding>): void;
+    onAfterChangeToShape({ binding, shapeBefore, shapeAfter, reason, }: BindingOnShapeChangeOptions<TLArrowBinding>): void;
     // (undocumented)
     onAfterCreate({ binding }: BindingOnCreateOptions<TLArrowBinding>): void;
     // (undocumented)
@@ -1516,9 +1516,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         opacity: number;
         parentId: TLParentId;
         props: {
-            dash: "dashed" | "dotted" | "draw" | "solid";
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            dash: "dashed" | "dotted" | "draw" | "solid";
             fill: "fill" | "none" | "pattern" | "semi" | "solid";
             font: "draw" | "mono" | "sans" | "serif";
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
@@ -1550,9 +1550,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         opacity: number;
         parentId: TLParentId;
         props: {
-            dash: "dashed" | "dotted" | "draw" | "solid";
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            dash: "dashed" | "dotted" | "draw" | "solid";
             fill: "fill" | "none" | "pattern" | "semi" | "solid";
             font: "draw" | "mono" | "sans" | "serif";
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
@@ -1632,7 +1632,7 @@ export function GeoStylePickerSet({ styles }: StylePickerSetProps): JSX_2.Elemen
 export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBindings;
 
 // @public (undocumented)
-export function getArrowInfo(editor: Editor, shape: TLArrowShape | TLShapeId): TLArrowInfo;
+export function getArrowInfo(editor: Editor, shape: TLArrowShape | TLShapeId): TLArrowInfo | undefined;
 
 // @public (undocumented)
 export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape, bindings: TLArrowBindings): {
