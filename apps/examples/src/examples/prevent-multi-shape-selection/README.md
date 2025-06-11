@@ -1,8 +1,8 @@
 ---
 title: Prevent multi-shape selection
 component: ./PreventMultiShapeSelectionExample.tsx
-category: editor-api
-priority: 0
+category: events
+priority: 3
 keywords: [selection, editor, instance, state]
 ---
 
