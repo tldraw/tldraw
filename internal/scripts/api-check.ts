@@ -8,6 +8,8 @@ import { getAllWorkspacePackages } from './lib/workspace'
 const packagesOurTypesCanDependOn = [
 	'@types/lodash.throttle',
 	'@types/lodash.uniq',
+	'@types/lodash.isequal',
+	'@types/lodash.isequalwith',
 	'@types/react',
 	'@types/react-dom',
 	'eventemitter3',
