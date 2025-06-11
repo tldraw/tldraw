@@ -239,7 +239,8 @@ export function getArrowLabelPosition(
 	if (
 		prev &&
 		prev.shape.props.text === shape.props.text &&
-		prev.geom.bounds.prettyMuchEquals(bodyGeom.bounds)
+		prev.geom.bounds.prettyMuchEquals(bodyGeom.bounds) &&
+		prev.shape.props.labelPosition === shape.props.labelPosition
 	) {
 		return prev.position
 	}

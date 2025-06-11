@@ -760,6 +760,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			info,
 			this.editor.getShapeGeometry(shape)
 		)
+
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const isEditing = this.editor.getEditingShapeId() === shape.id
 		const showArrowLabel = isEditing || shape.props.text
@@ -1200,7 +1201,7 @@ function ArrowIndicator({ shape }: { shape: TLArrowShape }) {
 	const isEditing = useIsEditing(shape.id)
 	const clipPathId = useSharedSafeId(shape.id + '_clip')
 
-	const info = getArrowInfo(editor, shape)
+	const info = useValue('arrow info', () => getArrowInfo(editor, shape.id), [editor, shape.id])
 	if (!info) return null
 
 	const { start, end } = getArrowTerminalsInArrowSpace(editor, shape, info?.bindings)

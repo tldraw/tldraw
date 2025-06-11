@@ -65,7 +65,7 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 
 	// when the shape an arrow is bound to changes
 	override onAfterChangeToShape({ binding }: BindingOnShapeChangeOptions<TLArrowBinding>): void {
-		reparentArrow(this.editor, binding.fromId)
+		maybeReparentArrow(this.editor, binding.fromId)
 	}
 
 	// when the arrow is isolated we need to update it's x,y positions
@@ -82,9 +82,10 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 	}
 }
 
-function reparentArrow(editor: Editor, arrowId: TLShapeId) {
+function maybeReparentArrow(editor: Editor, arrowId: TLShapeId) {
 	const arrow = editor.getShape<TLArrowShape>(arrowId)
 	if (!arrow) return
+
 	const bindings = getArrowBindings(editor, arrow)
 	const { start, end } = bindings
 	const startShape = start ? editor.getShape(start.toId) : undefined
@@ -188,7 +189,7 @@ function arrowDidUpdate(editor: Editor, arrow: TLArrowShape) {
 	}
 
 	// always check the arrow parents
-	reparentArrow(editor, arrow.id)
+	maybeReparentArrow(editor, arrow.id)
 }
 
 /** @internal */
