@@ -68,8 +68,13 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 		binding,
 		shapeBefore,
 		shapeAfter,
+		reason,
 	}: BindingOnShapeChangeOptions<TLArrowBinding>): void {
-		if (shapeBefore.parentId === shapeAfter.parentId && shapeBefore.index === shapeAfter.index) {
+		if (
+			reason !== 'ancestry' &&
+			shapeBefore.parentId === shapeAfter.parentId &&
+			shapeBefore.index === shapeAfter.index
+		) {
 			return
 		}
 		reparentArrow(this.editor, binding.fromId)

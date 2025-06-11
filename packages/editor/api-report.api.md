@@ -176,6 +176,7 @@ export interface BindingOnDeleteOptions<Binding extends TLUnknownBinding> {
 // @public
 export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
     binding: Binding;
+    reason: 'ancestry' | 'self';
     shapeAfter: TLShape;
     shapeBefore: TLShape;
 }
