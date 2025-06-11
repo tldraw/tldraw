@@ -34,16 +34,20 @@ export function TlaUserSettingsMenu() {
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>
 					<button
-						className={classNames(styles.userSettingsTrigger, styles.hoverable)}
+						className={classNames(styles.sidebarUserSettingsTrigger, styles.hoverable)}
 						title={userMenuLbl}
 						data-testid="tla-sidebar-user-settings-trigger"
 					>
 						<div
-							className={classNames(styles.userSettingsName, 'tla-text_ui__regular', 'notranslate')}
+							className={classNames(
+								styles.sidebarUserSettingsName,
+								'tla-text_ui__regular',
+								'notranslate'
+							)}
 						>
 							{user.name ?? <F defaultMessage="Account" />}
 						</div>
-						<div className={styles.userSettingsIcon}>
+						<div className={styles.sidebarUserSettingsIcon}>
 							<TlaIcon icon="dots-vertical-strong" />
 						</div>
 					</button>

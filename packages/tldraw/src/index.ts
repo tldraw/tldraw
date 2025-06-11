@@ -1,6 +1,25 @@
 /// <reference types="react" />
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
+export {
+	PathBuilder,
+	PathBuilderGeometry2d,
+	type BasePathBuilderOpts,
+	type CubicBezierToPathBuilderCommand,
+	type DashedPathBuilderOpts,
+	type DrawPathBuilderDOpts,
+	type DrawPathBuilderOpts,
+	type LineToPathBuilderCommand,
+	type MoveToPathBuilderCommand,
+	type PathBuilderCommand,
+	type PathBuilderCommandBase,
+	type PathBuilderCommandInfo,
+	type PathBuilderCommandOpts,
+	type PathBuilderLineOpts,
+	type PathBuilderOpts,
+	type PathBuilderToDOpts,
+	type SolidPathBuilderOpts,
+} from './lib/shapes/shared/PathBuilder'
 export { usePrefersReducedMotion } from './lib/shapes/shared/usePrefersReducedMotion'
 export { DefaultA11yAnnouncer, useSelectedShapesAnnouncer } from './lib/ui/components/A11y'
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
@@ -156,7 +175,7 @@ export { PlainTextArea } from './lib/shapes/text/PlainTextArea'
 export { RichTextArea, type TextAreaProps } from './lib/shapes/text/RichTextArea'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
 export { TextShapeUtil, type TextShapeOptions } from './lib/shapes/text/TextShapeUtil'
-export { VideoShapeUtil } from './lib/shapes/video/VideoShapeUtil'
+export { VideoShapeUtil, type VideoShapeOptions } from './lib/shapes/video/VideoShapeUtil'
 export { type StyleValuesForUi } from './lib/styles'
 export { EraserTool } from './lib/tools/EraserTool/EraserTool'
 export { HandTool } from './lib/tools/HandTool/HandTool'

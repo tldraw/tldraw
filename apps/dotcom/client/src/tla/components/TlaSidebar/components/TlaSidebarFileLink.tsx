@@ -47,7 +47,7 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 	const { fileId } = item
 	const isOwnFile = useIsFileOwner(fileId)
 	const isActive = fileSlug === fileId
-	const fileName = app.getFileName(fileId)
+	const fileName = useValue('file name', () => app.getFileName(fileId), [fileId, app])
 	const isMobile = getIsCoarsePointer()
 	useEffect(() => {
 		if (isActive) {
@@ -164,7 +164,7 @@ export function TlaSidebarFileLinkInner({
 
 	return (
 		<div
-			className={classNames(styles.sidebarFileLink, styles.hoverable)}
+			className={classNames(styles.sidebarFileListItem, styles.hoverable)}
 			data-active={isActive}
 			data-element="file-link"
 			data-testid={testId}
@@ -173,6 +173,7 @@ export function TlaSidebarFileLinkInner({
 			// We use this id to scroll the active file link into view when creating or deleting files.
 			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
 			role="listitem"
+			draggable={false}
 		>
 			<Link
 				ref={linkRef}
@@ -190,11 +191,16 @@ export function TlaSidebarFileLinkInner({
 					trackEvent('click-file-link', { source: 'sidebar' })
 				}}
 				to={href}
-				className={styles.sidebarFileLinkButton}
+				className={styles.sidebarFileListItemButton}
+				draggable={false}
 			/>
-			<div className={styles.sidebarFileLinkContent}>
+			<div className={styles.sidebarFileListItemContent}>
 				<div
-					className={classNames(styles.sidebarFileLinkLabel, 'tla-text_ui__regular', 'notranslate')}
+					className={classNames(
+						styles.sidebarFileListItemLabel,
+						'tla-text_ui__regular',
+						'notranslate'
+					)}
 					data-testid={`${testId}-name`}
 				>
 					{fileName}
@@ -225,13 +231,13 @@ function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
 	)
 
 	return (
-		<div className={styles.sidebarFileLinkGuestBadge} data-testid={testId}>
+		<div className={styles.sidebarFileListItemGuestBadge} data-testid={testId}>
 			<TlaTooltipRoot disableHoverableContent>
 				<TlaTooltipTrigger
 					dir="ltr"
 					// this is needed to prevent the tooltip from closing when clicking the badge
 					onClick={handleToolTipClick}
-					className={styles.sidebarFileLinkGuestBadgeTrigger}
+					className={styles.sidebarFileListItemGuestBadgeTrigger}
 				>
 					<TlaIcon icon="group" className="tlui-guest-icon" />
 				</TlaTooltipTrigger>

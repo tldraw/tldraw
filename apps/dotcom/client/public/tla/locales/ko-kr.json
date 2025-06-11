@@ -188,6 +188,9 @@
   "7b1329f5ca": {
     "translation": "사용 설명서"
   },
+  "7be10fc592": {
+    "translation": "버전 복원"
+  },
   "7cb5f8b4a5": {
     "translation": "무시"
   },
@@ -321,6 +324,9 @@
   "c87aacf567": {
     "translation": "로그아웃"
   },
+  "cbef7ba103": {
+    "translation": "이 방은 곧 읽기 전용이 됩니다."
+  },
   "cceaefbc20": {
     "translation": "이 파일 공유"
   },
@@ -359,6 +365,9 @@
   },
   "e78e14c5f1": {
     "translation": "고정"
+  },
+  "ea2301d01c": {
+    "translation": "2025년 7월 1일 이후 이 익명 tldraw 멀티플레이어 방은 읽기 전용으로 전환됩니다. 나중에 편집을 계속하려면 로그인하여 파일에 복사하세요."
   },
   "ea4788705e": {
     "translation": "취소"

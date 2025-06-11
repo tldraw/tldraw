@@ -1,5 +1,5 @@
 ---
-title: Slideshow (moving camera)
+title: Slideshow (free camera)
 component: ./SlidesExample.tsx
 category: use-cases
 priority: 0

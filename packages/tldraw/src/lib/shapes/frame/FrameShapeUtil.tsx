@@ -90,6 +90,14 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return true
 	}
 
+	override canResize() {
+		return true
+	}
+
+	override canResizeChildren() {
+		return false
+	}
+
 	override getDefaultProps(): TLFrameShape['props'] {
 		return { w: 160 * 2, h: 90 * 2, name: '', color: 'black' }
 	}
@@ -352,6 +360,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	override onResize(shape: any, info: TLResizeInfo<any>) {
 		return resizeBox(shape, info)
 	}
+
 	override getInterpolatedProps(
 		startShape: TLFrameShape,
 		endShape: TLFrameShape,

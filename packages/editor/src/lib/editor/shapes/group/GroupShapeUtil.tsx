@@ -20,6 +20,14 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		return false
 	}
 
+	canResize() {
+		return true
+	}
+
+	canResizeChildren() {
+		return true
+	}
+
 	getDefaultProps(): TLGroupShape['props'] {
 		return {}
 	}

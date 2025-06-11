@@ -83,8 +83,6 @@ To use tldraw sync in production, you will need to self-host the tldraw sync ser
 
 While tldraw sync is our recommended and best-supported backend for tldraw, we designed the tldraw SDK to work with any data solution.
 
-As a reference, our [tldraw-yjs example](https://github.com/tldraw/tldraw-yjs-example) shows an integration between tldraw and the [Yjs](https://yjs.dev) CRDT library.
-
 Whichever backend you choose, adding collaboration to tldraw will involve synchronizing data, sharing user presence, and handling user assets.
 
 ### Synchronizing data
@@ -100,8 +98,6 @@ A user's presence is stored as `instance_presence` ([TLInstancePresence](?))reco
 We provide a helper, [createPresenceStateDerivation](?), for constructing a reactive signal for an `instance_presence` record locally, which can then be sent to other clients somehow.
 
 To the editor, any `instance_presence` records that belong to other users (i.e. those with a different user id than the editor's configured user id) are considered "collaborators". The editor has two methods, `getCollaborators` and `getCollaboratorsOnCurrentPage`, which return reactive signals about the current collaborators.
-
-See the [yjs-example](https://github.com/tldraw/tldraw-yjs-example/blob/45dfe7589ae44e4aaf9bb7359d0372f3a88bd597/src/useYjsStore.ts) for an example of how these records may be created, shared, and updated.
 
 ### Collaboration UI
 

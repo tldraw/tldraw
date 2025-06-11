@@ -17,7 +17,7 @@ export class Editor {
 		this.sidebarToggle = this.page.getByTestId('tla-sidebar-toggle')
 		this.fileName = this.page.getByTestId('tla-file-name')
 		this.shapes = this.page.locator('.tl-shape')
-		this.pageMenu = this.page.getByTestId('tla-page-menu')
+		this.pageMenu = this.page.getByTestId('tla-main-menu')
 	}
 
 	async toggleSidebar() {

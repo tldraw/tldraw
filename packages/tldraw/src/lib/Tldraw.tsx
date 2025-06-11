@@ -69,8 +69,20 @@ export interface TldrawBaseProps
 	extends TldrawUiProps,
 		TldrawEditorBaseProps,
 		TLExternalContentProps {
+	/** Urls for custom assets.
+	 *
+	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
+	 */
 	assetUrls?: TLUiAssetUrlOverrides
+	/** Overrides for tldraw's components.
+	 *
+	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
+	 */
 	components?: TLComponents
+	/** Custom definitions for tldraw's embeds.
+	 *
+	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
+	 */
 	embeds?: TLEmbedDefinition[]
 }
 

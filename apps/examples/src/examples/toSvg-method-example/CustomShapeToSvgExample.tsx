@@ -1,9 +1,11 @@
+import { ReactElement } from 'react'
 import {
 	Geometry2d,
 	HTMLContainer,
 	RecordProps,
 	Rectangle2d,
 	ShapeUtil,
+	SvgExportContext,
 	T,
 	TLBaseShape,
 	Tldraw,
@@ -65,15 +67,15 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 	}
 
 	// [1]
-	// override toSvg(
-	// 	shape: ICustomShape,
-	// 	ctx: SvgExportContext
-	// ): ReactElement | null | Promise<ReactElement | null> {
-	// 	// ctx.addExportDef(getFontDef(shape))
-	// 	const isDarkmode = ctx.isDarkMode
-	// 	const fill = isDarkmode ? DARK_FILL : LIGHT_FILL
-	// 	return this.getSvgRect(shape, { fill })
-	// }
+	override toSvg(
+		shape: ICustomShape,
+		ctx: SvgExportContext
+	): ReactElement | null | Promise<ReactElement | null> {
+		// ctx.addExportDef(getFontDef(shape))
+		const isDarkmode = ctx.isDarkMode
+		const fill = isDarkmode ? DARK_FILL : LIGHT_FILL
+		return this.getSvgRect(shape, { fill })
+	}
 
 	getSvgRect(shape: ICustomShape, props?: { fill: string }) {
 		return <rect width={shape.props.w} height={shape.props.h} {...props} />

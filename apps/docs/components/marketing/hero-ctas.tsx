@@ -25,7 +25,7 @@ export function HeroCtas() {
 				<Button
 					id="hero-github"
 					href="https://github.com/tldraw/tldraw"
-					caption="39K stars on GitHub"
+					caption="40K stars on GitHub"
 					type="tertiary"
 					size="lg"
 					icon="github"
