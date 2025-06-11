@@ -2,6 +2,10 @@
 import { useState } from 'react'
 import { EditableMathField, MathField, addStyles } from 'react-mathquill'
 import {
+	BaseBoxShapeTool,
+	DefaultToolbar,
+	DefaultToolbarContent,
+	Editor,
 	Geometry2d,
 	HTMLContainer,
 	RecordProps,
@@ -9,17 +13,21 @@ import {
 	ShapeUtil,
 	T,
 	TLBaseShape,
+	TLComponents,
 	TLResizeInfo,
+	TLUiOverrides,
 	Tldraw,
+	TldrawUiMenuItem,
 	resizeBox,
+	useIsToolSelected,
 	useQuickReactor,
+	useTools,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './MathShapeExample.css'
 
 addStyles()
 
-// [1]
 type MathShape = TLBaseShape<
 	'math',
 	{
@@ -29,9 +37,7 @@ type MathShape = TLBaseShape<
 	}
 >
 
-// [2]
 export class MathShapeUtil extends ShapeUtil<MathShape> {
-	// [a]
 	static override type = 'math' as const
 	static override props: RecordProps<MathShape> = {
 		w: T.number,
@@ -39,16 +45,14 @@ export class MathShapeUtil extends ShapeUtil<MathShape> {
 		latex: T.string,
 	}
 
-	// [b]
 	getDefaultProps(): MathShape['props'] {
 		return {
 			w: 200,
-			h: 200,
+			h: 100,
 			latex: '',
 		}
 	}
 
-	// [c]
 	override canEdit() {
 		return true
 	}
@@ -59,7 +63,6 @@ export class MathShapeUtil extends ShapeUtil<MathShape> {
 		return false
 	}
 
-	// [d]
 	getGeometry(shape: MathShape): Geometry2d {
 		return new Rectangle2d({
 			width: shape.props.w,
@@ -68,12 +71,10 @@ export class MathShapeUtil extends ShapeUtil<MathShape> {
 		})
 	}
 
-	// [e]
 	override onResize(shape: any, info: TLResizeInfo<any>) {
-		return resizeBox(shape, info)
+		return resizeBox(shape, info, { minWidth: 10, minHeight: 10 })
 	}
 
-	// [f]
 	component(shape: MathShape) {
 		const [field, setField] = useState<MathField | null>(null)
 		const isEditing = this.editor.getEditingShapeId() === shape.id
@@ -102,6 +103,7 @@ export class MathShapeUtil extends ShapeUtil<MathShape> {
 						height: '100%',
 						overflow: 'hidden',
 						fontSize: '30px',
+						backgroundColor: 'white',
 					}}
 					latex={shape.props.latex}
 					onPointerDown={(e) => {
@@ -115,35 +117,67 @@ export class MathShapeUtil extends ShapeUtil<MathShape> {
 								latex: mathField.latex(),
 							},
 						})
-						requestAnimationFrame(() => {
-							// field?.reflow()
-						})
 					}}
 				/>
 			</HTMLContainer>
 		)
 	}
 
-	// [g]
 	indicator(shape: MathShape) {
 		return <rect width={shape.props.w} height={shape.props.h} />
 	}
 }
 
-// [3]
-const mathShape = [MathShapeUtil]
+export class MathShapeTool extends BaseBoxShapeTool {
+	static override id = 'math'
+	static override initial = 'idle'
+	override shapeType = 'math'
+}
 
+export const overrides: TLUiOverrides = {
+	tools(editor, tools) {
+		tools.math = {
+			id: 'math',
+			icon: 'color',
+			label: 'Math',
+			kbd: 'm',
+			onSelect: () => editor.setCurrentTool('math'),
+		}
+		return tools
+	},
+}
+
+export const components: TLComponents = {
+	Toolbar: (props) => {
+		const tools = useTools()
+		const isCardSelected = useIsToolSelected(tools['math'])
+		return (
+			<DefaultToolbar {...props}>
+				<TldrawUiMenuItem {...tools['math']} isSelected={isCardSelected} />
+				<DefaultToolbarContent />
+			</DefaultToolbar>
+		)
+	},
+}
+
+const shapeUtils = [MathShapeUtil]
+const tools = [MathShapeTool]
 export default function CustomShapeExample() {
+	function handleMount(editor: Editor) {
+		const mathShapes = editor.getCurrentPageShapes().filter((shape) => shape.type === 'math')
+		if (mathShapes.length > 0) return
+		editor.createShape({ type: 'math', x: 0, y: 0, props: { latex: '\\frac{2}{3y}=x^2' } })
+	}
+
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				persistenceKey="math-shape-example"
-				shapeUtils={mathShape}
-				onMount={(editor) => {
-					const mathShapes = editor.getCurrentPageShapes().filter((shape) => shape.type === 'math')
-					if (mathShapes.length > 0) return // Don't add a new shape if one already exists
-					editor.createShape({ type: 'math', x: 100, y: 100 })
-				}}
+				shapeUtils={shapeUtils}
+				tools={tools}
+				overrides={overrides}
+				components={components}
+				onMount={handleMount}
 			/>
 		</div>
 	)

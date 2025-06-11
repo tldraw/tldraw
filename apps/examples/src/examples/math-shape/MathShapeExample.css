@@ -1,4 +1,4 @@
 .mq-sup {
-	/* background-color: red; */
+	/* Disable margin of superscript to avoid a MathQuill issue */
 	margin-bottom: 0px !important;
 }
