@@ -1,9 +1,8 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import 'mathlive'
 import { MathfieldElement } from 'mathlive'
-import { useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import {
-	BaseBoxShapeTool,
 	DefaultToolbar,
 	DefaultToolbarContent,
 	Editor,
@@ -12,6 +11,7 @@ import {
 	RecordProps,
 	Rectangle2d,
 	ShapeUtil,
+	StateNode,
 	T,
 	TLBaseShape,
 	TLComponents,
@@ -19,6 +19,7 @@ import {
 	TLUiOverrides,
 	Tldraw,
 	TldrawUiMenuItem,
+	createShapeId,
 	resizeBox,
 	useIsToolSelected,
 	useQuickReactor,
@@ -27,7 +28,6 @@ import {
 import 'tldraw/tldraw.css'
 import './MathLiveExample.css'
 
-// Declare the custom elements from mathlive
 declare global {
 	// eslint-disable-next-line @typescript-eslint/no-namespace
 	namespace JSX {
@@ -48,7 +48,7 @@ type MathShape = TLBaseShape<
 	{
 		w: number
 		h: number
-		latex: string
+		content: string
 	}
 >
 
@@ -57,14 +57,14 @@ export class MathShapeUtil extends ShapeUtil<MathShape> {
 	static override props: RecordProps<MathShape> = {
 		w: T.number,
 		h: T.number,
-		latex: T.string,
+		content: T.string,
 	}
 
 	getDefaultProps(): MathShape['props'] {
 		return {
-			w: 200,
-			h: 100,
-			latex: '',
+			w: 20,
+			h: 20,
+			content: '',
 		}
 	}
 
@@ -72,7 +72,7 @@ export class MathShapeUtil extends ShapeUtil<MathShape> {
 		return true
 	}
 	override canResize() {
-		return true
+		return false
 	}
 	override isAspectRatioLocked() {
 		return false
@@ -91,8 +91,7 @@ export class MathShapeUtil extends ShapeUtil<MathShape> {
 	}
 
 	component(shape: MathShape) {
-		const ref = useRef<HTMLElement>(null)
-		// const [field, setField] = useState<MathField | null>(null)
+		const ref = useRef<MathfieldElement>(null)
 		const isEditing = this.editor.getEditingShapeId() === shape.id
 
 		useQuickReactor(
@@ -100,28 +99,58 @@ export class MathShapeUtil extends ShapeUtil<MathShape> {
 			() => {
 				if (!ref.current) return
 				if (isEditing) {
-					// console.log('editing')
 					ref.current.focus()
+					ref.current.executeCommand('selectAll')
 				}
 			},
 			[isEditing, ref]
 		)
 
+		const resizeShapeToFitField = useCallback(() => {
+			const width = ref.current?.offsetWidth || 200
+			const height = ref.current?.offsetHeight || 100
+			this.editor.updateShape<MathShape>({
+				id: shape.id,
+				type: 'math',
+				props: {
+					w: width,
+					h: height,
+				},
+			})
+		}, [shape.id, ref])
+
+		useEffect(() => {
+			resizeShapeToFitField()
+		}, [resizeShapeToFitField])
+
 		return (
-			<HTMLContainer style={{ pointerEvents: 'all' }}>
+			<HTMLContainer>
+				{!isEditing && (
+					<div
+						style={{
+							position: 'absolute',
+							width: '100%',
+							height: '100%',
+							pointerEvents: 'all',
+							zIndex: 99999,
+						}}
+					></div>
+				)}
 				<math-field
-					// @ts-expect-error
 					ref={ref}
-					restoreFocusWhenDocumentFocused={false}
+					id={`math-field-${shape.id.split(':')[1]}`}
+					onPointerDown={(e) => {
+						if (isEditing) e.stopPropagation()
+					}}
+					contentEditable={isEditing}
 					style={{
 						pointerEvents: 'all',
-						width: '100%',
-						height: '100%',
 						fontSize: '2em',
 						overflow: 'hidden',
 					}}
+					onInput={resizeShapeToFitField}
 				>
-					x^2 = 4/y
+					{shape.props.content}
 				</math-field>
 			</HTMLContainer>
 		)
@@ -132,10 +161,26 @@ export class MathShapeUtil extends ShapeUtil<MathShape> {
 	}
 }
 
-export class MathShapeTool extends BaseBoxShapeTool {
+class MathShapeTool extends StateNode {
 	static override id = 'math'
-	static override initial = 'idle'
-	override shapeType = 'math'
+
+	override onEnter() {
+		this.editor.setCursor({ type: 'cross', rotation: 0 })
+	}
+
+	override onPointerDown() {
+		const { currentPagePoint } = this.editor.inputs
+		const id = createShapeId()
+		this.editor.createShape<MathShape>({
+			id,
+			type: 'math',
+			x: currentPagePoint.x - 5,
+			y: currentPagePoint.y - 20,
+		})
+
+		// Edit the shape immediately after creating it
+		this.editor.setEditingShape(id)
+	}
 }
 
 export const overrides: TLUiOverrides = {
@@ -170,7 +215,7 @@ export default function CustomShapeExample() {
 	function handleMount(editor: Editor) {
 		const mathShapes = editor.getCurrentPageShapes().filter((shape) => shape.type === 'math')
 		if (mathShapes.length > 0) return
-		// editor.createShape({ type: 'math', x: 0, y: 0, props: { latex: '\\frac{2}{3y}=x^2' } })
+		editor.createShape({ type: 'math', x: 0, y: 0, props: { content: '2x=y^3' } })
 	}
 
 	return (

@@ -1,3 +1,12 @@
 math-field::part(virtual-keyboard-toggle) {
 	display: none;
 }
+
+math-field::part(menu-toggle) {
+	display: none;
+}
+
+.ML__keyboard {
+	position: fixed;
+	z-index: 99999999 !important;
+}
