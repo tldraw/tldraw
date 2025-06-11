@@ -64,7 +64,14 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 	}
 
 	// when the shape an arrow is bound to changes
-	override onAfterChangeToShape({ binding }: BindingOnShapeChangeOptions<TLArrowBinding>): void {
+	override onAfterChangeToShape({
+		binding,
+		shapeBefore,
+		shapeAfter,
+	}: BindingOnShapeChangeOptions<TLArrowBinding>): void {
+		if (shapeBefore.parentId === shapeAfter.parentId && shapeBefore.index === shapeAfter.index) {
+			return
+		}
 		reparentArrow(this.editor, binding.fromId)
 	}
 

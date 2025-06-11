@@ -21,6 +21,7 @@ import {
 	assert,
 	fetch,
 	getFromLocalStorage,
+	isEqual,
 	promiseWithResolve,
 	Result,
 	setInLocalStorage,
@@ -28,7 +29,6 @@ import {
 	throttle,
 	uniqueId,
 } from '@tldraw/utils'
-import isEqual from 'lodash.isequal'
 import pick from 'lodash.pick'
 import {
 	assertExists,

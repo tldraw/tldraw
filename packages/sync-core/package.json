@@ -69,7 +69,6 @@
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
-		"lodash.isequal": "^4.5.0",
 		"nanoevents": "^7.0.1",
 		"ws": "^8.18.0"
 	},

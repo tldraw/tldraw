@@ -1,6 +1,7 @@
 import {
 	Editor,
 	Geometry2d,
+	isEqualAllowingForFloatingPointErrors,
 	Mat,
 	TLArrowBinding,
 	TLArrowBindingProps,
@@ -101,16 +102,29 @@ export interface TLArrowBindings {
 	end: TLArrowBinding | undefined
 }
 
+const arrowBindingsCache = createComputedCache(
+	'arrow bindings',
+	(editor: Editor, arrow: TLArrowShape) => {
+		const bindings = editor.getBindingsFromShape<TLArrowBinding>(arrow.id, 'arrow')
+		return {
+			start: bindings.find((b) => b.props.terminal === 'start'),
+			end: bindings.find((b) => b.props.terminal === 'end'),
+		}
+	},
+	{
+		// we only look at the arrow IDs:
+		areRecordsEqual: (a, b) => a.id === b.id,
+		// the records should stay the same:
+		areResultsEqual: (a, b) => a.start === b.start && a.end === b.end,
+	}
+)
+
 /** @public */
 export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBindings {
-	const bindings = editor.getBindingsFromShape<TLArrowBinding>(shape, 'arrow')
-	return {
-		start: bindings.find((b) => b.props.terminal === 'start'),
-		end: bindings.find((b) => b.props.terminal === 'end'),
-	}
+	return arrowBindingsCache.get(editor, shape.id)!
 }
 
-const arrowInfoCache = createComputedCache(
+const arrowInfoCache = createComputedCache<Editor, TLArrowInfo, TLArrowShape>(
 	'arrow info',
 	(editor: Editor, shape: TLArrowShape): TLArrowInfo => {
 		const bindings = getArrowBindings(editor, shape)
@@ -139,9 +153,26 @@ const arrowInfoCache = createComputedCache(
 				isValid: true,
 			}
 		}
-		return getIsArrowStraight(shape)
-			? getStraightArrowInfo(editor, shape, bindings)
-			: getCurvedArrowInfo(editor, shape, bindings)
+
+		if (getIsArrowStraight(shape)) {
+			return getStraightArrowInfo(editor, shape, bindings)
+		} else {
+			return getCurvedArrowInfo(editor, shape, bindings)
+		}
+	},
+	{
+		areRecordsEqual: (a, b) => a.props === b.props,
+		areResultsEqual: (a, b) => {
+			const result = isEqualAllowingForFloatingPointErrors(a, b)
+
+			if (!result) {
+				console.log('CHANGED!')
+				console.log(JSON.stringify(a, null, 2))
+				console.log(JSON.stringify(b, null, 2))
+			}
+
+			return result
+		},
 	}
 )
 
