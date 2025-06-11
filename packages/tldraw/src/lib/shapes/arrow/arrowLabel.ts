@@ -15,7 +15,6 @@ import {
 	createComputedCache,
 	exhaustiveSwitchError,
 	getChangedKeys,
-	whyAmIRunning,
 } from '@tldraw/editor'
 import {
 	ARROW_LABEL_FONT_SIZES,
@@ -50,36 +49,10 @@ export function getArrowBodyGeometry(editor: Editor, shape: TLArrowShape) {
 			exhaustiveSwitchError(info, 'type')
 	}
 }
-// export const arrowBodyGeometryCache = createComputedCache(
-// 	'arrow body geometry',
-// 	(editor: Editor, shape: TLArrowShape) => {
-// 		const info = getArrowInfo(editor, shape)!
-// 		switch (info.type) {
-// 			case 'straight':
-// 				return new Edge2d({
-// 					start: Vec.From(info.start.point),
-// 					end: Vec.From(info.end.point),
-// 				})
-// 			case 'arc':
-// 				return new Arc2d({
-// 					center: Vec.Cast(info.handleArc.center),
-// 					start: Vec.Cast(info.start.point),
-// 					end: Vec.Cast(info.end.point),
-// 					sweepFlag: info.bodyArc.sweepFlag,
-// 					largeArcFlag: info.bodyArc.largeArcFlag,
-// 				})
-// 			case 'elbow':
-// 				return new Polyline2d({ points: info.route.points })
-// 			default:
-// 				exhaustiveSwitchError(info, 'type')
-// 		}
-// 	}
-// )
 
 const labelSizeCache = createComputedCache(
 	'arrow label size',
 	(editor: Editor, shape: TLArrowShape) => {
-		whyAmIRunning()
 		editor.fonts.trackFontsForShape(shape)
 		let width = 0
 		let height = 0
