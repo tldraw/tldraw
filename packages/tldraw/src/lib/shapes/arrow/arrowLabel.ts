@@ -138,10 +138,11 @@ const labelSizeCache = createComputedCache(
 	},
 	{
 		areRecordsEqual: (a, b) => {
+			if (a.props === b.props) return true
+
+			// If the only thing that has changed is the label position, we can skip recalculating the size
 			const changedKeys = getChangedKeys(a.props, b.props)
-			return (
-				changedKeys.length === 0 || (changedKeys.length === 1 && changedKeys[0] === 'labelPosition')
-			)
+			return changedKeys.length === 1 && changedKeys[0] === 'labelPosition'
 		},
 	}
 )
