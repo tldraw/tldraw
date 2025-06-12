@@ -110,6 +110,15 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			})
 		}
 
+		if (strokePoints.length === 1) {
+			return new Circle2d({
+				x: -sw,
+				y: -sw,
+				radius: sw,
+				isFilled: true,
+			})
+		}
+
 		// An open draw stroke
 		return new Polyline2d({
 			points: strokePoints,
