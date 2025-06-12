@@ -8,6 +8,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { ZReplicationChange } from '../UserDataSyncer'
+import { Subscription } from './Subscription'
 import { ChangeV2, ReplicationEvent, ReplicatorEffect, Topic } from './replicatorTypes'
 
 /**
@@ -30,32 +31,6 @@ export interface ChangeCollator {
 	removeSubscriptions(subscriptions: Subscription[]): void
 }
 
-/**
- * Represents an operation to add or remove a subscription edge in the topic graph.
- * Used to track changes to the subscription relationships between topics.
- *
- * @property type - Whether this is adding or removing a subscription
- * @property fromTopic - The source topic that is subscribing
- * @property toTopic - The target topic being subscribed to
- */
-export interface Subscription {
-	fromTopic: Topic
-	toTopic: Topic
-}
-
-export function serializeSubscriptions(ops: Subscription[]): string | null {
-	if (ops.length === 0) {
-		return null
-	}
-	return ops.map((op) => `${op.fromTopic}\\${op.toTopic}`).join(',')
-}
-export function parseSubscriptions(str: string | null): Subscription[] | null {
-	if (!str) return null
-	return str.split(',').map((op) => {
-		const [fromTopic, toTopic] = op.split('\\') as [Topic, Topic]
-		return { fromTopic, toTopic }
-	})
-}
 export function getTopics(row: TlaRow, event: ReplicationEvent): Topic[] {
 	switch (event.table) {
 		case 'user':
@@ -76,38 +51,6 @@ export function getTopics(row: TlaRow, event: ReplicationEvent): Topic[] {
 			const _x: never = event.table
 			return [] as any
 		}
-	}
-}
-
-export function getSubscriptionChanges(changes: Array<{ row: TlaRow; event: ReplicationEvent }>): {
-	newSubscriptions: Subscription[] | null
-	removedSubscriptions: Subscription[] | null
-} {
-	const newSubscriptions: Subscription[] = []
-	const removedSubscriptions: Subscription[] = []
-
-	for (const change of changes) {
-		switch (change.event.table) {
-			case 'file_state': {
-				const fileState = change.row as TlaFileState
-				const userTopic: Topic = `user:${fileState.userId}`
-				const fileTopic: Topic = `file:${fileState.fileId}`
-
-				if (change.event.command === 'insert' && !fileState.isFileOwner) {
-					newSubscriptions.push({ fromTopic: userTopic, toTopic: fileTopic })
-				} else if (change.event.command === 'delete' && !fileState.isFileOwner) {
-					removedSubscriptions.push({ fromTopic: userTopic, toTopic: fileTopic })
-				}
-				break
-			}
-			default:
-				break
-		}
-	}
-
-	return {
-		newSubscriptions: newSubscriptions.length > 0 ? newSubscriptions : null,
-		removedSubscriptions: removedSubscriptions.length > 0 ? removedSubscriptions : null,
 	}
 }
 

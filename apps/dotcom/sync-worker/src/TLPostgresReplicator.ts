@@ -18,13 +18,8 @@ import { Logger } from './Logger'
 import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
-import {
-	LiveChangeCollator,
-	buildTopicsString,
-	getSubscriptionChanges,
-	getTopics,
-	serializeSubscriptions,
-} from './replicator/ChangeCollator'
+import { LiveChangeCollator, buildTopicsString, getTopics } from './replicator/ChangeCollator'
+import { getSubscriptionChanges, serializeSubscriptions } from './replicator/Subscription'
 import { getResumeType } from './replicator/getResumeType'
 import { pruneTopicSubscriptionsSql } from './replicator/pruneTopicSubscriptions'
 import { migrate } from './replicator/replicatorMigrations'
