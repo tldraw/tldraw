@@ -104,6 +104,8 @@ const migrations: Migration[] = [
 					toTopic TEXT NOT NULL,
 					PRIMARY KEY (fromTopic, toTopic)
 				);
+				CREATE INDEX topic_subscription_toTopic_fromTopic ON topic_subscription (toTopic, fromTopic);
+				CREATE INDEX topic_subscription_fromTopic_toTopic ON topic_subscription (fromTopic, toTopic);
 
 				-- Migrate existing data: user -> file subscriptions become direct edges
 				INSERT INTO topic_subscription (fromTopic, toTopic)

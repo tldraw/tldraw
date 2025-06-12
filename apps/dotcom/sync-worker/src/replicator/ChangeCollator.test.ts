@@ -5,7 +5,7 @@ import { DatabaseSync } from 'node:sqlite'
 import { CatchUpChangeCollator, LiveChangeCollator, getEffects } from './ChangeCollator'
 import { Subscription, serializeSubscriptions } from './Subscription'
 import { migrate } from './replicatorMigrations'
-import { ChangeV2 } from './replicatorTypes'
+import { ChangeV2, Topic } from './replicatorTypes'
 import {
 	MockLogger,
 	SqlStorageAdapter,
@@ -781,3 +781,262 @@ describe('ChangeCollator', () => {
 		})
 	})
 })
+
+/* eslint-disable no-console */
+describe.skip('LiveChangeCollator Performance Tests', () => {
+	let db: DatabaseSync
+	let sqlStorage: SqlStorageAdapter
+	let dbPath: string
+	let collator: LiveChangeCollator
+
+	// Helper to generate user topics
+	const generateUserTopic = (userId: number): Topic => `user:user${userId}` as Topic
+
+	// Helper to generate file topics
+	const generateFileTopic = (fileId: number): Topic => `file:file${fileId}` as Topic
+
+	// Helper to create mock change
+	const createTestChange = (fileId: string, ownerId: string) => {
+		return createMockFileChange(fileId, ownerId)
+	}
+
+	beforeAll(async () => {
+		// Create a temporary database file for performance testing
+		dbPath = join(tmpdir(), `test-collator-perf-${Date.now()}-${Math.random()}.db`)
+		db = new DatabaseSync(dbPath)
+		sqlStorage = new SqlStorageAdapter(db)
+
+		// Run migrations
+		migrate(sqlStorage as any, new MockLogger() as any)
+		collator = new LiveChangeCollator(sqlStorage as any)
+
+		console.log('Seeding large topic subscription graph...')
+		const startTime = Date.now()
+
+		// Create a realistic but large subscription graph
+		// Scenario: 1000 users, 5000 files, with various subscription patterns
+
+		const NUM_USERS = 1000
+		const NUM_FILES = 5000
+		const subscriptions: Array<{ fromTopic: Topic; toTopic: Topic }> = []
+
+		// Pattern 1: Each user subscribes to 5-20 random files (simulates normal usage)
+		for (let userId = 1; userId <= NUM_USERS; userId++) {
+			const userTopic = generateUserTopic(userId)
+			const subscriptionCount = 5 + Math.floor(Math.random() * 16) // 5-20 subscriptions
+
+			const subscribedFiles = new Set<number>()
+			for (let i = 0; i < subscriptionCount; i++) {
+				let fileId: number
+				do {
+					fileId = 1 + Math.floor(Math.random() * NUM_FILES)
+				} while (subscribedFiles.has(fileId))
+				subscribedFiles.add(fileId)
+
+				subscriptions.push({
+					fromTopic: userTopic,
+					toTopic: generateFileTopic(fileId),
+				})
+			}
+		}
+
+		// Pattern 2: Some files are very popular (simulates shared team files)
+		// Top 50 files get many more subscribers
+		for (let fileId = 1; fileId <= 50; fileId++) {
+			const fileTopic = generateFileTopic(fileId)
+			const subscriberCount = 50 + Math.floor(Math.random() * 100) // 50-150 subscribers
+
+			const subscribers = new Set<number>()
+			for (let i = 0; i < subscriberCount; i++) {
+				let userId: number
+				do {
+					userId = 1 + Math.floor(Math.random() * NUM_USERS)
+				} while (subscribers.has(userId))
+				subscribers.add(userId)
+
+				subscriptions.push({
+					fromTopic: generateUserTopic(userId),
+					toTopic: fileTopic,
+				})
+			}
+		}
+
+		// Pattern 3: Create some transitive subscription chains (user -> user -> file)
+		// Simulates team hierarchies or delegation
+		for (let i = 0; i < 200; i++) {
+			const leadUserId = 1 + Math.floor(Math.random() * 100) // Top 100 users as leads
+			const followerId = 101 + Math.floor(Math.random() * 900) // Other users as followers
+
+			subscriptions.push({
+				fromTopic: generateUserTopic(followerId),
+				toTopic: generateUserTopic(leadUserId),
+			})
+		}
+
+		// Insert all subscriptions into database
+		console.log(`Inserting ${subscriptions.length} subscription edges...`)
+		for (let i = 0; i < subscriptions.length; i++) {
+			const { fromTopic, toTopic } = subscriptions[i]
+			sqlStorage.exec(
+				`INSERT OR IGNORE INTO topic_subscription (fromTopic, toTopic) VALUES (?, ?)`,
+				fromTopic,
+				toTopic
+			)
+
+			// Log progress every 5000 insertions
+			if ((i + 1) % 5000 === 0) {
+				console.log(`Inserted ${i + 1}/${subscriptions.length} subscriptions...`)
+			}
+		}
+
+		const endTime = Date.now()
+		console.log(`Topic graph seeding completed in ${endTime - startTime}ms`)
+		console.log(`Total subscription edges: ${subscriptions.length}`)
+	}, 180000) // 3 minute timeout for graph generation
+
+	afterAll(() => {
+		db.close()
+		try {
+			unlinkSync(dbPath)
+		} catch (_error) {
+			// Ignore cleanup errors
+		}
+	})
+
+	it('should perform well with change affecting many subscribers (popular file)', () => {
+		// Test a change to a very popular file (file1 has many subscribers)
+		const change = createTestChange('file1', 'user1')
+		const topics: Topic[] = ['file:file1', 'user:user1'] // File change generates both topics
+
+		const startTime = performance.now()
+
+		collator.addChangeForTopics(topics, change)
+
+		const endTime = performance.now()
+		const duration = endTime - startTime
+
+		// Count how many users received the change
+		const affectedUsers = collator.changes.size
+		console.log(`Popular file change: ${duration.toFixed(2)}ms, affected ${affectedUsers} users`)
+
+		expect(duration).toBeLessThan(1000) // Should complete in under 1 second
+		expect(affectedUsers).toBeGreaterThan(50) // Should affect many users due to popularity
+	})
+
+	it('should perform well with change affecting few subscribers (regular file)', () => {
+		// Test a change to a less popular file
+		const change = createTestChange('file2500', 'user500')
+		const topics: Topic[] = ['file:file2500', 'user:user500']
+
+		// Clear previous changes
+		collator.changes.clear()
+
+		const startTime = performance.now()
+
+		collator.addChangeForTopics(topics, change)
+
+		const endTime = performance.now()
+		const duration = endTime - startTime
+
+		const affectedUsers = collator.changes.size
+		console.log(`Regular file change: ${duration.toFixed(2)}ms, affected ${affectedUsers} users`)
+
+		expect(duration).toBeLessThan(100) // Should be very fast for less popular files
+		expect(affectedUsers).toBeLessThan(30) // Should affect fewer users
+	})
+
+	it('should perform well with multiple topics (batch change)', () => {
+		// Test a change that affects multiple topics at once
+		const change = createTestChange('file100', 'user100')
+		const topics: Topic[] = [
+			'file:file100',
+			'user:user100',
+			'file:file101', // Additional related files
+			'file:file102',
+			'user:user101', // Additional related users
+		]
+
+		// Clear previous changes
+		collator.changes.clear()
+
+		const startTime = performance.now()
+
+		collator.addChangeForTopics(topics, change)
+
+		const endTime = performance.now()
+		const duration = endTime - startTime
+
+		const affectedUsers = collator.changes.size
+		console.log(`Multi-topic change: ${duration.toFixed(2)}ms, affected ${affectedUsers} users`)
+
+		expect(duration).toBeLessThan(1500) // Should handle multiple topics efficiently
+		expect(affectedUsers).toBeGreaterThan(5) // Should affect users from multiple topic sources
+	})
+
+	it('should perform well under high load (rapid sequential changes)', () => {
+		// Test rapid sequential changes to simulate high activity
+		const changes = []
+		for (let i = 0; i < 100; i++) {
+			changes.push({
+				change: createTestChange(`file${1000 + i}`, `user${100 + i}`),
+				topics: [`file:file${1000 + i}`, `user:user${100 + i}`] as Topic[],
+			})
+		}
+
+		// Clear previous changes
+		collator.changes.clear()
+
+		const startTime = performance.now()
+
+		for (const { change, topics } of changes) {
+			collator.addChangeForTopics(topics, change)
+		}
+
+		const endTime = performance.now()
+		const duration = endTime - startTime
+		const avgPerChange = duration / changes.length
+
+		const totalAffectedUsers = collator.changes.size
+		console.log(
+			`High load test: ${duration.toFixed(2)}ms total, ${avgPerChange.toFixed(2)}ms avg per change`
+		)
+		console.log(`Total affected users: ${totalAffectedUsers}`)
+
+		expect(duration).toBeLessThan(5000) // Should complete 100 changes in under 5 seconds
+		expect(avgPerChange).toBeLessThan(50) // Should average under 50ms per change
+	})
+
+	it('should deduplicate users efficiently with overlapping subscriptions', () => {
+		// Test scenario where multiple topics have overlapping subscribers
+		// This tests the deduplication logic performance
+		const change = createTestChange('file50', 'user50') // Popular file and user
+		const topics: Topic[] = [
+			'file:file1', // Very popular file
+			'file:file2', // Another popular file
+			'file:file50', // The file being changed
+			'user:user50', // The user making the change
+			'user:user1', // Popular user
+		]
+
+		// Clear previous changes
+		collator.changes.clear()
+
+		const startTime = performance.now()
+
+		collator.addChangeForTopics(topics, change)
+
+		const endTime = performance.now()
+		const duration = endTime - startTime
+
+		const affectedUsers = collator.changes.size
+		console.log(`Deduplication test: ${duration.toFixed(2)}ms, affected ${affectedUsers} users`)
+
+		expect(duration).toBeLessThan(2000) // Should handle complex overlapping efficiently
+
+		// Verify each user only got the change once (deduplication worked)
+		for (const [_userId, userChanges] of collator.changes) {
+			expect(userChanges.filter((c) => c === change)).toHaveLength(1)
+		}
+	})
+})
+/* eslint-enable no-console */
