@@ -64,7 +64,6 @@ export function Component() {
 			style={{
 				display: 'flex',
 				flexDirection: 'column',
-				flex: 1,
 				overflow: 'scroll',
 				userSelect: 'text',
 				padding: '16px',
