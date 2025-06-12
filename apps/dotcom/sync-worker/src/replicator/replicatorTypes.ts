@@ -1,4 +1,4 @@
-import { TlaRow } from '@tldraw/dotcom-shared'
+import { TlaFile, TlaRow } from '@tldraw/dotcom-shared'
 import { stringEnum } from '@tldraw/utils'
 
 export type Topic = `user:${string}` | `file:${string}`
@@ -24,3 +24,18 @@ export interface ChangeV2 {
 	previous?: TlaRow
 	topics: Topic[]
 }
+
+export type ReplicatorEffect =
+	| {
+			type: 'publish'
+			file: TlaFile
+	  }
+	| {
+			type: 'unpublish'
+			file: TlaFile
+	  }
+	| {
+			type: 'notify_file_durable_object'
+			command: 'insert' | 'update' | 'delete'
+			file: TlaFile
+	  }

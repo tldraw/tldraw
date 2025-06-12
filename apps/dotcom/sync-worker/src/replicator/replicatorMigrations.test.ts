@@ -3,9 +3,9 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
 import { parseSubscriptions } from './ChangeCollator'
-import { MockLogger, SqlStorageAdapter } from './__tests__/test-helpers'
 import { migrate } from './replicatorMigrations'
 import { ChangeV1 } from './replicatorTypes'
+import { MockLogger, SqlStorageAdapter } from './test-helpers'
 
 describe('replicatorMigrations', () => {
 	let db: DatabaseSync

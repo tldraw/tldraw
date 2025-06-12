@@ -4,10 +4,11 @@ import {
 	TlaRow,
 	TlaUser,
 	TlaUserMutationNumber,
+	ZTable,
 } from '@tldraw/dotcom-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { ZReplicationChange } from '../UserDataSyncer'
-import { ChangeV2, ReplicationEvent, Topic } from './replicatorTypes'
+import { ChangeV2, ReplicationEvent, ReplicatorEffect, Topic } from './replicatorTypes'
 
 /**
  * Interface for collecting and organizing database changes for delivery to users.
@@ -110,6 +111,30 @@ export function getSubscriptionChanges(changes: Array<{ row: TlaRow; event: Repl
 	}
 }
 
+export function getEffects(change: ChangeV2): ReplicatorEffect[] | null {
+	if (change.event.table !== 'file') return null
+	const file = change.row as TlaFile
+
+	const effects: ReplicatorEffect[] = [
+		{
+			type: 'notify_file_durable_object',
+			command: change.event.command,
+			file,
+		},
+	]
+
+	if (change.event.command === 'update') {
+		const previous = change.previous as TlaFile
+		if (file.published && (!previous.published || file.lastPublished !== previous.lastPublished)) {
+			effects.push({ type: 'publish', file })
+		} else if (!file.published && previous.published) {
+			effects.push({ type: 'unpublish', file })
+		}
+	}
+
+	return effects
+}
+
 /**
  * Build a deduplicated, comma-separated string of topics from an array of changes.
  * Ensures no duplicate topics in the final string.
@@ -132,6 +157,7 @@ export class LiveChangeCollator implements ChangeCollator {
 	readonly isCatchUp: boolean = false
 	/** Maps userId -> array of changes to deliver to that user */
 	readonly changes: Map<string, ZReplicationChange[]> = new Map()
+	readonly effects: ReplicatorEffect[] = []
 
 	constructor(readonly sqlite: DurableObject['ctx']['storage']['sql']) {}
 
@@ -211,6 +237,41 @@ export class LiveChangeCollator implements ChangeCollator {
 			}
 			changes.push(change)
 		}
+	}
+
+	handleEvent(change: ChangeV2) {
+		// we update subscriptions during both normal operation and catch up
+		const { command, table } = change.event
+
+		if (!this.isCatchUp) {
+			const effects = getEffects(change)
+			if (effects) {
+				this.effects.push(...effects)
+			}
+		}
+
+		// Check if any of the topics have listeners
+		const hasAnyListener = this.hasListenerForTopics(change.topics)
+		if (!hasAnyListener) {
+			return
+		}
+
+		const replicationChange: ZReplicationChange =
+			table === 'user_mutation_number'
+				? {
+						type: 'mutation_commit',
+						mutationNumber: (change.row as any as TlaUserMutationNumber).mutationNumber,
+						userId: (change.row as any as TlaUserMutationNumber).userId,
+					}
+				: {
+						type: 'row_update',
+						row: change.row,
+						table: table as ZTable,
+						event: command,
+					}
+
+		// Add the change for all topics at once to avoid duplicates
+		this.addChangeForTopics(change.topics, replicationChange)
 	}
 
 	/** Add a subscription edge to the database */

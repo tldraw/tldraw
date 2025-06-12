@@ -2,96 +2,248 @@ import { unlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
-import { ZReplicationChange } from '../UserDataSyncer'
 import {
 	CatchUpChangeCollator,
 	LiveChangeCollator,
 	Subscription,
+	getEffects,
 	getSubscriptionChanges,
 	parseSubscriptions,
 	serializeSubscriptions,
 } from './ChangeCollator'
-import { MockLogger, SqlStorageAdapter } from './__tests__/test-helpers'
 import { migrate } from './replicatorMigrations'
-import { Topic } from './replicatorTypes'
-
-// Helper functions for creating mock objects with defaults
-function createMockFileChange(
-	fileId: string,
-	ownerId: string,
-	overrides: Partial<{
-		name: string
-		shared: boolean
-		sharedLinkType: string
-		published: boolean
-		event: 'insert' | 'update' | 'delete'
-	}> = {}
-): ZReplicationChange {
-	return {
-		type: 'row_update',
-		table: 'file',
-		event: overrides.event || 'update',
-		row: {
-			id: fileId,
-			name: overrides.name || `Test Document ${fileId}`,
-			ownerId,
-			ownerName: `Owner ${ownerId}`,
-			ownerAvatar: '',
-			thumbnail: '',
-			shared: overrides.shared || false,
-			sharedLinkType: overrides.sharedLinkType || 'private',
-			published: overrides.published || false,
-			lastPublished: 0,
-			publishedSlug: '',
-			createdAt: Date.now(),
-			updatedAt: Date.now(),
-			isEmpty: false,
-			isDeleted: false,
-			createSource: 'test',
-		},
-	}
-}
-
-function createMockUserChange(
-	userId: string,
-	overrides: Partial<{
-		name: string
-		email: string
-		event: 'insert' | 'update' | 'delete'
-	}> = {}
-): ZReplicationChange {
-	return {
-		type: 'row_update',
-		table: 'user',
-		event: overrides.event || 'update',
-		row: {
-			id: userId,
-			name: overrides.name || userId.charAt(0).toUpperCase() + userId.slice(1),
-			email: overrides.email || `${userId}@example.com`,
-			avatar: '',
-			color: '#000000',
-			exportFormat: 'svg',
-			exportTheme: 'light',
-			exportBackground: true,
-			exportPadding: true,
-			createdAt: Date.now(),
-			updatedAt: Date.now(),
-			flags: '',
-			locale: 'en',
-			animationSpeed: 1.0,
-			edgeScrollSpeed: 1.0,
-			colorScheme: 'auto',
-			isSnapMode: false,
-			isWrapMode: false,
-			isDynamicSizeMode: false,
-			isPasteAtCursorMode: false,
-			allowAnalyticsCookie: false,
-		},
-	}
-}
+import { ChangeV2, Topic } from './replicatorTypes'
+import {
+	MockLogger,
+	SqlStorageAdapter,
+	createMockFileChange,
+	createMockFileChangeV2,
+	createMockUser,
+	createMockUserChange,
+} from './test-helpers'
 
 // Mock SQL adapter class for testing
 describe('ChangeCollator', () => {
+	describe('getEffects', () => {
+		it('should return null for non-file table changes', () => {
+			const userChange: ChangeV2 = {
+				event: {
+					command: 'update',
+					table: 'user',
+				},
+				row: createMockUser('alice'),
+				topics: ['user:alice'],
+			}
+
+			const result = getEffects(userChange)
+			expect(result).toBeNull()
+		})
+
+		it('should return null for file_state table changes', () => {
+			const fileStateChange: ChangeV2 = {
+				event: {
+					command: 'insert',
+					table: 'file_state',
+				},
+				row: {
+					userId: 'alice',
+					fileId: 'doc1',
+					firstVisitAt: null,
+					lastEditAt: null,
+					lastSessionState: null,
+					lastVisitAt: null,
+					isFileOwner: false,
+					isPinned: null,
+				},
+				topics: ['user:alice'],
+			}
+
+			const result = getEffects(fileStateChange)
+			expect(result).toBeNull()
+		})
+
+		it('should return notify_file_durable_object effect for file insert', () => {
+			const change = createMockFileChangeV2('doc1', 'alice', 'insert', {
+				published: false,
+			})
+
+			const result = getEffects(change)
+
+			expect(result).toHaveLength(1)
+			expect(result![0]).toEqual({
+				type: 'notify_file_durable_object',
+				command: 'insert',
+				file: change.row,
+			})
+		})
+
+		it('should return notify_file_durable_object effect for file delete', () => {
+			const change = createMockFileChangeV2('doc1', 'alice', 'delete', {
+				published: false,
+			})
+
+			const result = getEffects(change)
+
+			expect(result).toHaveLength(1)
+			expect(result![0]).toEqual({
+				type: 'notify_file_durable_object',
+				command: 'delete',
+				file: change.row,
+			})
+		})
+
+		it('should return only notify_file_durable_object effect for file update with no publication changes', () => {
+			const previous = {
+				id: 'doc1',
+				ownerId: 'alice',
+				published: false,
+				lastPublished: 100,
+				name: 'Old Name',
+			}
+
+			const change = createMockFileChangeV2('doc1', 'alice', 'update', {
+				published: false,
+				lastPublished: 100,
+				name: 'New Name',
+				previous,
+			})
+
+			const result = getEffects(change)
+
+			expect(result).toHaveLength(1)
+			expect(result![0]).toEqual({
+				type: 'notify_file_durable_object',
+				command: 'update',
+				file: change.row,
+			})
+		})
+
+		it('should return publish effect when file becomes published', () => {
+			const previous = {
+				id: 'doc1',
+				ownerId: 'alice',
+				published: false,
+				lastPublished: 100,
+			}
+
+			const change = createMockFileChangeV2('doc1', 'alice', 'update', {
+				published: true,
+				lastPublished: 200,
+				previous,
+			})
+
+			const result = getEffects(change)
+
+			expect(result).toHaveLength(2)
+			expect(result![0]).toEqual({
+				type: 'notify_file_durable_object',
+				command: 'update',
+				file: change.row,
+			})
+			expect(result![1]).toEqual({
+				type: 'publish',
+				file: change.row,
+			})
+		})
+
+		it('should return unpublish effect when file becomes unpublished', () => {
+			const previous = {
+				id: 'doc1',
+				ownerId: 'alice',
+				published: true,
+				lastPublished: 100,
+			}
+
+			const change = createMockFileChangeV2('doc1', 'alice', 'update', {
+				published: false,
+				lastPublished: 100,
+				previous,
+			})
+
+			const result = getEffects(change)
+
+			expect(result).toHaveLength(2)
+			expect(result![0]).toEqual({
+				type: 'notify_file_durable_object',
+				command: 'update',
+				file: change.row,
+			})
+			expect(result![1]).toEqual({
+				type: 'unpublish',
+				file: change.row,
+			})
+		})
+
+		it('should return publish effect when file is republished with newer timestamp', () => {
+			const previous = {
+				id: 'doc1',
+				ownerId: 'alice',
+				published: true,
+				lastPublished: 100,
+			}
+
+			const change = createMockFileChangeV2('doc1', 'alice', 'update', {
+				published: true,
+				lastPublished: 200,
+				previous,
+			})
+
+			const result = getEffects(change)
+
+			expect(result).toHaveLength(2)
+			expect(result![0]).toEqual({
+				type: 'notify_file_durable_object',
+				command: 'update',
+				file: change.row,
+			})
+			expect(result![1]).toEqual({
+				type: 'publish',
+				file: change.row,
+			})
+		})
+
+		it('should not return publish effect when file remains published with same timestamp', () => {
+			const previous = {
+				id: 'doc1',
+				ownerId: 'alice',
+				published: true,
+				lastPublished: 100,
+			}
+
+			const change = createMockFileChangeV2('doc1', 'alice', 'update', {
+				published: true,
+				lastPublished: 100,
+				previous,
+			})
+
+			const result = getEffects(change)
+
+			expect(result).toHaveLength(1)
+			expect(result![0]).toEqual({
+				type: 'notify_file_durable_object',
+				command: 'update',
+				file: change.row,
+			})
+		})
+
+		it('should handle edge case where previous is undefined for non-update commands', () => {
+			const change = createMockFileChangeV2('doc1', 'alice', 'insert', {
+				published: true,
+				lastPublished: 100,
+			})
+
+			// Even though file is published, no previous means no publish effect for inserts
+			const result = getEffects(change)
+
+			expect(result).toHaveLength(1)
+			expect(result![0]).toEqual({
+				type: 'notify_file_durable_object',
+				command: 'insert',
+				file: change.row,
+			})
+		})
+	})
+
 	describe('serializeSubscriptions', () => {
 		it('should serialize empty array to null', () => {
 			expect(serializeSubscriptions([])).toBe(null)
@@ -438,6 +590,91 @@ describe('ChangeCollator', () => {
 
 				expect(collator.changes.size).toBe(0)
 			})
+
+			it('should collect effects for file changes', () => {
+				const change = createMockFileChangeV2('doc1', 'owner1', 'update', {
+					published: true,
+					lastPublished: 200,
+					previous: {
+						id: 'doc1',
+						ownerId: 'owner1',
+						published: false,
+						lastPublished: 100,
+					},
+				})
+
+				collator.handleEvent(change)
+
+				expect(collator.effects).toHaveLength(2)
+				expect(collator.effects[0]).toEqual({
+					type: 'notify_file_durable_object',
+					command: 'update',
+					file: change.row,
+				})
+				expect(collator.effects[1]).toEqual({
+					type: 'publish',
+					file: change.row,
+				})
+			})
+
+			it('should not collect effects for non-file changes', () => {
+				const userChange: ChangeV2 = {
+					event: {
+						command: 'update',
+						table: 'user',
+					},
+					row: createMockUser('alice'),
+					topics: ['user:alice'],
+				}
+
+				collator.handleEvent(userChange)
+
+				expect(collator.effects).toHaveLength(0)
+				expect(collator.changes.get('alice')).toHaveLength(1)
+			})
+
+			it('should handle user_mutation_number table with mutation_commit type', () => {
+				const mutationChange: ChangeV2 = {
+					event: {
+						command: 'update',
+						table: 'user_mutation_number',
+					},
+					row: {
+						userId: 'alice',
+						mutationNumber: 42,
+					} as any,
+					topics: ['user:alice'],
+				}
+
+				collator.handleEvent(mutationChange)
+
+				expect(collator.changes.get('alice')).toHaveLength(1)
+				expect(collator.changes.get('alice')![0]).toEqual({
+					type: 'mutation_commit',
+					mutationNumber: 42,
+					userId: 'alice',
+				})
+			})
+
+			it('should handle effects when getEffects returns null', () => {
+				const userChange: ChangeV2 = {
+					event: {
+						command: 'update',
+						table: 'user',
+					},
+					row: createMockUser('alice'),
+					topics: ['user:alice'],
+				}
+
+				const initialEffectsLength = collator.effects.length
+
+				collator.handleEvent(userChange)
+
+				// Effects should not change since getEffects returns null for user changes
+				expect(collator.effects).toHaveLength(initialEffectsLength)
+				// But the change should still be processed
+				expect(collator.changes.get('alice')).toHaveLength(1)
+			})
 		})
 
 		describe('CatchUpChangeCollator', () => {
@@ -649,6 +886,45 @@ describe('ChangeCollator', () => {
 				expect(collator.userSubscriptions).toEqual(initialState.userSubscriptions)
 				expect(collator.topicGraph.size).toBe(initialState.topicGraphSize)
 				expect(collator.hasListenerForTopics(['file:doc1'])).toBe(true) // Alice still subscribed
+			})
+
+			it('should not collect effects during catch-up', () => {
+				const change = createMockFileChangeV2('doc1', 'alice', 'update', {
+					published: true,
+					lastPublished: 200,
+					previous: {
+						id: 'doc1',
+						ownerId: 'alice',
+						published: false,
+						lastPublished: 100,
+					},
+				})
+
+				collator.handleEvent(change)
+
+				// CatchUpChangeCollator should not collect effects during catch-up
+				expect(collator.effects).toHaveLength(0)
+				// But it should still collect the change itself
+				expect(collator._changes).toHaveLength(1)
+			})
+
+			it('should still process changes normally during catch-up', () => {
+				const change = createMockFileChangeV2('doc1', 'alice', 'insert')
+
+				collator.handleEvent(change)
+
+				// Should collect the change but not the effects
+				expect(collator._changes).toHaveLength(1)
+				expect(collator.effects).toHaveLength(0)
+			})
+
+			it('should return early when user has no subscription to topics', () => {
+				const change = createMockFileChangeV2('unsubscribed-file', 'other-owner', 'update')
+
+				collator.handleEvent(change)
+
+				// Should not collect any changes since alice is not subscribed to this file
+				expect(collator._changes).toHaveLength(0)
 			})
 		})
 	})

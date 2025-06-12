@@ -1,4 +1,4 @@
-import { DB, TlaFile, TlaRow, TlaUserMutationNumber, ZTable } from '@tldraw/dotcom-shared'
+import { DB, TlaFile } from '@tldraw/dotcom-shared'
 import {
 	ExecutionQueue,
 	assert,
@@ -15,22 +15,20 @@ import { Kysely, sql } from 'kysely'
 
 import { LogicalReplicationService, Wal2Json, Wal2JsonPlugin } from 'pg-logical-replication'
 import { Logger } from './Logger'
-import { ZReplicationChange, ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
+import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import {
-	CatchUpChangeCollator,
-	ChangeCollator,
 	LiveChangeCollator,
 	buildTopicsString,
 	getSubscriptionChanges,
 	getTopics,
-	parseSubscriptions,
 	serializeSubscriptions,
 } from './replicator/ChangeCollator'
+import { getResumeType } from './replicator/getResumeType'
 import { pruneTopicSubscriptionsSql } from './replicator/pruneTopicSubscriptions'
 import { migrate } from './replicator/replicatorMigrations'
-import { ChangeV2, ReplicationEvent, Topic, relevantTables } from './replicator/replicatorTypes'
+import { ChangeV2, ReplicationEvent, relevantTables } from './replicator/replicatorTypes'
 import {
 	Analytics,
 	Environment,
@@ -51,17 +49,6 @@ const PRUNE_INTERVAL = 10 * ONE_MINUTE
 const MAX_HISTORY_ROWS = 20_000
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
-
-type Row =
-	| TlaRow
-	| {
-			bootId: string
-			userId: string
-	  }
-	| {
-			mutationNumber: number
-			userId: string
-	  }
 
 type BootState =
 	| {
@@ -395,13 +382,41 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				}
 
 				for (const change of changes) {
-					this.handleEvent(collator, change)
+					collator.handleEvent(change)
 				}
 
 				// handle remove ops last so that we get deletions/updates for dying topics
 				if (removedSubscriptions) {
 					collator.removeSubscriptions(removedSubscriptions)
 				}
+
+				collator.effects.forEach((effect) => {
+					switch (effect.type) {
+						case 'publish':
+							return this.publishSnapshot(effect.file)
+						case 'unpublish':
+							return this.unpublishSnapshot(effect.file)
+						case 'notify_file_durable_object':
+							switch (effect.command) {
+								case 'insert':
+									return getRoomDurableObject(this.env, effect.file.id).appFileRecordCreated(
+										effect.file
+									)
+								case 'update':
+									return getRoomDurableObject(this.env, effect.file.id).appFileRecordDidUpdate(
+										effect.file
+									)
+								case 'delete':
+									return getRoomDurableObject(this.env, effect.file.id).appFileRecordDidDelete(
+										effect.file
+									)
+								default:
+									exhaustiveSwitchError(effect.command)
+							}
+						default:
+							exhaustiveSwitchError(effect)
+					}
+				})
 
 				for (const [userId, changes] of collator.changes) {
 					this._messageUser(userId, { type: 'changes', changes, lsn })
@@ -524,66 +539,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		5000
 	)
 
-	private handleEvent(collator: ChangeCollator, change: ChangeV2) {
-		this.log.debug('handleEvent', change)
-		// ignore events received after disconnecting, if that can even happen
-		if (this.state.type !== 'connected') return
-
-		// we update subscriptions during both normal operation and catch up
-		const { command, table } = change.event
-
-		if (!collator.isCatchUp && table === 'file') {
-			this.handleFileEffects(change.row, change.previous, change.event)
-		}
-
-		// Check if any of the topics have listeners
-		const hasAnyListener = collator.hasListenerForTopics(change.topics)
-		if (!hasAnyListener) {
-			return
-		}
-
-		const replicationChange: ZReplicationChange =
-			table === 'user_mutation_number'
-				? {
-						type: 'mutation_commit',
-						mutationNumber: (change.row as any as TlaUserMutationNumber).mutationNumber,
-						userId: (change.row as any as TlaUserMutationNumber).userId,
-					}
-				: {
-						type: 'row_update',
-						row: change.row,
-						table: table as ZTable,
-						event: command,
-					}
-
-		// Add the change for all topics at once to avoid duplicates
-		collator.addChangeForTopics(change.topics, replicationChange)
-	}
-
-	private handleFileEffects(row: Row | null, previous: Row | undefined, event: ReplicationEvent) {
-		assert(row && 'id' in row && 'ownerId' in row, 'row id is required')
-		// if the file state was deleted before the file, we might not have any impacted users
-		if (event.command === 'delete') {
-			getRoomDurableObject(this.env, row.id).appFileRecordDidDelete(row)
-		} else if (event.command === 'update') {
-			assert('ownerId' in row, 'ownerId is required when updating file')
-			getRoomDurableObject(this.env, row.id).appFileRecordDidUpdate(row)
-			if (previous) {
-				const prevFile = previous as TlaFile
-				if (row.published && !(prevFile as TlaFile).published) {
-					this.publishSnapshot(row)
-				} else if (!row.published && (prevFile as TlaFile).published) {
-					this.unpublishSnapshot(row)
-				} else if (row.published && row.lastPublished > prevFile.lastPublished) {
-					this.publishSnapshot(row)
-				}
-			}
-		} else if (event.command === 'insert') {
-			assert('ownerId' in row, 'ownerId is required when inserting file')
-			getRoomDurableObject(this.env, row.id).appFileRecordCreated(row)
-		}
-	}
-
 	private userIsActive(userId: string) {
 		return this.sqlite.exec(`SELECT * FROM active_user WHERE id = ?`, userId).toArray().length > 0
 	}
@@ -642,89 +597,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	private getResumeType(
-		lsn: string,
-		userId: string
-	): { type: 'done'; messages?: ZReplicationEventWithoutSequenceInfo[] } | { type: 'reboot' } {
-		const currentLsn = assertExists(this.getCurrentLsn())
-
-		if (lsn >= currentLsn) {
-			this.log.debug('getResumeType: resuming from current lsn', lsn, '>=', currentLsn)
-			// targetLsn is now or in the future, we can register them and deliver events
-			// without needing to check the history
-			return { type: 'done' }
-		}
-		const earliestLsn = this.sqlite
-			.exec<{ lsn: string }>('SELECT lsn FROM history ORDER BY rowid asc LIMIT 1')
-			.toArray()[0]?.lsn
-
-		if (!earliestLsn || lsn < earliestLsn) {
-			this.log.debug('getResumeType: not enough history', lsn, '<', earliestLsn)
-			// not enough history, we can't resume
-			return { type: 'reboot' }
-		}
-
-		const history = this.sqlite.exec<{
-			topics: string
-			lsn: string
-			rowid: number
-			newSubscriptions: string | null
-			removedSubscriptions: string | null
-		}>(
-			`
-			SELECT rowid, lsn, topics, newSubscriptions, removedSubscriptions
-			FROM history
-			WHERE lsn > ?
-			ORDER BY rowid ASC
-		`,
-			lsn
-		)
-
-		const messages: ZReplicationEventWithoutSequenceInfo[] = []
-		const collator = new CatchUpChangeCollator(this.sqlite, userId)
-		for (const { rowid, lsn, newSubscriptions, removedSubscriptions, topics } of history) {
-			// Create a fresh collator for this LSN with current subscription state
-
-			// Apply subscription operations first to update the user's subscription state
-
-			if (newSubscriptions) {
-				collator.addSubscriptions(parseSubscriptions(newSubscriptions))
-			}
-
-			// Check if any topics in this entry are relevant to the user's current subscriptions
-			const entryTopics = topics.split(',').filter(Boolean) as Topic[]
-			const hasRelevantTopic = collator.hasListenerForTopics(entryTopics)
-
-			if (hasRelevantTopic) {
-				const changesJson = this.sqlite
-					.exec<{ changesJson: string }>(`SELECT changesJson FROM history WHERE rowid = ?`, rowid)
-					.one().changesJson
-				// Only parse changes JSON if this entry is relevant
-				const historyChanges = JSON.parse(changesJson) as ChangeV2[]
-				for (const change of historyChanges) {
-					this.handleEvent(collator, change)
-				}
-			}
-
-			if (removedSubscriptions) {
-				collator.removeSubscriptions(parseSubscriptions(removedSubscriptions))
-			}
-
-			if (collator._changes.length) {
-				messages.push({ type: 'changes', changes: collator._changes.slice(), lsn })
-				collator._changes.length = 0
-			}
-		}
-
-		if (messages.length === 0) {
-			this.log.debug('getResumeType: no history to replay, all good', lsn)
-			return { type: 'done' }
-		}
-
-		this.log.debug('getResumeType: resuming', messages.length, messages)
-		return { type: 'done', messages }
-	}
-
 	async registerUser({
 		userId,
 		lsn,
@@ -771,7 +643,13 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			this.reportActiveUsers()
 			this.log.debug('inserted active user')
 
-			const resume = this.getResumeType(lsn, userId)
+			const resume = getResumeType({
+				sqlite: this.sqlite,
+				log: this.log,
+				currentLsn: assertExists(this.getCurrentLsn()),
+				lsn,
+				userId,
+			})
 			if (resume.type === 'reboot') {
 				return { type: 'reboot' }
 			}

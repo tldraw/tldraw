@@ -2,9 +2,9 @@ import { unlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
-import { MockLogger, SqlStorageAdapter } from './__tests__/test-helpers'
 import { pruneTopicSubscriptionsSql } from './pruneTopicSubscriptions'
 import { migrate } from './replicatorMigrations'
+import { MockLogger, SqlStorageAdapter } from './test-helpers'
 
 describe('pruneTopicSubscriptions', () => {
 	let db: DatabaseSync
