@@ -3,6 +3,7 @@ import { assert, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
 import { createPostgresConnectionPool } from './postgres'
+import { getFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
 import { getClerkClient, requireAuth } from './utils/tla/getAuth'
@@ -76,6 +77,28 @@ export const adminRoutes = createRouter<Environment>()
 			}
 		}
 		return await hardDeleteAppFile({ pg, file, env })
+	})
+	.get('/app/admin/download-tldr/:fileSlug', async (res, env) => {
+		const fileSlug = res.params.fileSlug
+		assert(typeof fileSlug === 'string', 'fileSlug is required')
+
+		const snapshot = await getFileSnapshot(env, fileSlug)
+		if (!snapshot) {
+			throw new StatusError(404, 'File not found')
+		}
+
+		const tldrFile = {
+			tldrawFileFormatVersion: 1,
+			schema: snapshot.schema,
+			records: Object.values(snapshot.documents.map((doc: { state: { id: string } }) => doc.state)),
+		}
+
+		return new Response(JSON.stringify(tldrFile, null, 2), {
+			headers: {
+				'Content-Type': 'application/json',
+				'Content-Disposition': `attachment; filename="${fileSlug}.tldr"`,
+			},
+		})
 	})
 
 async function maybeHardDeleteLegacyFile({ id, env }: { id: string; env: Environment }) {
