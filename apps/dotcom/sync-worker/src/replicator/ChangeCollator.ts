@@ -6,6 +6,7 @@ import {
 	TlaUserMutationNumber,
 	ZTable,
 } from '@tldraw/dotcom-shared'
+import { exhaustiveSwitchError } from '@tldraw/utils'
 import { DurableObject } from 'cloudflare:workers'
 import { ZReplicationChange } from '../UserDataSyncer'
 import { Subscription } from './Subscription'
@@ -47,9 +48,8 @@ export function getTopics(row: TlaRow, event: ReplicationEvent): Topic[] {
 		case 'user_mutation_number':
 			return [`user:${(row as any as TlaUserMutationNumber).userId}`]
 		default: {
-			// assert never
-			const _x: never = event.table
-			return [] as any
+			exhaustiveSwitchError(event.table)
+			return [] // just in case
 		}
 	}
 }
