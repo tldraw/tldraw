@@ -103,7 +103,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		).map((p) => p.point)
 
 		// A closed draw stroke
-		if (shape.props.isClosed) {
+		if (shape.props.isClosed && strokePoints.length > 2) {
 			return new Polygon2d({
 				points: strokePoints,
 				isFilled: shape.props.fill !== 'none',
