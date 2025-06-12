@@ -341,7 +341,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				this.postgresUpdates++
 				this.lastPostgresMessageTime = Date.now()
 				this.reportPostgresUpdate()
-				const collator = new LiveChangeCollator(this.sqlite)
 
 				const changes: ChangeV2[] = []
 
@@ -366,61 +365,65 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 				this.log.debug('data', lsn, { changes, newSubscriptions, removedSubscriptions })
 
-				this.sqlite.exec(
-					'INSERT INTO history (lsn, changesJson, newSubscriptions, removedSubscriptions, topics, timestamp) VALUES (?, ?, ?, ?, ?, ?)',
-					lsn,
-					JSON.stringify(changes),
-					newSubscriptions && serializeSubscriptions(newSubscriptions),
-					removedSubscriptions && serializeSubscriptions(removedSubscriptions),
-					buildTopicsString(changes),
-					Date.now()
-				)
+				this.ctx.storage.transactionSync(() => {
+					this.sqlite.exec(
+						'INSERT INTO history (lsn, changesJson, newSubscriptions, removedSubscriptions, topics, timestamp) VALUES (?, ?, ?, ?, ?, ?)',
+						lsn,
+						JSON.stringify(changes),
+						newSubscriptions && serializeSubscriptions(newSubscriptions),
+						removedSubscriptions && serializeSubscriptions(removedSubscriptions),
+						buildTopicsString(changes),
+						Date.now()
+					)
 
-				// handle add ops first so that we get insertions for new topics
-				if (newSubscriptions) {
-					collator.addSubscriptions(newSubscriptions)
-				}
+					const collator = new LiveChangeCollator(this.sqlite)
 
-				for (const change of changes) {
-					collator.handleEvent(change)
-				}
+					// handle add ops first so that we get insertions for new topics
+					if (newSubscriptions) {
+						collator.addSubscriptions(newSubscriptions)
+					}
 
-				// handle remove ops last so that we get deletions/updates for dying topics
-				if (removedSubscriptions) {
-					collator.removeSubscriptions(removedSubscriptions)
-				}
+					for (const change of changes) {
+						collator.handleEvent(change)
+					}
 
-				collator.effects.forEach((effect) => {
-					switch (effect.type) {
-						case 'publish':
-							return this.publishSnapshot(effect.file)
-						case 'unpublish':
-							return this.unpublishSnapshot(effect.file)
-						case 'notify_file_durable_object':
-							switch (effect.command) {
-								case 'insert':
-									return getRoomDurableObject(this.env, effect.file.id).appFileRecordCreated(
-										effect.file
-									)
-								case 'update':
-									return getRoomDurableObject(this.env, effect.file.id).appFileRecordDidUpdate(
-										effect.file
-									)
-								case 'delete':
-									return getRoomDurableObject(this.env, effect.file.id).appFileRecordDidDelete(
-										effect.file
-									)
-								default:
-									exhaustiveSwitchError(effect.command)
-							}
-						default:
-							exhaustiveSwitchError(effect)
+					// handle remove ops last so that we get deletions/updates for dying topics
+					if (removedSubscriptions) {
+						collator.removeSubscriptions(removedSubscriptions)
+					}
+
+					collator.effects.forEach((effect) => {
+						switch (effect.type) {
+							case 'publish':
+								return this.publishSnapshot(effect.file)
+							case 'unpublish':
+								return this.unpublishSnapshot(effect.file)
+							case 'notify_file_durable_object':
+								switch (effect.command) {
+									case 'insert':
+										return getRoomDurableObject(this.env, effect.file.id).appFileRecordCreated(
+											effect.file
+										)
+									case 'update':
+										return getRoomDurableObject(this.env, effect.file.id).appFileRecordDidUpdate(
+											effect.file
+										)
+									case 'delete':
+										return getRoomDurableObject(this.env, effect.file.id).appFileRecordDidDelete(
+											effect.file
+										)
+									default:
+										exhaustiveSwitchError(effect.command)
+								}
+							default:
+								exhaustiveSwitchError(effect)
+						}
+					})
+
+					for (const [userId, changes] of collator.changes) {
+						this._messageUser(userId, { type: 'changes', changes, lsn })
 					}
 				})
-
-				for (const [userId, changes] of collator.changes) {
-					this._messageUser(userId, { type: 'changes', changes, lsn })
-				}
 				this.commitLsn(lsn)
 			} catch (e) {
 				this.captureException(e)
