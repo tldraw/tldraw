@@ -95,13 +95,16 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			// Convert the eased slider value back to the actual zoom value
 			const sliderPercent = value / 100
 
-			// Apply inverse easing (square) and re-scale by maxZoom to obtain the real zoom
-			// value that we use elsewhere in the cropping helpers. This is the mathematical
-			// inverse of the `easeZoom` function used for the slider display value:
-			//   display = 100 * sqrt(zoom / maxZoom)
-			// Therefore:
-			//   zoom = (display/100)^2 * maxZoom
-			const zoom = sliderPercent * sliderPercent * (maxZoom ?? 1)
+			// Convert the slider position back into the "zoom" value expected by
+			// getCroppedImageDataWhenZooming.
+			// 1. Undo the easing: z_out = (sliderPercent)^2 * maxZoom
+			// 2. Translate z_out into the function's input domain. The helper computes
+			//    the *resulting* zoom (z_out) using:
+			//        z_out = 2 * z_in / (1 + 2 * z_in)
+			//    Solving for z_in gives:
+			//        z_in = z_out / (2 * (1 - z_out))
+			const zOut = sliderPercent * sliderPercent * (maxZoom ?? 1)
+			const zoom = zOut >= 1 ? 1 : zOut / (2 * (1 - zOut))
 			const imageShape = editor.getShape<TLImageShape>(imageShapeId)
 			if (!imageShape) return
 
