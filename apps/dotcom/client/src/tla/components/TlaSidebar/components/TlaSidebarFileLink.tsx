@@ -84,7 +84,7 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 					handleRenameAction={handleRenameAction}
 				/>
 			</_ContextMenu.Trigger>
-			<_ContextMenu.Content className="tlui-menu scrollable">
+			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
 				{/* Don't show the context menu on mobile */}
 				{!isMobile && (
 					<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
