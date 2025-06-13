@@ -13,6 +13,8 @@ import {
 import 'tldraw/tldraw.css'
 import _jsonSnapshot from './snapshot.json'
 
+// There's a guide at the bottom of this file!
+
 const jsonSnapshot = _jsonSnapshot as any as TLEditorSnapshot
 
 const SIZES = [
@@ -21,8 +23,6 @@ const SIZES = [
 	{ value: 'l', icon: 'size-large' },
 	{ value: 'xl', icon: 'size-extra-large' },
 ] as const
-
-// There's a guide at the bottom of this file!
 
 // [1]
 const ContextualToolbarComponent = track(() => {

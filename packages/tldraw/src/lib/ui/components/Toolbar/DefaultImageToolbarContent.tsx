@@ -4,13 +4,13 @@ import {
 	Editor,
 	getHashForBuffer,
 	HALF_PI,
+	isEqual,
 	modulate,
 	TLImageShape,
 	TLShapePartial,
 	track,
 	useEditor,
 } from '@tldraw/editor'
-import isEqual from 'lodash.isequal'
 import { useCallback, useEffect, useState } from 'react'
 import { getMediaAssetInfoPartial } from '../../../defaultExternalContentHandlers'
 import {
