@@ -36,7 +36,7 @@ function ContextualToolbarInner({
 	children?: React.ReactNode
 	textEditor: TiptapEditor
 }) {
-	const { isEditingLink, onEditLinkStart, onEditLinkComplete } = useEditingLinkBehavior(textEditor)
+	const { isEditingLink, onEditLinkStart, onEditLinkClose } = useEditingLinkBehavior(textEditor)
 	const [currentSelection, setCurrentSelection] = useState<Range | null>(null)
 	const previousSelectionBounds = useRef<Box | undefined>()
 	const isMousingDown = useIsMousingDownOnTextEditor(textEditor)
@@ -91,7 +91,7 @@ function ContextualToolbarInner({
 				<LinkEditor
 					textEditor={textEditor}
 					value={textEditor.isActive('link') ? textEditor.getAttributes('link').href : ''}
-					onComplete={onEditLinkComplete}
+					onClose={onEditLinkClose}
 				/>
 			) : (
 				<DefaultRichTextToolbarContent textEditor={textEditor} onEditLinkStart={onEditLinkStart} />
@@ -160,14 +160,14 @@ function useEditingLinkBehavior(textEditor?: TiptapEditor) {
 		setIsEditingLink(false)
 	}, [])
 
-	const onEditLinkComplete = useCallback(() => {
+	const onEditLinkClose = useCallback(() => {
 		setIsEditingLink(false)
 		if (!textEditor) return
 		const from = textEditor.state.selection.from
 		textEditor.commands.setTextSelection({ from, to: from })
 	}, [textEditor])
 
-	return { isEditingLink, onEditLinkStart, onEditLinkComplete, onEditLinkCancel }
+	return { isEditingLink, onEditLinkStart, onEditLinkClose, onEditLinkCancel }
 }
 
 function useIsMousingDownOnTextEditor(textEditor: TiptapEditor) {

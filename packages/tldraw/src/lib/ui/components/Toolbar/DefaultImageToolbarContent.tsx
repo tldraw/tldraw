@@ -1,18 +1,14 @@
 import {
 	approximately,
-	AssetRecordType,
-	Editor,
-	getHashForBuffer,
-	HALF_PI,
 	isEqual,
 	modulate,
 	TLImageShape,
 	TLShapePartial,
 	track,
 	useEditor,
+	useValue,
 } from '@tldraw/editor'
 import { useCallback, useEffect, useState } from 'react'
-import { getMediaAssetInfoPartial } from '../../../defaultExternalContentHandlers'
 import {
 	ASPECT_RATIO_OPTION,
 	ASPECT_RATIO_OPTIONS,
@@ -22,8 +18,8 @@ import {
 	getDefaultCrop,
 	MAX_ZOOM,
 } from '../../../shapes/shared/crop'
+import { useActions } from '../../context/actions'
 import { useUiEvents } from '../../context/events'
-import { useInsertMedia } from '../../hooks/useInsertMedia'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
@@ -38,7 +34,7 @@ import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
 
 /** @public */
 export interface DefaultImageToolbarContentProps {
-	imageShape: TLImageShape
+	imageShapeId: TLImageShape['id']
 	isManipulating: boolean
 	onEditAltTextStart(): void
 	onManipulatingStart(): void
@@ -47,7 +43,7 @@ export interface DefaultImageToolbarContentProps {
 
 /** @public @react */
 export const DefaultImageToolbarContent = track(function DefaultImageToolbarContent({
-	imageShape,
+	imageShapeId,
 	isManipulating,
 	onEditAltTextStart,
 	onManipulatingStart,
@@ -57,12 +53,18 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 	const source = 'image-menu'
-	const [maxZoom, setMaxZoom] = useState<number | undefined>(undefined)
 
-	const crop = imageShape.props.crop
+	const crop = useValue('crop', () => editor.getShape<TLImageShape>(imageShapeId)!.props.crop, [
+		editor,
+		imageShapeId,
+	])
 	const zoom = crop
 		? Math.min(1 - (crop.bottomRight.x - crop.topLeft.x), 1 - (crop.bottomRight.y - crop.topLeft.y))
 		: 0
+	const [maxZoom, setMaxZoom] = useState<number | undefined>(
+		crop ? Math.max(zoom, 1 - 1 / MAX_ZOOM) : MAX_ZOOM
+	)
+	const actions = useActions()
 
 	// So, we set a maxZoom here in case there's been a manual crop applied.
 	// Typically, you can zoom 3x into the image size (MAX_ZOOM's value).
@@ -70,18 +72,8 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	// value on the zoom slider (otherwise you could zoom into infinity).
 	// This balances usage of the zoom slider with manual cropping.
 	useEffect(() => {
-		if (isManipulating && maxZoom === undefined) {
-			setMaxZoom(Math.max(zoom, 1 - 1 / MAX_ZOOM))
-		} else if (!isManipulating) {
-			setMaxZoom(undefined)
-		}
-	}, [isManipulating, zoom, maxZoom])
-
-	const replaceCallback = useCallback(
-		(editor: Editor, files: File[]) => replaceImage(editor, files, imageShape),
-		[imageShape]
-	)
-	const insertMedia = useInsertMedia({ callbackFn: replaceCallback, allowMultiple: false })
+		setMaxZoom(crop ? Math.max(zoom, 1 - 1 / MAX_ZOOM) : MAX_ZOOM)
+	}, [crop, zoom, maxZoom])
 
 	const onHistoryMark = useCallback((id: string) => editor.markHistoryStoppingPoint(id), [editor])
 
@@ -103,9 +95,15 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			// Convert the eased slider value back to the actual zoom value
 			const sliderPercent = value / 100
 
-			// Apply inverse easing to get zoom in range [0, 1]
-			// No need to multiply by maxZoom since getCroppedImageDataWhenZooming handles that
-			const zoom = sliderPercent * sliderPercent
+			// Apply inverse easing (square) and re-scale by maxZoom to obtain the real zoom
+			// value that we use elsewhere in the cropping helpers. This is the mathematical
+			// inverse of the `easeZoom` function used for the slider display value:
+			//   display = 100 * sqrt(zoom / maxZoom)
+			// Therefore:
+			//   zoom = (display/100)^2 * maxZoom
+			const zoom = sliderPercent * sliderPercent * (maxZoom ?? 1)
+			const imageShape = editor.getShape<TLImageShape>(imageShapeId)
+			if (!imageShape) return
 
 			const change = getCroppedImageDataWhenZooming(zoom, imageShape, maxZoom)
 
@@ -123,17 +121,19 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 
 			trackEvent('set-style', { source: 'image-menu', id: 'zoom', value })
 		},
-		[editor, trackEvent, imageShape, maxZoom]
+		[editor, trackEvent, imageShapeId, maxZoom]
 	)
 
 	const handleAspectRatioChange = (aspectRatio: ASPECT_RATIO_OPTION) => {
+		const imageShape = editor.getShape<TLImageShape>(imageShapeId)
+		if (!imageShape) return
 		editor.setCurrentTool('select.crop.idle')
 		const change = getCroppedImageDataForAspectRatio(aspectRatio, imageShape)
 
 		editor.markHistoryStoppingPoint('aspect ratio')
 		editor.updateShape({
-			id: imageShape.id,
-			type: imageShape.type,
+			id: imageShapeId,
+			type: 'image',
 			x: change.x,
 			y: change.y,
 			props: {
@@ -144,7 +144,19 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 		} as TLShapePartial)
 	}
 
-	const shapeAspectRatio = imageShape.props.w / imageShape.props.h
+	const altText = useValue(
+		'altText',
+		() => editor.getShape<TLImageShape>(imageShapeId)!.props.altText,
+		[editor, imageShapeId]
+	)
+	const shapeAspectRatio = useValue(
+		'shapeAspectRatio',
+		() => {
+			const imageShape = editor.getShape<TLImageShape>(imageShapeId)!
+			return imageShape.props.w / imageShape.props.h
+		},
+		[editor, imageShapeId]
+	)
 	const isOriginalCrop = !crop || isEqual(crop, getDefaultCrop())
 
 	const croppingTools = (
@@ -197,19 +209,6 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			</TldrawUiDropdownMenuRoot>
 			<TldrawUiButton
 				type="icon"
-				title={msg('tool.rotate-cw')}
-				onClick={() => {
-					trackEvent('rotate-cw', { source })
-					editor.markHistoryStoppingPoint('rotate-cw')
-					const offset = imageShape.rotation % (HALF_PI / 2)
-					const dontUseOffset = approximately(offset, 0) || approximately(offset, HALF_PI / 2)
-					editor.rotateShapesBy([imageShape.id], HALF_PI / 2 - (dontUseOffset ? 0 : offset))
-				}}
-			>
-				<TldrawUiButtonIcon small icon="rotate-cw" />
-			</TldrawUiButton>
-			<TldrawUiButton
-				type="icon"
 				onClick={onManipulatingEnd}
 				style={{ borderLeft: '1px solid var(--color-divider)', marginLeft: '2px' }}
 			>
@@ -224,12 +223,9 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 				<TldrawUiButton
 					type="icon"
 					title={msg('tool.replace-media')}
-					onClick={() => {
-						trackEvent('replace-media', { source })
-						insertMedia()
-					}}
+					onClick={() => actions['image-replace'].onSelect('image-toolbar')}
 				>
-					<TldrawUiButtonIcon small icon="tool-media" />
+					<TldrawUiButtonIcon small icon="arrow-cycle" />
 				</TldrawUiButton>
 			)}
 			{!isManipulating && (
@@ -238,52 +234,18 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 				</TldrawUiButton>
 			)}
 			{isManipulating && croppingTools}
-			<TldrawUiButton
-				type="normal"
-				isActive={!!imageShape.props.altText}
-				onClick={() => {
-					trackEvent('alt-text-start', { source })
-					onEditAltTextStart()
-				}}
-			>
-				{msg('tool.image-alt-text')}
-			</TldrawUiButton>
+			{!isManipulating && (
+				<TldrawUiButton
+					type="normal"
+					isActive={!!altText}
+					onClick={() => {
+						trackEvent('alt-text-start', { source })
+						onEditAltTextStart()
+					}}
+				>
+					{msg('tool.image-alt-text')}
+				</TldrawUiButton>
+			)}
 		</>
 	)
 })
-
-const replaceImage = async (editor: Editor, files: File[], shape: TLImageShape) => {
-	const file = files[0]
-	const hash = getHashForBuffer(await file.arrayBuffer())
-	const assetId = AssetRecordType.createId(hash)
-	editor.createTemporaryAssetPreview(assetId, file)
-	const assetInfoPartial = await getMediaAssetInfoPartial(
-		file,
-		assetId,
-		true /* isImage */,
-		false /* isVideo */
-	)
-	editor.createAssets([assetInfoPartial])
-
-	// And update the shape
-	editor.updateShapes<TLImageShape>([
-		{
-			id: shape.id,
-			type: shape.type,
-			props: {
-				assetId: assetId,
-				crop: { topLeft: { x: 0, y: 0 }, bottomRight: { x: 1, y: 1 } },
-				w: assetInfoPartial.props.w,
-				h: assetInfoPartial.props.h,
-			},
-		},
-	])
-
-	const asset = await editor.getAssetForExternalContent({ type: 'file', file, assetId })
-
-	if (!asset) {
-		return
-	}
-
-	editor.updateAssets([{ ...asset, id: assetId }])
-}

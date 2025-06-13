@@ -196,7 +196,7 @@ test.describe('Image toolbar behaviour', () => {
 		if (isMobile) return
 
 		// Click the Alt Text button
-		await page.getByText('Alt Text').click()
+		await page.getByText('Alt').click()
 
 		// Enter some alt text
 		await page.getByTestId('image-toolbar.alt-text-input').fill('A test image for e2e testing')

@@ -89,6 +89,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'align-right': iconsIcon0MergedSvg + '#align-right',
 			'align-top': iconsIcon0MergedSvg + '#align-top',
 			'arrow-arc': iconsIcon0MergedSvg + '#arrow-arc',
+			'arrow-cycle': iconsIcon0MergedSvg + '#arrow-cycle',
 			'arrow-elbow': iconsIcon0MergedSvg + '#arrow-elbow',
 			'arrow-left': iconsIcon0MergedSvg + '#arrow-left',
 			'arrowhead-arrow': iconsIcon0MergedSvg + '#arrowhead-arrow',

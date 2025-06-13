@@ -1921,6 +1921,7 @@
 
 .tlui-contextual-toolbar[data-visible='true'] {
 	opacity: 1;
+	z-index: var(--layer-menus);
 }
 
 .tlui-contextual-toolbar[data-interactive='true'],

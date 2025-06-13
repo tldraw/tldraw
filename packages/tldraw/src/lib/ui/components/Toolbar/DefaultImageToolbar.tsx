@@ -15,16 +15,20 @@ export const DefaultImageToolbar = track(function DefaultImageToolbar({
 	children,
 }: TLUiImageToolbarProps) {
 	const editor = useEditor()
-	const imageShape = useValue(
+	const imageShapeId = useValue(
 		'imageShape',
-		() => (editor.getOnlySelectedShape()?.type === 'image' ? editor.getOnlySelectedShape() : null),
+		() => {
+			const onlySelectedShape = editor.getOnlySelectedShape()
+			if (!onlySelectedShape || onlySelectedShape.type !== 'image') return null
+			return onlySelectedShape.id
+		},
 		[editor]
 	)
 	const showToolbar = editor.isInAny('select.idle', 'select.pointing_shape', 'select.crop')
-	if (!imageShape || !showToolbar) return null
+	if (!imageShapeId || !showToolbar) return null
 
 	return (
-		<ContextualToolbarInner imageShape={imageShape as TLImageShape}>
+		<ContextualToolbarInner key={imageShapeId} imageShapeId={imageShapeId}>
 			{children}
 		</ContextualToolbarInner>
 	)
@@ -32,10 +36,10 @@ export const DefaultImageToolbar = track(function DefaultImageToolbar({
 
 function ContextualToolbarInner({
 	children,
-	imageShape,
+	imageShapeId,
 }: {
 	children?: React.ReactNode
-	imageShape: TLImageShape
+	imageShapeId: TLImageShape['id']
 }) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -50,7 +54,7 @@ function ContextualToolbarInner({
 		() => editor.setCurrentTool('select.crop.idle'),
 		[editor]
 	)
-	const onEditAltTextComplete = useCallback(() => setIsEditingAltText(false), [])
+	const onEditAltTextClose = useCallback(() => setIsEditingAltText(false), [])
 
 	const getSelectionBounds = useCallback(() => {
 		const fullBounds = editor.getSelectionScreenBounds()
@@ -69,14 +73,10 @@ function ContextualToolbarInner({
 			{children ? (
 				children
 			) : isEditingAltText ? (
-				<AltTextEditor
-					imageShape={imageShape}
-					value={imageShape.props.altText}
-					onComplete={onEditAltTextComplete}
-				/>
+				<AltTextEditor shapeId={imageShapeId} onClose={onEditAltTextClose} />
 			) : (
 				<DefaultImageToolbarContent
-					imageShape={imageShape}
+					imageShapeId={imageShapeId}
 					isManipulating={isInCropTool}
 					onEditAltTextStart={handleEditAltTextStart}
 					onManipulatingStart={handleManipulatingStart}
