@@ -77,7 +77,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 			{isOpen && (
 				<_ContextMenu.Portal container={container}>
 					<_ContextMenu.Content
-						className="tlui-menu scrollable"
+						className="tlui-menu tlui-scrollable"
 						data-testid="context-menu"
 						aria-label={msg('context-menu.title')}
 						alignOffset={-4}
