@@ -58,7 +58,7 @@ export function getSubscriptionChanges(changes: Array<{ row: TlaRow; event: Repl
 				}
 				break
 			}
-			case 'user_group': {
+			case 'group_user': {
 				const userGroup = change.row as TlaUserGroup
 				const userTopic: Topic = `user:${userGroup.userId}`
 				const groupTopic: Topic = `group:${userGroup.groupId}`
@@ -69,7 +69,7 @@ export function getSubscriptionChanges(changes: Array<{ row: TlaRow; event: Repl
 				}
 				break
 			}
-			case 'file_group': {
+			case 'group_file': {
 				const fileGroup = change.row as TlaFileGroup
 				const fileTopic: Topic = `file:${fileGroup.fileId}`
 				const groupTopic: Topic = `group:${fileGroup.groupId}`

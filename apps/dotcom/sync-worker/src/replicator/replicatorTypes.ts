@@ -9,9 +9,9 @@ export const relevantTables = stringEnum(
 	'file_state',
 	'user_mutation_number',
 	'group',
-	'user_group',
+	'group_user',
 	'user_presence',
-	'file_group'
+	'group_file'
 )
 
 export interface ReplicationEvent {

@@ -9,6 +9,8 @@ import {
 	MAX_NUMBER_OF_FILES,
 	TlaFile,
 	TlaFileState,
+	TlaFlags,
+	TlaGroup,
 	TlaMutators,
 	TlaSchema,
 	TlaUser,
@@ -85,6 +87,7 @@ export class TldrawApp {
 
 	private readonly user$: Signal<TlaUser | undefined>
 	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
+	private readonly groups$: Signal<TlaGroup[]>
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -162,6 +165,7 @@ export class TldrawApp {
 
 		this.user$ = this.signalizeQuery('user signal', this.userQuery())
 		this.fileStates$ = this.signalizeQuery('file states signal', this.fileStateQuery())
+		this.groups$ = this.signalizeQuery('groups signal', this.groupQuery())
 	}
 
 	private userQuery() {
@@ -172,6 +176,10 @@ export class TldrawApp {
 		return this.z.query.file_state
 			.where('userId', '=', this.userId)
 			.related('file', (q: any) => q.one())
+	}
+
+	private groupQuery() {
+		return this.z.query.group
 	}
 
 	async preload(initialUserData: TlaUser) {
@@ -264,6 +272,15 @@ export class TldrawApp {
 
 	getUser() {
 		return assertExists(this.user$.get(), 'no user')
+	}
+
+	@computed({ isEqual }) getUserFlags(): Set<TlaFlags> {
+		const user = this.getUser()
+		return new Set(user.flags?.split(',') ?? []) as Set<TlaFlags>
+	}
+
+	hasFlag(flag: TlaFlags) {
+		return this.getUserFlags().has(flag)
 	}
 
 	tlUser = createTLUser({

@@ -1,12 +1,13 @@
 import type { CustomMutatorDefs } from '@rocicorp/zero'
 import type { Transaction } from '@rocicorp/zero/out/zql/src/mutate/custom'
-import { assert } from '@tldraw/utils'
+import { assert, uniqueId } from '@tldraw/utils'
 import { MAX_NUMBER_OF_FILES } from './constants'
 import {
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
 	TlaFileStatePartial,
+	TlaFlags,
 	TlaSchema,
 	TlaUser,
 	TlaUserPartial,
@@ -42,6 +43,19 @@ async function assertNotMaxFiles(tx: Transaction<TlaSchema>, userId: string) {
 	}
 }
 
+async function assertUserHasFlag(tx: Transaction<TlaSchema>, userId: string, flag: TlaFlags) {
+	const user = await tx.query.user.where('id', '=', userId).one().run()
+	assert(user, ZErrorCode.bad_request)
+	const flags = user.flags?.split(',') ?? []
+	assert(flags.includes(flag), ZErrorCode.forbidden)
+}
+
+function assertValidId(id: string) {
+	assert(id.match(/^[a-zA-Z0-9_-]+$/), ZErrorCode.bad_request)
+	assert(id.length <= 32, ZErrorCode.bad_request)
+	assert(id.length >= 16, ZErrorCode.bad_request)
+}
+
 export function createMutators(userId: string) {
 	return {
 		user: {
@@ -62,9 +76,7 @@ export function createMutators(userId: string) {
 			) => {
 				assert(file.ownerId === userId, ZErrorCode.forbidden)
 				await assertNotMaxFiles(tx, userId)
-				assert(file.id.match(/^[a-zA-Z0-9_-]+$/), ZErrorCode.bad_request)
-				assert(file.id.length <= 32, ZErrorCode.bad_request)
-				assert(file.id.length >= 16, ZErrorCode.bad_request)
+				assertValidId(file.id)
 				assert(file.id === fileState.fileId, ZErrorCode.bad_request)
 				assert(fileState.userId === userId, ZErrorCode.forbidden)
 
@@ -124,6 +136,26 @@ export function createMutators(userId: string) {
 			delete: async (tx, fileState: { fileId: string; userId: string }) => {
 				assert(fileState.userId === userId, ZErrorCode.forbidden)
 				await tx.mutate.file_state.delete({ fileId: fileState.fileId, userId: fileState.userId })
+			},
+		},
+		group: {
+			create: async (tx, { id, name }: { id: string; name: string }) => {
+				await assertUserHasFlag(tx, userId, 'groups')
+				assertValidId(id)
+				await tx.mutate.group.insert({
+					id,
+					name,
+					inviteSecret: tx.location === 'server' ? uniqueId() : null,
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
+				})
+				await tx.mutate.group_user.insert({
+					userId,
+					groupId: id,
+					role: 'owner',
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
+				})
 			},
 		},
 	} as const satisfies CustomMutatorDefs<TlaSchema>

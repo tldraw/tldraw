@@ -15,13 +15,11 @@ interface ColumnStuff {
 	name: string
 }
 
-interface TableStuff {
+interface WithClause {
 	alias: string
-	columns: Array<ColumnStuff>
-	tableName?: string
-	where?: string
-	withAlias?: string
+	expression: string
 }
+
 function makeColumnStuff(table: (typeof schema.tables)[keyof typeof schema.tables]) {
 	return Object.entries(table.columns)
 		.map(([name, { type }]) => ({
@@ -32,66 +30,115 @@ function makeColumnStuff(table: (typeof schema.tables)[keyof typeof schema.table
 		.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-const tables: TableStuff[] = [
+const withs = [
 	{
-		tableName: 'user',
-		alias: 'user',
+		alias: 'my_file_states',
+		expression: 'SELECT * FROM public."file_state" WHERE "userId" = $1',
+	},
+	{
+		alias: 'my_files',
+		expression:
+			'SELECT f.* FROM my_file_states ufs JOIN public."file" f ON f.id = ufs."fileId" WHERE f."ownerId" = $1 OR f.shared = true',
+	},
+	{
+		alias: 'my_group_ids',
+		expression: 'SELECT "groupId" FROM public."group_user" WHERE "userId" = $1',
+	},
+	{
+		alias: 'my_groups',
+		expression: 'SELECT g.* FROM my_group_ids mg JOIN public."group" g ON g.id = mg."groupId"',
+	},
+	{
+		alias: 'all_group_users',
+		expression:
+			'SELECT ug.* FROM my_groups mg JOIN public."group_user" ug ON ug."groupId" = mg."id"',
+	},
+	{
+		alias: 'group_file_ownership',
+		expression:
+			'SELECT fg.* FROM my_groups mg JOIN public."group_file" fg ON fg."groupId" = mg."id"',
+	},
+	{
+		alias: 'group_files',
+		expression:
+			'SELECT f.* FROM group_file_ownership gfo JOIN public."file" f ON f.id = gfo."fileId"',
+	},
+	{
+		alias: 'all_files',
+		expression: 'SELECT * from my_files UNION SELECT * from group_files',
+	},
+	{
+		alias: 'all_presences',
+		expression:
+			'SELECT p.* FROM all_files af JOIN public."user_presence" p ON p."fileId" = af."id"',
+	},
+] as const satisfies WithClause[]
+
+type WithTable = (typeof withs)[number]['alias']
+
+interface SelectClause {
+	from?: WithTable | `public."${keyof typeof schema.tables}"` | 'public."user_mutation_number"'
+	outputTableName: string
+	columns: Array<ColumnStuff>
+	where?: string
+}
+
+const selects: SelectClause[] = [
+	{
+		from: 'public."user"',
+		outputTableName: 'user',
 		columns: makeColumnStuff(schema.tables.user),
 		where: '"id" = $1',
 	},
 	{
-		tableName: 'file_state',
-		alias: 'file_state',
+		from: 'my_file_states',
+		outputTableName: 'file_state',
 		columns: makeColumnStuff(schema.tables.file_state),
-		withAlias: 'user_file_states',
-		where: '"userId" = $1',
 	},
 	{
-		tableName: 'file',
-		alias: 'file',
+		from: 'all_files',
+		outputTableName: 'file',
 		columns: makeColumnStuff(schema.tables.file),
-		where: `"ownerId" = $1 OR "shared" = true AND EXISTS(SELECT 1 FROM user_file_states WHERE "fileId" = file.id)`,
-	},
-
-	{
-		tableName: 'user_group',
-		alias: 'user_group',
-		columns: makeColumnStuff(schema.tables.user_group),
-		withAlias: 'user_groups',
 	},
 	{
-		tableName: 'group',
-		alias: 'group',
-		withAlias: 'groups',
+		from: 'group_file_ownership',
+		outputTableName: 'group_file',
+		columns: makeColumnStuff(schema.tables.group_file),
+	},
+	{
+		from: 'my_groups',
+		outputTableName: 'group',
 		columns: makeColumnStuff(schema.tables.group),
-		where: `EXISTS(SELECT 1 FROM user_groups WHERE "groupId" = public."group".id)`,
 	},
 	{
-		tableName: 'file_group',
-		alias: 'file_group',
-		where: `EXISTS(SELECT 1 FROM groups WHERE "groupId" = public."file_group"."groupId")`,
-		columns: makeColumnStuff(schema.tables.file_group),
+		from: 'all_group_users',
+		outputTableName: 'group_user',
+		columns: makeColumnStuff(schema.tables.group_user),
 	},
 	{
-		tableName: 'user_presence',
-		alias: 'user_presence',
+		from: 'all_presences',
+		outputTableName: 'user_presence',
 		columns: makeColumnStuff(schema.tables.user_presence),
 	},
 	{
-		tableName: 'user_mutation_number',
-		alias: 'user_mutation_number',
+		from: 'public."user_mutation_number"',
+		outputTableName: 'user_mutation_number',
 		columns: [{ expression: '"mutationNumber"', type: 'bigint', name: 'mutationNumber' }],
 		where: '"userId" = $1',
 	},
 	{
-		alias: 'lsn',
+		outputTableName: 'lsn',
 		columns: [{ expression: 'pg_current_wal_lsn()', type: 'text', name: 'lsn' }],
 	},
 ]
 
+const withClause = withs.length
+	? `WITH\n  ${withs.map((w) => `${w.alias} AS (${w.expression})`).join(',\n  ')}`
+	: ''
+
 const maxColumnsForType: Record<string, number> = {}
-for (const table of tables) {
-	const groupedColumns = groupBy(table.columns, (c) => c.type)
+for (const { columns } of selects) {
+	const groupedColumns = groupBy(columns, (c) => c.type)
 	for (const type in groupedColumns) {
 		maxColumnsForType[type] = Math.max(maxColumnsForType[type] ?? 0, groupedColumns[type].length)
 	}
@@ -105,39 +152,31 @@ const columnConfigTemplate = Object.freeze(
 )
 const columnNamesByAlias: Record<string, Record<string, string>> = {}
 
-const withSelects: string[] = []
 const mainSelects: string[] = []
 
-for (const table of tables) {
+for (const select of selects) {
 	const columnConfig = structuredClone(columnConfigTemplate)
 	const nameByAlias: Record<string, string> = {}
-	for (const column of table.columns) {
+	for (const column of select.columns) {
 		const nextSlot = columnConfig.find((c) => c.type === column.type && c.expression === null)
 		assert(nextSlot, 'no more slots for type ' + column.type)
 		nextSlot.expression = column.expression
 		nameByAlias[nextSlot.alias] = column.name
 	}
-	columnNamesByAlias[table.alias] = nameByAlias
+	columnNamesByAlias[select.outputTableName] = nameByAlias
 	const columnSelectString = columnConfig
 		.map((c) => `${c.expression ?? 'null'}::${c.type} as "${c.alias}"`)
 		.join(',\n  ')
-	let selectString = `SELECT\n  '${table.alias}' as "table",\n  ${columnSelectString}`
-	if (table.withAlias ?? table.tableName) {
-		selectString += `\nFROM ${table.withAlias ?? `public."${table.tableName}"`}`
+	let selectString = `SELECT\n  '${select.outputTableName}' as "table",\n  ${columnSelectString}`
+	if (select.from) {
+		selectString += `\nFROM ${select.from}`
 	}
-	if (table.where && !table.withAlias) {
-		selectString += `\nWHERE ${table.where}`
+	if (select.where) {
+		selectString += `\nWHERE ${select.where}`
 	}
 	mainSelects.push(selectString)
-	if (!table.withAlias) continue
-	let withSelect = `SELECT * FROM public."${table.tableName}"`
-	if (table.where) {
-		withSelect += ` WHERE ${table.where}`
-	}
-	withSelects.push(`"${table.withAlias}" AS (${withSelect})`)
 }
 
-const withClause = withSelects.length ? `WITH\n  ${withSelects.join(',\n  ')}` : ''
 const mainSelect = `${mainSelects.join('\nUNION\n')}`
 const fetchEverythingSql = `${withClause}\n${mainSelect}`.trim()
 

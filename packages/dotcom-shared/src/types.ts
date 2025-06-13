@@ -103,9 +103,9 @@ export interface ZStoreData {
 	file_state: TlaFileState[]
 	user: TlaUser[]
 	group: TlaGroup[]
-	user_group: TlaUserGroup[]
+	group_user: TlaUserGroup[]
 	user_presence: TlaUserPresence[]
-	file_group: TlaFileGroup[]
+	group_file: TlaFileGroup[]
 	lsn: string
 }
 
@@ -135,9 +135,9 @@ export type ZTable =
 	| 'file_state'
 	| 'user'
 	| 'group'
-	| 'user_group'
+	| 'group_user'
 	| 'user_presence'
-	| 'file_group'
+	| 'group_file'
 
 export type ZEvent = 'insert' | 'update' | 'delete'
 

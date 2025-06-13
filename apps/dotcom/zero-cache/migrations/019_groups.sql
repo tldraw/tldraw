@@ -8,7 +8,7 @@ CREATE TABLE "group" (
 
 CREATE INDEX "group_inviteSecret_idx" ON "group" ("inviteSecret");
 
-CREATE TABLE "user_group" (
+CREATE TABLE "group_user" (
   "userId" TEXT NOT NULL,
   "groupId" TEXT NOT NULL,
   "createdAt" BIGINT NOT NULL DEFAULT EXTRACT(EPOCH FROM NOW()) * 1000,
@@ -33,9 +33,9 @@ CREATE TABLE "user_presence" (
   "color" TEXT,
   FOREIGN KEY ("fileId") REFERENCES public."file" ("id") ON DELETE CASCADE
 );
-ALTER PUBLICATION zero_data ADD TABLE public."group", public."user_group", public."user_presence";
+ALTER PUBLICATION zero_data ADD TABLE public."group", public."group_user", public."user_presence";
 
-CREATE TABLE "file_group" (
+CREATE TABLE "group_file" (
   "fileId" TEXT NOT NULL,
   "groupId" TEXT NOT NULL,
   "createdAt" BIGINT NOT NULL DEFAULT EXTRACT(EPOCH FROM NOW()) * 1000,

@@ -53,11 +53,11 @@ export function getTopics(row: TlaRow, event: ReplicationEvent): Topic[] {
 			return [`user:${(row as any as TlaUserMutationNumber).userId}`]
 		case 'group':
 			return [`group:${(row as TlaGroup).id}`]
-		case 'user_group':
+		case 'group_user':
 			return [`group:${(row as TlaUserGroup).groupId}`, `user:${(row as TlaUserGroup).userId}`]
 		case 'user_presence':
 			return [`file:${(row as TlaUserPresence).fileId}`]
-		case 'file_group':
+		case 'group_file':
 			return [`group:${(row as TlaFileGroup).groupId}`, `file:${(row as TlaFileGroup).fileId}`]
 		default: {
 			exhaustiveSwitchError(event.table)
