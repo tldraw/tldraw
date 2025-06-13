@@ -62,6 +62,11 @@ export const TlaSidebar = memo(function TlaSidebar() {
 
 	const { onDrop, onDragOver, onDragEnter, onDragLeave, isDraggingOver } = useTldrFileDrop()
 
+	// const hasGroupsFlag = useHasFlag('groups')
+
+	// const app = useApp()
+	// const groups = useValue('groups', () => {}, [app])
+
 	return (
 		<nav ref={sidebarRef}>
 			<button
@@ -91,6 +96,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				<div className={styles.sidebarContent}>
 					<TlaSidebarRecentFiles />
 				</div>
+				{/* {hasGroupsFlag && groups.length > 0 && <div>groups lol</div>} */}
 				<div className={styles.sidebarBottomArea}>
 					<TlaSidebarCookieConsent />
 					<div className={styles.sidebarBottomRow}>

@@ -3,7 +3,15 @@
 
 export const fetchEverythingSql = `
 WITH
-  "user_file_states" AS (SELECT * FROM public."file_state" WHERE "userId" = $1)
+  my_file_states AS (SELECT * FROM public."file_state" WHERE "userId" = $1),
+  my_files AS (SELECT f.* FROM my_file_states ufs JOIN public."file" f ON f.id = ufs."fileId" WHERE f."ownerId" = $1 OR f.shared = true),
+  my_group_ids AS (SELECT "groupId" FROM public."group_user" WHERE "userId" = $1),
+  my_groups AS (SELECT g.* FROM my_group_ids mg JOIN public."group" g ON g.id = mg."groupId"),
+  all_group_users AS (SELECT ug.* FROM my_groups mg JOIN public."group_user" ug ON ug."groupId" = mg."id"),
+  group_file_ownership AS (SELECT fg.* FROM my_groups mg JOIN public."group_file" fg ON fg."groupId" = mg."id"),
+  group_files AS (SELECT f.* FROM group_file_ownership gfo JOIN public."file" f ON f.id = gfo."fileId"),
+  all_files AS (SELECT * from my_files UNION SELECT * from group_files),
+  all_presences AS (SELECT p.* FROM all_files af JOIN public."user_presence" p ON p."fileId" = af."id")
 SELECT
   'user' as "table",
   "allowAnalyticsCookie"::boolean as "0",
@@ -53,7 +61,7 @@ SELECT
   null::text as "18",
   null::text as "19",
   null::text as "20"
-FROM user_file_states
+FROM my_file_states
 UNION
 SELECT
   'file' as "table",
@@ -78,8 +86,107 @@ SELECT
   "sharedLinkType"::text as "18",
   "thumbnail"::text as "19",
   null::text as "20"
-FROM public."file"
-WHERE "ownerId" = $1 OR "shared" = true AND EXISTS(SELECT 1 FROM user_file_states WHERE "fileId" = file.id)
+FROM all_files
+UNION
+SELECT
+  'group_file' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  "createdAt"::bigint as "7",
+  "updatedAt"::bigint as "8",
+  null::bigint as "9",
+  null::bigint as "10",
+  "fileId"::text as "11",
+  "groupId"::text as "12",
+  null::text as "13",
+  null::text as "14",
+  null::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20"
+FROM group_file_ownership
+UNION
+SELECT
+  'group' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  "createdAt"::bigint as "7",
+  "updatedAt"::bigint as "8",
+  null::bigint as "9",
+  null::bigint as "10",
+  "id"::text as "11",
+  "inviteSecret"::text as "12",
+  "name"::text as "13",
+  null::text as "14",
+  null::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20"
+FROM my_groups
+UNION
+SELECT
+  'group_user' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  "createdAt"::bigint as "7",
+  "updatedAt"::bigint as "8",
+  null::bigint as "9",
+  null::bigint as "10",
+  "groupId"::text as "11",
+  "role"::text as "12",
+  "userId"::text as "13",
+  null::text as "14",
+  null::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20"
+FROM all_group_users
+UNION
+SELECT
+  'user_presence' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  "lastActivityAt"::bigint as "7",
+  null::bigint as "8",
+  null::bigint as "9",
+  null::bigint as "10",
+  "color"::text as "11",
+  "fileId"::text as "12",
+  "name"::text as "13",
+  "sessionId"::text as "14",
+  "userId"::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20"
+FROM all_presences
 UNION
 SELECT
   'user_mutation_number' as "table",
@@ -183,6 +290,34 @@ export const columnNamesByAlias = {
 		'17': 'publishedSlug',
 		'18': 'sharedLinkType',
 		'19': 'thumbnail',
+	},
+	group_file: {
+		'7': 'createdAt',
+		'8': 'updatedAt',
+		'11': 'fileId',
+		'12': 'groupId',
+	},
+	group: {
+		'7': 'createdAt',
+		'8': 'updatedAt',
+		'11': 'id',
+		'12': 'inviteSecret',
+		'13': 'name',
+	},
+	group_user: {
+		'7': 'createdAt',
+		'8': 'updatedAt',
+		'11': 'groupId',
+		'12': 'role',
+		'13': 'userId',
+	},
+	user_presence: {
+		'7': 'lastActivityAt',
+		'11': 'color',
+		'12': 'fileId',
+		'13': 'name',
+		'14': 'sessionId',
+		'15': 'userId',
 	},
 	user_mutation_number: {
 		'7': 'mutationNumber',
