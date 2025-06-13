@@ -1590,8 +1590,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						supportsDownloadingOriginal(s, editor)
 					)
 
-					// We only want to download originals if we only have media shapes selected
-					if (mediaShapes.length !== selectedShapes.length) return
+					if (mediaShapes.length === 0) return
 
 					for (const mediaShape of mediaShapes) {
 						const asset = editor.getAsset(mediaShape.props.assetId!)

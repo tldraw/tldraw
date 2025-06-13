@@ -84,7 +84,7 @@ export function DownloadOriginalMenuItem() {
 		() => {
 			const selectedShapes = editor.getSelectedShapes()
 			if (selectedShapes.length === 0) return false
-			return selectedShapes.every((shape) => supportsDownloadingOriginal(shape, editor))
+			return selectedShapes.some((shape) => supportsDownloadingOriginal(shape, editor))
 		},
 		[editor]
 	)
