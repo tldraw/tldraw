@@ -1,5 +1,5 @@
 ---
-title: Focus mode
+title: Toggle focus mode
 component: ./FocusModeExample.tsx
 category: editor-api
 priority: 3
