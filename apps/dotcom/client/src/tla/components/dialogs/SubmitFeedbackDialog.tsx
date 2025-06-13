@@ -32,17 +32,15 @@ function getRedactedUrl(): string {
 		const urlObj = new URL(window.location.href)
 		const pathParts = urlObj.pathname.split('/')
 
-		if (pathParts.length >= 3) {
-			const fileType = pathParts[1]
-			const fileSlug = pathParts[2]
-
-			if (['f', 'p', 'lf'].includes(fileType) && fileSlug) {
-				const shortenedSlug = fileSlug.slice(0, 5) + '*'.repeat(fileSlug.length - 5)
-				pathParts[2] = shortenedSlug
-				urlObj.pathname = pathParts.join('/')
+		const nanoidPattern = /^[A-Za-z0-9_-]{21}$/
+		const redactedParts = pathParts.map((part) => {
+			if (nanoidPattern.test(part)) {
+				return part.slice(0, 5) + '*'.repeat(part.length - 5)
 			}
-		}
+			return part
+		})
 
+		urlObj.pathname = redactedParts.join('/')
 		return urlObj.toString()
 	} catch (_e) {
 		return window.location.origin
