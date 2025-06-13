@@ -1,8 +1,8 @@
 import { getSchema, JSONContent, Editor as TTEditor } from '@tiptap/core'
-import { Node } from '@tiptap/pm/model'
+import { Node, Schema } from '@tiptap/pm/model'
 import { EditorProviderProps } from '@tiptap/react'
 import { TLRichText } from '@tldraw/tlschema'
-import { assert } from '@tldraw/utils'
+import { assert, WeakCache } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
 import { TLFontFace } from '../editor/managers/FontManager/FontManager'
 
@@ -39,6 +39,11 @@ export type RichTextFontVisitor = (
 	addFont: (font: TLFontFace) => void
 ) => RichTextFontVisitorState
 
+const schemaCache = new WeakCache<EditorProviderProps, Schema>()
+export function getTipTapSchema(tipTapConfig: EditorProviderProps) {
+	return schemaCache.get(tipTapConfig, () => getSchema(tipTapConfig.extensions ?? []))
+}
+
 /** @public */
 export function getFontsFromRichText(
 	editor: Editor,
@@ -49,7 +54,8 @@ export function getFontsFromRichText(
 	assert(tipTapConfig, 'textOptions.tipTapConfig must be set to use rich text')
 	assert(addFontsFromNode, 'textOptions.addFontsFromNode must be set to use rich text')
 
-	const schema = getSchema(tipTapConfig.extensions ?? [])
+	const schema = getTipTapSchema(tipTapConfig)
+
 	const rootNode = Node.fromJSON(schema, richText as JSONContent)
 
 	const fonts = new Set<TLFontFace>()

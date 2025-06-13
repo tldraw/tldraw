@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "Ograničenje brzine premašeno, pokušajte ponovno kasnije."
   },
+  "08bd40c754": {
+    "translation": "Račun"
+  },
   "0b27918290": {
     "translation": "File"
   },
@@ -185,6 +188,9 @@
   "7b1329f5ca": {
     "translation": "Korisnički priručnik"
   },
+  "7be10fc592": {
+    "translation": "Vrati verziju"
+  },
   "7cb5f8b4a5": {
     "translation": "Zaboraviti"
   },
@@ -318,6 +324,9 @@
   "c87aacf567": {
     "translation": "Odjavi se"
   },
+  "cbef7ba103": {
+    "translation": "Ova soba će uskoro biti samo za čitanje"
+  },
   "cceaefbc20": {
     "translation": "Podijelite ovu datoteku"
   },
@@ -356,6 +365,9 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
+  },
+  "ea2301d01c": {
+    "translation": "Nakon 1. srpnja 2025. ova anonimna tldraw soba za više igrača postat će samo za čitanje. Za nastavak uređivanja u budućnosti prijavite se i kopirajte je u svoje datoteke."
   },
   "ea4788705e": {
     "translation": "Otkazati"

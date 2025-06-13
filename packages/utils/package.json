@@ -51,10 +51,14 @@
 	},
 	"dependencies": {
 		"fractional-indexing-jittered": "^0.9.1",
+		"lodash.isequal": "^4.5.0",
+		"lodash.isequalwith": "^4.4.0",
 		"lodash.throttle": "^4.1.1",
 		"lodash.uniq": "^4.5.0"
 	},
 	"devDependencies": {
+		"@types/lodash.isequal": "^4.5.8",
+		"@types/lodash.isequalwith": "^4.4.9",
 		"@types/lodash.throttle": "^4.1.9",
 		"@types/lodash.uniq": "^4.5.9",
 		"jest-environment-jsdom": "^29.7.0",

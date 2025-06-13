@@ -285,7 +285,8 @@ function TlaFileNameEditor({
 	const handleEditingEnd = useCallback(() => {
 		if (!onChange) return
 		setIsEditing(false)
-	}, [onChange])
+		onEnd?.()
+	}, [onChange, onEnd])
 
 	const handleEditingComplete = useCallback(
 		(name: string) => {

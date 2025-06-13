@@ -75,7 +75,7 @@ export function WhatItIsSection() {
 				<SectionH3>Ready for AI</SectionH3>
 				<p>
 					Experimenting with AI? Try the{' '}
-					<BlueA newTab href="https://github.com/tldraw/ai">
+					<BlueA newTab href="https://github.com/tldraw/ai-template">
 						tldraw ai
 					</BlueA>{' '}
 					module. Create prompts, interpret content, and drive the canvas with language models. See

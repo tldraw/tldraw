@@ -4,6 +4,8 @@
 
 ```ts
 
+import { default as isEqual } from 'lodash.isequal';
+import { default as isEqualWith } from 'lodash.isequalwith';
 import { default as throttle } from 'lodash.throttle';
 import { default as uniq } from 'lodash.uniq';
 
@@ -138,6 +140,9 @@ export function fpsThrottle(fn: {
 };
 
 // @internal (undocumented)
+export function getChangedKeys<T extends object>(obj1: T, obj2: T): (keyof T)[];
+
+// @internal (undocumented)
 export function getErrorAnnotations(error: Error): ErrorAnnotations;
 
 // @public
@@ -208,6 +213,13 @@ export function invLerp(a: number, b: number, t: number): number;
 
 // @public
 export function isDefined<T>(value: T): value is typeof value extends undefined ? never : T;
+
+export { isEqual }
+
+// @internal (undocumented)
+export function isEqualAllowingForFloatingPointErrors(obj1: object, obj2: object, threshold?: number): boolean;
+
+export { isEqualWith }
 
 // @internal (undocumented)
 export const isNativeStructuredClone: boolean;

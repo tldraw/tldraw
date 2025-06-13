@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "Se ha superado el límite, inténtelo de nuevo más tarde."
   },
+  "08bd40c754": {
+    "translation": "Cuenta"
+  },
   "0b27918290": {
     "translation": "Archivo"
   },
@@ -185,6 +188,9 @@
   "7b1329f5ca": {
     "translation": "Manual de usuario"
   },
+  "7be10fc592": {
+    "translation": "Restaurar versión"
+  },
   "7cb5f8b4a5": {
     "translation": "Olvidar"
   },
@@ -318,6 +324,9 @@
   "c87aacf567": {
     "translation": "Cerrar sesión"
   },
+  "cbef7ba103": {
+    "translation": "Esta sala pronto será de solo lectura."
+  },
   "cceaefbc20": {
     "translation": "Compartir este archivo"
   },
@@ -356,6 +365,9 @@
   },
   "e78e14c5f1": {
     "translation": "Anclar"
+  },
+  "ea2301d01c": {
+    "translation": "A partir del 1 de julio de 2025, esta sala multijugador anónima de tldraw será de solo lectura. Para seguir editando, inicia sesión y cópiala en tus archivos."
   },
   "ea4788705e": {
     "translation": "Cancelar"

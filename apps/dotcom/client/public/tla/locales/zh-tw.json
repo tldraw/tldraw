@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "超出速率限制，請稍後重試。"
   },
+  "08bd40c754": {
+    "translation": "帳戶"
+  },
   "0b27918290": {
     "translation": "檔案"
   },
@@ -185,6 +188,9 @@
   "7b1329f5ca": {
     "translation": "使用者手冊"
   },
+  "7be10fc592": {
+    "translation": "恢復版本"
+  },
   "7cb5f8b4a5": {
     "translation": "遺忘"
   },
@@ -318,6 +324,9 @@
   "c87aacf567": {
     "translation": "登出"
   },
+  "cbef7ba103": {
+    "translation": "此房間即將變成唯讀"
+  },
   "cceaefbc20": {
     "translation": "共享此檔案"
   },
@@ -356,6 +365,9 @@
   },
   "e78e14c5f1": {
     "translation": "置頂"
+  },
+  "ea2301d01c": {
+    "translation": "2025年7月1日後，此匿名tldraw多人遊戲房間將變成唯讀狀態。如需繼續編輯，請登入並將其複製到您的文件。"
   },
   "ea4788705e": {
     "translation": "取消"

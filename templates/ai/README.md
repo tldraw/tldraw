@@ -1,6 +1,6 @@
 # tldraw ai starter
 
-This repo is a starter for projects that use the [tldraw ai module](https://github.com/tldraw/ai).
+This repo is a starter for projects that use the [tldraw ai module](https://github.com/tldraw/tldraw/tree/main/packages/ai).
 
 To use:
 
@@ -30,7 +30,7 @@ You can find the @tldraw/ai package on npm [here](https://www.npmjs.com/package/
 
 ## Contribution
 
-Found a bug? Please [submit an issue](https://github.com/tldraw/ai/issues/new).
+Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
 
 ## Community
 

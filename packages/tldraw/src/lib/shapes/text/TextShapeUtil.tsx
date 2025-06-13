@@ -14,6 +14,7 @@ import {
 	createComputedCache,
 	getDefaultColorTheme,
 	getFontsFromRichText,
+	isEqual,
 	resizeScaled,
 	textShapeMigrations,
 	textShapeProps,
@@ -21,7 +22,6 @@ import {
 	toRichText,
 	useEditor,
 } from '@tldraw/editor'
-import isEqual from 'lodash.isequal'
 import { useCallback } from 'react'
 import {
 	renderHtmlFromRichTextForMeasurement,
