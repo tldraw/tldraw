@@ -27,6 +27,28 @@ const messages = defineMessages({
 
 const descriptionKey = 'tldraw-feedback-description'
 
+function getRedactedUrl(): string {
+	try {
+		const urlObj = new URL(window.location.href)
+		const pathParts = urlObj.pathname.split('/')
+
+		if (pathParts.length >= 3) {
+			const fileType = pathParts[1]
+			const fileSlug = pathParts[2]
+
+			if (['f', 'p', 'lf'].includes(fileType) && fileSlug) {
+				const shortenedSlug = fileSlug.slice(0, 5) + '*'.repeat(fileSlug.length - 5)
+				pathParts[2] = shortenedSlug
+				urlObj.pathname = pathParts.join('/')
+			}
+		}
+
+		return urlObj.toString()
+	} catch (_e) {
+		return window.location.origin
+	}
+}
+
 export function SubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 	const isSignedIn = useAuth().isSignedIn
 	if (isSignedIn) {
@@ -77,7 +99,7 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 			body: JSON.stringify({
 				allowContact: true,
 				description: rInput.current.value.trim(),
-				url: window.location.href,
+				url: getRedactedUrl(),
 			} satisfies SubmitFeedbackRequestBody),
 		})
 			.then((r) => {
