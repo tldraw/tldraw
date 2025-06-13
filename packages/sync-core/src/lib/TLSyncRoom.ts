@@ -16,12 +16,12 @@ import {
 	exhaustiveSwitchError,
 	getOwnProperty,
 	hasOwnProperty,
+	isEqual,
 	isNativeStructuredClone,
 	objectMapEntries,
 	objectMapKeys,
 	structuredClone,
 } from '@tldraw/utils'
-import isEqual from 'lodash.isequal'
 import { createNanoEvents } from 'nanoevents'
 import {
 	RoomSession,
@@ -220,17 +220,20 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private log?: TLSyncLog
 	public readonly schema: StoreSchema<R, any>
 	private onDataChange?(): void
+	private onPresenceChange?(): void
 
 	constructor(opts: {
 		log?: TLSyncLog
 		schema: StoreSchema<R, any>
 		snapshot?: RoomSnapshot
 		onDataChange?(): void
+		onPresenceChange?(): void
 	}) {
 		this.schema = opts.schema
 		let snapshot = opts.snapshot
 		this.log = opts.log
 		this.onDataChange = opts.onDataChange
+		this.onPresenceChange = opts.onPresenceChange
 
 		assert(
 			isNativeStructuredClone,
@@ -901,6 +904,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.clock++
 
 		const initialDocumentClock = this.documentClock
+		let didPresenceChange = false
 		transaction((rollback) => {
 			// collect actual ops that resulted from the push
 			// these will be broadcast to other users
@@ -1161,6 +1165,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			if (docChanges.diff) {
 				this.documentClock = this.clock
 			}
+			if (presenceChanges.diff) {
+				didPresenceChange = true
+			}
 
 			return
 		})
@@ -1168,6 +1175,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		// if it threw the changes will have been rolled back and the document clock will not have been incremented
 		if (this.documentClock !== initialDocumentClock) {
 			this.onDataChange?.()
+		}
+
+		if (didPresenceChange) {
+			this.onPresenceChange?.()
 		}
 	}
 

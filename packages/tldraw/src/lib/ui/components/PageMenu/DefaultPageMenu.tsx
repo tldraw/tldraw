@@ -3,6 +3,7 @@ import {
 	TLPageId,
 	releasePointerCapture,
 	setPointerCapture,
+	stopEventPropagation,
 	tlenv,
 	useEditor,
 	useValue,
@@ -65,6 +66,23 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	// The component has an "editing state" that may be toggled to expose additional controls
 	const [isEditing, setIsEditing] = useState(false)
 
+	useEffect(
+		function closePageMenuOnEnterPressAfterPressingEnterToConfirmRename() {
+			function handleKeyDown() {
+				if (isEditing) return
+				if (document.activeElement === document.body) {
+					editor.menus.clearOpenMenus()
+				}
+			}
+
+			document.addEventListener('keydown', handleKeyDown, { passive: true })
+			return () => {
+				document.removeEventListener('keydown', handleKeyDown)
+			}
+		},
+		[editor, isEditing]
+	)
+
 	const toggleEditing = useCallback(() => {
 		if (isReadonlyMode) return
 		setIsEditing((s) => !s)
@@ -98,11 +116,11 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	useEffect(() => {
 		if (!isOpen) return
 		editor.timers.requestAnimationFrame(() => {
-			const elm = document.querySelector(
-				`[data-testid="page-menu-item-${currentPageId}"]`
-			) as HTMLDivElement
+			const elm = document.querySelector(`[data-pageid="${currentPageId}"]`) as HTMLDivElement
 
 			if (elm) {
+				elm.querySelector('button')?.focus()
+
 				const container = rSortableContainer.current
 				if (!container) return
 				// Scroll into view is slightly borked on iOS Safari
@@ -258,7 +276,16 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			const newPageId = PageRecordType.createId()
 			editor.createPage({ name: msg('page-menu.new-page-initial-name'), id: newPageId })
 			editor.setCurrentPage(newPageId)
+
 			setIsEditing(true)
+
+			editor.timers.requestAnimationFrame(() => {
+				const elm = document.querySelector(`[data-pageid="${newPageId}"]`) as HTMLDivElement
+
+				if (elm) {
+					elm.querySelector('button')?.focus()
+				}
+			})
 		})
 		trackEvent('new-page', { source: 'page-menu' })
 	}, [editor, msg, isReadonlyMode, trackEvent])
@@ -343,6 +370,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 								<div
 									key={page.id + '_editing'}
 									data-testid="page-menu.item"
+									data-pageid={page.id}
 									className="tlui-page_menu__item__sortable"
 									style={{
 										zIndex: page.id === currentPage.id ? 888 : index,
@@ -392,11 +420,9 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 												isCurrentPage={page.id === currentPage.id}
 												onComplete={() => {
 													setIsEditing(false)
-													editor.menus.clearOpenMenus()
 												}}
 												onCancel={() => {
 													setIsEditing(false)
-													editor.menus.clearOpenMenus()
 												}}
 											/>
 										</div>
@@ -408,13 +434,26 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 									)}
 								</div>
 							) : (
-								<div key={page.id} data-testid="page-menu.item" className="tlui-page-menu__item">
+								<div
+									key={page.id}
+									data-pageid={page.id}
+									data-testid="page-menu.item"
+									className="tlui-page-menu__item"
+								>
 									<TldrawUiButton
 										type="normal"
 										className="tlui-page-menu__item__button"
 										onClick={() => changePage(page.id)}
 										onDoubleClick={toggleEditing}
 										title={msg('page-menu.go-to-page')}
+										onKeyDown={(e) => {
+											if (e.key === 'Enter') {
+												if (page.id === currentPage.id) {
+													toggleEditing()
+													stopEventPropagation(e)
+												}
+											}
+										}}
 									>
 										<TldrawUiButtonCheck checked={page.id === currentPage.id} />
 										<TldrawUiButtonLabel>{page.name}</TldrawUiButtonLabel>

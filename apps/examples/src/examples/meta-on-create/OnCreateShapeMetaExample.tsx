@@ -42,7 +42,7 @@ export const MetaUiHelper = track(function MetaUiHelper() {
 })
 
 /* 
-This is example demonstrates how to add your own data to shapes using the meta property as they're
+This example demonstrates how to add your own data to shapes using the meta property as they're
 created. Check out the docs for a more detailed explanation of the meta property: 
 https://tldraw.dev/docs/shapes#Meta-information
 
@@ -56,7 +56,7 @@ a union like this.
 
 [3]
 A minimal ui component that displays the meta data of the selected shape. We use track to make sure
-that the component is re-rendered when the signals it's tracking change. Check out the signia docs
-for more info: https://signia.tldraw.dev/docs/API/signia_react/functions/track
+that the component is re-rendered when the signals it's tracking change. Check out the signals example
+for more info: https://tldraw.dev/examples/signals
 
 */

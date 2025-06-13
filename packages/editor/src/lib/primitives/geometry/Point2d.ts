@@ -3,7 +3,7 @@ import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class Point2d extends Geometry2d {
-	point: Vec
+	private _point: Vec
 
 	constructor(
 		config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & { margin: number; point: Vec }
@@ -11,23 +11,23 @@ export class Point2d extends Geometry2d {
 		super({ ...config, isClosed: true, isFilled: true })
 		const { point } = config
 
-		this.point = point
+		this._point = point
 	}
 
 	getVertices() {
-		return [this.point]
+		return [this._point]
 	}
 
 	nearestPoint(): Vec {
-		return this.point
+		return this._point
 	}
 
 	hitTestLineSegment(A: VecLike, B: VecLike, margin: number): boolean {
-		return Vec.DistanceToLineSegment(A, B, this.point) < margin
+		return Vec.DistanceToLineSegment(A, B, this._point) < margin
 	}
 
 	getSvgPathData() {
-		const { point } = this
+		const { _point: point } = this
 		return `M${point.toFixed()}`
 	}
 }

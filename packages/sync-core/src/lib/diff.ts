@@ -1,6 +1,5 @@
 import { RecordsDiff, UnknownRecord } from '@tldraw/store'
-import { objectMapEntries, objectMapValues } from '@tldraw/utils'
-import isEqual from 'lodash.isequal'
+import { isEqual, objectMapEntries, objectMapValues } from '@tldraw/utils'
 
 /** @internal */
 export const RecordOpType = {

@@ -1,41 +1,42 @@
 import { Computed, RESET_VALUE, computed, isUninitialized } from '@tldraw/state'
-import { TLBinding, TLShapeId } from '@tldraw/tlschema'
+import { TLArrowBinding, TLBinding, TLShapeId, TLUnknownBinding } from '@tldraw/tlschema'
 import { objectMapValues } from '@tldraw/utils'
 import { Editor } from '../Editor'
 
 type TLBindingsIndex = Map<TLShapeId, TLBinding[]>
 
+function fromScratch(bindingsQuery: Computed<(TLArrowBinding | TLUnknownBinding)[], unknown>) {
+	const allBindings = bindingsQuery.get() as TLBinding[]
+
+	const shapesToBindings: TLBindingsIndex = new Map()
+
+	for (const binding of allBindings) {
+		const { fromId, toId } = binding
+		const bindingsForFromShape = shapesToBindings.get(fromId)
+		if (!bindingsForFromShape) {
+			shapesToBindings.set(fromId, [binding])
+		} else {
+			bindingsForFromShape.push(binding)
+		}
+		const bindingsForToShape = shapesToBindings.get(toId)
+		if (!bindingsForToShape) {
+			shapesToBindings.set(toId, [binding])
+		} else {
+			bindingsForToShape.push(binding)
+		}
+	}
+
+	return shapesToBindings
+}
+
 export const bindingsIndex = (editor: Editor): Computed<TLBindingsIndex> => {
 	const { store } = editor
 	const bindingsHistory = store.query.filterHistory('binding')
 	const bindingsQuery = store.query.records('binding')
-	function fromScratch() {
-		const allBindings = bindingsQuery.get() as TLBinding[]
-
-		const shape2Binding: TLBindingsIndex = new Map()
-
-		for (const binding of allBindings) {
-			const { fromId, toId } = binding
-			const bindingsForFromShape = shape2Binding.get(fromId)
-			if (!bindingsForFromShape) {
-				shape2Binding.set(fromId, [binding])
-			} else {
-				bindingsForFromShape.push(binding)
-			}
-			const bindingsForToShape = shape2Binding.get(toId)
-			if (!bindingsForToShape) {
-				shape2Binding.set(toId, [binding])
-			} else {
-				bindingsForToShape.push(binding)
-			}
-		}
-
-		return shape2Binding
-	}
 
 	return computed<TLBindingsIndex>('arrowBindingsIndex', (_lastValue, lastComputedEpoch) => {
 		if (isUninitialized(_lastValue)) {
-			return fromScratch()
+			return fromScratch(bindingsQuery)
 		}
 
 		const lastValue = _lastValue
@@ -43,7 +44,7 @@ export const bindingsIndex = (editor: Editor): Computed<TLBindingsIndex> => {
 		const diff = bindingsHistory.getDiffSince(lastComputedEpoch)
 
 		if (diff === RESET_VALUE) {
-			return fromScratch()
+			return fromScratch(bindingsQuery)
 		}
 
 		let nextValue: TLBindingsIndex | undefined = undefined

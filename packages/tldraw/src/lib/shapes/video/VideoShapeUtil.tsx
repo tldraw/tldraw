@@ -23,10 +23,22 @@ import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 const videoSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 
 /** @public */
+export interface VideoShapeOptions {
+	/**
+	 * Should videos play automatically?
+	 */
+	autoplay: boolean
+}
+
+/** @public */
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	static override type = 'video' as const
 	static override props = videoShapeProps
 	static override migrations = videoShapeMigrations
+
+	override options: VideoShapeOptions = {
+		autoplay: true,
+	}
 
 	override canEdit() {
 		return true
@@ -40,10 +52,12 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			w: 100,
 			h: 100,
 			assetId: null,
-			time: 0,
-			playing: true,
+			autoplay: this.options.autoplay,
 			url: '',
 			altText: '',
+			// Not used, but once upon a time were used to sync video state between users
+			time: 0,
+			playing: true,
 		}
 	}
 
@@ -96,6 +110,12 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 
 	const [isLoaded, setIsLoaded] = useState(false)
 
+	const handleLoadedData = useCallback<ReactEventHandler<HTMLVideoElement>>((e) => {
+		const video = e.currentTarget
+		if (!video) return
+		setIsLoaded(true)
+	}, [])
+
 	const [isFullscreen, setIsFullscreen] = useState(false)
 
 	useEffect(() => {
@@ -105,14 +125,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 		return () => document.removeEventListener('fullscreenchange', fullscreenChange)
 	})
 
-	const handleLoadedData = useCallback<ReactEventHandler<HTMLVideoElement>>((e) => {
-		const video = e.currentTarget
-		if (!video) return
-
-		setIsLoaded(true)
-	}, [])
-
-	// If the current time changes and we're not editing the video, update the video time
+	// Focus the video when editing
 	useEffect(() => {
 		const video = rVideo.current
 		if (!video) return
@@ -123,15 +136,6 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 			}
 		}
 	}, [isEditing, isLoaded])
-
-	useEffect(() => {
-		if (prefersReducedMotion) {
-			const video = rVideo.current
-			if (!video) return
-			video.pause()
-			video.currentTime = 0
-		}
-	}, [rVideo, prefersReducedMotion])
 
 	return (
 		<>
@@ -167,7 +171,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 									height="100%"
 									draggable={false}
 									playsInline
-									autoPlay
+									autoPlay={shape.props.autoplay && !prefersReducedMotion}
 									muted
 									loop
 									disableRemotePlayback

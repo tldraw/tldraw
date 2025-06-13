@@ -14,6 +14,7 @@ import {
 	clamp,
 	createComputedCache,
 	exhaustiveSwitchError,
+	getChangedKeys,
 } from '@tldraw/editor'
 import {
 	ARROW_LABEL_FONT_SIZES,
@@ -26,31 +27,28 @@ import {
 import { TLArrowInfo } from './arrow-types'
 import { getArrowInfo } from './shared'
 
-export const arrowBodyGeometryCache = createComputedCache(
-	'arrow body geometry',
-	(editor: Editor, shape: TLArrowShape) => {
-		const info = getArrowInfo(editor, shape)!
-		switch (info.type) {
-			case 'straight':
-				return new Edge2d({
-					start: Vec.From(info.start.point),
-					end: Vec.From(info.end.point),
-				})
-			case 'arc':
-				return new Arc2d({
-					center: Vec.Cast(info.handleArc.center),
-					start: Vec.Cast(info.start.point),
-					end: Vec.Cast(info.end.point),
-					sweepFlag: info.bodyArc.sweepFlag,
-					largeArcFlag: info.bodyArc.largeArcFlag,
-				})
-			case 'elbow':
-				return new Polyline2d({ points: info.route.points })
-			default:
-				exhaustiveSwitchError(info, 'type')
-		}
+export function getArrowBodyGeometry(editor: Editor, shape: TLArrowShape) {
+	const info = getArrowInfo(editor, shape)!
+	switch (info.type) {
+		case 'straight':
+			return new Edge2d({
+				start: Vec.From(info.start.point),
+				end: Vec.From(info.end.point),
+			})
+		case 'arc':
+			return new Arc2d({
+				center: Vec.Cast(info.handleArc.center),
+				start: Vec.Cast(info.start.point),
+				end: Vec.Cast(info.end.point),
+				sweepFlag: info.bodyArc.sweepFlag,
+				largeArcFlag: info.bodyArc.largeArcFlag,
+			})
+		case 'elbow':
+			return new Polyline2d({ points: info.route.points })
+		default:
+			exhaustiveSwitchError(info, 'type')
 	}
-)
+}
 
 const labelSizeCache = createComputedCache(
 	'arrow label size',
@@ -59,7 +57,7 @@ const labelSizeCache = createComputedCache(
 		let width = 0
 		let height = 0
 
-		const bodyGeom = arrowBodyGeometryCache.get(editor, shape.id)!
+		const bodyGeom = getArrowBodyGeometry(editor, shape)
 		// We use 'i' as a default label to measure against as a minimum width.
 		const text = shape.props.text || 'i'
 
@@ -111,7 +109,15 @@ const labelSizeCache = createComputedCache(
 
 		return new Vec(width, height).addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
 	},
-	{ areRecordsEqual: (a, b) => a.props === b.props }
+	{
+		areRecordsEqual: (a, b) => {
+			if (a.props === b.props) return true
+
+			// If the only thing that has changed is the label position, we can skip recalculating the size
+			const changedKeys = getChangedKeys(a.props, b.props)
+			return changedKeys.length === 1 && changedKeys[0] === 'labelPosition'
+		},
+	}
 )
 
 function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
@@ -134,7 +140,7 @@ function getLabelToArrowPadding(shape: TLArrowShape) {
  * as the label itself takes up space the usable range is smaller.
  */
 function getArrowLabelRange(editor: Editor, shape: TLArrowShape, info: TLArrowInfo) {
-	const bodyGeom = arrowBodyGeometryCache.get(editor, shape.id)!
+	const bodyGeom = getArrowBodyGeometry(editor, shape)
 	const dbgPoints: VecLike[] = []
 	const dbg: Geometry2d[] = [new Group2d({ children: [bodyGeom], debugColor: 'lime' })]
 
@@ -227,7 +233,7 @@ export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
 	if (range.dbg) debugGeom.push(...range.dbg)
 
 	const clampedPosition = getClampedPosition(shape, range, arrowheadInfo)
-	const bodyGeom = arrowBodyGeometryCache.get(editor, shape.id)!
+	const bodyGeom = getArrowBodyGeometry(editor, shape)
 	const labelCenter = bodyGeom.interpolateAlongEdge(clampedPosition)
 	const labelSize = getArrowLabelSize(editor, shape)
 
@@ -276,7 +282,7 @@ export function getArrowLabelDefaultPosition(editor: Editor, shape: TLArrowShape
 			return 0.5
 		case 'elbow': {
 			const midpointHandle = info.route.midpointHandle
-			const bodyGeom = arrowBodyGeometryCache.get(editor, shape.id)
+			const bodyGeom = getArrowBodyGeometry(editor, shape)
 			if (midpointHandle && bodyGeom) {
 				return bodyGeom.uninterpolateAlongEdge(midpointHandle.point)
 			}

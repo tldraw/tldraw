@@ -75,7 +75,7 @@ export function WhatItIsSection() {
 				<SectionH3>Ready for AI</SectionH3>
 				<p>
 					Experimenting with AI? Try the{' '}
-					<BlueA newTab href="https://github.com/tldraw/ai">
+					<BlueA newTab href="https://github.com/tldraw/ai-template">
 						tldraw ai
 					</BlueA>{' '}
 					module. Create prompts, interpret content, and drive the canvas with language models. See
@@ -96,7 +96,7 @@ export function WhatItIsSection() {
 				<div className="h-1" />
 				<Image
 					src="/images/landing/ai.png"
-					href="https://tldraw.computer"
+					href="https://computer.tldraw.com"
 					caption="Teach uses an LLM to drive tldraw's runtime API, creating and editing shapes on the canvas."
 				/>
 			</SectionProse>

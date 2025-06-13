@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Box,
+	EMPTY_ARRAY,
 	Editor,
 	Group2d,
 	IndexKey,
@@ -18,6 +19,7 @@ import {
 	exhaustiveSwitchError,
 	getDefaultColorTheme,
 	getFontsFromRichText,
+	isEqual,
 	lerp,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -29,7 +31,13 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
+import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
 import { useCurrentTranslation } from '../../ui/hooks/useTranslation/useTranslation'
+import {
+	isEmptyRichText,
+	renderHtmlFromRichTextForMeasurement,
+	renderPlaintextFromRichText,
+} from '../../utils/text/richText'
 import { isRightToLeftLanguage } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
@@ -39,15 +47,6 @@ import {
 	LABEL_PADDING,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-
-import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
-
-import isEqual from 'lodash.isequal'
-import {
-	isEmptyRichText,
-	renderHtmlFromRichTextForMeasurement,
-	renderPlaintextFromRichText,
-} from '../../utils/text/richText'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import {
@@ -228,6 +227,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override getFontFaces(shape: TLNoteShape) {
+		if (isEmptyRichText(shape.props.richText)) {
+			return EMPTY_ARRAY
+		}
 		return getFontsFromRichText(this.editor, shape.props.richText, {
 			family: `tldraw_${shape.props.font}`,
 			weight: 'normal',
@@ -526,7 +528,6 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				const newNote = getNoteShapeForAdjacentPosition(editor, shape, adjacentCenter, pageRotation)
 
 				if (newNote) {
-					editor.markHistoryStoppingPoint('editing adjacent shape')
 					startEditingShapeWithLabel(editor, newNote, true /* selectAll */)
 				}
 			}

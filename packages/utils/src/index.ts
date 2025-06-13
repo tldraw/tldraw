@@ -1,5 +1,7 @@
 import { registerTldrawLibraryVersion } from './lib/version'
 
+export { default as isEqual } from 'lodash.isequal'
+export { default as isEqualWith } from 'lodash.isequalwith'
 export { default as throttle } from 'lodash.throttle'
 export { default as uniq } from 'lodash.uniq'
 export { ExecutionQueue } from './lib/ExecutionQueue'
@@ -48,14 +50,17 @@ export { invLerp, lerp, modulate, rng } from './lib/number'
 export {
 	areObjectsShallowEqual,
 	filterEntries,
+	getChangedKeys,
 	getOwnProperty,
 	groupBy,
 	hasOwnProperty,
+	isEqualAllowingForFloatingPointErrors,
 	mapObjectMapValues,
 	objectMapEntries,
 	objectMapFromEntries,
 	objectMapKeys,
 	objectMapValues,
+	omit,
 } from './lib/object'
 export { measureAverageDuration, measureCbDuration, measureDuration } from './lib/perf'
 export {

@@ -188,6 +188,9 @@
   "7b1329f5ca": {
     "translation": "User manual"
   },
+  "7be10fc592": {
+    "translation": "Restore version"
+  },
   "7cb5f8b4a5": {
     "translation": "Forget"
   },
@@ -321,6 +324,9 @@
   "c87aacf567": {
     "translation": "Sign out"
   },
+  "cbef7ba103": {
+    "translation": "This room will soon be read-only"
+  },
   "cceaefbc20": {
     "translation": "Share this file"
   },
@@ -359,6 +365,9 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
+  },
+  "ea2301d01c": {
+    "translation": "After July 1st, 2025 this anonymous tldraw multiplayer room will become read-only. To continue editing in the future please sign in and copy it to your files."
   },
   "ea4788705e": {
     "translation": "Cancel"

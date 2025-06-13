@@ -229,8 +229,15 @@
 }
 
 .tlui-page-menu__trigger {
-	width: fit-content;
 	flex-shrink: 0;
+	max-width: fit-content;
+}
+
+@media (min-width: 1080px) {
+	.tlui-page-menu__trigger {
+		width: fit-content;
+		max-width: 320px;
+	}
 }
 
 /* Hide the icon on the page menu trigger button */
@@ -276,19 +283,7 @@
 	button:not(.tla-button-text):focus-visible,
 .tl-container__focused:not(.tl-container__no-focus-ring) button:not(.tlui-button):focus-visible,
 .tl-container__focused:not(.tl-container__no-focus-ring) .tlui-layout__top a:focus-visible {
-	border-radius: 10px;
 	outline: 2px solid var(--color-focus);
-	outline-offset: -5px;
-}
-
-/** Switches */
-.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
-	:is(nav, .tlui-popover__content, .tlui-dialog__overlay)
-	.tla-switch:has(input:focus-visible)
-	> div {
-	border-radius: 10px;
-	outline: 2px solid var(--color-focus);
-	outline-offset: 1px;
 }
 
 /** Checkbox */
@@ -296,17 +291,7 @@
 	:is(nav, .tlui-popover__content, .tlui-dialog__overlay)
 	.tla-form-checkbox:has(input:focus-visible)
 	> label {
-	border-radius: 10px;
 	outline: 2px solid var(--color-focus);
-	outline-offset: 1px;
-}
-
-/** Comboboxes/select dropdowns */
-.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
-	:is(nav, .tlui-popover__content, .tlui-dialog__overlay)
-	button[role='combobox']:not(.tlui-button):focus-visible {
-	border-radius: 0;
-	outline-offset: 0;
 }
 
 /** Text buttons, specifically from the cookie consent */
@@ -323,17 +308,5 @@
 	.tla-primary-button:not(.tlui-button):focus-visible,
 .tl-container__focused:not(.tl-container__no-focus-ring)
 	.tla-primary-button:not(.tlui-button):focus-visible {
-	border-radius: 8px;
 	outline-offset: 0;
-}
-
-/**
- * omg there's two types of primary buttons
- * This is for the buttons in the Share dialog.
- */
-.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
-	:is(nav, #tla-tabpanel-export)
-	.tla-button:not(.tlui-button):focus-visible {
-	border-radius: var(--tla-radius-2);
-	outline-offset: 1px;
 }

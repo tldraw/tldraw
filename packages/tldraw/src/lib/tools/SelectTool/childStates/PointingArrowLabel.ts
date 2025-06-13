@@ -8,7 +8,7 @@ import {
 } from '@tldraw/editor'
 import { ArrowShapeUtil } from '../../../shapes/arrow/ArrowShapeUtil'
 import {
-	arrowBodyGeometryCache,
+	getArrowBodyGeometry,
 	getArrowLabelDefaultPosition,
 } from '../../../shapes/arrow/arrowLabel'
 
@@ -91,7 +91,7 @@ export class PointingArrowLabel extends StateNode {
 		if (!shape) return
 
 		const options = this.editor.getShapeUtil<ArrowShapeUtil>('arrow').options
-		const geometry = arrowBodyGeometryCache.get(this.editor, shape.id)!
+		const geometry = getArrowBodyGeometry(this.editor, shape)
 		const transform = this.editor.getShapePageTransform(shape.id)
 
 		const pointInShapeSpace = this.editor
@@ -100,9 +100,7 @@ export class PointingArrowLabel extends StateNode {
 
 		const defaultLabelPosition = getArrowLabelDefaultPosition(this.editor, shape)
 
-		let nextLabelPosition = arrowBodyGeometryCache
-			.get(this.editor, shape.id)!
-			.uninterpolateAlongEdge(pointInShapeSpace)
+		let nextLabelPosition = geometry.uninterpolateAlongEdge(pointInShapeSpace)
 
 		if (isNaN(nextLabelPosition)) {
 			nextLabelPosition = defaultLabelPosition
