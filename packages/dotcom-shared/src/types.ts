@@ -183,7 +183,6 @@ export const UserPreferencesKeys = [
 export interface SubmitFeedbackRequestBody {
 	description: string
 	allowContact: boolean
-	url: string
 }
 
 export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
