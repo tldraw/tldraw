@@ -156,9 +156,8 @@ describe('Locked shapes', () => {
 		const frame = editor.getShape(ids.lockedFrame)!
 		const frameUtil = editor.getShapeUtil(frame)
 
-		expect(frameUtil.canReceiveNewChildrenOfType(frame, 'box')).toBe(false)
-		const shape = editor.getShape(ids.lockedShapeA)!
-		expect(frameUtil.canDropShapes(frame, [shape])).toBe(false)
+		expect(frameUtil.canDropShapes(frame)).toBe(false)
+		expect(frameUtil.canDropShape(frame, { id: createShapeId(), type: 'geo' })).toBe(false)
 	})
 })
 
