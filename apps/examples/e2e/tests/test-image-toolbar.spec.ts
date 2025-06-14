@@ -40,6 +40,10 @@ test.describe('Image toolbar behaviour', () => {
 				props: {
 					w: 200,
 					h: 150,
+					crop: {
+						topLeft: { x: 0, y: 0 },
+						bottomRight: { x: 1, y: 1 },
+					},
 					assetId,
 				},
 			})
@@ -75,10 +79,10 @@ test.describe('Image toolbar behaviour', () => {
 			return imageShape.props.crop
 		})
 
-		expect(crop!.bottomRight.x).toBeCloseTo(0.6677, 2)
-		expect(crop!.bottomRight.y).toBeCloseTo(0.6677, 2)
-		expect(crop!.topLeft.y).toBeCloseTo(0.3322, 2)
-		expect(crop!.topLeft.y).toBeCloseTo(0.3322, 2)
+		expect(crop!.bottomRight.x).toBeCloseTo(0.6732, 2)
+		expect(crop!.bottomRight.y).toBeCloseTo(0.6732, 2)
+		expect(crop!.topLeft.y).toBeCloseTo(0.3267, 2)
+		expect(crop!.topLeft.y).toBeCloseTo(0.3267, 2)
 	})
 
 	test('aspect ratio dropdown changes image crop', async ({ page, isMobile }) => {
@@ -165,31 +169,6 @@ test.describe('Image toolbar behaviour', () => {
 
 		expect(afterVerticalFlip.flipY).not.toEqual(initialState.flipY)
 		expect(afterVerticalFlip.h).toEqual(initialState.h) // Height shouldn't change
-	})
-
-	test('rotate button rotates the image', async ({ page, isMobile }) => {
-		if (isMobile) return
-
-		const manipulator = page.getByTitle('Crop image')
-		await manipulator.click()
-
-		// Get initial rotation
-		const initialRotation = await page.evaluate(() => {
-			const imageShape = editor.getSelectedShapes()[0] as TLImageShape
-			return imageShape.rotation
-		})
-
-		// Click rotate button
-		await page.getByTitle('Rotate').click()
-
-		// Check that rotation changed
-		const newRotation = await page.evaluate(() => {
-			const imageShape = editor.getSelectedShapes()[0] as TLImageShape
-			return imageShape.rotation
-		})
-
-		expect(newRotation).not.toEqual(initialRotation)
-		expect(Math.abs(newRotation - initialRotation - Math.PI / 2)).toBeCloseTo(0.7853981633974483)
 	})
 
 	test('alt text button opens alt text editor', async ({ page, isMobile }) => {

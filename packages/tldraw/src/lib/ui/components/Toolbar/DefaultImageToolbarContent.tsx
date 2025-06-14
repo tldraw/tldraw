@@ -162,93 +162,91 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	)
 	const isOriginalCrop = !crop || isEqual(crop, getDefaultCrop())
 
-	const croppingTools = (
-		<>
-			<TldrawUiSlider
-				value={displayValue}
-				label="tool.image-zoom"
-				onValueChange={handleZoomChange}
-				onHistoryMark={onHistoryMark}
-				min={0}
-				steps={100}
-				data-testid="tool.image-zoom"
-				title={msg('tool.image-zoom')}
-			/>
-			<TldrawUiDropdownMenuRoot id="image-toolbar-aspect-ratio">
-				<TldrawUiDropdownMenuTrigger>
-					<TldrawUiButton title={msg('tool.aspect-ratio')} type="icon">
-						<TldrawUiButtonIcon icon="corners" />
-					</TldrawUiButton>
-				</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent side="top" align="center">
-					{ASPECT_RATIO_OPTIONS.map((aspectRatio) => {
-						let checked = false
-						if (aspectRatio === 'circle' && crop) {
-							checked = !!crop.isCircle
-						} else if (aspectRatio === 'original') {
-							checked = isOriginalCrop
-						} else if (aspectRatio === 'square') {
-							checked =
-								!crop?.isCircle &&
-								approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.1)
-						} else {
-							checked =
-								!isOriginalCrop &&
-								approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.01)
-						}
+	if (isManipulating) {
+		return (
+			<>
+				<TldrawUiSlider
+					value={displayValue}
+					label="tool.image-zoom"
+					onValueChange={handleZoomChange}
+					onHistoryMark={onHistoryMark}
+					min={0}
+					steps={100}
+					data-testid="tool.image-zoom"
+					title={msg('tool.image-zoom')}
+				/>
+				<TldrawUiDropdownMenuRoot id="image-toolbar-aspect-ratio">
+					<TldrawUiDropdownMenuTrigger>
+						<TldrawUiButton title={msg('tool.aspect-ratio')} type="icon">
+							<TldrawUiButtonIcon icon="corners" />
+						</TldrawUiButton>
+					</TldrawUiDropdownMenuTrigger>
+					<TldrawUiDropdownMenuContent side="top" align="center">
+						{ASPECT_RATIO_OPTIONS.map((aspectRatio) => {
+							let checked = false
+							if (aspectRatio === 'circle' && crop) {
+								checked = !!crop.isCircle
+							} else if (aspectRatio === 'original') {
+								checked = isOriginalCrop
+							} else if (aspectRatio === 'square') {
+								checked =
+									!crop?.isCircle &&
+									approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.1)
+							} else {
+								checked =
+									!isOriginalCrop &&
+									approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.01)
+							}
 
-						return (
-							<TldrawUiDropdownMenuCheckboxItem
-								key={aspectRatio}
-								onSelect={() => handleAspectRatioChange(aspectRatio as ASPECT_RATIO_OPTION)}
-								checked={checked}
-								title={msg(`tool.aspect-ratio.${aspectRatio}`)}
-							>
-								<TldrawUiButtonLabel>{msg(`tool.aspect-ratio.${aspectRatio}`)}</TldrawUiButtonLabel>
-							</TldrawUiDropdownMenuCheckboxItem>
-						)
-					})}
-				</TldrawUiDropdownMenuContent>
-			</TldrawUiDropdownMenuRoot>
-			<TldrawUiButton
-				type="icon"
-				onClick={onManipulatingEnd}
-				style={{ borderLeft: '1px solid var(--color-divider)', marginLeft: '2px' }}
-			>
-				<TldrawUiButtonIcon small icon="check" />
-			</TldrawUiButton>
-		</>
-	)
+							return (
+								<TldrawUiDropdownMenuCheckboxItem
+									key={aspectRatio}
+									onSelect={() => handleAspectRatioChange(aspectRatio as ASPECT_RATIO_OPTION)}
+									checked={checked}
+									title={msg(`tool.aspect-ratio.${aspectRatio}`)}
+								>
+									<TldrawUiButtonLabel>
+										{msg(`tool.aspect-ratio.${aspectRatio}`)}
+									</TldrawUiButtonLabel>
+								</TldrawUiDropdownMenuCheckboxItem>
+							)
+						})}
+					</TldrawUiDropdownMenuContent>
+				</TldrawUiDropdownMenuRoot>
+				<TldrawUiButton
+					type="icon"
+					onClick={onManipulatingEnd}
+					data-testid="tool.image-confirm"
+					style={{ borderLeft: '1px solid var(--color-divider)', marginLeft: '2px' }}
+				>
+					<TldrawUiButtonIcon small icon="check" />
+				</TldrawUiButton>
+			</>
+		)
+	}
 
 	return (
 		<>
-			{!isManipulating && (
-				<TldrawUiButton
-					type="icon"
-					title={msg('tool.replace-media')}
-					onClick={() => actions['image-replace'].onSelect('image-toolbar')}
-				>
-					<TldrawUiButtonIcon small icon="arrow-cycle" />
-				</TldrawUiButton>
-			)}
-			{!isManipulating && (
-				<TldrawUiButton type="icon" title={msg('tool.image-crop')} onClick={onManipulatingStart}>
-					<TldrawUiButtonIcon small icon="crop" />
-				</TldrawUiButton>
-			)}
-			{isManipulating && croppingTools}
-			{!isManipulating && (
-				<TldrawUiButton
-					type="normal"
-					isActive={!!altText}
-					onClick={() => {
-						trackEvent('alt-text-start', { source })
-						onEditAltTextStart()
-					}}
-				>
-					{msg('tool.image-alt-text')}
-				</TldrawUiButton>
-			)}
+			<TldrawUiButton
+				type="icon"
+				title={msg('tool.replace-media')}
+				onClick={() => actions['image-replace'].onSelect('image-toolbar')}
+			>
+				<TldrawUiButtonIcon small icon="arrow-cycle" />
+			</TldrawUiButton>
+			<TldrawUiButton type="icon" title={msg('tool.image-crop')} onClick={onManipulatingStart}>
+				<TldrawUiButtonIcon small icon="crop" />
+			</TldrawUiButton>
+			<TldrawUiButton
+				type="normal"
+				isActive={!!altText}
+				onClick={() => {
+					trackEvent('alt-text-start', { source })
+					onEditAltTextStart()
+				}}
+			>
+				{msg('tool.image-alt-text')}
+			</TldrawUiButton>
 		</>
 	)
 })
