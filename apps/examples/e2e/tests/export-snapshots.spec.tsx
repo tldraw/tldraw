@@ -1,8 +1,8 @@
-/* eslint-disable local/no-at-internal, local/no-internal-imports */
+/* eslint-disable local/no-at-internal, local/no-internal-imports, react/no-string-refs */
 import { Page, expect } from '@playwright/test'
 import assert from 'assert'
 import { rename, writeFile } from 'fs/promises'
-import { Fragment, ReactElement } from 'react'
+import { ReactElement } from 'react'
 import {
 	DefaultColorStyle,
 	DefaultDashStyle,
@@ -11,7 +11,7 @@ import {
 	Editor,
 	GeoShapeGeoStyle,
 	TLAsset,
-	TLShapeCrop,
+	TLBindingCreate,
 	TLShapePartial,
 	TLTextShape,
 	degreesToRadians,
@@ -22,7 +22,15 @@ import {
 import { TL, shapesFromJsx } from 'tldraw/src/test/test-jsx'
 import { EndToEndApi } from '../../src/misc/EndToEndApi'
 import { setup } from '../shared-e2e'
-import { convexDrawShape, heyDrawShape } from './export-snapshots-data'
+import {
+	convexDrawShape,
+	frameContent,
+	heyDrawShape,
+	manAsset,
+	manCrop,
+	manCropAsCircle,
+	richText,
+} from './export-snapshots-data'
 import test, { ApiFixture } from './fixtures/fixtures'
 
 declare const editor: Editor
@@ -33,208 +41,6 @@ mockUniqueId(() => `mock-${nextNanoId++}`)
 
 interface Snapshots {
 	[name: string]: { [row: string]: { [testCase: string]: ReactElement } }
-}
-
-const frameContent = (
-	<Fragment>
-		<TL.geo
-			richText={toRichText('content')}
-			w={100}
-			h={100}
-			x={50}
-			y={50}
-			rotation={degreesToRadians(35)}
-			fill="solid"
-			color="orange"
-		/>
-		<TL.arrow start={{ x: 50, y: 50 }} end={{ x: 50, y: 20 }} />
-	</Fragment>
-)
-const manAsset = (
-	<TL.asset.image
-		w={100}
-		h={200}
-		src="/man.png"
-		name="man"
-		isAnimated={false}
-		mimeType="image/png"
-	/>
-)
-const manCrop: TLShapeCrop = {
-	topLeft: { x: 0.25, y: 0.05 },
-	bottomRight: { x: 0.75, y: 0.3 },
-}
-const manCropAsCircle: TLShapeCrop = {
-	topLeft: { x: 0.25, y: 0.05 },
-	bottomRight: { x: 0.75, y: 0.3 },
-	isCircle: true,
-}
-
-const richText = {
-	type: 'doc',
-	content: [
-		{
-			type: 'heading',
-			attrs: {
-				dir: 'auto',
-				level: 3,
-			},
-			content: [
-				{
-					type: 'text',
-					text: 'Headers for things',
-				},
-			],
-		},
-		{
-			type: 'bulletList',
-			content: [
-				{
-					type: 'listItem',
-					content: [
-						{
-							type: 'paragraph',
-							attrs: {
-								dir: 'auto',
-							},
-							content: [
-								{
-									type: 'text',
-									text: 'testing 123',
-								},
-							],
-						},
-					],
-				},
-				{
-					type: 'listItem',
-					content: [
-						{
-							type: 'paragraph',
-							attrs: {
-								dir: 'auto',
-							},
-							content: [
-								{
-									type: 'text',
-									text: 'lists and ',
-								},
-								{
-									type: 'text',
-									marks: [
-										{
-											type: 'link',
-											attrs: {
-												href: 'https://tldraw.dev',
-												target: '_blank',
-												rel: 'noopener noreferrer nofollow',
-												class: null,
-											},
-										},
-									],
-									text: 'links',
-								},
-							],
-						},
-					],
-				},
-			],
-		},
-		{
-			type: 'paragraph',
-			attrs: {
-				dir: 'auto',
-			},
-			content: [
-				{
-					type: 'text',
-					marks: [
-						{
-							type: 'bold',
-						},
-					],
-					text: 'and',
-				},
-				{
-					type: 'text',
-					text: ' ',
-				},
-				{
-					type: 'text',
-					marks: [
-						{
-							type: 'strike',
-						},
-					],
-					text: 'obvs',
-				},
-				{
-					type: 'text',
-					text: ' ',
-				},
-				{
-					type: 'text',
-					marks: [
-						{
-							type: 'highlight',
-						},
-					],
-					text: 'rich',
-				},
-				{
-					type: 'text',
-					text: ' ',
-				},
-				{
-					type: 'text',
-					marks: [
-						{
-							type: 'code',
-						},
-					],
-					text: 'text',
-				},
-			],
-		},
-		{
-			type: 'paragraph',
-			attrs: {
-				dir: 'auto',
-			},
-			content: [
-				{
-					type: 'text',
-					marks: [
-						{
-							type: 'highlight',
-						},
-					],
-					text: 'highlight ',
-				},
-				{
-					type: 'text',
-					marks: [
-						{
-							type: 'highlight',
-						},
-						{
-							type: 'bold',
-						},
-					],
-					text: 'across',
-				},
-				{
-					type: 'text',
-					marks: [
-						{
-							type: 'highlight',
-						},
-					],
-					text: ' styles',
-				},
-			],
-		},
-	],
 }
 
 const snapshots: Snapshots = {
@@ -1131,7 +937,9 @@ const snapshots: Snapshots = {
 }
 
 interface SnapshotWithoutJsx {
-	[row: string]: { [testCase: string]: { shapes: TLShapePartial[]; assets: TLAsset[] } }
+	[row: string]: {
+		[testCase: string]: { shapes: TLShapePartial[]; assets: TLAsset[]; bindings: TLBindingCreate[] }
+	}
 }
 
 test.describe('Export snapshots', () => {
@@ -1143,10 +951,10 @@ test.describe('Export snapshots', () => {
 		for (const colorScheme of ['light', 'dark'] as const) {
 			test(`${name} (${colorScheme})`, async ({ page, api }) => {
 				nextNanoId = 0
-				const snapshot: SnapshotWithoutJsx = mapObjectMapValues(snapshotWithJsx, (key, row) =>
-					mapObjectMapValues(row, (key, testCase) => {
-						const { shapes, assets } = shapesFromJsx(testCase)
-						return { shapes, assets }
+				const snapshot: SnapshotWithoutJsx = mapObjectMapValues(snapshotWithJsx, (i, row) =>
+					mapObjectMapValues(row, (j, testCase) => {
+						const { shapes, assets, bindings } = shapesFromJsx(testCase, `${i}-${j}`)
+						return { shapes, assets, bindings }
 					})
 				)
 
@@ -1190,7 +998,9 @@ test.describe('Export snapshots', () => {
 
 							let x = 0
 							let bottom = y
-							for (const [testCaseName, { shapes, assets }] of Object.entries(testCases)) {
+							for (const [testCaseName, { shapes, assets, bindings }] of Object.entries(
+								testCases
+							)) {
 								const testCaseTitleId = tldrawApi.createShapeId()
 								editor.createShape<TLTextShape>({
 									id: testCaseTitleId,
@@ -1207,6 +1017,7 @@ test.describe('Export snapshots', () => {
 
 								editor.createAssets(assets)
 								editor.createShapes(shapes)
+								editor.createBindings(bindings)
 								const topLevelShapeIds = shapes
 									.filter((shape) => !shape.parentId)
 									.map((shape) => shape.id)
@@ -1225,6 +1036,7 @@ test.describe('Export snapshots', () => {
 							y = bottom + 40
 						}
 
+						tldrawApi.markAllArrowBindings()
 						editor.selectAll()
 					},
 					{ colorScheme, name, snapshot } as any
