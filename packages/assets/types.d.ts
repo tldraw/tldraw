@@ -30,6 +30,7 @@ export type AssetUrls = {
 		'align-right': string
 		'align-top': string
 		'arrow-arc': string
+		'arrow-cycle': string
 		'arrow-elbow': string
 		'arrow-left': string
 		'arrowhead-arrow': string
@@ -60,6 +61,8 @@ export type AssetUrls = {
 		code: string
 		color: string
 		comment: string
+		corners: string
+		crop: string
 		'cross-2': string
 		'cross-circle': string
 		'dash-dashed': string
