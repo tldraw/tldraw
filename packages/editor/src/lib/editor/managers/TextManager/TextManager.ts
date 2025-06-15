@@ -66,18 +66,20 @@ export class TextManager {
 		const elm = document.createElement('div')
 		elm.classList.add('tl-text')
 		elm.classList.add('tl-text-measure')
-		elm.style.setProperty('word-break', 'auto')
-		elm.style.setProperty('width', null)
-		elm.style.setProperty('height', null)
 		elm.setAttribute('dir', 'auto')
 		elm.tabIndex = -1
 		this.editor.getContainer().appendChild(elm)
+
 		// we need to save the default styles so that we can restore them when we're done
+		// these must be the css names, not the js names for the styles
 		this.defaultStyles = {
 			'word-break': 'auto',
 			width: null,
 			height: null,
+			'max-width': null,
+			'min-width': null,
 		}
+
 		this.elm = elm
 	}
 
