@@ -65,6 +65,7 @@ export class TextManager {
 			minWidth?: null | number
 			padding: string
 			disableOverflowWrapBreaking?: boolean
+			measureScrollWidth?: boolean
 		}
 	): BoxModel & { scrollWidth: number } {
 		const div = document.createElement('div')
@@ -90,6 +91,7 @@ export class TextManager {
 			otherStyles?: Record<string, string>
 			padding: string
 			disableOverflowWrapBreaking?: boolean
+			measureScrollWidth?: boolean
 		}
 	): BoxModel & { scrollWidth: number } {
 		// Duplicate our base element; we don't need to clone deep
@@ -120,7 +122,7 @@ export class TextManager {
 			}
 		}
 
-		const scrollWidth = wrapperElm.scrollWidth
+		const scrollWidth = opts.measureScrollWidth ? wrapperElm.scrollWidth : 0
 		const rect = wrapperElm.getBoundingClientRect()
 		wrapperElm.remove()
 
