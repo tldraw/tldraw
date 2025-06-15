@@ -97,11 +97,15 @@ export class TextManager {
 		}
 	}
 
-	resetElm() {
+	resetElmStyles() {
 		const { elm, defaultStyles } = this
 		for (const key in defaultStyles) {
 			elm.style.setProperty(key, defaultStyles[key])
 		}
+	}
+
+	resetElmHtml() {
+		this.elm.innerHTML = ''
 	}
 
 	measureText(
@@ -180,7 +184,7 @@ export class TextManager {
 		const rect = elm.getBoundingClientRect()
 
 		// reset the element to avoid memory leaks and restore original styles
-		this.resetElm()
+		this.resetElmStyles()
 
 		return {
 			x: 0,

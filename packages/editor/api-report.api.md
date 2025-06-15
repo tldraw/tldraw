@@ -2876,7 +2876,9 @@ export class TextManager {
         text: string;
     }[];
     // (undocumented)
-    resetElm(): void;
+    resetElmHtml(): void;
+    // (undocumented)
+    resetElmStyles(): void;
     // (undocumented)
     setDebug(debug: boolean): void;
 }

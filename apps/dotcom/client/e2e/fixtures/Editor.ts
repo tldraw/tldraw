@@ -83,6 +83,9 @@ export class Editor {
 	async createTextShape(text: string) {
 		await this.page.locator('.tl-background').click({ clickCount: 2 })
 		await this.page.locator('div[contenteditable="true"]').fill(text)
+		await this.page.evaluate(() => {
+			;(window as any).editor.textManager.resetElmHtml()
+		})
 		// await this.page.pause()
 	}
 }
