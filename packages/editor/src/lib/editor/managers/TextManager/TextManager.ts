@@ -36,6 +36,7 @@ export interface TLMeasureTextOpts {
 	minWidth?: null | number
 	// todo: make this a number so that it is consistent with other TLMeasureTextSpanOpts
 	padding: string
+	otherStyles?: Record<string, string>
 	disableOverflowWrapBreaking?: boolean
 }
 
@@ -91,50 +92,13 @@ export class TextManager {
 		}
 	}
 
-	measureText(
-		textToMeasure: string,
-		opts: {
-			fontStyle: string
-			fontWeight: string
-			fontFamily: string
-			fontSize: number
-			lineHeight: number
-			/**
-			 * When maxWidth is a number, the text will be wrapped to that maxWidth. When maxWidth
-			 * is null, the text will be measured without wrapping, but explicit line breaks and
-			 * space are preserved.
-			 */
-			maxWidth: null | number
-			minWidth?: null | number
-			padding: string
-			disableOverflowWrapBreaking?: boolean
-		}
-	): BoxModel & { scrollWidth: number } {
+	measureText(textToMeasure: string, opts: TLMeasureTextOpts): BoxModel & { scrollWidth: number } {
 		const div = document.createElement('div')
 		div.textContent = normalizeTextForDom(textToMeasure)
 		return this.measureHtml(div.innerHTML, opts)
 	}
 
-	measureHtml(
-		html: string,
-		opts: {
-			fontStyle: string
-			fontWeight: string
-			fontFamily: string
-			fontSize: number
-			lineHeight: number
-			/**
-			 * When maxWidth is a number, the text will be wrapped to that maxWidth. When maxWidth
-			 * is null, the text will be measured without wrapping, but explicit line breaks and
-			 * space are preserved.
-			 */
-			maxWidth: null | number
-			minWidth?: null | number
-			otherStyles?: Record<string, string>
-			padding: string
-			disableOverflowWrapBreaking?: boolean
-		}
-	): BoxModel & { scrollWidth: number } {
+	measureHtml(html: string, opts: TLMeasureTextOpts): BoxModel & { scrollWidth: number } {
 		const { elm } = this
 
 		if (opts.otherStyles) {

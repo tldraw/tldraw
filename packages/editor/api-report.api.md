@@ -2839,32 +2839,11 @@ export class TextManager {
         }[];
     };
     // (undocumented)
-    measureHtml(html: string, opts: {
-        maxWidth: null | number;
-        disableOverflowWrapBreaking?: boolean;
-        fontFamily: string;
-        fontSize: number;
-        fontStyle: string;
-        fontWeight: string;
-        lineHeight: number;
-        minWidth?: null | number;
-        otherStyles?: Record<string, string>;
-        padding: string;
-    }): BoxModel & {
+    measureHtml(html: string, opts: TLMeasureTextOpts): BoxModel & {
         scrollWidth: number;
     };
     // (undocumented)
-    measureText(textToMeasure: string, opts: {
-        maxWidth: null | number;
-        disableOverflowWrapBreaking?: boolean;
-        fontFamily: string;
-        fontSize: number;
-        fontStyle: string;
-        fontWeight: string;
-        lineHeight: number;
-        minWidth?: null | number;
-        padding: string;
-    }): BoxModel & {
+    measureText(textToMeasure: string, opts: TLMeasureTextOpts): BoxModel & {
         scrollWidth: number;
     };
     measureTextSpans(textToMeasure: string, opts: TLMeasureTextSpanOpts): {
@@ -3693,6 +3672,8 @@ export interface TLMeasureTextOpts {
     maxWidth: null | number;
     // (undocumented)
     minWidth?: null | number;
+    // (undocumented)
+    otherStyles?: Record<string, string>;
     // (undocumented)
     padding: string;
 }
