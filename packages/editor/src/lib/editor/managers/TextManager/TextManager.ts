@@ -268,9 +268,18 @@ export class TextManager {
 
 		const { elm } = this
 
+		if (opts.otherStyles) {
+			for (const key in opts.otherStyles) {
+				if (!this.defaultStyles[key]) {
+					// we need to save the original style so that we can restore it when we're done
+					this.defaultStyles[key] = elm.style.getPropertyValue(key)
+				}
+			}
+		}
+
+		this.resetElmStyles()
+
 		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
-		// N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers")
-		// is necessary for ensuring correct mixed RTL/LTR behavior when exporting SVGs.
 		elm.style.setProperty('width', `${elementWidth}px`)
 		elm.style.setProperty('height', 'min-content')
 		elm.style.setProperty('font-size', `${opts.fontSize}px`)
@@ -279,11 +288,6 @@ export class TextManager {
 		elm.style.setProperty('line-height', `${opts.lineHeight * opts.fontSize}px`)
 		elm.style.setProperty('text-align', textAlignmentsForLtr[opts.textAlign])
 		elm.style.setProperty('font-style', opts.fontStyle)
-		if (opts.otherStyles) {
-			for (const [key, value] of Object.entries(opts.otherStyles)) {
-				elm.style.setProperty(key, value)
-			}
-		}
 
 		const shouldTruncateToFirstLine =
 			opts.overflow === 'truncate-ellipsis' || opts.overflow === 'truncate-clip'
@@ -291,6 +295,12 @@ export class TextManager {
 		if (shouldTruncateToFirstLine) {
 			elm.style.setProperty('overflow-wrap', 'anywhere')
 			elm.style.setProperty('word-break', 'break-all')
+		}
+
+		if (opts.otherStyles) {
+			for (const [key, value] of Object.entries(opts.otherStyles)) {
+				elm.style.setProperty(key, value)
+			}
 		}
 
 		const normalizedText = normalizeTextForDom(textToMeasure)
@@ -329,6 +339,7 @@ export class TextManager {
 					h: lastSpan.box.h,
 				},
 			})
+
 			return truncatedSpans
 		}
 
