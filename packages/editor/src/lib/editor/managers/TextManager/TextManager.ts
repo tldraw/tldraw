@@ -45,7 +45,9 @@ export class TextManager {
 		this.baseElem = document.createElement('div')
 		this.baseElem.classList.add('tl-text')
 		this.baseElem.classList.add('tl-text-measure')
+		this.baseElem.setAttribute('dir', 'auto')
 		this.baseElem.tabIndex = -1
+		this.editor.getContainer().appendChild(this.baseElem)
 	}
 
 	measureText(
@@ -92,37 +94,32 @@ export class TextManager {
 			disableOverflowWrapBreaking?: boolean
 		}
 	): BoxModel & { scrollWidth: number } {
-		// Duplicate our base element; we don't need to clone deep
-		const wrapperElm = this.baseElem.cloneNode() as HTMLDivElement
-		this.editor.getContainer().appendChild(wrapperElm)
-		wrapperElm.innerHTML = html
-		this.baseElem.insertAdjacentElement('afterend', wrapperElm)
+		const { baseElem } = this
+		baseElem.innerHTML = html
 
-		wrapperElm.setAttribute('dir', 'auto')
-		// N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers")
-		// is necessary for ensuring correct mixed RTL/LTR behavior when exporting SVGs.
-		wrapperElm.style.setProperty('unicode-bidi', 'plaintext')
-		wrapperElm.style.setProperty('font-family', opts.fontFamily)
-		wrapperElm.style.setProperty('font-style', opts.fontStyle)
-		wrapperElm.style.setProperty('font-weight', opts.fontWeight)
-		wrapperElm.style.setProperty('font-size', opts.fontSize + 'px')
-		wrapperElm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
-		wrapperElm.style.setProperty('max-width', opts.maxWidth === null ? null : opts.maxWidth + 'px')
-		wrapperElm.style.setProperty('min-width', opts.minWidth === null ? null : opts.minWidth + 'px')
-		wrapperElm.style.setProperty('padding', opts.padding)
-		wrapperElm.style.setProperty(
+		baseElem.style.setProperty('word-break', 'auto')
+		baseElem.style.setProperty('width', 'auto')
+		baseElem.style.setProperty('height', 'auto')
+		baseElem.style.setProperty('font-family', opts.fontFamily)
+		baseElem.style.setProperty('font-style', opts.fontStyle)
+		baseElem.style.setProperty('font-weight', opts.fontWeight)
+		baseElem.style.setProperty('font-size', opts.fontSize + 'px')
+		baseElem.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
+		baseElem.style.setProperty('max-width', opts.maxWidth === null ? null : opts.maxWidth + 'px')
+		baseElem.style.setProperty('min-width', opts.minWidth === null ? null : opts.minWidth + 'px')
+		baseElem.style.setProperty('padding', opts.padding)
+		baseElem.style.setProperty(
 			'overflow-wrap',
 			opts.disableOverflowWrapBreaking ? 'normal' : 'break-word'
 		)
 		if (opts.otherStyles) {
 			for (const [key, value] of Object.entries(opts.otherStyles)) {
-				wrapperElm.style.setProperty(key, value)
+				baseElem.style.setProperty(key, value)
 			}
 		}
 
-		const scrollWidth = wrapperElm.scrollWidth
-		const rect = wrapperElm.getBoundingClientRect()
-		wrapperElm.remove()
+		const scrollWidth = baseElem.scrollWidth
+		const rect = baseElem.getBoundingClientRect()
 
 		return {
 			x: 0,
@@ -247,14 +244,11 @@ export class TextManager {
 	): { text: string; box: BoxModel }[] {
 		if (textToMeasure === '') return []
 
-		const elm = this.baseElem.cloneNode() as HTMLDivElement
-		this.editor.getContainer().appendChild(elm)
+		const elm = this.baseElem as HTMLDivElement
 
 		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
-		elm.setAttribute('dir', 'auto')
 		// N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers")
 		// is necessary for ensuring correct mixed RTL/LTR behavior when exporting SVGs.
-		elm.style.setProperty('unicode-bidi', 'plaintext')
 		elm.style.setProperty('width', `${elementWidth}px`)
 		elm.style.setProperty('height', 'min-content')
 		elm.style.setProperty('font-size', `${opts.fontSize}px`)
@@ -315,8 +309,6 @@ export class TextManager {
 			})
 			return truncatedSpans
 		}
-
-		elm.remove()
 
 		return spans
 	}
