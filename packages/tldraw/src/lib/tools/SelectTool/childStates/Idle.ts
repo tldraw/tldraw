@@ -594,13 +594,12 @@ export class Idle extends StateNode {
 	isOverArrowLabelTest(shape: TLShape | undefined) {
 		if (!shape) return false
 
-		const pointInShapeSpace = this.editor.getPointInShapeSpace(
-			shape,
-			this.editor.inputs.currentPagePoint
-		)
-
 		// todo: Extract into general hit test for arrows
 		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+			const pointInShapeSpace = this.editor.getPointInShapeSpace(
+				shape,
+				this.editor.inputs.currentPagePoint
+			)
 			// How should we handle multiple labels? Do shapes ever have multiple labels?
 			const labelGeometry = this.editor.getShapeGeometry<Group2d>(shape).children[1]
 			// Knowing what we know about arrows... if the shape has no text in its label,
