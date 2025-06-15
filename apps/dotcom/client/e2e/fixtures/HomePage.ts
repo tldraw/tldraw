@@ -8,12 +8,14 @@ const rootUrl = 'http://localhost:3000/'
 export class HomePage {
 	public readonly signInButton: Locator
 	public readonly tldrawEditor: Locator
+	public readonly tldrawCanvas: Locator
 	constructor(
 		private readonly page: Page,
 		private readonly editor: Editor
 	) {
 		this.signInButton = this.page.getByText('Sign in')
 		this.tldrawEditor = this.page.getByTestId('tla-editor')
+		this.tldrawCanvas = this.page.getByTestId('canvas')
 	}
 
 	@step
@@ -54,6 +56,7 @@ export class HomePage {
 	async isLoaded() {
 		await expect(async () => {
 			await expect(this.tldrawEditor).toBeVisible({ timeout: 10000 })
+			await expect(this.tldrawCanvas).toBeVisible({ timeout: 10000 })
 		}).toPass()
 	}
 }
