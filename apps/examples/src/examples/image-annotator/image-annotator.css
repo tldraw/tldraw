@@ -51,6 +51,7 @@
 	fill: var(--color-background);
 	fill-opacity: 0.8;
 	stroke: none;
+	z-index: 200;
 }
 
 .ImageAnnotator .DoneButton {
