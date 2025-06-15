@@ -110,9 +110,10 @@ export class TextManager {
 			}
 		}
 
-		this.resetElmStyles()
-
 		elm.innerHTML = html
+
+		// Apply the default styles to the element (for all styles here or that were ever seen in opts.otherStyles)
+		this.resetElmStyles()
 
 		elm.style.setProperty('font-family', opts.fontFamily)
 		elm.style.setProperty('font-style', opts.fontStyle)
