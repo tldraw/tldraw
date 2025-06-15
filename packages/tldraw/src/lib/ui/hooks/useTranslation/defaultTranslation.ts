@@ -29,6 +29,7 @@ export const DEFAULT_TRANSLATION = {
 	'action.distribute-vertical': 'Distribute vertically',
 	'action.distribute-horizontal.short': 'Distribute H',
 	'action.distribute-vertical.short': 'Distribute V',
+	'action.download-original': 'Download original',
 	'action.duplicate': 'Duplicate',
 	'action.edit-link': 'Edit link',
 	'action.exit-pen-mode': 'Exit pen mode',
