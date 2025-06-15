@@ -348,7 +348,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.getContainer = getContainer
 
 		this.textMeasure = new TextManager(this)
-		this.disposables.add(this.textMeasure.dispose.bind(this.textMeasure))
+		this.disposables.add(() => this.textMeasure.dispose())
 
 		this.fonts = new FontManager(this, fontAssetUrls)
 
