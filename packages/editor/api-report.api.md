@@ -3671,8 +3671,6 @@ export interface TLMeasureTextOpts {
     lineHeight: number;
     maxWidth: null | number;
     // (undocumented)
-    measureScrollWidth?: boolean;
-    // (undocumented)
     minWidth?: null | number;
     // (undocumented)
     otherStyles?: Record<string, string>;
@@ -3694,8 +3692,6 @@ export interface TLMeasureTextSpanOpts {
     height: number;
     // (undocumented)
     lineHeight: number;
-    // (undocumented)
-    measureScrollWidth?: boolean;
     // (undocumented)
     otherStyles?: Record<string, string>;
     // (undocumented)
