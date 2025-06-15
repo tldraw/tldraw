@@ -675,15 +675,6 @@ input,
 	-webkit-user-select: none;
 }
 
-.tl-text-measure__debug {
-	z-index: var(--layer-canvas-overlays);
-	top: 100px !important;
-	left: 100px !important;
-	opacity: 1;
-	pointer-events: all;
-	visibility: visible;
-}
-
 .tl-text-input,
 .tl-text-content {
 	position: absolute;
