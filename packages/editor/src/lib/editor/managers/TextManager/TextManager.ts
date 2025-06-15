@@ -59,14 +59,25 @@ const spaceCharacterRegex = /\s/
 /** @public */
 export class TextManager {
 	private elm: HTMLDivElement
+	private defaultStyles: Record<string, string | null>
 
 	constructor(public editor: Editor) {
-		this.elm = document.createElement('div')
-		this.elm.classList.add('tl-text')
-		this.elm.classList.add('tl-text-measure')
-		this.elm.setAttribute('dir', 'auto')
-		this.elm.tabIndex = -1
-		this.editor.getContainer().appendChild(this.elm)
+		const elm = document.createElement('div')
+		elm.classList.add('tl-text')
+		elm.classList.add('tl-text-measure')
+		elm.style.setProperty('word-break', 'auto')
+		elm.style.setProperty('width', null)
+		elm.style.setProperty('height', null)
+		elm.setAttribute('dir', 'auto')
+		elm.tabIndex = -1
+		this.editor.getContainer().appendChild(elm)
+		// we need to save the default styles so that we can restore them when we're done
+		this.defaultStyles = {
+			'word-break': 'auto',
+			width: null,
+			height: null,
+		}
+		this.elm = elm
 	}
 
 	dispose() {
@@ -83,6 +94,13 @@ export class TextManager {
 			this.elm.classList.add('tl-text-measure__debug')
 		} else {
 			this.elm.classList.remove('tl-text-measure__debug')
+		}
+	}
+
+	resetElm() {
+		const { elm, defaultStyles } = this
+		for (const key in defaultStyles) {
+			elm.style.setProperty(key, defaultStyles[key])
 		}
 	}
 
@@ -132,11 +150,17 @@ export class TextManager {
 	): BoxModel & { scrollWidth: number } {
 		const { elm } = this
 
+		if (opts.otherStyles) {
+			for (const key in opts.otherStyles) {
+				if (!this.defaultStyles[key]) {
+					// we need to save the original style so that we can restore it when we're done
+					this.defaultStyles[key] = elm.style.getPropertyValue(key)
+				}
+			}
+		}
+
 		elm.innerHTML = html
 
-		elm.style.setProperty('word-break', 'auto')
-		elm.style.setProperty('width', null)
-		elm.style.setProperty('height', null)
 		elm.style.setProperty('font-family', opts.fontFamily)
 		elm.style.setProperty('font-style', opts.fontStyle)
 		elm.style.setProperty('font-weight', opts.fontWeight)
@@ -145,10 +169,7 @@ export class TextManager {
 		elm.style.setProperty('max-width', opts.maxWidth === null ? null : opts.maxWidth + 'px')
 		elm.style.setProperty('min-width', opts.minWidth === null ? null : opts.minWidth + 'px')
 		elm.style.setProperty('padding', opts.padding)
-		elm.style.setProperty(
-			'overflow-wrap',
-			opts.disableOverflowWrapBreaking ? 'normal' : 'break-word'
-		)
+		elm.style.setProperty('overflow-wrap', opts.disableOverflowWrapBreaking ? 'normal' : null)
 		if (opts.otherStyles) {
 			for (const [key, value] of Object.entries(opts.otherStyles)) {
 				elm.style.setProperty(key, value)
@@ -158,7 +179,8 @@ export class TextManager {
 		const scrollWidth = elm.scrollWidth
 		const rect = elm.getBoundingClientRect()
 
-		elm.innerHTML = '' // clear the element to avoid memory leaks
+		// reset the element to avoid memory leaks and restore original styles
+		this.resetElm()
 
 		return {
 			x: 0,

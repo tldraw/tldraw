@@ -2876,6 +2876,8 @@ export class TextManager {
         text: string;
     }[];
     // (undocumented)
+    resetElm(): void;
+    // (undocumented)
     setDebug(debug: boolean): void;
 }
 
