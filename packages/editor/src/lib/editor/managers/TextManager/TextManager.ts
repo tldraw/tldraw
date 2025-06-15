@@ -58,15 +58,15 @@ const spaceCharacterRegex = /\s/
 
 /** @public */
 export class TextManager {
-	private baseElem: HTMLDivElement
+	private elm: HTMLDivElement
 
 	constructor(public editor: Editor) {
-		this.baseElem = document.createElement('div')
-		this.baseElem.classList.add('tl-text')
-		this.baseElem.classList.add('tl-text-measure')
-		this.baseElem.setAttribute('dir', 'auto')
-		this.baseElem.tabIndex = -1
-		this.editor.getContainer().appendChild(this.baseElem)
+		this.elm = document.createElement('div')
+		this.elm.classList.add('tl-text')
+		this.elm.classList.add('tl-text-measure')
+		this.elm.setAttribute('dir', 'auto')
+		this.elm.tabIndex = -1
+		this.editor.getContainer().appendChild(this.elm)
 	}
 
 	_debug = false
@@ -76,9 +76,9 @@ export class TextManager {
 	setDebug(debug: boolean) {
 		this._debug = debug
 		if (debug) {
-			this.baseElem.classList.add('tl-text-measure__debug')
+			this.elm.classList.add('tl-text-measure__debug')
 		} else {
-			this.baseElem.classList.remove('tl-text-measure__debug')
+			this.elm.classList.remove('tl-text-measure__debug')
 		}
 	}
 
@@ -126,32 +126,32 @@ export class TextManager {
 			disableOverflowWrapBreaking?: boolean
 		}
 	): BoxModel & { scrollWidth: number } {
-		const { baseElem } = this
-		baseElem.innerHTML = html
+		const { elm } = this
 
-		baseElem.style.setProperty('word-break', 'auto')
-		baseElem.style.setProperty('width', 'auto')
-		baseElem.style.setProperty('height', 'auto')
-		baseElem.style.setProperty('font-family', opts.fontFamily)
-		baseElem.style.setProperty('font-style', opts.fontStyle)
-		baseElem.style.setProperty('font-weight', opts.fontWeight)
-		baseElem.style.setProperty('font-size', opts.fontSize + 'px')
-		baseElem.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
-		baseElem.style.setProperty('max-width', opts.maxWidth === null ? 'auto' : opts.maxWidth + 'px')
-		baseElem.style.setProperty('min-width', opts.minWidth === null ? 'auto' : opts.minWidth + 'px')
-		baseElem.style.setProperty('padding', opts.padding)
-		baseElem.style.setProperty(
+		elm.style.setProperty('word-break', 'auto')
+		elm.style.setProperty('width', 'auto')
+		elm.style.setProperty('height', 'auto')
+		elm.style.setProperty('font-family', opts.fontFamily)
+		elm.style.setProperty('font-style', opts.fontStyle)
+		elm.style.setProperty('font-weight', opts.fontWeight)
+		elm.style.setProperty('font-size', opts.fontSize + 'px')
+		elm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
+		elm.style.setProperty('max-width', opts.maxWidth === null ? 'auto' : opts.maxWidth + 'px')
+		elm.style.setProperty('min-width', opts.minWidth === null ? 'auto' : opts.minWidth + 'px')
+		elm.style.setProperty('padding', opts.padding)
+		elm.style.setProperty(
 			'overflow-wrap',
 			opts.disableOverflowWrapBreaking ? 'normal' : 'break-word'
 		)
 		if (opts.otherStyles) {
 			for (const [key, value] of Object.entries(opts.otherStyles)) {
-				baseElem.style.setProperty(key, value)
+				elm.style.setProperty(key, value)
 			}
 		}
 
-		const scrollWidth = baseElem.scrollWidth
-		const rect = baseElem.getBoundingClientRect()
+		elm.innerHTML = html
+		const scrollWidth = elm.scrollWidth
+		const rect = elm.getBoundingClientRect()
 
 		return {
 			x: 0,
@@ -276,7 +276,7 @@ export class TextManager {
 	): { text: string; box: BoxModel }[] {
 		if (textToMeasure === '') return []
 
-		const elm = this.baseElem as HTMLDivElement
+		const { elm } = this
 
 		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
 		// N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers")
