@@ -99,7 +99,7 @@ describe('TextManager', () => {
 		})
 
 		it('should handle empty text', () => {
-			const result = textManager.measureText('', defaultOpts)
+			const result = textManager.measureText('', { ...defaultOpts, measureScrollWidth: true })
 			expect(result).toHaveProperty('x', 0)
 			expect(result).toHaveProperty('y', 0)
 			expect(result).toHaveProperty('w')
