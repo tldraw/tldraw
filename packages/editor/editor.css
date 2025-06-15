@@ -669,6 +669,7 @@ input,
 	border: none;
 	user-select: none;
 	contain: style paint;
+	visibility: hidden;
 	/* N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers") is necessary for ensuring correct mixed RTL/LTR behavior when exporting SVGs. */
 	unicode-bidi: plaintext;
 	-webkit-user-select: none;
@@ -680,6 +681,7 @@ input,
 	left: 100px !important;
 	opacity: 1;
 	pointer-events: all;
+	visibility: visible;
 }
 
 .tl-text-input,
