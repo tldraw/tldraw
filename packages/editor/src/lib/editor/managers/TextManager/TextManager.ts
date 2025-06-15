@@ -279,15 +279,16 @@ export class TextManager {
 
 		this.resetElmStyles()
 
+		elm.style.setProperty('font-family', opts.fontFamily)
+		elm.style.setProperty('font-style', opts.fontStyle)
+		elm.style.setProperty('font-weight', opts.fontWeight)
+		elm.style.setProperty('font-size', opts.fontSize + 'px')
+		elm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
+
 		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
 		elm.style.setProperty('width', `${elementWidth}px`)
 		elm.style.setProperty('height', 'min-content')
-		elm.style.setProperty('font-size', `${opts.fontSize}px`)
-		elm.style.setProperty('font-family', opts.fontFamily)
-		elm.style.setProperty('font-weight', opts.fontWeight)
-		elm.style.setProperty('line-height', `${opts.lineHeight * opts.fontSize}px`)
 		elm.style.setProperty('text-align', textAlignmentsForLtr[opts.textAlign])
-		elm.style.setProperty('font-style', opts.fontStyle)
 
 		const shouldTruncateToFirstLine =
 			opts.overflow === 'truncate-ellipsis' || opts.overflow === 'truncate-clip'
