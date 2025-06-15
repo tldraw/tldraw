@@ -2826,7 +2826,11 @@ export type TestEnvironment = 'development' | 'production';
 export class TextManager {
     constructor(editor: Editor);
     // (undocumented)
+    _debug: boolean;
+    // (undocumented)
     editor: Editor;
+    // (undocumented)
+    getDebug(): boolean;
     measureElementTextNodeSpans(element: HTMLElement, { shouldTruncateToFirstLine }?: {
         shouldTruncateToFirstLine?: boolean;
     }): {
@@ -2869,6 +2873,8 @@ export class TextManager {
         box: BoxModel;
         text: string;
     }[];
+    // (undocumented)
+    setDebug(debug: boolean): void;
 }
 
 // @public
@@ -3672,6 +3678,27 @@ export interface TLLoadSessionStateSnapshotOptions {
 // @public
 export interface TLLoadSnapshotOptions {
     forceOverwriteSessionState?: boolean;
+}
+
+// @public (undocumented)
+export interface TLMeasureTextOpts {
+    // (undocumented)
+    disableOverflowWrapBreaking?: boolean;
+    // (undocumented)
+    fontFamily: string;
+    // (undocumented)
+    fontSize: number;
+    // (undocumented)
+    fontStyle: string;
+    // (undocumented)
+    fontWeight: string;
+    // (undocumented)
+    lineHeight: number;
+    maxWidth: null | number;
+    // (undocumented)
+    minWidth?: null | number;
+    // (undocumented)
+    padding: string;
 }
 
 // @public (undocumented)

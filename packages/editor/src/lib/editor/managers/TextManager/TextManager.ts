@@ -21,6 +21,25 @@ const textAlignmentsForLtr = {
 }
 
 /** @public */
+export interface TLMeasureTextOpts {
+	fontStyle: string
+	fontWeight: string
+	fontFamily: string
+	fontSize: number
+	lineHeight: number
+	/**
+	 * When maxWidth is a number, the text will be wrapped to that maxWidth. When maxWidth
+	 * is null, the text will be measured without wrapping, but explicit line breaks and
+	 * space are preserved.
+	 */
+	maxWidth: null | number
+	minWidth?: null | number
+	// todo: make this a number so that it is consistent with other TLMeasureTextSpanOpts
+	padding: string
+	disableOverflowWrapBreaking?: boolean
+}
+
+/** @public */
 export interface TLMeasureTextSpanOpts {
 	overflow: 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
 	width: number
@@ -48,6 +67,19 @@ export class TextManager {
 		this.baseElem.setAttribute('dir', 'auto')
 		this.baseElem.tabIndex = -1
 		this.editor.getContainer().appendChild(this.baseElem)
+	}
+
+	_debug = false
+	getDebug() {
+		return this._debug
+	}
+	setDebug(debug: boolean) {
+		this._debug = debug
+		if (debug) {
+			this.baseElem.classList.add('tl-text-measure__debug')
+		} else {
+			this.baseElem.classList.remove('tl-text-measure__debug')
+		}
 	}
 
 	measureText(
@@ -105,8 +137,8 @@ export class TextManager {
 		baseElem.style.setProperty('font-weight', opts.fontWeight)
 		baseElem.style.setProperty('font-size', opts.fontSize + 'px')
 		baseElem.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
-		baseElem.style.setProperty('max-width', opts.maxWidth === null ? null : opts.maxWidth + 'px')
-		baseElem.style.setProperty('min-width', opts.minWidth === null ? null : opts.minWidth + 'px')
+		baseElem.style.setProperty('max-width', opts.maxWidth === null ? 'auto' : opts.maxWidth + 'px')
+		baseElem.style.setProperty('min-width', opts.minWidth === null ? 'auto' : opts.minWidth + 'px')
 		baseElem.style.setProperty('padding', opts.padding)
 		baseElem.style.setProperty(
 			'overflow-wrap',
