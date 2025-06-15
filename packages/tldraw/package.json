@@ -45,13 +45,13 @@
 		"tldraw.css"
 	],
 	"dependencies": {
-		"@tiptap/core": "^2.9.1",
-		"@tiptap/extension-code": "^2.9.1",
-		"@tiptap/extension-highlight": "^2.9.1",
-		"@tiptap/extension-link": "^2.9.1",
-		"@tiptap/pm": "^2.9.1",
-		"@tiptap/react": "^2.9.1",
-		"@tiptap/starter-kit": "^2.9.1",
+		"@tiptap/core": "3.0.0-next.8",
+		"@tiptap/extension-code": "3.0.0-next.8",
+		"@tiptap/extension-highlight": "3.0.0-next.8",
+		"@tiptap/extension-list": "3.0.0-next.8",
+		"@tiptap/pm": "3.0.0-next.8",
+		"@tiptap/react": "3.0.0-next.8",
+		"@tiptap/starter-kit": "3.0.0-next.8",
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"classnames": "^2.5.1",
@@ -87,6 +87,9 @@
 		},
 		"testPathIgnorePatterns": [
 			"^.+\\.*.css$"
+		],
+		"transformIgnorePatterns": [
+			"node_modules/(?!@tiptap/)"
 		],
 		"moduleNameMapper": {
 			"^~(.*)": "<rootDir>/src/$1",
