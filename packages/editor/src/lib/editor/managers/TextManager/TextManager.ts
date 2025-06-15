@@ -21,6 +21,26 @@ const textAlignmentsForLtr = {
 }
 
 /** @public */
+export interface TLMeasureTextOpts {
+	fontStyle: string
+	fontWeight: string
+	fontFamily: string
+	fontSize: number
+	lineHeight: number
+	/**
+	 * When maxWidth is a number, the text will be wrapped to that maxWidth. When maxWidth
+	 * is null, the text will be measured without wrapping, but explicit line breaks and
+	 * space are preserved.
+	 */
+	maxWidth: null | number
+	minWidth?: null | number
+	// todo: make this a number so that it is consistent with other TLMeasureTextSpanOpts
+	padding: string
+	otherStyles?: Record<string, string>
+	disableOverflowWrapBreaking?: boolean
+}
+
+/** @public */
 export interface TLMeasureTextSpanOpts {
 	overflow: 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
 	width: number
@@ -39,90 +59,91 @@ const spaceCharacterRegex = /\s/
 
 /** @public */
 export class TextManager {
-	private baseElem: HTMLDivElement
+	private elm: HTMLDivElement
+	private defaultStyles: Record<string, string | null>
 
 	constructor(public editor: Editor) {
-		this.baseElem = document.createElement('div')
-		this.baseElem.classList.add('tl-text')
-		this.baseElem.classList.add('tl-text-measure')
-		this.baseElem.tabIndex = -1
+		const elm = document.createElement('div')
+		elm.classList.add('tl-text')
+		elm.classList.add('tl-text-measure')
+		elm.setAttribute('dir', 'auto')
+		elm.tabIndex = -1
+		this.editor.getContainer().appendChild(elm)
+
+		// we need to save the default styles so that we can restore them when we're done
+		// these must be the css names, not the js names for the styles
+		this.defaultStyles = {
+			'word-break': 'auto',
+			width: null,
+			height: null,
+			'max-width': null,
+			'min-width': null,
+		}
+
+		this.elm = elm
 	}
 
-	measureText(
-		textToMeasure: string,
-		opts: {
-			fontStyle: string
-			fontWeight: string
-			fontFamily: string
-			fontSize: number
-			lineHeight: number
-			/**
-			 * When maxWidth is a number, the text will be wrapped to that maxWidth. When maxWidth
-			 * is null, the text will be measured without wrapping, but explicit line breaks and
-			 * space are preserved.
-			 */
-			maxWidth: null | number
-			minWidth?: null | number
-			padding: string
-			disableOverflowWrapBreaking?: boolean
+	dispose() {
+		return this.elm.remove()
+	}
+
+	private resetElmStyles() {
+		const { elm, defaultStyles } = this
+		for (const key in defaultStyles) {
+			elm.style.setProperty(key, defaultStyles[key])
 		}
-	): BoxModel & { scrollWidth: number } {
+	}
+
+	measureText(textToMeasure: string, opts: TLMeasureTextOpts): BoxModel & { scrollWidth: number } {
 		const div = document.createElement('div')
 		div.textContent = normalizeTextForDom(textToMeasure)
 		return this.measureHtml(div.innerHTML, opts)
 	}
 
-	measureHtml(
-		html: string,
-		opts: {
-			fontStyle: string
-			fontWeight: string
-			fontFamily: string
-			fontSize: number
-			lineHeight: number
-			/**
-			 * When maxWidth is a number, the text will be wrapped to that maxWidth. When maxWidth
-			 * is null, the text will be measured without wrapping, but explicit line breaks and
-			 * space are preserved.
-			 */
-			maxWidth: null | number
-			minWidth?: null | number
-			otherStyles?: Record<string, string>
-			padding: string
-			disableOverflowWrapBreaking?: boolean
-		}
-	): BoxModel & { scrollWidth: number } {
-		// Duplicate our base element; we don't need to clone deep
-		const wrapperElm = this.baseElem.cloneNode() as HTMLDivElement
-		this.editor.getContainer().appendChild(wrapperElm)
-		wrapperElm.innerHTML = html
-		this.baseElem.insertAdjacentElement('afterend', wrapperElm)
+	measureHtml(html: string, opts: TLMeasureTextOpts): BoxModel & { scrollWidth: number } {
+		const { elm } = this
 
-		wrapperElm.setAttribute('dir', 'auto')
-		// N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers")
-		// is necessary for ensuring correct mixed RTL/LTR behavior when exporting SVGs.
-		wrapperElm.style.setProperty('unicode-bidi', 'plaintext')
-		wrapperElm.style.setProperty('font-family', opts.fontFamily)
-		wrapperElm.style.setProperty('font-style', opts.fontStyle)
-		wrapperElm.style.setProperty('font-weight', opts.fontWeight)
-		wrapperElm.style.setProperty('font-size', opts.fontSize + 'px')
-		wrapperElm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
-		wrapperElm.style.setProperty('max-width', opts.maxWidth === null ? null : opts.maxWidth + 'px')
-		wrapperElm.style.setProperty('min-width', opts.minWidth === null ? null : opts.minWidth + 'px')
-		wrapperElm.style.setProperty('padding', opts.padding)
-		wrapperElm.style.setProperty(
-			'overflow-wrap',
-			opts.disableOverflowWrapBreaking ? 'normal' : 'break-word'
-		)
 		if (opts.otherStyles) {
-			for (const [key, value] of Object.entries(opts.otherStyles)) {
-				wrapperElm.style.setProperty(key, value)
+			for (const key in opts.otherStyles) {
+				if (!this.defaultStyles[key]) {
+					// we need to save the original style so that we can restore it when we're done
+					this.defaultStyles[key] = elm.style.getPropertyValue(key)
+				}
 			}
 		}
 
-		const scrollWidth = wrapperElm.scrollWidth
-		const rect = wrapperElm.getBoundingClientRect()
-		wrapperElm.remove()
+		elm.innerHTML = html
+
+		// Apply the default styles to the element (for all styles here or that were ever seen in opts.otherStyles)
+		this.resetElmStyles()
+
+		elm.style.setProperty('font-family', opts.fontFamily)
+		elm.style.setProperty('font-style', opts.fontStyle)
+		elm.style.setProperty('font-weight', opts.fontWeight)
+		elm.style.setProperty('font-size', opts.fontSize + 'px')
+		elm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
+		elm.style.setProperty('padding', opts.padding)
+
+		if (opts.maxWidth) {
+			elm.style.setProperty('max-width', opts.maxWidth + 'px')
+		}
+
+		if (opts.minWidth) {
+			elm.style.setProperty('min-width', opts.minWidth + 'px')
+		}
+
+		if (opts.disableOverflowWrapBreaking) {
+			elm.style.setProperty('overflow-wrap', 'normal')
+		}
+
+		if (opts.otherStyles) {
+			for (const [key, value] of Object.entries(opts.otherStyles)) {
+				elm.style.setProperty(key, value)
+			}
+		}
+
+		const scrollWidth = elm.scrollWidth
+		const rect = elm.getBoundingClientRect()
 
 		return {
 			x: 0,
@@ -247,27 +268,29 @@ export class TextManager {
 	): { text: string; box: BoxModel }[] {
 		if (textToMeasure === '') return []
 
-		const elm = this.baseElem.cloneNode() as HTMLDivElement
-		this.editor.getContainer().appendChild(elm)
+		const { elm } = this
 
-		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
-		elm.setAttribute('dir', 'auto')
-		// N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers")
-		// is necessary for ensuring correct mixed RTL/LTR behavior when exporting SVGs.
-		elm.style.setProperty('unicode-bidi', 'plaintext')
-		elm.style.setProperty('width', `${elementWidth}px`)
-		elm.style.setProperty('height', 'min-content')
-		elm.style.setProperty('font-size', `${opts.fontSize}px`)
-		elm.style.setProperty('font-family', opts.fontFamily)
-		elm.style.setProperty('font-weight', opts.fontWeight)
-		elm.style.setProperty('line-height', `${opts.lineHeight * opts.fontSize}px`)
-		elm.style.setProperty('text-align', textAlignmentsForLtr[opts.textAlign])
-		elm.style.setProperty('font-style', opts.fontStyle)
 		if (opts.otherStyles) {
-			for (const [key, value] of Object.entries(opts.otherStyles)) {
-				elm.style.setProperty(key, value)
+			for (const key in opts.otherStyles) {
+				if (!this.defaultStyles[key]) {
+					// we need to save the original style so that we can restore it when we're done
+					this.defaultStyles[key] = elm.style.getPropertyValue(key)
+				}
 			}
 		}
+
+		this.resetElmStyles()
+
+		elm.style.setProperty('font-family', opts.fontFamily)
+		elm.style.setProperty('font-style', opts.fontStyle)
+		elm.style.setProperty('font-weight', opts.fontWeight)
+		elm.style.setProperty('font-size', opts.fontSize + 'px')
+		elm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
+
+		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
+		elm.style.setProperty('width', `${elementWidth}px`)
+		elm.style.setProperty('height', 'min-content')
+		elm.style.setProperty('text-align', textAlignmentsForLtr[opts.textAlign])
 
 		const shouldTruncateToFirstLine =
 			opts.overflow === 'truncate-ellipsis' || opts.overflow === 'truncate-clip'
@@ -275,6 +298,12 @@ export class TextManager {
 		if (shouldTruncateToFirstLine) {
 			elm.style.setProperty('overflow-wrap', 'anywhere')
 			elm.style.setProperty('word-break', 'break-all')
+		}
+
+		if (opts.otherStyles) {
+			for (const [key, value] of Object.entries(opts.otherStyles)) {
+				elm.style.setProperty(key, value)
+			}
 		}
 
 		const normalizedText = normalizeTextForDom(textToMeasure)
@@ -313,10 +342,9 @@ export class TextManager {
 					h: lastSpan.box.h,
 				},
 			})
+
 			return truncatedSpans
 		}
-
-		elm.remove()
 
 		return spans
 	}
