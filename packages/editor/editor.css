@@ -767,25 +767,6 @@ input,
 	max-width: 100%;
 }
 
-.tl-text-label__inner > .tl-text-content {
-	position: relative;
-	top: 0px;
-	left: 0px;
-	padding: inherit;
-	height: fit-content;
-	width: fit-content;
-	border-radius: var(--radius-1);
-	max-width: 100%;
-}
-
-.tl-text-label__inner > .tl-text-input {
-	position: absolute;
-	inset: 0px;
-	height: 100%;
-	width: 100%;
-	padding: inherit;
-}
-
 .tl-text-label[data-isediting='true'] {
 	background-color: transparent;
 	min-height: auto;
