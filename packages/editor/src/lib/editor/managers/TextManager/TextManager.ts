@@ -119,10 +119,20 @@ export class TextManager {
 		elm.style.setProperty('font-weight', opts.fontWeight)
 		elm.style.setProperty('font-size', opts.fontSize + 'px')
 		elm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
-		elm.style.setProperty('max-width', opts.maxWidth === null ? null : opts.maxWidth + 'px')
-		elm.style.setProperty('min-width', opts.minWidth === null ? null : opts.minWidth + 'px')
 		elm.style.setProperty('padding', opts.padding)
-		elm.style.setProperty('overflow-wrap', opts.disableOverflowWrapBreaking ? 'normal' : null)
+
+		if (opts.maxWidth) {
+			elm.style.setProperty('max-width', opts.maxWidth + 'px')
+		}
+
+		if (opts.minWidth) {
+			elm.style.setProperty('min-width', opts.minWidth + 'px')
+		}
+
+		if (opts.disableOverflowWrapBreaking) {
+			elm.style.setProperty('overflow-wrap', 'normal')
+		}
+
 		if (opts.otherStyles) {
 			for (const [key, value] of Object.entries(opts.otherStyles)) {
 				elm.style.setProperty(key, value)
