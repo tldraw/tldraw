@@ -69,6 +69,10 @@ export class TextManager {
 		this.editor.getContainer().appendChild(this.elm)
 	}
 
+	dispose() {
+		return this.elm.remove()
+	}
+
 	_debug = false
 	getDebug() {
 		return this._debug
@@ -128,16 +132,18 @@ export class TextManager {
 	): BoxModel & { scrollWidth: number } {
 		const { elm } = this
 
+		elm.innerHTML = html
+
 		elm.style.setProperty('word-break', 'auto')
-		elm.style.setProperty('width', 'auto')
-		elm.style.setProperty('height', 'auto')
+		elm.style.setProperty('width', null)
+		elm.style.setProperty('height', null)
 		elm.style.setProperty('font-family', opts.fontFamily)
 		elm.style.setProperty('font-style', opts.fontStyle)
 		elm.style.setProperty('font-weight', opts.fontWeight)
 		elm.style.setProperty('font-size', opts.fontSize + 'px')
 		elm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
-		elm.style.setProperty('max-width', opts.maxWidth === null ? 'auto' : opts.maxWidth + 'px')
-		elm.style.setProperty('min-width', opts.minWidth === null ? 'auto' : opts.minWidth + 'px')
+		elm.style.setProperty('max-width', opts.maxWidth === null ? null : opts.maxWidth + 'px')
+		elm.style.setProperty('min-width', opts.minWidth === null ? null : opts.minWidth + 'px')
 		elm.style.setProperty('padding', opts.padding)
 		elm.style.setProperty(
 			'overflow-wrap',
@@ -149,9 +155,10 @@ export class TextManager {
 			}
 		}
 
-		elm.innerHTML = html
 		const scrollWidth = elm.scrollWidth
 		const rect = elm.getBoundingClientRect()
+
+		console.log(Array.from(elm.style))
 
 		return {
 			x: 0,

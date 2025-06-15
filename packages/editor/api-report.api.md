@@ -2828,6 +2828,8 @@ export class TextManager {
     // (undocumented)
     _debug: boolean;
     // (undocumented)
+    dispose(): void;
+    // (undocumented)
     editor: Editor;
     // (undocumented)
     getDebug(): boolean;

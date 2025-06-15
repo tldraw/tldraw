@@ -6,7 +6,6 @@ import {
 	TLMeasureTextSpanOpts,
 	TLNoteShape,
 	TLShapeId,
-	sleep,
 } from 'tldraw'
 import { EndToEndApi } from '../../src/misc/EndToEndApi'
 import { setupPage } from '../shared-e2e'
@@ -66,9 +65,6 @@ test.describe('text measurement', () => {
 	test.beforeAll(async ({ browser }) => {
 		page = await browser.newPage()
 		await setupPage(page)
-		await page.evaluate(() => {
-			editor.textMeasure.setDebug(true)
-		})
 	})
 
 	test('measures text', async () => {
@@ -76,8 +72,6 @@ test.describe('text measurement', () => {
 			async (options) => editor.textMeasure.measureText('testing', options),
 			measureTextOptions
 		)
-
-		await sleep(5000)
 
 		expect(w).toBeCloseTo(88, 0)
 		expect(h).toBeCloseTo(32.3984375, 0)
@@ -357,5 +351,53 @@ test.describe('text measurement', () => {
 		// Adjust these expected values based on how renderMethod is supposed to affect the output
 		expect(w).toBeCloseTo(168.5, 0)
 		expect(h).toBeCloseTo(32.390625, 0)
+	})
+
+	test('element should have no leftover properties', async () => {
+		const measure = page.locator('div.tl-text-measure')
+
+		const { w, h } = await page.evaluate<{ w: number; h: number }, typeof measureTextOptions>(
+			async (options) => {
+				return editor.textMeasure.measureHtml(`<div><strong>HELLO WORLD</strong></div>`, options)
+			},
+			measureTextOptions
+		)
+
+		expect(w).toBeCloseTo(168.5, 0)
+		expect(h).toBeCloseTo(32.390625, 0)
+
+		const firstStyle = (await measure.getAttribute('style')) ?? ''
+
+		expect(await measure.getAttribute('style')).toMatch(firstStyle)
+
+		await page.evaluate(() => {
+			const id = 'shape:testShape' as TLShapeId
+			editor.createShapes<TLNoteShape>([
+				{
+					id,
+					type: 'note',
+					x: 0,
+					y: 0,
+					props: {
+						richText: tldrawApi.toRichText(
+							'a very long dutch word like ziekenhuisinrichtingsmaatschappij'
+						),
+						size: 'xl',
+					},
+				},
+			])
+		})
+
+		const { w: w2, h: h2 } = await page.evaluate<
+			{ w: number; h: number },
+			typeof measureTextOptions
+		>(async (options) => {
+			return editor.textMeasure.measureHtml(`<div><strong>HELLO WORLD</strong></div>`, options)
+		}, measureTextOptions)
+
+		expect(await page.locator('div.tl-text-measure').getAttribute('style')).toMatch(firstStyle)
+
+		expect(w2).toBeCloseTo(168.5, 0)
+		expect(h2).toBeCloseTo(32.390625, 0)
 	})
 })
