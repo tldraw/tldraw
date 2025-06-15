@@ -2845,6 +2845,7 @@ export class TextManager {
         fontStyle: string;
         fontWeight: string;
         lineHeight: number;
+        measureScrollWidth?: boolean;
         minWidth?: null | number;
         otherStyles?: Record<string, string>;
         padding: string;
@@ -2860,6 +2861,7 @@ export class TextManager {
         fontStyle: string;
         fontWeight: string;
         lineHeight: number;
+        measureScrollWidth?: boolean;
         minWidth?: null | number;
         padding: string;
     }): BoxModel & {
