@@ -158,6 +158,8 @@ export class TextManager {
 		const scrollWidth = elm.scrollWidth
 		const rect = elm.getBoundingClientRect()
 
+		elm.innerHTML = '' // clear the element to avoid memory leaks
+
 		return {
 			x: 0,
 			y: 0,
