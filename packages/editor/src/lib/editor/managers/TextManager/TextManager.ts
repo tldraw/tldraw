@@ -110,6 +110,8 @@ export class TextManager {
 			}
 		}
 
+		this.resetElmStyles()
+
 		elm.innerHTML = html
 
 		elm.style.setProperty('font-family', opts.fontFamily)
@@ -129,9 +131,6 @@ export class TextManager {
 
 		const scrollWidth = elm.scrollWidth
 		const rect = elm.getBoundingClientRect()
-
-		// reset the element to avoid memory leaks and restore original styles
-		this.resetElmStyles()
 
 		return {
 			x: 0,
