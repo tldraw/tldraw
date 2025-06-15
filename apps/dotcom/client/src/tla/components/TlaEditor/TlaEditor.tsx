@@ -1,5 +1,5 @@
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
@@ -205,6 +205,12 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		userInfo: app?.tlUser.userPreferences,
 	})
 
+	// we need to prevent calling onFileExit if the store is in an error state
+	const storeError = useRef(false)
+	if (store.status === 'error') {
+		storeError.current = true
+	}
+
 	// Handle entering and exiting the file, with some protection against rapid enters/exits
 	useEffect(() => {
 		if (!app) return
@@ -232,7 +238,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 		return () => {
 			clearTimeout(timer)
-			if (didEnter) {
+			if (didEnter && !storeError.current) {
 				app.onFileExit(fileId)
 			}
 		}

@@ -62,7 +62,7 @@
 		"@tldraw/validate": "workspace:*",
 		"@types/lodash.pick": "^4.4.9",
 		"@types/md5": "^2.3.5",
-		"@types/node": "~20.11.30",
+		"@types/node": "^22.15.31",
 		"@types/qrcode": "^1.5.5",
 		"@types/react": "^18.3.18",
 		"@vitejs/plugin-react-swc": "^3.7.2",

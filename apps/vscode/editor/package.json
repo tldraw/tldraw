@@ -34,7 +34,7 @@
 	"devDependencies": {
 		"@tldraw/assets": "workspace:*",
 		"@types/fs-extra": "^11.0.4",
-		"@types/node": "~20.11.30",
+		"@types/node": "^22.15.31",
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
 		"@types/react-router-dom": "^5.3.3",
