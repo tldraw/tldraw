@@ -84,28 +84,11 @@ export class TextManager {
 		return this.elm.remove()
 	}
 
-	_debug = false
-	getDebug() {
-		return this._debug
-	}
-	setDebug(debug: boolean) {
-		this._debug = debug
-		if (debug) {
-			this.elm.classList.add('tl-text-measure__debug')
-		} else {
-			this.elm.classList.remove('tl-text-measure__debug')
-		}
-	}
-
-	resetElmStyles() {
+	private resetElmStyles() {
 		const { elm, defaultStyles } = this
 		for (const key in defaultStyles) {
 			elm.style.setProperty(key, defaultStyles[key])
 		}
-	}
-
-	resetElmHtml() {
-		this.elm.innerHTML = ''
 	}
 
 	measureText(

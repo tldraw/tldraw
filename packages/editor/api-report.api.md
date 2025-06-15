@@ -2826,13 +2826,9 @@ export type TestEnvironment = 'development' | 'production';
 export class TextManager {
     constructor(editor: Editor);
     // (undocumented)
-    _debug: boolean;
-    // (undocumented)
     dispose(): void;
     // (undocumented)
     editor: Editor;
-    // (undocumented)
-    getDebug(): boolean;
     measureElementTextNodeSpans(element: HTMLElement, { shouldTruncateToFirstLine }?: {
         shouldTruncateToFirstLine?: boolean;
     }): {
@@ -2875,12 +2871,6 @@ export class TextManager {
         box: BoxModel;
         text: string;
     }[];
-    // (undocumented)
-    resetElmHtml(): void;
-    // (undocumented)
-    resetElmStyles(): void;
-    // (undocumented)
-    setDebug(debug: boolean): void;
 }
 
 // @public
