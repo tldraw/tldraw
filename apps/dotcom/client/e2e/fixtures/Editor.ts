@@ -84,8 +84,8 @@ export class Editor {
 		await this.page.locator('.tl-background').click({ clickCount: 2 })
 		await this.page.locator('div[contenteditable="true"]').fill(text)
 		await this.page.evaluate(() => {
+			// Since we're using `getByText` to find the text shape, we need to reset the HTML inside of the text measurement element or else we'll get that one, too
 			;(window as any).editor.textManager.resetElmHtml()
 		})
-		// await this.page.pause()
 	}
 }
