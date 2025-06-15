@@ -149,7 +149,7 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 				/>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
-				<TldrawUiButton type="normal">
+				<TldrawUiButton type="normal" onClick={onClose}>
 					<TldrawUiButtonLabel>
 						<F defaultMessage="Cancel" />
 					</TldrawUiButtonLabel>
