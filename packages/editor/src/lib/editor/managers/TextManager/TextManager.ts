@@ -38,6 +38,7 @@ export interface TLMeasureTextOpts {
 	padding: string
 	otherStyles?: Record<string, string>
 	disableOverflowWrapBreaking?: boolean
+	measureScrollWidth?: boolean
 }
 
 /** @public */
@@ -53,6 +54,7 @@ export interface TLMeasureTextSpanOpts {
 	lineHeight: number
 	textAlign: TLDefaultHorizontalAlignStyle
 	otherStyles?: Record<string, string>
+	measureScrollWidth?: boolean
 }
 
 const spaceCharacterRegex = /\s/
@@ -142,7 +144,7 @@ export class TextManager {
 			}
 		}
 
-		const scrollWidth = elm.scrollWidth
+		const scrollWidth = opts.measureScrollWidth ? elm.scrollWidth : 0
 		const rect = elm.getBoundingClientRect()
 
 		return {

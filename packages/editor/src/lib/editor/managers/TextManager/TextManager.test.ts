@@ -99,7 +99,7 @@ describe('TextManager', () => {
 		})
 
 		it('should handle empty text', () => {
-			const result = textManager.measureText('', defaultOpts)
+			const result = textManager.measureText('', { ...defaultOpts, measureScrollWidth: true })
 			expect(result).toHaveProperty('x', 0)
 			expect(result).toHaveProperty('y', 0)
 			expect(result).toHaveProperty('w')
@@ -128,7 +128,6 @@ describe('TextManager', () => {
 				y: 0,
 				w: expect.any(Number),
 				h: expect.any(Number),
-				scrollWidth: expect.any(Number),
 			})
 		})
 
@@ -141,7 +140,6 @@ describe('TextManager', () => {
 				y: 0,
 				w: expect.any(Number),
 				h: expect.any(Number),
-				scrollWidth: expect.any(Number),
 			})
 		})
 
@@ -154,7 +152,6 @@ describe('TextManager', () => {
 				y: 0,
 				w: expect.any(Number),
 				h: expect.any(Number),
-				scrollWidth: expect.any(Number),
 			})
 		})
 
@@ -173,7 +170,6 @@ describe('TextManager', () => {
 				y: 0,
 				w: expect.any(Number),
 				h: expect.any(Number),
-				scrollWidth: expect.any(Number),
 			})
 		})
 	})
