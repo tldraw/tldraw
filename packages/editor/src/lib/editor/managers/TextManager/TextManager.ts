@@ -158,8 +158,6 @@ export class TextManager {
 		const scrollWidth = elm.scrollWidth
 		const rect = elm.getBoundingClientRect()
 
-		console.log(Array.from(elm.style))
-
 		return {
 			x: 0,
 			y: 0,
