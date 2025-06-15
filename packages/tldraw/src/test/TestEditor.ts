@@ -139,7 +139,7 @@ export class TestEditor extends Editor {
 				y: 0,
 				w: opts.maxWidth === null ? w : Math.max(w, opts.maxWidth),
 				h:
-					(opts.maxWidth === null ? breaks.length : Math.ceil(w % opts.maxWidth) + breaks.length) *
+					(opts.maxWidth === null ? breaks.length : Math.ceil(w / opts.maxWidth) + breaks.length) *
 					opts.fontSize,
 				scrollWidth: opts.maxWidth === null ? w : Math.max(w, opts.maxWidth),
 			}

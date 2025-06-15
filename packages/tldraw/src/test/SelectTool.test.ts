@@ -270,7 +270,13 @@ describe('DraggingHandle', () => {
 describe('PointingLabel', () => {
 	it('Enters from pointing_arrow_label and exits to idle', () => {
 		editor.createShapes<TLArrowShape>([
-			{ id: ids.arrow1, type: 'arrow', x: 100, y: 100, props: { text: 'Test Label' } },
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: { text: 'Test Label', end: { x: 100, y: 100 } },
+			},
 		])
 		const shape = editor.getShape(ids.arrow1)
 		editor.pointerDown(150, 150, {
@@ -286,7 +292,13 @@ describe('PointingLabel', () => {
 
 	it('Bails on escape', () => {
 		editor.createShapes<TLArrowShape>([
-			{ id: ids.arrow1, type: 'arrow', x: 100, y: 100, props: { text: 'Test Label' } },
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: { text: 'Test Label', end: { x: 100, y: 100 } },
+			},
 		])
 		const shape = editor.getShape(ids.arrow1)
 
