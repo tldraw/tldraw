@@ -1,4 +1,3 @@
-import { useAuth } from '@clerk/clerk-react'
 import { ROOM_OPEN_MODE, RoomOpenMode, RoomOpenModeToPath } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useMemo } from 'react'
@@ -61,8 +60,6 @@ function TlaEditorInner({
 	fileSlug: string
 }) {
 	const app = useMaybeApp()
-	const auth = useAuth()
-
 	const setIsReady = useSetIsReady()
 
 	// make sure this runs before the editor is instantiated
@@ -119,7 +116,7 @@ function TlaEditorInner({
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
 				<SneakyLegacySetDocumentTitle />
-				{roomOpenMode === 'read-write' && !auth.isSignedIn && <SneakyLegacyModal />}
+				{roomOpenMode === 'read-write' && <SneakyLegacyModal />}
 				{app && <SneakyTldrawFileDropHandler />}
 			</Tldraw>
 		</TlaEditorWrapper>
