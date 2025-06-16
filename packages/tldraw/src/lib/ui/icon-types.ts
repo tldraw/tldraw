@@ -9,6 +9,7 @@ export type TLUiIconType =
 	| 'align-left'
 	| 'align-right'
 	| 'align-top'
+	| 'alt'
 	| 'arrow-arc'
 	| 'arrow-cycle'
 	| 'arrow-elbow'
@@ -56,6 +57,7 @@ export type TLUiIconType =
 	| 'dot'
 	| 'dots-horizontal'
 	| 'dots-vertical'
+	| 'download'
 	| 'drag-handle-dots'
 	| 'duplicate'
 	| 'edit'
@@ -171,6 +173,7 @@ export const iconTypes = [
 	'align-left',
 	'align-right',
 	'align-top',
+	'alt',
 	'arrow-arc',
 	'arrow-cycle',
 	'arrow-elbow',
@@ -218,6 +221,7 @@ export const iconTypes = [
 	'dot',
 	'dots-horizontal',
 	'dots-vertical',
+	'download',
 	'drag-handle-dots',
 	'duplicate',
 	'edit',

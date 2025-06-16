@@ -29,6 +29,7 @@ export type AssetUrls = {
 		'align-left': string
 		'align-right': string
 		'align-top': string
+		alt: string
 		'arrow-arc': string
 		'arrow-cycle': string
 		'arrow-elbow': string
@@ -76,6 +77,7 @@ export type AssetUrls = {
 		dot: string
 		'dots-horizontal': string
 		'dots-vertical': string
+		download: string
 		'drag-handle-dots': string
 		duplicate: string
 		edit: string
