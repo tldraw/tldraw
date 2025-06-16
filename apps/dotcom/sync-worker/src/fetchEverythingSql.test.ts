@@ -15,13 +15,11 @@ interface ColumnStuff {
 	name: string
 }
 
-interface TableStuff {
+interface WithClause {
 	alias: string
-	columns: Array<ColumnStuff>
-	tableName?: string
-	where?: string
-	withAlias?: string
+	expression: string
 }
+
 function makeColumnStuff(table: (typeof schema.tables)[keyof typeof schema.tables]) {
 	return Object.entries(table.columns)
 		.map(([name, { type }]) => ({
@@ -32,41 +30,71 @@ function makeColumnStuff(table: (typeof schema.tables)[keyof typeof schema.table
 		.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-const tables: TableStuff[] = [
+const withs = [
 	{
-		tableName: 'user',
-		alias: 'user',
+		alias: 'my_owned_files',
+		expression: 'SELECT * FROM public."file" WHERE "ownerId" = $1',
+	},
+	{
+		alias: 'my_file_states',
+		expression: 'SELECT * FROM public."file_state" WHERE "userId" = $1',
+	},
+	{
+		alias: 'files_shared_with_me',
+		expression:
+			'SELECT f.* FROM my_file_states ufs JOIN public."file" f ON f.id = ufs."fileId" WHERE ufs."isFileOwner" = false AND f.shared = true',
+	},
+	{
+		alias: 'all_files',
+		expression: 'SELECT * FROM my_owned_files UNION SELECT * FROM files_shared_with_me',
+	},
+] as const satisfies WithClause[]
+
+type WithTable = (typeof withs)[number]['alias']
+
+interface SelectClause {
+	from?: WithTable | `public."${keyof typeof schema.tables}"` | 'public."user_mutation_number"'
+	outputTableName: string
+	columns: Array<ColumnStuff>
+	where?: string
+}
+
+const selects: SelectClause[] = [
+	{
+		from: 'public."user"',
+		outputTableName: 'user',
 		columns: makeColumnStuff(schema.tables.user),
 		where: '"id" = $1',
 	},
 	{
-		tableName: 'file_state',
-		alias: 'file_state',
+		from: 'my_file_states',
+		outputTableName: 'file_state',
 		columns: makeColumnStuff(schema.tables.file_state),
-		withAlias: 'user_file_states',
-		where: '"userId" = $1',
 	},
 	{
-		tableName: 'file',
-		alias: 'file',
+		from: 'all_files',
+		outputTableName: 'file',
 		columns: makeColumnStuff(schema.tables.file),
-		where: `"ownerId" = $1 OR "shared" = true AND EXISTS(SELECT 1 FROM user_file_states WHERE "fileId" = file.id)`,
 	},
 	{
-		tableName: 'user_mutation_number',
-		alias: 'user_mutation_number',
+		from: 'public."user_mutation_number"',
+		outputTableName: 'user_mutation_number',
 		columns: [{ expression: '"mutationNumber"', type: 'bigint', name: 'mutationNumber' }],
 		where: '"userId" = $1',
 	},
 	{
-		alias: 'lsn',
+		outputTableName: 'lsn',
 		columns: [{ expression: 'pg_current_wal_lsn()', type: 'text', name: 'lsn' }],
 	},
 ]
 
+const withClause = withs.length
+	? `WITH\n  ${withs.map((w) => `${w.alias} AS (${w.expression})`).join(',\n  ')}`
+	: ''
+
 const maxColumnsForType: Record<string, number> = {}
-for (const table of tables) {
-	const groupedColumns = groupBy(table.columns, (c) => c.type)
+for (const { columns } of selects) {
+	const groupedColumns = groupBy(columns, (c) => c.type)
 	for (const type in groupedColumns) {
 		maxColumnsForType[type] = Math.max(maxColumnsForType[type] ?? 0, groupedColumns[type].length)
 	}
@@ -80,40 +108,32 @@ const columnConfigTemplate = Object.freeze(
 )
 const columnNamesByAlias: Record<string, Record<string, string>> = {}
 
-const withSelects: string[] = []
 const mainSelects: string[] = []
 
-for (const table of tables) {
+for (const select of selects) {
 	const columnConfig = structuredClone(columnConfigTemplate)
 	const nameByAlias: Record<string, string> = {}
-	for (const column of table.columns) {
+	for (const column of select.columns) {
 		const nextSlot = columnConfig.find((c) => c.type === column.type && c.expression === null)
 		assert(nextSlot, 'no more slots for type ' + column.type)
 		nextSlot.expression = column.expression
 		nameByAlias[nextSlot.alias] = column.name
 	}
-	columnNamesByAlias[table.alias] = nameByAlias
+	columnNamesByAlias[select.outputTableName] = nameByAlias
 	const columnSelectString = columnConfig
 		.map((c) => `${c.expression ?? 'null'}::${c.type} as "${c.alias}"`)
 		.join(',\n  ')
-	let selectString = `SELECT\n  '${table.alias}' as "table",\n  ${columnSelectString}`
-	if (table.withAlias ?? table.tableName) {
-		selectString += `\nFROM ${table.withAlias ?? `public."${table.tableName}"`}`
+	let selectString = `SELECT\n  '${select.outputTableName}' as "table",\n  ${columnSelectString}`
+	if (select.from) {
+		selectString += `\nFROM ${select.from}`
 	}
-	if (table.where && !table.withAlias) {
-		selectString += `\nWHERE ${table.where}`
+	if (select.where) {
+		selectString += `\nWHERE ${select.where}`
 	}
 	mainSelects.push(selectString)
-	if (!table.withAlias) continue
-	let withSelect = `SELECT * FROM public."${table.tableName}"`
-	if (table.where) {
-		withSelect += ` WHERE ${table.where}`
-	}
-	withSelects.push(`"${table.withAlias}" AS (${withSelect})`)
 }
 
-const withClause = withSelects.length ? `WITH\n  ${withSelects.join(',\n  ')}` : ''
-const mainSelect = `${mainSelects.join('\nUNION\n')}`
+const mainSelect = `${mainSelects.join('\nUNION ALL\n')}`
 const fetchEverythingSql = `${withClause}\n${mainSelect}`.trim()
 
 function escapeForTemplateLiteral(str: string) {
