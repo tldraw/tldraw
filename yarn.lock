@@ -14120,6 +14120,7 @@ __metadata:
     "@types/react": "npm:^18.3.18"
     "@types/regexgen": "npm:^1.3.3"
     "@vitejs/plugin-react-swc": "npm:^3.7.2"
+    axe-core: "npm:^4.10.3"
     browser-fs-access: "npm:^0.35.0"
     classnames: "npm:^2.5.1"
     dotenv: "npm:^16.4.7"
