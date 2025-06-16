@@ -33,6 +33,7 @@ import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useTldrawUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
+import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
@@ -58,6 +59,7 @@ export const components: TLComponents = {
 		const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
 		return (
 			<DefaultDebugMenu>
+				<A11yAudit />
 				{!isReadOnly && app && (
 					<TldrawUiMenuItem
 						id="user-manual"

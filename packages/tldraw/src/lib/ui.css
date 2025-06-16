@@ -1051,6 +1051,10 @@
 	background-color: var(--color-low);
 }
 
+.tlui-navigation-panel[data-a11y='true']::before {
+	display: none;
+}
+
 .tlui-navigation-panel__toggle .tlui-icon {
 	opacity: 0.24;
 }

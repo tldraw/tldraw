@@ -46,6 +46,7 @@ export function TlaIcon({
 		<span
 			ref={ref}
 			className={_className}
+			aria-hidden="true"
 			role="img"
 			aria-label={ariaLabel}
 			style={{

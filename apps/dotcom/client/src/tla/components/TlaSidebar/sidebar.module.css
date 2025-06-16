@@ -473,9 +473,12 @@
 
 /* ---------------- File link section --------------- */
 
+.sidebarFileSectionWrapper {
+	padding-top: 8px;
+}
+
 .sidebarFileSection {
 	background: var(--tla-color-sidebar);
-	padding-top: 8px;
 }
 
 .sidebarFileSectionTitle {
