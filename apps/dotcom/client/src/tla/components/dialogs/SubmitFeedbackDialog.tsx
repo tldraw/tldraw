@@ -27,6 +27,26 @@ const messages = defineMessages({
 
 const descriptionKey = 'tldraw-feedback-description'
 
+function getRedactedUrl(): string {
+	try {
+		const urlObj = new URL(window.location.href)
+		const pathParts = urlObj.pathname.split('/')
+
+		const nanoidPattern = /^[A-Za-z0-9_-]{21}$/
+		const redactedParts = pathParts.map((part) => {
+			if (nanoidPattern.test(part)) {
+				return part.slice(0, 5) + '*'.repeat(part.length - 5)
+			}
+			return part
+		})
+
+		urlObj.pathname = redactedParts.join('/')
+		return urlObj.toString()
+	} catch (_e) {
+		return window.location.origin
+	}
+}
+
 export function SubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 	const isSignedIn = useAuth().isSignedIn
 	if (isSignedIn) {
@@ -77,7 +97,7 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 			body: JSON.stringify({
 				allowContact: true,
 				description: rInput.current.value.trim(),
-				url: window.location.href,
+				url: getRedactedUrl(),
 			} satisfies SubmitFeedbackRequestBody),
 		})
 			.then((r) => {
