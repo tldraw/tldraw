@@ -32,7 +32,11 @@ export const manCrop: TLShapeCrop = {
 	topLeft: { x: 0.25, y: 0.05 },
 	bottomRight: { x: 0.75, y: 0.3 },
 }
-
+export const manCropAsCircle: TLShapeCrop = {
+	topLeft: { x: 0.25, y: 0.05 },
+	bottomRight: { x: 0.75, y: 0.3 },
+	isCircle: true,
+}
 export const richText = {
 	type: 'doc',
 	content: [

@@ -5,7 +5,6 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
-	TLFontFace,
 	TLGeometryOpts,
 	TLResizeInfo,
 	TLShapeId,
@@ -93,7 +92,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		})
 	}
 
-	override getFontFaces(shape: TLTextShape): TLFontFace[] {
+	override getFontFaces(shape: TLTextShape) {
 		// no need for an empty rich text check here
 		return getFontsFromRichText(this.editor, shape.props.richText, {
 			family: `tldraw_${shape.props.font}`,

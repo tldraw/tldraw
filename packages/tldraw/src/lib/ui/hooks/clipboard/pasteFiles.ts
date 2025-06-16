@@ -24,7 +24,6 @@ export async function pasteFiles(
 		type: 'files',
 		files,
 		point,
-		ignoreParent: false,
 		sources,
 	})
 }

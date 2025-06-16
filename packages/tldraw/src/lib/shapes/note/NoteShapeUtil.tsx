@@ -8,7 +8,6 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
-	TLFontFace,
 	TLHandle,
 	TLNoteShape,
 	TLNoteShapeProps,
@@ -227,7 +226,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return renderPlaintextFromRichText(this.editor, shape.props.richText)
 	}
 
-	override getFontFaces(shape: TLNoteShape): TLFontFace[] {
+	override getFontFaces(shape: TLNoteShape) {
 		if (isEmptyRichText(shape.props.richText)) {
 			return EMPTY_ARRAY
 		}

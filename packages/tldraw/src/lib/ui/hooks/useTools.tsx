@@ -4,7 +4,7 @@ import { EmbedDialog } from '../components/EmbedDialog'
 import { useA11y } from '../context/a11y'
 import { TLUiEventSource, useUiEvents } from '../context/events'
 import { TLUiIconType } from '../icon-types'
-import { useDefaultHelpers } from '../overrides'
+import { TLUiOverrideHelpers, useDefaultHelpers } from '../overrides'
 import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 import { useTranslation } from './useTranslation/useTranslation'
 
@@ -43,7 +43,7 @@ export interface TLUiToolsProviderProps {
 	overrides?(
 		editor: Editor,
 		tools: TLUiToolsContextType,
-		helpers: { insertMedia(): void }
+		helpers: Partial<TLUiOverrideHelpers>
 	): TLUiToolsContextType
 	children: React.ReactNode
 }
