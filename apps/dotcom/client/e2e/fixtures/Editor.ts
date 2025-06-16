@@ -81,6 +81,7 @@ export class Editor {
 
 	@step
 	async createTextShape(text: string) {
+		await this.page.getByTestId('tools.select').click()
 		await this.page.locator('.tl-background').click({ clickCount: 2 })
 		await this.page.locator('div[contenteditable="true"]').fill(text)
 	}

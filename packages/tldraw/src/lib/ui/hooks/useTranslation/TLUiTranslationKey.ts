@@ -29,6 +29,7 @@ export type TLUiTranslationKey =
 	| 'action.distribute-vertical'
 	| 'action.distribute-horizontal.short'
 	| 'action.distribute-vertical.short'
+	| 'action.download-original'
 	| 'action.duplicate'
 	| 'action.edit-link'
 	| 'action.exit-pen-mode'
