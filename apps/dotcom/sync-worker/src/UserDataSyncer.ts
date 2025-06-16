@@ -367,12 +367,12 @@ export class UserDataSyncer {
 
 		const initialData = this.store.getCommittedData()!
 
-		const guestFileIds = initialData.file.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
+		const allFileIds = initialData.file.map((f) => f.id)
 
 		const res = await getReplicator(this.env).registerUser({
 			userId: this.userId,
 			lsn: initialData.lsn,
-			guestFileIds,
+			allFileIds,
 			bootId: this.state.bootId,
 		})
 

@@ -128,9 +128,14 @@ const fileRelationships = relationships(file, ({ one, many }) => ({
 		destField: ['fileId'],
 		destSchema: file_state,
 	}),
+	groupFiles: many({
+		sourceField: ['id'],
+		destField: ['fileId'],
+		destSchema: group_file,
+	}),
 }))
 
-const fileStateRelationships = relationships(file_state, ({ one }) => ({
+const fileStateRelationships = relationships(file_state, ({ one, many }) => ({
 	file: one({
 		sourceField: ['fileId'],
 		destField: ['id'],
@@ -140,6 +145,11 @@ const fileStateRelationships = relationships(file_state, ({ one }) => ({
 		sourceField: ['userId'],
 		destField: ['id'],
 		destSchema: user,
+	}),
+	presences: many({
+		sourceField: ['fileId'],
+		destField: ['fileId'],
+		destSchema: user_presence,
 	}),
 }))
 
@@ -156,7 +166,7 @@ const groupRelationships = relationships(group, ({ many }) => ({
 	}),
 }))
 
-const userGroupRelationships = relationships(group_user, ({ one }) => ({
+const groupUserRelationships = relationships(group_user, ({ one, many }) => ({
 	user: one({
 		sourceField: ['userId'],
 		destField: ['id'],
@@ -166,6 +176,16 @@ const userGroupRelationships = relationships(group_user, ({ one }) => ({
 		sourceField: ['groupId'],
 		destField: ['id'],
 		destSchema: group,
+	}),
+	groupFiles: many({
+		sourceField: ['groupId'],
+		destField: ['groupId'],
+		destSchema: group_file,
+	}),
+	groupMembers: many({
+		sourceField: ['groupId'],
+		destField: ['groupId'],
+		destSchema: group_user,
 	}),
 }))
 
@@ -182,7 +202,7 @@ const userPresenceRelationships = relationships(user_presence, ({ one, many }) =
 	}),
 }))
 
-const fileGroupRelationships = relationships(group_file, ({ one, many }) => ({
+const groupFileRelationships = relationships(group_file, ({ one, many }) => ({
 	file: one({
 		sourceField: ['fileId'],
 		destField: ['id'],
@@ -193,7 +213,7 @@ const fileGroupRelationships = relationships(group_file, ({ one, many }) => ({
 		destField: ['id'],
 		destSchema: group,
 	}),
-	userGroups: many({
+	groupUsers: many({
 		sourceField: ['groupId'],
 		destField: ['groupId'],
 		destSchema: group_user,
@@ -216,18 +236,18 @@ export type TlaGroupPartial = Partial<TlaGroup> & {
 	id: TlaGroup['id']
 }
 
-export type TlaUserGroupPartial = Partial<TlaUserGroup> & {
-	userId: TlaUserGroup['userId']
-	groupId: TlaUserGroup['groupId']
+export type TlaUserGroupPartial = Partial<TlaGroupUser> & {
+	userId: TlaGroupUser['userId']
+	groupId: TlaGroupUser['groupId']
 }
 
 export type TlaUserPresencePartial = Partial<TlaUserPresence> & {
 	sessionId: TlaUserPresence['sessionId']
 }
 
-export type TlaFileGroupPartial = Partial<TlaFileGroup> & {
-	fileId: TlaFileGroup['fileId']
-	groupId: TlaFileGroup['groupId']
+export type TlaFileGroupPartial = Partial<TlaGroupFile> & {
+	fileId: TlaGroupFile['fileId']
+	groupId: TlaGroupFile['groupId']
 }
 
 export type TlaRow =
@@ -235,9 +255,9 @@ export type TlaRow =
 	| TlaFileState
 	| TlaUser
 	| TlaGroup
-	| TlaUserGroup
+	| TlaGroupUser
 	| TlaUserPresence
-	| TlaFileGroup
+	| TlaGroupFile
 export interface TlaUserMutationNumber {
 	userId: string
 	mutationNumber: number
@@ -254,9 +274,9 @@ export const immutableColumns = {
 	]),
 	file_state: new Set<keyof TlaFileState>(['firstVisitAt', 'isFileOwner']),
 	group: new Set<keyof TlaGroup>(['createdAt', 'updatedAt']),
-	group_user: new Set<keyof TlaUserGroup>(['createdAt', 'updatedAt']),
+	group_user: new Set<keyof TlaGroupUser>(['createdAt', 'updatedAt']),
 	user_presence: new Set<keyof TlaUserPresence>([]),
-	group_file: new Set<keyof TlaFileGroup>(['createdAt', 'updatedAt']),
+	group_file: new Set<keyof TlaGroupFile>(['createdAt', 'updatedAt']),
 } as const
 
 export function isColumnMutable(tableName: keyof typeof immutableColumns, column: string) {
@@ -274,9 +294,9 @@ export interface DB {
 	file_state: TlaFileState
 	user: TlaUser
 	group: TlaGroup
-	group_user: TlaUserGroup
+	group_user: TlaGroupUser
 	user_presence: TlaUserPresence
-	group_file: TlaFileGroup
+	group_file: TlaGroupFile
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
 }
@@ -287,9 +307,9 @@ export const schema = createSchema({
 		fileRelationships,
 		fileStateRelationships,
 		groupRelationships,
-		userGroupRelationships,
+		groupUserRelationships,
 		userPresenceRelationships,
-		fileGroupRelationships,
+		groupFileRelationships,
 	],
 })
 
@@ -298,9 +318,9 @@ export type TlaUser = Row<typeof schema.tables.user>
 export type TlaFile = Row<typeof schema.tables.file>
 export type TlaFileState = Row<typeof schema.tables.file_state>
 export type TlaGroup = Row<typeof schema.tables.group>
-export type TlaUserGroup = Row<typeof schema.tables.group_user>
+export type TlaGroupUser = Row<typeof schema.tables.group_user>
 export type TlaUserPresence = Row<typeof schema.tables.user_presence>
-export type TlaFileGroup = Row<typeof schema.tables.group_file>
+export type TlaGroupFile = Row<typeof schema.tables.group_file>
 
 interface AuthData {
 	sub: string | null
@@ -324,6 +344,9 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 			and(
 				cmp('shared', '=', true),
 				exists('states', (q) => q.where('userId', '=', authData.sub!))
+			),
+			exists('groupFiles', (q) =>
+				q.whereExists('groupUsers', (q) => q.where('userId', '=', authData.sub!))
 			)
 		)
 
@@ -337,10 +360,10 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 		{ exists }: ExpressionBuilder<TlaSchema, 'user_presence'>
 	) => exists('fileStates', (q) => q.where('userId', '=', authData.sub!))
 
-	const userCanAccessFileGroup = (
+	const userCanAccessGroupFile = (
 		authData: AuthData,
 		{ exists }: ExpressionBuilder<TlaSchema, 'group_file'>
-	) => exists('userGroups', (q) => q.where('userId', '=', authData.sub!))
+	) => exists('groupUsers', (q) => q.where('userId', '=', authData.sub!))
 
 	return {
 		user: {
@@ -375,7 +398,7 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 		},
 		group_file: {
 			row: {
-				select: [userCanAccessFileGroup],
+				select: [userCanAccessGroupFile],
 			},
 		},
 	} satisfies PermissionsConfig<AuthData, TlaSchema>

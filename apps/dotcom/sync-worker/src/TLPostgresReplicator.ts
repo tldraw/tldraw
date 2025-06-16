@@ -599,11 +599,13 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		userId,
 		lsn,
 		guestFileIds,
+		allFileIds,
 		bootId,
 	}: {
 		userId: string
 		lsn: string
-		guestFileIds: string[]
+		guestFileIds?: string[]
+		allFileIds?: string[]
 		bootId: string
 	}): Promise<{ type: 'done'; sequenceId: string; sequenceNumber: number } | { type: 'reboot' }> {
 		try {
@@ -627,8 +629,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			// Clear existing subscriptions for this user
 			this.sqlite.exec(`DELETE FROM topic_subscription WHERE fromTopic = ?`, `user:${userId}`)
 
+			const fileIds = allFileIds ?? guestFileIds!
 			// Add direct subscriptions for all files the user cares about (both owned and guest)
-			for (const fileId of guestFileIds) {
+			for (const fileId of fileIds) {
 				this.sqlite.exec(
 					`INSERT INTO topic_subscription (fromTopic, toTopic) VALUES (?, ?) ON CONFLICT (fromTopic, toTopic) DO NOTHING`,
 					`user:${userId}`,
@@ -636,7 +639,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				)
 			}
 
-			this.log.debug('inserted guest file subscriptions', guestFileIds.length)
+			this.log.debug('inserted guest file subscriptions', fileIds.length)
 
 			this.reportActiveUsers()
 			this.log.debug('inserted active user')

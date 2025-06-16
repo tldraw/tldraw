@@ -1,11 +1,11 @@
 import {
 	TlaFile,
-	TlaFileGroup,
 	TlaFileState,
 	TlaGroup,
+	TlaGroupFile,
+	TlaGroupUser,
 	TlaRow,
 	TlaUser,
-	TlaUserGroup,
 	TlaUserMutationNumber,
 	TlaUserPresence,
 	ZTable,
@@ -54,11 +54,11 @@ export function getTopics(row: TlaRow, event: ReplicationEvent): Topic[] {
 		case 'group':
 			return [`group:${(row as TlaGroup).id}`]
 		case 'group_user':
-			return [`group:${(row as TlaUserGroup).groupId}`, `user:${(row as TlaUserGroup).userId}`]
+			return [`group:${(row as TlaGroupUser).groupId}`, `user:${(row as TlaGroupUser).userId}`]
 		case 'user_presence':
 			return [`file:${(row as TlaUserPresence).fileId}`]
 		case 'group_file':
-			return [`group:${(row as TlaFileGroup).groupId}`, `file:${(row as TlaFileGroup).fileId}`]
+			return [`group:${(row as TlaGroupFile).groupId}`, `file:${(row as TlaGroupFile).fileId}`]
 		default: {
 			exhaustiveSwitchError(event.table)
 			return [] // just in case

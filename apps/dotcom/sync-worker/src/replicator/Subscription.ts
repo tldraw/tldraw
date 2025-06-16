@@ -1,4 +1,4 @@
-import { TlaFileGroup, TlaFileState, TlaRow, TlaUserGroup } from '@tldraw/dotcom-shared'
+import { TlaFileState, TlaGroupFile, TlaGroupUser, TlaRow } from '@tldraw/dotcom-shared'
 import { ReplicationEvent, Topic } from './replicatorTypes'
 
 /**
@@ -47,19 +47,17 @@ export function getSubscriptionChanges(changes: Array<{ row: TlaRow; event: Repl
 				const userTopic: Topic = `user:${fileState.userId}`
 				const fileTopic: Topic = `file:${fileState.fileId}`
 
-				// Only create subscriptions for non-owners (guests/collaborators)
-				// File owners get notifications through their own user topic
-				if (change.event.command === 'insert' && !fileState.isFileOwner) {
-					// User gains access to a file (shared with them)
+				if (change.event.command === 'insert') {
+					// User gains access to a file
 					newSubscriptions.push({ fromTopic: userTopic, toTopic: fileTopic })
-				} else if (change.event.command === 'delete' && !fileState.isFileOwner) {
-					// User loses access to a file (no longer shared with them)
+				} else if (change.event.command === 'delete') {
+					// User loses access to a file
 					removedSubscriptions.push({ fromTopic: userTopic, toTopic: fileTopic })
 				}
 				break
 			}
 			case 'group_user': {
-				const userGroup = change.row as TlaUserGroup
+				const userGroup = change.row as TlaGroupUser
 				const userTopic: Topic = `user:${userGroup.userId}`
 				const groupTopic: Topic = `group:${userGroup.groupId}`
 				if (change.event.command === 'insert') {
@@ -70,7 +68,7 @@ export function getSubscriptionChanges(changes: Array<{ row: TlaRow; event: Repl
 				break
 			}
 			case 'group_file': {
-				const fileGroup = change.row as TlaFileGroup
+				const fileGroup = change.row as TlaGroupFile
 				const fileTopic: Topic = `file:${fileGroup.fileId}`
 				const groupTopic: Topic = `group:${fileGroup.groupId}`
 				if (change.event.command === 'insert') {

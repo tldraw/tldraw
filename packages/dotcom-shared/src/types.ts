@@ -2,16 +2,16 @@ import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 import {
 	TlaFile,
-	TlaFileGroup,
 	TlaFileGroupPartial,
 	TlaFilePartial,
 	TlaFileState,
 	TlaFileStatePartial,
 	TlaGroup,
+	TlaGroupFile,
 	TlaGroupPartial,
+	TlaGroupUser,
 	TlaRow,
 	TlaUser,
-	TlaUserGroup,
 	TlaUserGroupPartial,
 	TlaUserPartial,
 	TlaUserPresence,
@@ -103,9 +103,9 @@ export interface ZStoreData {
 	file_state: TlaFileState[]
 	user: TlaUser[]
 	group: TlaGroup[]
-	group_user: TlaUserGroup[]
+	group_user: TlaGroupUser[]
 	user_presence: TlaUserPresence[]
-	group_file: TlaFileGroup[]
+	group_file: TlaGroupFile[]
 	lsn: string
 }
 

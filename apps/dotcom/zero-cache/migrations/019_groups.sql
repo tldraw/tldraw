@@ -20,7 +20,7 @@ CREATE TABLE "group_user" (
 );
 
 CREATE TABLE "user_presence" (
-  "sessionId" TEXT NOT NULL PRIMARY KEY,
+  "sessionId" TEXT NOT NULL,
   "fileId" TEXT NOT NULL,
   -- These are not necessarily unique, as a user can have multiple tabs open.
   -- These are also not necessarily users in our DB since we support guests, who
@@ -31,9 +31,9 @@ CREATE TABLE "user_presence" (
   -- guests more easily.
   "name" TEXT,
   "color" TEXT,
+  PRIMARY KEY ("sessionId", "fileId"),
   FOREIGN KEY ("fileId") REFERENCES public."file" ("id") ON DELETE CASCADE
 );
-ALTER PUBLICATION zero_data ADD TABLE public."group", public."group_user", public."user_presence";
 
 CREATE TABLE "group_file" (
   "fileId" TEXT NOT NULL,
@@ -45,3 +45,4 @@ CREATE TABLE "group_file" (
   FOREIGN KEY ("groupId") REFERENCES public."group" ("id") ON DELETE CASCADE
 );
 
+ALTER PUBLICATION zero_data ADD TABLE public."group", public."group_user", public."group_file", public."user_presence";
