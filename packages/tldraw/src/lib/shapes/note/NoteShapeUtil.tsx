@@ -461,7 +461,6 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 				fontFamily: FONT_FAMILIES[shape.props.font],
 				fontSize: fontSizeAdjustment,
 				maxWidth: NOTE_SIZE - LABEL_PADDING * 2 - FUZZ,
-				measureScrollWidth: true,
 			})
 			labelHeight = nextTextSizeWithOverflowBreak.h + LABEL_PADDING * 2
 			labelWidth = nextTextSizeWithOverflowBreak.w + LABEL_PADDING * 2
