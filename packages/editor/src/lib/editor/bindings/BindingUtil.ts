@@ -62,6 +62,12 @@ export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
 	shapeBefore: TLShape
 	/** The shape record after the change is made. */
 	shapeAfter: TLShape
+	/**
+	 * Why did this shape change?
+	 * - 'self': the shape itself changed
+	 * - 'ancestry': the ancestry of the shape changed, but the shape itself may not have done
+	 */
+	reason: 'self' | 'ancestry'
 }
 
 /**

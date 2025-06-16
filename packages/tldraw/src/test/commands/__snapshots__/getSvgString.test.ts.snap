@@ -70,14 +70,14 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
       transform="matrix(1, 0, 0, 1, 0, 0)"
     >
       <path
-        d="M 0 0 L 100 0 L 100 428 L 0 428 Z"
+        d="M 0 0 L 100 0 L 100 100 L 0 100 Z"
         fill="none"
         stroke="#1d1d1d"
         stroke-width="3.5"
       />
       <foreignobject
         class="tl-export-embed-styles tl-rich-text tl-rich-text-svg"
-        height="428"
+        height="100"
         width="100"
         x="0"
         y="0"
@@ -202,14 +202,14 @@ exports[`Returns all shapes when no ids are provided: All shapes 1`] = `
       transform="matrix(1, 0, 0, 1, 0, 0)"
     >
       <path
-        d="M 0 0 L 100 0 L 100 428 L 0 428 Z"
+        d="M 0 0 L 100 0 L 100 100 L 0 100 Z"
         fill="none"
         stroke="#1d1d1d"
         stroke-width="3.5"
       />
       <foreignobject
         class="tl-export-embed-styles tl-rich-text tl-rich-text-svg"
-        height="428"
+        height="100"
         width="100"
         x="0"
         y="0"

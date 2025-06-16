@@ -3,7 +3,10 @@
 
 export const fetchEverythingSql = `
 WITH
-  "user_file_states" AS (SELECT * FROM public."file_state" WHERE "userId" = $1)
+  my_owned_files AS (SELECT * FROM public."file" WHERE "ownerId" = $1),
+  my_file_states AS (SELECT * FROM public."file_state" WHERE "userId" = $1),
+  files_shared_with_me AS (SELECT f.* FROM my_file_states ufs JOIN public."file" f ON f.id = ufs."fileId" WHERE ufs."isFileOwner" = false AND f.shared = true),
+  all_files AS (SELECT * FROM my_owned_files UNION SELECT * FROM files_shared_with_me)
 SELECT
   'user' as "table",
   "allowAnalyticsCookie"::boolean as "0",
@@ -29,7 +32,7 @@ SELECT
   "name"::text as "20"
 FROM public."user"
 WHERE "id" = $1
-UNION
+UNION ALL
 SELECT
   'file_state' as "table",
   "isFileOwner"::boolean as "0",
@@ -53,8 +56,8 @@ SELECT
   null::text as "18",
   null::text as "19",
   null::text as "20"
-FROM user_file_states
-UNION
+FROM my_file_states
+UNION ALL
 SELECT
   'file' as "table",
   "isDeleted"::boolean as "0",
@@ -78,9 +81,8 @@ SELECT
   "sharedLinkType"::text as "18",
   "thumbnail"::text as "19",
   null::text as "20"
-FROM public."file"
-WHERE "ownerId" = $1 OR "shared" = true AND EXISTS(SELECT 1 FROM user_file_states WHERE "fileId" = file.id)
-UNION
+FROM all_files
+UNION ALL
 SELECT
   'user_mutation_number' as "table",
   null::boolean as "0",
@@ -106,7 +108,7 @@ SELECT
   null::text as "20"
 FROM public."user_mutation_number"
 WHERE "userId" = $1
-UNION
+UNION ALL
 SELECT
   'lsn' as "table",
   null::boolean as "0",

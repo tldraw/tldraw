@@ -148,16 +148,16 @@ import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
-import { ClickManager } from './managers/ClickManager'
-import { EdgeScrollManager } from './managers/EdgeScrollManager'
-import { FocusManager } from './managers/FocusManager'
-import { FontManager } from './managers/FontManager'
-import { HistoryManager } from './managers/HistoryManager'
-import { ScribbleManager } from './managers/ScribbleManager'
+import { ClickManager } from './managers/ClickManager/ClickManager'
+import { EdgeScrollManager } from './managers/EdgeScrollManager/EdgeScrollManager'
+import { FocusManager } from './managers/FocusManager/FocusManager'
+import { FontManager } from './managers/FontManager/FontManager'
+import { HistoryManager } from './managers/HistoryManager/HistoryManager'
+import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
-import { TextManager } from './managers/TextManager'
-import { TickManager } from './managers/TickManager'
-import { UserPreferencesManager } from './managers/UserPreferencesManager'
+import { TextManager } from './managers/TextManager/TextManager'
+import { TickManager } from './managers/TickManager/TickManager'
+import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
 import { ShapeUtil, TLGeometryOpts, TLResizeMode } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
@@ -328,7 +328,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store = store
 		this.history = new HistoryManager<TLRecord>({
 			store,
-			annotateError: (error) => {
+			annotateError: (error: any) => {
 				this.annotateError(error, { origin: 'history.batch', willCrashApp: true })
 				this.crash(error)
 			},
@@ -348,6 +348,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.getContainer = getContainer
 
 		this.textMeasure = new TextManager(this)
+		this.disposables.add(() => this.textMeasure.dispose())
+
 		this.fonts = new FontManager(this, fontAssetUrls)
 
 		this._tickManager = new TickManager(this)
@@ -506,14 +508,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				shape: {
 					afterChange: (shapeBefore, shapeAfter) => {
 						for (const binding of this.getBindingsInvolvingShape(shapeAfter)) {
-							if (areShapesContentEqual(shapeBefore, shapeAfter)) continue
-
 							invalidBindingTypes.add(binding.type)
 							if (binding.fromId === shapeAfter.id) {
 								this.getBindingUtil(binding).onAfterChangeFromShape?.({
 									binding,
 									shapeBefore,
 									shapeAfter,
+									reason: 'self',
 								})
 							}
 							if (binding.toId === shapeAfter.id) {
@@ -521,6 +522,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 									binding,
 									shapeBefore,
 									shapeAfter,
+									reason: 'self',
 								})
 							}
 						}
@@ -539,6 +541,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 											binding,
 											shapeBefore: descendantShape,
 											shapeAfter: descendantShape,
+											reason: 'ancestry',
 										})
 									}
 									if (binding.toId === descendantShape.id) {
@@ -546,6 +549,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 											binding,
 											shapeBefore: descendantShape,
 											shapeAfter: descendantShape,
+											reason: 'ancestry',
 										})
 									}
 								}
@@ -3717,10 +3721,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getViewportScreenCenter() {
 		const viewportScreenBounds = this.getViewportScreenBounds()
-		return new Vec(
-			viewportScreenBounds.midX - viewportScreenBounds.minX,
-			viewportScreenBounds.midY - viewportScreenBounds.minY
-		)
+		return new Vec(viewportScreenBounds.w / 2, viewportScreenBounds.h / 2)
 	}
 
 	/**
@@ -4646,44 +4647,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)! as T
 	}
 
-	private _shapePageGeometryCaches: Record<string, ComputedCache<Geometry2d, TLShape>> = {}
-
-	/**
-	 * Get the geometry of a shape in page-space.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getShapePageGeometry(myShape)
-	 * editor.getShapePageGeometry(myShapeId)
-	 * editor.getShapePageGeometry(myShapeId, { context: "arrow" })
-	 * ```
-	 *
-	 * @param shape - The shape (or shape id) to get the geometry for.
-	 * @param opts - Additional options about the request for geometry. Passed to {@link ShapeUtil.getGeometry}.
-	 *
-	 * @public
-	 */
-	getShapePageGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T {
-		const context = opts?.context ?? 'none'
-		if (!this._shapePageGeometryCaches[context]) {
-			this._shapePageGeometryCaches[context] = this.store.createComputedCache(
-				'bounds',
-				(shape) => {
-					const geometry = this.getShapeGeometry(shape.id, opts)
-					const pageTransform = this.getShapePageTransform(shape.id)
-					return geometry.transform(pageTransform)
-				},
-				{
-					// we only depend directly on the shape id, and changing geometry/transform will update us anyway
-					areRecordsEqual: () => true,
-				}
-			)
-		}
-		return this._shapePageGeometryCaches[context].get(
-			typeof shape === 'string' ? shape : shape.id
-		)! as T
-	}
-
 	/** @internal */
 	@computed private _getShapeHandlesCache(): ComputedCache<TLHandle[] | undefined, TLShape> {
 		return this.store.createComputedCache(
@@ -4796,7 +4759,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	@computed private _getShapePageBoundsCache(): ComputedCache<Box, TLShape> {
 		return this.store.createComputedCache<Box, TLShape>('pageBoundsCache', (shape) => {
-			return this.getShapePageGeometry(shape).bounds
+			const pageTransform = this.getShapePageTransform(shape)
+			if (!pageTransform) return undefined
+			const geometry = this.getShapeGeometry(shape)
+			return Box.FromPoints(pageTransform.applyToPoints(geometry.vertices))
 		})
 	}
 
@@ -4870,11 +4836,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (frameAncestors.length === 0) return undefined
 
 			const pageMask = frameAncestors
-				.map<Vec[] | undefined>(
-					(s) =>
-						// Apply the frame transform to the frame outline to get the frame outline in the current page space
-						this.getShapePageGeometry(s.id).vertices
-				)
+				.map<Vec[] | undefined>((s) => {
+					// Apply the frame transform to the frame outline to get the frame outline in the current page space
+					const geometry = this.getShapeGeometry(s.id)
+					const pageTransform = this.getShapePageTransform(s.id)
+					return pageTransform.applyToPoints(geometry.vertices)
+				})
 				.reduce((acc, b) => {
 					if (!(b && acc)) return undefined
 					const intersection = intersectPolygonPolygon(acc, b)
@@ -5072,28 +5039,33 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	isShapeOrAncestorLocked(shape?: TLShape): boolean
-	isShapeOrAncestorLocked(id?: TLShapeId): boolean
-	isShapeOrAncestorLocked(arg?: TLShape | TLShapeId): boolean {
-		const shape = typeof arg === 'string' ? this.getShape(arg) : arg
-		if (shape === undefined) return false
-		if (shape.isLocked) return true
-		return this.isShapeOrAncestorLocked(this.getShapeParent(shape))
-	}
-
-	@computed
-	private _notVisibleShapes() {
-		return notVisibleShapes(this)
+	isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean {
+		const _shape = shape && this.getShape(shape)
+		if (_shape === undefined) return false
+		if (_shape.isLocked) return true
+		return this.isShapeOrAncestorLocked(this.getShapeParent(_shape))
 	}
 
 	/**
-	 * Get culled shapes.
+	 * Get shapes that are outside of the viewport.
+	 *
+	 * @public
+	 */
+	@computed
+	getNotVisibleShapes() {
+		return this._notVisibleShapes.get()
+	}
+
+	private _notVisibleShapes = notVisibleShapes(this)
+
+	/**
+	 * Get culled shapes (those that should not render), taking into account which shapes are selected or editing.
 	 *
 	 * @public
 	 */
 	@computed
 	getCulledShapes() {
-		const notVisibleShapes = this._notVisibleShapes().get()
+		const notVisibleShapes = this.getNotVisibleShapes()
 		const selectedShapeIds = this.getSelectedShapeIds()
 		const editingId = this.getEditingShapeId()
 		const culledShapes = new Set<TLShapeId>(notVisibleShapes)
@@ -5342,11 +5314,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.getShapesAtPoint({ x: 100, y: 100 })
-	 * editor.getShapesAtPoint({ x: 100, y: 100 }, { hitInside: true, exact: true })
+	 * editor.getShapesAtPoint({ x: 100, y: 100 }, { hitInside: true, margin: 8 })
 	 * ```
 	 *
 	 * @param point - The page point to test.
 	 * @param opts - The options for the hit point testing.
+	 *
+	 * @returns An array of shapes at the given point, sorted in reverse order of their absolute z-index (top-most shape first).
 	 *
 	 * @public
 	 */
@@ -5354,9 +5328,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		point: VecLike,
 		opts = {} as { margin?: number; hitInside?: boolean }
 	): TLShape[] {
-		return this.getCurrentPageShapes().filter(
-			(shape) => !this.isShapeHidden(shape) && this.isPointInShape(shape, point, opts)
-		)
+		return this.getCurrentPageShapesSorted()
+			.filter((shape) => !this.isShapeHidden(shape) && this.isPointInShape(shape, point, opts))
+			.reverse()
 	}
 
 	/**
@@ -9305,6 +9279,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (rootShapes.length === 1) {
 				const onlyRoot = rootShapes[0] as TLFrameShape
 				// If the old bounds are in the viewport...
+				// todo: replace frame references with shapes that can accept children
 				if (this.isShapeOfType<TLFrameShape>(onlyRoot, 'frame')) {
 					while (
 						this.getShapesAtPoint(point).some(

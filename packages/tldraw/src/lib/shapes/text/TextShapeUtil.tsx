@@ -14,6 +14,7 @@ import {
 	createComputedCache,
 	getDefaultColorTheme,
 	getFontsFromRichText,
+	isEqual,
 	resizeScaled,
 	textShapeMigrations,
 	textShapeProps,
@@ -21,7 +22,6 @@ import {
 	toRichText,
 	useEditor,
 } from '@tldraw/editor'
-import isEqual from 'lodash.isequal'
 import { useCallback } from 'react'
 import {
 	renderHtmlFromRichTextForMeasurement,
@@ -94,6 +94,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override getFontFaces(shape: TLTextShape): TLFontFace[] {
+		// no need for an empty rich text check here
 		return getFontsFromRichText(this.editor, shape.props.richText, {
 			family: `tldraw_${shape.props.font}`,
 			weight: 'normal',

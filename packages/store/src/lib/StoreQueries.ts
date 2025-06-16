@@ -7,8 +7,7 @@ import {
 	RESET_VALUE,
 	withDiff,
 } from '@tldraw/state'
-import { areArraysShallowEqual, objectMapValues } from '@tldraw/utils'
-import isEqual from 'lodash.isequal'
+import { areArraysShallowEqual, isEqual, objectMapValues } from '@tldraw/utils'
 import { AtomMap } from './AtomMap'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { executeQuery, objectMatchesQuery, QueryExpression } from './executeQuery'

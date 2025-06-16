@@ -9,10 +9,12 @@ import {
 	TLEmbedShape,
 	TLFrameShape,
 	TLGroupShape,
+	TLImageShape,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
+	TLVideoShape,
 	Vec,
 	approximately,
 	compact,
@@ -63,6 +65,17 @@ export interface ActionsProviderProps {
 		helpers: TLUiOverrideHelpers
 	): TLUiActionsContextType
 	children: React.ReactNode
+}
+
+/** @public */
+export function supportsDownloadingOriginal(
+	shape: TLShape,
+	editor: Editor
+): shape is TLImageShape | TLVideoShape {
+	return (
+		(editor.isShapeOfType(shape, 'image') || editor.isShapeOfType(shape, 'video')) &&
+		!!(shape as any).props.assetId
+	)
 }
 
 function makeActions(actions: TLUiActionItem[]) {
@@ -1563,6 +1576,46 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						})
 						trackEvent('a11y-repeat-shape-announce', { source })
 					}
+				},
+			},
+			{
+				id: 'download-original',
+				label: 'action.download-original',
+				readonlyOk: true,
+				onSelect: async (source) => {
+					const selectedShapes = editor.getSelectedShapes()
+					if (selectedShapes.length === 0) return
+
+					const mediaShapes = selectedShapes.filter((s): s is TLImageShape | TLVideoShape =>
+						supportsDownloadingOriginal(s, editor)
+					)
+
+					if (mediaShapes.length === 0) return
+
+					for (const mediaShape of mediaShapes) {
+						const asset = editor.getAsset(mediaShape.props.assetId!)
+						if (!asset || !asset.props.src) continue
+
+						const url = await editor.resolveAssetUrl(asset.id, { shouldResolveToOriginal: true })
+						if (!url) return
+
+						const link = document.createElement('a')
+						link.href = url
+
+						if (
+							(asset.type === 'video' || asset.type === 'image') &&
+							!asset.props.src.startsWith('asset:')
+						) {
+							link.download = asset.props.name
+						} else {
+							link.download = 'download'
+						}
+						document.body.appendChild(link)
+						link.click()
+						document.body.removeChild(link)
+					}
+
+					trackEvent('download-original', { source })
 				},
 			},
 		]

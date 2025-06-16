@@ -37,8 +37,6 @@
 	--layer-overlays-collaborator-shape-indicator: 30;
 	--layer-overlays-user-scribble: 40;
 	--layer-overlays-user-brush: 50;
-	--layer-overlays-user-indicator-selected: 60;
-	--layer-overlays-user-indicator-hovered: 70;
 	--layer-overlays-user-snapline: 90;
 	--layer-overlays-selection-fg: 100;
 	/* User handles need to be above selection edges / corners, matters for sticky note clone handles */
@@ -139,11 +137,15 @@
 }
 
 .tl-theme__light {
-	--color-accent: hsl(0, 76%, 60%);
+	/* Canvas */
+	--color-snap: hsl(0, 76%, 60%);
+	--color-selection-fill: hsl(210, 100%, 56%, 24%);
+	--color-selection-stroke: hsl(214, 84%, 56%);
 	--color-background: hsl(210, 20%, 98%);
 	--color-brush-fill: hsl(0, 0%, 56%, 10.2%);
 	--color-brush-stroke: hsl(0, 0%, 56%, 25.1%);
 	--color-grid: hsl(0, 0%, 43%);
+	/* UI */
 	--color-low: hsl(204, 16%, 94%);
 	--color-low-border: hsl(204, 16%, 92%);
 	--color-culled: hsl(204, 14%, 93%);
@@ -154,28 +156,28 @@
 	--color-hint: hsl(0, 0%, 0%, 5.5%);
 	--color-overlay: hsl(0, 0%, 0%, 20%);
 	--color-divider: hsl(0, 0%, 91%);
+	--color-panel: hsl(0, 0%, 99%);
 	--color-panel-contrast: hsl(0, 0%, 100%);
 	--color-panel-overlay: hsl(0, 0%, 100%, 82%);
-	--color-panel: hsl(0, 0%, 99%);
 	--color-panel-transparent: hsla(0, 0%, 99%, 0%);
-	--color-focus: hsl(219, 65%, 50%);
 	--color-selected: hsl(214, 84%, 56%);
 	--color-selected-contrast: hsl(0, 0%, 100%);
-	--color-selection-fill: hsl(210, 100%, 56%, 24%);
-	--color-selection-stroke: hsl(214, 84%, 56%);
+	--color-focus: hsl(219, 65%, 50%);
+	/* Text */
+	--color-text: hsl(0, 0%, 0%);
 	--color-text-0: hsl(0, 0%, 11%);
 	--color-text-1: hsl(0, 0%, 18%);
 	--color-text-3: hsl(220, 2%, 65%);
 	--color-text-shadow: hsl(0, 0%, 100%);
 	--color-text-highlight: hsl(52, 100%, 50%);
 	--color-text-highlight-p3: color(display-p3 0.972 0.8205 0.05);
+	/* Named */
 	--color-primary: hsl(214, 84%, 56%);
 	--color-success: hsl(123, 46%, 34%);
 	--color-info: hsl(201, 98%, 41%);
 	--color-warning: hsl(27, 98%, 47%);
 	--color-error: hsl(0, 65%, 51%);
 	--color-warn: hsl(0, 90%, 43%);
-	--color-text: hsl(0, 0%, 0%);
 	--color-laser: hsl(0, 100%, 50%);
 	/* Shadows */
 	--shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
@@ -191,11 +193,15 @@
 }
 
 .tl-theme__dark {
-	--color-accent: hsl(0, 76%, 60%);
+	/* Canvas */
+	--color-snap: hsl(0, 76%, 60%);
+	--color-selection-fill: hsl(209, 100%, 57%, 20%);
+	--color-selection-stroke: hsl(214, 84%, 56%);
 	--color-background: hsl(240, 5%, 6.5%);
 	--color-brush-fill: hsl(0, 0%, 71%, 5.1%);
 	--color-brush-stroke: hsl(0, 0%, 71%, 25.1%);
 	--color-grid: hsl(0, 0%, 40%);
+	/* UI */
 	--color-low: hsl(260, 4.5%, 10.5%);
 	--color-low-border: hsl(207, 10%, 10%);
 	--color-culled: hsl(210, 11%, 19%);
@@ -206,28 +212,28 @@
 	--color-hint: hsl(0, 0%, 100%, 7%);
 	--color-overlay: hsl(0, 0%, 0%, 50%);
 	--color-divider: hsl(240, 9%, 22%);
-	--color-panel-contrast: hsl(245, 12%, 23%);
 	--color-panel: hsl(235, 6.8%, 13.5%);
+	--color-panel-contrast: hsl(245, 12%, 23%);
 	--color-panel-overlay: hsl(210, 10%, 24%, 82%);
 	--color-panel-transparent: hsla(235, 6.8%, 13.5%, 0%);
-	--color-focus: hsl(217, 76%, 80%);
 	--color-selected: hsl(217, 89%, 61%);
 	--color-selected-contrast: hsl(0, 0%, 100%);
-	--color-selection-fill: hsl(209, 100%, 57%, 20%);
-	--color-selection-stroke: hsl(214, 84%, 56%);
+	--color-focus: hsl(217, 76%, 80%);
+	/* Text */
+	--color-text: hsl(210, 17%, 98%);
 	--color-text-0: hsl(0, 9%, 94%);
 	--color-text-1: hsl(0, 0%, 85%);
 	--color-text-3: hsl(210, 6%, 45%);
 	--color-text-shadow: hsl(210, 13%, 18%);
 	--color-text-highlight: hsl(52, 100%, 41%);
 	--color-text-highlight-p3: color(display-p3 0.8078 0.6225 0.0312);
+	/* Named */
 	--color-primary: hsl(214, 84%, 56%);
 	--color-success: hsl(123, 38%, 57%);
 	--color-info: hsl(199, 92%, 56%);
 	--color-warning: hsl(36, 100%, 57%);
 	--color-error: hsl(4, 90%, 58%);
 	--color-warn: hsl(0, 81%, 66%);
-	--color-text: hsl(210, 17%, 98%);
 	--color-laser: hsl(0, 100%, 50%);
 	/* Shadows */
 	--shadow-1:
@@ -239,13 +245,6 @@
 	--shadow-3:
 		0px 1px 3px hsl(0, 0%, 0%, 50%), 0px 2px 12px hsl(0, 0%, 0%, 50%),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
-}
-
-.tl-counter-scaled {
-	transform: scale(var(--tl-scale));
-	transform-origin: top left;
-	width: calc(100% * var(--tl-zoom));
-	height: calc(100% * var(--tl-zoom));
 }
 
 .tl-container,
@@ -273,9 +272,7 @@ input,
 	user-select: text;
 }
 
-/* -------------------------------------------------- */
-/*                       Canvas                       */
-/* -------------------------------------------------- */
+/* --------------------- Canvas --------------------- */
 
 .tl-canvas {
 	position: absolute;
@@ -368,64 +365,6 @@ input,
 	contain: layout style size;
 }
 
-/* ---------------------- Brush --------------------- */
-
-.tl-brush {
-	stroke-width: calc(var(--tl-scale) * 1px);
-	contain: size layout;
-}
-
-.tl-brush__default {
-	stroke: var(--color-brush-stroke);
-	fill: var(--color-brush-fill);
-}
-
-/* -------------------- Scribble -------------------- */
-
-.tl-scribble {
-	stroke-linejoin: round;
-	stroke-linecap: round;
-	pointer-events: none;
-	contain: size layout;
-}
-
-/* ---------------------- Shape --------------------- */
-
-.tl-shape {
-	position: absolute;
-	pointer-events: none;
-	overflow: visible;
-	transform-origin: top left;
-	contain: size layout;
-}
-
-/* ---------------- Shape Containers ---------------- */
-
-.tl-svg-container {
-	position: absolute;
-	inset: 0px;
-	height: 100%;
-	width: 100%;
-	pointer-events: none;
-	stroke-linecap: round;
-	stroke-linejoin: round;
-	transform-origin: top left;
-	overflow: visible;
-}
-
-.tl-html-container {
-	position: absolute;
-	inset: 0px;
-	height: 100%;
-	width: 100%;
-	pointer-events: none;
-	stroke-linecap: round;
-	stroke-linejoin: round;
-	/* content-visibility: auto; */
-	transform-origin: top left;
-	color: inherit;
-}
-
 /* --------------- Overlay Stack --------------- */
 
 /* back of the stack, behind user's stuff */
@@ -447,14 +386,6 @@ input,
 
 .tl-user-brush {
 	z-index: var(--layer-overlays-user-brush);
-}
-
-.tl-user-indicator__selected {
-	z-index: var(--layer-overlays-user-indicator-selected);
-}
-
-.tl-user-indicator__hovered {
-	z-index: var(--layer-overlays-user-indicator-hovered);
 }
 
 .tl-user-handles {
@@ -492,16 +423,7 @@ input,
 	overflow: visible;
 }
 
-/* -------------------- Indicator ------------------- */
-
-.tl-shape-indicator {
-	transform-origin: top left;
-	fill: none;
-	stroke-width: calc(1.5px * var(--tl-scale));
-	contain: size layout;
-}
-
-/* ------------------ SelectionBox ------------------ */
+/* -------------- Selection foreground -------------- */
 
 .tl-selection__bg {
 	position: absolute;
@@ -560,132 +482,12 @@ input,
 	stroke: transparent;
 }
 
-/* --------------------- Handles -------------------- */
-
-.tl-handle {
-	pointer-events: all;
-}
-
-.tl-handle__bg {
-	fill: transparent;
-	stroke: transparent;
-	pointer-events: all;
-}
-
-.tl-handle__fg {
-	fill: var(--color-selected-contrast);
-	stroke: var(--color-selection-stroke);
-	stroke-width: calc(1.5px * var(--tl-scale));
+.tl-hidden {
+	opacity: 0;
 	pointer-events: none;
 }
 
-.tl-handle__create {
-	opacity: 0;
-}
-
-.tl-handle__clone > .tl-handle__fg {
-	fill: var(--color-selection-stroke);
-	stroke: none;
-}
-
-.tl-handle__bg:active {
-	fill: none;
-}
-
-@media (pointer: coarse) {
-	.tl-handle__bg:active {
-		fill: var(--color-selection-fill);
-	}
-
-	.tl-handle__create {
-		opacity: 1;
-	}
-}
-
-.tl-rotate-corner:not(:hover),
-.tl-resize-handle:not(:hover) {
-	cursor: none;
-}
-
-/* --------------------- Arrow Hints -------------------- */
-
-.tl-arrow-hint-handle {
-	fill: var(--color-selected-contrast);
-	stroke: var(--color-selection-stroke);
-	stroke-width: calc(1.5px * var(--tl-scale));
-	r: calc(4px * var(--tl-scale));
-}
-
-.tl-arrow-hint-snap {
-	stroke: transparent;
-	fill: var(--color-selection-fill);
-	r: calc(12px * var(--tl-scale));
-}
-
-.tl-arrow-hint-snap__none,
-.tl-arrow-hint-snap__center,
-.tl-arrow-hint-snap__axis {
-	display: none;
-}
-
-.tl-arrow-hint-snap__edge {
-	r: calc(8px * var(--tl-scale));
-}
-
-/* ------------------ Bounds Detail ----------------- */
-
-.tl-image,
-.tl-video {
-	object-fit: cover;
-	background-size: cover;
-	width: 100%;
-	height: 100%;
-}
-
-.tl-video.tl-video-is-fullscreen {
-	object-fit: contain;
-	background-size: contain;
-}
-
-.tl-video-container,
-.tl-image-container,
-.tl-embed-container {
-	width: 100%;
-	height: 100%;
-	pointer-events: all;
-	/* background-color: var(--color-background); */
-
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-
-.tl-image-container {
-	position: relative;
-	overflow: hidden;
-}
-.tl-image {
-	position: absolute;
-	inset: 0;
-}
-
-.tl-image__tg {
-	--scale: calc(min(2, var(--tl-scale)));
-	position: absolute;
-	top: calc(var(--scale) * 8px);
-	right: calc(var(--scale) * 8px);
-	font-size: 10px;
-	transform-origin: top right;
-	background-color: var(--color-background);
-	padding: 2px 4px;
-	border-radius: var(--radius-1);
-}
-
-/* --------------------- Nametag -------------------- */
-
-.tl-collaborator-cursor {
-	position: absolute;
-}
+/* -------------- Nametag / cursor chat ------------- */
 
 .tl-nametag {
 	position: absolute;
@@ -766,43 +568,12 @@ input,
 	text-shadow: none;
 }
 
-.tl-cursor-chat-fade {
-	/* Setting to zero causes it to immediately disappear */
-	/* Setting to near-zero causes it to fade out gradually */
-	opacity: 0.0001;
-	transition: opacity 5s ease-in-out;
-}
-
 .tl-cursor-chat::placeholder {
 	color: var(--color-selected-contrast);
 	opacity: 0.7;
 }
 
-/* --------------------- Spinner -------------------- */
-@keyframes spinner {
-	to {
-		transform: rotate(360deg);
-	}
-}
-
 /* ---------------------- Text ---------------------- */
-
-.tl-text-shape-label {
-	position: relative;
-	font-weight: normal;
-	min-width: 1px;
-	padding: 0px;
-	margin: 0px;
-	border: none;
-	width: fit-content;
-	height: fit-content;
-	font-variant: normal;
-	font-style: normal;
-	pointer-events: all;
-	white-space: pre-wrap;
-	overflow-wrap: break-word;
-	text-shadow: var(--tl-text-outline);
-}
 
 .tl-text-wrapper[data-font='draw'] {
 	font-family: var(--tl-font-draw);
@@ -898,6 +669,9 @@ input,
 	border: none;
 	user-select: none;
 	contain: style paint;
+	visibility: hidden;
+	/* N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers") is necessary for ensuring correct mixed RTL/LTR behavior when exporting SVGs. */
+	unicode-bidi: plaintext;
 	-webkit-user-select: none;
 }
 
@@ -943,6 +717,41 @@ input,
 	overflow: hidden;
 }
 
+.tl-text-input::selection {
+	background: var(--color-selected);
+	color: var(--color-selected-contrast);
+	text-shadow: none;
+}
+
+/* Text label */
+
+.tl-text-label {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	color: var(--color-text);
+	text-shadow: var(--tl-text-outline);
+	line-height: inherit;
+	position: absolute;
+	inset: 0px;
+	height: 100%;
+	width: 100%;
+}
+
+.tl-text-label[data-hastext='false'][data-isediting='false'] > .tl-text-label__inner {
+	width: 40px;
+	height: 40px;
+}
+
+.tl-text-label[data-hastext='true'][data-isediting='false'] .tl-text-content {
+	pointer-events: all;
+}
+
+.tl-text-label__inner > .tl-text-input.tl-rich-text {
+	display: none;
+	position: static;
+}
+
 .tl-text-wrapper[data-isediting='false'] .tl-text-input,
 .tl-arrow-label[data-isediting='false'] .tl-text-input {
 	opacity: 0;
@@ -954,10 +763,60 @@ input,
 	cursor: var(--tl-cursor-text);
 }
 
-.tl-text-input::selection {
-	background: var(--color-selected);
-	color: var(--color-selected-contrast);
-	text-shadow: none;
+.tl-text-label[data-textwrap='true'] > .tl-text-label__inner {
+	max-width: 100%;
+}
+
+.tl-text-label[data-isediting='true'] {
+	background-color: transparent;
+	min-height: auto;
+}
+
+.tl-text-wrapper .tl-text-content {
+	pointer-events: all;
+	z-index: var(--layer-text-content);
+}
+
+.tl-text-label__inner > .tl-text-content {
+	position: relative;
+	top: 0px;
+	left: 0px;
+	padding: inherit;
+	height: fit-content;
+	width: fit-content;
+	border-radius: var(--radius-1);
+	max-width: 100%;
+}
+
+.tl-text-label__inner > .tl-text-input {
+	position: absolute;
+	inset: 0px;
+	height: 100%;
+	width: 100%;
+	padding: inherit;
+}
+
+.tl-text-wrapper[data-isselected='true'] .tl-text-input {
+	z-index: var(--layer-text-editor);
+	pointer-events: all;
+}
+
+/* This part of the rule helps preserve the occlusion rules for the shapes so we
+ * don't click on shapes that are behind other shapes.
+ * One extra nuance is we don't use this behavior for:
+ *  - arrows which have weird geometry and just gets in the way.
+ *  - draw/line shapes, because it feels restrictive to have them be 'in the way' of clicking on a textfield
+ *  - shapes that are not filled
+ */
+.tl-canvas:is([data-iseditinganything='true'], [data-isselectinganything='true'])
+	.tl-shape:not(
+		[data-shape-type='arrow'],
+		[data-shape-type='draw'],
+		[data-shape-type='line'],
+		[data-shape-type='highlight'],
+		[data-shape-is-filled='false']
+	) {
+	pointer-events: all;
 }
 
 .tl-rich-text .ProseMirror {
@@ -1068,30 +927,223 @@ input,
 	}
 }
 
-.tl-text-label__inner > .tl-text-input.tl-rich-text {
-	display: none;
-	position: static;
-}
-
 .tl-text-wrapper[data-isediting='true'] .tl-rich-text {
 	display: block;
 }
 
-/* ------------------- Snap Lines ------------------- */
+/* --------------------- Loading -------------------- */
+
+.tl-loading {
+	background-color: var(--color-background);
+	color: var(--color-text-1);
+	height: 100%;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	gap: var(--space-2);
+	font-size: 14px;
+	font-weight: 500;
+	opacity: 0;
+	animation: fade-in 0.2s ease-in-out forwards;
+	animation-delay: 0.2s;
+	position: absolute;
+	inset: 0px;
+	z-index: var(--layer-canvas-blocker);
+}
+
+@keyframes fade-in {
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+	}
+}
+
+/* ---------------------- Brush --------------------- */
+
+.tl-brush {
+	stroke-width: calc(var(--tl-scale) * 1px);
+	contain: size layout;
+}
+
+.tl-brush__default {
+	stroke: var(--color-brush-stroke);
+	fill: var(--color-brush-fill);
+}
+
+/* -------------------- Scribble -------------------- */
+
+.tl-scribble {
+	stroke-linejoin: round;
+	stroke-linecap: round;
+	pointer-events: none;
+	contain: size layout;
+}
+
+/* ---------------------- Snaps --------------------- */
 
 .tl-snap-indicator {
-	stroke: var(--color-accent);
+	stroke: var(--color-snap);
 	stroke-width: calc(1px * var(--tl-scale));
 	fill: none;
 }
 
 .tl-snap-point {
-	stroke: var(--color-accent);
+	stroke: var(--color-snap);
 	stroke-width: calc(1px * var(--tl-scale));
 	fill: none;
 }
 
-/* -------------------- Groups ------------------ */
+/* ---------------- Hyperlink Button ---------------- */
+
+.tl-hyperlink-button {
+	background: none;
+	margin: 0px;
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	height: 44px;
+	width: 44px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	font-weight: 400;
+	color: var(--color-text-1);
+	padding: 13px;
+	cursor: var(--tl-cursor-pointer);
+	border: none;
+	outline: none;
+	pointer-events: all;
+	z-index: 1;
+}
+
+.tl-hyperlink-button::after {
+	content: '';
+	z-index: -1;
+	position: absolute;
+	right: 6px;
+	bottom: 6px;
+	display: block;
+	width: calc(100% - 12px);
+	height: calc(100% - 12px);
+	border-radius: var(--radius-1);
+	background-color: var(--color-background);
+	pointer-events: none;
+}
+
+.tl-hyperlink-button:focus-visible {
+	color: var(--color-selected);
+}
+
+.tl-hyperlink__icon {
+	width: 16px;
+	height: 16px;
+	background-color: currentColor;
+	pointer-events: none;
+}
+
+.tl-hyperlink-button__hidden {
+	display: none;
+}
+
+/* --------------------- Handles -------------------- */
+
+.tl-handle {
+	pointer-events: all;
+}
+
+.tl-handle__bg {
+	fill: transparent;
+	stroke: transparent;
+	pointer-events: all;
+}
+
+.tl-handle__fg {
+	fill: var(--color-selected-contrast);
+	stroke: var(--color-selection-stroke);
+	stroke-width: calc(1.5px * var(--tl-scale));
+	pointer-events: none;
+}
+
+.tl-handle__create {
+	opacity: 0;
+}
+
+.tl-handle__clone > .tl-handle__fg {
+	fill: var(--color-selection-stroke);
+	stroke: none;
+}
+
+.tl-handle__bg:active {
+	fill: none;
+}
+
+@media (pointer: coarse) {
+	.tl-handle__bg:active {
+		fill: var(--color-selection-fill);
+	}
+
+	.tl-handle__create {
+		opacity: 1;
+	}
+}
+
+.tl-rotate-corner:not(:hover),
+.tl-resize-handle:not(:hover) {
+	cursor: none;
+}
+
+/* ----------------- Shape indicator ---------------- */
+
+.tl-shape-indicator {
+	transform-origin: top left;
+	fill: none;
+	stroke-width: calc(1.5px * var(--tl-scale));
+	contain: size layout;
+}
+
+/* ---------------------- Shape --------------------- */
+
+.tl-shape {
+	position: absolute;
+	pointer-events: none;
+	overflow: visible;
+	transform-origin: top left;
+	contain: size layout;
+}
+
+/* ---------------- Shape Containers ---------------- */
+
+.tl-svg-container {
+	position: absolute;
+	inset: 0px;
+	height: 100%;
+	width: 100%;
+	pointer-events: none;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	transform-origin: top left;
+	overflow: visible;
+}
+
+.tl-html-container {
+	position: absolute;
+	inset: 0px;
+	height: 100%;
+	width: 100%;
+	pointer-events: none;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	/* content-visibility: auto; */
+	transform-origin: top left;
+	color: inherit;
+}
+
+/* -------------------- Group shape ------------------ */
 
 .tl-group {
 	stroke: var(--color-text);
@@ -1099,7 +1151,83 @@ input,
 	opacity: 0.5;
 }
 
-/* ------------------- Bookmark Shape ------------------- */
+/* --------------------- Arrow shape -------------------- */
+
+.tl-arrow-label {
+	position: absolute;
+	top: -1px;
+	left: -1px;
+	width: 2px;
+	height: 2px;
+	padding: 0px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	color: var(--color-text);
+	text-shadow: var(--tl-text-outline);
+}
+
+.tl-arrow-label[data-isediting='true'] p {
+	opacity: 0;
+}
+
+.tl-arrow-label__inner {
+	border-radius: var(--radius-1);
+	box-sizing: content-box;
+	position: relative;
+	height: max-content;
+	width: max-content;
+	pointer-events: none;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.tl-arrow-label .tl-arrow {
+	position: relative;
+	height: max-content;
+	padding: inherit;
+	overflow: visible;
+}
+
+.tl-arrow-label textarea {
+	padding: inherit;
+	/* Don't allow textarea to be zero width */
+	min-width: 4px;
+}
+
+.tl-arrow-hint {
+	stroke: var(--color-text-1);
+	fill: none;
+	stroke-linecap: round;
+	overflow: visible;
+}
+
+.tl-arrow-hint-handle {
+	fill: var(--color-selected-contrast);
+	stroke: var(--color-selection-stroke);
+	stroke-width: calc(1.5px * var(--tl-scale));
+	r: calc(4px * var(--tl-scale));
+}
+
+.tl-arrow-hint-snap {
+	stroke: transparent;
+	fill: var(--color-selection-fill);
+	r: calc(12px * var(--tl-scale));
+}
+
+.tl-arrow-hint-snap__none,
+.tl-arrow-hint-snap__center,
+.tl-arrow-hint-snap__axis {
+	display: none;
+}
+
+.tl-arrow-hint-snap__edge {
+	r: calc(8px * var(--tl-scale));
+}
+
+/* ------------------- Bookmark shape ------------------- */
 
 .tl-bookmark__container {
 	width: 100%;
@@ -1228,193 +1356,45 @@ input,
 	flex-shrink: 0;
 }
 
-/* ---------------- Hyperlink Button ---------------- */
+/* -------------- Image and video shape ------------- */
 
-.tl-hyperlink-button {
-	background: none;
-	margin: 0px;
-	position: absolute;
-	top: 0px;
-	right: 0px;
-	height: 44px;
-	width: 44px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 12px;
-	font-weight: 400;
-	color: var(--color-text-1);
-	padding: 13px;
-	cursor: var(--tl-cursor-pointer);
-	border: none;
-	outline: none;
-	pointer-events: all;
-	z-index: 1;
-}
-
-.tl-hyperlink-button::after {
-	content: '';
-	z-index: -1;
-	position: absolute;
-	right: 6px;
-	bottom: 6px;
-	display: block;
-	width: calc(100% - 12px);
-	height: calc(100% - 12px);
-	border-radius: var(--radius-1);
-	background-color: var(--color-background);
-	pointer-events: none;
-}
-
-.tl-hyperlink-button:focus-visible {
-	color: var(--color-selected);
-}
-
-.tl-hyperlink__icon {
-	width: 16px;
-	height: 16px;
-	background-color: currentColor;
-	pointer-events: none;
-}
-
-.tl-hyperlink-button__hidden {
-	display: none;
-}
-
-/* ---------------- Geo shape ---------------- */
-
-.tl-text-label {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	color: var(--color-text);
-	text-shadow: var(--tl-text-outline);
-	line-height: inherit;
-	position: absolute;
-	inset: 0px;
-	height: 100%;
+.tl-image,
+.tl-video {
+	object-fit: cover;
+	background-size: cover;
 	width: 100%;
-}
-
-.tl-text-label[data-hastext='false'][data-isediting='false'] > .tl-text-label__inner {
-	width: 40px;
-	height: 40px;
-}
-
-.tl-text-label[data-hastext='true'][data-isediting='false'] .tl-text-content {
-	pointer-events: all;
-}
-
-.tl-text-wrapper .tl-text-content {
-	pointer-events: all;
-	z-index: var(--layer-text-content);
-}
-
-.tl-text-label__inner > .tl-text-content {
-	position: relative;
-	top: 0px;
-	left: 0px;
-	padding: inherit;
-	height: fit-content;
-	width: fit-content;
-	border-radius: var(--radius-1);
-	max-width: 100%;
-}
-
-.tl-text-label__inner > .tl-text-input {
-	position: absolute;
-	inset: 0px;
 	height: 100%;
+}
+
+.tl-video-container,
+.tl-image-container,
+.tl-embed-container {
 	width: 100%;
-	padding: inherit;
-}
-
-.tl-text-wrapper[data-isselected='true'] .tl-text-input {
-	z-index: var(--layer-text-editor);
+	height: 100%;
 	pointer-events: all;
+	/* background-color: var(--color-background); */
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
-/* This part of the rule helps preserve the occlusion rules for the shapes so we
- * don't click on shapes that are behind other shapes.
- * One extra nuance is we don't use this behavior for:
- *  - arrows which have weird geometry and just gets in the way.
- *  - draw/line shapes, because it feels restrictive to have them be 'in the way' of clicking on a textfield
- *  - shapes that are not filled
- */
-.tl-canvas:is([data-iseditinganything='true'], [data-isselectinganything='true'])
-	.tl-shape:not(
-		[data-shape-type='arrow'],
-		[data-shape-type='draw'],
-		[data-shape-type='line'],
-		[data-shape-type='highlight'],
-		[data-shape-is-filled='false']
-	) {
-	pointer-events: all;
+.tl-image-container {
+	position: relative;
+	overflow: hidden;
 }
 
-.tl-text-label[data-textwrap='true'] > .tl-text-label__inner {
-	max-width: 100%;
-}
-
-.tl-text-label[data-isediting='true'] {
-	background-color: transparent;
-	min-height: auto;
-}
-
-.tl-arrow-hint {
-	stroke: var(--color-text-1);
-	fill: none;
-	stroke-linecap: round;
-	overflow: visible;
-}
-
-/* ------------------- Arrow Shape ------------------ */
-
-.tl-arrow-label {
+.tl-image {
 	position: absolute;
-	top: -1px;
-	left: -1px;
-	width: 2px;
-	height: 2px;
-	padding: 0px;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	text-align: center;
-	color: var(--color-text);
-	text-shadow: var(--tl-text-outline);
+	inset: 0;
 }
 
-.tl-arrow-label[data-isediting='true'] p {
-	opacity: 0;
+.tl-video.tl-video-is-fullscreen {
+	object-fit: contain;
+	background-size: contain;
 }
 
-.tl-arrow-label__inner {
-	border-radius: var(--radius-1);
-	box-sizing: content-box;
-	position: relative;
-	height: max-content;
-	width: max-content;
-	pointer-events: none;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-
-.tl-arrow-label .tl-arrow {
-	position: relative;
-	height: max-content;
-	padding: inherit;
-	overflow: visible;
-}
-
-.tl-arrow-label textarea {
-	padding: inherit;
-	/* Don't allow textarea to be zero width */
-	min-width: 4px;
-}
-
-/* -------------------- NoteShape ------------------- */
+/* -------------------- Note shape ------------------- */
 
 .tl-note__container {
 	position: relative;
@@ -1431,38 +1411,7 @@ input,
 	color: currentColor;
 }
 
-/* --------------------- Loading -------------------- */
-
-.tl-loading {
-	background-color: var(--color-background);
-	color: var(--color-text-1);
-	height: 100%;
-	width: 100%;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	gap: var(--space-2);
-	font-size: 14px;
-	font-weight: 500;
-	opacity: 0;
-	animation: fade-in 0.2s ease-in-out forwards;
-	animation-delay: 0.2s;
-	position: absolute;
-	inset: 0px;
-	z-index: var(--layer-canvas-blocker);
-}
-
-@keyframes fade-in {
-	0% {
-		opacity: 0;
-	}
-	100% {
-		opacity: 1;
-	}
-}
-
-/* -------------------- FrameShape ------------------- */
+/* ------------------- Frame shape ------------------- */
 
 .tl-frame__body {
 	stroke-width: calc(1px * var(--tl-scale));
@@ -1555,14 +1504,14 @@ input,
 	}
 }
 
-/* ------------------ iFrames Detail ----------------- */
+/* ------------------- Embed Shape ------------------ */
 
 .tl-embed {
 	border: none;
 	border-radius: var(--radius-2);
 }
 
-/* -------------- Shape Error Boundary -------------- */
+/* -------------- Shape error boundary -------------- */
 
 .tl-shape-error-boundary {
 	width: 100%;
@@ -1591,7 +1540,7 @@ input,
 	color: var(--color-text-0);
 }
 
-/* ----------------- Error Boundary ----------------- */
+/* ----------------- Error boundary ----------------- */
 
 .tl-error-boundary {
 	width: 100%;
@@ -1753,22 +1702,6 @@ it from receiving any pointer events or affecting the cursor. */
 	outline-offset: 0;
 }
 
-/* --------------------- Coarse --------------------- */
-
-.tl-hidden {
-	opacity: 0;
-	pointer-events: none;
-}
-
-.debug__ui-logger {
-	position: absolute;
-	top: 62px;
-	left: 16px;
-	color: #555;
-	font-size: 12px;
-	font-family: monospace;
-}
-
 /* ---------------- Hit test blocker ---------------- */
 
 .tl-hit-test-blocker {
@@ -1783,6 +1716,8 @@ it from receiving any pointer events or affecting the cursor. */
 .tl-hit-test-blocker__hidden {
 	display: none;
 }
+
+/* --------------------- Hovers --------------------- */
 
 @media (hover: hover) {
 	.tl-handle__create:hover {

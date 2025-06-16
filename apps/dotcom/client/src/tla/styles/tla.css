@@ -229,8 +229,15 @@
 }
 
 .tlui-page-menu__trigger {
-	width: fit-content;
 	flex-shrink: 0;
+	max-width: fit-content;
+}
+
+@media (min-width: 1080px) {
+	.tlui-page-menu__trigger {
+		width: fit-content;
+		max-width: 320px;
+	}
 }
 
 /* Hide the icon on the page menu trigger button */

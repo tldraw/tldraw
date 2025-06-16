@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "Túllépte a díjkorlátot, próbálkozzon újra később."
   },
+  "08bd40c754": {
+    "translation": "Fiók"
+  },
   "0b27918290": {
     "translation": "Fájl"
   },
@@ -185,6 +188,9 @@
   "7b1329f5ca": {
     "translation": "Felhasználói kézikönyv"
   },
+  "7be10fc592": {
+    "translation": "Verzió visszaállítása"
+  },
   "7cb5f8b4a5": {
     "translation": "Felejtsd el"
   },
@@ -318,6 +324,9 @@
   "c87aacf567": {
     "translation": "Jelentkezzen ki"
   },
+  "cbef7ba103": {
+    "translation": "Ez a szoba hamarosan csak olvasható lesz"
+  },
   "cceaefbc20": {
     "translation": "Ossza meg ezt a fájlt"
   },
@@ -356,6 +365,9 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
+  },
+  "ea2301d01c": {
+    "translation": "2025. július 1. után ez az anonim tldraw többjátékos szoba írásvédetté válik. A jövőbeni szerkesztés folytatásához kérjük, jelentkezzen be, és másolja át a fájljai közé."
   },
   "ea4788705e": {
     "translation": "Mégsem"

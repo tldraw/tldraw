@@ -73,6 +73,6 @@ describe('ExecutionQueue', () => {
 
 		promise.reject(new Error('oh no'))
 
-		expect(result).rejects.toThrow('oh no')
+		await expect(result).rejects.toThrow('oh no')
 	})
 })

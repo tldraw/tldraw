@@ -16,12 +16,12 @@ import {
 	exhaustiveSwitchError,
 	getOwnProperty,
 	hasOwnProperty,
+	isEqual,
 	isNativeStructuredClone,
 	objectMapEntries,
 	objectMapKeys,
 	structuredClone,
 } from '@tldraw/utils'
-import isEqual from 'lodash.isequal'
 import { createNanoEvents } from 'nanoevents'
 import {
 	RoomSession,

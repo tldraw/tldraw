@@ -17,7 +17,7 @@ export class Editor {
 		this.sidebarToggle = this.page.getByTestId('tla-sidebar-toggle')
 		this.fileName = this.page.getByTestId('tla-file-name')
 		this.shapes = this.page.locator('.tl-shape')
-		this.pageMenu = this.page.getByTestId('tla-page-menu')
+		this.pageMenu = this.page.getByTestId('tla-main-menu')
 	}
 
 	async toggleSidebar() {
@@ -81,8 +81,8 @@ export class Editor {
 
 	@step
 	async createTextShape(text: string) {
+		await this.page.getByTestId('tools.select').click()
 		await this.page.locator('.tl-background').click({ clickCount: 2 })
 		await this.page.locator('div[contenteditable="true"]').fill(text)
-		// await this.page.pause()
 	}
 }

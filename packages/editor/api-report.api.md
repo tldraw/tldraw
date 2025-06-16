@@ -129,9 +129,6 @@ export class Arc2d extends Geometry2d {
 export function areAnglesCompatible(a: number, b: number): boolean;
 
 // @public (undocumented)
-export const areShapesContentEqual: (a: TLShape, b: TLShape) => boolean;
-
-// @public (undocumented)
 export function average(A: VecLike, B: VecLike): string;
 
 // @public (undocumented)
@@ -179,6 +176,7 @@ export interface BindingOnDeleteOptions<Binding extends TLUnknownBinding> {
 // @public
 export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
     binding: Binding;
+    reason: 'ancestry' | 'self';
     shapeAfter: TLShape;
     shapeBefore: TLShape;
 }
@@ -342,10 +340,6 @@ export class Box {
     // (undocumented)
     get point(): Vec;
     set point(val: Vec);
-    // (undocumented)
-    static PrettyMuchEquals(a: Box | BoxModel, b: Box | BoxModel): boolean;
-    // (undocumented)
-    prettyMuchEquals(other: Box | BoxModel): boolean;
     // (undocumented)
     static Resize(box: Box, handle: SelectionCorner | SelectionEdge | string, dx: number, dy: number, isAspectRatioLocked?: boolean): {
         box: Box;
@@ -1214,6 +1208,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     getMarkIdMatching(idSubstring: string): null | string;
     getNearestAdjacentShape(currentShapeId: TLShapeId, direction: 'down' | 'left' | 'right' | 'up'): TLShapeId;
+    getNotVisibleShapes(): Set<TLShapeId>;
     getOnlySelectedShape(): null | TLShape;
     getOnlySelectedShapeId(): null | TLShapeId;
     // @deprecated (undocumented)
@@ -1256,7 +1251,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     getShapeNearestSibling(siblingShape: TLShape, targetShape: TLShape | undefined): TLShape | undefined;
     getShapePageBounds(shape: TLShape | TLShapeId): Box | undefined;
-    getShapePageGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T;
     getShapePageTransform(shape: TLShape | TLShapeId): Mat;
     getShapeParent(shape?: TLShape | TLShapeId): TLShape | undefined;
     getShapeParentTransform(shape: TLShape | TLShapeId): Mat;
@@ -1361,9 +1355,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
     // (undocumented)
     isShapeOfType<T extends TLUnknownShape>(shapeId: TLUnknownShape['id'], type: T['type']): shapeId is T['id'];
-    isShapeOrAncestorLocked(shape?: TLShape): boolean;
-    // (undocumented)
-    isShapeOrAncestorLocked(id?: TLShapeId): boolean;
+    isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean;
     loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot, opts?: TLLoadSnapshotOptions): this;
     // @deprecated
     mark(markId?: string): this;
@@ -2834,6 +2826,8 @@ export type TestEnvironment = 'development' | 'production';
 export class TextManager {
     constructor(editor: Editor);
     // (undocumented)
+    dispose(): void;
+    // (undocumented)
     editor: Editor;
     measureElementTextNodeSpans(element: HTMLElement, { shouldTruncateToFirstLine }?: {
         shouldTruncateToFirstLine?: boolean;
@@ -2845,32 +2839,11 @@ export class TextManager {
         }[];
     };
     // (undocumented)
-    measureHtml(html: string, opts: {
-        maxWidth: null | number;
-        disableOverflowWrapBreaking?: boolean;
-        fontFamily: string;
-        fontSize: number;
-        fontStyle: string;
-        fontWeight: string;
-        lineHeight: number;
-        minWidth?: null | number;
-        otherStyles?: Record<string, string>;
-        padding: string;
-    }): BoxModel & {
+    measureHtml(html: string, opts: TLMeasureTextOpts): BoxModel & {
         scrollWidth: number;
     };
     // (undocumented)
-    measureText(textToMeasure: string, opts: {
-        maxWidth: null | number;
-        disableOverflowWrapBreaking?: boolean;
-        fontFamily: string;
-        fontSize: number;
-        fontStyle: string;
-        fontWeight: string;
-        lineHeight: number;
-        minWidth?: null | number;
-        padding: string;
-    }): BoxModel & {
+    measureText(textToMeasure: string, opts: TLMeasureTextOpts): BoxModel & {
         scrollWidth: number;
     };
     measureTextSpans(textToMeasure: string, opts: TLMeasureTextSpanOpts): {
@@ -3683,6 +3656,31 @@ export interface TLLoadSnapshotOptions {
 }
 
 // @public (undocumented)
+export interface TLMeasureTextOpts {
+    // (undocumented)
+    disableOverflowWrapBreaking?: boolean;
+    // (undocumented)
+    fontFamily: string;
+    // (undocumented)
+    fontSize: number;
+    // (undocumented)
+    fontStyle: string;
+    // (undocumented)
+    fontWeight: string;
+    // (undocumented)
+    lineHeight: number;
+    maxWidth: null | number;
+    // (undocumented)
+    measureScrollWidth?: boolean;
+    // (undocumented)
+    minWidth?: null | number;
+    // (undocumented)
+    otherStyles?: Record<string, string>;
+    // (undocumented)
+    padding: string;
+}
+
+// @public (undocumented)
 export interface TLMeasureTextSpanOpts {
     // (undocumented)
     fontFamily: string;
@@ -3696,6 +3694,8 @@ export interface TLMeasureTextSpanOpts {
     height: number;
     // (undocumented)
     lineHeight: number;
+    // (undocumented)
+    measureScrollWidth?: boolean;
     // (undocumented)
     otherStyles?: Record<string, string>;
     // (undocumented)

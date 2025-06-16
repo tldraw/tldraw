@@ -12,10 +12,6 @@
 	--layer-following-indicator: 1000;
 }
 
-/* -------------------------------------------------- */
-/*                     UI Refresh                     */
-/* -------------------------------------------------- */
-
 /* Button */
 
 .tlui-button {
@@ -269,26 +265,6 @@
 	width: 16px;
 }
 
-/* Help */
-
-.tlui-button__help {
-	height: 32px;
-	width: 32px;
-	padding: 0px;
-	min-width: 32px;
-	border-radius: 100%;
-	background-color: var(--color-low);
-	border: 1px solid var(--color-low-border);
-}
-
-@media (hover: hover) {
-	.tlui-button__help::after {
-		background-color: var(--color-muted-2);
-		border-radius: 100%;
-		inset: 4px;
-	}
-}
-
 /* Button Row */
 
 .tlui-buttons__horizontal {
@@ -392,8 +368,8 @@
 	min-width: 0px;
 }
 
-.scrollable,
-.scrollable * {
+.tlui-scrollable,
+.tlui-scrollable * {
 	pointer-events: all;
 	touch-action: auto;
 	overscroll-behavior: none;
@@ -499,221 +475,6 @@
 		var(--shadow-1);
 }
 
-/* ----------------------- Kbd ---------------------- */
-
-.tlui-kbd {
-	font-family: inherit;
-	font-size: 11px;
-	line-height: 11px;
-	display: grid;
-	justify-items: center;
-	grid-auto-flow: column;
-	grid-template-columns: auto;
-	grid-auto-columns: minmax(1em, auto);
-	align-self: bottom;
-	color: currentColor;
-	margin-left: var(--space-4);
-}
-
-.tlui-kbd > span {
-	width: 100%;
-	text-align: center;
-	display: inline;
-	margin: 0px;
-	padding: 2px;
-	border-radius: 2px;
-}
-
-.tlui-kbd > span:last-child {
-	padding-right: 0;
-}
-
-.tlui-kbd:not(:last-child) {
-	margin-right: var(--space-2);
-}
-
-/* Focus Mode Button */
-
-.tlui-focus-button {
-	z-index: var(--layer-panels);
-	pointer-events: all;
-}
-
-/* --------------------- Popover -------------------- */
-
-.tlui-popover {
-	position: relative;
-	display: flex;
-	align-content: stretch;
-}
-
-.tlui-popover__content {
-	position: relative;
-	max-height: calc(var(--radix-popover-content-available-height) - 8px);
-	margin: 0px;
-	border: none;
-	border-radius: var(--radius-3);
-	background-color: var(--color-panel);
-	box-shadow: var(--shadow-3);
-	z-index: var(--layer-menus);
-	overflow: hidden;
-	overflow-y: auto;
-	touch-action: auto;
-	overscroll-behavior: none;
-	scrollbar-width: none;
-	-ms-overflow-style: none;
-}
-
-/* -------------------------------------------------- */
-/*                        Zones                       */
-/* -------------------------------------------------- */
-
-/* ------------------- Status Bar ------------------- */
-
-.tlui-debug-panel {
-	background-color: var(--color-low);
-	width: 100%;
-	display: grid;
-	align-items: center;
-	grid-template-columns: 1fr auto auto auto;
-	justify-content: space-between;
-	padding-left: var(--space-4);
-	border-top: 1px solid var(--color-background);
-	font-size: 12px;
-	color: var(--color-text-1);
-	z-index: var(--layer-panels);
-	pointer-events: all;
-}
-
-.tlui-debug-panel__current-state {
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-}
-
-.tlui-debug-panel__fps {
-	margin-right: 8px;
-}
-
-.tlui-debug-panel__fps__slow {
-	font-weight: bold;
-	color: var(--color-warn);
-}
-
-.tlui-a11y-audit {
-	border-collapse: collapse;
-}
-
-.tlui-a11y-audit th,
-.tlui-a11y-audit td {
-	padding: 8px;
-	border: 1px solid var(--color-low-border);
-}
-
-/* -------------------- Menu Zone ------------------- */
-
-.tlui-menu-zone {
-	position: relative;
-	z-index: var(--layer-panels);
-	width: fit-content;
-	border-right: 2px solid var(--color-background);
-	border-bottom: 2px solid var(--color-background);
-	border-bottom-right-radius: var(--radius-4);
-	background-color: var(--color-low);
-}
-
-.tlui-menu-zone *[data-state='open']:not(:hover)::after {
-	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
-	opacity: 1;
-}
-
-/* ------------------- Style Panel ------------------ */
-
-.tlui-style-panel__wrapper {
-	box-shadow: var(--shadow-2);
-	border-radius: var(--radius-3);
-	pointer-events: all;
-	background-color: var(--color-panel);
-	height: fit-content;
-	max-height: 100%;
-	margin: 8px;
-	margin-top: 4px;
-	touch-action: auto;
-	overscroll-behavior: none;
-	overflow-y: auto;
-	overflow-x: hidden;
-	color: var(--color-text);
-}
-/* if the style panel is the only child (ie no share menu), increase the margin */
-.tlui-style-panel__wrapper:only-child {
-	margin-top: 8px;
-}
-
-.tlui-style-panel {
-	position: relative;
-	z-index: var(--layer-panels);
-	pointer-events: all;
-	width: 148px;
-	max-width: 148px;
-}
-
-.tlui-style-panel::-webkit-scrollbar {
-	display: none;
-}
-
-.tlui-style-panel .tlui-button.select {
-	width: 100%;
-}
-
-.tlui-style-panel__section {
-	display: flex;
-	position: relative;
-	flex-direction: column;
-}
-
-.tlui-style-panel__section:nth-of-type(n + 2):not(:last-child) {
-	border-bottom: 1px solid var(--color-divider);
-}
-
-.tlui-style-panel__section:empty {
-	display: none;
-}
-
-.tlui-style-panel__section__common:not(:only-child) {
-	margin-bottom: 7px;
-	border-bottom: 1px solid var(--color-divider);
-}
-
-.tlui-style-panel__row {
-	display: flex;
-}
-/* Only really used for the alignment picker */
-.tlui-style-panel__row__extra-button {
-	margin-left: -2px;
-}
-
-.tlui-style-panel__double-select-picker {
-	display: flex;
-	grid-template-columns: 1fr auto;
-	align-items: center;
-	padding-left: var(--space-4);
-	color: var(--color-text-1);
-	font-size: 12px;
-}
-
-.tlui-style-panel__double-select-picker-label {
-	text-overflow: ellipsis;
-	overflow: hidden;
-	white-space: nowrap;
-	flex-grow: 2;
-	max-width: 100%;
-}
-
-.tlui-style-panel .tlui-button[data-state='open']:not(:hover)::after {
-	opacity: 1;
-	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
-}
-
 /* ---------------------- Input --------------------- */
 
 .tlui-input {
@@ -766,211 +527,44 @@
 	}
 }
 
-/* ---------------- Dialog ---------------- */
+/* ----------------------- Kbd ---------------------- */
 
-.tlui-dialog__overlay {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
-	z-index: var(--layer-canvas-overlays);
-	background-color: var(--color-overlay);
-	pointer-events: all;
-	animation: fadeIn 0.12s ease-out;
+.tlui-kbd {
+	font-family: inherit;
+	font-size: 11px;
+	line-height: 11px;
 	display: grid;
-	place-items: center;
-	overflow-y: auto;
-	padding: 0px var(--space-3);
+	justify-items: center;
+	grid-auto-flow: column;
+	grid-template-columns: auto;
+	grid-auto-columns: minmax(1em, auto);
+	align-self: bottom;
+	color: currentColor;
+	margin-left: var(--space-4);
 }
 
-.tlui-dialog__content {
-	display: flex;
-	flex-direction: column;
-	position: relative;
-	cursor: default;
-	background-color: var(--color-panel);
-	box-shadow: var(--shadow-3);
-	border-radius: var(--radius-3);
-	font-size: 12px;
-	overflow: hidden;
-	min-width: 300px;
-	max-width: 100%;
-	max-height: 80%;
-}
-
-.tlui-dialog__header {
-	position: relative;
-	display: flex;
-	align-items: center;
-	flex: 0;
-	z-index: var(--layer-header-footer);
-	padding-left: var(--space-4);
-	color: var(--color-text);
-	height: 40px;
-}
-
-.tlui-dialog__header__title {
-	flex: 1;
-	font-weight: inherit;
-	font-size: 12px;
-	margin: 0px;
-	color: var(--color-text-1);
-}
-
-.tlui-dialog__header__close {
-	justify-self: flex-end;
-}
-
-.tlui-dialog__body {
-	padding: var(--space-4) var(--space-4);
-	flex: 0 1;
-	overflow-y: auto;
-	overflow-x: hidden;
-	color: var(--color-text-1);
-	user-select: all;
-	-webkit-user-select: text;
-}
-.tlui-dialog__body a {
-	color: var(--color-selected);
-}
-
-.tlui-dialog__body ul,
-.tlui-dialog__body ol {
-	padding-left: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-4);
-}
-
-.tlui-dialog__footer {
-	position: relative;
-	min-height: 12px;
-	z-index: var(--layer-header-footer);
-}
-
-.tlui-dialog__footer__actions {
-	display: flex;
-	align-items: center;
-	justify-content: flex-end;
-}
-
-.tlui-dialog__footer__actions > .tlui-button:nth-last-child(n + 2) {
-	margin-right: -4px;
-}
-
-/* --------------------- Toolbar -------------------- */
-
-/* Wide container */
-.tlui-toolbar {
-	grid-column: 1 / span 3;
-	grid-row: 1;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-grow: 2;
-	padding-bottom: calc(var(--space-3) + var(--sab));
-}
-
-/* Centered Content */
-.tlui-toolbar__inner {
-	position: relative;
-	width: fit-content;
-	display: flex;
-	gap: var(--space-3);
-	align-items: flex-end;
-}
-
-.tlui-toolbar__left {
-	width: fit-content;
-}
-
-/* Row of controls + lock button */
-.tlui-toolbar__extras {
-	position: relative;
-	z-index: var(--layer-above);
+.tlui-kbd > span {
 	width: 100%;
-	pointer-events: none;
-	top: 6px;
-	height: 48px;
+	text-align: center;
+	display: inline;
+	margin: 0px;
+	padding: 2px;
+	border-radius: 2px;
 }
 
-.tlui-toolbar__extras:empty {
-	display: none;
+.tlui-kbd > span:last-child {
+	padding-right: 0;
 }
 
-.tlui-toolbar__extras__controls {
-	display: flex;
-	position: relative;
-	flex-direction: row;
-	z-index: var(--layer-above);
-	background-color: var(--color-low);
-	border-top-left-radius: var(--radius-4);
-	border-top-right-radius: var(--radius-4);
-	border: 2px solid var(--color-background);
-	margin-left: 8px;
-	margin-right: 0px;
-	pointer-events: all;
-	width: fit-content;
+.tlui-kbd:not(:last-child) {
+	margin-right: var(--space-2);
 }
 
-.tlui-toolbar__tools {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	border-radius: var(--radius-4);
+/* Focus Mode Button */
+
+.tlui-focus-button {
 	z-index: var(--layer-panels);
 	pointer-events: all;
-	position: relative;
-	background: var(--color-panel);
-	box-shadow: var(--shadow-2);
-}
-.tlui-toolbar__tools__list {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-}
-
-.tlui-toolbar__overflow {
-	width: 40px;
-}
-
-.tlui-layout__mobile .tlui-toolbar__overflow {
-	width: 32px;
-	padding: 0px;
-}
-
-.tlui-toolbar *[data-state='open']:not(:hover)::after {
-	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
-}
-
-.tlui-layout__mobile .tlui-toolbar {
-	transition: transform 0.15s ease-out 0.05s;
-}
-
-/* -------------------- Help Zone ------------------- */
-
-.tlui-help-menu {
-	pointer-events: all;
-	position: absolute;
-	bottom: var(--space-2);
-	right: var(--space-2);
-	z-index: var(--layer-panels);
-	border: 2px solid var(--color-background);
-	border-radius: 100%;
-}
-
-/* ------------------ Context Menu ------------------ */
-
-.tlui-context-menu__move-to-page__name {
-	max-width: calc(min(300px, 35vw));
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.tlui-context-menu__move-to-page__name[data-disabled] {
-	color: var(--color-text-3);
-	pointer-events: none;
 }
 
 /* ---------------------- Menu ---------------------- */
@@ -996,13 +590,7 @@
 	display: none;
 }
 
-.tlui-menu__arrow {
-	position: relative;
-	top: -1px;
-	fill: var(--color-panel);
-	stroke: var(--color-panel-contrast);
-	stroke-width: 1px;
-}
+/* Menu groups */
 
 .tlui-menu__group {
 	width: 100%;
@@ -1018,6 +606,8 @@
 .tlui-menu__group:nth-last-of-type(1) {
 	border-bottom: none;
 }
+
+/* Submenu triggers */
 
 .tlui-menu__submenu__trigger[data-state='open']:not(:hover)::after {
 	opacity: 1;
@@ -1047,255 +637,52 @@
 	min-width: 0px;
 }
 
-/* ------------------ Language menu ----------------- */
-
-.tlui-language-menu {
-	max-height: 500px;
+.tlui-menu-click-capture {
+	position: fixed;
+	inset: 0;
+	z-index: var(--layer-menu-click-capture);
 }
 
-.tlui-language-menu::after {
-	content: '';
-	display: block;
-	position: absolute;
-	bottom: 0px;
-	left: 0px;
-	right: 0px;
-	height: 24px;
-	background: linear-gradient(
-		to bottom,
-		var(--color-panel-transparent) 0%,
-		var(--color-panel) 90%,
-		var(--color-panel) 100%
-	);
-	border-bottom-left-radius: var(--radius-3);
-	border-bottom-right-radius: var(--radius-3);
-	pointer-events: none;
-}
+/* --------------------- Popover -------------------- */
 
-/* ------------------ Actions Menu ------------------ */
-
-.tlui-actions-menu {
-	max-height: calc(100vh - 150px);
-}
-
-/* --------------------- Toasts --------------------- */
-
-.tlui-toast__viewport {
-	position: absolute;
-	inset: 0px;
-	margin: 0px;
-	display: flex;
-	align-items: flex-end;
-	justify-content: flex-end;
-	flex-direction: column;
-	gap: var(--space-3);
-	pointer-events: none;
-	padding: 0px var(--space-3) 64px 0px;
-	z-index: var(--layer-toasts);
-}
-
-.tlui-toast__viewport > * {
-	pointer-events: all;
-}
-
-.tlui-toast__icon {
-	padding-top: 11px;
-	padding-left: var(--space-4);
-	color: var(--color-text-1);
-}
-
-.tlui-toast__container {
-	min-width: 200px;
-	display: flex;
-	flex-direction: row;
-	background-color: var(--color-panel);
-	box-shadow: var(--shadow-2);
-	border-radius: var(--radius-3);
-	font-size: 12px;
-}
-
-.tlui-toast__container[data-severity='success'] .tlui-icon {
-	color: var(--color-success);
-}
-
-.tlui-toast__container[data-severity='info'] .tlui-icon {
-	color: var(--color-info);
-}
-
-.tlui-toast__container[data-severity='warning'] .tlui-icon {
-	color: var(--color-warning);
-}
-
-.tlui-toast__container[data-severity='error'] .tlui-icon {
-	color: var(--color-error);
-}
-
-.tlui-toast__main {
-	flex-grow: 2;
-	max-width: 280px;
-}
-
-.tlui-toast__content {
-	padding: var(--space-4);
-	display: flex;
-	line-height: 1.4;
-	flex-direction: column;
-	gap: var(--space-3);
-}
-
-.tlui-toast__main[data-actions='true'] .tlui-toast__content {
-	padding-bottom: var(--space-2);
-}
-
-.tlui-toast__title {
-	font-weight: bold;
-	color: var(--color-text-1);
-	/* this makes the default toast look better */
-	line-height: 16px;
-}
-
-.tlui-toast__description {
-	color: var(--color-text-1);
-	padding: var(--space-3);
-	margin: 0px;
-	padding: 0px;
-}
-
-.tlui-toast__icon + .tlui-toast__main > .tlui-toast__actions {
-	padding-left: 0px;
-}
-
-.tlui-toast__actions {
-	display: flex;
-	flex-direction: row;
-	justify-content: flex-start;
-	margin-left: 0;
-}
-
-.tlui-toast__close {
-	align-self: flex-end;
-	flex-shrink: 0;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-	.tlui-toast__container[data-state='open'] {
-		animation: slide-in 200ms cubic-bezier(0.785, 0.135, 0.15, 0.86);
-	}
-
-	.tlui-toast__container[data-state='closed'] {
-		animation: hide 100ms ease-in;
-	}
-
-	.tlui-toast__container[data-swipe='move'] {
-		transform: translateX(var(--radix-toast-swipe-move-x));
-	}
-
-	.tlui-toast__container[data-swipe='cancel'] {
-		transform: translateX(0);
-		transition: transform 200ms ease-out;
-	}
-
-	.tlui-toast__container[data-swipe='end'] {
-		animation: swipe-out 100ms ease-out;
-	}
-}
-
-/* --------------------- Bottom --------------------- */
-
-.tlui-layout__bottom {
-	grid-row: 2;
-}
-
-.tlui-layout__bottom__main {
-	width: 100%;
+.tlui-popover {
 	position: relative;
 	display: flex;
-	align-items: flex-end;
-	justify-content: center;
+	align-content: stretch;
 }
 
-/* ------------------- Navigation ------------------- */
+.tlui-popover__content {
+	position: relative;
+	max-height: calc(var(--radix-popover-content-available-height) - 8px);
+	margin: 0px;
+	border: none;
+	border-radius: var(--radius-3);
+	background-color: var(--color-panel);
+	box-shadow: var(--shadow-3);
+	z-index: var(--layer-menus);
+	overflow: hidden;
+	overflow-y: auto;
+	touch-action: auto;
+	overscroll-behavior: none;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
 
-.tlui-navigation-panel {
-	display: flex;
-	width: min-content;
-	flex-direction: column;
+/* -------------------- Menu Zone ------------------- */
+
+.tlui-menu-zone {
+	position: relative;
 	z-index: var(--layer-panels);
-	pointer-events: all;
-	position: absolute;
-	left: 0px;
-	bottom: 0px;
-}
-
-.tlui-navigation-panel::before {
-	content: '';
-	display: block;
-	position: absolute;
-	z-index: -1;
-	inset: -2px -2px 0px 0px;
-	border-radius: 0;
-	border-top: 2px solid var(--color-background);
+	width: fit-content;
 	border-right: 2px solid var(--color-background);
-	border-top-right-radius: var(--radius-4);
+	border-bottom: 2px solid var(--color-background);
+	border-bottom-right-radius: var(--radius-4);
 	background-color: var(--color-low);
 }
 
-.tlui-navigation-panel__toggle .tlui-icon {
-	opacity: 0.24;
-}
-
-.tlui-navigation-panel__toggle:active .tlui-icon {
+.tlui-menu-zone *[data-state='open']:not(:hover)::after {
+	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 	opacity: 1;
-}
-
-@media (hover: hover) {
-	.tlui-navigation-panel__toggle:hover .tlui-icon {
-		opacity: 1;
-	}
-}
-
-.tlui-minimap {
-	width: 100%;
-	height: 96px;
-	min-height: 96px;
-	overflow: hidden;
-	padding: var(--space-3);
-	padding-top: 0px;
-}
-
-.tlui-minimap__canvas {
-	position: relative;
-	width: 100%;
-	height: 100%;
-}
-
-/* ----------------------- ... ---------------------- */
-
-@keyframes hide {
-	0% {
-		opacity: 1;
-	}
-	100% {
-		opacity: 0;
-	}
-}
-
-@keyframes slide-in {
-	from {
-		transform: translateX(calc(100% + var(--space-3)));
-	}
-	to {
-		transform: translateX(0px);
-	}
-}
-
-@keyframes swipe-out {
-	from {
-		transform: translateX(var(--radix-toast-swipe-end-x));
-	}
-	to {
-		transform: translateX(calc(100% + var(--space-3)));
-	}
 }
 
 /* ------------------- Page Select ------------------ */
@@ -1502,6 +889,545 @@
 	}
 }
 
+/* -------------- Skip to main content -------------- */
+
+.tl-skip-to-main-content {
+	position: fixed;
+	top: 48px;
+	left: -9999px;
+	padding: 8px 16px;
+	z-index: var(--layer-toasts);
+}
+
+.tl-skip-to-main-content:focus {
+	left: 8px;
+}
+
+/* ---------------- Offline indicator --------------- */
+
+.tlui-offline-indicator {
+	display: flex;
+	flex-direction: row;
+	gap: var(--space-3);
+	color: var(--color-text);
+	background-color: var(--color-low);
+	border: 3px solid var(--color-background);
+	padding: 0px var(--space-5);
+	height: 42px;
+	align-items: center;
+	justify-content: center;
+	border-radius: 99px;
+	opacity: 0;
+	animation: fade-in;
+	animation-duration: 0.12s;
+	animation-delay: 2s;
+	animation-fill-mode: forwards;
+}
+
+/* ------------------- Style panel ------------------ */
+
+.tlui-style-panel__wrapper {
+	box-shadow: var(--shadow-2);
+	border-radius: var(--radius-3);
+	pointer-events: all;
+	background-color: var(--color-panel);
+	height: fit-content;
+	max-height: 100%;
+	margin: 8px;
+	margin-top: 4px;
+	touch-action: auto;
+	overscroll-behavior: none;
+	overflow-y: auto;
+	overflow-x: hidden;
+	color: var(--color-text);
+}
+/* if the style panel is the only child (ie no share menu), increase the margin */
+.tlui-style-panel__wrapper:only-child {
+	margin-top: 8px;
+}
+
+.tlui-style-panel {
+	position: relative;
+	z-index: var(--layer-panels);
+	pointer-events: all;
+	width: 148px;
+	max-width: 148px;
+}
+
+.tlui-style-panel::-webkit-scrollbar {
+	display: none;
+}
+
+.tlui-style-panel .tlui-button.select {
+	width: 100%;
+}
+
+.tlui-style-panel__section {
+	display: flex;
+	position: relative;
+	flex-direction: column;
+}
+
+.tlui-style-panel__section:nth-of-type(n + 2):not(:last-child) {
+	border-bottom: 1px solid var(--color-divider);
+}
+
+.tlui-style-panel__section:empty {
+	display: none;
+}
+
+.tlui-style-panel__section__common:not(:only-child) {
+	margin-bottom: 7px;
+	border-bottom: 1px solid var(--color-divider);
+}
+
+.tlui-style-panel__row {
+	display: flex;
+}
+/* Only really used for the alignment picker */
+.tlui-style-panel__row__extra-button {
+	margin-left: -2px;
+}
+
+.tlui-style-panel__double-select-picker {
+	display: flex;
+	grid-template-columns: 1fr auto;
+	align-items: center;
+	padding-left: var(--space-4);
+	color: var(--color-text-1);
+	font-size: 12px;
+}
+
+.tlui-style-panel__double-select-picker-label {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	flex-grow: 2;
+	max-width: 100%;
+}
+
+.tlui-style-panel .tlui-button[data-state='open']:not(:hover)::after {
+	opacity: 1;
+	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+}
+
+/* --------------------- Bottom --------------------- */
+
+.tlui-layout__bottom {
+	grid-row: 2;
+}
+
+.tlui-layout__bottom__main {
+	width: 100%;
+	position: relative;
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+}
+
+/* ------------------- Navigation ------------------- */
+
+.tlui-navigation-panel {
+	display: flex;
+	width: min-content;
+	flex-direction: column;
+	z-index: var(--layer-panels);
+	pointer-events: all;
+	position: absolute;
+	left: 0px;
+	bottom: 0px;
+}
+
+.tlui-navigation-panel::before {
+	content: '';
+	display: block;
+	position: absolute;
+	z-index: -1;
+	inset: -2px -2px 0px 0px;
+	border-radius: 0;
+	border-top: 2px solid var(--color-background);
+	border-right: 2px solid var(--color-background);
+	border-top-right-radius: var(--radius-4);
+	background-color: var(--color-low);
+}
+
+.tlui-navigation-panel__toggle .tlui-icon {
+	opacity: 0.24;
+}
+
+.tlui-navigation-panel__toggle:active .tlui-icon {
+	opacity: 1;
+}
+
+@media (hover: hover) {
+	.tlui-navigation-panel__toggle:hover .tlui-icon {
+		opacity: 1;
+	}
+}
+
+/* Minimap */
+
+.tlui-minimap {
+	width: 100%;
+	height: 96px;
+	min-height: 96px;
+	overflow: hidden;
+	padding: var(--space-3);
+	padding-top: 0px;
+}
+
+.tlui-minimap__canvas {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+/* --------------------- Toolbar -------------------- */
+
+/* Wide container */
+.tlui-toolbar {
+	grid-column: 1 / span 3;
+	grid-row: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-grow: 2;
+	padding-bottom: calc(var(--space-3) + var(--sab));
+}
+
+/* Centered Content */
+.tlui-toolbar__inner {
+	position: relative;
+	width: fit-content;
+	display: flex;
+	gap: var(--space-3);
+	align-items: flex-end;
+}
+
+.tlui-toolbar__left {
+	width: fit-content;
+}
+
+/* Row of controls + lock button */
+.tlui-toolbar__extras {
+	position: relative;
+	z-index: var(--layer-above);
+	width: 100%;
+	pointer-events: none;
+	top: 6px;
+	height: 48px;
+}
+
+.tlui-toolbar__extras:empty {
+	display: none;
+}
+
+.tlui-toolbar__extras__controls {
+	display: flex;
+	position: relative;
+	flex-direction: row;
+	z-index: var(--layer-above);
+	background-color: var(--color-low);
+	border-top-left-radius: var(--radius-4);
+	border-top-right-radius: var(--radius-4);
+	border: 2px solid var(--color-background);
+	margin-left: 8px;
+	margin-right: 0px;
+	pointer-events: all;
+	width: fit-content;
+}
+
+.tlui-toolbar__tools {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	border-radius: var(--radius-4);
+	z-index: var(--layer-panels);
+	pointer-events: all;
+	position: relative;
+	background: var(--color-panel);
+	box-shadow: var(--shadow-2);
+}
+.tlui-toolbar__tools__list {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.tlui-toolbar__overflow {
+	width: 40px;
+}
+
+.tlui-layout__mobile .tlui-toolbar__overflow {
+	width: 32px;
+	padding: 0px;
+}
+
+.tlui-toolbar *[data-state='open']:not(:hover)::after {
+	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+}
+
+.tlui-layout__mobile .tlui-toolbar {
+	transition: transform 0.15s ease-out 0.05s;
+}
+
+/* ------------------- Debug panel ------------------ */
+
+.tlui-debug-panel {
+	background-color: var(--color-low);
+	width: 100%;
+	display: grid;
+	align-items: center;
+	grid-template-columns: 1fr auto auto auto;
+	justify-content: space-between;
+	padding-left: var(--space-4);
+	border-top: 1px solid var(--color-background);
+	font-size: 12px;
+	color: var(--color-text-1);
+	z-index: var(--layer-panels);
+	pointer-events: all;
+}
+
+.tlui-debug-panel__current-state {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.tlui-debug-panel__fps {
+	margin-right: 8px;
+}
+
+.tlui-debug-panel__fps__slow {
+	font-weight: bold;
+	color: var(--color-warn);
+}
+
+.tlui-a11y-audit {
+	border-collapse: collapse;
+}
+
+.tlui-a11y-audit th,
+.tlui-a11y-audit td {
+	padding: 8px;
+	border: 1px solid var(--color-low-border);
+}
+
+/* --------------------- Toasts --------------------- */
+
+.tlui-toast__viewport {
+	position: absolute;
+	inset: 0px;
+	margin: 0px;
+	display: flex;
+	align-items: flex-end;
+	justify-content: flex-end;
+	flex-direction: column;
+	gap: var(--space-3);
+	pointer-events: none;
+	padding: 0px var(--space-3) 64px 0px;
+	z-index: var(--layer-toasts);
+}
+
+.tlui-toast__viewport > * {
+	pointer-events: all;
+}
+
+.tlui-toast__icon {
+	padding-top: 11px;
+	padding-left: var(--space-4);
+	color: var(--color-text-1);
+}
+
+.tlui-toast__container {
+	min-width: 200px;
+	display: flex;
+	flex-direction: row;
+	background-color: var(--color-panel);
+	box-shadow: var(--shadow-2);
+	border-radius: var(--radius-3);
+	font-size: 12px;
+}
+
+.tlui-toast__container[data-severity='success'] .tlui-icon {
+	color: var(--color-success);
+}
+
+.tlui-toast__container[data-severity='info'] .tlui-icon {
+	color: var(--color-info);
+}
+
+.tlui-toast__container[data-severity='warning'] .tlui-icon {
+	color: var(--color-warning);
+}
+
+.tlui-toast__container[data-severity='error'] .tlui-icon {
+	color: var(--color-error);
+}
+
+.tlui-toast__main {
+	flex-grow: 2;
+	max-width: 280px;
+}
+
+.tlui-toast__content {
+	padding: var(--space-4);
+	display: flex;
+	line-height: 1.4;
+	flex-direction: column;
+	gap: var(--space-3);
+}
+
+.tlui-toast__main[data-actions='true'] .tlui-toast__content {
+	padding-bottom: var(--space-2);
+}
+
+.tlui-toast__title {
+	font-weight: bold;
+	color: var(--color-text-1);
+	/* this makes the default toast look better */
+	line-height: 16px;
+}
+
+.tlui-toast__description {
+	color: var(--color-text-1);
+	padding: var(--space-3);
+	margin: 0px;
+	padding: 0px;
+}
+
+.tlui-toast__icon + .tlui-toast__main > .tlui-toast__actions {
+	padding-left: 0px;
+}
+
+.tlui-toast__actions {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	margin-left: 0;
+}
+
+.tlui-toast__close {
+	align-self: flex-end;
+	flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.tlui-toast__container[data-state='open'] {
+		animation: slide-in 200ms cubic-bezier(0.785, 0.135, 0.15, 0.86);
+	}
+
+	.tlui-toast__container[data-state='closed'] {
+		animation: hide 100ms ease-in;
+	}
+
+	.tlui-toast__container[data-swipe='move'] {
+		transform: translateX(var(--radix-toast-swipe-move-x));
+	}
+
+	.tlui-toast__container[data-swipe='cancel'] {
+		transform: translateX(0);
+		transition: transform 200ms ease-out;
+	}
+
+	.tlui-toast__container[data-swipe='end'] {
+		animation: swipe-out 100ms ease-out;
+	}
+}
+
+/* ---------------- Dialog ---------------- */
+
+.tlui-dialog__overlay {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	z-index: var(--layer-canvas-overlays);
+	background-color: var(--color-overlay);
+	pointer-events: all;
+	animation: fadeIn 0.12s ease-out;
+	display: grid;
+	place-items: center;
+	overflow-y: auto;
+	padding: 0px var(--space-3);
+}
+
+.tlui-dialog__content {
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	cursor: default;
+	background-color: var(--color-panel);
+	box-shadow: var(--shadow-3);
+	border-radius: var(--radius-3);
+	font-size: 12px;
+	overflow: hidden;
+	min-width: 300px;
+	max-width: 100%;
+	max-height: 80%;
+}
+
+.tlui-dialog__header {
+	position: relative;
+	display: flex;
+	align-items: center;
+	flex: 0;
+	z-index: var(--layer-header-footer);
+	padding-left: var(--space-4);
+	color: var(--color-text);
+	height: 40px;
+}
+
+.tlui-dialog__header__title {
+	flex: 1;
+	font-weight: inherit;
+	font-size: 12px;
+	margin: 0px;
+	color: var(--color-text-1);
+}
+
+.tlui-dialog__header__close {
+	justify-self: flex-end;
+}
+
+.tlui-dialog__body {
+	padding: var(--space-4) var(--space-4);
+	flex: 0 1;
+	overflow-y: auto;
+	overflow-x: hidden;
+	color: var(--color-text-1);
+	user-select: all;
+	-webkit-user-select: text;
+}
+.tlui-dialog__body a {
+	color: var(--color-selected);
+}
+
+.tlui-dialog__body ul,
+.tlui-dialog__body ol {
+	padding-left: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+}
+
+.tlui-dialog__footer {
+	position: relative;
+	min-height: 12px;
+	z-index: var(--layer-header-footer);
+}
+
+.tlui-dialog__footer__actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.tlui-dialog__footer__actions > .tlui-button:nth-last-child(n + 2) {
+	margin-right: -4px;
+}
+
 /* --------------------- Dialogs -------------------- */
 
 /* Edit Link Dialog */
@@ -1576,37 +1502,6 @@
 	color: var(--color-text-1);
 }
 
-.tlui-following-indicator {
-	display: block;
-	position: absolute;
-	inset: 0px;
-	border-width: 2px;
-	border-style: solid;
-	z-index: var(--layer-following-indicator);
-	pointer-events: none;
-}
-
-/* ---------------- Offline Indicator --------------- */
-
-.tlui-offline-indicator {
-	display: flex;
-	flex-direction: row;
-	gap: var(--space-3);
-	color: var(--color-text);
-	background-color: var(--color-low);
-	border: 3px solid var(--color-background);
-	padding: 0px var(--space-5);
-	height: 42px;
-	align-items: center;
-	justify-content: center;
-	border-radius: 99px;
-	opacity: 0;
-	animation: fade-in;
-	animation-duration: 0.12s;
-	animation-delay: 2s;
-	animation-fill-mode: forwards;
-}
-
 /* --------------- Keyboard shortcuts --------------- */
 
 .tlui-shortcuts-dialog__header {
@@ -1666,7 +1561,51 @@
 	font-size: 12px;
 }
 
+/* ------------------ Language menu ----------------- */
+
+.tlui-language-menu {
+	max-height: 500px;
+}
+
+.tlui-language-menu::after {
+	content: '';
+	display: block;
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+	height: 24px;
+	background: linear-gradient(
+		to bottom,
+		var(--color-panel-transparent) 0%,
+		var(--color-panel) 90%,
+		var(--color-panel) 100%
+	);
+	border-bottom-left-radius: var(--radius-3);
+	border-bottom-right-radius: var(--radius-3);
+	pointer-events: none;
+}
+
+/* ------------------ Actions menu ------------------ */
+
+.tlui-actions-menu {
+	max-height: calc(100vh - 150px);
+}
+
+/* -------------------- Help menu ------------------- */
+
+.tlui-help-menu {
+	pointer-events: all;
+	position: absolute;
+	bottom: var(--space-2);
+	right: var(--space-2);
+	z-index: var(--layer-panels);
+	border: 2px solid var(--color-background);
+	border-radius: 100%;
+}
+
 /* ------------------- Da share zone ------------------ */
+
 .tlui-share-zone {
 	padding: 0px 0px 0px 0px;
 	display: flex;
@@ -1884,13 +1823,19 @@
 	}
 }
 
-.tlui-menu-click-capture {
-	position: fixed;
-	inset: 0;
-	z-index: var(--layer-menu-click-capture);
+/* --------------- Following indicator -------------- */
+
+.tlui-following-indicator {
+	display: block;
+	position: absolute;
+	inset: 0px;
+	border-width: 2px;
+	border-style: solid;
+	z-index: var(--layer-following-indicator);
+	pointer-events: none;
 }
 
-/* --------------- Contextual Toolbar --------------- */
+/* --------------- Contextual toolbar --------------- */
 
 .tlui-contextual-toolbar {
 	position: absolute;
@@ -1941,16 +1886,30 @@
 	height: 40px;
 }
 
-/* ------------------- Accessibilty ------------------- */
-
-.tl-skip-to-main-content {
-	position: fixed;
-	top: 48px;
-	left: -9999px;
-	padding: 8px 16px;
-	z-index: var(--layer-toasts);
+/* ------------------- Animations ------------------- */
+@keyframes hide {
+	0% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+	}
 }
 
-.tl-skip-to-main-content:focus {
-	left: 8px;
+@keyframes slide-in {
+	from {
+		transform: translateX(calc(100% + var(--space-3)));
+	}
+	to {
+		transform: translateX(0px);
+	}
+}
+
+@keyframes swipe-out {
+	from {
+		transform: translateX(var(--radix-toast-swipe-end-x));
+	}
+	to {
+		transform: translateX(calc(100% + var(--space-3)));
+	}
 }

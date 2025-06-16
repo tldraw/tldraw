@@ -8895,6 +8895,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tldraw/ai@workspace:packages/ai":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/ai@workspace:packages/ai"
+  dependencies:
+    "@tldraw/utils": "workspace:*"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    raf: "npm:^3.4.1"
+    tldraw: "workspace:*"
+  peerDependencies:
+    react: ^18.2.0 || ^19.0.0
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/analytics@workspace:apps/analytics":
   version: 0.0.0-use.local
   resolution: "@tldraw/analytics@workspace:apps/analytics"
@@ -8971,7 +8984,6 @@ __metadata:
     "@types/react-dom": "npm:^18.3.5"
     "@types/sqlite3": "npm:^3.1.11"
     "@types/ws": "npm:^8.5.14"
-    "@vercel/analytics": "npm:^1.4.1"
     algoliasearch: "npm:^4.24.0"
     autoprefixer: "npm:^10.4.20"
     clsx: "npm:^2.1.1"
@@ -9036,7 +9048,6 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/react": "npm:^18.3.18"
-    lodash.isequal: "npm:^4.5.0"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     tldraw: "workspace:*"
@@ -9111,7 +9122,6 @@ __metadata:
     jest-canvas-mock: "npm:^2.5.2"
     jest-environment-jsdom: "npm:^29.7.0"
     lazyrepo: "npm:0.0.0-alpha.27"
-    lodash.isequal: "npm:^4.5.0"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     resize-observer-polyfill: "npm:^1.5.1"
@@ -9254,9 +9264,7 @@ __metadata:
     "@peculiar/webcrypto": "npm:^1.5.0"
     "@tldraw/state": "workspace:*"
     "@tldraw/utils": "workspace:*"
-    "@types/lodash.isequal": "npm:^4.5.8"
     lazyrepo: "npm:0.0.0-alpha.27"
-    lodash.isequal: "npm:^4.5.0"
     raf: "npm:^3.4.1"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
@@ -9273,7 +9281,6 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     "@types/react": "npm:^18.3.18"
     "@types/uuid-readable": "npm:^0.0.3"
-    lodash.isequal: "npm:^4.5.0"
     nanoevents: "npm:^7.0.1"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
@@ -9297,7 +9304,6 @@ __metadata:
     "@tldraw/sync-core": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@types/react": "npm:^18.3.18"
-    lodash.isequal: "npm:^4.5.0"
     nanoevents: "npm:^7.0.1"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
@@ -9349,11 +9355,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/utils@workspace:packages/utils"
   dependencies:
+    "@types/lodash.isequal": "npm:^4.5.8"
+    "@types/lodash.isequalwith": "npm:^4.4.9"
     "@types/lodash.throttle": "npm:^4.1.9"
     "@types/lodash.uniq": "npm:^4.5.9"
     fractional-indexing-jittered: "npm:^0.9.1"
     jest-environment-jsdom: "npm:^29.7.0"
     lazyrepo: "npm:0.0.0-alpha.27"
+    lodash.isequal: "npm:^4.5.0"
+    lodash.isequalwith: "npm:^4.4.0"
     lodash.throttle: "npm:^4.1.1"
     lodash.uniq: "npm:^4.5.0"
   languageName: unknown
@@ -9365,7 +9375,6 @@ __metadata:
   dependencies:
     "@tldraw/utils": "workspace:*"
     lazyrepo: "npm:0.0.0-alpha.27"
-    lodash.isequal: "npm:^4.5.0"
   languageName: unknown
   linkType: soft
 
@@ -9897,6 +9906,15 @@ __metadata:
   dependencies:
     "@types/lodash": "npm:*"
   checksum: 10/f3180c2d2925514fff1908a1303c11468c9f39b47fd7b053416aad3f1447f8e4a9894dd0460187ac9ac19387e25aec8dd8214d13a50a0967e0dc9cca8e4c5353
+  languageName: node
+  linkType: hard
+
+"@types/lodash.isequalwith@npm:^4.4.9":
+  version: 4.4.9
+  resolution: "@types/lodash.isequalwith@npm:4.4.9"
+  dependencies:
+    "@types/lodash": "npm:*"
+  checksum: 10/233580e3bb72a482c0deb5f40cc0e4585d2fec5b3eedbbb6b2b7b19f35ceb29efb6cb374209780280f9961104dacf469d3a41011e350b0cfd3dc70ff431685d7
   languageName: node
   linkType: hard
 
@@ -10538,36 +10556,6 @@ __metadata:
   peerDependencies:
     react: ">= 16.8.0"
   checksum: 10/2c01c1b73bbdeecb9d51370f9117418953accad6789818e1b50f505dcba9e38685612b3fcb25a5dfcbf3a10ae561506378f5ab7586c773c4485ef86107d53898
-  languageName: node
-  linkType: hard
-
-"@vercel/analytics@npm:^1.4.1":
-  version: 1.4.1
-  resolution: "@vercel/analytics@npm:1.4.1"
-  peerDependencies:
-    "@remix-run/react": ^2
-    "@sveltejs/kit": ^1 || ^2
-    next: ">= 13"
-    react: ^18 || ^19 || ^19.0.0-rc
-    svelte: ">= 4"
-    vue: ^3
-    vue-router: ^4
-  peerDependenciesMeta:
-    "@remix-run/react":
-      optional: true
-    "@sveltejs/kit":
-      optional: true
-    next:
-      optional: true
-    react:
-      optional: true
-    svelte:
-      optional: true
-    vue:
-      optional: true
-    vue-router:
-      optional: true
-  checksum: 10/c28e6824cccc9be7917f88d744492e03189d7b9f840430d90c016956c713bb61b94955ec0181a80177ef96c3b239fd8ebb9e9f3eb715b3bdf76b2630cb405dad
   languageName: node
   linkType: hard
 
@@ -14131,7 +14119,6 @@ __metadata:
     "@types/qrcode": "npm:^1.5.5"
     "@types/react": "npm:^18.3.18"
     "@types/regexgen": "npm:^1.3.3"
-    "@vercel/analytics": "npm:^1.4.1"
     "@vitejs/plugin-react-swc": "npm:^3.7.2"
     browser-fs-access: "npm:^0.35.0"
     classnames: "npm:^2.5.1"
@@ -14145,7 +14132,6 @@ __metadata:
     json5: "npm:^2.2.3"
     kysely: "npm:^0.27.5"
     lazyrepo: "npm:0.0.0-alpha.27"
-    lodash.isequal: "npm:^4.5.0"
     lodash.pick: "npm:^4.4.0"
     md5: "npm:^2.3.0"
     pg: "npm:^8.13.1"
@@ -15733,7 +15719,6 @@ __metadata:
     "@tldraw/sync": "workspace:*"
     "@types/lodash": "npm:^4.17.14"
     "@types/react": "npm:^18.3.18"
-    "@vercel/analytics": "npm:^1.4.1"
     "@vitejs/plugin-react-swc": "npm:^3.7.2"
     ag-grid-community: "npm:^32.3.3"
     ag-grid-react: "npm:^32.3.3"
@@ -20239,6 +20224,13 @@ __metadata:
   version: 4.5.0
   resolution: "lodash.isequal@npm:4.5.0"
   checksum: 10/82fc58a83a1555f8df34ca9a2cd300995ff94018ac12cc47c349655f0ae1d4d92ba346db4c19bbfc90510764e0c00ddcc985a358bdcd4b3b965abf8f2a48a214
+  languageName: node
+  linkType: hard
+
+"lodash.isequalwith@npm:^4.4.0":
+  version: 4.4.0
+  resolution: "lodash.isequalwith@npm:4.4.0"
+  checksum: 10/5c79d2f64b7eec9e9d337c347a58c8dda2f83f6da9ec8ff83fb1beab3ae87be3a02ac295e9283b6395673bee363039fca7324a6244bbdb7e6a47e0cd872cc36b
   languageName: node
   linkType: hard
 
@@ -27569,7 +27561,6 @@ __metadata:
     jest-canvas-mock: "npm:^2.5.2"
     jest-environment-jsdom: "npm:^29.7.0"
     lazyrepo: "npm:0.0.0-alpha.27"
-    lodash.isequal: "npm:^4.5.0"
     lz-string: "npm:^1.5.0"
     radix-ui: "npm:^1.3.4"
     react: "npm:^18.3.1"

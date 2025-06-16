@@ -1,4 +1,3 @@
-import va from '@vercel/analytics'
 import posthog, { PostHogConfig, Properties } from 'posthog-js'
 import 'posthog-js/dist/web-vitals'
 import { useEffect } from 'react'
@@ -149,7 +148,6 @@ function getGA4() {
 }
 
 export function trackEvent(name: string, data?: { [key: string]: any }) {
-	va.track(name, data)
 	getPosthog()?.capture(name, data)
 	getGA4()?.event(name, data)
 }
@@ -162,11 +160,44 @@ export function SignedOutAnalytics() {
 	useEffect(() => {
 		configurePosthog({ optedIn: false })
 		configureGA4({ optedIn: false })
+		window.Reo?.reset?.()
 	}, [])
 
 	useTrackPageViews()
 
 	return null
+}
+
+declare global {
+	interface Window {
+		Reo: any
+	}
+}
+function setupReo(options: AnalyticsOptions) {
+	if (options.optedIn === false) return
+
+	const user = options.user
+	const reoIdentify = () =>
+		window.Reo?.identify?.({
+			firstname: user.name,
+			username: user.email,
+			type: 'email',
+			userId: user.id,
+		})
+	if (!document.getElementById('reo-script-loader')) {
+		const reoId = '47839e47a5ed202'
+		const reoScriptTag = document.createElement('script')
+		reoScriptTag.id = 'reo-script-loader'
+		reoScriptTag.src = `https://static.reo.dev/${reoId}/reo.js`
+		reoScriptTag.defer = true
+		reoScriptTag.onload = () => {
+			window.Reo.init({ clientID: reoId })
+			reoIdentify()
+		}
+		document.head.appendChild(reoScriptTag)
+	} else {
+		reoIdentify()
+	}
 }
 
 export function SignedInAnalytics() {
@@ -179,6 +210,10 @@ export function SignedInAnalytics() {
 			user: { id: user.id, name: user.name, email: user.email },
 		})
 		configureGA4({
+			optedIn: user.allowAnalyticsCookie === true,
+			user: { id: user.id, name: user.name, email: user.email },
+		})
+		setupReo({
 			optedIn: user.allowAnalyticsCookie === true,
 			user: { id: user.id, name: user.name, email: user.email },
 		})

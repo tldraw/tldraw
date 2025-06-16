@@ -2,7 +2,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 export { handleExtractBookmarkMetadataRequest } from './bookmarks'
-export { notFound } from './errors'
+export { forbidden, notFound } from './errors'
 export {
 	createRouter,
 	handleApiRequest,

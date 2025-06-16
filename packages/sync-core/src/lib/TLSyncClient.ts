@@ -7,8 +7,13 @@ import {
 	reverseRecordsDiff,
 	squashRecordDiffs,
 } from '@tldraw/store'
-import { exhaustiveSwitchError, fpsThrottle, objectMapEntries, uniqueId } from '@tldraw/utils'
-import isEqual from 'lodash.isequal'
+import {
+	exhaustiveSwitchError,
+	fpsThrottle,
+	isEqual,
+	objectMapEntries,
+	uniqueId,
+} from '@tldraw/utils'
 import { NetworkDiff, RecordOpType, applyObjectDiff, diffRecord, getNetworkDiff } from './diff'
 import { interval } from './interval'
 import {
