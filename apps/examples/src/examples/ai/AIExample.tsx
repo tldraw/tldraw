@@ -2,26 +2,28 @@ import { useState } from 'react'
 import { Tldraw, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+// There's a guide at the bottom of this file!
+
 function SummarizeButton() {
 	const [apiKey, setApiKey] = useState(localStorage.getItem('ai-example-openai-api-key') ?? '')
 	const [isSending, setIsSending] = useState(false)
 	const editor = useEditor()
 
 	async function handleClick() {
-		if (!apiKey) {
-			alert('Please enter your OpenAI API key first.')
-			return
-		}
+		if (!apiKey) return alert('Please enter your OpenAI API key first.')
 
 		const shapes = editor.getCurrentPageShapes()
 		if (shapes.length === 0) {
-			alert('The canvas is empty. Please add some shapes before summarizing.')
-			return
+			return alert('Please add something to the canvas first.')
 		}
 
 		setIsSending(true)
+
+		// [1]
 		const imageBlob = (await editor.toImage(shapes)).blob
 		const imageDataUrl = await blobToDataUrl(imageBlob)
+
+		// [2]
 		const response = await fetch('https://api.openai.com/v1/responses', {
 			method: 'POST',
 			headers: {
@@ -47,6 +49,8 @@ function SummarizeButton() {
 				],
 			}),
 		})
+
+		// [3]
 		if (!response.ok) {
 			setIsSending(false)
 			const body = await response.json()
@@ -56,6 +60,7 @@ function SummarizeButton() {
 		}
 		const data = await response.json()
 		setIsSending(false)
+
 		alert(`Model response:\n\n${data.output[0].content[0].text}`)
 	}
 
@@ -67,6 +72,8 @@ function SummarizeButton() {
 			>
 				{isSending ? 'Sending request...' : 'Summarize canvas'}
 			</button>
+
+			{/* [4] */}
 			<input
 				style={{ height: 30, maxWidth: '100%', pointerEvents: 'all' }}
 				type="password"
@@ -101,3 +108,24 @@ export default function AIExample() {
 		</div>
 	)
 }
+
+/*
+
+[1]
+Use the `editor.toImage` function to get the current canvas as an image blob. This example also uses
+a helper function `blobToDataUrl` to convert the image to a data URL, which works with the OpenAI
+REST API. Depending on what model or library you are using, you may need to convert to a different
+format.
+
+[2]
+Send a request to the AI model. For simplicity, this example manually calls OpenAI's REST API, but
+you might want to use a library like Vercel's AI SDK to handle this on your behalf.
+
+[3]
+Handle the response and display it to the user.
+
+[4]
+For demonstration purposes, this example uses a password input for your API key, but you will want
+to set this up from environment variables instead.
+
+*/
