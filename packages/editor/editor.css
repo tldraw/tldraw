@@ -669,6 +669,9 @@ input,
 	border: none;
 	user-select: none;
 	contain: style paint;
+	visibility: hidden;
+	/* N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers") is necessary for ensuring correct mixed RTL/LTR behavior when exporting SVGs. */
+	unicode-bidi: plaintext;
 	-webkit-user-select: none;
 }
 
@@ -772,6 +775,25 @@ input,
 .tl-text-wrapper .tl-text-content {
 	pointer-events: all;
 	z-index: var(--layer-text-content);
+}
+
+.tl-text-label__inner > .tl-text-content {
+	position: relative;
+	top: 0px;
+	left: 0px;
+	padding: inherit;
+	height: fit-content;
+	width: fit-content;
+	border-radius: var(--radius-1);
+	max-width: 100%;
+}
+
+.tl-text-label__inner > .tl-text-input {
+	position: absolute;
+	inset: 0px;
+	height: 100%;
+	width: 100%;
+	padding: inherit;
 }
 
 .tl-text-wrapper[data-isselected='true'] .tl-text-input {

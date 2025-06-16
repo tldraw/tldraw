@@ -482,7 +482,7 @@ test('can follow a deep link to a never-seen file', async ({ editor, browser, sh
 	})
 
 	await newEditor.expectShapesCount(1)
-	expect(newEditor.page.getByText(text)).toBeVisible()
+	expect(newEditor.page.getByText(text).last()).toBeVisible()
 })
 
 test('can follow a deep link to an already-seen file', async ({ editor, shareMenu, browser }) => {
@@ -511,5 +511,5 @@ test('can follow a deep link to an already-seen file', async ({ editor, shareMen
 
 	await editor.page.goto(url)
 	await editor.expectShapesCount(1)
-	await expect(editor.page.getByText(text)).toBeVisible()
+	await expect(editor.page.getByText(text).last()).toBeVisible()
 })

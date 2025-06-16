@@ -53,6 +53,7 @@ export interface TLUiEventMap {
 	'copy-as': { format: 'svg' | 'png' | 'json' }
 	'export-as': { format: 'svg' | 'png' | 'json' }
 	'export-all-as': { format: 'svg' | 'png' | 'json' }
+	'download-original': null
 	'edit-link': null
 	'insert-embed': null
 	'insert-media': null

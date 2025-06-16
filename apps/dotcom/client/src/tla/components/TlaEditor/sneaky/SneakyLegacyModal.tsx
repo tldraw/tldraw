@@ -9,7 +9,7 @@ import {
 	TldrawUiDialogTitle,
 	useDialogs,
 } from 'tldraw'
-import { F } from '../../utils/i18n'
+import { F } from '../../../utils/i18n'
 import styles from './sneaky-legacy-modal.module.css'
 
 function LegacyChangesModal({ onClose }: { onClose(): void }) {
