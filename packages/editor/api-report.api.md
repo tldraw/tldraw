@@ -1184,7 +1184,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentTool(): StateNode;
     getCurrentToolId(): string;
     getDocumentSettings(): TLDocument;
-    getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
     getEditingShape(): TLShape | undefined;
     getEditingShapeId(): null | TLShapeId;
     getErasingShapeIds(): TLShapeId[];
@@ -1673,6 +1672,8 @@ export abstract class Geometry2d {
     // (undocumented)
     isClosed: boolean;
     // (undocumented)
+    isEmptyLabel: boolean;
+    // (undocumented)
     isExcludedByFilter(filters?: Geometry2dFilters): boolean;
     // (undocumented)
     isFilled: boolean;
@@ -1729,6 +1730,12 @@ export function getCursor(cursor: TLCursorType, rotation?: number, color?: strin
 
 // @public (undocumented)
 export function getDefaultCdnBaseUrl(): string;
+
+// @public
+export function getDroppedShapesToNewParents(editor: Editor, shapes: Set<TLShape> | TLShape[], cb?: (shape: TLShape, parent: TLShape) => boolean): {
+    remainingShapesToReparent: Set<TLShape>;
+    reparenting: Map<TLShapeId, TLShape[]>;
+};
 
 // @public (undocumented)
 export function getFontsFromRichText(editor: Editor, richText: TLRichText, initialState: RichTextFontVisitorState): TLFontFace[];
@@ -2014,6 +2021,9 @@ export const isAccelKey: <InputType extends {
 
 // @public
 export const isSafeFloat: (n: number) => boolean;
+
+// @public
+export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]): void;
 
 // @internal (undocumented)
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult;
@@ -2529,10 +2539,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canBeLaidOut(_shape: Shape, _info: TLShapeUtilCanBeLaidOutOpts): boolean;
     canBind(_opts: TLShapeUtilCanBindOpts): boolean;
     canCrop(_shape: Shape): boolean;
-    canDropShapes(_shape: Shape, _shapes: TLShape[]): boolean;
+    canDropShape(_shape: Shape, _droppedShape: TLShapePartial): boolean;
+    canDropShapes(_shape: Shape): boolean;
     canEdit(_shape: Shape): boolean;
     canEditInReadonly(_shape: Shape): boolean;
-    canReceiveNewChildrenOfType(_shape: Shape, _type: TLShape['type']): boolean;
     canResize(_shape: Shape): boolean;
     canResizeChildren(_shape: Shape): boolean;
     canScroll(_shape: Shape): boolean;
@@ -4242,6 +4252,8 @@ export interface TransformedGeometry2dOptions {
     debugColor?: string;
     // (undocumented)
     ignore?: boolean;
+    // (undocumented)
+    isEmptyLabel?: boolean;
     // (undocumented)
     isInternal?: boolean;
     // (undocumented)
