@@ -168,7 +168,9 @@ export class Drawing extends StateNode {
 		const { z = 0.5 } = this.info.point
 
 		this.isPen = isPen
-		this.isPenOrStylus = isPen || (z > 0 && z < 0.5) || (z > 0.5 && z < 1)
+		// if z === 0 on the initial point, treat this pen as a mouse because it's likely a broken pen
+		// or a broken OS.
+		this.isPenOrStylus = (isPen && z !== 0) || (z > 0 && z < 0.5) || (z > 0.5 && z < 1)
 
 		const pressure = this.isPenOrStylus ? z * 1.25 : 0.5
 
