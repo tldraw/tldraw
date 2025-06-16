@@ -127,6 +127,16 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 		[editor, trackEvent, imageShapeId, maxZoom]
 	)
 
+	const handleImageReplace = useCallback(
+		() => actions['image-replace'].onSelect('image-toolbar'),
+		[actions]
+	)
+
+	const handleImageDownload = useCallback(
+		() => actions['download-original'].onSelect('image-toolbar'),
+		[actions]
+	)
+
 	const handleAspectRatioChange = (aspectRatio: ASPECT_RATIO_OPTION) => {
 		const imageShape = editor.getShape<TLImageShape>(imageShapeId)
 		if (!imageShape) return
@@ -227,25 +237,29 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 
 	return (
 		<>
-			<TldrawUiButton
-				type="icon"
-				title={msg('tool.replace-media')}
-				onClick={() => actions['image-replace'].onSelect('image-toolbar')}
-			>
+			<TldrawUiButton type="icon" title={msg('tool.replace-media')} onClick={handleImageReplace}>
 				<TldrawUiButtonIcon small icon="arrow-cycle" />
 			</TldrawUiButton>
 			<TldrawUiButton type="icon" title={msg('tool.image-crop')} onClick={onManipulatingStart}>
 				<TldrawUiButtonIcon small icon="crop" />
 			</TldrawUiButton>
 			<TldrawUiButton
+				type="icon"
+				title={msg('action.download-original')}
+				onClick={handleImageDownload}
+			>
+				<TldrawUiButtonIcon small icon="download" />
+			</TldrawUiButton>
+			<TldrawUiButton
 				type="normal"
 				isActive={!!altText}
+				title={msg('tool.image-alt-text')}
 				onClick={() => {
 					trackEvent('alt-text-start', { source })
 					onEditAltTextStart()
 				}}
 			>
-				{msg('tool.image-alt-text')}
+				<TldrawUiButtonIcon small icon="alt" />
 			</TldrawUiButton>
 		</>
 	)
