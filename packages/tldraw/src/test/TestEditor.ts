@@ -16,6 +16,7 @@ import {
 	TLEditorOptions,
 	TLEventInfo,
 	TLKeyboardEventInfo,
+	TLMeasureTextOpts,
 	TLPinchEventInfo,
 	TLPointerEventInfo,
 	TLShape,
@@ -117,15 +118,7 @@ export class TestEditor extends Editor {
 
 		this.textMeasure.measureText = (
 			textToMeasure: string,
-			opts: {
-				fontStyle: string
-				fontWeight: string
-				fontFamily: string
-				fontSize: number
-				lineHeight: number
-				maxWidth: null | number
-				padding: string
-			}
+			opts: TLMeasureTextOpts
 		): BoxModel & { scrollWidth: number } => {
 			const breaks = textToMeasure.split('\n')
 			const longest = breaks.reduce((acc, curr) => {
@@ -141,21 +134,17 @@ export class TestEditor extends Editor {
 				h:
 					(opts.maxWidth === null ? breaks.length : Math.ceil(w / opts.maxWidth) + breaks.length) *
 					opts.fontSize,
-				scrollWidth: opts.maxWidth === null ? w : Math.max(w, opts.maxWidth),
+				scrollWidth: opts.measureScrollWidth
+					? opts.maxWidth === null
+						? w
+						: Math.max(w, opts.maxWidth)
+					: 0,
 			}
 		}
 
 		this.textMeasure.measureHtml = (
 			html: string,
-			opts: {
-				fontStyle: string
-				fontWeight: string
-				fontFamily: string
-				fontSize: number
-				lineHeight: number
-				maxWidth: null | number
-				padding: string
-			}
+			opts: TLMeasureTextOpts
 		): BoxModel & { scrollWidth: number } => {
 			const textToMeasure = html
 				.split('</p><p dir="auto">')
