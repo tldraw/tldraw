@@ -337,7 +337,7 @@ div:has(> .menuSelectContent) {
 	display: flex;
 	align-items: center;
 	padding: var(--tab-padding);
-	color: var(--tla-color-text-3);
+	color: var(--tla-color-text-2);
 }
 
 .menuTabsTab::after {
