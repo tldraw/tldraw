@@ -305,7 +305,9 @@ function getComponentCodeFiles({
 			)
 			// For each of these component files, read the file and add it to the componentCodeFiles object
 			.forEach((file) => {
-				componentCodeFiles[file.name] = fs.readFileSync(path.join(file.path, file.name)).toString()
+				componentCodeFiles[file.name] = fs
+					.readFileSync(path.join(file.parentPath, file.name))
+					.toString()
 			})
 	}
 
