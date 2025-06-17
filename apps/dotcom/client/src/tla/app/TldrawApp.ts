@@ -3,27 +3,32 @@ import { Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
 	CreateFilesResponseBody,
-	createMutators,
 	CreateSnapshotRequestBody,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
 	TlaFile,
 	TlaFileState,
+	TlaFlags,
+	TlaGroup,
+	TlaGroupFile,
+	TlaGroupUser,
 	TlaMutators,
 	TlaSchema,
 	TlaUser,
+	TlaUserPresence,
 	UserPreferencesKeys,
-	Z_PROTOCOL_VERSION,
-	schema as zeroSchema,
 	ZErrorCode,
+	Z_PROTOCOL_VERSION,
+	createMutators,
+	schema as zeroSchema,
 } from '@tldraw/dotcom-shared'
 import {
+	Result,
 	assert,
 	fetch,
 	getFromLocalStorage,
 	isEqual,
 	promiseWithResolve,
-	Result,
 	setInLocalStorage,
 	structuredClone,
 	throttle,
@@ -31,8 +36,13 @@ import {
 } from '@tldraw/utils'
 import pick from 'lodash.pick'
 import {
-	assertExists,
 	Atom,
+	Signal,
+	TLDocument,
+	TLSessionStateSnapshot,
+	TLUiToastsContextType,
+	TLUserPreferences,
+	assertExists,
 	atom,
 	computed,
 	createTLSchema,
@@ -44,11 +54,6 @@ import {
 	objectMapKeys,
 	parseTldrawJsonFile,
 	react,
-	Signal,
-	TLDocument,
-	TLSessionStateSnapshot,
-	TLUiToastsContextType,
-	TLUserPreferences,
 	transact,
 } from 'tldraw'
 import { trackEvent } from '../../utils/analytics'
@@ -84,7 +89,12 @@ export class TldrawApp {
 	readonly z: ZeroPolyfill | Zero<TlaSchema, TlaMutators>
 
 	private readonly user$: Signal<TlaUser | undefined>
-	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
+	private readonly fileStates$: Signal<
+		(TlaFileState & { file: TlaFile; presences: TlaUserPresence[] })[]
+	>
+	private readonly groupUsers$: Signal<
+		(TlaGroupUser & { group: TlaGroup; groupFiles: TlaGroupFile[]; groupMembers: TlaGroupUser[] })[]
+	>
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -162,6 +172,7 @@ export class TldrawApp {
 
 		this.user$ = this.signalizeQuery('user signal', this.userQuery())
 		this.fileStates$ = this.signalizeQuery('file states signal', this.fileStateQuery())
+		this.groupUsers$ = this.signalizeQuery('group users signal', this.groupUsersQuery())
 	}
 
 	private userQuery() {
@@ -169,9 +180,21 @@ export class TldrawApp {
 	}
 
 	private fileStateQuery() {
-		return this.z.query.file_state
+		return (
+			this.z.query.file_state
+				.where('userId', '=', this.userId)
+				// todo: does zero still need us to do .one()?
+				.related('file', (q) => q.one())
+				.related('presences')
+		)
+	}
+
+	private groupUsersQuery() {
+		return this.z.query.group_user
 			.where('userId', '=', this.userId)
-			.related('file', (q: any) => q.one())
+			.related('group', (q) => q.one())
+			.related('groupFiles')
+			.related('groupMembers')
 	}
 
 	async preload(initialUserData: TlaUser) {
@@ -266,6 +289,31 @@ export class TldrawApp {
 		return assertExists(this.user$.get(), 'no user')
 	}
 
+	@computed({ isEqual }) getUserFlags(): Set<TlaFlags> {
+		const user = this.getUser()
+		return new Set(user.flags?.split(',') ?? []) as Set<TlaFlags>
+	}
+
+	hasFlag(flag: TlaFlags) {
+		return this.getUserFlags().has(flag)
+	}
+
+	@computed({ isEqual })
+	getGroups() {
+		return this.groupUsers$
+			.get()
+			.map((g) => g.group)
+			.sort((a, b) => a.id.localeCompare(b.id))
+	}
+
+	getGroupMembers(groupId: string) {
+		return this.groupUsers$.get().filter((g) => g.group.id === groupId)
+	}
+
+	getPresences(fileId: string) {
+		return this.fileStates$.get().find((f) => f.fileId === fileId)?.presences ?? []
+	}
+
 	tlUser = createTLUser({
 		userPreferences: computed('user prefs', () => {
 			const user = this.getUser()
@@ -355,20 +403,6 @@ export class TldrawApp {
 		return nextRecentFileOrdering
 	}
 
-	getUserSharedFiles() {
-		return Array.from(
-			new Set(
-				this.getUserFileStates()
-					.map((s) => {
-						// skip files where the owner is the current user
-						if (s.file!.ownerId === this.userId) return
-						return s.file
-					})
-					.filter(Boolean) as TlaFile[]
-			)
-		)
-	}
-
 	private canCreateNewFile() {
 		const numberOfFiles = this.getUserOwnFiles().length
 		return numberOfFiles < this.config.maxNumberOfFiles
@@ -409,6 +443,7 @@ export class TldrawApp {
 			updatedAt: Date.now(),
 			isDeleted: false,
 			createSource: null,
+			owningGroupId: null,
 		}
 		if (typeof fileOrId === 'object') {
 			Object.assign(file, fileOrId)
@@ -477,16 +512,9 @@ export class TldrawApp {
 		})
 	}
 
-	getFilePk(fileId: string) {
-		const file = this.getFile(fileId)
-		return { id: fileId, ownerId: file!.ownerId, publishedSlug: file!.publishedSlug }
-	}
-
 	toggleFileShared(fileId: string) {
 		const file = this.getUserOwnFiles().find((f) => f.id === fileId)
 		if (!file) throw Error('no file with id ' + fileId)
-
-		if (file.ownerId !== this.userId) throw Error('user cannot edit that file')
 
 		this.z.mutate.file.update({
 			id: fileId,
@@ -522,9 +550,11 @@ export class TldrawApp {
 		return this.getUserOwnFiles().find((f) => f.id === fileId) ?? null
 	}
 
-	isFileOwner(fileId: string) {
+	canUpdateFile(fileId: string): boolean {
 		const file = this.getFile(fileId)
-		return file && file.ownerId === this.userId
+		if (!file) return false
+		if (file.ownerId) return file.ownerId === this.userId
+		return this.getGroups().some((g) => g.id === file.owningGroupId)
 	}
 
 	requireFile(fileId: string): TlaFile {
@@ -539,17 +569,15 @@ export class TldrawApp {
 	 */
 	unpublishFile(fileId: string) {
 		const file = this.requireFile(fileId)
-		if (file.ownerId !== this.userId) throw Error('user cannot edit that file')
+		if (!this.canUpdateFile(fileId)) throw Error('user cannot edit that file')
 
-		if (!file.published) return Result.ok('success')
+		if (!file.published) return
 
 		// Optimistic update
 		this.z.mutate.file.update({
 			id: fileId,
 			published: false,
 		})
-
-		return Result.ok('success')
 	}
 
 	/**
@@ -583,11 +611,7 @@ export class TldrawApp {
 	}
 
 	setFileSharedLinkType(fileId: string, sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') {
-		const file = this.requireFile(fileId)
-
-		if (this.userId !== file.ownerId) {
-			throw Error('user cannot edit that file')
-		}
+		if (!this.canUpdateFile(fileId)) throw Error('user cannot edit that file')
 
 		if (sharedLinkType === 'no-access') {
 			this.z.mutate.file.update({ id: fileId, shared: false })
@@ -626,7 +650,7 @@ export class TldrawApp {
 				isPinned: false,
 				// doesn't really matter what this is because it is
 				// overwritten by postgres
-				isFileOwner: this.isFileOwner(fileId),
+				isFileOwner: false,
 			}
 			this.z.mutate.file_state.insert(fs)
 		}

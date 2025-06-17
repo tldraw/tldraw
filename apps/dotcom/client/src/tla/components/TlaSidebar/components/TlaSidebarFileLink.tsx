@@ -12,6 +12,7 @@ import {
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
+import { useHasFlag } from '../../../hooks/useHasFlag'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useFileSidebarFocusContext } from '../../../providers/FileInputFocusProvider'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
@@ -230,6 +231,8 @@ function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
 		[navigate, href]
 	)
 
+	const hasGroups = useHasFlag('groups')
+
 	return (
 		<div className={styles.sidebarFileListItemGuestBadge} data-testid={testId}>
 			<TlaTooltipRoot disableHoverableContent>
@@ -239,7 +242,7 @@ function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
 					onClick={handleToolTipClick}
 					className={styles.sidebarFileListItemGuestBadgeTrigger}
 				>
-					<TlaIcon icon="group" className="tlui-guest-icon" />
+					<TlaIcon icon={hasGroups ? 'link' : 'group'} className="tlui-guest-icon" />
 				</TlaTooltipTrigger>
 				<TlaTooltipPortal container={container}>
 					<TlaTooltipContent

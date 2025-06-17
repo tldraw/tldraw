@@ -45,8 +45,37 @@ const withs = [
 			'SELECT f.* FROM my_file_states ufs JOIN public."file" f ON f.id = ufs."fileId" WHERE ufs."isFileOwner" = false AND f.shared = true',
 	},
 	{
+		alias: 'my_group_ids',
+		expression: 'SELECT "groupId" FROM public."group_user" WHERE "userId" = $1',
+	},
+	{
+		alias: 'my_groups',
+		expression: 'SELECT g.* FROM my_group_ids mg JOIN public."group" g ON g.id = mg."groupId"',
+	},
+	{
+		alias: 'all_group_users',
+		expression:
+			'SELECT ug.* FROM my_groups mg JOIN public."group_user" ug ON ug."groupId" = mg."id"',
+	},
+	{
+		alias: 'group_file_ownership',
+		expression:
+			'SELECT fg.* FROM my_groups mg JOIN public."group_file" fg ON fg."groupId" = mg."id"',
+	},
+	{
+		alias: 'group_files',
+		expression:
+			'SELECT f.* FROM group_file_ownership gfo JOIN public."file" f ON f.id = gfo."fileId"',
+	},
+	{
 		alias: 'all_files',
-		expression: 'SELECT * FROM my_owned_files UNION SELECT * FROM files_shared_with_me',
+		expression:
+			'SELECT * from my_owned_files UNION SELECT * from files_shared_with_me UNION SELECT * from group_files',
+	},
+	{
+		alias: 'all_presences',
+		expression:
+			'SELECT p.* FROM all_files af JOIN public."user_presence" p ON p."fileId" = af."id"',
 	},
 ] as const satisfies WithClause[]
 
@@ -75,6 +104,26 @@ const selects: SelectClause[] = [
 		from: 'all_files',
 		outputTableName: 'file',
 		columns: makeColumnStuff(schema.tables.file),
+	},
+	{
+		from: 'group_file_ownership',
+		outputTableName: 'group_file',
+		columns: makeColumnStuff(schema.tables.group_file),
+	},
+	{
+		from: 'my_groups',
+		outputTableName: 'group',
+		columns: makeColumnStuff(schema.tables.group),
+	},
+	{
+		from: 'all_group_users',
+		outputTableName: 'group_user',
+		columns: makeColumnStuff(schema.tables.group_user),
+	},
+	{
+		from: 'all_presences',
+		outputTableName: 'user_presence',
+		columns: makeColumnStuff(schema.tables.user_presence),
 	},
 	{
 		from: 'public."user_mutation_number"',
@@ -133,7 +182,7 @@ for (const select of selects) {
 	mainSelects.push(selectString)
 }
 
-const mainSelect = `${mainSelects.join('\nUNION ALL\n')}`
+const mainSelect = `${mainSelects.join('\nUNION\n')}`
 const fetchEverythingSql = `${withClause}\n${mainSelect}`.trim()
 
 function escapeForTemplateLiteral(str: string) {

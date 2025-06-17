@@ -2,11 +2,20 @@ import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 import {
 	TlaFile,
+	TlaFileGroupPartial,
 	TlaFilePartial,
 	TlaFileState,
 	TlaFileStatePartial,
+	TlaGroup,
+	TlaGroupFile,
+	TlaGroupPartial,
+	TlaGroupUser,
+	TlaRow,
 	TlaUser,
+	TlaUserGroupPartial,
 	TlaUserPartial,
+	TlaUserPresence,
+	TlaUserPresencePartial,
 } from './tlaSchema'
 
 export interface Snapshot {
@@ -87,28 +96,54 @@ export interface ZStoreDataV1 {
 	lsn: string
 }
 
-export interface ZStoreData {
+export interface ZStoreDataV2 {
 	file: TlaFile[]
 	file_state: TlaFileState[]
 	user: TlaUser[]
 	lsn: string
 }
 
+export interface ZStoreData {
+	file: TlaFile[]
+	file_state: TlaFileState[]
+	user: TlaUser[]
+	group: TlaGroup[]
+	group_user: TlaGroupUser[]
+	user_presence: TlaUserPresence[]
+	group_file: TlaGroupFile[]
+	lsn: string
+}
+
 export type ZRowUpdate = ZRowInsert | ZRowDeleteOrUpdate
 
 export interface ZRowInsert {
-	row: TlaFile | TlaFileState | TlaUser
+	row: TlaRow
 	table: ZTable
 	event: 'insert'
 }
 
 export interface ZRowDeleteOrUpdate {
-	row: TlaFilePartial | TlaFileStatePartial | TlaUserPartial
+	row:
+		| TlaFilePartial
+		| TlaFileStatePartial
+		| TlaUserPartial
+		| TlaGroupPartial
+		| TlaUserGroupPartial
+		| TlaUserPresencePartial
+		| TlaFileGroupPartial
 	table: ZTable
 	event: 'update' | 'delete'
 }
 
-export type ZTable = 'file' | 'file_state' | 'user'
+export type ZTable =
+	| 'file'
+	| 'file_state'
+	| 'user'
+	| 'group'
+	| 'group_user'
+	| 'user_presence'
+	| 'group_file'
+
 export type ZEvent = 'insert' | 'update' | 'delete'
 
 export const ZErrorCode = stringEnum(

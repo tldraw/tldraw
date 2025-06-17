@@ -6,7 +6,13 @@ WITH
   my_owned_files AS (SELECT * FROM public."file" WHERE "ownerId" = $1),
   my_file_states AS (SELECT * FROM public."file_state" WHERE "userId" = $1),
   files_shared_with_me AS (SELECT f.* FROM my_file_states ufs JOIN public."file" f ON f.id = ufs."fileId" WHERE ufs."isFileOwner" = false AND f.shared = true),
-  all_files AS (SELECT * FROM my_owned_files UNION SELECT * FROM files_shared_with_me)
+  my_group_ids AS (SELECT "groupId" FROM public."group_user" WHERE "userId" = $1),
+  my_groups AS (SELECT g.* FROM my_group_ids mg JOIN public."group" g ON g.id = mg."groupId"),
+  all_group_users AS (SELECT ug.* FROM my_groups mg JOIN public."group_user" ug ON ug."groupId" = mg."id"),
+  group_file_ownership AS (SELECT fg.* FROM my_groups mg JOIN public."group_file" fg ON fg."groupId" = mg."id"),
+  group_files AS (SELECT f.* FROM group_file_ownership gfo JOIN public."file" f ON f.id = gfo."fileId"),
+  all_files AS (SELECT * from my_owned_files UNION SELECT * from files_shared_with_me UNION SELECT * from group_files),
+  all_presences AS (SELECT p.* FROM all_files af JOIN public."user_presence" p ON p."fileId" = af."id")
 SELECT
   'user' as "table",
   "allowAnalyticsCookie"::boolean as "0",
@@ -33,7 +39,7 @@ SELECT
   "name"::text as "21"
 FROM public."user"
 WHERE "id" = $1
-UNION ALL
+UNION
 SELECT
   'file_state' as "table",
   "isFileOwner"::boolean as "0",
@@ -59,7 +65,7 @@ SELECT
   null::text as "20",
   null::text as "21"
 FROM my_file_states
-UNION ALL
+UNION
 SELECT
   'file' as "table",
   "isDeleted"::boolean as "0",
@@ -85,7 +91,107 @@ SELECT
   "thumbnail"::text as "20",
   null::text as "21"
 FROM all_files
-UNION ALL
+UNION
+SELECT
+  'group_file' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  "createdAt"::bigint as "7",
+  "updatedAt"::bigint as "8",
+  null::bigint as "9",
+  null::bigint as "10",
+  "fileId"::text as "11",
+  "groupId"::text as "12",
+  null::text as "13",
+  null::text as "14",
+  null::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20"
+FROM group_file_ownership
+UNION
+SELECT
+  'group' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  "createdAt"::bigint as "7",
+  "updatedAt"::bigint as "8",
+  null::bigint as "9",
+  null::bigint as "10",
+  "id"::text as "11",
+  "inviteSecret"::text as "12",
+  "name"::text as "13",
+  null::text as "14",
+  null::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20"
+FROM my_groups
+UNION
+SELECT
+  'group_user' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  "createdAt"::bigint as "7",
+  "updatedAt"::bigint as "8",
+  null::bigint as "9",
+  null::bigint as "10",
+  "groupId"::text as "11",
+  "role"::text as "12",
+  "userId"::text as "13",
+  null::text as "14",
+  null::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20"
+FROM all_group_users
+UNION
+SELECT
+  'user_presence' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  "lastActivityAt"::bigint as "7",
+  null::bigint as "8",
+  null::bigint as "9",
+  null::bigint as "10",
+  "color"::text as "11",
+  "fileId"::text as "12",
+  "name"::text as "13",
+  "sessionId"::text as "14",
+  "userId"::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20"
+FROM all_presences
+UNION
 SELECT
   'user_mutation_number' as "table",
   null::boolean as "0",
@@ -112,7 +218,7 @@ SELECT
   null::text as "21"
 FROM public."user_mutation_number"
 WHERE "userId" = $1
-UNION ALL
+UNION
 SELECT
   'lsn' as "table",
   null::boolean as "0",
@@ -191,6 +297,34 @@ export const columnNamesByAlias = {
 		'18': 'publishedSlug',
 		'19': 'sharedLinkType',
 		'20': 'thumbnail',
+	},
+	group_file: {
+		'7': 'createdAt',
+		'8': 'updatedAt',
+		'11': 'fileId',
+		'12': 'groupId',
+	},
+	group: {
+		'7': 'createdAt',
+		'8': 'updatedAt',
+		'11': 'id',
+		'12': 'inviteSecret',
+		'13': 'name',
+	},
+	group_user: {
+		'7': 'createdAt',
+		'8': 'updatedAt',
+		'11': 'groupId',
+		'12': 'role',
+		'13': 'userId',
+	},
+	user_presence: {
+		'7': 'lastActivityAt',
+		'11': 'color',
+		'12': 'fileId',
+		'13': 'name',
+		'14': 'sessionId',
+		'15': 'userId',
 	},
 	user_mutation_number: {
 		'8': 'mutationNumber',
