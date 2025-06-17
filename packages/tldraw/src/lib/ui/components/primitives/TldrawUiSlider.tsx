@@ -1,5 +1,5 @@
 import { Slider as _Slider } from 'radix-ui'
-import { forwardRef, useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 
@@ -16,7 +16,7 @@ export interface TLUiSliderProps {
 }
 
 /** @public @react */
-export const TldrawUiSlider = forwardRef<HTMLDivElement, TLUiSliderProps>(function Slider(
+export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(function Slider(
 	{
 		onHistoryMark,
 		title,
