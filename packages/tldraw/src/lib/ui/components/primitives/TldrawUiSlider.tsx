@@ -1,5 +1,5 @@
 import { Slider as _Slider } from 'radix-ui'
-import { memo, useCallback, useEffect, useState } from 'react'
+import { forwardRef, useCallback, useEffect, useState } from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 
@@ -16,16 +16,19 @@ export interface TLUiSliderProps {
 }
 
 /** @public @react */
-export const TldrawUiSlider = memo(function Slider({
-	onHistoryMark,
-	title,
-	min,
-	steps,
-	value,
-	label,
-	onValueChange,
-	['data-testid']: testId,
-}: TLUiSliderProps) {
+export const TldrawUiSlider = forwardRef<HTMLDivElement, TLUiSliderProps>(function Slider(
+	{
+		onHistoryMark,
+		title,
+		min,
+		steps,
+		value,
+		label,
+		onValueChange,
+		['data-testid']: testId,
+	}: TLUiSliderProps,
+	ref
+) {
 	const msg = useTranslation()
 
 	// XXX: Radix starts out our slider with a tabIndex of 0
@@ -66,7 +69,7 @@ export const TldrawUiSlider = memo(function Slider({
 				min={min ?? 0}
 				max={steps}
 				step={1}
-				value={value ? [value] : undefined}
+				value={value !== null ? [value] : undefined}
 				onPointerDown={handlePointerDown}
 				onValueChange={handleValueChange}
 				onKeyDownCapture={handleKeyEvent}
@@ -81,6 +84,7 @@ export const TldrawUiSlider = memo(function Slider({
 						aria-label={msg('style-panel.opacity')}
 						className="tlui-slider__thumb"
 						dir="ltr"
+						ref={ref}
 						tabIndex={tabIndex}
 					/>
 				)}

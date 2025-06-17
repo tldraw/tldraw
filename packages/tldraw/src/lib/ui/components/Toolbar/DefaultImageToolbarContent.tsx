@@ -8,7 +8,7 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	ASPECT_RATIO_OPTION,
 	ASPECT_RATIO_OPTIONS,
@@ -53,6 +53,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 	const source = 'image-menu'
+	const sliderRef = useRef<HTMLDivElement>(null)
 
 	const crop = useValue('crop', () => editor.getShape<TLImageShape>(imageShapeId)!.props.crop, [
 		editor,
@@ -172,10 +173,17 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	)
 	const isOriginalCrop = !crop || isEqual(crop, getDefaultCrop())
 
+	useEffect(() => {
+		if (isManipulating) {
+			editor.timers.setTimeout(() => sliderRef.current?.focus(), 0)
+		}
+	}, [editor, isManipulating])
+
 	if (isManipulating) {
 		return (
 			<>
 				<TldrawUiSlider
+					ref={sliderRef}
 					value={displayValue}
 					label="tool.image-zoom"
 					onValueChange={handleZoomChange}
