@@ -1579,6 +1579,16 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'image-replace',
+				label: 'tool.replace-media',
+				icon: 'arrow-cycle',
+				readonlyOk: false,
+				onSelect: async (source) => {
+					trackEvent('image-replace', { source })
+					helpers.replaceImage()
+				},
+			},
+			{
 				id: 'download-original',
 				label: 'action.download-original',
 				readonlyOk: true,

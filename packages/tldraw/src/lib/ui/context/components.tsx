@@ -34,6 +34,7 @@ import {
 import { DefaultSharePanel } from '../components/SharePanel/DefaultSharePanel'
 import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel/DefaultStylePanel'
 import { DefaultToasts } from '../components/Toasts'
+import { DefaultImageToolbar } from '../components/Toolbar/DefaultImageToolbar'
 import {
 	DefaultRichTextToolbar,
 	TLUiRichTextToolbarProps,
@@ -56,6 +57,7 @@ export interface TLUiComponents {
 	NavigationPanel?: ComponentType | null
 	Toolbar?: ComponentType | null
 	RichTextToolbar?: ComponentType<TLUiRichTextToolbarProps> | null
+	ImageToolbar?: ComponentType | null
 	KeyboardShortcutsDialog?: ComponentType<TLUiKeyboardShortcutsDialogProps> | null
 	QuickActions?: ComponentType<TLUiQuickActionsProps> | null
 	HelperButtons?: ComponentType<TLUiHelperButtonsProps> | null
@@ -101,6 +103,7 @@ export function TldrawUiComponentsProvider({
 					NavigationPanel: DefaultNavigationPanel,
 					Toolbar: DefaultToolbar,
 					RichTextToolbar: DefaultRichTextToolbar,
+					ImageToolbar: DefaultImageToolbar,
 					KeyboardShortcutsDialog: DefaultKeyboardShortcutsDialog,
 					QuickActions: DefaultQuickActions,
 					HelperButtons: DefaultHelperButtons,

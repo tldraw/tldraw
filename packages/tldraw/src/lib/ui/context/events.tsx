@@ -21,7 +21,9 @@ export type TLUiEventSource =
 	| 'help-menu'
 	| 'helper-buttons'
 	| 'style-panel'
+	| 'image-menu'
 	| 'rich-text-menu'
+	| 'image-toolbar'
 	| 'unknown'
 
 /** @public */
@@ -55,6 +57,10 @@ export interface TLUiEventMap {
 	'edit-link': null
 	'insert-embed': null
 	'insert-media': null
+	'replace-media': null
+	'image-manipulate': null
+	'alt-text-start': null
+	'set-alt-text': null
 	'align-shapes': {
 		operation: 'left' | 'center-horizontal' | 'right' | 'top' | 'center-vertical' | 'bottom'
 	}
@@ -118,6 +124,7 @@ export interface TLUiEventMap {
 	'open-url': { url: string }
 	'adjust-shape-styles': null
 	'copy-link': null
+	'image-replace': null
 	'rich-text': {
 		operation:
 			| 'bold'

@@ -28,6 +28,7 @@ import {
 	heyDrawShape,
 	manAsset,
 	manCrop,
+	manCropAsCircle,
 	richText,
 } from './export-snapshots-data'
 import test, { ApiFixture } from './fixtures/fixtures'
@@ -213,6 +214,9 @@ const snapshots: Snapshots = {
 			flipX: <TL.image w={100} h={100} assetId={manAsset} flipX crop={manCrop} />,
 			flipY: <TL.image w={100} h={100} assetId={manAsset} flipY crop={manCrop} />,
 			flipXY: <TL.image w={100} h={100} assetId={manAsset} flipX flipY crop={manCrop} />,
+			withCircle: (
+				<TL.image w={100} h={100} assetId={manAsset} flipX flipY crop={manCropAsCircle} />
+			),
 			rotated: (
 				<TL.image
 					w={100}
