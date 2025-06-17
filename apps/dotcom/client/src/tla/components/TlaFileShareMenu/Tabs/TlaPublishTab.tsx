@@ -33,7 +33,7 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 	const editor = useEditor()
 	const app = useApp()
 	const { publishedSlug, published } = file
-	const isOwner = app.isFileOwner(file.id)
+	const isOwner = app.canUpdateFile(file.id)
 	const auth = useAuth()
 	const trackEvent = useTldrawAppUiEvents()
 	const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success'>('idle')
