@@ -66,6 +66,8 @@ export interface Environment {
 	RATE_LIMITER: RateLimit
 
 	QUEUE: Queue<QueueMessage>
+
+	TEST_FILE: D1Database
 }
 
 export function isDebugLogging(env: Environment) {

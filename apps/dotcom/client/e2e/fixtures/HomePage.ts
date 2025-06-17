@@ -37,6 +37,22 @@ export class HomePage {
 		}).toPass()
 	}
 
+	async loginWithEmailAndPassword(email: string, password: string) {
+		const isSideBarToggleVisible = await this.editor.sidebarToggle.isVisible()
+		// We are already signed in
+		if (isSideBarToggleVisible) return
+		await expect(this.signInButton).toBeVisible()
+		await this.signInButton.click()
+		await this.page.getByLabel('Email address').fill(email)
+		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
+		await this.page.getByRole('textbox', { name: 'Password' }).fill(password)
+		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
+		await this.page.waitForTimeout(1000)
+		await expect(async () => {
+			await expect(this.page.getByTestId('tla-sidebar-toggle')).toBeVisible()
+		}).toPass()
+	}
+
 	async expectSignInButtonVisible() {
 		await expect(async () => {
 			await expect(this.signInButton).toBeVisible()

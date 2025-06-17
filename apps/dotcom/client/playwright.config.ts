@@ -52,10 +52,17 @@ export default defineConfig({
 			},
 			dependencies: ['global-setup'],
 		},
-
 		// {
 		// 	name: 'firefox',
 		// 	use: { ...devices['Desktop Firefox'] },
+		{
+			name: 'staging',
+			use: {
+				...devices['Desktop Chrome'],
+			},
+			testMatch: /staging\.spec\.ts/,
+			dependencies: ['global-setup'],
+		},
 		// },
 		// {
 		// 	name: 'webkit',

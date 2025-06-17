@@ -87,6 +87,21 @@ pattern = "www.tldraw.com/api/*"
 custom_domain = true
 pattern = "sync.tldraw.xyz"
 
+#################### D1 Databases ####################
+[[d1_databases]]
+binding = "TEST_FILE"
+database_name = "botcom_test_files"
+database_id = "0c0f43fd-2bca-45fe-833e-dd570cf82740"
+migrations_table = "d1_migrations"
+migrations_dir = "migrations"
+
+[[env.dev.d1_databases]]
+binding = "TEST_FILE"
+database_name = "test_file"
+database_id = "test_file"
+migrations_table = "d1_migrations"
+migrations_dir = "migrations"
+
 #################### Durable objects ####################
 # durable objects have the same configuration in all environments:
 [env.dev.durable_objects]

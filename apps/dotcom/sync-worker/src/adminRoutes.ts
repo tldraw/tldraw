@@ -6,7 +6,7 @@ import { createPostgresConnectionPool } from './postgres'
 import { getFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
-import { getClerkClient, requireAuth } from './utils/tla/getAuth'
+import { requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 
 async function requireUser(env: Environment, q: string) {
 	const db = createPostgresConnectionPool(env, '/app/admin/user')
@@ -25,13 +25,7 @@ async function requireUser(env: Environment, q: string) {
 export const adminRoutes = createRouter<Environment>()
 	.all('/app/admin/*', async (req, env) => {
 		const auth = await requireAuth(req, env)
-		const user = await getClerkClient(env).users.getUser(auth.userId)
-		if (
-			!user.primaryEmailAddress?.emailAddress.endsWith('@tldraw.com') ||
-			user.primaryEmailAddress?.verification?.status !== 'verified'
-		) {
-			throw new StatusError(403, 'Unauthorized')
-		}
+		await requireAdminAccess(env, auth)
 	})
 	.get('/app/admin/user', async (res, env) => {
 		const q = res.query['q']
