@@ -1,5 +1,7 @@
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { ErrorPage } from './ErrorPage/ErrorPage'
+import { IntlProvider } from 'react-intl'
+import { TlaFileErrorContent } from '../tla/components/TlaFileError/TlaFileError'
+import { F } from '../tla/utils/i18n'
 import LoginRedirectPage from './LoginRedirectPage/LoginRedirectPage'
 
 export function StoreErrorScreen({ error }: { error: Error }) {
@@ -10,22 +12,18 @@ export function StoreErrorScreen({ error }: { error: Error }) {
 		switch (error.reason) {
 			case TLSyncErrorCloseEventReason.CLIENT_TOO_OLD: {
 				return (
-					<ErrorPage
-						icon={
-							<img
-								width={36}
-								height={36}
-								src="/tldraw-white-on-black.svg"
-								loading="lazy"
-								role="presentation"
-							/>
-						}
-						messages={{
-							header: 'Refresh the page',
-							para1: 'You need to update to the latest version of tldraw to continue.',
-						}}
-						cta={<button onClick={() => window.location.reload()}>Refresh</button>}
-					/>
+					<IntlProvider defaultLocale="en" locale="en" messages={{}}>
+						<div className="error-page">
+							<TlaFileErrorContent>
+								<h1>
+									<F defaultMessage="Refresh the page" />
+								</h1>
+								<p>
+									<F defaultMessage="You need to update to the latest version of tldraw to continue." />
+								</p>
+							</TlaFileErrorContent>
+						</div>
+					</IntlProvider>
 				)
 			}
 			case TLSyncErrorCloseEventReason.SERVER_TOO_OLD: {
@@ -67,5 +65,18 @@ export function StoreErrorScreen({ error }: { error: Error }) {
 		}
 	}
 
-	return <ErrorPage messages={{ header, para1: message }} />
+	return (
+		<IntlProvider defaultLocale="en" locale="en" messages={{}}>
+			<div className="error-page">
+				<TlaFileErrorContent>
+					<h1>
+						<F defaultMessage={header} />
+					</h1>
+					<p>
+						<F defaultMessage={message} />
+					</p>
+				</TlaFileErrorContent>
+			</div>
+		</IntlProvider>
+	)
 }
