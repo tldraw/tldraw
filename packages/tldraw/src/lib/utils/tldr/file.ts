@@ -33,6 +33,21 @@ export const TLDRAW_FILE_MIMETYPE = 'application/vnd.tldraw+json' as const
 /** @public */
 export const TLDRAW_FILE_EXTENSION = '.tldr' as const
 
+// OCIF exports moved to ./ocif/ocif.ts
+export {
+	OCIF_FILE_MIMETYPE,
+	OCIF_FILE_EXTENSION,
+	type OcifNode,
+	type OcifRelation,
+	type OcifResource,
+	type OcifSchema,
+	type OcifFile,
+	type OcifFileParseError,
+	serializeTldrawToOcif,
+	parseOcifFile,
+	serializeTldrawToOcifBlob,
+} from '../ocif/ocif'
+
 // When incrementing this, you'll need to update parseTldrawJsonFile to handle
 // both your new changes and the old file format
 const LATEST_TLDRAW_FILE_FORMAT_VERSION = 1
@@ -363,3 +378,6 @@ async function extractAssets(
 		})
 	)
 }
+
+
+
