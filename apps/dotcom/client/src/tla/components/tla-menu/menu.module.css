@@ -139,8 +139,8 @@
 /* need to target the parent div, ugh, can't target via a className */
 div:has(> .menuSelectContent) {
 	position: absolute !important;
-	top: 18px;
-	right: -4px;
+	top: 17px;
+	right: -8px;
 	left: auto !important;
 	z-index: 2 !important;
 }
@@ -155,7 +155,7 @@ div:has(> .menuSelectContent) {
 	position: relative;
 	display: flex;
 	align-items: center;
-	padding: 8px 8px 8px 12px;
+	padding: 8px;
 	gap: 4px;
 	cursor: pointer;
 	z-index: 1;
@@ -176,9 +176,13 @@ div:has(> .menuSelectContent) {
 	inset: 4px;
 	display: block;
 	position: absolute;
-	background-color: var(--tla-color-hover-1);
+	background-color: var(--color-muted-2);
 	opacity: 0;
-	border-radius: 4px;
+	border-radius: 6px;
+}
+
+.menuSelectOption > span:only-of-type {
+	padding-left: 19px; /* 15px of icon + 4px gap */
 }
 
 @media (hover: hover) {

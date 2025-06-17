@@ -174,10 +174,10 @@ export function TlaMenuSelect<T extends string>({
 								className={styles.menuSelectOption}
 								value={option.value}
 							>
-								<_Select.ItemText>{option.label}</_Select.ItemText>
 								<_Select.ItemIndicator>
 									<TlaIcon icon="check" />
 								</_Select.ItemIndicator>
+								<_Select.ItemText>{option.label}</_Select.ItemText>
 							</_Select.Item>
 						))}
 					</_Select.Viewport>
