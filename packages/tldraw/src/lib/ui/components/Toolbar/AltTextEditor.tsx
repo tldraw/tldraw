@@ -10,10 +10,11 @@ import { TldrawUiInput } from '../primitives/TldrawUiInput'
 export interface AltTextEditorProps {
 	shapeId: TLShapeId
 	onClose(): void
+	source: 'image-toolbar' | 'video-toolbar'
 }
 
 /** @public @react */
-export function AltTextEditor({ shapeId, onClose }: AltTextEditorProps) {
+export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) {
 	const editor = useEditor()
 	const [altText, setAltText] = useState(() => {
 		const shape = editor.getShape<TLShape>(shapeId)
@@ -28,7 +29,7 @@ export function AltTextEditor({ shapeId, onClose }: AltTextEditorProps) {
 	const handleValueChange = (value: string) => setAltText(value)
 
 	const handleComplete = () => {
-		trackEvent('set-alt-text', { source: 'image-menu' })
+		trackEvent('set-alt-text', { source })
 		const shape = editor.getShape<TLShape & { props: { altText: string } }>(shapeId)
 		if (!shape) return
 		editor.updateShapes([
@@ -64,16 +65,16 @@ export function AltTextEditor({ shapeId, onClose }: AltTextEditorProps) {
 		<>
 			<TldrawUiInput
 				ref={ref}
-				className="tlui-image__toolbar-alt-text-input"
-				data-testid="image-toolbar.alt-text-input"
+				className="tlui-media__toolbar-alt-text-input"
+				data-testid="media-toolbar.alt-text-input"
 				value={altText}
-				placeholder={msg('tool.image-alt-text-desc')}
+				placeholder={msg('tool.media-alt-text-desc')}
 				onValueChange={handleValueChange}
 				onComplete={handleComplete}
 				onCancel={handleAltTextCancel}
 			/>
 			<TldrawUiButton
-				title={msg('tool.image-alt-text-confirm')}
+				title={msg('tool.media-alt-text-confirm')}
 				type="icon"
 				onPointerDown={preventDefault}
 				onClick={handleConfirm}

@@ -478,6 +478,7 @@ function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
 						href={src}
 						width={width}
 						height={height}
+						aria-label={shape.props.altText}
 						style={flip ? { ...flip } : { transform: cropTransform }}
 					/>
 				</g>
@@ -489,6 +490,7 @@ function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
 				href={src}
 				width={shape.props.w}
 				height={shape.props.h}
+				aria-label={shape.props.altText}
 				style={getFlipStyle(shape, { width: shape.props.w, height: shape.props.h })}
 			/>
 		)

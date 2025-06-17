@@ -24,6 +24,7 @@ const components: Required<TLUiComponents> = {
 	CursorChatBubble: null,
 	RichTextToolbar: null,
 	ImageToolbar: null,
+	VideoToolbar: null,
 	Dialogs: null,
 	Toasts: null,
 	A11y: null,

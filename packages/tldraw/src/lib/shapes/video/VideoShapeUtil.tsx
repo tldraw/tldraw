@@ -89,7 +89,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 		if (!src) return null
 
-		return <image href={src} width={props.w} height={props.h} />
+		return <image href={src} width={props.w} height={props.h} aria-label={shape.props.altText} />
 	}
 }
 
@@ -156,6 +156,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 						) : url ? (
 							<>
 								<video
+									key={url}
 									ref={rVideo}
 									style={
 										isEditing
@@ -179,6 +180,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 									controls={isEditing && showControls}
 									onLoadedData={handleLoadedData}
 									hidden={!isLoaded}
+									aria-label={shape.props.altText}
 								>
 									<source src={url} />
 								</video>
