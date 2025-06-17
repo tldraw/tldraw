@@ -264,7 +264,7 @@ div:has(> .menuSelectContent) {
 	width: var(--switch-w);
 	position: relative;
 	border-radius: 99px;
-	background-color: var(--tla-color-text-3);
+	background-color: var(--tla-color-inactive);
 	transition:
 		background-color 0.12s,
 		left 0.12s;
@@ -306,7 +306,11 @@ div:has(> .menuSelectContent) {
 }
 
 @media (hover: hover) {
-	.menuSwitchContainer:hover > .menuSwitch[data-checked='true'] {
+	.menuSwitchContainer:not(.disabled):hover > .menuSwitch[data-checked='false'] {
+		background-color: var(--tla-color-inactive-hover);
+	}
+
+	.menuSwitchContainer:not(.disabled):hover > .menuSwitch[data-checked='true'] {
 		background-color: var(--tla-color-primary-hover);
 	}
 }
