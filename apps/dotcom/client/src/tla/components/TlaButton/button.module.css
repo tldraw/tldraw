@@ -127,6 +127,10 @@
 		background-color: var(--tla-color-primary-hover);
 	}
 
+	.secondary:hover {
+		background-color: var(--tla-color-secondary-hover);
+	}
+
 	.cta:hover {
 		background-color: var(--tla-color-primary-hover);
 	}

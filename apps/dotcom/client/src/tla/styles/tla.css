@@ -52,6 +52,7 @@
 	--tla-color-primary: hsl(214, 84%, 56%);
 	--tla-color-primary-hover: hsl(214, 84%, 58%);
 	--tla-color-secondary: hsl(0, 0%, 92%);
+	--tla-color-secondary-hover: hsl(0, 0%, 93.5%);
 	--tla-color-secondary-border: hsl(0, 0%, 80%);
 	--tla-color-accent-1: hsl(50, 91%, 70%);
 	--tla-color-accent-2: hsl(28, 88%, 57%);
@@ -94,6 +95,7 @@
 	--tla-color-primary: hsl(214, 84%, 46%);
 	--tla-color-primary-hover: hsl(214, 84%, 50%);
 	--tla-color-secondary: hsl(0, 0%, 20%);
+	--tla-color-secondary-hover: hsl(0, 0%, 22%);
 	--tla-color-secondary-border: hsl(0, 0%, 25%);
 	--tla-color-accent-1: hsl(50, 91%, 60%);
 	--tla-color-accent-2: hsl(28, 88%, 47%);
