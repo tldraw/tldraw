@@ -300,7 +300,10 @@ export class TldrawApp {
 
 	@computed({ isEqual })
 	getGroups() {
-		return objectMapFromEntries(this.groupUsers$.get().map((g) => [g.group.id, g.group]))
+		return this.groupUsers$
+			.get()
+			.map((g) => g.group)
+			.sort((a, b) => a.id.localeCompare(b.id))
 	}
 
 	getGroupMembers(groupId: string) {

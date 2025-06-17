@@ -19,7 +19,7 @@ import throttle from 'lodash.throttle'
 import { Logger } from './Logger'
 import { fetchEverythingSql } from './fetchEverythingSql.snap'
 import { parseResultRow } from './parseResultRow'
-import { getSubscriptionChanges } from './replicator/Subscription'
+import { TopicSubscriptionTree, getSubscriptionChanges } from './replicator/Subscription'
 import { Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
@@ -367,12 +367,31 @@ export class UserDataSyncer {
 
 		const initialData = this.store.getCommittedData()!
 
-		const allFileIds = initialData.file.map((f) => f.id)
+		const topicSubscriptions: TopicSubscriptionTree = {}
+		const groupFileIds = new Set()
+		for (const group_user of initialData.group_user) {
+			topicSubscriptions[`group:${group_user.groupId}`] = {}
+		}
+		for (const group_file of initialData.group_file) {
+			groupFileIds.add(group_file.fileId)
+			let subgraph = topicSubscriptions[`group:${group_file.groupId}`]
+			if (typeof subgraph !== 'object') {
+				subgraph = {}
+				topicSubscriptions[`group:${group_file.groupId}`] = subgraph
+			}
+
+			subgraph[`file:${group_file.fileId}`] = 1
+		}
+
+		for (const file_state of initialData.file_state) {
+			if (groupFileIds.has(file_state.fileId)) continue
+			topicSubscriptions[`file:${file_state.fileId}`] = 1
+		}
 
 		const res = await getReplicator(this.env).registerUser({
 			userId: this.userId,
 			lsn: initialData.lsn,
-			allFileIds,
+			topicSubscriptions,
 			bootId: this.state.bootId,
 		})
 
