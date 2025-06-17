@@ -575,6 +575,23 @@ input,
 
 /* ---------------------- Text ---------------------- */
 
+.tl-text-shape-label {
+	position: relative;
+	font-weight: normal;
+	min-width: 1px;
+	padding: 0px;
+	margin: 0px;
+	border: none;
+	width: fit-content;
+	height: fit-content;
+	font-variant: normal;
+	font-style: normal;
+	pointer-events: all;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+	text-shadow: var(--tl-text-outline);
+}
+
 .tl-text-wrapper[data-font='draw'] {
 	font-family: var(--tl-font-draw);
 }
