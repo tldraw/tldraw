@@ -72,7 +72,7 @@
 @media (hover: hover) {
 	.menuInfoTrigger:not(:disabled):hover {
 		z-index: 1;
-		color: var(--color-text-1);
+		color: var(--tla-color-text-1);
 	}
 
 	.menuInfoTrigger:not(:disabled):hover::after {
@@ -81,7 +81,7 @@
 }
 
 .menuLabel {
-	color: var(--color-text-1);
+	color: var(--tla-color-text-1);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;

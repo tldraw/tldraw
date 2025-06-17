@@ -24,7 +24,7 @@
 	width: 100%;
 	min-width: 0px;
 	overflow: hidden;
-	color: var(--color-text-1);
+	color: var(--tla-color-text-1);
 }
 
 .topLeftPanelButtons {
@@ -111,7 +111,7 @@ button.topLeftInputNameWidthSetter {
 	pointer-events: all;
 	height: 100%;
 	min-width: 0px;
-	color: var(--color-text-1);
+	color: var(--tla-color-text-1);
 }
 
 .topLeftInputWrapper > div:nth-of-type(1) {
@@ -126,7 +126,7 @@ button.topLeftInputNameWidthSetter {
 	padding: 0px 12px 1px 12px;
 	height: 100%;
 	font-weight: 800;
-	color: var(--color-text-1);
+	color: var(--tla-color-text-1);
 }
 
 .topLeftInputWrapper input:focus-visible {
@@ -193,7 +193,7 @@ button.topLeftInputNameWidthSetter {
 
 @media (hover: hover) {
 	.topLeftMainMenuTrigger:hover {
-		color: var(--color-text-1);
+		color: var(--tla-color-text-1);
 	}
 
 	.topLeftMainMenuTrigger:hover::after {
@@ -258,7 +258,7 @@ button.topLeftInputNameWidthSetter {
 	position: relative;
 	cursor: pointer;
 	z-index: 1;
-	color: var(--color-text-1);
+	color: var(--tla-color-text-1);
 }
 
 .topRightAnonShareButton::before {
