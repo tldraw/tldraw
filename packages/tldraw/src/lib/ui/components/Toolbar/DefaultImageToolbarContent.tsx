@@ -52,7 +52,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
 	const msg = useTranslation()
-	const source = 'image-menu'
+	const source = 'image-toolbar'
 	const sliderRef = useRef<HTMLDivElement>(null)
 
 	const crop = useValue('crop', () => editor.getShape<TLImageShape>(imageShapeId)!.props.crop, [
@@ -123,7 +123,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 				},
 			} as TLShapePartial)
 
-			trackEvent('set-style', { source: 'image-menu', id: 'zoom', value })
+			trackEvent('set-style', { source: 'image-toolbar', id: 'zoom', value })
 		},
 		[editor, trackEvent, imageShapeId, maxZoom]
 	)
@@ -261,7 +261,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			<TldrawUiButton
 				type="normal"
 				isActive={!!altText}
-				title={msg('tool.image-alt-text')}
+				title={msg('tool.media-alt-text')}
 				onClick={() => {
 					trackEvent('alt-text-start', { source })
 					onEditAltTextStart()

@@ -40,6 +40,7 @@ import {
 	TLUiRichTextToolbarProps,
 } from '../components/Toolbar/DefaultRichTextToolbar'
 import { DefaultToolbar } from '../components/Toolbar/DefaultToolbar'
+import { DefaultVideoToolbar } from '../components/Toolbar/DefaultVideoToolbar'
 import { DefaultTopPanel } from '../components/TopPanel/DefaultTopPanel'
 import { DefaultZoomMenu, TLUiZoomMenuProps } from '../components/ZoomMenu/DefaultZoomMenu'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
@@ -58,6 +59,7 @@ export interface TLUiComponents {
 	Toolbar?: ComponentType | null
 	RichTextToolbar?: ComponentType<TLUiRichTextToolbarProps> | null
 	ImageToolbar?: ComponentType | null
+	VideoToolbar?: ComponentType | null
 	KeyboardShortcutsDialog?: ComponentType<TLUiKeyboardShortcutsDialogProps> | null
 	QuickActions?: ComponentType<TLUiQuickActionsProps> | null
 	HelperButtons?: ComponentType<TLUiHelperButtonsProps> | null
@@ -104,6 +106,7 @@ export function TldrawUiComponentsProvider({
 					Toolbar: DefaultToolbar,
 					RichTextToolbar: DefaultRichTextToolbar,
 					ImageToolbar: DefaultImageToolbar,
+					VideoToolbar: DefaultVideoToolbar,
 					KeyboardShortcutsDialog: DefaultKeyboardShortcutsDialog,
 					QuickActions: DefaultQuickActions,
 					HelperButtons: DefaultHelperButtons,

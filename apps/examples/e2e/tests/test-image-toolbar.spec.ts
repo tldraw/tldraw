@@ -178,7 +178,7 @@ test.describe('Image toolbar behaviour', () => {
 		await page.getByTitle('Alternative text').click()
 
 		// Enter some alt text
-		await page.getByTestId('image-toolbar.alt-text-input').fill('A test image for e2e testing')
+		await page.getByTestId('media-toolbar.alt-text-input').fill('A test image for e2e testing')
 
 		// Save the alt text
 		await page.getByTitle('Confirm').click()

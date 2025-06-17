@@ -346,6 +346,14 @@ export {
 	type ToolbarItemProps,
 } from './lib/ui/components/Toolbar/DefaultToolbarContent'
 export {
+	DefaultVideoToolbar,
+	type TLUiVideoToolbarProps,
+} from './lib/ui/components/Toolbar/DefaultVideoToolbar'
+export {
+	DefaultVideoToolbarContent,
+	type DefaultVideoToolbarContentProps,
+} from './lib/ui/components/Toolbar/DefaultVideoToolbarContent'
+export {
 	OverflowingToolbar,
 	type OverflowingToolbarProps,
 } from './lib/ui/components/Toolbar/OverflowingToolbar'

@@ -73,7 +73,7 @@ function ContextualToolbarInner({
 			{children ? (
 				children
 			) : isEditingAltText ? (
-				<AltTextEditor shapeId={imageShapeId} onClose={onEditAltTextClose} />
+				<AltTextEditor shapeId={imageShapeId} onClose={onEditAltTextClose} source="image-toolbar" />
 			) : (
 				<DefaultImageToolbarContent
 					imageShapeId={imageShapeId}

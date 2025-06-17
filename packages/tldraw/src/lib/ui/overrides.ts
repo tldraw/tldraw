@@ -4,6 +4,7 @@ import {
 	getHashForBuffer,
 	objectMapEntries,
 	TLImageShape,
+	TLVideoShape,
 	useMaybeEditor,
 	useShallowArrayIdentity,
 } from '@tldraw/editor'
@@ -58,52 +59,73 @@ export function useDefaultHelpers() {
 		})
 	}, [editor, mimeTypes])
 
-	const replaceImage = useCallback(async () => {
-		if (!editor) return
-		const files = await getLocalFiles({
-			allowMultiple: false,
-			mimeTypes,
-		})
-		if (!files.length) return
-		const shape = editor.getOnlySelectedShape()
-		if (!shape || shape.type !== 'image') return
+	const replaceMedia = useCallback(
+		async (isImage: boolean) => {
+			if (!editor) return
+			const files = await getLocalFiles({
+				allowMultiple: false,
+				mimeTypes,
+			})
+			if (!files.length) return
+			const shape = editor.getOnlySelectedShape()
+			if (!shape || (isImage && shape.type !== 'image') || (!isImage && shape.type !== 'video'))
+				return
 
-		editor.markHistoryStoppingPoint('replace media')
+			editor.markHistoryStoppingPoint('replace media')
 
-		const file = files[0]
-		const hash = getHashForBuffer(await file.arrayBuffer())
-		const assetId = AssetRecordType.createId(hash)
-		editor.createTemporaryAssetPreview(assetId, file)
-		const assetInfoPartial = await getMediaAssetInfoPartial(
-			file,
-			assetId,
-			true /* isImage */,
-			false /* isVideo */
-		)
-		editor.createAssets([assetInfoPartial])
+			const file = files[0]
+			const hash = getHashForBuffer(await file.arrayBuffer())
+			const assetId = AssetRecordType.createId(hash)
+			editor.createTemporaryAssetPreview(assetId, file)
+			const assetInfoPartial = await getMediaAssetInfoPartial(
+				file,
+				assetId,
+				isImage /* isImage */,
+				!isImage /* isVideo */
+			)
+			editor.createAssets([assetInfoPartial])
 
-		// And update the shape
-		editor.updateShapes<TLImageShape>([
-			{
-				id: shape.id,
-				type: shape.type,
-				props: {
-					assetId: assetId,
-					crop: { topLeft: { x: 0, y: 0 }, bottomRight: { x: 1, y: 1 } },
-					w: assetInfoPartial.props.w,
-					h: assetInfoPartial.props.h,
-				},
-			},
-		])
+			// And update the shape
+			if (shape.type === 'image') {
+				editor.updateShapes<TLImageShape>([
+					{
+						id: shape.id,
+						type: shape.type,
+						props: {
+							assetId: assetId,
+							crop: { topLeft: { x: 0, y: 0 }, bottomRight: { x: 1, y: 1 } },
+							w: assetInfoPartial.props.w,
+							h: assetInfoPartial.props.h,
+						},
+					},
+				])
+			} else if (shape.type === 'video') {
+				editor.updateShapes<TLVideoShape>([
+					{
+						id: shape.id,
+						type: shape.type,
+						props: {
+							assetId: assetId,
+							w: assetInfoPartial.props.w,
+							h: assetInfoPartial.props.h,
+						},
+					},
+				])
+			}
 
-		const asset = await editor.getAssetForExternalContent({ type: 'file', file, assetId })
+			const asset = await editor.getAssetForExternalContent({ type: 'file', file, assetId })
 
-		if (!asset) {
-			return
-		}
+			if (!asset) {
+				return
+			}
 
-		editor.updateAssets([{ ...asset, id: assetId }])
-	}, [editor, mimeTypes])
+			editor.updateAssets([{ ...asset, id: assetId }])
+		},
+		[editor, mimeTypes]
+	)
+
+	const replaceImage = useCallback(() => replaceMedia(true /* isImage */), [replaceMedia])
+	const replaceVideo = useCallback(() => replaceMedia(false /* isImage */), [replaceMedia])
 
 	return useMemo(
 		() => ({
@@ -117,6 +139,7 @@ export function useDefaultHelpers() {
 			isMobile,
 			insertMedia,
 			replaceImage,
+			replaceVideo,
 			printSelectionOrPages,
 			cut,
 			copy,
@@ -136,6 +159,7 @@ export function useDefaultHelpers() {
 			isMobile,
 			insertMedia,
 			replaceImage,
+			replaceVideo,
 			printSelectionOrPages,
 			cut,
 			copy,
