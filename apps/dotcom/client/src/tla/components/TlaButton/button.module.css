@@ -1,4 +1,4 @@
-.button {
+.tla-button {
 	position: relative;
 	height: 32px;
 	border: 1px solid transparent;
@@ -24,7 +24,7 @@
 	-webkit-font-smoothing: antialiased;
 }
 
-.button > .spinner {
+.tla-button > .spinner {
 	position: absolute;
 	top: calc(50% - 20px);
 	left: calc(50% - 20px);
@@ -123,6 +123,14 @@
 }
 
 @media (hover: hover) {
+	.primary:hover {
+		background-color: var(--tla-color-primary-hover);
+	}
+
+	.cta:hover {
+		background-color: var(--tla-color-primary-hover);
+	}
+
 	.ghost:hover::after {
 		display: block;
 		content: '';
@@ -133,7 +141,7 @@
 	}
 }
 
-.button:focus-visible {
+.tla-button:focus-visible {
 	outline: 2px solid var(--tla-color-focus);
 	outline-offset: 2px;
 	border-radius: var(--tla-radius-2);

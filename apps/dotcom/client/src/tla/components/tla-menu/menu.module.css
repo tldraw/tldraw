@@ -26,6 +26,10 @@
 	height: 32px;
 }
 
+.menuControlRow > *:not(:only-child):nth-last-of-type(1) {
+	padding-left: 4px;
+}
+
 .menuInfoTriggerContainer {
 	flex-grow: 2;
 }
@@ -78,11 +82,16 @@
 
 .menuLabel {
 	color: var(--color-text-1);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .menuPopover {
 	padding: 40px 12px 12px 12px;
 	min-width: 160px;
+	max-width: 160px;
+	overflow: hidden;
 }
 
 .menuLabel + .menuInfoTrigger {
@@ -117,11 +126,21 @@
 	padding-left: 2px;
 }
 
-/* need to targe	t the parent div, ugh, can't target via a className */
+.menuSelectTrigger::after {
+	content: '';
+	display: block;
+	position: absolute;
+	background-color: var(--color-muted-2);
+	inset: -4px;
+	border-radius: 6px;
+	opacity: 0;
+}
+
+/* need to target the parent div, ugh, can't target via a className */
 div:has(> .menuSelectContent) {
 	position: absolute !important;
-	top: 12px;
-	right: 0;
+	top: 18px;
+	right: -4px;
 	left: auto !important;
 	z-index: 2 !important;
 }
@@ -133,23 +152,49 @@ div:has(> .menuSelectContent) {
 }
 
 .menuSelectOption {
+	position: relative;
 	display: flex;
 	align-items: center;
 	padding: 8px 8px 8px 12px;
 	gap: 4px;
 	cursor: pointer;
+	z-index: 1;
+	margin-bottom: -4px;
+	margin-top: -4px;
+}
+
+.menuSelectOption:first-of-type {
+	margin-top: 0px;
+}
+
+.menuSelectOption:last-of-type {
+	margin-bottom: 0px;
+}
+
+.menuSelectOption::after {
+	content: '';
+	inset: 4px;
+	display: block;
+	position: absolute;
+	background-color: var(--tla-color-hover-1);
+	opacity: 0;
+	border-radius: 4px;
+}
+
+@media (hover: hover) {
+	.menuSelectOption:hover {
+		z-index: 2;
+	}
+
+	.menuSelectOption:hover::after {
+		opacity: 1;
+	}
 }
 
 :global(.tl-container__focused:not(.tl-container__no-focus-ring)) .menuSelectOption:focus-visible {
 	border-radius: 10px;
 	outline: 2px solid var(--color-focus);
 	outline-offset: -5px;
-}
-
-@media (hover: hover) {
-	.menuSelectTrigger[data-disabled='false']:hover > .menuSelectLabel::after {
-		visibility: visible;
-	}
 }
 
 .menuSelectSelect:disabled {
@@ -171,6 +216,16 @@ div:has(> .menuSelectContent) {
 .menuSelectTrigger:focus-visible {
 	outline-offset: 2px;
 	border-radius: 2px;
+}
+
+.menuSelectTrigger[data-state='open']::after {
+	opacity: 1;
+}
+
+@media (hover: hover) {
+	.menuSelectTrigger:not([data-disabled='true']):hover::after {
+		opacity: 1;
+	}
 }
 
 /* --------------------- Switch --------------------- */
@@ -244,6 +299,12 @@ div:has(> .menuSelectContent) {
 .menuSwitchContainer:has(input:focus-visible) > div {
 	outline-offset: 2px;
 	outline: 2px solid var(--color-focus);
+}
+
+@media (hover: hover) {
+	.menuSwitchContainer:hover > .menuSwitch[data-checked='true'] {
+		background-color: var(--tla-color-primary-hover);
+	}
 }
 
 /* ---------------------- Tabs ---------------------- */
