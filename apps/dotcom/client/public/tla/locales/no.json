@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "Satsgrensen er overskredet. Prøv igjen senere."
   },
+  "08bd40c754": {
+    "translation": "Konto"
+  },
   "0b27918290": {
     "translation": "Fil"
   },
@@ -185,6 +188,9 @@
   "7b1329f5ca": {
     "translation": "Brukermanual"
   },
+  "7be10fc592": {
+    "translation": "Gjenopprett versjon"
+  },
   "7cb5f8b4a5": {
     "translation": "Glemme"
   },
@@ -318,6 +324,9 @@
   "c87aacf567": {
     "translation": "Logg ut"
   },
+  "cbef7ba103": {
+    "translation": "Dette rommet vil snart være skrivebeskyttet"
+  },
   "cceaefbc20": {
     "translation": "Del denne filen"
   },
@@ -356,6 +365,9 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
+  },
+  "ea2301d01c": {
+    "translation": "Etter 1. juli 2025 vil dette anonyme tldraw-flerspillerrommet bli skrivebeskyttet. For å fortsette å redigere i fremtiden, vennligst logg inn og kopier det til filene dine."
   },
   "ea4788705e": {
     "translation": "Kansellere"

@@ -1,5 +1,5 @@
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
@@ -32,15 +32,16 @@ import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useTldrawUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
-import { SneakyDarkModeSync } from './SneakyDarkModeSync'
+import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
+import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
-import { SneakyHandToolEmptyPage } from './sneaky/SneakyHandToolEmptyPage'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
+import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 /** @internal */
@@ -58,6 +59,7 @@ export const components: TLComponents = {
 		const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
 		return (
 			<DefaultDebugMenu>
+				<A11yAudit />
 				{!isReadOnly && app && (
 					<TldrawUiMenuItem
 						id="user-manual"
@@ -205,6 +207,12 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		userInfo: app?.tlUser.userPreferences,
 	})
 
+	// we need to prevent calling onFileExit if the store is in an error state
+	const storeError = useRef(false)
+	if (store.status === 'error') {
+		storeError.current = true
+	}
+
 	// Handle entering and exiting the file, with some protection against rapid enters/exits
 	useEffect(() => {
 		if (!app) return
@@ -232,7 +240,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 		return () => {
 			clearTimeout(timer)
-			if (didEnter) {
+			if (didEnter && !storeError.current) {
 				app.onFileExit(fileId)
 			}
 		}
@@ -257,7 +265,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
-				<SneakyHandToolEmptyPage />
+				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} />
 			</Tldraw>

@@ -348,6 +348,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.getContainer = getContainer
 
 		this.textMeasure = new TextManager(this)
+		this.disposables.add(() => this.textMeasure.dispose())
+
 		this.fonts = new FontManager(this, fontAssetUrls)
 
 		this._tickManager = new TickManager(this)
@@ -506,14 +508,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				shape: {
 					afterChange: (shapeBefore, shapeAfter) => {
 						for (const binding of this.getBindingsInvolvingShape(shapeAfter)) {
-							if (areShapesContentEqual(shapeBefore, shapeAfter)) continue
-
 							invalidBindingTypes.add(binding.type)
 							if (binding.fromId === shapeAfter.id) {
 								this.getBindingUtil(binding).onAfterChangeFromShape?.({
 									binding,
 									shapeBefore,
 									shapeAfter,
+									reason: 'self',
 								})
 							}
 							if (binding.toId === shapeAfter.id) {
@@ -521,6 +522,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 									binding,
 									shapeBefore,
 									shapeAfter,
+									reason: 'self',
 								})
 							}
 						}
@@ -539,6 +541,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 											binding,
 											shapeBefore: descendantShape,
 											shapeAfter: descendantShape,
+											reason: 'ancestry',
 										})
 									}
 									if (binding.toId === descendantShape.id) {
@@ -546,6 +549,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 											binding,
 											shapeBefore: descendantShape,
 											shapeAfter: descendantShape,
+											reason: 'ancestry',
 										})
 									}
 								}
@@ -2116,6 +2120,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getSelectionPageBounds(): Box | null {
 		return this.getShapesPageBounds(this.getSelectedShapeIds())
+	}
+
+	/**
+	 * The bounds of the selection bounding box in the current page space.
+	 *
+	 * @readonly
+	 * @public
+	 */
+	@computed getSelectionScreenBounds(): Box | undefined {
+		const bounds = this.getSelectionPageBounds()
+		if (!bounds) return undefined
+		const { x, y } = this.pageToScreen(bounds.point)
+		const zoom = this.getZoomLevel()
+		return new Box(x, y, bounds.width * zoom, bounds.height * zoom)
 	}
 
 	/**

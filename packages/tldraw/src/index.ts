@@ -144,9 +144,12 @@ export {
 	type RichTextSVGProps,
 } from './lib/shapes/shared/RichTextLabel'
 export {
+	ASPECT_RATIO_OPTIONS,
+	ASPECT_RATIO_TO_VALUE,
 	getCropBox,
 	getDefaultCrop,
 	getUncroppedSize,
+	type ASPECT_RATIO_OPTION,
 	type CropBoxOptions,
 } from './lib/shapes/shared/crop'
 export {
@@ -288,6 +291,14 @@ export {
 	type ThemeStylePickerSetProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
 export {
+	DefaultImageToolbar,
+	type TLUiImageToolbarProps,
+} from './lib/ui/components/Toolbar/DefaultImageToolbar'
+export {
+	DefaultImageToolbarContent,
+	type DefaultImageToolbarContentProps,
+} from './lib/ui/components/Toolbar/DefaultImageToolbarContent'
+export {
 	DefaultRichTextToolbar,
 	type TLUiRichTextToolbarProps,
 } from './lib/ui/components/Toolbar/DefaultRichTextToolbar'
@@ -333,6 +344,14 @@ export {
 	useIsToolSelected,
 	type ToolbarItemProps,
 } from './lib/ui/components/Toolbar/DefaultToolbarContent'
+export {
+	DefaultVideoToolbar,
+	type TLUiVideoToolbarProps,
+} from './lib/ui/components/Toolbar/DefaultVideoToolbar'
+export {
+	DefaultVideoToolbarContent,
+	type DefaultVideoToolbarContentProps,
+} from './lib/ui/components/Toolbar/DefaultVideoToolbarContent'
 export {
 	OverflowingToolbar,
 	type OverflowingToolbarProps,

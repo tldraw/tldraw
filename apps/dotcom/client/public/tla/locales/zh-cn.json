@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "请求次数过多，请稍后再试。"
   },
+  "08bd40c754": {
+    "translation": "帐户"
+  },
   "0b27918290": {
     "translation": "文件"
   },
@@ -185,6 +188,9 @@
   "7b1329f5ca": {
     "translation": "用户手册"
   },
+  "7be10fc592": {
+    "translation": "恢复版本"
+  },
   "7cb5f8b4a5": {
     "translation": "忘记"
   },
@@ -318,6 +324,9 @@
   "c87aacf567": {
     "translation": "退出登录"
   },
+  "cbef7ba103": {
+    "translation": "此房间即将变为只读"
+  },
   "cceaefbc20": {
     "translation": "分享此文件"
   },
@@ -356,6 +365,9 @@
   },
   "e78e14c5f1": {
     "translation": "固定"
+  },
+  "ea2301d01c": {
+    "translation": "2025年7月1日之后，此匿名tldraw多人游戏房间将变为只读状态。如需继续编辑，请登录并将其复制到您的文件。"
   },
   "ea4788705e": {
     "translation": "取消"

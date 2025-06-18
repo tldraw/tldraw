@@ -4,7 +4,6 @@ import 'core-js/stable/array/flat-map.js'
 import 'core-js/stable/array/flat.js'
 import 'core-js/stable/string/at.js'
 import 'core-js/stable/string/replace-all.js'
-export { areShapesContentEqual } from './lib/utils/areShapesContentEqual'
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/state'
@@ -175,6 +174,7 @@ export {
 } from './lib/editor/managers/SnapManager/SnapManager'
 export {
 	TextManager,
+	type TLMeasureTextOpts,
 	type TLMeasureTextSpanOpts,
 } from './lib/editor/managers/TextManager/TextManager'
 export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesManager/UserPreferencesManager'

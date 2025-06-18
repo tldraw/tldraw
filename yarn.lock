@@ -8979,12 +8979,11 @@ __metadata:
     "@types/broken-link-checker": "npm:^0.7.3"
     "@types/js-cookie": "npm:^3.0.6"
     "@types/mdast": "npm:^4.0.4"
-    "@types/node": "npm:~20.11.30"
+    "@types/node": "npm:^22.15.31"
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"
     "@types/sqlite3": "npm:^3.1.11"
     "@types/ws": "npm:^8.5.14"
-    "@vercel/analytics": "npm:^1.4.1"
     algoliasearch: "npm:^4.24.0"
     autoprefixer: "npm:^10.4.20"
     clsx: "npm:^2.1.1"
@@ -9049,7 +9048,6 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/react": "npm:^18.3.18"
-    lodash.isequal: "npm:^4.5.0"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     tldraw: "workspace:*"
@@ -9124,7 +9122,6 @@ __metadata:
     jest-canvas-mock: "npm:^2.5.2"
     jest-environment-jsdom: "npm:^29.7.0"
     lazyrepo: "npm:0.0.0-alpha.27"
-    lodash.isequal: "npm:^4.5.0"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     resize-observer-polyfill: "npm:^1.5.1"
@@ -9151,7 +9148,7 @@ __metadata:
     "@types/aws-lambda": "npm:8.10.148"
     "@types/glob": "npm:^8.1.0"
     "@types/jest": "npm:^29.5.14"
-    "@types/node": "npm:~20.11.30"
+    "@types/node": "npm:^22.15.31"
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"
     "@types/semver": "npm:^7.5.8"
@@ -9201,7 +9198,7 @@ __metadata:
     "@types/diff": "npm:^7.0.1"
     "@types/is-ci": "npm:^3.0.4"
     "@types/minimist": "npm:^1.2.5"
-    "@types/node": "npm:~20.11.30"
+    "@types/node": "npm:^22.15.31"
     "@types/proper-lockfile": "npm:^4.1.4"
     "@types/tmp": "npm:^0.2.6"
     "@typescript-eslint/utils": "npm:^8.21.0"
@@ -9267,9 +9264,7 @@ __metadata:
     "@peculiar/webcrypto": "npm:^1.5.0"
     "@tldraw/state": "workspace:*"
     "@tldraw/utils": "workspace:*"
-    "@types/lodash.isequal": "npm:^4.5.8"
     lazyrepo: "npm:0.0.0-alpha.27"
-    lodash.isequal: "npm:^4.5.0"
     raf: "npm:^3.4.1"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
@@ -9286,7 +9281,6 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     "@types/react": "npm:^18.3.18"
     "@types/uuid-readable": "npm:^0.0.3"
-    lodash.isequal: "npm:^4.5.0"
     nanoevents: "npm:^7.0.1"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
@@ -9310,7 +9304,6 @@ __metadata:
     "@tldraw/sync-core": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@types/react": "npm:^18.3.18"
-    lodash.isequal: "npm:^4.5.0"
     nanoevents: "npm:^7.0.1"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
@@ -9362,11 +9355,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/utils@workspace:packages/utils"
   dependencies:
+    "@types/lodash.isequal": "npm:^4.5.8"
+    "@types/lodash.isequalwith": "npm:^4.4.9"
     "@types/lodash.throttle": "npm:^4.1.9"
     "@types/lodash.uniq": "npm:^4.5.9"
     fractional-indexing-jittered: "npm:^0.9.1"
     jest-environment-jsdom: "npm:^29.7.0"
     lazyrepo: "npm:0.0.0-alpha.27"
+    lodash.isequal: "npm:^4.5.0"
+    lodash.isequalwith: "npm:^4.4.0"
     lodash.throttle: "npm:^4.1.1"
     lodash.uniq: "npm:^4.5.0"
   languageName: unknown
@@ -9378,7 +9375,6 @@ __metadata:
   dependencies:
     "@tldraw/utils": "workspace:*"
     lazyrepo: "npm:0.0.0-alpha.27"
-    lodash.isequal: "npm:^4.5.0"
   languageName: unknown
   linkType: soft
 
@@ -9388,7 +9384,7 @@ __metadata:
   dependencies:
     "@tldraw/assets": "workspace:*"
     "@types/fs-extra": "npm:^11.0.4"
-    "@types/node": "npm:~20.11.30"
+    "@types/node": "npm:^22.15.31"
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"
     "@types/react-router-dom": "npm:^5.3.3"
@@ -9913,6 +9909,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/lodash.isequalwith@npm:^4.4.9":
+  version: 4.4.9
+  resolution: "@types/lodash.isequalwith@npm:4.4.9"
+  dependencies:
+    "@types/lodash": "npm:*"
+  checksum: 10/233580e3bb72a482c0deb5f40cc0e4585d2fec5b3eedbbb6b2b7b19f35ceb29efb6cb374209780280f9961104dacf469d3a41011e350b0cfd3dc70ff431685d7
+  languageName: node
+  linkType: hard
+
 "@types/lodash.pick@npm:^4.4.9":
   version: 4.4.9
   resolution: "@types/lodash.pick@npm:4.4.9"
@@ -10034,37 +10039,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:14 || 16 || 17 || 18 || 20 || 22, @types/node@npm:>=13.7.0":
-  version: 22.13.10
-  resolution: "@types/node@npm:22.13.10"
+"@types/node@npm:22.15.31":
+  version: 22.15.31
+  resolution: "@types/node@npm:22.15.31"
   dependencies:
-    undici-types: "npm:~6.20.0"
-  checksum: 10/57dc6a5e0110ca9edea8d7047082e649fa7fa813f79e4a901653b9174141c622f4336435648baced5b38d9f39843f404fa2d8d7a10981610da26066bc8caab48
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:16.18.11":
-  version: 16.18.11
-  resolution: "@types/node@npm:16.18.11"
-  checksum: 10/d7dbcee9dfe94b3676aff733d144fe6c1872375c1ac16322f930cb018fe99f67d71764bede566dd3314c0294f7f67e7ad93643bad5667ede859c137d918600b7
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^18.11.18":
-  version: 18.19.6
-  resolution: "@types/node@npm:18.19.6"
-  dependencies:
-    undici-types: "npm:~5.26.4"
-  checksum: 10/6168abff930fe7666b81a130032b459b72d5de9d254e2b211027d18d9eab80f653f43b7a8f083429a43e0527174ec70bbcd0010abb935d91f2d518b7554b7cab
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:~20.11.30":
-  version: 20.11.30
-  resolution: "@types/node@npm:20.11.30"
-  dependencies:
-    undici-types: "npm:~5.26.4"
-  checksum: 10/78515bc768d2b878e2e06a1c20eb4f5840072b79b8d28ff3dd0a7feaaf48fd3a2ac03cfa5bc7564da82db5906b43e9ba0e5df9f43d870b7aae2942306e208815
+    undici-types: "npm:~6.21.0"
+  checksum: 10/999da153fae4687c416421850ebd3c94be75e0dae27ccad192d9a073c7e74baade987d68fc9f082a825c4672bd8a26867636663baad0b9e851baf7b36fb9fdd9
   languageName: node
   linkType: hard
 
@@ -10551,36 +10531,6 @@ __metadata:
   peerDependencies:
     react: ">= 16.8.0"
   checksum: 10/2c01c1b73bbdeecb9d51370f9117418953accad6789818e1b50f505dcba9e38685612b3fcb25a5dfcbf3a10ae561506378f5ab7586c773c4485ef86107d53898
-  languageName: node
-  linkType: hard
-
-"@vercel/analytics@npm:^1.4.1":
-  version: 1.4.1
-  resolution: "@vercel/analytics@npm:1.4.1"
-  peerDependencies:
-    "@remix-run/react": ^2
-    "@sveltejs/kit": ^1 || ^2
-    next: ">= 13"
-    react: ^18 || ^19 || ^19.0.0-rc
-    svelte: ">= 4"
-    vue: ^3
-    vue-router: ^4
-  peerDependenciesMeta:
-    "@remix-run/react":
-      optional: true
-    "@sveltejs/kit":
-      optional: true
-    next:
-      optional: true
-    react:
-      optional: true
-    svelte:
-      optional: true
-    vue:
-      optional: true
-    vue-router:
-      optional: true
-  checksum: 10/c28e6824cccc9be7917f88d744492e03189d7b9f840430d90c016956c713bb61b94955ec0181a80177ef96c3b239fd8ebb9e9f3eb715b3bdf76b2630cb405dad
   languageName: node
   linkType: hard
 
@@ -14140,12 +14090,12 @@ __metadata:
     "@tldraw/validate": "workspace:*"
     "@types/lodash.pick": "npm:^4.4.9"
     "@types/md5": "npm:^2.3.5"
-    "@types/node": "npm:~20.11.30"
+    "@types/node": "npm:^22.15.31"
     "@types/qrcode": "npm:^1.5.5"
     "@types/react": "npm:^18.3.18"
     "@types/regexgen": "npm:^1.3.3"
-    "@vercel/analytics": "npm:^1.4.1"
     "@vitejs/plugin-react-swc": "npm:^3.7.2"
+    axe-core: "npm:^4.10.3"
     browser-fs-access: "npm:^0.35.0"
     classnames: "npm:^2.5.1"
     dotenv: "npm:^16.4.7"
@@ -14158,7 +14108,6 @@ __metadata:
     json5: "npm:^2.2.3"
     kysely: "npm:^0.27.5"
     lazyrepo: "npm:0.0.0-alpha.27"
-    lodash.isequal: "npm:^4.5.0"
     lodash.pick: "npm:^4.4.0"
     md5: "npm:^2.3.0"
     pg: "npm:^8.13.1"
@@ -15746,7 +15695,6 @@ __metadata:
     "@tldraw/sync": "workspace:*"
     "@types/lodash": "npm:^4.17.14"
     "@types/react": "npm:^18.3.18"
-    "@vercel/analytics": "npm:^1.4.1"
     "@vitejs/plugin-react-swc": "npm:^3.7.2"
     ag-grid-community: "npm:^32.3.3"
     ag-grid-react: "npm:^32.3.3"
@@ -17562,7 +17510,7 @@ __metadata:
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20250510.0"
     "@tldraw/utils": "workspace:*"
-    "@types/node": "npm:~20.11.30"
+    "@types/node": "npm:^22.15.31"
     discord-api-types: "npm:^0.37.118"
     esbuild: "npm:^0.24.2"
     typescript: "npm:~5.4.5"
@@ -20252,6 +20200,13 @@ __metadata:
   version: 4.5.0
   resolution: "lodash.isequal@npm:4.5.0"
   checksum: 10/82fc58a83a1555f8df34ca9a2cd300995ff94018ac12cc47c349655f0ae1d4d92ba346db4c19bbfc90510764e0c00ddcc985a358bdcd4b3b965abf8f2a48a214
+  languageName: node
+  linkType: hard
+
+"lodash.isequalwith@npm:^4.4.0":
+  version: 4.4.0
+  resolution: "lodash.isequalwith@npm:4.4.0"
+  checksum: 10/5c79d2f64b7eec9e9d337c347a58c8dda2f83f6da9ec8ff83fb1beab3ae87be3a02ac295e9283b6395673bee363039fca7324a6244bbdb7e6a47e0cd872cc36b
   languageName: node
   linkType: hard
 
@@ -27582,7 +27537,6 @@ __metadata:
     jest-canvas-mock: "npm:^2.5.2"
     jest-environment-jsdom: "npm:^29.7.0"
     lazyrepo: "npm:0.0.0-alpha.27"
-    lodash.isequal: "npm:^4.5.0"
     lz-string: "npm:^1.5.0"
     radix-ui: "npm:^1.3.4"
     react: "npm:^18.3.1"
@@ -28394,17 +28348,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~5.26.4":
-  version: 5.26.5
-  resolution: "undici-types@npm:5.26.5"
-  checksum: 10/0097779d94bc0fd26f0418b3a05472410408877279141ded2bd449167be1aed7ea5b76f756562cb3586a07f251b90799bab22d9019ceba49c037c76445f7cddd
-  languageName: node
-  linkType: hard
-
-"undici-types@npm:~6.20.0":
-  version: 6.20.0
-  resolution: "undici-types@npm:6.20.0"
-  checksum: 10/583ac7bbf4ff69931d3985f4762cde2690bb607844c16a5e2fbb92ed312fe4fa1b365e953032d469fa28ba8b224e88a595f0b10a449332f83fa77c695e567dbe
+"undici-types@npm:~6.21.0":
+  version: 6.21.0
+  resolution: "undici-types@npm:6.21.0"
+  checksum: 10/ec8f41aa4359d50f9b59fa61fe3efce3477cc681908c8f84354d8567bb3701fafdddf36ef6bff307024d3feb42c837cf6f670314ba37fc8145e219560e473d14
   languageName: node
   linkType: hard
 

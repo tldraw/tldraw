@@ -77,6 +77,7 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 			body: JSON.stringify({
 				allowContact: true,
 				description: rInput.current.value.trim(),
+				url: `please-be-mindful-${window.location.href}`,
 			} satisfies SubmitFeedbackRequestBody),
 		})
 			.then((r) => {
@@ -148,7 +149,7 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 				/>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
-				<TldrawUiButton type="normal">
+				<TldrawUiButton type="normal" onClick={onClose}>
 					<TldrawUiButtonLabel>
 						<F defaultMessage="Cancel" />
 					</TldrawUiButtonLabel>

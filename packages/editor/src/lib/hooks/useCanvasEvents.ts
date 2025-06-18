@@ -137,7 +137,6 @@ export function useCanvasEvents() {
 						type: 'files',
 						files,
 						point: editor.screenToPage({ x: e.clientX, y: e.clientY }),
-						ignoreParent: false,
 					})
 					return
 				}

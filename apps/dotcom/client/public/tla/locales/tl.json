@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "Lumampas sa limitasyon sa rate, subukang muli sa ibang pagkakataon."
   },
+  "08bd40c754": {
+    "translation": "Account"
+  },
   "0b27918290": {
     "translation": "file"
   },
@@ -185,6 +188,9 @@
   "7b1329f5ca": {
     "translation": "User manual"
   },
+  "7be10fc592": {
+    "translation": "Ibalik ang bersyon"
+  },
   "7cb5f8b4a5": {
     "translation": "Kalimutan"
   },
@@ -318,6 +324,9 @@
   "c87aacf567": {
     "translation": "Mag-sign out"
   },
+  "cbef7ba103": {
+    "translation": "Malapit nang maging read-only ang kwartong ito"
+  },
   "cceaefbc20": {
     "translation": "Ibahagi ang file na ito"
   },
@@ -356,6 +365,9 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
+  },
+  "ea2301d01c": {
+    "translation": "Pagkatapos ng Hulyo 1, 2025, magiging read-only ang anonymous na tldraw multiplayer room na ito. Upang magpatuloy sa pag-edit sa hinaharap mangyaring mag-sign in at kopyahin ito sa iyong mga file."
   },
   "ea4788705e": {
     "translation": "Kanselahin"

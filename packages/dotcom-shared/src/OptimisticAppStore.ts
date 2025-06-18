@@ -1,6 +1,5 @@
 import { atom, computed, react, transact } from '@tldraw/state'
-import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
-import isEqual from 'lodash.isequal'
+import { assert, assertExists, exhaustiveSwitchError, isEqual } from '@tldraw/utils'
 import { schema } from './tlaSchema'
 import { ZRowUpdate, ZStoreData } from './types'
 

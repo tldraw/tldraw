@@ -96,8 +96,7 @@ export class FontManager {
 			},
 			{
 				areResultsEqual: areArraysShallowEqual,
-				// @ts-expect-error
-				areRecordsEqual: (a, b) => a.props.richText === b.props.richText,
+				areRecordsEqual: (a, b) => a.props === b.props && a.meta === b.meta,
 			}
 		)
 
