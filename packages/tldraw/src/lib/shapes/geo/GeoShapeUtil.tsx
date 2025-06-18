@@ -234,7 +234,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			this.editor,
 		])
 
-		const { size, dash } = shape.props
+		const { size, dash, scale } = shape.props
 		const strokeWidth = STROKE_SIZES[size]
 
 		const path = getGeoShapePath(shape)
@@ -245,7 +245,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			passes: 1,
 			randomSeed: shape.id,
 			offset: 0,
-			roundness: strokeWidth * 2,
+			roundness: strokeWidth * 2 * scale,
 			props: { strokeWidth: undefined },
 			forceSolid: isZoomedOut,
 		})
