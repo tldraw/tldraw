@@ -28,6 +28,7 @@ import {
 	heyDrawShape,
 	manAsset,
 	manCrop,
+	manCropAsCircle,
 	richText,
 } from './export-snapshots-data'
 import test, { ApiFixture } from './fixtures/fixtures'
@@ -58,6 +59,18 @@ const snapshots: Snapshots = {
 					w={300}
 					h={300}
 				/>
+			),
+			'overflowing text with small scale': (
+				<TL.geo
+					dash="solid"
+					richText={toRichText('\n\n\n\n\n\ntext')}
+					w={100}
+					h={30}
+					scale={0.25}
+				/>
+			),
+			'overflowing text with large scale': (
+				<TL.geo dash="solid" richText={toRichText('\n\n\n\n\n\ntext')} w={200} h={30} scale={2} />
 			),
 			'rich text': <TL.geo dash="solid" richText={richText} align="start" w={300} h={300} />,
 		},
@@ -213,6 +226,9 @@ const snapshots: Snapshots = {
 			flipX: <TL.image w={100} h={100} assetId={manAsset} flipX crop={manCrop} />,
 			flipY: <TL.image w={100} h={100} assetId={manAsset} flipY crop={manCrop} />,
 			flipXY: <TL.image w={100} h={100} assetId={manAsset} flipX flipY crop={manCrop} />,
+			withCircle: (
+				<TL.image w={100} h={100} assetId={manAsset} flipX flipY crop={manCropAsCircle} />
+			),
 			rotated: (
 				<TL.image
 					w={100}

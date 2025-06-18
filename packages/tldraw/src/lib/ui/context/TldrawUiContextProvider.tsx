@@ -1,10 +1,14 @@
 import { RecursivePartial, defaultUserPreferences, track, useMaybeEditor } from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { TLUiAssetUrls, useDefaultUiAssetUrlsWithOverrides } from '../assetUrls'
-import { MimeTypeContext } from '../hooks/useInsertMedia'
 import { ToolsProvider } from '../hooks/useTools'
 import { TldrawUiTranslationProvider } from '../hooks/useTranslation/useTranslation'
-import { TLUiOverrides, useMergedOverrides, useMergedTranslationOverrides } from '../overrides'
+import {
+	MimeTypeContext,
+	TLUiOverrides,
+	useMergedOverrides,
+	useMergedTranslationOverrides,
+} from '../overrides'
 import { TldrawUiA11yProvider } from './a11y'
 import { ActionsProvider } from './actions'
 import { AssetUrlsProvider } from './asset-urls'

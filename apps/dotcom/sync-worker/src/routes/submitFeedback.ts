@@ -18,15 +18,20 @@ export async function submitFeedback(req: IRequest, env: Environment) {
 	}
 	let description: string
 	let allowContact: boolean
+	let url: string
 	try {
 		const data = (await req.json()) as SubmitFeedbackRequestBody
 		description = data.description?.trim()
 		allowContact = data.allowContact
+		url = data.url
 		if (typeof description !== 'string') {
 			throw new Error('Invalid description')
 		}
 		if (typeof allowContact !== 'boolean') {
 			throw new Error('Invalid allowContact')
+		}
+		if (typeof url !== 'string') {
+			throw new Error('Invalid url')
 		}
 	} catch (_e) {
 		return new Response('Invalid JSON', { status: 400 })
@@ -42,7 +47,7 @@ export async function submitFeedback(req: IRequest, env: Environment) {
 				? undefined
 				: [
 						{
-							description,
+							description: `${description}\n\nURL: ${url}`,
 						},
 					],
 	}

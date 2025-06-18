@@ -8979,7 +8979,7 @@ __metadata:
     "@types/broken-link-checker": "npm:^0.7.3"
     "@types/js-cookie": "npm:^3.0.6"
     "@types/mdast": "npm:^4.0.4"
-    "@types/node": "npm:~20.11.30"
+    "@types/node": "npm:^22.15.31"
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"
     "@types/sqlite3": "npm:^3.1.11"
@@ -9148,7 +9148,7 @@ __metadata:
     "@types/aws-lambda": "npm:8.10.148"
     "@types/glob": "npm:^8.1.0"
     "@types/jest": "npm:^29.5.14"
-    "@types/node": "npm:~20.11.30"
+    "@types/node": "npm:^22.15.31"
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"
     "@types/semver": "npm:^7.5.8"
@@ -9198,7 +9198,7 @@ __metadata:
     "@types/diff": "npm:^7.0.1"
     "@types/is-ci": "npm:^3.0.4"
     "@types/minimist": "npm:^1.2.5"
-    "@types/node": "npm:~20.11.30"
+    "@types/node": "npm:^22.15.31"
     "@types/proper-lockfile": "npm:^4.1.4"
     "@types/tmp": "npm:^0.2.6"
     "@typescript-eslint/utils": "npm:^8.21.0"
@@ -9384,7 +9384,7 @@ __metadata:
   dependencies:
     "@tldraw/assets": "workspace:*"
     "@types/fs-extra": "npm:^11.0.4"
-    "@types/node": "npm:~20.11.30"
+    "@types/node": "npm:^22.15.31"
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"
     "@types/react-router-dom": "npm:^5.3.3"
@@ -10039,37 +10039,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:14 || 16 || 17 || 18 || 20 || 22, @types/node@npm:>=13.7.0":
-  version: 22.13.10
-  resolution: "@types/node@npm:22.13.10"
+"@types/node@npm:22.15.31":
+  version: 22.15.31
+  resolution: "@types/node@npm:22.15.31"
   dependencies:
-    undici-types: "npm:~6.20.0"
-  checksum: 10/57dc6a5e0110ca9edea8d7047082e649fa7fa813f79e4a901653b9174141c622f4336435648baced5b38d9f39843f404fa2d8d7a10981610da26066bc8caab48
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:16.18.11":
-  version: 16.18.11
-  resolution: "@types/node@npm:16.18.11"
-  checksum: 10/d7dbcee9dfe94b3676aff733d144fe6c1872375c1ac16322f930cb018fe99f67d71764bede566dd3314c0294f7f67e7ad93643bad5667ede859c137d918600b7
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^18.11.18":
-  version: 18.19.6
-  resolution: "@types/node@npm:18.19.6"
-  dependencies:
-    undici-types: "npm:~5.26.4"
-  checksum: 10/6168abff930fe7666b81a130032b459b72d5de9d254e2b211027d18d9eab80f653f43b7a8f083429a43e0527174ec70bbcd0010abb935d91f2d518b7554b7cab
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:~20.11.30":
-  version: 20.11.30
-  resolution: "@types/node@npm:20.11.30"
-  dependencies:
-    undici-types: "npm:~5.26.4"
-  checksum: 10/78515bc768d2b878e2e06a1c20eb4f5840072b79b8d28ff3dd0a7feaaf48fd3a2ac03cfa5bc7564da82db5906b43e9ba0e5df9f43d870b7aae2942306e208815
+    undici-types: "npm:~6.21.0"
+  checksum: 10/999da153fae4687c416421850ebd3c94be75e0dae27ccad192d9a073c7e74baade987d68fc9f082a825c4672bd8a26867636663baad0b9e851baf7b36fb9fdd9
   languageName: node
   linkType: hard
 
@@ -14115,11 +14090,12 @@ __metadata:
     "@tldraw/validate": "workspace:*"
     "@types/lodash.pick": "npm:^4.4.9"
     "@types/md5": "npm:^2.3.5"
-    "@types/node": "npm:~20.11.30"
+    "@types/node": "npm:^22.15.31"
     "@types/qrcode": "npm:^1.5.5"
     "@types/react": "npm:^18.3.18"
     "@types/regexgen": "npm:^1.3.3"
     "@vitejs/plugin-react-swc": "npm:^3.7.2"
+    axe-core: "npm:^4.10.3"
     browser-fs-access: "npm:^0.35.0"
     classnames: "npm:^2.5.1"
     dotenv: "npm:^16.4.7"
@@ -17534,7 +17510,7 @@ __metadata:
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20250510.0"
     "@tldraw/utils": "workspace:*"
-    "@types/node": "npm:~20.11.30"
+    "@types/node": "npm:^22.15.31"
     discord-api-types: "npm:^0.37.118"
     esbuild: "npm:^0.24.2"
     typescript: "npm:~5.4.5"
@@ -28372,17 +28348,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~5.26.4":
-  version: 5.26.5
-  resolution: "undici-types@npm:5.26.5"
-  checksum: 10/0097779d94bc0fd26f0418b3a05472410408877279141ded2bd449167be1aed7ea5b76f756562cb3586a07f251b90799bab22d9019ceba49c037c76445f7cddd
-  languageName: node
-  linkType: hard
-
-"undici-types@npm:~6.20.0":
-  version: 6.20.0
-  resolution: "undici-types@npm:6.20.0"
-  checksum: 10/583ac7bbf4ff69931d3985f4762cde2690bb607844c16a5e2fbb92ed312fe4fa1b365e953032d469fa28ba8b224e88a595f0b10a449332f83fa77c695e567dbe
+"undici-types@npm:~6.21.0":
+  version: 6.21.0
+  resolution: "undici-types@npm:6.21.0"
+  checksum: 10/ec8f41aa4359d50f9b59fa61fe3efce3477cc681908c8f84354d8567bb3701fafdddf36ef6bff307024d3feb42c837cf6f670314ba37fc8145e219560e473d14
   languageName: node
   linkType: hard
 

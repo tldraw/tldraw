@@ -74,6 +74,9 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 	}
 
 	// TODO: probably combine tl-text and tl-arrow eventually
+	// In case you're grepping for this, it breaks down as follows:
+	// tl-text-label, tl-text-label__inner, tl-text-shape-label, tl-text
+	// tl-arrow-label, tl-arrow-label__inner, tl-arrow
 	const cssPrefix = classNamePrefix || 'tl-text'
 	return (
 		<div

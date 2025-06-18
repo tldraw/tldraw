@@ -174,6 +174,7 @@ export {
 } from './lib/editor/managers/SnapManager/SnapManager'
 export {
 	TextManager,
+	type TLMeasureTextOpts,
 	type TLMeasureTextSpanOpts,
 } from './lib/editor/managers/TextManager/TextManager'
 export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesManager/UserPreferencesManager'
@@ -252,6 +253,7 @@ export {
 	type TLExternalContent,
 	type TLExternalContentSource,
 	type TLFileExternalAsset,
+	type TLFileReplaceExternalContent,
 	type TLFilesExternalContent,
 	type TLSvgTextExternalContent,
 	type TLTextExternalContent,

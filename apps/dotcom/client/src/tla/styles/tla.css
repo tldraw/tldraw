@@ -286,6 +286,15 @@
 	outline: 2px solid var(--color-focus);
 }
 
+/** We use tldraw components in some places, and menu sub-groups with checkbox items are also here. */
+.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
+	:is(.tlui-menu, .tlui-menu__group)
+	.tlui-button__menu:focus-visible {
+	border-radius: 10px;
+	outline: 2px solid var(--color-focus);
+	outline-offset: -5px;
+}
+
 /** Checkbox */
 .tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
 	:is(nav, .tlui-popover__content, .tlui-dialog__overlay)

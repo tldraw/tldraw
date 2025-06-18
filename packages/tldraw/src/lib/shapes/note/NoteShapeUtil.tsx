@@ -8,7 +8,6 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
-	TLFontFace,
 	TLHandle,
 	TLNoteShape,
 	TLNoteShapeProps,
@@ -227,7 +226,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return renderPlaintextFromRichText(this.editor, shape.props.richText)
 	}
 
-	override getFontFaces(shape: TLNoteShape): TLFontFace[] {
+	override getFontFaces(shape: TLNoteShape) {
 		if (isEmptyRichText(shape.props.richText)) {
 			return EMPTY_ARRAY
 		}
@@ -346,7 +345,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				richText={shape.props.richText}
 				labelColor={theme[shape.props.color].note.text}
 				bounds={bounds}
-				padding={LABEL_PADDING * shape.props.scale}
+				padding={LABEL_PADDING}
 			/>
 		)
 
@@ -446,6 +445,7 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 			fontSize: fontSizeAdjustment,
 			maxWidth: NOTE_SIZE - LABEL_PADDING * 2 - FUZZ,
 			disableOverflowWrapBreaking: true,
+			measureScrollWidth: true,
 		})
 
 		labelHeight = nextTextSize.h + LABEL_PADDING * 2

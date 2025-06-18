@@ -1,5 +1,5 @@
 import { AlertDialog as _AlertDialog } from 'radix-ui'
-import { Dispatch, createContext, useContext, useState } from 'react'
+import { Dispatch, createContext, useContext, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Example, examples } from './examples'
 
@@ -31,7 +31,21 @@ export function ExamplePage({
 	const [filterValue, setFilterValue] = useState('')
 	const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFilterValue(e.target.value)
+		history.replaceState(
+			{},
+			'',
+			e.target.value ? `/?filter=${encodeURIComponent(e.target.value)}` : '/'
+		)
 	}
+
+	useEffect(() => {
+		const urlParams = new URLSearchParams(window.location.search)
+		const filter = urlParams.get('filter')
+		if (filter) {
+			setFilterValue(decodeURIComponent(filter))
+		}
+	}, [])
+
 	return (
 		<DialogContextProvider>
 			<div className="example">
