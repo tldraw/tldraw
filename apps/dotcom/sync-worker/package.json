@@ -47,7 +47,7 @@
 		"@cloudflare/workers-types": "^4.20250510.0",
 		"@types/pg": "^8.11.11",
 		"@types/react": "^18.3.18",
-		"esbuild": "^0.24.2",
+		"esbuild": "^0.25.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "~5.4.5",
 		"wrangler": "^4.14.4"
