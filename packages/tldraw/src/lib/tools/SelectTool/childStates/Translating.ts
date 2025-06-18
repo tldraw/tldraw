@@ -272,6 +272,7 @@ export class Translating extends StateNode {
 	protected updateShapes() {
 		const { snapshot } = this
 
+		// We should have started already, but hey
 		this.dragAndDropManager.startDraggingShapes(
 			snapshot.movingShapes,
 			this.editor.inputs.originPagePoint,

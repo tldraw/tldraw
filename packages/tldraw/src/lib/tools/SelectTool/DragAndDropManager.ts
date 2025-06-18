@@ -29,12 +29,13 @@ export class DragAndDropManager {
 	initialDraggingIntoShape?: TLShape
 	prevDraggingIntoShape?: TLShape
 
-	timerId = -1
+	intervalTimerId = -1
 
 	startDraggingShapes(movingShapes: TLShape[], point: Vec, cb: () => void) {
 		const { editor } = this
 
-		if (this.timerId !== -1) return
+		// Only start dragging if we're not already dragging
+		if (this.intervalTimerId !== -1) return
 
 		const shapesToActuallyMove = new Set(movingShapes)
 		const movingGroups = new Set<TLGroupShape>()
@@ -90,7 +91,7 @@ export class DragAndDropManager {
 
 		// then once on an interval, skipping frames if moving quickly
 		let skip2of3FramesWhileMovingFast = 0
-		this.timerId = this.editor.timers.setInterval(
+		this.intervalTimerId = this.editor.timers.setInterval(
 			() => {
 				skip2of3FramesWhileMovingFast++
 				if (skip2of3FramesWhileMovingFast % 3 && this.editor.inputs.pointerVelocity.len() > 0.5)
@@ -133,9 +134,9 @@ export class DragAndDropManager {
 	}
 
 	clear() {
-		if (this.timerId) {
-			clearInterval(this.timerId)
-			this.timerId = -1
+		if (this.intervalTimerId) {
+			clearInterval(this.intervalTimerId)
+			this.intervalTimerId = -1
 		}
 
 		this.initialParentIds.clear()
