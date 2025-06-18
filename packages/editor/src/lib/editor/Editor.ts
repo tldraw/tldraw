@@ -6211,11 +6211,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	duplicateShapes(shapes: TLShapeId[] | TLShape[], offset?: VecLike): this {
 		this.run(() => {
-			const ids =
+			const _ids =
 				typeof shapes[0] === 'string'
 					? (shapes as TLShapeId[])
 					: (shapes as TLShape[]).map((s) => s.id)
 
+			const ids = this._shouldIgnoreShapeLock ? _ids : this._getUnlockedShapeIds(_ids)
 			if (ids.length <= 0) return this
 
 			const initialIds = new Set(ids)
