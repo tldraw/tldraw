@@ -272,7 +272,6 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			{(altText || !isReadonly) && (
 				<TldrawUiButton
 					type="normal"
-					isActive={!!altText}
 					title={msg('tool.media-alt-text')}
 					onClick={() => {
 						trackEvent('alt-text-start', { source })
