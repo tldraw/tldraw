@@ -24,7 +24,6 @@ export class Idle extends StateNode {
 	}
 
 	override onExit() {
-		this.editor.setCroppingShape(null)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
