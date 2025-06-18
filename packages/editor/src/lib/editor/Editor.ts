@@ -2128,7 +2128,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 * @public
 	 */
-	@computed getSelectionScreenBounds(): Box | undefined {
+	getSelectionScreenBounds(): Box | undefined {
 		const bounds = this.getSelectionPageBounds()
 		if (!bounds) return undefined
 		const { x, y } = this.pageToScreen(bounds.point)
