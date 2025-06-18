@@ -656,7 +656,7 @@ export class Drawing extends StateNode {
 						},
 					])
 
-					const shape = this.editor.getShape<DrawableShape>(newShapeId)!
+					const shape = this.editor.getShape<DrawableShape>(newShapeId)
 
 					if (!shape) {
 						// This would only happen if the page is full and no more shapes can be created. The bug would manifest as a crash when we try to clone the shape.
