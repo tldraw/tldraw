@@ -59,6 +59,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			children,
 			value,
 			'data-testid': dataTestId,
+			disabled,
 		},
 		ref
 	) {
@@ -200,6 +201,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 					placeholder={placeholder}
 					value={value}
 					data-testid={dataTestId}
+					disabled={disabled}
 				/>
 				{icon && (
 					<TldrawUiIcon label={iconLabel ? msg(iconLabel) : ''} icon={icon} small={!!label} />
