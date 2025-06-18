@@ -110,8 +110,11 @@ export class LicenseManager {
 		if (testEnvironment === 'development') return true
 		if (testEnvironment === 'production') return false
 
-		// If we are using https we assume it's a production env and a development one otherwise
-		return window.location.protocol !== 'https:'
+		// If we are using https on a non-localhost domain we assume it's a production env and a development one otherwise
+		return (
+			!['https:', 'vscode-webview:'].includes(window.location.protocol) ||
+			window.location.hostname === 'localhost'
+		)
 	}
 
 	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {
@@ -248,6 +251,15 @@ export class LicenseManager {
 			if (host.includes('*')) {
 				const globToRegex = new RegExp(host.replace(/\*/g, '.*?'))
 				return globToRegex.test(currentHostname) || globToRegex.test(`www.${currentHostname}`)
+			}
+
+			// VSCode support
+			if (window.location.protocol === 'vscode-webview:') {
+				const currentUrl = new URL(window.location.href)
+				const extensionId = currentUrl.searchParams.get('extensionId')
+				if (normalizedHost === extensionId) {
+					return true
+				}
 			}
 
 			return false

@@ -1,7 +1,7 @@
 import { TldrawUiMenuGroup, TldrawUiMenuItem } from 'tldraw'
 import { useOpenUrlAndTrack } from '../hooks/useOpenUrlAndTrack'
 
-export function Links() {
+export function LegacyLinks() {
 	const openAndTrack = useOpenUrlAndTrack('main-menu')
 
 	return (
@@ -10,7 +10,6 @@ export function Links() {
 				<TldrawUiMenuItem
 					id="about"
 					label="help-menu.terms"
-					icon="external-link"
 					readonlyOk
 					onSelect={() => {
 						openAndTrack(
@@ -21,7 +20,6 @@ export function Links() {
 				<TldrawUiMenuItem
 					id="about"
 					label="help-menu.privacy"
-					icon="external-link"
 					readonlyOk
 					onSelect={() => {
 						openAndTrack(
@@ -34,10 +32,11 @@ export function Links() {
 				<TldrawUiMenuItem
 					id="about"
 					label="help-menu.about"
-					icon="external-link"
 					readonlyOk
 					onSelect={() => {
-						openAndTrack('https://tldraw.dev')
+						openAndTrack(
+							'https://tldraw.dev/?utm_source=dotcom&utm_medium=organic&utm_campaign=learn-more'
+						)
 					}}
 				/>
 			</TldrawUiMenuGroup>

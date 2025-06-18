@@ -17,13 +17,26 @@ import { nicelog } from './lib/nicelog'
 const PUBLIC_FOLDER_PATHS = [join(REPO_ROOT, 'packages', 'assets')]
 
 const FONT_MAPPING: Record<string, string> = {
-	'IBMPlexMono-Medium': 'monospace',
-	'IBMPlexSerif-Medium': 'serif',
-	'IBMPlexSans-Medium': 'sansSerif',
-	'Shantell_Sans-Tldrawish': 'draw',
+	'IBMPlexMono-Medium': 'tldraw_mono',
+	'IBMPlexMono-MediumItalic': 'tldraw_mono_italic',
+	'IBMPlexMono-Bold': 'tldraw_mono_bold',
+	'IBMPlexMono-BoldItalic': 'tldraw_mono_italic_bold',
+	'IBMPlexSerif-Medium': 'tldraw_serif',
+	'IBMPlexSerif-MediumItalic': 'tldraw_serif_italic',
+	'IBMPlexSerif-Bold': 'tldraw_serif_bold',
+	'IBMPlexSerif-BoldItalic': 'tldraw_serif_italic_bold',
+	'IBMPlexSans-Medium': 'tldraw_sans',
+	'IBMPlexSans-MediumItalic': 'tldraw_sans_italic',
+	'IBMPlexSans-Bold': 'tldraw_sans_bold',
+	'IBMPlexSans-BoldItalic': 'tldraw_sans_italic_bold',
+	'Shantell_Sans-Informal_Regular': 'tldraw_draw',
+	'Shantell_Sans-Informal_Regular_Italic': 'tldraw_draw_italic',
+	'Shantell_Sans-Informal_Bold': 'tldraw_draw_bold',
+	'Shantell_Sans-Informal_Bold_Italic': 'tldraw_draw_italic_bold',
 }
 
 const ASSETS_FOLDER_PATH = join(REPO_ROOT, 'assets')
+const DOTCOM_FOLDER_PATH = join(REPO_ROOT, 'apps', 'dotcom')
 
 const collectedAssetUrls: Record<
 	'fonts' | 'icons' | 'translations' | 'embedIcons',
@@ -35,25 +48,14 @@ const collectedAssetUrls: Record<
 	embedIcons: {},
 }
 
-const mergedIconName = '0_merged.svg'
-// this is how `svgo` starts each one of our optimized icon SVGs. if they don't all start with this,
-// we can't merge them as it means they're of different size and are using different fill rules.
-const mergedIconHeader =
-	'<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="none">'
 const mergedIconFooter = '</svg>'
 
-// 1. ICONS
-async function copyIcons() {
-	// Get a list of all icons
-	const icons = readdirSync(join(ASSETS_FOLDER_PATH, 'icons', 'icon')).filter((icon) =>
-		icon.endsWith('.svg')
-	)
-
-	// Write list of names into icon-names.json (just the name, not extension)
-	const iconNames = icons.map((name) => name.replace('.svg', ''))
-
-	const sourceFolderPath = join(ASSETS_FOLDER_PATH, 'icons', 'icon')
-
+function optimizeAndMergeSvgs(
+	icons: string[],
+	sourceFolderPath: string,
+	mergedIconName: string,
+	mergedIconHeader: string
+) {
 	// Create the optimized SVGs
 	const optimizedSvgs = icons.map((icon) => {
 		const iconPath = join(sourceFolderPath, icon)
@@ -86,11 +88,35 @@ async function copyIcons() {
 	mergedSvgParts.push(mergedIconFooter)
 	const mergedSvg = optimize(mergedSvgParts.join('\n')).data
 	optimizedSvgs.push({ fileName: mergedIconName, data: mergedSvg })
+	return optimizedSvgs
+}
+
+// 1. ICONS
+async function copyIcons() {
+	const sourceFolderPath = join(ASSETS_FOLDER_PATH, 'icons', 'icon')
+	const mergedIconName = '0_merged.svg'
+
+	// this is how `svgo` starts each one of our optimized icon SVGs. if they don't all start with this,
+	// we can't merge them as it means they're of different size and are using different fill rules.
+	const mergedIconHeader =
+		'<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="none">'
+
+	// Get a list of all icons
+	const icons = readdirSync(sourceFolderPath).filter((icon) => icon.endsWith('.svg'))
+	// Write list of names into icon-names.json (just the name, not extension)
+	const iconNames = icons.map((name) => name.replace('.svg', ''))
+
+	const optimizedSvgs = optimizeAndMergeSvgs(
+		icons,
+		sourceFolderPath,
+		mergedIconName,
+		mergedIconHeader
+	)
 
 	// Optimize all of the svg icons and write them into the new folders
 	for (const folderPath of PUBLIC_FOLDER_PATHS) {
 		const publicIconsRootFolderPath = join(folderPath, 'icons')
-		const pulicIconsFolderPath = join(publicIconsRootFolderPath, 'icon')
+		const publicIconsFolderPath = join(publicIconsRootFolderPath, 'icon')
 
 		if (existsSync(publicIconsRootFolderPath)) {
 			rmSync(publicIconsRootFolderPath, { recursive: true })
@@ -98,15 +124,15 @@ async function copyIcons() {
 
 		// Create the folders
 		mkdirSync(publicIconsRootFolderPath, { recursive: true })
-		mkdirSync(pulicIconsFolderPath, { recursive: true })
+		mkdirSync(publicIconsFolderPath, { recursive: true })
 
 		// Copy each optimized icons into the new folder
 		for (const { fileName, data } of optimizedSvgs) {
-			await writeStringFile(join(pulicIconsFolderPath, fileName), data)
+			await writeStringFile(join(publicIconsFolderPath, fileName), data)
 		}
 
 		// Write the JSON file containing all of the names of the icons
-		await writeJsonFile(join(pulicIconsFolderPath, 'icon-names.json'), iconNames)
+		await writeJsonFile(join(publicIconsFolderPath, 'icon-names.json'), iconNames)
 	}
 
 	// Get the names of all of the svg icons and create a TypeScript file of valid icon names
@@ -133,6 +159,36 @@ async function copyIcons() {
 		collectedAssetUrls.icons[name] = {
 			file: `icons/icon/${mergedIconName}`,
 			hash: name,
+		}
+	}
+}
+
+async function optimizeAndMergeDotcomIcons() {
+	const sourceFolderPath = join(DOTCOM_FOLDER_PATH, 'client', 'assets', 'icons', 'icon')
+	const mergedIconName = '0_merged_tla.svg'
+
+	// this is how `svgo` starts each one of our optimized icon SVGs. if they don't all start with this,
+	// we can't merge them as it means they're of different size and are using different fill rules.
+	const mergedIconHeader =
+		'<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none">'
+
+	// Get a list of all icons
+	const icons = readdirSync(sourceFolderPath).filter((icon) => /icon-.*\.svg$/.test(icon))
+
+	const optimizedSvgs = optimizeAndMergeSvgs(
+		icons,
+		sourceFolderPath,
+		mergedIconName,
+		mergedIconHeader
+	)
+
+	const mergedIconPath = join(DOTCOM_FOLDER_PATH, 'client', 'src', 'assets')
+
+	for (const { fileName, data } of optimizedSvgs) {
+		if (fileName.includes(mergedIconName)) {
+			await writeStringFile(join(mergedIconPath, fileName), data)
+		} else {
+			await writeStringFile(join(sourceFolderPath, fileName), data)
 		}
 	}
 }
@@ -656,6 +712,8 @@ class CodeFunction extends Code {
 async function main() {
 	nicelog('Copying icons...')
 	await copyIcons()
+	nicelog('Copying dotcom icons...')
+	await optimizeAndMergeDotcomIcons()
 	nicelog('Copying embed icons...')
 	await copyEmbedIcons()
 	nicelog('Copying fonts...')

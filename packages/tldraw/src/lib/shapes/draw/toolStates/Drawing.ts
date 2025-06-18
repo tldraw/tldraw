@@ -17,7 +17,9 @@ import {
 	toFixed,
 	uniqueId,
 } from '@tldraw/editor'
+import { HighlightShapeUtil } from '../../highlight/HighlightShapeUtil'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
+import { DrawShapeUtil } from '../DrawShapeUtil'
 
 type DrawableShape = TLDrawShape | TLHighlightShape
 
@@ -30,7 +32,7 @@ export class Drawing extends StateNode {
 
 	override shapeType = this.parent.id === 'highlight' ? ('highlight' as const) : ('draw' as const)
 
-	util = this.editor.getShapeUtil(this.shapeType)
+	util = this.editor.getShapeUtil(this.shapeType) as DrawShapeUtil | HighlightShapeUtil
 
 	isPen = false
 	isPenOrStylus = false
@@ -628,7 +630,7 @@ export class Drawing extends StateNode {
 				this.editor.updateShapes([shapePartial])
 
 				// Set a maximum length for the lines array; after 200 points, complete the line.
-				if (newPoints.length > this.editor.options.maxPointsPerDrawShape) {
+				if (newPoints.length > this.util.options.maxPointsPerShape) {
 					this.editor.updateShapes([{ id, type: this.shapeType, props: { isComplete: true } }])
 
 					const newShapeId = createShapeId()
@@ -654,7 +656,15 @@ export class Drawing extends StateNode {
 						},
 					])
 
-					this.initialShape = structuredClone(this.editor.getShape<DrawableShape>(newShapeId)!)
+					const shape = this.editor.getShape<DrawableShape>(newShapeId)
+
+					if (!shape) {
+						// This would only happen if the page is full and no more shapes can be created. The bug would manifest as a crash when we try to clone the shape.
+						// todo: handle this type of thing better
+						return this.cancel()
+					}
+
+					this.initialShape = structuredClone(shape)
 					this.mergeNextPoint = false
 					this.lastRecordedPoint = inputs.currentPagePoint.clone()
 					this.currentLineLength = 0

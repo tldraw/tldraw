@@ -1,5 +1,6 @@
 'use client'
 
+import { track } from '@/app/analytics'
 import { Icon, IconName } from '@/components/common/icon'
 import { cn } from '@/utils/cn'
 import { ArrowLongLeftIcon, ArrowLongRightIcon } from '@heroicons/react/20/solid'
@@ -9,6 +10,7 @@ import { useFormStatus } from 'react-dom'
 import { Loader } from './loader'
 
 export function Button({
+	id,
 	href,
 	newTab,
 	onClick,
@@ -22,9 +24,10 @@ export function Button({
 	darkRingOffset,
 	loading,
 }: {
+	id?: string
 	href?: string
 	newTab?: boolean
-	onClick?: MouseEventHandler<HTMLButtonElement>
+	onClick?: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>
 	submit?: boolean
 	caption: string
 	icon?: IconName
@@ -53,6 +56,8 @@ export function Button({
 			'text-black dark:text-white dark:hover:text-zinc-200 hover:text-zinc-700',
 		className
 	)
+	// no word wrapping
+	const spanClassName = cn('whitespace-nowrap')
 	if (href)
 		return (
 			<Link
@@ -60,19 +65,29 @@ export function Button({
 				target={newTab ? '_blank' : undefined}
 				rel={newTab ? 'noopener noreferrer' : undefined}
 				className={className}
+				onClick={(e) => {
+					onClick?.(e)
+					if (id) track('button', { id })
+				}}
 			>
 				{arrow === 'left' && <ArrowLongLeftIcon className={cn(iconSizes[size])} />}
 				{icon && <Icon icon={icon} className={cn(iconSizes[size])} />}
-				<span>{caption}</span>
+				<span className={spanClassName}>{caption}</span>
 				{arrow === 'right' && <ArrowLongRightIcon className={cn(iconSizes[size])} />}
 			</Link>
 		)
 	if (onClick)
 		return (
-			<button onClick={onClick} className={className}>
+			<button
+				onClick={(e) => {
+					if (id) track('button', { id })
+					onClick?.(e)
+				}}
+				className={className}
+			>
 				{arrow === 'left' && <ArrowLongLeftIcon className={cn(iconSizes[size])} />}
 				{icon && <Icon icon={icon} className={cn(iconSizes[size])} />}
-				<span>{caption}</span>
+				<span className={spanClassName}>{caption}</span>
 				{arrow === 'right' && <ArrowLongRightIcon className={cn(iconSizes[size])} />}
 				{loading && (
 					<div
@@ -90,10 +105,17 @@ export function Button({
 		)
 	if (submit)
 		return (
-			<button type="submit" disabled={pending} className={className}>
+			<button
+				type="submit"
+				disabled={pending}
+				className={className}
+				onClick={() => {
+					if (id) track('button', { id })
+				}}
+			>
 				{arrow === 'left' && <ArrowLongLeftIcon className={cn(iconSizes[size])} />}
 				{icon && <Icon icon={icon} className={cn(iconSizes[size])} />}
-				<span>{caption}</span>
+				<span className={spanClassName}>{caption}</span>
 				{arrow === 'right' && <ArrowLongRightIcon className={cn(iconSizes[size])} />}
 				{(pending || loading) && (
 					<div

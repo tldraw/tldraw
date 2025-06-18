@@ -1,14 +1,16 @@
-import { TlaFileOpenMode } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
+	DefaultDebugMenu,
+	DefaultDebugMenuContent,
 	Editor,
 	TLComponents,
 	TLSessionStateSnapshot,
 	TLUiDialogsContextType,
 	Tldraw,
-	assert,
+	TldrawUiMenuItem,
 	createSessionStateSnapshotSignal,
+	parseDeepLinkString,
 	react,
 	throttle,
 	tltime,
@@ -16,51 +18,73 @@ import {
 	useDialogs,
 	useEditor,
 	useEvent,
+	useValue,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
+import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
+import { useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
-import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useTldrawUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
-import { SneakyDarkModeSync } from './SneakyDarkModeSync'
+import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
-import { TlaEditorKeyboardShortcutsDialog } from './editor-components/TlaEditorKeyboardShortcutsDialog'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
+import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
+import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 /** @internal */
 export const components: TLComponents = {
 	ErrorFallback: TlaEditorErrorFallback,
-	KeyboardShortcutsDialog: TlaEditorKeyboardShortcutsDialog,
 	MenuPanel: TlaEditorMenuPanel,
 	TopPanel: TlaEditorTopPanel,
 	SharePanel: TlaEditorSharePanel,
+	Dialogs: null,
+	Toasts: null,
+	DebugMenu: () => {
+		const app = useMaybeApp()
+		const openAndTrack = useOpenUrlAndTrack('unknown')
+		const editor = useEditor()
+		const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
+		return (
+			<DefaultDebugMenu>
+				<A11yAudit />
+				{!isReadOnly && app && (
+					<TldrawUiMenuItem
+						id="user-manual"
+						label="File history"
+						readonlyOk
+						onSelect={() => {
+							const url = new URL(window.location.href)
+							url.pathname += '/history'
+							openAndTrack(url.toString())
+						}}
+					/>
+				)}
+				<DefaultDebugMenuContent />
+			</DefaultDebugMenu>
+		)
+	},
 }
 
 interface TlaEditorProps {
 	fileSlug: string
-	mode?: TlaFileOpenMode
-	duplicateId?: string
+	isEmbed?: boolean
 	deepLinks?: boolean
 }
 
 export function TlaEditor(props: TlaEditorProps) {
-	if (props.mode === 'duplicate') {
-		assert(props.duplicateId, 'duplicateId is required when mode is duplicate')
-	} else {
-		assert(!props.duplicateId, 'duplicateId is not allowed when mode is not duplicate')
-	}
 	// force re-mount when the file slug changes to prevent state from leaking between files
 	return (
 		<>
@@ -72,7 +96,7 @@ export function TlaEditor(props: TlaEditorProps) {
 	)
 }
 
-function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorProps) {
+function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
 
@@ -91,7 +115,10 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 	// i.e. where it appears that they are not present. so the user knows which ones failed.
 	// There's probably a better way of doing this but I couldn't think of one.
 	const hideAllShapes = useAtom('hideAllShapes', false)
-	const isShapeHidden = useCallback(() => hideAllShapes.get(), [hideAllShapes])
+	const getShapeVisibility = useCallback(
+		() => (hideAllShapes.get() ? 'hidden' : 'inherit'),
+		[hideAllShapes]
+	)
 	const remountImageShapes = useCallback(() => {
 		hideAllShapes.set(true)
 		requestAnimationFrame(() => {
@@ -115,13 +142,19 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 			}
 
 			const fileState = app.getFileState(fileId)
-			if (fileState?.lastSessionState) {
-				editor.loadSnapshot({ session: JSON.parse(fileState.lastSessionState.trim() || 'null') })
+			const deepLink = new URLSearchParams(window.location.search).get('d')
+			if (fileState?.lastSessionState && !deepLink) {
+				editor.loadSnapshot(
+					{ session: JSON.parse(fileState.lastSessionState.trim() || 'null') },
+					{ forceOverwriteSessionState: true }
+				)
+			} else if (deepLink) {
+				editor.navigateToDeepLink(parseDeepLinkString(deepLink))
 			}
 			const sessionState$ = createSessionStateSnapshotSignal(editor.store)
 			const updateSessionState = throttle((state: TLSessionStateSnapshot) => {
 				app.onFileSessionStateUpdate(fileId, state)
-			}, 1000)
+			}, 5000)
 			// don't want to update if they only open the file and didn't look around
 			let firstTime = true
 			const cleanup = react('update session state', () => {
@@ -145,34 +178,40 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 			}).then(setIsReady)
 
 			return () => {
+				updateSessionState.flush()
 				abortController.abort()
 				cleanup()
-				updateSessionState.cancel()
 			}
 		},
 		[addDialog, app, fileId, remountImageShapes, setIsReady]
 	)
 
 	const user = useTldrawUser()
+	const getUserToken = useEvent(async () => {
+		return (await user?.getToken()) ?? 'not-logged-in'
+	})
+	const hasUser = !!user
+	const assets = useMemo(() => {
+		return multiplayerAssetStore(() => fileId)
+	}, [fileId])
 
 	const store = useSync({
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
-			if (user) {
-				url.searchParams.set('accessToken', await user.getToken())
-			}
-			if (mode) {
-				url.searchParams.set('mode', mode)
-				if (mode === 'duplicate') {
-					assert(duplicateId, 'duplicateId is required when mode is duplicate')
-					url.searchParams.set('duplicateId', duplicateId)
-				}
+			if (hasUser) {
+				url.searchParams.set('accessToken', await getUserToken())
 			}
 			return url.toString()
-		}, [fileSlug, user, mode, duplicateId]),
-		assets: multiplayerAssetStore,
+		}, [fileSlug, hasUser, getUserToken]),
+		assets,
 		userInfo: app?.tlUser.userPreferences,
 	})
+
+	// we need to prevent calling onFileExit if the store is in an error state
+	const storeError = useRef(false)
+	if (store.status === 'error') {
+		storeError.current = true
+	}
 
 	// Handle entering and exiting the file, with some protection against rapid enters/exits
 	useEffect(() => {
@@ -201,7 +240,7 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 
 		return () => {
 			clearTimeout(timer)
-			if (didEnter) {
+			if (didEnter && !storeError.current) {
 				app.onFileExit(fileId)
 			}
 		}
@@ -222,10 +261,11 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 				options={{ actionShortcutsLocation: 'toolbar' }}
 				deepLinks={deepLinks || undefined}
 				overrides={overrides}
-				isShapeHidden={isShapeHidden}
+				getShapeVisibility={getShapeVisibility}
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
+				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} />
 			</Tldraw>
@@ -243,14 +283,14 @@ function SneakyFileUpdateHandler({ fileId }: { fileId: string }) {
 				app.onFileEdit(fileId)
 			},
 			// This is used to update the lastEditAt time in the database, and to let the local
-			// room know that an edit ahs been made.
+			// room know that an edit has been made.
 			// It doesn't need to be super fast or accurate so we can throttle it a lot
-			5000
+			10_000
 		)
 		const unsub = editor.store.listen(onChange, { scope: 'document', source: 'user' })
 		return () => {
+			onChange.flush()
 			unsub()
-			onChange.cancel()
 		}
 	}, [app, fileId, editor])
 

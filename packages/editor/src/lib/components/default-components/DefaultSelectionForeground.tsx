@@ -29,7 +29,10 @@ export function DefaultSelectionForeground({ bounds, rotation }: TLSelectionFore
 		y: -expandOutlineBy,
 	})
 
-	bounds = bounds.clone().expandBy(expandOutlineBy).zeroFix()
+	bounds =
+		expandOutlineBy instanceof Box
+			? bounds.clone().expand(expandOutlineBy).zeroFix()
+			: bounds.clone().expandBy(expandOutlineBy).zeroFix()
 
 	return (
 		<svg

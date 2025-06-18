@@ -1,5 +1,7 @@
-// MIT License: https://github.com/NoHomey/bind-decorator/blob/master/License
-// Copyright (c) 2016 Ivo Stratev
+/*!
+ * MIT License: https://github.com/NoHomey/bind-decorator/blob/master/License
+ * Copyright (c) 2016 Ivo Stratev
+ */
 
 import { assert } from './control'
 

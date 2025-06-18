@@ -28,7 +28,7 @@ export async function createApiMarkdown() {
 	fs.mkdirSync(OUTPUT_DIR)
 
 	const model = new TldrawApiModel()
-	const packageModels = []
+	let packageModels = []
 
 	// get all files in the INPUT_DIR
 	const files = fs.readdirSync(INPUT_DIR)
@@ -42,6 +42,14 @@ export async function createApiMarkdown() {
 		// add the parsed file to the packageModels array
 		packageModels.push(apiModel)
 	}
+
+	// Manually keep 'tldraw' package in same place as it was before the alphabetical sort
+	// for continuity and to prevent scroll issues when initially opening the API reference
+	packageModels = packageModels.sort((a, b) => {
+		const aName = a.name === 'tldraw' ? '@tldraw/tldraw' : a.name
+		const bName = b.name === 'tldraw' ? '@tldraw/tldraw' : b.name
+		return aName.localeCompare(bName)
+	})
 
 	await model.preprocessReactComponents()
 

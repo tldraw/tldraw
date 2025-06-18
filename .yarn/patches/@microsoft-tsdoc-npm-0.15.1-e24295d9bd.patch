@@ -1,0 +1,91 @@
+diff --git a/lib-commonjs/emitters/TSDocEmitter.js b/lib-commonjs/emitters/TSDocEmitter.js
+index 60535a109e3705baae7cb851e1f7cca6e2b5595b..5aedafa2da8ebcf22ec356d89921a93b33dca7ea 100644
+--- a/lib-commonjs/emitters/TSDocEmitter.js
++++ b/lib-commonjs/emitters/TSDocEmitter.js
+@@ -282,6 +282,9 @@ var TSDocEmitter = /** @class */ (function () {
+                 var docPlainText = docNode;
+                 this._writeContent(docPlainText.text);
+                 break;
++            case DocNode_1.DocNodeKind.SoftBreak:
++                this._ensureAtStartOfLine();
++                break;
+         }
+     };
+     TSDocEmitter.prototype._renderInlineTag = function (docInlineTagBase, writeInlineTagContent) {
+diff --git a/lib-commonjs/transforms/TrimSpacesTransform.js b/lib-commonjs/transforms/TrimSpacesTransform.js
+index b5fe0c49a27a8df5b08e9862541c2449c61c1158..1fa36cab07267eaabbb9a0b9d640cfcec116dae4 100644
+--- a/lib-commonjs/transforms/TrimSpacesTransform.js
++++ b/lib-commonjs/transforms/TrimSpacesTransform.js
+@@ -20,6 +20,25 @@ var TrimSpacesTransform = /** @class */ (function () {
+         // We always trim leading whitespace for a paragraph.  This flag gets set to true
+         // as soon as nonempty content is encountered.
+         var finishedSkippingLeadingSpaces = false;
++
++        function pushAccumulatedText() {
++            const lines = accumulatedTextChunks.join('').split('\n')
++            for (let i = 0; i < lines.length; i++) {
++                const line = lines[i]
++                transformedNodes.push(new nodes_1.DocPlainText({
++                    configuration: docParagraph.configuration,
++                    text: line
++                }));
++                if (i < lines.length - 1) {
++                    transformedNodes.push(new nodes_1.DocSoftBreak({
++                        configuration: docParagraph.configuration
++                    }));
++                }
++            }
++            accumulatedTextChunks.length = 0;
++            accumulatedNodes.length = 0;
++        }
++
+         for (var _i = 0, _a = docParagraph.nodes; _i < _a.length; _i++) {
+             var node = _a[_i];
+             switch (node.kind) {
+@@ -46,9 +65,15 @@ var TrimSpacesTransform = /** @class */ (function () {
+                     }
+                     break;
+                 case nodes_1.DocNodeKind.SoftBreak:
+-                    if (finishedSkippingLeadingSpaces) {
+-                        pendingSpace = true;
+-                    }
++                    // by default, this transform strips out all soft-breaks and replaces them with
++                    // spaces where needed. because we're rendering to markdown and markdown is
++                    // whitespace-sensitive, we don't want to do this. instead, we accumulate the
++                    // soft-breaks and emit them as normal.
++                    
++                    // if (finishedSkippingLeadingSpaces) {
++                    // pendingSpace = true;
++                    // }
++                    accumulatedTextChunks.push('\n');
+                     accumulatedNodes.push(node);
+                     break;
+                 default:
+@@ -60,12 +85,7 @@ var TrimSpacesTransform = /** @class */ (function () {
+                     if (accumulatedTextChunks.length > 0) {
+                         // TODO: We should probably track the accumulatedNodes somehow, e.g. so we can map them back to the
+                         // original excerpts.  But we need a developer scenario before we can design this API.
+-                        transformedNodes.push(new nodes_1.DocPlainText({
+-                            configuration: docParagraph.configuration,
+-                            text: accumulatedTextChunks.join('')
+-                        }));
+-                        accumulatedTextChunks.length = 0;
+-                        accumulatedNodes.length = 0;
++                        pushAccumulatedText();
+                     }
+                     transformedNodes.push(node);
+                     finishedSkippingLeadingSpaces = true;
+@@ -73,12 +93,7 @@ var TrimSpacesTransform = /** @class */ (function () {
+         }
+         // Push the accumulated text
+         if (accumulatedTextChunks.length > 0) {
+-            transformedNodes.push(new nodes_1.DocPlainText({
+-                configuration: docParagraph.configuration,
+-                text: accumulatedTextChunks.join('')
+-            }));
+-            accumulatedTextChunks.length = 0;
+-            accumulatedNodes.length = 0;
++            pushAccumulatedText()
+         }
+         var transformedParagraph = new nodes_1.DocParagraph({
+             configuration: docParagraph.configuration

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -eux
 
-# a function called 'goodbye' that takes a string as an argument
+yarn run lazy run clean || true
 
+# a function called 'goodbye' that takes a string as an argument
 function goodbye() {
   rm -rf $1
   rm -rf */$1
@@ -34,6 +35,7 @@ rm -rf {packages,apps}/*/*.tgz
 rm -rf {packages,apps}/vscode/extension/temp
 rm -rf {packages,apps}/vscode/extension/editor
 rm -rf apps/docs/content.json
+rm -rf apps/dotcom/client/e2e/.auth
 
-corepack enable
+npm i -g corepack
 yarn

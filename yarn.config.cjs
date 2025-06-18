@@ -5,11 +5,23 @@ const { defineConfig } = require(`@yarnpkg/types`)
  * @param {Context} context
  */
 function enforceConsistentDependenciesAcrossTheProject({ Yarn }) {
+	// check non-peer deps:
 	for (const dependency of Yarn.dependencies()) {
 		if (dependency.type === 'peerDependencies') continue
 
 		for (const otherDependency of Yarn.dependencies({ ident: dependency.ident })) {
 			if (otherDependency.type === 'peerDependencies') continue
+
+			dependency.update(otherDependency.range)
+		}
+	}
+
+	// check peer deps:
+	for (const dependency of Yarn.dependencies()) {
+		if (dependency.type !== 'peerDependencies') continue
+
+		for (const otherDependency of Yarn.dependencies({ ident: dependency.ident })) {
+			if (otherDependency.type !== 'peerDependencies') continue
 
 			dependency.update(otherDependency.range)
 		}

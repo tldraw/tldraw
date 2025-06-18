@@ -48,8 +48,8 @@ async function buildApi(sourcePackageDir: string) {
 			'--no-color',
 			'--no-ext-diff',
 			'--no-index',
-			'api-report.md',
-			'api/temp/api-report.md',
+			'api-report.api.md',
+			'api/temp/api-report.api.md',
 		])
 
 		// @ts-expect-error

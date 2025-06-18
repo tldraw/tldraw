@@ -9,6 +9,10 @@ export type TLUiIconType =
 	| 'align-left'
 	| 'align-right'
 	| 'align-top'
+	| 'alt'
+	| 'arrow-arc'
+	| 'arrow-cycle'
+	| 'arrow-elbow'
 	| 'arrow-left'
 	| 'arrowhead-arrow'
 	| 'arrowhead-bar'
@@ -19,9 +23,12 @@ export type TLUiIconType =
 	| 'arrowhead-triangle-inverted'
 	| 'arrowhead-triangle'
 	| 'blob'
+	| 'bold'
+	| 'bookmark'
 	| 'bring-forward'
 	| 'bring-to-front'
 	| 'broken'
+	| 'bulletList'
 	| 'check-circle'
 	| 'check'
 	| 'chevron-down'
@@ -32,7 +39,11 @@ export type TLUiIconType =
 	| 'chevrons-sw'
 	| 'clipboard-copied'
 	| 'clipboard-copy'
+	| 'code'
 	| 'color'
+	| 'comment'
+	| 'corners'
+	| 'crop'
 	| 'cross-2'
 	| 'cross-circle'
 	| 'dash-dashed'
@@ -46,6 +57,7 @@ export type TLUiIconType =
 	| 'dot'
 	| 'dots-horizontal'
 	| 'dots-vertical'
+	| 'download'
 	| 'drag-handle-dots'
 	| 'duplicate'
 	| 'edit'
@@ -83,13 +95,19 @@ export type TLUiIconType =
 	| 'geo-x-box'
 	| 'github'
 	| 'group'
+	| 'heading'
+	| 'help-circle'
+	| 'highlight'
 	| 'horizontal-align-end'
 	| 'horizontal-align-middle'
 	| 'horizontal-align-start'
 	| 'info-circle'
+	| 'italic'
 	| 'leading'
 	| 'link'
+	| 'list'
 	| 'lock'
+	| 'manual'
 	| 'menu'
 	| 'minus'
 	| 'mixed'
@@ -115,6 +133,7 @@ export type TLUiIconType =
 	| 'status-offline'
 	| 'stretch-horizontal'
 	| 'stretch-vertical'
+	| 'strike'
 	| 'text-align-center'
 	| 'text-align-left'
 	| 'text-align-right'
@@ -135,6 +154,7 @@ export type TLUiIconType =
 	| 'tool-text'
 	| 'trash'
 	| 'twitter'
+	| 'underline'
 	| 'undo'
 	| 'ungroup'
 	| 'unlock'
@@ -153,6 +173,10 @@ export const iconTypes = [
 	'align-left',
 	'align-right',
 	'align-top',
+	'alt',
+	'arrow-arc',
+	'arrow-cycle',
+	'arrow-elbow',
 	'arrow-left',
 	'arrowhead-arrow',
 	'arrowhead-bar',
@@ -163,9 +187,12 @@ export const iconTypes = [
 	'arrowhead-triangle-inverted',
 	'arrowhead-triangle',
 	'blob',
+	'bold',
+	'bookmark',
 	'bring-forward',
 	'bring-to-front',
 	'broken',
+	'bulletList',
 	'check-circle',
 	'check',
 	'chevron-down',
@@ -176,7 +203,11 @@ export const iconTypes = [
 	'chevrons-sw',
 	'clipboard-copied',
 	'clipboard-copy',
+	'code',
 	'color',
+	'comment',
+	'corners',
+	'crop',
 	'cross-2',
 	'cross-circle',
 	'dash-dashed',
@@ -190,6 +221,7 @@ export const iconTypes = [
 	'dot',
 	'dots-horizontal',
 	'dots-vertical',
+	'download',
 	'drag-handle-dots',
 	'duplicate',
 	'edit',
@@ -227,13 +259,19 @@ export const iconTypes = [
 	'geo-x-box',
 	'github',
 	'group',
+	'heading',
+	'help-circle',
+	'highlight',
 	'horizontal-align-end',
 	'horizontal-align-middle',
 	'horizontal-align-start',
 	'info-circle',
+	'italic',
 	'leading',
 	'link',
+	'list',
 	'lock',
+	'manual',
 	'menu',
 	'minus',
 	'mixed',
@@ -259,6 +297,7 @@ export const iconTypes = [
 	'status-offline',
 	'stretch-horizontal',
 	'stretch-vertical',
+	'strike',
 	'text-align-center',
 	'text-align-left',
 	'text-align-right',
@@ -279,6 +318,7 @@ export const iconTypes = [
 	'tool-text',
 	'trash',
 	'twitter',
+	'underline',
 	'undo',
 	'ungroup',
 	'unlock',

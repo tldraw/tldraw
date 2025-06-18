@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   upload:
     name: 'Upload latest strings'
@@ -14,7 +18,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - uses: ./.github/actions/setup
 
@@ -23,3 +27,5 @@ jobs:
         env:
           LOKALISE_API_TOKEN: ${{ secrets.LOKALISE_API_TOKEN }}
           LOKALISE_PROJECT_ID: ${{ secrets.LOKALISE_PROJECT_ID }}
+          LOKALISE_TEAM_ID: ${{ secrets.LOKALISE_TEAM_ID }}
+          LOKALISE_CARD_ID: ${{ secrets.LOKALISE_CARD_ID }}

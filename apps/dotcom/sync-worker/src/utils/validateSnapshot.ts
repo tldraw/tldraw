@@ -8,13 +8,14 @@ interface SnapshotRequestBody {
 }
 
 const schema = createTLSchema()
-
 export function validateSnapshot(
 	body: SnapshotRequestBody
 ): Result<SerializedStore<TLRecord>, string> {
 	// Migrate the snapshot using the provided schema
 	const migrationResult = schema.migrateStoreSnapshot({ store: body.snapshot, schema: body.schema })
+
 	if (migrationResult.type === 'error') {
+		console.error('Migration error:', migrationResult.reason)
 		return Result.err(migrationResult.reason)
 	}
 
@@ -44,6 +45,7 @@ export function validateSnapshot(
 			recordType.validate(record)
 		}
 	} catch (e: any) {
+		console.error('Validation error:', e.message)
 		return Result.err(e.message)
 	}
 

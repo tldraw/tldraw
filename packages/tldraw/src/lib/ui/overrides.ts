@@ -1,26 +1,38 @@
-import { Editor, objectMapEntries } from '@tldraw/editor'
-import { useMemo } from 'react'
+import {
+	AssetRecordType,
+	Editor,
+	getHashForBuffer,
+	objectMapEntries,
+	TLImageShape,
+	TLVideoShape,
+	useMaybeEditor,
+	useShallowArrayIdentity,
+} from '@tldraw/editor'
+import { createContext, useCallback, useContext, useMemo } from 'react'
+import { getMediaAssetInfoPartial } from '../defaultExternalContentHandlers'
 import { PORTRAIT_BREAKPOINT } from './constants'
 import { ActionsProviderProps, TLUiActionsContextType } from './context/actions'
 import { useBreakpoint } from './context/breakpoints'
 import { useDialogs } from './context/dialogs'
 import { useToasts } from './context/toasts'
+import { getLocalFiles } from './getLocalFiles'
 import { useMenuClipboardEvents } from './hooks/useClipboardEvents'
 import { useCopyAs } from './hooks/useCopyAs'
 import { useExportAs } from './hooks/useExportAs'
 import { useGetEmbedDefinition } from './hooks/useGetEmbedDefinition'
-import { useInsertMedia } from './hooks/useInsertMedia'
 import { usePrint } from './hooks/usePrint'
 import { TLUiToolsContextType, TLUiToolsProviderProps } from './hooks/useTools'
 import { TLUiTranslationProviderProps, useTranslation } from './hooks/useTranslation/useTranslation'
 
+export const MimeTypeContext = createContext<string[] | undefined>([])
+
 /** @public */
 export function useDefaultHelpers() {
+	const editor = useMaybeEditor()
 	const { addToast, removeToast, clearToasts } = useToasts()
 	const { addDialog, clearDialogs, removeDialog } = useDialogs()
 
 	const msg = useTranslation()
-	const insertMedia = useInsertMedia()
 	const printSelectionOrPages = usePrint()
 	const { cut, copy, paste } = useMenuClipboardEvents()
 	const copyAs = useCopyAs()
@@ -30,6 +42,90 @@ export function useDefaultHelpers() {
 	// This is the only one that will change during runtime
 	const breakpoint = useBreakpoint()
 	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
+	const mimeTypes = useShallowArrayIdentity(useContext(MimeTypeContext))
+
+	const insertMedia = useCallback(async () => {
+		if (!editor) return
+		const files = await getLocalFiles({
+			allowMultiple: true,
+			mimeTypes,
+		})
+		if (!files.length) return
+		editor.markHistoryStoppingPoint('insert media')
+		editor.putExternalContent({
+			type: 'files',
+			files,
+			point: editor.getViewportPageBounds().center,
+		})
+	}, [editor, mimeTypes])
+
+	const replaceMedia = useCallback(
+		async (isImage: boolean) => {
+			if (!editor) return
+			const files = await getLocalFiles({
+				allowMultiple: false,
+				mimeTypes,
+			})
+			if (!files.length) return
+			const shape = editor.getOnlySelectedShape()
+			if (!shape || (isImage && shape.type !== 'image') || (!isImage && shape.type !== 'video'))
+				return
+
+			editor.markHistoryStoppingPoint('replace media')
+
+			const file = files[0]
+			const hash = getHashForBuffer(await file.arrayBuffer())
+			const assetId = AssetRecordType.createId(hash)
+			editor.createTemporaryAssetPreview(assetId, file)
+			const assetInfoPartial = await getMediaAssetInfoPartial(
+				file,
+				assetId,
+				isImage /* isImage */,
+				!isImage /* isVideo */
+			)
+			editor.createAssets([assetInfoPartial])
+
+			// And update the shape
+			if (shape.type === 'image') {
+				editor.updateShapes<TLImageShape>([
+					{
+						id: shape.id,
+						type: shape.type,
+						props: {
+							assetId: assetId,
+							crop: { topLeft: { x: 0, y: 0 }, bottomRight: { x: 1, y: 1 } },
+							w: assetInfoPartial.props.w,
+							h: assetInfoPartial.props.h,
+						},
+					},
+				])
+			} else if (shape.type === 'video') {
+				editor.updateShapes<TLVideoShape>([
+					{
+						id: shape.id,
+						type: shape.type,
+						props: {
+							assetId: assetId,
+							w: assetInfoPartial.props.w,
+							h: assetInfoPartial.props.h,
+						},
+					},
+				])
+			}
+
+			const asset = await editor.getAssetForExternalContent({ type: 'file', file, assetId })
+
+			if (!asset) {
+				return
+			}
+
+			editor.updateAssets([{ ...asset, id: assetId }])
+		},
+		[editor, mimeTypes]
+	)
+
+	const replaceImage = useCallback(() => replaceMedia(true /* isImage */), [replaceMedia])
+	const replaceVideo = useCallback(() => replaceMedia(false /* isImage */), [replaceMedia])
 
 	return useMemo(
 		() => ({
@@ -42,6 +138,8 @@ export function useDefaultHelpers() {
 			msg,
 			isMobile,
 			insertMedia,
+			replaceImage,
+			replaceVideo,
 			printSelectionOrPages,
 			cut,
 			copy,
@@ -60,6 +158,8 @@ export function useDefaultHelpers() {
 			msg,
 			isMobile,
 			insertMedia,
+			replaceImage,
+			replaceVideo,
 			printSelectionOrPages,
 			cut,
 			copy,

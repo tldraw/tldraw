@@ -56,19 +56,22 @@ describe('LicenseManager', () => {
 	})
 
 	it('Signals that it is development mode when appropriate', async () => {
-		// @ts-ignore
-		delete window.location
-		// @ts-ignore
-		window.location = new URL('http://localhost:3000')
+		const schemes = ['http', 'https']
+		for (const scheme of schemes) {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL(`${scheme}://localhost:3000`)
 
-		const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey, 'development')
-		const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
-		const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
-		expect(result).toMatchObject({
-			isLicenseParseable: true,
-			isDomainValid: false,
-			isDevelopment: true,
-		})
+			const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey, 'development')
+			const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+			const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
+			expect(result).toMatchObject({
+				isLicenseParseable: true,
+				isDomainValid: false,
+				isDevelopment: true,
+			})
+		}
 	})
 
 	it('Cleanses out valid keys that accidentally have zero-width characters or newlines', async () => {
@@ -304,6 +307,46 @@ describe('LicenseManager', () => {
 
 		const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
 		permissiveHostsInfo[PROPERTIES.HOSTS] = ['*.foo.com']
+		const permissiveLicenseKey = await generateLicenseKey(
+			JSON.stringify(permissiveHostsInfo),
+			keyPair
+		)
+		const result = (await licenseManager.getLicenseFromKey(
+			permissiveLicenseKey
+		)) as ValidLicenseKeyResult
+		expect(result.isDomainValid).toBe(false)
+	})
+
+	it('Succeeds if it is a vscode extension', async () => {
+		// @ts-ignore
+		delete window.location
+		// @ts-ignore
+		window.location = new URL(
+			'vscode-webview:vscode-webview://1ipd8pun8ud7nd7hv9d112g7evi7m10vak9vviuvia66ou6aibp3/index.html?id=6ec2dc7a-afe9-45d9-bd71-1749f9568d28&origin=955b256f-37e1-4a72-a2f4-ad633e88239c&swVersion=4&extensionId=tldraw-org.tldraw-vscode&platform=electron&vscode-resource-base-authority=vscode-resource.vscode-cdn.net&parentOrigin=vscode-file%3A%2F%2Fvscode-app'
+		)
+
+		const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
+		permissiveHostsInfo[PROPERTIES.HOSTS] = ['tldraw-org.tldraw-vscode']
+		const permissiveLicenseKey = await generateLicenseKey(
+			JSON.stringify(permissiveHostsInfo),
+			keyPair
+		)
+		const result = (await licenseManager.getLicenseFromKey(
+			permissiveLicenseKey
+		)) as ValidLicenseKeyResult
+		expect(result.isDomainValid).toBe(true)
+	})
+
+	it('Fails if it is a vscode extension with the wrong id', async () => {
+		// @ts-ignore
+		delete window.location
+		// @ts-ignore
+		window.location = new URL(
+			'vscode-webview:vscode-webview://1ipd8pun8ud7nd7hv9d112g7evi7m10vak9vviuvia66ou6aibp3/index.html?id=6ec2dc7a-afe9-45d9-bd71-1749f9568d28&origin=955b256f-37e1-4a72-a2f4-ad633e88239c&swVersion=4&extensionId=tldraw-org.tldraw-vscode&platform=electron&vscode-resource-base-authority=vscode-resource.vscode-cdn.net&parentOrigin=vscode-file%3A%2F%2Fvscode-app'
+		)
+
+		const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
+		permissiveHostsInfo[PROPERTIES.HOSTS] = ['blah-org.blah-vscode']
 		const permissiveLicenseKey = await generateLicenseKey(
 			JSON.stringify(permissiveHostsInfo),
 			keyPair

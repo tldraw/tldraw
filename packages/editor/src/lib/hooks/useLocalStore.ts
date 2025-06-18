@@ -37,7 +37,7 @@ export function useLocalStore(
 		const assets: TLAssetStore = {
 			upload: async (asset, file) => {
 				await client.db.storeAsset(asset.id, file)
-				return asset.id
+				return { src: asset.id }
 			},
 			resolve: async (asset) => {
 				if (!asset.props.src) return null
@@ -51,6 +51,9 @@ export function useLocalStore(
 				}
 
 				return asset.props.src
+			},
+			remove: async (assetIds) => {
+				await client.db.removeAssets(assetIds)
 			},
 			...rest.assets,
 		}

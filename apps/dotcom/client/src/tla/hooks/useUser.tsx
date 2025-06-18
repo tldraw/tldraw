@@ -1,9 +1,8 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import type { UserResource } from '@clerk/types'
-import assert from 'assert'
 import { ReactNode, createContext, useContext, useMemo } from 'react'
-import { DefaultSpinner, LoadingScreen, useShallowObjectIdentity } from 'tldraw'
-import { useApp } from './useAppState'
+import { DefaultSpinner, LoadingScreen, assert, useShallowObjectIdentity } from 'tldraw'
+import { useMaybeApp } from './useAppState'
 
 export interface TldrawUser {
 	id: string
@@ -21,10 +20,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
 	// I tracked it down to being useAuth().has which was being updated randomly for some reason.
 	// Destructuring the bits we need here fixes the issue as they seem to be stable.
 	const { getToken, isSignedIn, isLoaded: isAuthLoaded } = useAuth()
-	const app = useApp()
+
+	// app can be null during hot reloading sometimes?
+	const app = useMaybeApp()
 
 	const value = useMemo(() => {
-		if (!user || !isSignedIn) return null
+		if (!user || !isSignedIn || !app) return null
 
 		const storeUser = app.getUser()
 		if (!storeUser) throw new Error('User not found in app store')
@@ -43,7 +44,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 		}
 	}, [getToken, isSignedIn, user, app])
 
-	if (!isLoaded || !isAuthLoaded) {
+	if (!isLoaded || !isAuthLoaded || !app) {
 		return (
 			<div className="tldraw__editor">
 				<LoadingScreen>

@@ -7,6 +7,7 @@ import {
 	TLPointerEventInfo,
 	Vec,
 } from '@tldraw/editor'
+import { updateArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import {
 	NOTE_CENTER_OFFSET,
@@ -29,10 +30,21 @@ export class PointingHandle extends StateNode {
 
 		const { shape } = info
 		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
-			const initialBinding = getArrowBindings(this.editor, shape)[info.handle.id as 'start' | 'end']
+			const initialBindings = getArrowBindings(this.editor, shape)
+			const currentBinding = initialBindings[info.handle.id as 'start' | 'end']
+			const oppositeBinding = initialBindings[info.handle.id === 'start' ? 'end' : 'start']
+			const arrowTransform = this.editor.getShapePageTransform(shape.id)!
 
-			if (initialBinding) {
-				this.editor.setHintingShapes([initialBinding.toId])
+			if (currentBinding) {
+				updateArrowTargetState({
+					editor: this.editor,
+					pointInPageSpace: arrowTransform.applyToPoint(info.handle),
+					arrow: shape,
+					isPrecise: currentBinding.props.isPrecise,
+					isExact: info.altKey,
+					currentBinding: currentBinding,
+					oppositeBinding: oppositeBinding,
+				})
 			}
 		}
 
@@ -49,7 +61,7 @@ export class PointingHandle extends StateNode {
 
 		if (this.editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
 			const { editor } = this
-			const nextNote = getNoteForPit(editor, shape, handle, false)
+			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, false)
 			if (nextNote) {
 				startEditingShapeWithLabel(editor, nextNote, true /* selectAll */)
 				return
@@ -80,7 +92,7 @@ export class PointingHandle extends StateNode {
 		const { shape, handle } = this.info
 
 		if (editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
-			const nextNote = getNoteForPit(editor, shape, handle, true)
+			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, true)
 			if (nextNote) {
 				// Center the shape on the current pointer
 				const centeredOnPointer = editor
@@ -127,20 +139,25 @@ export class PointingHandle extends StateNode {
 	}
 }
 
-function getNoteForPit(editor: Editor, shape: TLNoteShape, handle: TLHandle, forceNew: boolean) {
+function getNoteForAdjacentPosition(
+	editor: Editor,
+	shape: TLNoteShape,
+	handle: TLHandle,
+	forceNew: boolean
+) {
 	const pageTransform = editor.getShapePageTransform(shape.id)!
 	const pagePoint = pageTransform.point()
 	const pageRotation = pageTransform.rotation()
-	const pits = getNoteAdjacentPositions(
+	const positions = getNoteAdjacentPositions(
 		editor,
 		pagePoint,
 		pageRotation,
-		shape.props.growY,
+		shape.props.growY * shape.props.scale,
 		0,
 		shape.props.scale
 	)
-	const pit = pits[handle.index]
-	if (pit) {
-		return getNoteShapeForAdjacentPosition(editor, shape, pit, pageRotation, forceNew)
+	const position = positions[handle.index]
+	if (position) {
+		return getNoteShapeForAdjacentPosition(editor, shape, position, pageRotation, forceNew)
 	}
 }

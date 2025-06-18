@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Export"
   },
-  "01c32a1e98": {
-    "translation": "Sorry, you don’t have access to that file. If you know whose created the file, you can request a new invite link."
-  },
   "03b3e13197": {
     "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
   },
@@ -20,11 +17,20 @@
   "07dbd11b21": {
     "translation": "Untitled file"
   },
+  "08331c1710": {
+    "translation": "Rate limit exceeded, try again later."
+  },
+  "08bd40c754": {
+    "translation": "Account"
+  },
   "0b27918290": {
     "translation": "File"
   },
   "0b9a4cde72": {
     "translation": "File menu"
+  },
+  "0d1f2bb523": {
+    "translation": "Send feedback"
   },
   "110a4b01be": {
     "translation": "Publish"
@@ -41,11 +47,8 @@
   "1dd1c5fb7f": {
     "translation": "Today"
   },
-  "1f9696d5f2": {
-    "translation": "Export the content as a .tldr file: Go to 'File' > 'Save a copy'"
-  },
-  "279f0531ff": {
-    "translation": "Still having trouble? Let us know at <a>hello@tldraw.com</a>"
+  "250ddea65c": {
+    "translation": "About tldraw"
   },
   "299cb00a7a": {
     "translation": "Upload failed"
@@ -62,17 +65,14 @@
   "344a7f427f": {
     "translation": "Editor"
   },
-  "354ff6be84": {
-    "translation": "Added {count} .tldr {count, plural, one {file} other {files}}."
-  },
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
   },
   "3c5e891bff": {
     "translation": "Pinned"
   },
-  "424cc22417": {
-    "translation": "Take me home"
+  "3d0238bf16": {
+    "translation": "Accept all"
   },
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
@@ -80,11 +80,17 @@
   "44db318ee5": {
     "translation": "Get help on Discord"
   },
+  "46137245cd": {
+    "translation": "Thanks for helping us improve tldraw!"
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Are you sure you want to forget this file?"
+  },
+  "4d0d3ddec9": {
+    "translation": "This site uses cookies to make the app work and to collect analytics."
   },
   "4d1c8263ba": {
     "translation": "Reload"
@@ -101,14 +107,26 @@
   "54d240fa41": {
     "translation": "Please slow down."
   },
+  "554a05155c": {
+    "translation": "Still having trouble? <a>Report a problem</a>"
+  },
   "55505ba281": {
     "translation": "PNG"
+  },
+  "5677e381d2": {
+    "translation": "We use analytics cookies to make tldraw better."
+  },
+  "56c34c6410": {
+    "translation": "Privacy policy"
   },
   "5a95a425f7": {
     "translation": "Share"
   },
   "5d26ae7550": {
     "translation": "We failed to upload some of the content you created before you signed in."
+  },
+  "5f3c333678": {
+    "translation": "Feedback submitted"
   },
   "5fb63579fc": {
     "translation": "Copy"
@@ -122,6 +140,9 @@
   "6609dd239e": {
     "translation": "Something went wrong"
   },
+  "6637a98151": {
+    "translation": "A new version of tldraw is available. Please reload the page to continue."
+  },
   "6a26f54883": {
     "translation": "Help"
   },
@@ -134,17 +155,41 @@
   "70a6facb9d": {
     "translation": "This week"
   },
+  "71a29b007b": {
+    "translation": "Have a bug, issue, or idea for tldraw? Let us know!"
+  },
   "73ab799383": {
     "translation": "This version of tldraw is no longer supported."
   },
   "7408cf0d7b": {
     "translation": "Please reload the page"
   },
+  "752b79f137": {
+    "translation": "You have reached the maximum number of files. You need to delete old files before creating new ones."
+  },
   "7573b8110a": {
     "translation": "No access"
   },
+  "761e93ede9": {
+    "translation": "Manage cookies"
+  },
+  "764671e008": {
+    "translation": "Chat with us on Discord"
+  },
+  "7697920637": {
+    "translation": "Please reload"
+  },
   "777f9e90cf": {
     "translation": "Invalid request."
+  },
+  "797799f35e": {
+    "translation": "Submit an issue on GitHub"
+  },
+  "7b1329f5ca": {
+    "translation": "User manual"
+  },
+  "7be10fc592": {
+    "translation": "Restore version"
   },
   "7cb5f8b4a5": {
     "translation": "Forget"
@@ -155,8 +200,20 @@
   "7fcdcc6455": {
     "translation": "Forget file"
   },
+  "801ab24683": {
+    "translation": "Download"
+  },
+  "815e116a2e": {
+    "translation": "Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>."
+  },
   "85a082de1b": {
     "translation": "Please refresh the page to get the latest version of tldraw."
+  },
+  "86353d2c41": {
+    "translation": "Added {total} .tldr files."
+  },
+  "86c66437fd": {
+    "translation": "Rename file"
   },
   "8eb2c00e96": {
     "translation": "Shared with you"
@@ -173,9 +230,6 @@
   "91e49bb0eb": {
     "translation": "Copy to my files"
   },
-  "9563b82670": {
-    "translation": "Uploading {count} .tldr {count, plural, one {file} other {files}}…"
-  },
   "96165d6df5": {
     "translation": "This month"
   },
@@ -191,6 +245,12 @@
   "9e076f5885": {
     "translation": "Not found"
   },
+  "9e93c98d88": {
+    "translation": "Opt out"
+  },
+  "a0da245992": {
+    "translation": "Export the content as a .tldr file: Select 'Download' in the top left menu."
+  },
   "a104439641": {
     "translation": "Padding"
   },
@@ -203,15 +263,30 @@
   "a239905023": {
     "translation": "Export image"
   },
+  "a3debabee7": {
+    "translation": "Cookie policy"
+  },
+  "a4d3b161ce": {
+    "translation": "Submit"
+  },
   "a6cc403d56": {
     "translation": "Anyone with the link"
+  },
+  "a768caa988": {
+    "translation": "Analytics"
   },
   "a9ded1e5ce": {
     "translation": "Background"
   },
+  "ab0df9ba36": {
+    "translation": "File limit reached"
+  },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Last published <date></date>"
+  },
+  "b028909917": {
+    "translation": "Guest user"
   },
   "b6d4223e60": {
     "translation": "Sign in"
@@ -221,6 +296,9 @@
   },
   "bb792693e2": {
     "translation": "Unpin"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {Uploading .tldr file…} other {Uploading {uploaded} of {total} .tldr files…}}"
   },
   "bc88b0e89e": {
     "translation": "Shared by {ownerName}"
@@ -234,6 +312,9 @@
   "c303bd1095": {
     "translation": "Unable to publish the file."
   },
+  "c4b39a1cc3": {
+    "translation": "Essential cookies"
+  },
   "c655b27b1e": {
     "translation": "i18n: Long String"
   },
@@ -243,6 +324,9 @@
   "c87aacf567": {
     "translation": "Sign out"
   },
+  "cbef7ba103": {
+    "translation": "This room will soon be read-only"
+  },
   "cceaefbc20": {
     "translation": "Share this file"
   },
@@ -251,9 +335,6 @@
   },
   "cea291e45e": {
     "translation": "Learn more about publishing."
-  },
-  "d2458ac9bf": {
-    "translation": "You have exceeded the rate limit."
   },
   "d3d2e61733": {
     "translation": "Close"
@@ -270,20 +351,23 @@
   "d9100f3e10": {
     "translation": "Go here to see the content"
   },
-  "d9fe660e4e": {
-    "translation": "Sorry, you don’t have access to that workspace."
-  },
   "dbbebf3c03": {
     "translation": "Invite only"
   },
   "dfdb78a4e4": {
     "translation": "App debug flags"
   },
-  "e2cd8064c2": {
-    "translation": "Sorry, you don’t have access to that user."
+  "e2ae80a510": {
+    "translation": "Legal summary"
+  },
+  "e404559826": {
+    "translation": "Terms of service"
   },
   "e78e14c5f1": {
     "translation": "Pin"
+  },
+  "ea2301d01c": {
+    "translation": "After July 1st, 2025 this anonymous tldraw multiplayer room will become read-only. To continue editing in the future please sign in and copy it to your files."
   },
   "ea4788705e": {
     "translation": "Cancel"
@@ -297,20 +381,32 @@
   "ec611e9a08": {
     "translation": "Account menu"
   },
-  "ec9ad9950f": {
-    "translation": "Sorry, that file doesn’t exist."
-  },
   "ed53713239": {
     "translation": "i18n: Accented"
   },
   "ed75712b0e": {
     "translation": "Duplicate"
   },
+  "ede55d955f": {
+    "translation": "Read our <a>cookie policy</a> to learn more."
+  },
+  "f09b16bc5f": {
+    "translation": "We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw."
+  },
+  "f0e8bff6f9": {
+    "translation": "User settings"
+  },
+  "f2569594b2": {
+    "translation": "We use these cookies to save your files and settings."
+  },
   "f2a6c498fb": {
     "translation": "Delete"
   },
   "f43fb62093": {
     "translation": "Back to tldraw."
+  },
+  "f4f70727dc": {
+    "translation": "Settings"
   },
   "fb15c53f22": {
     "translation": "Viewer"
@@ -320,5 +416,8 @@
   },
   "fed5ec05eb": {
     "translation": "Copied link"
+  },
+  "ffcd73e997": {
+    "translation": "Import file…"
   }
 }

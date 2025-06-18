@@ -390,8 +390,8 @@ export class BoundsSnaps {
 
 		// at the same time, calculate how far we need to nudge the shape to 'snap' to the target point(s)
 		const nudge = new Vec(
-			lockedAxis === 'x' ? 0 : nearestSnapsX[0]?.nudge ?? 0,
-			lockedAxis === 'y' ? 0 : nearestSnapsY[0]?.nudge ?? 0
+			lockedAxis === 'x' ? 0 : (nearestSnapsX[0]?.nudge ?? 0),
+			lockedAxis === 'y' ? 0 : (nearestSnapsY[0]?.nudge ?? 0)
 		)
 
 		// ok we've figured out how much the box should be nudged, now let's find all the snap points
@@ -504,8 +504,8 @@ export class BoundsSnaps {
 
 		// at the same time, calculate how far we need to nudge the shape to 'snap' to the target point(s)
 		const nudge = new Vec(
-			isXLocked ? 0 : nearestSnapsX[0]?.nudge ?? 0,
-			isYLocked ? 0 : nearestSnapsY[0]?.nudge ?? 0
+			isXLocked ? 0 : (nearestSnapsX[0]?.nudge ?? 0),
+			isYLocked ? 0 : (nearestSnapsY[0]?.nudge ?? 0)
 		)
 
 		if (isAspectRatioLocked && isSelectionCorner(handle) && nudge.len() !== 0) {

@@ -12,6 +12,7 @@ export interface TLUiInputProps {
 	label?: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
 	icon?: TLUiIconType | Exclude<string, TLUiIconType>
 	iconLeft?: TLUiIconType | Exclude<string, TLUiIconType>
+	iconLabel?: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
 	autoFocus?: boolean
 	autoSelect?: boolean
 	children?: React.ReactNode
@@ -33,6 +34,7 @@ export interface TLUiInputProps {
 	 */
 	shouldManuallyMaintainScrollPositionWhenFocused?: boolean
 	value?: string
+	'data-testid'?: string
 }
 
 /** @public @react */
@@ -43,6 +45,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			label,
 			icon,
 			iconLeft,
+			iconLabel,
 			autoSelect = false,
 			autoFocus = false,
 			defaultValue,
@@ -55,6 +58,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			shouldManuallyMaintainScrollPositionWhenFocused = false,
 			children,
 			value,
+			'data-testid': dataTestId,
 		},
 		ref
 	) {
@@ -67,6 +71,8 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 		const msg = useTranslation()
 		const rInitialValue = React.useRef<string>(defaultValue ?? '')
 		const rCurrentValue = React.useRef<string>(defaultValue ?? '')
+
+		const isComposing = React.useRef(false)
 
 		const [isFocused, setIsFocused] = React.useState(false)
 		const handleFocus = React.useCallback(
@@ -106,6 +112,10 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			(e: React.KeyboardEvent<HTMLInputElement>) => {
 				switch (e.key) {
 					case 'Enter': {
+						// In Chrome, if the user presses the Enter key while using the IME and calls
+						// `e.currentTarget.blur()` in the event callback here, it will trigger an
+						// `onChange` with a duplicated text value.
+						if (isComposing.current) return
 						e.currentTarget.blur()
 						stopEventPropagation(e)
 						onComplete?.(e.currentTarget.value)
@@ -131,6 +141,9 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			},
 			[onBlur]
 		)
+
+		const handleCompositionStart = React.useCallback(() => (isComposing.current = true), [])
+		const handleCompositionEnd = React.useCallback(() => (isComposing.current = false), [])
 
 		React.useEffect(() => {
 			if (!tlenv.isIos) return
@@ -164,7 +177,14 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			<div draggable={false} className="tlui-input__wrapper">
 				{children}
 				{label && <label>{msg(label)}</label>}
-				{iconLeft && <TldrawUiIcon icon={iconLeft} className="tlui-icon-left" small />}
+				{iconLeft && (
+					<TldrawUiIcon
+						label={iconLabel ? msg(iconLabel) : ''}
+						icon={iconLeft}
+						className="tlui-icon-left"
+						small
+					/>
+				)}
 				<input
 					ref={rInputRef}
 					className={classNames('tlui-input', className)}
@@ -174,11 +194,16 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 					onChange={handleChange}
 					onFocus={handleFocus}
 					onBlur={handleBlur}
+					onCompositionStart={handleCompositionStart}
+					onCompositionEnd={handleCompositionEnd}
 					autoFocus={autoFocus}
 					placeholder={placeholder}
 					value={value}
+					data-testid={dataTestId}
 				/>
-				{icon && <TldrawUiIcon icon={icon} small={!!label} />}
+				{icon && (
+					<TldrawUiIcon label={iconLabel ? msg(iconLabel) : ''} icon={icon} small={!!label} />
+				)}
 			</div>
 		)
 	}

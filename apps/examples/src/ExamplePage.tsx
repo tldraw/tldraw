@@ -1,5 +1,5 @@
-import * as Dialog from '@radix-ui/react-alert-dialog'
-import { Dispatch, createContext, useContext, useState } from 'react'
+import { AlertDialog as _AlertDialog } from 'radix-ui'
+import { Dispatch, createContext, useContext, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Example, examples } from './examples'
 
@@ -31,11 +31,25 @@ export function ExamplePage({
 	const [filterValue, setFilterValue] = useState('')
 	const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFilterValue(e.target.value)
+		history.replaceState(
+			{},
+			'',
+			e.target.value ? `/?filter=${encodeURIComponent(e.target.value)}` : '/'
+		)
 	}
+
+	useEffect(() => {
+		const urlParams = new URLSearchParams(window.location.search)
+		const filter = urlParams.get('filter')
+		if (filter) {
+			setFilterValue(decodeURIComponent(filter))
+		}
+	}, [])
+
 	return (
 		<DialogContextProvider>
 			<div className="example">
-				<div className="example__sidebar scroll-light">
+				<nav className="example__sidebar scroll-light">
 					<div className="example__sidebar__header">
 						<Link className="example__sidebar__header__logo" to="/">
 							<TldrawLogo />
@@ -61,7 +75,7 @@ export function ExamplePage({
 							</a>
 							<a
 								target="_blank"
-								href="https://discord.com/invite/SBBEVCA4PG"
+								href="https://discord.tldraw.com/?utm_source=examples&utm_medium=organic&utm_campaign=examples"
 								rel="noopener noreferrer"
 								title="discord"
 								className="hoverable"
@@ -126,13 +140,13 @@ export function ExamplePage({
 							className="example__sidebar__footer-link example__sidebar__footer-link--grey"
 							target="_blank"
 							rel="noopener noreferrer"
-							href="https://tldraw.dev"
+							href="https://tldraw.dev/?utm_source=examples&utm_medium=organic&utm_campaign=examples"
 						>
 							Visit the docs
 						</a>
 					</div>
-				</div>
-				<div className="example__content">
+				</nav>
+				<div className="example__content" role="main">
 					{children}
 					<Dialogs />
 				</div>
@@ -153,15 +167,15 @@ function ExampleSidebarListItem({
 
 	return (
 		<li className="examples__sidebar__item" data-active={isActive}>
-			<Link to={example.path} className="examples__sidebar__item__link hoverable" />
-			<div className="examples__sidebar__item__title">
-				<span>{example.title}</span>
-			</div>
+			<Link to={example.path} className="examples__sidebar__item__link">
+				{example.title}
+			</Link>
 			{isActive && (
 				<div className="example__sidebar__item__buttons">
 					<button
 						className="example__sidebar__item__button hoverable"
 						onClick={() => setExampleDialog(example)}
+						aria-label="Info"
 					>
 						<InfoIcon />
 					</button>
@@ -205,12 +219,12 @@ function Dialogs() {
 	}
 
 	return (
-		<Dialog.Root defaultOpen onOpenChange={handleOpenChange} open={!!example}>
-			<Dialog.Overlay
+		<_AlertDialog.Root defaultOpen onOpenChange={handleOpenChange} open={!!example}>
+			<_AlertDialog.Overlay
 				className="example__dialog__overlay"
 				onPointerDown={() => setExampleDialog(null)}
 			/>
-			<Dialog.Content className="example__dialog__content">
+			<_AlertDialog.Content className="example__dialog__content">
 				<h1>{example.title}</h1>
 				<Markdown sanitizedHtml={example.description} className="example__dialog__markdown" />
 				<Markdown sanitizedHtml={example.details} className="example__dialog__markdown" />
@@ -218,10 +232,10 @@ function Dialogs() {
 					<a href={example.codeUrl}>
 						View Source <ExternalLinkIcon />
 					</a>
-					<Dialog.Cancel className="example__dialog__close">Close</Dialog.Cancel>
+					<_AlertDialog.Cancel className="example__dialog__close">Close</_AlertDialog.Cancel>
 				</div>
-			</Dialog.Content>
-		</Dialog.Root>
+			</_AlertDialog.Content>
+		</_AlertDialog.Root>
 	)
 }
 
@@ -279,5 +293,5 @@ function ExternalLinkIcon() {
 }
 
 function TldrawLogo() {
-	return <img className="examples__tldraw__logo" src="tldraw_dev_light.png" />
+	return <img className="examples__tldraw__logo" src="tldraw_dev_light.png" alt="tldraw logo" />
 }

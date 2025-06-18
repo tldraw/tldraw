@@ -1,30 +1,23 @@
 import { assert } from 'tldraw'
 
 export const ROUTES = {
-	legacyRoot: '/',
-	legacyNewPage: '/new',
-	legacyNewPage2: '/r',
-	legacyRoom: '/r/:roomId',
-	touchscreenSidePanel: '/ts-side',
-	legacyRoomHistory: '/r/:boardId/history',
-	legacyRoomHistorySnapshot: '/r/:boardId/history/:timestamp',
-	legacySnapshot: '/s/:roomId',
-	legacyReadonly: '/ro/:roomId',
-	legacyReadonlyOld: '/v/:roomId',
+	tlaOptIn: '/preview',
 
-	tlaRoot: `/q`,
-	tlaFile: `/q/f/:fileSlug`,
-	tlaLocalFile: `/q/lf/:fileSlug`,
-	tlaPlayground: `/q/playground`,
-	tlaPublish: `/q/p/:fileSlug`,
+	tlaRoot: `/`,
+	tlaNew: `/new`,
+	tlaFile: `/f/:fileSlug`,
+	tlaFileHistory: `/f/:fileSlug/history`,
+	tlaFileHistorySnapshot: `/f/:fileSlug/history/:timestamp`,
+	tlaLocalFileIndex: `/lf`,
+	tlaLocalFile: `/lf/:fileSlug`,
+	tlaPublish: `/p/:fileSlug`,
 	// Legacy routes
-	tlaTouchScreenSidePanel: '/q/ts-side',
-	tlaLegacyRoom: '/q/r/:roomId',
-	tlaLegacyRoomHistory: '/q/r/:boardId/history',
-	tlaLegacyRoomHistorySnapshot: '/q/r/:boardId/history/:timestamp',
-	tlaLegacySnapshot: '/q/s/:roomId',
-	tlaLegacyReadonly: '/q/ro/:roomId',
-	tlaLegacyReadonlyOld: '/q/v/:roomId',
+	tlaLegacyRoom: '/r/:roomId',
+	tlaLegacyRoomHistory: '/r/:boardId/history',
+	tlaLegacyRoomHistorySnapshot: '/r/:boardId/history/:timestamp',
+	tlaLegacySnapshot: '/s/:roomId',
+	tlaLegacyReadonly: '/ro/:roomId',
+	tlaLegacyReadonlyOld: '/v/:roomId',
 } as const
 
 export const routes: {

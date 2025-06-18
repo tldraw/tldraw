@@ -30,7 +30,7 @@ interface Meta {
 }
 
 const EXTERNAL_DEPS = [
-	'cloudflare:workers',
+	'cloudflare:*',
 	'crypto',
 	'tls',
 	'net',
@@ -38,6 +38,14 @@ const EXTERNAL_DEPS = [
 	'fs',
 	'os',
 	'perf_hooks',
+	'path',
+	'dns',
+	'node:child_process',
+	'node:events',
+	'node:path',
+	'node:process',
+	'node:os',
+	'node:util',
 ]
 
 async function checkBundleSize() {

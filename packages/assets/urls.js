@@ -16,20 +16,68 @@ export function getAssetUrlsByMetaUrl(opts) {
 	)
 	return {
 		fonts: {
-			monospace: formatAssetUrl(
+			tldraw_mono_bold: formatAssetUrl(
+				new URL('./fonts/IBMPlexMono-Bold.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_mono_italic_bold: formatAssetUrl(
+				new URL('./fonts/IBMPlexMono-BoldItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_mono: formatAssetUrl(
 				new URL('./fonts/IBMPlexMono-Medium.woff2', import.meta.url).href,
 				opts
 			),
-			sansSerif: formatAssetUrl(
+			tldraw_mono_italic: formatAssetUrl(
+				new URL('./fonts/IBMPlexMono-MediumItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_sans_bold: formatAssetUrl(
+				new URL('./fonts/IBMPlexSans-Bold.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_sans_italic_bold: formatAssetUrl(
+				new URL('./fonts/IBMPlexSans-BoldItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_sans: formatAssetUrl(
 				new URL('./fonts/IBMPlexSans-Medium.woff2', import.meta.url).href,
 				opts
 			),
-			serif: formatAssetUrl(
+			tldraw_sans_italic: formatAssetUrl(
+				new URL('./fonts/IBMPlexSans-MediumItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_serif_bold: formatAssetUrl(
+				new URL('./fonts/IBMPlexSerif-Bold.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_serif_italic_bold: formatAssetUrl(
+				new URL('./fonts/IBMPlexSerif-BoldItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_serif: formatAssetUrl(
 				new URL('./fonts/IBMPlexSerif-Medium.woff2', import.meta.url).href,
 				opts
 			),
-			draw: formatAssetUrl(
-				new URL('./fonts/Shantell_Sans-Tldrawish.woff2', import.meta.url).href,
+			tldraw_serif_italic: formatAssetUrl(
+				new URL('./fonts/IBMPlexSerif-MediumItalic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_draw_bold: formatAssetUrl(
+				new URL('./fonts/Shantell_Sans-Informal_Bold.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_draw_italic_bold: formatAssetUrl(
+				new URL('./fonts/Shantell_Sans-Informal_Bold_Italic.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_draw: formatAssetUrl(
+				new URL('./fonts/Shantell_Sans-Informal_Regular.woff2', import.meta.url).href,
+				opts
+			),
+			tldraw_draw_italic: formatAssetUrl(
+				new URL('./fonts/Shantell_Sans-Informal_Regular_Italic.woff2', import.meta.url).href,
 				opts
 			),
 		},
@@ -40,6 +88,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'align-left': iconsIcon0MergedSvg + '#align-left',
 			'align-right': iconsIcon0MergedSvg + '#align-right',
 			'align-top': iconsIcon0MergedSvg + '#align-top',
+			alt: iconsIcon0MergedSvg + '#alt',
+			'arrow-arc': iconsIcon0MergedSvg + '#arrow-arc',
+			'arrow-cycle': iconsIcon0MergedSvg + '#arrow-cycle',
+			'arrow-elbow': iconsIcon0MergedSvg + '#arrow-elbow',
 			'arrow-left': iconsIcon0MergedSvg + '#arrow-left',
 			'arrowhead-arrow': iconsIcon0MergedSvg + '#arrowhead-arrow',
 			'arrowhead-bar': iconsIcon0MergedSvg + '#arrowhead-bar',
@@ -50,9 +102,12 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'arrowhead-triangle-inverted': iconsIcon0MergedSvg + '#arrowhead-triangle-inverted',
 			'arrowhead-triangle': iconsIcon0MergedSvg + '#arrowhead-triangle',
 			blob: iconsIcon0MergedSvg + '#blob',
+			bold: iconsIcon0MergedSvg + '#bold',
+			bookmark: iconsIcon0MergedSvg + '#bookmark',
 			'bring-forward': iconsIcon0MergedSvg + '#bring-forward',
 			'bring-to-front': iconsIcon0MergedSvg + '#bring-to-front',
 			broken: iconsIcon0MergedSvg + '#broken',
+			bulletList: iconsIcon0MergedSvg + '#bulletList',
 			'check-circle': iconsIcon0MergedSvg + '#check-circle',
 			check: iconsIcon0MergedSvg + '#check',
 			'chevron-down': iconsIcon0MergedSvg + '#chevron-down',
@@ -63,7 +118,11 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'chevrons-sw': iconsIcon0MergedSvg + '#chevrons-sw',
 			'clipboard-copied': iconsIcon0MergedSvg + '#clipboard-copied',
 			'clipboard-copy': iconsIcon0MergedSvg + '#clipboard-copy',
+			code: iconsIcon0MergedSvg + '#code',
 			color: iconsIcon0MergedSvg + '#color',
+			comment: iconsIcon0MergedSvg + '#comment',
+			corners: iconsIcon0MergedSvg + '#corners',
+			crop: iconsIcon0MergedSvg + '#crop',
 			'cross-2': iconsIcon0MergedSvg + '#cross-2',
 			'cross-circle': iconsIcon0MergedSvg + '#cross-circle',
 			'dash-dashed': iconsIcon0MergedSvg + '#dash-dashed',
@@ -77,6 +136,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			dot: iconsIcon0MergedSvg + '#dot',
 			'dots-horizontal': iconsIcon0MergedSvg + '#dots-horizontal',
 			'dots-vertical': iconsIcon0MergedSvg + '#dots-vertical',
+			download: iconsIcon0MergedSvg + '#download',
 			'drag-handle-dots': iconsIcon0MergedSvg + '#drag-handle-dots',
 			duplicate: iconsIcon0MergedSvg + '#duplicate',
 			edit: iconsIcon0MergedSvg + '#edit',
@@ -114,13 +174,19 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'geo-x-box': iconsIcon0MergedSvg + '#geo-x-box',
 			github: iconsIcon0MergedSvg + '#github',
 			group: iconsIcon0MergedSvg + '#group',
+			heading: iconsIcon0MergedSvg + '#heading',
+			'help-circle': iconsIcon0MergedSvg + '#help-circle',
+			highlight: iconsIcon0MergedSvg + '#highlight',
 			'horizontal-align-end': iconsIcon0MergedSvg + '#horizontal-align-end',
 			'horizontal-align-middle': iconsIcon0MergedSvg + '#horizontal-align-middle',
 			'horizontal-align-start': iconsIcon0MergedSvg + '#horizontal-align-start',
 			'info-circle': iconsIcon0MergedSvg + '#info-circle',
+			italic: iconsIcon0MergedSvg + '#italic',
 			leading: iconsIcon0MergedSvg + '#leading',
 			link: iconsIcon0MergedSvg + '#link',
+			list: iconsIcon0MergedSvg + '#list',
 			lock: iconsIcon0MergedSvg + '#lock',
+			manual: iconsIcon0MergedSvg + '#manual',
 			menu: iconsIcon0MergedSvg + '#menu',
 			minus: iconsIcon0MergedSvg + '#minus',
 			mixed: iconsIcon0MergedSvg + '#mixed',
@@ -146,6 +212,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'status-offline': iconsIcon0MergedSvg + '#status-offline',
 			'stretch-horizontal': iconsIcon0MergedSvg + '#stretch-horizontal',
 			'stretch-vertical': iconsIcon0MergedSvg + '#stretch-vertical',
+			strike: iconsIcon0MergedSvg + '#strike',
 			'text-align-center': iconsIcon0MergedSvg + '#text-align-center',
 			'text-align-left': iconsIcon0MergedSvg + '#text-align-left',
 			'text-align-right': iconsIcon0MergedSvg + '#text-align-right',
@@ -166,6 +233,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'tool-text': iconsIcon0MergedSvg + '#tool-text',
 			trash: iconsIcon0MergedSvg + '#trash',
 			twitter: iconsIcon0MergedSvg + '#twitter',
+			underline: iconsIcon0MergedSvg + '#underline',
 			undo: iconsIcon0MergedSvg + '#undo',
 			ungroup: iconsIcon0MergedSvg + '#ungroup',
 			unlock: iconsIcon0MergedSvg + '#unlock',
@@ -178,16 +246,19 @@ export function getAssetUrlsByMetaUrl(opts) {
 		},
 		translations: {
 			ar: formatAssetUrl(new URL('./translations/ar.json', import.meta.url).href, opts),
+			bn: formatAssetUrl(new URL('./translations/bn.json', import.meta.url).href, opts),
 			ca: formatAssetUrl(new URL('./translations/ca.json', import.meta.url).href, opts),
 			cs: formatAssetUrl(new URL('./translations/cs.json', import.meta.url).href, opts),
 			da: formatAssetUrl(new URL('./translations/da.json', import.meta.url).href, opts),
 			de: formatAssetUrl(new URL('./translations/de.json', import.meta.url).href, opts),
+			el: formatAssetUrl(new URL('./translations/el.json', import.meta.url).href, opts),
 			en: formatAssetUrl(new URL('./translations/en.json', import.meta.url).href, opts),
 			es: formatAssetUrl(new URL('./translations/es.json', import.meta.url).href, opts),
 			fa: formatAssetUrl(new URL('./translations/fa.json', import.meta.url).href, opts),
 			fi: formatAssetUrl(new URL('./translations/fi.json', import.meta.url).href, opts),
 			fr: formatAssetUrl(new URL('./translations/fr.json', import.meta.url).href, opts),
 			gl: formatAssetUrl(new URL('./translations/gl.json', import.meta.url).href, opts),
+			'gu-in': formatAssetUrl(new URL('./translations/gu-in.json', import.meta.url).href, opts),
 			he: formatAssetUrl(new URL('./translations/he.json', import.meta.url).href, opts),
 			'hi-in': formatAssetUrl(new URL('./translations/hi-in.json', import.meta.url).href, opts),
 			hr: formatAssetUrl(new URL('./translations/hr.json', import.meta.url).href, opts),
@@ -195,6 +266,8 @@ export function getAssetUrlsByMetaUrl(opts) {
 			id: formatAssetUrl(new URL('./translations/id.json', import.meta.url).href, opts),
 			it: formatAssetUrl(new URL('./translations/it.json', import.meta.url).href, opts),
 			ja: formatAssetUrl(new URL('./translations/ja.json', import.meta.url).href, opts),
+			'km-kh': formatAssetUrl(new URL('./translations/km-kh.json', import.meta.url).href, opts),
+			kn: formatAssetUrl(new URL('./translations/kn.json', import.meta.url).href, opts),
 			'ko-kr': formatAssetUrl(new URL('./translations/ko-kr.json', import.meta.url).href, opts),
 			ku: formatAssetUrl(new URL('./translations/ku.json', import.meta.url).href, opts),
 			languages: formatAssetUrl(
@@ -202,9 +275,14 @@ export function getAssetUrlsByMetaUrl(opts) {
 				opts
 			),
 			main: formatAssetUrl(new URL('./translations/main.json', import.meta.url).href, opts),
+			ml: formatAssetUrl(new URL('./translations/ml.json', import.meta.url).href, opts),
+			mr: formatAssetUrl(new URL('./translations/mr.json', import.meta.url).href, opts),
+			ms: formatAssetUrl(new URL('./translations/ms.json', import.meta.url).href, opts),
 			my: formatAssetUrl(new URL('./translations/my.json', import.meta.url).href, opts),
 			ne: formatAssetUrl(new URL('./translations/ne.json', import.meta.url).href, opts),
+			nl: formatAssetUrl(new URL('./translations/nl.json', import.meta.url).href, opts),
 			no: formatAssetUrl(new URL('./translations/no.json', import.meta.url).href, opts),
+			pa: formatAssetUrl(new URL('./translations/pa.json', import.meta.url).href, opts),
 			pl: formatAssetUrl(new URL('./translations/pl.json', import.meta.url).href, opts),
 			'pt-br': formatAssetUrl(new URL('./translations/pt-br.json', import.meta.url).href, opts),
 			'pt-pt': formatAssetUrl(new URL('./translations/pt-pt.json', import.meta.url).href, opts),
@@ -213,10 +291,13 @@ export function getAssetUrlsByMetaUrl(opts) {
 			sl: formatAssetUrl(new URL('./translations/sl.json', import.meta.url).href, opts),
 			so: formatAssetUrl(new URL('./translations/so.json', import.meta.url).href, opts),
 			sv: formatAssetUrl(new URL('./translations/sv.json', import.meta.url).href, opts),
+			ta: formatAssetUrl(new URL('./translations/ta.json', import.meta.url).href, opts),
 			te: formatAssetUrl(new URL('./translations/te.json', import.meta.url).href, opts),
 			th: formatAssetUrl(new URL('./translations/th.json', import.meta.url).href, opts),
+			tl: formatAssetUrl(new URL('./translations/tl.json', import.meta.url).href, opts),
 			tr: formatAssetUrl(new URL('./translations/tr.json', import.meta.url).href, opts),
 			uk: formatAssetUrl(new URL('./translations/uk.json', import.meta.url).href, opts),
+			ur: formatAssetUrl(new URL('./translations/ur.json', import.meta.url).href, opts),
 			vi: formatAssetUrl(new URL('./translations/vi.json', import.meta.url).href, opts),
 			'zh-cn': formatAssetUrl(new URL('./translations/zh-cn.json', import.meta.url).href, opts),
 			'zh-tw': formatAssetUrl(new URL('./translations/zh-tw.json', import.meta.url).href, opts),

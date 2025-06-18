@@ -7,6 +7,7 @@ import {
 	FONT_FAMILIES,
 	Geometry2d,
 	LABEL_FONT_SIZES,
+	PlainTextLabel,
 	Polygon2d,
 	RecordPropsType,
 	ShapeUtil,
@@ -16,7 +17,6 @@ import {
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
-	TextLabel,
 	Vec,
 	ZERO_INDEX_KEY,
 	resizeBox,
@@ -109,6 +109,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			{
 				id: 'tail',
 				type: 'vertex',
+				label: 'Move tail',
 				index: ZERO_INDEX_KEY,
 				// props.tail coordinates are normalized
 				// but here we need them in shape space
@@ -192,7 +193,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 						fill={'none'}
 					/>
 				</svg>
-				<TextLabel
+				<PlainTextLabel
 					shapeId={id}
 					type={type}
 					font={font}

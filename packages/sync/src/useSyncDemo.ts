@@ -10,6 +10,7 @@ import {
 	TLPresenceUserInfo,
 	TLStore,
 	TLStoreSchemaOptions,
+	clamp,
 	defaultBindingUtils,
 	defaultShapeUtils,
 	getHashForString,
@@ -123,9 +124,20 @@ export function useSyncDemo(
 	})
 }
 
+function shouldDisallowUploads(host: string) {
+	const disallowedHosts = ['tldraw.com', 'tldraw.xyz']
+	return disallowedHosts.some(
+		(disallowedHost) => host === disallowedHost || host.endsWith(`.${disallowedHost}`)
+	)
+}
+
 function createDemoAssetStore(host: string): TLAssetStore {
 	return {
-		upload: async (asset, file) => {
+		upload: async (_asset, file) => {
+			if (shouldDisallowUploads(host)) {
+				alert('Uploading images is disabled in this demo.')
+				throw new Error('Uploading images is disabled in this demo.')
+			}
 			const id = uniqueId()
 
 			const objectName = `${id}-${file.name}`.replace(/\W/g, '-')
@@ -136,7 +148,7 @@ function createDemoAssetStore(host: string): TLAssetStore {
 				body: file,
 			})
 
-			return url
+			return { src: url }
 		},
 
 		resolve(asset, context) {
@@ -182,7 +194,10 @@ function createDemoAssetStore(host: string): TLAssetStore {
 
 				const width = Math.ceil(
 					Math.min(
-						asset.props.w * context.steppedScreenScale * networkCompensation * context.dpr,
+						asset.props.w *
+							clamp(context.steppedScreenScale, 1 / 32, 1) *
+							networkCompensation *
+							context.dpr,
 						asset.props.w
 					)
 				)

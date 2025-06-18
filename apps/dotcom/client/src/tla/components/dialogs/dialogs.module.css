@@ -1,16 +1,30 @@
-.actionGroup {
-	flex-direction: row;
-	justify-content: flex-end;
+.dialogContainer {
+	width: 350px;
+	min-width: 350px;
+	max-width: 100%;
 }
 
-.actionButton {
-	width: fit-content;
+.dialogBody {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	max-width: 500px;
 }
 
-.input {
-	background-color: var(--color-muted-2);
-	flex-grow: 2;
-	border-radius: var(--radius-2);
-	padding: 0px var(--space-4);
-	border: 1px solid var(--tla-color-border);
+/* ----------------- Feedback dialog ---------------- */
+
+.feedbackDialogTextArea {
+	border: 1px solid var(--color-muted-2);
+	border-radius: var(--radius-2) var(--radius-2) 0px var(--radius-2);
+	background-color: var(--color-muted-0);
+	color: var(--color-text-0);
+	padding: var(--space-3) var(--space-4);
+	resize: vertical;
+	width: 100%;
+	min-height: 100px;
+	max-height: 400px;
+}
+
+.feedbackDialogTextArea::placeholder {
+	color: var(--color-text-3);
 }

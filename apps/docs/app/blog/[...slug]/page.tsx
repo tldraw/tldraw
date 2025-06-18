@@ -20,6 +20,14 @@ export async function generateMetadata({
 	} else if (content.type === 'article' && content.article.sectionId === 'blog') {
 		const metadata: Metadata = { title: content.article.title }
 		if (content.article.description) metadata.description = content.article.description
+		if (content.article.socialImage) {
+			metadata.openGraph = {
+				images: [{ url: content.article.socialImage }],
+			}
+			metadata.twitter = {
+				images: [{ url: content.article.socialImage }],
+			}
+		}
 		return metadata
 	}
 	return {}
@@ -35,6 +43,7 @@ export async function generateStaticParams() {
 export default async function Page({ params }: { params: { slug: string | string[] } }) {
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
 	const content = await db.getPageContent(`/blog/${path.join('/')}`)
+
 	if (!content) notFound()
 
 	if (content.type === 'category' && content.category.sectionId === 'blog') {

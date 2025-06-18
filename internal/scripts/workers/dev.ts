@@ -121,12 +121,20 @@ class SizeReporter {
 			// need to list out node packages that are used in the worker.
 			// otherwise, if we user platform=node, the bundle size is not reported correctly
 			'--external:os',
+			'--external:node:os',
 			'--external:crypto',
 			'--external:stream',
 			'--external:net',
 			'--external:fs',
 			'--external:perf_hooks',
 			'--external:tls',
+			'--external:path',
+			'--external:node:path',
+			'--external:node:process',
+			'--external:node:child_process',
+			'--external:node:events',
+			'--external:dns',
+			'--external:node:util',
 			'--target=esnext',
 			'--format=esm',
 		])

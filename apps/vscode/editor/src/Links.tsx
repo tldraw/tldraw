@@ -8,7 +8,6 @@ export function Links() {
 				<TldrawUiMenuItem
 					id="about"
 					label="help-menu.terms"
-					icon="external-link"
 					readonlyOk
 					onSelect={() => {
 						openUrl(
@@ -19,7 +18,6 @@ export function Links() {
 				<TldrawUiMenuItem
 					id="about"
 					label="help-menu.privacy"
-					icon="external-link"
 					readonlyOk
 					onSelect={() => {
 						openUrl(
@@ -32,7 +30,6 @@ export function Links() {
 				<TldrawUiMenuItem
 					id="about"
 					label="help-menu.about"
-					icon="external-link"
 					readonlyOk
 					onSelect={() => {
 						openUrl('https://tldraw.dev')

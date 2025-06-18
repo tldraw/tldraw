@@ -52,7 +52,6 @@ video,
 canvas,
 svg {
 	display: block;
-	max-width: 100%;
 }
 /*
   6. Remove built-in form typography styles
@@ -62,18 +61,6 @@ button,
 textarea,
 select {
 	font: inherit;
-}
-/*
-  7. Avoid text overflows
-*/
-p,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-	overflow-wrap: break-word;
 }
 
 html {
@@ -191,6 +178,8 @@ a {
 
 .board-history {
 	padding: 64px;
+	height: 100%;
+	overflow: scroll;
 }
 
 .board-history__list {
@@ -242,7 +231,7 @@ a {
 /* ------------------ Da Share Zone ----------------- */
 
 .tlui-style-panel__wrapper {
-	margin-top: 2px;
+	margin-top: 4px;
 }
 
 .tlui-share-zone__connection-status {
@@ -448,18 +437,7 @@ a {
 	height: 36px;
 }
 
-/* -------------------- Snowstorm ------------------- */
-
-.tl-snowflake {
-	position: absolute;
-	background-color: #ccc;
-	border-radius: 100%;
-	pointer-events: none;
-}
-
-.tl-snowstorm {
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	pointer-events: none;
+.tlui-guest-icon {
+	/* https://stackoverflow.com/a/23735769/1810018 */
+	-webkit-transform: translateZ(0);
 }

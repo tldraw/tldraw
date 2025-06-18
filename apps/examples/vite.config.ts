@@ -60,6 +60,7 @@ export default defineConfig(({ mode }) => ({
 	},
 	server: {
 		port: 5420,
+		allowedHosts: true,
 	},
 	clearScreen: false,
 	optimizeDeps: {
@@ -77,7 +78,7 @@ export default defineConfig(({ mode }) => ({
 		'process.env.TLDRAW_IMAGE_URL': urlOrLocalFallback(
 			mode,
 			env === 'development' ? undefined : 'https://images.tldraw.xyz',
-			8989
+			8786
 		),
 	},
 }))

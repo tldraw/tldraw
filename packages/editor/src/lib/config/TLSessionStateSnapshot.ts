@@ -14,12 +14,12 @@ import {
 import {
 	deleteFromSessionStorage,
 	getFromSessionStorage,
+	isEqual,
 	setInSessionStorage,
 	structuredClone,
 	uniqueId,
 } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import isEqual from 'lodash.isequal'
 import { tlenv } from '../globals/environment'
 
 const tabIdKey = 'TLDRAW_TAB_ID_v2' as const
@@ -50,7 +50,9 @@ function iOS() {
  * @public
  */
 export const TAB_ID: string = window
-	? window[tabIdKey] ?? getFromSessionStorage(tabIdKey) ?? `TLDRAW_INSTANCE_STATE_V1_` + uniqueId()
+	? (window[tabIdKey] ??
+		getFromSessionStorage(tabIdKey) ??
+		`TLDRAW_INSTANCE_STATE_V1_` + uniqueId())
 	: '<error>'
 if (window) {
 	window[tabIdKey] = TAB_ID

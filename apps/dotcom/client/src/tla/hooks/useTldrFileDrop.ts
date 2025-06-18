@@ -1,18 +1,9 @@
 import { useAuth } from '@clerk/clerk-react'
 import { DragEvent, useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Editor, TLStoreSnapshot, parseTldrawJsonFile, tlmenus, useToasts } from 'tldraw'
+import { tlmenus } from 'tldraw'
 import { routes } from '../../routeDefs'
-import { globalEditor } from '../../utils/globalEditor'
-import { defineMessages, useIntl } from '../utils/i18n'
 import { useApp } from './useAppState'
-
-const messages = defineMessages({
-	uploading: {
-		defaultMessage: 'Uploading {count} .tldr {count, plural, one {file} other {files}}…',
-	},
-	adding: { defaultMessage: 'Added {count} .tldr {count, plural, one {file} other {files}}.' },
-})
 
 export function useTldrFileDrop() {
 	const app = useApp()
@@ -20,10 +11,7 @@ export function useTldrFileDrop() {
 
 	const [isDraggingOver, setIsDraggingOver] = useState(false)
 
-	const { addToast, removeToast } = useToasts()
-
 	const auth = useAuth()
-	const intl = useIntl()
 
 	const onDrop = useCallback(
 		async (e: DragEvent) => {
@@ -40,37 +28,11 @@ export function useTldrFileDrop() {
 			if (!tldrawFiles.length) {
 				return
 			}
-
-			const editor = globalEditor.get()
-
-			if (editor) {
-				const snapshots = await getSnapshotsFromDroppedTldrawFiles(editor, tldrawFiles)
-				if (!snapshots.length) return
-
-				const uploadingTitle = intl.formatMessage(messages.uploading, {
-					count: snapshots.length,
-				})
-				const addedTitle = intl.formatMessage(messages.adding, { count: snapshots.length })
-
-				const id = addToast({
-					severity: 'info',
-					title: uploadingTitle,
-				})
-
-				const results = await app.createFilesFromTldrFiles(snapshots, token)
-
-				removeToast(id)
-				addToast({
-					severity: 'success',
-					title: addedTitle,
-					keepOpen: true,
-				})
-				if (results.slugs.length > 0) {
-					navigate(routes.tlaFile(results.slugs[0]))
-				}
-			}
+			app.uploadTldrFiles(tldrawFiles, (file) => {
+				navigate(routes.tlaFile(file.id))
+			})
 		},
-		[app, addToast, removeToast, auth, intl, navigate]
+		[app, auth, navigate]
 	)
 
 	const onDragOver = useCallback((e: DragEvent) => {
@@ -91,36 +53,4 @@ export function useTldrFileDrop() {
 	}, [])
 
 	return { onDrop, onDragOver, onDragEnter, onDragLeave, isDraggingOver }
-}
-
-export async function getSnapshotsFromDroppedTldrawFiles(editor: Editor, tldrawFiles: File[]) {
-	const { schema } = editor.store
-
-	const results = await Promise.allSettled(
-		tldrawFiles.map(async (file) => {
-			const json = await file.text()
-			const parseFileResult = parseTldrawJsonFile({
-				schema,
-				json,
-			})
-
-			if (parseFileResult.ok) {
-				return parseFileResult.value.getStoreSnapshot()
-			} else {
-				console.error(parseFileResult.error)
-			}
-
-			return null
-		})
-	)
-
-	const snapshots: TLStoreSnapshot[] = []
-
-	for (const result of results) {
-		if (result.status === 'fulfilled' && result.value !== null) {
-			snapshots.push(result.value)
-		}
-	}
-
-	return snapshots
 }

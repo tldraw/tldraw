@@ -6,9 +6,11 @@ import { connect } from './connect'
 import { generateApiContent } from './generateApiContent'
 import { generateContent } from './generateContent'
 import { generateExamplesContent } from './generateExamplesContent'
+import { generateLlmsTxt } from './generateLllmsTxt'
 
 export async function refreshContent(opts = {} as { silent: boolean }) {
 	if (!opts.silent) nicelog('◦ Resetting database...')
+
 	const db = await connect({ reset: true, mode: 'readwrite' })
 
 	if (!opts.silent) nicelog('◦ Adding authors to db...')
@@ -25,6 +27,9 @@ export async function refreshContent(opts = {} as { silent: boolean }) {
 
 	if (!opts.silent) nicelog('◦ Fixing links to API docs...')
 	await autoLinkDocs(db)
+
+	if (!opts.silent) nicelog('◦ Creating llms.txt...')
+	await generateLlmsTxt(db)
 
 	if (!opts.silent) nicelog('✔ Complete')
 }

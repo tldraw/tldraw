@@ -7,10 +7,15 @@ on:
       - main
       - production
 
+permissions: write-all
+
 env:
   CI: 1
   PRINT_GITHUB_ANNOTATIONS: 1
-  TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
+  TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview' }}
+  AWS_ACCOUNT_NUMBER: ${{ (github.ref == 'refs/heads/production' && '892899106134') || (github.ref == 'refs/heads/main' && '028814013491') || '571248596162' }}
+  AWS_REGION: 'eu-north-1'
+
 defaults:
   run:
     shell: bash
@@ -35,8 +40,28 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: true
+          fetch-depth: 0
 
       - uses: ./.github/actions/setup
+
+      - name: Determine zero deploy target
+        id: deploy_target
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ "${GITHUB_REF}" == "refs/heads/production" || "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            echo "DEPLOY_ZERO=sst" >> $GITHUB_ENV
+          elif echo "${{ toJSON(github.event.pull_request.labels.*.name) }}" | grep -q "preview-sst-zero-deploy-please"; then
+            echo "DEPLOY_ZERO=sst" >> $GITHUB_ENV
+          elif echo "${{ toJSON(github.event.pull_request.labels.*.name) }}" | grep -q "preview-flyio-zero-deploy-please"; then
+            echo "DEPLOY_ZERO=flyio" >> $GITHUB_ENV
+          elif git fetch origin "${GITHUB_BASE_REF}" && git diff --name-only origin/"${GITHUB_BASE_REF}"...HEAD | grep -q '^apps/dotcom/'; then
+            # gh pr edit ${{ github.event.pull_request.number }} --add-label "preview-flyio-zero-deploy-please"
+            # echo "DEPLOY_ZERO=flyio" >> $GITHUB_ENV
+            echo "DEPLOY_ZERO=false" >> $GITHUB_ENV
+          else
+            echo "DEPLOY_ZERO=false" >> $GITHUB_ENV
+          fi
 
       - name: Delete Neon Branch
         uses: neondatabase/delete-branch-action@v3.1.3
@@ -65,6 +90,23 @@ jobs:
       - name: Build types
         run: yarn build-types
 
+      - name: Configure AWS credentials using OIDC
+        if: env.DEPLOY_ZERO == 'sst'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_NUMBER }}:role/huppy-bot
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Fly cli
+        if: env.DEPLOY_ZERO == 'flyio'
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Install PostgreSQL client
+        if: env.DEPLOY_ZERO == 'flyio'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
       - name: Deploy
         run: yarn tsx internal/scripts/deploy-dotcom.ts
         env:
@@ -81,12 +123,16 @@ jobs:
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_DOTCOM_PROJECT_ID }}
 
           ASSET_UPLOAD_SENTRY_DSN: ${{ secrets.ASSET_UPLOAD_SENTRY_DSN }}
+          BOTCOM_POSTGRES_CONNECTION_STRING: ${{ env.NEON_PREVIEW_DB_CONNECTION_STRING || secrets.BOTCOM_POSTGRES_CONNECTION_STRING }}
+          BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: ${{ env.NEON_PREVIEW_DB_POOLED_CONNECTION_STRING || secrets.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+          DISCORD_FEEDBACK_WEBHOOK_URL: ${{ secrets.DISCORD_FEEDBACK_WEBHOOK_URL }}
           DISCORD_HEALTH_WEBHOOK_URL: ${{ secrets.DISCORD_HEALTH_WEBHOOK_URL }}
           GC_MAPS_API_KEY: ${{ secrets.GC_MAPS_API_KEY }}
+          HEALTH_CHECK_BEARER_TOKEN: ${{ secrets.HEALTH_CHECK_BEARER_TOKEN }}
           HEALTH_WORKER_UPDOWN_WEBHOOK_PATH: ${{ secrets.HEALTH_WORKER_UPDOWN_WEBHOOK_PATH }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
@@ -97,6 +143,7 @@ jobs:
           TLDRAW_LICENSE: ${{ secrets.TLDRAW_LICENSE }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
+          VITE_GA4_MEASUREMENT_ID: ${{ secrets.VITE_GA4_MEASUREMENT_ID }}
           WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
-          BOTCOM_POSTGRES_CONNECTION_STRING: ${{ secrets.BOTCOM_POSTGRES_CONNECTION_STRING }}
-          BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: ${{ secrets.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING }}
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

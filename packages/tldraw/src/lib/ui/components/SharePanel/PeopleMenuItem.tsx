@@ -29,15 +29,20 @@ export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId
 	if (!presence) return null
 
 	return (
-		<div className="tlui-people-menu__item tlui-buttons__horizontal">
+		<div
+			className="tlui-people-menu__item tlui-buttons__horizontal"
+			data-follow={youAreFollowingThem || theyAreFollowingYou}
+		>
 			<TldrawUiButton
 				type="menu"
 				className="tlui-people-menu__item__button"
 				onClick={() => editor.zoomToUser(userId)}
 				onDoubleClick={handleFollowClick}
 			>
-				<TldrawUiIcon icon="color" color={presence.color} />
-				<div className="tlui-people-menu__name">{presence.userName ?? 'New User'}</div>
+				<TldrawUiIcon label={msg('people-menu.avatar-color')} icon="color" color={presence.color} />
+				<div className="tlui-people-menu__name">
+					{presence.userName?.trim() || msg('people-menu.anonymous-user')}
+				</div>
 			</TldrawUiButton>
 			<TldrawUiButton
 				type="icon"
@@ -51,7 +56,6 @@ export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId
 				}
 				onClick={handleFollowClick}
 				disabled={theyAreFollowingYou}
-				data-active={youAreFollowingThem || theyAreFollowingYou}
 			>
 				<TldrawUiButtonIcon
 					icon={theyAreFollowingYou ? 'leading' : youAreFollowingThem ? 'following' : 'follow'}

@@ -4,6 +4,10 @@
 		"label": "عربي"
 	},
 	{
+		"locale": "bn",
+		"label": "বাংলা"
+	},
+	{
 		"locale": "ca",
 		"label": "Català"
 	},
@@ -40,16 +44,32 @@
 		"label": "Français"
 	},
 	{
+		"locale": "el",
+		"label": "Ελληνικά"
+	},
+	{
 		"locale": "gl",
 		"label": "Galego"
+	},
+	{
+		"locale": "gu-in",
+		"label": "ગુજરાતી"
 	},
 	{
 		"locale": "he",
 		"label": "עברית"
 	},
 	{
+		"locale": "hi-in",
+		"label": "हिन्दी"
+	},
+	{
 		"locale": "hr",
 		"label": "Hrvatski"
+	},
+	{
+		"locale": "hu",
+		"label": "Magyar"
 	},
 	{
 		"locale": "id",
@@ -64,28 +84,36 @@
 		"label": "日本語"
 	},
 	{
+		"locale": "kn",
+		"label": "ಕನ್ನಡ"
+	},
+	{
+		"locale": "km-kh",
+		"label": "ភាសាខ្មែរ"
+	},
+	{
 		"locale": "ko-kr",
 		"label": "한국어"
 	},
 	{
-		"locale": "ku",
-		"label": "کوردی"
+		"locale": "ms",
+		"label": "Bahasa Melayu"
 	},
 	{
-		"locale": "hi-in",
-		"label": "हिन्दी"
+		"locale": "ml",
+		"label": "മലയാളം"
 	},
 	{
-		"locale": "hu",
-		"label": "Magyar"
-	},
-	{
-		"locale": "my",
-		"label": "မြန်မာစာ"
+		"locale": "mr",
+		"label": "मराठी"
 	},
 	{
 		"locale": "ne",
 		"label": "नेपाली"
+	},
+	{
+		"locale": "nl",
+		"label": "Nederlands"
 	},
 	{
 		"locale": "no",
@@ -104,12 +132,16 @@
 		"label": "Português - Europeu"
 	},
 	{
+		"locale": "pa",
+		"label": "ਪੰਜਾਬੀ"
+	},
+	{
 		"locale": "ro",
 		"label": "Română"
 	},
 	{
 		"locale": "ru",
-		"label": "Russian"
+		"label": "Русский"
 	},
 	{
 		"locale": "sl",
@@ -124,6 +156,10 @@
 		"label": "Svenska"
 	},
 	{
+		"locale": "ta",
+		"label": "தமிழ்"
+	},
+	{
 		"locale": "te",
 		"label": "తెలుగు"
 	},
@@ -132,12 +168,20 @@
 		"label": "ภาษาไทย"
 	},
 	{
+		"locale": "tl",
+		"label": "Filipino"
+	},
+	{
 		"locale": "tr",
 		"label": "Türkçe"
 	},
 	{
 		"locale": "uk",
-		"label": "Ukrainian"
+		"label": "Українська"
+	},
+	{
+		"locale": "ur",
+		"label": "اردو"
 	},
 	{
 		"locale": "vi",

@@ -196,7 +196,9 @@ export class TLLocalSyncClient {
 				}
 
 				if (sessionStateSnapshot) {
-					loadSessionStateSnapshotIntoStore(this.store, sessionStateSnapshot)
+					loadSessionStateSnapshotIntoStore(this.store, sessionStateSnapshot, {
+						forceOverwrite: true,
+					})
 				}
 			}
 

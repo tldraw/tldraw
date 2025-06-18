@@ -3,10 +3,13 @@ import { memo, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../constants'
 import { useBreakpoint } from '../context/breakpoints'
 import { useTldrawUiComponents } from '../context/components'
+import { useTranslation } from '../hooks/useTranslation/useTranslation'
+import { TldrawUiToolbar } from './primitives/TldrawUiToolbar'
 
 /** @public @react */
 export const DefaultMenuPanel = memo(function MenuPanel() {
 	const breakpoint = useBreakpoint()
+	const msg = useTranslation()
 
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
@@ -28,17 +31,17 @@ export const DefaultMenuPanel = memo(function MenuPanel() {
 	if (!MainMenu && !PageMenu && !showQuickActions) return null
 
 	return (
-		<div ref={ref} className="tlui-menu-zone">
+		<nav ref={ref} className="tlui-menu-zone">
 			<div className="tlui-buttons__horizontal">
 				{MainMenu && <MainMenu />}
 				{PageMenu && !isSinglePageMode && <PageMenu />}
 				{showQuickActions ? (
-					<>
+					<TldrawUiToolbar className="tlui-buttons__horizontal" label={msg('actions-menu.title')}>
 						{QuickActions && <QuickActions />}
 						{ActionsMenu && <ActionsMenu />}
-					</>
+					</TldrawUiToolbar>
 				) : null}
 			</div>
-		</div>
+		</nav>
 	)
 })

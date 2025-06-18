@@ -13,7 +13,7 @@ export const RoomSessionState = {
 export type RoomSessionState = (typeof RoomSessionState)[keyof typeof RoomSessionState]
 
 export const SESSION_START_WAIT_TIME = 10000
-export const SESSION_REMOVAL_WAIT_TIME = 10000
+export const SESSION_REMOVAL_WAIT_TIME = 5000
 export const SESSION_IDLE_TIMEOUT = 20000
 
 /** @internal */

@@ -5,6 +5,7 @@ dist
 node_modules
 *.d.ts
 **/api-report.md
+**/api-report.api.md
 **/_archive
 **/*.tsbuildinfo
 yarn.lock

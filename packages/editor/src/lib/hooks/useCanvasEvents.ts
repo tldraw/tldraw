@@ -1,3 +1,4 @@
+import { useValue } from '@tldraw/state-react'
 import React, { useMemo } from 'react'
 import { RIGHT_MOUSE_BUTTON } from '../constants'
 import {
@@ -11,6 +12,7 @@ import { useEditor } from './useEditor'
 
 export function useCanvasEvents() {
 	const editor = useEditor()
+	const currentTool = useValue('current tool', () => editor.getCurrentTool(), [editor])
 
 	const events = useMemo(
 		function canvasEvents() {
@@ -49,12 +51,21 @@ export function useCanvasEvents() {
 				lastX = e.clientX
 				lastY = e.clientY
 
-				editor.dispatch({
-					type: 'pointer',
-					target: 'canvas',
-					name: 'pointer_move',
-					...getPointerInfo(e),
-				})
+				// For tools that benefit from a higher fidelity of events,
+				// we dispatch the coalesced events.
+				// N.B. Sometimes getCoalescedEvents isn't present on iOS, ugh.
+				const events =
+					currentTool.useCoalescedEvents && e.nativeEvent.getCoalescedEvents
+						? e.nativeEvent.getCoalescedEvents()
+						: [e]
+				for (const singleEvent of events) {
+					editor.dispatch({
+						type: 'pointer',
+						target: 'canvas',
+						name: 'pointer_move',
+						...getPointerInfo(singleEvent),
+					})
+				}
 			}
 
 			function onPointerUp(e: React.PointerEvent) {
@@ -100,8 +111,9 @@ export function useCanvasEvents() {
 				if (
 					e.target.tagName !== 'A' &&
 					e.target.tagName !== 'TEXTAREA' &&
+					!e.target.isContentEditable &&
 					// When in EditingShape state, we are actually clicking on a 'DIV'
-					// not A/TEXTAREA element yet. So, to preserve cursor position
+					// not A/TEXTAREA/contenteditable element yet. So, to preserve cursor position
 					// for edit mode on mobile we need to not preventDefault.
 					// TODO: Find out if we still need this preventDefault in general though.
 					!(editor.getEditingShape() && e.target.className.includes('tl-text-content'))
@@ -117,16 +129,27 @@ export function useCanvasEvents() {
 			async function onDrop(e: React.DragEvent<Element>) {
 				preventDefault(e)
 				stopEventPropagation(e)
-				if (!e.dataTransfer?.files?.length) return
 
-				const files = Array.from(e.dataTransfer.files)
+				if (e.dataTransfer?.files?.length) {
+					const files = Array.from(e.dataTransfer.files)
 
-				await editor.putExternalContent({
-					type: 'files',
-					files,
-					point: editor.screenToPage({ x: e.clientX, y: e.clientY }),
-					ignoreParent: false,
-				})
+					await editor.putExternalContent({
+						type: 'files',
+						files,
+						point: editor.screenToPage({ x: e.clientX, y: e.clientY }),
+					})
+					return
+				}
+
+				const url = e.dataTransfer.getData('url')
+				if (url) {
+					await editor.putExternalContent({
+						type: 'url',
+						url,
+						point: editor.screenToPage({ x: e.clientX, y: e.clientY }),
+					})
+					return
+				}
 			}
 
 			function onClick(e: React.MouseEvent) {
@@ -146,7 +169,7 @@ export function useCanvasEvents() {
 				onClick,
 			}
 		},
-		[editor]
+		[editor, currentTool]
 	)
 
 	return events

@@ -1,9 +1,7 @@
-import { AssetRecordType, TLAsset, TLExternalAssetContent, fetch, getHashForString } from 'tldraw'
+import { AssetRecordType, TLAsset, TLUrlExternalContent, fetch, getHashForString } from 'tldraw'
 import { rpc } from './rpc'
 
-export async function onCreateAssetFromUrl({
-	url,
-}: TLExternalAssetContent & { type: 'url' }): Promise<TLAsset> {
+export async function onCreateAssetFromUrl({ url }: TLUrlExternalContent): Promise<TLAsset> {
 	try {
 		// First, try to get the data from the extension manager process, using node's fetch
 		const meta = await rpc('vscode:bookmark', { url })

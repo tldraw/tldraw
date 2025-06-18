@@ -1,12 +1,12 @@
 ---
-title: Snapshots
+title: Save and load snapshots
 component: ./SnapshotExample.tsx
 category: editor-api
-priority: 1
+priority: 0
 keywords: []
 ---
 
-Load a snapshot of the editor's contents.
+Sand and load a snapshot of the editor's contents.
 
 ---
 

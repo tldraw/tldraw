@@ -9,6 +9,7 @@ import { clamp } from '../../primitives/utils'
 
 /** @public */
 export interface TLCollaboratorHintProps {
+	userId: string
 	className?: string
 	point: VecModel
 	viewport: Box

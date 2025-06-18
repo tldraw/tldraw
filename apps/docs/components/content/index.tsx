@@ -1,4 +1,3 @@
-import { A } from '@/components/content/a'
 import { ApiHeading } from '@/components/content/api-heading'
 import { Blockquote } from '@/components/content/blockquote'
 import { Callout } from '@/components/content/callout'
@@ -10,6 +9,7 @@ import { ParametersTableDescription } from '@/components/content/parameters-tabl
 import { ParametersTableName } from '@/components/content/parameters-table-name'
 import { ParametersTableRow } from '@/components/content/parameters-table-row'
 import { Pre } from '@/components/content/pre'
+import { SideBySideImages } from '@/components/content/side-by-side-images'
 import { ApiMemberTitle } from '@/components/content/title-with-source-link'
 import { Video } from '@/components/content/video'
 import { YouTube } from '@/components/content/youtube'
@@ -19,13 +19,14 @@ import { MDXRemote } from 'next-mdx-remote/rsc'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeSlug from 'rehype-slug-custom-id'
 import remarkGfm from 'remark-gfm'
+import { TldrawLink } from '../common/tldraw-link'
 
 export function Content({ mdx, type }: { mdx: string; type?: string }) {
 	return (
 		<section
 			className={cn(
 				type === 'reference' && 'prose-hr:hidden prose-h2:!mt-8 md:prose-h2:!mt-24',
-				'prose dark:prose-invert prose-sm prose-zinc text-zinc-800 dark:text-zinc-200 sm:prose-base w-full max-w-3xl',
+				'prose dark:prose-invert prose-sm prose-zinc text-zinc-800 dark:text-zinc-200 sm:prose-base w-full max-w-full',
 				'prose-code:before:content-none prose-code:after:content-none prose-code:bg-zinc-100 dark:prose-code:!bg-zinc-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:font-normal',
 				'prose-a:no-underline prose-a:text-blue-500 hover:prose-a:text-blue-600 dark:hover:prose-a:text-blue-400 prose-a:font-normal',
 				'prose-blockquote:text-zinc-800 dark:prose-blockquote:text-zinc-200 prose-blockquote:font-normal prose-blockquote:border-none prose-blockquote:px-4 prose-blockquote:leading-normal prose-blockquote:bg-zinc-50 dark:prose-blockquote:bg-zinc-900 prose-blockquote:py-3 prose-blockquote:rounded-xl',
@@ -40,7 +41,7 @@ export function Content({ mdx, type }: { mdx: string; type?: string }) {
 			<MDXRemote
 				source={mdx}
 				components={{
-					a: A,
+					a: TldrawLink,
 					Embed,
 					pre: Pre,
 					code: Code,
@@ -58,6 +59,7 @@ export function Content({ mdx, type }: { mdx: string; type?: string }) {
 					blockquote: Blockquote,
 					Video,
 					YouTube,
+					TwoImages: SideBySideImages,
 				}}
 				options={{
 					mdxOptions: {

@@ -8,6 +8,9 @@
 	},
 	"references": [
 		{
+			"path": "../../../packages/dotcom-shared"
+		},
+		{
 			"path": "../../../packages/validate"
 		},
 		{

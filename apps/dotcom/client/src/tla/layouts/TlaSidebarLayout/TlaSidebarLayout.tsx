@@ -1,14 +1,16 @@
 import React, { ReactNode, useCallback, useLayoutEffect, useRef } from 'react'
-import { clamp, tltime, useQuickReactor, useValue } from 'tldraw'
+import { clamp, tltime, useQuickReactor } from 'tldraw'
 import { TlaSidebar } from '../../components/TlaSidebar/TlaSidebar'
 import { TlaSidebarToggle } from '../../components/TlaSidebar/components/TlaSidebarToggle'
 import { TlaSidebarToggleMobile } from '../../components/TlaSidebar/components/TlaSidebarToggleMobile'
-import { useApp } from '../../hooks/useAppState'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
 import {
 	getLocalSessionState,
 	getLocalSessionStateUnsafe,
+	toggleSidebar,
 	updateLocalSessionState,
+	useIsSidebarOpen,
+	useIsSidebarOpenMobile,
 } from '../../utils/local-session-state'
 import styles from './sidebar-layout.module.css'
 
@@ -16,16 +18,16 @@ const MIN_SIDEBAR_WIDTH = 150
 const DEF_SIDEBAR_WIDTH = 260
 const MAX_SIDEBAR_WIDTH = 500
 
-export function TlaSidebarLayout({ children }: { children: ReactNode; collapsible?: boolean }) {
-	const app = useApp()
-
-	const isSidebarOpen = useValue('sidebar open', () => getLocalSessionState().isSidebarOpen, [app])
-
-	const isSidebarOpenMobile = useValue(
-		'sidebar open mobile',
-		() => getLocalSessionState().isSidebarOpenMobile,
-		[app]
-	)
+export function TlaSidebarLayout({
+	isEmbed,
+	children,
+}: {
+	isEmbed?: boolean
+	children: ReactNode
+	collapsible?: boolean
+}) {
+	const isSidebarOpen = useIsSidebarOpen()
+	const isSidebarOpenMobile = useIsSidebarOpenMobile()
 
 	usePreventAccidentalDrops()
 
@@ -79,10 +81,8 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 		if (rResizeState.current.name === 'resizing') {
 			const { startX, startWidth } = rResizeState.current
 
-			const newWidth = clamp(
-				startWidth + (moveEvent.clientX - startX),
-				MIN_SIDEBAR_WIDTH,
-				MAX_SIDEBAR_WIDTH
+			const newWidth = Math.floor(
+				clamp(startWidth + (moveEvent.clientX - startX), MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH)
 			)
 
 			if (newWidth !== getLocalSessionStateUnsafe().sidebarWidth) {
@@ -110,7 +110,7 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 		}
 
 		function closeSidebar() {
-			updateLocalSessionState(() => ({ isSidebarOpen: false }))
+			toggleSidebar(false)
 			rLayoutContainer.current?.removeAttribute('data-resizing')
 			rResizeState.current = { name: 'idle' }
 		}
@@ -161,27 +161,33 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 		<div
 			ref={rLayoutContainer}
 			className={styles.layout}
-			data-sidebar={isSidebarOpen}
-			data-sidebarmobile={isSidebarOpenMobile}
+			data-sidebar={!isEmbed && isSidebarOpen}
+			data-sidebarmobile={!isEmbed && isSidebarOpenMobile}
 			data-testid="tla-sidebar-layout"
 		>
-			<TlaSidebar />
-			{children}
-			<div className={styles.toggleContainer}>
-				<TlaSidebarToggle />
-				<TlaSidebarToggleMobile />
-			</div>
-			{isSidebarOpen && (
-				<div
-					className={styles.resizeHandle}
-					onPointerDown={handlePointerDown}
-					onPointerMove={handlePointerMove}
-					draggable={false}
-					onDoubleClick={handleDoubleClick}
-					onLostPointerCapture={handlePointerUp}
-				>
-					<div className={styles.resizeHandleIndicator}></div>
-				</div>
+			{isEmbed ? (
+				children
+			) : (
+				<>
+					<TlaSidebar />
+					{children}
+					<div className={styles.toggleContainer}>
+						<TlaSidebarToggle />
+						<TlaSidebarToggleMobile />
+					</div>
+					{isSidebarOpen && (
+						<div
+							className={styles.resizeHandle}
+							onPointerDown={handlePointerDown}
+							onPointerMove={handlePointerMove}
+							draggable={false}
+							onDoubleClick={handleDoubleClick}
+							onLostPointerCapture={handlePointerUp}
+						>
+							<div className={styles.resizeHandleIndicator}></div>
+						</div>
+					)}
+				</>
 			)}
 		</div>
 	)

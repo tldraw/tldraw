@@ -1,5 +1,6 @@
 'use client'
 
+import { track } from '@/app/analytics'
 import LgBcDark from '@/public/images/ui-placeholder/lg-bc-dark.png'
 import LgBc from '@/public/images/ui-placeholder/lg-bc.png'
 import LgBlDark from '@/public/images/ui-placeholder/lg-bl-dark.png'
@@ -31,10 +32,11 @@ export function Demo() {
 	const handleSkeletonClick = useCallback(() => {
 		setIsLoading(true)
 		setShowCanvas(true)
+		track('cta', { location: 'hero', type: 'demo' })
 	}, [])
 
 	return (
-		<div className="relative w-full border-t-[4px] border-b-[4px] md:border-[4px] border-blue-500 h-96 md:rounded-br-[16px] md:rounded-bl-[16px] md:rounded-tl-[16px] md:rounded-tr-[20px] sm:h-[40rem] max-h-[80vh] overflow-hidden my-5">
+		<div className="relative w-full border-t-[4px] border-b-[4px] md:border-[4px] border-blue-500 h-96 md:rounded-br-[16px] md:rounded-bl-[16px] md:rounded-tl-[16px] md:rounded-tr-[20px] sm:h-[40rem] max-h-[80vh] overflow-hidden">
 			<Suspense fallback={<FakeTldraw isLoading={isLoading} onClick={handleSkeletonClick} />}>
 				<DemoTldraw hidden={!showCanvas} />
 			</Suspense>
@@ -116,6 +118,7 @@ function FakeTldraw({ onClick, isLoading }: { onClick(): void; isLoading: boolea
 			</div>
 			<div className="absolute inset-0 bg-[#FBFCFE]/50 dark:bg-[#101011]/50 flex items-center justify-center">
 				<Button
+					id="hero-demo"
 					onClick={onClick}
 					caption={isLoading ? 'Loading…' : 'Try it'}
 					icon="play"

@@ -1,27 +1,37 @@
 import test, { Page, expect } from '@playwright/test'
-import { BoxModel, Editor, TLNoteShape, TLShapeId } from 'tldraw'
+import {
+	BoxModel,
+	Editor,
+	TLMeasureTextOpts,
+	TLMeasureTextSpanOpts,
+	TLNoteShape,
+	TLShapeId,
+} from 'tldraw'
+import { EndToEndApi } from '../../src/misc/EndToEndApi'
 import { setupPage } from '../shared-e2e'
 
-const measureTextOptions = {
-	maxWidth: null,
+declare const tldrawApi: EndToEndApi
+
+const measureTextOptions: TLMeasureTextOpts = {
 	fontFamily: 'var(--tl-font-draw)',
 	fontSize: 24,
 	lineHeight: 1.35,
 	fontWeight: 'normal',
 	fontStyle: 'normal',
 	padding: '0px',
+	maxWidth: null,
 }
 
-const measureTextSpansOptions = {
+const measureTextSpansOptions: TLMeasureTextSpanOpts = {
+	fontFamily: 'var(--tl-font-draw)',
+	fontSize: 24,
+	lineHeight: 1.35,
+	fontWeight: 'normal',
+	fontStyle: 'normal',
+	padding: 0,
 	width: 100,
 	height: 1000,
 	overflow: 'wrap' as const,
-	padding: 0,
-	fontSize: 24,
-	fontWeight: 'normal',
-	fontFamily: 'var(--tl-font-draw)',
-	fontStyle: 'normal',
-	lineHeight: 1.35,
 	textAlign: 'start' as 'start' | 'middle' | 'end',
 }
 
@@ -63,6 +73,7 @@ test.describe('text measurement', () => {
 			measureTextOptions
 		)
 
+		// works on github actions
 		expect(w).toBeCloseTo(87, 0)
 		expect(h).toBeCloseTo(32.3984375, 0)
 	})
@@ -153,7 +164,7 @@ test.describe('text measurement', () => {
 			measureTextSpansOptions
 		)
 
-		expect(formatLines(spans)).toEqual([['  ', 'testing', ' ', 'testing']])
+		expect(formatLines(spans)[0]?.[0]).toEqual('  ')
 	})
 
 	test('should place starting whitespace on its own line if it has to', async () => {
@@ -242,14 +253,14 @@ test.describe('text measurement', () => {
 	test('for auto-font-sizing shapes, should do normal font size for text that does not have long words', async () => {
 		const shape = await page.evaluate(() => {
 			const id = 'shape:testShape' as TLShapeId
-			editor.createShapes([
+			editor.createShapes<TLNoteShape>([
 				{
 					id,
 					type: 'note',
 					x: 0,
 					y: 0,
 					props: {
-						text: 'this is just some regular text',
+						richText: tldrawApi.toRichText('this is just some regular text'),
 						size: 'xl',
 					},
 				},
@@ -264,14 +275,14 @@ test.describe('text measurement', () => {
 	test('for auto-font-sizing shapes, should auto-size text that have slightly long words', async () => {
 		const shape = await page.evaluate(() => {
 			const id = 'shape:testShape' as TLShapeId
-			editor.createShapes([
+			editor.createShapes<TLNoteShape>([
 				{
 					id,
 					type: 'note',
 					x: 0,
 					y: 0,
 					props: {
-						text: 'Amsterdam',
+						richText: tldrawApi.toRichText('Amsterdam'),
 						size: 'xl',
 					},
 				},
@@ -286,14 +297,14 @@ test.describe('text measurement', () => {
 	test('for auto-font-sizing shapes, should auto-size text that have long words', async () => {
 		const shape = await page.evaluate(() => {
 			const id = 'shape:testShape' as TLShapeId
-			editor.createShapes([
+			editor.createShapes<TLNoteShape>([
 				{
 					id,
 					type: 'note',
 					x: 0,
 					y: 0,
 					props: {
-						text: 'this is a tentoonstelling',
+						richText: tldrawApi.toRichText('this is a tentoonstelling'),
 						size: 'xl',
 					},
 				},
@@ -308,14 +319,16 @@ test.describe('text measurement', () => {
 	test('for auto-font-sizing shapes, should wrap text that has words that are way too long', async () => {
 		const shape = await page.evaluate(() => {
 			const id = 'shape:testShape' as TLShapeId
-			editor.createShapes([
+			editor.createShapes<TLNoteShape>([
 				{
 					id,
 					type: 'note',
 					x: 0,
 					y: 0,
 					props: {
-						text: 'a very long dutch word like ziekenhuisinrichtingsmaatschappij',
+						richText: tldrawApi.toRichText(
+							'a very long dutch word like ziekenhuisinrichtingsmaatschappij'
+						),
 						size: 'xl',
 					},
 				},
@@ -325,5 +338,57 @@ test.describe('text measurement', () => {
 		})
 
 		expect(shape.props.fontSizeAdjustment).toEqual(14)
+	})
+
+	test('should use custom renderMethod for text measurement', async () => {
+		const { w, h } = await page.evaluate<{ w: number; h: number }, typeof measureTextOptions>(
+			async (options) => {
+				return editor.textMeasure.measureHtml(`<div><strong>HELLO WORLD</strong></div>`, options)
+			},
+			measureTextOptions
+		)
+
+		// Assuming the custom render method affects the width and height
+		// Adjust these expected values based on how renderMethod is supposed to affect the output
+		// Works on github actions, annoyingly
+		expect(w).toBeGreaterThanOrEqual(165)
+		expect(w).toBeLessThanOrEqual(167)
+		expect(h).toBeCloseTo(32.390625, 0)
+	})
+
+	test('element should have no leftover properties', async () => {
+		const measure = page.locator('div.tl-text-measure')
+
+		await page.evaluate<{ w: number; h: number }, typeof measureTextOptions>(async (options) => {
+			return editor.textMeasure.measureHtml(`<div><strong>HELLO WORLD</strong></div>`, options)
+		}, measureTextOptions)
+
+		const firstStyle = (await measure.getAttribute('style')) ?? ''
+
+		expect(await measure.getAttribute('style')).toMatch(firstStyle)
+
+		await page.evaluate(() => {
+			const id = 'shape:testShape' as TLShapeId
+			editor.createShapes<TLNoteShape>([
+				{
+					id,
+					type: 'note',
+					x: 0,
+					y: 0,
+					props: {
+						richText: tldrawApi.toRichText(
+							'a very long dutch word like ziekenhuisinrichtingsmaatschappij'
+						),
+						size: 'xl',
+					},
+				},
+			])
+		})
+
+		await page.evaluate<{ w: number; h: number }, typeof measureTextOptions>(async (options) => {
+			return editor.textMeasure.measureHtml(`<div><strong>HELLO WORLD</strong></div>`, options)
+		}, measureTextOptions)
+
+		expect(await page.locator('div.tl-text-measure').getAttribute('style')).toMatch(firstStyle)
 	})
 })

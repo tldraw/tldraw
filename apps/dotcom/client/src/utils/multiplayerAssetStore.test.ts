@@ -1,7 +1,7 @@
 import { TLAsset } from 'tldraw'
 import { multiplayerAssetStore } from './multiplayerAssetStore'
 
-const resolver = multiplayerAssetStore.resolve
+const resolver = multiplayerAssetStore().resolve
 const FILE_SIZE = 1024 * 1024 * 2
 
 describe('multiplayerAssetStore.resolve', () => {

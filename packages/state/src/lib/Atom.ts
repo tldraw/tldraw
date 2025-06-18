@@ -6,14 +6,14 @@ import { advanceGlobalEpoch, atomDidChange, getGlobalEpoch } from './transaction
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
 
 /**
- * The options to configure an atom, passed into the [[atom]] function.
+ * The options to configure an atom, passed into the {@link atom} function.
  * @public
  */
 export interface AtomOptions<Value, Diff> {
 	/**
 	 * The maximum number of diffs to keep in the history buffer.
 	 *
-	 * If you don't need to compute diffs, or if you will supply diffs manually via [[Atom.set]], you can leave this as `undefined` and no history buffer will be created.
+	 * If you don't need to compute diffs, or if you will supply diffs manually via {@link Atom.set}, you can leave this as `undefined` and no history buffer will be created.
 	 *
 	 * If you expect the value to be part of an active effect subscription all the time, and to not change multiple times inside of a single transaction, you can set this to a relatively low number (e.g. 10).
 	 *
@@ -22,7 +22,7 @@ export interface AtomOptions<Value, Diff> {
 	 */
 	historyLength?: number
 	/**
-	 * A method used to compute a diff between the atom's old and new values. If provided, it will not be used unless you also specify [[AtomOptions.historyLength]].
+	 * A method used to compute a diff between the atom's old and new values. If provided, it will not be used unless you also specify {@link AtomOptions.historyLength}.
 	 */
 	computeDiff?: ComputeDiff<Value, Diff>
 	/**
@@ -36,9 +36,9 @@ export interface AtomOptions<Value, Diff> {
 }
 
 /**
- * An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].
+ * An Atom is a signal that can be updated directly by calling {@link Atom.set} or {@link Atom.update}.
  *
- * Atoms are created using the [[atom]] function.
+ * Atoms are created using the {@link atom} function.
  *
  * @example
  * ```ts
@@ -54,7 +54,7 @@ export interface Atom<Value, Diff = unknown> extends Signal<Value, Diff> {
 	 * Sets the value of this atom to the given value. If the value is the same as the current value, this is a no-op.
 	 *
 	 * @param value - The new value to set.
-	 * @param diff - The diff to use for the update. If not provided, the diff will be computed using [[AtomOptions.computeDiff]].
+	 * @param diff - The diff to use for the update. If not provided, the diff will be computed using {@link AtomOptions.computeDiff}.
 	 */
 	set(value: Value, diff?: Diff): Value
 	/**
@@ -156,9 +156,9 @@ export const _Atom = singleton('Atom', () => __Atom__)
 export type _Atom = InstanceType<typeof _Atom>
 
 /**
- * Creates a new [[Atom]].
+ * Creates a new {@link Atom}.
  *
- * An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].
+ * An Atom is a signal that can be updated directly by calling {@link Atom.set} or {@link Atom.update}.
  *
  * @example
  * ```ts
@@ -183,7 +183,7 @@ export function atom<Value, Diff = unknown>(
 	 */
 	initialValue: Value,
 	/**
-	 * The options to configure the atom. See [[AtomOptions]].
+	 * The options to configure the atom. See {@link AtomOptions}.
 	 */
 	options?: AtomOptions<Value, Diff>
 ): Atom<Value, Diff> {
@@ -191,7 +191,7 @@ export function atom<Value, Diff = unknown>(
 }
 
 /**
- * Returns true if the given value is an [[Atom]].
+ * Returns true if the given value is an {@link Atom}.
  * @public
  */
 export function isAtom(value: unknown): value is Atom<unknown> {

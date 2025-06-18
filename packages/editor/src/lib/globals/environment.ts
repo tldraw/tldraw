@@ -11,6 +11,7 @@ const tlenv = {
 	isAndroid: false,
 	isWebview: false,
 	isDarwin: false,
+	hasCanvasSupport: false,
 }
 
 if (typeof window !== 'undefined' && 'navigator' in window) {
@@ -20,6 +21,8 @@ if (typeof window !== 'undefined' && 'navigator' in window) {
 	tlenv.isFirefox = /firefox/i.test(navigator.userAgent)
 	tlenv.isAndroid = /android/i.test(navigator.userAgent)
 	tlenv.isDarwin = window.navigator.userAgent.toLowerCase().indexOf('mac') > -1
+	tlenv.hasCanvasSupport =
+		typeof window !== 'undefined' && 'Promise' in window && 'HTMLCanvasElement' in window
 }
 
 export { tlenv }

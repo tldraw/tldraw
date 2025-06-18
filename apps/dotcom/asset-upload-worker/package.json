@@ -9,7 +9,7 @@
 	},
 	"main": "src/index.ts",
 	"scripts": {
-		"dev": "yarn run -T tsx ../../../internal/scripts/workers/dev.ts --persist-to tmp-assets",
+		"dev": "yarn run -T tsx ../../../internal/scripts/workers/dev.ts --persist-to tmp-assets --inspector-port 9449",
 		"test-ci": "lazy inherit --passWithNoTests",
 		"test": "yarn run -T jest --passWithNoTests",
 		"test-coverage": "lazy inherit --passWithNoTests",
@@ -17,13 +17,13 @@
 	},
 	"dependencies": {
 		"@tldraw/worker-shared": "workspace:*",
-		"itty-router": "^5.0.17"
+		"itty-router": "^5.0.18"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20241022.0",
-		"@types/ws": "^8.5.9",
+		"@cloudflare/workers-types": "^4.20250510.0",
+		"@types/ws": "^8.5.14",
 		"lazyrepo": "0.0.0-alpha.27",
-		"wrangler": "^3.84.1"
+		"wrangler": "^4.14.4"
 	},
 	"jest": {
 		"preset": "../../../internal/config/jest/node/jest-preset.js",

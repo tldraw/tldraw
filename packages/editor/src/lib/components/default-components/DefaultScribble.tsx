@@ -4,6 +4,7 @@ import { getSvgPathFromPoints } from '../../utils/getSvgPathFromPoints'
 
 /** @public */
 export interface TLScribbleProps {
+	userId?: string
 	scribble: TLScribble
 	zoom: number
 	color?: string

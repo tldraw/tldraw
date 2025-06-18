@@ -1,6 +1,9 @@
+import { EMPTY_ARRAY } from '@tldraw/state'
+import { assert, invLerp, lerp } from '@tldraw/utils'
 import { Box } from '../Box'
-import { Vec } from '../Vec'
-import { Geometry2d, Geometry2dOptions } from './Geometry2d'
+import { Mat } from '../Mat'
+import { Vec, VecLike } from '../Vec'
+import { Geometry2d, Geometry2dFilters, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class Group2d extends Geometry2d {
@@ -25,11 +28,14 @@ export class Group2d extends Geometry2d {
 		if (this.children.length === 0) throw Error('Group2d must have at least one child')
 	}
 
-	override getVertices(): Vec[] {
-		return this.children.filter((c) => !c.isLabel).flatMap((c) => c.vertices)
+	override getVertices(filters: Geometry2dFilters): Vec[] {
+		if (this.isExcludedByFilter(filters)) return []
+		return this.children
+			.filter((c) => !c.isExcludedByFilter(filters))
+			.flatMap((c) => c.getVertices(filters))
 	}
 
-	override nearestPoint(point: Vec): Vec {
+	override nearestPoint(point: VecLike, filters?: Geometry2dFilters): Vec {
 		let dist = Infinity
 		let nearest: Vec | undefined
 
@@ -42,7 +48,8 @@ export class Group2d extends Geometry2d {
 		let p: Vec
 		let d: number
 		for (const child of children) {
-			p = child.nearestPoint(point)
+			if (child.isExcludedByFilter(filters)) continue
+			p = child.nearestPoint(point, filters)
 			d = Vec.Dist2(p, point)
 			if (d < dist) {
 				dist = d
@@ -53,18 +60,132 @@ export class Group2d extends Geometry2d {
 		return nearest
 	}
 
-	override distanceToPoint(point: Vec, hitInside = false) {
-		return Math.min(...this.children.map((c, i) => c.distanceToPoint(point, hitInside || i > 0)))
+	override distanceToPoint(point: VecLike, hitInside = false, filters?: Geometry2dFilters) {
+		let smallestDistance = Infinity
+		for (const child of this.children) {
+			if (child.isExcludedByFilter(filters)) continue
+			const distance = child.distanceToPoint(point, hitInside, filters)
+			if (distance < smallestDistance) {
+				smallestDistance = distance
+			}
+		}
+		return smallestDistance
 	}
 
-	override hitTestPoint(point: Vec, margin: number, hitInside: boolean): boolean {
+	override hitTestPoint(
+		point: VecLike,
+		margin: number,
+		hitInside: boolean,
+		filters = Geometry2dFilters.EXCLUDE_LABELS
+	): boolean {
 		return !!this.children
-			.filter((c) => !c.isLabel)
+			.filter((c) => !c.isExcludedByFilter(filters))
 			.find((c) => c.hitTestPoint(point, margin, hitInside))
 	}
 
-	override hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean {
-		return !!this.children.filter((c) => !c.isLabel).find((c) => c.hitTestLineSegment(A, B, zoom))
+	override hitTestLineSegment(
+		A: VecLike,
+		B: VecLike,
+		zoom: number,
+		filters = Geometry2dFilters.EXCLUDE_LABELS
+	): boolean {
+		return !!this.children
+			.filter((c) => !c.isExcludedByFilter(filters))
+			.find((c) => c.hitTestLineSegment(A, B, zoom))
+	}
+
+	override intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
+		return this.children.flatMap((child) => {
+			if (child.isExcludedByFilter(filters)) return EMPTY_ARRAY
+			return child.intersectLineSegment(A, B, filters)
+		})
+	}
+
+	override intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters) {
+		return this.children.flatMap((child) => {
+			if (child.isExcludedByFilter(filters)) return EMPTY_ARRAY
+			return child.intersectCircle(center, radius, filters)
+		})
+	}
+
+	override intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters) {
+		return this.children.flatMap((child) => {
+			if (child.isExcludedByFilter(filters)) return EMPTY_ARRAY
+			return child.intersectPolygon(polygon, filters)
+		})
+	}
+
+	override intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters) {
+		return this.children.flatMap((child) => {
+			if (child.isExcludedByFilter(filters)) return EMPTY_ARRAY
+			return child.intersectPolyline(polyline, filters)
+		})
+	}
+
+	override interpolateAlongEdge(t: number, filters?: Geometry2dFilters): Vec {
+		const totalLength = this.getLength(filters)
+
+		const distanceToTravel = t * totalLength
+		let distanceTraveled = 0
+		for (const child of this.children) {
+			if (child.isExcludedByFilter(filters)) continue
+			const childLength = child.length
+			const newDistanceTraveled = distanceTraveled + childLength
+			if (newDistanceTraveled >= distanceToTravel) {
+				return child.interpolateAlongEdge(
+					invLerp(distanceTraveled, newDistanceTraveled, distanceToTravel),
+					filters
+				)
+			}
+			distanceTraveled = newDistanceTraveled
+		}
+
+		return this.children[this.children.length - 1].interpolateAlongEdge(1, filters)
+	}
+
+	override uninterpolateAlongEdge(point: VecLike, filters?: Geometry2dFilters): number {
+		const totalLength = this.getLength(filters)
+
+		let closestChild = null
+		let closestDistance = Infinity
+		let distanceTraveled = 0
+
+		for (const child of this.children) {
+			if (child.isExcludedByFilter(filters)) continue
+			const childLength = child.getLength(filters)
+			const newDistanceTraveled = distanceTraveled + childLength
+
+			const distance = child.distanceToPoint(point, false, filters)
+			if (distance < closestDistance) {
+				closestDistance = distance
+				closestChild = {
+					startLength: distanceTraveled,
+					endLength: newDistanceTraveled,
+					child,
+				}
+			}
+
+			distanceTraveled = newDistanceTraveled
+		}
+
+		assert(closestChild)
+
+		const normalizedDistanceInChild = closestChild.child.uninterpolateAlongEdge(point, filters)
+		const childTLength = lerp(
+			closestChild.startLength,
+			closestChild.endLength,
+			normalizedDistanceInChild
+		)
+		return childTLength / totalLength
+	}
+
+	override transform(transform: Mat): Geometry2d {
+		return new Group2d({
+			children: this.children.map((c) => c.transform(transform)),
+			isLabel: this.isLabel,
+			debugColor: this.debugColor,
+			ignore: this.ignore,
+		})
 	}
 
 	getArea() {
@@ -97,8 +218,13 @@ export class Group2d extends Geometry2d {
 		return path
 	}
 
-	getLength(): number {
-		return this.children.reduce((a, c) => (c.isLabel ? a : a + c.length), 0)
+	getLength(filters?: Geometry2dFilters): number {
+		let length = 0
+		for (const child of this.children) {
+			if (child.isExcludedByFilter(filters)) continue
+			length += child.length
+		}
+		return length
 	}
 
 	getSvgPathData(): string {

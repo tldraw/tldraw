@@ -25,6 +25,7 @@ export async function DocsHeader({ article }: { article: Article }) {
 				<PageTitle>{article.title}</PageTitle>
 				{sourceUrlWithVersionTag && (
 					<Button
+						id="see-source-code"
 						href={sourceUrlWithVersionTag}
 						newTab
 						caption="See source code"

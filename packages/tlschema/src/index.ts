@@ -13,8 +13,10 @@ export { type TLBookmarkAsset } from './assets/TLBookmarkAsset'
 export { type TLImageAsset } from './assets/TLImageAsset'
 export { type TLVideoAsset } from './assets/TLVideoAsset'
 export {
+	ElbowArrowSnap,
 	arrowBindingMigrations,
 	arrowBindingProps,
+	arrowBindingVersions,
 	type TLArrowBinding,
 	type TLArrowBindingProps,
 } from './bindings/TLArrowBinding'
@@ -44,6 +46,7 @@ export {
 export { TL_CURSOR_TYPES, type TLCursor, type TLCursorType } from './misc/TLCursor'
 export { TL_HANDLE_TYPES, type TLHandle, type TLHandleType } from './misc/TLHandle'
 export { opacityValidator, type TLOpacityType } from './misc/TLOpacity'
+export { richTextValidator, toRichText, type TLRichText } from './misc/TLRichText'
 export { TL_SCRIBBLE_STATES, scribbleValidator, type TLScribble } from './misc/TLScribble'
 export {
 	boxModelValidator,
@@ -133,13 +136,17 @@ export {
 	type TLPropsMigration,
 	type TLPropsMigrations,
 } from './recordsWithProps'
+export { type ShapeWithCrop, type TLShapeCrop } from './shapes/ShapeWithCrop'
 export {
 	ArrowShapeArrowheadEndStyle,
 	ArrowShapeArrowheadStartStyle,
+	ArrowShapeKindStyle,
 	arrowShapeMigrations,
 	arrowShapeProps,
+	arrowShapeVersions,
 	type TLArrowShape,
 	type TLArrowShapeArrowheadStyle,
+	type TLArrowShapeKind,
 	type TLArrowShapeProps,
 } from './shapes/TLArrowShape'
 export {
@@ -198,7 +205,6 @@ export {
 	imageShapeMigrations,
 	imageShapeProps,
 	type TLImageShape,
-	type TLImageShapeCrop,
 	type TLImageShapeProps,
 } from './shapes/TLImageShape'
 export {

@@ -1,6 +1,7 @@
-import * as _Dialog from '@radix-ui/react-dialog'
 import classNames from 'classnames'
-import { ReactNode } from 'react'
+import { Dialog as _Dialog } from 'radix-ui'
+import { CSSProperties, ReactNode } from 'react'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './Button/TldrawUiButtonIcon'
 
@@ -19,25 +20,32 @@ export function TldrawUiDialogHeader({ className, children }: TLUiDialogHeaderPr
 export interface TLUiDialogTitleProps {
 	className?: string
 	children: ReactNode
+	style?: CSSProperties
 }
 
 /** @public @react */
-export function TldrawUiDialogTitle({ className, children }: TLUiDialogTitleProps) {
+export function TldrawUiDialogTitle({ className, children, style }: TLUiDialogTitleProps) {
 	return (
-		<_Dialog.DialogTitle dir="ltr" className={classNames('tlui-dialog__header__title', className)}>
+		<_Dialog.Title
+			dir="ltr"
+			className={classNames('tlui-dialog__header__title', className)}
+			style={style}
+		>
 			{children}
-		</_Dialog.DialogTitle>
+		</_Dialog.Title>
 	)
 }
 
 /** @public @react */
 export function TldrawUiDialogCloseButton() {
+	const msg = useTranslation()
+
 	return (
 		<div className="tlui-dialog__header__close">
 			<_Dialog.DialogClose data-testid="dialog.close" dir="ltr" asChild>
 				<TldrawUiButton
 					type="icon"
-					aria-label="Close"
+					aria-label={msg('ui.close')}
 					onTouchEnd={(e) => (e.target as HTMLButtonElement).click()}
 				>
 					<TldrawUiButtonIcon small icon="cross-2" />
@@ -51,7 +59,7 @@ export function TldrawUiDialogCloseButton() {
 export interface TLUiDialogBodyProps {
 	className?: string
 	children: ReactNode
-	style?: React.CSSProperties
+	style?: CSSProperties
 }
 
 /** @public @react */
@@ -66,7 +74,7 @@ export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBod
 /** @public */
 export interface TLUiDialogFooterProps {
 	className?: string
-	children: ReactNode
+	children?: ReactNode
 }
 
 /** @public @react */

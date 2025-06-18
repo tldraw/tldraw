@@ -66,12 +66,16 @@ export const FrameLabelInput = forwardRef<
 			<input
 				className="tl-frame-name-input"
 				ref={ref}
+				disabled={!isEditing}
+				readOnly={!isEditing}
 				style={{ display: isEditing ? undefined : 'none' }}
 				value={name}
 				autoFocus
 				onKeyDown={handleKeyDown}
 				onBlur={handleBlur}
 				onChange={handleChange}
+				onPointerDown={isEditing ? stopEventPropagation : undefined}
+				draggable={false}
 			/>
 			{defaultEmptyAs(name, 'Frame') + String.fromCharCode(8203)}
 		</div>

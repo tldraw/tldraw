@@ -164,25 +164,49 @@ export async function wranglerDeploy({
 	}
 }
 
+export interface ServiceBinding {
+	binding: string
+	service: string
+}
+
 export async function setWranglerPreviewConfig(
 	location: string,
-	{ name, customDomain }: { name: string; customDomain?: string }
+	{
+		name,
+		customDomain,
+		serviceBinding,
+	}: { name: string; customDomain?: string; serviceBinding?: ServiceBinding },
+	queueName?: string
 ) {
 	const additionalProperties = `name = "${name}"
-${customDomain ? `routes = [ { pattern = "${customDomain}", custom_domain = true} ]` : ''}`
+${customDomain ? `routes = [ { pattern = "${customDomain}", custom_domain = true} ]` : ''}
+${serviceBinding ? `services = [ {binding = "${serviceBinding.binding}", service = "${serviceBinding.service}" } ]` : ''}`
 
-	const additionalSection = `\n[env.preview]\n${additionalProperties}\n`
+	const envPreviewSection = `\n[env.preview]\n${additionalProperties}\n`
 
 	const path = join(location, 'wrangler.toml')
 	let data = readFileSync(path).toString()
 	if (data.includes('\n[env.preview]\n')) {
-		if (!data.includes(additionalSection)) {
-			data = data.replace('\n[env.preview]\n', additionalSection)
+		if (!data.includes(envPreviewSection)) {
+			data = data.replace('\n[env.preview]\n', envPreviewSection)
 		} else {
 			// it was already added?
 		}
 	} else {
-		data += additionalSection
+		data += envPreviewSection
 	}
+
+	if (queueName) {
+		const envPreviewQueuesSection = `\n[[env.preview.queues.producers]]
+queue = "${queueName}"
+binding = "QUEUE"
+
+[[env.preview.queues.consumers]]
+queue = "${queueName}"
+max_retries =10
+`
+		data += envPreviewQueuesSection
+	}
+
 	writeFileSync(path, data)
 }

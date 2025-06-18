@@ -1,46 +1,54 @@
+import { CustomMutatorImpl } from '@rocicorp/zero'
+import type { SchemaCRUD, SchemaQuery } from '@rocicorp/zero/out/zql/src/mutate/custom'
 import {
-	isColumnMutable,
-	ROOM_PREFIX,
+	DB,
+	MIN_Z_PROTOCOL_VERSION,
 	TlaFile,
-	TlaFileState,
-	TlaUser,
-	Z_PROTOCOL_VERSION,
+	TlaSchema,
 	ZClientSentMessage,
 	ZErrorCode,
-	ZRowUpdate,
-	ZServerSentMessage,
+	ZServerSentPacket,
+	createMutators,
+	downgradeZStoreData,
+	schema,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { assert } from '@tldraw/utils'
+import { ExecutionQueue, assert, assertExists, mapObjectMapValues, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
-import postgres from 'postgres'
-import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
-import { getPostgres } from './getPostgres'
-import { getR2KeyForRoom } from './r2'
-import { type TLPostgresReplicator } from './TLPostgresReplicator'
-import { Analytics, Environment, TLUserDurableObjectEvent } from './types'
+import { Kysely, PostgresDialect, Transaction, sql } from 'kysely'
+import { Pool, PoolClient } from 'pg'
+import { Logger } from './Logger'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
+import { Analytics, Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
-import { getReplicator } from './utils/durableObjects'
+import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
-import { getCurrentSerializedRoomSnapshot } from './utils/tla/getCurrentSerializedRoomSnapshot'
+import { PerfHackHooks, ServerCRUD } from './zero/ServerCrud'
+import { ServerQuery } from './zero/ServerQuery'
+import { ZMutationError } from './zero/ZMutationError'
+import { legacy_assertValidMutation } from './zero/legacy_assertValidMutation'
 
 export class TLUserDurableObject extends DurableObject<Environment> {
-	private readonly db: ReturnType<typeof postgres>
-	private readonly replicator: TLPostgresReplicator
+	private readonly db: Kysely<DB>
 	private measure: Analytics | undefined
 
 	private readonly sentry
-	private captureException(exception: unknown, eventHint?: EventHint) {
+	private captureException(exception: unknown, extras?: Record<string, unknown>) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		this.sentry?.captureException(exception, eventHint) as any
+		this.sentry?.withScope((scope) => {
+			if (extras) scope.setExtras(extras)
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			this.sentry?.captureException(exception) as any
+		})
 		if (!this.sentry) {
 			console.error(`[TLUserDurableObject]: `, exception)
 		}
 	}
+
+	private log
 
 	cache: UserDataSyncer | null = null
 
@@ -48,14 +56,26 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		super(ctx, env)
 
 		this.sentry = createSentry(ctx, env)
-		this.replicator = getReplicator(env)
 
-		this.db = getPostgres(env, { pooled: true, name: 'TLUserDurableObject' })
-		this.debug('created')
+		this.pool = new Pool({
+			connectionString: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+			application_name: 'user-do',
+			idleTimeoutMillis: 3_000,
+			max: 1,
+		})
+
+		this.db = new Kysely<DB>({
+			dialect: new PostgresDialect({ pool: this.pool }),
+			log: ['error'],
+		})
 		this.measure = env.MEASURE
+
+		// debug logging in preview envs by default
+		this.log = new Logger(env, 'TLUserDurableObject', this.sentry)
 	}
 
 	private userId: string | null = null
+	private coldStartStartTime: number | null = null
 
 	readonly router = Router()
 		.all('/app/:userId/*', async (req) => {
@@ -64,31 +84,25 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 			const rateLimited = await isRateLimited(this.env, this.userId!)
 			if (rateLimited) {
+				this.log.debug('rate limited')
 				this.logEvent({ type: 'rate_limited', id: this.userId })
 				throw new Error('Rate limited')
 			}
-			if (this.cache === null) {
-				await this.init()
-			} else {
-				await this.cache.waitUntilConnected()
+			if (!this.cache) {
+				this.coldStartStartTime = Date.now()
+				this.log.debug('creating cache', this.userId)
+				this.cache = new UserDataSyncer(
+					this.ctx,
+					this.env,
+					this.db,
+					this.userId,
+					(message) => this.broadcast(message),
+					this.logEvent.bind(this),
+					this.log
+				)
 			}
 		})
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
-
-	private async init() {
-		assert(this.userId, 'User ID not set')
-		this.debug('init')
-		this.cache = new UserDataSyncer(
-			this.ctx,
-			this.env,
-			this.db,
-			this.userId,
-			(message) => this.broadcast(message),
-			this.logEvent.bind(this)
-		)
-		this.debug('cache', !!this.cache)
-		await this.cache.waitUntilConnected()
-	}
 
 	// Handle a request to the Durable Object.
 	override async fetch(req: IRequest) {
@@ -115,22 +129,100 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		assert(this.cache, 'no cache')
 	}
 
-	private readonly sockets = new Set<WebSocket>()
+	interval: NodeJS.Timeout | null = null
 
-	broadcast(message: ZServerSentMessage) {
-		this.logEvent({ type: 'broadcast_message', id: this.userId! })
-		const msg = JSON.stringify(message)
-		for (const socket of this.sockets) {
-			if (socket.readyState === WebSocket.OPEN) {
-				socket.send(msg)
-			} else if (
-				socket.readyState === WebSocket.CLOSED ||
-				socket.readyState === WebSocket.CLOSING
-			) {
-				this.sockets.delete(socket)
-			}
+	private maybeStartInterval() {
+		if (!this.interval) {
+			this.interval = setInterval(() => {
+				// do cache persist + cleanup
+				this.cache?.onInterval()
+
+				// clean up closed sockets if there are any
+				for (const socket of this.sockets.keys()) {
+					if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
+						this.sockets.delete(socket)
+					}
+				}
+
+				if (this.sockets.size === 0 && typeof this.interval === 'number') {
+					clearInterval(this.interval)
+					this.interval = null
+				}
+			}, 2000)
 		}
 	}
+
+	private readonly sockets = new Map<WebSocket, { protocolVersion: number; sessionId: string }>()
+
+	private makeCrud(
+		client: PoolClient,
+		signal: AbortSignal,
+		perfHackHooks: PerfHackHooks
+	): SchemaCRUD<TlaSchema> {
+		return mapObjectMapValues(
+			schema.tables,
+			(_, table) => new ServerCRUD(client, table, signal, perfHackHooks)
+		)
+	}
+
+	private makeQuery(client: PoolClient, signal: AbortSignal): SchemaQuery<TlaSchema> {
+		return mapObjectMapValues(
+			schema.tables,
+			(tableName) => new ServerQuery(signal, client, true, tableName) as any
+		)
+	}
+
+	maybeReportColdStartTime(type: ZServerSentPacket['type']) {
+		if (type !== 'initial_data' || !this.coldStartStartTime) return
+		const time = Date.now() - this.coldStartStartTime
+		this.coldStartStartTime = null
+		this.logEvent({ type: 'cold_start_time', id: this.userId!, duration: time })
+	}
+
+	private outgoingBuffer = null as ZServerSentPacket[] | null
+	private flushBuffer() {
+		const buffer = this.outgoingBuffer
+		this.outgoingBuffer = null
+		if (!buffer) return
+
+		for (const [socket, socketMeta] of this.sockets.entries()) {
+			if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
+				this.sockets.delete(socket)
+				continue
+			}
+			if (socket.readyState !== WebSocket.OPEN) {
+				continue
+			}
+			// maybe downgrade the data for the client
+			if (socketMeta.protocolVersion === 1) {
+				for (let msg of buffer) {
+					if (msg.type === 'initial_data') {
+						msg = {
+							type: 'initial_data',
+							initialData: downgradeZStoreData(msg.initialData) as any,
+						}
+					}
+					socket.send(JSON.stringify(msg))
+				}
+				return
+			}
+
+			socket.send(JSON.stringify(buffer))
+		}
+	}
+
+	broadcast(message: ZServerSentPacket) {
+		this.logEvent({ type: 'broadcast_message', id: this.userId! })
+		this.maybeReportColdStartTime(message.type)
+		if (!this.outgoingBuffer) {
+			this.outgoingBuffer = []
+			setTimeout(() => {
+				this.flushBuffer()
+			})
+		}
+		this.outgoingBuffer.push(message)
+	}
+	private readonly messageQueue = new ExecutionQueue()
 
 	async onRequest(req: IRequest) {
 		assert(this.userId, 'User ID not set')
@@ -151,215 +243,201 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		serverWebSocket.accept()
 
-		if (Number(protocolVersion) !== Z_PROTOCOL_VERSION || this.__test__isForceDowngraded) {
+		if (protocolVersion < MIN_Z_PROTOCOL_VERSION || this.__test__isForceDowngraded) {
 			serverWebSocket.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
 
-		serverWebSocket.addEventListener('message', (e) => this.handleSocketMessage(e.data.toString()))
+		serverWebSocket.addEventListener('message', (e) =>
+			this.messageQueue.push(() =>
+				this.handleSocketMessage(serverWebSocket, e.data.toString()).catch((e) =>
+					this.captureException(e, { source: 'serverWebSocket "message" event' })
+				)
+			)
+		)
 		serverWebSocket.addEventListener('close', () => {
 			this.sockets.delete(serverWebSocket)
 		})
 		serverWebSocket.addEventListener('error', (e) => {
-			this.captureException(e)
+			this.captureException(e, { source: 'serverWebSocket "error" event' })
 			this.sockets.delete(serverWebSocket)
 		})
+
+		this.sockets.set(serverWebSocket, {
+			protocolVersion,
+			sessionId,
+		})
+		this.maybeStartInterval()
+
 		const initialData = this.cache.store.getCommittedData()
-		assert(initialData, 'Initial data not fetched')
-
-		serverWebSocket.send(
-			JSON.stringify({
-				type: 'initial_data',
-				initialData,
-			} satisfies ZServerSentMessage)
-		)
-
-		this.sockets.add(serverWebSocket)
+		if (initialData) {
+			this.log.debug('sending initial data on connect', this.userId)
+			serverWebSocket.send(
+				protocolVersion === 1
+					? JSON.stringify({
+							type: 'initial_data',
+							initialData: downgradeZStoreData(initialData),
+						})
+					: JSON.stringify([
+							{
+								type: 'initial_data',
+								initialData,
+							} satisfies ZServerSentPacket,
+						])
+			)
+		} else {
+			this.log.debug('no initial data to send, waiting for boot to finish', this.userId)
+		}
 
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
 
-	private debug(...args: any[]) {
-		// uncomment for dev time debugging
-		// console.log('[TLUserDurableObject]: ', ...args)
-		if (this.sentry) {
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			this.sentry.addBreadcrumb({
-				message: `[TLUserDurableObject]: ${args.map((a) => (typeof a === 'object' ? JSON.stringify(a) : a)).join(' ')}`,
-			})
-		}
-	}
-
-	private async handleSocketMessage(message: string) {
+	private async handleSocketMessage(socket: WebSocket, message: string) {
 		const rateLimited = await isRateLimited(this.env, this.userId!)
 		this.assertCache()
-		await this.cache.waitUntilConnected()
 
 		const msg = JSON.parse(message) as any as ZClientSentMessage
 		switch (msg.type) {
 			case 'mutate':
+			case 'mutator':
 				if (rateLimited) {
 					this.logEvent({ type: 'rate_limited', id: this.userId! })
-					await this.rejectMutation(msg.mutationId, ZErrorCode.rate_limit_exceeded)
+					await this.rejectMutation(socket, msg.mutationId, ZErrorCode.rate_limit_exceeded)
 				} else {
 					this.logEvent({ type: 'mutation', id: this.userId! })
-					await this.handleMutate(msg)
+					await this.handleMutate(socket, msg)
 				}
 				break
 			default:
-				this.captureException(new Error('Unhandled message'), { data: { message } })
+				this.captureException(new Error('Unhandled message'), { message })
 		}
 	}
 
-	private async rejectMutation(mutationId: string, errorCode: ZErrorCode) {
+	async bumpMutationNumber(db: Kysely<DB> | Transaction<DB>) {
+		return db
+			.insertInto('user_mutation_number')
+			.values({
+				userId: this.userId!,
+				mutationNumber: 1,
+			})
+			.onConflict((oc) =>
+				oc.column('userId').doUpdateSet({
+					mutationNumber: sql`user_mutation_number."mutationNumber" + 1`,
+				})
+			)
+			.returning('mutationNumber')
+			.executeTakeFirstOrThrow()
+	}
+
+	private async rejectMutation(socket: WebSocket, mutationId: string, errorCode: ZErrorCode) {
 		this.assertCache()
+		const socketMeta = assertExists(this.sockets.get(socket), 'Socket not found')
 		this.logEvent({ type: 'reject_mutation', id: this.userId! })
-		await this.cache.waitUntilConnected()
 		this.cache.store.rejectMutation(mutationId)
-		this.broadcast({
+		this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== mutationId)
+
+		const msg: ZServerSentPacket = {
 			type: 'reject',
 			mutationId,
 			errorCode,
-		} satisfies ZServerSentMessage)
+		}
+
+		socket?.send(JSON.stringify(socketMeta.protocolVersion === 1 ? msg : [msg]))
 	}
 
-	private async assertValidMutation(update: ZRowUpdate) {
-		// s is the entire set of data that the user has access to
-		// and is up to date with all committed mutations so far.
-		// we commit each mutation one at a time before handling the next.
-		const s = this.cache!.store.getFullData()
-		if (!s) {
-			// This should never happen
-			throw new ZMutationError(ZErrorCode.unknown_error, 'Store data not fetched')
-		}
-		switch (update.table) {
-			case 'user': {
-				const isUpdatingSelf = (update.row as TlaUser).id === this.userId
-				if (!isUpdatingSelf)
-					throw new ZMutationError(
-						ZErrorCode.forbidden,
-						'Cannot update user record that is not our own'
-					)
-				// todo: prevent user from updating their email?
-				return
-			}
-			case 'file': {
-				const nextFile = update.row as TlaFile
-				const prevFile = s.files.find((f) => f.id === (update.row as any).id)
-				if (!prevFile) {
-					const isOwner = nextFile.ownerId === this.userId
-					if (isOwner) return
-					throw new ZMutationError(
-						ZErrorCode.forbidden,
-						`Cannot create a file for another user ${nextFile.id}`
-					)
-				}
-				if (prevFile.ownerId === this.userId) return
-				if (prevFile.shared && prevFile.sharedLinkType === 'edit') return
-				throw new ZMutationError(
-					ZErrorCode.forbidden,
-					'Cannot update file that is not our own and not shared in edit mode' +
-						` user id ${this.userId} ownerId ${prevFile.ownerId}`
-				)
-			}
-			case 'file_state': {
-				const nextFileState = update.row as TlaFileState
-				let file = s.files.find((f) => f.id === nextFileState.fileId)
-				if (!file) {
-					// The user might not have access to this file yet, because they just followed a link
-					// let's allow them to create a file state for it if it exists and is shared.
-					file = (await this.replicator.getFileRecord(nextFileState.fileId)) ?? undefined
-				}
-				if (!file) {
-					throw new ZMutationError(ZErrorCode.bad_request, `File not found ${nextFileState.fileId}`)
-				}
-				if (file.ownerId === this.userId) return
-				if (file.shared) return
-
-				throw new ZMutationError(
-					ZErrorCode.forbidden,
-					"Cannot update file state of file we don't own and is not shared"
-				)
-			}
-		}
-	}
+	private pool: Pool
 
 	private async _doMutate(msg: ZClientSentMessage) {
 		this.assertCache()
-		await this.db.begin(async (sql) => {
-			for (const update of msg.updates) {
-				await this.assertValidMutation(update)
-				switch (update.event) {
-					case 'insert': {
-						if (update.table === 'file_state') {
-							const { fileId: _fileId, userId: _userId, ...rest } = update.row as any
-							if (Object.keys(rest).length === 0) {
-								await sql`insert into ${sql('public.' + update.table)} ${sql(update.row)} ON CONFLICT ("fileId", "userId") DO NOTHING`
-							} else {
-								await sql`insert into ${sql('public.' + update.table)} ${sql(update.row)} ON CONFLICT ("fileId", "userId") DO UPDATE SET ${sql(rest)}`
-							}
-							break
-						} else {
-							const { id: _id, ...rest } = update.row as any
-							await sql`insert into ${sql('public.' + update.table)} ${sql(update.row)} ON CONFLICT ("id") DO UPDATE SET ${sql(rest)}`
-							break
-						}
-					}
-					case 'update': {
-						const mutableColumns = Object.keys(update.row).filter((k) =>
-							isColumnMutable(update.table, k)
-						)
-						if (mutableColumns.length === 0) continue
-						const updates = Object.fromEntries(
-							mutableColumns.map((k) => [k, (update.row as any)[k]])
-						)
-						if (update.table === 'file_state') {
-							const { fileId, userId } = update.row as any
-							await sql`update public.file_state set ${sql(updates)} where "fileId" = ${fileId} and "userId" = ${userId}`
-						} else {
-							const { id, ...rest } = update.row as any
+		const client = await this.pool.connect()
 
-							await sql`update ${sql('public.' + update.table)} set ${sql(updates)} where id = ${id}`
-							if (update.table === 'file') {
-								const currentFile = this.cache.store.getFullData()?.files.find((f) => f.id === id)
-								if (currentFile && currentFile.published !== rest.published) {
-									if (rest.published) {
-										await this.publishSnapshot(currentFile)
-									} else {
-										await this.unpublishSnapshot(currentFile)
-									}
-								} else if (
-									currentFile &&
-									currentFile.published &&
-									currentFile.lastPublished < rest.lastPublished
-								) {
-									await this.publishSnapshot(currentFile)
-								}
-							}
-						}
-						break
+		try {
+			const newFiles = [] as TlaFile[]
+
+			await client.query('BEGIN')
+
+			const controller = new AbortController()
+			const mutate = this.makeCrud(client, controller.signal, { newFiles })
+			try {
+				if (msg.type === 'mutate') {
+					// legacy
+					for (const update of msg.updates) {
+						await legacy_assertValidMutation(this.userId!, client, update)
+						await mutate[update.table][update.event](update.row as any)
 					}
-					case 'delete':
-						if (update.table === 'file_state') {
-							const { fileId, userId } = update.row as any
-							await sql`delete from public.file_state where "fileId" = ${fileId} and "userId" = ${userId}`
-						} else {
-							const { id } = update.row as any
-							await sql`delete from ${sql('public.' + update.table)} where id = ${id}`
-						}
-						if (update.table === 'file') {
-							const { id } = update.row as TlaFile
-							await this.deleteFileStuff(id)
-						}
-						break
+				} else {
+					// new
+					const mutators = createMutators(this.userId!)
+					const path = msg.name.split('.')
+					assert(path.length <= 2, 'Invalid mutation path')
+					const mutator: CustomMutatorImpl<TlaSchema> =
+						path.length === 1 ? (mutators as any)[path[0]] : (mutators as any)[path[0]][path[1]]
+					assert(mutator, 'Invalid mutator path')
+					await mutator(
+						{
+							clientID: '',
+							dbTransaction: {
+								wrappedTransaction: null as any,
+								async query(sqlString: string, params: unknown[]): Promise<any[]> {
+									return client.query(sqlString, params).then((res) => res.rows)
+								},
+							},
+							mutate,
+							location: 'server',
+							reason: 'authoritative',
+							mutationID: 0,
+							query: this.makeQuery(client, controller.signal),
+						},
+						msg.props
+					)
 				}
-				this.cache.store.updateOptimisticData([update], msg.mutationId)
+			} finally {
+				controller.abort()
 			}
-		})
+
+			// await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE')
+			const res = await client.query<{ mutationNumber: number }>(
+				`insert into user_mutation_number ("userId", "mutationNumber") values ($1, 1) on conflict ("userId") do update set "mutationNumber" = user_mutation_number."mutationNumber" + 1 returning "mutationNumber"`,
+				[this.userId]
+			)
+
+			const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
+			const mutationNumber = res.rows[0].mutationNumber
+			assert(
+				mutationNumber > currentMutationNumber,
+				`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
+			)
+			this.log.debug('pushing mutation to cache', this.userId, mutationNumber)
+			this.cache.mutations.push({
+				mutationNumber,
+				mutationId: msg.mutationId,
+				timestamp: Date.now(),
+			})
+
+			await client.query('COMMIT')
+
+			for (const file of newFiles) {
+				if (file.ownerId !== this.userId) {
+					this.cache?.addGuestFile(file)
+				} else {
+					getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
+				}
+			}
+		} catch (e) {
+			await client.query('ROLLBACK')
+			throw e
+		} finally {
+			client.release()
+		}
 	}
 
-	private async handleMutate(msg: ZClientSentMessage) {
+	private async handleMutate(socket: WebSocket, msg: ZClientSentMessage) {
 		this.assertCache()
+		while (!this.cache.store.getCommittedData()) {
+			// this could happen if the cache was cleared due to a full db reboot
+			await sleep(100)
+		}
+		this.log.debug('mutation', this.userId, msg)
 		try {
 			// we connect to pg via a pooler, so in the case that the pool is exhausted
 			// we need to retry the connection. (also in the case that a neon branch is asleep apparently?)
@@ -369,32 +447,13 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					this.logEvent({ type: 'connect_retry', id: this.userId! })
 				}
 			)
-			// TODO: We should probably handle a case where the above operation succeeds but the one below fails
-			this.debug('mutation success', this.userId)
-			await this.db
-				.begin(async (sql) => {
-					const result =
-						await sql`insert into public.user_mutation_number ("userId", "mutationNumber") values (${this.userId}, 1) on conflict ("userId") do update set "mutationNumber" = user_mutation_number."mutationNumber" + 1 returning "mutationNumber"`
-					this.debug('mutation number success', this.userId)
-					const mutationNumber = Number(result[0].mutationNumber)
-					const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
-					assert(
-						mutationNumber > currentMutationNumber,
-						`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
-					)
-					this.debug('pushing mutation to cache', this.userId, mutationNumber)
-					this.cache.mutations.push({ mutationNumber, mutationId: msg.mutationId })
-				})
-				.catch((e) => {
-					this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== msg.mutationId)
-					throw e
-				})
-		} catch (e) {
+		} catch (e: any) {
 			const code = e instanceof ZMutationError ? e.errorCode : ZErrorCode.unknown_error
 			this.captureException(e, {
-				data: { errorCode: code, reason: 'mutation failed' },
+				errorCode: code,
+				reason: e.cause ?? e.message ?? e.stack ?? JSON.stringify(e),
 			})
-			await this.rejectMutation(msg.mutationId, code)
+			await this.rejectMutation(socket, msg.mutationId, code)
 		}
 	}
 
@@ -402,97 +461,40 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	async handleReplicationEvent(event: ZReplicationEvent) {
 		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
-		this.debug('replication event', event, !!this.cache)
-		if (!this.cache) {
+		this.log.debug('replication event', event, !!this.cache)
+		if (await this.notActive()) {
+			this.log.debug('requesting to unregister')
 			return 'unregister'
 		}
 
-		this.cache.handleReplicationEvent(event)
+		try {
+			this.cache?.handleReplicationEvent(event)
+		} catch (e) {
+			this.captureException(e)
+		}
 
 		return 'ok'
 	}
 
+	async notActive() {
+		return !this.cache
+	}
+
 	/* --------------  */
 
-	private async deleteFileStuff(id: string) {
-		const fileRecord = await this.replicator.getFileRecord(id)
-		const room = this.env.TLDR_DOC.get(this.env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${id}`))
-		await room.appFileRecordDidDelete()
-		if (!fileRecord) {
-			throw new Error('file record not found')
-		}
-		const publishedSlug = fileRecord.publishedSlug
-
-		// Create a new slug for the published room
-		await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(publishedSlug)
-
-		// remove published files
-		const publishedPrefixKey = getR2KeyForRoom({
-			slug: `${id}/${publishedSlug}`,
-			isApp: true,
-		})
-		const publishedHistory = await listAllObjectKeys(this.env.ROOM_SNAPSHOTS, publishedPrefixKey)
-		if (publishedHistory.length > 0) {
-			await this.env.ROOM_SNAPSHOTS.delete(publishedHistory)
-		}
-		// remove edit history
-		const r2Key = getR2KeyForRoom({ slug: id, isApp: true })
-		const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, r2Key)
-		if (editHistory.length > 0) {
-			await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
-		}
-		// remove main file
-		await this.env.ROOMS.delete(r2Key)
-	}
-
-	private async publishSnapshot(file: TlaFile) {
-		if (file.ownerId !== this.userId) {
-			throw new ZMutationError(ZErrorCode.forbidden, 'Cannot publish file that is not our own')
-		}
-
-		try {
-			const serializedSnapshot = await getCurrentSerializedRoomSnapshot(file.id, this.env)
-
-			// Create a new slug for the published room
-			await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put(file.publishedSlug, file.id)
-
-			// Bang the snapshot into the database
-			await this.env.ROOM_SNAPSHOTS.put(
-				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true }),
-				serializedSnapshot
-			)
-			const currentTime = new Date().toISOString()
-			await this.env.ROOM_SNAPSHOTS.put(
-				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}|${currentTime}`, isApp: true }),
-				serializedSnapshot
-			)
-		} catch (e) {
-			throw new ZMutationError(ZErrorCode.publish_failed, 'Failed to publish snapshot', e)
-		}
-	}
-
-	private async unpublishSnapshot(file: TlaFile) {
-		if (file.ownerId !== this.userId) {
-			throw new ZMutationError(ZErrorCode.forbidden, 'Cannot unpublish file that is not our own')
-		}
-
-		try {
-			await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(file.publishedSlug)
-			await this.env.ROOM_SNAPSHOTS.delete(
-				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true })
-			)
-		} catch (e) {
-			throw new ZMutationError(ZErrorCode.unpublish_failed, 'Failed to unpublish snapshot', e)
-		}
-	}
-
 	private writeEvent(eventData: EventData) {
-		writeDataPoint(this.measure, this.env, 'user_durable_object', eventData)
+		writeDataPoint(this.sentry, this.measure, this.env, 'user_durable_object', eventData)
 	}
 
 	logEvent(event: TLUserDurableObjectEvent) {
 		switch (event.type) {
 			case 'reboot_duration':
+				this.writeEvent({
+					blobs: [event.type, event.id],
+					doubles: [event.duration],
+				})
+				break
+			case 'cold_start_time':
 				this.writeEvent({
 					blobs: [event.type, event.id],
 					doubles: [event.duration],
@@ -512,31 +514,34 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			return
 		}
 		this.__test__isForceDowngraded = isDowngraded
-		this.sockets.forEach((socket) => {
+		for (const socket of this.sockets.keys()) {
 			socket.close()
-		})
+		}
 	}
-}
 
-async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<string[]> {
-	const keys: string[] = []
-	let cursor: string | undefined
+	async admin_forceHardReboot(userId: string) {
+		if (this.cache) {
+			await this.cache?.reboot({ hard: true, delay: false, source: 'admin' })
+		} else {
+			await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
+		}
+	}
 
-	do {
-		const result = await bucket.list({ prefix, cursor })
-		keys.push(...result.objects.map((o) => o.key))
-		cursor = result.truncated ? result.cursor : undefined
-	} while (cursor)
-
-	return keys
-}
-
-class ZMutationError extends Error {
-	constructor(
-		public errorCode: ZErrorCode,
-		message: string,
-		public cause?: unknown
-	) {
-		super(message)
+	async admin_getData(userId: string) {
+		const cache =
+			this.cache ??
+			new UserDataSyncer(
+				this.ctx,
+				this.env,
+				this.db,
+				userId,
+				() => {},
+				() => {},
+				this.log
+			)
+		while (!cache.store.getCommittedData()) {
+			await sleep(100)
+		}
+		return cache.store.getCommittedData()
 	}
 }

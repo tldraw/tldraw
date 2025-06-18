@@ -12,8 +12,9 @@
 	--tla-radius-1: 2px;
 	--tla-radius-2: 4px;
 	/* Fonts */
-	--tla-font-ui: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-		Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+	--tla-font-ui:
+		'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+		Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
 }
@@ -31,7 +32,7 @@
 
 .tla-theme__light {
 	--tla-color-sidebar: hsl(0, 0%, 99%);
-	--tla-color-tooltip: hsla(200, 14%, 4%, 0.838);
+	--tla-color-tooltip: hsla(200, 14%, 4%, 1);
 	--tla-color-canvas: hsl(210, 20%, 98%);
 	--tla-color-panel: hsl(0, 0%, 100%);
 	--tla-color-text-1: hsl(204, 8%, 5%);
@@ -56,11 +57,14 @@
 	/* --tla-shadow-primary-highlight: inset 0px 4px 2px -4px hsl(214, 94%, 94%),
 		inset 4px 4px 4px -6px hsl(214, 94%, 100%); */
 	--tla-shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
-	--tla-shadow-2: 0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
+	--tla-shadow-2:
+		0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
 		0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--tla-color-contrast);
-	--tla-shadow-3: 0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%),
+	--tla-shadow-3:
+		0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%),
 		inset 0px 0px 0px 1px var(--tla-color-contrast);
-	--tla-shadow-4: 0px 0px 3px hsl(0, 0%, 0%, 19%), 0px 5px 4px hsl(0, 0%, 0%, 16%),
+	--tla-shadow-4:
+		0px 0px 3px hsl(0, 0%, 0%, 19%), 0px 5px 4px hsl(0, 0%, 0%, 16%),
 		0px 2px 16px hsl(0, 0%, 0%, 6%), inset 0px 0px 0px 1px var(--tla-color-contrast);
 }
 
@@ -90,12 +94,19 @@
 	/* Shadows */
 	/* --tla-shadow-primary-highlight: inset 0px 1px 1px -1px hsl(214, 94%, 72%),
 		inset 4px 4px 4px -6px hsl(214, 94%, 80%); */
-	--tla-shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 16.1%), 0px 1px 3px hsl(0, 0%, 0%, 22%),
+	--tla-shadow-1:
+		0px 1px 2px hsl(0, 0%, 0%, 16.1%), 0px 1px 3px hsl(0, 0%, 0%, 22%),
 		inset 0px 0px 0px 1px var(--tla-color-panel);
-	--tla-shadow-2: 0px 1px 3px hsla(0, 44%, 27%, 0.666), 0px 2px 6px hsl(0, 0%, 0%, 33%),
+	--tla-shadow-2:
+		0px 1px 3px hsla(0, 44%, 27%, 0.666), 0px 2px 6px hsl(0, 0%, 0%, 33%),
 		inset 0px 0px 0px 1px var(--tla-color-panel);
-	--tla-shadow-3: 0px 1px 3px hsl(0, 0%, 0%, 50%), 0px 2px 12px hsl(0, 0%, 0%, 50%),
+	--tla-shadow-3:
+		0px 1px 3px hsl(0, 0%, 0%, 50%), 0px 2px 12px hsl(0, 0%, 0%, 50%),
 		inset 0px 0px 0px 1px var(--tla-color-panel);
+}
+
+.tla-focus-mode .tl-watermark_SEE-LICENSE {
+	visibility: hidden;
 }
 
 .tla .tl-container {
@@ -200,7 +211,6 @@
 .tlui-layout__top__left {
 	grid-row: 1;
 	grid-column: 1;
-	width: fit-content;
 	max-width: 100%;
 	min-width: 0px;
 	height: auto;
@@ -219,8 +229,15 @@
 }
 
 .tlui-page-menu__trigger {
-	width: fit-content;
 	flex-shrink: 0;
+	max-width: fit-content;
+}
+
+@media (min-width: 1080px) {
+	.tlui-page-menu__trigger {
+		width: fit-content;
+		max-width: 320px;
+	}
 }
 
 /* Hide the icon on the page menu trigger button */
@@ -232,6 +249,7 @@
 /* Fix the location of the focus button */
 
 .tlui-focus-button {
+	width: 40px;
 	margin-top: 4px;
 	margin-left: 4px;
 }
@@ -257,42 +275,47 @@
 	text-shadow: none;
 }
 
-.tla-playground {
-	position: absolute;
-	inset: 0px;
-	padding: 1em;
-	background-color: #efefef;
-	overflow: auto;
+/* --------------------- a11y --------------------- */
+
+/** Buttons/A tags */
+.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
+	:is(nav, .tlui-menu, .tlui-popover__content, .tlui-dialog__overlay)
+	button:not(.tla-button-text):focus-visible,
+.tl-container__focused:not(.tl-container__no-focus-ring) button:not(.tlui-button):focus-visible,
+.tl-container__focused:not(.tl-container__no-focus-ring) .tlui-layout__top a:focus-visible {
+	outline: 2px solid var(--color-focus);
 }
 
-/* Use standard spacing for headings */
-
-.tla-playground h1 {
-	margin-top: 0.67em;
-	margin-bottom: 0.67em;
+/** We use tldraw components in some places, and menu sub-groups with checkbox items are also here. */
+.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
+	:is(.tlui-menu, .tlui-menu__group)
+	.tlui-button__menu:focus-visible {
+	border-radius: 10px;
+	outline: 2px solid var(--color-focus);
+	outline-offset: -5px;
 }
 
-.tla-playground h2 {
-	margin-top: 0.83em;
-	margin-bottom: 0.83em;
+/** Checkbox */
+.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
+	:is(nav, .tlui-popover__content, .tlui-dialog__overlay)
+	.tla-form-checkbox:has(input:focus-visible)
+	> label {
+	outline: 2px solid var(--color-focus);
 }
 
-.tla-playground h3 {
-	margin-top: 1em;
-	margin-bottom: 1em;
+/** Text buttons, specifically from the cookie consent */
+.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring)) nav a:focus-visible,
+.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
+	nav
+	.tla-button-text:focus-visible {
+	outline: 2px solid var(--color-focus);
 }
 
-.tla-playground h4 {
-	margin-top: 1.33em;
-	margin-bottom: 1.33em;
-}
-
-.tla-playground h5 {
-	margin-top: 1.67em;
-	margin-bottom: 1.67em;
-}
-
-.tla-playground h6 {
-	margin-top: 2.33em;
-	margin-bottom: 2.33em;
+/** Primary buttons in the top area (e.g. Share, Sign in) */
+.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
+	nav
+	.tla-primary-button:not(.tlui-button):focus-visible,
+.tl-container__focused:not(.tl-container__no-focus-ring)
+	.tla-primary-button:not(.tlui-button):focus-visible {
+	outline-offset: 0;
 }

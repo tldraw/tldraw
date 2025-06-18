@@ -7,6 +7,10 @@ export class ExecutionQueue {
 
 	constructor(private readonly timeout?: number) {}
 
+	isEmpty() {
+		return this.queue.length === 0 && !this.running
+	}
+
 	private async run() {
 		if (this.running) return
 		try {

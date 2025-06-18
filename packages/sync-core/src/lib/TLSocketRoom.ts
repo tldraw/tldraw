@@ -55,8 +55,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				stringified: string
 				meta: SessionMeta
 			}) => void
-			// eslint-disable-next-line @typescript-eslint/method-signature-style
-			onDataChange?: () => void
+			onDataChange?(): void
+			/** @internal */
+			onPresenceChange?(): void
 		}
 	) {
 		const initialSnapshot =
@@ -68,6 +69,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			schema: opts.schema ?? (createTLSchema() as any),
 			snapshot: initialSnapshot,
 			onDataChange: opts.onDataChange,
+			onPresenceChange: opts.onPresenceChange,
 			log: opts.log,
 		})
 		this.room.events.on('session_removed', (args) => {
@@ -269,6 +271,19 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	}
 
 	/**
+	 * @internal
+	 */
+	getPresenceRecords() {
+		const result = {} as Record<string, UnknownRecord>
+		for (const document of Object.values(this.room.state.get().documents)) {
+			if (document.state.typeName === this.room.presenceType?.typeName) {
+				result[document.state.id] = document.state
+			}
+		}
+		return result
+	}
+
+	/**
 	 * Return a serialized snapshot of the document state, including clock-related bookkeeping.
 	 * @returns The serialized snapshot
 	 * @internal
@@ -311,7 +326,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			},
 			log: this.log,
 		})
-
 		// replace room with new one and kick out all the clients
 		this.room = newRoom
 		oldRoom.close()

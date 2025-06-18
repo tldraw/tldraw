@@ -1,22 +1,30 @@
 import { CodeFiles } from '@/components/content/code-files'
 import { Section } from '@/components/marketing/section'
-import { SectionHeading } from '@/components/marketing/section-heading'
 import { Button } from '../common/button'
+import { SectionSubtitle } from './section-description'
+import { SectionTitle } from './section-title'
 
 export function InstallationSection() {
 	return (
-		<Section>
-			<SectionHeading
-				subheading="code"
-				heading="Installation"
-				description="Install the tldraw package, import the styles, and render the component in your React app."
-			/>
-			<div className="flex flex-col items-center gap-8 mx-auto mt-8 md:max-w-2xl">
+		<Section id="installation" className="px-0 md:px-5 max-w-screen-xl">
+			<SectionTitle>Our canvas. Your code.</SectionTitle>
+			<SectionSubtitle>
+				The tldraw SDK provides a complete canvas experience as a React component. Extend,
+				customize, and develop on top.
+			</SectionSubtitle>
+			<div className="flex flex-col items-center gap-8 mx-auto mt-8 w-full md:max-w-2xl md:px-5">
 				<CodeFiles files={[code.terminal]} hideTabs className="w-full my-0" />
 				<CodeFiles files={[code.app]} className="w-full my-0" />
 				<div className="flex gap-4 flex-wrap items-center justify-center px-4">
-					<Button href="/examples" type="tertiary" caption="Browse examples" />
-					<Button href="/quick-start" caption="Read the quick start guide" />{' '}
+					<Button id="code-examples" href="/examples" caption="Browse examples" />
+					<Button
+						id="code-quick-start-"
+						href="https://stackblitz.com/edit/vitejs-vite-ahoswhus?file=src%2FApp.tsx"
+						caption="Open Sandbox"
+						arrow="right"
+						type="tertiary"
+						newTab
+					/>{' '}
 				</div>
 			</div>
 		</Section>

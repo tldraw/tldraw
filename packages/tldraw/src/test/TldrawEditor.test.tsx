@@ -15,6 +15,7 @@ import { StrictMode } from 'react'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
 import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'
+import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
 import {
 	renderTldrawComponent,
 	renderTldrawComponentWithEditor,
@@ -22,6 +23,13 @@ import {
 
 function checkAllShapes(editor: Editor, shapes: string[]) {
 	expect(Object.keys(editor!.shapeUtils)).toStrictEqual(shapes)
+}
+
+const textOptions = {
+	addFontsFromNode: defaultAddFontsFromNode,
+	tipTapConfig: {
+		extensions: tipTapDefaultExtensions,
+	},
 }
 
 describe('<TldrawEditor />', () => {
@@ -66,7 +74,7 @@ describe('<TldrawEditor />', () => {
 	})
 
 	it('Renders with an external store', async () => {
-		const store = createTLStore({ shapeUtils: [] })
+		const store = createTLStore({ shapeUtils: [], bindingUtils: [] })
 		await renderTldrawComponent(
 			<TldrawEditor
 				store={store}
@@ -120,7 +128,7 @@ describe('<TldrawEditor />', () => {
 	})
 
 	it('Accepts fresh versions of store and calls `onMount` for each one', async () => {
-		const initialStore = createTLStore({ shapeUtils: [] })
+		const initialStore = createTLStore({ shapeUtils: [], bindingUtils: [] })
 		const onMount = jest.fn()
 		const rendered = await renderTldrawComponent(
 			<TldrawEditor
@@ -146,10 +154,11 @@ describe('<TldrawEditor />', () => {
 		// not called again:
 		expect(onMount).toHaveBeenCalledTimes(1)
 		// re-render with a new store:
-		const newStore = createTLStore({ shapeUtils: [] })
+		const newStore = createTLStore({ shapeUtils: [], bindingUtils: [] })
 		rendered.rerender(
 			<TldrawEditor tools={defaultTools} initialState="select" store={newStore} onMount={onMount} />
 		)
+		await rendered.findAllByTestId('canvas')
 		expect(initialEditor.dispose).toHaveBeenCalledTimes(1)
 		expect(onMount).toHaveBeenCalledTimes(2)
 		expect(onMount.mock.lastCall[0].store).toBe(newStore)
@@ -165,6 +174,7 @@ describe('<TldrawEditor />', () => {
 				onMount={(editorApp) => {
 					editor = editorApp
 				}}
+				textOptions={textOptions}
 			/>,
 			{ waitForPatterns: false }
 		)
@@ -329,7 +339,12 @@ describe('<TldrawEditor />', () => {
 
 		const { editor } = await renderTldrawComponentWithEditor(
 			(onMount) => (
-				<TldrawEditor onMount={onMount} shapeUtils={defaultShapeUtils} snapshot={snapshot} />
+				<TldrawEditor
+					onMount={onMount}
+					shapeUtils={defaultShapeUtils}
+					snapshot={snapshot}
+					textOptions={textOptions}
+				/>
 			),
 			{ waitForPatterns: true }
 		)

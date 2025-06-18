@@ -8,9 +8,9 @@
 		"eslint-preset.js"
 	],
 	"dependencies": {
-		"eslint": "^9.13.0",
+		"eslint": "^9.19.0",
 		"eslint-config-prettier": "^9.1.0",
-		"eslint-plugin-react": "^7.37.1"
+		"eslint-plugin-react": "^7.37.4"
 	},
 	"devDependencies": {
 		"lazyrepo": "0.0.0-alpha.27"
