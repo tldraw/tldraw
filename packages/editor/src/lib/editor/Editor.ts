@@ -8827,6 +8827,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	} = {
 		text: null,
 		files: null,
+		'file-replace': null,
 		embed: null,
 		'svg-text': null,
 		url: null,
@@ -8873,6 +8874,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param info - Info about the external content.
 	 */
 	async putExternalContent<E>(info: TLExternalContent<E>): Promise<void> {
+		return this.externalContentHandlers[info.type]?.(info as any)
+	}
+
+	/**
+	 * Handle replacing external content.
+	 *
+	 * @param info - Info about the external content.
+	 */
+	async replaceExternalContent<E>(info: TLExternalContent<E>): Promise<void> {
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 
