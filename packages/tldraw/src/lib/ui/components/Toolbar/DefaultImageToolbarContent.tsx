@@ -214,6 +214,8 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 									checked =
 										!crop?.isCircle &&
 										approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.1)
+								} else if (aspectRatio === 'original') {
+									checked = false
 								} else {
 									checked =
 										!isOriginalCrop &&

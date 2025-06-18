@@ -45,7 +45,7 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 		<>
 			{!isReadonly && (
 				<TldrawUiButton type="icon" title={msg('tool.replace-media')} onClick={handleVideoReplace}>
-					<TldrawUiButtonIcon small icon="arrow-cycle" />
+					<TldrawUiButtonIcon small icon="tool-media" />
 				</TldrawUiButton>
 			)}
 			<TldrawUiButton
