@@ -99,11 +99,11 @@ async function deletePreviewWorker(id: string) {
 		'DELETE',
 		`https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}${endpoint}`
 	)
-	const res = await cloudflareApi(endpoint, { method: 'DELETE' })
+	await cloudflareApi(endpoint, { method: 'DELETE' })
 
-	if (!res.ok) {
-		throw new Error('Failed to delete worker ' + JSON.stringify(await res.json()))
-	}
+	// if (!res.ok) {
+	// 	throw new Error('Failed to delete worker ' + JSON.stringify(await res.json()))
+	// }
 }
 
 async function deletePreviewWorkerDeployment(id: string) {
