@@ -44,10 +44,10 @@ async function isPrClosedForAWhile(prNumber: number) {
 		}
 		throw err
 	}
-	const twoDays = 1000 * 60 * 60 * 24 * 2
+	const timeout = 1000 // two days
 	const result =
 		prResult.data.state === 'closed' &&
-		Date.now() - new Date(prResult.data.closed_at!).getTime() > twoDays
+		Date.now() - new Date(prResult.data.closed_at!).getTime() > timeout
 	_isPrClosedCache.set(prNumber, result)
 	return result
 }
@@ -236,6 +236,8 @@ async function deleteSstPreviewApp(stage: string) {
 	await exec('yarn', ['sst', 'remove', '--stage', stage])
 }
 
+const deletionErrors: string[] = []
+
 async function main() {
 	nicelog('Getting queues information')
 	await getQueues()
@@ -248,6 +250,13 @@ async function main() {
 	nicelog('\nPruning sst preview stages')
 	await processItems(listAmazonClusters, deleteSstPreviewApp)
 	nicelog('\nDone')
+	if (deletionErrors.length > 0) {
+		nicelog('\nDeletion errors:')
+		for (const error of deletionErrors) {
+			nicelog(error)
+		}
+		process.exit(1)
+	}
 }
 
 async function processItems(
@@ -263,7 +272,11 @@ async function processItems(
 		}
 		if (await isPrClosedForAWhile(number)) {
 			nicelog(`Deleting ${item} because PR is closed`)
-			await deleteFn(item)
+			try {
+				await deleteFn(item)
+			} catch (err) {
+				deletionErrors.push(`${item}: ${err}`)
+			}
 		} else {
 			nicelog(`Skipping ${item} because PR is still open`)
 		}
