@@ -14,10 +14,48 @@ CREATE TABLE "group_user" (
   "createdAt" BIGINT NOT NULL DEFAULT EXTRACT(EPOCH FROM NOW()) * 1000,
   "updatedAt" BIGINT NOT NULL DEFAULT EXTRACT(EPOCH FROM NOW()) * 1000,
   "role" TEXT NOT NULL CHECK ("role" IN ('admin', 'owner')),
+  "userName" TEXT NOT NULL,
+  "userEmail" TEXT NOT NULL,
   PRIMARY KEY ("userId", "groupId"),
   FOREIGN KEY ("userId") REFERENCES public."user" ("id") ON DELETE CASCADE,
   FOREIGN KEY ("groupId") REFERENCES public."group" ("id") ON DELETE CASCADE
 );
+
+-- When the user's name or email is updated, update the userName and userEmail columns in the group_user table
+CREATE OR REPLACE FUNCTION update_group_user_details() RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE "group_user"
+  SET "userName" = NEW.name,
+      "userEmail" = NEW.email
+  WHERE "userId" = NEW.id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- When a group_user is inserted or updated, update the userName and userEmail columns
+CREATE OR REPLACE FUNCTION set_group_user_details() RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE "group_user"
+  SET "userName" = u."name",
+      "userEmail" = u."email"
+  FROM public."user" u
+  WHERE u."id" = NEW."userId" AND "group_user"."userId" = NEW."userId" AND "group_user"."groupId" = NEW."groupId";
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- When the user's name or email is updated, update the userName and userEmail columns in the group_user table
+CREATE TRIGGER "update_group_user_details_trigger"
+AFTER UPDATE OF "name", "email" ON public."user"
+FOR EACH ROW
+WHEN (OLD."name" IS DISTINCT FROM NEW."name" OR OLD."email" IS DISTINCT FROM NEW."email")
+EXECUTE FUNCTION update_group_user_details();
+
+-- When a group_user is inserted or updated, update the userName and userEmail columns
+CREATE TRIGGER "set_group_user_details_trigger"
+AFTER INSERT OR UPDATE OF "userId" ON "group_user"
+FOR EACH ROW
+EXECUTE FUNCTION set_group_user_details();
 
 CREATE TABLE "user_presence" (
   "sessionId" TEXT NOT NULL,

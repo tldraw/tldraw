@@ -1,7 +1,5 @@
 import { memo, useCallback, useEffect, useRef } from 'react'
-import { preventDefault, useValue } from 'tldraw'
-import { useApp } from '../../hooks/useAppState'
-import { useHasFlag } from '../../hooks/useHasFlag'
+import { preventDefault } from 'tldraw'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { F } from '../../utils/i18n'
@@ -12,7 +10,7 @@ import {
 	useIsSidebarOpen,
 	useIsSidebarOpenMobile,
 } from '../../utils/local-session-state'
-import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { TempGroupsUi } from './TempGroupsUi'
 import { TlaSidebarCookieConsent } from './components/TlaSidebarCookieConsent'
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
 import { TlaSidebarHelpMenu } from './components/TlaSidebarHelpMenu'
@@ -65,11 +63,6 @@ export const TlaSidebar = memo(function TlaSidebar() {
 
 	const { onDrop, onDragOver, onDragEnter, onDragLeave, isDraggingOver } = useTldrFileDrop()
 
-	const hasGroupsFlag = useHasFlag('groups')
-
-	const app = useApp()
-	const groups = useValue('groups', () => app.getGroups(), [app])
-
 	return (
 		<nav
 			ref={sidebarRef}
@@ -103,13 +96,8 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				<div className={styles.sidebarContent}>
 					<TlaSidebarRecentFiles />
 				</div>
-				{hasGroupsFlag &&
-					groups.map((group) => (
-						<div key={group.id}>
-							<TlaIcon icon="group" />
-							{group.name}
-						</div>
-					))}
+				<TempGroupsUi />
+
 				<div className={styles.sidebarBottomArea}>
 					<TlaSidebarCookieConsent />
 					<div className={styles.sidebarBottomRow}>

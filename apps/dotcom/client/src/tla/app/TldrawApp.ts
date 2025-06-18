@@ -93,7 +93,11 @@ export class TldrawApp {
 		(TlaFileState & { file: TlaFile; presences: TlaUserPresence[] })[]
 	>
 	private readonly groupUsers$: Signal<
-		(TlaGroupUser & { group: TlaGroup; groupFiles: TlaGroupFile[]; groupMembers: TlaGroupUser[] })[]
+		(TlaGroupUser & {
+			group: TlaGroup
+			groupFiles: Array<TlaGroupFile & { file: TlaFile }>
+			groupMembers: Array<TlaGroupUser & { user: TlaUser }>
+		})[]
 	>
 
 	private readonly abortController = new AbortController()
@@ -194,7 +198,7 @@ export class TldrawApp {
 			.where('userId', '=', this.userId)
 			.related('group', (q) => q.one())
 			.related('groupFiles')
-			.related('groupMembers')
+			.related('groupMembers', (q) => q.related('user').one())
 	}
 
 	async preload(initialUserData: TlaUser) {
@@ -298,16 +302,8 @@ export class TldrawApp {
 		return this.getUserFlags().has(flag)
 	}
 
-	@computed({ isEqual })
-	getGroups() {
-		return this.groupUsers$
-			.get()
-			.map((g) => g.group)
-			.sort((a, b) => a.id.localeCompare(b.id))
-	}
-
-	getGroupMembers(groupId: string) {
-		return this.groupUsers$.get().filter((g) => g.group.id === groupId)
+	getGroupUsers() {
+		return this.groupUsers$.get()
 	}
 
 	getPresences(fileId: string) {
@@ -554,7 +550,7 @@ export class TldrawApp {
 		const file = this.getFile(fileId)
 		if (!file) return false
 		if (file.ownerId) return file.ownerId === this.userId
-		return this.getGroups().some((g) => g.id === file.owningGroupId)
+		return this.getGroupUsers().some((g) => g.groupId === file.owningGroupId)
 	}
 
 	requireFile(fileId: string): TlaFile {
@@ -917,5 +913,10 @@ export class TldrawApp {
 			''
 
 		return this.createFile({ id, name })
+	}
+
+	@computed({ isEqual })
+	getFiles() {
+		return this.fileStates$.get().map((fs) => fs.file)
 	}
 }

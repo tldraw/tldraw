@@ -162,6 +162,9 @@ export function createMutators(userId: string) {
 				await tx.mutate.group_user.insert({
 					userId,
 					groupId: id,
+					// these are set by the trigger
+					userName: '',
+					userEmail: '',
 					role: 'owner',
 					createdAt: Date.now(),
 					updatedAt: Date.now(),

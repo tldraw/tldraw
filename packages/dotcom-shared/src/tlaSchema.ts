@@ -96,6 +96,8 @@ export const group_user = table('group_user')
 		createdAt: number(),
 		updatedAt: number(),
 		role: string(),
+		userName: string(),
+		userEmail: string(),
 	})
 	.primaryKey('userId', 'groupId')
 
