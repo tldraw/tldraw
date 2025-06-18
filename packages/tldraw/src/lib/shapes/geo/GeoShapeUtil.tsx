@@ -234,7 +234,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			this.editor,
 		])
 
-		const { size, dash } = shape.props
+		const { size, dash, scale } = shape.props
 		const strokeWidth = STROKE_SIZES[size]
 
 		const path = getGeoShapePath(shape)
@@ -245,20 +245,22 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			passes: 1,
 			randomSeed: shape.id,
 			offset: 0,
-			roundness: strokeWidth * 2,
+			roundness: strokeWidth * 2 * scale,
 			props: { strokeWidth: undefined },
 			forceSolid: isZoomedOut,
 		})
 	}
 
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
+		const scale = shape.props.scale
 		// We need to scale the shape to 1x for export
 		const newShape = {
 			...shape,
 			props: {
 				...shape.props,
-				w: shape.props.w / shape.props.scale,
-				h: shape.props.h / shape.props.scale,
+				w: shape.props.w / scale,
+				h: (shape.props.h + shape.props.growY) / scale,
+				growY: 0, // growY throws off the path calculations, so we set it to 0
 			},
 		}
 		const props = newShape.props
@@ -267,7 +269,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		let textEl
 		if (!isEmptyRichText(props.richText)) {
 			const theme = getDefaultColorTheme(ctx)
-			const bounds = new Box(0, 0, props.w, props.h + props.growY)
+			const bounds = new Box(0, 0, props.w, (shape.props.h + shape.props.growY) / scale)
 			textEl = (
 				<RichTextSVG
 					fontSize={LABEL_FONT_SIZES[props.size]}
@@ -277,7 +279,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					richText={props.richText}
 					labelColor={theme[props.labelColor].solid}
 					bounds={bounds}
-					padding={LABEL_PADDING * shape.props.scale}
+					padding={LABEL_PADDING}
 				/>
 			)
 		}

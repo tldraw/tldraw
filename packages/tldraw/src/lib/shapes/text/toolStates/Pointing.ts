@@ -71,6 +71,8 @@ export class Pointing extends StateNode {
 
 			editor.select(id)
 
+			const scale = this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1
+
 			editor.setCurrentTool('select.resizing', {
 				...info,
 				target: 'selection',
@@ -78,7 +80,7 @@ export class Pointing extends StateNode {
 				isCreating: true,
 				creatingMarkId: this.markId,
 				// Make sure the cursor offset takes into account how far we've already dragged
-				creationCursorOffset: { x: currentDragDist, y: 1 },
+				creationCursorOffset: { x: currentDragDist * scale, y: 1 },
 				onInteractionEnd: 'text',
 				onCreate: () => {
 					editor.setEditingShape(shape.id)
