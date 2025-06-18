@@ -54,6 +54,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const msg = useTranslation()
 	const source = 'image-toolbar'
 	const sliderRef = useRef<HTMLDivElement>(null)
+	const isReadonly = editor.getIsReadonly()
 
 	const crop = useValue('crop', () => editor.getShape<TLImageShape>(imageShapeId)!.props.crop, [
 		editor,
@@ -202,18 +203,22 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 					<TldrawUiDropdownMenuContent side="top" align="center">
 						{ASPECT_RATIO_OPTIONS.map((aspectRatio) => {
 							let checked = false
-							if (aspectRatio === 'circle' && crop) {
-								checked = !!crop.isCircle
-							} else if (aspectRatio === 'original') {
-								checked = isOriginalCrop
-							} else if (aspectRatio === 'square') {
-								checked =
-									!crop?.isCircle &&
-									approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.1)
+							if (isOriginalCrop) {
+								if (aspectRatio === 'original') {
+									checked = true
+								}
 							} else {
-								checked =
-									!isOriginalCrop &&
-									approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.01)
+								if (aspectRatio === 'circle') {
+									checked = !!crop.isCircle
+								} else if (aspectRatio === 'square') {
+									checked =
+										!crop?.isCircle &&
+										approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.1)
+								} else {
+									checked =
+										!isOriginalCrop &&
+										approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.01)
+								}
 							}
 
 							return (
@@ -245,12 +250,16 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 
 	return (
 		<>
-			<TldrawUiButton type="icon" title={msg('tool.replace-media')} onClick={handleImageReplace}>
-				<TldrawUiButtonIcon small icon="arrow-cycle" />
-			</TldrawUiButton>
-			<TldrawUiButton type="icon" title={msg('tool.image-crop')} onClick={onManipulatingStart}>
-				<TldrawUiButtonIcon small icon="crop" />
-			</TldrawUiButton>
+			{!isReadonly && (
+				<TldrawUiButton type="icon" title={msg('tool.replace-media')} onClick={handleImageReplace}>
+					<TldrawUiButtonIcon small icon="tool-media" />
+				</TldrawUiButton>
+			)}
+			{!isReadonly && (
+				<TldrawUiButton type="icon" title={msg('tool.image-crop')} onClick={onManipulatingStart}>
+					<TldrawUiButtonIcon small icon="crop" />
+				</TldrawUiButton>
+			)}
 			<TldrawUiButton
 				type="icon"
 				title={msg('action.download-original')}
@@ -258,17 +267,19 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			>
 				<TldrawUiButtonIcon small icon="download" />
 			</TldrawUiButton>
-			<TldrawUiButton
-				type="normal"
-				isActive={!!altText}
-				title={msg('tool.media-alt-text')}
-				onClick={() => {
-					trackEvent('alt-text-start', { source })
-					onEditAltTextStart()
-				}}
-			>
-				<TldrawUiButtonIcon small icon="alt" />
-			</TldrawUiButton>
+			{(altText || !isReadonly) && (
+				<TldrawUiButton
+					type="normal"
+					isActive={!!altText}
+					title={msg('tool.media-alt-text')}
+					onClick={() => {
+						trackEvent('alt-text-start', { source })
+						onEditAltTextStart()
+					}}
+				>
+					<TldrawUiButtonIcon small icon="alt" />
+				</TldrawUiButton>
+			)}
 		</>
 	)
 })
