@@ -70,21 +70,62 @@ export class Cropping extends StateNode {
 		const crop = shape.props.crop ?? getDefaultCrop()
 		const uncroppedSize = getUncroppedSize(shape.props, crop)
 
+		let dx = change.x
+		let dy = change.y
+
+		const { altKey, shiftKey } = this.editor.inputs
+
+		const isXLocked = this.info.handle === 'top' || this.info.handle === 'bottom'
+		const isYLocked = this.info.handle === 'left' || this.info.handle === 'right'
+
+		if (shiftKey) {
+			if (isYLocked) {
+				dy = dx / this.snapshot.aspectRatio
+			} else if (isXLocked) {
+				dx = dy * this.snapshot.aspectRatio
+			} else if (Math.abs(dx) > Math.abs(dy)) {
+				dy = (Math.abs(dx) / this.snapshot.aspectRatio) * (dy < 0 ? -1 : 1)
+			} else {
+				dx = Math.abs(dy) * this.snapshot.aspectRatio * (dx < 0 ? -1 : 1)
+			}
+		}
+
+		if (altKey) {
+			dx *= 2
+			dy *= 2
+		}
+
 		const cropFn = util.onCrop?.bind(util) ?? getCropBox
 		const partial = cropFn(shape, {
 			handle: this.info.handle,
-			change,
+			change: new Vec(dx, dy),
 			crop,
 			uncroppedSize,
 			initialShape: this.snapshot.shape,
 		})
 		if (!partial) return
+		const result: any = { ...partial }
+
+		if (altKey && result.props?.crop) {
+			const adjust = new Vec(-dx / 2, -dy / 2)
+			const offset = adjust.clone().rot(shape.rotation)
+			result.x += offset.x
+			result.y += offset.y
+			result.props.crop.topLeft.x -= adjust.x / uncroppedSize.w
+			result.props.crop.bottomRight.x -= adjust.x / uncroppedSize.w
+			result.props.crop.topLeft.y -= adjust.y / uncroppedSize.h
+			result.props.crop.bottomRight.y -= adjust.y / uncroppedSize.h
+			result.props.crop.topLeft.x = Math.max(0, result.props.crop.topLeft.x)
+			result.props.crop.topLeft.y = Math.max(0, result.props.crop.topLeft.y)
+			result.props.crop.bottomRight.x = Math.min(1, result.props.crop.bottomRight.x)
+			result.props.crop.bottomRight.y = Math.min(1, result.props.crop.bottomRight.y)
+		}
 
 		this.editor.updateShapes([
 			{
 				id: shape.id,
 				type: shape.type,
-				...partial,
+				...result,
 			},
 		])
 		this.updateCursor()
@@ -129,9 +170,21 @@ export class Cropping extends StateNode {
 
 		const cursorHandleOffset = Vec.Sub(originPagePoint, dragHandlePoint)
 
+		const crop = shape.props.crop ?? getDefaultCrop()
+		const uncroppedSize = getUncroppedSize(shape.props, crop)
+		const cropWidth = crop.bottomRight.x - crop.topLeft.x
+		const cropHeight = crop.bottomRight.y - crop.topLeft.y
+
 		return {
 			shape,
 			cursorHandleOffset,
+			crop,
+			uncroppedSize,
+			aspectRatio: cropWidth / cropHeight,
+			cropCenter: {
+				x: crop.topLeft.x + cropWidth / 2,
+				y: crop.topLeft.y + cropHeight / 2,
+			},
 		}
 	}
 }
