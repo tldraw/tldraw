@@ -585,6 +585,14 @@ export async function defaultHandleExternalTldrawContent(
 	editor.run(() => {
 		const selectionBoundsBefore = editor.getSelectionPageBounds()
 		editor.markHistoryStoppingPoint('paste')
+
+		// Unlock any locked root shapes on paste
+		for (const shape of content.shapes) {
+			if (content.rootShapeIds.includes(shape.id)) {
+				shape.isLocked = false
+			}
+		}
+
 		editor.putContentOntoCurrentPage(content, {
 			point: point,
 			select: true,
