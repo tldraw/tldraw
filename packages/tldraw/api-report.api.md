@@ -3653,6 +3653,8 @@ export interface TLUiEventMap {
     // (undocumented)
     'new-page': null;
     // (undocumented)
+    'open-context-menu': null;
+    // (undocumented)
     'open-cursor-chat': null;
     // (undocumented)
     'open-embed-link': null;
