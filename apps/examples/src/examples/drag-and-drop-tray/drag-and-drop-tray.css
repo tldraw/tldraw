@@ -1,0 +1,98 @@
+.drag-tray {
+	position: fixed;
+	right: 16px;
+	top: 16px;
+	width: 200px;
+	background: white;
+	border: 1px solid #e0e0e0;
+	border-radius: 12px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	z-index: 1000;
+	pointer-events: all;
+	overflow: hidden;
+}
+
+.drag-tray-header {
+	padding: 16px;
+	border-bottom: 1px solid #f0f0f0;
+	background: #fafafa;
+}
+
+.drag-tray-header h3 {
+	margin: 0 0 4px 0;
+	font-size: 16px;
+	font-weight: 600;
+	color: #333;
+}
+
+.drag-tray-header p {
+	margin: 0;
+	font-size: 12px;
+	color: #666;
+}
+
+.drag-tray-items {
+	padding: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.drag-tray-item {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 12px;
+	border-radius: 8px;
+	cursor: grab;
+	transition: all 0.2s ease;
+	user-select: none;
+}
+
+.drag-tray-item:hover {
+	background: #f5f5f5;
+}
+
+.drag-tray-item:active {
+	cursor: grabbing;
+	transform: scale(0.98);
+}
+
+.drag-tray-item.dragging {
+	background: #e3f2fd;
+	transform: scale(0.95);
+	opacity: 0.6;
+}
+
+.drag-tray-item-emoji {
+	font-size: 24px;
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #f8f9fa;
+	border-radius: 6px;
+	flex-shrink: 0;
+}
+
+.drag-tray-item-label {
+	font-size: 14px;
+	font-weight: 500;
+	color: #333;
+	flex: 1;
+}
+
+.drag-tray-help {
+	padding: 12px 16px;
+	border-top: 1px solid #f0f0f0;
+	background: #f8f9fa;
+}
+
+.drag-tray-help p {
+	margin: 0;
+	font-size: 11px;
+	color: #666;
+	text-align: center;
+	font-weight: 500;
+}
