@@ -13,6 +13,9 @@ import 'tldraw/tldraw.css'
 import './drag-and-drop-tray.css'
 import { TRAY_ITEMS, TrayItem } from './trayitems'
 
+// There's a guide at the bottom of this file!
+
+// [1]
 type DragState =
 	| {
 			name: 'idle'
@@ -28,16 +31,19 @@ type DragState =
 			currentPosition: Vec
 	  }
 
+// [2]
 const DragAndDropTray = () => {
 	const rTrayContainer = useRef<HTMLDivElement>(null)
 	const rDraggingImage = useRef<HTMLDivElement>(null)
 
 	const editor = useEditor()
 
+	// [3]
 	const dragState = useAtom<DragState>('dragState', () => ({
 		name: 'idle',
 	}))
 
+	// [4]
 	const { handlePointerUp, handlePointerDown } = useMemo(() => {
 		let target: HTMLDivElement | null = null
 
@@ -52,6 +58,7 @@ const DragAndDropTray = () => {
 				case 'pointing_item': {
 					const dist = Vec.Dist(screenPoint, current.startPosition)
 					if (dist > 10) {
+						// [a]
 						dragState.set({
 							name: 'dragging',
 							item: current.item,
@@ -61,6 +68,7 @@ const DragAndDropTray = () => {
 					break
 				}
 				case 'dragging': {
+					// [b]
 					dragState.set({
 						...current,
 						currentPosition: screenPoint,
@@ -87,6 +95,7 @@ const DragAndDropTray = () => {
 					break
 				}
 				case 'dragging': {
+					// [c]
 					const screenPoint = new Vec(e.clientX, e.clientY)
 					const pagePoint = editor.screenToPage(screenPoint)
 
@@ -102,9 +111,12 @@ const DragAndDropTray = () => {
 					dragState.set({
 						name: 'idle',
 					})
+
 					break
 				}
 			}
+
+			removeEventListeners()
 		}
 
 		function handlePointerDown(e: React.PointerEvent) {
@@ -119,6 +131,7 @@ const DragAndDropTray = () => {
 
 			const startPosition = new Vec(e.clientX, e.clientY)
 
+			// [d]
 			dragState.set({
 				name: 'pointing_item',
 				item,
@@ -132,11 +145,11 @@ const DragAndDropTray = () => {
 		function handleKeyDown(e: KeyboardEvent) {
 			const current = dragState.get()
 			if (e.key === 'Escape' && current.name === 'dragging') {
-				cancel()
+				removeEventListeners()
 			}
 		}
 
-		function cancel() {
+		function removeEventListeners() {
 			if (target) {
 				target.removeEventListener('pointermove', handlePointerMove)
 				document.removeEventListener('keydown', handleKeyDown)
@@ -155,6 +168,7 @@ const DragAndDropTray = () => {
 
 	const state = useValue('dragState', () => dragState.get(), [dragState])
 
+	// [5]
 	useQuickReactor(
 		'drag-image-style',
 		() => {
@@ -202,6 +216,7 @@ const DragAndDropTray = () => {
 
 	return (
 		<>
+			{/* [6] */}
 			<div className="drag-tray" ref={rTrayContainer}>
 				<div className="drag-tray-items">
 					{TRAY_ITEMS.map((item, index) => (
@@ -217,11 +232,13 @@ const DragAndDropTray = () => {
 					))}
 				</div>
 			</div>
+			{/* [7] */}
 			<div ref={rDraggingImage}>{state.name === 'dragging' && state.item.emoji}</div>
 		</>
 	)
 }
 
+// [8]
 const components: TLEditorComponents = {
 	InFrontOfTheCanvas: DragAndDropTray,
 }
@@ -233,3 +250,70 @@ export default function DragAndDropTrayExample() {
 		</div>
 	)
 }
+
+/*
+Introduction:
+
+This example demonstrates how to create a drag-and-drop tray component that allows users
+to drag items from a custom UI tray and drop them onto the canvas as tldraw shapes. The
+example uses a state machine pattern to manage the drag interaction states and creates
+a custom UI component that renders in front of the canvas.
+
+[1]
+We define a union type `DragState` to represent the different states of our drag interaction:
+- `idle`: Nothing is being dragged
+- `pointing_item`: User has pressed down on an item but hasn't started dragging yet
+- `dragging`: User is actively dragging an item
+
+This state machine pattern helps us handle the complex drag interaction logic cleanly.
+
+[2]
+The main `DragAndDropTray` component uses two refs:
+- `rTrayContainer`: References the tray container div for bounds checking
+- `rDraggingImage`: References the dragging preview image that follows the cursor
+
+We also get access to the tldraw editor instance to create shapes and handle coordinate
+transformations.
+
+[3]
+We use tldraw's `useAtom` hook to create reactive state that can be observed and updated.
+The `dragState` atom holds our current drag state and automatically triggers re-renders
+when it changes.
+
+[4]
+The event handlers are memoized using `useMemo` to avoid recreating them on every render.
+The main logic handles the drag interaction:
+
+	[a] When transitioning from `pointing_item` to `dragging`, we check if the user has
+	moved their pointer more than 10 pixels from the start position to avoid accidental
+	drags from simple clicks.
+
+	[b] During dragging, we continuously update the current position to track the cursor.
+
+	[c] When the drag ends (pointer up during dragging), we convert the screen coordinates
+	to page coordinates and create a new shape at that position using the editor API.
+
+	[d] When starting a drag (pointer down), we capture the pointer, get the item data
+	from the DOM, and transition to the `pointing_item` state.
+
+[5]
+The `useQuickReactor` hook efficiently manages the drag preview image styling. It:
+- Hides the preview when not dragging
+- Shows/hides the preview based on whether the cursor is inside the tray bounds
+- Positions the preview image to follow the cursor during dragging
+- Applies appropriate styling for the drag preview
+
+[6]
+The tray UI renders each item from `TRAY_ITEMS` with pointer event handlers attached.
+We use `data-drag_item_index` to identify which item was clicked, allowing us to retrieve
+the correct item data during drag operations.
+
+[7]
+The drag preview image is a separate div that shows the emoji being dragged. It's only
+visible during the dragging state and follows the cursor position.
+
+[8]
+We configure the tldraw editor to include our custom tray component using the `components`
+prop. The `InFrontOfTheCanvas` component renders on top of the canvas, making it perfect
+for UI elements like our drag tray.
+*/
