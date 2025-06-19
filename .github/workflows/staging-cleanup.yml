@@ -1,4 +1,4 @@
-name: Staging Cleanup
+name: Staging E2E Cleanup
 
 on:
   workflow_dispatch:
