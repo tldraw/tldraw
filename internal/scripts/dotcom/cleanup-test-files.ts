@@ -1,4 +1,5 @@
 import { DeleteObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import { Client } from 'pg'
 import { makeEnv } from '../lib/makeEnv'
 
 const env = makeEnv([
@@ -6,6 +7,7 @@ const env = makeEnv([
 	'CLOUDFLARE_API_TOKEN',
 	'R2_ACCESS_KEY_ID',
 	'R2_ACCESS_KEY_SECRET',
+	'SUPABASE_STAGING_DB_URL',
 ])
 
 const CLOUDFLARE_API_BASE_URL = 'https://api.cloudflare.com/client/v4'
@@ -58,6 +60,20 @@ async function cleanupTestFiles() {
 				deleteResponse.$metadata.httpStatusCode !== 204
 			) {
 				console.error('Failed to delete file from R2 staging bucket')
+				continue
+			}
+
+			const stagingClient = new Client({
+				connectionString: env.SUPABASE_STAGING_DB_URL,
+			})
+			await stagingClient.connect()
+
+			const deleteFileQuery = `DELETE FROM file WHERE id = $1`
+			const deleteResult = await stagingClient.query(deleteFileQuery, [fileId])
+			await stagingClient.end()
+
+			if (deleteResult.rowCount === 0) {
+				console.error('Failed to delete file from Supabase database - no rows affected')
 				continue
 			}
 

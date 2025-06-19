@@ -1,4 +1,5 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import type { TlaFile } from '@tldraw/dotcom-shared'
 import { writeFileSync } from 'fs'
 import { nanoid } from 'nanoid'
 import { join } from 'path'
@@ -10,7 +11,9 @@ const env = makeEnv([
 	'CLOUDFLARE_API_TOKEN',
 	'R2_ACCESS_KEY_ID',
 	'R2_ACCESS_KEY_SECRET',
-	'SUPABASE_DB_URL',
+	'SUPABASE_PRODUCTION_DB_URL',
+	'SUPABASE_STAGING_DB_URL',
+	'STAGING_OWNER_ID',
 ])
 
 const R2_URL = `https://${env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`
@@ -30,7 +33,7 @@ const R2 = new S3Client({
 
 async function getRandomFileIds(n: number): Promise<string[]> {
 	const client = new Client({
-		connectionString: env.SUPABASE_DB_URL,
+		connectionString: env.SUPABASE_PRODUCTION_DB_URL,
 	})
 	await client.connect()
 
@@ -87,6 +90,55 @@ async function copyFilesToStaging(fileIds: string[]) {
 				console.error('Failed to upload file to staging bucket')
 				continue
 			}
+
+			// Insert tlaFile entry into staging Supabase database
+			const stagingClient = new Client({
+				connectionString: env.SUPABASE_STAGING_DB_URL,
+			})
+			await stagingClient.connect()
+
+			const now = Date.now()
+			const testFile: TlaFile = {
+				id: newId,
+				name: 'Test File',
+				ownerId: env.STAGING_OWNER_ID,
+				ownerName: 'Test User',
+				ownerAvatar: '',
+				thumbnail: '',
+				shared: false,
+				sharedLinkType: 'link',
+				published: false,
+				lastPublished: 0,
+				publishedSlug: '',
+				createdAt: now,
+				updatedAt: now,
+				isEmpty: false,
+				isDeleted: false,
+				createSource: null,
+			}
+
+			const insertQuery = `
+				INSERT INTO file (id, name, "ownerId", "ownerName", "ownerAvatar", thumbnail, shared, "sharedLinkType", published, "lastPublished", "publishedSlug", "createdAt", "updatedAt", "isEmpty", "isDeleted")
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+			`
+			await stagingClient.query(insertQuery, [
+				testFile.id,
+				testFile.name,
+				testFile.ownerId,
+				testFile.ownerName,
+				testFile.ownerAvatar,
+				testFile.thumbnail,
+				testFile.shared,
+				testFile.sharedLinkType,
+				testFile.published,
+				testFile.lastPublished,
+				testFile.publishedSlug,
+				testFile.createdAt,
+				testFile.updatedAt,
+				testFile.isEmpty,
+				testFile.isDeleted,
+			])
+			await stagingClient.end()
 
 			const d1Response = await fetch(
 				`${CLOUDFLARE_ACCOUNTS_URL}/d1/database/0c0f43fd-2bca-45fe-833e-dd570cf82740/query`,
