@@ -1,7 +1,7 @@
 .drag-tray {
 	position: fixed;
-	right: 16px;
-	top: 16px;
+	left: 10px;
+	top: 50px;
 	width: 200px;
 	background: white;
 	border: 1px solid #e0e0e0;
