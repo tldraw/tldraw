@@ -63,3 +63,6 @@ jobs:
       - name: Run staging e2e tests
         run: yarn e2e-staging
         working-directory: apps/dotcom/client
+        env:
+          STAGING_TEST_EMAIL: ${{ secrets.STAGING_TEST_EMAIL }}
+          STAGING_TEST_PASSWORD: ${{ secrets.STAGING_TEST_PASSWORD }}
