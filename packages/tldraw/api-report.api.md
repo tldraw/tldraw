@@ -1826,6 +1826,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     getDefaultProps(): TLImageShape['props'];
     // (undocumented)
+    getGeometry(shape: TLImageShape): Geometry2d;
+    // (undocumented)
     getInterpolatedProps(startShape: TLImageShape, endShape: TLImageShape, t: number): TLImageShapeProps;
     // (undocumented)
     indicator(shape: TLImageShape): JSX_2.Element | null;
