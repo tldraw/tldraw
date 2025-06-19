@@ -3,6 +3,11 @@ import { assert, assertExists, exhaustiveSwitchError, isEqual } from '@tldraw/ut
 import { schema } from './tlaSchema'
 import { ZRowUpdate, ZStoreData } from './types'
 
+// Some browsers don't support findLastIndex
+if (!('findLastIndex' in Array.prototype)) {
+	throw Error('Update your browser')
+}
+
 export class OptimisticAppStore {
 	private _gold_store = atom('zero store', null as null | ZStoreData, { isEqual })
 
