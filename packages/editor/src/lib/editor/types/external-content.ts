@@ -1,4 +1,4 @@
-import { TLAssetId } from '@tldraw/tlschema'
+import { TLAssetId, TLShapeId } from '@tldraw/tlschema'
 import { VecLike } from '../../primitives/Vec'
 import { TLContent } from './clipboard-types'
 
@@ -56,6 +56,14 @@ export interface TLFilesExternalContent extends TLBaseExternalContent {
 }
 
 /** @public */
+export interface TLFileReplaceExternalContent extends TLBaseExternalContent {
+	type: 'file-replace'
+	file: File
+	shapeId: TLShapeId
+	isImage: boolean
+}
+
+/** @public */
 export interface TLUrlExternalContent extends TLBaseExternalContent {
 	type: 'url'
 	url: string
@@ -90,6 +98,7 @@ export interface TLExcalidrawExternalContent extends TLBaseExternalContent {
 export type TLExternalContent<EmbedDefinition> =
 	| TLTextExternalContent
 	| TLFilesExternalContent
+	| TLFileReplaceExternalContent
 	| TLUrlExternalContent
 	| TLSvgTextExternalContent
 	| TLEmbedExternalContent<EmbedDefinition>

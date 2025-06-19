@@ -10,13 +10,16 @@ import {
 	TLBookmarkShape,
 	TLContent,
 	TLFileExternalAsset,
+	TLFileReplaceExternalContent,
 	TLImageAsset,
+	TLImageShape,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
 	TLTextShapeProps,
 	TLUrlExternalAsset,
 	TLVideoAsset,
+	TLVideoShape,
 	Vec,
 	VecLike,
 	assert,
@@ -108,6 +111,11 @@ export function registerDefaultExternalContentHandlers(
 		return defaultHandleExternalFileContent(editor, externalContent, options)
 	})
 
+	// file-replace -> asset
+	editor.registerExternalContentHandler('file-replace', async (externalContent) => {
+		return defaultHandleExternalFileReplaceContent(editor, externalContent, options)
+	})
+
 	// text
 	editor.registerExternalContentHandler('text', async (externalContent) => {
 		return defaultHandleExternalTextContent(editor, externalContent)
@@ -144,6 +152,68 @@ export async function defaultHandleExternalFileAsset(
 	if (result.meta) assetInfo.meta = { ...assetInfo.meta, ...result.meta }
 
 	return AssetRecordType.create(assetInfo)
+}
+
+/** @public */
+export async function defaultHandleExternalFileReplaceContent(
+	editor: Editor,
+	{ file, shapeId, isImage }: TLFileReplaceExternalContent,
+	options: TLDefaultExternalContentHandlerOpts
+) {
+	const isSuccess = runFileChecks(file, options)
+	if (!isSuccess) assert(false, 'File checks failed')
+
+	const shape = editor.getShape(shapeId)
+	if (!shape) assert(false, 'Shape not found')
+
+	const hash = getHashForBuffer(await file.arrayBuffer())
+	const assetId = AssetRecordType.createId(hash)
+	editor.createTemporaryAssetPreview(assetId, file)
+	const assetInfoPartial = await getMediaAssetInfoPartial(
+		file,
+		assetId,
+		isImage /* isImage */,
+		!isImage /* isVideo */
+	)
+	editor.createAssets([assetInfoPartial])
+
+	// And update the shape
+	if (shape.type === 'image') {
+		editor.updateShapes<TLImageShape>([
+			{
+				id: shape.id,
+				type: shape.type,
+				props: {
+					assetId: assetId,
+					crop: { topLeft: { x: 0, y: 0 }, bottomRight: { x: 1, y: 1 } },
+					w: assetInfoPartial.props.w,
+					h: assetInfoPartial.props.h,
+				},
+			},
+		])
+	} else if (shape.type === 'video') {
+		editor.updateShapes<TLVideoShape>([
+			{
+				id: shape.id,
+				type: shape.type,
+				props: {
+					assetId: assetId,
+					w: assetInfoPartial.props.w,
+					h: assetInfoPartial.props.h,
+				},
+			},
+		])
+	}
+
+	const asset = (await editor.getAssetForExternalContent({
+		type: 'file',
+		file,
+		assetId,
+	})) as TLAsset
+
+	editor.updateAssets([{ ...asset, id: assetId }])
+
+	return asset
 }
 
 /** @public */
@@ -515,6 +585,14 @@ export async function defaultHandleExternalTldrawContent(
 	editor.run(() => {
 		const selectionBoundsBefore = editor.getSelectionPageBounds()
 		editor.markHistoryStoppingPoint('paste')
+
+		// Unlock any locked root shapes on paste
+		for (const shape of content.shapes) {
+			if (content.rootShapeIds.includes(shape.id)) {
+				shape.isLocked = false
+			}
+		}
+
 		editor.putContentOntoCurrentPage(content, {
 			point: point,
 			select: true,

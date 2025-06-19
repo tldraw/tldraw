@@ -1,15 +1,5 @@
-import {
-	AssetRecordType,
-	Editor,
-	getHashForBuffer,
-	objectMapEntries,
-	TLImageShape,
-	TLVideoShape,
-	useMaybeEditor,
-	useShallowArrayIdentity,
-} from '@tldraw/editor'
+import { Editor, objectMapEntries, useMaybeEditor, useShallowArrayIdentity } from '@tldraw/editor'
 import { createContext, useCallback, useContext, useMemo } from 'react'
-import { getMediaAssetInfoPartial } from '../defaultExternalContentHandlers'
 import { PORTRAIT_BREAKPOINT } from './constants'
 import { ActionsProviderProps, TLUiActionsContextType } from './context/actions'
 import { useBreakpoint } from './context/breakpoints'
@@ -64,7 +54,9 @@ export function useDefaultHelpers() {
 			if (!editor) return
 			const files = await getLocalFiles({
 				allowMultiple: false,
-				mimeTypes,
+				mimeTypes: mimeTypes?.filter((m) =>
+					isImage ? m.startsWith('image/') : m.startsWith('video/')
+				),
 			})
 			if (!files.length) return
 			const shape = editor.getOnlySelectedShape()
@@ -74,52 +66,12 @@ export function useDefaultHelpers() {
 			editor.markHistoryStoppingPoint('replace media')
 
 			const file = files[0]
-			const hash = getHashForBuffer(await file.arrayBuffer())
-			const assetId = AssetRecordType.createId(hash)
-			editor.createTemporaryAssetPreview(assetId, file)
-			const assetInfoPartial = await getMediaAssetInfoPartial(
+			editor.replaceExternalContent({
+				type: 'file-replace',
 				file,
-				assetId,
-				isImage /* isImage */,
-				!isImage /* isVideo */
-			)
-			editor.createAssets([assetInfoPartial])
-
-			// And update the shape
-			if (shape.type === 'image') {
-				editor.updateShapes<TLImageShape>([
-					{
-						id: shape.id,
-						type: shape.type,
-						props: {
-							assetId: assetId,
-							crop: { topLeft: { x: 0, y: 0 }, bottomRight: { x: 1, y: 1 } },
-							w: assetInfoPartial.props.w,
-							h: assetInfoPartial.props.h,
-						},
-					},
-				])
-			} else if (shape.type === 'video') {
-				editor.updateShapes<TLVideoShape>([
-					{
-						id: shape.id,
-						type: shape.type,
-						props: {
-							assetId: assetId,
-							w: assetInfoPartial.props.w,
-							h: assetInfoPartial.props.h,
-						},
-					},
-				])
-			}
-
-			const asset = await editor.getAssetForExternalContent({ type: 'file', file, assetId })
-
-			if (!asset) {
-				return
-			}
-
-			editor.updateAssets([{ ...asset, id: assetId }])
+				shapeId: shape.id,
+				isImage,
+			})
 		},
 		[editor, mimeTypes]
 	)
