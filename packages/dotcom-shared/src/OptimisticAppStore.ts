@@ -3,11 +3,6 @@ import { assert, assertExists, exhaustiveSwitchError, isEqual } from '@tldraw/ut
 import { schema } from './tlaSchema'
 import { ZRowUpdate, ZStoreData } from './types'
 
-// Some browsers don't support findLastIndex
-if (!('findLastIndex' in Array.prototype)) {
-	throw Error('Update your browser')
-}
-
 export class OptimisticAppStore {
 	private _gold_store = atom('zero store', null as null | ZStoreData, { isEqual })
 
@@ -20,6 +15,11 @@ export class OptimisticAppStore {
 
 	epoch = 0
 	constructor() {
+		// this is for the one guy in morocco who is still on firefox 102
+		if (!('findLastIndex' in Array.prototype)) {
+			throw Error('Update your browser')
+		}
+
 		react('update epoch', () => {
 			this._gold_store.get()
 			this._optimisticStore.get()
