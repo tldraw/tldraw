@@ -23,7 +23,7 @@ export class Pointing extends StateNode {
 			pointInPageSpace: this.editor.inputs.currentPagePoint,
 			arrow: undefined,
 			isPrecise: this.isPrecise,
-			isExact: this.editor.inputs.altKey,
+			isExact: this.options.shouldBeExact(this.editor),
 			currentBinding: undefined,
 			oppositeBinding: undefined,
 		})

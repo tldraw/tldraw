@@ -115,6 +115,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		hoverPreciseTimeout: 600,
 		pointingPreciseTimeout: 320,
+
+		shouldBeExact: (editor: Editor) => editor.inputs.altKey,
+		shouldSnapToTarget: (editor: Editor) => !editor.inputs.ctrlKey,
 	}
 
 	override canEdit() {
@@ -432,7 +435,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			pointInPageSpace: this.editor.getShapePageTransform(shape.id)!.applyToPoint(handle),
 			arrow: shape,
 			isPrecise: isPrecise,
-			isExact: this.editor.inputs.altKey,
+			isExact: this.options.shouldBeExact(this.editor),
 			currentBinding,
 			oppositeBinding,
 		})
@@ -453,7 +456,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			terminal: handleId,
 			normalizedAnchor: targetInfo.normalizedAnchor,
 			isPrecise: targetInfo.isPrecise,
-			isExact: this.editor.inputs.altKey,
+			isExact: this.options.shouldBeExact(this.editor),
 			snap: targetInfo.snap,
 		}
 
