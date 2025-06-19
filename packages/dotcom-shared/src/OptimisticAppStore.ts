@@ -17,7 +17,8 @@ export class OptimisticAppStore {
 	constructor() {
 		// this is for the one guy in morocco who is still on firefox 102
 		if (!('findLastIndex' in Array.prototype)) {
-			throw Error('Update your browser')
+			window.alert('come on, update your browser')
+			throw Error('browser too old')
 		}
 
 		react('update epoch', () => {
