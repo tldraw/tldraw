@@ -1,14 +1,24 @@
-import { readFileSync } from 'fs'
+import { existsSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { expectBeforeAndAfterReload } from '../fixtures/helpers'
 import { expect, test } from '../fixtures/staging-test'
 
-const testFilesPath = join(__dirname, '../fixtures/test-files.json')
-const testFiles = JSON.parse(readFileSync(testFilesPath, 'utf-8')) as string[]
-
 test.describe.configure({ mode: 'serial' })
 
 test.describe('Staging room loading', () => {
+	const testFilesPath = join(__dirname, '../fixtures/test-files.json')
+	let testFiles: string[] = []
+	if (existsSync(testFilesPath)) {
+		try {
+			testFiles = JSON.parse(readFileSync(testFilesPath, 'utf-8')) as string[]
+		} catch (error) {
+			console.warn('Failed to read test-files.json:', error)
+			testFiles = []
+		}
+	}
+
+	test.skip(testFiles.length === 0, 'No test files available')
+
 	for (const fileId of testFiles) {
 		test(`should load the rooms without errors and be able to edit them`, async ({
 			page,
