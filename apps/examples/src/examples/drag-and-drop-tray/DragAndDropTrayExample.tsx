@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import {
+	Box,
 	TLEditorComponents,
 	Tldraw,
 	Vec,
@@ -19,42 +20,42 @@ type DragState =
 	| {
 			name: 'pointing_item'
 			item: TrayItem
-			startPosition: { x: number; y: number }
+			startPosition: Vec
 	  }
 	| {
 			name: 'dragging'
 			item: TrayItem
-			startPosition: { x: number; y: number }
-			currentPosition: { x: number; y: number }
+			currentPosition: Vec
 	  }
 
-function useDragAndDrop() {
+const DragAndDropTray = () => {
+	const rTrayContainer = useRef<HTMLDivElement>(null)
+	const rDraggingImage = useRef<HTMLDivElement>(null)
+
 	const editor = useEditor()
 
 	const dragState = useAtom<DragState>('dragState', () => ({
 		name: 'idle',
 	}))
 
-	const handlePointerMove = useCallback(
-		(e: PointerEvent) => {
+	const { handlePointerUp, handlePointerDown } = useMemo(() => {
+		let target: HTMLDivElement | null = null
+
+		function handlePointerMove(e: PointerEvent) {
 			const current = dragState.get()
-			const viewport = editor.getViewportScreenBounds()
-			const canvasPoint = editor.screenToPage({
-				x: e.clientX - viewport.x,
-				y: e.clientY - viewport.y,
-			})
+			const screenPoint = new Vec(e.clientX, e.clientY)
+
 			switch (current.name) {
 				case 'idle': {
 					break
 				}
 				case 'pointing_item': {
-					const dist = Vec.Dist(canvasPoint, current.startPosition)
+					const dist = Vec.Dist(screenPoint, current.startPosition)
 					if (dist > 10) {
 						dragState.set({
 							name: 'dragging',
 							item: current.item,
-							startPosition: { x: canvasPoint.x, y: canvasPoint.y },
-							currentPosition: canvasPoint,
+							currentPosition: screenPoint,
 						})
 					}
 					break
@@ -62,18 +63,19 @@ function useDragAndDrop() {
 				case 'dragging': {
 					dragState.set({
 						...current,
-						currentPosition: canvasPoint,
+						currentPosition: screenPoint,
 					})
 					break
 				}
 			}
-		},
-		[dragState, editor]
-	)
+		}
 
-	const handlePointerUp = useCallback(
-		(e: PointerEvent) => {
+		function handlePointerUp(e: React.PointerEvent) {
 			const current = dragState.get()
+
+			target = e.currentTarget as HTMLDivElement
+			target.releasePointerCapture(e.pointerId)
+
 			switch (current.name) {
 				case 'idle': {
 					break
@@ -85,16 +87,15 @@ function useDragAndDrop() {
 					break
 				}
 				case 'dragging': {
-					const viewport = editor.getViewportScreenBounds()
-					const canvasPoint = editor.screenToPage({
-						x: e.clientX - viewport.x,
-						y: e.clientY - viewport.y,
-					})
+					const screenPoint = new Vec(e.clientX, e.clientY)
+					const pagePoint = editor.screenToPage(screenPoint)
+
+					editor.markHistoryStoppingPoint('create shape from tray')
 
 					editor.createShape({
 						type: current.item.shapeType,
-						x: canvasPoint.x - 50, // center on cursor at 100x100
-						y: canvasPoint.y - 50,
+						x: pagePoint.x - 50, // center on cursor at 100x100
+						y: pagePoint.y - 50,
 						props: current.item.shapeProps,
 					})
 
@@ -104,29 +105,19 @@ function useDragAndDrop() {
 					break
 				}
 			}
-		},
-		[dragState, editor]
-	)
+		}
 
-	const handlePointerCancel = useCallback(() => {
-		dragState.set({
-			name: 'idle',
-		})
-	}, [dragState])
-
-	const removeEventListeners = useCallback(() => {
-		document.removeEventListener('pointermove', handlePointerMove)
-		document.removeEventListener('pointerup', handlePointerUp)
-		document.removeEventListener('pointercancel', handlePointerCancel)
-	}, [handlePointerMove, handlePointerUp, handlePointerCancel])
-
-	const handlePointerDown = useCallback(
-		(e: React.PointerEvent, item: TrayItem) => {
+		function handlePointerDown(e: React.PointerEvent) {
 			e.preventDefault()
+			target = e.currentTarget as HTMLDivElement
+			target.setPointerCapture(e.pointerId)
+
+			const itemIndex = target.dataset.drag_item_index!
+			const item = TRAY_ITEMS[+itemIndex]
 
 			if (!item) return
 
-			const startPosition = { x: e.clientX, y: e.clientY }
+			const startPosition = new Vec(e.clientX, e.clientY)
 
 			dragState.set({
 				name: 'pointing_item',
@@ -134,49 +125,43 @@ function useDragAndDrop() {
 				startPosition,
 			})
 
-			document.addEventListener('pointermove', handlePointerMove)
-			document.addEventListener('pointerup', handlePointerUp)
-			document.addEventListener('pointercancel', handlePointerCancel)
-		},
-		[handlePointerMove, handlePointerUp, handlePointerCancel, dragState]
-	)
+			target.addEventListener('pointermove', handlePointerMove)
+			document.addEventListener('keydown', handleKeyDown)
+		}
 
-	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
+		function handleKeyDown(e: KeyboardEvent) {
 			const current = dragState.get()
 			if (e.key === 'Escape' && current.name === 'dragging') {
-				dragState.set({
-					name: 'idle',
-				})
-				removeEventListeners()
+				cancel()
 			}
 		}
 
-		document.addEventListener('keydown', handleKeyDown)
-		return () => {
-			document.removeEventListener('keydown', handleKeyDown)
-			removeEventListeners()
+		function cancel() {
+			if (target) {
+				target.removeEventListener('pointermove', handlePointerMove)
+				document.removeEventListener('keydown', handleKeyDown)
+			}
+
+			dragState.set({
+				name: 'idle',
+			})
 		}
-	}, [dragState, removeEventListeners])
 
-	return {
-		dragState,
-		handlePointerDown,
-	}
-}
+		return {
+			handlePointerDown,
+			handlePointerUp,
+		}
+	}, [dragState, editor])
 
-const DragAndDropTray = () => {
-	const { dragState, handlePointerDown: handlePointerDownOverItem } = useDragAndDrop()
-
-	const dragImageRef = useRef<HTMLDivElement>(null)
 	const state = useValue('dragState', () => dragState.get(), [dragState])
 
 	useQuickReactor(
 		'drag-image-style',
 		() => {
 			const current = dragState.get()
-			const imageRef = dragImageRef.current
-			if (!imageRef) return
+			const imageRef = rDraggingImage.current
+			const trayContainerRef = rTrayContainer.current
+			if (!imageRef || !trayContainerRef) return
 
 			switch (current.name) {
 				case 'idle':
@@ -185,17 +170,30 @@ const DragAndDropTray = () => {
 					break
 				}
 				case 'dragging': {
-					imageRef.style.display = 'block'
-					imageRef.style.position = 'absolute'
-					imageRef.style.pointerEvents = 'none'
-					imageRef.style.left = '0px'
-					imageRef.style.top = '0px'
-					imageRef.style.transform = `translate(${current.currentPosition.x - 25}px, ${current.currentPosition.y - 25}px)`
-					imageRef.style.width = '50px'
-					imageRef.style.height = '50px'
-					imageRef.style.fontSize = '40px'
-					imageRef.style.display = 'flex'
-					imageRef.style.alignItems = 'center'
+					const trayContainerRect = trayContainerRef.getBoundingClientRect()
+					const box = new Box(
+						trayContainerRect.x,
+						trayContainerRect.y,
+						trayContainerRect.width,
+						trayContainerRect.height
+					)
+					const viewportScreenBounds = editor.getViewportScreenBounds()
+					const isInside = Box.ContainsPoint(box, current.currentPosition)
+					if (isInside) {
+						imageRef.style.display = 'none'
+					} else {
+						imageRef.style.display = 'block'
+						imageRef.style.position = 'absolute'
+						imageRef.style.pointerEvents = 'none'
+						imageRef.style.left = '0px'
+						imageRef.style.top = '0px'
+						imageRef.style.transform = `translate(${current.currentPosition.x - viewportScreenBounds.x - 25}px, ${current.currentPosition.y - -viewportScreenBounds.y - 25}px)`
+						imageRef.style.width = '50px'
+						imageRef.style.height = '50px'
+						imageRef.style.fontSize = '40px'
+						imageRef.style.display = 'flex'
+						imageRef.style.alignItems = 'center'
+					}
 				}
 			}
 		},
@@ -204,30 +202,22 @@ const DragAndDropTray = () => {
 
 	return (
 		<>
-			<div className="drag-tray">
-				<div className="drag-tray-header">
-					<h3>Drag & Drop Tray</h3>
-					<p>Drag items onto the canvas</p>
-				</div>
+			<div className="drag-tray" ref={rTrayContainer}>
 				<div className="drag-tray-items">
-					{TRAY_ITEMS.map((item) => (
+					{TRAY_ITEMS.map((item, index) => (
 						<div
 							key={item.id}
-							className={`drag-tray-item ${state.name === 'dragging' && state.item?.id === item.id ? 'dragging' : ''}`}
-							onPointerDown={(e) => handlePointerDownOverItem(e, item)}
+							className="drag-tray-item"
+							data-drag_item_index={index}
+							onPointerDown={handlePointerDown}
+							onPointerUp={handlePointerUp}
 						>
-							<span className="drag-tray-item-emoji">{item.emoji}</span>
-							<span className="drag-tray-item-label">{item.label}</span>
+							{item.emoji}
 						</div>
 					))}
 				</div>
-				{state.name === 'dragging' && (
-					<div className="drag-tray-help">
-						<p>Release to drop • Press ESC to cancel</p>
-					</div>
-				)}
 			</div>
-			{state.name === 'dragging' && state.item && <div ref={dragImageRef}>{state.item.emoji}</div>}
+			<div ref={rDraggingImage}>{state.name === 'dragging' && state.item.emoji}</div>
 		</>
 	)
 }
