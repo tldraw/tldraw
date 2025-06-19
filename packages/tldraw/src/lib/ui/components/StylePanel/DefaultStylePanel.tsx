@@ -1,6 +1,6 @@
 import { useEditor, usePassThroughWheelEvents } from '@tldraw/editor'
 import classNames from 'classnames'
-import { ReactNode, memo, useCallback, useRef } from 'react'
+import { ReactNode, memo, useCallback, useEffect, useRef } from 'react'
 import { useRelevantStyles } from '../../hooks/useRelevantStyles'
 import { DefaultStylePanelContent } from './DefaultStylePanelContent'
 
@@ -29,6 +29,21 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 	}, [editor, isMobile])
 
 	const content = children ?? <DefaultStylePanelContent styles={styles} />
+
+	useEffect(() => {
+		function handleKeyDown(event: KeyboardEvent) {
+			if (event.key === 'Escape' && ref.current?.contains(document.activeElement)) {
+				event.stopPropagation()
+				editor.timers.setTimeout(() => editor.getContainer().focus(), 100)
+			}
+		}
+
+		const stylePanelContainerEl = ref.current
+		stylePanelContainerEl?.addEventListener('keydown', handleKeyDown, { capture: true })
+		return () => {
+			stylePanelContainerEl?.removeEventListener('keydown', handleKeyDown, { capture: true })
+		}
+	}, [editor])
 
 	return (
 		<div
