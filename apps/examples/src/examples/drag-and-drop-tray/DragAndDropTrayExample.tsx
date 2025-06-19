@@ -201,7 +201,7 @@ const DragAndDropTray = () => {
 						imageRef.style.pointerEvents = 'none'
 						imageRef.style.left = '0px'
 						imageRef.style.top = '0px'
-						imageRef.style.transform = `translate(${current.currentPosition.x - viewportScreenBounds.x - 25}px, ${current.currentPosition.y - -viewportScreenBounds.y - 25}px)`
+						imageRef.style.transform = `translate(${current.currentPosition.x - viewportScreenBounds.x - 25}px, ${current.currentPosition.y - viewportScreenBounds.y - 25}px)`
 						imageRef.style.width = '50px'
 						imageRef.style.height = '50px'
 						imageRef.style.fontSize = '40px'
