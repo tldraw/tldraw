@@ -1,15 +1,15 @@
-import { toRichText } from 'tldraw'
+import { TLShape, toRichText } from 'tldraw'
 
 // [1]
-export interface TrayItem {
+export interface TrayItem<T extends TLShape = TLShape> {
 	id: string
 	emoji: string
 	label: string
-	shapeType: 'geo'
-	shapeProps: any
+	shapeType: T['type']
+	shapeProps: Partial<T['props']>
 }
 
-export const TRAY_ITEMS: TrayItem[] = [
+export const TRAY_ITEMS: TrayItem<TLShape>[] = [
 	{
 		id: 'snowman',
 		emoji: '⛄',
