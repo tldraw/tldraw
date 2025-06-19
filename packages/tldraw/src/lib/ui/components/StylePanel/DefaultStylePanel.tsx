@@ -34,7 +34,7 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 		function handleKeyDown(event: KeyboardEvent) {
 			if (event.key === 'Escape' && ref.current?.contains(document.activeElement)) {
 				event.stopPropagation()
-				editor.timers.setTimeout(() => editor.getContainer().focus(), 100)
+				editor.getContainer().focus()
 			}
 		}
 
