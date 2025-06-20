@@ -139,134 +139,202 @@ export function getCropBox<T extends ShapeWithCrop>(
 		const prevCenterX = crop.topLeft.x + prevCropW / 2
 		const prevCenterY = crop.topLeft.y + prevCropH / 2
 
-		switch (handle) {
-			case 'top': {
-				// resize the box so that the top edge remains under the cursor
-				// and the bottom edge center remains in the same place
-				if (h < minHeight) break
-				hasCropChanged = true
+		// Consolidated logic for all four edge handles
+		const isVertical = handle === 'top' || handle === 'bottom'
+		const isStart = handle === 'top' || handle === 'left'
+		const dimension = isVertical ? h : w
+		const minDimension = isVertical ? minHeight : minWidth
+		const changeDelta = isVertical ? change.y : change.x
+		const prevCenter = isVertical ? prevCenterX : prevCenterY
 
-				newCrop.topLeft.y = clamp(
-					newCrop.topLeft.y + change.y / h,
-					topLeftLimit,
-					newCrop.bottomRight.y - minHeight / h
-				)
+		if (dimension < minDimension) {
+			// Skip if dimension is too small
+		} else {
+			hasCropChanged = true
 
-				let newCropH = clamp(newCrop.bottomRight.y - newCrop.topLeft.y, 0, 1)
-				let newCropW = clamp((prevCropW / prevCropH) * newCropH, 0, 1)
-
-				newCrop.topLeft.x = newCrop.topLeft.x + (prevCropW - newCropW) / 2
-				newCrop.bottomRight.x = newCrop.topLeft.x + newCropW
-
-				if (newCrop.topLeft.x < topLeftLimit) {
-					// The left side is at the wall, so use that as the limit
-					newCrop.topLeft.x = topLeftLimit
-					const newCropW = (prevCenterX - topLeftLimit) * 2
-					newCropH = clamp((prevCropH / prevCropW) * newCropW, 0, 1)
-					newCrop.topLeft.y = newCrop.bottomRight.y - newCropH
-					newCrop.bottomRight.x = newCrop.topLeft.x + newCropW
-					newCrop.bottomRight.y = newCrop.topLeft.y + newCropH
-				} else if (newCrop.bottomRight.x > bottomRightLimit) {
-					// The right side is at the wall, so use that as the limit
-					newCrop.bottomRight.x = bottomRightLimit
-					const newCropW = (bottomRightLimit - prevCenterX) * 2
-					newCropH = clamp((prevCropH / prevCropW) * newCropW, 0, 1)
-					newCrop.topLeft.y = newCrop.bottomRight.y - newCropH
-					newCrop.topLeft.x = newCrop.bottomRight.x - newCropW
-					newCrop.bottomRight.y = newCrop.topLeft.y + newCropH
+			// Adjust the appropriate edge
+			if (isVertical) {
+				if (isStart) {
+					// top
+					newCrop.topLeft.y = clamp(
+						newCrop.topLeft.y + changeDelta / dimension,
+						topLeftLimit,
+						newCrop.bottomRight.y - minDimension / dimension
+					)
+				} else {
+					// bottom
+					newCrop.bottomRight.y = clamp(
+						newCrop.bottomRight.y + changeDelta / dimension,
+						newCrop.topLeft.y,
+						bottomRightLimit
+					)
 				}
+			} else {
+				if (isStart) {
+					// left
+					newCrop.topLeft.x = clamp(
+						newCrop.topLeft.x + changeDelta / dimension,
+						topLeftLimit,
+						newCrop.bottomRight.x - minDimension / dimension
+					)
+				} else {
+					// right
+					newCrop.bottomRight.x = clamp(
+						newCrop.bottomRight.x + changeDelta / dimension,
+						newCrop.topLeft.x + minDimension / dimension,
+						bottomRightLimit
+					)
+				}
+			}
 
-				break
+			// Calculate new dimensions maintaining aspect ratio
+			let newCropW, newCropH
+			if (isVertical) {
+				newCropH = clamp(newCrop.bottomRight.y - newCrop.topLeft.y, 0, 1)
+				newCropW = clamp((prevCropW / prevCropH) * newCropH, 0, 1)
+			} else {
+				newCropW = clamp(newCrop.bottomRight.x - newCrop.topLeft.x, 0, 1)
+				newCropH = clamp((prevCropH / prevCropW) * newCropW, 0, 1)
 			}
-			case 'bottom': {
-				// resize the box so that the bottom edge remains under the cursor
-				// and the top edge center remains in the same place
-				break
+
+			// Center on the perpendicular axis
+			if (isVertical) {
+				if (isStart) {
+					// top: center horizontally, keeping existing logic
+					newCrop.topLeft.x = newCrop.topLeft.x + (prevCropW - newCropW) / 2
+					newCrop.bottomRight.x = newCrop.topLeft.x + newCropW
+				} else {
+					// bottom: center around previous center
+					newCrop.topLeft.x = prevCenter - newCropW / 2
+					newCrop.bottomRight.x = prevCenter + newCropW / 2
+				}
+			} else {
+				// left/right: center vertically around previous center
+				newCrop.topLeft.y = prevCenter - newCropH / 2
+				newCrop.bottomRight.y = prevCenter + newCropH / 2
 			}
-			case 'left': {
-				// resize the box so that the left edge remains under the cursor
-				// and the right edge center remains in the same place
-				break
-			}
-			case 'right': {
-				// resize the box so that the right edge remains under the cursor
-				// and the left edge center remains in the same place
-				break
+
+			// Handle boundary collisions
+			if (isVertical) {
+				// For vertical handles, check horizontal boundaries
+				if (newCrop.topLeft.x < topLeftLimit) {
+					newCrop.topLeft.x = topLeftLimit
+					const newCropW = (prevCenter - topLeftLimit) * 2
+					newCropH = clamp((prevCropH / prevCropW) * newCropW, 0, 1)
+					if (isStart) {
+						newCrop.topLeft.y = newCrop.bottomRight.y - newCropH
+					} else {
+						newCrop.bottomRight.y = newCrop.topLeft.y + newCropH
+					}
+					newCrop.bottomRight.x = newCrop.topLeft.x + newCropW
+				} else if (newCrop.bottomRight.x > bottomRightLimit) {
+					newCrop.bottomRight.x = bottomRightLimit
+					const newCropW = (bottomRightLimit - prevCenter) * 2
+					newCropH = clamp((prevCropH / prevCropW) * newCropW, 0, 1)
+					if (isStart) {
+						newCrop.topLeft.y = newCrop.bottomRight.y - newCropH
+					} else {
+						newCrop.bottomRight.y = newCrop.topLeft.y + newCropH
+					}
+					newCrop.topLeft.x = newCrop.bottomRight.x - newCropW
+				}
+			} else {
+				// For horizontal handles, check vertical boundaries
+				if (newCrop.topLeft.y < topLeftLimit) {
+					newCrop.topLeft.y = topLeftLimit
+					const newCropH = (prevCenter - topLeftLimit) * 2
+					newCropW = clamp((prevCropW / prevCropH) * newCropH, 0, 1)
+					if (isStart) {
+						newCrop.topLeft.x = newCrop.bottomRight.x - newCropW
+					} else {
+						newCrop.bottomRight.x = newCrop.topLeft.x + newCropW
+					}
+					newCrop.bottomRight.y = newCrop.topLeft.y + newCropH
+				} else if (newCrop.bottomRight.y > bottomRightLimit) {
+					newCrop.bottomRight.y = bottomRightLimit
+					const newCropH = (bottomRightLimit - prevCenter) * 2
+					newCropW = clamp((prevCropW / prevCropH) * newCropH, 0, 1)
+					if (isStart) {
+						newCrop.topLeft.x = newCrop.bottomRight.x - newCropW
+					} else {
+						newCrop.bottomRight.x = newCrop.topLeft.x + newCropW
+					}
+					newCrop.topLeft.y = newCrop.bottomRight.y - newCropH
+				}
 			}
 		}
 	} else {
-		// Set y dimension
-		switch (handle) {
-			case 'top':
-			case 'top_left':
-			case 'top_right': {
-				if (h < minHeight) break
-				hasCropChanged = true
-				// top
-				newCrop.topLeft.y = newCrop.topLeft.y + change.y / h
-				const heightAfterCrop = h * (newCrop.bottomRight.y - newCrop.topLeft.y)
+		// Consolidated logic for non-aspect-ratio-locked cropping
+		const hasVertical = handle.includes('top') || handle.includes('bottom')
+		const hasHorizontal = handle.includes('left') || handle.includes('right')
 
-				if (heightAfterCrop < minHeight) {
-					newCrop.topLeft.y = newCrop.bottomRight.y - minHeight / h
-				} else {
-					if (newCrop.topLeft.y <= topLeftLimit) {
+		// Helper function to handle dimension adjustment
+		const adjustDimension = (
+			isVertical: boolean,
+			isStartHandle: boolean,
+			dimension: number,
+			minDimension: number,
+			changeDelta: number
+		) => {
+			hasCropChanged = true
+
+			if (isVertical) {
+				if (isStartHandle) {
+					// top handles
+					newCrop.topLeft.y = newCrop.topLeft.y + changeDelta / dimension
+					const heightAfterCrop = dimension * (newCrop.bottomRight.y - newCrop.topLeft.y)
+
+					if (heightAfterCrop < minDimension) {
+						newCrop.topLeft.y = newCrop.bottomRight.y - minDimension / dimension
+					} else if (newCrop.topLeft.y <= topLeftLimit) {
 						newCrop.topLeft.y = topLeftLimit
-					} else {
+					}
+				} else {
+					// bottom handles
+					newCrop.bottomRight.y = Math.min(
+						bottomRightLimit,
+						newCrop.bottomRight.y + changeDelta / dimension
+					)
+					const heightAfterCrop = dimension * (newCrop.bottomRight.y - newCrop.topLeft.y)
+
+					if (heightAfterCrop < minDimension) {
+						newCrop.bottomRight.y = newCrop.topLeft.y + minDimension / dimension
 					}
 				}
-				break
-			}
-			case 'bottom':
-			case 'bottom_left':
-			case 'bottom_right': {
-				if (h < minHeight) break
-				hasCropChanged = true
-				// bottom
-				newCrop.bottomRight.y = Math.min(bottomRightLimit, newCrop.bottomRight.y + change.y / h)
-				const heightAfterCrop = h * (newCrop.bottomRight.y - newCrop.topLeft.y)
+			} else {
+				if (isStartHandle) {
+					// left handles
+					newCrop.topLeft.x = newCrop.topLeft.x + changeDelta / dimension
+					const widthAfterCrop = dimension * (newCrop.bottomRight.x - newCrop.topLeft.x)
 
-				if (heightAfterCrop < minHeight) {
-					newCrop.bottomRight.y = newCrop.topLeft.y + minHeight / h
+					if (widthAfterCrop < minDimension) {
+						newCrop.topLeft.x = newCrop.bottomRight.x - minDimension / dimension
+					} else if (newCrop.topLeft.x <= topLeftLimit) {
+						newCrop.topLeft.x = topLeftLimit
+					}
+				} else {
+					// right handles
+					newCrop.bottomRight.x = Math.min(
+						bottomRightLimit,
+						newCrop.bottomRight.x + changeDelta / dimension
+					)
+					const widthAfterCrop = dimension * (newCrop.bottomRight.x - newCrop.topLeft.x)
+
+					if (widthAfterCrop < minDimension) {
+						newCrop.bottomRight.x = newCrop.topLeft.x + minDimension / dimension
+					}
 				}
-				break
 			}
 		}
 
-		// Set x dimension
-		switch (handle) {
-			case 'left':
-			case 'top_left':
-			case 'bottom_left': {
-				if (w < minWidth) break
-				hasCropChanged = true
-				// left
-				newCrop.topLeft.x = newCrop.topLeft.x + change.x / w
-				const widthAfterCrop = w * (newCrop.bottomRight.x - newCrop.topLeft.x)
+		// Handle vertical dimension (Y)
+		if (hasVertical && h >= minHeight) {
+			adjustDimension(true, handle.includes('top'), h, minHeight, change.y)
+		}
 
-				if (widthAfterCrop < minWidth) {
-					newCrop.topLeft.x = newCrop.bottomRight.x - minWidth / w
-				} else {
-					if (newCrop.topLeft.x <= topLeftLimit) {
-						newCrop.topLeft.x = topLeftLimit
-					} else {
-					}
-				}
-				break
-			}
-			case 'right':
-			case 'top_right':
-			case 'bottom_right': {
-				if (w < minWidth) break
-				hasCropChanged = true
-				// right
-				newCrop.bottomRight.x = Math.min(bottomRightLimit, newCrop.bottomRight.x + change.x / w)
-				const widthAfterCrop = w * (newCrop.bottomRight.x - newCrop.topLeft.x)
-
-				if (widthAfterCrop < minWidth) {
-					newCrop.bottomRight.x = newCrop.topLeft.x + minWidth / w
-				}
-				break
-			}
+		// Handle horizontal dimension (X)
+		if (hasHorizontal && w >= minWidth) {
+			adjustDimension(false, handle.includes('left'), w, minWidth, change.x)
 		}
 	}
 
