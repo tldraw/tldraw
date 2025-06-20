@@ -54,10 +54,11 @@ async function cleanupTestFiles() {
 			}
 
 			const deleteResponse = await R2.send(new DeleteObjectCommand(deleteParams))
-			// TODO: Unsure if this is the correct way to check for a successful delete
+			// Check for successful delete - R2/S3 can return 200 or 204 for success
 			if (
 				!deleteResponse.$metadata.httpStatusCode ||
-				deleteResponse.$metadata.httpStatusCode !== 204
+				(deleteResponse.$metadata.httpStatusCode !== 200 &&
+					deleteResponse.$metadata.httpStatusCode !== 204)
 			) {
 				console.error('Failed to delete file from R2 staging bucket')
 				continue
@@ -86,7 +87,8 @@ async function cleanupTestFiles() {
 						'Content-Type': 'application/json',
 					},
 					body: JSON.stringify({
-						sql: `DELETE FROM test_file WHERE id = '${fileId}'`,
+						sql: 'DELETE FROM test_file WHERE id = ?',
+						params: [fileId],
 					}),
 				}
 			)

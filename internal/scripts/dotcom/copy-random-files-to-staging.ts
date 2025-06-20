@@ -149,7 +149,8 @@ async function copyFilesToStaging(fileIds: string[]) {
 						'Content-Type': 'application/json',
 					},
 					body: JSON.stringify({
-						sql: `INSERT INTO test_file (id) VALUES ('${newId}')`,
+						sql: `INSERT INTO test_file (id) VALUES (?)`,
+						params: [newId],
 					}),
 				}
 			)
