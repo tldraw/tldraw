@@ -1,0 +1,38 @@
+name: Daily Staging Cleanup
+
+on:
+  schedule:
+    - cron: '45 1 * * *'
+
+permissions:
+  contents: read
+
+env:
+  CI: 1
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  cleanup:
+    name: 'Daily Cleanup of Test Files'
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    environment: 'e2e-dotcom'
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: Cleanup test files
+        run: yarn tsx internal/scripts/dotcom/cleanup-test-files.ts
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
+          SUPABASE_STAGING_DB_URL: ${{ secrets.SUPABASE_STAGING_DB_URL }}
+          STAGING_OWNER_ID: ${{ secrets.STAGING_OWNER_ID }}
