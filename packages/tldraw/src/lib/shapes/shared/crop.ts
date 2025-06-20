@@ -5,6 +5,7 @@ import {
 	TLShapeCrop,
 	TLShapeId,
 	Vec,
+	clamp,
 	structuredClone,
 } from '@tldraw/editor'
 
@@ -15,6 +16,7 @@ export const MIN_CROP_SIZE = 8
 export interface CropBoxOptions {
 	minWidth?: number
 	minHeight?: number
+	aspectRatioLocked?: boolean
 }
 
 /** @public */
@@ -118,7 +120,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 			props: ShapeWithCrop['props']
 	  }
 	| undefined {
-	const { handle, change, crop } = info
+	const { handle, change, crop, aspectRatioLocked } = info
 	const { w, h } = info.uncroppedSize
 	const { minWidth = MIN_CROP_SIZE, minHeight = MIN_CROP_SIZE } = opts
 
@@ -130,85 +132,153 @@ export function getCropBox<T extends ShapeWithCrop>(
 	const topLeftLimit = 0
 	const bottomRightLimit = 1
 
-	// Set y dimension
-	switch (handle) {
-		case 'top':
-		case 'top_left':
-		case 'top_right': {
-			if (h < minHeight) break
-			hasCropChanged = true
-			// top
-			newCrop.topLeft.y = newCrop.topLeft.y + change.y / h
-			const heightAfterCrop = h * (newCrop.bottomRight.y - newCrop.topLeft.y)
+	// preserve the absolute dimensions of the image on the page,
+	// but resize the crop box so that the cropped part of the image resizes
 
-			if (heightAfterCrop < minHeight) {
-				newCrop.topLeft.y = newCrop.bottomRight.y - minHeight / h
+	if (aspectRatioLocked) {
+		const prevCropH = crop.bottomRight.y - crop.topLeft.y
+		const prevCropW = crop.bottomRight.x - crop.topLeft.x
+		const prevCenterX = crop.topLeft.x + prevCropW / 2
+		const prevCenterY = crop.topLeft.y + prevCropH / 2
+
+		switch (handle) {
+			case 'top': {
+				// resize the box so that the top edge remains under the cursor
+				// and the bottom edge center remains in the same place
+				if (h < minHeight) break
+				hasCropChanged = true
+
+				newCrop.topLeft.y = clamp(
+					newCrop.topLeft.y + change.y / h,
+					topLeftLimit,
+					newCrop.bottomRight.y - minHeight / h
+				)
+
+				let newCropH = clamp(newCrop.bottomRight.y - newCrop.topLeft.y, 0, 1)
+				let newCropW = clamp((prevCropW / prevCropH) * newCropH, 0, 1)
+
+				newCrop.topLeft.x = newCrop.topLeft.x + (prevCropW - newCropW) / 2
+				newCrop.bottomRight.x = newCrop.topLeft.x + newCropW
+
+				if (newCrop.topLeft.x < topLeftLimit) {
+					newCrop.topLeft.x = topLeftLimit
+					const newCropW = (prevCenterX - topLeftLimit) * 2
+					newCropH = clamp((prevCropH / prevCropW) * newCropW, 0, 1)
+					newCrop.topLeft.y = newCrop.bottomRight.y - newCropH
+					newCrop.bottomRight.x = newCrop.topLeft.x + newCropW
+					newCrop.bottomRight.y = newCrop.topLeft.y + newCropH
+				} else if (newCrop.bottomRight.x > bottomRightLimit) {
+					newCrop.bottomRight.x = bottomRightLimit
+					const newCropW = (bottomRightLimit - prevCenterX) * 2
+					newCropH = clamp((prevCropH / prevCropW) * newCropW, 0, 1)
+					newCrop.topLeft.y = newCrop.bottomRight.y - newCropH
+					newCrop.topLeft.x = newCrop.bottomRight.x - newCropW
+					newCrop.bottomRight.y = newCrop.topLeft.y + newCropH
+				}
+
+				pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
 				pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
-			} else {
-				if (newCrop.topLeft.y <= topLeftLimit) {
-					newCrop.topLeft.y = topLeftLimit
+
+				break
+			}
+			case 'bottom': {
+				// resize the box so that the bottom edge remains under the cursor
+				// and the top edge center remains in the same place
+				break
+			}
+			case 'left': {
+				// resize the box so that the left edge remains under the cursor
+				// and the right edge center remains in the same place
+				break
+			}
+			case 'right': {
+				// resize the box so that the right edge remains under the cursor
+				// and the left edge center remains in the same place
+				break
+			}
+		}
+	} else {
+		// Set y dimension
+		switch (handle) {
+			case 'top':
+			case 'top_left':
+			case 'top_right': {
+				if (h < minHeight) break
+				hasCropChanged = true
+				// top
+				newCrop.topLeft.y = newCrop.topLeft.y + change.y / h
+				const heightAfterCrop = h * (newCrop.bottomRight.y - newCrop.topLeft.y)
+
+				if (heightAfterCrop < minHeight) {
+					newCrop.topLeft.y = newCrop.bottomRight.y - minHeight / h
 					pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
 				} else {
-					pointDelta.y = change.y
+					if (newCrop.topLeft.y <= topLeftLimit) {
+						newCrop.topLeft.y = topLeftLimit
+						pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
+					} else {
+						pointDelta.y = change.y
+					}
 				}
+				break
 			}
-			break
-		}
-		case 'bottom':
-		case 'bottom_left':
-		case 'bottom_right': {
-			if (h < minHeight) break
-			hasCropChanged = true
-			// bottom
-			newCrop.bottomRight.y = Math.min(bottomRightLimit, newCrop.bottomRight.y + change.y / h)
-			const heightAfterCrop = h * (newCrop.bottomRight.y - newCrop.topLeft.y)
+			case 'bottom':
+			case 'bottom_left':
+			case 'bottom_right': {
+				if (h < minHeight) break
+				hasCropChanged = true
+				// bottom
+				newCrop.bottomRight.y = Math.min(bottomRightLimit, newCrop.bottomRight.y + change.y / h)
+				const heightAfterCrop = h * (newCrop.bottomRight.y - newCrop.topLeft.y)
 
-			if (heightAfterCrop < minHeight) {
-				newCrop.bottomRight.y = newCrop.topLeft.y + minHeight / h
+				if (heightAfterCrop < minHeight) {
+					newCrop.bottomRight.y = newCrop.topLeft.y + minHeight / h
+				}
+				break
 			}
-			break
 		}
-	}
 
-	// Set x dimension
-	switch (handle) {
-		case 'left':
-		case 'top_left':
-		case 'bottom_left': {
-			if (w < minWidth) break
-			hasCropChanged = true
-			// left
-			newCrop.topLeft.x = newCrop.topLeft.x + change.x / w
-			const widthAfterCrop = w * (newCrop.bottomRight.x - newCrop.topLeft.x)
+		// Set x dimension
+		switch (handle) {
+			case 'left':
+			case 'top_left':
+			case 'bottom_left': {
+				if (w < minWidth) break
+				hasCropChanged = true
+				// left
+				newCrop.topLeft.x = newCrop.topLeft.x + change.x / w
+				const widthAfterCrop = w * (newCrop.bottomRight.x - newCrop.topLeft.x)
 
-			if (widthAfterCrop < minWidth) {
-				newCrop.topLeft.x = newCrop.bottomRight.x - minWidth / w
-				pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
-			} else {
-				if (newCrop.topLeft.x <= topLeftLimit) {
-					newCrop.topLeft.x = topLeftLimit
+				if (widthAfterCrop < minWidth) {
+					newCrop.topLeft.x = newCrop.bottomRight.x - minWidth / w
 					pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
 				} else {
-					pointDelta.x = change.x
+					if (newCrop.topLeft.x <= topLeftLimit) {
+						newCrop.topLeft.x = topLeftLimit
+						pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
+					} else {
+						pointDelta.x = change.x
+					}
 				}
+				break
 			}
-			break
-		}
-		case 'right':
-		case 'top_right':
-		case 'bottom_right': {
-			if (w < minWidth) break
-			hasCropChanged = true
-			// right
-			newCrop.bottomRight.x = Math.min(bottomRightLimit, newCrop.bottomRight.x + change.x / w)
-			const widthAfterCrop = w * (newCrop.bottomRight.x - newCrop.topLeft.x)
+			case 'right':
+			case 'top_right':
+			case 'bottom_right': {
+				if (w < minWidth) break
+				hasCropChanged = true
+				// right
+				newCrop.bottomRight.x = Math.min(bottomRightLimit, newCrop.bottomRight.x + change.x / w)
+				const widthAfterCrop = w * (newCrop.bottomRight.x - newCrop.topLeft.x)
 
-			if (widthAfterCrop < minWidth) {
-				newCrop.bottomRight.x = newCrop.topLeft.x + minWidth / w
+				if (widthAfterCrop < minWidth) {
+					newCrop.bottomRight.x = newCrop.topLeft.x + minWidth / w
+				}
+				break
 			}
-			break
 		}
 	}
+
 	if (!hasCropChanged) return undefined
 
 	newPoint.add(pointDelta.rot(shape.rotation))
