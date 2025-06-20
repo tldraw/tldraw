@@ -57,91 +57,96 @@ async function getRandomFileIds(n: number): Promise<string[]> {
 
 async function copyFilesToStaging(fileIds: string[]) {
 	const copiedIds: string[] = []
-	for (const fileId of fileIds) {
-		try {
-			const getParams = {
-				Bucket: R2_PRODUCTION_BUCKET,
-				Key: `app_rooms/${fileId}`,
+
+	// Create one staging client for all database operations
+	const stagingClient = new Client({
+		connectionString: env.SUPABASE_STAGING_DB_URL,
+	})
+	await stagingClient.connect()
+
+	try {
+		for (const fileId of fileIds) {
+			try {
+				const getParams = {
+					Bucket: R2_PRODUCTION_BUCKET,
+					Key: `app_rooms/${fileId}`,
+				}
+
+				const getResponse = await R2.send(new GetObjectCommand(getParams))
+
+				if (!getResponse.Body) {
+					console.error('Failed to download file - no body')
+					continue
+				}
+
+				const fileContent = await getResponse.Body.transformToByteArray()
+
+				const newId = `test_${nanoid()}`
+
+				const putParams = {
+					Bucket: R2_STAGING_BUCKET,
+					Key: `app_rooms/${newId}`,
+					Body: Buffer.from(fileContent),
+					ContentType: 'application/octet-stream',
+				}
+
+				const putResponse = await R2.send(new PutObjectCommand(putParams))
+				if (!putResponse.$metadata.httpStatusCode || putResponse.$metadata.httpStatusCode !== 200) {
+					console.error('Failed to upload file to staging bucket')
+					continue
+				}
+
+				const now = Date.now()
+				const testFile: TlaFile = {
+					id: newId,
+					name: 'Test File',
+					ownerId: env.STAGING_OWNER_ID,
+					ownerName: 'Test User',
+					ownerAvatar: '',
+					thumbnail: '',
+					shared: false,
+					sharedLinkType: 'link',
+					published: false,
+					lastPublished: 0,
+					publishedSlug: '',
+					createdAt: now,
+					updatedAt: now,
+					isEmpty: false,
+					isDeleted: false,
+					createSource: null,
+				}
+
+				const insertQuery = `
+					INSERT INTO file (id, name, "ownerId", "ownerName", "ownerAvatar", thumbnail, shared, "sharedLinkType", published, "lastPublished", "publishedSlug", "createdAt", "updatedAt", "isEmpty", "isDeleted")
+					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+				`
+				await stagingClient.query(insertQuery, [
+					testFile.id,
+					testFile.name,
+					testFile.ownerId,
+					testFile.ownerName,
+					testFile.ownerAvatar,
+					testFile.thumbnail,
+					testFile.shared,
+					testFile.sharedLinkType,
+					testFile.published,
+					testFile.lastPublished,
+					testFile.publishedSlug,
+					testFile.createdAt,
+					testFile.updatedAt,
+					testFile.isEmpty,
+					testFile.isDeleted,
+				])
+
+				copiedIds.push(newId)
+			} catch (error) {
+				console.error('Error copying file:', error)
 			}
-
-			const getResponse = await R2.send(new GetObjectCommand(getParams))
-
-			if (!getResponse.Body) {
-				console.error('Failed to download file - no body')
-				continue
-			}
-
-			const fileContent = await getResponse.Body.transformToByteArray()
-
-			const newId = `test_${nanoid()}`
-
-			const putParams = {
-				Bucket: R2_STAGING_BUCKET,
-				Key: `app_rooms/${newId}`,
-				Body: Buffer.from(fileContent),
-				ContentType: 'application/octet-stream',
-			}
-
-			const putResponse = await R2.send(new PutObjectCommand(putParams))
-			if (!putResponse.$metadata.httpStatusCode || putResponse.$metadata.httpStatusCode !== 200) {
-				console.error('Failed to upload file to staging bucket')
-				continue
-			}
-
-			// Insert tlaFile entry into staging Supabase database
-			const stagingClient = new Client({
-				connectionString: env.SUPABASE_STAGING_DB_URL,
-			})
-			await stagingClient.connect()
-
-			const now = Date.now()
-			const testFile: TlaFile = {
-				id: newId,
-				name: 'Test File',
-				ownerId: env.STAGING_OWNER_ID,
-				ownerName: 'Test User',
-				ownerAvatar: '',
-				thumbnail: '',
-				shared: false,
-				sharedLinkType: 'link',
-				published: false,
-				lastPublished: 0,
-				publishedSlug: '',
-				createdAt: now,
-				updatedAt: now,
-				isEmpty: false,
-				isDeleted: false,
-				createSource: null,
-			}
-
-			const insertQuery = `
-				INSERT INTO file (id, name, "ownerId", "ownerName", "ownerAvatar", thumbnail, shared, "sharedLinkType", published, "lastPublished", "publishedSlug", "createdAt", "updatedAt", "isEmpty", "isDeleted")
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-			`
-			await stagingClient.query(insertQuery, [
-				testFile.id,
-				testFile.name,
-				testFile.ownerId,
-				testFile.ownerName,
-				testFile.ownerAvatar,
-				testFile.thumbnail,
-				testFile.shared,
-				testFile.sharedLinkType,
-				testFile.published,
-				testFile.lastPublished,
-				testFile.publishedSlug,
-				testFile.createdAt,
-				testFile.updatedAt,
-				testFile.isEmpty,
-				testFile.isDeleted,
-			])
-			await stagingClient.end()
-
-			copiedIds.push(newId)
-		} catch (error) {
-			console.error('Error copying file:', error)
 		}
+	} finally {
+		await stagingClient.end()
 	}
+
 	console.log(`Successfully copied ${copiedIds.length} files to staging`)
 
 	if (copiedIds.length > 0) {
