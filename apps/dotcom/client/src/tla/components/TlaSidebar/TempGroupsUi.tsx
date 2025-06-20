@@ -1,8 +1,7 @@
 import { useNavigate } from 'react-router-dom'
-import { useValue } from 'tldraw'
+import { uniqueId, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useHasFlag } from '../../hooks/useHasFlag'
-import { F } from '../../utils/i18n'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './groups.module.css'
 
@@ -18,7 +17,20 @@ export function TempGroupsUi() {
 	return (
 		<div className={styles.groupsSection}>
 			<div className={styles.groupsTitle}>
-				<F defaultMessage="Groups" />
+				{
+					// eslint-disable-next-line react/jsx-no-literals
+					'Groups'
+				}
+				<button
+					className={styles.groupsButton}
+					onClick={() => {
+						const name = window.prompt('Enter a name for the new group')
+						if (!name) return
+						app.z.mutate.group.create({ id: uniqueId(), name })
+					}}
+				>
+					<TlaIcon icon="plus" />
+				</button>
 			</div>
 			{groupUsers.map((group) => (
 				<div key={group.groupId} className={styles.group}>
@@ -33,14 +45,16 @@ export function TempGroupsUi() {
 								)
 							}}
 						>
-							<F defaultMessage="Members" />
+							{
+								// eslint-disable-next-line react/jsx-no-literals
+								'Members'
+							}
 						</button>
 					</div>
 					<div className={styles.fileList}>
 						{group.groupFiles.map((groupFile) => {
 							return groupFile.file ? (
 								<div key={groupFile.file.id} className={styles.fileItem}>
-									<TlaIcon icon="file" />
 									<div className={styles.fileName}>{groupFile.file.name}</div>
 									<button
 										className={styles.fileButton}

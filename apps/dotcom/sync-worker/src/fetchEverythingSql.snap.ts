@@ -83,10 +83,10 @@ SELECT
   "ownerAvatar"::text as "14",
   "ownerId"::text as "15",
   "ownerName"::text as "16",
-  "publishedSlug"::text as "17",
-  "sharedLinkType"::text as "18",
-  "thumbnail"::text as "19",
-  null::text as "20"
+  "owningGroupId"::text as "17",
+  "publishedSlug"::text as "18",
+  "sharedLinkType"::text as "19",
+  "thumbnail"::text as "20"
 FROM all_files
 UNION
 SELECT
@@ -154,9 +154,9 @@ SELECT
   null::bigint as "10",
   "groupId"::text as "11",
   "role"::text as "12",
-  "userId"::text as "13",
-  "userName"::text as "14",
-  "userEmail"::text as "15",
+  "userEmail"::text as "13",
+  "userId"::text as "14",
+  "userName"::text as "15",
   null::text as "16",
   null::text as "17",
   null::text as "18",
@@ -288,9 +288,10 @@ export const columnNamesByAlias = {
 		'14': 'ownerAvatar',
 		'15': 'ownerId',
 		'16': 'ownerName',
-		'17': 'publishedSlug',
-		'18': 'sharedLinkType',
-		'19': 'thumbnail',
+		'17': 'owningGroupId',
+		'18': 'publishedSlug',
+		'19': 'sharedLinkType',
+		'20': 'thumbnail',
 	},
 	group_file: {
 		'7': 'createdAt',
@@ -310,9 +311,9 @@ export const columnNamesByAlias = {
 		'8': 'updatedAt',
 		'11': 'groupId',
 		'12': 'role',
-		'13': 'userId',
-		'14': 'userName',
-		'15': 'userEmail',
+		'13': 'userEmail',
+		'14': 'userId',
+		'15': 'userName',
 	},
 	user_presence: {
 		'7': 'lastActivityAt',
