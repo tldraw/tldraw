@@ -398,7 +398,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 				const testFile = await isTestFile(this.env, file.id)
 				if (testFile && !(await canAccessTestProductionFile(this.env, auth))) {
-					return new Response('Not found', { status: 404 })
+					return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 				}
 
 				if (!auth && !file.shared) {
