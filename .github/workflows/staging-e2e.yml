@@ -82,3 +82,4 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           STAGING_TEST_EMAIL: ${{ secrets.STAGING_TEST_EMAIL }}
           STAGING_TEST_PASSWORD: ${{ secrets.STAGING_TEST_PASSWORD }}
+          STAGING_TESTS: 'true'
