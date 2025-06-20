@@ -16,8 +16,8 @@ test.describe('Staging room loading', () => {
 			testFiles = []
 		}
 	}
-	for (const fileId of testFiles) {
-		test(`should load the rooms without errors and be able to edit them`, async ({
+	testFiles.forEach((fileId, index) => {
+		test(`should load test room ${index + 1} without errors and be able to edit it`, async ({
 			page,
 			editor,
 		}) => {
@@ -36,5 +36,5 @@ test.describe('Staging room loading', () => {
 				await editor.expectShapesCount(initialShapeCount + 1)
 			}, page)
 		})
-	}
+	})
 })
