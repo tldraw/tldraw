@@ -3,8 +3,6 @@ import { join } from 'path'
 import { expectBeforeAndAfterReload } from '../fixtures/helpers'
 import { expect, test } from '../fixtures/staging-test'
 
-test.describe.configure({ mode: 'serial' })
-
 test.describe('Staging room loading', () => {
 	const testFilesPath = join(__dirname, '../fixtures/test-files.json')
 	let testFiles: string[] = []
