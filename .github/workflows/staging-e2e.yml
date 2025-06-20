@@ -3,6 +3,9 @@ name: Staging E2E Tests
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 env:
   CI: 1
   PRINT_GITHUB_ANNOTATIONS: 1
