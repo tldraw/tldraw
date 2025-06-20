@@ -130,7 +130,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 
 	const aspectRatioLocked = infoAspectRatioLocked ?? optsAspectRatioLocked ?? false
 	if (w < minWidth || h < minHeight || (change.x === 0 && change.y === 0)) {
-		return undefined
+		return
 	}
 
 	const newCrop = structuredClone(crop)
@@ -200,67 +200,63 @@ export function getCropBox<T extends ShapeWithCrop>(
 				const finalCrop = createCropAroundCenter(0.5, prevCenterY, finalW, finalH)
 				newCrop.topLeft = finalCrop.topLeft
 				newCrop.bottomRight = finalCrop.bottomRight
-				const newPoint = new Vec(
-					(newCrop.topLeft.x - crop.topLeft.x) * w,
-					(newCrop.topLeft.y - crop.topLeft.y) * h
-				)
-					.rot(shape.rotation)
-					.add(shape)
-				return {
-					id: shape.id,
-					type: shape.type,
-					x: newPoint.x,
-					y: newPoint.y,
-					props: {
-						w: (newCrop.bottomRight.x - newCrop.topLeft.x) * w,
-						h: (newCrop.bottomRight.y - newCrop.topLeft.y) * h,
-						crop: newCrop,
-					},
+			} else {
+				// Clamp to fit within boundaries from the center
+				const maxW = 2 * Math.min(prevCenterX, 1 - prevCenterX)
+				const maxH = 2 * Math.min(prevCenterY, 1 - prevCenterY)
+				if (finalW > maxW) {
+					finalW = maxW
+					finalH = finalW / targetRatio
 				}
-			}
+				if (finalH > maxH) {
+					finalH = maxH
+					finalW = finalH * targetRatio
+				}
 
-			// Clamp to fit within boundaries from the center
-			const maxW = 2 * Math.min(prevCenterX, 1 - prevCenterX)
-			const maxH = 2 * Math.min(prevCenterY, 1 - prevCenterY)
-			if (finalW > maxW) {
-				finalW = maxW
-				finalH = finalW / targetRatio
-			}
-			if (finalH > maxH) {
-				finalH = maxH
-				finalW = finalH * targetRatio
-			}
+				// Enforce minimum size
+				if (finalW < minWidth / w) {
+					finalW = minWidth / w
+					finalH = finalW / targetRatio
+				}
+				if (finalH < minHeight / h) {
+					finalH = minHeight / h
+					finalW = finalH * targetRatio
+				}
 
-			// Enforce minimum size
-			if (finalW < minWidth / w) {
-				finalW = minWidth / w
-				finalH = finalW / targetRatio
+				const finalCrop = createCropAroundCenter(prevCenterX, prevCenterY, finalW, finalH)
+				newCrop.topLeft = finalCrop.topLeft
+				newCrop.bottomRight = finalCrop.bottomRight
 			}
-			if (finalH < minHeight / h) {
-				finalH = minHeight / h
-				finalW = finalH * targetRatio
-			}
-
-			const finalCrop = createCropAroundCenter(prevCenterX, prevCenterY, finalW, finalH)
-			newCrop.topLeft = finalCrop.topLeft
-			newCrop.bottomRight = finalCrop.bottomRight
 		}
 	} else {
 		// --- Free-Resize (Unified for Corners and Edges) ---
 		if (handle.includes('top')) {
-			const rawY = newCrop.topLeft.y + change.y / h
-			newCrop.topLeft.y = clamp(rawY, topLeftLimit, newCrop.bottomRight.y - minHeight / h)
-		} else if (handle.includes('bottom')) {
-			const rawY = newCrop.bottomRight.y + change.y / h
-			newCrop.bottomRight.y = clamp(rawY, newCrop.topLeft.y + minHeight / h, bottomRightLimit)
+			newCrop.topLeft.y = clamp(
+				newCrop.topLeft.y + change.y / h,
+				topLeftLimit,
+				newCrop.bottomRight.y - minHeight / h
+			)
 		}
-
+		if (handle.includes('bottom')) {
+			newCrop.bottomRight.y = clamp(
+				newCrop.bottomRight.y + change.y / h,
+				newCrop.topLeft.y + minHeight / h,
+				bottomRightLimit
+			)
+		}
 		if (handle.includes('left')) {
-			const rawX = newCrop.topLeft.x + change.x / w
-			newCrop.topLeft.x = clamp(rawX, topLeftLimit, newCrop.bottomRight.x - minWidth / w)
-		} else if (handle.includes('right')) {
-			const rawX = newCrop.bottomRight.x + change.x / w
-			newCrop.bottomRight.x = clamp(rawX, newCrop.topLeft.x + minWidth / w, bottomRightLimit)
+			newCrop.topLeft.x = clamp(
+				newCrop.topLeft.x + change.x / w,
+				topLeftLimit,
+				newCrop.bottomRight.x - minWidth / w
+			)
+		}
+		if (handle.includes('right')) {
+			newCrop.bottomRight.x = clamp(
+				newCrop.bottomRight.x + change.x / w,
+				newCrop.topLeft.x + minWidth / w,
+				bottomRightLimit
+			)
 		}
 	}
 
