@@ -3039,6 +3039,8 @@ export interface TLContent {
 // @public
 export interface TLCropInfo<T extends TLShape> {
     // (undocumented)
+    aspectRatioLocked?: boolean;
+    // (undocumented)
     change: Vec;
     // (undocumented)
     crop: TLShapeCrop;

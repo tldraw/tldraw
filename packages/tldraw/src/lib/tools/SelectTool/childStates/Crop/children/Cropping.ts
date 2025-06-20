@@ -35,6 +35,14 @@ export class Cropping extends StateNode {
 		this.updateShapes()
 	}
 
+	override onKeyDown() {
+		this.updateShapes()
+	}
+
+	override onKeyUp() {
+		this.updateShapes()
+	}
+
 	override onPointerUp() {
 		this.complete()
 	}
@@ -62,9 +70,9 @@ export class Cropping extends StateNode {
 		const util = this.editor.getShapeUtil<ShapeWithCrop>(shape.type)
 		if (!util) return
 
+		const { shiftKey } = this.editor.inputs
 		const currentPagePoint = this.editor.inputs.currentPagePoint.clone().sub(cursorHandleOffset)
 		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
-
 		const change = currentPagePoint.clone().sub(originPagePoint).rot(-shape.rotation)
 
 		const crop = shape.props.crop ?? getDefaultCrop()
@@ -77,6 +85,7 @@ export class Cropping extends StateNode {
 			crop,
 			uncroppedSize,
 			initialShape: this.snapshot.shape,
+			aspectRatioLocked: shiftKey,
 		})
 		if (!partial) return
 
