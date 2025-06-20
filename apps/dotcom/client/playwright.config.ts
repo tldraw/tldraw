@@ -44,7 +44,8 @@ export default defineConfig({
 
 	/* Configure projects for major browsers */
 	projects: [
-		{ name: 'global-setup', testMatch: /global.setup\.ts/ },
+		{ name: 'global-setup', testMatch: /global\.setup\.ts/ },
+		{ name: 'global-staging-setup', testMatch: /global-staging\.setup\.ts/ },
 		{
 			name: 'chromium',
 			use: {
@@ -59,9 +60,10 @@ export default defineConfig({
 			name: 'staging',
 			use: {
 				...devices['Desktop Chrome'],
+				storageState: 'e2e/.auth/staging.json',
 			},
 			testMatch: /staging\.spec\.ts/,
-			dependencies: ['global-setup'],
+			dependencies: ['global-staging-setup'],
 		},
 		// },
 		// {

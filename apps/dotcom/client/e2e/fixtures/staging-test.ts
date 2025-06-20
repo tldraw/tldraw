@@ -1,7 +1,5 @@
 import { setupClerkTestingToken } from '@clerk/testing/playwright'
-import { test as base, expect } from '@playwright/test'
-import fs from 'fs'
-import path from 'path'
+import { test as base } from '@playwright/test'
 import { Editor } from './Editor'
 import { HomePage } from './HomePage'
 import { Sidebar } from './Sidebar'
@@ -13,17 +11,9 @@ interface StagingFixtures {
 	setupAndCleanup: void
 }
 
-interface StagingWorkerFixtures {
-	workerStorageState: string
-}
-
-function getStagingStorageStateFileName() {
-	return path.join(__dirname, '../.auth/staging.json')
-}
-
 const STAGING_URL = 'https://staging.tldraw.com/'
 
-export const test = base.extend<StagingFixtures, StagingWorkerFixtures>({
+export const test = base.extend<StagingFixtures>({
 	sidebar: async ({ page }, testUse) => {
 		await testUse(new Sidebar(page))
 	},
@@ -43,42 +33,6 @@ export const test = base.extend<StagingFixtures, StagingWorkerFixtures>({
 			await testUse()
 		},
 		{ auto: true },
-	],
-	storageState: ({ workerStorageState }, testUse) => testUse(workerStorageState),
-	workerStorageState: [
-		async ({ browser }, testUse) => {
-			const fileName = getStagingStorageStateFileName()
-			if (fs.existsSync(fileName)) {
-				// Reuse existing authentication state if any.
-				await testUse(fileName)
-				return
-			}
-
-			const email = process.env.STAGING_TEST_EMAIL
-			const password = process.env.STAGING_TEST_PASSWORD
-
-			if (!email || !password) {
-				throw new Error(
-					'STAGING_TEST_EMAIL and STAGING_TEST_PASSWORD environment variables must be set'
-				)
-			}
-
-			const page = await browser.newPage({ storageState: undefined })
-
-			const sidebar = new Sidebar(page)
-			const editor = new Editor(page, sidebar)
-			const homePage = new HomePage(page, editor)
-
-			await homePage.goto(STAGING_URL)
-			await homePage.loginWithEmailAndPassword(email, password)
-			await expect(page.getByTestId('tla-sidebar-layout')).toBeVisible()
-
-			await page.context().storageState({ path: fileName })
-			await page.close()
-
-			await testUse(fileName)
-		},
-		{ scope: 'worker' },
 	],
 })
 
