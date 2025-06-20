@@ -108,7 +108,7 @@ async function copyFilesToStaging(fileIds: string[]) {
 					sharedLinkType: 'link',
 					published: false,
 					lastPublished: 0,
-					publishedSlug: '',
+					publishedSlug: nanoid(),
 					createdAt: now,
 					updatedAt: now,
 					isEmpty: false,
