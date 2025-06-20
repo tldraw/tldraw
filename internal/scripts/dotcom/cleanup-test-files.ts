@@ -4,14 +4,12 @@ import { makeEnv } from '../lib/makeEnv'
 
 const env = makeEnv([
 	'CLOUDFLARE_ACCOUNT_ID',
-	'CLOUDFLARE_API_TOKEN',
 	'R2_ACCESS_KEY_ID',
 	'R2_ACCESS_KEY_SECRET',
 	'SUPABASE_STAGING_DB_URL',
+	'STAGING_OWNER_ID',
 ])
 
-const CLOUDFLARE_API_BASE_URL = 'https://api.cloudflare.com/client/v4'
-const CLOUDFLARE_ACCOUNTS_URL = `${CLOUDFLARE_API_BASE_URL}/accounts/${env.CLOUDFLARE_ACCOUNT_ID}`
 const R2_URL = `https://${env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`
 const R2_STAGING_BUCKET = 'rooms-preview'
 
@@ -25,26 +23,17 @@ const R2 = new S3Client({
 })
 
 async function cleanupTestFiles() {
-	const response = await fetch(
-		`${CLOUDFLARE_ACCOUNTS_URL}/d1/database/0c0f43fd-2bca-45fe-833e-dd570cf82740/query`,
-		{
-			method: 'POST',
-			headers: {
-				Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({
-				sql: 'SELECT id FROM test_file',
-			}),
-		}
-	)
+	const stagingClient = new Client({
+		connectionString: env.SUPABASE_STAGING_DB_URL,
+	})
+	await stagingClient.connect()
 
-	const result = await response.json()
-	if (!result.success) {
-		throw new Error('Failed to query D1 database')
-	}
+	// Query for test files from the staging owner
+	const selectQuery = `SELECT id FROM file WHERE owner_id = $1 AND id LIKE 'test_%'`
+	const selectResult = await stagingClient.query(selectQuery, [env.STAGING_OWNER_ID])
 
-	const fileIds = result.results.map((row: any) => row.id)
+	const fileIds = selectResult.rows.map((row: any) => row.id)
+	await stagingClient.end()
 
 	for (const fileId of fileIds) {
 		try {
@@ -75,26 +64,6 @@ async function cleanupTestFiles() {
 
 			if (deleteResult.rowCount === 0) {
 				console.error('Failed to delete file from Supabase database - no rows affected')
-				continue
-			}
-
-			const d1Response = await fetch(
-				`${CLOUDFLARE_ACCOUNTS_URL}/d1/database/0c0f43fd-2bca-45fe-833e-dd570cf82740/query`,
-				{
-					method: 'POST',
-					headers: {
-						Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						sql: 'DELETE FROM test_file WHERE id = ?',
-						params: [fileId],
-					}),
-				}
-			)
-
-			if (!d1Response.ok) {
-				console.error('Failed to delete record from D1 database')
 				continue
 			}
 		} catch (error) {

@@ -396,8 +396,7 @@ export class TLDrawDurableObject extends DurableObject {
 					return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 				}
 
-				const testFile = await isTestFile(this.env, file.id)
-				if (testFile && !(await canAccessTestProductionFile(this.env, auth))) {
+				if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, auth))) {
 					return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 				}
 

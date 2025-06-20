@@ -21,7 +21,7 @@ export async function getRoomHistory(
 		await requireWriteAccessToFile(request, env, roomId)
 	}
 
-	if (await isTestFile(env, roomId)) {
+	if (isTestFile(roomId)) {
 		return new Response('Not found', { status: 404 })
 	}
 

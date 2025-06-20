@@ -8,7 +8,6 @@ import { makeEnv } from '../lib/makeEnv'
 
 const env = makeEnv([
 	'CLOUDFLARE_ACCOUNT_ID',
-	'CLOUDFLARE_API_TOKEN',
 	'R2_ACCESS_KEY_ID',
 	'R2_ACCESS_KEY_SECRET',
 	'SUPABASE_PRODUCTION_DB_URL',
@@ -19,8 +18,6 @@ const env = makeEnv([
 const R2_URL = `https://${env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`
 const R2_PRODUCTION_BUCKET = 'rooms'
 const R2_STAGING_BUCKET = 'rooms-preview'
-const CLOUDFLARE_API_BASE_URL = 'https://api.cloudflare.com/client/v4'
-const CLOUDFLARE_ACCOUNTS_URL = `${CLOUDFLARE_API_BASE_URL}/accounts/${env.CLOUDFLARE_ACCOUNT_ID}`
 
 const R2 = new S3Client({
 	region: 'auto',
@@ -76,7 +73,7 @@ async function copyFilesToStaging(fileIds: string[]) {
 
 			const fileContent = await getResponse.Body.transformToByteArray()
 
-			const newId = nanoid()
+			const newId = `test_${nanoid()}`
 
 			const putParams = {
 				Bucket: R2_STAGING_BUCKET,
@@ -139,26 +136,6 @@ async function copyFilesToStaging(fileIds: string[]) {
 				testFile.isDeleted,
 			])
 			await stagingClient.end()
-
-			const d1Response = await fetch(
-				`${CLOUDFLARE_ACCOUNTS_URL}/d1/database/0c0f43fd-2bca-45fe-833e-dd570cf82740/query`,
-				{
-					method: 'POST',
-					headers: {
-						Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						sql: `INSERT INTO test_file (id) VALUES (?)`,
-						params: [newId],
-					}),
-				}
-			)
-
-			if (!d1Response.ok) {
-				console.error('Failed to store id in D1')
-				continue
-			}
 
 			copiedIds.push(newId)
 		} catch (error) {
