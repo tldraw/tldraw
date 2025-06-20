@@ -3,6 +3,9 @@ name: Staging E2E Cleanup
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 env:
   CI: 1
 
