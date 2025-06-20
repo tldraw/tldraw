@@ -17,7 +17,7 @@ export default defineConfig({
 	// Run files in parallel, but tests within a file in sequence. This is important for certain
 	// tests that use shared system resources like the clipboard, which should all be kept in the
 	// same file.
-	fullyParallel: false,
+	fullyParallel: process.env.STAGING_TESTS ? true : false,
 	/* Fail the build on CI if you accidentally left test.only in the source code. */
 	forbidOnly: !!process.env.CI,
 	/* Retry on CI only */
