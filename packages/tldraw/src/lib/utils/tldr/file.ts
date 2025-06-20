@@ -33,6 +33,21 @@ export const TLDRAW_FILE_MIMETYPE = 'application/vnd.tldraw+json' as const
 /** @public */
 export const TLDRAW_FILE_EXTENSION = '.tldr' as const
 
+// OCIF exports moved to ./ocif/ocif.ts
+export {
+	OCIF_FILE_EXTENSION,
+	OCIF_FILE_MIMETYPE,
+	parseOcifFile,
+	serializeTldrawToOcif,
+	serializeTldrawToOcifBlob,
+	type OcifFile,
+	type OcifFileParseError,
+	type OcifNode,
+	type OcifRelation,
+	type OcifResource,
+	type OcifSchema,
+} from '../ocif/ocif'
+
 // When incrementing this, you'll need to update parseTldrawJsonFile to handle
 // both your new changes and the old file format
 const LATEST_TLDRAW_FILE_FORMAT_VERSION = 1
@@ -315,21 +330,25 @@ export async function parseAndLoadDocument(
 	if (forceDarkMode) editor.user.updateUserPreferences({ colorScheme: 'dark' })
 }
 
-async function extractAssets(
+/** @internal */
+export async function extractAssets(
 	editor: Editor,
-	snapshot: StoreSnapshot<TLRecord>,
-	msg: (id: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>) => string,
-	addToast: TLUiToastsContextType['addToast']
+	snapshot: StoreSnapshot<TLRecord> | any,
+	msg: (id: TLUiTranslationKey | Exclude<string, TLUiTranslationKey> | any) => string,
+	addToast: TLUiToastsContextType['addToast'] | any,
+	_altTextMap?: Map<string, string>
 ) {
-	const mediaAssets = new Map<TLAssetId, TLImageAsset | TLVideoAsset>()
-	for (const record of Object.values(snapshot.store)) {
+	const mediaAssets = new Map<TLAssetId | string, TLImageAsset | TLVideoAsset | any>()
+	const records = snapshot.store ? Object.values(snapshot.store) : Object.values(snapshot)
+
+	for (const record of records) {
 		if (
-			record.typeName === 'asset' &&
-			record.props.src &&
-			record.props.src.startsWith('data:') &&
-			(record.type === 'image' || record.type === 'video')
+			(record as any).typeName === 'asset' &&
+			(record as any).props.src &&
+			(record as any).props.src.startsWith('data:') &&
+			((record as any).type === 'image' || (record as any).type === 'video')
 		) {
-			mediaAssets.set(record.id, record)
+			mediaAssets.set((record as any).id, record as any)
 		}
 	}
 
@@ -351,7 +370,7 @@ async function extractAssets(
 				}
 
 				// Save the new asset under the old asset's id
-				editor.updateAssets([{ ...newAsset, id }])
+				editor.updateAssets([{ ...newAsset, id: id as any }])
 			} catch (error) {
 				addToast({
 					title: msg('assets.files.upload-failed'),

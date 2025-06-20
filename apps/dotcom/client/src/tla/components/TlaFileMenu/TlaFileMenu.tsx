@@ -4,6 +4,7 @@ import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
 import { Fragment, ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+	OCIF_FILE_EXTENSION,
 	TLDRAW_FILE_EXTENSION,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
@@ -29,7 +30,7 @@ import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-eve
 import { copyTextToClipboard } from '../../utils/copy'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { editorMessages } from '../TlaEditor/editor-messages'
-import { download } from '../TlaEditor/useFileEditorOverrides'
+import { download, downloadAsOcif } from '../TlaEditor/useFileEditorOverrides'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 
 const messages = defineMessages({
@@ -155,6 +156,14 @@ export function FileItems({
 		await download(editor, defaultName + TLDRAW_FILE_EXTENSION)
 	}, [app, editor, fileId, source, trackEvent, untitledProject])
 
+	const handleDownloadAsOcifClick = useCallback(async () => {
+		if (!editor) return
+		const defaultName =
+			app.getFileName(fileId, false) ?? editor.getDocumentSettings().name ?? untitledProject
+		trackEvent('download-file-as-ocif', { source })
+		await downloadAsOcif(editor, defaultName + OCIF_FILE_EXTENSION)
+	}, [app, editor, fileId, source, trackEvent, untitledProject])
+
 	const copyLinkMsg = useMsg(messages.copyLink)
 	const renameMsg = useMsg(messages.rename)
 	const duplicateMsg = useMsg(messages.duplicate)
@@ -162,6 +171,7 @@ export function FileItems({
 	const unpinMsg = useMsg(messages.unpin)
 	const deleteOrForgetMsg = useMsg(isOwner ? messages.delete : messages.forget)
 	const downloadFile = useMsg(editorMessages.downloadFile)
+	const downloadAsOcifMsg = useMsg(editorMessages.downloadAsOcif)
 
 	return (
 		<Fragment>
@@ -187,12 +197,20 @@ export function FileItems({
 					(isActive && (
 						// TODO: make a /download/:fileId endpoint so we can download any file
 						// from the sidebar, not just the active one
-						<TldrawUiMenuItem
-							label={downloadFile}
-							id="download-file"
-							readonlyOk
-							onSelect={handleDownloadClick}
-						/>
+						<>
+							<TldrawUiMenuItem
+								label={downloadFile}
+								id="download-file"
+								readonlyOk
+								onSelect={handleDownloadClick}
+							/>
+							<TldrawUiMenuItem
+								label={downloadAsOcifMsg}
+								id="download-file-as-ocif"
+								readonlyOk
+								onSelect={handleDownloadAsOcifClick}
+							/>
+						</>
 					))}
 				<TldrawUiMenuItem
 					label={isPinned ? unpinMsg : pinMsg}

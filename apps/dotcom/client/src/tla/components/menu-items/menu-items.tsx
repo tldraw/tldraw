@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	ColorSchemeMenu,
+	OCIF_FILE_EXTENSION,
 	TLDRAW_FILE_EXTENSION,
 	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuGroup,
@@ -158,12 +159,12 @@ export function ImportFileActionItem() {
 
 				try {
 					const tldrawFiles = await fileOpen({
-						extensions: [TLDRAW_FILE_EXTENSION],
+						extensions: [TLDRAW_FILE_EXTENSION, OCIF_FILE_EXTENSION],
 						multiple: true,
 						description: 'tldraw project',
 					})
 
-					app.uploadTldrFiles(tldrawFiles, (file) => {
+					app.uploadTldrCompatibleFiles(tldrawFiles, (file) => {
 						navigate(routes.tlaFile(file.id), { state: { mode: 'create' } })
 					})
 				} catch {
