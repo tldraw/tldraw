@@ -28,50 +28,45 @@ async function cleanupTestFiles() {
 	})
 	await stagingClient.connect()
 
-	// Query for test files from the staging owner
-	const selectQuery = `SELECT id FROM file WHERE owner_id = $1 AND id LIKE 'test_%'`
-	const selectResult = await stagingClient.query(selectQuery, [env.STAGING_OWNER_ID])
+	try {
+		const selectQuery = `SELECT id FROM file WHERE owner_id = $1 AND id LIKE 'test_%'`
+		const selectResult = await stagingClient.query(selectQuery, [env.STAGING_OWNER_ID])
 
-	const fileIds = selectResult.rows.map((row: any) => row.id)
-	await stagingClient.end()
+		const fileIds = selectResult.rows.map((row: any) => row.id)
 
-	for (const fileId of fileIds) {
-		try {
-			const deleteParams = {
-				Bucket: R2_STAGING_BUCKET,
-				Key: `app_rooms/${fileId}`,
+		for (const fileId of fileIds) {
+			try {
+				const deleteParams = {
+					Bucket: R2_STAGING_BUCKET,
+					Key: `app_rooms/${fileId}`,
+				}
+
+				const deleteResponse = await R2.send(new DeleteObjectCommand(deleteParams))
+				if (
+					!deleteResponse.$metadata.httpStatusCode ||
+					(deleteResponse.$metadata.httpStatusCode !== 200 &&
+						deleteResponse.$metadata.httpStatusCode !== 204)
+				) {
+					console.error('Failed to delete file from R2 staging bucket')
+					continue
+				}
+
+				const deleteFileQuery = `DELETE FROM file WHERE id = $1`
+				const deleteResult = await stagingClient.query(deleteFileQuery, [fileId])
+
+				if (deleteResult.rowCount === 0) {
+					console.error('Failed to delete file from Supabase database - no rows affected')
+					continue
+				}
+			} catch (error) {
+				console.error('Failed to delete file', error)
 			}
-
-			const deleteResponse = await R2.send(new DeleteObjectCommand(deleteParams))
-			// Check for successful delete - R2/S3 can return 200 or 204 for success
-			if (
-				!deleteResponse.$metadata.httpStatusCode ||
-				(deleteResponse.$metadata.httpStatusCode !== 200 &&
-					deleteResponse.$metadata.httpStatusCode !== 204)
-			) {
-				console.error('Failed to delete file from R2 staging bucket')
-				continue
-			}
-
-			const stagingClient = new Client({
-				connectionString: env.SUPABASE_STAGING_DB_URL,
-			})
-			await stagingClient.connect()
-
-			const deleteFileQuery = `DELETE FROM file WHERE id = $1`
-			const deleteResult = await stagingClient.query(deleteFileQuery, [fileId])
-			await stagingClient.end()
-
-			if (deleteResult.rowCount === 0) {
-				console.error('Failed to delete file from Supabase database - no rows affected')
-				continue
-			}
-		} catch (error) {
-			console.error('Failed to delete file', error)
 		}
-	}
 
-	console.log(`Successfully cleaned up ${fileIds.length} test files`)
+		console.log(`Successfully cleaned up ${fileIds.length} test files`)
+	} finally {
+		await stagingClient.end()
+	}
 }
 
 cleanupTestFiles().catch(console.error)
