@@ -185,48 +185,79 @@ export function getCropBox<T extends ShapeWithCrop>(
 			)
 		} else {
 			// --- Aspect-Locked Edge Handles ---
-			const prevCenterX = crop.topLeft.x + prevCropW / 2
-			const prevCenterY = crop.topLeft.y + prevCropH / 2
+			const prevCropW = crop.bottomRight.x - crop.topLeft.x
+			const prevCropH = crop.bottomRight.y - crop.topLeft.y
+			const targetRatio = prevCropW / prevCropH
+			// When resizing from an edge, we want to preserve the position of the opposite edge's center.
+			if (handle === 'top' || handle === 'bottom') {
+				const fixedCenterX = crop.topLeft.x + prevCropW / 2
+				let newH: number
+				if (handle === 'top') {
+					const fixedY = crop.bottomRight.y
+					const movingY = clamp(crop.topLeft.y + change.y / h, topLeftLimit, fixedY - minHeight / h)
+					newH = fixedY - movingY
+				} else {
+					// bottom
+					const fixedY = crop.topLeft.y
+					const movingY = clamp(
+						crop.bottomRight.y + change.y / h,
+						fixedY + minHeight / h,
+						bottomRightLimit
+					)
+					newH = movingY - fixedY
+				}
 
-			const isVertical = handle.includes('top') || handle.includes('bottom')
-			const sign = handle.includes('top') || handle.includes('left') ? -1 : 1
-			const delta = isVertical ? change.y / h : change.x / w
+				let newW = newH * targetRatio
+				const maxW = 2 * Math.min(fixedCenterX, 1 - fixedCenterX)
+				if (newW > maxW) {
+					newW = maxW
+					newH = newW / targetRatio
+				}
 
-			const requestedPrimary = Math.max(0, (isVertical ? prevCropH : prevCropW) + delta * sign)
-			let finalW = isVertical ? requestedPrimary * targetRatio : requestedPrimary
-			let finalH = isVertical ? requestedPrimary : requestedPrimary / targetRatio
+				if (handle === 'top') {
+					newCrop.topLeft.y = crop.bottomRight.y - newH
+				} else {
+					// bottom
+					newCrop.bottomRight.y = crop.topLeft.y + newH
+				}
 
-			if (handle === 'bottom' && requestedPrimary < 0.01) {
-				const finalCrop = createCropAroundCenter(0.5, prevCenterY, finalW, finalH)
-				newCrop.topLeft = finalCrop.topLeft
-				newCrop.bottomRight = finalCrop.bottomRight
+				newCrop.topLeft.x = fixedCenterX - newW / 2
+				newCrop.bottomRight.x = fixedCenterX + newW / 2
 			} else {
-				// Clamp to fit within boundaries from the center
-				const maxW = 2 * Math.min(prevCenterX, 1 - prevCenterX)
-				const maxH = 2 * Math.min(prevCenterY, 1 - prevCenterY)
-				if (finalW > maxW || finalH > maxH) {
-					if (targetRatio > maxW / maxH) {
-						finalW = maxW
-						finalH = finalW / targetRatio
-					} else {
-						finalH = maxH
-						finalW = finalH * targetRatio
-					}
+				// left or right
+				const fixedCenterY = crop.topLeft.y + prevCropH / 2
+				let newW: number
+				if (handle === 'left') {
+					const fixedX = crop.bottomRight.x
+					const movingX = clamp(crop.topLeft.x + change.x / w, topLeftLimit, fixedX - minWidth / w)
+					newW = fixedX - movingX
+				} else {
+					// right
+					const fixedX = crop.topLeft.x
+					const movingX = clamp(
+						crop.bottomRight.x + change.x / w,
+						fixedX + minWidth / w,
+						bottomRightLimit
+					)
+					newW = movingX - fixedX
 				}
 
-				// Enforce minimum size
-				if (finalW < minWidth / w) {
-					finalW = minWidth / w
-					finalH = finalW / targetRatio
-				}
-				if (finalH < minHeight / h) {
-					finalH = minHeight / h
-					finalW = finalH * targetRatio
+				let newH = newW / targetRatio
+				const maxH = 2 * Math.min(fixedCenterY, 1 - fixedCenterY)
+				if (newH > maxH) {
+					newH = maxH
+					newW = newH * targetRatio
 				}
 
-				const finalCrop = createCropAroundCenter(prevCenterX, prevCenterY, finalW, finalH)
-				newCrop.topLeft = finalCrop.topLeft
-				newCrop.bottomRight = finalCrop.bottomRight
+				if (handle === 'left') {
+					newCrop.topLeft.x = crop.bottomRight.x - newW
+				} else {
+					// right
+					newCrop.bottomRight.x = crop.topLeft.x + newW
+				}
+
+				newCrop.topLeft.y = fixedCenterY - newH / 2
+				newCrop.bottomRight.y = fixedCenterY + newH / 2
 			}
 		}
 	} else {

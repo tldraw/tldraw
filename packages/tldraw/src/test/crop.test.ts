@@ -190,6 +190,28 @@ describe('Crop box with aspect ratio locked', () => {
 			expect(newCropW / newCropH).toBeCloseTo(originalCropW / originalCropH, 5)
 		})
 
+		it('preserves the center of the bottom edge', () => {
+			const results = getCropBox(shape, {
+				handle: 'top',
+				change: new Vec(0, 10),
+				crop: aspectRatioLockedCrop,
+				uncroppedSize: initialSize,
+				aspectRatioLocked: true,
+				initialShape: shape,
+			})
+
+			expect(results).toBeDefined()
+
+			// Check that the center of the bottom edge is maintained
+			const originalBottomEdgeCenter =
+				(aspectRatioLockedCrop.topLeft.x + aspectRatioLockedCrop.bottomRight.x) / 2
+			const newBottomEdgeCenter =
+				(results!.props.crop!.topLeft.x + results!.props.crop!.bottomRight.x) / 2
+
+			expect(newBottomEdgeCenter).toBeCloseTo(originalBottomEdgeCenter, 5)
+			expect(results!.props.crop!.bottomRight.y).toBeCloseTo(aspectRatioLockedCrop.bottomRight.y, 5)
+		})
+
 		it('handles boundary collision when top handle hits left edge', () => {
 			const wideCrop = {
 				topLeft: { x: 0.1, y: 0.4 },
@@ -232,7 +254,7 @@ describe('Crop box with aspect ratio locked', () => {
 			expect(newCropW / newCropH).toBeCloseTo(originalCropW / originalCropH, 5)
 		})
 
-		it('centers horizontally around previous center', () => {
+		it('preserves the center of the top edge', () => {
 			const results = getCropBox(shape, {
 				handle: 'bottom',
 				change: new Vec(0, -20),
@@ -244,12 +266,14 @@ describe('Crop box with aspect ratio locked', () => {
 
 			expect(results).toBeDefined()
 
-			// Check that horizontal center is maintained
-			const originalCenterX =
+			// Check that the center of the top edge is maintained
+			const originalTopEdgeCenter =
 				(aspectRatioLockedCrop.topLeft.x + aspectRatioLockedCrop.bottomRight.x) / 2
-			const newCenterX = (results!.props.crop!.topLeft.x + results!.props.crop!.bottomRight.x) / 2
+			const newTopEdgeCenter =
+				(results!.props.crop!.topLeft.x + results!.props.crop!.bottomRight.x) / 2
 
-			expect(newCenterX).toBeCloseTo(originalCenterX, 5)
+			expect(newTopEdgeCenter).toBeCloseTo(originalTopEdgeCenter, 5)
+			expect(results!.props.crop!.topLeft.y).toBeCloseTo(aspectRatioLockedCrop.topLeft.y, 5)
 		})
 	})
 
@@ -274,7 +298,7 @@ describe('Crop box with aspect ratio locked', () => {
 			expect(newCropW / newCropH).toBeCloseTo(originalCropW / originalCropH, 5)
 		})
 
-		it('centers vertically around previous center', () => {
+		it('preserves the center of the right edge', () => {
 			const results = getCropBox(shape, {
 				handle: 'left',
 				change: new Vec(15, 0),
@@ -286,12 +310,14 @@ describe('Crop box with aspect ratio locked', () => {
 
 			expect(results).toBeDefined()
 
-			// Check that vertical center is maintained
-			const originalCenterY =
+			// Check that the center of the right edge is maintained
+			const originalRightEdgeCenter =
 				(aspectRatioLockedCrop.topLeft.y + aspectRatioLockedCrop.bottomRight.y) / 2
-			const newCenterY = (results!.props.crop!.topLeft.y + results!.props.crop!.bottomRight.y) / 2
+			const newRightEdgeCenter =
+				(results!.props.crop!.topLeft.y + results!.props.crop!.bottomRight.y) / 2
 
-			expect(newCenterY).toBeCloseTo(originalCenterY, 5)
+			expect(newRightEdgeCenter).toBeCloseTo(originalRightEdgeCenter, 5)
+			expect(results!.props.crop!.bottomRight.x).toBeCloseTo(aspectRatioLockedCrop.bottomRight.x, 5)
 		})
 
 		it('handles boundary collision when left handle hits top edge', () => {
@@ -336,7 +362,7 @@ describe('Crop box with aspect ratio locked', () => {
 			expect(newCropW / newCropH).toBeCloseTo(originalCropW / originalCropH, 5)
 		})
 
-		it('centers vertically around previous center', () => {
+		it('preserves the center of the left edge', () => {
 			const results = getCropBox(shape, {
 				handle: 'right',
 				change: new Vec(-15, 0),
@@ -348,12 +374,14 @@ describe('Crop box with aspect ratio locked', () => {
 
 			expect(results).toBeDefined()
 
-			// Check that vertical center is maintained
-			const originalCenterY =
+			// Check that the center of the left edge is maintained
+			const originalLeftEdgeCenter =
 				(aspectRatioLockedCrop.topLeft.y + aspectRatioLockedCrop.bottomRight.y) / 2
-			const newCenterY = (results!.props.crop!.topLeft.y + results!.props.crop!.bottomRight.y) / 2
+			const newLeftEdgeCenter =
+				(results!.props.crop!.topLeft.y + results!.props.crop!.bottomRight.y) / 2
 
-			expect(newCenterY).toBeCloseTo(originalCenterY, 5)
+			expect(newLeftEdgeCenter).toBeCloseTo(originalLeftEdgeCenter, 5)
+			expect(results!.props.crop!.topLeft.x).toBeCloseTo(aspectRatioLockedCrop.topLeft.x, 5)
 		})
 
 		it('handles boundary collision when right handle hits bottom edge', () => {
@@ -420,7 +448,7 @@ describe('Crop box with aspect ratio locked', () => {
 			expect(results!.props.crop!.bottomRight.x).toBeCloseTo(0.66, 2)
 		})
 
-		it('handles left boundary collision with bottom handle', () => {
+		it('handles width constraint when bottom handle creates oversized crop', () => {
 			const wideCrop = {
 				topLeft: { x: 0.1, y: 0.4 },
 				bottomRight: { x: 0.9, y: 0.6 },
@@ -428,7 +456,7 @@ describe('Crop box with aspect ratio locked', () => {
 
 			const results = getCropBox(shape, {
 				handle: 'bottom',
-				change: new Vec(0, -25), // Large movement
+				change: new Vec(0, -25), // Large upward movement
 				crop: wideCrop,
 				uncroppedSize: initialSize,
 				aspectRatioLocked: true,
@@ -436,8 +464,21 @@ describe('Crop box with aspect ratio locked', () => {
 			})
 
 			expect(results).toBeDefined()
-			// Aspect ratio locked boundary handling maintains proportions
-			expect(results!.props.crop!.topLeft.x).toBeCloseTo(0.5, 2)
+
+			expect(results!.props.crop!.bottomRight.x).toBeCloseTo(0.66, 2)
+			// When the aspect ratio locked resize would create a crop wider than possible,
+			// the width gets constrained and the result is centered
+			const newCropW = results!.props.crop!.bottomRight.x - results!.props.crop!.topLeft.x
+			const newCropH = results!.props.crop!.bottomRight.y - results!.props.crop!.topLeft.y
+			const originalCropW = wideCrop.bottomRight.x - wideCrop.topLeft.x
+			const originalCropH = wideCrop.bottomRight.y - wideCrop.topLeft.y
+
+			// Should maintain aspect ratio
+			expect(newCropW / newCropH).toBeCloseTo(originalCropW / originalCropH, 5)
+			// Should preserve the center of the top edge
+			const originalTopCenter = (wideCrop.topLeft.x + wideCrop.bottomRight.x) / 2
+			const newTopCenter = (results!.props.crop!.topLeft.x + results!.props.crop!.bottomRight.x) / 2
+			expect(newTopCenter).toBeCloseTo(originalTopCenter, 5)
 		})
 	})
 })
