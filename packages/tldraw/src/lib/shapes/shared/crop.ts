@@ -161,6 +161,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 				newCrop.bottomRight.x = newCrop.topLeft.x + newCropW
 
 				if (newCrop.topLeft.x < topLeftLimit) {
+					// The left side is at the wall, so use that as the limit
 					newCrop.topLeft.x = topLeftLimit
 					const newCropW = (prevCenterX - topLeftLimit) * 2
 					newCropH = clamp((prevCropH / prevCropW) * newCropW, 0, 1)
@@ -168,6 +169,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 					newCrop.bottomRight.x = newCrop.topLeft.x + newCropW
 					newCrop.bottomRight.y = newCrop.topLeft.y + newCropH
 				} else if (newCrop.bottomRight.x > bottomRightLimit) {
+					// The right side is at the wall, so use that as the limit
 					newCrop.bottomRight.x = bottomRightLimit
 					const newCropW = (bottomRightLimit - prevCenterX) * 2
 					newCropH = clamp((prevCropH / prevCropW) * newCropW, 0, 1)
@@ -175,9 +177,6 @@ export function getCropBox<T extends ShapeWithCrop>(
 					newCrop.topLeft.x = newCrop.bottomRight.x - newCropW
 					newCrop.bottomRight.y = newCrop.topLeft.y + newCropH
 				}
-
-				pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
-				pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
 
 				break
 			}
@@ -197,6 +196,10 @@ export function getCropBox<T extends ShapeWithCrop>(
 				break
 			}
 		}
+
+		// Calculate the delta to the new crop
+		pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
+		pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
 	} else {
 		// Set y dimension
 		switch (handle) {
@@ -211,13 +214,10 @@ export function getCropBox<T extends ShapeWithCrop>(
 
 				if (heightAfterCrop < minHeight) {
 					newCrop.topLeft.y = newCrop.bottomRight.y - minHeight / h
-					pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
 				} else {
 					if (newCrop.topLeft.y <= topLeftLimit) {
 						newCrop.topLeft.y = topLeftLimit
-						pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
 					} else {
-						pointDelta.y = change.y
 					}
 				}
 				break
@@ -251,13 +251,10 @@ export function getCropBox<T extends ShapeWithCrop>(
 
 				if (widthAfterCrop < minWidth) {
 					newCrop.topLeft.x = newCrop.bottomRight.x - minWidth / w
-					pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
 				} else {
 					if (newCrop.topLeft.x <= topLeftLimit) {
 						newCrop.topLeft.x = topLeftLimit
-						pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
 					} else {
-						pointDelta.x = change.x
 					}
 				}
 				break
@@ -280,6 +277,10 @@ export function getCropBox<T extends ShapeWithCrop>(
 	}
 
 	if (!hasCropChanged) return undefined
+
+	// Calculate the delta to the new crop
+	pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
+	pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
 
 	newPoint.add(pointDelta.rot(shape.rotation))
 
