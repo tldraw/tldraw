@@ -24,7 +24,7 @@ test.describe('Staging room loading', () => {
 			await page.goto(`https://staging.tldraw.com/f/${fileId}`)
 			await expect(page).toHaveURL(new RegExp(`.*/f/${fileId}`))
 
-			await expect(page.getByTestId('tla-editor')).toBeVisible()
+			await expect(page.getByTestId('tla-file-name')).toBeVisible()
 			await expect(page.getByText('Something went wrong')).not.toBeVisible()
 
 			const initialShapeCount = await editor.getShapeCount()
