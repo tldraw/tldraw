@@ -12,8 +12,7 @@
 .group {
 	padding: 4px 8px;
 	display: flex;
-	flex-direction: row;
-	align-items: center;
+	flex-direction: column;
 	gap: 4px;
 }
 
@@ -49,17 +48,12 @@
 	color: var(--tla-color-text-1);
 }
 
-.fileList {
-	padding-left: 24px;
-}
-
 .fileItem {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	padding: 4px;
-	margin: 2px 0;
-	border-radius: 4px;
+	padding: 4px 8px;
+	border-left: 1px solid var(--tla-color-border);
 	position: relative;
 }
 

@@ -170,6 +170,51 @@ export function createMutators(userId: string) {
 					updatedAt: Date.now(),
 				})
 			},
+			moveFileToGroup: async (tx, { fileId, groupId }: { fileId: string; groupId: string }) => {
+				await assertUserHasFlag(tx, userId, 'groups')
+				assert(fileId, ZErrorCode.bad_request)
+				assert(groupId, ZErrorCode.bad_request)
+				// if the user owns the file, we can move it
+				// if the user has access to a group which owns the file we can move
+				const file = await tx.query.file.where('id', '=', fileId).one().run()
+				assert(file, ZErrorCode.bad_request)
+				const isOwner = file.ownerId === userId
+				const hasFromGroupAccess =
+					!isOwner && file.owningGroupId
+						? await tx.query.group_user
+								.where('userId', '=', userId)
+								.where('groupId', '=', file.owningGroupId)
+								.one()
+								.run()
+						: false
+
+				assert(isOwner || hasFromGroupAccess, ZErrorCode.forbidden)
+				// also needs toGroupAccess
+				const hasToGroupAccess = await tx.query.group_user
+					.where('userId', '=', userId)
+					.where('groupId', '=', groupId)
+					.one()
+					.run()
+				assert(hasToGroupAccess, ZErrorCode.forbidden)
+
+				// if the file is already in the group, we can move it
+				if (file.owningGroupId === groupId) {
+					return
+				}
+
+				// if the file is in a group, we need to remove it from the group
+				if (file.owningGroupId) {
+					await tx.mutate.group_file.delete({ fileId, groupId: file.owningGroupId })
+				}
+
+				await tx.mutate.file.update({ id: fileId, owningGroupId: groupId, ownerId: null })
+				await tx.mutate.group_file.insert({
+					fileId,
+					groupId,
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
+				})
+			},
 		},
 	} as const satisfies CustomMutatorDefs<TlaSchema>
 }

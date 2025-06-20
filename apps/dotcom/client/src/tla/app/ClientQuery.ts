@@ -57,7 +57,12 @@ export class ClientQuery<Row extends TlaRow, isOne extends boolean = false> {
 		if (this.table === 'group_user') {
 			rows = rows.map((row: TlaGroupUser) => {
 				const group = data.group.find((g) => g.id === row.groupId)
-				const groupFiles = data.group_file.filter((gf) => gf.groupId === row.groupId)
+				const groupFiles = data.group_file
+					.filter((gf) => gf.groupId === row.groupId)
+					.map((gf) => ({
+						...gf,
+						file: data.file.find((f) => f.id === gf.fileId),
+					}))
 				const groupMembers = data.group_user
 					.filter((gu) => gu.groupId === row.groupId)
 					.map((gu) => ({ ...gu, user: data.user.find((u) => u.id === gu.userId) }))

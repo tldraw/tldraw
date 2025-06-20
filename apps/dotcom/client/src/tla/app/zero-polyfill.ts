@@ -104,6 +104,9 @@ export class Zero {
 					const query = this.makeQuery(controller.signal)
 					try {
 						await deferAsyncEffects(() => mutatorFn({ mutate, query, location: 'client' }, props))
+					} catch (e) {
+						console.error(e)
+						throw e
 					} finally {
 						controller.abort()
 					}
