@@ -2,6 +2,12 @@ name: Staging E2E Tests
 
 on:
   workflow_dispatch:
+    inputs:
+      test_files_count:
+        description: 'Number of test files to copy to staging'
+        required: false
+        default: '10'
+        type: number
   pull_request:
 
 permissions:
@@ -66,6 +72,7 @@ jobs:
           SUPABASE_PRODUCTION_DB_URL: ${{ secrets.SUPABASE_PRODUCTION_DB_URL }}
           SUPABASE_STAGING_DB_URL: ${{ secrets.SUPABASE_STAGING_DB_URL }}
           STAGING_OWNER_ID: ${{ secrets.STAGING_OWNER_ID }}
+          STAGING_TEST_FILES_COUNT: ${{ github.event.inputs.test_files_count || '10' }}
 
       - name: Run staging e2e tests
         run: yarn e2e-staging

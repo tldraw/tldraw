@@ -160,9 +160,8 @@ async function copyFilesToStaging(fileIds: string[]) {
 }
 
 async function main() {
-	const n = 10
-
-	console.log('Getting random file IDs...')
+	const n = parseInt(process.env.STAGING_TEST_FILES_COUNT || '10')
+	console.log(`Getting ${n} random file IDs...`)
 	const fileIds = await getRandomFileIds(n)
 	if (fileIds.length === 0) {
 		console.log('No files found to copy')
