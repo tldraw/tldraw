@@ -8,7 +8,6 @@ on:
         required: false
         default: '10'
         type: number
-  pull_request:
 
 permissions:
   contents: read
