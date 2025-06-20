@@ -16,9 +16,6 @@ test.describe('Staging room loading', () => {
 			testFiles = []
 		}
 	}
-
-	test.skip(testFiles.length === 0, 'No test files available')
-
 	for (const fileId of testFiles) {
 		test(`should load the rooms without errors and be able to edit them`, async ({
 			page,
