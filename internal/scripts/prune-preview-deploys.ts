@@ -44,7 +44,7 @@ async function isPrClosedForAWhile(prNumber: number) {
 		}
 		throw err
 	}
-	const timeout = 1000 // two days
+	const timeout = 1000 * 60 * 60 * 24 * 2 // two days
 	const result =
 		prResult.data.state === 'closed' &&
 		Date.now() - new Date(prResult.data.closed_at!).getTime() > timeout
