@@ -101,3 +101,53 @@ ALTER TABLE public."file" ADD CONSTRAINT "file_owner_xor_check"
 
 CREATE INDEX "file_owning_group_id_idx" ON public."file" ("owningGroupId");
 
+
+-- Create a trigger to update file owner details when group name changes
+CREATE OR REPLACE FUNCTION update_file_group_details() RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE "file"
+  SET "ownerName" = NEW.name,
+      "ownerAvatar" = ''
+  WHERE "owningGroupId" = NEW.id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create a trigger to set file owner details when file ownership changes
+CREATE OR REPLACE FUNCTION set_file_owner_details() RETURNS TRIGGER AS $$
+BEGIN
+  -- If the file is owned by a user, set user details
+  IF NEW."ownerId" IS NOT NULL THEN
+    UPDATE "file"
+    SET "ownerName" = u."name",
+        "ownerAvatar" = u."avatar"
+    FROM public."user" u
+    WHERE u."id" = NEW."ownerId" AND "file"."id" = NEW."id";
+  END IF;
+  
+  -- If the file is owned by a group, set group details
+  IF NEW."owningGroupId" IS NOT NULL THEN
+    UPDATE "file"
+    SET "ownerName" = g."name",
+        "ownerAvatar" = ''
+    FROM public."group" g
+    WHERE g."id" = NEW."owningGroupId" AND "file"."id" = NEW."id";
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create a trigger to update file owner details when group name is updated
+CREATE TRIGGER "update_file_group_details_trigger"
+AFTER UPDATE OF "name" ON public."group"
+FOR EACH ROW
+WHEN (OLD."name" IS DISTINCT FROM NEW."name")
+EXECUTE FUNCTION update_file_group_details();
+
+-- Create a trigger to set file owner details when file ownership changes
+CREATE OR REPLACE TRIGGER "set_file_owner_details_trigger"
+AFTER INSERT OR UPDATE OF "ownerId", "owningGroupId" ON "file"
+FOR EACH ROW
+EXECUTE FUNCTION set_file_owner_details();
+
