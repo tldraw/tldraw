@@ -204,13 +204,14 @@ export function getCropBox<T extends ShapeWithCrop>(
 				// Clamp to fit within boundaries from the center
 				const maxW = 2 * Math.min(prevCenterX, 1 - prevCenterX)
 				const maxH = 2 * Math.min(prevCenterY, 1 - prevCenterY)
-				if (finalW > maxW) {
-					finalW = maxW
-					finalH = finalW / targetRatio
-				}
-				if (finalH > maxH) {
-					finalH = maxH
-					finalW = finalH * targetRatio
+				if (finalW > maxW || finalH > maxH) {
+					if (targetRatio > maxW / maxH) {
+						finalW = maxW
+						finalH = finalW / targetRatio
+					} else {
+						finalH = maxH
+						finalW = finalH * targetRatio
+					}
 				}
 
 				// Enforce minimum size
@@ -230,28 +231,28 @@ export function getCropBox<T extends ShapeWithCrop>(
 		}
 	} else {
 		// --- Free-Resize (Unified for Corners and Edges) ---
-		if (handle.includes('top')) {
+		if (handle === 'top_left' || handle === 'top' || handle === 'top_right') {
 			newCrop.topLeft.y = clamp(
 				newCrop.topLeft.y + change.y / h,
 				topLeftLimit,
 				newCrop.bottomRight.y - minHeight / h
 			)
 		}
-		if (handle.includes('bottom')) {
+		if (handle === 'bottom_left' || handle === 'bottom' || handle === 'bottom_right') {
 			newCrop.bottomRight.y = clamp(
 				newCrop.bottomRight.y + change.y / h,
 				newCrop.topLeft.y + minHeight / h,
 				bottomRightLimit
 			)
 		}
-		if (handle.includes('left')) {
+		if (handle === 'top_left' || handle === 'left' || handle === 'bottom_left') {
 			newCrop.topLeft.x = clamp(
 				newCrop.topLeft.x + change.x / w,
 				topLeftLimit,
 				newCrop.bottomRight.x - minWidth / w
 			)
 		}
-		if (handle.includes('right')) {
+		if (handle === 'top_right' || handle === 'right' || handle === 'bottom_right') {
 			newCrop.bottomRight.x = clamp(
 				newCrop.bottomRight.x + change.x / w,
 				newCrop.topLeft.x + minWidth / w,
