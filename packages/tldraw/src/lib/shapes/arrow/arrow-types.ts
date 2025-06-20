@@ -1,4 +1,4 @@
-import { TLArrowShapeArrowheadStyle, TLDefaultSizeStyle, VecLike } from '@tldraw/editor'
+import { Editor, TLArrowShapeArrowheadStyle, TLDefaultSizeStyle, VecLike } from '@tldraw/editor'
 import { ElbowArrowInfo, ElbowArrowRoute } from './elbow/definitions'
 import { TLArrowBindings } from './shared'
 
@@ -85,6 +85,18 @@ export interface ArrowShapeOptions {
 	 * should we wait before we assume the user is targeting precisely instead of imprecisely.
 	 */
 	readonly pointingPreciseTimeout: number
+
+	/**
+	 * When creating an arrow, should it stop exactly at the pointer, or should
+	 * it stop at the edge of the target shape.
+	 */
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	readonly shouldBeExact: (editor: Editor) => boolean
+	/**
+	 * When creating an arrow, should it bind to the target shape.
+	 */
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	readonly shouldSnapToTarget: (editor: Editor) => boolean
 }
 
 /** @public */

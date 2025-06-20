@@ -81,13 +81,14 @@ export function updateArrowTargetState({
 	currentBinding,
 	oppositeBinding,
 }: UpdateArrowTargetStateOpts): ArrowTargetState | null {
+	const util = editor.getShapeUtil<ArrowShapeUtil>('arrow')
+
 	// no target picking when ctrl is held:
-	if (editor.inputs.ctrlKey) {
+	if (!util.options.shouldSnapToTarget(editor)) {
 		getArrowTargetAtom(editor).set(null)
 		return null
 	}
 
-	const util = editor.getShapeUtil<ArrowShapeUtil>('arrow')
 	const arrowKind = arrow ? arrow.props.kind : editor.getStyleForNextShape(ArrowShapeKindStyle)
 
 	const target = editor.getShapeAtPoint(pointInPageSpace, {
