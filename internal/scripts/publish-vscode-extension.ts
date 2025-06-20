@@ -76,6 +76,7 @@ async function packageAndPublish(version: string) {
 	switch (env.TLDRAW_ENV) {
 		case 'production':
 			await exec('yarn', ['package'], { pwd: EXTENSION_DIR })
+			await copyExtensionToReleaseFolder(version)
 			await exec('yarn', ['publish'], { pwd: EXTENSION_DIR })
 			return
 		case 'staging':
