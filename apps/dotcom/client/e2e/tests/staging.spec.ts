@@ -16,8 +16,9 @@ test.describe('Staging room loading', () => {
 			testFiles = []
 		}
 	}
-	testFiles.forEach((fileId, index) => {
-		test(`should load test room ${index + 1} without errors and be able to edit it`, async ({
+	testFiles.forEach((fileId, _index) => {
+		const fileIdSuffix = fileId.replace('test_', '').substring(0, 4)
+		test(`should load test room ${fileIdSuffix} without errors and be able to edit it`, async ({
 			page,
 			editor,
 		}) => {
