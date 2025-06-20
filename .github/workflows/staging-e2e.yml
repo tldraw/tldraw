@@ -48,6 +48,15 @@ jobs:
         run: npx playwright install --with-deps chromium chrome
         if: steps.playwright-cache.outputs.cache-hit != 'true'
 
+      - name: Run cleanup of test files
+        run: yarn tsx internal/scripts/dotcom/cleanup-test-files.ts
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
+          SUPABASE_STAGING_DB_URL: ${{ secrets.SUPABASE_STAGING_DB_URL }}
+          STAGING_OWNER_ID: ${{ secrets.STAGING_OWNER_ID }}
+
       - name: Copy random files to staging
         run: yarn tsx internal/scripts/dotcom/copy-random-files-to-staging.ts
         env:
