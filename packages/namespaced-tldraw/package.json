@@ -67,6 +67,9 @@
 		"testPathIgnorePatterns": [
 			"^.+\\.*.css$"
 		],
+		"transformIgnorePatterns": [
+			"node_modules/(?!@tiptap/)"
+		],
 		"moduleNameMapper": {
 			"^~(.*)": "<rootDir>/src/$1",
 			"\\.(css|less|scss|sass)$": "identity-obj-proxy"

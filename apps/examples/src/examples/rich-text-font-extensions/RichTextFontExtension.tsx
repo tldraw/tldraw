@@ -1,6 +1,6 @@
 import { EditorEvents as TextEditorEvents } from '@tiptap/core'
 import FontFamily from '@tiptap/extension-font-family'
-import TextStyle from '@tiptap/extension-text-style'
+import { TextStyleKit } from '@tiptap/extension-text-style'
 import { EditorState as TextEditorState } from '@tiptap/pm/state'
 import { useEffect, useState } from 'react'
 import {
@@ -106,7 +106,7 @@ const components: TLComponents = {
 
 const textOptions: Partial<TLTextOptions> = {
 	tipTapConfig: {
-		extensions: [...tipTapDefaultExtensions, FontFamily, FontSize, TextStyle],
+		extensions: [...tipTapDefaultExtensions, FontFamily, FontSize, TextStyleKit],
 	},
 	addFontsFromNode(node, state, addFont) {
 		state = defaultAddFontsFromNode(node, state, addFont)
