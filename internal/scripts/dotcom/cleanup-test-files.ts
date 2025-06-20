@@ -29,7 +29,7 @@ async function cleanupTestFiles() {
 	await stagingClient.connect()
 
 	try {
-		const selectQuery = `SELECT id FROM file WHERE owner_id = $1 AND id LIKE 'test_%'`
+		const selectQuery = `SELECT id FROM file WHERE file."ownerId" = $1 AND id LIKE 'test_%'`
 		const selectResult = await stagingClient.query(selectQuery, [env.STAGING_OWNER_ID])
 
 		const fileIds = selectResult.rows.map((row: any) => row.id)
