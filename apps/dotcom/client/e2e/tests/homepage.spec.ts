@@ -1,7 +1,7 @@
 import { Locator } from '@playwright/test'
 import { sleep } from 'tldraw'
-import { areUrlsEqual, getRandomName } from '../fixtures/helpers'
-import { expect, expectBeforeAndAfterReload, test } from '../fixtures/tla-test'
+import { areUrlsEqual, expectBeforeAndAfterReload, getRandomName } from '../fixtures/helpers'
+import { expect, test } from '../fixtures/tla-test'
 
 test.beforeEach(async ({ editor }) => {
 	await editor.isLoaded()
