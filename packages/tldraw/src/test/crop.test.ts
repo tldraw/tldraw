@@ -428,7 +428,8 @@ describe('Crop box with aspect ratio locked', () => {
 	})
 
 	describe('Boundary collision edge cases', () => {
-		it('handles right boundary collision with top handle', () => {
+		it('constrains width when top handle resize would exceed boundaries', () => {
+			// Start with a very wide crop (4:1 aspect ratio)
 			const wideCrop = {
 				topLeft: { x: 0.1, y: 0.4 },
 				bottomRight: { x: 0.9, y: 0.6 },
@@ -436,7 +437,7 @@ describe('Crop box with aspect ratio locked', () => {
 
 			const results = getCropBox(shape, {
 				handle: 'top',
-				change: new Vec(0, 25), // Large movement
+				change: new Vec(0, 25), // Large downward movement (making crop shorter)
 				crop: wideCrop,
 				uncroppedSize: initialSize,
 				aspectRatioLocked: true,
@@ -444,11 +445,21 @@ describe('Crop box with aspect ratio locked', () => {
 			})
 
 			expect(results).toBeDefined()
-			// Large movements with aspect ratio locked result in proportional adjustments
+
+			// When maintaining aspect ratio, making the crop shorter also makes it narrower
+			// The width gets constrained by available space and the crop gets centered
 			expect(results!.props.crop!.bottomRight.x).toBeCloseTo(0.66, 2)
+
+			// Should maintain the original 4:1 aspect ratio
+			const newCropW = results!.props.crop!.bottomRight.x - results!.props.crop!.topLeft.x
+			const newCropH = results!.props.crop!.bottomRight.y - results!.props.crop!.topLeft.y
+			const originalCropW = wideCrop.bottomRight.x - wideCrop.topLeft.x
+			const originalCropH = wideCrop.bottomRight.y - wideCrop.topLeft.y
+			expect(newCropW / newCropH).toBeCloseTo(originalCropW / originalCropH, 5)
 		})
 
-		it('handles width constraint when bottom handle creates oversized crop', () => {
+		it('constrains width when bottom handle resize would exceed boundaries', () => {
+			// Start with a very wide crop (4:1 aspect ratio)
 			const wideCrop = {
 				topLeft: { x: 0.1, y: 0.4 },
 				bottomRight: { x: 0.9, y: 0.6 },
@@ -456,7 +467,7 @@ describe('Crop box with aspect ratio locked', () => {
 
 			const results = getCropBox(shape, {
 				handle: 'bottom',
-				change: new Vec(0, -25), // Large upward movement
+				change: new Vec(0, -25), // Large upward movement (making crop shorter)
 				crop: wideCrop,
 				uncroppedSize: initialSize,
 				aspectRatioLocked: true,
@@ -465,7 +476,9 @@ describe('Crop box with aspect ratio locked', () => {
 
 			expect(results).toBeDefined()
 
+			// Similar to top handle - width gets constrained and crop gets centered
 			expect(results!.props.crop!.bottomRight.x).toBeCloseTo(0.66, 2)
+
 			// When the aspect ratio locked resize would create a crop wider than possible,
 			// the width gets constrained and the result is centered
 			const newCropW = results!.props.crop!.bottomRight.x - results!.props.crop!.topLeft.x
