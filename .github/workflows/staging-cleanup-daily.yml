@@ -1,4 +1,4 @@
-name: Daily Staging Cleanup
+name: Staging E2E Daily Cleanup
 
 on:
   schedule:
