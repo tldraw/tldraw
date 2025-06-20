@@ -583,6 +583,14 @@ export { exportToBlob } from './lib/utils/export/export'
 export { downloadFile, exportAs, type ExportAsOptions } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export {
+	OCIF_FILE_EXTENSION,
+	parseAndLoadOcifFile,
+	parseOcifFile,
+	serializeTldrawToOcif,
+	serializeTldrawToOcifBlob,
+	type OcifFileParseError,
+} from './lib/utils/ocif/ocif'
+export {
 	defaultEditorAssetUrls,
 	setDefaultEditorAssetUrls,
 	type TLEditorAssetUrls,

@@ -2090,6 +2090,21 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 export function NoteToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
+export const OCIF_FILE_EXTENSION: ".ocif.json";
+
+// @public (undocumented)
+export type OcifFileParseError = {
+    cause: unknown;
+    type: 'invalidOcifStructure';
+} | {
+    cause: unknown;
+    type: 'notAnOcifFile';
+} | {
+    type: 'ocifVersionNotSupported';
+    version: string;
+};
+
+// @public (undocumented)
 export function OfflineIndicator(): JSX_2.Element;
 
 // @public (undocumented)
@@ -2144,6 +2159,15 @@ export interface PageItemSubmenuProps {
 
 // @internal (undocumented)
 export function parseAndLoadDocument(editor: Editor, document: string, msg: (id: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey) => string, addToast: TLUiToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
+
+// @internal (undocumented)
+export function parseAndLoadOcifFile(editor: Editor, document: string, msg: (id: any) => string, addToast: any, forceDarkMode?: boolean): Promise<void>;
+
+// @public (undocumented)
+export function parseOcifFile({ json, schema, }: {
+    json: string;
+    schema: TLSchema;
+}): Result<TLStore, OcifFileParseError>;
 
 // @public (undocumented)
 export function parseTldrawJsonFile({ json, schema, }: {
@@ -2499,6 +2523,12 @@ export function serializeTldrawJson(editor: Editor): Promise<string>;
 
 // @public (undocumented)
 export function serializeTldrawJsonBlob(editor: Editor): Promise<Blob>;
+
+// @public (undocumented)
+export function serializeTldrawToOcif(editor: Editor): Promise<string>;
+
+// @public (undocumented)
+export function serializeTldrawToOcifBlob(editor: Editor): Promise<Blob>;
 
 // @internal (undocumented)
 export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;

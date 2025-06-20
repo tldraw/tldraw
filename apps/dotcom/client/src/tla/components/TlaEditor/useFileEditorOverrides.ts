@@ -2,11 +2,13 @@ import { useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	Editor,
+	OCIF_FILE_EXTENSION,
 	TLDRAW_FILE_EXTENSION,
 	TLStore,
 	TLUiOverrides,
 	downloadFile,
 	serializeTldrawJsonBlob,
+	serializeTldrawToOcifBlob,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useHandleUiEvents } from '../../../utils/analytics'
@@ -17,6 +19,12 @@ import { editorMessages as messages } from './editor-messages'
 export async function download(editor: Editor, name: string) {
 	const blobToSave = await serializeTldrawJsonBlob(editor)
 	const file = new File([blobToSave], name, { type: 'application/json' })
+	downloadFile(file)
+}
+
+export async function downloadAsOcif(editor: Editor, name: string) {
+	const blobToSave = await serializeTldrawToOcifBlob(editor)
+	const file = new File([blobToSave], name, { type: 'application/vnd.ocif+json' })
 	downloadFile(file)
 }
 
@@ -67,6 +75,16 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 						trackEvent('download-file', { source: '' })
 						const defaultName = getFileName(editor) + TLDRAW_FILE_EXTENSION
 						await download(editor, defaultName)
+					},
+				}
+				actions['save-file-ocif'] = {
+					id: 'save-file-ocif',
+					label: intl.formatMessage(messages.downloadAsOcif),
+					readonlyOk: true,
+					async onSelect() {
+						trackEvent('download-file-as-ocif', { source: '' })
+						const defaultName = getFileName(editor) + OCIF_FILE_EXTENSION
+						await downloadAsOcif(editor, defaultName)
 					},
 				}
 

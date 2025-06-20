@@ -133,6 +133,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 							<ExportFileContentSubMenu />
 							<ExtrasGroup />
 							<TldrawUiMenuActionItem actionId={'save-file-copy'} />
+							<TldrawUiMenuActionItem actionId={'save-file-ocif'} />
 							{canCopyToApp && <TldrawUiMenuActionItem actionId={'copy-to-my-files'} />}
 						</TldrawUiMenuGroup>
 						<PreferencesGroup />
@@ -244,6 +245,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 					<ExportFileContentSubMenu />
 					<ExtrasGroup />
 					<TldrawUiMenuActionItem actionId={'save-file-copy'} />
+					<TldrawUiMenuActionItem actionId={'save-file-ocif'} />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="preferences">
 					<PreferencesGroup />

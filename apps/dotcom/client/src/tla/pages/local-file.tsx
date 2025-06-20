@@ -17,6 +17,7 @@ const components: TLComponents = {
 		<DefaultMainMenu>
 			<TldrawUiMenuGroup id="download">
 				<TldrawUiMenuActionItem actionId={'save-file-copy'} />
+				<TldrawUiMenuActionItem actionId={'save-file-ocif'} />
 			</TldrawUiMenuGroup>
 			<DefaultMainMenuContent />
 		</DefaultMainMenu>
