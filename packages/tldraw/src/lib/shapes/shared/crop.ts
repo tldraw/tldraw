@@ -125,8 +125,6 @@ export function getCropBox<T extends ShapeWithCrop>(
 	const { minWidth = MIN_CROP_SIZE, minHeight = MIN_CROP_SIZE } = opts
 
 	const newCrop = structuredClone(crop)
-	const newPoint = new Vec(shape.x, shape.y)
-	const pointDelta = new Vec(0, 0)
 
 	let hasCropChanged = false
 	const topLeftLimit = 0
@@ -196,10 +194,6 @@ export function getCropBox<T extends ShapeWithCrop>(
 				break
 			}
 		}
-
-		// Calculate the delta to the new crop
-		pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
-		pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
 	} else {
 		// Set y dimension
 		switch (handle) {
@@ -279,10 +273,12 @@ export function getCropBox<T extends ShapeWithCrop>(
 	if (!hasCropChanged) return undefined
 
 	// Calculate the delta to the new crop
-	pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
-	pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
-
-	newPoint.add(pointDelta.rot(shape.rotation))
+	const newPoint = new Vec(
+		(newCrop.topLeft.x - crop.topLeft.x) * w,
+		(newCrop.topLeft.y - crop.topLeft.y) * h
+	)
+		.rot(shape.rotation)
+		.add(shape)
 
 	return {
 		id: shape.id,
