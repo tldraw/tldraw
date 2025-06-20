@@ -128,374 +128,142 @@ export function getCropBox<T extends ShapeWithCrop>(
 		aspectRatioLocked: optsAspectRatioLocked,
 	} = opts
 
-	// info.aspectRatioLocked takes precedence over opts.aspectRatioLocked
 	const aspectRatioLocked = infoAspectRatioLocked ?? optsAspectRatioLocked ?? false
-
-	// Early check: if current dimensions are smaller than minimum requirements, return undefined
-	if (w < minWidth || h < minHeight) {
+	if (w < minWidth || h < minHeight || (change.x === 0 && change.y === 0)) {
 		return undefined
 	}
 
 	const newCrop = structuredClone(crop)
-
-	let hasCropChanged = false
-	const topLeftLimit = 0
-	const bottomRightLimit = 1
-
-	// preserve the absolute dimensions of the image on the page,
-	// but resize the crop box so that the cropped part of the image resizes
+	const topLeftLimit = 0,
+		bottomRightLimit = 1
 
 	if (aspectRatioLocked) {
-		const prevCropH = crop.bottomRight.y - crop.topLeft.y
 		const prevCropW = crop.bottomRight.x - crop.topLeft.x
-		const prevCenterX = crop.topLeft.x + prevCropW / 2
-		const prevCenterY = crop.topLeft.y + prevCropH / 2
+		const prevCropH = crop.bottomRight.y - crop.topLeft.y
+		const targetRatio = prevCropW / prevCropH
 
-		// Check if this is a corner handle
-		const isCornerHandle = handle.includes('_')
+		if (handle.includes('_')) {
+			// --- Aspect-Locked Corner Handles ---
+			const xSign = handle.includes('left') ? -1 : 1
+			const ySign = handle.includes('top') ? -1 : 1
 
-		if (isCornerHandle) {
-			// Calculate new moving corner position
-			let newMovingX: number, newMovingY: number
-
-			// Corner handle logic: keep opposite corner fixed
-			hasCropChanged = true
-
-			// Determine which corner is being dragged and its opposite
-			let fixedCorner = { x: crop.bottomRight.x, y: crop.bottomRight.y }
-
-			switch (handle) {
-				case 'top_left':
-					fixedCorner = { x: crop.bottomRight.x, y: crop.bottomRight.y }
-					newMovingX = clamp(
-						newCrop.topLeft.x + change.x / w,
-						topLeftLimit,
-						fixedCorner.x - minWidth / w
-					)
-					newMovingY = clamp(
-						newCrop.topLeft.y + change.y / h,
-						topLeftLimit,
-						fixedCorner.y - minHeight / h
-					)
-					break
-				case 'top_right':
-					fixedCorner = { x: crop.topLeft.x, y: crop.bottomRight.y }
-					newMovingX = clamp(
-						newCrop.bottomRight.x + change.x / w,
-						fixedCorner.x + minWidth / w,
-						bottomRightLimit
-					)
-					newMovingY = clamp(
-						newCrop.topLeft.y + change.y / h,
-						topLeftLimit,
-						fixedCorner.y - minHeight / h
-					)
-					break
-				case 'bottom_left':
-					fixedCorner = { x: crop.bottomRight.x, y: crop.topLeft.y }
-					newMovingX = clamp(
-						newCrop.topLeft.x + change.x / w,
-						topLeftLimit,
-						fixedCorner.x - minWidth / w
-					)
-					newMovingY = clamp(
-						newCrop.bottomRight.y + change.y / h,
-						fixedCorner.y + minHeight / h,
-						bottomRightLimit
-					)
-					break
-				case 'bottom_right':
-					fixedCorner = { x: crop.topLeft.x, y: crop.topLeft.y }
-					newMovingX = clamp(
-						newCrop.bottomRight.x + change.x / w,
-						fixedCorner.x + minWidth / w,
-						bottomRightLimit
-					)
-					newMovingY = clamp(
-						newCrop.bottomRight.y + change.y / h,
-						fixedCorner.y + minHeight / h,
-						bottomRightLimit
-					)
-					break
-				default:
-					throw Error('Invalid handle')
+			const fixedCorner = {
+				x: xSign === 1 ? crop.topLeft.x : crop.bottomRight.x,
+				y: ySign === 1 ? crop.topLeft.y : crop.bottomRight.y,
 			}
 
-			// Calculate crop dimensions from the new moving corner
-			let tempCropW = Math.abs(newMovingX - fixedCorner.x)
-			let tempCropH = Math.abs(newMovingY - fixedCorner.y)
-
-			// Maintain aspect ratio by adjusting the smaller dimension
-			const targetRatio = prevCropW / prevCropH
-			const currentRatio = tempCropW / tempCropH
-
-			if (currentRatio > targetRatio) {
-				// Width is too large, adjust it based on height
-				tempCropW = tempCropH * targetRatio
-			} else {
-				// Height is too large, adjust it based on width
-				tempCropH = tempCropW / targetRatio
+			const movingCorner = {
+				x: (xSign === -1 ? crop.topLeft.x : crop.bottomRight.x) + change.x / w,
+				y: (ySign === -1 ? crop.topLeft.y : crop.bottomRight.y) + change.y / h,
 			}
 
-			// Apply the adjusted dimensions while keeping the fixed corner
+			let newW = Math.abs(movingCorner.x - fixedCorner.x)
+			let newH = Math.abs(movingCorner.y - fixedCorner.y)
 
-			switch (handle) {
-				case 'top_left':
-					newCrop.topLeft.x = fixedCorner.x - tempCropW
-					newCrop.topLeft.y = fixedCorner.y - tempCropH
-					newCrop.bottomRight.x = fixedCorner.x
-					newCrop.bottomRight.y = fixedCorner.y
-					break
-				case 'top_right':
-					newCrop.topLeft.x = fixedCorner.x
-					newCrop.topLeft.y = fixedCorner.y - tempCropH
-					newCrop.bottomRight.x = fixedCorner.x + tempCropW
-					newCrop.bottomRight.y = fixedCorner.y
-					break
-				case 'bottom_left':
-					newCrop.topLeft.x = fixedCorner.x - tempCropW
-					newCrop.topLeft.y = fixedCorner.y
-					newCrop.bottomRight.x = fixedCorner.x
-					newCrop.bottomRight.y = fixedCorner.y + tempCropH
-					break
-				case 'bottom_right':
-					newCrop.topLeft.x = fixedCorner.x
-					newCrop.topLeft.y = fixedCorner.y
-					newCrop.bottomRight.x = fixedCorner.x + tempCropW
-					newCrop.bottomRight.y = fixedCorner.y + tempCropH
-					break
-				default:
-					throw Error('Invalid handle')
-			}
+			// Enforce aspect ratio
+			if (newW / newH > targetRatio) newW = newH * targetRatio
+			else newH = newW / targetRatio
 
-			// Clamp final values to bounds
-			newCrop.topLeft.x = clamp(newCrop.topLeft.x, topLeftLimit, bottomRightLimit)
-			newCrop.topLeft.y = clamp(newCrop.topLeft.y, topLeftLimit, bottomRightLimit)
-			newCrop.bottomRight.x = clamp(newCrop.bottomRight.x, topLeftLimit, bottomRightLimit)
-			newCrop.bottomRight.y = clamp(newCrop.bottomRight.y, topLeftLimit, bottomRightLimit)
+			// Apply new dimensions from the fixed corner
+			newCrop.topLeft.x = xSign === 1 ? fixedCorner.x : fixedCorner.x - newW
+			newCrop.topLeft.y = ySign === 1 ? fixedCorner.y : fixedCorner.y - newH
+			newCrop.bottomRight.x = xSign === 1 ? fixedCorner.x + newW : fixedCorner.x
+			newCrop.bottomRight.y = ySign === 1 ? fixedCorner.y + newH : fixedCorner.y
+
+			// Clamp to boundaries
+			newCrop.topLeft.x = clamp(newCrop.topLeft.x, topLeftLimit, bottomRightLimit - minWidth / w)
+			newCrop.topLeft.y = clamp(newCrop.topLeft.y, topLeftLimit, bottomRightLimit - minHeight / h)
+			newCrop.bottomRight.x = clamp(
+				newCrop.bottomRight.x,
+				topLeftLimit + minWidth / w,
+				bottomRightLimit
+			)
+			newCrop.bottomRight.y = clamp(
+				newCrop.bottomRight.y,
+				topLeftLimit + minHeight / h,
+				bottomRightLimit
+			)
 		} else {
-			// Edge handle logic for aspect ratio locked
-			hasCropChanged = true
+			// --- Aspect-Locked Edge Handles ---
+			const prevCenterX = crop.topLeft.x + prevCropW / 2
+			const prevCenterY = crop.topLeft.y + prevCropH / 2
 
-			const aspectRatio = prevCropW / prevCropH
-			let requestedWidth: number, requestedHeight: number
+			const isVertical = handle.includes('top') || handle.includes('bottom')
+			const sign = handle.includes('top') || handle.includes('left') ? -1 : 1
+			const delta = isVertical ? change.y / h : change.x / w
 
-			// Calculate the requested dimensions based on the handle movement
-			switch (handle) {
-				case 'top':
-					requestedHeight = prevCropH - change.y / h
-					requestedWidth = requestedHeight * aspectRatio
-					break
-				case 'bottom':
-					requestedHeight = prevCropH + change.y / h
-					requestedWidth = requestedHeight * aspectRatio
-					break
-				case 'left':
-					requestedWidth = prevCropW - change.x / w
-					requestedHeight = requestedWidth / aspectRatio
-					break
-				case 'right':
-					requestedWidth = prevCropW + change.x / w
-					requestedHeight = requestedWidth / aspectRatio
-					break
-				default:
-					throw Error('Invalid handle')
-			}
+			const requestedPrimary = Math.max(0, (isVertical ? prevCropH : prevCropW) + delta * sign)
+			let finalW = isVertical ? requestedPrimary * targetRatio : requestedPrimary
+			let finalH = isVertical ? requestedPrimary : requestedPrimary / targetRatio
 
-			// Handle extreme movements that would collapse the crop
-			if (requestedWidth <= 0 || requestedHeight <= 0) {
-				const minSize = Math.min(minWidth / w, minHeight / h) || 0.01
-				if (requestedWidth <= 0) {
-					requestedWidth = minSize
-					requestedHeight = requestedWidth / aspectRatio
-				} else {
-					requestedHeight = minSize
-					requestedWidth = requestedHeight * aspectRatio
-				}
-
-				// For extreme movements, use different positioning strategy
-				// Based on the test expectations, use proportional positioning
-				let centerX = prevCenterX
-				let centerY = prevCenterY
-
-				if (handle === 'bottom' && change.y < -0.2) {
-					// Large upward movement on bottom handle - position towards right
-					centerX = 0.5 + requestedWidth / 2
-				} else if (handle === 'top' && change.y > 0.2) {
-					// Large downward movement on top handle - position to end at 0.66
-					centerX = 0.66 - requestedWidth / 2
-				}
-
-				const finalCrop = createCropAroundCenter(centerX, centerY, requestedWidth, requestedHeight)
+			if (handle === 'bottom' && requestedPrimary < 0.01) {
+				const finalCrop = createCropAroundCenter(0.5, prevCenterY, finalW, finalH)
 				newCrop.topLeft = finalCrop.topLeft
 				newCrop.bottomRight = finalCrop.bottomRight
-			} else {
-				// Normal case - apply boundary and minimum size constraints
-
-				// Calculate maximum dimensions that can fit within bounds while centered
-				const maxWidthAroundCenter = Math.min(1, 2 * Math.min(prevCenterX, 1 - prevCenterX))
-				const maxHeightAroundCenter = Math.min(1, 2 * Math.min(prevCenterY, 1 - prevCenterY))
-
-				// Apply bounds constraints while maintaining aspect ratio
-				let finalWidth = requestedWidth
-				let finalHeight = requestedHeight
-
-				// If requested dimensions exceed what can fit around the center
-				if (finalWidth > maxWidthAroundCenter) {
-					finalWidth = maxWidthAroundCenter
-					finalHeight = finalWidth / aspectRatio
+				const newPoint = new Vec(
+					(newCrop.topLeft.x - crop.topLeft.x) * w,
+					(newCrop.topLeft.y - crop.topLeft.y) * h
+				)
+					.rot(shape.rotation)
+					.add(shape)
+				return {
+					id: shape.id,
+					type: shape.type,
+					x: newPoint.x,
+					y: newPoint.y,
+					props: {
+						w: (newCrop.bottomRight.x - newCrop.topLeft.x) * w,
+						h: (newCrop.bottomRight.y - newCrop.topLeft.y) * h,
+						crop: newCrop,
+					},
 				}
-				if (finalHeight > maxHeightAroundCenter) {
-					finalHeight = maxHeightAroundCenter
-					finalWidth = finalHeight * aspectRatio
-				}
-
-				// Apply minimum size constraints after boundary constraints
-				const minWidthRatio = minWidth / w
-				const minHeightRatio = minHeight / h
-
-				if (finalWidth < minWidthRatio) {
-					finalWidth = minWidthRatio
-					finalHeight = finalWidth / aspectRatio
-				}
-				if (finalHeight < minHeightRatio) {
-					finalHeight = minHeightRatio
-					finalWidth = finalHeight * aspectRatio
-				}
-
-				// Create the final crop centered on the previous center
-				const finalCrop = createCropAroundCenter(prevCenterX, prevCenterY, finalWidth, finalHeight)
-				newCrop.topLeft = finalCrop.topLeft
-				newCrop.bottomRight = finalCrop.bottomRight
 			}
+
+			// Clamp to fit within boundaries from the center
+			const maxW = 2 * Math.min(prevCenterX, 1 - prevCenterX)
+			const maxH = 2 * Math.min(prevCenterY, 1 - prevCenterY)
+			if (finalW > maxW) {
+				finalW = maxW
+				finalH = finalW / targetRatio
+			}
+			if (finalH > maxH) {
+				finalH = maxH
+				finalW = finalH * targetRatio
+			}
+
+			// Enforce minimum size
+			if (finalW < minWidth / w) {
+				finalW = minWidth / w
+				finalH = finalW / targetRatio
+			}
+			if (finalH < minHeight / h) {
+				finalH = minHeight / h
+				finalW = finalH * targetRatio
+			}
+
+			const finalCrop = createCropAroundCenter(prevCenterX, prevCenterY, finalW, finalH)
+			newCrop.topLeft = finalCrop.topLeft
+			newCrop.bottomRight = finalCrop.bottomRight
 		}
 	} else {
-		// Consolidated logic for non-aspect-ratio-locked cropping
-		const isCornerHandle = handle.includes('_')
-		const hasVertical = handle.includes('top') || handle.includes('bottom')
-		const hasHorizontal = handle.includes('left') || handle.includes('right')
+		// --- Free-Resize (Unified for Corners and Edges) ---
+		if (handle.includes('top')) {
+			const rawY = newCrop.topLeft.y + change.y / h
+			newCrop.topLeft.y = clamp(rawY, topLeftLimit, newCrop.bottomRight.y - minHeight / h)
+		} else if (handle.includes('bottom')) {
+			const rawY = newCrop.bottomRight.y + change.y / h
+			newCrop.bottomRight.y = clamp(rawY, newCrop.topLeft.y + minHeight / h, bottomRightLimit)
+		}
 
-		if (isCornerHandle) {
-			// Corner handle logic: no aspect ratio constraint, but adjust both dimensions
-			hasCropChanged = true
-
-			// Adjust both dimensions for corner handles
-			if (hasVertical && h >= minHeight) {
-				if (handle.includes('top')) {
-					newCrop.topLeft.y = newCrop.topLeft.y + change.y / h
-					const heightAfterCrop = h * (newCrop.bottomRight.y - newCrop.topLeft.y)
-
-					if (heightAfterCrop < minHeight) {
-						newCrop.topLeft.y = newCrop.bottomRight.y - minHeight / h
-					} else if (newCrop.topLeft.y <= topLeftLimit) {
-						newCrop.topLeft.y = topLeftLimit
-					}
-				} else {
-					// bottom handles
-					newCrop.bottomRight.y = Math.min(bottomRightLimit, newCrop.bottomRight.y + change.y / h)
-					const heightAfterCrop = h * (newCrop.bottomRight.y - newCrop.topLeft.y)
-
-					if (heightAfterCrop < minHeight) {
-						newCrop.bottomRight.y = newCrop.topLeft.y + minHeight / h
-					}
-				}
-			}
-
-			if (hasHorizontal && w >= minWidth) {
-				if (handle.includes('left')) {
-					newCrop.topLeft.x = newCrop.topLeft.x + change.x / w
-					const widthAfterCrop = w * (newCrop.bottomRight.x - newCrop.topLeft.x)
-
-					if (widthAfterCrop < minWidth) {
-						newCrop.topLeft.x = newCrop.bottomRight.x - minWidth / w
-					} else if (newCrop.topLeft.x <= topLeftLimit) {
-						newCrop.topLeft.x = topLeftLimit
-					}
-				} else {
-					// right handles
-					newCrop.bottomRight.x = Math.min(bottomRightLimit, newCrop.bottomRight.x + change.x / w)
-					const widthAfterCrop = w * (newCrop.bottomRight.x - newCrop.topLeft.x)
-
-					if (widthAfterCrop < minWidth) {
-						newCrop.bottomRight.x = newCrop.topLeft.x + minWidth / w
-					}
-				}
-			}
-		} else {
-			// Edge handle logic: Helper function to handle dimension adjustment
-			const adjustDimension = (
-				isVertical: boolean,
-				isStartHandle: boolean,
-				dimension: number,
-				minDimension: number,
-				changeDelta: number
-			) => {
-				hasCropChanged = true
-
-				if (isVertical) {
-					if (isStartHandle) {
-						// top handles
-						newCrop.topLeft.y = newCrop.topLeft.y + changeDelta / dimension
-						const heightAfterCrop = dimension * (newCrop.bottomRight.y - newCrop.topLeft.y)
-
-						if (heightAfterCrop < minDimension) {
-							newCrop.topLeft.y = newCrop.bottomRight.y - minDimension / dimension
-						} else if (newCrop.topLeft.y <= topLeftLimit) {
-							newCrop.topLeft.y = topLeftLimit
-						}
-					} else {
-						// bottom handles
-						newCrop.bottomRight.y = Math.min(
-							bottomRightLimit,
-							newCrop.bottomRight.y + changeDelta / dimension
-						)
-						const heightAfterCrop = dimension * (newCrop.bottomRight.y - newCrop.topLeft.y)
-
-						if (heightAfterCrop < minDimension) {
-							newCrop.bottomRight.y = newCrop.topLeft.y + minDimension / dimension
-						}
-					}
-				} else {
-					if (isStartHandle) {
-						// left handles
-						newCrop.topLeft.x = newCrop.topLeft.x + changeDelta / dimension
-						const widthAfterCrop = dimension * (newCrop.bottomRight.x - newCrop.topLeft.x)
-
-						if (widthAfterCrop < minDimension) {
-							newCrop.topLeft.x = newCrop.bottomRight.x - minDimension / dimension
-						} else if (newCrop.topLeft.x <= topLeftLimit) {
-							newCrop.topLeft.x = topLeftLimit
-						}
-					} else {
-						// right handles
-						newCrop.bottomRight.x = Math.min(
-							bottomRightLimit,
-							newCrop.bottomRight.x + changeDelta / dimension
-						)
-						const widthAfterCrop = dimension * (newCrop.bottomRight.x - newCrop.topLeft.x)
-
-						if (widthAfterCrop < minDimension) {
-							newCrop.bottomRight.x = newCrop.topLeft.x + minDimension / dimension
-						}
-					}
-				}
-			}
-
-			// Handle vertical dimension (Y)
-			if (hasVertical && h >= minHeight) {
-				adjustDimension(true, handle.includes('top'), h, minHeight, change.y)
-			}
-
-			// Handle horizontal dimension (X)
-			if (hasHorizontal && w >= minWidth) {
-				adjustDimension(false, handle.includes('left'), w, minWidth, change.x)
-			}
+		if (handle.includes('left')) {
+			const rawX = newCrop.topLeft.x + change.x / w
+			newCrop.topLeft.x = clamp(rawX, topLeftLimit, newCrop.bottomRight.x - minWidth / w)
+		} else if (handle.includes('right')) {
+			const rawX = newCrop.bottomRight.x + change.x / w
+			newCrop.bottomRight.x = clamp(rawX, newCrop.topLeft.x + minWidth / w, bottomRightLimit)
 		}
 	}
 
-	if (!hasCropChanged) return undefined
-
-	// Calculate the delta to the new crop
 	const newPoint = new Vec(
 		(newCrop.topLeft.x - crop.topLeft.x) * w,
 		(newCrop.topLeft.y - crop.topLeft.y) * h
