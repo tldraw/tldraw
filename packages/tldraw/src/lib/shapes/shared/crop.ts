@@ -120,9 +120,16 @@ export function getCropBox<T extends ShapeWithCrop>(
 			props: ShapeWithCrop['props']
 	  }
 	| undefined {
-	const { handle, change, crop, aspectRatioLocked } = info
+	const { handle, change, crop, aspectRatioLocked: infoAspectRatioLocked } = info
 	const { w, h } = info.uncroppedSize
-	const { minWidth = MIN_CROP_SIZE, minHeight = MIN_CROP_SIZE } = opts
+	const {
+		minWidth = MIN_CROP_SIZE,
+		minHeight = MIN_CROP_SIZE,
+		aspectRatioLocked: optsAspectRatioLocked,
+	} = opts
+
+	// info.aspectRatioLocked takes precedence over opts.aspectRatioLocked
+	const aspectRatioLocked = infoAspectRatioLocked ?? optsAspectRatioLocked ?? false
 
 	// Early check: if current dimensions are smaller than minimum requirements, return undefined
 	if (w < minWidth || h < minHeight) {
@@ -148,83 +155,70 @@ export function getCropBox<T extends ShapeWithCrop>(
 		const isCornerHandle = handle.includes('_')
 
 		if (isCornerHandle) {
+			// Calculate new moving corner position
+			let newMovingX: number, newMovingY: number
+
 			// Corner handle logic: keep opposite corner fixed
 			hasCropChanged = true
 
 			// Determine which corner is being dragged and its opposite
-			let fixedCorner: { x: number; y: number }
-			let movingCorner: 'topLeft' | 'bottomRight'
+			let fixedCorner = { x: crop.bottomRight.x, y: crop.bottomRight.y }
 
 			switch (handle) {
 				case 'top_left':
 					fixedCorner = { x: crop.bottomRight.x, y: crop.bottomRight.y }
-					movingCorner = 'topLeft'
+					newMovingX = clamp(
+						newCrop.topLeft.x + change.x / w,
+						topLeftLimit,
+						fixedCorner.x - minWidth / w
+					)
+					newMovingY = clamp(
+						newCrop.topLeft.y + change.y / h,
+						topLeftLimit,
+						fixedCorner.y - minHeight / h
+					)
 					break
 				case 'top_right':
 					fixedCorner = { x: crop.topLeft.x, y: crop.bottomRight.y }
-					movingCorner = 'topLeft' // We'll adjust this logic below
+					newMovingX = clamp(
+						newCrop.bottomRight.x + change.x / w,
+						fixedCorner.x + minWidth / w,
+						bottomRightLimit
+					)
+					newMovingY = clamp(
+						newCrop.topLeft.y + change.y / h,
+						topLeftLimit,
+						fixedCorner.y - minHeight / h
+					)
 					break
 				case 'bottom_left':
 					fixedCorner = { x: crop.bottomRight.x, y: crop.topLeft.y }
-					movingCorner = 'topLeft' // We'll adjust this logic below
+					newMovingX = clamp(
+						newCrop.topLeft.x + change.x / w,
+						topLeftLimit,
+						fixedCorner.x - minWidth / w
+					)
+					newMovingY = clamp(
+						newCrop.bottomRight.y + change.y / h,
+						fixedCorner.y + minHeight / h,
+						bottomRightLimit
+					)
 					break
 				case 'bottom_right':
 					fixedCorner = { x: crop.topLeft.x, y: crop.topLeft.y }
-					movingCorner = 'bottomRight'
+					newMovingX = clamp(
+						newCrop.bottomRight.x + change.x / w,
+						fixedCorner.x + minWidth / w,
+						bottomRightLimit
+					)
+					newMovingY = clamp(
+						newCrop.bottomRight.y + change.y / h,
+						fixedCorner.y + minHeight / h,
+						bottomRightLimit
+					)
 					break
 				default:
-					fixedCorner = { x: crop.bottomRight.x, y: crop.bottomRight.y }
-					movingCorner = 'topLeft'
-			}
-
-			// Calculate new moving corner position
-			let newMovingX: number, newMovingY: number
-
-			if (handle === 'top_left') {
-				newMovingX = clamp(
-					newCrop.topLeft.x + change.x / w,
-					topLeftLimit,
-					fixedCorner.x - minWidth / w
-				)
-				newMovingY = clamp(
-					newCrop.topLeft.y + change.y / h,
-					topLeftLimit,
-					fixedCorner.y - minHeight / h
-				)
-			} else if (handle === 'top_right') {
-				newMovingX = clamp(
-					newCrop.bottomRight.x + change.x / w,
-					fixedCorner.x + minWidth / w,
-					bottomRightLimit
-				)
-				newMovingY = clamp(
-					newCrop.topLeft.y + change.y / h,
-					topLeftLimit,
-					fixedCorner.y - minHeight / h
-				)
-			} else if (handle === 'bottom_left') {
-				newMovingX = clamp(
-					newCrop.topLeft.x + change.x / w,
-					topLeftLimit,
-					fixedCorner.x - minWidth / w
-				)
-				newMovingY = clamp(
-					newCrop.bottomRight.y + change.y / h,
-					fixedCorner.y + minHeight / h,
-					bottomRightLimit
-				)
-			} else {
-				// bottom_right
-				newMovingX = clamp(
-					newCrop.bottomRight.x + change.x / w,
-					fixedCorner.x + minWidth / w,
-					bottomRightLimit
-				)
-				newMovingY = clamp(
-					newCrop.bottomRight.y + change.y / h,
-					fixedCorner.y + minHeight / h,
-					bottomRightLimit
-				)
+					throw Error('Invalid handle')
 			}
 
 			// Calculate crop dimensions from the new moving corner
@@ -244,27 +238,34 @@ export function getCropBox<T extends ShapeWithCrop>(
 			}
 
 			// Apply the adjusted dimensions while keeping the fixed corner
-			if (handle === 'top_left') {
-				newCrop.topLeft.x = fixedCorner.x - tempCropW
-				newCrop.topLeft.y = fixedCorner.y - tempCropH
-				newCrop.bottomRight.x = fixedCorner.x
-				newCrop.bottomRight.y = fixedCorner.y
-			} else if (handle === 'top_right') {
-				newCrop.topLeft.x = fixedCorner.x
-				newCrop.topLeft.y = fixedCorner.y - tempCropH
-				newCrop.bottomRight.x = fixedCorner.x + tempCropW
-				newCrop.bottomRight.y = fixedCorner.y
-			} else if (handle === 'bottom_left') {
-				newCrop.topLeft.x = fixedCorner.x - tempCropW
-				newCrop.topLeft.y = fixedCorner.y
-				newCrop.bottomRight.x = fixedCorner.x
-				newCrop.bottomRight.y = fixedCorner.y + tempCropH
-			} else {
-				// bottom_right
-				newCrop.topLeft.x = fixedCorner.x
-				newCrop.topLeft.y = fixedCorner.y
-				newCrop.bottomRight.x = fixedCorner.x + tempCropW
-				newCrop.bottomRight.y = fixedCorner.y + tempCropH
+
+			switch (handle) {
+				case 'top_left':
+					newCrop.topLeft.x = fixedCorner.x - tempCropW
+					newCrop.topLeft.y = fixedCorner.y - tempCropH
+					newCrop.bottomRight.x = fixedCorner.x
+					newCrop.bottomRight.y = fixedCorner.y
+					break
+				case 'top_right':
+					newCrop.topLeft.x = fixedCorner.x
+					newCrop.topLeft.y = fixedCorner.y - tempCropH
+					newCrop.bottomRight.x = fixedCorner.x + tempCropW
+					newCrop.bottomRight.y = fixedCorner.y
+					break
+				case 'bottom_left':
+					newCrop.topLeft.x = fixedCorner.x - tempCropW
+					newCrop.topLeft.y = fixedCorner.y
+					newCrop.bottomRight.x = fixedCorner.x
+					newCrop.bottomRight.y = fixedCorner.y + tempCropH
+					break
+				case 'bottom_right':
+					newCrop.topLeft.x = fixedCorner.x
+					newCrop.topLeft.y = fixedCorner.y
+					newCrop.bottomRight.x = fixedCorner.x + tempCropW
+					newCrop.bottomRight.y = fixedCorner.y + tempCropH
+					break
+				default:
+					throw Error('Invalid handle')
 			}
 
 			// Clamp final values to bounds
@@ -273,7 +274,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 			newCrop.bottomRight.x = clamp(newCrop.bottomRight.x, topLeftLimit, bottomRightLimit)
 			newCrop.bottomRight.y = clamp(newCrop.bottomRight.y, topLeftLimit, bottomRightLimit)
 		} else {
-			// Edge handle logic (existing code)
+			// Edge handle logic
 			const isVertical = handle === 'top' || handle === 'bottom'
 			const isStart = handle === 'top' || handle === 'left'
 			const dimension = isVertical ? h : w
