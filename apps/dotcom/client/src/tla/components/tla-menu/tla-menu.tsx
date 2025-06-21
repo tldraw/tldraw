@@ -159,7 +159,9 @@ export function TlaMenuSelect<T extends string>({
 					aria-label={label}
 					data-testid={dataTestId}
 				>
-					<_Select.Value className={styles.menuSelectLabel} placeholder={label} />
+					<_Select.Value asChild>
+						<div className={styles.menuSelectLabel}>{label}</div>
+					</_Select.Value>
 					<_Select.Icon>
 						<TlaIcon icon="chevron-down" className={styles.menuSelectChevron} />
 					</_Select.Icon>
@@ -172,10 +174,10 @@ export function TlaMenuSelect<T extends string>({
 								className={styles.menuSelectOption}
 								value={option.value}
 							>
-								<_Select.ItemText>{option.label}</_Select.ItemText>
 								<_Select.ItemIndicator>
 									<TlaIcon icon="check" />
 								</_Select.ItemIndicator>
+								<_Select.ItemText>{option.label}</_Select.ItemText>
 							</_Select.Item>
 						))}
 					</_Select.Viewport>

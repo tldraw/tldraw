@@ -51,3 +51,9 @@
 	border-radius: 8px;
 	z-index: 1;
 }
+
+@media (hover: hover) {
+	.ctaButton:hover::before {
+		background-color: var(--tla-color-cta-hover);
+	}
+}
