@@ -6,10 +6,10 @@ import {
 	applyRotationToSnapshotShapes,
 	degreesToRadians,
 	getRotationSnapshot,
+	kickoutOccludedShapes,
 	shortAngleDist,
 	snapAngle,
 } from '@tldraw/editor'
-import { kickoutOccludedShapes } from '../selectHelpers'
 import { CursorTypeMap } from './PointingResizeHandle'
 
 const ONE_DEGREE = Math.PI / 180

@@ -1450,11 +1450,11 @@ export class FrameShapeTool extends BaseBoxShapeTool {
 // @public (undocumented)
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
-    canDropShapes(shape: TLFrameShape, _shapes: TLShape[]): boolean;
+    canDropShape(shape: TLShape): boolean;
+    // (undocumented)
+    canDropShapes(shape: TLFrameShape): boolean;
     // (undocumented)
     canEdit(): boolean;
-    // (undocumented)
-    canReceiveNewChildrenOfType(shape: TLShape, _type: TLShape['type']): boolean;
     // (undocumented)
     canResize(): boolean;
     // (undocumented)
@@ -1493,10 +1493,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
         };
         type: "frame";
     } | undefined;
-    // (undocumented)
-    onDragShapesOut(_shape: TLFrameShape, shapes: TLShape[]): void;
-    // (undocumented)
-    onDragShapesOver(frame: TLFrameShape, shapes: TLShape[]): void;
     // (undocumented)
     onResize(shape: any, info: TLResizeInfo<any>): any;
     // (undocumented)
@@ -1701,9 +1697,6 @@ export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl
 // @public (undocumented)
 export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean, maxImageDimension?: number): Promise<TLImageAsset | TLVideoAsset>;
 
-// @public (undocumented)
-export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];
-
 // @public
 export function getUncroppedSize(shapeSize: {
     h: number;
@@ -1852,9 +1845,6 @@ export const KeyboardShiftEnterTweakExtension: Extension<any, any>;
 
 // @public (undocumented)
 export function KeyboardShortcutsMenuItem(): JSX_2.Element | null;
-
-// @internal (undocumented)
-export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]): void;
 
 // @public (undocumented)
 export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;

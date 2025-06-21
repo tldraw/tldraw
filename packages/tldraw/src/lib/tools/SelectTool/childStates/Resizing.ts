@@ -19,8 +19,8 @@ import {
 	areAnglesCompatible,
 	compact,
 	isAccelKey,
+	kickoutOccludedShapes,
 } from '@tldraw/editor'
-import { kickoutOccludedShapes } from '../selectHelpers'
 
 export type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'

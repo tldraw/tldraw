@@ -1,6 +1,12 @@
-import { SelectionHandle, ShapeWithCrop, StateNode, TLPointerEventInfo, Vec } from '@tldraw/editor'
+import {
+	SelectionHandle,
+	ShapeWithCrop,
+	StateNode,
+	TLPointerEventInfo,
+	Vec,
+	kickoutOccludedShapes,
+} from '@tldraw/editor'
 import { getCropBox, getDefaultCrop, getUncroppedSize } from '../../../../../shapes/shared/crop'
-import { kickoutOccludedShapes } from '../../../selectHelpers'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
 type Snapshot = ReturnType<Cropping['createSnapshot']>

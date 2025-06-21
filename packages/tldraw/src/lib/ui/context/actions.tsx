@@ -19,11 +19,11 @@ import {
 	approximately,
 	compact,
 	createShapeId,
+	kickoutOccludedShapes,
 	openWindow,
 	useMaybeEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
-import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
