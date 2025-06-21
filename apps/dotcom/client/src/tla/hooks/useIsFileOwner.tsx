@@ -7,8 +7,7 @@ export function useIsFileOwner(fileId?: string): boolean {
 		'isOwner',
 		() => {
 			if (!fileId) return false
-			const ownerId = app?.getFile(fileId)?.ownerId
-			return ownerId ? ownerId === app.userId : false
+			return app?.canUpdateFile(fileId) ?? false
 		},
 		[app, fileId]
 	)
