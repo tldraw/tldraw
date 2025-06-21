@@ -13,8 +13,8 @@ type AgGridShape = TLBaseShape<
 class AgGridShapeUtil extends BaseBoxShapeUtil<AgGridShape> {
 	static override type = 'ag-grid'
 
-	override canScroll(): boolean {
-		return true
+	override canScroll(shape: AgGridShape): boolean {
+		return this.editor.getEditingShapeId() === shape.id
 	}
 
 	override canEdit(): boolean {

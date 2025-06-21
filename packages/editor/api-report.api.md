@@ -857,6 +857,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 currentPagePoint: Vec;
                 previousScreenPoint: Vec;
                 previousPagePoint: Vec;
+                cameraVelocity: Vec;
                 pointerVelocity: Vec;
                 altKey: boolean;
                 ctrlKey: boolean;
@@ -1328,6 +1329,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         currentPagePoint: Vec;
         previousScreenPoint: Vec;
         previousPagePoint: Vec;
+        cameraVelocity: Vec;
         pointerVelocity: Vec;
         altKey: boolean;
         ctrlKey: boolean;
