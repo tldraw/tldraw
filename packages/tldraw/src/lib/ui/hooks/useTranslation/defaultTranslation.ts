@@ -288,6 +288,7 @@ export const DEFAULT_TRANSLATION = {
 	'a11y.shrink-shape': 'Shrink shape',
 	'a11y.pan-camera': 'Pan camera',
 	'a11y.adjust-shape-styles': 'Adjust shape styles',
+	'a11y.open-context-menu': 'Open context menu',
 	'menu.title': 'Menu',
 	'menu.theme': 'Theme',
 	'menu.copy-as': 'Copy as',
