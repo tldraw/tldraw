@@ -18,6 +18,7 @@ import {
 	getDefaultCrop,
 	MAX_ZOOM,
 } from '../../../shapes/shared/crop'
+import { kickoutOccludedShapes } from '../../../tools/SelectTool/selectHelpers'
 import { useActions } from '../../context/actions'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -142,21 +143,23 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const handleAspectRatioChange = (aspectRatio: ASPECT_RATIO_OPTION) => {
 		const imageShape = editor.getShape<TLImageShape>(imageShapeId)
 		if (!imageShape) return
-		editor.setCurrentTool('select.crop.idle')
-		const change = getCroppedImageDataForAspectRatio(aspectRatio, imageShape)
-
-		editor.markHistoryStoppingPoint('aspect ratio')
-		editor.updateShape({
-			id: imageShapeId,
-			type: 'image',
-			x: change.x,
-			y: change.y,
-			props: {
-				crop: change.crop,
-				w: change.w,
-				h: change.h,
-			},
-		} as TLShapePartial)
+		editor.run(() => {
+			editor.setCurrentTool('select.crop.idle')
+			const change = getCroppedImageDataForAspectRatio(aspectRatio, imageShape)
+			editor.markHistoryStoppingPoint('aspect ratio')
+			editor.updateShape({
+				id: imageShapeId,
+				type: 'image',
+				x: change.x,
+				y: change.y,
+				props: {
+					crop: change.crop,
+					w: change.w,
+					h: change.h,
+				},
+			} as TLShapePartial)
+			kickoutOccludedShapes(editor, [imageShapeId])
+		})
 	}
 
 	const altText = useValue(
