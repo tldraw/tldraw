@@ -7,7 +7,6 @@ import {
 	TLShapeId,
 	Vec,
 	clamp,
-	structuredClone,
 } from '@tldraw/editor'
 
 /** @internal */
@@ -127,8 +126,6 @@ export function getCropBox<T extends ShapeWithCrop>(
 	if (w < minWidth || h < minHeight || (change.x === 0 && change.y === 0)) {
 		return
 	}
-
-	const newCrop = structuredClone(crop)
 
 	const prevCropBox = new Box(
 		crop.topLeft.x * w,
@@ -320,21 +317,12 @@ export function getCropBox<T extends ShapeWithCrop>(
 		}
 	}
 
-	newCrop.topLeft.x = tempBox.x / w
-	newCrop.topLeft.y = tempBox.y / h
-	newCrop.bottomRight.x = tempBox.maxX / w
-	newCrop.bottomRight.y = tempBox.maxY / h
-
-	const newPoint = new Vec(
-		(newCrop.topLeft.x - crop.topLeft.x) * w,
-		(newCrop.topLeft.y - crop.topLeft.y) * h
-	)
-		.rot(shape.rotation)
-		.add(shape)
+	const newCrop: TLShapeCrop = {
+		topLeft: { x: tempBox.x / w, y: tempBox.y / h },
+		bottomRight: { x: tempBox.maxX / w, y: tempBox.maxY / h },
+	}
 
 	const hasCropChanged = !(
-		shape.x === newPoint.x &&
-		shape.y === newPoint.y &&
 		newCrop.topLeft.x === crop.topLeft.x &&
 		newCrop.topLeft.y === crop.topLeft.y &&
 		newCrop.bottomRight.x === crop.bottomRight.x &&
@@ -344,6 +332,10 @@ export function getCropBox<T extends ShapeWithCrop>(
 	if (!hasCropChanged) {
 		return
 	}
+
+	const newPoint = new Vec(tempBox.x - crop.topLeft.x * w, tempBox.y - crop.topLeft.y * h)
+		.rot(shape.rotation)
+		.add(shape)
 
 	return {
 		id: shape.id,
