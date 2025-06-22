@@ -17,7 +17,6 @@ export const MIN_CROP_SIZE = 8
 export interface CropBoxOptions {
 	minWidth?: number
 	minHeight?: number
-	resizeFromCenter?: boolean
 	aspectRatioLocked?: boolean
 }
 
@@ -127,7 +126,6 @@ export function getCropBox<T extends ShapeWithCrop>(
 	const {
 		minWidth = MIN_CROP_SIZE,
 		minHeight = MIN_CROP_SIZE,
-		resizeFromCenter = false,
 		aspectRatioLocked: optsAspectRatioLocked,
 	} = opts
 
@@ -163,11 +161,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 		const tempBottom = clamp(tempBox.maxY + change.y, prevCropBox.y + minHeight, h)
 		tempBox.h = tempBottom - tempBox.y
 	}
-
-	if (resizeFromCenter) {
-		tempBox.x -= (tempBox.w - prevCropBox.w) / 2
-		tempBox.y -= (tempBox.h - prevCropBox.h) / 2
-	} else if (aspectRatioLocked) {
+	if (aspectRatioLocked) {
 		const isXLimiting = tempBox.aspectRatio > targetRatio
 
 		if (isXLimiting) {

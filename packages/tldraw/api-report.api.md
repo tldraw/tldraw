@@ -535,8 +535,6 @@ export interface CropBoxOptions {
     minHeight?: number;
     // (undocumented)
     minWidth?: number;
-    // (undocumented)
-    resizeFromCenter?: boolean;
 }
 
 // @internal (undocumented)
