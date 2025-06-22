@@ -92,6 +92,7 @@ export const cssRules = {
 	widows: isInherited,
 	'word-break': isInherited,
 	'word-spacing': isInherited,
+	'word-wrap': isInherited,
 
 	// special border cases - we have a weird case (tailwind seems to trigger this) where all
 	// border-styles sometimes get set to 'solid', but the border-width is 0 so they don't render.

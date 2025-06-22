@@ -666,41 +666,30 @@ input,
 	white-space: pre-wrap;
 	line-break: normal;
 	word-spacing: 0px;
+	word-wrap: break-word;
 	writing-mode: horizontal-tb !important;
 }
 
 .tl-text-measure {
 	position: absolute;
+	z-index: var(--layer-canvas-hidden);
+	top: 0px;
+	left: 0px;
+	opacity: 0;
 	width: max-content;
 	box-sizing: border-box;
+	pointer-events: none;
 	white-space: pre-wrap;
+	word-wrap: break-word;
 	overflow-wrap: break-word;
 	resize: none;
 	border: none;
 	user-select: none;
 	contain: style paint;
+	visibility: hidden;
 	/* N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers") is necessary for ensuring correct mixed RTL/LTR behavior when exporting SVGs. */
 	unicode-bidi: plaintext;
 	-webkit-user-select: none;
-	/* debug will override these: */
-	top: 0px;
-	left: 0px;
-	opacity: 0;
-	visibility: hidden;
-	pointer-events: none;
-	z-index: var(--layer-canvas-hidden);
-	-webkit-font-variant-ligatures: inherit;
-	font-variant-ligatures: inherit;
-	font-feature-settings: inherit;
-}
-
-.tl-text-measure__debug {
-	z-index: 99999999;
-	opacity: 1;
-	visibility: visible;
-	top: 60px;
-	left: 10px;
-	pointer-events: all;
 }
 
 .tl-text-input,
@@ -848,6 +837,7 @@ input,
 }
 
 .tl-rich-text .ProseMirror {
+	word-wrap: break-word;
 	overflow-wrap: break-word;
 	white-space: pre-wrap;
 
@@ -889,7 +879,6 @@ input,
 	margin: 0;
 	/* Depending on the extensions, <p> tags can be empty, without a <br />. */
 	min-height: 1lh;
-	overflow-wrap: inherit;
 }
 
 .tl-rich-text ul,
